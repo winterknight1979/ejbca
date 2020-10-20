@@ -16,146 +16,184 @@ import java.io.Serializable;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateParsingException;
-
 import org.cesecore.util.CertTools;
 
 /**
- * 
- * Wrapper class for returning cloned specific CertificateData and Base64CertData objects. 
- * 
- * @version $Id: CertificateDataWrapper.java 30355 2018-11-01 15:54:35Z samuellb $
+ * Wrapper class for returning cloned specific CertificateData and
+ * Base64CertData objects.
  *
+ * @version $Id: CertificateDataWrapper.java 30355 2018-11-01 15:54:35Z samuellb
+ *     $
  */
-public class CertificateDataWrapper implements CertificateWrapper, Comparable&lt;CertificateDataWrapper&gt;, Serializable {
+public class CertificateDataWrapper
+    implements CertificateWrapper,
+        Comparable&lt;CertificateDataWrapper&gt;,
+        Serializable {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
+/** Data. */
+  private final BaseCertificateData certificateData;
+  /** Dara. */
+  private final Base64CertData base64CertData;
+  /** Bytes. */
+  private final byte[] certificateBytes;
+  /**
+   * Cert. */
+<span class="pc" id="L42">  private transient Certificate certificate = null;</span>
 
-    private final BaseCertificateData certificateData;
-    private final Base64CertData base64CertData;
-    private final byte[] certificateBytes;
-<span class="pc" id="L36">    private transient Certificate certificate = null;</span>
-
-<span class="fc" id="L38">    public CertificateDataWrapper(final Certificate certificate, final CertificateData certificateData, final Base64CertData base64CertData) {</span>
-<span class="fc" id="L39">        this.certificate = certificate;</span>
-<span class="pc bpc" id="L40" title="1 of 2 branches missed.">        if (certificate==null) {</span>
-<span class="fc" id="L41">            this.certificateBytes = null;</span>
-        } else {
-            try {
-<span class="nc" id="L44">                this.certificateBytes = certificate.getEncoded();</span>
-<span class="nc" id="L45">            } catch (CertificateEncodingException e) {</span>
-<span class="nc" id="L46">                throw new IllegalStateException(e);</span>
-<span class="nc" id="L47">            }</span>
-        }
-<span class="pc bpc" id="L49" title="1 of 2 branches missed.">        if (certificateData != null) {</span>
-<span class="fc" id="L50">            this.certificateData = new CertificateData(certificateData);</span>
-        } else {
-<span class="nc" id="L52">            this.certificateData = null;</span>
-        }
-<span class="pc bpc" id="L54" title="1 of 2 branches missed.">        if (base64CertData != null) {</span>
-<span class="fc" id="L55">            this.base64CertData = new Base64CertData(base64CertData);</span>
-        } else {
-<span class="nc" id="L57">            this.base64CertData = null;</span>
-        }
-<span class="fc" id="L59">    }</span>
-
-<span class="fc" id="L61">    public CertificateDataWrapper(final CertificateData certificateData, final Base64CertData base64CertData) {</span>
-<span class="fc" id="L62">        this.certificate = certificateData.getCertificate(base64CertData);</span>
-<span class="pc bpc" id="L63" title="1 of 2 branches missed.">        if (certificate==null) {</span>
-<span class="fc" id="L64">            this.certificateBytes = null;</span>
-        } else {
-            try {
-<span class="nc" id="L67">                this.certificateBytes = certificate.getEncoded();</span>
-<span class="nc" id="L68">            } catch (CertificateEncodingException e) {</span>
-<span class="nc" id="L69">                throw new IllegalStateException(e);</span>
-<span class="nc" id="L70">            }</span>
-        }
-<span class="fc" id="L72">        this.certificateData = new CertificateData(certificateData);</span>
-<span class="pc bpc" id="L73" title="1 of 2 branches missed.">        if (base64CertData != null) {</span>
-<span class="nc" id="L74">            this.base64CertData = new Base64CertData(base64CertData);</span>
-        } else {
-<span class="fc" id="L76">            this.base64CertData = null;</span>
-        }
-<span class="fc" id="L78">    }</span>
-    
-<span class="nc" id="L80">    public CertificateDataWrapper(final NoConflictCertificateData noConflictCertData) {</span>
-<span class="nc" id="L81">        this.certificateData = noConflictCertData;</span>
-<span class="nc" id="L82">        this.certificateBytes = null;</span>
-<span class="nc" id="L83">        this.base64CertData = null;</span>
-<span class="nc" id="L84">    }</span>
-    
-    /**
-     * @return the BaseCertificateData entity object, may be CertificateData or NoConflictCertificateData entity object.
-     * 
-     * Note that the NoConflictCertificateData table is append only, so no updates to existing objects!
-     */
-    public BaseCertificateData getBaseCertificateData() {
-<span class="nc" id="L92">        return certificateData;</span>
+  /**
+   * @param theCertificate Cert
+   * @param theCertificateData Data
+   * @param theBase64CertData B64
+   */
+  public CertificateDataWrapper(
+      final Certificate theCertificate,
+      final CertificateData theCertificateData,
+<span class="fc" id="L52">      final Base64CertData theBase64CertData) {</span>
+<span class="fc" id="L53">    this.certificate = theCertificate;</span>
+<span class="pc bpc" id="L54" title="1 of 2 branches missed.">    if (theCertificate == null) {</span>
+<span class="fc" id="L55">      this.certificateBytes = null;</span>
+    } else {
+      try {
+<span class="nc" id="L58">        this.certificateBytes = theCertificate.getEncoded();</span>
+<span class="nc" id="L59">      } catch (CertificateEncodingException e) {</span>
+<span class="nc" id="L60">        throw new IllegalStateException(e);</span>
+<span class="nc" id="L61">      }</span>
     }
-
-    /**
-     * Returns the CertificateData entity object, or throws if the certificate is stored in NoConflictCertificateData
-     * @return CertificateData object. Do not modify the returned object! Modifications might not be written back to the database.
-     * @throws ClassCastException If certificate is stored in NoConflictCertificateData
-     */
-    public CertificateData getCertificateData() {
-<span class="fc" id="L101">        return (CertificateData) certificateData;</span>
+<span class="pc bpc" id="L63" title="1 of 2 branches missed.">    if (theCertificateData != null) {</span>
+<span class="fc" id="L64">      this.certificateData = new CertificateData(theCertificateData);</span>
+    } else {
+<span class="nc" id="L66">      this.certificateData = null;</span>
     }
-    
-    /**
-     * Returns the CertificateData object, or a copy converted to CertificateData, if it was a NoConflictCertificateData entity object.
-     * @return CertificateData object. Do not modify the returned object! Modifications might not be written back to the database.
-     */
-    public CertificateData getCertificateDataOrCopy() {
-<span class="nc bnc" id="L109" title="All 2 branches missed.">        if (certificateData instanceof CertificateData) {</span>
-<span class="nc" id="L110">            return (CertificateData) certificateData;</span>
-<span class="nc bnc" id="L111" title="All 2 branches missed.">        } else if (certificateData instanceof NoConflictCertificateData) {</span>
-<span class="nc" id="L112">            return new CertificateData(certificateData); </span>
-        } else {
-<span class="nc" id="L114">            throw new IllegalStateException(&quot;Unexpected subclass&quot;);</span>
-        }
+<span class="pc bpc" id="L68" title="1 of 2 branches missed.">    if (theBase64CertData != null) {</span>
+<span class="fc" id="L69">      this.base64CertData = new Base64CertData(theBase64CertData);</span>
+    } else {
+<span class="nc" id="L71">      this.base64CertData = null;</span>
     }
+<span class="fc" id="L73">  }</span>
 
-    public Base64CertData getBase64CertData() {
-<span class="nc" id="L119">        return base64CertData;</span>
+  /**
+   * @param theCertificateData Data
+   * @param theBase64CertData Data
+   */
+  public CertificateDataWrapper(
+      final CertificateData theCertificateData,
+<span class="fc" id="L81">      final Base64CertData theBase64CertData) {</span>
+<span class="fc" id="L82">    this.certificate = theCertificateData.getCertificate(theBase64CertData);</span>
+<span class="pc bpc" id="L83" title="1 of 2 branches missed.">    if (certificate == null) {</span>
+<span class="fc" id="L84">      this.certificateBytes = null;</span>
+    } else {
+      try {
+<span class="nc" id="L87">        this.certificateBytes = certificate.getEncoded();</span>
+<span class="nc" id="L88">      } catch (CertificateEncodingException e) {</span>
+<span class="nc" id="L89">        throw new IllegalStateException(e);</span>
+<span class="nc" id="L90">      }</span>
     }
-
-    @Override
-    public Certificate getCertificate() {
-<span class="nc bnc" id="L124" title="All 4 branches missed.">        if (certificate==null &amp;&amp; certificateBytes!=null) {</span>
-            // Lazy restore in case of deserialization
-            try {
-<span class="nc" id="L127">                certificate = CertTools.getCertfromByteArray(certificateBytes, Certificate.class);</span>
-<span class="nc" id="L128">            } catch (CertificateParsingException e) {</span>
-<span class="nc" id="L129">                throw new IllegalStateException(e);</span>
-<span class="nc" id="L130">            }</span>
-        }
-<span class="nc" id="L132">        return certificate;</span>
+<span class="fc" id="L92">    this.certificateData = new CertificateData(theCertificateData);</span>
+<span class="pc bpc" id="L93" title="1 of 2 branches missed.">    if (theBase64CertData != null) {</span>
+<span class="nc" id="L94">      this.base64CertData = new Base64CertData(theBase64CertData);</span>
+    } else {
+<span class="fc" id="L96">      this.base64CertData = null;</span>
     }
+<span class="fc" id="L98">  }</span>
 
-    @Override
-    public int compareTo(final CertificateDataWrapper other) {
-<span class="nc bnc" id="L137" title="All 4 branches missed.">        if (getCertificate()!=null &amp;&amp; other.getCertificate()!=null) {</span>
-            // Sort descending by issuance date if certificates are available 
-<span class="nc" id="L139">            return Long.valueOf(CertTools.getNotBefore(other.getCertificate()).getTime()).compareTo(CertTools.getNotBefore(getCertificate()).getTime());          </span>
-        } else {
-            // Sort descending by expiration date if certificates are not available        
-<span class="nc" id="L142">            return Long.valueOf(other.getCertificateData().getExpireDate()).compareTo(getCertificateData().getExpireDate());</span>
-        }
+  /**
+   * @param noConflictCertData Data
+   */
+  public CertificateDataWrapper(
+<span class="nc" id="L104">      final NoConflictCertificateData noConflictCertData) {</span>
+<span class="nc" id="L105">    this.certificateData = noConflictCertData;</span>
+<span class="nc" id="L106">    this.certificateBytes = null;</span>
+<span class="nc" id="L107">    this.base64CertData = null;</span>
+<span class="nc" id="L108">  }</span>
+
+  /**
+   * @return the BaseCertificateData entity object, may be CertificateData or
+   *     NoConflictCertificateData entity object.
+   *     &lt;p&gt;Note that the NoConflictCertificateData table is append only, so no
+   *     updates to existing objects!
+   */
+  public BaseCertificateData getBaseCertificateData() {
+<span class="nc" id="L117">    return certificateData;</span>
+  }
+
+  /**
+   * Returns the CertificateData entity object, or throws if the certificate is
+   * stored in NoConflictCertificateData.
+   *
+   * @return CertificateData object. Do not modify the returned object!
+   *     Modifications might not be written back to the database.
+   * @throws ClassCastException If certificate is stored in
+   *     NoConflictCertificateData
+   */
+  public CertificateData getCertificateData() {
+<span class="fc" id="L130">    return (CertificateData) certificateData;</span>
+  }
+
+  /**
+   * Returns the CertificateData object, or a copy converted to CertificateData,
+   * if it was a NoConflictCertificateData entity object.
+   *
+   * @return CertificateData object. Do not modify the returned object!
+   *     Modifications might not be written back to the database.
+   */
+  public CertificateData getCertificateDataOrCopy() {
+<span class="nc bnc" id="L141" title="All 2 branches missed.">    if (certificateData instanceof CertificateData) {</span>
+<span class="nc" id="L142">      return (CertificateData) certificateData;</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">    } else if (certificateData instanceof NoConflictCertificateData) {</span>
+<span class="nc" id="L144">      return new CertificateData(certificateData);</span>
+    } else {
+<span class="nc" id="L146">      throw new IllegalStateException(&quot;Unexpected subclass&quot;);</span>
     }
+  }
 
-    @Override
-    public boolean equals(final Object other) {
-<span class="pc bpc" id="L148" title="1 of 2 branches missed.">        if (!(other instanceof CertificateDataWrapper)) {</span>
-<span class="nc" id="L149">            return false;</span>
-        }
-<span class="fc" id="L151">        final CertificateDataWrapper otherCertData = (CertificateDataWrapper) other;</span>
-<span class="fc" id="L152">        return certificateData.equals(otherCertData.getCertificateData());</span>
+  /**
+   * @return Data
+   */
+  public Base64CertData getBase64CertData() {
+<span class="nc" id="L154">    return base64CertData;</span>
+  }
+
+  @Override
+  public Certificate getCertificate() {
+<span class="nc bnc" id="L159" title="All 4 branches missed.">    if (certificate == null &amp;&amp; certificateBytes != null) {</span>
+      // Lazy restore in case of deserialization
+      try {
+<span class="nc" id="L162">        certificate =</span>
+<span class="nc" id="L163">            CertTools.getCertfromByteArray(certificateBytes, Certificate.class);</span>
+<span class="nc" id="L164">      } catch (CertificateParsingException e) {</span>
+<span class="nc" id="L165">        throw new IllegalStateException(e);</span>
+<span class="nc" id="L166">      }</span>
     }
+<span class="nc" id="L168">    return certificate;</span>
+  }
 
-    @Override
-    public int hashCode() {
-<span class="nc" id="L157">        return certificateData.hashCode();</span>
+  @Override
+  public int compareTo(final CertificateDataWrapper other) {
+<span class="nc bnc" id="L173" title="All 4 branches missed.">    if (getCertificate() != null &amp;&amp; other.getCertificate() != null) {</span>
+      // Sort descending by issuance date if certificates are available
+<span class="nc" id="L175">      return Long.valueOf(</span>
+<span class="nc" id="L176">              CertTools.getNotBefore(other.getCertificate()).getTime())</span>
+<span class="nc" id="L177">          .compareTo(CertTools.getNotBefore(getCertificate()).getTime());</span>
+    } else {
+      // Sort descending by expiration date if certificates are not available
+<span class="nc" id="L180">      return Long.valueOf(other.getCertificateData().getExpireDate())</span>
+<span class="nc" id="L181">          .compareTo(getCertificateData().getExpireDate());</span>
     }
+  }
 
+  @Override
+  public boolean equals(final Object other) {
+<span class="pc bpc" id="L187" title="1 of 2 branches missed.">    if (!(other instanceof CertificateDataWrapper)) {</span>
+<span class="nc" id="L188">      return false;</span>
+    }
+<span class="fc" id="L190">    final CertificateDataWrapper otherCertData = (CertificateDataWrapper) other;</span>
+<span class="fc" id="L191">    return certificateData.equals(otherCertData.getCertificateData());</span>
+  }
+
+  @Override
+  public int hashCode() {
+<span class="nc" id="L196">    return certificateData.hashCode();</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

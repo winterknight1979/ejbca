@@ -52,7 +52,10 @@ org.ejbca.core.protocol.unid
 org.ejbca.core.protocol.ws
 org.ejbca.core.protocol.ws.client
 org.ejbca.database
+org.ejbca.ui.cli.infrastructure.library
+org.ejbca.ui.cli.infrastructure.parameter
 org.ejbca.ui.web
+org.ejbca.ui.web.admin.cainterface
 org.ejbca.ui.web.pub
 org.ejbca.util
 org.ejbca.util.crypto

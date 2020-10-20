@@ -1,0 +1,1708 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>SystemConfigMBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">admin-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.configuration</a> &gt; <span class="el_source">SystemConfigMBean.java</span></div><h1>SystemConfigMBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.web.admin.configuration;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Properties;
+import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+
+import javax.faces.application.FacesMessage;
+import javax.faces.context.FacesContext;
+import javax.faces.model.ListDataModel;
+import javax.faces.model.SelectItem;
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.apache.myfaces.custom.fileupload.UploadedFile;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.authorization.control.StandardRules;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.certificates.certificate.certextensions.AvailableCustomCertificateExtensionsConfiguration;
+import org.cesecore.certificates.certificate.certextensions.CertificateExtension;
+import org.cesecore.certificates.certificateprofile.CertificateProfile;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSessionLocal;
+import org.cesecore.certificates.certificatetransparency.CTLogInfo;
+import org.cesecore.certificates.certificatetransparency.CertificateTransparencyFactory;
+import org.cesecore.certificates.certificatetransparency.GoogleCtPolicy;
+import org.cesecore.config.AvailableExtendedKeyUsagesConfiguration;
+import org.cesecore.config.GlobalCesecoreConfiguration;
+import org.cesecore.config.InvalidConfigurationException;
+import org.cesecore.config.RaStyleInfo;
+import org.cesecore.config.RaStyleInfo.RaCssInfo;
+import org.cesecore.keys.token.CryptoTokenInfo;
+import org.cesecore.keys.token.CryptoTokenManagementSessionLocal;
+import org.cesecore.keys.token.CryptoTokenOfflineException;
+import org.cesecore.util.FileTools;
+import org.cesecore.util.StreamSizeLimitExceededException;
+import org.ejbca.config.AvailableProtocolsConfiguration;
+import org.ejbca.config.AvailableProtocolsConfiguration.AvailableProtocols;
+import org.ejbca.config.GlobalConfiguration;
+import org.ejbca.config.GlobalCustomCssConfiguration;
+import org.ejbca.config.WebConfiguration;
+import org.ejbca.core.model.ra.raadmin.AdminPreference;
+import org.ejbca.core.model.util.EjbLocalHelper;
+import org.ejbca.statedump.ejb.StatedumpImportOptions;
+import org.ejbca.statedump.ejb.StatedumpImportResult;
+import org.ejbca.statedump.ejb.StatedumpObjectKey;
+import org.ejbca.statedump.ejb.StatedumpResolution;
+import org.ejbca.statedump.ejb.StatedumpSessionLocal;
+import org.ejbca.ui.web.admin.BaseManagedBean;
+
+/**
+ * Backing bean for the various system configuration pages.
+ *
+ * @version $Id: SystemConfigMBean.java 30655 2018-11-28 08:58:52Z aminkh $
+ */
+public class SystemConfigMBean extends BaseManagedBean implements Serializable {
+
+    private static final long serialVersionUID = -6653610614851741905L;
+<span class="nc" id="L91">    private static final Logger log = Logger.getLogger(SystemConfigMBean.class);</span>
+
+    public class GuiInfo {
+        private String title;
+        private String headBanner;
+        private String footBanner;
+        private boolean enableEndEntityProfileLimitations;
+        private boolean enableKeyRecovery;
+        private boolean localKeyRecovery;
+        private int localKeyRecoveryCryptoTokenId;
+        private String localKeyRecoveryKeyAlias;
+        private boolean enableIcaoCANameChange;
+        private boolean issueHardwareToken;
+        private int hardTokenDataEncryptCA;
+        private boolean useAutoEnrollment;
+        private int autoEnrollmentCA;
+        private boolean autoEnrollUseSSLConnection;
+        private String autoEnrollAdServer;
+        private int autoEnrollAdServerPort;
+        private String autoEnrollConnectionDN;
+        private String autoEnrollUserBaseDN;
+        private String autoEnrollConnectionPassword;
+        private Set&lt;String&gt; nodesInCluster;
+        private boolean enableCommandLine;
+        private boolean enableCommandLineDefaultUser;
+        private boolean enableExternalScripts;
+        private List&lt;CTLogInfo&gt; ctLogs;
+        private boolean publicWebCertChainOrderRootFirst;
+
+        //Admin Preferences
+        private int preferedLanguage;
+        private int secondaryLanguage;
+        private String theme;
+        private int entriesPerPage;
+
+        //Database preferences
+        private int maximumQueryCount;
+        private long maximumQueryTimeout;
+
+<span class="nc" id="L130">        private GuiInfo(GlobalConfiguration globalConfig, GlobalCesecoreConfiguration globalCesecoreConfiguration, AdminPreference adminPreference) {</span>
+<span class="nc bnc" id="L131" title="All 2 branches missed.">            if(globalConfig == null) {</span>
+<span class="nc" id="L132">                globalConfig = getEjbcaWebBean().getGlobalConfiguration();</span>
+            }
+
+            try {
+<span class="nc" id="L136">                this.title = globalConfig.getEjbcaTitle();</span>
+<span class="nc" id="L137">                this.headBanner = globalConfig.getHeadBanner();</span>
+<span class="nc" id="L138">                this.footBanner = globalConfig.getFootBanner();</span>
+<span class="nc" id="L139">                this.enableEndEntityProfileLimitations = globalConfig.getEnableEndEntityProfileLimitations();</span>
+<span class="nc" id="L140">                this.enableKeyRecovery = globalConfig.getEnableKeyRecovery();</span>
+<span class="nc" id="L141">                this.localKeyRecovery = globalConfig.getLocalKeyRecovery();</span>
+<span class="nc bnc" id="L142" title="All 2 branches missed.">                this.localKeyRecoveryCryptoTokenId = globalConfig.getLocalKeyRecoveryCryptoTokenId() != null ? globalConfig.getLocalKeyRecoveryCryptoTokenId() : 0;</span>
+<span class="nc" id="L143">                this.localKeyRecoveryKeyAlias = globalConfig.getLocalKeyRecoveryKeyAlias();</span>
+<span class="nc" id="L144">                this.issueHardwareToken = globalConfig.getIssueHardwareTokens();</span>
+<span class="nc" id="L145">                this.hardTokenDataEncryptCA = globalConfig.getHardTokenEncryptCA();</span>
+<span class="nc" id="L146">                this.useAutoEnrollment = globalConfig.getAutoEnrollUse();</span>
+<span class="nc" id="L147">                this.autoEnrollmentCA = globalConfig.getAutoEnrollCA();</span>
+<span class="nc" id="L148">                this.autoEnrollUseSSLConnection = globalConfig.getAutoEnrollSSLConnection();</span>
+<span class="nc" id="L149">                this.autoEnrollAdServer = globalConfig.getAutoEnrollADServer();</span>
+<span class="nc" id="L150">                this.autoEnrollAdServerPort = globalConfig.getAutoEnrollADPort();</span>
+<span class="nc" id="L151">                this.autoEnrollConnectionDN = globalConfig.getAutoEnrollConnectionDN();</span>
+<span class="nc" id="L152">                this.autoEnrollUserBaseDN = globalConfig.getAutoEnrollBaseDNUser();</span>
+<span class="nc" id="L153">                this.autoEnrollConnectionPassword = globalConfig.getAutoEnrollConnectionPwd();</span>
+<span class="nc" id="L154">                this.nodesInCluster = globalConfig.getNodesInCluster();</span>
+<span class="nc" id="L155">                this.enableCommandLine = globalConfig.getEnableCommandLineInterface();</span>
+<span class="nc" id="L156">                this.enableCommandLineDefaultUser = globalConfig.getEnableCommandLineInterfaceDefaultUser();</span>
+<span class="nc" id="L157">                this.enableExternalScripts = globalConfig.getEnableExternalScripts();</span>
+<span class="nc" id="L158">                this.publicWebCertChainOrderRootFirst = globalConfig.getPublicWebCertChainOrderRootFirst();</span>
+<span class="nc" id="L159">                this.setEnableIcaoCANameChange(globalConfig.getEnableIcaoCANameChange());</span>
+<span class="nc" id="L160">                this.ctLogs = new ArrayList&lt;&gt;(globalConfig.getCTLogs().values());</span>
+                // Admin Preferences
+<span class="nc bnc" id="L162" title="All 2 branches missed.">                if(adminPreference == null) {</span>
+<span class="nc" id="L163">                    adminPreference = getEjbcaWebBean().getAdminPreference();</span>
+                }
+<span class="nc" id="L165">                this.preferedLanguage = adminPreference.getPreferedLanguage();</span>
+<span class="nc" id="L166">                this.secondaryLanguage = adminPreference.getSecondaryLanguage();</span>
+<span class="nc" id="L167">                this.theme = adminPreference.getTheme();</span>
+<span class="nc" id="L168">                this.entriesPerPage = adminPreference.getEntriesPerPage();</span>
+
+<span class="nc" id="L170">                this.maximumQueryCount = globalCesecoreConfiguration.getMaximumQueryCount();</span>
+<span class="nc" id="L171">                this.maximumQueryTimeout= globalCesecoreConfiguration.getMaximumQueryTimeout();</span>
+<span class="nc" id="L172">            } catch (RuntimeException e) {</span>
+<span class="nc" id="L173">                log.error(e.getMessage(), e);</span>
+<span class="nc" id="L174">            }</span>
+<span class="nc" id="L175">        }</span>
+
+<span class="nc" id="L177">        public String getTitle() { return this.title; }</span>
+<span class="nc" id="L178">        public void setTitle(String title) { this.title=title; }</span>
+<span class="nc" id="L179">        public String getHeadBanner() { return this.headBanner; }</span>
+<span class="nc" id="L180">        public void setHeadBanner(String banner) { this.headBanner=banner; }</span>
+<span class="nc" id="L181">        public String getFootBanner() { return this.footBanner; }</span>
+<span class="nc" id="L182">        public void setFootBanner(String banner) { this.footBanner=banner; }</span>
+<span class="nc" id="L183">        public boolean getEnableEndEntityProfileLimitations() { return this.enableEndEntityProfileLimitations; }</span>
+<span class="nc" id="L184">        public void setEnableEndEntityProfileLimitations(boolean enableLimitations) { this.enableEndEntityProfileLimitations=enableLimitations; }</span>
+<span class="nc" id="L185">        public boolean getEnableKeyRecovery() { return this.enableKeyRecovery; }</span>
+<span class="nc" id="L186">        public void setEnableKeyRecovery(boolean enableKeyRecovery) { this.enableKeyRecovery=enableKeyRecovery; }</span>
+<span class="nc" id="L187">        public boolean getLocalKeyRecovery() { return this.localKeyRecovery; }</span>
+<span class="nc" id="L188">        public void setLocalKeyRecovery(boolean localKeyRecovery) { this.localKeyRecovery=localKeyRecovery; }</span>
+<span class="nc" id="L189">        public int getLocalKeyRecoveryCryptoTokenId() { return this.localKeyRecoveryCryptoTokenId; }</span>
+<span class="nc" id="L190">        public void setLocalKeyRecoveryCryptoTokenId(int localKeyRecoveryCryptoTokenId) { this.localKeyRecoveryCryptoTokenId=localKeyRecoveryCryptoTokenId; }</span>
+<span class="nc" id="L191">        public String getLocalKeyRecoveryKeyAlias() { return this.localKeyRecoveryKeyAlias; }</span>
+<span class="nc" id="L192">        public void setLocalKeyRecoveryKeyAlias(String localKeyRecoveryKeyAlias) { this.localKeyRecoveryKeyAlias=localKeyRecoveryKeyAlias; }</span>
+<span class="nc" id="L193">        public boolean getIssueHardwareToken() { return this.issueHardwareToken; }</span>
+<span class="nc" id="L194">        public void setIssueHardwareToken(boolean issueHWtoken) { this.issueHardwareToken=issueHWtoken; }</span>
+<span class="nc" id="L195">        public int getHardTokenDataEncryptCA() { return hardTokenDataEncryptCA; }</span>
+<span class="nc" id="L196">        public void setHardTokenDataEncryptCA(int caid) { this.hardTokenDataEncryptCA=caid; }</span>
+<span class="nc" id="L197">        public boolean getUseAutoEnrollment() { return this.useAutoEnrollment; }</span>
+<span class="nc" id="L198">        public void setUseAutoEnrollment(boolean useAutoEnrollment) { this.useAutoEnrollment=useAutoEnrollment; }</span>
+<span class="nc" id="L199">        public int getAutoEnrollmentCA() { return this.autoEnrollmentCA; }</span>
+<span class="nc" id="L200">        public void setAutoEnrollmentCA(int caid) {this.autoEnrollmentCA=caid; }</span>
+<span class="nc" id="L201">        public boolean getAutoEnrollUseSSLConnection() { return autoEnrollUseSSLConnection; }</span>
+<span class="nc" id="L202">        public void setAutoEnrollUseSSLConnection(boolean useSSLConnection) { this.autoEnrollUseSSLConnection=useSSLConnection; }</span>
+<span class="nc" id="L203">        public String getAutoEnrollAdServer() { return this.autoEnrollAdServer; }</span>
+<span class="nc" id="L204">        public void setAutoEnrollAdServer(String server) { this.autoEnrollAdServer=server; }</span>
+<span class="nc" id="L205">        public int getAutoEnrollAdServerPort() { return this.autoEnrollAdServerPort; }</span>
+<span class="nc" id="L206">        public void setAutoEnrollAdServerPort(int port) { this.autoEnrollAdServerPort=port; }</span>
+<span class="nc" id="L207">        public String getAutoEnrollConnectionDN() { return this.autoEnrollConnectionDN; }</span>
+<span class="nc" id="L208">        public void setAutoEnrollConnectionDN(String dn) { this.autoEnrollConnectionDN=dn; }</span>
+<span class="nc" id="L209">        public String getAutoEnrollUserBaseDN() { return this.autoEnrollUserBaseDN; }</span>
+<span class="nc" id="L210">        public void setAutoEnrollUserBaseDN(String dn) { this.autoEnrollUserBaseDN=dn; }</span>
+<span class="nc" id="L211">        public String getAutoEnrollConnectionPassword() { return this.autoEnrollConnectionPassword; }</span>
+<span class="nc" id="L212">        public void setAutoEnrollConnectionPassword(String password) { this.autoEnrollConnectionPassword=password; }</span>
+<span class="nc" id="L213">        public Set&lt;String&gt; getNodesInCluster() { return this.nodesInCluster; }</span>
+<span class="nc" id="L214">        public void setNodesInCluster(Set&lt;String&gt; nodes) { this.nodesInCluster=nodes; }</span>
+<span class="nc" id="L215">        public boolean getEnableCommandLine() { return this.enableCommandLine; }</span>
+<span class="nc" id="L216">        public void setEnableCommandLine(boolean enableCommandLine) { this.enableCommandLine=enableCommandLine; }</span>
+<span class="nc" id="L217">        public boolean getEnableCommandLineDefaultUser() { return this.enableCommandLineDefaultUser; }</span>
+<span class="nc" id="L218">        public void setEnableCommandLineDefaultUser(boolean enableCommandLineDefaultUser) { this.enableCommandLineDefaultUser=enableCommandLineDefaultUser; }</span>
+<span class="nc" id="L219">        public boolean getEnableExternalScripts() { return this.enableExternalScripts; }</span>
+<span class="nc" id="L220">        public void setEnableExternalScripts(boolean enableExternalScripts) { this.enableExternalScripts=enableExternalScripts; }</span>
+<span class="nc" id="L221">        public List&lt;CTLogInfo&gt; getCtLogs() {return this.ctLogs; }</span>
+<span class="nc" id="L222">        public void setCtLogs(List&lt;CTLogInfo&gt; ctlogs) { this.ctLogs=ctlogs; }</span>
+<span class="nc" id="L223">        public boolean getPublicWebCertChainOrderRootFirst() { return this.publicWebCertChainOrderRootFirst; }</span>
+<span class="nc" id="L224">        public void setPublicWebCertChainOrderRootFirst(boolean publicWebCertChainOrderRootFirst) { this.publicWebCertChainOrderRootFirst=publicWebCertChainOrderRootFirst; }</span>
+<span class="nc" id="L225">        public boolean getEnableIcaoCANameChange() {return enableIcaoCANameChange;}</span>
+<span class="nc" id="L226">        public void setEnableIcaoCANameChange(boolean enableIcaoCANameChange) {this.enableIcaoCANameChange = enableIcaoCANameChange;}</span>
+
+        // Admin Preferences
+<span class="nc" id="L229">        public int getPreferedLanguage() { return this.preferedLanguage; }</span>
+<span class="nc" id="L230">        public void setPreferedLanguage(int preferedLanguage) { this.preferedLanguage=preferedLanguage; }</span>
+<span class="nc" id="L231">        public int getSecondaryLanguage() { return this.secondaryLanguage; }</span>
+<span class="nc" id="L232">        public void setSecondaryLanguage(int secondaryLanguage) { this.secondaryLanguage=secondaryLanguage; }</span>
+<span class="nc" id="L233">        public String getTheme() { return this.theme; }</span>
+<span class="nc" id="L234">        public void setTheme(String theme) { this.theme=theme; }</span>
+<span class="nc" id="L235">        public int getEntriesPerPage() { return this.entriesPerPage; }</span>
+<span class="nc" id="L236">        public void setEntriesPerPage(int entriesPerPage) { this.entriesPerPage=entriesPerPage; }</span>
+
+<span class="nc" id="L238">        public int getMaximumQueryCount() { return maximumQueryCount; }</span>
+<span class="nc" id="L239">        public void setMaximumQueryCount(int maximumQueryCount) { this.maximumQueryCount = maximumQueryCount; }</span>
+<span class="nc" id="L240">        public long getMaximumQueryTimeout() { return maximumQueryTimeout; }</span>
+<span class="nc" id="L241">        public void setMaximumQueryTimeout(final long maximumQueryTimeout) { this.maximumQueryTimeout = maximumQueryTimeout; }</span>
+    }
+
+    public class EKUInfo {
+        private String oid;
+        private String name;
+<span class="nc" id="L247">        private EKUInfo(String oid, String name) {</span>
+<span class="nc" id="L248">            this.oid = oid;</span>
+<span class="nc" id="L249">            this.name = name;</span>
+<span class="nc" id="L250">        }</span>
+<span class="nc" id="L251">        public String getOid() { return this.oid; }</span>
+<span class="nc" id="L252">        public void  setOid(String oid) { this.oid=oid; }</span>
+<span class="nc" id="L253">        public String getName() { return this.name; }</span>
+<span class="nc" id="L254">        public void setName(String name) { this.name=name; }</span>
+    }
+
+    public class CustomCertExtensionInfo {
+        private int id;
+        private String oid;
+        private String displayName;
+        private boolean critical;
+        private boolean required;
+        private String encoding;
+
+<span class="nc" id="L265">        public CustomCertExtensionInfo(CertificateExtension extension) {</span>
+<span class="nc" id="L266">            this.id = extension.getId();</span>
+<span class="nc" id="L267">            this.oid = extension.getOID();</span>
+<span class="nc" id="L268">            this.displayName = getEjbcaWebBean().getText(extension.getDisplayName());</span>
+<span class="nc" id="L269">            this.critical = extension.isCriticalFlag();</span>
+<span class="nc" id="L270">            this.required = extension.isRequiredFlag();</span>
+<span class="nc" id="L271">            Properties props = extension.getProperties();</span>
+<span class="nc" id="L272">            this.encoding = props.getProperty(&quot;encoding&quot;, &quot;&quot;);</span>
+<span class="nc" id="L273">        }</span>
+<span class="nc" id="L274">        public int getId() { return this.id; }</span>
+<span class="nc" id="L275">        public void setId(int id) { this.id=id; }</span>
+<span class="nc" id="L276">        public String getOid() { return this.oid; }</span>
+<span class="nc" id="L277">        public void setOid(String oid) { this.oid=oid; }</span>
+<span class="nc" id="L278">        public String getDisplayName() { return this.displayName; }</span>
+<span class="nc" id="L279">        public void setDisplayName(String displayName) { this.displayName=displayName; }</span>
+<span class="nc" id="L280">        public boolean isCritical() { return this.critical; }</span>
+<span class="nc" id="L281">        public boolean isRequired() { return this.required; }</span>
+<span class="nc" id="L282">        public String getEncoding() { return this.encoding; }</span>
+    }
+
+<span class="nc" id="L285">    private String selectedTab = null;</span>
+<span class="nc" id="L286">    private GlobalConfiguration globalConfig = null;</span>
+<span class="nc" id="L287">    private GlobalCesecoreConfiguration globalCesecoreConfiguration = null;</span>
+<span class="nc" id="L288">    private AdminPreference adminPreference = null;</span>
+<span class="nc" id="L289">    private GuiInfo currentConfig = null;</span>
+    private ValidatorSettings validatorSettings;
+    private List&lt;SelectItem&gt; availableCryptoTokens;
+    private List&lt;SelectItem&gt; availableKeyAliases;
+<span class="nc" id="L293">    private ListDataModel&lt;String&gt; nodesInCluster = null;</span>
+<span class="nc" id="L294">    private String currentNode = null;</span>
+<span class="nc" id="L295">    private boolean excludeActiveCryptoTokensFromClearCaches = true;</span>
+<span class="nc" id="L296">    private boolean customCertificateExtensionViewMode = false;</span>
+<span class="nc" id="L297">    private UploadedFile statedumpFile = null;</span>
+<span class="nc" id="L298">    private String statedumpDir = null;</span>
+<span class="nc" id="L299">    private boolean statedumpLockdownAfterImport = false;</span>
+
+<span class="nc" id="L301">    private final CaSessionLocal caSession = getEjbcaWebBean().getEjb().getCaSession();</span>
+<span class="nc" id="L302">    private final CertificateProfileSessionLocal certificateProfileSession = getEjbcaWebBean().getEjb().getCertificateProfileSession();</span>
+<span class="nc" id="L303">    private final CryptoTokenManagementSessionLocal cryptoTokenManagementSession = getEjbcaWebBean().getEjb().getCryptoTokenManagementSession();</span>
+<span class="nc" id="L304">    private final AuthorizationSessionLocal authorizationSession = getEjbcaWebBean().getEjb().getAuthorizationSession();</span>
+    /** Session bean for importing statedump. Will be null if statedump isn't available */
+<span class="nc" id="L306">    private final StatedumpSessionLocal statedumpSession = new EjbLocalHelper().getStatedumpSession();</span>
+    private SystemConfigurationCtLogManager ctLogManager;
+    private GoogleCtPolicy googleCtPolicy;
+
+
+    public SystemConfigMBean() {
+<span class="nc" id="L312">        super();</span>
+<span class="nc" id="L313">    }</span>
+
+    /**
+     * Get an object which can be used to manage the CT log configuration. This will create a new CT log manager for
+     * the CT logs in the current configuration if no CT log manager has been created, or the old CT log manager
+     * was flushed.
+     * @return the CT log manager for this bean
+     */
+    public SystemConfigurationCtLogManager getCtLogManager() {
+<span class="nc bnc" id="L322" title="All 2 branches missed.">        if (ctLogManager == null) {</span>
+<span class="nc" id="L323">            ctLogManager = new SystemConfigurationCtLogManager(getCurrentConfig().getCtLogs(),</span>
+<span class="nc" id="L324">                new SystemConfigurationCtLogManager.SystemConfigurationHelper() {</span>
+                    @Override
+                    public void saveCtLogs(final List&lt;CTLogInfo&gt; ctLogs) {
+<span class="nc" id="L327">                        getCurrentConfig().setCtLogs(ctLogs);</span>
+<span class="nc" id="L328">                        saveCurrentConfig();</span>
+<span class="nc" id="L329">                    }</span>
+
+                    @Override
+                    public void addInfoMessage(final String languageKey) {
+<span class="nc" id="L333">                        SystemConfigMBean.this.addInfoMessage(languageKey);</span>
+<span class="nc" id="L334">                    }</span>
+
+                    @Override
+                    public void addErrorMessage(final String languageKey, final Object... params) {
+<span class="nc" id="L338">                        SystemConfigMBean.this.addErrorMessage(languageKey, params);</span>
+<span class="nc" id="L339">                    }</span>
+
+                    @Override
+                    public void addErrorMessage(final String languageKey) {
+<span class="nc" id="L343">                        SystemConfigMBean.this.addErrorMessage(languageKey);</span>
+<span class="nc" id="L344">                    }</span>
+
+                    @Override
+                    public List&lt;String&gt; getCertificateProfileNamesByCtLog(final CTLogInfo ctLog) {
+<span class="nc" id="L348">                        final List&lt;String&gt; usedByProfiles = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L349">                        final Map&lt;Integer, String&gt; idToName = certificateProfileSession.getCertificateProfileIdToNameMap();</span>
+<span class="nc bnc" id="L350" title="All 2 branches missed.">                        for (Entry&lt;Integer, CertificateProfile&gt; entry : certificateProfileSession.getAllCertificateProfiles().entrySet()) {</span>
+<span class="nc" id="L351">                            final int certificateProfileId = entry.getKey();</span>
+<span class="nc" id="L352">                            final CertificateProfile certificateProfile = entry.getValue();</span>
+<span class="nc bnc" id="L353" title="All 2 branches missed.">                            if (certificateProfile.getEnabledCtLabels().contains(ctLog.getLabel())) {</span>
+<span class="nc" id="L354">                                usedByProfiles.add(idToName.get(certificateProfileId));</span>
+                            }
+<span class="nc" id="L356">                        }</span>
+<span class="nc" id="L357">                        return usedByProfiles;</span>
+                    }
+                });
+        }
+<span class="nc" id="L361">        return ctLogManager;</span>
+    }
+
+    public GoogleCtPolicy getGoogleCtPolicy() {
+<span class="nc bnc" id="L365" title="All 2 branches missed.">        if (googleCtPolicy == null) {</span>
+<span class="nc" id="L366">            googleCtPolicy = getGlobalConfiguration().getGoogleCtPolicy();</span>
+        }
+<span class="nc" id="L368">        return googleCtPolicy;</span>
+    }
+
+    public GlobalCesecoreConfiguration getGlobalCesecoreConfiguration() {
+<span class="nc bnc" id="L372" title="All 2 branches missed.">        if (globalCesecoreConfiguration == null) {</span>
+<span class="nc" id="L373">            globalCesecoreConfiguration = (GlobalCesecoreConfiguration) getEjbcaWebBean().getEjb().getGlobalConfigurationSession()</span>
+<span class="nc" id="L374">                    .getCachedConfiguration(GlobalCesecoreConfiguration.CESECORE_CONFIGURATION_ID);</span>
+        }
+<span class="nc" id="L376">        return globalCesecoreConfiguration;</span>
+    }
+
+    public GlobalConfiguration getGlobalConfiguration() {
+<span class="nc bnc" id="L380" title="All 2 branches missed.">        if(globalConfig == null) {</span>
+<span class="nc" id="L381">            globalConfig = getEjbcaWebBean().getGlobalConfiguration();</span>
+        }
+<span class="nc" id="L383">        return globalConfig;</span>
+    }
+
+    public AdminPreference getAdminPreference() throws Exception {
+<span class="nc bnc" id="L387" title="All 2 branches missed.">        if(adminPreference == null) {</span>
+<span class="nc" id="L388">            adminPreference = getEjbcaWebBean().getDefaultAdminPreference();</span>
+        }
+<span class="nc" id="L390">        return adminPreference;</span>
+    }
+
+    /** @return cached or populate a new system configuration GUI representation for view or edit */
+    public GuiInfo getCurrentConfig() {
+<span class="nc bnc" id="L395" title="All 2 branches missed.">        if(this.currentConfig == null) {</span>
+            try {
+<span class="nc" id="L397">                this.currentConfig = new GuiInfo(getGlobalConfiguration(), getGlobalCesecoreConfiguration(), getAdminPreference());</span>
+<span class="nc" id="L398">            } catch (Exception e) {</span>
+<span class="nc" id="L399">                String msg = &quot;Cannot read Administrator Preferences.&quot;;</span>
+<span class="nc" id="L400">                log.info(msg + e.getLocalizedMessage());</span>
+<span class="nc" id="L401">                super.addNonTranslatedErrorMessage(msg);</span>
+<span class="nc" id="L402">            }</span>
+        }
+<span class="nc" id="L404">        return this.currentConfig;</span>
+    }
+
+    /** @return current settings for the Validators tab */
+    public ValidatorSettings getValidatorSettings() {
+<span class="nc bnc" id="L409" title="All 2 branches missed.">        if (validatorSettings == null) {</span>
+<span class="nc" id="L410">            validatorSettings = new ValidatorSettings(new ValidatorSettings.ValidatorSettingsHelper() {</span>
+                @Override
+                public GlobalConfiguration getGlobalConfiguration() {
+<span class="nc" id="L413">                    return SystemConfigMBean.this.getGlobalConfiguration();</span>
+                }
+
+                @Override
+                public void addErrorMessage(final String languageKey, final Object... params) {
+<span class="nc" id="L418">                    SystemConfigMBean.this.addErrorMessage(languageKey, params);</span>
+<span class="nc" id="L419">                }</span>
+
+                @Override
+                public void addInfoMessage(final String languageKey) {
+<span class="nc" id="L423">                    SystemConfigMBean.this.addInfoMessage(languageKey);</span>
+<span class="nc" id="L424">                }</span>
+
+                @Override
+                public void persistConfiguration(final GlobalConfiguration globalConfiguration) throws AuthorizationDeniedException {
+<span class="nc" id="L428">                    getEjbcaWebBean().saveGlobalConfiguration(globalConfiguration);</span>
+<span class="nc" id="L429">                }</span>
+            });
+        }
+<span class="nc" id="L432">        return validatorSettings;</span>
+    }
+
+    public String getSelectedTab() {
+<span class="nc" id="L436">        final String tabHttpParam = ((HttpServletRequest) FacesContext.getCurrentInstance().getExternalContext().getRequest()).getParameter(&quot;tab&quot;);</span>
+        // First, check if the user has requested a valid tab
+<span class="nc" id="L438">        List&lt;String&gt; availableTabs = getAvailableTabs();</span>
+<span class="nc bnc" id="L439" title="All 4 branches missed.">        if (tabHttpParam != null &amp;&amp; availableTabs.contains(tabHttpParam)) {</span>
+            // The requested tab is an existing tab. Flush caches so we reload the page content
+<span class="nc" id="L441">            flushCache();</span>
+<span class="nc" id="L442">            selectedTab = tabHttpParam;</span>
+        }
+<span class="nc bnc" id="L444" title="All 2 branches missed.">        if (selectedTab == null) {</span>
+            // If no tab was requested, we use the first available tab as default
+<span class="nc" id="L446">            selectedTab = availableTabs.get(0);</span>
+        }
+<span class="nc" id="L448">        return selectedTab;</span>
+    }
+
+    public String getCurrentNode() {
+<span class="nc" id="L452">        return this.currentNode;</span>
+    }
+    public void setCurrentNode(String node) {
+<span class="nc" id="L455">        this.currentNode = node;</span>
+<span class="nc" id="L456">    }</span>
+
+    public boolean getExcludeActiveCryptoTokensFromClearCaches() {
+<span class="nc" id="L459">        return this.excludeActiveCryptoTokensFromClearCaches;</span>
+    }
+    public void setExcludeActiveCryptoTokensFromClearCaches(boolean exclude) {
+<span class="nc" id="L462">        this.excludeActiveCryptoTokensFromClearCaches = exclude;</span>
+<span class="nc" id="L463">    }</span>
+    public void clearAllCaches() {
+<span class="nc" id="L465">        boolean execludeActiveCryptoTokens = getExcludeActiveCryptoTokensFromClearCaches();</span>
+        try {
+<span class="nc" id="L467">            getEjbcaWebBean().clearClusterCache(execludeActiveCryptoTokens);</span>
+<span class="nc" id="L468">        } catch (CacheClearException e) {</span>
+<span class="nc" id="L469">            String msg = &quot;Cannot clear caches: &quot; + e.getLocalizedMessage();</span>
+<span class="nc" id="L470">            log.info(msg);</span>
+<span class="nc" id="L471">            super.addNonTranslatedErrorMessage(msg);</span>
+<span class="nc" id="L472">        }</span>
+<span class="nc" id="L473">    }</span>
+
+    public String getStatedumpDir() {
+<span class="nc" id="L476">        return statedumpDir;</span>
+    }
+
+    public void setStatedumpDir(final String statedumpDir) {
+<span class="nc" id="L480">        this.statedumpDir = statedumpDir;</span>
+<span class="nc" id="L481">    }</span>
+
+    public UploadedFile getStatedumpFile() {
+<span class="nc" id="L484">        return statedumpFile;</span>
+    }
+
+    public void setStatedumpFile(final UploadedFile statedumpFile) {
+<span class="nc" id="L488">        this.statedumpFile = statedumpFile;</span>
+<span class="nc" id="L489">    }</span>
+
+    public boolean getStatedumpLockdownAfterImport() {
+<span class="nc" id="L492">        return statedumpLockdownAfterImport;</span>
+    }
+
+    public void setStatedumpLockdownAfterImport(final boolean statedumpLockdownAfterImport) {
+<span class="nc" id="L496">        this.statedumpLockdownAfterImport = statedumpLockdownAfterImport;</span>
+<span class="nc" id="L497">    }</span>
+
+    /** Returns true if EJBCA was built with Statedump (from EJBCA 6.5.0 or later) and it hasn't been locked down in the user interface. 
+     * @return bool*/
+    public boolean isStatedumpAvailable() {
+<span class="nc bnc" id="L502" title="All 4 branches missed.">        return statedumpSession != null &amp;&amp; !getGlobalConfiguration().getStatedumpLockedDown();</span>
+    }
+
+    public List&lt;SelectItem&gt; getStatedumpAvailableTemplates() {
+<span class="nc" id="L506">        final List&lt;SelectItem&gt; templates = new ArrayList&lt;&gt;();</span>
+        try {
+<span class="nc bnc" id="L508" title="All 2 branches missed.">            for (Map.Entry&lt;String,String&gt; entry : statedumpSession.getAvailableTemplates(getAdmin()).entrySet()) {</span>
+<span class="nc" id="L509">                final String description = getEjbcaWebBean().getText(entry.getValue());</span>
+<span class="nc" id="L510">                templates.add(new SelectItem(entry.getKey(), description));</span>
+<span class="nc" id="L511">            }</span>
+<span class="nc" id="L512">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L513">            log.debug(&quot;Authorization was denied to list statedump templates&quot;);</span>
+<span class="nc" id="L514">        }</span>
+<span class="nc" id="L515">        sortSelectItemsByLabel(templates);</span>
+<span class="nc" id="L516">        templates.add(0, new SelectItem(&quot;&quot;, getEjbcaWebBean().getText(&quot;NONE&quot;)));</span>
+<span class="nc" id="L517">        return templates;</span>
+    }
+
+    public boolean isStatedumpTemplatesVisible() {
+        try {
+<span class="nc" id="L522">            final String basedir = statedumpSession.getTemplatesBasedir(getAdmin());</span>
+<span class="nc bnc" id="L523" title="All 6 branches missed.">            return basedir != null &amp;&amp; !basedir.isEmpty() &amp;&amp; new File(basedir).isDirectory();</span>
+<span class="nc" id="L524">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L525">            return false;</span>
+        }
+    }
+
+    private void importStatedump(final File path, final boolean lockdown) throws IOException, AuthorizationDeniedException {
+<span class="nc" id="L530">        final StatedumpImportOptions options = new StatedumpImportOptions();</span>
+<span class="nc" id="L531">        options.setLocation(path);</span>
+        // Since we currently don't give the user any option to upload an overrides file, we look for an overrides file in the .zip file
+<span class="nc" id="L533">        options.setOverridesFile(new File(path, &quot;overrides.properties&quot;));</span>
+<span class="nc" id="L534">        options.setMergeCryptoTokens(true);</span>
+
+<span class="nc" id="L536">        StatedumpImportResult result = statedumpSession.performDryRun(getAdmin(), options);</span>
+<span class="nc bnc" id="L537" title="All 2 branches missed.">        for (final StatedumpObjectKey key : result.getConflicts()) {</span>
+<span class="nc" id="L538">            log.info(&quot;Will overwrite &quot;+key);</span>
+<span class="nc" id="L539">            options.addConflictResolution(key, StatedumpResolution.OVERWRITE);</span>
+<span class="nc" id="L540">        }</span>
+<span class="nc bnc" id="L541" title="All 2 branches missed.">        for (final StatedumpObjectKey key : result.getPasswordsNeeded()) {</span>
+<span class="nc" id="L542">            log.info(&quot;Will use dummy 'foo123' password for &quot;+key+&quot;, please disable or change it!&quot;);</span>
+<span class="nc" id="L543">            options.addPassword(key, &quot;foo123&quot;);</span>
+<span class="nc" id="L544">        }</span>
+
+<span class="nc" id="L546">        log.info(&quot;Performing statedump import&quot;);</span>
+<span class="nc" id="L547">        result = statedumpSession.performImport(getAdmin(), options);</span>
+<span class="nc" id="L548">        log.info(&quot;Statedump successfully imported.&quot;);</span>
+
+        // Lock down after import
+<span class="nc bnc" id="L551" title="All 2 branches missed.">        if (lockdown) {</span>
+<span class="nc" id="L552">            log.info(&quot;Locking down Statedump in the Admin Web.&quot;);</span>
+<span class="nc" id="L553">            lockDownStatedump();</span>
+        } else {
+<span class="nc" id="L555">            log.debug(&quot;Not locking down statedump.&quot;);</span>
+        }
+
+        // Done, add result messages
+<span class="nc bnc" id="L559" title="All 2 branches missed.">        for (String msg : result.getNotices()) {</span>
+<span class="nc" id="L560">            super.addNonTranslatedInfoMessage(msg);</span>
+<span class="nc" id="L561">        }</span>
+<span class="nc" id="L562">        super.addNonTranslatedInfoMessage(&quot;State dump was successfully imported.&quot;);</span>
+<span class="nc" id="L563">    }</span>
+
+    private void importStatedump(byte[] zip, boolean lockdown) throws IOException, AuthorizationDeniedException {
+        // Check that it's a ZIP file
+<span class="nc bnc" id="L567" title="All 6 branches missed.">        if (zip.length &lt; 2 || zip[0] != 'P' || zip[1] != 'K') {</span>
+<span class="nc" id="L568">            throw new IOException(&quot;File is not a valid zip file.&quot;);</span>
+        }
+
+        // Create temporary directory
+<span class="nc" id="L572">        final Path tempdirPath = Files.createTempDirectory(&quot;ejbca_statedump_gui&quot;);</span>
+<span class="nc" id="L573">        final File tempdir = tempdirPath.toFile();</span>
+<span class="nc" id="L574">        log.info(&quot;Importing &quot; + zip.length + &quot; byte statedump zip file, using temporary directory &quot; + tempdir);</span>
+
+        // Unpack the zip file
+<span class="nc" id="L577">        try (final ZipInputStream zipStream = new ZipInputStream(new ByteArrayInputStream(zip))) {</span>
+<span class="nc" id="L578">            boolean empty = true;</span>
+<span class="nc" id="L579">            long limit = 100_000_000; // Maximum total uncompressed size is 100 MB</span>
+            while (true) {
+<span class="nc" id="L581">                final ZipEntry entry = zipStream.getNextEntry();</span>
+<span class="nc bnc" id="L582" title="All 2 branches missed.">                if (entry == null) { break; }</span>
+<span class="nc bnc" id="L583" title="All 2 branches missed.">                if (entry.isDirectory()) {</span>
+<span class="nc" id="L584">                    zipStream.closeEntry();</span>
+<span class="nc" id="L585">                    continue;</span>
+                }
+
+<span class="nc" id="L588">                final String name = entry.getName().replaceFirst(&quot;^.*/([^/]+)$&quot;, &quot;$1&quot;);</span>
+<span class="nc bnc" id="L589" title="All 2 branches missed.">                if (name.matches(&quot;([a-z0-9_-]+\\.xml|replacements.properties)&quot;)) {</span>
+<span class="nc bnc" id="L590" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L591">                        log.debug(&quot;Extracting zip file entry &quot; + name + &quot; into temporary directory&quot;);</span>
+                    }
+
+<span class="nc bnc" id="L594" title="All 2 branches missed.">                    if (entry.getSize() == 0) {</span>
+<span class="nc" id="L595">                        log.debug(&quot;Ignoring empty file&quot;);</span>
+<span class="nc" id="L596">                        zipStream.closeEntry();</span>
+<span class="nc" id="L597">                        continue;</span>
+                    }
+
+                    // Create file exclusively (don't overwrite, and don't write to special devices or operating system special files)
+<span class="nc" id="L601">                    final Path filepath = Files.createFile(new File(tempdir, name).toPath());</span>
+<span class="nc" id="L602">                    try (final FileOutputStream fos = new FileOutputStream(filepath.toFile())) {</span>
+                        try {
+<span class="nc" id="L604">                            limit -= FileTools.streamCopyWithLimit(zipStream, fos, limit);</span>
+<span class="nc" id="L605">                        } catch (StreamSizeLimitExceededException ssle) {</span>
+<span class="nc" id="L606">                            throw new IOException(&quot;Zip file is larger than 100 MB. Aborting.&quot;);</span>
+<span class="nc" id="L607">                        }</span>
+                    }
+<span class="nc" id="L609">                    zipStream.closeEntry();</span>
+<span class="nc" id="L610">                    empty = false;</span>
+<span class="nc bnc" id="L611" title="All 2 branches missed.">                } else if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L612">                    log.debug(&quot;Ignoring zip file entry &quot; + name);</span>
+                }
+<span class="nc" id="L614">            }</span>
+
+<span class="nc bnc" id="L616" title="All 2 branches missed.">            if (empty) {</span>
+<span class="nc" id="L617">                throw new IOException(&quot;Zip file didn't contain any statedump xml files.&quot;);</span>
+            }
+
+            // Import statedump
+<span class="nc" id="L621">            importStatedump(tempdir, lockdown);</span>
+
+        } finally {
+            // Clean up
+<span class="nc" id="L625">            log.debug(&quot;Removing temporary directory for statedump XML files&quot;);</span>
+<span class="nc" id="L626">            FileUtils.deleteDirectory(tempdir);</span>
+        }
+<span class="nc" id="L628">    }</span>
+
+    private void lockDownStatedump() throws AuthorizationDeniedException {
+<span class="nc" id="L631">        getGlobalConfiguration(); // sets globalConfig</span>
+<span class="nc" id="L632">        globalConfig.setStatedumpLockedDown(true);</span>
+<span class="nc" id="L633">        getEjbcaWebBean().saveGlobalConfiguration(globalConfig);</span>
+<span class="nc bnc" id="L634" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L635">            final boolean state = getEjbcaWebBean().getGlobalConfiguration().getStatedumpLockedDown();</span>
+<span class="nc" id="L636">            log.debug(&quot;Statedump lockdown state changed to &quot;+state);</span>
+        }
+<span class="nc" id="L638">    }</span>
+
+    public void importStatedump() {
+<span class="nc bnc" id="L641" title="All 4 branches missed.">        final boolean importFromDir = (statedumpDir != null &amp;&amp; !statedumpDir.isEmpty());</span>
+
+<span class="nc bnc" id="L643" title="All 4 branches missed.">        if (!importFromDir &amp;&amp; statedumpFile == null) {</span>
+<span class="nc bnc" id="L644" title="All 2 branches missed.">            if (statedumpLockdownAfterImport) {</span>
+                try {
+<span class="nc" id="L646">                    lockDownStatedump();</span>
+<span class="nc" id="L647">                } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L648">                    final String msg = &quot;Authorization denied: &quot;+e.getLocalizedMessage();</span>
+<span class="nc" id="L649">                    log.info(msg);</span>
+<span class="nc" id="L650">                    super.addNonTranslatedErrorMessage(msg);</span>
+<span class="nc" id="L651">                }</span>
+            } else {
+<span class="nc" id="L653">                FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, &quot;Please select a statedump to import.&quot;, null));</span>
+            }
+<span class="nc" id="L655">            return;</span>
+        }
+
+<span class="nc bnc" id="L658" title="All 4 branches missed.">        if (importFromDir &amp;&amp; statedumpFile != null) {</span>
+<span class="nc" id="L659">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, &quot;Please import from either a directory or an uploaded ZIP file, but not both.&quot;, null));</span>
+<span class="nc" id="L660">            return;</span>
+        }
+
+<span class="nc bnc" id="L663" title="All 2 branches missed.">        if (getGlobalConfiguration().getStatedumpLockedDown()) {</span>
+<span class="nc" id="L664">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, &quot;Statedump has been locked down on this EJBCA installation and is not available.&quot;, null));</span>
+<span class="nc" id="L665">            return;</span>
+        }
+
+        try {
+<span class="nc bnc" id="L669" title="All 2 branches missed.">            if (importFromDir) {</span>
+<span class="nc" id="L670">                final File basedir = new File(statedumpSession.getTemplatesBasedir(getAdmin()));</span>
+<span class="nc" id="L671">                importStatedump(new File(basedir, statedumpDir), statedumpLockdownAfterImport);</span>
+<span class="nc" id="L672">            } else {</span>
+<span class="nc" id="L673">                byte[] uploadedFileBytes = statedumpFile.getBytes();</span>
+<span class="nc" id="L674">                importStatedump(uploadedFileBytes, statedumpLockdownAfterImport);</span>
+            }
+<span class="nc" id="L676">        } catch (Exception e) {</span>
+<span class="nc" id="L677">            String msg = &quot;Statedump import failed. &quot; + e.getLocalizedMessage();</span>
+<span class="nc" id="L678">            log.info(msg, e);</span>
+<span class="nc" id="L679">            super.addNonTranslatedErrorMessage(msg);</span>
+<span class="nc" id="L680">        }</span>
+
+        // Clear GUI caches
+        try {
+<span class="nc" id="L684">            getEjbcaWebBean().clearClusterCache(true); // exclude crypto tokens</span>
+<span class="nc" id="L685">        } catch (Exception e) {</span>
+<span class="nc" id="L686">            String msg = &quot;Statedump was successful, but the cache could not be cleared automatically. Please manually restart your browser or JBoss. &quot; + e.getLocalizedMessage();</span>
+<span class="nc" id="L687">            log.info(msg);</span>
+<span class="nc" id="L688">            super.addNonTranslatedErrorMessage(msg);</span>
+<span class="nc" id="L689">        }</span>
+<span class="nc" id="L690">    }</span>
+
+    public boolean validateCurrentConfig() {
+<span class="nc bnc" id="L693" title="All 2 branches missed.">        if (!currentConfig.getEnableKeyRecovery()) {</span>
+<span class="nc" id="L694">            currentConfig.setLocalKeyRecovery(false);</span>
+        }
+<span class="nc bnc" id="L696" title="All 2 branches missed.">        if (currentConfig.getLocalKeyRecovery()) {</span>
+<span class="nc bnc" id="L697" title="All 2 branches missed.">            if (currentConfig.getLocalKeyRecoveryCryptoTokenId() == 0) {</span>
+<span class="nc" id="L698">                String msg = &quot;Please select a crypto token for local key recovery&quot;;</span>
+<span class="nc" id="L699">                log.info(msg);</span>
+<span class="nc" id="L700">                super.addNonTranslatedErrorMessage(msg);</span>
+<span class="nc" id="L701">                return false;</span>
+<span class="nc bnc" id="L702" title="All 2 branches missed.">            } else if (StringUtils.isEmpty(currentConfig.getLocalKeyRecoveryKeyAlias())) {</span>
+<span class="nc" id="L703">                String msg = &quot;Please select a key alias for local key recovery&quot;;</span>
+<span class="nc" id="L704">                log.info(msg);</span>
+<span class="nc" id="L705">                super.addNonTranslatedErrorMessage(msg);</span>
+<span class="nc" id="L706">                return false;</span>
+            }
+        }
+<span class="nc" id="L709">        return true;</span>
+    }
+
+    private Integer zeroToNull(int value) {
+<span class="nc bnc" id="L713" title="All 2 branches missed.">        return value == 0 ? null : value;</span>
+    }
+
+    /** Invoked when admin saves the configurations */
+    public void saveCurrentConfig() {
+<span class="nc bnc" id="L718" title="All 2 branches missed.">        if(currentConfig != null) {</span>
+<span class="nc bnc" id="L719" title="All 2 branches missed.">            if (!validateCurrentConfig()) {</span>
+<span class="nc" id="L720">                return;</span>
+            }
+            try {
+<span class="nc" id="L723">                globalConfig.setEjbcaTitle(currentConfig.getTitle());</span>
+<span class="nc" id="L724">                globalConfig.setHeadBanner(currentConfig.getHeadBanner());</span>
+<span class="nc" id="L725">                globalConfig.setFootBanner(currentConfig.getFootBanner());</span>
+<span class="nc" id="L726">                globalConfig.setEnableEndEntityProfileLimitations(currentConfig.getEnableEndEntityProfileLimitations());</span>
+<span class="nc" id="L727">                globalConfig.setEnableKeyRecovery(currentConfig.getEnableKeyRecovery());</span>
+<span class="nc" id="L728">                globalConfig.setLocalKeyRecovery(currentConfig.getLocalKeyRecovery());</span>
+<span class="nc" id="L729">                globalConfig.setLocalKeyRecoveryCryptoTokenId(zeroToNull(currentConfig.getLocalKeyRecoveryCryptoTokenId()));</span>
+<span class="nc" id="L730">                globalConfig.setLocalKeyRecoveryKeyAlias(currentConfig.getLocalKeyRecoveryKeyAlias());</span>
+<span class="nc" id="L731">                globalConfig.setIssueHardwareTokens(currentConfig.getIssueHardwareToken());</span>
+<span class="nc" id="L732">                globalConfig.setHardTokenEncryptCA(currentConfig.getHardTokenDataEncryptCA());</span>
+<span class="nc" id="L733">                globalConfig.setAutoEnrollUse(currentConfig.getUseAutoEnrollment());</span>
+<span class="nc" id="L734">                globalConfig.setAutoEnrollCA(currentConfig.getAutoEnrollmentCA());</span>
+<span class="nc" id="L735">                globalConfig.setAutoEnrollSSLConnection(currentConfig.getAutoEnrollUseSSLConnection());</span>
+<span class="nc" id="L736">                globalConfig.setAutoEnrollADServer(currentConfig.getAutoEnrollAdServer());</span>
+<span class="nc" id="L737">                globalConfig.setAutoEnrollADPort(currentConfig.getAutoEnrollAdServerPort());</span>
+<span class="nc" id="L738">                globalConfig.setAutoEnrollConnectionDN(currentConfig.getAutoEnrollConnectionDN());</span>
+<span class="nc" id="L739">                globalConfig.setAutoEnrollBaseDNUser(currentConfig.getAutoEnrollUserBaseDN());</span>
+<span class="nc" id="L740">                globalConfig.setAutoEnrollConnectionPwd(currentConfig.getAutoEnrollConnectionPassword());</span>
+<span class="nc" id="L741">                globalConfig.setNodesInCluster(currentConfig.getNodesInCluster());</span>
+<span class="nc" id="L742">                globalConfig.setEnableCommandLineInterface(currentConfig.getEnableCommandLine());</span>
+<span class="nc" id="L743">                globalConfig.setEnableCommandLineInterfaceDefaultUser(currentConfig.getEnableCommandLineDefaultUser());</span>
+<span class="nc" id="L744">                globalConfig.setEnableExternalScripts(currentConfig.getEnableExternalScripts());</span>
+<span class="nc" id="L745">                globalConfig.setPublicWebCertChainOrderRootFirst(currentConfig.getPublicWebCertChainOrderRootFirst());</span>
+<span class="nc" id="L746">                globalConfig.setEnableIcaoCANameChange(currentConfig.getEnableIcaoCANameChange());</span>
+<span class="nc" id="L747">                LinkedHashMap&lt;Integer, CTLogInfo&gt; ctlogsMap = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L748" title="All 2 branches missed.">                for(CTLogInfo ctlog : currentConfig.getCtLogs()) {</span>
+<span class="nc" id="L749">                    ctlogsMap.put(ctlog.getLogId(), ctlog);</span>
+<span class="nc" id="L750">                }</span>
+<span class="nc" id="L751">                globalConfig.setCTLogs(ctlogsMap);</span>
+
+<span class="nc bnc" id="L753" title="All 2 branches missed.">                if (getGoogleCtPolicy().isValid()) {</span>
+<span class="nc" id="L754">                    globalConfig.setGoogleCtPolicy(getGoogleCtPolicy());</span>
+                } else {
+<span class="nc" id="L756">                    addErrorMessage(&quot;INVALID_CT_POLICY&quot;);</span>
+                }
+
+<span class="nc" id="L759">                getEjbcaWebBean().saveGlobalConfiguration(globalConfig);</span>
+
+<span class="nc" id="L761">                globalCesecoreConfiguration.setMaximumQueryCount(currentConfig.getMaximumQueryCount());</span>
+<span class="nc" id="L762">                globalCesecoreConfiguration.setMaximumQueryTimeout(currentConfig.getMaximumQueryTimeout());</span>
+<span class="nc" id="L763">                getEjbcaWebBean().getEjb().getGlobalConfigurationSession().saveConfiguration(getAdmin(), globalCesecoreConfiguration);</span>
+
+<span class="nc" id="L765">            } catch (AuthorizationDeniedException | InvalidConfigurationException e) {</span>
+<span class="nc" id="L766">                String msg = &quot;Cannot save System Configuration. &quot; + e.getLocalizedMessage();</span>
+<span class="nc" id="L767">                log.info(msg);</span>
+<span class="nc" id="L768">                super.addNonTranslatedErrorMessage(msg);</span>
+<span class="nc" id="L769">            }</span>
+
+            try {
+<span class="nc" id="L772">                adminPreference.setPreferedLanguage(currentConfig.getPreferedLanguage());</span>
+<span class="nc" id="L773">                adminPreference.setSecondaryLanguage(currentConfig.getSecondaryLanguage());</span>
+<span class="nc" id="L774">                adminPreference.setTheme(currentConfig.getTheme());</span>
+<span class="nc" id="L775">                adminPreference.setEntriesPerPage(currentConfig.getEntriesPerPage());</span>
+
+<span class="nc" id="L777">                getEjbcaWebBean().saveDefaultAdminPreference(adminPreference);</span>
+<span class="nc" id="L778">            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L779">                String msg = &quot;Cannot save Administrator Preferences. &quot; + e.getLocalizedMessage();</span>
+<span class="nc" id="L780">                log.info(msg);</span>
+<span class="nc" id="L781">                super.addNonTranslatedErrorMessage(msg);</span>
+<span class="nc" id="L782">            }</span>
+
+            // GlobalConfiguration validates and modifies some fields when they are set, so these fields need to be updated.
+            // Also, this ensures that the values shown are those actually stored in the database.
+<span class="nc" id="L786">            flushCache(); // must be done last</span>
+        }
+<span class="nc" id="L788">    }</span>
+
+    /** Invoked when admin saves the admin preferences */
+    public void saveCurrentAdminPreferences() {
+<span class="nc bnc" id="L792" title="All 2 branches missed.">        if(currentConfig != null) {</span>
+            try {
+<span class="nc" id="L794">                adminPreference.setPreferedLanguage(currentConfig.getPreferedLanguage());</span>
+<span class="nc" id="L795">                adminPreference.setSecondaryLanguage(currentConfig.getSecondaryLanguage());</span>
+<span class="nc" id="L796">                adminPreference.setTheme(currentConfig.getTheme());</span>
+<span class="nc" id="L797">                adminPreference.setEntriesPerPage(currentConfig.getEntriesPerPage());</span>
+
+<span class="nc" id="L799">                getEjbcaWebBean().saveDefaultAdminPreference(adminPreference);</span>
+<span class="nc" id="L800">            } catch (Exception e) {</span>
+<span class="nc" id="L801">                String msg = &quot;Cannot save Administrator Preferences. &quot; + e.getLocalizedMessage();</span>
+<span class="nc" id="L802">                log.info(msg);</span>
+<span class="nc" id="L803">                super.addNonTranslatedErrorMessage(msg);</span>
+<span class="nc" id="L804">            }</span>
+        }
+<span class="nc" id="L806">    }</span>
+
+    public void flushCache() {
+<span class="nc" id="L809">        globalConfig = null;</span>
+<span class="nc" id="L810">        adminPreference = null;</span>
+<span class="nc" id="L811">        currentConfig = null;</span>
+<span class="nc" id="L812">        nodesInCluster = null;</span>
+<span class="nc" id="L813">        ctLogManager = null;</span>
+<span class="nc" id="L814">        raStyleInfos = null;</span>
+<span class="nc" id="L815">        excludeActiveCryptoTokensFromClearCaches = true;</span>
+<span class="nc" id="L816">        availableExtendedKeyUsages = null;</span>
+<span class="nc" id="L817">        availableExtendedKeyUsagesConfig = null;</span>
+<span class="nc" id="L818">        availableCustomCertExtensions = null;</span>
+<span class="nc" id="L819">        availableCustomCertExtensionsConfig = null;</span>
+<span class="nc" id="L820">        selectedCustomCertExtensionID = 0;</span>
+<span class="nc" id="L821">        googleCtPolicy = null;</span>
+<span class="nc" id="L822">        validatorSettings = null;</span>
+<span class="nc" id="L823">    }</span>
+
+<span class="nc bnc" id="L825" title="All 2 branches missed.">    public void toggleUseAutoEnrollment() { currentConfig.setUseAutoEnrollment(!currentConfig.getUseAutoEnrollment()); }</span>
+<span class="nc bnc" id="L826" title="All 2 branches missed.">    public void toggleEnableKeyRecovery() { currentConfig.setEnableKeyRecovery(!currentConfig.getEnableKeyRecovery()); }</span>
+<span class="nc bnc" id="L827" title="All 2 branches missed.">    public void toggleLocalKeyRecovery() { currentConfig.setLocalKeyRecovery(!currentConfig.getLocalKeyRecovery()); }</span>
+
+    public List&lt;SelectItem&gt; getAvailableCryptoTokens() {
+<span class="nc bnc" id="L830" title="All 2 branches missed.">        if (availableCryptoTokens == null) {</span>
+<span class="nc" id="L831">            availableCryptoTokens = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L832" title="All 2 branches missed.">            for (final CryptoTokenInfo cryptoTokenInfo : cryptoTokenManagementSession.getCryptoTokenInfos(getEjbcaWebBean().getAdminObject())) {</span>
+<span class="nc" id="L833">                availableCryptoTokens.add(new SelectItem(cryptoTokenInfo.getCryptoTokenId(), cryptoTokenInfo.getName()));</span>
+<span class="nc" id="L834">            }</span>
+<span class="nc" id="L835">            Collections.sort(availableCryptoTokens, new Comparator&lt;SelectItem&gt;() {</span>
+                @Override
+                public int compare(final SelectItem o1, final SelectItem o2) {
+<span class="nc" id="L838">                    return o1.getLabel().compareToIgnoreCase(o1.getLabel());</span>
+                }
+            });
+<span class="nc" id="L841">            availableCryptoTokens.add(0, new SelectItem(null, getEjbcaWebBean().getText(&quot;PLEASE_SELECT_ENCRYPTION_CRYPTOTOKEN&quot;)));</span>
+        }
+<span class="nc" id="L843">        return availableCryptoTokens;</span>
+    }
+
+    public void selectLocalKeyRecoveryCryptoToken() {
+<span class="nc" id="L847">        availableKeyAliases = null; // force reload</span>
+<span class="nc" id="L848">        currentConfig.setLocalKeyRecoveryKeyAlias(null);</span>
+<span class="nc" id="L849">        getAvailableKeyAliases();</span>
+<span class="nc" id="L850">    }</span>
+
+    public boolean getHasSelectedCryptoToken() {
+<span class="nc bnc" id="L853" title="All 2 branches missed.">        return currentConfig.getLocalKeyRecoveryCryptoTokenId() != 0;</span>
+    }
+
+    public List&lt;SelectItem&gt; getAvailableKeyAliases() {
+<span class="nc bnc" id="L857" title="All 2 branches missed.">        if (availableKeyAliases == null) {</span>
+<span class="nc" id="L858">            availableKeyAliases = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L859" title="All 2 branches missed.">            if (currentConfig.getLocalKeyRecoveryCryptoTokenId() != 0) {</span>
+                try {
+<span class="nc" id="L861">                    final List&lt;String&gt; aliases = new ArrayList&lt;&gt;(cryptoTokenManagementSession.getKeyPairAliases(getEjbcaWebBean().getAdminObject(), currentConfig.getLocalKeyRecoveryCryptoTokenId()));</span>
+<span class="nc" id="L862">                    Collections.sort(aliases);</span>
+<span class="nc bnc" id="L863" title="All 2 branches missed.">                    for (final String keyAlias : aliases) {</span>
+<span class="nc bnc" id="L864" title="All 4 branches missed.">                        if (currentConfig.getLocalKeyRecoveryKeyAlias() == null &amp;&amp; keyAlias != null &amp;&amp;</span>
+<span class="nc bnc" id="L865" title="All 4 branches missed.">                                (keyAlias.startsWith(&quot;default&quot;) || keyAlias.startsWith(&quot;privatedec&quot;))) {</span>
+<span class="nc" id="L866">                            currentConfig.setLocalKeyRecoveryKeyAlias(keyAlias);</span>
+                        }
+<span class="nc" id="L868">                        availableKeyAliases.add(new SelectItem(keyAlias));</span>
+<span class="nc" id="L869">                    }</span>
+<span class="nc" id="L870">                    availableKeyAliases.add(0, new SelectItem(null, getEjbcaWebBean().getText(&quot;PLEASE_SELECT_KEY&quot;)));</span>
+<span class="nc" id="L871">                } catch (CryptoTokenOfflineException | AuthorizationDeniedException e) {</span>
+<span class="nc" id="L872">                    log.debug(&quot;Crypto Token is not usable. Can't list key aliases&quot;, e);</span>
+<span class="nc" id="L873">                }</span>
+            }
+        }
+<span class="nc" id="L876">        return availableKeyAliases;</span>
+    }
+
+    /** @return a list of all currently connected nodes in a cluster */
+    public ListDataModel&lt;String&gt; getNodesInCluster() {
+<span class="nc bnc" id="L881" title="All 2 branches missed.">        if (nodesInCluster == null) {</span>
+<span class="nc" id="L882">            List&lt;String&gt; nodesList = getListFromSet(currentConfig.getNodesInCluster());</span>
+<span class="nc" id="L883">            nodesInCluster = new ListDataModel&lt;&gt;(nodesList);</span>
+        }
+<span class="nc" id="L885">        return nodesInCluster;</span>
+    }
+
+    /** Invoked when the user wants to a add a new node to the cluster */
+    public void addNode() {
+<span class="nc" id="L890">        final String nodeToAdd = getCurrentNode();</span>
+<span class="nc" id="L891">        Set&lt;String&gt; nodes = currentConfig.getNodesInCluster();</span>
+<span class="nc" id="L892">        nodes.add(nodeToAdd);</span>
+<span class="nc" id="L893">        currentConfig.setNodesInCluster(nodes);</span>
+<span class="nc" id="L894">        nodesInCluster = new ListDataModel&lt;&gt;(getListFromSet(nodes));</span>
+<span class="nc" id="L895">    }</span>
+
+    /** Invoked when the user wants to remove a node from the cluster */
+    public void removeNode() {
+<span class="nc" id="L899">        final String nodeToRemove = nodesInCluster.getRowData();</span>
+<span class="nc" id="L900">        Set&lt;String&gt; nodes = currentConfig.getNodesInCluster();</span>
+<span class="nc" id="L901">        nodes.remove(nodeToRemove);</span>
+<span class="nc" id="L902">        currentConfig.setNodesInCluster(nodes);</span>
+<span class="nc" id="L903">        nodesInCluster = new ListDataModel&lt;&gt;(getListFromSet(nodes));</span>
+<span class="nc" id="L904">    }</span>
+
+    private List&lt;String&gt; getListFromSet(Set&lt;String&gt; set) {
+<span class="nc" id="L907">        List&lt;String&gt; list = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L908" title="All 4 branches missed.">        if(set!=null &amp;&amp; !set.isEmpty()) {</span>
+<span class="nc bnc" id="L909" title="All 2 branches missed.">            for(String entry : set) {</span>
+<span class="nc" id="L910">                list.add(entry);</span>
+<span class="nc" id="L911">            }</span>
+        }
+<span class="nc" id="L913">        return list;</span>
+    }
+
+    // --------------------------------------------
+    //               Protocol Configuration
+    // --------------------------------------------
+
+    public AvailableProtocolsConfiguration getAvailableProtocolsConfiguration() {
+<span class="nc" id="L921">        return (AvailableProtocolsConfiguration) getEjbcaWebBean().getEjb().getGlobalConfigurationSession()</span>
+<span class="nc" id="L922">                    .getCachedConfiguration(AvailableProtocolsConfiguration.CONFIGURATION_ID);</span>
+    }
+
+    public void toggleProtocolStatus(final ProtocolGuiInfo protocolToToggle) {
+<span class="nc" id="L926">        final AvailableProtocolsConfiguration availableProtocolsConfiguration = getAvailableProtocolsConfiguration();</span>
+<span class="nc bnc" id="L927" title="All 2 branches missed.">        if (protocolToToggle.isEnabled()) {</span>
+<span class="nc" id="L928">            availableProtocolsConfiguration.setProtocolStatus(protocolToToggle.getProtocol(), false);</span>
+        } else {
+<span class="nc" id="L930">            availableProtocolsConfiguration.setProtocolStatus(protocolToToggle.getProtocol(), true);</span>
+        }
+        // Save config
+        try {
+<span class="nc" id="L934">            getEjbcaWebBean().getEjb().getGlobalConfigurationSession().saveConfiguration(getAdmin(), availableProtocolsConfiguration);</span>
+<span class="nc" id="L935">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L936">            String msg = &quot;Cannot save System Configuration. &quot; + e.getLocalizedMessage();</span>
+<span class="nc" id="L937">            log.info(&quot;Administrator '&quot; + getAdmin() + &quot;' &quot; + msg);</span>
+<span class="nc" id="L938">            super.addNonTranslatedErrorMessage(msg);</span>
+<span class="nc" id="L939">        }</span>
+<span class="nc" id="L940">    }</span>
+
+    public ArrayList&lt;ProtocolGuiInfo&gt; getAvailableProtocolInfos() {
+<span class="nc" id="L943">        ArrayList&lt;ProtocolGuiInfo&gt; protocolInfos = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L944">        LinkedHashMap&lt;String, Boolean&gt; allPC = getAvailableProtocolsConfiguration().getAllProtocolsAndStatus();</span>
+<span class="nc bnc" id="L945" title="All 2 branches missed.">        for (Entry&lt;String, Boolean&gt; entry : allPC.entrySet()) {</span>
+<span class="nc" id="L946">            protocolInfos.add(new ProtocolGuiInfo(entry.getKey(), entry.getValue()));</span>
+<span class="nc" id="L947">        }</span>
+<span class="nc" id="L948">        return protocolInfos;</span>
+    }
+
+    /** @return true if CRLStore is deployed. Determined by crlstore.properties file */
+    public boolean isCrlStoreAvailable() {
+<span class="nc" id="L953">        return WebConfiguration.isCrlStoreEnabled();</span>
+    }
+
+    /** @return true if CRLStore is deployed. Determined by crlstore.properties file */
+    public boolean isCertStoreAvailable() {
+<span class="nc" id="L958">        return WebConfiguration.isCertStoreEnabled();</span>
+    }
+
+    /** @return true if EST is enabled. Should be false for EJBCA CE */
+    public boolean isEstAvailable() {
+<span class="nc" id="L963">        return getEjbcaWebBean().isRunningEnterprise();</span>
+    }
+
+    /** @return true if REST is enabled. Should be false for EJBCA CE */
+    public boolean isRestAvailable() {
+<span class="nc" id="L968">        return getEjbcaWebBean().isRunningEnterprise();</span>
+    }
+    
+    /** @return true if ACME is enabled. Should be false for EJBCA CE */
+    public boolean isAcmeAvailable() {
+<span class="nc" id="L973">        return getEjbcaWebBean().isRunningEnterprise();</span>
+    }
+
+    public class ProtocolGuiInfo {
+        private String protocol;
+        private String url;
+        private boolean enabled;
+        private boolean available;
+
+<span class="nc" id="L982">        public ProtocolGuiInfo(String protocol, boolean enabled) {</span>
+<span class="nc" id="L983">            this.protocol = protocol;</span>
+<span class="nc" id="L984">            this.enabled = enabled;</span>
+<span class="nc" id="L985">            this.url = AvailableProtocols.getContextPathByName(protocol);</span>
+<span class="nc" id="L986">            this.available = true;</span>
+<span class="nc" id="L987">        }</span>
+
+        /** @return user friendly protocol/service name */
+        public String getProtocol() {
+<span class="nc" id="L991">            return protocol;</span>
+        }
+
+        /** @return URL to service */
+        public String getUrl() {
+<span class="nc" id="L996">            return url;</span>
+        }
+
+        /** @return true if protocol is enabled */
+        public boolean isEnabled() {
+<span class="nc" id="L1001">            return enabled;</span>
+        }
+
+        /** @return true if service is available in the deployed instance */
+        public boolean isAvailable() {
+            // This is only applicable to services/protocols which may be unavailable for some installations,
+            // such as community edition or installations where CRLStore is disabled by .properties file.
+<span class="nc bnc" id="L1008" title="All 4 branches missed.">            if (protocol.equals(AvailableProtocols.CRL_STORE.getName()) &amp;&amp; !isCrlStoreAvailable()) {</span>
+<span class="nc" id="L1009">                available = false;</span>
+            }
+<span class="nc bnc" id="L1011" title="All 4 branches missed.">            if (protocol.equals(AvailableProtocols.CERT_STORE.getName()) &amp;&amp; !isCertStoreAvailable()) {</span>
+<span class="nc" id="L1012">                available = false;</span>
+            }
+<span class="nc bnc" id="L1014" title="All 4 branches missed.">            if (protocol.equals(AvailableProtocols.EST.getName()) &amp;&amp; !isEstAvailable()) {</span>
+<span class="nc" id="L1015">                available = false;</span>
+            }
+<span class="nc bnc" id="L1017" title="All 4 branches missed.">            if (protocol.equals(AvailableProtocols.REST.getName()) &amp;&amp; !isRestAvailable()) {</span>
+<span class="nc" id="L1018">                available = false;</span>
+            }
+<span class="nc bnc" id="L1020" title="All 4 branches missed.">            if (protocol.equals(AvailableProtocols.ACME.getName()) &amp;&amp; !isAcmeAvailable()) {</span>
+<span class="nc" id="L1021">                available = false;</span>
+            }
+<span class="nc" id="L1023">            return available;</span>
+        }
+
+        /** @return user friendly status text. 'Enabled', 'Disabled' or 'Unavailable' if module isn't deployed */
+        public String getStatus() {
+<span class="nc bnc" id="L1028" title="All 2 branches missed.">            if (!isAvailable()) {</span>
+<span class="nc" id="L1029">                return getEjbcaWebBean().getText(&quot;PC_STATUS_UNAVAILABLE&quot;);</span>
+            }
+<span class="nc bnc" id="L1031" title="All 2 branches missed.">            return enabled ? getEjbcaWebBean().getText(&quot;PC_STATUS_ENABLED&quot;) : getEjbcaWebBean().getText(&quot;PC_STATUS_DISABLED&quot;);</span>
+        }
+    }
+
+
+
+    // --------------------------------------------
+    //               Extended Key Usage
+    // --------------------------------------------
+
+<span class="nc" id="L1041">    private AvailableExtendedKeyUsagesConfiguration availableExtendedKeyUsagesConfig = null;</span>
+<span class="nc" id="L1042">    private ListDataModel&lt;EKUInfo&gt; availableExtendedKeyUsages = null;</span>
+<span class="nc" id="L1043">    private String currentEKUOid = &quot;&quot;;</span>
+<span class="nc" id="L1044">    private String currentEKUName = &quot;&quot;;</span>
+
+<span class="nc" id="L1046">    public String getCurrentEKUOid() { return currentEKUOid; }</span>
+<span class="nc" id="L1047">    public void setCurrentEKUOid(String oid) { currentEKUOid=oid; }</span>
+<span class="nc" id="L1048">    public String getCurrentEKUReadableName() { return currentEKUName; }</span>
+<span class="nc" id="L1049">    public void setCurrentEKUReadableName(String readableName) { currentEKUName=readableName; }</span>
+
+    private void flushNewEKUCache() {
+<span class="nc" id="L1052">        currentEKUOid = &quot;&quot;;</span>
+<span class="nc" id="L1053">        currentEKUName = &quot;&quot;;</span>
+<span class="nc" id="L1054">    }</span>
+
+    private AvailableExtendedKeyUsagesConfiguration getAvailableEKUConfig() {
+<span class="nc bnc" id="L1057" title="All 2 branches missed.">        if(availableExtendedKeyUsagesConfig == null) {</span>
+<span class="nc" id="L1058">            availableExtendedKeyUsagesConfig = getEjbcaWebBean().getAvailableExtendedKeyUsagesConfiguration();</span>
+        }
+<span class="nc" id="L1060">        return availableExtendedKeyUsagesConfig;</span>
+    }
+
+    public String getEKUOid() {
+<span class="nc" id="L1064">        return availableExtendedKeyUsages.getRowData().getOid();</span>
+    }
+
+    public String getEKUName() {
+<span class="nc" id="L1068">        return availableExtendedKeyUsages.getRowData().getName();</span>
+    }
+
+    public ListDataModel&lt;EKUInfo&gt; getAvailableExtendedKeyUsages() {
+<span class="nc bnc" id="L1072" title="All 2 branches missed.">        if(availableExtendedKeyUsages == null) {</span>
+<span class="nc" id="L1073">            availableExtendedKeyUsages = new ListDataModel&lt;&gt;(getNewAvailableExtendedKeyUsages());</span>
+        }
+<span class="nc" id="L1075">        return availableExtendedKeyUsages;</span>
+    }
+
+    private ArrayList&lt;EKUInfo&gt; getNewAvailableExtendedKeyUsages() {
+<span class="nc" id="L1079">        availableExtendedKeyUsagesConfig = getEjbcaWebBean().getAvailableExtendedKeyUsagesConfiguration();</span>
+<span class="nc" id="L1080">        ArrayList&lt;EKUInfo&gt; ekus = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L1081">        Map&lt;String, String&gt; allEKU = availableExtendedKeyUsagesConfig.getAllEKUOidsAndNames();</span>
+<span class="nc bnc" id="L1082" title="All 2 branches missed.">        for (Entry&lt;String, String&gt; entry : allEKU.entrySet()) {</span>
+<span class="nc" id="L1083">            ekus.add(new EKUInfo(entry.getKey(), getEjbcaWebBean().getText(entry.getValue())));</span>
+<span class="nc" id="L1084">        }</span>
+<span class="nc" id="L1085">        Collections.sort(ekus, new Comparator&lt;EKUInfo&gt;() {</span>
+            @Override
+            public int compare(final EKUInfo ekuInfo1, final EKUInfo ekuInfo2) {
+<span class="nc" id="L1088">                String[] oidFirst = ekuInfo1.getOid().split(&quot;\\.&quot;);</span>
+<span class="nc" id="L1089">                String[] oidSecond = ekuInfo2.getOid().split(&quot;\\.&quot;);</span>
+<span class="nc" id="L1090">                int length = Math.min(oidFirst.length, oidSecond.length);</span>
+                try {
+<span class="nc bnc" id="L1092" title="All 2 branches missed.">                    for(int i=0; i&lt;length ; i++) {</span>
+<span class="nc bnc" id="L1093" title="All 2 branches missed.">                        if(!StringUtils.equals(oidFirst[i], oidSecond[i])) {</span>
+<span class="nc bnc" id="L1094" title="All 2 branches missed.">                            if(Integer.parseInt(oidFirst[i]) &lt; Integer.parseInt(oidSecond[i])) {</span>
+<span class="nc" id="L1095">                                return -1;</span>
+                            }
+<span class="nc" id="L1097">                            return 1;</span>
+                        }
+                    }
+<span class="nc" id="L1100">                } catch(NumberFormatException e) {</span>
+<span class="nc" id="L1101">                    log.error(&quot;OID contains non-numerical values. This should not happen at this point&quot;);</span>
+<span class="nc" id="L1102">                }</span>
+
+<span class="nc bnc" id="L1104" title="All 2 branches missed.">                if(oidFirst.length !=oidSecond.length) {</span>
+<span class="nc bnc" id="L1105" title="All 2 branches missed.">                    return oidFirst.length &lt; oidSecond.length ? -1 : 1;</span>
+                }
+
+<span class="nc" id="L1108">                return 0;</span>
+            }
+        });
+<span class="nc" id="L1111">        return ekus;</span>
+    }
+
+    public void addEKU() {
+
+<span class="nc bnc" id="L1116" title="All 2 branches missed.">        if (StringUtils.isEmpty(currentEKUOid)) {</span>
+<span class="nc" id="L1117">            FacesContext.getCurrentInstance()</span>
+<span class="nc" id="L1118">                    .addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, &quot;No ExtendedKeyUsage OID is set.&quot;, null));</span>
+<span class="nc" id="L1119">            return;</span>
+        }
+<span class="nc bnc" id="L1121" title="All 2 branches missed.">        if (!isOidNumericalOnly(currentEKUOid)) {</span>
+<span class="nc" id="L1122">            FacesContext.getCurrentInstance()</span>
+<span class="nc" id="L1123">                    .addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, &quot;OID &quot; + currentEKUOid + &quot; contains non-numerical values.&quot;, null));</span>
+<span class="nc" id="L1124">            return;</span>
+        }
+<span class="nc bnc" id="L1126" title="All 2 branches missed.">        if (StringUtils.isEmpty(currentEKUName)) {</span>
+<span class="nc" id="L1127">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, &quot;No ExtendedKeyUsage Name is set.&quot;, null));</span>
+<span class="nc" id="L1128">            return;</span>
+        }
+
+<span class="nc" id="L1131">        AvailableExtendedKeyUsagesConfiguration ekuConfig = getAvailableEKUConfig();</span>
+<span class="nc" id="L1132">        ekuConfig.addExtKeyUsage(currentEKUOid, currentEKUName);</span>
+        try {
+<span class="nc" id="L1134">            getEjbcaWebBean().saveAvailableExtendedKeyUsagesConfiguration(ekuConfig);</span>
+<span class="nc" id="L1135">            availableExtendedKeyUsages = new  ListDataModel&lt;&gt;(getNewAvailableExtendedKeyUsages());</span>
+<span class="nc" id="L1136">        } catch(Exception e) {</span>
+<span class="nc" id="L1137">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, &quot;Failed to save AvailableExtendedKeyUsagesConfiguration.&quot;, e.getLocalizedMessage()));</span>
+<span class="nc" id="L1138">            return;</span>
+<span class="nc" id="L1139">        }</span>
+<span class="nc" id="L1140">        flushNewEKUCache();</span>
+<span class="nc" id="L1141">    }</span>
+
+    public void removeEKU() {
+<span class="nc" id="L1144">        final EKUInfo ekuToRemove = (availableExtendedKeyUsages.getRowData());</span>
+<span class="nc" id="L1145">        final String oid = ekuToRemove.getOid();</span>
+<span class="nc" id="L1146">        AvailableExtendedKeyUsagesConfiguration ekuConfig = getAvailableEKUConfig();</span>
+<span class="nc" id="L1147">        ekuConfig.removeExtKeyUsage(oid);</span>
+        try {
+<span class="nc" id="L1149">            getEjbcaWebBean().saveAvailableExtendedKeyUsagesConfiguration(ekuConfig);</span>
+<span class="nc" id="L1150">        } catch(Exception e) {</span>
+<span class="nc" id="L1151">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, &quot;Failed to save AvailableExtendedKeyUsagesConfiguration: &quot; + e.getLocalizedMessage(), null));</span>
+<span class="nc" id="L1152">            return;</span>
+<span class="nc" id="L1153">        }</span>
+<span class="nc" id="L1154">        availableExtendedKeyUsages = new ListDataModel&lt;&gt;(getNewAvailableExtendedKeyUsages());</span>
+
+<span class="nc" id="L1156">        ArrayList&lt;String&gt; cpNamesUsingEKU = getCertProfilesUsingEKU(oid);</span>
+<span class="nc bnc" id="L1157" title="All 2 branches missed.">        if(!cpNamesUsingEKU.isEmpty()) {</span>
+<span class="nc" id="L1158">            final String cpNamesMessage = getCertProfilesNamesMessage(cpNamesUsingEKU);</span>
+<span class="nc" id="L1159">            final String message = &quot;ExtendedKeyUsage '&quot; + ekuToRemove.getName() + &quot;' has been removed, but is still used in the following certitifcate profiles: &quot; +  cpNamesMessage;</span>
+<span class="nc" id="L1160">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN, message, null));</span>
+        }
+<span class="nc" id="L1162">    }</span>
+
+    private ArrayList&lt;String&gt; getCertProfilesUsingEKU(final String oid) {
+<span class="nc" id="L1165">        ArrayList&lt;String&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L1166">        final CertificateProfileSessionLocal certprofileSession = getEjbcaWebBean().getEjb().getCertificateProfileSession();</span>
+<span class="nc" id="L1167">        Map&lt;Integer, CertificateProfile&gt; allCertProfiles = certprofileSession.getAllCertificateProfiles();</span>
+<span class="nc bnc" id="L1168" title="All 2 branches missed.">        for(Entry&lt;Integer, CertificateProfile&gt; entry : allCertProfiles.entrySet()) {</span>
+<span class="nc" id="L1169">            final CertificateProfile cp = entry.getValue();</span>
+<span class="nc" id="L1170">            List&lt;String&gt; ekuOids = cp.getExtendedKeyUsageOids();</span>
+<span class="nc bnc" id="L1171" title="All 2 branches missed.">            if(ekuOids.contains(oid)) {</span>
+<span class="nc" id="L1172">                ret.add(certprofileSession.getCertificateProfileName(entry.getKey()));</span>
+            }
+<span class="nc" id="L1174">        }</span>
+<span class="nc" id="L1175">        return ret;</span>
+    }
+
+    private String getCertProfilesNamesMessage(final ArrayList&lt;String&gt; certProfileNames) {
+<span class="nc" id="L1179">        int nrOfProfiles = certProfileNames.size();</span>
+<span class="nc bnc" id="L1180" title="All 2 branches missed.">        int nrOfdisplayedProfiles = nrOfProfiles&gt;10? 10 : nrOfProfiles;</span>
+
+<span class="nc" id="L1182">        StringBuilder sb = new StringBuilder();</span>
+<span class="nc bnc" id="L1183" title="All 2 branches missed.">        for(int i=0; i&lt;nrOfdisplayedProfiles; i++) {</span>
+<span class="nc" id="L1184">            sb.append(&quot; &quot; + certProfileNames.get(i) + &quot;,&quot;);</span>
+        }
+<span class="nc" id="L1186">        sb.deleteCharAt(sb.length()-1);</span>
+<span class="nc bnc" id="L1187" title="All 2 branches missed.">        if(nrOfProfiles &gt; nrOfdisplayedProfiles) {</span>
+<span class="nc" id="L1188">            sb.append(&quot; and &quot; + (nrOfProfiles-nrOfdisplayedProfiles) + &quot; more certificate profiles.&quot;);</span>
+        }
+<span class="nc" id="L1190">        return sb.toString();</span>
+    }
+
+    private boolean isOidNumericalOnly(String oid) {
+<span class="nc" id="L1194">        String[] oidParts = oid.split(&quot;\\.&quot;);</span>
+<span class="nc bnc" id="L1195" title="All 2 branches missed.">        for(int i=0; i &lt; oidParts.length ; i++) {</span>
+<span class="nc bnc" id="L1196" title="All 2 branches missed.">            if (oidParts[i].equals(&quot;*&quot;)) {</span>
+                // Allow wildcard characters
+<span class="nc" id="L1198">                continue;</span>
+            }
+            try {
+<span class="nc" id="L1201">                Integer.parseInt(oidParts[i]);</span>
+<span class="nc" id="L1202">            } catch (NumberFormatException e) {</span>
+<span class="nc" id="L1203">                return false;</span>
+<span class="nc" id="L1204">            }</span>
+        }
+<span class="nc" id="L1206">        return true;</span>
+    }
+
+    // ----------------------------------------------------
+    //               Custom RA Styles
+    // ----------------------------------------------------
+
+<span class="nc" id="L1213">    private GlobalCustomCssConfiguration globalCustomCssConfiguration = null;</span>
+<span class="nc" id="L1214">    private ListDataModel&lt;RaStyleInfo&gt; raStyleInfos = null;</span>
+    private List&lt;RaStyleInfo&gt; raStyleInfosList;
+<span class="nc" id="L1216">    private UploadedFile raCssFile = null;</span>
+<span class="nc" id="L1217">    private UploadedFile raLogoFile = null;</span>
+<span class="nc" id="L1218">    private Map&lt;String, RaCssInfo&gt; importedRaCssInfos = null;</span>
+<span class="nc" id="L1219">    private String archiveName = null;</span>
+<span class="nc" id="L1220">    private String logoName = null;</span>
+<span class="nc" id="L1221">    private byte[] logoBytes = null;</span>
+
+    public GlobalCustomCssConfiguration getGlobalCustomCssConfiguration() {
+<span class="nc bnc" id="L1224" title="All 2 branches missed.">        if (globalCustomCssConfiguration == null) {</span>
+<span class="nc" id="L1225">            globalCustomCssConfiguration = (GlobalCustomCssConfiguration) getEjbcaWebBean().getEjb().getGlobalConfigurationSession()</span>
+<span class="nc" id="L1226">                    .getCachedConfiguration(GlobalCustomCssConfiguration.CSS_CONFIGURATION_ID);</span>
+        }
+<span class="nc" id="L1228">        return globalCustomCssConfiguration;</span>
+    }
+
+    public void actionImportRaStyle() {
+        // Basic checks
+<span class="nc bnc" id="L1233" title="All 4 branches missed.">        if (raCssFile == null &amp;&amp; raLogoFile == null) {</span>
+<span class="nc" id="L1234">            addErrorMessage(&quot;NOFILESELECTED&quot;);</span>
+<span class="nc" id="L1235">            return;</span>
+        }
+<span class="nc bnc" id="L1237" title="All 4 branches missed.">        if (archiveName == null || archiveName.equals(&quot;&quot;)) {</span>
+<span class="nc" id="L1238">            addErrorMessage(&quot;STYLENONAME&quot;);</span>
+<span class="nc" id="L1239">            return;</span>
+        }
+<span class="nc bnc" id="L1241" title="All 2 branches missed.">        if (raStyleNameExists(archiveName)) {</span>
+<span class="nc" id="L1242">            addErrorMessage(&quot;STYLEEXISTS&quot;, archiveName);</span>
+<span class="nc" id="L1243">            return;</span>
+        }
+
+        try {
+            // Authorazation check
+<span class="nc bnc" id="L1248" title="All 2 branches missed.">            if (!isAllowedToEditSystemConfiguration()) {</span>
+<span class="nc" id="L1249">                addErrorMessage(&quot;CSS_NOT_AUTH&quot;);</span>
+<span class="nc" id="L1250">                log.info(&quot;Administrator '&quot; + getAdmin() + &quot;' attempted to import css / logo files. Authorazation denied: Insufficient privileges&quot;);</span>
+<span class="nc" id="L1251">                return;</span>
+            }
+<span class="nc bnc" id="L1253" title="All 2 branches missed.">            if (raCssFile != null) {</span>
+                // File is selected but something went wrong. Import nothing!
+<span class="nc" id="L1255">                importCssFromFile();</span>
+<span class="nc bnc" id="L1256" title="All 2 branches missed.">                if (importedRaCssInfos == null) {</span>
+<span class="nc" id="L1257">                    return;</span>
+                }
+            }
+<span class="nc bnc" id="L1260" title="All 2 branches missed.">            if (raLogoFile != null) {</span>
+<span class="nc" id="L1261">                importLogoFromImageFile();</span>
+                // File is selected but something went wrong. Import nothing!
+<span class="nc bnc" id="L1263" title="All 2 branches missed.">                if (logoBytes == null) {</span>
+<span class="nc" id="L1264">                    return;</span>
+                }
+            }
+
+<span class="nc" id="L1268">            RaStyleInfo importedRaStyleInfo = new RaStyleInfo(archiveName, importedRaCssInfos, logoBytes, logoName);</span>
+<span class="nc bnc" id="L1269" title="All 2 branches missed.">            if (raLogoFile != null) {</span>
+<span class="nc" id="L1270">                importedRaStyleInfo.setLogoContentType(raLogoFile.getContentType());</span>
+            }
+<span class="nc" id="L1272">            raStyleInfosList.add(importedRaStyleInfo);</span>
+<span class="nc" id="L1273">            raStyleInfos = new ListDataModel&lt;&gt;(raStyleInfosList);</span>
+<span class="nc" id="L1274">            saveCustomCssConfiguration();</span>
+<span class="nc" id="L1275">            importedRaCssInfos = null;</span>
+<span class="nc" id="L1276">            logoBytes = null;</span>
+<span class="nc" id="L1277">            logoName = null;</span>
+
+<span class="nc" id="L1279">        } catch (IOException | IllegalArgumentException | IllegalStateException e) {</span>
+<span class="nc" id="L1280">            addErrorMessage(&quot;STYLEIMPORTFAIL&quot;, e.getLocalizedMessage());</span>
+<span class="nc" id="L1281">            log.info(&quot;Failed to import style files&quot;, e);</span>
+<span class="nc" id="L1282">        }</span>
+<span class="nc" id="L1283">    }</span>
+
+    private boolean raStyleNameExists(String name) {
+<span class="nc" id="L1286">        LinkedHashMap&lt;Integer, RaStyleInfo&gt; storedRaStyles = globalCustomCssConfiguration.getRaStyleInfo();</span>
+<span class="nc bnc" id="L1287" title="All 2 branches missed.">        for (Map.Entry&lt;Integer, RaStyleInfo&gt; raStyle : storedRaStyles.entrySet()) {</span>
+<span class="nc bnc" id="L1288" title="All 2 branches missed.">            if (raStyle.getValue().getArchiveName().equals(name)) {</span>
+<span class="nc" id="L1289">                return true;</span>
+            }
+<span class="nc" id="L1291">        }</span>
+<span class="nc" id="L1292">        return false;</span>
+    }
+
+    private void importLogoFromImageFile() throws IOException {
+<span class="nc" id="L1296">        String contentType = raLogoFile.getContentType();</span>
+<span class="nc bnc" id="L1297" title="All 4 branches missed.">        if (!contentType.equals(&quot;image/jpeg&quot;) &amp;&amp; !contentType.equals(&quot;image/png&quot;)) {</span>
+<span class="nc" id="L1298">            addErrorMessage(&quot;LOGOIMPORTIGNORE&quot;, raLogoFile.getName());</span>
+<span class="nc" id="L1299">            return;</span>
+        }
+<span class="nc" id="L1301">        logoName = raLogoFile.getName();</span>
+<span class="nc" id="L1302">        logoBytes = raLogoFile.getBytes();</span>
+<span class="nc" id="L1303">        addInfoMessage(&quot;LOGOIMPORTSUCCESS&quot;, logoName);</span>
+<span class="nc" id="L1304">    }</span>
+
+    private void importCssFromFile() throws IOException, IllegalArgumentException, IllegalStateException {
+<span class="nc" id="L1307">        byte[] fileBuffer = raCssFile.getBytes();</span>
+<span class="nc bnc" id="L1308" title="All 2 branches missed.">        if (fileBuffer.length == 0) {</span>
+<span class="nc" id="L1309">            throw new IllegalArgumentException(&quot;Empty input file&quot;);</span>
+        }
+<span class="nc" id="L1311">        String importedFiles = &quot;&quot;;</span>
+<span class="nc" id="L1312">        String ignoredFiles = &quot;&quot;;</span>
+<span class="nc" id="L1313">        int numberOfZipEntries = 0;</span>
+<span class="nc" id="L1314">        int numberOfImportedFiles = 0;</span>
+<span class="nc" id="L1315">        int numberOfignoredFiles = 0;</span>
+<span class="nc" id="L1316">        Map&lt;String, RaCssInfo&gt; raCssInfosMap = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L1317">        try (final ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(fileBuffer))) {</span>
+            ZipEntry ze;
+            // Read each zip entry
+<span class="nc bnc" id="L1320" title="All 2 branches missed.">            while ((ze = zis.getNextEntry()) != null) {</span>
+<span class="nc" id="L1321">                String fileName = ze.getName();</span>
+<span class="nc bnc" id="L1322" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1323">                    log.debug(&quot;Reading zip entry: &quot; + fileName);</span>
+                }
+                try {
+<span class="nc" id="L1326">                    fileName = URLDecoder.decode(fileName, &quot;UTF-8&quot;);</span>
+<span class="nc" id="L1327">                } catch (UnsupportedEncodingException e) {</span>
+<span class="nc" id="L1328">                    throw new IllegalStateException(&quot;UTF-8 was not a known character encoding&quot;, e);</span>
+<span class="nc" id="L1329">                }</span>
+<span class="nc" id="L1330">                numberOfZipEntries++;</span>
+<span class="nc bnc" id="L1331" title="All 2 branches missed.">                if (!ze.getName().endsWith(&quot;.css&quot;)) {</span>
+<span class="nc" id="L1332">                    log.info(fileName + &quot; not recognized as a css file. Expected file extension '.css'. Skipping...&quot;);</span>
+<span class="nc" id="L1333">                    numberOfignoredFiles++;</span>
+<span class="nc" id="L1334">                    ignoredFiles += ze.getName() + &quot;, &quot;;</span>
+<span class="nc" id="L1335">                    continue;</span>
+                }
+                // Extract bytes from this entry
+<span class="nc" id="L1338">                byte[] filebytes = new byte[(int) ze.getSize()];</span>
+<span class="nc" id="L1339">                int i = 0;</span>
+<span class="nc bnc" id="L1340" title="All 4 branches missed.">                while ((zis.available() == 1) &amp;&amp; (i &lt; filebytes.length)) {</span>
+<span class="nc" id="L1341">                    filebytes[i++] = (byte) zis.read();</span>
+                }
+<span class="nc" id="L1343">                RaCssInfo raCssInfo = new RaCssInfo(filebytes, fileName);</span>
+<span class="nc" id="L1344">                raCssInfosMap.put(fileName, raCssInfo);</span>
+<span class="nc" id="L1345">                importedFiles += fileName + &quot;, &quot;;</span>
+<span class="nc" id="L1346">                numberOfImportedFiles++;</span>
+<span class="nc" id="L1347">            }</span>
+        }
+<span class="nc bnc" id="L1349" title="All 4 branches missed.">        if (numberOfZipEntries == 0 &amp;&amp; raCssFile.getName().endsWith(&quot;.css&quot;)) {</span>
+            // Single file selected (not zip)
+<span class="nc" id="L1351">            raCssInfosMap.put(raCssFile.getName(), new RaCssInfo(raCssFile.getBytes(), raCssFile.getName()));</span>
+<span class="nc" id="L1352">            numberOfImportedFiles++;</span>
+<span class="nc" id="L1353">            importedFiles = raCssFile.getName();</span>
+<span class="nc bnc" id="L1354" title="All 2 branches missed.">        } else if (numberOfZipEntries == 0) {</span>
+<span class="nc" id="L1355">            addErrorMessage(&quot;ISNOTAZIPFILE&quot;);</span>
+<span class="nc" id="L1356">            return;</span>
+
+        }
+<span class="nc bnc" id="L1359" title="All 2 branches missed.">        if (numberOfignoredFiles == 0) {</span>
+<span class="nc" id="L1360">            addInfoMessage(&quot;CSSIMPORTSUCCESS&quot;, numberOfImportedFiles, importedFiles);</span>
+        } else {
+<span class="nc" id="L1362">            addInfoMessage(&quot;CSSIMPORTIGNORED&quot;, numberOfImportedFiles, importedFiles, numberOfignoredFiles, ignoredFiles);</span>
+        }
+<span class="nc" id="L1364">        importedRaCssInfos = raCssInfosMap;</span>
+<span class="nc" id="L1365">    }</span>
+
+    public void removeRaStyleInfo() {
+<span class="nc" id="L1368">        final RaStyleInfo styleToRemove = raStyleInfos.getRowData();</span>
+<span class="nc" id="L1369">        List&lt;RaStyleInfo&gt; raCssInfosList = getRaStyleInfosList();</span>
+<span class="nc" id="L1370">        raCssInfosList.remove(styleToRemove);</span>
+<span class="nc" id="L1371">        setRaStyleInfosList(raCssInfosList);</span>
+<span class="nc" id="L1372">        raStyleInfos = new ListDataModel&lt;&gt;(raCssInfosList);</span>
+<span class="nc" id="L1373">        saveCustomCssConfiguration();</span>
+<span class="nc" id="L1374">    }</span>
+
+    public UploadedFile getRaCssFile() {
+<span class="nc" id="L1377">        return raCssFile;</span>
+    }
+
+    public void setRaCssFile(final UploadedFile raCssFile) {
+<span class="nc" id="L1381">        this.raCssFile = raCssFile;</span>
+<span class="nc" id="L1382">    }</span>
+
+    public UploadedFile getRaLogoFile() {
+<span class="nc" id="L1385">        return raLogoFile;</span>
+    }
+
+    public void setRaLogoFile(final UploadedFile raLogoFile) {
+<span class="nc" id="L1389">        this.raLogoFile = raLogoFile;</span>
+<span class="nc" id="L1390">    }</span>
+
+    public String getArchiveName() {
+<span class="nc" id="L1393">        return archiveName;</span>
+    }
+
+    public void setArchiveName(String archiveName) {
+<span class="nc" id="L1397">        this.archiveName = archiveName;</span>
+<span class="nc" id="L1398">    }</span>
+
+    // Necessary for front end row handling etc.
+    public ListDataModel&lt;RaStyleInfo&gt; getRaStyleInfos() {
+<span class="nc bnc" id="L1402" title="All 2 branches missed.">        if (raStyleInfos == null) {</span>
+<span class="nc" id="L1403">            List&lt;RaStyleInfo&gt; raCssInfosList = getRaStyleInfosList();</span>
+<span class="nc" id="L1404">            raStyleInfos = new ListDataModel&lt;&gt;(raCssInfosList);</span>
+        }
+<span class="nc" id="L1406">        return raStyleInfos;</span>
+    }
+
+    public List&lt;RaStyleInfo&gt; getRaStyleInfosList() {
+<span class="nc" id="L1410">        raStyleInfosList = new ArrayList&lt;&gt;(getGlobalCustomCssConfiguration().getRaStyleInfo().values());</span>
+<span class="nc" id="L1411">        return raStyleInfosList;</span>
+    }
+<span class="nc" id="L1413">    public void setRaStyleInfosList(List&lt;RaStyleInfo&gt; raStyleInfos) {raStyleInfosList = raStyleInfos;}</span>
+
+    private void saveCustomCssConfiguration() {
+<span class="nc" id="L1416">        LinkedHashMap&lt;Integer, RaStyleInfo&gt; raStyleMap = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L1417" title="All 2 branches missed.">        for(RaStyleInfo raStyleInfo : raStyleInfosList) {</span>
+<span class="nc" id="L1418">            raStyleMap.put(raStyleInfo.getArchiveId(), raStyleInfo);</span>
+<span class="nc" id="L1419">        }</span>
+<span class="nc" id="L1420">        globalCustomCssConfiguration.setRaStyle(raStyleMap);</span>
+        try {
+<span class="nc" id="L1422">            getEjbcaWebBean().getEjb().getGlobalConfigurationSession().saveConfiguration(getAdmin(), globalCustomCssConfiguration);</span>
+<span class="nc" id="L1423">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L1424">            String msg = &quot;Cannot save System Configuration. &quot; + e.getLocalizedMessage();</span>
+<span class="nc" id="L1425">            log.info(&quot;Administrator '&quot; + getAdmin() + &quot;' &quot; + msg);</span>
+<span class="nc" id="L1426">            super.addNonTranslatedErrorMessage(msg);</span>
+<span class="nc" id="L1427">        }</span>
+<span class="nc" id="L1428">    }</span>
+
+    // ----------------------------------------------------
+    //               Custom Certificate Extensions
+    // ----------------------------------------------------
+
+<span class="nc" id="L1434">    private final String DEFAULT_EXTENSION_CLASSPATH = &quot;org.cesecore.certificates.certificate.certextensions.BasicCertificateExtension&quot;;</span>
+<span class="nc" id="L1435">    private AvailableCustomCertificateExtensionsConfiguration availableCustomCertExtensionsConfig = null;</span>
+<span class="nc" id="L1436">    private ListDataModel&lt;CustomCertExtensionInfo&gt; availableCustomCertExtensions = null;</span>
+<span class="nc" id="L1437">    private int selectedCustomCertExtensionID = 0;</span>
+<span class="nc" id="L1438">    private String newOID = &quot;&quot;;</span>
+<span class="nc" id="L1439">    private String newDisplayName = &quot;&quot;;</span>
+
+<span class="nc" id="L1441">    public int getSelectedCustomCertExtensionID() { return selectedCustomCertExtensionID; }</span>
+<span class="nc" id="L1442">    public void setSelectedCustomCertExtensionID(int id) { selectedCustomCertExtensionID=id; }</span>
+
+<span class="nc" id="L1444">    public String getNewOID() { return newOID; }</span>
+<span class="nc" id="L1445">    public void setNewOID(String oid) { newOID=oid; }</span>
+<span class="nc" id="L1446">    public String getNewDisplayName() { return newDisplayName; }</span>
+<span class="nc" id="L1447">    public void setNewDisplayName(String label) { newDisplayName=label; }</span>
+
+    private void flushNewExtensionCache() {
+<span class="nc" id="L1450">        newOID = &quot;&quot;;</span>
+<span class="nc" id="L1451">        newDisplayName = &quot;&quot;;</span>
+<span class="nc" id="L1452">    }</span>
+
+    private AvailableCustomCertificateExtensionsConfiguration getAvailableCustomCertExtensionsConfig() {
+<span class="nc bnc" id="L1455" title="All 2 branches missed.">        if(availableCustomCertExtensionsConfig == null) {</span>
+<span class="nc" id="L1456">            availableCustomCertExtensionsConfig = getEjbcaWebBean().getAvailableCustomCertExtensionsConfiguration();</span>
+        }
+<span class="nc" id="L1458">        return availableCustomCertExtensionsConfig;</span>
+    }
+
+    public ListDataModel&lt;CustomCertExtensionInfo&gt; getAvailableCustomCertExtensions() {
+<span class="nc" id="L1462">        availableCustomCertExtensions = new ListDataModel&lt;&gt;(getNewAvailableCustomCertExtensions());</span>
+<span class="nc" id="L1463">        return availableCustomCertExtensions;</span>
+    }
+
+    private ArrayList&lt;CustomCertExtensionInfo&gt; getNewAvailableCustomCertExtensions() {
+<span class="nc" id="L1467">        availableCustomCertExtensionsConfig = getEjbcaWebBean().getAvailableCustomCertExtensionsConfiguration();</span>
+<span class="nc" id="L1468">        ArrayList&lt;CustomCertExtensionInfo&gt; extensionsInfo = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L1469">        Collection&lt;CertificateExtension&gt; allExtensions = availableCustomCertExtensionsConfig.getAllAvailableCustomCertificateExtensions();</span>
+<span class="nc bnc" id="L1470" title="All 2 branches missed.">        for(CertificateExtension extension : allExtensions) {</span>
+<span class="nc" id="L1471">            extensionsInfo.add(new CustomCertExtensionInfo(extension));</span>
+<span class="nc" id="L1472">        }</span>
+
+<span class="nc" id="L1474">        Collections.sort(extensionsInfo, new Comparator&lt;CustomCertExtensionInfo&gt;() {</span>
+            @Override
+            public int compare(CustomCertExtensionInfo first, CustomCertExtensionInfo second) {
+<span class="nc" id="L1477">                return Integer.compare(first.getId(), second.getId());</span>
+            }
+        });
+
+<span class="nc" id="L1481">        return extensionsInfo;</span>
+    }
+
+    public void removeCustomCertExtension() {
+<span class="nc" id="L1485">        final CustomCertExtensionInfo extensionToRemove = availableCustomCertExtensions.getRowData();</span>
+<span class="nc" id="L1486">        final int extID = extensionToRemove.getId();</span>
+<span class="nc" id="L1487">        AvailableCustomCertificateExtensionsConfiguration cceConfig = getAvailableCustomCertExtensionsConfig();</span>
+<span class="nc" id="L1488">        cceConfig.removeCustomCertExtension(extID);</span>
+        try {
+<span class="nc" id="L1490">            getEjbcaWebBean().saveAvailableCustomCertExtensionsConfiguration(cceConfig);</span>
+<span class="nc" id="L1491">        } catch(Exception e) {</span>
+<span class="nc" id="L1492">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, &quot;Failed to save AvailableCustomCertificateExtensionsConfiguration: &quot; + e.getLocalizedMessage(), null));</span>
+<span class="nc" id="L1493">            return;</span>
+<span class="nc" id="L1494">        }</span>
+<span class="nc" id="L1495">        availableCustomCertExtensions = new ListDataModel&lt;&gt;(getNewAvailableCustomCertExtensions());</span>
+
+<span class="nc" id="L1497">        final ArrayList&lt;String&gt; cpNamedUsingExtension = getCertProfilesUsingExtension(extID);</span>
+<span class="nc bnc" id="L1498" title="All 2 branches missed.">        if(!cpNamedUsingExtension.isEmpty()) {</span>
+<span class="nc" id="L1499">            final String cpNamesMessage = getCertProfilesNamesMessage(cpNamedUsingExtension);</span>
+<span class="nc" id="L1500">            final String message = &quot;CustomCertificateExtension '&quot; + extensionToRemove.getDisplayName() + &quot;' has been removed, but it is still used in the following certitifcate profiles: &quot; +  cpNamesMessage;</span>
+<span class="nc" id="L1501">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN, message, null));</span>
+        }
+<span class="nc" id="L1503">    }</span>
+
+    public void addCustomCertExtension() {
+<span class="nc" id="L1506">        String newOID = getNewOID();</span>
+<span class="nc bnc" id="L1507" title="All 2 branches missed.">        if (StringUtils.isEmpty(newOID)) {</span>
+<span class="nc" id="L1508">            FacesContext.getCurrentInstance()</span>
+<span class="nc" id="L1509">            .addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, &quot;No CustomCertificateExenstion OID is set.&quot;, null));</span>
+<span class="nc" id="L1510">            return;</span>
+        }
+<span class="nc bnc" id="L1512" title="All 2 branches missed.">        if (!isOidNumericalOnly(newOID)) {</span>
+<span class="nc" id="L1513">            FacesContext.getCurrentInstance()</span>
+<span class="nc" id="L1514">                    .addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, &quot;OID &quot; + currentEKUOid + &quot; contains non-numerical values.&quot;, null));</span>
+<span class="nc" id="L1515">            return;</span>
+        }
+
+<span class="nc" id="L1518">        AvailableCustomCertificateExtensionsConfiguration cceConfig = getAvailableCustomCertExtensionsConfig();</span>
+
+<span class="nc" id="L1520">        int newID = generateNewExtensionID(cceConfig);</span>
+<span class="nc bnc" id="L1521" title="All 2 branches missed.">        if (newID == Integer.MAX_VALUE) {</span>
+<span class="nc" id="L1522">            FacesContext.getCurrentInstance()</span>
+<span class="nc" id="L1523">            .addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, &quot;Cannot add more extensions. There are already &quot; + cceConfig.getAllAvailableCustomCertificateExtensions().size() + &quot; extensions.&quot;, null));</span>
+<span class="nc" id="L1524">            return;</span>
+        }
+
+<span class="nc bnc" id="L1527" title="All 2 branches missed.">        if (StringUtils.isEmpty(getNewDisplayName())) {</span>
+<span class="nc" id="L1528">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, &quot;No CustomCertificateExension Label is set.&quot;, null));</span>
+<span class="nc" id="L1529">            return;</span>
+        }
+
+        try {
+<span class="nc" id="L1533">            cceConfig.addCustomCertExtension(newID, newOID, getNewDisplayName(), DEFAULT_EXTENSION_CLASSPATH, false, true, new Properties());</span>
+<span class="nc" id="L1534">            getEjbcaWebBean().saveAvailableCustomCertExtensionsConfiguration(cceConfig);</span>
+<span class="nc" id="L1535">        } catch(Exception e) {</span>
+<span class="nc" id="L1536">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR,</span>
+<span class="nc" id="L1537">                    &quot;Failed to add Custom Certificate Extension. &quot; + e.getLocalizedMessage() , e.getLocalizedMessage()));</span>
+<span class="nc" id="L1538">            return;</span>
+<span class="nc" id="L1539">        }</span>
+<span class="nc" id="L1540">        availableCustomCertExtensions = new ListDataModel&lt;&gt;(getNewAvailableCustomCertExtensions());</span>
+<span class="nc" id="L1541">        flushNewExtensionCache();</span>
+<span class="nc" id="L1542">        flushCache();</span>
+<span class="nc" id="L1543">    }</span>
+
+    public String actionEdit() {
+<span class="nc" id="L1546">        selectCurrentRowData();</span>
+<span class="nc" id="L1547">        customCertificateExtensionViewMode = false;</span>
+<span class="nc" id="L1548">        return &quot;edit&quot;;   // Outcome is defined in faces-config.xml</span>
+    }
+
+    public String actionView() {
+<span class="nc" id="L1552">        selectCurrentRowData();</span>
+<span class="nc" id="L1553">        customCertificateExtensionViewMode = true;</span>
+<span class="nc" id="L1554">        return &quot;view&quot;;   // Outcome is defined in faces-config.xml</span>
+    }
+
+    public boolean getCustomCertificateExtensionViewMode() {
+<span class="nc" id="L1558">        return customCertificateExtensionViewMode;</span>
+    }
+
+    private void selectCurrentRowData() {
+<span class="nc" id="L1562">        final CustomCertExtensionInfo cceInfo = availableCustomCertExtensions.getRowData();</span>
+<span class="nc" id="L1563">        selectedCustomCertExtensionID = cceInfo.getId();</span>
+<span class="nc" id="L1564">    }</span>
+
+    private int generateNewExtensionID(AvailableCustomCertificateExtensionsConfiguration cceConfig) {
+<span class="nc" id="L1567">        final CertificateProfileSessionLocal certprofileSession = getEjbcaWebBean().getEjb().getCertificateProfileSession();</span>
+<span class="nc" id="L1568">        Map&lt;Integer, CertificateProfile&gt; allCertProfiles = certprofileSession.getAllCertificateProfiles();</span>
+
+<span class="nc" id="L1570">        int i=0;</span>
+<span class="nc bnc" id="L1571" title="All 6 branches missed.">        while((cceConfig.isCustomCertExtensionSupported(i) || isExtensionUsedInCertProfiles(i, allCertProfiles)) &amp;&amp; (i&lt;Integer.MAX_VALUE)) {</span>
+<span class="nc" id="L1572">            i++;</span>
+        }
+<span class="nc" id="L1574">        return i;</span>
+    }
+
+    private boolean isExtensionUsedInCertProfiles(final int id, final Map&lt;Integer, CertificateProfile&gt; allCertProfiles) {
+<span class="nc bnc" id="L1578" title="All 2 branches missed.">        for(Entry&lt;Integer, CertificateProfile&gt; entry : allCertProfiles.entrySet()) {</span>
+<span class="nc" id="L1579">            final CertificateProfile cp = entry.getValue();</span>
+<span class="nc" id="L1580">            List&lt;Integer&gt; usedCertExts = cp.getUsedCertificateExtensions();</span>
+<span class="nc bnc" id="L1581" title="All 2 branches missed.">            if(usedCertExts.contains(id)) {</span>
+<span class="nc" id="L1582">                return true;</span>
+            }
+<span class="nc" id="L1584">        }</span>
+<span class="nc" id="L1585">        return false;</span>
+    }
+
+    private ArrayList&lt;String&gt; getCertProfilesUsingExtension(final int id) {
+<span class="nc" id="L1589">        ArrayList&lt;String&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L1590">        final CertificateProfileSessionLocal certprofileSession = getEjbcaWebBean().getEjb().getCertificateProfileSession();</span>
+<span class="nc" id="L1591">        Map&lt;Integer, CertificateProfile&gt; allCertProfiles = certprofileSession.getAllCertificateProfiles();</span>
+<span class="nc bnc" id="L1592" title="All 2 branches missed.">        for(Entry&lt;Integer, CertificateProfile&gt; entry : allCertProfiles.entrySet()) {</span>
+<span class="nc" id="L1593">            final CertificateProfile cp = entry.getValue();</span>
+<span class="nc" id="L1594">            List&lt;Integer&gt; usedCertExts = cp.getUsedCertificateExtensions();</span>
+<span class="nc bnc" id="L1595" title="All 2 branches missed.">            if(usedCertExts.contains(id)) {</span>
+<span class="nc" id="L1596">                ret.add(certprofileSession.getCertificateProfileName(entry.getKey()));</span>
+            }
+<span class="nc" id="L1598">        }</span>
+<span class="nc" id="L1599">        return ret;</span>
+    }
+
+    /** @return true if admin may create new or modify System Configuration. */
+    public boolean isAllowedToEditSystemConfiguration() {
+<span class="nc" id="L1604">        return authorizationSession.isAuthorizedNoLogging(getAdmin(), StandardRules.SYSTEMCONFIGURATION_EDIT.resource());</span>
+    }
+
+    /** @return true if admin may create new or modify existing Extended Key Usages. */
+    public boolean isAllowedToEditExtendedKeyUsages() {
+<span class="nc" id="L1609">        return authorizationSession.isAuthorizedNoLogging(getAdmin(), StandardRules.EKUCONFIGURATION_EDIT.resource());</span>
+    }
+
+    /** @return true if admin may create new or modify existing Custom Certificate Extensions. */
+    public boolean isAllowedToEditCustomCertificateExtension() {
+<span class="nc" id="L1614">        return authorizationSession.isAuthorizedNoLogging(getAdmin(), StandardRules.CUSTOMCERTEXTENSIONCONFIGURATION_EDIT.resource());</span>
+    }
+
+    // ------------------------------------------------
+    //             Drop-down menu options
+    // ------------------------------------------------
+    /** @return a list of all CA names */
+    public List&lt;SelectItem&gt; getAvailableCAsAndNoEncryptionOption() {
+<span class="nc" id="L1622">        final List&lt;SelectItem&gt; ret = getAvailableCAs();</span>
+<span class="nc" id="L1623">        ret.add(new SelectItem(0, &quot;No encryption&quot;));</span>
+<span class="nc" id="L1624">        return ret;</span>
+    }
+
+    /** @return a list of all CA names and caids */
+    public List&lt;SelectItem&gt; getAvailableCAs() {
+<span class="nc" id="L1629">        final List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L1630">        Map&lt;Integer, String&gt; caidToName = caSession.getCAIdToNameMap();</span>
+<span class="nc" id="L1631">        List&lt;Integer&gt; allCaIds = caSession.getAllCaIds();</span>
+<span class="nc bnc" id="L1632" title="All 2 branches missed.">        for(int caid : allCaIds) {</span>
+<span class="nc bnc" id="L1633" title="All 2 branches missed.">            if (caSession.authorizedToCANoLogging(getAdmin(), caid)) {</span>
+<span class="nc" id="L1634">                String caname = caidToName.get(caid);</span>
+<span class="nc" id="L1635">                ret.add(new SelectItem(caid, caname));</span>
+<span class="nc" id="L1636">            } else {</span>
+<span class="nc" id="L1637">                ret.add(new SelectItem(0, &quot;&lt;Unauthorized CA&gt;&quot;, &quot;A CA that the current admin lack access to.&quot;, true));</span>
+            }
+<span class="nc" id="L1639">        }</span>
+<span class="nc" id="L1640">        return ret;</span>
+    }
+
+    public List&lt;SelectItem&gt; getAvailableLanguages() {
+<span class="nc" id="L1644">        final List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L1645">        final String[] availableLanguages = getEjbcaWebBean().getAvailableLanguages();</span>
+<span class="nc" id="L1646">        final String[] availableLanguagesEnglishNames = getEjbcaWebBean().getLanguagesEnglishNames();</span>
+<span class="nc" id="L1647">        final String[] availableLanguagesNativeNames = getEjbcaWebBean().getLanguagesNativeNames();</span>
+<span class="nc bnc" id="L1648" title="All 2 branches missed.">        for(int i=0; i&lt;availableLanguages.length; i++) {</span>
+<span class="nc" id="L1649">            String output = availableLanguagesEnglishNames[i];</span>
+<span class="nc bnc" id="L1650" title="All 2 branches missed.">            if (availableLanguagesNativeNames[i] != null) {</span>
+<span class="nc" id="L1651">                output += &quot; - &quot; + availableLanguagesNativeNames[i];</span>
+            }
+<span class="nc" id="L1653">            output += &quot; [&quot; + availableLanguages[i] + &quot;]&quot;;</span>
+<span class="nc" id="L1654">            ret.add(new SelectItem(i, output));</span>
+        }
+<span class="nc" id="L1656">        return ret;</span>
+    }
+
+    public List&lt;SelectItem&gt; getAvailableThemes() {
+<span class="nc" id="L1660">        final List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L1661">        final String[] themes = globalConfig.getAvailableThemes();</span>
+<span class="nc bnc" id="L1662" title="All 2 branches missed.">        for(String theme : themes) {</span>
+<span class="nc" id="L1663">            ret.add(new SelectItem(theme, theme));</span>
+        }
+<span class="nc" id="L1665">        return ret;</span>
+    }
+
+    public List&lt;SelectItem&gt; getPossibleEntriesPerPage() {
+<span class="nc" id="L1669">        final List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L1670">        final String[] possibleValues = globalConfig.getPossibleEntiresPerPage();</span>
+<span class="nc bnc" id="L1671" title="All 2 branches missed.">        for(String value : possibleValues) {</span>
+<span class="nc" id="L1672">            ret.add(new SelectItem(Integer.parseInt(value), value));</span>
+        }
+<span class="nc" id="L1674">        return ret;</span>
+    }
+
+    public List&lt;String&gt; getAvailableTabs() {
+<span class="nc" id="L1678">        final List&lt;String&gt; availableTabs = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L1679" title="All 2 branches missed.">        if (authorizationSession.isAuthorizedNoLogging(getAdmin(), StandardRules.SYSTEMCONFIGURATION_VIEW.resource())) {</span>
+<span class="nc" id="L1680">            availableTabs.add(&quot;Basic Configurations&quot;);</span>
+<span class="nc" id="L1681">            availableTabs.add(&quot;Administrator Preferences&quot;);</span>
+        }
+<span class="nc bnc" id="L1683" title="All 2 branches missed.">        if (authorizationSession.isAuthorizedNoLogging(getAdmin(), StandardRules.SYSTEMCONFIGURATION_VIEW.resource())) {</span>
+<span class="nc" id="L1684">            availableTabs.add(&quot;Protocol Configuration&quot;);</span>
+        }
+<span class="nc bnc" id="L1686" title="All 2 branches missed.">        if (authorizationSession.isAuthorizedNoLogging(getAdmin(), StandardRules.EKUCONFIGURATION_VIEW.resource())) {</span>
+<span class="nc" id="L1687">            availableTabs.add(&quot;Extended Key Usages&quot;);</span>
+        }
+<span class="nc bnc" id="L1689" title="All 4 branches missed.">        if (authorizationSession.isAuthorizedNoLogging(getAdmin(), StandardRules.SYSTEMCONFIGURATION_VIEW.resource()) &amp;&amp; CertificateTransparencyFactory.isCTAvailable()) {</span>
+<span class="nc" id="L1690">            availableTabs.add(&quot;Certificate Transparency Logs&quot;);</span>
+        }
+<span class="nc bnc" id="L1692" title="All 2 branches missed.">        if (authorizationSession.isAuthorizedNoLogging(getAdmin(), StandardRules.CUSTOMCERTEXTENSIONCONFIGURATION_VIEW.resource())) {</span>
+<span class="nc" id="L1693">            availableTabs.add(&quot;Custom Certificate Extensions&quot;);</span>
+        }
+<span class="nc bnc" id="L1695" title="All 2 branches missed.">        if (authorizationSession.isAuthorizedNoLogging(getAdmin(), StandardRules.ROLE_ROOT.resource())) {</span>
+<span class="nc" id="L1696">            availableTabs.add(&quot;Custom RA Styles&quot;);</span>
+        }
+<span class="nc bnc" id="L1698" title="All 4 branches missed.">        if (authorizationSession.isAuthorizedNoLogging(getAdmin(), StandardRules.ROLE_ROOT.resource()) &amp;&amp; isStatedumpAvailable()) {</span>
+<span class="nc" id="L1699">            availableTabs.add(&quot;Statedump&quot;);</span>
+        }
+<span class="nc bnc" id="L1701" title="All 2 branches missed.">        if (authorizationSession.isAuthorizedNoLogging(getAdmin(), StandardRules.SYSTEMCONFIGURATION_VIEW.resource())) {</span>
+<span class="nc" id="L1702">            availableTabs.add(&quot;External Scripts&quot;);</span>
+        }
+<span class="nc" id="L1704">        return availableTabs;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

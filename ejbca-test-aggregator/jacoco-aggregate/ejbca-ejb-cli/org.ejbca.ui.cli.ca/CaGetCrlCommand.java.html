@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CaGetCrlCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.ca</a> &gt; <span class="el_source">CaGetCrlCommand.java</span></div><h1>CaGetCrlCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.cli.ca;
+
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CADoesntExistsException;
+import org.cesecore.certificates.crl.CrlStoreSessionRemote;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.EjbRemoteHelper;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+
+/**
+ * Retrieves the latest CRL from a CA.
+ *
+ * @version $Id: CaGetCrlCommand.java 25279 2017-02-15 14:30:49Z anatom $
+ */
+<span class="nc" id="L40">public class CaGetCrlCommand extends BaseCaAdminCommand {</span>
+
+<span class="nc" id="L42">    private static final Logger log = Logger.getLogger(CaGetCrlCommand.class);</span>
+
+    private static final String CA_NAME_KEY = &quot;--caname&quot;;
+    private static final String DELTA_KEY = &quot;-delta&quot;;
+    private static final String PEM_KEY = &quot;-pem&quot;;
+    private static final String FILE_KEY = &quot;-f&quot;;
+    private static final String CRLNUMBER_KEY = &quot;-crlnumber&quot;;
+
+    {
+<span class="nc" id="L51">        registerParameter(new Parameter(CA_NAME_KEY, &quot;CA Name&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;The CA to get the CRL for.&quot;));
+<span class="nc" id="L53">        registerParameter(new Parameter(FILE_KEY, &quot;File Name&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;The file to export to.&quot;));
+<span class="nc" id="L55">        registerParameter(new Parameter(DELTA_KEY, &quot;&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID, ParameterMode.FLAG,</span>
+                &quot;Fetch the latest delta CRL. Default is regular CRL.&quot;));
+<span class="nc" id="L57">        registerParameter(new Parameter(PEM_KEY, &quot;&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID, ParameterMode.FLAG,</span>
+                &quot;Use PEM encoding. Default is DER encoding.&quot;));
+<span class="nc" id="L59">        registerParameter(new Parameter(CRLNUMBER_KEY, &quot;CRL Number&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID, ParameterMode.ARGUMENT,</span>
+                &quot;Get CRL with the specified CRL number, instead of the latest. Used to read historical CRLs.&quot;));
+<span class="nc" id="L61">    }</span>
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L65">        return &quot;getcrl&quot;;</span>
+    }
+
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+<span class="nc bnc" id="L70" title="All 2 branches missed.">        boolean deltaSelector = parameters.get(DELTA_KEY) != null;</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">        boolean pem = parameters.get(PEM_KEY) != null;</span>
+<span class="nc" id="L72">        CryptoProviderTools.installBCProvider();</span>
+        // Perform CRL fetch
+<span class="nc" id="L74">        String caname = parameters.get(CA_NAME_KEY);</span>
+<span class="nc" id="L75">        String outfile = parameters.get(FILE_KEY);</span>
+<span class="nc" id="L76">        String crlnumber = parameters.get(CRLNUMBER_KEY);</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">        if (crlnumber != null) {</span>
+<span class="nc bnc" id="L78" title="All 4 branches missed.">            if ( !StringUtils.isNumeric(crlnumber) || (Integer.valueOf(crlnumber) &lt; 0) ) {</span>
+<span class="nc" id="L79">                log.error(&quot;CRL Number must be a positive number&quot;);</span>
+<span class="nc" id="L80">                return CommandResult.FUNCTIONAL_FAILURE;</span>
+            }
+        }
+        try {
+<span class="nc" id="L84">            String issuerdn = getIssuerDN(getAuthenticationToken(), caname);</span>
+            final byte[] crl;
+<span class="nc bnc" id="L86" title="All 2 branches missed.">            if (crlnumber != null) {</span>
+<span class="nc" id="L87">                crl = EjbRemoteHelper.INSTANCE.getRemoteSession(CrlStoreSessionRemote.class).getCRL(issuerdn, Integer.valueOf(crlnumber));                </span>
+            } else {
+<span class="nc" id="L89">                crl = EjbRemoteHelper.INSTANCE.getRemoteSession(CrlStoreSessionRemote.class).getLastCRL(issuerdn, deltaSelector);</span>
+            }
+<span class="nc bnc" id="L91" title="All 2 branches missed.">            if (crl != null) {</span>
+<span class="nc" id="L92">                FileOutputStream fos = new FileOutputStream(outfile);</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">                if (pem) {</span>
+<span class="nc" id="L94">                    fos.write(CertTools.getPEMFromCrl(crl));</span>
+                } else {
+<span class="nc" id="L96">                    fos.write(crl);</span>
+                }
+<span class="nc" id="L98">                fos.close();</span>
+<span class="nc bnc" id="L99" title="All 6 branches missed.">                log.info(&quot;Wrote &quot;+(crlnumber == null ? &quot;latest&quot; : (&quot;crlNumber &quot;+crlnumber)) + (deltaSelector ? &quot;delta&quot; : &quot;&quot;) + &quot; CRL to &quot; + outfile + &quot; using &quot; + (pem ? &quot;PEM&quot; : &quot;DER&quot;) + &quot; format&quot;);</span>
+<span class="nc" id="L100">            } else {</span>
+<span class="nc bnc" id="L101" title="All 4 branches missed.">                log.info(&quot;No &quot; + (deltaSelector ? &quot;delta &quot; : &quot;&quot;) + &quot;CRL &quot; + (crlnumber == null ? &quot;&quot; : (&quot;with crlNumber &quot;+crlnumber+&quot; &quot;)) + &quot;exists for CA &quot; + caname + &quot;.&quot;);</span>
+            }
+<span class="nc" id="L103">            return CommandResult.SUCCESS;</span>
+<span class="nc" id="L104">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L105">            log.error(&quot;CLI User was not authorized to CA &quot; + caname);</span>
+<span class="nc" id="L106">        } catch (CADoesntExistsException e) {</span>
+<span class="nc" id="L107">            log.info(&quot;CA '&quot; + caname + &quot;' does not exist.&quot;);</span>
+<span class="nc" id="L108">        } catch (FileNotFoundException e) {</span>
+<span class="nc" id="L109">            log.error(&quot;Could not create export file&quot;, e);</span>
+<span class="nc" id="L110">        } catch (IOException e) {</span>
+<span class="nc" id="L111">            throw new IllegalStateException(&quot;Could not write to file for unknown reason&quot;, e);</span>
+<span class="nc" id="L112">        }</span>
+<span class="nc" id="L113">        return CommandResult.FUNCTIONAL_FAILURE;</span>
+
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L119">        return &quot;Retrieves a CRL from a CA. Either the latest CRL or a CRL with a specified CRL number.&quot;;</span>
+
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L125">        return getCommandDescription();</span>
+    }
+    
+    @Override
+    protected Logger getLogger() {
+<span class="nc" id="L130">        return log;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

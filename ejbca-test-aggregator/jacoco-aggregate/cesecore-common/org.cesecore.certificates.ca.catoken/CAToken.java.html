@@ -21,7 +21,6 @@ import java.security.PublicKey;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Properties;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.cesecore.internal.InternalResources;
@@ -31,482 +30,662 @@ import org.cesecore.keys.token.CryptoTokenOfflineException;
 import org.cesecore.util.StringTools;
 
 /**
- * The CAToken is keeps references to the CA's key aliases and the CryptoToken where the keys are stored.
- * 
- * The signing key can have 3 stages:
- * - Next:     Can become the new current CA key when a valid signing certificate is present
- * - Current:  Is used to issue certificates and has a CA certificate
- * - Previous: The signing key before the latest CA renewal.
- * 
- * Each CA signing key &quot;generation&quot; has a corresponding key sequence number that is kept track of
- * via this class. The key sequence also have the states next, current and previous.
- * 
- * The CA token stores a reference (an integer) to the CryptoToken where the CA keys are stored.
- * 
+ * The CAToken is keeps references to the CA's key aliases and the CryptoToken
+ * where the keys are stored.
+ *
+ * &lt;p&gt;The signing key can have 3 stages: - Next: Can become the new current CA
+ * key when a valid signing certificate is present - Current: Is used to issue
+ * certificates and has a CA certificate - Previous: The signing key before the
+ * latest CA renewal.
+ *
+ * &lt;p&gt;Each CA signing key &quot;generation&quot; has a corresponding key sequence number
+ * that is kept track of via this class. The key sequence also have the states
+ * next, current and previous.
+ *
+ * &lt;p&gt;The CA token stores a reference (an integer) to the CryptoToken where the
+ * CA keys are stored.
+ *
  * @version $Id: CAToken.java 26093 2017-06-28 15:05:13Z anatom $
  */
 public class CAToken extends UpgradeableDataHashMap {
 
-    private static final long serialVersionUID = -459748276141898509L;
+  private static final long serialVersionUID = -459748276141898509L;
 
-    /** Log4j instance */
-<span class="fc" id="L53">    private static final Logger log = Logger.getLogger(CAToken.class);</span>
-    /** Internal localization of logs and errors */
-<span class="fc" id="L55">    private static final InternalResources intres = InternalResources.getInstance();</span>
+  /** Log4j instance. */
+<span class="fc" id="L55">  private static final Logger LOG = Logger.getLogger(CAToken.class);</span>
+  /** Internal localization of logs and errors. */
+<span class="fc" id="L57">  private static final InternalResources INTRES =</span>
+<span class="fc" id="L58">      InternalResources.getInstance();</span>
 
-    /** Latest version of the UpgradeableHashMap, this determines if we need to auto-upgrade any data. */
-    public static final float LATEST_VERSION = 8;
+  /**
+   * Latest version of the UpgradeableHashMap, this determines if we need to
+   * auto-upgrade any data.
+   */
+  public static final float LATEST_VERSION = 8;
+  /** Classpath. */
+  @Deprecated // Used by upgrade code
+  public static final String CLASSPATH = &quot;classpath&quot;;
+  /** Data. */
+  public static final String PROPERTYDATA = &quot;propertydata&quot;;
+  /** Store. */
+  @Deprecated // Used by upgrade code
+  public static final String KEYSTORE = &quot;KEYSTORE&quot;;
 
-    @Deprecated // Used by upgrade code
-    public static final String CLASSPATH = &quot;classpath&quot;;
-    public static final String PROPERTYDATA = &quot;propertydata&quot;;
-    @Deprecated // Used by upgrade code
-    public static final String KEYSTORE = &quot;KEYSTORE&quot;;
+  // The Initial sequence number is 00000-99999 or starts at 00001 according to
+  // generated doc 2012-12-03.
+  /** Sequence. */
+  public static final String DEFAULT_KEYSEQUENCE = &quot;00000&quot;;
+  /** Alias. */
+  public static final String SOFTPRIVATESIGNKEYALIAS = &quot;signKey&quot;;
+  /** Alias. */
+  public static final String SOFTPRIVATEDECKEYALIAS = &quot;encryptKey&quot;;
+  /** These aliases were changed in EJBCA 6.4.1. */
+  private static final String OLDPRIVATESIGNKEYALIAS = &quot;privatesignkeyalias&quot;;
+  /** Alias. */
+  protected static final String OLDPRIVATEDECKEYALIAS = &quot;privatedeckeyalias&quot;;
 
-    // The Initial sequence number is 00000-99999 or starts at 00001 according to generated doc 2012-12-03.
-    public static final String DEFAULT_KEYSEQUENCE = &quot;00000&quot;;
+  /** A sequence for the keys, updated when keys are re-generated. */
+  public static final String SEQUENCE = &quot;sequence&quot;;
+  /**
+   * Format of the key sequence, the value for this property is one of
+   * StringTools.KEY_SEQUENCE_FORMAT_XX.
+   */
+  public static final String SEQUENCE_FORMAT = &quot;sequenceformat&quot;;
 
-    public static final String SOFTPRIVATESIGNKEYALIAS = &quot;signKey&quot;;
-    public static final String SOFTPRIVATEDECKEYALIAS = &quot;encryptKey&quot;;
-    /** These aliases were changed in EJBCA 6.4.1 */
-    private static final String OLDPRIVATESIGNKEYALIAS = &quot;privatesignkeyalias&quot;;   
-    protected static final String OLDPRIVATEDECKEYALIAS = &quot;privatedeckeyalias&quot;;
+  /** Algorithm. */
+  public static final String SIGNATUREALGORITHM = &quot;signaturealgorithm&quot;;
+  /** Algorithm. */
+  public static final String ENCRYPTIONALGORITHM = &quot;encryptionalgorithm&quot;;
+  /** ID. */
+  public static final String CRYPTOTOKENID = &quot;cryptotokenid&quot;;
+  /** ID. */
+  private int cryptoTokenId;
+  /** Keymap. */
+<span class="fc" id="L104">  private transient PurposeMapping keyStrings = null;</span>
 
-    /** A sequence for the keys, updated when keys are re-generated */
-    public static final String SEQUENCE = &quot;sequence&quot;;
-    /** Format of the key sequence, the value for this property is one of StringTools.KEY_SEQUENCE_FORMAT_XX */
-    public static final String SEQUENCE_FORMAT = &quot;sequenceformat&quot;;
-    public static final String SIGNATUREALGORITHM = &quot;signaturealgorithm&quot;;
-    public static final String ENCRYPTIONALGORITHM = &quot;encryptionalgorithm&quot;;
-    public static final String CRYPTOTOKENID = &quot;cryptotokenid&quot;;
+  /** Constructor.
+   *
+   * @param aCryptoTokenId ID
+   * @param aCaTokenProperties Props
+   */
+  public CAToken(final int aCryptoTokenId,
+          final Properties aCaTokenProperties) {
+<span class="fc" id="L113">    super();</span>
+<span class="fc" id="L114">    setCryptoTokenId(aCryptoTokenId);</span>
+<span class="fc" id="L115">    internalInit(aCaTokenProperties);</span>
+<span class="fc" id="L116">  }</span>
 
-    private int cryptoTokenId;
-<span class="fc" id="L84">    private transient PurposeMapping keyStrings = null;</span>
+  /**
+   * Common code to initialize object called from all constructors.
+   *
+   * @param caTokenProperties properties
+   */
+  private void internalInit(final Properties caTokenProperties) {
+<span class="fc" id="L124">    this.keyStrings = new PurposeMapping(caTokenProperties);</span>
+<span class="fc" id="L125">    setCATokenPropertyData(storeProperties(caTokenProperties));</span>
+<span class="fc" id="L126">  }</span>
 
-    public CAToken(final int cryptoTokenId, final Properties caTokenProperties) {
-<span class="fc" id="L87">        super();</span>
-<span class="fc" id="L88">        setCryptoTokenId(cryptoTokenId);</span>
-<span class="fc" id="L89">        internalInit(caTokenProperties);</span>
-<span class="fc" id="L90">    }</span>
-
-	/** Common code to initialize object called from all constructors. 
-	 * @param caTokenProperties properties*/
-	private void internalInit(Properties caTokenProperties) {
-<span class="fc" id="L95">        this.keyStrings = new PurposeMapping(caTokenProperties);</span>
-<span class="fc" id="L96">        setCATokenPropertyData(storeProperties(caTokenProperties));</span>
-<span class="fc" id="L97">	}</span>
-
-    /** Constructor used to initialize a stored CA token, when the UpgradeableHashMap has been stored as is.
-     * 
-     * @param tokendata LinkedHashMap
-     */
-    @SuppressWarnings(&quot;rawtypes&quot;)
-<span class="fc" id="L104">    public CAToken(final HashMap tokendata) {</span>
-<span class="fc" id="L105">		loadData(tokendata);</span>
-<span class="fc" id="L106">		final Object cryptoTokenIdObject = data.get(CAToken.CRYPTOTOKENID);</span>
-<span class="pc bpc" id="L107" title="1 of 2 branches missed.">		if (cryptoTokenIdObject==null) {</span>
-<span class="nc" id="L108">		    log.warn(&quot;No CryptoTokenId in CAToken map. This can safely be ignored if shown during an upgrade from EJBCA 5.0.x or lower.&quot;);</span>
-		} else {
-<span class="fc" id="L110">            this.cryptoTokenId = Integer.parseInt((String) cryptoTokenIdObject);</span>
-		}
-<span class="fc" id="L112">        final Properties caTokenProperties = getProperties();</span>
-<span class="fc" id="L113">        internalInit(caTokenProperties);</span>
-<span class="fc" id="L114">    }</span>
-    
-    /** Verifies that the all the mapped keys are present in the CryptoToken and optionally that the test key is usable. 
-     * @param caTokenSignTest bool
-     * @param cryptoToken token
-     * @return status code*/
-    public int getTokenStatus(boolean caTokenSignTest, CryptoToken cryptoToken) {
-<span class="pc bpc" id="L121" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L122">            log.trace(&quot;&gt;getCATokenStatus&quot;);</span>
-        }
-<span class="fc" id="L124">        int ret = CryptoToken.STATUS_OFFLINE;</span>
-        // If we have no key aliases, no point in continuing...
-        try {
-<span class="pc bpc" id="L127" title="1 of 2 branches missed.">        	if (keyStrings != null) {</span>
-<span class="fc" id="L128">        		final String aliases[] = keyStrings.getAliases();</span>
-<span class="fc" id="L129">        		final String aliasCertSignKeyPrevious = keyStrings.getAlias(CATokenConstants.CAKEYPURPOSE_CERTSIGN_PREVIOUS);</span>
-<span class="fc" id="L130">                final String aliasCertSignKeyNext = keyStrings.getAlias(CATokenConstants.CAKEYPURPOSE_CERTSIGN_NEXT);</span>
-<span class="fc" id="L131">                final String aliasTestKey = getAliasFromPurpose(CATokenConstants.CAKEYPURPOSE_KEYTEST);</span>
-<span class="fc" id="L132">        		int foundKeys = 0;</span>
-                // Loop that checks  if there all key aliases have keys
-<span class="pc bpc" id="L134" title="1 of 2 branches missed.">        		if (cryptoToken!=null) {</span>
-<span class="fc" id="L135">                    final HashMap&lt;String, PrivateKey&gt; aliasMap = new HashMap&lt;String, PrivateKey&gt;();</span>
-<span class="fc bfc" id="L136" title="All 2 branches covered.">                    for (final String alias : aliases) {</span>
-<span class="fc" id="L137">                        PrivateKey privateKey = aliasMap.get(alias);</span>
-<span class="pc bpc" id="L138" title="1 of 2 branches missed.">                        if (privateKey==null) {</span>
-                            try {
-<span class="fc" id="L140">                                privateKey = cryptoToken.getPrivateKey(alias);</span>
-                                // Cache lookup to avoid having to retrieve the same key when used for multiple purposes
-<span class="pc bpc" id="L142" title="1 of 2 branches missed.">                                if (privateKey!=null) {</span>
-<span class="fc" id="L143">                                    aliasMap.put(alias, privateKey);</span>
-                                }
-<span class="fc" id="L145">                            } catch (CryptoTokenOfflineException e) {</span>
-<span class="fc" id="L146">                                privateKey = null;</span>
-<span class="fc" id="L147">                            }</span>
-                        }
-<span class="fc bfc" id="L149" title="All 2 branches covered.">                        if (privateKey==null) {</span>
-                            // We don't consider it critical if currently unused certificate signing keys has been deleted (as long as it isn't mapped for any other purposes)
-<span class="fc bfc" id="L151" title="All 4 branches covered.">                            if (alias.equals(aliasCertSignKeyPrevious) &amp;&amp; keyStrings.isAliasMappedForSinglePurpose(aliasCertSignKeyPrevious)) {</span>
-<span class="fc" id="L152">                                foundKeys++;</span>
-<span class="pc bpc" id="L153" title="1 of 2 branches missed.">                                if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L154">                                    log.debug(&quot;Missing private key for alias: &quot;+alias + &quot; (Not treated as an error, since it is only mapped as the previous CA signing key.)&quot;);</span>
-                                }
-<span class="fc bfc" id="L156" title="All 4 branches covered.">                            } else if (alias.equals(aliasCertSignKeyNext) &amp;&amp; keyStrings.isAliasMappedForSinglePurpose(aliasCertSignKeyNext)) {</span>
-<span class="fc" id="L157">                                    foundKeys++;</span>
-<span class="pc bpc" id="L158" title="1 of 2 branches missed.">                                    if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L159">                                        log.debug(&quot;Missing private key for alias: &quot;+alias + &quot; (Not treated as an error, since it is only mapped as the next CA signing key.)&quot;);</span>
-                                    }
-                            } else {
-<span class="pc bpc" id="L162" title="1 of 2 branches missed.">                                if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L163">                                    log.debug(&quot;Missing private key for alias: &quot;+alias);</span>
-                                }
-                            }
-                        } else {
-<span class="fc" id="L167">                            foundKeys++;</span>
-                        }
-<span class="fc bfc" id="L169" title="All 2 branches covered.">                        if (alias.equals(aliasTestKey)) {</span>
-                            PublicKey publicKey;
-                            try {
-<span class="fc" id="L172">                                publicKey = cryptoToken.getPublicKey(aliasTestKey);</span>
-<span class="fc" id="L173">                            } catch (CryptoTokenOfflineException e) {</span>
-<span class="fc" id="L174">                                publicKey = null;</span>
-<span class="fc" id="L175">                            }</span>
-<span class="fc bfc" id="L176" title="All 2 branches covered.">                            if (publicKey == null) {</span>
-<span class="pc bpc" id="L177" title="1 of 2 branches missed.">                                if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L178">                                    log.debug(&quot;Missing public key for alias: &quot;+alias);</span>
-                                }
-                            }
-                            // Check that that the testkey is usable by doing a test signature.
-                            try {
-<span class="fc bfc" id="L183" title="All 2 branches covered.">                                if (caTokenSignTest) {</span>
-<span class="fc" id="L184">                                    cryptoToken.testKeyPair(alias, publicKey, privateKey);</span>
-                                }
-                                // If we can test the testkey, we are finally active!
-<span class="fc" id="L187">                                ret = CryptoToken.STATUS_ACTIVE;</span>
-<span class="fc" id="L188">                            } catch (Throwable th) { // NOPMD: we need to catch _everything_ when dealing with HSMs</span>
-<span class="fc" id="L189">                                log.error(intres.getLocalizedMessage(&quot;token.activationtestfail&quot;, cryptoToken.getId()), th);</span>
-<span class="fc" id="L190">                            }</span>
-                        }
-                    }
-        		}
-<span class="fc bfc" id="L194" title="All 2 branches covered.">                if (foundKeys &lt; aliases.length) {</span>
-<span class="pc bpc" id="L195" title="1 of 2 branches missed.">        			if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L196">        				StringBuilder builder = new StringBuilder();</span>
-<span class="nc bnc" id="L197" title="All 2 branches missed.">        				for (int j = 0; j &lt; aliases.length; j++) {</span>
-<span class="nc" id="L198">        					builder.append(' ').append(aliases[j]);</span>
-        				}
-<span class="nc" id="L200">        				log.debug(&quot;Not enough keys for the key aliases: &quot;+builder.toString());</span>
-        			}
-<span class="fc" id="L202">                    ret = CryptoToken.STATUS_OFFLINE;</span>
-        		}
-        	}
-<span class="nc" id="L205">        } catch (CryptoTokenOfflineException e) {</span>
-<span class="nc bnc" id="L206" title="All 2 branches missed.">        	if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L207">        		log.debug(&quot;CryptoToken offline: &quot;+e.getMessage());</span>
-        	}
-<span class="fc" id="L209">        }</span>
-
-<span class="pc bpc" id="L211" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L212">        	log.trace(&quot;&lt;getCATokenStatus: &quot; + ret);</span>
-        }
-<span class="fc" id="L214">        return ret;</span>
+  /**
+   * Constructor used to initialize a stored CA token, when the
+   * UpgradeableHashMap has been stored as is.
+   *
+   * @param tokendata LinkedHashMap
+   */
+  @SuppressWarnings(&quot;rawtypes&quot;)
+<span class="fc" id="L135">  public CAToken(final HashMap tokendata) {</span>
+<span class="fc" id="L136">    loadData(tokendata);</span>
+<span class="fc" id="L137">    final Object cryptoTokenIdObject = data.get(CAToken.CRYPTOTOKENID);</span>
+<span class="pc bpc" id="L138" title="1 of 2 branches missed.">    if (cryptoTokenIdObject == null) {</span>
+<span class="nc" id="L139">      LOG.warn(</span>
+          &quot;No CryptoTokenId in CAToken map. This can safely be ignored if&quot;
+              + &quot; shown during an upgrade from EJBCA 5.0.x or lower.&quot;);
+    } else {
+<span class="fc" id="L143">      this.cryptoTokenId = Integer.parseInt((String) cryptoTokenIdObject);</span>
     }
+<span class="fc" id="L145">    final Properties caTokenProperties = getProperties();</span>
+<span class="fc" id="L146">    internalInit(caTokenProperties);</span>
+<span class="fc" id="L147">  }</span>
 
-    /** @param purpose purpose
-     * @return the key pair alias in the CryptoToken from the CATokenConstants.CAKEYPURPOSE_.. 
-     * @throws CryptoTokenOfflineException if offline */
-    public String getAliasFromPurpose(final int purpose) throws CryptoTokenOfflineException {
-<span class="pc bpc" id="L221" title="1 of 2 branches missed.">        if (keyStrings==null) {</span>
-            // keyStrings is transient and can be null after serialization
-<span class="nc" id="L223">            keyStrings = new PurposeMapping(getProperties());</span>
-        }
-<span class="fc" id="L225">        final String alias = keyStrings.getAlias(purpose);</span>
-<span class="fc bfc" id="L226" title="All 2 branches covered.">        if (alias == null) {</span>
-<span class="fc" id="L227">            throw new CryptoTokenOfflineException(&quot;No alias for key purpose &quot; + purpose);</span>
-        }
-<span class="fc" id="L229">        return alias;</span>
+  /**
+   * Verifies that the all the mapped keys are present in the CryptoToken and
+   * optionally that the test key is usable.
+   *
+   * @param caTokenSignTest bool
+   * @param cryptoToken token
+   * @return status code
+   */
+  public int getTokenStatus(final boolean caTokenSignTest,
+          final CryptoToken cryptoToken) {
+<span class="pc bpc" id="L159" title="1 of 2 branches missed.">    if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L160">      LOG.trace(&quot;&gt;getCATokenStatus&quot;);</span>
     }
-
-    /** @return the reference to the CA's CryptoToken */
-    public int getCryptoTokenId() {
-<span class="fc" id="L234">        return cryptoTokenId;</span>
-    }
-    /** Set the reference to the CA's CryptoToken. Use with care! 
-     * @param cryptoTokenId ID*/
-    public void setCryptoTokenId(final int cryptoTokenId) {
-<span class="fc" id="L239">        this.cryptoTokenId = cryptoTokenId;</span>
-<span class="fc" id="L240">        data.put(CAToken.CRYPTOTOKENID, String.valueOf(cryptoTokenId));</span>
-<span class="fc" id="L241">    }</span>
-
-    /** Set a property and update underlying Map 
-     * @param key Key
-     * @param value Value*/
-    public void setProperty(String key, String value) {
-<span class="nc" id="L247">        final Properties caTokenProperties = getProperties();</span>
-<span class="nc" id="L248">        caTokenProperties.setProperty(key, value);</span>
-<span class="nc" id="L249">        setCATokenPropertyData(storeProperties(caTokenProperties));</span>
-<span class="nc" id="L250">    }</span>
-
-    /**
-     * Internal method just to get rid of the always present date that is part of the standard Properties.store().
-     * 
-     * @param caTokenProperties properties
-     * @return String that can be loaded by Properties.load
-     */
-    private String storeProperties(Properties caTokenProperties) {
-<span class="fc" id="L259">        this.keyStrings = new PurposeMapping(caTokenProperties);</span>
-<span class="fc" id="L260">        final StringWriter sw = new StringWriter();</span>
-<span class="fc" id="L261">        try ( final PrintWriter writer = new PrintWriter(sw); ) {</span>
-<span class="fc" id="L262">            final Enumeration&lt;Object&gt; e = caTokenProperties.keys();</span>
-<span class="fc bfc" id="L263" title="All 2 branches covered.">            while (e.hasMoreElements()) {</span>
-<span class="fc" id="L264">                final Object s = e.nextElement();</span>
-<span class="pc bpc" id="L265" title="1 of 2 branches missed.">                if (caTokenProperties.get(s) != null) {</span>
-<span class="fc" id="L266">                    writer.println(s + &quot;=&quot; + caTokenProperties.get(s));</span>
+<span class="fc" id="L162">    int ret = CryptoToken.STATUS_OFFLINE;</span>
+    // If we have no key aliases, no point in continuing...
+    try {
+<span class="pc bpc" id="L165" title="1 of 2 branches missed.">      if (keyStrings != null) {</span>
+<span class="fc" id="L166">        final String[] aliases = keyStrings.getAliases();</span>
+<span class="fc" id="L167">        final String aliasCertSignKeyPrevious =</span>
+<span class="fc" id="L168">            keyStrings.getAlias(</span>
+                CATokenConstants.CAKEYPURPOSE_CERTSIGN_PREVIOUS);
+<span class="fc" id="L170">        final String aliasCertSignKeyNext =</span>
+<span class="fc" id="L171">            keyStrings.getAlias(CATokenConstants.CAKEYPURPOSE_CERTSIGN_NEXT);</span>
+<span class="fc" id="L172">        final String aliasTestKey =</span>
+<span class="fc" id="L173">            getAliasFromPurpose(CATokenConstants.CAKEYPURPOSE_KEYTEST);</span>
+<span class="fc" id="L174">        int foundKeys = 0;</span>
+        // Loop that checks  if there all key aliases have keys
+<span class="pc bpc" id="L176" title="1 of 2 branches missed.">        if (cryptoToken != null) {</span>
+<span class="fc" id="L177">          final HashMap&lt;String, PrivateKey&gt; aliasMap =</span>
+              new HashMap&lt;String, PrivateKey&gt;();
+<span class="fc bfc" id="L179" title="All 2 branches covered.">          for (final String alias : aliases) {</span>
+<span class="fc" id="L180">            PrivateKey privateKey = aliasMap.get(alias);</span>
+<span class="pc bpc" id="L181" title="1 of 2 branches missed.">            if (privateKey == null) {</span>
+              try {
+<span class="fc" id="L183">                privateKey = cryptoToken.getPrivateKey(alias);</span>
+                // Cache lookup to avoid having to retrieve the same key when
+                // used for multiple purposes
+<span class="pc bpc" id="L186" title="1 of 2 branches missed.">                if (privateKey != null) {</span>
+<span class="fc" id="L187">                  aliasMap.put(alias, privateKey);</span>
                 }
-<span class="fc" id="L268">            }</span>
-        }
-<span class="fc" id="L270">        return sw.toString();</span>
-    }
-
-    /** Sets the propertydata used to configure this CA Token. 
-     * @param propertydata data*/
-    private void setCATokenPropertyData(String propertydata) {
-<span class="fc" id="L276">        data.put(CAToken.PROPERTYDATA, propertydata);</span>
-<span class="fc" id="L277">    }</span>
-
-    public Properties getProperties() {
-<span class="fc" id="L280">        String propertyStr = null;</span>
-<span class="pc bpc" id="L281" title="1 of 2 branches missed.">        if (data != null) {</span>
-<span class="fc" id="L282">            propertyStr = (String) data.get(CAToken.PROPERTYDATA);</span>
-        }
-<span class="fc" id="L284">        return getPropertiesFromString(propertyStr);</span>
-    }
-    
-    public static Properties getPropertiesFromString(final String propertyStr) {
-<span class="fc" id="L288">        final Properties prop = new Properties();</span>
-<span class="fc bfc" id="L289" title="All 2 branches covered.">        if (StringUtils.isNotEmpty(propertyStr)) {</span>
-            try {
-                // If the input string contains \ (backslash on windows) we must convert it to \\
-                // Otherwise properties.load will parse it as an escaped character, and that is not good
-<span class="fc" id="L293">                final String propertyStrAdjusted = StringUtils.replace(propertyStr, &quot;\\&quot;, &quot;\\\\&quot;);</span>
-<span class="fc" id="L294">                prop.load(new StringReader(propertyStrAdjusted));</span>
-                // Trim whitespace in values
-<span class="fc bfc" id="L296" title="All 2 branches covered.">                for (final Object keyObj : prop.keySet()) {</span>
-<span class="fc" id="L297">                    String key = (String)keyObj;</span>
-<span class="fc" id="L298">                    String value = prop.getProperty(key);</span>
-<span class="fc" id="L299">                    prop.setProperty(key, value.trim());</span>
-<span class="fc" id="L300">                }</span>
-<span class="nc" id="L301">            } catch (IOException e) {</span>
-<span class="nc" id="L302">                log.error(&quot;Error getting PKCS#11 token properties: &quot;, e);</span>
-<span class="fc" id="L303">            }</span>
-        }
-<span class="fc" id="L305">        return prop;</span>
-    }
-
-    /** @return the Sequence, that is a sequence that is updated when keys are re-generated */
-    public String getKeySequence() {
-<span class="fc" id="L310">        Object seq = data.get(SEQUENCE);</span>
-<span class="fc bfc" id="L311" title="All 2 branches covered.">        if (seq == null) {</span>
-<span class="fc" id="L312">            seq = new String(CAToken.DEFAULT_KEYSEQUENCE);</span>
-        }
-<span class="fc" id="L314">        return (String) seq;</span>
-    }
-
-    /** Sets the key sequence 
-     * @param sequence sequence*/
-    public void setKeySequence(String sequence) {
-<span class="fc" id="L320">        data.put(SEQUENCE, sequence);</span>
-<span class="fc" id="L321">    }</span>
-
-    /** Sets the SequenceFormat 
-     * @param sequence format*/
-    public void setKeySequenceFormat(int sequence) {
-<span class="fc" id="L326">        data.put(SEQUENCE_FORMAT, sequence);</span>
-<span class="fc" id="L327">    }</span>
-
-    /** @return the Sequence format, that is the format of the key sequence */
-    public int getKeySequenceFormat() {
-<span class="fc" id="L331">        Object seqF = data.get(SEQUENCE_FORMAT);</span>
-<span class="fc bfc" id="L332" title="All 2 branches covered.">        if (seqF == null) {</span>
-<span class="fc" id="L333">            seqF = Integer.valueOf(StringTools.KEY_SEQUENCE_FORMAT_NUMERIC);</span>
-        }
-<span class="fc" id="L335">        return (Integer) seqF;</span>
-    }
-
-    /** @return the SignatureAlgoritm */
-    public String getSignatureAlgorithm() {
-<span class="fc" id="L340">        return (String) data.get(CAToken.SIGNATUREALGORITHM);</span>
-    }
-
-    /** Sets the SignatureAlgoritm 
-     * @param signaturealgoritm Algo*/
-    public void setSignatureAlgorithm(String signaturealgoritm) {
-<span class="fc" id="L346">        data.put(CAToken.SIGNATUREALGORITHM, signaturealgoritm);</span>
-<span class="fc" id="L347">    }</span>
-
-    /** @return the EncryptionAlgoritm */
-    public String getEncryptionAlgorithm() {
-<span class="fc" id="L351">        return (String) data.get(CAToken.ENCRYPTIONALGORITHM);</span>
-    }
-
-    /** Sets the EncryptionAlgoritm 
-     * @param encryptionalgo Algo*/
-    public void setEncryptionAlgorithm(String encryptionalgo) {
-<span class="fc" id="L357">        data.put(CAToken.ENCRYPTIONALGORITHM, encryptionalgo);</span>
-<span class="fc" id="L358">    }</span>
-
-    /** @see org.cesecore.internal.UpgradeableDataHashMap#getLatestVersion() */
-    @Override
-    public float getLatestVersion() {
-<span class="fc" id="L363">        return LATEST_VERSION;</span>
-    }
-
-    /** @see org.cesecore.internal.UpgradeableDataHashMap#upgrade() */
-    @Override
-    public void upgrade() {
-<span class="nc bnc" id="L369" title="All 2 branches missed.">        if (Float.compare(LATEST_VERSION, getVersion()) != 0) {</span>
-            // New version of the class, upgrade
-<span class="nc" id="L371">            String msg = intres.getLocalizedMessage(&quot;token.upgrade&quot;, Float.valueOf(getVersion()));</span>
-<span class="nc" id="L372">            log.info(msg);</span>
-            // Put upgrade stuff here
-<span class="nc bnc" id="L374" title="All 2 branches missed.">            if (data.get(CAToken.SEQUENCE_FORMAT) == null) { // v7</span>
-<span class="nc" id="L375">                log.info(&quot;Adding new sequence format to CA Token data: &quot; + StringTools.KEY_SEQUENCE_FORMAT_NUMERIC);</span>
-<span class="nc" id="L376">                data.put(CAToken.SEQUENCE_FORMAT, StringTools.KEY_SEQUENCE_FORMAT_NUMERIC);</span>
+<span class="fc" id="L189">              } catch (CryptoTokenOfflineException e) {</span>
+<span class="fc" id="L190">                privateKey = null;</span>
+<span class="fc" id="L191">              }</span>
             }
-<span class="nc bnc" id="L378" title="All 2 branches missed.">            if (data.get(CAToken.SEQUENCE) == null) { // v7</span>
-<span class="nc" id="L379">                log.info(&quot;Adding new default key sequence to CA Token data: &quot; + CAToken.DEFAULT_KEYSEQUENCE);</span>
-<span class="nc" id="L380">                data.put(CAToken.SEQUENCE, CAToken.DEFAULT_KEYSEQUENCE);</span>
-            }
-
-<span class="nc bnc" id="L383" title="All 2 branches missed.">            if (data.get(CAToken.CLASSPATH) != null) { // v8 upgrade of classpaths for CESeCore</span>
-<span class="nc" id="L384">                final String classpath = (String) data.get(CAToken.CLASSPATH);</span>
-<span class="nc" id="L385">                log.info(&quot;Upgrading CA token classpath: &quot;+classpath);</span>
-<span class="nc" id="L386">                String newclasspath = classpath;</span>
-<span class="nc bnc" id="L387" title="All 2 branches missed.">                if (StringUtils.equals(classpath, &quot;org.ejbca.core.model.ca.catoken.SoftCAToken&quot;)) {</span>
-<span class="nc" id="L388">                	newclasspath = &quot;org.cesecore.keys.token.SoftCryptoToken&quot;;</span>
-                	// Upgrade properties to set a default key, also for soft crypto tokens
-<span class="nc" id="L390">                	Properties prop = getProperties();</span>
-                    // A small unfortunate special property that we have to make in order to 
-                    // be able to use soft keystores that does not have a specific test or default key
-<span class="nc bnc" id="L393" title="All 2 branches missed.">                    if ((prop.getProperty(CATokenConstants.CAKEYPURPOSE_CERTSIGN_STRING) == null) &amp;&amp;</span>
-<span class="nc bnc" id="L394" title="All 2 branches missed.">                    		(prop.getProperty(CATokenConstants.CAKEYPURPOSE_DEFAULT_STRING) == null)) {</span>
-                        // The soft key alias was changed from privatesignkeyalias to signKey in EJBCA 6.4.1, which is long after
-                        // we changed the classpath. So if we come in here, we are upgrading a token that is way before 6.4.1, meaning 
-                        // that it uses the old key aliases
-<span class="nc" id="L398">                    	log.info(&quot;Setting CAKEYPURPOSE_CERTSIGN_STRING and CAKEYPURPOSE_CRLSIGN_STRING to privatesignkeyalias.&quot;);</span>
-<span class="nc" id="L399">                    	prop.setProperty(CATokenConstants.CAKEYPURPOSE_CERTSIGN_STRING, CAToken.OLDPRIVATESIGNKEYALIAS);</span>
-<span class="nc" id="L400">                    	prop.setProperty(CATokenConstants.CAKEYPURPOSE_CRLSIGN_STRING, CAToken.OLDPRIVATESIGNKEYALIAS);</span>
-                    }
-<span class="nc bnc" id="L402" title="All 2 branches missed.">                    if ((prop.getProperty(CATokenConstants.CAKEYPURPOSE_DEFAULT_STRING) == null) &amp;&amp;</span>
-<span class="nc bnc" id="L403" title="All 2 branches missed.">                    		(prop.getProperty(CATokenConstants.CAKEYPURPOSE_TESTKEY_STRING) == null)) {</span>
-                        // Same as above regarding key aliases
-<span class="nc" id="L405">                        log.info(&quot;Setting CAKEYPURPOSE_DEFAULT_STRING to privatedeckeyalias.&quot;);</span>
-<span class="nc" id="L406">                    	prop.setProperty(CATokenConstants.CAKEYPURPOSE_DEFAULT_STRING, CAToken.OLDPRIVATEDECKEYALIAS);</span>
-                    }
-<span class="nc" id="L408">                    setCATokenPropertyData(storeProperties(prop)); // Stores property string in &quot;data&quot;</span>
-<span class="nc bnc" id="L409" title="All 2 branches missed.">                } else if (StringUtils.equals(classpath, &quot;org.ejbca.core.model.ca.catoken.PKCS11CAToken&quot;)) {</span>
-<span class="nc" id="L410">                	newclasspath = &quot;org.cesecore.keys.token.PKCS11CryptoToken&quot;;</span>
-<span class="nc bnc" id="L411" title="All 2 branches missed.">                } else if (StringUtils.equals(classpath, &quot;org.ejbca.core.model.ca.catoken.NullCAToken&quot;)) {</span>
-<span class="nc" id="L412">                	newclasspath = &quot;org.cesecore.keys.token.NullCryptoToken&quot;;</span>
-<span class="nc bnc" id="L413" title="All 2 branches missed.">                } else if (StringUtils.equals(classpath, &quot;org.ejbca.core.model.ca.catoken.NFastCAToken&quot;)) {</span>
-<span class="nc" id="L414">                	log.error(&quot;Upgrading of NFastCAToken not supported, you need to convert to using PKCS11CAToken before upgrading.&quot;);</span>
+<span class="fc bfc" id="L193" title="All 2 branches covered.">            if (privateKey == null) {</span>
+              // We don't consider it critical if currently unused certificate
+              // signing keys has been deleted (as long as it isn't mapped for
+              // any other purposes)
+<span class="fc bfc" id="L197" title="All 2 branches covered.">              if (alias.equals(aliasCertSignKeyPrevious)</span>
+<span class="fc bfc" id="L198" title="All 2 branches covered.">                  &amp;&amp; keyStrings.isAliasMappedForSinglePurpose(</span>
+                      aliasCertSignKeyPrevious)) {
+<span class="fc" id="L200">                foundKeys++;</span>
+<span class="pc bpc" id="L201" title="1 of 2 branches missed.">                if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L202">                  LOG.debug(</span>
+                      &quot;Missing private key for alias: &quot;
+                          + alias
+                          + &quot; (Not treated as an error, since it is only&quot;
+                          + &quot; mapped as the previous CA signing key.)&quot;);
                 }
-<span class="nc" id="L416">                data.put(CAToken.CLASSPATH, newclasspath);</span>
+<span class="fc bfc" id="L208" title="All 2 branches covered.">              } else if (alias.equals(aliasCertSignKeyNext)</span>
+<span class="fc bfc" id="L209" title="All 2 branches covered.">                  &amp;&amp; keyStrings.isAliasMappedForSinglePurpose(</span>
+                      aliasCertSignKeyNext)) {
+<span class="fc" id="L211">                foundKeys++;</span>
+<span class="pc bpc" id="L212" title="1 of 2 branches missed.">                if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L213">                  LOG.debug(</span>
+                      &quot;Missing private key for alias: &quot;
+                          + alias
+                          + &quot; (Not treated as an error, since it is only&quot;
+                          + &quot; mapped as the next CA signing key.)&quot;);
+                }
+              } else {
+<span class="pc bpc" id="L220" title="1 of 2 branches missed.">                if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L221">                  LOG.debug(&quot;Missing private key for alias: &quot; + alias);</span>
+                }
+              }
+            } else {
+<span class="fc" id="L225">              foundKeys++;</span>
             }
+<span class="fc bfc" id="L227" title="All 2 branches covered.">            if (alias.equals(aliasTestKey)) {</span>
+              PublicKey publicKey;
+              try {
+<span class="fc" id="L230">                publicKey = cryptoToken.getPublicKey(aliasTestKey);</span>
+<span class="fc" id="L231">              } catch (CryptoTokenOfflineException e) {</span>
+<span class="fc" id="L232">                publicKey = null;</span>
+<span class="fc" id="L233">              }</span>
+<span class="fc bfc" id="L234" title="All 2 branches covered.">              if (publicKey == null) {</span>
+<span class="pc bpc" id="L235" title="1 of 2 branches missed.">                if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L236">                  LOG.debug(&quot;Missing public key for alias: &quot; + alias);</span>
+                }
+              }
+              // Check that that the testkey is usable by doing a test
+              // signature.
+              try {
+<span class="fc bfc" id="L242" title="All 2 branches covered.">                if (caTokenSignTest) {</span>
+<span class="fc" id="L243">                  cryptoToken.testKeyPair(alias, publicKey, privateKey);</span>
+                }
+                // If we can test the testkey, we are finally active!
+<span class="fc" id="L246">                ret = CryptoToken.STATUS_ACTIVE;</span>
+<span class="fc" id="L247">              } catch (</span>
+                  Throwable
+                      th) { // NOPMD: we need to catch _everything_ when dealing
+                            // with HSMs
+<span class="fc" id="L251">                LOG.error(</span>
+<span class="fc" id="L252">                    INTRES.getLocalizedMessage(</span>
+<span class="fc" id="L253">                        &quot;token.activationtestfail&quot;, cryptoToken.getId()),</span>
+                    th);
+<span class="fc" id="L255">              }</span>
+            }
+          }
+        }
+<span class="fc bfc" id="L259" title="All 2 branches covered.">        if (foundKeys &lt; aliases.length) {</span>
+<span class="pc bpc" id="L260" title="1 of 2 branches missed.">          if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L261">            StringBuilder builder = new StringBuilder();</span>
+<span class="nc bnc" id="L262" title="All 2 branches missed.">            for (int j = 0; j &lt; aliases.length; j++) {</span>
+<span class="nc" id="L263">              builder.append(' ').append(aliases[j]);</span>
+            }
+<span class="nc" id="L265">            LOG.debug(</span>
+<span class="nc" id="L266">                &quot;Not enough keys for the key aliases: &quot; + builder.toString());</span>
+          }
+<span class="fc" id="L268">          ret = CryptoToken.STATUS_OFFLINE;</span>
+        }
+      }
+<span class="nc" id="L271">    } catch (CryptoTokenOfflineException e) {</span>
+<span class="nc bnc" id="L272" title="All 2 branches missed.">      if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L273">        LOG.debug(&quot;CryptoToken offline: &quot; + e.getMessage());</span>
+      }
+<span class="fc" id="L275">    }</span>
 
-<span class="nc" id="L419">            data.put(VERSION, Float.valueOf(LATEST_VERSION));</span>
-        }
-<span class="nc" id="L421">    }</span>
-
-    /**
-     * Use current key sequence to generate and store a &quot;next&quot; key sequence and &quot;next&quot; singing key alias.
-     * @return the next sign key alias.
-     */
-    public String generateNextSignKeyAlias() {
-        // Generate a new key sequence
-<span class="fc" id="L429">        final String currentKeySequence = getKeySequence();</span>
-<span class="fc" id="L430">        final String newKeySequence = StringTools.incrementKeySequence(getKeySequenceFormat(), currentKeySequence);</span>
-<span class="pc bpc" id="L431" title="1 of 2 branches missed.">        if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L432">            log.debug(&quot;Current key sequence: &quot; + currentKeySequence + &quot;  New key sequence: &quot; + newKeySequence);</span>
-        }
-        // Generate a key alias based on the new key sequence
-<span class="fc" id="L435">        final String currentCertSignKeyLabel = keyStrings.getAlias(CATokenConstants.CAKEYPURPOSE_CERTSIGN);</span>
-<span class="fc" id="L436">        final String newCertSignKeyLabel = StringUtils.removeEnd(currentCertSignKeyLabel, currentKeySequence) + newKeySequence;</span>
-<span class="pc bpc" id="L437" title="1 of 2 branches missed.">        if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L438">            log.debug(&quot;Current sign key alias: &quot; + currentCertSignKeyLabel + &quot;  New sign key alias: &quot; + newCertSignKeyLabel);</span>
-        }
-        // Store the new values in the properties of this token
-<span class="fc" id="L441">        setNextCertSignKey(newCertSignKeyLabel);</span>
-<span class="fc" id="L442">        setNextKeySequence(newKeySequence);</span>
-<span class="fc" id="L443">        return newCertSignKeyLabel;</span>
+<span class="pc bpc" id="L277" title="1 of 2 branches missed.">    if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L278">      LOG.trace(&quot;&lt;getCATokenStatus: &quot; + ret);</span>
     }
+<span class="fc" id="L280">    return ret;</span>
+  }
 
-    /** Next sign key becomes current. Current becomes previous. Same goes for KeySequence. CRL sign key is updated if it is the same as cert sign key */
-    public void activateNextSignKey() {
-<span class="fc" id="L448">        final Properties caTokenProperties = getProperties();</span>
-        // Replace certificate (and crl) signing key aliases (if present)
-<span class="fc" id="L450">        boolean swichedSigningKey = false;</span>
-<span class="fc" id="L451">        final String nextCertSignKeyLabel = keyStrings.getAlias(CATokenConstants.CAKEYPURPOSE_CERTSIGN_NEXT);</span>
-<span class="pc bpc" id="L452" title="1 of 2 branches missed.">        if (nextCertSignKeyLabel!=null) {</span>
-<span class="fc" id="L453">            final String currentCertSignKeyLabel = keyStrings.getAlias(CATokenConstants.CAKEYPURPOSE_CERTSIGN);</span>
-<span class="fc" id="L454">            final String currentCrlSignKeyLabel = keyStrings.getAlias(CATokenConstants.CAKEYPURPOSE_CRLSIGN);</span>
-<span class="pc bpc" id="L455" title="1 of 2 branches missed.">            if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L456">                log.debug(&quot;CERTSIGN_NEXT: &quot; + nextCertSignKeyLabel);</span>
-<span class="nc" id="L457">                log.debug(&quot;CERTSIGN:      &quot; + currentCertSignKeyLabel);</span>
-<span class="nc" id="L458">                log.debug(&quot;CRLSIGN:       &quot; + currentCrlSignKeyLabel);</span>
-            }
-<span class="pc bpc" id="L460" title="1 of 2 branches missed.">            if (StringUtils.equals(currentCertSignKeyLabel, currentCrlSignKeyLabel)) {</span>
-<span class="fc" id="L461">                log.info(&quot;Setting CRL signing key alias to: &quot; + nextCertSignKeyLabel);</span>
-<span class="fc" id="L462">                caTokenProperties.setProperty(CATokenConstants.CAKEYPURPOSE_CRLSIGN_STRING, nextCertSignKeyLabel);</span>
-            }
-<span class="fc" id="L464">            log.info(&quot;Setting certificate signing key alias to: &quot; + nextCertSignKeyLabel);</span>
-<span class="fc" id="L465">            caTokenProperties.setProperty(CATokenConstants.CAKEYPURPOSE_CERTSIGN_STRING_PREVIOUS, currentCertSignKeyLabel);</span>
-<span class="fc" id="L466">            caTokenProperties.setProperty(CATokenConstants.CAKEYPURPOSE_CERTSIGN_STRING, nextCertSignKeyLabel);</span>
-<span class="fc" id="L467">            caTokenProperties.remove(CATokenConstants.CAKEYPURPOSE_CERTSIGN_STRING_NEXT);</span>
-<span class="pc bpc" id="L468" title="1 of 2 branches missed.">            swichedSigningKey = !StringUtils.equals(nextCertSignKeyLabel, currentCertSignKeyLabel);</span>
+  /**
+   * @param purpose purpose
+   * @return the key pair alias in the CryptoToken from the
+   *     CATokenConstants.CAKEYPURPOSE_..
+   * @throws CryptoTokenOfflineException if offline
+   */
+  public String getAliasFromPurpose(final int purpose)
+      throws CryptoTokenOfflineException {
+<span class="pc bpc" id="L291" title="1 of 2 branches missed.">    if (keyStrings == null) {</span>
+      // keyStrings is transient and can be null after serialization
+<span class="nc" id="L293">      keyStrings = new PurposeMapping(getProperties());</span>
+    }
+<span class="fc" id="L295">    final String alias = keyStrings.getAlias(purpose);</span>
+<span class="fc bfc" id="L296" title="All 2 branches covered.">    if (alias == null) {</span>
+<span class="fc" id="L297">      throw new CryptoTokenOfflineException(</span>
+          &quot;No alias for key purpose &quot; + purpose);
+    }
+<span class="fc" id="L300">    return alias;</span>
+  }
+
+  /** @return the reference to the CA's CryptoToken */
+  public int getCryptoTokenId() {
+<span class="fc" id="L305">    return cryptoTokenId;</span>
+  }
+  /**
+   * Set the reference to the CA's CryptoToken. Use with care!
+   *
+   * @param aCryptoTokenId ID
+   */
+  public void setCryptoTokenId(final int aCryptoTokenId) {
+<span class="fc" id="L313">    this.cryptoTokenId = aCryptoTokenId;</span>
+<span class="fc" id="L314">    data.put(CAToken.CRYPTOTOKENID, String.valueOf(aCryptoTokenId));</span>
+<span class="fc" id="L315">  }</span>
+
+  /**
+   * Set a property and update underlying Map.
+   *
+   * @param key Key
+   * @param value Value
+   */
+  public void setProperty(final String key, final String value) {
+<span class="nc" id="L324">    final Properties caTokenProperties = getProperties();</span>
+<span class="nc" id="L325">    caTokenProperties.setProperty(key, value);</span>
+<span class="nc" id="L326">    setCATokenPropertyData(storeProperties(caTokenProperties));</span>
+<span class="nc" id="L327">  }</span>
+
+  /**
+   * Internal method just to get rid of the always present date that is part of
+   * the standard Properties.store().
+   *
+   * @param caTokenProperties properties
+   * @return String that can be loaded by Properties.load
+   */
+  private String storeProperties(final Properties caTokenProperties) {
+<span class="fc" id="L337">    this.keyStrings = new PurposeMapping(caTokenProperties);</span>
+<span class="fc" id="L338">    final StringWriter sw = new StringWriter();</span>
+<span class="fc" id="L339">    try (PrintWriter writer = new PrintWriter(sw); ) {</span>
+<span class="fc" id="L340">      final Enumeration&lt;Object&gt; e = caTokenProperties.keys();</span>
+<span class="fc bfc" id="L341" title="All 2 branches covered.">      while (e.hasMoreElements()) {</span>
+<span class="fc" id="L342">        final Object s = e.nextElement();</span>
+<span class="pc bpc" id="L343" title="1 of 2 branches missed.">        if (caTokenProperties.get(s) != null) {</span>
+<span class="fc" id="L344">          writer.println(s + &quot;=&quot; + caTokenProperties.get(s));</span>
         }
-        // Replace key sequence (if present)
-<span class="fc" id="L471">        final String nextKeySequence = caTokenProperties.getProperty(CATokenConstants.NEXT_SEQUENCE_PROPERTY);</span>
-<span class="fc" id="L472">        final String currentKeySequence = getKeySequence();</span>
-<span class="fc bfc" id="L473" title="All 2 branches covered.">        if (nextKeySequence != null) {</span>
-<span class="pc bpc" id="L474" title="1 of 2 branches missed.">            if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L475">                log.debug(&quot;Current KeySequence: &quot; + getKeySequence());</span>
-            }
-<span class="fc" id="L477">            log.info(&quot;Set key sequence from nextSequence: &quot; + nextKeySequence);</span>
-<span class="fc" id="L478">            caTokenProperties.setProperty(CATokenConstants.PREVIOUS_SEQUENCE_PROPERTY, currentKeySequence);</span>
-<span class="fc" id="L479">            setKeySequence(nextKeySequence);</span>
-<span class="fc" id="L480">            caTokenProperties.remove(CATokenConstants.NEXT_SEQUENCE_PROPERTY);</span>
-<span class="pc bpc" id="L481" title="1 of 2 branches missed.">        } else if (swichedSigningKey) {</span>
-            // If we did not have a next key sequence before this activation we generate one and push back the current.
-<span class="fc" id="L483">            final String newKeySequence = StringTools.incrementKeySequence(getKeySequenceFormat(), currentKeySequence);</span>
-<span class="fc" id="L484">            caTokenProperties.setProperty(CATokenConstants.PREVIOUS_SEQUENCE_PROPERTY, currentKeySequence);</span>
-<span class="fc" id="L485">            setKeySequence(newKeySequence);</span>
-<span class="fc" id="L486">        } else {</span>
-            // So there is no key sequence and we didn't switch singing key..
-            // ..let us just set the previous sequence to the current to at least match the singing key alias
-<span class="nc" id="L489">            caTokenProperties.setProperty(CATokenConstants.PREVIOUS_SEQUENCE_PROPERTY, currentKeySequence);</span>
+<span class="fc" id="L346">      }</span>
+    }
+<span class="fc" id="L348">    return sw.toString();</span>
+  }
+
+  /**
+   * Sets the propertydata used to configure this CA Token.
+   *
+   * @param propertydata data
+   */
+  private void setCATokenPropertyData(final String propertydata) {
+<span class="fc" id="L357">    data.put(CAToken.PROPERTYDATA, propertydata);</span>
+<span class="fc" id="L358">  }</span>
+
+  /** @return Properties */
+  public Properties getProperties() {
+<span class="fc" id="L362">    String propertyStr = null;</span>
+<span class="pc bpc" id="L363" title="1 of 2 branches missed.">    if (data != null) {</span>
+<span class="fc" id="L364">      propertyStr = (String) data.get(CAToken.PROPERTYDATA);</span>
+    }
+<span class="fc" id="L366">    return getPropertiesFromString(propertyStr);</span>
+  }
+
+  /**
+   * @param propertyStr String
+   * @return Properties */
+  public static Properties getPropertiesFromString(final String propertyStr) {
+<span class="fc" id="L373">    final Properties prop = new Properties();</span>
+<span class="fc bfc" id="L374" title="All 2 branches covered.">    if (StringUtils.isNotEmpty(propertyStr)) {</span>
+      try {
+        // If the input string contains \ (backslash on windows) we must convert
+        // it to \\
+        // Otherwise properties.load will parse it as an escaped character, and
+        // that is not good
+<span class="fc" id="L380">        final String propertyStrAdjusted =</span>
+<span class="fc" id="L381">            StringUtils.replace(propertyStr, &quot;\\&quot;, &quot;\\\\&quot;);</span>
+<span class="fc" id="L382">        prop.load(new StringReader(propertyStrAdjusted));</span>
+        // Trim whitespace in values
+<span class="fc bfc" id="L384" title="All 2 branches covered.">        for (final Object keyObj : prop.keySet()) {</span>
+<span class="fc" id="L385">          String key = (String) keyObj;</span>
+<span class="fc" id="L386">          String value = prop.getProperty(key);</span>
+<span class="fc" id="L387">          prop.setProperty(key, value.trim());</span>
+<span class="fc" id="L388">        }</span>
+<span class="nc" id="L389">      } catch (IOException e) {</span>
+<span class="nc" id="L390">        LOG.error(&quot;Error getting PKCS#11 token properties: &quot;, e);</span>
+<span class="fc" id="L391">      }</span>
+    }
+<span class="fc" id="L393">    return prop;</span>
+  }
+
+  /**
+   * @return the Sequence, that is a sequence that is updated when keys are
+   *     re-generated
+   */
+  public String getKeySequence() {
+<span class="fc" id="L401">    Object seq = data.get(SEQUENCE);</span>
+<span class="fc bfc" id="L402" title="All 2 branches covered.">    if (seq == null) {</span>
+<span class="fc" id="L403">      seq = new String(CAToken.DEFAULT_KEYSEQUENCE);</span>
+    }
+<span class="fc" id="L405">    return (String) seq;</span>
+  }
+
+  /**
+   * Sets the key sequence.
+   *
+   * @param sequence sequence
+   */
+  public void setKeySequence(final String sequence) {
+<span class="fc" id="L414">    data.put(SEQUENCE, sequence);</span>
+<span class="fc" id="L415">  }</span>
+
+  /**
+   * Sets the SequenceFormat.
+   *
+   * @param sequence format
+   */
+  public void setKeySequenceFormat(final int sequence) {
+<span class="fc" id="L423">    data.put(SEQUENCE_FORMAT, sequence);</span>
+<span class="fc" id="L424">  }</span>
+
+  /** @return the Sequence format, that is the format of the key sequence */
+  public int getKeySequenceFormat() {
+<span class="fc" id="L428">    Object seqF = data.get(SEQUENCE_FORMAT);</span>
+<span class="fc bfc" id="L429" title="All 2 branches covered.">    if (seqF == null) {</span>
+<span class="fc" id="L430">      seqF = Integer.valueOf(StringTools.KEY_SEQUENCE_FORMAT_NUMERIC);</span>
+    }
+<span class="fc" id="L432">    return (Integer) seqF;</span>
+  }
+
+  /** @return the SignatureAlgoritm */
+  public String getSignatureAlgorithm() {
+<span class="fc" id="L437">    return (String) data.get(CAToken.SIGNATUREALGORITHM);</span>
+  }
+
+  /**
+   * Sets the SignatureAlgoritm.
+   *
+   * @param signaturealgoritm Algo
+   */
+  public void setSignatureAlgorithm(final String signaturealgoritm) {
+<span class="fc" id="L446">    data.put(CAToken.SIGNATUREALGORITHM, signaturealgoritm);</span>
+<span class="fc" id="L447">  }</span>
+
+  /** @return the EncryptionAlgoritm */
+  public String getEncryptionAlgorithm() {
+<span class="fc" id="L451">    return (String) data.get(CAToken.ENCRYPTIONALGORITHM);</span>
+  }
+
+  /**
+   * Sets the EncryptionAlgoritm.
+   *
+   * @param encryptionalgo Algo
+   */
+  public void setEncryptionAlgorithm(final String encryptionalgo) {
+<span class="fc" id="L460">    data.put(CAToken.ENCRYPTIONALGORITHM, encryptionalgo);</span>
+<span class="fc" id="L461">  }</span>
+
+  /** @see org.cesecore.internal.UpgradeableDataHashMap#getLatestVersion() */
+  @Override
+  public float getLatestVersion() {
+<span class="fc" id="L466">    return LATEST_VERSION;</span>
+  }
+
+  /** @see org.cesecore.internal.UpgradeableDataHashMap#upgrade() */
+  @Override
+  public void upgrade() {
+<span class="nc bnc" id="L472" title="All 2 branches missed.">    if (Float.compare(LATEST_VERSION, getVersion()) != 0) {</span>
+      // New version of the class, upgrade
+<span class="nc" id="L474">      String msg =</span>
+<span class="nc" id="L475">          INTRES.getLocalizedMessage(</span>
+<span class="nc" id="L476">              &quot;token.upgrade&quot;, Float.valueOf(getVersion()));</span>
+<span class="nc" id="L477">      LOG.info(msg);</span>
+      // Put upgrade stuff here
+<span class="nc bnc" id="L479" title="All 2 branches missed.">      if (data.get(CAToken.SEQUENCE_FORMAT) == null) { // v7</span>
+<span class="nc" id="L480">        LOG.info(</span>
+            &quot;Adding new sequence format to CA Token data: &quot;
+                + StringTools.KEY_SEQUENCE_FORMAT_NUMERIC);
+<span class="nc" id="L483">        data.put(</span>
+<span class="nc" id="L484">            CAToken.SEQUENCE_FORMAT, StringTools.KEY_SEQUENCE_FORMAT_NUMERIC);</span>
+      }
+<span class="nc bnc" id="L486" title="All 2 branches missed.">      if (data.get(CAToken.SEQUENCE) == null) { // v7</span>
+<span class="nc" id="L487">        LOG.info(</span>
+            &quot;Adding new default key sequence to CA Token data: &quot;
+                + CAToken.DEFAULT_KEYSEQUENCE);
+<span class="nc" id="L490">        data.put(CAToken.SEQUENCE, CAToken.DEFAULT_KEYSEQUENCE);</span>
+      }
+
+<span class="nc bnc" id="L493" title="All 2 branches missed.">      if (data.get(CAToken.CLASSPATH)</span>
+          != null) { // v8 upgrade of classpaths for CESeCore
+<span class="nc" id="L495">        final String classpath = (String) data.get(CAToken.CLASSPATH);</span>
+<span class="nc" id="L496">        LOG.info(&quot;Upgrading CA token classpath: &quot; + classpath);</span>
+<span class="nc" id="L497">        String newclasspath = classpath;</span>
+<span class="nc bnc" id="L498" title="All 2 branches missed.">        if (StringUtils.equals(</span>
+            classpath, &quot;org.ejbca.core.model.ca.catoken.SoftCAToken&quot;)) {
+<span class="nc" id="L500">          newclasspath = &quot;org.cesecore.keys.token.SoftCryptoToken&quot;;</span>
+          // Upgrade properties to set a default key, also for soft crypto
+          // tokens
+<span class="nc" id="L503">          Properties prop = getProperties();</span>
+          // A small unfortunate special property that we have to make in order
+          // to
+          // be able to use soft keystores that does not have a specific test or
+          // default key
+<span class="nc bnc" id="L508" title="All 2 branches missed.">          if ((prop.getProperty(CATokenConstants.CAKEYPURPOSE_CERTSIGN_STRING)</span>
+                  == null)
+<span class="nc bnc" id="L510" title="All 2 branches missed.">              &amp;&amp; (prop.getProperty(CATokenConstants.CAKEYPURPOSE_DEFAULT_STRING)</span>
+                  == null)) {
+            // The soft key alias was changed from privatesignkeyalias to
+            // signKey in EJBCA 6.4.1, which is long after
+            // we changed the classpath. So if we come in here, we are upgrading
+            // a token that is way before 6.4.1, meaning
+            // that it uses the old key aliases
+<span class="nc" id="L517">            LOG.info(</span>
+                &quot;Setting CAKEYPURPOSE_CERTSIGN_STRING and&quot;
+                    + &quot; CAKEYPURPOSE_CRLSIGN_STRING to privatesignkeyalias.&quot;);
+<span class="nc" id="L520">            prop.setProperty(</span>
+                CATokenConstants.CAKEYPURPOSE_CERTSIGN_STRING,
+                CAToken.OLDPRIVATESIGNKEYALIAS);
+<span class="nc" id="L523">            prop.setProperty(</span>
+                CATokenConstants.CAKEYPURPOSE_CRLSIGN_STRING,
+                CAToken.OLDPRIVATESIGNKEYALIAS);
+          }
+<span class="nc bnc" id="L527" title="All 2 branches missed.">          if ((prop.getProperty(CATokenConstants.CAKEYPURPOSE_DEFAULT_STRING)</span>
+                  == null)
+<span class="nc bnc" id="L529" title="All 2 branches missed.">              &amp;&amp; (prop.getProperty(CATokenConstants.CAKEYPURPOSE_TESTKEY_STRING)</span>
+                  == null)) {
+            // Same as above regarding key aliases
+<span class="nc" id="L532">            LOG.info(</span>
+                &quot;Setting CAKEYPURPOSE_DEFAULT_STRING to privatedeckeyalias.&quot;);
+<span class="nc" id="L534">            prop.setProperty(</span>
+                CATokenConstants.CAKEYPURPOSE_DEFAULT_STRING,
+                CAToken.OLDPRIVATEDECKEYALIAS);
+          }
+<span class="nc" id="L538">          setCATokenPropertyData(</span>
+<span class="nc" id="L539">              storeProperties(prop)); // Stores property string in &quot;data&quot;</span>
+<span class="nc bnc" id="L540" title="All 2 branches missed.">        } else if (StringUtils.equals(</span>
+            classpath, &quot;org.ejbca.core.model.ca.catoken.PKCS11CAToken&quot;)) {
+<span class="nc" id="L542">          newclasspath = &quot;org.cesecore.keys.token.PKCS11CryptoToken&quot;;</span>
+<span class="nc bnc" id="L543" title="All 2 branches missed.">        } else if (StringUtils.equals(</span>
+            classpath, &quot;org.ejbca.core.model.ca.catoken.NullCAToken&quot;)) {
+<span class="nc" id="L545">          newclasspath = &quot;org.cesecore.keys.token.NullCryptoToken&quot;;</span>
+<span class="nc bnc" id="L546" title="All 2 branches missed.">        } else if (StringUtils.equals(</span>
+            classpath, &quot;org.ejbca.core.model.ca.catoken.NFastCAToken&quot;)) {
+<span class="nc" id="L548">          LOG.error(</span>
+              &quot;Upgrading of NFastCAToken not supported, you need to convert to&quot;
+                  + &quot; using PKCS11CAToken before upgrading.&quot;);
         }
-        // Store changes in the CAToken's properties
-<span class="fc" id="L492">        setCATokenPropertyData(storeProperties(caTokenProperties));</span>
-<span class="fc" id="L493">    }</span>
+<span class="nc" id="L552">        data.put(CAToken.CLASSPATH, newclasspath);</span>
+      }
 
-    /** Set the next singing key alias 
-     * @param nextSignKeyAlias Alias*/
-    public void setNextCertSignKey(String nextSignKeyAlias) {
-<span class="fc" id="L498">        final Properties caTokenProperties = getProperties();</span>
-<span class="fc" id="L499">        caTokenProperties.setProperty(CATokenConstants.CAKEYPURPOSE_CERTSIGN_STRING_NEXT, nextSignKeyAlias);</span>
-<span class="fc" id="L500">        setCATokenPropertyData(storeProperties(caTokenProperties));</span>
-<span class="fc" id="L501">    }</span>
+<span class="nc" id="L555">      data.put(VERSION, Float.valueOf(LATEST_VERSION));</span>
+    }
+<span class="nc" id="L557">  }</span>
 
-    /** Set the next key sequence 
-     * @param newSequence sequence*/
-    public void setNextKeySequence(String newSequence) {
-<span class="fc" id="L506">        final Properties caTokenProperties = getProperties();</span>
-<span class="fc" id="L507">        caTokenProperties.setProperty(CATokenConstants.NEXT_SEQUENCE_PROPERTY, newSequence);</span>
-<span class="fc" id="L508">        setCATokenPropertyData(storeProperties(caTokenProperties));</span>
-<span class="fc" id="L509">    }</span>
+  /**
+   * Use current key sequence to generate and store a &quot;next&quot; key sequence and
+   * &quot;next&quot; singing key alias.
+   *
+   * @return the next sign key alias.
+   */
+  public String generateNextSignKeyAlias() {
+    // Generate a new key sequence
+<span class="fc" id="L567">    final String currentKeySequence = getKeySequence();</span>
+<span class="fc" id="L568">    final String newKeySequence =</span>
+<span class="fc" id="L569">        StringTools.incrementKeySequence(</span>
+<span class="fc" id="L570">            getKeySequenceFormat(), currentKeySequence);</span>
+<span class="pc bpc" id="L571" title="1 of 2 branches missed.">    if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L572">      LOG.debug(</span>
+          &quot;Current key sequence: &quot;
+              + currentKeySequence
+              + &quot;  New key sequence: &quot;
+              + newKeySequence);
+    }
+    // Generate a key alias based on the new key sequence
+<span class="fc" id="L579">    final String currentCertSignKeyLabel =</span>
+<span class="fc" id="L580">        keyStrings.getAlias(CATokenConstants.CAKEYPURPOSE_CERTSIGN);</span>
+<span class="fc" id="L581">    final String newCertSignKeyLabel =</span>
+<span class="fc" id="L582">        StringUtils.removeEnd(currentCertSignKeyLabel, currentKeySequence)</span>
+            + newKeySequence;
+<span class="pc bpc" id="L584" title="1 of 2 branches missed.">    if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L585">      LOG.debug(</span>
+          &quot;Current sign key alias: &quot;
+              + currentCertSignKeyLabel
+              + &quot;  New sign key alias: &quot;
+              + newCertSignKeyLabel);
+    }
+    // Store the new values in the properties of this token
+<span class="fc" id="L592">    setNextCertSignKey(newCertSignKeyLabel);</span>
+<span class="fc" id="L593">    setNextKeySequence(newKeySequence);</span>
+<span class="fc" id="L594">    return newCertSignKeyLabel;</span>
+  }
 
+  /**
+   * Next sign key becomes current. Current becomes previous. Same goes for
+   * KeySequence. CRL sign key is updated if it is the same as cert sign key
+   */
+  public void activateNextSignKey() {
+<span class="fc" id="L602">    final Properties caTokenProperties = getProperties();</span>
+    // Replace certificate (and crl) signing key aliases (if present)
+<span class="fc" id="L604">    boolean swichedSigningKey = false;</span>
+<span class="fc" id="L605">    final String nextCertSignKeyLabel =</span>
+<span class="fc" id="L606">        keyStrings.getAlias(CATokenConstants.CAKEYPURPOSE_CERTSIGN_NEXT);</span>
+<span class="pc bpc" id="L607" title="1 of 2 branches missed.">    if (nextCertSignKeyLabel != null) {</span>
+<span class="fc" id="L608">      final String currentCertSignKeyLabel =</span>
+<span class="fc" id="L609">          keyStrings.getAlias(CATokenConstants.CAKEYPURPOSE_CERTSIGN);</span>
+<span class="fc" id="L610">      final String currentCrlSignKeyLabel =</span>
+<span class="fc" id="L611">          keyStrings.getAlias(CATokenConstants.CAKEYPURPOSE_CRLSIGN);</span>
+<span class="pc bpc" id="L612" title="1 of 2 branches missed.">      if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L613">        LOG.debug(&quot;CERTSIGN_NEXT: &quot; + nextCertSignKeyLabel);</span>
+<span class="nc" id="L614">        LOG.debug(&quot;CERTSIGN:      &quot; + currentCertSignKeyLabel);</span>
+<span class="nc" id="L615">        LOG.debug(&quot;CRLSIGN:       &quot; + currentCrlSignKeyLabel);</span>
+      }
+<span class="pc bpc" id="L617" title="1 of 2 branches missed.">      if (StringUtils.equals(currentCertSignKeyLabel, currentCrlSignKeyLabel)) {</span>
+<span class="fc" id="L618">        LOG.info(&quot;Setting CRL signing key alias to: &quot; + nextCertSignKeyLabel);</span>
+<span class="fc" id="L619">        caTokenProperties.setProperty(</span>
+            CATokenConstants.CAKEYPURPOSE_CRLSIGN_STRING, nextCertSignKeyLabel);
+      }
+<span class="fc" id="L622">      LOG.info(</span>
+          &quot;Setting certificate signing key alias to: &quot; + nextCertSignKeyLabel);
+<span class="fc" id="L624">      caTokenProperties.setProperty(</span>
+          CATokenConstants.CAKEYPURPOSE_CERTSIGN_STRING_PREVIOUS,
+          currentCertSignKeyLabel);
+<span class="fc" id="L627">      caTokenProperties.setProperty(</span>
+          CATokenConstants.CAKEYPURPOSE_CERTSIGN_STRING, nextCertSignKeyLabel);
+<span class="fc" id="L629">      caTokenProperties.remove(</span>
+          CATokenConstants.CAKEYPURPOSE_CERTSIGN_STRING_NEXT);
+<span class="fc" id="L631">      swichedSigningKey =</span>
+<span class="pc bpc" id="L632" title="1 of 2 branches missed.">          !StringUtils.equals(nextCertSignKeyLabel, currentCertSignKeyLabel);</span>
+    }
+    // Replace key sequence (if present)
+<span class="fc" id="L635">    final String nextKeySequence =</span>
+<span class="fc" id="L636">        caTokenProperties.getProperty(CATokenConstants.NEXT_SEQUENCE_PROPERTY);</span>
+<span class="fc" id="L637">    final String currentKeySequence = getKeySequence();</span>
+<span class="fc bfc" id="L638" title="All 2 branches covered.">    if (nextKeySequence != null) {</span>
+<span class="pc bpc" id="L639" title="1 of 2 branches missed.">      if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L640">        LOG.debug(&quot;Current KeySequence: &quot; + getKeySequence());</span>
+      }
+<span class="fc" id="L642">      LOG.info(&quot;Set key sequence from nextSequence: &quot; + nextKeySequence);</span>
+<span class="fc" id="L643">      caTokenProperties.setProperty(</span>
+          CATokenConstants.PREVIOUS_SEQUENCE_PROPERTY, currentKeySequence);
+<span class="fc" id="L645">      setKeySequence(nextKeySequence);</span>
+<span class="fc" id="L646">      caTokenProperties.remove(CATokenConstants.NEXT_SEQUENCE_PROPERTY);</span>
+<span class="pc bpc" id="L647" title="1 of 2 branches missed.">    } else if (swichedSigningKey) {</span>
+      // If we did not have a next key sequence before this activation we
+      // generate one and push back the current.
+<span class="fc" id="L650">      final String newKeySequence =</span>
+<span class="fc" id="L651">          StringTools.incrementKeySequence(</span>
+<span class="fc" id="L652">              getKeySequenceFormat(), currentKeySequence);</span>
+<span class="fc" id="L653">      caTokenProperties.setProperty(</span>
+          CATokenConstants.PREVIOUS_SEQUENCE_PROPERTY, currentKeySequence);
+<span class="fc" id="L655">      setKeySequence(newKeySequence);</span>
+<span class="fc" id="L656">    } else {</span>
+      // So there is no key sequence and we didn't switch singing key..
+      // ..let us just set the previous sequence to the current to at least
+      // match the singing key alias
+<span class="nc" id="L660">      caTokenProperties.setProperty(</span>
+          CATokenConstants.PREVIOUS_SEQUENCE_PROPERTY, currentKeySequence);
+    }
+    // Store changes in the CAToken's properties
+<span class="fc" id="L664">    setCATokenPropertyData(storeProperties(caTokenProperties));</span>
+<span class="fc" id="L665">  }</span>
+
+  /**
+   * Set the next singing key alias.
+   *
+   * @param nextSignKeyAlias Alias
+   */
+  public void setNextCertSignKey(final String nextSignKeyAlias) {
+<span class="fc" id="L673">    final Properties caTokenProperties = getProperties();</span>
+<span class="fc" id="L674">    caTokenProperties.setProperty(</span>
+        CATokenConstants.CAKEYPURPOSE_CERTSIGN_STRING_NEXT, nextSignKeyAlias);
+<span class="fc" id="L676">    setCATokenPropertyData(storeProperties(caTokenProperties));</span>
+<span class="fc" id="L677">  }</span>
+
+  /**
+   * Set the next key sequence.
+   *
+   * @param newSequence sequence
+   */
+  public void setNextKeySequence(final String newSequence) {
+<span class="fc" id="L685">    final Properties caTokenProperties = getProperties();</span>
+<span class="fc" id="L686">    caTokenProperties.setProperty(</span>
+        CATokenConstants.NEXT_SEQUENCE_PROPERTY, newSequence);
+<span class="fc" id="L688">    setCATokenPropertyData(storeProperties(caTokenProperties));</span>
+<span class="fc" id="L689">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

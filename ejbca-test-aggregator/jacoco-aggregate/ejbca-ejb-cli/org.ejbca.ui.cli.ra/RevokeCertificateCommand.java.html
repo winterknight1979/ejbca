@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RevokeCertificateCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.ra</a> &gt; <span class="el_source">RevokeCertificateCommand.java</span></div><h1>RevokeCertificateCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.cli.ra;
+
+import java.math.BigInteger;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.certificate.CertificateDataWrapper;
+import org.cesecore.certificates.certificate.CertificateStoreSessionRemote;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.EjbRemoteHelper;
+import org.ejbca.core.ejb.ra.EndEntityManagementSessionRemote;
+import org.ejbca.core.ejb.ra.NoSuchEndEntityException;
+import org.ejbca.core.model.approval.ApprovalException;
+import org.ejbca.core.model.approval.WaitingForApprovalException;
+import org.ejbca.core.model.ra.AlreadyRevokedException;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+
+/**
+ * Revokes a certificate in the database.
+ *
+ * @version $Id: RevokeCertificateCommand.java 25010 2017-01-13 16:14:28Z mikekushner $
+ */
+<span class="nc" id="L41">public class RevokeCertificateCommand extends BaseRaCommand {</span>
+
+<span class="nc" id="L43">    private static final Logger log = Logger.getLogger(RevokeCertificateCommand.class);</span>
+
+    private static final String SERIAL_NUMBER_KEY = &quot;-s&quot;;
+    private static final String DN_KEY = &quot;--dn&quot;;
+    private static final String REASON_KEY = &quot;-r&quot;;
+
+    {
+<span class="nc" id="L50">        registerParameter(new Parameter(DN_KEY, &quot;Issuer DN&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT, &quot;Issuer DN&quot;));</span>
+<span class="nc" id="L51">        registerParameter(new Parameter(SERIAL_NUMBER_KEY, &quot;Serial Number&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;The certificate serial number in HEX.&quot;));
+<span class="nc" id="L53">        registerParameter(new Parameter(</span>
+                REASON_KEY,
+                &quot;Reason&quot;,
+                MandatoryMode.MANDATORY,
+                StandaloneMode.ALLOW,
+                ParameterMode.ARGUMENT,
+                &quot;Reason integer value: unused(0), keyCompromise(1), cACompromise(2), affiliationChanged(3),&quot;
+                        + &quot; superseded(4), cessationOfOperation(5), certficateHold(6), removeFromCRL(8), privilegeWithdrawn(9), aACompromise(10). Normal reason is 0&quot;));
+<span class="nc" id="L61">    }</span>
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L65">        return &quot;revokecert&quot;;</span>
+    }
+
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+
+<span class="nc" id="L71">        final String issuerDNStr = parameters.get(DN_KEY);</span>
+<span class="nc" id="L72">        final String issuerDN = CertTools.stringToBCDNString(issuerDNStr);</span>
+<span class="nc" id="L73">        final String certserno = parameters.get(SERIAL_NUMBER_KEY);</span>
+        final BigInteger serno;
+        try {
+<span class="nc" id="L76">            serno = new BigInteger(certserno, 16);</span>
+<span class="nc" id="L77">        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L78">            log.error(&quot;ERROR: Invalid hexadecimal certificate serial number string: &quot; + certserno);</span>
+<span class="nc" id="L79">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L80">        }</span>
+        int reason;
+        try {
+<span class="nc" id="L83">            reason = Integer.parseInt(parameters.get(REASON_KEY));</span>
+<span class="nc" id="L84">        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L85">            log.error(&quot;ERROR: &quot; + parameters.get(REASON_KEY) + &quot; was not a number.&quot;);</span>
+<span class="nc" id="L86">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L87">        }</span>
+<span class="nc bnc" id="L88" title="All 6 branches missed.">        if ((reason == 7) || (reason &lt; 0) || (reason &gt; 10)) {</span>
+<span class="nc" id="L89">            getLogger().error(&quot;ERROR: Reason must be an integer between 0 and 10 except 7.&quot;);</span>
+<span class="nc" id="L90">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+        } else {
+<span class="nc" id="L92">            CertificateDataWrapper certWrapper = EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateStoreSessionRemote.class).getCertificateDataByIssuerAndSerno(</span>
+                    issuerDN, serno);
+<span class="nc bnc" id="L94" title="All 2 branches missed.">            if (certWrapper != null) {</span>
+<span class="nc" id="L95">                getLogger().info(&quot;Found certificate:&quot;);</span>
+<span class="nc" id="L96">                getLogger().info(&quot;Subject DN=&quot; + certWrapper.getCertificateData().getSubjectDnNeverNull());</span>
+                // We need the user this cert is connected with
+                // Revoke or unrevoke, will throw appropriate exceptions if parameters are wrong, such as trying to unrevoke a certificate
+                // that was permanently revoked
+                try {
+                    try {
+<span class="nc" id="L102">                        EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityManagementSessionRemote.class).revokeCert(getAuthenticationToken(), serno,</span>
+                                issuerDN, reason);
+<span class="nc" id="L104">                    } catch (ApprovalException e) {</span>
+<span class="nc" id="L105">                        log.error(e.getMessage(), e);</span>
+<span class="nc" id="L106">                        return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L107">                    } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L108">                       log.error(&quot;ERROR: CLI user not authorized to revoke certificate.&quot;);</span>
+<span class="nc" id="L109">                       return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L110">                    } catch (NoSuchEndEntityException e) {</span>
+<span class="nc" id="L111">                        log.error(&quot;ERROR: &quot; + e.getMessage());</span>
+<span class="nc" id="L112">                        return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L113">                    } catch (WaitingForApprovalException e) {</span>
+<span class="nc" id="L114">                        log.error(&quot;ERROR: &quot; + e.getMessage());</span>
+<span class="nc" id="L115">                        return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L116">                    }</span>
+<span class="nc" id="L117">                    getLogger().info(</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">                            (reason == 8 ? &quot;Unrevoked&quot; : &quot;Revoked&quot;) + &quot; certificate with issuerDN '&quot; + issuerDN + &quot;' and serialNumber &quot; + certserno</span>
+                                    + &quot;. Revocation reason=&quot; + reason);
+<span class="nc" id="L120">                } catch (AlreadyRevokedException e) {</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">                    if (reason == 8) {</span>
+<span class="nc" id="L122">                        getLogger().info(</span>
+                                &quot;Certificate with issuerDN '&quot; + issuerDN + &quot;' and serialNumber &quot; + certserno + &quot; is not revoked, nothing was done.&quot;);
+                    } else {
+<span class="nc" id="L125">                        getLogger().info(</span>
+                                &quot;Certificate with issuerDN '&quot; + issuerDN + &quot;' and serialNumber &quot; + certserno
+                                        + &quot; is already revoked, nothing was done.&quot;);
+                    }
+<span class="nc" id="L129">                    getLogger().info(e.getMessage());</span>
+<span class="nc" id="L130">                }</span>
+            } else {
+<span class="nc" id="L132">                getLogger().info(&quot;No certificate found with issuerDN '&quot; + issuerDN + &quot;' and serialNumber &quot; + certserno);</span>
+            }
+        }
+<span class="nc" id="L135">        return CommandResult.SUCCESS;</span>
+
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L141">        return &quot;Command used to revoke or unrevoke a certificate.&quot;;</span>
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L146">        return getCommandDescription()+&quot;\nUnrevocation is done using the reason removeFromCRL(8), and can only be done if the certificate is revoked with reason removeFromCRL(6).&quot;;</span>
+    }
+
+    protected Logger getLogger() {
+<span class="nc" id="L150">        return log;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

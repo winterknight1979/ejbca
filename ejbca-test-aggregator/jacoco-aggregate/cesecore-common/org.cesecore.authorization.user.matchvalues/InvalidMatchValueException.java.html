@@ -13,31 +13,47 @@
 package org.cesecore.authorization.user.matchvalues;
 
 /**
- * This runtime exception is thrown to signify that an attempt of an enum to extend the AccessMatchValue
- * interface failed and could not be recovered.
- * 
- * @version $Id: InvalidMatchValueException.java 17625 2013-09-20 07:12:06Z netmackan $
+ * This runtime exception is thrown to signify that an attempt of an enum to
+ * extend the AccessMatchValue interface failed and could not be recovered.
  *
+ * @version $Id: InvalidMatchValueException.java 17625 2013-09-20 07:12:06Z
+ *     netmackan $
  */
 public class InvalidMatchValueException extends RuntimeException {
 
-    private static final long serialVersionUID = -7145630440532075247L;
+  private static final long serialVersionUID = -7145630440532075247L;
+  /** Bare exception. */
+  public InvalidMatchValueException() {
+<span class="nc" id="L27">    super();</span>
+<span class="nc" id="L28">  }</span>
 
-    public InvalidMatchValueException() {
-<span class="nc" id="L27">        super();</span>
-<span class="nc" id="L28">    }</span>
+  /**
+   * Exception with message and cause.
+   *
+   * @param message Message
+   * @param cause Cause
+   */
+  public InvalidMatchValueException(
+      final String message, final Throwable cause) {
+<span class="nc" id="L38">    super(message, cause);</span>
+<span class="nc" id="L39">  }</span>
 
-    public InvalidMatchValueException(String message, Throwable cause) {
-<span class="nc" id="L31">        super(message, cause);</span>
-<span class="nc" id="L32">    }</span>
+  /**
+   * Exception with message.
+   *
+   * @param message Message
+   */
+  public InvalidMatchValueException(final String message) {
+<span class="nc" id="L47">    super(message);</span>
+<span class="nc" id="L48">  }</span>
 
-    public InvalidMatchValueException(String message) {
-<span class="nc" id="L35">        super(message);</span>
-<span class="nc" id="L36">    }</span>
-
-    public InvalidMatchValueException(Throwable cause) {
-<span class="nc" id="L39">        super(cause);</span>
-<span class="nc" id="L40">    }</span>
-
+  /**
+   * Exception with cause.
+   *
+   * @param cause Cause
+   */
+  public InvalidMatchValueException(final Throwable cause) {
+<span class="nc" id="L56">    super(cause);</span>
+<span class="nc" id="L57">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

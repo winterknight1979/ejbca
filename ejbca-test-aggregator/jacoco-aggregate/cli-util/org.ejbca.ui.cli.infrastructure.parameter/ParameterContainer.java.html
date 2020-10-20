@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ParameterContainer.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">cli-util</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.infrastructure.parameter</a> &gt; <span class="el_source">ParameterContainer.java</span></div><h1>ParameterContainer.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.cli.infrastructure.parameter;
+
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * A wrapper for the standard java HashMap. Restricted functionality, with some added extras. 
+ * 
+ * @version $Id: ParameterContainer.java 19902 2014-09-30 14:32:24Z anatom $
+ *
+ */
+public final class ParameterContainer {
+
+<span class="pc" id="L26">    Map&lt;String, ParameterInformation&gt; parameters = new HashMap&lt;String, ParameterInformation&gt;();</span>
+
+<span class="fc" id="L28">    public ParameterContainer() {</span>
+
+<span class="fc" id="L30">    }</span>
+
+    /**
+     * Copy constructor
+     * 
+     * @param parameterContainer container
+     */
+<span class="nc" id="L37">    public ParameterContainer(final ParameterContainer parameterContainer) {</span>
+<span class="nc" id="L38">        this.parameters = new HashMap&lt;String, ParameterContainer.ParameterInformation&gt;(parameterContainer.parameters);</span>
+<span class="nc" id="L39">    }</span>
+
+    /** Returns parameter value, or null if parameter does not exist
+     * 
+     * @param key Key
+     * @return parameter value, or null if parameter was not set
+     */
+    public String get(String key) {
+<span class="pc bpc" id="L47" title="1 of 2 branches missed.">        if (parameters.containsKey(key)) {</span>
+<span class="fc" id="L48">            return parameters.get(key).getValue();</span>
+        } else {
+<span class="nc" id="L50">            return null;</span>
+        }
+    }
+    
+    public boolean isStandalone(String key) {
+<span class="nc bnc" id="L55" title="All 2 branches missed.">        if (parameters.containsKey(key)) {</span>
+<span class="nc" id="L56">            return false;</span>
+        } else {
+<span class="nc" id="L58">            return parameters.get(key).isStandalone();</span>
+        }
+    }
+    
+    public void remove(String key) {
+<span class="nc" id="L63">        parameters.remove(key);</span>
+<span class="nc" id="L64">    }</span>
+
+    public void put(String key, String value, boolean isStandalone) {
+<span class="fc" id="L67">        parameters.put(key, new ParameterInformation(value, isStandalone));</span>
+<span class="fc" id="L68">    }</span>
+
+    public boolean containsKey(String key) {
+<span class="fc" id="L71">        return parameters.containsKey(key);</span>
+    }
+
+    private static final class ParameterInformation {
+        private final String value;
+        private final boolean isStandalone;
+
+<span class="fc" id="L78">        private ParameterInformation(final String value, final boolean isStandalone) {</span>
+<span class="fc" id="L79">            this.value = value;</span>
+<span class="fc" id="L80">            this.isStandalone = isStandalone;</span>
+<span class="fc" id="L81">        }</span>
+
+        public boolean isStandalone() {
+<span class="nc" id="L84">            return isStandalone;</span>
+        }
+
+        public String getValue() {
+<span class="fc" id="L88">            return value;</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

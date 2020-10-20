@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CaActivateCACommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.ca</a> &gt; <span class="el_source">CaActivateCACommand.java</span></div><h1>CaActivateCACommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.cli.ca;
+
+import javax.security.auth.login.FailedLoginException;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CAConstants;
+import org.cesecore.certificates.ca.CADoesntExistsException;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.CaSessionRemote;
+import org.cesecore.keys.token.CryptoTokenAuthenticationFailedException;
+import org.cesecore.keys.token.CryptoTokenManagementSessionRemote;
+import org.cesecore.keys.token.CryptoTokenOfflineException;
+import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.EjbRemoteHelper;
+import org.ejbca.core.ejb.ca.caadmin.CAAdminSessionRemote;
+import org.ejbca.core.model.approval.ApprovalException;
+import org.ejbca.core.model.approval.WaitingForApprovalException;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+
+/**
+ * Activates the specified HSM CA.
+ * 
+ * @version $Id: CaActivateCACommand.java 9345 2010-07-01 15:51:20Z mikekushner$
+ */
+<span class="nc" id="L44">public class CaActivateCACommand extends BaseCaAdminCommand {</span>
+
+<span class="nc" id="L46">    private static final Logger log = Logger.getLogger(CaActivateCACommand.class);</span>
+    
+    private static final String CA_NAME_KEY = &quot;--caname&quot;;
+    private static final String AUTHORIZATION_CODE_KEY = &quot;--code&quot;;
+    
+    {
+<span class="nc" id="L52">        registerParameter(new Parameter(CA_NAME_KEY, &quot;CA Name&quot;, MandatoryMode.MANDATORY,</span>
+                StandaloneMode.ALLOW, ParameterMode.ARGUMENT, &quot;CA Name&quot;));
+<span class="nc" id="L54">        registerParameter(new Parameter(AUTHORIZATION_CODE_KEY, &quot;Authorization Code&quot;, MandatoryMode.OPTIONAL, StandaloneMode.ALLOW,</span>
+                ParameterMode.ARGUMENT, &quot;Leaving out authorization code will prompt for it.&quot;));
+<span class="nc" id="L56">    }</span>
+     
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L60">        return &quot;activateca&quot;;</span>
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L65">        return &quot;Activates the specified HSM CA&quot;;</span>
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L70">        return &quot;Activates the specified HSM CA. Leaving out authorization code will prompt for it.&quot;;</span>
+    }
+    
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+        try {
+<span class="nc" id="L76">            String caname = parameters.get(CA_NAME_KEY);</span>
+<span class="nc" id="L77">            String authorizationcode = parameters.get(AUTHORIZATION_CODE_KEY);</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">            if(authorizationcode == null) {</span>
+<span class="nc" id="L79">                log.info(&quot;Enter authorization code: &quot;);</span>
+                // Read the password, but mask it so we don't display it on the
+                // console
+<span class="nc" id="L82">                authorizationcode = String.valueOf(System.console().readPassword());</span>
+            }
+<span class="nc" id="L84">            CryptoProviderTools.installBCProvider();</span>
+            // Get the CAs info and id
+<span class="nc" id="L86">            CAInfo cainfo = EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class).getCAInfo(getAuthenticationToken(), caname);</span>
+<span class="nc bnc" id="L87" title="All 2 branches missed.">            if (cainfo == null) {</span>
+<span class="nc" id="L88">                log.error(&quot;Error: CA &quot; + caname + &quot; cannot be found&quot;);</span>
+<span class="nc" id="L89">                return CommandResult.FUNCTIONAL_FAILURE;</span>
+            }
+            // Check that CA has correct status.
+<span class="nc" id="L92">            final int cryptoTokenId = cainfo.getCAToken().getCryptoTokenId();</span>
+<span class="nc" id="L93">            final CryptoTokenManagementSessionRemote cryptoTokenManagementSession = EjbRemoteHelper.INSTANCE.getRemoteSession(CryptoTokenManagementSessionRemote.class);</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">            final boolean tokenOffline = !cryptoTokenManagementSession.isCryptoTokenStatusActive(getAuthenticationToken(), cryptoTokenId);</span>
+<span class="nc bnc" id="L95" title="All 4 branches missed.">            if (cainfo.getStatus()==CAConstants.CA_OFFLINE || tokenOffline) {</span>
+                try {
+<span class="nc bnc" id="L97" title="All 2 branches missed.">                    if (cainfo.getStatus() == CAConstants.CA_OFFLINE) {</span>
+<span class="nc" id="L98">                        EjbRemoteHelper.INSTANCE.getRemoteSession(CAAdminSessionRemote.class).activateCAService(getAuthenticationToken(), cainfo.getCAId());</span>
+<span class="nc" id="L99">                        log.info(&quot;CA Service activated.&quot;);</span>
+                    }
+<span class="nc bnc" id="L101" title="All 2 branches missed.">                    if (tokenOffline) {</span>
+<span class="nc" id="L102">                        cryptoTokenManagementSession.activate(getAuthenticationToken(), cryptoTokenId, authorizationcode.toCharArray());</span>
+<span class="nc" id="L103">                        log.info(&quot;CA's CryptoToken activated.&quot;);</span>
+                    }
+<span class="nc" id="L105">                    return CommandResult.SUCCESS;</span>
+<span class="nc" id="L106">                } catch (CryptoTokenAuthenticationFailedException e) {</span>
+<span class="nc" id="L107">                    log.error(&quot;CA Token authentication failed.&quot;);</span>
+<span class="nc" id="L108">                    log.error(e.getMessage());</span>
+<span class="nc" id="L109">                    Throwable t = e.getCause();</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">                    while (t != null) {</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">                        if (t instanceof FailedLoginException) {</span>
+                            // If it's an HSM the next exception will be a PKCS11 exception. We don't want to search directly for that though, 
+                            // because then we will import sun specific classes, and we don't want that.
+<span class="nc" id="L114">                            t = t.getCause();</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">                            if (t != null) {</span>
+<span class="nc" id="L116">                                log.error(t.getMessage());</span>
+<span class="nc" id="L117">                                break;</span>
+                            }
+                        } else {
+<span class="nc" id="L120">                            t = t.getCause();</span>
+                        }
+                    }
+<span class="nc" id="L123">                    log.debug(&quot;Exception: &quot;, e);</span>
+<span class="nc" id="L124">                } catch (ApprovalException e) {</span>
+<span class="nc" id="L125">                    log.error(&quot;CA Token activation approval request already exists.&quot;);</span>
+<span class="nc" id="L126">                } catch (WaitingForApprovalException e) {</span>
+<span class="nc" id="L127">                    log.error(&quot;CA requires an approval to be activated. A request have been sent to authorized admins.&quot;);</span>
+<span class="nc" id="L128">                } catch(CryptoTokenOfflineException e) {</span>
+<span class="nc" id="L129">                    log.error(&quot;Cryptotoken with ID &quot; + cryptoTokenId + &quot; was not available.&quot; , e);</span>
+<span class="nc" id="L130">                }</span>
+            } else {
+<span class="nc" id="L132">                log.error(&quot;CA or CAToken must be offline to be activated.&quot;);</span>
+            }
+<span class="nc" id="L134">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L135">            log.error(&quot;CLI user was not authorized to perform this operation&quot;, e);</span>
+<span class="nc" id="L136">            return CommandResult.AUTHORIZATION_FAILURE;</span>
+<span class="nc" id="L137">        } catch(CADoesntExistsException e) {</span>
+            //Ignore, can not happen since we have already checked for CA existence.
+<span class="nc" id="L139">        }</span>
+<span class="nc" id="L140">        return CommandResult.FUNCTIONAL_FAILURE;</span>
+    }
+    
+    @Override
+    protected Logger getLogger() {
+<span class="nc" id="L145">        return log;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

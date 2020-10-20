@@ -15,80 +15,105 @@ package org.cesecore.certificates.ocsp.cache;
 import java.math.BigInteger;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 import org.cesecore.certificates.certificate.CertificateStatus;
 import org.cesecore.config.OcspConfiguration;
 
 /**
  * Cache of revocation status for certificates that signs OCSP requests.
- * 
- * @version $Id: OcspRequestSignerStatusCache.java 22253 2015-11-24 13:41:45Z jeklund $
+ *
+ * @version $Id: OcspRequestSignerStatusCache.java 22253 2015-11-24 13:41:45Z
+ *     jeklund $
  */
 <span class="fc" id="L27">public enum OcspRequestSignerStatusCache {</span>
-<span class="fc" id="L28">    INSTANCE;</span>
+    /** Singleton instance. */
+<span class="fc" id="L29">  INSTANCE;</span>
 
-    /** Cache entry keeping track of a revocation status and when it was last updated. */
-    private class OcspSignerStatus {
-        long lastUpdate;
-        final CertificateStatus certificateStatus;
-        
-<span class="fc" id="L35">        public OcspSignerStatus(final long lastUpdate, final CertificateStatus certificateStatus) {</span>
-<span class="fc" id="L36">            this.lastUpdate = lastUpdate;</span>
-<span class="fc" id="L37">            this.certificateStatus = certificateStatus;</span>
-<span class="fc" id="L38">        }</span>
+  /**
+   * Cache entry keeping track of a revocation status and when it was last
+   * updated.
+   */
+  private class OcspSignerStatus {
+      /** Last update. */
+    private long lastUpdate;
+    /** Status. */
+    private final CertificateStatus certificateStatus;
+
+    OcspSignerStatus(
+<span class="fc" id="L42">        final long aLastUpdate, final CertificateStatus aCertificateStatus) {</span>
+<span class="fc" id="L43">      this.lastUpdate = aLastUpdate;</span>
+<span class="fc" id="L44">      this.certificateStatus = aCertificateStatus;</span>
+<span class="fc" id="L45">    }</span>
+  }
+
+  /** Map. */
+<span class="fc" id="L49">  private final Map&lt;String, OcspSignerStatus&gt; cache =</span>
+      new ConcurrentHashMap&lt;String, OcspSignerStatus&gt;();
+
+  /**
+   * Create a cache lookup key with very low probability of collision.
+   *
+   * @param signercertIssuerName Issuer DN of the certificate that signed the
+   *     OCSP request
+   * @param signercertSerNo Serial number of the certificate that signed the
+   *     OCSP request
+   * @return a key that can be used for cache lookup
+   */
+  public String createCacheLookupKey(
+      final String signercertIssuerName, final BigInteger signercertSerNo) {
+<span class="fc" id="L63">    return Integer.toHexString(signercertIssuerName.hashCode())</span>
+        + &quot;;&quot;
+<span class="fc" id="L65">        + signercertSerNo.toString(16);</span>
+  }
+
+  /**
+   * @param cacheLookupKey key
+   * @return a usable CertificateStatus or null of the cache needs an update for
+   *     this entry.
+   */
+  public CertificateStatus getCachedCertificateStatus(
+      final String cacheLookupKey) {
+<span class="fc" id="L75">    final OcspSignerStatus ocspSignerStatus = cache.get(cacheLookupKey);</span>
+<span class="fc bfc" id="L76" title="All 2 branches covered.">    if (ocspSignerStatus == null) {</span>
+<span class="fc" id="L77">      return null;</span>
     }
-
-<span class="fc" id="L41">    private final Map&lt;String, OcspSignerStatus&gt; cache = new ConcurrentHashMap&lt;String, OcspSignerStatus&gt;();</span>
-
-    /**
-     * Create a cache lookup key with very low probability of collision.
-     * 
-     * @param signercertIssuerName Issuer DN of the certificate that signed the OCSP request
-     * @param signercertSerNo Serial number of the certificate that signed the OCSP request
-     * @return a key that can be used for cache lookup
-     */
-    public String createCacheLookupKey(final String signercertIssuerName, final BigInteger signercertSerNo) {
-<span class="fc" id="L51">        return Integer.toHexString(signercertIssuerName.hashCode()) + &quot;;&quot; + signercertSerNo.toString(16);</span>
+<span class="fc" id="L79">    final long now = System.currentTimeMillis();</span>
+    final long cacheTime =
+<span class="fc" id="L81">        OcspConfiguration.getRequestSigningCertRevocationCacheTimeMs();</span>
+<span class="fc bfc" id="L82" title="All 2 branches covered.">    if (ocspSignerStatus.lastUpdate + cacheTime &lt;= now) {</span>
+      // Current thread will be forced to update cache, but the rest will
+      // continue with slightly stale data
+<span class="fc" id="L85">      ocspSignerStatus.lastUpdate = now;</span>
+<span class="fc" id="L86">      return null;</span>
     }
+<span class="fc" id="L88">    return ocspSignerStatus.certificateStatus;</span>
+  }
 
-    /** @param cacheLookupKey key
-     * @return a usable CertificateStatus or null of the cache needs an update for this entry. */
-    public CertificateStatus getCachedCertificateStatus(final String cacheLookupKey) {
-<span class="fc" id="L57">        final OcspSignerStatus ocspSignerStatus = cache.get(cacheLookupKey);</span>
-<span class="fc bfc" id="L58" title="All 2 branches covered.">        if (ocspSignerStatus==null) {</span>
-<span class="fc" id="L59">            return null;</span>
-        }
-<span class="fc" id="L61">        final long now = System.currentTimeMillis();</span>
-<span class="fc" id="L62">        final long cacheTime = OcspConfiguration.getRequestSigningCertRevocationCacheTimeMs();</span>
-<span class="fc bfc" id="L63" title="All 2 branches covered.">        if (ocspSignerStatus.lastUpdate+cacheTime&lt;=now) {</span>
-            // Current thread will be forced to update cache, but the rest will continue with slightly stale data
-<span class="fc" id="L65">            ocspSignerStatus.lastUpdate=now;</span>
-<span class="fc" id="L66">            return null;</span>
-        }
-<span class="fc" id="L68">        return ocspSignerStatus.certificateStatus;</span>
+  /**
+   * Update the cache with an usable CertificateStatus.
+   *
+   * @param cacheLookupKey key
+   * @param certificateStatus status
+   */
+  public void updateCachedCertificateStatus(
+      final String cacheLookupKey, final CertificateStatus certificateStatus) {
+<span class="pc bpc" id="L99" title="1 of 2 branches missed.">    if (certificateStatus == null) {</span>
+<span class="nc" id="L100">      cache.remove(cacheLookupKey);</span>
+    } else {
+<span class="fc" id="L102">      final long now = System.currentTimeMillis();</span>
+<span class="fc" id="L103">      final OcspSignerStatus ocspSignerStatus = cache.get(cacheLookupKey);</span>
+<span class="fc bfc" id="L104" title="All 2 branches covered.">      if (ocspSignerStatus != null</span>
+<span class="pc bpc" id="L105" title="1 of 2 branches missed.">          &amp;&amp; ocspSignerStatus.certificateStatus.equals(certificateStatus)) {</span>
+        // Status was unchanged, so just update when we checked this
+<span class="nc" id="L107">        ocspSignerStatus.lastUpdate = now;</span>
+      } else {
+<span class="fc" id="L109">        cache.put(cacheLookupKey, new OcspSignerStatus(now, certificateStatus));</span>
+      }
     }
+<span class="fc" id="L112">  }</span>
 
-    /** Update the cache with an usable CertificateStatus. 
-     * @param cacheLookupKey key
-     * @param certificateStatus status*/
-    public void updateCachedCertificateStatus(final String cacheLookupKey, final CertificateStatus certificateStatus) {
-<span class="pc bpc" id="L75" title="1 of 2 branches missed.">        if (certificateStatus==null) {</span>
-<span class="nc" id="L76">            cache.remove(cacheLookupKey);</span>
-        } else {
-<span class="fc" id="L78">            final long now = System.currentTimeMillis();</span>
-<span class="fc" id="L79">            final OcspSignerStatus ocspSignerStatus = cache.get(cacheLookupKey);</span>
-<span class="pc bpc" id="L80" title="1 of 4 branches missed.">            if (ocspSignerStatus!=null &amp;&amp; ocspSignerStatus.certificateStatus.equals(certificateStatus)) {</span>
-                // Status was unchanged, so just update when we checked this
-<span class="nc" id="L82">                ocspSignerStatus.lastUpdate = now;</span>
-            } else {
-<span class="fc" id="L84">                cache.put(cacheLookupKey, new OcspSignerStatus(now, certificateStatus));</span>
-            }
-        }
-<span class="fc" id="L87">    }</span>
-
-    /** Clear cache. */
-    public void flush() {
-<span class="fc" id="L91">        cache.clear();</span>
-<span class="fc" id="L92">    }</span>
+  /** Clear cache. */
+  public void flush() {
+<span class="fc" id="L116">    cache.clear();</span>
+<span class="fc" id="L117">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

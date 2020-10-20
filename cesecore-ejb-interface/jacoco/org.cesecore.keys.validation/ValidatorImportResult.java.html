@@ -17,30 +17,43 @@ import java.util.List;
 
 /**
  * POJO containing the results of importing a zip file of key validators.
- * 
- * @version $Id: ValidatorImportResult.java 26144 2017-07-10 07:15:34Z mikekushner $
  *
+ * @version $Id: ValidatorImportResult.java 26144 2017-07-10 07:15:34Z
+ *     mikekushner $
  */
 public class ValidatorImportResult implements Serializable {
 
-    private static final long serialVersionUID = 1L;
-    
-    private final List&lt;Validator&gt; importedValidators;
-    private final List&lt;String&gt; ignoredValidators;
+  private static final long serialVersionUID = 1L;
 
-    public ValidatorImportResult(List&lt;Validator&gt; importedValidators, List&lt;String&gt; ignoredValidators) {
-<span class="nc" id="L32">        super();</span>
-<span class="nc" id="L33">        this.importedValidators = importedValidators;</span>
-<span class="nc" id="L34">        this.ignoredValidators = ignoredValidators;</span>
-<span class="nc" id="L35">    }</span>
-    
-    public List&lt;Validator&gt; getImportedValidators() {
-<span class="nc" id="L38">        return importedValidators;</span>
-    }
+  /** Validators. */
+  private final List&lt;Validator&gt; importedValidators;
+  /** Validators. */
+  private final List&lt;String&gt; ignoredValidators;
 
-    public List&lt;String&gt; getIgnoredValidators() {
-<span class="nc" id="L42">        return ignoredValidators;</span>
-    }
-    
+  /**
+   * @param theimportedValidators validators
+   * @param theignoredValidators validators
+   */
+  public ValidatorImportResult(
+      final List&lt;Validator&gt; theimportedValidators,
+      final List&lt;String&gt; theignoredValidators) {
+<span class="nc" id="L40">    super();</span>
+<span class="nc" id="L41">    this.importedValidators = theimportedValidators;</span>
+<span class="nc" id="L42">    this.ignoredValidators = theignoredValidators;</span>
+<span class="nc" id="L43">  }</span>
+
+  /**
+   * @return validators
+   */
+  public List&lt;Validator&gt; getImportedValidators() {
+<span class="nc" id="L49">    return importedValidators;</span>
+  }
+
+  /**
+   * @return Validators
+   */
+  public List&lt;String&gt; getIgnoredValidators() {
+<span class="nc" id="L56">    return ignoredValidators;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

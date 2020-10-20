@@ -13,7 +13,6 @@
 package org.cesecore.util;
 
 import java.io.IOException;
-
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1GeneralizedTime;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
@@ -25,61 +24,50 @@ import org.bouncycastle.asn1.x500.style.IETFUtils;
 
 /**
  * Like CeSecoreNameStyle, but uses PrintableStrings to encode most attributes
- * (the default encoding is UTF-8)
- * 
- * @version $Id: PrintableStringNameStyle.java 23629 2016-06-08 11:53:37Z mikekushner $
+ * (the default encoding is UTF-8).
+ *
+ * @version $Id: PrintableStringNameStyle.java 23629 2016-06-08 11:53:37Z
+ *     mikekushner $
  */
 public class PrintableStringNameStyle extends CeSecoreNameStyle {
 
-<span class="fc" id="L34">    public static final X500NameStyle INSTANCE = new PrintableStringNameStyle();</span>
-    
-<span class="fc" id="L36">    protected PrintableStringNameStyle() { }</span>
-    
-    /**
-     * @return true if the passed in String can be represented without
-     * loss as a PrintableString, false otherwise.
-     * @param str String
-     * 
-     */
-    private boolean canBePrintable(
-        String  str)
-    {
-<span class="fc" id="L47">        return DERPrintableString.isPrintableString(str);</span>
+    /** Singleton. */
+<span class="fc" id="L35">  public static final X500NameStyle INSTANCE = new PrintableStringNameStyle();</span>
+
+<span class="fc" id="L37">  protected PrintableStringNameStyle() { }</span>
+
+  /**
+   * @return true if the passed in String can be represented without loss as a
+   *     PrintableString, false otherwise.
+   * @param str String
+   */
+  private boolean canBePrintable(final String str) {
+<span class="fc" id="L45">    return DERPrintableString.isPrintableString(str);</span>
+  }
+
+  @Override
+  public ASN1Encodable stringToValue(
+          final ASN1ObjectIdentifier oid, final String ovalue) {
+<span class="fc" id="L51">    String value = ovalue;</span>
+<span class="pc bpc" id="L52" title="2 of 4 branches missed.">    if (value.length() != 0 &amp;&amp; value.charAt(0) == '#') {</span>
+      try {
+<span class="nc" id="L54">        return IETFUtils.valueFromHexString(value, 1);</span>
+<span class="nc" id="L55">      } catch (IOException e) {</span>
+<span class="nc" id="L56">        throw new RuntimeException(&quot;can't recode value for oid &quot; + oid.getId());</span>
+      }
+<span class="pc bpc" id="L58" title="2 of 4 branches missed.">    } else if (value.length() != 0 &amp;&amp; value.charAt(0) == '\\') {</span>
+<span class="nc" id="L59">      value = value.substring(1);</span>
+<span class="pc bpc" id="L60" title="1 of 2 branches missed.">    } else if (oid.equals(CeSecoreNameStyle.EmailAddress)</span>
+<span class="pc bpc" id="L61" title="1 of 2 branches missed.">        || oid.equals(CeSecoreNameStyle.DC)) {</span>
+<span class="nc" id="L62">      return new DERIA5String(value);</span>
+<span class="pc bpc" id="L63" title="1 of 2 branches missed.">    } else if (oid.equals(DATE_OF_BIRTH)) {</span>
+         // accept time string as well as # (for compatibility)
+<span class="nc" id="L65">      return new ASN1GeneralizedTime(value);</span>
+<span class="pc bpc" id="L66" title="1 of 2 branches missed.">    } else if (canBePrintable(value)) {</span>
+<span class="fc" id="L67">      return new DERPrintableString(value);</span>
     }
 
-    @Override
-    public ASN1Encodable stringToValue(ASN1ObjectIdentifier oid, String value)
-    {
-<span class="pc bpc" id="L53" title="2 of 4 branches missed.">        if (value.length() != 0 &amp;&amp; value.charAt(0) == '#')</span>
-        {
-            try
-            {
-<span class="nc" id="L57">                return IETFUtils.valueFromHexString(value, 1);</span>
-            }
-<span class="nc" id="L59">            catch (IOException e)</span>
-            {
-<span class="nc" id="L61">                throw new RuntimeException(&quot;can't recode value for oid &quot; + oid.getId());</span>
-            }
-        }
-<span class="pc bpc" id="L64" title="2 of 4 branches missed.">        else if (value.length() != 0 &amp;&amp; value.charAt(0) == '\\')</span>
-        {
-<span class="nc" id="L66">            value = value.substring(1);</span>
-        }
-<span class="pc bpc" id="L68" title="2 of 4 branches missed.">        else if (oid.equals(CeSecoreNameStyle.EmailAddress) || oid.equals(CeSecoreNameStyle.DC))</span>
-        {
-<span class="nc" id="L70">            return new DERIA5String(value);</span>
-        }
-<span class="pc bpc" id="L72" title="1 of 2 branches missed.">        else if (oid.equals(DATE_OF_BIRTH))  // accept time string as well as # (for compatibility)</span>
-        {
-<span class="nc" id="L74">            return new ASN1GeneralizedTime(value);</span>
-        }
-<span class="pc bpc" id="L76" title="1 of 2 branches missed.">        else if (canBePrintable(value))  </span>
-        {
-<span class="fc" id="L78">            return new DERPrintableString(value);</span>
-        }
-
-<span class="nc" id="L81">        return new DERUTF8String(value);</span>
-    }
-    
+<span class="nc" id="L70">    return new DERUTF8String(value);</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

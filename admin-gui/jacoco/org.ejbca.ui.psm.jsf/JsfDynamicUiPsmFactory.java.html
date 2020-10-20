@@ -1,0 +1,476 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>JsfDynamicUiPsmFactory.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Administration GUI</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.psm.jsf</a> &gt; <span class="el_source">JsfDynamicUiPsmFactory.java</span></div><h1>JsfDynamicUiPsmFactory.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.psm.jsf;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import javax.faces.component.UIComponentBase;
+import javax.faces.component.UIInput;
+import javax.faces.component.UIOutput;
+import javax.faces.component.UISelectItems;
+import javax.faces.component.behavior.AjaxBehavior;
+import javax.faces.component.html.HtmlCommandButton;
+import javax.faces.component.html.HtmlInputText;
+import javax.faces.component.html.HtmlInputTextarea;
+import javax.faces.component.html.HtmlOutputLabel;
+import javax.faces.component.html.HtmlOutputText;
+import javax.faces.component.html.HtmlPanelGrid;
+import javax.faces.component.html.HtmlPanelGroup;
+import javax.faces.component.html.HtmlSelectBooleanCheckbox;
+import javax.faces.component.html.HtmlSelectManyListbox;
+import javax.faces.component.html.HtmlSelectOneMenu;
+import javax.faces.context.FacesContext;
+import javax.faces.convert.BigIntegerConverter;
+import javax.faces.convert.FloatConverter;
+import javax.faces.convert.IntegerConverter;
+import javax.faces.model.SelectItem;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.apache.myfaces.custom.fileupload.HtmlInputFileUpload;
+import org.cesecore.util.ui.DynamicUiModel;
+import org.cesecore.util.ui.DynamicUiModelException;
+import org.cesecore.util.ui.DynamicUiProperty;
+import org.ejbca.ui.web.admin.configuration.EjbcaJSFHelper;
+
+/**
+ * Factory for PSM JSF 2 HTML components.
+ *
+ * @version $Id: JsfDynamicUiPsmFactory.java 34150 2019-12-20 14:17:40Z henriks $
+ */
+public class JsfDynamicUiPsmFactory {
+
+    /** Class logger. */
+<span class="nc" id="L59">    private static final Logger log = Logger.getLogger(JsfDynamicUiPsmFactory.class);</span>
+
+    private static final String STYLE_CLASS_SUB_ITEM = &quot;subItem&quot;;
+
+    /**
+     * Initializes the dynamic UI properties on a grid panel with two columns, label on the left, UI component on the right,
+     * and an optional help text below the UI component.
+     * @param panelGrid the panel grid instance to (re-)build.
+     * @param model DynamicUiModel to extract properties from
+     * @param i18nPrefix the name prefix for the I18N message resources.
+     * @throws DynamicUiModelException if the PSM could not be created by the dynamic UI model.
+     */
+    public static final void initGridInstance(final HtmlPanelGrid panelGrid, final DynamicUiModel model,
+            final String i18nPrefix) throws DynamicUiModelException {
+<span class="nc bnc" id="L73" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L74">            log.debug(&quot;Build dynamic UI model PSM &quot; + model + &quot;, i18nPrefix is '&quot; + i18nPrefix + &quot;'.&quot;);</span>
+        }
+<span class="nc" id="L76">        panelGrid.clearInitialState();</span>
+<span class="nc" id="L77">        panelGrid.getFacets().clear();</span>
+<span class="nc" id="L78">        panelGrid.getChildren().clear();</span>
+<span class="nc" id="L79">        panelGrid.setColumns(2);</span>
+        // Build PSM fields by PIM.
+<span class="nc" id="L81">        int index = 0;</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">        for (final DynamicUiProperty&lt;? extends Serializable&gt; property : model.getProperties().values()) {</span>
+<span class="nc" id="L83">            final HtmlOutputLabel label = new HtmlOutputLabel();</span>
+<span class="nc" id="L84">            label.setValue(getText(i18nPrefix, property.getName()));</span>
+<span class="nc" id="L85">            label.setStyleClass(STYLE_CLASS_SUB_ITEM);</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">            if (index == 0) { // Re-factor: Set header bold.</span>
+<span class="nc" id="L87">                label.setStyle(&quot;font-weight: bold;&quot;);</span>
+            }
+<span class="nc" id="L89">            panelGrid.getChildren().add(label);</span>
+
+<span class="nc bnc" id="L91" title="All 2 branches missed.">            if (!property.isLabelOnly()) {</span>
+<span class="nc" id="L92">                final UIComponentBase component = createComponentInstance(i18nPrefix, property);</span>
+<span class="nc" id="L93">                final String helpText = getHelpText(i18nPrefix, property.getName());</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">                if (helpText != null) {</span>
+<span class="nc" id="L95">                    final HtmlPanelGrid innerGrid = new HtmlPanelGrid();</span>
+<span class="nc" id="L96">                    innerGrid.setColumns(1);</span>
+<span class="nc" id="L97">                    final HtmlOutputLabel helpLabel = new HtmlOutputLabel();</span>
+<span class="nc" id="L98">                    helpLabel.setValue(helpText);</span>
+<span class="nc" id="L99">                    innerGrid.getChildren().add(component);</span>
+<span class="nc" id="L100">                    innerGrid.getChildren().add(helpLabel);</span>
+<span class="nc" id="L101">                    panelGrid.getChildren().add(innerGrid);</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L103">                        log.debug(&quot;Registered UIComponent with property name &quot; + property.getName() + &quot; + help text.&quot;);</span>
+                    }
+<span class="nc" id="L105">                } else {</span>
+<span class="nc" id="L106">                    panelGrid.getChildren().add(component);</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L108">                        log.debug(&quot;Registered UIComponent with property name &quot; + property.getName() + &quot;.&quot;);</span>
+                    }
+                }
+<span class="nc" id="L111">            } else {</span>
+<span class="nc" id="L112">                label.setStyle(&quot;font-weight: bold;&quot;);</span>
+<span class="nc" id="L113">                label.setStyleClass(StringUtils.EMPTY);</span>
+<span class="nc" id="L114">                panelGrid.getChildren().add(new HtmlPanelGroup());</span>
+            }
+<span class="nc" id="L116">            index++;</span>
+<span class="nc" id="L117">        }</span>
+<span class="nc" id="L118">    }</span>
+
+    /**
+     * Create a concrete UIComponentBase instance based on the dynamic UI property.
+     *
+     * @param i18nPrefix the message resources prefix.
+     * @param property the dynamic UI property ({@link DynamicUiProperty}).
+     * @return the JSF component.
+     * @throws DynamicUiModelException if a component instance could not be created (i.e. does not exist).
+     */
+    public static final UIComponentBase createComponentInstance(final String i18nPrefix, final DynamicUiProperty&lt;?&gt; property)
+            throws DynamicUiModelException {
+<span class="nc" id="L130">        final String hint = property.getRenderingHint();</span>
+<span class="nc" id="L131">        UIComponentBase component = null;</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">        if (DynamicUiProperty.RENDER_NONE.equals(hint)) { // Insert dummy component.</span>
+<span class="nc" id="L133">            component = new HtmlPanelGroup();</span>
+        }
+<span class="nc bnc" id="L135" title="All 2 branches missed.">        else if (property.isBooleanType()) {</span>
+<span class="nc bnc" id="L136" title="All 2 branches missed.">            if (DynamicUiProperty.RENDER_CHECKBOX.equals(hint)) {</span>
+<span class="nc" id="L137">                component = createCheckBoxInstance(property);</span>
+            }
+<span class="nc bnc" id="L139" title="All 2 branches missed.">        } else if (property.isStringType()) {</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">            if (DynamicUiProperty.RENDER_TEXTFIELD.equals(hint)) {</span>
+<span class="nc" id="L141">                component = createTextFieldInstance(property);</span>
+<span class="nc bnc" id="L142" title="All 2 branches missed.">            } else if (DynamicUiProperty.RENDER_TEXTAREA.equals(hint)) {</span>
+<span class="nc" id="L143">                component = createTextAreaInstance(property);</span>
+<span class="nc bnc" id="L144" title="All 2 branches missed.">            } else if (DynamicUiProperty.RENDER_SELECT_ONE.equals(hint)) {</span>
+<span class="nc" id="L145">                component = createDropDownBoxInstance(property);</span>
+<span class="nc bnc" id="L146" title="All 2 branches missed.">            } else if (DynamicUiProperty.RENDER_SELECT_MANY.equals(hint)) {</span>
+<span class="nc" id="L147">                component = createListBoxInstance(property);</span>
+<span class="nc bnc" id="L148" title="All 2 branches missed.">            } else if (DynamicUiProperty.RENDER_BUTTON.equals(hint)) {</span>
+<span class="nc" id="L149">                component = createButtonInstance(i18nPrefix, property);</span>
+<span class="nc bnc" id="L150" title="All 2 branches missed.">            } else if (DynamicUiProperty.RENDER_LABEL.equals(hint)) {</span>
+<span class="nc" id="L151">                component = createLabelInstance(property);</span>
+            }
+<span class="nc bnc" id="L153" title="All 2 branches missed.">        } else if (property.isIntegerType()) {</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">            if (DynamicUiProperty.RENDER_TEXTFIELD.equals(hint)) {</span>
+<span class="nc" id="L155">                component = createIntegerTextFieldInstance(property);</span>
+<span class="nc bnc" id="L156" title="All 2 branches missed.">            } else if (DynamicUiProperty.RENDER_SELECT_ONE.equals(hint)) {</span>
+<span class="nc" id="L157">                component = createIntegerDropDownBoxInstance(property);</span>
+            }
+<span class="nc bnc" id="L159" title="All 2 branches missed.">        } else if (property.isBigIntegerType()) {</span>
+<span class="nc bnc" id="L160" title="All 2 branches missed.">            if (DynamicUiProperty.RENDER_TEXTFIELD.equals(hint)) {</span>
+<span class="nc" id="L161">                component = createBigIntegerTextFieldInstance(property);</span>
+            }
+<span class="nc bnc" id="L163" title="All 2 branches missed.">        } else if (property.isFloatType()) {</span>
+<span class="nc bnc" id="L164" title="All 2 branches missed.">            if (DynamicUiProperty.RENDER_TEXTFIELD.equals(hint)) {</span>
+<span class="nc" id="L165">                component = createFloatTextFieldInstance(property);</span>
+            }
+<span class="nc bnc" id="L167" title="All 2 branches missed.">        } else if (property.isFileType()) {</span>
+<span class="nc bnc" id="L168" title="All 2 branches missed.">            if (DynamicUiProperty.RENDER_TEXTFIELD.equals(hint)) {</span>
+<span class="nc" id="L169">                component = createTextFieldInstance(property);</span>
+<span class="nc bnc" id="L170" title="All 2 branches missed.">            } else if (DynamicUiProperty.RENDER_FILE_CHOOSER.equals(hint)) {</span>
+<span class="nc" id="L171">                component = createFileChooserInstance(property);</span>
+            }
+<span class="nc bnc" id="L173" title="All 2 branches missed.">        } else if (property.isByteArrayType()) {</span>
+<span class="nc bnc" id="L174" title="All 2 branches missed.">            if (DynamicUiProperty.RENDER_FILE_CHOOSER.equals(hint)) {</span>
+<span class="nc" id="L175">                component = createFileChooserInstance(property);</span>
+            }
+        }
+<span class="nc bnc" id="L178" title="All 2 branches missed.">        if (component == null) {</span>
+<span class="nc" id="L179">            throw new DynamicUiModelException(&quot;DynamicUiRendering component could not be found: &quot; + property);</span>
+        }
+<span class="nc" id="L181">        return component;</span>
+    }
+
+    /**
+     * Creates label component by the given dynamic UI property.
+     * @param property the dynamic UI property.
+     * @return the label instance.
+     */
+    public static final HtmlOutputText createLabelInstance(final DynamicUiProperty&lt;?&gt; property) {
+<span class="nc" id="L190">        final JsfDynamicUiHtmlOutputLabel result = new JsfDynamicUiHtmlOutputLabel();</span>
+<span class="nc" id="L191">        result.setDynamicUiProperty(property);</span>
+<span class="nc" id="L192">        setUIOutputAttributes(result, property);</span>
+<span class="nc" id="L193">        return result;</span>
+    }
+
+    /**
+     * Creates check box component by the given dynamic UI property.
+     * @param property the dynamic UI property.
+     * @return the check box instance.
+     */
+    public static final HtmlSelectBooleanCheckbox createCheckBoxInstance(final DynamicUiProperty&lt;?&gt; property) {
+<span class="nc" id="L202">        final JsfDynamicUiHtmlSelectBooleanCheckbox result = new JsfDynamicUiHtmlSelectBooleanCheckbox();</span>
+<span class="nc" id="L203">        result.setDynamicUiProperty(property);</span>
+<span class="nc" id="L204">        setUIInputAttributes(result, property);</span>
+<span class="nc bnc" id="L205" title="All 4 branches missed.">        result.setDisabled(property.getDynamicUiModel().isDisabled() || property.isDisabled());</span>
+<span class="nc" id="L206">        addAjaxListener(property, result, &quot;click&quot;);</span>
+<span class="nc" id="L207">        return result;</span>
+    }
+
+    /**
+     * Creates text area component by the given dynamic UI property.
+     * @param property the dynamic UI property.
+     * @return the text area instance.
+     */
+    public static final HtmlInputTextarea createTextAreaInstance(final DynamicUiProperty&lt;?&gt; property) {
+<span class="nc" id="L216">        final JsfDynamicUiHtmlInputTextarea result = new JsfDynamicUiHtmlInputTextarea();</span>
+<span class="nc" id="L217">        result.setDynamicUiProperty(property);</span>
+<span class="nc" id="L218">        setUIInputAttributes(result, property);</span>
+<span class="nc bnc" id="L219" title="All 4 branches missed.">        result.setDisabled(property.getDynamicUiModel().isDisabled() || property.isDisabled());</span>
+<span class="nc" id="L220">        result.setCols(45);</span>
+<span class="nc" id="L221">        result.setRows(3);</span>
+<span class="nc" id="L222">        return result;</span>
+    }
+
+    /**
+     * Creates text field component by the given dynamic UI property.
+     * @param property the dynamic UI property.
+     * @return the text field instance.
+     */
+    public static final HtmlInputText createTextFieldInstance(final DynamicUiProperty&lt;?&gt; property) {
+<span class="nc" id="L231">        final JsfDynamicUiHtmlInputText result = new JsfDynamicUiHtmlInputText();</span>
+<span class="nc" id="L232">        result.setDynamicUiProperty(property);</span>
+<span class="nc" id="L233">        setUIInputAttributes(result, property);</span>
+<span class="nc bnc" id="L234" title="All 4 branches missed.">        result.setDisabled(property.getDynamicUiModel().isDisabled() || property.isDisabled());</span>
+<span class="nc" id="L235">        result.setSize(44);</span>
+<span class="nc" id="L236">        return result;</span>
+    }
+
+    /**
+     * Creates text field component for {@link java.lang.Integer} by the given dynamic UI property.
+     * @param property the dynamic UI property.
+     * @return the text field instance.
+     */
+    public static final HtmlInputText createIntegerTextFieldInstance(final DynamicUiProperty&lt;?&gt; property) {
+<span class="nc" id="L245">        final JsfDynamicUiHtmlInputText result = new JsfDynamicUiHtmlInputText();</span>
+<span class="nc" id="L246">        result.setDynamicUiProperty(property);</span>
+<span class="nc" id="L247">        setUIInputAttributes(result, property);</span>
+<span class="nc bnc" id="L248" title="All 4 branches missed.">        result.setDisabled(property.getDynamicUiModel().isDisabled() || property.isDisabled());</span>
+<span class="nc" id="L249">        result.setConverter(new IntegerConverter());</span>
+<span class="nc" id="L250">        result.setSize(12);</span>
+<span class="nc" id="L251">        return result;</span>
+    }
+
+    /**
+     * Creates text field component for {@link java.math.BigInteger} by the given dynamic UI property.
+     * @param property the dynamic UI property.
+     * @return the text field instance.
+     */
+    public static final HtmlInputText createBigIntegerTextFieldInstance(final DynamicUiProperty&lt;?&gt; property) {
+<span class="nc" id="L260">        final JsfDynamicUiHtmlInputText result = new JsfDynamicUiHtmlInputText();</span>
+<span class="nc" id="L261">        result.setDynamicUiProperty(property);</span>
+<span class="nc" id="L262">        setUIInputAttributes(result, property);</span>
+<span class="nc bnc" id="L263" title="All 4 branches missed.">        result.setDisabled(property.getDynamicUiModel().isDisabled() || property.isDisabled());</span>
+<span class="nc" id="L264">        result.setConverter(new BigIntegerConverter());</span>
+<span class="nc" id="L265">        result.setSize(44);</span>
+<span class="nc" id="L266">        return result;</span>
+    }
+
+    /**
+     * Creates text field component for {@link java.lang.Float} by the given dynamic UI property.
+     * @param property the dynamic UI property.
+     * @return the text field instance.
+     */
+    public static final HtmlInputText createFloatTextFieldInstance(final DynamicUiProperty&lt;?&gt; property) {
+<span class="nc" id="L275">        final JsfDynamicUiHtmlInputText result = new JsfDynamicUiHtmlInputText();</span>
+<span class="nc" id="L276">        result.setDynamicUiProperty(property);</span>
+<span class="nc" id="L277">        setUIInputAttributes(result, property);</span>
+<span class="nc bnc" id="L278" title="All 4 branches missed.">        result.setDisabled(property.getDynamicUiModel().isDisabled() || property.isDisabled());</span>
+<span class="nc" id="L279">        result.setConverter(new FloatConverter());</span>
+<span class="nc" id="L280">        result.setSize(12);</span>
+<span class="nc" id="L281">        return result;</span>
+    }
+
+    /**
+     * Creates drop down box component by the given dynamic UI property.
+     * @param property the dynamic UI property.
+     * @return the drop down box instance.
+     */
+    public static final HtmlSelectOneMenu createDropDownBoxInstance(final DynamicUiProperty&lt;?&gt; property) {
+<span class="nc" id="L290">        final JsfDynamicUiHtmlSelectOneMenu result = new JsfDynamicUiHtmlSelectOneMenu();</span>
+<span class="nc" id="L291">        result.setDynamicUiProperty(property);</span>
+<span class="nc" id="L292">        setUIInputAttributes(result, property);</span>
+<span class="nc bnc" id="L293" title="All 4 branches missed.">        result.setDisabled(property.getDynamicUiModel().isDisabled() || property.isDisabled());</span>
+<span class="nc" id="L294">        final List&lt;SelectItem&gt; items = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L295">        final Map&lt;?, String&gt; labels = property.getLabels();</span>
+<span class="nc bnc" id="L296" title="All 2 branches missed.">        for (Entry&lt;?, String&gt; entry : labels.entrySet()) {</span>
+<span class="nc" id="L297">            items.add(new SelectItem(entry.getKey(),</span>
+<span class="nc bnc" id="L298" title="All 2 branches missed.">                    property.isI18NLabeled() ? EjbcaJSFHelper.getBean().getEjbcaWebBean().getText(entry.getValue()) : entry.getValue()));</span>
+<span class="nc" id="L299">        }</span>
+<span class="nc" id="L300">        final UISelectItems selectItems = new UISelectItems();</span>
+<span class="nc" id="L301">        selectItems.setValue(items);</span>
+<span class="nc" id="L302">        addAjaxListener(property, result, &quot;change&quot;);</span>
+<span class="nc" id="L303">        result.getChildren().add(selectItems);</span>
+<span class="nc" id="L304">        return result;</span>
+    }
+
+    /**
+     * Creates drop down box component with {@link java.lang.Integer} keys by the given dynamic UI property.
+     * @param property the dynamic UI property.
+     * @return the drop down box instance.
+     */
+    public static final HtmlSelectOneMenu createIntegerDropDownBoxInstance(final DynamicUiProperty&lt;?&gt; property) {
+<span class="nc" id="L313">        final JsfDynamicUiHtmlSelectOneMenu result = new JsfDynamicUiHtmlSelectOneMenu();</span>
+<span class="nc" id="L314">        result.setDynamicUiProperty(property);</span>
+<span class="nc" id="L315">        setUIInputAttributes(result, property);</span>
+<span class="nc bnc" id="L316" title="All 4 branches missed.">        result.setDisabled(property.getDynamicUiModel().isDisabled() || property.isDisabled());</span>
+<span class="nc" id="L317">        result.setConverter(new IntegerConverter());</span>
+<span class="nc" id="L318">        final List&lt;SelectItem&gt; items = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L319">        final Map&lt;?, String&gt; labels = property.getLabels();</span>
+<span class="nc bnc" id="L320" title="All 2 branches missed.">        for (Entry&lt;?, String&gt; entry : labels.entrySet()) {</span>
+<span class="nc" id="L321">            items.add(new SelectItem(entry.getKey(),</span>
+<span class="nc bnc" id="L322" title="All 2 branches missed.">                    property.isI18NLabeled() ? EjbcaJSFHelper.getBean().getEjbcaWebBean().getText(entry.getValue()) : entry.getValue()));</span>
+<span class="nc" id="L323">        }</span>
+<span class="nc" id="L324">        final UISelectItems selectItems = new UISelectItems();</span>
+<span class="nc" id="L325">        selectItems.setValue(items);</span>
+<span class="nc" id="L326">        addAjaxListener(property, result, &quot;change&quot;);</span>
+<span class="nc" id="L327">        result.getChildren().add(selectItems);</span>
+<span class="nc" id="L328">        return result;</span>
+    }
+
+    /**
+     * Creates a file list box by the given dynamic UI property.
+     * @param property the dynamic UI property.
+     * @return the list box instance.
+     */
+    public static final HtmlSelectManyListbox createListBoxInstance(final DynamicUiProperty&lt;?&gt; property) {
+<span class="nc" id="L337">        final JsfDynamicUiHtmlSelectManyListbox result = new JsfDynamicUiHtmlSelectManyListbox();</span>
+<span class="nc" id="L338">        result.setDynamicUiProperty(property);</span>
+<span class="nc" id="L339">        setUIInputAttributes(result, property);</span>
+<span class="nc bnc" id="L340" title="All 4 branches missed.">        result.setDisabled(property.getDynamicUiModel().isDisabled() || property.isDisabled());</span>
+<span class="nc" id="L341">        final List&lt;SelectItem&gt; items = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L342">        final Map&lt;?, String&gt; labels = property.getLabels();</span>
+<span class="nc bnc" id="L343" title="All 2 branches missed.">        for (Entry&lt;?, String&gt; entry : labels.entrySet()) {</span>
+<span class="nc" id="L344">            items.add(new SelectItem(entry.getKey(),</span>
+<span class="nc bnc" id="L345" title="All 2 branches missed.">                    property.isI18NLabeled() ? EjbcaJSFHelper.getBean().getEjbcaWebBean().getText(entry.getValue()) : entry.getValue()));</span>
+<span class="nc" id="L346">        }</span>
+<span class="nc" id="L347">        final UISelectItems selectItems = new UISelectItems();</span>
+<span class="nc" id="L348">        selectItems.setValue(items);</span>
+<span class="nc" id="L349">        result.getChildren().add(selectItems);</span>
+<span class="nc" id="L350">        return result;</span>
+    }
+
+    /**
+     * Creates a command button by the given dynamic UI property.
+     * @param i18nPrefix the message resources prefix.
+     * @param property the dynamic UI property.
+     * @return the command button instance.
+     */
+    public static final HtmlCommandButton createButtonInstance(final String i18nPrefix, final DynamicUiProperty&lt;?&gt; property) {
+<span class="nc" id="L360">        final HtmlCommandButton result = new HtmlCommandButton();</span>
+<span class="nc" id="L361">        result.setId(property.getName());</span>
+<span class="nc" id="L362">        result.setRendered(true);</span>
+<span class="nc bnc" id="L363" title="All 4 branches missed.">        result.setDisabled(property.getDynamicUiModel().isDisabled() || property.isDisabled());</span>
+<span class="nc" id="L364">        result.setValue(getText(i18nPrefix, (String) property.getValue()));</span>
+<span class="nc" id="L365">        result.addActionListener(new JsfDynamicUiActionListener(property));</span>
+<span class="nc" id="L366">        return result;</span>
+    }
+
+    /**
+     * Creates a file chooser component by the given dynamic UI property.
+     * @param property the dynamic UI property.
+     * @return the file chooser instance.
+     */
+    public static final HtmlInputFileUpload createFileChooserInstance(final DynamicUiProperty&lt;?&gt; property) {
+<span class="nc" id="L375">        final HtmlInputFileUpload result = new HtmlInputFileUpload();</span>
+<span class="nc" id="L376">        setUIInputAttributes(result, property);</span>
+<span class="nc" id="L377">        result.setStorage(&quot;file&quot;);</span>
+<span class="nc bnc" id="L378" title="All 4 branches missed.">        result.setDisabled(property.getDynamicUiModel().isDisabled() || property.isDisabled());</span>
+<span class="nc" id="L379">        result.setSize(44);</span>
+<span class="nc" id="L380">        return result;</span>
+    }
+
+    /**
+     * Sets the common properties for a component.
+     * @param component the component.
+     * @param property the dynamic property.
+     */
+    private static final void setBaseProperties(final UIComponentBase component, final DynamicUiProperty&lt;? extends Serializable&gt; property) {
+<span class="nc" id="L389">        final String name = property.getName();</span>
+<span class="nc" id="L390">        component.setId(name);</span>
+<span class="nc" id="L391">        component.setRendered(true);</span>
+<span class="nc" id="L392">    }</span>
+
+    /**
+     * Sets the common properties for a component.
+     * @param component the component.
+     * @param property the dynamic property.
+     */
+    private static final void setUIOutputAttributes(final UIOutput component, final DynamicUiProperty&lt;? extends Serializable&gt; property) {
+<span class="nc" id="L400">        setBaseProperties(component, property);</span>
+<span class="nc bnc" id="L401" title="All 2 branches missed.">        if (!property.getHasMultipleValues()) {</span>
+<span class="nc" id="L402">            component.setValue(property.getValue());</span>
+        } else {
+<span class="nc" id="L404">            component.setValue(property.getValues());</span>
+        }
+<span class="nc" id="L406">    }</span>
+
+    /**
+     * Sets the common properties for a component.
+     * @param component the component.
+     * @param property the dynamic property.
+     */
+    private static final void setUIInputAttributes(final UIInput component, final DynamicUiProperty&lt;? extends Serializable&gt; property) {
+<span class="nc" id="L414">        setUIOutputAttributes(component, property);</span>
+<span class="nc" id="L415">        component.setRequired(property.isRequired());</span>
+<span class="nc" id="L416">        component.addValueChangeListener(new JsfDynamicUiValueChangeListener(property));</span>
+<span class="nc" id="L417">    }</span>
+
+    /**
+     * Gets an I18N message.
+     * @param i18nPrefix the name prefix.
+     * @param name the name.
+     * @return the I18N message if present, i18nPrefix.concat(name).toUpperCase() otherwise.
+     */
+    private static final String getText(final String i18nPrefix, final String name) {
+<span class="nc" id="L426">        return EjbcaJSFHelper.getBean().getEjbcaWebBean().getText(i18nPrefix.concat(name).toUpperCase());</span>
+    }
+
+    /**
+     * Gets an I18N help message.
+     * @param i18nPrefix the name prefix.
+     * @param name the name.
+     * @return the I18N help message if present, null otherwise
+     */
+    private static final String getHelpText(final String i18nPrefix, final String name) {
+<span class="nc" id="L436">        final String template = i18nPrefix.concat(name).toUpperCase().concat(&quot;HELP&quot;);</span>
+<span class="nc" id="L437">        final String text = EjbcaJSFHelper.getBean().getEjbcaWebBean().getText(template);</span>
+<span class="nc bnc" id="L438" title="All 2 branches missed.">        if (template.equals(text)) {</span>
+<span class="nc" id="L439">            return null;</span>
+        }
+<span class="nc" id="L441">        return text;</span>
+    }
+
+    /**
+     * Adds an ajax behavior listener to the component if the dynamic UI properties action callback is not null.
+     * @param property the dynamic UI property.
+     * @param component the JSF UIInput component.
+     * @param eventName name
+     */
+    private static final void addAjaxListener(final DynamicUiProperty&lt;? extends Serializable&gt; property, final UIInput component, final String eventName) {
+<span class="nc bnc" id="L451" title="All 2 branches missed.">        if (property.getActionCallback() != null) {</span>
+<span class="nc bnc" id="L452" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L453">                log.debug(&quot;Registered dynamic UI model action callback for component &quot; + property.getName() + &quot;.&quot;);</span>
+            }
+<span class="nc" id="L455">            final AjaxBehavior behavior = (AjaxBehavior) FacesContext.getCurrentInstance().getApplication().createBehavior(AjaxBehavior.BEHAVIOR_ID);</span>
+<span class="nc" id="L456">            behavior.addAjaxBehaviorListener(new JsfDynamicUiAjaxBehaviorListener(property, component));</span>
+<span class="nc" id="L457">            final List&lt;String&gt; render = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L458" title="All 2 branches missed.">            if (CollectionUtils.isNotEmpty(property.getActionCallback().getRender())) {</span>
+<span class="nc" id="L459">                render.addAll(property.getActionCallback().getRender());</span>
+            } else {
+<span class="nc" id="L461">                render.add(&quot;@all&quot;);</span>
+            }
+<span class="nc" id="L463">            behavior.setRender(render);</span>
+<span class="nc" id="L464">            behavior.setTransient(false);</span>
+<span class="nc" id="L465">            behavior.setImmediate(true);</span>
+<span class="nc" id="L466">            component.addClientBehavior(eventName, behavior);</span>
+        }
+<span class="nc" id="L468">    }</span>
+
+    /**
+     * Avoid instantiation.
+     */
+    private JsfDynamicUiPsmFactory() {
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

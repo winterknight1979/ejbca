@@ -4,38 +4,38 @@ EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.certificates.crl,CrlStore
 EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.certificates.crl,CRLInfo,33,0,0,0,10,0,5,0,5,0
 EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.time.providers,TrustedTimeProviderException,16,0,0,0,8,0,4,0,4,0
 EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.keys.token,CryptoTokenNameInUseException,22,0,0,0,9,0,4,0,4,0
-EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.audit.impl.integrityprotected,IntegrityProtectedDevice,68,0,0,0,13,0,10,0,10,0
-EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.audit.impl.integrityprotected,NodeSequenceHolder,74,0,4,0,16,0,7,0,5,0
-EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.certificates.ocsp,OcspResponseInformation,190,0,22,0,51,0,21,0,10,0
+EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.audit.impl.integrityprotected,IntegrityProtectedDevice,68,0,0,0,17,0,10,0,10,0
+EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.audit.impl.integrityprotected,NodeSequenceHolder,74,0,4,0,17,0,7,0,5,0
+EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.certificates.ocsp,OcspResponseInformation,190,0,22,0,58,0,21,0,10,0
 EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.certificates.ca,CAExistsException,13,0,0,0,6,0,3,0,3,0
 EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.certificates.ca,SignedByExternalCANotSupportedException,5,0,0,0,2,0,1,0,1,0
 EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.certificates.ocsp.exception,OcspInitializationException,16,0,0,0,8,0,4,0,4,0
 EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.certificates.ocsp.exception,CryptoProviderException,16,0,0,0,8,0,4,0,4,0
 EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.certificates.ocsp.exception,CacheNotInitializedException,16,0,0,0,8,0,4,0,4,0
 EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.certificates.ocsp.exception,NotSupportedException,8,0,0,0,4,0,2,0,2,0
-EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.certificates.ocsp.exception,MalformedRequestException,12,4,0,0,6,2,3,1,3,1
+EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.certificates.ocsp.exception,MalformedRequestException,12,4,0,0,5,2,3,1,3,1
 EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.audit.impl,AuditExporterDummy,11,0,0,0,9,0,9,0,9,0
 EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.audit.impl,AuditExporterXml,2,47,0,0,2,15,2,7,2,7
 EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.common.exception,ReferencesToItemExistException,13,0,0,0,6,0,3,0,3,0
 EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.profiles,ProfileDoesNotExistException,7,0,0,0,4,0,2,0,2,0
-EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.audit,AuditDevicesConfig,380,0,38,0,100,0,33,0,14,0
+EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.audit,AuditDevicesConfig,377,0,38,0,114,0,32,0,13,0
 EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.certificates.certificate,CertificateRevokeException,8,0,0,0,4,0,2,0,2,0
-EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.certificates.certificate,CertificateDataWrapper,214,0,24,0,56,0,23,0,11,0
-EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.certificates.certificate.request,X509ResponseMessage,163,0,14,0,63,0,38,0,31,0
-EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.certificates.certificate.request,ResponseMessageUtils,100,0,8,0,29,0,7,0,3,0
+EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.certificates.certificate,CertificateDataWrapper,214,0,24,0,60,0,23,0,11,0
+EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.certificates.certificate.request,X509ResponseMessage,163,0,14,0,64,0,38,0,31,0
+EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.certificates.certificate.request,ResponseMessageUtils,100,0,8,0,31,0,7,0,3,0
 EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.keys.validation,ValidatorImportResult,15,0,0,0,6,0,3,0,3,0
-EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.audit.audit,SigningFileOutputStream,160,0,4,0,40,0,7,0,5,0
+EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.audit.audit,SigningFileOutputStream,160,0,4,0,49,0,7,0,5,0
 EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.audit.audit,LogServiceState,0,51,0,4,0,10,0,7,0,5
-EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.roles,RoleExistsException,16,0,0,0,8,0,4,0,4,0
+EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.roles,RoleExistsException,16,0,0,0,7,0,4,0,4,0
 EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.roles,RoleNotFoundException,16,0,0,0,8,0,4,0,4,0
 EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.certificates.certificate.exception,CertificateSerialNumberException,10,0,0,0,4,0,2,0,2,0
 EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.certificates.certificate.exception,CustomCertificateSerialNumberException,8,0,0,0,4,0,2,0,2,0
 EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.certificates.certificateprofile,CertificateProfileExistsException,7,0,0,0,4,0,2,0,2,0
 EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.certificates.certificateprofile,CertificateProfileDoesNotExistException,7,0,0,0,4,0,2,0,2,0
-EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.audit.impl.log4j,Log4jDeviceErrorHandler,67,0,2,0,25,0,10,0,9,0
-EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.audit.impl.log4j,Log4jDevice,192,0,22,0,54,0,23,0,12,0
+EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.audit.impl.log4j,Log4jDeviceErrorHandler,63,0,2,0,23,0,9,0,8,0
+EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.audit.impl.log4j,Log4jDevice,192,0,22,0,57,0,23,0,12,0
 EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.authorization.control,CryptoTokenRules,146,0,0,0,16,0,4,0,4,0
-EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.authorization.control,StandardRules,429,0,0,0,39,0,4,0,4,0
+EJBCA JPA Entities/cesecore-ejb-interface,org.cesecore.authorization.control,StandardRules,429,0,0,0,47,0,4,0,4,0
 EJBCA JPA Entities/ejbca-common,org.ejbca.ui.web,LimitLengthASN1Reader,62,194,6,20,9,46,6,12,0,5
 EJBCA JPA Entities/ejbca-common,org.ejbca.core.ejb,ProfilingStat,39,0,0,0,12,0,7,0,7,0
 EJBCA JPA Entities/ejbca-common,org.ejbca.core.ejb,ServiceLocatorException,16,0,0,0,8,0,4,0,4,0
@@ -212,8 +212,8 @@ EJBCA JPA Entities/ejbca-common,org.ejbca.core.model.ca.publisher.custpubl1,Cust
 EJBCA JPA Entities/ejbca-common,org.ejbca.core.model.ca.publisher.custpubl1,CustomerLdapPublisher1.new CustomerLdapPublisher1.LDAPConnectionAction() {...},82,0,10,0,19,0,8,0,3,0
 EJBCA JPA Entities/ejbca-common,org.ejbca.core.model.ca.publisher.custpubl1,CustomerLdapPublisher1.new CustomerLdapPublisher1.LDAPConnectionAction() {...},153,0,6,0,21,0,6,0,3,0
 EJBCA JPA Entities/ejbca-common,org.ejbca.core.model.ca.publisher.custpubl1,CustomerLdapPublisher1.new CustomerLdapPublisher1.LDAPConnectionAction() {...},107,0,2,0,12,0,4,0,3,0
-EJBCA JPA Entities/ejbca-common,org.ejbca.core.model.ca.publisher.custpubl1,CustomerLdapPublisher1,426,783,34,36,89,186,37,32,9,25
 EJBCA JPA Entities/ejbca-common,org.ejbca.core.model.ca.publisher.custpubl1,CustomerLdapPublisher1.LogInfo,0,194,0,8,0,47,0,20,0,16
+EJBCA JPA Entities/ejbca-common,org.ejbca.core.model.ca.publisher.custpubl1,CustomerLdapPublisher1,426,783,34,36,89,186,37,32,9,25
 EJBCA JPA Entities/ejbca-common,org.ejbca.core.model.approval.profile,NonModifiableApprovalProfileException,16,0,0,0,8,0,4,0,4,0
 EJBCA JPA Entities/ejbca-common,org.ejbca.core.model.approval.profile,ApprovalPartition,99,62,12,2,25,15,10,6,3,6
 EJBCA JPA Entities/ejbca-common,org.ejbca.core.model.approval.profile,ApprovalStep,147,228,14,2,39,41,16,11,8,11
@@ -222,7 +222,7 @@ EJBCA JPA Entities/ejbca-common,org.ejbca.core.model.approval.profile,Partitione
 EJBCA JPA Entities/ejbca-common,org.ejbca.core.model.approval.profile,ApprovalProfilesFactory,58,0,2,0,12,0,5,0,4,0
 EJBCA JPA Entities/ejbca-common,org.ejbca.core.model.approval.profile,ApprovalPartitionWorkflowState,54,0,0,0,6,0,1,0,1,0
 EJBCA JPA Entities/ejbca-common,org.ejbca.core.model.approval.profile,NoSuchApprovalStepException,16,0,0,0,8,0,4,0,4,0
-EJBCA JPA Entities/ejbca-common,org.ejbca.core.model.approval.profile,ApprovalProfileBase,1011,252,127,19,230,60,101,21,34,15
+EJBCA JPA Entities/ejbca-common,org.ejbca.core.model.approval.profile,ApprovalProfileBase,1020,243,127,19,232,58,101,21,34,15
 EJBCA JPA Entities/ejbca-common,org.ejbca.core.protocol.cmp.client,CMPSendTCP,176,0,8,0,46,0,7,0,3,0
 EJBCA JPA Entities/ejbca-common,org.ejbca.core.protocol.cmp.client,CMPSendHTTP,111,0,6,0,29,0,7,0,4,0
 EJBCA JPA Entities/ejbca-common,org.ejbca.core.ejb.ra,NoSuchEndEntityException,12,0,0,0,6,0,3,0,3,0
@@ -292,4 +292,4 @@ EJBCA JPA Entities/ejbca-common,org.ejbca.util.query,BasicMatch,0,6,0,0,0,2,0,2,
 EJBCA JPA Entities/ejbca-common,org.ejbca.util.query,Query,199,93,16,3,34,17,19,4,9,4
 EJBCA JPA Entities/ejbca-common,org.ejbca.util.query,IllegalQueryException,7,0,0,0,4,0,2,0,2,0
 EJBCA JPA Entities/ejbca-common,org.ejbca.util.query,ApprovalMatch,128,0,18,0,21,0,13,0,4,0
-EJBCA JPA Entities/shared-resources,com.primekey.anttools,ServiceManifestBuilder,457,0,66,0,97,0,41,0,8,0
+EJBCA JPA Entities/shared-resources,com.primekey.anttools,ServiceManifestBuilder,454,0,66,0,117,0,40,0,7,0

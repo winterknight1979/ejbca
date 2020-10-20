@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BaseWorkerType.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Administration GUI</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.services.servicetypes</a> &gt; <span class="el_source">BaseWorkerType.java</span></div><h1>BaseWorkerType.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.web.admin.services.servicetypes;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Properties;
+
+import org.ejbca.core.model.services.IWorker;
+
+/**
+ * Base type for workers
+ * 
+ * @version $Id: BaseWorkerType.java 28844 2018-05-04 08:31:02Z samuellb $
+ *
+ */
+
+public abstract class BaseWorkerType extends WorkerType {
+
+    private static final long serialVersionUID = 7026884019102752494L;
+
+    public static final String DEFAULT_TIMEUNIT = IWorker.UNIT_DAYS;
+	public static final String DEFAULT_TIMEVALUE = &quot;7&quot;;
+	
+<span class="nc" id="L39">	private List&lt;String&gt; selectedCANamesToCheck = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L40">	private List&lt;String&gt; selectedCertificateProfilesToCheck = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L41">	private Collection&lt;String&gt; compatibleActionTypeNames = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L42">	private Collection&lt;String&gt; compatibleIntervalTypeNames = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L43">	private String classpath = null;</span>
+
+	public BaseWorkerType(String subViewPage, String name, boolean translatable, String classpath) {
+<span class="nc" id="L46">		super(subViewPage, name, translatable);</span>
+<span class="nc" id="L47">		this.classpath = classpath;</span>
+<span class="nc" id="L48">	}</span>
+
+	//
+	// Helper methods for BaseWorkerType to be used by extending classes
+	//
+	protected void addCompatibleActionTypeName(String name) {
+<span class="nc" id="L54">		compatibleActionTypeNames.add(name);</span>
+<span class="nc" id="L55">	}</span>
+	protected void deleteAllCompatibleActionTypes() {
+<span class="nc" id="L57">		compatibleActionTypeNames = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L58">	}</span>
+	protected void addCompatibleIntervalTypeName(String name) {
+<span class="nc" id="L60">		compatibleIntervalTypeNames.add(name);</span>
+<span class="nc" id="L61">	}</span>
+	protected void deleteAllCompatibleIntervalTypes() {
+<span class="nc" id="L63">		compatibleIntervalTypeNames = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L64">	}</span>
+	public List&lt;String&gt; getSelectedCANamesToCheck() {
+<span class="nc" id="L66">		return selectedCANamesToCheck;</span>
+	}
+	public void setSelectedCANamesToCheck(List&lt;String&gt; selectedCANamesToCheck) {
+<span class="nc" id="L69">		this.selectedCANamesToCheck = selectedCANamesToCheck;</span>
+<span class="nc" id="L70">	}</span>
+
+	@Override
+	public boolean isCustom() {		
+<span class="nc" id="L74">		return false;</span>
+	}
+
+	@Override
+	public Collection&lt;String&gt; getCompatibleActionTypeNames() {
+<span class="nc" id="L79">		return compatibleActionTypeNames;</span>
+	}
+
+	@Override
+	public Collection&lt;String&gt; getCompatibleIntervalTypeNames() {
+<span class="nc" id="L84">		return compatibleIntervalTypeNames;</span>
+	}
+
+	@Override
+	public String getClassPath() {		
+<span class="nc" id="L89">		return classpath;</span>
+	}
+
+	@Override
+	public Properties getProperties(ArrayList&lt;String&gt; errorMessages) throws IOException {		
+<span class="nc" id="L94">	    Properties retval = new Properties(); </span>
+<span class="nc" id="L95">        String caIdString = null;</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">        for(String cAid  : getSelectedCANamesToCheck()) { </span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">            if(!cAid.trim().equals(&quot;&quot;)){</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">              if(caIdString == null) {</span>
+<span class="nc" id="L99">                caIdString = cAid;</span>
+              }else{
+<span class="nc" id="L101">                caIdString += &quot;;&quot;+cAid;</span>
+              }
+            }
+<span class="nc" id="L104">        }</span>
+<span class="nc bnc" id="L105" title="All 2 branches missed.">        if (caIdString != null) {           </span>
+<span class="nc" id="L106">            retval.setProperty(IWorker.PROP_CAIDSTOCHECK, caIdString);</span>
+        }
+<span class="nc" id="L108">        String certificateProfileIdString = null;</span>
+<span class="nc bnc" id="L109" title="All 2 branches missed.">        for(String certificateProfileId : getSelectedCertificateProfilesToCheck()) {</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">            if(!certificateProfileId.trim().equals(&quot;&quot;)){</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">                  if(certificateProfileIdString == null) {</span>
+<span class="nc" id="L112">                      certificateProfileIdString = certificateProfileId;</span>
+                  }else{
+<span class="nc" id="L114">                      certificateProfileIdString += &quot;;&quot;+certificateProfileId;</span>
+                  }
+                }
+<span class="nc" id="L117">        }</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">        if (certificateProfileIdString != null) {         </span>
+<span class="nc" id="L119">            retval.setProperty(IWorker.PROP_CERTIFICATE_PROFILE_IDS_TO_CHECK, certificateProfileIdString);</span>
+        }
+<span class="nc" id="L121">        return retval;</span>
+	}
+
+	@Override
+    public void setProperties(Properties properties) throws IOException {
+<span class="nc" id="L126">        ArrayList&lt;String&gt; selectedCANamesToCheck = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L127">        selectedCANamesToCheck.addAll(Arrays.asList(properties.getProperty(IWorker.PROP_CAIDSTOCHECK, &quot;&quot;).split(&quot;;&quot;)));</span>
+<span class="nc" id="L128">        setSelectedCANamesToCheck(selectedCANamesToCheck);</span>
+<span class="nc" id="L129">        ArrayList&lt;String&gt; selectedCertificateProfileNamesToCheck = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L130">        selectedCertificateProfileNamesToCheck.addAll(Arrays.asList(properties.getProperty(IWorker.PROP_CERTIFICATE_PROFILE_IDS_TO_CHECK, &quot;&quot;)</span>
+<span class="nc" id="L131">                .split(&quot;;&quot;)));</span>
+<span class="nc" id="L132">        setSelectedCertificateProfilesToCheck(selectedCertificateProfileNamesToCheck);      </span>
+<span class="nc" id="L133">    }</span>
+    
+    /**
+     * @return the selectedCertificateProfilesToCheck
+     */
+    public List&lt;String&gt; getSelectedCertificateProfilesToCheck() {
+<span class="nc" id="L139">        return selectedCertificateProfilesToCheck;</span>
+    }
+
+    /**
+     * @param selectedCertificateProfilesToCheck the selectedCertificateProfilesToCheck to set
+     */
+    public void setSelectedCertificateProfilesToCheck(List&lt;String&gt; selectedCertificateProfilesToCheck) {
+<span class="nc" id="L146">        this.selectedCertificateProfilesToCheck = selectedCertificateProfilesToCheck;</span>
+<span class="nc" id="L147">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

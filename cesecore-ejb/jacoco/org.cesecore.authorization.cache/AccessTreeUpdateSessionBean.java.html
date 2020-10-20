@@ -18,7 +18,6 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-
 import org.apache.log4j.Logger;
 import org.cesecore.authorization.access.AuthorizationCacheReload;
 import org.cesecore.authorization.access.AuthorizationCacheReloadListener;
@@ -27,76 +26,105 @@ import org.cesecore.internal.InternalResources;
 
 /**
  * Bean to handle the AccessTreeUpdateData entity.
- * 
- * @version $Id: AccessTreeUpdateSessionBean.java 26158 2017-07-18 05:46:19Z mikekushner $
+ *
+ * @version $Id: AccessTreeUpdateSessionBean.java 26158 2017-07-18 05:46:19Z
+ *     mikekushner $
  */
-@Stateless//(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;AccessTreeUpdateSessionRemote&quot;)
+@Stateless // (mappedName = JndiConstants.APP_JNDI_PREFIX +
+           // &quot;AccessTreeUpdateSessionRemote&quot;)
 @TransactionAttribute(TransactionAttributeType.REQUIRED)
-<span class="nc" id="L35">public class AccessTreeUpdateSessionBean implements AccessTreeUpdateSessionLocal {</span>
+<span class="nc" id="L36">public class AccessTreeUpdateSessionBean</span>
+    implements AccessTreeUpdateSessionLocal {
 
-<span class="nc" id="L37">    private static final Logger LOG = Logger.getLogger(AccessTreeUpdateSessionBean.class);</span>
+    /** Logger. */
+<span class="nc" id="L40">  private static final Logger LOG =</span>
+<span class="nc" id="L41">      Logger.getLogger(AccessTreeUpdateSessionBean.class);</span>
 
-    @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
-    private EntityManager entityManager;
+  /** EM. */
+  @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
+  private EntityManager entityManager;
 
-    @Override
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)    // We don't modify the database in this call
-    public int getAccessTreeUpdateNumber() {
-<span class="nc" id="L45">        final AccessTreeUpdateData accessTreeUpdateData = entityManager.find(AccessTreeUpdateData.class, AccessTreeUpdateData.AUTHORIZATIONTREEUPDATEDATA);</span>
-<span class="nc bnc" id="L46" title="All 2 branches missed.">        if (accessTreeUpdateData==null) {</span>
-            // No update has yet been persisted, so we return the default value
-<span class="nc" id="L48">            return AccessTreeUpdateData.DEFAULTACCESSTREEUPDATENUMBER;</span>
-        }
-<span class="nc" id="L50">        return accessTreeUpdateData.getAccessTreeUpdateNumber();</span>
+  @Override
+  @TransactionAttribute(
+      TransactionAttributeType
+          .SUPPORTS) // We don't modify the database in this call
+  public int getAccessTreeUpdateNumber() {
+<span class="nc" id="L52">    final AccessTreeUpdateData accessTreeUpdateData =</span>
+<span class="nc" id="L53">        entityManager.find(</span>
+            AccessTreeUpdateData.class,
+            AccessTreeUpdateData.AUTHORIZATIONTREEUPDATEDATA);
+<span class="nc bnc" id="L56" title="All 2 branches missed.">    if (accessTreeUpdateData == null) {</span>
+      // No update has yet been persisted, so we return the default value
+<span class="nc" id="L58">      return AccessTreeUpdateData.DEFAULTACCESSTREEUPDATENUMBER;</span>
     }
+<span class="nc" id="L60">    return accessTreeUpdateData.getAccessTreeUpdateNumber();</span>
+  }
 
-    @Override
-    public void signalForAccessTreeUpdate() {
-<span class="nc" id="L55">        AccessTreeUpdateData accessTreeUpdateData = entityManager.find(AccessTreeUpdateData.class, AccessTreeUpdateData.AUTHORIZATIONTREEUPDATEDATA);</span>
-<span class="nc bnc" id="L56" title="All 2 branches missed.">        if (accessTreeUpdateData==null) {</span>
-            // We need to create the database row and incremented the value directly since this is an call to update it
-            try {
-<span class="nc" id="L59">                accessTreeUpdateData = new AccessTreeUpdateData();</span>
-<span class="nc" id="L60">                accessTreeUpdateData.setAccessTreeUpdateNumber(AccessTreeUpdateData.DEFAULTACCESSTREEUPDATENUMBER+1);</span>
-<span class="nc" id="L61">                entityManager.persist(accessTreeUpdateData);</span>
-                // Additionally we set the marker that this (new) installation should use the new union access rule pattern
-<span class="nc" id="L63">                setNewAuthorizationPatternMarker();</span>
-<span class="nc" id="L64">            } catch (Exception e) {</span>
-<span class="nc" id="L65">                LOG.error(InternalResources.getInstance().getLocalizedMessage(&quot;authorization.errorcreateauthtree&quot;), e);</span>
-<span class="nc" id="L66">                throw new EJBException(e);</span>
-<span class="nc" id="L67">            }</span>
-        } else {
-<span class="nc" id="L69">            accessTreeUpdateData.setAccessTreeUpdateNumber(accessTreeUpdateData.getAccessTreeUpdateNumber() + 1);</span>
-        }
-<span class="nc" id="L71">        LOG.debug(&quot;Invoking event&quot;);</span>
-<span class="nc" id="L72">        final AuthorizationCacheReload event = new AuthorizationCacheReload(accessTreeUpdateData.getAccessTreeUpdateNumber());</span>
-<span class="nc" id="L73">        AuthorizationCacheReloadListeners.INSTANCE.onReload(event);</span>
-<span class="nc" id="L74">        LOG.debug(&quot;Done invoking event&quot;);</span>
-<span class="nc" id="L75">    }</span>
-    
-    @Override
-    public void addReloadEvent(final AuthorizationCacheReloadListener observer) {
-<span class="nc" id="L79">        AuthorizationCacheReloadListeners.INSTANCE.addListener(observer);</span>
-<span class="nc" id="L80">    }</span>
-
-    @Override
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public boolean isNewAuthorizationPatternMarkerPresent() {
-<span class="nc bnc" id="L85" title="All 2 branches missed.">        return entityManager.find(AccessTreeUpdateData.class, AccessTreeUpdateData.NEW_AUTHORIZATION_PATTERN_MARKER)!=null;</span>
+  @Override
+  public void signalForAccessTreeUpdate() {
+<span class="nc" id="L65">    AccessTreeUpdateData accessTreeUpdateData =</span>
+<span class="nc" id="L66">        entityManager.find(</span>
+            AccessTreeUpdateData.class,
+            AccessTreeUpdateData.AUTHORIZATIONTREEUPDATEDATA);
+<span class="nc bnc" id="L69" title="All 2 branches missed.">    if (accessTreeUpdateData == null) {</span>
+      // We need to create the database row and incremented the value directly
+      // since this is an call to update it
+      try {
+<span class="nc" id="L73">        accessTreeUpdateData = new AccessTreeUpdateData();</span>
+<span class="nc" id="L74">        accessTreeUpdateData.setAccessTreeUpdateNumber(</span>
+            AccessTreeUpdateData.DEFAULTACCESSTREEUPDATENUMBER + 1);
+<span class="nc" id="L76">        entityManager.persist(accessTreeUpdateData);</span>
+        // Additionally we set the marker that this (new) installation should
+        // use the new union access rule pattern
+<span class="nc" id="L79">        setNewAuthorizationPatternMarker();</span>
+<span class="nc" id="L80">      } catch (Exception e) {</span>
+<span class="nc" id="L81">        LOG.error(</span>
+<span class="nc" id="L82">            InternalResources.getInstance()</span>
+<span class="nc" id="L83">                .getLocalizedMessage(&quot;authorization.errorcreateauthtree&quot;),</span>
+            e);
+<span class="nc" id="L85">        throw new EJBException(e);</span>
+<span class="nc" id="L86">      }</span>
+    } else {
+<span class="nc" id="L88">      accessTreeUpdateData.setAccessTreeUpdateNumber(</span>
+<span class="nc" id="L89">          accessTreeUpdateData.getAccessTreeUpdateNumber() + 1);</span>
     }
+<span class="nc" id="L91">    LOG.debug(&quot;Invoking event&quot;);</span>
+<span class="nc" id="L92">    final AuthorizationCacheReload event =</span>
+        new AuthorizationCacheReload(
+<span class="nc" id="L94">            accessTreeUpdateData.getAccessTreeUpdateNumber());</span>
+<span class="nc" id="L95">    AuthorizationCacheReloadListeners.INSTANCE.onReload(event);</span>
+<span class="nc" id="L96">    LOG.debug(&quot;Done invoking event&quot;);</span>
+<span class="nc" id="L97">  }</span>
 
-    @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public void setNewAuthorizationPatternMarker() {
-        /*
-         * Use a row in this table as a marker, since it is already a dependency from AuthorizationSessionBean.
-         * (Otherwise we would have to depend on reading configuration which in turn depends back on authorization.)
-         */
-<span class="nc bnc" id="L95" title="All 2 branches missed.">        if (!isNewAuthorizationPatternMarkerPresent()) {</span>
-<span class="nc" id="L96">            final AccessTreeUpdateData marker = new AccessTreeUpdateData();</span>
-<span class="nc" id="L97">            marker.setPrimaryKey(AccessTreeUpdateData.NEW_AUTHORIZATION_PATTERN_MARKER);</span>
-<span class="nc" id="L98">            entityManager.persist(marker);</span>
-        }
-<span class="nc" id="L100">    }</span>
+  @Override
+  public void addReloadEvent(final AuthorizationCacheReloadListener observer) {
+<span class="nc" id="L101">    AuthorizationCacheReloadListeners.INSTANCE.addListener(observer);</span>
+<span class="nc" id="L102">  }</span>
+
+  @Override
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  public boolean isNewAuthorizationPatternMarkerPresent() {
+<span class="nc bnc" id="L107" title="All 2 branches missed.">    return entityManager.find(</span>
+            AccessTreeUpdateData.class,
+            AccessTreeUpdateData.NEW_AUTHORIZATION_PATTERN_MARKER)
+        != null;
+  }
+
+  @Override
+  @TransactionAttribute(TransactionAttributeType.REQUIRED)
+  public void setNewAuthorizationPatternMarker() {
+    /*
+     * Use a row in this table as a marker, since it is already
+     * a dependency from AuthorizationSessionBean.
+     * (Otherwise we would have to depend on reading configuration
+     * which in turn depends back on authorization.)
+     */
+<span class="nc bnc" id="L122" title="All 2 branches missed.">    if (!isNewAuthorizationPatternMarkerPresent()) {</span>
+<span class="nc" id="L123">      final AccessTreeUpdateData marker = new AccessTreeUpdateData();</span>
+<span class="nc" id="L124">      marker.setPrimaryKey(</span>
+          AccessTreeUpdateData.NEW_AUTHORIZATION_PATTERN_MARKER);
+<span class="nc" id="L126">      entityManager.persist(marker);</span>
+    }
+<span class="nc" id="L128">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

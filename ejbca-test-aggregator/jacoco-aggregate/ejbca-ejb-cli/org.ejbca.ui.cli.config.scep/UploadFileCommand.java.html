@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>UploadFileCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.config.scep</a> &gt; <span class="el_source">UploadFileCommand.java</span></div><h1>UploadFileCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.cli.config.scep;
+
+import java.io.File;
+import java.util.Iterator;
+import java.util.Set;
+
+import org.apache.commons.configuration.CompositeConfiguration;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.configuration.reloading.FileChangedReloadingStrategy;
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.ejbca.config.ScepConfiguration;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+
+/**
+ * @version $Id: UploadFileCommand.java 26057 2017-06-22 08:08:34Z anatom $
+ *
+ */
+<span class="nc" id="L38">public class UploadFileCommand extends BaseScepConfigCommand {</span>
+
+    private static final String ALIAS_KEY = &quot;--alias&quot;;
+    private static final String FILE_KEY = &quot;--file&quot;;
+
+<span class="nc" id="L43">    private static final Logger log = Logger.getLogger(UploadFileCommand.class);</span>
+
+    {
+<span class="nc" id="L46">        registerParameter(new Parameter(ALIAS_KEY, &quot;Alias&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;The alias to read to.&quot;));
+<span class="nc" id="L48">        registerParameter(new Parameter(FILE_KEY, &quot;File&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;The file to upload.&quot;));
+<span class="nc" id="L50">    }</span>
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L54">        return &quot;uploadfile&quot;;</span>
+    }
+
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+<span class="nc" id="L59">        String filename = parameters.get(FILE_KEY);</span>
+<span class="nc" id="L60">        String alias = parameters.get(ALIAS_KEY);</span>
+
+<span class="nc" id="L62">        CompositeConfiguration config = null;</span>
+<span class="nc" id="L63">        File f = null;</span>
+        try {
+<span class="nc" id="L65">            f = new File(filename);</span>
+<span class="nc" id="L66">            final PropertiesConfiguration pc = new PropertiesConfiguration(f);</span>
+<span class="nc" id="L67">            pc.setReloadingStrategy(new FileChangedReloadingStrategy());</span>
+<span class="nc" id="L68">            config = new CompositeConfiguration();</span>
+<span class="nc" id="L69">            config.addConfiguration(pc);</span>
+<span class="nc" id="L70">            log.info(&quot;Reading SCEP configuration from file: &quot; + f.getAbsolutePath());</span>
+<span class="nc" id="L71">        } catch (ConfigurationException e) {</span>
+<span class="nc" id="L72">            log.error(&quot;Failed to load configuration from file &quot; + f.getAbsolutePath());</span>
+<span class="nc" id="L73">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L74">        }</span>
+<span class="nc" id="L75">        readConfigurations(config, alias);</span>
+<span class="nc" id="L76">        return CommandResult.SUCCESS;</span>
+
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L82">        return &quot;Reads SCEP configuration from a file.&quot;;</span>
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L87">        StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L88">        sb.append(getCommandDescription() + &quot;\n&quot;);</span>
+<span class="nc" id="L89">        sb.append(&quot;\n&quot;);</span>
+<span class="nc" id="L90">        sb.append(&quot;Each line that has the format 'ALIAS.key=VALUE' will be read.\n&quot;);</span>
+<span class="nc" id="L91">        sb.append(&quot;\n&quot;);</span>
+<span class="nc" id="L92">        sb.append(</span>
+                &quot;Only one alias will be read. If one file contains configurations of several aliases, you have to repeat the command with a &quot;
+                        + &quot;different alias each time to have all configurations of all aliases read.\n&quot;);
+<span class="nc" id="L95">        sb.append(&quot;\n&quot;);</span>
+        //sb.append(
+        //        &quot;Note that the alias 'scep' is the default alias used when sending the SCEP request through the URL &quot; +
+        //        &quot;'http://HOST:PORT/ejbca/publicweb/apply/scep/pkiclient.exe'. \n&quot;);
+        //sb.append(&quot;Note also that the alias 'scep' does not exist per default and should be created before using this URL\n&quot;);
+<span class="nc" id="L100">        sb.append(&quot;The following keys (if present) will be read from the file:&quot; + &quot;\n&quot;);</span>
+<span class="nc" id="L101">        Set&lt;String&gt; keys = ScepConfiguration.getAllAliasKeys(&quot;&lt;ALIAS&gt;&quot;);</span>
+<span class="nc" id="L102">        Iterator&lt;String&gt; itr = keys.iterator();</span>
+<span class="nc bnc" id="L103" title="All 2 branches missed.">        while (itr.hasNext()) {</span>
+<span class="nc" id="L104">            sb.append(&quot;     &quot; + itr.next() + &quot;\n&quot;);</span>
+        }
+<span class="nc" id="L106">        sb.append(&quot;\n&quot;);</span>
+        
+<span class="nc" id="L108">        sb.append(&quot;Note that if you have an old SCEP properties file containing the key 'scep.ra.createOrEditUser', &quot; +</span>
+        		&quot;this key will automatically be read and stored as 'scep.operationmode'. A 'true' value will be intepreted as 'ra' &quot; +
+        		&quot;and a 'false' value will be interpreted as 'ca'.&quot;);
+        
+<span class="nc" id="L112">        return sb.toString();</span>
+    }
+    
+    
+    
+    private void readConfigurations(CompositeConfiguration config, String alias) {
+
+<span class="nc" id="L119">        ScepConfiguration scepConfig = getScepConfiguration();</span>
+        
+        // if the alias does not already exist, create it.
+<span class="nc" id="L122">        scepConfig.addAlias(alias);</span>
+
+        // Reading all relevant configurations from file.
+<span class="nc" id="L125">        boolean populated = false;</span>
+<span class="nc" id="L126">        Set&lt;String&gt; keys = ScepConfiguration.getAllAliasKeys(alias);</span>
+        @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L128">        Iterator&lt;String&gt; itr = config.getKeys();</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">        while (itr.hasNext()) {</span>
+<span class="nc" id="L130">            String key = itr.next();</span>
+<span class="nc" id="L131">            String value = config.getString(key);</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">            if(StringUtils.contains(key, ScepConfiguration.SCEP_RAMODE_OLD)) {</span>
+<span class="nc bnc" id="L133" title="All 2 branches missed.">                value = StringUtils.equalsIgnoreCase(config.getString(key), &quot;true&quot;) ? &quot;ra&quot; : &quot;ca&quot;;</span>
+<span class="nc" id="L134">                key = alias + &quot;.&quot; + ScepConfiguration.SCEP_OPERATIONMODE;</span>
+            }
+<span class="nc bnc" id="L136" title="All 2 branches missed.">            if (keys.contains(key)) {</span>
+<span class="nc" id="L137">                populated = true;</span>
+<span class="nc" id="L138">                scepConfig.setValue(key, value, alias);</span>
+<span class="nc" id="L139">                log.info(&quot;Setting value: &quot; + key + &quot;=&quot; + value);</span>
+            }
+            
+<span class="nc" id="L142">        }</span>
+
+        // Save the new configurations.
+<span class="nc bnc" id="L145" title="All 2 branches missed.">        if (populated) {</span>
+            try {
+<span class="nc" id="L147">                getGlobalConfigurationSession().saveConfiguration(getAuthenticationToken(), scepConfig);</span>
+<span class="nc" id="L148">                log.info(&quot;\nNew configurations saved successfully.&quot;);</span>
+<span class="nc" id="L149">                log.info(&quot;If there are any issues with the configurations, check them in the AdminGUI and click 'Save'&quot;);</span>
+<span class="nc" id="L150">                getGlobalConfigurationSession().flushConfigurationCache(ScepConfiguration.SCEP_CONFIGURATION_ID);</span>
+<span class="nc" id="L151">            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L152">                log.error(&quot;Failed to save configuration from file: &quot; + e.getLocalizedMessage());</span>
+<span class="nc" id="L153">            }</span>
+        } else {
+<span class="nc" id="L155">            scepConfig.removeAlias(alias);</span>
+<span class="nc" id="L156">            log.info(&quot;No relevent CMP configurations found with alias '&quot; + alias + &quot;' in the file.&quot;);</span>
+        }
+<span class="nc" id="L158">    }</span>
+    
+    @Override
+    protected Logger getLogger() {
+<span class="nc" id="L162">        return log;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,378 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RaEndEntityBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ra-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ra</a> &gt; <span class="el_source">RaEndEntityBean.java</span></div><h1>RaEndEntityBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ra;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.PostConstruct;
+import javax.ejb.EJB;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.ManagedProperty;
+import javax.faces.bean.ViewScoped;
+import javax.faces.context.FacesContext;
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CADoesntExistsException;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.IllegalNameException;
+import org.cesecore.certificates.certificate.exception.CertificateSerialNumberException;
+import org.cesecore.certificates.endentity.EndEntityConstants;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.ejbca.core.ejb.ra.NoSuchEndEntityException;
+import org.ejbca.core.model.approval.ApprovalException;
+import org.ejbca.core.model.approval.WaitingForApprovalException;
+import org.ejbca.core.model.authorization.AccessRulesConstants;
+import org.ejbca.core.model.era.IdNameHashMap;
+import org.ejbca.core.model.era.KeyToValueHolder;
+import org.ejbca.core.model.era.RaMasterApiProxyBeanLocal;
+import org.ejbca.core.model.ra.CustomFieldException;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfile;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfileValidationException;
+import org.ejbca.ra.RaEndEntityDetails.Callbacks;
+
+/**
+ * Backing bean for certificate details view.
+ *  
+ * @version $Id: RaEndEntityBean.java 34207 2020-01-08 13:22:50Z samuellb $
+ * TODO: Use CDI beans
+ */
+@SuppressWarnings(&quot;deprecation&quot;)
+@ManagedBean
+@ViewScoped
+<span class="nc" id="L59">public class RaEndEntityBean implements Serializable {</span>
+
+    private static final long serialVersionUID = 1L;
+
+<span class="nc" id="L63">    private static final Logger log = Logger.getLogger(RaEndEntityBean.class);</span>
+
+    @EJB
+    private RaMasterApiProxyBeanLocal raMasterApiProxyBean;
+
+    @ManagedProperty(value=&quot;#{raAccessBean}&quot;)
+    private RaAccessBean raAccessBean;
+<span class="nc" id="L70">    public void setRaAccessBean(final RaAccessBean raAccessBean) { this.raAccessBean = raAccessBean; }</span>
+
+    @ManagedProperty(value=&quot;#{raAuthenticationBean}&quot;)
+    private RaAuthenticationBean raAuthenticationBean;
+<span class="nc" id="L74">    public void setRaAuthenticationBean(final RaAuthenticationBean raAuthenticationBean) { this.raAuthenticationBean = raAuthenticationBean; }</span>
+
+    @ManagedProperty(value=&quot;#{raLocaleBean}&quot;)
+    private RaLocaleBean raLocaleBean;
+<span class="nc" id="L78">    public void setRaLocaleBean(final RaLocaleBean raLocaleBean) { this.raLocaleBean = raLocaleBean; }</span>
+
+<span class="nc" id="L80">    private String username = null;</span>
+<span class="nc" id="L81">    private RaEndEntityDetails raEndEntityDetails = null;</span>
+<span class="nc" id="L82">    private Map&lt;Integer, String&gt; eepIdToNameMap = null;</span>
+<span class="nc" id="L83">    private Map&lt;Integer, String&gt; cpIdToNameMap = null;</span>
+<span class="nc" id="L84">    private Map&lt;Integer,String&gt; caIdToNameMap = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L85">    private boolean editEditEndEntityMode = false;</span>
+<span class="nc" id="L86">    private List&lt;RaCertificateDetails&gt; issuedCerts = null;</span>
+<span class="nc" id="L87">    private SelectStatus[] selectableStatuses = null;</span>
+<span class="nc" id="L88">    private int selectedStatus = -1;</span>
+<span class="nc" id="L89">    private String enrollmentCode = &quot;&quot;;</span>
+<span class="nc" id="L90">    private String enrollmentCodeConfirm = &quot;&quot;;</span>
+<span class="nc" id="L91">    private boolean authorized = false;</span>
+
+    /**
+     * The SelectStatus class holds a status string/constant pair
+     */
+    public static final class SelectStatus {
+        private String statusString;
+        private int statusConstant;
+
+        /**
+         * Constructor for the SelectStatus class
+         * 
+         * @param statusString the status string
+         * @param statusConstant the status constant
+         */
+<span class="nc" id="L106">        public SelectStatus(String statusString, int statusConstant) {</span>
+<span class="nc" id="L107">            this.statusString = statusString;</span>
+<span class="nc" id="L108">            this.statusConstant = statusConstant;</span>
+<span class="nc" id="L109">        }</span>
+
+        /**
+         * @return the status string
+         */
+        public String getStatusString() {
+<span class="nc" id="L115">            return statusString;</span>
+        }
+
+        /**
+         * @return the status constant
+         */
+        public int getStatusConstant() {
+<span class="nc" id="L122">            return statusConstant;</span>
+        }
+
+        @Override
+        public String toString() {
+<span class="nc" id="L127">            return &quot;{&quot; + statusString + &quot;: &quot; + statusConstant + &quot;}&quot;;</span>
+        }
+    }
+
+<span class="nc" id="L131">    private final Callbacks raEndEntityDetailsCallbacks = new RaEndEntityDetails.Callbacks() {</span>
+        @Override
+        public RaLocaleBean getRaLocaleBean() {
+<span class="nc" id="L134">            return raLocaleBean;</span>
+        }
+
+        @Override
+        public EndEntityProfile getEndEntityProfile(int eepId) {
+<span class="nc" id="L139">            IdNameHashMap&lt;EndEntityProfile&gt; map = raMasterApiProxyBean.getAuthorizedEndEntityProfiles(raAuthenticationBean.getAuthenticationToken(), AccessRulesConstants.VIEW_END_ENTITY);</span>
+<span class="nc" id="L140">            KeyToValueHolder&lt;EndEntityProfile&gt; tuple = map.get(eepId);</span>
+<span class="nc bnc" id="L141" title="All 2 branches missed.">            return tuple==null ? null : tuple.getValue();</span>
+        }
+    };
+
+    @PostConstruct
+    public void postConstruct() {
+<span class="nc bnc" id="L147" title="All 2 branches missed.">        if (!raAccessBean.isAuthorizedToSearchEndEntities()) {</span>
+<span class="nc" id="L148">            log.debug(&quot;Not authorized to view end entities&quot;);</span>
+<span class="nc" id="L149">            return;</span>
+        }
+<span class="nc" id="L151">        authorized = true;</span>
+<span class="nc" id="L152">        username = ((HttpServletRequest) FacesContext.getCurrentInstance().getExternalContext().getRequest()).getParameter(&quot;ee&quot;);</span>
+        // Check if edit mode is set as a parameter
+<span class="nc" id="L154">        String editParameter = ((HttpServletRequest) FacesContext.getCurrentInstance().getExternalContext().getRequest()).getParameter(&quot;edit&quot;);</span>
+<span class="nc bnc" id="L155" title="All 4 branches missed.">        if (editParameter != null &amp;&amp; editParameter.equals(&quot;true&quot;)) {</span>
+<span class="nc" id="L156">            editEditEndEntity();</span>
+        } else {
+<span class="nc" id="L158">            reload();</span>
+        }
+<span class="nc" id="L160">    }</span>
+
+    private void reload() {
+<span class="nc bnc" id="L163" title="All 2 branches missed.">        if (username!=null) {</span>
+<span class="nc" id="L164">            final EndEntityInformation endEntityInformation = raMasterApiProxyBean.searchUser(raAuthenticationBean.getAuthenticationToken(), username);</span>
+<span class="nc bnc" id="L165" title="All 2 branches missed.">            if (endEntityInformation!=null) {</span>
+<span class="nc" id="L166">                cpIdToNameMap = raMasterApiProxyBean.getAuthorizedCertificateProfileIdsToNameMap(raAuthenticationBean.getAuthenticationToken());</span>
+<span class="nc" id="L167">                eepIdToNameMap = raMasterApiProxyBean.getAuthorizedEndEntityProfileIdsToNameMap(raAuthenticationBean.getAuthenticationToken());</span>
+<span class="nc" id="L168">                final List&lt;CAInfo&gt; caInfos = new ArrayList&lt;&gt;(raMasterApiProxyBean.getAuthorizedCas(raAuthenticationBean.getAuthenticationToken()));</span>
+<span class="nc bnc" id="L169" title="All 2 branches missed.">                for (final CAInfo caInfo : caInfos) {</span>
+<span class="nc" id="L170">                    caIdToNameMap.put(caInfo.getCAId(), caInfo.getName());</span>
+<span class="nc" id="L171">                }</span>
+<span class="nc" id="L172">                raEndEntityDetails = new RaEndEntityDetails(endEntityInformation, raEndEntityDetailsCallbacks, cpIdToNameMap, eepIdToNameMap, caIdToNameMap);</span>
+            }
+        }
+<span class="nc" id="L175">        issuedCerts = null;</span>
+<span class="nc" id="L176">        selectableStatuses = null;</span>
+<span class="nc" id="L177">        selectedStatus = -1;</span>
+<span class="nc" id="L178">    }</span>
+    
+    public boolean isAuthorized() {
+<span class="nc" id="L181">        return authorized;</span>
+    }
+
+<span class="nc" id="L184">    public String getUsername() { return username; }</span>
+<span class="nc" id="L185">    public RaEndEntityDetails getEndEntity() { return raEndEntityDetails; }</span>
+
+    /**
+     * @return true if edit mode is enabled
+     */
+    public boolean isEditEditEndEntityMode() {
+<span class="nc" id="L191">        return editEditEndEntityMode;</span>
+    }
+
+    /**
+     * Enables edit mode (given that the API version allows it) and reloads
+     */
+    public void editEditEndEntity() {
+<span class="nc" id="L198">        editEditEndEntityMode = isApiEditCompatible();</span>
+<span class="nc" id="L199">        reload();</span>
+<span class="nc" id="L200">    }</span>
+
+    /**
+     * Cancels edit mode and reloads
+     */
+    public void editEditEndEntityCancel() {
+<span class="nc" id="L206">        editEditEndEntityMode = false;</span>
+<span class="nc" id="L207">        reload();</span>
+<span class="nc" id="L208">    }</span>
+
+    /**
+     * Edits the current End Entity, cancels edit mode and reloads
+     */
+    public void editEditEndEntitySave() {
+<span class="nc" id="L214">        boolean changed = false;</span>
+<span class="nc" id="L215">        int selectedStatus = getSelectedStatus();</span>
+<span class="nc" id="L216">        EndEntityInformation endEntityInformation = new EndEntityInformation(</span>
+<span class="nc" id="L217">                raEndEntityDetails.getEndEntityInformation());</span>
+<span class="nc bnc" id="L218" title="All 4 branches missed.">        if (selectedStatus &gt; 0 &amp;&amp; selectedStatus != endEntityInformation.getStatus()) {</span>
+            // A new status was selected, verify the enrollment codes
+<span class="nc bnc" id="L220" title="All 2 branches missed.">            if (verifyEnrollmentCodes()) {</span>
+                // Change the End Entity's status and set the new password
+<span class="nc" id="L222">                endEntityInformation.setStatus(selectedStatus);</span>
+<span class="nc" id="L223">                endEntityInformation.setPassword(enrollmentCode);</span>
+<span class="nc" id="L224">                changed = true;</span>
+            }
+<span class="nc bnc" id="L226" title="All 2 branches missed.">        } else if (!StringUtils.isEmpty(enrollmentCode)</span>
+<span class="nc bnc" id="L227" title="All 2 branches missed.">                || !StringUtils.isEmpty(enrollmentCodeConfirm)) {</span>
+            // Not a new status, but the enrollment codes were not empty
+<span class="nc bnc" id="L229" title="All 2 branches missed.">            if (verifyEnrollmentCodes()) {</span>
+                // Enrollment codes were valid, set new password but leave status unchanged
+<span class="nc" id="L231">                endEntityInformation.setPassword(enrollmentCode);</span>
+<span class="nc" id="L232">                changed = true;</span>
+            }
+        }
+<span class="nc bnc" id="L235" title="All 2 branches missed.">        if (changed) {</span>
+            // Edit the End Entity if changes were made
+            try {
+<span class="nc" id="L238">                boolean result = raMasterApiProxyBean.editUser(raAuthenticationBean.getAuthenticationToken(), endEntityInformation);</span>
+<span class="nc bnc" id="L239" title="All 2 branches missed.">                if (result) {</span>
+<span class="nc" id="L240">                    raLocaleBean.addMessageError(&quot;editendentity_success&quot;);</span>
+                } else {
+<span class="nc" id="L242">                    raLocaleBean.addMessageError(&quot;editendentity_failure&quot;);</span>
+                }
+<span class="nc" id="L244">            } catch (WaitingForApprovalException e) {</span>
+<span class="nc" id="L245">                raLocaleBean.addMessageError(&quot;editendentity_approval_sent&quot;);</span>
+<span class="nc" id="L246">            } catch (ApprovalException e) {</span>
+<span class="nc" id="L247">                raLocaleBean.addMessageError(&quot;editendentity_approval_exists&quot;);</span>
+<span class="nc" id="L248">            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L249">                raLocaleBean.addMessageError(&quot;editendentity_unauthorized&quot;);</span>
+<span class="nc" id="L250">            } catch (EndEntityProfileValidationException</span>
+                    | CADoesntExistsException
+                    | CertificateSerialNumberException
+                    | IllegalNameException
+                    | NoSuchEndEntityException
+                    | CustomFieldException e) {
+<span class="nc" id="L256">                raLocaleBean.addMessageError(&quot;editendentity_failure&quot;);</span>
+<span class="nc" id="L257">            }</span>
+        }
+<span class="nc" id="L259">        editEditEndEntityCancel();</span>
+<span class="nc" id="L260">    }</span>
+
+    /**
+     * @return true if enrollment code and confirm enrollment code are valid
+     */
+    private boolean verifyEnrollmentCodes() {
+<span class="nc bnc" id="L266" title="All 2 branches missed.">        if (blankEnrollmentCodes()) {</span>
+<span class="nc" id="L267">            raLocaleBean.addMessageError(&quot;editendentity_password_blank&quot;);</span>
+<span class="nc" id="L268">            return false;</span>
+        }
+<span class="nc bnc" id="L270" title="All 2 branches missed.">        if (!enrollmentCode.equals(enrollmentCodeConfirm)) {</span>
+<span class="nc" id="L271">            raLocaleBean.addMessageError(&quot;editendentity_password_nomatch&quot;);</span>
+<span class="nc" id="L272">            return false;</span>
+        }
+<span class="nc" id="L274">        return true;</span>
+    }
+
+    /**
+     * @return true if enrollment code or confirm enrollment code is blank
+     */
+    private boolean blankEnrollmentCodes() {
+<span class="nc bnc" id="L281" title="All 4 branches missed.">        return StringUtils.isBlank(enrollmentCode) || StringUtils.isBlank(enrollmentCodeConfirm);</span>
+    }
+
+    /**
+     * @return the status currently selected in edit mode
+     */
+    public int getSelectedStatus() {
+<span class="nc bnc" id="L288" title="All 2 branches missed.">        if (selectedStatus == -1) {</span>
+<span class="nc" id="L289">            getSelectableStatuses();</span>
+        }
+<span class="nc" id="L291">        return selectedStatus;</span>
+    }
+
+    /**
+     * Sets the selected status to a new status
+     * 
+     * @param selectedStatus the new status
+     */
+    public void setSelectedStatus(int selectedStatus) {
+<span class="nc" id="L300">        this.selectedStatus = selectedStatus;</span>
+<span class="nc" id="L301">    }</span>
+
+    /**
+     * Sets the enrollment code field
+     * 
+     * @param enrollmentCode the new enrollment code
+     */
+    public void setEnrollmentCode(String enrollmentCode) {
+<span class="nc" id="L309">        this.enrollmentCode = enrollmentCode;</span>
+<span class="nc" id="L310">    }</span>
+
+    /**
+     * @return the enrollment code
+     */
+    public String getEnrollmentCode() {
+<span class="nc" id="L316">        return enrollmentCode;</span>
+    }
+
+    /**
+     * Sets the enrollment code (confirm) field
+     * 
+     * @param enrollmentCodeConfirm the new enrollment code (confirm)
+     */
+    public void setEnrollmentCodeConfirm(String enrollmentCodeConfirm) {
+<span class="nc" id="L325">        this.enrollmentCodeConfirm = enrollmentCodeConfirm;</span>
+<span class="nc" id="L326">    }</span>
+
+    /**
+     * @return the enrollment code (confirm)
+     */
+    public String getEnrollmentCodeConfirm() {
+<span class="nc" id="L332">        return enrollmentCodeConfirm;</span>
+    }
+
+    /**
+     * Generates an array of selectable statuses if not already cached and sets
+     * the current selected status to &quot;Unchanged&quot;
+     * 
+     * @return an array of selectable statuses
+     */
+    public SelectStatus[] getSelectableStatuses() {
+<span class="nc bnc" id="L342" title="All 4 branches missed.">        if (editEditEndEntityMode &amp;&amp; selectableStatuses == null) {</span>
+<span class="nc" id="L343">            selectableStatuses = new SelectStatus[] {</span>
+                    new SelectStatus(
+<span class="nc" id="L345">                            raLocaleBean.getMessage(&quot;component_eedetails_status_unchanged&quot;),</span>
+                            0),
+                    new SelectStatus(
+<span class="nc" id="L348">                            raLocaleBean.getMessage(&quot;component_eedetails_status_new&quot;),</span>
+                            EndEntityConstants.STATUS_NEW),
+                    new SelectStatus(
+<span class="nc" id="L351">                            raLocaleBean.getMessage(&quot;component_eedetails_status_generated&quot;),</span>
+                            EndEntityConstants.STATUS_GENERATED)
+            };
+<span class="nc" id="L354">            selectedStatus = selectableStatuses[0].getStatusConstant();</span>
+        }
+<span class="nc" id="L356">        return selectableStatuses;</span>
+    }
+
+    /**
+     * @return a list of the End Entity's certificates
+     */
+    public List&lt;RaCertificateDetails&gt; getIssuedCerts() {
+<span class="nc bnc" id="L363" title="All 2 branches missed.">        if (issuedCerts == null) {</span>
+<span class="nc" id="L364">            issuedCerts = RaEndEntityTools.searchCertsByUsernameSorted(</span>
+<span class="nc" id="L365">                    raMasterApiProxyBean, raAuthenticationBean.getAuthenticationToken(),</span>
+                    username, raLocaleBean);
+        }
+<span class="nc" id="L368">        return issuedCerts;</span>
+    }
+
+    /**
+     * @return true if the API is compatible with End Entity editing 
+     */
+    public boolean isApiEditCompatible() {
+<span class="nc bnc" id="L375" title="All 2 branches missed.">        return raMasterApiProxyBean.getApiVersion() &gt;= 2;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

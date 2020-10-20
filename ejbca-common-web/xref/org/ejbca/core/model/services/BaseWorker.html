@@ -165,7 +165,7 @@
 <a class="jxr_linenumber" name="L157" href="#L157">157</a>                 String msg = intres.getLocalizedMessage(<span class="jxr_string">"services.errorexpireworker.errorconfig"</span>, serviceName, <span class="jxr_string">"VALUE"</span>);
 <a class="jxr_linenumber" name="L158" href="#L158">158</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> ServiceExecutionFailedException(msg);
 <a class="jxr_linenumber" name="L159" href="#L159">159</a>             }
-<a class="jxr_linenumber" name="L160" href="#L160">160</a>             timeBeforeExpire = intvalue * unitval;
+<a class="jxr_linenumber" name="L160" href="#L160">160</a>             timeBeforeExpire = (<strong class="jxr_keyword">long</strong>) intvalue * unitval;
 <a class="jxr_linenumber" name="L161" href="#L161">161</a>         }
 <a class="jxr_linenumber" name="L162" href="#L162">162</a> 
 <a class="jxr_linenumber" name="L163" href="#L163">163</a>         <strong class="jxr_keyword">return</strong> timeBeforeExpire * 1000;

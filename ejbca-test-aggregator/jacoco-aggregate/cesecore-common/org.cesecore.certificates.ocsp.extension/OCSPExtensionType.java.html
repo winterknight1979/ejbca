@@ -14,30 +14,28 @@
 package org.cesecore.certificates.ocsp.extension;
 
 /**
- * Context in which the {@link OCSPExtension} may be used
- * 
+ * Context in which the {@link OCSPExtension} may be used.
+ *
  * @version $Id: OCSPExtensionType.java 28882 2018-05-08 18:19:23Z anatom $
  */
 <span class="nc" id="L21">public enum OCSPExtensionType {</span>
 
-    /**
-     * A Request Extension may be added to the TBSRequest.
-     */
-<span class="nc" id="L26">    REQUEST,</span>
+  /** A Request Extension may be added to the TBSRequest. */
+<span class="nc" id="L24">  REQUEST,</span>
 
-    /**
-     * A SingleRequest Extension may be added to a Request in the TBSRequest.requestList.
-     */
-<span class="nc" id="L31">    SINGLE_REQUEST,</span>
+  /**
+   * A SingleRequest Extension may be added to a Request in the
+   * TBSRequest.requestList.
+   */
+<span class="nc" id="L30">  SINGLE_REQUEST,</span>
 
-    /**
-     * A Response Extension may be added to the ResponseData.
-     */
-<span class="nc" id="L36">    RESPONSE,</span>
+  /** A Response Extension may be added to the ResponseData. */
+<span class="nc" id="L33">  RESPONSE,</span>
 
-    /**
-     * A SingleResponse Extension may be added to a SingleResponse in the ResponseData.responses.
-     */
-<span class="nc" id="L41">    SINGLE_RESPONSE</span>
+  /**
+   * A SingleResponse Extension may be added to a SingleResponse in the
+   * ResponseData.responses.
+   */
+<span class="nc" id="L39">  SINGLE_RESPONSE</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

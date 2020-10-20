@@ -1,0 +1,357 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RaCertDistServlet.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ra-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ra</a> &gt; <span class="el_source">RaCertDistServlet.java</span></div><h1>RaCertDistServlet.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ra;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+import javax.ejb.EJB;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.log4j.Logger;
+import org.bouncycastle.cms.CMSException;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.certificate.CertificateDataWrapper;
+import org.cesecore.util.CertTools;
+import org.ejbca.core.ejb.authentication.web.WebAuthenticationProviderSessionLocal;
+import org.ejbca.core.model.era.RaMasterApiProxyBeanLocal;
+import org.ejbca.cvc.CardVerifiableCertificate;
+import org.ejbca.ui.web.RequestHelper;
+import org.ejbca.ui.web.pub.ServletUtils;
+import org.yaml.snakeyaml.DumperOptions;
+import org.yaml.snakeyaml.Yaml;
+
+/**
+ * Servlet for download of CA certificates and chains.
+ *
+ * @version $Id: RaCertDistServlet.java 28821 2018-05-02 15:30:26Z samuellb $
+ */
+@WebServlet(&quot;/cert&quot;)
+<span class="nc" id="L59">public class RaCertDistServlet extends HttpServlet {</span>
+
+    private static final long serialVersionUID = 1L;
+<span class="nc" id="L62">    private static final Logger log = Logger.getLogger(RaCertDistServlet.class);</span>
+    private static final String PARAMETER_FINGERPRINTSHEET = &quot;fpsheet&quot;;
+    private static final String PARAMETER_CERT_BUNDLE = &quot;certbundle&quot;;
+    private static final String PARAMETER_CAID = &quot;caid&quot;;
+    private static final String PARAMETER_FINGERPRINT = &quot;fp&quot;;
+    private static final String PARAMETER_FORMAT = &quot;format&quot;;
+    private static final String PARAMETER_FORMAT_OPTION_FIREFOX = &quot;ns&quot;;
+    private static final String PARAMETER_FORMAT_OPTION_PEM = &quot;pem&quot;;    // Applies to both certificate chain and individual certificates download
+    private static final String PARAMETER_FORMAT_OPTION_DER = &quot;der&quot;;
+    private static final String PARAMETER_FORMAT_OPTION_JKS = &quot;jks&quot;;    // Applies only to certificate chain download
+    private static final String PARAMETER_FORMAT_OPTION_P7C = &quot;pkcs7&quot;;  // Applies to both certificate chain and individual certificates download
+    private static final String PARAMETER_CHAIN = &quot;chain&quot;;
+
+    @EJB
+    private RaMasterApiProxyBeanLocal raMasterApi;
+    @EJB
+    private WebAuthenticationProviderSessionLocal webAuthenticationProviderSession;
+
+<span class="nc" id="L80">    private RaAuthenticationHelper raAuthenticationHelper = null;</span>
+
+    @Override
+    protected void service(final HttpServletRequest httpServletRequest, final HttpServletResponse httpServletResponse) throws ServletException, IOException {
+<span class="nc bnc" id="L84" title="All 2 branches missed.">        if (raAuthenticationHelper==null) {</span>
+            // Initialize the authentication helper function
+<span class="nc" id="L86">            raAuthenticationHelper = new RaAuthenticationHelper(webAuthenticationProviderSession);</span>
+        }
+<span class="nc bnc" id="L88" title="All 2 branches missed.">        if (httpServletRequest.getParameter(PARAMETER_FINGERPRINTSHEET) != null) {</span>
+<span class="nc" id="L89">            downloadFingerprintSheet(httpServletRequest, httpServletResponse);</span>
+<span class="nc" id="L90">            return;</span>
+        }
+<span class="nc bnc" id="L92" title="All 2 branches missed.">        if (httpServletRequest.getParameter(PARAMETER_CERT_BUNDLE) != null) {</span>
+<span class="nc" id="L93">            downloadCertificateBundle(httpServletRequest, httpServletResponse);</span>
+<span class="nc" id="L94">            return;</span>
+        }
+<span class="nc" id="L96">        final boolean fullChain = Boolean.valueOf(httpServletRequest.getParameter(PARAMETER_CHAIN));</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">        if (httpServletRequest.getParameter(PARAMETER_CAID) != null) {</span>
+<span class="nc" id="L98">            List&lt;Certificate&gt; chain = null;</span>
+            try {
+<span class="nc" id="L100">                final int caId = Integer.valueOf(httpServletRequest.getParameter(PARAMETER_CAID));</span>
+<span class="nc" id="L101">                final AuthenticationToken authenticationToken = raAuthenticationHelper.getAuthenticationToken(httpServletRequest, httpServletResponse);</span>
+<span class="nc" id="L102">                final List&lt;CAInfo&gt; caInfos = raMasterApi.getAuthorizedCas(authenticationToken);</span>
+<span class="nc bnc" id="L103" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L104">                    log.debug(authenticationToken.toString() + &quot; was authorized to &quot; + caInfos.size() + &quot; CAs.&quot;);</span>
+                }
+<span class="nc bnc" id="L106" title="All 2 branches missed.">                for (final CAInfo caInfo : caInfos) {</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">                    if (caId == caInfo.getCAId()) {</span>
+<span class="nc" id="L108">                        chain = new ArrayList&lt;&gt;(caInfo.getCertificateChain());</span>
+<span class="nc" id="L109">                        break;</span>
+                    }
+<span class="nc" id="L111">                }</span>
+<span class="nc" id="L112">            } catch (NumberFormatException e) {</span>
+<span class="nc" id="L113">                log.debug(&quot;Unable to parse &quot; + PARAMETER_CAID + &quot; request parameter: &quot; + e.getMessage());</span>
+<span class="nc" id="L114">            }</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">            if (chain==null) {</span>
+<span class="nc" id="L116">                httpServletResponse.sendError(HttpServletResponse.SC_BAD_REQUEST, &quot;Unable to parse &quot; + PARAMETER_CAID + &quot; request parameter.&quot;);</span>
+<span class="nc" id="L117">                return;</span>
+            } else {
+                try {
+<span class="nc" id="L120">                    final Certificate caCertificate = chain.get(0);</span>
+<span class="nc" id="L121">                    String filename = RequestHelper.getFileNameFromCertNoEnding(caCertificate, &quot;ca&quot;);</span>
+<span class="nc" id="L122">                    String contentType = &quot;application/octet-stream&quot;;</span>
+<span class="nc" id="L123">                    byte[] response = null;</span>
+<span class="nc bnc" id="L124" title="All 2 branches missed.">                    if (fullChain) {</span>
+<span class="nc bnc" id="L125" title="All 3 branches missed.">                        switch (httpServletRequest.getParameter(PARAMETER_FORMAT)) {</span>
+                        case PARAMETER_FORMAT_OPTION_JKS: {
+                            // Create a JKS truststore with the CA certificates in
+<span class="nc" id="L128">                            final KeyStore keyStore = KeyStore.getInstance(&quot;JKS&quot;);</span>
+<span class="nc" id="L129">                            keyStore.load(null, null);</span>
+<span class="nc bnc" id="L130" title="All 2 branches missed.">                            for (int i=0; i&lt;chain.size(); i++) {</span>
+<span class="nc" id="L131">                                final String subjectDn = CertTools.getSubjectDN(chain.get(i));</span>
+<span class="nc" id="L132">                                String alias = CertTools.getPartFromDN(subjectDn, &quot;CN&quot;);</span>
+<span class="nc bnc" id="L133" title="All 2 branches missed.">                                if (alias == null) {</span>
+<span class="nc" id="L134">                                    alias = CertTools.getPartFromDN(subjectDn, &quot;O&quot;);</span>
+                                }
+<span class="nc bnc" id="L136" title="All 2 branches missed.">                                if (alias == null) {</span>
+<span class="nc" id="L137">                                    alias = &quot;cacert&quot;+i;</span>
+                                }
+<span class="nc" id="L139">                                alias.replaceAll(&quot; &quot;, &quot;_&quot;).substring(0, Math.min(15, alias.length()));</span>
+<span class="nc" id="L140">                                keyStore.setCertificateEntry(alias, chain.get(i));</span>
+                            }
+<span class="nc" id="L142">                            try (ByteArrayOutputStream out = new ByteArrayOutputStream();) {</span>
+<span class="nc" id="L143">                                keyStore.store(out, &quot;changeit&quot;.toCharArray());</span>
+<span class="nc" id="L144">                                response = out.toByteArray();</span>
+                            }
+<span class="nc" id="L146">                            filename += &quot;-chain.jks&quot;;</span>
+<span class="nc" id="L147">                            break;</span>
+                        }
+                        case PARAMETER_FORMAT_OPTION_P7C: {
+<span class="nc" id="L150">                            response = CertTools.createCertsOnlyCMS(CertTools.convertCertificateChainToX509Chain(chain));</span>
+<span class="nc" id="L151">                            filename += &quot;-chain.p7c&quot;;</span>
+<span class="nc" id="L152">                            break;</span>
+                        }
+                        case PARAMETER_FORMAT_OPTION_PEM:
+                        default: {
+<span class="nc" id="L156">                            response = CertTools.getPemFromCertificateChain(chain);</span>
+<span class="nc" id="L157">                            filename += &quot;-chain.pem&quot;;</span>
+<span class="nc" id="L158">                            break;</span>
+                        }
+                        }
+                    } else {
+<span class="nc" id="L162">                        response = caCertificate.getEncoded();</span>
+<span class="nc bnc" id="L163" title="All 4 branches missed.">                        switch (httpServletRequest.getParameter(PARAMETER_FORMAT)) {</span>
+                        case PARAMETER_FORMAT_OPTION_FIREFOX: {
+<span class="nc" id="L165">                            filename = null;</span>
+<span class="nc" id="L166">                            contentType = &quot;application/x-x509-ca-cert&quot;;</span>
+<span class="nc" id="L167">                            break;</span>
+                        }
+                        case PARAMETER_FORMAT_OPTION_DER: {
+<span class="nc bnc" id="L170" title="All 2 branches missed.">                            filename += (caCertificate instanceof CardVerifiableCertificate) ? &quot;.cvcert&quot; : &quot;.crt&quot;;</span>
+<span class="nc" id="L171">                            break;</span>
+                        }
+                        case PARAMETER_FORMAT_OPTION_P7C: {
+<span class="nc" id="L174">                            response = CertTools.createCertsOnlyCMS(CertTools.convertCertificateChainToX509Chain(Arrays.asList(new Certificate[]{ caCertificate })));</span>
+<span class="nc" id="L175">                            filename += &quot;.p7c&quot;;</span>
+<span class="nc" id="L176">                            break;</span>
+                        }
+                        case PARAMETER_FORMAT_OPTION_PEM:
+                        default: {
+<span class="nc" id="L180">                            filename += &quot;.pem&quot;;</span>
+<span class="nc" id="L181">                            response = CertTools.getPemFromCertificateChain(Arrays.asList(new Certificate[]{ caCertificate }));</span>
+                            break;
+                        }
+                        }
+                    }
+<span class="nc" id="L186">                    writeResponseBytes(httpServletResponse, filename, contentType, response);</span>
+<span class="nc" id="L187">                } catch (NoSuchFieldException | KeyStoreException | NoSuchAlgorithmException | CertificateException | ClassCastException | CMSException e) {</span>
+<span class="nc" id="L188">                    httpServletResponse.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, &quot;Unable to serve request due to internal error.&quot;);</span>
+<span class="nc bnc" id="L189" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L190">                        log.debug(&quot;Failed to provide certificate download to client. &quot; + e.getMessage());</span>
+                    }
+<span class="nc" id="L192">                    return;</span>
+<span class="nc" id="L193">                }</span>
+            }
+<span class="nc bnc" id="L195" title="All 2 branches missed.">        } else if (httpServletRequest.getParameter(PARAMETER_FINGERPRINT) != null) {</span>
+<span class="nc" id="L196">            final String fingerprint = httpServletRequest.getParameter(PARAMETER_FINGERPRINT);</span>
+            // Serving regular leaf certificate (optionally with full chain)
+<span class="nc" id="L198">            final AuthenticationToken authenticationToken = raAuthenticationHelper.getAuthenticationToken(httpServletRequest, httpServletResponse);</span>
+<span class="nc" id="L199">            final List&lt;CAInfo&gt; caInfos = raMasterApi.getAuthorizedCas(authenticationToken);</span>
+            // Only process request if there is a chance the client is authorized to the CA that issued it
+<span class="nc bnc" id="L201" title="All 2 branches missed.">            if (!caInfos.isEmpty()) {</span>
+<span class="nc" id="L202">                final CertificateDataWrapper cdw = raMasterApi.searchForCertificate(authenticationToken, fingerprint);</span>
+<span class="nc bnc" id="L203" title="All 2 branches missed.">                if (cdw!=null) {</span>
+<span class="nc bnc" id="L204" title="All 2 branches missed.">                    for (final CAInfo caInfo : caInfos) {</span>
+<span class="nc bnc" id="L205" title="All 2 branches missed.">                        if (caInfo.getSubjectDN().equals(cdw.getCertificateData().getIssuerDN())) {</span>
+<span class="nc" id="L206">                            List&lt;Certificate&gt; chain = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L207">                            chain.add(cdw.getCertificate());</span>
+<span class="nc bnc" id="L208" title="All 2 branches missed.">                            if (fullChain) {</span>
+<span class="nc" id="L209">                                chain.addAll(caInfo.getCertificateChain());</span>
+                            }
+                            try {
+<span class="nc" id="L212">                                byte[] response = null;</span>
+<span class="nc" id="L213">                                String filename = &quot;cert&quot;+fingerprint;</span>
+<span class="nc bnc" id="L214" title="All 3 branches missed.">                                switch (httpServletRequest.getParameter(PARAMETER_FORMAT)) {</span>
+                                case PARAMETER_FORMAT_OPTION_DER: {
+<span class="nc" id="L216">                                    response = chain.get(0).getEncoded();</span>
+<span class="nc bnc" id="L217" title="All 2 branches missed.">                                    filename += (chain.get(0) instanceof CardVerifiableCertificate) ? &quot;.cvcert&quot; : &quot;.crt&quot;;</span>
+<span class="nc" id="L218">                                    break;</span>
+                                }
+                                case PARAMETER_FORMAT_OPTION_P7C: {
+<span class="nc" id="L221">                                    response = CertTools.createCertsOnlyCMS(CertTools.convertCertificateChainToX509Chain(chain));</span>
+<span class="nc bnc" id="L222" title="All 2 branches missed.">                                    if (fullChain) {</span>
+<span class="nc" id="L223">                                        filename += &quot;-chain&quot;;</span>
+                                    }
+<span class="nc" id="L225">                                    filename += &quot;.p7c&quot;;</span>
+<span class="nc" id="L226">                                    break;</span>
+                                }
+                                case PARAMETER_FORMAT_OPTION_PEM:
+                                default: {
+<span class="nc" id="L230">                                    response = CertTools.getPemFromCertificateChain(chain);</span>
+<span class="nc bnc" id="L231" title="All 2 branches missed.">                                    if (fullChain) {</span>
+<span class="nc" id="L232">                                        filename += &quot;-chain&quot;;</span>
+                                    }
+<span class="nc" id="L234">                                    filename += &quot;.pem&quot;;</span>
+                                    break;
+                                }
+                                }
+<span class="nc" id="L238">                                writeResponseBytes(httpServletResponse, filename, &quot;application/octet-stream&quot;, response);</span>
+<span class="nc" id="L239">                                return;</span>
+<span class="nc" id="L240">                            } catch (CertificateEncodingException | ClassCastException | CMSException e) {</span>
+<span class="nc" id="L241">                                log.warn(&quot;Failed to provide download of certificate with fingerprint &quot; + fingerprint);</span>
+                            }
+                        }
+<span class="nc" id="L244">                    }</span>
+                }
+            }
+<span class="nc" id="L247">            httpServletResponse.sendError(HttpServletResponse.SC_BAD_REQUEST, &quot;Unable to parse &quot; + PARAMETER_FINGERPRINT + &quot; request parameter.&quot;);</span>
+<span class="nc" id="L248">        } else {</span>
+<span class="nc" id="L249">            httpServletResponse.sendError(HttpServletResponse.SC_BAD_REQUEST, &quot;Unable to request parameters.&quot;);</span>
+        }
+<span class="nc" id="L251">    }</span>
+    
+    private static String removeSpecial(String str) {
+<span class="nc" id="L254">		return str.replaceAll(&quot;[^a-zA-Z ]&quot;, &quot;&quot;);</span>
+	}
+
+    private void writeResponseBytes(final HttpServletResponse httpServletResponse, final String filename, final String contentType, final byte[] response) throws IOException {
+<span class="nc" id="L258">        ServletUtils.removeCacheHeaders(httpServletResponse);</span>
+<span class="nc bnc" id="L259" title="All 2 branches missed.">        if (filename!=null) {</span>
+<span class="nc" id="L260">        	String name = removeSpecial(filename);</span>
+<span class="nc" id="L261">            httpServletResponse.setHeader(&quot;Content-Disposition&quot;, &quot;attachment; filename=\&quot;&quot; + name + &quot;\&quot;&quot;);</span>
+        }
+<span class="nc" id="L263">        httpServletResponse.setContentType(contentType);</span>
+<span class="nc" id="L264">        httpServletResponse.setContentLength(response.length);</span>
+<span class="nc" id="L265">        httpServletResponse.getOutputStream().write(response);</span>
+<span class="nc" id="L266">    }</span>
+
+    /**
+     * Creates and outputs a YAML document containing the CA certificate fingerprints of all active Certification Authorities
+     * on this system to which the current user has access. The CA certificate fingerprints are computed using SHA-256.
+     * &lt;p&gt;Certification Authorities without a certificate, i.e. CAs with status {@link org.cesecore.certificates.ca.CAConstants#CA_UNINITIALIZED} or
+     * {@link org.cesecore.certificates.ca.CAConstants#CA_WAITING_CERTIFICATE_RESPONSE} are excluded.
+     * @param httpServletRequest the HTTP request for CA certificate fingerprints
+     * @param httpServletResponse the HTTP response to which the fingerprint sheet should be written
+     * @throws IOException if an error occurred when creating the response
+     */
+    public void downloadFingerprintSheet(final HttpServletRequest httpServletRequest, final HttpServletResponse httpServletResponse)
+            throws IOException {
+<span class="nc" id="L279">        final Map&lt;String, Object&gt; entries = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L280">        final AuthenticationToken authenticationToken = raAuthenticationHelper.getAuthenticationToken(httpServletRequest, httpServletResponse);</span>
+<span class="nc bnc" id="L281" title="All 2 branches missed.">        for (final CAInfo caInfo : raMasterApi.getAuthorizedCas(authenticationToken)) {</span>
+<span class="nc bnc" id="L282" title="All 4 branches missed.">            if (caInfo.getCertificateChain() == null || caInfo.getCertificateChain().size() == 0) {</span>
+<span class="nc bnc" id="L283" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L284">                    log.debug(&quot;Not computing CA certificate fingerprint for CA &quot; + caInfo.getName()</span>
+<span class="nc" id="L285">                            + &quot; because no CA certificate is available. Status of this CA is &quot; + caInfo.getStatus());</span>
+                }
+                continue;
+            }
+            try {
+<span class="nc" id="L290">                final Certificate caCertificate = caInfo.getCertificateChain().get(0);</span>
+<span class="nc" id="L291">                final String caFingerprint = CertTools.getFingerprintAsString(CertTools.generateSHA256Fingerprint(caCertificate.getEncoded()));</span>
+<span class="nc" id="L292">                final Map&lt;String, String&gt; caEntry = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L293">                caEntry.put(&quot;Subject DN&quot;, caInfo.getSubjectDN());</span>
+<span class="nc" id="L294">                caEntry.put(&quot;CA Certificate Fingerprint&quot;, caFingerprint);</span>
+<span class="nc" id="L295">                entries.put(caInfo.getName(), caEntry);</span>
+<span class="nc bnc" id="L296" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L297">                    log.debug(&quot;Computed CA certificate fingerprint for CA &quot; + caInfo.getName() + &quot;.&quot;);</span>
+                }
+<span class="nc" id="L299">            } catch (final CertificateEncodingException e) {</span>
+<span class="nc" id="L300">                log.warn(&quot;Cannot compute CA certificate fingerprint for CA &quot; + caInfo.getName()</span>
+<span class="nc" id="L301">                        + &quot; because the CA certificate could not be encoded. The error was: &quot; + e.getMessage());</span>
+<span class="nc" id="L302">                continue;</span>
+<span class="nc" id="L303">            }</span>
+<span class="nc" id="L304">        }</span>
+<span class="nc" id="L305">        final DumperOptions dumperOptions = new DumperOptions();</span>
+<span class="nc" id="L306">        dumperOptions.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);</span>
+<span class="nc" id="L307">        dumperOptions.setPrettyFlow(true);</span>
+<span class="nc" id="L308">        final Yaml yaml = new Yaml(dumperOptions);</span>
+<span class="nc" id="L309">        log.info(&quot;User &quot; + authenticationToken.toString() + &quot; requested a CA certificate fingerprint file.&quot;);</span>
+<span class="nc" id="L310">        writeResponseBytes(httpServletResponse, &quot;fingerprints.yaml&quot;, &quot;text/plain; charset=utf-8&quot;,</span>
+<span class="nc" id="L311">                yaml.dumpAsMap(entries).getBytes(Charset.forName(&quot;UTF-8&quot;)));</span>
+<span class="nc" id="L312">    }</span>
+
+    /**
+     * Creates and outputs a compressed certificate bundle containing the CA certificates of all active Certification Authorities
+     * on this system to which the current user has access. The certificate bundle is provided as a zip file of DER-encoded certificates.
+     * &lt;p&gt;Certification Authorities without a certificate, i.e. CAs with status {@link org.cesecore.certificates.ca.CAConstants#CA_UNINITIALIZED} or
+     * {@link org.cesecore.certificates.ca.CAConstants#CA_WAITING_CERTIFICATE_RESPONSE} are excluded.
+     * @param httpServletRequest the HTTP request for a certificate bundle
+     * @param httpServletResponse the HTTP response to which the certificate bundle should be written
+     * @throws IOException if an error occurred when creating the response
+     */
+    private void downloadCertificateBundle(final HttpServletRequest httpServletRequest, final HttpServletResponse httpServletResponse)
+            throws IOException {
+<span class="nc" id="L325">        try (final ByteArrayOutputStream zipContent = new ByteArrayOutputStream()) {</span>
+<span class="nc" id="L326">            try (final ZipOutputStream certificateBundle = new ZipOutputStream(zipContent)) {</span>
+<span class="nc" id="L327">                final AuthenticationToken authenticationToken = raAuthenticationHelper.getAuthenticationToken(httpServletRequest, httpServletResponse);</span>
+<span class="nc bnc" id="L328" title="All 2 branches missed.">                for (final CAInfo caInfo : raMasterApi.getAuthorizedCas(authenticationToken)) {</span>
+<span class="nc bnc" id="L329" title="All 4 branches missed.">                    if (caInfo.getCertificateChain() == null || caInfo.getCertificateChain().size() == 0) {</span>
+<span class="nc bnc" id="L330" title="All 2 branches missed.">                        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L331">                            log.debug(&quot;Not adding CA certificate for CA &quot; + caInfo.getName()</span>
+<span class="nc" id="L332">                                    + &quot; to certificate bundle because no CA certificate is available. Status of this CA is &quot; + caInfo.getStatus());</span>
+                        }
+                        continue;
+                    }
+                    try {
+<span class="nc" id="L337">                        final byte[] encodedCertificate = caInfo.getCertificateChain().get(0).getEncoded();</span>
+<span class="nc" id="L338">                        final String filename = caInfo.getName() + &quot;.crt&quot;;</span>
+<span class="nc" id="L339">                        certificateBundle.putNextEntry(new ZipEntry(filename));</span>
+<span class="nc" id="L340">                        certificateBundle.write(encodedCertificate);</span>
+<span class="nc" id="L341">                        certificateBundle.closeEntry();</span>
+<span class="nc bnc" id="L342" title="All 2 branches missed.">                        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L343">                            log.debug(&quot;Added CA certificate for CA &quot; + caInfo.getName() + &quot; to certificate bundle.&quot;);</span>
+                        }
+<span class="nc" id="L345">                    } catch (final CertificateEncodingException e) {</span>
+<span class="nc" id="L346">                        log.warn(&quot;Cannot add CA certificate for CA &quot; + caInfo.getName()</span>
+<span class="nc" id="L347">                                + &quot; to certificate bundle because the CA certificate could not be encoded. The error was: &quot; + e.getMessage());</span>
+<span class="nc" id="L348">                        continue;</span>
+<span class="nc" id="L349">                    }</span>
+<span class="nc" id="L350">                }</span>
+<span class="nc" id="L351">                log.info(&quot;User &quot; + authenticationToken.toString() + &quot; requested a CA certificate bundle.&quot;);</span>
+            }
+<span class="nc" id="L353">            writeResponseBytes(httpServletResponse, &quot;certbundle.zip&quot;, &quot;application/octet-stream&quot;, zipContent.toByteArray());</span>
+        }
+<span class="nc" id="L355">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

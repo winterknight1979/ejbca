@@ -9,7 +9,7 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/  
+ *************************************************************************/
 package org.cesecore.certificates.ocsp.exception;
 
 import org.cesecore.CesecoreException;
@@ -20,26 +20,26 @@ import org.cesecore.CesecoreException;
  * @version $Id: IllegalNonceException.java 22982 2016-03-14 15:57:11Z anatom $
  */
 public class IllegalNonceException extends CesecoreException {
- 
-    private static final long serialVersionUID = 6774153561528947365L;
-  
-    /**
-     * Constructor used to create exception with an error message. Calls the same constructor in
-     * baseclass &lt;code&gt;Exception&lt;/code&gt;.
-     *
-     * @param message Human readable error message, can not be NULL.
-     */
-    public IllegalNonceException(final String message) {
-<span class="nc" id="L33">        super(message);</span>
-<span class="nc" id="L34">    }</span>
-    /**
-     * Constructor used to create exception with an embedded exception. Calls the same constructor
-     * in baseclass &lt;code&gt;Exception&lt;/code&gt;.
-     *
-     * @param exception exception to be embedded.
-     */
-    public IllegalNonceException(final Exception exception) {
-<span class="nc" id="L42">        super(exception);</span>
-<span class="nc" id="L43">    }</span>
+
+  private static final long serialVersionUID = 6774153561528947365L;
+
+  /**
+   * Constructor used to create exception with an error message. Calls the same
+   * constructor in baseclass &lt;code&gt;Exception&lt;/code&gt;.
+   *
+   * @param message Human readable error message, can not be NULL.
+   */
+  public IllegalNonceException(final String message) {
+<span class="nc" id="L33">    super(message);</span>
+<span class="nc" id="L34">  }</span>
+  /**
+   * Constructor used to create exception with an embedded exception. Calls the
+   * same constructor in baseclass &lt;code&gt;Exception&lt;/code&gt;.
+   *
+   * @param exception exception to be embedded.
+   */
+  public IllegalNonceException(final Exception exception) {
+<span class="nc" id="L42">    super(exception);</span>
+<span class="nc" id="L43">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

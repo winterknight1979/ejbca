@@ -523,7 +523,7 @@ public abstract class ApprovalProfileBase extends ProfileBase implements Approva
     @Override
     public int getNumberOfApprovalsRequired(final int stepIdentifier, final int partitionIdentifier) {
 <span class="pc bpc" id="L525" title="1 of 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
-<span class="fc" id="L526">    	    log.trace(&quot;&gt;getNumberOfApprovalsRequired: &quot;+stepIdentifier+&quot;, &quot;+partitionIdentifier);</span>
+<span class="nc" id="L526">    	    log.trace(&quot;&gt;getNumberOfApprovalsRequired: &quot;+stepIdentifier+&quot;, &quot;+partitionIdentifier);</span>
     	}
 <span class="fc" id="L528">        final DynamicUiProperty&lt;? extends Serializable&gt; numberOfRequiredApprovals = getStep(stepIdentifier).getPartition(partitionIdentifier).getProperty(PROPERTY_NUMBER_OF_REQUIRED_APPROVALS);</span>
 <span class="pc bpc" id="L529" title="1 of 2 branches missed.">        if (numberOfRequiredApprovals==null) {</span>
@@ -534,7 +534,7 @@ public abstract class ApprovalProfileBase extends ProfileBase implements Approva
         }
 <span class="fc" id="L535">        final int ret = (Integer) numberOfRequiredApprovals.getValue();</span>
 <span class="pc bpc" id="L536" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
-<span class="fc" id="L537">            log.trace(&quot;&lt;getNumberOfApprovalsRequired: &quot;+ret);</span>
+<span class="nc" id="L537">            log.trace(&quot;&lt;getNumberOfApprovalsRequired: &quot;+ret);</span>
         }
 <span class="fc" id="L539">        return ret;</span>
     }

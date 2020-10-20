@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>DeleteEndEntityCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.ra</a> &gt; <span class="el_source">DeleteEndEntityCommand.java</span></div><h1>DeleteEndEntityCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.cli.ra;
+
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.util.EjbRemoteHelper;
+import org.ejbca.core.ejb.ra.CouldNotRemoveEndEntityException;
+import org.ejbca.core.ejb.ra.EndEntityManagementSessionRemote;
+import org.ejbca.core.ejb.ra.NoSuchEndEntityException;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+
+/**
+ * Deletes an end entity from the database.
+ * 
+ * @version $Id: DeleteEndEntityCommand.java 29136 2018-06-07 11:11:07Z andresjakobs $
+ */
+<span class="nc" id="L38">public class DeleteEndEntityCommand extends BaseRaCommand {</span>
+
+<span class="nc" id="L40">    private static final Logger log = Logger.getLogger(DeleteEndEntityCommand.class);</span>
+
+    private static final String OLD_COMMAND = &quot;deluser&quot;;
+    private static final String COMMAND = &quot;delendentity&quot;;
+
+<span class="nc" id="L45">    private static final Set&lt;String&gt; ALIASES = new HashSet&lt;String&gt;();</span>
+    static {
+<span class="nc" id="L47">        ALIASES.add(OLD_COMMAND);</span>
+<span class="nc" id="L48">    }</span>
+
+    private static final String USERNAME_KEY = &quot;--username&quot;;
+    private static final String FORCE_KEY = &quot;-force&quot;;
+
+    {
+<span class="nc" id="L54">        registerParameter(new Parameter(USERNAME_KEY, &quot;Username&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;Username for the end entity to delete.&quot;));
+<span class="nc" id="L56">        registerParameter(Parameter.createFlag(FORCE_KEY, &quot;Don't ask if the end entity has been revoked.&quot;));</span>
+<span class="nc" id="L57">    }</span>
+
+    @Override
+    public Set&lt;String&gt; getMainCommandAliases() {
+<span class="nc" id="L61">        return ALIASES;</span>
+    }
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L66">        return COMMAND;</span>
+    }
+
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+
+<span class="nc" id="L72">        boolean force = parameters.containsKey(FORCE_KEY);</span>
+
+        try {
+<span class="nc" id="L75">            String username = parameters.get(USERNAME_KEY);</span>
+<span class="nc" id="L76">            int inp = 121;</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">            if (!force) {</span>
+<span class="nc" id="L78">                getLogger().info(&quot;Have you revoked the end entity [y/N]? &quot;);</span>
+                try {
+<span class="nc" id="L80">                    inp = System.in.read();</span>
+<span class="nc" id="L81">                } catch (IOException e) {</span>
+<span class="nc" id="L82">                    throw new IllegalStateException(&quot;Could not read console input.&quot;);</span>
+<span class="nc" id="L83">                }</span>
+            }
+<span class="nc bnc" id="L85" title="All 4 branches missed.">            if ((inp == 121) || (inp == 89)) {</span>
+                try {
+<span class="nc" id="L87">                    EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityManagementSessionRemote.class).deleteUser(getAuthenticationToken(), username);</span>
+<span class="nc" id="L88">                    getLogger().info(&quot;Deleted end entity with username: &quot; + username);</span>
+<span class="nc" id="L89">                    return CommandResult.SUCCESS;</span>
+<span class="nc" id="L90">                } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L91">                    getLogger().error(&quot;ERROR: Not authorized to remove end entity.&quot;);</span>
+<span class="nc" id="L92">                    return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L93">                } catch (CouldNotRemoveEndEntityException e) {</span>
+<span class="nc" id="L94">                    getLogger().error(&quot;ERROR: User could not be removed. &quot; + e.getMessage());</span>
+<span class="nc" id="L95">                    return CommandResult.FUNCTIONAL_FAILURE;</span>
+                }
+            } else {
+<span class="nc" id="L98">                getLogger().info(&quot;Deletion aborted!&quot;);</span>
+<span class="nc" id="L99">                getLogger().info(</span>
+<span class="nc" id="L100">                        &quot;Please run '&quot; + new RevokeEndEntityCommand().getMainCommand() + &quot; &quot; + new RevokeEndEntityCommand().getMainCommand() + &quot; &quot;</span>
+                                + username + &quot;'.&quot;);
+<span class="nc" id="L102">                return CommandResult.FUNCTIONAL_FAILURE;</span>
+            }
+<span class="nc" id="L104">        } catch (NoSuchEndEntityException e) {</span>
+<span class="nc" id="L105">            getLogger().error(&quot;ERROR: No such end entity.&quot;);</span>
+<span class="nc" id="L106">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+        }
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L112">        return &quot;Deletes an end entity&quot;;</span>
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L117">        StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L118">        sb.append(getCommandDescription() + &quot;.\n&quot;);</span>
+<span class="nc" id="L119">        return sb.toString();</span>
+    }
+
+    protected Logger getLogger() {
+<span class="nc" id="L123">        return log;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

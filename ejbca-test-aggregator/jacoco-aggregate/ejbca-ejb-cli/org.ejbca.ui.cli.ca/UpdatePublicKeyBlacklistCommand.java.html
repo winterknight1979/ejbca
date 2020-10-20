@@ -1,0 +1,438 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>UpdatePublicKeyBlacklistCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.ca</a> &gt; <span class="el_source">UpdatePublicKeyBlacklistCommand.java</span></div><h1>UpdatePublicKeyBlacklistCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.cli.ca;
+
+import java.io.File;
+import java.io.FileReader;
+import java.security.PublicKey;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.util.AlgorithmTools;
+import org.cesecore.keys.util.KeyTools;
+import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.EjbRemoteHelper;
+import org.cesecore.util.FileTools;
+import org.ejbca.core.ejb.ca.validation.BlacklistDoesntExistsException;
+import org.ejbca.core.ejb.ca.validation.BlacklistExistsException;
+import org.ejbca.core.ejb.ca.validation.BlacklistSessionRemote;
+import org.ejbca.core.model.validation.PublicKeyBlacklistEntry;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+
+/**
+ * Imports certificate files to the database for a given CA
+ *
+ * @version $Id: UpdatePublicKeyBlacklistCommand.java 26401 2017-08-23 20:07:11Z mikekushner $
+ */
+<span class="nc" id="L49">public class UpdatePublicKeyBlacklistCommand extends BaseCaAdminCommand {</span>
+
+    /** Class logger. */
+<span class="nc" id="L52">    private static final Logger log = Logger.getLogger(UpdatePublicKeyBlacklistCommand.class);</span>
+
+    public static final String COMMAND_KEY = &quot;--command&quot;;
+    public static final String KEY_SPECIFICATIONS_KEY = &quot;--keyspecs&quot;;
+    public static final String KEY_GENERATION_SOURCES_KEY = &quot;--sources&quot;;
+    public static final String DIRECTORY_KEY = &quot;--dir&quot;;
+    public static final String UPDATE_MODE_KEY = &quot;--mode&quot;;
+    public static final String RESUME_ON_ERROR_KEY = &quot;--resumeonerror&quot;;
+
+    public static final String COMMAND_ADD = &quot;add&quot;;
+    public static final String COMMAND_REMOVE = &quot;remove&quot;;
+    public static final String UPDATE_MODE_FINGERPINT = &quot;fingerprint&quot;;
+    public static final String CSV_SEPARATOR = &quot;,&quot;;
+
+    {
+<span class="nc" id="L67">        registerParameter(new Parameter(COMMAND_KEY, &quot;Command to execute&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;Command to execute. Use &quot; + COMMAND_ADD + &quot; or &quot; + COMMAND_REMOVE + &quot;.&quot;));
+<span class="nc" id="L69">        registerParameter(new Parameter(UPDATE_MODE_KEY, &quot;Update mode&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID, ParameterMode.ARGUMENT,</span>
+                &quot;Set to fingerprint if the files in --dir shall be treated as CSV files, containing on public key fingerprint per line with &quot;
+                        + PublicKeyBlacklistEntry.DIGEST_ALGORITHM
+                        + &quot; hash and optional additional information (key specification or key generation sources separated by comma: I.e.: fingerprint,keyspec,keygensource&quot;));
+<span class="nc" id="L73">        registerParameter(new Parameter(KEY_SPECIFICATIONS_KEY, &quot;Key specifications&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID,</span>
+                ParameterMode.ARGUMENT,
+                &quot;Comma separated list of key specifications. Use &lt;Algorithm&gt;&lt;Length&gt;, i.e RSA2048,ECDSA256 or all if missing. If --mode fingerprint is chosen, the first value is set as default value when running with --command add. If running with --command remove, only blacklist entries with that key specification are removed.&quot;));
+<span class="nc" id="L76">        registerParameter(new Parameter(DIRECTORY_KEY, &quot;Public key directory&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;Directory with public key files or CSV files containing public key fingerprints and additional information.&quot;));
+<span class="nc" id="L78">        registerParameter(Parameter.createFlag(RESUME_ON_ERROR_KEY,</span>
+                &quot;Set if the command should resume in case of errors, or stop on first one. Default is stop.&quot;));
+<span class="nc" id="L80">    }</span>
+
+    private static final int STATUS_OK = 0;
+    private static final int STATUS_READ_ERROR = 1;
+    private static final int STATUS_REDUNDANT = 2;
+    private static final int STATUS_CONSTRAINTVIOLATION = 3;
+    private static final int STATUS_GENERALIMPORTERROR = 4;
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L90">        return &quot;updatepublickeyblacklist&quot;;</span>
+    }
+
+    //@SuppressWarnings(&quot;unchecked&quot;)
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+<span class="nc" id="L96">        log.trace(&quot;&gt;execute()&quot;);</span>
+
+<span class="nc" id="L98">        CryptoProviderTools.installBCProviderIfNotAvailable();</span>
+
+        try {
+<span class="nc" id="L101">            final String command = parameters.get(COMMAND_KEY);</span>
+<span class="nc" id="L102">            final String keySpecificationsString = parameters.get(KEY_SPECIFICATIONS_KEY);</span>
+<span class="nc" id="L103">            final String importDirString = parameters.get(DIRECTORY_KEY);</span>
+<span class="nc" id="L104">            final boolean byFingerprint = UPDATE_MODE_FINGERPINT.equals(parameters.get(UPDATE_MODE_KEY));</span>
+<span class="nc" id="L105">            final boolean resumeOnError = parameters.containsKey(RESUME_ON_ERROR_KEY);</span>
+
+<span class="nc" id="L107">            List&lt;String&gt; keySpecifications = new ArrayList&lt;String&gt;(); // Allows any</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">            if (StringUtils.isNotBlank(keySpecificationsString)) {</span>
+<span class="nc" id="L109">                keySpecifications = Arrays.asList(keySpecificationsString.split(CSV_SEPARATOR));</span>
+            }
+
+            // Get all files in the directory to add/remove to/from public key blacklist. 
+<span class="nc" id="L113">            final File importDir = new File(importDirString);</span>
+<span class="nc bnc" id="L114" title="All 2 branches missed.">            if (!importDir.isDirectory()) {</span>
+<span class="nc" id="L115">                log.error(&quot;'&quot; + importDirString + &quot;' is not a directory.&quot;);</span>
+<span class="nc" id="L116">                return CommandResult.CLI_FAILURE;</span>
+            }
+<span class="nc" id="L118">            final File files[] = importDir.listFiles();</span>
+<span class="nc bnc" id="L119" title="All 4 branches missed.">            if (files == null || files.length &lt; 1) {</span>
+<span class="nc" id="L120">                log.info(&quot;No files in directory '&quot; + importDir.getCanonicalPath() + &quot;'. Nothing to do.&quot;);</span>
+<span class="nc" id="L121">                return CommandResult.SUCCESS; // Nothing to do is OK</span>
+            }
+
+            // Read public key file (or lists of fingerprint) to add/remove to/from public key blacklist.
+<span class="nc" id="L125">            int redundant = 0;</span>
+<span class="nc" id="L126">            int readError = 0;</span>
+<span class="nc" id="L127">            int constraintViolation = 0;</span>
+<span class="nc" id="L128">            int generalImportError = 0;</span>
+<span class="nc" id="L129">            int importOk = 0;</span>
+            int state;
+            String path;
+            FileReader reader;
+            List&lt;String&gt; lines;
+            PublicKey publicKey;
+            String fingerprint;
+            String keySpecification;
+            byte[] asn1Encodedbytes;
+
+<span class="nc bnc" id="L139" title="All 2 branches missed.">            for (final File file : files) {</span>
+<span class="nc" id="L140">                state = STATUS_GENERALIMPORTERROR;</span>
+                try {
+<span class="nc" id="L142">                    keySpecification = null;</span>
+<span class="nc" id="L143">                    path = file.getAbsolutePath();</span>
+<span class="nc" id="L144">                    log.debug(&quot;Read file &quot; + path);</span>
+
+<span class="nc bnc" id="L146" title="All 2 branches missed.">                    if (COMMAND_ADD.equals(command)) {</span>
+<span class="nc bnc" id="L147" title="All 2 branches missed.">                        if (!byFingerprint) {</span>
+<span class="nc" id="L148">                            log.info(&quot;Read public key file &quot; + path);</span>
+<span class="nc" id="L149">                            asn1Encodedbytes = KeyTools.getBytesFromPublicKeyFile(FileTools.readFiletoBuffer(path));</span>
+<span class="nc bnc" id="L150" title="All 2 branches missed.">                            if (null == (publicKey = KeyTools.getPublicKeyFromBytes(asn1Encodedbytes))) {</span>
+<span class="nc" id="L151">                                state = STATUS_READ_ERROR;</span>
+                            } else {
+<span class="nc" id="L153">                                state = addPublicKeyToBlacklist(publicKey);</span>
+                            }
+                        } else {
+<span class="nc" id="L156">                            log.info(&quot;Read public key fingerprints file &quot; + path);</span>
+<span class="nc" id="L157">                            reader = new FileReader(file);</span>
+<span class="nc" id="L158">                            lines = IOUtils.readLines(reader);</span>
+<span class="nc" id="L159">                            IOUtils.closeQuietly(reader);</span>
+                            String[] tokens;
+<span class="nc bnc" id="L161" title="All 2 branches missed.">                            for (String line : lines) {</span>
+<span class="nc" id="L162">                                tokens = line.split(CSV_SEPARATOR);</span>
+<span class="nc bnc" id="L163" title="All 2 branches missed.">                                if (tokens.length &gt; 0) {</span>
+<span class="nc" id="L164">                                    fingerprint = tokens[0];</span>
+<span class="nc" id="L165">                                    keySpecification = null;</span>
+<span class="nc bnc" id="L166" title="All 2 branches missed.">                                    if (CollectionUtils.isNotEmpty(keySpecifications)) {</span>
+<span class="nc" id="L167">                                        keySpecification = keySpecifications.get(0);</span>
+                                    }
+<span class="nc bnc" id="L169" title="All 2 branches missed.">                                    if (tokens.length &gt; 1) {</span>
+<span class="nc" id="L170">                                        keySpecification = tokens[1];</span>
+                                    }
+<span class="nc" id="L172">                                    state = addPublicKeyFingerprintToBlacklist(fingerprint, keySpecification);</span>
+<span class="nc bnc" id="L173" title="All 2 branches missed.">                                    if (STATUS_OK != state) {</span>
+<span class="nc" id="L174">                                        log.info(&quot;Update public key blacklist failed on fingerprint: &quot; + fingerprint); </span>
+<span class="nc" id="L175">                                        break;</span>
+                                    }
+                                }
+<span class="nc" id="L178">                            }</span>
+                        }
+<span class="nc bnc" id="L180" title="All 2 branches missed.">                    } else if (COMMAND_REMOVE.equals(command)) {</span>
+<span class="nc bnc" id="L181" title="All 2 branches missed.">                        if (!byFingerprint) {</span>
+<span class="nc" id="L182">                            log.info(&quot;Remove public key by file &quot; + path);</span>
+<span class="nc" id="L183">                            asn1Encodedbytes = KeyTools.getBytesFromPublicKeyFile(FileTools.readFiletoBuffer(path));</span>
+<span class="nc bnc" id="L184" title="All 2 branches missed.">                            if (null == (publicKey = KeyTools.getPublicKeyFromBytes(asn1Encodedbytes))) {</span>
+<span class="nc" id="L185">                                state = STATUS_READ_ERROR;</span>
+                            } else {
+<span class="nc" id="L187">                                state = removePublicKeyToBlacklist(publicKey);</span>
+                            }
+                        } else {
+<span class="nc" id="L190">                            log.info(&quot;Remove public keys by fingerprints listed in file &quot; + path);</span>
+<span class="nc" id="L191">                            reader = new FileReader(file);</span>
+<span class="nc" id="L192">                            lines = IOUtils.readLines(reader);</span>
+<span class="nc" id="L193">                            IOUtils.closeQuietly(reader);</span>
+                            String[] tokens;
+<span class="nc bnc" id="L195" title="All 2 branches missed.">                            for (String line : lines) {</span>
+<span class="nc" id="L196">                                tokens = line.split(CSV_SEPARATOR);</span>
+<span class="nc bnc" id="L197" title="All 2 branches missed.">                                if (tokens.length &gt; 0) {</span>
+<span class="nc" id="L198">                                    fingerprint = tokens[0];</span>
+<span class="nc" id="L199">                                    log.info(&quot;Try to remove public key from public key blacklist (fingerprint=&quot; + fingerprint + &quot;).&quot;);</span>
+                                    try {
+<span class="nc" id="L201">                                        state = removeFromBlacklist(PublicKeyBlacklistEntry.TYPE, fingerprint);</span>
+<span class="nc" id="L202">                                    } catch (BlacklistDoesntExistsException e) {</span>
+                                        // Do nothing, it was already printed to info
+<span class="nc" id="L204">                                    }</span>
+<span class="nc bnc" id="L205" title="All 2 branches missed.">                                    if (STATUS_OK != state) {</span>
+<span class="nc" id="L206">                                        log.info(&quot;remove public key blacklist failed on fingerprint: &quot; + fingerprint);                                        </span>
+                                    }
+                                }
+<span class="nc" id="L209">                            }</span>
+                        }
+                    }
+
+<span class="nc bnc" id="L213" title="All 6 branches missed.">                    switch (state) {</span>
+                    case STATUS_OK:
+<span class="nc" id="L215">                        importOk++;</span>
+<span class="nc" id="L216">                        break;</span>
+                    case STATUS_READ_ERROR:
+<span class="nc" id="L218">                        readError++;</span>
+<span class="nc" id="L219">                        break;</span>
+                    case STATUS_REDUNDANT:
+<span class="nc" id="L221">                        redundant++;</span>
+<span class="nc" id="L222">                        break;</span>
+                    case STATUS_CONSTRAINTVIOLATION:
+<span class="nc" id="L224">                        constraintViolation++;</span>
+<span class="nc" id="L225">                        break;</span>
+                    case STATUS_GENERALIMPORTERROR:
+<span class="nc" id="L227">                        generalImportError++;</span>
+<span class="nc" id="L228">                        break;</span>
+                    default:
+<span class="nc" id="L230">                        generalImportError++;</span>
+                        break;
+                    }
+<span class="nc bnc" id="L233" title="All 4 branches missed.">                    if (!resumeOnError &amp;&amp; STATUS_OK != state) {</span>
+<span class="nc" id="L234">                        throw new Exception(&quot;Update public key blacklist aborted --resumeonerror=&quot; + resumeOnError);</span>
+                    }
+<span class="nc" id="L236">                } catch (BlacklistExistsException e) {</span>
+<span class="nc" id="L237">                    log.error(&quot;Update public key blacklist failed: &quot; + e.getMessage());</span>
+<span class="nc bnc" id="L238" title="All 2 branches missed.">                    if (!resumeOnError) {</span>
+<span class="nc" id="L239">                        return CommandResult.FUNCTIONAL_FAILURE;</span>
+                    }
+<span class="nc" id="L241">                } catch (BlacklistDoesntExistsException e) {</span>
+<span class="nc" id="L242">                    log.info(&quot;Update public key blacklist failed: &quot; + e.getMessage());</span>
+<span class="nc bnc" id="L243" title="All 2 branches missed.">                    if (!resumeOnError) {</span>
+<span class="nc" id="L244">                        return CommandResult.FUNCTIONAL_FAILURE;</span>
+                    }
+<span class="nc" id="L246">                } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L247">                    log.info(&quot;Not authorized to update blacklist: &quot; + e.getMessage());</span>
+<span class="nc bnc" id="L248" title="All 2 branches missed.">                    if (!resumeOnError) {</span>
+<span class="nc" id="L249">                        return CommandResult.FUNCTIONAL_FAILURE;</span>
+                    }
+<span class="nc" id="L251">                } catch (Exception e) {</span>
+<span class="nc" id="L252">                    log.info(&quot;Update public key blacklist failed: &quot; + e.getMessage(), e);</span>
+<span class="nc bnc" id="L253" title="All 2 branches missed.">                    if (!resumeOnError) {</span>
+<span class="nc" id="L254">                        return CommandResult.FUNCTIONAL_FAILURE;</span>
+                    }
+<span class="nc" id="L256">                }</span>
+            }
+
+<span class="nc" id="L259">            printSummary(importOk, readError, redundant, constraintViolation, generalImportError, command);</span>
+<span class="nc" id="L260">        } catch (Exception e) {</span>
+<span class="nc" id="L261">            log.error(&quot;Update public key blacklist aborted: &quot; + e.getMessage(), e);</span>
+<span class="nc" id="L262">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L263">        }</span>
+<span class="nc" id="L264">        log.trace(&quot;&lt;execute()&quot;);</span>
+<span class="nc" id="L265">        return CommandResult.SUCCESS;</span>
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L270">        return &quot;Updates the public key blacklist data store.&quot;;</span>
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L275">        final StringBuilder result = new StringBuilder();</span>
+<span class="nc" id="L276">        result.append(&quot;\n\n&quot; + getCommandDescription() + &quot;\n\n&quot;);</span>
+<span class="nc" id="L277">        result.append(</span>
+                &quot;Every file in the target directory is parsed and must contain one PEM formatted RSA or ECC public key.\n\nIf --mode fingerpint is chosen only the public key fingerprints with &quot;
+                        + PublicKeyBlacklistEntry.DIGEST_ALGORITHM
+                        + &quot; hash are used to add or remove blacklist entries, and every file is treated as CSV file with one public key fingerprint per line.&quot;
+                        + &quot;\n\n&quot;);
+<span class="nc" id="L282">        return result.toString();</span>
+    }
+
+    @Override
+    protected Logger getLogger() {
+<span class="nc" id="L287">        return log;</span>
+    }
+
+    /**
+     * Adds a public key to the public key blacklist.
+     * 
+     * @param publicKey the public key to add.
+     * @return {@link #STATUS_GENERALIMPORTERROR} if error, {@link #STATUS_CONSTRAINTVIOLATION} if already existing or {@link #STATUS_OK} if added.
+     * @throws Exception any exception.
+     */
+    private int addPublicKeyToBlacklist(final PublicKey publicKey) throws Exception {
+<span class="nc" id="L298">        log.trace(&quot;&gt;addPublicKeyToBlacklist()&quot;);</span>
+<span class="nc" id="L299">        int result = STATUS_GENERALIMPORTERROR;</span>
+<span class="nc" id="L300">        final PublicKeyBlacklistEntry entry = new PublicKeyBlacklistEntry();</span>
+<span class="nc" id="L301">        entry.setFingerprint(publicKey); // sets the fingerprint in proper format from the public key</span>
+<span class="nc" id="L302">        entry.setKeyspec(AlgorithmTools.getKeySpecification(publicKey));</span>
+<span class="nc" id="L303">        log.info(&quot;Try to add public key into public key blacklist (fingerprint=&quot; + entry.getFingerprint() + &quot;).&quot;);</span>
+<span class="nc" id="L304">        result = addToBlacklist(entry);</span>
+<span class="nc" id="L305">        log.trace(&quot;&lt;addPublicKeyToBlacklist()&quot;);</span>
+<span class="nc" id="L306">        return result;</span>
+    }
+
+    /**
+     * Adds a fingerprint to the public key blacklist.
+     * 
+     * @param fingerprint the fingerprint to add, note the special conditions for this fingerprint see {@link PublicKeyBlacklistEntry#setFingerprint(PublicKey)}
+     * @param keySpecification the key specification.
+     * @return {@link #STATUS_GENERALIMPORTERROR} if error, {@link #STATUS_CONSTRAINTVIOLATION} if already existing or {@link #STATUS_OK} if added.
+     * @throws Exception any exception.
+     */
+    private int addPublicKeyFingerprintToBlacklist(final String fingerprint, final String keySpecification) throws Exception {
+<span class="nc" id="L318">        log.trace(&quot;&gt;addPublicKeyFingerprintToBlacklist()&quot;);</span>
+<span class="nc" id="L319">        int result = STATUS_GENERALIMPORTERROR;</span>
+<span class="nc" id="L320">        final PublicKeyBlacklistEntry entry = new PublicKeyBlacklistEntry();</span>
+<span class="nc" id="L321">        entry.setFingerprint(fingerprint);</span>
+<span class="nc" id="L322">        entry.setKeyspec(keySpecification);</span>
+<span class="nc" id="L323">        log.info(&quot;Try to add public key into public key blacklist by fingerprint (fingerprint=&quot; + fingerprint + &quot;).&quot;);</span>
+<span class="nc" id="L324">        result = addToBlacklist(entry);</span>
+<span class="nc" id="L325">        log.trace(&quot;&lt;addPublicKeyFingerprintToBlacklist()&quot;);</span>
+<span class="nc" id="L326">        return result;</span>
+    }
+
+    /**
+     * Removes a public key from the public key blacklist.
+     * 
+     * @param publicKey the public key to remove.
+     * @return {@link #STATUS_GENERALIMPORTERROR} if error, {@link #STATUS_CONSTRAINTVIOLATION} if already existing or {@link #STATUS_OK} if added.
+     * @throws Exception any exception.
+     */
+    private int removePublicKeyToBlacklist(final PublicKey publicKey) throws Exception {
+<span class="nc" id="L337">        log.trace(&quot;&gt;removePublicKeyFromBlacklist()&quot;);</span>
+<span class="nc" id="L338">        int result = STATUS_GENERALIMPORTERROR;</span>
+<span class="nc" id="L339">        final String fingerprint = PublicKeyBlacklistEntry.createFingerprint(publicKey);</span>
+<span class="nc" id="L340">        log.info(&quot;Try to remove public key from public key blacklist (fingerprint=&quot; + fingerprint + &quot;).&quot;);</span>
+<span class="nc" id="L341">        result = removeFromBlacklist(PublicKeyBlacklistEntry.TYPE, fingerprint);</span>
+<span class="nc" id="L342">        log.trace(&quot;&lt;removePublicKeyFromBlacklist()&quot;);</span>
+<span class="nc" id="L343">        return result;</span>
+    }
+
+    /**
+     * Adds a public key to the public key blacklist if a public key with that fingerprint does not exists already.
+     * 
+     * @param entry the public key blacklist entry.
+     * @return {@link #STATUS_GENERALIMPORTERROR} if error, {@link #STATUS_CONSTRAINTVIOLATION} if already existing or {@link #STATUS_OK} if added.
+     * @throws Exception any exception.
+     */
+    private int addToBlacklist(final PublicKeyBlacklistEntry entry) throws Exception {
+<span class="nc" id="L354">        log.trace(&quot;&gt;addToBlacklist()&quot;);</span>
+<span class="nc" id="L355">        int result = STATUS_GENERALIMPORTERROR;</span>
+<span class="nc" id="L356">        final BlacklistSessionRemote blacklistSession = EjbRemoteHelper.INSTANCE.getRemoteSession(BlacklistSessionRemote.class);</span>
+        try {
+<span class="nc" id="L358">            blacklistSession.addBlacklistEntry(getAuthenticationToken(), entry);</span>
+<span class="nc" id="L359">            result = STATUS_OK;</span>
+<span class="nc" id="L360">        } catch (BlacklistExistsException e) {</span>
+<span class="nc" id="L361">            result = STATUS_CONSTRAINTVIOLATION;</span>
+<span class="nc" id="L362">            log.info(&quot;Public key blacklist entry with public key fingerprint &quot; + entry.getFingerprint() + &quot; already exists.&quot;);</span>
+<span class="nc" id="L363">            throw e;</span>
+<span class="nc" id="L364">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L365">            result = STATUS_GENERALIMPORTERROR;</span>
+<span class="nc" id="L366">            log.info(&quot;Authorization denied to add public key to blacklist.&quot;);</span>
+<span class="nc" id="L367">            throw e;</span>
+<span class="nc" id="L368">        } catch (Exception e) {</span>
+<span class="nc" id="L369">            result = STATUS_GENERALIMPORTERROR;</span>
+<span class="nc" id="L370">            log.info(&quot;Error while adding public key to blacklist: &quot; + e.getMessage());</span>
+<span class="nc" id="L371">            throw e;</span>
+<span class="nc" id="L372">        }</span>
+<span class="nc" id="L373">        log.trace(&quot;&lt;addToBlacklist()&quot;);</span>
+<span class="nc" id="L374">        return result;</span>
+    }
+
+    /**
+     * Removes a public key from the public key blacklist.
+     * @param type Type
+     * @param value Value
+     * 
+     * @return {@link #STATUS_GENERALIMPORTERROR} if error, {@link #STATUS_CONSTRAINTVIOLATION} if already existing or {@link #STATUS_OK} if added.
+     * @throws Exception any exception.
+     */
+    private int removeFromBlacklist(final String type, final String value) throws Exception {
+<span class="nc" id="L386">        log.trace(&quot;&gt;removeFromBlacklist()&quot;);</span>
+<span class="nc" id="L387">        int result = STATUS_GENERALIMPORTERROR;</span>
+<span class="nc" id="L388">        final BlacklistSessionRemote blacklistSession = EjbRemoteHelper.INSTANCE.getRemoteSession(BlacklistSessionRemote.class);</span>
+        try {
+<span class="nc" id="L390">            blacklistSession.removeBlacklistEntry(getAuthenticationToken(), type, value);</span>
+<span class="nc" id="L391">            result = STATUS_OK;</span>
+<span class="nc" id="L392">        } catch (BlacklistDoesntExistsException e) {</span>
+<span class="nc" id="L393">            result = STATUS_CONSTRAINTVIOLATION;</span>
+<span class="nc" id="L394">            log.info(&quot;Public key blacklist entry with public key fingerprint &quot; + value + &quot; does not exist.&quot;);</span>
+<span class="nc" id="L395">            throw e;</span>
+<span class="nc" id="L396">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L397">            result = STATUS_GENERALIMPORTERROR;</span>
+<span class="nc" id="L398">            log.info(&quot;Authorization denied to remove public key from blacklist.&quot;);</span>
+<span class="nc" id="L399">            throw e;</span>
+<span class="nc" id="L400">        } catch (Exception e) {</span>
+<span class="nc" id="L401">            result = STATUS_GENERALIMPORTERROR;</span>
+<span class="nc" id="L402">            log.info(&quot;Error while removing public key from blacklist: &quot; + e.getMessage());</span>
+<span class="nc" id="L403">            throw e;</span>
+<span class="nc" id="L404">        }</span>
+<span class="nc" id="L405">        log.trace(&quot;&lt;removeFromBlacklist()&quot;);</span>
+<span class="nc" id="L406">        return result;</span>
+    }
+
+    /**
+     * Logs the summary to STDOUT.
+     * 
+     * @param importOk OK counter
+     * @param readError read error counter
+     * @param redundant redundant counter
+     * @param constraintViolation constraint violation counter
+     * @param generalImportError general import error counter
+     * @param command command
+     */
+    private final void printSummary(final int importOk, final int readError, final int redundant, final int constraintViolation,
+            final int generalImportError, final String command) {
+        // Print resulting statistics
+<span class="nc" id="L422">        log.info(&quot;\n&quot;+command+&quot; summary:&quot;);</span>
+<span class="nc" id="L423">        log.info(importOk + &quot; public key blacklist entries were processed with success (STATUS_OK)&quot;);</span>
+<span class="nc bnc" id="L424" title="All 2 branches missed.">        if (readError &gt; 0) {</span>
+<span class="nc" id="L425">            log.info(readError + &quot; public key blacklist entries could not be parsed (STATUS_READERROR)&quot;);</span>
+        }
+<span class="nc bnc" id="L427" title="All 2 branches missed.">        if (redundant &gt; 0) {</span>
+<span class="nc" id="L428">            log.info(redundant + &quot; public key blacklist entries were already present in the database (STATUS_REDUNDANT)&quot;);</span>
+        }
+<span class="nc bnc" id="L430" title="All 2 branches missed.">        if (constraintViolation &gt; 0) {</span>
+<span class="nc" id="L431">            log.info(constraintViolation + &quot; public key blacklist entries could not be stored (STATUS_CONSTRAINTVIOLATION)&quot;);</span>
+        }
+<span class="nc bnc" id="L433" title="All 2 branches missed.">        if (generalImportError &gt; 0) {</span>
+<span class="nc" id="L434">            log.info(generalImportError + &quot; public key blacklist entries were not imported due to other errors (STATUS_GENERALIMPORTERROR)&quot;);</span>
+        }
+<span class="nc" id="L436">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

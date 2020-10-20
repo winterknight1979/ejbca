@@ -1,0 +1,1492 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RAInterfaceBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Administration GUI</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.rainterface</a> &gt; <span class="el_source">RAInterfaceBean.java</span></div><h1>RAInterfaceBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.web.admin.rainterface;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
+import java.net.URLDecoder;
+import java.security.cert.Certificate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileUploadException;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authentication.tokens.PublicAccessAuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.authorization.control.StandardRules;
+import org.cesecore.certificates.ca.CADoesntExistsException;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.certificates.ca.IllegalNameException;
+import org.cesecore.certificates.certificate.CertificateData;
+import org.cesecore.certificates.certificate.CertificateDataWrapper;
+import org.cesecore.certificates.certificate.CertificateStoreSession;
+import org.cesecore.certificates.certificate.exception.CertificateSerialNumberException;
+import org.cesecore.certificates.certificateprofile.CertificateProfile;
+import org.cesecore.certificates.certificateprofile.CertificateProfileConstants;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSession;
+import org.cesecore.certificates.crl.RevokedCertInfo;
+import org.cesecore.certificates.endentity.EndEntityConstants;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.config.GlobalCesecoreConfiguration;
+import org.cesecore.configuration.GlobalConfigurationSessionLocal;
+import org.cesecore.roles.Role;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.EJBTools;
+import org.cesecore.util.FileTools;
+import org.cesecore.util.SecureXMLDecoder;
+import org.cesecore.util.StringTools;
+import org.ejbca.config.GlobalConfiguration;
+import org.ejbca.config.WebConfiguration;
+import org.ejbca.core.ejb.hardtoken.HardTokenSessionLocal;
+import org.ejbca.core.ejb.keyrecovery.KeyRecoverySession;
+import org.ejbca.core.ejb.ra.CouldNotRemoveEndEntityException;
+import org.ejbca.core.ejb.ra.EndEntityAccessSessionLocal;
+import org.ejbca.core.ejb.ra.EndEntityExistsException;
+import org.ejbca.core.ejb.ra.EndEntityManagementSessionLocal;
+import org.ejbca.core.ejb.ra.NoSuchEndEntityException;
+import org.ejbca.core.ejb.ra.UserData;
+import org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSessionLocal;
+import org.ejbca.core.ejb.ra.userdatasource.UserDataSourceSession;
+import org.ejbca.core.model.InternalEjbcaResources;
+import org.ejbca.core.model.SecConst;
+import org.ejbca.core.model.approval.ApprovalException;
+import org.ejbca.core.model.approval.WaitingForApprovalException;
+import org.ejbca.core.model.authorization.AccessRulesConstants;
+import org.ejbca.core.model.ra.AlreadyRevokedException;
+import org.ejbca.core.model.ra.CustomFieldException;
+import org.ejbca.core.model.ra.RAAuthorization;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfile;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfileExistsException;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfileNotFoundException;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfileValidationException;
+import org.ejbca.core.model.ra.raadmin.UserNotification;
+import org.ejbca.core.model.ra.raadmin.validators.RegexFieldValidator;
+import org.ejbca.core.model.util.EjbLocalHelper;
+import org.ejbca.ui.web.CertificateView;
+import org.ejbca.ui.web.admin.configuration.EjbcaWebBean;
+import org.ejbca.util.query.IllegalQueryException;
+import org.ejbca.util.query.Query;
+
+/**
+ * A java bean handling the interface between EJBCA ra module and JSP pages.
+ *
+ * @version $Id: RAInterfaceBean.java 34101 2019-12-17 13:59:55Z samuellb $
+ */
+public class RAInterfaceBean implements Serializable {
+
+	private static final long serialVersionUID = 1L;
+<span class="nc" id="L117">	private static Logger log = Logger.getLogger(RAInterfaceBean.class);</span>
+    /** Internal localization of logs and errors */
+<span class="nc" id="L119">    private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();</span>
+
+<span class="nc" id="L121">    public static final String[] tokentexts = SecConst.TOKENTEXTS;</span>
+<span class="nc" id="L122">    public static final int[]    tokenids   = SecConst.TOKENIDS;</span>
+
+<span class="nc" id="L124">    private EjbLocalHelper ejbLocalHelper = new EjbLocalHelper();</span>
+
+    private AuthorizationSessionLocal authorizationSession;
+	private CaSessionLocal caSession;
+    private CertificateProfileSession certificateProfileSession;
+    private CertificateStoreSession certificatesession;
+    private EndEntityAccessSessionLocal endEntityAccessSession;
+    private EndEntityManagementSessionLocal endEntityManagementSession;
+    private EndEntityProfileSessionLocal endEntityProfileSession;
+    private GlobalConfigurationSessionLocal globalConfigurationSession;
+    private HardTokenSessionLocal hardtokensession;
+    private KeyRecoverySession keyrecoverysession;
+    private UserDataSourceSession userdatasourcesession;
+
+    private UsersView usersView;
+    private CertificateView[]                  certificates;
+    private AddedUserMemory              addedusermemory;
+    private AuthenticationToken administrator;
+    private EjbcaWebBean ejbcawebbean;
+    private RAAuthorization raauthorization;
+<span class="nc" id="L144">    private boolean initialized=false;</span>
+
+<span class="nc" id="L146">    private String[] printerNames = null;</span>
+<span class="nc" id="L147">    private String importedProfileName = null;</span>
+
+<span class="nc" id="L149">    private EndEntityProfile temporaryEndEntityProfile = null;</span>
+<span class="nc" id="L150">    private UserNotification temporaryNotification = null;</span>
+
+    /** Creates new RaInterfaceBean */
+<span class="nc" id="L153">    public RAInterfaceBean()  {</span>
+<span class="nc" id="L154">        usersView = new UsersView();</span>
+<span class="nc" id="L155">        addedusermemory = new AddedUserMemory();</span>
+<span class="nc" id="L156">    }</span>
+
+    public void initialize(HttpServletRequest request, EjbcaWebBean ejbcawebbean) {
+<span class="nc" id="L159">    	log.trace(&quot;&gt;initialize()&quot;);</span>
+<span class="nc bnc" id="L160" title="All 2 branches missed.">    	if (!initialized) {</span>
+<span class="nc bnc" id="L161" title="All 2 branches missed.">    		if (request.getAttribute( &quot;javax.servlet.request.X509Certificate&quot; ) != null) {</span>
+<span class="nc" id="L162">    			administrator = ejbcawebbean.getAdminObject();</span>
+    		} else {
+<span class="nc" id="L164">                administrator = new PublicAccessAuthenticationToken(request.getRemoteAddr(), true);</span>
+    		}
+<span class="nc" id="L166">    		this.ejbcawebbean = ejbcawebbean;</span>
+<span class="nc" id="L167">    		endEntityManagementSession = ejbLocalHelper.getEndEntityManagementSession();</span>
+<span class="nc" id="L168">    		certificatesession = ejbLocalHelper.getCertificateStoreSession();</span>
+<span class="nc" id="L169">    		caSession = ejbLocalHelper.getCaSession();</span>
+<span class="nc" id="L170">    		authorizationSession = ejbLocalHelper.getAuthorizationSession();</span>
+<span class="nc" id="L171">    		endEntityProfileSession = ejbLocalHelper.getEndEntityProfileSession();</span>
+<span class="nc" id="L172">    		hardtokensession = ejbLocalHelper.getHardTokenSession();</span>
+<span class="nc" id="L173">    		keyrecoverysession = ejbLocalHelper.getKeyRecoverySession();</span>
+<span class="nc" id="L174">    		userdatasourcesession = ejbLocalHelper.getUserDataSourceSession();</span>
+<span class="nc" id="L175">    		certificateProfileSession = ejbLocalHelper.getCertificateProfileSession();</span>
+<span class="nc" id="L176">    		this.endEntityAccessSession = ejbLocalHelper.getEndEntityAccessSession();</span>
+<span class="nc" id="L177">    		globalConfigurationSession = ejbLocalHelper.getGlobalConfigurationSession();</span>
+<span class="nc" id="L178">    		raauthorization = new RAAuthorization(administrator, globalConfigurationSession, authorizationSession, caSession, endEntityProfileSession);</span>
+<span class="nc" id="L179">    		initialized =true;</span>
+    	} else {
+<span class="nc" id="L181">    		log.debug(&quot;=initialize(): already initialized&quot;);</span>
+    	}
+<span class="nc" id="L183">    	log.trace(&quot;&lt;initialize()&quot;);</span>
+<span class="nc" id="L184">    }</span>
+    
+    private GlobalConfiguration getGlobalConfiguration() {
+<span class="nc" id="L187">        return (GlobalConfiguration) globalConfigurationSession.getCachedConfiguration(GlobalConfiguration.GLOBAL_CONFIGURATION_ID);</span>
+    }
+
+    /** Adds a user to the database, the string array must be in format defined in class UserView.
+     * @param userdata Data
+     * @throws WaitingForApprovalException fail
+     * @throws EndEntityProfileValidationException fail
+     * @throws AuthorizationDeniedException fail
+     * @throws CADoesntExistsException fail
+     * @throws EndEntityExistsException fail
+     * @return added user as EndEntityInformation
+     * @throws CertificateSerialNumberException  if SubjectDN serial number already exists.
+     * @throws ApprovalException  if an approval already exists for this request.
+     * @throws CustomFieldException if the end entity was not validated by a locally defined field validator
+     * @throws IllegalNameException  if the Subject DN failed constraints
+     */
+    public EndEntityInformation addUser(UserView userdata) throws EndEntityExistsException, CADoesntExistsException, AuthorizationDeniedException,
+            EndEntityProfileValidationException, WaitingForApprovalException, IllegalNameException, CustomFieldException, ApprovalException, CertificateSerialNumberException {
+<span class="nc" id="L205">        log.trace(&quot;&gt;addUser()&quot;);</span>
+<span class="nc bnc" id="L206" title="All 2 branches missed.">        if (userdata.getEndEntityProfileId() != 0) {</span>
+<span class="nc" id="L207">            EndEntityInformation uservo = new EndEntityInformation(userdata.getUsername(), userdata.getSubjectDN(), userdata.getCAId(), userdata.getSubjectAltName(),</span>
+<span class="nc" id="L208">        		userdata.getEmail(), EndEntityConstants.STATUS_NEW, userdata.getType(), userdata.getEndEntityProfileId(), userdata.getCertificateProfileId(),</span>
+<span class="nc" id="L209">        		null,null, userdata.getTokenType(), userdata.getHardTokenIssuerId(), null);</span>
+<span class="nc" id="L210">            EndEntityProfile endEntityProfile = getEndEntityProfile(userdata.getEndEntityProfileId());</span>
+<span class="nc bnc" id="L211" title="All 4 branches missed.">            if(StringUtils.isEmpty(userdata.getPassword()) &amp;&amp; endEntityProfile.isPasswordPreDefined()) {</span>
+<span class="nc" id="L212">                uservo.setPassword(endEntityProfile.getPredefinedPassword());</span>
+            } else {
+<span class="nc" id="L214">                uservo.setPassword(userdata.getPassword());</span>
+            }
+<span class="nc" id="L216">            uservo.setExtendedInformation(userdata.getExtendedInformation());</span>
+<span class="nc" id="L217">            uservo.setCardNumber(userdata.getCardNumber());</span>
+<span class="nc" id="L218">            endEntityManagementSession.addUser(administrator, uservo, userdata.getClearTextPassword());</span>
+<span class="nc" id="L219">            addedusermemory.addUser(userdata);</span>
+<span class="nc" id="L220">            return uservo;</span>
+        } else {
+<span class="nc" id="L222">            log.debug(&quot;=addUser(): profile id not set, user not created&quot;);</span>
+        }
+<span class="nc" id="L224">        log.trace(&quot;&lt;addUser()&quot;);</span>
+<span class="nc" id="L225">        return null;</span>
+    }
+
+    /** Removes a number of users from the database.
+     *
+     * @param usernames an array of usernames to delete.
+     * @return false if administrator wasn't authorized to delete all of given users.
+     * @throws NoSuchEndEntityException Fail
+     * @throws CouldNotRemoveEndEntityException if the user could not be deleted.
+     * 
+     * */
+    public boolean deleteUsers(String[] usernames) throws NoSuchEndEntityException, CouldNotRemoveEndEntityException {
+<span class="nc" id="L237">      log.trace(&quot;&gt;deleteUsers()&quot;);</span>
+<span class="nc" id="L238">      boolean success = true;</span>
+<span class="nc bnc" id="L239" title="All 2 branches missed.">      for (String username : usernames) {</span>
+    	  try {
+<span class="nc" id="L241">    	      endEntityManagementSession.deleteUser(administrator, username);</span>
+<span class="nc" id="L242">    		  addedusermemory.removeUser(username);</span>
+<span class="nc" id="L243">    	  } catch(AuthorizationDeniedException e) {</span>
+<span class="nc" id="L244">    		  success = false;</span>
+<span class="nc" id="L245">    	  }</span>
+      }
+<span class="nc" id="L247">      log.trace(&quot;&lt;deleteUsers(): &quot; + success);</span>
+<span class="nc" id="L248">      return success;</span>
+    }
+
+    /** Changes the status of a number of users from the database.
+     *
+     * @param usernames an array of usernames to change.
+     * @param status gives the status to apply to users, should be one of UserDataRemote.STATUS constants.
+     * @return false if administrator wasn't authorized to change all of the given users.
+     * @throws ApprovalException Approval
+     * @throws NoSuchEndEntityException Fail
+     * @throws WaitingForApprovalException fail
+     * */
+    public boolean setUserStatuses(String[] usernames, String status) throws ApprovalException, NoSuchEndEntityException, WaitingForApprovalException {
+<span class="nc" id="L261">    	log.trace(&quot;&gt;setUserStatuses()&quot;);</span>
+<span class="nc" id="L262">    	boolean success = true;</span>
+<span class="nc" id="L263">    	int intstatus = 0;</span>
+    	try {
+<span class="nc" id="L265">    		intstatus = Integer.parseInt(status);</span>
+<span class="nc" id="L266">    	} catch(Exception e) {}</span>
+<span class="nc bnc" id="L267" title="All 2 branches missed.">    	for (int i=0; i &lt; usernames.length; i++) {</span>
+    		try {
+<span class="nc" id="L269">    			endEntityManagementSession.setUserStatus(administrator, usernames[i],intstatus);</span>
+<span class="nc" id="L270">    		} catch(AuthorizationDeniedException e) {</span>
+<span class="nc" id="L271">    			success = false;</span>
+<span class="nc" id="L272">    		}</span>
+    	}
+<span class="nc" id="L274">    	log.trace(&quot;&lt;setUserStatuses(): &quot; + success);</span>
+<span class="nc" id="L275">    	return success;</span>
+    }
+
+    /**
+     * Revokes the given user.
+     * @param username username of user to revoke.
+     * @param reason reason(s) of revocation.
+     * @throws AuthorizationDeniedException Fail
+     * @throws NoSuchEndEntityException Fail
+     * @throws ApprovalException Fail
+     * @throws WaitingForApprovalException Fail 
+     * @throws AlreadyRevokedException Fail
+     */
+    public void revokeUser(String username, int reason) throws AuthorizationDeniedException,
+        NoSuchEndEntityException, ApprovalException, WaitingForApprovalException, AlreadyRevokedException {
+<span class="nc" id="L290">        log.trace(&quot;&gt;revokeUser()&quot;);</span>
+<span class="nc" id="L291">        endEntityManagementSession.revokeUser(administrator, username, reason);</span>
+<span class="nc" id="L292">        log.trace(&quot;&lt;revokeUser()&quot;);</span>
+<span class="nc" id="L293">    }</span>
+
+    public void revokeAndDeleteUser(String username, int reason) throws AuthorizationDeniedException,
+    		ApprovalException, WaitingForApprovalException, NoSuchEndEntityException, CouldNotRemoveEndEntityException {
+<span class="nc" id="L297">		log.trace(&quot;&gt;revokeUser()&quot;);</span>
+<span class="nc" id="L298">		endEntityManagementSession.revokeAndDeleteUser(administrator, username, reason);</span>
+<span class="nc" id="L299">		log.trace(&quot;&lt;revokeUser()&quot;);</span>
+<span class="nc" id="L300">    }</span>
+
+    /** Revokes the  certificate with certificate serno.
+     *
+     * @param serno serial number of certificate to revoke.
+     * @param issuerdn the issuerdn of certificate to revoke.
+     * @param username User
+     * @param reason reason(s) of revocation.
+     * @return false if administrator wasn't authorized to revoke the given certificate.
+     * @throws ApprovalException Fail
+     * @throws WaitingForApprovalException Fail
+     */
+    public boolean revokeCert(BigInteger serno, String issuerdn, String username, int reason) throws ApprovalException, WaitingForApprovalException {
+<span class="nc bnc" id="L313" title="All 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L314">        	log.trace(&quot;&gt;revokeCert(): &quot;+username+&quot;, &quot;+reason);</span>
+    	}
+<span class="nc" id="L316">    	boolean success = false;</span>
+    	try {
+<span class="nc" id="L318">    		endEntityManagementSession.revokeCert(administrator, serno, issuerdn, reason);</span>
+<span class="nc" id="L319">    		success = true;</span>
+<span class="nc" id="L320">    	} catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L321">    	} catch (NoSuchEndEntityException e) {</span>
+<span class="nc" id="L322">    	} catch (AlreadyRevokedException e) {</span>
+<span class="nc" id="L323">		}</span>
+<span class="nc bnc" id="L324" title="All 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L325">    		log.trace(&quot;&lt;revokeCert(): &quot; + success);</span>
+    	}
+<span class="nc" id="L327">    	return success;</span>
+    }
+
+    /**
+     * Reactivates the certificate with certificate serno.
+     *
+     * @param serno serial number of certificate to reactivate.
+     * @param issuerdn the issuerdn of certificate to reactivate.
+     * @param username the username joined to the certificate.
+     * @return false if administrator wasn't authorized to unrevoke the given certificate.
+     * @throws ApprovalException Approval
+     * @throws WaitingForApprovalException fail 
+     */
+    public boolean unrevokeCert(BigInteger serno, String issuerdn, String username) throws ApprovalException, WaitingForApprovalException {
+    	// Method needed because it is used as an ApprovalOveradableClassName
+<span class="nc" id="L342">    	return revokeCert(serno, issuerdn, username, RevokedCertInfo.NOT_REVOKED);</span>
+    }
+
+    public boolean renameUser(final String currentUsername, final String newUsername) throws AuthorizationDeniedException, EndEntityExistsException {
+<span class="nc" id="L346">        return endEntityManagementSession.renameEndEntity(administrator, currentUsername, newUsername);</span>
+    }
+
+    /** Changes the userdata
+     * @param userdata the UserView object with the desired changes
+     * @param newUsername the new username if it should be changed
+     * @throws CADoesntExistsException if CA with ID in userdata does not exist
+     * @throws AuthorizationDeniedException if admin is not authorized to CA
+     * @throws EndEntityProfileValidationException if End Entity doesn't match profile
+     * @throws WaitingForApprovalException if the request requires approval
+     * @throws IllegalNameException  if the Subject DN failed constraints
+     * @throws CertificateSerialNumberException if SubjectDN serial number already exists.
+     * @throws ApprovalException if an approval already is waiting for specified action
+     * @throws NoSuchEndEntityException if the end entity could not be found.
+     * @throws CustomFieldException if the end entity was not validated by a locally defined field validator
+     */
+    public void changeUserData(UserView userdata, String newUsername) throws CADoesntExistsException, AuthorizationDeniedException, EndEntityProfileValidationException,
+            WaitingForApprovalException, ApprovalException, CertificateSerialNumberException, IllegalNameException, NoSuchEndEntityException, CustomFieldException {
+<span class="nc" id="L364">        log.trace(&quot;&gt;changeUserData()&quot;);</span>
+<span class="nc" id="L365">        addedusermemory.changeUser(userdata);</span>
+<span class="nc bnc" id="L366" title="All 4 branches missed.">        if (userdata.getPassword() != null &amp;&amp; userdata.getPassword().trim().equals(&quot;&quot;)) {</span>
+<span class="nc" id="L367">            userdata.setPassword(null);</span>
+        }
+<span class="nc" id="L369">        EndEntityInformation uservo = new EndEntityInformation(userdata.getUsername(), userdata.getSubjectDN(), userdata.getCAId(),</span>
+<span class="nc" id="L370">                userdata.getSubjectAltName(), userdata.getEmail(), userdata.getStatus(), userdata.getType(), userdata.getEndEntityProfileId(),</span>
+<span class="nc" id="L371">                userdata.getCertificateProfileId(), null, null, userdata.getTokenType(), userdata.getHardTokenIssuerId(), null);</span>
+<span class="nc" id="L372">        uservo.setPassword(userdata.getPassword());</span>
+<span class="nc" id="L373">        uservo.setExtendedInformation(userdata.getExtendedInformation());</span>
+<span class="nc" id="L374">        uservo.setCardNumber(userdata.getCardNumber());</span>
+<span class="nc bnc" id="L375" title="All 2 branches missed.">        if (userdata.getUsername().equals(newUsername)) {</span>
+<span class="nc" id="L376">            endEntityManagementSession.changeUser(administrator, uservo, userdata.getClearTextPassword());</span>
+        } else {
+<span class="nc" id="L378">            endEntityManagementSession.changeUser(administrator, uservo, userdata.getClearTextPassword(), newUsername);</span>
+        }
+<span class="nc" id="L380">        log.trace(&quot;&lt;changeUserData()&quot;);</span>
+<span class="nc" id="L381">    }</span>
+
+    /** Method to filter out a user by it's username 
+     * @param username User
+     * @return View */
+    public UserView[] filterByUsername(String username) {
+<span class="nc" id="L387">    	log.trace(&quot;&gt;filterByUserName()&quot;);</span>
+<span class="nc" id="L388">    	EndEntityInformation[] userarray = new EndEntityInformation[1];</span>
+<span class="nc" id="L389">    	EndEntityInformation user = null;</span>
+    	try {
+<span class="nc" id="L391">    		user = endEntityAccessSession.findUser(administrator, username);</span>
+<span class="nc" id="L392">    	} catch(AuthorizationDeniedException e) {</span>
+<span class="nc" id="L393">    	}</span>
+<span class="nc bnc" id="L394" title="All 2 branches missed.">    	if (user != null) {</span>
+<span class="nc" id="L395">    		userarray[0]=user;</span>
+<span class="nc" id="L396">    		usersView.setUsers(userarray, caSession.getCAIdToNameMap());</span>
+    	} else {
+<span class="nc" id="L398">    		usersView.setUsers((EndEntityInformation[]) null, caSession.getCAIdToNameMap());</span>
+    	}
+<span class="nc" id="L400">    	log.trace(&quot;&lt;filterByUserName()&quot;);</span>
+<span class="nc" id="L401">    	return usersView.getUsers(0,1);</span>
+    }
+
+    /** Method used to check if user exists 
+     * @param username User
+     * @return View
+     * @throws Exception fail */
+    public boolean userExist(String username) throws Exception{
+<span class="nc" id="L409">    	return endEntityManagementSession.existsUser(username);</span>
+    }
+
+    /** Method to retrieve a user from the database without inserting it into users data, used by 'viewuser.jsp' and page
+     * @param username User
+     * @return View
+     * @throws Exception fail */
+    public UserView findUser(String username) throws Exception{
+<span class="nc bnc" id="L417" title="All 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L418">    		log.trace(&quot;&gt;findUser(&quot; + username + &quot;)&quot;);</span>
+    	}
+<span class="nc" id="L420">    	EndEntityInformation user = endEntityAccessSession.findUser(administrator, username);</span>
+<span class="nc" id="L421">    	UserView userview = null;</span>
+<span class="nc bnc" id="L422" title="All 2 branches missed.">    	if (user != null) {</span>
+<span class="nc" id="L423">    		userview = new UserView(user, caSession.getCAIdToNameMap());</span>
+    	}
+<span class="nc bnc" id="L425" title="All 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L426">    		log.trace(&quot;&lt;findUser(&quot; + username + &quot;): &quot; + userview);</span>
+    	}
+<span class="nc" id="L428">    	return userview;</span>
+    }
+
+    /** Method to retrieve a user from the database without inserting it into users data, used by 'edituser.jsp' and page
+     * @param username User
+     * @return View
+     * @throws AuthorizationDeniedException fail */
+    public UserView findUserForEdit(String username) throws AuthorizationDeniedException {
+<span class="nc" id="L436">    	UserView userview = null;</span>
+<span class="nc" id="L437">    	EndEntityInformation user = endEntityAccessSession.findUser(administrator, username);</span>
+<span class="nc bnc" id="L438" title="All 2 branches missed.">    	if (user != null) {</span>
+<span class="nc bnc" id="L439" title="All 2 branches missed.">    	    if (getGlobalConfiguration().getEnableEndEntityProfileLimitations()) {</span>
+<span class="nc bnc" id="L440" title="All 2 branches missed.">    	        if (!endEntityAuthorization(administrator, user.getEndEntityProfileId(),AccessRulesConstants.EDIT_END_ENTITY, false)) {</span>
+<span class="nc" id="L441">    	            throw new AuthorizationDeniedException(&quot;Not authorized to edit user.&quot;);</span>
+    	        }
+    	    }
+<span class="nc" id="L444">    	    userview = new UserView(user, caSession.getCAIdToNameMap());</span>
+    	}
+<span class="nc" id="L446">    	return userview;</span>
+    }
+
+    /** Method to find all users in database 
+     * @param index Index
+     * @param size Size
+     * @return View  */
+    public UserView[] findAllUsers(int index, int size) {
+<span class="nc" id="L454">       usersView.setUsers(endEntityAccessSession.findAllUsersWithLimit(administrator), caSession.getCAIdToNameMap());</span>
+<span class="nc" id="L455">       return usersView.getUsers(index,size);</span>
+    }
+
+    /** Method to find all users in database 
+     * @param tokensn SN
+     * @param index Index
+     * @param size Size
+     * @return View */
+    public UserView[] filterByTokenSN(String tokensn, int index,int size) {
+<span class="nc" id="L464">    	UserView[] returnval = null;</span>
+<span class="nc" id="L465">    	ArrayList&lt;EndEntityInformation&gt; userlist = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L466">    	Collection&lt;String&gt; usernames = hardtokensession.matchHardTokenByTokenSerialNumber(tokensn);</span>
+<span class="nc" id="L467">    	Iterator&lt;String&gt; iter = usernames.iterator();</span>
+<span class="nc bnc" id="L468" title="All 2 branches missed.">    	while (iter.hasNext()) {</span>
+<span class="nc" id="L469">    		EndEntityInformation user = null;</span>
+    		try {
+<span class="nc" id="L471">    			user = endEntityAccessSession.findUser(administrator, iter.next());</span>
+<span class="nc" id="L472">    		} catch(AuthorizationDeniedException e) {}</span>
+<span class="nc bnc" id="L473" title="All 2 branches missed.">    		if (user!=null) {</span>
+<span class="nc" id="L474">    			userlist.add(user);</span>
+    		}
+<span class="nc" id="L476">    	}</span>
+<span class="nc" id="L477">    	usersView.setUsers(userlist, caSession.getCAIdToNameMap());</span>
+<span class="nc" id="L478">    	returnval = usersView.getUsers(index,size);</span>
+<span class="nc" id="L479">    	return returnval;</span>
+    }
+
+    /** Method that fetches a certificate by serialnumber and returns the user(s), else a null value if no certificate/user exists. 
+     * @param serialnumber SN
+     * @param index Index
+     * @param size Size
+     * @return Views
+     * @throws NumberFormatException fail */
+    public UserView[] filterByCertificateSerialNumber(final String serialnumber, final int index, final int size) throws NumberFormatException {
+<span class="nc" id="L489">    	final BigInteger serno = new BigInteger(StringTools.stripWhitespace(serialnumber), 16);</span>
+<span class="nc" id="L490">    	final List&lt;CertificateDataWrapper&gt; cdws = certificatesession.getCertificateDataBySerno(serno);</span>
+<span class="nc" id="L491">    	final List&lt;EndEntityInformation&gt; userlist = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L492" title="All 2 branches missed.">    	for (final CertificateDataWrapper next : cdws) {</span>
+<span class="nc" id="L493">    	    final CertificateData certdata = next.getCertificateData();</span>
+    	    try {
+<span class="nc" id="L495">    	        final String username = certdata.getUsername();</span>
+<span class="nc bnc" id="L496" title="All 2 branches missed.">    	        if (username != null) {</span>
+<span class="nc" id="L497">    	            final EndEntityInformation user = endEntityAccessSession.findUser(administrator, username);</span>
+<span class="nc bnc" id="L498" title="All 2 branches missed.">    	            if (user != null) {</span>
+<span class="nc" id="L499">    	                userlist.add(user);</span>
+    	            }
+    	        }
+<span class="nc bnc" id="L502" title="All 2 branches missed.">    	        if (userlist.isEmpty()) {</span>
+    	            // Perhaps it's such an old installation that we don't have username in the CertificateData table (has it even ever been like that?, I don't think so)
+<span class="nc" id="L504">    	            final List&lt;EndEntityInformation&gt; users = endEntityAccessSession.findUserBySubjectAndIssuerDN(administrator, certdata.getSubjectDnNeverNull(), certdata.getIssuerDN());</span>
+<span class="nc" id="L505">    	            userlist.addAll(users);</span>
+    	        }
+<span class="nc" id="L507">    	    } catch(AuthorizationDeniedException e) {}</span>
+<span class="nc" id="L508">    	}</span>
+<span class="nc" id="L509">    	usersView.setUsers(userlist, caSession.getCAIdToNameMap());</span>
+<span class="nc" id="L510">    	return usersView.getUsers(index, size);</span>
+    }
+
+    /** Method that lists all users with certificate's that expires within given days. 
+     * @param days Days
+     * @param index Index
+     * @param size Size
+     * @return Views
+     * @throws NumberFormatException Fail */
+    public UserView[] filterByExpiringCertificates(String days, int index, int size) throws NumberFormatException {
+<span class="nc" id="L520">    	ArrayList&lt;EndEntityInformation&gt; userlist = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L521">    	UserView[] returnval = null;</span>
+<span class="nc" id="L522">    	long d = Long.parseLong(days);</span>
+<span class="nc" id="L523">    	Date finddate = new Date();</span>
+<span class="nc" id="L524">    	long millis = (d * 86400000); // One day in milliseconds.</span>
+<span class="nc" id="L525">    	finddate.setTime(finddate.getTime() + millis);</span>
+<span class="nc" id="L526">    	Collection&lt;String&gt; usernames = certificatesession.findUsernamesByExpireTimeWithLimit(finddate);</span>
+<span class="nc bnc" id="L527" title="All 2 branches missed.">    	if (!usernames.isEmpty()) {</span>
+<span class="nc" id="L528">    		Iterator&lt;String&gt; i = usernames.iterator();</span>
+<span class="nc bnc" id="L529" title="All 4 branches missed.">    		while (i.hasNext() &amp;&amp; userlist.size() &lt;= getMaximumQueryRowCount()+1 ) {</span>
+<span class="nc" id="L530">    			EndEntityInformation user = null;</span>
+    			try {
+<span class="nc" id="L532">    				user = endEntityAccessSession.findUser(administrator, i.next());</span>
+<span class="nc bnc" id="L533" title="All 2 branches missed.">    				if (user != null) {</span>
+<span class="nc" id="L534">    					userlist.add(user);</span>
+    				}
+<span class="nc" id="L536">    			} catch(AuthorizationDeniedException e) {}</span>
+<span class="nc" id="L537">    		}</span>
+<span class="nc" id="L538">    		usersView.setUsers(userlist, caSession.getCAIdToNameMap());</span>
+<span class="nc" id="L539">    		returnval= usersView.getUsers(index,size);</span>
+    	}
+<span class="nc" id="L541">    	return returnval;</span>
+    }
+
+    public UserView[] filterByQuery(Query query, int index, int size, final String endentityAccessRule) throws IllegalQueryException {
+<span class="nc" id="L545">        Collection&lt;EndEntityInformation&gt; userlist = endEntityAccessSession.query(administrator, query,</span>
+<span class="nc" id="L546">                raauthorization.getCAAuthorizationString(),</span>
+<span class="nc" id="L547">                raauthorization.getEndEntityProfileAuthorizationString(true, endentityAccessRule), 0, endentityAccessRule);</span>
+<span class="nc" id="L548">    	usersView.setUsers(userlist, caSession.getCAIdToNameMap());</span>
+<span class="nc" id="L549">    	return usersView.getUsers(index,size);</span>
+    }
+
+    public int getResultSize(){
+<span class="nc" id="L553">    	return usersView.size();</span>
+    }
+
+    public boolean isAuthorizedToViewUserHistory(String username) throws AuthorizationDeniedException {
+<span class="nc" id="L557">    	EndEntityInformation user = endEntityAccessSession.findUser(administrator, username);</span>
+<span class="nc" id="L558">    	return endEntityAuthorization(administrator, user.getEndEntityProfileId(),AccessRulesConstants.VIEW_END_ENTITY_HISTORY, false);</span>
+    }
+
+    public boolean isAuthorizedToEditUser(String username) throws AuthorizationDeniedException {
+<span class="nc" id="L562">    	EndEntityInformation user = endEntityAccessSession.findUser(administrator, username);</span>
+<span class="nc" id="L563">        return endEntityAuthorization(administrator, user.getEndEntityProfileId(),AccessRulesConstants.EDIT_END_ENTITY, false);</span>
+    }
+
+    /** Method to resort filtered user data. 
+     * @param sortby Sort
+     * @param sortorder order */
+    public void sortUserData(int sortby, int sortorder) {
+<span class="nc" id="L570">    	usersView.sortBy(sortby,sortorder);</span>
+<span class="nc" id="L571">    }</span>
+
+    /** Method to return the users between index and size, if userdata is smaller than size, a smaller array is returned. 
+     * @param index Index
+     * @param size Size
+     * @return View */
+    public UserView[] getUsers(int index, int size) {
+<span class="nc" id="L578">    	return usersView.getUsers(index, size);</span>
+    }
+
+    /** Method that clears the userview memory. */
+    public void clearUsers() {
+<span class="nc" id="L583">    	usersView.clear();</span>
+<span class="nc" id="L584">    }</span>
+
+    public boolean nextButton(int index, int size) {
+<span class="nc bnc" id="L587" title="All 2 branches missed.">    	return index + size &lt; usersView.size();</span>
+    }
+    public boolean previousButton(int index) {
+<span class="nc bnc" id="L590" title="All 2 branches missed.">    	return index &gt; 0 ;</span>
+    }
+
+    // Method dealing with added user memory.
+    /** A method to get the last added users in adduser.jsp.
+     * @param size Size
+     * @return Views
+     *
+     * @see org.ejbca.ui.web.admin.rainterface.AddedUserMemory
+     */
+    public UserView[] getAddedUsers(int size){
+<span class="nc" id="L601">    	return addedusermemory.getUsers(size);</span>
+    }
+
+    // Methods dealing with profiles.
+    public TreeMap&lt;String, String&gt; getAuthorizedEndEntityProfileNames(final String endentityAccessRule) {
+<span class="nc" id="L606">    	return raauthorization.getAuthorizedEndEntityProfileNames(endentityAccessRule);</span>
+    }
+
+    public List&lt;String&gt; getAuthorizedEndEntityProfileIdsWithMissingCAs() {
+<span class="nc" id="L610">        return raauthorization.getViewAuthorizedEndEntityProfilesWithMissingCAs();</span>
+    }
+
+    /** Returns the profile name from id proxied 
+     * @param profileid ID
+     * @return Name */
+    public String getEndEntityProfileName(int profileid) {
+<span class="nc" id="L617">    	return endEntityProfileSession.getEndEntityProfileName(profileid);</span>
+    }
+
+    /**
+     *
+     * @param profilename the name of the sought profile
+     * @return the ID of the sought profile
+     * @throws EndEntityProfileNotFoundException if no such profile exists
+     */
+    public int getEndEntityProfileId(String profilename) throws EndEntityProfileNotFoundException {
+<span class="nc" id="L627">        return endEntityProfileSession.getEndEntityProfileId(profilename);</span>
+    }
+
+
+    public String getUserDataSourceName(int sourceid) {
+<span class="nc" id="L632">    	return this.userdatasourcesession.getUserDataSourceName(administrator, sourceid);</span>
+    }
+
+    public int getUserDataSourceId(String sourcename) {
+<span class="nc" id="L636">    	return this.userdatasourcesession.getUserDataSourceId(administrator, sourcename);</span>
+    }
+
+    public EndEntityProfile getEndEntityProfile(String name) {
+<span class="nc" id="L640">    	return endEntityProfileSession.getEndEntityProfile(name);</span>
+    }
+
+    public EndEntityProfile getEndEntityProfile(int id) {
+<span class="nc" id="L644">    	return endEntityProfileSession.getEndEntityProfile(id);</span>
+    }
+
+    public void addEndEntityProfile(String name) throws EndEntityProfileExistsException, AuthorizationDeniedException {
+<span class="nc" id="L648">    	EndEntityProfile profile = new EndEntityProfile();</span>
+<span class="nc" id="L649">    	String availablecas = StringUtils.join(caSession.getAuthorizedCaIds(administrator), EndEntityProfile.SPLITCHAR);</span>
+<span class="nc" id="L650">    	profile.setValue(EndEntityProfile.AVAILCAS, 0,availablecas);</span>
+<span class="nc" id="L651">    	profile.setRequired(EndEntityProfile.AVAILCAS, 0,true);</span>
+<span class="nc" id="L652">    	endEntityProfileSession.addEndEntityProfile(administrator, name, profile);</span>
+<span class="nc" id="L653">    }</span>
+
+    public void changeEndEntityProfile(String name, EndEntityProfile profile) throws AuthorizationDeniedException, EndEntityProfileNotFoundException {
+<span class="nc" id="L656">    	endEntityProfileSession.changeEndEntityProfile(administrator, name, profile);</span>
+<span class="nc" id="L657">    }</span>
+
+    /**
+     * Tries to remove an End Entity Profile. Returns an array of messages
+     * containing information about what is preventing the removal, or empty
+     * strings if the removal was successful.
+     *
+     * @param name the name of the profile to be removed
+     * @return an array of strings containing information about the EEs and administrator roles using the EEP
+     * @throws AuthorizationDeniedException if the admin is not authorized to remove the EEP
+     * @throws EndEntityProfileNotFoundException if no such end entity profile was found
+     */
+    public String[] removeEndEntityProfile(String name) throws AuthorizationDeniedException, EndEntityProfileNotFoundException {
+<span class="nc" id="L670">        String[] messageArray = {&quot;&quot;, &quot;&quot;, &quot;&quot;};</span>
+<span class="nc" id="L671">        int profileId = endEntityProfileSession.getEndEntityProfileId(name);</span>
+<span class="nc" id="L672">        List&lt;UserData&gt; users = endEntityAccessSession.findByEndEntityProfileId(profileId);</span>
+<span class="nc bnc" id="L673" title="All 2 branches missed.">        if (users.size() &gt; 0) {</span>
+<span class="nc" id="L674">            messageArray[0] = &quot;used&quot;;</span>
+        }
+        // Only return the users the admin is authorized to view to prevent information leaks
+<span class="nc" id="L677">        List&lt;String&gt; authorizedUsers = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L678" title="All 2 branches missed.">        for (UserData user : users) {</span>
+<span class="nc bnc" id="L679" title="All 2 branches missed.">            if (caSession.authorizedToCANoLogging(administrator, user.getCaId())</span>
+<span class="nc bnc" id="L680" title="All 2 branches missed.">                    &amp;&amp; authorizationSession.isAuthorizedNoLogging(administrator, AccessRulesConstants.REGULAR_VIEWENDENTITY)) {</span>
+<span class="nc" id="L681">                authorizedUsers.add(user.getUsername());</span>
+            }
+<span class="nc" id="L683">        }</span>
+        // Only return the End Entities that the admin is authorized to (empty string if none)
+<span class="nc" id="L685">        messageArray[1] = StringUtils.join(authorizedUsers, &quot;, &quot;);</span>
+<span class="nc" id="L686">        List&lt;String&gt; usedRules = getRulesWithEndEntityProfile(profileId);</span>
+<span class="nc bnc" id="L687" title="All 2 branches missed.">        if (usedRules.size() &gt; 0) {</span>
+<span class="nc" id="L688">            messageArray[0] = &quot;used&quot;;</span>
+        }
+<span class="nc bnc" id="L690" title="All 2 branches missed.">        if (authorizationSession.isAuthorizedNoLogging(administrator, StandardRules.VIEWROLES.resource())) {</span>
+            // Only return the used administrator roles if the admin is authorized to view them to prevent information leaks
+<span class="nc" id="L692">            messageArray[2] = StringUtils.join(usedRules, &quot;, &quot;);</span>
+        }
+        // Remove profile if it's not in use
+<span class="nc bnc" id="L695" title="All 2 branches missed.">        if (messageArray[0].isEmpty()) {</span>
+<span class="nc" id="L696">            endEntityProfileSession.removeEndEntityProfile(administrator, name);</span>
+        }
+<span class="nc" id="L698">        return messageArray;</span>
+    }
+
+    /** @param profileId ID
+     * @return a list of role names where the End Entity Profile's ID is explicitly defined in the role's access rules */
+    private List&lt;String&gt; getRulesWithEndEntityProfile(final int profileId) {
+<span class="nc bnc" id="L704" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L705">            log.trace(&quot;&gt;getRulesWithEndEntityProfile(&quot; + profileId + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L707">        final List&lt;String&gt; rolenames = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L708">        final Pattern idInRulename = Pattern.compile(&quot;^&quot;+AccessRulesConstants.ENDENTITYPROFILEPREFIX+&quot;(-?[0-9]+)/.*$&quot;);</span>
+<span class="nc bnc" id="L709" title="All 2 branches missed.">        for (final Role role : ejbLocalHelper.getRoleDataSession().getAllRoles()) {</span>
+<span class="nc bnc" id="L710" title="All 2 branches missed.">            for (final String explicitResource : role.getAccessRules().keySet()) {</span>
+<span class="nc" id="L711">                final Matcher matcher = idInRulename.matcher(explicitResource);</span>
+<span class="nc bnc" id="L712" title="All 4 branches missed.">                if (matcher.find() &amp;&amp; String.valueOf(profileId).equals(matcher.group(1))) {</span>
+<span class="nc" id="L713">                    rolenames.add(role.getRoleNameFull());</span>
+<span class="nc" id="L714">                    break;</span>
+                }
+<span class="nc" id="L716">            }</span>
+<span class="nc" id="L717">        }</span>
+<span class="nc bnc" id="L718" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L719">            log.debug(&quot;End entity profile with id &quot; + profileId + &quot; is present in roles: &quot; + StringUtils.join(rolenames, &quot;, &quot;));</span>
+        }
+<span class="nc bnc" id="L721" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L722">            log.trace(&quot;&lt;getRulesWithEndEntityProfile(&quot; + profileId + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L724">        return rolenames;</span>
+    }
+
+    public void renameEndEntityProfile(String oldname, String newname) throws EndEntityProfileExistsException, AuthorizationDeniedException {
+<span class="nc" id="L728">    	endEntityProfileSession.renameEndEntityProfile(administrator, oldname, newname);</span>
+<span class="nc" id="L729">    }</span>
+
+    public void setTemporaryEndEntityProfileNotification(UserNotification userNotification) {
+<span class="nc" id="L732">        temporaryNotification = userNotification;</span>
+<span class="nc" id="L733">    }</span>
+
+    public UserNotification getTemporaryEndEntityProfileNotification() {
+<span class="nc" id="L736">        return temporaryNotification;</span>
+    }
+
+    public void cloneEndEntityProfile(String originalname, String newname) throws EndEntityProfileExistsException, AuthorizationDeniedException {
+<span class="nc" id="L740">    	endEntityProfileSession.cloneEndEntityProfile(administrator, originalname, newname);</span>
+<span class="nc" id="L741">    }</span>
+
+    public void loadCertificates(final String username) {
+<span class="nc" id="L744">        loadTokenCertificates(certificatesession.getCertificateDataByUsername(username, false, null));</span>
+<span class="nc" id="L745">    }</span>
+
+    public void loadTokenCertificates(final String tokensn) {
+<span class="nc" id="L748">        loadTokenCertificates(hardtokensession.getCertificateDatasFromHardToken(tokensn));</span>
+<span class="nc" id="L749">    }</span>
+
+    private void loadTokenCertificates(final List&lt;CertificateDataWrapper&gt; cdws) {
+<span class="nc bnc" id="L752" title="All 2 branches missed.">        if (!cdws.isEmpty()) {</span>
+<span class="nc bnc" id="L753" title="All 2 branches missed.">            if (cdws.size() &lt;= 50) {</span>
+<span class="nc" id="L754">                Collections.sort(cdws);</span>
+            } else {
+<span class="nc" id="L756">                log.debug(&quot;User has more than 50 certificates, we will not sort them&quot;);</span>
+            }
+<span class="nc" id="L758">            certificates = new CertificateView[cdws.size()];</span>
+<span class="nc bnc" id="L759" title="All 2 branches missed.">            for (int i=0; i&lt;certificates.length; i++) {</span>
+<span class="nc" id="L760">                certificates[i] = new CertificateView(cdws.get(i));</span>
+            }
+        } else{
+<span class="nc" id="L763">            certificates = null;</span>
+        }
+<span class="nc" id="L765">    }</span>
+
+    public boolean revokeTokenCertificates(String tokensn, String username, int reason) throws ApprovalException, WaitingForApprovalException, AlreadyRevokedException {
+<span class="nc" id="L768">       boolean success = true;</span>
+<span class="nc" id="L769">       ApprovalException lastAppException = null;</span>
+<span class="nc" id="L770">       WaitingForApprovalException lastWaitException = null;</span>
+<span class="nc" id="L771">       AlreadyRevokedException lastRevokedException = null;</span>
+<span class="nc" id="L772">       Collection&lt;Certificate&gt; certs = hardtokensession.findCertificatesInHardToken(tokensn);</span>
+<span class="nc" id="L773">       Iterator&lt;Certificate&gt; i = certs.iterator();</span>
+       // Extract and revoke collection
+<span class="nc bnc" id="L775" title="All 2 branches missed.">       while ( i.hasNext() ) {</span>
+<span class="nc" id="L776">    	   Certificate cert = i.next();</span>
+           try {
+<span class="nc" id="L778">        	   endEntityManagementSession.revokeCert(administrator, CertTools.getSerialNumber(cert), CertTools.getIssuerDN(cert), reason);</span>
+        	// Ignore errors if some were successful
+<span class="nc" id="L780">           } catch (ApprovalException e) {</span>
+<span class="nc" id="L781">        	   lastAppException = e;</span>
+<span class="nc" id="L782">           } catch (WaitingForApprovalException e) {</span>
+<span class="nc" id="L783">        	   lastWaitException = e;</span>
+<span class="nc" id="L784">           } catch (AlreadyRevokedException e) {</span>
+<span class="nc" id="L785">        	   lastRevokedException = e;</span>
+<span class="nc" id="L786">           } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L787">        	   success = false;</span>
+<span class="nc" id="L788">           } catch (NoSuchEndEntityException e) {</span>
+<span class="nc" id="L789">        	   success = false;</span>
+<span class="nc" id="L790">           }</span>
+<span class="nc" id="L791">       }</span>
+<span class="nc bnc" id="L792" title="All 2 branches missed.">       if ( lastWaitException != null ) {</span>
+<span class="nc" id="L793">    	   throw lastWaitException;</span>
+       }
+<span class="nc bnc" id="L795" title="All 2 branches missed.">       if ( lastAppException != null ) {</span>
+<span class="nc" id="L796">    	   throw lastAppException;</span>
+       }
+<span class="nc bnc" id="L798" title="All 2 branches missed.">       if ( lastRevokedException != null ) {</span>
+<span class="nc" id="L799">    	   throw lastRevokedException;</span>
+       }
+<span class="nc" id="L801">       return success;</span>
+    }
+
+    public boolean isAllTokenCertificatesRevoked(String tokensn, String username) {
+<span class="nc" id="L805">    	Collection&lt;Certificate&gt; certs = hardtokensession.findCertificatesInHardToken(tokensn);</span>
+<span class="nc" id="L806">    	boolean allrevoked = true;</span>
+<span class="nc bnc" id="L807" title="All 2 branches missed.">    	if(!certs.isEmpty()){</span>
+<span class="nc" id="L808">    		Iterator&lt;Certificate&gt; j = certs.iterator();</span>
+<span class="nc bnc" id="L809" title="All 2 branches missed.">    		while(j.hasNext()){</span>
+<span class="nc" id="L810">    			Certificate cert = j.next();</span>
+<span class="nc" id="L811">    			boolean isrevoked = certificatesession.isRevoked(CertTools.getIssuerDN(cert), CertTools.getSerialNumber(cert));</span>
+<span class="nc bnc" id="L812" title="All 2 branches missed.">    			if (!isrevoked) {</span>
+<span class="nc" id="L813">    				allrevoked = false;</span>
+    			}
+<span class="nc" id="L815">    		}</span>
+    	}
+<span class="nc" id="L817">    	return allrevoked;</span>
+    }
+
+    public void loadCACertificates(CertificateView[] cacerts) {
+<span class="nc" id="L821">        certificates = cacerts;</span>
+<span class="nc" id="L822">    }</span>
+
+    public void loadCertificates(BigInteger serno, int caId) throws AuthorizationDeniedException {
+<span class="nc" id="L825">			loadCertificates(serno, caSession.getCAInfo(administrator, caId).getSubjectDN());</span>
+<span class="nc" id="L826">    }</span>
+
+    public void loadCertificates(BigInteger serno, String issuerdn) throws AuthorizationDeniedException {
+<span class="nc bnc" id="L829" title="All 2 branches missed.">    	if (!authorizationSession.isAuthorizedNoLogging(administrator, AccessRulesConstants.REGULAR_VIEWCERTIFICATE)) {</span>
+<span class="nc" id="L830">            final String msg = intres.getLocalizedMessage(&quot;authorization.notauthorizedtoresource&quot;, AccessRulesConstants.REGULAR_VIEWCERTIFICATE, &quot;Not authorized to view certificate.&quot;);</span>
+<span class="nc" id="L831">	        throw new AuthorizationDeniedException(msg);</span>
+        }
+<span class="nc" id="L833">    	final CertificateDataWrapper cdw = certificatesession.getCertificateDataByIssuerAndSerno(issuerdn, serno);</span>
+<span class="nc bnc" id="L834" title="All 2 branches missed.">        if (cdw != null) {</span>
+<span class="nc" id="L835">            final String username = cdw.getCertificateData().getUsername();</span>
+<span class="nc bnc" id="L836" title="All 2 branches missed.">            if (endEntityAccessSession.findUser(administrator, username) != null) {</span>
+<span class="nc" id="L837">                final int endentityprofileid = endEntityAccessSession.findUser(administrator, username).getEndEntityProfileId();</span>
+<span class="nc" id="L838">                endEntityAuthorization(administrator, endentityprofileid, AccessRulesConstants.VIEW_END_ENTITY, true);</span>
+            }
+<span class="nc" id="L840">            certificates = new CertificateView[] { new CertificateView(cdw) };</span>
+<span class="nc" id="L841">        } else {</span>
+<span class="nc" id="L842">            certificates = null;</span>
+        }
+<span class="nc" id="L844">    }</span>
+
+    /** @return the maximum size of the result from SQL select queries */
+    public int getMaximumQueryRowCount() {
+<span class="nc" id="L848">        GlobalCesecoreConfiguration globalConfiguration = (GlobalCesecoreConfiguration) globalConfigurationSession</span>
+<span class="nc" id="L849">                .getCachedConfiguration(GlobalCesecoreConfiguration.CESECORE_CONFIGURATION_ID);</span>
+<span class="nc" id="L850">        return globalConfiguration.getMaximumQueryCount();</span>
+    }
+
+    public int getNumberOfCertificates() {
+<span class="nc" id="L854">    	int returnval=0;</span>
+<span class="nc bnc" id="L855" title="All 2 branches missed.">    	if (certificates != null) {</span>
+<span class="nc" id="L856">    		returnval=certificates.length;</span>
+    	}
+<span class="nc" id="L858">    	return returnval;</span>
+    }
+
+    public CertificateView getCertificate(int index) {
+<span class="nc" id="L862">    	CertificateView returnval = null;</span>
+<span class="nc bnc" id="L863" title="All 2 branches missed.">    	if(certificates != null){</span>
+<span class="nc" id="L864">    		returnval = certificates[index];</span>
+    	}
+<span class="nc" id="L866">    	return returnval;</span>
+    }
+
+    public boolean authorizedToEditEndEntityProfiles() {
+<span class="nc" id="L870">        return authorizationSession.isAuthorizedNoLogging(administrator, AccessRulesConstants.REGULAR_EDITENDENTITYPROFILES);</span>
+    }
+
+    public boolean authorizedToEditUser(int profileid) {
+<span class="nc" id="L874">    	return endEntityAuthorization(administrator, profileid, AccessRulesConstants.EDIT_END_ENTITY, false);</span>
+    }
+
+    public boolean authorizedToViewHistory(int profileid) {
+<span class="nc" id="L878">    	return endEntityAuthorization(administrator, profileid, AccessRulesConstants.VIEW_END_ENTITY_HISTORY, false);</span>
+    }
+
+    public boolean authorizedToViewHardToken(String username) throws AuthorizationDeniedException {
+<span class="nc" id="L882">    	int profileid = endEntityAccessSession.findUser(administrator, username).getEndEntityProfileId();</span>
+<span class="nc bnc" id="L883" title="All 2 branches missed.">    	if (!endEntityAuthorization(administrator, profileid, AccessRulesConstants.HARDTOKEN_RIGHTS, false)) {</span>
+<span class="nc" id="L884">    		throw new AuthorizationDeniedException();</span>
+    	}
+<span class="nc bnc" id="L886" title="All 2 branches missed.">    	if (!WebConfiguration.getHardTokenDiplaySensitiveInfo()) {</span>
+<span class="nc" id="L887">    		return false;</span>
+    	}
+<span class="nc" id="L889">    	return endEntityAuthorization(administrator, profileid, AccessRulesConstants.HARDTOKEN_PUKDATA_RIGHTS, false);</span>
+    }
+
+    public boolean authorizedToViewHardToken(int profileid) {
+<span class="nc" id="L893">    	return endEntityAuthorization(administrator, profileid, AccessRulesConstants.HARDTOKEN_RIGHTS, false);</span>
+    }
+
+    public boolean authorizedToRevokeCert(String username) throws AuthorizationDeniedException{
+<span class="nc" id="L897">    	boolean returnval=false;</span>
+<span class="nc" id="L898">    	EndEntityInformation data = endEntityAccessSession.findUser(administrator, username);</span>
+<span class="nc bnc" id="L899" title="All 2 branches missed.">    	if (data == null) {</span>
+<span class="nc" id="L900">    		return false;</span>
+    	}
+<span class="nc" id="L902">    	int profileid = data.getEndEntityProfileId();</span>
+<span class="nc bnc" id="L903" title="All 2 branches missed.">    	if (getGlobalConfiguration().getEnableEndEntityProfileLimitations()) {</span>
+<span class="nc" id="L904">    		returnval= endEntityAuthorization(administrator, profileid, AccessRulesConstants.REVOKE_END_ENTITY, false);</span>
+    	} else {
+<span class="nc" id="L906">    		returnval=true;</span>
+    	}
+<span class="nc" id="L908">    	return returnval;</span>
+    }
+
+    public boolean keyRecoveryPossible(Certificate cert, String username) throws AuthorizationDeniedException {
+<span class="nc" id="L912">    	boolean returnval = true;</span>
+<span class="nc" id="L913">    	returnval = authorizationSession.isAuthorizedNoLogging(administrator, AccessRulesConstants.REGULAR_KEYRECOVERY);</span>
+<span class="nc bnc" id="L914" title="All 2 branches missed.">    	if (getGlobalConfiguration().getEnableEndEntityProfileLimitations()) {</span>
+<span class="nc" id="L915">    		EndEntityInformation data = endEntityAccessSession.findUser(administrator, username);</span>
+<span class="nc bnc" id="L916" title="All 2 branches missed.">    		if (data != null) {</span>
+<span class="nc" id="L917">    			int profileid = data.getEndEntityProfileId();</span>
+<span class="nc" id="L918">    			returnval = endEntityAuthorization(administrator, profileid, AccessRulesConstants.KEYRECOVERY_RIGHTS, false);</span>
+<span class="nc" id="L919">    		} else {</span>
+<span class="nc" id="L920">    			returnval = false;</span>
+    		}
+    	}
+<span class="nc bnc" id="L923" title="All 6 branches missed.">    	return returnval &amp;&amp; keyrecoverysession.existsKeys(EJBTools.wrap(cert)) &amp;&amp; !keyrecoverysession.isUserMarked(username);</span>
+    }
+
+    public void markForRecovery(String username, Certificate cert) throws AuthorizationDeniedException, ApprovalException,
+                    WaitingForApprovalException, CADoesntExistsException {
+<span class="nc" id="L928">    	boolean authorized = true;</span>
+<span class="nc" id="L929">    	int endEntityProfileId = endEntityAccessSession.findUser(administrator, username).getEndEntityProfileId();</span>
+<span class="nc bnc" id="L930" title="All 2 branches missed.">    	if(getGlobalConfiguration().getEnableEndEntityProfileLimitations()){</span>
+<span class="nc" id="L931">    		authorized = endEntityAuthorization(administrator, endEntityProfileId, AccessRulesConstants.KEYRECOVERY_RIGHTS, false);</span>
+    	}
+<span class="nc bnc" id="L933" title="All 2 branches missed.">    	if(authorized){</span>
+<span class="nc" id="L934">    		endEntityManagementSession.prepareForKeyRecovery(administrator, username, endEntityProfileId, cert);</span>
+    	}
+<span class="nc" id="L936">    }</span>
+
+    public String[] getCertificateProfileNames(){
+<span class="nc" id="L939">        String[] dummy = {&quot;&quot;};</span>
+<span class="nc" id="L940">        Collection&lt;String&gt; certprofilenames = ejbcawebbean.getAuthorizedEndEntityCertificateProfileNames().keySet();</span>
+<span class="nc bnc" id="L941" title="All 2 branches missed.">        if(certprofilenames == null) {</span>
+<span class="nc" id="L942">            return new String[0];</span>
+        }
+<span class="nc" id="L944">        return certprofilenames.toArray(dummy);</span>
+    }
+
+    public int getCertificateProfileId(String certificateprofilename) {
+<span class="nc" id="L948">    	return certificateProfileSession.getCertificateProfileId(certificateprofilename);</span>
+    }
+
+    public String getCertificateProfileName(int certificateprofileid) {
+<span class="nc" id="L952">    	return certificateProfileSession.getCertificateProfileName(certificateprofileid);</span>
+    }
+
+    public boolean getEndEntityParameter(String parameter) {
+<span class="nc bnc" id="L956" title="All 2 branches missed.">    	if(parameter == null) {</span>
+<span class="nc" id="L957">    		return false;</span>
+    	}
+<span class="nc" id="L959">    	return parameter.equals(EndEntityProfile.TRUE);</span>
+    }
+
+    /** Help function used to check end entity profile authorization. 
+     * @param admin Admin
+     * @param profileid ID
+     * @param rights Rights
+     * @param log Log
+     * @return Auth */
+    public boolean endEntityAuthorization(AuthenticationToken admin, int profileid, String rights, boolean log) {
+<span class="nc" id="L969">    	boolean returnval = false;</span>
+<span class="nc bnc" id="L970" title="All 2 branches missed.">    	if (log) {</span>
+<span class="nc" id="L971">    		returnval = authorizationSession.isAuthorized(admin, AccessRulesConstants.ENDENTITYPROFILEPREFIX + Integer.toString(profileid) + rights,</span>
+    		        AccessRulesConstants.REGULAR_RAFUNCTIONALITY + rights);
+    	} else {
+<span class="nc" id="L974">    		returnval = authorizationSession.isAuthorizedNoLogging(admin, AccessRulesConstants.ENDENTITYPROFILEPREFIX + Integer.toString(profileid)</span>
+    				+ rights, AccessRulesConstants.REGULAR_RAFUNCTIONALITY + rights);
+    	}
+<span class="nc" id="L977">    	return returnval;</span>
+    }
+
+    /**
+     *  Help function used by edit end entity pages used to temporary save a profile
+     *  so things can be canceled later
+     * @return Profile
+     */
+    public EndEntityProfile getTemporaryEndEntityProfile(){
+<span class="nc" id="L986">    	return this.temporaryEndEntityProfile;</span>
+    }
+
+    public void setTemporaryEndEntityProfile(EndEntityProfile profile){
+<span class="nc" id="L990">    	this.temporaryEndEntityProfile = profile;</span>
+<span class="nc" id="L991">    }</span>
+
+    UserDataSourceSession getUserDataSourceSession(){
+<span class="nc" id="L994">    	return userdatasourcesession;</span>
+    }
+
+    public String[] listPrinters(){
+<span class="nc bnc" id="L998" title="All 2 branches missed.">    	if (printerNames == null) {</span>
+<span class="nc" id="L999">    		printerNames = org.ejbca.util.PrinterManager.listPrinters();</span>
+    	}
+<span class="nc" id="L1001">    	return printerNames;</span>
+    }
+
+    public String getFormatedCertSN(CertificateView certificateData) {
+
+<span class="nc" id="L1006">    	String serialnumber = certificateData.getSerialNumber();</span>
+<span class="nc bnc" id="L1007" title="All 2 branches missed.">    	if(StringUtils.equals(certificateData.getType(), &quot;X.509&quot;)) {</span>
+<span class="nc bnc" id="L1008" title="All 2 branches missed.">    		if((serialnumber.length()%2) != 0) {</span>
+<span class="nc" id="L1009">    			serialnumber = &quot;0&quot; + serialnumber;</span>
+    		}
+
+<span class="nc" id="L1012">    		int octetChar = serialnumber.charAt(0) - '0';</span>
+<span class="nc bnc" id="L1013" title="All 2 branches missed.">    		if(octetChar &gt; 7) {</span>
+<span class="nc" id="L1014">    			serialnumber = &quot;00&quot; + serialnumber;</span>
+    		}
+
+    	}
+<span class="nc" id="L1018">    	return serialnumber;</span>
+
+    }
+
+    /**
+     * Handle the combinations of AnyCA and default CA to get the correct available CAs line.
+     * @param availableCasArray an array of CA Ids
+     * @param defaultCa the CA Id of the selected default CA
+     * @return the ;-seperated list of CA Ids
+     */
+    public String getAvailableCasString(final String[] availableCasArray, final String defaultCa) {
+<span class="nc" id="L1029">        final List&lt;String&gt; availableCasList = Arrays.asList(availableCasArray);</span>
+<span class="nc" id="L1030">        final StringBuilder sb = new StringBuilder();</span>
+<span class="nc bnc" id="L1031" title="All 4 branches missed.">        if (availableCasList.contains(String.valueOf(SecConst.ALLCAS)) || availableCasList.contains(defaultCa)) {</span>
+            // If the AnyCA or the default CA is selected we will just keep list of selected CAs as is
+            // (the admin might want to use AnyCA with additional selections for awkward access control)
+<span class="nc bnc" id="L1034" title="All 2 branches missed.">            for (final String current : availableCasList) {</span>
+<span class="nc bnc" id="L1035" title="All 2 branches missed.">                if (sb.length()&gt;0) {</span>
+<span class="nc" id="L1036">                    sb.append(EndEntityProfile.SPLITCHAR);</span>
+                }
+<span class="nc" id="L1038">                sb.append(current);</span>
+<span class="nc" id="L1039">            }</span>
+        } else {
+            // If AnyCA isn't selected and the not the default either we need to add the default CA to the list of available CAs
+<span class="nc" id="L1042">            sb.append(defaultCa);</span>
+<span class="nc bnc" id="L1043" title="All 2 branches missed.">            for (final String current : availableCasList) {</span>
+<span class="nc" id="L1044">                sb.append(EndEntityProfile.SPLITCHAR);</span>
+<span class="nc" id="L1045">                sb.append(current);</span>
+<span class="nc" id="L1046">            }</span>
+        }
+<span class="nc" id="L1048">        return sb.toString();</span>
+    }
+    
+    /**
+     * Method that calculates the available CAs to an end entity. Used in add/edit end entity pages. It calculates a set of available CAs as an
+     * intersection of: - The administrator's authorized CAs, the end entity profile's available CAs and the certificate profile's available CAs.
+     *
+     * @param endentityprofileid the EE profile of the end entity
+     * @param endentityAccessRule Rule
+     * @return a HashMap of CertificateProfileIds mapped to Lists if CA IDs. It returns a set of available CAs per end entity profile.
+     */
+
+    public Map&lt;Integer, List&lt;Integer&gt;&gt; getCasAvailableToEndEntity(int endentityprofileid, final String endentityAccessRule) {
+<span class="nc" id="L1061">        final Map&lt;Integer, List&lt;Integer&gt;&gt; ret = new HashMap&lt;&gt;();</span>
+        // Create a TreeMap to get a sorted list.
+<span class="nc" id="L1063">        final TreeMap&lt;CAInfo, Integer&gt; sortedMap = new TreeMap&lt;&gt;(new Comparator&lt;CAInfo&gt;() {</span>
+            @Override
+            public int compare(CAInfo o1, CAInfo o2) {
+<span class="nc" id="L1066">                return o1.getName().compareToIgnoreCase(o2.getName());</span>
+            }
+        });
+        // 1. Retrieve a list of all CA's the current user is authorized to
+<span class="nc bnc" id="L1070" title="All 2 branches missed.">        for (CAInfo caInfo : caSession.getAuthorizedAndNonExternalCaInfos(administrator)) {</span>
+<span class="nc" id="L1071">            sortedMap.put(caInfo, caInfo.getCAId());</span>
+<span class="nc" id="L1072">        }</span>
+<span class="nc" id="L1073">        final Collection&lt;Integer&gt; authorizedCas = sortedMap.values();</span>
+        // 2. Retrieve the list of CA's available to the end entity profile
+<span class="nc" id="L1075">        final EndEntityProfile endentityprofile = endEntityProfileSession.getEndEntityProfile(endentityprofileid);</span>
+<span class="nc" id="L1076">        final List&lt;Integer&gt; casDefineInEndEntityProfile = new ArrayList&lt;&gt;(endentityprofile.getAvailableCAs());</span>
+<span class="nc" id="L1077">        boolean allCasDefineInEndEntityProfile = false;</span>
+<span class="nc bnc" id="L1078" title="All 2 branches missed.">        if (casDefineInEndEntityProfile.contains(Integer.valueOf(SecConst.ALLCAS))) {</span>
+<span class="nc" id="L1079">            allCasDefineInEndEntityProfile = true;</span>
+        }
+        // 3. Next retrieve all certificate profiles defined in the end entity profile
+<span class="nc bnc" id="L1082" title="All 2 branches missed.">        for (final Integer certificateProfileId : endentityprofile.getAvailableCertificateProfileIds()) {</span>
+<span class="nc" id="L1083">            final CertificateProfile certprofile = certificateProfileSession.getCertificateProfile(certificateProfileId.intValue());</span>
+            // 4. Retrieve all CAs defined in the current certificate profile
+            final Collection&lt;Integer&gt; casDefinedInCertificateProfile;
+<span class="nc bnc" id="L1086" title="All 2 branches missed.">            if (certprofile != null) {</span>
+<span class="nc" id="L1087">                casDefinedInCertificateProfile = certprofile.getAvailableCAs();</span>
+            } else {
+<span class="nc" id="L1089">                casDefinedInCertificateProfile = new ArrayList&lt;&gt;();</span>
+            }
+            // First make a clone of the full list of available CAs
+<span class="nc" id="L1092">            final List&lt;Integer&gt; authorizedCasClone = new ArrayList&lt;&gt;(authorizedCas);</span>
+<span class="nc bnc" id="L1093" title="All 2 branches missed.">            if (!casDefinedInCertificateProfile.contains(Integer.valueOf(CertificateProfile.ANYCA))) {</span>
+                //If ANYCA wasn't defined among the list from the cert profile, only keep the intersection
+<span class="nc" id="L1095">                authorizedCasClone.retainAll(casDefinedInCertificateProfile);</span>
+            }
+<span class="nc bnc" id="L1097" title="All 2 branches missed.">            if (!allCasDefineInEndEntityProfile) {</span>
+                //If ALL wasn't defined in the EE profile, only keep the intersection
+<span class="nc" id="L1099">                authorizedCasClone.retainAll(casDefineInEndEntityProfile);</span>
+            }
+<span class="nc" id="L1101">            ret.put(certificateProfileId, authorizedCasClone);</span>
+<span class="nc" id="L1102">        }</span>
+<span class="nc" id="L1103">        return ret;</span>
+    }
+
+
+
+
+    //-------------------------------------------------------
+    //         Import/Export  profiles related code
+    //-------------------------------------------------------
+    public byte[]  getfileBuffer(final HttpServletRequest request, final Map&lt;String, String&gt; requestMap) throws IOException, FileUploadException {
+<span class="nc" id="L1113">        return getFileBuffer(request, requestMap, 60_000);</span>
+    }
+    
+    public byte[]  getFileBuffer(final HttpServletRequest request, final Map&lt;String, String&gt; requestMap, final int maxSize) throws IOException, FileUploadException {
+<span class="nc" id="L1117">        byte[] fileBuffer = null;</span>
+<span class="nc bnc" id="L1118" title="All 2 branches missed.">        if (ServletFileUpload.isMultipartContent(request)) {</span>
+<span class="nc" id="L1119">            final DiskFileItemFactory diskFileItemFactory = new DiskFileItemFactory();</span>
+<span class="nc" id="L1120">            diskFileItemFactory.setSizeThreshold(maxSize); // it makes no sense to write to a temporary file</span>
+<span class="nc" id="L1121">            ServletFileUpload upload = new ServletFileUpload(diskFileItemFactory);</span>
+<span class="nc" id="L1122">            upload.setSizeMax(maxSize);</span>
+<span class="nc" id="L1123">            upload.setFileSizeMax(maxSize);</span>
+<span class="nc" id="L1124">            final List&lt;FileItem&gt; items = upload.parseRequest(request);</span>
+<span class="nc bnc" id="L1125" title="All 2 branches missed.">            for (final FileItem item : items) {</span>
+<span class="nc bnc" id="L1126" title="All 2 branches missed.">                if (item.isFormField()) {</span>
+<span class="nc" id="L1127">                    final String fieldName = item.getFieldName();</span>
+<span class="nc" id="L1128">                    final String currentValue = requestMap.get(fieldName);</span>
+<span class="nc bnc" id="L1129" title="All 2 branches missed.">                    if (currentValue != null) {</span>
+<span class="nc" id="L1130">                        requestMap.put(fieldName, currentValue + &quot;;&quot; + item.getString(&quot;UTF8&quot;));</span>
+                    } else {
+<span class="nc" id="L1132">                        requestMap.put(fieldName, item.getString(&quot;UTF8&quot;));</span>
+                    }
+<span class="nc" id="L1134">                } else {</span>
+<span class="nc" id="L1135">                    importedProfileName = item.getName();</span>
+<span class="nc" id="L1136">                    final InputStream file = item.getInputStream();</span>
+<span class="nc" id="L1137">                    byte[] fileBufferTmp = FileTools.readInputStreamtoBuffer(file);</span>
+<span class="nc bnc" id="L1138" title="All 4 branches missed.">                    if (fileBuffer == null &amp;&amp; fileBufferTmp.length &gt; 0) {</span>
+<span class="nc" id="L1139">                        fileBuffer = fileBufferTmp;</span>
+                    }
+                }
+<span class="nc" id="L1142">            }</span>
+<span class="nc" id="L1143">        } else {</span>
+<span class="nc" id="L1144">            final Set&lt;String&gt; keySet = request.getParameterMap().keySet();</span>
+<span class="nc bnc" id="L1145" title="All 2 branches missed.">            for (final String key : keySet) {</span>
+<span class="nc" id="L1146">                requestMap.put(key, request.getParameter(key));</span>
+<span class="nc" id="L1147">            }</span>
+        }
+
+<span class="nc" id="L1150">        return fileBuffer;</span>
+    }
+
+    public String importProfilesFromZip(byte[] filebuffer) {
+<span class="nc bnc" id="L1154" title="All 2 branches missed.">        if(log.isTraceEnabled()) {</span>
+<span class="nc" id="L1155">            log.trace(&quot;&gt;importProfiles(): &quot; + importedProfileName + &quot; - &quot; + filebuffer.length + &quot; bytes&quot;);</span>
+        }
+
+<span class="nc" id="L1158">        String retmsg = &quot;&quot;;</span>
+<span class="nc" id="L1159">        String faultXMLmsg = &quot;&quot;;</span>
+
+<span class="nc bnc" id="L1161" title="All 4 branches missed.">        if(StringUtils.isEmpty(importedProfileName) || filebuffer.length == 0) {</span>
+<span class="nc" id="L1162">            retmsg = &quot;Error: No input file&quot;;</span>
+<span class="nc" id="L1163">            log.error(retmsg);</span>
+<span class="nc" id="L1164">            return retmsg;</span>
+        }
+
+<span class="nc" id="L1167">        int importedFiles = 0;</span>
+<span class="nc" id="L1168">        int ignoredFiles = 0;</span>
+<span class="nc" id="L1169">        int nrOfFiles = 0;</span>
+<span class="nc" id="L1170">        try (ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(filebuffer))) {</span>
+<span class="nc" id="L1171">            ZipEntry ze = zis.getNextEntry();</span>
+<span class="nc bnc" id="L1172" title="All 2 branches missed.">            if(ze == null) {</span>
+                // Print import message if the file header corresponds to an empty zip archive
+<span class="nc bnc" id="L1174" title="All 2 branches missed.">                if (Arrays.equals(Arrays.copyOfRange(filebuffer, 0, 4), new byte[] { 80, 75, 5, 6 })) {</span>
+<span class="nc" id="L1175">                    retmsg = getSuccessImportMessage(importedProfileName, nrOfFiles, importedFiles, ignoredFiles);</span>
+<span class="nc" id="L1176">                    log.info(retmsg);</span>
+                } else {
+<span class="nc" id="L1178">                    retmsg = &quot;Error: Expected a zip file. '&quot; + importedProfileName + &quot;' is not a  zip file.&quot;;</span>
+<span class="nc" id="L1179">                    log.error(retmsg);</span>
+                }
+<span class="nc" id="L1181">                return retmsg;</span>
+            }
+
+            do {
+<span class="nc" id="L1185">                nrOfFiles++;</span>
+<span class="nc" id="L1186">                String filename = ze.getName();</span>
+<span class="nc bnc" id="L1187" title="All 2 branches missed.">                if(log.isDebugEnabled()) {</span>
+<span class="nc" id="L1188">                    log.debug(&quot;Importing file: &quot; + filename);</span>
+                }
+
+<span class="nc bnc" id="L1191" title="All 2 branches missed.">                if(ignoreFile(filename)) {</span>
+<span class="nc" id="L1192">                    ignoredFiles++;</span>
+<span class="nc" id="L1193">                    continue;</span>
+                }
+
+                String profilename;
+<span class="nc" id="L1197">                filename = URLDecoder.decode(filename, &quot;UTF-8&quot;);</span>
+
+<span class="nc" id="L1199">                int index1 = filename.indexOf(&quot;_&quot;);</span>
+<span class="nc" id="L1200">                int index2 = filename.lastIndexOf(&quot;-&quot;);</span>
+<span class="nc" id="L1201">                int index3 = filename.lastIndexOf(&quot;.xml&quot;);</span>
+<span class="nc" id="L1202">                profilename = filename.substring(index1 + 1, index2);</span>
+<span class="nc" id="L1203">                int profileid = 0;</span>
+                try {
+<span class="nc" id="L1205">                    profileid = Integer.parseInt(filename.substring(index2 + 1, index3));</span>
+<span class="nc" id="L1206">                } catch (NumberFormatException e) {</span>
+<span class="nc bnc" id="L1207" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1208">                        log.debug(&quot;NumberFormatException parsing certificate profile id: &quot;+e.getMessage());</span>
+                    }
+<span class="nc" id="L1210">                    ignoredFiles++;</span>
+<span class="nc" id="L1211">                    continue;</span>
+<span class="nc" id="L1212">                }</span>
+<span class="nc bnc" id="L1213" title="All 2 branches missed.">                if(log.isDebugEnabled()) {</span>
+<span class="nc" id="L1214">                    log.debug(&quot;Extracted profile name '&quot; + profilename + &quot;' and profile ID '&quot; + profileid + &quot;'&quot;);</span>
+                }
+
+<span class="nc bnc" id="L1217" title="All 2 branches missed.">                if(ignoreProfile(filename, profilename, profileid)) {</span>
+<span class="nc" id="L1218">                    ignoredFiles++;</span>
+<span class="nc" id="L1219">                    continue;</span>
+                }
+
+<span class="nc bnc" id="L1222" title="All 2 branches missed.">                if (endEntityProfileSession.getEndEntityProfile(profileid) != null) {</span>
+<span class="nc" id="L1223">                    int newprofileid = endEntityProfileSession.findFreeEndEntityProfileId();</span>
+<span class="nc" id="L1224">                    log.warn(&quot;Entity profileid '&quot; + profileid + &quot;' already exist in database. Using &quot; + newprofileid</span>
+                            + &quot; instead.&quot;);
+<span class="nc" id="L1226">                    profileid = newprofileid;</span>
+                }
+
+<span class="nc" id="L1229">                byte[] filebytes = new byte[102400];</span>
+<span class="nc" id="L1230">                int i = 0;</span>
+<span class="nc bnc" id="L1231" title="All 4 branches missed.">                while ((zis.available() == 1) &amp;&amp; (i &lt; filebytes.length)) {</span>
+<span class="nc" id="L1232">                    filebytes[i++] = (byte) zis.read();</span>
+                }
+
+<span class="nc" id="L1235">                EndEntityProfile eprofile = getEEProfileFromByteArray(profilename, filebytes);</span>
+<span class="nc bnc" id="L1236" title="All 2 branches missed.">                if(eprofile == null) {</span>
+<span class="nc" id="L1237">                    String msg = &quot;Faulty XML file '&quot; + filename + &quot;'. Failed to read End Entity Profile.&quot;;</span>
+<span class="nc" id="L1238">                    log.info(msg + &quot; Ignoring file.&quot;);</span>
+<span class="nc" id="L1239">                    ignoredFiles++;</span>
+<span class="nc" id="L1240">                    faultXMLmsg += filename + &quot;, &quot;;</span>
+<span class="nc" id="L1241">                    continue;</span>
+                }
+
+<span class="nc" id="L1244">                endEntityProfileSession.addEndEntityProfile(administrator, profilename, eprofile);</span>
+<span class="nc" id="L1245">                importedFiles++;</span>
+<span class="nc" id="L1246">                log.info(&quot;Added EndEntity profile: &quot; + profilename);</span>
+
+<span class="nc bnc" id="L1248" title="All 2 branches missed.">            } while((ze=zis.getNextEntry()) != null);</span>
+<span class="nc" id="L1249">            zis.closeEntry();</span>
+<span class="nc" id="L1250">        } catch (UnsupportedEncodingException e) {</span>
+<span class="nc" id="L1251">            retmsg = &quot;Error: UTF-8 was not a known character encoding.&quot;;</span>
+<span class="nc" id="L1252">            log.error(retmsg, e);</span>
+<span class="nc" id="L1253">            return retmsg;</span>
+<span class="nc" id="L1254">        } catch (IOException e) {</span>
+<span class="nc" id="L1255">            log.error(e);</span>
+<span class="nc" id="L1256">            retmsg = &quot;Error: &quot; + e.getLocalizedMessage();</span>
+<span class="nc" id="L1257">            return retmsg;</span>
+<span class="nc" id="L1258">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L1259">            log.error(e);</span>
+<span class="nc" id="L1260">            retmsg = &quot;Error: &quot; + e.getLocalizedMessage();</span>
+<span class="nc" id="L1261">            return retmsg;</span>
+<span class="nc" id="L1262">        } catch (EndEntityProfileExistsException e) {</span>
+<span class="nc" id="L1263">            log.error(e);</span>
+<span class="nc" id="L1264">            retmsg = &quot;Error: &quot; + e.getLocalizedMessage();</span>
+<span class="nc" id="L1265">            return retmsg;</span>
+<span class="nc" id="L1266">        }</span>
+
+<span class="nc bnc" id="L1268" title="All 2 branches missed.">        if(StringUtils.isNotEmpty(faultXMLmsg)) {</span>
+<span class="nc" id="L1269">            faultXMLmsg = faultXMLmsg.substring(0, faultXMLmsg.length()-2);</span>
+<span class="nc" id="L1270">            retmsg = &quot;Faulty XML files: &quot; + faultXMLmsg + &quot;. &quot; + importedFiles + &quot; profiles were imported.&quot;;</span>
+        } else {
+<span class="nc" id="L1272">            retmsg = getSuccessImportMessage(importedProfileName, nrOfFiles, importedFiles, ignoredFiles);</span>
+        }
+<span class="nc" id="L1274">        log.info(retmsg);</span>
+
+<span class="nc" id="L1276">        return retmsg;</span>
+    }
+
+    private String getSuccessImportMessage(String fileName, int nrOfFiles, int importedFiles, int ignoredFiles) {
+<span class="nc" id="L1280">        return importedProfileName + &quot; contained &quot; + nrOfFiles + &quot; files. &quot; +</span>
+                        importedFiles + &quot; EndEntity Profiles were imported and &quot; + ignoredFiles + &quot; files  were ignored.&quot;;
+    }
+
+    public String getAvailableHardTokenIssuers(final String defaulthardtokenissuer, final String[] values) {
+<span class="nc" id="L1285">        String availablehardtokenissuers = defaulthardtokenissuer;</span>
+<span class="nc bnc" id="L1286" title="All 2 branches missed.">        if (values!= null) {</span>
+<span class="nc bnc" id="L1287" title="All 2 branches missed.">            for (int i=0; i&lt; values.length; i++) {</span>
+<span class="nc bnc" id="L1288" title="All 2 branches missed.">                if(!values[i].equals(defaulthardtokenissuer)) {</span>
+<span class="nc" id="L1289">                    availablehardtokenissuers += EndEntityProfile.SPLITCHAR + values[i];</span>
+                }
+            }
+        }
+<span class="nc" id="L1293">        return availablehardtokenissuers;</span>
+    }
+
+    public String getAvailableTokenTypes(final String defaulttokentype, final String[] values) {
+<span class="nc" id="L1297">        String availabletokentypes = defaulttokentype;</span>
+<span class="nc bnc" id="L1298" title="All 2 branches missed.">        if (values!= null) {</span>
+<span class="nc bnc" id="L1299" title="All 2 branches missed.">            for (int i=0; i&lt; values.length; i++) {</span>
+<span class="nc bnc" id="L1300" title="All 2 branches missed.">                if(!values[i].equals(defaulttokentype)) {</span>
+<span class="nc" id="L1301">                    availabletokentypes += EndEntityProfile.SPLITCHAR + values[i];</span>
+                }
+            }
+        }
+<span class="nc" id="L1305">        return availabletokentypes;</span>
+    }
+
+    /**
+     * Handle the combinations of available cert profiles and default cert profile to get the correct available cert profiles line.
+     * @param defaultcertprof the Id of the selected default cert profile
+     * @param values an array of cert profile Ids
+     * @return the ;-seperated list of cert profile Ids
+     */
+    public String getAvailableCertProfiles(final String defaultcertprof, final String[] values) {
+<span class="nc" id="L1315">        String availablecertprofiles = defaultcertprof;</span>
+<span class="nc bnc" id="L1316" title="All 2 branches missed.">        if (values!= null) {</span>
+<span class="nc bnc" id="L1317" title="All 2 branches missed.">            for (int i=0; i&lt; values.length; i++) {</span>
+<span class="nc bnc" id="L1318" title="All 2 branches missed.">                if(!values[i].equals(defaultcertprof)) {</span>
+<span class="nc" id="L1319">                    availablecertprofiles += EndEntityProfile.SPLITCHAR + values[i];</span>
+                }
+            }
+        }
+<span class="nc" id="L1323">        return availablecertprofiles;</span>
+    }
+
+    public LinkedHashMap&lt;String,Serializable&gt; getValidationFromRegexp(final String validationRegex) {
+        // We must accept an empty value in case the user has Javascript turned
+        // off and has to update the page before the text field appears
+<span class="nc" id="L1329">        final String regex = StringUtils.defaultString(validationRegex);</span>
+<span class="nc" id="L1330">        LinkedHashMap&lt;String,Serializable&gt; validation = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L1331">        validation.put(RegexFieldValidator.class.getName(), regex);</span>
+<span class="nc" id="L1332">        return validation;</span>
+    }
+
+    public UserNotification getNotificationForDelete(String sender, String rcpt, String subject, String msg, String[] val) {
+<span class="nc" id="L1336">        String events = null;</span>
+<span class="nc bnc" id="L1337" title="All 2 branches missed.">        if (val != null) {</span>
+<span class="nc bnc" id="L1338" title="All 2 branches missed.">            for (String v : val) {</span>
+<span class="nc bnc" id="L1339" title="All 2 branches missed.">               if (events == null) {</span>
+<span class="nc" id="L1340">                  events = v;</span>
+               } else {
+<span class="nc" id="L1342">                  events = events + &quot;;&quot;+v;</span>
+               }
+            }
+        }
+<span class="nc" id="L1346">        return new UserNotification(sender, rcpt, subject, msg, events);</span>
+
+    }
+    public UserNotification getNotificationForAdd(String sender, String rcpt, String subject, String msg, String[] val) {
+<span class="nc" id="L1350">        UserNotification not = new UserNotification();</span>
+<span class="nc" id="L1351">        not.setNotificationSender(sender);</span>
+<span class="nc" id="L1352">        not.setNotificationSubject(subject);</span>
+<span class="nc" id="L1353">        not.setNotificationMessage(msg);</span>
+<span class="nc bnc" id="L1354" title="All 4 branches missed.">        if ( (rcpt == null) || (rcpt.length() == 0) ) {</span>
+            // Default value if nothing is entered is users email address
+<span class="nc" id="L1356">            rcpt = UserNotification.RCPT_USER;</span>
+        }
+<span class="nc" id="L1358">        not.setNotificationRecipient(rcpt);</span>
+<span class="nc" id="L1359">        String events = null;</span>
+<span class="nc bnc" id="L1360" title="All 2 branches missed.">        for (String v : val) {</span>
+<span class="nc bnc" id="L1361" title="All 2 branches missed.">           if (events == null) {</span>
+<span class="nc" id="L1362">              events = v;</span>
+           } else {
+<span class="nc" id="L1364">              events = events + &quot;;&quot;+v;</span>
+           }
+        }
+<span class="nc" id="L1367">        not.setNotificationEvents(events);</span>
+<span class="nc" id="L1368">        return not;</span>
+    }
+    
+    private EndEntityProfile getEEProfileFromByteArray(String profilename, byte[] profileBytes) {
+<span class="nc" id="L1372">        ByteArrayInputStream is = new ByteArrayInputStream(profileBytes);</span>
+<span class="nc" id="L1373">        EndEntityProfile eprofile = new EndEntityProfile();</span>
+        try {
+<span class="nc" id="L1375">            final SecureXMLDecoder decoder = new SecureXMLDecoder(is);</span>
+
+            // Add end entity profile
+<span class="nc" id="L1378">            Object data = null;</span>
+            try {
+<span class="nc" id="L1380">                data = decoder.readObject();</span>
+<span class="nc" id="L1381">            } catch(IOException e) {</span>
+<span class="nc bnc" id="L1382" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1383">                    log.debug(&quot;Error parsing certificate profile data: &quot;+e.getMessage());</span>
+                }
+<span class="nc" id="L1385">                return null;</span>
+            } finally {
+<span class="nc" id="L1387">                decoder.close();</span>
+            }
+<span class="nc" id="L1389">            eprofile.loadData(data);</span>
+
+            // Translate cert profile ids that have changed after import
+<span class="nc" id="L1392">            String availableCertProfiles = &quot;&quot;;</span>
+<span class="nc" id="L1393">            String defaultCertProfile = eprofile.getValue(EndEntityProfile.DEFAULTCERTPROFILE, 0);</span>
+<span class="nc bnc" id="L1394" title="All 2 branches missed.">            for (String currentCertProfile : eprofile.getAvailableCertificateProfileIdsAsStrings()) {</span>
+<span class="nc" id="L1395">                Integer currentCertProfileId = Integer.parseInt(currentCertProfile);</span>
+
+<span class="nc bnc" id="L1397" title="All 2 branches missed.">                if (certificateProfileSession.getCertificateProfile(currentCertProfileId) != null</span>
+<span class="nc bnc" id="L1398" title="All 2 branches missed.">                        || CertificateProfileConstants.isFixedCertificateProfile(currentCertProfileId)) {</span>
+<span class="nc bnc" id="L1399" title="All 2 branches missed.">                    availableCertProfiles += (availableCertProfiles.equals(&quot;&quot;) ? &quot;&quot; : &quot;;&quot;) + currentCertProfile;</span>
+                } else {
+<span class="nc" id="L1401">                    log.warn(&quot;End Entity Profile '&quot; + profilename + &quot;' references certificate profile &quot;</span>
+                            + currentCertProfile + &quot; that does not exist.&quot;);
+<span class="nc bnc" id="L1403" title="All 2 branches missed.">                    if (currentCertProfile.equals(defaultCertProfile)) {</span>
+<span class="nc" id="L1404">                        defaultCertProfile = &quot;&quot;;</span>
+                    }
+                }
+<span class="nc" id="L1407">            }</span>
+<span class="nc bnc" id="L1408" title="All 2 branches missed.">            if (availableCertProfiles.equals(&quot;&quot;)) {</span>
+<span class="nc" id="L1409">                log.warn(&quot;End Entity Profile only references certificate profile(s) that does not exist. Using ENDUSER profile.&quot;);</span>
+<span class="nc" id="L1410">                availableCertProfiles = &quot;1&quot;; // At least make sure the default profile is available</span>
+            }
+<span class="nc bnc" id="L1412" title="All 2 branches missed.">            if (defaultCertProfile.equals(&quot;&quot;)) {</span>
+<span class="nc" id="L1413">                defaultCertProfile = availableCertProfiles.split(&quot;;&quot;)[0]; // Use first available profile from list as default if original default was missing</span>
+            }
+<span class="nc" id="L1415">            eprofile.setValue(EndEntityProfile.AVAILCERTPROFILES, 0, availableCertProfiles);</span>
+<span class="nc" id="L1416">            eprofile.setValue(EndEntityProfile.DEFAULTCERTPROFILE, 0, defaultCertProfile);</span>
+            // Remove any unknown CA and break if none is left
+<span class="nc" id="L1418">            String defaultCA = eprofile.getValue(EndEntityProfile.DEFAULTCA, 0);</span>
+<span class="nc" id="L1419">            String availableCAs = eprofile.getValue(EndEntityProfile.AVAILCAS, 0);</span>
+<span class="nc" id="L1420">            List&lt;String&gt; cas = Arrays.asList(availableCAs.split(&quot;;&quot;));</span>
+<span class="nc" id="L1421">            availableCAs = &quot;&quot;;</span>
+<span class="nc bnc" id="L1422" title="All 2 branches missed.">            for (String currentCA : cas) {</span>
+<span class="nc" id="L1423">                Integer currentCAInt = Integer.parseInt(currentCA);</span>
+                // The constant ALLCAS will not be searched for among available CAs
+<span class="nc bnc" id="L1425" title="All 2 branches missed.">                if (currentCAInt.intValue() != SecConst.ALLCAS) {</span>
+<span class="nc bnc" id="L1426" title="All 2 branches missed.">                    if (caSession.existsCa(currentCAInt)) {</span>
+<span class="nc bnc" id="L1427" title="All 2 branches missed.">                        availableCAs += (availableCAs.equals(&quot;&quot;) ? &quot;&quot; : &quot;;&quot;) + currentCA; // No Exception means CA exists</span>
+                    } else {
+<span class="nc" id="L1429">                        log.warn(&quot;CA with id &quot; + currentCA + &quot; was not found and will not be used in end entity profile '&quot; + profilename + &quot;'.&quot;);</span>
+<span class="nc bnc" id="L1430" title="All 2 branches missed.">                        if (defaultCA.equals(currentCA)) {</span>
+<span class="nc" id="L1431">                            defaultCA = &quot;&quot;;</span>
+                        }
+                    }
+                }
+
+<span class="nc" id="L1436">            }</span>
+<span class="nc bnc" id="L1437" title="All 2 branches missed.">            if (availableCAs.equals(&quot;&quot;)) {</span>
+<span class="nc" id="L1438">                log.error(&quot;No CAs left in end entity profile '&quot; + profilename + &quot;'. Using ALLCAs.&quot;);</span>
+<span class="nc" id="L1439">                availableCAs = Integer.toString(SecConst.ALLCAS);</span>
+            }
+<span class="nc bnc" id="L1441" title="All 2 branches missed.">            if (defaultCA.equals(&quot;&quot;)) {</span>
+<span class="nc" id="L1442">                defaultCA = availableCAs.split(&quot;;&quot;)[0]; // Use first available</span>
+<span class="nc" id="L1443">                log.warn(&quot;Changing default CA in end entity profile '&quot; + profilename + &quot;' to &quot; + defaultCA + &quot;.&quot;);</span>
+            }
+<span class="nc" id="L1445">            eprofile.setValue(EndEntityProfile.AVAILCAS, 0, availableCAs);</span>
+<span class="nc" id="L1446">            eprofile.setDefaultCA(Integer.parseInt(defaultCA));</span>
+        } finally {
+            try {
+<span class="nc" id="L1449">                is.close();</span>
+<span class="nc" id="L1450">            } catch (IOException e) {</span>
+<span class="nc" id="L1451">                throw new IllegalStateException(&quot;Unknown IOException was caught when closing stream&quot;, e);</span>
+<span class="nc" id="L1452">            }</span>
+        }
+<span class="nc" id="L1454">        return eprofile;</span>
+    }
+
+    private boolean ignoreFile(String filename) {
+<span class="nc bnc" id="L1458" title="All 2 branches missed.">        if(filename.lastIndexOf(&quot;.xml&quot;) != (filename.length() - 4)) {</span>
+<span class="nc bnc" id="L1459" title="All 2 branches missed.">            if(log.isDebugEnabled()) {</span>
+<span class="nc" id="L1460">                log.debug(filename + &quot; is not an XML file. IGNORED&quot;);</span>
+            }
+<span class="nc" id="L1462">            return true;</span>
+        }
+
+<span class="nc bnc" id="L1465" title="All 6 branches missed.">        if (filename.indexOf(&quot;_&quot;) &lt; 0 || filename.lastIndexOf(&quot;-&quot;) &lt; 0 || (filename.indexOf(&quot;entityprofile_&quot;) &lt; 0) ) {</span>
+<span class="nc bnc" id="L1466" title="All 2 branches missed.">            if(log.isDebugEnabled()) {</span>
+<span class="nc" id="L1467">                log.debug(filename + &quot; is not in the expected format. &quot; +</span>
+                		&quot;The file name should look like: entityprofile_&lt;profile name&gt;-&lt;profile id&gt;.xml. IGNORED&quot;);
+            }
+<span class="nc" id="L1470">            return true;</span>
+        }
+<span class="nc" id="L1472">        return false;</span>
+    }
+
+    private boolean ignoreProfile(String filename, String profilename, int profileid) {
+        // We don't add the fixed profiles, EJBCA handles those automagically
+<span class="nc bnc" id="L1477" title="All 2 branches missed.">        if (profileid == EndEntityConstants.EMPTY_END_ENTITY_PROFILE) {</span>
+<span class="nc" id="L1478">            log.info(filename + &quot; contains a fixed profile. IGNORED&quot;);</span>
+<span class="nc" id="L1479">            return true;</span>
+        }
+
+        // Check if the profiles already exist, and change the name and id if already taken
+<span class="nc bnc" id="L1483" title="All 2 branches missed.">        if (endEntityProfileSession.getEndEntityProfile(profilename) != null) {</span>
+<span class="nc" id="L1484">            log.info(&quot;Entity profile '&quot; + profilename + &quot;' already exist in database. IGNORED&quot;);</span>
+<span class="nc" id="L1485">            return true;</span>
+        }
+
+<span class="nc" id="L1488">        return false;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

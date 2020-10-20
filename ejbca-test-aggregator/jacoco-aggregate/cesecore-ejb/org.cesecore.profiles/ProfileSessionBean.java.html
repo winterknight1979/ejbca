@@ -14,146 +14,162 @@ package org.cesecore.profiles;
 
 import java.util.Collection;
 import java.util.List;
-
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
-
 import org.apache.log4j.Logger;
 import org.cesecore.config.CesecoreConfiguration;
 import org.cesecore.internal.InternalResources;
 import org.cesecore.util.ProfileID;
 
 /**
- * 
- * Basic CRUD bean for ProfileData objects
- * 
- * @version $Id: ProfileSessionBean.java 26289 2017-08-14 08:31:09Z mikekushner $
+ * Basic CRUD bean for ProfileData objects.
  *
+ * @version $Id: ProfileSessionBean.java 26289 2017-08-14 08:31:09Z mikekushner
+ *     $
  */
 @Stateless
 @TransactionAttribute(TransactionAttributeType.REQUIRED)
-<span class="nc" id="L39">public class ProfileSessionBean implements ProfileSessionLocal {</span>
+<span class="nc" id="L36">public class ProfileSessionBean implements ProfileSessionLocal {</span>
 
-<span class="nc" id="L41">    private static final Logger log = Logger.getLogger(ProfileSessionBean.class);</span>
-    
-    @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
-    private EntityManager entityManager;
-    
-    /** Internal localization of logs and errors */
-<span class="nc" id="L47">    private static final InternalResources INTRES = InternalResources.getInstance();</span>
-    
-       
-    @Override
-    public int addProfile(final Profile profile) {
-<span class="nc" id="L52">        final int id = findFreeProfileId();</span>
-<span class="nc bnc" id="L53" title="All 2 branches missed.">        if (isFreeProfileId(id)) {</span>
-<span class="nc" id="L54">            entityManager.persist(new ProfileData(Integer.valueOf(id), profile));</span>
-<span class="nc" id="L55">            return id;</span>
-        } else {
-<span class="nc" id="L57">            final String msg = INTRES.getLocalizedMessage(&quot;profile.store.error.profile_with_id_exists&quot;, id);</span>
-<span class="nc" id="L58">            throw new IllegalStateException(msg);</span>
-        }
-    }
-    
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    @Override
-    public ProfileData findById(int id) {
-<span class="nc" id="L65">        return entityManager.find(ProfileData.class, id);</span>
-    }
-    
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    @Override
-    public List&lt;ProfileData&gt; findByIds(final Collection&lt;Integer&gt; identifiers) {
-<span class="nc" id="L71">        final TypedQuery&lt;ProfileData&gt; query = entityManager.createQuery(&quot;SELECT a FROM ProfileData a WHERE a.id IN (:ids)&quot;, ProfileData.class);</span>
-<span class="nc" id="L72">        query.setParameter(&quot;ids&quot;, identifiers);</span>
-<span class="nc" id="L73">        return query.getResultList();</span>
-    }
-    
-    @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public void changeProfile( final Profile profile) {
-<span class="nc" id="L79">        Integer profileId = profile.getProfileId();</span>
-<span class="nc bnc" id="L80" title="All 2 branches missed.">        if (profileId == null) {</span>
-<span class="nc" id="L81">            throw new IllegalArgumentException(&quot;Profile did not contain a valid ID&quot;);</span>
-        }
-<span class="nc" id="L83">        String name = profile.getProfileName();</span>
+    /** Logger. */
+<span class="nc" id="L39">  private static final Logger LOG = Logger.getLogger(ProfileSessionBean.class);</span>
 
-<span class="nc" id="L85">        final ProfileData profileData = findById(profile.getProfileId());</span>
-<span class="nc bnc" id="L86" title="All 2 branches missed.">        if (profileData == null) {</span>
-<span class="nc" id="L87">            String msg = INTRES.getLocalizedMessage(&quot;profile.store.error.profile_not_found&quot;, name);</span>
-<span class="nc" id="L88">            log.info(msg);</span>
-<span class="nc" id="L89">        } else {         </span>
-            // Do the actual change
-<span class="nc" id="L91">            profileData.setProfile(profile);</span>
-<span class="nc" id="L92">            entityManager.merge(profileData);</span>
-<span class="nc" id="L93">            entityManager.flush();</span>
-        }
-<span class="nc" id="L95">    }</span>
-    
-    @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public void removeProfile(final ProfileData profileData) {
-<span class="nc" id="L100">        entityManager.remove(profileData);</span>
-<span class="nc" id="L101">    }</span>
-    
-    @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public void renameProfile(final Profile profile, final String newName) throws ProfileDoesNotExistException {
-<span class="nc" id="L106">        final ProfileData profileData = findById(profile.getProfileId());</span>
-<span class="nc bnc" id="L107" title="All 2 branches missed.">        if (profileData == null) {</span>
-<span class="nc" id="L108">            final String msg = INTRES.getLocalizedMessage(&quot;profile.store.error.profile_not_found&quot;, profile.getProfileName());</span>
-<span class="nc" id="L109">            throw new ProfileDoesNotExistException(msg);</span>
-        } else {
-            // This changes the name in the database column
-<span class="nc" id="L112">            profileData.setProfileName(newName);</span>
-            // This changes the name in the profile XML data
-<span class="nc" id="L114">            Profile original = profileData.getProfile();</span>
-<span class="nc" id="L115">            original.setProfileName(newName);</span>
-<span class="nc" id="L116">            profileData.setProfile(original);</span>
-        }
-<span class="nc" id="L118">    }</span>
-    
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    @Override
-    public List&lt;ProfileData&gt; findByNameAndType(final String name, final String type) {
-<span class="nc" id="L123">        TypedQuery&lt;ProfileData&gt; query = entityManager.createQuery(&quot;SELECT a FROM ProfileData a WHERE a.profileName=:name AND a.profileType=:profileType&quot;, ProfileData.class);</span>
-<span class="nc" id="L124">        query.setParameter(&quot;name&quot;, name);</span>
-<span class="nc" id="L125">        query.setParameter(&quot;profileType&quot;, type);</span>
-<span class="nc" id="L126">        return query.getResultList();</span>
+  /** EM. */
+  @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
+  private EntityManager entityManager;
+
+  /** Internal localization of logs and errors. */
+<span class="nc" id="L46">  private static final InternalResources INTRES =</span>
+<span class="nc" id="L47">      InternalResources.getInstance();</span>
+
+  @Override
+  public int addProfile(final Profile profile) {
+<span class="nc" id="L51">    final int id = findFreeProfileId();</span>
+<span class="nc bnc" id="L52" title="All 2 branches missed.">    if (isFreeProfileId(id)) {</span>
+<span class="nc" id="L53">      entityManager.persist(new ProfileData(Integer.valueOf(id), profile));</span>
+<span class="nc" id="L54">      return id;</span>
+    } else {
+<span class="nc" id="L56">      final String msg =</span>
+<span class="nc" id="L57">          INTRES.getLocalizedMessage(</span>
+<span class="nc" id="L58">              &quot;profile.store.error.profile_with_id_exists&quot;, id);</span>
+<span class="nc" id="L59">      throw new IllegalStateException(msg);</span>
     }
-    
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    @Override
-    public List&lt;ProfileData&gt; findAllProfiles(final String profileType) {
-<span class="nc" id="L132">        TypedQuery&lt;ProfileData&gt; query = entityManager.createQuery(&quot;SELECT a FROM ProfileData a WHERE a.profileType=:profileType&quot;, ProfileData.class);</span>
-<span class="nc" id="L133">        query.setParameter(&quot;profileType&quot;, profileType);</span>
-<span class="nc" id="L134">        List&lt;ProfileData&gt; ret = query.getResultList();</span>
-<span class="nc" id="L135">        return ret;</span>
+  }
+
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  @Override
+  public ProfileData findById(final int id) {
+<span class="nc" id="L66">    return entityManager.find(ProfileData.class, id);</span>
+  }
+
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  @Override
+  public List&lt;ProfileData&gt; findByIds(final Collection&lt;Integer&gt; identifiers) {
+<span class="nc" id="L72">    final TypedQuery&lt;ProfileData&gt; query =</span>
+<span class="nc" id="L73">        entityManager.createQuery(</span>
+            &quot;SELECT a FROM ProfileData a WHERE a.id IN (:ids)&quot;,
+            ProfileData.class);
+<span class="nc" id="L76">    query.setParameter(&quot;ids&quot;, identifiers);</span>
+<span class="nc" id="L77">    return query.getResultList();</span>
+  }
+
+  @Override
+  @TransactionAttribute(TransactionAttributeType.REQUIRED)
+  public void changeProfile(final Profile profile) {
+<span class="nc" id="L83">    Integer profileId = profile.getProfileId();</span>
+<span class="nc bnc" id="L84" title="All 2 branches missed.">    if (profileId == null) {</span>
+<span class="nc" id="L85">      throw new IllegalArgumentException(&quot;Profile did not contain a valid ID&quot;);</span>
     }
-    
-    private boolean isFreeProfileId(final int id) {
-<span class="nc" id="L139">        boolean foundfree = false;</span>
-<span class="nc bnc" id="L140" title="All 2 branches missed.">        if (findById(id) == null) {</span>
-<span class="nc" id="L141">            foundfree = true;</span>
-        }
-<span class="nc" id="L143">        return foundfree;</span>
+<span class="nc" id="L87">    String name = profile.getProfileName();</span>
+
+<span class="nc" id="L89">    final ProfileData profileData = findById(profile.getProfileId());</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">    if (profileData == null) {</span>
+<span class="nc" id="L91">      String msg =</span>
+<span class="nc" id="L92">          INTRES.getLocalizedMessage(</span>
+              &quot;profile.store.error.profile_not_found&quot;, name);
+<span class="nc" id="L94">      LOG.info(msg);</span>
+<span class="nc" id="L95">    } else {</span>
+      // Do the actual change
+<span class="nc" id="L97">      profileData.setProfile(profile);</span>
+<span class="nc" id="L98">      entityManager.merge(profileData);</span>
+<span class="nc" id="L99">      entityManager.flush();</span>
     }
-    
-    private int findFreeProfileId() {
-<span class="nc" id="L147">        final ProfileID.DB db = new ProfileID.DB() {</span>
-            @Override
-            public boolean isFree(int i) {
-<span class="nc bnc" id="L150" title="All 2 branches missed.">                return findById(i) == null;</span>
-            }
+<span class="nc" id="L101">  }</span>
+
+  @Override
+  @TransactionAttribute(TransactionAttributeType.REQUIRED)
+  public void removeProfile(final ProfileData profileData) {
+<span class="nc" id="L106">    entityManager.remove(profileData);</span>
+<span class="nc" id="L107">  }</span>
+
+  @Override
+  @TransactionAttribute(TransactionAttributeType.REQUIRED)
+  public void renameProfile(final Profile profile, final String newName)
+      throws ProfileDoesNotExistException {
+<span class="nc" id="L113">    final ProfileData profileData = findById(profile.getProfileId());</span>
+<span class="nc bnc" id="L114" title="All 2 branches missed.">    if (profileData == null) {</span>
+<span class="nc" id="L115">      final String msg =</span>
+<span class="nc" id="L116">          INTRES.getLocalizedMessage(</span>
+              &quot;profile.store.error.profile_not_found&quot;,
+<span class="nc" id="L118">              profile.getProfileName());</span>
+<span class="nc" id="L119">      throw new ProfileDoesNotExistException(msg);</span>
+    } else {
+      // This changes the name in the database column
+<span class="nc" id="L122">      profileData.setProfileName(newName);</span>
+      // This changes the name in the profile XML data
+<span class="nc" id="L124">      Profile original = profileData.getProfile();</span>
+<span class="nc" id="L125">      original.setProfileName(newName);</span>
+<span class="nc" id="L126">      profileData.setProfile(original);</span>
+    }
+<span class="nc" id="L128">  }</span>
+
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  @Override
+  public List&lt;ProfileData&gt; findByNameAndType(
+      final String name, final String type) {
+<span class="nc" id="L134">    TypedQuery&lt;ProfileData&gt; query =</span>
+<span class="nc" id="L135">        entityManager.createQuery(</span>
+            &quot;SELECT a FROM ProfileData a WHERE a.profileName=:name AND&quot;
+                + &quot; a.profileType=:profileType&quot;,
+            ProfileData.class);
+<span class="nc" id="L139">    query.setParameter(&quot;name&quot;, name);</span>
+<span class="nc" id="L140">    query.setParameter(&quot;profileType&quot;, type);</span>
+<span class="nc" id="L141">    return query.getResultList();</span>
+  }
+
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  @Override
+  public List&lt;ProfileData&gt; findAllProfiles(final String profileType) {
+<span class="nc" id="L147">    TypedQuery&lt;ProfileData&gt; query =</span>
+<span class="nc" id="L148">        entityManager.createQuery(</span>
+            &quot;SELECT a FROM ProfileData a WHERE a.profileType=:profileType&quot;,
+            ProfileData.class);
+<span class="nc" id="L151">    query.setParameter(&quot;profileType&quot;, profileType);</span>
+<span class="nc" id="L152">    List&lt;ProfileData&gt; ret = query.getResultList();</span>
+<span class="nc" id="L153">    return ret;</span>
+  }
+
+  private boolean isFreeProfileId(final int id) {
+<span class="nc" id="L157">    boolean foundfree = false;</span>
+<span class="nc bnc" id="L158" title="All 2 branches missed.">    if (findById(id) == null) {</span>
+<span class="nc" id="L159">      foundfree = true;</span>
+    }
+<span class="nc" id="L161">    return foundfree;</span>
+  }
+
+  private int findFreeProfileId() {
+<span class="nc" id="L165">    final ProfileID.DB db =</span>
+<span class="nc" id="L166">        new ProfileID.DB() {</span>
+          @Override
+          public boolean isFree(final int i) {
+<span class="nc bnc" id="L169" title="All 2 branches missed.">            return findById(i) == null;</span>
+          }
         };
-<span class="nc" id="L153">        return ProfileID.getNotUsedID(db);</span>
-    }
-    
-    
-    
+<span class="nc" id="L172">    return ProfileID.getNotUsedID(db);</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

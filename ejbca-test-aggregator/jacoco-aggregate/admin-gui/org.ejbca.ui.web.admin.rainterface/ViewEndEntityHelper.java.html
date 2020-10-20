@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ViewEndEntityHelper.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">admin-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.rainterface</a> &gt; <span class="el_source">ViewEndEntityHelper.java</span></div><h1>ViewEndEntityHelper.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.web.admin.rainterface;
+
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
+import java.util.TreeMap;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.endentity.EndEntityConstants;
+import org.ejbca.core.model.ca.store.CertReqHistory;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfile;
+import org.ejbca.ui.web.RequestHelper;
+import org.ejbca.ui.web.admin.cainterface.CAInterfaceBean;
+import org.ejbca.ui.web.admin.configuration.EjbcaWebBean;
+
+
+
+/**
+ * Helper class for the View End Entity Page, parses the request and performs appropriate actions.
+ * 
+ * @version $Id: ViewEndEntityHelper.java 28844 2018-05-04 08:31:02Z samuellb $
+ */
+
+<span class="nc" id="L40">public class ViewEndEntityHelper implements Serializable{</span>
+
+	
+	private static final long serialVersionUID = 7172234379584156296L;
+    public static final String USER_PARAMETER                = &quot;username&quot;;
+	public static final String TIMESTAMP_PARAMETER           = &quot;timestamp&quot;;
+	
+	public static final String BUTTON_CLOSE                  = &quot;buttonclose&quot;;
+	public static final String BUTTON_VIEW_NEWER             = &quot;buttonviewnewer&quot;;
+	public static final String BUTTON_VIEW_OLDER             = &quot;buttonviewolder&quot;;
+	
+	public static final String ACTION                        = &quot;action&quot;;
+	public static final String ACTION_PAGE                   = &quot;actionpage&quot;;
+	
+	public static final String HIDDEN_USERNAME               = &quot;hiddenusername&quot;;
+	public static final String HIDDEN_INDEX                  = &quot;hiddenindex&quot;;
+	
+	public static final String CHECKBOX_CLEARTEXTPASSWORD          = &quot;checkboxcleartextpassword&quot;;
+	public static final String CHECKBOX_ADMINISTRATOR              = &quot;checkboxadministrator&quot;;
+	public static final String CHECKBOX_KEYRECOVERABLE             = &quot;checkboxkeyrecoverable&quot;;
+	public static final String CHECKBOX_SENDNOTIFICATION           = &quot;checkboxsendnotification&quot;;
+	public static final String CHECKBOX_PRINT                      = &quot;checkboxprint&quot;;
+	
+	public static final String TEXTFIELD_CARDNUMBER                 = &quot;textfieldcardnumber&quot;;
+
+	
+	public static final String CHECKBOX_VALUE             = &quot;true&quot;;
+
+<span class="nc" id="L68">	public static final   int[] statusids = {EndEntityConstants.STATUS_NEW ,EndEntityConstants.STATUS_FAILED, EndEntityConstants.STATUS_INITIALIZED, EndEntityConstants.STATUS_INPROCESS</span>
+        , EndEntityConstants.STATUS_GENERATED, EndEntityConstants.STATUS_REVOKED , EndEntityConstants.STATUS_HISTORICAL, EndEntityConstants.STATUS_KEYRECOVERY, EndEntityConstants.STATUS_WAITINGFORADDAPPROVAL};
+	
+<span class="nc" id="L71">	public static final   String[] statustexts         = {&quot;STATUSNEW&quot;, &quot;STATUSFAILED&quot;, &quot;STATUSINITIALIZED&quot;, &quot;STATUSINPROCESS&quot;, &quot;STATUSGENERATED&quot;, &quot;STATUSREVOKED&quot;, &quot;STATUSHISTORICAL&quot;, &quot;STATUSKEYRECOVERY&quot;, </span>
+	    &quot;STATUSWAITINGFORADDAPPROVAL&quot;};
+	
+	public static final int columnwidth = 330;
+	
+<span class="nc" id="L76">	public boolean nouserparameter          = true;</span>
+<span class="nc" id="L77">	public boolean notauthorized            = false;	</span>
+<span class="nc" id="L78">	public boolean profilenotfound          = true;</span>
+
+<span class="nc" id="L80">	public UserView   userdata = null;</span>
+<span class="nc" id="L81">	public UserView[] userdatas = null;</span>
+<span class="nc" id="L82">	public String   username = null;</span>
+<span class="nc" id="L83">	public EndEntityProfile  profile  = null;</span>
+<span class="nc" id="L84">	public int[]  fielddata  = null;</span>
+<span class="nc" id="L85">	public String fieldvalue = null;</span>
+	
+<span class="nc" id="L87">	public int row = 0;</span>
+	
+<span class="nc" id="L89">	public int currentuserindex = 0;</span>
+	
+<span class="nc" id="L91">	public String[] tokentexts = RAInterfaceBean.tokentexts;</span>
+<span class="nc" id="L92">	public int[] tokenids = RAInterfaceBean.tokenids;</span>
+	   
+	private boolean initialized;
+
+	private RAInterfaceBean rabean;
+	private EjbcaWebBean ejbcawebbean;
+	private CAInterfaceBean cabean;
+<span class="nc" id="L99">	private String currentusername=null;</span>
+	
+	
+	   // Public methods.
+    /**
+     * Method that initialized the bean.
+     * @param ejbcawebbean bean
+     * @param rabean bean
+     * @param cabean bean
+     * @throws Exception fail
+     */
+    public void initialize(EjbcaWebBean ejbcawebbean,  
+    		               RAInterfaceBean rabean, CAInterfaceBean cabean) throws Exception {
+
+<span class="nc bnc" id="L113" title="All 2 branches missed.">      if(!initialized){</span>
+
+<span class="nc" id="L115">        this.rabean = rabean;</span>
+<span class="nc" id="L116">        this.ejbcawebbean = ejbcawebbean;</span>
+<span class="nc" id="L117">        this.cabean = cabean;</span>
+<span class="nc" id="L118">        initialized = true;</span>
+        
+<span class="nc bnc" id="L120" title="All 2 branches missed.">        if (ejbcawebbean.getGlobalConfiguration().getIssueHardwareTokens()){</span>
+<span class="nc" id="L121">            final TreeMap&lt;String, Integer&gt; hardtokenprofiles = ejbcawebbean.getHardTokenProfiles();</span>
+<span class="nc" id="L122">            tokentexts = new String[RAInterfaceBean.tokentexts.length + hardtokenprofiles.keySet().size()];</span>
+<span class="nc" id="L123">            tokenids   = new int[tokentexts.length];</span>
+<span class="nc bnc" id="L124" title="All 2 branches missed.">            for (int i=0; i &lt; RAInterfaceBean.tokentexts.length; i++){</span>
+<span class="nc" id="L125">              tokentexts[i]= RAInterfaceBean.tokentexts[i];</span>
+<span class="nc" id="L126">              tokenids[i] = RAInterfaceBean.tokenids[i];</span>
+            }
+<span class="nc" id="L128">            int index=0;</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">            for (String name : hardtokenprofiles.keySet()) {</span>
+<span class="nc" id="L130">              tokentexts[index+RAInterfaceBean.tokentexts.length] = name;</span>
+<span class="nc" id="L131">              tokenids[index+RAInterfaceBean.tokentexts.length] = hardtokenprofiles.get(name).intValue();</span>
+<span class="nc" id="L132">              index++;</span>
+<span class="nc" id="L133">            }</span>
+         }
+		
+      }
+<span class="nc" id="L137">    }</span>
+    
+    public void parseRequest(HttpServletRequest request) throws AuthorizationDeniedException, Exception{
+<span class="nc" id="L140">    	  nouserparameter=true;</span>
+<span class="nc" id="L141">    	  notauthorized = false;</span>
+<span class="nc" id="L142">    	  profilenotfound = true;</span>
+    	  
+<span class="nc" id="L144">          RequestHelper.setDefaultCharacterEncoding(request);</span>
+<span class="nc" id="L145">    	  String action = request.getParameter(ACTION);</span>
+<span class="nc bnc" id="L146" title="All 6 branches missed.">    	  if( action == null  &amp;&amp; request.getParameter(TIMESTAMP_PARAMETER) != null &amp;&amp;  request.getParameter(USER_PARAMETER) != null){    		  </span>
+<span class="nc" id="L147">    		  username = java.net.URLDecoder.decode(request.getParameter(USER_PARAMETER),&quot;UTF-8&quot;);</span>
+<span class="nc" id="L148">    		  Date timestamp = new Date(Long.parseLong(request.getParameter(TIMESTAMP_PARAMETER)));</span>
+    		      		      		  
+<span class="nc bnc" id="L150" title="All 2 branches missed.">    	      notauthorized = !getUserDatas(username);</span>
+<span class="nc" id="L151">    	      currentuserindex = this.getTimeStampIndex(timestamp);</span>
+<span class="nc bnc" id="L152" title="All 4 branches missed.">    	      if ( userdatas == null || userdatas.length &lt; 1 ) {</span>
+    	    	  // Make sure possibly cached value is removed
+<span class="nc" id="L154">    	          userdata = null;</span>
+<span class="nc" id="L155">    			  throw new ServletException(&quot;Could not find any history for this user.&quot;);</span>
+    	      }
+<span class="nc" id="L157">			  userdata = userdatas[currentuserindex];</span>
+    	      
+<span class="nc" id="L159">    		  nouserparameter = false;</span>
+<span class="nc bnc" id="L160" title="All 2 branches missed.">    		  if(userdata!=null) {</span>
+<span class="nc" id="L161">    			  profile = rabean.getEndEntityProfile(userdata.getEndEntityProfileId());</span>
+    		  }
+<span class="nc" id="L163">    	  }else{ </span>
+<span class="nc bnc" id="L164" title="All 4 branches missed.">    		  if(action  == null &amp;&amp; request.getParameter(USER_PARAMETER) != null){    		  </span>
+<span class="nc" id="L165">    			  username = java.net.URLDecoder.decode(request.getParameter(USER_PARAMETER),&quot;UTF-8&quot;);    			</span>
+<span class="nc bnc" id="L166" title="All 2 branches missed.">    			  notauthorized = !getUserDatas(username);</span>
+<span class="nc" id="L167">    			  nouserparameter = false;</span>
+<span class="nc bnc" id="L168" title="All 4 branches missed.">    			  if ( (userdatas != null) &amp;&amp; (userdatas.length &gt; 0) ) {</span>
+<span class="nc" id="L169">        			  userdata = userdatas[0];</span>
+<span class="nc" id="L170">        			  currentuserindex = 0;</span>
+<span class="nc bnc" id="L171" title="All 2 branches missed.">        			  if(userdata!=null) {</span>
+<span class="nc" id="L172">        				  profile = rabean.getEndEntityProfile(userdata.getEndEntityProfileId());</span>
+        			  }
+    			  } else {
+    				  // Make sure possibly cached value is removed
+<span class="nc" id="L176">    			      userdata = null;</span>
+    			  }
+    		  }else{
+<span class="nc bnc" id="L179" title="All 4 branches missed.">    			  if( action != null &amp;&amp; request.getParameter(USER_PARAMETER)!=null){</span>
+<span class="nc" id="L180">        			  username = java.net.URLDecoder.decode(request.getParameter(USER_PARAMETER),&quot;UTF-8&quot;);</span>
+<span class="nc bnc" id="L181" title="All 2 branches missed.">    				  if(request.getParameter(BUTTON_VIEW_NEWER)!=null){</span>
+<span class="nc bnc" id="L182" title="All 2 branches missed.">    					  if(currentuserindex&gt;0){</span>
+<span class="nc" id="L183">    						  currentuserindex--;</span>
+    					  }	  
+    				  }
+<span class="nc bnc" id="L186" title="All 2 branches missed.">    				  if(request.getParameter(BUTTON_VIEW_OLDER)!=null){</span>
+<span class="nc bnc" id="L187" title="All 2 branches missed.">    					  if(currentuserindex +1&lt;userdatas.length){</span>
+<span class="nc" id="L188">    						  currentuserindex++;</span>
+    					  }	  
+    				  }
+    				  
+<span class="nc bnc" id="L192" title="All 2 branches missed.">    				  notauthorized  = !getUserDatas(username);</span>
+<span class="nc" id="L193">    				  userdata = userdatas[currentuserindex];</span>
+    				  
+<span class="nc" id="L195">        			  nouserparameter = false;</span>
+<span class="nc bnc" id="L196" title="All 2 branches missed.">        			  if(userdata!=null) {</span>
+<span class="nc" id="L197">        				  profile = rabean.getEndEntityProfile(userdata.getEndEntityProfileId());</span>
+        			  }
+    			  }
+    		  }
+    	  }
+    	  
+<span class="nc bnc" id="L203" title="All 2 branches missed.">    	  if(profile!=null){</span>
+<span class="nc" id="L204">    		  profilenotfound=false;</span>
+    	  }
+<span class="nc" id="L206">    }</span>
+
+    
+    /* returns false if the admin isn't authorized to view user
+     * Sets the available userdatas of current and previous values
+     */
+    
+    private boolean getUserDatas(String username) throws Exception{
+<span class="nc" id="L214">      boolean authorized = false;	</span>
+    
+      try{
+<span class="nc bnc" id="L217" title="All 4 branches missed.">    	  if(currentusername == null || !currentusername.equals(username)){</span>
+    		  // fetch userdata and certreqdatas and order them by timestamp, newest first.
+<span class="nc" id="L219">    		  int currentexists = 0;</span>
+<span class="nc" id="L220">    		  UserView currentuser = rabean.findUser(username);</span>
+<span class="nc bnc" id="L221" title="All 2 branches missed.">    		  if(currentuser != null){</span>
+<span class="nc" id="L222">    			  currentexists = 1;  </span>
+    		  }
+<span class="nc" id="L224">    		  List&lt;CertReqHistory&gt; hist = cabean.getCertReqUserDatas(username);</span>
+    		  
+<span class="nc" id="L226">    		  userdatas = new UserView[hist.size() +currentexists];</span>
+    		  
+<span class="nc bnc" id="L228" title="All 2 branches missed.">    		  if(currentuser != null){</span>
+<span class="nc" id="L229">    		    userdatas[0] = currentuser;    		  </span>
+    		  }
+<span class="nc bnc" id="L231" title="All 2 branches missed.">    		  for(int i=0; i&lt; hist.size();i++){</span>
+<span class="nc" id="L232">    			  CertReqHistory next = hist.get(i);</span>
+<span class="nc" id="L233">    			  userdatas[i+currentexists] = new UserView(next.getEndEntityInformation(), ejbcawebbean.getCAIdToNameMap());</span>
+    		  }
+			  
+    	  }
+<span class="nc" id="L237">    	  authorized=true;</span>
+<span class="nc" id="L238">	  } catch(AuthorizationDeniedException e){ }            </span>
+<span class="nc" id="L239">      return authorized;</span>
+    }
+    
+    /**
+     * Returns an Index to the user that related to a certain timestamp.
+     * 
+     * @param timestamp parameter sent from view log page
+     * @return index in user datas that should be shown.
+     */
+    private int getTimeStampIndex(Date timestamp){
+    	int i;
+    	
+<span class="nc bnc" id="L251" title="All 2 branches missed.">    	for(i=0;i&lt; userdatas.length;i++){</span>
+<span class="nc bnc" id="L252" title="All 2 branches missed.">    			if(timestamp.after(userdatas[i].getTimeModified())||</span>
+<span class="nc bnc" id="L253" title="All 2 branches missed.">    					timestamp.equals(userdatas[i].getTimeModified())){</span>
+<span class="nc" id="L254">    				break;	</span>
+    			}
+    	}
+    	
+<span class="nc" id="L258">    	return i;</span>
+    }
+    
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

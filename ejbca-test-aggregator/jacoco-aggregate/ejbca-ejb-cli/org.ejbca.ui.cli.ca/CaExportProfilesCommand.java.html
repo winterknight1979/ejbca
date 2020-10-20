@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CaExportProfilesCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.ca</a> &gt; <span class="el_source">CaExportProfilesCommand.java</span></div><h1>CaExportProfilesCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.cli.ca;
+
+import java.beans.XMLEncoder;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.util.Collection;
+
+import org.apache.log4j.Logger;
+import org.cesecore.certificates.certificateprofile.CertificateProfile;
+import org.cesecore.certificates.certificateprofile.CertificateProfileConstants;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSessionRemote;
+import org.cesecore.certificates.endentity.EndEntityConstants;
+import org.cesecore.util.EjbRemoteHelper;
+import org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSessionRemote;
+import org.ejbca.core.model.authorization.AccessRulesConstants;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfile;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+
+/**
+ * Export profiles from the database to XML-files.
+ *
+ * @version $Id: CaExportProfilesCommand.java 27422 2017-12-05 14:05:42Z bastianf $
+ */
+<span class="nc" id="L45">public class CaExportProfilesCommand extends BaseCaAdminCommand {</span>
+
+<span class="nc" id="L47">    private static final Logger log = Logger.getLogger(CaExportProfilesCommand.class);</span>
+
+    private static final String DIRECTORY_KEY = &quot;-d&quot;;
+
+    {
+<span class="nc" id="L52">        registerParameter(new Parameter(DIRECTORY_KEY, &quot;Directory name&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;The destination directory.&quot;));
+<span class="nc" id="L54">    }</span>
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L58">        return &quot;exportprofiles&quot;;</span>
+    }
+
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+<span class="nc" id="L63">        String outpath = parameters.get(DIRECTORY_KEY);</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">        if (!new File(outpath).isDirectory()) {</span>
+<span class="nc" id="L65">            log.error(&quot;Error: '&quot; + outpath + &quot;' is not a directory.&quot;);</span>
+<span class="nc" id="L66">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+        }
+<span class="nc" id="L68">        Collection&lt;Integer&gt; certprofids = EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateProfileSessionRemote.class)</span>
+<span class="nc" id="L69">                .getAuthorizedCertificateProfileIds(getAuthenticationToken(), 0);</span>
+<span class="nc" id="L70">        Collection&lt;Integer&gt; endentityprofids = EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityProfileSessionRemote.class)</span>
+<span class="nc" id="L71">                .getAuthorizedEndEntityProfileIds(getAuthenticationToken(), AccessRulesConstants.VIEW_END_ENTITY);</span>
+
+<span class="nc" id="L73">        log.info(&quot;Exporting non-fixed certificate profiles: &quot;);</span>
+        try {
+<span class="nc bnc" id="L75" title="All 2 branches missed.">            for (int profileid : certprofids) {</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">                if (profileid == CertificateProfileConstants.CERTPROFILE_NO_PROFILE) { // Certificate profile not found i database.</span>
+<span class="nc" id="L77">                    log.error(&quot;Couldn't find certificate profile '&quot; + profileid + &quot;' in database.&quot;);</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">                } else if (CertificateProfileConstants.isFixedCertificateProfile(profileid)) {</span>
+                    //log.debug(&quot;Skipping export fixed certificate profile with id '&quot;+profileid+&quot;'.&quot;);
+                } else {
+<span class="nc" id="L81">                    String profilename = EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateProfileSessionRemote.class).getCertificateProfileName(</span>
+                            profileid);
+<span class="nc" id="L83">                    CertificateProfile profile = EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateProfileSessionRemote.class)</span>
+<span class="nc" id="L84">                            .getCertificateProfile(profileid);</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">                    if (profile == null) {</span>
+<span class="nc" id="L86">                        log.error(&quot;Couldn't find certificate profile '&quot; + profilename + &quot;'-&quot; + profileid + &quot; in database.&quot;);</span>
+                    } else {
+                        String profilenameEncoded;
+                        try {
+<span class="nc" id="L90">                            profilenameEncoded = URLEncoder.encode(profilename, &quot;UTF-8&quot;);</span>
+<span class="nc" id="L91">                        } catch (UnsupportedEncodingException e) {</span>
+<span class="nc" id="L92">                            throw new IllegalStateException(&quot;UTF-8 was not a known encoding&quot;, e);</span>
+<span class="nc" id="L93">                        }</span>
+<span class="nc" id="L94">                        final String outfile = outpath + &quot;/certprofile_&quot; + profilenameEncoded + &quot;-&quot; + profileid + &quot;.xml&quot;;</span>
+<span class="nc" id="L95">                        log.info(outfile + &quot;.&quot;);</span>
+<span class="nc" id="L96">                        XMLEncoder encoder = new XMLEncoder(new FileOutputStream(outfile));</span>
+<span class="nc" id="L97">                        encoder.writeObject(profile.saveData());</span>
+<span class="nc" id="L98">                        encoder.close();</span>
+                    }
+                }
+<span class="nc" id="L101">            }</span>
+<span class="nc" id="L102">            log.info(&quot;Exporting non-fixed end entity profiles: &quot;);</span>
+
+<span class="nc bnc" id="L104" title="All 2 branches missed.">            for (int profileid : endentityprofids) {</span>
+<span class="nc bnc" id="L105" title="All 2 branches missed.">                if (profileid == EndEntityConstants.NO_END_ENTITY_PROFILE) { // Entity profile not found i database.</span>
+<span class="nc" id="L106">                    log.error(&quot;Error : Couldn't find entity profile '&quot; + profileid + &quot;' in database.&quot;);</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">                } else if (profileid == EndEntityConstants.EMPTY_END_ENTITY_PROFILE) {</span>
+                    //log.debug(&quot;Skipping export fixed end entity profile with id '&quot;+profileid+&quot;'.&quot;);
+                } else {
+<span class="nc" id="L110">                    String profilename = EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityProfileSessionRemote.class).getEndEntityProfileName(</span>
+                            profileid);
+<span class="nc" id="L112">                    EndEntityProfile profile = EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityProfileSessionRemote.class).getEndEntityProfile(</span>
+                            profileid);
+<span class="nc bnc" id="L114" title="All 2 branches missed.">                    if (profile == null) {</span>
+<span class="nc" id="L115">                        log.error(&quot;Error : Couldn't find entity profile '&quot; + profilename + &quot;'-&quot; + profileid + &quot; in database.&quot;);</span>
+                    } else {
+                        String profilenameEncoded;
+                        try {
+<span class="nc" id="L119">                            profilenameEncoded = URLEncoder.encode(profilename, &quot;UTF-8&quot;);</span>
+<span class="nc" id="L120">                        } catch (UnsupportedEncodingException e) {</span>
+<span class="nc" id="L121">                            throw new IllegalStateException(&quot;UTF-8 was not a known encoding&quot;, e);</span>
+<span class="nc" id="L122">                        }</span>
+<span class="nc" id="L123">                        final String outfile = outpath + &quot;/entityprofile_&quot; + profilenameEncoded + &quot;-&quot; + profileid + &quot;.xml&quot;;</span>
+<span class="nc" id="L124">                        log.info(outfile + &quot;.&quot;);</span>
+<span class="nc" id="L125">                        XMLEncoder encoder = new XMLEncoder(new FileOutputStream(outfile));</span>
+<span class="nc" id="L126">                        encoder.writeObject(profile.saveData());</span>
+<span class="nc" id="L127">                        encoder.close();</span>
+                    }
+                }
+<span class="nc" id="L130">            }</span>
+<span class="nc" id="L131">        } catch (FileNotFoundException e) {</span>
+<span class="nc" id="L132">            log.error(&quot;Could not create export files&quot;, e);</span>
+<span class="nc" id="L133">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L134">        }</span>
+<span class="nc" id="L135">        return CommandResult.SUCCESS;</span>
+
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L141">        return &quot;Export profiles from the database to XML-files.&quot;;</span>
+
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L147">        return getCommandDescription();</span>
+    }
+
+    @Override
+    protected Logger getLogger() {
+<span class="nc" id="L152">        return log;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -15,30 +15,42 @@ package org.cesecore.keys.token.p11.exception;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
 
 /**
- * Thrown to signify that a slot was not found. Differs from {@link CryptoTokenOfflineException} by virtue of
- * the latter being thrown when a slot exists, but for some reason is unavailable.
- * 
- * @version $Id: PKCS11LibraryFileNotFoundException.java 26057 2017-06-22 08:08:34Z anatom $
+ * Thrown to signify that a slot was not found. Differs from {@link
+ * CryptoTokenOfflineException} by virtue of the latter being thrown when a slot
+ * exists, but for some reason is unavailable.
  *
+ * @version $Id: PKCS11LibraryFileNotFoundException.java 26057 2017-06-22
+ *     08:08:34Z anatom $
  */
 public class PKCS11LibraryFileNotFoundException extends Exception {
 
-    private static final long serialVersionUID = 471712760739840779L;
+  private static final long serialVersionUID = 471712760739840779L;
+ /** Default. */
+  public PKCS11LibraryFileNotFoundException() {
+<span class="nc" id="L30">    super();</span>
+<span class="nc" id="L31">  }</span>
 
-    public PKCS11LibraryFileNotFoundException() {
-<span class="nc" id="L29">        super();</span>
-<span class="nc" id="L30">    }</span>
+  /**
+   * @param message Message
+   * @param cause Cause
+   */
+  public PKCS11LibraryFileNotFoundException(
+          final String message, final Throwable cause) {
+<span class="nc" id="L39">    super(message, cause);</span>
+<span class="nc" id="L40">  }</span>
 
-    public PKCS11LibraryFileNotFoundException(String message, Throwable cause) {
-<span class="nc" id="L33">        super(message, cause);</span>
-<span class="nc" id="L34">    }</span>
+  /**
+   * @param message Message
+   */
+  public PKCS11LibraryFileNotFoundException(final String message) {
+<span class="nc" id="L46">    super(message);</span>
+<span class="nc" id="L47">  }</span>
 
-    public PKCS11LibraryFileNotFoundException(String message) {
-<span class="nc" id="L37">        super(message);</span>
-<span class="nc" id="L38">    }</span>
-
-    public PKCS11LibraryFileNotFoundException(Throwable cause) {
-<span class="nc" id="L41">        super(cause);</span>
-<span class="nc" id="L42">    }</span>
+  /**
+   * @param cause Cause
+   */
+  public PKCS11LibraryFileNotFoundException(final Throwable cause) {
+<span class="nc" id="L53">    super(cause);</span>
+<span class="nc" id="L54">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

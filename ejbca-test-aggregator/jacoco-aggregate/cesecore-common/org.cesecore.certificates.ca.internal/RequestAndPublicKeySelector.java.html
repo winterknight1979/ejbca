@@ -9,84 +9,114 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.ca.internal;
 
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PublicKey;
-
 import org.apache.log4j.Logger;
 import org.cesecore.certificates.certificate.request.RequestMessage;
 import org.cesecore.certificates.certificate.request.RequestMessageUtils;
 import org.cesecore.certificates.endentity.ExtendedInformation;
 
-/** Class used to select which request message and public key to use to issue a certificate, by looking
- * at the various input in priority order. 
- * 3. Request inside endEntityInformation has priority over providedPublicKey and providedRequestMessage
- * 2. providedPublicKey has priority over the public key in providedRequestMessage
- * 1. providedRequestMessage and it's public key is used
- * 
- * @version $Id: RequestAndPublicKeySelector.java 26392 2017-08-22 17:49:48Z anatom $
+/**
+ * Class used to select which request message and public key to use to issue a
+ * certificate, by looking at the various input in priority order. 3. Request
+ * inside endEntityInformation has priority over providedPublicKey and
+ * providedRequestMessage 2. providedPublicKey has priority over the public key
+ * in providedRequestMessage 1. providedRequestMessage and it's public key is
+ * used
+ *
+ * @version $Id: RequestAndPublicKeySelector.java 26392 2017-08-22 17:49:48Z
+ *     anatom $
  */
 public class RequestAndPublicKeySelector {
 
-	/** Class logger. */
-<span class="fc" id="L36">    private static final Logger log = Logger.getLogger(RequestAndPublicKeySelector.class);</span>
-    
-    private PublicKey publicKey;
-    private RequestMessage requestMessage;
-    /** Constructor taking input needed to make decision on which public key and requets message to use. After construction caller can use the methods
-     * {@link #getPublicKey()} and {@link #getRequestMessage()} to retrieve the selected objects.
-     * 
-     * @param providedRequestMessage message
-     * @param providedPublicKey key
-     * @param endEntityInformation info
-     */
-<span class="fc" id="L47">    public RequestAndPublicKeySelector(final RequestMessage providedRequestMessage, final PublicKey providedPublicKey, final ExtendedInformation endEntityInformation) {</span>
-<span class="fc" id="L48">        requestMessage = providedRequestMessage; //The request message was provided outside of endEntityInformation</span>
-<span class="fc" id="L49">        String debugPublicKeySource = null;</span>
-<span class="fc" id="L50">        String debugRequestMessageSource = null;</span>
-<span class="fc bfc" id="L51" title="All 2 branches covered.">        if (providedRequestMessage != null){</span>
-            try {
-<span class="fc" id="L53">                publicKey = providedRequestMessage.getRequestPublicKey();</span>
-<span class="fc" id="L54">                debugPublicKeySource = &quot;from providedRequestMessage&quot;;</span>
-<span class="fc" id="L55">                debugRequestMessageSource = &quot;from providedRequestMessage&quot;;</span>
-<span class="nc" id="L56">            } catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchProviderException e1) {</span>
-                //Fine since public key can be provided with providedPublicKey or endEntityInformation.extendedInformation.certificateRequest
-<span class="fc" id="L58">            }</span>
-        }
-        //ProvidedPublicKey has priority over providedRequestMessage.requestPublicKey
-<span class="fc bfc" id="L61" title="All 2 branches covered.">        if (providedPublicKey != null){</span>
-<span class="fc" id="L62">            publicKey = providedPublicKey;</span>
-<span class="fc" id="L63">            debugPublicKeySource = &quot;separately&quot;;</span>
-        }
-        //Request inside endEntityInformation has priority over providedPublicKey and providedRequestMessage
-<span class="pc bpc" id="L66" title="1 of 4 branches missed.">        if (endEntityInformation != null &amp;&amp; endEntityInformation.getCertificateRequest() != null){</span>
-<span class="fc" id="L67">            requestMessage = RequestMessageUtils.genPKCS10RequestMessage(endEntityInformation.getCertificateRequest());</span>
-            try {
-<span class="fc" id="L69">                publicKey = requestMessage.getRequestPublicKey();</span>
-<span class="fc" id="L70">                debugPublicKeySource = &quot;from endEntity.extendedInformaion.certificateRequest&quot;;</span>
-<span class="fc" id="L71">                debugRequestMessageSource = &quot;from endEntity.extendedInformaion.certificateRequest&quot;;</span>
-<span class="nc" id="L72">            } catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchProviderException e) {</span>
-<span class="nc bnc" id="L73" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L74">                    log.debug(&quot;Error occured with extracting public key from endEntityInformation.extendedInformation. Proceeding with one provided separately&quot;, e);</span>
-                }
-<span class="fc" id="L76">            }</span>
-        }
-<span class="pc bpc" id="L78" title="1 of 2 branches missed.">        if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L79">            log.debug(&quot;Public key is provided &quot; + debugPublicKeySource);</span>
-<span class="nc" id="L80">            log.debug(&quot;Request is provided &quot; + debugRequestMessageSource);</span>
-        }
-<span class="fc" id="L82">    }</span>
+  /** Class logger. */
+<span class="fc" id="L38">  private static final Logger LOG =</span>
+<span class="fc" id="L39">      Logger.getLogger(RequestAndPublicKeySelector.class);</span>
 
-    public PublicKey getPublicKey() {
-<span class="fc" id="L85">        return publicKey;</span>
+  /** Key. */
+  private PublicKey publicKey;
+  /** Message. */
+  private RequestMessage requestMessage;
+  /**
+   * Constructor taking input needed to make decision on which public key and
+   * requets message to use. After construction caller can use the methods
+   * {@link #getPublicKey()} and {@link #getRequestMessage()} to retrieve the
+   * selected objects.
+   *
+   * @param providedRequestMessage message
+   * @param providedPublicKey key
+   * @param endEntityInformation info
+   */
+  public RequestAndPublicKeySelector(
+      final RequestMessage providedRequestMessage,
+      final PublicKey providedPublicKey,
+<span class="fc" id="L58">      final ExtendedInformation endEntityInformation) {</span>
+<span class="fc" id="L59">    requestMessage =</span>
+        providedRequestMessage; // The request message was provided outside of
+                                // endEntityInformation
+<span class="fc" id="L62">    String debugPublicKeySource = null;</span>
+<span class="fc" id="L63">    String debugRequestMessageSource = null;</span>
+<span class="fc bfc" id="L64" title="All 2 branches covered.">    if (providedRequestMessage != null) {</span>
+      try {
+<span class="fc" id="L66">        publicKey = providedRequestMessage.getRequestPublicKey();</span>
+<span class="fc" id="L67">        debugPublicKeySource = &quot;from providedRequestMessage&quot;;</span>
+<span class="fc" id="L68">        debugRequestMessageSource = &quot;from providedRequestMessage&quot;;</span>
+<span class="nc" id="L69">      } catch (InvalidKeyException</span>
+          | NoSuchAlgorithmException
+          | NoSuchProviderException e1) {
+        // Fine since public key can be provided with providedPublicKey or
+        // endEntityInformation.extendedInformation.certificateRequest
+<span class="fc" id="L74">      }</span>
     }
+    // ProvidedPublicKey has priority over
+    // providedRequestMessage.requestPublicKey
+<span class="fc bfc" id="L78" title="All 2 branches covered.">    if (providedPublicKey != null) {</span>
+<span class="fc" id="L79">      publicKey = providedPublicKey;</span>
+<span class="fc" id="L80">      debugPublicKeySource = &quot;separately&quot;;</span>
+    }
+    // Request inside endEntityInformation has priority over providedPublicKey
+    // and providedRequestMessage
+<span class="fc bfc" id="L84" title="All 2 branches covered.">    if (endEntityInformation != null</span>
+<span class="pc bpc" id="L85" title="1 of 2 branches missed.">        &amp;&amp; endEntityInformation.getCertificateRequest() != null) {</span>
+<span class="fc" id="L86">      requestMessage =</span>
+<span class="fc" id="L87">          RequestMessageUtils.genPKCS10RequestMessage(</span>
+<span class="fc" id="L88">              endEntityInformation.getCertificateRequest());</span>
+      try {
+<span class="fc" id="L90">        publicKey = requestMessage.getRequestPublicKey();</span>
+<span class="fc" id="L91">        debugPublicKeySource =</span>
+            &quot;from endEntity.extendedInformaion.certificateRequest&quot;;
+<span class="fc" id="L93">        debugRequestMessageSource =</span>
+            &quot;from endEntity.extendedInformaion.certificateRequest&quot;;
+<span class="nc" id="L95">      } catch (InvalidKeyException</span>
+          | NoSuchAlgorithmException
+          | NoSuchProviderException e) {
+<span class="nc bnc" id="L98" title="All 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L99">          LOG.debug(</span>
+              &quot;Error occured with extracting public key from&quot;
+                  + &quot; endEntityInformation.extendedInformation. Proceeding&quot;
+                  + &quot; with one provided separately&quot;,
+              e);
+        }
+<span class="fc" id="L105">      }</span>
+    }
+<span class="pc bpc" id="L107" title="1 of 2 branches missed.">    if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L108">      LOG.debug(&quot;Public key is provided &quot; + debugPublicKeySource);</span>
+<span class="nc" id="L109">      LOG.debug(&quot;Request is provided &quot; + debugRequestMessageSource);</span>
+    }
+<span class="fc" id="L111">  }</span>
 
-    public RequestMessage getRequestMessage() {
-<span class="fc" id="L89">        return requestMessage;</span>
-    }
+  /** @return key */
+  public PublicKey getPublicKey() {
+<span class="fc" id="L115">    return publicKey;</span>
+  }
+  /** @return message */
+  public RequestMessage getRequestMessage() {
+<span class="fc" id="L119">    return requestMessage;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

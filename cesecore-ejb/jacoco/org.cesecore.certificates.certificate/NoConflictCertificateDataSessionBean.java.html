@@ -15,14 +15,12 @@ package org.cesecore.certificates.certificate;
 import java.util.Collection;
 import java.util.List;
 import java.util.TimeZone;
-
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
-
 import org.apache.commons.lang.time.FastDateFormat;
 import org.apache.log4j.Logger;
 import org.cesecore.certificates.crl.RevokedCertInfo;
@@ -30,74 +28,119 @@ import org.cesecore.config.CesecoreConfiguration;
 import org.cesecore.util.ValidityDate;
 
 /**
- * Low level CRUD functions to access NoConflictCertificateData 
- *  
- * @version $Id: NoConflictCertificateDataSessionBean.java 28792 2018-04-27 16:03:01Z samuellb $
+ * Low level CRUD functions to access NoConflictCertificateData.
+ *
+ * @version $Id: NoConflictCertificateDataSessionBean.java 28792 2018-04-27
+ *     16:03:01Z samuellb $
  */
 @Stateless // Local only bean, no remote interface
 @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-<span class="nc" id="L39">public class NoConflictCertificateDataSessionBean extends BaseCertificateDataSessionBean implements NoConflictCertificateDataSessionLocal {</span>
+<span class="nc" id="L38">public class NoConflictCertificateDataSessionBean</span>
+    extends BaseCertificateDataSessionBean
+    implements NoConflictCertificateDataSessionLocal {
 
-<span class="nc" id="L41">    private final static Logger log = Logger.getLogger(NoConflictCertificateDataSessionBean.class);</span>
+    /** Logger. */
+<span class="nc" id="L43">  private static final Logger LOG =</span>
+<span class="nc" id="L44">      Logger.getLogger(NoConflictCertificateDataSessionBean.class);</span>
 
-    @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
-    private EntityManager entityManager;
-    
-    @Override
-    protected String getTableName() {
-<span class="nc" id="L48">        return &quot;NoConflictCertificateData&quot;;</span>
+  /**
+   * EM. */
+  @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
+  private EntityManager entityManager;
+
+  @Override
+  protected String getTableName() {
+<span class="nc" id="L53">    return &quot;NoConflictCertificateData&quot;;</span>
+  }
+
+  @Override
+  protected EntityManager getEntityManager() {
+<span class="nc" id="L58">    return entityManager;</span>
+  }
+
+  //
+  // Search functions.
+  //
+  @Override
+  public List&lt;NoConflictCertificateData&gt; findByFingerprint(
+      final String fingerprint) {
+<span class="nc" id="L67">    final TypedQuery&lt;NoConflictCertificateData&gt; query =</span>
+<span class="nc" id="L68">        entityManager.createQuery(</span>
+            &quot;SELECT a FROM NoConflictCertificateData a WHERE&quot;
+                + &quot; a.fingerprint=:fingerprint&quot;,
+            NoConflictCertificateData.class);
+<span class="nc" id="L72">    query.setParameter(&quot;fingerprint&quot;, fingerprint);</span>
+<span class="nc" id="L73">    final List&lt;NoConflictCertificateData&gt; result = query.getResultList();</span>
+<span class="nc bnc" id="L74" title="All 2 branches missed.">    if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L75">      LOG.trace(</span>
+          &quot;findByFingerprint(&quot;
+              + fingerprint
+              + &quot;) yielded &quot;
+<span class="nc" id="L79">              + result.size()</span>
+              + &quot; results.&quot;);
     }
-    
-    @Override
-    protected EntityManager getEntityManager() {
-<span class="nc" id="L53">        return entityManager;</span>
+<span class="nc" id="L82">    return result;</span>
+  }
+
+  @Override
+  public List&lt;NoConflictCertificateData&gt; findBySerialNumber(
+      final String serialNumber) {
+<span class="nc" id="L88">    final TypedQuery&lt;NoConflictCertificateData&gt; query =</span>
+<span class="nc" id="L89">        entityManager.createQuery(</span>
+            &quot;SELECT a FROM NoConflictCertificateData a WHERE&quot;
+                + &quot; a.serialNumber=:serialNumber&quot;,
+            NoConflictCertificateData.class);
+<span class="nc" id="L93">    query.setParameter(&quot;serialNumber&quot;, serialNumber);</span>
+<span class="nc" id="L94">    final List&lt;NoConflictCertificateData&gt; result = query.getResultList();</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">    if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L96">      LOG.trace(</span>
+          &quot;findBySerialNumber(&quot;
+              + serialNumber
+              + &quot;) yielded &quot;
+<span class="nc" id="L100">              + result.size()</span>
+              + &quot; results.&quot;);
     }
-    
-    //
-    // Search functions.
-    //
-    @Override
-    public List&lt;NoConflictCertificateData&gt; findByFingerprint(final String fingerprint) {
-<span class="nc" id="L61">        final TypedQuery&lt;NoConflictCertificateData&gt; query = entityManager.createQuery(&quot;SELECT a FROM NoConflictCertificateData a WHERE a.fingerprint=:fingerprint&quot;, NoConflictCertificateData.class);</span>
-<span class="nc" id="L62">        query.setParameter(&quot;fingerprint&quot;, fingerprint);</span>
-<span class="nc" id="L63">        final List&lt;NoConflictCertificateData&gt; result = query.getResultList();</span>
-<span class="nc bnc" id="L64" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L65">            log.trace(&quot;findByFingerprint(&quot; + fingerprint + &quot;) yielded &quot; + result.size() + &quot; results.&quot;);</span>
-        }
-<span class="nc" id="L67">        return result;</span>
+<span class="nc" id="L103">    return result;</span>
+  }
+
+  @Override
+  public List&lt;NoConflictCertificateData&gt; findByIssuerDNSerialNumber(
+      final String issuerDN, final String serialNumber) {
+<span class="nc" id="L109">    final String sql =</span>
+        &quot;SELECT a FROM NoConflictCertificateData a WHERE a.issuerDN=:issuerDN&quot;
+            + &quot; AND a.serialNumber=:serialNumber&quot;;
+<span class="nc" id="L112">    final TypedQuery&lt;NoConflictCertificateData&gt; query =</span>
+<span class="nc" id="L113">        entityManager.createQuery(sql, NoConflictCertificateData.class);</span>
+<span class="nc" id="L114">    query.setParameter(&quot;issuerDN&quot;, issuerDN);</span>
+<span class="nc" id="L115">    query.setParameter(&quot;serialNumber&quot;, serialNumber);</span>
+<span class="nc" id="L116">    final List&lt;NoConflictCertificateData&gt; result = query.getResultList();</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">    if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L118">      LOG.trace(</span>
+          &quot;findByIssuerDNSerialNumber(&quot;
+              + issuerDN
+              + &quot;, &quot;
+              + serialNumber
+              + &quot;) yielded &quot;
+<span class="nc" id="L124">              + result.size()</span>
+              + &quot; results.&quot;);
     }
-    
-    @Override
-    public List&lt;NoConflictCertificateData&gt; findBySerialNumber(final String serialNumber) {
-<span class="nc" id="L72">        final TypedQuery&lt;NoConflictCertificateData&gt; query = entityManager.createQuery(&quot;SELECT a FROM NoConflictCertificateData a WHERE a.serialNumber=:serialNumber&quot;, NoConflictCertificateData.class);</span>
-<span class="nc" id="L73">        query.setParameter(&quot;serialNumber&quot;, serialNumber);</span>
-<span class="nc" id="L74">        final List&lt;NoConflictCertificateData&gt; result = query.getResultList();</span>
-<span class="nc bnc" id="L75" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L76">            log.trace(&quot;findBySerialNumber(&quot; + serialNumber + &quot;) yielded &quot; + result.size() + &quot; results.&quot;);</span>
-        }
-<span class="nc" id="L78">        return result;</span>
+<span class="nc" id="L127">    return result;</span>
+  }
+
+  @Override
+  public Collection&lt;RevokedCertInfo&gt; getRevokedCertInfosWithDuplicates(
+      final String issuerDN, final long lastbasecrldate) {
+<span class="nc bnc" id="L133" title="All 2 branches missed.">    if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L134">      LOG.debug(</span>
+          &quot;Quering for revoked certificates in append-only table. IssuerDN: '&quot;
+              + issuerDN
+              + &quot;', Last Base CRL Date: &quot;
+<span class="nc" id="L138">              + FastDateFormat.getInstance(</span>
+                      ValidityDate.ISO8601_DATE_FORMAT,
+<span class="nc" id="L140">                      TimeZone.getTimeZone(&quot;GMT&quot;))</span>
+<span class="nc" id="L141">                  .format(lastbasecrldate));</span>
     }
-    
-    @Override
-    public List&lt;NoConflictCertificateData&gt; findByIssuerDNSerialNumber(final String issuerDN, final String serialNumber) {
-<span class="nc" id="L83">        final String sql = &quot;SELECT a FROM NoConflictCertificateData a WHERE a.issuerDN=:issuerDN AND a.serialNumber=:serialNumber&quot;;</span>
-<span class="nc" id="L84">        final TypedQuery&lt;NoConflictCertificateData&gt; query = entityManager.createQuery(sql, NoConflictCertificateData.class);</span>
-<span class="nc" id="L85">        query.setParameter(&quot;issuerDN&quot;, issuerDN);</span>
-<span class="nc" id="L86">        query.setParameter(&quot;serialNumber&quot;, serialNumber);</span>
-<span class="nc" id="L87">        final List&lt;NoConflictCertificateData&gt; result = query.getResultList();</span>
-<span class="nc bnc" id="L88" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L89">            log.trace(&quot;findByIssuerDNSerialNumber(&quot; + issuerDN + &quot;, &quot; + serialNumber + &quot;) yielded &quot; + result.size() + &quot; results.&quot;);</span>
-        }
-<span class="nc" id="L91">        return result;</span>
-    }
-    
-    @Override
-    public Collection&lt;RevokedCertInfo&gt; getRevokedCertInfosWithDuplicates(final String issuerDN, final long lastbasecrldate) {
-<span class="nc bnc" id="L96" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L97">            log.debug(&quot;Quering for revoked certificates in append-only table. IssuerDN: '&quot; + issuerDN + &quot;', Last Base CRL Date: &quot; +  FastDateFormat.getInstance(ValidityDate.ISO8601_DATE_FORMAT, TimeZone.getTimeZone(&quot;GMT&quot;)).format(lastbasecrldate));</span>
-        }
-<span class="nc" id="L99">        return getRevokedCertInfosInternal(issuerDN, lastbasecrldate, true);</span>
-    }
-    
+<span class="nc" id="L143">    return getRevokedCertInfosInternal(issuerDN, lastbasecrldate, true);</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

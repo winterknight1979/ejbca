@@ -18,7 +18,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.apache.log4j.Logger;
@@ -26,178 +25,179 @@ import org.cesecore.certificates.ca.CAInfo;
 import org.cesecore.util.ui.DynamicUiModel;
 
 /**
- * @version $Id: CertificateValidatorBase.java 28140 2018-01-30 12:40:30Z andresjakobs $
- *
+ * @version $Id: CertificateValidatorBase.java 28140 2018-01-30 12:40:30Z
+ *     andresjakobs $
  */
-public abstract class CertificateValidatorBase extends ValidatorBase implements CertificateValidator {
+public abstract class CertificateValidatorBase extends ValidatorBase
+    implements CertificateValidator {
 
-	private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    /** Class logger. */
-<span class="nc" id="L37">    private static final Logger log = Logger.getLogger(KeyValidatorBase.class);</span>
+  /** Class logger. */
+<span class="nc" id="L37">  private static final Logger LOG = Logger.getLogger(KeyValidatorBase.class);</span>
 
-    /** List of applicable CA types (see {@link #getApplicableCaTypes()}). */ 
-    protected static List&lt;Integer&gt; APPLICABLE_CA_TYPES;
-    
-    /** List of applicable issuance phases (see {@link IssuancePhase}). */ 
-    protected static List&lt;Integer&gt; APPLICABLE_PHASES;
-    
-    static {
-<span class="nc" id="L46">        APPLICABLE_PHASES = new ArrayList&lt;Integer&gt;();</span>
-<span class="nc" id="L47">        APPLICABLE_PHASES.add(IssuancePhase.PRE_CERTIFICATE_VALIDATION.getIndex());</span>
-<span class="nc" id="L48">        APPLICABLE_PHASES.add(IssuancePhase.CERTIFICATE_VALIDATION.getIndex());</span>
-        
-<span class="nc" id="L50">        APPLICABLE_CA_TYPES = new ArrayList&lt;Integer&gt;();</span>
-<span class="nc" id="L51">        APPLICABLE_CA_TYPES.add(CAInfo.CATYPE_X509);</span>
-<span class="nc" id="L52">    }</span>
-    
-    /** Dynamic UI model extension. */
-    protected DynamicUiModel uiModel;
-    
-    /**
-     * Public constructor needed for deserialization.
-     */
-    public CertificateValidatorBase() {
-<span class="nc" id="L61">        super();</span>
-<span class="nc" id="L62">    }</span>
+  /** List of applicable CA types (see {@link #getApplicableCaTypes()}). */
+  protected static List&lt;Integer&gt; applicableCaTypes;
 
-    /**
-     * Creates a new instance.
-     * @param name name
-     */
-    public CertificateValidatorBase(final String name) {
-<span class="nc" id="L69">        super(name);</span>
-<span class="nc" id="L70">    }</span>
+  /** List of applicable issuance phases (see {@link IssuancePhase}). */
+  protected static List&lt;Integer&gt; applicablePhases;
 
-    @Override
-    public List&lt;Integer&gt; getApplicableCaTypes() {
-<span class="nc" id="L74">        return APPLICABLE_CA_TYPES;</span>
+  static {
+<span class="nc" id="L46">    applicablePhases = new ArrayList&lt;Integer&gt;();</span>
+<span class="nc" id="L47">    applicablePhases.add(IssuancePhase.PRE_CERTIFICATE_VALIDATION.getIndex());</span>
+<span class="nc" id="L48">    applicablePhases.add(IssuancePhase.CERTIFICATE_VALIDATION.getIndex());</span>
+
+<span class="nc" id="L50">    applicableCaTypes = new ArrayList&lt;Integer&gt;();</span>
+<span class="nc" id="L51">    applicableCaTypes.add(CAInfo.CATYPE_X509);</span>
+<span class="nc" id="L52">  }</span>
+
+  /** Dynamic UI model extension. */
+  protected DynamicUiModel uiModel;
+
+  /** Public constructor needed for deserialization. */
+  public CertificateValidatorBase() {
+<span class="nc" id="L59">    super();</span>
+<span class="nc" id="L60">  }</span>
+
+  /**
+   * Creates a new instance.
+   *
+   * @param name name
+   */
+  public CertificateValidatorBase(final String name) {
+<span class="nc" id="L68">    super(name);</span>
+<span class="nc" id="L69">  }</span>
+
+  @Override
+  public List&lt;Integer&gt; getApplicableCaTypes() {
+<span class="nc" id="L73">    return applicableCaTypes;</span>
+  }
+
+  @Override
+  public void init() {
+<span class="nc" id="L78">    super.init();</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">    if (null == data.get(PHASE)) {</span>
+<span class="nc" id="L80">      setPhase(getApplicablePhases().get(0));</span>
     }
-
-    @Override
-    public void init() {
-<span class="nc" id="L79">        super.init();</span>
-<span class="nc bnc" id="L80" title="All 2 branches missed.">        if (null == data.get(PHASE)) {</span>
-<span class="nc" id="L81">            setPhase(getApplicablePhases().get(0));</span>
-        }
-<span class="nc bnc" id="L83" title="All 2 branches missed.">        if (null == data.get(NOT_BEFORE_CONDITION)) {</span>
-<span class="nc" id="L84">            setNotBeforeCondition(KeyValidatorDateConditions.LESS_THAN.getIndex());</span>
-        }
-<span class="nc bnc" id="L86" title="All 2 branches missed.">        if (null == data.get(NOT_AFTER_CONDITION)) {</span>
-<span class="nc" id="L87">            setNotAfterCondition(KeyValidatorDateConditions.LESS_THAN.getIndex());</span>
-        }
-<span class="nc" id="L89">    }</span>
-
-    @Override
-    public List&lt;Integer&gt; getApplicablePhases() {
-<span class="nc" id="L93">        return APPLICABLE_PHASES;</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">    if (null == data.get(NOT_BEFORE_CONDITION)) {</span>
+<span class="nc" id="L83">      setNotBeforeCondition(KeyValidatorDateConditions.LESS_THAN.getIndex());</span>
     }
-    
-    @Override
-    public Class&lt;? extends Validator&gt; getValidatorSubType() {
-<span class="nc" id="L98">        return CertificateValidator.class;</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">    if (null == data.get(NOT_AFTER_CONDITION)) {</span>
+<span class="nc" id="L86">      setNotAfterCondition(KeyValidatorDateConditions.LESS_THAN.getIndex());</span>
     }
-    
-    @Override
-    public Date getNotBefore() {
-<span class="nc" id="L103">        return (Date) data.get(NOT_BEFORE);</span>
+<span class="nc" id="L88">  }</span>
+
+  @Override
+  public List&lt;Integer&gt; getApplicablePhases() {
+<span class="nc" id="L92">    return applicablePhases;</span>
+  }
+
+  @Override
+  public Class&lt;? extends Validator&gt; getValidatorSubType() {
+<span class="nc" id="L97">    return CertificateValidator.class;</span>
+  }
+
+  @Override
+  public Date getNotBefore() {
+<span class="nc" id="L102">    return (Date) data.get(NOT_BEFORE);</span>
+  }
+
+  @Override
+  public void setNotBefore(final Date date) {
+<span class="nc" id="L107">    data.put(NOT_BEFORE, date);</span>
+<span class="nc" id="L108">  }</span>
+
+  @Override
+  public int getNotBeforeCondition() {
+<span class="nc" id="L112">    return ((Integer) data.get(NOT_BEFORE_CONDITION)).intValue();</span>
+  }
+
+  @Override
+  public void setNotBeforeCondition(final int index) {
+<span class="nc" id="L117">    data.put(NOT_BEFORE_CONDITION, index);</span>
+<span class="nc" id="L118">  }</span>
+
+  @Override
+  public Date getNotAfter() {
+<span class="nc" id="L122">    return (Date) data.get(NOT_AFTER);</span>
+  }
+
+  @Override
+  public void setNotAfter(final Date date) {
+<span class="nc" id="L127">    data.put(NOT_AFTER, date);</span>
+<span class="nc" id="L128">  }</span>
+
+  @Override
+  public void setNotAfterCondition(final int index) {
+<span class="nc" id="L132">    data.put(NOT_AFTER_CONDITION, index);</span>
+<span class="nc" id="L133">  }</span>
+
+  @Override
+  public int getNotAfterCondition() {
+<span class="nc" id="L137">    return ((Integer) data.get(NOT_AFTER_CONDITION)).intValue();</span>
+  }
+
+  @Override
+  public String getNotBeforeAsString() {
+<span class="nc" id="L142">    return formatDate(getNotBefore());</span>
+  }
+
+  @Override
+  public String getNotAfterAsString() {
+<span class="nc" id="L147">    return formatDate(getNotAfter());</span>
+  }
+
+  @Override
+  public void setNotBeforeAsString(final String formattedDate) {
+    try {
+<span class="nc" id="L153">      setNotBefore(parseDate(formattedDate));</span>
+<span class="nc" id="L154">    } catch (ParseException e) {</span>
+<span class="nc" id="L155">      LOG.debug(&quot;Could not parse Date: &quot; + formattedDate);</span>
+<span class="nc" id="L156">    }</span>
+<span class="nc" id="L157">  }</span>
+
+  @Override
+  public void setNotAfterAsString(final String formattedDate) {
+    try {
+<span class="nc" id="L162">      setNotAfter(parseDate(formattedDate));</span>
+<span class="nc" id="L163">    } catch (ParseException e) {</span>
+<span class="nc" id="L164">      LOG.debug(&quot;Could not parse Date: &quot; + formattedDate);</span>
+<span class="nc" id="L165">    }</span>
+<span class="nc" id="L166">  }</span>
+
+  @Override
+  public DynamicUiModel getDynamicUiModel() {
+<span class="nc" id="L170">    return uiModel;</span>
+  }
+
+  /**
+   * Formats a date.
+   *
+   * @param date the date
+   * @return the formatted date string.
+   */
+  private String formatDate(final Date date) {
+<span class="nc" id="L180">    String result = StringUtils.EMPTY;</span>
+<span class="nc bnc" id="L181" title="All 2 branches missed.">    if (null != date) {</span>
+<span class="nc" id="L182">      result = new SimpleDateFormat(DATE_FORMAT[0]).format(date);</span>
     }
+<span class="nc" id="L184">    return result;</span>
+  }
 
-    @Override
-    public void setNotBefore(Date date) {
-<span class="nc" id="L108">        data.put(NOT_BEFORE, date);</span>
-<span class="nc" id="L109">    }</span>
-
-    @Override
-    public int getNotBeforeCondition() {
-<span class="nc" id="L113">        return ((Integer) data.get(NOT_BEFORE_CONDITION)).intValue();</span>
+  /**
+   * Parses a date string with the date format list.
+   *
+   * @param string the formatted date string.
+   * @return the date or null, if the date could not be parsed.
+   * @throws ParseException if the date couldn't be parsed
+   */
+  public static Date parseDate(final String string) throws ParseException {
+<span class="nc" id="L195">    Date result = null;</span>
+<span class="nc bnc" id="L196" title="All 2 branches missed.">    if (StringUtils.isNotBlank(string)) {</span>
+<span class="nc" id="L197">      final String dateString = string.trim();</span>
+<span class="nc" id="L198">      result = DateUtils.parseDate(dateString, DATE_FORMAT);</span>
     }
-
-    @Override
-    public void setNotBeforeCondition(int index) {
-<span class="nc" id="L118">        data.put(NOT_BEFORE_CONDITION, index);</span>
-<span class="nc" id="L119">    }</span>
-
-    @Override
-    public Date getNotAfter() {
-<span class="nc" id="L123">        return (Date) data.get(NOT_AFTER);</span>
-    }
-
-    @Override
-    public void setNotAfter(Date date) {
-<span class="nc" id="L128">        data.put(NOT_AFTER, date);</span>
-<span class="nc" id="L129">    }</span>
-
-    @Override
-    public void setNotAfterCondition(int index) {
-<span class="nc" id="L133">        data.put(NOT_AFTER_CONDITION, index);</span>
-<span class="nc" id="L134">    }</span>
-
-    @Override
-    public int getNotAfterCondition() {
-<span class="nc" id="L138">        return ((Integer) data.get(NOT_AFTER_CONDITION)).intValue();</span>
-    }
-
-    @Override
-    public String getNotBeforeAsString() {
-<span class="nc" id="L143">        return formatDate(getNotBefore());</span>
-    }
-
-    @Override
-    public String getNotAfterAsString() {
-<span class="nc" id="L148">        return formatDate(getNotAfter());</span>
-    }
-
-    @Override
-    public void setNotBeforeAsString(String formattedDate) {
-        try {
-<span class="nc" id="L154">            setNotBefore(parseDate(formattedDate));</span>
-<span class="nc" id="L155">        } catch (ParseException e) {</span>
-<span class="nc" id="L156">            log.debug(&quot;Could not parse Date: &quot; + formattedDate);</span>
-<span class="nc" id="L157">        }</span>
-<span class="nc" id="L158">    }</span>
-
-    @Override
-    public void setNotAfterAsString(String formattedDate) {
-        try {
-<span class="nc" id="L163">            setNotAfter(parseDate(formattedDate));</span>
-<span class="nc" id="L164">        } catch (ParseException e) {</span>
-<span class="nc" id="L165">            log.debug(&quot;Could not parse Date: &quot; + formattedDate);</span>
-<span class="nc" id="L166">        }</span>
-<span class="nc" id="L167">    }</span>
-    
-    @Override
-    public DynamicUiModel getDynamicUiModel() {
-<span class="nc" id="L171">        return uiModel;</span>
-    }
-
-    /**
-     * Formats a date.
-     * @param date the date
-     * @return the formatted date string.
-     */
-    private String formatDate(Date date) {
-<span class="nc" id="L180">        String result = StringUtils.EMPTY;</span>
-<span class="nc bnc" id="L181" title="All 2 branches missed.">        if (null != date) {</span>
-<span class="nc" id="L182">            result = new SimpleDateFormat(DATE_FORMAT[0]).format(date);</span>
-        }
-<span class="nc" id="L184">        return result;</span>
-    }
-
-    /**
-     * Parses a date string with the date format list.
-     * @param string the formatted date string.
-     * @return the date or null, if the date could not be parsed.
-     * @throws ParseException if the date couldn't be parsed
-     */
-    public static Date parseDate(String string) throws ParseException {
-<span class="nc" id="L194">        Date result = null;</span>
-<span class="nc bnc" id="L195" title="All 2 branches missed.">        if (StringUtils.isNotBlank(string)) {</span>
-<span class="nc" id="L196">            final String dateString = string.trim();</span>
-<span class="nc" id="L197">            result = DateUtils.parseDate(dateString, DATE_FORMAT);</span>
-
-        }
-<span class="nc" id="L200">        return result;</span>
-    }
+<span class="nc" id="L200">    return result;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

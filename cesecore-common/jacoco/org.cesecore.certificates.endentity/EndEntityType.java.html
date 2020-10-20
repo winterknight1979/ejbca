@@ -16,99 +16,106 @@ import java.io.Serializable;
 import java.security.InvalidParameterException;
 
 /**
- * This class basically wraps an int value, manipulating it using various EndEntityTypes. 
- * 
- * @version $Id: EndEntityType.java 19902 2014-09-30 14:32:24Z anatom $
+ * This class basically wraps an int value, manipulating it using various
+ * EndEntityTypes.
  *
+ * @version $Id: EndEntityType.java 19902 2014-09-30 14:32:24Z anatom $
  */
-public class EndEntityType implements Serializable{
+public class EndEntityType implements Serializable {
 
-    private static final long serialVersionUID = 730921129476820912L;
-<span class="pc" id="L27">    private int type = EndEntityTypes.INVALID.hexValue();</span>
-    
-    /**
-     * Creates an EndEntityType of type USER_INVALID (0x0)
-     */
-<span class="fc" id="L32">    public EndEntityType() {</span>
-<span class="fc" id="L33">        this.type = EndEntityTypes.INVALID.hexValue();</span>
-<span class="fc" id="L34">    }</span>
-    
-    /**
-     * Creates an EndEntityType of the type given in the constructor.
-     * 
-     * @param type Type of end entity for this EndEntityType to wrap. May not be null. 
-     */
-<span class="fc" id="L41">    public EndEntityType(EndEntityTypes type) {</span>
-<span class="pc bpc" id="L42" title="1 of 2 branches missed.">        if(type == null) {</span>
-<span class="nc" id="L43">            throw new InvalidParameterException(&quot;Cannot create an EndEntityType with input parameter null&quot;);</span>
-        }
-<span class="fc" id="L45">        this.type = type.hexValue();</span>
-<span class="fc" id="L46">    }</span>
-    
-    /**
-     * Creates an EndEntityType using a known type. Value is never checked, so may give unexpected results if not used properly. 
-     * 
-     * @param type a known hex value to set as type.
-     */
-<span class="nc" id="L53">    public EndEntityType(int type) {</span>
-<span class="nc" id="L54">        this.type = type;</span>
-<span class="nc" id="L55">    }</span>
-    
-    /**
-     * Creates an amalgam of all types given as parameters using binary OR on their hex values.   
-     * 
-     * @param types varargs list of types. 
-     */
-<span class="fc" id="L62">    public EndEntityType(EndEntityTypes ... types) {</span>
-<span class="pc bpc" id="L63" title="1 of 2 branches missed.">        if(types.length == 0) {</span>
-<span class="nc" id="L64">            throw new InvalidParameterException(&quot;Cannot create an EndEntityType with input parameter null&quot;);</span>
-        }
-<span class="fc" id="L66">        this.type = 0;</span>
-<span class="fc bfc" id="L67" title="All 2 branches covered.">        for(EndEntityTypes endEntityType : types) {</span>
-<span class="fc" id="L68">            this.type = endEntityType.addTo(this.type);</span>
-        }
-<span class="fc" id="L70">    }</span>
-    
-    /**
-     * Checks that the wrapped type is this type and ONLY this type.
-     * 
-     * @param endEntityTypes a type to check against
-     * @return true if the wrapped type is this type and only this type.
-     */
-    public boolean isType(final EndEntityTypes endEntityTypes) {
-<span class="fc bfc" id="L79" title="All 2 branches covered.">        return type == endEntityTypes.hexValue();</span>
+  private static final long serialVersionUID = 730921129476820912L;
+  /** Default type (INVALID). */
+<span class="pc" id="L28">  private int type = EndEntityTypes.INVALID.hexValue();</span>
+
+  /** Creates an EndEntityType of type USER_INVALID (0x0). */
+<span class="fc" id="L31">  public EndEntityType() {</span>
+<span class="fc" id="L32">    this.type = EndEntityTypes.INVALID.hexValue();</span>
+<span class="fc" id="L33">  }</span>
+
+  /**
+   * Creates an EndEntityType of the type given in the constructor.
+   *
+   * @param aType Type of end entity for this EndEntityType to wrap. May not be
+   *     null.
+   */
+<span class="fc" id="L41">  public EndEntityType(final EndEntityTypes aType) {</span>
+<span class="pc bpc" id="L42" title="1 of 2 branches missed.">    if (aType == null) {</span>
+<span class="nc" id="L43">      throw new InvalidParameterException(</span>
+          &quot;Cannot create an EndEntityType with input parameter null&quot;);
     }
-    
-    /**
-     * Checks if this {@link EndEntityType} contains the given type. 
-     * 
-     * @param endEntityType a type to check for
-     * @return true if the given type is member in this type.
-     */
-    public boolean contains(final EndEntityTypes endEntityType) {
-<span class="fc" id="L89">        return endEntityType.isContainedInType(type);</span>
+<span class="fc" id="L46">    this.type = aType.hexValue();</span>
+<span class="fc" id="L47">  }</span>
+
+  /**
+   * Creates an EndEntityType using a known type. Value is never checked, so may
+   * give unexpected results if not used properly.
+   *
+   * @param aType a known hex value to set as type.
+   */
+<span class="nc" id="L55">  public EndEntityType(final int aType) {</span>
+<span class="nc" id="L56">    this.type = aType;</span>
+<span class="nc" id="L57">  }</span>
+
+  /**
+   * Creates an amalgam of all types given as parameters using binary OR on
+   * their hex values.
+   *
+   * @param types varargs list of types.
+   */
+<span class="fc" id="L65">  public EndEntityType(final EndEntityTypes... types) {</span>
+<span class="pc bpc" id="L66" title="1 of 2 branches missed.">    if (types.length == 0) {</span>
+<span class="nc" id="L67">      throw new InvalidParameterException(</span>
+          &quot;Cannot create an EndEntityType with input parameter null&quot;);
     }
-    
-    /**
-     * Adds the given type to this type.
-     * 
-     * @param endEntityType a type to add.
-     */
-    public void addType(final EndEntityTypes endEntityType) {
-<span class="fc" id="L98">        type = endEntityType.addTo(type);</span>
-<span class="fc" id="L99">    }</span>
-    
-    /**
-     * Removes the given type from this type.
-     * 
-     * @param endEntityType a type to remove.
-     */
-    public void removeType(final EndEntityTypes endEntityType) {
-<span class="fc" id="L107">        type = endEntityType.removeFromType(type);</span>
-<span class="fc" id="L108">    }</span>
-    
-    public int getHexValue() {
-<span class="fc" id="L111">        return type;</span>
+<span class="fc" id="L70">    this.type = 0;</span>
+<span class="fc bfc" id="L71" title="All 2 branches covered.">    for (EndEntityTypes endEntityType : types) {</span>
+<span class="fc" id="L72">      this.type = endEntityType.addTo(this.type);</span>
     }
+<span class="fc" id="L74">  }</span>
+
+  /**
+   * Checks that the wrapped type is this type and ONLY this type.
+   *
+   * @param endEntityTypes a type to check against
+   * @return true if the wrapped type is this type and only this type.
+   */
+  public boolean isType(final EndEntityTypes endEntityTypes) {
+<span class="fc bfc" id="L83" title="All 2 branches covered.">    return type == endEntityTypes.hexValue();</span>
+  }
+
+  /**
+   * Checks if this {@link EndEntityType} contains the given type.
+   *
+   * @param endEntityType a type to check for
+   * @return true if the given type is member in this type.
+   */
+  public boolean contains(final EndEntityTypes endEntityType) {
+<span class="fc" id="L93">    return endEntityType.isContainedInType(type);</span>
+  }
+
+  /**
+   * Adds the given type to this type.
+   *
+   * @param endEntityType a type to add.
+   */
+  public void addType(final EndEntityTypes endEntityType) {
+<span class="fc" id="L102">    type = endEntityType.addTo(type);</span>
+<span class="fc" id="L103">  }</span>
+
+  /**
+   * Removes the given type from this type.
+   *
+   * @param endEntityType a type to remove.
+   */
+  public void removeType(final EndEntityTypes endEntityType) {
+<span class="fc" id="L111">    type = endEntityType.removeFromType(type);</span>
+<span class="fc" id="L112">  }</span>
+
+  /**
+   * @return type.
+   */
+  public int getHexValue() {
+<span class="fc" id="L118">    return type;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

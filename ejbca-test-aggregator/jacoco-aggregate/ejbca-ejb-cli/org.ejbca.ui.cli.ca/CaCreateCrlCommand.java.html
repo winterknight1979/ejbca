@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CaCreateCrlCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.ca</a> &gt; <span class="el_source">CaCreateCrlCommand.java</span></div><h1>CaCreateCrlCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.cli.ca;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CADoesntExistsException;
+import org.cesecore.util.CryptoProviderTools;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+
+/**
+ * Issues a new CRL from the CA.
+ *
+ * @version $Id: CaCreateCrlCommand.java 19902 2014-09-30 14:32:24Z anatom $
+ */
+<span class="nc" id="L32">public class CaCreateCrlCommand extends BaseCaAdminCommand {</span>
+
+<span class="nc" id="L34">    private static final Logger log = Logger.getLogger(CaCreateCrlCommand.class);</span>
+
+    private static final String CA_NAME_KEY = &quot;--caname&quot;;
+    private static final String DELTA_KEY = &quot;-delta&quot;;
+
+    {
+<span class="nc" id="L40">        registerParameter(new Parameter(CA_NAME_KEY, &quot;CA Name&quot;, MandatoryMode.OPTIONAL, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;If no caname is given, CRLs will be created for all the CAs where it is neccessary.&quot;));
+<span class="nc" id="L42">        registerParameter(new Parameter(DELTA_KEY, &quot;&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID, ParameterMode.FLAG,</span>
+                &quot;Set if a Delta CRL is desired&quot;));
+<span class="nc" id="L44">    }</span>
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L48">        return &quot;createcrl&quot;;</span>
+    }
+
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+<span class="nc" id="L53">        String caName = parameters.get(CA_NAME_KEY);</span>
+<span class="nc bnc" id="L54" title="All 2 branches missed.">        boolean deltaCrl = parameters.get(DELTA_KEY) != null;</span>
+<span class="nc bnc" id="L55" title="All 2 branches missed.">        if (caName == null) {</span>
+<span class="nc" id="L56">            createCRL((String) null, deltaCrl);</span>
+        } else {
+<span class="nc" id="L58">            CryptoProviderTools.installBCProvider();</span>
+            // createCRL prints info about crl generation
+            try {
+<span class="nc" id="L61">                String issuerDn = getIssuerDN(getAuthenticationToken(), caName);</span>
+<span class="nc" id="L62">                createCRL(issuerDn, deltaCrl);</span>
+<span class="nc" id="L63">            } catch (CADoesntExistsException e) {</span>
+<span class="nc" id="L64">                log.error(&quot;No CA named &quot; + caName + &quot; exists.&quot;);</span>
+<span class="nc" id="L65">                return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L66">            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L67">                log.error(&quot;CLI user is not authorized to CA &quot; + caName);</span>
+<span class="nc" id="L68">                return CommandResult.AUTHORIZATION_FAILURE;</span>
+<span class="nc" id="L69">            }      </span>
+        }
+<span class="nc" id="L71">        return CommandResult.SUCCESS;</span>
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L76">        return &quot;Issues a new CRL from the CA.&quot;;</span>
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L81">        return getCommandDescription();</span>
+    }
+    
+    @Override
+    protected Logger getLogger() {
+<span class="nc" id="L86">        return log;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

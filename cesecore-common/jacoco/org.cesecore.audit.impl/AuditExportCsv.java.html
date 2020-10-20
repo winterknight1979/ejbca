@@ -15,67 +15,71 @@ package org.cesecore.audit.impl;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-
 import org.cesecore.audit.audit.AuditExporter;
 
 /**
  * Simple implementation of AuditExporter that writes the field values as a
  * tab-separated file for easy import in spread sheet processors.
- * 
+ *
  * @version $Id: AuditExportCsv.java 17625 2013-09-20 07:12:06Z netmackan $
  */
-<span class="nc" id="L27">public class AuditExportCsv implements AuditExporter {</span>
+<span class="nc" id="L26">public class AuditExportCsv implements AuditExporter {</span>
 
-	PrintWriter pw;
-	boolean isThisLineEmpty;
-	
-	@Override
-	public void close() throws IOException {
-<span class="nc" id="L34">		pw.close();</span>
-<span class="nc" id="L35">	}</span>
+  /** PrintWriter. */
+  private PrintWriter pw;
+  /** Is the current line empty? */
+  private boolean isThisLineEmpty;
 
-	@Override
-	public void setOutputStream(OutputStream outputStream) throws IOException {
-<span class="nc" id="L39">		pw = new PrintWriter(outputStream);</span>
-<span class="nc" id="L40">	}</span>
+  @Override
+  public void close() throws IOException {
+<span class="nc" id="L35">    pw.close();</span>
+<span class="nc" id="L36">  }</span>
 
-	@Override
-	public void writeEndObject() throws IOException {
-<span class="nc" id="L44">		pw.println();</span>
-<span class="nc" id="L45">	}</span>
+  @Override
+  public void setOutputStream(final OutputStream outputStream)
+      throws IOException {
+<span class="nc" id="L41">    pw = new PrintWriter(outputStream);</span>
+<span class="nc" id="L42">  }</span>
 
-	@Override
-	public void writeField(String key, long value) throws IOException {
-<span class="nc" id="L49">		printTab();</span>
-<span class="nc" id="L50">		pw.print(value);</span>
-<span class="nc" id="L51">		isThisLineEmpty = false;</span>
-<span class="nc" id="L52">	}</span>
+  @Override
+  public void writeEndObject() throws IOException {
+<span class="nc" id="L46">    pw.println();</span>
+<span class="nc" id="L47">  }</span>
 
-	@Override
-	public void writeStartObject() throws IOException {
-<span class="nc" id="L56">		isThisLineEmpty = true;</span>
-<span class="nc" id="L57">	}</span>
+  @Override
+  public void writeField(final String key, final long value)
+      throws IOException {
+<span class="nc" id="L52">    printTab();</span>
+<span class="nc" id="L53">    pw.print(value);</span>
+<span class="nc" id="L54">    isThisLineEmpty = false;</span>
+<span class="nc" id="L55">  }</span>
 
-	@Override
-	public void writeField(String key, String value) throws IOException {
-<span class="nc" id="L61">		printTab();</span>
-<span class="nc" id="L62">		pw.print(value);</span>
-<span class="nc" id="L63">		isThisLineEmpty = false;</span>
-<span class="nc" id="L64">	}</span>
+  @Override
+  public void writeStartObject() throws IOException {
+<span class="nc" id="L59">    isThisLineEmpty = true;</span>
+<span class="nc" id="L60">  }</span>
 
-	/** Print a tab-char before the value if it is not the first one in this row. */
-	private void printTab() {
-<span class="nc bnc" id="L68" title="All 2 branches missed.">		if (!isThisLineEmpty) {</span>
-<span class="nc" id="L69">			pw.print('\t');</span>
-		}
-<span class="nc" id="L71">	}</span>
-	
-    @Override
-    public void startObjectLabel(String label) throws IOException {
-<span class="nc" id="L75">    }</span>
+  @Override
+  public void writeField(final String key, final String value)
+      throws IOException {
+<span class="nc" id="L65">    printTab();</span>
+<span class="nc" id="L66">    pw.print(value);</span>
+<span class="nc" id="L67">    isThisLineEmpty = false;</span>
+<span class="nc" id="L68">  }</span>
 
-    @Override
-    public void endObjectLabel() throws IOException {
-<span class="nc" id="L79">    }</span>
+  /**
+   * Print a tab-char before the value if it is not the first one in this row.
+   */
+  private void printTab() {
+<span class="nc bnc" id="L74" title="All 2 branches missed.">    if (!isThisLineEmpty) {</span>
+<span class="nc" id="L75">      pw.print('\t');</span>
+    }
+<span class="nc" id="L77">  }</span>
+
+  @Override
+<span class="nc" id="L80">  public void startObjectLabel(final String label) throws IOException { }</span>
+
+  @Override
+<span class="nc" id="L83">  public void endObjectLabel() throws IOException { }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

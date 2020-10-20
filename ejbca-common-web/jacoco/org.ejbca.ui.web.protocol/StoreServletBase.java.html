@@ -108,8 +108,8 @@ import org.ejbca.util.HTMLTools;
 <span class="nc bnc" id="L108" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
 <span class="nc" id="L109">            log.trace(&quot;&gt;doGet()&quot;);</span>
         }
-<span class="nc bnc" id="L111" title="All 2 branches missed.">        if (!req.getRequestURI().substring(req.getContextPath().length()).contains(&quot;search.cgi&quot;)) {</span>
-<span class="nc" id="L112">            resp.sendRedirect(req.getRequestURI() + &quot;search.cgi&quot;);</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">        if (!req.getRequestURI().substring(req.getContextPath().length()).contains(&quot;search.cgi&quot;)) {	       </span>
+<span class="nc" id="L112">        resp.sendRedirect(req.getRequestURI() + &quot;search.cgi&quot;);</span>
 <span class="nc" id="L113">            return;</span>
         }
         try {
@@ -183,7 +183,7 @@ import org.ejbca.util.HTMLTools;
 		}
 <span class="nc" id="L184">		final String sKIDHash = VAConfiguration.sKIDHashFromName(alias);</span>
 <span class="nc bnc" id="L185" title="All 4 branches missed.">		if ( sKIDHash==null || sKIDHash.length()&lt;1 ) {</span>
-<span class="nc" id="L186">			final String m = &quot;No '&quot;+alias+&quot;' alias defined in va.properties .&quot;;</span>
+<span class="nc" id="L186">			final String m = &quot;No '&quot;+removeSpecial(alias)+&quot;' alias defined in va.properties .&quot;;</span>
 <span class="nc" id="L187">			resp.sendError(HttpServletResponse.SC_NOT_FOUND, m);</span>
 <span class="nc" id="L188">			log.debug(m);</span>
 <span class="nc" id="L189">			return true;</span>
@@ -192,6 +192,9 @@ import org.ejbca.util.HTMLTools;
 <span class="nc" id="L192">		return true;</span>
 	}
 	
+	  private static String removeSpecial(String str) {	
+<span class="nc" id="L196">			return str.replaceAll(&quot;[^a-zA-Z0-9=, ]&quot;, &quot;&quot;);	</span>
+		}
 	/**
 	 * Reloads the certificate cache, if it was requested.
 	 * 
@@ -202,21 +205,21 @@ import org.ejbca.util.HTMLTools;
 	private boolean performReload(HttpServletRequest req, HttpServletResponse resp) {
 		// We have a command to force reloading of the certificate cache that can only be run from localhost
 		// http://localhost:8080/crls/search.cgi?reloadcache=true
-<span class="nc" id="L205">		final boolean doReload = StringUtils.equals(req.getParameter(&quot;reloadcache&quot;), &quot;true&quot;);</span>
-<span class="nc bnc" id="L206" title="All 2 branches missed.">		if ( !doReload ) {</span>
-<span class="nc" id="L207">			return false;</span>
+<span class="nc" id="L208">		final boolean doReload = StringUtils.equals(req.getParameter(&quot;reloadcache&quot;), &quot;true&quot;);</span>
+<span class="nc bnc" id="L209" title="All 2 branches missed.">		if ( !doReload ) {</span>
+<span class="nc" id="L210">			return false;</span>
 		}
 		try {
-<span class="nc bnc" id="L210" title="All 2 branches missed.">            if ( !checkIfAutorizedIP(req, resp) ) {</span>
-<span class="nc" id="L211">            	return true;</span>
+<span class="nc bnc" id="L213" title="All 2 branches missed.">            if ( !checkIfAutorizedIP(req, resp) ) {</span>
+<span class="nc" id="L214">            	return true;</span>
             }
-<span class="nc" id="L213">        } catch (IOException e) {</span>
-<span class="nc" id="L214">            throw new IllegalStateException(&quot;Could not send error response&quot;, e);</span>
-<span class="nc" id="L215">        }</span>
-<span class="nc" id="L216">		log.info(&quot;Reloading certificate and CRL caches due to request from &quot;+req.getRemoteAddr());</span>
+<span class="nc" id="L216">        } catch (IOException e) {</span>
+<span class="nc" id="L217">            throw new IllegalStateException(&quot;Could not send error response&quot;, e);</span>
+<span class="nc" id="L218">        }</span>
+<span class="nc" id="L219">		log.info(&quot;Reloading certificate and CRL caches due to request from &quot;+req.getRemoteAddr());</span>
 		// Reload CA certificates
-<span class="nc" id="L218">		certificateStoreSession.reloadCaCertificateCache();</span>
-<span class="nc" id="L219">		return true;</span>
+<span class="nc" id="L221">		certificateStoreSession.reloadCaCertificateCache();</span>
+<span class="nc" id="L222">		return true;</span>
 	}
 	
 	/**
@@ -228,28 +231,28 @@ import org.ejbca.util.HTMLTools;
      * @throws IOException if the HttpServletResponse.SC_UNAUTHORIZED response couldn't be sent in case if a negative result
 	 */
 	private boolean checkIfAutorizedIP(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-<span class="nc" id="L231">		final String remote = req.getRemoteAddr();</span>
+<span class="nc" id="L234">		final String remote = req.getRemoteAddr();</span>
 		// localhost in either ipv4 and ipv6
-<span class="nc bnc" id="L233" title="All 4 branches missed.">		if ( StringUtils.equals(remote, &quot;127.0.0.1&quot;) || StringUtils.equals(remote, &quot;0:0:0:0:0:0:0:1&quot;) ) {</span>
-<span class="nc" id="L234">			return true;</span>
+<span class="nc bnc" id="L236" title="All 4 branches missed.">		if ( StringUtils.equals(remote, &quot;127.0.0.1&quot;) || StringUtils.equals(remote, &quot;0:0:0:0:0:0:0:1&quot;) ) {</span>
+<span class="nc" id="L237">			return true;</span>
 		}
-<span class="nc" id="L236">		log.info(&quot;Got reloadcache command from unauthorized ip: &quot;+remote);</span>
-<span class="nc" id="L237">		resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);</span>
-<span class="nc" id="L238">		return false;</span>
+<span class="nc" id="L239">		log.info(&quot;Got reloadcache command from unauthorized ip: &quot;+remote);</span>
+<span class="nc" id="L240">		resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);</span>
+<span class="nc" id="L241">		return false;</span>
 	}
 	
 	private void printInfo(X509Certificate certs[], String indent, PrintWriter pw, String url) {
-<span class="nc bnc" id="L242" title="All 2 branches missed.">		for (X509Certificate cert : certs) {</span>
+<span class="nc bnc" id="L245" title="All 2 branches missed.">		for (X509Certificate cert : certs) {</span>
 			// Escape the URL as it might be unsafe
-<span class="nc" id="L244">			printInfo(cert, indent, pw, HTMLTools.htmlescape(url));</span>
-<span class="nc" id="L245">			pw.println();</span>
-<span class="nc" id="L246">			final X509Certificate issuedCerts[] = this.certCache.findLatestByIssuerDN(HashID.getFromSubjectDN(cert));</span>
-<span class="nc bnc" id="L247" title="All 2 branches missed.">			if (ArrayUtils.isEmpty(issuedCerts)) {</span>
-<span class="nc" id="L248">				continue;</span>
+<span class="nc" id="L247">			printInfo(cert, indent, pw, HTMLTools.htmlescape(url));</span>
+<span class="nc" id="L248">			pw.println();</span>
+<span class="nc" id="L249">			final X509Certificate issuedCerts[] = this.certCache.findLatestByIssuerDN(HashID.getFromSubjectDN(cert));</span>
+<span class="nc bnc" id="L250" title="All 2 branches missed.">			if (ArrayUtils.isEmpty(issuedCerts)) {</span>
+<span class="nc" id="L251">				continue;</span>
 			}
-<span class="nc" id="L250">			printInfo(issuedCerts, SPACE + indent, pw, url);</span>
+<span class="nc" id="L253">			printInfo(issuedCerts, SPACE + indent, pw, url);</span>
 		}
-<span class="nc" id="L252">	}</span>
+<span class="nc" id="L255">	}</span>
 
 	/**
 	 * Print info and download URL of a certificate or CRL.
@@ -270,60 +273,60 @@ import org.ejbca.util.HTMLTools;
 	public abstract String getTitle();
 
 	private void returnInfoPage(HttpServletResponse response, String info) throws IOException {
-<span class="nc" id="L273">		response.setContentType(&quot;text/html&quot;);</span>
-<span class="nc" id="L274">		response.setCharacterEncoding(&quot;UTF-8&quot;);</span>
-<span class="nc" id="L275">		final PrintWriter writer = response.getWriter();</span>
+<span class="nc" id="L276">		response.setContentType(&quot;text/html&quot;);</span>
+<span class="nc" id="L277">		response.setCharacterEncoding(&quot;UTF-8&quot;);</span>
+<span class="nc" id="L278">		final PrintWriter writer = response.getWriter();</span>
 
-<span class="nc" id="L277">		writer.println(&quot;&lt;html&gt;&quot;);</span>
-<span class="nc" id="L278">		writer.println(&quot;&lt;head&gt;&quot;);</span>
-<span class="nc" id="L279">		writer.println(&quot;&lt;title&gt;&quot;+getTitle()+&quot;&lt;/title&gt;&quot;);</span>
-<span class="nc" id="L280">		writer.println(&quot;&lt;/head&gt;&quot;);</span>
-<span class="nc" id="L281">		writer.println(&quot;&lt;body&gt;&quot;);</span>
+<span class="nc" id="L280">		writer.println(&quot;&lt;html&gt;&quot;);</span>
+<span class="nc" id="L281">		writer.println(&quot;&lt;head&gt;&quot;);</span>
+<span class="nc" id="L282">		writer.println(&quot;&lt;title&gt;&quot;+getTitle()+&quot;&lt;/title&gt;&quot;);</span>
+<span class="nc" id="L283">		writer.println(&quot;&lt;/head&gt;&quot;);</span>
+<span class="nc" id="L284">		writer.println(&quot;&lt;body&gt;&quot;);</span>
 
-<span class="nc" id="L283">		writer.println(&quot;&lt;table border=\&quot;0\&quot;&gt;&quot;);</span>
-<span class="nc" id="L284">		writer.println(&quot;&lt;tr&gt;&quot;);</span>
-<span class="nc" id="L285">		writer.println(&quot;&lt;td&gt;&quot;);</span>
-<span class="nc" id="L286">		writer.println(&quot;&lt;h1&gt;&quot;+getTitle()+&quot;&lt;/h1&gt;&quot;);</span>
-<span class="nc" id="L287">		writer.println(&quot;&lt;p&gt;When searching for certificates you can use iHash, sHash and sKIDHash. iHash is the ASN1 encoded DN of the issuer in a certificate, sHash of the subject and sKIDHash is the subjectKeyIdentifier. If you search with it you get all certificates that has the same issuer, except for the root certificate. You do not find a root certificate if you search with the iHash of the root. It has been assumed that sHash should be used when searching for a root.&lt;/p&gt;&quot;);</span>
-<span class="nc" id="L288">		writer.println(&quot;&lt;p&gt;When searching for CRLs you can use iHash and sKIDHash. iHash is the ASN1 encoded DN of the issuer in a certificate and sKIDHash is the subjectKeyIdentifier.&quot;);</span>
-<span class="nc" id="L289">        writer.println(&quot;&lt;br/&gt;To get the latest delta CRL you can append the parameter 'delta='.&quot;);</span>
-<span class="nc" id="L290">        writer.println(&quot;&lt;br/&gt;To get a CRL with a specific CRL number you can append the parameter 'crlnumber=&amp;lt;number&amp;gt;'.&lt;/p&gt;&quot;);</span>
-<span class="nc" id="L291">		writer.println(&quot;&lt;hr&gt;&quot;);</span>
-<span class="nc" id="L292">		writer.println(info);</span>
-<span class="nc" id="L293">		writer.println(&quot;&lt;/td&gt;&quot;);</span>
-<span class="nc" id="L294">		writer.println(&quot;&lt;/tr&gt;&quot;);</span>
-<span class="nc" id="L295">		writer.println(&quot;&lt;/table&gt;&quot;);</span>
+<span class="nc" id="L286">		writer.println(&quot;&lt;table border=\&quot;0\&quot;&gt;&quot;);</span>
+<span class="nc" id="L287">		writer.println(&quot;&lt;tr&gt;&quot;);</span>
+<span class="nc" id="L288">		writer.println(&quot;&lt;td&gt;&quot;);</span>
+<span class="nc" id="L289">		writer.println(&quot;&lt;h1&gt;&quot;+getTitle()+&quot;&lt;/h1&gt;&quot;);</span>
+<span class="nc" id="L290">		writer.println(&quot;&lt;p&gt;When searching for certificates you can use iHash, sHash and sKIDHash. iHash is the ASN1 encoded DN of the issuer in a certificate, sHash of the subject and sKIDHash is the subjectKeyIdentifier. If you search with it you get all certificates that has the same issuer, except for the root certificate. You do not find a root certificate if you search with the iHash of the root. It has been assumed that sHash should be used when searching for a root.&lt;/p&gt;&quot;);</span>
+<span class="nc" id="L291">		writer.println(&quot;&lt;p&gt;When searching for CRLs you can use iHash and sKIDHash. iHash is the ASN1 encoded DN of the issuer in a certificate and sKIDHash is the subjectKeyIdentifier.&quot;);</span>
+<span class="nc" id="L292">        writer.println(&quot;&lt;br/&gt;To get the latest delta CRL you can append the parameter 'delta='.&quot;);</span>
+<span class="nc" id="L293">        writer.println(&quot;&lt;br/&gt;To get a CRL with a specific CRL number you can append the parameter 'crlnumber=&amp;lt;number&amp;gt;'.&lt;/p&gt;&quot;);</span>
+<span class="nc" id="L294">		writer.println(&quot;&lt;hr&gt;&quot;);</span>
+<span class="nc" id="L295">		writer.println(info);</span>
+<span class="nc" id="L296">		writer.println(&quot;&lt;/td&gt;&quot;);</span>
+<span class="nc" id="L297">		writer.println(&quot;&lt;/tr&gt;&quot;);</span>
+<span class="nc" id="L298">		writer.println(&quot;&lt;/table&gt;&quot;);</span>
 
-<span class="nc" id="L297">		writer.println(&quot;&lt;/body&gt;&quot;);</span>
-<span class="nc" id="L298">		writer.println(&quot;&lt;/html&gt;&quot;);</span>
-<span class="nc" id="L299">		writer.flush();</span>
-<span class="nc" id="L300">	}</span>
+<span class="nc" id="L300">		writer.println(&quot;&lt;/body&gt;&quot;);</span>
+<span class="nc" id="L301">		writer.println(&quot;&lt;/html&gt;&quot;);</span>
+<span class="nc" id="L302">		writer.flush();</span>
+<span class="nc" id="L303">	}</span>
 	private void printInfo(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-<span class="nc" id="L302">		final StringWriter sw = new StringWriter();</span>
-<span class="nc" id="L303">		final PrintWriter pw = new HtmlPrintWriter(sw);</span>
-<span class="nc" id="L304">		printInfo(this.certCache.getRootCertificates(), &quot;&quot;, pw, req.getRequestURL().toString());</span>
-<span class="nc" id="L305">		pw.flush();</span>
-<span class="nc" id="L306">		pw.close();</span>
-<span class="nc" id="L307">		sw.flush();</span>
-<span class="nc" id="L308">		returnInfoPage(resp, sw.toString());</span>
-<span class="nc" id="L309">		sw.close();</span>
-<span class="nc" id="L310">	}</span>
+<span class="nc" id="L305">		final StringWriter sw = new StringWriter();</span>
+<span class="nc" id="L306">		final PrintWriter pw = new HtmlPrintWriter(sw);</span>
+<span class="nc" id="L307">		printInfo(this.certCache.getRootCertificates(), &quot;&quot;, pw, req.getRequestURL().toString());</span>
+<span class="nc" id="L308">		pw.flush();</span>
+<span class="nc" id="L309">		pw.close();</span>
+<span class="nc" id="L310">		sw.flush();</span>
+<span class="nc" id="L311">		returnInfoPage(resp, sw.toString());</span>
+<span class="nc" id="L312">		sw.close();</span>
+<span class="nc" id="L313">	}</span>
 
 	private class HtmlPrintWriter extends PrintWriter {
 
-<span class="nc" id="L314">	    HtmlPrintWriter(Writer out) {</span>
-<span class="nc" id="L315">			super(out);</span>
-<span class="nc" id="L316">		}</span>
+<span class="nc" id="L317">	    HtmlPrintWriter(Writer out) {</span>
+<span class="nc" id="L318">			super(out);</span>
+<span class="nc" id="L319">		}</span>
 		@Override
 		public void println() {
-<span class="nc" id="L319">			super.print(&quot;&lt;br/&gt;&quot;);</span>
-<span class="nc" id="L320">			super.println();</span>
-<span class="nc" id="L321">		}</span>
+<span class="nc" id="L322">			super.print(&quot;&lt;br/&gt;&quot;);</span>
+<span class="nc" id="L323">			super.println();</span>
+<span class="nc" id="L324">		}</span>
 		@Override
 		public void println(String s) {
-<span class="nc" id="L324">			super.print(s);</span>
-<span class="nc" id="L325">			println();</span>
-<span class="nc" id="L326">		}</span>
+<span class="nc" id="L327">			super.print(s);</span>
+<span class="nc" id="L328">			println();</span>
+<span class="nc" id="L329">		}</span>
 	}
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ImportMSCACertificates.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.ca</a> &gt; <span class="el_source">ImportMSCACertificates.java</span></div><h1>ImportMSCACertificates.java</h1><pre class="source lang-java linenums">package org.ejbca.ui.cli.ca;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Writer;
+import java.util.ArrayList;
+
+import org.apache.log4j.Logger;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+
+/**
+ * Used for importing certificates from a MS CA dump. The dump is assumed to be produced with
+ *  certutil -view -restrict &quot;GeneralFlags&amp;gt;0&quot; /out &quot;UPN,CertificateTemplate,Disposition,RawCertificate&quot; &amp;gt; certdump.txt
+ *
+ *  The CA has to be imported before this code runs.
+ */
+<span class="nc" id="L28">public class ImportMSCACertificates extends CaImportCertCommand {</span>
+
+<span class="nc" id="L30">    private static final Logger log = Logger.getLogger(ImportMSCACertificates.class);</span>
+
+    private static final String CA_NAME_KEY = &quot;--caname&quot;;
+    private static final String INPUT_FILE = &quot;-f&quot;;
+
+    {
+<span class="nc" id="L36">        registerParameter(new Parameter(</span>
+                INPUT_FILE,
+                &quot;Filename&quot;,
+                MandatoryMode.MANDATORY,
+                StandaloneMode.ALLOW,
+                ParameterMode.ARGUMENT,
+                &quot;Input file&quot;));
+<span class="nc" id="L43">        registerParameter(new Parameter(CA_NAME_KEY, &quot;CA Name&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;The name of the CA to import.&quot;));
+<span class="nc" id="L45">    }</span>
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L49">        return &quot;importcertsms&quot;;</span>
+    }
+
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+<span class="nc" id="L54">        ArrayList&lt;String&gt; usedNames = new ArrayList&lt;String&gt;();</span>
+<span class="nc" id="L55">        File infile = new File(parameters.get(INPUT_FILE));</span>
+<span class="nc bnc" id="L56" title="All 4 branches missed.">        if (!infile.exists() || !infile.isFile()) {</span>
+<span class="nc" id="L57">            getLogger().error(infile + &quot; is not a file.&quot;);</span>
+<span class="nc" id="L58">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+        }
+<span class="nc" id="L60">        String caname = parameters.get(CA_NAME_KEY);</span>
+        /*
+         * Locates next line that starts with &quot;Row&quot;
+         * Parses UPN
+         * Parses TempateName
+         * Parses certificate status from the Disposition-field
+         * writes PEM-certificate to temporary file
+         * runs the import-CLI
+              o Username: UPN-TempateName
+              o Password: foo123
+              o Ca name: From the command line of the script. Should be the name of the imported MS CA.
+              o status: ACTIVE if issued and REVOKED if revoked
+              o filename: the temporary file
+              o EndEntityProfile: TemplateName (this of course have to exist.. maybe easily importable from this page)
+              o CertificateProfile: TemplateName (this of course have to exist.. maybe easily importable from this page)
+         * Start over until there are no more &quot;Row&quot;s
+         */
+        FileInputStream fstream;
+        try {
+<span class="nc" id="L79">            fstream = new FileInputStream(infile);</span>
+<span class="nc" id="L80">            BufferedReader br = new BufferedReader(new InputStreamReader(fstream));</span>
+            String strLine;
+<span class="nc" id="L82">            String currentUPN = null;</span>
+<span class="nc" id="L83">            String currentTemplate = null;</span>
+<span class="nc" id="L84">            String currentStatus = null;</span>
+<span class="nc" id="L85">            boolean isProcessingCertificate = false;</span>
+<span class="nc" id="L86">            File tempFile = null;</span>
+<span class="nc" id="L87">            Writer bw = null;</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">            while ((strLine = br.readLine()) != null) {</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">                if (strLine.startsWith(&quot;  User Principal Name:&quot;)) {</span>
+<span class="nc" id="L90">                    currentUPN = strLine.split(&quot;\&quot;&quot;)[1];</span>
+                }
+<span class="nc bnc" id="L92" title="All 2 branches missed.">                if (strLine.startsWith(&quot;  Certificate Template:&quot;)) {</span>
+<span class="nc" id="L93">                    currentTemplate = strLine.split(&quot;\&quot;&quot;)[1];</span>
+                }
+<span class="nc bnc" id="L95" title="All 2 branches missed.">                if (strLine.startsWith(&quot;  Request Disposition:&quot;)) {</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">                    if (strLine.endsWith(&quot;Issued&quot;)) {</span>
+<span class="nc" id="L97">                        currentStatus = &quot;ACTIVE&quot;;</span>
+                    } else {
+<span class="nc" id="L99">                        currentStatus = &quot;REVOKED&quot;;</span>
+                    }
+                }
+<span class="nc bnc" id="L102" title="All 2 branches missed.">                if (strLine.equals(&quot;-----BEGIN CERTIFICATE-----&quot;)) {</span>
+<span class="nc" id="L103">                    isProcessingCertificate = true;</span>
+<span class="nc" id="L104">                    tempFile = File.createTempFile(&quot;certificate-&quot;, &quot;.pem&quot;);</span>
+<span class="nc" id="L105">                    bw = new BufferedWriter(new FileWriter(tempFile));</span>
+                }
+<span class="nc bnc" id="L107" title="All 2 branches missed.">                if (isProcessingCertificate) {</span>
+<span class="nc" id="L108">                    bw.write(strLine + &quot;\n&quot;);</span>
+                }
+<span class="nc bnc" id="L110" title="All 2 branches missed.">                if (strLine.equals(&quot;-----END CERTIFICATE-----&quot;)) {</span>
+<span class="nc" id="L111">                    bw.close();</span>
+<span class="nc" id="L112">                    isProcessingCertificate = false;</span>
+<span class="nc" id="L113">                    getLogger().info(&quot;Wrote certificate to &quot; + tempFile);</span>
+<span class="nc" id="L114">                    getLogger().info(&quot;Template : &quot; + currentTemplate + &quot; UPN: &quot; + currentUPN);</span>
+<span class="nc" id="L115">                    String username = currentUPN + &quot;-&quot; + currentTemplate;</span>
+<span class="nc" id="L116">                    int i = 2;</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">                    while (usedNames.contains(username)) {</span>
+<span class="nc" id="L118">                        username = currentUPN + &quot;-&quot; + currentTemplate + &quot;-&quot; + i;</span>
+<span class="nc" id="L119">                        i++;</span>
+                    }
+<span class="nc" id="L121">                    usedNames.add(username);</span>
+<span class="nc" id="L122">                    String[] newArgs = { super.getMainCommand(), super.getMainCommand(), username, &quot;foo123&quot;, caname, currentStatus,</span>
+<span class="nc" id="L123">                            tempFile.getCanonicalPath(), currentTemplate, currentTemplate };</span>
+<span class="nc" id="L124">                    super.execute(newArgs);</span>
+<span class="nc" id="L125">                    tempFile.delete();</span>
+<span class="nc" id="L126">                }</span>
+            }
+<span class="nc" id="L128">            fstream.close();</span>
+<span class="nc" id="L129">            return CommandResult.SUCCESS;</span>
+<span class="nc" id="L130">        } catch (FileNotFoundException e) {</span>
+<span class="nc" id="L131">            log.error(&quot;File &quot; + infile.getName() + &quot; not found.&quot;);</span>
+<span class="nc" id="L132">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L133">        } catch (IOException e) {</span>
+<span class="nc" id="L134">           throw new IllegalStateException(&quot;Unknown IOException was caught.&quot;, e);</span>
+        }
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L140">        return &quot;Used for importing certificates from a MS CA certificate dump.&quot;;</span>
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L145">        return getCommandDescription() + &quot;\n\nGenerate the input file with with:\n    \&quot;$certutil -view -restrict \&quot;GeneralFlags&gt;0\&quot; /out \&quot;UPN,CertificateTemplate,Disposition,RawCertificate\&quot; &gt; certdump.txt\&quot;\non the MS CA-server.&quot;;</span>
+    }
+
+    @Override
+    protected Logger getLogger() {
+<span class="nc" id="L150">        return log;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

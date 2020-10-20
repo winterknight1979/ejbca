@@ -19,123 +19,148 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import org.apache.commons.lang.StringUtils;
 
-/** 
+/**
  * Class to parse and format relative time values, i.e. '1y-2mo+3d-4h+5m-6s7ms'.
- *  
+ *
  * @version $Id: TimeUnitFormat.java 24933 2016-12-20 08:41:57Z mikekushner $
  */
 public final class TimeUnitFormat {
-    
-    private static final String PATTERN_PREFIX = &quot;\\s*(([+-]?\\d+)\\s*(&quot;;
-    private static final String PATTERN_SUFFIX = &quot;))\\s*&quot;;
-    private static final String ZERO = &quot;0&quot;;
-    private static final String SPACE = &quot; &quot;;
-    private static final String OR = &quot;|&quot;;
+  /** Start. */
+  private static final String PATTERN_PREFIX = &quot;\\s*(([+-]?\\d+)\\s*(&quot;;
+  /** End. */
+  private static final String PATTERN_SUFFIX = &quot;))\\s*&quot;;
+  /** Zero. */
+  private static final String ZERO = &quot;0&quot;;
+  /** Space. */
+  private static final String SPACE = &quot; &quot;;
+  /** Or. */
+  private static final String OR = &quot;|&quot;;
 
-    private static final String EXCEPTION_MESSAGE_ILLEGAL_CHARACTERS = &quot;Illegal characters.&quot;;
-    private static final String EXCEPTION_MESSAGE_BLANK_STRING = &quot;Cannot parse a blank string.&quot;;
-    
-    private Pattern pattern;
-    private Map&lt;String, Long&gt; defaultValues;
-    private Map&lt;String, Long&gt; factors;
-    private List&lt;String&gt; units;
+  /** Error message. */
+  private static final String EXCEPTION_MESSAGE_ILLEGAL_CHARACTERS =
+      &quot;Illegal characters.&quot;;
+  /** Error message. */
+  private static final String EXCEPTION_MESSAGE_BLANK_STRING =
+      &quot;Cannot parse a blank string.&quot;;
 
-    /**
-     * Instantiates a new TimeUnitFormat and initializes it with the given units.
-     * @param units List of units (suffixes, i.e. 'ms', 'mo', 'y', 'd', 'h', 'm', and 's').
-     * @param factors factors
-     */
-<span class="fc" id="L51">    public TimeUnitFormat(final List&lt;String&gt; units, final Map&lt;String, Long&gt; factors) {</span>
-<span class="fc" id="L52">        this.units = units;</span>
-<span class="fc" id="L53">        this.factors = factors;</span>
-<span class="fc" id="L54">        this.defaultValues = new LinkedHashMap&lt;String, Long&gt;(units.size());</span>
-<span class="fc" id="L55">        final StringBuilder builder = new StringBuilder(PATTERN_PREFIX);</span>
-<span class="fc" id="L56">        int index = 0;</span>
-<span class="fc bfc" id="L57" title="All 2 branches covered.">        for (String unit : units) {</span>
-<span class="fc" id="L58">            this.defaultValues.put(unit.toLowerCase(), 0L);</span>
-<span class="fc bfc" id="L59" title="All 2 branches covered.">            if (index++ &gt; 0) {</span>
-<span class="fc" id="L60">                builder.append(OR);</span>
-            }
-            // allows the characters passed in as units. the regexp is compiled with Pattern.CASE_INSENSITIVE below.
-<span class="fc" id="L63">            builder.append(Pattern.quote(unit));</span>
-<span class="fc" id="L64">        }</span>
-<span class="fc" id="L65">        builder.append(PATTERN_SUFFIX);</span>
-<span class="fc" id="L66">        pattern = Pattern.compile(builder.toString(), Pattern.CASE_INSENSITIVE);</span>
-<span class="fc" id="L67">    }</span>
+  /** Pattern. */
+  private final Pattern pattern;
+  /** Defaults. */
+  private final Map&lt;String, Long&gt; defaultValues;
+  /** Factors. */
+  private final Map&lt;String, Long&gt; factors;
+  /** Units. */
+  private final List&lt;String&gt; units;
 
-    /**
-     * Parses a formatted time string.
-     * 
-     * @param formattedString
-     *            time string, i.e '1y-2mo10d'.
-     * @return the milliseconds as long value from 0.
-     * @throws NumberFormatException  if the string cannot be parsed, i.e. it contains units not listed or other illegal characters or forms.
-     */
-    public long parseMillis(String formattedString) throws NumberFormatException {
-<span class="fc" id="L78">        long result = 0;</span>
-<span class="fc bfc" id="L79" title="All 2 branches covered.">        if (StringUtils.isNotBlank(formattedString)) {</span>
-<span class="fc" id="L80">            formattedString = formattedString.trim();</span>
-<span class="fc" id="L81">            final Matcher matcher = pattern.matcher(formattedString);</span>
-            long parsedValue;
-<span class="fc" id="L83">            String unit = null;</span>
-<span class="fc" id="L84">            int start = 0, end = 0;</span>
-<span class="fc bfc" id="L85" title="All 2 branches covered.">            while (matcher.find()) {</span>
-<span class="fc" id="L86">                start = matcher.start();</span>
-<span class="fc bfc" id="L87" title="All 2 branches covered.">                if (start != end) {</span>
-<span class="fc" id="L88">                    throw new NumberFormatException(EXCEPTION_MESSAGE_ILLEGAL_CHARACTERS);</span>
-                }
-<span class="fc" id="L90">                end = matcher.end();</span>
-<span class="fc bfc" id="L91" title="All 2 branches covered.">                for (int i = 0; i &lt; matcher.groupCount(); i = i + 3) {</span>
-<span class="fc" id="L92">                    parsedValue = Long.parseLong(matcher.group(i + 2));</span>
-<span class="fc" id="L93">                    unit = matcher.group(i + 3).toLowerCase();</span>
-<span class="fc" id="L94">                    result += factors.get(unit) * parsedValue;</span>
-                }
-            }
-<span class="fc bfc" id="L97" title="All 2 branches covered.">            if (end != formattedString.length()) {</span>
-<span class="fc" id="L98">                throw new NumberFormatException(EXCEPTION_MESSAGE_ILLEGAL_CHARACTERS);</span>
-            }
+  /**
+   * Instantiates a new TimeUnitFormat and initializes it with the given units.
+   *
+   * @param theUnits List of units
+   *     (suffixes, i.e. 'ms', 'mo', 'y', 'd', 'h', 'm', and 's').
+   * @param theFactors factors
+   */
+  public TimeUnitFormat(
+<span class="fc" id="L65">      final List&lt;String&gt; theUnits, final Map&lt;String, Long&gt; theFactors) {</span>
+<span class="fc" id="L66">    this.units = theUnits;</span>
+<span class="fc" id="L67">    this.factors = theFactors;</span>
+<span class="fc" id="L68">    this.defaultValues = new LinkedHashMap&lt;String, Long&gt;(theUnits.size());</span>
+<span class="fc" id="L69">    final StringBuilder builder = new StringBuilder(PATTERN_PREFIX);</span>
+<span class="fc" id="L70">    int index = 0;</span>
+<span class="fc bfc" id="L71" title="All 2 branches covered.">    for (String unit : theUnits) {</span>
+<span class="fc" id="L72">      this.defaultValues.put(unit.toLowerCase(), 0L);</span>
+<span class="fc bfc" id="L73" title="All 2 branches covered.">      if (index++ &gt; 0) {</span>
+<span class="fc" id="L74">        builder.append(OR);</span>
+      }
+      // allows the characters passed in as units. the regexp is compiled with
+      // Pattern.CASE_INSENSITIVE below.
+<span class="fc" id="L78">      builder.append(Pattern.quote(unit));</span>
+<span class="fc" id="L79">    }</span>
+<span class="fc" id="L80">    builder.append(PATTERN_SUFFIX);</span>
+<span class="fc" id="L81">    pattern = Pattern.compile(builder.toString(), Pattern.CASE_INSENSITIVE);</span>
+<span class="fc" id="L82">  }</span>
 
-<span class="fc" id="L101">        } else {</span>
-<span class="fc" id="L102">            throw new NumberFormatException(EXCEPTION_MESSAGE_BLANK_STRING);</span>
+  /**
+   * Parses a formatted time string.
+   *
+   * @param aformattedString time string, i.e '1y-2mo10d'.
+   * @return the milliseconds as long value from 0.
+   * @throws NumberFormatException if the string cannot be parsed, i.e. it
+   *     contains units not listed or other illegal characters or forms.
+   */
+  public long parseMillis(final String aformattedString)
+          throws NumberFormatException {
+<span class="fc" id="L94">    String formattedString = aformattedString;</span>
+<span class="fc" id="L95">    long result = 0;</span>
+<span class="fc" id="L96">    final int numlength = 3;</span>
+<span class="fc bfc" id="L97" title="All 2 branches covered.">    if (StringUtils.isNotBlank(formattedString)) {</span>
+<span class="fc" id="L98">      formattedString = formattedString.trim();</span>
+<span class="fc" id="L99">      final Matcher matcher = pattern.matcher(formattedString);</span>
+      long parsedValue;
+<span class="fc" id="L101">      String unit = null;</span>
+<span class="fc" id="L102">      int start = 0;</span>
+<span class="fc" id="L103">      int end = 0;</span>
+<span class="fc bfc" id="L104" title="All 2 branches covered.">      while (matcher.find()) {</span>
+<span class="fc" id="L105">        start = matcher.start();</span>
+<span class="fc bfc" id="L106" title="All 2 branches covered.">        if (start != end) {</span>
+<span class="fc" id="L107">          throw new NumberFormatException(EXCEPTION_MESSAGE_ILLEGAL_CHARACTERS);</span>
         }
+<span class="fc" id="L109">        end = matcher.end();</span>
+<span class="fc bfc" id="L110" title="All 2 branches covered.">        for (int i = 0; i &lt; matcher.groupCount(); i = i + numlength) {</span>
+<span class="fc" id="L111">          parsedValue = Long.parseLong(matcher.group(i + 2));</span>
+<span class="fc" id="L112">          unit = matcher.group(i + numlength).toLowerCase();</span>
+<span class="fc" id="L113">          result += factors.get(unit) * parsedValue;</span>
+        }
+      }
+<span class="fc bfc" id="L116" title="All 2 branches covered.">      if (end != formattedString.length()) {</span>
+<span class="fc" id="L117">        throw new NumberFormatException(EXCEPTION_MESSAGE_ILLEGAL_CHARACTERS);</span>
+      }
 
-<span class="fc" id="L105">        return result;</span>
+<span class="fc" id="L120">    } else {</span>
+<span class="fc" id="L121">      throw new NumberFormatException(EXCEPTION_MESSAGE_BLANK_STRING);</span>
     }
 
-    /**
-     * Formats the given period in milliseconds to a readable string.   
-     * @param millis the milliseconds (count from 0 - not epoch).
-     * @param factors factors
-     * @param zeroType the unit if the result is 0.
-     * @return a readable string in form of the ordered value unit pairs (*y *mo *d *h *m *s), separated by white space character. Milliseconds are lost.
-     */
-    public String format(final long millis, final Map&lt;String, Long&gt; factors, final String zeroType) {
-<span class="fc" id="L116">        long value = millis;</span>
-<span class="fc" id="L117">        String unit = null;</span>
-<span class="fc" id="L118">        long factor = 0;</span>
-<span class="fc" id="L119">        long currentValue = 0;</span>
-<span class="fc" id="L120">        final StringBuilder builder = new StringBuilder();</span>
-<span class="fc bfc" id="L121" title="All 2 branches covered.">        for (Entry&lt;String,Long&gt; entry : factors.entrySet()) {</span>
-<span class="fc" id="L122">            unit = entry.getKey();</span>
-<span class="fc bfc" id="L123" title="All 2 branches covered.">            if (units.contains(unit)) {</span>
-<span class="fc" id="L124">                factor = entry.getValue();</span>
-<span class="fc" id="L125">                currentValue = value / factor;</span>
-<span class="fc" id="L126">                value %= factor;</span>
-<span class="fc bfc" id="L127" title="All 2 branches covered.">                if (currentValue != 0) {</span>
-<span class="fc bfc" id="L128" title="All 2 branches covered.">                    if (builder.length() &gt; 0) {</span>
-<span class="fc" id="L129">                        builder.append(SPACE);</span>
-                    }
-<span class="fc" id="L131">                    builder.append(Long.toString(currentValue)).append(unit);</span>
-                }
-            }
-<span class="fc" id="L134">        }</span>
-<span class="fc bfc" id="L135" title="All 2 branches covered.">        if (builder.length() &lt; 1) {</span>
-<span class="fc" id="L136">            builder.append(ZERO).append(zeroType);</span>
+<span class="fc" id="L124">    return result;</span>
+  }
+
+  /**
+   * Formats the given period in milliseconds to a readable string.
+   *
+   * @param millis the milliseconds (count from 0 - not epoch).
+   * @param theFactors factors
+   * @param zeroType the unit if the result is 0.
+   * @return a readable string in form of the ordered value unit pairs (*y *mo
+   *     *d *h *m *s), separated by white space character. Milliseconds are
+   *     lost.
+   */
+  public String format(
+      final long millis,
+      final Map&lt;String, Long&gt; theFactors,
+      final String zeroType) {
+<span class="fc" id="L141">    long value = millis;</span>
+<span class="fc" id="L142">    String unit = null;</span>
+<span class="fc" id="L143">    long factor = 0;</span>
+<span class="fc" id="L144">    long currentValue = 0;</span>
+<span class="fc" id="L145">    final StringBuilder builder = new StringBuilder();</span>
+<span class="fc bfc" id="L146" title="All 2 branches covered.">    for (Entry&lt;String, Long&gt; entry : theFactors.entrySet()) {</span>
+<span class="fc" id="L147">      unit = entry.getKey();</span>
+<span class="fc bfc" id="L148" title="All 2 branches covered.">      if (units.contains(unit)) {</span>
+<span class="fc" id="L149">        factor = entry.getValue();</span>
+<span class="fc" id="L150">        currentValue = value / factor;</span>
+<span class="fc" id="L151">        value %= factor;</span>
+<span class="fc bfc" id="L152" title="All 2 branches covered.">        if (currentValue != 0) {</span>
+<span class="fc bfc" id="L153" title="All 2 branches covered.">          if (builder.length() &gt; 0) {</span>
+<span class="fc" id="L154">            builder.append(SPACE);</span>
+          }
+<span class="fc" id="L156">          builder.append(Long.toString(currentValue)).append(unit);</span>
         }
-<span class="fc" id="L138">        return builder.toString();</span>
+      }
+<span class="fc" id="L159">    }</span>
+<span class="fc bfc" id="L160" title="All 2 branches covered.">    if (builder.length() &lt; 1) {</span>
+<span class="fc" id="L161">      builder.append(ZERO).append(zeroType);</span>
     }
+<span class="fc" id="L163">    return builder.toString();</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

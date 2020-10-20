@@ -13,81 +13,85 @@
 package org.cesecore.certificates.certificate;
 
 import javax.ejb.ApplicationException;
-
 import org.cesecore.CesecoreException;
 import org.cesecore.ErrorCode;
 
 /**
- * An exception thrown when a serious error happens creating a certificate. 
- * If this happens any transaction depending on this should be rolled back.
- * 
- * @version $Id: CertificateCreateException.java 26230 2017-08-07 12:36:32Z anatom $
+ * An exception thrown when a serious error happens creating a certificate. If
+ * this happens any transaction depending on this should be rolled back.
+ *
+ * @version $Id: CertificateCreateException.java 26230 2017-08-07 12:36:32Z
+ *     anatom $
  */
 @ApplicationException(rollback = true)
 public class CertificateCreateException extends CesecoreException {
 
-    private static final long serialVersionUID = -642610825885468919L;
+  private static final long serialVersionUID = -642610825885468919L;
 
-    /**
-     * Creates a new instance of exception without detail message. Marked as rollback=true
-     * 
-     * @see CertificateCreateException
-     */
-    public CertificateCreateException() {
-<span class="nc" id="L37">        super();</span>
-<span class="nc" id="L38">    }</span>
+  /**
+   * Creates a new instance of exception without detail message. Marked as
+   * rollback=true
+   *
+   * @see CertificateCreateException
+   */
+  public CertificateCreateException() {
+<span class="nc" id="L38">    super();</span>
+<span class="nc" id="L39">  }</span>
 
-    /**
-     * Constructs an instance of exception with the specified detail message. Marked as rollback=true
-     * 
-     * @see CertificateCreateException
-     * @param msg the detail message.
-     */
-    public CertificateCreateException(String msg) {
-<span class="nc" id="L47">        super(msg);</span>
-<span class="nc" id="L48">    }</span>
+  /**
+   * Constructs an instance of exception with the specified detail message.
+   * Marked as rollback=true
+   *
+   * @see CertificateCreateException
+   * @param msg the detail message.
+   */
+  public CertificateCreateException(final String msg) {
+<span class="nc" id="L49">    super(msg);</span>
+<span class="nc" id="L50">  }</span>
 
-    /**
-     * Marked as rollback=true
-     * 
-     * @see CertificateCreateException
-     * @param e causing exception that will be wrapped
-     */
-    public CertificateCreateException(Exception e) {
-<span class="nc" id="L57">        super(e);</span>
-<span class="nc" id="L58">    }</span>
+  /**
+   * Marked as rollback=true.
+   *
+   * @see CertificateCreateException
+   * @param e causing exception that will be wrapped
+   */
+  public CertificateCreateException(final Exception e) {
+<span class="nc" id="L59">    super(e);</span>
+<span class="nc" id="L60">  }</span>
 
-    /**
-     * Marked as rollback=true
-     * 
-     * @see CertificateCreateException
-     * @param errorCode defines the cause of the exception.
-     * @param e causing exception that will be wrapped
-     */
-    public CertificateCreateException(ErrorCode errorCode, Exception e) {
-<span class="nc" id="L68">        super(errorCode, e);</span>
-<span class="nc" id="L69">    }</span>
+  /**
+   * Marked as rollback=true.
+   *
+   * @see CertificateCreateException
+   * @param errorCode defines the cause of the exception.
+   * @param e causing exception that will be wrapped
+   */
+  public CertificateCreateException(
+          final ErrorCode errorCode, final Exception e) {
+<span class="nc" id="L71">    super(errorCode, e);</span>
+<span class="nc" id="L72">  }</span>
 
-    /**
-     * Marked as rollback=true
-     * 
-     * @see CertificateCreateException
-     * @param e causing exception that will be wrapped
-     * @param msg the detail message.
-     */
-    public CertificateCreateException(String msg, Exception e) {
-<span class="nc" id="L79">        super(msg, e);</span>
-<span class="nc" id="L80">    }</span>
+  /**
+   * Marked as rollback=true.
+   *
+   * @see CertificateCreateException
+   * @param e causing exception that will be wrapped
+   * @param msg the detail message.
+   */
+  public CertificateCreateException(final String msg, final Exception e) {
+<span class="nc" id="L82">    super(msg, e);</span>
+<span class="nc" id="L83">  }</span>
 
-    /**
-     * Marked as rollback=true
-     *
-     * @see CertificateCreateException
-     * @param errorCode defines the cause of the exception.
-     * @param msg Human readable error message, can not be NULL.
-     */
-    public CertificateCreateException(ErrorCode errorCode, String msg) {
-<span class="nc" id="L90">       super(errorCode, msg);</span>
-<span class="nc" id="L91">    }</span>
+  /**
+   * Marked as rollback=true.
+   *
+   * @see CertificateCreateException
+   * @param errorCode defines the cause of the exception.
+   * @param msg Human readable error message, can not be NULL.
+   */
+  public CertificateCreateException(
+          final  ErrorCode errorCode, final String msg) {
+<span class="nc" id="L94">    super(errorCode, msg);</span>
+<span class="nc" id="L95">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

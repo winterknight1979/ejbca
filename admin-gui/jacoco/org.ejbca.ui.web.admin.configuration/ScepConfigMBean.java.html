@@ -1,0 +1,527 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ScepConfigMBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Administration GUI</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.configuration</a> &gt; <span class="el_source">ScepConfigMBean.java</span></div><h1>ScepConfigMBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.web.admin.configuration;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+
+import javax.faces.context.FacesContext;
+import javax.faces.model.ListDataModel;
+import javax.faces.model.SelectItem;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.authorization.control.StandardRules;
+import org.cesecore.certificates.ca.CAConstants;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSessionLocal;
+import org.cesecore.configuration.GlobalConfigurationSessionLocal;
+import org.ejbca.config.ScepConfiguration;
+import org.ejbca.core.ejb.EnterpriseEditionEjbBridgeSessionLocal;
+import org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSessionLocal;
+import org.ejbca.core.model.authorization.AccessRulesConstants;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfile;
+import org.ejbca.ui.web.admin.BaseManagedBean;
+
+/**
+ * JavaServer Faces Managed Bean for managing SCEP configuration.
+ * 
+ * @version $Id: ScepConfigMBean.java 28125 2018-01-29 16:41:28Z bastianf $
+ */
+public class ScepConfigMBean extends BaseManagedBean implements Serializable {
+
+    /** GUI table representation of a SCEP alias that can be interacted with. */
+    public class ScepAliasGuiInfo {
+        private String alias;
+        private String mode;
+        private boolean includeCA;
+        private String raCertProfile;
+        private String raEEProfile;
+        private String raAuthPassword;
+        private String raDefaultCA;
+        private String raNameGenScheme;
+        private String raNameGenParameters;
+        private String raNameGenPrefix;
+        private String raNameGenPostfix;
+        private boolean clientCertificateRenewal;
+        private boolean allowClientCertificateRenewaWithOldKey;
+
+<span class="nc" id="L67">        private ScepAliasGuiInfo(ScepConfiguration scepConfig, String alias) {</span>
+<span class="nc bnc" id="L68" title="All 2 branches missed.">            if (alias != null) {</span>
+<span class="nc" id="L69">                this.alias = alias;</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">                if (scepConfig.aliasExists(alias)) {</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">                    this.mode = (scepConfig.getRAMode(alias) ? ScepConfiguration.Mode.RA.getResource() : ScepConfiguration.Mode.CA.getResource());</span>
+<span class="nc" id="L72">                    this.includeCA = scepConfig.getIncludeCA(alias);</span>
+<span class="nc" id="L73">                    this.raCertProfile = scepConfig.getRACertProfile(alias);</span>
+<span class="nc" id="L74">                    this.raEEProfile = scepConfig.getRAEndEntityProfile(alias);</span>
+<span class="nc" id="L75">                    this.raAuthPassword = scepConfig.getRAAuthPassword(alias);</span>
+<span class="nc" id="L76">                    this.raDefaultCA = scepConfig.getRADefaultCA(alias);</span>
+<span class="nc" id="L77">                    this.raNameGenScheme = scepConfig.getRANameGenerationScheme(alias);</span>
+<span class="nc" id="L78">                    this.raNameGenParameters = scepConfig.getRANameGenerationParameters(alias);</span>
+<span class="nc" id="L79">                    this.raNameGenPrefix = scepConfig.getRANameGenerationPrefix(alias);</span>
+<span class="nc" id="L80">                    this.raNameGenPostfix = scepConfig.getRANameGenerationPostfix(alias);</span>
+<span class="nc" id="L81">                    this.clientCertificateRenewal = scepConfig.getClientCertificateRenewal(alias);</span>
+<span class="nc" id="L82">                    this.allowClientCertificateRenewaWithOldKey = scepConfig.getAllowClientCertificateRenewalWithOldKey(alias);</span>
+                } else {
+<span class="nc" id="L84">                    this.mode = ScepConfiguration.DEFAULT_OPERATION_MODE.toUpperCase();</span>
+<span class="nc" id="L85">                    this.includeCA = Boolean.valueOf(ScepConfiguration.DEFAULT_INCLUDE_CA);</span>
+<span class="nc" id="L86">                    this.raCertProfile = ScepConfiguration.DEFAULT_RA_CERTPROFILE;</span>
+<span class="nc" id="L87">                    this.raEEProfile = ScepConfiguration.DEFAULT_RA_ENTITYPROFILE;</span>
+<span class="nc" id="L88">                    this.raAuthPassword = ScepConfiguration.DEFAULT_RA_AUTHPWD;</span>
+<span class="nc" id="L89">                    this.raDefaultCA = ScepConfiguration.DEFAULT_RA_DEFAULTCA;</span>
+<span class="nc" id="L90">                    this.raNameGenScheme = ScepConfiguration.DEFAULT_RA_NAME_GENERATION_SCHEME;</span>
+<span class="nc" id="L91">                    this.raNameGenParameters = ScepConfiguration.DEFAULT_RA_NAME_GENERATION_PARAMETERS;</span>
+<span class="nc" id="L92">                    this.raNameGenPrefix = ScepConfiguration.DEFAULT_RA_NAME_GENERATION_PREFIX;</span>
+<span class="nc" id="L93">                    this.raNameGenPostfix = ScepConfiguration.DEFAULT_RA_NAME_GENERATION_POSTFIX;</span>
+<span class="nc" id="L94">                    this.clientCertificateRenewal = Boolean.valueOf(ScepConfiguration.DEFAULT_CLIENT_CERTIFICATE_RENEWAL);</span>
+<span class="nc" id="L95">                    this.allowClientCertificateRenewaWithOldKey = Boolean</span>
+<span class="nc" id="L96">                            .valueOf(ScepConfiguration.DEFAULT_ALLOW_CLIENT_CERTIFICATE_RENEWAL_WITH_OLD_KEY);</span>
+                }
+            }
+<span class="nc" id="L99">        }</span>
+
+        public String getAlias() {
+<span class="nc" id="L102">            return alias;</span>
+        }
+
+        public void setAlias(String alias) {
+<span class="nc" id="L106">            this.alias = alias;</span>
+<span class="nc" id="L107">        }</span>
+
+        public String getMode() {
+<span class="nc" id="L110">            return mode;</span>
+        }
+
+        public void setMode(String mode) {
+<span class="nc" id="L114">            this.mode = mode;</span>
+<span class="nc" id="L115">        }</span>
+        
+        public boolean isModeRa() {
+<span class="nc" id="L118">            return ScepConfiguration.Mode.RA.getResource().equals(mode);</span>
+        }
+        public boolean isModeCa() {
+<span class="nc" id="L121">            return ScepConfiguration.Mode.CA.getResource().equals(mode);</span>
+        }
+
+        public boolean isIncludeCA() {
+<span class="nc" id="L125">            return includeCA;</span>
+        }
+
+        public void setIncludeCA(boolean includeca) {
+<span class="nc" id="L129">            this.includeCA = includeca;</span>
+<span class="nc" id="L130">        }</span>
+
+        public String getRaCertProfile() {
+<span class="nc" id="L133">            return raCertProfile;</span>
+        }
+
+        public void setRaCertProfile(String cp) {
+<span class="nc" id="L137">            this.raCertProfile = cp;</span>
+<span class="nc" id="L138">        }</span>
+
+        public String getRaEEProfile() {
+<span class="nc" id="L141">            return raEEProfile;</span>
+        }
+
+        public void setRaEEProfile(String eep) {
+<span class="nc" id="L145">            this.raEEProfile = eep;</span>
+<span class="nc" id="L146">        }</span>
+
+        public String getRaDefaultCA() {
+<span class="nc" id="L149">            return raDefaultCA;</span>
+        }
+
+        public void setRaDefaultCA(String caname) {
+<span class="nc" id="L153">            this.raDefaultCA = caname;</span>
+<span class="nc" id="L154">        }</span>
+
+        public String getRaAuthPassword() {
+<span class="nc" id="L157">            return this.raAuthPassword;</span>
+        }
+
+        public void setRaAuthPassword(String raAuthPwd) {
+<span class="nc" id="L161">            this.raAuthPassword = raAuthPwd;</span>
+<span class="nc" id="L162">        }</span>
+
+        public String getRaNameGenScheme() {
+<span class="nc" id="L165">            return raNameGenScheme;</span>
+        }
+
+        public void setRaNameGenScheme(String scheme) {
+<span class="nc" id="L169">            this.raNameGenScheme = scheme;</span>
+<span class="nc" id="L170">        }</span>
+
+        public boolean isRaNameGenSchemeFixed() {
+<span class="nc" id="L173">            return &quot;FIXED&quot;.equals(raNameGenScheme);</span>
+        }
+
+        public boolean isRaNameGenSchemeDn() {
+<span class="nc" id="L177">            return &quot;DN&quot;.equals(raNameGenScheme);</span>
+        }
+
+        public String getRaNameGenParams() {
+<span class="nc" id="L181">            return raNameGenParameters;</span>
+        }
+
+        public void setRaNameGenParams(String params) {
+<span class="nc" id="L185">            this.raNameGenParameters = params;</span>
+<span class="nc" id="L186">        }</span>
+
+        public String getRaNameGenPrefix() {
+<span class="nc" id="L189">            return raNameGenPrefix;</span>
+        }
+
+        public void setRaNameGenPrefix(String prefix) {
+<span class="nc" id="L193">            this.raNameGenPrefix = prefix;</span>
+<span class="nc" id="L194">        }</span>
+
+        public String getRaNameGenPostfix() {
+<span class="nc" id="L197">            return raNameGenPostfix;</span>
+        }
+
+        public void setRaNameGenPostfix(String postfix) {
+<span class="nc" id="L201">            this.raNameGenPostfix = postfix;</span>
+<span class="nc" id="L202">        }</span>
+
+        public boolean getClientCertificateRenewal() {
+<span class="nc" id="L205">            return this.clientCertificateRenewal;</span>
+        }
+
+        public void setClientCertificateRenewal(boolean clientCertificateRenewal) {
+<span class="nc" id="L209">            this.clientCertificateRenewal = clientCertificateRenewal;</span>
+<span class="nc" id="L210">        }</span>
+
+        public boolean getAllowClientCertificateRenewaWithOldKey() {
+<span class="nc" id="L213">            return this.allowClientCertificateRenewaWithOldKey;</span>
+        }
+
+        public void setAllowClientCertificateRenewaWithOldKey(boolean allowClientCertificateRenewaWithOldKey) {
+<span class="nc" id="L217">            this.allowClientCertificateRenewaWithOldKey = allowClientCertificateRenewaWithOldKey;</span>
+<span class="nc" id="L218">        }</span>
+    }
+
+    private static final long serialVersionUID = 2L;
+<span class="nc" id="L222">    private static final Logger log = Logger.getLogger(ScepConfigMBean.class);</span>
+
+<span class="nc" id="L224">    private ListDataModel&lt;ScepAliasGuiInfo&gt; aliasGuiList = null;</span>
+    private String currentAliasStr;
+<span class="nc" id="L226">    private ScepAliasGuiInfo currentAlias = null;</span>
+<span class="nc" id="L227">    private String newAlias = &quot;&quot;;</span>
+    private ScepConfiguration scepConfig;
+<span class="nc" id="L229">    private boolean currentAliasEditMode = false;</span>
+
+<span class="nc" id="L231">    private final GlobalConfigurationSessionLocal globalConfigSession = getEjbcaWebBean().getEjb().getGlobalConfigurationSession();</span>
+<span class="nc" id="L232">    private final AuthorizationSessionLocal authorizationSession = getEjbcaWebBean().getEjb().getAuthorizationSession();</span>
+<span class="nc" id="L233">    private final AuthenticationToken authenticationToken = getAdmin();</span>
+<span class="nc" id="L234">    private final CaSessionLocal caSession = getEjbcaWebBean().getEjb().getCaSession();</span>
+<span class="nc" id="L235">    private final CertificateProfileSessionLocal certProfileSession = getEjbcaWebBean().getEjb().getCertificateProfileSession();</span>
+<span class="nc" id="L236">    private final EndEntityProfileSessionLocal endentityProfileSession = getEjbcaWebBean().getEjb().getEndEntityProfileSession();</span>
+<span class="nc" id="L237">    private final EnterpriseEditionEjbBridgeSessionLocal editionEjbBridgeSession = getEjbcaWebBean().getEnterpriseEjb();</span>
+    
+    public ScepConfigMBean() {
+<span class="nc" id="L240">        super();</span>
+<span class="nc" id="L241">        scepConfig = (ScepConfiguration) globalConfigSession.getCachedConfiguration(ScepConfiguration.SCEP_CONFIGURATION_ID);</span>
+<span class="nc" id="L242">    }</span>
+
+    /** Force reload from underlying (cache) layer for the current SCEP configuration alias */
+    private void flushCache() {
+<span class="nc" id="L246">        currentAlias = null;</span>
+<span class="nc" id="L247">        aliasGuiList = null;</span>
+<span class="nc" id="L248">        currentAliasEditMode = false;</span>
+<span class="nc" id="L249">        scepConfig = (ScepConfiguration) globalConfigSession.getCachedConfiguration(ScepConfiguration.SCEP_CONFIGURATION_ID);</span>
+<span class="nc" id="L250">    }</span>
+
+    public String getNewAlias() {
+<span class="nc" id="L253">        return newAlias;</span>
+    }
+
+    public void setNewAlias(String na) {
+<span class="nc" id="L257">        newAlias = na;</span>
+<span class="nc" id="L258">    }</span>
+
+    public boolean isCurrentAliasEditMode() {
+<span class="nc" id="L261">        return currentAliasEditMode;</span>
+    }
+
+    public boolean isAllowedToEdit() {
+<span class="nc" id="L265">        return authorizationSession.isAuthorizedNoLogging(getAdmin(), StandardRules.SYSTEMCONFIGURATION_EDIT.resource());</span>
+    }
+    
+    public void setCurrentAliasEditMode(boolean currentAliasEditMode) {
+<span class="nc bnc" id="L269" title="All 4 branches missed.">        this.currentAliasEditMode = currentAliasEditMode &amp;&amp; isAllowedToEdit();</span>
+<span class="nc" id="L270">    }</span>
+
+    public void toggleCurrentAliasEditMode() {
+<span class="nc" id="L273">        currentAliasEditMode ^= true;</span>
+<span class="nc bnc" id="L274" title="All 4 branches missed.">        currentAliasEditMode = currentAliasEditMode &amp;&amp; isAllowedToEdit();</span>
+<span class="nc" id="L275">    }</span>
+
+    /** Build a list sorted by name from the existing SCEP configuration aliases 
+     * @return model */
+    public ListDataModel&lt;ScepAliasGuiInfo&gt; getAliasGuiList() {
+    	
+<span class="nc" id="L281">        flushCache();</span>
+<span class="nc" id="L282">        final List&lt;ScepAliasGuiInfo&gt; list = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L283" title="All 2 branches missed.">        for (String alias : scepConfig.getAliasList()) {</span>
+<span class="nc" id="L284">            list.add(new ScepAliasGuiInfo(scepConfig, alias));</span>
+<span class="nc" id="L285">            Collections.sort(list, new Comparator&lt;ScepAliasGuiInfo&gt;() {</span>
+                @Override
+                public int compare(ScepAliasGuiInfo alias1, ScepAliasGuiInfo alias2) {
+<span class="nc" id="L288">                    return alias1.getAlias().compareToIgnoreCase(alias2.getAlias());</span>
+                }
+            });
+<span class="nc" id="L291">            aliasGuiList = new ListDataModel&lt;&gt;(list);</span>
+<span class="nc" id="L292">        }</span>
+        // If show the list, then we are on the main page and want to flush the cache
+<span class="nc" id="L294">        currentAlias = null;</span>
+<span class="nc" id="L295">        return aliasGuiList;</span>
+    }
+
+    public void setCurrentAliasStr(String as) {
+<span class="nc" id="L299">        currentAliasStr = as;</span>
+<span class="nc" id="L300">    }</span>
+
+    /** @return the name of the Scep alias that is subject to view or edit */
+    public String getCurrentAliasStr() {
+        // Get the HTTP GET/POST parameter named &quot;alias&quot;
+<span class="nc" id="L305">        final String inputAlias = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get(&quot;alias&quot;);</span>
+<span class="nc bnc" id="L306" title="All 4 branches missed.">        if (inputAlias != null &amp;&amp; inputAlias.length() &gt; 0) {</span>
+<span class="nc bnc" id="L307" title="All 2 branches missed.">            if (!inputAlias.equals(currentAliasStr)) {</span>
+<span class="nc" id="L308">                flushCache();</span>
+<span class="nc" id="L309">                this.currentAliasStr = inputAlias;</span>
+            }
+        }
+<span class="nc" id="L312">        return currentAliasStr;</span>
+    }
+
+    /** @return cached or populate a new SCEP alias GUI representation for view or edit */
+    public ScepAliasGuiInfo getCurrentAlias() {
+<span class="nc bnc" id="L317" title="All 2 branches missed.">        if (this.currentAlias == null) {</span>
+<span class="nc" id="L318">            final String alias = getCurrentAliasStr();</span>
+<span class="nc" id="L319">            this.currentAlias = new ScepAliasGuiInfo(scepConfig, alias);</span>
+        }
+
+<span class="nc" id="L322">        return this.currentAlias;</span>
+    }
+
+    /** Invoked when admin saves the SCEP alias configurations */
+    public void saveCurrentAlias() {
+<span class="nc bnc" id="L327" title="All 2 branches missed.">        if (currentAlias != null) {</span>
+<span class="nc" id="L328">            String alias = currentAlias.getAlias();</span>
+<span class="nc" id="L329">            scepConfig.setRAMode(alias, &quot;ra&quot;.equalsIgnoreCase(currentAlias.getMode()));</span>
+<span class="nc" id="L330">            scepConfig.setIncludeCA(alias, currentAlias.isIncludeCA());</span>
+<span class="nc" id="L331">            scepConfig.setRACertProfile(alias, currentAlias.getRaCertProfile());</span>
+<span class="nc" id="L332">            scepConfig.setRAEndEntityProfile(alias, currentAlias.getRaEEProfile());</span>
+<span class="nc" id="L333">            scepConfig.setRADefaultCA(alias, currentAlias.getRaDefaultCA());</span>
+<span class="nc" id="L334">            scepConfig.setRAAuthpassword(alias, currentAlias.getRaAuthPassword());</span>
+<span class="nc" id="L335">            scepConfig.setRANameGenerationScheme(alias, currentAlias.getRaNameGenScheme());</span>
+<span class="nc" id="L336">            scepConfig.setRANameGenerationParameters(alias, currentAlias.getRaNameGenParams());</span>
+<span class="nc" id="L337">            scepConfig.setRANameGenerationPrefix(alias, currentAlias.getRaNameGenPrefix());</span>
+<span class="nc" id="L338">            scepConfig.setRANameGenerationPostfix(alias, currentAlias.getRaNameGenPostfix());</span>
+<span class="nc" id="L339">            scepConfig.setClientCertificateRenewal(alias, currentAlias.getClientCertificateRenewal());</span>
+<span class="nc" id="L340">            scepConfig.setAllowClientCertificateRenewalWithOldKey(alias, currentAlias.getAllowClientCertificateRenewaWithOldKey());</span>
+
+            try {
+<span class="nc" id="L343">                globalConfigSession.saveConfiguration(authenticationToken, scepConfig);</span>
+<span class="nc" id="L344">            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L345">                String msg = &quot;Cannot save alias. Administrator is not authorized.&quot;;</span>
+<span class="nc" id="L346">                log.info(msg + e.getLocalizedMessage());</span>
+<span class="nc" id="L347">                super.addNonTranslatedErrorMessage(msg);</span>
+<span class="nc" id="L348">            }</span>
+        }
+<span class="nc" id="L350">        flushCache();</span>
+<span class="nc" id="L351">    }</span>
+
+    public void deleteAlias() {
+<span class="nc bnc" id="L354" title="All 2 branches missed.">        if (scepConfig.aliasExists(currentAliasStr)) {</span>
+<span class="nc" id="L355">            scepConfig.removeAlias(currentAliasStr);</span>
+            try {
+<span class="nc" id="L357">                globalConfigSession.saveConfiguration(authenticationToken, scepConfig);</span>
+<span class="nc" id="L358">            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L359">                String msg = &quot;Failed to remove alias: &quot; + e.getLocalizedMessage();</span>
+<span class="nc" id="L360">                log.info(msg, e);</span>
+<span class="nc" id="L361">                super.addNonTranslatedErrorMessage(msg);</span>
+<span class="nc" id="L362">            }</span>
+        } else {
+<span class="nc" id="L364">            String msg = &quot;Cannot remove alias. It does not exist.&quot;;</span>
+<span class="nc" id="L365">            log.info(msg);</span>
+<span class="nc" id="L366">            super.addNonTranslatedErrorMessage(msg);</span>
+        }
+<span class="nc" id="L368">        flushCache();</span>
+<span class="nc" id="L369">    }</span>
+
+    public void renameAlias() {
+<span class="nc bnc" id="L372" title="All 4 branches missed.">        if (StringUtils.isNotEmpty(newAlias) &amp;&amp; !scepConfig.aliasExists(newAlias)) {</span>
+<span class="nc" id="L373">            scepConfig.renameAlias(currentAliasStr, newAlias);</span>
+            try {
+<span class="nc" id="L375">                globalConfigSession.saveConfiguration(authenticationToken, scepConfig);</span>
+<span class="nc" id="L376">            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L377">                String msg = &quot;Failed to rename alias: &quot; + e.getLocalizedMessage();</span>
+<span class="nc" id="L378">                log.info(msg, e);</span>
+<span class="nc" id="L379">                super.addNonTranslatedErrorMessage(msg);</span>
+<span class="nc" id="L380">            }</span>
+        } else {
+<span class="nc" id="L382">            String msg = &quot;Cannot rename alias. Either the new alias is empty or it already exists.&quot;;</span>
+<span class="nc" id="L383">            log.info(msg);</span>
+<span class="nc" id="L384">            super.addNonTranslatedErrorMessage(msg);</span>
+        }
+<span class="nc" id="L386">        flushCache();</span>
+<span class="nc" id="L387">    }</span>
+
+    public void addAlias() {
+<span class="nc bnc" id="L390" title="All 4 branches missed.">        if (StringUtils.isNotEmpty(newAlias) &amp;&amp; !scepConfig.aliasExists(newAlias)) {</span>
+<span class="nc" id="L391">            scepConfig.addAlias(newAlias);</span>
+            try {
+<span class="nc" id="L393">                globalConfigSession.saveConfiguration(authenticationToken, scepConfig);</span>
+<span class="nc" id="L394">            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L395">                String msg = &quot;Failed to add alias: &quot; + e.getLocalizedMessage();</span>
+<span class="nc" id="L396">                log.info(msg, e);</span>
+<span class="nc" id="L397">                super.addNonTranslatedErrorMessage(msg);</span>
+<span class="nc" id="L398">            }</span>
+        } else {
+<span class="nc" id="L400">            String msg = &quot;Cannot add alias. Alias '&quot; + newAlias + &quot;' already exists.&quot;;</span>
+<span class="nc" id="L401">            log.info(msg);</span>
+<span class="nc" id="L402">            super.addNonTranslatedErrorMessage(msg);</span>
+        }
+<span class="nc" id="L404">        flushCache();</span>
+<span class="nc" id="L405">    }</span>
+
+    /** Invoked when admin cancels a SCEP alias create or edit. */
+    public void cancelCurrentAlias() {
+<span class="nc" id="L409">        flushCache();</span>
+<span class="nc" id="L410">    }</span>
+
+    public void selectUpdate() {
+        // NOOP: Only for page reload
+<span class="nc" id="L414">    }</span>
+
+    /** @return a list of usable operational modes */
+    public List&lt;SelectItem&gt; getAvailableModes() {
+<span class="nc" id="L418">        final List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L419">        ret.add(new SelectItem(ScepConfiguration.Mode.RA.getResource(), ScepConfiguration.Mode.RA.getResource()));</span>
+<span class="nc" id="L420">        ret.add(new SelectItem(ScepConfiguration.Mode.CA.getResource(), ScepConfiguration.Mode.CA.getResource()));</span>
+<span class="nc" id="L421">        return ret;</span>
+    }
+
+    /** @return a list of all CA names */
+    public List&lt;SelectItem&gt; getAvailableCAs() {
+<span class="nc" id="L426">        final List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L427">        final Collection&lt;String&gt; cas = caSession.getAuthorizedCaNames(authenticationToken);</span>
+<span class="nc bnc" id="L428" title="All 2 branches missed.">        for (String caname : cas) {</span>
+<span class="nc" id="L429">            ret.add(new SelectItem(caname, caname));</span>
+<span class="nc" id="L430">        }</span>
+<span class="nc" id="L431">        return ret;</span>
+    }
+
+    /** @return a list of EndEntity profiles that this admin is authorized to */
+    public List&lt;SelectItem&gt; getAuthorizedEEProfileNames() {
+<span class="nc" id="L436">        Collection&lt;Integer&gt; endEntityProfileIds = endentityProfileSession.getAuthorizedEndEntityProfileIds(getAdmin(), AccessRulesConstants.CREATE_END_ENTITY);</span>
+<span class="nc" id="L437">        Map&lt;Integer, String&gt; nameMap = endentityProfileSession.getEndEntityProfileIdToNameMap();</span>
+<span class="nc" id="L438">        final List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L439" title="All 2 branches missed.">        for (Integer id: endEntityProfileIds) {</span>
+<span class="nc" id="L440">            String name = nameMap.get(id);</span>
+<span class="nc" id="L441">            ret.add(new SelectItem(name, name));</span>
+<span class="nc" id="L442">        }</span>
+<span class="nc" id="L443">        return ret;</span>
+    }
+
+    /** @return a list of certificate profiles that are available for the current end entity profile */
+    public List&lt;SelectItem&gt; getAvailableCertProfilesOfEEProfile() {
+<span class="nc" id="L448">        String eep = currentAlias.getRaEEProfile();</span>
+<span class="nc bnc" id="L449" title="All 4 branches missed.">        if ((eep == null) || (eep.length() &lt;= 0)) {</span>
+<span class="nc" id="L450">            eep = ScepConfiguration.DEFAULT_RA_ENTITYPROFILE;</span>
+        }
+<span class="nc" id="L452">        EndEntityProfile p = endentityProfileSession.getEndEntityProfile(eep);</span>
+<span class="nc" id="L453">        final List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L454">        final Collection&lt;Integer&gt; cpids = p.getAvailableCertificateProfileIds();</span>
+<span class="nc bnc" id="L455" title="All 2 branches missed.">        for(final int cpid : cpids) {</span>
+<span class="nc" id="L456">            String cpname = certProfileSession.getCertificateProfileName(cpid);</span>
+<span class="nc" id="L457">            ret.add(new SelectItem(cpname, cpname));</span>
+<span class="nc" id="L458">        }</span>
+<span class="nc" id="L459">        return ret;</span>
+    }
+
+    /** @return a list of CAs that are available for the current end entity profile */
+    public List&lt;SelectItem&gt; getAvailableCAsOfEEProfile() {
+<span class="nc" id="L464">        String eep = currentAlias.getRaEEProfile();</span>
+<span class="nc bnc" id="L465" title="All 4 branches missed.">        if ((eep == null) || (eep.length() &lt;= 0)) {</span>
+<span class="nc" id="L466">            eep = ScepConfiguration.DEFAULT_RA_ENTITYPROFILE;</span>
+        }
+<span class="nc" id="L468">        EndEntityProfile p = endentityProfileSession.getEndEntityProfile(eep);</span>
+
+<span class="nc" id="L470">        final List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L471">        Map&lt;Integer, String&gt; caidname = getEjbcaWebBean().getCAIdToNameMap();</span>
+<span class="nc bnc" id="L472" title="All 2 branches missed.">        for (int caid : p.getAvailableCAs()) {</span>
+<span class="nc bnc" id="L473" title="All 2 branches missed.">            if (caid == CAConstants.ALLCAS) {</span>
+<span class="nc" id="L474">                return getAvailableCAs();</span>
+            }
+<span class="nc" id="L476">            String caname = caidname.get(caid);</span>
+<span class="nc" id="L477">            ret.add(new SelectItem(caname, caname));</span>
+<span class="nc" id="L478">        }</span>
+<span class="nc" id="L479">        return ret;</span>
+    }
+
+    public List&lt;SelectItem&gt; getAvailableSchemes() {
+<span class="nc" id="L483">        final List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L484">        ret.add(new SelectItem(&quot;DN&quot;, &quot;DN Part&quot;));</span>
+<span class="nc" id="L485">        ret.add(new SelectItem(&quot;RANDOM&quot;, &quot;RANDOM (Generates a 12 characters long random username)&quot;));</span>
+<span class="nc" id="L486">        ret.add(new SelectItem(&quot;FIXED&quot;, &quot;FIXED&quot;));</span>
+<span class="nc" id="L487">        ret.add(new SelectItem(&quot;USERNAME&quot;, &quot;Use entire request DN as username&quot;));</span>
+<span class="nc" id="L488">        return ret;</span>
+    }
+
+    public List&lt;SelectItem&gt; getDnParts() {
+<span class="nc" id="L492">        final List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L493">        ret.add(new SelectItem(&quot;CN&quot;, &quot;CN&quot;));</span>
+<span class="nc" id="L494">        ret.add(new SelectItem(&quot;UID&quot;, &quot;UID&quot;));</span>
+<span class="nc" id="L495">        ret.add(new SelectItem(&quot;OU&quot;, &quot;OU&quot;));</span>
+<span class="nc" id="L496">        ret.add(new SelectItem(&quot;O&quot;, &quot;O&quot;));</span>
+<span class="nc" id="L497">        ret.add(new SelectItem(&quot;L&quot;, &quot;L&quot;));</span>
+<span class="nc" id="L498">        ret.add(new SelectItem(&quot;ST&quot;, &quot;ST&quot;));</span>
+<span class="nc" id="L499">        ret.add(new SelectItem(&quot;DC&quot;, &quot;DC&quot;));</span>
+<span class="nc" id="L500">        ret.add(new SelectItem(&quot;C&quot;, &quot;C&quot;));</span>
+<span class="nc" id="L501">        ret.add(new SelectItem(&quot;emailAddress&quot;, &quot;emailAddress&quot;));</span>
+<span class="nc" id="L502">        ret.add(new SelectItem(&quot;serialNumber&quot;, &quot;serialNumber&quot;));</span>
+<span class="nc" id="L503">        ret.add(new SelectItem(&quot;givenName&quot;, &quot;givenName&quot;));</span>
+<span class="nc" id="L504">        ret.add(new SelectItem(&quot;initials&quot;, &quot;initials&quot;));</span>
+<span class="nc" id="L505">        ret.add(new SelectItem(&quot;surname&quot;, &quot;surname&quot;));</span>
+<span class="nc" id="L506">        ret.add(new SelectItem(&quot;title&quot;, &quot;title&quot;));</span>
+<span class="nc" id="L507">        ret.add(new SelectItem(&quot;unstructuredAddress&quot;, &quot;unstructuredAddress&quot;));</span>
+<span class="nc" id="L508">        ret.add(new SelectItem(&quot;unstructuredName&quot;, &quot;unstructuredName&quot;));</span>
+<span class="nc" id="L509">        ret.add(new SelectItem(&quot;postalCode&quot;, &quot;postalCode&quot;));</span>
+<span class="nc" id="L510">        ret.add(new SelectItem(&quot;businessCategory&quot;, &quot;businessCategory&quot;));</span>
+<span class="nc" id="L511">        ret.add(new SelectItem(&quot;dnQualifier&quot;, &quot;dnQualifier&quot;));</span>
+<span class="nc" id="L512">        ret.add(new SelectItem(&quot;postalAddress&quot;, &quot;postalAddress&quot;));</span>
+<span class="nc" id="L513">        ret.add(new SelectItem(&quot;telephoneNumber&quot;, &quot;telephoneNumber&quot;));</span>
+<span class="nc" id="L514">        ret.add(new SelectItem(&quot;pseudonym&quot;, &quot;pseudonym&quot;));</span>
+<span class="nc" id="L515">        ret.add(new SelectItem(&quot;streetAddress&quot;, &quot;streetAddress&quot;));</span>
+<span class="nc" id="L516">        ret.add(new SelectItem(&quot;name&quot;, &quot;name&quot;));</span>
+<span class="nc" id="L517">        ret.add(new SelectItem(&quot;CIF&quot;, &quot;CIF&quot;));</span>
+<span class="nc" id="L518">        ret.add(new SelectItem(&quot;NIF&quot;, &quot;NIF&quot;));</span>
+<span class="nc" id="L519">        return ret;</span>
+    }
+
+    public boolean isExistsClientCertificateRenewalExtension() {
+<span class="nc" id="L523">        return editionEjbBridgeSession.isRunningEnterprise();</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

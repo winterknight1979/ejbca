@@ -614,145 +614,149 @@
 <a class="jxr_linenumber" name="L606" href="#L606">606</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L607" href="#L607">607</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> sendResultPage(byte[] certbytes, HttpServletResponse out, <strong class="jxr_keyword">boolean</strong> hidemenu, <a name="CertificateResponseType" href="../../../../org/ejbca/ui/web/CertificateResponseType.html#CertificateResponseType">CertificateResponseType</a> resulttype) <strong class="jxr_keyword">throws</strong> Exception {
 <a class="jxr_linenumber" name="L608" href="#L608">608</a>         Certificate cert = CertTools.getCertfromByteArray(certbytes, Certificate.<strong class="jxr_keyword">class</strong>);
-<a class="jxr_linenumber" name="L609" href="#L609">609</a>         String issuerDN = CertTools.getIssuerDN(cert);
-<a class="jxr_linenumber" name="L610" href="#L610">610</a>         String serialNumber = CertTools.getSerialNumberAsString(cert);
-<a class="jxr_linenumber" name="L611" href="#L611">611</a>         String resultTypeStr = String.valueOf(resulttype.getNumber()); 
-<a class="jxr_linenumber" name="L612" href="#L612">612</a>         
-<a class="jxr_linenumber" name="L613" href="#L613">613</a>         out.sendRedirect(<span class="jxr_string">"enrol/result_download.jsp?issuer="</span>+URLEncoder.encode(issuerDN, <span class="jxr_string">"UTF-8"</span>)+<span class="jxr_string">"&amp;serno="</span>+serialNumber+<span class="jxr_string">"&amp;resulttype="</span>+resultTypeStr+<span class="jxr_string">"&amp;hidemenu="</span>+hidemenu);
-<a class="jxr_linenumber" name="L614" href="#L614">614</a>     }
-<a class="jxr_linenumber" name="L615" href="#L615">615</a>     
-<a class="jxr_linenumber" name="L616" href="#L616">616</a>     <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L617" href="#L617">617</a> <em class="jxr_javadoccomment">     * Sends a page with certificate information and an automatic redirect to the</em>
-<a class="jxr_linenumber" name="L618" href="#L618">618</a> <em class="jxr_javadoccomment">     * download page. The issuer must not be a "throw away" CA. The certificate</em>
-<a class="jxr_linenumber" name="L619" href="#L619">619</a> <em class="jxr_javadoccomment">     * is automatically installed in the browser.</em>
-<a class="jxr_linenumber" name="L620" href="#L620">620</a> <em class="jxr_javadoccomment">     * @param certbytes bytes</em>
-<a class="jxr_linenumber" name="L621" href="#L621">621</a> <em class="jxr_javadoccomment">     * @param out response</em>
-<a class="jxr_linenumber" name="L622" href="#L622">622</a> <em class="jxr_javadoccomment">     * @param hidemenu bool</em>
-<a class="jxr_linenumber" name="L623" href="#L623">623</a> <em class="jxr_javadoccomment">     * </em>
-<a class="jxr_linenumber" name="L624" href="#L624">624</a> <em class="jxr_javadoccomment">     * @param installToBrowser Browser type. Only "netscape" is supported,</em>
-<a class="jxr_linenumber" name="L625" href="#L625">625</a> <em class="jxr_javadoccomment">     *                         which means "most browsers except IE".</em>
-<a class="jxr_linenumber" name="L626" href="#L626">626</a> <em class="jxr_javadoccomment">     * @throws Exception fail</em>
-<a class="jxr_linenumber" name="L627" href="#L627">627</a> <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L628" href="#L628">628</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> sendResultPage(byte[] certbytes, HttpServletResponse out, <strong class="jxr_keyword">boolean</strong> hidemenu, String installToBrowser) <strong class="jxr_keyword">throws</strong> Exception {
-<a class="jxr_linenumber" name="L629" href="#L629">629</a>         Certificate cert = CertTools.getCertfromByteArray(certbytes, Certificate.<strong class="jxr_keyword">class</strong>);
-<a class="jxr_linenumber" name="L630" href="#L630">630</a>         
-<a class="jxr_linenumber" name="L631" href="#L631">631</a>         String issuerDN = CertTools.getIssuerDN(cert);
-<a class="jxr_linenumber" name="L632" href="#L632">632</a>         String serialNumber = CertTools.getSerialNumberAsString(cert);
-<a class="jxr_linenumber" name="L633" href="#L633">633</a>         
-<a class="jxr_linenumber" name="L634" href="#L634">634</a>         out.sendRedirect(<span class="jxr_string">"enrol/result_download.jsp?issuer="</span>+URLEncoder.encode(issuerDN, <span class="jxr_string">"UTF-8"</span>)+<span class="jxr_string">"&amp;serno="</span>+serialNumber+<span class="jxr_string">"&amp;installtobrowser="</span>+installToBrowser+<span class="jxr_string">"&amp;hidemenu="</span>+hidemenu);
-<a class="jxr_linenumber" name="L635" href="#L635">635</a>     }
-<a class="jxr_linenumber" name="L636" href="#L636">636</a>     
-<a class="jxr_linenumber" name="L637" href="#L637">637</a>     <em class="jxr_javadoccomment">/** Sets the default character encoding for decoding post and get parameters. </em>
-<a class="jxr_linenumber" name="L638" href="#L638">638</a> <em class="jxr_javadoccomment">     * First tries to get the character encoding from the request, if the browser is so kind to tell us which it is using, which it never does...</em>
-<a class="jxr_linenumber" name="L639" href="#L639">639</a> <em class="jxr_javadoccomment">     * Otherwise, when the browser is silent, it sets the character encoding to the same encoding that we use to display the pages.</em>
-<a class="jxr_linenumber" name="L640" href="#L640">640</a> <em class="jxr_javadoccomment">     * </em>
-<a class="jxr_linenumber" name="L641" href="#L641">641</a> <em class="jxr_javadoccomment">     * @param request HttpServletRequest   </em>
-<a class="jxr_linenumber" name="L642" href="#L642">642</a> <em class="jxr_javadoccomment">     * @throws UnsupportedEncodingException fail</em>
-<a class="jxr_linenumber" name="L643" href="#L643">643</a> <em class="jxr_javadoccomment">     * </em>
-<a class="jxr_linenumber" name="L644" href="#L644">644</a> <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L645" href="#L645">645</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> setDefaultCharacterEncoding(HttpServletRequest request) <strong class="jxr_keyword">throws</strong> UnsupportedEncodingException {
-<a class="jxr_linenumber" name="L646" href="#L646">646</a>         String encoding = request.getCharacterEncoding();
-<a class="jxr_linenumber" name="L647" href="#L647">647</a>         <strong class="jxr_keyword">if</strong>(StringUtils.isEmpty(encoding)) {
-<a class="jxr_linenumber" name="L648" href="#L648">648</a>             encoding = org.ejbca.config.WebConfiguration.getWebContentEncoding();
-<a class="jxr_linenumber" name="L649" href="#L649">649</a>             <strong class="jxr_keyword">if</strong> (log.isDebugEnabled()) {
-<a class="jxr_linenumber" name="L650" href="#L650">650</a>                 log.debug(<span class="jxr_string">"Setting encoding to default value: "</span>+encoding);
-<a class="jxr_linenumber" name="L651" href="#L651">651</a>             }
-<a class="jxr_linenumber" name="L652" href="#L652">652</a>             request.setCharacterEncoding(encoding);
-<a class="jxr_linenumber" name="L653" href="#L653">653</a>         } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L654" href="#L654">654</a>             <strong class="jxr_keyword">if</strong> (log.isDebugEnabled()) {
-<a class="jxr_linenumber" name="L655" href="#L655">655</a>                 log.debug(<span class="jxr_string">"Setting encoding to value from request: "</span>+encoding);
-<a class="jxr_linenumber" name="L656" href="#L656">656</a>             }
-<a class="jxr_linenumber" name="L657" href="#L657">657</a>             request.setCharacterEncoding(encoding);         
-<a class="jxr_linenumber" name="L658" href="#L658">658</a>         }        
-<a class="jxr_linenumber" name="L659" href="#L659">659</a>     }
-<a class="jxr_linenumber" name="L660" href="#L660">660</a> 
-<a class="jxr_linenumber" name="L661" href="#L661">661</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> String getFileNameFromCertNoEnding(Certificate cacert, String defaultname) <strong class="jxr_keyword">throws</strong> NoSuchFieldException {
-<a class="jxr_linenumber" name="L662" href="#L662">662</a>     	String dnpart = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L663" href="#L663">663</a>     	<strong class="jxr_keyword">if</strong> (StringUtils.equals(cacert.getType(), <span class="jxr_string">"CVC"</span>)) {
-<a class="jxr_linenumber" name="L664" href="#L664">664</a>     		CardVerifiableCertificate cvccert = (CardVerifiableCertificate) cacert;
-<a class="jxr_linenumber" name="L665" href="#L665">665</a>     		String car = <span class="jxr_string">"car"</span>;
-<a class="jxr_linenumber" name="L666" href="#L666">666</a>     		CAReferenceField carf = cvccert.getCVCertificate().getCertificateBody().getAuthorityReference();
-<a class="jxr_linenumber" name="L667" href="#L667">667</a>     		<strong class="jxr_keyword">if</strong> (carf != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L668" href="#L668">668</a>     			car = carf.getConcatenated();
-<a class="jxr_linenumber" name="L669" href="#L669">669</a>     		}
-<a class="jxr_linenumber" name="L670" href="#L670">670</a>     		String chr = <span class="jxr_string">"chr"</span>;
-<a class="jxr_linenumber" name="L671" href="#L671">671</a>     		HolderReferenceField chrf = cvccert.getCVCertificate().getCertificateBody().getHolderReference();
-<a class="jxr_linenumber" name="L672" href="#L672">672</a>     		<strong class="jxr_keyword">if</strong> (chrf != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L673" href="#L673">673</a>     			chr = chrf.getConcatenated();
-<a class="jxr_linenumber" name="L674" href="#L674">674</a>     		}
-<a class="jxr_linenumber" name="L675" href="#L675">675</a>     		dnpart = car + <span class="jxr_string">"_"</span> + chr;
-<a class="jxr_linenumber" name="L676" href="#L676">676</a>     	} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L677" href="#L677">677</a>     		String dn = CertTools.getSubjectDN(cacert);
-<a class="jxr_linenumber" name="L678" href="#L678">678</a>     		dnpart = CertTools.getPartFromDN(dn, <span class="jxr_string">"CN"</span>);
-<a class="jxr_linenumber" name="L679" href="#L679">679</a>     		<strong class="jxr_keyword">if</strong> (dnpart == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L680" href="#L680">680</a>     			dnpart = CertTools.getPartFromDN(dn, <span class="jxr_string">"SN"</span>);
-<a class="jxr_linenumber" name="L681" href="#L681">681</a>     		}
-<a class="jxr_linenumber" name="L682" href="#L682">682</a>     		<strong class="jxr_keyword">if</strong> (dnpart == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L683" href="#L683">683</a>     			dnpart = CertTools.getPartFromDN(dn, <span class="jxr_string">"O"</span>);
-<a class="jxr_linenumber" name="L684" href="#L684">684</a>     		}
-<a class="jxr_linenumber" name="L685" href="#L685">685</a>     	}
-<a class="jxr_linenumber" name="L686" href="#L686">686</a>     	<strong class="jxr_keyword">if</strong> (dnpart == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L687" href="#L687">687</a>     		dnpart = defaultname;
-<a class="jxr_linenumber" name="L688" href="#L688">688</a>     	}
-<a class="jxr_linenumber" name="L689" href="#L689">689</a>         <strong class="jxr_keyword">if</strong> (log.isDebugEnabled()) {
-<a class="jxr_linenumber" name="L690" href="#L690">690</a>             log.debug(<span class="jxr_string">"dnpart: "</span>+dnpart);
-<a class="jxr_linenumber" name="L691" href="#L691">691</a>         }
-<a class="jxr_linenumber" name="L692" href="#L692">692</a>     	<em class="jxr_comment">// Strip whitespace though</em>
-<a class="jxr_linenumber" name="L693" href="#L693">693</a>     	String filename = dnpart.replaceAll(<span class="jxr_string">"&#92;&#92;W"</span>, <span class="jxr_string">""</span>);
-<a class="jxr_linenumber" name="L694" href="#L694">694</a>     	<strong class="jxr_keyword">return</strong> filename;
-<a class="jxr_linenumber" name="L695" href="#L695">695</a>     }
-<a class="jxr_linenumber" name="L696" href="#L696">696</a> 
-<a class="jxr_linenumber" name="L697" href="#L697">697</a>     <em class="jxr_comment">// Uniform Resource Identifier specification has a section on parsing URIs with a regular expression. The regular expression, written by Berners-Lee, et al., is:</em>
-<a class="jxr_linenumber" name="L698" href="#L698">698</a>     <em class="jxr_comment">// For example: http://www.ics.uci.edu/pub/ietf/uri/#Related</em>
-<a class="jxr_linenumber" name="L699" href="#L699">699</a>     <em class="jxr_comment">// results in the following subexpression matches:</em>
-<a class="jxr_linenumber" name="L700" href="#L700">700</a>     <em class="jxr_comment">//$1 = http:</em>
-<a class="jxr_linenumber" name="L701" href="#L701">701</a>     <em class="jxr_comment">//$2 = http</em>
-<a class="jxr_linenumber" name="L702" href="#L702">702</a>     <em class="jxr_comment">//$3 = //www.ics.uci.edu</em>
-<a class="jxr_linenumber" name="L703" href="#L703">703</a>     <em class="jxr_comment">//$4 = www.ics.uci.edu</em>
-<a class="jxr_linenumber" name="L704" href="#L704">704</a>     <em class="jxr_comment">//$5 = /pub/ietf/uri/</em>
-<a class="jxr_linenumber" name="L705" href="#L705">705</a>     <em class="jxr_comment">//$6 = &lt;undefined&gt;</em>
-<a class="jxr_linenumber" name="L706" href="#L706">706</a>     <em class="jxr_comment">//$7 = &lt;undefined&gt;</em>
-<a class="jxr_linenumber" name="L707" href="#L707">707</a>     <em class="jxr_comment">//$8 = #Related</em>
-<a class="jxr_linenumber" name="L708" href="#L708">708</a>     <em class="jxr_comment">//$9 = Related</em>
-<a class="jxr_linenumber" name="L709" href="#L709">709</a>     <em class="jxr_comment">// Port is part of the name in $4</em>
-<a class="jxr_linenumber" name="L710" href="#L710">710</a>     <em class="jxr_comment">// See https://stackoverflow.com/questions/27745/getting-parts-of-a-url-regex</em>
-<a class="jxr_linenumber" name="L711" href="#L711">711</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> java.util.regex.Pattern reg = java.util.regex.Pattern.compile(<span class="jxr_string">"^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(&#92;&#92;?([^#]*))?(#(.*))?"</span>);
-<a class="jxr_linenumber" name="L712" href="#L712">712</a>     <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L713" href="#L713">713</a> <em class="jxr_javadoccomment">     * Method that returns the servername including port, extracted from the HTTPServlet Request, no protocol or application path is returned</em>
-<a class="jxr_linenumber" name="L714" href="#L714">714</a> <em class="jxr_javadoccomment">     * @param request req</em>
-<a class="jxr_linenumber" name="L715" href="#L715">715</a> <em class="jxr_javadoccomment">     *</em>
-<a class="jxr_linenumber" name="L716" href="#L716">716</a> <em class="jxr_javadoccomment">     * @return the server name and port requested, i.e. localhost:8443</em>
-<a class="jxr_linenumber" name="L717" href="#L717">717</a> <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L718" href="#L718">718</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> String getRequestServerName(<strong class="jxr_keyword">final</strong> String request) {
-<a class="jxr_linenumber" name="L719" href="#L719">719</a>         <strong class="jxr_keyword">if</strong> (request == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L720" href="#L720">720</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L721" href="#L721">721</a>         }
-<a class="jxr_linenumber" name="L722" href="#L722">722</a>         <strong class="jxr_keyword">final</strong> java.util.regex.Matcher m = reg.matcher(request);
-<a class="jxr_linenumber" name="L723" href="#L723">723</a>         String requestURL = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L724" href="#L724">724</a>         <strong class="jxr_keyword">if</strong> (m.matches() &amp;&amp; m.groupCount() &gt;= 4) {
-<a class="jxr_linenumber" name="L725" href="#L725">725</a>             <strong class="jxr_keyword">if</strong> (log.isTraceEnabled()) {
-<a class="jxr_linenumber" name="L726" href="#L726">726</a>                 log.trace(<span class="jxr_string">"regexp match with "</span>+m.groupCount()+<span class="jxr_string">" groups, 0 being: "</span>+m.group(0));
-<a class="jxr_linenumber" name="L727" href="#L727">727</a>             }
-<a class="jxr_linenumber" name="L728" href="#L728">728</a>             requestURL = m.group(4);
-<a class="jxr_linenumber" name="L729" href="#L729">729</a>         } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L730" href="#L730">730</a>             <strong class="jxr_keyword">if</strong> (log.isTraceEnabled()) {
-<a class="jxr_linenumber" name="L731" href="#L731">731</a>                 log.trace(<span class="jxr_string">"no reqexp match: "</span>+request);
-<a class="jxr_linenumber" name="L732" href="#L732">732</a>             }
-<a class="jxr_linenumber" name="L733" href="#L733">733</a>             <em class="jxr_comment">// Remove https://</em>
-<a class="jxr_linenumber" name="L734" href="#L734">734</a>             requestURL = request.substring(8);
-<a class="jxr_linenumber" name="L735" href="#L735">735</a>             <strong class="jxr_keyword">int</strong> firstSlash = requestURL.indexOf(<span class="jxr_string">"/"</span>);
-<a class="jxr_linenumber" name="L736" href="#L736">736</a>             <em class="jxr_comment">// Remove application path</em>
-<a class="jxr_linenumber" name="L737" href="#L737">737</a>             requestURL = requestURL.substring(0, firstSlash);            
-<a class="jxr_linenumber" name="L738" href="#L738">738</a>         }        
-<a class="jxr_linenumber" name="L739" href="#L739">739</a>         <em class="jxr_comment">// Escape in order to be sure not to have any XSS</em>
-<a class="jxr_linenumber" name="L740" href="#L740">740</a>         requestURL = HTMLTools.htmlescape(requestURL);
-<a class="jxr_linenumber" name="L741" href="#L741">741</a>         <strong class="jxr_keyword">if</strong> (log.isDebugEnabled()) {
-<a class="jxr_linenumber" name="L742" href="#L742">742</a>             log.debug(<span class="jxr_string">"requestServerName: "</span> + requestURL);
-<a class="jxr_linenumber" name="L743" href="#L743">743</a>         }
-<a class="jxr_linenumber" name="L744" href="#L744">744</a>         <strong class="jxr_keyword">return</strong> requestURL;
-<a class="jxr_linenumber" name="L745" href="#L745">745</a>     }
-<a class="jxr_linenumber" name="L746" href="#L746">746</a> 
-<a class="jxr_linenumber" name="L747" href="#L747">747</a> }
+<a class="jxr_linenumber" name="L609" href="#L609">609</a>         String issuerDN = CertTools.getIssuerDN(cert);	       
+<a class="jxr_linenumber" name="L610" href="#L610">610</a>         String serialNumber = CertTools.getSerialNumberAsString(cert);	       
+<a class="jxr_linenumber" name="L611" href="#L611">611</a>         String resultTypeStr = String.valueOf(resulttype.getNumber()); 	       
+<a class="jxr_linenumber" name="L612" href="#L612">612</a> 
+<a class="jxr_linenumber" name="L613" href="#L613">613</a> 
+<a class="jxr_linenumber" name="L614" href="#L614">614</a>         out.sendRedirect(<span class="jxr_string">"enrol/result_download.jsp?issuer="</span>+URLEncoder.encode(issuerDN, <span class="jxr_string">"UTF-8"</span>)+<span class="jxr_string">"&amp;serno="</span>+serialNumber+<span class="jxr_string">"&amp;resulttype="</span>+resultTypeStr+<span class="jxr_string">"&amp;hidemenu="</span>+hidemenu);
+<a class="jxr_linenumber" name="L615" href="#L615">615</a>         		
+<a class="jxr_linenumber" name="L616" href="#L616">616</a>     }
+<a class="jxr_linenumber" name="L617" href="#L617">617</a>     
+<a class="jxr_linenumber" name="L618" href="#L618">618</a>    
+<a class="jxr_linenumber" name="L619" href="#L619">619</a>     
+<a class="jxr_linenumber" name="L620" href="#L620">620</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L621" href="#L621">621</a> <em class="jxr_javadoccomment">     * Sends a page with certificate information and an automatic redirect to the</em>
+<a class="jxr_linenumber" name="L622" href="#L622">622</a> <em class="jxr_javadoccomment">     * download page. The issuer must not be a "throw away" CA. The certificate</em>
+<a class="jxr_linenumber" name="L623" href="#L623">623</a> <em class="jxr_javadoccomment">     * is automatically installed in the browser.</em>
+<a class="jxr_linenumber" name="L624" href="#L624">624</a> <em class="jxr_javadoccomment">     * @param certbytes bytes</em>
+<a class="jxr_linenumber" name="L625" href="#L625">625</a> <em class="jxr_javadoccomment">     * @param out response</em>
+<a class="jxr_linenumber" name="L626" href="#L626">626</a> <em class="jxr_javadoccomment">     * @param hidemenu bool</em>
+<a class="jxr_linenumber" name="L627" href="#L627">627</a> <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="L628" href="#L628">628</a> <em class="jxr_javadoccomment">     * @param installToBrowser Browser type. Only "netscape" is supported,</em>
+<a class="jxr_linenumber" name="L629" href="#L629">629</a> <em class="jxr_javadoccomment">     *                         which means "most browsers except IE".</em>
+<a class="jxr_linenumber" name="L630" href="#L630">630</a> <em class="jxr_javadoccomment">     * @throws Exception fail</em>
+<a class="jxr_linenumber" name="L631" href="#L631">631</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L632" href="#L632">632</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> sendResultPage(byte[] certbytes, HttpServletResponse out, <strong class="jxr_keyword">boolean</strong> hidemenu, String installToBrowser) <strong class="jxr_keyword">throws</strong> Exception {
+<a class="jxr_linenumber" name="L633" href="#L633">633</a>         Certificate cert = CertTools.getCertfromByteArray(certbytes, Certificate.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="L634" href="#L634">634</a> 
+<a class="jxr_linenumber" name="L635" href="#L635">635</a>         String issuerDN = CertTools.getIssuerDN(cert);	        
+<a class="jxr_linenumber" name="L636" href="#L636">636</a>         String serialNumber = CertTools.getSerialNumberAsString(cert);	       
+<a class="jxr_linenumber" name="L637" href="#L637">637</a> 
+<a class="jxr_linenumber" name="L638" href="#L638">638</a>         out.sendRedirect(<span class="jxr_string">"enrol/result_download.jsp?issuer="</span>+URLEncoder.encode(issuerDN, <span class="jxr_string">"UTF-8"</span>)+<span class="jxr_string">"&amp;serno="</span>+serialNumber+<span class="jxr_string">"&amp;installtobrowser="</span>+installToBrowser+<span class="jxr_string">"&amp;hidemenu="</span>+hidemenu);
+<a class="jxr_linenumber" name="L639" href="#L639">639</a>     }
+<a class="jxr_linenumber" name="L640" href="#L640">640</a>     
+<a class="jxr_linenumber" name="L641" href="#L641">641</a>     <em class="jxr_javadoccomment">/** Sets the default character encoding for decoding post and get parameters. </em>
+<a class="jxr_linenumber" name="L642" href="#L642">642</a> <em class="jxr_javadoccomment">     * First tries to get the character encoding from the request, if the browser is so kind to tell us which it is using, which it never does...</em>
+<a class="jxr_linenumber" name="L643" href="#L643">643</a> <em class="jxr_javadoccomment">     * Otherwise, when the browser is silent, it sets the character encoding to the same encoding that we use to display the pages.</em>
+<a class="jxr_linenumber" name="L644" href="#L644">644</a> <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="L645" href="#L645">645</a> <em class="jxr_javadoccomment">     * @param request HttpServletRequest   </em>
+<a class="jxr_linenumber" name="L646" href="#L646">646</a> <em class="jxr_javadoccomment">     * @throws UnsupportedEncodingException fail</em>
+<a class="jxr_linenumber" name="L647" href="#L647">647</a> <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="L648" href="#L648">648</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L649" href="#L649">649</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> setDefaultCharacterEncoding(HttpServletRequest request) <strong class="jxr_keyword">throws</strong> UnsupportedEncodingException {
+<a class="jxr_linenumber" name="L650" href="#L650">650</a>         String encoding = request.getCharacterEncoding();
+<a class="jxr_linenumber" name="L651" href="#L651">651</a>         <strong class="jxr_keyword">if</strong>(StringUtils.isEmpty(encoding)) {
+<a class="jxr_linenumber" name="L652" href="#L652">652</a>             encoding = org.ejbca.config.WebConfiguration.getWebContentEncoding();
+<a class="jxr_linenumber" name="L653" href="#L653">653</a>             <strong class="jxr_keyword">if</strong> (log.isDebugEnabled()) {
+<a class="jxr_linenumber" name="L654" href="#L654">654</a>                 log.debug(<span class="jxr_string">"Setting encoding to default value: "</span>+encoding);
+<a class="jxr_linenumber" name="L655" href="#L655">655</a>             }
+<a class="jxr_linenumber" name="L656" href="#L656">656</a>             request.setCharacterEncoding(encoding);
+<a class="jxr_linenumber" name="L657" href="#L657">657</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L658" href="#L658">658</a>             <strong class="jxr_keyword">if</strong> (log.isDebugEnabled()) {
+<a class="jxr_linenumber" name="L659" href="#L659">659</a>                 log.debug(<span class="jxr_string">"Setting encoding to value from request: "</span>+encoding);
+<a class="jxr_linenumber" name="L660" href="#L660">660</a>             }
+<a class="jxr_linenumber" name="L661" href="#L661">661</a>             request.setCharacterEncoding(encoding);         
+<a class="jxr_linenumber" name="L662" href="#L662">662</a>         }        
+<a class="jxr_linenumber" name="L663" href="#L663">663</a>     }
+<a class="jxr_linenumber" name="L664" href="#L664">664</a> 
+<a class="jxr_linenumber" name="L665" href="#L665">665</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> String getFileNameFromCertNoEnding(Certificate cacert, String defaultname) <strong class="jxr_keyword">throws</strong> NoSuchFieldException {
+<a class="jxr_linenumber" name="L666" href="#L666">666</a>     	String dnpart = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L667" href="#L667">667</a>     	<strong class="jxr_keyword">if</strong> (StringUtils.equals(cacert.getType(), <span class="jxr_string">"CVC"</span>)) {
+<a class="jxr_linenumber" name="L668" href="#L668">668</a>     		CardVerifiableCertificate cvccert = (CardVerifiableCertificate) cacert;
+<a class="jxr_linenumber" name="L669" href="#L669">669</a>     		String car = <span class="jxr_string">"car"</span>;
+<a class="jxr_linenumber" name="L670" href="#L670">670</a>     		CAReferenceField carf = cvccert.getCVCertificate().getCertificateBody().getAuthorityReference();
+<a class="jxr_linenumber" name="L671" href="#L671">671</a>     		<strong class="jxr_keyword">if</strong> (carf != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L672" href="#L672">672</a>     			car = carf.getConcatenated();
+<a class="jxr_linenumber" name="L673" href="#L673">673</a>     		}
+<a class="jxr_linenumber" name="L674" href="#L674">674</a>     		String chr = <span class="jxr_string">"chr"</span>;
+<a class="jxr_linenumber" name="L675" href="#L675">675</a>     		HolderReferenceField chrf = cvccert.getCVCertificate().getCertificateBody().getHolderReference();
+<a class="jxr_linenumber" name="L676" href="#L676">676</a>     		<strong class="jxr_keyword">if</strong> (chrf != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L677" href="#L677">677</a>     			chr = chrf.getConcatenated();
+<a class="jxr_linenumber" name="L678" href="#L678">678</a>     		}
+<a class="jxr_linenumber" name="L679" href="#L679">679</a>     		dnpart = car + <span class="jxr_string">"_"</span> + chr;
+<a class="jxr_linenumber" name="L680" href="#L680">680</a>     	} <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L681" href="#L681">681</a>     		String dn = CertTools.getSubjectDN(cacert);
+<a class="jxr_linenumber" name="L682" href="#L682">682</a>     		dnpart = CertTools.getPartFromDN(dn, <span class="jxr_string">"CN"</span>);
+<a class="jxr_linenumber" name="L683" href="#L683">683</a>     		<strong class="jxr_keyword">if</strong> (dnpart == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L684" href="#L684">684</a>     			dnpart = CertTools.getPartFromDN(dn, <span class="jxr_string">"SN"</span>);
+<a class="jxr_linenumber" name="L685" href="#L685">685</a>     		}
+<a class="jxr_linenumber" name="L686" href="#L686">686</a>     		<strong class="jxr_keyword">if</strong> (dnpart == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L687" href="#L687">687</a>     			dnpart = CertTools.getPartFromDN(dn, <span class="jxr_string">"O"</span>);
+<a class="jxr_linenumber" name="L688" href="#L688">688</a>     		}
+<a class="jxr_linenumber" name="L689" href="#L689">689</a>     	}
+<a class="jxr_linenumber" name="L690" href="#L690">690</a>     	<strong class="jxr_keyword">if</strong> (dnpart == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L691" href="#L691">691</a>     		dnpart = defaultname;
+<a class="jxr_linenumber" name="L692" href="#L692">692</a>     	}
+<a class="jxr_linenumber" name="L693" href="#L693">693</a>         <strong class="jxr_keyword">if</strong> (log.isDebugEnabled()) {
+<a class="jxr_linenumber" name="L694" href="#L694">694</a>             log.debug(<span class="jxr_string">"dnpart: "</span>+dnpart);
+<a class="jxr_linenumber" name="L695" href="#L695">695</a>         }
+<a class="jxr_linenumber" name="L696" href="#L696">696</a>     	<em class="jxr_comment">// Strip whitespace though</em>
+<a class="jxr_linenumber" name="L697" href="#L697">697</a>     	String filename = dnpart.replaceAll(<span class="jxr_string">"&#92;&#92;W"</span>, <span class="jxr_string">""</span>);
+<a class="jxr_linenumber" name="L698" href="#L698">698</a>     	<strong class="jxr_keyword">return</strong> filename;
+<a class="jxr_linenumber" name="L699" href="#L699">699</a>     }
+<a class="jxr_linenumber" name="L700" href="#L700">700</a> 
+<a class="jxr_linenumber" name="L701" href="#L701">701</a>     <em class="jxr_comment">// Uniform Resource Identifier specification has a section on parsing URIs with a regular expression. The regular expression, written by Berners-Lee, et al., is:</em>
+<a class="jxr_linenumber" name="L702" href="#L702">702</a>     <em class="jxr_comment">// For example: http://www.ics.uci.edu/pub/ietf/uri/#Related</em>
+<a class="jxr_linenumber" name="L703" href="#L703">703</a>     <em class="jxr_comment">// results in the following subexpression matches:</em>
+<a class="jxr_linenumber" name="L704" href="#L704">704</a>     <em class="jxr_comment">//$1 = http:</em>
+<a class="jxr_linenumber" name="L705" href="#L705">705</a>     <em class="jxr_comment">//$2 = http</em>
+<a class="jxr_linenumber" name="L706" href="#L706">706</a>     <em class="jxr_comment">//$3 = //www.ics.uci.edu</em>
+<a class="jxr_linenumber" name="L707" href="#L707">707</a>     <em class="jxr_comment">//$4 = www.ics.uci.edu</em>
+<a class="jxr_linenumber" name="L708" href="#L708">708</a>     <em class="jxr_comment">//$5 = /pub/ietf/uri/</em>
+<a class="jxr_linenumber" name="L709" href="#L709">709</a>     <em class="jxr_comment">//$6 = &lt;undefined&gt;</em>
+<a class="jxr_linenumber" name="L710" href="#L710">710</a>     <em class="jxr_comment">//$7 = &lt;undefined&gt;</em>
+<a class="jxr_linenumber" name="L711" href="#L711">711</a>     <em class="jxr_comment">//$8 = #Related</em>
+<a class="jxr_linenumber" name="L712" href="#L712">712</a>     <em class="jxr_comment">//$9 = Related</em>
+<a class="jxr_linenumber" name="L713" href="#L713">713</a>     <em class="jxr_comment">// Port is part of the name in $4</em>
+<a class="jxr_linenumber" name="L714" href="#L714">714</a>     <em class="jxr_comment">// See https://stackoverflow.com/questions/27745/getting-parts-of-a-url-regex</em>
+<a class="jxr_linenumber" name="L715" href="#L715">715</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> java.util.regex.Pattern reg = java.util.regex.Pattern.compile(<span class="jxr_string">"^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(&#92;&#92;?([^#]*))?(#(.*))?"</span>);
+<a class="jxr_linenumber" name="L716" href="#L716">716</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L717" href="#L717">717</a> <em class="jxr_javadoccomment">     * Method that returns the servername including port, extracted from the HTTPServlet Request, no protocol or application path is returned</em>
+<a class="jxr_linenumber" name="L718" href="#L718">718</a> <em class="jxr_javadoccomment">     * @param request req</em>
+<a class="jxr_linenumber" name="L719" href="#L719">719</a> <em class="jxr_javadoccomment">     *</em>
+<a class="jxr_linenumber" name="L720" href="#L720">720</a> <em class="jxr_javadoccomment">     * @return the server name and port requested, i.e. localhost:8443</em>
+<a class="jxr_linenumber" name="L721" href="#L721">721</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L722" href="#L722">722</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> String getRequestServerName(<strong class="jxr_keyword">final</strong> String request) {
+<a class="jxr_linenumber" name="L723" href="#L723">723</a>         <strong class="jxr_keyword">if</strong> (request == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L724" href="#L724">724</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L725" href="#L725">725</a>         }
+<a class="jxr_linenumber" name="L726" href="#L726">726</a>         <strong class="jxr_keyword">final</strong> java.util.regex.Matcher m = reg.matcher(request);
+<a class="jxr_linenumber" name="L727" href="#L727">727</a>         String requestURL = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L728" href="#L728">728</a>         <strong class="jxr_keyword">if</strong> (m.matches() &amp;&amp; m.groupCount() &gt;= 4) {
+<a class="jxr_linenumber" name="L729" href="#L729">729</a>             <strong class="jxr_keyword">if</strong> (log.isTraceEnabled()) {
+<a class="jxr_linenumber" name="L730" href="#L730">730</a>                 log.trace(<span class="jxr_string">"regexp match with "</span>+m.groupCount()+<span class="jxr_string">" groups, 0 being: "</span>+m.group(0));
+<a class="jxr_linenumber" name="L731" href="#L731">731</a>             }
+<a class="jxr_linenumber" name="L732" href="#L732">732</a>             requestURL = m.group(4);
+<a class="jxr_linenumber" name="L733" href="#L733">733</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L734" href="#L734">734</a>             <strong class="jxr_keyword">if</strong> (log.isTraceEnabled()) {
+<a class="jxr_linenumber" name="L735" href="#L735">735</a>                 log.trace(<span class="jxr_string">"no reqexp match: "</span>+request);
+<a class="jxr_linenumber" name="L736" href="#L736">736</a>             }
+<a class="jxr_linenumber" name="L737" href="#L737">737</a>             <em class="jxr_comment">// Remove https://</em>
+<a class="jxr_linenumber" name="L738" href="#L738">738</a>             requestURL = request.substring(8);
+<a class="jxr_linenumber" name="L739" href="#L739">739</a>             <strong class="jxr_keyword">int</strong> firstSlash = requestURL.indexOf(<span class="jxr_string">"/"</span>);
+<a class="jxr_linenumber" name="L740" href="#L740">740</a>             <em class="jxr_comment">// Remove application path</em>
+<a class="jxr_linenumber" name="L741" href="#L741">741</a>             requestURL = requestURL.substring(0, firstSlash);            
+<a class="jxr_linenumber" name="L742" href="#L742">742</a>         }        
+<a class="jxr_linenumber" name="L743" href="#L743">743</a>         <em class="jxr_comment">// Escape in order to be sure not to have any XSS</em>
+<a class="jxr_linenumber" name="L744" href="#L744">744</a>         requestURL = HTMLTools.htmlescape(requestURL);
+<a class="jxr_linenumber" name="L745" href="#L745">745</a>         <strong class="jxr_keyword">if</strong> (log.isDebugEnabled()) {
+<a class="jxr_linenumber" name="L746" href="#L746">746</a>             log.debug(<span class="jxr_string">"requestServerName: "</span> + requestURL);
+<a class="jxr_linenumber" name="L747" href="#L747">747</a>         }
+<a class="jxr_linenumber" name="L748" href="#L748">748</a>         <strong class="jxr_keyword">return</strong> requestURL;
+<a class="jxr_linenumber" name="L749" href="#L749">749</a>     }
+<a class="jxr_linenumber" name="L750" href="#L750">750</a> 
+<a class="jxr_linenumber" name="L751" href="#L751">751</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2020. All rights reserved.</div>

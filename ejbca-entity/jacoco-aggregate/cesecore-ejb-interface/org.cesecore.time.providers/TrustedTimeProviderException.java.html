@@ -10,52 +10,47 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
-package org.cesecore.time.providers;   
+package org.cesecore.time.providers;
 
 /**
  * This exception should be used on TrustedTime provider errors.
  *
- * @version $Id: TrustedTimeProviderException.java 17625 2013-09-20 07:12:06Z netmackan $
- * 
- */ 
+ * @version $Id: TrustedTimeProviderException.java 17625 2013-09-20 07:12:06Z
+ *     netmackan $
+ */
 public class TrustedTimeProviderException extends Exception {
 
-    private static final long serialVersionUID = -7860047748193141529L;
+  private static final long serialVersionUID = -7860047748193141529L;
 
-    /**
-     * @see Exception#Exception()
-     */
-    public TrustedTimeProviderException()
-    {
-<span class="nc" id="L30">        super();</span>
-<span class="nc" id="L31">    }</span>
+  /** @see Exception#Exception() */
+  public TrustedTimeProviderException() {
+<span class="nc" id="L27">    super();</span>
+<span class="nc" id="L28">  }</span>
 
-    /**
-     * @param message message
-     * @see Exception#Exception(String)
-     */
-    public TrustedTimeProviderException(String message)
-    {
-<span class="nc" id="L39">        super(message);</span>
-<span class="nc" id="L40">    }</span>
+  /**
+   * @param message message
+   * @see Exception#Exception(String)
+   */
+  public TrustedTimeProviderException(final String message) {
+<span class="nc" id="L35">    super(message);</span>
+<span class="nc" id="L36">  }</span>
 
-    /**
-     * @param message message
-     * @param cause cause
-     * @see Exception#Exception(String,Throwable)
-     */
-    public TrustedTimeProviderException(String message, Throwable cause)
-    {
-<span class="nc" id="L49">        super(message, cause);</span>
-<span class="nc" id="L50">    }</span>
+  /**
+   * @param message message
+   * @param cause cause
+   * @see Exception#Exception(String,Throwable)
+   */
+  public TrustedTimeProviderException(
+      final String message, final Throwable cause) {
+<span class="nc" id="L45">    super(message, cause);</span>
+<span class="nc" id="L46">  }</span>
 
-    /**
-     * @param cause cause
-     * @see Exception#Exception(Throwable)
-     */
-    public TrustedTimeProviderException(Throwable cause)
-    {
-<span class="nc" id="L58">        super(cause);</span>
-<span class="nc" id="L59">    }</span>
+  /**
+   * @param cause cause
+   * @see Exception#Exception(Throwable)
+   */
+  public TrustedTimeProviderException(final Throwable cause) {
+<span class="nc" id="L53">    super(cause);</span>
+<span class="nc" id="L54">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

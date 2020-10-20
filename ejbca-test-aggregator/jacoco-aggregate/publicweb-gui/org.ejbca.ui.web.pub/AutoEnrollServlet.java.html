@@ -273,17 +273,20 @@ import org.ejbca.util.passgen.PasswordGeneratorFactory;
 <span class="nc" id="L273">	            log.info(&quot;Sent cert to client&quot;);</span>
 	        }
 <span class="nc" id="L275">	    } catch (AuthorizationDeniedException e1) {</span>
-<span class="nc" id="L276">	        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, e1.getMessage());</span>
-<span class="nc" id="L277">	    }</span>
-<span class="nc" id="L278">		log.trace(&quot;&lt;doPost&quot;);</span>
-<span class="nc" id="L279">	}</span>
+	    	// TODO: localize this.
+<span class="nc" id="L277">        	log.info(&quot;Authentication failed&quot;, e1);</span>
+<span class="nc" id="L278">            response.sendError(HttpServletResponse.SC_FORBIDDEN, &quot;Authentication failed&quot;);</span>
+<span class="nc" id="L279">            return;</span>
+<span class="nc" id="L280">	    }</span>
+<span class="nc" id="L281">		log.trace(&quot;&lt;doPost&quot;);</span>
+<span class="nc" id="L282">	}</span>
 
     @Override
 	public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-<span class="nc" id="L283">		log.trace(&quot;&gt;doGet&quot;);</span>
-<span class="nc" id="L284">		doPost(request, response);</span>
-<span class="nc" id="L285">		log.trace(&quot;&lt;doGet&quot;);</span>
-<span class="nc" id="L286">	}</span>
+<span class="nc" id="L286">		log.trace(&quot;&gt;doGet&quot;);</span>
+<span class="nc" id="L287">		doPost(request, response);</span>
+<span class="nc" id="L288">		log.trace(&quot;&lt;doGet&quot;);</span>
+<span class="nc" id="L289">	}</span>
 
 	/**
 	 * Return &quot;OK&quot; if renewal isn't needed.
@@ -292,32 +295,32 @@ import org.ejbca.util.passgen.PasswordGeneratorFactory;
 	 * @return ok
 	 */
 	private String returnStatus(AuthenticationToken admin, String username) {
-<span class="nc bnc" id="L295" title="All 2 branches missed.">		if (!endEntityManagementSession.existsUser(username)) {</span>
-<span class="nc" id="L296">			return &quot;NO_SUCH_USER&quot;;</span>
+<span class="nc bnc" id="L298" title="All 2 branches missed.">		if (!endEntityManagementSession.existsUser(username)) {</span>
+<span class="nc" id="L299">			return &quot;NO_SUCH_USER&quot;;</span>
 		}
-<span class="nc" id="L298">		Collection&lt;Certificate&gt; certificates = EJBTools.unwrapCertCollection(certificateStoreSession.findCertificatesByUsername(username));</span>
-<span class="nc" id="L299">		Iterator&lt;Certificate&gt; iter = certificates.iterator();</span>
-<span class="nc bnc" id="L300" title="All 2 branches missed.">		if (!iter.hasNext()) {</span>
-<span class="nc" id="L301">			return &quot;NO_CERTIFICATES&quot;;</span>
+<span class="nc" id="L301">		Collection&lt;Certificate&gt; certificates = EJBTools.unwrapCertCollection(certificateStoreSession.findCertificatesByUsername(username));</span>
+<span class="nc" id="L302">		Iterator&lt;Certificate&gt; iter = certificates.iterator();</span>
+<span class="nc bnc" id="L303" title="All 2 branches missed.">		if (!iter.hasNext()) {</span>
+<span class="nc" id="L304">			return &quot;NO_CERTIFICATES&quot;;</span>
 		}
-<span class="nc bnc" id="L303" title="All 2 branches missed.">		while (iter.hasNext()) {</span>
-<span class="nc" id="L304">			X509Certificate cert = (X509Certificate)iter.next();</span>
+<span class="nc bnc" id="L306" title="All 2 branches missed.">		while (iter.hasNext()) {</span>
+<span class="nc" id="L307">			X509Certificate cert = (X509Certificate)iter.next();</span>
 			try {
-<span class="nc" id="L306">				cert.checkValidity(new Date(System.currentTimeMillis() + 14 * 24 * 3600 * 1000));</span>
-<span class="nc" id="L307">				return &quot;OK&quot;;</span>
-<span class="nc" id="L308">			} catch (CertificateExpiredException e) {</span>
+<span class="nc" id="L309">				cert.checkValidity(new Date(System.currentTimeMillis() + 14 * 24 * 3600 * 1000));</span>
+<span class="nc" id="L310">				return &quot;OK&quot;;</span>
+<span class="nc" id="L311">			} catch (CertificateExpiredException e) {</span>
 				try {
-<span class="nc" id="L310">					cert.checkValidity(new Date(System.currentTimeMillis()));</span>
-<span class="nc" id="L311">					return &quot;EXPIRING&quot;;</span>
-<span class="nc" id="L312">				} catch (CertificateExpiredException e1) {</span>
-<span class="nc" id="L313">				} catch (CertificateNotYetValidException e1) {</span>
-<span class="nc" id="L314">					return &quot;ERROR&quot;;</span>
-<span class="nc" id="L315">				}</span>
-<span class="nc" id="L316">			} catch (CertificateNotYetValidException e) {</span>
-<span class="nc" id="L317">				return &quot;ERROR&quot;;</span>
-<span class="nc" id="L318">			}</span>
-<span class="nc" id="L319">		}</span>
-<span class="nc" id="L320">		return &quot;EXPIRED&quot;;</span>
+<span class="nc" id="L313">					cert.checkValidity(new Date(System.currentTimeMillis()));</span>
+<span class="nc" id="L314">					return &quot;EXPIRING&quot;;</span>
+<span class="nc" id="L315">				} catch (CertificateExpiredException e1) {</span>
+<span class="nc" id="L316">				} catch (CertificateNotYetValidException e1) {</span>
+<span class="nc" id="L317">					return &quot;ERROR&quot;;</span>
+<span class="nc" id="L318">				}</span>
+<span class="nc" id="L319">			} catch (CertificateNotYetValidException e) {</span>
+<span class="nc" id="L320">				return &quot;ERROR&quot;;</span>
+<span class="nc" id="L321">			}</span>
+<span class="nc" id="L322">		}</span>
+<span class="nc" id="L323">		return &quot;EXPIRED&quot;;</span>
 	}
 
 }

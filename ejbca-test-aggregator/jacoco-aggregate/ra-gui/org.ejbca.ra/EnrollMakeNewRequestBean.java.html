@@ -1,0 +1,1802 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>EnrollMakeNewRequestBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ra-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ra</a> &gt; <span class="el_source">EnrollMakeNewRequestBean.java</span></div><h1>EnrollMakeNewRequestBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ra;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.Serializable;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.SecureRandom;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateParsingException;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Random;
+import java.util.Set;
+
+import javax.annotation.PostConstruct;
+import javax.ejb.EJB;
+import javax.faces.application.FacesMessage;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.ManagedProperty;
+import javax.faces.bean.ViewScoped;
+import javax.faces.component.UIComponent;
+import javax.faces.component.UIInput;
+import javax.faces.context.ExternalContext;
+import javax.faces.context.FacesContext;
+import javax.faces.event.AjaxBehaviorEvent;
+import javax.faces.event.ComponentSystemEvent;
+import javax.faces.model.SelectItem;
+import javax.faces.validator.ValidatorException;
+
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.apache.myfaces.custom.fileupload.UploadedFile;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.cms.CMSException;
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequest;
+import org.bouncycastle.util.encoders.Hex;
+import org.cesecore.ErrorCode;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.ApprovalRequestType;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.X509CAInfo;
+import org.cesecore.certificates.certificateprofile.CertificateProfile;
+import org.cesecore.certificates.endentity.EndEntityConstants;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.certificates.endentity.EndEntityType;
+import org.cesecore.certificates.endentity.EndEntityTypes;
+import org.cesecore.certificates.endentity.ExtendedInformation;
+import org.cesecore.certificates.util.AlgorithmConstants;
+import org.cesecore.certificates.util.AlgorithmTools;
+import org.cesecore.certificates.util.DnComponents;
+import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.keys.util.KeyTools;
+import org.cesecore.util.CeSecoreNameStyle;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.PrintableStringNameStyle;
+import org.cesecore.util.StringTools;
+import org.cesecore.util.ValidityDate;
+import org.ejbca.core.EjbcaException;
+import org.ejbca.core.model.SecConst;
+import org.ejbca.core.model.TokenDownloadType;
+import org.ejbca.core.model.approval.WaitingForApprovalException;
+import org.ejbca.core.model.authorization.AccessRulesConstants;
+import org.ejbca.core.model.era.IdNameHashMap;
+import org.ejbca.core.model.era.KeyToValueHolder;
+import org.ejbca.core.model.era.RaMasterApiProxyBeanLocal;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfile;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfile.FieldInstance;
+
+/**
+ * Managed bean that backs up the enrollingmakenewrequest.xhtml page.
+ *
+ * DEVELOP NOTE:
+ * Since the page this bean backs up has pretty advanced dependencies for what should be rendered when,
+ * an unconventional pattern is used where getters will calculate their current value based on the
+ * current state of their dependencies.
+ *
+ * (The normal pattern would be that changes/actions should calculate and modify everything that is
+ * effected by this change. This would be harder to code and maintain since you have to think about
+ * all permutations that could potentially be affected down the line.)
+ *
+ * @version $Id: EnrollMakeNewRequestBean.java 34396 2020-01-28 13:50:08Z samuellb $
+ * TODO: Use CDI beans
+ */
+@SuppressWarnings(&quot;deprecation&quot;)
+@ManagedBean
+@ViewScoped
+<span class="nc" id="L112">public class EnrollMakeNewRequestBean implements Serializable {</span>
+
+    private static final long serialVersionUID = 1L;
+<span class="nc" id="L115">    private static final Logger log = Logger.getLogger(EnrollMakeNewRequestBean.class);</span>
+
+<span class="nc" id="L117">    public static String PARAM_REQUESTID = &quot;requestId&quot;;</span>
+<span class="nc" id="L118">    public static int MAX_CSR_LENGTH = 10240;</span>
+
+    @EJB
+    private RaMasterApiProxyBeanLocal raMasterApiProxyBean;
+
+    @ManagedProperty(value = &quot;#{raAuthenticationBean}&quot;)
+    private RaAuthenticationBean raAuthenticationBean;
+
+    public void setRaAuthenticationBean(final RaAuthenticationBean raAuthenticationBean) {
+<span class="nc" id="L127">        this.raAuthenticationBean = raAuthenticationBean;</span>
+<span class="nc" id="L128">    }</span>
+
+    @ManagedProperty(value = &quot;#{raLocaleBean}&quot;)
+    private RaLocaleBean raLocaleBean;
+
+    public void setRaLocaleBean(final RaLocaleBean raLocaleBean) {
+<span class="nc" id="L134">        this.raLocaleBean = raLocaleBean;</span>
+<span class="nc" id="L135">    }</span>
+
+<span class="nc" id="L137">    private boolean renderNonModifiableTemplates = false;</span>
+<span class="nc" id="L138">    private boolean renderNonModifiableFields = false;</span>
+<span class="nc" id="L139">    private IdNameHashMap&lt;EndEntityProfile&gt; authorizedEndEntityProfiles = new IdNameHashMap&lt;EndEntityProfile&gt;();</span>
+<span class="nc" id="L140">    private IdNameHashMap&lt;CertificateProfile&gt; authorizedCertificateProfiles = new IdNameHashMap&lt;&gt;();</span>
+<span class="nc" id="L141">    private IdNameHashMap&lt;CAInfo&gt; authorizedCAInfos = new IdNameHashMap&lt;CAInfo&gt;();</span>
+    private String selectedEndEntityProfile;
+    private String selectedCertificateProfile;
+    private String selectedCertificateAuthority;
+<span class="nc" id="L145">    private String validity = StringUtils.EMPTY;</span>
+
+    /** Is private key generated by the server (CA) or is the key provided by the user (usually in the form of a CSR) */
+<span class="nc" id="L148">    public enum KeyPairGeneration {</span>
+<span class="nc" id="L149">        ON_SERVER,</span>
+<span class="nc" id="L150">        PROVIDED_BY_USER;</span>
+    }
+    private KeyPairGeneration selectedKeyPairGeneration;
+    /** Heavy to calculate and needs to be cached. */
+<span class="nc" id="L154">    private List&lt;SelectItem&gt; availableAlgorithmSelectItems = null;</span>
+
+    private String selectedAlgorithm; //GENERATED ON SERVER
+    private String algorithmFromCsr; //PROVIDED BY USER
+    private UploadedFile uploadFile;
+    private String certificateRequest;
+    private String publicKeyModulus;
+    private String publicKeyExponent;
+    private String sha256Fingerprint;
+    private String signature;
+    private String csrFileName;
+    private SubjectDn subjectDn;
+    private SubjectAlternativeName subjectAlternativeName;
+    private SubjectDirectoryAttributes subjectDirectoryAttributes;
+    private EndEntityInformation endEntityInformation;
+    private String confirmPassword;
+    private int requestId;
+    private boolean requestPreviewMoreDetails;
+    private boolean setCustomValidity;
+    private UIComponent subjectDnMessagesComponent;
+    private UIComponent userCredentialsMessagesComponent;
+    private UIComponent confirmPasswordComponent;
+    private UIComponent validityInputComponent;
+
+    @PostConstruct
+    private void postContruct() {
+<span class="nc" id="L180">        this.authorizedEndEntityProfiles = raMasterApiProxyBean.getAuthorizedEndEntityProfiles(raAuthenticationBean.getAuthenticationToken(), AccessRulesConstants.CREATE_END_ENTITY);</span>
+<span class="nc" id="L181">        this.authorizedCertificateProfiles = raMasterApiProxyBean.getAuthorizedCertificateProfiles(raAuthenticationBean.getAuthenticationToken());</span>
+<span class="nc" id="L182">        this.authorizedCAInfos = raMasterApiProxyBean.getAuthorizedCAInfos(raAuthenticationBean.getAuthenticationToken());</span>
+<span class="nc" id="L183">    }</span>
+
+    //-----------------------------------------------------------------------------------------------
+    // Helpers and is*Rendered() methods
+
+    public boolean isRequestIdInfoRendered(){
+<span class="nc bnc" id="L189" title="All 2 branches missed.">        return requestId != 0;</span>
+    }
+
+    public boolean isUsernameRendered(){
+<span class="nc bnc" id="L193" title="All 2 branches missed.">        return !getEndEntityProfile().isAutoGeneratedUsername();</span>
+    }
+
+    public boolean isPasswordRendered() {
+<span class="nc bnc" id="L197" title="All 2 branches missed.">        return getSelectedKeyPairGenerationEnum() != null &amp;&amp;</span>
+<span class="nc bnc" id="L198" title="All 4 branches missed.">                (isApprovalRequired() || KeyPairGeneration.ON_SERVER.equals(getSelectedKeyPairGenerationEnum())) &amp;&amp;</span>
+<span class="nc bnc" id="L199" title="All 2 branches missed.">                 !getEndEntityProfile().useAutoGeneratedPasswd();</span>
+    }
+
+    public boolean isEmailRendered(){
+<span class="nc" id="L203">        return getEndEntityProfile().getUse(EndEntityProfile.EMAIL, 0);</span>
+    }
+
+    public boolean isEmailRequired(){
+<span class="nc bnc" id="L207" title="All 2 branches missed.">        return getEndEntityProfile().isRequired(EndEntityProfile.SENDNOTIFICATION, 0) ||</span>
+<span class="nc bnc" id="L208" title="All 2 branches missed.">                getEndEntityProfile().isRequired(EndEntityProfile.EMAIL, 0);</span>
+    }
+
+    /** @return true if keystore download options in JKS format should be provided (e.g. keystore generation was used and no approvals are required) */
+    public boolean isGenerateJksButtonRendered() {
+<span class="nc" id="L213">        EndEntityProfile endEntityProfile = getEndEntityProfile();</span>
+<span class="nc bnc" id="L214" title="All 2 branches missed.">        if (endEntityProfile == null) {</span>
+<span class="nc" id="L215">            return false;</span>
+        }
+<span class="nc" id="L217">        String availableKeyStores = endEntityProfile.getValue(EndEntityProfile.AVAILKEYSTORE, 0);</span>
+<span class="nc bnc" id="L218" title="All 4 branches missed.">        return availableKeyStores != null &amp;&amp; availableKeyStores.contains(String.valueOf(SecConst.TOKEN_SOFT_JKS))</span>
+<span class="nc bnc" id="L219" title="All 4 branches missed.">                &amp;&amp; getSelectedKeyPairGenerationEnum() != null &amp;&amp; KeyPairGeneration.ON_SERVER.equals(getSelectedKeyPairGenerationEnum())</span>
+<span class="nc bnc" id="L220" title="All 2 branches missed.">                &amp;&amp; !isApprovalRequired();</span>
+    }
+
+    /** @return true if keystore download options in PKCS#12 format should be provided (e.g. keystore generation was used and no approvals are required) */
+    public boolean isGenerateP12ButtonRendered() {
+<span class="nc" id="L225">        EndEntityProfile endEntityProfile = getEndEntityProfile();</span>
+<span class="nc bnc" id="L226" title="All 2 branches missed.">        if (endEntityProfile == null) {</span>
+<span class="nc" id="L227">            return false;</span>
+        }
+<span class="nc" id="L229">        String availableKeyStores = endEntityProfile.getValue(EndEntityProfile.AVAILKEYSTORE, 0);</span>
+<span class="nc bnc" id="L230" title="All 4 branches missed.">        return availableKeyStores != null &amp;&amp; availableKeyStores.contains(String.valueOf(SecConst.TOKEN_SOFT_P12))</span>
+<span class="nc bnc" id="L231" title="All 4 branches missed.">                &amp;&amp; getSelectedKeyPairGenerationEnum() != null &amp;&amp; KeyPairGeneration.ON_SERVER.equals(getSelectedKeyPairGenerationEnum())</span>
+<span class="nc bnc" id="L232" title="All 2 branches missed.">                &amp;&amp; !isApprovalRequired();</span>
+    }
+
+    /** @return true if keystore download options in PEM format should be provided (e.g. keystore generation was used and no approvals are required) */
+    public boolean isGeneratePemButtonRendered() {
+<span class="nc" id="L237">        EndEntityProfile endEntityProfile = getEndEntityProfile();</span>
+<span class="nc bnc" id="L238" title="All 2 branches missed.">        if (endEntityProfile == null) {</span>
+<span class="nc" id="L239">            return false;</span>
+        }
+<span class="nc" id="L241">        String availableKeyStores = endEntityProfile.getValue(EndEntityProfile.AVAILKEYSTORE, 0);</span>
+<span class="nc bnc" id="L242" title="All 4 branches missed.">        return availableKeyStores != null &amp;&amp; availableKeyStores.contains(String.valueOf(SecConst.TOKEN_SOFT_PEM))</span>
+<span class="nc bnc" id="L243" title="All 4 branches missed.">                &amp;&amp; getSelectedKeyPairGenerationEnum() != null &amp;&amp; KeyPairGeneration.ON_SERVER.equals(getSelectedKeyPairGenerationEnum())</span>
+<span class="nc bnc" id="L244" title="All 2 branches missed.">                &amp;&amp; !isApprovalRequired();</span>
+    }
+
+    /** @return true if certificate download options should be provided (e.g. a CSR was used and no approvals are required) */
+    public boolean isGenerateFromCsrButtonRendered() {
+<span class="nc" id="L249">        EndEntityProfile endEntityProfile = getEndEntityProfile();</span>
+<span class="nc bnc" id="L250" title="All 2 branches missed.">        if (endEntityProfile == null) {</span>
+<span class="nc" id="L251">            return false;</span>
+        }
+<span class="nc" id="L253">        String availableKeyStores = endEntityProfile.getValue(EndEntityProfile.AVAILKEYSTORE, 0);</span>
+<span class="nc bnc" id="L254" title="All 4 branches missed.">        return availableKeyStores != null &amp;&amp; availableKeyStores.contains(String.valueOf(EndEntityConstants.TOKEN_USERGEN))</span>
+<span class="nc bnc" id="L255" title="All 4 branches missed.">                &amp;&amp; getSelectedKeyPairGenerationEnum() != null &amp;&amp; KeyPairGeneration.PROVIDED_BY_USER.equals(getSelectedKeyPairGenerationEnum())</span>
+<span class="nc bnc" id="L256" title="All 2 branches missed.">                &amp;&amp; !isApprovalRequired();</span>
+    }
+
+    /** @return true if the current selection will require approvals */
+    public boolean isConfirmRequestButtonRendered(){
+<span class="nc" id="L261">        return isApprovalRequired();</span>
+    }
+
+    /** @return true if approvals are required as determined by state of dependencies by checking the RA API. */
+    private boolean isApprovalRequired() {
+        try {
+<span class="nc bnc" id="L267" title="All 2 branches missed.">            return raMasterApiProxyBean.getApprovalProfileForAction(raAuthenticationBean.getAuthenticationToken(),</span>
+<span class="nc" id="L268">                    ApprovalRequestType.ADDEDITENDENTITY, getCAInfo().getCAId(),</span>
+<span class="nc" id="L269">                    getAuthorizedCertificateProfiles().get(Integer.parseInt(getSelectedCertificateProfile())).getId()) != null;</span>
+<span class="nc" id="L270">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L271">            throw new IllegalStateException(e);</span>
+        }
+    }
+
+    /** @return true if when the certificate preview box should be rendered */
+    public boolean isUpdateRequestPreviewButtonRendered() {
+<span class="nc" id="L277">        return isKeyAlgorithmAvailable();</span>
+    }
+
+    /** @return true if the selection of certificate template should be rendered */
+    public boolean isSelectRequestTemplateRendered() {
+<span class="nc bnc" id="L282" title="All 8 branches missed.">        return isSelectEndEntityProfileRendered() || isSelectCertificateProfileRendered() || isSelectCertificateAuthorityRendered() || isSelectKeyPairGenerationRendered();</span>
+    }
+    /** @return true if the selection of end entity profile (&quot;certificate type&quot;) should be rendered */
+    public boolean isSelectEndEntityProfileRendered() {
+<span class="nc bnc" id="L286" title="All 2 branches missed.">        return getAvailableEndEntityProfiles().size()&gt;1 ||</span>
+<span class="nc bnc" id="L287" title="All 4 branches missed.">                (getAvailableEndEntityProfiles().size()==1 &amp;&amp; isRenderNonModifiableTemplates());</span>
+    }
+    /** @return true if the selection of certificate profile (&quot;certificate sub-type&quot;) should be rendered */
+    public boolean isSelectCertificateProfileRendered() {
+<span class="nc bnc" id="L291" title="All 4 branches missed.">        return StringUtils.isNotEmpty(getSelectedEndEntityProfile()) &amp;&amp; (getAvailableCertificateProfiles().size()&gt;1 ||</span>
+<span class="nc bnc" id="L292" title="All 4 branches missed.">                (getAvailableCertificateProfiles().size()==1 &amp;&amp; isRenderNonModifiableTemplates()));</span>
+    }
+    /** @return true if the selection of certificate authority should be rendered */
+    public boolean isSelectCertificateAuthorityRendered() {
+<span class="nc bnc" id="L296" title="All 4 branches missed.">        return StringUtils.isNotEmpty(getSelectedCertificateProfile()) &amp;&amp; (getAvailableCertificateAuthorities().size()&gt;1 ||</span>
+<span class="nc bnc" id="L297" title="All 4 branches missed.">                (getAvailableCertificateAuthorities().size()==1 &amp;&amp; isRenderNonModifiableTemplates()));</span>
+    }
+    /** @return true if the selection of key generation type should be rendered */
+    public boolean isSelectKeyPairGenerationRendered() {
+<span class="nc bnc" id="L301" title="All 4 branches missed.">        return StringUtils.isNotEmpty(getSelectedCertificateAuthority()) &amp;&amp; (getAvailableKeyPairGenerations().size()&gt;1 ||</span>
+<span class="nc bnc" id="L302" title="All 4 branches missed.">                (getAvailableKeyPairGenerations().size()==1 &amp;&amp; isRenderNonModifiableTemplates()));</span>
+    }
+
+    /**
+     * Creates a help message whose content depends on the current value of the 'Validity'-field.
+     * The help message reflects one of the following four (error) states:
+     * &lt;ul&gt;
+     * &lt;li&gt;The validity is empty&lt;/li&gt;
+     * &lt;li&gt;The validity is non-empty but cannot be parsed&lt;/li&gt;
+     * &lt;li&gt;The validity is a parsable date or time interval but exceeds the maximum validity specified by the certificate profile&lt;/li&gt;
+     * &lt;li&gt;The validity is valid (no error)&lt;/li&gt;
+     * &lt;/ul&gt;
+     * @return String
+     */
+    public String getValidityHelpMessage() {
+<span class="nc bnc" id="L317" title="All 4 branches missed.">        if (validity == null || validity.isEmpty()) {</span>
+<span class="nc" id="L318">            return raLocaleBean.getMessage(&quot;enroll_validity_help_empty&quot;);</span>
+        }
+<span class="nc" id="L320">        final Date now = new Date();</span>
+<span class="nc" id="L321">        final Date validityDate = ValidityDate.getDate(validity, now);</span>
+<span class="nc bnc" id="L322" title="All 2 branches missed.">        if (validityDate == null) {</span>
+<span class="nc" id="L323">            return raLocaleBean.getMessage(&quot;enroll_validity_help_unparsable&quot;);</span>
+        }
+<span class="nc" id="L325">        final Date maxDate = ValidityDate.getDate(getCertificateProfile().getEncodedValidity(), now);</span>
+<span class="nc bnc" id="L326" title="All 2 branches missed.">        if (validityDate.after(maxDate)) {</span>
+<span class="nc" id="L327">            return raLocaleBean.getMessage(&quot;enroll_validity_help_too_long&quot;);</span>
+        }
+        // No help needed
+<span class="nc" id="L330">        return StringUtils.EMPTY;</span>
+    }
+
+    /**
+     * Determines whether any non-modifiable (disabled) templates are rendered or exists as hidden.
+     * If the selectable items havn't been selected yet, false is returned to not confuse a hidden item with an
+     * unselected item (hence we check if an item is not rendered AND selected).
+     * Hidden templates occur if there's only one selection or if the option is restricted to the profile.
+     * @return true if there are hidden static template options or if hidden templates are already rendered
+     */
+    public boolean isRenderNonModifiableTemplatesRendered() {
+<span class="nc bnc" id="L341" title="All 2 branches missed.">        if (renderNonModifiableTemplates) {</span>
+<span class="nc" id="L342">            return true;</span>
+        }
+<span class="nc bnc" id="L344" title="All 2 branches missed.">        return !isSelectEndEntityProfileRendered() ||</span>
+<span class="nc bnc" id="L345" title="All 4 branches missed.">                (!isSelectCertificateProfileRendered() &amp;&amp; selectedEndEntityProfile != null) ||</span>
+<span class="nc bnc" id="L346" title="All 4 branches missed.">                (!isSelectCertificateAuthorityRendered() &amp;&amp; selectedCertificateProfile != null) ||</span>
+<span class="nc bnc" id="L347" title="All 4 branches missed.">                (!isSelectKeyPairGenerationRendered() &amp;&amp; selectedCertificateAuthority != null);</span>
+    }
+
+    /** @return true if the the selectKeyAlgorithm should be rendered */
+    public boolean isSelectKeyAlgorithmRendered() {
+<span class="nc bnc" id="L352" title="All 4 branches missed.">        return KeyPairGeneration.ON_SERVER.equals(getSelectedKeyPairGenerationEnum()) &amp;&amp; (getAvailableAlgorithmSelectItems().size()&gt;1 ||</span>
+<span class="nc bnc" id="L353" title="All 4 branches missed.">                (getAvailableAlgorithmSelectItems().size()==1 &amp;&amp; isRenderNonModifiableTemplates()));</span>
+    }
+
+    /** @return true if the CSR upload form should be rendered */
+    public boolean isUploadCsrRendered() {
+<span class="nc bnc" id="L358" title="All 6 branches missed.">        return getEndEntityProfile()!=null &amp;&amp; getCertificateProfile()!=null &amp;&amp; getCAInfo()!=null &amp;&amp;</span>
+<span class="nc bnc" id="L359" title="All 2 branches missed.">                KeyPairGeneration.PROVIDED_BY_USER.equals(getSelectedKeyPairGenerationEnum());</span>
+    }
+
+<span class="nc" id="L362">    boolean uploadCsrDoneRendered = false;</span>
+
+    /** @return true if the the CSR has been uploaded */
+    public boolean isUploadCsrDoneRendered() {
+<span class="nc" id="L366">        return this.uploadCsrDoneRendered;</span>
+    }
+
+    /**
+     * @return True if the option &quot;Validity override&quot; is enabled in the active certificate profile
+     */
+    public boolean isValidityOverrideEnabled() {
+<span class="nc" id="L373">        return getCertificateProfile().getAllowValidityOverride();</span>
+    }
+
+    /**
+     * Determines if the custom validity date entered by the user is valid.
+     * This method checks whether the following two conditions hold:
+     * &lt;ul&gt;
+     * &lt;li&gt;The validity can be parsed and interpreted as a date.&lt;/li&gt;
+     * &lt;li&gt;The validity does not exceed the validity of the certificate profile.&lt;/li&gt;
+     * &lt;/ul&gt;
+     * @return True if the validity set by the user is valid
+     */
+    public boolean isValidityValid() {
+<span class="nc bnc" id="L386" title="All 2 branches missed.">        if (!isSetCustomValidity()) {</span>
+            // The validity of the certificate profile is used instead, and is always valid
+<span class="nc" id="L388">            return true;</span>
+        }
+<span class="nc bnc" id="L390" title="All 2 branches missed.">        return getUserDefinedValidityIfSpecified() != null;</span>
+    }
+
+    /**
+     * Returns the validity string specified by the user or null if one of the
+     * following conditions hold:
+     * &lt;ul&gt;
+     * &lt;li&gt;Validity override is disabled in the certificate profile&lt;/li&gt;
+     * &lt;li&gt;User defined validity is disabled in the UI&lt;/li&gt;
+     * &lt;li&gt;The validity cannot be parsed (invalid format)&lt;/li&gt;
+     * &lt;li&gt;The validity exceeds the maximum validity as specified by the certificate profile&lt;/li&gt;
+     * &lt;/ul&gt;
+     * @return The validity as a string or null
+     */
+    private String getUserDefinedValidityIfSpecified() {
+<span class="nc bnc" id="L405" title="All 2 branches missed.">        if (!isValidityOverrideEnabled()) {</span>
+<span class="nc" id="L406">            return null;</span>
+        }
+<span class="nc bnc" id="L408" title="All 2 branches missed.">        if (!isSetCustomValidity()) {</span>
+<span class="nc" id="L409">            return null;</span>
+        }
+<span class="nc" id="L411">        final Date anchorDate = new Date();</span>
+<span class="nc" id="L412">        final String validityToCheck = validity;</span>
+<span class="nc" id="L413">        final Date userDate = ValidityDate.getDate(validityToCheck, anchorDate);</span>
+<span class="nc bnc" id="L414" title="All 2 branches missed.">        if (userDate == null) {</span>
+<span class="nc" id="L415">            return null;</span>
+        }
+<span class="nc" id="L417">        final Date maxDate = ValidityDate.getDate(getCertificateProfile().getEncodedValidity(), anchorDate);</span>
+<span class="nc bnc" id="L418" title="All 2 branches missed.">        if (userDate.after(maxDate)) {</span>
+<span class="nc" id="L419">            return null;</span>
+        }
+<span class="nc" id="L421">        return validityToCheck;</span>
+    }
+
+    /**
+     * Checks if each group of fields contains non-modifiable (disabled) values. If a specific fields is empty, the check is skipped
+     * and false is returned to not confuse hidden fields with empty fields.
+     * Hidden fields occur if there's only one selection or if the option is restricted to the profile.
+     * @return true if not all fields (e.g. non-modifiable) are rendered by default or if hidden fields are already rendered.
+     */
+    public boolean isRenderNonModifiableFieldsRendered() {
+<span class="nc bnc" id="L431" title="All 2 branches missed.">        if (renderNonModifiableFields) {</span>
+<span class="nc" id="L432">            return true;</span>
+        }
+<span class="nc bnc" id="L434" title="All 2 branches missed.">        if (getSubjectDn() != null) {</span>
+<span class="nc bnc" id="L435" title="All 2 branches missed.">            if (!isAllFieldInstancesRendered(getSubjectDn().getFieldInstances())) {</span>
+<span class="nc" id="L436">                return true;</span>
+            }
+        }
+<span class="nc bnc" id="L439" title="All 2 branches missed.">        if (getSubjectAlternativeName() != null) {</span>
+<span class="nc bnc" id="L440" title="All 2 branches missed.">            if (!isAllFieldInstancesRendered(getSubjectAlternativeName().getFieldInstances())) {</span>
+<span class="nc" id="L441">                return true;</span>
+            }
+        }
+<span class="nc bnc" id="L444" title="All 2 branches missed.">        if (getSubjectDirectoryAttributes() != null) {</span>
+<span class="nc bnc" id="L445" title="All 2 branches missed.">            if (!isAllFieldInstancesRendered(getSubjectDirectoryAttributes().getFieldInstances())) {</span>
+<span class="nc" id="L446">                return true;</span>
+            }
+        }
+<span class="nc" id="L449">        return false;</span>
+    }
+
+    private boolean isAllFieldInstancesRendered(final Collection&lt;FieldInstance&gt; fieldInstances) {
+<span class="nc bnc" id="L453" title="All 2 branches missed.">        for (final FieldInstance instance : fieldInstances) {</span>
+<span class="nc bnc" id="L454" title="All 2 branches missed.">            if (!isFieldInstanceRendered(instance)) {</span>
+<span class="nc" id="L455">                return false;</span>
+            }
+<span class="nc" id="L457">        }</span>
+<span class="nc" id="L458">        return true;</span>
+    }
+
+    /** @return the provideRequestMetadataRendered */
+    public boolean isProvideUserCredentialsRendered() {
+<span class="nc bnc" id="L463" title="All 8 branches missed.">        return isKeyAlgorithmAvailable() &amp;&amp; (isUsernameRendered() || isPasswordRendered() || isEmailRendered());</span>
+    }
+
+    /** @return the confirmRequestRendered */
+    public boolean isConfirmRequestRendered() {
+<span class="nc" id="L468">        return isKeyAlgorithmAvailable();</span>
+    }
+
+    /** @return the provideRequestInfoRendered */
+    public boolean isProvideRequestInfoRendered() {
+<span class="nc" id="L473">        return isKeyAlgorithmAvailable();</span>
+    }
+
+    private boolean isKeyAlgorithmAvailable() {
+<span class="nc bnc" id="L477" title="All 4 branches missed.">        if (KeyPairGeneration.ON_SERVER.equals(getSelectedKeyPairGenerationEnum()) &amp;&amp; StringUtils.isNotEmpty(getSelectedAlgorithm())) {</span>
+<span class="nc" id="L478">            return true;</span>
+        }
+<span class="nc bnc" id="L480" title="All 4 branches missed.">        if (KeyPairGeneration.PROVIDED_BY_USER.equals(getSelectedKeyPairGenerationEnum()) &amp;&amp; algorithmFromCsr!=null) {</span>
+<span class="nc" id="L481">            return true;</span>
+        }
+<span class="nc" id="L483">        return false;</span>
+    }
+
+    //-----------------------------------------------------------------------------------------------
+    //All reset* methods should be able to clear/reset states that have changed during init* methods.
+    //Always make sure that reset methods are properly chained
+
+    //Invoked by commandButton id=&quot;resetButton&quot;
+    public String reset() {
+        //Invalidate view tree by redirecting to the same page
+<span class="nc" id="L493">        String viewId = FacesContext.getCurrentInstance().getViewRoot().getViewId();</span>
+<span class="nc" id="L494">        return viewId+&quot;?faces-redirect=true&quot;;</span>
+    }
+
+    private void resetAlgorithmCsrUpload() {
+<span class="nc" id="L498">        algorithmFromCsr = null;</span>
+<span class="nc" id="L499">        certificateRequest = null;</span>
+<span class="nc" id="L500">    }</span>
+
+    private void resetRequestInfo() {
+<span class="nc" id="L503">        subjectDn = null;</span>
+<span class="nc" id="L504">        subjectAlternativeName = null;</span>
+<span class="nc" id="L505">        subjectDirectoryAttributes = null;</span>
+<span class="nc" id="L506">        algorithmFromCsr = null;</span>
+<span class="nc" id="L507">        endEntityInformation = null;</span>
+<span class="nc" id="L508">        setRequestId(0);</span>
+<span class="nc" id="L509">    }</span>
+
+    //-----------------------------------------------------------------------------------------------
+    //Action methods
+
+    public void applyRequestTemplate(){
+        // NOOP here. Validators and setters do the real work.
+<span class="nc" id="L516">    }</span>
+
+    public void applyAlgorithm(){
+        // NOOP here. Validators and setters do the real work.
+<span class="nc" id="L520">    }</span>
+
+<span class="nc" id="L522">    private boolean renderCsrDetailedInfo = false;</span>
+
+    public boolean isRenderCsrDetailedInfo() {
+<span class="nc" id="L525">        return renderCsrDetailedInfo;</span>
+    }
+
+    public void setRenderCsrDetailedInfo(boolean renderCsrDetailedInfo) {
+<span class="nc" id="L529">        this.renderCsrDetailedInfo = renderCsrDetailedInfo;</span>
+<span class="nc" id="L530">    }</span>
+
+    public void renderCsrDetailedInfoToggle() {
+<span class="nc bnc" id="L533" title="All 2 branches missed.">        renderCsrDetailedInfo = !renderCsrDetailedInfo;</span>
+<span class="nc" id="L534">    }</span>
+
+    public void renderNonModifiableTemplatesToggle() {
+<span class="nc bnc" id="L537" title="All 2 branches missed.">        renderNonModifiableTemplates = !renderNonModifiableTemplates;</span>
+<span class="nc" id="L538">    }</span>
+
+    public void renderNonModifiableFieldsToggle() {
+<span class="nc bnc" id="L541" title="All 2 branches missed.">        renderNonModifiableFields = !renderNonModifiableFields;</span>
+<span class="nc" id="L542">    }</span>
+
+    public void renderRequestPreviewMoreToggle(){
+<span class="nc bnc" id="L545" title="All 2 branches missed.">        requestPreviewMoreDetails = !requestPreviewMoreDetails;</span>
+<span class="nc" id="L546">    }</span>
+
+    public void renderSetCustomValidityToggle() {
+<span class="nc bnc" id="L549" title="All 2 branches missed.">        setCustomValidity = !setCustomValidity;</span>
+<span class="nc" id="L550">    }</span>
+
+    public void uploadCsrChange() {
+<span class="nc" id="L553">        algorithmFromCsr = null;</span>
+<span class="nc" id="L554">        uploadCsrDoneRendered = false;</span>
+<span class="nc" id="L555">    }</span>
+
+    /** Populate the state of modifiable fields with the CSR that was saved during file upload validation */
+    public void uploadCsr() {
+<span class="nc" id="L559">        validateCsr(certificateRequest);</span>
+        //If PROVIDED BY USER key generation is selected, try fill Subject DN fields from CSR (Overwrite the fields set by previous CSR upload if any)
+<span class="nc bnc" id="L561" title="All 6 branches missed.">        if (getSelectedKeyPairGenerationEnum() != null &amp;&amp; KeyPairGeneration.PROVIDED_BY_USER.equals(getSelectedKeyPairGenerationEnum()) &amp;&amp; algorithmFromCsr!=null) {</span>
+<span class="nc" id="L562">            final PKCS10CertificationRequest pkcs10CertificateRequest = CertTools.getCertificateRequestFromPem(getCertificateRequest());</span>
+<span class="nc bnc" id="L563" title="All 2 branches missed.">            if (pkcs10CertificateRequest.getSubject()!=null) {</span>
+<span class="nc" id="L564">                populateRequestFields(false, pkcs10CertificateRequest.getSubject().toString(), getSubjectDn().getFieldInstances());</span>
+<span class="nc" id="L565">                getSubjectDn().update();</span>
+            }
+<span class="nc" id="L567">            final Extension sanExtension = CertTools.getExtension(pkcs10CertificateRequest, Extension.subjectAlternativeName.getId());</span>
+<span class="nc bnc" id="L568" title="All 2 branches missed.">            if (sanExtension!=null) {</span>
+<span class="nc" id="L569">                populateRequestFields(true, CertTools.getAltNameStringFromExtension(sanExtension), getSubjectAlternativeName().getFieldInstances());</span>
+<span class="nc" id="L570">                getSubjectAlternativeName().update();</span>
+            }
+            // Don't make the effort to populate Subject Directory Attribute fields. Too little real world use for that.
+
+<span class="nc" id="L574">            uploadCsrDoneRendered = true;</span>
+        }
+<span class="nc" id="L576">    }</span>
+
+    /** Populate the fieldInstances parameter with values from the CSR when the instances are modifiable 
+     * @param isSubjectAlternativeName bool
+     * @param subject Subject
+     * @param fieldInstances Instances */
+    private void populateRequestFields(final boolean isSubjectAlternativeName, final String subject, final Collection&lt;FieldInstance&gt; fieldInstances) {
+<span class="nc" id="L583">        final List&lt;String&gt; subjectFieldsFromParsedCsr = CertTools.getX500NameComponents(subject);</span>
+<span class="nc bnc" id="L584" title="All 2 branches missed.">        bothLoops: for (final String subjectField : subjectFieldsFromParsedCsr) {</span>
+<span class="nc bnc" id="L585" title="All 2 branches missed.">            if (log.isDebugEnabled()){</span>
+<span class="nc bnc" id="L586" title="All 2 branches missed.">                log.debug(&quot;Parsing the subject &quot; + (isSubjectAlternativeName?&quot;AN&quot;:&quot;DN&quot;) + &quot; field '&quot; + subjectField + &quot;'...&quot;);</span>
+            }
+<span class="nc" id="L588">            final String[] nameValue = subjectField.split(&quot;=&quot;);</span>
+<span class="nc bnc" id="L589" title="All 4 branches missed.">            if (nameValue != null &amp;&amp; nameValue.length == 2) {</span>
+<span class="nc bnc" id="L590" title="All 2 branches missed.">                final Integer dnId = isSubjectAlternativeName ? DnComponents.getDnIdFromAltName(nameValue[0]) : DnComponents.getDnIdFromDnName(nameValue[0]);</span>
+<span class="nc bnc" id="L591" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L592">                    log.debug(&quot; dnId=&quot;+dnId);</span>
+                }
+<span class="nc bnc" id="L594" title="All 2 branches missed.">                if (dnId != null) {</span>
+                    //In the case of multiple fields (etc. two CNs), find the first modifiable with a non-default value
+<span class="nc bnc" id="L596" title="All 2 branches missed.">                    for (final FieldInstance fieldInstance : fieldInstances) {</span>
+<span class="nc bnc" id="L597" title="All 2 branches missed.">                        if (DnComponents.profileIdToDnId(fieldInstance.getProfileId()) == dnId.intValue()) {</span>
+<span class="nc bnc" id="L598" title="All 2 branches missed.">                            if (fieldInstance.isModifiable()) {</span>
+<span class="nc bnc" id="L599" title="All 2 branches missed.">                                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L600">                                    log.debug(&quot; fieldInstance.value=&quot;+fieldInstance.getValue() + &quot; fieldInstance.defaultValue=&quot;+fieldInstance.getDefaultValue());</span>
+                                }
+<span class="nc bnc" id="L602" title="All 4 branches missed.">                                if (StringUtils.isEmpty(fieldInstance.getValue()) || fieldInstance.getValue().equals(fieldInstance.getDefaultValue())) {</span>
+<span class="nc" id="L603">                                    fieldInstance.setValue(nameValue[1]);</span>
+<span class="nc bnc" id="L604" title="All 2 branches missed.">                                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L605">                                        log.debug(&quot;Modifiable subject field '&quot;+subjectField+&quot;' successfully parsed from CSR&quot;);</span>
+                                    }
+                                    continue bothLoops;
+                                }
+<span class="nc bnc" id="L609" title="All 2 branches missed.">                            } else if (fieldInstance.isSelectable()) {</span>
+<span class="nc bnc" id="L610" title="All 2 branches missed.">                                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L611">                                    log.debug(&quot; fieldInstance.value=&quot;+fieldInstance.getValue() + &quot; fieldInstance.defaultValue=&quot;+fieldInstance.getDefaultValue());</span>
+                                }
+<span class="nc bnc" id="L613" title="All 2 branches missed.">                                if (fieldInstance.getSelectableValues().contains(nameValue[1])) {</span>
+<span class="nc" id="L614">                                    fieldInstance.setValue(nameValue[1]);</span>
+<span class="nc bnc" id="L615" title="All 2 branches missed.">                                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L616">                                        log.debug(&quot;Selectable subject field '&quot;+subjectField+&quot;' successfully parsed from CSR&quot;);</span>
+                                    }
+                                    continue bothLoops;
+                                }
+                            }
+                        }
+<span class="nc" id="L622">                    }</span>
+                }
+            }
+<span class="nc bnc" id="L625" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc bnc" id="L626" title="All 2 branches missed.">                log.debug(&quot;Unparsable subject &quot; + (isSubjectAlternativeName?&quot;AN&quot;:&quot;DN&quot;) + &quot; field '&quot;+ subjectField +</span>
+                        &quot;' from CSR, field is invalid or not a modifiable option in the end entity profile.&quot;);
+            }
+<span class="nc" id="L629">        }</span>
+<span class="nc" id="L630">    }</span>
+
+    /** Proceed with request that will require approval */
+    public void confirmRequest() {
+<span class="nc" id="L634">        String username = getEndEntityInformation().getUsername();</span>
+<span class="nc bnc" id="L635" title="All 2 branches missed.">        if (raMasterApiProxyBean.searchUser(raAuthenticationBean.getAuthenticationToken(), username) == null) {</span>
+<span class="nc bnc" id="L636" title="All 2 branches missed.">            if (KeyPairGeneration.ON_SERVER.equals(getSelectedKeyPairGenerationEnum())) {</span>
+<span class="nc" id="L637">                addEndEntityAndGenerateP12();</span>
+            } else {
+<span class="nc" id="L639">                addEndEntityAndGenerateCertificateDer();</span>
+            }
+        } else {
+<span class="nc" id="L642">            raLocaleBean.addMessageError(&quot;enroll_username_already_exists&quot;, username);</span>
+        }
+<span class="nc" id="L644">    }</span>
+
+    /** Calculate the summary of holders from the current state for the certificate Subjects */
+    public void updateRequestPreview() {
+<span class="nc" id="L648">        getSubjectDn().update();</span>
+<span class="nc" id="L649">        getSubjectAlternativeName().update();</span>
+<span class="nc" id="L650">        getSubjectDirectoryAttributes().update();</span>
+<span class="nc" id="L651">    }</span>
+
+    public void addEndEntityAndGenerateCertificateDer() {
+<span class="nc" id="L654">        byte[] token = addEndEntityAndGenerateToken(EndEntityConstants.TOKEN_USERGEN, &quot;DER&quot;, TokenDownloadType.DER);</span>
+<span class="nc" id="L655">        downloadToken(token, &quot;application/octet-stream&quot;, &quot;.der&quot;);</span>
+<span class="nc" id="L656">    }</span>
+
+    public void addEndEntityAndGenerateCertificatePkcs7() {
+<span class="nc" id="L659">        byte[] token = addEndEntityAndGenerateToken(EndEntityConstants.TOKEN_USERGEN, &quot;PKCS#7&quot;, TokenDownloadType.PKCS7);</span>
+<span class="nc" id="L660">        downloadToken(token, &quot;application/octet-stream&quot;, &quot;.p7b&quot;);</span>
+<span class="nc" id="L661">    }</span>
+
+    public void addEndEntityAndGenerateCertificatePemFullChain() {
+<span class="nc" id="L664">        byte[] token = addEndEntityAndGenerateToken(EndEntityConstants.TOKEN_USERGEN, &quot;PEM&quot;, TokenDownloadType.PEM_FULL_CHAIN);</span>
+<span class="nc" id="L665">        downloadToken(token, &quot;application/octet-stream&quot;, &quot;.pem&quot;);</span>
+<span class="nc" id="L666">    }</span>
+
+    public void addEndEntityAndGenerateCertificatePem() {
+<span class="nc" id="L669">        byte[] token = addEndEntityAndGenerateToken(EndEntityConstants.TOKEN_USERGEN, &quot;PEM&quot;, TokenDownloadType.PEM);</span>
+<span class="nc" id="L670">        downloadToken(token, &quot;application/octet-stream&quot;, &quot;.pem&quot;);</span>
+<span class="nc" id="L671">    }</span>
+
+    public void addEndEntityAndGenerateP12() {
+<span class="nc" id="L674">        byte[] token = addEndEntityAndGenerateToken(EndEntityConstants.TOKEN_SOFT_P12, &quot;PKCS#12&quot;, null);</span>
+<span class="nc" id="L675">        downloadToken(token, &quot;application/x-pkcs12&quot;, &quot;.p12&quot;);</span>
+<span class="nc" id="L676">    }</span>
+
+    public void addEndEntityAndGenerateJks() {
+<span class="nc" id="L679">        byte[] token = addEndEntityAndGenerateToken(EndEntityConstants.TOKEN_SOFT_JKS, &quot;JKS&quot;, null);</span>
+<span class="nc" id="L680">        downloadToken(token, &quot;application/octet-stream&quot;, &quot;.jks&quot;);</span>
+<span class="nc" id="L681">    }</span>
+
+    public void addEndEntityAndGeneratePem() {
+<span class="nc" id="L684">        byte[] token = addEndEntityAndGenerateToken(EndEntityConstants.TOKEN_SOFT_PEM, &quot;PEM&quot;, null);</span>
+<span class="nc" id="L685">        downloadToken(token, &quot;application/octet-stream&quot;, &quot;.pem&quot;);</span>
+<span class="nc" id="L686">    }</span>
+
+    /**
+     * Adds end entity and creates its token that will be downloaded. This method is responsible for deleting the end entity if something goes wrong with token creation.
+     * @param tokenType the type of the token that will be created (one of: TOKEN_USERGEN, TOKEN_SOFT_P12, TOKEN_SOFT_JKS from EndEntityConstants)
+     * @param tokenName the name of the token. It will be used only in messages and logs
+     * @param tokenDownloadType the download type/format of the token. This is used only with TOKEN_USERGEN since this is the only one that have different formats: PEM, DER,...)
+     * @return generated token as byte array or null if token could not be generated
+     */
+    private byte[] addEndEntityAndGenerateToken(int tokenType, String tokenName, TokenDownloadType tokenDownloadType) {
+        //Update the EndEntityInformation data
+<span class="nc" id="L697">        getSubjectDn().update();</span>
+<span class="nc" id="L698">        getSubjectAlternativeName().update();</span>
+<span class="nc" id="L699">        getSubjectDirectoryAttributes().update();</span>
+
+        //Fill End Entity information
+<span class="nc" id="L702">        final EndEntityInformation endEntityInformation = getEndEntityInformation();</span>
+<span class="nc" id="L703">        final ExtendedInformation extendedInformation = new ExtendedInformation();</span>
+<span class="nc" id="L704">        extendedInformation.setCertificateEndTime(getUserDefinedValidityIfSpecified());</span>
+<span class="nc" id="L705">        endEntityInformation.setCAId(getCAInfo().getCAId());</span>
+<span class="nc" id="L706">        endEntityInformation.setCardNumber(&quot;&quot;); //TODO Card Number</span>
+<span class="nc" id="L707">        endEntityInformation.setCertificateProfileId(authorizedCertificateProfiles.get(Integer.parseInt(getSelectedCertificateProfile())).getId());</span>
+<span class="nc" id="L708">        endEntityInformation.setDN(getSubjectDn().toString());</span>
+<span class="nc" id="L709">        endEntityInformation.setEndEntityProfileId(authorizedEndEntityProfiles.get(Integer.parseInt(getSelectedEndEntityProfile())).getId());</span>
+<span class="nc" id="L710">        endEntityInformation.setExtendedInformation(extendedInformation);</span>
+<span class="nc" id="L711">        endEntityInformation.setHardTokenIssuerId(0); //TODO not sure....</span>
+<span class="nc" id="L712">        endEntityInformation.setStatus(EndEntityConstants.STATUS_NEW);</span>
+<span class="nc" id="L713">        endEntityInformation.setSubjectAltName(getSubjectAlternativeName().toString());</span>
+<span class="nc" id="L714">        endEntityInformation.setTimeCreated(new Date());</span>
+<span class="nc" id="L715">        endEntityInformation.setTimeModified(new Date());</span>
+<span class="nc" id="L716">        endEntityInformation.setType(new EndEntityType(EndEntityTypes.ENDUSER));</span>
+        // sendnotification, keyrecoverable and print must be set after setType, because it adds to the type
+<span class="nc bnc" id="L718" title="All 4 branches missed.">        endEntityInformation.setSendNotification(isDefaultInProfile(EndEntityProfile.SENDNOTIFICATION) &amp;&amp; !endEntityInformation.getSendNotification());</span>
+<span class="nc bnc" id="L719" title="All 4 branches missed.">        endEntityInformation.setKeyRecoverable(isDefaultInProfile(EndEntityProfile.KEYRECOVERABLE) &amp;&amp; !endEntityInformation.getKeyRecoverable());</span>
+<span class="nc" id="L720">        endEntityInformation.setPrintUserData(false); // TODO not sure...</span>
+<span class="nc" id="L721">        endEntityInformation.setTokenType(tokenType);</span>
+
+        // Fill end-entity information (Username and Password)
+<span class="nc" id="L724">        final byte[] randomData = new byte[16];</span>
+<span class="nc" id="L725">        final Random random = new SecureRandom();</span>
+<span class="nc" id="L726">        random.nextBytes(randomData);</span>
+<span class="nc bnc" id="L727" title="All 2 branches missed.">        if (StringUtils.isBlank(endEntityInformation.getUsername())) {</span>
+<span class="nc" id="L728">            String autousername = new String(Hex.encode(randomData));</span>
+<span class="nc bnc" id="L729" title="All 2 branches missed.">            while (raMasterApiProxyBean.searchUser(raAuthenticationBean.getAuthenticationToken(), autousername) != null) {</span>
+<span class="nc bnc" id="L730" title="All 2 branches missed.">                if(log.isDebugEnabled()){</span>
+<span class="nc" id="L731">                    log.debug(&quot;Autogenerated username '&quot; + autousername + &quot;' is already reserved. Generating the new one...&quot;);</span>
+                }
+<span class="nc" id="L733">                random.nextBytes(randomData);</span>
+<span class="nc" id="L734">                autousername = new String(Hex.encode(randomData));</span>
+            }
+<span class="nc bnc" id="L736" title="All 2 branches missed.">            if(log.isDebugEnabled()){</span>
+<span class="nc" id="L737">                log.debug(&quot;Unique username '&quot; + autousername + &quot;' has been generated&quot;);</span>
+            }
+<span class="nc" id="L739">            endEntityInformation.setUsername(autousername);</span>
+        }
+<span class="nc bnc" id="L741" title="All 2 branches missed.">        if (getEndEntityProfile().useAutoGeneratedPasswd()) {</span>
+            // If auto-generated passwords are used, this is set on the CA side when adding or changing the EE as long as the password is null
+<span class="nc" id="L743">            endEntityInformation.setPassword(null);</span>
+<span class="nc bnc" id="L744" title="All 2 branches missed.">        } else if (StringUtils.isEmpty(endEntityInformation.getPassword())) {</span>
+            // If not needed just use some random data
+<span class="nc" id="L746">            random.nextBytes(randomData);</span>
+<span class="nc" id="L747">            endEntityInformation.setPassword(new String(Hex.encode(CertTools.generateSHA256Fingerprint(randomData))));</span>
+        }
+
+        //Fill end-entity information (KeyStoreAlgorithm* or CertificateRequest)
+<span class="nc bnc" id="L751" title="All 2 branches missed.">        if (KeyPairGeneration.ON_SERVER.equals(getSelectedKeyPairGenerationEnum())) {</span>
+<span class="nc" id="L752">            final String[] tokenKeySpecSplit = getSelectedAlgorithm().split(&quot;_&quot;);</span>
+<span class="nc" id="L753">            endEntityInformation.getExtendedInformation().setKeyStoreAlgorithmType(tokenKeySpecSplit[0]);</span>
+<span class="nc" id="L754">            endEntityInformation.getExtendedInformation().setKeyStoreAlgorithmSubType(tokenKeySpecSplit[1]);</span>
+<span class="nc bnc" id="L755" title="All 2 branches missed.">        } else if (KeyPairGeneration.PROVIDED_BY_USER.equals(getSelectedKeyPairGenerationEnum())) {</span>
+            try {
+<span class="nc" id="L757">                endEntityInformation.getExtendedInformation().setCertificateRequest(CertTools.getCertificateRequestFromPem(getCertificateRequest()).getEncoded());</span>
+<span class="nc" id="L758">            } catch (IOException e) {</span>
+<span class="nc" id="L759">                raLocaleBean.addMessageError(&quot;enroll_invalid_certificate_request&quot;);</span>
+<span class="nc" id="L760">                return null;</span>
+<span class="nc" id="L761">            }</span>
+        }
+
+<span class="nc" id="L764">        ErrorCode errorCode = null; // we need to be able to check for USER_ALREADY_EXISTS error during cleanup</span>
+        try{
+            //Add end-entity
+            //Generates a keystore token if user has specified &quot;ON SERVER&quot; key pair generation.
+            //Generates a certificate token if user has specified &quot;PROVIDED_BY_USER&quot; key pair generation
+<span class="nc" id="L769">            byte[] ret = null;</span>
+<span class="nc bnc" id="L770" title="All 2 branches missed.">            if (KeyPairGeneration.ON_SERVER.equals(getSelectedKeyPairGenerationEnum())) {</span>
+                try {
+<span class="nc" id="L772">                    ret = raMasterApiProxyBean.addUserAndGenerateKeyStore(raAuthenticationBean.getAuthenticationToken(), endEntityInformation, false);</span>
+<span class="nc" id="L773">                } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L774">                    raLocaleBean.addMessageInfo(&quot;enroll_unauthorized_operation&quot;, e.getMessage());</span>
+<span class="nc" id="L775">                    log.info(raAuthenticationBean.getAuthenticationToken() + &quot; is not authorized to execute this operation&quot;, e);</span>
+<span class="nc" id="L776">                    return null;</span>
+<span class="nc" id="L777">                } catch (WaitingForApprovalException e) {</span>
+<span class="nc" id="L778">                    requestId = e.getRequestId();</span>
+<span class="nc" id="L779">                    log.info(&quot;Request with ID &quot; + requestId + &quot; is still waiting for approval&quot;);</span>
+<span class="nc" id="L780">                    return null;</span>
+<span class="nc" id="L781">                } catch (EjbcaException e) {</span>
+<span class="nc" id="L782">                    errorCode = EjbcaException.getErrorCode(e);</span>
+<span class="nc bnc" id="L783" title="All 2 branches missed.">                    if (errorCode != null) {</span>
+<span class="nc bnc" id="L784" title="All 2 branches missed.">                        if (errorCode.equals(ErrorCode.USER_ALREADY_EXISTS)) {</span>
+<span class="nc" id="L785">                            raLocaleBean.addMessageError(&quot;enroll_username_already_exists&quot;, endEntityInformation.getUsername());</span>
+<span class="nc" id="L786">                            log.info(&quot;Client &quot; + raAuthenticationBean.getAuthenticationToken() + &quot; failed to add end entity since the username &quot; + endEntityInformation.getUsername() + &quot; already exists&quot;);</span>
+<span class="nc bnc" id="L787" title="All 2 branches missed.">                        } else if (errorCode.equals(ErrorCode.CERTIFICATE_WITH_THIS_SUBJECTDN_ALREADY_EXISTS_FOR_ANOTHER_USER)) {</span>
+<span class="nc" id="L788">                            raLocaleBean.addMessageError(&quot;enroll_subject_dn_already_exists_for_another_user&quot;, subjectDn.getValue());</span>
+<span class="nc" id="L789">                            log.info(&quot;Subject DN &quot; + subjectDn.getValue() + &quot; already exists for another user&quot;, e);</span>
+<span class="nc bnc" id="L790" title="All 2 branches missed.">                        } else if (errorCode.equals(ErrorCode.LOGIN_ERROR)) {</span>
+<span class="nc" id="L791">                            raLocaleBean.addMessageError(&quot;enroll_keystore_could_not_be_generated&quot;, endEntityInformation.getUsername(), errorCode);</span>
+<span class="nc" id="L792">                            log.info(&quot;Keystore could not be generated for user &quot; + endEntityInformation.getUsername() + &quot;: &quot; + e.getMessage() + &quot;, &quot; + errorCode);</span>
+                        } else {
+<span class="nc" id="L794">                            raLocaleBean.addMessageError(errorCode);</span>
+<span class="nc" id="L795">                            log.info(&quot;Exception creating keystore. Error Code: &quot; + errorCode, e);</span>
+                        }
+                    } else {
+<span class="nc" id="L798">                        raLocaleBean.addMessageError(&quot;enroll_keystore_could_not_be_generated&quot;, endEntityInformation.getUsername(), e.getMessage());</span>
+<span class="nc" id="L799">                        log.info(&quot;Keystore could not be generated for user &quot; + endEntityInformation.getUsername() + &quot;: &quot; + e.getMessage());</span>
+                    }
+<span class="nc" id="L801">                } catch(Exception e) {</span>
+<span class="nc" id="L802">                    raLocaleBean.addMessageError(&quot;enroll_keystore_could_not_be_generated&quot;, endEntityInformation.getUsername(), e.getMessage());</span>
+<span class="nc" id="L803">                    log.info(&quot;Keystore could not be generated for user &quot; + endEntityInformation.getUsername()+&quot;: &quot;+e.getMessage());</span>
+<span class="nc" id="L804">                }</span>
+<span class="nc bnc" id="L805" title="All 2 branches missed.">            } else if (KeyPairGeneration.PROVIDED_BY_USER.equals(getSelectedKeyPairGenerationEnum())) {</span>
+                try {
+<span class="nc" id="L807">                    endEntityInformation.getExtendedInformation().setCertificateRequest(CertTools.getCertificateRequestFromPem(getCertificateRequest()).getEncoded());</span>
+<span class="nc" id="L808">                    final byte[] certificateDataToDownload = raMasterApiProxyBean.addUserAndCreateCertificate(raAuthenticationBean.getAuthenticationToken(),</span>
+                            endEntityInformation, false);
+<span class="nc bnc" id="L810" title="All 2 branches missed.">                    if (certificateDataToDownload == null) {</span>
+<span class="nc" id="L811">                        raLocaleBean.addMessageError(&quot;enroll_certificate_could_not_be_generated&quot;, endEntityInformation.getUsername(), &quot;null&quot;);</span>
+<span class="nc" id="L812">                        log.info(&quot;Certificate could not be generated for end entity with username &quot; + endEntityInformation.getUsername() + &quot;: null&quot;);</span>
+<span class="nc bnc" id="L813" title="All 2 branches missed.">                    } else if (tokenDownloadType == TokenDownloadType.PEM_FULL_CHAIN) {</span>
+<span class="nc" id="L814">                        X509Certificate certificate = CertTools.getCertfromByteArray(certificateDataToDownload, X509Certificate.class);</span>
+<span class="nc" id="L815">                        LinkedList&lt;Certificate&gt; chain = new LinkedList&lt;Certificate&gt;(getCAInfo().getCertificateChain());</span>
+<span class="nc" id="L816">                        chain.addFirst(certificate);</span>
+<span class="nc" id="L817">                        ret = CertTools.getPemFromCertificateChain(chain);</span>
+<span class="nc bnc" id="L818" title="All 2 branches missed.">                    } else if (tokenDownloadType == TokenDownloadType.PKCS7) {</span>
+<span class="nc" id="L819">                        X509Certificate certificate = CertTools.getCertfromByteArray(certificateDataToDownload, X509Certificate.class);</span>
+<span class="nc" id="L820">                        LinkedList&lt;Certificate&gt; chain = new LinkedList&lt;Certificate&gt;(getCAInfo().getCertificateChain());</span>
+<span class="nc" id="L821">                        chain.addFirst(certificate);</span>
+<span class="nc" id="L822">                        ret = CertTools.getPemFromPkcs7(CertTools.createCertsOnlyCMS(CertTools.convertCertificateChainToX509Chain(chain)));</span>
+<span class="nc bnc" id="L823" title="All 2 branches missed.">                    } else if (tokenDownloadType == TokenDownloadType.PEM) {</span>
+<span class="nc" id="L824">                        X509Certificate certificate = CertTools.getCertfromByteArray(certificateDataToDownload, X509Certificate.class);</span>
+<span class="nc" id="L825">                        ret = CertTools.getPemFromCertificateChain(Arrays.asList((Certificate) certificate));</span>
+<span class="nc" id="L826">                    } else {</span>
+<span class="nc" id="L827">                        ret = certificateDataToDownload;</span>
+                    }
+<span class="nc" id="L829">                } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L830">                    raLocaleBean.addMessageInfo(&quot;enroll_unauthorized_operation&quot;, e.getMessage());</span>
+<span class="nc" id="L831">                    log.info(raAuthenticationBean.getAuthenticationToken() + &quot; is not authorized to execute this operation&quot;, e);</span>
+<span class="nc" id="L832">                } catch (WaitingForApprovalException e) {</span>
+<span class="nc" id="L833">                    requestId = e.getRequestId();</span>
+<span class="nc" id="L834">                    log.info(&quot;Request with ID &quot; + requestId + &quot; is still waiting for approval&quot;);</span>
+<span class="nc" id="L835">                    return null;</span>
+<span class="nc" id="L836">                }catch (EjbcaException | CertificateEncodingException | CertificateParsingException | ClassCastException | CMSException | IOException e) {</span>
+<span class="nc" id="L837">                    errorCode = EjbcaException.getErrorCode(e);</span>
+<span class="nc bnc" id="L838" title="All 2 branches missed.">                    if (errorCode != null) {</span>
+<span class="nc bnc" id="L839" title="All 2 branches missed.">                        if (errorCode.equals(ErrorCode.USER_ALREADY_EXISTS)) {</span>
+<span class="nc" id="L840">                            raLocaleBean.addMessageError(&quot;enroll_username_already_exists&quot;, endEntityInformation.getUsername());</span>
+<span class="nc" id="L841">                            log.info(&quot;Client &quot; + raAuthenticationBean.getAuthenticationToken() + &quot; failed to add end entity since the username &quot; + endEntityInformation.getUsername() + &quot; already exists&quot;);</span>
+<span class="nc bnc" id="L842" title="All 2 branches missed.">                        } else if (errorCode.equals(ErrorCode.CERTIFICATE_WITH_THIS_SUBJECTDN_ALREADY_EXISTS_FOR_ANOTHER_USER)) {</span>
+<span class="nc" id="L843">                            raLocaleBean.addMessageError(&quot;enroll_subject_dn_already_exists_for_another_user&quot;, subjectDn.getValue());</span>
+<span class="nc" id="L844">                            log.info(&quot;Subject DN &quot; + subjectDn.getValue() + &quot; already exists for another user&quot; , e);</span>
+<span class="nc bnc" id="L845" title="All 2 branches missed.">                        } else if (errorCode.equals(ErrorCode.LOGIN_ERROR)) {</span>
+<span class="nc" id="L846">                            raLocaleBean.addMessageError(&quot;enroll_certificate_could_not_be_generated&quot;, endEntityInformation.getUsername(), errorCode);</span>
+<span class="nc" id="L847">                            log.info(&quot;Certificate could not be generated for user &quot; + endEntityInformation.getUsername()+&quot;: &quot;+e.getMessage()+&quot;, &quot;+errorCode);</span>
+                        } else {
+<span class="nc" id="L849">                            raLocaleBean.addMessageError(errorCode);</span>
+<span class="nc" id="L850">                            log.info(&quot;Exception creating certificate. Error Code: &quot; + errorCode, e);</span>
+                        }
+                    } else {
+<span class="nc" id="L853">                        raLocaleBean.addMessageError(&quot;enroll_certificate_could_not_be_generated&quot;, endEntityInformation.getUsername(), e.getMessage());</span>
+<span class="nc" id="L854">                        log.info(&quot;Certificate could not be generated for end entity with username &quot; + endEntityInformation.getUsername(), e);</span>
+                    }
+<span class="nc" id="L856">                }</span>
+            }
+<span class="nc" id="L858">            return ret;</span>
+        } finally {
+            //End entity clean-up must be done if enrollment could not be completed (but end-entity has been added and wasn't already existing)
+            try {
+<span class="nc bnc" id="L862" title="All 4 branches missed.">                if (errorCode == null || !errorCode.equals(ErrorCode.USER_ALREADY_EXISTS)) {</span>
+<span class="nc" id="L863">                    EndEntityInformation fromCA = raMasterApiProxyBean.searchUser(raAuthenticationBean.getAuthenticationToken(), endEntityInformation.getUsername());</span>
+<span class="nc bnc" id="L864" title="All 4 branches missed.">                    if(fromCA != null &amp;&amp; fromCA.getStatus() != EndEntityConstants.STATUS_GENERATED){</span>
+<span class="nc" id="L865">                        raMasterApiProxyBean.deleteUser(raAuthenticationBean.getAuthenticationToken(), endEntityInformation.getUsername());</span>
+                    }
+                }
+<span class="nc" id="L868">            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L869">                throw new IllegalStateException(e);</span>
+<span class="nc" id="L870">            }</span>
+<span class="nc" id="L871">            endEntityInformation.setUsername(&quot;&quot;);</span>
+        }
+    }
+
+    /** Returns true if the default value of the given field is true in the end entity profile 
+     * @param field Field
+     * @return bool */
+    private boolean isDefaultInProfile(final String field) {
+<span class="nc" id="L879">        return EndEntityProfile.TRUE.equals(getEndEntityProfile().getValue(field, 0));</span>
+    }
+
+    /** Send a file to the client if token parameter is not set to null 
+     * @param token Token
+     * @param responseContentType Type 
+     * @param fileExtension Extension */
+    private void downloadToken(byte[] token, String responseContentType, String fileExtension) {
+<span class="nc bnc" id="L887" title="All 2 branches missed.">        if (token == null) {</span>
+<span class="nc" id="L888">            return;</span>
+        }
+        //Download the token
+<span class="nc" id="L891">        FacesContext fc = FacesContext.getCurrentInstance();</span>
+<span class="nc" id="L892">        ExternalContext ec = fc.getExternalContext();</span>
+<span class="nc" id="L893">        ec.responseReset(); // Some JSF component library or some Filter might have set some headers in the buffer beforehand. We want to get rid of them, else it may collide.</span>
+<span class="nc" id="L894">        ec.setResponseContentType(responseContentType);</span>
+<span class="nc" id="L895">        ec.setResponseContentLength(token.length);</span>
+<span class="nc" id="L896">        final String fileName = getFileName();</span>
+<span class="nc" id="L897">        ec.setResponseHeader(&quot;Content-Disposition&quot;,</span>
+                &quot;attachment; filename=\&quot;&quot; + fileName + fileExtension +  &quot;\&quot;&quot;); // The Save As popup magic is done here. You can give it any file name you want, this only won't work in MSIE, it will use current request URL as file name instead.
+<span class="nc" id="L899">        try (final OutputStream output = ec.getResponseOutputStream()) {</span>
+<span class="nc" id="L900">            output.write(token);</span>
+<span class="nc" id="L901">            output.flush();</span>
+<span class="nc" id="L902">            fc.responseComplete(); // Important! Otherwise JSF will attempt to render the response which obviously will fail since it's already written with a file and closed.</span>
+<span class="nc" id="L903">        } catch (IOException e) {</span>
+<span class="nc" id="L904">            raLocaleBean.addMessageError(raLocaleBean.getMessage(&quot;enroll_token_could_not_be_downloaded&quot;, fileName), e);</span>
+<span class="nc" id="L905">            log.info(&quot;Token &quot; + fileName + &quot; could not be downloaded&quot;, e);</span>
+<span class="nc" id="L906">        }</span>
+<span class="nc" id="L907">    }</span>
+
+    /**
+     * Calculates the filename for a token (P12 or PEM file) sent back to the client based on
+     * the common name of the certificate.
+     * @return the file name to use in the content disposition header
+     */
+    private String getFileName() {
+<span class="nc" id="L915">        final String commonName = CertTools.getPartFromDN(getEndEntityInformation().getDN(), &quot;CN&quot;);</span>
+<span class="nc bnc" id="L916" title="All 2 branches missed.">        if (StringUtils.isEmpty(commonName)) {</span>
+<span class="nc" id="L917">            return &quot;certificatetoken&quot;;</span>
+        }
+<span class="nc bnc" id="L919" title="All 2 branches missed.">        if (StringUtils.isAsciiPrintable(commonName)) {</span>
+<span class="nc" id="L920">            return commonName;</span>
+        }
+<span class="nc" id="L922">        return Base64.encodeBase64String(commonName.getBytes());</span>
+    }
+
+    /**
+     * Update RFC822NAME and DNEMAILADDRESS with value from end entity email
+     * @param event Event
+     */
+    public void updateOtherEmailFields(AjaxBehaviorEvent event) {
+<span class="nc" id="L930">        updateRfcAltName();</span>
+<span class="nc" id="L931">        EndEntityProfile.FieldInstance dnEmailAddress = subjectDn.getFieldInstancesMap().get(DnComponents.DNEMAILADDRESS).get(0);</span>
+<span class="nc bnc" id="L932" title="All 4 branches missed.">        if (dnEmailAddress != null &amp;&amp; dnEmailAddress.isUsed()) {</span>
+<span class="nc" id="L933">            dnEmailAddress.setValue(getEndEntityInformation().getEmail());</span>
+        }
+<span class="nc" id="L935">    }</span>
+
+    private void updateRfcAltName() {
+<span class="nc" id="L938">        EndEntityProfile.FieldInstance rfc822Name = subjectAlternativeName.getFieldInstancesMap().get(DnComponents.RFC822NAME).get(0);</span>
+<span class="nc bnc" id="L939" title="All 2 branches missed.">        if (rfc822Name != null) {</span>
+<span class="nc bnc" id="L940" title="All 2 branches missed.">            if (rfc822Name.getRfcEmailUsed()) {</span>
+<span class="nc" id="L941">                String email = getEndEntityInformation().getEmail();</span>
+<span class="nc bnc" id="L942" title="All 2 branches missed.">                if (email != null) {</span>
+<span class="nc" id="L943">                    rfc822Name.setValue(email);</span>
+<span class="nc" id="L944">                    return;</span>
+                }
+            }
+<span class="nc" id="L947">            rfc822Name.setValue(&quot;&quot;);</span>
+        }
+<span class="nc" id="L949">    }</span>
+
+    //-----------------------------------------------------------------------------------------------
+    //Validators
+
+    /** Check if the currently set username exists and that the state of subject DN is valid via 2 calls to the RA API. */
+    public final void checkRequestPreview(){
+<span class="nc" id="L956">        checkUserCredentials();</span>
+<span class="nc" id="L957">        checkSubjectDn();</span>
+<span class="nc" id="L958">    }</span>
+
+    /** Check if the currently set username exists via the RA API and render an error message if it does. */
+    public final void checkUserCredentials() {
+<span class="nc" id="L962">        final String username = getEndEntityInformation().getUsername();</span>
+<span class="nc bnc" id="L963" title="All 6 branches missed.">        if (username != null &amp;&amp; !username.isEmpty() &amp;&amp; raMasterApiProxyBean.searchUser(raAuthenticationBean.getAuthenticationToken(), username) != null) {</span>
+<span class="nc" id="L964">            FacesContext.getCurrentInstance().addMessage(userCredentialsMessagesComponent.getClientId(), new FacesMessage(FacesMessage.SEVERITY_WARN,</span>
+<span class="nc" id="L965">                    raLocaleBean.getMessage(&quot;enroll_username_already_exists&quot;, username), null));</span>
+        }
+<span class="nc" id="L967">    }</span>
+
+    /** Update the current state of the EE-holder and validate the subject DN via the RA API. */
+    public final void checkSubjectDn() {
+        try {
+<span class="nc" id="L972">            final EndEntityInformation endEntityInformation = getEndEntityInformation();</span>
+<span class="nc" id="L973">            endEntityInformation.setCAId(getCAInfo().getCAId());</span>
+<span class="nc bnc" id="L974" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L975">                log.debug(&quot;checkSubjectDn: '&quot;+subjectDn.getUpdatedValue()+&quot;'&quot;);</span>
+            }
+<span class="nc" id="L977">            endEntityInformation.setDN(subjectDn.getUpdatedValue());</span>
+<span class="nc" id="L978">            raMasterApiProxyBean.checkSubjectDn(raAuthenticationBean.getAuthenticationToken(), endEntityInformation);</span>
+<span class="nc" id="L979">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L980">            log.error(e);</span>
+<span class="nc" id="L981">        } catch (EjbcaException e) {</span>
+<span class="nc bnc" id="L982" title="All 2 branches missed.">            if (ErrorCode.CERTIFICATE_WITH_THIS_SUBJECTDN_ALREADY_EXISTS_FOR_ANOTHER_USER.equals(e.getErrorCode())) {</span>
+<span class="nc" id="L983">                FacesContext.getCurrentInstance().addMessage(subjectDnMessagesComponent.getClientId(), new FacesMessage(FacesMessage.SEVERITY_WARN,</span>
+<span class="nc" id="L984">                        raLocaleBean.getMessage(&quot;enroll_certificate_with_subject_dn_already_exists&quot;, subjectDn.getValue()), null));</span>
+            } else {
+<span class="nc" id="L986">                FacesContext.getCurrentInstance().addMessage(subjectDnMessagesComponent.getClientId(),</span>
+<span class="nc" id="L987">                        new FacesMessage(FacesMessage.SEVERITY_WARN, raLocaleBean.getErrorCodeMessage(e.getErrorCode()), null));</span>
+            }
+<span class="nc" id="L989">        }</span>
+<span class="nc" id="L990">    }</span>
+
+    /** Validate that password and password confirm entries match and render error messages otherwise. 
+     * @param event Event*/
+    public final void validatePassword(ComponentSystemEvent event) {
+<span class="nc bnc" id="L995" title="All 2 branches missed.">        if (isPasswordRendered()){</span>
+<span class="nc" id="L996">            FacesContext fc = FacesContext.getCurrentInstance();</span>
+<span class="nc" id="L997">            UIComponent components = event.getComponent();</span>
+<span class="nc" id="L998">            UIInput uiInputPassword = (UIInput) components.findComponent(&quot;passwordField&quot;);</span>
+<span class="nc bnc" id="L999" title="All 2 branches missed.">            String password = uiInputPassword.getLocalValue() == null ? &quot;&quot; : uiInputPassword.getLocalValue().toString();</span>
+<span class="nc" id="L1000">            UIInput uiInputConfirmPassword = (UIInput) components.findComponent(&quot;passwordConfirmField&quot;);</span>
+<span class="nc bnc" id="L1001" title="All 2 branches missed.">            String confirmPassword = uiInputConfirmPassword.getLocalValue() == null ? &quot;&quot; : uiInputConfirmPassword.getLocalValue().toString();</span>
+<span class="nc bnc" id="L1002" title="All 2 branches missed.">            if (password.isEmpty()){</span>
+<span class="nc" id="L1003">                fc.addMessage(confirmPasswordComponent.getClientId(fc), raLocaleBean.getFacesMessage(&quot;enroll_password_can_not_be_empty&quot;));</span>
+<span class="nc" id="L1004">                fc.renderResponse();</span>
+            }
+<span class="nc bnc" id="L1006" title="All 2 branches missed.">            if (!password.equals(confirmPassword)) {</span>
+<span class="nc" id="L1007">                fc.addMessage(confirmPasswordComponent.getClientId(fc), raLocaleBean.getFacesMessage(&quot;enroll_passwords_are_not_equal&quot;));</span>
+<span class="nc" id="L1008">                fc.renderResponse();</span>
+            }
+        }
+<span class="nc" id="L1011">    }</span>
+
+    public void actionUpdateCsrInfoFields() {
+<span class="nc" id="L1014">        String fileName = uploadFile.getName();</span>
+
+<span class="nc" id="L1016">        csrFileName = fileName;</span>
+
+        String fileContents;
+        try {
+<span class="nc" id="L1020">            fileContents = new String(uploadFile.getBytes());</span>
+<span class="nc" id="L1021">        } catch (IOException e) {</span>
+<span class="nc" id="L1022">            raLocaleBean.addMessageError(&quot;enroll_invalid_certificate_request&quot;);</span>
+<span class="nc" id="L1023">            throw new ValidatorException(new FacesMessage(raLocaleBean.getMessage(&quot;enroll_invalid_certificate_request&quot;)));</span>
+<span class="nc" id="L1024">        }</span>
+
+<span class="nc" id="L1026">        validateCsr(fileContents);</span>
+<span class="nc bnc" id="L1027" title="All 2 branches missed.">        if (algorithmFromCsr != null) { // valid CSR</span>
+<span class="nc" id="L1028">            uploadCsr();</span>
+        }
+<span class="nc" id="L1030">    }</span>
+
+    /** Validate an uploaded CSR and store the extracted key algorithm and CSR for later use. 
+     * @param csrValue Value
+     * @throws ValidatorException Fail */
+    public final void validateCsr(String csrValue) throws ValidatorException {
+<span class="nc" id="L1036">        algorithmFromCsr = null;</span>
+<span class="nc bnc" id="L1037" title="All 4 branches missed.">        if (csrValue != null &amp;&amp; csrValue.length() &gt; EnrollMakeNewRequestBean.MAX_CSR_LENGTH) {</span>
+<span class="nc" id="L1038">            log.info(&quot;CSR uploaded was too large: &quot;+csrValue.length());</span>
+<span class="nc" id="L1039">            raLocaleBean.addMessageError(&quot;enroll_invalid_certificate_request&quot;);</span>
+<span class="nc" id="L1040">            throw new ValidatorException(new FacesMessage(raLocaleBean.getMessage(&quot;enroll_invalid_certificate_request&quot;)));</span>
+        }
+<span class="nc" id="L1042">        PKCS10CertificationRequest pkcs10CertificateRequest = CertTools.getCertificateRequestFromPem(csrValue);</span>
+<span class="nc bnc" id="L1043" title="All 2 branches missed.">        if (pkcs10CertificateRequest == null) {</span>
+<span class="nc" id="L1044">            raLocaleBean.addMessageError(&quot;enroll_invalid_certificate_request&quot;);</span>
+<span class="nc" id="L1045">            throw new ValidatorException(new FacesMessage(raLocaleBean.getMessage(&quot;enroll_invalid_certificate_request&quot;)));</span>
+        }
+
+        //Get public key algorithm from CSR and check if it's allowed in certificate profile
+<span class="nc" id="L1049">        final JcaPKCS10CertificationRequest jcaPKCS10CertificationRequest = new JcaPKCS10CertificationRequest(pkcs10CertificateRequest);</span>
+        try {
+<span class="nc" id="L1051">            final String keySpecification = AlgorithmTools.getKeySpecification(jcaPKCS10CertificationRequest.getPublicKey());</span>
+<span class="nc" id="L1052">            final String keyAlgorithm = AlgorithmTools.getKeyAlgorithm(jcaPKCS10CertificationRequest.getPublicKey());</span>
+
+<span class="nc" id="L1054">            final CertificateProfile certificateProfile = getCertificateProfile();</span>
+<span class="nc bnc" id="L1055" title="All 2 branches missed.">            if (!certificateProfile.isKeyTypeAllowed(keyAlgorithm, keySpecification)) {</span>
+<span class="nc" id="L1056">                raLocaleBean.addMessageError(&quot;enroll_key_algorithm_is_not_available&quot;, keyAlgorithm + &quot;_&quot; + keySpecification);</span>
+<span class="nc" id="L1057">                throw new ValidatorException(new FacesMessage(raLocaleBean.getMessage(&quot;enroll_key_algorithm_is_not_available&quot;, keyAlgorithm + &quot;_&quot; + keySpecification)));</span>
+            }
+<span class="nc" id="L1059">            algorithmFromCsr = keyAlgorithm + &quot; &quot; + keySpecification;// Save for later use</span>
+
+<span class="nc" id="L1061">            certificateRequest = csrValue;</span>
+
+<span class="nc" id="L1063">            PublicKey publicKey = jcaPKCS10CertificationRequest.getPublicKey();</span>
+<span class="nc" id="L1064">            publicKeyModulus = KeyTools.getKeyModulus(publicKey);</span>
+
+<span class="nc" id="L1066">            publicKeyExponent = KeyTools.getKeyPublicExponent(publicKey);</span>
+<span class="nc" id="L1067">            sha256Fingerprint = KeyTools.getSha256Fingerprint(certificateRequest);</span>
+<span class="nc" id="L1068">            signature = KeyTools.getCertificateRequestSignature(jcaPKCS10CertificationRequest);</span>
+
+<span class="nc" id="L1070">        } catch (InvalidKeyException | NoSuchAlgorithmException e) {</span>
+<span class="nc" id="L1071">            raLocaleBean.addMessageError(&quot;enroll_unknown_key_algorithm&quot;);</span>
+<span class="nc" id="L1072">            throw new ValidatorException(new FacesMessage(raLocaleBean.getMessage(&quot;enroll_unknown_key_algorithm&quot;)));</span>
+<span class="nc" id="L1073">        }</span>
+<span class="nc" id="L1074">    }</span>
+
+
+    //-----------------------------------------------------------------------------------------------
+    // Getters and setters
+
+    /** @return the authorizedEndEntityProfiles */
+    public IdNameHashMap&lt;EndEntityProfile&gt; getAuthorizedEndEntityProfiles() {
+<span class="nc" id="L1082">        return authorizedEndEntityProfiles;</span>
+    }
+
+    /** @return true if fields that the client can't modify should still be rendered */
+    public boolean isRenderNonModifiableTemplates() {
+<span class="nc" id="L1087">        return renderNonModifiableTemplates;</span>
+    }
+    public void setRenderNonModifiableTemplates(final boolean renderNonModifiableTemplates) {
+<span class="nc" id="L1090">        this.renderNonModifiableTemplates = renderNonModifiableTemplates;</span>
+<span class="nc" id="L1091">    }</span>
+    /** @return true if fields that the client can't modify should still be rendered */
+    public boolean isRenderNonModifiableFields() {
+<span class="nc" id="L1094">        return renderNonModifiableFields;</span>
+    }
+    public void setRenderNonModifiableFields(final boolean renderNonModifiableFields) {
+<span class="nc" id="L1097">        this.renderNonModifiableFields = renderNonModifiableFields;</span>
+<span class="nc" id="L1098">    }</span>
+
+    /** @return the current EndEntityProfile as determined by state of dependencies */
+    public EndEntityProfile getEndEntityProfile() {
+<span class="nc bnc" id="L1102" title="All 2 branches missed.">        if (getSelectedEndEntityProfile() != null) {</span>
+<span class="nc" id="L1103">            final KeyToValueHolder&lt;EndEntityProfile&gt; temp = authorizedEndEntityProfiles.get(Integer.parseInt(getSelectedEndEntityProfile()));</span>
+<span class="nc bnc" id="L1104" title="All 2 branches missed.">            if (temp != null) {</span>
+<span class="nc" id="L1105">                return temp.getValue();</span>
+            }
+        }
+<span class="nc" id="L1108">        return null;</span>
+    }
+
+    /**
+     * @return The user-defined validity for the private key.
+     */
+    public String getValidity() {
+<span class="nc" id="L1115">        return validity;</span>
+    }
+
+    /**
+     * Set a user-defined validity for the private key.
+     * @param validity Validity
+     */
+    public void setValidity(final String validity) {
+<span class="nc" id="L1123">        this.validity = validity;</span>
+<span class="nc" id="L1124">    }</span>
+
+    /** @return the current CertificateProfile as determined by state of dependencies */
+    private CertificateProfile getCertificateProfile() {
+<span class="nc bnc" id="L1128" title="All 2 branches missed.">        if (getSelectedCertificateProfile() != null) {</span>
+<span class="nc" id="L1129">            KeyToValueHolder&lt;CertificateProfile&gt; temp = authorizedCertificateProfiles.get(Integer.parseInt(getSelectedCertificateProfile()));</span>
+<span class="nc bnc" id="L1130" title="All 2 branches missed.">            if (temp != null) {</span>
+<span class="nc" id="L1131">                return temp.getValue();</span>
+            }
+        }
+<span class="nc" id="L1134">        return null;</span>
+    }
+
+    /** @return the current CAInfo as determined by state of dependencies */
+    private CAInfo getCAInfo() {
+<span class="nc bnc" id="L1139" title="All 2 branches missed.">        if (getSelectedCertificateAuthority() != null) {</span>
+<span class="nc" id="L1140">            KeyToValueHolder&lt;CAInfo&gt; temp = authorizedCAInfos.get(Integer.parseInt(getSelectedCertificateAuthority()));</span>
+<span class="nc bnc" id="L1141" title="All 2 branches missed.">            if (temp != null) {</span>
+<span class="nc" id="L1142">                return temp.getValue();</span>
+            }
+        }
+<span class="nc" id="L1145">        return null;</span>
+    }
+
+    /** @return the current key algorithm as determined by state of dependencies */
+    public String getAlgorithm(){
+<span class="nc bnc" id="L1150" title="All 2 branches missed.">        if (KeyPairGeneration.ON_SERVER.equals(getSelectedKeyPairGenerationEnum())) {</span>
+<span class="nc" id="L1151">            return getSelectedAlgorithm();</span>
+        } else {
+<span class="nc" id="L1153">            return algorithmFromCsr;</span>
+        }
+    }
+
+    /** @return the current lazy initialized selectedEndEntityProfile */
+    public String getSelectedEndEntityProfile() {
+<span class="nc" id="L1159">        final List&lt;Integer&gt; availableEndEntityProfiles = getAvailableEndEntityProfiles();</span>
+<span class="nc bnc" id="L1160" title="All 2 branches missed.">        if (availableEndEntityProfiles.size()==1) {</span>
+<span class="nc" id="L1161">            setSelectedEndEntityProfile(String.valueOf(availableEndEntityProfiles.get(0)));</span>
+        }
+<span class="nc bnc" id="L1163" title="All 2 branches missed.">        if (StringUtils.isNotEmpty(selectedEndEntityProfile)) {</span>
+<span class="nc bnc" id="L1164" title="All 2 branches missed.">            if (!availableEndEntityProfiles.contains(Integer.parseInt(selectedEndEntityProfile))) {</span>
+<span class="nc" id="L1165">                setSelectedEndEntityProfile(null);</span>
+            }
+        }
+<span class="nc" id="L1168">        return selectedEndEntityProfile;</span>
+    }
+
+    /** @param selectedEndEntityProfile the selectedEndEntityProfile to set */
+    public void setSelectedEndEntityProfile(final String selectedEndEntityProfile) {
+<span class="nc bnc" id="L1173" title="All 2 branches missed.">        if (!StringUtils.equals(selectedEndEntityProfile, this.selectedEndEntityProfile)) {</span>
+            // When ever the end entity profile changes this affects available request fields
+<span class="nc" id="L1175">            resetRequestInfo();</span>
+        }
+<span class="nc" id="L1177">        this.selectedEndEntityProfile = selectedEndEntityProfile;</span>
+<span class="nc" id="L1178">    }</span>
+
+    /** @return the current key generation type as determined by state of dependencies as String */
+    public String getSelectedKeyPairGeneration() {
+<span class="nc bnc" id="L1182" title="All 2 branches missed.">        return getSelectedKeyPairGenerationEnum()==null ? null : getSelectedKeyPairGenerationEnum().name();</span>
+    }
+
+    /** @return the current key generation type as determined by state of dependencies as enum */
+    private KeyPairGeneration getSelectedKeyPairGenerationEnum() {
+<span class="nc bnc" id="L1187" title="All 2 branches missed.">        if (getAvailableKeyPairGenerationSelectItems().size() == 1) {</span>
+<span class="nc" id="L1188">            setSelectedKeyPairGeneration(getAvailableKeyPairGenerations().get(0).name());</span>
+        }
+<span class="nc" id="L1190">        return selectedKeyPairGeneration;</span>
+    }
+
+    /** @param selectedKeyStoreGeneration the selectedKeyPairGeneration to set */
+    public void setSelectedKeyPairGeneration(final String selectedKeyStoreGeneration) {
+<span class="nc bnc" id="L1195" title="All 2 branches missed.">        final String currentSelection = this.selectedKeyPairGeneration==null ? null : this.selectedKeyPairGeneration.name();</span>
+<span class="nc bnc" id="L1196" title="All 2 branches missed.">        if (!StringUtils.equals(selectedKeyStoreGeneration, currentSelection)) {</span>
+<span class="nc" id="L1197">            resetAlgorithmCsrUpload();</span>
+        }
+<span class="nc bnc" id="L1199" title="All 2 branches missed.">        if (StringUtils.isNotEmpty(selectedKeyStoreGeneration)) {</span>
+<span class="nc" id="L1200">            this.selectedKeyPairGeneration = KeyPairGeneration.valueOf(selectedKeyStoreGeneration);</span>
+        } else {
+<span class="nc" id="L1202">            this.selectedKeyPairGeneration = null;</span>
+        }
+<span class="nc" id="L1204">    }</span>
+
+    /** @return the current available key generation types as determined by state of dependencies for UI rendering */
+    public List&lt;SelectItem&gt; getAvailableKeyPairGenerationSelectItems() {
+<span class="nc" id="L1208">        final List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L1209" title="All 2 branches missed.">        for (final KeyPairGeneration keyPairGeneration : getAvailableKeyPairGenerations()) {</span>
+<span class="nc" id="L1210">            final String label = raLocaleBean.getMessage(&quot;enroll_key_pair_generation_&quot; + keyPairGeneration.name().toLowerCase());</span>
+<span class="nc" id="L1211">            ret.add(new SelectItem(keyPairGeneration.name(), label));</span>
+<span class="nc" id="L1212">        }</span>
+<span class="nc" id="L1213">        return ret;</span>
+    }
+
+    /** @return the current available key generation types as determined by state of dependencies */
+    private List&lt;KeyPairGeneration&gt; getAvailableKeyPairGenerations() {
+<span class="nc" id="L1218">        final List&lt;KeyPairGeneration&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L1219">        final EndEntityProfile endEntityProfile = getEndEntityProfile();</span>
+<span class="nc bnc" id="L1220" title="All 2 branches missed.">        if (endEntityProfile != null) {</span>
+<span class="nc" id="L1221">            final String availableKeyStores = endEntityProfile.getValue(EndEntityProfile.AVAILKEYSTORE, 0);</span>
+<span class="nc bnc" id="L1222" title="All 2 branches missed.">            if (availableKeyStores.contains(String.valueOf(SecConst.TOKEN_SOFT_P12))</span>
+<span class="nc bnc" id="L1223" title="All 2 branches missed.">                    || availableKeyStores.contains(String.valueOf(SecConst.TOKEN_SOFT_JKS))</span>
+<span class="nc bnc" id="L1224" title="All 2 branches missed.">                    || availableKeyStores.contains(String.valueOf(SecConst.TOKEN_SOFT_PEM))) {</span>
+<span class="nc" id="L1225">                ret.add(KeyPairGeneration.ON_SERVER);</span>
+            }
+<span class="nc bnc" id="L1227" title="All 2 branches missed.">            if (availableKeyStores.contains(String.valueOf(SecConst.TOKEN_SOFT_BROWSERGEN))) {</span>
+<span class="nc" id="L1228">                ret.add(KeyPairGeneration.PROVIDED_BY_USER);</span>
+            }
+        }
+<span class="nc" id="L1231">        return ret;</span>
+    }
+
+    /** @return a List of available end entity profiles for UI rendering */
+    public List&lt;SelectItem&gt; getAvailableEndEntityProfileSelectItems() {
+<span class="nc" id="L1236">        final List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L1237" title="All 2 branches missed.">        for (final Integer id : getAvailableEndEntityProfiles()) {</span>
+<span class="nc" id="L1238">            ret.add(new SelectItem(String.valueOf(id), authorizedEndEntityProfiles.get(id).getName()));</span>
+<span class="nc" id="L1239">        }</span>
+<span class="nc bnc" id="L1240" title="All 4 branches missed.">        if (ret.size()&gt;1 &amp;&amp; StringUtils.isEmpty(getSelectedEndEntityProfile())) {</span>
+<span class="nc" id="L1241">            ret.add(new SelectItem(null, raLocaleBean.getMessage(&quot;enroll_select_eep_nochoice&quot;), raLocaleBean.getMessage(&quot;enroll_select_eep_nochoice&quot;), true));</span>
+        }
+<span class="nc" id="L1243">        EnrollMakeNewRequestBean.sortSelectItemsByLabel(ret);</span>
+<span class="nc" id="L1244">        return ret;</span>
+    }
+
+    /** @return a List of available end entity profile identifiers */
+    private List&lt;Integer&gt; getAvailableEndEntityProfiles() {
+<span class="nc" id="L1249">        return new ArrayList&lt;&gt;(authorizedEndEntityProfiles.idKeySet());</span>
+    }
+
+    /** @return the current List of available certificate profiles as determined by state of dependencies for UI rendering */
+    public List&lt;SelectItem&gt; getAvailableCertificateProfileSelectItems() {
+<span class="nc" id="L1254">        final List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L1255">        final String defaultId = getEndEntityProfile().getValue(EndEntityProfile.DEFAULTCERTPROFILE, 0);</span>
+<span class="nc bnc" id="L1256" title="All 2 branches missed.">        for (final Integer id : getAvailableCertificateProfiles()) {</span>
+<span class="nc bnc" id="L1257" title="All 2 branches missed.">            if (defaultId.equals(String.valueOf(id))) {</span>
+                // TODO: Localize
+<span class="nc" id="L1259">                ret.add(new SelectItem(String.valueOf(id), authorizedCertificateProfiles.get(id).getName() + &quot; (default)&quot;));</span>
+            } else {
+<span class="nc" id="L1261">                ret.add(new SelectItem(String.valueOf(id), authorizedCertificateProfiles.get(id).getName()));</span>
+            }
+<span class="nc" id="L1263">        }</span>
+<span class="nc bnc" id="L1264" title="All 4 branches missed.">        if (ret.size()&gt;1 &amp;&amp; StringUtils.isEmpty(getSelectedCertificateProfile())) {</span>
+<span class="nc" id="L1265">            ret.add(new SelectItem(null, raLocaleBean.getMessage(&quot;enroll_select_cp_nochoice&quot;), raLocaleBean.getMessage(&quot;enroll_select_cp_nochoice&quot;), true));</span>
+        }
+<span class="nc" id="L1267">        EnrollMakeNewRequestBean.sortSelectItemsByLabel(ret);</span>
+<span class="nc" id="L1268">        return ret;</span>
+    }
+
+    /** @return the current List of available certificate profile identifiers as determined by state of dependencies */
+    private List&lt;Integer&gt; getAvailableCertificateProfiles() {
+<span class="nc" id="L1273">        final List&lt;Integer&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L1274">        final EndEntityProfile endEntityProfile = getEndEntityProfile();</span>
+<span class="nc bnc" id="L1275" title="All 2 branches missed.">        if (endEntityProfile != null) {</span>
+<span class="nc" id="L1276">            final String[] availableCertificateProfileIds = endEntityProfile.getValue(EndEntityProfile.AVAILCERTPROFILES, 0).split(EndEntityProfile.SPLITCHAR);</span>
+<span class="nc bnc" id="L1277" title="All 2 branches missed.">            for (final String availableId : availableCertificateProfileIds) {</span>
+<span class="nc" id="L1278">                final Integer id = Integer.parseInt(availableId);</span>
+<span class="nc bnc" id="L1279" title="All 2 branches missed.">                if (authorizedCertificateProfiles.containsKey(id)) {</span>
+<span class="nc" id="L1280">                    ret.add(id);</span>
+                }
+            }
+        }
+<span class="nc" id="L1284">        return ret;</span>
+    }
+
+    /** @return the current List of available CAs as determined by state of dependencies */
+    public List&lt;SelectItem&gt; getAvailableCertificateAuthoritySelectItems() {
+<span class="nc" id="L1289">        final List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L1290">        final String defaultId = getEndEntityProfile().getValue(EndEntityProfile.DEFAULTCA, 0);</span>
+<span class="nc bnc" id="L1291" title="All 2 branches missed.">        for (final Integer id : getAvailableCertificateAuthorities()) {</span>
+<span class="nc bnc" id="L1292" title="All 2 branches missed.">            if (defaultId.equals(String.valueOf(id))) {</span>
+                // TODO: Localize
+<span class="nc" id="L1294">                ret.add(new SelectItem(String.valueOf(id), authorizedCAInfos.get(id).getName() + &quot; (default)&quot;));</span>
+            } else {
+<span class="nc" id="L1296">                ret.add(new SelectItem(String.valueOf(id), authorizedCAInfos.get(id).getName()));</span>
+            }
+<span class="nc" id="L1298">        }</span>
+<span class="nc bnc" id="L1299" title="All 4 branches missed.">        if (ret.size()&gt;1 &amp;&amp; StringUtils.isEmpty(getSelectedCertificateAuthority())) {</span>
+<span class="nc" id="L1300">            ret.add(new SelectItem(null, raLocaleBean.getMessage(&quot;enroll_select_ca_nochoice&quot;), raLocaleBean.getMessage(&quot;enroll_select_ca_nochoice&quot;), true));</span>
+        }
+<span class="nc" id="L1302">        EnrollMakeNewRequestBean.sortSelectItemsByLabel(ret);</span>
+<span class="nc" id="L1303">        return ret;</span>
+    }
+
+    /** @return the current List of available CA identifiers as determined by state of dependencies */
+    private List&lt;Integer&gt; getAvailableCertificateAuthorities() {
+<span class="nc" id="L1308">        final List&lt;Integer&gt; ret = new ArrayList&lt;&gt;();</span>
+        // Get all available CAs from the selected EEP
+<span class="nc" id="L1310">        final EndEntityProfile endEntityProfile = getEndEntityProfile();</span>
+<span class="nc bnc" id="L1311" title="All 2 branches missed.">        if (endEntityProfile != null) {</span>
+<span class="nc" id="L1312">            final String[] availableCAsFromEEPArray = endEntityProfile.getValue(EndEntityProfile.AVAILCAS, 0).split(EndEntityProfile.SPLITCHAR);</span>
+<span class="nc bnc" id="L1313" title="All 4 branches missed.">            final boolean anyCAAvailableFromEEP = availableCAsFromEEPArray.length == 1 &amp;&amp; availableCAsFromEEPArray[0].equalsIgnoreCase(String.valueOf(SecConst.ALLCAS));</span>
+            // Get all available CAs from the selected CP
+<span class="nc" id="L1315">            final CertificateProfile certificateProfile = getCertificateProfile();</span>
+<span class="nc bnc" id="L1316" title="All 2 branches missed.">            if (certificateProfile != null) {</span>
+<span class="nc" id="L1317">                final List&lt;Integer&gt; availableCAsFromCP = certificateProfile.getAvailableCAs();</span>
+<span class="nc bnc" id="L1318" title="All 4 branches missed.">                final boolean anyCAAvailableFromCP = availableCAsFromCP.size() == 1 &amp;&amp; availableCAsFromCP.iterator().next() == CertificateProfile.ANYCA;</span>
+<span class="nc bnc" id="L1319" title="All 2 branches missed.">                for (final KeyToValueHolder&lt;CAInfo&gt; tuple : authorizedCAInfos.values()) {</span>
+<span class="nc bnc" id="L1320" title="All 6 branches missed.">                    if ((anyCAAvailableFromEEP || Arrays.asList(availableCAsFromEEPArray).contains(String.valueOf(tuple.getId())))</span>
+<span class="nc bnc" id="L1321" title="All 2 branches missed.">                            &amp;&amp; (anyCAAvailableFromCP || availableCAsFromCP.contains(tuple.getId()))) {</span>
+<span class="nc" id="L1322">                        ret.add(tuple.getId());</span>
+                    }
+<span class="nc" id="L1324">                }</span>
+            }
+        }
+<span class="nc" id="L1327">        return ret;</span>
+    }
+
+    /** @return the current selectedCertificateProfile as determined by state of dependencies */
+    public String getSelectedCertificateProfile() {
+<span class="nc" id="L1332">        final List&lt;Integer&gt; availableCertificateProfiles = getAvailableCertificateProfiles();</span>
+<span class="nc bnc" id="L1333" title="All 2 branches missed.">        if (availableCertificateProfiles.size()==1) {</span>
+<span class="nc" id="L1334">            setSelectedCertificateProfile(String.valueOf(availableCertificateProfiles.get(0)));</span>
+        }
+<span class="nc bnc" id="L1336" title="All 2 branches missed.">        if (StringUtils.isNotEmpty(selectedCertificateProfile)) {</span>
+<span class="nc bnc" id="L1337" title="All 2 branches missed.">            if (!availableCertificateProfiles.contains(Integer.parseInt(selectedCertificateProfile))) {</span>
+<span class="nc" id="L1338">                setSelectedCertificateProfile(null);</span>
+            }
+        }
+<span class="nc" id="L1341">        return selectedCertificateProfile;</span>
+    }
+
+    /** @param selectedCertificateProfile the selectedCertificateProfile to set */
+    public void setSelectedCertificateProfile(final String selectedCertificateProfile) {
+<span class="nc bnc" id="L1346" title="All 2 branches missed.">        if (!StringUtils.equals(selectedCertificateProfile, this.selectedCertificateProfile)) {</span>
+            // When ever the certificate profile changes this affects the available key algorithms
+<span class="nc" id="L1348">            availableAlgorithmSelectItems = null;</span>
+            // ...and any uploaded CSR needs to be revalidated (and we can do this by forcing a re-upload)
+<span class="nc" id="L1350">            resetAlgorithmCsrUpload();</span>
+        }
+<span class="nc" id="L1352">        this.selectedCertificateProfile = selectedCertificateProfile;</span>
+<span class="nc" id="L1353">    }</span>
+
+    /** @return the current availableAlgorithms as determined by state of dependencies */
+    public List&lt;SelectItem&gt; getAvailableAlgorithmSelectItems() {
+<span class="nc bnc" id="L1357" title="All 2 branches missed.">        if (this.availableAlgorithmSelectItems == null) {</span>
+<span class="nc" id="L1358">            final List&lt;SelectItem&gt; availableAlgorithmSelectItems = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L1359">            final CertificateProfile certificateProfile = getCertificateProfile();</span>
+<span class="nc bnc" id="L1360" title="All 2 branches missed.">            if (certificateProfile!=null) {</span>
+<span class="nc" id="L1361">                final List&lt;String&gt; availableKeyAlgorithms = certificateProfile.getAvailableKeyAlgorithmsAsList();</span>
+<span class="nc" id="L1362">                final List&lt;Integer&gt; availableBitLengths = certificateProfile.getAvailableBitLengthsAsList();</span>
+<span class="nc bnc" id="L1363" title="All 2 branches missed.">                if (availableKeyAlgorithms.contains(AlgorithmConstants.KEYALGORITHM_DSA)) {</span>
+<span class="nc bnc" id="L1364" title="All 2 branches missed.">                    for (final int availableBitLength : availableBitLengths) {</span>
+<span class="nc bnc" id="L1365" title="All 2 branches missed.">                        if (availableBitLength == 1024) {</span>
+<span class="nc" id="L1366">                            availableAlgorithmSelectItems.add(new SelectItem(AlgorithmConstants.KEYALGORITHM_DSA + &quot;_&quot; + availableBitLength,</span>
+                                    AlgorithmConstants.KEYALGORITHM_DSA + &quot; &quot; + availableBitLength + &quot; bits&quot;));
+                        }
+<span class="nc" id="L1369">                    }</span>
+                }
+<span class="nc bnc" id="L1371" title="All 2 branches missed.">                if (availableKeyAlgorithms.contains(AlgorithmConstants.KEYALGORITHM_RSA)) {</span>
+<span class="nc bnc" id="L1372" title="All 2 branches missed.">                    for (final int availableBitLength : availableBitLengths) {</span>
+<span class="nc bnc" id="L1373" title="All 2 branches missed.">                        if (availableBitLength &gt;= 1024) {</span>
+<span class="nc" id="L1374">                            availableAlgorithmSelectItems.add(new SelectItem(AlgorithmConstants.KEYALGORITHM_RSA + &quot;_&quot; + availableBitLength,</span>
+                                    AlgorithmConstants.KEYALGORITHM_RSA + &quot; &quot; + availableBitLength + &quot; bits&quot;));
+                        }
+<span class="nc" id="L1377">                    }</span>
+                }
+<span class="nc bnc" id="L1379" title="All 2 branches missed.">                if (availableKeyAlgorithms.contains(AlgorithmConstants.KEYALGORITHM_ECDSA)) {</span>
+<span class="nc" id="L1380">                    final Set&lt;String&gt; ecChoices = new HashSet&lt;&gt;();</span>
+<span class="nc bnc" id="L1381" title="All 2 branches missed.">                    if (certificateProfile.getAvailableEcCurvesAsList().contains(CertificateProfile.ANY_EC_CURVE)) {</span>
+<span class="nc bnc" id="L1382" title="All 2 branches missed.">                        for (final String ecNamedCurve : AlgorithmTools.getNamedEcCurvesMap(false).keySet()) {</span>
+<span class="nc bnc" id="L1383" title="All 2 branches missed.">                            if (CertificateProfile.ANY_EC_CURVE.equals(ecNamedCurve)) {</span>
+<span class="nc" id="L1384">                                continue;</span>
+                            }
+<span class="nc" id="L1386">                            final int bitLength = AlgorithmTools.getNamedEcCurveBitLength(ecNamedCurve);</span>
+<span class="nc bnc" id="L1387" title="All 2 branches missed.">                            if (availableBitLengths.contains(Integer.valueOf(bitLength))) {</span>
+<span class="nc" id="L1388">                                ecChoices.add(ecNamedCurve);</span>
+                            }
+<span class="nc" id="L1390">                        }</span>
+                    }
+<span class="nc" id="L1392">                    ecChoices.addAll(certificateProfile.getAvailableEcCurvesAsList());</span>
+<span class="nc" id="L1393">                    ecChoices.remove(CertificateProfile.ANY_EC_CURVE);</span>
+<span class="nc" id="L1394">                    final List&lt;String&gt; ecChoicesList = new ArrayList&lt;&gt;(ecChoices);</span>
+<span class="nc" id="L1395">                    Collections.sort(ecChoicesList);</span>
+<span class="nc bnc" id="L1396" title="All 2 branches missed.">                    for (final String ecNamedCurve : ecChoicesList) {</span>
+<span class="nc bnc" id="L1397" title="All 2 branches missed.">                        if (!AlgorithmTools.isKnownAlias(ecNamedCurve)) {</span>
+<span class="nc" id="L1398">                            log.warn(&quot;Ignoring unknown curve &quot; + ecNamedCurve + &quot; from being displayed in the RA web.&quot;);</span>
+<span class="nc" id="L1399">                            continue;</span>
+                        }
+<span class="nc" id="L1401">                        availableAlgorithmSelectItems.add(new SelectItem(AlgorithmConstants.KEYALGORITHM_ECDSA + &quot;_&quot; + ecNamedCurve, AlgorithmConstants.KEYALGORITHM_ECDSA + &quot; &quot;</span>
+<span class="nc" id="L1402">                                        + StringTools.getAsStringWithSeparator(&quot; / &quot;, AlgorithmTools.getAllCurveAliasesFromAlias(ecNamedCurve))));</span>
+<span class="nc" id="L1403">                    }</span>
+                }
+<span class="nc bnc" id="L1405" title="All 2 branches missed.">                for (final String algName : CesecoreConfiguration.getExtraAlgs()) {</span>
+<span class="nc bnc" id="L1406" title="All 2 branches missed.">                    if (availableKeyAlgorithms.contains(CesecoreConfiguration.getExtraAlgTitle(algName))) {</span>
+<span class="nc bnc" id="L1407" title="All 2 branches missed.">                        for (final String subAlg : CesecoreConfiguration.getExtraAlgSubAlgs(algName)) {</span>
+<span class="nc" id="L1408">                            final String name = CesecoreConfiguration.getExtraAlgSubAlgName(algName, subAlg);</span>
+<span class="nc" id="L1409">                            final int bitLength = AlgorithmTools.getNamedEcCurveBitLength(name);</span>
+<span class="nc bnc" id="L1410" title="All 2 branches missed.">                            if (availableBitLengths.contains(Integer.valueOf(bitLength))) {</span>
+<span class="nc" id="L1411">                                availableAlgorithmSelectItems.add(new SelectItem(CesecoreConfiguration.getExtraAlgTitle(algName) + &quot;_&quot; + name,</span>
+<span class="nc" id="L1412">                                        CesecoreConfiguration.getExtraAlgSubAlgTitle(algName, subAlg)));</span>
+                            } else {
+<span class="nc bnc" id="L1414" title="All 2 branches missed.">                                if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1415">                                    log.trace(&quot;Excluding &quot; + name + &quot; from enrollment options since bit length &quot; + bitLength + &quot; is not available.&quot;);</span>
+                                }
+                            }
+<span class="nc" id="L1418">                        }</span>
+                    }
+<span class="nc" id="L1420">                }</span>
+<span class="nc bnc" id="L1421" title="All 4 branches missed.">                if (availableAlgorithmSelectItems.size()&gt;1 &amp;&amp; StringUtils.isEmpty(getSelectedAlgorithm(availableAlgorithmSelectItems))) {</span>
+<span class="nc" id="L1422">                    availableAlgorithmSelectItems.add(new SelectItem(null, raLocaleBean.getMessage(&quot;enroll_select_ka_nochoice&quot;), raLocaleBean.getMessage(&quot;enroll_select_ka_nochoice&quot;), true));</span>
+                }
+            }
+<span class="nc" id="L1425">            EnrollMakeNewRequestBean.sortSelectItemsByLabel(availableAlgorithmSelectItems);</span>
+<span class="nc" id="L1426">            this.availableAlgorithmSelectItems = availableAlgorithmSelectItems;</span>
+        }
+<span class="nc" id="L1428">        return availableAlgorithmSelectItems;</span>
+    }
+
+    /** Sort the provided list by label with the exception of any item with null value that ends up first. 
+     * @param items Items*/
+    protected static void sortSelectItemsByLabel(final List&lt;SelectItem&gt; items) {
+<span class="nc" id="L1434">        Collections.sort(items, new Comparator&lt;SelectItem&gt;() {</span>
+            @Override
+            public int compare(final SelectItem item1, final SelectItem item2) {
+<span class="nc bnc" id="L1437" title="All 6 branches missed.">                if (item1.getValue()==null || (item1.getValue() instanceof String &amp;&amp; ((String)item1.getValue()).isEmpty())) {</span>
+<span class="nc" id="L1438">                    return Integer.MIN_VALUE;</span>
+<span class="nc bnc" id="L1439" title="All 6 branches missed.">                } else if (item2.getValue()==null || (item2.getValue() instanceof String &amp;&amp; ((String)item2.getValue()).isEmpty())) {</span>
+<span class="nc" id="L1440">                    return Integer.MAX_VALUE;</span>
+                }
+<span class="nc bnc" id="L1442" title="All 2 branches missed.">                if (item1.getLabel()==null) {</span>
+<span class="nc" id="L1443">                    return Integer.MIN_VALUE;</span>
+                }
+<span class="nc" id="L1445">                return item1.getLabel().compareTo(item2.getLabel());</span>
+            }
+        });
+<span class="nc" id="L1448">    }</span>
+
+    /** @return the current selectedAlgorithm as determined by state of dependencies */
+    public String getSelectedAlgorithm() {
+<span class="nc" id="L1452">        return getSelectedAlgorithm(getAvailableAlgorithmSelectItems());</span>
+    }
+
+    /** @param availableAlgorithmSelectItems Items
+     * @return the current selectedAlgorithm as determined by state of dependencies */
+    private String getSelectedAlgorithm(final List&lt;SelectItem&gt; availableAlgorithmSelectItems) {
+<span class="nc bnc" id="L1458" title="All 2 branches missed.">        if (availableAlgorithmSelectItems.size()==1) {</span>
+<span class="nc" id="L1459">            selectedAlgorithm = String.valueOf(availableAlgorithmSelectItems.get(0).getValue());</span>
+        }
+<span class="nc bnc" id="L1461" title="All 2 branches missed.">        if (StringUtils.isNotEmpty(selectedAlgorithm)) {</span>
+<span class="nc" id="L1462">            boolean found = false;</span>
+<span class="nc bnc" id="L1463" title="All 2 branches missed.">            for (final SelectItem selectItem : availableAlgorithmSelectItems) {</span>
+<span class="nc bnc" id="L1464" title="All 2 branches missed.">                if (selectedAlgorithm.equals(selectItem.getValue())) {</span>
+<span class="nc" id="L1465">                    found = true;</span>
+<span class="nc" id="L1466">                    break;</span>
+                }
+<span class="nc" id="L1468">            }</span>
+<span class="nc bnc" id="L1469" title="All 2 branches missed.">            if (!found) {</span>
+<span class="nc" id="L1470">                selectedAlgorithm = null;</span>
+            }
+        }
+<span class="nc" id="L1473">        return selectedAlgorithm;</span>
+    }
+
+    /** @param selectedAlgorithm the selectedAlgorithm to set */
+    public void setSelectedAlgorithm(final String selectedAlgorithm) {
+<span class="nc bnc" id="L1478" title="All 2 branches missed.">        if (StringUtils.isNotEmpty(selectedAlgorithm)) {</span>
+<span class="nc" id="L1479">            this.selectedAlgorithm = selectedAlgorithm;</span>
+        }
+<span class="nc" id="L1481">    }</span>
+
+    /** @return the endEntityInformation */
+    public EndEntityInformation getEndEntityInformation() {
+<span class="nc bnc" id="L1485" title="All 2 branches missed.">        if (endEntityInformation==null) {</span>
+<span class="nc" id="L1486">            endEntityInformation = new EndEntityInformation();</span>
+        }
+<span class="nc" id="L1488">        return endEntityInformation;</span>
+    }
+
+    /** @param endEntityInformation the endEntityInformation to set */
+    public void setEndEntityInformation(EndEntityInformation endEntityInformation) {
+<span class="nc" id="L1493">        this.endEntityInformation = endEntityInformation;</span>
+<span class="nc" id="L1494">    }</span>
+
+    /** @return the confirmPassword */
+    public String getConfirmPassword() {
+<span class="nc" id="L1498">        return confirmPassword;</span>
+    }
+
+    /** @param confirmPassword the confirmPassword to set */
+    public void setConfirmPassword(String confirmPassword) {
+<span class="nc" id="L1503">        this.confirmPassword = confirmPassword;</span>
+<span class="nc" id="L1504">    }</span>
+
+    public boolean isRequestPreviewMoreDetails() {
+<span class="nc" id="L1507">        return requestPreviewMoreDetails;</span>
+    }
+
+    public boolean isSetCustomValidity() {
+<span class="nc" id="L1511">        return setCustomValidity;</span>
+    }
+
+    public void setRequestPreviewMoreDetails(boolean requestPreviewMoreDetails) {
+<span class="nc" id="L1515">        this.requestPreviewMoreDetails = requestPreviewMoreDetails;</span>
+<span class="nc" id="L1516">    }</span>
+
+    /** @return the current selectedCertificateAuthority as determined by state of dependencies */
+    public String getSelectedCertificateAuthority() {
+<span class="nc" id="L1520">        final List&lt;Integer&gt; availableCertificateAuthorities = getAvailableCertificateAuthorities();</span>
+<span class="nc bnc" id="L1521" title="All 2 branches missed.">        if (availableCertificateAuthorities.size()==1) {</span>
+<span class="nc" id="L1522">            selectedCertificateAuthority = String.valueOf(availableCertificateAuthorities.get(0));</span>
+        }
+<span class="nc bnc" id="L1524" title="All 2 branches missed.">        if (StringUtils.isNotEmpty(selectedCertificateAuthority)) {</span>
+<span class="nc bnc" id="L1525" title="All 2 branches missed.">            if (!availableCertificateAuthorities.contains(Integer.parseInt(selectedCertificateAuthority))) {</span>
+<span class="nc" id="L1526">                selectedCertificateAuthority = null;</span>
+            }
+        }
+<span class="nc" id="L1529">        return selectedCertificateAuthority;</span>
+    }
+
+    /** @param selectedCertificateAuthority the selectedCertificateAuthority to set */
+    public void setSelectedCertificateAuthority(String selectedCertificateAuthority) {
+<span class="nc bnc" id="L1534" title="All 2 branches missed.">        if (StringUtils.isNotEmpty(selectedCertificateAuthority)) {</span>
+<span class="nc" id="L1535">            this.selectedCertificateAuthority = selectedCertificateAuthority;</span>
+        }
+<span class="nc" id="L1537">    }</span>
+
+    /** @return the cached authorized certificate profiles */
+    private IdNameHashMap&lt;CertificateProfile&gt; getAuthorizedCertificateProfiles() {
+<span class="nc" id="L1541">        return authorizedCertificateProfiles;</span>
+    }
+
+    /** @return the if there is at least one field in subject dn that should be rendered as determined by state of dependencies */
+    public boolean isSubjectDnRendered() {
+<span class="nc bnc" id="L1546" title="All 2 branches missed.">        if (getSubjectDn()!=null) {</span>
+<span class="nc bnc" id="L1547" title="All 2 branches missed.">            for (final FieldInstance fieldInstance : getSubjectDn().getFieldInstances()) {</span>
+<span class="nc bnc" id="L1548" title="All 2 branches missed.">                if (isFieldInstanceRendered(fieldInstance)) {</span>
+<span class="nc" id="L1549">                    return true;</span>
+                }
+<span class="nc" id="L1551">            }</span>
+        }
+<span class="nc" id="L1553">        return false;</span>
+    }
+
+    /** @return the current Subject DN as determined by state of dependencies */
+    public SubjectDn getSubjectDn() {
+<span class="nc bnc" id="L1558" title="All 2 branches missed.">        if (subjectDn == null) {</span>
+<span class="nc" id="L1559">            final EndEntityProfile endEntityProfile = getEndEntityProfile();</span>
+<span class="nc" id="L1560">            final CertificateProfile certificateProfile = getCertificateProfile();</span>
+<span class="nc" id="L1561">            final X509CAInfo x509cainfo = (X509CAInfo) getCAInfo();</span>
+<span class="nc bnc" id="L1562" title="All 6 branches missed.">            if (endEntityProfile != null &amp;&amp; certificateProfile != null &amp;&amp; x509cainfo != null) {</span>
+<span class="nc" id="L1563">                subjectDn = new SubjectDn(endEntityProfile);</span>
+<span class="nc bnc" id="L1564" title="All 4 branches missed.">                subjectDn.setLdapOrder(x509cainfo.getUseLdapDnOrder() &amp;&amp; certificateProfile.getUseLdapDnOrder());</span>
+<span class="nc bnc" id="L1565" title="All 2 branches missed.">                subjectDn.setNameStyle(x509cainfo.getUsePrintableStringSubjectDN() ? PrintableStringNameStyle.INSTANCE : CeSecoreNameStyle.INSTANCE);</span>
+            }
+        }
+<span class="nc" id="L1568">        return subjectDn;</span>
+    }
+
+    /** @return the if there is at least one field in subjectAlternativeName that should be rendered as determined by state of dependencies */
+    public boolean isSubjectAlternativeNameRendered() {
+<span class="nc bnc" id="L1573" title="All 2 branches missed.">        if (getSubjectAlternativeName()!=null) {</span>
+<span class="nc bnc" id="L1574" title="All 2 branches missed.">            for (final FieldInstance fieldInstance : getSubjectAlternativeName().getFieldInstances()) {</span>
+<span class="nc bnc" id="L1575" title="All 2 branches missed.">                if (isFieldInstanceRendered(fieldInstance)) {</span>
+<span class="nc" id="L1576">                    return true;</span>
+                }
+<span class="nc" id="L1578">            }</span>
+        }
+<span class="nc" id="L1580">        return false;</span>
+    }
+
+    /** @return the current Subject Alternative Name as determined by state of dependencies */
+    public SubjectAlternativeName getSubjectAlternativeName() {
+<span class="nc bnc" id="L1585" title="All 2 branches missed.">        if (subjectAlternativeName == null) {</span>
+<span class="nc" id="L1586">            final EndEntityProfile endEntityProfile = getEndEntityProfile();</span>
+<span class="nc bnc" id="L1587" title="All 2 branches missed.">            if (endEntityProfile != null) {</span>
+<span class="nc" id="L1588">                subjectAlternativeName = new SubjectAlternativeName(endEntityProfile);</span>
+            }
+        }
+<span class="nc" id="L1591">        return subjectAlternativeName;</span>
+    }
+
+    /** @return the if there is at least one field in subject directory attributes that should be rendered */
+    public boolean isSubjectDirectoryAttributesRendered() {
+//        if (getSubjectDirectoryAttributes()!=null) {
+//            for (final FieldInstance fieldInstance : getSubjectDirectoryAttributes().getFieldInstances()) {
+//                if (isFieldInstanceRendered(fieldInstance)) {
+//                    return true;
+//                }
+//            }
+//        }
+        //Commented out since Subject Directory Attributes are not supported atm.
+<span class="nc" id="L1604">        return false;</span>
+    }
+
+    /** @return the current Subject Directory Attributes as determined by state of dependencies */
+    public SubjectDirectoryAttributes getSubjectDirectoryAttributes() {
+<span class="nc bnc" id="L1609" title="All 2 branches missed.">        if (subjectDirectoryAttributes == null) {</span>
+<span class="nc" id="L1610">            final EndEntityProfile endEntityProfile = getEndEntityProfile();</span>
+<span class="nc bnc" id="L1611" title="All 2 branches missed.">            if (endEntityProfile != null) {</span>
+<span class="nc" id="L1612">                subjectDirectoryAttributes = new SubjectDirectoryAttributes(endEntityProfile);</span>
+            }
+        }
+<span class="nc" id="L1615">        return subjectDirectoryAttributes;</span>
+    }
+
+    /** @param fieldInstance Instance
+     * @return true if the field instance should be rendered */
+    public boolean isFieldInstanceRendered(final FieldInstance fieldInstance) {
+<span class="nc bnc" id="L1621" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1622">            log.trace(&quot;isFieldInstanceRendered name=&quot; + fieldInstance.getName() + &quot; used=&quot; +fieldInstance.isUsed() + &quot; selectable=&quot; + fieldInstance.isSelectable() +</span>
+<span class="nc bnc" id="L1623" title="All 2 branches missed.">                    &quot; modifiable=&quot; + fieldInstance.isModifiable() + &quot; selectableValues.size=&quot; + (fieldInstance.getSelectableValues()==null?0:fieldInstance.getSelectableValues().size()));</span>
+        }
+        // For the email fields &quot;used&quot; means use EE email address
+<span class="nc bnc" id="L1626" title="All 6 branches missed.">        if (fieldInstance.isUsed() || DnComponents.DNEMAILADDRESS.equals(fieldInstance.getName()) || DnComponents.RFC822NAME.equals(fieldInstance.getName())) {</span>
+<span class="nc bnc" id="L1627" title="All 2 branches missed.">            if (isRenderNonModifiableFields()) {</span>
+<span class="nc" id="L1628">                return true;</span>
+            }
+<span class="nc bnc" id="L1630" title="All 8 branches missed.">            if ((!fieldInstance.isSelectable() &amp;&amp; fieldInstance.isModifiable()) || (fieldInstance.isSelectable() &amp;&amp; fieldInstance.getSelectableValues().size() &gt; 1)</span>
+<span class="nc bnc" id="L1631" title="All 6 branches missed.">                    || (!fieldInstance.isModifiable() &amp;&amp; (fieldInstance.getName().equals(&quot;RFC822NAME&quot;) || fieldInstance.getName().equals(&quot;UPN&quot;)))) {</span>
+<span class="nc" id="L1632">                return true;</span>
+            }
+        }
+<span class="nc" id="L1635">        return false;</span>
+    }
+
+    public UploadedFile getUploadFile() {
+<span class="nc" id="L1639">        return uploadFile;</span>
+    }
+
+    public void setUploadFile(UploadedFile uploadFile) {
+<span class="nc" id="L1643">        this.uploadFile = uploadFile;</span>
+<span class="nc" id="L1644">    }</span>
+
+    public String getPublicKeyModulus() {
+<span class="nc" id="L1647">        return publicKeyModulus;</span>
+    }
+
+    public void setPublicKeyModulus(String publicKeyModulus) {
+<span class="nc" id="L1651">        this.publicKeyModulus = publicKeyModulus;</span>
+<span class="nc" id="L1652">    }</span>
+
+    public String getPublicKeyExponent() {
+<span class="nc" id="L1655">        return publicKeyExponent;</span>
+    }
+
+    public void setPublicKeyExponent(String publicKeyExponent) {
+<span class="nc" id="L1659">        this.publicKeyExponent = publicKeyExponent;</span>
+<span class="nc" id="L1660">    }</span>
+
+    public String getSha256Fingerprint() {
+<span class="nc" id="L1663">        return sha256Fingerprint;</span>
+    }
+
+    public void setSha256Fingerprint(String sha256Fingerprint) {
+<span class="nc" id="L1667">        this.sha256Fingerprint = sha256Fingerprint;</span>
+<span class="nc" id="L1668">    }</span>
+
+    public String getSignature() {
+<span class="nc" id="L1671">        return signature;</span>
+    }
+
+    public void setSignature(String signature) {
+<span class="nc" id="L1675">        this.signature = signature;</span>
+<span class="nc" id="L1676">    }</span>
+
+    public String getCsrFileName() {
+<span class="nc" id="L1679">        return csrFileName;</span>
+    }
+
+    public void setCsrFileName(String csrFileName) {
+<span class="nc" id="L1683">        this.csrFileName = csrFileName;</span>
+<span class="nc" id="L1684">    }</span>
+
+    /** @return the current certificateRequest if available */
+    public String getCertificateRequest() {
+<span class="nc bnc" id="L1688" title="All 2 branches missed.">        if (KeyPairGeneration.ON_SERVER.equals(getSelectedKeyPairGenerationEnum())) {</span>
+<span class="nc" id="L1689">            certificateRequest = null;</span>
+<span class="nc bnc" id="L1690" title="All 2 branches missed.">        } else if (KeyPairGeneration.PROVIDED_BY_USER.equals(getSelectedKeyPairGenerationEnum())) {</span>
+<span class="nc bnc" id="L1691" title="All 2 branches missed.">            if (StringUtils.isEmpty(certificateRequest)) {</span>
+                // Multi-line place holders are not allowed according to https://www.w3.org/TR/html5/forms.html#the-placeholder-attribute
+<span class="nc" id="L1693">                certificateRequest = raLocaleBean.getMessage(&quot;enroll_upload_csr_placeholder&quot;);</span>
+            }
+        }
+<span class="nc" id="L1696">        return certificateRequest;</span>
+    }
+
+    /** @param certificateRequest the certificateRequest to set */
+    public void setCertificateRequest(final String certificateRequest) {
+<span class="nc" id="L1701">        this.certificateRequest = certificateRequest;</span>
+<span class="nc" id="L1702">    }</span>
+
+    /** @return the requestId */
+    public int getRequestId() {
+<span class="nc" id="L1706">        return requestId;</span>
+    }
+
+    /** @param requestId the requestId to set */
+    public void setRequestId(int requestId) {
+<span class="nc" id="L1711">        this.requestId = requestId;</span>
+<span class="nc" id="L1712">    }</span>
+
+    /** @return the current state of the request preview as determined by state of dependencies */
+    public RaRequestPreview getRequestPreview() {
+<span class="nc" id="L1716">        RaRequestPreview requestPreview = new RaRequestPreview();</span>
+<span class="nc" id="L1717">        requestPreview.updateSubjectDn(getSubjectDn());</span>
+<span class="nc" id="L1718">        requestPreview.updateSubjectAlternativeName(getSubjectAlternativeName());</span>
+<span class="nc" id="L1719">        requestPreview.updateSubjectDirectoryAttributes(getSubjectDirectoryAttributes());</span>
+<span class="nc" id="L1720">        requestPreview.setPublicKeyAlgorithm(getAlgorithm());</span>
+<span class="nc" id="L1721">        requestPreview.updateCA(getCAInfo());</span>
+<span class="nc" id="L1722">        requestPreview.updateCertificateProfile(getCertificateProfile());</span>
+<span class="nc" id="L1723">        requestPreview.setMore(requestPreviewMoreDetails);</span>
+<span class="nc" id="L1724">        return requestPreview;</span>
+    }
+
+    /** @return name of HTTP GET request parameter for checking approval status */
+    public final String getParamRequestId(){
+<span class="nc" id="L1729">        return PARAM_REQUESTID;</span>
+    }
+
+    public UIComponent getUserCredentialsMessagesComponent() {
+<span class="nc" id="L1733">        return userCredentialsMessagesComponent;</span>
+    }
+
+    public void setUserCredentialsMessagesComponent(UIComponent userCredentialsMessagesComponent) {
+<span class="nc" id="L1737">        this.userCredentialsMessagesComponent = userCredentialsMessagesComponent;</span>
+<span class="nc" id="L1738">    }</span>
+
+    public UIComponent getSubjectDnMessagesComponent() {
+<span class="nc" id="L1741">        return subjectDnMessagesComponent;</span>
+    }
+
+    public void setSubjectDnMessagesComponent(UIComponent subjectDnMessagesComponent) {
+<span class="nc" id="L1745">        this.subjectDnMessagesComponent = subjectDnMessagesComponent;</span>
+<span class="nc" id="L1746">    }</span>
+
+    /**
+     * @return the confirmPasswordComponent
+     */
+    public UIComponent getConfirmPasswordComponent() {
+<span class="nc" id="L1752">        return confirmPasswordComponent;</span>
+    }
+
+    /**
+     * @param confirmPasswordComponent the confirmPasswordComponent to set
+     */
+    public void setConfirmPasswordComponent(UIComponent confirmPasswordComponent) {
+<span class="nc" id="L1759">        this.confirmPasswordComponent = confirmPasswordComponent;</span>
+<span class="nc" id="L1760">    }</span>
+
+    public UIComponent getValidityInputComponent() {
+<span class="nc" id="L1763">        return validityInputComponent;</span>
+    }
+
+    public void setValidityInputComponent(final UIComponent validityInputComponent) {
+<span class="nc" id="L1767">        this.validityInputComponent = validityInputComponent;</span>
+<span class="nc" id="L1768">    }</span>
+
+    /**
+     * Finds the UPN/RFC822 email and domain in an Ajax event, concatenates them and
+     * sets the value of the appropriate FieldInstance.
+     *
+     * @param event the Ajax event
+     */
+    public void upnRfc(AjaxBehaviorEvent event) {
+<span class="nc" id="L1777">        UIComponent components = event.getComponent();</span>
+<span class="nc" id="L1778">        UIInput emailInput = (UIInput) components.findComponent(&quot;upnRfcEmail&quot;);</span>
+<span class="nc" id="L1779">        UIInput domainInput = (UIInput) components.findComponent(&quot;upnRfcDomain&quot;);</span>
+<span class="nc" id="L1780">        int index = -1;</span>
+<span class="nc" id="L1781">        String email = &quot;&quot;;</span>
+<span class="nc bnc" id="L1782" title="All 2 branches missed.">        if (emailInput != null) {</span>
+<span class="nc" id="L1783">            email = emailInput.getValue().toString();</span>
+            // Split the clientId on ':', the second to last substring is the loop index
+<span class="nc" id="L1785">            String[] split = emailInput.getClientId().split(&quot;:&quot;);</span>
+<span class="nc" id="L1786">            index = Integer.parseInt(split[split.length - 2]);</span>
+        }
+<span class="nc" id="L1788">        String domain = &quot;&quot;;</span>
+<span class="nc bnc" id="L1789" title="All 2 branches missed.">        if (domainInput != null) {</span>
+<span class="nc" id="L1790">            domain = domainInput.getValue().toString();</span>
+        }
+<span class="nc" id="L1792">        String concatenated = &quot;&quot;;</span>
+<span class="nc bnc" id="L1793" title="All 4 branches missed.">        if (!email.trim().isEmpty() &amp;&amp; !domain.trim().isEmpty()) {</span>
+<span class="nc" id="L1794">            concatenated = email + &quot;@&quot; + domain;</span>
+        }
+<span class="nc" id="L1796">        List&lt;EndEntityProfile.FieldInstance&gt; fieldInstances = (List&lt;EndEntityProfile.FieldInstance&gt;) subjectAlternativeName.getFieldInstances();</span>
+<span class="nc bnc" id="L1797" title="All 4 branches missed.">        if (index &gt;= 0 &amp;&amp; index &lt; fieldInstances.size()) {</span>
+<span class="nc" id="L1798">            fieldInstances.get(index).setValue(concatenated);</span>
+        }
+<span class="nc" id="L1800">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

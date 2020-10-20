@@ -15,54 +15,68 @@ package org.cesecore.audit.audit;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.log4j.Logger;
 
 /**
- * This class represents the audit log validation report. 
- * It's generated during validation.
+ * This class represents the audit log validation report. It's generated during
+ * validation.
  *
- * @version $Id: AuditLogValidationReport.java 17625 2013-09-20 07:12:06Z netmackan $
+ * @version $Id: AuditLogValidationReport.java 17625 2013-09-20 07:12:06Z
+ *     netmackan $
  */
-public class AuditLogValidationReport implements Serializable{
+public class AuditLogValidationReport implements Serializable {
 
-<span class="nc" id="L29">    private static final Logger log = Logger.getLogger(AuditLogValidationReport.class);</span>
-    private static final long serialVersionUID = 1L;
-    
-    private final List&lt;AuditLogReportElem&gt; errors;
-    private final List&lt;AuditLogReportElem&gt; warns;
-    
-<span class="nc" id="L35">    public AuditLogValidationReport() {</span>
-<span class="nc" id="L36">        this.errors = new ArrayList&lt;AuditLogReportElem&gt;();</span>
-<span class="nc" id="L37">        this.warns = new ArrayList&lt;AuditLogReportElem&gt;();</span>
-<span class="nc" id="L38">    }</span>
+  /** Logger. */
+<span class="nc" id="L30">  private static final Logger LOG =</span>
+<span class="nc" id="L31">      Logger.getLogger(AuditLogValidationReport.class);</span>
 
-    /** @return list of errors in this report. */
-    public List&lt;AuditLogReportElem&gt; errors() {
-<span class="nc" id="L42">        return errors;</span>
-    }
+  private static final long serialVersionUID = 1L;
 
-    /**
-     * Add a new error to the report list
-     * @param error The error to be added.
-     */
-    public void error(final AuditLogReportElem error) {
-<span class="nc" id="L50">    	log.warn(String.format(&quot;ERROR: auditlog sequence: %d -&gt; %d. Reason: %s&quot;, error.getFirst(), error.getSecond(), error.getReasons()));</span>
-<span class="nc" id="L51">        this.errors.add(error);</span>
-<span class="nc" id="L52">    }</span>
+  /** Errors. */
+  private final List&lt;AuditLogReportElem&gt; errors;
+  /** Warnings. */
+  private final List&lt;AuditLogReportElem&gt; warns;
 
-    /** @return a list of warnings in this report. */
-    public List&lt;AuditLogReportElem&gt; warnings() {
-<span class="nc" id="L56">        return this.warns;</span>
-    }
+  /** Constructor. */
+<span class="nc" id="L41">  public AuditLogValidationReport() {</span>
+<span class="nc" id="L42">    this.errors = new ArrayList&lt;AuditLogReportElem&gt;();</span>
+<span class="nc" id="L43">    this.warns = new ArrayList&lt;AuditLogReportElem&gt;();</span>
+<span class="nc" id="L44">  }</span>
 
-    /**
-     * Add a new warning to the report.
-     * @param warning The warning.
-     */
-    public void warn(final AuditLogReportElem warning){
-<span class="nc" id="L64">    	log.info(String.format(&quot;WARN: auditlog sequence: %d -&gt; %d. Reason: %s&quot;, warning.getFirst(), warning.getSecond(), warning.getReasons()));</span>
-<span class="nc" id="L65">        this.warns.add(warning);</span>
-<span class="nc" id="L66">    }</span>
+  /** @return list of errors in this report. */
+  public List&lt;AuditLogReportElem&gt; errors() {
+<span class="nc" id="L48">    return errors;</span>
+  }
+
+  /**
+   * Add a new error to the report list.
+   *
+   * @param error The error to be added.
+   */
+  public void error(final AuditLogReportElem error) {
+<span class="nc" id="L57">    LOG.warn(</span>
+<span class="nc" id="L58">        String.format(</span>
+            &quot;ERROR: auditlog sequence: %d -&gt; %d. Reason: %s&quot;,
+<span class="nc" id="L60">            error.getFirst(), error.getSecond(), error.getReasons()));</span>
+<span class="nc" id="L61">    this.errors.add(error);</span>
+<span class="nc" id="L62">  }</span>
+
+  /** @return a list of warnings in this report. */
+  public List&lt;AuditLogReportElem&gt; warnings() {
+<span class="nc" id="L66">    return this.warns;</span>
+  }
+
+  /**
+   * Add a new warning to the report.
+   *
+   * @param warning The warning.
+   */
+  public void warn(final AuditLogReportElem warning) {
+<span class="nc" id="L75">    LOG.info(</span>
+<span class="nc" id="L76">        String.format(</span>
+            &quot;WARN: auditlog sequence: %d -&gt; %d. Reason: %s&quot;,
+<span class="nc" id="L78">            warning.getFirst(), warning.getSecond(), warning.getReasons()));</span>
+<span class="nc" id="L79">    this.warns.add(warning);</span>
+<span class="nc" id="L80">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

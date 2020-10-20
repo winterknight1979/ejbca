@@ -16,57 +16,60 @@ import java.beans.XMLEncoder;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.LinkedHashMap;
-
 import org.cesecore.audit.audit.AuditExporter;
 
 /**
- * Exports audit log using the Java's XML serialization. A verbose format, but easy to use from Java applications.
- * 
+ * Exports audit log using the Java's XML serialization. A verbose format, but
+ * easy to use from Java applications.
+ *
  * @version $Id: AuditExporterXml.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 <span class="fc" id="L27">public class AuditExporterXml implements AuditExporter {</span>
 
-	private XMLEncoder encoder;
-	private LinkedHashMap&lt;String,Object&gt; currentObject;
-	
-	@Override
-	public void setOutputStream(final OutputStream outputStream) throws IOException {
-<span class="fc" id="L34">		encoder = new XMLEncoder(outputStream);</span>
-<span class="fc" id="L35">	}</span>
+    /** Encoder. */
+  private XMLEncoder encoder;
+  /** Object. */
+  private LinkedHashMap&lt;String, Object&gt; currentObject;
 
-	@Override
-	public void close() throws IOException {
-<span class="fc" id="L39">		encoder.close();</span>
-<span class="fc" id="L40">	}</span>
+  @Override
+  public void setOutputStream(final OutputStream outputStream)
+      throws IOException {
+<span class="fc" id="L37">    encoder = new XMLEncoder(outputStream);</span>
+<span class="fc" id="L38">  }</span>
 
-	@Override
-	public void writeEndObject() throws IOException {
-<span class="fc" id="L44">		encoder.writeObject(currentObject);</span>
-<span class="fc" id="L45">		encoder.flush();</span>
-<span class="fc" id="L46">		currentObject = null;</span>
-<span class="fc" id="L47">	}</span>
+  @Override
+  public void close() throws IOException {
+<span class="fc" id="L42">    encoder.close();</span>
+<span class="fc" id="L43">  }</span>
 
-	@Override
-	public void writeField(String key, long value) throws IOException {
-<span class="fc" id="L51">		currentObject.put(key, Long.valueOf(value));</span>
-<span class="fc" id="L52">	}</span>
+  @Override
+  public void writeEndObject() throws IOException {
+<span class="fc" id="L47">    encoder.writeObject(currentObject);</span>
+<span class="fc" id="L48">    encoder.flush();</span>
+<span class="fc" id="L49">    currentObject = null;</span>
+<span class="fc" id="L50">  }</span>
 
-	@Override
-	public void writeStartObject() throws IOException {
-<span class="fc" id="L56">		currentObject = new LinkedHashMap&lt;String,Object&gt;();</span>
-<span class="fc" id="L57">	}</span>
+  @Override
+  public void writeField(final String key, final long value)
+      throws IOException {
+<span class="fc" id="L55">    currentObject.put(key, Long.valueOf(value));</span>
+<span class="fc" id="L56">  }</span>
 
-	@Override
-	public void writeField(String key, String value) throws IOException {
-<span class="fc" id="L61">		currentObject.put(key, value);</span>
-<span class="fc" id="L62">	}</span>
-	
-    @Override
-    public void startObjectLabel(String label) throws IOException {
-<span class="nc" id="L66">    }</span>
+  @Override
+  public void writeStartObject() throws IOException {
+<span class="fc" id="L60">    currentObject = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="fc" id="L61">  }</span>
 
-    @Override
-    public void endObjectLabel() throws IOException {
-<span class="nc" id="L70">    }</span>
+  @Override
+  public void writeField(final String key, final String value)
+      throws IOException {
+<span class="fc" id="L66">    currentObject.put(key, value);</span>
+<span class="fc" id="L67">  }</span>
+
+  @Override
+<span class="nc" id="L70">  public void startObjectLabel(final String label) throws IOException { }</span>
+
+  @Override
+<span class="nc" id="L73">  public void endObjectLabel() throws IOException { }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

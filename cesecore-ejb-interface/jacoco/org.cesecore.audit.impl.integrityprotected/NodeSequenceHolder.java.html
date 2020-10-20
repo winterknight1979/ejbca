@@ -17,62 +17,77 @@ import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Get this node's next log row sequence number.
- * 
- * The sequence number is guaranteed to be unique as long as the read &quot;node identifier&quot;
- * read on first access is unique among the nodes sharing the database.
- * 
+ *
+ * &lt;p&gt;The sequence number is guaranteed to be unique as long as the read &quot;node
+ * identifier&quot; read on first access is unique among the nodes sharing the
+ * database.
+ *
  * @version $Id: NodeSequenceHolder.java 24598 2016-10-31 11:34:40Z jeklund $
  */
-<span class="nc" id="L26">public enum NodeSequenceHolder {</span>
-<span class="nc" id="L27">    INSTANCE;</span>
+<span class="nc" id="L27">public enum NodeSequenceHolder {</span>
+    /** INSTANCE. */
+<span class="nc" id="L29">  INSTANCE;</span>
 
-    // We only want to use this from IntegrityProtectedDevice
-<span class="nc" id="L30">    private NodeSequenceHolder() {}</span>
+  // We only want to use this from IntegrityProtectedDevice
+<span class="nc" id="L32">  NodeSequenceHolder() { }</span>
 
-<span class="nc" id="L32">    private final AtomicLong lastSequenceNumberAtomic = new AtomicLong(-1);</span>
-<span class="nc" id="L33">    private final ReentrantLock lockDataBaseUpdate = new ReentrantLock();</span>
-<span class="nc" id="L34">    private String nodeId = null;</span>
-    
-    /** Interface for callback of methods that is invoked once. */
-    public interface OnInitCallBack {
-        /** @return the current node identifier */
-        String getNodeId();
-        /** @param nodeId ID
-         * @return the highest known sequence number for the node identifier returned by {@link OnInitCallBack#getNodeId()}*/
-        long getMaxSequenceNumberForNode(String nodeId);
-    }
+  /** Sequence. */
+<span class="nc" id="L35">  private final AtomicLong lastSequenceNumberAtomic = new AtomicLong(-1);</span>
+  /** Update. */
+<span class="nc" id="L37">  private final ReentrantLock lockDataBaseUpdate = new ReentrantLock();</span>
+  /** ID. */
+<span class="nc" id="L39">  private String nodeId = null;</span>
 
-    /** @param callBack Callback
-     * @return the node's next log row sequence number. */
-    public long getNext(final OnInitCallBack callBack) {
-<span class="nc bnc" id="L48" title="All 2 branches missed.">        if (lastSequenceNumberAtomic.get()==-1L) {</span>
-            try {
-                // Lock threads during initializations of value from the database (only one thread needs to/should do the lookup)
-<span class="nc" id="L51">                lockDataBaseUpdate.lock();</span>
-<span class="nc bnc" id="L52" title="All 2 branches missed.">                if (lastSequenceNumberAtomic.get()==-1L) {</span>
-                    // Note that it very important that the nodeId is cached to avoid gaps in the sequence if the nodeId changes
-<span class="nc" id="L54">                    nodeId = callBack.getNodeId();</span>
-<span class="nc" id="L55">                    lastSequenceNumberAtomic.set(callBack.getMaxSequenceNumberForNode(nodeId));</span>
-                }
-            } finally {
-<span class="nc" id="L58">                lockDataBaseUpdate.unlock();</span>
-            }
-        }
-<span class="nc" id="L61">        return lastSequenceNumberAtomic.incrementAndGet();</span>
-    }
-
-    /** @return the Node Identifier that this sequence number applies to. */
-    public String getNodeId() {
-<span class="nc" id="L66">        return nodeId;</span>
-    }
-
+  /** Interface for callback of methods that is invoked once. */
+  public interface OnInitCallBack {
+    /** @return the current node identifier */
+    String getNodeId();
     /**
-     * Trigger a re-read of the nodeId and last sequence number for the node on next call to {@link NodeSequenceHolder#getNext(OnInitCallBack)}.
-     * 
-     * WARNING: This class is NOT safe to reset in an concurrent environment and this method should only be used from unit tests.
+     * @param nodeId ID
+     * @return the highest known sequence number for the node identifier
+     *     returned by {@link OnInitCallBack#getNodeId()}
      */
-    public void reset() {
-<span class="nc" id="L75">        lastSequenceNumberAtomic.set(-1L);</span>
-<span class="nc" id="L76">    }</span>
+    long getMaxSequenceNumberForNode(String nodeId);
+  }
+
+  /**
+   * @param callBack Callback
+   * @return the node's next log row sequence number.
+   */
+  public long getNext(final OnInitCallBack callBack) {
+<span class="nc bnc" id="L58" title="All 2 branches missed.">    if (lastSequenceNumberAtomic.get() == -1L) {</span>
+      try {
+        // Lock threads during initializations of value from the database (only
+        // one thread needs to/should do the lookup)
+<span class="nc" id="L62">        lockDataBaseUpdate.lock();</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">        if (lastSequenceNumberAtomic.get() == -1L) {</span>
+          // Note that it very important that the nodeId is cached to avoid gaps
+          // in the sequence if the nodeId changes
+<span class="nc" id="L66">          nodeId = callBack.getNodeId();</span>
+<span class="nc" id="L67">          lastSequenceNumberAtomic.set(</span>
+<span class="nc" id="L68">              callBack.getMaxSequenceNumberForNode(nodeId));</span>
+        }
+      } finally {
+<span class="nc" id="L71">        lockDataBaseUpdate.unlock();</span>
+      }
+    }
+<span class="nc" id="L74">    return lastSequenceNumberAtomic.incrementAndGet();</span>
+  }
+
+  /** @return the Node Identifier that this sequence number applies to. */
+  public String getNodeId() {
+<span class="nc" id="L79">    return nodeId;</span>
+  }
+
+  /**
+   * Trigger a re-read of the nodeId and last sequence number for the node on
+   * next call to {@link NodeSequenceHolder#getNext(OnInitCallBack)}.
+   *
+   * &lt;p&gt;WARNING: This class is NOT safe to reset in an concurrent environment
+   * and this method should only be used from unit tests.
+   */
+  public void reset() {
+<span class="nc" id="L90">    lastSequenceNumberAtomic.set(-1L);</span>
+<span class="nc" id="L91">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

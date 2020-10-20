@@ -14,31 +14,40 @@ package org.cesecore.keys.token;
 
 /**
  * Thrown when trying to instantiate an unknown crypto token class.
- * 
- * @version $Id: CryptoTokenClassNotFoundException.java 20648 2015-02-10 14:19:39Z aveen4711 $
  *
+ * @version $Id: CryptoTokenClassNotFoundException.java 20648 2015-02-10
+ *     14:19:39Z aveen4711 $
  */
 public class CryptoTokenClassNotFoundException extends RuntimeException {
 
-    private static final long serialVersionUID = -7935523503522491237L;
-    
-    public CryptoTokenClassNotFoundException() {
-<span class="nc" id="L26">        super();</span>
-<span class="nc" id="L27">    }</span>
+  private static final long serialVersionUID = -7935523503522491237L;
 
-    public CryptoTokenClassNotFoundException(String message, Throwable cause) {
-<span class="nc" id="L30">        super(message, cause);</span>
-<span class="nc" id="L31">    }</span>
+  /** default. */
+  public CryptoTokenClassNotFoundException() {
+<span class="nc" id="L27">    super();</span>
+<span class="nc" id="L28">  }</span>
 
-    public CryptoTokenClassNotFoundException(String message) {
-<span class="nc" id="L34">        super(message);</span>
-<span class="nc" id="L35">    }</span>
+  /**
+   * @param message message
+   * @param cause cause
+   */
+  public CryptoTokenClassNotFoundException(
+          final String message, final Throwable cause) {
+<span class="nc" id="L36">    super(message, cause);</span>
+<span class="nc" id="L37">  }</span>
 
-    public CryptoTokenClassNotFoundException(Throwable cause) {
-<span class="nc" id="L38">        super(cause);</span>
-<span class="nc" id="L39">    }</span>
+  /**
+   * @param message message
+   */
+  public CryptoTokenClassNotFoundException(final String message) {
+<span class="nc" id="L43">    super(message);</span>
+<span class="nc" id="L44">  }</span>
 
-  
-
+  /**
+   * @param cause cause
+   */
+  public CryptoTokenClassNotFoundException(final Throwable cause) {
+<span class="nc" id="L50">    super(cause);</span>
+<span class="nc" id="L51">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

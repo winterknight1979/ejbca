@@ -20,14 +20,12 @@ import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
 import javax.persistence.Entity;
 import javax.persistence.PostLoad;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 import javax.persistence.Transient;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.cesecore.dbprotection.ProtectedData;
@@ -38,195 +36,310 @@ import org.cesecore.util.SecureXMLDecoder;
 
 /**
  * Represents a role.
- * 
+ *
  * @version $Id: RoleData.java 34163 2020-01-02 15:00:17Z samuellb $
  */
 @Entity
 @Table(name = &quot;RoleData&quot;)
 public class RoleData extends ProtectedData implements Serializable {
 
-    private static final long serialVersionUID = 1L;
-<span class="fc" id="L49">    private static final Logger log = Logger.getLogger(RoleData.class);</span>
+  private static final long serialVersionUID = 1L;
+  /** Logger. */
+<span class="fc" id="L48">  private static final Logger LOG = Logger.getLogger(RoleData.class);</span>
 
-    private int id;
-    private String nameSpaceColumn;
-    private String roleName;
-    private String rawData;
-<span class="fc" id="L55">    private int rowVersion = 0;</span>
-    private String rowProtection;
+  /** Param. */
+  private int id;
+  /** Param. */
+  private String nameSpaceColumn;
+  /** Param. */
+  private String roleName;
+  /** Param. */
+  private String rawData;
+  /** Param. */
+<span class="fc" id="L59">  private int rowVersion = 0;</span>
+  /** Param. */
+  private String rowProtection;
 
-<span class="fc" id="L58">    public RoleData() {</span>
-<span class="fc" id="L59">    }</span>
+  /**
+   * Null constructor.
+   */
+<span class="fc" id="L66">  public RoleData() { }</span>
 
-<span class="fc" id="L61">    public RoleData(final Role role) {</span>
-<span class="fc" id="L62">        setRole(role);</span>
-<span class="fc" id="L63">    }</span>
+  /**
+   * @param role role
+   */
+<span class="fc" id="L71">  public RoleData(final Role role) {</span>
+<span class="fc" id="L72">    setRole(role);</span>
+<span class="fc" id="L73">  }</span>
 
-    // @Id @Column
-<span class="fc" id="L66">    public int getId() { return id; }</span>
-<span class="fc" id="L67">    public void setId(int id) { this.id = id; }</span>
+  /**
+   * @return ID
+   */
+  // @Id @Column
+  public int getId() {
+<span class="fc" id="L80">    return id;</span>
+  }
 
-    //@Column(name=&quot;nameSpace&quot;)
-    @Deprecated
-    /** @deprecated (Only for database mapping) {@link #getNameSpaceNeverNull()} */
-<span class="fc" id="L72">    public String getNameSpaceColumn() { return nameSpaceColumn; }</span>
-    @Deprecated
-    /** @deprecated (Only for database mapping) {@link #setNameSpaceNeverNull(String)} */
-<span class="fc" id="L75">    public void setNameSpaceColumn(String nameSpaceColumn) { this.nameSpaceColumn = nameSpaceColumn; }</span>
+  /**
+   * @param anId ID
+   */
+  public void setId(final int anId) {
+<span class="fc" id="L87">    this.id = anId;</span>
+<span class="fc" id="L88">  }</span>
 
-    // Ensure that we treat empty string as null for consistent behavior with Oracle
-    @Transient
-    public String getNameSpace() {
-<span class="nc" id="L80">        return StringUtils.defaultIfEmpty(getNameSpaceColumn(), &quot;&quot;);</span>
+  // @Column(name=&quot;nameSpace&quot;)
+
+  /**
+   * @return Column
+ * @deprecated (Only for database mapping)
+   */
+  @Deprecated
+  public String getNameSpaceColumn() {
+<span class="fc" id="L98">    return nameSpaceColumn;</span>
+  }
+
+  /**
+   * @param aNameSpaceColumn column
+ * @deprecated (Only for database mapping)
+   */
+  @Deprecated
+  public void setNameSpaceColumn(final String aNameSpaceColumn) {
+<span class="fc" id="L107">    this.nameSpaceColumn = aNameSpaceColumn;</span>
+<span class="fc" id="L108">  }</span>
+
+  // Ensure that we treat empty string as null for consistent behavior with
+  // Oracle
+  /**
+   * @return NS
+   */
+  @Transient
+  public String getNameSpace() {
+<span class="nc" id="L117">    return StringUtils.defaultIfEmpty(getNameSpaceColumn(), &quot;&quot;);</span>
+  }
+
+  // Ensure that we treat empty string as null for consistent behavior with
+  // Oracle
+  /**
+   * @param nameSpace NS
+   */
+  @Transient
+  public void setNameSpace(final String nameSpace) {
+<span class="fc" id="L127">    setNameSpaceColumn(StringUtils.defaultIfEmpty(nameSpace, null));</span>
+<span class="fc" id="L128">  }</span>
+
+  /**
+   * @return name
+   */
+  // @Column
+  public String getRoleName() {
+<span class="fc" id="L135">    return roleName;</span>
+  }
+
+  /**
+   * @param aRoleName Name
+   */
+  public void setRoleName(final String aRoleName) {
+<span class="fc" id="L142">    this.roleName = aRoleName;</span>
+<span class="fc" id="L143">  }</span>
+
+  // @Column
+  /**
+   * Should not be invoked directly. Use getDataMap() instead.
+   *
+   * @return data
+   */
+  public String getRawData() {
+<span class="fc" id="L152">    return rawData;</span>
+  }
+  /**
+   * Should not be invoked directly. Use setDataMap(..) instead.
+   *
+   * @param theRawData data
+   */
+  public void setRawData(final String theRawData) {
+<span class="fc" id="L160">    this.rawData = theRawData;</span>
+<span class="fc" id="L161">  }</span>
+
+  /**
+   * @return Map
+   */
+  @Transient
+  @SuppressWarnings(&quot;unchecked&quot;)
+  public LinkedHashMap&lt;Object, Object&gt; getDataMap() {
+<span class="nc" id="L169">    try (SecureXMLDecoder decoder =</span>
+        new SecureXMLDecoder(
+            new ByteArrayInputStream(
+<span class="nc" id="L172">                getRawData().getBytes(StandardCharsets.UTF_8))); ) {</span>
+      // Handle Base64 encoded string values
+<span class="nc" id="L174">      return new Base64GetHashMap((Map&lt;?, ?&gt;) decoder.readObject());</span>
+<span class="nc" id="L175">    } catch (IOException e) {</span>
+<span class="nc" id="L176">      final String msg =</span>
+          &quot;Failed to parse data map for role '&quot;
+              + roleName
+              + &quot;': &quot;
+<span class="nc" id="L180">              + e.getMessage();</span>
+<span class="nc bnc" id="L181" title="All 2 branches missed.">      if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L182">        LOG.debug(msg + &quot;. Data:\n&quot; + getRawData());</span>
+      }
+<span class="nc" id="L184">      throw new IllegalStateException(msg, e);</span>
     }
+  }
 
-    // Ensure that we treat empty string as null for consistent behavior with Oracle
-    @Transient
-    public void setNameSpace(final String nameSpace) {
-<span class="fc" id="L86">        setNameSpaceColumn(StringUtils.defaultIfEmpty(nameSpace, null));</span>
-<span class="fc" id="L87">    }</span>
-
-    // @Column
-<span class="fc" id="L90">    public String getRoleName() { return roleName; }</span>
-<span class="fc" id="L91">    public void setRoleName(String roleName) { this.roleName = roleName; }</span>
-
-
-    // @Column
-    /** Should not be invoked directly. Use getDataMap() instead. 
-     * @return data*/
-<span class="fc" id="L97">    public String getRawData() { return rawData; }</span>
-    /** Should not be invoked directly. Use setDataMap(..) instead. 
-     * @param rawData data */
-<span class="fc" id="L100">    public void setRawData(String rawData) { this.rawData = rawData; }</span>
-
-    @Transient
-    @SuppressWarnings(&quot;unchecked&quot;)
-    public LinkedHashMap&lt;Object, Object&gt; getDataMap() {
-<span class="nc" id="L105">        try (final SecureXMLDecoder decoder = new SecureXMLDecoder(new ByteArrayInputStream(getRawData().getBytes(StandardCharsets.UTF_8)));) {</span>
-            // Handle Base64 encoded string values
-<span class="nc" id="L107">            return new Base64GetHashMap((Map&lt;?, ?&gt;)decoder.readObject());</span>
-<span class="nc" id="L108">        } catch (IOException e) {</span>
-<span class="nc" id="L109">            final String msg = &quot;Failed to parse data map for role '&quot; + roleName + &quot;': &quot; + e.getMessage();</span>
-<span class="nc bnc" id="L110" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L111">                log.debug(msg + &quot;. Data:\n&quot; + getRawData());</span>
-            }
-<span class="nc" id="L113">            throw new IllegalStateException(msg, e);</span>
-        }
+  /**
+   * @param dataMap map
+   */
+  @Transient
+  public void setDataMap(final LinkedHashMap&lt;Object, Object&gt; dataMap) {
+<span class="fc" id="L193">    final ByteArrayOutputStream baos = new ByteArrayOutputStream();</span>
+<span class="fc" id="L194">    try (XMLEncoder encoder = new XMLEncoder(baos); ) {</span>
+      // We must base64 encode string for UTF safety
+<span class="fc" id="L196">      encoder.writeObject(new Base64PutHashMap(dataMap));</span>
     }
+<span class="fc" id="L198">    setRawData(new String(baos.toByteArray(), StandardCharsets.UTF_8));</span>
+<span class="fc" id="L199">  }</span>
 
-    @Transient
-    public void setDataMap(final LinkedHashMap&lt;Object, Object&gt; dataMap) {
-<span class="fc" id="L119">        final ByteArrayOutputStream baos = new ByteArrayOutputStream();</span>
-<span class="fc" id="L120">        try (final XMLEncoder encoder = new XMLEncoder(baos);){</span>
-            // We must base64 encode string for UTF safety
-<span class="fc" id="L122">            encoder.writeObject(new Base64PutHashMap(dataMap));</span>
-        }
-<span class="fc" id="L124">        setRawData(new String(baos.toByteArray(), StandardCharsets.UTF_8));</span>
-<span class="fc" id="L125">    }</span>
+  /**
+   * @return role
+   */
+  @Transient
+  public Role getRole() {
+<span class="nc" id="L206">    return new Role(getId(), getNameSpace(), getRoleName(), getDataMap());</span>
+  }
 
-    @Transient
-    public Role getRole() {
-<span class="nc" id="L129">        return new Role(getId(), getNameSpace(), getRoleName(), getDataMap());</span>
+  /**
+   * @param role role
+   */
+  @Transient
+  public void setRole(final Role role) {
+<span class="fc" id="L214">    setId(role.getRoleId());</span>
+<span class="fc" id="L215">    setNameSpace(role.getNameSpace());</span>
+<span class="fc" id="L216">    setRoleName(role.getRoleName());</span>
+<span class="fc" id="L217">    setDataMap(role.getRawData());</span>
+<span class="fc" id="L218">  }</span>
+
+  /**
+   * @return version
+   */
+  // @Version @Column
+  public int getRowVersion() {
+<span class="fc" id="L225">    return rowVersion;</span>
+  }
+
+  /**
+   * @param aRowVersion version
+   */
+  public void setRowVersion(final int aRowVersion) {
+<span class="fc" id="L232">    this.rowVersion = aRowVersion;</span>
+<span class="fc" id="L233">  }</span>
+
+  // @Column @Lob
+  @Override
+  public String getRowProtection() {
+<span class="fc" id="L238">    return rowProtection;</span>
+  }
+
+  @Override
+  public void setRowProtection(final String aRowProtection) {
+<span class="fc" id="L243">    this.rowProtection = aRowProtection;</span>
+<span class="fc" id="L244">  }</span>
+
+  //
+  // Start Database integrity protection methods
+  //
+
+  @Transient
+  @Override
+  protected String getProtectString(final int version) {
+<span class="nc" id="L253">    final ProtectionStringBuilder build = new ProtectionStringBuilder();</span>
+    // What is important to protect here is the data that we define, id, name
+    // and certificate profile data
+    // rowVersion is automatically updated by JPA, so it's not important, it is
+    // only used for optimistic locking
+<span class="nc" id="L258">    build</span>
+<span class="nc" id="L259">        .append(getId())</span>
+<span class="nc" id="L260">        .append(getNameSpace())</span>
+<span class="nc" id="L261">        .append(getRoleName())</span>
+<span class="nc" id="L262">        .append(getRawData())</span>
+<span class="nc" id="L263">        .append(getRawData());</span>
+<span class="nc" id="L264">    return build.toString();</span>
+  }
+
+  @Transient
+  @Override
+  protected int getProtectVersion() {
+<span class="nc" id="L270">    return 1;</span>
+  }
+
+  @PrePersist
+  @PreUpdate
+  @Override
+  protected void protectData() {
+<span class="fc" id="L277">    super.protectData();</span>
+<span class="fc" id="L278">  }</span>
+
+  @PostLoad
+  @Override
+  protected void verifyData() {
+<span class="nc" id="L283">    super.verifyData();</span>
+<span class="nc" id="L284">  }</span>
+
+  @Override
+  @Transient
+  protected String getRowId() {
+<span class="nc" id="L289">    return String.valueOf(getId());</span>
+  }
+
+  //
+  // End Database integrity protection methods
+  //
+
+  @Override
+  public String toString() {
+<span class="nc" id="L298">    return roleName;</span>
+  }
+
+  @Override
+  public int hashCode() {
+<span class="fc" id="L303">    final int prime = 31;</span>
+<span class="fc" id="L304">    int result = 1;</span>
+<span class="fc" id="L305">    result = prime * result + id;</span>
+<span class="fc" id="L306">    result =</span>
+        prime * result
+<span class="pc bpc" id="L308" title="1 of 2 branches missed.">            + ((nameSpaceColumn == null) ? 0 : nameSpaceColumn.hashCode());</span>
+<span class="pc bpc" id="L309" title="1 of 2 branches missed.">    result = prime * result + ((roleName == null) ? 0 : roleName.hashCode());</span>
+<span class="fc" id="L310">    return result;</span>
+  }
+
+  @Override
+  public boolean equals(final Object obj) {
+<span class="fc bfc" id="L315" title="All 2 branches covered.">    if (this == obj) {</span>
+<span class="fc" id="L316">        return true;</span>
     }
-
-    @Transient
-    public void setRole(final Role role) {
-<span class="fc" id="L134">        setId(role.getRoleId());</span>
-<span class="fc" id="L135">        setNameSpace(role.getNameSpace());</span>
-<span class="fc" id="L136">        setRoleName(role.getRoleName());</span>
-<span class="fc" id="L137">        setDataMap(role.getRawData());</span>
-<span class="fc" id="L138">    }</span>
-
-    // @Version @Column
-<span class="fc" id="L141">    public int getRowVersion() { return rowVersion; }</span>
-<span class="fc" id="L142">    public void setRowVersion(final int rowVersion) { this.rowVersion = rowVersion; }</span>
-
-    // @Column @Lob
-    @Override
-<span class="fc" id="L146">    public String getRowProtection() { return rowProtection; }</span>
-    @Override
-<span class="fc" id="L148">    public void setRowProtection(final String rowProtection) { this.rowProtection = rowProtection; }</span>
-
-    //
-    // Start Database integrity protection methods
-    //
-
-    @Transient
-    @Override
-    protected String getProtectString(final int version) {
-<span class="nc" id="L157">        final ProtectionStringBuilder build = new ProtectionStringBuilder();</span>
-        // What is important to protect here is the data that we define, id, name and certificate profile data
-        // rowVersion is automatically updated by JPA, so it's not important, it is only used for optimistic locking
-<span class="nc" id="L160">        build.append(getId()).append(getNameSpace()).append(getRoleName()).append(getRawData()).append(getRawData());</span>
-<span class="nc" id="L161">        return build.toString();</span>
+<span class="pc bpc" id="L318" title="1 of 2 branches missed.">    if (obj == null) {</span>
+<span class="nc" id="L319">        return false;</span>
     }
-
-    @Transient
-    @Override
-    protected int getProtectVersion() {
-<span class="nc" id="L167">        return 1;</span>
+<span class="pc bpc" id="L321" title="1 of 2 branches missed.">    if (getClass() != obj.getClass()) {</span>
+<span class="nc" id="L322">        return false;</span>
     }
-
-    @PrePersist
-    @PreUpdate
-    @Override
-    protected void protectData() {
-<span class="fc" id="L174">        super.protectData();</span>
-<span class="fc" id="L175">    }</span>
-
-    @PostLoad
-    @Override
-    protected void verifyData() {
-<span class="nc" id="L180">        super.verifyData();</span>
-<span class="nc" id="L181">    }</span>
-
-    @Override
-    @Transient
-    protected String getRowId() {
-<span class="nc" id="L186">        return String.valueOf(getId());</span>
+<span class="fc" id="L324">    RoleData other = (RoleData) obj;</span>
+<span class="pc bpc" id="L325" title="1 of 2 branches missed.">    if (id != other.id) {</span>
+<span class="nc" id="L326">        return false;</span>
     }
-
-    //
-    // End Database integrity protection methods
-    //
-    
-    @Override
-    public String toString() {
-<span class="nc" id="L195">        return roleName;</span>
+<span class="pc bpc" id="L328" title="1 of 2 branches missed.">    if (nameSpaceColumn == null) {</span>
+<span class="pc bpc" id="L329" title="1 of 2 branches missed.">      if (other.nameSpaceColumn != null) {</span>
+<span class="nc" id="L330">          return false;</span>
+      }
+<span class="nc bnc" id="L332" title="All 2 branches missed.">    } else if (!nameSpaceColumn.equals(other.nameSpaceColumn)) {</span>
+<span class="nc" id="L333">        return false;</span>
     }
-    
-    @Override
-    public int hashCode() {
-<span class="fc" id="L200">        final int prime = 31;</span>
-<span class="fc" id="L201">        int result = 1;</span>
-<span class="fc" id="L202">        result = prime * result + id;</span>
-<span class="pc bpc" id="L203" title="1 of 2 branches missed.">        result = prime * result + ((nameSpaceColumn == null) ? 0 : nameSpaceColumn.hashCode());</span>
-<span class="pc bpc" id="L204" title="1 of 2 branches missed.">        result = prime * result + ((roleName == null) ? 0 : roleName.hashCode());</span>
-<span class="fc" id="L205">        return result;</span>
+<span class="pc bpc" id="L335" title="1 of 2 branches missed.">    if (roleName == null) {</span>
+<span class="nc bnc" id="L336" title="All 2 branches missed.">      if (other.roleName != null) {</span>
+<span class="nc" id="L337">          return false;</span>
+      }
+<span class="pc bpc" id="L339" title="1 of 2 branches missed.">    } else if (!roleName.equals(other.roleName)) {</span>
+<span class="nc" id="L340">        return false;</span>
     }
-
-    @Override
-    public boolean equals(Object obj) {
-<span class="fc bfc" id="L210" title="All 2 branches covered.">        if (this == obj)</span>
-<span class="fc" id="L211">            return true;</span>
-<span class="pc bpc" id="L212" title="1 of 2 branches missed.">        if (obj == null)</span>
-<span class="nc" id="L213">            return false;</span>
-<span class="pc bpc" id="L214" title="1 of 2 branches missed.">        if (getClass() != obj.getClass())</span>
-<span class="nc" id="L215">            return false;</span>
-<span class="fc" id="L216">        RoleData other = (RoleData) obj;</span>
-<span class="pc bpc" id="L217" title="1 of 2 branches missed.">        if (id != other.id)</span>
-<span class="nc" id="L218">            return false;</span>
-<span class="pc bpc" id="L219" title="1 of 2 branches missed.">        if (nameSpaceColumn == null) {</span>
-<span class="pc bpc" id="L220" title="1 of 2 branches missed.">            if (other.nameSpaceColumn != null)</span>
-<span class="nc" id="L221">                return false;</span>
-<span class="nc bnc" id="L222" title="All 2 branches missed.">        } else if (!nameSpaceColumn.equals(other.nameSpaceColumn))</span>
-<span class="nc" id="L223">            return false;</span>
-<span class="pc bpc" id="L224" title="1 of 2 branches missed.">        if (roleName == null) {</span>
-<span class="nc bnc" id="L225" title="All 2 branches missed.">            if (other.roleName != null)</span>
-<span class="nc" id="L226">                return false;</span>
-<span class="pc bpc" id="L227" title="1 of 2 branches missed.">        } else if (!roleName.equals(other.roleName))</span>
-<span class="nc" id="L228">            return false;</span>
-<span class="fc" id="L229">        return true;</span>
-    }
+<span class="fc" id="L342">    return true;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

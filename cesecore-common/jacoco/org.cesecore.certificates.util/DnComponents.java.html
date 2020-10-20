@@ -23,554 +23,770 @@ import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Set;
 import java.util.TreeSet;
-
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.cesecore.util.CeSecoreNameStyle;
 
-/** Class holding information and utilities for handling different DN components, CN, O etc
- * 
- * This is a very complex class with lots of maps and stuff. It is because it is a first step of refactoring the DN/AltName/DirAttr handling. 
- * This previously consisted of lots of different arrays spread out all over the place, now it's gathered here in order to be able to get a view of it.
- * The underlying implementations have not changed much though, in order to still have things working, therefore there are lots of different maps and arrays, with
- * seemingly similar contents. 
- * 
+/**
+ * Class holding information and utilities for handling different DN components,
+ * CN, O etc
+ *
+ * &lt;p&gt;This is a very complex class with lots of maps and stuff. It is because it
+ * is a first step of refactoring the DN/AltName/DirAttr handling. This
+ * previously consisted of lots of different arrays spread out all over the
+ * place, now it's gathered here in order to be able to get a view of it. The
+ * underlying implementations have not changed much though, in order to still
+ * have things working, therefore there are lots of different maps and arrays,
+ * with seemingly similar contents.
+ *
  * @version $Id: DnComponents.java 27374 2017-12-01 12:37:30Z anatom $
  */
-<span class="fc" id="L42">public class DnComponents {</span>
-<span class="fc" id="L43">    private static Logger log = Logger.getLogger(DnComponents.class);</span>
+public final class DnComponents {
 
-    /** This class should be instantiated immediately */
-<span class="fc" id="L46">    private static DnComponents obj = new DnComponents();</span>
+    private DnComponents() { }
 
-    /** BC X500Name contains some lookup tables that could maybe be used here. 
-     * 
-     * This map is used in CertTools so sort and order DN strings so they all look the same in the database.
-     * */
-<span class="fc" id="L52">    private static HashMap&lt;String, ASN1ObjectIdentifier&gt; oids = new HashMap&lt;String, ASN1ObjectIdentifier&gt;();</span>
-    // Default values
-    static {
-<span class="fc" id="L55">        oids.put(&quot;c&quot;, CeSecoreNameStyle.C);</span>
-<span class="fc" id="L56">        oids.put(&quot;dc&quot;, CeSecoreNameStyle.DC);</span>
-<span class="fc" id="L57">        oids.put(&quot;st&quot;, CeSecoreNameStyle.ST);</span>
-<span class="fc" id="L58">        oids.put(&quot;l&quot;, CeSecoreNameStyle.L);</span>
-<span class="fc" id="L59">        oids.put(&quot;o&quot;, CeSecoreNameStyle.O);</span>
-<span class="fc" id="L60">        oids.put(&quot;ou&quot;, CeSecoreNameStyle.OU);</span>
-<span class="fc" id="L61">        oids.put(&quot;t&quot;, CeSecoreNameStyle.T);</span>
-<span class="fc" id="L62">        oids.put(&quot;surname&quot;, CeSecoreNameStyle.SURNAME);</span>
-<span class="fc" id="L63">        oids.put(&quot;initials&quot;, CeSecoreNameStyle.INITIALS);</span>
-<span class="fc" id="L64">        oids.put(&quot;givenname&quot;, CeSecoreNameStyle.GIVENNAME);</span>
-<span class="fc" id="L65">        oids.put(&quot;gn&quot;, CeSecoreNameStyle.GIVENNAME);</span>
-<span class="fc" id="L66">        oids.put(&quot;sn&quot;, CeSecoreNameStyle.SN);</span>
-<span class="fc" id="L67">        oids.put(&quot;serialnumber&quot;, CeSecoreNameStyle.SERIALNUMBER);</span>
-<span class="fc" id="L68">        oids.put(&quot;cn&quot;, CeSecoreNameStyle.CN);</span>
-<span class="fc" id="L69">        oids.put(&quot;uid&quot;, CeSecoreNameStyle.UID);</span>
-<span class="fc" id="L70">        oids.put(&quot;dn&quot;, CeSecoreNameStyle.DN_QUALIFIER);</span>
-<span class="fc" id="L71">        oids.put(&quot;emailaddress&quot;, CeSecoreNameStyle.EmailAddress);</span>
-<span class="fc" id="L72">        oids.put(&quot;e&quot;, CeSecoreNameStyle.EmailAddress);</span>
-<span class="fc" id="L73">        oids.put(&quot;email&quot;, CeSecoreNameStyle.EmailAddress);</span>
-<span class="fc" id="L74">        oids.put(&quot;unstructuredname&quot;, CeSecoreNameStyle.UnstructuredName); //unstructuredName </span>
-<span class="fc" id="L75">        oids.put(&quot;unstructuredaddress&quot;, CeSecoreNameStyle.UnstructuredAddress); //unstructuredAddress</span>
-<span class="fc" id="L76">        oids.put(&quot;postalcode&quot;, CeSecoreNameStyle.POSTAL_CODE);</span>
-<span class="fc" id="L77">        oids.put(&quot;businesscategory&quot;, CeSecoreNameStyle.BUSINESS_CATEGORY);</span>
-<span class="fc" id="L78">        oids.put(&quot;postaladdress&quot;, CeSecoreNameStyle.POSTAL_ADDRESS);</span>
-<span class="fc" id="L79">        oids.put(&quot;telephonenumber&quot;, CeSecoreNameStyle.TELEPHONE_NUMBER);</span>
-<span class="fc" id="L80">        oids.put(&quot;pseudonym&quot;, CeSecoreNameStyle.PSEUDONYM);</span>
-<span class="fc" id="L81">        oids.put(&quot;street&quot;, CeSecoreNameStyle.STREET);</span>
-<span class="fc" id="L82">        oids.put(&quot;name&quot;, CeSecoreNameStyle.NAME);</span>
-<span class="fc" id="L83">        oids.put(&quot;description&quot;, CeSecoreNameStyle.DESCRIPTION);</span>
-<span class="fc" id="L84">        oids.put(&quot;jurisdictionlocality&quot;, CeSecoreNameStyle.JURISDICTION_LOCALITY);</span>
-<span class="fc" id="L85">        oids.put(&quot;jurisdictionstate&quot;, CeSecoreNameStyle.JURISDICTION_STATE);</span>
-<span class="fc" id="L86">        oids.put(&quot;jurisdictioncountry&quot;, CeSecoreNameStyle.JURISDICTION_COUNTRY);</span>
-<span class="fc" id="L87">        oids.put(&quot;organizationidentifier&quot;, CeSecoreNameStyle.ORGANIZATION_IDENTIFIER);</span>
+    /** Logger. */
+<span class="fc" id="L51">  private static Logger log = Logger.getLogger(DnComponents.class);</span>
 
+  /** This class should be instantiated immediately. */
+<span class="fc" id="L54">  private static DnComponents obj = new DnComponents();</span>
+
+  /**
+   * BC X500Name contains some lookup tables that could maybe be used here.
+   *
+   * &lt;p&gt;This map is used in CertTools so sort and order DN strings so they all
+   * look the same in the database.
+   */
+<span class="fc" id="L62">  private static HashMap&lt;String, ASN1ObjectIdentifier&gt; oids =</span>
+      new HashMap&lt;String, ASN1ObjectIdentifier&gt;();
+  // Default values
+  static {
+<span class="fc" id="L66">    oids.put(&quot;c&quot;, CeSecoreNameStyle.C);</span>
+<span class="fc" id="L67">    oids.put(&quot;dc&quot;, CeSecoreNameStyle.DC);</span>
+<span class="fc" id="L68">    oids.put(&quot;st&quot;, CeSecoreNameStyle.ST);</span>
+<span class="fc" id="L69">    oids.put(&quot;l&quot;, CeSecoreNameStyle.L);</span>
+<span class="fc" id="L70">    oids.put(&quot;o&quot;, CeSecoreNameStyle.O);</span>
+<span class="fc" id="L71">    oids.put(&quot;ou&quot;, CeSecoreNameStyle.OU);</span>
+<span class="fc" id="L72">    oids.put(&quot;t&quot;, CeSecoreNameStyle.T);</span>
+<span class="fc" id="L73">    oids.put(&quot;surname&quot;, CeSecoreNameStyle.SURNAME);</span>
+<span class="fc" id="L74">    oids.put(&quot;initials&quot;, CeSecoreNameStyle.INITIALS);</span>
+<span class="fc" id="L75">    oids.put(&quot;givenname&quot;, CeSecoreNameStyle.GIVENNAME);</span>
+<span class="fc" id="L76">    oids.put(&quot;gn&quot;, CeSecoreNameStyle.GIVENNAME);</span>
+<span class="fc" id="L77">    oids.put(&quot;sn&quot;, CeSecoreNameStyle.SN);</span>
+<span class="fc" id="L78">    oids.put(&quot;serialnumber&quot;, CeSecoreNameStyle.SERIALNUMBER);</span>
+<span class="fc" id="L79">    oids.put(&quot;cn&quot;, CeSecoreNameStyle.CN);</span>
+<span class="fc" id="L80">    oids.put(&quot;uid&quot;, CeSecoreNameStyle.UID);</span>
+<span class="fc" id="L81">    oids.put(&quot;dn&quot;, CeSecoreNameStyle.DN_QUALIFIER);</span>
+<span class="fc" id="L82">    oids.put(&quot;emailaddress&quot;, CeSecoreNameStyle.EmailAddress);</span>
+<span class="fc" id="L83">    oids.put(&quot;e&quot;, CeSecoreNameStyle.EmailAddress);</span>
+<span class="fc" id="L84">    oids.put(&quot;email&quot;, CeSecoreNameStyle.EmailAddress);</span>
+<span class="fc" id="L85">    oids.put(</span>
+        &quot;unstructuredname&quot;,
+        CeSecoreNameStyle.UnstructuredName); // unstructuredName
+<span class="fc" id="L88">    oids.put(</span>
+        &quot;unstructuredaddress&quot;,
+        CeSecoreNameStyle.UnstructuredAddress); // unstructuredAddress
+<span class="fc" id="L91">    oids.put(&quot;postalcode&quot;, CeSecoreNameStyle.POSTAL_CODE);</span>
+<span class="fc" id="L92">    oids.put(&quot;businesscategory&quot;, CeSecoreNameStyle.BUSINESS_CATEGORY);</span>
+<span class="fc" id="L93">    oids.put(&quot;postaladdress&quot;, CeSecoreNameStyle.POSTAL_ADDRESS);</span>
+<span class="fc" id="L94">    oids.put(&quot;telephonenumber&quot;, CeSecoreNameStyle.TELEPHONE_NUMBER);</span>
+<span class="fc" id="L95">    oids.put(&quot;pseudonym&quot;, CeSecoreNameStyle.PSEUDONYM);</span>
+<span class="fc" id="L96">    oids.put(&quot;street&quot;, CeSecoreNameStyle.STREET);</span>
+<span class="fc" id="L97">    oids.put(&quot;name&quot;, CeSecoreNameStyle.NAME);</span>
+<span class="fc" id="L98">    oids.put(&quot;description&quot;, CeSecoreNameStyle.DESCRIPTION);</span>
+<span class="fc" id="L99">    oids.put(&quot;jurisdictionlocality&quot;, CeSecoreNameStyle.JURISDICTION_LOCALITY);</span>
+<span class="fc" id="L100">    oids.put(&quot;jurisdictionstate&quot;, CeSecoreNameStyle.JURISDICTION_STATE);</span>
+<span class="fc" id="L101">    oids.put(&quot;jurisdictioncountry&quot;, CeSecoreNameStyle.JURISDICTION_COUNTRY);</span>
+<span class="fc" id="L102">    oids.put(</span>
+        &quot;organizationidentifier&quot;, CeSecoreNameStyle.ORGANIZATION_IDENTIFIER);
+  }
+  /**
+   * Default values used when constructing DN strings that are put in the
+   * database.
+   */
+<span class="fc" id="L109">  private static String[] dNObjectsForward = {</span>
+    &quot;description&quot;,
+    &quot;jurisdictioncountry&quot;,
+    &quot;jurisdictionstate&quot;,
+    &quot;jurisdictionlocality&quot;,
+    &quot;street&quot;,
+    &quot;pseudonym&quot;,
+    &quot;telephonenumber&quot;,
+    &quot;postaladdress&quot;,
+    &quot;businesscategory&quot;,
+    &quot;postalcode&quot;,
+    &quot;unstructuredaddress&quot;,
+    &quot;unstructuredname&quot;,
+    &quot;emailaddress&quot;,
+    &quot;e&quot;,
+    &quot;email&quot;,
+    &quot;dn&quot;,
+    &quot;uid&quot;,
+    &quot;cn&quot;,
+    &quot;name&quot;,
+    &quot;sn&quot;,
+    &quot;serialnumber&quot;,
+    &quot;gn&quot;,
+    &quot;givenname&quot;,
+    &quot;initials&quot;,
+    &quot;surname&quot;,
+    &quot;t&quot;,
+    &quot;ou&quot;,
+    &quot;organizationidentifier&quot;,
+    &quot;o&quot;,
+    &quot;l&quot;,
+    &quot;st&quot;,
+    &quot;dc&quot;,
+    &quot;c&quot;
+  };
+  /** Default values. */
+<span class="fc" id="L145">  private static String[] dNObjectsReverse = null;</span>
+
+  /*
+   * These maps and constants are used in the admin-GUI and in End Entity
+   * profiles
+   */
+
+  /*
+   * These constants can be used when referring to standard,
+   * build in components.
+   */
+  // DN components
+  /** Email. */
+  public static final String DNEMAILADDRESS = &quot;EMAILADDRESS&quot;;
+
+  /** Qual.*/
+  public static final String DNQUALIFIER = &quot;DNQUALIFIER&quot;;
+  /** UID. */
+  public static final String UID = &quot;UID&quot;;
+  /** CN. */
+  public static final String COMMONNAME = &quot;COMMONNAME&quot;;
+  /** SN. */
+  public static final String DNSERIALNUMBER = &quot;SERIALNUMBER&quot;;
+  /** Given. */
+  public static final String GIVENNAME = &quot;GIVENNAME&quot;;
+  /** Given. */
+  public static final String INITIALS = &quot;INITIALS&quot;;
+  /** Surname. */
+  public static final String SURNAME = &quot;SURNAME&quot;;
+  /** Title. */
+  public static final String TITLE = &quot;TITLE&quot;;
+  /** Unit. */
+  public static final String ORGANIZATIONALUNIT = &quot;ORGANIZATIONALUNIT&quot;;
+  /** Org. */
+  public static final String ORGANIZATION = &quot;ORGANIZATION&quot;;
+  /** Locality. */
+  public static final String LOCALITY = &quot;LOCALITY&quot;;
+  /** State. */
+  public static final String STATEORPROVINCE = &quot;STATEORPROVINCE&quot;;
+  /** Domain. */
+  public static final String DOMAINCOMPONENT = &quot;DOMAINCOMPONENT&quot;;
+  /** Country. */
+  public static final String COUNTRY = &quot;COUNTRY&quot;;
+  /** Address. */
+  public static final String UNSTRUCTUREDADDRESS = &quot;UNSTRUCTUREDADDRESS&quot;;
+  /** Name. */
+  public static final String UNSTRUCTUREDNAME = &quot;UNSTRUCTUREDNAME&quot;;
+  /** Postcode. */
+  public static final String POSTALCODE = &quot;POSTALCODE&quot;;
+  /** Category. */
+  public static final String BUSINESSCATEGORY = &quot;BUSINESSCATEGORY&quot;;
+  /** Address. */
+  public static final String POSTALADDRESS = &quot;POSTALADDRESS&quot;;
+  /** Tel. */
+  public static final String TELEPHONENUMBER = &quot;TELEPHONENUMBER&quot;;
+  /** Pseud. */
+  public static final String PSEUDONYM = &quot;PSEUDONYM&quot;;
+  /** Address. */
+  public static final String STREETADDRESS = &quot;STREETADDRESS&quot;;
+  /** Name. */
+  public static final String NAME = &quot;NAME&quot;;
+  /** Desc. */
+  public static final String DESCRIPTION = &quot;DESCRIPTION&quot;;
+  /** Locality. */
+  public static final String JURISDICTIONLOCALITY = &quot;JURISDICTIONLOCALITY&quot;;
+  /** State. */
+  public static final String JURISDICTIONSTATE = &quot;JURISDICTIONSTATE&quot;;
+  /** Country. */
+  public static final String JURISDICTIONCOUNTRY = &quot;JURISDICTIONCOUNTRY&quot;;
+  /** Org. */
+  public static final String ORGANIZATIONIDENTIFIER = &quot;ORGANIZATIONIDENTIFIER&quot;;
+
+  // AltNames
+  /** Email. */
+  public static final String RFC822NAME = &quot;RFC822NAME&quot;;
+  /** DNS. */
+  public static final String DNSNAME = &quot;DNSNAME&quot;;
+  /** IP. */
+  public static final String IPADDRESS = &quot;IPADDRESS&quot;;
+  /** URI. */
+  public static final String UNIFORMRESOURCEID = &quot;UNIFORMRESOURCEID&quot;;
+  /** Dir. */
+  public static final String DIRECTORYNAME = &quot;DIRECTORYNAME&quot;;
+  /** UPN. */
+  public static final String UPN = &quot;UPN&quot;;
+  /** XMPP. */
+  public static final String XMPPADDR = &quot;XMPPADDR&quot;;
+  /** Server. */
+  public static final String SRVNAME = &quot;SRVNAME&quot;;
+  /** FASCN. */
+  public static final String FASCN = &quot;FASCN&quot;;
+  /** GUID. */
+  public static final String GUID = &quot;GUID&quot;;
+  /** Kerberos. */
+  public static final String KRB5PRINCIPAL = &quot;KRB5PRINCIPAL&quot;;
+  /** ID. */
+  public static final String PERMANENTIDENTIFIER = &quot;PERMANENTIDENTIFIER&quot;;
+  /** Method. */
+  public static final String SUBJECTIDENTIFICATIONMETHOD =
+      &quot;SUBJECTIDENTIFICATIONMETHOD&quot;;
+  // Below are altNames that are not implemented yet
+  /** Name. */
+  public static final String OTHERNAME = &quot;OTHERNAME&quot;;
+  /** X400. */
+  public static final String X400ADDRESS = &quot;X400ADDRESS&quot;;
+  /** Name. */
+  public static final String EDIPARTYNAME = &quot;EDIPARTYNAME&quot;;
+  /// RegisteredID is a standard (rfc5280 otherName that we implement)
+  /** ID. */
+  public static final String REGISTEREDID = &quot;REGISTEREDID&quot;;
+
+  // Subject directory attributes
+  /** DOB. */
+  public static final String DATEOFBIRTH = &quot;DATEOFBIRTH&quot;;
+  /** POB. */
+  public static final String PLACEOFBIRTH = &quot;PLACEOFBIRTH&quot;;
+  /** Gender. */
+  public static final String GENDER = &quot;GENDER&quot;;
+  /** Location. */
+  public static final String COUNTRYOFCITIZENSHIP = &quot;COUNTRYOFCITIZENSHIP&quot;;
+  /** Location. */
+  public static final String COUNTRYOFRESIDENCE = &quot;COUNTRYOFRESIDENCE&quot;;
+
+  /** Names. */
+<span class="fc" id="L269">  private static HashMap&lt;String, Integer&gt; dnNameToIdMap = new HashMap&lt;&gt;();</span>
+  /** Names. */
+<span class="fc" id="L271">  private static HashMap&lt;String, Integer&gt; altNameToIdMap = new HashMap&lt;&gt;();</span>
+  /** IDs. */
+<span class="fc" id="L273">  private static HashMap&lt;String, Integer&gt; dirAttrToIdMap = new HashMap&lt;&gt;();</span>
+  /** IDs. */
+<span class="fc" id="L275">  private static HashMap&lt;String, Integer&gt; profileNameIdMap = new HashMap&lt;&gt;();</span>
+  /** Names. */
+<span class="fc" id="L277">  private static HashMap&lt;Integer, String&gt; dnIdToProfileNameMap =</span>
+      new HashMap&lt;&gt;();
+  /** Profiles. */
+<span class="fc" id="L280">  private static HashMap&lt;Integer, Integer&gt; dnIdToProfileIdMap = new HashMap&lt;&gt;();</span>
+  /** IDs. */
+<span class="fc" id="L282">  private static HashMap&lt;Integer, Integer&gt; profileIdToDnIdMap = new HashMap&lt;&gt;();</span>
+  /** Errors. */
+<span class="fc" id="L284">  private static HashMap&lt;Integer, String&gt; dnErrorTextMap = new HashMap&lt;&gt;();</span>
+  /** Languages. */
+<span class="fc" id="L286">  private static HashMap&lt;String, String&gt; profileNameLanguageMap =</span>
+      new HashMap&lt;&gt;();
+  /** Profiles. */
+<span class="fc" id="L289">  private static HashMap&lt;Integer, String&gt; profileIdLanguageMap =</span>
+      new HashMap&lt;&gt;();
+  /** Errors. */
+<span class="fc" id="L292">  private static HashMap&lt;Integer, String&gt; dnIdErrorMap = new HashMap&lt;&gt;();</span>
+  /** IDs. */
+<span class="fc" id="L294">  private static HashMap&lt;Integer, String&gt; dnIdToExtractorFieldMap =</span>
+      new HashMap&lt;&gt;();
+  /** Names. */
+<span class="fc" id="L297">  private static HashMap&lt;Integer, String&gt; altNameIdToExtractorFieldMap =</span>
+      new HashMap&lt;&gt;();
+  /** Attrs. */
+<span class="fc" id="L300">  private static HashMap&lt;Integer, String&gt; dirAttrIdToExtractorFieldMap =</span>
+      new HashMap&lt;&gt;();
+  /** Fields. */
+<span class="fc" id="L303">  private static ArrayList&lt;String&gt; dnProfileFields = new ArrayList&lt;&gt;();</span>
+  /** Profile fields. */
+<span class="fc" id="L305">  private static final TreeSet&lt;String&gt; DN_PROFILE_FIELDS_SET = new TreeSet&lt;&gt;();</span>
+  /** Languages. */
+<span class="fc" id="L307">  private static ArrayList&lt;String&gt; dnLanguageTexts = new ArrayList&lt;&gt;();</span>
+  /** IDs. */
+<span class="fc" id="L309">  private static ArrayList&lt;Integer&gt; dnDnIds = new ArrayList&lt;&gt;();</span>
+  /** Names. */
+<span class="fc" id="L311">  private static ArrayList&lt;String&gt; altNameFields = new ArrayList&lt;&gt;();</span>
+  /** Names. */
+<span class="fc" id="L313">  private static final TreeSet&lt;String&gt; ALT_NAME_FIELDS_SET = new TreeSet&lt;&gt;();</span>
+  /** Names. */
+<span class="fc" id="L315">  private static ArrayList&lt;String&gt; altNameLanguageTexts = new ArrayList&lt;&gt;();</span>
+  /** IDs. */
+<span class="fc" id="L317">  private static ArrayList&lt;Integer&gt; altNameDnIds = new ArrayList&lt;&gt;();</span>
+  /** Fields. */
+<span class="fc" id="L319">  private static ArrayList&lt;String&gt; dirAttrFields = new ArrayList&lt;&gt;();</span>
+  /** Fields.  */
+<span class="fc" id="L321">  private static final TreeSet&lt;String&gt; DIR_ATTR_FIELDS_SET = new TreeSet&lt;&gt;();</span>
+  /** Languages. */
+<span class="fc" id="L323">  private static ArrayList&lt;String&gt; dirAttrLanguageTexts = new ArrayList&lt;&gt;();</span>
+  /** IDs. */
+<span class="fc" id="L325">  private static ArrayList&lt;Integer&gt; dirAttrDnIds = new ArrayList&lt;&gt;();</span>
+  /** Fields. */
+<span class="fc" id="L327">  private static ArrayList&lt;String&gt; dnExtractorFields = new ArrayList&lt;&gt;();</span>
+  /** Names. */
+<span class="fc" id="L329">  private static ArrayList&lt;String&gt; altNameExtractorFields = new ArrayList&lt;&gt;();</span>
+  /** Attrs. */
+<span class="fc" id="L331">  private static ArrayList&lt;String&gt; dirAttrExtractorFields = new ArrayList&lt;&gt;();</span>
+
+  // Load values from a properties file, if it exists
+  static {
+<span class="fc" id="L335">    DnComponents.load();</span>
+<span class="fc" id="L336">  }</span>
+
+  /**
+   * @param dnName name
+   * @return id
+   */
+  public static Integer getDnIdFromDnName(final String dnName) {
+<span class="fc" id="L343">    return dnNameToIdMap.get(dnName.toUpperCase(Locale.ROOT));</span>
+  }
+
+  /**
+   * @param altName name
+   * @return id
+   */
+  public static Integer getDnIdFromAltName(final String altName) {
+<span class="fc" id="L351">    return altNameToIdMap.get(altName.toUpperCase(Locale.ROOT));</span>
+  }
+
+  /**
+   * @param dirAttr attr
+   * @return id
+   */
+  public static Integer getDnIdFromDirAttr(final String dirAttr) {
+<span class="fc" id="L359">    return dirAttrToIdMap.get(dirAttr.toUpperCase(Locale.ROOT));</span>
+  }
+  /**
+   * @param o OID
+   * @return ASN1
+   */
+  public static ASN1ObjectIdentifier getOid(final String o) {
+<span class="fc" id="L366">    return oids.get(o.toLowerCase(Locale.ROOT));</span>
+  }
+  /**
+   * @return list
+   */
+  public static ArrayList&lt;String&gt; getDnProfileFields() {
+<span class="nc" id="L372">    return dnProfileFields;</span>
+  }
+  /**
+   * @param field field
+   * @return bool
+   */
+  public static boolean isDnProfileField(final String field) {
+<span class="nc" id="L379">    return DN_PROFILE_FIELDS_SET.contains(field);</span>
+  }
+  /**
+   * @return list
+   */
+  public static ArrayList&lt;String&gt; getDnLanguageTexts() {
+<span class="nc" id="L385">    return dnLanguageTexts;</span>
+  }
+  /**
+   * @return list
+   */
+  public static ArrayList&lt;String&gt; getAltNameFields() {
+<span class="nc" id="L391">    return altNameFields;</span>
+  }
+
+  /**
+   * @param field field
+   * @return bool
+   */
+  public static boolean isAltNameField(final String field) {
+<span class="nc" id="L399">    return ALT_NAME_FIELDS_SET.contains(field);</span>
+  }
+
+  /**
+   * @return list
+   */
+  public static ArrayList&lt;String&gt; getAltNameLanguageTexts() {
+<span class="nc" id="L406">    return altNameLanguageTexts;</span>
+  }
+
+ /**
+  * @return list
+  */
+  public static ArrayList&lt;String&gt; getDirAttrFields() {
+<span class="nc" id="L413">    return dirAttrFields;</span>
+  }
+
+  /**
+   * @param field field
+   * @return bool
+   */
+  public static boolean isDirAttrField(final String field) {
+<span class="nc" id="L421">    return DIR_ATTR_FIELDS_SET.contains(field);</span>
+  }
+
+  /** Used by DNFieldExtractor and EntityProfile, don't USE.
+ * @return List
+   * */
+  public static ArrayList&lt;Integer&gt; getDirAttrDnIds() {
+<span class="fc" id="L428">    return dirAttrDnIds;</span>
+  }
+
+
+  /**
+   * Used by DNFieldExtractor and EntityProfile, don't USE.
+   * @return list
+   */
+  public static ArrayList&lt;Integer&gt; getAltNameDnIds() {
+<span class="fc" id="L437">    return altNameDnIds;</span>
+  }
+
+
+  /** Used by DNFieldExtractor and EntityProfile, don't USE.
+   * @return list
+   */
+  public static ArrayList&lt;Integer&gt; getDnDnIds() {
+<span class="fc" id="L445">    return dnDnIds;</span>
+  }
+
+  // Used only by DNFieldExtractor, don't USE
+  protected static ArrayList&lt;String&gt; getDnExtractorFields() {
+<span class="nc" id="L450">    return dnExtractorFields;</span>
+  }
+
+  protected static String getDnExtractorFieldFromDnId(final int field) {
+<span class="fc" id="L454">    String val = (String) dnIdToExtractorFieldMap.get(Integer.valueOf(field));</span>
+<span class="fc" id="L455">    return val;</span>
+  }
+
+  // Used only by DNFieldExtractor, don't USE
+  protected static ArrayList&lt;String&gt; getAltNameExtractorFields() {
+<span class="nc" id="L460">    return altNameExtractorFields;</span>
+  }
+
+  protected static String getAltNameExtractorFieldFromDnId(final int field) {
+<span class="fc" id="L464">    String val =</span>
+<span class="fc" id="L465">        (String) altNameIdToExtractorFieldMap.get(Integer.valueOf(field));</span>
+<span class="fc" id="L466">    return val;</span>
+  }
+
+  // Used only by DNFieldExtractor, don't USE
+  protected static ArrayList&lt;String&gt; getDirAttrExtractorFields() {
+<span class="nc" id="L471">    return dirAttrExtractorFields;</span>
+  }
+
+  protected static String getDirAttrExtractorFieldFromDnId(final int field) {
+<span class="fc" id="L475">    String val =</span>
+<span class="fc" id="L476">        (String) dirAttrIdToExtractorFieldMap.get(Integer.valueOf(field));</span>
+<span class="fc" id="L477">    return val;</span>
+  }
+
+  /**
+   * @param dnid DN
+   * @return Name
+   */
+  public static String dnIdToProfileName(final int dnid) {
+<span class="nc" id="L485">    String val = (String) dnIdToProfileNameMap.get(Integer.valueOf(dnid));</span>
+<span class="nc" id="L486">    return val;</span>
+  }
+
+  /**
+   * @param dnid DN
+   * @return ID
+   */
+  public static int dnIdToProfileId(final int dnid) {
+<span class="nc" id="L494">    Integer val = (Integer) dnIdToProfileIdMap.get(Integer.valueOf(dnid));</span>
+<span class="nc" id="L495">    return val.intValue();</span>
+  }
+
+  /**
+   * Method to get a language error constant for the admin-GUI from a profile
+   * name.
+   *
+   * @param name name
+   * @return language
+   */
+  public static String getLanguageConstantFromProfileName(final String name) {
+<span class="nc" id="L506">    String ret = (String) profileNameLanguageMap.get(name);</span>
+<span class="nc" id="L507">    return ret;</span>
+  }
+
+  /**
+   * Method to get a language error constant for
+   * the admin-GUI from a profile id.
+   *
+   * @param id ID
+   * @return language
+   */
+  public static String getLanguageConstantFromProfileId(final int id) {
+<span class="nc" id="L518">    String ret = (String) profileIdLanguageMap.get(Integer.valueOf(id));</span>
+<span class="nc" id="L519">    return ret;</span>
+  }
+
+  /**
+   * Method to get a clear text error msg for the admin-GUI from a dn id.
+   *
+   * @param id ID
+   * @return error text
+   */
+  public static String getErrTextFromDnId(final int id) {
+<span class="nc" id="L529">    String ret = (String) dnIdErrorMap.get(Integer.valueOf(id));</span>
+<span class="nc" id="L530">    return ret;</span>
+  }
+
+  /**
+   * This method is only used to initialize EndEntityProfile, because of legacy
+   * baggage. Should be refactored sometime! Please don't use this whatever you
+   * do!
+   *
+   * @return map
+   */
+  public static HashMap&lt;String, Integer&gt; getProfilenameIdMap() {
+<span class="nc" id="L541">    return profileNameIdMap;</span>
+  }
+
+  /**
+   * A function that takes an fieldId pointing to a corresponding id in UserView
+   * and DnFieldExctractor. For example :
+   * profileFieldIdToUserFieldIdMapper(EndEntityProfile.COMMONNAME) returns
+   * DnFieldExctractor.COMMONNAME.
+   *
+   * &lt;p&gt;Should only be used with subjectDN, Subject Alternative Names and
+   * subject directory attribute fields.
+   *
+   * @param profileid ID
+   * @return DN ID
+   */
+  public static int profileIdToDnId(final int profileid) {
+<span class="nc" id="L557">    Integer val = (Integer) profileIdToDnIdMap.get(Integer.valueOf(profileid));</span>
+<span class="nc bnc" id="L558" title="All 2 branches missed.">    if (val == null) {</span>
+<span class="nc" id="L559">      log.error(&quot;No dn id mapping from profile id &quot; + profileid);</span>
+      // We allow it to fail here
     }
-    /** Default values used when constructing DN strings that are put in the database
-     * 
-     */
-<span class="fc" id="L93">    private static String[] dNObjectsForward = { &quot;description&quot;, &quot;jurisdictioncountry&quot;, &quot;jurisdictionstate&quot;, &quot;jurisdictionlocality&quot;, &quot;street&quot;, &quot;pseudonym&quot;,</span>
-            &quot;telephonenumber&quot;, &quot;postaladdress&quot;, &quot;businesscategory&quot;, &quot;postalcode&quot;, &quot;unstructuredaddress&quot;, &quot;unstructuredname&quot;, &quot;emailaddress&quot;, &quot;e&quot;,
-            &quot;email&quot;, &quot;dn&quot;, &quot;uid&quot;, &quot;cn&quot;, &quot;name&quot;, &quot;sn&quot;, &quot;serialnumber&quot;, &quot;gn&quot;, &quot;givenname&quot;, &quot;initials&quot;, &quot;surname&quot;, &quot;t&quot;, &quot;ou&quot;, &quot;organizationidentifier&quot;, &quot;o&quot;, &quot;l&quot;, &quot;st&quot;, &quot;dc&quot;, &quot;c&quot; };
-    // Default values    
-<span class="fc" id="L97">    private static String[] dNObjectsReverse = null;</span>
+<span class="nc" id="L562">    return val.intValue();</span>
+  }
 
-    /**
-     * These maps and constants are used in the admin-GUI and in End Entity profiles
-     */
-
-    /** These constants can be used when referring to standard, build in components 
-     * 
-     */
-    // DN components
-    public static final String DNEMAILADDRESS = &quot;EMAILADDRESS&quot;;
-    public static final String DNQUALIFIER = &quot;DNQUALIFIER&quot;;
-    public static final String UID = &quot;UID&quot;;
-    public static final String COMMONNAME = &quot;COMMONNAME&quot;;
-    public static final String DNSERIALNUMBER = &quot;SERIALNUMBER&quot;;
-    public static final String GIVENNAME = &quot;GIVENNAME&quot;;
-    public static final String INITIALS = &quot;INITIALS&quot;;
-    public static final String SURNAME = &quot;SURNAME&quot;;
-    public static final String TITLE = &quot;TITLE&quot;;
-    public static final String ORGANIZATIONALUNIT = &quot;ORGANIZATIONALUNIT&quot;;
-    public static final String ORGANIZATION = &quot;ORGANIZATION&quot;;
-    public static final String LOCALITY = &quot;LOCALITY&quot;;
-    public static final String STATEORPROVINCE = &quot;STATEORPROVINCE&quot;;
-    public static final String DOMAINCOMPONENT = &quot;DOMAINCOMPONENT&quot;;
-    public static final String COUNTRY = &quot;COUNTRY&quot;;
-    public static final String UNSTRUCTUREDADDRESS = &quot;UNSTRUCTUREDADDRESS&quot;;
-    public static final String UNSTRUCTUREDNAME = &quot;UNSTRUCTUREDNAME&quot;;
-    public static final String POSTALCODE = &quot;POSTALCODE&quot;;
-    public static final String BUSINESSCATEGORY = &quot;BUSINESSCATEGORY&quot;;
-    public static final String POSTALADDRESS = &quot;POSTALADDRESS&quot;;
-    public static final String TELEPHONENUMBER = &quot;TELEPHONENUMBER&quot;;
-    public static final String PSEUDONYM = &quot;PSEUDONYM&quot;;
-    public static final String STREETADDRESS = &quot;STREETADDRESS&quot;;
-    public static final String NAME = &quot;NAME&quot;;
-    public static final String DESCRIPTION = &quot;DESCRIPTION&quot;;
-    public static final String JURISDICTIONLOCALITY = &quot;JURISDICTIONLOCALITY&quot;;
-    public static final String JURISDICTIONSTATE = &quot;JURISDICTIONSTATE&quot;;
-    public static final String JURISDICTIONCOUNTRY = &quot;JURISDICTIONCOUNTRY&quot;;
-    public static final String ORGANIZATIONIDENTIFIER = &quot;ORGANIZATIONIDENTIFIER&quot;;
-    
-    // AltNames
-    public static final String RFC822NAME = &quot;RFC822NAME&quot;;
-    public static final String DNSNAME = &quot;DNSNAME&quot;;
-    public static final String IPADDRESS = &quot;IPADDRESS&quot;;
-    public static final String UNIFORMRESOURCEID = &quot;UNIFORMRESOURCEID&quot;;
-    public static final String DIRECTORYNAME = &quot;DIRECTORYNAME&quot;;
-    public static final String UPN = &quot;UPN&quot;;
-    public static final String XMPPADDR = &quot;XMPPADDR&quot;;
-    public static final String SRVNAME = &quot;SRVNAME&quot;;
-    public static final String FASCN = &quot;FASCN&quot;;
-    public static final String GUID = &quot;GUID&quot;;
-    public static final String KRB5PRINCIPAL = &quot;KRB5PRINCIPAL&quot;;
-    public static final String PERMANENTIDENTIFIER = &quot;PERMANENTIDENTIFIER&quot;;
-    public static final String SUBJECTIDENTIFICATIONMETHOD = &quot;SUBJECTIDENTIFICATIONMETHOD&quot;;
-    // Below are altNames that are not implemented yet
-    public static final String OTHERNAME = &quot;OTHERNAME&quot;;
-    public static final String X400ADDRESS = &quot;X400ADDRESS&quot;;
-    public static final String EDIPARTYNAME = &quot;EDIPARTYNAME&quot;;
-    /// RegisteredID is a standard (rfc5280 otherName that we implement)
-    public static final String REGISTEREDID = &quot;REGISTEREDID&quot;;
-
-    // Subject directory attributes
-    public static final String DATEOFBIRTH = &quot;DATEOFBIRTH&quot;;
-    public static final String PLACEOFBIRTH = &quot;PLACEOFBIRTH&quot;;
-    public static final String GENDER = &quot;GENDER&quot;;
-    public static final String COUNTRYOFCITIZENSHIP = &quot;COUNTRYOFCITIZENSHIP&quot;;
-    public static final String COUNTRYOFRESIDENCE = &quot;COUNTRYOFRESIDENCE&quot;;
-
-<span class="fc" id="L165">    private static HashMap&lt;String, Integer&gt; dnNameToIdMap = new HashMap&lt;&gt;();</span>
-<span class="fc" id="L166">    private static HashMap&lt;String, Integer&gt; altNameToIdMap = new HashMap&lt;&gt;();</span>
-<span class="fc" id="L167">    private static HashMap&lt;String, Integer&gt; dirAttrToIdMap = new HashMap&lt;&gt;();</span>
-<span class="fc" id="L168">    private static HashMap&lt;String, Integer&gt; profileNameIdMap = new HashMap&lt;&gt;();</span>
-<span class="fc" id="L169">    private static HashMap&lt;Integer, String&gt; dnIdToProfileNameMap = new HashMap&lt;&gt;();</span>
-<span class="fc" id="L170">    private static HashMap&lt;Integer, Integer&gt; dnIdToProfileIdMap = new HashMap&lt;&gt;();</span>
-<span class="fc" id="L171">    private static HashMap&lt;Integer, Integer&gt; profileIdToDnIdMap = new HashMap&lt;&gt;();</span>
-<span class="fc" id="L172">    private static HashMap&lt;Integer, String&gt; dnErrorTextMap = new HashMap&lt;&gt;();</span>
-<span class="fc" id="L173">    private static HashMap&lt;String, String&gt; profileNameLanguageMap = new HashMap&lt;&gt;();</span>
-<span class="fc" id="L174">    private static HashMap&lt;Integer, String&gt; profileIdLanguageMap = new HashMap&lt;&gt;();</span>
-<span class="fc" id="L175">    private static HashMap&lt;Integer, String&gt; dnIdErrorMap = new HashMap&lt;&gt;();</span>
-<span class="fc" id="L176">    private static HashMap&lt;Integer, String&gt; dnIdToExtractorFieldMap = new HashMap&lt;&gt;();</span>
-<span class="fc" id="L177">    private static HashMap&lt;Integer, String&gt; altNameIdToExtractorFieldMap = new HashMap&lt;&gt;();</span>
-<span class="fc" id="L178">    private static HashMap&lt;Integer, String&gt; dirAttrIdToExtractorFieldMap = new HashMap&lt;&gt;();</span>
-<span class="fc" id="L179">    private static ArrayList&lt;String&gt; dnProfileFields = new ArrayList&lt;&gt;();</span>
-<span class="fc" id="L180">    private static final TreeSet&lt;String&gt; dnProfileFieldsHashSet = new TreeSet&lt;&gt;();</span>
-<span class="fc" id="L181">    private static ArrayList&lt;String&gt; dnLanguageTexts = new ArrayList&lt;&gt;();</span>
-<span class="fc" id="L182">    private static ArrayList&lt;Integer&gt; dnDnIds = new ArrayList&lt;&gt;();</span>
-<span class="fc" id="L183">    private static ArrayList&lt;String&gt; altNameFields = new ArrayList&lt;&gt;();</span>
-<span class="fc" id="L184">    private static final TreeSet&lt;String&gt; altNameFieldsHashSet = new TreeSet&lt;&gt;();</span>
-<span class="fc" id="L185">    private static ArrayList&lt;String&gt; altNameLanguageTexts = new ArrayList&lt;&gt;();</span>
-<span class="fc" id="L186">    private static ArrayList&lt;Integer&gt; altNameDnIds = new ArrayList&lt;&gt;();</span>
-<span class="fc" id="L187">    private static ArrayList&lt;String&gt; dirAttrFields = new ArrayList&lt;&gt;();</span>
-<span class="fc" id="L188">    private static final TreeSet&lt;String&gt; dirAttrFieldsHashSet = new TreeSet&lt;&gt;();</span>
-<span class="fc" id="L189">    private static ArrayList&lt;String&gt; dirAttrLanguageTexts = new ArrayList&lt;&gt;();</span>
-<span class="fc" id="L190">    private static ArrayList&lt;Integer&gt; dirAttrDnIds = new ArrayList&lt;&gt;();</span>
-<span class="fc" id="L191">    private static ArrayList&lt;String&gt; dnExtractorFields = new ArrayList&lt;&gt;();</span>
-<span class="fc" id="L192">    private static ArrayList&lt;String&gt; altNameExtractorFields = new ArrayList&lt;&gt;();</span>
-<span class="fc" id="L193">    private static ArrayList&lt;String&gt; dirAttrExtractorFields = new ArrayList&lt;&gt;();</span>
-
-    // Load values from a properties file, if it exists
-    static {
-<span class="fc" id="L197">        DnComponents.load();</span>
-<span class="fc" id="L198">    }</span>
-    
-    public static Integer getDnIdFromDnName(final String dnName) {
-<span class="fc" id="L201">        return dnNameToIdMap.get(dnName.toUpperCase(Locale.ROOT));</span>
+  /**
+   * Returns the dnObjects (forward or reverse). ldaporder = true is the default
+   * order in EJBCA.
+   *
+   * @param ldaporder boolean
+   * @return objects
+   */
+  public static String[] getDnObjects(final boolean ldaporder) {
+<span class="fc bfc" id="L573" title="All 2 branches covered.">    if (ldaporder) {</span>
+<span class="fc" id="L574">      return dNObjectsForward;</span>
     }
-    
-    public static Integer getDnIdFromAltName(final String altName) {
-<span class="fc" id="L205">        return altNameToIdMap.get(altName.toUpperCase(Locale.ROOT));</span>
-    }
-    
-    public static Integer getDnIdFromDirAttr(final String dirAttr) {
-<span class="fc" id="L209">        return dirAttrToIdMap.get(dirAttr.toUpperCase(Locale.ROOT));</span>
-    }
+<span class="fc" id="L576">    return getDnObjectsReverse();</span>
+  }
 
-    public static ASN1ObjectIdentifier getOid(String o) {
-<span class="fc" id="L213">        return oids.get(o.toLowerCase(Locale.ROOT));</span>
+  /**
+   * Returns the reversed dnObjects. Protected to allow testing
+   *
+   * @return objects
+   */
+  protected static String[] getDnObjectsReverse() {
+    // Create and reverse the order if it has not been initialized already
+<span class="fc bfc" id="L586" title="All 2 branches covered.">    if (dNObjectsReverse == null) {</span>
+      // this cast is not needed in java 5, but is needed for java 1.4
+<span class="fc" id="L588">      dNObjectsReverse = (String[]) dNObjectsForward.clone();</span>
+<span class="fc" id="L589">      ArrayUtils.reverse(dNObjectsReverse);</span>
     }
+<span class="fc" id="L591">    return dNObjectsReverse;</span>
+  }
 
-    public static ArrayList&lt;String&gt; getDnProfileFields() {
-<span class="nc" id="L217">        return dnProfileFields;</span>
-    }
+  private static void load() {
+<span class="fc" id="L595">    loadOrdering();</span>
+<span class="fc" id="L596">    loadMappings();</span>
+<span class="fc" id="L597">  }</span>
 
-    public static boolean isDnProfileField(String field) {
-<span class="nc" id="L221">        return dnProfileFieldsHashSet.contains(field);</span>
-    }
+  /**
+   * Load DN ordering used in CertTools.stringToBCDNString etc. Loads from file
+   * placed in src/dncomponents.properties
+   *
+   * &lt;p&gt;A line is:
+   * DNName;DNid;ProfileName;ProfileId,ErrorString,LanguageConstant
+   */
+  private static void loadMappings() {
+<span class="fc" id="L607">    loadProfileMappingsFromFile(&quot;/profilemappings.properties&quot;);</span>
+<span class="fc" id="L608">    loadProfileMappingsFromFile(&quot;/profilemappings_enterprise.properties&quot;);</span>
+<span class="fc" id="L609">  }</span>
 
-    public static ArrayList&lt;String&gt; getDnLanguageTexts() {
-<span class="nc" id="L225">        return dnLanguageTexts;</span>
-    }
+  /**
+   * @return bool
+   */
+  public static boolean enterpriseMappingsExist() {
+<span class="fc" id="L615">    return obj.getClass()</span>
+<span class="pc bpc" id="L616" title="1 of 2 branches missed.">            .getResourceAsStream(&quot;/profilemappings_enterprise.properties&quot;)</span>
+        != null;
+  }
 
-    public static ArrayList&lt;String&gt; getAltNameFields() {
-<span class="nc" id="L229">        return altNameFields;</span>
-    }
+  /**
+   * Reads properties from a properties file. Fails nicely if file wasn't found.
+   *
+   * @param propertiesFile File
+   */
+  private static void loadProfileMappingsFromFile(
+          final String propertiesFile) {
+    // Read the file to an array of lines
+    String line;
 
-    public static boolean isAltNameField(String field) {
-<span class="nc" id="L233">        return altNameFieldsHashSet.contains(field);</span>
-    }
-
-    public static ArrayList&lt;String&gt; getAltNameLanguageTexts() {
-<span class="nc" id="L237">        return altNameLanguageTexts;</span>
-    }
-
-    public static ArrayList&lt;String&gt; getDirAttrFields() {
-<span class="nc" id="L241">        return dirAttrFields;</span>
-    }
-
-    public static boolean isDirAttrField(String field) {
-<span class="nc" id="L245">        return dirAttrFieldsHashSet.contains(field);</span>
-    }
-
-    // Used by DNFieldExtractor and EntityProfile, don't USE
-    public static ArrayList&lt;Integer&gt; getDirAttrDnIds() {
-<span class="fc" id="L250">        return dirAttrDnIds;</span>
-    }
-
-    // Used by DNFieldExtractor and EntityProfile, don't USE
-    public static ArrayList&lt;Integer&gt; getAltNameDnIds() {
-<span class="fc" id="L255">        return altNameDnIds;</span>
-    }
-
-    // Used by DNFieldExtractor and EntityProfile, don't USE
-    public static ArrayList&lt;Integer&gt; getDnDnIds() {
-<span class="fc" id="L260">        return dnDnIds;</span>
-    }
-
-    // Used only by DNFieldExtractor, don't USE
-    protected static ArrayList&lt;String&gt; getDnExtractorFields() {
-<span class="nc" id="L265">        return dnExtractorFields;</span>
-    }
-
-    protected static String getDnExtractorFieldFromDnId(int field) {
-<span class="fc" id="L269">        String val = (String) dnIdToExtractorFieldMap.get(Integer.valueOf(field));</span>
-<span class="fc" id="L270">        return val;</span>
-    }
-
-    // Used only by DNFieldExtractor, don't USE
-    protected static ArrayList&lt;String&gt; getAltNameExtractorFields() {
-<span class="nc" id="L275">        return altNameExtractorFields;</span>
-    }
-
-    protected static String getAltNameExtractorFieldFromDnId(int field) {
-<span class="fc" id="L279">        String val = (String) altNameIdToExtractorFieldMap.get(Integer.valueOf(field));</span>
-<span class="fc" id="L280">        return val;</span>
-    }
-
-    // Used only by DNFieldExtractor, don't USE
-    protected static ArrayList&lt;String&gt; getDirAttrExtractorFields() {
-<span class="nc" id="L285">        return dirAttrExtractorFields;</span>
-    }
-
-    protected static String getDirAttrExtractorFieldFromDnId(int field) {
-<span class="fc" id="L289">        String val = (String) dirAttrIdToExtractorFieldMap.get(Integer.valueOf(field));</span>
-<span class="fc" id="L290">        return val;</span>
-    }
-
-    public static String dnIdToProfileName(int dnid) {
-<span class="nc" id="L294">        String val = (String) dnIdToProfileNameMap.get(Integer.valueOf(dnid));</span>
-<span class="nc" id="L295">        return val;</span>
-    }
-
-    public static int dnIdToProfileId(int dnid) {
-<span class="nc" id="L299">        Integer val = (Integer) dnIdToProfileIdMap.get(Integer.valueOf(dnid));</span>
-<span class="nc" id="L300">        return val.intValue();</span>
-    }
-
-    /**
-     * Method to get a language error constant for the admin-GUI from a profile name
-     * @param name name
-     * @return language
-     */
-    public static String getLanguageConstantFromProfileName(String name) {
-<span class="nc" id="L309">        String ret = (String) profileNameLanguageMap.get(name);</span>
-<span class="nc" id="L310">        return ret;</span>
-    }
-
-    /**
-     * Method to get a language error constant for the admin-GUI from a profile id
-     * @param id ID
-     * @return language
-     */
-    public static String getLanguageConstantFromProfileId(int id) {
-<span class="nc" id="L319">        String ret = (String) profileIdLanguageMap.get(Integer.valueOf(id));</span>
-<span class="nc" id="L320">        return ret;</span>
-    }
-
-    /**
-     * Method to get a clear text error msg for the admin-GUI from a dn id
-     * @param id ID
-     * @return error text
-     */
-    public static String getErrTextFromDnId(int id) {
-<span class="nc" id="L329">        String ret = (String) dnIdErrorMap.get(Integer.valueOf(id));</span>
-<span class="nc" id="L330">        return ret;</span>
-    }
-
-    /** This method is only used to initialize EndEntityProfile, because of legacy baggage.
-     * Should be refactored sometime! Please don't use this whatever you do!
-     * @return map
-     */
-    public static HashMap&lt;String, Integer&gt; getProfilenameIdMap() {
-<span class="nc" id="L338">        return profileNameIdMap;</span>
-
-    }
-
-    /** A function that takes an fieldId pointing to a corresponding id in UserView and DnFieldExctractor.
-     *  For example : profileFieldIdToUserFieldIdMapper(EndEntityProfile.COMMONNAME) returns DnFieldExctractor.COMMONNAME.
-     *
-     *  Should only be used with subjectDN, Subject Alternative Names and subject directory attribute fields.
-     * @param profileid ID
-     * @return  DN ID
-     */
-    public static int profileIdToDnId(int profileid) {
-<span class="nc" id="L350">        Integer val = (Integer) profileIdToDnIdMap.get(Integer.valueOf(profileid));</span>
-<span class="nc bnc" id="L351" title="All 2 branches missed.">        if (val == null) {</span>
-<span class="nc" id="L352">            log.error(&quot;No dn id mapping from profile id &quot; + profileid);</span>
-            // We allow it to fail here
+<span class="fc" id="L630">    BufferedReader in = null;</span>
+<span class="fc" id="L631">    InputStreamReader inf = null;</span>
+    try {
+<span class="fc" id="L633">      InputStream is = obj.getClass().getResourceAsStream(propertiesFile);</span>
+<span class="fc bfc" id="L634" title="All 2 branches covered.">      if (is != null) {</span>
+<span class="fc" id="L635">        inf = new InputStreamReader(is);</span>
+<span class="fc" id="L636">        in = new BufferedReader(inf);</span>
+<span class="pc bpc" id="L637" title="1 of 2 branches missed.">        if (!in.ready()) {</span>
+<span class="nc" id="L638">          throw new IOException(&quot;Couldn't read &quot; + propertiesFile);</span>
         }
-<span class="nc" id="L355">        return val.intValue();</span>
-    }
-
-    /**
-     * Returns the dnObjects (forward or reverse). 
-     * ldaporder = true is the default order in EJBCA. 
-     * @param ldaporder boolean
-     * @return objects
-     */
-    public static String[] getDnObjects(boolean ldaporder) {
-<span class="fc bfc" id="L365" title="All 2 branches covered.">        if (ldaporder) {</span>
-<span class="fc" id="L366">            return dNObjectsForward;</span>
+<span class="fc" id="L640">        String[] splits = null;</span>
+<span class="fc" id="L641">        int lines = 0;</span>
+<span class="fc" id="L642">        ArrayList&lt;Integer&gt; dnids = new ArrayList&lt;Integer&gt;();</span>
+<span class="fc" id="L643">        ArrayList&lt;Integer&gt; profileids = new ArrayList&lt;Integer&gt;();</span>
+<span class="fc bfc" id="L644" title="All 2 branches covered.">        while ((line = in.readLine()) != null) {</span>
+<span class="fc bfc" id="L645" title="All 2 branches covered.">          if (!line.startsWith(&quot;#&quot;)) { // # is a comment line</span>
+<span class="fc" id="L646">            splits = StringUtils.split(line, ';');</span>
+<span class="pc bpc" id="L647" title="1 of 4 branches missed.">            if ((splits != null) &amp;&amp; (splits.length &gt; 5)) {</span>
+<span class="fc" id="L648">              String type = splits[0];</span>
+<span class="fc" id="L649">              String dnname = splits[1];</span>
+<span class="fc" id="L650">              Integer dnid = Integer.valueOf(splits[2]);</span>
+<span class="fc" id="L651">              String profilename = splits[3];</span>
+<span class="fc" id="L652">              Integer profileid = Integer.valueOf(splits[4]);</span>
+<span class="fc" id="L653">              String errstr = splits[5];</span>
+<span class="fc" id="L654">              String langstr = splits[6];</span>
+<span class="pc bpc" id="L655" title="1 of 2 branches missed.">              if (dnids.contains(dnid)) {</span>
+<span class="nc" id="L656">                log.error(</span>
+                    &quot;Duplicated DN Id &quot; + dnid + &quot; detected in mapping file.&quot;);
+              } else {
+<span class="fc" id="L659">                dnids.add(dnid);</span>
+              }
+<span class="pc bpc" id="L661" title="1 of 2 branches missed.">              if (profileids.contains(profileid)) {</span>
+<span class="nc" id="L662">                log.error(</span>
+                    &quot;Duplicated Profile Id &quot;
+                        + profileid
+                        + &quot; detected in mapping file.&quot;);
+              } else {
+<span class="fc" id="L667">                profileids.add(profileid);</span>
+              }
+              // Fill maps
+<span class="fc" id="L670">              profileNameIdMap.put(profilename, profileid);</span>
+<span class="fc" id="L671">              dnIdToProfileNameMap.put(dnid, profilename);</span>
+<span class="fc" id="L672">              dnIdToProfileIdMap.put(dnid, profileid);</span>
+<span class="fc" id="L673">              dnIdErrorMap.put(dnid, errstr);</span>
+<span class="fc" id="L674">              profileIdToDnIdMap.put(profileid, dnid);</span>
+<span class="fc" id="L675">              dnErrorTextMap.put(dnid, errstr);</span>
+<span class="fc" id="L676">              profileNameLanguageMap.put(profilename, langstr);</span>
+<span class="fc" id="L677">              profileIdLanguageMap.put(profileid, langstr);</span>
+<span class="fc bfc" id="L678" title="All 2 branches covered.">              if (type.equals(&quot;DN&quot;)) {</span>
+<span class="fc" id="L679">                dnNameToIdMap.put(dnname, dnid);</span>
+<span class="fc" id="L680">                dnProfileFields.add(profilename);</span>
+<span class="fc" id="L681">                DN_PROFILE_FIELDS_SET.add(profilename);</span>
+<span class="fc" id="L682">                dnLanguageTexts.add(langstr);</span>
+<span class="fc" id="L683">                dnDnIds.add(dnid);</span>
+<span class="fc" id="L684">                dnExtractorFields.add(dnname + &quot;=&quot;);</span>
+<span class="fc" id="L685">                dnIdToExtractorFieldMap.put(dnid, dnname + &quot;=&quot;);</span>
+              }
+<span class="fc bfc" id="L687" title="All 2 branches covered.">              if (type.equals(&quot;ALTNAME&quot;)) {</span>
+<span class="fc" id="L688">                altNameToIdMap.put(dnname, dnid);</span>
+<span class="fc" id="L689">                altNameFields.add(dnname);</span>
+<span class="fc" id="L690">                ALT_NAME_FIELDS_SET.add(dnname);</span>
+<span class="fc" id="L691">                altNameLanguageTexts.add(langstr);</span>
+<span class="fc" id="L692">                altNameDnIds.add(dnid);</span>
+<span class="fc" id="L693">                altNameExtractorFields.add(dnname + &quot;=&quot;);</span>
+<span class="fc" id="L694">                altNameIdToExtractorFieldMap.put(dnid, dnname + &quot;=&quot;);</span>
+              }
+<span class="fc bfc" id="L696" title="All 2 branches covered.">              if (type.equals(&quot;DIRATTR&quot;)) {</span>
+<span class="fc" id="L697">                dirAttrToIdMap.put(dnname, dnid);</span>
+<span class="fc" id="L698">                dirAttrFields.add(dnname);</span>
+<span class="fc" id="L699">                DIR_ATTR_FIELDS_SET.add(dnname);</span>
+<span class="fc" id="L700">                dirAttrLanguageTexts.add(langstr);</span>
+<span class="fc" id="L701">                dirAttrDnIds.add(dnid);</span>
+<span class="fc" id="L702">                dirAttrExtractorFields.add(dnname + &quot;=&quot;);</span>
+<span class="fc" id="L703">                dirAttrIdToExtractorFieldMap.put(dnid, dnname + &quot;=&quot;);</span>
+              }
+<span class="fc" id="L705">              lines++;</span>
+<span class="fc" id="L706">            }</span>
+          }
         }
-<span class="fc" id="L368">        return getDnObjectsReverse();</span>
-    }
-
-    /**
-     * Returns the reversed dnObjects.
-     * Protected to allow testing
-     * @return objects
-     */
-    protected static String[] getDnObjectsReverse() {
-        // Create and reverse the order if it has not been initialized already
-<span class="fc bfc" id="L378" title="All 2 branches covered.">        if (dNObjectsReverse == null) {</span>
-            // this cast is not needed in java 5, but is needed for java 1.4
-<span class="fc" id="L380">            dNObjectsReverse = (String[]) dNObjectsForward.clone();</span>
-<span class="fc" id="L381">            ArrayUtils.reverse(dNObjectsReverse);</span>
+<span class="fc" id="L709">        in.close();</span>
+<span class="pc bpc" id="L710" title="1 of 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L711">          log.debug(&quot;Read profile maps with &quot; + lines + &quot; lines.&quot;);</span>
         }
-<span class="fc" id="L383">        return dNObjectsReverse;</span>
-    }
-
-    private static void load() {
-<span class="fc" id="L387">        loadOrdering();</span>
-<span class="fc" id="L388">        loadMappings();</span>
-<span class="fc" id="L389">    }</span>
-
-    /**
-     * Load DN ordering used in CertTools.stringToBCDNString etc.
-     * Loads from file placed in src/dncomponents.properties
-     * 
-     * A line is:
-     * DNName;DNid;ProfileName;ProfileId,ErrorString,LanguageConstant
-     *
-     */
-    private static void loadMappings() {
-<span class="fc" id="L400">        loadProfileMappingsFromFile(&quot;/profilemappings.properties&quot;);</span>
-<span class="fc" id="L401">        loadProfileMappingsFromFile(&quot;/profilemappings_enterprise.properties&quot;);</span>
-<span class="fc" id="L402">    }</span>
-    
-    public static boolean enterpriseMappingsExist() {
-<span class="pc bpc" id="L405" title="1 of 2 branches missed.">        return obj.getClass().getResourceAsStream(&quot;/profilemappings_enterprise.properties&quot;) != null;</span>
-    }
-    
-    /**
-     * Reads properties from a properties file. Fails nicely if file wasn't found. 
-     * 
-     * @param propertiesFile File
-     */
-    private static void loadProfileMappingsFromFile(String propertiesFile) {
-        // Read the file to an array of lines 
-        String line;
-
-<span class="fc" id="L417">        BufferedReader in = null;</span>
-<span class="fc" id="L418">        InputStreamReader inf = null;</span>
-        try {
-<span class="fc" id="L420">            InputStream is = obj.getClass().getResourceAsStream(propertiesFile);</span>
-<span class="fc bfc" id="L421" title="All 2 branches covered.">            if (is != null) {</span>
-<span class="fc" id="L422">                inf = new InputStreamReader(is);</span>
-<span class="fc" id="L423">                in = new BufferedReader(inf);</span>
-<span class="pc bpc" id="L424" title="1 of 2 branches missed.">                if (!in.ready()) {</span>
-<span class="nc" id="L425">                    throw new IOException(&quot;Couldn't read &quot; + propertiesFile);</span>
-                }
-<span class="fc" id="L427">                String[] splits = null;</span>
-<span class="fc" id="L428">                int lines = 0;</span>
-<span class="fc" id="L429">                ArrayList&lt;Integer&gt; dnids = new ArrayList&lt;Integer&gt;();</span>
-<span class="fc" id="L430">                ArrayList&lt;Integer&gt; profileids = new ArrayList&lt;Integer&gt;();</span>
-<span class="fc bfc" id="L431" title="All 2 branches covered.">                while ((line = in.readLine()) != null) {</span>
-<span class="fc bfc" id="L432" title="All 2 branches covered.">                    if (!line.startsWith(&quot;#&quot;)) { // # is a comment line</span>
-<span class="fc" id="L433">                        splits = StringUtils.split(line, ';');</span>
-<span class="pc bpc" id="L434" title="1 of 4 branches missed.">                        if ((splits != null) &amp;&amp; (splits.length &gt; 5)) {</span>
-<span class="fc" id="L435">                            String type = splits[0];</span>
-<span class="fc" id="L436">                            String dnname = splits[1];</span>
-<span class="fc" id="L437">                            Integer dnid = Integer.valueOf(splits[2]);</span>
-<span class="fc" id="L438">                            String profilename = splits[3];</span>
-<span class="fc" id="L439">                            Integer profileid = Integer.valueOf(splits[4]);</span>
-<span class="fc" id="L440">                            String errstr = splits[5];</span>
-<span class="fc" id="L441">                            String langstr = splits[6];</span>
-<span class="pc bpc" id="L442" title="1 of 2 branches missed.">                            if (dnids.contains(dnid)) {</span>
-<span class="nc" id="L443">                                log.error(&quot;Duplicated DN Id &quot; + dnid + &quot; detected in mapping file.&quot;);</span>
-                            } else {
-<span class="fc" id="L445">                                dnids.add(dnid);</span>
-                            }
-<span class="pc bpc" id="L447" title="1 of 2 branches missed.">                            if (profileids.contains(profileid)) {</span>
-<span class="nc" id="L448">                                log.error(&quot;Duplicated Profile Id &quot; + profileid + &quot; detected in mapping file.&quot;);</span>
-                            } else {
-<span class="fc" id="L450">                                profileids.add(profileid);</span>
-                            }
-                            // Fill maps
-<span class="fc" id="L453">                            profileNameIdMap.put(profilename, profileid);</span>
-<span class="fc" id="L454">                            dnIdToProfileNameMap.put(dnid, profilename);</span>
-<span class="fc" id="L455">                            dnIdToProfileIdMap.put(dnid, profileid);</span>
-<span class="fc" id="L456">                            dnIdErrorMap.put(dnid, errstr);</span>
-<span class="fc" id="L457">                            profileIdToDnIdMap.put(profileid, dnid);</span>
-<span class="fc" id="L458">                            dnErrorTextMap.put(dnid, errstr);</span>
-<span class="fc" id="L459">                            profileNameLanguageMap.put(profilename, langstr);</span>
-<span class="fc" id="L460">                            profileIdLanguageMap.put(profileid, langstr);</span>
-<span class="fc bfc" id="L461" title="All 2 branches covered.">                            if (type.equals(&quot;DN&quot;)) {</span>
-<span class="fc" id="L462">                                dnNameToIdMap.put(dnname, dnid);</span>
-<span class="fc" id="L463">                                dnProfileFields.add(profilename);</span>
-<span class="fc" id="L464">                                dnProfileFieldsHashSet.add(profilename);</span>
-<span class="fc" id="L465">                                dnLanguageTexts.add(langstr);</span>
-<span class="fc" id="L466">                                dnDnIds.add(dnid);</span>
-<span class="fc" id="L467">                                dnExtractorFields.add(dnname + &quot;=&quot;);</span>
-<span class="fc" id="L468">                                dnIdToExtractorFieldMap.put(dnid, dnname + &quot;=&quot;);</span>
-                            }
-<span class="fc bfc" id="L470" title="All 2 branches covered.">                            if (type.equals(&quot;ALTNAME&quot;)) {</span>
-<span class="fc" id="L471">                                altNameToIdMap.put(dnname, dnid);</span>
-<span class="fc" id="L472">                                altNameFields.add(dnname);</span>
-<span class="fc" id="L473">                                altNameFieldsHashSet.add(dnname);</span>
-<span class="fc" id="L474">                                altNameLanguageTexts.add(langstr);</span>
-<span class="fc" id="L475">                                altNameDnIds.add(dnid);</span>
-<span class="fc" id="L476">                                altNameExtractorFields.add(dnname + &quot;=&quot;);</span>
-<span class="fc" id="L477">                                altNameIdToExtractorFieldMap.put(dnid, dnname + &quot;=&quot;);</span>
-                            }
-<span class="fc bfc" id="L479" title="All 2 branches covered.">                            if (type.equals(&quot;DIRATTR&quot;)) {</span>
-<span class="fc" id="L480">                                dirAttrToIdMap.put(dnname, dnid);</span>
-<span class="fc" id="L481">                                dirAttrFields.add(dnname);</span>
-<span class="fc" id="L482">                                dirAttrFieldsHashSet.add(dnname);</span>
-<span class="fc" id="L483">                                dirAttrLanguageTexts.add(langstr);</span>
-<span class="fc" id="L484">                                dirAttrDnIds.add(dnid);</span>
-<span class="fc" id="L485">                                dirAttrExtractorFields.add(dnname + &quot;=&quot;);</span>
-<span class="fc" id="L486">                                dirAttrIdToExtractorFieldMap.put(dnid, dnname + &quot;=&quot;);</span>
-                            }
-<span class="fc" id="L488">                            lines++;</span>
-<span class="fc" id="L489">                        }</span>
-                    }
-                }
-<span class="fc" id="L492">                in.close();</span>
-<span class="pc bpc" id="L493" title="1 of 2 branches missed.">                if(log.isDebugEnabled()) {</span>
-<span class="nc" id="L494">                log.debug(&quot;Read profile maps with &quot; + lines + &quot; lines.&quot;);</span>
-                }
-<span class="fc" id="L496">            } else {</span>
-<span class="pc bpc" id="L497" title="1 of 2 branches missed.">                if(log.isDebugEnabled()) {</span>
-<span class="nc" id="L498">                    log.debug(&quot;Properties file &quot; + propertiesFile + &quot; was not found.&quot;);</span>
-                }
-            }
-<span class="nc" id="L501">        } catch (IOException e) {</span>
-<span class="nc" id="L502">            log.error(&quot;Can not load profile mappings: &quot;, e);</span>
-        } finally {
-            try {
-<span class="fc bfc" id="L505" title="All 2 branches covered.">                if (inf != null) {</span>
-<span class="fc" id="L506">                    inf.close();</span>
-                }
-<span class="fc bfc" id="L508" title="All 2 branches covered.">                if (in != null) {</span>
-<span class="fc" id="L509">                    in.close();</span>
-                }
-<span class="nc" id="L511">            } catch (IOException e) {</span>
-<span class="fc" id="L512">            }</span>
+<span class="fc" id="L713">      } else {</span>
+<span class="pc bpc" id="L714" title="1 of 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L715">          log.debug(&quot;Properties file &quot; + propertiesFile + &quot; was not found.&quot;);</span>
         }
-<span class="fc" id="L514">    }</span>
-
-    /**
-     * Load DN ordering used in CertTools.stringToBCDNString etc.
-     * Loads from file placed in src/dncomponents.properties
-     *
-     */
-    private static void loadOrdering() {
-        // Read the file to an array of lines 
-        String line;
-<span class="fc" id="L524">        LinkedHashMap&lt;String, ASN1ObjectIdentifier&gt; map = new LinkedHashMap&lt;String, ASN1ObjectIdentifier&gt;();</span>
-<span class="fc" id="L525">        BufferedReader in = null;</span>
-<span class="fc" id="L526">        InputStreamReader inf = null;</span>
-        try {
-<span class="fc" id="L528">            InputStream is = obj.getClass().getResourceAsStream(&quot;/dncomponents.properties&quot;);</span>
-            //log.info(&quot;is is: &quot; + is);
-<span class="pc bpc" id="L530" title="1 of 2 branches missed.">            if (is != null) {</span>
-<span class="nc" id="L531">                inf = new InputStreamReader(is);</span>
-                //inf = new FileReader(&quot;c:\\foo.properties&quot;);
-<span class="nc" id="L533">                in = new BufferedReader(inf);</span>
-<span class="nc bnc" id="L534" title="All 2 branches missed.">                if (!in.ready()) {</span>
-<span class="nc" id="L535">                    throw new IOException();</span>
-                }
-<span class="nc" id="L537">                String[] splits = null;</span>
-<span class="nc bnc" id="L538" title="All 2 branches missed.">                while ((line = in.readLine()) != null) {</span>
-<span class="nc bnc" id="L539" title="All 2 branches missed.">                    if (!line.startsWith(&quot;#&quot;)) { // # is a comment line</span>
-<span class="nc" id="L540">                        splits = StringUtils.split(line, '=');</span>
-<span class="nc bnc" id="L541" title="All 4 branches missed.">                        if ((splits != null) &amp;&amp; (splits.length &gt; 1)) {</span>
-<span class="nc" id="L542">                            String name = splits[0].toLowerCase(Locale.ROOT);</span>
-<span class="nc" id="L543">                            ASN1ObjectIdentifier oid = new ASN1ObjectIdentifier(splits[1]);</span>
-<span class="nc" id="L544">                            map.put(name, oid);</span>
-<span class="nc" id="L545">                        }</span>
-                    }
-                }
-<span class="nc" id="L548">                in.close();</span>
-                // Now we have read it in, transfer it to the main oid map
-<span class="nc" id="L550">                log.info(&quot;Using DN components from properties file&quot;);</span>
-<span class="nc" id="L551">                oids.clear();</span>
-<span class="nc" id="L552">                oids.putAll(map);</span>
-<span class="nc" id="L553">                Set&lt;String&gt; keys = map.keySet();</span>
-                // Set the maps to the desired ordering
-<span class="nc" id="L555">                dNObjectsForward = (String[]) keys.toArray(new String[keys.size()]);</span>
-<span class="nc" id="L556">            } else {</span>
-<span class="fc" id="L557">                log.debug(&quot;Using default values for DN components&quot;);</span>
-            }
-<span class="nc" id="L559">        } catch (IOException e) {</span>
-<span class="nc" id="L560">            log.debug(&quot;Using default values for DN components&quot;);</span>
-        } finally {
-            try {
-<span class="pc bpc" id="L563" title="1 of 2 branches missed.">                if (inf != null) {</span>
-<span class="nc" id="L564">                    inf.close();</span>
-                }
-<span class="pc bpc" id="L566" title="1 of 2 branches missed.">                if (in != null) {</span>
-<span class="nc" id="L567">                    in.close();</span>
-                }
-<span class="nc" id="L569">            } catch (IOException e) {</span>
-<span class="fc" id="L570">            }</span>
+      }
+<span class="nc" id="L718">    } catch (IOException e) {</span>
+<span class="nc" id="L719">      log.error(&quot;Can not load profile mappings: &quot;, e);</span>
+    } finally {
+      try {
+<span class="fc bfc" id="L722" title="All 2 branches covered.">        if (inf != null) {</span>
+<span class="fc" id="L723">          inf.close();</span>
         }
+<span class="fc bfc" id="L725" title="All 2 branches covered.">        if (in != null) {</span>
+<span class="fc" id="L726">          in.close();</span>
+        }
+<span class="nc" id="L728">      } catch (IOException e) {</span>
+<span class="fc" id="L729">      }</span>
+    }
+<span class="fc" id="L731">  }</span>
 
-<span class="fc" id="L573">    }</span>
-
+  /**
+   * Load DN ordering used in CertTools.stringToBCDNString etc. Loads from file
+   * placed in src/dncomponents.properties
+   */
+  private static void loadOrdering() {
+    // Read the file to an array of lines
+    String line;
+<span class="fc" id="L740">    LinkedHashMap&lt;String, ASN1ObjectIdentifier&gt; map =</span>
+        new LinkedHashMap&lt;String, ASN1ObjectIdentifier&gt;();
+<span class="fc" id="L742">    BufferedReader in = null;</span>
+<span class="fc" id="L743">    InputStreamReader inf = null;</span>
+    try {
+<span class="fc" id="L745">      InputStream is =</span>
+<span class="fc" id="L746">          obj.getClass().getResourceAsStream(&quot;/dncomponents.properties&quot;);</span>
+      // log.info(&quot;is is: &quot; + is);
+<span class="pc bpc" id="L748" title="1 of 2 branches missed.">      if (is != null) {</span>
+<span class="nc" id="L749">        inf = new InputStreamReader(is);</span>
+        // inf = new FileReader(&quot;c:\\foo.properties&quot;);
+<span class="nc" id="L751">        in = new BufferedReader(inf);</span>
+<span class="nc bnc" id="L752" title="All 2 branches missed.">        if (!in.ready()) {</span>
+<span class="nc" id="L753">          throw new IOException();</span>
+        }
+<span class="nc" id="L755">        String[] splits = null;</span>
+<span class="nc bnc" id="L756" title="All 2 branches missed.">        while ((line = in.readLine()) != null) {</span>
+<span class="nc bnc" id="L757" title="All 2 branches missed.">          if (!line.startsWith(&quot;#&quot;)) { // # is a comment line</span>
+<span class="nc" id="L758">            splits = StringUtils.split(line, '=');</span>
+<span class="nc bnc" id="L759" title="All 4 branches missed.">            if ((splits != null) &amp;&amp; (splits.length &gt; 1)) {</span>
+<span class="nc" id="L760">              String name = splits[0].toLowerCase(Locale.ROOT);</span>
+<span class="nc" id="L761">              ASN1ObjectIdentifier oid = new ASN1ObjectIdentifier(splits[1]);</span>
+<span class="nc" id="L762">              map.put(name, oid);</span>
+<span class="nc" id="L763">            }</span>
+          }
+        }
+<span class="nc" id="L766">        in.close();</span>
+        // Now we have read it in, transfer it to the main oid map
+<span class="nc" id="L768">        log.info(&quot;Using DN components from properties file&quot;);</span>
+<span class="nc" id="L769">        oids.clear();</span>
+<span class="nc" id="L770">        oids.putAll(map);</span>
+<span class="nc" id="L771">        Set&lt;String&gt; keys = map.keySet();</span>
+        // Set the maps to the desired ordering
+<span class="nc" id="L773">        dNObjectsForward = (String[]) keys.toArray(new String[keys.size()]);</span>
+<span class="nc" id="L774">      } else {</span>
+<span class="fc" id="L775">        log.debug(&quot;Using default values for DN components&quot;);</span>
+      }
+<span class="nc" id="L777">    } catch (IOException e) {</span>
+<span class="nc" id="L778">      log.debug(&quot;Using default values for DN components&quot;);</span>
+    } finally {
+      try {
+<span class="pc bpc" id="L781" title="1 of 2 branches missed.">        if (inf != null) {</span>
+<span class="nc" id="L782">          inf.close();</span>
+        }
+<span class="pc bpc" id="L784" title="1 of 2 branches missed.">        if (in != null) {</span>
+<span class="nc" id="L785">          in.close();</span>
+        }
+<span class="nc" id="L787">      } catch (IOException e) {</span>
+<span class="fc" id="L788">      }</span>
+    }
+<span class="fc" id="L790">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

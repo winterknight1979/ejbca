@@ -15,14 +15,12 @@ package org.cesecore.certificates.crl;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
 import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-
 import org.apache.log4j.Logger;
 import org.bouncycastle.cert.X509CRLHolder;
 import org.cesecore.audit.enums.EventStatus;
@@ -45,116 +43,195 @@ import org.cesecore.util.CertTools;
 import org.cesecore.util.CryptoProviderTools;
 
 /**
- * Business class for CRL actions, i.e. running CRLs. 
- * 
+ * Business class for CRL actions, i.e. running CRLs.
+ *
  * @version $Id: CrlCreateSessionBean.java 25498 2017-03-15 17:01:37Z jeklund $
  */
-@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;CrlCreateSessionRemote&quot;)
+@Stateless(
+    mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;CrlCreateSessionRemote&quot;)
 @TransactionAttribute(TransactionAttributeType.REQUIRED)
-<span class="nc" id="L54">public class CrlCreateSessionBean implements CrlCreateSessionLocal, CrlCreateSessionRemote {</span>
+<span class="nc" id="L53">public class CrlCreateSessionBean</span>
+    implements CrlCreateSessionLocal, CrlCreateSessionRemote {
 
-<span class="nc" id="L56">    private static final Logger log = Logger.getLogger(CrlCreateSessionBean.class);</span>
-    /** Internal localization of logs and errors */
-<span class="nc" id="L58">    private static final InternalResources intres = InternalResources.getInstance();</span>
-    
-    @EJB
-    private AuthorizationSessionLocal authorizationSession;
-    @EJB
-    private CrlStoreSessionLocal crlSession;
-    @EJB
-    private CryptoTokenManagementSessionLocal cryptoTokenManagementSession;
-    @EJB
-    private SecurityEventsLoggerSessionLocal logSession;
+    /** Logger. */
+<span class="nc" id="L57">  private static final Logger LOG =</span>
+<span class="nc" id="L58">      Logger.getLogger(CrlCreateSessionBean.class);</span>
+  /** Internal localization of logs and errors. */
+<span class="nc" id="L60">  private static final InternalResources INTRES =</span>
+<span class="nc" id="L61">      InternalResources.getInstance();</span>
 
-    @PostConstruct
-    public void postConstruct() {
-    	// Install BouncyCastle provider if not available
-<span class="nc" id="L72">    	CryptoProviderTools.installBCProviderIfNotAvailable();</span>
-<span class="nc" id="L73">    }</span>
-        
-    @Override
-    public byte[] generateAndStoreCRL(AuthenticationToken admin, CA ca, Collection&lt;RevokedCertInfo&gt; certs, int basecrlnumber, int nextCrlNumber) throws CryptoTokenOfflineException, AuthorizationDeniedException {
-<span class="nc bnc" id="L77" title="All 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L78">    		log.trace(&quot;&gt;createCRL(Collection)&quot;);</span>
-    	}
-<span class="nc" id="L80">    	byte[] crlBytes = null; // return value</span>
+  /** Auth. */
+  @EJB private AuthorizationSessionLocal authorizationSession;
+  /** CRL. */
+  @EJB private CrlStoreSessionLocal crlSession;
+  /** Crypto. */
+  @EJB private CryptoTokenManagementSessionLocal cryptoTokenManagementSession;
+  /** Log. */
+  @EJB private SecurityEventsLoggerSessionLocal logSession;
 
-    	// Check that we are allowed to create CRLs
-    	// Authorization for other things, that we have access to the CA has already been done
-<span class="nc" id="L84">    	final int caid = ca.getCAId();</span>
-<span class="nc" id="L85">    	authorizedToCreateCRL(admin, caid);</span>
-    	
-    	try {
-<span class="nc bnc" id="L88" title="All 4 branches missed.">    		if ( (ca.getStatus() != CAConstants.CA_ACTIVE) &amp;&amp; (ca.getStatus() != CAConstants.CA_WAITING_CERTIFICATE_RESPONSE) ) {</span>
-<span class="nc" id="L89">    			String msg = intres.getLocalizedMessage(&quot;createcert.canotactive&quot;, ca.getSubjectDN());</span>
-<span class="nc" id="L90">    			throw new CryptoTokenOfflineException(msg);</span>
-    		}
-    		final X509CRLHolder crl;
-    		
-<span class="nc bnc" id="L94" title="All 2 branches missed.">    		boolean deltaCRL = (basecrlnumber &gt; -1);</span>
-<span class="nc" id="L95">    		final CryptoToken cryptoToken = cryptoTokenManagementSession.getCryptoToken(ca.getCAToken().getCryptoTokenId());</span>
-<span class="nc bnc" id="L96" title="All 2 branches missed.">    		if (cryptoToken==null) {</span>
-<span class="nc" id="L97">    		    throw new CryptoTokenOfflineException(&quot;Could not find CryptoToken with id &quot; + ca.getCAToken().getCryptoTokenId());</span>
-    		}
-<span class="nc bnc" id="L99" title="All 2 branches missed.">    		if (deltaCRL) {</span>
-    			// Workaround if transaction handling fails so that crlNumber for deltaCRL would happen to be the same
-<span class="nc bnc" id="L101" title="All 2 branches missed.">    			if (nextCrlNumber == basecrlnumber) {</span>
-<span class="nc" id="L102">    				nextCrlNumber++;</span>
-    			}
-<span class="nc" id="L104">    			crl = ca.generateDeltaCRL(cryptoToken, certs, nextCrlNumber, basecrlnumber);       </span>
-    		} else {
-<span class="nc" id="L106">    			crl = ca.generateCRL(cryptoToken, certs, nextCrlNumber);</span>
-    		}
-<span class="nc bnc" id="L108" title="All 2 branches missed.">    		if (crl != null) {</span>
-    			// Store CRL in the database, this can still fail so the whole thing is rolled back
-<span class="nc" id="L110">    			String cafp = CertTools.getFingerprintAsString(ca.getCACertificate());</span>
-<span class="nc bnc" id="L111" title="All 2 branches missed.">    			if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L112">    			    log.debug(&quot;Encoding CRL to byte array. Free memory=&quot;+Runtime.getRuntime().freeMemory());</span>
-    			}          
-<span class="nc" id="L114">    			byte[] tmpcrlBytes = crl.getEncoded();                    </span>
-<span class="nc bnc" id="L115" title="All 2 branches missed.">    			if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L116">    			    log.debug(&quot;Finished encoding CRL to byte array. Free memory=&quot;+Runtime.getRuntime().freeMemory());</span>
-<span class="nc" id="L117">    				log.debug(&quot;Storing CRL in certificate store.&quot;);</span>
-    			}
-<span class="nc bnc" id="L119" title="All 2 branches missed.">    			crlSession.storeCRL(admin, tmpcrlBytes, cafp, nextCrlNumber, crl.getIssuer().toString(), crl.toASN1Structure().getThisUpdate().getDate(), crl.toASN1Structure().getNextUpdate().getDate(), (deltaCRL ? 1 : -1));</span>
-<span class="nc" id="L120">    			String msg = intres.getLocalizedMessage(&quot;createcrl.createdcrl&quot;, Integer.valueOf(nextCrlNumber), ca.getName(), ca.getSubjectDN());</span>
-<span class="nc" id="L121">    			Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
-<span class="nc" id="L122">    			details.put(&quot;msg&quot;, msg);</span>
-<span class="nc" id="L123">    			logSession.log(EventTypes.CRL_CREATION, EventStatus.SUCCESS, ModuleTypes.CRL, ServiceTypes.CORE, admin.toString(), String.valueOf(caid), null, null, details);	                	</span>
-    			// Now all is finished and audit logged, now we are ready to &quot;really&quot; set the return value
-<span class="nc" id="L125">    			crlBytes = tmpcrlBytes; </span>
-    		}
-<span class="nc" id="L127">    	} catch (CryptoTokenOfflineException ctoe) {</span>
-<span class="nc" id="L128">    		String msg = intres.getLocalizedMessage(&quot;error.catokenoffline&quot;, ca.getSubjectDN());</span>
-<span class="nc" id="L129">    		log.info(msg, ctoe);</span>
-<span class="nc" id="L130">    		String auditmsg = intres.getLocalizedMessage(&quot;createcrl.errorcreate&quot;, ca.getName(), ctoe.getMessage());</span>
-<span class="nc" id="L131">    		Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
-<span class="nc" id="L132">    		details.put(&quot;msg&quot;, auditmsg);</span>
-<span class="nc" id="L133">    		logSession.log(EventTypes.CRL_CREATION, EventStatus.FAILURE, ModuleTypes.CRL, ServiceTypes.CORE, admin.toString(), String.valueOf(caid), null, null, details);</span>
-<span class="nc" id="L134">    		throw ctoe;</span>
-<span class="nc" id="L135">    	} catch (Exception e) {</span>
-<span class="nc" id="L136">    		log.info(&quot;Error generating CRL: &quot;, e);</span>
-<span class="nc" id="L137">    		String msg = intres.getLocalizedMessage(&quot;createcrl.errorcreate&quot;, ca.getName(), e.getMessage());</span>
-<span class="nc" id="L138">    		Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
-<span class="nc" id="L139">    		details.put(&quot;msg&quot;, msg);</span>
-<span class="nc" id="L140">    		logSession.log(EventTypes.CRL_CREATION, EventStatus.FAILURE, ModuleTypes.CRL, ServiceTypes.CORE, admin.toString(), String.valueOf(caid), null, null, details);</span>
-<span class="nc bnc" id="L141" title="All 2 branches missed.">    		if (e instanceof EJBException) {</span>
-<span class="nc" id="L142">    			throw (EJBException)e;</span>
-    		}
-<span class="nc" id="L144">    		throw new EJBException(msg, e);</span>
-<span class="nc" id="L145">    	}</span>
-<span class="nc bnc" id="L146" title="All 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L147">    		log.trace(&quot;&lt;createCRL(Collection)&quot;);</span>
-    	}
-<span class="nc" id="L149">    	return crlBytes;</span>
+  /** Setup. */
+  @PostConstruct
+  public void postConstruct() {
+    // Install BouncyCastle provider if not available
+<span class="nc" id="L76">    CryptoProviderTools.installBCProviderIfNotAvailable();</span>
+<span class="nc" id="L77">  }</span>
+
+  @Override
+  public byte[] generateAndStoreCRL(
+      final AuthenticationToken admin,
+      final CA ca,
+      final Collection&lt;RevokedCertInfo&gt; certs,
+      final int basecrlnumber,
+      final int onextCrlNumber)
+      throws CryptoTokenOfflineException, AuthorizationDeniedException {
+<span class="nc" id="L87">      int nextCrlNumber = onextCrlNumber;</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">    if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L89">      LOG.trace(&quot;&gt;createCRL(Collection)&quot;);</span>
     }
+<span class="nc" id="L91">    byte[] crlBytes = null; // return value</span>
 
-    private void authorizedToCreateCRL(final AuthenticationToken admin, final int caid) throws AuthorizationDeniedException {
-<span class="nc bnc" id="L153" title="All 2 branches missed.">    	if (!authorizationSession.isAuthorized(admin, StandardRules.CREATECRL.resource())) {</span>
-<span class="nc" id="L154">    		final String msg = intres.getLocalizedMessage(&quot;createcrl.notauthorized&quot;, admin.toString(), caid);</span>
-<span class="nc" id="L155">    		throw new AuthorizationDeniedException(msg);</span>
-    	}
-<span class="nc" id="L157">    }</span>
+    // Check that we are allowed to create CRLs
+    // Authorization for other things, that we have access to the CA has already
+    // been done
+<span class="nc" id="L96">    final int caid = ca.getCAId();</span>
+<span class="nc" id="L97">    authorizedToCreateCRL(admin, caid);</span>
 
+    try {
+<span class="nc bnc" id="L100" title="All 2 branches missed.">      if ((ca.getStatus() != CAConstants.CA_ACTIVE)</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">          &amp;&amp; (ca.getStatus() != CAConstants.CA_WAITING_CERTIFICATE_RESPONSE)) {</span>
+<span class="nc" id="L102">        String msg =</span>
+<span class="nc" id="L103">            INTRES.getLocalizedMessage(</span>
+<span class="nc" id="L104">                &quot;createcert.canotactive&quot;, ca.getSubjectDN());</span>
+<span class="nc" id="L105">        throw new CryptoTokenOfflineException(msg);</span>
+      }
+      final X509CRLHolder crl;
+
+<span class="nc bnc" id="L109" title="All 2 branches missed.">      boolean deltaCRL = (basecrlnumber &gt; -1);</span>
+<span class="nc" id="L110">      final CryptoToken cryptoToken =</span>
+<span class="nc" id="L111">          cryptoTokenManagementSession.getCryptoToken(</span>
+<span class="nc" id="L112">              ca.getCAToken().getCryptoTokenId());</span>
+<span class="nc bnc" id="L113" title="All 2 branches missed.">      if (cryptoToken == null) {</span>
+<span class="nc" id="L114">        throw new CryptoTokenOfflineException(</span>
+            &quot;Could not find CryptoToken with id &quot;
+<span class="nc" id="L116">                + ca.getCAToken().getCryptoTokenId());</span>
+      }
+<span class="nc bnc" id="L118" title="All 2 branches missed.">      if (deltaCRL) {</span>
+        // Workaround if transaction handling fails so that crlNumber for
+        // deltaCRL would happen to be the same
+<span class="nc bnc" id="L121" title="All 2 branches missed.">        if (nextCrlNumber == basecrlnumber) {</span>
+<span class="nc" id="L122">          nextCrlNumber++;</span>
+        }
+<span class="nc" id="L124">        crl =</span>
+<span class="nc" id="L125">            ca.generateDeltaCRL(</span>
+                cryptoToken, certs, nextCrlNumber, basecrlnumber);
+      } else {
+<span class="nc" id="L128">        crl = ca.generateCRL(cryptoToken, certs, nextCrlNumber);</span>
+      }
+<span class="nc bnc" id="L130" title="All 2 branches missed.">      if (crl != null) {</span>
+        // Store CRL in the database, this can still fail so the whole thing is
+        // rolled back
+<span class="nc" id="L133">        String cafp = CertTools.getFingerprintAsString(ca.getCACertificate());</span>
+<span class="nc bnc" id="L134" title="All 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L135">          LOG.debug(</span>
+              &quot;Encoding CRL to byte array. Free memory=&quot;
+<span class="nc" id="L137">                  + Runtime.getRuntime().freeMemory());</span>
+        }
+<span class="nc" id="L139">        byte[] tmpcrlBytes = crl.getEncoded();</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L141">          LOG.debug(</span>
+              &quot;Finished encoding CRL to byte array. Free memory=&quot;
+<span class="nc" id="L143">                  + Runtime.getRuntime().freeMemory());</span>
+<span class="nc" id="L144">          LOG.debug(&quot;Storing CRL in certificate store.&quot;);</span>
+        }
+<span class="nc" id="L146">        crlSession.storeCRL(</span>
+            admin,
+            tmpcrlBytes,
+            cafp,
+            nextCrlNumber,
+<span class="nc" id="L151">            crl.getIssuer().toString(),</span>
+<span class="nc" id="L152">            crl.toASN1Structure().getThisUpdate().getDate(),</span>
+<span class="nc" id="L153">            crl.toASN1Structure().getNextUpdate().getDate(),</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">            (deltaCRL ? 1 : -1));</span>
+<span class="nc" id="L155">        String msg =</span>
+<span class="nc" id="L156">            INTRES.getLocalizedMessage(</span>
+                &quot;createcrl.createdcrl&quot;,
+<span class="nc" id="L158">                Integer.valueOf(nextCrlNumber),</span>
+<span class="nc" id="L159">                ca.getName(),</span>
+<span class="nc" id="L160">                ca.getSubjectDN());</span>
+<span class="nc" id="L161">        Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L162">        details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L163">        logSession.log(</span>
+            EventTypes.CRL_CREATION,
+            EventStatus.SUCCESS,
+            ModuleTypes.CRL,
+            ServiceTypes.CORE,
+<span class="nc" id="L168">            admin.toString(),</span>
+<span class="nc" id="L169">            String.valueOf(caid),</span>
+            null,
+            null,
+            details);
+        // Now all is finished and audit logged, now we are ready to &quot;really&quot;
+        // set the return value
+<span class="nc" id="L175">        crlBytes = tmpcrlBytes;</span>
+      }
+<span class="nc" id="L177">    } catch (CryptoTokenOfflineException ctoe) {</span>
+<span class="nc" id="L178">      String msg =</span>
+<span class="nc" id="L179">          INTRES.getLocalizedMessage(&quot;error.catokenoffline&quot;, ca.getSubjectDN());</span>
+<span class="nc" id="L180">      LOG.info(msg, ctoe);</span>
+<span class="nc" id="L181">      String auditmsg =</span>
+<span class="nc" id="L182">          INTRES.getLocalizedMessage(</span>
+<span class="nc" id="L183">              &quot;createcrl.errorcreate&quot;, ca.getName(), ctoe.getMessage());</span>
+<span class="nc" id="L184">      Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L185">      details.put(&quot;msg&quot;, auditmsg);</span>
+<span class="nc" id="L186">      logSession.log(</span>
+          EventTypes.CRL_CREATION,
+          EventStatus.FAILURE,
+          ModuleTypes.CRL,
+          ServiceTypes.CORE,
+<span class="nc" id="L191">          admin.toString(),</span>
+<span class="nc" id="L192">          String.valueOf(caid),</span>
+          null,
+          null,
+          details);
+<span class="nc" id="L196">      throw ctoe;</span>
+<span class="nc" id="L197">    } catch (Exception e) {</span>
+<span class="nc" id="L198">      LOG.info(&quot;Error generating CRL: &quot;, e);</span>
+<span class="nc" id="L199">      String msg =</span>
+<span class="nc" id="L200">          INTRES.getLocalizedMessage(</span>
+<span class="nc" id="L201">              &quot;createcrl.errorcreate&quot;, ca.getName(), e.getMessage());</span>
+<span class="nc" id="L202">      Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L203">      details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L204">      logSession.log(</span>
+          EventTypes.CRL_CREATION,
+          EventStatus.FAILURE,
+          ModuleTypes.CRL,
+          ServiceTypes.CORE,
+<span class="nc" id="L209">          admin.toString(),</span>
+<span class="nc" id="L210">          String.valueOf(caid),</span>
+          null,
+          null,
+          details);
+<span class="nc bnc" id="L214" title="All 2 branches missed.">      if (e instanceof EJBException) {</span>
+<span class="nc" id="L215">        throw (EJBException) e;</span>
+      }
+<span class="nc" id="L217">      throw new EJBException(msg, e);</span>
+<span class="nc" id="L218">    }</span>
+<span class="nc bnc" id="L219" title="All 2 branches missed.">    if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L220">      LOG.trace(&quot;&lt;createCRL(Collection)&quot;);</span>
+    }
+<span class="nc" id="L222">    return crlBytes;</span>
+  }
+
+  private void authorizedToCreateCRL(
+      final AuthenticationToken admin, final int caid)
+      throws AuthorizationDeniedException {
+<span class="nc bnc" id="L228" title="All 2 branches missed.">    if (!authorizationSession.isAuthorized(</span>
+<span class="nc" id="L229">        admin, StandardRules.CREATECRL.resource())) {</span>
+<span class="nc" id="L230">      final String msg =</span>
+<span class="nc" id="L231">          INTRES.getLocalizedMessage(</span>
+<span class="nc" id="L232">              &quot;createcrl.notauthorized&quot;, admin.toString(), caid);</span>
+<span class="nc" id="L233">      throw new AuthorizationDeniedException(msg);</span>
+    }
+<span class="nc" id="L235">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

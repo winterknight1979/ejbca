@@ -18,7 +18,6 @@ import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.apache.log4j.Logger;
 import org.bouncycastle.asn1.x509.KeyPurposeId;
 import org.cesecore.config.AvailableExtendedKeyUsagesConfiguration;
@@ -28,217 +27,379 @@ import org.cesecore.util.CertTools;
 import org.cesecore.util.ui.DynamicUiProperty;
 
 /**
- * Holder of &quot;external&quot; (e.g. non-CA signing key) OCSP InternalKeyBinding properties.
- * 
+ * Holder of &quot;external&quot; (e.g. non-CA signing key) OCSP InternalKeyBinding
+ * properties.
+ *
  * @version $Id: OcspKeyBinding.java 25867 2017-05-17 16:18:06Z mikekushner $
  */
 <span class="fc" id="L35">public class OcspKeyBinding extends InternalKeyBindingBase {</span>
-  
-    private static final long serialVersionUID = 1L;
-<span class="fc" id="L38">    private static final Logger log = Logger.getLogger(OcspKeyBinding.class);</span>
-    
-<span class="fc" id="L40">    public enum ResponderIdType {</span>
-<span class="fc" id="L41">        KEYHASH(2, &quot;KeyHash&quot;), NAME(1, &quot;Name&quot;);</span>
-        
-        private final int numericValue;
-        private final String label;
-        private static Map&lt;Integer, ResponderIdType&gt; numericValueLookupMap;
-        
-        static {
-<span class="fc" id="L48">            numericValueLookupMap = new HashMap&lt;&gt;();</span>
-<span class="fc bfc" id="L49" title="All 2 branches covered.">            for(ResponderIdType responderIdType : ResponderIdType.values()) {</span>
-<span class="fc" id="L50">                numericValueLookupMap.put(responderIdType.getNumericValue(), responderIdType);</span>
-            }
-<span class="fc" id="L52">        }</span>
-        
-<span class="fc" id="L54">        private ResponderIdType(int numericValue, String label) {</span>
-<span class="fc" id="L55">            this.numericValue = numericValue;</span>
-<span class="fc" id="L56">            this.label = label;</span>
-<span class="fc" id="L57">        }</span>
-        
-        public int getNumericValue() {
-<span class="fc" id="L60">            return numericValue;</span>
-        }
-        
-        public String getLabel() {
-<span class="nc" id="L64">            return label;</span>
-        }
-        
-        public static ResponderIdType getFromNumericValue(int numericValue) {
-<span class="nc" id="L68">            return numericValueLookupMap.get(Integer.valueOf(numericValue));</span>
-        }
 
-    }
+  private static final long serialVersionUID = 1L;
+/** Logger. */
+<span class="fc" id="L39">  private static final Logger LOG = Logger.getLogger(OcspKeyBinding.class);</span>
 
-    public static final String IMPLEMENTATION_ALIAS = &quot;OcspKeyBinding&quot;; // This should not change, even if we rename the class in EJBCA 5.3+..
-    public static final String PROPERTY_NON_EXISTING_GOOD = &quot;nonexistingisgood&quot;;
-    public static final String PROPERTY_NON_EXISTING_REVOKED = &quot;nonexistingisrevoked&quot;;
-    public static final String PROPERTY_NON_EXISTING_UNAUTHORIZED = &quot;nonexistingisunauthorized&quot;;
-    public static final String PROPERTY_INCLUDE_CERT_CHAIN = &quot;includecertchain&quot;;
-    public static final String PROPERTY_INCLUDE_SIGN_CERT = &quot;includesigncert&quot;;
-    public static final String PROPERTY_RESPONDER_ID_TYPE = &quot;responderidtype&quot;;  // keyhash, name
-    public static final String PROPERTY_REQUIRE_TRUSTED_SIGNATURE = &quot;requireTrustedSignature&quot;;
-    public static final String PROPERTY_UNTIL_NEXT_UPDATE = &quot;untilNextUpdate&quot;;
-    public static final String PROPERTY_MAX_AGE = &quot;maxAge&quot;;
-    public static final String PROPERTY_ENABLE_NONCE = &quot;enableNonce&quot;;
-    
-    {
-<span class="fc" id="L86">        addProperty(new DynamicUiProperty&lt;Boolean&gt;(PROPERTY_NON_EXISTING_GOOD, Boolean.FALSE));</span>
-<span class="fc" id="L87">        addProperty(new DynamicUiProperty&lt;Boolean&gt;(PROPERTY_NON_EXISTING_REVOKED, Boolean.FALSE));</span>
-<span class="fc" id="L88">        addProperty(new DynamicUiProperty&lt;Boolean&gt;(PROPERTY_NON_EXISTING_UNAUTHORIZED, Boolean.FALSE));</span>
-<span class="fc" id="L89">        addProperty(new DynamicUiProperty&lt;Boolean&gt;(PROPERTY_INCLUDE_CERT_CHAIN, Boolean.TRUE));</span>
-<span class="fc" id="L90">        addProperty(new DynamicUiProperty&lt;Boolean&gt;(PROPERTY_INCLUDE_SIGN_CERT, Boolean.TRUE));</span>
-<span class="fc" id="L91">        addProperty(new DynamicUiProperty&lt;String&gt;(PROPERTY_RESPONDER_ID_TYPE, ResponderIdType.KEYHASH.name(),</span>
-<span class="fc" id="L92">                Arrays.asList(ResponderIdType.KEYHASH.name(), ResponderIdType.NAME.name())));</span>
-<span class="fc" id="L93">        addProperty(new DynamicUiProperty&lt;Boolean&gt;(PROPERTY_REQUIRE_TRUSTED_SIGNATURE, Boolean.FALSE));</span>
-<span class="fc" id="L94">        addProperty(new DynamicUiProperty&lt;Long&gt;(PROPERTY_UNTIL_NEXT_UPDATE, Long.valueOf(0L)));</span>
-<span class="fc" id="L95">        addProperty(new DynamicUiProperty&lt;Long&gt;(PROPERTY_MAX_AGE, Long.valueOf(0L)));</span>
-<span class="fc" id="L96">        addProperty(new DynamicUiProperty&lt;Boolean&gt;(PROPERTY_ENABLE_NONCE, Boolean.TRUE));</span>
-<span class="fc" id="L97">    }</span>
+<span class="fc" id="L41">  public enum ResponderIdType {</span>
+      /** Hash. */
+<span class="fc" id="L43">    KEYHASH(2, &quot;KeyHash&quot;),</span>
+    /** Name. */
+<span class="fc" id="L45">    NAME(1, &quot;Name&quot;);</span>
 
-    
-    @Override
-    public String getImplementationAlias() {
-<span class="nc" id="L102">        return IMPLEMENTATION_ALIAS;</span>
-    }
-    
-    @Override
-    public float getLatestVersion() {
-<span class="fc" id="L107">        return serialVersionUID;</span>
+      /** Value. */
+    private final int numericValue;
+    /** Label. */
+    private final String label;
+    /** Map. */
+    private static Map&lt;Integer, ResponderIdType&gt; numericValueLookupMap;
+
+    static {
+<span class="fc" id="L55">      numericValueLookupMap = new HashMap&lt;&gt;();</span>
+<span class="fc bfc" id="L56" title="All 2 branches covered.">      for (ResponderIdType responderIdType : ResponderIdType.values()) {</span>
+<span class="fc" id="L57">        numericValueLookupMap.put(</span>
+<span class="fc" id="L58">            responderIdType.getNumericValue(), responderIdType);</span>
+      }
+<span class="fc" id="L60">    }</span>
+
+    /**         *
+     * @param aNumericValue typw
+     * @param aLabel label
+     */
+<span class="fc" id="L66">    ResponderIdType(final int aNumericValue, final String aLabel) {</span>
+<span class="fc" id="L67">      this.numericValue = aNumericValue;</span>
+<span class="fc" id="L68">      this.label = aLabel;</span>
+<span class="fc" id="L69">    }</span>
+
+    /**
+     * @return value
+     */
+    public int getNumericValue() {
+<span class="fc" id="L75">      return numericValue;</span>
     }
 
-    @Override
-    protected void upgrade(float latestVersion, float currentVersion) {
-        // Nothing to do
-<span class="nc" id="L113">    }</span>
-    
-    @Override
-    public void assertCertificateCompatability(final Certificate certificate, final AvailableExtendedKeyUsagesConfiguration ekuConfig) throws CertificateImportException {
-<span class="fc" id="L117">        assertCertificateCompatabilityInternal(certificate, ekuConfig);</span>
-<span class="fc" id="L118">    }</span>
-
-    public boolean getNonExistingGood() {
-<span class="fc" id="L121">        return (Boolean) getProperty(PROPERTY_NON_EXISTING_GOOD).getValue();</span>
-    }
-    public void setNonExistingGood(boolean nonExistingGood) {
-<span class="fc" id="L124">        setProperty(PROPERTY_NON_EXISTING_GOOD, Boolean.valueOf(nonExistingGood));</span>
-<span class="fc" id="L125">    }</span>
-    public boolean getNonExistingRevoked() {
-<span class="nc" id="L127">        return (Boolean) getProperty(PROPERTY_NON_EXISTING_REVOKED).getValue();</span>
-    }
-    public void setNonExistingRevoked(boolean nonExistingRevoked) {
-<span class="nc" id="L130">        setProperty(PROPERTY_NON_EXISTING_REVOKED, Boolean.valueOf(nonExistingRevoked));</span>
-<span class="nc" id="L131">    }</span>
-    public boolean getNonExistingUnauthorized() {
-<span class="nc bnc" id="L133" title="All 2 branches missed.">        if(getProperty(PROPERTY_NON_EXISTING_UNAUTHORIZED) == null) {</span>
-<span class="nc" id="L134">            setNonExistingUnauthorized(false);</span>
-        }
-<span class="nc" id="L136">        return (Boolean) getProperty(PROPERTY_NON_EXISTING_UNAUTHORIZED).getValue();</span>
-    }
-    public void setNonExistingUnauthorized(boolean nonExistingUnauthorized) {
-<span class="nc" id="L139">        setProperty(PROPERTY_NON_EXISTING_UNAUTHORIZED, Boolean.valueOf(nonExistingUnauthorized));</span>
-<span class="nc" id="L140">    }</span>
-    public boolean getIncludeCertChain() {
-<span class="fc" id="L142">        return (Boolean) getProperty(PROPERTY_INCLUDE_CERT_CHAIN).getValue();</span>
-    }
-    public void setIncludeCertChain(boolean includeCertChain) {
-<span class="fc" id="L145">        setProperty(PROPERTY_INCLUDE_CERT_CHAIN, Boolean.valueOf(includeCertChain));</span>
-<span class="fc" id="L146">    }</span>
-    public boolean getIncludeSignCert() {
-<span class="fc" id="L148">        return (Boolean) getProperty(PROPERTY_INCLUDE_SIGN_CERT).getValue();</span>
-    }
-    public void setIncludeSignCert(boolean includeCertChain) {
-<span class="fc" id="L151">        setProperty(PROPERTY_INCLUDE_SIGN_CERT, Boolean.valueOf(includeCertChain));</span>
-<span class="fc" id="L152">    }</span>
-    public ResponderIdType getResponderIdType() {
-<span class="fc" id="L154">        return ResponderIdType.valueOf((String) getProperty(PROPERTY_RESPONDER_ID_TYPE).getValue());</span>
-    }
-    public void setResponderIdType(ResponderIdType responderIdType) {
-<span class="fc" id="L157">        setProperty(PROPERTY_RESPONDER_ID_TYPE, responderIdType.name());</span>
-<span class="fc" id="L158">    }</span>
-    public boolean getRequireTrustedSignature() {
-<span class="fc" id="L160">        return (Boolean) getProperty(PROPERTY_REQUIRE_TRUSTED_SIGNATURE).getValue();</span>
-    }
-    public void setRequireTrustedSignature(boolean requireTrustedSignature) {
-<span class="fc" id="L163">        setProperty(PROPERTY_REQUIRE_TRUSTED_SIGNATURE, Boolean.valueOf(requireTrustedSignature));</span>
-<span class="fc" id="L164">    }</span>
-    /** @return the value in seconds (granularity defined in RFC 5019) */
-    public long getUntilNextUpdate() {
-<span class="nc" id="L167">        return (Long) getProperty(PROPERTY_UNTIL_NEXT_UPDATE).getValue();</span>
-    }
-    /** Set the value in seconds (granularity defined in RFC 5019) 
-     * @param untilNextUpdate time */
-    public void setUntilNextUpdate(long untilNextUpdate) {
-<span class="nc" id="L172">        setProperty(PROPERTY_UNTIL_NEXT_UPDATE, Long.valueOf(untilNextUpdate));</span>
-<span class="nc" id="L173">    }</span>
-    /** @return the value in seconds (granularity defined in RFC 5019) */
-    public long getMaxAge() {
-<span class="nc" id="L176">        return (Long) getProperty(PROPERTY_MAX_AGE).getValue();</span>
-    }
-    /** Set the value in seconds (granularity defined in RFC 5019) 
-     * @param maxAge age*/
-    public void setMaxAge(long maxAge) {
-<span class="nc" id="L181">        setProperty(PROPERTY_MAX_AGE, Long.valueOf(maxAge));</span>
-<span class="nc" id="L182">    }</span>
-    
-    /** @return true if NONCE's are to be used in replies */
-    public boolean isNonceEnabled() {
-<span class="nc bnc" id="L186" title="All 2 branches missed.">        if(getProperty(PROPERTY_ENABLE_NONCE) == null) {</span>
-<span class="nc" id="L187">            setNonceEnabled(true);</span>
-        }
-<span class="nc" id="L189">        return (Boolean) getProperty(PROPERTY_ENABLE_NONCE).getValue();</span>
-    }
-    /** 
-     * @param enabled as true of NONCE's are to be included in replies
-     *  */
-    public void setNonceEnabled(boolean enabled) {
-<span class="nc" id="L195">        setProperty(PROPERTY_ENABLE_NONCE, Boolean.valueOf(enabled));</span>
-<span class="nc" id="L196">    }</span>
-
-    public static boolean isOcspSigningCertificate(final Certificate certificate, AvailableExtendedKeyUsagesConfiguration ekuConfig) {
-        try {
-<span class="fc" id="L200">            assertCertificateCompatabilityInternal(certificate, ekuConfig);</span>
-<span class="fc" id="L201">        } catch (CertificateImportException e) {</span>
-<span class="fc" id="L202">            return false;</span>
-<span class="fc" id="L203">        }</span>
-<span class="fc" id="L204">        return true;</span>
+    /**
+     * @return label
+     */
+    public String getLabel() {
+<span class="nc" id="L82">      return label;</span>
     }
 
-    private static void assertCertificateCompatabilityInternal(final Certificate certificate, AvailableExtendedKeyUsagesConfiguration ekuConfig) throws CertificateImportException {
-<span class="pc bpc" id="L208" title="1 of 2 branches missed.">        if (certificate == null) {</span>
-<span class="nc" id="L209">            throw new CertificateImportException(&quot;No certificate provided.&quot;);</span>
+    /**
+     * @param numericValue value
+     * @return type
+     */
+    public static ResponderIdType getFromNumericValue(final int numericValue) {
+<span class="nc" id="L90">      return numericValueLookupMap.get(Integer.valueOf(numericValue));</span>
+    }
+  }
+
+  /** Alias. */
+  public static final String IMPLEMENTATION_ALIAS =
+      &quot;OcspKeyBinding&quot;; // This should not change, even if we rename the class
+                        // in EJBCA 5.3+..
+  /** Good. */
+  public static final String PROPERTY_NON_EXISTING_GOOD = &quot;nonexistingisgood&quot;;
+ /** Revoked. */
+  public static final String PROPERTY_NON_EXISTING_REVOKED =
+      &quot;nonexistingisrevoked&quot;;
+  /** Unauth. */
+  public static final String PROPERTY_NON_EXISTING_UNAUTHORIZED =
+      &quot;nonexistingisunauthorized&quot;;
+  /** Chain. */
+  public static final String PROPERTY_INCLUDE_CERT_CHAIN = &quot;includecertchain&quot;;
+  /** Cert. */
+  public static final String PROPERTY_INCLUDE_SIGN_CERT = &quot;includesigncert&quot;;
+  /** Type. */
+  public static final String PROPERTY_RESPONDER_ID_TYPE =
+      &quot;responderidtype&quot;; // keyhash, name
+  /** Sig. */
+  public static final String PROPERTY_REQUIRE_TRUSTED_SIGNATURE =
+      &quot;requireTrustedSignature&quot;;
+  /** time. */
+  public static final String PROPERTY_UNTIL_NEXT_UPDATE = &quot;untilNextUpdate&quot;;
+  /** Age. */
+  public static final String PROPERTY_MAX_AGE = &quot;maxAge&quot;;
+  /** Nonce. */
+  public static final String PROPERTY_ENABLE_NONCE = &quot;enableNonce&quot;;
+
+  {
+<span class="fc" id="L124">    addProperty(</span>
+        new DynamicUiProperty&lt;Boolean&gt;(
+            PROPERTY_NON_EXISTING_GOOD, Boolean.FALSE));
+<span class="fc" id="L127">    addProperty(</span>
+        new DynamicUiProperty&lt;Boolean&gt;(
+            PROPERTY_NON_EXISTING_REVOKED, Boolean.FALSE));
+<span class="fc" id="L130">    addProperty(</span>
+        new DynamicUiProperty&lt;Boolean&gt;(
+            PROPERTY_NON_EXISTING_UNAUTHORIZED, Boolean.FALSE));
+<span class="fc" id="L133">    addProperty(</span>
+        new DynamicUiProperty&lt;Boolean&gt;(
+            PROPERTY_INCLUDE_CERT_CHAIN, Boolean.TRUE));
+<span class="fc" id="L136">    addProperty(</span>
+        new DynamicUiProperty&lt;Boolean&gt;(
+            PROPERTY_INCLUDE_SIGN_CERT, Boolean.TRUE));
+<span class="fc" id="L139">    addProperty(</span>
+        new DynamicUiProperty&lt;String&gt;(
+            PROPERTY_RESPONDER_ID_TYPE,
+<span class="fc" id="L142">            ResponderIdType.KEYHASH.name(),</span>
+<span class="fc" id="L143">            Arrays.asList(</span>
+<span class="fc" id="L144">                ResponderIdType.KEYHASH.name(), ResponderIdType.NAME.name())));</span>
+<span class="fc" id="L145">    addProperty(</span>
+        new DynamicUiProperty&lt;Boolean&gt;(
+            PROPERTY_REQUIRE_TRUSTED_SIGNATURE, Boolean.FALSE));
+<span class="fc" id="L148">    addProperty(</span>
+        new DynamicUiProperty&lt;Long&gt;(
+<span class="fc" id="L150">            PROPERTY_UNTIL_NEXT_UPDATE, Long.valueOf(0L)));</span>
+<span class="fc" id="L151">    addProperty(</span>
+<span class="fc" id="L152">        new DynamicUiProperty&lt;Long&gt;(PROPERTY_MAX_AGE, Long.valueOf(0L)));</span>
+<span class="fc" id="L153">    addProperty(</span>
+        new DynamicUiProperty&lt;Boolean&gt;(PROPERTY_ENABLE_NONCE, Boolean.TRUE));
+<span class="fc" id="L155">  }</span>
+
+  @Override
+  public String getImplementationAlias() {
+<span class="nc" id="L159">    return IMPLEMENTATION_ALIAS;</span>
+  }
+
+  @Override
+  public float getLatestVersion() {
+<span class="fc" id="L164">    return serialVersionUID;</span>
+  }
+
+  @Override
+  protected void upgrade(
+          final float latestVersion, final float currentVersion) {
+    // Nothing to do
+<span class="nc" id="L171">  }</span>
+
+  @Override
+  public void assertCertificateCompatability(
+      final Certificate certificate,
+      final AvailableExtendedKeyUsagesConfiguration ekuConfig)
+      throws CertificateImportException {
+<span class="fc" id="L178">    assertCertificateCompatabilityInternal(certificate, ekuConfig);</span>
+<span class="fc" id="L179">  }</span>
+
+  /**
+   * @return bool
+   */
+  public boolean getNonExistingGood() {
+<span class="fc" id="L185">    return (Boolean) getProperty(PROPERTY_NON_EXISTING_GOOD).getValue();</span>
+  }
+
+  /**
+   * @param nonExistingGood bool
+   */
+  public void setNonExistingGood(final boolean nonExistingGood) {
+<span class="fc" id="L192">    setProperty(PROPERTY_NON_EXISTING_GOOD, Boolean.valueOf(nonExistingGood));</span>
+<span class="fc" id="L193">  }</span>
+
+  /**
+   * @return bool
+   */
+  public boolean getNonExistingRevoked() {
+<span class="nc" id="L199">    return (Boolean) getProperty(PROPERTY_NON_EXISTING_REVOKED).getValue();</span>
+  }
+
+  /**
+   * @param nonExistingRevoked bool
+   */
+  public void setNonExistingRevoked(final boolean nonExistingRevoked) {
+<span class="nc" id="L206">    setProperty(</span>
+<span class="nc" id="L207">        PROPERTY_NON_EXISTING_REVOKED, Boolean.valueOf(nonExistingRevoked));</span>
+<span class="nc" id="L208">  }</span>
+
+  /**
+   * @return bool
+   */
+  public boolean getNonExistingUnauthorized() {
+<span class="nc bnc" id="L214" title="All 2 branches missed.">    if (getProperty(PROPERTY_NON_EXISTING_UNAUTHORIZED) == null) {</span>
+<span class="nc" id="L215">      setNonExistingUnauthorized(false);</span>
+    }
+<span class="nc" id="L217">    return (Boolean) getProperty(PROPERTY_NON_EXISTING_UNAUTHORIZED).getValue();</span>
+  }
+
+  /**
+   * @param nonExistingUnauthorized bool
+   */
+  public void setNonExistingUnauthorized(
+          final boolean nonExistingUnauthorized) {
+<span class="nc" id="L225">    setProperty(</span>
+        PROPERTY_NON_EXISTING_UNAUTHORIZED,
+<span class="nc" id="L227">        Boolean.valueOf(nonExistingUnauthorized));</span>
+<span class="nc" id="L228">  }</span>
+
+  /**
+   * @return bool
+   */
+  public boolean getIncludeCertChain() {
+<span class="fc" id="L234">    return (Boolean) getProperty(PROPERTY_INCLUDE_CERT_CHAIN).getValue();</span>
+  }
+
+  /**
+   * @param includeCertChain chain
+   */
+  public void setIncludeCertChain(final boolean includeCertChain) {
+<span class="fc" id="L241">    setProperty(PROPERTY_INCLUDE_CERT_CHAIN, Boolean.valueOf(includeCertChain));</span>
+<span class="fc" id="L242">  }</span>
+
+  /**
+   * @return bool
+   */
+  public boolean getIncludeSignCert() {
+<span class="fc" id="L248">    return (Boolean) getProperty(PROPERTY_INCLUDE_SIGN_CERT).getValue();</span>
+  }
+
+  /**
+   * @param includeCertChain bool
+   */
+  public void setIncludeSignCert(final boolean includeCertChain) {
+<span class="fc" id="L255">    setProperty(PROPERTY_INCLUDE_SIGN_CERT, Boolean.valueOf(includeCertChain));</span>
+<span class="fc" id="L256">  }</span>
+
+  /**
+   * @return type
+   */
+  public ResponderIdType getResponderIdType() {
+<span class="fc" id="L262">    return ResponderIdType.valueOf(</span>
+<span class="fc" id="L263">        (String) getProperty(PROPERTY_RESPONDER_ID_TYPE).getValue());</span>
+  }
+
+  /**
+   * @param responderIdType type
+   */
+  public void setResponderIdType(final ResponderIdType responderIdType) {
+<span class="fc" id="L270">    setProperty(PROPERTY_RESPONDER_ID_TYPE, responderIdType.name());</span>
+<span class="fc" id="L271">  }</span>
+
+  /**
+   * @return bool
+   */
+  public boolean getRequireTrustedSignature() {
+<span class="fc" id="L277">    return (Boolean) getProperty(PROPERTY_REQUIRE_TRUSTED_SIGNATURE).getValue();</span>
+  }
+
+  /**
+   * @param requireTrustedSignature bool
+   */
+  public void setRequireTrustedSignature(
+          final boolean requireTrustedSignature) {
+<span class="fc" id="L285">    setProperty(</span>
+        PROPERTY_REQUIRE_TRUSTED_SIGNATURE,
+<span class="fc" id="L287">        Boolean.valueOf(requireTrustedSignature));</span>
+<span class="fc" id="L288">  }</span>
+  /** @return the value in seconds (granularity defined in RFC 5019) */
+  public long getUntilNextUpdate() {
+<span class="nc" id="L291">    return (Long) getProperty(PROPERTY_UNTIL_NEXT_UPDATE).getValue();</span>
+  }
+  /**
+   * Set the value in seconds (granularity defined in RFC 5019).
+   *
+   * @param untilNextUpdate time
+   */
+  public void setUntilNextUpdate(final long untilNextUpdate) {
+<span class="nc" id="L299">    setProperty(PROPERTY_UNTIL_NEXT_UPDATE, Long.valueOf(untilNextUpdate));</span>
+<span class="nc" id="L300">  }</span>
+  /** @return the value in seconds (granularity defined in RFC 5019) */
+  public long getMaxAge() {
+<span class="nc" id="L303">    return (Long) getProperty(PROPERTY_MAX_AGE).getValue();</span>
+  }
+  /**
+   * Set the value in seconds (granularity defined in RFC 5019).
+   *
+   * @param maxAge age
+   */
+  public void setMaxAge(final long maxAge) {
+<span class="nc" id="L311">    setProperty(PROPERTY_MAX_AGE, Long.valueOf(maxAge));</span>
+<span class="nc" id="L312">  }</span>
+
+  /** @return true if NONCE's are to be used in replies */
+  public boolean isNonceEnabled() {
+<span class="nc bnc" id="L316" title="All 2 branches missed.">    if (getProperty(PROPERTY_ENABLE_NONCE) == null) {</span>
+<span class="nc" id="L317">      setNonceEnabled(true);</span>
+    }
+<span class="nc" id="L319">    return (Boolean) getProperty(PROPERTY_ENABLE_NONCE).getValue();</span>
+  }
+  /** @param enabled as true of NONCE's are to be included in replies */
+  public void setNonceEnabled(final boolean enabled) {
+<span class="nc" id="L323">    setProperty(PROPERTY_ENABLE_NONCE, Boolean.valueOf(enabled));</span>
+<span class="nc" id="L324">  }</span>
+
+  /**
+   * @param certificate Cert
+   * @param ekuConfig Config
+   * @return Bool
+   */
+  public static boolean isOcspSigningCertificate(
+      final Certificate certificate,
+      final AvailableExtendedKeyUsagesConfiguration ekuConfig) {
+    try {
+<span class="fc" id="L335">      assertCertificateCompatabilityInternal(certificate, ekuConfig);</span>
+<span class="fc" id="L336">    } catch (CertificateImportException e) {</span>
+<span class="fc" id="L337">      return false;</span>
+<span class="fc" id="L338">    }</span>
+<span class="fc" id="L339">    return true;</span>
+  }
+
+  private static void assertCertificateCompatabilityInternal(
+      final Certificate certificate,
+      final AvailableExtendedKeyUsagesConfiguration ekuConfig)
+      throws CertificateImportException {
+<span class="pc bpc" id="L346" title="1 of 2 branches missed.">    if (certificate == null) {</span>
+<span class="nc" id="L347">      throw new CertificateImportException(&quot;No certificate provided.&quot;);</span>
+    }
+<span class="pc bpc" id="L349" title="1 of 2 branches missed.">    if (!(certificate instanceof X509Certificate)) {</span>
+<span class="nc" id="L350">      throw new CertificateImportException(</span>
+          &quot;Only X509 certificates are supported for OCSP.&quot;);
+    }
+    try {
+<span class="fc" id="L354">      final X509Certificate x509Certificate = (X509Certificate) certificate;</span>
+<span class="pc bpc" id="L355" title="1 of 2 branches missed.">      if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L356">        LOG.debug(</span>
+            &quot;SubjectDN: &quot;
+<span class="nc" id="L358">                + CertTools.getSubjectDN(x509Certificate)</span>
+                + &quot; IssuerDN: &quot;
+<span class="nc" id="L360">                + CertTools.getIssuerDN(x509Certificate));</span>
+<span class="nc" id="L361">        final boolean[] ku = x509Certificate.getKeyUsage();</span>
+<span class="nc" id="L362">        LOG.debug(&quot;Key usages: &quot; + Arrays.toString(ku));</span>
+<span class="nc bnc" id="L363" title="All 2 branches missed.">        if (ku != null) {</span>
+<span class="nc" id="L364">          LOG.debug(</span>
+              &quot;Key usage (digitalSignature): &quot;
+<span class="nc" id="L366">                  + x509Certificate.getKeyUsage()[0]);</span>
+<span class="nc" id="L367">          LOG.debug(</span>
+              &quot;Key usage (nonRepudiation):   &quot;
+<span class="nc" id="L369">                  + x509Certificate.getKeyUsage()[1]);</span>
+<span class="nc" id="L370">          LOG.debug(</span>
+              &quot;Key usage (keyEncipherment):  &quot;
+<span class="nc" id="L372">                  + x509Certificate.getKeyUsage()[2]);</span>
         }
-<span class="pc bpc" id="L211" title="1 of 2 branches missed.">        if (!(certificate instanceof X509Certificate)) {</span>
-<span class="nc" id="L212">            throw new CertificateImportException(&quot;Only X509 certificates are supported for OCSP.&quot;);</span>
-        }
-        try {
-<span class="fc" id="L215">            final X509Certificate x509Certificate = (X509Certificate) certificate;</span>
-<span class="pc bpc" id="L216" title="1 of 2 branches missed.">            if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L217">                log.debug(&quot;SubjectDN: &quot; + CertTools.getSubjectDN(x509Certificate) + &quot; IssuerDN: &quot; + CertTools.getIssuerDN(x509Certificate));</span>
-<span class="nc" id="L218">                final boolean[] ku = x509Certificate.getKeyUsage();</span>
-<span class="nc" id="L219">                log.debug(&quot;Key usages: &quot; + Arrays.toString(ku));</span>
-<span class="nc bnc" id="L220" title="All 2 branches missed.">                if (ku != null) {</span>
-<span class="nc" id="L221">                    log.debug(&quot;Key usage (digitalSignature): &quot; + x509Certificate.getKeyUsage()[0]);</span>
-<span class="nc" id="L222">                    log.debug(&quot;Key usage (nonRepudiation):   &quot; + x509Certificate.getKeyUsage()[1]);</span>
-<span class="nc" id="L223">                    log.debug(&quot;Key usage (keyEncipherment):  &quot; + x509Certificate.getKeyUsage()[2]);</span>
-                }
-            }
-<span class="fc bfc" id="L226" title="All 2 branches covered.">            if (x509Certificate.getExtendedKeyUsage() == null) {</span>
-<span class="fc" id="L227">                throw new CertificateImportException(&quot;No Extended Key Usage present in certificate.&quot;);</span>
-            }
-<span class="fc bfc" id="L229" title="All 2 branches covered.">            for (String extendedKeyUsage : x509Certificate.getExtendedKeyUsage()) {</span>
-<span class="fc" id="L230">                log.debug(&quot;EKU: &quot; + extendedKeyUsage + &quot; (&quot; +</span>
-<span class="fc" id="L231">                        ekuConfig.getAllEKUOidsAndNames().get(extendedKeyUsage) + &quot;)&quot;);</span>
-<span class="fc" id="L232">            }</span>
-<span class="pc bpc" id="L233" title="1 of 2 branches missed.">            if (!x509Certificate.getExtendedKeyUsage().contains(KeyPurposeId.id_kp_OCSPSigning.getId())) {</span>
-<span class="nc" id="L234">                throw new CertificateImportException(&quot;Extended Key Usage 1.3.6.1.5.5.7.3.9 (EKU_PKIX_OCSPSIGNING) is required.&quot;);</span>
-            }
-<span class="fc bfc" id="L236" title="All 4 branches covered.">            if (!x509Certificate.getKeyUsage()[0] &amp;&amp; !x509Certificate.getKeyUsage()[1] ) {</span>
-<span class="fc" id="L237">                throw new CertificateImportException(&quot;Key Usage digitalSignature is required (nonRepudiation would also be accepted).&quot;);</span>
-            }
-<span class="nc" id="L239">        } catch (CertificateParsingException e) {</span>
-<span class="nc" id="L240">            throw new CertificateImportException(e.getMessage(), e);</span>
-<span class="fc" id="L241">        }</span>
-<span class="fc" id="L242">    }</span>
+      }
+<span class="fc bfc" id="L375" title="All 2 branches covered.">      if (x509Certificate.getExtendedKeyUsage() == null) {</span>
+<span class="fc" id="L376">        throw new CertificateImportException(</span>
+            &quot;No Extended Key Usage present in certificate.&quot;);
+      }
+<span class="fc bfc" id="L379" title="All 2 branches covered.">      for (String extendedKeyUsage : x509Certificate.getExtendedKeyUsage()) {</span>
+<span class="fc" id="L380">        LOG.debug(</span>
+            &quot;EKU: &quot;
+                + extendedKeyUsage
+                + &quot; (&quot;
+<span class="fc" id="L384">                + ekuConfig.getAllEKUOidsAndNames().get(extendedKeyUsage)</span>
+                + &quot;)&quot;);
+<span class="fc" id="L386">      }</span>
+<span class="fc" id="L387">      if (!x509Certificate</span>
+<span class="fc" id="L388">          .getExtendedKeyUsage()</span>
+<span class="pc bpc" id="L389" title="1 of 2 branches missed.">          .contains(KeyPurposeId.id_kp_OCSPSigning.getId())) {</span>
+<span class="nc" id="L390">        throw new CertificateImportException(</span>
+            &quot;Extended Key Usage 1.3.6.1.5.5.7.3.9 (EKU_PKIX_OCSPSIGNING) is&quot;
+                + &quot; required.&quot;);
+      }
+<span class="fc bfc" id="L394" title="All 2 branches covered.">      if (!x509Certificate.getKeyUsage()[0]</span>
+<span class="fc bfc" id="L395" title="All 2 branches covered.">          &amp;&amp; !x509Certificate.getKeyUsage()[1]) {</span>
+<span class="fc" id="L396">        throw new CertificateImportException(</span>
+            &quot;Key Usage digitalSignature is required (nonRepudiation would also&quot;
+                + &quot; be accepted).&quot;);
+      }
+<span class="nc" id="L400">    } catch (CertificateParsingException e) {</span>
+<span class="nc" id="L401">      throw new CertificateImportException(e.getMessage(), e);</span>
+<span class="fc" id="L402">    }</span>
+<span class="fc" id="L403">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

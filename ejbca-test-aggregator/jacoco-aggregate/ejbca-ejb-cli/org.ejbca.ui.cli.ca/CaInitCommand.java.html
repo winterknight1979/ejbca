@@ -1,0 +1,687 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CaInitCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.ca</a> &gt; <span class="el_source">CaInitCommand.java</span></div><h1>CaInitCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.cli.ca;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.cert.CertPathValidatorException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CAConstants;
+import org.cesecore.certificates.ca.CAExistsException;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.CVCCAInfo;
+import org.cesecore.certificates.ca.CaSessionRemote;
+import org.cesecore.certificates.ca.InvalidAlgorithmException;
+import org.cesecore.certificates.ca.X509CAInfo;
+import org.cesecore.certificates.ca.catoken.CAToken;
+import org.cesecore.certificates.ca.catoken.CATokenConstants;
+import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceInfo;
+import org.cesecore.certificates.certificate.CertificateConstants;
+import org.cesecore.certificates.certificateprofile.CertificatePolicy;
+import org.cesecore.certificates.certificateprofile.CertificateProfile;
+import org.cesecore.certificates.certificateprofile.CertificateProfileConstants;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSessionRemote;
+import org.cesecore.certificates.util.AlgorithmConstants;
+import org.cesecore.certificates.util.DNFieldExtractor;
+import org.cesecore.keys.token.CryptoToken;
+import org.cesecore.keys.token.CryptoTokenAuthenticationFailedException;
+import org.cesecore.keys.token.CryptoTokenManagementSessionRemote;
+import org.cesecore.keys.token.CryptoTokenNameInUseException;
+import org.cesecore.keys.token.CryptoTokenOfflineException;
+import org.cesecore.keys.token.PKCS11CryptoToken;
+import org.cesecore.keys.token.SoftCryptoToken;
+import org.cesecore.keys.token.p11.exception.NoSuchSlotException;
+import org.cesecore.keys.util.KeyTools;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.EjbRemoteHelper;
+import org.cesecore.util.SimpleTime;
+import org.cesecore.util.StringTools;
+import org.ejbca.core.ejb.ca.caadmin.CAAdminSessionRemote;
+import org.ejbca.core.model.ca.caadmin.extendedcaservices.CmsCAServiceInfo;
+import org.ejbca.core.model.ca.caadmin.extendedcaservices.HardTokenEncryptCAServiceInfo;
+import org.ejbca.core.model.ca.caadmin.extendedcaservices.KeyRecoveryCAServiceInfo;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+
+/**
+ * CLI command for creating a CA and its first CRL. Publishes the CRL and CA certificate if it should.
+ * 
+ * @version $Id: CaInitCommand.java 28099 2018-01-25 12:08:32Z henriks $
+ */
+<span class="nc" id="L84">enum CaType {</span>
+<span class="nc" id="L85">    X509(&quot;x509&quot;), CVC(&quot;cvc&quot;);</span>
+
+    private static Map&lt;String, CaType&gt; lookupMap;
+    private final String typeName;
+
+    static {
+<span class="nc" id="L91">        lookupMap = new HashMap&lt;String, CaType&gt;();</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">        for (CaType type : CaType.values()) {</span>
+<span class="nc" id="L93">            lookupMap.put(type.getTypeName(), type);</span>
+        }
+<span class="nc" id="L95">    }</span>
+
+<span class="nc" id="L97">    private CaType(String name) {</span>
+<span class="nc" id="L98">        this.typeName = name;</span>
+<span class="nc" id="L99">    }</span>
+
+    public String getTypeName() {
+<span class="nc" id="L102">        return this.typeName;</span>
+    }
+
+    public static CaType lookupCaType(String typeName) {
+<span class="nc" id="L106">        return lookupMap.get(typeName);</span>
+    }
+
+    public static String getTypeNames() {
+<span class="nc" id="L110">        StringBuilder stringBuilder = new StringBuilder(&quot;[&quot;);</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">        for (CaType type : CaType.values()) {</span>
+<span class="nc" id="L112">            stringBuilder.append(type.getTypeName());</span>
+<span class="nc" id="L113">            stringBuilder.append(&quot;,&quot;);</span>
+        }
+<span class="nc" id="L115">        stringBuilder.setCharAt(stringBuilder.length() - 1, ']');</span>
+<span class="nc" id="L116">        return stringBuilder.toString();</span>
+    }
+}
+
+<span class="nc" id="L120">public class CaInitCommand extends BaseCaAdminCommand {</span>
+
+<span class="nc" id="L122">    private static final Logger log = Logger.getLogger(CaInitCommand.class);</span>
+
+    private static final String CA_NAME_KEY = &quot;--caname&quot;;
+    private static final String DN_KEY = &quot;--dn&quot;;
+    private static final String ALT_NAME_KEY = &quot;--subjectaltname&quot;;
+    private static final String TOKEN_TYPE_KEY = &quot;--tokenType&quot;;
+    private static final String TOKEN_PASSWORD_KEY = &quot;--tokenPass&quot;;
+    private static final String KEY_SPEC_KEY = &quot;--keyspec&quot;;
+    private static final String KEY_TYPE_KEY = &quot;--keytype&quot;;
+    private static final String VALIDITY_KEY = &quot;-v&quot;;
+    private static final String POLICY_ID_KEY = &quot;--policy&quot;;
+    private static final String SIGNING_ALGORITHM_KEY = &quot;-s&quot;;
+
+    private static final String CA_TOKEN_PROPERTIES_KEY = &quot;--tokenprop&quot;;
+    private static final String CERTIFICATE_PROFILE_KEY = &quot;-certprofile&quot;;
+    private static final String SUPERADMIN_CN_KEY = &quot;-superadmincn&quot;;
+    private static final String TYPE_KEY = &quot;-type&quot;;
+    private static final String EXPLICIT_ECC_KEY = &quot;-explicitecc&quot;;
+    private static final String SIGNED_BY = &quot;--signedby&quot;;
+    private static final String EXTERNAL_CHAIN_KEY = &quot;-externalcachain&quot;;
+
+    {
+<span class="nc" id="L144">        StringBuilder typesStringBuilder = new StringBuilder();</span>
+<span class="nc" id="L145">        CaType[] typeArray = CaType.values();</span>
+<span class="nc bnc" id="L146" title="All 2 branches missed.">        for (int i = 0; i &lt; typeArray.length; ++i) {</span>
+<span class="nc" id="L147">            CaType type = typeArray[i];</span>
+<span class="nc" id="L148">            typesStringBuilder.append(type.getTypeName());</span>
+<span class="nc bnc" id="L149" title="All 2 branches missed.">            if (i == typeArray.length - 2) {</span>
+<span class="nc" id="L150">                typesStringBuilder.append(&quot; or &quot;);</span>
+<span class="nc bnc" id="L151" title="All 2 branches missed.">            } else if (i == typeArray.length - 1) {</span>
+<span class="nc" id="L152">                break;</span>
+            } else {
+<span class="nc" id="L154">                typesStringBuilder.append(&quot;,&quot;);</span>
+            }
+        }
+
+<span class="nc" id="L158">        StringBuilder availableSignAlgs = new StringBuilder();</span>
+<span class="nc bnc" id="L159" title="All 2 branches missed.">        for (String algorithm : AlgorithmConstants.AVAILABLE_SIGALGS) {</span>
+<span class="nc bnc" id="L160" title="All 2 branches missed.">            availableSignAlgs.append((availableSignAlgs.length() == 0 ? &quot;&quot; : &quot;, &quot;) + algorithm);</span>
+        }
+
+        //Mandatory values
+<span class="nc" id="L164">        registerParameter(new Parameter(CA_NAME_KEY, &quot;CA Name&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;Name of the CA&quot;));
+<span class="nc" id="L166">        registerParameter(new Parameter(DN_KEY, &quot;DN&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT, &quot;DN&quot;));</span>
+<span class="nc" id="L167">        registerParameter(new Parameter(</span>
+                TOKEN_TYPE_KEY,
+                &quot;Token Type&quot;,
+                MandatoryMode.MANDATORY,
+                StandaloneMode.ALLOW,
+                ParameterMode.ARGUMENT,
+                &quot;Defines if the CA should be created with soft keys or on a HSM. Use 'soft' for software keys and 'org.cesecore.keys.token.PKCS11CryptoToken' for PKCS#11 HSMs.&quot;));
+        //Password kept as a mandatory argument for legacy reasons
+<span class="nc" id="L175">        registerParameter(new Parameter(</span>
+                TOKEN_PASSWORD_KEY,
+                &quot;Password&quot;,
+                MandatoryMode.MANDATORY,
+                StandaloneMode.ALLOW,
+                ParameterMode.ARGUMENT,
+                &quot;catokenpassword is the password for the CA token. Set to 'null' to use the default system password for Soft token CAs. Set to 'prompt' to prompt for the password on the terminal.&quot;));
+<span class="nc" id="L182">        registerParameter(new Parameter(KEY_SPEC_KEY, &quot;Key Specification&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;Keyspec for RSA keys is size of RSA keys (1024, 2048, 4096, 8192). &quot; + &quot;Keyspec for DSA keys is size of DSA keys (1024). &quot;
+                        + &quot;Keyspec for ECDSA keys is name of curve or 'implicitlyCA'' (see docs).&quot;));
+<span class="nc" id="L185">        registerParameter(new Parameter(KEY_TYPE_KEY, &quot;Key Type&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;Keytype is RSA, DSA or ECDSA.&quot;));
+<span class="nc" id="L187">        registerParameter(new Parameter(VALIDITY_KEY, &quot;Validity&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;Validity of the CA in days.&quot;));
+        //Policy ID keyt as mandatory parameter for legacy reasons.
+<span class="nc" id="L190">        registerParameter(new Parameter(POLICY_ID_KEY, &quot;Policy ID&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;PolicyId can be 'null' if no Certificate Policy extension should be present, or\nobjectID as '2.5.29.32.0' or objectID and cpsurl &quot;
+                        + &quot;as \&quot;2.5.29.32.0 http://foo.bar.com/mycps.txt\&quot;. You can add multiple policies such as &quot;
+                        + &quot;\&quot;2.5.29.32.0 http://foo.bar.com/mycps.txt 1.1.1.1.1 http://foo.bar.com/111cps.txt\&quot;.&quot;));
+<span class="nc" id="L194">        registerParameter(new Parameter(SIGNING_ALGORITHM_KEY, &quot;Signing Algorithm&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW,</span>
+<span class="nc" id="L195">                ParameterMode.ARGUMENT, &quot;Signing Algorithm may be one of the following: &quot; + availableSignAlgs.toString()));</span>
+
+        //Optional values
+<span class="nc" id="L198">        registerParameter(new Parameter(CA_TOKEN_PROPERTIES_KEY, &quot;Filename&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID, ParameterMode.ARGUMENT,</span>
+                &quot;CA Token properties is a file were you define key name, password and key alias for the HSM. Same as the Hard CA Token Properties in admin gui.&quot;));
+<span class="nc" id="L200">        registerParameter(new Parameter(CERTIFICATE_PROFILE_KEY, &quot;Profile name&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID,</span>
+                ParameterMode.ARGUMENT, &quot;Makes the CA use the certificate profile 'profileName' instead of the default ROOTCA or SUBCA.&quot;
+                        + &quot; Optional parameter that can be completely left out.&quot;));
+<span class="nc" id="L203">        registerParameter(new Parameter(SUPERADMIN_CN_KEY, &quot;Superadmin CN&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID, ParameterMode.ARGUMENT,</span>
+                &quot;Adding the parameters '-superadmincn SuperAdmin' makes an initial CA use the common name SuperAdmin &quot;
+                        + &quot;and initializes the authorization module with an initial super administrator. &quot;
+                        + &quot;Note only used when creating initial CA. If parameter is not given, the authorization rules are untouched.&quot;));
+<span class="nc" id="L207">        registerParameter(new Parameter(TYPE_KEY, &quot;CA Type&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID, ParameterMode.ARGUMENT,</span>
+<span class="nc" id="L208">                &quot;Type is the CA type. May be [&quot; + typesStringBuilder.toString() + &quot;]. Optional parameter, defaults to x509.&quot;));</span>
+<span class="nc" id="L209">        registerParameter(Parameter.createFlag(EXPLICIT_ECC_KEY, &quot;Adding the switch '&quot; + EXPLICIT_ECC_KEY</span>
+                + &quot;' when using ECC keys makes the internal CryptoToken use explicit curve parameters instead of named curves. &quot;
+                + &quot;Should only be used when creating a CSCA for ePassports.&quot;));
+<span class="nc" id="L212">        registerParameter(new Parameter(SIGNED_BY, &quot;CA ID&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID, ParameterMode.ARGUMENT,</span>
+                &quot; The ID of a CA that will sign this CA. If this is omitted the new CA will be self signed (i.e. a root CA).&quot;
+                        + &quot;To create a CA signed by an external CA, use the keyword 'External' as &lt;CA_ID&gt;, &quot;
+                        + &quot;this will result in a certificate request (CSR) being saved on file, to be signed by the external CA. &quot;
+                        + &quot;Requires parameter '-externalcachain &lt;externalCA chain PEM file' with the full certificate chain of the external CA.&quot;));
+<span class="nc" id="L217">        registerParameter(new Parameter(EXTERNAL_CHAIN_KEY, &quot;Certificate Chain File&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID,</span>
+                ParameterMode.ARGUMENT, &quot;The certificate chain to be used if CA is to be signed by an external CA.&quot;));
+<span class="nc" id="L219">        registerParameter(new Parameter(ALT_NAME_KEY, &quot;Subject Alternative Name&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID, ParameterMode.ARGUMENT, &quot;CA Subject Alternative Name&quot;));</span>
+<span class="nc" id="L220">    }</span>
+
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+        // Install BC provider
+<span class="nc" id="L225">        CryptoProviderTools.installBCProviderIfNotAvailable();</span>
+
+<span class="nc" id="L227">        String profileName = parameters.get(CERTIFICATE_PROFILE_KEY);</span>
+<span class="nc" id="L228">        final String superAdminCN = parameters.get(SUPERADMIN_CN_KEY);</span>
+        //Default is X509
+        final CaType type;
+<span class="nc bnc" id="L231" title="All 2 branches missed.">        if (parameters.get(TYPE_KEY) != null) {</span>
+<span class="nc" id="L232">            type = CaType.lookupCaType(parameters.get(TYPE_KEY));</span>
+<span class="nc bnc" id="L233" title="All 2 branches missed.">            if (type == null) {</span>
+<span class="nc" id="L234">                log.error(&quot;CA type of name &quot; + parameters.get(TYPE_KEY) + &quot; unknown. Available types: &quot; + CaType.getTypeNames());</span>
+<span class="nc" id="L235">                return CommandResult.FUNCTIONAL_FAILURE;</span>
+            }
+        } else {
+<span class="nc" id="L238">            type = CaType.X509;</span>
+        }
+<span class="nc bnc" id="L240" title="All 2 branches missed.">        final String explicitEcc = (parameters.get(EXPLICIT_ECC_KEY) != null ? Boolean.TRUE.toString() : Boolean.FALSE.toString());</span>
+<span class="nc" id="L241">        final String extcachainName = parameters.get(EXTERNAL_CHAIN_KEY);</span>
+
+<span class="nc" id="L243">        final String caname = parameters.get(CA_NAME_KEY);</span>
+<span class="nc" id="L244">        final String dn = CertTools.stringToBCDNString(StringTools.strip(parameters.get(DN_KEY)));</span>
+<span class="nc" id="L245">        final String subjectAltName = parameters.get(ALT_NAME_KEY);</span>
+<span class="nc bnc" id="L246" title="All 4 branches missed.">        if (subjectAltName != null &amp;&amp; !checkSubjectAltName(subjectAltName)) {</span>
+<span class="nc" id="L247">            log.error(&quot;Invalid Subject Alternative Name&quot;);</span>
+<span class="nc" id="L248">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+        }
+<span class="nc" id="L250">        final String catokentype = parameters.get(TOKEN_TYPE_KEY);</span>
+<span class="nc" id="L251">        String catokenpassword = StringTools.passwordDecryption(parameters.get(TOKEN_PASSWORD_KEY), &quot;ca.tokenpassword&quot;);</span>
+<span class="nc bnc" id="L252" title="All 2 branches missed.">        if (StringUtils.equals(catokenpassword, &quot;prompt&quot;)) {</span>
+<span class="nc" id="L253">            getLogger().info(&quot;Enter CA token password: &quot;);</span>
+<span class="nc" id="L254">            getLogger().info(&quot;&quot;);</span>
+<span class="nc" id="L255">            catokenpassword = String.valueOf(System.console().readPassword());</span>
+        }
+<span class="nc" id="L257">        final String keyspec = parameters.get(KEY_SPEC_KEY);</span>
+<span class="nc" id="L258">        final String keytype = parameters.get(KEY_TYPE_KEY);</span>
+<span class="nc" id="L259">        final String encodedValidity = Long.parseLong(parameters.get(VALIDITY_KEY)) + SimpleTime.TYPE_DAYS;</span>
+<span class="nc" id="L260">        String policyId = parameters.get(POLICY_ID_KEY);</span>
+<span class="nc" id="L261">        final ArrayList&lt;CertificatePolicy&gt; policies = new ArrayList&lt;CertificatePolicy&gt;(1);</span>
+<span class="nc bnc" id="L262" title="All 4 branches missed.">        if ((policyId != null) &amp;&amp; (policyId.toLowerCase().trim().equals(&quot;null&quot;))) {</span>
+<span class="nc" id="L263">            policyId = null;</span>
+        } else {
+<span class="nc" id="L265">            String[] array = policyId.split(&quot; &quot;);</span>
+<span class="nc bnc" id="L266" title="All 2 branches missed.">            for (int i = 0; i &lt; array.length; i += 2) {</span>
+<span class="nc" id="L267">                String id = array[i + 0];</span>
+<span class="nc" id="L268">                String cpsurl = &quot;&quot;;</span>
+<span class="nc bnc" id="L269" title="All 2 branches missed.">                if (array.length &gt; i + 1) {</span>
+<span class="nc" id="L270">                    cpsurl = array[i + 1];</span>
+                }
+<span class="nc" id="L272">                policies.add(new CertificatePolicy(id, CertificatePolicy.ID_QT_CPS, cpsurl));</span>
+            }
+        }
+<span class="nc" id="L275">        String signAlg = parameters.get(SIGNING_ALGORITHM_KEY);</span>
+<span class="nc" id="L276">        Properties cryptoTokenProperties = new Properties();</span>
+<span class="nc" id="L277">        String caTokenPropertiesFile = parameters.get(CA_TOKEN_PROPERTIES_KEY);</span>
+<span class="nc bnc" id="L278" title="All 4 branches missed.">        if (caTokenPropertiesFile != null &amp;&amp; &quot;soft&quot;.equals(catokentype)) {</span>
+<span class="nc" id="L279">            log.error(&quot;Can't define a CAToken properties file for a soft token.&quot;);</span>
+<span class="nc" id="L280">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc bnc" id="L281" title="All 2 branches missed.">        } else if (caTokenPropertiesFile != null) {</span>
+<span class="nc bnc" id="L282" title="All 4 branches missed.">            if ((caTokenPropertiesFile != null) &amp;&amp; (!caTokenPropertiesFile.equalsIgnoreCase(&quot;null&quot;))) {</span>
+<span class="nc" id="L283">                File file = new File(caTokenPropertiesFile);</span>
+<span class="nc bnc" id="L284" title="All 2 branches missed.">                if (!file.exists()) {</span>
+<span class="nc" id="L285">                    log.error(&quot;CA Token propoerties file &quot; + caTokenPropertiesFile + &quot; does not exist.&quot;);</span>
+<span class="nc" id="L286">                    return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc bnc" id="L287" title="All 2 branches missed.">                } else if (file.isDirectory()) {</span>
+<span class="nc" id="L288">                    log.error(&quot;CA Token propoerties file &quot; + caTokenPropertiesFile + &quot; is a directory.&quot;);</span>
+<span class="nc" id="L289">                    return CommandResult.FUNCTIONAL_FAILURE;</span>
+                } else {
+                    try {
+<span class="nc" id="L292">                        cryptoTokenProperties.load(new FileInputStream(caTokenPropertiesFile));</span>
+<span class="nc" id="L293">                    } catch (FileNotFoundException e) {</span>
+                        //Can't happen
+<span class="nc" id="L295">                        throw new IllegalStateException(&quot;Newly referenced file &quot; + caTokenPropertiesFile + &quot; was not found.&quot;, e);</span>
+<span class="nc" id="L296">                    } catch (IOException e) {</span>
+<span class="nc" id="L297">                        throw new IllegalStateException(&quot;Unknown exception was caught when reading input stream&quot;, e);</span>
+<span class="nc" id="L298">                    }</span>
+                }
+            }
+        }
+<span class="nc" id="L302">        int signedByCAId = CAInfo.SELFSIGNED;</span>
+<span class="nc bnc" id="L303" title="All 2 branches missed.">        if (parameters.get(SIGNED_BY) != null) {</span>
+<span class="nc bnc" id="L304" title="All 2 branches missed.">            if (StringUtils.equalsIgnoreCase(&quot;External&quot;, parameters.get(SIGNED_BY))) {</span>
+<span class="nc" id="L305">                signedByCAId = CAInfo.SIGNEDBYEXTERNALCA;</span>
+<span class="nc bnc" id="L306" title="All 2 branches missed.">                if (extcachainName == null) {</span>
+<span class="nc" id="L307">                    log.error(&quot;Signing by external CA requires parameter &quot; + EXTERNAL_CHAIN_KEY);</span>
+<span class="nc" id="L308">                    return CommandResult.FUNCTIONAL_FAILURE;</span>
+                }
+            } else {
+<span class="nc" id="L311">                signedByCAId = Integer.valueOf(parameters.get(SIGNED_BY));</span>
+            }
+        }
+
+        // Check that the CA doesn't exist already
+<span class="nc" id="L316">        getLogger().debug(&quot;Checking that CA doesn't exist: &quot; + caname);</span>
+<span class="nc bnc" id="L317" title="All 2 branches missed.">        if (getCAInfo(getAuthenticationToken(), caname) != null) {</span>
+<span class="nc" id="L318">            getLogger().error(&quot;Error: CA '&quot; + caname + &quot;' exists already&quot;);</span>
+<span class="nc" id="L319">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+        }
+
+        // Get the profile ID from the name if we specified a certain profile name
+<span class="nc" id="L323">        int certificateProfileId = CertificateProfileConstants.CERTPROFILE_FIXED_ROOTCA;</span>
+<span class="nc bnc" id="L324" title="All 2 branches missed.">        if (profileName == null) {</span>
+<span class="nc bnc" id="L325" title="All 2 branches missed.">            if (signedByCAId == CAInfo.SELFSIGNED) {</span>
+<span class="nc" id="L326">                profileName = &quot;ROOTCA&quot;;</span>
+            } else {
+<span class="nc" id="L328">                profileName = &quot;SUBCA&quot;;</span>
+<span class="nc" id="L329">                certificateProfileId = CertificateProfileConstants.CERTPROFILE_FIXED_SUBCA;</span>
+            }
+        } else {
+<span class="nc" id="L332">            certificateProfileId = EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateProfileSessionRemote.class).getCertificateProfileId(</span>
+                    profileName);
+<span class="nc bnc" id="L334" title="All 2 branches missed.">            if (certificateProfileId == 0) {</span>
+<span class="nc" id="L335">                getLogger().info(&quot;Error: Certificate profile with name '&quot; + profileName + &quot;' does not exist.&quot;);</span>
+<span class="nc" id="L336">                return CommandResult.FUNCTIONAL_FAILURE;</span>
+            }
+
+<span class="nc" id="L339">            CertificateProfile certificateProfile = EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateProfileSessionRemote.class)</span>
+<span class="nc" id="L340">                    .getCertificateProfile(profileName);</span>
+<span class="nc bnc" id="L341" title="All 2 branches missed.">            if (certificateProfile.getType() != CertificateConstants.CERTTYPE_ROOTCA</span>
+<span class="nc bnc" id="L342" title="All 2 branches missed.">                    &amp;&amp; certificateProfile.getType() != CertificateConstants.CERTTYPE_SUBCA) {</span>
+<span class="nc" id="L343">                getLogger().info(&quot;Error: Certificate profile &quot; + profileName + &quot; is not of type ROOTCA or SUBCA.&quot;);</span>
+<span class="nc" id="L344">                return CommandResult.FUNCTIONAL_FAILURE;</span>
+            }
+        }
+
+<span class="nc bnc" id="L348" title="All 2 branches missed.">        if (KeyTools.isUsingExportableCryptography()) {</span>
+<span class="nc" id="L349">            getLogger().warn(&quot;WARNING!&quot;);</span>
+<span class="nc" id="L350">            getLogger().warn(&quot;WARNING: Using exportable strength crypto!&quot;);</span>
+<span class="nc" id="L351">            getLogger().warn(&quot;WARNING!&quot;);</span>
+<span class="nc" id="L352">            getLogger().warn(</span>
+                    &quot;The Unlimited Strength Crypto policy files have not been installed. EJBCA may not function correctly using exportable crypto.&quot;);
+<span class="nc" id="L354">            getLogger().warn(&quot;Please install the Unlimited Strength Crypto policy files as documented in the Installation guide.&quot;);</span>
+<span class="nc" id="L355">            getLogger().warn(&quot;Sleeping 10 seconds...&quot;);</span>
+<span class="nc" id="L356">            getLogger().warn(&quot;&quot;);</span>
+            try {
+<span class="nc" id="L358">                Thread.sleep(10000);</span>
+<span class="nc" id="L359">            } catch (InterruptedException e) {</span>
+<span class="nc" id="L360">                throw new IllegalStateException(&quot;Thread.sleep was interrupted for unknown reason.&quot;, e);</span>
+<span class="nc" id="L361">            }</span>
+        }
+<span class="nc" id="L363">        getLogger().info(&quot;Initializing CA&quot;);</span>
+
+<span class="nc" id="L365">        getLogger().info(&quot;Generating rootCA keystore:&quot;);</span>
+<span class="nc" id="L366">        getLogger().info(&quot;CA Type:&quot; + type.getTypeName());</span>
+<span class="nc" id="L367">        getLogger().info(&quot;CA name: &quot; + caname);</span>
+<span class="nc" id="L368">        getLogger().info(&quot;SuperAdmin CN: &quot; + superAdminCN);</span>
+<span class="nc" id="L369">        getLogger().info(&quot;DN: &quot; + dn);</span>
+<span class="nc" id="L370">        getLogger().info(&quot;CA token type: &quot; + catokentype);</span>
+<span class="nc bnc" id="L371" title="All 2 branches missed.">        getLogger().info(&quot;CA token password: &quot; + (catokenpassword == null ? &quot;null&quot; : &quot;hidden&quot;));</span>
+<span class="nc" id="L372">        getLogger().info(&quot;Keytype: &quot; + keytype);</span>
+<span class="nc" id="L373">        getLogger().info(&quot;Keyspec: &quot; + keyspec);</span>
+<span class="nc" id="L374">        getLogger().info(&quot;Validity: &quot; + encodedValidity);</span>
+<span class="nc" id="L375">        getLogger().info(&quot;Policy ID: &quot; + policyId);</span>
+<span class="nc" id="L376">        getLogger().info(&quot;Signature alg: &quot; + signAlg);</span>
+<span class="nc" id="L377">        getLogger().info(&quot;Certificate profile: &quot; + profileName);</span>
+<span class="nc" id="L378">        getLogger().info(&quot;CA token properties: &quot; + cryptoTokenProperties.toString());</span>
+<span class="nc bnc" id="L379" title="All 2 branches missed.">        if (StringUtils.equalsIgnoreCase(explicitEcc, &quot;true&quot;)) {</span>
+            // Set if we should use explicit ECC parameters of not. On Java 6 this renders the created CA certificate not serializable
+<span class="nc" id="L381">            getLogger().info(&quot;Explicit ECC public key parameters: &quot; + explicitEcc);</span>
+<span class="nc" id="L382">            cryptoTokenProperties.setProperty(CryptoToken.EXPLICIT_ECC_PUBLICKEY_PARAMETERS, explicitEcc);</span>
+        }
+        try {
+<span class="nc" id="L385">            String signedByStr = &quot;Signed by: &quot;;</span>
+<span class="nc bnc" id="L386" title="All 4 branches missed.">            if ((signedByCAId != CAInfo.SELFSIGNED) &amp;&amp; (signedByCAId != CAInfo.SIGNEDBYEXTERNALCA)) {</span>
+<span class="nc" id="L387">                CAInfo cainfo = EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class).getCAInfo(getAuthenticationToken(), signedByCAId);</span>
+<span class="nc bnc" id="L388" title="All 2 branches missed.">                if (cainfo == null) {</span>
+<span class="nc" id="L389">                    getLogger().error(&quot;CA with id &quot; + signedByCAId + &quot; does not exist.&quot;);</span>
+<span class="nc" id="L390">                    return CommandResult.FUNCTIONAL_FAILURE;</span>
+                }
+<span class="nc" id="L392">                signedByStr += cainfo.getName();</span>
+
+<span class="nc bnc" id="L394" title="All 2 branches missed.">            } else if (signedByCAId == CAInfo.SELFSIGNED) {</span>
+<span class="nc" id="L395">                signedByStr += &quot;Self signed&quot;;</span>
+<span class="nc bnc" id="L396" title="All 2 branches missed.">            } else if (signedByCAId == CAInfo.SIGNEDBYEXTERNALCA) {</span>
+<span class="nc" id="L397">                signedByStr += &quot;External CA&quot;;</span>
+            }
+<span class="nc" id="L399">            getLogger().info(signedByStr);</span>
+
+<span class="nc bnc" id="L401" title="All 2 branches missed.">            if (superAdminCN != null) {</span>
+<span class="nc" id="L402">                initAuthorizationModule(getAuthenticationToken(), dn.hashCode(), superAdminCN);</span>
+            }
+            // Transform our mixed properties into CA Token properties and cryptoTokenProperties
+<span class="nc" id="L405">            final Properties caTokenProperties = new Properties();</span>
+<span class="nc" id="L406">            final String defaultAlias = cryptoTokenProperties.getProperty(CATokenConstants.CAKEYPURPOSE_DEFAULT_STRING);</span>
+<span class="nc bnc" id="L407" title="All 2 branches missed.">            if (defaultAlias != null) {</span>
+<span class="nc" id="L408">                caTokenProperties.setProperty(CATokenConstants.CAKEYPURPOSE_DEFAULT_STRING, defaultAlias);</span>
+<span class="nc" id="L409">                cryptoTokenProperties.remove(CATokenConstants.CAKEYPURPOSE_DEFAULT_STRING);</span>
+            } else {
+<span class="nc" id="L411">                caTokenProperties.setProperty(CATokenConstants.CAKEYPURPOSE_DEFAULT_STRING, CAToken.SOFTPRIVATEDECKEYALIAS);</span>
+            }
+<span class="nc" id="L413">            final String certSignAlias = cryptoTokenProperties.getProperty(CATokenConstants.CAKEYPURPOSE_CERTSIGN_STRING);</span>
+<span class="nc bnc" id="L414" title="All 2 branches missed.">            if (certSignAlias != null) {</span>
+<span class="nc" id="L415">                caTokenProperties.setProperty(CATokenConstants.CAKEYPURPOSE_CERTSIGN_STRING, certSignAlias);</span>
+<span class="nc" id="L416">                cryptoTokenProperties.remove(CATokenConstants.CAKEYPURPOSE_CERTSIGN_STRING);</span>
+            } else {
+<span class="nc" id="L418">                caTokenProperties.setProperty(CATokenConstants.CAKEYPURPOSE_CERTSIGN_STRING, CAToken.SOFTPRIVATESIGNKEYALIAS);</span>
+            }
+<span class="nc" id="L420">            final String crlSignAlias = cryptoTokenProperties.getProperty(CATokenConstants.CAKEYPURPOSE_CRLSIGN_STRING);</span>
+<span class="nc bnc" id="L421" title="All 2 branches missed.">            if (crlSignAlias != null) {</span>
+<span class="nc" id="L422">                caTokenProperties.setProperty(CATokenConstants.CAKEYPURPOSE_CRLSIGN_STRING, crlSignAlias);</span>
+<span class="nc" id="L423">                cryptoTokenProperties.remove(CATokenConstants.CAKEYPURPOSE_CRLSIGN_STRING);</span>
+            } else {
+<span class="nc" id="L425">                final String certSignValue = caTokenProperties.getProperty(CATokenConstants.CAKEYPURPOSE_CERTSIGN_STRING);</span>
+<span class="nc" id="L426">                caTokenProperties.setProperty(CATokenConstants.CAKEYPURPOSE_CRLSIGN_STRING, certSignValue);</span>
+            }
+<span class="nc" id="L428">            final String hardTokenEncAlias = cryptoTokenProperties.getProperty(CATokenConstants.CAKEYPURPOSE_HARDTOKENENCRYPT_STRING);</span>
+<span class="nc bnc" id="L429" title="All 2 branches missed.">            if (hardTokenEncAlias != null) {</span>
+<span class="nc" id="L430">                caTokenProperties.setProperty(CATokenConstants.CAKEYPURPOSE_HARDTOKENENCRYPT_STRING, hardTokenEncAlias);</span>
+<span class="nc" id="L431">                cryptoTokenProperties.remove(CATokenConstants.CAKEYPURPOSE_HARDTOKENENCRYPT_STRING);</span>
+            }
+<span class="nc" id="L433">            final String keyEncAlias = cryptoTokenProperties.getProperty(CATokenConstants.CAKEYPURPOSE_KEYENCRYPT_STRING);</span>
+<span class="nc bnc" id="L434" title="All 2 branches missed.">            if (keyEncAlias != null) {</span>
+<span class="nc" id="L435">                caTokenProperties.setProperty(CATokenConstants.CAKEYPURPOSE_KEYENCRYPT_STRING, keyEncAlias);</span>
+<span class="nc" id="L436">                cryptoTokenProperties.remove(CATokenConstants.CAKEYPURPOSE_KEYENCRYPT_STRING);</span>
+            }
+<span class="nc" id="L438">            final String testKeyAlias = cryptoTokenProperties.getProperty(CATokenConstants.CAKEYPURPOSE_TESTKEY_STRING);</span>
+<span class="nc bnc" id="L439" title="All 2 branches missed.">            if (testKeyAlias != null) {</span>
+<span class="nc" id="L440">                caTokenProperties.setProperty(CATokenConstants.CAKEYPURPOSE_TESTKEY_STRING, testKeyAlias);</span>
+<span class="nc" id="L441">                cryptoTokenProperties.remove(CATokenConstants.CAKEYPURPOSE_TESTKEY_STRING);</span>
+            }
+            // If authentication code is provided as &quot;null&quot;, use the default token password for soft tokens (from cesecore.properties), and auto activation
+            // If a user defined authentication code is provided, use this and do not enable auto activation for soft tokens
+            final char[] authenticationCode;
+<span class="nc bnc" id="L446" title="All 2 branches missed.">            if (StringUtils.equalsIgnoreCase(catokenpassword, &quot;null&quot;)) {</span>
+<span class="nc" id="L447">                authenticationCode = null;</span>
+                // auto activation is enabled by default when using the default soft token pwd, which is used by default
+            } else {
+<span class="nc" id="L450">                authenticationCode = catokenpassword.toCharArray();</span>
+            }
+            // We must do this in order to not set the default password when creating a new soft CA token
+            // A bit tricky, but thats how it is as of EJBCA 5.0.x, 2012-05.
+            final String className;
+<span class="nc bnc" id="L455" title="All 2 branches missed.">            if (StringUtils.equalsIgnoreCase(catokentype, &quot;soft&quot;)) {</span>
+<span class="nc" id="L456">                className = SoftCryptoToken.class.getName();</span>
+<span class="nc bnc" id="L457" title="All 2 branches missed.">                if (authenticationCode != null) {</span>
+<span class="nc" id="L458">                    getLogger().info(&quot;Non default password used for soft CA token, auto activation disabled.&quot;);</span>
+<span class="nc" id="L459">                    cryptoTokenProperties.setProperty(SoftCryptoToken.NODEFAULTPWD, &quot;true&quot;);</span>
+                }
+            } else {
+<span class="nc" id="L462">                className = PKCS11CryptoToken.class.getName();</span>
+            }
+            // Create the CryptoToken
+<span class="nc" id="L465">            final CryptoTokenManagementSessionRemote cryptoTokenManagementSession = EjbRemoteHelper.INSTANCE</span>
+<span class="nc" id="L466">                    .getRemoteSession(CryptoTokenManagementSessionRemote.class);</span>
+            int cryptoTokenId;
+            try {
+                try {
+<span class="nc" id="L470">                    cryptoTokenId = cryptoTokenManagementSession.createCryptoToken(getAuthenticationToken(), caname, className,</span>
+                            cryptoTokenProperties, null, authenticationCode);
+<span class="nc" id="L472">                } catch (CryptoTokenNameInUseException e) {</span>
+                    // If the name was already in use we simply add a timestamp to the name to make it unique
+<span class="nc" id="L474">                    final String postfix = &quot;_&quot; + new SimpleDateFormat(&quot;yyyyMMddHHmmss&quot;).format(new Date());</span>
+                    try {
+<span class="nc" id="L476">                        cryptoTokenId = cryptoTokenManagementSession.createCryptoToken(getAuthenticationToken(), caname + postfix, className,</span>
+                                cryptoTokenProperties, null, authenticationCode);
+<span class="nc" id="L478">                    } catch (CryptoTokenNameInUseException e1) {</span>
+                        //Shouldn't be able to happen.
+<span class="nc" id="L480">                        throw new IllegalStateException(&quot;Crypto token name was in use, even though a unique name was just generated.&quot;, e);</span>
+<span class="nc" id="L481">                    }</span>
+<span class="nc" id="L482">                }</span>
+<span class="nc" id="L483">            } catch (NoSuchSlotException e) {</span>
+<span class="nc" id="L484">                log.error(&quot;Slot as defined in the file &quot; + caTokenPropertiesFile + &quot; was not found: &quot; + e.getMessage());</span>
+<span class="nc" id="L485">                return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L486">            } catch (CryptoTokenAuthenticationFailedException e) {</span>
+<span class="nc" id="L487">                log.error(&quot;Authentication to crypto token failed: &quot; + e.getMessage());</span>
+<span class="nc" id="L488">                return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L489">            }</span>
+            // Create the CA Token
+<span class="nc" id="L491">            final CAToken caToken = new CAToken(cryptoTokenId, caTokenProperties);</span>
+<span class="nc" id="L492">            caToken.setSignatureAlgorithm(signAlg);</span>
+<span class="nc" id="L493">            caToken.setEncryptionAlgorithm(AlgorithmConstants.SIGALG_SHA1_WITH_RSA);</span>
+            // Generate CA keys if it is a soft CryptoToken
+<span class="nc bnc" id="L495" title="All 2 branches missed.">            if (&quot;soft&quot;.equals(catokentype)) {</span>
+<span class="nc" id="L496">                final String signKeyAlias = caToken.getAliasFromPurpose(CATokenConstants.CAKEYPURPOSE_CERTSIGN);</span>
+<span class="nc bnc" id="L497" title="All 2 branches missed.">                final String signKeySpecification = &quot;DSA&quot;.equals(keytype) ? &quot;DSA&quot; + keyspec : keyspec;</span>
+
+                try {
+<span class="nc" id="L500">                    cryptoTokenManagementSession.createKeyPair(getAuthenticationToken(), cryptoTokenId, signKeyAlias, signKeySpecification);</span>
+<span class="nc" id="L501">                } catch (InvalidAlgorithmParameterException e) {</span>
+<span class="nc" id="L502">                    log.error(signKeySpecification + &quot; was not a valid alias: &quot; + e.getMessage());</span>
+<span class="nc" id="L503">                    return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L504">                } catch (InvalidKeyException e) {</span>
+<span class="nc" id="L505">                    log.error(&quot;Key generation for alias &quot; + signKeyAlias + &quot; failed.&quot; + e.getMessage());</span>
+<span class="nc" id="L506">                    return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L507">                }</span>
+<span class="nc" id="L508">                final String defaultKeyAlias = caToken.getAliasFromPurpose(CATokenConstants.CAKEYPURPOSE_KEYENCRYPT);</span>
+                // Decryption key must be RSA
+<span class="nc bnc" id="L510" title="All 2 branches missed.">                final String defaultKeySpecification = &quot;RSA&quot;.equals(keytype) ? keyspec : &quot;2048&quot;;</span>
+                try {
+<span class="nc" id="L512">                    cryptoTokenManagementSession.createKeyPair(getAuthenticationToken(), cryptoTokenId, defaultKeyAlias, defaultKeySpecification);</span>
+<span class="nc" id="L513">                } catch (InvalidAlgorithmParameterException e) {</span>
+<span class="nc" id="L514">                    log.error(defaultKeySpecification + &quot; was not a valid alias: &quot; + e.getMessage());</span>
+<span class="nc" id="L515">                    return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L516">                } catch (InvalidKeyException e) {</span>
+<span class="nc" id="L517">                    log.error(&quot;Key generation for alias &quot; + defaultKeyAlias + &quot; failed: &quot; + e.getMessage());</span>
+<span class="nc" id="L518">                    return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L519">                }</span>
+
+            }
+            // Create the CA Info
+<span class="nc" id="L523">            CAInfo cainfo = null;</span>
+<span class="nc bnc" id="L524" title="All 2 branches missed.">            switch (type) {</span>
+            case CVC:
+                // Get keysequence from SERIALNUMBER in DN is it exists
+<span class="nc" id="L527">                final String keysequence = CertTools.getPartFromDN(dn, &quot;SN&quot;);</span>
+<span class="nc bnc" id="L528" title="All 2 branches missed.">                if (keysequence != null) {</span>
+<span class="nc" id="L529">                    getLogger().info(&quot;CVC key sequence: &quot; + keysequence);</span>
+<span class="nc" id="L530">                    caToken.setKeySequence(keysequence);</span>
+<span class="nc bnc" id="L531" title="All 2 branches missed.">                    if (StringUtils.isNumeric(keysequence)) {</span>
+<span class="nc" id="L532">                        getLogger().info(&quot;CVC key sequence format is numeric.&quot;);</span>
+<span class="nc" id="L533">                        caToken.setKeySequenceFormat(StringTools.KEY_SEQUENCE_FORMAT_NUMERIC);</span>
+                    } else {
+<span class="nc" id="L535">                        getLogger().info(&quot;CVC key sequence format is alphanumeric.&quot;);</span>
+<span class="nc" id="L536">                        caToken.setKeySequenceFormat(StringTools.KEY_SEQUENCE_FORMAT_ALPHANUMERIC);</span>
+                    }
+                }
+<span class="nc" id="L539">                cainfo = createCVCCAInfo(dn, caname, certificateProfileId, encodedValidity, signedByCAId, caToken);</span>
+<span class="nc" id="L540">                break;</span>
+            case X509:
+                //Default, slip below.
+            default:
+                // Create and active OSCP CA Service.
+<span class="nc" id="L545">                ArrayList&lt;ExtendedCAServiceInfo&gt; extendedcaservices = new ArrayList&lt;ExtendedCAServiceInfo&gt;();</span>
+<span class="nc" id="L546">                String extendedServiceKeySpec = keyspec;</span>
+<span class="nc bnc" id="L547" title="All 2 branches missed.">                if (keytype.equals(AlgorithmConstants.KEYALGORITHM_RSA)) {</span>
+                    // Never use larger keys than 2048 bit RSA for OCSP signing
+<span class="nc" id="L549">                    int len = Integer.parseInt(extendedServiceKeySpec);</span>
+<span class="nc bnc" id="L550" title="All 2 branches missed.">                    if (len &gt; 2048) {</span>
+<span class="nc" id="L551">                        extendedServiceKeySpec = &quot;2048&quot;;</span>
+                    }
+                }
+<span class="nc" id="L554">                extendedcaservices.add(new CmsCAServiceInfo(ExtendedCAServiceInfo.STATUS_INACTIVE, &quot;CN=CmsCertificate, &quot; + dn, &quot;&quot;,</span>
+                        extendedServiceKeySpec, keytype));
+<span class="nc" id="L556">                extendedcaservices.add(new HardTokenEncryptCAServiceInfo(ExtendedCAServiceInfo.STATUS_ACTIVE));</span>
+<span class="nc" id="L557">                extendedcaservices.add(new KeyRecoveryCAServiceInfo(ExtendedCAServiceInfo.STATUS_ACTIVE));</span>
+<span class="nc" id="L558">                cainfo = createX509CaInfo(dn, subjectAltName, caname, certificateProfileId, encodedValidity, signedByCAId, caToken, policies, extendedcaservices);</span>
+                break;
+            }
+<span class="nc" id="L561">            getLogger().info(&quot;Creating CA...&quot;);</span>
+            // Make an error control before starting do do something else.
+<span class="nc" id="L563">            List&lt;Certificate&gt; cachain = null;</span>
+<span class="nc bnc" id="L564" title="All 2 branches missed.">            if (cainfo.getSignedBy() == CAInfo.SIGNEDBYEXTERNALCA) {</span>
+                try {
+<span class="nc" id="L566">                    cachain = CertTools.getCertsFromPEM(extcachainName, Certificate.class);</span>
+<span class="nc" id="L567">                } catch (CertificateException e) {</span>
+<span class="nc" id="L568">                    log.error(&quot;Certificate file &quot; + extcachainName + &quot; did not contain a correct certificate.&quot;);</span>
+<span class="nc" id="L569">                    return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L570">                }</span>
+<span class="nc bnc" id="L571" title="All 4 branches missed.">                if (cachain == null || cachain.isEmpty()) {</span>
+<span class="nc" id="L572">                    log.error(extcachainName + &quot; does not seem to exist or contain any certificates in PEM format.&quot;);</span>
+<span class="nc" id="L573">                    return CommandResult.FUNCTIONAL_FAILURE;</span>
+                }
+            }
+            try {
+<span class="nc" id="L577">                EjbRemoteHelper.INSTANCE.getRemoteSession(CAAdminSessionRemote.class).createCA(getAuthenticationToken(), cainfo);</span>
+<span class="nc" id="L578">            } catch (CAExistsException e) {</span>
+<span class="nc" id="L579">                log.error(&quot;CA &quot; + caname + &quot; already exists.&quot;);</span>
+<span class="nc" id="L580">                return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L581">            } catch (InvalidAlgorithmException e) {</span>
+<span class="nc" id="L582">                log.error(&quot;Algorithm was not valid: &quot; + e.getMessage());</span>
+<span class="nc" id="L583">                return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L584">            }</span>
+<span class="nc bnc" id="L585" title="All 2 branches missed.">            if (StringUtils.equalsIgnoreCase(explicitEcc, &quot;true&quot;)) {</span>
+<span class="nc" id="L586">                getLogger().info(</span>
+                        &quot;Not re-reading CAInfo, since explicit ECC parameters were used, which is not serializable on Java 6. Use Web GUI for further interactions.&quot;);
+            } else {
+                CAInfo newInfo;
+
+<span class="nc" id="L591">                newInfo = EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class).getCAInfo(getAuthenticationToken(), caname);</span>
+
+<span class="nc" id="L593">                int caid = newInfo.getCAId();</span>
+<span class="nc" id="L594">                getLogger().info(&quot;CAId for created CA: &quot; + caid);</span>
+            }
+<span class="nc bnc" id="L596" title="All 2 branches missed.">            if (cainfo.getSignedBy() == CAInfo.SIGNEDBYEXTERNALCA) {</span>
+<span class="nc" id="L597">                getLogger().info(&quot;Creating a CA signed by an external CA, creating certificate request.&quot;);</span>
+<span class="nc" id="L598">                CAInfo info = EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class).getCAInfo(getAuthenticationToken(), caname);</span>
+<span class="nc bnc" id="L599" title="All 2 branches missed.">                if (info.getStatus() != CAConstants.CA_WAITING_CERTIFICATE_RESPONSE) {</span>
+<span class="nc" id="L600">                    log.error(</span>
+                            &quot;Creating a CA signed by an external CA should result in CA having status, CA_WAITING_CERTIFICATE_RESPONSE. Terminating process, please troubleshoot.&quot;);
+<span class="nc" id="L602">                    return CommandResult.FUNCTIONAL_FAILURE;</span>
+                }
+                byte[] request;
+                try {
+<span class="nc" id="L606">                    request = EjbRemoteHelper.INSTANCE.getRemoteSession(CAAdminSessionRemote.class).makeRequest(getAuthenticationToken(),</span>
+<span class="nc" id="L607">                            info.getCAId(), cachain, info.getCAToken().getAliasFromPurpose(CATokenConstants.CAKEYPURPOSE_CERTSIGN));</span>
+<span class="nc" id="L608">                } catch (CertPathValidatorException e) {</span>
+<span class="nc" id="L609">                    log.error(&quot;Error creating certificate request for CA:&quot; + e.getMessage());</span>
+<span class="nc" id="L610">                    return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L611">                }</span>
+<span class="nc" id="L612">                final String filename = info.getName() + &quot;_csr.der&quot;;</span>
+<span class="nc" id="L613">                FileOutputStream fos = new FileOutputStream(filename);</span>
+<span class="nc" id="L614">                fos.write(request);</span>
+<span class="nc" id="L615">                fos.close();</span>
+<span class="nc" id="L616">                getLogger().info(&quot;Created CSR for CA, to be sent to external CA. Wrote CSR to file '&quot; + filename + &quot;'.&quot;);</span>
+<span class="nc" id="L617">            } else {</span>
+<span class="nc" id="L618">                getLogger().info(&quot;Created and published initial CRL.&quot;);</span>
+            }
+     
+<span class="nc" id="L621">            getLogger().info(&quot;CA initialized&quot;);</span>
+<span class="nc" id="L622">            getLogger().info(&quot;Note that any open browser sessions must be restarted to interact with this CA.&quot;);</span>
+<span class="nc" id="L623">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L624">            log.error(&quot;Current CLI user not authorized to create CA: &quot; + e.getMessage());</span>
+<span class="nc" id="L625">            return CommandResult.AUTHORIZATION_FAILURE;</span>
+<span class="nc" id="L626">        } catch (CryptoTokenOfflineException e) {</span>
+<span class="nc" id="L627">            log.error(&quot;Crypto token was unavailable: &quot; + e.getMessage());</span>
+<span class="nc" id="L628">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L629">        } catch (IOException e) {</span>
+<span class="nc" id="L630">            throw new IllegalStateException(&quot;Unknown IOException was caught.&quot;, e);</span>
+<span class="nc" id="L631">        }</span>
+<span class="nc" id="L632">        return CommandResult.SUCCESS;</span>
+    }
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L637">        return &quot;init&quot;;</span>
+    }
+
+    private CAInfo createX509CaInfo(String dn, String subjectAltName, String caname, int certificateProfileId, String validityString, int signedByCAId, CAToken catokeninfo,
+            List&lt;CertificatePolicy&gt; policies, List&lt;ExtendedCAServiceInfo&gt; extendedcaservices) {
+<span class="nc" id="L642">        X509CAInfo cainfo = new X509CAInfo(dn, caname, CAConstants.CA_ACTIVE, certificateProfileId, validityString,                                             </span>
+                signedByCAId, new ArrayList&lt;Certificate&gt;(), catokeninfo);
+<span class="nc" id="L644">        cainfo.setSubjectAltName(subjectAltName);</span>
+<span class="nc" id="L645">        cainfo.setDescription(caname + &quot;created using CLI&quot;);</span>
+<span class="nc" id="L646">        cainfo.setCertificateChain(new ArrayList&lt;Certificate&gt;());</span>
+<span class="nc" id="L647">        cainfo.setPolicies(policies);</span>
+<span class="nc" id="L648">        cainfo.setExtendedCAServiceInfos(extendedcaservices);</span>
+<span class="nc" id="L649">        cainfo.setDeltaCRLPeriod(0 * SimpleTime.MILLISECONDS_PER_HOUR);</span>
+<span class="nc" id="L650">        return cainfo;</span>
+    }
+
+    private CAInfo createCVCCAInfo(String dn, String caname, int certificateProfileId, String validityString, int signedByCa, CAToken catokeninfo) {
+<span class="nc" id="L654">        CVCCAInfo cainfo = new CVCCAInfo(dn, caname, CAConstants.CA_ACTIVE,</span>
+                certificateProfileId, validityString, signedByCa, new ArrayList&lt;Certificate&gt;(), catokeninfo);
+<span class="nc" id="L656">        cainfo.setDescription(&quot;Initial CA&quot;);</span>
+<span class="nc" id="L657">        return cainfo;</span>
+    }
+
+    private boolean checkSubjectAltName(String subjectaltname) {
+<span class="nc bnc" id="L661" title="All 4 branches missed.">        if (subjectaltname != null &amp;&amp; !subjectaltname.trim().equals(&quot;&quot;)) {</span>
+<span class="nc" id="L662">            final DNFieldExtractor subtest = new DNFieldExtractor(subjectaltname,DNFieldExtractor.TYPE_SUBJECTALTNAME);                   </span>
+<span class="nc bnc" id="L663" title="All 4 branches missed.">            if (subtest.isIllegal() || subtest.existsOther()) {</span>
+<span class="nc" id="L664">                return false;</span>
+            }
+        }
+<span class="nc" id="L667">        return true;</span>
+    }
+    
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L672">        return &quot;Create a CA and its first CRL. Publishes the CRL and CA certificate&quot;;</span>
+
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L678">        return getCommandDescription();</span>
+    }
+
+    @Override
+    protected Logger getLogger() {
+<span class="nc" id="L683">        return log;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

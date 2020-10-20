@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+-->
+<rss version="0.91">
+  <channel>
+    <title>CLI Utility Library - Checkstyle report</title>
+    <link>CLI Utility Library</link>
+    <description>CLI Utility Library - Checkstyle report</description>
+    <language>en-us</language>
+    <copyright>&#169;2020</copyright>
+    <item>
+      <title>File: 16,
+             Errors: 602,
+             Warnings: 0,
+             Infos: 0
+      </title>
+            <link>CLI Utility Library/checkstyle.html</link>
+      <description>
+        <p>Click <a href="CLI Utility Library/checkstyle.html">here</a> for the full Checkstyle report.</p>
+
+        <table summary="Files" boder="1">
+          <thead>
+            <tr>
+              <th>Files</th>
+              <th style="width:30px;"><abbr title="Info">I</abbr></th>
+              <th style="width:30px;"><abbr title="Warning">W</abbr></th>
+              <th style="width:30px;"><abbr title="Error">E</abbr></th>
+            </tr>
+          </thead>
+          <tbody>
+                          <tr>
+                <td>
+                  <a href="CLI Utility Library/checkstyle.html#org.ejbca.ui.cli.infrastructure.command.CommandResult.java">org/ejbca/ui/cli/infrastructure/command/CommandResult.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  18
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="CLI Utility Library/checkstyle.html#org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer.java">org/ejbca/ui/cli/infrastructure/parameter/ParameterContainer.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  30
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="CLI Utility Library/checkstyle.html#org.ejbca.ui.cli.infrastructure.parameter.Parameter.java">org/ejbca/ui/cli/infrastructure/parameter/Parameter.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  63
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="CLI Utility Library/checkstyle.html#org.ejbca.ui.cli.infrastructure.command.CliCommandPlugin.java">org/ejbca/ui/cli/infrastructure/command/CliCommandPlugin.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  11
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="CLI Utility Library/checkstyle.html#org.ejbca.ui.cli.infrastructure.library.CommandLibrary.java">org/ejbca/ui/cli/infrastructure/library/CommandLibrary.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  101
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="CLI Utility Library/checkstyle.html#org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode.java">org/ejbca/ui/cli/infrastructure/parameter/enums/ParameterMode.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  10
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="CLI Utility Library/checkstyle.html#org.ejbca.ui.cli.infrastructure.library.CliCommandLibraryConflictException.java">org/ejbca/ui/cli/infrastructure/library/CliCommandLibraryConflictException.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  18
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="CLI Utility Library/checkstyle.html#org.ejbca.ui.cli.infrastructure.library.CommandLibraryTest.java">org/ejbca/ui/cli/infrastructure/library/CommandLibraryTest.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  88
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="CLI Utility Library/checkstyle.html#org.ejbca.ui.cli.infrastructure.CliUsernameException.java">org/ejbca/ui/cli/infrastructure/CliUsernameException.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  9
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="CLI Utility Library/checkstyle.html#org.ejbca.ui.cli.infrastructure.command.CommandBase.java">org/ejbca/ui/cli/infrastructure/command/CommandBase.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  63
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="CLI Utility Library/checkstyle.html#org.ejbca.ui.cli.infrastructure.command.CliCommand.java">org/ejbca/ui/cli/infrastructure/command/CliCommand.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  3
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="CLI Utility Library/checkstyle.html#org.ejbca.ui.cli.infrastructure.parameter.ParameterHandlerTest.java">org/ejbca/ui/cli/infrastructure/parameter/ParameterHandlerTest.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  37
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="CLI Utility Library/checkstyle.html#org.ejbca.ui.cli.infrastructure.parameter.ParameterHandler.java">org/ejbca/ui/cli/infrastructure/parameter/ParameterHandler.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  58
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="CLI Utility Library/checkstyle.html#org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode.java">org/ejbca/ui/cli/infrastructure/parameter/enums/StandaloneMode.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  12
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="CLI Utility Library/checkstyle.html#org.ejbca.ui.cli.infrastructure.command.PasswordUsingCommandBase.java">org/ejbca/ui/cli/infrastructure/command/PasswordUsingCommandBase.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  68
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="CLI Utility Library/checkstyle.html#org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode.java">org/ejbca/ui/cli/infrastructure/parameter/enums/MandatoryMode.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  13
+                </td>
+              </tr>
+                      </tbody>
+        </table>
+        
+      </description>
+    </item>
+  </channel>
+</rss>
+

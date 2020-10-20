@@ -14,31 +14,46 @@ package org.cesecore.authorization.user;
 
 /**
  * Thrown when an AccessUserAspect is not found.
- * 
- * @version $Id: AccessUserAspectNotFoundException.java 25461 2017-03-14 00:10:54Z jeklund $
  *
+ * @version $Id: AccessUserAspectNotFoundException.java 25461 2017-03-14
+ *     00:10:54Z jeklund $
  */
 public class AccessUserAspectNotFoundException extends RuntimeException {
 
-    private static final long serialVersionUID = -3503860340121024920L;
+  private static final long serialVersionUID = -3503860340121024920L;
 
-    public AccessUserAspectNotFoundException() {
-<span class="nc" id="L26">        super();</span>
-<span class="nc" id="L27">    }</span>
+  /** Bare exception. */
+  public AccessUserAspectNotFoundException() {
+<span class="nc" id="L27">    super();</span>
+<span class="nc" id="L28">  }</span>
 
-    public AccessUserAspectNotFoundException(String message, Throwable cause) {
-<span class="nc" id="L30">        super(message, cause);</span>
-<span class="nc" id="L31">    }</span>
+  /**
+   * Exception with messsage and cause.
+   *
+   * @param message Message
+   * @param cause Cause
+   */
+  public AccessUserAspectNotFoundException(
+      final String message, final Throwable cause) {
+<span class="nc" id="L38">    super(message, cause);</span>
+<span class="nc" id="L39">  }</span>
 
-    public AccessUserAspectNotFoundException(String message) {
-<span class="nc" id="L34">        super(message);</span>
-<span class="nc" id="L35">    }</span>
+  /**
+   * Exception with message.
+   *
+   * @param message Message
+   */
+  public AccessUserAspectNotFoundException(final String message) {
+<span class="nc" id="L47">    super(message);</span>
+<span class="nc" id="L48">  }</span>
 
-    public AccessUserAspectNotFoundException(Throwable cause) {
-<span class="nc" id="L38">        super(cause);</span>
-<span class="nc" id="L39">    } </span>
-
-    
-
+  /**
+   * Exception with cause.
+   *
+   * @param cause cause
+   */
+  public AccessUserAspectNotFoundException(final Throwable cause) {
+<span class="nc" id="L56">    super(cause);</span>
+<span class="nc" id="L57">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

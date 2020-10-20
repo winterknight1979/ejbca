@@ -1,0 +1,506 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RaEndEntityDetails.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ra-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ra</a> &gt; <span class="el_source">RaEndEntityDetails.java</span></div><h1>RaEndEntityDetails.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ra;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.math.BigInteger;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.TimeZone;
+
+import javax.faces.context.ExternalContext;
+import javax.faces.context.FacesContext;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequest;
+import org.cesecore.certificates.certificateprofile.CertificateProfileConstants;
+import org.cesecore.certificates.crl.RevokedCertInfo;
+import org.cesecore.certificates.endentity.EndEntityConstants;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.certificates.endentity.ExtendedInformation;
+import org.cesecore.certificates.util.AlgorithmTools;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.StringTools;
+import org.cesecore.util.ValidityDate;
+import org.ejbca.core.model.ra.ExtendedInformationFields;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfile;
+
+/**
+ * UI representation of a result set item from the back end.
+ *
+ * Bravely ignoring hard token issuer and printing of user data fields.
+ *
+ * @version $Id: RaEndEntityDetails.java 28543 2018-03-23 06:52:44Z jekaterina_b_helmes $
+ */
+public class RaEndEntityDetails {
+
+    public interface Callbacks {
+        RaLocaleBean getRaLocaleBean();
+        EndEntityProfile getEndEntityProfile(final int eepId);
+    }
+
+<span class="nc" id="L60">    private static final Logger log = Logger.getLogger(RaEndEntityDetails.class);</span>
+    private final Callbacks callbacks;
+
+    private final String username;
+    private final EndEntityInformation endEntityInformation;
+    private final ExtendedInformation extendedInformation;
+    private final String subjectDn;
+    private final String subjectAn;
+    private final String subjectDa;
+    private final int eepId;
+    private final String eepName;
+    private final int cpId;
+    private final String cpName;
+    private final String caName;
+    private final String created;
+    private final String modified;
+    private final int status;
+
+<span class="nc" id="L78">    private EndEntityProfile endEntityProfile = null;</span>
+<span class="nc" id="L79">    private SubjectDn subjectDistinguishedName = null;</span>
+<span class="nc" id="L80">    private SubjectAlternativeName subjectAlternativeName = null;</span>
+<span class="nc" id="L81">    private SubjectDirectoryAttributes subjectDirectoryAttributes = null;</span>
+
+<span class="nc" id="L83">    private int styleRowCallCounter = 0;</span>
+
+<span class="nc" id="L85">    private RaEndEntityDetails next = null;</span>
+<span class="nc" id="L86">    private RaEndEntityDetails previous = null;</span>
+
+    public RaEndEntityDetails(final EndEntityInformation endEntity, final Callbacks callbacks,
+            final Map&lt;Integer, String&gt; cpIdToNameMap, final Map&lt;Integer, String&gt; eepIdToNameMap, final Map&lt;Integer,String&gt; caIdToNameMap) {
+<span class="nc" id="L90">        this(endEntity, callbacks, cpIdToNameMap.get(Integer.valueOf(endEntity.getCertificateProfileId())),</span>
+<span class="nc" id="L91">                String.valueOf(eepIdToNameMap.get(Integer.valueOf(endEntity.getEndEntityProfileId()))),</span>
+<span class="nc" id="L92">                String.valueOf(caIdToNameMap.get(Integer.valueOf(endEntity.getCAId()))));</span>
+<span class="nc" id="L93">    }</span>
+
+    public RaEndEntityDetails(final EndEntityInformation endEntity, final Callbacks callbacks,
+<span class="nc" id="L96">            final String certProfName, final String eeProfName, final String caName) {</span>
+<span class="nc" id="L97">        this.endEntityInformation = endEntity;</span>
+<span class="nc" id="L98">        final ExtendedInformation extendedInformation = endEntity.getExtendedInformation();</span>
+<span class="nc bnc" id="L99" title="All 2 branches missed.">        this.extendedInformation = extendedInformation==null ? new ExtendedInformation() : extendedInformation;</span>
+<span class="nc" id="L100">        this.callbacks = callbacks;</span>
+<span class="nc" id="L101">        this.username = endEntity.getUsername();</span>
+<span class="nc" id="L102">        this.subjectDn = endEntity.getDN();</span>
+<span class="nc" id="L103">        this.subjectAn = endEntity.getSubjectAltName();</span>
+<span class="nc" id="L104">        this.subjectDa = this.extendedInformation.getSubjectDirectoryAttributes();</span>
+<span class="nc" id="L105">        this.cpId = endEntity.getCertificateProfileId();</span>
+<span class="nc" id="L106">        this.cpName = certProfName;</span>
+<span class="nc" id="L107">        this.eepId = endEntity.getEndEntityProfileId();</span>
+<span class="nc" id="L108">        this.eepName = eeProfName;</span>
+<span class="nc" id="L109">        this.caName = caName;</span>
+<span class="nc" id="L110">        final Date timeCreated = endEntity.getTimeCreated();</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">        if(timeCreated != null) {</span>
+<span class="nc" id="L112">            this.created = ValidityDate.formatAsISO8601ServerTZ(timeCreated.getTime(), TimeZone.getDefault());</span>
+        } else {
+<span class="nc" id="L114">            this.created = &quot;&quot;;</span>
+        }
+<span class="nc" id="L116">        final Date timeModified = endEntity.getTimeModified();</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">        if(timeModified != null) {</span>
+<span class="nc" id="L118">            this.modified = ValidityDate.formatAsISO8601ServerTZ(timeModified.getTime(), TimeZone.getDefault());</span>
+        } else {
+<span class="nc" id="L120">            this.modified = &quot;&quot;;</span>
+        }
+<span class="nc" id="L122">        this.status = endEntity.getStatus();</span>
+<span class="nc" id="L123">    }</span>
+<span class="nc" id="L124">    public EndEntityInformation getEndEntityInformation() { return endEntityInformation; }</span>
+<span class="nc" id="L125">    public String getUsername() { return username; }</span>
+<span class="nc" id="L126">    public String getSubjectDn() { return subjectDn; }</span>
+
+    /**
+     *
+     * @return the Subject DN string of the current certificate in unescaped RDN format
+     */
+    public final String getSubjectDnUnescapedValue() {
+<span class="nc bnc" id="L133" title="All 2 branches missed.">        if (StringUtils.isNotEmpty(subjectDn)) {</span>
+<span class="nc" id="L134">            return org.ietf.ldap.LDAPDN.unescapeRDN(subjectDn);</span>
+        } else {
+<span class="nc" id="L136">            return subjectDn;</span>
+        }
+    }
+<span class="nc" id="L139">    public String getSubjectAn() { return subjectAn; }</span>
+<span class="nc" id="L140">    public String getSubjectDa() { return subjectDa; }</span>
+<span class="nc" id="L141">    public String getCaName() { return caName; }</span>
+    public String getCpName() {
+<span class="nc bnc" id="L143" title="All 2 branches missed.">        if (cpId==CertificateProfileConstants.NO_CERTIFICATE_PROFILE) {</span>
+<span class="nc" id="L144">            return callbacks.getRaLocaleBean().getMessage(&quot;component_eedetails_info_unknowncp&quot;);</span>
+<span class="nc bnc" id="L145" title="All 2 branches missed.">        } else if (cpName!=null) {</span>
+<span class="nc" id="L146">            return cpName;</span>
+        }
+<span class="nc" id="L148">        return callbacks.getRaLocaleBean().getMessage(&quot;component_eedetails_info_missingcp&quot;, cpId);</span>
+    }
+<span class="nc" id="L150">    public boolean isCpNameSameAsEepName() { return getEepName().equals(getCpName()); }</span>
+    public String getEepName() {
+<span class="nc bnc" id="L152" title="All 2 branches missed.">        if (eepId==EndEntityConstants.NO_END_ENTITY_PROFILE) {</span>
+<span class="nc" id="L153">            return callbacks.getRaLocaleBean().getMessage(&quot;component_eedetails_info_unknowneep&quot;, eepId);</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">        } else if (eepName!=null) {</span>
+<span class="nc" id="L155">            return eepName;</span>
+        }
+<span class="nc" id="L157">        return callbacks.getRaLocaleBean().getMessage(&quot;component_eedetails_info_missingeep&quot;, eepId);</span>
+    }
+<span class="nc" id="L159">    public String getCreated() { return created; }</span>
+<span class="nc" id="L160">    public String getModified() { return modified; }</span>
+    public String getStatus() {
+<span class="nc bnc" id="L162" title="All 6 branches missed.">        switch (status) {</span>
+        case EndEntityConstants.STATUS_FAILED:
+<span class="nc" id="L164">            return callbacks.getRaLocaleBean().getMessage(&quot;component_eedetails_status_failed&quot;);</span>
+        case EndEntityConstants.STATUS_GENERATED:
+<span class="nc" id="L166">            return callbacks.getRaLocaleBean().getMessage(&quot;component_eedetails_status_generated&quot;);</span>
+        case EndEntityConstants.STATUS_KEYRECOVERY:
+<span class="nc" id="L168">            return callbacks.getRaLocaleBean().getMessage(&quot;component_eedetails_status_keyrecovery&quot;);</span>
+        case EndEntityConstants.STATUS_NEW:
+<span class="nc" id="L170">            return callbacks.getRaLocaleBean().getMessage(&quot;component_eedetails_status_new&quot;);</span>
+        case EndEntityConstants.STATUS_REVOKED:
+<span class="nc" id="L172">            return callbacks.getRaLocaleBean().getMessage(&quot;component_eedetails_status_revoked&quot;);</span>
+        }
+<span class="nc" id="L174">        return callbacks.getRaLocaleBean().getMessage(&quot;component_eedetails_status_other&quot;);</span>
+    }
+
+    public String getTokenType() {
+<span class="nc bnc" id="L178" title="All 5 branches missed.">        switch (endEntityInformation.getTokenType()) {</span>
+        case EndEntityConstants.TOKEN_USERGEN:
+<span class="nc" id="L180">            return callbacks.getRaLocaleBean().getMessage(&quot;component_eedetails_tokentype_usergen&quot;);</span>
+        case EndEntityConstants.TOKEN_SOFT_JKS:
+<span class="nc" id="L182">            return callbacks.getRaLocaleBean().getMessage(&quot;component_eedetails_tokentype_jks&quot;);</span>
+        case EndEntityConstants.TOKEN_SOFT_P12:
+<span class="nc" id="L184">            return callbacks.getRaLocaleBean().getMessage(&quot;component_eedetails_tokentype_pkcs12&quot;);</span>
+        case EndEntityConstants.TOKEN_SOFT_PEM:
+<span class="nc" id="L186">            return callbacks.getRaLocaleBean().getMessage(&quot;component_eedetails_tokentype_pem&quot;);</span>
+        }
+<span class="nc" id="L188">        return &quot;?&quot;;</span>
+    }
+
+    /**
+     * Extracts subject DN from certificate request and converts the string to cesecore namestyle
+     * @return subject DN from CSR or null if CSR is missing / corrupted
+     */
+    public String getDnFromCsr() {
+<span class="nc bnc" id="L196" title="All 2 branches missed.">        if (endEntityInformation.getExtendedInformation().getCertificateRequest() != null) {</span>
+            try {
+<span class="nc" id="L198">                PKCS10CertificationRequest pkcs10CertificationRequest = new PKCS10CertificationRequest(endEntityInformation.getExtendedInformation().getCertificateRequest());</span>
+                // Convert to &quot;correct&quot; display format
+<span class="nc" id="L200">                X500Name subjectDn = CertTools.stringToBcX500Name(pkcs10CertificationRequest.getSubject().toString());</span>
+<span class="nc" id="L201">                return org.ietf.ldap.LDAPDN.unescapeRDN(subjectDn.toString());</span>
+<span class="nc" id="L202">            } catch (IOException e) {</span>
+<span class="nc" id="L203">                log.info(&quot;Failed to retrieve CSR attached to end entity &quot; + username + &quot;. Incorrect or corrupted structure&quot;, e);</span>
+<span class="nc" id="L204">                return null;</span>
+            }
+        }
+<span class="nc" id="L207">        log.info(&quot;No CSR found for end entity with username &quot; + username);</span>
+<span class="nc" id="L208">        return null;</span>
+    }
+
+    /** Returns the specified key type for this end entity (e.g. &quot;RSA 2048&quot;), or null if none is specified (e.g. if created from the Admin GUI) 
+     * @return String */
+    public String getKeyType() {
+<span class="nc bnc" id="L214" title="All 4 branches missed.">        if (extendedInformation != null &amp;&amp; extendedInformation.getKeyStoreAlgorithmType() != null) {</span>
+<span class="nc" id="L215">            String keyTypeString = extendedInformation.getKeyStoreAlgorithmType();</span>
+<span class="nc bnc" id="L216" title="All 2 branches missed.">            if (extendedInformation.getKeyStoreAlgorithmSubType() != null) {</span>
+<span class="nc" id="L217">                keyTypeString += &quot; &quot; + extendedInformation.getKeyStoreAlgorithmSubType();</span>
+            }
+<span class="nc" id="L219">            return keyTypeString;</span>
+<span class="nc bnc" id="L220" title="All 4 branches missed.">        } else if (extendedInformation.getCertificateRequest() != null &amp;&amp; extendedInformation.getKeyStoreAlgorithmType() == null) {</span>
+<span class="nc" id="L221">            return getKeysFromCsr();</span>
+
+        }
+<span class="nc" id="L224">        return null; // null = hidden in UI</span>
+    }
+
+    private String getKeysFromCsr() {
+<span class="nc bnc" id="L228" title="All 2 branches missed.">        if (endEntityInformation.getExtendedInformation().getCertificateRequest() != null) {</span>
+            try {
+<span class="nc" id="L230">                PKCS10CertificationRequest pkcs10CertificationRequest = new PKCS10CertificationRequest(endEntityInformation.getExtendedInformation().getCertificateRequest());</span>
+<span class="nc" id="L231">                final JcaPKCS10CertificationRequest jcaPKCS10CertificationRequest = new JcaPKCS10CertificationRequest(pkcs10CertificationRequest);</span>
+<span class="nc" id="L232">                final String keySpecification = AlgorithmTools.getKeySpecification(jcaPKCS10CertificationRequest.getPublicKey());</span>
+<span class="nc" id="L233">                final String keyAlgorithm = AlgorithmTools.getKeyAlgorithm(jcaPKCS10CertificationRequest.getPublicKey());</span>
+<span class="nc" id="L234">                return keyAlgorithm + &quot; &quot; + keySpecification;</span>
+<span class="nc" id="L235">            } catch (InvalidKeyException e) {</span>
+<span class="nc" id="L236">                log.info(&quot;Failed to retrieve public key from CSR attached to end entity &quot; + username + &quot;. Key is either uninitialized or corrupted&quot;, e);</span>
+<span class="nc" id="L237">            } catch (IOException e) {</span>
+<span class="nc" id="L238">                log.info(&quot;Failed retrieve CSR attached to end entity &quot; + username + &quot;. Incorrect or corrupted structure&quot;, e);</span>
+<span class="nc" id="L239">            } catch (NoSuchAlgorithmException e) {</span>
+<span class="nc" id="L240">                log.info(&quot;Unsupported key algorithm attached to CSR for end entity with username &quot; + username, e);</span>
+<span class="nc" id="L241">            }</span>
+        }
+<span class="nc" id="L243">        log.info(&quot;No CSR found for end entity with username &quot; + username);</span>
+<span class="nc" id="L244">        return null;</span>
+    }
+
+    /** Download CSR attached to end entity in .pem format */
+    public void downloadCsr() {
+<span class="nc bnc" id="L249" title="All 2 branches missed.">        if (extendedInformation.getCertificateRequest() != null) {</span>
+<span class="nc" id="L250">            byte[] certificateSignRequest = extendedInformation.getCertificateRequest();</span>
+<span class="nc" id="L251">            downloadToken(certificateSignRequest, &quot;application/octet-stream&quot;, &quot;.pkcs10.pem&quot;);</span>
+<span class="nc" id="L252">        } else {</span>
+<span class="nc" id="L253">            throw new IllegalStateException(&quot;Could not find CSR attached to end entity with username &quot; + username + &quot;. CSR is expected to be set at this point&quot;);</span>
+        }
+<span class="nc" id="L255">    }</span>
+
+    private final void downloadToken(byte[] token, String responseContentType, String fileExtension) {
+<span class="nc bnc" id="L258" title="All 2 branches missed.">        if (token == null) {</span>
+<span class="nc" id="L259">            return;</span>
+        }
+        //Download the CSR
+<span class="nc" id="L262">        FacesContext fc = FacesContext.getCurrentInstance();</span>
+<span class="nc" id="L263">        ExternalContext ec = fc.getExternalContext();</span>
+<span class="nc" id="L264">        ec.responseReset(); // Some JSF component library or some Filter might have set some headers in the buffer beforehand. We want to get rid of them, else it may collide.</span>
+<span class="nc" id="L265">        ec.setResponseContentType(responseContentType);</span>
+<span class="nc" id="L266">        ec.setResponseContentLength(token.length);</span>
+<span class="nc" id="L267">        String fileName = CertTools.getPartFromDN(endEntityInformation.getDN(), &quot;CN&quot;);</span>
+<span class="nc bnc" id="L268" title="All 2 branches missed.">        if(fileName == null){</span>
+<span class="nc" id="L269">            fileName = &quot;request_csr&quot;;</span>
+        }
+
+<span class="nc" id="L272">        final String filename = StringTools.stripFilename(fileName + fileExtension);</span>
+<span class="nc" id="L273">        ec.setResponseHeader(&quot;Content-Disposition&quot;, &quot;attachment; filename=\&quot;&quot; + filename + &quot;\&quot;&quot;); // The Save As popup magic is done here. You can give it any file name you want, this only won't work in MSIE, it will use current request URL as file name instead.</span>
+<span class="nc" id="L274">        OutputStream output = null;</span>
+        try {
+<span class="nc" id="L276">            output = ec.getResponseOutputStream();</span>
+<span class="nc" id="L277">            output.write(token);</span>
+<span class="nc" id="L278">            output.flush();</span>
+<span class="nc" id="L279">            fc.responseComplete(); // Important! Otherwise JSF will attempt to render the response which obviously will fail since it's already written with a file and closed.</span>
+<span class="nc" id="L280">        } catch (IOException e) {</span>
+<span class="nc" id="L281">            log.info(&quot;Token &quot; + filename + &quot; could not be downloaded&quot;, e);</span>
+<span class="nc" id="L282">            callbacks.getRaLocaleBean().getMessage(&quot;enroll_token_could_not_be_downloaded&quot;, filename);</span>
+        } finally {
+<span class="nc bnc" id="L284" title="All 2 branches missed.">            if (output != null) {</span>
+                try {
+<span class="nc" id="L286">                    output.close();</span>
+<span class="nc" id="L287">                } catch (IOException e) {</span>
+<span class="nc" id="L288">                    throw new IllegalStateException(&quot;Failed to close outputstream&quot;, e);</span>
+<span class="nc" id="L289">                }</span>
+            }
+        }
+<span class="nc" id="L292">    }</span>
+
+    public boolean isTokenTypeUserGenerated() {
+<span class="nc bnc" id="L295" title="All 2 branches missed.">        return endEntityInformation.getTokenType() == EndEntityConstants.TOKEN_USERGEN;</span>
+    }
+
+    public boolean isKeyRecoverable() {
+<span class="nc" id="L299">        return endEntityInformation.getKeyRecoverable();</span>
+    }
+
+    public boolean isEmailEnabled() {
+<span class="nc" id="L303">        return getEndEntityProfile().getUse(EndEntityProfile.EMAIL,0);</span>
+    }
+    public String getEmail() {
+<span class="nc" id="L306">        return endEntityInformation.getEmail();</span>
+    }
+
+    public boolean isLoginsMaxEnabled() {
+<span class="nc" id="L310">        return getEndEntityProfile().getUse(EndEntityProfile.MAXFAILEDLOGINS, 0);</span>
+    }
+    public String getLoginsMax() {
+<span class="nc" id="L313">        return Integer.toString(extendedInformation.getMaxLoginAttempts());</span>
+    }
+    public String getLoginsRemaining() {
+<span class="nc" id="L316">        return Integer.toString(extendedInformation.getRemainingLoginAttempts());</span>
+    }
+
+    public boolean isSendNotificationEnabled() {
+<span class="nc" id="L320">        return getEndEntityProfile().getUse(EndEntityProfile.SENDNOTIFICATION, 0);</span>
+    }
+    public boolean isSendNotification() {
+<span class="nc" id="L323">        return endEntityInformation.getSendNotification();</span>
+    }
+
+    public boolean isCertificateSerialNumberOverrideEnabled() {
+<span class="nc" id="L327">        return getEndEntityProfile().getUse(EndEntityProfile.CERTSERIALNR, 0);</span>
+    }
+    public String getCertificateSerialNumberOverride() {
+<span class="nc" id="L330">        final BigInteger certificateSerialNumber = extendedInformation.certificateSerialNumber();</span>
+<span class="nc bnc" id="L331" title="All 2 branches missed.">        if (certificateSerialNumber!=null) {</span>
+<span class="nc" id="L332">            return certificateSerialNumber.toString(16);</span>
+        }
+<span class="nc" id="L334">        return &quot;&quot;;</span>
+    }
+
+    public boolean isOverrideNotBeforeEnabled() {
+<span class="nc" id="L338">        return getEndEntityProfile().getUse(EndEntityProfile.STARTTIME, 0);</span>
+    }
+    public String getOverrideNotBefore() {
+<span class="nc" id="L341">        return extendedInformation.getCustomData(ExtendedInformation.CUSTOM_STARTTIME);</span>
+    }
+    public boolean isOverrideNotAfterEnabled() {
+<span class="nc" id="L344">        return getEndEntityProfile().getUse(EndEntityProfile.ENDTIME, 0);</span>
+    }
+    public String getOverrideNotAfter() {
+<span class="nc" id="L347">        return extendedInformation.getCustomData(ExtendedInformation.CUSTOM_ENDTIME);</span>
+    }
+
+    public boolean isCardNumberEnabled() {
+<span class="nc" id="L351">        return getEndEntityProfile().getUse(EndEntityProfile.CARDNUMBER, 0);</span>
+    }
+    public String getCardNumber() {
+<span class="nc" id="L354">        return endEntityInformation.getCardNumber();</span>
+    }
+
+    public boolean isNameConstraintsPermittedEnabled() {
+<span class="nc" id="L358">        return getEndEntityProfile().getUse(EndEntityProfile.NAMECONSTRAINTS_PERMITTED, 0);</span>
+    }
+    public String getNameConstraintsPermitted() {
+<span class="nc" id="L361">        final List&lt;String&gt; value = extendedInformation.getNameConstraintsPermitted();</span>
+<span class="nc bnc" id="L362" title="All 2 branches missed.">        if (value!=null) {</span>
+<span class="nc" id="L363">            return Arrays.toString(extendedInformation.getNameConstraintsPermitted().toArray());</span>
+        }
+<span class="nc" id="L365">        return &quot;&quot;;</span>
+    }
+    public boolean isNameConstraintsExcludedEnabled() {
+<span class="nc" id="L368">        return getEndEntityProfile().getUse(EndEntityProfile.NAMECONSTRAINTS_EXCLUDED, 0);</span>
+    }
+    /** @return true if CSR exists in EEI*/
+    public boolean isCsrSet() {
+<span class="nc bnc" id="L372" title="All 2 branches missed.">        return extendedInformation.getCertificateRequest() != null;</span>
+    }
+    public String getNameConstraintsExcluded() {
+<span class="nc" id="L375">        final List&lt;String&gt; value = extendedInformation.getNameConstraintsExcluded();</span>
+<span class="nc bnc" id="L376" title="All 2 branches missed.">        if (value!=null) {</span>
+<span class="nc" id="L377">            return Arrays.toString(extendedInformation.getNameConstraintsExcluded().toArray());</span>
+        }
+<span class="nc" id="L379">        return &quot;&quot;;</span>
+    }
+
+    public boolean isAllowedRequestsEnabled() {
+<span class="nc" id="L383">        return getEndEntityProfile().getUse(EndEntityProfile.ALLOWEDREQUESTS, 0);</span>
+    }
+    public String getAllowedRequests() {
+<span class="nc" id="L386">        final String value = endEntityProfile.getValue(EndEntityProfile.ALLOWEDREQUESTS, 0);</span>
+<span class="nc bnc" id="L387" title="All 2 branches missed.">        return value==null ? &quot;1&quot; : value;</span>
+    }
+    public String getAllowedRequestsUsed() {
+<span class="nc" id="L390">        final String value = extendedInformation.getCustomData(ExtendedInformationFields.CUSTOM_REQUESTCOUNTER);</span>
+<span class="nc bnc" id="L391" title="All 2 branches missed.">        return value==null ? &quot;0&quot; : value;</span>
+    }
+
+    public boolean isIssuanceRevocationReasonEnabled() {
+<span class="nc" id="L395">        return getEndEntityProfile().getUse(EndEntityProfile.ISSUANCEREVOCATIONREASON, 0);</span>
+    }
+    public String getIssuanceRevocationReason() {
+<span class="nc" id="L398">        final String reasonCode = extendedInformation.getCustomData(ExtendedInformation.CUSTOM_REVOCATIONREASON);</span>
+<span class="nc bnc" id="L399" title="All 2 branches missed.">        if (reasonCode!=null) {</span>
+<span class="nc" id="L400">            return callbacks.getRaLocaleBean().getMessage(&quot;component_eedetails_field_issuancerevocation_reason_&quot;+reasonCode);</span>
+        }
+<span class="nc" id="L402">        return callbacks.getRaLocaleBean().getMessage(&quot;component_eedetails_field_issuancerevocation_reason_&quot; + RevokedCertInfo.NOT_REVOKED);</span>
+    }
+
+    public SubjectDn getSubjectDistinguishedName() {
+<span class="nc bnc" id="L406" title="All 2 branches missed.">        if (subjectDistinguishedName==null) {</span>
+<span class="nc" id="L407">            this.subjectDistinguishedName = new SubjectDn(getEndEntityProfile(), subjectDn);</span>
+        }
+<span class="nc" id="L409">        return subjectDistinguishedName;</span>
+    }
+
+    public SubjectAlternativeName getSubjectAlternativeName() {
+<span class="nc bnc" id="L413" title="All 2 branches missed.">        if (subjectAlternativeName==null) {</span>
+<span class="nc" id="L414">            this.subjectAlternativeName = new SubjectAlternativeName(getEndEntityProfile(), subjectAn);</span>
+        }
+<span class="nc" id="L416">        return subjectAlternativeName;</span>
+
+    }
+
+    public SubjectDirectoryAttributes getSubjectDirectoryAttributes() {
+<span class="nc bnc" id="L421" title="All 2 branches missed.">        if (subjectDirectoryAttributes==null) {</span>
+<span class="nc" id="L422">            this.subjectDirectoryAttributes = new SubjectDirectoryAttributes(getEndEntityProfile(), subjectDa);</span>
+        }
+<span class="nc" id="L424">        return subjectDirectoryAttributes;</span>
+
+    }
+
+    private EndEntityProfile getEndEntityProfile() {
+<span class="nc bnc" id="L429" title="All 2 branches missed.">        if (endEntityProfile==null) {</span>
+<span class="nc" id="L430">            endEntityProfile = callbacks.getEndEntityProfile(eepId);</span>
+        }
+<span class="nc" id="L432">        return endEntityProfile;</span>
+    }
+
+    /**
+     * Returns the add approval request ID stored in the extended information
+     * @return the ID of the approval request that was submitted to create the end entity
+     */
+    public String getAddEndEntityApprovalRequestId() {
+<span class="nc" id="L440">        String ret = &quot;&quot;;</span>
+<span class="nc" id="L441">        final ExtendedInformation ext = endEntityInformation.getExtendedInformation();</span>
+<span class="nc bnc" id="L442" title="All 2 branches missed.">        if(ext != null) {</span>
+<span class="nc" id="L443">            final Integer reqid = ext.getAddEndEntityApprovalRequestId();</span>
+<span class="nc bnc" id="L444" title="All 2 branches missed.">            if(reqid != null) {</span>
+<span class="nc" id="L445">                ret = reqid.toString();</span>
+            }
+        }
+<span class="nc" id="L448">        return ret;</span>
+    }
+
+    /**
+     * Returns the edit approval request IDs stored in the extended information as one String separated by ';'
+     * @return the IDs of the approval request that were submitted to edit the end entity
+     */
+    public String getEditEndEntityApprovalRequestIds() {
+<span class="nc" id="L456">        StringBuilder ret = new StringBuilder(&quot;&quot;);</span>
+<span class="nc" id="L457">        final ExtendedInformation ext = endEntityInformation.getExtendedInformation();</span>
+<span class="nc bnc" id="L458" title="All 2 branches missed.">        if(ext != null) {</span>
+<span class="nc" id="L459">            final List&lt;Integer&gt; ids = ext.getEditEndEntityApprovalRequestIds();</span>
+<span class="nc bnc" id="L460" title="All 2 branches missed.">            if(!ids.isEmpty()) {</span>
+<span class="nc bnc" id="L461" title="All 2 branches missed.">                for(Integer id : ids) {</span>
+<span class="nc" id="L462">                    ret = ret.append(&quot;; &quot;).append(id);</span>
+<span class="nc" id="L463">                }</span>
+<span class="nc" id="L464">                ret.delete(0, 2);</span>
+            }
+        }
+<span class="nc" id="L467">        return ret.toString();</span>
+    }
+
+    /**
+     * Returns the revocation approval request IDs stored in the extended information as one String separated by ';'
+     * @return the IDs of the approval request that were submitted to revoke the end entity
+     */
+    public String getRevokeEndEntityApprovalRequestIds() {
+<span class="nc" id="L475">        StringBuilder ret = new StringBuilder(&quot;&quot;);</span>
+<span class="nc" id="L476">        final ExtendedInformation ext = endEntityInformation.getExtendedInformation();</span>
+<span class="nc bnc" id="L477" title="All 2 branches missed.">        if(ext != null) {</span>
+<span class="nc" id="L478">            final List&lt;Integer&gt; ids = ext.getRevokeEndEntityApprovalRequestIds();</span>
+<span class="nc bnc" id="L479" title="All 2 branches missed.">            if(!ids.isEmpty()) {</span>
+<span class="nc bnc" id="L480" title="All 2 branches missed.">                for(Integer id : ids) {</span>
+<span class="nc" id="L481">                    ret = ret.append(&quot;; &quot;).append(id);</span>
+<span class="nc" id="L482">                }</span>
+<span class="nc" id="L483">                ret.delete(0, 2);</span>
+            }
+        }
+<span class="nc" id="L486">        return ret.toString();</span>
+    }
+
+    /** @return true every twice starting with every forth call */
+    public boolean isEven() {
+<span class="nc" id="L491">        styleRowCallCounter++;</span>
+<span class="nc bnc" id="L492" title="All 2 branches missed.">        return (styleRowCallCounter+1) / 2 % 2 == 0;</span>
+    }
+    /** @return true every twice starting with every other call */
+    public boolean isEvenTwice() {
+<span class="nc" id="L496">        isEven();</span>
+<span class="nc" id="L497">        return isEven();</span>
+    }
+
+<span class="nc" id="L500">    public RaEndEntityDetails getNext() { return next; }</span>
+<span class="nc" id="L501">    public void setNext(RaEndEntityDetails next) { this.next = next; }</span>
+
+<span class="nc" id="L503">    public RaEndEntityDetails getPrevious() { return previous; }</span>
+<span class="nc" id="L504">    public void setPrevious(RaEndEntityDetails previous) { this.previous = previous; }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

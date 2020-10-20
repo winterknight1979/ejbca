@@ -1,0 +1,486 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ApprovalRequestGUIInfo.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ra-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ra</a> &gt; <span class="el_source">ApprovalRequestGUIInfo.java</span></div><h1>ApprovalRequestGUIInfo.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ra;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TimeZone;
+
+import javax.faces.model.SelectItem;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authentication.tokens.X509CertificateAuthenticationToken;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.ValidityDate;
+import org.cesecore.util.ui.DynamicUiProperty;
+import org.ejbca.core.model.approval.Approval;
+import org.ejbca.core.model.approval.ApprovalDataText;
+import org.ejbca.core.model.approval.ApprovalDataVO;
+import org.ejbca.core.model.approval.ApprovalRequest;
+import org.ejbca.core.model.approval.TimeAndAdmin;
+import org.ejbca.core.model.approval.approvalrequests.AddEndEntityApprovalRequest;
+import org.ejbca.core.model.approval.approvalrequests.EditEndEntityApprovalRequest;
+import org.ejbca.core.model.approval.profile.ApprovalPartition;
+import org.ejbca.core.model.approval.profile.ApprovalStep;
+import org.ejbca.core.model.era.RaApprovalRequestInfo;
+import org.ejbca.core.model.era.RaApprovalStepInfo;
+import org.ejbca.core.model.era.RaEditableRequestData;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfile;
+
+/**
+ * Keeps localized information about an approval request.
+ * 
+ * @version $Id: ApprovalRequestGUIInfo.java 28562 2018-03-27 14:07:49Z undulf $
+ */
+public class ApprovalRequestGUIInfo implements Serializable {
+    
+    private static final long serialVersionUID = 1L;
+<span class="nc" id="L52">    private static final Logger log = Logger.getLogger(ApprovalRequestGUIInfo.class);</span>
+    
+    public static final class ApprovalGuiObject {
+        private Approval approval;
+        
+<span class="nc" id="L57">        public ApprovalGuiObject(Approval approval) {</span>
+<span class="nc" id="L58">           this.approval = approval;</span>
+<span class="nc" id="L59">        }</span>
+        
+        public String getApprovalDate(){
+<span class="nc" id="L62">            return ValidityDate.formatAsISO8601(approval.getApprovalDate(), ValidityDate.TIMEZONE_SERVER);</span>
+        }
+        public String getApprovalAdmin(){
+<span class="nc" id="L65">            return approval.getAdmin().toString();</span>
+        }
+        
+        public String getAdminAction(){
+<span class="nc bnc" id="L69" title="All 2 branches missed.">            if(approval.isApproved()){</span>
+<span class="nc" id="L70">                return &quot;APPROVED&quot;;</span>
+            }
+<span class="nc" id="L72">            return &quot;REJECTED&quot;;</span>
+        }
+        public String getComment(){
+<span class="nc" id="L75">            return approval.getComment();</span>
+        }
+    }
+    
+    /**
+     * A display POJO for approval partitions.
+     */
+    public static final class ApprovalPartitionProfileGuiObject implements Serializable {
+        private static final long serialVersionUID = 1L;
+
+<span class="nc" id="L85">        private List&lt;DynamicUiProperty&lt;? extends Serializable&gt;&gt; profilePropertyList = null;</span>
+
+        private final int partitionId;
+        private final int stepId;
+        private final List&lt;Approval&gt; approvals;
+
+        public ApprovalPartitionProfileGuiObject(final int stepId, final int partitionId,
+<span class="nc" id="L92">                List&lt;DynamicUiProperty&lt;? extends Serializable&gt;&gt; propertyValues, List&lt;Approval&gt; approvals) {</span>
+            //Pass property values as a parameter because it may need some outside poking
+<span class="nc" id="L94">            setProfilePropertyList(propertyValues);</span>
+<span class="nc" id="L95">            this.stepId = stepId;</span>
+<span class="nc" id="L96">            this.partitionId = partitionId;</span>
+<span class="nc" id="L97">            this.approvals = approvals;</span>
+<span class="nc" id="L98">        }</span>
+
+        public List&lt;DynamicUiProperty&lt;? extends Serializable&gt;&gt; getProfilePropertyList() {
+<span class="nc" id="L101">            return profilePropertyList;</span>
+        }
+        
+        public void setProfilePropertyList(List&lt;DynamicUiProperty&lt;? extends Serializable&gt;&gt; profilePropertyList) {
+<span class="nc" id="L105">            this.profilePropertyList = profilePropertyList;</span>
+<span class="nc" id="L106">        }</span>
+
+        public int getPartitionId() {
+<span class="nc" id="L109">            return partitionId;</span>
+        }
+        public int getStepId() {
+<span class="nc" id="L112">            return stepId;</span>
+        }
+        
+        /** @param property Property
+         * @return the current multi-valued property's possible values as JSF friendly SelectItems. */
+        public List&lt;SelectItem/*&lt;String,String&gt;*/&gt; getPropertyPossibleValues( final DynamicUiProperty&lt;? extends Serializable&gt; property) {
+<span class="nc" id="L118">            final List&lt;SelectItem&gt; propertyPossibleValues = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">            if (profilePropertyList != null) {</span>
+<span class="nc bnc" id="L120" title="All 4 branches missed.">                if (property != null &amp;&amp; property.getPossibleValues() != null) {</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">                    for (final Serializable possibleValue : property.getPossibleValues()) {</span>
+<span class="nc" id="L122">                        propertyPossibleValues</span>
+<span class="nc" id="L123">                                .add(new SelectItem(property.getAsEncodedValue(property.getType().cast(possibleValue)), possibleValue.toString()));</span>
+<span class="nc" id="L124">                    }</span>
+                }
+            }
+<span class="nc" id="L127">            return propertyPossibleValues;</span>
+        }
+        
+        public List&lt;Approval&gt; getApprovals() {
+<span class="nc" id="L131">            return this.approvals;</span>
+        }
+        
+    }
+    
+    public static final class StepOption implements Serializable {
+        private static final long serialVersionUID = 1L;
+        private final String name;
+        private Object value;
+        
+<span class="nc" id="L141">        public StepOption(final String name) {</span>
+<span class="nc" id="L142">            this.name = name;</span>
+<span class="nc" id="L143">        }</span>
+        
+        public String getName() {
+<span class="nc" id="L146">            return name;</span>
+        }
+        
+        public Object getValue() {
+<span class="nc" id="L150">            return value;</span>
+        }
+
+        public void setValue(final Object value) {
+<span class="nc" id="L154">            this.value = value;</span>
+<span class="nc" id="L155">        }</span>
+    }
+    
+    /** Represents a step that has been approved */
+    public static final class Step implements Serializable {
+        private static final long serialVersionUID = 1L;
+        private final int stepId;
+        private final Integer stepOrdinal;
+        private final String headingText;
+        private final List&lt;ApprovalPartition&gt; partitions;
+        
+<span class="nc" id="L166">        public Step(final RaApprovalStepInfo stepInfo, final RaApprovalRequestInfo request, final RaLocaleBean raLocaleBean) {</span>
+<span class="nc" id="L167">            stepId = stepInfo.getStepId();</span>
+<span class="nc" id="L168">            final Map&lt;Integer,Integer&gt; stepToOrdinal = request.getStepIdToOrdinalMap();</span>
+<span class="nc" id="L169">            stepOrdinal = stepToOrdinal.get(stepId);</span>
+<span class="nc" id="L170">            headingText = raLocaleBean.getMessage(&quot;view_request_page_step&quot;, stepOrdinal);</span>
+<span class="nc" id="L171">            partitions = stepInfo.getPartitions();</span>
+<span class="nc" id="L172">        }</span>
+        
+        public int getStepId() {
+<span class="nc" id="L175">            return stepId;</span>
+        }
+        
+        public int getStepOrdinal() {
+<span class="nc bnc" id="L179" title="All 2 branches missed.">            if (stepOrdinal==null) {</span>
+<span class="nc" id="L180">                return 0;</span>
+            }
+<span class="nc" id="L182">            return stepOrdinal;</span>
+        }
+        
+        public String getHeadingText() {
+<span class="nc" id="L186">            return headingText;</span>
+        }
+        
+        public List&lt;ApprovalPartition&gt; getPartitions() {
+<span class="nc" id="L190">            return partitions;</span>
+        }
+    }
+    
+    public static final class RequestDataRow implements Serializable {
+        private static final long serialVersionUID = 1L;
+        private final ApprovalDataText approvalDataText;
+        private final RaLocaleBean raLocaleBean;
+        private final boolean editingSupported;
+        private Object editValue; // TODO the column maps to a translation id. does it also map to something in the *ApprovalRequest data hashmap?
+        
+        
+<span class="nc" id="L202">        public RequestDataRow(final RaLocaleBean raLocaleBean, final ApprovalDataText approvalDataText, final boolean editingSupported, final Object editValue) {</span>
+<span class="nc" id="L203">            this.approvalDataText = approvalDataText;</span>
+<span class="nc" id="L204">            this.raLocaleBean = raLocaleBean;</span>
+<span class="nc" id="L205">            this.editingSupported = editingSupported;</span>
+<span class="nc" id="L206">            this.editValue = editValue;</span>
+<span class="nc" id="L207">        }</span>
+        
+        public String getKey() {
+<span class="nc" id="L210">            return approvalDataText.getHeader();</span>
+        }
+        
+        public String getHeader() {
+<span class="nc bnc" id="L214" title="All 2 branches missed.">            if (approvalDataText.isHeaderTranslateable()) {</span>
+<span class="nc" id="L215">                return raLocaleBean.getMessage(&quot;view_request_page_data_header_&quot; + approvalDataText.getHeader());</span>
+            } else {
+<span class="nc" id="L217">                return approvalDataText.getHeader();</span>
+            }
+        }
+        
+        public String getData() {
+<span class="nc bnc" id="L222" title="All 2 branches missed.">            if (approvalDataText.isDataTranslatable()) {</span>
+<span class="nc" id="L223">                return raLocaleBean.getMessage(&quot;view_request_page_data_value_&quot; + approvalDataText.getData());</span>
+            } else {
+<span class="nc" id="L225">                return approvalDataText.getData();</span>
+            }
+        }
+        
+        public boolean isEditingSupported() {
+<span class="nc" id="L230">            return editingSupported;</span>
+        }
+        
+        public Object getEditValue() {
+<span class="nc" id="L234">            return editValue;</span>
+        }
+        
+        public void setEditValue(final Object editValue) {
+<span class="nc" id="L238">            this.editValue = editValue;</span>
+<span class="nc" id="L239">        }</span>
+    }
+    
+    // This field is package-internal so RaManageRequest(s)Bean can use it internally. This class is specific to these beans.
+    final RaApprovalRequestInfo request;
+    private final ApprovalDataVO approvalData;
+    
+    private final String requestDate;
+    private final String requestExpireDate;
+    private final String caName;
+    private final String type;
+    private final String requesterName;
+    private final String displayName;
+    private final String detail;
+    private final String status;
+    
+    private final RaEndEntityDetails endEntityDetails;
+    private final List&lt;RequestDataRow&gt; requestData;
+    
+    private final List&lt;Step&gt; previousSteps;
+
+    private final List&lt;String&gt; editLogEntries;
+    
+    // Whether the current admin can approve this request
+    private boolean canApprove;
+    private boolean canEdit;
+    private boolean canView;
+    private final boolean authorizedToRequestType;
+    
+<span class="nc" id="L268">    public ApprovalRequestGUIInfo(final RaApprovalRequestInfo request, final RaLocaleBean raLocaleBean, final RaAccessBean raAccessBean) {</span>
+<span class="nc" id="L269">        this.request = request;</span>
+<span class="nc" id="L270">        approvalData = request.getApprovalData();</span>
+        
+        // Determine what parts of the approval request are editable
+<span class="nc" id="L273">        final EndEntityInformation endEntityInformation = getEndEntityInformation(); // editable</span>
+<span class="nc bnc" id="L274" title="All 2 branches missed.">        boolean hasEditableData = (endEntityInformation != null);</span>
+<span class="nc" id="L275">        requestData = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L276" title="All 4 branches missed.">        if (request.getRequestData() != null &amp;&amp; endEntityInformation == null) {</span>
+<span class="nc" id="L277">            final RaEditableRequestData editData  = request.getEditableData();</span>
+<span class="nc bnc" id="L278" title="All 2 branches missed.">            for (final ApprovalDataText dataText : request.getRequestData()) {</span>
+<span class="nc" id="L279">                boolean editingSupported = true;</span>
+                final Object editValue;
+<span class="nc bnc" id="L281" title="All 6 branches missed.">                switch (dataText.getHeader()) {</span>
+                case &quot;SUBJECTDN&quot;:
+<span class="nc" id="L283">                    editValue = editData.getSubjectDN();</span>
+<span class="nc" id="L284">                    break;</span>
+                case &quot;SUBJECTALTNAME&quot;:
+<span class="nc" id="L286">                    editValue = editData.getSubjectAltName();</span>
+<span class="nc" id="L287">                    break;</span>
+                case &quot;SUBJECTDIRATTRIBUTES&quot;:
+<span class="nc bnc" id="L289" title="All 2 branches missed.">                    if (&quot;NOVALUE&quot;.equals(dataText.getData())) continue;</span>
+<span class="nc" id="L290">                    editValue = editData.getSubjectDirAttrs();</span>
+<span class="nc" id="L291">                    break;</span>
+                case &quot;EMAIL&quot;:
+<span class="nc" id="L293">                    editValue = editData.getEmail();</span>
+<span class="nc" id="L294">                    break;</span>
+                // Suppress some &quot;no&quot; or &quot;none&quot; values
+                case &quot;HARDTOKENISSUERALIAS&quot;:
+                case &quot;KEYRECOVERABLE&quot;:
+                case &quot;SENDNOTIFICATION&quot;:
+<span class="nc bnc" id="L299" title="All 4 branches missed.">                    if (&quot;NOVALUE&quot;.equals(dataText.getData()) || &quot;NO&quot;.equals(dataText.getData())) continue;</span>
+                    // NOPMD: Fall through
+                default:
+<span class="nc" id="L302">                    editingSupported = false;</span>
+<span class="nc" id="L303">                    editValue = null;</span>
+                }
+<span class="nc bnc" id="L305" title="All 2 branches missed.">                if (editingSupported) {</span>
+<span class="nc" id="L306">                    hasEditableData = true;</span>
+                }
+<span class="nc" id="L308">                requestData.add(new RequestDataRow(raLocaleBean, dataText, editingSupported, editValue));</span>
+<span class="nc" id="L309">            }</span>
+        }
+        
+<span class="nc" id="L312">        requestDate = ValidityDate.formatAsISO8601ServerTZ(approvalData.getRequestDate().getTime(), TimeZone.getDefault());</span>
+<span class="nc" id="L313">        requestExpireDate = ValidityDate.formatAsISO8601ServerTZ(approvalData.getExpireDate().getTime(), TimeZone.getDefault());</span>
+        // These must be added last, so the &quot;Extend&quot; button appears under the Expiration Date field.
+<span class="nc" id="L315">        requestData.add(new RequestDataRow(raLocaleBean, new ApprovalDataText(&quot;REQUESTDATE&quot;, getRequestDate(), true, false), false, null));</span>
+<span class="nc" id="L316">        requestData.add(new RequestDataRow(raLocaleBean, new ApprovalDataText(&quot;REQUESTEXPIRATIONDATE&quot;, getRequestExpireDate(), true, false), false, null));</span>
+        
+<span class="nc bnc" id="L318" title="All 2 branches missed.">        if (approvalData.getCAId() == ApprovalDataVO.ANY_CA) {</span>
+<span class="nc" id="L319">            caName = raLocaleBean.getMessage(&quot;manage_requests_no_ca&quot;);</span>
+<span class="nc bnc" id="L320" title="All 2 branches missed.">        } else if (request.getCaName() == null) {</span>
+<span class="nc" id="L321">            caName = &quot;Missing CA id &quot; + approvalData.getCAId();</span>
+        } else {
+<span class="nc" id="L323">            caName = request.getCaName();</span>
+        }
+        
+<span class="nc bnc" id="L326" title="All 2 branches missed.">        if (endEntityInformation != null) {</span>
+<span class="nc" id="L327">            final EndEntityProfile endEntityProfile = request.getEndEntityProfile();</span>
+<span class="nc" id="L328">            final RaEndEntityDetails.Callbacks callbacks = new RaEndEntityDetails.Callbacks() {</span>
+                @Override
+<span class="nc" id="L330">                public RaLocaleBean getRaLocaleBean() { return raLocaleBean; }</span>
+                @Override
+<span class="nc" id="L332">                public EndEntityProfile getEndEntityProfile(int eepId) { return endEntityProfile; }</span>
+            };
+<span class="nc" id="L334">            endEntityDetails = new RaEndEntityDetails(getEndEntityInformation(), callbacks, request.getCertificateProfileName(), request.getEndEntityProfileName(), caName);</span>
+<span class="nc" id="L335">        } else {</span>
+<span class="nc" id="L336">            endEntityDetails = null;</span>
+        }
+        
+<span class="nc" id="L339">        final String reqSubjDN = request.getRequesterSubjectDN();</span>
+<span class="nc bnc" id="L340" title="All 2 branches missed.">        if (reqSubjDN != null) {</span>
+<span class="nc" id="L341">            requesterName = getCNOrFallback(reqSubjDN, reqSubjDN);</span>
+        } else {
+<span class="nc" id="L343">            requesterName = &quot;&quot;;</span>
+        }
+        
+<span class="nc bnc" id="L346" title="All 9 branches missed.">        switch (approvalData.getApprovalType()) {</span>
+<span class="nc" id="L347">        case ApprovalDataVO.APPROVALTYPE_ACTIVATECATOKEN: type = raLocaleBean.getMessage(&quot;manage_requests_type_activate_ca_token&quot;); break;</span>
+<span class="nc" id="L348">        case ApprovalDataVO.APPROVALTYPE_ADDENDENTITY: type = raLocaleBean.getMessage(&quot;manage_requests_type_add_end_entity&quot;); break;</span>
+<span class="nc" id="L349">        case ApprovalDataVO.APPROVALTYPE_CHANGESTATUSENDENTITY: type = raLocaleBean.getMessage(&quot;manage_requests_type_change_status_end_entity&quot;); break;</span>
+<span class="nc" id="L350">        case ApprovalDataVO.APPROVALTYPE_EDITENDENTITY: type = raLocaleBean.getMessage(&quot;manage_requests_type_edit_end_entity&quot;); break;</span>
+<span class="nc" id="L351">        case ApprovalDataVO.APPROVALTYPE_KEYRECOVERY: type = raLocaleBean.getMessage(&quot;manage_requests_type_key_recovery&quot;); break;</span>
+<span class="nc" id="L352">        case ApprovalDataVO.APPROVALTYPE_REVOKEANDDELETEENDENTITY: type = raLocaleBean.getMessage(&quot;manage_requests_type_revoke_and_delete_end_entity&quot;); break;</span>
+<span class="nc" id="L353">        case ApprovalDataVO.APPROVALTYPE_REVOKECERTIFICATE: type = raLocaleBean.getMessage(&quot;manage_requests_type_revoke_certificate&quot;); break;</span>
+<span class="nc" id="L354">        case ApprovalDataVO.APPROVALTYPE_REVOKEENDENTITY: type = raLocaleBean.getMessage(&quot;manage_requests_type_revoke_end_entity&quot;); break;</span>
+        default:
+<span class="nc" id="L356">            log.info(&quot;Invalid/unsupported type of approval request: &quot; + approvalData.getApprovalType());</span>
+<span class="nc" id="L357">            type = &quot;???&quot;;</span>
+        }
+        
+        // Get username and subject DN if the request has this information
+<span class="nc" id="L361">        String username = null;</span>
+<span class="nc" id="L362">        String subjectDN = null;</span>
+<span class="nc bnc" id="L363" title="All 2 branches missed.">        if (endEntityInformation != null) {</span>
+<span class="nc" id="L364">            username = endEntityInformation.getUsername();</span>
+<span class="nc" id="L365">            subjectDN = endEntityInformation.getDN();</span>
+        }
+<span class="nc" id="L367">        displayName = getCNOrFallback(subjectDN, username);</span>
+<span class="nc" id="L368">        detail = subjectDN;</span>
+        
+<span class="nc bnc" id="L370" title="All 9 branches missed.">        switch (request.getStatus()) {</span>
+<span class="nc" id="L371">        case ApprovalDataVO.STATUS_APPROVED: status = raLocaleBean.getMessage(&quot;manage_requests_status_approved&quot;); break;</span>
+<span class="nc" id="L372">        case ApprovalDataVO.STATUS_EXECUTED: status = raLocaleBean.getMessage(&quot;manage_requests_status_executed&quot;); break;</span>
+<span class="nc" id="L373">        case ApprovalDataVO.STATUS_EXECUTIONDENIED: status = raLocaleBean.getMessage(&quot;manage_requests_status_execution_denied&quot;); break;</span>
+<span class="nc" id="L374">        case ApprovalDataVO.STATUS_EXECUTIONFAILED: status = raLocaleBean.getMessage(&quot;manage_requests_status_execution_failed&quot;); break;</span>
+<span class="nc" id="L375">        case ApprovalDataVO.STATUS_EXPIRED: status = raLocaleBean.getMessage(&quot;manage_requests_status_expired&quot;); break;</span>
+<span class="nc" id="L376">        case ApprovalDataVO.STATUS_EXPIREDANDNOTIFIED: status = raLocaleBean.getMessage(&quot;manage_requests_status_expired_and_notified&quot;); break;</span>
+<span class="nc" id="L377">        case ApprovalDataVO.STATUS_REJECTED: status = raLocaleBean.getMessage(&quot;manage_requests_status_rejected&quot;); break;</span>
+<span class="nc" id="L378">        case ApprovalDataVO.STATUS_WAITINGFORAPPROVAL: status = raLocaleBean.getMessage(&quot;manage_requests_status_waiting_for_approval&quot;); break;</span>
+        default:
+<span class="nc" id="L380">            log.info(&quot;Invalid status of approval request: &quot; + request.getStatus());</span>
+<span class="nc" id="L381">            status = &quot;???&quot;;</span>
+        }
+        
+<span class="nc" id="L384">        editLogEntries = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L385" title="All 2 branches missed.">        for (final TimeAndAdmin entry : request.getEditedByAdmin()) {</span>
+<span class="nc" id="L386">            final String editDate = ValidityDate.formatAsISO8601(entry.getDate(), TimeZone.getDefault());</span>
+            final String adminName;
+<span class="nc bnc" id="L388" title="All 2 branches missed.">            if (entry.getAdmin() instanceof X509CertificateAuthenticationToken) {</span>
+<span class="nc" id="L389">                final String adminDN = CertTools.getSubjectDN(((X509CertificateAuthenticationToken)entry.getAdmin()).getCertificate());</span>
+<span class="nc" id="L390">                adminName = getCNOrFallback(adminDN, adminDN);</span>
+<span class="nc" id="L391">            } else {</span>
+<span class="nc" id="L392">                adminName = entry.getAdmin().toString();</span>
+            }
+<span class="nc" id="L394">            editLogEntries.add(raLocaleBean.getMessage(&quot;view_request_page_edit_log_entry&quot;, editDate, adminName));</span>
+<span class="nc" id="L395">        }</span>
+        
+<span class="nc bnc" id="L397" title="All 6 branches missed.">        if (endEntityInformation != null || approvalData.getApprovalType() == ApprovalDataVO.APPROVALTYPE_REVOKECERTIFICATE || approvalData.getApprovalType() == ApprovalDataVO.APPROVALTYPE_KEYRECOVERY) {</span>
+<span class="nc" id="L398">            authorizedToRequestType = raAccessBean.isAuthorizedToApproveEndEntityRequests();</span>
+        } else {
+<span class="nc" id="L400">            authorizedToRequestType = raAccessBean.isAuthorizedToApproveCARequests();</span>
+        }
+        
+<span class="nc" id="L403">        final ApprovalStep nextApprovalStep = request.getNextApprovalStep();</span>
+        // We can approve our own edits if allowed by approval profile
+<span class="nc" id="L405">        boolean allowSelfEdit = request.getApprovalRequest().getApprovalProfile().getAllowSelfEdit();</span>
+<span class="nc bnc" id="L406" title="All 12 branches missed.">        canApprove = nextApprovalStep != null &amp;&amp; (!request.isEditedByMe() || allowSelfEdit) &amp;&amp; !request.isApprovedByMe() &amp;&amp; !request.isRequestedByMe() &amp;&amp; authorizedToRequestType;</span>
+        // Can only edit our own requests, or requests that we could approve irrespective of who made or edited them.
+<span class="nc bnc" id="L408" title="All 10 branches missed.">        canEdit = authorizedToRequestType &amp;&amp; request.isEditable() &amp;&amp; hasEditableData &amp;&amp; (nextApprovalStep != null || isRequestedByMe());</span>
+<span class="nc" id="L409">        canView = request.isVisibleToMe();</span>
+        
+<span class="nc" id="L411">        previousSteps = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L412" title="All 2 branches missed.">        for (final RaApprovalStepInfo stepInfo : request.getPreviousApprovalSteps()) {</span>
+<span class="nc" id="L413">            previousSteps.add(new Step(stepInfo, request, raLocaleBean));</span>
+<span class="nc" id="L414">        }</span>
+        
+<span class="nc" id="L416">    }</span>
+    
+    private String getCNOrFallback(final String subjectDN, final String fallback) {
+<span class="nc" id="L419">        final String cn = CertTools.getPartFromDN(subjectDN, &quot;CN&quot;);</span>
+<span class="nc bnc" id="L420" title="All 2 branches missed.">        if (cn != null) {</span>
+<span class="nc" id="L421">            return cn;</span>
+<span class="nc bnc" id="L422" title="All 2 branches missed.">        } else if (fallback != null) {</span>
+<span class="nc" id="L423">            return fallback;</span>
+        } else {
+<span class="nc" id="L425">            return &quot;&quot;;</span>
+        }
+    }
+    
+<span class="nc" id="L429">    public String getId() { return String.valueOf(request.getId()); }</span>
+<span class="nc" id="L430">    public String getRequestDate() { return requestDate; }</span>
+<span class="nc" id="L431">    public String getRequestExpireDate() { return requestExpireDate; }</span>
+<span class="nc" id="L432">    public String getCa() { return caName; }</span>
+<span class="nc" id="L433">    public String getType() { return type; }</span>
+<span class="nc" id="L434">    public String getRequesterName() { return requesterName; }</span>
+<span class="nc" id="L435">    public String getDisplayName() { return displayName; }</span>
+<span class="nc" id="L436">    public String getDetail() { return detail; }</span>
+<span class="nc" id="L437">    public String getStatus() { return status; }</span>
+    
+    public EndEntityInformation getEndEntityInformation() {
+<span class="nc" id="L440">        final ApprovalRequest approvalRequest = request.getApprovalRequest();</span>
+<span class="nc bnc" id="L441" title="All 2 branches missed.">        if (approvalRequest instanceof AddEndEntityApprovalRequest) {</span>
+<span class="nc" id="L442">            return ((AddEndEntityApprovalRequest)approvalRequest).getEndEntityInformation();</span>
+<span class="nc bnc" id="L443" title="All 2 branches missed.">        } else if (approvalRequest instanceof EditEndEntityApprovalRequest) {</span>
+<span class="nc" id="L444">            return ((EditEndEntityApprovalRequest)approvalRequest).getNewEndEntityInformation();</span>
+        } else {
+<span class="nc" id="L446">            return null;</span>
+        }
+    }
+<span class="nc" id="L449">    public RaEndEntityDetails getEndEntityDetails() { return endEntityDetails; }</span>
+    
+<span class="nc" id="L451">    public List&lt;RequestDataRow&gt; getRequestData() { return requestData; }</span>
+
+<span class="nc" id="L453">    public List&lt;String&gt; getEditLogEntries() { return editLogEntries; }</span>
+    
+<span class="nc" id="L455">    public List&lt;Step&gt; getPreviousSteps() { return previousSteps; }</span>
+<span class="nc" id="L456">    public int getStepCount() { return request.getStepCount(); }</span>
+<span class="nc" id="L457">    public int getCurrentStepOrdinal() { return request.getCurrentStepOrdinal(); }</span>
+    
+<span class="nc" id="L459">    public boolean isCanApprove() { return canApprove; }</span>
+<span class="nc" id="L460">    public boolean isCanEdit() { return canEdit; }</span>
+<span class="nc" id="L461">    public boolean isCanView() {return canView;}</span>
+<span class="nc" id="L462">    public boolean isEditedByMe() { return request.isEditedByMe(); }</span>
+<span class="nc" id="L463">    public boolean isRequestedByMe() { return request.isRequestedByMe(); }</span>
+<span class="nc" id="L464">    public boolean isApprovedByMe() { return request.isApprovedByMe(); }</span>
+<span class="nc" id="L465">    public boolean isPending(final AuthenticationToken admin) { return request.isPending(admin); }</span>
+<span class="nc bnc" id="L466" title="All 2 branches missed.">    public boolean isPendingExecution() { return request.getStatus() == ApprovalDataVO.STATUS_APPROVED; /* = approved but not executed */ }</span>
+<span class="nc bnc" id="L467" title="All 2 branches missed.">    public boolean isExecuted() { return request.getStatus() == ApprovalDataVO.STATUS_EXECUTED; }</span>
+<span class="nc bnc" id="L468" title="All 4 branches missed.">    public boolean isSuccessful() { return isExecuted() || isPendingExecution(); }</span>
+<span class="nc bnc" id="L469" title="All 4 branches missed.">    public boolean isUnsuccessful() { return !isWaitingForApproval() &amp;&amp; !isSuccessful(); }</span>
+<span class="nc bnc" id="L470" title="All 2 branches missed.">    public boolean isExecutionFailed() { return request.getStatus() == ApprovalDataVO.STATUS_EXECUTIONFAILED; }</span>
+<span class="nc" id="L471">    public boolean isWaitingForMe(final AuthenticationToken admin) { return request.isWaitingForMe(admin); }</span>
+<span class="nc bnc" id="L472" title="All 2 branches missed.">    public boolean isWaitingForApproval() { return request.getStatus() == ApprovalDataVO.STATUS_WAITINGFORAPPROVAL; }</span>
+<span class="nc bnc" id="L473" title="All 4 branches missed.">    public boolean isExpired() { return request.getStatus() == ApprovalDataVO.STATUS_EXPIRED || request.getStatus() == ApprovalDataVO.STATUS_EXPIREDANDNOTIFIED; }</span>
+<span class="nc bnc" id="L474" title="All 2 branches missed.">    public boolean hasNextApprovalStep() { return request.getNextApprovalStep() != null; }</span>
+<span class="nc" id="L475">    public boolean isAuthorizedToApprovalType() { return authorizedToRequestType; }</span>
+    
+    public boolean getCanExtend() {
+<span class="nc bnc" id="L478" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L479">            log.debug(&quot;Checking if extension of request expiration is possible: Authorized=&quot; + isAuthorizedToApprovalType() + &quot;, expired=&quot; + isExpired() + &quot;, max extension time=&quot; + request.getMaxExtensionTime());</span>
+        }
+<span class="nc bnc" id="L481" title="All 4 branches missed.">        return isAuthorizedToApprovalType() &amp;&amp; isExpired() &amp;&amp;</span>
+<span class="nc bnc" id="L482" title="All 2 branches missed.">                request.getMaxExtensionTime() != 0;</span>
+    }
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ChangeRuleCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.roles</a> &gt; <span class="el_source">ChangeRuleCommand.java</span></div><h1>ChangeRuleCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.cli.roles;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.rules.AccessRuleState;
+import org.cesecore.roles.AccessRulesHelper;
+import org.cesecore.roles.Role;
+import org.cesecore.roles.RoleExistsException;
+import org.cesecore.roles.management.RoleSessionRemote;
+import org.cesecore.util.EjbRemoteHelper;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+
+/**
+ * Changes an access rule
+ */
+<span class="nc" id="L39">public class ChangeRuleCommand extends BaseRolesCommand {</span>
+
+<span class="nc" id="L41">    private static final Logger log = Logger.getLogger(ChangeRuleCommand.class);</span>
+
+    private static final String NAME_KEY = &quot;--name&quot;;
+    private static final String RULE_KEY = &quot;--rule&quot;;
+    private static final String STATE_KEY = &quot;--state&quot;;
+    private static final String ROLE_NAMESPACE_KEY = &quot;--namespace&quot;;
+    @Deprecated
+    private static final String RECURSIVE_KEY = &quot;-R&quot;;
+
+    {
+<span class="nc" id="L51">        registerParameter(new Parameter(NAME_KEY, &quot;Role Name&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;Name of the role to modify.&quot;));
+<span class="nc" id="L53">        registerParameter(new Parameter(RULE_KEY, &quot;Rule&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT, &quot;The rule to change&quot;));</span>
+<span class="nc" id="L54">        registerParameter(new Parameter(STATE_KEY, &quot;Rule State&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;The state of the rule.&quot;));
+<span class="nc" id="L56">        registerParameter(Parameter.createFlag(RECURSIVE_KEY, &quot;(Deprecated) Set this switch if rule is to be recursive. Default is false.&quot;));</span>
+<span class="nc" id="L57">        registerParameter(new Parameter(ROLE_NAMESPACE_KEY, &quot;Role Namespace&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID, ParameterMode.ARGUMENT,</span>
+                &quot;The namespace the role belongs to.&quot;));
+<span class="nc" id="L59">    }</span>
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L63">        return &quot;changerule&quot;;</span>
+    }
+
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+<span class="nc" id="L68">        final String roleName = parameters.get(NAME_KEY);</span>
+<span class="nc" id="L69">        final String namespace = parameters.get(ROLE_NAMESPACE_KEY);</span>
+        final Role role;
+        try {
+<span class="nc" id="L72">            role = EjbRemoteHelper.INSTANCE.getRemoteSession(RoleSessionRemote.class).getRole(getAuthenticationToken(), namespace, roleName);</span>
+<span class="nc" id="L73">        } catch (AuthorizationDeniedException e1) {</span>
+<span class="nc" id="L74">            getLogger().error(&quot;Not authorized to role &quot; + super.getFullRoleName(namespace, roleName) + &quot;.&quot;);</span>
+<span class="nc" id="L75">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L76">        }</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">        if (role == null) {</span>
+<span class="nc" id="L78">            getLogger().error(&quot;No such role &quot; + super.getFullRoleName(namespace, roleName) + &quot;.&quot;);</span>
+<span class="nc" id="L79">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+        }
+        try {
+<span class="nc" id="L82">            final String resourceName = AccessRulesHelper.normalizeResource(parameters.get(RULE_KEY));</span>
+<span class="nc" id="L83">            final String resource = super.getResourceNameToResourceMap().get(resourceName);</span>
+<span class="nc bnc" id="L84" title="All 2 branches missed.">            if (resource==null) {</span>
+<span class="nc" id="L85">                getLogger().error(&quot;ERROR: No resource with name '&quot; + resourceName + &quot;' is available.&quot;);</span>
+<span class="nc" id="L86">                return CommandResult.FUNCTIONAL_FAILURE;</span>
+            }
+<span class="nc" id="L88">            final AccessRuleState rule = AccessRuleState.matchName(parameters.get(STATE_KEY));</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">            if (rule == null) {</span>
+<span class="nc" id="L90">                getLogger().error(&quot;ERROR: No such state \&quot;&quot; + parameters.get(STATE_KEY) + &quot;\&quot;.&quot;);</span>
+<span class="nc" id="L91">                return CommandResult.FUNCTIONAL_FAILURE;</span>
+            }
+<span class="nc bnc" id="L93" title="All 2 branches missed.">            if (parameters.containsKey(RECURSIVE_KEY)) {</span>
+                // Be nice and log, but don't fail existing scripts depending on this command
+<span class="nc" id="L95">                getLogger().warn(&quot;Setting &quot; + RECURSIVE_KEY + &quot; is not needed from EJBCA 6.8.0, since all rules are always recursive.&quot;);</span>
+            }
+
+<span class="nc bnc" id="L98" title="All 2 branches missed.">            if (rule == AccessRuleState.RULE_NOTUSED) {</span>
+<span class="nc bnc" id="L99" title="All 2 branches missed.">                if (role.getAccessRules().remove(resource)==null) {</span>
+<span class="nc" id="L100">                    getLogger().info(&quot;No rule for resource '&quot; + resourceName + &quot;' found.&quot;);</span>
+                }
+<span class="nc bnc" id="L102" title="All 2 branches missed.">            } else if (rule == AccessRuleState.RULE_ACCEPT) {</span>
+<span class="nc bnc" id="L103" title="All 2 branches missed.">                if (role.getAccessRules().put(resource, Role.STATE_ALLOW)==null) {</span>
+<span class="nc" id="L104">                    getLogger().info(&quot;Added accept rule for resource '&quot; + resourceName + &quot;'.&quot;);</span>
+                } else {
+<span class="nc" id="L106">                    getLogger().info(&quot;Replaces existing access rule with allow rule for resource '&quot; + resourceName + &quot;'.&quot;);</span>
+                }
+            } else {
+<span class="nc bnc" id="L109" title="All 2 branches missed.">                if (role.getAccessRules().put(resource, Role.STATE_DENY)==null) {</span>
+<span class="nc" id="L110">                    getLogger().info(&quot;Added deny rule for resource '&quot; + resourceName + &quot;'.&quot;);</span>
+                } else {
+<span class="nc" id="L112">                    getLogger().info(&quot;Replaces existing access rule with deny rule for resource '&quot; + resourceName + &quot;'.&quot;);</span>
+                }
+            }
+            try {
+<span class="nc" id="L116">                EjbRemoteHelper.INSTANCE.getRemoteSession(RoleSessionRemote.class).persistRole(getAuthenticationToken(), role);</span>
+<span class="nc" id="L117">            } catch (RoleExistsException e) {</span>
+<span class="nc" id="L118">                getLogger().error(&quot;ERROR: Unable to save changes: &quot; + e.getMessage());</span>
+<span class="nc" id="L119">                return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L120">            }</span>
+<span class="nc" id="L121">            return CommandResult.SUCCESS;</span>
+<span class="nc" id="L122">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L123">            log.error(&quot;CLI user not authorized to edit rule &quot; + parameters.get(RULE_KEY));</span>
+<span class="nc" id="L124">            return CommandResult.AUTHORIZATION_FAILURE;</span>
+        }
+
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L131">        return &quot;Changes an access rule&quot;;</span>
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L136">        final StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L137">        sb.append(getCommandDescription() + &quot;\n&quot;);</span>
+<span class="nc" id="L138">        final List&lt;Role&gt; roles = EjbRemoteHelper.INSTANCE.getRemoteSession(RoleSessionRemote.class).getAuthorizedRoles(getAuthenticationToken());</span>
+<span class="nc" id="L139">        Collections.sort(roles);</span>
+<span class="nc" id="L140">        final StringBuilder availableRoles = new StringBuilder();</span>
+<span class="nc bnc" id="L141" title="All 2 branches missed.">        for (final Role role : roles) {</span>
+<span class="nc bnc" id="L142" title="All 2 branches missed.">            if (StringUtils.isEmpty(role.getNameSpace())) {</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">                availableRoles.append((availableRoles.length() == 0 ? &quot;&quot; : &quot;, &quot;) + super.getFullRoleName(role.getNameSpace(), role.getRoleName()));</span>
+            }
+<span class="nc" id="L145">        }</span>
+<span class="nc" id="L146">        sb.append(&quot;Available roles: &quot; + availableRoles + &quot;\n&quot;);</span>
+<span class="nc" id="L147">        final List&lt;String&gt; resourceNames = new ArrayList&lt;&gt;(super.getResourceNameToResourceMap().keySet());</span>
+<span class="nc" id="L148">        Collections.sort(resourceNames);</span>
+<span class="nc" id="L149">        final StringBuilder availableRules = new StringBuilder();</span>
+<span class="nc bnc" id="L150" title="All 2 branches missed.">        for (final String resourceName : resourceNames) {</span>
+<span class="nc" id="L151">            availableRules.append(&quot;          &quot; + resourceName + &quot;\n&quot;);</span>
+<span class="nc" id="L152">        }</span>
+<span class="nc" id="L153">        sb.append(&quot;Available access rules: \n&quot; + availableRules);</span>
+<span class="nc" id="L154">        StringBuilder availableRuleStates = new StringBuilder();</span>
+<span class="nc bnc" id="L155" title="All 2 branches missed.">        for (AccessRuleState current : AccessRuleState.values()) {</span>
+<span class="nc bnc" id="L156" title="All 2 branches missed.">            availableRuleStates.append((availableRuleStates.length() == 0 ? &quot;&quot; : &quot;, &quot;) + current.getName());</span>
+        }
+<span class="nc" id="L158">        sb.append(&quot;Available access rule states: &quot; + availableRuleStates + &quot;\n&quot;);</span>
+<span class="nc" id="L159">        return sb.toString();</span>
+    }
+
+    @Override
+    protected Logger getLogger() {
+<span class="nc" id="L164">        return log;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CaExportCACommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.ca</a> &gt; <span class="el_source">CaExportCACommand.java</span></div><h1>CaExportCACommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.cli.ca;
+
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.util.EjbRemoteHelper;
+import org.ejbca.core.ejb.ca.caadmin.CAAdminSessionRemote;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+
+/**
+ * Exports CA as a PKCS#12 or PKCS#8 file
+ *
+ * @version $Id: CaExportCACommand.java 19902 2014-09-30 14:32:24Z anatom $
+ */
+<span class="nc" id="L36">public class CaExportCACommand extends BaseCaAdminCommand {</span>
+
+<span class="nc" id="L38">    private static final Logger log = Logger.getLogger(CaExportCACommand.class);</span>
+
+    private static final String CA_NAME_KEY = &quot;--caname&quot;;
+    private static final String FILE_KEY = &quot;-f&quot;;
+    private static final String KEYSTORE_PASSWORD_KEY = &quot;-kspassword&quot;;
+    private static final String SIGNATURE_ALIAS_KEY = &quot;--signalias&quot;;
+    private static final String ENCRYPTION_ALIAS_KEY = &quot;--encryptalias&quot;;
+    private static final String SIGNATURE_ALIAS_DEFAULT = &quot;SignatureKeyAlias&quot;;
+    private static final String ENCRYPTION_ALIAS_DEFAULT = &quot;EncryptionKeyAlias&quot;;
+
+    {
+<span class="nc" id="L49">        registerParameter(new Parameter(CA_NAME_KEY, &quot;CA Name&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;The name of the CA to export.&quot;));
+<span class="nc" id="L51">        registerParameter(new Parameter(FILE_KEY, &quot;File name&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;The destination file.&quot;));
+<span class="nc" id="L53">        registerParameter(new Parameter(KEYSTORE_PASSWORD_KEY, &quot;Password&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID, ParameterMode.ARGUMENT,</span>
+                &quot;They keystore password. If not set then it will be prompted for.&quot;));
+<span class="nc" id="L55">        registerParameter(new Parameter(SIGNATURE_ALIAS_KEY, &quot;Signature Key Alias&quot;, MandatoryMode.OPTIONAL, StandaloneMode.ALLOW,</span>
+                ParameterMode.ARGUMENT, &quot;The signature key alias. Will default to &quot; + SIGNATURE_ALIAS_DEFAULT + &quot; if not set.&quot;));
+<span class="nc" id="L57">        registerParameter(new Parameter(ENCRYPTION_ALIAS_KEY, &quot;Encryption Key Alias&quot;, MandatoryMode.OPTIONAL, StandaloneMode.ALLOW,</span>
+                ParameterMode.ARGUMENT, &quot;The encryption key alias. Will default to &quot; + ENCRYPTION_ALIAS_DEFAULT + &quot; if not set. &quot;));
+<span class="nc" id="L59">    }</span>
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L63">        return &quot;exportca&quot;;</span>
+    }
+
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+
+<span class="nc" id="L69">        String kspwd = parameters.get(KEYSTORE_PASSWORD_KEY);</span>
+<span class="nc" id="L70">        String caName = parameters.get(CA_NAME_KEY);</span>
+<span class="nc" id="L71">        String p12file = parameters.get(FILE_KEY);</span>
+
+<span class="nc" id="L73">        String signatureKeyAlias = parameters.get(SIGNATURE_ALIAS_KEY);</span>
+<span class="nc" id="L74">        String encryptionKeyAlias = parameters.get(ENCRYPTION_ALIAS_KEY);</span>
+<span class="nc bnc" id="L75" title="All 10 branches missed.">        if ((signatureKeyAlias == null &amp;&amp; encryptionKeyAlias != null &amp;&amp; parameters.isStandalone(ENCRYPTION_ALIAS_KEY))</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">                || (signatureKeyAlias != null &amp;&amp; encryptionKeyAlias == null &amp;&amp; parameters.isStandalone(SIGNATURE_ALIAS_KEY))) {</span>
+            //only one of the values was set and implicitly, kinda scary. Let's warn about that. 
+<span class="nc" id="L78">            log.error(&quot;Do not set only one of SignatureKeyAlias or EncryptionKeyAlias implicitely (without a switch).&quot;);</span>
+<span class="nc" id="L79">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+        }
+<span class="nc bnc" id="L81" title="All 2 branches missed.">        if (signatureKeyAlias == null) {</span>
+<span class="nc" id="L82">            log.info(&quot;Setting SignatureKeyAlias to &quot; + SIGNATURE_ALIAS_DEFAULT);</span>
+<span class="nc" id="L83">            signatureKeyAlias = SIGNATURE_ALIAS_DEFAULT;</span>
+        }
+<span class="nc bnc" id="L85" title="All 2 branches missed.">        if (encryptionKeyAlias == null) {</span>
+<span class="nc" id="L86">            log.info(&quot;Setting EncryptionKeyAlias to &quot; + ENCRYPTION_ALIAS_DEFAULT);</span>
+<span class="nc" id="L87">            encryptionKeyAlias = ENCRYPTION_ALIAS_DEFAULT;</span>
+        }
+
+<span class="nc bnc" id="L90" title="All 2 branches missed.">        if (kspwd == null) {</span>
+<span class="nc" id="L91">            log.info(&quot;Enter keystore password: &quot;);</span>
+            // Read the password, but mask it so we don't display it on the console
+<span class="nc" id="L93">            kspwd = String.valueOf(System.console().readPassword());</span>
+        } else {
+<span class="nc" id="L95">            log.info(&quot;Keystore password was supplied on the command line.&quot;);</span>
+        }
+<span class="nc bnc" id="L97" title="All 2 branches missed.">        if (StringUtils.isEmpty(kspwd)) {</span>
+            // Can not export CA keystore with empty password. 
+<span class="nc" id="L99">            log.error(&quot;Export a token without password protection is not allowed.&quot;);</span>
+<span class="nc" id="L100">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+        }
+<span class="nc" id="L102">        byte[] keyStoreBytes = EjbRemoteHelper.INSTANCE.getRemoteSession(CAAdminSessionRemote.class).exportCAKeyStore(getAuthenticationToken(),</span>
+                caName, kspwd, kspwd, signatureKeyAlias, encryptionKeyAlias);
+        try {            
+<span class="nc" id="L105">            FileOutputStream fos = new FileOutputStream(p12file);</span>
+<span class="nc" id="L106">            fos.write(keyStoreBytes);</span>
+<span class="nc" id="L107">            fos.close();</span>
+<span class="nc" id="L108">        } catch (FileNotFoundException e) {</span>
+<span class="nc" id="L109">            log.error(e.getMessage());</span>
+<span class="nc" id="L110">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L111">        } catch (IOException e) {</span>
+<span class="nc" id="L112">            throw new IllegalStateException(&quot;Could not write to file for unknown reason&quot;, e);</span>
+<span class="nc" id="L113">        } </span>
+<span class="nc" id="L114">        return CommandResult.SUCCESS;</span>
+
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L120">        return &quot;Exports CA as a PKCS#12 or PKCS#8 file. &quot;;</span>
+
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L126">        return getCommandDescription()</span>
+                + &quot;X.509 CAs are exported as PKCS#12 files while for CVC CAs only the private certificate signing key is exported as a PKCS#8 key. &quot;
+                + &quot;You will be prompted for keystore password to protect stored keystore, &quot;
+                + &quot;but can optionally specify it on command line using the optional argument '-kspassword &lt;password&gt;'.\n\n&quot;
+                + &quot;Do not set only one of SignatureKeyAlias or EncryptionKeyAlias implicitely (without a switch). Either set both, or if only doing one then with a switch. &quot;
+                + &quot;Setting only one without a switch may lead to undefined behavior.&quot;;
+    }
+    
+    @Override
+    protected Logger getLogger() {
+<span class="nc" id="L136">        return log;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

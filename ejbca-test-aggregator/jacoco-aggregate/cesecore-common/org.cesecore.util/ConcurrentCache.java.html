@@ -9,7 +9,7 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/  
+ *************************************************************************/
 package org.cesecore.util;
 
 import java.io.Closeable;
@@ -27,468 +27,542 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-
 import org.apache.log4j.Logger;
 
 /**
  * A concurrent cache allows multiple threads to cache data. Only one thread
  * will be allowed to generate data for one particular key, and other threads
  * will block.
- * 
- * All methods in this class and inner classes are thread-safe.
- * 
+ *
+ * &lt;p&gt;All methods in this class and inner classes are thread-safe.
+ *
  * @version $Id: ConcurrentCache.java 27456 2017-12-07 10:59:06Z samuellb $
  * @param &lt;K&gt; Key type
- * @param &lt;V&gt; Value type 
- *
+ * @param &lt;V&gt; Value type
  */
-public final class ConcurrentCache&lt;K,V&gt; {
+public final class ConcurrentCache&lt;K, V&gt; {
 
-<span class="fc" id="L47">    private static final Logger log = Logger.getLogger(ConcurrentCache.class);</span>
-    
+    /** Ligger. */
+<span class="fc" id="L46">  private static final Logger LOG = Logger.getLogger(ConcurrentCache.class);</span>
+
+  /**
+   * Internal entries are stored in the ConcurrentMap.
+   *
+   * @param &lt;V&gt; Value type
+   */
+  private static final class InternalEntry&lt;V&gt; {
+    /** Value. */
+    private final V value;
+    /** Expire time . */
+    private volatile long expire;
+
     /**
-     * Internal entries are stored in the ConcurrentMap
-     * @param &lt;V&gt; Value type
+     * @param aValue Value.
      */
-    private final static class InternalEntry&lt;V&gt; {
-        final V value;
-        volatile long expire;
-        
-<span class="fc" id="L57">        private InternalEntry(final V value) {</span>
-<span class="fc" id="L58">            this.value = value;</span>
-<span class="fc" id="L59">            this.expire = Long.MAX_VALUE;</span>
-<span class="fc" id="L60">        }</span>
+<span class="fc" id="L62">    private InternalEntry(final V aValue) {</span>
+<span class="fc" id="L63">      this.value = aValue;</span>
+<span class="fc" id="L64">      this.expire = Long.MAX_VALUE;</span>
+<span class="fc" id="L65">    }</span>
+  }
+
+  /**
+   * A reference to a cache entry, with a get and put method to read/write data
+   * from/to the cache.
+   *
+   * &lt;p&gt;All methods are thread safe, but only one thread should operate on an
+   * Entry object.
+   */
+  public final class Entry {
+      /** Key. */
+    private final K key;
+    /** Value. */
+    private InternalEntry&lt;V&gt; entry;
+    /**
+     * If non-null, then other threads are waiting on this semaphore for data on
+     * the same key in the cache.
+     */
+    private final Object ourSemaphore;
+
+<span class="fc" id="L86">    private Entry(final K aKey, final InternalEntry&lt;V&gt; anEentry) {</span>
+<span class="fc" id="L87">      this.key = aKey;</span>
+<span class="fc" id="L88">      this.entry = anEentry;</span>
+<span class="fc" id="L89">      this.ourSemaphore = null;</span>
+<span class="fc" id="L90">    }</span>
+
+    private Entry(
+        final K aKey,
+        final InternalEntry&lt;V&gt; anEntry,
+<span class="fc" id="L95">        final Object ourNewSemaphore) {</span>
+<span class="pc bpc" id="L96" title="1 of 2 branches missed.">      if (ourNewSemaphore == null) {</span>
+<span class="nc" id="L97">        throw new IllegalArgumentException(&quot;ourSemaphore may not be null&quot;);</span>
+      }
+<span class="fc" id="L99">      this.key = aKey;</span>
+<span class="fc" id="L100">      this.entry = anEntry;</span>
+<span class="fc" id="L101">      this.ourSemaphore = ourNewSemaphore;</span>
+<span class="fc" id="L102">    }</span>
+
+    /** @return true if the key existed in the cache. */
+    public boolean isInCache() {
+<span class="fc bfc" id="L106" title="All 2 branches covered.">      return entry != null;</span>
     }
-    
+
     /**
-     * A reference to a cache entry, with a get and put method to read/write data from/to the cache.
-     * 
-     * All methods are thread safe, but only one thread should operate on an Entry object.
+     * @return the value read from the cache when the Entry was created. Calls
+     *     to putValue() on this particular Entry change the return value.
      */
-    public final class Entry {
-        private final K key;
-        private InternalEntry&lt;V&gt; entry;
-        /** If non-null, then other threads are waiting on this semaphore for data on the same key in the cache. */
-        private final Object ourSemaphore;
-        
-<span class="fc" id="L74">        private Entry(final K key, final InternalEntry&lt;V&gt; entry) {</span>
-<span class="fc" id="L75">            this.key = key;</span>
-<span class="fc" id="L76">            this.entry = entry;</span>
-<span class="fc" id="L77">            this.ourSemaphore = null;</span>
-<span class="fc" id="L78">        }</span>
-        
-<span class="fc" id="L80">        private Entry(final K key, final InternalEntry&lt;V&gt; entry, final Object ourSemaphore) {</span>
-<span class="pc bpc" id="L81" title="1 of 2 branches missed.">            if (ourSemaphore == null) {</span>
-<span class="nc" id="L82">                throw new IllegalArgumentException(&quot;ourSemaphore may not be null&quot;);</span>
-            }
-<span class="fc" id="L84">            this.key = key;</span>
-<span class="fc" id="L85">            this.entry = entry;</span>
-<span class="fc" id="L86">            this.ourSemaphore = ourSemaphore;</span>
-<span class="fc" id="L87">        }</span>
-        
-        /**
-         * @return true if the key existed in the cache.
-         */
-        public boolean isInCache() {
-<span class="fc bfc" id="L93" title="All 2 branches covered.">            return entry != null;</span>
-        }
-        
-        /**
-         * @return the value read from the cache when the Entry was created. Calls to putValue() on this particular Entry change the return value.
-         */
-        public V getValue() {
-<span class="fc bfc" id="L100" title="All 2 branches covered.">            if (entry == null) {</span>
-<span class="fc" id="L101">                throw new IllegalStateException(&quot;Tried to read from non-existent cache entry&quot;);</span>
-            }
-<span class="fc" id="L103">            return entry.value;</span>
-        }
-        
-        /**
-         * Updates the value in this Entry as well as in the underlying cache.
-         * The expire time is set to be &quot;infinite&quot;. Thread-safe.
-         * @param value value
-         */
-        public void putValue(final V value) {
-<span class="fc bfc" id="L112" title="All 2 branches covered.">            if (key != null) {</span>
-<span class="fc" id="L113">                entry = new InternalEntry&lt;&gt;(value);</span>
-<span class="fc" id="L114">                cache.put(key, entry);</span>
-            }
-<span class="fc" id="L116">        }</span>
-        
-        /**
-         * Sets the validity of the value. After the cache entry expires, the next request for it will
-         * fail (on purpose) so it can be updated. Requests that happen while the expired entry is being
-         * updated will still use the expired value, so they don't have to block.
-         * @param validFor Cache validity in milliseconds.
-         */
-        public void setCacheValidity(long validFor) {
-<span class="fc bfc" id="L125" title="All 2 branches covered.">            if (entry != null) {</span>
-<span class="fc" id="L126">                entry.expire = System.currentTimeMillis() + validFor;</span>
-            }
-<span class="fc" id="L128">        }</span>
-        
-        /**
-         * Must be called if other threads might be waiting for this cache entry
-         * (i.e. if isInCache() returns false)
-         */
-        public void close() {
-<span class="fc bfc" id="L135" title="All 2 branches covered.">            if (ourSemaphore != null) {</span>
-<span class="fc" id="L136">                synchronized (ourSemaphore) {</span>
-<span class="fc" id="L137">                    semaphores.remove(key);</span>
-<span class="fc" id="L138">                    ourSemaphore.notifyAll();</span>
-<span class="fc" id="L139">                }</span>
-            }
-<span class="fc" id="L141">        }</span>
+    public V getValue() {
+<span class="fc bfc" id="L114" title="All 2 branches covered.">      if (entry == null) {</span>
+<span class="fc" id="L115">        throw new IllegalStateException(</span>
+            &quot;Tried to read from non-existent cache entry&quot;);
+      }
+<span class="fc" id="L118">      return entry.value;</span>
     }
-    
-<span class="fc" id="L144">    private final ConcurrentHashMap&lt;K,InternalEntry&lt;V&gt;&gt; cache = new ConcurrentHashMap&lt;&gt;();</span>
-<span class="fc" id="L145">    private final ConcurrentMap&lt;K,Object&gt; semaphores = new ConcurrentHashMap&lt;&gt;();</span>
-    
-    public static final long NO_LIMIT = -1L;
-    
-    /** @see #setEnabled */
-<span class="fc" id="L150">    private volatile boolean enabled = true;</span>
-    /** @see #setCloseOnEviction */
-<span class="fc" id="L152">    private volatile boolean closeOnEviction = false;</span>
-    /** @see #setMaxEntries */
-<span class="fc" id="L154">    private volatile long maxEntries = NO_LIMIT;</span>
-    
-<span class="fc" id="L156">    private AtomicLong numEntries = new AtomicLong(0L);</span>
-<span class="fc" id="L157">    private final Set&lt;K&gt; pendingRemoval = Collections.newSetFromMap(new ConcurrentHashMap&lt;K,Boolean&gt;());</span>
-<span class="fc" id="L158">    private final Lock isCleaning = new ReentrantLock();</span>
-<span class="fc" id="L159">    private volatile long lastCleanup = 0L;</span>
-<span class="fc" id="L160">    private volatile long cleanupInterval = 1000L;</span>
-    
-    /** Creates an empty concurrent cache */
-<span class="fc" id="L163">    public ConcurrentCache() {</span>
-        // Do nothing
-<span class="fc" id="L165">    }</span>
-    
+
     /**
-     * Creates a concurrent cache initialized with the mapping defined in the given map.
-     * Can be used for rebuilding the cache in the background for instance.
-     * 
-     * @param map map
-     * @param validFor Time in milliseconds which the entry will be valid for, or -1L for forever.
-     * @see ConcurrentCache#getKeys()
+     * Updates the value in this Entry as well as in the underlying cache. The
+     * expire time is set to be &quot;infinite&quot;. Thread-safe.
+     *
+     * @param value value
      */
-<span class="fc" id="L175">    public ConcurrentCache(final Map&lt;? extends K, ? extends V&gt; map, long validFor) {</span>
-<span class="fc bfc" id="L176" title="All 2 branches covered.">        for (Map.Entry&lt;? extends K, ? extends V&gt; mapEntry : map.entrySet()) {</span>
-<span class="fc" id="L177">            final InternalEntry&lt;V&gt; intEntry = new InternalEntry&lt;V&gt;(mapEntry.getValue());</span>
-<span class="pc bpc" id="L178" title="1 of 2 branches missed.">            if (validFor != -1L) {</span>
-<span class="nc" id="L179">                intEntry.expire = System.currentTimeMillis() + validFor;</span>
-            }
-<span class="fc" id="L181">            cache.put(mapEntry.getKey(), intEntry);</span>
-<span class="fc" id="L182">        }</span>
-<span class="fc" id="L183">    }</span>
-    
+    public void putValue(final V value) {
+<span class="fc bfc" id="L128" title="All 2 branches covered.">      if (key != null) {</span>
+<span class="fc" id="L129">        entry = new InternalEntry&lt;&gt;(value);</span>
+<span class="fc" id="L130">        cache.put(key, entry);</span>
+      }
+<span class="fc" id="L132">    }</span>
+
     /**
-     * &quot;Opens&quot; a cache entry. If the entry already exists, then an {@link Entry} that
-     * maps to the existing entry is returned. Otherwise, a semaphore is used
-     * to prevent multiple threads from creating the new cache entry. Only the
-     * first thread is returned an Entry with isInCache()==false, later threads
-     * will block and wait for the first thread.
-     * 
-     * For non-existent entries (i.e. isInCache()==false), the caller is expected to put
-     * a value in it and call close() on the Entry.
-     *  
-     * @param key      Key in the cache.
-     * @param timeout  Timeout in milliseconds. The call will only be allowed
-     *                 to block for (approximately) this amount of time.
-     * @return An Entry object that maps to an entry in the cache (existing
-     *         or blank), or null if a timeout occurred. 
-     * @throws NullPointerException if key is null.
+     * Sets the validity of the value. After the cache entry expires, the next
+     * request for it will fail (on purpose) so it can be updated. Requests that
+     * happen while the expired entry is being updated will still use the
+     * expired value, so they don't have to block.
+     *
+     * @param validFor Cache validity in milliseconds.
      */
-    public Entry openCacheEntry(final K key, final long timeout) {
-<span class="fc" id="L203">        final long timeAtEntry = System.currentTimeMillis();</span>
-<span class="pc bpc" id="L204" title="1 of 2 branches missed.">        if (key == null) {</span>
-<span class="nc" id="L205">            throw new NullPointerException(&quot;key may not be null&quot;);</span>
+    public void setCacheValidity(final long validFor) {
+<span class="fc bfc" id="L143" title="All 2 branches covered.">      if (entry != null) {</span>
+<span class="fc" id="L144">        entry.expire = System.currentTimeMillis() + validFor;</span>
+      }
+<span class="fc" id="L146">    }</span>
+
+    /**
+     * Must be called if other threads might be waiting for this cache entry
+     * (i.e. if isInCache() returns false)
+     */
+    public void close() {
+<span class="fc bfc" id="L153" title="All 2 branches covered.">      if (ourSemaphore != null) {</span>
+<span class="fc" id="L154">        synchronized (ourSemaphore) {</span>
+<span class="fc" id="L155">          semaphores.remove(key);</span>
+<span class="fc" id="L156">          ourSemaphore.notifyAll();</span>
+<span class="fc" id="L157">        }</span>
+      }
+<span class="fc" id="L159">    }</span>
+  }
+
+  /** Cache. */
+<span class="fc" id="L163">  private final ConcurrentHashMap&lt;K, InternalEntry&lt;V&gt;&gt; cache =</span>
+      new ConcurrentHashMap&lt;&gt;();
+   /** Semaphores. */
+<span class="fc" id="L166">  private final ConcurrentMap&lt;K, Object&gt; semaphores = new ConcurrentHashMap&lt;&gt;();</span>
+
+  /** No limit. */
+  public static final long NO_LIMIT = -1L;
+
+  /** @see #setEnabled */
+<span class="fc" id="L172">  private volatile boolean enabled = true;</span>
+  /** @see #setCloseOnEviction */
+<span class="fc" id="L174">  private volatile boolean closeOnEviction = false;</span>
+  /** @see #setMaxEntries */
+<span class="fc" id="L176">  private volatile long maxEntries = NO_LIMIT;</span>
+
+  /** Number. */
+<span class="fc" id="L179">  private final AtomicLong numEntries = new AtomicLong(0L);</span>
+  /** Remove. */
+<span class="fc" id="L181">  private final Set&lt;K&gt; pendingRemoval =</span>
+<span class="fc" id="L182">      Collections.newSetFromMap(new ConcurrentHashMap&lt;K, Boolean&gt;());</span>
+  /** Lock. */
+<span class="fc" id="L184">  private final Lock isCleaning = new ReentrantLock();</span>
+  /** Last. */
+<span class="fc" id="L186">  private volatile long lastCleanup = 0L;</span>
+  /** interval. */
+<span class="fc" id="L188">  private volatile long cleanupInterval = 1000L;</span>
+
+  /** Creates an empty concurrent cache. */
+<span class="fc" id="L191">  public ConcurrentCache() {</span>
+    // Do nothing
+<span class="fc" id="L193">  }</span>
+
+  /**
+   * Creates a concurrent cache initialized with the mapping defined in the
+   * given map. Can be used for rebuilding the cache in the background for
+   * instance.
+   *
+   * @param map map
+   * @param validFor Time in milliseconds which the entry will be valid for, or
+   *     -1L for forever.
+   * @see ConcurrentCache#getKeys()
+   */
+  public ConcurrentCache(
+<span class="fc" id="L206">      final Map&lt;? extends K, ? extends V&gt; map, final long validFor) {</span>
+<span class="fc bfc" id="L207" title="All 2 branches covered.">    for (Map.Entry&lt;? extends K, ? extends V&gt; mapEntry : map.entrySet()) {</span>
+<span class="fc" id="L208">      final InternalEntry&lt;V&gt; intEntry =</span>
+<span class="fc" id="L209">          new InternalEntry&lt;V&gt;(mapEntry.getValue());</span>
+<span class="pc bpc" id="L210" title="1 of 2 branches missed.">      if (validFor != -1L) {</span>
+<span class="nc" id="L211">        intEntry.expire = System.currentTimeMillis() + validFor;</span>
+      }
+<span class="fc" id="L213">      cache.put(mapEntry.getKey(), intEntry);</span>
+<span class="fc" id="L214">    }</span>
+<span class="fc" id="L215">  }</span>
+
+  /**
+   * &quot;Opens&quot; a cache entry. If the entry already exists, then an {@link Entry}
+   * that maps to the existing entry is returned. Otherwise, a semaphore is used
+   * to prevent multiple threads from creating the new cache entry. Only the
+   * first thread is returned an Entry with isInCache()==false, later threads
+   * will block and wait for the first thread.
+   *
+   * &lt;p&gt;For non-existent entries (i.e. isInCache()==false), the caller is
+   * expected to put a value in it and call close() on the Entry.
+   *
+   * @param key Key in the cache.
+   * @param timeout Timeout in milliseconds. The call will only be allowed to
+   *     block for (approximately) this amount of time.
+   * @return An Entry object that maps to an entry in the cache (existing or
+   *     blank), or null if a timeout occurred.
+   * @throws NullPointerException if key is null.
+   */
+  public Entry openCacheEntry(final K key, final long timeout) {
+<span class="fc" id="L235">    final long timeAtEntry = System.currentTimeMillis();</span>
+<span class="pc bpc" id="L236" title="1 of 2 branches missed.">    if (key == null) {</span>
+<span class="nc" id="L237">      throw new NullPointerException(&quot;key may not be null&quot;);</span>
+    }
+
+<span class="fc bfc" id="L240" title="All 2 branches covered.">    if (!enabled) {</span>
+<span class="fc" id="L241">      return new Entry(null, null);</span>
+    }
+
+<span class="fc bfc" id="L244" title="All 2 branches covered.">    if (maxEntries != NO_LIMIT) {</span>
+<span class="fc" id="L245">      pendingRemoval.remove(key); // always mark as used</span>
+    }
+
+    // Fast path if cached
+<span class="fc" id="L249">    InternalEntry&lt;V&gt; entry = cache.get(key);</span>
+<span class="fc bfc" id="L250" title="All 2 branches covered.">    final long toExpire = (entry != null ? entry.expire : 0L);</span>
+<span class="fc bfc" id="L251" title="All 4 branches covered.">    if (entry != null &amp;&amp; toExpire &gt; timeAtEntry) {</span>
+      // Found valid entry in cache
+<span class="fc bfc" id="L253" title="All 2 branches covered.">      if (LOG.isDebugEnabled()) {</span>
+<span class="fc" id="L254">        LOG.debug(&quot;Found valid entry in cache for key &quot; + key);</span>
+<span class="pc bpc" id="L255" title="1 of 2 branches missed.">        if (LOG.isTraceEnabled()) {</span>
+<span class="fc" id="L256">          LOG.debug(&quot;Value: &quot; + entry.value);</span>
+<span class="fc" id="L257">          LOG.trace(&quot;&lt;ConcurrentCache.openCacheEntry&quot;);</span>
         }
-        
-<span class="fc bfc" id="L208" title="All 2 branches covered.">        if (!enabled) {</span>
-<span class="fc" id="L209">            return new Entry(null, null);</span>
+      }
+<span class="fc" id="L260">      cleanupIfNeeded();</span>
+<span class="fc" id="L261">      return new Entry(key, entry);</span>
+<span class="fc bfc" id="L262" title="All 2 branches covered.">    } else if (entry != null) {</span>
+<span class="fc bfc" id="L263" title="All 2 branches covered.">      if (LOG.isDebugEnabled()) {</span>
+<span class="fc" id="L264">        LOG.debug(</span>
+            &quot;Cache entry has expired &quot; + key + &quot;, expiry=&quot; + entry.expire);
+      }
+<span class="fc" id="L267">      numEntries.decrementAndGet();</span>
+    } else {
+<span class="fc bfc" id="L269" title="All 2 branches covered.">      if (LOG.isDebugEnabled()) {</span>
+<span class="fc" id="L270">        LOG.debug(&quot;Entry was not present in cache &quot; + key);</span>
+      }
+    }
+
+    // Make sure only one thread enters &quot;opens&quot; the cache entry in write mode.
+    // Subsequent attempts to open it will block until the first cache entry has
+    // been closed.
+<span class="fc" id="L277">    final Object ourSemaphore = new Object();</span>
+<span class="fc" id="L278">    final Object theirSemaphore = semaphores.putIfAbsent(key, ourSemaphore);</span>
+<span class="fc bfc" id="L279" title="All 2 branches covered.">    if (theirSemaphore == null) {</span>
+      // We were first
+<span class="fc" id="L281">      numEntries.incrementAndGet();</span>
+<span class="fc" id="L282">      cleanupIfHighlyNeeded();</span>
+<span class="fc" id="L283">      return new Entry(key, null, ourSemaphore);</span>
+    }
+
+    // Someone else was first
+
+    // Check if we can return an existing entry (ECA-4936)
+<span class="fc bfc" id="L289" title="All 2 branches covered.">    if (entry != null) {</span>
+<span class="fc" id="L290">      LOG.debug(&quot;Returning existing cache entry for now&quot;);</span>
+<span class="fc" id="L291">      LOG.trace(&quot;&lt;ConcurrentCache.openCacheEntry&quot;);</span>
+<span class="fc" id="L292">      cleanupIfNeeded();</span>
+<span class="fc" id="L293">      return new Entry(key, entry);</span>
+    }
+
+    // Wait for a fresh entry to be created
+    try {
+<span class="fc" id="L298">      synchronized (theirSemaphore) {</span>
+<span class="pc bpc" id="L299" title="1 of 2 branches missed.">        if (!cache.containsKey(key)) {</span>
+<span class="fc" id="L300">          cleanupIfNeeded();</span>
+<span class="fc" id="L301">          theirSemaphore.wait(timeout);</span>
+<span class="fc bfc" id="L302" title="All 2 branches covered.">          while (!cache.containsKey(key)</span>
+<span class="pc bpc" id="L303" title="1 of 2 branches missed.">              &amp;&amp; System.currentTimeMillis() &lt; timeAtEntry + timeout) {</span>
+<span class="fc" id="L304">            theirSemaphore.wait(timeout / 10L + 1L);</span>
+          }
         }
-        
-<span class="fc bfc" id="L212" title="All 2 branches covered.">        if (maxEntries != NO_LIMIT) {</span>
-<span class="fc" id="L213">            pendingRemoval.remove(key); // always mark as used</span>
+<span class="fc" id="L307">      }</span>
+<span class="nc" id="L308">    } catch (InterruptedException e) {</span>
+<span class="nc" id="L309">      Thread.currentThread().interrupt();</span>
+<span class="nc" id="L310">      throw new RuntimeException(e); // should preferably not be catched</span>
+<span class="fc" id="L311">    }</span>
+
+    // Return cached result from other thread, or null on failure
+<span class="fc" id="L314">    entry = cache.get(key);</span>
+<span class="fc bfc" id="L315" title="All 2 branches covered.">    if (LOG.isDebugEnabled()) {</span>
+<span class="fc" id="L316">      LOG.debug(</span>
+          &quot;Got &quot;
+<span class="pc bpc" id="L318" title="1 of 2 branches missed.">              + (entry != null ? entry.value : &quot;null&quot;)</span>
+              + &quot; after waiting for cache&quot;);
+<span class="fc" id="L320">      LOG.trace(&quot;&lt;ConcurrentCache.openCacheEntry&quot;);</span>
+    }
+<span class="pc bpc" id="L322" title="1 of 2 branches missed.">    return entry != null ? new Entry(key, entry) : null;</span>
+  }
+
+  /**
+   * @return a set of the keys in the cache. Useful for rebuilding the cache in
+   *     the background.
+   * @see ConcurrentCache#ConcurrentCache(Map, long)
+   */
+  public Set&lt;K&gt; getKeys() {
+<span class="fc" id="L331">    return new HashSet&lt;&gt;(cache.keySet());</span>
+  }
+
+  /**
+   * Enables or disables caching. If disabled, nothing will be cached and
+   * openCacheEntry will always immediately return an non-existent entry (this
+   * may also cause concurrent attempts to fetch/build/etc the same object).
+   *
+   * &lt;p&gt;Disabling the cache doesn't stop any currently &quot;open&quot; cache entries from
+   * being written to.
+   *
+   * &lt;p&gt;The default is enabled.
+   *
+   * @param isEnabled bool
+   */
+  public void setEnabled(final boolean isEnabled) {
+<span class="fc" id="L347">    this.enabled = isEnabled;</span>
+<span class="fc" id="L348">  }</span>
+
+  /**
+   * @return bool
+   * @see ConcurrentCache#setEnabled
+   */
+  public boolean isEnabled() {
+<span class="nc" id="L355">    return enabled;</span>
+  }
+
+  /**
+   * Turns on or off automatic closure of values on eviction from the cache.
+   * Automatic closure can only be done on objects that implement the {@link
+   * Closeable} interface. Exceptions from the close() method are debug logged
+   * and swallowed.
+   *
+   * &lt;p&gt;The default is false.
+   *
+   * @param aCloseOnEviction bool
+   */
+  public void setCloseOnEviction(final boolean aCloseOnEviction) {
+<span class="nc" id="L369">    this.closeOnEviction = aCloseOnEviction;</span>
+<span class="nc" id="L370">  }</span>
+
+  /**
+   * @return bool
+   * @see ConcurrentCache#setCloseOnEviction
+   */
+  public boolean isCloseOnEviction() {
+<span class="nc" id="L377">    return closeOnEviction;</span>
+  }
+
+  /**
+   * Sets the desired maximum number of entries in the cache. This is not a
+   * strict limit, and the cache may temporarily exceed this number.
+   *
+   * &lt;p&gt;The value {@link ConcurrentCache#NO_LIMIT} (-1) is the default.
+   *
+   * @param aMaxEntries Max number of entries
+   */
+  public void setMaxEntries(final long aMaxEntries) {
+<span class="pc bpc" id="L389" title="2 of 4 branches missed.">    if (aMaxEntries == NO_LIMIT || aMaxEntries &gt; 0L) {</span>
+<span class="fc" id="L390">      this.maxEntries = aMaxEntries;</span>
+    } else {
+<span class="nc" id="L392">      throw new IllegalArgumentException(</span>
+          &quot;max entries must be either a positive value or -1&quot;);
+    }
+<span class="fc" id="L395">  }</span>
+
+  /**
+   * @return max number of entries
+   * @see ConcurrentCache#setMaxEntries
+   */
+  public long getMaxEntries() {
+<span class="nc" id="L402">    return maxEntries;</span>
+  }
+
+  /**
+   * Sets the minimum time in milliseconds between two cleanup runs.
+   *
+   * &lt;p&gt;The default is 1000 (= 1 second).
+   *
+   * @param milliseconds cleanup interval
+   */
+  public void setCleanupInterval(final long milliseconds) {
+<span class="fc" id="L413">    cleanupInterval = milliseconds;</span>
+<span class="fc" id="L414">  }</span>
+
+  /**
+   * @return cleanup interval
+   * @see ConcurrentCache#setCleanupInterval
+   */
+  public long getCleanupInterval() {
+<span class="nc" id="L421">    return cleanupInterval;</span>
+  }
+
+  private void cleanupIfNeeded() {
+<span class="fc bfc" id="L425" title="All 4 branches covered.">    if (maxEntries != NO_LIMIT &amp;&amp; numEntries.get() &gt; maxEntries) {</span>
+<span class="fc" id="L426">      cleanup();</span>
+    }
+<span class="fc" id="L428">  }</span>
+
+  private void cleanupIfHighlyNeeded() {
+    // More than 1.5 times the limit
+<span class="fc bfc" id="L432" title="All 4 branches covered.">    if (maxEntries != NO_LIMIT &amp;&amp; 2L * numEntries.get() &gt; 3L * maxEntries) {</span>
+<span class="fc" id="L433">      cleanup();</span>
+    }
+<span class="fc" id="L435">  }</span>
+
+  /**
+   * Used internally for testing.
+   *
+   * @param min min
+   * @param max max
+   */
+  void checkNumberOfEntries(final long min, final long max) {
+<span class="fc" id="L444">    long a = numEntries.get();</span>
+<span class="fc" id="L445">    long b = cache.size();</span>
+<span class="pc bpc" id="L446" title="1 of 2 branches missed.">    if (a != b) {</span>
+<span class="nc" id="L447">      throw new IllegalStateException(</span>
+          &quot;cache.size() and numEntries does not match (&quot;
+              + a
+              + &quot; and &quot;
+              + b
+              + &quot;)&quot;);
+    }
+<span class="pc bpc" id="L454" title="1 of 2 branches missed.">    if (a &lt; min) {</span>
+<span class="nc" id="L455">      throw new IllegalStateException(</span>
+          &quot;number of entries (&quot; + a + &quot;) is less than minimum (&quot; + min + &quot;).&quot;);
+    }
+<span class="pc bpc" id="L458" title="1 of 2 branches missed.">    if (a &gt; max) {</span>
+<span class="nc" id="L459">      throw new IllegalStateException(</span>
+          &quot;number of entries (&quot;
+              + a
+              + &quot;) is greater than maximum (&quot;
+              + max
+              + &quot;).&quot;);
+    }
+<span class="fc" id="L466">  }</span>
+
+  /**
+   * Removes expired entries, and randomly selected entries that have not been
+   * used since the last call.
+   */
+  private void cleanup() {
+<span class="fc" id="L473">    List&lt;Closeable&gt; valuesToClose = null;</span>
+<span class="fc" id="L474">    final long startTime = System.currentTimeMillis();</span>
+<span class="fc bfc" id="L475" title="All 4 branches covered.">    if (startTime &lt; lastCleanup + cleanupInterval || !isCleaning.tryLock()) {</span>
+<span class="fc" id="L476">      return;</span>
+    }
+    try {
+      final float ratioToRemove;
+      final Random random;
+<span class="pc bpc" id="L481" title="1 of 2 branches missed.">      if (maxEntries == NO_LIMIT) {</span>
+<span class="nc" id="L482">        ratioToRemove = 0;</span>
+<span class="nc" id="L483">        random = null;</span>
+      } else {
+        // Remove a bit extra
+<span class="fc" id="L486">        ratioToRemove =</span>
+<span class="fc" id="L487">            Math.max(0.0F, 1.0F - 0.8F * maxEntries / numEntries.get());</span>
+
+        // Remove items that have not been accessed since they were last marked
+        // as &quot;pending removal&quot;
+<span class="pc bpc" id="L491" title="1 of 2 branches missed.">        if (closeOnEviction) {</span>
+<span class="nc" id="L492">          valuesToClose = new ArrayList&lt;&gt;();</span>
         }
-        
-        // Fast path if cached
-<span class="fc" id="L217">        InternalEntry&lt;V&gt; entry = cache.get(key);</span>
-<span class="fc bfc" id="L218" title="All 2 branches covered.">        final long toExpire = (entry != null ? entry.expire : 0L);</span>
-<span class="fc bfc" id="L219" title="All 4 branches covered.">        if (entry != null &amp;&amp; toExpire &gt; timeAtEntry) {</span>
-            // Found valid entry in cache
-<span class="fc bfc" id="L221" title="All 2 branches covered.">            if (log.isDebugEnabled()) {</span>
-<span class="fc" id="L222">                log.debug(&quot;Found valid entry in cache for key &quot;+key);</span>
-<span class="pc bpc" id="L223" title="1 of 2 branches missed.">                if (log.isTraceEnabled()) {</span>
-<span class="fc" id="L224">                    log.debug(&quot;Value: &quot;+entry.value);</span>
-<span class="fc" id="L225">                    log.trace(&quot;&lt;ConcurrentCache.openCacheEntry&quot;);</span>
-                }
-            }
-<span class="fc" id="L228">            cleanupIfNeeded();</span>
-<span class="fc" id="L229">            return new Entry(key, entry);</span>
-<span class="fc bfc" id="L230" title="All 2 branches covered.">        } else if (entry != null) {</span>
-<span class="fc bfc" id="L231" title="All 2 branches covered.">            if (log.isDebugEnabled()) {</span>
-<span class="fc" id="L232">                log.debug(&quot;Cache entry has expired &quot;+key+&quot;, expiry=&quot;+entry.expire);</span>
-            }
-<span class="fc" id="L234">            numEntries.decrementAndGet();</span>
-        } else {
-<span class="fc bfc" id="L236" title="All 2 branches covered.">            if (log.isDebugEnabled()) {</span>
-<span class="fc" id="L237">                log.debug(&quot;Entry was not present in cache &quot;+key);</span>
-            }
+<span class="fc bfc" id="L494" title="All 2 branches covered.">        for (K key : pendingRemoval) {</span>
+<span class="fc" id="L495">          InternalEntry&lt;V&gt; evicted = cache.remove(key);</span>
+<span class="pc bpc" id="L496" title="3 of 4 branches missed.">          if (closeOnEviction &amp;&amp; evicted.value instanceof Closeable) {</span>
+<span class="nc" id="L497">            valuesToClose.add((Closeable) evicted.value);</span>
+          }
+<span class="fc" id="L499">          numEntries.decrementAndGet();</span>
+<span class="fc" id="L500">        }</span>
+<span class="fc" id="L501">        pendingRemoval.clear();</span>
+<span class="fc" id="L502">        random = new Random(System.nanoTime());</span>
+      }
+
+<span class="fc" id="L505">      final long now = System.currentTimeMillis();</span>
+<span class="fc" id="L506">      final Iterator&lt;Map.Entry&lt;K, InternalEntry&lt;V&gt;&gt;&gt; iter =</span>
+<span class="fc" id="L507">          cache.entrySet().iterator();</span>
+<span class="fc bfc" id="L508" title="All 2 branches covered.">      while (iter.hasNext()) {</span>
+<span class="fc" id="L509">        final Map.Entry&lt;K, InternalEntry&lt;V&gt;&gt; mapEntry = iter.next();</span>
+<span class="pc bpc" id="L510" title="1 of 2 branches missed.">        if (mapEntry.getValue().expire &lt;= now) {</span>
+<span class="nc" id="L511">          iter.remove();</span>
+<span class="nc" id="L512">          numEntries.decrementAndGet();</span>
+<span class="pc bpc" id="L513" title="1 of 2 branches missed.">        } else if (maxEntries != NO_LIMIT</span>
+<span class="fc bfc" id="L514" title="All 2 branches covered.">            &amp;&amp; random.nextFloat() &lt; ratioToRemove) {</span>
+<span class="fc" id="L515">          pendingRemoval.add(mapEntry.getKey());</span>
         }
-        
-        // Make sure only one thread enters &quot;opens&quot; the cache entry in write mode.
-        // Subsequent attempts to open it will block until the first cache entry has been closed.
-<span class="fc" id="L243">        final Object ourSemaphore = new Object();</span>
-<span class="fc" id="L244">        final Object theirSemaphore = semaphores.putIfAbsent(key, ourSemaphore);</span>
-<span class="fc bfc" id="L245" title="All 2 branches covered.">        if (theirSemaphore == null) {</span>
-            // We were first
-<span class="fc" id="L247">            numEntries.incrementAndGet();</span>
-<span class="fc" id="L248">            cleanupIfHighlyNeeded();</span>
-<span class="fc" id="L249">            return new Entry(key, null, ourSemaphore);</span>
-        }
-        
-        // Someone else was first
-        
-        // Check if we can return an existing entry (ECA-4936)
-<span class="fc bfc" id="L255" title="All 2 branches covered.">        if (entry != null) {</span>
-<span class="fc" id="L256">            log.debug(&quot;Returning existing cache entry for now&quot;);</span>
-<span class="fc" id="L257">            log.trace(&quot;&lt;ConcurrentCache.openCacheEntry&quot;);</span>
-<span class="fc" id="L258">            cleanupIfNeeded();</span>
-<span class="fc" id="L259">            return new Entry(key, entry);</span>
-        }
-        
-        // Wait for a fresh entry to be created
+<span class="fc" id="L517">      }</span>
+    } finally {
+<span class="fc" id="L519">      isCleaning.unlock();</span>
+
+<span class="fc" id="L521">      final long endTime = System.currentTimeMillis();</span>
+<span class="fc" id="L522">      lastCleanup = endTime;</span>
+<span class="pc bpc" id="L523" title="1 of 2 branches missed.">      if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L524">        LOG.debug(&quot;Clean up took &quot; + (endTime - startTime) + &quot; ms&quot;);</span>
+      }
+    }
+
+<span class="pc bpc" id="L528" title="1 of 2 branches missed.">    if (valuesToClose != null) {</span>
+<span class="nc bnc" id="L529" title="All 2 branches missed.">      for (final Closeable closable : valuesToClose) {</span>
         try {
-<span class="fc" id="L264">            synchronized (theirSemaphore) {</span>
-<span class="pc bpc" id="L265" title="1 of 2 branches missed.">                if (!cache.containsKey(key)) {</span>
-<span class="fc" id="L266">                    cleanupIfNeeded();</span>
-<span class="fc" id="L267">                    theirSemaphore.wait(timeout);</span>
-<span class="fc bfc" id="L268" title="All 4 branches covered.">                    while (!cache.containsKey(key) &amp;&amp; System.currentTimeMillis() &lt; timeAtEntry+timeout) {</span>
-<span class="fc" id="L269">                        theirSemaphore.wait(timeout/10L+1L);</span>
-                    }
-                }
-<span class="fc" id="L272">            }</span>
-<span class="nc" id="L273">        } catch (InterruptedException e) {</span>
-<span class="nc" id="L274">            Thread.currentThread().interrupt();</span>
-<span class="nc" id="L275">            throw new RuntimeException(e); // should preferably not be catched</span>
-<span class="fc" id="L276">        }</span>
-        
-        // Return cached result from other thread, or null on failure
-<span class="fc" id="L279">        entry = cache.get(key);</span>
-<span class="fc bfc" id="L280" title="All 2 branches covered.">        if (log.isDebugEnabled()) {</span>
-<span class="pc bpc" id="L281" title="1 of 2 branches missed.">            log.debug(&quot;Got &quot;+ (entry != null ? entry.value : &quot;null&quot;) + &quot; after waiting for cache&quot;);</span>
-<span class="fc" id="L282">            log.trace(&quot;&lt;ConcurrentCache.openCacheEntry&quot;);</span>
-        }
-<span class="fc bfc" id="L284" title="All 2 branches covered.">        return entry != null ? new Entry(key, entry) : null;</span>
+<span class="nc" id="L531">          closable.close();</span>
+<span class="nc" id="L532">        } catch (IOException e) {</span>
+<span class="nc" id="L533">          LOG.debug(&quot;Exception ocurring when closing evicted value.&quot;, e);</span>
+<span class="nc" id="L534">        }</span>
+<span class="nc" id="L535">      }</span>
     }
-    
-    /**
-     * @return a set of the keys in the cache. Useful for rebuilding the cache in the background.
-     * 
-     * @see ConcurrentCache#ConcurrentCache(Map, long)
-     */
-    public Set&lt;K&gt; getKeys() {
-<span class="fc" id="L293">        return new HashSet&lt;&gt;(cache.keySet());</span>
-    }
-    
-    /**
-     * &lt;p&gt;Enables or disables caching. If disabled, nothing will be cached and openCacheEntry will
-     * always immediately return an non-existent entry (this may also cause concurrent attempts
-     * to fetch/build/etc the same object).&lt;/p&gt;
-     * 
-     * &lt;p&gt;Disabling the cache doesn't stop any currently &quot;open&quot; cache entries from being written to.&lt;/p&gt;
-     * 
-     * &lt;p&gt;The default is enabled.&lt;/p&gt;
-     * @param enabled bool
-     */
-    public void setEnabled(boolean enabled) {
-<span class="fc" id="L307">        this.enabled = enabled;</span>
-<span class="fc" id="L308">    }</span>
-    
-    /** @return bool
-     * @see ConcurrentCache#setEnabled */
-    public boolean isEnabled() {
-<span class="nc" id="L313">        return enabled;</span>
-    }
-    
-    /**
-     * &lt;p&gt;Turns on or off automatic closure of values on eviction from the cache.
-     * Automatic closure can only be done on objects that implement the {@link Closeable} interface.
-     * Exceptions from the close() method are debug logged and swallowed.&lt;/p&gt;
-     * 
-     * &lt;p&gt;The default is false.&lt;/p&gt;
-     * @param closeOnEviction bool
-     */
-    public void setCloseOnEviction(boolean closeOnEviction) {
-<span class="nc" id="L325">        this.closeOnEviction = closeOnEviction;</span>
-<span class="nc" id="L326">    }</span>
-    
-    /** @return bool
-     * @see ConcurrentCache#setCloseOnEviction */
-    public boolean isCloseOnEviction() {
-<span class="nc" id="L331">        return closeOnEviction;</span>
-    }
-    
-    /**
-     * &lt;p&gt;Sets the desired maximum number of entries in the cache. This is not a
-     * strict limit, and the cache may temporarily exceed this number.&lt;/p&gt;
-     * 
-     * &lt;p&gt;The value {@link ConcurrentCache#NO_LIMIT} (-1) is the default.&lt;/p&gt;
-     * @param maxEntries Max number of entries
-     */
-    public void setMaxEntries(long maxEntries) {
-<span class="pc bpc" id="L342" title="2 of 4 branches missed.">        if (maxEntries == NO_LIMIT || maxEntries &gt; 0L) {</span>
-<span class="fc" id="L343">            this.maxEntries = maxEntries;</span>
-        } else {
-<span class="nc" id="L345">            throw new IllegalArgumentException(&quot;max entries must be either a positive value or -1&quot;);</span>
-        }
-<span class="fc" id="L347">    }</span>
-    
-    /** @return max number of entries
-     * @see ConcurrentCache#setMaxEntries */
-    public long getMaxEntries() {
-<span class="nc" id="L352">        return maxEntries;</span>
-    }
-    
-    /**
-     * Sets the minimum time in milliseconds between two cleanup runs.
-     * 
-     * The default is 1000 (= 1 second).
-     * @param milliseconds cleanup interval
-     */
-    public void setCleanupInterval(long milliseconds) {
-<span class="fc" id="L362">        cleanupInterval = milliseconds;</span>
-<span class="fc" id="L363">    }</span>
-    
-    /** @return cleanup interval
-     * @see ConcurrentCache#setCleanupInterval */
-    public long getCleanupInterval() {
-<span class="nc" id="L368">        return cleanupInterval;</span>
-    }
-    
-    private void cleanupIfNeeded() {
-<span class="fc bfc" id="L372" title="All 4 branches covered.">        if (maxEntries != NO_LIMIT &amp;&amp; numEntries.get() &gt; maxEntries) {</span>
-<span class="fc" id="L373">            cleanup();</span>
-        }
-<span class="fc" id="L375">    }</span>
-    
-    private void cleanupIfHighlyNeeded() {
-        // More than 1.5 times the limit 
-<span class="fc bfc" id="L379" title="All 4 branches covered.">        if (maxEntries != NO_LIMIT &amp;&amp; 2L*numEntries.get() &gt; 3L*maxEntries) {</span>
-<span class="fc" id="L380">            cleanup();</span>
-        }
-<span class="fc" id="L382">    }</span>
-    
-    /** Used internally for testing. 
-     * @param min min
-     * @param max max */
-    void checkNumberOfEntries(long min, long max) {
-<span class="fc" id="L388">        long a = numEntries.get();</span>
-<span class="fc" id="L389">        long b = cache.size();</span>
-<span class="pc bpc" id="L390" title="1 of 2 branches missed.">        if (a != b) {</span>
-<span class="nc" id="L391">            throw new IllegalStateException(&quot;cache.size() and numEntries does not match (&quot;+a+&quot; and &quot;+b+&quot;)&quot;);</span>
-        }
-<span class="pc bpc" id="L393" title="1 of 2 branches missed.">        if (a &lt; min) {</span>
-<span class="nc" id="L394">            throw new IllegalStateException(&quot;number of entries (&quot;+a+&quot;) is less than minimum (&quot;+min+&quot;).&quot;);</span>
-        }
-<span class="pc bpc" id="L396" title="1 of 2 branches missed.">        if (a &gt; max) {</span>
-<span class="nc" id="L397">            throw new IllegalStateException(&quot;number of entries (&quot;+a+&quot;) is greater than maximum (&quot;+max+&quot;).&quot;);</span>
-        }
-<span class="fc" id="L399">    }</span>
-    
-    /**
-     * Removes expired entries, and randomly selected entries that have not been used since the last call.
-     */
-    private void cleanup() {
-<span class="fc" id="L405">        List&lt;Closeable&gt; valuesToClose = null;</span>
-<span class="fc" id="L406">        final long startTime = System.currentTimeMillis();</span>
-<span class="fc bfc" id="L407" title="All 4 branches covered.">        if (startTime &lt; lastCleanup+cleanupInterval || !isCleaning.tryLock()) {</span>
-<span class="fc" id="L408">            return;</span>
-        }
-        try {
-            final float ratioToRemove;
-            final Random random;
-<span class="pc bpc" id="L413" title="1 of 2 branches missed.">            if (maxEntries == NO_LIMIT) {</span>
-<span class="nc" id="L414">                ratioToRemove = 0;</span>
-<span class="nc" id="L415">                random = null;</span>
-            } else {
-                // Remove a bit extra
-<span class="fc" id="L418">                ratioToRemove = Math.max(0.0F, 1.0F-0.8F*maxEntries/numEntries.get());</span>
-                
-                // Remove items that have not been accessed since they were last marked as &quot;pending removal&quot;
-<span class="pc bpc" id="L421" title="1 of 2 branches missed.">                if (closeOnEviction) { valuesToClose = new ArrayList&lt;&gt;(); }</span>
-<span class="fc bfc" id="L422" title="All 2 branches covered.">                for (K key : pendingRemoval) {</span>
-<span class="fc" id="L423">                    InternalEntry&lt;V&gt; evicted = cache.remove(key);</span>
-<span class="pc bpc" id="L424" title="3 of 4 branches missed.">                    if (closeOnEviction &amp;&amp; evicted.value instanceof Closeable) {</span>
-<span class="nc" id="L425">                        valuesToClose.add((Closeable)evicted.value);</span>
-                    }
-<span class="fc" id="L427">                    numEntries.decrementAndGet();</span>
-<span class="fc" id="L428">                }</span>
-<span class="fc" id="L429">                pendingRemoval.clear();</span>
-<span class="fc" id="L430">                random = new Random(System.nanoTime());</span>
-            }
-            
-<span class="fc" id="L433">            final long now = System.currentTimeMillis();</span>
-<span class="fc" id="L434">            final Iterator&lt;Map.Entry&lt;K,InternalEntry&lt;V&gt;&gt;&gt; iter = cache.entrySet().iterator();</span>
-<span class="fc bfc" id="L435" title="All 2 branches covered.">            while (iter.hasNext()) {</span>
-<span class="fc" id="L436">                final Map.Entry&lt;K,InternalEntry&lt;V&gt;&gt; mapEntry = iter.next();</span>
-<span class="fc bfc" id="L437" title="All 2 branches covered.">                if (mapEntry.getValue().expire &lt;= now) {</span>
-<span class="fc" id="L438">                    iter.remove();</span>
-<span class="fc" id="L439">                    numEntries.decrementAndGet();</span>
-<span class="pc bpc" id="L440" title="1 of 4 branches missed.">                } else if (maxEntries != NO_LIMIT &amp;&amp; random.nextFloat() &lt; ratioToRemove) {</span>
-<span class="fc" id="L441">                    pendingRemoval.add(mapEntry.getKey());</span>
-                }
-<span class="fc" id="L443">            }</span>
-        } finally {
-<span class="fc" id="L445">            isCleaning.unlock();</span>
-            
-<span class="fc" id="L447">            final long endTime = System.currentTimeMillis();</span>
-<span class="fc" id="L448">            lastCleanup = endTime;</span>
-<span class="pc bpc" id="L449" title="1 of 2 branches missed.">            if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L450">                log.debug(&quot;Clean up took &quot;+(endTime - startTime)+&quot; ms&quot;);</span>
-            }
-        }
-        
-<span class="pc bpc" id="L454" title="1 of 2 branches missed.">        if (valuesToClose != null) {</span>
-<span class="nc bnc" id="L455" title="All 2 branches missed.">            for (final Closeable closable : valuesToClose) {</span>
-                try {
-<span class="nc" id="L457">                    closable.close();</span>
-<span class="nc" id="L458">                } catch (IOException e) {</span>
-<span class="nc" id="L459">                    log.debug(&quot;Exception ocurring when closing evicted value.&quot;, e);</span>
-<span class="nc" id="L460">                }</span>
-<span class="nc" id="L461">            }</span>
-        }
-<span class="fc" id="L463">    }</span>
-    
-    /**
-     * Removes all entries in the cache
-     */
-    public void clear() {
-<span class="nc bnc" id="L469" title="All 2 branches missed.">        if (closeOnEviction) {</span>
-<span class="nc" id="L470">            isCleaning.lock();</span>
+<span class="fc" id="L537">  }</span>
+
+  /** Removes all entries in the cache. */
+  public void clear() {
+<span class="nc bnc" id="L541" title="All 2 branches missed.">    if (closeOnEviction) {</span>
+<span class="nc" id="L542">      isCleaning.lock();</span>
+      try {
+<span class="nc bnc" id="L544" title="All 2 branches missed.">        for (final InternalEntry&lt;V&gt; entry : cache.values()) {</span>
+<span class="nc bnc" id="L545" title="All 2 branches missed.">          if (entry.value instanceof Closeable) {</span>
             try {
-<span class="nc bnc" id="L472" title="All 2 branches missed.">                for (final InternalEntry&lt;V&gt; entry : cache.values()) {</span>
-<span class="nc bnc" id="L473" title="All 2 branches missed.">                    if (entry.value instanceof Closeable) {</span>
-                        try {
-<span class="nc" id="L475">                            ((Closeable)entry.value).close();</span>
-<span class="nc" id="L476">                        } catch (IOException e) {</span>
-<span class="nc" id="L477">                            log.debug(&quot;Exception ocurring when closing value during cache clearing.&quot;, e);</span>
-<span class="nc" id="L478">                        }</span>
-                    }
-<span class="nc" id="L480">                }</span>
-<span class="nc" id="L481">                cache.clear();</span>
-            } finally {
-<span class="nc" id="L483">                isCleaning.unlock();</span>
-<span class="nc" id="L484">            }</span>
-        } else {
-<span class="nc" id="L486">            cache.clear();</span>
-        }
-<span class="nc" id="L488">        numEntries.set(0L);</span>
-<span class="nc" id="L489">        pendingRemoval.clear();</span>
-<span class="nc" id="L490">        lastCleanup = 0L;</span>
-<span class="nc" id="L491">    }</span>
-    
+<span class="nc" id="L547">              ((Closeable) entry.value).close();</span>
+<span class="nc" id="L548">            } catch (IOException e) {</span>
+<span class="nc" id="L549">              LOG.debug(</span>
+                  &quot;Exception ocurring when closing value during cache&quot;
+                      + &quot; clearing.&quot;,
+                  e);
+<span class="nc" id="L553">            }</span>
+          }
+<span class="nc" id="L555">        }</span>
+<span class="nc" id="L556">        cache.clear();</span>
+      } finally {
+<span class="nc" id="L558">        isCleaning.unlock();</span>
+<span class="nc" id="L559">      }</span>
+    } else {
+<span class="nc" id="L561">      cache.clear();</span>
+    }
+<span class="nc" id="L563">    numEntries.set(0L);</span>
+<span class="nc" id="L564">    pendingRemoval.clear();</span>
+<span class="nc" id="L565">    lastCleanup = 0L;</span>
+<span class="nc" id="L566">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

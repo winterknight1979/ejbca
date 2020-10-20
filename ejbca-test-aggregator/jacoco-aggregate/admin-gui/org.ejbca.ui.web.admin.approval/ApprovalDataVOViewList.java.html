@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ApprovalDataVOViewList.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">admin-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.approval</a> &gt; <span class="el_source">ApprovalDataVOViewList.java</span></div><h1>ApprovalDataVOViewList.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.web.admin.approval;
+
+import java.io.Serializable;
+import java.util.AbstractList;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
+import org.ejbca.core.model.approval.ApprovalDataVO;
+
+/**
+ * Class used to manage the list of approvaldatas resulted in the query.
+ * 
+ * @version $Id: ApprovalDataVOViewList.java 28844 2018-05-04 08:31:02Z samuellb $
+ */
+
+public class ApprovalDataVOViewList extends AbstractList&lt;ApprovalDataVOView&gt; implements Serializable {
+
+    private static final long serialVersionUID = 1680993305950225012L;
+    private String sort;
+    private boolean ascending;
+    private List&lt;ApprovalDataVOView&gt; listData;
+
+<span class="nc" id="L39">    public ApprovalDataVOViewList(Collection&lt;ApprovalDataVO&gt; approvalDataVOs) {</span>
+<span class="nc" id="L40">        listData = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L41" title="All 2 branches missed.">        for(ApprovalDataVO approvalDataVO : approvalDataVOs) {</span>
+<span class="nc" id="L42">            listData.add(new ApprovalDataVOView(approvalDataVO));</span>
+<span class="nc" id="L43">        }</span>
+
+<span class="nc" id="L45">    }</span>
+
+    @Override
+    public ApprovalDataVOView get(int arg0) {
+<span class="nc" id="L49">        return listData.get(arg0);</span>
+    }
+
+    @Override
+    public int size() {
+<span class="nc" id="L54">        return listData.size();</span>
+    }
+
+
+    /**
+     * Sort the list.
+     * @param column Column
+     * @param ascending Up or down
+     */
+    protected void sort(final String column, final boolean ascending) {
+<span class="nc" id="L64">        Comparator&lt;ApprovalDataVOView&gt; comparator = new Comparator&lt;ApprovalDataVOView&gt;() {</span>
+            @Override
+            public int compare(ApprovalDataVOView c2, ApprovalDataVOView c1) {
+<span class="nc bnc" id="L67" title="All 4 branches missed.">                if (column == null || column.equals(&quot;requestDate&quot;)) {</span>
+<span class="nc bnc" id="L68" title="All 2 branches missed.">                    return ascending ? c1.getApproveActionDataVO().getRequestDate().compareTo(c2.getApproveActionDataVO().getRequestDate()) : c2</span>
+<span class="nc" id="L69">                            .getApproveActionDataVO().getRequestDate().compareTo(c1.getApproveActionDataVO().getRequestDate());</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">                } else if (column.equals(&quot;approveActionName&quot;)) {</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">                    return ascending ? c1.getApproveActionName().compareTo(c2.getApproveActionName()) : c2.getApproveActionName().compareTo(</span>
+<span class="nc" id="L72">                            c1.getApproveActionName());</span>
+<span class="nc bnc" id="L73" title="All 2 branches missed.">                } else if (column.equals(&quot;requestUsername&quot;)) {</span>
+<span class="nc bnc" id="L74" title="All 2 branches missed.">                    return ascending ? c1.getRequestAdminName().compareTo(c2.getRequestAdminName()) : c2.getRequestAdminName().compareTo(</span>
+<span class="nc" id="L75">                            c1.getRequestAdminName());</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">                } else if (column.equals(&quot;status&quot;)) {</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">                    return ascending ? c1.getStatus().compareTo(c2.getStatus()) : c2.getStatus().compareTo(c1.getStatus());</span>
+                } else {
+<span class="nc" id="L79">                    return 0;</span>
+                }
+            }
+        };
+
+<span class="nc" id="L84">        Collections.sort(listData, comparator);</span>
+<span class="nc" id="L85">    }</span>
+
+    /**
+     * Is the default sort direction for the given column &quot;ascending&quot; ?
+     * @param sortColumn Column
+     * @return always true
+     */
+    protected boolean isDefaultAscending(String sortColumn) {
+<span class="nc" id="L93">        return true;</span>
+    }
+
+    public void sort(String sortColumn) {
+<span class="nc bnc" id="L97" title="All 2 branches missed.">        if (sortColumn == null) {</span>
+<span class="nc" id="L98">            throw new IllegalArgumentException(&quot;Argument sortColumn must not be null.&quot;);</span>
+        }
+
+<span class="nc bnc" id="L101" title="All 2 branches missed.">        if (sort.equals(sortColumn)) {</span>
+            // current sort equals new sortColumn -&gt; reverse sort order
+<span class="nc bnc" id="L103" title="All 2 branches missed.">            ascending = !ascending;</span>
+        } else {
+            // sort new column in default direction
+<span class="nc" id="L106">            sort = sortColumn;</span>
+<span class="nc" id="L107">            ascending = isDefaultAscending(sort);</span>
+        }
+
+<span class="nc" id="L110">        sort(sort, ascending);</span>
+<span class="nc" id="L111">    }</span>
+
+    public void sort() {
+<span class="nc" id="L114">        sort(sort);</span>
+<span class="nc" id="L115">    }</span>
+
+    public List&lt;ApprovalDataVOView&gt; getData() {
+<span class="nc" id="L118">        sort(getSort(), isAscending());</span>
+<span class="nc" id="L119">        return this;</span>
+    }
+
+    public void setData(List&lt;ApprovalDataVOView&gt; data) {
+
+<span class="nc" id="L124">    }</span>
+
+    public String getSort() {
+<span class="nc" id="L127">        return sort;</span>
+    }
+
+    public void setSort(String sort) {
+<span class="nc" id="L131">        this.sort = sort;</span>
+<span class="nc" id="L132">    }</span>
+
+    public boolean isAscending() {
+<span class="nc" id="L135">        return ascending;</span>
+    }
+
+    public void setAscending(boolean ascending) {
+<span class="nc" id="L139">        this.ascending = ascending;</span>
+<span class="nc" id="L140">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

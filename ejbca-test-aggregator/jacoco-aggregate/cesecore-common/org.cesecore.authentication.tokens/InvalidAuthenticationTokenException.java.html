@@ -14,29 +14,44 @@ package org.cesecore.authentication.tokens;
 
 /**
  * Thrown when an invalid AuthenticationToken is encountered.
- * 
- * @version $Id: InvalidAuthenticationTokenException.java 17625 2013-09-20 07:12:06Z netmackan $
  *
+ * @version $Id: InvalidAuthenticationTokenException.java 17625 2013-09-20
+ *     07:12:06Z netmackan $
  */
 public class InvalidAuthenticationTokenException extends RuntimeException {
 
-    private static final long serialVersionUID = -8887523864100620342L;
+  private static final long serialVersionUID = -8887523864100620342L;
 
-<span class="nc" id="L25">    public InvalidAuthenticationTokenException() {</span>
+  /** Empty exception. */
+<span class="nc" id="L26">  public InvalidAuthenticationTokenException() { }</span>
 
-<span class="nc" id="L27">    }</span>
+  /**
+   * Exception with message.
+   *
+   * @param message Message
+   */
+  public InvalidAuthenticationTokenException(final String message) {
+<span class="fc" id="L34">    super(message);</span>
+<span class="fc" id="L35">  }</span>
 
-    public InvalidAuthenticationTokenException(String message) {
-<span class="fc" id="L30">        super(message);</span>
-<span class="fc" id="L31">    }</span>
+  /**
+   * Exception with cause.
+   *
+   * @param e Cause
+   */
+  public InvalidAuthenticationTokenException(final Throwable e) {
+<span class="nc" id="L43">    super(e);</span>
+<span class="nc" id="L44">  }</span>
 
-    public InvalidAuthenticationTokenException(Throwable e) {
-<span class="nc" id="L34">        super(e);</span>
-<span class="nc" id="L35">    }</span>
-
-    public InvalidAuthenticationTokenException(String message, Throwable e) {
-<span class="nc" id="L38">        super(message, e);</span>
-<span class="nc" id="L39">    }</span>
-
+  /**
+   * Exception with message and cause.
+   *
+   * @param message Message
+   * @param e Cause
+   */
+  public InvalidAuthenticationTokenException(
+      final String message, final Throwable e) {
+<span class="nc" id="L54">    super(message, e);</span>
+<span class="nc" id="L55">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

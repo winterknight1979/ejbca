@@ -22,7 +22,6 @@ import java.security.cert.Certificate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
 import org.apache.log4j.Logger;
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1Set;
@@ -50,498 +49,538 @@ import org.cesecore.util.CertTools;
  *
  * @version $Id: PKCS10RequestMessage.java 28214 2018-02-08 10:16:53Z anatom $
  */
-public class PKCS10RequestMessage implements RequestMessage {  
-    /**
-     * Determines if a de-serialized file is compatible with this class.
-     *
-     * Maintainers must change this value if and only if the new version
-     * of this class is not compatible with old versions. See Sun docs
-     * for &lt;a href=http://java.sun.com/products/jdk/1.1/docs/guide
-     * /serialization/spec/version.doc.html&gt; details. &lt;/a&gt;
-     *
-     */
-    static final long serialVersionUID = 3597275157018205137L;
+public class PKCS10RequestMessage implements RequestMessage {
+  /**
+   * Determines if a de-serialized file is compatible with this class.
+   *
+   * &lt;p&gt;Maintainers must change this value if and only if the new version of
+   * this class is not compatible with old versions. See Sun docs for &lt;a
+   * href=http://java.sun.com/products/jdk/1.1/docs/guide
+   * /serialization/spec/version.doc.html&gt; details. &lt;/a&gt;
+   */
+  static final long serialVersionUID = 3597275157018205137L;
 
-<span class="fc" id="L65">    private static final Logger log = Logger.getLogger(PKCS10RequestMessage.class);</span>
+  /** Logger. */
+<span class="fc" id="L64">  private static final Logger LOG =</span>
+<span class="fc" id="L65">      Logger.getLogger(PKCS10RequestMessage.class);</span>
 
-    /** Raw form of the PKCS10 message */
-    protected byte[] p10msg;
+  /** Raw form of the PKCS10 message. */
+  protected byte[] p10msg;
 
-    /** manually set password */
-<span class="fc" id="L71">    protected String password = null;</span>
+  /** manually set password. */
+<span class="fc" id="L71">  protected String password = null;</span>
 
-    /** manually set username */
-<span class="fc" id="L74">    protected String username = null;</span>
+  /** manually set username. */
+<span class="fc" id="L74">  protected String username = null;</span>
+  /** End date. */
+<span class="fc" id="L76">  protected Date notAfter = null;</span>
+  /** Start date. */
+<span class="fc" id="L78">  protected Date notBefore = null;</span>
 
-<span class="fc" id="L76">    protected Date notAfter = null;</span>
-<span class="fc" id="L77">    protected Date notBefore = null;</span>
+  /**
+   * If the CA certificate should be included in the response or not, default to
+   * true = yes.
+   */
+<span class="fc" id="L84">  protected boolean includeCACert = true;</span>
 
-    /** If the CA certificate should be included in the response or not, default to true = yes */
-<span class="fc" id="L80">    protected boolean includeCACert = true;</span>
+  /** preferred digest algorithm to use in replies, if applicable. */
+<span class="fc" id="L87">  private transient String preferredDigestAlg = CMSSignedGenerator.DIGEST_SHA1;</span>
 
-    /** preferred digest algorithm to use in replies, if applicable */
-<span class="fc" id="L83">    private transient String preferredDigestAlg = CMSSignedGenerator.DIGEST_SHA1;</span>
+  /** The pkcs10 request message, not serialized. */
+<span class="fc" id="L90">  protected transient JcaPKCS10CertificationRequest pkcs10 = null;</span>
 
-    /** The pkcs10 request message, not serialized. */
-<span class="fc" id="L86">    protected transient JcaPKCS10CertificationRequest pkcs10 = null;</span>
+  /** Type of error. */
+<span class="fc" id="L93">  private int error = 0;</span>
 
-    /** Type of error */
-<span class="fc" id="L89">    private int error = 0;</span>
+  /** Error text. */
+<span class="fc" id="L96">  private String errorText = null;</span>
 
-    /** Error text */
-<span class="fc" id="L92">    private String errorText = null;</span>
+  /** Extra certs. */
+<span class="fc" id="L99">  private List&lt;Certificate&gt; additionalCaCertificates =</span>
+      new ArrayList&lt;Certificate&gt;();
 
-<span class="fc" id="L94">    private List&lt;Certificate&gt; additionalCaCertificates = new ArrayList&lt;Certificate&gt;();</span>
-    
-<span class="fc" id="L96">    private List&lt;Certificate&gt; additionalExtraCertsCertificates = new ArrayList&lt;Certificate&gt;();</span>
-    
-    /**
-     * Constructs a new empty PKCS#10 message handler object.
-     */
-<span class="fc" id="L101">    public PKCS10RequestMessage() {</span>
-    	// No constructor
-<span class="fc" id="L103">    }</span>
+  /** Extra certs. */
+<span class="fc" id="L103">  private List&lt;Certificate&gt; additionalExtraCertsCertificates =</span>
+      new ArrayList&lt;Certificate&gt;();
 
-    /**
-     * Constructs a new PKCS#10 message handler object.
-     *
-     * @param msg The DER encoded PKCS#10 request.
-     */
-<span class="fc" id="L110">    public PKCS10RequestMessage(byte[] msg) {</span>
-<span class="pc bpc" id="L111" title="1 of 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L112">    		log.trace(&quot;&gt;PKCS10RequestMessage(byte[])&quot;);</span>
-    	}
-<span class="fc" id="L114">        this.p10msg = msg;</span>
-<span class="fc" id="L115">        init();</span>
-<span class="pc bpc" id="L116" title="1 of 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L117">    		log.trace(&quot;&lt;PKCS10RequestMessage(byte[])&quot;);</span>
-    	}
-<span class="fc" id="L119">    }</span>
+  /** Constructs a new empty PKCS#10 message handler object. */
+<span class="fc" id="L107">  public PKCS10RequestMessage() {</span>
+    // No constructor
+<span class="fc" id="L109">  }</span>
 
-    /**
-     * Constructs a new PKCS#10 message handler object.
-     *
-     * @param p10 the PKCS#10 request
-     * @throws IOException on fail
-     */
-<span class="fc" id="L127">    public PKCS10RequestMessage(JcaPKCS10CertificationRequest p10) throws IOException {</span>
-<span class="pc bpc" id="L128" title="1 of 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L129">    		log.trace(&quot;&gt;PKCS10RequestMessage(ExtendedPKCS10CertificationRequest)&quot;);</span>
-    	}
-<span class="fc" id="L131">        p10msg = p10.getEncoded();</span>
-<span class="fc" id="L132">        pkcs10 = p10;</span>
-<span class="pc bpc" id="L133" title="1 of 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L134">    		log.trace(&quot;&lt;PKCS10RequestMessage(ExtendedPKCS10CertificationRequest)&quot;);</span>
-    	}
-<span class="fc" id="L136">    }</span>
+  /**
+   * Constructs a new PKCS#10 message handler object.
+   *
+   * @param msg The DER encoded PKCS#10 request.
+   */
+<span class="fc" id="L116">  public PKCS10RequestMessage(final byte[] msg) {</span>
+<span class="pc bpc" id="L117" title="1 of 2 branches missed.">    if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L118">      LOG.trace(&quot;&gt;PKCS10RequestMessage(byte[])&quot;);</span>
+    }
+<span class="fc" id="L120">    this.p10msg = msg;</span>
+<span class="fc" id="L121">    init();</span>
+<span class="pc bpc" id="L122" title="1 of 2 branches missed.">    if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L123">      LOG.trace(&quot;&lt;PKCS10RequestMessage(byte[])&quot;);</span>
+    }
+<span class="fc" id="L125">  }</span>
 
-    private void init() {
-<span class="pc bpc" id="L139" title="1 of 2 branches missed.">        if(p10msg == null) {</span>
-<span class="nc" id="L140">            throw new NullPointerException(&quot;Cannot initiate with p10msg == null&quot;);</span>
+  /**
+   * Constructs a new PKCS#10 message handler object.
+   *
+   * @param p10 the PKCS#10 request
+   * @throws IOException on fail
+   */
+  public PKCS10RequestMessage(final JcaPKCS10CertificationRequest p10)
+<span class="fc" id="L134">      throws IOException {</span>
+<span class="pc bpc" id="L135" title="1 of 2 branches missed.">    if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L136">      LOG.trace(&quot;&gt;PKCS10RequestMessage(ExtendedPKCS10CertificationRequest)&quot;);</span>
+    }
+<span class="fc" id="L138">    p10msg = p10.getEncoded();</span>
+<span class="fc" id="L139">    pkcs10 = p10;</span>
+<span class="pc bpc" id="L140" title="1 of 2 branches missed.">    if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L141">      LOG.trace(&quot;&lt;PKCS10RequestMessage(ExtendedPKCS10CertificationRequest)&quot;);</span>
+    }
+<span class="fc" id="L143">  }</span>
+
+  private void init() {
+<span class="pc bpc" id="L146" title="1 of 2 branches missed.">    if (p10msg == null) {</span>
+<span class="nc" id="L147">      throw new NullPointerException(&quot;Cannot initiate with p10msg == null&quot;);</span>
+    }
+    try {
+<span class="fc" id="L150">      pkcs10 = new JcaPKCS10CertificationRequest(p10msg);</span>
+<span class="nc" id="L151">    } catch (IOException e) {</span>
+<span class="nc" id="L152">      LOG.warn(&quot;PKCS10 not initiated! &quot; + e.getMessage());</span>
+<span class="fc" id="L153">    }</span>
+<span class="fc" id="L154">  }</span>
+
+  @Override
+  public PublicKey getRequestPublicKey()
+      throws InvalidKeyException, NoSuchAlgorithmException {
+<span class="fc bfc" id="L159" title="All 2 branches covered.">    if (pkcs10 == null) {</span>
+<span class="pc bpc" id="L160" title="1 of 2 branches missed.">      if (p10msg != null) {</span>
+<span class="nc" id="L161">        init();</span>
+      } else {
+<span class="fc" id="L163">        return null;</span>
+      }
+    }
+<span class="fc" id="L166">    return pkcs10.getPublicKey();</span>
+  }
+
+  /**
+   * force a password, i.e. ignore the challenge password in the request
+   *
+   * @param pwd password
+   */
+  public void setPassword(final String pwd) {
+<span class="fc" id="L175">    this.password = pwd;</span>
+<span class="fc" id="L176">  }</span>
+
+  @Override
+  public String getPassword() {
+<span class="pc bpc" id="L180" title="1 of 2 branches missed.">    if (password != null) {</span>
+<span class="nc" id="L181">      return password;</span>
+    }
+    try {
+<span class="pc bpc" id="L184" title="1 of 2 branches missed.">      if (pkcs10 == null) {</span>
+<span class="nc" id="L185">        init();</span>
+      }
+<span class="nc" id="L187">    } catch (NullPointerException e) {</span>
+<span class="nc" id="L188">      LOG.error(&quot;PKCS10 not initated! &quot; + e.getMessage());</span>
+<span class="nc" id="L189">      return null;</span>
+<span class="fc" id="L190">    }</span>
+
+<span class="fc" id="L192">    String ret = null;</span>
+<span class="fc" id="L193">    Attribute[] attributes =</span>
+<span class="fc" id="L194">        pkcs10.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_challengePassword);</span>
+<span class="fc" id="L195">    ASN1Encodable obj = null;</span>
+<span class="fc bfc" id="L196" title="All 2 branches covered.">    if (attributes.length == 0) {</span>
+      // See if we have it embedded in an extension request instead
+<span class="fc" id="L198">      attributes =</span>
+<span class="fc" id="L199">          pkcs10.getAttributes(</span>
+              PKCSObjectIdentifiers.pkcs_9_at_extensionRequest);
+<span class="pc bpc" id="L201" title="1 of 2 branches missed.">      if (attributes.length == 0) {</span>
+<span class="fc" id="L202">        return null;</span>
+      }
+<span class="nc bnc" id="L204" title="All 2 branches missed.">      if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L205">        LOG.debug(&quot;got extension request&quot;);</span>
+      }
+<span class="nc" id="L207">      ASN1Set values = attributes[0].getAttrValues();</span>
+<span class="nc bnc" id="L208" title="All 2 branches missed.">      if (values.size() == 0) {</span>
+<span class="nc" id="L209">        return null;</span>
+      }
+<span class="nc" id="L211">      Extensions exts = Extensions.getInstance(values.getObjectAt(0));</span>
+<span class="nc" id="L212">      Extension ext =</span>
+<span class="nc" id="L213">          exts.getExtension(PKCSObjectIdentifiers.pkcs_9_at_challengePassword);</span>
+<span class="nc bnc" id="L214" title="All 2 branches missed.">      if (ext == null) {</span>
+<span class="nc bnc" id="L215" title="All 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L216">          LOG.debug(&quot;no challenge password extension&quot;);</span>
         }
-        try {
-<span class="fc" id="L143">            pkcs10 = new JcaPKCS10CertificationRequest(p10msg);</span>
-<span class="nc" id="L144">        } catch (IOException e) {</span>
-<span class="nc" id="L145">            log.warn(&quot;PKCS10 not initiated! &quot;+e.getMessage());</span>
-<span class="fc" id="L146">        }</span>
-<span class="fc" id="L147">    }</span>
-
-    @Override
-    public PublicKey getRequestPublicKey() throws InvalidKeyException, NoSuchAlgorithmException {
-<span class="fc bfc" id="L151" title="All 2 branches covered.">        if (pkcs10 == null) {</span>
-<span class="pc bpc" id="L152" title="1 of 2 branches missed.">            if (p10msg != null) {</span>
-<span class="nc" id="L153">                init();</span>
-            } else {
-<span class="fc" id="L155">                return null;</span>
-            }
-        }
-<span class="fc" id="L158">        return pkcs10.getPublicKey();</span>
+<span class="nc" id="L218">        return null;</span>
+      }
+<span class="nc" id="L220">      obj = ext.getExtnValue();</span>
+<span class="nc" id="L221">    } else {</span>
+      // If it is a challengePassword directly, it's just to grab the value
+<span class="fc" id="L223">      ASN1Set values = attributes[0].getAttrValues();</span>
+<span class="fc" id="L224">      obj = values.getObjectAt(0);</span>
     }
 
-    /**
-     * force a password, i.e. ignore the challenge password in the request
-     * @param pwd password
-     */
-    public void setPassword(String pwd) {
-<span class="fc" id="L166">        this.password = pwd;</span>
-<span class="fc" id="L167">    }</span>
+<span class="pc bpc" id="L227" title="1 of 2 branches missed.">    if (obj != null) {</span>
+<span class="fc" id="L228">      ASN1String str = null;</span>
+      try {
+        // Should be any DirectoryString according to RFC2985, preferably a
+        // PrintableString or UTF8String
+<span class="fc" id="L232">        str = DirectoryString.getInstance((obj));</span>
+<span class="fc" id="L233">      } catch (IllegalArgumentException ie) {</span>
+        // This was not a DirectoryString type, it could then be IA5string,
+        // breaking pkcs#9 v2.0
+        // but some version of openssl have been known to produce IA5strings
+<span class="fc" id="L237">        str = DERIA5String.getInstance((obj));</span>
+<span class="fc" id="L238">      }</span>
 
-    @Override
-    public String getPassword() {
-<span class="pc bpc" id="L171" title="1 of 2 branches missed.">        if (password != null) {</span>
-<span class="nc" id="L172">            return password;</span>
-        }
-        try {
-<span class="pc bpc" id="L175" title="1 of 2 branches missed.">            if (pkcs10 == null) {</span>
-<span class="nc" id="L176">                init();</span>
-            }
-<span class="nc" id="L178">        } catch (NullPointerException e) {</span>
-<span class="nc" id="L179">            log.error(&quot;PKCS10 not initated! &quot;+e.getMessage());</span>
-<span class="nc" id="L180">            return null;</span>
-<span class="fc" id="L181">        }</span>
-
-<span class="fc" id="L183">        String ret = null;</span>
-<span class="fc" id="L184">        Attribute[] attributes = pkcs10.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_challengePassword);</span>
-<span class="fc" id="L185">        ASN1Encodable obj = null;</span>
-<span class="fc bfc" id="L186" title="All 2 branches covered.">        if (attributes.length == 0) {</span>
-            // See if we have it embedded in an extension request instead
-<span class="fc" id="L188">            attributes = pkcs10.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest);</span>
-<span class="pc bpc" id="L189" title="1 of 2 branches missed.">            if (attributes.length == 0) {</span>
-<span class="fc" id="L190">                return null;</span>
-            }
-<span class="nc bnc" id="L192" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L193">            	log.debug(&quot;got extension request&quot;);</span>
-            }
-<span class="nc" id="L195">            ASN1Set values = attributes[0].getAttrValues();</span>
-<span class="nc bnc" id="L196" title="All 2 branches missed.">            if (values.size() == 0) {</span>
-<span class="nc" id="L197">                return null;</span>
-            }
-<span class="nc" id="L199">            Extensions exts = Extensions.getInstance(values.getObjectAt(0));</span>
-<span class="nc" id="L200">            Extension ext = exts.getExtension(PKCSObjectIdentifiers.pkcs_9_at_challengePassword);</span>
-<span class="nc bnc" id="L201" title="All 2 branches missed.">            if (ext == null) {</span>
-<span class="nc bnc" id="L202" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L203">                	log.debug(&quot;no challenge password extension&quot;);</span>
-                }
-<span class="nc" id="L205">                return null;</span>
-            }
-<span class="nc" id="L207">            obj = ext.getExtnValue();</span>
-<span class="nc" id="L208">        } else {</span>
-            // If it is a challengePassword directly, it's just to grab the value
-<span class="fc" id="L210">            ASN1Set values = attributes[0].getAttrValues();</span>
-<span class="fc" id="L211">            obj = values.getObjectAt(0);</span>
-        }
-
-<span class="pc bpc" id="L214" title="1 of 2 branches missed.">        if (obj != null) {</span>
-<span class="fc" id="L215">            ASN1String str = null;</span>
-            try {
-            	// Should be any DirectoryString according to RFC2985, preferably a PrintableString or UTF8String
-<span class="fc" id="L218">                str = DirectoryString.getInstance((obj));</span>
-<span class="fc" id="L219">            } catch (IllegalArgumentException ie) {</span>
-                // This was not a DirectoryString type, it could then be IA5string, breaking pkcs#9 v2.0
-                // but some version of openssl have been known to produce IA5strings
-<span class="fc" id="L222">                str = DERIA5String.getInstance((obj));</span>
-<span class="fc" id="L223">            }</span>
-
-<span class="pc bpc" id="L225" title="1 of 2 branches missed.">            if (str != null) {</span>
-<span class="fc" id="L226">                ret = str.getString();</span>
-            }
-        }
-
-<span class="fc" id="L230">        return ret;</span>
+<span class="pc bpc" id="L240" title="1 of 2 branches missed.">      if (str != null) {</span>
+<span class="fc" id="L241">        ret = str.getString();</span>
+      }
     }
 
-    /**
-     * force a username, i.e. ignore the DN/username in the request
-     * @param username username
-     */
-    public void setUsername(String username) {
-<span class="fc" id="L238">        this.username = username;</span>
-<span class="fc" id="L239">    }</span>
+<span class="fc" id="L245">    return ret;</span>
+  }
 
-    /**
-     * Set the date after which the private key no longer will be valid, or null to
-     * use the default validity specified in the certificate profile. The value
-     * specified here will only be considered if user-defined validity dates are
-     * allowed by the certificate profile, e.g. if Validity override&quot; is enabled.
-     * @param notAfter expiry
-     */
-    public void setNotAfter(final Date notAfter) {
-<span class="nc" id="L249">        this.notAfter = notAfter;</span>
-<span class="nc" id="L250">    }</span>
+  /**
+   * force a username, i.e. ignore the DN/username in the request
+   *
+   * @param aUsername username
+   */
+  public void setUsername(final String aUsername) {
+<span class="fc" id="L254">    this.username = aUsername;</span>
+<span class="fc" id="L255">  }</span>
 
-    @Override
-    public String getUsername() {
-<span class="pc bpc" id="L254" title="1 of 2 branches missed.">        if (username != null) {</span>
-<span class="nc" id="L255">            return username;</span>
+  /**
+   * Set the date after which the private key no longer will be valid, or null
+   * to use the default validity specified in the certificate profile. The value
+   * specified here will only be considered if user-defined validity dates are
+   * allowed by the certificate profile, e.g. if Validity override&quot; is enabled.
+   *
+   * @param aNotAfter expiry
+   */
+  public void setNotAfter(final Date aNotAfter) {
+<span class="nc" id="L266">    this.notAfter = aNotAfter;</span>
+<span class="nc" id="L267">  }</span>
+
+  @Override
+  public String getUsername() {
+<span class="pc bpc" id="L271" title="1 of 2 branches missed.">    if (username != null) {</span>
+<span class="nc" id="L272">      return username;</span>
+    }
+    // Special if the DN contains unstructuredAddress where it becomes:
+    // CN=pix.primekey.com + unstructuredAddress=pix.primekey.com
+    // We only want the CN and not the oid-part.
+    // Luckily for us this is handles automatically by BC X500Name class
+<span class="fc" id="L278">    X500Name xname = getRequestX500Name();</span>
+<span class="fc" id="L279">    String ret = null;</span>
+<span class="pc bpc" id="L280" title="1 of 2 branches missed.">    if (xname == null) {</span>
+<span class="nc" id="L281">      LOG.info(</span>
+          &quot;No requestDN in request, probably we could not read/parse/decrypt&quot;
+              + &quot; request.&quot;);
+    } else {
+<span class="fc" id="L285">      RDN[] cnValues = xname.getRDNs(CeSecoreNameStyle.CN);</span>
+<span class="pc bpc" id="L286" title="1 of 2 branches missed.">      if (cnValues.length == 0) {</span>
+<span class="nc" id="L287">        LOG.info(&quot;No CN in DN: &quot; + xname.toString());</span>
+      } else {
+<span class="fc" id="L289">        AttributeTypeAndValue[] tavs = cnValues[0].getTypesAndValues();</span>
+<span class="pc bpc" id="L290" title="1 of 2 branches missed.">        for (AttributeTypeAndValue tav : tavs) {</span>
+<span class="fc bfc" id="L291" title="All 2 branches covered.">          if (tav.getType().equals(CeSecoreNameStyle.CN)) {</span>
+<span class="fc" id="L292">            ret = tav.getValue().toString();</span>
+<span class="fc" id="L293">            break;</span>
+          }
         }
-        // Special if the DN contains unstructuredAddress where it becomes:
-        // CN=pix.primekey.com + unstructuredAddress=pix.primekey.com
-        // We only want the CN and not the oid-part.
-        // Luckily for us this is handles automatically by BC X500Name class
-<span class="fc" id="L261">        X500Name xname = getRequestX500Name();</span>
-<span class="fc" id="L262">        String ret = null;</span>
-<span class="pc bpc" id="L263" title="1 of 2 branches missed.">        if (xname == null) {</span>
-<span class="nc" id="L264">        	log.info(&quot;No requestDN in request, probably we could not read/parse/decrypt request.&quot;);</span>
+        // If we have a CN with a normal name like &quot;Test Testsson&quot; we only want
+        // to
+        // use the first part as the username
+<span class="fc" id="L299">        int index = ret.indexOf(' ');</span>
+<span class="fc bfc" id="L300" title="All 2 branches covered.">        if (index &gt; 0) {</span>
+<span class="fc" id="L301">          ret = ret.substring(0, index);</span>
+        }
+      }
+    }
+<span class="pc bpc" id="L305" title="1 of 2 branches missed.">    if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L306">      LOG.debug(&quot;UserName='&quot; + ret + &quot;'&quot;);</span>
+    }
+<span class="fc" id="L308">    return ret;</span>
+  }
+
+  @Override
+  public String getIssuerDN() {
+<span class="nc" id="L313">    return null;</span>
+  }
+
+  @Override
+  public BigInteger getSerialNo() {
+<span class="fc" id="L318">    return null;</span>
+  }
+
+  @Override
+  public String getCRLIssuerDN() {
+<span class="nc" id="L323">    return null;</span>
+  }
+
+  @Override
+  public BigInteger getCRLSerialNo() {
+<span class="nc" id="L328">    return null;</span>
+  }
+
+  @Override
+  public String getRequestDN() {
+<span class="fc" id="L333">    String ret = null;</span>
+<span class="fc" id="L334">    X500Name name = getRequestX500Name();</span>
+<span class="pc bpc" id="L335" title="1 of 2 branches missed.">    if (name != null) {</span>
+<span class="fc" id="L336">      String dn = name.toString();</span>
+      // We have to make special handling again for Cisco devices.
+      // they will submit requests like: SN=FFFFFF+unstructuredName=Router
+      // EJBCA does not handle this very well so we will change it to:
+      // SN=FFFFFF,unstructuredName=Router
+<span class="fc" id="L341">      dn = dn.replace(&quot;+unstructuredName=&quot;, &quot;,unstructuredName=&quot;);</span>
+<span class="fc" id="L342">      dn = dn.replace(&quot; + unstructuredName=&quot;, &quot;,unstructuredName=&quot;);</span>
+<span class="fc" id="L343">      dn = dn.replace(&quot;+unstructuredAddress=&quot;, &quot;,unstructuredAddress=&quot;);</span>
+<span class="fc" id="L344">      dn = dn.replace(&quot; + unstructuredAddress=&quot;, &quot;,unstructuredAddress=&quot;);</span>
+<span class="fc" id="L345">      ret = dn;</span>
+    }
+<span class="pc bpc" id="L347" title="1 of 2 branches missed.">    if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L348">      LOG.debug(&quot;getRequestDN: &quot; + ret);</span>
+    }
+<span class="fc" id="L350">    return ret;</span>
+  }
+
+  @Override
+  public X500Name getRequestX500Name() {
+    try {
+<span class="pc bpc" id="L356" title="1 of 2 branches missed.">      if (pkcs10 == null) {</span>
+<span class="nc" id="L357">        init();</span>
+      }
+<span class="nc" id="L359">    } catch (NullPointerException e) {</span>
+<span class="nc" id="L360">      LOG.error(&quot;PKCS10 not inited: &quot; + e.getMessage());</span>
+<span class="nc" id="L361">      return null;</span>
+<span class="fc" id="L362">    }</span>
+<span class="fc" id="L363">    return X500Name.getInstance(new CeSecoreNameStyle(), pkcs10.getSubject());</span>
+  }
+
+  @Override
+  public String getRequestAltNames() {
+<span class="fc" id="L368">    String ret = null;</span>
+    try {
+<span class="fc" id="L370">      Extensions exts = getRequestExtensions();</span>
+<span class="fc bfc" id="L371" title="All 2 branches covered.">      if (exts != null) {</span>
+<span class="fc" id="L372">        Extension ext = exts.getExtension(Extension.subjectAlternativeName);</span>
+<span class="pc bpc" id="L373" title="1 of 2 branches missed.">        if (ext != null) {</span>
+          // Finally read the value
+<span class="fc" id="L375">          ret = CertTools.getAltNameStringFromExtension(ext);</span>
         } else {
-<span class="fc" id="L266">            RDN[] cnValues = xname.getRDNs(CeSecoreNameStyle.CN);</span>
-<span class="pc bpc" id="L267" title="1 of 2 branches missed.">            if (cnValues.length == 0) {</span>
-<span class="nc" id="L268">            	log.info(&quot;No CN in DN: &quot;+xname.toString());</span>
-            } else {
-<span class="fc" id="L270">                AttributeTypeAndValue[] tavs = cnValues[0].getTypesAndValues();</span>
-<span class="pc bpc" id="L271" title="1 of 2 branches missed.">                for(AttributeTypeAndValue tav : tavs) {</span>
-<span class="fc bfc" id="L272" title="All 2 branches covered.">                    if(tav.getType().equals(CeSecoreNameStyle.CN)) {</span>
-<span class="fc" id="L273">                        ret = tav.getValue().toString();</span>
-<span class="fc" id="L274">                        break;</span>
-                    }
-                }
-                // If we have a CN with a normal name like &quot;Test Testsson&quot; we only want to
-                // use the first part as the username
-<span class="fc" id="L279">            	int index = ret.indexOf(' ');</span>
-<span class="fc bfc" id="L280" title="All 2 branches covered.">            	if (index &gt; 0) {</span>
-<span class="fc" id="L281">            		ret = ret.substring(0, index);</span>
-            	}
-            }
+<span class="nc bnc" id="L377" title="All 2 branches missed.">          if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L378">            LOG.debug(&quot;no subject altName extension&quot;);</span>
+          }
         }
-<span class="pc bpc" id="L285" title="1 of 2 branches missed.">        if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L286">        	log.debug(&quot;UserName='&quot; + ret + &quot;'&quot;);</span>
-        }
-<span class="fc" id="L288">        return ret;</span>
-    }
+      }
+<span class="nc" id="L382">    } catch (IllegalArgumentException e) {</span>
+<span class="nc bnc" id="L383" title="All 2 branches missed.">      if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L384">        LOG.debug(</span>
+            &quot;pkcs_9_extensionRequest does not contain Extensions that it&quot;
+                + &quot; should, ignoring invalid encoded extension request.&quot;);
+      }
+<span class="fc" id="L388">    }</span>
+<span class="fc" id="L389">    return ret;</span>
+  }
 
-    @Override
-    public String getIssuerDN() {
-<span class="nc" id="L293">        return null;</span>
-    }
+  @Override
+  public Date getRequestValidityNotBefore() {
+<span class="nc" id="L394">    return notBefore;</span>
+  }
 
-    @Override
-    public BigInteger getSerialNo() {
-<span class="fc" id="L298">    	return null;</span>
-    }
+  @Override
+  public Date getRequestValidityNotAfter() {
+<span class="nc" id="L399">    return notAfter;</span>
+  }
 
-    @Override
-    public String getCRLIssuerDN() {
-<span class="nc" id="L303">        return null;</span>
-    }
+  @Override
+  public Extensions getRequestExtensions() {
+    try {
+<span class="pc bpc" id="L405" title="1 of 2 branches missed.">      if (pkcs10 == null) {</span>
+<span class="nc" id="L406">        init();</span>
+      }
+<span class="nc" id="L408">    } catch (NullPointerException e) {</span>
+<span class="nc" id="L409">      LOG.error(&quot;PKCS10 not inited! &quot; + e.getMessage());</span>
+<span class="nc" id="L410">      return null;</span>
+<span class="fc" id="L411">    }</span>
+<span class="fc" id="L412">    Extensions ret = null;</span>
 
-    @Override
-    public BigInteger getCRLSerialNo() {
-<span class="nc" id="L308">        return null;</span>
-    }
+    // Get attributes
+    // The X509 extension is in a a pkcs_9_at_extensionRequest
 
-    @Override
-    public String getRequestDN() {
-<span class="fc" id="L313">    	String ret = null;</span>
-<span class="fc" id="L314">    	X500Name name = getRequestX500Name();</span>
-<span class="pc bpc" id="L315" title="1 of 2 branches missed.">    	if (name != null) {</span>
-<span class="fc" id="L316">    		String dn = name.toString();</span>
-    		// We have to make special handling again for Cisco devices.
-    		// they will submit requests like: SN=FFFFFF+unstructuredName=Router
-    		// EJBCA does not handle this very well so we will change it to: SN=FFFFFF,unstructuredName=Router
-<span class="fc" id="L320">    		dn = dn.replace(&quot;+unstructuredName=&quot;, &quot;,unstructuredName=&quot;);</span>
-<span class="fc" id="L321">    		dn = dn.replace(&quot; + unstructuredName=&quot;, &quot;,unstructuredName=&quot;);</span>
-<span class="fc" id="L322">    		dn = dn.replace(&quot;+unstructuredAddress=&quot;, &quot;,unstructuredAddress=&quot;);</span>
-<span class="fc" id="L323">    		dn = dn.replace(&quot; + unstructuredAddress=&quot;, &quot;,unstructuredAddress=&quot;);</span>
-<span class="fc" id="L324">    		ret = dn;</span>
-    	}
-<span class="pc bpc" id="L326" title="1 of 2 branches missed.">        if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L327">        	log.debug(&quot;getRequestDN: &quot;+ret);</span>
-        }
-<span class="fc" id="L329">        return ret;</span>
-    }
-
-    @Override
-    public X500Name getRequestX500Name() {
+    // See if we have it embedded in an extension request instead
+<span class="fc" id="L418">    Attribute[] attr =</span>
+<span class="fc" id="L419">        pkcs10.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest);</span>
+<span class="fc bfc" id="L420" title="All 2 branches covered.">    if (attr.length != 0) {</span>
+<span class="pc bpc" id="L421" title="1 of 2 branches missed.">      if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L422">        LOG.debug(&quot;got request extension&quot;);</span>
+      }
+<span class="fc" id="L424">      ASN1Set values = attr[0].getAttrValues();</span>
+<span class="pc bpc" id="L425" title="1 of 2 branches missed.">      if (values.size() &gt; 0) {</span>
         try {
-<span class="pc bpc" id="L335" title="1 of 2 branches missed.">            if (pkcs10 == null) {</span>
-<span class="nc" id="L336">                init();</span>
-            }
-<span class="nc" id="L338">        } catch (NullPointerException e) {</span>
-<span class="nc" id="L339">            log.error(&quot;PKCS10 not inited: &quot;+e.getMessage());</span>
-<span class="nc" id="L340">            return null;</span>
-<span class="fc" id="L341">        }</span>
-<span class="fc" id="L342">        return X500Name.getInstance(new CeSecoreNameStyle(), pkcs10.getSubject());</span>
+<span class="fc" id="L427">          ret = Extensions.getInstance(values.getObjectAt(0));</span>
+<span class="nc" id="L428">        } catch (IllegalArgumentException e) {</span>
+<span class="nc bnc" id="L429" title="All 2 branches missed.">          if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L430">            LOG.debug(</span>
+                &quot;pkcs_9_extensionRequest does not contain Extensions that it&quot;
+                    + &quot; should, ignoring invalid encoded extension request.&quot;);
+          }
+<span class="fc" id="L434">        }</span>
+      }
     }
 
-    @Override
-    public String getRequestAltNames() {
-<span class="fc" id="L347">        String ret = null;</span>
-        try {
-<span class="fc" id="L349">        	Extensions exts = getRequestExtensions();</span>
-<span class="fc bfc" id="L350" title="All 2 branches covered.">        	if (exts != null) {</span>
-<span class="fc" id="L351">        		Extension ext = exts.getExtension(Extension.subjectAlternativeName);</span>
-<span class="pc bpc" id="L352" title="1 of 2 branches missed.">                if (ext != null) {</span>
-                    // Finally read the value
-<span class="fc" id="L354">            		ret = CertTools.getAltNameStringFromExtension(ext);</span>
-                } else {
-<span class="nc bnc" id="L356" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L357">                    	log.debug(&quot;no subject altName extension&quot;);</span>
-                    }
-                }
-        	}
-<span class="nc" id="L361">        } catch (IllegalArgumentException e) {</span>
-<span class="nc bnc" id="L362" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L363">            	log.debug(&quot;pkcs_9_extensionRequest does not contain Extensions that it should, ignoring invalid encoded extension request.&quot;);</span>
-            }
-<span class="fc" id="L365">        }</span>
-<span class="fc" id="L366">        return ret;</span>
+<span class="fc" id="L438">    return ret;</span>
+  }
+
+  /**
+   * Gets the underlying BC &lt;code&gt;PKCS10CertificationRequest&lt;/code&gt; object.
+   *
+   * @return the request object
+   */
+  public PKCS10CertificationRequest getCertificationRequest() {
+    try {
+<span class="nc bnc" id="L448" title="All 2 branches missed.">      if (pkcs10 == null) {</span>
+<span class="nc" id="L449">        init();</span>
+      }
+<span class="nc" id="L451">    } catch (NullPointerException e) {</span>
+<span class="nc" id="L452">      LOG.error(&quot;PKCS10 not inited! &quot; + e.getMessage());</span>
+<span class="nc" id="L453">      return null;</span>
+<span class="nc" id="L454">    }</span>
+
+<span class="nc" id="L456">    return pkcs10;</span>
+  }
+
+  @Override
+  public boolean verify() throws InvalidKeyException, NoSuchAlgorithmException {
+<span class="fc" id="L461">    return verify(null);</span>
+  }
+
+  /**
+   *
+   * @param pubKey Key
+   * @return Verified
+   * @throws InvalidKeyException Key invalid
+   * @throws NoSuchAlgorithmException No algo
+   */
+  public boolean verify(final PublicKey pubKey)
+      throws InvalidKeyException, NoSuchAlgorithmException {
+<span class="pc bpc" id="L473" title="1 of 2 branches missed.">    if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L474">      LOG.trace(&quot;&gt;verify()&quot;);</span>
+    }
+<span class="pc bpc" id="L476" title="1 of 2 branches missed.">    if (pkcs10 == null) {</span>
+<span class="nc" id="L477">      init();</span>
     }
 
-    @Override
-	public Date getRequestValidityNotBefore() {
-<span class="nc" id="L371">        return notBefore;</span>
-	}
-
-    @Override
-	public Date getRequestValidityNotAfter() {
-<span class="nc" id="L376">        return notAfter;</span>
-	}
-
-    @Override
-	public Extensions getRequestExtensions() {
-        try {
-<span class="pc bpc" id="L382" title="1 of 2 branches missed.">            if (pkcs10 == null) {</span>
-<span class="nc" id="L383">                init();</span>
-            }
-<span class="nc" id="L385">        } catch (NullPointerException e) {</span>
-<span class="nc" id="L386">            log.error(&quot;PKCS10 not inited! &quot;+e.getMessage());</span>
-<span class="nc" id="L387">            return null;</span>
-<span class="fc" id="L388">        }</span>
-<span class="fc" id="L389">        Extensions ret = null;</span>
-
-        // Get attributes
-        // The X509 extension is in a a pkcs_9_at_extensionRequest
-
-        // See if we have it embedded in an extension request instead
-<span class="fc" id="L395">        Attribute[] attr = pkcs10.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest);</span>
-<span class="fc bfc" id="L396" title="All 2 branches covered.">        if (attr.length != 0) {</span>
-<span class="pc bpc" id="L397" title="1 of 2 branches missed.">            if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L398">                log.debug(&quot;got request extension&quot;);</span>
-            }
-<span class="fc" id="L400">            ASN1Set values = attr[0].getAttrValues();</span>
-<span class="pc bpc" id="L401" title="1 of 2 branches missed.">            if (values.size() &gt; 0) {</span>
-                try {
-<span class="fc" id="L403">                    ret = Extensions.getInstance(values.getObjectAt(0));</span>
-<span class="nc" id="L404">                } catch (IllegalArgumentException e) {</span>
-<span class="nc bnc" id="L405" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L406">                        log.debug(&quot;pkcs_9_extensionRequest does not contain Extensions that it should, ignoring invalid encoded extension request.&quot;);</span>
-                    }
-<span class="fc" id="L408">                }</span>
-            }
-        }
-
-<span class="fc" id="L412">        return ret;</span>
-	}
-
-    /**
-     * Gets the underlying BC &lt;code&gt;PKCS10CertificationRequest&lt;/code&gt; object.
-     *
-     * @return the request object
-     */
-    public PKCS10CertificationRequest getCertificationRequest() {
-        try {
-<span class="nc bnc" id="L422" title="All 2 branches missed.">            if (pkcs10 == null) {</span>
-<span class="nc" id="L423">                init();</span>
-            }
-<span class="nc" id="L425">        } catch (NullPointerException e) {</span>
-<span class="nc" id="L426">            log.error(&quot;PKCS10 not inited! &quot;+e.getMessage());</span>
-<span class="nc" id="L427">            return null;</span>
-<span class="nc" id="L428">        }</span>
-
-<span class="nc" id="L430">        return pkcs10;</span>
+    ContentVerifierProvider verifierProvider;
+    try {
+<span class="fc bfc" id="L482" title="All 2 branches covered.">      if (pubKey == null) {</span>
+<span class="fc" id="L483">        verifierProvider =</span>
+<span class="fc" id="L484">            CertTools.genContentVerifierProvider(pkcs10.getPublicKey());</span>
+      } else {
+<span class="fc" id="L486">        verifierProvider = CertTools.genContentVerifierProvider(pubKey);</span>
+      }
+      try {
+<span class="fc" id="L489">        return pkcs10.isSignatureValid(verifierProvider);</span>
+<span class="nc" id="L490">      } catch (PKCSException e) {</span>
+<span class="nc" id="L491">        LOG.error(&quot;Signature could not be processed.&quot;, e);</span>
+      }
+<span class="nc" id="L493">    } catch (OperatorCreationException e) {</span>
+<span class="nc" id="L494">      LOG.error(&quot;Content verifier provider could not be created.&quot;, e);</span>
+    } finally {
+<span class="pc bpc" id="L496" title="1 of 2 branches missed.">      if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L497">        LOG.trace(&quot;&lt;verify()&quot;);</span>
+      }
     }
+<span class="nc" id="L500">    return false;</span>
+  }
 
-    @Override
-    public boolean verify() throws InvalidKeyException, NoSuchAlgorithmException {
-<span class="fc" id="L435">        return verify(null);</span>
-    }
+  @Override
+  public boolean requireKeyInfo() {
+<span class="nc" id="L505">    return false;</span>
+  }
 
-    public boolean verify(PublicKey pubKey) throws InvalidKeyException, NoSuchAlgorithmException {
-<span class="pc bpc" id="L439" title="1 of 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L440">    		log.trace(&quot;&gt;verify()&quot;);</span>
-    	}
-<span class="pc bpc" id="L442" title="1 of 2 branches missed.">    	 if (pkcs10 == null) {</span>
-<span class="nc" id="L443">             init();</span>
-         }
+  @Override
+  public void setKeyInfo(final Certificate cert,
+          final PrivateKey key, final String provider) {
+      // NO-OP
+<span class="nc" id="L512">  }</span>
 
-        ContentVerifierProvider verifierProvider;
-        try {
-<span class="fc bfc" id="L448" title="All 2 branches covered.">            if (pubKey == null) {</span>
-<span class="fc" id="L449">                verifierProvider = CertTools.genContentVerifierProvider(pkcs10.getPublicKey());</span>
-            } else {
-<span class="fc" id="L451">                verifierProvider = CertTools.genContentVerifierProvider(pubKey);</span>
-            }
-            try {
-<span class="fc" id="L454">                return pkcs10.isSignatureValid(verifierProvider);</span>
-<span class="nc" id="L455">            } catch (PKCSException e) {</span>
-<span class="nc" id="L456">                log.error(&quot;Signature could not be processed.&quot;, e);</span>
-            }
-<span class="nc" id="L458">        } catch (OperatorCreationException e) {</span>
-<span class="nc" id="L459">            log.error(&quot;Content verifier provider could not be created.&quot;, e);</span>
-        } finally {
-<span class="pc bpc" id="L461" title="1 of 2 branches missed.">            if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L462">                log.trace(&quot;&lt;verify()&quot;);</span>
-            }
-        }
-<span class="nc" id="L465">        return false;</span>
-    }
+  @Override
+  public int getErrorNo() {
+<span class="nc" id="L516">    return error;</span>
+  }
 
-    @Override
-    public boolean requireKeyInfo() {
-<span class="nc" id="L470">        return false;</span>
-    }
+  @Override
+  public String getErrorText() {
+<span class="nc" id="L521">    return errorText;</span>
+  }
 
-    @Override
-    public void setKeyInfo(Certificate cert, PrivateKey key, String Provider) {
-<span class="nc" id="L475">    }</span>
+  @Override
+  public String getSenderNonce() {
+<span class="nc" id="L526">    return null;</span>
+  }
 
-    @Override
-    public int getErrorNo() {
-<span class="nc" id="L479">        return error;</span>
-    }
+  @Override
+  public String getTransactionId() {
+<span class="nc" id="L531">    return null;</span>
+  }
 
-    @Override
-    public String getErrorText() {
-<span class="nc" id="L484">        return errorText;</span>
-    }
+  @Override
+  public byte[] getRequestKeyInfo() {
+<span class="nc" id="L536">    return null;</span>
+  }
 
-    @Override
-    public String getSenderNonce() {
-<span class="nc" id="L489">        return null;</span>
-    }
+  @Override
+  public String getPreferredDigestAlg() {
+<span class="nc" id="L541">    return preferredDigestAlg;</span>
+  }
 
-    @Override
-    public String getTransactionId() {
-<span class="nc" id="L494">        return null;</span>
-    }
+  @Override
+  public boolean includeCACert() {
+<span class="nc" id="L546">    return includeCACert;</span>
+  }
 
-    @Override
-    public byte[] getRequestKeyInfo() {
-<span class="nc" id="L499">        return null;</span>
-    }
+  @Override
+  public int getRequestType() {
+<span class="nc" id="L551">    return 0;</span>
+  }
 
-    @Override
-    public String getPreferredDigestAlg() {
-<span class="nc" id="L504">    	return preferredDigestAlg;</span>
-    }
+  @Override
+  public int getRequestId() {
+<span class="nc" id="L556">    return 0;</span>
+  }
 
-    @Override
-    public boolean includeCACert() {
-<span class="nc" id="L509">    	return includeCACert;</span>
-    }
+  @Override
+  public void setResponseKeyInfo(final PrivateKey key, final String provider) {
+    // NOOP
+<span class="fc" id="L562">  }</span>
 
-    @Override
-    public int getRequestType() {
-<span class="nc" id="L514">    	return 0;</span>
-    }
+  @Override
+  public List&lt;Certificate&gt; getAdditionalCaCertificates() {
+<span class="nc" id="L566">    return additionalCaCertificates;</span>
+  }
 
-    @Override
-    public int getRequestId() {
-<span class="nc" id="L519">    	return 0;</span>
-    }
+  @Override
+  public void setAdditionalCaCertificates(
+      final List&lt;Certificate&gt; certificates) {
+<span class="nc" id="L572">    this.additionalCaCertificates = certificates;</span>
+<span class="nc" id="L573">  }</span>
 
-    @Override
-    public void setResponseKeyInfo(PrivateKey key, String provider) {
-        // NOOP
-<span class="fc" id="L525">    }</span>
+  @Override
+  public List&lt;Certificate&gt; getAdditionalExtraCertsCertificates() {
+<span class="nc" id="L577">    return additionalExtraCertsCertificates;</span>
+  }
 
-    @Override
-    public List&lt;Certificate&gt; getAdditionalCaCertificates() {
-<span class="nc" id="L529">        return additionalCaCertificates;</span>
-    }
-
-    @Override
-    public void setAdditionalCaCertificates(final List&lt;Certificate&gt; certificates) {
-<span class="nc" id="L534">        this.additionalCaCertificates = certificates;</span>
-<span class="nc" id="L535">    }</span>
-    
-    @Override
-    public List&lt;Certificate&gt; getAdditionalExtraCertsCertificates() {
-<span class="nc" id="L539">        return additionalExtraCertsCertificates;</span>
-    }
-
-    @Override
-    public void setAdditionalExtraCertsCertificates(List&lt;Certificate&gt; additionalExtraCertsCertificates) {
-<span class="nc" id="L544">        this.additionalExtraCertsCertificates = additionalExtraCertsCertificates;</span>
-<span class="nc" id="L545">    }</span>
+  @Override
+  public void setAdditionalExtraCertsCertificates(
+      final List&lt;Certificate&gt; aAdditionalExtraCertsCertificates) {
+<span class="nc" id="L583">    this.additionalExtraCertsCertificates = aAdditionalExtraCertsCertificates;</span>
+<span class="nc" id="L584">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

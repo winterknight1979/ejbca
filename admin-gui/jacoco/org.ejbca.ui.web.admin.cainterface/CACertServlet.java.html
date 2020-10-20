@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CACertServlet.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Administration GUI</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.cainterface</a> &gt; <span class="el_source">CACertServlet.java</span></div><h1>CACertServlet.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.ui.web.admin.cainterface;
+
+import java.io.IOException;
+import java.io.PrintStream;
+import java.security.KeyStore;
+import java.security.cert.Certificate;
+
+import javax.ejb.EJB;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.log4j.Logger;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.StringTools;
+import org.ejbca.core.ejb.ca.sign.SignSessionLocal;
+import org.ejbca.core.model.authorization.AccessRulesConstants;
+import org.ejbca.cvc.CardVerifiableCertificate;
+import org.ejbca.ui.web.RequestHelper;
+import org.ejbca.ui.web.admin.cainterface.exception.AdminWebAuthenticationException;
+import org.ejbca.ui.web.pub.ServletUtils;
+
+/**
+ * Servlet used to distribute CA certificates &lt;br&gt;
+ *
+ * cacert - returns ca certificate in PEM-format
+ * nscacert - returns ca certificate for Firefox
+ * iecacert - returns ca certificate for Internet Explorer
+ *
+ * cacert, nscacert and iecacert also takes optional parameter level=&amp;lt;int 1,2,...&amp;gt;, where the level is
+ * which ca certificate in a hierachy should be returned. 0=root (default), 1=sub to root etc.
+ *
+ * @version $Id: CACertServlet.java 34154 2019-12-23 13:38:17Z samuellb $
+ */
+<span class="nc" id="L49">public class CACertServlet extends BaseAdminServlet {</span>
+
+	private static final long serialVersionUID = 1L;
+<span class="nc" id="L52">	private static final Logger log = Logger.getLogger(CACertServlet.class);</span>
+
+    private static final String COMMAND_PROPERTY_NAME = &quot;cmd&quot;;
+    private static final String COMMAND_NSCACERT = &quot;nscacert&quot;;
+    private static final String COMMAND_IECACERT = &quot;iecacert&quot;;
+    private static final String COMMAND_CACERT = &quot;cacert&quot;;
+    private static final String COMMAND_JKSTRUSTSTORE = &quot;jkscert&quot;;
+
+    private static final String LEVEL_PROPERTY = &quot;level&quot;;
+    private static final String ISSUER_PROPERTY = &quot;issuer&quot;;
+    private static final String JKSPASSWORD_PROPERTY = &quot;password&quot;;
+
+    @EJB
+    private SignSessionLocal signSession;
+
+    @Override
+    public void init(ServletConfig config) throws ServletException {
+<span class="nc" id="L69">        super.init(config);</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">    	if (signSession==null) {</span>
+<span class="nc" id="L71">    		log.error(&quot;Local EJB injection failed.&quot;);</span>
+    	}
+<span class="nc" id="L73">    }</span>
+    
+    @Override
+    public void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException, ServletException {
+<span class="nc" id="L77">        log.trace(&quot;&gt;doPost()&quot;);</span>
+<span class="nc" id="L78">        doGet(req, res);</span>
+<span class="nc" id="L79">        log.trace(&quot;&lt;doPost()&quot;);</span>
+<span class="nc" id="L80">    }</span>
+
+    @Override
+    public void doGet(HttpServletRequest req,  HttpServletResponse res) throws java.io.IOException, ServletException {
+<span class="nc" id="L84">        log.trace(&quot;&gt;doGet()&quot;);</span>
+        try {
+<span class="nc" id="L86">            authenticateAdmin(req, res, AccessRulesConstants.REGULAR_VIEWCERTIFICATE);</span>
+<span class="nc" id="L87">        } catch (AdminWebAuthenticationException authExc) {</span>
+        	// TODO: localize this.
+<span class="nc" id="L89">        	log.info(&quot;Authentication failed&quot;, authExc);</span>
+<span class="nc" id="L90">            res.sendError(HttpServletResponse.SC_FORBIDDEN, &quot;Authentication failed&quot;);</span>
+<span class="nc" id="L91">            return;</span>
+<span class="nc" id="L92">        }</span>
+<span class="nc" id="L93">        RequestHelper.setDefaultCharacterEncoding(req);</span>
+
+        // HttpServetRequets.getParameter URLDecodes the value for you
+        // No need to do it manually, that will cause problems with + characters
+<span class="nc" id="L97">        String issuerdn = req.getParameter(ISSUER_PROPERTY);</span>
+<span class="nc" id="L98">        issuerdn = CertTools.stringToBCDNString(issuerdn);</span>
+
+        String command;
+        // Keep this for logging.
+<span class="nc" id="L102">        log.debug(&quot;Got request from &quot;+req.getRemoteAddr());</span>
+<span class="nc" id="L103">        command = req.getParameter(COMMAND_PROPERTY_NAME);</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">        if (command == null) {</span>
+<span class="nc" id="L105">            command = &quot;&quot;;</span>
+        }
+<span class="nc bnc" id="L107" title="All 6 branches missed.">        if ((command.equalsIgnoreCase(COMMAND_NSCACERT) || command.equalsIgnoreCase(COMMAND_IECACERT) || command.equalsIgnoreCase(COMMAND_JKSTRUSTSTORE)</span>
+<span class="nc bnc" id="L108" title="All 4 branches missed.">        		|| command.equalsIgnoreCase(COMMAND_CACERT)) &amp;&amp; issuerdn != null ) {</span>
+<span class="nc" id="L109">            String lev = req.getParameter(LEVEL_PROPERTY);</span>
+<span class="nc" id="L110">            int level = 0;</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">            if (lev != null) {</span>
+<span class="nc" id="L112">                level = Integer.parseInt(lev);</span>
+            }
+            // Root CA is level 0, next below root level 1 etc etc
+            try {
+<span class="nc" id="L116">                Certificate[] chain = signSession.getCertificateChain(issuerdn.hashCode()).toArray(new Certificate[0]);</span>
+                                                            
+                // chain.length-1 is last cert in chain (root CA)
+<span class="nc bnc" id="L119" title="All 2 branches missed.">                if ( (chain.length-1-level) &lt; 0 ) {</span>
+<span class="nc" id="L120">                    PrintStream ps = new PrintStream(res.getOutputStream());</span>
+<span class="nc" id="L121">                    ps.println(&quot;No CA certificate of level &quot;+level+&quot;exist.&quot;);</span>
+<span class="nc" id="L122">                    log.error(&quot;No CA certificate of level &quot;+level+&quot;exist.&quot;);</span>
+<span class="nc" id="L123">                    return;</span>
+                }
+<span class="nc" id="L125">                Certificate cacert = chain[level];</span>
+<span class="nc" id="L126">                byte[] enccert = cacert.getEncoded();</span>
+                // Se if we can name the file as the CAs CN, if that does not exist try serialnumber, and if that does not exist, use the full O
+                // and if that does not exist, use the fixed string CertificateAuthority. 
+<span class="nc" id="L129">                String filename = RequestHelper.getFileNameFromCertNoEnding(cacert, &quot;CertificateAuthority&quot;);</span>
+                // We must remove cache headers for IE
+<span class="nc" id="L131">                ServletUtils.removeCacheHeaders(res);</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">                if (command.equalsIgnoreCase(COMMAND_NSCACERT)) {</span>
+<span class="nc" id="L133">                    res.setContentType(&quot;application/x-x509-ca-cert&quot;);</span>
+<span class="nc" id="L134">                    res.setContentLength(enccert.length);</span>
+<span class="nc" id="L135">                    res.getOutputStream().write(enccert);</span>
+<span class="nc" id="L136">                    log.debug(&quot;Sent CA cert to NS client, len=&quot;+enccert.length+&quot;.&quot;);</span>
+<span class="nc bnc" id="L137" title="All 2 branches missed.">                } else if (command.equalsIgnoreCase(COMMAND_IECACERT)) {</span>
+<span class="nc" id="L138">                	String ending = &quot;.cacert.crt&quot;;</span>
+<span class="nc bnc" id="L139" title="All 2 branches missed.">                	if (cacert instanceof CardVerifiableCertificate) {</span>
+<span class="nc" id="L140">                		ending = &quot;.cvcert&quot;;</span>
+                	}
+<span class="nc" id="L142">                    res.setHeader(&quot;Content-disposition&quot;, &quot;attachment; filename=\&quot;&quot; + StringTools.stripFilename(filename + ending) + &quot;\&quot;&quot;);</span>
+<span class="nc" id="L143">                    res.setContentType(&quot;application/octet-stream&quot;);</span>
+<span class="nc" id="L144">                    res.setContentLength(enccert.length);</span>
+<span class="nc" id="L145">                    res.getOutputStream().write(enccert);</span>
+<span class="nc" id="L146">                    log.debug(&quot;Sent CA cert to IE client, len=&quot;+enccert.length+&quot;.&quot;);</span>
+<span class="nc bnc" id="L147" title="All 2 branches missed.">                } else if (command.equalsIgnoreCase(COMMAND_CACERT)) {</span>
+<span class="nc" id="L148">                    String out = CertTools.getPemFromCertificate(cacert);</span>
+<span class="nc" id="L149">                    res.setHeader(&quot;Content-disposition&quot;, &quot;attachment; filename=\&quot;&quot; + StringTools.stripFilename(filename + &quot;.cacert.pem&quot;) + &quot;\&quot;&quot;);</span>
+<span class="nc" id="L150">                    res.setContentType(&quot;application/octet-stream&quot;);</span>
+<span class="nc" id="L151">                    res.setContentLength(out.length());</span>
+<span class="nc" id="L152">                    res.getOutputStream().write(out.getBytes());</span>
+<span class="nc" id="L153">                    log.debug(&quot;Sent CA cert to client, len=&quot;+out.length()+&quot;.&quot;);</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">                } else if (command.equalsIgnoreCase(COMMAND_JKSTRUSTSTORE)) {</span>
+<span class="nc" id="L155">                    String jksPassword = req.getParameter(JKSPASSWORD_PROPERTY).trim();</span>
+<span class="nc" id="L156">                    int passwordRequiredLength = 6;</span>
+<span class="nc bnc" id="L157" title="All 4 branches missed.">                    if ( jksPassword != null &amp;&amp; jksPassword.length() &gt;= passwordRequiredLength ) {</span>
+<span class="nc" id="L158">                    	KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());</span>
+<span class="nc" id="L159">                    	ks.load(null, jksPassword.toCharArray());</span>
+<span class="nc" id="L160">                    	ks.setCertificateEntry(filename, cacert);</span>
+<span class="nc" id="L161">                        res.setHeader(&quot;Content-disposition&quot;, &quot;attachment; filename=\&quot;&quot; + StringTools.stripFilename(filename + &quot;.cacert.jks&quot;) + &quot;\&quot;&quot;);</span>
+<span class="nc" id="L162">                        res.setContentType(&quot;application/octet-stream&quot;);</span>
+<span class="nc" id="L163">                    	ks.store(res.getOutputStream(), jksPassword.toCharArray());</span>
+<span class="nc" id="L164">                    } else {</span>
+<span class="nc" id="L165">                        res.setContentType(&quot;text/plain&quot;);</span>
+<span class="nc" id="L166">                        res.getOutputStream().println(COMMAND_JKSTRUSTSTORE + &quot; requires &quot; + JKSPASSWORD_PROPERTY +</span>
+                        		&quot; with a minimum of &quot; + passwordRequiredLength+ &quot; chars to be set&quot;);
+<span class="nc" id="L168">                        return;</span>
+                    }
+<span class="nc" id="L170">                } else {</span>
+<span class="nc" id="L171">                    res.setContentType(&quot;text/plain&quot;);</span>
+<span class="nc" id="L172">                    res.getOutputStream().println(&quot;Commands=&quot;+COMMAND_NSCACERT+&quot; || &quot;+COMMAND_IECACERT+&quot; || &quot;+COMMAND_CACERT+&quot; || &quot;+COMMAND_JKSTRUSTSTORE);</span>
+<span class="nc" id="L173">                    return;</span>
+                }
+<span class="nc" id="L175">            } catch (Exception e) {</span>
+<span class="nc" id="L176">                log.error(&quot;Error getting CA certificates: &quot;, e);</span>
+<span class="nc" id="L177">                res.sendError(HttpServletResponse.SC_NOT_FOUND, &quot;Error getting CA certificates.&quot;);</span>
+<span class="nc" id="L178">                return;</span>
+<span class="nc" id="L179">            }</span>
+<span class="nc" id="L180">        }</span>
+        else {
+<span class="nc" id="L182">            res.sendError(HttpServletResponse.SC_BAD_REQUEST, &quot;Bad Request format&quot;);</span>
+<span class="nc" id="L183">            return;</span>
+        }
+<span class="nc" id="L185">    } // doGet</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

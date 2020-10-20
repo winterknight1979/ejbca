@@ -14,29 +14,40 @@ package org.cesecore.roles;
 
 /**
  * Thrown when trying to access a role which doesn't exist.
- * 
- * @version $Id: RoleNotFoundException.java 17625 2013-09-20 07:12:06Z netmackan $
- * 
+ *
+ * @version $Id: RoleNotFoundException.java 17625 2013-09-20 07:12:06Z netmackan
+ *     $
  */
 public class RoleNotFoundException extends Exception {
 
-    private static final long serialVersionUID = 3905530918766837916L;
-    
-    public RoleNotFoundException() {
-<span class="nc" id="L26">        super();</span>
-<span class="nc" id="L27">    }</span>
+  private static final long serialVersionUID = 3905530918766837916L;
 
-    public RoleNotFoundException(String arg0, Throwable arg1) {
-<span class="nc" id="L30">        super(arg0, arg1);</span>
-<span class="nc" id="L31">    }</span>
+  /** Null.
+   */
+  public RoleNotFoundException() {
+<span class="nc" id="L28">    super();</span>
+<span class="nc" id="L29">  }</span>
 
-    public RoleNotFoundException(String arg0) {
-<span class="nc" id="L34">        super(arg0);</span>
-<span class="nc" id="L35">    }</span>
+  /**
+   * @param arg0 message
+   * @param arg1 cause
+   */
+  public RoleNotFoundException(final String arg0, final Throwable arg1) {
+<span class="nc" id="L36">    super(arg0, arg1);</span>
+<span class="nc" id="L37">  }</span>
 
-    public RoleNotFoundException(Throwable arg0) {
-<span class="nc" id="L38">        super(arg0);</span>
-<span class="nc" id="L39">    }</span>
+  /**
+   * @param arg0 Message.
+   */
+  public RoleNotFoundException(final String arg0) {
+<span class="nc" id="L43">    super(arg0);</span>
+<span class="nc" id="L44">  }</span>
 
+  /**
+   * @param arg0 cause
+   */
+  public RoleNotFoundException(final Throwable arg0) {
+<span class="nc" id="L50">    super(arg0);</span>
+<span class="nc" id="L51">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

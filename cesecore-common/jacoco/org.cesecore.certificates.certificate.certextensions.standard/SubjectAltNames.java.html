@@ -9,11 +9,10 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.certificate.certextensions.standard;
 
 import java.security.PublicKey;
-
 import org.apache.log4j.Logger;
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.x509.Extension;
@@ -25,38 +24,45 @@ import org.cesecore.certificates.endentity.EndEntityInformation;
 import org.cesecore.util.CertTools;
 
 /**
- * Class for standard X509 certificate extension. 
- * See rfc3280 or later for spec of this extension.
- * 
+ * Class for standard X509 certificate extension. See rfc3280 or later for spec
+ * of this extension.
+ *
  * @version $Id: SubjectAltNames.java 22092 2015-10-26 13:58:55Z mikekushner $
  */
-<span class="fc" id="L33">public class SubjectAltNames extends StandardCertificateExtension {</span>
-    private static final long serialVersionUID = 1L;
-<span class="fc" id="L35">    private static final Logger log = Logger.getLogger(SubjectAltNames.class);</span>
+<span class="fc" id="L32">public class SubjectAltNames extends StandardCertificateExtension {</span>
+  private static final long serialVersionUID = 1L;
+  /** Logger. */
+<span class="fc" id="L35">  private static final Logger LOG = Logger.getLogger(SubjectAltNames.class);</span>
 
-    @Override
-	public void init(final CertificateProfile certProf) {
-<span class="fc" id="L39">		super.setOID(Extension.subjectAlternativeName.getId());</span>
-<span class="fc" id="L40">		super.setCriticalFlag(certProf.getSubjectAlternativeNameCritical());</span>
-<span class="fc" id="L41">	}</span>
-    
-    @Override
-    public ASN1Encodable getValue(final EndEntityInformation subject, final CA ca, final CertificateProfile certProfile,
-            final PublicKey userPublicKey, final PublicKey caPublicKey, CertificateValidity val) {
-<span class="nc" id="L46">		GeneralNames ret = null;</span>
-<span class="nc" id="L47">        String altName = subject.getSubjectAltName(); </span>
-<span class="nc bnc" id="L48" title="All 2 branches missed.">        if(certProfile.getUseSubjectAltNameSubSet()){</span>
-<span class="nc" id="L49">        	altName = certProfile.createSubjectAltNameSubSet(altName);</span>
-        }
-<span class="nc bnc" id="L51" title="All 4 branches missed.">        if ( (altName != null) &amp;&amp; (altName.length() &gt; 0) ) {</span>
-<span class="nc" id="L52">        	ret = CertTools.getGeneralNamesFromAltName(altName);</span>
-        }
-<span class="nc bnc" id="L54" title="All 2 branches missed.">		if (ret == null) {</span>
-<span class="nc bnc" id="L55" title="All 2 branches missed.">			if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L56">				log.debug(&quot;No altnames trying to make SubjectAltName extension: &quot;+altName);</span>
-			}
-		}
-<span class="nc" id="L59">		return ret;</span>
-	}	
+  @Override
+  public void init(final CertificateProfile certProf) {
+<span class="fc" id="L39">    super.setOID(Extension.subjectAlternativeName.getId());</span>
+<span class="fc" id="L40">    super.setCriticalFlag(certProf.getSubjectAlternativeNameCritical());</span>
+<span class="fc" id="L41">  }</span>
+
+  @Override
+  public ASN1Encodable getValue(
+      final EndEntityInformation subject,
+      final CA ca,
+      final CertificateProfile certProfile,
+      final PublicKey userPublicKey,
+      final PublicKey caPublicKey,
+      final CertificateValidity val) {
+<span class="nc" id="L51">    GeneralNames ret = null;</span>
+<span class="nc" id="L52">    String altName = subject.getSubjectAltName();</span>
+<span class="nc bnc" id="L53" title="All 2 branches missed.">    if (certProfile.getUseSubjectAltNameSubSet()) {</span>
+<span class="nc" id="L54">      altName = certProfile.createSubjectAltNameSubSet(altName);</span>
+    }
+<span class="nc bnc" id="L56" title="All 4 branches missed.">    if ((altName != null) &amp;&amp; (altName.length() &gt; 0)) {</span>
+<span class="nc" id="L57">      ret = CertTools.getGeneralNamesFromAltName(altName);</span>
+    }
+<span class="nc bnc" id="L59" title="All 2 branches missed.">    if (ret == null) {</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">      if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L61">        LOG.debug(</span>
+            &quot;No altnames trying to make SubjectAltName extension: &quot; + altName);
+      }
+    }
+<span class="nc" id="L65">    return ret;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

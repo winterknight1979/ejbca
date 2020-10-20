@@ -18,7 +18,6 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-
 import org.apache.log4j.Appender;
 import org.apache.log4j.Logger;
 import org.apache.log4j.spi.ErrorHandler;
@@ -43,117 +42,157 @@ import org.cesecore.util.query.QueryCriteria;
 
 /**
  * Simple implementation of (secure) audit that writes all log to Log4J.
- * 
- * This implementation does not comply to the CESeCore TSF regarding log protection and only provided as a compliment
- * to monitor operations or for use in high performance environments where compliance is not an issue.
- * 
+ *
+ * &lt;p&gt;This implementation does not comply to the CESeCore TSF regarding log
+ * protection and only provided as a compliment to monitor operations or for use
+ * in high performance environments where compliance is not an issue.
+ *
  * @version $Id: Log4jDevice.java 18374 2014-01-16 13:13:34Z anatom $
  */
 public class Log4jDevice implements AuditLogDevice {
+ /** Logger. */
+<span class="nc" id="L54">  private static final Logger LOG = Logger.getLogger(Log4jDevice.class);</span>
+  /** Unsupported. */
+<span class="nc" id="L56">  private static final String UNSUPPORTED =</span>
+<span class="nc" id="L57">      Log4jDevice.class.getSimpleName()</span>
+          + &quot; does not support query, verification or export operations.&quot;;
+  /** Handlers.*/
+<span class="nc" id="L60">  private final List&lt;Log4jDeviceErrorHandler&gt; errorHandlers =</span>
+      new ArrayList&lt;Log4jDeviceErrorHandler&gt;();
 
-<span class="nc" id="L54">	private static final Logger LOG = Logger.getLogger(Log4jDevice.class);</span>
-<span class="nc" id="L55">	private static final String UNSUPPORTED = Log4jDevice.class.getSimpleName() + &quot; does not support query, verification or export operations.&quot;;</span>
-<span class="nc" id="L56">	private final List&lt;Log4jDeviceErrorHandler&gt; errorHandlers = new ArrayList&lt;Log4jDeviceErrorHandler&gt;();</span>
-	
-<span class="nc" id="L58">	public Log4jDevice() {</span>
-		@SuppressWarnings(&quot;unchecked&quot;)
-<span class="nc" id="L60">        final Enumeration&lt;Appender&gt; enumeration = LOG.getAllAppenders();</span>
-<span class="nc bnc" id="L61" title="All 2 branches missed.">		while (enumeration.hasMoreElements()) {</span>
-<span class="nc" id="L62">			final Appender appender = enumeration.nextElement();</span>
-<span class="nc" id="L63">			final ErrorHandler errorHandler = appender.getErrorHandler();</span>
-<span class="nc bnc" id="L64" title="All 2 branches missed.">			if (errorHandler != null) {</span>
-<span class="nc" id="L65">				final Log4jDeviceErrorHandler wrappedErrorHandler = new Log4jDeviceErrorHandler(errorHandler);</span>
-<span class="nc" id="L66">				errorHandlers.add(wrappedErrorHandler);</span>
-<span class="nc" id="L67">				appender.setErrorHandler(wrappedErrorHandler);</span>
-			}
-<span class="nc" id="L69">		}</span>
-<span class="nc" id="L70">	}</span>
-	
-	private void assertNoErrors() throws AuditRecordStorageException {
-<span class="nc bnc" id="L73" title="All 2 branches missed.">		for (final Log4jDeviceErrorHandler errorHandler : errorHandlers) {</span>
-<span class="nc bnc" id="L74" title="All 2 branches missed.">			if (!errorHandler.isOk()) {</span>
-<span class="nc" id="L75">				throw new AuditRecordStorageException(&quot;A log4j device failed to log.&quot;);</span>
-			}
-<span class="nc" id="L77">		}</span>
-<span class="nc" id="L78">	}</span>
+  /**
+   * Constructor.
+   */
+<span class="nc" id="L66">  public Log4jDevice() {</span>
+    @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L68">    final Enumeration&lt;Appender&gt; enumeration = LOG.getAllAppenders();</span>
+<span class="nc bnc" id="L69" title="All 2 branches missed.">    while (enumeration.hasMoreElements()) {</span>
+<span class="nc" id="L70">      final Appender appender = enumeration.nextElement();</span>
+<span class="nc" id="L71">      final ErrorHandler errorHandler = appender.getErrorHandler();</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">      if (errorHandler != null) {</span>
+<span class="nc" id="L73">        final Log4jDeviceErrorHandler wrappedErrorHandler =</span>
+            new Log4jDeviceErrorHandler(errorHandler);
+<span class="nc" id="L75">        errorHandlers.add(wrappedErrorHandler);</span>
+<span class="nc" id="L76">        appender.setErrorHandler(wrappedErrorHandler);</span>
+      }
+<span class="nc" id="L78">    }</span>
+<span class="nc" id="L79">  }</span>
 
-	@Override
-	public boolean isSupportingQueries() {
-<span class="nc" id="L82">		return false;</span>
-	}
+  private void assertNoErrors() throws AuditRecordStorageException {
+<span class="nc bnc" id="L82" title="All 2 branches missed.">    for (final Log4jDeviceErrorHandler errorHandler : errorHandlers) {</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">      if (!errorHandler.isOk()) {</span>
+<span class="nc" id="L84">        throw new AuditRecordStorageException(&quot;A log4j device failed to log.&quot;);</span>
+      }
+<span class="nc" id="L86">    }</span>
+<span class="nc" id="L87">  }</span>
 
-	@Override
-	public void setEjbs(final Map&lt;Class&lt;?&gt;, ?&gt; ejbs) {
-		// Does not use any beans
-<span class="nc" id="L88">	}</span>
+  @Override
+  public boolean isSupportingQueries() {
+<span class="nc" id="L91">    return false;</span>
+  }
 
-	@Override
-	public AuditLogExportReport exportAuditLogs(final AuthenticationToken token, final CryptoToken cryptoToken, final Date timestamp,
-			final boolean deleteAfterExport, final Map&lt;String, Object&gt; signatureDetails, final Properties properties, final Class&lt;? extends AuditExporter&gt; c) throws AuditLogExporterException {
-<span class="nc" id="L93">		throw new UnsupportedOperationException(UNSUPPORTED);</span>
-	}
+  @Override
+  public void setEjbs(final Map&lt;Class&lt;?&gt;, ?&gt; ejbs) {
+    // Does not use any beans
+<span class="nc" id="L97">  }</span>
 
-	@Override
-	public List&lt;? extends AuditLogEntry&gt; selectAuditLogs(final AuthenticationToken token, final int startIndex, final int max, final QueryCriteria criteria, final Properties properties) {
-<span class="nc" id="L98">		throw new UnsupportedOperationException(UNSUPPORTED);</span>
-	}
+  @Override
+  public AuditLogExportReport exportAuditLogs(
+      final AuthenticationToken token,
+      final CryptoToken cryptoToken,
+      final Date timestamp,
+      final boolean deleteAfterExport,
+      final Map&lt;String, Object&gt; signatureDetails,
+      final Properties properties,
+      final Class&lt;? extends AuditExporter&gt; c)
+      throws AuditLogExporterException {
+<span class="nc" id="L109">    throw new UnsupportedOperationException(UNSUPPORTED);</span>
+  }
 
-	@Override
-	public AuditLogValidationReport verifyLogsIntegrity(final AuthenticationToken token, final Date date, final Properties properties) throws AuditLogValidatorException {
-<span class="nc" id="L103">		throw new UnsupportedOperationException(UNSUPPORTED);</span>
-	}
+  @Override
+  public List&lt;? extends AuditLogEntry&gt; selectAuditLogs(
+      final AuthenticationToken token,
+      final int startIndex,
+      final int max,
+      final QueryCriteria criteria,
+      final Properties properties) {
+<span class="nc" id="L119">    throw new UnsupportedOperationException(UNSUPPORTED);</span>
+  }
 
-	@Override
-	public void log(final TrustedTime trustedTime, final EventType eventType, final EventStatus eventStatus, final ModuleType module, final ServiceType service,
-			final String authToken, final String customId, final String searchDetail1, final String searchDetail2, final Map&lt;String, Object&gt; additionalDetails, Properties properties)
-			throws AuditRecordStorageException {
-	    // Log lines are usually between 117 and 1700 bytes. An initial length of 1024 will cover most of them, speeding things up.
-<span class="nc" id="L111">		final StringBuilder sb = new StringBuilder(1024);</span>
-<span class="nc bnc" id="L112" title="All 2 branches missed.">		if (trustedTime != null) {</span>
-<span class="nc" id="L113">			sb.append(ValidityDate.formatAsISO8601(trustedTime.getTime(), ValidityDate.TIMEZONE_SERVER));</span>
-		}
-<span class="nc" id="L115">		appendIfNotNull(sb, eventType);</span>
-<span class="nc" id="L116">		appendIfNotNull(sb, eventStatus);</span>
-<span class="nc" id="L117">		appendIfNotNull(sb, module);</span>
-<span class="nc" id="L118">		appendIfNotNull(sb, service);</span>
-<span class="nc" id="L119">		appendIfNotNull(sb, authToken);</span>
-<span class="nc" id="L120">		appendIfNotNull(sb, customId);</span>
-<span class="nc" id="L121">		appendIfNotNull(sb, searchDetail1);</span>
-<span class="nc" id="L122">		appendIfNotNull(sb, searchDetail2);</span>
-<span class="nc bnc" id="L123" title="All 2 branches missed.">		if (additionalDetails != null) {</span>
-<span class="nc bnc" id="L124" title="All 2 branches missed.">			for (final String detail : additionalDetails.keySet()) {</span>
-<span class="nc bnc" id="L125" title="All 2 branches missed.">				if (sb.length()!=0) {</span>
-<span class="nc" id="L126">					sb.append(';');</span>
-				}
-<span class="nc" id="L128">				sb.append(detail).append('=');</span>
-<span class="nc" id="L129">				final Object o = additionalDetails.get(detail);</span>
-<span class="nc bnc" id="L130" title="All 2 branches missed.">				if (o != null) {</span>
-<span class="nc" id="L131">					sb.append(o.toString());</span>
-				}
-<span class="nc" id="L133">			}</span>
-		}
-<span class="nc" id="L135">		LOG.info(sb.toString());</span>
-<span class="nc" id="L136">		assertNoErrors();</span>
-<span class="nc" id="L137">	}</span>
-	
-	// TODO: Not perfect for parsing, since any of the appended values might contain a ';' char
-	private void appendIfNotNull(final StringBuilder sb, final Object o) {
-<span class="nc bnc" id="L141" title="All 2 branches missed.">		if (sb.length()!=0) {</span>
-<span class="nc" id="L142">			sb.append(';');</span>
-		}
-<span class="nc bnc" id="L144" title="All 2 branches missed.">		if (o != null) {</span>
-<span class="nc" id="L145">			sb.append(o.toString());</span>
-		}
-<span class="nc" id="L147">	}</span>
+  @Override
+  public AuditLogValidationReport verifyLogsIntegrity(
+      final AuthenticationToken token,
+      final Date date,
+      final Properties properties)
+      throws AuditLogValidatorException {
+<span class="nc" id="L128">    throw new UnsupportedOperationException(UNSUPPORTED);</span>
+  }
 
-	@Override
-	public void prepareReset() throws AuditLogResetException {
-		// No action required
-<span class="nc" id="L152">	}</span>
+  @Override
+  public void log(
+      final TrustedTime trustedTime,
+      final EventType eventType,
+      final EventStatus eventStatus,
+      final ModuleType module,
+      final ServiceType service,
+      final String authToken,
+      final String customId,
+      final String searchDetail1,
+      final String searchDetail2,
+      final Map&lt;String, Object&gt; additionalDetails,
+      final Properties properties)
+      throws AuditRecordStorageException {
+    // Log lines are usually between 117 and 1700 bytes. An initial length of
+    // 1024 will cover most of them, speeding things up.
+<span class="nc" id="L147">    final StringBuilder sb = new StringBuilder(1024);</span>
+<span class="nc bnc" id="L148" title="All 2 branches missed.">    if (trustedTime != null) {</span>
+<span class="nc" id="L149">      sb.append(</span>
+<span class="nc" id="L150">          ValidityDate.formatAsISO8601(</span>
+<span class="nc" id="L151">              trustedTime.getTime(), ValidityDate.TIMEZONE_SERVER));</span>
+    }
+<span class="nc" id="L153">    appendIfNotNull(sb, eventType);</span>
+<span class="nc" id="L154">    appendIfNotNull(sb, eventStatus);</span>
+<span class="nc" id="L155">    appendIfNotNull(sb, module);</span>
+<span class="nc" id="L156">    appendIfNotNull(sb, service);</span>
+<span class="nc" id="L157">    appendIfNotNull(sb, authToken);</span>
+<span class="nc" id="L158">    appendIfNotNull(sb, customId);</span>
+<span class="nc" id="L159">    appendIfNotNull(sb, searchDetail1);</span>
+<span class="nc" id="L160">    appendIfNotNull(sb, searchDetail2);</span>
+<span class="nc bnc" id="L161" title="All 2 branches missed.">    if (additionalDetails != null) {</span>
+<span class="nc bnc" id="L162" title="All 2 branches missed.">      for (final String detail : additionalDetails.keySet()) {</span>
+<span class="nc bnc" id="L163" title="All 2 branches missed.">        if (sb.length() != 0) {</span>
+<span class="nc" id="L164">          sb.append(';');</span>
+        }
+<span class="nc" id="L166">        sb.append(detail).append('=');</span>
+<span class="nc" id="L167">        final Object o = additionalDetails.get(detail);</span>
+<span class="nc bnc" id="L168" title="All 2 branches missed.">        if (o != null) {</span>
+<span class="nc" id="L169">          sb.append(o.toString());</span>
+        }
+<span class="nc" id="L171">      }</span>
+    }
+<span class="nc" id="L173">    LOG.info(sb.toString());</span>
+<span class="nc" id="L174">    assertNoErrors();</span>
+<span class="nc" id="L175">  }</span>
 
-	@Override
-	public void reset() throws AuditLogResetException {
-		// No action required
-<span class="nc" id="L157">	}</span>
+  // TODO: Not perfect for parsing, since any of the appended values might
+  // contain a ';' char
+  private void appendIfNotNull(final StringBuilder sb, final Object o) {
+<span class="nc bnc" id="L180" title="All 2 branches missed.">    if (sb.length() != 0) {</span>
+<span class="nc" id="L181">      sb.append(';');</span>
+    }
+<span class="nc bnc" id="L183" title="All 2 branches missed.">    if (o != null) {</span>
+<span class="nc" id="L184">      sb.append(o.toString());</span>
+    }
+<span class="nc" id="L186">  }</span>
+
+  @Override
+  public void prepareReset() throws AuditLogResetException {
+    // No action required
+<span class="nc" id="L191">  }</span>
+
+  @Override
+  public void reset() throws AuditLogResetException {
+    // No action required
+<span class="nc" id="L196">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

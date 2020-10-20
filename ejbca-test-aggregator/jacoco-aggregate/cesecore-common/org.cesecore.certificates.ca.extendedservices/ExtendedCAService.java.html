@@ -15,7 +15,6 @@ package org.cesecore.certificates.ca.extendedservices;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.util.HashMap;
-
 import org.bouncycastle.operator.OperatorCreationException;
 import org.cesecore.certificates.ca.CA;
 import org.cesecore.certificates.certificate.certextensions.AvailableCustomCertificateExtensionsConfiguration;
@@ -23,97 +22,130 @@ import org.cesecore.internal.UpgradeableDataHashMap;
 import org.cesecore.keys.token.CryptoToken;
 
 /**
- * ExtendedCAService base class. An implementing class MUST have a constructor taking a ExtendedCAServiceInfo as argument.
- * 
+ * ExtendedCAService base class. An implementing class MUST have a constructor
+ * taking a ExtendedCAServiceInfo as argument.
+ *
  * @version $Id: ExtendedCAService.java 21842 2015-09-12 20:54:36Z aveen4711 $
  */
-public abstract class ExtendedCAService extends UpgradeableDataHashMap implements java.io.Serializable {
+public abstract class ExtendedCAService extends UpgradeableDataHashMap
+    implements java.io.Serializable {
 
-    private static final long serialVersionUID = 4014122870575602909L;
+  private static final long serialVersionUID = 4014122870575602909L;
+  /** Type. */
+  public static final String EXTENDEDCASERVICETYPE = &quot;extendedcaservicetype&quot;;
+  /** Service. */
+<span class="fc" id="L37">  private final String serviceName = &quot;&quot;;</span>
+  /** Status. */
+  public static final String STATUS = &quot;status&quot;;
 
-    public static final String EXTENDEDCASERVICETYPE = &quot;extendedcaservicetype&quot;;
+  /**
+   * The CA that the request can be enriched with, in order to let the extended
+   * service access CA key, certificates etc.
+   */
+  private transient CA ca;
 
-<span class="fc" id="L36">    public final String SERVICENAME = &quot;&quot;;</span>
+  /** Overriding classes needs this constructor.
+   *
+   * @param info Info
+   */
+<span class="fc" id="L51">  public ExtendedCAService(final ExtendedCAServiceInfo info) { }</span>
 
-    public static final String STATUS = &quot;status&quot;;
+  /** Overriding classes needs this constructor.
+   *
+   * @param data Data
+   */
+<span class="fc" id="L57">  public ExtendedCAService(final HashMap&lt;?, ?&gt; data) { }</span>
 
-    /** The CA that the request can be enriched with, in order to let the extended service access CA key, certificates etc */
-    private transient CA ca;
+  /** @param status atatus */
+  protected void setStatus(final int status) {
+<span class="nc" id="L61">    this.data.put(STATUS, Integer.valueOf(status));</span>
+<span class="nc" id="L62">  }</span>
 
-    // Overriding classes needs this constructor
-<span class="fc" id="L44">    public ExtendedCAService(ExtendedCAServiceInfo info) {</span>
-<span class="fc" id="L45">    }</span>
-    
-    // Overriding classes needs this constructor
-<span class="fc" id="L48">    public ExtendedCAService(HashMap&lt;?, ?&gt; data) {</span>
-<span class="fc" id="L49">    }</span>
+  /** @return status */
+  protected int getStatus() {
+<span class="nc" id="L66">    return ((Integer) data.get(STATUS)).intValue();</span>
+  }
 
-    protected void setStatus(int status) {
-<span class="nc" id="L52">        this.data.put(STATUS, Integer.valueOf(status));</span>
-<span class="nc" id="L53">    }</span>
+  /**
+   * Method called by the CA before using the service with #extendedService.
+   * Used to (temporarily) give the service access to CA keys, certificates etc
+   * that might be needed for the service to run perform its service.
+   *
+   * @param aCa the CA from which the service can use private keys to generate
+   *     service certificates etc.
+   */
+  public final void setCA(final CA aCa) {
+<span class="fc" id="L78">    this.ca = aCa;</span>
+<span class="fc" id="L79">  }</span>
 
-    protected int getStatus() {
-<span class="nc" id="L56">        return ((Integer) data.get(STATUS)).intValue();</span>
-    }
+  /** @return CA */
+  public final CA getCa() {
+<span class="nc" id="L83">    return ca;</span>
+  }
 
-    /**
-     * Method called by the CA before using the service with #extendedService. Used to (temporarily) give the service access to CA keys, certificates
-     * etc that might be needed for the service to run perform its service.
-     * 
-     * @param ca
-     *            the CA from which the service can use private keys to generate service certificates etc.
-     */
-    public final void setCA(final CA ca) {
-<span class="fc" id="L67">        this.ca = ca;</span>
-<span class="fc" id="L68">    }</span>
+  /**
+   * Initializes the ExtendedCAService the first time it is created. Only used
+   * when the CA service is created the first time, usually this is when the CA
+   * is created, or the service of the CA is renewed.
+   *
+   * @param cryptoToken token
+   * @param aCa the CA from which the service can use private keys to generate
+   *     service certificates etc. This must not be stored.
+   * @param cceConfig containing a list of available custom certificate
+   *     extensions
+   * @throws Exception on error
+   */
+  public abstract void init(
+      CryptoToken cryptoToken,
+      CA aCa,
+      AvailableCustomCertificateExtensionsConfiguration cceConfig)
+      throws Exception;
 
-    public final CA getCa() {
-<span class="nc" id="L71">        return ca;</span>
-    }
+  /**
+   * Update the ExtendedCAService data.
+   *
+   * @param cryptoToken token
+   * @param info contains information used to activate the service.
+   * @param aCa CA
+   * @param cceConfig config
+   */
+  public abstract void update(
+      CryptoToken cryptoToken,
+      ExtendedCAServiceInfo info,
+      CA aCa,
+      AvailableCustomCertificateExtensionsConfiguration cceConfig);
 
-    /**
-     * Initializes the ExtendedCAService the first time it is created. Only used when the CA service is created the first time, usually this is when
-     * the CA is created, or the service of the CA is renewed.
-     * @param cryptoToken token
-     * 
-     * @param ca the CA from which the service can use private keys to generate service certificates etc. This must not be stored.
-     * @param cceConfig containing a list of available custom certificate extensions
-     * @throws Exception on error
-     */
-    public abstract void init(final CryptoToken cryptoToken, CA ca, AvailableCustomCertificateExtensionsConfiguration cceConfig) throws Exception;
+  /**
+   * Method used to retrieve information about the service.
+   *
+   * @return info
+   */
+  public abstract ExtendedCAServiceInfo getExtendedCAServiceInfo();
 
-    /**
-     * Update the ExtendedCAService data
-     * @param cryptoToken token
-     * 
-     * @param info
-     *            contains information used to activate the service.
-     * @param ca CA
-     * @param cceConfig config 
-     */
-    public abstract void update(final CryptoToken cryptoToken, ExtendedCAServiceInfo info, CA ca, AvailableCustomCertificateExtensionsConfiguration cceConfig);
+  /**
+   * Method used to perform the service.
+   *
+   * @param cryptoToken token
+   * @param request request
+   * @return response
+   * @throws ExtendedCAServiceRequestException on error
+   * @throws IllegalExtendedCAServiceRequestException on illegal action
+   * @throws ExtendedCAServiceNotActiveException if service is inactive or
+   *     unreachable
+   * @throws OperatorCreationException if creation fails
+   * @throws CertificateException if certificate is invalid
+   * @throws CertificateEncodingException if certificate cannot be parsed
+   */
+  public abstract ExtendedCAServiceResponse extendedService(
+      CryptoToken cryptoToken, ExtendedCAServiceRequest request)
+      throws ExtendedCAServiceRequestException,
+          IllegalExtendedCAServiceRequestException,
+          ExtendedCAServiceNotActiveException, CertificateEncodingException,
+          CertificateException, OperatorCreationException;
 
-    /**
-     * Method used to retrieve information about the service.
-     * @return info
-     */
-
-    public abstract ExtendedCAServiceInfo getExtendedCAServiceInfo();
-
-    /**
-     * Method used to perform the service.
-     * @param cryptoToken token
-     * @param request request
-     * @return response
-     * @throws ExtendedCAServiceRequestException on error
-     * @throws IllegalExtendedCAServiceRequestException on illegal action
-     * @throws ExtendedCAServiceNotActiveException if service is inactive or unreachable
-     * @throws OperatorCreationException if creation fails
-     * @throws CertificateException if certificate is invalid
-     * @throws CertificateEncodingException if certificate cannot be parsed
-     */
-    public abstract ExtendedCAServiceResponse extendedService(final CryptoToken cryptoToken, ExtendedCAServiceRequest request) throws ExtendedCAServiceRequestException,
-            IllegalExtendedCAServiceRequestException, ExtendedCAServiceNotActiveException, CertificateEncodingException, CertificateException, OperatorCreationException;
-
+  /** @return Service name. */
+  public String getServiceName() {
+<span class="nc" id="L148">    return serviceName;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

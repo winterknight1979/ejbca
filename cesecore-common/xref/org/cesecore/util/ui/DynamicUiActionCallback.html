@@ -23,25 +23,31 @@
 <a class="jxr_linenumber" name="L15" href="#L15">15</a>  <strong class="jxr_keyword">import</strong> java.util.List;
 <a class="jxr_linenumber" name="L16" href="#L16">16</a>  
 <a class="jxr_linenumber" name="L17" href="#L17">17</a>  <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <em class="jxr_javadoccomment"> * Action callback from the PSM (may be JSF 2 (JsfDynamicUiPsmFactory) back to the PIM {@link DynamicUiModel}.</em>
-<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <em class="jxr_javadoccomment"> * </em>
-<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <em class="jxr_javadoccomment"> * @version $Id: DynamicUiActionCallback.java 28602 2018-03-31 18:43:11Z andresjakobs $</em>
-<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <em class="jxr_javadoccomment"> */</em>
-<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">interface</strong> <a name="DynamicUiActionCallback" href="../../../../org/cesecore/util/ui/DynamicUiActionCallback.html#DynamicUiActionCallback">DynamicUiActionCallback</a> {
-<a class="jxr_linenumber" name="L23" href="#L23">23</a>  
-<a class="jxr_linenumber" name="L24" href="#L24">24</a>      <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <em class="jxr_javadoccomment">     * Action callback method.</em>
-<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <em class="jxr_javadoccomment">     * @param parameter the given (in case of UIInput components)</em>
-<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <em class="jxr_javadoccomment">     * @throws DynamicUiCallbackException any exception containing a message which has to be rendered on UI.</em>
-<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L29" href="#L29">29</a>      <strong class="jxr_keyword">void</strong> action(Object parameter) <strong class="jxr_keyword">throws</strong> DynamicUiCallbackException;
-<a class="jxr_linenumber" name="L30" href="#L30">30</a>      
-<a class="jxr_linenumber" name="L31" href="#L31">31</a>      <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <em class="jxr_javadoccomment">     * Gets the list of components of the same dialog to be updated.</em>
-<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <em class="jxr_javadoccomment">     * @return the list of components to be updated or null if all components has to be updated.</em>
-<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L35" href="#L35">35</a>      List&lt;String&gt; getRender();
-<a class="jxr_linenumber" name="L36" href="#L36">36</a>  }
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <em class="jxr_javadoccomment"> * Action callback from the PSM (may be JSF 2 (JsfDynamicUiPsmFactory) back to</em>
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <em class="jxr_javadoccomment"> * the PIM {@link DynamicUiModel}.</em>
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <em class="jxr_javadoccomment"> *</em>
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <em class="jxr_javadoccomment"> * @version $Id: DynamicUiActionCallback.java 28602 2018-03-31 18:43:11Z</em>
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <em class="jxr_javadoccomment"> *     andresjakobs $</em>
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">interface</strong> <a name="DynamicUiActionCallback" href="../../../../org/cesecore/util/ui/DynamicUiActionCallback.html#DynamicUiActionCallback">DynamicUiActionCallback</a> {
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>    <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <em class="jxr_javadoccomment">   * Action callback method.</em>
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <em class="jxr_javadoccomment">   *</em>
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <em class="jxr_javadoccomment">   * @param parameter the given (in case of UIInput components)</em>
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <em class="jxr_javadoccomment">   * @throws DynamicUiCallbackException any exception containing a message which</em>
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <em class="jxr_javadoccomment">   *     has to be rendered on UI.</em>
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <em class="jxr_javadoccomment">   */</em>
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>    <strong class="jxr_keyword">void</strong> action(Object parameter) <strong class="jxr_keyword">throws</strong> DynamicUiCallbackException;
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>    <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <em class="jxr_javadoccomment">   * Gets the list of components of the same dialog to be updated.</em>
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <em class="jxr_javadoccomment">   *</em>
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <em class="jxr_javadoccomment">   * @return the list of components to be updated or null if all components has</em>
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <em class="jxr_javadoccomment">   *     to be updated.</em>
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <em class="jxr_javadoccomment">   */</em>
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>    List&lt;String&gt; getRender();
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2020. All rights reserved.</div>

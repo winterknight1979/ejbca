@@ -13,7 +13,6 @@
 package org.cesecore.certificates.ca;
 
 import java.io.Serializable;
-
 import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.cesecore.certificates.certificatetransparency.CTAuditLogCallback;
 import org.cesecore.certificates.certificatetransparency.CTSubmissionConfigParams;
@@ -22,89 +21,104 @@ import org.cesecore.keys.validation.CertificateValidationDomainService;
 /**
  * Contains parameters and callbacks which is needed during certificate
  * generation in X509CA, e.g. by the CT extension. This can be used to access
- * session beans from this class, for instance the global configuration
- * or audit logging.
- * 
- * @apiNote Since instances of this class may reference session beans, you must ensure
- * that instances of this interface are only used temporarily, e.g. as
- * functions arguments, and never as e.g. instance variables of non-temporary
- * classes.
- * 
- * @apiNote Since it might not be possible to obtain the parameters, all methods that
- * accept objects of this class should also accept a null value, or null values
- * inside the CertificateGenerationParams object.
- * 
+ * session beans from this class, for instance the global configuration or audit
+ * logging.
+ *
+ * @apiNote Since instances of this class may reference session beans, you must
+ *     ensure that instances of this interface are only used temporarily, e.g.
+ *     as functions arguments, and never as e.g. instance variables of
+ *     non-temporary classes.
+ * @apiNote Since it might not be possible to obtain the parameters, all methods
+ *     that accept objects of this class should also accept a null value, or
+ *     null values inside the CertificateGenerationParams object.
  * @see CTAuditLogCallback
- * 
- * @version $Id: CertificateGenerationParams.java 27524 2017-12-12 09:48:23Z bastianf $
+ * @version $Id: CertificateGenerationParams.java 27524 2017-12-12 09:48:23Z
+ *     bastianf $
  */
-<span class="nc" id="L41">public final class CertificateGenerationParams implements Serializable {</span>
+<span class="nc" id="L38">public final class CertificateGenerationParams implements Serializable {</span>
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
+  /** Params. */
+  private CTSubmissionConfigParams ctSubmissionConfigParams;
+  /** Callback. */
+  private CTAuditLogCallback ctAuditLogCallback;
+  /** Token. */
+  private AuthenticationToken authenticationToken;
+  /** Domain service. */
+  private CertificateValidationDomainService certificateValidationDomainService;
 
-    private CTSubmissionConfigParams ctSubmissionConfigParams;
-    private CTAuditLogCallback ctAuditLogCallback;
-    
-    private AuthenticationToken authenticationToken;
-    private CertificateValidationDomainService certificateValidationDomainService;
-    
-    /**
-     * Sets CT parameters that are not specific to the certificate profile, for example list of available CT logs.
-     * @param ctSubmissionConfigParams parameters
-     */
-    public void setCTSubmissionConfigParams(final CTSubmissionConfigParams ctSubmissionConfigParams) {
-<span class="nc" id="L56">        this.ctSubmissionConfigParams = ctSubmissionConfigParams;</span>
-<span class="nc" id="L57">    }</span>
+  /**
+   * Sets CT parameters that are not specific to the certificate profile, for
+   * example list of available CT logs.
+   *
+   * @param aCtSubmissionConfigParams parameters
+   */
+  public void setCTSubmissionConfigParams(
+      final CTSubmissionConfigParams aCtSubmissionConfigParams) {
+<span class="nc" id="L58">    this.ctSubmissionConfigParams = aCtSubmissionConfigParams;</span>
+<span class="nc" id="L59">  }</span>
 
-    /**
-     * Set the a callback to be called after CT log submission.
-     * This method is called automatically from CertificateCreateSession when generating a certificate.
-     * @param ctAuditLogCallback callback
-     */
-    public void setCTAuditLogCallback(CTAuditLogCallback ctAuditLogCallback) { 
-<span class="nc" id="L65">        this.ctAuditLogCallback = ctAuditLogCallback;</span>
-<span class="nc" id="L66">    }</span>
+  /**
+   * Set the a callback to be called after CT log submission. This method is
+   * called automatically from CertificateCreateSession when generating a
+   * certificate.
+   *
+   * @param aCtAuditLogCallback callback
+   */
+  public void setCTAuditLogCallback(
+          final CTAuditLogCallback aCtAuditLogCallback) {
+<span class="nc" id="L70">    this.ctAuditLogCallback = aCtAuditLogCallback;</span>
+<span class="nc" id="L71">  }</span>
 
-    /* Package internal methods are called from X509CA */
+  /* Package internal methods are called from X509CA */
 
-    CTSubmissionConfigParams getCTSubmissionConfigParams() {
-<span class="nc" id="L71">        return ctSubmissionConfigParams;</span>
-    }
+  CTSubmissionConfigParams getCTSubmissionConfigParams() {
+<span class="nc" id="L76">    return ctSubmissionConfigParams;</span>
+  }
 
-    CTAuditLogCallback getCTAuditLogCallback() {
-<span class="nc" id="L75">        return ctAuditLogCallback;</span>
-    }
+  CTAuditLogCallback getCTAuditLogCallback() {
+<span class="nc" id="L80">    return ctAuditLogCallback;</span>
+  }
 
-    /**
-     * Gets the validation domain service reference.
-     * @return the domain service reference.
-     */
-    public CertificateValidationDomainService getCertificateValidationDomainService() {
-<span class="nc" id="L83">        return certificateValidationDomainService;</span>
-    }
+  /**
+   * Gets the validation domain service reference.
+   *
+   * @return the domain service reference.
+   */
+  public CertificateValidationDomainService
+      getCertificateValidationDomainService() {
+<span class="nc" id="L90">    return certificateValidationDomainService;</span>
+  }
 
-    /**
-     * Sets the validation domain service reference.
-     * @param certificateValidationDomainService the domain service reference.
-     */
-    public void setCertificateValidationDomainService(CertificateValidationDomainService certificateValidationDomainService) {
-<span class="nc" id="L91">        this.certificateValidationDomainService = certificateValidationDomainService;</span>
-<span class="nc" id="L92">    }</span>
+  /**
+   * Sets the validation domain service reference.
+   *
+   * @param aCertificateValidationDomainService the domain service reference.
+   */
+  public void setCertificateValidationDomainService(
+    final CertificateValidationDomainService
+        aCertificateValidationDomainService) {
+<span class="nc" id="L101">    this.certificateValidationDomainService =</span>
+        aCertificateValidationDomainService;
+<span class="nc" id="L103">  }</span>
 
-    /**
-     * Gets the authentication token.
-     * @return the token.
-     */
-    public AuthenticationToken getAuthenticationToken() {
-<span class="nc" id="L99">        return authenticationToken;</span>
-    }
+  /**
+   * Gets the authentication token.
+   *
+   * @return the token.
+   */
+  public AuthenticationToken getAuthenticationToken() {
+<span class="nc" id="L111">    return authenticationToken;</span>
+  }
 
-    /**
-     * Sets the authentication token.
-     * @param authenticationToken the token.
-     */
-    public void setAuthenticationToken(AuthenticationToken authenticationToken) {
-<span class="nc" id="L107">        this.authenticationToken = authenticationToken;</span>
-<span class="nc" id="L108">    }</span>
+  /**
+   * Sets the authentication token.
+   *
+   * @param aAuthenticationToken the token.
+   */
+  public void setAuthenticationToken(
+          final AuthenticationToken aAuthenticationToken) {
+<span class="nc" id="L121">    this.authenticationToken = aAuthenticationToken;</span>
+<span class="nc" id="L122">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

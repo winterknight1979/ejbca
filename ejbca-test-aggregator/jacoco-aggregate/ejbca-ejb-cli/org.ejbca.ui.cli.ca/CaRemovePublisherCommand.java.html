@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CaRemovePublisherCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.ca</a> &gt; <span class="el_source">CaRemovePublisherCommand.java</span></div><h1>CaRemovePublisherCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.cli.ca;
+
+import java.util.Collection;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CADoesntExistsException;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.CaSessionRemote;
+import org.cesecore.certificates.certificateprofile.CertificateProfile;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSessionRemote;
+import org.cesecore.common.exception.ReferencesToItemExistException;
+import org.cesecore.util.EjbRemoteHelper;
+import org.ejbca.core.ejb.ca.caadmin.CAAdminSessionRemote;
+import org.ejbca.core.ejb.ca.publisher.PublisherSessionRemote;
+import org.ejbca.core.model.ca.publisher.BasePublisher;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+
+/**
+ * Remove a Publisher from the system. If there are references from CAs and/or certificate profiles, you can optionally also remove these, or just list them.
+ * 
+ * @version $Id: CaRemovePublisherCommand.java 30470 2018-11-12 11:02:11Z samuellb $
+ */
+<span class="nc" id="L43">public class CaRemovePublisherCommand extends BaseCaAdminCommand {</span>
+
+<span class="nc" id="L45">    private static final Logger log = Logger.getLogger(CaRemovePublisherCommand.class);</span>
+    
+    private static final String PUBL_NAME_KEY = &quot;--name&quot;;
+    private static final String LIST_REF_KEY = &quot;--listref&quot;;
+    private static final String REMOVE_REF_KEY = &quot;--removeref&quot;;
+    private static final String REMOVE_ALL_KEY = &quot;--removeall&quot;;
+    
+
+    {
+<span class="nc" id="L54">        registerParameter(new Parameter(PUBL_NAME_KEY, &quot;Publisher Name&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;Name of the Publisher. If no flags are provided, removing the publisher will work if there are no references to the publisher from CAs or Certificate Profiles.&quot;));
+<span class="nc" id="L56">        registerParameter(Parameter.createFlag(LIST_REF_KEY, &quot;Lists all references (you are authorized to) to the publisher, without removing the publisher.&quot;));</span>
+<span class="nc" id="L57">        registerParameter(Parameter.createFlag(REMOVE_REF_KEY, &quot;Removes all references (you are authorized to) to the publisher, without removing the publisher.&quot;));</span>
+<span class="nc" id="L58">        registerParameter(Parameter.createFlag(REMOVE_ALL_KEY, &quot;Removes all references (you are authorized to) to the publisher, and removes the publisher as well.&quot;));</span>
+
+         
+<span class="nc" id="L61">    }</span>
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L65">        return &quot;removepublisher&quot;;</span>
+    }
+
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+<span class="nc" id="L70">        String name = parameters.get(PUBL_NAME_KEY);</span>
+<span class="nc" id="L71">        boolean listrefmode = parameters.containsKey(LIST_REF_KEY);</span>
+<span class="nc" id="L72">        boolean removerefmode = parameters.containsKey(REMOVE_REF_KEY);</span>
+<span class="nc" id="L73">        boolean removeallmode = parameters.containsKey(REMOVE_ALL_KEY);</span>
+        try {
+<span class="nc" id="L75">            final PublisherSessionRemote pubsession = EjbRemoteHelper.INSTANCE.getRemoteSession(PublisherSessionRemote.class);</span>
+<span class="nc" id="L76">            final CaSessionRemote caSession = EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class);</span>
+<span class="nc" id="L77">            final CAAdminSessionRemote caAdminSession = EjbRemoteHelper.INSTANCE.getRemoteSession(CAAdminSessionRemote.class);</span>
+<span class="nc" id="L78">            final CertificateProfileSessionRemote certificateProfileSession = EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateProfileSessionRemote.class);</span>
+            // Get the publisher info
+<span class="nc" id="L80">            final BasePublisher pub = pubsession.getPublisher(name);</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">            if (pub == null) {</span>
+<span class="nc" id="L82">                getLogger().info(&quot;Publisher with name '&quot;+name+&quot;' does not exist.&quot;);</span>
+<span class="nc" id="L83">                return CommandResult.FUNCTIONAL_FAILURE;</span>
+            }
+            // Find references in CAs and certificate profiles
+<span class="nc" id="L86">            final int publisherId = pub.getPublisherId();</span>
+            // Only CAs this admin is authorized to
+<span class="nc" id="L88">            List&lt;Integer&gt; caids = caSession.getAuthorizedCaIds(getAuthenticationToken());</span>
+<span class="nc" id="L89">            boolean caContains = false;</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">            for (Integer caid : caids) {</span>
+                try {
+<span class="nc" id="L92">                    CAInfo cainfo = caSession.getCAInfo(getAuthenticationToken(), caid);</span>
+<span class="nc" id="L93">                    Collection&lt;Integer&gt; publisherIds = cainfo.getCRLPublishers();</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">                    if (publisherIds.contains(publisherId)) {</span>
+<span class="nc" id="L95">                        getLogger().info(&quot;CA '&quot;+cainfo.getName()+&quot;' contains a reference to the publisher '&quot;+name+&quot;'.&quot;);</span>
+<span class="nc bnc" id="L96" title="All 4 branches missed.">                        if (removerefmode || removeallmode) {</span>
+<span class="nc" id="L97">                            publisherIds.remove(publisherId);</span>
+<span class="nc" id="L98">                            caSession.editCA(getAuthenticationToken(), cainfo);</span>
+<span class="nc" id="L99">                            getLogger().info(&quot;Removed publisher reference '&quot;+name+&quot;' from CA '&quot;+cainfo.getName()+&quot;'.&quot;);</span>
+                        } else {
+<span class="nc" id="L101">                            caContains = true;</span>
+                        }
+                    }
+<span class="nc" id="L104">                } catch (CADoesntExistsException e) {</span>
+<span class="nc" id="L105">                    log.error(&quot;CA with id &quot;+caid+&quot;suddenly disappeared...ignoring.&quot;);</span>
+<span class="nc" id="L106">                }</span>
+<span class="nc" id="L107">            }</span>
+<span class="nc" id="L108">            final CertificateProfileSessionRemote cpSession = EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateProfileSessionRemote.class);</span>
+<span class="nc" id="L109">            Collection&lt;Integer&gt; cps = cpSession.getAuthorizedCertificateProfileIds(getAuthenticationToken(), 0);</span>
+<span class="nc" id="L110">            boolean cpContains = false;</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">            for (Integer cpid : cps) {</span>
+<span class="nc" id="L112">                CertificateProfile profile = cpSession.getCertificateProfile(cpid);</span>
+<span class="nc" id="L113">                Collection&lt;Integer&gt; publisherIds = profile.getPublisherList();</span>
+<span class="nc bnc" id="L114" title="All 2 branches missed.">                if (publisherIds.contains(publisherId)) {</span>
+<span class="nc" id="L115">                    getLogger().info(&quot;Certificate profile '&quot;+cpSession.getCertificateProfileName(cpid)+&quot;' contains a reference to the publisher '&quot;+name+&quot;'.&quot;);</span>
+<span class="nc bnc" id="L116" title="All 4 branches missed.">                    if (removerefmode || removeallmode) {</span>
+<span class="nc" id="L117">                        final String cpName = cpSession.getCertificateProfileName(cpid);</span>
+<span class="nc" id="L118">                        publisherIds.remove(publisherId);</span>
+<span class="nc" id="L119">                        cpSession.changeCertificateProfile(getAuthenticationToken(), cpName, profile);</span>
+<span class="nc" id="L120">                        getLogger().info(&quot;Removed publisher reference '&quot;+name+&quot;' from Certificate Profile '&quot;+cpName+&quot;'.&quot;);</span>
+<span class="nc" id="L121">                    } else {</span>
+<span class="nc" id="L122">                        cpContains = true;</span>
+                    }
+                }
+<span class="nc" id="L125">            }</span>
+            // Only remove publisher if we are not only listing or removing references
+<span class="nc bnc" id="L127" title="All 4 branches missed.">            if (!removerefmode &amp;&amp; !listrefmode) {</span>
+<span class="nc bnc" id="L128" title="All 4 branches missed.">                if (caContains || cpContains) {</span>
+<span class="nc" id="L129">                    log.error(&quot;Unable to remove publisher that still has references in CAs or Certificate Profiles.&quot;);</span>
+<span class="nc" id="L130">                    return CommandResult.FUNCTIONAL_FAILURE;</span>
+                }
+                // Check that there are no references left
+<span class="nc bnc" id="L133" title="All 4 branches missed.">                if (caAdminSession.exitsPublisherInCAs(publisherId) || certificateProfileSession.existsPublisherIdInCertificateProfiles(publisherId)) {</span>
+<span class="nc" id="L134">                    log.error(&quot;Unable to remove publisher that still still has references in CAs or Certificate Profiles.&quot;);</span>
+<span class="nc" id="L135">                    return CommandResult.FUNCTIONAL_FAILURE;                    </span>
+                }
+<span class="nc" id="L137">                pubsession.removePublisher(getAuthenticationToken(), name);</span>
+<span class="nc" id="L138">                getLogger().info(&quot;Removed publisher '&quot;+name+&quot;'.&quot;);</span>
+            }
+<span class="nc" id="L140">        } catch (AuthorizationDeniedException e1) {</span>
+<span class="nc" id="L141">            log.error(&quot;CLI User was not authorized to remove publishers.&quot;);</span>
+<span class="nc" id="L142">            return CommandResult.AUTHORIZATION_FAILURE;</span>
+<span class="nc" id="L143">        } catch (ReferencesToItemExistException e1) {</span>
+<span class="nc" id="L144">            log.error(&quot;The publisher is in use. &quot; + e1.getMessage());</span>
+<span class="nc" id="L145">            return CommandResult.AUTHORIZATION_FAILURE;</span>
+<span class="nc" id="L146">        }</span>
+<span class="nc" id="L147">        return CommandResult.SUCCESS;</span>
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L152">        return &quot;Remove the Publisher from the system, optionally also removing references from CAs and Certificate Profiles.&quot;;</span>
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L157">        return getCommandDescription()+&quot;\nNote: Can only list/remove references in CAs and Certificate Profiles that you are authorized to.\n&quot;+</span>
+                &quot;Command can be used to list references, remove references, or remove both references and Publisher.\n&quot;+
+                &quot;References are 'CRL Publishers' in CA configuration, and 'Publishers' in Certificate Profiles.&quot;;
+    }
+    
+    @Override
+    protected Logger getLogger() {
+<span class="nc" id="L164">        return log;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

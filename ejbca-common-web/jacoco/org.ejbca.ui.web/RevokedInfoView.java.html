@@ -69,13 +69,13 @@ public class RevokedInfoView implements Serializable {
      * @return DOCUMENT ME!
      */
     public Date getRevocationDate() {
-<span class="nc" id="L72">        return this.revokedcertinfo.revocationDate;</span>
+<span class="nc" id="L72">        return this.revokedcertinfo.getRevocationDate();</span>
     }
 
     /** @return the text key for the revocation reason if any, null otherwise */
     public String getRevocationReason() {
 <span class="nc" id="L77">        String ret = null;</span>
-<span class="nc" id="L78">        final int reason = this.revokedcertinfo.revocationReason;</span>
+<span class="nc" id="L78">        final int reason = this.revokedcertinfo.getRevocationReason();</span>
 <span class="nc bnc" id="L79" title="All 4 branches missed.">        if ((reason &gt;= 0) &amp;&amp; (reason &lt; SecConst.HIGN_REASON_BOUNDRARY)) {</span>
 <span class="nc" id="L80">            ret = SecConst.reasontexts[reason];</span>
         }
@@ -83,7 +83,7 @@ public class RevokedInfoView implements Serializable {
     }
 
     public boolean isRevokedAndOnHold(){
-<span class="nc bnc" id="L86" title="All 2 branches missed.">    	return this.revokedcertinfo.revocationReason == RevokedCertInfo.REVOCATION_REASON_CERTIFICATEHOLD;</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">    	return this.revokedcertinfo.getRevocationReason() == RevokedCertInfo.REVOCATION_REASON_CERTIFICATEHOLD;</span>
     }
 
     public boolean isRevoked(){

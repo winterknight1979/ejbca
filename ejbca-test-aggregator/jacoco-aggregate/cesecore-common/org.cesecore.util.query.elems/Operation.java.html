@@ -15,35 +15,53 @@ package org.cesecore.util.query.elems;
 import org.cesecore.util.query.Elem;
 
 /**
- * Operation is a combination of Terms. Terms are logiclly related by logical operators @see LogicOperator
- * 
+ * Operation is a combination of Terms. Terms are logiclly related by logical
+ * operators @see LogicOperator
+ *
  * @version $Id: Operation.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 public final class Operation implements Elem {
 
-    private static final long serialVersionUID = -4989405964837453338L;
-    private final Term term;
-    private final LogicOperator operator;
-    private final Elem element;
-    
-    public Operation(final LogicOperator operator, final Term term1, final Elem element) {
-<span class="fc" id="L30">        super();</span>
-<span class="fc" id="L31">        this.operator = operator;</span>
-<span class="fc" id="L32">        this.term = term1;</span>
-<span class="fc" id="L33">        this.element = element;</span>
-<span class="fc" id="L34">    }</span>
+  private static final long serialVersionUID = -4989405964837453338L;
+  /** Term. */
+  private final Term term;
+  /** Operator. */
+  private final LogicOperator operator;
+  /** Element. */
+  private final Elem element;
 
-    public Term getTerm() {
-<span class="fc" id="L37">        return term;</span>
-    }
+  /**
+   * @param anOperator Op
+   * @param term1 Term
+   * @param anElement Elem
+   */
+  public Operation(
+      final LogicOperator anOperator, final Term term1, final Elem anElement) {
+<span class="fc" id="L40">    super();</span>
+<span class="fc" id="L41">    this.operator = anOperator;</span>
+<span class="fc" id="L42">    this.term = term1;</span>
+<span class="fc" id="L43">    this.element = anElement;</span>
+<span class="fc" id="L44">  }</span>
 
-    public LogicOperator getOperator() {
-<span class="fc" id="L41">        return operator;</span>
-    }
-    
-    public Elem getElement() {
-<span class="fc" id="L45">        return element;</span>
-    }
+  /**
+   * @return term.
+   */
+  public Term getTerm() {
+<span class="fc" id="L50">    return term;</span>
+  }
 
+  /**
+   * @return Operator.
+   */
+  public LogicOperator getOperator() {
+<span class="fc" id="L57">    return operator;</span>
+  }
+
+  /**
+   * @return Element.
+   */
+  public Elem getElement() {
+<span class="fc" id="L64">    return element;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

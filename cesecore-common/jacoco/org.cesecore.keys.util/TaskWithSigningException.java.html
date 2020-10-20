@@ -13,20 +13,29 @@
 package org.cesecore.keys.util;
 
 /**
- * Exception that may be thrown by the {@link ISignOperation#taskWithSigning(String, java.security.Provider)}
- * @version $Id: TaskWithSigningException.java 22566 2016-01-13 08:49:18Z mikekushner $
+ * Exception that may be thrown by the {@link
+ * ISignOperation#taskWithSigning(String, java.security.Provider)}.
  *
+ * @version $Id: TaskWithSigningException.java 22566 2016-01-13 08:49:18Z
+ *     mikekushner $
  */
 public class TaskWithSigningException extends Exception {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    public TaskWithSigningException(final String message) {
-<span class="nc" id="L25">        super(message);</span>
-<span class="nc" id="L26">    }</span>
+  /**
+   * @param message Message
+   */
+  public TaskWithSigningException(final String message) {
+<span class="nc" id="L30">    super(message);</span>
+<span class="nc" id="L31">  }</span>
 
-    public TaskWithSigningException(final String message, final Exception cause) {
-<span class="fc" id="L29">        super(message, cause);</span>
-<span class="fc" id="L30">    }</span>
+  /**
+   * @param message message
+   * @param cause Cause
+   */
+  public TaskWithSigningException(final String message, final Exception cause) {
+<span class="fc" id="L38">    super(message, cause);</span>
+<span class="fc" id="L39">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

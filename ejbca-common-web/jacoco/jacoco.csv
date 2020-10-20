@@ -19,8 +19,8 @@ EJBCA Common Web code,org.ejbca.core.model.services.workers,RolloverWorker,141,0
 EJBCA Common Web code,org.ejbca.core.model.approval.approvalrequests,EditEndEntityApprovalRequest,925,0,70,0,145,0,52,0,17,0
 EJBCA Common Web code,org.ejbca.core.model.approval.approvalrequests,RevocationApprovalRequest,392,0,20,0,84,0,26,0,15,0
 EJBCA Common Web code,org.ejbca.core.model.approval.approvalrequests,ChangeStatusEndEntityApprovalRequest,289,0,34,0,89,0,36,0,14,0
-EJBCA Common Web code,org.ejbca.core.model.approval.approvalrequests,ViewHardTokenDataApprovalRequest,164,0,4,0,36,0,12,0,10,0
 EJBCA Common Web code,org.ejbca.core.model.approval.approvalrequests,GenerateTokenApprovalRequest,131,0,2,0,31,0,12,0,11,0
+EJBCA Common Web code,org.ejbca.core.model.approval.approvalrequests,ViewHardTokenDataApprovalRequest,164,0,4,0,36,0,12,0,10,0
 EJBCA Common Web code,org.ejbca.core.model.approval.approvalrequests,ActivateCATokenApprovalRequest,163,0,4,0,41,0,14,0,12,0
 EJBCA Common Web code,org.ejbca.core.model.approval.approvalrequests,AddEndEntityApprovalRequest,533,0,30,0,90,0,30,0,15,0
 EJBCA Common Web code,org.ejbca.core.model.approval.approvalrequests,KeyRecoveryApprovalRequest,257,0,4,0,57,0,15,0,13,0
@@ -49,7 +49,7 @@ EJBCA Common Web code,org.ejbca.core.protocol.cmp,CmpPKIBodyConstants,3,0,0,0,1,
 EJBCA Common Web code,org.ejbca.config,VAConfiguration,12,0,0,0,3,0,3,0,3,0
 EJBCA Common Web code,org.ejbca.config,MailConfiguration,10,0,0,0,3,0,3,0,3,0
 EJBCA Common Web code,org.ejbca.ui.web.protocol,RFC4387URL,102,0,6,0,14,0,10,0,7,0
-EJBCA Common Web code,org.ejbca.ui.web.protocol,StoreServletBase,425,0,46,0,121,0,35,0,12,0
+EJBCA Common Web code,org.ejbca.ui.web.protocol,StoreServletBase,431,0,46,0,122,0,36,0,13,0
 EJBCA Common Web code,org.ejbca.ui.web.protocol,StoreServletBase.HtmlPrintWriter,19,0,0,0,9,0,3,0,3,0
 EJBCA Common Web code,org.ejbca.core.model.services.intervals,DummyInterval,12,0,0,0,4,0,3,0,3,0
 EJBCA Common Web code,org.ejbca.core.model.services.intervals,PeriodicalInterval,194,0,12,0,33,0,9,0,3,0
@@ -60,7 +60,7 @@ EJBCA Common Web code,org.ejbca.core.model.hardtoken,HardTokenIssuerDoesntExists
 EJBCA Common Web code,org.ejbca.core.model.hardtoken,HardTokenIssuerExistsException,7,0,0,0,4,0,2,0,2,0
 EJBCA Common Web code,org.ejbca.core.model.services,BaseAction,16,0,0,0,6,0,2,0,2,0
 EJBCA Common Web code,org.ejbca.core.model.services,BaseInterval,16,0,0,0,6,0,2,0,2,0
-EJBCA Common Web code,org.ejbca.core.model.services,BaseWorker,407,0,30,0,86,0,23,0,8,0
+EJBCA Common Web code,org.ejbca.core.model.services,BaseWorker,408,0,30,0,86,0,23,0,8,0
 EJBCA Common Web code,org.ejbca.core.model.services,ActionException,9,0,0,0,4,0,2,0,2,0
 EJBCA Common Web code,org.ejbca.util,DummyPatternLogger,8,0,0,0,6,0,6,0,6,0
 EJBCA Common Web code,org.ejbca.util,PatternLogger,104,117,8,6,21,29,10,4,4,3

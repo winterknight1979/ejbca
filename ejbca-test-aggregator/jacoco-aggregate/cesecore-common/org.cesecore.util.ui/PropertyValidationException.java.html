@@ -13,27 +13,35 @@
 package org.cesecore.util.ui;
 
 /**
- * Thrown to show that a set property failed validation. 
- * 
- * @version $Id: PropertyValidationException.java 24964 2017-01-02 08:15:35Z mikekushner $
+ * Thrown to show that a set property failed validation.
  *
+ * @version $Id: PropertyValidationException.java 24964 2017-01-02 08:15:35Z
+ *     mikekushner $
  */
 public class PropertyValidationException extends Exception {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    public PropertyValidationException(String message, Throwable cause) {
-<span class="nc" id="L26">        super(message, cause);</span>
-<span class="nc" id="L27">    }</span>
+  /**
+   * @param message Message
+   * @param cause Cause
+   */
+  public PropertyValidationException(
+          final String message, final Throwable cause) {
+<span class="nc" id="L31">    super(message, cause);</span>
+<span class="nc" id="L32">  }</span>
 
-    public PropertyValidationException(String message) {
-<span class="nc" id="L30">        super(message);</span>
-<span class="nc" id="L31">    }</span>
+  /**
+   * @param message Message. */
+    public PropertyValidationException(final String message) {
+<span class="nc" id="L37">    super(message);</span>
+<span class="nc" id="L38">  }</span>
 
-    public PropertyValidationException(Throwable cause) {
-<span class="nc" id="L34">        super(cause);</span>
-<span class="nc" id="L35">    }</span>
-
-
+  /**
+   * @param cause Cause.
+   */
+  public PropertyValidationException(final Throwable cause) {
+<span class="nc" id="L44">    super(cause);</span>
+<span class="nc" id="L45">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

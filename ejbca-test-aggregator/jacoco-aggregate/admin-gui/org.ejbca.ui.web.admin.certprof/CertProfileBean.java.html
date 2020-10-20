@@ -1,0 +1,1314 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CertProfileBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">admin-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.certprof</a> &gt; <span class="el_source">CertProfileBean.java</span></div><h1>CertProfileBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.web.admin.certprof;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import javax.faces.context.ExternalContext;
+import javax.faces.context.FacesContext;
+import javax.faces.model.DataModelEvent;
+import javax.faces.model.DataModelListener;
+import javax.faces.model.ListDataModel;
+import javax.faces.model.SelectItem;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.control.StandardRules;
+import org.cesecore.certificates.ca.ApprovalRequestType;
+import org.cesecore.certificates.ca.CvcCA;
+import org.cesecore.certificates.certificate.CertificateConstants;
+import org.cesecore.certificates.certificate.certextensions.AvailableCustomCertificateExtensionsConfiguration;
+import org.cesecore.certificates.certificate.certextensions.CertificateExtension;
+import org.cesecore.certificates.certificateprofile.CertificatePolicy;
+import org.cesecore.certificates.certificateprofile.CertificateProfile;
+import org.cesecore.certificates.certificateprofile.CertificateProfileConstants;
+import org.cesecore.certificates.certificateprofile.PKIDisclosureStatement;
+import org.cesecore.certificates.certificatetransparency.CTLogInfo;
+import org.cesecore.certificates.certificatetransparency.CertificateTransparencyFactory;
+import org.cesecore.certificates.util.AlgorithmConstants;
+import org.cesecore.certificates.util.AlgorithmTools;
+import org.cesecore.certificates.util.DNFieldExtractor;
+import org.cesecore.certificates.util.DnComponents;
+import org.cesecore.config.AvailableExtendedKeyUsagesConfiguration;
+import org.cesecore.util.SimpleTime;
+import org.cesecore.util.StringTools;
+import org.cesecore.util.ValidityDate;
+import org.ejbca.config.GlobalConfiguration;
+import org.ejbca.core.ejb.approval.ApprovalProfileSession;
+import org.ejbca.cvc.AccessRightAuthTerm;
+import org.ejbca.ui.web.admin.BaseManagedBean;
+import org.ejbca.ui.web.admin.configuration.EjbcaJSFHelper;
+
+/**
+ * JSF MBean backing the certificate profile pages.
+ *
+ * @version $Id: CertProfileBean.java 29667 2018-08-16 12:20:15Z anatom $
+ */
+// Declarations in faces-config.xml
+//@javax.faces.bean.SessionScoped
+//@javax.faces.bean.ManagedBean(name=&quot;certProfileBean&quot;)
+<span class="nc" id="L76">public class CertProfileBean extends BaseManagedBean implements Serializable {</span>
+    private static final long serialVersionUID = 1L;
+<span class="nc" id="L78">    private static final Logger log = Logger.getLogger(CertProfileBean.class);</span>
+
+    // Declarations in faces-config.xml
+    //@javax.faces.bean.ManagedProperty(value=&quot;#{certProfilesBean}&quot;)
+    private CertProfilesBean certProfilesBean;
+
+<span class="nc" id="L84">    private int currentCertProfileId = -1;</span>
+<span class="nc" id="L85">    private CertificateProfile certificateProfile = null;</span>
+<span class="nc" id="L86">    private ListDataModel&lt;CertificatePolicy&gt; certificatePoliciesModel = null;</span>
+<span class="nc" id="L87">    private CertificatePolicy newCertificatePolicy = null;</span>
+<span class="nc" id="L88">    private ListDataModel&lt;String&gt; caIssuersModel = null;</span>
+<span class="nc" id="L89">    private String newCaIssuer = &quot;&quot;;</span>
+<span class="nc" id="L90">    private ListDataModel&lt;String&gt; documentTypeList = null;</span>
+<span class="nc" id="L91">    private String documentTypeListNew = &quot;&quot;;</span>
+<span class="nc" id="L92">    private ListDataModel&lt;PKIDisclosureStatement&gt; pdsListModel = null;</span>
+<span class="nc" id="L93">    private List&lt;ApprovalRequestItem&gt; approvalRequestItems = null;</span>
+
+    /** Since this MBean is session scoped we need to reset all the values when needed. */
+    private void reset() {
+<span class="nc" id="L97">        currentCertProfileId = -1;</span>
+<span class="nc" id="L98">        certificateProfile = null;</span>
+<span class="nc" id="L99">        certificatePoliciesModel = null;</span>
+<span class="nc" id="L100">        newCertificatePolicy = null;</span>
+<span class="nc" id="L101">        caIssuersModel = null;</span>
+<span class="nc" id="L102">        newCaIssuer = &quot;&quot;;</span>
+<span class="nc" id="L103">        documentTypeList = null;</span>
+<span class="nc" id="L104">        documentTypeListNew = &quot;&quot;;</span>
+<span class="nc" id="L105">        pdsListModel = null;</span>
+<span class="nc" id="L106">        approvalRequestItems = null;</span>
+<span class="nc" id="L107">    }</span>
+
+<span class="nc" id="L109">    public CertProfilesBean getCertProfilesBean() { return certProfilesBean; }</span>
+<span class="nc" id="L110">    public void setCertProfilesBean(CertProfilesBean certProfilesBean) { this.certProfilesBean = certProfilesBean; }</span>
+
+
+    public Integer getSelectedCertProfileId() {
+<span class="nc" id="L114">        return certProfilesBean.getSelectedCertProfileId();</span>
+    }
+
+    public String getSelectedCertProfileName() {
+<span class="nc" id="L118">        return getEjbcaWebBean().getEjb().getCertificateProfileSession().getCertificateProfileName(getSelectedCertProfileId());</span>
+    }
+
+    public CertificateProfile getCertificateProfile() {
+<span class="nc bnc" id="L122" title="All 6 branches missed.">        if (currentCertProfileId!=-1 &amp;&amp; certificateProfile!=null &amp;&amp; getSelectedCertProfileId().intValue() != currentCertProfileId) {</span>
+<span class="nc" id="L123">            reset();</span>
+        }
+<span class="nc bnc" id="L125" title="All 2 branches missed.">        if (certificateProfile==null) {</span>
+<span class="nc" id="L126">            currentCertProfileId = getSelectedCertProfileId().intValue();</span>
+<span class="nc" id="L127">            final CertificateProfile certificateProfile = getEjbcaWebBean().getEjb().getCertificateProfileSession().getCertificateProfile(currentCertProfileId);</span>
+            try {
+<span class="nc" id="L129">                this.certificateProfile = certificateProfile.clone();</span>
+                // Add some defaults
+<span class="nc" id="L131">                final GlobalConfiguration globalConfiguration = getEjbcaWebBean().getGlobalConfiguration();</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">                if (this.certificateProfile.getCRLDistributionPointURI().length()==0) {</span>
+<span class="nc" id="L133">                    this.certificateProfile.setCRLDistributionPointURI(globalConfiguration.getStandardCRLDistributionPointURI());</span>
+<span class="nc" id="L134">                    this.certificateProfile.setCRLIssuer(globalConfiguration.getStandardCRLIssuer());</span>
+                }
+<span class="nc bnc" id="L136" title="All 2 branches missed.">                if (this.certificateProfile.getFreshestCRLURI().length()==0) {</span>
+<span class="nc" id="L137">                    this.certificateProfile.setFreshestCRLURI(globalConfiguration.getStandardDeltaCRLDistributionPointURI());</span>
+                }
+<span class="nc" id="L139">            } catch (CloneNotSupportedException e) {</span>
+<span class="nc" id="L140">                log.error(&quot;Certificate Profiles should be clonable, but this one was not!&quot;, e);</span>
+<span class="nc" id="L141">            }</span>
+        }
+<span class="nc" id="L143">        return certificateProfile;</span>
+    }
+
+    public String cancel() {
+<span class="nc" id="L147">        reset();</span>
+<span class="nc" id="L148">        return &quot;done&quot;;  // Outcome defined in faces-config.xml</span>
+    }
+
+    public String save() {
+<span class="nc" id="L152">        boolean success = true;</span>
+        try {
+            // Perform last minute validations before saving
+<span class="nc" id="L155">            CertificateProfile prof = getCertificateProfile();</span>
+<span class="nc bnc" id="L156" title="All 2 branches missed.">            if (prof.getAvailableKeyAlgorithmsAsList().isEmpty()) {</span>
+<span class="nc" id="L157">                addErrorMessage(&quot;ONEAVAILABLEKEYALGORITHM&quot;);</span>
+<span class="nc" id="L158">                success = false;</span>
+            }
+<span class="nc bnc" id="L160" title="All 2 branches missed.">            if (prof.getAvailableBitLengthsAsList().isEmpty()) {</span>
+<span class="nc" id="L161">                addErrorMessage(&quot;ONEAVAILABLEBITLENGTH&quot;);</span>
+<span class="nc" id="L162">                success = false;</span>
+            }
+<span class="nc bnc" id="L164" title="All 2 branches missed.">            if (isCtEnabled()) {</span>
+<span class="nc" id="L165">                final int numEnabledLabels = prof.getEnabledCtLabels().size();</span>
+<span class="nc" id="L166">                final boolean isNumOfSctsCustom = prof.isNumberOfSctByCustom();</span>
+<span class="nc" id="L167">                final boolean isMaxNumOfSctsCustom = prof.isMaxNumberOfSctByCustom();</span>
+<span class="nc bnc" id="L168" title="All 2 branches missed.">                if (numEnabledLabels == 0) {</span>
+<span class="nc" id="L169">                    addErrorMessage(&quot;NOCTLABELSSELECTED&quot;);</span>
+<span class="nc" id="L170">                    success = false;</span>
+<span class="nc bnc" id="L171" title="All 4 branches missed.">                } else if (((prof.getCtMinScts() &lt; 0 &amp;&amp; prof.isUseCertificateTransparencyInCerts()) || </span>
+<span class="nc bnc" id="L172" title="All 6 branches missed.">                            (prof.getCtMinSctsOcsp() &lt; 0 &amp;&amp; prof.isUseCertificateTransparencyInOCSP())) </span>
+                            &amp;&amp; isNumOfSctsCustom) {
+<span class="nc" id="L174">                    addErrorMessage(&quot;INCORRECTMINSCTS&quot;);</span>
+<span class="nc" id="L175">                    success = false;</span>
+<span class="nc bnc" id="L176" title="All 4 branches missed.">                } else if((prof.getCtMaxScts() &lt; 0 &amp;&amp; prof.isUseCertificateTransparencyInCerts()) || </span>
+<span class="nc bnc" id="L177" title="All 4 branches missed.">                          (prof.getCtMaxSctsOcsp() &lt; 0 &amp;&amp; prof.isUseCertificateTransparencyInOCSP())) {</span>
+<span class="nc" id="L178">                    addErrorMessage(&quot;INCORRECTMAXSCTS&quot;);</span>
+<span class="nc" id="L179">                    success = false;</span>
+                    
+<span class="nc bnc" id="L181" title="All 4 branches missed.">                } else if (((prof.getCtMaxScts() &lt; prof.getCtMinScts() &amp;&amp; prof.isUseCertificateTransparencyInCerts()) ||</span>
+<span class="nc bnc" id="L182" title="All 8 branches missed.">                            (prof.getCtMaxSctsOcsp() &lt; prof.getCtMinSctsOcsp() &amp;&amp; prof.isUseCertificateTransparencyInOCSP()))</span>
+                            &amp;&amp; (isNumOfSctsCustom &amp;&amp; isMaxNumOfSctsCustom)) {
+<span class="nc" id="L184">                    addErrorMessage(&quot;INCORRECTMAXLESSTHANMIN&quot;);</span>
+<span class="nc" id="L185">                    success = false;</span>
+<span class="nc bnc" id="L186" title="All 6 branches missed.">                } else if (((prof.getCtMinScts() &lt; numEnabledLabels &amp;&amp; prof.getCtMinScts() != 0 &amp;&amp; prof.isUseCertificateTransparencyInCerts()) ||</span>
+<span class="nc bnc" id="L187" title="All 8 branches missed.">                            (prof.getCtMinSctsOcsp() &lt; numEnabledLabels &amp;&amp; prof.getCtMinSctsOcsp() != 0 &amp;&amp; prof.isUseCertificateTransparencyInOCSP()))</span>
+                            &amp;&amp; isNumOfSctsCustom) {
+<span class="nc" id="L189">                    addErrorMessage(&quot;INCORRECTNUMBEROFLABELS&quot;);</span>
+<span class="nc" id="L190">                    success = false;</span>
+<span class="nc bnc" id="L191" title="All 4 branches missed.">                } else if (((prof.getCtMaxScts() &lt; numEnabledLabels &amp;&amp; prof.isUseCertificateTransparencyInCerts()) ||</span>
+<span class="nc bnc" id="L192" title="All 6 branches missed.">                           (prof.getCtMaxSctsOcsp() &lt; numEnabledLabels &amp;&amp; prof.isUseCertificateTransparencyInOCSP()))</span>
+                            &amp;&amp; isMaxNumOfSctsCustom) {
+<span class="nc" id="L194">                    addErrorMessage(&quot;INCORRECTNUMBEROFLABELSMAX&quot;);</span>
+<span class="nc" id="L195">                    success = false;</span>
+                }
+            }
+<span class="nc bnc" id="L198" title="All 2 branches missed.">            if (prof.getUseExpirationRestrictionForWeekdays()) {</span>
+<span class="nc" id="L199">                boolean allDaysExcluded = true;</span>
+<span class="nc bnc" id="L200" title="All 2 branches missed.">                for (boolean enabled: prof.getExpirationRestrictionWeekdays()) {</span>
+<span class="nc bnc" id="L201" title="All 2 branches missed.">                    if (!enabled) {</span>
+<span class="nc" id="L202">                        allDaysExcluded = false;</span>
+<span class="nc" id="L203">                        break;</span>
+                    }
+                }
+<span class="nc bnc" id="L206" title="All 2 branches missed.">                if (allDaysExcluded) {</span>
+<span class="nc" id="L207">                    addErrorMessage(&quot;CERT_EXPIRATION_RESTRICTION_FOR_WEEKDAYS_ALL_EXCLUDED&quot;);</span>
+<span class="nc" id="L208">                    success = false;</span>
+                }
+            }
+<span class="nc bnc" id="L211" title="All 2 branches missed.">            if (prof.getUseQCStatement()) {</span>
+<span class="nc" id="L212">                boolean[] statements = {</span>
+<span class="nc" id="L213">                        prof.getUsePkixQCSyntaxV2(),</span>
+<span class="nc" id="L214">                        prof.getUseQCEtsiQCCompliance(),</span>
+<span class="nc" id="L215">                        prof.getUseQCEtsiSignatureDevice(),</span>
+<span class="nc" id="L216">                        prof.getUseQCEtsiValueLimit(),</span>
+<span class="nc" id="L217">                        prof.getUseQCEtsiRetentionPeriod(),</span>
+<span class="nc bnc" id="L218" title="All 2 branches missed.">                        !StringUtils.isEmpty(prof.getQCEtsiType()),</span>
+<span class="nc bnc" id="L219" title="All 8 branches missed.">                        prof.getQCEtsiPds() != null &amp;&amp; prof.getQCEtsiPds().size() &gt; 0 &amp;&amp; !(prof.getQCEtsiPds().size() == 1 &amp;&amp; prof.getQCEtsiPds().get(0).getUrl() == null),</span>
+<span class="nc bnc" id="L220" title="All 6 branches missed.">                        prof.getUseQCCustomString() &amp;&amp; !prof.getQCCustomStringOid().isEmpty() &amp;&amp; !prof.getQCCustomStringText().isEmpty()</span>
+                };
+                // Check that at least one QC statement is used
+<span class="nc" id="L223">                boolean foundUsed = false;</span>
+<span class="nc bnc" id="L224" title="All 2 branches missed.">                for (boolean statement : statements) {</span>
+<span class="nc bnc" id="L225" title="All 2 branches missed.">                    if (statement) {</span>
+<span class="nc" id="L226">                        foundUsed = true;</span>
+                    }
+                }
+<span class="nc bnc" id="L229" title="All 2 branches missed.">                if (!foundUsed) {</span>
+<span class="nc" id="L230">                    addErrorMessage(&quot;ONEQCSTATEMENTUSED&quot;);</span>
+<span class="nc" id="L231">                    success = false;</span>
+                }
+            }
+<span class="nc bnc" id="L234" title="All 2 branches missed.">            if (success) {</span>
+                // Remove the added defaults if they were never used
+<span class="nc" id="L236">                final CertificateProfile certificateProfile = getCertificateProfile();</span>
+<span class="nc bnc" id="L237" title="All 4 branches missed.">                if (!certificateProfile.getUseCRLDistributionPoint() || certificateProfile.getUseDefaultCRLDistributionPoint()) {</span>
+<span class="nc" id="L238">                    certificateProfile.setCRLDistributionPointURI(&quot;&quot;);</span>
+<span class="nc" id="L239">                    certificateProfile.setCRLIssuer(&quot;&quot;);</span>
+                }
+<span class="nc bnc" id="L241" title="All 4 branches missed.">                if (!certificateProfile.getUseFreshestCRL() || certificateProfile.getUseCADefinedFreshestCRL()) {</span>
+<span class="nc" id="L242">                    certificateProfile.setFreshestCRLURI(&quot;&quot;);</span>
+                }
+
+<span class="nc" id="L245">                applyExpirationRestrictionForValidityWithFixedDate( certificateProfile);</span>
+
+<span class="nc" id="L247">                final List&lt;PKIDisclosureStatement&gt; pdsList = certificateProfile.getQCEtsiPds();</span>
+<span class="nc bnc" id="L248" title="All 2 branches missed.">                if (pdsList != null) {</span>
+<span class="nc" id="L249">                    final List&lt;PKIDisclosureStatement&gt; pdsCleaned = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L250" title="All 2 branches missed.">                    for (final PKIDisclosureStatement pds : pdsList) {</span>
+<span class="nc bnc" id="L251" title="All 2 branches missed.">                        if (!StringUtils.isEmpty(pds.getUrl())) {</span>
+<span class="nc" id="L252">                            pdsCleaned.add(pds);</span>
+                        }
+<span class="nc" id="L254">                    }</span>
+<span class="nc" id="L255">                    certificateProfile.setQCEtsiPds(pdsCleaned);</span>
+                }
+<span class="nc" id="L257">                Map&lt;ApprovalRequestType, Integer&gt; approvals = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L258" title="All 2 branches missed.">                for(ApprovalRequestItem approvalRequestItem : approvalRequestItems) {</span>
+<span class="nc" id="L259">                    approvals.put(approvalRequestItem.getRequestType(), approvalRequestItem.getApprovalProfileId());</span>
+<span class="nc" id="L260">                }</span>
+<span class="nc" id="L261">                certificateProfile.setApprovals(approvals);</span>
+
+                // Modify the profile
+<span class="nc" id="L264">                getEjbcaWebBean().getEjb().getCertificateProfileSession().changeCertificateProfile(getAdmin(), getSelectedCertProfileName(), certificateProfile);</span>
+<span class="nc" id="L265">                addInfoMessage(&quot;CERTIFICATEPROFILESAVED&quot;);</span>
+<span class="nc" id="L266">                reset();</span>
+<span class="nc" id="L267">                return &quot;done&quot;;  // Outcome defined in faces-config.xml</span>
+            }
+<span class="nc" id="L269">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L270">            addNonTranslatedErrorMessage(&quot;Not authorized to edit certificate profile.&quot;);</span>
+<span class="nc" id="L271">        }</span>
+<span class="nc" id="L272">        return &quot;&quot;;</span>
+    }
+
+    private final void applyExpirationRestrictionForValidityWithFixedDate(final CertificateProfile profile) {
+<span class="nc" id="L276">        final String encodedValidty = profile.getEncodedValidity();</span>
+<span class="nc bnc" id="L277" title="All 2 branches missed.">        if (profile.getUseExpirationRestrictionForWeekdays()) {</span>
+<span class="nc" id="L278">            Date endDate = null;</span>
+            try {
+<span class="nc" id="L280">                endDate = ValidityDate.parseAsIso8601( encodedValidty);</span>
+<span class="nc" id="L281">            } catch(ParseException e) {</span>
+                // NOOP
+<span class="nc" id="L283">            }</span>
+<span class="nc bnc" id="L284" title="All 2 branches missed.">            if (null != endDate) { // for fixed end dates.</span>
+<span class="nc" id="L285">                log.info(&quot;Applying expiration restrictions for weekdays with fixed end date: &quot; + encodedValidty + &quot; days &quot; + Arrays.toString(profile.getExpirationRestrictionWeekdays()));</span>
+                try {
+<span class="nc" id="L287">                    final Date appliedDate = ValidityDate.applyExpirationRestrictionForWeekdays(endDate,</span>
+<span class="nc" id="L288">                        profile.getExpirationRestrictionWeekdays(), profile.getExpirationRestrictionForWeekdaysExpireBefore());</span>
+<span class="nc bnc" id="L289" title="All 2 branches missed.">                    if (!appliedDate.equals(endDate)) {</span>
+<span class="nc" id="L290">                        final String newEncodedValidity = ValidityDate.formatAsISO8601ServerTZ(appliedDate.getTime(), ValidityDate.TIMEZONE_SERVER);</span>
+<span class="nc" id="L291">                        profile.setEncodedValidity(newEncodedValidity);</span>
+<span class="nc" id="L292">                        addInfoMessage(&quot;CERT_EXPIRATION_RESTRICTION_FIXED_DATE_CHANGED&quot;, encodedValidty, newEncodedValidity);</span>
+                    }
+                }
+<span class="nc" id="L295">                catch(Exception e) {</span>
+<span class="nc" id="L296">                    log.warn(&quot;Expiration restriction of certificate profile could not be applied!&quot;);</span>
+<span class="nc" id="L297">                }</span>
+            }
+        }
+<span class="nc" id="L300">    }</span>
+
+    public boolean isTypeCA() {
+<span class="nc bnc" id="L303" title="All 4 branches missed.">        return isTypeRootCa() || isTypeSubCa();</span>
+    }
+
+<span class="nc" id="L306">    public boolean isTypeEndEntityAvailable() { return true; }</span>
+<span class="nc" id="L307">    public boolean isTypeSubCaAvailable() { return isAuthorizedTo(StandardRules.ROLE_ROOT.resource()); }</span>
+<span class="nc" id="L308">    public boolean isTypeRootCaAvailable() { return isAuthorizedTo(StandardRules.ROLE_ROOT.resource()); }</span>
+<span class="nc bnc" id="L309" title="All 4 branches missed.">    public boolean isTypeHardTokenAvailable() { return isAuthorizedTo(StandardRules.ROLE_ROOT.resource()) &amp;&amp; getEjbcaWebBean().getGlobalConfiguration().getIssueHardwareTokens(); }</span>
+
+<span class="nc bnc" id="L311" title="All 2 branches missed.">    public boolean isTypeEndEntity() { return getCertificateProfile().getType() == CertificateConstants.CERTTYPE_ENDENTITY; }</span>
+<span class="nc bnc" id="L312" title="All 2 branches missed.">    public boolean isTypeSubCa() { return getCertificateProfile().getType()==CertificateConstants.CERTTYPE_SUBCA; }</span>
+<span class="nc bnc" id="L313" title="All 2 branches missed.">    public boolean isTypeRootCa() { return getCertificateProfile().getType()==CertificateConstants.CERTTYPE_ROOTCA; }</span>
+<span class="nc bnc" id="L314" title="All 2 branches missed.">    public boolean isTypeHardToken() { return getCertificateProfile().getType()==CertificateConstants.CERTTYPE_HARDTOKEN; }</span>
+
+<span class="nc" id="L316">    public void setTypeEndEntity() { getCertificateProfile().setType(CertificateConstants.CERTTYPE_ENDENTITY); }</span>
+<span class="nc" id="L317">    public void setTypeSubCa() { getCertificateProfile().setType(CertificateConstants.CERTTYPE_SUBCA); }</span>
+<span class="nc" id="L318">    public void setTypeRootCa() { getCertificateProfile().setType(CertificateConstants.CERTTYPE_ROOTCA); }</span>
+<span class="nc" id="L319">    public void setTypeHardToken() { getCertificateProfile().setType(CertificateConstants.CERTTYPE_HARDTOKEN); }</span>
+
+    public boolean isUniqueCertificateSerialNumberIndex() {
+<span class="nc" id="L322">        return getEjbcaWebBean().getEjb().getCertificateCreateSession().isUniqueCertificateSerialNumberIndex();</span>
+    }
+
+    public List&lt;SelectItem/*&lt;String,String&gt;*/&gt; getAvailableKeyAlgorithmsAvailable() {
+<span class="nc" id="L326">        final List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L327" title="All 2 branches missed.">        for (final String current : AlgorithmTools.getAvailableKeyAlgorithms()) {</span>
+<span class="nc" id="L328">            ret.add(new SelectItem(current));</span>
+<span class="nc" id="L329">        }</span>
+<span class="nc" id="L330">        return ret;</span>
+    }
+
+    public List&lt;SelectItem/*&lt;String,String&gt;*/&gt; getAvailableEcCurvesAvailable() {
+<span class="nc" id="L334">        final List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L335">        final Map&lt;String, List&lt;String&gt;&gt; namedEcCurvesMap = AlgorithmTools.getNamedEcCurvesMap(false);</span>
+<span class="nc" id="L336">        final String[] keys = namedEcCurvesMap.keySet().toArray(new String[namedEcCurvesMap.size()]);</span>
+<span class="nc" id="L337">        Arrays.sort(keys);</span>
+<span class="nc" id="L338">        ret.add(new SelectItem(CertificateProfile.ANY_EC_CURVE, getEjbcaWebBean().getText(&quot;AVAILABLEECDSABYBITS&quot;)));</span>
+<span class="nc bnc" id="L339" title="All 2 branches missed.">        for (final String name : keys) {</span>
+<span class="nc" id="L340">            ret.add(new SelectItem(name, StringTools.getAsStringWithSeparator(&quot; / &quot;, namedEcCurvesMap.get(name))));</span>
+        }
+<span class="nc" id="L342">        return ret;</span>
+    }
+
+    public List&lt;SelectItem/*&lt;Integer,String*/&gt; getAvailableBitLengthsAvailable() {
+<span class="nc" id="L346">        final List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L347" title="All 2 branches missed.">        for (final int current : CertificateProfile.DEFAULTBITLENGTHS) {</span>
+<span class="nc" id="L348">            ret.add(new SelectItem(current, current + &quot; &quot; + getEjbcaWebBean().getText(&quot;BITS&quot;)));</span>
+        }
+<span class="nc" id="L350">        return ret;</span>
+    }
+
+    public List&lt;SelectItem&gt; getAvailableApprovalProfiles() {
+<span class="nc" id="L354">        List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L355">        ApprovalProfileSession approvalProfileSession = getEjbcaWebBean().getEjb().getApprovalProfileSession();</span>
+<span class="nc" id="L356">        Map&lt;Integer, String&gt; approvalProfiles = approvalProfileSession.getApprovalProfileIdToNameMap();</span>
+<span class="nc" id="L357">        Set&lt;Entry&lt;Integer, String&gt;&gt; entries = approvalProfiles.entrySet();</span>
+<span class="nc bnc" id="L358" title="All 2 branches missed.">        for(Entry&lt;Integer, String&gt; entry : entries) {</span>
+<span class="nc" id="L359">            ret.add(new SelectItem(entry.getKey(), entry.getValue()));</span>
+<span class="nc" id="L360">        }</span>
+
+        // Sort list by name
+<span class="nc" id="L363">        Collections.sort(ret, new Comparator&lt;SelectItem&gt;() {</span>
+            @Override
+            public int compare(final SelectItem a, final SelectItem b) {
+<span class="nc" id="L366">                return a.getLabel().compareToIgnoreCase(b.getLabel());</span>
+            }
+        });
+<span class="nc" id="L369">        ret.add(0, new SelectItem(-1, EjbcaJSFHelper.getBean().getEjbcaWebBean().getText(&quot;NONE&quot;)));</span>
+<span class="nc" id="L370">        return ret;</span>
+    }
+
+    public List&lt;SelectItem/*&lt;String,String*/&gt; getSignatureAlgorithmAvailable() {
+<span class="nc" id="L374">        final List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+        // null becomes &quot;&quot;-value.
+<span class="nc" id="L376">        ret.add(new SelectItem(null, getEjbcaWebBean().getText(&quot;INHERITFROMCA&quot;)));</span>
+<span class="nc bnc" id="L377" title="All 2 branches missed.">        for (final String current : AlgorithmConstants.AVAILABLE_SIGALGS) {</span>
+<span class="nc" id="L378">            ret.add(new SelectItem(current, current));</span>
+        }
+<span class="nc" id="L380">        return ret;</span>
+    }
+    public String getSignatureAlgorithm() {
+<span class="nc" id="L383">        return getCertificateProfile().getSignatureAlgorithm();</span>
+    }
+    public void setSignatureAlgorithm(final String signatureAlgorithm) {
+        // Inherit signature algorithm from issuing CA is signaled by null, but is rendered as &quot;&quot;.
+<span class="nc bnc" id="L387" title="All 2 branches missed.">        final String sigAlg = StringUtils.isBlank(signatureAlgorithm) ? null : signatureAlgorithm;</span>
+<span class="nc" id="L388">        getCertificateProfile().setSignatureAlgorithm(sigAlg);</span>
+<span class="nc" id="L389">    }</span>
+
+    /**
+     * Gets the validity.
+     * @return the validity as ISO8601 date or relative time.
+     * @see  org.cesecore.util.ValidityDate ValidityDate
+     */
+    public String getValidity() {
+<span class="nc" id="L397">        return getCertificateProfile().getEncodedValidity();</span>
+    }
+
+    /**
+     * Sets the validity .
+     * @param value the validity as ISO8601 date or relative time.
+     * @see org.cesecore.util.ValidityDate ValidityDate
+     */
+    public void setValidity(final String value) {
+<span class="nc" id="L406">        String valueToSet = value;</span>
+<span class="nc bnc" id="L407" title="All 2 branches missed.">        if (null != value) {</span>
+            try {
+                // parse fixed date ISO8601
+<span class="nc" id="L410">                ValidityDate.parseAsIso8601(value);</span>
+<span class="nc" id="L411">            } catch (ParseException e) {</span>
+                // parse simple time and get canonical string
+<span class="nc" id="L413">                valueToSet = SimpleTime.toString( SimpleTime.getSecondsFormat().parseMillis(value), SimpleTime.TYPE_DAYS);</span>
+<span class="nc" id="L414">            }</span>
+<span class="nc" id="L415">            getCertificateProfile().setEncodedValidity(valueToSet);</span>
+        }
+<span class="nc" id="L417">    }</span>
+
+    /**
+     * Gets the validity offset.
+     * @return the offset as relative time.
+     * @see org.cesecore.util.SimpleTime SimpleTime
+     */
+    public String getCertificateValidityOffset() {
+<span class="nc" id="L425">        return certificateProfile.getCertificateValidityOffset();</span>
+    }
+
+    /**
+     * Sets the validity offset.
+     * @param value the offset as relative time.
+     * @see org.cesecore.util.SimpleTime SimpleTime
+     */
+    public void setCertificateValidityOffset(String value) {
+<span class="nc" id="L434">        certificateProfile.setCertificateValidityOffset(SimpleTime.toString( SimpleTime.getSecondsFormat().parseMillis(value), SimpleTime.TYPE_MINUTES));</span>
+<span class="nc" id="L435">    }</span>
+
+    public void toggleUseCertificateValidityOffset() throws IOException {
+<span class="nc bnc" id="L438" title="All 2 branches missed.">        getCertificateProfile().setUseCertificateValidityOffset(!getCertificateProfile().getUseCertificateValidityOffset());</span>
+<span class="nc" id="L439">        redirectToComponent(&quot;checkusecertificatevalidityoffsetgroup&quot;);</span>
+<span class="nc" id="L440">    }</span>
+
+    public void toggleUseExpirationRestrictionForWeekdays() throws IOException {
+<span class="nc bnc" id="L443" title="All 2 branches missed.">        getCertificateProfile().setUseExpirationRestrictionForWeekdays(!getCertificateProfile().getUseExpirationRestrictionForWeekdays());</span>
+<span class="nc" id="L444">        redirectToComponent(&quot;checkuseexpirationtrestrictionforweekdaysgroup&quot;);</span>
+<span class="nc" id="L445">    }</span>
+
+<span class="nc" id="L447">    public boolean isExpirationRestrictionMonday() { return getCertificateProfile().getExpirationRestrictionWeekday(Calendar.MONDAY); }</span>
+<span class="nc" id="L448">    public boolean isExpirationRestrictionTuesday() { return getCertificateProfile().getExpirationRestrictionWeekday(Calendar.TUESDAY); }</span>
+<span class="nc" id="L449">    public boolean isExpirationRestrictionWednesday() { return getCertificateProfile().getExpirationRestrictionWeekday(Calendar.WEDNESDAY); }</span>
+<span class="nc" id="L450">    public boolean isExpirationRestrictionThursday() { return getCertificateProfile().getExpirationRestrictionWeekday(Calendar.THURSDAY); }</span>
+<span class="nc" id="L451">    public boolean isExpirationRestrictionFriday() { return getCertificateProfile().getExpirationRestrictionWeekday(Calendar.FRIDAY); }</span>
+<span class="nc" id="L452">    public boolean isExpirationRestrictionSaturday() { return getCertificateProfile().getExpirationRestrictionWeekday(Calendar.SATURDAY); }</span>
+<span class="nc" id="L453">    public boolean isExpirationRestrictionSunday() { return getCertificateProfile().getExpirationRestrictionWeekday(Calendar.SUNDAY); }</span>
+<span class="nc" id="L454">    public void setExpirationRestrictionMonday(final boolean enabled) { getCertificateProfile().setExpirationRestrictionWeekday(Calendar.MONDAY, enabled); }</span>
+<span class="nc" id="L455">    public void setExpirationRestrictionTuesday(final boolean enabled) { getCertificateProfile().setExpirationRestrictionWeekday(Calendar.TUESDAY, enabled); }</span>
+<span class="nc" id="L456">    public void setExpirationRestrictionWednesday(final boolean enabled) { getCertificateProfile().setExpirationRestrictionWeekday(Calendar.WEDNESDAY, enabled); }</span>
+<span class="nc" id="L457">    public void setExpirationRestrictionThursday(final boolean enabled) { getCertificateProfile().setExpirationRestrictionWeekday(Calendar.THURSDAY, enabled); }</span>
+<span class="nc" id="L458">    public void setExpirationRestrictionFriday(final boolean enabled) { getCertificateProfile().setExpirationRestrictionWeekday(Calendar.FRIDAY, enabled); }</span>
+<span class="nc" id="L459">    public void setExpirationRestrictionSaturday(final boolean enabled) { getCertificateProfile().setExpirationRestrictionWeekday(Calendar.SATURDAY, enabled); }</span>
+<span class="nc" id="L460">    public void setExpirationRestrictionSunday(final boolean enabled) { getCertificateProfile().setExpirationRestrictionWeekday(Calendar.SUNDAY, enabled); }</span>
+
+    public List&lt;SelectItem&gt; getExpirationRestrictionWeekdaysAvailable() {
+<span class="nc" id="L463">        final List&lt;SelectItem&gt; result = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L464">        result.add(new SelectItem(Boolean.TRUE, getEjbcaWebBean().getText(&quot;CERT_EXPIRATION_RESTRICTION_BEFORE&quot;)));</span>
+<span class="nc" id="L465">        result.add(new SelectItem(Boolean.FALSE, getEjbcaWebBean().getText(&quot;CERT_EXPIRATION_RESTRICTION_AFTER&quot;)));</span>
+<span class="nc" id="L466">        return result;</span>
+    }
+
+    public void toggleUseBasicConstraints() throws IOException {
+<span class="nc bnc" id="L470" title="All 2 branches missed.">        getCertificateProfile().setUseBasicConstraints(!getCertificateProfile().getUseBasicConstraints());</span>
+<span class="nc" id="L471">        redirectToComponent(&quot;header_x509v3extensions&quot;);</span>
+<span class="nc" id="L472">    }</span>
+
+    public void toggleUsePathLengthConstraint() throws IOException {
+<span class="nc bnc" id="L475" title="All 2 branches missed.">        getCertificateProfile().setUsePathLengthConstraint(!getCertificateProfile().getUsePathLengthConstraint());</span>
+<span class="nc bnc" id="L476" title="All 2 branches missed.">        if (getCertificateProfile().getUsePathLengthConstraint()) {</span>
+<span class="nc" id="L477">            getCertificateProfile().setPathLengthConstraint(1);</span>
+        } else {
+<span class="nc" id="L479">            getCertificateProfile().setPathLengthConstraint(0);</span>
+        }
+<span class="nc" id="L481">        redirectToComponent(&quot;header_x509v3extensions&quot;);</span>
+<span class="nc" id="L482">    }</span>
+
+    public void toggleUseKeyUsage() throws IOException {
+<span class="nc bnc" id="L485" title="All 2 branches missed.">        getCertificateProfile().setUseKeyUsage(!getCertificateProfile().getUseKeyUsage());</span>
+<span class="nc" id="L486">        redirectToComponent(&quot;header_x509v3extensions_usages&quot;);</span>
+<span class="nc" id="L487">    }</span>
+
+<span class="nc" id="L489">    public boolean isKeyUsageDigitalSignature() { return getCertificateProfile().getKeyUsage(CertificateConstants.DIGITALSIGNATURE); }</span>
+<span class="nc" id="L490">    public boolean isKeyUsageNonRepudiation() { return getCertificateProfile().getKeyUsage(CertificateConstants.NONREPUDIATION); }</span>
+<span class="nc" id="L491">    public boolean isKeyUsageKeyEncipherment() { return getCertificateProfile().getKeyUsage(CertificateConstants.KEYENCIPHERMENT); }</span>
+<span class="nc" id="L492">    public boolean isKeyUsageDataEncipherment() { return getCertificateProfile().getKeyUsage(CertificateConstants.DATAENCIPHERMENT); }</span>
+<span class="nc" id="L493">    public boolean isKeyUsageKeyAgreement() { return getCertificateProfile().getKeyUsage(CertificateConstants.KEYAGREEMENT); }</span>
+<span class="nc" id="L494">    public boolean isKeyUsageKeyCertSign() { return getCertificateProfile().getKeyUsage(CertificateConstants.KEYCERTSIGN); }</span>
+<span class="nc" id="L495">    public boolean isKeyUsageKeyCrlSign() { return getCertificateProfile().getKeyUsage(CertificateConstants.CRLSIGN); }</span>
+<span class="nc" id="L496">    public boolean isKeyUsageEncipherOnly() { return getCertificateProfile().getKeyUsage(CertificateConstants.ENCIPHERONLY); }</span>
+<span class="nc" id="L497">    public boolean isKeyUsageDecipherOnly() { return getCertificateProfile().getKeyUsage(CertificateConstants.DECIPHERONLY); }</span>
+<span class="nc" id="L498">    public void setKeyUsageDigitalSignature(final boolean enabled) { getCertificateProfile().setKeyUsage(CertificateConstants.DIGITALSIGNATURE, enabled); }</span>
+<span class="nc" id="L499">    public void setKeyUsageNonRepudiation(final boolean enabled) { getCertificateProfile().setKeyUsage(CertificateConstants.NONREPUDIATION, enabled); }</span>
+<span class="nc" id="L500">    public void setKeyUsageKeyEncipherment(final boolean enabled) { getCertificateProfile().setKeyUsage(CertificateConstants.KEYENCIPHERMENT, enabled); }</span>
+<span class="nc" id="L501">    public void setKeyUsageDataEncipherment(final boolean enabled) { getCertificateProfile().setKeyUsage(CertificateConstants.DATAENCIPHERMENT, enabled); }</span>
+<span class="nc" id="L502">    public void setKeyUsageKeyAgreement(final boolean enabled) { getCertificateProfile().setKeyUsage(CertificateConstants.KEYAGREEMENT, enabled); }</span>
+<span class="nc" id="L503">    public void setKeyUsageKeyCertSign(final boolean enabled) { getCertificateProfile().setKeyUsage(CertificateConstants.KEYCERTSIGN, enabled); }</span>
+<span class="nc" id="L504">    public void setKeyUsageKeyCrlSign(final boolean enabled) { getCertificateProfile().setKeyUsage(CertificateConstants.CRLSIGN, enabled); }</span>
+<span class="nc" id="L505">    public void setKeyUsageEncipherOnly(final boolean enabled) { getCertificateProfile().setKeyUsage(CertificateConstants.ENCIPHERONLY, enabled); }</span>
+<span class="nc" id="L506">    public void setKeyUsageDecipherOnly(final boolean enabled) { getCertificateProfile().setKeyUsage(CertificateConstants.DECIPHERONLY, enabled); }</span>
+<span class="nc bnc" id="L507" title="All 2 branches missed.">    public boolean isNonOverridableExtensionOIDs() { return !getCertificateProfile().getNonOverridableExtensionOIDs().isEmpty(); }</span>
+    /** Toggles which Set is populated, the one for overridable, or the one for non-overridable
+     * true to populate non-overridable extension list, false for overridable
+     * @throws IOException Fail
+     */
+    public void toggleAllowExtensionOverride() throws IOException {
+<span class="nc bnc" id="L513" title="All 2 branches missed.">        getCertificateProfile().setAllowExtensionOverride(!getCertificateProfile().getAllowExtensionOverride());</span>
+<span class="nc" id="L514">        redirectToComponent(&quot;checkallowextensionoverridegroup&quot;);</span>
+<span class="nc" id="L515">    }</span>
+    public void setNonOverridableExtensionOIDs(final boolean enabled) {
+<span class="nc" id="L517">        final CertificateProfile profile = getCertificateProfile();</span>
+<span class="nc" id="L518">        Set&lt;String&gt; extensions = getOverridableExtensionOIDs();</span>
+<span class="nc bnc" id="L519" title="All 2 branches missed.">        if (enabled) {</span>
+<span class="nc" id="L520">            profile.setNonOverridableExtensionOIDs(extensions);</span>
+<span class="nc" id="L521">            profile.setOverridableExtensionOIDs(new LinkedHashSet&lt;String&gt;());</span>
+        } else {
+<span class="nc" id="L523">            profile.setOverridableExtensionOIDs(extensions);</span>
+<span class="nc" id="L524">            profile.setNonOverridableExtensionOIDs(new LinkedHashSet&lt;String&gt;());</span>
+        }
+<span class="nc" id="L526">    }</span>
+    public Set&lt;String&gt; getOverridableExtensionOIDs() {
+<span class="nc" id="L528">        final CertificateProfile profile = getCertificateProfile();</span>
+<span class="nc bnc" id="L529" title="All 2 branches missed.">        if (isNonOverridableExtensionOIDs()) {</span>
+<span class="nc" id="L530">            return profile.getNonOverridableExtensionOIDs();</span>
+        } else {
+<span class="nc" id="L532">            return profile.getOverridableExtensionOIDs();</span>
+        }
+    }
+    public void setOverridableExtensionOIDs(Set&lt;String&gt; oids) {
+<span class="nc" id="L536">        final CertificateProfile profile = getCertificateProfile();</span>
+<span class="nc bnc" id="L537" title="All 2 branches missed.">        if (isNonOverridableExtensionOIDs()) {</span>
+<span class="nc" id="L538">            profile.setNonOverridableExtensionOIDs(oids);</span>
+        } else {
+<span class="nc" id="L540">            profile.setOverridableExtensionOIDs(oids);</span>
+        }
+
+<span class="nc" id="L543">    }</span>
+
+    public void toggleUseExtendedKeyUsage() throws IOException {
+<span class="nc bnc" id="L546" title="All 2 branches missed.">        getCertificateProfile().setUseExtendedKeyUsage(!getCertificateProfile().getUseExtendedKeyUsage());</span>
+<span class="nc" id="L547">        redirectToComponent(&quot;header_x509v3extensions_usages&quot;);</span>
+<span class="nc" id="L548">    }</span>
+
+    public List&lt;SelectItem&gt; getExtendedKeyUsageOidsAvailable() {
+<span class="nc" id="L551">        final List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L552">        AvailableExtendedKeyUsagesConfiguration ekuConfig = getEjbcaWebBean().getAvailableExtendedKeyUsagesConfiguration();</span>
+<span class="nc" id="L553">        Map&lt;String, String&gt; ekus = ekuConfig.getAllEKUOidsAndNames();</span>
+<span class="nc" id="L554">        ArrayList&lt;String&gt; usedEKUs = getCertificateProfile().getExtendedKeyUsageOids();</span>
+        //If in view only mode, display only used EKU's
+<span class="nc bnc" id="L556" title="All 2 branches missed.">        if (certProfilesBean.getViewOnly()) {</span>
+<span class="nc bnc" id="L557" title="All 2 branches missed.">            for(String oid : usedEKUs) {</span>
+<span class="nc bnc" id="L558" title="All 2 branches missed.">                if(ekus.containsKey(oid)) {</span>
+<span class="nc" id="L559">                    ret.add(new SelectItem(oid, getEjbcaWebBean().getText(ekus.get(oid))));</span>
+                } else {
+<span class="nc" id="L561">                    ret.add(new SelectItem(oid, oid));</span>
+                }
+<span class="nc" id="L563">            }</span>
+        } else {
+<span class="nc bnc" id="L565" title="All 2 branches missed.">            for (Entry&lt;String, String&gt; eku : ekus.entrySet()) {</span>
+<span class="nc" id="L566">                ret.add(new SelectItem(eku.getKey(), getEjbcaWebBean().getText(eku.getValue())));</span>
+<span class="nc" id="L567">            }</span>
+<span class="nc bnc" id="L568" title="All 2 branches missed.">            for (String oid : usedEKUs) {</span>
+<span class="nc bnc" id="L569" title="All 2 branches missed.">                if (!ekus.containsKey(oid)) {</span>
+<span class="nc" id="L570">                    ret.add(new SelectItem(oid, oid));</span>
+                }
+<span class="nc" id="L572">            }</span>
+        }
+<span class="nc" id="L574">        Collections.sort(ret, new Comparator&lt;SelectItem&gt;() {</span>
+            @Override
+            public int compare(SelectItem first, SelectItem second) {
+<span class="nc" id="L577">                return first.getLabel().compareTo(second.getLabel());</span>
+            }
+
+        });
+<span class="nc" id="L581">        return ret;</span>
+    }
+
+    public void toggleUseSubjectAlternativeName() throws IOException {
+<span class="nc bnc" id="L585" title="All 2 branches missed.">        getCertificateProfile().setUseSubjectAlternativeName(!getCertificateProfile().getUseSubjectAlternativeName());</span>
+        // Default store to enabled when extension is first enabled and vice versa
+<span class="nc" id="L587">        getCertificateProfile().setStoreSubjectAlternativeName(getCertificateProfile().getUseSubjectAlternativeName());</span>
+<span class="nc" id="L588">        redirectToComponent(&quot;header_x509v3extensions_names&quot;);</span>
+<span class="nc" id="L589">    }</span>
+
+    public void toggleUseIssuerAlternativeName() throws IOException {
+<span class="nc bnc" id="L592" title="All 2 branches missed.">        getCertificateProfile().setUseIssuerAlternativeName(!getCertificateProfile().getUseIssuerAlternativeName());</span>
+<span class="nc" id="L593">        redirectToComponent(&quot;header_x509v3extensions_names&quot;);</span>
+<span class="nc" id="L594">    }</span>
+
+    public void toggleUseNameConstraints() throws IOException {
+<span class="nc bnc" id="L597" title="All 2 branches missed.">        getCertificateProfile().setUseNameConstraints(!getCertificateProfile().getUseNameConstraints());</span>
+<span class="nc" id="L598">        redirectToComponent(&quot;header_x509v3extensions_names&quot;);</span>
+<span class="nc" id="L599">    }</span>
+
+    public void toggleUseCRLDistributionPoint() throws IOException {
+<span class="nc bnc" id="L602" title="All 2 branches missed.">        getCertificateProfile().setUseCRLDistributionPoint(!getCertificateProfile().getUseCRLDistributionPoint());</span>
+<span class="nc" id="L603">        redirectToComponent(&quot;header_x509v3extensions_valdata&quot;);</span>
+<span class="nc" id="L604">    }</span>
+
+    public void toggleUseDefaultCRLDistributionPoint() throws IOException {
+<span class="nc bnc" id="L607" title="All 2 branches missed.">        getCertificateProfile().setUseDefaultCRLDistributionPoint(!getCertificateProfile().getUseDefaultCRLDistributionPoint());</span>
+<span class="nc" id="L608">        redirectToComponent(&quot;header_x509v3extensions_valdata&quot;);</span>
+<span class="nc" id="L609">    }</span>
+
+    public void toggleUseCADefinedFreshestCRL() throws IOException {
+<span class="nc bnc" id="L612" title="All 2 branches missed.">        getCertificateProfile().setUseCADefinedFreshestCRL(!getCertificateProfile().getUseCADefinedFreshestCRL());</span>
+<span class="nc" id="L613">        redirectToComponent(&quot;header_x509v3extensions_valdata&quot;);</span>
+<span class="nc" id="L614">    }</span>
+
+    public void toggleUseFreshestCRL() throws IOException {
+<span class="nc bnc" id="L617" title="All 2 branches missed.">        getCertificateProfile().setUseFreshestCRL(!getCertificateProfile().getUseFreshestCRL());</span>
+<span class="nc" id="L618">        redirectToComponent(&quot;header_x509v3extensions_valdata&quot;);</span>
+<span class="nc" id="L619">    }</span>
+
+    public void toggleUseCertificatePolicies() throws IOException {
+<span class="nc bnc" id="L622" title="All 2 branches missed.">        getCertificateProfile().setUseCertificatePolicies(!getCertificateProfile().getUseCertificatePolicies());</span>
+<span class="nc" id="L623">        redirectToComponent(&quot;header_x509v3extensions_usages&quot;);</span>
+<span class="nc" id="L624">    }</span>
+
+    public ListDataModel&lt;CertificatePolicy&gt; getCertificatePolicies() {
+<span class="nc bnc" id="L627" title="All 2 branches missed.">        if (certificatePoliciesModel==null) {</span>
+<span class="nc" id="L628">            final List&lt;CertificatePolicy&gt; certificatePolicies = getCertificateProfile().getCertificatePolicies();</span>
+<span class="nc bnc" id="L629" title="All 2 branches missed.">            if (certificatePolicies!=null) {</span>
+<span class="nc" id="L630">                certificatePoliciesModel = new ListDataModel&lt;&gt;(certificatePolicies);</span>
+            } else {
+<span class="nc" id="L632">                certificatePoliciesModel = new ListDataModel&lt;&gt;();</span>
+            }
+        }
+<span class="nc" id="L635">        return certificatePoliciesModel;</span>
+    }
+
+    public boolean isCurrentCertificatePolicyQualifierIdNone() {
+<span class="nc" id="L639">        return &quot;&quot;.equals(getCertificatePolicies().getRowData().getQualifierId());</span>
+    }
+    public boolean isCurrentCertificatePolicyQualifierIdCpsUri() {
+<span class="nc" id="L642">        return CertificatePolicy.ID_QT_CPS.equals(getCertificatePolicies().getRowData().getQualifierId());</span>
+    }
+    public boolean isCurrentCertificatePolicyQualifierIdUserNotice() {
+<span class="nc" id="L645">        return CertificatePolicy.ID_QT_UNNOTICE.equals(getCertificatePolicies().getRowData().getQualifierId());</span>
+    }
+
+    public CertificatePolicy getNewCertificatePolicy() {
+<span class="nc bnc" id="L649" title="All 2 branches missed.">        if (newCertificatePolicy==null) {</span>
+<span class="nc" id="L650">            newCertificatePolicy = new CertificatePolicy(&quot;&quot;, &quot;&quot;, &quot;&quot;);</span>
+        }
+<span class="nc" id="L652">        return newCertificatePolicy;</span>
+    }
+<span class="nc" id="L654">    public void setNewCertificatePolicy(final CertificatePolicy newCertificatePolicy) { this.newCertificatePolicy = newCertificatePolicy; }</span>
+
+    public void actionNewCertificatePolicyQualifierIdNone() throws IOException {
+<span class="nc" id="L657">        getNewCertificatePolicy().setQualifierId(&quot;&quot;);</span>
+<span class="nc" id="L658">        getNewCertificatePolicy().setQualifier(&quot;&quot;);</span>
+<span class="nc" id="L659">        redirectToComponent(&quot;header_x509v3extensions_usages&quot;);</span>
+<span class="nc" id="L660">    }</span>
+    public void actionNewCertificatePolicyQualifierIdCpsUri() throws IOException {
+<span class="nc" id="L662">        getNewCertificatePolicy().setQualifierId(CertificatePolicy.ID_QT_CPS);</span>
+<span class="nc" id="L663">        getNewCertificatePolicy().setQualifier(&quot;&quot;);</span>
+<span class="nc" id="L664">        redirectToComponent(&quot;header_x509v3extensions_usages&quot;);</span>
+<span class="nc" id="L665">    }</span>
+    public void actionNewCertificatePolicyQualifierIdUserNotice() throws IOException {
+<span class="nc" id="L667">        getNewCertificatePolicy().setQualifierId(CertificatePolicy.ID_QT_UNNOTICE);</span>
+<span class="nc" id="L668">        getNewCertificatePolicy().setQualifier(&quot;&quot;);</span>
+<span class="nc" id="L669">        redirectToComponent(&quot;header_x509v3extensions_usages&quot;);</span>
+<span class="nc" id="L670">    }</span>
+<span class="nc" id="L671">    public boolean isNewCertificatePolicyQualifierIdNone() { return &quot;&quot;.equals(getNewCertificatePolicy().getQualifierId()); }</span>
+<span class="nc" id="L672">    public boolean isNewCertificatePolicyQualifierIdCpsUri() { return CertificatePolicy.ID_QT_CPS.equals(getNewCertificatePolicy().getQualifierId()); }</span>
+<span class="nc" id="L673">    public boolean isNewCertificatePolicyQualifierIdUserNotice() { return CertificatePolicy.ID_QT_UNNOTICE.equals(getNewCertificatePolicy().getQualifierId()); }</span>
+
+    public String addCertificatePolicy() throws IOException {
+<span class="nc" id="L676">        CertificatePolicy newCertificatePolicy = getNewCertificatePolicy();</span>
+<span class="nc bnc" id="L677" title="All 2 branches missed.">        if (newCertificatePolicy.getPolicyID().trim().length()&gt;0) {</span>
+            // Only add the policy if something is specified in the PolicyID field
+<span class="nc" id="L679">            newCertificatePolicy = new CertificatePolicy(newCertificatePolicy.getPolicyID().trim(), newCertificatePolicy.getQualifierId(), newCertificatePolicy.getQualifier().trim());</span>
+<span class="nc" id="L680">            getCertificateProfile().addCertificatePolicy(newCertificatePolicy);</span>
+        }
+<span class="nc" id="L682">        setNewCertificatePolicy(null);</span>
+<span class="nc" id="L683">        certificatePoliciesModel = null;</span>
+<span class="nc" id="L684">        redirectToComponent(&quot;header_x509v3extensions_usages&quot;);</span>
+<span class="nc" id="L685">        return &quot;&quot;;</span>
+    }
+
+    public String deleteCertificatePolicy() throws IOException {
+<span class="nc" id="L689">        final CertificatePolicy certificatePolicy = getCertificatePolicies().getRowData();</span>
+<span class="nc" id="L690">        getCertificateProfile().removeCertificatePolicy(certificatePolicy);</span>
+<span class="nc" id="L691">        newCertificatePolicy = certificatePolicy;</span>
+<span class="nc" id="L692">        certificatePoliciesModel = null;</span>
+<span class="nc" id="L693">        redirectToComponent(&quot;header_x509v3extensions_usages&quot;);</span>
+<span class="nc" id="L694">        return &quot;&quot;;</span>
+    }
+
+    public ListDataModel&lt;String&gt; getCaIssuers() {
+<span class="nc bnc" id="L698" title="All 2 branches missed.">        if (caIssuersModel==null) {</span>
+<span class="nc" id="L699">            final List&lt;String&gt; caIssuers = getCertificateProfile().getCaIssuers();</span>
+<span class="nc bnc" id="L700" title="All 2 branches missed.">            if (caIssuers!=null) {</span>
+<span class="nc" id="L701">                caIssuersModel = new ListDataModel&lt;&gt;(caIssuers);</span>
+            } else {
+<span class="nc" id="L703">                caIssuersModel = new ListDataModel&lt;&gt;();</span>
+            }
+        }
+<span class="nc" id="L706">        return caIssuersModel;</span>
+    }
+
+    public void toggleUseAuthorityInformationAccess() throws IOException {
+<span class="nc bnc" id="L710" title="All 2 branches missed.">        getCertificateProfile().setUseAuthorityInformationAccess(!getCertificateProfile().getUseAuthorityInformationAccess());</span>
+<span class="nc" id="L711">        redirectToComponent(&quot;header_x509v3extensions_valdata&quot;);</span>
+<span class="nc" id="L712">    }</span>
+
+    public void toggleUseDefaultCAIssuer() throws IOException {
+<span class="nc bnc" id="L715" title="All 2 branches missed.">        getCertificateProfile().setUseDefaultCAIssuer(!getCertificateProfile().getUseDefaultCAIssuer());</span>
+<span class="nc" id="L716">        redirectToComponent(&quot;header_x509v3extensions_valdata&quot;);</span>
+<span class="nc" id="L717">    }</span>
+
+    public void toggleUseDefaultOCSPServiceLocator() throws IOException {
+<span class="nc bnc" id="L720" title="All 2 branches missed.">        getCertificateProfile().setUseDefaultOCSPServiceLocator(!getCertificateProfile().getUseDefaultOCSPServiceLocator());</span>
+<span class="nc" id="L721">        redirectToComponent(&quot;header_x509v3extensions_valdata&quot;);</span>
+<span class="nc" id="L722">    }</span>
+
+<span class="nc" id="L724">    public String getNewCaIssuer() { return newCaIssuer; }</span>
+<span class="nc" id="L725">    public void setNewCaIssuer(String newCaIssuer) { this.newCaIssuer = newCaIssuer.trim(); }</span>
+
+    public String addCaIssuer() throws IOException {
+<span class="nc" id="L728">        getCertificateProfile().addCaIssuer(newCaIssuer);</span>
+<span class="nc" id="L729">        newCaIssuer = &quot;&quot;;</span>
+<span class="nc" id="L730">        caIssuersModel = null;</span>
+<span class="nc" id="L731">        redirectToComponent(&quot;header_x509v3extensions_valdata&quot;);</span>
+<span class="nc" id="L732">        return &quot;&quot;;</span>
+    }
+
+    public String deleteCaIssuer() throws IOException {
+<span class="nc" id="L736">        final String caIssuer = getCaIssuers().getRowData();</span>
+<span class="nc" id="L737">        getCertificateProfile().removeCaIssuer(caIssuer);</span>
+<span class="nc" id="L738">        newCaIssuer = caIssuer;</span>
+<span class="nc" id="L739">        caIssuersModel = null;</span>
+<span class="nc" id="L740">        redirectToComponent(&quot;header_x509v3extensions_valdata&quot;);</span>
+<span class="nc" id="L741">        return &quot;&quot;;</span>
+    }
+
+    public void toggleUsePrivateKeyUsagePeriodNotBefore() throws IOException {
+<span class="nc bnc" id="L745" title="All 2 branches missed.">        getCertificateProfile().setUsePrivateKeyUsagePeriodNotBefore(!getCertificateProfile().isUsePrivateKeyUsagePeriodNotBefore());</span>
+<span class="nc" id="L746">        redirectToComponent(&quot;header_x509v3extensions_valdata&quot;);</span>
+<span class="nc" id="L747">    }</span>
+
+    public String getPrivateKeyUsagePeriodStartOffset() {
+<span class="nc" id="L750">        final CertificateProfile certificateProfile = getCertificateProfile();</span>
+<span class="nc bnc" id="L751" title="All 2 branches missed.">        if (certificateProfile.isUsePrivateKeyUsagePeriodNotBefore()) {</span>
+<span class="nc" id="L752">            return SimpleTime.toString(certificateProfile.getPrivateKeyUsagePeriodStartOffset() * 1000, SimpleTime.TYPE_DAYS);</span>
+        } else {
+<span class="nc" id="L754">            return &quot;&quot;;</span>
+        }
+    }
+    public void setPrivateKeyUsagePeriodStartOffset(String value) {
+<span class="nc bnc" id="L758" title="All 2 branches missed.">        if (null != value) {</span>
+<span class="nc" id="L759">            final long millis = SimpleTime.getSecondsFormat().parseMillis(value);</span>
+<span class="nc bnc" id="L760" title="All 2 branches missed.">            if (millis &gt;= 0) {</span>
+<span class="nc" id="L761">                getCertificateProfile().setPrivateKeyUsagePeriodStartOffset(millis / 1000);</span>
+            }
+        }
+<span class="nc" id="L764">    }</span>
+
+    public void toggleUsePrivateKeyUsagePeriodNotAfter() throws IOException {
+<span class="nc bnc" id="L767" title="All 2 branches missed.">        getCertificateProfile().setUsePrivateKeyUsagePeriodNotAfter(!getCertificateProfile().isUsePrivateKeyUsagePeriodNotAfter());</span>
+<span class="nc" id="L768">        redirectToComponent(&quot;header_x509v3extensions_valdata&quot;);</span>
+<span class="nc" id="L769">    }</span>
+
+    public String getPrivateKeyUsagePeriodLength() {
+<span class="nc" id="L772">        final CertificateProfile certificateProfile = getCertificateProfile();</span>
+<span class="nc bnc" id="L773" title="All 2 branches missed.">        if (certificateProfile.isUsePrivateKeyUsagePeriodNotAfter()) {</span>
+<span class="nc" id="L774">            return SimpleTime.toString(certificateProfile.getPrivateKeyUsagePeriodLength() * 1000, SimpleTime.TYPE_DAYS);</span>
+        } else {
+<span class="nc" id="L776">            return &quot;&quot;;</span>
+        }
+    }
+    public void setPrivateKeyUsagePeriodLength(String value) {
+<span class="nc bnc" id="L780" title="All 2 branches missed.">        if (null != value) {</span>
+<span class="nc" id="L781">            final long millis = SimpleTime.getSecondsFormat().parseMillis(value);</span>
+<span class="nc bnc" id="L782" title="All 2 branches missed.">            if (millis &gt; 0) {</span>
+<span class="nc" id="L783">                getCertificateProfile().setPrivateKeyUsagePeriodLength(millis / 1000);</span>
+            }
+        }
+<span class="nc" id="L786">    }</span>
+
+    public void toggleUseQCStatement() throws IOException {
+<span class="nc bnc" id="L789" title="All 2 branches missed.">        getCertificateProfile().setUseQCStatement(!getCertificateProfile().getUseQCStatement());</span>
+<span class="nc" id="L790">        redirectToComponent(&quot;header_qcStatements&quot;);</span>
+<span class="nc" id="L791">    }</span>
+
+    private List&lt;PKIDisclosureStatement&gt; getQCEtsiPdsList() {
+<span class="nc" id="L794">        List&lt;PKIDisclosureStatement&gt; pdsList = getCertificateProfile().getQCEtsiPds();</span>
+<span class="nc bnc" id="L795" title="All 2 branches missed.">        if (pdsList == null) {</span>
+<span class="nc" id="L796">            pdsList = new ArrayList&lt;&gt;();</span>
+            // Add a blank line, so the user can fill it in quickly (and blank lines are
+            // automatically deleted when saving, so this will never end up in certificates)
+<span class="nc" id="L799">            pdsList.add(new PKIDisclosureStatement(&quot;&quot;, &quot;en&quot;));</span>
+        }
+<span class="nc" id="L801">        return pdsList;</span>
+    }
+
+    public ListDataModel&lt;PKIDisclosureStatement&gt; getQCEtsiPds() {
+<span class="nc bnc" id="L805" title="All 2 branches missed.">        if (pdsListModel == null) {</span>
+<span class="nc" id="L806">            final List&lt;PKIDisclosureStatement&gt; pdsList = getQCEtsiPdsList();</span>
+<span class="nc" id="L807">            pdsListModel = new ListDataModel&lt;&gt;(pdsList);</span>
+            // Listener that sends back changes into the cert profile
+<span class="nc" id="L809">            pdsListModel.addDataModelListener(new DataModelListener() {</span>
+                @Override
+                public void rowSelected(final DataModelEvent event) {
+<span class="nc" id="L812">                    final PKIDisclosureStatement pds = (PKIDisclosureStatement) event.getRowData();</span>
+<span class="nc" id="L813">                    final int index = event.getRowIndex();</span>
+<span class="nc bnc" id="L814" title="All 4 branches missed.">                    if (index != -1 &amp;&amp; index &lt; pdsList.size()) {</span>
+<span class="nc" id="L815">                        pdsList.set(index, pds);</span>
+<span class="nc" id="L816">                        getCertificateProfile().setQCEtsiPds(pdsList);</span>
+                    }
+<span class="nc" id="L818">                }</span>
+            });
+        }
+<span class="nc" id="L821">        return pdsListModel;</span>
+    }
+
+    /** Called when the user presses the &quot;Add&quot; button to add a new PDS URL field 
+     * @return String
+     * @throws IOException Fail */
+    public String addQCEtsiPds() throws IOException {
+<span class="nc" id="L828">        final List&lt;PKIDisclosureStatement&gt; pdsList = getQCEtsiPdsList();</span>
+<span class="nc" id="L829">        pdsList.add(new PKIDisclosureStatement(&quot;&quot;, &quot;en&quot;)); // start with blank values, that the user can fill in</span>
+<span class="nc" id="L830">        getCertificateProfile().setQCEtsiPds(pdsList);</span>
+<span class="nc" id="L831">        pdsListModel = null;</span>
+<span class="nc" id="L832">        redirectToComponent(&quot;header_qcStatements&quot;);</span>
+<span class="nc" id="L833">        return &quot;&quot;;</span>
+    }
+
+    public String deleteQCEtsiPds() throws IOException {
+<span class="nc" id="L837">        final List&lt;PKIDisclosureStatement&gt; pdsList = getQCEtsiPdsList();</span>
+<span class="nc" id="L838">        int index = getQCEtsiPds().getRowIndex();</span>
+<span class="nc" id="L839">        pdsList.remove(index);</span>
+<span class="nc" id="L840">        getCertificateProfile().setQCEtsiPds(pdsList);</span>
+<span class="nc" id="L841">        pdsListModel = null;</span>
+<span class="nc" id="L842">        redirectToComponent(&quot;header_qcStatements&quot;);</span>
+<span class="nc" id="L843">        return &quot;&quot;;</span>
+    }
+
+    /** Returns true if there's a PDS URL filled in that can be deleted 
+     * @return Bool*/
+    public boolean isAbleToDeletePDSUrl() {
+<span class="nc" id="L849">        final List&lt;PKIDisclosureStatement&gt; pdsList = getQCEtsiPdsList();</span>
+<span class="nc bnc" id="L850" title="All 2 branches missed.">        if (pdsList.size() == 1) {</span>
+            // Note that when we reach zero items, there will be a blank placeholder where the user can fill in an URL.
+<span class="nc bnc" id="L852" title="All 4 branches missed.">            if (pdsList.get(0) == null || pdsList.get(0).getUrl() == null) {</span>
+            	// can't delete the placeholder itself
+<span class="nc" id="L854">                return false;</span>
+            }
+<span class="nc bnc" id="L856" title="All 2 branches missed.">            return !pdsList.get(0).getUrl().isEmpty(); // can't delete the placeholder itself</span>
+        } else {
+<span class="nc" id="L858">            return true;</span>
+        }
+    }
+
+    public void toggleUseQCEtsiValueLimit() throws IOException {
+<span class="nc bnc" id="L863" title="All 2 branches missed.">        getCertificateProfile().setUseQCEtsiValueLimit(!getCertificateProfile().getUseQCEtsiValueLimit());</span>
+<span class="nc" id="L864">        redirectToComponent(&quot;header_qcStatements&quot;);</span>
+<span class="nc" id="L865">    }</span>
+
+    public void toggleUseQCEtsiRetentionPeriod() throws IOException {
+<span class="nc bnc" id="L868" title="All 2 branches missed.">        getCertificateProfile().setUseQCEtsiRetentionPeriod(!getCertificateProfile().getUseQCEtsiRetentionPeriod());</span>
+<span class="nc" id="L869">        redirectToComponent(&quot;header_qcStatements&quot;);</span>
+<span class="nc" id="L870">    }</span>
+
+    public void toggleUseQCCustomString() throws IOException {
+<span class="nc bnc" id="L873" title="All 2 branches missed.">        getCertificateProfile().setUseQCCustomString(!getCertificateProfile().getUseQCCustomString());</span>
+<span class="nc" id="L874">        redirectToComponent(&quot;header_qcStatements&quot;);</span>
+<span class="nc" id="L875">    }</span>
+
+    public void toggleUseCertificateTransparencyInCerts() throws IOException {
+<span class="nc bnc" id="L878" title="All 2 branches missed.">        getCertificateProfile().setUseCertificateTransparencyInCerts(!getCertificateProfile().isUseCertificateTransparencyInCerts());</span>
+<span class="nc" id="L879">        redirectToComponent(&quot;header_certificatetransparency&quot;);</span>
+<span class="nc" id="L880">    }</span>
+
+    public void toggleUseCertificateTransparencyInOCSP() throws IOException {
+<span class="nc bnc" id="L883" title="All 2 branches missed.">        getCertificateProfile().setUseCertificateTransparencyInOCSP(!getCertificateProfile().isUseCertificateTransparencyInOCSP());</span>
+<span class="nc" id="L884">        redirectToComponent(&quot;header_certificatetransparency&quot;);</span>
+<span class="nc" id="L885">    }</span>
+
+    public void toggleUseCertificateTransparencyInPublishers() throws IOException {
+<span class="nc bnc" id="L888" title="All 2 branches missed.">        getCertificateProfile().setUseCertificateTransparencyInPublishers(!getCertificateProfile().isUseCertificateTransparencyInPublishers());</span>
+<span class="nc" id="L889">        redirectToComponent(&quot;header_certificatetransparency&quot;);</span>
+<span class="nc" id="L890">    }</span>
+    
+    public void toggleNumberOfSctBy() throws IOException {
+<span class="nc bnc" id="L893" title="All 2 branches missed.">        getCertificateProfile().setNumberOfSctByCustom(!getCertificateProfile().isNumberOfSctByCustom());</span>
+<span class="nc bnc" id="L894" title="All 2 branches missed.">        getCertificateProfile().setNumberOfSctByValidity(!getCertificateProfile().isNumberOfSctByValidity());</span>
+<span class="nc" id="L895">        redirectToComponent(&quot;header_certificatetransparency&quot;);</span>
+<span class="nc" id="L896">    }</span>
+        
+    public void toggleMaxNumberOfSctBy() throws IOException {
+<span class="nc bnc" id="L899" title="All 2 branches missed.">        getCertificateProfile().setMaxNumberOfSctByCustom(!getCertificateProfile().isMaxNumberOfSctByCustom());</span>
+<span class="nc bnc" id="L900" title="All 2 branches missed.">        getCertificateProfile().setMaxNumberOfSctByValidity(!getCertificateProfile().isMaxNumberOfSctByValidity());</span>
+<span class="nc" id="L901">        redirectToComponent(&quot;header_certificatetransparency&quot;);</span>
+<span class="nc" id="L902">    }</span>
+    
+<span class="nc" id="L904">    public boolean isCtAvailable() { return CertificateTransparencyFactory.isCTAvailable(); }</span>
+<span class="nc" id="L905">    public boolean isCtEnabled() { return getCertificateProfile().isCtEnabled(); }</span>
+
+    public boolean isCtInCertsOrOCSPEnabled() {
+<span class="nc bnc" id="L908" title="All 2 branches missed.">        return getCertificateProfile().isUseCertificateTransparencyInCerts() ||</span>
+<span class="nc bnc" id="L909" title="All 2 branches missed.">            getCertificateProfile().isUseCertificateTransparencyInOCSP();</span>
+    }
+
+    public boolean isCtInOCSPOrPublishersEnabled() {
+<span class="nc bnc" id="L913" title="All 2 branches missed.">        return getCertificateProfile().isUseCertificateTransparencyInOCSP() ||</span>
+<span class="nc bnc" id="L914" title="All 2 branches missed.">            getCertificateProfile().isUseCertificateTransparencyInPublishers();</span>
+    }
+    
+    public boolean isNumberOfSctsByValidity() {
+<span class="nc" id="L918">        return getCertificateProfile().isNumberOfSctByValidity();</span>
+    }
+
+    public boolean isNumberOfSctsByCustom() {
+<span class="nc" id="L922">        return getCertificateProfile().isNumberOfSctByCustom();</span>
+    }
+    
+    public boolean isMaxNumberOfSctsByValidity() {
+<span class="nc" id="L926">        return getCertificateProfile().isMaxNumberOfSctByValidity();</span>
+    }
+    
+    public boolean isMaxNumberOfSctsByCustom() {
+<span class="nc" id="L930">        return getCertificateProfile().isMaxNumberOfSctByCustom();</span>
+    }
+    
+    public List&lt;SelectItem&gt; getDistinctCtLabelsAvailable() {
+        // Since labels are members of CTlogs (and not the other way around due to legacy design) we select distinct labels this way
+<span class="nc" id="L935">        final List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L936">        final Map&lt;String, String&gt; distinctLables = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L937" title="All 2 branches missed.">        for (final CTLogInfo current : getEjbcaWebBean().getGlobalConfiguration().getCTLogs().values()) {</span>
+<span class="nc bnc" id="L938" title="All 2 branches missed.">            if (!distinctLables.containsKey(current.getLabel())) {</span>
+<span class="nc" id="L939">                ret.add(new SelectItem(current.getLabel()));</span>
+<span class="nc" id="L940">                distinctLables.put(current.getLabel(), current.getLabel());</span>
+            }
+<span class="nc" id="L942">        }</span>
+<span class="nc" id="L943">        Collections.sort(ret, new Comparator&lt;SelectItem&gt;() {</span>
+            @Override
+            public int compare(SelectItem label1, SelectItem label2) {
+<span class="nc" id="L946">                return label1.getLabel().compareToIgnoreCase(label2.getLabel());</span>
+            }
+        });
+<span class="nc" id="L949">        return ret;</span>
+    }
+    
+    /** @return 
+     *    the size of the select box */ 
+<span class="nc" id="L954">    public int getDistinctCTLabelsAvailableSize() { return Math.max(3, Math.min(6, getDistinctCtLabelsAvailable().size())); }</span>
+
+    public List&lt;String&gt; getEnabledCtLabels() {
+<span class="nc" id="L957">        return new ArrayList&lt;&gt;(getCertificateProfile().getEnabledCtLabels());</span>
+    }
+    
+    public void setEnabledCtLabels(final List&lt;String&gt; selectedLabels) {
+<span class="nc" id="L961">        getCertificateProfile().setEnabledCTLabels(new LinkedHashSet&lt;&gt;(selectedLabels));</span>
+<span class="nc" id="L962">    }</span>
+    
+    public void toggleUseMicrosoftTemplate() throws IOException {
+<span class="nc bnc" id="L965" title="All 2 branches missed.">        getCertificateProfile().setUseMicrosoftTemplate(!getCertificateProfile().getUseMicrosoftTemplate());</span>
+<span class="nc" id="L966">        redirectToComponent(&quot;otherextensions&quot;);</span>
+<span class="nc" id="L967">    }</span>
+
+    public List&lt;SelectItem/*&lt;String,String*/&gt; getMicrosoftTemplateAvailable() {
+<span class="nc" id="L970">        final List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L971" title="All 2 branches missed.">        for (final String current : CertificateProfile.AVAILABLE_MSTEMPLATES) {</span>
+<span class="nc" id="L972">            ret.add(new SelectItem(current, current));</span>
+        }
+<span class="nc" id="L974">        return ret;</span>
+    }
+
+    public void toggleUseDocumentTypeList() throws IOException {
+<span class="nc bnc" id="L978" title="All 2 branches missed.">        getCertificateProfile().setUseDocumentTypeList(!getCertificateProfile().getUseDocumentTypeList());</span>
+<span class="nc" id="L979">        redirectToComponent(&quot;cvc_epassport&quot;);</span>
+<span class="nc" id="L980">    }</span>
+
+<span class="nc" id="L982">    public String getDocumentTypeListNew() { return documentTypeListNew; }</span>
+<span class="nc" id="L983">    public void setDocumentTypeListNew(String documentTypeListNew) { this.documentTypeListNew = documentTypeListNew.trim(); }</span>
+
+    public void documentTypeListRemove() throws IOException {
+<span class="nc" id="L986">        final String current = getDocumentTypeList().getRowData();</span>
+<span class="nc" id="L987">        ArrayList&lt;String&gt; documentTypeListValue = getCertificateProfile().getDocumentTypeList();</span>
+<span class="nc" id="L988">        documentTypeListValue.remove(current);</span>
+<span class="nc" id="L989">        getCertificateProfile().setDocumentTypeList(documentTypeListValue);</span>
+<span class="nc" id="L990">        documentTypeListNew = current;</span>
+<span class="nc" id="L991">        documentTypeList = null;    // Trigger reload of model</span>
+<span class="nc" id="L992">        redirectToComponent(&quot;cvc_epassport&quot;);</span>
+<span class="nc" id="L993">    }</span>
+    public void documentTypeListAdd() throws IOException {
+<span class="nc bnc" id="L995" title="All 2 branches missed.">        if (documentTypeListNew.length()&gt;0) {</span>
+<span class="nc" id="L996">            ArrayList&lt;String&gt; documentTypeListValue = getCertificateProfile().getDocumentTypeList();</span>
+<span class="nc" id="L997">            documentTypeListValue.add(documentTypeListNew);</span>
+<span class="nc" id="L998">            getCertificateProfile().setDocumentTypeList(documentTypeListValue);</span>
+<span class="nc" id="L999">            documentTypeListNew = &quot;&quot;;</span>
+<span class="nc" id="L1000">            documentTypeList = null;    // Trigger reload of model</span>
+        }
+<span class="nc" id="L1002">        redirectToComponent(&quot;cvc_epassport&quot;);</span>
+<span class="nc" id="L1003">    }</span>
+    public ListDataModel&lt;String&gt; getDocumentTypeList() {
+<span class="nc bnc" id="L1005" title="All 2 branches missed.">        if (documentTypeList==null) {</span>
+<span class="nc" id="L1006">            documentTypeList = new ListDataModel&lt;&gt;(getCertificateProfile().getDocumentTypeList());</span>
+        }
+<span class="nc" id="L1008">        return documentTypeList;</span>
+    }
+
+    public boolean isCvcAvailable() {
+<span class="nc" id="L1012">        return CvcCA.getImplementationClasses().iterator().hasNext();</span>
+    }
+
+<span class="nc" id="L1015">    public boolean isCvcTerminalTypeIs() { return getCertificateProfile().isCvcTerminalTypeIs(); }</span>
+<span class="nc" id="L1016">    public boolean isCvcTerminalTypeAt() { return getCertificateProfile().isCvcTerminalTypeAt(); }</span>
+<span class="nc" id="L1017">    public boolean isCvcTerminalTypeSt() { return getCertificateProfile().isCvcTerminalTypeSt(); }</span>
+
+    public void setCvcTerminalTypeIs() throws IOException {
+<span class="nc" id="L1020">        getCertificateProfile().setCVCTerminalType(CertificateProfile.CVC_TERMTYPE_IS);</span>
+<span class="nc" id="L1021">        getCertificateProfile().setCVCAccessRights(CertificateProfile.CVC_ACCESS_NONE);</span>
+<span class="nc" id="L1022">        getCertificateProfile().setCVCLongAccessRights(null);</span>
+<span class="nc" id="L1023">        redirectToComponent(&quot;cvc_epassport&quot;);</span>
+<span class="nc" id="L1024">    }</span>
+    public void setCvcTerminalTypeAt() throws IOException {
+<span class="nc" id="L1026">        getCertificateProfile().setCVCTerminalType(CertificateProfile.CVC_TERMTYPE_AT);</span>
+<span class="nc" id="L1027">        getCertificateProfile().setCVCAccessRights(CertificateProfile.CVC_ACCESS_NONE);</span>
+<span class="nc" id="L1028">        getCertificateProfile().setCVCLongAccessRights(null);</span>
+<span class="nc" id="L1029">        redirectToComponent(&quot;cvc_epassport&quot;);</span>
+<span class="nc" id="L1030">    }</span>
+    public void setCvcTerminalTypeSt() throws IOException {
+<span class="nc" id="L1032">        getCertificateProfile().setCVCTerminalType(CertificateProfile.CVC_TERMTYPE_ST);</span>
+<span class="nc" id="L1033">        getCertificateProfile().setCVCAccessRights(CertificateProfile.CVC_ACCESS_NONE);</span>
+<span class="nc" id="L1034">        getCertificateProfile().setCVCLongAccessRights(null);</span>
+<span class="nc" id="L1035">        redirectToComponent(&quot;cvc_epassport&quot;);</span>
+<span class="nc" id="L1036">    }</span>
+
+    public List&lt;SelectItem/*&lt;Integer,String*/&gt; getCvcSignTermDVTypeAvailable() {
+<span class="nc" id="L1039">        final List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L1040">        ret.add(new SelectItem(CertificateProfile.CVC_SIGNTERM_DV_AB, getEjbcaWebBean().getText(&quot;CVCACCREDITATIONBODY&quot;)));</span>
+<span class="nc" id="L1041">        ret.add(new SelectItem(CertificateProfile.CVC_SIGNTERM_DV_CSP, getEjbcaWebBean().getText(&quot;CVCCERTIFICATIONSERVICEPROVIDER&quot;)));</span>
+<span class="nc" id="L1042">        return ret;</span>
+    }
+
+    // Translation between UI and CertificateProfile's format
+    public List&lt;Integer&gt; getCvcLongAccessRights() {
+<span class="nc" id="L1047">        byte[] arl = getCertificateProfile().getCVCLongAccessRights();</span>
+<span class="nc bnc" id="L1048" title="All 2 branches missed.">        if (arl == null) {</span>
+<span class="nc" id="L1049">            arl = CertificateProfile.DEFAULT_CVC_RIGHTS_AT;</span>
+        }
+        AccessRightAuthTerm arlflags;
+        try {
+<span class="nc" id="L1053">            arlflags = new AccessRightAuthTerm(arl);</span>
+<span class="nc" id="L1054">        } catch (IllegalArgumentException e) {</span>
+            // zero-length array or other error
+<span class="nc" id="L1056">            arlflags = new AccessRightAuthTerm();</span>
+<span class="nc" id="L1057">        }</span>
+<span class="nc" id="L1058">        final List&lt;Integer&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L1059" title="All 2 branches missed.">        for (int i=0; i&lt;=37; i++) {</span>
+<span class="nc bnc" id="L1060" title="All 2 branches missed.">            if (arlflags.getFlag(i)) {</span>
+<span class="nc" id="L1061">                ret.add(Integer.valueOf(i));</span>
+            }
+        }
+<span class="nc" id="L1064">        return ret;</span>
+    }
+    // Translation between UI and CertificateProfile's format
+    public void setCvcLongAccessRights(List&lt;Integer&gt; in) {
+<span class="nc" id="L1068">        final AccessRightAuthTerm arlflags = new AccessRightAuthTerm(CertificateProfile.DEFAULT_CVC_RIGHTS_AT);</span>
+<span class="nc bnc" id="L1069" title="All 2 branches missed.">        for (final Integer current : in) {</span>
+<span class="nc" id="L1070">            arlflags.setFlag(current, true);</span>
+<span class="nc" id="L1071">        }</span>
+<span class="nc" id="L1072">        getCertificateProfile().setCVCAccessRights(CertificateProfile.CVC_ACCESS_NONE);</span>
+<span class="nc" id="L1073">        getCertificateProfile().setCVCLongAccessRights(arlflags.getEncoded());</span>
+<span class="nc" id="L1074">    }</span>
+
+<span class="nc" id="L1076">    public boolean isCvcAccessRightDg3() { return isCvcAccessRight(CertificateProfile.CVC_ACCESS_DG3); }</span>
+<span class="nc" id="L1077">    public boolean isCvcAccessRightDg4() { return isCvcAccessRight(CertificateProfile.CVC_ACCESS_DG4); }</span>
+<span class="nc" id="L1078">    public boolean isCvcAccessRightSign() { return isCvcAccessRight(CertificateProfile.CVC_ACCESS_SIGN); }</span>
+<span class="nc" id="L1079">    public boolean isCvcAccessRightQualSign() { return isCvcAccessRight(CertificateProfile.CVC_ACCESS_QUALSIGN); }</span>
+<span class="nc" id="L1080">    public void setCvcAccessRightDg3(final boolean enabled) { setCvcAccessRight(CertificateProfile.CVC_ACCESS_DG3, enabled); }</span>
+<span class="nc" id="L1081">    public void setCvcAccessRightDg4(final boolean enabled) { setCvcAccessRight(CertificateProfile.CVC_ACCESS_DG4, enabled); }</span>
+<span class="nc" id="L1082">    public void setCvcAccessRightSign(final boolean enabled) { setCvcAccessRight(CertificateProfile.CVC_ACCESS_SIGN, enabled); }</span>
+<span class="nc" id="L1083">    public void setCvcAccessRightQualSign(final boolean enabled) { setCvcAccessRight(CertificateProfile.CVC_ACCESS_QUALSIGN, enabled); }</span>
+
+    private boolean isCvcAccessRight(final int accessRight) {
+<span class="nc bnc" id="L1086" title="All 2 branches missed.">        return (getCertificateProfile().getCVCAccessRights() &amp; accessRight) != 0;</span>
+    }
+    private void setCvcAccessRight(final int accessRight, final boolean enabled) {
+<span class="nc bnc" id="L1089" title="All 2 branches missed.">        if (enabled) {</span>
+<span class="nc" id="L1090">            getCertificateProfile().setCVCAccessRights(getCertificateProfile().getCVCAccessRights() | accessRight);</span>
+        } else {
+<span class="nc" id="L1092">            getCertificateProfile().setCVCAccessRights(getCertificateProfile().getCVCAccessRights() &amp; ~accessRight);</span>
+        }
+<span class="nc" id="L1094">    }</span>
+
+    public List&lt;SelectItem/*&lt;Integer,String*/&gt; getCvcAccessRightsAtAvailable() {
+<span class="nc" id="L1097">        final List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L1098">        ret.add(new SelectItem(String.valueOf(0), getEjbcaWebBean().getText(&quot;CVCACCESSAGEVERIFICATION&quot;)));</span>
+<span class="nc" id="L1099">        ret.add(new SelectItem(String.valueOf(1), getEjbcaWebBean().getText(&quot;CVCACCESSCOMMUNITYIDVERIFICATION&quot;)));</span>
+<span class="nc" id="L1100">        ret.add(new SelectItem(String.valueOf(2), getEjbcaWebBean().getText(&quot;CVCACCESSRESTRICTEDIDENTIFICATION&quot;)));</span>
+<span class="nc" id="L1101">        ret.add(new SelectItem(String.valueOf(3), getEjbcaWebBean().getText(&quot;CVCACCESSPRIVILEGEDTERMINAL&quot;)));</span>
+<span class="nc" id="L1102">        ret.add(new SelectItem(String.valueOf(4), getEjbcaWebBean().getText(&quot;CVCACCESSCANALLOWED&quot;)));</span>
+<span class="nc" id="L1103">        ret.add(new SelectItem(String.valueOf(5), getEjbcaWebBean().getText(&quot;CVCACCESSPINMANAGEMENT&quot;)));</span>
+<span class="nc" id="L1104">        ret.add(new SelectItem(String.valueOf(6), getEjbcaWebBean().getText(&quot;CVCACCESSINSTALLCERT&quot;)));</span>
+<span class="nc" id="L1105">        ret.add(new SelectItem(String.valueOf(7), getEjbcaWebBean().getText(&quot;CVCACCESSINSTALLQUALIFIEDCERT&quot;)));</span>
+<span class="nc bnc" id="L1106" title="All 2 branches missed.">        for (int i=8; i&lt;=28; i++) {</span>
+<span class="nc" id="L1107">            ret.add(new SelectItem(String.valueOf(i), getEjbcaWebBean().getText(&quot;CVCACCESSREADDG&quot;, false, i-8+1)));</span>
+        }
+<span class="nc" id="L1109">        ret.add(new SelectItem(String.valueOf(37), getEjbcaWebBean().getText(&quot;CVCACCESSWRITEDG&quot;, false, 17)));</span>
+<span class="nc" id="L1110">        ret.add(new SelectItem(String.valueOf(36), getEjbcaWebBean().getText(&quot;CVCACCESSWRITEDG&quot;, false, 18)));</span>
+<span class="nc" id="L1111">        ret.add(new SelectItem(String.valueOf(35), getEjbcaWebBean().getText(&quot;CVCACCESSWRITEDG&quot;, false, 19)));</span>
+<span class="nc" id="L1112">        ret.add(new SelectItem(String.valueOf(34), getEjbcaWebBean().getText(&quot;CVCACCESSWRITEDG&quot;, false, 20)));</span>
+<span class="nc" id="L1113">        ret.add(new SelectItem(String.valueOf(33), getEjbcaWebBean().getText(&quot;CVCACCESSWRITEDG&quot;, false, 21)));</span>
+<span class="nc" id="L1114">        return ret;</span>
+    }
+
+    public void toggleUseCustomDnOrder() throws IOException {
+<span class="nc bnc" id="L1118" title="All 2 branches missed.">        getCertificateProfile().setUseCustomDnOrder(!getCertificateProfile().getUseCustomDnOrder());</span>
+<span class="nc" id="L1119">        redirectToComponent(&quot;otherdata&quot;);</span>
+<span class="nc" id="L1120">    }</span>
+
+    public void toggleUseCustomDnOrderLdap() throws IOException {
+<span class="nc bnc" id="L1123" title="All 2 branches missed.">        getCertificateProfile().setUseCustomDnOrderWithLdap(!getCertificateProfile().getUseCustomDnOrderWithLdap());</span>
+<span class="nc" id="L1124">        redirectToComponent(&quot;otherdata&quot;);</span>
+<span class="nc" id="L1125">    }</span>
+
+    public void toggleUseCNPostfix() throws IOException {
+<span class="nc bnc" id="L1128" title="All 2 branches missed.">        getCertificateProfile().setUseCNPostfix(!getCertificateProfile().getUseCNPostfix());</span>
+<span class="nc" id="L1129">        redirectToComponent(&quot;otherdata&quot;);</span>
+<span class="nc" id="L1130">    }</span>
+
+    public void toggleUseSubjectDNSubSet() throws IOException {
+<span class="nc bnc" id="L1133" title="All 2 branches missed.">        getCertificateProfile().setUseSubjectDNSubSet(!getCertificateProfile().getUseSubjectDNSubSet());</span>
+<span class="nc" id="L1134">        redirectToComponent(&quot;otherdata&quot;);</span>
+<span class="nc" id="L1135">    }</span>
+
+    public List&lt;SelectItem/*&lt;Integer,String*/&gt; getSubjectDNSubSetAvailable() {
+<span class="nc" id="L1138">        final List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L1139">        final List&lt;Integer&gt; useSubjectDNFields = DNFieldExtractor.getUseFields(DNFieldExtractor.TYPE_SUBJECTDN);</span>
+<span class="nc bnc" id="L1140" title="All 2 branches missed.">        for (int i=0; i&lt;useSubjectDNFields.size(); i++) {</span>
+<span class="nc" id="L1141">            ret.add(new SelectItem(useSubjectDNFields.get(i), getEjbcaWebBean().getText(DnComponents.getDnLanguageTexts().get(i))));</span>
+        }
+<span class="nc" id="L1143">        return ret;</span>
+    }
+
+    public void toggleUseSubjectAltNameSubSet() throws IOException {
+<span class="nc bnc" id="L1147" title="All 2 branches missed.">        getCertificateProfile().setUseSubjectAltNameSubSet(!getCertificateProfile().getUseSubjectAltNameSubSet());</span>
+<span class="nc" id="L1148">        redirectToComponent(&quot;otherdata&quot;);</span>
+<span class="nc" id="L1149">    }</span>
+
+    public List&lt;SelectItem/*&lt;Integer,String*/&gt; getSubjectAltNameSubSetAvailable() {
+<span class="nc" id="L1152">        final List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L1153">        final List&lt;Integer&gt; useSubjectANFields = DNFieldExtractor.getUseFields(DNFieldExtractor.TYPE_SUBJECTALTNAME);</span>
+<span class="nc bnc" id="L1154" title="All 2 branches missed.">        for (int i=0; i&lt;useSubjectANFields.size(); i++) {</span>
+<span class="nc" id="L1155">            ret.add(new SelectItem(useSubjectANFields.get(i), getEjbcaWebBean().getText(DnComponents.getAltNameLanguageTexts().get(i))));</span>
+        }
+<span class="nc" id="L1157">        return ret;</span>
+    }
+
+    public List&lt;SelectItem&gt; getAvailableCertificateExtensionsAvailable() {
+<span class="nc" id="L1161">        final List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+
+<span class="nc" id="L1163">        AvailableCustomCertificateExtensionsConfiguration cceConfig = getEjbcaWebBean().getAvailableCustomCertExtensionsConfiguration();</span>
+
+<span class="nc" id="L1165">        List&lt;Integer&gt; usedExtensions = getCertificateProfile().getUsedCertificateExtensions();</span>
+<span class="nc bnc" id="L1166" title="All 2 branches missed.">        if (certProfilesBean.getViewOnly()) {</span>
+            //If in view mode, only display used values.
+<span class="nc bnc" id="L1168" title="All 2 branches missed.">            for(int id : usedExtensions) {</span>
+<span class="nc bnc" id="L1169" title="All 2 branches missed.">                if (!cceConfig.isCustomCertExtensionSupported(id)) {</span>
+<span class="nc" id="L1170">                    String note = &quot;ID #&quot; + id + &quot; (No longer used. Please unselect this option)&quot;;</span>
+<span class="nc" id="L1171">                    ret.add(new SelectItem(id, note));</span>
+<span class="nc" id="L1172">                } else {</span>
+<span class="nc" id="L1173">                    ret.add(new SelectItem(id, getEjbcaWebBean().getText(cceConfig.getCustomCertificateExtension(id).getDisplayName())));</span>
+                }
+<span class="nc" id="L1175">            }</span>
+
+        } else {
+<span class="nc bnc" id="L1178" title="All 2 branches missed.">            for (final CertificateExtension current : cceConfig.getAllAvailableCustomCertificateExtensions()) {</span>
+<span class="nc" id="L1179">                ret.add(new SelectItem(current.getId(), getEjbcaWebBean().getText(current.getDisplayName())));</span>
+<span class="nc" id="L1180">            }</span>
+<span class="nc bnc" id="L1181" title="All 2 branches missed.">            for (int id : usedExtensions) {</span>
+<span class="nc bnc" id="L1182" title="All 2 branches missed.">                if (!cceConfig.isCustomCertExtensionSupported(id)) {</span>
+<span class="nc" id="L1183">                    String note = &quot;ID #&quot; + id + &quot; (No longer used. Please unselect this option)&quot;;</span>
+<span class="nc" id="L1184">                    ret.add(new SelectItem(id, note));</span>
+                }
+<span class="nc" id="L1186">            }</span>
+        }
+<span class="nc" id="L1188">        Collections.sort(ret, new Comparator&lt;SelectItem&gt;() {</span>
+            @Override
+            public int compare(SelectItem first, SelectItem second) {
+<span class="nc" id="L1191">                return first.getLabel().compareToIgnoreCase(second.getLabel());</span>
+            }
+        });
+
+<span class="nc" id="L1195">        return ret;</span>
+    }
+
+    public static class ApprovalRequestItem {
+        private final ApprovalRequestType requestType;
+        private int approvalProfileId;
+
+<span class="nc" id="L1202">        public ApprovalRequestItem(final ApprovalRequestType requestType, final int approvalProfileId) {</span>
+<span class="nc" id="L1203">            this.requestType = requestType;</span>
+<span class="nc" id="L1204">            this.approvalProfileId = approvalProfileId;</span>
+<span class="nc" id="L1205">        }</span>
+
+        public ApprovalRequestType getRequestType() {
+<span class="nc" id="L1208">            return requestType;</span>
+        }
+
+        public int getApprovalProfileId() {
+<span class="nc" id="L1212">            return approvalProfileId;</span>
+        }
+
+        public void setApprovalProfileId(int approvalProfileId) {
+<span class="nc" id="L1216">            this.approvalProfileId = approvalProfileId;</span>
+<span class="nc" id="L1217">        }</span>
+
+        public String getDisplayText() {
+<span class="nc" id="L1220">            return EjbcaJSFHelper.getBean().getEjbcaWebBean().getText(requestType.getLanguageString());</span>
+        }
+
+    }
+
+    public List&lt;ApprovalRequestItem&gt; getApprovalRequestItems() {
+<span class="nc bnc" id="L1226" title="All 2 branches missed.">        if (approvalRequestItems == null) {</span>
+<span class="nc" id="L1227">            approvalRequestItems = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L1228">            Map&lt;ApprovalRequestType, Integer&gt; approvals = certificateProfile.getApprovals();</span>
+<span class="nc bnc" id="L1229" title="All 2 branches missed.">            for (ApprovalRequestType approvalRequestType : ApprovalRequestType.values()) {</span>
+                int approvalProfileId;
+<span class="nc bnc" id="L1231" title="All 2 branches missed.">                if (approvals.containsKey(approvalRequestType)) {</span>
+<span class="nc" id="L1232">                    approvalProfileId = approvals.get(approvalRequestType);</span>
+                } else {
+<span class="nc" id="L1234">                    approvalProfileId = -1;</span>
+                }
+                // In certificate profiles we don't want to display the &quot;CA Service Activation&quot; approval type, 
+                // because it is not relevant for certificate profiles But if we have a configuration here, we'll display it
+<span class="nc bnc" id="L1238" title="All 4 branches missed.">                if (!approvalRequestType.equals(ApprovalRequestType.ACTIVATECA) || approvalProfileId != -1) {</span>
+<span class="nc" id="L1239">                    approvalRequestItems.add(new ApprovalRequestItem(approvalRequestType, approvalProfileId));                    </span>
+                }
+            }
+        }
+<span class="nc" id="L1243">        return approvalRequestItems;</span>
+    }
+
+    public int getAvailableCertificateExtensionsAvailableSize() {
+<span class="nc" id="L1247">        return Math.max(1, Math.min(6, getAvailableCertificateExtensionsAvailable().size()));</span>
+    }
+
+    public List&lt;SelectItem/*&lt;Integer,String*/&gt; getAvailableCAsAvailable() {
+<span class="nc" id="L1251">        final List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L1252">        final List&lt;Integer&gt; allCAs = getEjbcaWebBean().getEjb().getCaSession().getAllCaIds();</span>
+<span class="nc" id="L1253">        final List&lt;Integer&gt; authorizedCAs = getEjbcaWebBean().getEjb().getCaSession().getAuthorizedCaIds(getAdmin());</span>
+<span class="nc" id="L1254">        final Map&lt;Integer, String&gt; caIdToNameMap = getEjbcaWebBean().getEjb().getCaSession().getCAIdToNameMap();</span>
+
+        //If in view mode, add only authorized CA's
+<span class="nc bnc" id="L1257" title="All 2 branches missed.">        if (certProfilesBean.getViewOnly()) {</span>
+<span class="nc bnc" id="L1258" title="All 2 branches missed.">            for(final Integer caId : authorizedCAs) {</span>
+<span class="nc" id="L1259">                ret.add(new SelectItem(caId, caIdToNameMap.get(caId), &quot;&quot;, true));</span>
+<span class="nc" id="L1260">            }</span>
+        } else {
+<span class="nc bnc" id="L1262" title="All 2 branches missed.">            for (final Integer caId : allCAs) {</span>
+<span class="nc bnc" id="L1263" title="All 2 branches missed.">                ret.add(new SelectItem(caId, caIdToNameMap.get(caId), &quot;&quot;, (authorizedCAs.contains(caId) ? false : true)));</span>
+<span class="nc" id="L1264">            }</span>
+        }
+<span class="nc" id="L1266">        Collections.sort(ret, new Comparator&lt;SelectItem&gt;() {</span>
+            @Override
+            public int compare(SelectItem first, SelectItem second) {
+<span class="nc" id="L1269">                return first.getLabel().compareToIgnoreCase(second.getLabel());</span>
+            }
+        });
+<span class="nc" id="L1272">        ret. add(0, new SelectItem(String.valueOf(CertificateProfile.ANYCA), getEjbcaWebBean().getText(&quot;ANYCA&quot;)));</span>
+
+<span class="nc" id="L1274">        return ret;</span>
+    }
+
+<span class="nc" id="L1277">    public int getAvailableCAsAvailableSize() { return Math.max(1, Math.min(7, getAvailableCAsAvailable().size())); };</span>
+
+    public List&lt;SelectItem/*&lt;Integer,String*/&gt; getPublisherListAvailable() {
+<span class="nc" id="L1280">        final List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L1281">        final Collection&lt;Integer&gt; authorizedPublisherIds = getEjbcaWebBean().getEjb().getCaAdminSession().getAuthorizedPublisherIds(getAdmin());</span>
+<span class="nc" id="L1282">        final Map&lt;Integer, String&gt; publisherIdToNameMap = getEjbcaWebBean().getEjb().getPublisherSession().getPublisherIdToNameMap();</span>
+<span class="nc bnc" id="L1283" title="All 2 branches missed.">        for (final Integer publisherId : authorizedPublisherIds) {</span>
+<span class="nc" id="L1284">            ret.add(new SelectItem(publisherId, publisherIdToNameMap.get(publisherId)));</span>
+<span class="nc" id="L1285">        }</span>
+<span class="nc" id="L1286">        Collections.sort(ret, new Comparator&lt;SelectItem&gt;() {</span>
+            @Override
+            public int compare(SelectItem first, SelectItem second) {
+<span class="nc" id="L1289">                return first.getLabel().compareToIgnoreCase(second.getLabel());</span>
+            }
+        });
+<span class="nc" id="L1292">        return ret;</span>
+    }
+<span class="nc" id="L1294">    public int getPublisherListAvailableSize() { return Math.max(1, Math.min(5, getPublisherListAvailable().size())); };</span>
+
+    /** Redirect the client browser to the relevant section of certificate profile page 
+     * @param componentId ID
+     * @throws IOException Fail */
+    private void redirectToComponent(final String componentId) throws IOException {
+<span class="nc" id="L1300">        final ExternalContext ec = FacesContext.getCurrentInstance().getExternalContext();</span>
+<span class="nc" id="L1301">        ec.redirect(getEjbcaWebBean().getBaseUrl()+getEjbcaWebBean().getGlobalConfiguration().getAdminWebPath()+&quot;ca/editcertificateprofiles/editcertificateprofile.jsf#cpf:&quot;+componentId);</span>
+<span class="nc" id="L1302">    }</span>
+
+    public String getQcEtsiTypeEsign() {
+<span class="nc" id="L1305">        return CertificateProfileConstants.QC_ETSI_TYPE_ESIGN;</span>
+    }
+    public String getQcEtsiTypeEseal() {
+<span class="nc" id="L1308">        return CertificateProfileConstants.QC_ETSI_TYPE_ESEAL;</span>
+    }
+    public String getQcEtsiTypeWebauth() {
+<span class="nc" id="L1311">        return CertificateProfileConstants.QC_ETSI_TYPE_WEBAUTH;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

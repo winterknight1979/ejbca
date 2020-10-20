@@ -9,13 +9,12 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.certificate.certextensions.standard;
 
 import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.bouncycastle.asn1.ASN1Encodable;
@@ -32,73 +31,100 @@ import org.cesecore.certificates.certificate.certextensions.CertificateExtension
 import org.cesecore.certificates.certificateprofile.CertificateProfile;
 import org.cesecore.certificates.endentity.EndEntityInformation;
 
-/** AuthorityInformationAccess
- * 
- * Class for standard X509 certificate extension. 
- * See rfc3280 or later for spec of this extension.      
- * 
- * @version $Id: AuthorityInformationAccess.java 24591 2016-10-28 08:32:17Z anatom $
+/**
+ * AuthorityInformationAccess
+ *
+ * &lt;p&gt;Class for standard X509 certificate extension. See rfc3280 or later for
+ * spec of this extension.
+ *
+ * @version $Id: AuthorityInformationAccess.java 24591 2016-10-28 08:32:17Z
+ *     anatom $
  */
-<span class="fc" id="L42">public class AuthorityInformationAccess extends StandardCertificateExtension {</span>
-    private static final long serialVersionUID = 1L;
-<span class="fc" id="L44">    private static final Logger log = Logger.getLogger(AuthorityInformationAccess.class);</span>
+<span class="fc" id="L43">public class AuthorityInformationAccess extends StandardCertificateExtension {</span>
+  private static final long serialVersionUID = 1L;
+  /** Logger. */
+<span class="fc" id="L46">  private static final Logger LOG =</span>
+<span class="fc" id="L47">      Logger.getLogger(AuthorityInformationAccess.class);</span>
 
+  @Override
+  public void init(final CertificateProfile certProf) {
+<span class="fc" id="L51">    super.setOID(Extension.authorityInfoAccess.getId());</span>
+<span class="fc" id="L52">    super.setCriticalFlag(false);</span>
+<span class="fc" id="L53">  }</span>
 
-    @Override
-    public void init(final CertificateProfile certProf) {
-<span class="fc" id="L49">		super.setOID(Extension.authorityInfoAccess.getId());</span>
-<span class="fc" id="L50">		super.setCriticalFlag(false);</span>
-<span class="fc" id="L51">	}</span>
-    
-    @Override
-    public ASN1Encodable getValue(final EndEntityInformation subject, final CA ca, final CertificateProfile certProfile,
-            final PublicKey userPublicKey, final PublicKey caPublicKey, CertificateValidity val) throws CertificateExtensionException {
-<span class="fc" id="L56">        final X509CA x509ca = (X509CA) ca;</span>
-<span class="fc" id="L57">        List&lt;String&gt; caIssuerUris = new ArrayList&lt;String&gt;();</span>
-<span class="fc" id="L58">        List&lt;String&gt; ocspServiceLocatorUrls = new ArrayList&lt;String&gt;();</span>
-        
-        // Get AIA by CAs default AIA section or by the certificate profiles configuration.
-<span class="fc bfc" id="L61" title="All 2 branches covered.">        if (certProfile.getUseDefaultCAIssuer()) {</span>
-<span class="fc" id="L62">            caIssuerUris = x509ca.getCertificateAiaDefaultCaIssuerUri();</span>
-        } else {
-<span class="fc" id="L64">            caIssuerUris = certProfile.getCaIssuers();</span>
-        }
-        
-        // Get OCSP by CAs default OCSP Service Locator section or by the certificate profiles configuration.
-<span class="fc bfc" id="L68" title="All 2 branches covered.">        if (certProfile.getUseDefaultOCSPServiceLocator()) {</span>
-<span class="pc bpc" id="L69" title="1 of 2 branches missed.">        	if (StringUtils.isNotBlank(x509ca.getDefaultOCSPServiceLocator())) {</span>
-<span class="fc" id="L70">                ocspServiceLocatorUrls.add(x509ca.getDefaultOCSPServiceLocator());</span>
-            }
-        } else {
-<span class="pc bpc" id="L73" title="1 of 2 branches missed.">            if (StringUtils.isNotBlank(certProfile.getOCSPServiceLocatorURI())) {</span>
-<span class="fc" id="L74">                ocspServiceLocatorUrls.add(certProfile.getOCSPServiceLocatorURI());</span>
-            }
-        }
+  @Override
+  public ASN1Encodable getValue(
+      final EndEntityInformation subject,
+      final CA ca,
+      final CertificateProfile certProfile,
+      final PublicKey userPublicKey,
+      final PublicKey caPublicKey,
+      final CertificateValidity val)
+      throws CertificateExtensionException {
+<span class="fc" id="L64">    final X509CA x509ca = (X509CA) ca;</span>
+<span class="fc" id="L65">    List&lt;String&gt; caIssuerUris = new ArrayList&lt;String&gt;();</span>
+<span class="fc" id="L66">    List&lt;String&gt; ocspServiceLocatorUrls = new ArrayList&lt;String&gt;();</span>
 
-<span class="pc bpc" id="L78" title="1 of 2 branches missed.">        if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L79">            log.debug(&quot;Using certificate AIA (CA Issuer URIs): &quot; + caIssuerUris);</span>
-<span class="nc" id="L80">            log.debug(&quot;Using certificate AIA (OCSP Service Locators): &quot; + ocspServiceLocatorUrls);</span>
-        }
-        
-<span class="fc" id="L83">        final ASN1EncodableVector aia = new ASN1EncodableVector();</span>
-<span class="fc bfc" id="L84" title="All 2 branches covered.">        for (String uri : caIssuerUris) {</span>
-<span class="pc bpc" id="L85" title="1 of 2 branches missed.">            if(StringUtils.isNotEmpty(uri)) {</span>
-<span class="fc" id="L86">                aia.add(new AccessDescription(AccessDescription.id_ad_caIssuers, new GeneralName(GeneralName.uniformResourceIdentifier, new DERIA5String(uri))));</span>
-            }
-<span class="fc" id="L88">        }</span>
-<span class="fc bfc" id="L89" title="All 2 branches covered.">        for (String url : ocspServiceLocatorUrls) {</span>
-<span class="pc bpc" id="L90" title="1 of 2 branches missed.">            if(StringUtils.isNotEmpty(url)) {</span>
-<span class="fc" id="L91">                aia.add(new AccessDescription(AccessDescription.id_ad_ocsp,new GeneralName(GeneralName.uniformResourceIdentifier, new DERIA5String(url))));</span>
-            }
-<span class="fc" id="L93">        }</span>
-<span class="fc" id="L94">        org.bouncycastle.asn1.x509.AuthorityInformationAccess ret = null;</span>
-<span class="pc bpc" id="L95" title="1 of 2 branches missed.">        if (aia.size() &gt; 0) {        	</span>
-<span class="fc" id="L96">            ret = org.bouncycastle.asn1.x509.AuthorityInformationAccess.getInstance(new DERSequence(aia));</span>
-        }
-<span class="pc bpc" id="L98" title="1 of 2 branches missed.">		if (ret == null) {</span>
-<span class="nc" id="L99">			log.error(&quot;AIA extension was used, but neither CA issuer URIs or OCSP service locator URLs was defined!&quot;);</span>
-		}
-<span class="fc" id="L101">		return ret;</span>
-	}	
+    // Get AIA by CAs default AIA section or by the certificate profiles
+    // configuration.
+<span class="fc bfc" id="L70" title="All 2 branches covered.">    if (certProfile.getUseDefaultCAIssuer()) {</span>
+<span class="fc" id="L71">      caIssuerUris = x509ca.getCertificateAiaDefaultCaIssuerUri();</span>
+    } else {
+<span class="fc" id="L73">      caIssuerUris = certProfile.getCaIssuers();</span>
+    }
+
+    // Get OCSP by CAs default OCSP Service Locator section or by the
+    // certificate profiles configuration.
+<span class="fc bfc" id="L78" title="All 2 branches covered.">    if (certProfile.getUseDefaultOCSPServiceLocator()) {</span>
+<span class="pc bpc" id="L79" title="1 of 2 branches missed.">      if (StringUtils.isNotBlank(x509ca.getDefaultOCSPServiceLocator())) {</span>
+<span class="fc" id="L80">        ocspServiceLocatorUrls.add(x509ca.getDefaultOCSPServiceLocator());</span>
+      }
+    } else {
+<span class="pc bpc" id="L83" title="1 of 2 branches missed.">      if (StringUtils.isNotBlank(certProfile.getOCSPServiceLocatorURI())) {</span>
+<span class="fc" id="L84">        ocspServiceLocatorUrls.add(certProfile.getOCSPServiceLocatorURI());</span>
+      }
+    }
+
+<span class="pc bpc" id="L88" title="1 of 2 branches missed.">    if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L89">      LOG.debug(&quot;Using certificate AIA (CA Issuer URIs): &quot; + caIssuerUris);</span>
+<span class="nc" id="L90">      LOG.debug(</span>
+          &quot;Using certificate AIA (OCSP Service Locators): &quot;
+              + ocspServiceLocatorUrls);
+    }
+
+<span class="fc" id="L95">    final ASN1EncodableVector aia = new ASN1EncodableVector();</span>
+<span class="fc bfc" id="L96" title="All 2 branches covered.">    for (String uri : caIssuerUris) {</span>
+<span class="pc bpc" id="L97" title="1 of 2 branches missed.">      if (StringUtils.isNotEmpty(uri)) {</span>
+<span class="fc" id="L98">        aia.add(</span>
+            new AccessDescription(
+                AccessDescription.id_ad_caIssuers,
+                new GeneralName(
+                    GeneralName.uniformResourceIdentifier,
+                    new DERIA5String(uri))));
+      }
+<span class="fc" id="L105">    }</span>
+<span class="fc bfc" id="L106" title="All 2 branches covered.">    for (String url : ocspServiceLocatorUrls) {</span>
+<span class="pc bpc" id="L107" title="1 of 2 branches missed.">      if (StringUtils.isNotEmpty(url)) {</span>
+<span class="fc" id="L108">        aia.add(</span>
+            new AccessDescription(
+                AccessDescription.id_ad_ocsp,
+                new GeneralName(
+                    GeneralName.uniformResourceIdentifier,
+                    new DERIA5String(url))));
+      }
+<span class="fc" id="L115">    }</span>
+<span class="fc" id="L116">    org.bouncycastle.asn1.x509.AuthorityInformationAccess ret = null;</span>
+<span class="pc bpc" id="L117" title="1 of 2 branches missed.">    if (aia.size() &gt; 0) {</span>
+<span class="fc" id="L118">      ret =</span>
+<span class="fc" id="L119">          org.bouncycastle.asn1.x509.AuthorityInformationAccess.getInstance(</span>
+              new DERSequence(aia));
+    }
+<span class="pc bpc" id="L122" title="1 of 2 branches missed.">    if (ret == null) {</span>
+<span class="nc" id="L123">      LOG.error(</span>
+          &quot;AIA extension was used, but neither CA issuer URIs or OCSP service&quot;
+              + &quot; locator URLs was defined!&quot;);
+    }
+<span class="fc" id="L127">    return ret;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

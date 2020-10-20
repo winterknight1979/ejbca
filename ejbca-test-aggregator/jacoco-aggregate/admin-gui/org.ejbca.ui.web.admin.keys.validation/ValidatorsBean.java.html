@@ -1,0 +1,431 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ValidatorsBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">admin-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.keys.validation</a> &gt; <span class="el_source">ValidatorsBean.java</span></div><h1>ValidatorsBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.web.admin.keys.validation;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
+import javax.ejb.EJB;
+import javax.faces.component.UIComponent;
+import javax.faces.component.UIInput;
+import javax.faces.context.FacesContext;
+import javax.faces.model.ListDataModel;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.control.StandardRules;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSessionLocal;
+import org.cesecore.keys.validation.CouldNotRemoveKeyValidatorException;
+import org.cesecore.keys.validation.ExternalScriptsWhitelist;
+import org.cesecore.keys.validation.KeyValidatorDoesntExistsException;
+import org.cesecore.keys.validation.KeyValidatorExistsException;
+import org.cesecore.keys.validation.KeyValidatorSessionLocal;
+import org.cesecore.keys.validation.RsaKeyValidator;
+import org.cesecore.keys.validation.Validator;
+import org.cesecore.util.StringTools;
+import org.ejbca.config.GlobalConfiguration;
+import org.ejbca.core.model.authorization.AccessRulesConstants;
+import org.ejbca.ui.web.admin.BaseManagedBean;
+
+/**
+ * Managed bean for edit validators page (editvalidators.xhtml).
+ *
+ * @version $Id: ValidatorsBean.java 28844 2018-05-04 08:31:02Z samuellb $
+ */
+<span class="nc" id="L51">public class ValidatorsBean extends BaseManagedBean {</span>
+
+    private static final long serialVersionUID = 1969611638716145216L;
+
+    /** Class logger. */
+<span class="nc" id="L56">    private static final Logger log = Logger.getLogger(ValidatorsBean.class);</span>
+
+    /** Selected validator id. */
+<span class="nc" id="L59">    private Integer validatorId = null;</span>
+    
+    /** Selected validator name. */
+<span class="nc" id="L62">    private String validatorName = StringUtils.EMPTY;</span>
+
+    /** New validator name for add, rename and clone action. */
+<span class="nc" id="L65">    private String newValidatorName = StringUtils.EMPTY;</span>
+
+    /** Indicates a rename action in progress to render its view. */
+<span class="nc" id="L68">    private boolean renameInProgress = false;</span>
+    
+    /** Indicates a delete action in progress to render its view. */
+<span class="nc" id="L71">    private boolean deleteInProgress = false;</span>
+    
+    /** Indicates a clone action in progress to render its view. */
+<span class="nc" id="L74">    private boolean addFromTemplateInProgress = false;</span>
+
+    /** View only flag for view action. */
+<span class="nc" id="L77">    private boolean viewOnly = true;</span>
+
+    /** Validators list to render. */
+<span class="nc" id="L80">    private ListDataModel&lt;ValidatorItem&gt; validatorItems = null;</span>
+
+    @EJB
+    private CaSessionLocal caSession;
+
+    @EJB
+    private CertificateProfileSessionLocal certificateProfileSession;
+
+    @EJB
+    private KeyValidatorSessionLocal keyValidatorSession;
+    
+    /**
+     * Gets the selected validator ID.
+     * @return the ID.
+     */
+    public Integer getValidatorId() {
+<span class="nc" id="L96">        return validatorId;</span>
+    }
+
+    /**
+     * Sets the selected validator ID.
+     * @param id the ID.
+     */
+    public void setValidatorId(final Integer id) {
+<span class="nc" id="L104">        validatorId = id;</span>
+<span class="nc" id="L105">    }</span>
+
+    /**
+     * Gets the validator name.
+     * @return the name.
+     */
+    public String getValidatorName() {
+<span class="nc" id="L112">        return validatorName;</span>
+    }
+
+    /**
+     * Sets the validator name.
+     * @param name the name.
+     */
+    public void setValidatorName(String name) {
+<span class="nc" id="L120">        name = name.trim();</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">        if (StringTools.checkFieldForLegalChars(name)) {</span>
+<span class="nc" id="L122">            addErrorMessage(&quot;ONLYCHARACTERS&quot;);</span>
+        } else {
+<span class="nc" id="L124">            this.validatorName = name;</span>
+        }
+<span class="nc" id="L126">    }</span>
+
+    /**
+     * Gets the new validator name.
+     * @return the name.
+     */
+    public String getNewValidatorName() {
+<span class="nc" id="L133">        return newValidatorName;</span>
+    }
+
+    /**
+     * Sets the new validator name.
+     * @param name the name.
+     */
+    public void setNewValidatorName(final String name) {
+<span class="nc" id="L141">        newValidatorName = name;</span>
+<span class="nc" id="L142">    }</span>
+
+    /**
+     * Force a shorter scope (than session scoped) for the ListDataModel by always resetting it before it is rendered
+     * @return Always empty string
+     */
+    public String getResetValidatorsTrigger() {
+<span class="nc" id="L149">        validatorItems = null;</span>
+<span class="nc" id="L150">        return StringUtils.EMPTY;</span>
+    }
+    
+    /**
+     * Internal class for key validator items rendered as table.
+     */
+    public class ValidatorItem {
+
+        private final int id;
+        private final String name;
+        private final String implementationLabel;
+
+        /**
+         * Creates a new instance.
+         * @param id the id
+         * @param name the name
+         * @param implementationLabel the label of the imlementation
+         */
+<span class="nc" id="L168">        public ValidatorItem(final int id, final String name, final String implementationLabel) {</span>
+<span class="nc" id="L169">            this.id = id;</span>
+<span class="nc" id="L170">            this.implementationLabel = implementationLabel;</span>
+<span class="nc" id="L171">            this.name = name;</span>
+<span class="nc" id="L172">        }</span>
+
+        public int getId() {
+<span class="nc" id="L175">            return id;</span>
+        }
+
+        public String getName() {
+<span class="nc" id="L179">            return name;</span>
+        }
+
+        public String getLabel() {
+<span class="nc" id="L183">            return implementationLabel;</span>
+        }
+    }
+
+    /**
+     * Gets the available key validators taking into account access rules. The admin need access to view vlidators, and to all certificate profiles
+     * referenced by the Validator.
+     * @return ListDataModel&amp;lt;ValidatorItem&amp;gt;
+     */
+    public ListDataModel&lt;ValidatorItem&gt; getAvailableValidators() {
+<span class="nc bnc" id="L193" title="All 2 branches missed.">        if (validatorItems == null) {</span>
+<span class="nc" id="L194">            final List&lt;ValidatorItem&gt; items = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L195">            final Collection&lt;Integer&gt; validatorIds = keyValidatorSession.getAuthorizedKeyValidatorIds(getAdmin(), AccessRulesConstants.REGULAR_VIEWVALIDATOR);</span>
+<span class="nc bnc" id="L196" title="All 2 branches missed.">            for (Integer id : validatorIds) {</span>
+<span class="nc" id="L197">            	final Validator validator = keyValidatorSession.getValidator(id);</span>
+<span class="nc" id="L198">                final String accessRule = StandardRules.VALIDATORACCESS.resource() + validator.getProfileId();</span>
+<span class="nc bnc" id="L199" title="All 2 branches missed.">                if (isAuthorizedTo(accessRule)) {</span>
+<span class="nc" id="L200">                    items.add(new ValidatorItem(id, validator.getProfileName(), validator.getLabel()));</span>
+                } else {
+<span class="nc bnc" id="L202" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L203">                        log.debug(&quot;User with token &quot; + getAdmin().getUniqueId() + &quot; is not authorized to access rule &quot;</span>
+<span class="nc" id="L204">                                + StandardRules.VALIDATORACCESS.resource() + validator.getProfileName() + &quot; (&quot;+validator.getProfileId()+&quot;).&quot;);</span>
+                    }
+                }
+<span class="nc" id="L207">            }</span>
+<span class="nc" id="L208">            Collections.sort(items, new Comparator&lt;ValidatorItem&gt;() {</span>
+                @Override
+                public int compare(ValidatorItem o1, ValidatorItem o2) {
+<span class="nc" id="L211">                    return o1.getName().compareToIgnoreCase(o2.getName());</span>
+                }
+            });
+<span class="nc" id="L214">            validatorItems = new ListDataModel&lt;&gt;(items);</span>
+        }
+<span class="nc" id="L216">        return validatorItems;</span>
+    }
+
+    /**
+     * Checks if the administrator is authorized to view.
+     * @return true if authorized.
+     */
+    public boolean isAuthorizedToView() {
+<span class="nc" id="L224">        return isAuthorizedTo(StandardRules.VALIDATORVIEW.resource());</span>
+    }
+
+    /**
+     * Checks if the administrator is authorized to edit.
+     * @return true if authorized.
+     */
+    public boolean isAuthorizedToEdit() {
+<span class="nc" id="L232">        return isAuthorizedTo(StandardRules.VALIDATOREDIT.resource());</span>
+    }
+
+    /**
+     * Gets the view only flag.
+     * @return true if view only.
+     */
+    public boolean getViewOnly() {
+<span class="nc" id="L240">        return viewOnly;</span>
+    }
+
+    /**
+     * Edit action.
+     * @return the navigation outcome defined in faces-config.xml.
+     */
+    public String actionEdit() {
+<span class="nc" id="L248">        selectCurrentRowData();</span>
+<span class="nc" id="L249">        viewOnly = false;</span>
+<span class="nc" id="L250">        return &quot;edit&quot;;</span>
+    }
+
+    /**
+     * View action.
+     * @return the navigation outcome defined in faces-config.xml.
+     */
+    public String actionView() {
+<span class="nc" id="L258">        selectCurrentRowData();</span>
+<span class="nc" id="L259">        viewOnly = true;</span>
+<span class="nc" id="L260">        return &quot;view&quot;;</span>
+    }
+
+    /**
+     * Add action. Adds a new key validator.
+     */
+    public void actionAdd() {
+<span class="nc" id="L267">        final String name = getNewValidatorName();</span>
+<span class="nc bnc" id="L268" title="All 2 branches missed.">        if (StringUtils.isNotBlank(name)) {</span>
+            try {
+<span class="nc" id="L270">                keyValidatorSession.addKeyValidator(getAdmin(), new RsaKeyValidator(name));</span>
+<span class="nc" id="L271">                actionCancel();</span>
+<span class="nc" id="L272">            } catch (KeyValidatorExistsException e) {</span>
+<span class="nc" id="L273">                addErrorMessage(&quot;VALIDATORALREADY&quot;, name);</span>
+<span class="nc" id="L274">            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L275">                addNonTranslatedErrorMessage(e.getMessage());</span>
+<span class="nc" id="L276">            }</span>
+        }
+<span class="nc" id="L278">        validatorItems = null;</span>
+<span class="nc" id="L279">    }</span>
+
+    /**
+     * Selection changed event.
+     */
+    private void selectCurrentRowData() {
+<span class="nc" id="L285">        final ValidatorItem item = getAvailableValidators().getRowData();</span>
+<span class="nc" id="L286">        setValidatorId(item.getId());</span>
+<span class="nc" id="L287">        setValidatorName(item.getName());</span>
+<span class="nc" id="L288">    }</span>
+
+    /**
+     * Checks if a rename, delete or addFromTemplate action is in Progress.
+     * @return true if action is in progress.
+     */
+    public boolean isOperationInProgress() {
+<span class="nc bnc" id="L295" title="All 6 branches missed.">        return isRenameInProgress() || isDeleteInProgress() || isAddFromTemplateInProgress();</span>
+    }
+
+    /**
+     * Checks if a addFromTemplate action is in Progress.
+     * @return true if action is in progress.
+     */
+    public boolean isAddFromTemplateInProgress() {
+<span class="nc" id="L303">        return addFromTemplateInProgress;</span>
+    }
+
+    /**
+     * AddFromTemplate action.
+     */
+    public void actionAddFromTemplate() {
+<span class="nc" id="L310">        selectCurrentRowData();</span>
+<span class="nc" id="L311">        addFromTemplateInProgress = true;</span>
+<span class="nc" id="L312">    }</span>
+
+    /**
+     * AddFromTemplate confirm action.
+     */
+    public void actionAddFromTemplateConfirm() {
+<span class="nc" id="L318">        final String name = getNewValidatorName();</span>
+<span class="nc bnc" id="L319" title="All 2 branches missed.">        if (name.length() &gt; 0) {</span>
+            try {
+<span class="nc" id="L321">                keyValidatorSession.cloneKeyValidator(getAdmin(), getValidatorId(), name);</span>
+<span class="nc" id="L322">                setValidatorName(StringUtils.EMPTY);</span>
+<span class="nc" id="L323">            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L324">                addNonTranslatedErrorMessage(e.getMessage());</span>
+<span class="nc" id="L325">            } catch (KeyValidatorExistsException e) {</span>
+<span class="nc" id="L326">                addErrorMessage(&quot;VALIDATORALREADY&quot;, name);</span>
+<span class="nc" id="L327">            } catch (KeyValidatorDoesntExistsException e) {</span>
+                // NOPMD: ignore do nothing
+<span class="nc" id="L329">            }</span>
+        }
+<span class="nc" id="L331">        actionCancel();</span>
+<span class="nc" id="L332">    }</span>
+
+    /**
+     * Checks if a delete action is in Progress.
+     * @return true if action is in progress.
+     */
+    public boolean isDeleteInProgress() {
+<span class="nc" id="L339">        return deleteInProgress;</span>
+    }
+
+    /**
+     * Delete action.
+     */
+    public void actionDelete() {
+<span class="nc" id="L346">        selectCurrentRowData();</span>
+<span class="nc" id="L347">        deleteInProgress = true;</span>
+<span class="nc" id="L348">    }</span>
+
+    /**
+     * Delete confirm action.
+     */
+    public void actionDeleteConfirm() {
+        try {
+<span class="nc" id="L355">            keyValidatorSession.removeKeyValidator(getAdmin(), getValidatorId());</span>
+<span class="nc" id="L356">            keyValidatorSession.flushKeyValidatorCache();</span>
+<span class="nc" id="L357">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L358">            addNonTranslatedErrorMessage(&quot;Not authorized to remove key validator.&quot;);</span>
+<span class="nc" id="L359">        } catch (CouldNotRemoveKeyValidatorException e) {</span>
+<span class="nc" id="L360">            addErrorMessage(&quot;COULDNTDELETEVALIDATOR&quot;);</span>
+<span class="nc" id="L361">        }</span>
+<span class="nc" id="L362">        actionCancel();</span>
+<span class="nc" id="L363">    }</span>
+
+    /**
+     * Checks if a rename action is in Progress.
+     * @return true if action is in progress.
+     */
+    public boolean isRenameInProgress() {
+<span class="nc" id="L370">        return renameInProgress;</span>
+    }
+
+    /**
+     * Rename action.
+     */
+    public void actionRename() {
+<span class="nc" id="L377">        selectCurrentRowData();</span>
+<span class="nc" id="L378">        renameInProgress = true;</span>
+<span class="nc" id="L379">    }</span>
+
+    /**
+     * Rename confirm action.
+     */
+    public void actionRenameConfirm() {
+<span class="nc" id="L385">        final String name = getNewValidatorName();</span>
+<span class="nc bnc" id="L386" title="All 2 branches missed.">        if (name.length() &gt; 0) {</span>
+            try {
+<span class="nc" id="L388">                keyValidatorSession.renameKeyValidator(getAdmin(), getValidatorId(), name);</span>
+<span class="nc" id="L389">                setValidatorName(StringUtils.EMPTY);</span>
+<span class="nc" id="L390">            } catch (KeyValidatorDoesntExistsException e) {</span>
+<span class="nc" id="L391">                addErrorMessage(&quot;VALIDATORDOESNOTEXIST&quot;, name);</span>
+<span class="nc" id="L392">            } catch (KeyValidatorExistsException e) {</span>
+<span class="nc" id="L393">                addErrorMessage(&quot;VALIDATORALREADY&quot;, name);</span>
+<span class="nc" id="L394">            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L395">                addNonTranslatedErrorMessage(&quot;Not authorized to rename key validator.&quot;);</span>
+<span class="nc" id="L396">            }</span>
+        }
+<span class="nc" id="L398">        actionCancel();</span>
+<span class="nc" id="L399">    }</span>
+
+    /**
+     * Cancel action.
+     */
+    public void actionCancel() {
+<span class="nc" id="L405">        addFromTemplateInProgress = false;</span>
+<span class="nc" id="L406">        deleteInProgress = false;</span>
+<span class="nc" id="L407">        renameInProgress = false;</span>
+<span class="nc" id="L408">        validatorItems = null;</span>
+<span class="nc" id="L409">        validatorId = null;</span>
+<span class="nc" id="L410">        validatorName = null;</span>
+<span class="nc" id="L411">    }</span>
+
+    public void validateExternalCommand(final FacesContext facesContext, final UIComponent uiComponent, Object object) {
+<span class="nc" id="L414">        final GlobalConfiguration globalConfiguration = getEjbcaWebBean().getGlobalConfiguration();</span>
+<span class="nc" id="L415">        final ExternalScriptsWhitelist externalScriptsWhitelist = ExternalScriptsWhitelist.fromText(globalConfiguration.getExternalScriptsWhitelist(),</span>
+<span class="nc" id="L416">                globalConfiguration.getIsExternalScriptsWhitelistEnabled());</span>
+<span class="nc" id="L417">        final String[] arguments = ((String) object).split(&quot; &quot;);</span>
+<span class="nc bnc" id="L418" title="All 2 branches missed.">        if (arguments.length &lt; 1) {</span>
+<span class="nc" id="L419">            ((UIInput) uiComponent).setValid(false);</span>
+<span class="nc" id="L420">            addErrorMessage(&quot;COMMAND_IS_EMPTY&quot;);</span>
+<span class="nc" id="L421">            return;</span>
+        }
+<span class="nc" id="L423">        final String command = arguments[0];</span>
+<span class="nc bnc" id="L424" title="All 2 branches missed.">        if (!externalScriptsWhitelist.isPermitted(command)) {</span>
+<span class="nc" id="L425">            ((UIInput) uiComponent).setValid(false);</span>
+<span class="nc" id="L426">            addErrorMessage(&quot;COMMAND_IS_NOT_PERMITTED&quot;);</span>
+<span class="nc" id="L427">            return;</span>
+        }
+<span class="nc" id="L429">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

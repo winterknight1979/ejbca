@@ -1,0 +1,690 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>BatchMakeP12Command.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.batch</a> &gt; <span class="el_source">BatchMakeP12Command.java</span></div><h1>BatchMakeP12Command.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.cli.batch;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.security.KeyPair;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+
+import org.apache.log4j.Logger;
+import org.cesecore.certificates.ca.CaSessionRemote;
+import org.cesecore.certificates.certificate.IllegalKeyException;
+import org.cesecore.certificates.endentity.EndEntityConstants;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.certificates.util.AlgorithmConstants;
+import org.cesecore.config.GlobalCesecoreConfiguration;
+import org.cesecore.configuration.GlobalConfigurationSessionRemote;
+import org.cesecore.keys.util.KeyTools;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.EJBTools;
+import org.cesecore.util.EjbRemoteHelper;
+import org.ejbca.config.GlobalConfiguration;
+import org.ejbca.core.ejb.ca.auth.EndEntityAuthenticationSessionRemote;
+import org.ejbca.core.ejb.ca.sign.SignSessionRemote;
+import org.ejbca.core.ejb.keyrecovery.KeyRecoverySessionRemote;
+import org.ejbca.core.ejb.ra.EndEntityAccessSessionRemote;
+import org.ejbca.core.ejb.ra.EndEntityManagementSessionRemote;
+import org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSessionRemote;
+import org.ejbca.core.model.InternalEjbcaResources;
+import org.ejbca.core.model.SecConst;
+import org.ejbca.core.model.keyrecovery.KeyRecoveryInformation;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.command.EjbcaCliUserCommandBase;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+import org.ejbca.util.keystore.P12toPEM;
+
+/**
+ * This class generates keys and request certificates for all users with status NEW. The result is
+ * generated PKCS12, JKS or PEM-files.
+ *
+ * @version $Id: BatchMakeP12Command.java 27715 2018-01-02 16:55:19Z mikekushner $
+ */
+<span class="nc" id="L69">public class BatchMakeP12Command extends EjbcaCliUserCommandBase {</span>
+
+    private static final String END_ENTITY_USERNAME_KEY = &quot;--username&quot;;
+    private static final String DIRECTORY_KEY = &quot;-dir&quot;;
+
+<span class="nc" id="L74">    private static final Logger log = Logger.getLogger(BatchMakeP12Command.class);</span>
+
+    {
+<span class="nc" id="L77">        registerParameter(new Parameter(END_ENTITY_USERNAME_KEY, &quot;End entity username&quot;, MandatoryMode.OPTIONAL, StandaloneMode.ALLOW,</span>
+                ParameterMode.ARGUMENT,
+                &quot;The name of the end entity to generate the key for. If omitted, keys will be generated for all users with status NEW or FAILED&quot;));
+<span class="nc" id="L80">        registerParameter(new Parameter(DIRECTORY_KEY, &quot;Directory&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID, ParameterMode.ARGUMENT,</span>
+                &quot;The name of the directory to store the keys to. If not specified, the current EJBCA_HOME/p12 directory will be used.&quot;));
+    }
+
+<span class="nc" id="L84">    private BatchToolProperties props = null;</span>
+
+    /** Lazy loading of properties so we don't have to read it when CliCommandHelper goes through all commands.
+     * @return BatchToolProperties, never null
+     */
+    private BatchToolProperties getProps() {
+<span class="nc bnc" id="L90" title="All 2 branches missed.">        if (props == null) {</span>
+<span class="nc" id="L91">            props = new BatchToolProperties(log);</span>
+        }
+<span class="nc" id="L93">        return props;</span>
+    }
+
+    /**
+     * Where created P12-files are stored, default p12
+     */
+<span class="nc" id="L99">    private String mainStoreDir = &quot;&quot;;</span>
+<span class="nc" id="L100">    private Boolean usekeyrecovery = null;</span>
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L104">        return &quot;batch&quot;;</span>
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L109">        return &quot;Batch generate keys and certificates.&quot;;</span>
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L114">        StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L115">        sb.append(getCommandDescription() + &quot;\n\n&quot;);</span>
+<span class="nc" id="L116">        String indent = &quot;    * &quot;;</span>
+<span class="nc" id="L117">        sb.append(&quot;For end entities to be batch generated, they must fulfill the following criteria:&quot; + &quot;\n&quot;);</span>
+<span class="nc" id="L118">        sb.append(indent + &quot;They must have status NEW, FAILED or KEYRECOVER.&quot;+ &quot;\n&quot;);</span>
+<span class="nc" id="L119">        sb.append(indent + &quot;Cleartext password must be set.&quot;+ &quot;\n&quot;);</span>
+<span class="nc" id="L120">        sb.append(indent + &quot;Token type must be JKS, P12 or PEM.&quot;+ &quot;\n&quot;);</span>
+<span class="nc" id="L121">        return sb.toString();</span>
+    }
+
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+        try {
+<span class="nc" id="L127">            String username = parameters.get(END_ENTITY_USERNAME_KEY);</span>
+<span class="nc" id="L128">            String directory = parameters.get(DIRECTORY_KEY);</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">            if (directory == null) {</span>
+<span class="nc" id="L130">                directory = getHomeDir() + &quot;p12&quot;;</span>
+            }
+
+<span class="nc bnc" id="L133" title="All 2 branches missed.">            if (username == null) {</span>
+<span class="nc" id="L134">                log.info(&quot;Use '&quot; + getMainCommand() + &quot; --help' for additional options.&quot;);</span>
+            }
+            // Bouncy Castle security provider
+<span class="nc" id="L137">            CryptoProviderTools.installBCProviderIfNotAvailable();</span>
+            // Create subdirectory 'p12' if it does not exist
+<span class="nc" id="L139">            File dir = new File(directory).getCanonicalFile();</span>
+<span class="nc" id="L140">            dir.mkdir();</span>
+<span class="nc" id="L141">            setMainStoreDir(directory);</span>
+<span class="nc" id="L142">            String iMsg = InternalEjbcaResources.getInstance().getLocalizedMessage(&quot;batch.generateindir&quot;, dir);</span>
+<span class="nc" id="L143">            log.info(iMsg);</span>
+<span class="nc bnc" id="L144" title="All 2 branches missed.">            if (username != null) {</span>
+<span class="nc" id="L145">                createKeysForUser(username);</span>
+            } else {
+                // Make P12 for all NEW users in local DB
+<span class="nc" id="L148">                createAllNew();</span>
+                // Make P12 for all FAILED users in local DB
+<span class="nc" id="L150">                createAllFailed();</span>
+                // Make P12 for all KEYRECOVERABLE users in local DB
+<span class="nc" id="L152">                createAllKeyRecover();</span>
+            }
+<span class="nc" id="L154">            return CommandResult.SUCCESS;</span>
+<span class="nc" id="L155">        } catch (Exception e) {</span>
+<span class="nc" id="L156">            e.printStackTrace();</span>
+<span class="nc" id="L157">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+        }
+    }
+
+    private boolean getUseKeyRecovery() {
+<span class="nc bnc" id="L162" title="All 2 branches missed.">        if (usekeyrecovery == null) {</span>
+<span class="nc" id="L163">            usekeyrecovery = ((GlobalConfiguration) EjbRemoteHelper.INSTANCE.getRemoteSession(GlobalConfigurationSessionRemote.class)</span>
+<span class="nc" id="L164">                    .getCachedConfiguration(GlobalConfiguration.GLOBAL_CONFIGURATION_ID)).getEnableKeyRecovery();</span>
+        }
+<span class="nc" id="L166">        return usekeyrecovery;</span>
+    }
+
+  
+
+    /**
+     * Sets the location where generated P12-files will be stored, full name
+     * will be: mainStoreDir/username.p12.
+     * 
+     * @param dir
+     *            existing directory
+     */
+    private void setMainStoreDir(String dir) {
+<span class="nc" id="L179">        mainStoreDir = dir;</span>
+<span class="nc" id="L180">    }</span>
+
+    /**
+     * Stores keystore.
+     * 
+     * @param ks
+     *            KeyStore
+     * @param username
+     *            username, the owner of the keystore
+     * @param kspassword
+     *            the password used to protect the peystore
+     * @param createJKS
+     *            if a jks should be created
+     * @param createPEM
+     *            if pem files should be created
+     * @throws IOException
+     *             if directory to store keystore cannot be created
+     * @throws KeyStoreException Fail
+     * @throws UnrecoverableKeyException Fail
+     * @throws NoSuchAlgorithmException  Fail
+     * @throws NoSuchProviderException Fail
+     * @throws CertificateException Faoil
+     */
+    private void storeKeyStore(KeyStore ks, String username, String kspassword, boolean createJKS, boolean createPEM) throws IOException,
+            KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException, NoSuchProviderException, CertificateException {
+<span class="nc bnc" id="L205" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L206">            log.trace(&quot;&gt;storeKeyStore: ks=&quot; + ks.toString() + &quot;, username=&quot; + username);</span>
+        }
+        // Where to store it?
+<span class="nc bnc" id="L209" title="All 2 branches missed.">        if (mainStoreDir == null) {</span>
+<span class="nc" id="L210">            throw new IOException(&quot;Can't find directory to store keystore in.&quot;);</span>
+        }
+
+<span class="nc bnc" id="L213" title="All 2 branches missed.">        if (!new File(mainStoreDir).exists()) {</span>
+<span class="nc" id="L214">            new File(mainStoreDir).mkdir();</span>
+<span class="nc" id="L215">            log.info(&quot;Directory '&quot; + mainStoreDir + &quot;' did not exist and was created.&quot;);</span>
+        }
+
+<span class="nc" id="L218">        String keyStoreFilename = mainStoreDir + &quot;/&quot; + username;</span>
+
+<span class="nc bnc" id="L220" title="All 2 branches missed.">        if (createJKS) {</span>
+<span class="nc" id="L221">            keyStoreFilename += &quot;.jks&quot;;</span>
+        } else {
+<span class="nc" id="L223">            keyStoreFilename += &quot;.p12&quot;;</span>
+        }
+
+        // If we should also create PEM-files, do that
+<span class="nc bnc" id="L227" title="All 2 branches missed.">        if (createPEM) {</span>
+<span class="nc" id="L228">            String PEMfilename = mainStoreDir + &quot;/pem&quot;;</span>
+<span class="nc" id="L229">            P12toPEM p12topem = new P12toPEM(ks, kspassword);</span>
+<span class="nc" id="L230">            p12topem.setExportPath(PEMfilename);</span>
+<span class="nc" id="L231">            p12topem.createPEM();</span>
+<span class="nc" id="L232">        } else {</span>
+<span class="nc" id="L233">            try (final FileOutputStream fileOutputStream = new FileOutputStream(keyStoreFilename);) {</span>
+<span class="nc" id="L234">                ks.store(fileOutputStream, kspassword.toCharArray());</span>
+            }
+        }
+
+<span class="nc" id="L238">        log.debug(&quot;Keystore stored in &quot; + keyStoreFilename);</span>
+<span class="nc bnc" id="L239" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L240">            log.trace(&quot;&lt;storeKeyStore: ks=&quot; + ks.toString() + &quot;, username=&quot; + username);</span>
+        }
+<span class="nc" id="L242">    }</span>
+
+    /**
+     * Creates files for a user, sends request to CA, receives reply and creates
+     * P12.
+     * 
+     * @param username
+     *            username
+     * @param password
+     *            user's password
+     * @param caid
+     *            of CA used to issue the keystore certificates
+     * @param rsaKeys
+     *            a previously generated RSA keypair
+     * @param createJKS
+     *            if a jks should be created
+     * @param createPEM
+     *            if pem files should be created
+     * @param savekeys
+     *            if generated keys should be saved in db (key recovery)
+     * @param orgCert
+     *            if an original key recovered cert should be reused, null
+     *            indicates generate new cert.
+     * @throws Exception
+     *             if the certificate is not an X509 certificate
+     * @throws Exception
+     *             if the CA-certificate is corrupt
+     * @throws Exception
+     *             if verification of certificate or CA-cert fails
+     * @throws Exception
+     *             if keyfile (generated by ourselves) is corrupt
+     */
+
+    private void createKeysForUser(String username, String password, int caid, KeyPair rsaKeys, boolean createJKS, boolean createPEM, boolean savekeys,
+            X509Certificate orgCert) throws Exception {
+<span class="nc bnc" id="L277" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L278">            log.trace(&quot;&gt;createUser: username=&quot; + username);</span>
+        }
+
+<span class="nc" id="L281">        X509Certificate cert = null;</span>
+
+<span class="nc bnc" id="L283" title="All 2 branches missed.">        if (orgCert != null) {</span>
+<span class="nc" id="L284">            cert = orgCert;</span>
+<span class="nc" id="L285">            boolean finishUser = EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class).getCAInfo(getAuthenticationToken(), caid)</span>
+<span class="nc" id="L286">                    .getFinishUser();</span>
+<span class="nc bnc" id="L287" title="All 2 branches missed.">            if (finishUser) {</span>
+<span class="nc" id="L288">                EndEntityInformation userdata = EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityAccessSessionRemote.class).findUser(</span>
+<span class="nc" id="L289">                        getAuthenticationToken(), username);</span>
+<span class="nc" id="L290">                EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityAuthenticationSessionRemote.class).finishUser(userdata);</span>
+            }
+
+<span class="nc" id="L293">        } else {</span>
+            // Create self signed certificate, because ECDSA keys are not
+            // serializable
+<span class="nc" id="L296">            String sigAlg = AlgorithmConstants.SIGALG_SHA1_WITH_RSA;</span>
+<span class="nc bnc" id="L297" title="All 2 branches missed.">            if (getProps().getKeyAlg().equals(&quot;ECDSA&quot;)) {</span>
+<span class="nc" id="L298">                sigAlg = AlgorithmConstants.SIGALG_SHA256_WITH_ECDSA;</span>
+<span class="nc bnc" id="L299" title="All 2 branches missed.">            } else if (getProps().getKeyAlg().equals(&quot;DSA&quot;)) {</span>
+<span class="nc" id="L300">                sigAlg = AlgorithmConstants.SIGALG_SHA1_WITH_DSA;</span>
+<span class="nc bnc" id="L301" title="All 2 branches missed.">            } else if (getProps().getKeyAlg().equals(AlgorithmConstants.KEYALGORITHM_ECGOST3410)) {</span>
+<span class="nc" id="L302">                sigAlg = AlgorithmConstants.SIGALG_GOST3411_WITH_ECGOST3410;</span>
+<span class="nc bnc" id="L303" title="All 2 branches missed.">            } else if (getProps().getKeyAlg().equals(AlgorithmConstants.KEYALGORITHM_DSTU4145)) {</span>
+<span class="nc" id="L304">                sigAlg = AlgorithmConstants.SIGALG_GOST3411_WITH_DSTU4145;</span>
+            }
+
+<span class="nc" id="L307">            X509Certificate selfcert = CertTools.genSelfCert(&quot;CN=selfsigned&quot;, 1, null, rsaKeys.getPrivate(), rsaKeys.getPublic(), sigAlg, false);</span>
+<span class="nc" id="L308">            cert = (X509Certificate) EjbRemoteHelper.INSTANCE.getRemoteSession(SignSessionRemote.class).createCertificate(getAuthenticationToken(),</span>
+                    username, password, selfcert);
+        }
+
+        // Make a certificate chain from the certificate and the CA-certificate
+<span class="nc" id="L313">        Certificate[] cachain = EjbRemoteHelper.INSTANCE.getRemoteSession(SignSessionRemote.class).getCertificateChain(caid).toArray(new Certificate[0]);</span>
+        // Verify CA-certificate
+<span class="nc bnc" id="L315" title="All 2 branches missed.">        if (CertTools.isSelfSigned(cachain[cachain.length - 1])) {</span>
+            try {
+                // Make sure we have BC certs, otherwise SHA256WithRSAAndMGF1
+                // will not verify (at least not as of jdk6)
+<span class="nc" id="L319">                Certificate cacert = CertTools.getCertfromByteArray(cachain[cachain.length - 1].getEncoded(), Certificate.class);</span>
+<span class="nc" id="L320">                cacert.verify(cacert.getPublicKey());</span>
+<span class="nc" id="L321">            } catch (GeneralSecurityException se) {</span>
+<span class="nc" id="L322">                String errMsg = InternalEjbcaResources.getInstance().getLocalizedMessage(&quot;batch.errorrootnotverify&quot;);</span>
+<span class="nc" id="L323">                throw new Exception(errMsg);</span>
+<span class="nc" id="L324">            }</span>
+        } else {
+<span class="nc" id="L326">            String errMsg = InternalEjbcaResources.getInstance().getLocalizedMessage(&quot;batch.errorrootnotselfsigned&quot;);</span>
+<span class="nc" id="L327">            throw new Exception(errMsg);</span>
+        }
+
+        // Verify that the user-certificate is signed by our CA
+        try {
+            // Make sure we have BC certs, otherwise SHA256WithRSAAndMGF1 will
+            // not verify (at least not as of jdk6)
+<span class="nc" id="L334">            Certificate cacert = CertTools.getCertfromByteArray(cachain[0].getEncoded(), Certificate.class);</span>
+<span class="nc" id="L335">            Certificate usercert = CertTools.getCertfromByteArray(cert.getEncoded(), Certificate.class);</span>
+<span class="nc" id="L336">            usercert.verify(cacert.getPublicKey());</span>
+<span class="nc" id="L337">        } catch (GeneralSecurityException se) {</span>
+<span class="nc" id="L338">            String errMsg = InternalEjbcaResources.getInstance().getLocalizedMessage(&quot;batch.errorgennotverify&quot;);</span>
+<span class="nc" id="L339">            throw new Exception(errMsg);</span>
+<span class="nc" id="L340">        }</span>
+
+<span class="nc bnc" id="L342" title="All 4 branches missed.">        if (getUseKeyRecovery() &amp;&amp; savekeys) {</span>
+            // Save generated keys to database.
+<span class="nc" id="L344">            EjbRemoteHelper.INSTANCE.getRemoteSession(KeyRecoverySessionRemote.class).addKeyRecoveryData(getAuthenticationToken(), EJBTools.wrap(cert), username,</span>
+<span class="nc" id="L345">                    EJBTools.wrap(rsaKeys));</span>
+        }
+
+        // Use CN if as alias in the keystore, if CN is not present use username
+<span class="nc" id="L349">        String alias = CertTools.getPartFromDN(CertTools.getSubjectDN(cert), &quot;CN&quot;);</span>
+<span class="nc bnc" id="L350" title="All 2 branches missed.">        if (alias == null) {</span>
+<span class="nc" id="L351">            alias = username;</span>
+        }
+
+        // Store keys and certificates in keystore.
+<span class="nc" id="L355">        KeyStore ks = null;</span>
+
+<span class="nc bnc" id="L357" title="All 2 branches missed.">        if (createJKS) {</span>
+<span class="nc" id="L358">            ks = KeyTools.createJKS(alias, rsaKeys.getPrivate(), password, cert, cachain);</span>
+        } else {
+<span class="nc" id="L360">            ks = KeyTools.createP12(alias, rsaKeys.getPrivate(), cert, cachain);</span>
+        }
+
+<span class="nc" id="L363">        storeKeyStore(ks, username, password, createJKS, createPEM);</span>
+<span class="nc" id="L364">        String iMsg = InternalEjbcaResources.getInstance().getLocalizedMessage(&quot;batch.createkeystore&quot;, username);</span>
+<span class="nc" id="L365">        log.info(iMsg);</span>
+<span class="nc bnc" id="L366" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L367">            log.trace(&quot;&lt;createUser: username=&quot; + username);</span>
+        }
+<span class="nc" id="L369">    }</span>
+
+    /**
+     * Recovers or generates new keys for the user and generates keystore
+     * 
+     * @param data
+     *            user data for user
+     * @param createJKS
+     *            if a jks should be created
+     * @param createPEM
+     *            if pem files should be created
+     * @param keyrecoverflag
+     *            if we should try to revoer already existing keys
+     * @throws Exception
+     *             If something goes wrong...
+     */
+    private void processUser(EndEntityInformation data, boolean createJKS, boolean createPEM, boolean keyrecoverflag) throws Exception {
+<span class="nc" id="L386">        KeyPair rsaKeys = null;</span>
+<span class="nc" id="L387">        X509Certificate orgCert = null;</span>
+<span class="nc bnc" id="L388" title="All 4 branches missed.">        if (getUseKeyRecovery() &amp;&amp; keyrecoverflag) {</span>
+<span class="nc" id="L389">            boolean reusecertificate = EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityProfileSessionRemote.class)</span>
+<span class="nc" id="L390">                    .getEndEntityProfile(data.getEndEntityProfileId()).getReUseKeyRecoveredCertificate();</span>
+            // Recover Keys
+
+<span class="nc" id="L393">            KeyRecoveryInformation recoveryData = EjbRemoteHelper.INSTANCE.getRemoteSession(KeyRecoverySessionRemote.class).recoverKeys(</span>
+<span class="nc" id="L394">                    getAuthenticationToken(), data.getUsername(), data.getEndEntityProfileId());</span>
+<span class="nc bnc" id="L395" title="All 2 branches missed.">            if (reusecertificate) {</span>
+<span class="nc" id="L396">                EjbRemoteHelper.INSTANCE.getRemoteSession(KeyRecoverySessionRemote.class).unmarkUser(getAuthenticationToken(), data.getUsername());</span>
+            }
+<span class="nc bnc" id="L398" title="All 2 branches missed.">            if (recoveryData != null) {</span>
+<span class="nc" id="L399">                rsaKeys = recoveryData.getKeyPair();</span>
+<span class="nc bnc" id="L400" title="All 2 branches missed.">                if (reusecertificate) {</span>
+<span class="nc" id="L401">                    orgCert = (X509Certificate) recoveryData.getCertificate();</span>
+                }
+            } else {
+<span class="nc" id="L404">                String errMsg = InternalEjbcaResources.getInstance().getLocalizedMessage(&quot;batch.errornokeyrecoverydata&quot;, data.getUsername());</span>
+<span class="nc" id="L405">                throw new Exception(errMsg);</span>
+            }
+<span class="nc" id="L407">        } else {</span>
+<span class="nc" id="L408">            rsaKeys = KeyTools.genKeys(getProps().getKeySpec(), getProps().getKeyAlg());</span>
+        }
+        // Get certificate for user and create keystore
+<span class="nc bnc" id="L411" title="All 2 branches missed.">        if (rsaKeys != null) {</span>
+<span class="nc bnc" id="L412" title="All 2 branches missed.">            createKeysForUser(data.getUsername(), data.getPassword(), data.getCAId(), rsaKeys, createJKS, createPEM,</span>
+<span class="nc bnc" id="L413" title="All 2 branches missed.">                    !keyrecoverflag &amp;&amp; data.getKeyRecoverable(), orgCert);</span>
+        }
+<span class="nc" id="L415">    }</span>
+
+    private boolean doCreateKeys(EndEntityInformation data, int status) throws Exception {
+<span class="nc" id="L418">        boolean ret = false;</span>
+        // get users Token Type.
+<span class="nc" id="L420">        int tokentype = data.getTokenType();</span>
+<span class="nc bnc" id="L421" title="All 2 branches missed.">        boolean createJKS = (tokentype == SecConst.TOKEN_SOFT_JKS);</span>
+<span class="nc bnc" id="L422" title="All 2 branches missed.">        boolean createPEM = (tokentype == SecConst.TOKEN_SOFT_PEM);</span>
+<span class="nc bnc" id="L423" title="All 2 branches missed.">        boolean createP12 = (tokentype == SecConst.TOKEN_SOFT_P12);</span>
+        // Only generate supported tokens
+<span class="nc bnc" id="L425" title="All 6 branches missed.">        if (createP12 || createPEM || createJKS) {</span>
+<span class="nc bnc" id="L426" title="All 2 branches missed.">            if (status == EndEntityConstants.STATUS_KEYRECOVERY) {</span>
+<span class="nc" id="L427">                String iMsg = InternalEjbcaResources.getInstance().getLocalizedMessage(&quot;batch.retrieveingkeys&quot;, data.getUsername());</span>
+<span class="nc" id="L428">                log.info(iMsg);</span>
+<span class="nc" id="L429">            } else {</span>
+<span class="nc" id="L430">                String iMsg = InternalEjbcaResources.getInstance().getLocalizedMessage(&quot;batch.generatingkeys&quot;, getProps().getKeyAlg(),</span>
+<span class="nc" id="L431">                        getProps().getKeySpec(), data.getUsername());</span>
+<span class="nc" id="L432">                log.info(iMsg);</span>
+            }
+<span class="nc bnc" id="L434" title="All 2 branches missed.">            processUser(data, createJKS, createPEM, (status == EndEntityConstants.STATUS_KEYRECOVERY));</span>
+            // If all was OK, users status is set to GENERATED by the
+            // signsession when the user certificate is created.
+            // If status is still NEW, FAILED or KEYRECOVER though, it means we
+            // should set it back to what it was before, probably it had a
+            // request counter
+            // meaning that we should not reset the clear text password yet.
+
+<span class="nc" id="L442">            EndEntityInformation vo = EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityAccessSessionRemote.class).findUser(</span>
+<span class="nc" id="L443">                    getAuthenticationToken(), data.getUsername());</span>
+<span class="nc bnc" id="L444" title="All 4 branches missed.">            if ((vo.getStatus() == EndEntityConstants.STATUS_NEW) || (vo.getStatus() == EndEntityConstants.STATUS_FAILED)</span>
+<span class="nc bnc" id="L445" title="All 2 branches missed.">                    || (vo.getStatus() == EndEntityConstants.STATUS_KEYRECOVERY)) {</span>
+<span class="nc" id="L446">                EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityManagementSessionRemote.class).setClearTextPassword(getAuthenticationToken(),</span>
+<span class="nc" id="L447">                        data.getUsername(), data.getPassword());</span>
+            } else {
+                // Delete clear text password, if we are not letting status be
+                // the same as originally
+<span class="nc" id="L451">                EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityManagementSessionRemote.class).setClearTextPassword(getAuthenticationToken(),</span>
+<span class="nc" id="L452">                        data.getUsername(), null);</span>
+            }
+<span class="nc" id="L454">            ret = true;</span>
+<span class="nc" id="L455">            String iMsg = InternalEjbcaResources.getInstance().getLocalizedMessage(&quot;batch.generateduser&quot;, data.getUsername());</span>
+<span class="nc" id="L456">            log.info(iMsg);</span>
+<span class="nc" id="L457">        } else {</span>
+<span class="nc" id="L458">            log.error(&quot;Cannot batchmake browser generated token for user (wrong tokentype)- &quot; + data.getUsername());</span>
+        }
+<span class="nc" id="L460">        return ret;</span>
+    }
+
+    /**
+     * Creates keystore-files for all users with status NEW in the local
+     * database.
+     * 
+     * @throws Exception
+     *             if something goes wrong...
+     */
+    private void createAllNew()
+            throws Exception {
+<span class="nc" id="L472">        log.trace(&quot;&gt;createAllNew&quot;);</span>
+<span class="nc" id="L473">        String iMsg = InternalEjbcaResources.getInstance().getLocalizedMessage(&quot;batch.generatingallstatus&quot;, &quot;NEW&quot;);</span>
+<span class="nc" id="L474">        log.info(iMsg);</span>
+<span class="nc" id="L475">        createAllWithStatus(EndEntityConstants.STATUS_NEW);</span>
+<span class="nc" id="L476">        log.trace(&quot;&lt;createAllNew&quot;);</span>
+<span class="nc" id="L477">    }</span>
+
+    /**
+     * Creates P12-files for all users with status FAILED in the local database.
+     * 
+     * @throws Exception
+     *             if something goes wrong...
+     */
+    private void createAllFailed()
+            throws Exception {
+<span class="nc" id="L487">        log.trace(&quot;&gt;createAllFailed&quot;);</span>
+<span class="nc" id="L488">        String iMsg = InternalEjbcaResources.getInstance().getLocalizedMessage(&quot;batch.generatingallstatus&quot;, &quot;FAILED&quot;);</span>
+<span class="nc" id="L489">        log.info(iMsg);</span>
+<span class="nc" id="L490">        createAllWithStatus(EndEntityConstants.STATUS_FAILED);</span>
+<span class="nc" id="L491">        log.trace(&quot;&lt;createAllFailed&quot;);</span>
+<span class="nc" id="L492">    }</span>
+
+    /**
+     * Creates P12-files for all users with status KEYRECOVER in the local
+     * database.
+     * 
+     * @throws Exception
+     *             if something goes wrong...
+     */
+    private void createAllKeyRecover()
+            throws Exception {
+<span class="nc bnc" id="L503" title="All 2 branches missed.">        if (getUseKeyRecovery()) {</span>
+<span class="nc" id="L504">            log.trace(&quot;&gt;createAllKeyRecover&quot;);</span>
+<span class="nc" id="L505">            String iMsg = InternalEjbcaResources.getInstance().getLocalizedMessage(&quot;batch.generatingallstatus&quot;, &quot;KEYRECOVER&quot;);</span>
+<span class="nc" id="L506">            log.info(iMsg);</span>
+<span class="nc" id="L507">            createAllWithStatus(EndEntityConstants.STATUS_KEYRECOVERY);</span>
+<span class="nc" id="L508">            log.trace(&quot;&lt;createAllKeyRecover&quot;);</span>
+        }
+<span class="nc" id="L510">    }</span>
+
+    /**
+     * Creates P12-files for all users with status in the local database.
+     * 
+     * Since authentication tokens from the CLI are single use only, this method will take multiple (until a better design is reached). 
+     * 
+     * @param status status
+     * @throws Exception
+     *             if something goes wrong...
+     */
+    private void createAllWithStatus(int status) throws Exception {
+<span class="nc bnc" id="L522" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L523">            log.trace(&quot;&gt;createAllWithStatus: &quot; + status);</span>
+        }
+<span class="nc" id="L525">        CryptoProviderTools.installBCProviderIfNotAvailable(); // If this is invoked directly</span>
+<span class="nc" id="L526">        ArrayList&lt;EndEntityInformation&gt; result = new ArrayList&lt;EndEntityInformation&gt;();</span>
+
+<span class="nc" id="L528">        boolean stopnow = false;</span>
+        do {
+<span class="nc bnc" id="L530" title="All 2 branches missed.">            for (EndEntityInformation data : EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityAccessSessionRemote.class)</span>
+<span class="nc" id="L531">                    .findAllBatchUsersByStatusWithLimit(status)) {</span>
+<span class="nc bnc" id="L532" title="All 4 branches missed.">                if (data.getTokenType() == SecConst.TOKEN_SOFT_JKS || data.getTokenType() == SecConst.TOKEN_SOFT_PEM</span>
+<span class="nc bnc" id="L533" title="All 2 branches missed.">                        || data.getTokenType() == SecConst.TOKEN_SOFT_P12) {</span>
+<span class="nc" id="L534">                    result.add(data);</span>
+                }
+<span class="nc" id="L536">            }</span>
+
+<span class="nc" id="L538">            String iMsg = InternalEjbcaResources.getInstance().getLocalizedMessage(&quot;batch.generatingnoofusers&quot;, Integer.valueOf(result.size()));</span>
+<span class="nc" id="L539">            log.info(iMsg);</span>
+
+<span class="nc" id="L541">            int failcount = 0;</span>
+<span class="nc" id="L542">            int successcount = 0;</span>
+
+<span class="nc" id="L544">            final GlobalConfigurationSessionRemote globalConfigurationSession = EjbRemoteHelper.INSTANCE.getRemoteSession(GlobalConfigurationSessionRemote.class);</span>
+<span class="nc" id="L545">            final GlobalCesecoreConfiguration globalConfiguration = (GlobalCesecoreConfiguration) globalConfigurationSession.getCachedConfiguration(GlobalCesecoreConfiguration.CESECORE_CONFIGURATION_ID);</span>
+            
+<span class="nc bnc" id="L547" title="All 2 branches missed.">            if (result.size() &gt; 0) {</span>
+<span class="nc bnc" id="L548" title="All 2 branches missed.">                if (result.size() &lt; globalConfiguration.getMaximumQueryCount()) {</span>
+<span class="nc" id="L549">                    stopnow = true;</span>
+                }
+<span class="nc" id="L551">                String failedusers = &quot;&quot;;</span>
+<span class="nc" id="L552">                String successusers = &quot;&quot;;</span>
+<span class="nc bnc" id="L553" title="All 2 branches missed.">                for (EndEntityInformation data : result) {</span>
+<span class="nc bnc" id="L554" title="All 4 branches missed.">                    if ((data.getPassword() != null) &amp;&amp; (data.getPassword().length() &gt; 0)) {</span>
+                        try {
+<span class="nc bnc" id="L556" title="All 2 branches missed.">                            if (doCreateKeys(data, status)) {</span>
+<span class="nc" id="L557">                                successusers += (&quot;:&quot; + data.getUsername());</span>
+<span class="nc" id="L558">                                successcount++;</span>
+                            }
+<span class="nc" id="L560">                        } catch (Exception e) {</span>
+                            // If things went wrong set status to FAILED
+<span class="nc" id="L562">                            log.debug(InternalEjbcaResources.getInstance().getLocalizedMessage(&quot;batch.errorsetstatus&quot;, &quot;FAILED&quot;), e);</span>
+<span class="nc" id="L563">                            failedusers += (&quot;:&quot; + data.getUsername());</span>
+<span class="nc" id="L564">                            failcount++;</span>
+                            final String newStatusString;
+<span class="nc bnc" id="L566" title="All 2 branches missed.">                            if (status == EndEntityConstants.STATUS_KEYRECOVERY) {</span>
+<span class="nc" id="L567">                                EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityManagementSessionRemote.class).setUserStatus(</span>
+<span class="nc" id="L568">                                        getAuthenticationToken(), data.getUsername(), EndEntityConstants.STATUS_KEYRECOVERY);</span>
+<span class="nc" id="L569">                                newStatusString = &quot;KEYRECOVERY&quot;;</span>
+                            } else {
+<span class="nc" id="L571">                                EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityManagementSessionRemote.class).setUserStatus(</span>
+<span class="nc" id="L572">                                        getAuthenticationToken(), data.getUsername(), EndEntityConstants.STATUS_FAILED);</span>
+<span class="nc" id="L573">                                newStatusString = &quot;FAILED&quot;;</span>
+                            }
+<span class="nc bnc" id="L575" title="All 2 branches missed.">                            if (e instanceof IllegalKeyException) {</span>
+<span class="nc" id="L576">                                final String errMsg = InternalEjbcaResources.getInstance().getLocalizedMessage(&quot;batch.errorbatchfaileduser&quot;,</span>
+<span class="nc" id="L577">                                        data.getUsername());</span>
+<span class="nc" id="L578">                                log.error(errMsg + &quot; &quot; + e.getMessage());</span>
+<span class="nc" id="L579">                                log.error(InternalEjbcaResources.getInstance().getLocalizedMessage(&quot;batch.errorsetstatus&quot;, newStatusString));</span>
+<span class="nc" id="L580">                                log.error(InternalEjbcaResources.getInstance().getLocalizedMessage(&quot;batch.errorcheckconfig&quot;));</span>
+<span class="nc" id="L581">                            } else {</span>
+<span class="nc" id="L582">                                log.error(InternalEjbcaResources.getInstance().getLocalizedMessage(&quot;batch.errorsetstatus&quot;, newStatusString), e);</span>
+<span class="nc" id="L583">                                final String errMsg = InternalEjbcaResources.getInstance().getLocalizedMessage(&quot;batch.errorbatchfaileduser&quot;,</span>
+<span class="nc" id="L584">                                        data.getUsername());</span>
+<span class="nc" id="L585">                                throw new Exception(errMsg, e);</span>
+                            }
+
+<span class="nc" id="L588">                        }</span>
+                    } else {
+<span class="nc" id="L590">                        iMsg = InternalEjbcaResources.getInstance().getLocalizedMessage(&quot;batch.infonoclearpwd&quot;, data.getUsername());</span>
+<span class="nc" id="L591">                        log.info(iMsg);</span>
+                    }
+<span class="nc" id="L593">                }</span>
+
+<span class="nc bnc" id="L595" title="All 2 branches missed.">                if (failedusers.length() &gt; 0) {</span>
+<span class="nc" id="L596">                    String errMsg = InternalEjbcaResources.getInstance().getLocalizedMessage(&quot;batch.errorbatchfailed&quot;, Integer.valueOf(failcount),</span>
+<span class="nc" id="L597">                            Integer.valueOf(successcount), failedusers);</span>
+<span class="nc" id="L598">                    log.error(errMsg);</span>
+<span class="nc" id="L599">                    throw new Exception(errMsg);</span>
+                }
+<span class="nc" id="L601">                iMsg = InternalEjbcaResources.getInstance().getLocalizedMessage(&quot;batch.success&quot;, Integer.valueOf(successcount), successusers);</span>
+<span class="nc" id="L602">                log.info(iMsg);</span>
+            }
+<span class="nc bnc" id="L604" title="All 4 branches missed.">        } while ((result.size() &gt; 0) &amp;&amp; !stopnow);</span>
+<span class="nc bnc" id="L605" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L606">            log.trace(&quot;&lt;createAllWithStatus: &quot; + status);</span>
+        }
+<span class="nc" id="L608">    }</span>
+
+    /**
+     * Creates P12-files for one end entity in the local database.
+     * 
+     * @param username
+     *            username
+     * @throws Exception
+     *             if the user does not exist or something goes wrong during
+     *             generation
+     */
+    private void createKeysForUser(String username) throws Exception {
+<span class="nc bnc" id="L620" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L621">            log.trace(&quot;&gt;createUser(&quot; + username + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L623">        EndEntityInformation data = EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityAccessSessionRemote.class).findUser(getAuthenticationToken(),</span>
+                username);
+<span class="nc bnc" id="L625" title="All 2 branches missed.">        if (data == null) {</span>
+<span class="nc" id="L626">            log.error(InternalEjbcaResources.getInstance().getLocalizedMessage(&quot;batch.errorunknown&quot;, username));</span>
+<span class="nc" id="L627">            return;</span>
+        }
+<span class="nc" id="L629">        int status = data.getStatus();</span>
+<span class="nc bnc" id="L630" title="All 6 branches missed.">        if ((data != null) &amp;&amp; (data.getPassword() != null) &amp;&amp; (data.getPassword().length() &gt; 0)) {</span>
+<span class="nc bnc" id="L631" title="All 6 branches missed.">            if ((status == EndEntityConstants.STATUS_NEW) || ((status == EndEntityConstants.STATUS_KEYRECOVERY) &amp;&amp; getUseKeyRecovery())) {</span>
+                try {
+<span class="nc" id="L633">                    doCreateKeys(data, status);</span>
+<span class="nc" id="L634">                } catch (Exception e) {</span>
+                    // If things went wrong set status to FAILED
+                    final String newStatusString;
+<span class="nc bnc" id="L637" title="All 2 branches missed.">                    if (status == EndEntityConstants.STATUS_KEYRECOVERY) {</span>
+<span class="nc" id="L638">                        EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityManagementSessionRemote.class).setUserStatus(getAuthenticationToken(),</span>
+<span class="nc" id="L639">                                data.getUsername(), EndEntityConstants.STATUS_KEYRECOVERY);</span>
+<span class="nc" id="L640">                        newStatusString = &quot;KEYRECOVERY&quot;;</span>
+                    } else {
+<span class="nc" id="L642">                        EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityManagementSessionRemote.class).setUserStatus(getAuthenticationToken(),</span>
+<span class="nc" id="L643">                                data.getUsername(), EndEntityConstants.STATUS_FAILED);</span>
+<span class="nc" id="L644">                        newStatusString = &quot;FAILED&quot;;</span>
+                    }
+<span class="nc bnc" id="L646" title="All 2 branches missed.">                    if (e instanceof IllegalKeyException) {</span>
+<span class="nc" id="L647">                        final String errMsg = InternalEjbcaResources.getInstance().getLocalizedMessage(&quot;batch.errorbatchfaileduser&quot;, username);</span>
+<span class="nc" id="L648">                        log.error(errMsg + &quot; &quot; + e.getMessage());</span>
+<span class="nc" id="L649">                        log.error(InternalEjbcaResources.getInstance().getLocalizedMessage(&quot;batch.errorsetstatus&quot;, newStatusString));</span>
+<span class="nc" id="L650">                        log.error(InternalEjbcaResources.getInstance().getLocalizedMessage(&quot;batch.errorcheckconfig&quot;));</span>
+<span class="nc" id="L651">                    } else {</span>
+<span class="nc" id="L652">                        log.error(InternalEjbcaResources.getInstance().getLocalizedMessage(&quot;batch.errorsetstatus&quot;, newStatusString), e);</span>
+<span class="nc" id="L653">                        final String errMsg = InternalEjbcaResources.getInstance().getLocalizedMessage(&quot;batch.errorbatchfaileduser&quot;, username);</span>
+<span class="nc" id="L654">                        throw new Exception(errMsg);</span>
+                    }
+<span class="nc" id="L656">                }</span>
+            } else {
+<span class="nc" id="L658">                String errMsg = InternalEjbcaResources.getInstance().getLocalizedMessage(&quot;batch.errorbatchfaileduser&quot;, username);</span>
+<span class="nc" id="L659">                log.error(errMsg);</span>
+<span class="nc" id="L660">                throw new Exception(errMsg);</span>
+            }
+        }
+<span class="nc bnc" id="L663" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L664">            log.trace(&quot;&gt;createUser(&quot; + username + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L666">    }</span>
+
+    /**
+     * Return environment variable EJBCA_HOME or an empty string if the variable
+     * isn't set.
+     * 
+     * @return Environment variable EJBCA_HOME
+     */
+    private static String getHomeDir() {
+<span class="nc" id="L675">        String ejbcaHomeDir = System.getenv(&quot;EJBCA_HOME&quot;);</span>
+<span class="nc bnc" id="L676" title="All 2 branches missed.">        if (ejbcaHomeDir == null) {</span>
+<span class="nc" id="L677">            ejbcaHomeDir = &quot;&quot;;</span>
+<span class="nc bnc" id="L678" title="All 4 branches missed.">        } else if (!ejbcaHomeDir.endsWith(&quot;/&quot;) &amp;&amp; !ejbcaHomeDir.endsWith(&quot;\\&quot;)) {</span>
+<span class="nc" id="L679">            ejbcaHomeDir += File.separatorChar;</span>
+        }
+<span class="nc" id="L681">        return ejbcaHomeDir;</span>
+    }
+
+    @Override
+    protected Logger getLogger() {
+<span class="nc" id="L686">        return log;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

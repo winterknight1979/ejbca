@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ClearCacheCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli</a> &gt; <span class="el_source">ClearCacheCommand.java</span></div><h1>ClearCacheCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.cli;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationSessionRemote;
+import org.cesecore.certificates.ca.CaSessionRemote;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSessionRemote;
+import org.cesecore.certificates.ocsp.OcspResponseGeneratorSessionRemote;
+import org.cesecore.configuration.GlobalConfigurationSessionRemote;
+import org.cesecore.keys.validation.KeyValidatorSessionRemote;
+import org.cesecore.roles.management.RoleDataSessionRemote;
+import org.cesecore.roles.member.RoleMemberDataSessionRemote;
+import org.cesecore.util.EjbRemoteHelper;
+import org.ejbca.config.CmpConfiguration;
+import org.ejbca.config.GlobalConfiguration;
+import org.ejbca.config.ScepConfiguration;
+import org.ejbca.core.ejb.approval.ApprovalProfileSessionRemote;
+import org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSessionRemote;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.command.EjbcaCommandBase;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+
+/**
+ * Clears caches used internally by EJBCA. The caches are used to limit the number of database queries issued to the database.
+ * See conf/cache.properties.sample for configuration of caches.
+ *
+ * @version $Id: ClearCacheCommand.java 26449 2017-08-28 20:05:53Z mikekushner $
+ */
+<span class="nc" id="L45">public class ClearCacheCommand extends EjbcaCommandBase {</span>
+
+<span class="nc" id="L47">    private static final Logger log = Logger.getLogger(ClearCacheCommand.class);</span>
+    private static final String ALL = &quot;-all&quot;;
+    private static final String GLOBAL_CONFIGURATION = &quot;-globalconf&quot;;
+    private static final String EE_PROFILES = &quot;-eeprofile&quot;;
+    private static final String CERTIFICATE_PROFILE = &quot;-certprofile&quot;;
+    private static final String AUTHORIZATION = &quot;-authorization&quot;;
+    private static final String CA_CACHE = &quot;-ca&quot;;
+    private static final String CT_CACHE = &quot;-ct&quot;;
+    private static final String APPROVAL_PROFILE_CACHE = &quot;--approvalprofile&quot;;
+    private static final String VALIDATOR_CACHE = &quot;--validators&quot;;
+
+
+
+    //Register parameters 
+    {
+<span class="nc" id="L62">        registerParameter(new Parameter(ALL, &quot;All&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID, ParameterMode.FLAG, &quot;Clear all caches.&quot;));</span>
+<span class="nc" id="L63">        registerParameter(new Parameter(GLOBAL_CONFIGURATION, &quot;Global Configuration&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID,</span>
+                ParameterMode.FLAG, &quot;Clear global configuration cache.&quot;));
+<span class="nc" id="L65">        registerParameter(new Parameter(EE_PROFILES, &quot;End Entity Profiles&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID, ParameterMode.FLAG,</span>
+                &quot;Clear End Entity Profile Cache&quot;));
+<span class="nc" id="L67">        registerParameter(new Parameter(CERTIFICATE_PROFILE, &quot;Certificate Profiles&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID,</span>
+                ParameterMode.FLAG, &quot;Clear Certificate Profile cache.&quot;));
+<span class="nc" id="L69">        registerParameter(new Parameter(AUTHORIZATION, &quot;Authorization&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID, ParameterMode.FLAG,</span>
+                &quot;Clear Authorization cache. This parameter will also flush the roles and role member caches.&quot;));
+<span class="nc" id="L71">        registerParameter(new Parameter(CA_CACHE, &quot;CA Cache&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID, ParameterMode.FLAG, &quot;Clear CA cache.&quot;));</span>
+<span class="nc" id="L72">        registerParameter(new Parameter(CT_CACHE, &quot;CT Cache&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID, ParameterMode.FLAG, &quot;Clear CT caches (OCSP and Fail Fast cache).&quot;));</span>
+<span class="nc" id="L73">        registerParameter(new Parameter(VALIDATOR_CACHE, &quot;Validator Cache&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID, ParameterMode.FLAG, &quot;Clear Validator caches.&quot;));</span>
+<span class="nc" id="L74">        registerParameter(Parameter.createFlag(APPROVAL_PROFILE_CACHE, &quot;Clear the approval profile cache.&quot;));</span>
+
+<span class="nc" id="L76">    }</span>
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L80">        return &quot;clearcache&quot;;</span>
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L85">        return &quot;Clears caches used internally by EJBCA.&quot;;</span>
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L90">        return &quot;Clears caches used internally by EJBCA. See conf/cache.properties.sample for config options. &quot;</span>
+                + &quot;This command should only be needed if cache times are set to very high values. &quot;
+                + &quot;All arguments are optional, but you have to provide at least one.&quot;;
+    }
+
+    public CommandResult execute(ParameterContainer parameters) {
+        // Get and remove switches
+<span class="nc bnc" id="L97" title="All 2 branches missed.">        final boolean all = parameters.get(ALL) != null;</span>
+<span class="nc bnc" id="L98" title="All 4 branches missed.">        final boolean globalconf = (parameters.get(GLOBAL_CONFIGURATION) != null) || all;</span>
+<span class="nc bnc" id="L99" title="All 4 branches missed.">        final boolean eeprofile = (parameters.get(EE_PROFILES) != null) || all;</span>
+<span class="nc bnc" id="L100" title="All 4 branches missed.">        final boolean certprofile = (parameters.get(CERTIFICATE_PROFILE) != null) || all;</span>
+<span class="nc bnc" id="L101" title="All 4 branches missed.">        final boolean authorization = (parameters.get(AUTHORIZATION) != null) || all;</span>
+<span class="nc bnc" id="L102" title="All 4 branches missed.">        final boolean cacache = (parameters.get(CA_CACHE) != null) || all;</span>
+<span class="nc bnc" id="L103" title="All 4 branches missed.">        final boolean ctcache = (parameters.get(CT_CACHE) != null) || all;</span>
+<span class="nc bnc" id="L104" title="All 4 branches missed.">        final boolean approvalProfileCache = (parameters.get(APPROVAL_PROFILE_CACHE) != null) || all;</span>
+<span class="nc bnc" id="L105" title="All 4 branches missed.">        final boolean validatorCache = (parameters.get(VALIDATOR_CACHE) != null) || all;</span>
+
+
+<span class="nc bnc" id="L108" title="All 18 branches missed.">        if (!(all || globalconf || eeprofile || certprofile || authorization || cacache || ctcache || approvalProfileCache || validatorCache)) {</span>
+<span class="nc" id="L109">            log.error(&quot;ERROR: No caches were flushed because no parameters were specified.&quot;);</span>
+<span class="nc" id="L110">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+        }
+
+<span class="nc bnc" id="L113" title="All 2 branches missed.">        if (globalconf) {</span>
+<span class="nc" id="L114">            GlobalConfigurationSessionRemote globalConfigurationSession = EjbRemoteHelper.INSTANCE</span>
+<span class="nc" id="L115">                    .getRemoteSession(GlobalConfigurationSessionRemote.class);</span>
+<span class="nc" id="L116">            log.info(&quot;Flushing Global Configuration cache.&quot;);</span>
+            // Flush GlobalConfiguration
+<span class="nc" id="L118">            globalConfigurationSession.flushConfigurationCache(GlobalConfiguration.GLOBAL_CONFIGURATION_ID);</span>
+
+<span class="nc" id="L120">            log.info(&quot;Flushing CMP configuration cache.&quot;);</span>
+            // Flush CMPConfiguration
+<span class="nc" id="L122">            globalConfigurationSession.flushConfigurationCache(CmpConfiguration.CMP_CONFIGURATION_ID);</span>
+            
+<span class="nc" id="L124">            log.info(&quot;Flushing SCEP configuration cache.&quot;);</span>
+            // Flush SCEP Configuration
+<span class="nc" id="L126">            globalConfigurationSession.flushConfigurationCache(ScepConfiguration.SCEP_CONFIGURATION_ID);</span>
+        }
+<span class="nc bnc" id="L128" title="All 2 branches missed.">        if (eeprofile) {</span>
+<span class="nc" id="L129">            log.info(&quot;Flushing End Entity Profile cache.&quot;);</span>
+            // Flush End Entity profiles
+<span class="nc" id="L131">            EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityProfileSessionRemote.class).flushProfileCache();</span>
+        }
+<span class="nc bnc" id="L133" title="All 2 branches missed.">        if (certprofile) {</span>
+<span class="nc" id="L134">            log.info(&quot;Flushing Certificate Profile cache.&quot;);</span>
+            // Flush Certificate profiles
+<span class="nc" id="L136">            EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateProfileSessionRemote.class).flushProfileCache();</span>
+        }
+<span class="nc bnc" id="L138" title="All 2 branches missed.">        if (authorization) {</span>
+<span class="nc" id="L139">            log.info(&quot;Flushing Authorization cache.&quot;);</span>
+            // Flush access control
+<span class="nc" id="L141">            EjbRemoteHelper.INSTANCE.getRemoteSession(AuthorizationSessionRemote.class).forceCacheExpire();</span>
+            // Flush RoleData cache
+<span class="nc" id="L143">            EjbRemoteHelper.INSTANCE.getRemoteSession(RoleDataSessionRemote.class).forceCacheExpire();</span>
+            // Flush RoleMemberData cache
+<span class="nc" id="L145">            EjbRemoteHelper.INSTANCE.getRemoteSession(RoleMemberDataSessionRemote.class).forceCacheExpire();</span>
+        }
+<span class="nc bnc" id="L147" title="All 2 branches missed.">        if (cacache) {</span>
+<span class="nc" id="L148">            log.info(&quot;Flushing CA cache.&quot;);</span>
+            // Flush CAs
+<span class="nc" id="L150">            EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class);</span>
+        }
+<span class="nc bnc" id="L152" title="All 2 branches missed.">        if (ctcache) {</span>
+<span class="nc" id="L153">            log.info(&quot;Flushing CT caches.&quot;);</span>
+            // Flush CT OCSP response extension cache and CT fast fail URL cache.
+<span class="nc" id="L155">            final OcspResponseGeneratorSessionRemote ocspResponseGeneratorSession = EjbRemoteHelper.INSTANCE.getRemoteSession(OcspResponseGeneratorSessionRemote.class);</span>
+<span class="nc" id="L156">            ocspResponseGeneratorSession.reloadOcspExtensionsCache();</span>
+<span class="nc" id="L157">            ocspResponseGeneratorSession.clearCTFailFastCache();</span>
+        }
+<span class="nc bnc" id="L159" title="All 2 branches missed.">        if(approvalProfileCache) {</span>
+<span class="nc" id="L160">            log.info(&quot;Flushing Approval Profile Cache&quot;);</span>
+<span class="nc" id="L161">            final ApprovalProfileSessionRemote approvalProfileSession = EjbRemoteHelper.INSTANCE.getRemoteSession(ApprovalProfileSessionRemote.class);</span>
+<span class="nc" id="L162">            approvalProfileSession.forceProfileCacheRebuild();</span>
+        }
+<span class="nc bnc" id="L164" title="All 2 branches missed.">        if(validatorCache) {</span>
+<span class="nc" id="L165">            log.info(&quot;Flushing Validator Cache&quot;);</span>
+<span class="nc" id="L166">            final KeyValidatorSessionRemote keyValidatorSession = EjbRemoteHelper.INSTANCE.getRemoteSession(KeyValidatorSessionRemote.class);</span>
+<span class="nc" id="L167">            keyValidatorSession.flushKeyValidatorCache();</span>
+        }
+          
+<span class="nc" id="L170">        return CommandResult.SUCCESS;</span>
+
+    }
+    
+    @Override
+    protected Logger getLogger() {
+<span class="nc" id="L176">        return log;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

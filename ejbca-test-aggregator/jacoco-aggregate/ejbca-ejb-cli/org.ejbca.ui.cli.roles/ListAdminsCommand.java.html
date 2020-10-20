@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ListAdminsCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.roles</a> &gt; <span class="el_source">ListAdminsCommand.java</span></div><h1>ListAdminsCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.cli.roles;
+
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.user.AccessMatchType;
+import org.cesecore.authorization.user.matchvalues.AccessMatchValue;
+import org.cesecore.authorization.user.matchvalues.AccessMatchValueReverseLookupRegistry;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.CaSessionRemote;
+import org.cesecore.roles.Role;
+import org.cesecore.roles.management.RoleSessionRemote;
+import org.cesecore.roles.member.RoleMember;
+import org.cesecore.roles.member.RoleMemberSessionRemote;
+import org.cesecore.util.EjbRemoteHelper;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+
+/**
+ * Lists admins in a role
+ * @version $Id: ListAdminsCommand.java 29197 2018-06-11 09:28:26Z jeklund $
+ */
+<span class="nc" id="L43">public class ListAdminsCommand extends BaseRolesCommand {</span>
+
+<span class="nc" id="L45">    private static final Logger log = Logger.getLogger(ListAdminsCommand.class);</span>
+
+    private static final String ROLE_NAME_KEY = &quot;--role&quot;;
+    private static final String ROLE_NAMESPACE_KEY = &quot;--namespace&quot;;
+
+    {
+<span class="nc" id="L51">        registerParameter(new Parameter(ROLE_NAME_KEY, &quot;Role Name&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;Role to list admins of.&quot;));
+<span class="nc" id="L53">        registerParameter(new Parameter(ROLE_NAMESPACE_KEY, &quot;Role Namespace&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID, ParameterMode.ARGUMENT,</span>
+                &quot;The namespace the role belongs to.&quot;));
+<span class="nc" id="L55">    }</span>
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L59">        return &quot;listadmins&quot;;</span>
+    }
+
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+<span class="nc" id="L64">        final String roleName = parameters.get(ROLE_NAME_KEY);</span>
+<span class="nc" id="L65">        final String namespace = parameters.get(ROLE_NAMESPACE_KEY);</span>
+        final Role role;
+        try {
+<span class="nc" id="L68">            role = EjbRemoteHelper.INSTANCE.getRemoteSession(RoleSessionRemote.class).getRole(getAuthenticationToken(), namespace, roleName);</span>
+<span class="nc" id="L69">        } catch (AuthorizationDeniedException e1) {</span>
+<span class="nc" id="L70">            getLogger().error(&quot;Not authorized to role &quot; + super.getFullRoleName(namespace, roleName) + &quot;.&quot;);</span>
+<span class="nc" id="L71">            return CommandResult.AUTHORIZATION_FAILURE;</span>
+<span class="nc" id="L72">        }</span>
+<span class="nc bnc" id="L73" title="All 2 branches missed.">        if (role == null) {</span>
+<span class="nc" id="L74">            getLogger().error(&quot;No such role &quot; + super.getFullRoleName(namespace, roleName) + &quot;.&quot;);</span>
+<span class="nc" id="L75">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+        }
+        final List&lt;RoleMember&gt; roleMembers;
+        try {
+<span class="nc" id="L79">            roleMembers = EjbRemoteHelper.INSTANCE.getRemoteSession(RoleMemberSessionRemote.class).getRoleMembersByRoleId(</span>
+<span class="nc" id="L80">                    getAuthenticationToken(), role.getRoleId());</span>
+<span class="nc" id="L81">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L82">            getLogger().error(&quot;Not authorized to members of role &quot; + super.getFullRoleName(namespace, roleName) + &quot;.&quot;);</span>
+<span class="nc" id="L83">            return CommandResult.AUTHORIZATION_FAILURE;</span>
+<span class="nc" id="L84">        }</span>
+<span class="nc" id="L85">        Collections.sort(roleMembers, new Comparator&lt;RoleMember&gt;(){</span>
+            @Override
+            public int compare(final RoleMember roleMember1, final RoleMember roleMember2) {
+<span class="nc" id="L88">                final int compareTokenType = roleMember1.getTokenType().compareTo(roleMember2.getTokenType());</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">                if (compareTokenType != 0) {</span>
+<span class="nc" id="L90">                    return compareTokenType;</span>
+                }
+<span class="nc" id="L92">                final int compareTokenMatchKey = Integer.valueOf(roleMember1.getTokenMatchKey()).compareTo(Integer.valueOf(roleMember2.getTokenMatchKey()));</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">                if (compareTokenMatchKey != 0) {</span>
+<span class="nc" id="L94">                    return compareTokenMatchKey;</span>
+                }
+<span class="nc" id="L96">                final int compareTokenMatchValue = roleMember1.getTokenMatchValue().compareTo(roleMember1.getTokenMatchValue());</span>
+<span class="nc" id="L97">                return compareTokenMatchValue;</span>
+            }}
+        );
+<span class="nc bnc" id="L100" title="All 2 branches missed.">        for (final RoleMember roleMember : roleMembers) {</span>
+            String caName;
+<span class="nc bnc" id="L102" title="All 2 branches missed.">            if (roleMember.getTokenIssuerId() == RoleMember.NO_ISSUER) {</span>
+<span class="nc" id="L103">                caName = &quot;[Admin unbound to CA]&quot;;</span>
+            } else {
+                try {
+<span class="nc" id="L106">                    final CAInfo info = EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class).getCAInfo(getAuthenticationToken(),</span>
+<span class="nc" id="L107">                            roleMember.getTokenIssuerId());</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">                    if (info == null) {</span>
+<span class="nc" id="L109">                        caName = &quot;[Unknown CA with ID &quot; + roleMember.getTokenIssuerId() + &quot;]&quot;;</span>
+                    } else {
+<span class="nc" id="L111">                        caName = &quot;'&quot; + info.getName() + &quot;'&quot;;</span>
+                    }
+<span class="nc" id="L113">                } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L114">                    caName = &quot;[(Name redacted) CA with ID &quot; + roleMember.getTokenIssuerId() + &quot;]&quot;;</span>
+<span class="nc" id="L115">                }</span>
+            }
+<span class="nc" id="L117">            final AccessMatchValue accessMatchValue = AccessMatchValueReverseLookupRegistry.INSTANCE.performReverseLookup(roleMember.getTokenType(),</span>
+<span class="nc" id="L118">                    roleMember.getTokenMatchKey());</span>
+<span class="nc" id="L119">            final AccessMatchType accessMatchType = roleMember.getAccessMatchType();</span>
+<span class="nc" id="L120">            final String tokenMatchValue = roleMember.getTokenMatchValue();</span>
+<span class="nc" id="L121">            final String description = roleMember.getDescription();</span>
+<span class="nc" id="L122">            getLogger().info( caName + &quot; &quot; + accessMatchValue + &quot; &quot; + accessMatchType + &quot; \&quot;&quot; + tokenMatchValue + &quot;\&quot;&quot; + &quot; \&quot;&quot; + description + &quot;\&quot;&quot;);</span>
+<span class="nc" id="L123">        }</span>
+<span class="nc" id="L124">        return CommandResult.SUCCESS;</span>
+
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L130">        return &quot;Lists admins in a role.&quot;;</span>
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L135">        StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L136">        sb.append(getCommandDescription() + &quot;\n&quot;);</span>
+<span class="nc" id="L137">        sb.append(&quot;Outputs fields: caName, matchWith, matchType, matchValue.\n&quot;);</span>
+<span class="nc" id="L138">        return sb.toString();</span>
+    }
+
+    @Override
+    protected Logger getLogger() {
+<span class="nc" id="L143">        return log;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

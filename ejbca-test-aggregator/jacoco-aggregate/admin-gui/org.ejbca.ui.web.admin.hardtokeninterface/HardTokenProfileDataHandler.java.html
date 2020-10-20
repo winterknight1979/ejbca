@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>HardTokenProfileDataHandler.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">admin-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.hardtokeninterface</a> &gt; <span class="el_source">HardTokenProfileDataHandler.java</span></div><h1>HardTokenProfileDataHandler.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.ui.web.admin.hardtokeninterface;
+
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.HashSet;
+
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.authorization.control.StandardRules;
+import org.cesecore.certificates.ca.CaSession;
+import org.cesecore.certificates.certificate.CertificateConstants;
+import org.cesecore.certificates.certificateprofile.CertificateProfileConstants;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSession;
+import org.cesecore.util.Base64PutHashMap;
+import org.ejbca.core.ejb.hardtoken.HardTokenSession;
+import org.ejbca.core.ejb.ra.EndEntityManagementSessionLocal;
+import org.ejbca.core.model.authorization.AccessRulesConstants;
+import org.ejbca.core.model.hardtoken.HardTokenProfileExistsException;
+import org.ejbca.core.model.hardtoken.profiles.EIDProfile;
+import org.ejbca.core.model.hardtoken.profiles.HardTokenProfile;
+
+/**
+ * A class handling the hardtoken profile data.
+ *
+ * @version $Id: HardTokenProfileDataHandler.java 28844 2018-05-04 08:31:02Z samuellb $
+ */
+@Deprecated
+public class HardTokenProfileDataHandler implements Serializable {
+
+    private static final long serialVersionUID = -2864964753767713852L;
+  
+    private HardTokenSession hardtokensession; 
+    private AuthorizationSessionLocal authorizationSession;
+    private CertificateProfileSession certificateProfileSession;
+    private EndEntityManagementSessionLocal endEntityManagementSession;
+    private CaSession caSession; 
+    private AuthenticationToken administrator;
+    
+    /** Creates a new instance of HardTokenProfileDataHandler 
+     * @param administrator Admin
+     * @param hardtokensession Session
+     * @param certificatesession Session
+     * @param authorizationSession Session
+     * @param endEntityManagementSession Session
+     * @param caSession Session */
+    public HardTokenProfileDataHandler(AuthenticationToken administrator, HardTokenSession hardtokensession, CertificateProfileSession certificatesession, AuthorizationSessionLocal authorizationSession, 
+<span class="nc" id="L61">            EndEntityManagementSessionLocal endEntityManagementSession, CaSession caSession) {</span>
+<span class="nc" id="L62">       this.hardtokensession = hardtokensession;           </span>
+<span class="nc" id="L63">       this.authorizationSession = authorizationSession;</span>
+<span class="nc" id="L64">       this.certificateProfileSession = certificatesession;</span>
+<span class="nc" id="L65">       this.endEntityManagementSession = endEntityManagementSession;</span>
+<span class="nc" id="L66">       this.caSession = caSession;</span>
+<span class="nc" id="L67">       this.administrator = administrator;          </span>
+<span class="nc" id="L68">    }</span>
+    
+       /** Method to add a hard token profile. 
+     * @param name NAme
+     * @param profile Peofile
+        * 
+        * @return false, if the profile have a bad XML encoding.
+        * @throws HardTokenProfileExistsException if profile already exists  
+     * @throws AuthorizationDeniedException fail*/
+    public boolean addHardTokenProfile(String name, HardTokenProfile profile) throws HardTokenProfileExistsException, AuthorizationDeniedException {
+<span class="nc" id="L78">      boolean success = false;</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">      if(authorizedToProfile(profile, true)){</span>
+<span class="nc bnc" id="L80" title="All 2 branches missed.">    	if(checkXMLEncoding(profile)){</span>
+<span class="nc" id="L81">          hardtokensession.addHardTokenProfile(administrator, name, profile);</span>
+<span class="nc" id="L82">          success=true;</span>
+    	}  
+         
+      }else {
+<span class="nc" id="L86">        throw new AuthorizationDeniedException(&quot;Not authorized to add hard token profile&quot;);</span>
+      }
+<span class="nc" id="L88">      return success;</span>
+    }    
+
+
+
+	/** Method to change a hard token profile. 
+	 * @param name Name
+	 * @param profile Profile
+        * 
+        * @return false, if the profile have a bad XML encoding.
+	 * @throws AuthorizationDeniedException fail
+        * */     
+    public boolean changeHardTokenProfile(String name, HardTokenProfile profile) throws AuthorizationDeniedException{
+<span class="nc" id="L101">        boolean success = false;</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">      if(authorizedToProfile(profile, true)){</span>
+<span class="nc bnc" id="L103" title="All 2 branches missed.">    	  if(checkXMLEncoding(profile)){   	  </span>
+<span class="nc" id="L104">    		  hardtokensession.changeHardTokenProfile(administrator, name,profile);   </span>
+<span class="nc" id="L105">    		  success=true;</span>
+    	  } 
+      }else {
+<span class="nc" id="L108">        throw new AuthorizationDeniedException(&quot;Not authorized to edit hard token profile&quot;);</span>
+      }
+<span class="nc" id="L110">      return success;</span>
+    }
+    
+    /** Method to remove a hard token profile, returns true if deletion failed.
+     * @param name Name
+     * @return Ptofile
+     * @throws AuthorizationDeniedException fail */ 
+    public boolean removeHardTokenProfile(String name) throws AuthorizationDeniedException{
+<span class="nc" id="L118">      boolean returnval = true;  </span>
+      
+<span class="nc" id="L120">	  int profileid = getHardTokenProfileId(name);</span>
+	  
+<span class="nc bnc" id="L122" title="All 2 branches missed.">      if(endEntityManagementSession.checkForHardTokenProfileId(profileid)) {</span>
+<span class="nc" id="L123">        return true;</span>
+      }
+<span class="nc bnc" id="L125" title="All 2 branches missed.">	  if(hardtokensession.existsHardTokenProfileInHardTokenIssuer(profileid)) {</span>
+<span class="nc" id="L126">		return true;  </span>
+	  }
+<span class="nc bnc" id="L128" title="All 2 branches missed.">      if(authorizedToProfileName(name, true)){    </span>
+<span class="nc" id="L129">		hardtokensession.removeHardTokenProfile(administrator, name);</span>
+<span class="nc" id="L130">		returnval = false;</span>
+      }else {
+<span class="nc" id="L132">        throw new AuthorizationDeniedException(&quot;Not authorized to remove hard token profile&quot;);</span>
+      }
+<span class="nc" id="L134">      return returnval;          </span>
+    }
+    
+    /** Metod to rename a hard token profile 
+     * @param oldname Name
+     * @param newname Profile
+     * @throws HardTokenProfileExistsException FGail
+     * @throws AuthorizationDeniedException Fail */
+    public void renameHardTokenProfile(String oldname, String newname) throws HardTokenProfileExistsException, AuthorizationDeniedException{
+<span class="nc bnc" id="L143" title="All 2 branches missed.">     if(authorizedToProfileName(oldname, true)){    </span>
+<span class="nc" id="L144">		hardtokensession.renameHardTokenProfile(administrator, oldname,newname);</span>
+     }else {
+<span class="nc" id="L146">       throw new AuthorizationDeniedException(&quot;Not authorized to rename hard token profile&quot;);</span>
+     }
+<span class="nc" id="L148">    }</span>
+    
+
+    public void cloneHardTokenProfile(String originalname, String newname) throws HardTokenProfileExistsException, AuthorizationDeniedException{         
+<span class="nc bnc" id="L152" title="All 2 branches missed.">      if(authorizedToProfileName(originalname, false)){</span>
+<span class="nc" id="L153">        hardtokensession.cloneHardTokenProfile(administrator, originalname,newname);</span>
+      }else {
+<span class="nc" id="L155">         throw new AuthorizationDeniedException(&quot;Not authorized to clone hard token profile&quot;);</span>
+      }
+<span class="nc" id="L157">    }        </span>
+    
+
+
+      /** Method to get a reference to a Hard Token profile.
+     * @param id ID
+     * @return Profile
+     * @throws AuthorizationDeniedException Fail */ 
+    public HardTokenProfile getHardTokenProfile(int id) throws AuthorizationDeniedException{
+<span class="nc bnc" id="L166" title="All 2 branches missed.">      if(!authorizedToProfileId(id, false)) {</span>
+<span class="nc" id="L167">        throw new AuthorizationDeniedException(&quot;Not authorized to hard token profile&quot;);            </span>
+      }
+<span class="nc" id="L169">      return hardtokensession.getHardTokenProfile(id); </span>
+    }      
+          
+    public HardTokenProfile getHardTokenProfile(String profilename) throws AuthorizationDeniedException{
+<span class="nc bnc" id="L173" title="All 2 branches missed.">     if(!authorizedToProfileName(profilename, false)) {</span>
+<span class="nc" id="L174">        throw new AuthorizationDeniedException(&quot;Not authorized to hard token profile&quot;);            </span>
+     }
+<span class="nc" id="L176">      return hardtokensession.getHardTokenProfile(profilename);</span>
+    }
+   
+      
+    public int getHardTokenProfileId(String profilename){
+<span class="nc" id="L181">      return hardtokensession.getHardTokenProfileId(profilename);  </span>
+    }
+    
+    
+    /**
+     * Help function that checks if administrator is authorized to edit profile with given name.
+     * @param profilename Profile
+     * @param editcheck Check
+     * @return Bool
+     */
+    private boolean authorizedToProfileName(String profilename, boolean editcheck){
+<span class="nc" id="L192">		HardTokenProfile profile = hardtokensession.getHardTokenProfile(profilename);</span>
+<span class="nc" id="L193">		return authorizedToProfile(profile, editcheck);</span>
+    }
+     
+    
+    /**
+     * Help function that checks if administrator is authorized to edit profile with given name.
+     * @param profileid Profile
+     * @param editcheck Check
+     * @return bool
+     */
+    private boolean authorizedToProfileId(int profileid, boolean editcheck){
+<span class="nc" id="L204">      HardTokenProfile profile = hardtokensession.getHardTokenProfile(profileid);</span>
+<span class="nc" id="L205">      return authorizedToProfile(profile, editcheck);</span>
+    }
+    
+    /**
+     * Help function that checks if administrator is authorized to edit profile.
+     * @param profile Profile
+     * @param editcheck Check
+     * @return Bool
+     */    
+    private boolean authorizedToProfile(HardTokenProfile profile, boolean editcheck) {
+<span class="nc" id="L215">        boolean returnval = false;</span>
+<span class="nc bnc" id="L216" title="All 2 branches missed.">        if (authorizationSession.isAuthorizedNoLogging(administrator, StandardRules.ROLE_ROOT.resource())) {</span>
+<span class="nc" id="L217">            returnval = true; // yes authorized to everything</span>
+        } else {
+<span class="nc bnc" id="L219" title="All 4 branches missed.">            if (editcheck &amp;&amp; authorizationSession.isAuthorizedNoLogging(administrator, AccessRulesConstants.HARDTOKEN_EDITHARDTOKENPROFILES)) {      </span>
+<span class="nc" id="L220">                HashSet&lt;Integer&gt; authorizedcaids = new HashSet&lt;&gt;(caSession.getAuthorizedCaIds(administrator));</span>
+<span class="nc" id="L221">                HashSet&lt;Integer&gt; authorizedcertprofiles =</span>
+<span class="nc" id="L222">                        new HashSet&lt;&gt;(certificateProfileSession.getAuthorizedCertificateProfileIds(administrator, CertificateConstants.CERTTYPE_HARDTOKEN));</span>
+                // It should be possible to indicate that a certificate should not be generated by not specifying a cert profile for this key. 
+<span class="nc" id="L224">                authorizedcertprofiles.add(Integer.valueOf(CertificateProfileConstants.CERTPROFILE_NO_PROFILE));</span>
+<span class="nc bnc" id="L225" title="All 2 branches missed.">                if (profile instanceof EIDProfile) {</span>
+<span class="nc bnc" id="L226" title="All 2 branches missed.">                    if (authorizedcertprofiles.containsAll(((EIDProfile) profile).getAllCertificateProfileIds())</span>
+<span class="nc bnc" id="L227" title="All 2 branches missed.">                            &amp;&amp; authorizedcaids.containsAll(((EIDProfile) profile).getAllCAIds())) {</span>
+<span class="nc" id="L228">                        returnval = true;</span>
+                    }
+                } else {
+                    // Implement for other profile types
+                }
+
+            }
+
+        }
+<span class="nc" id="L237">        return returnval;</span>
+    }
+   
+    /**
+     * Method that test to XML encode and decode a profile.
+     * @param profile Profile
+     * @return false if something went wrong in the encoding process.
+     */
+    @SuppressWarnings({ &quot;unchecked&quot;, &quot;rawtypes&quot; })
+    private boolean checkXMLEncoding(HardTokenProfile profile) {
+<span class="nc" id="L247">        boolean success = false;</span>
+        try{
+            
+<span class="nc" id="L250">            java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();</span>
+            
+            // We must base64 encode string for UTF safety
+<span class="nc" id="L253">            HashMap&lt;?, ?&gt; a = new Base64PutHashMap();</span>
+<span class="nc" id="L254">            a.putAll((HashMap)profile.saveData());</span>
+<span class="nc" id="L255">            java.beans.XMLEncoder encoder = new java.beans.XMLEncoder(baos);</span>
+<span class="nc" id="L256">            encoder.writeObject(a);</span>
+<span class="nc" id="L257">            encoder.close();</span>
+<span class="nc" id="L258">            String data = baos.toString(&quot;UTF8&quot;);</span>
+<span class="nc" id="L259">            java.beans.XMLDecoder decoder = new java.beans.XMLDecoder(</span>
+<span class="nc" id="L260">                        new java.io.ByteArrayInputStream(data.getBytes(&quot;UTF8&quot;)));</span>
+<span class="nc" id="L261">            decoder.readObject();</span>
+<span class="nc" id="L262">            decoder.close();</span>
+            
+<span class="nc" id="L264">            success = true;</span>
+<span class="nc" id="L265">        } catch (Exception e) {</span>
+<span class="nc" id="L266">            success = false;  </span>
+<span class="nc" id="L267">        }</span>
+
+<span class="nc" id="L269">		return success;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

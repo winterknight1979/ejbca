@@ -15,54 +15,69 @@ package org.cesecore.authentication.tokens;
 import java.security.Principal;
 import java.security.SecureRandom;
 import java.util.Set;
-
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.log4j.Logger;
 
 /**
- * Common base class for tokens that are only valid in the JVM they are created and could
- * otherwise be spoofed. E.g. X509 client certificate validation AuthenticationToken could
- * otherwise be created and sent to a remote EJB interface.
- * 
- * @version $Id: LocalJvmOnlyAuthenticationToken.java 17625 2013-09-20 07:12:06Z netmackan $
+ * Common base class for tokens that are only valid in the JVM they are created
+ * and could otherwise be spoofed. E.g. X509 client certificate validation
+ * AuthenticationToken could otherwise be created and sent to a remote EJB
+ * interface.
+ *
+ * @version $Id: LocalJvmOnlyAuthenticationToken.java 17625 2013-09-20 07:12:06Z
+ *     netmackan $
  */
-public abstract class LocalJvmOnlyAuthenticationToken extends AuthenticationToken {
+public abstract class LocalJvmOnlyAuthenticationToken
+    extends AuthenticationToken {
 
-    private static final long serialVersionUID = -6830176240864231535L;
+  private static final long serialVersionUID = -6830176240864231535L;
 
-<span class="fc" id="L33">    private static final Logger log = Logger.getLogger(LocalJvmOnlyAuthenticationToken.class);</span>
+  /** Logger. */
+<span class="fc" id="L36">  private static final Logger LOG =</span>
+<span class="fc" id="L37">      Logger.getLogger(LocalJvmOnlyAuthenticationToken.class);</span>
 
-	/** A random token that is unique to this JVM (e.g. the application server JVM and a CLI JVM does not have the same token). */
-<span class="fc" id="L36">	private static final byte[] RANDOM_TOKEN = createRandomToken();</span>
+  /**
+   * A random token that is unique to this JVM (e.g. the application server JVM
+   * and a CLI JVM does not have the same token).
+   */
+<span class="fc" id="L43">  private static final byte[] RANDOM_TOKEN = createRandomToken();</span>
+  /** Size of token. */
+  private static final int TOKEN_SIZE = 32;
 
-    /** transient authToken should NOT be serialized. **/
-    private transient byte[] authToken;
+  /** transient authToken should NOT be serialized. * */
+  private transient byte[] authToken;
 
-    /** @param principals Principals
-     * @param credentials Credentials
-     * @see org.cesecore.authentication.tokens.AuthenticationToken#AuthenticationToken */
-	protected LocalJvmOnlyAuthenticationToken(Set&lt;? extends Principal&gt; principals, Set&lt;?&gt; credentials) {
-<span class="fc" id="L45">		super(principals, credentials);</span>
-<span class="fc" id="L46">		authToken = RANDOM_TOKEN;</span>
-<span class="fc" id="L47">	}</span>
-	
-	/** @return true if this */
-	protected final boolean isCreatedInThisJvm() {
-<span class="fc" id="L51">		boolean isCreatedInThisJvm = ArrayUtils.isEquals(authToken, RANDOM_TOKEN);</span>
-<span class="pc bpc" id="L52" title="1 of 2 branches missed.">		if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L53">			log.trace(&quot;isCreatedInThisJvm: &quot;+isCreatedInThisJvm);</span>
-		}
-<span class="fc" id="L55">		return isCreatedInThisJvm;</span>
-	}
+  /**
+   * @param principals Principals
+   * @param credentials Credentials
+   * @see
+   *     org.cesecore.authentication.tokens.AuthenticationToken#AuthenticationToken
+   */
+  protected LocalJvmOnlyAuthenticationToken(
+      final Set&lt;? extends Principal&gt; principals, final Set&lt;?&gt; credentials) {
+<span class="fc" id="L58">    super(principals, credentials);</span>
+<span class="fc" id="L59">    authToken = RANDOM_TOKEN;</span>
+<span class="fc" id="L60">  }</span>
 
-	public void initRandomToken() {
-<span class="fc" id="L59">		authToken = RANDOM_TOKEN;</span>
-<span class="fc" id="L60">	}</span>
-	
-	private static byte[] createRandomToken() {
-<span class="fc" id="L63">    	final byte[] token = new byte[32];</span>
-<span class="fc" id="L64">        new SecureRandom().nextBytes(token);</span>
-<span class="fc" id="L65">    	return token;</span>
-	}
+  /** @return true if this */
+  protected final boolean isCreatedInThisJvm() {
+<span class="fc" id="L64">    boolean isCreatedInThisJvm = ArrayUtils.isEquals(authToken, RANDOM_TOKEN);</span>
+<span class="pc bpc" id="L65" title="1 of 2 branches missed.">    if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L66">      LOG.trace(&quot;isCreatedInThisJvm: &quot; + isCreatedInThisJvm);</span>
+    }
+<span class="fc" id="L68">    return isCreatedInThisJvm;</span>
+  }
+
+  /** Initialize rhe random token. */
+  public void initRandomToken() {
+<span class="fc" id="L73">    authToken = RANDOM_TOKEN;</span>
+<span class="fc" id="L74">  }</span>
+
+  /** @return a 32-byte random token. */
+  private static byte[] createRandomToken() {
+<span class="fc" id="L78">    final byte[] token = new byte[TOKEN_SIZE];</span>
+<span class="fc" id="L79">    new SecureRandom().nextBytes(token);</span>
+<span class="fc" id="L80">    return token;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

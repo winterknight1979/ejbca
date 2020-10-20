@@ -9,42 +9,46 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.ca;
 
 import org.cesecore.CesecoreException;
 import org.cesecore.ErrorCode;
 
-
 /**
- * An exception thrown when someone tries to change or create a CA that doesn't already exits
+ * An exception thrown when someone tries to change or create a CA that doesn't
+ * already exits.
  *
  * @version $Id: CAExistsException.java 26048 2017-06-20 09:26:30Z anatom $
  */
 public class CAExistsException extends CesecoreException {
-    
-    private static final long serialVersionUID = 1212559890080635864L;
 
+  private static final long serialVersionUID = 1212559890080635864L;
 
-    /**
-     * Creates a new instance of &lt;code&gt;CAExistsException&lt;/code&gt; without detail message.
-     */
-    public CAExistsException() {
-<span class="nc" id="L33">        super();</span>
-<span class="nc" id="L34">    }</span>
-    
-    
-    /**
-     * Constructs an instance of &lt;code&gt;CAExistsException&lt;/code&gt; with the specified detail message.
-     * @param msg the detail message.
-     */
-    public CAExistsException(String msg) {
-<span class="nc" id="L42">        super(ErrorCode.CA_ALREADY_EXISTS, msg);</span>
-<span class="nc" id="L43">    }</span>
+  /**
+   * Creates a new instance of &lt;code&gt;CAExistsException&lt;/code&gt; without detail
+   * message.
+   */
+  public CAExistsException() {
+<span class="nc" id="L33">    super();</span>
+<span class="nc" id="L34">  }</span>
 
+  /**
+   * Constructs an instance of &lt;code&gt;CAExistsException&lt;/code&gt; with the specified
+   * detail message.
+   *
+   * @param msg the detail message.
+   */
+  public CAExistsException(final String msg) {
+<span class="nc" id="L43">    super(ErrorCode.CA_ALREADY_EXISTS, msg);</span>
+<span class="nc" id="L44">  }</span>
 
-    public CAExistsException(String message, Throwable cause) {
-<span class="nc" id="L47">        super(message, cause);</span>
-<span class="nc" id="L48">    }</span>
+  /**
+   * @param message message
+   * @param cause cause
+   */
+  public CAExistsException(final String message, final Throwable cause) {
+<span class="nc" id="L51">    super(message, cause);</span>
+<span class="nc" id="L52">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

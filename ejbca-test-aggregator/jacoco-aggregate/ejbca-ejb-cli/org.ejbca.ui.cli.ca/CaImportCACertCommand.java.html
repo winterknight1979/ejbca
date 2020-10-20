@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CaImportCACertCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.ca</a> &gt; <span class="el_source">CaImportCACertCommand.java</span></div><h1>CaImportCACertCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.cli.ca;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.security.cert.CertPathValidatorException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateParsingException;
+import java.util.Arrays;
+import java.util.Collection;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.CesecoreException;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CAConstants;
+import org.cesecore.certificates.ca.CAExistsException;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.CaSessionRemote;
+import org.cesecore.certificates.certificate.request.X509ResponseMessage;
+import org.cesecore.keys.token.IllegalCryptoTokenException;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.EJBTools;
+import org.cesecore.util.EjbRemoteHelper;
+import org.ejbca.core.EjbcaException;
+import org.ejbca.core.ejb.ca.caadmin.CAAdminSessionRemote;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+
+/**
+ * Imports a PEM file and creates a new external CA representation from it.
+ */
+<span class="nc" id="L52">public class CaImportCACertCommand extends BaseCaAdminCommand {</span>
+
+<span class="nc" id="L54">    private static final Logger log = Logger.getLogger(CaImportCACertCommand.class);</span>
+
+    private static final String CA_NAME_KEY = &quot;--caname&quot;;
+    private static final String FILE_KEY = &quot;-f&quot;;
+    private static final String INIT_AUTH_KEY = &quot;-initauthorization&quot;;
+    private static final String SUPERADMIN_CN_KEY = &quot;-superadmincn&quot;;
+
+    {
+<span class="nc" id="L62">        registerParameter(new Parameter(</span>
+                CA_NAME_KEY,
+                &quot;CA Name&quot;,
+                MandatoryMode.MANDATORY,
+                StandaloneMode.ALLOW,
+                ParameterMode.ARGUMENT,
+                &quot;Name of the affected CA. If the CA is present, it must either be waiting for a certificate response from an external CA or itself be &quot;
+                        + &quot;an external CA, in which case its certificate will be updated. If the CA is not present, a new CA will be added using the imported certificate chain.&quot;));
+<span class="nc" id="L70">        registerParameter(new Parameter(FILE_KEY, &quot;File Name&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;A file containing a certificate, in either PEM or DER format. If the CA is waiting for a CSR, this certificate should be the response. &quot;
+                        + &quot;If the CA is an externally imported CA, then it will be updated using this certificate. &quot;
+                        + &quot;If the CA doesn't exist it will be imported using this certificate. &quot;));
+<span class="nc" id="L74">        registerParameter(Parameter.createFlag(INIT_AUTH_KEY,</span>
+                &quot;This flag may be used when importing an external CA and will create a super administrator (full access) issued by that CA.&quot;));
+<span class="nc" id="L76">        registerParameter(new Parameter(SUPERADMIN_CN_KEY, &quot;CN&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID, ParameterMode.ARGUMENT,</span>
+                &quot;Required when using &quot; + INIT_AUTH_KEY + &quot;. The Common Name (CN) for the created super administrator.&quot;));
+<span class="nc" id="L78">    }</span>
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L82">        return &quot;importcacert&quot;;</span>
+    }
+
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+<span class="nc" id="L87">        String caName = parameters.get(CA_NAME_KEY);</span>
+<span class="nc" id="L88">        String certificateFile = parameters.get(FILE_KEY);</span>
+
+<span class="nc" id="L90">        boolean initAuth = parameters.containsKey(INIT_AUTH_KEY);</span>
+<span class="nc" id="L91">        String superAdminCN = parameters.get(SUPERADMIN_CN_KEY);</span>
+<span class="nc bnc" id="L92" title="All 4 branches missed.">        if (initAuth &amp;&amp; StringUtils.isEmpty(superAdminCN)) {</span>
+<span class="nc" id="L93">            log.error(&quot;Error: &quot; + INIT_AUTH_KEY + &quot; flag was used, but super administrator Common Name was not defined with the &quot; + SUPERADMIN_CN_KEY</span>
+                    + &quot; switch.&quot;);
+<span class="nc" id="L95">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+        }
+        try {
+<span class="nc" id="L98">            CryptoProviderTools.installBCProviderIfNotAvailable();</span>
+            Certificate certificate;
+            Collection&lt;Certificate&gt; certs;
+            try {
+                try {
+                    //Try to parse as PEM
+<span class="nc" id="L104">                    certs = CertTools.getCertsFromPEM(certificateFile, Certificate.class);</span>
+<span class="nc bnc" id="L105" title="All 2 branches missed.">                    if (certs.size() != 1) {</span>
+<span class="nc" id="L106">                        log.error(&quot;PEM file must only contain one CA certificate, this PEM file contains &quot; + certs.size() + &quot;.&quot;);</span>
+<span class="nc" id="L107">                        return CommandResult.FUNCTIONAL_FAILURE;</span>
+                    } else {
+<span class="nc" id="L109">                        certificate = certs.iterator().next();</span>
+                    }
+<span class="nc" id="L111">                } catch (CertificateParsingException e) {</span>
+                    //Try parsing as binary instead.
+                    try {
+<span class="nc" id="L114">                        certificate = CertTools.getCertfromByteArray(IOUtils.toByteArray(new FileInputStream(certificateFile)), Certificate.class);</span>
+<span class="nc" id="L115">                        certs = Arrays.asList(certificate);</span>
+<span class="nc" id="L116">                    } catch (CertificateParsingException e2) {</span>
+<span class="nc" id="L117">                        log.error(&quot;Error: &quot; + certificateFile + &quot; does not contain a certificate, either in PEM or in binary format.&quot;);</span>
+<span class="nc" id="L118">                        return CommandResult.CLI_FAILURE;</span>
+<span class="nc" id="L119">                    }</span>
+<span class="nc" id="L120">                }</span>
+<span class="nc" id="L121">            } catch (FileNotFoundException e) {</span>
+<span class="nc" id="L122">                log.error(&quot;Error: &quot; + certificateFile + &quot; was not a file, not found or could otherwise not be opened.&quot;);</span>
+<span class="nc" id="L123">                return CommandResult.CLI_FAILURE;</span>
+<span class="nc" id="L124">            } catch(IOException e) {</span>
+<span class="nc" id="L125">                log.error(&quot;Unknown IOException was caught&quot;, e);</span>
+<span class="nc" id="L126">                return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L127">            }</span>
+
+            /* 
+             * We need to check if the CA already exists to determine what to do:
+             *  - If CA already exist, it might be a sub CA that is waiting for certificate from an external CA
+             *  - If the CA does not already exist, we import the CA certificate as an &quot;External CA&quot; certificate in EJBCA, so we have the CA cert in EJBCA as a trust point
+             *    getCAInfo throws an exception (CADoesntExistsException) if the CA does not exists, that is how we check if the CA exists 
+             */
+<span class="nc" id="L135">            CAAdminSessionRemote caAdminSession = EjbRemoteHelper.INSTANCE.getRemoteSession(CAAdminSessionRemote.class);</span>
+<span class="nc" id="L136">            CAInfo cainfo = EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class).getCAInfo(getAuthenticationToken(), caName);</span>
+<span class="nc bnc" id="L137" title="All 2 branches missed.">            if (cainfo == null) {</span>
+                // CA does not exist, we can import the certificate
+<span class="nc bnc" id="L139" title="All 2 branches missed.">                if (initAuth) {</span>
+<span class="nc" id="L140">                    String subjectdn = CertTools.getSubjectDN(certificate);</span>
+<span class="nc" id="L141">                    Integer caid = Integer.valueOf(subjectdn.hashCode());</span>
+<span class="nc" id="L142">                    initAuthorizationModule(getAuthenticationToken(), caid.intValue(), superAdminCN);</span>
+                }
+<span class="nc" id="L144">                caAdminSession.importCACertificate(getAuthenticationToken(), caName, EJBTools.wrapCertCollection(certs));</span>
+<span class="nc" id="L145">                log.info(&quot;Imported CA &quot; + caName);</span>
+<span class="nc" id="L146">                return CommandResult.SUCCESS;</span>
+            }
+            
+<span class="nc bnc" id="L149" title="All 2 branches missed.">            if (cainfo.getStatus() == CAConstants.CA_WAITING_CERTIFICATE_RESPONSE) {</span>
+<span class="nc bnc" id="L150" title="All 2 branches missed.">                if (initAuth) {</span>
+<span class="nc" id="L151">                    log.warn(&quot;Warning: &quot; + INIT_AUTH_KEY + &quot; was defined but was ignored when receiving a CSR.&quot;);</span>
+                }
+
+<span class="nc" id="L154">                log.info(&quot;CA '&quot; + caName</span>
+                        + &quot;' is waiting for certificate response from external CA, importing certificate as certificate response to this CA.&quot;);
+<span class="nc" id="L156">                X509ResponseMessage resp = new X509ResponseMessage();</span>
+<span class="nc" id="L157">                resp.setCertificate(certificate);</span>
+<span class="nc" id="L158">                caAdminSession.receiveResponse(getAuthenticationToken(), cainfo.getCAId(), resp, null, null);</span>
+<span class="nc" id="L159">                log.info(&quot;Received certificate response and activated CA &quot; + caName);</span>
+<span class="nc bnc" id="L160" title="All 2 branches missed.">            } else if (cainfo.getStatus() == CAConstants.CA_EXTERNAL) {</span>
+<span class="nc bnc" id="L161" title="All 2 branches missed.">                if (initAuth) {</span>
+<span class="nc" id="L162">                    log.warn(&quot;Warning: &quot; + INIT_AUTH_KEY + &quot; was defined but was ignored when updating an externally imported CA.&quot;);</span>
+                }
+                // CA exists and this is assumed to be an update of the imported CA certificate
+<span class="nc" id="L165">                log.info(&quot;CA '&quot; + caName + &quot;' is an external CA created by CA certificate import. Trying to update the CA certificate chain.&quot;);</span>
+<span class="nc" id="L166">                caAdminSession.updateCACertificate(getAuthenticationToken(), cainfo.getCAId(), EJBTools.wrapCertCollection(certs));</span>
+<span class="nc" id="L167">                log.info(&quot;Updated certificate chain for imported external CA &quot; + caName);</span>
+            } else {
+<span class="nc" id="L169">                log.error(&quot;CA '&quot; + caName + &quot;' already exists and is not waiting for certificate response from an external CA.&quot;);</span>
+<span class="nc" id="L170">                return CommandResult.FUNCTIONAL_FAILURE;</span>
+            }
+<span class="nc" id="L172">            return CommandResult.SUCCESS;</span>
+<span class="nc" id="L173">        } catch (CAExistsException e) {</span>
+<span class="nc" id="L174">            log.error(e.getMessage());</span>
+<span class="nc" id="L175">        } catch (IllegalCryptoTokenException e) {</span>
+<span class="nc" id="L176">            log.error(e.getMessage());</span>
+<span class="nc" id="L177">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L178">            log.error(e.getMessage());</span>
+<span class="nc" id="L179">        } catch (CertPathValidatorException e) {</span>
+<span class="nc" id="L180">            log.error(e.getMessage());</span>
+<span class="nc" id="L181">        } catch (EjbcaException e) {</span>
+<span class="nc" id="L182">            log.error(e.getMessage());</span>
+<span class="nc" id="L183">        } catch (CesecoreException e) {</span>
+<span class="nc" id="L184">            log.error(e.getMessage());</span>
+<span class="nc" id="L185">        }</span>
+<span class="nc" id="L186">        return CommandResult.FUNCTIONAL_FAILURE;</span>
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L191">        return &quot;Imports a PEM file and creates a new external CA representation from it&quot;;</span>
+
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L197">        return getCommandDescription();</span>
+    }
+
+    @Override
+    protected Logger getLogger() {
+<span class="nc" id="L202">        return log;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

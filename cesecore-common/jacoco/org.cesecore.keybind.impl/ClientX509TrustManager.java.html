@@ -19,79 +19,110 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-
 import javax.net.ssl.X509TrustManager;
-
 import org.bouncycastle.asn1.x509.KeyPurposeId;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.provider.EkuPKIXCertPathChecker;
 
 /**
- * 
  * @version $Id: ClientX509TrustManager.java 27582 2017-12-19 10:43:30Z anatom $
  */
 public class ClientX509TrustManager implements X509TrustManager {
 
-<span class="fc" id="L35">    private List&lt;Collection&lt;X509Certificate&gt; &gt; trustedCertificatesChains = null;</span>
-<span class="fc" id="L36">    private List&lt;X509Certificate&gt; encounteredServerCertificateChain = null;</span>
-    
-<span class="fc" id="L38">    public ClientX509TrustManager(final List&lt; Collection&lt;X509Certificate&gt;&gt; trustedCertificates) {</span>
-<span class="pc bpc" id="L39" title="1 of 2 branches missed.">        if (trustedCertificates!=null) {</span>
-<span class="fc" id="L40">            trustedCertificatesChains = new ArrayList&lt;&gt;(trustedCertificates);</span>
-        }
-<span class="fc" id="L42">    }</span>
+    /** Trusted chains. */
+<span class="fc" id="L33">  private List&lt;Collection&lt;X509Certificate&gt;&gt; trustedCertificatesChains = null;</span>
+  /** Chains. */
+<span class="fc" id="L35">  private List&lt;X509Certificate&gt; encounteredServerCertificateChain = null;</span>
 
-    @Override
-    public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-<span class="nc" id="L46">        X509Certificate cert = chain[0];</span>
-        // Validate the certificate and require a critical EKU extensions (if present) to contain the purpose &quot;clientAuth&quot;
-<span class="nc bnc" id="L48" title="All 2 branches missed.">        if(!CertTools.verifyWithTrustedCertificates(cert, trustedCertificatesChains, new EkuPKIXCertPathChecker(KeyPurposeId.id_kp_clientAuth.getId()))) {</span>
-<span class="nc" id="L49">            String subjectdn = CertTools.getSubjectDN(cert);</span>
-<span class="nc" id="L50">            String issuerdn = CertTools.getIssuerDN(cert);</span>
-<span class="nc" id="L51">            String sn = CertTools.getSerialNumberAsString(cert);</span>
-<span class="nc" id="L52">            String errmsg = &quot;Client certificate with SubjectDN '&quot; + subjectdn + &quot;', IssuerDN '&quot; + issuerdn + </span>
-                    &quot;' and serialnumber '&quot; + sn + &quot;' is NOT trusted.&quot;;
-<span class="nc" id="L54">            throw new CertificateException(errmsg);</span>
-        }
-<span class="nc" id="L56">    }</span>
+  /**
+   * @param trustedCertificates Certs.
+   */
+  public ClientX509TrustManager(
+<span class="fc" id="L41">      final List&lt;Collection&lt;X509Certificate&gt;&gt; trustedCertificates) {</span>
+<span class="pc bpc" id="L42" title="1 of 2 branches missed.">    if (trustedCertificates != null) {</span>
+<span class="fc" id="L43">      trustedCertificatesChains = new ArrayList&lt;&gt;(trustedCertificates);</span>
+    }
+<span class="fc" id="L45">  }</span>
 
-    @Override
-    public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-<span class="fc" id="L60">        X509Certificate cert = chain[0];</span>
-<span class="fc" id="L61">        encounteredServerCertificateChain = new ArrayList&lt;&gt;(Arrays.asList(chain));</span>
-        // Validate the certificate and require a critical EKU extensions (if present) to contain the purpose &quot;serverAuth&quot;
-<span class="fc bfc" id="L63" title="All 2 branches covered.">        if(!CertTools.verifyWithTrustedCertificates(cert, trustedCertificatesChains, new EkuPKIXCertPathChecker(KeyPurposeId.id_kp_serverAuth.getId()))) {</span>
-<span class="fc" id="L64">            String subjectdn = CertTools.getSubjectDN(cert);</span>
-<span class="fc" id="L65">            String issuerdn = CertTools.getIssuerDN(cert);</span>
-<span class="fc" id="L66">            String sn = CertTools.getSerialNumberAsString(cert);</span>
-<span class="fc" id="L67">            String errmsg = &quot;Server certificate with SubjectDN '&quot; + subjectdn + &quot;', IssuerDN '&quot; + issuerdn + </span>
-                    &quot;' and serialnumber '&quot; + sn + &quot;' is NOT trusted.&quot;;
-<span class="fc" id="L69">            throw new CertificateException(errmsg);</span>
-        }
-<span class="fc" id="L71">    }</span>
+  @Override
+  public void checkClientTrusted(
+          final X509Certificate[] chain, final String authType)
+      throws CertificateException {
+<span class="nc" id="L51">    X509Certificate cert = chain[0];</span>
+    // Validate the certificate and require a critical EKU extensions (if
+    // present) to contain the purpose &quot;clientAuth&quot;
+<span class="nc bnc" id="L54" title="All 2 branches missed.">    if (!CertTools.verifyWithTrustedCertificates(</span>
+        cert,
+        trustedCertificatesChains,
+<span class="nc" id="L57">        new EkuPKIXCertPathChecker(KeyPurposeId.id_kp_clientAuth.getId()))) {</span>
+<span class="nc" id="L58">      String subjectdn = CertTools.getSubjectDN(cert);</span>
+<span class="nc" id="L59">      String issuerdn = CertTools.getIssuerDN(cert);</span>
+<span class="nc" id="L60">      String sn = CertTools.getSerialNumberAsString(cert);</span>
+<span class="nc" id="L61">      String errmsg =</span>
+          &quot;Client certificate with SubjectDN '&quot;
+              + subjectdn
+              + &quot;', IssuerDN '&quot;
+              + issuerdn
+              + &quot;' and serialnumber '&quot;
+              + sn
+              + &quot;' is NOT trusted.&quot;;
+<span class="nc" id="L69">      throw new CertificateException(errmsg);</span>
+    }
+<span class="nc" id="L71">  }</span>
 
-    @Override
-    public X509Certificate[] getAcceptedIssuers() {
-<span class="nc bnc" id="L75" title="All 2 branches missed.">        if(trustedCertificatesChains == null) {</span>
-<span class="nc" id="L76">            return new X509Certificate[0];</span>
-        }
-        
-<span class="nc" id="L79">        ArrayList&lt;X509Certificate&gt; acceptedIssuers = new ArrayList&lt;X509Certificate&gt;();</span>
-<span class="nc bnc" id="L80" title="All 2 branches missed.">        for(Collection&lt;X509Certificate&gt; certChain : trustedCertificatesChains) {</span>
-<span class="nc" id="L81">            Iterator&lt;X509Certificate&gt; itr = certChain.iterator();</span>
-<span class="nc" id="L82">            X509Certificate cert = itr.next();</span>
-<span class="nc bnc" id="L83" title="All 2 branches missed.">            if(CertTools.isCA(cert)) {</span>
-<span class="nc" id="L84">                acceptedIssuers.add(cert);</span>
-            } else {
-<span class="nc" id="L86">                acceptedIssuers.add(itr.next());</span>
-            }
-<span class="nc" id="L88">        }</span>
-<span class="nc" id="L89">        return acceptedIssuers.toArray(new X509Certificate[0]);</span>
+  @Override
+  public void checkServerTrusted(
+          final X509Certificate[] chain, final String authType)
+      throws CertificateException {
+<span class="fc" id="L77">    X509Certificate cert = chain[0];</span>
+<span class="fc" id="L78">    encounteredServerCertificateChain = new ArrayList&lt;&gt;(Arrays.asList(chain));</span>
+    // Validate the certificate and require a critical EKU extensions (if
+    // present) to contain the purpose &quot;serverAuth&quot;
+<span class="fc bfc" id="L81" title="All 2 branches covered.">    if (!CertTools.verifyWithTrustedCertificates(</span>
+        cert,
+        trustedCertificatesChains,
+<span class="fc" id="L84">        new EkuPKIXCertPathChecker(KeyPurposeId.id_kp_serverAuth.getId()))) {</span>
+<span class="fc" id="L85">      String subjectdn = CertTools.getSubjectDN(cert);</span>
+<span class="fc" id="L86">      String issuerdn = CertTools.getIssuerDN(cert);</span>
+<span class="fc" id="L87">      String sn = CertTools.getSerialNumberAsString(cert);</span>
+<span class="fc" id="L88">      String errmsg =</span>
+          &quot;Server certificate with SubjectDN '&quot;
+              + subjectdn
+              + &quot;', IssuerDN '&quot;
+              + issuerdn
+              + &quot;' and serialnumber '&quot;
+              + sn
+              + &quot;' is NOT trusted.&quot;;
+<span class="fc" id="L96">      throw new CertificateException(errmsg);</span>
+    }
+<span class="fc" id="L98">  }</span>
+
+  @Override
+  public X509Certificate[] getAcceptedIssuers() {
+<span class="nc bnc" id="L102" title="All 2 branches missed.">    if (trustedCertificatesChains == null) {</span>
+<span class="nc" id="L103">      return new X509Certificate[0];</span>
     }
 
-    /** @return the encountered server side certificate chain that this class has been asked to verify or null if none has been encountered yet. */
-    public List&lt;X509Certificate&gt; getEncounteredServerCertificateChain() {
-<span class="fc" id="L94">        return encounteredServerCertificateChain;</span>
-    }
+<span class="nc" id="L106">    ArrayList&lt;X509Certificate&gt; acceptedIssuers =</span>
+        new ArrayList&lt;X509Certificate&gt;();
+<span class="nc bnc" id="L108" title="All 2 branches missed.">    for (Collection&lt;X509Certificate&gt; certChain : trustedCertificatesChains) {</span>
+<span class="nc" id="L109">      Iterator&lt;X509Certificate&gt; itr = certChain.iterator();</span>
+<span class="nc" id="L110">      X509Certificate cert = itr.next();</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">      if (CertTools.isCA(cert)) {</span>
+<span class="nc" id="L112">        acceptedIssuers.add(cert);</span>
+      } else {
+<span class="nc" id="L114">        acceptedIssuers.add(itr.next());</span>
+      }
+<span class="nc" id="L116">    }</span>
+<span class="nc" id="L117">    return acceptedIssuers.toArray(new X509Certificate[0]);</span>
+  }
+
+  /**
+   * @return the encountered server side certificate chain that this class has
+   *     been asked to verify or null if none has been encountered yet.
+   */
+  public List&lt;X509Certificate&gt; getEncounteredServerCertificateChain() {
+<span class="fc" id="L125">    return encounteredServerCertificateChain;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

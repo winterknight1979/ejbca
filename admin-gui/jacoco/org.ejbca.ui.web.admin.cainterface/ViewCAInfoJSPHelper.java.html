@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ViewCAInfoJSPHelper.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Administration GUI</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.cainterface</a> &gt; <span class="el_source">ViewCAInfoJSPHelper.java</span></div><h1>ViewCAInfoJSPHelper.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.ui.web.admin.cainterface;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CAConstants;
+import org.ejbca.core.model.ca.publisher.BasePublisher;
+import org.ejbca.ui.web.RequestHelper;
+import org.ejbca.ui.web.admin.configuration.EjbcaWebBean;
+
+
+/**
+ * Contains help methods used to parse a viewcainfo jsp page requests.
+ *
+ * @author  Philip Vendil
+ * @version $Id: ViewCAInfoJSPHelper.java 25830 2017-05-10 13:36:45Z mikekushner $
+ */
+public class ViewCAInfoJSPHelper implements java.io.Serializable {
+		 
+	private static final long serialVersionUID = 109073226626366410L;
+
+    public static final String CA_PARAMETER             = &quot;caid&quot;;
+
+	public static final String CERTSERNO_PARAMETER      = &quot;certsernoparameter&quot;; 
+	  
+	public static final String PASSWORD_AUTHENTICATIONCODE  = &quot;passwordactivationcode&quot;;
+	
+    public static final String CHECKBOX_VALUE                = BasePublisher.TRUE;
+	  
+	public static final String BUTTON_ACTIVATE          = &quot;buttonactivate&quot;;
+	public static final String BUTTON_MAKEOFFLINE       = &quot;buttonmakeoffline&quot;;
+	public static final String BUTTON_CLOSE             = &quot;buttonclose&quot;; 
+	public static final String CHECKBOX_INCLUDEINHEALTHCHECK = &quot;includeinhealthcheck&quot;;
+	public static final String SUBMITHS					= &quot;submiths&quot;;
+
+    private CAInterfaceBean cabean;
+<span class="nc" id="L50">    private boolean initialized=false;</span>
+<span class="nc" id="L51">	public String   generalerrormessage = null;</span>
+<span class="nc" id="L52">	public String   activationerrormessage = null;</span>
+<span class="nc" id="L53">	public String   activationerrorreason = null;</span>
+<span class="nc" id="L54">	public String   activationmessage = null;</span>
+<span class="nc" id="L55">    public CAInfoView cainfo = null;</span>
+<span class="nc" id="L56">    public  int status = 0; </span>
+<span class="nc" id="L57">    public boolean tokenoffline = false;</span>
+<span class="nc" id="L58">    public  int caid = 0; </span>
+
+    /** Creates new LogInterfaceBean */
+<span class="nc" id="L61">    public ViewCAInfoJSPHelper(){     	    	</span>
+<span class="nc" id="L62">    }</span>
+
+    /**
+     * Method that initialized the bean.
+     *
+     * @param request is a reference to the http request.
+     * @param ejbcawebbean bean
+     * @param cabean bean
+     */
+    public void initialize(HttpServletRequest request, EjbcaWebBean ejbcawebbean, CAInterfaceBean cabean) {
+<span class="nc bnc" id="L72" title="All 2 branches missed.">        if (!initialized) {</span>
+<span class="nc" id="L73">            this.cabean = cabean;                        		</span>
+<span class="nc" id="L74">            initialized = true;</span>
+        }
+<span class="nc" id="L76">    }</span>
+
+    /**
+     * Method that parses the request and take appropriate actions.
+     * @param request the http request
+     * @throws Exception fail
+     */
+    public void parseRequest(HttpServletRequest request) throws Exception {
+<span class="nc" id="L84">        generalerrormessage = null;</span>
+<span class="nc" id="L85">        activationerrormessage = null;   </span>
+<span class="nc" id="L86">        activationmessage = null;</span>
+<span class="nc" id="L87">        RequestHelper.setDefaultCharacterEncoding(request);</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">        if (request.getParameter(CA_PARAMETER) != null){</span>
+<span class="nc" id="L89">            caid = Integer.parseInt(request.getParameter(CA_PARAMETER));</span>
+            // Get currentstate
+<span class="nc" id="L91">            status = CAConstants.CA_OFFLINE;</span>
+            try {
+<span class="nc" id="L93">                cainfo = cabean.getCAInfo(caid);</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">                if (cainfo==null) {</span>
+<span class="nc" id="L95">                    generalerrormessage = &quot;CADOESNTEXIST&quot;;  </span>
+                } else {
+<span class="nc" id="L97">                    status = cainfo.getCAInfo().getStatus();</span>
+                }
+<span class="nc" id="L99">            } catch(AuthorizationDeniedException e) {</span>
+<span class="nc" id="L100">                generalerrormessage = &quot;NOTAUTHORIZEDTOVIEWCA&quot;;</span>
+<span class="nc" id="L101">                return;</span>
+<span class="nc" id="L102">            } </span>
+        } else {
+<span class="nc" id="L104">            generalerrormessage = &quot;YOUMUSTSPECIFYCAID&quot;;</span>
+        }
+<span class="nc" id="L106">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

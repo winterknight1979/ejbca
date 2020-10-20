@@ -13,87 +13,98 @@
 package org.cesecore.util;
 
 import java.util.List;
-
 import org.cesecore.CesecoreException;
 
 /**
- * The external process exception is the base exception to handle (platform dependent) external process calls ({@link ExternalProcessTools}. 
- * 
- * @version $Id: ExternalProcessException.java 27706 2018-01-02 13:50:59Z andresjakobs $
+ * The external process exception is the base exception to handle (platform
+ * dependent) external process calls ({@link ExternalProcessTools}.
+ *
+ * @version $Id: ExternalProcessException.java 27706 2018-01-02 13:50:59Z
+ *     andresjakobs $
  */
 public class ExternalProcessException extends CesecoreException {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    private List&lt;String&gt; out;
-    
-    /**
-     * Default constructor.
-     */
-    public ExternalProcessException() {
-<span class="nc" id="L34">        super();</span>
-<span class="nc" id="L35">    }</span>
+  /** List. */
+  private List&lt;String&gt; out;
 
-    /**
-     * Parameterized constructor.
-     * @param message the message.
-     * @param cause the cause
-     */
-    public ExternalProcessException(final String message, final Throwable cause) {
-<span class="nc" id="L43">        super(message, cause);</span>
-<span class="nc" id="L44">    }</span>
+  /** Default constructor. */
+  public ExternalProcessException() {
+<span class="nc" id="L34">    super();</span>
+<span class="nc" id="L35">  }</span>
 
-    /**
-     * Parameterized constructor.
-     * @param message the message.
-     * @param cause the cause
-     * @param out the list.
-     */
-    public ExternalProcessException(final String message, final Throwable cause, final List&lt;String&gt; out) {
-<span class="nc" id="L53">        super(message, cause);</span>
-<span class="nc" id="L54">        this.out = out;</span>
-<span class="nc" id="L55">    }</span>
-    
-    /**
-     * Parameterized constructor.
-     * @param message the message.
-     */
-    public ExternalProcessException(final String message) {
-<span class="nc" id="L62">        super(message);</span>
-<span class="nc" id="L63">    }</span>
-    
-    /**
-     * Parameterized constructor.
-     * @param message the message.
-     * @param out the list.
-     */
-    public ExternalProcessException(final String message, final List&lt;String&gt; out) {
-<span class="nc" id="L71">        super(message);</span>
-<span class="nc" id="L72">        this.out = out;</span>
-<span class="nc" id="L73">    }</span>
+  /**
+   * Parameterized constructor.
+   *
+   * @param message the message.
+   * @param cause the cause
+   */
+  public ExternalProcessException(final String message, final Throwable cause) {
+<span class="nc" id="L44">    super(message, cause);</span>
+<span class="nc" id="L45">  }</span>
 
-    /**
-     * Parameterized constructor.
-     * @param cause the cause.
-     */
-    public ExternalProcessException(final Exception cause) {
-<span class="nc" id="L80">        super(cause);</span>
-<span class="nc" id="L81">    }</span>
+  /**
+   * Parameterized constructor.
+   *
+   * @param message the message.
+   * @param cause the cause
+   * @param anOut the list.
+   */
+  public ExternalProcessException(
+      final String message, final Throwable cause, final List&lt;String&gt; anOut) {
+<span class="nc" id="L56">    super(message, cause);</span>
+<span class="nc" id="L57">    this.out = anOut;</span>
+<span class="nc" id="L58">  }</span>
 
-    /**
-     * Gets the list of exit code ({@link ExternalProcessTools#EXIT_CODE_PREFIX}), STDOUT and ERROUT.
-     * @return the list.
-     */
-    public List&lt;String&gt; getOut() {
-<span class="nc" id="L88">        return out;</span>
-    }
+  /**
+   * Parameterized constructor.
+   *
+   * @param message the message.
+   */
+  public ExternalProcessException(final String message) {
+<span class="nc" id="L66">    super(message);</span>
+<span class="nc" id="L67">  }</span>
 
-    /**
-     * Sets the list of exit code ({@link ExternalProcessTools#EXIT_CODE_PREFIX}), STDOUT and ERROUT.
-     * @param out the list.
-     */
-    public void setOut(List&lt;String&gt; out) {
-<span class="nc" id="L96">        this.out = out;</span>
-<span class="nc" id="L97">    }</span>
+  /**
+   * Parameterized constructor.
+   *
+   * @param message the message.
+   * @param anOut the list.
+   */
+  public ExternalProcessException(
+      final String message, final List&lt;String&gt; anOut) {
+<span class="nc" id="L77">    super(message);</span>
+<span class="nc" id="L78">    this.out = anOut;</span>
+<span class="nc" id="L79">  }</span>
+
+  /**
+   * Parameterized constructor.
+   *
+   * @param cause the cause.
+   */
+  public ExternalProcessException(final Exception cause) {
+<span class="nc" id="L87">    super(cause);</span>
+<span class="nc" id="L88">  }</span>
+
+  /**
+   * Gets the list of exit code ({@link ExternalProcessTools#EXIT_CODE_PREFIX}),
+   * STDOUT and ERROUT.
+   *
+   * @return the list.
+   */
+  public List&lt;String&gt; getOut() {
+<span class="nc" id="L97">    return out;</span>
+  }
+
+  /**
+   * Sets the list of exit code ({@link ExternalProcessTools#EXIT_CODE_PREFIX}),
+   * STDOUT and ERROUT.
+   *
+   * @param anOut the list.
+   */
+  public void setOut(final List&lt;String&gt; anOut) {
+<span class="nc" id="L107">    this.out = anOut;</span>
+<span class="nc" id="L108">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

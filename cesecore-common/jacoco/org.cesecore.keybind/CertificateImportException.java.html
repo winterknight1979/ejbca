@@ -16,44 +16,57 @@ import org.cesecore.CesecoreException;
 import org.cesecore.ErrorCode;
 
 /**
- * An exception thrown when someone tries to import a certificate and an error occurs.
- * Not restricted to key binding imort, but kept in this package for backwards compatibility reasons.
+ * An exception thrown when someone tries to import a certificate and an error
+ * occurs. Not restricted to key binding imort, but kept in this package for
+ * backwards compatibility reasons.
  *
- * @version $Id: CertificateImportException.java 25404 2017-03-07 08:43:40Z anatom $
+ * @version $Id: CertificateImportException.java 25404 2017-03-07 08:43:40Z
+ *     anatom $
  */
 public class CertificateImportException extends CesecoreException {
 
-    private static final long serialVersionUID = 1L;
-<span class="fc" id="L27">    public static final ErrorCode CERTIFICATE_IMPORT = ErrorCode.CERTIFICATE_IMPORT;</span>
+  private static final long serialVersionUID = 1L;
+  /** Code. */
+<span class="fc" id="L30">  public static final ErrorCode CERTIFICATE_IMPORT =</span>
+      ErrorCode.CERTIFICATE_IMPORT;
 
-    /** Creates a new instance of &lt;code&gt;CertificateImportException&lt;/code&gt; without detail message. */
-    public CertificateImportException() {
-<span class="nc" id="L31">        super(CERTIFICATE_IMPORT);</span>
-<span class="nc" id="L32">    }</span>
+  /**
+   * Creates a new instance of &lt;code&gt;CertificateImportException&lt;/code&gt; without
+   * detail message.
+   */
+  public CertificateImportException() {
+<span class="nc" id="L38">    super(CERTIFICATE_IMPORT);</span>
+<span class="nc" id="L39">  }</span>
 
-    /**
-     * Constructs an instance of &lt;code&gt;CertificateImportException&lt;/code&gt; with the specified detail message.
-     * @param msg the detail message.
-     */
-    public CertificateImportException(String msg) {
-<span class="fc" id="L39">        super(CERTIFICATE_IMPORT, msg);</span>
-<span class="fc" id="L40">    }</span>
+  /**
+   * Constructs an instance of &lt;code&gt;CertificateImportException&lt;/code&gt; with the
+   * specified detail message.
+   *
+   * @param msg the detail message.
+   */
+  public CertificateImportException(final String msg) {
+<span class="fc" id="L48">    super(CERTIFICATE_IMPORT, msg);</span>
+<span class="fc" id="L49">  }</span>
 
-    /**
-     * Constructs an instance of &lt;code&gt;CertificateImportException&lt;/code&gt; with the specified detail message.
-     * @param exception the exception that caused this
-     */
-    public CertificateImportException(Exception exception) {
-<span class="nc" id="L47">        super(CERTIFICATE_IMPORT, exception);</span>
-<span class="nc" id="L48">    }</span>
+  /**
+   * Constructs an instance of &lt;code&gt;CertificateImportException&lt;/code&gt; with the
+   * specified detail message.
+   *
+   * @param exception the exception that caused this
+   */
+  public CertificateImportException(final Exception exception) {
+<span class="nc" id="L58">    super(CERTIFICATE_IMPORT, exception);</span>
+<span class="nc" id="L59">  }</span>
 
-    /**
-     * Constructs an instance of &lt;code&gt;CertificateImportException&lt;/code&gt; with the specified detail message.
-     * @param msg the detail message.
-     * @param e the exception that caused this
-     */
-    public CertificateImportException(String msg, Exception e) {
-<span class="nc" id="L56">        super(CERTIFICATE_IMPORT, msg, e);</span>
-<span class="nc" id="L57">    }</span>
+  /**
+   * Constructs an instance of &lt;code&gt;CertificateImportException&lt;/code&gt; with the
+   * specified detail message.
+   *
+   * @param msg the detail message.
+   * @param e the exception that caused this
+   */
+  public CertificateImportException(final String msg, final Exception e) {
+<span class="nc" id="L69">    super(CERTIFICATE_IMPORT, msg, e);</span>
+<span class="nc" id="L70">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

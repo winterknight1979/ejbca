@@ -13,43 +13,35 @@
 package org.cesecore.config;
 
 /**
- * Thrown to show that a configuration value was not correctly set. 
- * 
- * @version $Id: InvalidConfigurationException.java 22764 2016-02-08 14:05:30Z mikekushner $
+ * Thrown to show that a configuration value was not correctly set.
  *
+ * @version $Id: InvalidConfigurationException.java 22764 2016-02-08 14:05:30Z
+ *     mikekushner $
  */
 public class InvalidConfigurationException extends Exception {
 
-    private static final long serialVersionUID = 2959353827904749328L;
+  private static final long serialVersionUID = 2959353827904749328L;
 
-    /**
-     * 
-     */
-<span class="nc" id="L28">    public InvalidConfigurationException() {</span>
-<span class="nc" id="L29">    }</span>
+  /** default. */
+<span class="nc" id="L26">  public InvalidConfigurationException() { }</span>
 
-    /**
-     * @param message message
-     */
-    public InvalidConfigurationException(String message) {
-<span class="nc" id="L35">        super(message);</span>
-<span class="nc" id="L36">    }</span>
+  /** @param message message */
+  public InvalidConfigurationException(final String message) {
+<span class="nc" id="L30">    super(message);</span>
+<span class="nc" id="L31">  }</span>
 
-    /**
-     * @param cause cause
-     */
-    public InvalidConfigurationException(Throwable cause) {
-<span class="nc" id="L42">        super(cause);</span>
-<span class="nc" id="L43">    }</span>
+  /** @param cause cause */
+  public InvalidConfigurationException(final Throwable cause) {
+<span class="nc" id="L35">    super(cause);</span>
+<span class="nc" id="L36">  }</span>
 
-    /**
-     * @param message message
-     * @param cause cause
-     */
-    public InvalidConfigurationException(String message, Throwable cause) {
-<span class="nc" id="L50">        super(message, cause);</span>
-<span class="nc" id="L51">    }</span>
-
-
+  /**
+   * @param message message
+   * @param cause cause
+   */
+  public InvalidConfigurationException(
+          final String message, final Throwable cause) {
+<span class="nc" id="L44">    super(message, cause);</span>
+<span class="nc" id="L45">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

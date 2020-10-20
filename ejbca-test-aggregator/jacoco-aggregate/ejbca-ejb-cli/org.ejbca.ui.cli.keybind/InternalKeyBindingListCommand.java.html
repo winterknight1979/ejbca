@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>InternalKeyBindingListCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.keybind</a> &gt; <span class="el_source">InternalKeyBindingListCommand.java</span></div><h1>InternalKeyBindingListCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.cli.keybind;
+
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CaSessionRemote;
+import org.cesecore.certificates.certificate.CertificateConstants;
+import org.cesecore.certificates.certificate.CertificateInfo;
+import org.cesecore.certificates.certificate.CertificateStoreSessionRemote;
+import org.cesecore.keybind.InternalKeyBinding;
+import org.cesecore.keybind.InternalKeyBindingMgmtSessionRemote;
+import org.cesecore.keybind.InternalKeyBindingTrustEntry;
+import org.cesecore.keys.token.CryptoTokenInfo;
+import org.cesecore.keys.token.CryptoTokenManagementSessionRemote;
+import org.cesecore.util.EjbRemoteHelper;
+import org.cesecore.util.ui.DynamicUiProperty;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.command.EjbcaCliUserCommandBase;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+
+/**
+ * See getDescription().
+ * 
+ * @version $Id: InternalKeyBindingListCommand.java 27740 2018-01-05 07:24:53Z mikekushner $
+ */
+<span class="nc" id="L44">public class InternalKeyBindingListCommand extends EjbcaCliUserCommandBase {</span>
+
+<span class="nc" id="L46">    private static final Logger log = Logger.getLogger(InternalKeyBindingListCommand.class);</span>
+
+    @Override
+    public String[] getCommandPath() {
+<span class="nc" id="L50">        return new String[] { &quot;keybind&quot; };</span>
+    }
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L55">        return &quot;list&quot;;</span>
+    }
+
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+<span class="nc" id="L60">        final InternalKeyBindingMgmtSessionRemote internalKeyBindingMgmtSession = EjbRemoteHelper.INSTANCE</span>
+<span class="nc" id="L61">                .getRemoteSession(InternalKeyBindingMgmtSessionRemote.class);</span>
+<span class="nc" id="L62">        final CryptoTokenManagementSessionRemote cryptoTokenManagementSession = EjbRemoteHelper.INSTANCE</span>
+<span class="nc" id="L63">                .getRemoteSession(CryptoTokenManagementSessionRemote.class);</span>
+<span class="nc" id="L64">        final CertificateStoreSessionRemote certificateStoreSession = EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateStoreSessionRemote.class);</span>
+<span class="nc" id="L65">        final CaSessionRemote caSession = EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class);</span>
+<span class="nc" id="L66">        final List&lt;? extends InternalKeyBinding&gt; internalKeyBindings = internalKeyBindingMgmtSession.getInternalKeyBindingInfos(</span>
+<span class="nc" id="L67">                getAuthenticationToken(), null);</span>
+        // Sort by type and name
+<span class="nc" id="L69">        Collections.sort(internalKeyBindings, new Comparator&lt;InternalKeyBinding&gt;() {</span>
+            @Override
+            public int compare(InternalKeyBinding o1, InternalKeyBinding o2) {
+<span class="nc" id="L72">                final int typeCompare = o1.getImplementationAlias().compareTo(o1.getImplementationAlias());</span>
+<span class="nc bnc" id="L73" title="All 2 branches missed.">                if (typeCompare != 0) {</span>
+<span class="nc" id="L74">                    return typeCompare;</span>
+                }
+<span class="nc" id="L76">                return o1.getName().compareTo(o2.getName());</span>
+            }
+        });
+<span class="nc bnc" id="L79" title="All 2 branches missed.">        if (internalKeyBindings.size() == 0) {</span>
+<span class="nc" id="L80">            getLogger().info(&quot; No InternalKeyBindings available or you are not authorized to view any.&quot;);</span>
+        } else {
+<span class="nc" id="L82">            getLogger()</span>
+<span class="nc" id="L83">                    .info(&quot; Type\t\&quot;Name\&quot; (id), Status, \&quot;IssuerDN\&quot;, SerialNumber, \&quot;CryptoTokenName\&quot; (id), KeyPairAlias, NextKeyPairAlias, SignatureAlgorithm, properties={Implementations specific properties}, trust={list of trusted CAs and certificates}&quot;);</span>
+        }
+<span class="nc" id="L85">        final Date now = new Date();</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">        for (final InternalKeyBinding internalKeyBinding : internalKeyBindings) {</span>
+<span class="nc" id="L87">            final StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L88">            final int cryptoTokenId = internalKeyBinding.getCryptoTokenId();</span>
+            try {
+<span class="nc" id="L90">                sb.append(' ').append(internalKeyBinding.getImplementationAlias());</span>
+<span class="nc" id="L91">                sb.append('\t').append('\&quot;').append(internalKeyBinding.getName()).append('\&quot;');</span>
+<span class="nc" id="L92">                sb.append(&quot; (&quot;).append(internalKeyBinding.getId()).append(')');</span>
+<span class="nc" id="L93">                final CertificateInfo certificateInfo = certificateStoreSession.getCertificateInfo(internalKeyBinding.getCertificateId());</span>
+<span class="nc" id="L94">                String status = internalKeyBinding.getStatus().name();</span>
+<span class="nc" id="L95">                String issuerDn = &quot;n/a,&quot;;</span>
+<span class="nc" id="L96">                String serialNumber = &quot;n/a&quot;;</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">                if (certificateInfo != null) {</span>
+                    // We don't check for &quot;Not yet valid&quot; status to avoid another remote EJB call and this should be a rare thing.
+<span class="nc bnc" id="L99" title="All 2 branches missed.">                    if (certificateInfo.getExpireDate().before(now)) {</span>
+<span class="nc" id="L100">                        status = &quot;EXPIRED&quot;;</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">                    } else if (certificateInfo.getStatus() == CertificateConstants.CERT_REVOKED) {</span>
+<span class="nc" id="L102">                        status = &quot;REVOKED&quot;;</span>
+                    }
+<span class="nc" id="L104">                    issuerDn = &quot;\&quot;&quot; + certificateInfo.getIssuerDN() + &quot;\&quot;,&quot;;</span>
+<span class="nc" id="L105">                    serialNumber = certificateInfo.getSerialNumber().toString(16).toUpperCase();</span>
+                }
+<span class="nc" id="L107">                sb.append(&quot;, &quot;).append(status);</span>
+<span class="nc" id="L108">                sb.append(&quot;, &quot;).append(issuerDn).append(&quot; &quot;).append(serialNumber);</span>
+
+<span class="nc" id="L110">                final CryptoTokenInfo cryptoTokenInfo = cryptoTokenManagementSession.getCryptoTokenInfo(getAuthenticationToken(), cryptoTokenId);</span>
+                final String cryptoTokenName;
+<span class="nc bnc" id="L112" title="All 2 branches missed.">                if (cryptoTokenInfo == null) {                        </span>
+<span class="nc" id="L113">                    cryptoTokenName = &quot;(CryptoToken does not exist)&quot;;</span>
+                } else {
+<span class="nc" id="L115">                    cryptoTokenName = cryptoTokenInfo.getName();</span>
+                }
+<span class="nc" id="L117">                sb.append(&quot;, \&quot;&quot;).append(cryptoTokenName).append(&quot;\&quot; (&quot;).append(cryptoTokenId).append(')');</span>
+<span class="nc" id="L118">                sb.append(&quot;, &quot;).append(internalKeyBinding.getKeyPairAlias());</span>
+<span class="nc" id="L119">                sb.append(&quot;, &quot;).append(internalKeyBinding.getNextKeyPairAlias());</span>
+<span class="nc" id="L120">                sb.append(&quot;, &quot;).append(internalKeyBinding.getSignatureAlgorithm());</span>
+<span class="nc" id="L121">                sb.append(&quot;, properties={&quot;);</span>
+<span class="nc" id="L122">                final Collection&lt;DynamicUiProperty&lt;? extends Serializable&gt;&gt; properties = internalKeyBinding.getCopyOfProperties()</span>
+<span class="nc" id="L123">                        .values();</span>
+<span class="nc bnc" id="L124" title="All 2 branches missed.">                for (final DynamicUiProperty&lt;? extends Serializable&gt; property : properties) {</span>
+<span class="nc" id="L125">                    sb.append(&quot;\n\t&quot;).append(property.getName()).append('=').append(property.getValue());</span>
+<span class="nc" id="L126">                    sb.append(&quot; [&quot;).append(property.getType().getSimpleName()).append(&quot;, default=&quot;).append(property.getDefaultValue()).append(&quot;],&quot;);</span>
+<span class="nc" id="L127">                }</span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">                if (properties.size() &gt; 0) {</span>
+<span class="nc" id="L129">                    sb.deleteCharAt(sb.length() - 1);</span>
+                }
+<span class="nc" id="L131">                sb.append(&quot;\n }, trust={&quot;);</span>
+<span class="nc" id="L132">                final List&lt;InternalKeyBindingTrustEntry&gt; internalKeyBindingTrustEntries = internalKeyBinding.getTrustedCertificateReferences();</span>
+<span class="nc bnc" id="L133" title="All 2 branches missed.">                if (internalKeyBindingTrustEntries.isEmpty()) {</span>
+<span class="nc" id="L134">                    sb.append(&quot;\n\tANY certificate issued by a known CA&quot;);</span>
+                } else {
+<span class="nc bnc" id="L136" title="All 2 branches missed.">                    for (final InternalKeyBindingTrustEntry internalKeyBindingTrustEntry : internalKeyBindingTrustEntries) {</span>
+<span class="nc" id="L137">                        final String caSubject = caSession.getCAInfo(getAuthenticationToken(), internalKeyBindingTrustEntry.getCaId())</span>
+<span class="nc" id="L138">                                .getSubjectDN();</span>
+<span class="nc" id="L139">                        sb.append(&quot;\n\t\&quot;&quot;).append(caSubject).append(&quot;\&quot;, &quot;);</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">                        if (internalKeyBindingTrustEntry.fetchCertificateSerialNumber() == null) {</span>
+<span class="nc" id="L141">                            sb.append(&quot;ANY certificate&quot;);</span>
+                        } else {
+<span class="nc" id="L143">                            sb.append(internalKeyBindingTrustEntry.fetchCertificateSerialNumber().toString(16));</span>
+                        }
+<span class="nc" id="L145">                    }</span>
+                }
+<span class="nc" id="L147">                sb.append(&quot;\n }&quot;);</span>
+<span class="nc" id="L148">                getLogger().info(sb);</span>
+<span class="nc" id="L149">            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L150">                log.error(&quot;CLI user not authorized to view key bindings.&quot;);</span>
+<span class="nc" id="L151">                return CommandResult.AUTHORIZATION_FAILURE;</span>
+<span class="nc" id="L152">            }</span>
+<span class="nc" id="L153">        }</span>
+<span class="nc" id="L154">        return CommandResult.SUCCESS;</span>
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L159">        return &quot;List all available InternalKeyBindings&quot;;</span>
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L164">        return getCommandDescription();</span>
+    }
+
+    protected Logger getLogger() {
+<span class="nc" id="L168">        return log;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

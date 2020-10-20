@@ -13,30 +13,48 @@
 package org.cesecore.authentication;
 
 /**
- * This Exception is thrown whenever a public session bean is entered with an invalid authentication token.
- * 
- * @version $Id: AuthenticationFailedException.java 17625 2013-09-20 07:12:06Z netmackan $
- * 
+ * This Exception is thrown whenever a public session bean is entered with an
+ * invalid authentication token.
+ *
+ * @version $Id: AuthenticationFailedException.java 17625 2013-09-20 07:12:06Z
+ *     netmackan $
  */
 public class AuthenticationFailedException extends Exception {
 
-    private static final long serialVersionUID = -9039667800941881965L;
+  private static final long serialVersionUID = -9039667800941881965L;
 
-    public AuthenticationFailedException() {
-<span class="nc" id="L26">        super();</span>
-<span class="nc" id="L27">    }</span>
+  /** Empty exception. */
+  public AuthenticationFailedException() {
+<span class="nc" id="L28">    super();</span>
+<span class="nc" id="L29">  }</span>
 
-    public AuthenticationFailedException(String arg0, Throwable arg1) {
-<span class="nc" id="L30">        super(arg0, arg1);</span>
-<span class="nc" id="L31">    }</span>
+  /**
+   * Exception with cause and message.
+   *
+   * @param arg0 Message
+   * @param arg1 Cause
+   */
+  public AuthenticationFailedException(
+      final String arg0, final Throwable arg1) {
+<span class="nc" id="L39">    super(arg0, arg1);</span>
+<span class="nc" id="L40">  }</span>
 
-    public AuthenticationFailedException(String arg0) {
-<span class="nc" id="L34">        super(arg0);</span>
-<span class="nc" id="L35">    }</span>
+  /**
+   * Exception eith message.
+   *
+   * @param arg0 Message
+   */
+  public AuthenticationFailedException(final String arg0) {
+<span class="nc" id="L48">    super(arg0);</span>
+<span class="nc" id="L49">  }</span>
 
-    public AuthenticationFailedException(Throwable arg0) {
-<span class="nc" id="L38">        super(arg0);</span>
-<span class="nc" id="L39">    }</span>
-
+  /**
+   * Exception with cause.
+   *
+   * @param arg0 Cause
+   */
+  public AuthenticationFailedException(final Throwable arg0) {
+<span class="nc" id="L57">    super(arg0);</span>
+<span class="nc" id="L58">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

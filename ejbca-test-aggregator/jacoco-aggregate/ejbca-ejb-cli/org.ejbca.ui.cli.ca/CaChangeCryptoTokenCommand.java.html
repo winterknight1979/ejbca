@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CaChangeCryptoTokenCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.ca</a> &gt; <span class="el_source">CaChangeCryptoTokenCommand.java</span></div><h1>CaChangeCryptoTokenCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.cli.ca;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Properties;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CADoesntExistsException;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.CaSessionRemote;
+import org.cesecore.certificates.ca.catoken.CAToken;
+import org.cesecore.certificates.ca.catoken.CATokenConstants;
+import org.cesecore.keys.token.CryptoTokenInfo;
+import org.cesecore.keys.token.CryptoTokenManagementSessionRemote;
+import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.EjbRemoteHelper;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+
+/**
+ * CLI command to change crypto token and CA token properties of a CA.
+ * 
+ * @version $Id: CaChangeCryptoTokenCommand.java 25801 2017-05-05 09:07:08Z anatom $
+ */
+<span class="nc" id="L44">public class CaChangeCryptoTokenCommand extends BaseCaAdminCommand {</span>
+
+<span class="nc" id="L46">    private static final Logger log = Logger.getLogger(CaChangeCryptoTokenCommand.class);</span>
+    private static final String CA_NAME_KEY = &quot;--caname&quot;;
+    private static final String CRYPTOTOKEN_NAME_KEY = &quot;--cryptotoken&quot;;
+    private static final String EXECUTE_KEY = &quot;--execute&quot;;
+    private static final String CA_TOKEN_PROPERTIES_KEY = &quot;--tokenprop&quot;;
+
+
+    {
+<span class="nc" id="L54">        registerParameter(new Parameter(CA_NAME_KEY, &quot;CA Name&quot;, MandatoryMode.MANDATORY, StandaloneMode.FORBID, ParameterMode.ARGUMENT, &quot;The name of the CA.&quot;));</span>
+<span class="nc" id="L55">        registerParameter(new Parameter(CRYPTOTOKEN_NAME_KEY, &quot;Crypto token name&quot;, MandatoryMode.MANDATORY, StandaloneMode.FORBID, ParameterMode.ARGUMENT, &quot;The name of the new crypto token the CA should reference.&quot;));</span>
+<span class="nc" id="L56">        registerParameter(new Parameter(CA_TOKEN_PROPERTIES_KEY, &quot;Filename&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID, ParameterMode.ARGUMENT,</span>
+                &quot;CA Token properties is a file were you define key aliases for the CA, leave out to keep existing properties.&quot;));
+<span class="nc" id="L58">        registerParameter(Parameter.createFlag(EXECUTE_KEY, &quot;Make the change instead of displaying what would change.&quot;));</span>
+<span class="nc" id="L59">    }</span>
+
+    /*
+     * &lt;pre&gt;
+certSignKey fooalias02
+crlSignKey fooalias02
+keyEncryptKey fooencalias
+hardTokenEncrypt fooencalias
+defaultKey defaultalias
+testKey testalias
+previousCertSignKey fooalias01
+nextCertSignKey fooalias03
+     * &lt;/pre&gt;
+     */
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L76">        return &quot;changecatoken&quot;;</span>
+    }
+
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+<span class="nc" id="L81">        log.trace(&quot;&gt;execute()&quot;);</span>
+<span class="nc" id="L82">        CryptoProviderTools.installBCProvider(); // need this for CVC certificate</span>
+<span class="nc" id="L83">        final String caName = parameters.get(CA_NAME_KEY);</span>
+<span class="nc" id="L84">        final String cryptoTokenName = parameters.get(CRYPTOTOKEN_NAME_KEY);</span>
+<span class="nc" id="L85">        final boolean force = parameters.containsKey(EXECUTE_KEY);</span>
+<span class="nc" id="L86">        Properties caTokenProperties = new Properties();</span>
+<span class="nc" id="L87">        String caTokenPropertiesFile = parameters.get(CA_TOKEN_PROPERTIES_KEY);</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">        if (caTokenPropertiesFile != null) {</span>
+<span class="nc bnc" id="L89" title="All 4 branches missed.">            if ((caTokenPropertiesFile != null) &amp;&amp; (!caTokenPropertiesFile.equalsIgnoreCase(&quot;null&quot;))) {</span>
+<span class="nc" id="L90">                File file = new File(caTokenPropertiesFile);</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">                if (!file.exists()) {</span>
+<span class="nc" id="L92">                    getLogger().error(&quot;CA Token properties file &quot; + caTokenPropertiesFile + &quot; does not exist.&quot;);</span>
+<span class="nc" id="L93">                    return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">                } else if (file.isDirectory()) {</span>
+<span class="nc" id="L95">                    getLogger().error(&quot;CA Token properties file &quot; + caTokenPropertiesFile + &quot; is a directory.&quot;);</span>
+<span class="nc" id="L96">                    return CommandResult.FUNCTIONAL_FAILURE;</span>
+                } else {
+<span class="nc" id="L98">                    try (final FileInputStream fis = new FileInputStream(caTokenPropertiesFile)) {</span>
+<span class="nc" id="L99">                        caTokenProperties.load(fis);</span>
+<span class="nc" id="L100">                    } catch (FileNotFoundException e) {</span>
+                        //Can't happen
+<span class="nc" id="L102">                        throw new IllegalStateException(&quot;Newly referenced file &quot; + caTokenPropertiesFile + &quot; was not found.&quot;, e);</span>
+<span class="nc" id="L103">                    } catch (IOException e) {</span>
+<span class="nc" id="L104">                        throw new IllegalStateException(&quot;Unknown exception was caught when reading input stream&quot;, e);</span>
+<span class="nc" id="L105">                    }</span>
+                }
+            }
+        }
+
+        try {
+<span class="nc" id="L111">            final CaSessionRemote caSession = EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class);</span>
+<span class="nc" id="L112">            final CryptoTokenManagementSessionRemote cryptoTokenManagementSession = EjbRemoteHelper.INSTANCE.getRemoteSession(CryptoTokenManagementSessionRemote.class);</span>
+<span class="nc" id="L113">            final CAInfo caInfo = caSession.getCAInfo(getAuthenticationToken(), caName);</span>
+<span class="nc" id="L114">            final int cryptoTokenId = caInfo.getCAToken().getCryptoTokenId();</span>
+<span class="nc" id="L115">            final CryptoTokenInfo cryptoTokenInfo = cryptoTokenManagementSession.getCryptoTokenInfo(getAuthenticationToken(), cryptoTokenId);</span>
+
+<span class="nc bnc" id="L117" title="All 2 branches missed.">            getLogger().info(&quot;CA '&quot; + caInfo.getName() + &quot;' references crypto token '&quot; + (cryptoTokenInfo != null ? cryptoTokenInfo.getName() : (cryptoTokenId+&quot; (does not exist)&quot;))+ &quot;'&quot;);</span>
+<span class="nc" id="L118">            getLogger().info(&quot;New crypto token: &quot; + cryptoTokenName);</span>
+<span class="nc" id="L119">            getLogger().info(&quot;CA token properties: &quot; + caTokenPropertiesFile);</span>
+<span class="nc" id="L120">            getLogger().info(&quot;&quot;);</span>
+
+            
+<span class="nc" id="L123">            Integer newId = cryptoTokenManagementSession.getIdFromName(cryptoTokenName);</span>
+<span class="nc bnc" id="L124" title="All 2 branches missed.">            if (newId == null) {</span>
+<span class="nc" id="L125">                throw new IllegalArgumentException(&quot;Crypto Token with name &quot; + cryptoTokenName + &quot; does not exist.&quot;);</span>
+            }
+<span class="nc bnc" id="L127" title="All 2 branches missed.">            if (newId == cryptoTokenId) {</span>
+<span class="nc" id="L128">                getLogger().info(&quot;Current crypto token and new crypto token are the same, continuing in order to update CA token properties.&quot;);</span>
+            }
+<span class="nc" id="L130">            final CryptoTokenInfo newCryptoTokenInfo = cryptoTokenManagementSession.getCryptoTokenInfo(getAuthenticationToken(), newId);</span>
+
+<span class="nc bnc" id="L132" title="All 4 branches missed.">            getLogger().info((force?&quot;Changing &quot;:&quot;Would change&quot; )+&quot; CA '&quot; + caInfo.getName() + &quot;' that currently references crypto token '&quot; + (cryptoTokenInfo != null ? cryptoTokenInfo.getName() : (cryptoTokenId+&quot; (does not exist)&quot;)) + &quot;' to instead reference '&quot; + newCryptoTokenInfo.getName() + &quot;'.&quot;);</span>
+<span class="nc" id="L133">            getLogger().info(&quot; CA token properties that will be updated: &quot; + caTokenProperties);</span>
+
+            
+<span class="nc bnc" id="L136" title="All 2 branches missed.">            if (force) {</span>
+<span class="nc" id="L137">                final CAToken currentCaToken = caInfo.getCAToken();</span>
+<span class="nc" id="L138">                currentCaToken.setCryptoTokenId(newId);</span>
+                // Set the key options in the CA token properties
+<span class="nc bnc" id="L140" title="All 2 branches missed.">                if (caTokenProperties.get(CATokenConstants.CAKEYPURPOSE_CERTSIGN_STRING) != null) {</span>
+<span class="nc" id="L141">                    currentCaToken.setProperty(CATokenConstants.CAKEYPURPOSE_CERTSIGN_STRING, (String)caTokenProperties.get(CATokenConstants.CAKEYPURPOSE_CERTSIGN_STRING));                    </span>
+                }
+<span class="nc bnc" id="L143" title="All 2 branches missed.">                if (caTokenProperties.get(CATokenConstants.CAKEYPURPOSE_CRLSIGN_STRING) != null) {</span>
+<span class="nc" id="L144">                    currentCaToken.setProperty(CATokenConstants.CAKEYPURPOSE_CRLSIGN_STRING, (String)caTokenProperties.get(CATokenConstants.CAKEYPURPOSE_CRLSIGN_STRING));                    </span>
+                }
+<span class="nc bnc" id="L146" title="All 2 branches missed.">                if (caTokenProperties.get(CATokenConstants.CAKEYPURPOSE_KEYENCRYPT_STRING) != null) {</span>
+<span class="nc" id="L147">                    currentCaToken.setProperty(CATokenConstants.CAKEYPURPOSE_KEYENCRYPT_STRING, (String)caTokenProperties.get(CATokenConstants.CAKEYPURPOSE_KEYENCRYPT_STRING));                    </span>
+                }
+<span class="nc bnc" id="L149" title="All 2 branches missed.">                if (caTokenProperties.get(CATokenConstants.CAKEYPURPOSE_TESTKEY_STRING) != null) {</span>
+<span class="nc" id="L150">                    currentCaToken.setProperty(CATokenConstants.CAKEYPURPOSE_TESTKEY_STRING, (String)caTokenProperties.get(CATokenConstants.CAKEYPURPOSE_TESTKEY_STRING));                    </span>
+                }
+<span class="nc bnc" id="L152" title="All 2 branches missed.">                if (caTokenProperties.get(CATokenConstants.CAKEYPURPOSE_DEFAULT_STRING) != null) {</span>
+<span class="nc" id="L153">                    currentCaToken.setProperty(CATokenConstants.CAKEYPURPOSE_DEFAULT_STRING, (String)caTokenProperties.get(CATokenConstants.CAKEYPURPOSE_DEFAULT_STRING));                    </span>
+                }
+<span class="nc bnc" id="L155" title="All 2 branches missed.">                if (caTokenProperties.get(CATokenConstants.CAKEYPURPOSE_HARDTOKENENCRYPT_STRING) != null) {</span>
+<span class="nc" id="L156">                    currentCaToken.setProperty(CATokenConstants.CAKEYPURPOSE_HARDTOKENENCRYPT_STRING, (String)caTokenProperties.get(CATokenConstants.CAKEYPURPOSE_HARDTOKENENCRYPT_STRING));                    </span>
+                }
+<span class="nc bnc" id="L158" title="All 2 branches missed.">                if (caTokenProperties.get(CATokenConstants.CAKEYPURPOSE_CERTSIGN_STRING_PREVIOUS) != null) {</span>
+<span class="nc" id="L159">                    currentCaToken.setProperty(CATokenConstants.CAKEYPURPOSE_CERTSIGN_STRING_PREVIOUS, (String)caTokenProperties.get(CATokenConstants.CAKEYPURPOSE_CERTSIGN_STRING_PREVIOUS));                    </span>
+                }
+<span class="nc bnc" id="L161" title="All 2 branches missed.">                if (caTokenProperties.get(CATokenConstants.CAKEYPURPOSE_CERTSIGN_STRING_NEXT) != null) {</span>
+<span class="nc" id="L162">                    currentCaToken.setProperty(CATokenConstants.CAKEYPURPOSE_CERTSIGN_STRING_NEXT, (String)caTokenProperties.get(CATokenConstants.CAKEYPURPOSE_CERTSIGN_STRING_NEXT));                    </span>
+                }
+<span class="nc" id="L164">                caInfo.setCAToken(currentCaToken);</span>
+<span class="nc" id="L165">                caSession.editCA(getAuthenticationToken(), caInfo);</span>
+<span class="nc" id="L166">                getLogger().info(&quot; Merged.&quot;);</span>
+            }
+<span class="nc" id="L168">            getLogger().info(&quot;&quot;);</span>
+
+<span class="nc bnc" id="L170" title="All 2 branches missed.">            if (force) {</span>
+<span class="nc" id="L171">                getLogger().info(&quot;Modified referenced Crypto Token for CA.&quot;);</span>
+<span class="nc" id="L172">                final CAInfo caInfoNew = caSession.getCAInfo(getAuthenticationToken(), caName);</span>
+<span class="nc" id="L173">                final CAToken newCaToken = caInfoNew.getCAToken();</span>
+<span class="nc" id="L174">                final CryptoTokenInfo ctInfo = cryptoTokenManagementSession.getCryptoTokenInfo(getAuthenticationToken(), newCaToken.getCryptoTokenId());</span>
+
+<span class="nc" id="L176">                getLogger().info(&quot;CA '&quot; + caInfoNew.getName() + &quot;' now references crypto token '&quot; + ctInfo.getName() + &quot;'&quot;);</span>
+<span class="nc" id="L177">                getLogger().info(&quot;New CA token properties: &quot; + caTokenProperties.toString());</span>
+<span class="nc" id="L178">                getLogger().info(&quot;&quot;);</span>
+<span class="nc" id="L179">            } else {</span>
+<span class="nc" id="L180">                getLogger().info(&quot;Will modify referenced Crypto Token for CA if '&quot; + EXECUTE_KEY + &quot;' option is used.&quot;);</span>
+            }
+<span class="nc" id="L182">            log.trace(&quot;&lt;execute()&quot;);          </span>
+<span class="nc" id="L183">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L184">            getLogger().error(&quot;CLI User was not authorized to modify CA &quot; + caName);</span>
+<span class="nc" id="L185">            log.trace(&quot;&lt;execute()&quot;);</span>
+<span class="nc" id="L186">            return CommandResult.AUTHORIZATION_FAILURE;</span>
+<span class="nc" id="L187">        } catch (CADoesntExistsException e) {</span>
+<span class="nc" id="L188">            getLogger().error(&quot;No such CA with by name &quot; + caName);</span>
+<span class="nc" id="L189">            getLogger().error(getCaList());</span>
+<span class="nc" id="L190">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L191">        } </span>
+<span class="nc" id="L192">        log.trace(&quot;&lt;execute()&quot;);</span>
+<span class="nc" id="L193">        return CommandResult.SUCCESS;</span>
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L198">        return &quot;Change Crypto Token and keys for a CA.&quot;;</span>
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L203">        return getCommandDescription()</span>
+                + &quot;\n\n&quot;
+                + &quot;The specified CA's Crypto Token will be changed to one passed as parameter, and CA token properties (key labels) updated from the properties file.\n\n&quot;
+                + &quot;The default behavior is to only show what would have changed since this command is potentially very dangerous.\n&quot;
+                + &quot;Use the &quot; + EXECUTE_KEY + &quot; switch to execute modifications.&quot;
+<span class="nc" id="L208">                + &quot;\n\n&quot; + getCaList();</span>
+    }
+
+    @Override
+    protected Logger getLogger() {
+<span class="nc" id="L213">        return log;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

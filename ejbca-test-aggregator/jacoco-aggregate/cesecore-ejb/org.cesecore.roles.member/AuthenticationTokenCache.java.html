@@ -17,141 +17,176 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.cesecore.config.CesecoreConfiguration;
 import org.cesecore.internal.CommonCache;
 import org.cesecore.internal.CommonCacheBase;
 
 /**
- * This cache saves authentication token checks. 
- * 
- * @version $Id: AuthenticationTokenCache.java 28332 2018-02-20 14:40:52Z anatom $
+ * This cache saves authentication token checks.
+ *
+ * @version $Id: AuthenticationTokenCache.java 28332 2018-02-20 14:40:52Z anatom
+ *     $
  */
-<span class="nc" id="L31">public enum AuthenticationTokenCache implements CommonCache&lt;AuthenticationTokenCacheKey&gt; {</span>
-<span class="nc" id="L32">    INSTANCE;</span>
+<span class="nc" id="L31">public enum AuthenticationTokenCache</span>
+    implements CommonCache&lt;AuthenticationTokenCacheKey&gt; {
+  /** Singleton. */
+<span class="nc" id="L34">    INSTANCE;</span>
 
-<span class="nc" id="L34">    private final CommonCacheBase&lt;AuthenticationTokenCacheKey&gt; cache = new CommonCacheBase&lt;AuthenticationTokenCacheKey&gt;() {</span>
+    /** Cache. */
+<span class="nc" id="L37">  private final CommonCacheBase&lt;AuthenticationTokenCacheKey&gt; cache =</span>
+<span class="nc" id="L38">      new CommonCacheBase&lt;AuthenticationTokenCacheKey&gt;() {</span>
         @Override
         protected long getCacheTime() {
-<span class="nc" id="L37">            return CesecoreConfiguration.getCacheAuthorizationTime();</span>
+<span class="nc" id="L41">          return CesecoreConfiguration.getCacheAuthorizationTime();</span>
         }
+
         @Override
         protected long getMaxCacheLifeTime() {
-            // We never purge Role unless a database select discovers a missing object.
-<span class="nc" id="L42">            return 0;</span>
-        };
-    };
-    
-    /**
-     * This map contains a list of RoleMember ids matched to the authentication token they match against. The rationale behind saving just the IDs 
-     * is because the list might grow rather large. Any new role members created, edited or removed will invalidate its contents. 
-     */
-<span class="nc" id="L50">    private final Map&lt;AuthenticationTokenCacheKey, List&lt;Integer&gt;&gt; authenticationTokenToKeyMap = new HashMap&lt;&gt;();</span>
-
-    @Override
-    public AuthenticationTokenCacheKey getEntry(final Integer id) {
-<span class="nc bnc" id="L54" title="All 2 branches missed.">        if (id == null) {</span>
-<span class="nc" id="L55">            return null;</span>
+          // We never purge Role unless a database select discovers a missing
+          // object.
+<span class="nc" id="L48">          return 0;</span>
         }
-<span class="nc" id="L57">        return cache.getEntry(id);</span>
-    }
 
-    @Override
-    public AuthenticationTokenCacheKey getEntry(final int id) {
-<span class="nc" id="L62">        return cache.getEntry(id);</span>
-    }
+      };
 
-    @Override
-    public boolean shouldCheckForUpdates(final int id) {
-<span class="nc" id="L67">        return cache.shouldCheckForUpdates(id);</span>
-    }
-    
-    @Override
-    public void updateWith(final int id, final int digest, final String name, final AuthenticationTokenCacheKey authenticationTokenCacheKey) {
-        //Insert a cloned instance into the cache 
-<span class="nc" id="L73">        cache.updateWith(id, digest, String.valueOf(digest), new AuthenticationTokenCacheKey(authenticationTokenCacheKey));</span>
-<span class="nc" id="L74">        authenticationTokenToKeyMap.clear();</span>
-<span class="nc" id="L75">    }</span>
+  /**
+   * This map contains a list of RoleMember ids matched to the authentication
+   * token they match against. The rationale behind saving just the IDs is
+   * because the list might grow rather large. Any new role members created,
+   * edited or removed will invalidate its contents.
+   */
+<span class="nc" id="L59">  private final Map&lt;AuthenticationTokenCacheKey, List&lt;Integer&gt;&gt;</span>
+      authenticationTokenToKeyMap = new HashMap&lt;&gt;();
 
-    @Override
-    public void removeEntry(final int id) {
-<span class="nc" id="L79">        cache.removeEntry(id);</span>
-<span class="nc" id="L80">    }</span>
-    
-    @Override
-    public String getName(int id) {
-<span class="nc" id="L84">        throw new UnsupportedOperationException(&quot;Role members can't be referenced by name.&quot;);</span>
+  @Override
+  public AuthenticationTokenCacheKey getEntry(final Integer id) {
+<span class="nc bnc" id="L64" title="All 2 branches missed.">    if (id == null) {</span>
+<span class="nc" id="L65">      return null;</span>
     }
+<span class="nc" id="L67">    return cache.getEntry(id);</span>
+  }
 
-    @Override
-    public Map&lt;String,Integer&gt; getNameToIdMap() {
-<span class="nc" id="L89">        return cache.getNameToIdMap();</span>
-    }
-    
-    @Override
-    public void flush() {
-<span class="nc" id="L94">        cache.flush();</span>
-<span class="nc" id="L95">        authenticationTokenToKeyMap.clear();</span>
-<span class="nc" id="L96">    }</span>
-    
+  @Override
+  public AuthenticationTokenCacheKey getEntry(final int id) {
+<span class="nc" id="L72">    return cache.getEntry(id);</span>
+  }
 
-    @Override
-    public void replaceCacheWith(List&lt;Integer&gt; keys) {
-<span class="nc" id="L101">        throw new UnsupportedOperationException(&quot;Operation not applicable for this subtype of cache&quot;);</span>
-    }
+  @Override
+  public boolean shouldCheckForUpdates(final int id) {
+<span class="nc" id="L77">    return cache.shouldCheckForUpdates(id);</span>
+  }
 
-    public Set&lt;AuthenticationTokenCacheKey&gt; getAllValues() {
-<span class="nc" id="L105">       return cache.getAllEntries();</span>
-    }
-    
-    /**
-     * Delivers a list of cached role members, which have been previously mapped against the provided authentication token. An empty list does *not* 
-     * imply that the authentication token lacks matching members, just that such members may not have been cached yet. Should not be used outside
-     * of RoleMemberDataSession.
-     * 
-     * @param authenticationToken an authentication token
-     * @return a list IDs of cached role members, or null if not found/entry has expired.
-     */
-    public List&lt;Integer&gt; getCachedRoleMembersForAuthenticationToken(final AuthenticationToken authenticationToken) {
-<span class="nc" id="L117">        AuthenticationTokenCacheKey key = new AuthenticationTokenCacheKey(authenticationToken);</span>
-        //If there exists an entry
-<span class="nc bnc" id="L119" title="All 2 branches missed.">        if (authenticationTokenToKeyMap.containsKey(key)) {</span>
-            //And that entry is still valid
-<span class="nc bnc" id="L121" title="All 2 branches missed.">            if (!shouldCheckForUpdates(key.hashCode())) {</span>
-<span class="nc" id="L122">                return authenticationTokenToKeyMap.get(key);</span>
-            } else {
-<span class="nc" id="L124">                removeEntry(key.hashCode());</span>
-<span class="nc" id="L125">                authenticationTokenToKeyMap.remove(key);</span>
-<span class="nc" id="L126">                return null;</span>
-            }
-        } else {
-<span class="nc" id="L129">            return null;</span>
-        }
-    }
-    
-    /**
-     * This method adds an authentication token and its known role members to the cache. 
-     * 
-     * @param authenticationToken an authentication token.
-     * @param roleMembers a list of role members that the authentication token has identified for. 
-     */
-    public void cacheRoleMembersForAuthenticationToken(final AuthenticationToken authenticationToken, final List&lt;RoleMember&gt; roleMembers) {
-<span class="nc" id="L140">        List&lt;Integer&gt; identifiers = new ArrayList&lt;&gt;();</span>
-<span class="nc" id="L141">        AuthenticationTokenCacheKey authenticationTokenCacheKey = new AuthenticationTokenCacheKey(authenticationToken);</span>
-<span class="nc" id="L142">        cache.updateWith(authenticationTokenCacheKey.hashCode(), authenticationTokenCacheKey.hashCode(),</span>
-<span class="nc" id="L143">                String.valueOf(authenticationTokenCacheKey.hashCode()), authenticationTokenCacheKey);</span>
-<span class="nc bnc" id="L144" title="All 2 branches missed.">        for (RoleMember roleMember : roleMembers) {</span>
-<span class="nc" id="L145">            int roleMemberId = roleMember.getId();</span>
-<span class="nc" id="L146">            identifiers.add(roleMemberId);</span>
-<span class="nc" id="L147">        }</span>
-<span class="nc" id="L148">        authenticationTokenToKeyMap.put(new AuthenticationTokenCacheKey(authenticationToken), identifiers);</span>
-<span class="nc" id="L149">    }</span>
+  @Override
+  public void updateWith(
+      final int id,
+      final int digest,
+      final String name,
+      final AuthenticationTokenCacheKey authenticationTokenCacheKey) {
+    // Insert a cloned instance into the cache
+<span class="nc" id="L87">    cache.updateWith(</span>
+        id,
+        digest,
+<span class="nc" id="L90">        String.valueOf(digest),</span>
+        new AuthenticationTokenCacheKey(authenticationTokenCacheKey));
+<span class="nc" id="L92">    authenticationTokenToKeyMap.clear();</span>
+<span class="nc" id="L93">  }</span>
 
-    @Override
-    public boolean willUpdate(int id, int digest) {
-<span class="nc" id="L153">        return cache.willUpdate(id, digest);</span>
+  @Override
+  public void removeEntry(final int id) {
+<span class="nc" id="L97">    cache.removeEntry(id);</span>
+<span class="nc" id="L98">  }</span>
+
+  @Override
+  public String getName(final int id) {
+<span class="nc" id="L102">    throw new UnsupportedOperationException(</span>
+        &quot;Role members can't be referenced by name.&quot;);
+  }
+
+  @Override
+  public Map&lt;String, Integer&gt; getNameToIdMap() {
+<span class="nc" id="L108">    return cache.getNameToIdMap();</span>
+  }
+
+  @Override
+  public void flush() {
+<span class="nc" id="L113">    cache.flush();</span>
+<span class="nc" id="L114">    authenticationTokenToKeyMap.clear();</span>
+<span class="nc" id="L115">  }</span>
+
+  @Override
+  public void replaceCacheWith(final List&lt;Integer&gt; keys) {
+<span class="nc" id="L119">    throw new UnsupportedOperationException(</span>
+        &quot;Operation not applicable for this subtype of cache&quot;);
+  }
+
+  /**
+   * @return values
+   */
+  public Set&lt;AuthenticationTokenCacheKey&gt; getAllValues() {
+<span class="nc" id="L127">    return cache.getAllEntries();</span>
+  }
+
+  /**
+   * Delivers a list of cached role members, which have been previously mapped
+   * against the provided authentication token. An empty list does *not* imply
+   * that the authentication token lacks matching members, just that such
+   * members may not have been cached yet. Should not be used outside of
+   * RoleMemberDataSession.
+   *
+   * @param authenticationToken an authentication token
+   * @return a list IDs of cached role members, or null if not found/entry has
+   *     expired.
+   */
+  public List&lt;Integer&gt; getCachedRoleMembersForAuthenticationToken(
+      final AuthenticationToken authenticationToken) {
+<span class="nc" id="L143">    AuthenticationTokenCacheKey key =</span>
+        new AuthenticationTokenCacheKey(authenticationToken);
+    // If there exists an entry
+<span class="nc bnc" id="L146" title="All 2 branches missed.">    if (authenticationTokenToKeyMap.containsKey(key)) {</span>
+      // And that entry is still valid
+<span class="nc bnc" id="L148" title="All 2 branches missed.">      if (!shouldCheckForUpdates(key.hashCode())) {</span>
+<span class="nc" id="L149">        return authenticationTokenToKeyMap.get(key);</span>
+      } else {
+<span class="nc" id="L151">        removeEntry(key.hashCode());</span>
+<span class="nc" id="L152">        authenticationTokenToKeyMap.remove(key);</span>
+<span class="nc" id="L153">        return null;</span>
+      }
+    } else {
+<span class="nc" id="L156">      return null;</span>
     }
-    
+  }
+
+  /**
+   * This method adds an authentication token and its known role members to the
+   * cache.
+   *
+   * @param authenticationToken an authentication token.
+   * @param roleMembers a list of role members that the authentication token has
+   *     identified for.
+   */
+  public void cacheRoleMembersForAuthenticationToken(
+      final AuthenticationToken authenticationToken,
+      final List&lt;RoleMember&gt; roleMembers) {
+<span class="nc" id="L171">    List&lt;Integer&gt; identifiers = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L172">    AuthenticationTokenCacheKey authenticationTokenCacheKey =</span>
+        new AuthenticationTokenCacheKey(authenticationToken);
+<span class="nc" id="L174">    cache.updateWith(</span>
+<span class="nc" id="L175">        authenticationTokenCacheKey.hashCode(),</span>
+<span class="nc" id="L176">        authenticationTokenCacheKey.hashCode(),</span>
+<span class="nc" id="L177">        String.valueOf(authenticationTokenCacheKey.hashCode()),</span>
+        authenticationTokenCacheKey);
+<span class="nc bnc" id="L179" title="All 2 branches missed.">    for (RoleMember roleMember : roleMembers) {</span>
+<span class="nc" id="L180">      int roleMemberId = roleMember.getId();</span>
+<span class="nc" id="L181">      identifiers.add(roleMemberId);</span>
+<span class="nc" id="L182">    }</span>
+<span class="nc" id="L183">    authenticationTokenToKeyMap.put(</span>
+        new AuthenticationTokenCacheKey(authenticationToken), identifiers);
+<span class="nc" id="L185">  }</span>
+
+  @Override
+  public boolean willUpdate(final int id, final int digest) {
+<span class="nc" id="L189">    return cache.willUpdate(id, digest);</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -14,31 +14,39 @@ package org.cesecore.certificates.ocsp.exception;
 
 /**
  * A exception wrapper to cover different BouncyCastle provider errors.
- * 
- * @version $Id: CryptoProviderException.java 17625 2013-09-20 07:12:06Z netmackan $
  *
+ * @version $Id: CryptoProviderException.java 17625 2013-09-20 07:12:06Z
+ *     netmackan $
  */
 public class CryptoProviderException extends RuntimeException {
 
+  private static final long serialVersionUID = -3334600937753128052L;
 
-    private static final long serialVersionUID = -3334600937753128052L;
-    
-    public CryptoProviderException() {
-<span class="nc" id="L27">        super();</span>
-<span class="nc" id="L28">    }</span>
+  /** Null constructor. */
+  public CryptoProviderException() {
+<span class="nc" id="L27">    super();</span>
+<span class="nc" id="L28">  }</span>
 
-    public CryptoProviderException(String msg, Throwable t) {
-<span class="nc" id="L31">        super(msg, t);</span>
-<span class="nc" id="L32">    }</span>
+  /**
+   * @param msg message
+   * @param t cause
+   */
+  public CryptoProviderException(final String msg, final Throwable t) {
+<span class="nc" id="L35">    super(msg, t);</span>
+<span class="nc" id="L36">  }</span>
 
-    public CryptoProviderException(String msg) {
-<span class="nc" id="L35">        super(msg);</span>
-<span class="nc" id="L36">    }</span>
+  /**
+   * @param msg message
+   */
+  public CryptoProviderException(final String msg) {
+<span class="nc" id="L42">    super(msg);</span>
+<span class="nc" id="L43">  }</span>
 
-    public CryptoProviderException(Throwable msg) {
-<span class="nc" id="L39">        super(msg);</span>
-<span class="nc" id="L40">    }</span>
-
-
+  /**
+   * @param msg Cause
+   */
+  public CryptoProviderException(final Throwable msg) {
+<span class="nc" id="L49">    super(msg);</span>
+<span class="nc" id="L50">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -15,18 +15,25 @@ package org.cesecore.keys.token.p11.exception;
 /**
  * Classes in this packages throws this exception when an unexpected problem
  * occurs that should not occur at any circumstances.
- * @version $Id: P11RuntimeException.java 22434 2015-12-11 11:34:36Z primelars $
  *
+ * @version $Id: P11RuntimeException.java 22434 2015-12-11 11:34:36Z primelars $
  */
 public class P11RuntimeException extends RuntimeException {
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    public P11RuntimeException(final String message, final Exception cause) {
-<span class="nc" id="L25">        super( message, cause );</span>
-<span class="nc" id="L26">    }</span>
+  /**
+   * @param message Message
+   * @param cause Cause
+   */
+  public P11RuntimeException(final String message, final Exception cause) {
+<span class="nc" id="L29">    super(message, cause);</span>
+<span class="nc" id="L30">  }</span>
 
-    public P11RuntimeException(final String message) {
-<span class="nc" id="L29">        super( message );</span>
-<span class="nc" id="L30">    }</span>
+  /**
+   * @param message Message
+   */
+  public P11RuntimeException(final String message) {
+<span class="nc" id="L36">    super(message);</span>
+<span class="nc" id="L37">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

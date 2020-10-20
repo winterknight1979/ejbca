@@ -17,44 +17,62 @@ import org.apache.log4j.Logger;
 import org.cesecore.certificates.certificateprofile.CertificateProfileData;
 
 /**
- * CertificateProfileData was one of the old classes that used serialized binary data in a blob in the database.
- * In order for CertificateProfileData.getProtectString to produce a String, the object was read in and then the
- * getData() method returned a LinkedHashMap. StringBuilder.build() called toString() on the LinkedHashMap, which
- * in turn called toString() on the objects in it. One of the objects was an ApprovalRequestType. In ECA-6518 the
- * toString() method was overridden in this enum, causing the string representation to be different. This caused
- * rowProtection signature verification to fail when you upgraded from a version &amp;lt;=6.11 to a version &amp;gt;=6.12.
+ * CertificateProfileData was one of the old classes that used serialized binary
+ * data in a blob in the database. In order for
+ * CertificateProfileData.getProtectString to produce a String, the object was
+ * read in and then the getData() method returned a LinkedHashMap.
+ * StringBuilder.build() called toString() on the LinkedHashMap, which in turn
+ * called toString() on the objects in it. One of the objects was an
+ * ApprovalRequestType. In ECA-6518 the toString() method was overridden in this
+ * enum, causing the string representation to be different. This caused
+ * rowProtection signature verification to fail when you upgraded from a version
+ * &amp;lt;=6.11 to a version &amp;gt;=6.12.
  *
- * The aim of Eca7277CertificateProfileData is to fix this problem. Eca7277CertificateProfileData behaves exactly
- * like CertificateProfileData, but replaces any faulty substrings found in the protect string returned by
+ * &lt;p&gt;The aim of Eca7277CertificateProfileData is to fix this problem.
+ * Eca7277CertificateProfileData behaves exactly like CertificateProfileData,
+ * but replaces any faulty substrings found in the protect string returned by
  * getProtectString() before returning it to the caller.
  *
- * This class and all references to it can be safely removed when we drop support for EJBCA 6.14.
+ * &lt;p&gt;This class and all references to it can be safely removed when we drop
+ * support for EJBCA 6.14.
  *
- * @version $Id: Eca7277CertificateProfileData.java 29814 2018-09-05 15:03:36Z bastianf $
+ * @version $Id: Eca7277CertificateProfileData.java 29814 2018-09-05 15:03:36Z
+ *     bastianf $
  */
 @SuppressWarnings(&quot;serial&quot;)
 @Deprecated
 public class Eca7277CertificateProfileData extends CertificateProfileData {
-<span class="nc" id="L38">    private final static Logger log = Logger.getLogger(Eca7277CertificateProfileData.class);</span>
+  /** Logger. */
+<span class="nc" id="L46">    private static final Logger LOG =</span>
+<span class="nc" id="L47">      Logger.getLogger(Eca7277CertificateProfileData.class);</span>
 
-    public Eca7277CertificateProfileData(final CertificateProfileData data) {
-<span class="nc" id="L41">        super(data.getId(), data.getCertificateProfileName(), data.getCertificateProfile());</span>
-<span class="nc" id="L42">        this.setRowVersion(data.getRowVersion());</span>
-<span class="nc" id="L43">        this.setRowProtection(data.getRowProtection());</span>
-<span class="nc" id="L44">    }</span>
+  /**
+   * @param data data
+   */
+  public Eca7277CertificateProfileData(final CertificateProfileData data) {
+<span class="nc" id="L53">    super(</span>
+<span class="nc" id="L54">        data.getId(),</span>
+<span class="nc" id="L55">        data.getCertificateProfileName(),</span>
+<span class="nc" id="L56">        data.getCertificateProfile());</span>
+<span class="nc" id="L57">    this.setRowVersion(data.getRowVersion());</span>
+<span class="nc" id="L58">    this.setRowProtection(data.getRowProtection());</span>
+<span class="nc" id="L59">  }</span>
 
-    @Override
-    protected String getProtectString(final int rowversion) {
-<span class="nc bnc" id="L48" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L49">            log.debug(&quot;Verification of row protected data for Certificate Profile &quot; + getCertificateProfileName()</span>
-                    + &quot; failed. Trying to fix the protect string now.&quot;);
-        }
-        // Signature was computer over &quot;Add or Edit End Entity&quot; ect. in EJBCA 6.11-6.14
-<span class="nc" id="L53">        return super.getProtectString(rowversion)</span>
-<span class="nc" id="L54">            .replace(&quot;ADDEDITENDENTITY=&quot;, &quot;Add or Edit End Entity=&quot;)</span>
-<span class="nc" id="L55">            .replace(&quot;KEYRECOVER=&quot;, &quot;Key Recovery=&quot;)</span>
-<span class="nc" id="L56">            .replace(&quot;REVOCATION=&quot;, &quot;Revocation=&quot;)</span>
-<span class="nc" id="L57">            .replace(&quot;ACTIVATECA=&quot;, &quot;CA Activation=&quot;);</span>
+  @Override
+  protected String getProtectString(final int rowversion) {
+<span class="nc bnc" id="L63" title="All 2 branches missed.">    if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L64">      LOG.debug(</span>
+          &quot;Verification of row protected data for Certificate Profile &quot;
+<span class="nc" id="L66">              + getCertificateProfileName()</span>
+              + &quot; failed. Trying to fix the protect string now.&quot;);
     }
+    // Signature was computer over &quot;Add or Edit End Entity&quot; ect. in EJBCA
+    // 6.11-6.14
+<span class="nc" id="L71">    return super.getProtectString(rowversion)</span>
+<span class="nc" id="L72">        .replace(&quot;ADDEDITENDENTITY=&quot;, &quot;Add or Edit End Entity=&quot;)</span>
+<span class="nc" id="L73">        .replace(&quot;KEYRECOVER=&quot;, &quot;Key Recovery=&quot;)</span>
+<span class="nc" id="L74">        .replace(&quot;REVOCATION=&quot;, &quot;Revocation=&quot;)</span>
+<span class="nc" id="L75">        .replace(&quot;ACTIVATECA=&quot;, &quot;CA Activation=&quot;);</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

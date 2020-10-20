@@ -1,0 +1,1545 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CAInterfaceBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">admin-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.cainterface</a> &gt; <span class="el_source">CAInterfaceBean.java</span></div><h1>CAInterfaceBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.ui.web.admin.cainterface;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
+import java.security.cert.CRLException;
+import java.security.cert.Certificate;
+import java.security.cert.X509CRL;
+import java.text.MessageFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.AbstractMap;
+import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Properties;
+import java.util.ServiceLoader;
+import java.util.Set;
+
+import javax.ejb.EJBException;
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileUploadException;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.bouncycastle.jce.ECNamedCurveTable;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.authorization.control.CryptoTokenRules;
+import org.cesecore.authorization.control.StandardRules;
+import org.cesecore.certificates.ca.ApprovalRequestType;
+import org.cesecore.certificates.ca.CAConstants;
+import org.cesecore.certificates.ca.CADoesntExistsException;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.CAOfflineException;
+import org.cesecore.certificates.ca.CVCCAInfo;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.certificates.ca.CvcCA;
+import org.cesecore.certificates.ca.CvcPlugin;
+import org.cesecore.certificates.ca.X509CAInfo;
+import org.cesecore.certificates.ca.catoken.CAToken;
+import org.cesecore.certificates.ca.catoken.CATokenConstants;
+import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceInfo;
+import org.cesecore.certificates.certificate.CertificateConstants;
+import org.cesecore.certificates.certificate.CertificateCreateSessionLocal;
+import org.cesecore.certificates.certificate.CertificateDataWrapper;
+import org.cesecore.certificates.certificate.CertificateStatus;
+import org.cesecore.certificates.certificate.CertificateStoreSessionLocal;
+import org.cesecore.certificates.certificate.certextensions.CertificateExtensionException;
+import org.cesecore.certificates.certificate.certextensions.standard.NameConstraint;
+import org.cesecore.certificates.certificateprofile.CertificatePolicy;
+import org.cesecore.certificates.certificateprofile.CertificateProfile;
+import org.cesecore.certificates.certificateprofile.CertificateProfileConstants;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSession;
+import org.cesecore.certificates.crl.CRLInfo;
+import org.cesecore.certificates.crl.CrlImportException;
+import org.cesecore.certificates.crl.CrlStoreException;
+import org.cesecore.certificates.crl.CrlStoreSession;
+import org.cesecore.certificates.crl.RevokedCertInfo;
+import org.cesecore.certificates.endentity.ExtendedInformation;
+import org.cesecore.certificates.util.AlgorithmConstants;
+import org.cesecore.certificates.util.AlgorithmTools;
+import org.cesecore.certificates.util.DNFieldExtractor;
+import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.keys.token.CryptoToken;
+import org.cesecore.keys.token.CryptoTokenAuthenticationFailedException;
+import org.cesecore.keys.token.CryptoTokenInfo;
+import org.cesecore.keys.token.CryptoTokenManagementSessionLocal;
+import org.cesecore.keys.token.CryptoTokenNameInUseException;
+import org.cesecore.keys.token.CryptoTokenOfflineException;
+import org.cesecore.keys.token.KeyPairInfo;
+import org.cesecore.keys.token.SoftCryptoToken;
+import org.cesecore.keys.validation.KeyValidatorSessionLocal;
+import org.cesecore.util.Base64;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.FileTools;
+import org.cesecore.util.SimpleTime;
+import org.cesecore.util.StringTools;
+import org.cesecore.util.ValidityDate;
+import org.ejbca.core.ejb.ca.caadmin.CAAdminSessionLocal;
+import org.ejbca.core.ejb.ca.publisher.PublisherQueueSessionLocal;
+import org.ejbca.core.ejb.ca.publisher.PublisherSessionLocal;
+import org.ejbca.core.ejb.ca.sign.SignSession;
+import org.ejbca.core.ejb.ca.store.CertReqHistorySessionLocal;
+import org.ejbca.core.ejb.crl.PublishingCrlSessionLocal;
+import org.ejbca.core.model.ca.caadmin.extendedcaservices.CmsCAServiceInfo;
+import org.ejbca.core.model.ca.caadmin.extendedcaservices.HardTokenEncryptCAServiceInfo;
+import org.ejbca.core.model.ca.caadmin.extendedcaservices.KeyRecoveryCAServiceInfo;
+import org.ejbca.core.model.ca.store.CertReqHistory;
+import org.ejbca.core.model.util.EjbLocalHelper;
+import org.ejbca.ui.web.CertificateView;
+import org.ejbca.ui.web.ParameterException;
+import org.ejbca.ui.web.RequestHelper;
+import org.ejbca.ui.web.RevokedInfoView;
+import org.ejbca.ui.web.admin.configuration.EjbcaWebBean;
+
+/**
+ * A class used as an interface between CA jsp pages and CA ejbca functions.
+ *
+ * @version $Id: CAInterfaceBean.java 31725 2019-03-07 10:05:50Z tarmo_r_helmes $
+ */
+public class CAInterfaceBean implements Serializable {
+
+    /** Backing object for main page list of CA and CRL statuses. */
+    public class CaCrlStatusInfo {
+        final private String caName;
+        final private boolean caService;
+        final private boolean crlStatus;
+<span class="nc" id="L136">        private CaCrlStatusInfo(final String caName, final boolean caService, final boolean crlStatus) {</span>
+<span class="nc" id="L137">            this.caName = caName;</span>
+<span class="nc" id="L138">            this.caService = caService;</span>
+<span class="nc" id="L139">            this.crlStatus = crlStatus;</span>
+<span class="nc" id="L140">        }</span>
+<span class="nc" id="L141">        public String getCaName() { return caName; }</span>
+<span class="nc" id="L142">        public boolean isCaService() { return caService; }</span>
+<span class="nc" id="L143">        public boolean isCrlStatus() { return crlStatus; }</span>
+    }
+
+	private static final long serialVersionUID = 3L;
+<span class="nc" id="L147">	private static final Logger log = Logger.getLogger(CAInterfaceBean.class);</span>
+	private static final String LIST_SEPARATOR = &quot;;&quot;;
+	
+    public static final int CATOKENTYPE_P12          = 1;
+    public static final int CATOKENTYPE_HSM          = 2;
+	public static final int CATOKENTYPE_NULL         = 3;
+
+<span class="nc" id="L154">	private EjbLocalHelper ejbLocalHelper = new EjbLocalHelper();</span>
+    private AuthorizationSessionLocal authorizationSession;
+    private CAAdminSessionLocal caadminsession;
+    private CaSessionLocal casession;
+    private CertificateCreateSessionLocal certcreatesession;
+    private CertificateProfileSession certificateProfileSession;
+    private CertificateStoreSessionLocal certificatesession;
+    private CertReqHistorySessionLocal certreqhistorysession;
+    private CrlStoreSession crlStoreSession;
+    private CryptoTokenManagementSessionLocal cryptoTokenManagementSession;
+    private PublishingCrlSessionLocal publishingCrlSession;
+    private PublisherQueueSessionLocal publisherqueuesession;
+    private PublisherSessionLocal publishersession;
+    private KeyValidatorSessionLocal keyValidatorSession;
+    
+    private SignSession signsession; 
+   
+    private CADataHandler cadatahandler;
+    @SuppressWarnings(&quot;deprecation&quot;)
+	private PublisherDataHandler publisherdatahandler;
+
+    private boolean initialized;
+    private AuthenticationToken authenticationToken;
+    private CAInfo cainfo;
+    private EjbcaWebBean ejbcawebbean;
+    /** The certification request in binary format */
+    transient private byte[] request;
+    private Certificate processedcert;
+    private boolean isUniqueIndex;
+	
+	/** Creates a new instance of CaInterfaceBean */
+<span class="nc" id="L185">    public CAInterfaceBean() { }</span>
+
+    // Public methods
+    @SuppressWarnings(&quot;deprecation&quot;)
+	public void initialize(EjbcaWebBean ejbcawebbean) {
+<span class="nc bnc" id="L190" title="All 2 branches missed.">        if (!initialized) {</span>
+<span class="nc" id="L191">          certificatesession = ejbLocalHelper.getCertificateStoreSession();</span>
+<span class="nc" id="L192">          certreqhistorysession = ejbLocalHelper.getCertReqHistorySession();</span>
+<span class="nc" id="L193">          crlStoreSession = ejbLocalHelper.getCrlStoreSession();</span>
+<span class="nc" id="L194">          cryptoTokenManagementSession = ejbLocalHelper.getCryptoTokenManagementSession();</span>
+<span class="nc" id="L195">          caadminsession = ejbLocalHelper.getCaAdminSession();</span>
+<span class="nc" id="L196">          casession = ejbLocalHelper.getCaSession();</span>
+<span class="nc" id="L197">          authorizationSession = ejbLocalHelper.getAuthorizationSession();</span>
+<span class="nc" id="L198">          signsession = ejbLocalHelper.getSignSession();</span>
+<span class="nc" id="L199">          certcreatesession = ejbLocalHelper.getCertificateCreateSession();</span>
+<span class="nc" id="L200">          publishersession = ejbLocalHelper.getPublisherSession();               </span>
+<span class="nc" id="L201">          publisherqueuesession = ejbLocalHelper.getPublisherQueueSession();</span>
+<span class="nc" id="L202">          keyValidatorSession = ejbLocalHelper.getKeyValidatorSession();</span>
+<span class="nc" id="L203">          certificateProfileSession = ejbLocalHelper.getCertificateProfileSession();</span>
+<span class="nc" id="L204">          publishingCrlSession = ejbLocalHelper.getPublishingCrlSession();</span>
+<span class="nc" id="L205">          authenticationToken = ejbcawebbean.getAdminObject();</span>
+<span class="nc" id="L206">          this.ejbcawebbean = ejbcawebbean;</span>
+
+<span class="nc" id="L208">          cadatahandler = new CADataHandler(authenticationToken, ejbLocalHelper, ejbcawebbean);</span>
+<span class="nc" id="L209">          publisherdatahandler = new PublisherDataHandler(authenticationToken, publishersession);</span>
+          
+<span class="nc" id="L211">          isUniqueIndex = certcreatesession.isUniqueCertificateSerialNumberIndex();</span>
+<span class="nc" id="L212">          initialized =true;</span>
+        }
+<span class="nc" id="L214">    }</span>
+
+    public CertificateView[] getCACertificates(int caid) {
+<span class="nc" id="L217">        final List&lt;CertificateView&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L218" title="All 2 branches missed.">        for (final Certificate certificate : signsession.getCertificateChain(caid)) {</span>
+<span class="nc" id="L219">            RevokedInfoView revokedinfo = null;</span>
+<span class="nc" id="L220">            CertificateStatus revinfo = certificatesession.getStatus(CertTools.getIssuerDN(certificate), CertTools.getSerialNumber(certificate));</span>
+<span class="nc bnc" id="L221" title="All 4 branches missed.">            if (revinfo != null &amp;&amp; revinfo.getRevocationReason() != RevokedCertInfo.NOT_REVOKED) {</span>
+<span class="nc" id="L222">                revokedinfo = new RevokedInfoView(revinfo, CertTools.getSerialNumber(certificate));</span>
+            }
+<span class="nc" id="L224">            ret.add(new CertificateView(certificate, revokedinfo));</span>
+<span class="nc" id="L225">        }</span>
+<span class="nc" id="L226">        return ret.toArray(new CertificateView[0]);</span>
+    }
+
+    /**
+     * Method that returns a HashMap connecting available CAIds (Integer) to CA Names (String).
+     * @return Map
+     */ 
+    public Map&lt;Integer, String&gt;  getCAIdToNameMap(){
+<span class="nc" id="L234">    	return casession.getCAIdToNameMap();      </span>
+    }
+
+    /**
+     * Return the name of the CA based on its ID
+     * @param caId the CA ID
+     * @return the name of the CA or null if it does not exists.
+     */
+    public String getName(Integer caId) {
+<span class="nc" id="L243">        return casession.getCAIdToNameMap().get(caId);</span>
+    }
+
+    public Collection&lt;Integer&gt; getAuthorizedCAs(){
+<span class="nc" id="L247">      return casession.getAuthorizedCaIds(authenticationToken);</span>
+    }
+    
+    public List&lt;CaCrlStatusInfo&gt; getAuthorizedInternalCaCrlStatusInfos() throws Exception {
+<span class="nc" id="L251">        final List&lt;CaCrlStatusInfo&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L252">        final Collection&lt;Integer&gt; caIds = getAuthorizedCAs();</span>
+<span class="nc bnc" id="L253" title="All 2 branches missed.">        for (final Integer caId : caIds) {</span>
+<span class="nc" id="L254">            final CAInfo cainfo = casession.getCAInfoInternal(caId.intValue());</span>
+<span class="nc bnc" id="L255" title="All 4 branches missed.">            if (cainfo == null || cainfo.getStatus() == CAConstants.CA_EXTERNAL) {</span>
+<span class="nc" id="L256">                continue;</span>
+            }
+<span class="nc" id="L258">            final String caName = cainfo.getName();</span>
+<span class="nc" id="L259">            boolean caTokenStatus = false;</span>
+<span class="nc" id="L260">            final int cryptoTokenId = cainfo.getCAToken().getCryptoTokenId();</span>
+            try {
+<span class="nc" id="L262">                caTokenStatus = cryptoTokenManagementSession.isCryptoTokenStatusActive(cryptoTokenId);</span>
+<span class="nc" id="L263">            } catch (Exception e) {</span>
+<span class="nc" id="L264">                final String msg = authenticationToken.toString() + &quot; failed to load CryptoToken status for &quot; + cryptoTokenId;</span>
+<span class="nc bnc" id="L265" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L266">                    log.debug(msg, e);</span>
+                } else {
+<span class="nc" id="L268">                    log.info(msg);</span>
+                }
+<span class="nc" id="L270">            }</span>
+<span class="nc bnc" id="L271" title="All 4 branches missed.">            final boolean caService = (cainfo.getStatus() == CAConstants.CA_ACTIVE) &amp;&amp; caTokenStatus;</span>
+<span class="nc" id="L272">            boolean crlStatus = true;</span>
+<span class="nc" id="L273">            final Date now = new Date();</span>
+<span class="nc" id="L274">            final CRLInfo crlinfo = getLastCRLInfo(cainfo, false);</span>
+<span class="nc bnc" id="L275" title="All 4 branches missed.">            if ((crlinfo != null) &amp;&amp; (now.after(crlinfo.getExpireDate()))) {</span>
+<span class="nc" id="L276">                crlStatus = false;</span>
+            }
+<span class="nc" id="L278">            final CRLInfo deltacrlinfo = getLastCRLInfo(cainfo, true);</span>
+<span class="nc bnc" id="L279" title="All 4 branches missed.">            if ((deltacrlinfo != null) &amp;&amp; (now.after(deltacrlinfo.getExpireDate()))) {</span>
+<span class="nc" id="L280">                crlStatus = false;</span>
+            }
+<span class="nc" id="L282">            ret.add(new CaCrlStatusInfo(caName, caService, crlStatus));</span>
+<span class="nc" id="L283">        }</span>
+
+<span class="nc" id="L285">        return ret;</span>
+    }
+
+    /** Returns the profile name from id proxied 
+     * @param profileid Profile
+     * @return Name */
+    public String getCertificateProfileName(int profileid) {
+<span class="nc" id="L292">        return certificateProfileSession.getCertificateProfileName(profileid);</span>
+    }
+    
+    public int getCertificateProfileId(String profilename) {
+<span class="nc" id="L296">        return certificateProfileSession.getCertificateProfileId(profilename);</span>
+    }
+
+    public CertificateProfile getCertificateProfile(final String name) throws AuthorizationDeniedException {
+<span class="nc" id="L300">        final CertificateProfile certificateProfile = certificateProfileSession.getCertificateProfile(name);</span>
+<span class="nc bnc" id="L301" title="All 2 branches missed.">        if (!authorizedToViewProfile(certificateProfile, getCertificateProfileId(name))) {</span>
+<span class="nc" id="L302">            throw new AuthorizationDeniedException(&quot;Not authorized to certificate profile&quot;);</span>
+        }
+<span class="nc" id="L304">        return certificateProfile;</span>
+    }
+
+    public CertificateProfile getCertificateProfile(final int id) throws AuthorizationDeniedException {
+<span class="nc" id="L308">        final CertificateProfile certificateProfile = certificateProfileSession.getCertificateProfile(id);</span>
+<span class="nc bnc" id="L309" title="All 2 branches missed.">        if (!authorizedToViewProfile(certificateProfile, id)) {</span>
+<span class="nc" id="L310">            throw new AuthorizationDeniedException(&quot;Not authorized to certificate profile&quot;);</span>
+        }
+<span class="nc" id="L312">        return certificateProfile;</span>
+    }
+
+    /** Help function that checks if administrator is authorized to view profile. 
+     * @param profile Profile
+     * @param id ID
+     * @return bool */
+    private boolean authorizedToViewProfile(CertificateProfile profile, final int id) {
+<span class="nc" id="L320">        return certificateProfileSession.getAuthorizedCertificateProfileIds(authenticationToken, profile.getType()).contains(Integer.valueOf(id));</span>
+    }
+
+    public void createCRL(int caid) throws CryptoTokenOfflineException, CAOfflineException  {      
+        try {
+<span class="nc" id="L325">            publishingCrlSession.forceCRL(authenticationToken, caid);</span>
+<span class="nc" id="L326">        } catch (CADoesntExistsException e) {</span>
+<span class="nc" id="L327">            throw new IllegalStateException(e);</span>
+<span class="nc" id="L328">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L329">            throw new IllegalStateException(e);</span>
+<span class="nc" id="L330">		}</span>
+<span class="nc" id="L331">    }</span>
+
+    public void createDeltaCRL(int caid) throws CryptoTokenOfflineException, CAOfflineException {      
+        try {
+<span class="nc" id="L335">            publishingCrlSession.forceDeltaCRL(authenticationToken, caid);</span>
+<span class="nc" id="L336">        } catch (CADoesntExistsException e) {</span>
+<span class="nc" id="L337">            throw new IllegalStateException(e);</span>
+<span class="nc" id="L338">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L339">            throw new IllegalStateException(e);</span>
+<span class="nc" id="L340">		}</span>
+<span class="nc" id="L341">    }</span>
+
+    public int getLastCRLNumber(String  issuerdn) {
+<span class="nc" id="L344">    	return crlStoreSession.getLastCRLNumber(issuerdn, false);      </span>
+    }
+
+    /**
+     * @param caInfo of the CA that has issued the CRL.
+     * @param deltaCRL false for complete CRL info, true for delta CRLInfo
+     * @return CRLInfo of last CRL by CA or null if no CRL exists.
+     */
+	public CRLInfo getLastCRLInfo(CAInfo caInfo, boolean deltaCRL) {
+		final String issuerdn;// use issuer DN from CA certificate. Might differ from DN in CAInfo.
+		{
+<span class="nc" id="L355">			final Collection&lt;Certificate&gt; certs = caInfo.getCertificateChain();</span>
+<span class="nc bnc" id="L356" title="All 2 branches missed.">			final Certificate cacert = !certs.isEmpty() ? certs.iterator().next(): null;</span>
+<span class="nc bnc" id="L357" title="All 2 branches missed.">			issuerdn = cacert!=null ? CertTools.getSubjectDN(cacert) : null;</span>
+		}
+<span class="nc" id="L359">		return crlStoreSession.getLastCRLInfo(issuerdn, deltaCRL);          </span>
+	}
+
+    public HashMap&lt;Integer, String&gt; getAvailablePublishers() {
+<span class="nc" id="L363">      return publishersession.getPublisherIdToNameMap();</span>
+    }
+    
+    public Map&lt;Integer, String&gt; getAvailableKeyValidators() {
+<span class="nc" id="L367">        return keyValidatorSession.getKeyValidatorIdToNameMap();</span>
+    }
+    
+    public int getPublisherQueueLength(int publisherId) {
+<span class="nc" id="L371">    	return publisherqueuesession.getPendingEntriesCountForPublisher(publisherId);</span>
+    }
+    
+    public int[] getPublisherQueueLength(int publisherId, int[] intervalLower, int[] intervalUpper) {
+<span class="nc" id="L375">    	return publisherqueuesession.getPendingEntriesCountForPublisherInIntervals(publisherId, intervalLower, intervalUpper);</span>
+    }
+    
+    @Deprecated
+    public PublisherDataHandler getPublisherDataHandler() {    
+<span class="nc" id="L380">    	return this.publisherdatahandler;</span>
+    }
+    
+    public CADataHandler getCADataHandler(){
+<span class="nc" id="L384">      return cadatahandler;</span>
+    }
+    
+    /** Slow method to get CAInfo. The returned object has id-to-name maps of publishers and validators. 
+     * @param name Name
+     * @return Info
+     * @throws AuthorizationDeniedException Fail */
+    public CAInfoView getCAInfo(String name) throws AuthorizationDeniedException {
+<span class="nc" id="L392">      return cadatahandler.getCAInfo(name);   </span>
+    }
+    
+    /** Slow method to get CAInfo. The returned object has id-to-name maps of publishers and validators. 
+     * @param name Name
+     * @return View*/
+    public CAInfoView getCAInfoNoAuth(String name) {
+<span class="nc" id="L399">        return cadatahandler.getCAInfoNoAuth(name);   </span>
+     }
+
+    /** Slow method to get CAInfo. The returned object has id-to-name maps of publishers and validators. 
+     * @param caid CA
+     * @return Info
+     * @throws AuthorizationDeniedException fail */
+    public CAInfoView getCAInfo(int caid) throws AuthorizationDeniedException {
+<span class="nc" id="L407">      return cadatahandler.getCAInfo(caid);   </span>
+    }  
+    
+    /** Slow method to get CAInfo. The returned object has id-to-name maps of publishers and validators. 
+     * @param caid CA
+     * @return View */
+    public CAInfoView getCAInfoNoAuth(int caid) {
+<span class="nc" id="L414">        return cadatahandler.getCAInfoNoAuth(caid);   </span>
+    }
+    
+    /** Fast method to get CAInfo. Returns the object directly, without bundling it with name-to-id maps. 
+     * @param caid CA
+     * @return Info */
+    public CAInfo getCAInfoFastNoAuth(int caid) {
+<span class="nc" id="L421">        return casession.getCAInfoInternal(caid);</span>
+    }
+    
+    public int getCAStatusNoAuth(int caid) {
+<span class="nc" id="L425">        final CAInfo caInfo = casession.getCAInfoInternal(caid);</span>
+<span class="nc bnc" id="L426" title="All 2 branches missed.">        return (caInfo != null ? caInfo.getStatus() : 0);</span>
+    }
+    
+    public String getCASubjectDNNoAuth(String caName) {
+<span class="nc" id="L430">        final CAInfo caInfo = casession.getCAInfoInternal(-1, caName, true);</span>
+<span class="nc bnc" id="L431" title="All 2 branches missed.">        return (caInfo != null ? caInfo.getSubjectDN() : &quot;&quot;);</span>
+    }
+    
+    @Deprecated
+    public void saveRequestInfo(CAInfo cainfo){
+<span class="nc" id="L436">    	this.cainfo = cainfo;</span>
+<span class="nc" id="L437">    }</span>
+    
+    @Deprecated
+    public CAInfo getRequestInfo(){
+<span class="nc" id="L441">    	return this.cainfo;</span>
+    }
+    
+	public void saveRequestData(byte[] request){
+<span class="nc" id="L445">		this.request = request;</span>
+<span class="nc" id="L446">	}</span>
+    
+	public byte[] getRequestData(){
+<span class="nc" id="L449">		return this.request;</span>
+	}    
+	
+	public String getRequestDataAsString() throws Exception{
+<span class="nc" id="L453">		String returnval = null;	</span>
+<span class="nc bnc" id="L454" title="All 2 branches missed.">		if(request != null ){</span>
+<span class="nc" id="L455">			returnval = RequestHelper.BEGIN_CERTIFICATE_REQUEST_WITH_NL</span>
+<span class="nc" id="L456">			+ new String(Base64.encode(request, true))</span>
+			+ RequestHelper.END_CERTIFICATE_REQUEST_WITH_NL;  
+		}      
+<span class="nc" id="L459">		return returnval;</span>
+	}
+    
+	public void saveProcessedCertificate(Certificate cert){
+<span class="nc" id="L463">		this.processedcert =cert;</span>
+<span class="nc" id="L464">	}</span>
+
+	public Certificate getProcessedCertificate(){
+<span class="nc" id="L467">		return this.processedcert;</span>
+	}    
+
+    public byte[] getLinkCertificate(final int caId) {
+        try {
+<span class="nc" id="L472">            return caadminsession.getLatestLinkCertificate(caId);</span>
+<span class="nc" id="L473">        } catch (CADoesntExistsException e) {</span>
+<span class="nc" id="L474">            return null;</span>
+        }
+    }    
+
+	public String getProcessedCertificateAsString() throws Exception{
+<span class="nc" id="L479">		String returnval = null;	</span>
+<span class="nc bnc" id="L480" title="All 2 branches missed.">		if(request != null ){</span>
+<span class="nc" id="L481">			byte[] b64cert = Base64.encode(this.processedcert.getEncoded(), true);</span>
+<span class="nc" id="L482">			returnval = CertTools.BEGIN_CERTIFICATE_WITH_NL;</span>
+<span class="nc" id="L483">			returnval += new String(b64cert);</span>
+<span class="nc" id="L484">			returnval += CertTools.END_CERTIFICATE_WITH_NL;</span>
+		}      
+<span class="nc" id="L486">		return returnval;</span>
+	}
+
+	public AuthenticationToken getAuthenticationToken() {
+<span class="nc" id="L490">	    return authenticationToken;</span>
+	}
+	
+	public String republish(CertificateView certificateView) throws AuthorizationDeniedException {
+<span class="nc" id="L494">		String returnval = &quot;CERTREPUBLISHFAILED&quot;;</span>
+<span class="nc" id="L495">		int certificateProfileId = CertificateProfileConstants.CERTPROFILE_NO_PROFILE;</span>
+<span class="nc" id="L496">		String password = null;</span>
+<span class="nc" id="L497">		ExtendedInformation ei = null;</span>
+		// Unescaped subjectDN is used to avoid causing issues in custom publishers (see ECA-6761)
+<span class="nc" id="L499">		String dn = certificateView.getSubjectDNUnescaped(); </span>
+<span class="nc" id="L500">		final CertReqHistory certreqhist = certreqhistorysession.retrieveCertReqHistory(certificateView.getSerialNumberBigInt(), certificateView.getIssuerDN());</span>
+<span class="nc bnc" id="L501" title="All 2 branches missed.">		if (certreqhist != null) {</span>
+			// First try to look up all info using the Certificate Request History from when the certificate was issued
+			// We need this since the certificate subjectDN might be a subset of the subjectDN in the template
+<span class="nc" id="L504">			certificateProfileId = certreqhist.getEndEntityInformation().getCertificateProfileId();</span>
+<span class="nc" id="L505">			password = certreqhist.getEndEntityInformation().getPassword();</span>
+<span class="nc" id="L506">			ei = certreqhist.getEndEntityInformation().getExtendedInformation();</span>
+<span class="nc" id="L507">			dn = certreqhist.getEndEntityInformation().getCertificateDN();</span>
+		}
+<span class="nc" id="L509">		final String fingerprint = certificateView.getSHA1Fingerprint().toLowerCase();</span>
+<span class="nc" id="L510">		final CertificateDataWrapper cdw = certificatesession.getCertificateData(fingerprint);</span>
+<span class="nc bnc" id="L511" title="All 2 branches missed.">		if (cdw != null) {</span>
+			// If we are missing Certificate Request History for this certificate, we can at least recover some of this info
+<span class="nc bnc" id="L513" title="All 2 branches missed.">			if (certificateProfileId == CertificateProfileConstants.CERTPROFILE_NO_PROFILE) {</span>
+<span class="nc" id="L514">				certificateProfileId = cdw.getCertificateData().getCertificateProfileId();</span>
+			}
+		}
+<span class="nc bnc" id="L517" title="All 2 branches missed.">		if (certificateProfileId == CertificateProfileConstants.CERTPROFILE_NO_PROFILE) {</span>
+			// If there is no cert req history and the cert profile was not defined in the CertificateData row, so we can't do anything about it..
+<span class="nc" id="L519">			returnval = &quot;CERTREQREPUBLISHFAILED&quot;;</span>
+		} else {
+<span class="nc" id="L521">			final CertificateProfile certprofile = certificateProfileSession.getCertificateProfile(certificateProfileId);</span>
+<span class="nc bnc" id="L522" title="All 2 branches missed.">			if (certprofile != null) {</span>
+<span class="nc bnc" id="L523" title="All 2 branches missed.">				if (certprofile.getPublisherList().size() &gt; 0) {</span>
+<span class="nc bnc" id="L524" title="All 2 branches missed.">                    if (publishersession.storeCertificate(authenticationToken, certprofile.getPublisherList(), cdw, password, dn, ei)) {</span>
+<span class="nc" id="L525">                        returnval = &quot;CERTREPUBLISHEDSUCCESS&quot;;</span>
+                    }
+				} else {
+<span class="nc" id="L528">					returnval = &quot;NOPUBLISHERSDEFINED&quot;;</span>
+				}
+			} else {
+<span class="nc" id="L531">				returnval = &quot;CERTPROFILENOTFOUND&quot;;</span>
+			}
+		}
+<span class="nc" id="L534">		return returnval; </span>
+	}
+
+	/** Class used to sort CertReq History by users modified time, with latest first*/
+<span class="nc" id="L538">	private class CertReqUserCreateComparator implements Comparator&lt;CertReqHistory&gt; {</span>
+		@Override
+		public int compare(CertReqHistory o1, CertReqHistory o2) {
+<span class="nc" id="L541">			return 0 - (o1.getEndEntityInformation().getTimeModified().compareTo(o2.getEndEntityInformation().getTimeModified()));</span>
+		}
+	}
+
+	/**
+	 * Returns a List of CertReqHistUserData from the certreqhist database in an collection sorted by timestamp.
+	 * @param username Isername
+	 * @return List
+	 */
+	public List&lt;CertReqHistory&gt; getCertReqUserDatas(String username){
+<span class="nc" id="L551">		List&lt;CertReqHistory&gt; history = this.certreqhistorysession.retrieveCertReqHistory(username);</span>
+		// Sort it by timestamp, newest first;
+<span class="nc" id="L553">		Collections.sort(history, new CertReqUserCreateComparator());</span>
+<span class="nc" id="L554">		return history;</span>
+	}
+
+	/** @return true if serial number unique indexing is supported by DB. */
+	public boolean isUniqueIndexForSerialNumber() {
+<span class="nc" id="L559">		return this.isUniqueIndex;</span>
+	}
+
+	//
+	// Methods from editcas.jsp refactoring
+	//
+    public boolean actionCreateCaMakeRequest(String caName, String signatureAlgorithm,
+            String extendedServiceSignatureKeySpec,
+            String keySequenceFormat, String keySequence, int catype, String subjectdn,
+            String certificateProfileIdString, String defaultCertificateProfileIdString, boolean useNoConflictCertificateData, 
+            String signedByString, String description, String caSerialNumberOctetSizeString, String validityString,
+            Map&lt;ApprovalRequestType, Integer&gt; approvals, boolean finishUser, boolean isDoEnforceUniquePublicKeys,
+            boolean isDoEnforceUniqueDistinguishedName, boolean isDoEnforceUniqueSubjectDNSerialnumber,
+            boolean useCertReqHistory, boolean useUserStorage, boolean useCertificateStorage, boolean acceptRevocationsNonExistingEntry, String subjectaltname,
+            String policyid, boolean useauthoritykeyidentifier, boolean authoritykeyidentifiercritical,
+            long crlperiod, long crlIssueInterval, long crlOverlapTime, long deltacrlperiod,
+            String availablePublisherValues, String availableKeyValidatorValues, boolean usecrlnumber, boolean crlnumbercritical,
+            String defaultcrldistpoint, String defaultcrlissuer, String defaultocsplocator,
+            String authorityInformationAccessString,
+            String certificateAiaDefaultCaIssuerUriString,
+            String nameConstraintsPermittedString, String nameConstraintsExcludedString,
+            String caDefinedFreshestCrlString, boolean useutf8policytext,
+            boolean useprintablestringsubjectdn, boolean useldapdnorder, boolean usecrldistpointoncrl,
+            boolean crldistpointoncrlcritical, boolean includeInHealthCheck, boolean serviceOcspActive,
+            boolean serviceCmsActive, String sharedCmpRaSecret, boolean keepExpiredCertsOnCRL, boolean buttonCreateCa, boolean buttonMakeRequest,
+            String cryptoTokenIdString, String keyAliasCertSignKey, String keyAliasCrlSignKey, String keyAliasDefaultKey,
+            String keyAliasHardTokenEncryptKey, String keyAliasKeyEncryptKey, String keyAliasKeyTestKey,
+            byte[] fileBuffer) throws Exception {
+        // This will occur if administrator has insufficient access to crypto tokens, which won't provide any
+        // selectable items for Crypto Token when creating a CA.
+<span class="nc bnc" id="L589" title="All 2 branches missed.">        if (cryptoTokenIdString.isEmpty()) {</span>
+<span class="nc" id="L590">            log.info(&quot;No selected crypto token. Check crypto token access rules for administrator &quot; + authenticationToken);</span>
+<span class="nc" id="L591">            throw new CryptoTokenAuthenticationFailedException(&quot;Crypto token authentication failed for administrator &quot; + authenticationToken);</span>
+        }
+<span class="nc" id="L593">        int cryptoTokenId = Integer.parseInt(cryptoTokenIdString);</span>
+        try {
+<span class="nc bnc" id="L595" title="All 2 branches missed.">            if (cryptoTokenId==0) {</span>
+                // The admin has requested a quick setup and wants to generate a soft keystore with some usable keys
+<span class="nc" id="L597">                keyAliasDefaultKey = &quot;defaultKey&quot;;</span>
+<span class="nc" id="L598">                keyAliasCertSignKey = &quot;signKey&quot;;</span>
+<span class="nc" id="L599">                keyAliasCrlSignKey = keyAliasCertSignKey;</span>
+<span class="nc" id="L600">                keyAliasHardTokenEncryptKey = &quot;&quot;;</span>
+<span class="nc" id="L601">                keyAliasKeyEncryptKey = &quot;&quot;;</span>
+<span class="nc" id="L602">                keyAliasKeyTestKey = &quot;testKey&quot;;</span>
+                // First create a new soft auto-activated CryptoToken with the same name as the CA
+<span class="nc" id="L604">                final Properties cryptoTokenProperties = new Properties();</span>
+<span class="nc" id="L605">                cryptoTokenProperties.setProperty(CryptoToken.AUTOACTIVATE_PIN_PROPERTY, CesecoreConfiguration.getCaKeyStorePass());</span>
+                try {
+<span class="nc" id="L607">                    cryptoTokenId = cryptoTokenManagementSession.createCryptoToken(authenticationToken, caName, SoftCryptoToken.class.getName(),</span>
+                            cryptoTokenProperties, null, null);
+<span class="nc" id="L609">                } catch (CryptoTokenNameInUseException e) {</span>
+                    // If the name was already in use we simply add a timestamp to the name to manke it unique
+<span class="nc" id="L611">                    final String postfix = &quot;_&quot; + new SimpleDateFormat(&quot;yyyyMMddHHmmss&quot;).format(new Date());</span>
+<span class="nc" id="L612">                    cryptoTokenId = cryptoTokenManagementSession.createCryptoToken(authenticationToken, caName+postfix, SoftCryptoToken.class.getName(),</span>
+                            cryptoTokenProperties, null, null);
+<span class="nc" id="L614">                }</span>
+                // Next generate recommended RSA key pairs for decryption and test
+<span class="nc" id="L616">                cryptoTokenManagementSession.createKeyPair(authenticationToken, cryptoTokenId, keyAliasDefaultKey, AlgorithmConstants.KEYALGORITHM_RSA + &quot;2048&quot;);</span>
+<span class="nc" id="L617">                cryptoTokenManagementSession.createKeyPair(authenticationToken, cryptoTokenId, keyAliasKeyTestKey, AlgorithmConstants.KEYALGORITHM_RSA + &quot;1024&quot;);</span>
+                // Next, create a CA signing key
+<span class="nc" id="L619">                final String caSignKeyAlgo = AlgorithmTools.getKeyAlgorithmFromSigAlg(signatureAlgorithm);</span>
+<span class="nc" id="L620">                String caSignKeySpec = AlgorithmConstants.KEYALGORITHM_RSA + &quot;2048&quot;;</span>
+<span class="nc" id="L621">                extendedServiceSignatureKeySpec = &quot;2048&quot;;</span>
+<span class="nc bnc" id="L622" title="All 2 branches missed.">                if (AlgorithmConstants.KEYALGORITHM_DSA.equals(caSignKeyAlgo)) {</span>
+<span class="nc" id="L623">                    caSignKeySpec = AlgorithmConstants.KEYALGORITHM_DSA + &quot;1024&quot;;</span>
+<span class="nc" id="L624">                    extendedServiceSignatureKeySpec = caSignKeySpec;</span>
+<span class="nc bnc" id="L625" title="All 2 branches missed.">                } else if (AlgorithmConstants.KEYALGORITHM_ECDSA.equals(caSignKeyAlgo)) {</span>
+<span class="nc" id="L626">                    caSignKeySpec = &quot;prime256v1&quot;;</span>
+<span class="nc" id="L627">                    extendedServiceSignatureKeySpec = caSignKeySpec;</span>
+<span class="nc bnc" id="L628" title="All 4 branches missed.">                } else if (AlgorithmTools.isGost3410Enabled() &amp;&amp; AlgorithmConstants.KEYALGORITHM_ECGOST3410.equals(caSignKeyAlgo)) {</span>
+<span class="nc" id="L629">                    caSignKeySpec = CesecoreConfiguration.getExtraAlgSubAlgName(&quot;gost3410&quot;, &quot;B&quot;);</span>
+<span class="nc" id="L630">                    extendedServiceSignatureKeySpec = caSignKeySpec;</span>
+<span class="nc bnc" id="L631" title="All 4 branches missed.">                } else if (AlgorithmTools.isDstu4145Enabled() &amp;&amp; AlgorithmConstants.KEYALGORITHM_DSTU4145.equals(caSignKeyAlgo)) {</span>
+<span class="nc" id="L632">                    caSignKeySpec = CesecoreConfiguration.getExtraAlgSubAlgName(&quot;dstu4145&quot;, &quot;233&quot;);</span>
+<span class="nc" id="L633">                    extendedServiceSignatureKeySpec = caSignKeySpec;</span>
+                }
+<span class="nc" id="L635">                cryptoTokenManagementSession.createKeyPair(authenticationToken, cryptoTokenId, keyAliasCertSignKey, caSignKeySpec);</span>
+            }
+<span class="nc" id="L637">            return actionCreateCaMakeRequestInternal(caName, signatureAlgorithm, extendedServiceSignatureKeySpec,</span>
+                    keySequenceFormat, keySequence, catype, subjectdn, certificateProfileIdString, defaultCertificateProfileIdString, 
+                    useNoConflictCertificateData, signedByString,
+                    description, caSerialNumberOctetSizeString, validityString, approvals, finishUser,
+                    isDoEnforceUniquePublicKeys, isDoEnforceUniqueDistinguishedName, isDoEnforceUniqueSubjectDNSerialnumber,
+                    useCertReqHistory, useUserStorage, useCertificateStorage, acceptRevocationsNonExistingEntry, subjectaltname, policyid,
+                    useauthoritykeyidentifier, authoritykeyidentifiercritical, crlperiod, crlIssueInterval,
+                    crlOverlapTime, deltacrlperiod, availablePublisherValues, availableKeyValidatorValues, usecrlnumber, crlnumbercritical,
+                    defaultcrldistpoint, defaultcrlissuer, defaultocsplocator, 
+                    authorityInformationAccessString,
+                    certificateAiaDefaultCaIssuerUriString,
+                    nameConstraintsPermittedString, nameConstraintsExcludedString,
+                    caDefinedFreshestCrlString, useutf8policytext, useprintablestringsubjectdn, useldapdnorder,
+                    usecrldistpointoncrl, crldistpointoncrlcritical, includeInHealthCheck, serviceOcspActive,
+                    serviceCmsActive, sharedCmpRaSecret, keepExpiredCertsOnCRL, buttonCreateCa, buttonMakeRequest, cryptoTokenId,
+                    keyAliasCertSignKey, keyAliasCrlSignKey, keyAliasDefaultKey, keyAliasHardTokenEncryptKey,
+                    keyAliasKeyEncryptKey, keyAliasKeyTestKey, fileBuffer);
+<span class="nc" id="L654">        } catch (Exception e) {</span>
+            // If we failed during the creation we manually roll back any created soft CryptoToken
+            // The more proper way of doing it would be to implement a CaAdminSession call for one-shot
+            // CryptoToken and CA creation, but this would currently push a lot of GUI specific code
+            // to the business logic. Until we have a new GUI this is probably the best way of doing it.
+<span class="nc bnc" id="L659" title="All 4 branches missed.">            if (cryptoTokenId != 0 &amp;&amp; &quot;0&quot;.equals(cryptoTokenIdString)) {</span>
+<span class="nc" id="L660">                cryptoTokenManagementSession.deleteCryptoToken(authenticationToken, cryptoTokenId);</span>
+            }
+<span class="nc" id="L662">            throw e;</span>
+        }
+    }
+
+	private boolean actionCreateCaMakeRequestInternal(String caName, String signatureAlgorithm,
+	        String extendedServiceSignatureKeySpec,
+	        String keySequenceFormat, String keySequence, int caType, String subjectDn,
+	        String certificateProfileIdString, String defaultCertificateProfileIdString, boolean useNoConflictCertificateData, 
+	        String signedByString, String description, String caSerialNumberOctetSizeString, String validityString,
+	        Map&lt;ApprovalRequestType, Integer&gt; approvals, boolean finishUser, boolean isDoEnforceUniquePublicKeys,
+	        boolean isDoEnforceUniqueDistinguishedName, boolean isDoEnforceUniqueSubjectDNSerialnumber,
+	        boolean useCertReqHistory, boolean useUserStorage, boolean useCertificateStorage, boolean acceptRevocationsNonExistingEntry, String subjectAltName,
+	        String policyid, boolean useAuthorityKeyIdentifier, boolean authorityKeyIdentifierCritical,
+            long crlPeriod, long crlIssueInterval, long crlOverlapTime, long deltaCrlPeriod,
+            String availablePublisherValues, String availableKeyValidatorValues, boolean useCrlNumber, boolean crlNumberCritical,
+            String defaultCrlDistPoint, String defaultCrlIssuer, String defaultOcspCerviceLocator,
+            String authorityInformationAccessString,
+            String certificateAiaDefaultCaIssuerUriString,
+            String nameConstraintsPermittedString, String nameConstraintsExcludedString, String caDefinedFreshestCrlString, boolean useUtf8PolicyText,
+            boolean usePrintableStringSubjectDn, boolean useLdapDnOrder, boolean useCrlDistributionPointOnCrl,
+            boolean crlDistributionPointOnCrlCritical, boolean includeInHealthCheck, boolean serviceOcspActive,
+            boolean serviceCmsActive, String sharedCmpRaSecret, boolean keepExpiredCertsOnCRL, boolean buttonCreateCa, boolean buttonMakeRequest,
+            int cryptoTokenId, String keyAliasCertSignKey, String keyAliasCrlSignKey, String keyAliasDefaultKey,
+            String keyAliasHardTokenEncryptKey, String keyAliasKeyEncryptKey, String keyAliasKeyTestKey,
+            byte[] fileBuffer) throws Exception {
+
+<span class="nc" id="L688">	    boolean illegaldnoraltname = false;</span>
+
+<span class="nc" id="L690">	    final List&lt;String&gt; keyPairAliases = cryptoTokenManagementSession.getKeyPairAliases(authenticationToken, cryptoTokenId);</span>
+<span class="nc bnc" id="L691" title="All 2 branches missed.">	    if (!keyPairAliases.contains(keyAliasDefaultKey)) {</span>
+<span class="nc" id="L692">	        log.info(authenticationToken.toString() + &quot; attempted to createa a CA with a non-existing defaultKey alias: &quot;+keyAliasDefaultKey);</span>
+<span class="nc" id="L693">	        throw new Exception(&quot;Invalid default key alias!&quot;);</span>
+	    }
+<span class="nc" id="L695">	    final String[] suppliedAliases = {keyAliasCertSignKey,keyAliasCrlSignKey,keyAliasHardTokenEncryptKey,keyAliasHardTokenEncryptKey,keyAliasKeyEncryptKey,keyAliasKeyTestKey};</span>
+<span class="nc bnc" id="L696" title="All 2 branches missed.">        for (final String currentSuppliedAlias : suppliedAliases) {</span>
+<span class="nc bnc" id="L697" title="All 4 branches missed.">            if (currentSuppliedAlias.length()&gt;0 &amp;&amp; !keyPairAliases.contains(currentSuppliedAlias)) {</span>
+<span class="nc" id="L698">                log.info(authenticationToken.toString() + &quot; attempted to create a CA with a non-existing key alias: &quot;+currentSuppliedAlias);</span>
+<span class="nc" id="L699">                throw new Exception(&quot;Invalid key alias!&quot;);</span>
+            }
+        }
+<span class="nc" id="L702">        final Properties caTokenProperties = new Properties();</span>
+<span class="nc" id="L703">        caTokenProperties.setProperty(CATokenConstants.CAKEYPURPOSE_DEFAULT_STRING, keyAliasDefaultKey);</span>
+<span class="nc bnc" id="L704" title="All 2 branches missed.">        if (keyAliasCertSignKey.length()&gt;0) {</span>
+<span class="nc" id="L705">            caTokenProperties.setProperty(CATokenConstants.CAKEYPURPOSE_CERTSIGN_STRING, keyAliasCertSignKey);</span>
+        }
+<span class="nc bnc" id="L707" title="All 2 branches missed.">        if (keyAliasCrlSignKey.length()&gt;0) {</span>
+<span class="nc" id="L708">            caTokenProperties.setProperty(CATokenConstants.CAKEYPURPOSE_CRLSIGN_STRING, keyAliasCrlSignKey);</span>
+        }
+<span class="nc bnc" id="L710" title="All 2 branches missed.">        if (keyAliasHardTokenEncryptKey.length()&gt;0) {</span>
+<span class="nc" id="L711">            caTokenProperties.setProperty(CATokenConstants.CAKEYPURPOSE_HARDTOKENENCRYPT_STRING, keyAliasHardTokenEncryptKey);</span>
+        }
+<span class="nc bnc" id="L713" title="All 2 branches missed.">        if (keyAliasKeyEncryptKey.length()&gt;0) {</span>
+<span class="nc" id="L714">            caTokenProperties.setProperty(CATokenConstants.CAKEYPURPOSE_KEYENCRYPT_STRING, keyAliasKeyEncryptKey);</span>
+        }
+<span class="nc bnc" id="L716" title="All 2 branches missed.">        if (keyAliasKeyTestKey.length()&gt;0) {</span>
+<span class="nc" id="L717">            caTokenProperties.setProperty(CATokenConstants.CAKEYPURPOSE_TESTKEY_STRING, keyAliasKeyTestKey);</span>
+        }
+<span class="nc" id="L719">	    final CAToken caToken = new CAToken(cryptoTokenId, caTokenProperties);</span>
+<span class="nc bnc" id="L720" title="All 2 branches missed.">        if (signatureAlgorithm == null) {</span>
+<span class="nc" id="L721">            throw new Exception(&quot;No signature algorithm supplied!&quot;);  </span>
+        }
+<span class="nc" id="L723">        caToken.setSignatureAlgorithm(signatureAlgorithm);</span>
+<span class="nc" id="L724">        caToken.setEncryptionAlgorithm(AlgorithmTools.getEncSigAlgFromSigAlg(signatureAlgorithm));</span>
+
+<span class="nc bnc" id="L726" title="All 4 branches missed.">        if (extendedServiceSignatureKeySpec == null || extendedServiceSignatureKeySpec.length()==0) {</span>
+<span class="nc" id="L727">            throw new Exception(&quot;No key specification supplied.&quot;);</span>
+        }
+<span class="nc bnc" id="L729" title="All 2 branches missed.">        if (keySequenceFormat==null) {</span>
+<span class="nc" id="L730">            caToken.setKeySequenceFormat(StringTools.KEY_SEQUENCE_FORMAT_NUMERIC);</span>
+        } else {
+<span class="nc" id="L732">            caToken.setKeySequenceFormat(Integer.parseInt(keySequenceFormat));</span>
+        }
+<span class="nc bnc" id="L734" title="All 2 branches missed.">        if (keySequence==null) {</span>
+<span class="nc" id="L735">            caToken.setKeySequence(CAToken.DEFAULT_KEYSEQUENCE);</span>
+        } else {
+<span class="nc" id="L737">            caToken.setKeySequence(keySequence);</span>
+        }
+	    try {
+<span class="nc" id="L740">	        CertTools.stringToBcX500Name(subjectDn);</span>
+<span class="nc" id="L741">	    } catch (IllegalArgumentException e) {</span>
+<span class="nc" id="L742">	        illegaldnoraltname = true;</span>
+<span class="nc" id="L743">	    }</span>
+<span class="nc bnc" id="L744" title="All 2 branches missed.">        int certprofileid = (certificateProfileIdString==null ? 0 : Integer.parseInt(certificateProfileIdString));</span>
+<span class="nc bnc" id="L745" title="All 2 branches missed.">        int defaultCertProfileId = (defaultCertificateProfileIdString==null ? 0 : Integer.parseInt(defaultCertificateProfileIdString));</span>
+<span class="nc bnc" id="L746" title="All 2 branches missed.">	    int signedBy = (signedByString==null ? 0 : Integer.parseInt(signedByString));</span>
+
+<span class="nc bnc" id="L748" title="All 2 branches missed.">	    if (description == null) {</span>
+<span class="nc" id="L749">            description = &quot;&quot;;</span>
+	    }
+
+	    // If 'buttonMakeRequest' set encodedValidity to zero days, otherwise perform validation if it's an absolute date or a relative time.
+<span class="nc bnc" id="L753" title="All 2 branches missed.">	    if (buttonMakeRequest) {</span>
+<span class="nc" id="L754">	        validityString = &quot;0d&quot;; // not applicable</span>
+        } else {
+<span class="nc" id="L756">            String errorMessage = isValidityTimeValid(validityString);</span>
+<span class="nc bnc" id="L757" title="All 2 branches missed.">            if(!StringUtils.isEmpty(errorMessage)) {</span>
+<span class="nc" id="L758">                throw new ParameterException(errorMessage);</span>
+            }
+        }
+
+<span class="nc bnc" id="L762" title="All 10 branches missed.">	    if (caToken != null &amp;&amp; caType != 0 &amp;&amp; subjectDn != null &amp;&amp; caName != null &amp;&amp; signedBy != 0) {</span>
+	        // Approvals is generic for all types of CAs
+//	        final List&lt;Integer&gt; approvalsettings = StringTools.idStringToListOfInteger(approvalSettingValues, LIST_SEPARATOR);
+//            final int approvalProfileID = (approvalProfileParam==null ? -1 : Integer.parseInt(approvalProfileParam));
+
+<span class="nc bnc" id="L767" title="All 2 branches missed.">	        if (caType == CAInfo.CATYPE_X509) {</span>
+	            // Create a X509 CA
+<span class="nc bnc" id="L769" title="All 2 branches missed.">	            if (subjectAltName == null) {</span>
+<span class="nc" id="L770">                    subjectAltName = &quot;&quot;;</span>
+	            }
+<span class="nc bnc" id="L772" title="All 2 branches missed.">	            if (!checkSubjectAltName(subjectAltName)) {</span>
+<span class="nc" id="L773">	               illegaldnoraltname = true;</span>
+	            }
+	            /* Process certificate policies. */
+<span class="nc" id="L776">	            final List&lt;CertificatePolicy&gt; policies = parsePolicies(policyid);</span>
+	            // Certificate policies from the CA and the CertificateProfile will be merged for cert creation in the CAAdminSession.createCA call
+<span class="nc" id="L778">	            final List&lt;Integer&gt; crlPublishers = StringTools.idStringToListOfInteger(availablePublisherValues, LIST_SEPARATOR);</span>
+<span class="nc" id="L779">	            final List&lt;Integer&gt; keyValidators = StringTools.idStringToListOfInteger(availableKeyValidatorValues, LIST_SEPARATOR);</span>
+	            
+<span class="nc" id="L781">	            List&lt;String&gt; authorityInformationAccess = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L782" title="All 2 branches missed.">	            if (StringUtils.isNotBlank(authorityInformationAccessString)) {</span>
+<span class="nc" id="L783">	            	authorityInformationAccess = new ArrayList&lt;&gt;( Arrays.asList(authorityInformationAccessString.split(LIST_SEPARATOR)));	</span>
+	            }
+<span class="nc" id="L785">	            List&lt;String&gt; certificateAiaDefaultCaIssuerUri = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L786" title="All 2 branches missed.">	            if (StringUtils.isNotBlank(certificateAiaDefaultCaIssuerUriString)) {</span>
+<span class="nc" id="L787">	                certificateAiaDefaultCaIssuerUri = new ArrayList&lt;&gt;( Arrays.asList(certificateAiaDefaultCaIssuerUriString.split(LIST_SEPARATOR)));</span>
+	            }
+<span class="nc" id="L789">	            String caDefinedFreshestCrl = &quot;&quot;;</span>
+<span class="nc bnc" id="L790" title="All 2 branches missed.">	            if (caDefinedFreshestCrlString != null) {</span>
+<span class="nc" id="L791">	                caDefinedFreshestCrl = caDefinedFreshestCrlString;</span>
+	            }
+	            
+<span class="nc" id="L794">	            final List&lt;String&gt; nameConstraintsPermitted = parseNameConstraintsInput(nameConstraintsPermittedString);</span>
+<span class="nc" id="L795">	            final List&lt;String&gt; nameConstraintsExcluded = parseNameConstraintsInput(nameConstraintsExcludedString);</span>
+<span class="nc bnc" id="L796" title="All 4 branches missed.">	            final boolean hasNameConstraints = !nameConstraintsPermitted.isEmpty() || !nameConstraintsExcluded.isEmpty();</span>
+<span class="nc bnc" id="L797" title="All 4 branches missed.">	            if (hasNameConstraints &amp;&amp; !isNameConstraintAllowedInProfile(certprofileid)) {</span>
+<span class="nc" id="L798">	               throw new ParameterException(ejbcawebbean.getText(&quot;NAMECONSTRAINTSNOTENABLED&quot;));</span>
+	            }
+	            
+<span class="nc bnc" id="L801" title="All 2 branches missed.">	            final int caSerialNumberOctetSize = (caSerialNumberOctetSizeString != null) ? Integer.parseInt(caSerialNumberOctetSizeString) : CesecoreConfiguration.getSerialNumberOctetSizeForNewCa();</span>
+	            
+<span class="nc bnc" id="L803" title="All 4 branches missed.">	            if (crlPeriod != 0 &amp;&amp; !illegaldnoraltname) {</span>
+<span class="nc bnc" id="L804" title="All 2 branches missed.">	                if (buttonCreateCa) {</span>
+<span class="nc" id="L805">	                    List&lt;ExtendedCAServiceInfo&gt; extendedCaServiceInfos = makeExtendedServicesInfos(extendedServiceSignatureKeySpec, subjectDn, serviceCmsActive);</span>
+<span class="nc" id="L806">                        X509CAInfo x509cainfo =  new X509CAInfo.X509CAInfoBuilder()</span>
+<span class="nc" id="L807">                                .setSubjectDn(subjectDn)</span>
+<span class="nc" id="L808">                                .setName(caName)</span>
+<span class="nc" id="L809">                                .setStatus(CAConstants.CA_ACTIVE)</span>
+<span class="nc" id="L810">                                .setSubjectAltName(subjectAltName)</span>
+<span class="nc" id="L811">                                .setCertificateProfileId(certprofileid)</span>
+<span class="nc" id="L812">                                .setDefaultCertProfileId(defaultCertProfileId)</span>
+<span class="nc" id="L813">                                .setUseNoConflictCertificateData(useNoConflictCertificateData)</span>
+<span class="nc" id="L814">                                .setEncodedValidity(validityString)</span>
+<span class="nc" id="L815">                                .setCaType(caType)</span>
+<span class="nc" id="L816">                                .setSignedBy(signedBy)</span>
+<span class="nc" id="L817">                                .setCertificateChain(null)</span>
+<span class="nc" id="L818">                                .setCaToken(caToken)</span>
+<span class="nc" id="L819">                                .setDescription(description)</span>
+<span class="nc" id="L820">                                .setCaSerialNumberOctetSize(caSerialNumberOctetSize)</span>
+<span class="nc" id="L821">                                .setPolicies(policies)</span>
+<span class="nc" id="L822">                                .setCrlPeriod(crlPeriod)</span>
+<span class="nc" id="L823">                                .setCrlIssueInterval(crlIssueInterval)</span>
+<span class="nc" id="L824">                                .setCrlOverlapTime(crlOverlapTime)</span>
+<span class="nc" id="L825">                                .setDeltaCrlPeriod(deltaCrlPeriod)</span>
+<span class="nc" id="L826">                                .setCrlPublishers(crlPublishers)</span>
+<span class="nc" id="L827">                                .setValidators(keyValidators)</span>
+<span class="nc" id="L828">                                .setUseAuthorityKeyIdentifier(useAuthorityKeyIdentifier)</span>
+<span class="nc" id="L829">                                .setAuthorityKeyIdentifierCritical(authorityKeyIdentifierCritical)</span>
+<span class="nc" id="L830">                                .setUseCrlNumber(useCrlNumber)</span>
+<span class="nc" id="L831">                                .setCrlNumberCritical(crlNumberCritical)</span>
+<span class="nc" id="L832">                                .setDefaultCrlDistPoint(defaultCrlDistPoint)</span>
+<span class="nc" id="L833">                                .setDefaultCrlIssuer(defaultCrlIssuer)</span>
+<span class="nc" id="L834">                                .setDefaultOcspCerviceLocator(defaultOcspCerviceLocator)</span>
+<span class="nc" id="L835">                                .setAuthorityInformationAccess(authorityInformationAccess)</span>
+<span class="nc" id="L836">                                .setCertificateAiaDefaultCaIssuerUri(certificateAiaDefaultCaIssuerUri)</span>
+<span class="nc" id="L837">                                .setNameConstraintsPermitted(nameConstraintsPermitted)</span>
+<span class="nc" id="L838">                                .setNameConstraintsExcluded(nameConstraintsExcluded)</span>
+<span class="nc" id="L839">                                .setCaDefinedFreshestCrl(caDefinedFreshestCrl)</span>
+<span class="nc" id="L840">                                .setFinishUser(finishUser)</span>
+<span class="nc" id="L841">                                .setExtendedCaServiceInfos(extendedCaServiceInfos)</span>
+<span class="nc" id="L842">                                .setUseUtf8PolicyText(useUtf8PolicyText)</span>
+<span class="nc" id="L843">                                .setApprovals(approvals)</span>
+<span class="nc" id="L844">                                .setUsePrintableStringSubjectDN(usePrintableStringSubjectDn)</span>
+<span class="nc" id="L845">                                .setUseLdapDnOrder(useLdapDnOrder)</span>
+<span class="nc" id="L846">                                .setUseCrlDistributionPointOnCrl(useCrlDistributionPointOnCrl)</span>
+<span class="nc" id="L847">                                .setCrlDistributionPointOnCrlCritical(crlDistributionPointOnCrlCritical)</span>
+<span class="nc" id="L848">                                .setIncludeInHealthCheck(includeInHealthCheck)</span>
+<span class="nc" id="L849">                                .setDoEnforceUniquePublicKeys(isDoEnforceUniquePublicKeys)</span>
+<span class="nc" id="L850">                                .setDoEnforceUniqueDistinguishedName(isDoEnforceUniqueDistinguishedName)</span>
+<span class="nc" id="L851">                                .setDoEnforceUniqueSubjectDNSerialnumber(isDoEnforceUniqueSubjectDNSerialnumber)</span>
+<span class="nc" id="L852">                                .setUseCertReqHistory(useCertReqHistory)</span>
+<span class="nc" id="L853">                                .setUseUserStorage(useUserStorage)</span>
+<span class="nc" id="L854">                                .setUseCertificateStorage(useCertificateStorage)</span>
+<span class="nc" id="L855">                                .setAcceptRevocationNonExistingEntry(acceptRevocationsNonExistingEntry)</span>
+<span class="nc" id="L856">                                .setCmpRaAuthSecret(sharedCmpRaSecret)</span>
+<span class="nc" id="L857">                                .setKeepExpiredCertsOnCRL(keepExpiredCertsOnCRL)</span>
+<span class="nc" id="L858">                                .build();</span>
+                        try {
+<span class="nc" id="L860">                            cadatahandler.createCA(x509cainfo);</span>
+<span class="nc" id="L861">                        } catch (EJBException e) {</span>
+<span class="nc bnc" id="L862" title="All 2 branches missed.">                            if (e.getCausedByException() instanceof IllegalArgumentException) {</span>
+                                //Couldn't create CA from the given parameters
+<span class="nc" id="L864">                                illegaldnoraltname = true;</span>
+                            } else {
+<span class="nc" id="L866">                                throw e;</span>
+                            }
+<span class="nc" id="L868">                        }</span>
+	                }
+
+<span class="nc bnc" id="L871" title="All 2 branches missed.">	                if (buttonMakeRequest) {</span>
+<span class="nc" id="L872">	                    List&lt;ExtendedCAServiceInfo&gt; extendedcaservices = makeExtendedServicesInfos(extendedServiceSignatureKeySpec, subjectDn, serviceCmsActive);</span>
+<span class="nc" id="L873">                        X509CAInfo x509cainfo =  new X509CAInfo.X509CAInfoBuilder()</span>
+<span class="nc" id="L874">                                .setSubjectDn(subjectDn)</span>
+<span class="nc" id="L875">                                .setName(caName)</span>
+<span class="nc" id="L876">                                .setStatus(CAConstants.CA_ACTIVE)</span>
+<span class="nc" id="L877">                                .setSubjectAltName(subjectAltName)</span>
+<span class="nc" id="L878">                                .setCertificateProfileId(certprofileid)</span>
+<span class="nc" id="L879">                                .setDefaultCertProfileId(defaultCertProfileId)</span>
+<span class="nc" id="L880">                                .setUseNoConflictCertificateData(useNoConflictCertificateData)</span>
+<span class="nc" id="L881">                                .setEncodedValidity(validityString)</span>
+<span class="nc" id="L882">                                .setCaType(caType)</span>
+<span class="nc" id="L883">                                .setSignedBy(CAInfo.SIGNEDBYEXTERNALCA)</span>
+<span class="nc" id="L884">                                .setCertificateChain(null)</span>
+<span class="nc" id="L885">                                .setCaToken(caToken)</span>
+<span class="nc" id="L886">                                .setDescription(description)</span>
+<span class="nc" id="L887">                                .setPolicies(policies)</span>
+<span class="nc" id="L888">                                .setCrlPeriod(crlPeriod)</span>
+<span class="nc" id="L889">                                .setCrlIssueInterval(crlIssueInterval)</span>
+<span class="nc" id="L890">                                .setCrlOverlapTime(crlOverlapTime)</span>
+<span class="nc" id="L891">                                .setDeltaCrlPeriod(deltaCrlPeriod)</span>
+<span class="nc" id="L892">                                .setCrlPublishers(crlPublishers)</span>
+<span class="nc" id="L893">                                .setValidators(keyValidators)</span>
+<span class="nc" id="L894">                                .setUseAuthorityKeyIdentifier(useAuthorityKeyIdentifier)</span>
+<span class="nc" id="L895">                                .setAuthorityKeyIdentifierCritical(authorityKeyIdentifierCritical)</span>
+<span class="nc" id="L896">                                .setUseCrlNumber(useCrlNumber)</span>
+<span class="nc" id="L897">                                .setCrlNumberCritical(crlNumberCritical)</span>
+<span class="nc" id="L898">                                .setDefaultCrlDistPoint(defaultCrlDistPoint)</span>
+<span class="nc" id="L899">                                .setDefaultCrlIssuer(defaultCrlIssuer)</span>
+<span class="nc" id="L900">                                .setDefaultOcspCerviceLocator(defaultOcspCerviceLocator)</span>
+<span class="nc" id="L901">                                .setAuthorityInformationAccess(authorityInformationAccess)</span>
+<span class="nc" id="L902">                                .setCertificateAiaDefaultCaIssuerUri(certificateAiaDefaultCaIssuerUri)</span>
+<span class="nc" id="L903">                                .setNameConstraintsPermitted(nameConstraintsPermitted)</span>
+<span class="nc" id="L904">                                .setNameConstraintsExcluded(nameConstraintsExcluded)</span>
+<span class="nc" id="L905">                                .setCaDefinedFreshestCrl(caDefinedFreshestCrl)</span>
+<span class="nc" id="L906">                                .setFinishUser(finishUser)</span>
+<span class="nc" id="L907">                                .setExtendedCaServiceInfos(extendedcaservices)</span>
+<span class="nc" id="L908">                                .setUseUtf8PolicyText(useUtf8PolicyText)</span>
+<span class="nc" id="L909">                                .setApprovals(approvals)</span>
+<span class="nc" id="L910">                                .setUsePrintableStringSubjectDN(usePrintableStringSubjectDn)</span>
+<span class="nc" id="L911">                                .setUseLdapDnOrder(useLdapDnOrder)</span>
+<span class="nc" id="L912">                                .setUseCrlDistributionPointOnCrl(useCrlDistributionPointOnCrl)</span>
+<span class="nc" id="L913">                                .setCrlDistributionPointOnCrlCritical(crlDistributionPointOnCrlCritical)</span>
+<span class="nc" id="L914">                                .setIncludeInHealthCheck(false) // Do not automatically include new CAs in health-check</span>
+<span class="nc" id="L915">                                .setDoEnforceUniquePublicKeys(isDoEnforceUniquePublicKeys)</span>
+<span class="nc" id="L916">                                .setDoEnforceUniqueDistinguishedName(isDoEnforceUniqueDistinguishedName)</span>
+<span class="nc" id="L917">                                .setDoEnforceUniqueSubjectDNSerialnumber(isDoEnforceUniqueSubjectDNSerialnumber)</span>
+<span class="nc" id="L918">                                .setUseCertReqHistory(useCertReqHistory)</span>
+<span class="nc" id="L919">                                .setUseUserStorage(useUserStorage)</span>
+<span class="nc" id="L920">                                .setUseCertificateStorage(useCertificateStorage)</span>
+<span class="nc" id="L921">                                .setAcceptRevocationNonExistingEntry(acceptRevocationsNonExistingEntry)</span>
+<span class="nc" id="L922">                                .setKeepExpiredCertsOnCRL(keepExpiredCertsOnCRL)</span>
+<span class="nc" id="L923">                                .build();</span>
+<span class="nc" id="L924">	                    saveRequestInfo(x509cainfo);                </span>
+	                }
+	            }                          
+	        }
+
+<span class="nc bnc" id="L929" title="All 2 branches missed.">	        if (caType == CAInfo.CATYPE_CVC) {</span>
+	            // Only default values for these that are not used
+<span class="nc" id="L931">	            crlPeriod = 2400;</span>
+<span class="nc" id="L932">	            crlIssueInterval = 0;</span>
+<span class="nc" id="L933">	            crlOverlapTime = 0;</span>
+<span class="nc" id="L934">	            deltaCrlPeriod = 0;</span>
+<span class="nc" id="L935">	            final List&lt;Integer&gt; crlpublishers = new ArrayList&lt;&gt;(); </span>
+<span class="nc" id="L936">	            final List&lt;Integer&gt; keyValidators = new ArrayList&lt;&gt;(); </span>
+<span class="nc bnc" id="L937" title="All 4 branches missed.">	            if(crlPeriod != 0 &amp;&amp; !illegaldnoraltname){</span>
+	                // A CVC CA does not have any of the external services OCSP, CMS
+<span class="nc" id="L939">	                List&lt;ExtendedCAServiceInfo&gt; extendedcaservices = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L940" title="All 2 branches missed.">	                if (buttonMakeRequest) {</span>
+<span class="nc" id="L941">	                    signedBy = CAInfo.SIGNEDBYEXTERNALCA;</span>
+	                }
+	                // Create the CAInfo to be used for either generating the whole CA or making a request
+<span class="nc" id="L944">	                CVCCAInfo cvccainfo = new CVCCAInfo(subjectDn, caName, CAConstants.CA_ACTIVE, new Date(),</span>
+	                        certprofileid, defaultCertProfileId, validityString,
+	                        null, caType, signedBy,
+	                        null, caToken, description, -1, null,
+	                        crlPeriod, crlIssueInterval, crlOverlapTime, deltaCrlPeriod, crlpublishers, keyValidators,
+	                        finishUser, extendedcaservices,
+	                        approvals,
+	                        false, // Do not automatically include new CAs in health-check
+	                        isDoEnforceUniquePublicKeys,
+	                        isDoEnforceUniqueDistinguishedName,
+	                        isDoEnforceUniqueSubjectDNSerialnumber,
+	                        useCertReqHistory,
+	                        useUserStorage,
+	                        useCertificateStorage,
+                            acceptRevocationsNonExistingEntry);
+<span class="nc bnc" id="L959" title="All 2 branches missed.">	                if (buttonCreateCa) {</span>
+<span class="nc" id="L960">	                    cadatahandler.createCA(cvccainfo);</span>
+<span class="nc bnc" id="L961" title="All 2 branches missed.">	                } else if (buttonMakeRequest) {</span>
+<span class="nc" id="L962">	                    saveRequestInfo(cvccainfo);                </span>
+	                }
+	            }
+	        }
+	    }
+<span class="nc bnc" id="L967" title="All 4 branches missed.">        if (buttonMakeRequest &amp;&amp; !illegaldnoraltname) {</span>
+<span class="nc" id="L968">            CAInfo cainfo = getRequestInfo();</span>
+<span class="nc" id="L969">            cadatahandler.createCA(cainfo);                           </span>
+<span class="nc" id="L970">            int caid = cainfo.getCAId();</span>
+            try {
+<span class="nc" id="L972">                byte[] certreq = cadatahandler.makeRequest(caid, fileBuffer, caToken.getAliasFromPurpose(CATokenConstants.CAKEYPURPOSE_CERTSIGN));</span>
+<span class="nc" id="L973">                saveRequestData(certreq);</span>
+<span class="nc" id="L974">            } catch (CryptoTokenOfflineException e) {</span>
+<span class="nc" id="L975">                cadatahandler.removeCA(caid);</span>
+<span class="nc" id="L976">            }</span>
+        }
+<span class="nc" id="L978">	    return illegaldnoraltname;</span>
+	}
+
+	private List&lt;String&gt; parseNameConstraintsInput(String input) throws ParameterException {
+        try {
+<span class="nc" id="L983">            return NameConstraint.parseNameConstraintsList(input);</span>
+<span class="nc" id="L984">        } catch (CertificateExtensionException e) {</span>
+<span class="nc" id="L985">            throw new ParameterException(MessageFormat.format(ejbcawebbean.getText(&quot;INVALIDNAMECONSTRAINT&quot;), e.getMessage()));</span>
+        }
+    }
+	
+    public String isValidityTimeValid(String validityString) {
+        // Fixed end dates are not limited
+<span class="nc bnc" id="L991" title="All 2 branches missed.">        if (ValidityDate.isValidIso8601Date(validityString)) {</span>
+            //We have a valid date, let's just check that it's in the future as well. 
+            Date validityDate;
+            try {
+<span class="nc" id="L995">                validityDate = ValidityDate.parseAsIso8601(validityString);</span>
+<span class="nc" id="L996">            } catch (ParseException e) {</span>
+<span class="nc" id="L997">               throw new IllegalStateException(validityString + &quot; was an invalid date, but this should already have been checked.&quot;);</span>
+<span class="nc" id="L998">            }</span>
+<span class="nc bnc" id="L999" title="All 2 branches missed.">            if (validityDate.before(new Date())) {</span>
+<span class="nc" id="L1000">                return ejbcawebbean.getText(&quot;INVALIDVALIDITY_PAST&quot;);</span>
+            }
+<span class="nc" id="L1002">        } else {</span>
+            //Only positive relative times allowed.
+            try {
+<span class="nc bnc" id="L1005" title="All 2 branches missed.">                if (SimpleTime.parseMillies(validityString) &lt;= 0) {</span>
+<span class="nc" id="L1006">                    return ejbcawebbean.getText(&quot;INVALIDVALIDITYORCERTEND&quot;);</span>
+                }
+<span class="nc" id="L1008">            } catch (NumberFormatException e) {</span>
+<span class="nc" id="L1009">                return ejbcawebbean.getText(&quot;INVALIDVALIDITYORCERTEND&quot;) + &quot;: &quot; + e.getMessage();</span>
+<span class="nc" id="L1010">            }</span>
+        }
+<span class="nc" id="L1012">        return &quot;&quot;;</span>
+    }
+	
+    
+    private boolean isNameConstraintAllowedInProfile(int certProfileId) {
+<span class="nc" id="L1017">        final CertificateProfile certProfile = certificateProfileSession.getCertificateProfile(certProfileId);</span>
+        
+<span class="nc bnc" id="L1019" title="All 2 branches missed.">        final boolean isCA = (certProfile.getType() == CertificateConstants.CERTTYPE_SUBCA ||</span>
+<span class="nc bnc" id="L1020" title="All 2 branches missed.">                certProfile.getType() == CertificateConstants.CERTTYPE_ROOTCA);</span>
+        
+<span class="nc bnc" id="L1022" title="All 4 branches missed.">        return isCA &amp;&amp; certProfile.getUseNameConstraints();</span>
+    }
+
+    public List&lt;ExtendedCAServiceInfo&gt; makeExtendedServicesInfos(String keySpec, String subjectdn, boolean serviceCmsActive) {
+<span class="nc" id="L1026">	    String keyType = AlgorithmConstants.KEYALGORITHM_RSA;</span>
+        try {
+<span class="nc" id="L1028">            Integer.parseInt(keySpec);</span>
+<span class="nc" id="L1029">        } catch (NumberFormatException e) {</span>
+<span class="nc bnc" id="L1030" title="All 2 branches missed.">            if (keySpec.startsWith(&quot;DSA&quot;)) {</span>
+<span class="nc" id="L1031">                keyType = AlgorithmConstants.KEYALGORITHM_DSA;</span>
+<span class="nc bnc" id="L1032" title="All 2 branches missed.">            } else if (keySpec.startsWith(AlgorithmConstants.KEYSPECPREFIX_ECGOST3410)) {</span>
+<span class="nc" id="L1033">                keyType = AlgorithmConstants.KEYALGORITHM_ECGOST3410;</span>
+<span class="nc bnc" id="L1034" title="All 4 branches missed.">            } else if (AlgorithmTools.isDstu4145Enabled() &amp;&amp; keySpec.startsWith(CesecoreConfiguration.getOidDstu4145())) {</span>
+<span class="nc" id="L1035">                keyType = AlgorithmConstants.KEYALGORITHM_DSTU4145;</span>
+            } else {
+<span class="nc" id="L1037">                keyType = AlgorithmConstants.KEYALGORITHM_ECDSA;</span>
+            }
+<span class="nc" id="L1039">        }</span>
+        
+<span class="nc bnc" id="L1041" title="All 2 branches missed.">        final int cmsactive = serviceCmsActive ? ExtendedCAServiceInfo.STATUS_ACTIVE : ExtendedCAServiceInfo.STATUS_INACTIVE;</span>
+	    
+<span class="nc" id="L1043">        List&lt;ExtendedCAServiceInfo&gt; extendedcaservices = new ArrayList&lt;&gt;();</span>
+        // Create and active External CA Services.
+<span class="nc" id="L1045">        extendedcaservices.add(</span>
+                new CmsCAServiceInfo(cmsactive,
+                        &quot;CN=CMSCertificate, &quot; + subjectdn, &quot;&quot;,
+                        keySpec, keyType));
+<span class="nc" id="L1049">        extendedcaservices.add(new HardTokenEncryptCAServiceInfo(ExtendedCAServiceInfo.STATUS_ACTIVE));</span>
+<span class="nc" id="L1050">        extendedcaservices.add(new KeyRecoveryCAServiceInfo(ExtendedCAServiceInfo.STATUS_ACTIVE));</span>
+<span class="nc" id="L1051">        return extendedcaservices;</span>
+    }
+
+    public boolean checkSubjectAltName(String subjectaltname) {
+<span class="nc bnc" id="L1055" title="All 4 branches missed.">        if (subjectaltname != null &amp;&amp; !subjectaltname.trim().equals(&quot;&quot;)) {</span>
+<span class="nc" id="L1056">            final DNFieldExtractor subtest = new DNFieldExtractor(subjectaltname,DNFieldExtractor.TYPE_SUBJECTALTNAME);                   </span>
+<span class="nc bnc" id="L1057" title="All 4 branches missed.">            if (subtest.isIllegal() || subtest.existsOther()) {</span>
+<span class="nc" id="L1058">                return false;</span>
+            }
+        }
+<span class="nc" id="L1061">        return true;</span>
+    }
+
+    public List&lt;CertificatePolicy&gt; parsePolicies(String policyid) {
+<span class="nc" id="L1065">        final ArrayList&lt;CertificatePolicy&gt; policies = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L1066" title="All 4 branches missed.">        if (!(policyid == null || policyid.trim().equals(&quot;&quot;))) {</span>
+<span class="nc" id="L1067">            final String[] str = policyid.split(&quot;\\s+&quot;);</span>
+<span class="nc bnc" id="L1068" title="All 2 branches missed.">            if (str.length &gt; 1) {</span>
+<span class="nc" id="L1069">                policies.add(new CertificatePolicy(str[0], CertificatePolicy.ID_QT_CPS, str[1]));</span>
+            } else {
+<span class="nc" id="L1071">                policies.add(new CertificatePolicy((policyid.trim()),null,null));</span>
+            }
+        }
+<span class="nc" id="L1074">        return policies;</span>
+    }
+
+    public CAInfo createCaInfo(int caid, String caname, String subjectDn, int catype,
+	        String keySequenceFormat, String keySequence, String signedByString, String description, String caSerialNumberOctetSizeString, 
+	        String validityString, long crlperiod, long crlIssueInterval, long crlOverlapTime, long deltacrlperiod, boolean finishUser,
+	        boolean isDoEnforceUniquePublicKeys, boolean isDoEnforceUniqueDistinguishedName, boolean isDoEnforceUniqueSubjectDNSerialnumber,
+	        boolean useCertReqHistory, boolean useUserStorage, boolean useCertificateStorage, boolean acceptRevocationNonExistingEntry,
+            int defaultCertprofileId, boolean useNoConflictCertificateData, 
+	        Map&lt;ApprovalRequestType, Integer&gt; approvals,
+	        String availablePublisherValues, String availableKeyValidatorValues,
+	        boolean useauthoritykeyidentifier, boolean authoritykeyidentifiercritical, boolean usecrlnumber,
+	        boolean crlnumbercritical, String defaultcrldistpoint, String defaultcrlissuer, String defaultocsplocator, String crlAuthorityInformationAccessParam, 
+	        String certificateAiaDefaultCaIssuerUriParam,
+	        String nameConstraintsPermittedString, String nameConstraintsExcludedString,
+	        String caDefinedFreshestCrl, boolean useutf8policytext, boolean useprintablestringsubjectdn, boolean useldapdnorder, boolean usecrldistpointoncrl,
+	        boolean crldistpointoncrlcritical, boolean includeInHealthCheck, boolean serviceOcspActive, boolean serviceCmsActive, String sharedCmpRaSecret, boolean keepExpiredCertsOnCRL
+	        ) throws Exception {
+        // We need to pick up the old CAToken, so we don't overwrite with default values when we save the CA further down
+<span class="nc" id="L1093">        CAInfoView infoView = cadatahandler.getCAInfo(caid);  </span>
+<span class="nc" id="L1094">        CAToken catoken = infoView.getCAToken();</span>
+<span class="nc bnc" id="L1095" title="All 2 branches missed.">        if (catoken == null) {</span>
+<span class="nc" id="L1096">            catoken = new CAToken(caid, new Properties());</span>
+        }
+<span class="nc bnc" id="L1098" title="All 2 branches missed.">        if (keySequenceFormat==null) {</span>
+<span class="nc" id="L1099">            catoken.setKeySequenceFormat(StringTools.KEY_SEQUENCE_FORMAT_NUMERIC);</span>
+        } else {
+<span class="nc" id="L1101">            catoken.setKeySequenceFormat(Integer.parseInt(keySequenceFormat));</span>
+        }
+<span class="nc bnc" id="L1103" title="All 2 branches missed.">        if (keySequence==null) {</span>
+<span class="nc" id="L1104">            catoken.setKeySequence(CAToken.DEFAULT_KEYSEQUENCE);</span>
+        } else {
+<span class="nc" id="L1106">            catoken.setKeySequence(keySequence);</span>
+        }
+<span class="nc bnc" id="L1108" title="All 2 branches missed.">        if (description == null) {</span>
+<span class="nc" id="L1109">            description = &quot;&quot;;</span>
+        }
+<span class="nc bnc" id="L1111" title="All 2 branches missed.">        final int signedby = (signedByString==null ? 0 : Integer.parseInt(signedByString));</span>
+<span class="nc bnc" id="L1112" title="All 4 branches missed.">        if (StringUtils.isBlank(validityString) &amp;&amp; signedby == CAInfo.SIGNEDBYEXTERNALCA) {</span>
+            // A validityString of null is allowed, when using a validity is not applicable
+<span class="nc" id="L1114">            validityString = &quot;0d&quot;;</span>
+        } else {
+            try {
+                // Fixed dates are not limited.
+<span class="nc" id="L1118">                ValidityDate.parseAsIso8601(validityString);</span>
+<span class="nc" id="L1119">            } catch(ParseException e) {</span>
+                // Only positive relative times allowed.
+                long millis;
+                try {
+<span class="nc" id="L1123">                    millis = SimpleTime.getSecondsFormat().parseMillis(validityString);                </span>
+<span class="nc" id="L1124">                } catch(NumberFormatException nfe) {</span>
+<span class="nc" id="L1125">                    throw new ParameterException(ejbcawebbean.getText(&quot;INVALIDVALIDITYORCERTEND&quot;));</span>
+<span class="nc" id="L1126">                }</span>
+<span class="nc bnc" id="L1127" title="All 2 branches missed.">                if (millis &lt;= 0) {</span>
+<span class="nc" id="L1128">                    throw new ParameterException(ejbcawebbean.getText(&quot;INVALIDVALIDITYORCERTEND&quot;));</span>
+                }
+                // format validityString before saving
+<span class="nc" id="L1131">                validityString = SimpleTime.toString(millis, SimpleTime.TYPE_DAYS);</span>
+<span class="nc" id="L1132">            }</span>
+        }
+<span class="nc bnc" id="L1134" title="All 4 branches missed.">        if (caid != 0  &amp;&amp; catype !=0) {</span>
+            // First common info for both X509 CAs and CVC CAs
+<span class="nc" id="L1136">           CAInfo cainfo = null;</span>
+//           final List&lt;Integer&gt; approvalsettings = StringTools.idStringToListOfInteger(approvalSettingValues, LIST_SEPARATOR);
+//           final int approvalProfileID = (approvalProfileParam==null ? -1 : Integer.parseInt(approvalProfileParam));
+<span class="nc" id="L1139">           final List&lt;Integer&gt; crlpublishers = StringTools.idStringToListOfInteger(availablePublisherValues, LIST_SEPARATOR);</span>
+<span class="nc" id="L1140">           final List&lt;Integer&gt; keyValidators = StringTools.idStringToListOfInteger(availableKeyValidatorValues, LIST_SEPARATOR);</span>
+           
+           // Info specific for X509 CA
+<span class="nc bnc" id="L1143" title="All 2 branches missed.">           if (catype == CAInfo.CATYPE_X509) {</span>
+<span class="nc" id="L1144">               List&lt;String&gt; authorityInformationAccess = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L1145" title="All 2 branches missed.">               if (StringUtils.isNotEmpty(crlAuthorityInformationAccessParam)) {</span>
+<span class="nc" id="L1146">                   authorityInformationAccess = new ArrayList&lt;&gt;( Arrays.asList(crlAuthorityInformationAccessParam.split(LIST_SEPARATOR)));</span>
+               }
+<span class="nc" id="L1148">               List&lt;String&gt; certificateAiaDefaultCaIssuerUri = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L1149" title="All 2 branches missed.">               if (StringUtils.isNotEmpty(certificateAiaDefaultCaIssuerUriParam)) {</span>
+<span class="nc" id="L1150">                   certificateAiaDefaultCaIssuerUri = new ArrayList&lt;&gt;( Arrays.asList(certificateAiaDefaultCaIssuerUriParam.split(LIST_SEPARATOR)));</span>
+               }
+<span class="nc bnc" id="L1152" title="All 2 branches missed.">               final String cadefinedfreshestcrl = (caDefinedFreshestCrl==null ? &quot;&quot; : caDefinedFreshestCrl);</span>
+               // Create extended CA Service updatedata.
+<span class="nc bnc" id="L1154" title="All 2 branches missed.">               final int cmsactive = serviceCmsActive ? ExtendedCAServiceInfo.STATUS_ACTIVE : ExtendedCAServiceInfo.STATUS_INACTIVE;</span>
+<span class="nc" id="L1155">               final ArrayList&lt;ExtendedCAServiceInfo&gt; extendedcaservices = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L1156">               extendedcaservices.add(new CmsCAServiceInfo(cmsactive, false));</span>
+               
+<span class="nc bnc" id="L1158" title="All 2 branches missed.">               final int caSerialNumberOctetSize = (caSerialNumberOctetSizeString != null) ? Integer.parseInt(caSerialNumberOctetSizeString) : CesecoreConfiguration.getSerialNumberOctetSizeForNewCa();</span>
+               
+               // No need to add the HardTokenEncrypt or Keyrecovery extended service here, because they are only &quot;updated&quot; in EditCA, and there
+               // is not need to update them.
+<span class="nc" id="L1162">                cainfo = new X509CAInfo(caid, validityString, catoken, description, caSerialNumberOctetSize, crlperiod, crlIssueInterval, crlOverlapTime, deltacrlperiod,</span>
+                        crlpublishers, keyValidators, useauthoritykeyidentifier, authoritykeyidentifiercritical, usecrlnumber, crlnumbercritical,
+                        defaultcrldistpoint, defaultcrlissuer, defaultocsplocator, authorityInformationAccess, certificateAiaDefaultCaIssuerUri,
+<span class="nc" id="L1165">                        parseNameConstraintsInput(nameConstraintsPermittedString), parseNameConstraintsInput(nameConstraintsExcludedString),</span>
+                        cadefinedfreshestcrl, finishUser, extendedcaservices, useutf8policytext, approvals,
+                        useprintablestringsubjectdn, useldapdnorder, usecrldistpointoncrl, crldistpointoncrlcritical, includeInHealthCheck,
+                        isDoEnforceUniquePublicKeys, isDoEnforceUniqueDistinguishedName, isDoEnforceUniqueSubjectDNSerialnumber, useCertReqHistory,
+                        useUserStorage, useCertificateStorage, acceptRevocationNonExistingEntry, sharedCmpRaSecret, keepExpiredCertsOnCRL, defaultCertprofileId, 
+                        useNoConflictCertificateData);
+            }
+           // Info specific for CVC CA
+<span class="nc bnc" id="L1173" title="All 2 branches missed.">           if (catype == CAInfo.CATYPE_CVC) {</span>
+               // Edit CVC CA data                            
+               // A CVC CA does not have any of the external services OCSP, CMS
+<span class="nc" id="L1176">               final List&lt;ExtendedCAServiceInfo&gt; extendedcaservices = new ArrayList&lt;&gt;();</span>
+               // Create the CAInfo to be used for either generating the whole CA or making a request
+<span class="nc" id="L1178">               cainfo = new CVCCAInfo(caid, validityString, </span>
+                       catoken, description,
+                       crlperiod, crlIssueInterval, crlOverlapTime, deltacrlperiod, crlpublishers, keyValidators,
+                       finishUser, extendedcaservices,
+                       approvals,
+                       includeInHealthCheck,
+                       isDoEnforceUniquePublicKeys,
+                       isDoEnforceUniqueDistinguishedName,
+                       isDoEnforceUniqueSubjectDNSerialnumber,
+                       useCertReqHistory,
+                       useUserStorage,
+                       useCertificateStorage,
+                       acceptRevocationNonExistingEntry, defaultCertprofileId);
+           }
+<span class="nc" id="L1192">            cainfo.setSubjectDN(subjectDn);</span>
+<span class="nc" id="L1193">            cainfo.setStatus(infoView.getCAInfo().getStatus());</span>
+<span class="nc" id="L1194">            return cainfo;</span>
+        }
+<span class="nc" id="L1196">        return null;</span>
+	}
+
+    public List&lt;Entry&lt;String, String&gt;&gt; getAvailableCryptoTokens(final String caSigingAlgorithm, boolean isEditingCA)
+            throws AuthorizationDeniedException {
+<span class="nc" id="L1201">	    final List&lt;Entry&lt;String, String&gt;&gt; availableCryptoTokens = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L1202" title="All 4 branches missed.">        if (!isEditingCA &amp;&amp; authorizationSession.isAuthorizedNoLogging(authenticationToken, CryptoTokenRules.MODIFY_CRYPTOTOKEN.resource())) {</span>
+            // Add a quick setup option for key generation (not visible when editing an uninitialized CA)
+<span class="nc" id="L1204">            availableCryptoTokens.add(new AbstractMap.SimpleEntry&lt;&gt;(Integer.toString(0), ejbcawebbean.getText(&quot;CRYPTOTOKEN_NEWFROMCA&quot;)));</span>
+        }
+<span class="nc bnc" id="L1206" title="All 4 branches missed.">	    if (caSigingAlgorithm != null &amp;&amp; caSigingAlgorithm.length()&gt;0) {</span>
+<span class="nc" id="L1207">	        final List&lt;CryptoTokenInfo&gt; cryptoTokenInfos = cryptoTokenManagementSession.getCryptoTokenInfos(authenticationToken);</span>
+<span class="nc bnc" id="L1208" title="All 2 branches missed.">            for (final CryptoTokenInfo cryptoTokenInfo : cryptoTokenInfos) {</span>
+                // Make sure we may use it
+<span class="nc bnc" id="L1210" title="All 2 branches missed.">                if (authorizationSession.isAuthorizedNoLogging(authenticationToken, CryptoTokenRules.USE.resource() + '/' + cryptoTokenInfo.getCryptoTokenId())</span>
+<span class="nc bnc" id="L1211" title="All 2 branches missed.">                        &amp;&amp; cryptoTokenInfo.isActive()) {</span>
+<span class="nc" id="L1212">	                final int cryptoTokenId = cryptoTokenInfo.getCryptoTokenId();</span>
+	                try {
+    	                // Fetch a list of all keys and their specs
+<span class="nc" id="L1215">    	                final List&lt;KeyPairInfo&gt; cryptoTokenKeyPairInfos = cryptoTokenManagementSession.getKeyPairInfos(authenticationToken, cryptoTokenId);</span>
+    	                // Only allow tokens with at least one keypair
+<span class="nc bnc" id="L1217" title="All 2 branches missed.">    	                if (cryptoTokenKeyPairInfos.size()&gt;0) {</span>
+<span class="nc bnc" id="L1218" title="All 2 branches missed.">    	                    for (final KeyPairInfo cryptoTokenKeyPairInfo : cryptoTokenKeyPairInfos) {</span>
+<span class="nc" id="L1219">    	                        String requiredKeyAlgorithm = AlgorithmTools.getKeyAlgorithmFromSigAlg(caSigingAlgorithm);</span>
+<span class="nc bnc" id="L1220" title="All 2 branches missed.">    	                        if (requiredKeyAlgorithm.equals(cryptoTokenKeyPairInfo.getKeyAlgorithm())) {</span>
+    	                            // We have at least on key in this token with the right key algorithm mathing the CA's singing algorithm, so add the token!
+<span class="nc" id="L1222">    	                            availableCryptoTokens.add(new AbstractMap.SimpleEntry&lt;&gt;(Integer.toString(cryptoTokenId), cryptoTokenInfo.getName()));</span>
+<span class="nc" id="L1223">    	                            break; // This token is fine, proceed with next token</span>
+    	                        }
+<span class="nc" id="L1225">    	                    }</span>
+    	                }
+<span class="nc" id="L1227">	                } catch (CryptoTokenOfflineException ctoe) {</span>
+	                   // The CryptoToken might have timed out
+<span class="nc" id="L1229">	                }</span>
+	            }
+<span class="nc" id="L1231">	        }</span>
+	    }
+<span class="nc" id="L1233">	    return availableCryptoTokens;</span>
+	}
+	
+	public List&lt;Entry&lt;String, String&gt;&gt; getFailedCryptoTokens(final String caSigingAlgorithm) throws AuthorizationDeniedException {
+<span class="nc" id="L1237">        final List&lt;Entry&lt;String, String&gt;&gt; failedCryptoTokens = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L1238" title="All 4 branches missed.">        if (caSigingAlgorithm != null &amp;&amp; caSigingAlgorithm.length()&gt;0) {</span>
+<span class="nc" id="L1239">            final List&lt;CryptoTokenInfo&gt; cryptoTokenInfos = cryptoTokenManagementSession.getCryptoTokenInfos(authenticationToken);</span>
+<span class="nc bnc" id="L1240" title="All 2 branches missed.">            for (final CryptoTokenInfo cryptoTokenInfo : cryptoTokenInfos) {</span>
+                // Make sure we may use it
+<span class="nc bnc" id="L1242" title="All 2 branches missed.">                if (authorizationSession.isAuthorizedNoLogging(authenticationToken, CryptoTokenRules.USE.resource() + '/' + cryptoTokenInfo.getCryptoTokenId())</span>
+<span class="nc bnc" id="L1243" title="All 2 branches missed.">                        &amp;&amp; cryptoTokenInfo.isActive()) {</span>
+<span class="nc" id="L1244">                    final int cryptoTokenId = cryptoTokenInfo.getCryptoTokenId();</span>
+                    try {
+                        // Try to access to keys
+<span class="nc" id="L1247">                        cryptoTokenManagementSession.getKeyPairInfos(authenticationToken, cryptoTokenId);</span>
+<span class="nc" id="L1248">                    } catch (CryptoTokenOfflineException ctoe) {</span>
+<span class="nc" id="L1249">                       failedCryptoTokens.add(new AbstractMap.SimpleEntry&lt;&gt;(Integer.toString(cryptoTokenId), cryptoTokenInfo.getName()));</span>
+<span class="nc" id="L1250">                    }</span>
+                }
+<span class="nc" id="L1252">            }</span>
+        }
+<span class="nc" id="L1254">        return failedCryptoTokens;</span>
+    }
+
+    /** @param cryptoTokenId Token IF
+     * @param caSigingAlgorithm Algorithm
+     * @return a list of key pair aliases that can be used for either signing or encryption under the supplied CA signing algorithm 
+     * @throws CryptoTokenOfflineException Fail 
+     * @throws AuthorizationDeniedException Fail */
+    public List&lt;String&gt; getAvailableCryptoTokenMixedAliases(int cryptoTokenId, final String caSigingAlgorithm) throws CryptoTokenOfflineException, AuthorizationDeniedException {
+<span class="nc" id="L1263">        final List&lt;String&gt; aliases = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L1264">        aliases.addAll(getAvailableCryptoTokenAliases(cryptoTokenId, caSigingAlgorithm));</span>
+<span class="nc" id="L1265">        final List&lt;String&gt; encAliases = getAvailableCryptoTokenEncryptionAliases(cryptoTokenId, caSigingAlgorithm);</span>
+<span class="nc" id="L1266">        aliases.removeAll(encAliases);  // Avoid duplicates</span>
+<span class="nc" id="L1267">        aliases.addAll(encAliases);</span>
+<span class="nc" id="L1268">        return aliases;</span>
+    }
+
+    /** @param cryptoTokenId Token ID
+     * @param caSigingAlgorithm Algorithm
+     * @return a list of key pair aliases that can be used for signing using the supplied CA signing algorithm 
+     * @throws CryptoTokenOfflineException Fail 
+     * @throws AuthorizationDeniedException Fail */
+	public List&lt;String&gt; getAvailableCryptoTokenAliases(int cryptoTokenId, final String caSigingAlgorithm) throws CryptoTokenOfflineException, AuthorizationDeniedException {
+<span class="nc" id="L1277">	    final List&lt;String&gt; aliases = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L1278" title="All 2 branches missed.">	    if (cryptoTokenManagementSession.getCryptoTokenInfo(cryptoTokenId) == null) {</span>
+<span class="nc" id="L1279">	       log.debug(&quot;CryptoToken didn't exist when trying to get aliases&quot;);</span>
+	    } else {
+<span class="nc" id="L1281">            final List&lt;KeyPairInfo&gt; cryptoTokenKeyPairInfos = cryptoTokenManagementSession.getKeyPairInfos(authenticationToken, cryptoTokenId);</span>
+<span class="nc bnc" id="L1282" title="All 2 branches missed.">            for (final KeyPairInfo cryptoTokenKeyPairInfo : cryptoTokenKeyPairInfos) {</span>
+<span class="nc bnc" id="L1283" title="All 2 branches missed.">                if (AlgorithmTools.getKeyAlgorithmFromSigAlg(caSigingAlgorithm).equals(cryptoTokenKeyPairInfo.getKeyAlgorithm())) {</span>
+<span class="nc" id="L1284">                    aliases.add(cryptoTokenKeyPairInfo.getAlias());</span>
+                }
+<span class="nc" id="L1286">            }</span>
+	    }
+<span class="nc" id="L1288">        return aliases;</span>
+	}
+
+    /** @param cryptoTokenId Token ID
+     * @param caSigingAlgorithm Algorithm
+     * @return a list of key pair aliases that can be used for encryption using the supplied CA signing algorithm to derive encryption algo. 
+     * @throws CryptoTokenOfflineException Fail 
+     * @throws AuthorizationDeniedException Fail */
+    public List&lt;String&gt; getAvailableCryptoTokenEncryptionAliases(int cryptoTokenId, final String caSigingAlgorithm) throws CryptoTokenOfflineException, AuthorizationDeniedException {
+<span class="nc" id="L1297">        final List&lt;String&gt; aliases = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L1298" title="All 2 branches missed.">        if (cryptoTokenManagementSession.getCryptoTokenInfo(cryptoTokenId) == null) {</span>
+<span class="nc" id="L1299">            log.debug(&quot;CryptoToken didn't exist when trying to get aliases&quot;);</span>
+        } else {
+<span class="nc" id="L1301">            final List&lt;KeyPairInfo&gt; cryptoTokenKeyPairInfos = cryptoTokenManagementSession.getKeyPairInfos(authenticationToken, cryptoTokenId);</span>
+<span class="nc bnc" id="L1302" title="All 2 branches missed.">            for (final KeyPairInfo cryptoTokenKeyPairInfo : cryptoTokenKeyPairInfos) {</span>
+<span class="nc bnc" id="L1303" title="All 2 branches missed.">                if (AlgorithmTools.getKeyAlgorithmFromSigAlg(AlgorithmTools.getEncSigAlgFromSigAlg(caSigingAlgorithm)).equals(cryptoTokenKeyPairInfo.getKeyAlgorithm())) {</span>
+<span class="nc" id="L1304">                    aliases.add(cryptoTokenKeyPairInfo.getAlias());</span>
+                }
+<span class="nc" id="L1306">            }</span>
+        }
+<span class="nc" id="L1308">        return aliases;</span>
+    }
+    
+	public boolean isCryptoTokenActive(final int cryptoTokenId) throws AuthorizationDeniedException {
+<span class="nc" id="L1312">	    return cryptoTokenManagementSession.isCryptoTokenStatusActive(authenticationToken, cryptoTokenId);</span>
+	}
+	
+    public boolean isCryptoTokenPresent(final int cryptoTokenId) throws AuthorizationDeniedException {
+<span class="nc" id="L1316">        return cryptoTokenManagementSession.isCryptoTokenPresent(authenticationToken, cryptoTokenId);</span>
+    }
+    
+	public String getCryptoTokenName(final int cryptoTokenId) throws AuthorizationDeniedException {
+<span class="nc" id="L1320">	    final CryptoTokenInfo cryptoTokenInfo = cryptoTokenManagementSession.getCryptoTokenInfo(authenticationToken, cryptoTokenId);</span>
+<span class="nc bnc" id="L1321" title="All 2 branches missed.">	    if (cryptoTokenInfo == null) {</span>
+<span class="nc" id="L1322">	        return &quot;CryptoToken &quot; + cryptoTokenId + &quot; not found.&quot;;</span>
+	    }
+<span class="nc" id="L1324">	    return cryptoTokenInfo.getName();</span>
+	}
+	
+	public boolean isAuthorizedToCa(int caid) {
+<span class="nc" id="L1328">	    return casession.authorizedToCANoLogging(authenticationToken, caid);</span>
+	}
+	
+	/**
+	 * 
+	 * @return true if admin has general read rights to CAs, but no edit rights. 
+	 */
+    public boolean hasEditRight() {
+<span class="nc" id="L1336">        return authorizationSession.isAuthorizedNoLogging(authenticationToken, StandardRules.CAEDIT.resource());</span>
+    }
+    
+    public boolean hasCreateRight() {
+<span class="nc" id="L1340">        return authorizationSession.isAuthorizedNoLogging(authenticationToken, StandardRules.CAADD.resource());</span>
+    }
+	
+	public boolean isCaExportable(CAInfo caInfo) throws AuthorizationDeniedException {
+<span class="nc" id="L1344">	    boolean ret = false;</span>
+<span class="nc" id="L1345">	    final int caInfoStatus = caInfo.getStatus();</span>
+<span class="nc bnc" id="L1346" title="All 4 branches missed.">	    if (caInfoStatus != CAConstants.CA_EXTERNAL &amp;&amp; caInfoStatus != CAConstants.CA_WAITING_CERTIFICATE_RESPONSE) {</span>
+<span class="nc" id="L1347">	        final int cryptoTokenId = caInfo.getCAToken().getCryptoTokenId();</span>
+<span class="nc" id="L1348">	        final CryptoTokenInfo cryptoTokenInfo = cryptoTokenManagementSession.getCryptoTokenInfo(authenticationToken, cryptoTokenId);</span>
+<span class="nc bnc" id="L1349" title="All 2 branches missed.">	        if (cryptoTokenInfo!=null) {</span>
+<span class="nc bnc" id="L1350" title="All 4 branches missed.">	            ret = (SoftCryptoToken.class.getSimpleName().equals(cryptoTokenInfo.getType())) &amp;&amp; cryptoTokenInfo.isAllowExportPrivateKey();</span>
+	        }
+	    }
+<span class="nc" id="L1353">	    return ret;</span>
+	}
+
+	public List&lt;Entry&lt;String,String&gt;&gt; getAvailableCaCertificateProfiles() {
+<span class="nc" id="L1357">	    final int[] types = { CertificateConstants.CERTTYPE_ROOTCA, CertificateConstants.CERTTYPE_SUBCA };</span>
+<span class="nc" id="L1358">        final Map&lt;Integer, String&gt; idToNameMap = certificateProfileSession.getCertificateProfileIdToNameMap();</span>
+<span class="nc" id="L1359">        final List&lt;Entry&lt;String,String&gt;&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L1360" title="All 2 branches missed.">	    for (int type : types) {</span>
+<span class="nc" id="L1361">	        final Collection&lt;Integer&gt; ids = certificateProfileSession.getAuthorizedCertificateProfileIds(authenticationToken, type);</span>
+<span class="nc bnc" id="L1362" title="All 2 branches missed.">	        for (final Integer id : ids) {</span>
+<span class="nc bnc" id="L1363" title="All 2 branches missed.">	            ret.add(new SimpleEntry&lt;&gt;(id.toString(), (type==CertificateConstants.CERTTYPE_ROOTCA ? &quot;(RootCAs) &quot; : &quot;(SubCAs) &quot;) + idToNameMap.get(id)));</span>
+<span class="nc" id="L1364">	        }</span>
+	    }
+<span class="nc" id="L1366">        return ret;</span>
+	}
+
+    public List&lt;Entry&lt;String,String&gt;&gt; getAvailableKeySpecs() {
+<span class="nc" id="L1370">        final List&lt;Entry&lt;String,String&gt;&gt; ret = new ArrayList&lt;&gt;();</span>
+        // Legacy idea: Never use larger keys than 2048 bit RSA for CMS signing
+        // Reference: RFC 6485 - The Profile for Algorithms and Key Sizes for Use in the Resource PKI. [§ 3, and 5]
+<span class="nc" id="L1373">        final int[] SIZES_RSA = {1024, 1536, 2048, 3072, 4096/*, 6144, 8192*/};</span>
+<span class="nc" id="L1374">        final int[] SIZES_DSA = {1024};</span>
+<span class="nc bnc" id="L1375" title="All 2 branches missed.">        for (int size : SIZES_RSA) {</span>
+<span class="nc" id="L1376">            ret.add(new SimpleEntry&lt;&gt;(String.valueOf(size), &quot;RSA &quot;+size));</span>
+        }
+<span class="nc bnc" id="L1378" title="All 2 branches missed.">        for (int size : SIZES_DSA) {</span>
+<span class="nc" id="L1379">            ret.add(new SimpleEntry&lt;&gt;(&quot;DSA&quot;+size, &quot;DSA &quot;+size));</span>
+        }
+        @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L1382">        final Enumeration&lt;String&gt; ecNamedCurves = ECNamedCurveTable.getNames();</span>
+<span class="nc bnc" id="L1383" title="All 2 branches missed.">        while (ecNamedCurves.hasMoreElements()) {</span>
+<span class="nc" id="L1384">            final String ecNamedCurve = ecNamedCurves.nextElement();</span>
+<span class="nc" id="L1385">            ret.add(new SimpleEntry&lt;&gt;(ecNamedCurve, &quot;ECDSA &quot;+ecNamedCurve));</span>
+<span class="nc" id="L1386">        }</span>
+        
+<span class="nc bnc" id="L1388" title="All 2 branches missed.">        for (String alg : CesecoreConfiguration.getExtraAlgs()) {</span>
+<span class="nc bnc" id="L1389" title="All 2 branches missed.">            for (String subalg : CesecoreConfiguration.getExtraAlgSubAlgs(alg)) {</span>
+<span class="nc" id="L1390">                final String title = CesecoreConfiguration.getExtraAlgSubAlgTitle(alg, subalg);</span>
+<span class="nc" id="L1391">                final String name = CesecoreConfiguration.getExtraAlgSubAlgName(alg, subalg);</span>
+<span class="nc" id="L1392">                ret.add(new SimpleEntry&lt;&gt;(name, title));</span>
+<span class="nc" id="L1393">            }</span>
+<span class="nc" id="L1394">        }</span>
+
+<span class="nc" id="L1396">        return ret;</span>
+    }
+    
+    public boolean createAuthCertSignRequest(int caid, byte[] request) throws CADoesntExistsException, AuthorizationDeniedException, CryptoTokenOfflineException {
+<span class="nc bnc" id="L1400" title="All 2 branches missed.">        if (request != null) {</span>
+<span class="nc" id="L1401">            byte[] signedreq = cadatahandler.createAuthCertSignRequest(caid, request);</span>
+<span class="nc" id="L1402">            saveRequestData(signedreq);</span>
+<span class="nc" id="L1403">            return true;</span>
+        }
+<span class="nc" id="L1405">        return false;</span>
+    }
+    
+    public byte[] parseRequestParameters(HttpServletRequest request, Map&lt;String, String&gt; requestMap) throws IOException {
+<span class="nc" id="L1409">        byte[] fileBuffer = null;</span>
+        try {
+<span class="nc bnc" id="L1411" title="All 2 branches missed.">            if (ServletFileUpload.isMultipartContent(request)) {</span>
+<span class="nc" id="L1412">                final DiskFileItemFactory diskFileItemFactory = new DiskFileItemFactory();</span>
+<span class="nc" id="L1413">                diskFileItemFactory.setSizeThreshold(59999);</span>
+<span class="nc" id="L1414">                ServletFileUpload upload = new ServletFileUpload(diskFileItemFactory);</span>
+<span class="nc" id="L1415">                upload.setSizeMax(60000);                   </span>
+<span class="nc" id="L1416">                final List&lt;FileItem&gt; items = upload.parseRequest(request);     </span>
+<span class="nc bnc" id="L1417" title="All 2 branches missed.">                for (final FileItem item : items) {</span>
+<span class="nc bnc" id="L1418" title="All 2 branches missed.">                    if (item.isFormField()) {</span>
+<span class="nc" id="L1419">                        final String fieldName = item.getFieldName();</span>
+<span class="nc" id="L1420">                        final String currentValue = requestMap.get(fieldName);</span>
+<span class="nc bnc" id="L1421" title="All 2 branches missed.">                        if (currentValue != null) {</span>
+<span class="nc" id="L1422">                            requestMap.put(fieldName, currentValue + &quot;;&quot; + item.getString(&quot;UTF8&quot;));</span>
+                        } else {
+<span class="nc" id="L1424">                            requestMap.put(fieldName, item.getString(&quot;UTF8&quot;));</span>
+                        }
+<span class="nc" id="L1426">                    } else {</span>
+                        //final String itemName = item.getName();
+<span class="nc" id="L1428">                        final InputStream file = item.getInputStream();</span>
+<span class="nc" id="L1429">                        byte[] fileBufferTmp = FileTools.readInputStreamtoBuffer(file);</span>
+<span class="nc bnc" id="L1430" title="All 4 branches missed.">                        if (fileBuffer == null &amp;&amp; fileBufferTmp.length &gt; 0) {</span>
+<span class="nc" id="L1431">                            fileBuffer = fileBufferTmp;</span>
+                        }
+                    }
+<span class="nc" id="L1434">                } </span>
+<span class="nc" id="L1435">            } else {</span>
+<span class="nc" id="L1436">                final Set&lt;String&gt; keySet = request.getParameterMap().keySet();</span>
+<span class="nc bnc" id="L1437" title="All 2 branches missed.">                for (final String key : keySet) {</span>
+<span class="nc" id="L1438">                    requestMap.put(key, request.getParameter(key));</span>
+<span class="nc" id="L1439">                }</span>
+            }
+<span class="nc" id="L1441">        } catch (UnsupportedEncodingException e) {</span>
+<span class="nc" id="L1442">            throw new RuntimeException(e);</span>
+<span class="nc" id="L1443">        } catch (FileUploadException e) {</span>
+<span class="nc" id="L1444">            throw new IOException(e);</span>
+<span class="nc" id="L1445">        }</span>
+<span class="nc" id="L1446">        return fileBuffer;</span>
+    }
+    
+    /** Returns true if any CVC CA implementation is available, false otherwise.
+     * Used to hide/give warning when no CVC CA implementation is available.
+     * @return success
+     */
+    public boolean isCVCAvailable() {
+<span class="nc" id="L1454">        boolean ret = false;</span>
+<span class="nc" id="L1455">        ServiceLoader&lt;? extends CvcPlugin&gt; loader = CvcCA.getImplementationClasses();</span>
+<span class="nc bnc" id="L1456" title="All 2 branches missed.">        if (loader.iterator().hasNext()) {</span>
+<span class="nc" id="L1457">            ret = true;</span>
+        }
+<span class="nc" id="L1459">        return ret;</span>
+    }
+    /** Returns true if a unique (issuerDN,serialNumber) is present in the database. 
+     * If this is available, you can not use CVC CAs. Returns false if a unique index is 
+     * Used to hide/give warning when no CVC CA implementation is available.
+     * @return bool
+     */
+    public boolean isUniqueIssuerDNSerialNoIndexPresent() {
+<span class="nc" id="L1467">        return certificatesession.isUniqueCertificateSerialNumberIndex();</span>
+    }
+    
+    /** Returns the &quot;not before&quot; date of the next certificate during a rollover period, or null if no next certificate exists.
+     * @param caid ID
+     * @return Date
+     * @throws CADoesntExistsException If the CA doesn't exist.
+     */
+    public Date getRolloverNotBefore(int caid) throws CADoesntExistsException {
+<span class="nc" id="L1476">        final Certificate nextCert = casession.getFutureRolloverCertificate(caid);</span>
+<span class="nc bnc" id="L1477" title="All 2 branches missed.">        if (nextCert != null) {</span>
+<span class="nc" id="L1478">            return CertTools.getNotBefore(nextCert);</span>
+        } else {
+<span class="nc" id="L1480">            return null;</span>
+        }
+    }
+    
+    /** Returns the current CA validity &quot;not after&quot; date. 
+     * @param caid ID
+     * @return Date
+     * @throws AuthorizationDeniedException Fail 
+     * @throws CADoesntExistsException Fail */
+    public Date getRolloverNotAfter(int caid) throws CADoesntExistsException, AuthorizationDeniedException {
+<span class="nc" id="L1490">        final Collection&lt;Certificate&gt; chain = casession.getCAInfo(authenticationToken, caid).getCertificateChain();</span>
+<span class="nc" id="L1491">        return CertTools.getNotAfter(chain.iterator().next());</span>
+    }
+    
+    
+    //-----------------------------------------
+    //               Import CRL
+    //-----------------------------------------
+    
+    public String importCRL(final String caname, final byte[] crlBytes) {
+        
+<span class="nc bnc" id="L1501" title="All 4 branches missed.">        if(crlBytes==null || crlBytes.length==0) {</span>
+<span class="nc bnc" id="L1502" title="All 2 branches missed.">            if(log.isDebugEnabled()) {</span>
+<span class="nc" id="L1503">                log.debug(&quot;No CRL file to import&quot;);</span>
+            }
+<span class="nc" id="L1505">            return &quot;&quot;;</span>
+        }
+        
+<span class="nc" id="L1508">        String retMsg = &quot;&quot;;</span>
+        try {
+<span class="nc" id="L1510">            final CAInfo cainfo = getCAInfo(caname).getCAInfo();</span>
+<span class="nc" id="L1511">            X509CRL x509crl = CertTools.getCRLfromByteArray(crlBytes);</span>
+            
+<span class="nc bnc" id="L1513" title="All 2 branches missed.">            if(StringUtils.equals(cainfo.getSubjectDN(), CertTools.getIssuerDN(x509crl))) {</span>
+<span class="nc" id="L1514">                ejbLocalHelper.getImportCrlSession().importCrl(authenticationToken, cainfo, crlBytes);</span>
+<span class="nc" id="L1515">                retMsg = &quot;CRL imported successfully or a newer version is already in the database&quot;;</span>
+            } else {
+<span class="nc" id="L1517">                retMsg = &quot;Error: The CRL in the file in not issued by &quot; + caname;</span>
+            }
+<span class="nc" id="L1519">        } catch (AuthorizationDeniedException | CRLException | CrlImportException | CrlStoreException e) {</span>
+<span class="nc" id="L1520">            retMsg = &quot;Error: &quot; + e.getLocalizedMessage();</span>
+<span class="nc" id="L1521">        }</span>
+<span class="nc" id="L1522">        return retMsg;</span>
+    }
+
+    /**
+     * Checks if keys in current crypto token are already in use by another CA or not
+     * This method used while creating a new CA to warn users about keys which are already in use 
+     * by other CAs.
+     * 
+     * @param CAIds IDs
+     * @param alias Alias
+     * @param currentCryptoTokenId Yoken
+     * @return boolean true if crypto key is used by another CA or false otherwise.
+     * @throws IllegalStateException Fail
+     */
+    public boolean isKeyInUse(final Collection&lt;Integer&gt; CAIds, final String alias, final int currentCryptoTokenId) {
+<span class="nc bnc" id="L1537" title="All 2 branches missed.">        for (final int caId : CAIds) {</span>
+<span class="nc" id="L1538">            final CAInfo caInfo = casession.getCAInfoInternal(caId);</span>
+<span class="nc bnc" id="L1539" title="All 4 branches missed.">            if (currentCryptoTokenId == caInfo.getCAToken().getCryptoTokenId() &amp;&amp; caInfo.getCAToken().getProperties().contains(alias))</span>
+<span class="nc" id="L1540">                return true;</span>
+<span class="nc" id="L1541">        }</span>
+<span class="nc" id="L1542">        return false;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

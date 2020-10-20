@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>StandardFileHardTokenImporter.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.hardtoken.importer</a> &gt; <span class="el_source">StandardFileHardTokenImporter.java</span></div><h1>StandardFileHardTokenImporter.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.cli.hardtoken.importer;
+
+import java.io.IOException;
+import java.util.Date;
+import java.util.Properties;
+
+import org.ejbca.core.model.SecConst;
+import org.ejbca.core.model.hardtoken.HardTokenInformation;
+import org.ejbca.core.model.hardtoken.types.EnhancedEIDHardToken;
+import org.ejbca.core.model.hardtoken.types.HardToken;
+import org.ejbca.core.model.hardtoken.types.SwedishEIDHardToken;
+
+/**
+ * The standard file hard token importer, reading the a textfile line by line.
+ * 
+ * The Importer have the following properties:
+ * separator   : indicates which column separator that should be used.
+ * 
+ * columnorder : A list of columnnames separated by ',' of how the columns
+ * are ordered. Valid values are 'tokensn', 'pin1', 'pin2', 'bothpin', 'puk1', 'puk2', 'bothpuk'
+ * Example the line: 'columnorder=tokensn, pin1, pin2, bothpuk' will generate a
+ * hardtokendata with the tokensn from first column, basicpin from the secondcolumn, 
+ * signaturepin from third and finally both puk codes from the forth column.
+ * 
+ * tokentype : either 'enhancedeid' or 'swedisheid'. And indicates what type of token that will be created.
+ * 
+ * import.properties:
+ * &lt;pre&gt;
+ * importer.classpath=org.ejbca.ui.cli.hardtoken.importer.StandardFileHardTokenImporter
+ * significantissuerdn=CN=LunaCA
+ * file=hardtoken.txt
+ * separator=,
+ * columnorder=tokensn, pin1, pin2, bothpuk
+ * tokentype=swedisheid
+ * &lt;/pre&gt;
+ * hardtoken.txt
+ * &lt;pre&gt;
+ * 123456789,1234,5678,123456
+ * 234567890,4321,9876,987654
+ * &lt;/pre&gt;
+ * 
+ * @author Philip Vendil 2007 apr 23
+ *
+ * @version $Id: StandardFileHardTokenImporter.java 19902 2014-09-30 14:32:24Z anatom $
+ */
+
+<span class="nc" id="L60">public class StandardFileHardTokenImporter extends FileReadHardTokenImporter {</span>
+
+	public static final String PROPERTY_SEPARATOR   = &quot;separator&quot;;
+	public static final String PROPERTY_COLUMNORDER = &quot;columnorder&quot;;
+	public static final String PROPERTY_TOKENTYPE   = &quot;tokentype&quot;;
+	
+	private static final int COLUMN_TOKENSN = 1;
+	private static final int COLUMN_PIN1    = 2;
+	private static final int COLUMN_PIN2    = 3;
+	private static final int COLUMN_BOTHPIN = 4;
+	private static final int COLUMN_PUK1    = 5;
+	private static final int COLUMN_PUK2    = 6;
+	private static final int COLUMN_BOTHPUK = 7;
+	
+	private String columnSeparator;
+<span class="nc" id="L75">	private int[] columns = null;</span>
+<span class="nc" id="L76">	private String hardTokenType = null;</span>
+	
+	public void startImport(Properties props) throws IOException {		
+<span class="nc" id="L79">		super.startImport(props);		</span>
+		
+<span class="nc" id="L81">		getColumns(props);</span>
+		
+<span class="nc bnc" id="L83" title="All 2 branches missed.">		if(props.getProperty(PROPERTY_SEPARATOR) == null){</span>
+<span class="nc" id="L84">			throw new IOException(&quot;Error property &quot; + PROPERTY_SEPARATOR + &quot; not set.&quot;);</span>
+		}
+<span class="nc" id="L86">		columnSeparator = props.getProperty(PROPERTY_SEPARATOR);</span>
+		
+<span class="nc bnc" id="L88" title="All 2 branches missed.">		if(props.getProperty(PROPERTY_TOKENTYPE) == null){</span>
+<span class="nc" id="L89">			throw new IOException(&quot;Error property &quot; + PROPERTY_TOKENTYPE + &quot; not set.&quot;);</span>
+		}		
+<span class="nc" id="L91">		hardTokenType = props.getProperty(PROPERTY_TOKENTYPE);</span>
+<span class="nc bnc" id="L92" title="All 4 branches missed.">		if(!hardTokenType.equalsIgnoreCase(&quot;enhancedeid&quot;) &amp;&amp; !hardTokenType.equalsIgnoreCase(&quot;swedisheid&quot;)){</span>
+<span class="nc" id="L93">			throw new IOException(&quot;Error property &quot; + PROPERTY_TOKENTYPE + &quot; must have either the value 'enhancedeid' or 'swedisheid'.&quot;);</span>
+		}
+<span class="nc" id="L95">	}</span>
+
+	private void getColumns(Properties props) throws IOException{
+<span class="nc bnc" id="L98" title="All 2 branches missed.">		if(props.getProperty(&quot;columnorder&quot;) == null){</span>
+<span class="nc" id="L99">			throw new IOException(&quot;Error the required property 'columnorder' isn't set.&quot;);</span>
+		}
+		
+<span class="nc" id="L102">		String[] c = props.getProperty(PROPERTY_COLUMNORDER).split(&quot;,&quot;);</span>
+<span class="nc" id="L103">		columns = new int[c.length];</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">		for(int i=0;i&lt;c.length;i++){</span>
+<span class="nc" id="L105">			columns[i] = getColumn(c[i].trim());</span>
+		}
+		
+<span class="nc" id="L108">	}</span>
+
+	private int getColumn(String column) throws IOException {
+<span class="nc bnc" id="L111" title="All 2 branches missed.">		if(column.equalsIgnoreCase(&quot;tokensn&quot;)){</span>
+<span class="nc" id="L112">			return COLUMN_TOKENSN;</span>
+		}
+<span class="nc bnc" id="L114" title="All 2 branches missed.">		if(column.equalsIgnoreCase(&quot;pin1&quot;)){</span>
+<span class="nc" id="L115">			return COLUMN_PIN1;</span>
+		}
+<span class="nc bnc" id="L117" title="All 2 branches missed.">		if(column.equalsIgnoreCase(&quot;pin2&quot;)){</span>
+<span class="nc" id="L118">			return COLUMN_PIN2;</span>
+		}
+<span class="nc bnc" id="L120" title="All 2 branches missed.">		if(column.equalsIgnoreCase(&quot;bothpin&quot;)){</span>
+<span class="nc" id="L121">			return COLUMN_BOTHPIN;</span>
+		}
+<span class="nc bnc" id="L123" title="All 2 branches missed.">		if(column.equalsIgnoreCase(&quot;puk1&quot;)){</span>
+<span class="nc" id="L124">			return COLUMN_PUK1;</span>
+		}
+<span class="nc bnc" id="L126" title="All 2 branches missed.">		if(column.equalsIgnoreCase(&quot;puk2&quot;)){</span>
+<span class="nc" id="L127">			return COLUMN_PUK2;</span>
+		}
+<span class="nc bnc" id="L129" title="All 2 branches missed.">		if(column.equalsIgnoreCase(&quot;bothpuk&quot;)){</span>
+<span class="nc" id="L130">			return COLUMN_BOTHPUK;</span>
+		}
+<span class="nc" id="L132">		throw new IOException(&quot;Error illegal column &quot; + column + &quot; in the &quot; + PROPERTY_COLUMNORDER + &quot; property.&quot;);</span>
+	}
+
+	/**
+	 * @see org.ejbca.ui.cli.hardtoken.importer.FileReadHardTokenImporter#readHardTokenData()
+	 */
+	public HardTokenInformation readHardTokenData() throws IOException {
+<span class="nc" id="L139">		HardTokenInformation retval = null;</span>
+		
+		
+<span class="nc" id="L142">		String line = bufferedReader.readLine();</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">		if(line != null){</span>
+<span class="nc" id="L144">			String basicPIN = &quot;&quot;;</span>
+<span class="nc" id="L145">			String signaturePIN = &quot;&quot;;</span>
+<span class="nc" id="L146">			String basicPUK = &quot;&quot;;</span>
+<span class="nc" id="L147">			String signaturePUK = &quot;&quot;;</span>
+<span class="nc" id="L148">			String tokenSN = &quot;&quot;;</span>
+			
+			
+<span class="nc" id="L151">			String[] lineColumns = line.split(columnSeparator);</span>
+<span class="nc bnc" id="L152" title="All 2 branches missed.">			for(int i=0;i &lt; lineColumns.length;i++){</span>
+<span class="nc" id="L153">				lineColumns[i] = lineColumns[i].trim();</span>
+<span class="nc bnc" id="L154" title="All 8 branches missed.">				switch(columns[i]){</span>
+				case COLUMN_TOKENSN :
+<span class="nc" id="L156">					tokenSN = lineColumns[i];</span>
+<span class="nc" id="L157">					break;</span>
+				case COLUMN_PIN1 :
+<span class="nc" id="L159">					basicPIN = lineColumns[i];</span>
+<span class="nc" id="L160">					break;</span>
+				case COLUMN_PIN2 :
+<span class="nc" id="L162">					signaturePIN = lineColumns[i];</span>
+<span class="nc" id="L163">					break;</span>
+				case COLUMN_BOTHPIN :
+<span class="nc" id="L165">					basicPIN = lineColumns[i];</span>
+<span class="nc" id="L166">					signaturePIN = lineColumns[i];</span>
+<span class="nc" id="L167">					break;</span>
+				case COLUMN_PUK1:
+<span class="nc" id="L169">					basicPUK = lineColumns[i];</span>
+<span class="nc" id="L170">					break;</span>
+				case COLUMN_PUK2 :
+<span class="nc" id="L172">					signaturePUK = lineColumns[i];</span>
+<span class="nc" id="L173">					break;		</span>
+				case COLUMN_BOTHPUK :
+<span class="nc" id="L175">					basicPUK = lineColumns[i];</span>
+<span class="nc" id="L176">					signaturePUK = lineColumns[i];</span>
+<span class="nc" id="L177">					break;		</span>
+				default:
+<span class="nc" id="L179">					throw new IOException(&quot;Error reading column + &quot; + i + &quot; of hard token import data.&quot;);</span>
+				}
+			}
+<span class="nc" id="L182">			int tokenType = SecConst.TOKEN_SWEDISHEID;</span>
+<span class="nc bnc" id="L183" title="All 2 branches missed.">			if(hardTokenType.equalsIgnoreCase(&quot;enhancedeid&quot;)){</span>
+<span class="nc" id="L184">				tokenType = SecConst.TOKEN_ENHANCEDEID;				</span>
+			}
+<span class="nc" id="L186">			HardToken ht = getHardTokenType(basicPIN, basicPUK, signaturePIN, signaturePUK);</span>
+<span class="nc" id="L187">			retval = new HardTokenInformation(tokenSN,null,new Date(),new Date(), tokenType,null, ht,null,null);</span>
+		}
+		
+		
+<span class="nc" id="L191">		return retval;</span>
+	}
+	
+	
+	private HardToken getHardTokenType(String basicPIN, String basicPUK, String signaturePIN, String signaturePUK){
+<span class="nc bnc" id="L196" title="All 2 branches missed.">		if(hardTokenType.equalsIgnoreCase(&quot;enhancedeid&quot;)){</span>
+<span class="nc" id="L197">			return new EnhancedEIDHardToken(signaturePIN,signaturePUK,basicPIN,basicPUK,false,0);</span>
+		}
+<span class="nc" id="L199">		return new SwedishEIDHardToken(basicPIN,basicPUK,signaturePIN,signaturePUK,0);</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -9,13 +9,12 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 
 package org.cesecore.certificates.certificate.certextensions.standard;
 
 import java.security.PublicKey;
 import java.util.Date;
-
 import org.apache.log4j.Logger;
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1EncodableVector;
@@ -30,74 +29,90 @@ import org.cesecore.certificates.certificateprofile.CertificateProfile;
 import org.cesecore.certificates.endentity.EndEntityInformation;
 
 /**
- * Class for standard X509 certificate extension. See rfc3280 or later for spec of this extension.
- * 
+ * Class for standard X509 certificate extension. See rfc3280 or later for spec
+ * of this extension.
+ *
  * @version $Id: PrivateKeyUsagePeriod.java 24737 2016-11-15 13:53:25Z anatom $
  */
 <span class="fc" id="L37">public class PrivateKeyUsagePeriod extends StandardCertificateExtension {</span>
+  /** milliseconds. */
+  private static final int MS_PER_S = 1000;
 
-    private static final long serialVersionUID = 1L;
-    /** Logger for this class. */
-<span class="fc" id="L41">    private static final Logger LOG = Logger.getLogger(PrivateKeyUsagePeriod.class);</span>
+  private static final long serialVersionUID = 1L;
+  /** Logger for this class. */
+<span class="fc" id="L43">  private static final Logger LOG =</span>
+<span class="fc" id="L44">      Logger.getLogger(PrivateKeyUsagePeriod.class);</span>
 
-    @Override
-    public void init(CertificateProfile certProf) {
-<span class="fc" id="L45">        super.setOID(Extension.privateKeyUsagePeriod.getId());</span>
-<span class="fc" id="L46">        super.setCriticalFlag(false);</span>
-<span class="fc" id="L47">    }</span>
+  @Override
+  public void init(final CertificateProfile certProf) {
+<span class="fc" id="L48">    super.setOID(Extension.privateKeyUsagePeriod.getId());</span>
+<span class="fc" id="L49">    super.setCriticalFlag(false);</span>
+<span class="fc" id="L50">  }</span>
 
-    @Override
-    public ASN1Encodable getValue(final EndEntityInformation subject, final CA ca, final CertificateProfile certProfile,
-            final PublicKey userPublicKey, final PublicKey caPublicKey, CertificateValidity val) throws 
-            CertificateExtensionException {
-        // Construct the start and end dates of PrivateKeyUsagePeriod
-        // As start date, use the same as the start date of the certificate
-        long start;
-<span class="nc bnc" id="L56" title="All 2 branches missed.">        if (val != null) {</span>
-<span class="nc" id="L57">            start = val.getNotBefore().getTime();</span>
-        } else {
-<span class="nc bnc" id="L59" title="All 2 branches missed.">            if (LOG.isDebugEnabled()) {</span>
-<span class="nc" id="L60">                LOG.debug(&quot;No validity passed in to getValue, using default 'Date().getTime() - CertificateValidity.getValidityOffset()'&quot;);</span>
-            }
-<span class="nc" id="L62">            start = new Date().getTime() - CertificateValidity.getValidityOffset();</span>
-        }
-<span class="nc bnc" id="L64" title="All 2 branches missed.">        if (certProfile.isUsePrivateKeyUsagePeriodNotBefore()) {</span>
-<span class="nc" id="L65">            start += certProfile.getPrivateKeyUsagePeriodStartOffset() * 1000;</span>
-        }
-<span class="nc" id="L67">        Date notBefore = null;</span>
-<span class="nc" id="L68">        Date notAfter = null;</span>
+  @Override
+  public ASN1Encodable getValue(
+      final EndEntityInformation subject,
+      final CA ca,
+      final CertificateProfile certProfile,
+      final PublicKey userPublicKey,
+      final PublicKey caPublicKey,
+      final CertificateValidity val)
+      throws CertificateExtensionException {
+    // Construct the start and end dates of PrivateKeyUsagePeriod
+    // As start date, use the same as the start date of the certificate
+    long start;
+<span class="nc bnc" id="L64" title="All 2 branches missed.">    if (val != null) {</span>
+<span class="nc" id="L65">      start = val.getNotBefore().getTime();</span>
+    } else {
+<span class="nc bnc" id="L67" title="All 2 branches missed.">      if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L68">        LOG.debug(</span>
+            &quot;No validity passed in to getValue, using default&quot;
+                + &quot; 'Date().getTime() -&quot;
+                + &quot; CertificateValidity.getValidityOffset()'&quot;);
+      }
+<span class="nc" id="L73">      start = new Date().getTime() - CertificateValidity.getValidityOffset();</span>
+    }
+<span class="nc bnc" id="L75" title="All 2 branches missed.">    if (certProfile.isUsePrivateKeyUsagePeriodNotBefore()) {</span>
+<span class="nc" id="L76">      start += certProfile.getPrivateKeyUsagePeriodStartOffset() * MS_PER_S;</span>
+    }
+<span class="nc" id="L78">    Date notBefore = null;</span>
+<span class="nc" id="L79">    Date notAfter = null;</span>
 
-<span class="nc bnc" id="L70" title="All 2 branches missed.">        if (certProfile.isUsePrivateKeyUsagePeriodNotBefore()) {</span>
-<span class="nc" id="L71">            notBefore = new Date(start);</span>
-        }
-<span class="nc bnc" id="L73" title="All 2 branches missed.">        if (certProfile.isUsePrivateKeyUsagePeriodNotAfter()) {</span>
-<span class="nc" id="L74">            final long validity = certProfile.getPrivateKeyUsagePeriodLength(); // seconds</span>
-<span class="nc" id="L75">            notAfter = new Date(start + validity * 1000);</span>
-        }
-<span class="nc bnc" id="L77" title="All 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
-<span class="nc" id="L78">            LOG.debug(&quot;PrivateKeyUsagePeriod.notBefore: &quot; + notBefore);</span>
-<span class="nc" id="L79">            LOG.debug(&quot;PrivateKeyUsagePeriod.notAfter: &quot; + notAfter);</span>
-        }
-
-<span class="nc" id="L82">        return privateKeyUsagePeriod(notBefore, notAfter);</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">    if (certProfile.isUsePrivateKeyUsagePeriodNotBefore()) {</span>
+<span class="nc" id="L82">      notBefore = new Date(start);</span>
+    }
+<span class="nc bnc" id="L84" title="All 2 branches missed.">    if (certProfile.isUsePrivateKeyUsagePeriodNotAfter()) {</span>
+<span class="nc" id="L85">      final long validity =</span>
+<span class="nc" id="L86">          certProfile.getPrivateKeyUsagePeriodLength(); // seconds</span>
+<span class="nc" id="L87">      notAfter = new Date(start + validity * MS_PER_S);</span>
+    }
+<span class="nc bnc" id="L89" title="All 2 branches missed.">    if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L90">      LOG.debug(&quot;PrivateKeyUsagePeriod.notBefore: &quot; + notBefore);</span>
+<span class="nc" id="L91">      LOG.debug(&quot;PrivateKeyUsagePeriod.notAfter: &quot; + notAfter);</span>
     }
 
-    private static DERSequence privateKeyUsagePeriod(final Date notBefore, final Date notAfter) throws CertificateExtensionException {
-        // Create the extension.
-        // PrivateKeyUsagePeriod ::= SEQUENCE {
-        // notBefore [0] GeneralizedTime OPTIONAL,
-        // notAfter [1] GeneralizedTime OPTIONAL }
-<span class="nc" id="L90">        final ASN1EncodableVector v = new ASN1EncodableVector();</span>
-<span class="nc bnc" id="L91" title="All 2 branches missed.">        if (notBefore != null) {</span>
-<span class="nc" id="L92">            v.add(new DERTaggedObject(false, 0, new DERGeneralizedTime(notBefore)));</span>
-        }
-<span class="nc bnc" id="L94" title="All 2 branches missed.">        if (notAfter != null) {</span>
-<span class="nc" id="L95">            v.add(new DERTaggedObject(false, 1, new DERGeneralizedTime(notAfter)));</span>
-        }
-<span class="nc bnc" id="L97" title="All 2 branches missed.">        if (v.size() == 0) {</span>
-<span class="nc" id="L98">            throw new CertificateExtensionException(&quot;At least one of notBefore and notAfter must be specified!&quot;);</span>
-        }
-<span class="nc" id="L100">        return new DERSequence(v);</span>
+<span class="nc" id="L94">    return privateKeyUsagePeriod(notBefore, notAfter);</span>
+  }
+
+  private static DERSequence privateKeyUsagePeriod(
+      final Date notBefore, final Date notAfter)
+      throws CertificateExtensionException {
+    // Create the extension.
+    // PrivateKeyUsagePeriod ::= SEQUENCE {
+    // notBefore [0] GeneralizedTime OPTIONAL,
+    // notAfter [1] GeneralizedTime OPTIONAL }
+<span class="nc" id="L104">    final ASN1EncodableVector v = new ASN1EncodableVector();</span>
+<span class="nc bnc" id="L105" title="All 2 branches missed.">    if (notBefore != null) {</span>
+<span class="nc" id="L106">      v.add(new DERTaggedObject(false, 0, new DERGeneralizedTime(notBefore)));</span>
     }
+<span class="nc bnc" id="L108" title="All 2 branches missed.">    if (notAfter != null) {</span>
+<span class="nc" id="L109">      v.add(new DERTaggedObject(false, 1, new DERGeneralizedTime(notAfter)));</span>
+    }
+<span class="nc bnc" id="L111" title="All 2 branches missed.">    if (v.size() == 0) {</span>
+<span class="nc" id="L112">      throw new CertificateExtensionException(</span>
+          &quot;At least one of notBefore and notAfter must be specified!&quot;);
+    }
+<span class="nc" id="L115">    return new DERSequence(v);</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

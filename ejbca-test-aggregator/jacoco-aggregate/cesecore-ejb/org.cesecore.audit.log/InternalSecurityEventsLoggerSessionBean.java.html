@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>InternalSecurityEventsLoggerSessionBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">cesecore-ejb</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.audit.log</a> &gt; <span class="el_source">InternalSecurityEventsLoggerSessionBean.java</span></div><h1>InternalSecurityEventsLoggerSessionBean.java</h1><pre class="source lang-java linenums"> /*************************************************************************
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>InternalSecurityEventsLoggerSessionBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">cesecore-ejb</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.audit.log</a> &gt; <span class="el_source">InternalSecurityEventsLoggerSessionBean.java</span></div><h1>InternalSecurityEventsLoggerSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
  *                                                                       *
  *  CESeCore: CE Security Core                                           *
  *                                                                       *
@@ -14,12 +14,10 @@ package org.cesecore.audit.log;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-
 import org.apache.commons.lang.time.StopWatch;
 import org.apache.log4j.Logger;
 import org.cesecore.audit.AuditDevicesConfig;
@@ -39,80 +37,142 @@ import org.cesecore.time.TrustedTime;
 
 /**
  * Internal logging without dependency on TrustedTime.
- * 
- * @version $Id: InternalSecurityEventsLoggerSessionBean.java 23956 2016-07-20 13:39:31Z anatom $
- */  
+ *
+ * @version $Id: InternalSecurityEventsLoggerSessionBean.java 23956 2016-07-20
+ *     13:39:31Z anatom $
+ */
 @Stateless
 @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-<span class="nc" id="L47">public class InternalSecurityEventsLoggerSessionBean implements InternalSecurityEventsLoggerSessionLocal {</span>
+<span class="nc" id="L46">public class InternalSecurityEventsLoggerSessionBean</span>
+    implements InternalSecurityEventsLoggerSessionLocal {
 
-<span class="nc" id="L49">    private static final Logger LOG = Logger.getLogger(InternalSecurityEventsLoggerSessionBean.class);</span>
-    
-    @EJB
-    private QueuedLoggerSessionLocal queuedLoggerSession;
-    @EJB
-    private IntegrityProtectedLoggerSessionLocal integrityProtectedLoggerSession;
+    /** Logger. */
+<span class="nc" id="L50">  private static final Logger LOG =</span>
+<span class="nc" id="L51">      Logger.getLogger(InternalSecurityEventsLoggerSessionBean.class);</span>
 
-    @Override
-    public void log(final TrustedTime trustedTime, final EventType eventType, final EventStatus eventStatus, final ModuleType module, final ServiceType service, final String authToken,
-            final String customId, final String searchDetail1, final String searchDetail2, final Map&lt;String, Object&gt; additionalDetails) throws AuditRecordStorageException {
-<span class="nc bnc" id="L59" title="All 2 branches missed.">        if (LogServiceState.INSTANCE.isDisabled()) {</span>
-<span class="nc" id="L60">            throw new AuditRecordStorageException(&quot;Security audit logging is currently disabled.&quot;);</span>
-        }
-<span class="nc" id="L62">        final Map&lt;Class&lt;?&gt;, Object&gt; ejbs = getEjbs();</span>
-<span class="nc" id="L63">        boolean anyFailures = false;</span>
-<span class="nc bnc" id="L64" title="All 2 branches missed.">        for (final String loggerId : AuditDevicesConfig.getAllDeviceIds()) {</span>
-            try {
-<span class="nc" id="L66">                StopWatch sw = null;</span>
-<span class="nc bnc" id="L67" title="All 2 branches missed.">                if(LOG.isDebugEnabled()){</span>
-<span class="nc" id="L68">                    sw = new StopWatch();</span>
-<span class="nc" id="L69">                    sw.start();</span>
-                }
-<span class="nc" id="L71">                AuditDevicesConfig.getDevice(ejbs, loggerId).log(trustedTime, eventType, eventStatus, module, service, authToken, customId, searchDetail1, searchDetail2, additionalDetails, AuditDevicesConfig.getProperties(loggerId));</span>
-<span class="nc bnc" id="L72" title="All 2 branches missed.">                if(LOG.isDebugEnabled()){</span>
-<span class="nc" id="L73">                    sw.stop();</span>
-<span class="nc" id="L74">                    LOG.debug(&quot;LogDevice: &quot;+ loggerId +&quot; Proc: &quot;+sw.getTime());</span>
-                }
-<span class="nc" id="L76">            } catch (Exception e) { // AuditRecordStorageException</span>
-<span class="nc" id="L77">                anyFailures = true;</span>
-<span class="nc" id="L78">                LOG.error(&quot;AuditDevice &quot; + loggerId + &quot; failed. An event was not logged to this device!&quot;, e);</span>
-<span class="nc" id="L79">            }</span>
-<span class="nc" id="L80">        }</span>
-<span class="nc bnc" id="L81" title="All 2 branches missed.">        if (anyFailures) {</span>
-            // CESeCore.FAU_STG.4.1: The TSF shall prevent audited events, except those taken by the Auditable and no other actions if the audit trail is full.
-            // So even if we failed to produce a proper audit trail for these events, we swallow the exception here to allow the operation to continue.
-<span class="nc bnc" id="L84" title="All 10 branches missed.">            if (!eventType.equals(EventTypes.LOG_VERIFY) &amp;&amp; !eventType.equals(EventTypes.LOG_EXPORT) &amp;&amp; !eventType.equals(EventTypes.LOG_DELETE) &amp;&amp; !eventType.equals(EventTypes.LOG_SIGN)  &amp;&amp; !eventType.equals(EventTypes.LOG_MANAGEMENT_CHANGE)) {</span>
-<span class="nc" id="L85">                throw new AuditRecordStorageException(&quot;Failed to write audit log to at least one device.&quot;);</span>
-            }
-        }
-<span class="nc" id="L88">    }</span>
+  /** Logger session. */
+  @EJB private QueuedLoggerSessionLocal queuedLoggerSession;
 
-    /** Propagate the injected SSBs, since we can't use application server agnostic EJB lookup in EJB 3.0. 
-     * @return Map*/
-    private Map&lt;Class&lt;?&gt;, Object&gt; getEjbs() {
-<span class="nc" id="L93">        final Map&lt;Class&lt;?&gt;, Object&gt; ejbs = new HashMap&lt;Class&lt;? extends Object&gt;, Object&gt;();</span>
-<span class="nc" id="L94">        ejbs.put(QueuedLoggerSessionLocal.class, queuedLoggerSession);</span>
-<span class="nc" id="L95">        ejbs.put(IntegrityProtectedLoggerSessionLocal.class, integrityProtectedLoggerSession);</span>
-<span class="nc" id="L96">        return ejbs;</span>
+  /** Local session. */
+  @EJB
+  private IntegrityProtectedLoggerSessionLocal integrityProtectedLoggerSession;
+
+  @Override
+  public void log(
+      final TrustedTime trustedTime,
+      final EventType eventType,
+      final EventStatus eventStatus,
+      final ModuleType module,
+      final ServiceType service,
+      final String authToken,
+      final String customId,
+      final String searchDetail1,
+      final String searchDetail2,
+      final Map&lt;String, Object&gt; additionalDetails)
+      throws AuditRecordStorageException {
+<span class="nc bnc" id="L73" title="All 2 branches missed.">    if (LogServiceState.INSTANCE.isDisabled()) {</span>
+<span class="nc" id="L74">      throw new AuditRecordStorageException(</span>
+          &quot;Security audit logging is currently disabled.&quot;);
     }
-    
-    @Override
-    public boolean auditLogCryptoTest(final String protectThis) {
-<span class="nc bnc" id="L101" title="All 2 branches missed.">        if ( CesecoreConfiguration.useDatabaseIntegrityProtection(AuditRecordData.class.getSimpleName()) ) {</span>
-<span class="nc bnc" id="L102" title="All 2 branches missed.">            if (LOG.isDebugEnabled()) {</span>
-<span class="nc" id="L103">                LOG.debug(&quot;Performing audit log integrity protection test.&quot;);</span>
-            }
-            // Make a dummy auditRecordData object, to use the &quot;real&quot; code to calculate database integrity protection
-<span class="nc" id="L106">            final AuditRecordData auditRecordData = new AuditRecordData(&quot;auditLogCryptoTest&quot;, 1L, System.currentTimeMillis(), EventTypes.LOG_VERIFY, EventStatus.VOID, null,</span>
-                    ServiceTypes.CORE, ModuleTypes.SECURITY_AUDIT, &quot;auditLogCryptoTest&quot;, null, null, null);
-<span class="nc" id="L108">            auditRecordData.calculateProtection();</span>
-<span class="nc bnc" id="L109" title="All 2 branches missed.">            if (LOG.isDebugEnabled()) {</span>
-<span class="nc" id="L110">                LOG.debug(&quot;Audit log integrity protection test completed successfully.&quot;);</span>
-            }
-<span class="nc" id="L112">            return true;</span>
+<span class="nc" id="L77">    final Map&lt;Class&lt;?&gt;, Object&gt; ejbs = getEjbs();</span>
+<span class="nc" id="L78">    boolean anyFailures = false;</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">    for (final String loggerId : AuditDevicesConfig.getAllDeviceIds()) {</span>
+      try {
+<span class="nc" id="L81">        StopWatch sw = null;</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L83">          sw = new StopWatch();</span>
+<span class="nc" id="L84">          sw.start();</span>
         }
-<span class="nc" id="L114">        return false;</span>
+<span class="nc" id="L86">        AuditDevicesConfig.getDevice(ejbs, loggerId)</span>
+<span class="nc" id="L87">            .log(</span>
+                trustedTime,
+                eventType,
+                eventStatus,
+                module,
+                service,
+                authToken,
+                customId,
+                searchDetail1,
+                searchDetail2,
+                additionalDetails,
+<span class="nc" id="L98">                AuditDevicesConfig.getProperties(loggerId));</span>
+<span class="nc bnc" id="L99" title="All 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L100">          sw.stop();</span>
+<span class="nc" id="L101">          LOG.debug(&quot;LogDevice: &quot; + loggerId + &quot; Proc: &quot; + sw.getTime());</span>
+        }
+<span class="nc" id="L103">      } catch (Exception e) { // AuditRecordStorageException</span>
+<span class="nc" id="L104">        anyFailures = true;</span>
+<span class="nc" id="L105">        LOG.error(</span>
+            &quot;AuditDevice &quot;
+                + loggerId
+                + &quot; failed. An event was not logged to this device!&quot;,
+            e);
+<span class="nc" id="L110">      }</span>
+<span class="nc" id="L111">    }</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">    if (anyFailures) {</span>
+      // CESeCore.FAU_STG.4.1: The TSF shall prevent audited events, except
+      // those taken by the Auditable and no other actions if the audit trail is
+      // full.
+      // So even if we failed to produce a proper audit trail for these events,
+      // we swallow the exception here to allow the operation to continue.
+<span class="nc bnc" id="L118" title="All 2 branches missed.">      if (!eventType.equals(EventTypes.LOG_VERIFY)</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">          &amp;&amp; !eventType.equals(EventTypes.LOG_EXPORT)</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">          &amp;&amp; !eventType.equals(EventTypes.LOG_DELETE)</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">          &amp;&amp; !eventType.equals(EventTypes.LOG_SIGN)</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">          &amp;&amp; !eventType.equals(EventTypes.LOG_MANAGEMENT_CHANGE)) {</span>
+<span class="nc" id="L123">        throw new AuditRecordStorageException(</span>
+            &quot;Failed to write audit log to at least one device.&quot;);
+      }
     }
+<span class="nc" id="L127">  }</span>
 
+  /**
+   * Propagate the injected SSBs, since we can't use application server agnostic
+   * EJB lookup in EJB 3.0.
+   *
+   * @return Map
+   */
+  private Map&lt;Class&lt;?&gt;, Object&gt; getEjbs() {
+<span class="nc" id="L136">    final Map&lt;Class&lt;?&gt;, Object&gt; ejbs =</span>
+        new HashMap&lt;Class&lt;? extends Object&gt;, Object&gt;();
+<span class="nc" id="L138">    ejbs.put(QueuedLoggerSessionLocal.class, queuedLoggerSession);</span>
+<span class="nc" id="L139">    ejbs.put(</span>
+        IntegrityProtectedLoggerSessionLocal.class,
+        integrityProtectedLoggerSession);
+<span class="nc" id="L142">    return ejbs;</span>
+  }
+
+  @Override
+  public boolean auditLogCryptoTest(final String protectThis) {
+<span class="nc bnc" id="L147" title="All 2 branches missed.">    if (CesecoreConfiguration.useDatabaseIntegrityProtection(</span>
+<span class="nc" id="L148">        AuditRecordData.class.getSimpleName())) {</span>
+<span class="nc bnc" id="L149" title="All 2 branches missed.">      if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L150">        LOG.debug(&quot;Performing audit log integrity protection test.&quot;);</span>
+      }
+      // Make a dummy auditRecordData object, to use the &quot;real&quot; code to
+      // calculate database integrity protection
+<span class="nc" id="L154">      final AuditRecordData auditRecordData =</span>
+          new AuditRecordData(
+              &quot;auditLogCryptoTest&quot;,
+<span class="nc" id="L157">              1L,</span>
+<span class="nc" id="L158">              System.currentTimeMillis(),</span>
+              EventTypes.LOG_VERIFY,
+              EventStatus.VOID,
+              null,
+              ServiceTypes.CORE,
+              ModuleTypes.SECURITY_AUDIT,
+              &quot;auditLogCryptoTest&quot;,
+              null,
+              null,
+              null);
+<span class="nc" id="L168">      auditRecordData.calculateProtection();</span>
+<span class="nc bnc" id="L169" title="All 2 branches missed.">      if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L170">        LOG.debug(</span>
+            &quot;Audit log integrity protection test completed successfully.&quot;);
+      }
+<span class="nc" id="L173">      return true;</span>
+    }
+<span class="nc" id="L175">    return false;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

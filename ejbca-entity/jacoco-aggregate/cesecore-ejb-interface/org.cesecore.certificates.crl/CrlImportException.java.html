@@ -9,64 +9,64 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.crl;
 
 import javax.ejb.ApplicationException;
-
 import org.cesecore.CesecoreException;
 
-
 /**
- * An exception thrown when an error happens trying to import CRLs to the CRL store. 
- * If this happens any transaction depending on this should be rolled back.
- * 
+ * An exception thrown when an error happens trying to import CRLs to the CRL
+ * store. If this happens any transaction depending on this should be rolled
+ * back.
  *
  * @version $Id: CrlImportException.java 24468 2016-10-06 09:30:38Z aveen4711 $
  */
-@ApplicationException(rollback=true)  
+@ApplicationException(rollback = true)
 public class CrlImportException extends CesecoreException {
-    
-    private static final long serialVersionUID = 7465085090477888825L;
 
-    /**
-     * Creates a new instance of exception without detail message.
-     * Marked as rollback=true
-     * @see CrlImportException
-     */
-    public CrlImportException() {
-<span class="nc" id="L38">        super();</span>
-<span class="nc" id="L39">    }</span>
-    
-    
-    /**
-     * Constructs an instance of exception with the specified detail message.
-     * Marked as rollback=true
-     * @see CrlImportException
-     * @param msg the detail message.
-     */
-    public CrlImportException(String msg) {
-<span class="nc" id="L49">        super(msg);</span>
-<span class="nc" id="L50">    }</span>
+  private static final long serialVersionUID = 7465085090477888825L;
 
-    /** 
-     * Marked as rollback=true
-     * @see CrlImportException
-     * @param e causing exception that will be wrapped
-     */
-    public CrlImportException(Exception e) {
-<span class="nc" id="L58">        super(e);</span>
-<span class="nc" id="L59">    }</span>
-    
-    /** 
-     * Marked as rollback=true
-     * @see CrlImportException
-     * @param e causing exception that will be wrapped
-     * @param msg the detail message
-     */
-    public CrlImportException(String msg, Exception e) {
-<span class="nc" id="L68">        super(msg, e);</span>
-<span class="nc" id="L69">    }</span>
+  /**
+   * Creates a new instance of exception without detail message. Marked as
+   * rollback=true.
+   *
+   * @see CrlImportException
+   */
+  public CrlImportException() {
+<span class="nc" id="L37">    super();</span>
+<span class="nc" id="L38">  }</span>
 
+  /**
+   * Constructs an instance of exception with the specified detail message.
+   * Marked as rollback=true.
+   *
+   * @see CrlImportException
+   * @param msg the detail message.
+   */
+  public CrlImportException(final String msg) {
+<span class="nc" id="L48">    super(msg);</span>
+<span class="nc" id="L49">  }</span>
+
+  /**
+   * Marked as rollback=true.
+   *
+   * @see CrlImportException
+   * @param e causing exception that will be wrapped
+   */
+  public CrlImportException(final Exception e) {
+<span class="nc" id="L58">    super(e);</span>
+<span class="nc" id="L59">  }</span>
+
+  /**
+   * Marked as rollback=true.
+   *
+   * @see CrlImportException
+   * @param e causing exception that will be wrapped
+   * @param msg the detail message
+   */
+  public CrlImportException(final String msg, final Exception e) {
+<span class="nc" id="L69">    super(msg, e);</span>
+<span class="nc" id="L70">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -9,7 +9,7 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.certificate.request;
 
 import java.io.ByteArrayInputStream;
@@ -20,7 +20,6 @@ import java.security.NoSuchProviderException;
 import java.security.PublicKey;
 import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
-
 import org.apache.log4j.Logger;
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1Sequence;
@@ -49,262 +48,376 @@ import org.ejbca.cvc.exception.ConstructionException;
 import org.ejbca.cvc.exception.ParseException;
 
 /**
- * Utility class to gather a few functions
+ * Utility class to gather a few functions.
  *
  * @version $Id: RequestMessageUtils.java 27126 2017-11-13 09:28:54Z anatom $
  */
-<span class="nc" id="L56">public abstract class RequestMessageUtils {</span>
-	
-<span class="fc" id="L58">	private static final Logger log = Logger.getLogger(RequestMessageUtils.class);</span>
+<span class="nc" id="L55">public abstract class RequestMessageUtils {</span>
 
-	/** Tries to parse the byte array to create a request message of the correct type.
-	 * Currently handles PKCS10 request messages and CVC request messages.
-	 * @param request byte array
-	 * 
-	 * @return IRequestMessage
-	 */
-	public static RequestMessage parseRequestMessage(byte[] request) {
-<span class="nc" id="L67">		RequestMessage ret = null;</span>
-		try {
-<span class="nc" id="L69">			ret = genPKCS10RequestMessage(request);			</span>
-<span class="nc" id="L70">		} catch (IllegalArgumentException e) {</span>
-<span class="nc" id="L71">			log.debug(&quot;Can not parse PKCS10 request, trying CVC instead: &quot;+ e.getMessage());</span>
-<span class="nc" id="L72">			ret = genCVCRequestMessage(request);</span>
-<span class="nc" id="L73">		}</span>
-<span class="nc" id="L74">		return ret;</span>
-	}
+    /** Logger. */
+<span class="fc" id="L58">  private static final Logger LOG = Logger.getLogger(RequestMessageUtils.class);</span>
 
-	public static PKCS10RequestMessage genPKCS10RequestMessage(byte[] bytes) {
-<span class="fc" id="L78">		byte[] buffer = getDecodedBytes(bytes);</span>
-<span class="pc bpc" id="L79" title="1 of 2 branches missed.">		if (buffer == null) {</span>
-<span class="nc" id="L80">			return null;</span>
-		}		
-<span class="fc" id="L82">		return new PKCS10RequestMessage(buffer);</span>
-	} // genPKCS10RequestMessageFromPEM
-	
+  /**
+   * Tries to parse the byte array to create a request message of the correct
+   * type. Currently handles PKCS10 request messages and CVC request messages.
+   *
+   * @param request byte array
+   * @return IRequestMessage
+   */
+  public static RequestMessage parseRequestMessage(final byte[] request) {
+<span class="nc" id="L68">    RequestMessage ret = null;</span>
+    try {
+<span class="nc" id="L70">      ret = genPKCS10RequestMessage(request);</span>
+<span class="nc" id="L71">    } catch (IllegalArgumentException e) {</span>
+<span class="nc" id="L72">      LOG.debug(</span>
+          &quot;Can not parse PKCS10 request, trying CVC instead: &quot;
+<span class="nc" id="L74">              + e.getMessage());</span>
+<span class="nc" id="L75">      ret = genCVCRequestMessage(request);</span>
+<span class="nc" id="L76">    }</span>
+<span class="nc" id="L77">    return ret;</span>
+  }
 
-	public static CVCRequestMessage genCVCRequestMessage(byte[] bytes) { 
-<span class="nc" id="L87">		byte[] buffer = getDecodedBytes(bytes);</span>
-<span class="nc bnc" id="L88" title="All 2 branches missed.">		if (buffer == null) {</span>
-<span class="nc" id="L89">			return null;</span>
-		}		
-<span class="nc" id="L91">		return new CVCRequestMessage(buffer);</span>
-	} // genCvcRequestMessageFromPEM
-	
-	/** Tries to get decoded, if needed, bytes from a certificate request or certificate
-	 * 
-	 * @param bytes pem (with headers), plain base64, or binary bytes with a CSR of certificate 
-	 * @return binary bytes
-	 */
-	public static byte[] getDecodedBytes(byte[] bytes) {
-<span class="fc" id="L100">		byte[] buffer = null;</span>
-		try {
-<span class="fc" id="L102">			 buffer = getRequestBytes(bytes); </span>
-<span class="fc" id="L103">		} catch (IOException e) {</span>
-<span class="fc" id="L104">			log.debug(&quot;Message not base64 encoded? Trying as binary: &quot;+e.getMessage());</span>
-<span class="fc" id="L105">			buffer = bytes;</span>
-<span class="fc" id="L106">		}</span>
-<span class="fc" id="L107">		return buffer;</span>
-	}
+  /**
+   * @param bytes PEM
+   * @return Request message
+   */
+  public static PKCS10RequestMessage genPKCS10RequestMessage(
+          final byte[] bytes) {
+<span class="fc" id="L86">    byte[] buffer = getDecodedBytes(bytes);</span>
+<span class="pc bpc" id="L87" title="1 of 2 branches missed.">    if (buffer == null) {</span>
+<span class="nc" id="L88">      return null;</span>
+    }
+<span class="fc" id="L90">    return new PKCS10RequestMessage(buffer);</span>
+  } // genPKCS10RequestMessageFromPEM
 
-	/** Tries to get decoded bytes from a certificate request or certificate
-	 * 
-	 * @param b64Encoded pem (with headers) or plain base64 with a CSR of certificate 
-	 * @return binary bytes
-	 * @throws IOException on error
-	 */
-	public static byte[] getRequestBytes(byte[] b64Encoded) throws IOException {
-<span class="fc" id="L117">		byte[] buffer = null;</span>
-<span class="pc bpc" id="L118" title="2 of 4 branches missed.">		if (b64Encoded != null &amp;&amp; b64Encoded.length &gt; 0) {</span>
-<span class="fc" id="L119">		    String str = new String(b64Encoded);</span>
-            // A real PKCS10 PEM request
-<span class="fc" id="L121">            String beginKey = CertTools.BEGIN_CERTIFICATE_REQUEST;</span>
-<span class="fc" id="L122">            String endKey = CertTools.END_CERTIFICATE_REQUEST;</span>
-<span class="fc bfc" id="L123" title="All 2 branches covered.">            if (!str.contains(beginKey)) {</span>
-                // Keytool PKCS10 PEM request
-<span class="fc" id="L125">                beginKey = CertTools.BEGIN_KEYTOOL_CERTIFICATE_REQUEST;</span>
-<span class="fc" id="L126">                endKey = CertTools.END_KEYTOOL_CERTIFICATE_REQUEST;</span>
-<span class="pc bpc" id="L127" title="1 of 2 branches missed.">                if (!str.contains(beginKey)) {</span>
-                    // CSR can be a PEM encoded certificate instead of &quot;certificate request&quot;
-<span class="fc" id="L129">                    beginKey = CertTools.BEGIN_CERTIFICATE;</span>
-<span class="fc" id="L130">                    endKey = CertTools.END_CERTIFICATE;</span>
-<span class="pc bpc" id="L131" title="1 of 2 branches missed.">                    if (!str.contains(beginKey)) {</span>
-                        // IE PKCS10 Base64 coded request
-                        try {
-<span class="nc" id="L134">                            buffer = Base64.decode(b64Encoded);</span>
-<span class="nc bnc" id="L135" title="All 2 branches missed.">                            if (buffer == null) {</span>
-<span class="nc" id="L136">                                throw new IOException(&quot;Base64 decode of buffer returns null&quot;);</span>
-                            }
-<span class="fc" id="L138">                        } catch (DecoderException de) {</span>
-<span class="fc" id="L139">                            throw new IOException(&quot;Base64 decode fails, message not base64 encoded: &quot;+de.getMessage());</span>
-<span class="nc" id="L140">                        }</span>
-                    }
-                }
-            }
-<span class="pc bpc" id="L144" title="1 of 2 branches missed.">            if (buffer == null) {</span>
-<span class="fc" id="L145">                buffer = FileTools.getBytesFromPEM(b64Encoded, beginKey, endKey);                </span>
-            }
-<span class="fc" id="L147">		} else {</span>
-<span class="nc" id="L148">            throw new IOException(&quot;Base64 decode fails, message is empty&quot;);		    </span>
-		}
-<span class="fc" id="L150">		return buffer;</span>
-	}
+  /**
+   * @param bytes PEM
+   * @return Request message
+   */
+  public static CVCRequestMessage genCVCRequestMessage(final byte[] bytes) {
+<span class="nc" id="L98">    byte[] buffer = getDecodedBytes(bytes);</span>
+<span class="nc bnc" id="L99" title="All 2 branches missed.">    if (buffer == null) {</span>
+<span class="nc" id="L100">      return null;</span>
+    }
+<span class="nc" id="L102">    return new CVCRequestMessage(buffer);</span>
+  } // genCvcRequestMessageFromPEM
 
-    public static RequestMessage getRequestMessageFromType(final String username, final String password, final String req, final int reqType)
-            throws SignRequestSignatureException, InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException, IOException,
-            SignatureException, InvalidKeySpecException, ParseException, ConstructionException, NoSuchFieldException {
-<span class="nc" id="L156">	    RequestMessage ret = null;</span>
-<span class="nc bnc" id="L157" title="All 2 branches missed.">        if (reqType == CertificateConstants.CERT_REQ_TYPE_PKCS10) {</span>
-<span class="nc" id="L158">            final PKCS10RequestMessage pkcs10RequestMessage = RequestMessageUtils.genPKCS10RequestMessage(req.getBytes());</span>
-<span class="nc" id="L159">            pkcs10RequestMessage.setUsername(username);</span>
-<span class="nc" id="L160">            pkcs10RequestMessage.setPassword(password);</span>
-<span class="nc" id="L161">            ret = pkcs10RequestMessage;</span>
-<span class="nc bnc" id="L162" title="All 2 branches missed.">        } else if (reqType == CertificateConstants.CERT_REQ_TYPE_SPKAC) {</span>
-<span class="nc" id="L163">            byte[] reqBytes = req.getBytes();</span>
-<span class="nc bnc" id="L164" title="All 2 branches missed.">            if (reqBytes != null) {</span>
-<span class="nc bnc" id="L165" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L166">                    log.debug(&quot;Received NS request: &quot;+new String(reqBytes));</span>
-                }
-<span class="nc" id="L168">                byte[] buffer = Base64.decode(reqBytes);</span>
-<span class="nc bnc" id="L169" title="All 2 branches missed.">                if (buffer == null) {</span>
-<span class="nc" id="L170">                    return null;</span>
-                }
-<span class="nc" id="L172">                ASN1InputStream in = new ASN1InputStream(new ByteArrayInputStream(buffer));</span>
-<span class="nc" id="L173">                ASN1Sequence spkacSeq = (ASN1Sequence) in.readObject();</span>
-<span class="nc" id="L174">                in.close();</span>
-<span class="nc" id="L175">                NetscapeCertRequest nscr = new NetscapeCertRequest(spkacSeq);</span>
-                // Verify POPO, we don't care about the challenge, it's not important.
-<span class="nc" id="L177">                nscr.setChallenge(&quot;challenge&quot;);</span>
-<span class="nc bnc" id="L178" title="All 2 branches missed.">                if (nscr.verify(&quot;challenge&quot;) == false) {</span>
-<span class="nc bnc" id="L179" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L180">                        log.debug(&quot;SPKAC POPO verification Failed&quot;);</span>
-                    }
-<span class="nc" id="L182">                    throw new SignRequestSignatureException(&quot;Invalid signature in NetscapeCertRequest, popo-verification failed.&quot;);</span>
-                }
-<span class="nc bnc" id="L184" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L185">                    log.debug(&quot;POPO verification successful&quot;);</span>
-                }
-<span class="nc" id="L187">                PublicKey pubKey = nscr.getPublicKey();</span>
-<span class="nc" id="L188">                ret = new SimpleRequestMessage(pubKey, username, password);</span>
-            }       
-<span class="nc bnc" id="L190" title="All 2 branches missed.">        } else if (reqType == CertificateConstants.CERT_REQ_TYPE_CRMF) {</span>
-<span class="nc" id="L191">            final byte[] certificateRequestMessages = Base64.decode(req.getBytes());</span>
-<span class="nc" id="L192">            final CertReqMsg certReqMsg = CertReqMsg.getInstance(((ASN1Sequence)ASN1Sequence.fromByteArray(certificateRequestMessages)).getObjectAt(0));</span>
-<span class="nc" id="L193">            final JcaCertificateRequestMessage jcrm = new JcaCertificateRequestMessage(certReqMsg);</span>
+  /**
+   * Tries to get decoded, if needed, bytes from a certificate request or
+   * certificate.
+   *
+   * @param bytes pem (with headers), plain base64, or binary bytes with a CSR
+   *     of certificate
+   * @return binary bytes
+   */
+  public static byte[] getDecodedBytes(final byte[] bytes) {
+<span class="fc" id="L114">    byte[] buffer = null;</span>
+    try {
+<span class="fc" id="L116">      buffer = getRequestBytes(bytes);</span>
+<span class="fc" id="L117">    } catch (IOException e) {</span>
+<span class="fc" id="L118">      LOG.debug(</span>
+<span class="fc" id="L119">          &quot;Message not base64 encoded? Trying as binary: &quot; + e.getMessage());</span>
+<span class="fc" id="L120">      buffer = bytes;</span>
+<span class="fc" id="L121">    }</span>
+<span class="fc" id="L122">    return buffer;</span>
+  }
+
+  /**
+   * Tries to get decoded bytes from a certificate request or certificate.
+   *
+   * @param b64Encoded pem (with headers) or plain base64 with a CSR of
+   *     certificate
+   * @return binary bytes
+   * @throws IOException on error
+   */
+  public static byte[] getRequestBytes(
+          final byte[] b64Encoded) throws IOException {
+<span class="fc" id="L135">    byte[] buffer = null;</span>
+<span class="pc bpc" id="L136" title="2 of 4 branches missed.">    if (b64Encoded != null &amp;&amp; b64Encoded.length &gt; 0) {</span>
+<span class="fc" id="L137">      String str = new String(b64Encoded);</span>
+      // A real PKCS10 PEM request
+<span class="fc" id="L139">      String beginKey = CertTools.BEGIN_CERTIFICATE_REQUEST;</span>
+<span class="fc" id="L140">      String endKey = CertTools.END_CERTIFICATE_REQUEST;</span>
+<span class="fc bfc" id="L141" title="All 2 branches covered.">      if (!str.contains(beginKey)) {</span>
+        // Keytool PKCS10 PEM request
+<span class="fc" id="L143">        beginKey = CertTools.BEGIN_KEYTOOL_CERTIFICATE_REQUEST;</span>
+<span class="fc" id="L144">        endKey = CertTools.END_KEYTOOL_CERTIFICATE_REQUEST;</span>
+<span class="pc bpc" id="L145" title="1 of 2 branches missed.">        if (!str.contains(beginKey)) {</span>
+          // CSR can be a PEM encoded certificate instead of &quot;certificate
+          // request&quot;
+<span class="fc" id="L148">          beginKey = CertTools.BEGIN_CERTIFICATE;</span>
+<span class="fc" id="L149">          endKey = CertTools.END_CERTIFICATE;</span>
+<span class="pc bpc" id="L150" title="1 of 2 branches missed.">          if (!str.contains(beginKey)) {</span>
+            // IE PKCS10 Base64 coded request
             try {
-<span class="nc" id="L195">                final PublicKey publicKey = jcrm.getPublicKey();</span>
-<span class="nc bnc" id="L196" title="All 2 branches missed.">                if (jcrm.hasProofOfPossession()) {</span>
-<span class="nc bnc" id="L197" title="All 5 branches missed.">                    switch (jcrm.getProofOfPossessionType()) {</span>
-                    case JcaCertificateRequestMessage.popRaVerified: {
-                        // The requestor claims that it is verified by an RA
-<span class="nc" id="L200">                        break;</span>
-                    }
-                    case JcaCertificateRequestMessage.popSigningKey: {
-                        // RFC 4211 Section 4.1
-<span class="nc" id="L204">                        final POPOSigningKey popoSigningKey = POPOSigningKey.getInstance(jcrm.toASN1Structure().getPopo().getObject());</span>
-<span class="nc bnc" id="L205" title="All 2 branches missed.">                        if (log.isDebugEnabled()) {</span>
-<span class="nc bnc" id="L206" title="All 2 branches missed.">                            if (popoSigningKey!=null) {</span>
-<span class="nc" id="L207">                                log.debug(&quot;CRMF POPOSigningKey poposkInput:                      &quot; + popoSigningKey.getPoposkInput());</span>
-<span class="nc bnc" id="L208" title="All 2 branches missed.">                                if (popoSigningKey.getPoposkInput()!=null) {</span>
-<span class="nc" id="L209">                                    log.debug(&quot;CRMF POPOSigningKey poposkInput PublicKey:            &quot; + popoSigningKey.getPoposkInput().getPublicKey());</span>
-<span class="nc" id="L210">                                    log.debug(&quot;CRMF POPOSigningKey poposkInput PublicKeyMAC:         &quot; + popoSigningKey.getPoposkInput().getPublicKeyMAC());</span>
-                                }
-<span class="nc" id="L212">                                log.debug(&quot;CRMF POPOSigningKey algorithmIdentifier.algorithm.id: &quot; + popoSigningKey.getAlgorithmIdentifier().getAlgorithm().getId());</span>
-<span class="nc" id="L213">                                log.debug(&quot;CRMF POPOSigningKey signature:                        &quot; + popoSigningKey.getSignature());</span>
-                            } else {
-<span class="nc" id="L215">                                log.debug(&quot;CRMF POPOSigningKey is not defined even though POP type is popSigningKey. Validation will fail.&quot;);</span>
-                            }
-                        }
-<span class="nc" id="L218">                        final ContentVerifierProvider cvp = CertTools.genContentVerifierProvider(publicKey);</span>
-                        // Work around for bug in BC where jcrm.hasSigningKeyProofOfPossessionWithPKMAC() will throw NPE if PoposkInput is null
-<span class="nc bnc" id="L220" title="All 4 branches missed.">                        if (popoSigningKey.getPoposkInput()!=null &amp;&amp; jcrm.hasSigningKeyProofOfPossessionWithPKMAC()) {</span>
-<span class="nc" id="L221">                            final PKMACBuilder pkmacBuilder = new PKMACBuilder(new JcePKMACValuesCalculator().setProvider(BouncyCastleProvider.PROVIDER_NAME));</span>
-<span class="nc bnc" id="L222" title="All 2 branches missed.">                            if (!jcrm.isValidSigningKeyPOP(cvp, pkmacBuilder, password.toCharArray())) {</span>
-<span class="nc" id="L223">                                throw new SignRequestSignatureException(&quot;CRMF POP with PKMAC failed signature or MAC validation.&quot;);</span>
-                            } else {
-<span class="nc bnc" id="L225" title="All 2 branches missed.">                                if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L226">                                    log.debug(&quot;CRMF POP with PKMAC passed signature and PKMAC validation.&quot;);</span>
-                                }
-                            }
-<span class="nc" id="L229">                        } else {</span>
-<span class="nc bnc" id="L230" title="All 2 branches missed.">                            if (!jcrm.isValidSigningKeyPOP(cvp)) {</span>
-<span class="nc" id="L231">                                throw new SignRequestSignatureException(&quot;CRMF POP failed signature validation.&quot;);</span>
-                            } else {
-<span class="nc bnc" id="L233" title="All 2 branches missed.">                                if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L234">                                    log.debug(&quot;CRMF POP passed signature validation.&quot;);</span>
-                                }
-                            }
-                        }
-                        break;
-                    }
-                    case JcaCertificateRequestMessage.popKeyEncipherment: {
-                        // RFC 4211 Section 4.2 (Not implemented)
-<span class="nc" id="L242">                        log.info(&quot;CRMF RFC4211 Section 4.2 KeyEncipherment POP validation is not implemented. Will try to use the request's public key anyway.&quot;);</span>
-<span class="nc" id="L243">                        break;</span>
-                    }
-                    case JcaCertificateRequestMessage.popKeyAgreement: {
-                        // RFC 4211 Section 4.3 (Not implemented)
-<span class="nc" id="L247">                        log.info(&quot;CRMF RFC4211 Section 4.3 KeyAgreement POP validation is not implemented. Will try to use the request's public key anyway.&quot;);</span>
-<span class="nc" id="L248">                        break;</span>
-                    }
-                    default:
-<span class="nc" id="L251">                        throw new SignRequestSignatureException(&quot;CRMF POP of type &quot;+jcrm.getProofOfPossessionType()+&quot; is unknown.&quot;);</span>
-                    }
-                }
-<span class="nc" id="L254">                final SimpleRequestMessage simpleRequestMessage = new SimpleRequestMessage(publicKey, username, password);</span>
-<span class="nc" id="L255">                simpleRequestMessage.setRequestExtensions(jcrm.getCertTemplate().getExtensions());</span>
-<span class="nc" id="L256">                ret = simpleRequestMessage;</span>
-<span class="nc" id="L257">            } catch (CRMFException e) {</span>
-<span class="nc" id="L258">                throw new SignRequestSignatureException(&quot;CRMF POP verification failed.&quot;, e);</span>
-<span class="nc" id="L259">            } catch (OperatorCreationException e) {</span>
-<span class="nc" id="L260">                throw new SignRequestSignatureException(&quot;CRMF POP verification failed.&quot;, e);</span>
-<span class="nc" id="L261">            }</span>
-<span class="nc bnc" id="L262" title="All 2 branches missed.">        } else if (reqType == CertificateConstants.CERT_REQ_TYPE_PUBLICKEY) {</span>
-            byte[] request;
-            // Request can be Base64 encoded or in PEM format
-            try {
-<span class="nc" id="L266">                request = FileTools.getBytesFromPEM(req.getBytes(), CertTools.BEGIN_PUBLIC_KEY, CertTools.END_PUBLIC_KEY);</span>
-<span class="nc" id="L267">            } catch (IOException ex) {</span>
-                try {
-<span class="nc" id="L269">                    request = Base64.decode(req.getBytes());</span>
-<span class="nc bnc" id="L270" title="All 2 branches missed.">                    if (request == null) {</span>
-<span class="nc" id="L271">                        throw new IOException(&quot;Base64 decode of buffer returns null&quot;);</span>
-                    }
-<span class="nc" id="L273">                } catch (DecoderException de) {</span>
-<span class="nc" id="L274">                    throw new IOException(&quot;Base64 decode fails, message not base64 encoded: &quot; + de.getMessage());</span>
-<span class="nc" id="L275">                }</span>
-<span class="nc" id="L276">            }</span>
-<span class="nc" id="L277">            final PublicKey pubKey = KeyTools.getPublicKeyFromBytes(request);</span>
-<span class="nc" id="L278">            ret = new SimpleRequestMessage(pubKey, username, password);</span>
-<span class="nc bnc" id="L279" title="All 2 branches missed.">        } else if (reqType == CertificateConstants.CERT_REQ_TYPE_CVC) {</span>
-<span class="nc" id="L280">            CVCObject parsedObject = CertificateParser.parseCVCObject(Base64.decode(req.getBytes()));</span>
-            // We will handle both the case if the request is an authenticated request, i.e. with an outer signature
-            // and when the request is missing the (optional) outer signature.
-<span class="nc" id="L283">            CVCertificate cvccert = null;</span>
-<span class="nc bnc" id="L284" title="All 2 branches missed.">            if (parsedObject instanceof CVCAuthenticatedRequest) {</span>
-<span class="nc" id="L285">                CVCAuthenticatedRequest cvcreq = (CVCAuthenticatedRequest)parsedObject;</span>
-<span class="nc" id="L286">                cvccert = cvcreq.getRequest();</span>
-<span class="nc" id="L287">            } else {</span>
-<span class="nc" id="L288">                cvccert = (CVCertificate)parsedObject;</span>
-            }
-<span class="nc" id="L290">            CVCRequestMessage reqmsg = new CVCRequestMessage(cvccert.getDEREncoded());</span>
-<span class="nc" id="L291">            reqmsg.setUsername(username);</span>
-<span class="nc" id="L292">            reqmsg.setPassword(password);</span>
-            // Popo is really actually verified by the CA (in SignSessionBean) as well
-<span class="nc bnc" id="L294" title="All 2 branches missed.">            if (reqmsg.verify() == false) {</span>
-<span class="nc bnc" id="L295" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L296">                    log.debug(&quot;CVC POPO verification Failed&quot;);</span>
-                }
-<span class="nc" id="L298">                throw new SignRequestSignatureException(&quot;Invalid inner signature in CVCRequest, popo-verification failed.&quot;);</span>
-            } else {
-<span class="nc bnc" id="L300" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L301">                    log.debug(&quot;POPO verification successful&quot;);</span>
-                }
-            }
-<span class="nc" id="L304">            ret = reqmsg;</span>
+<span class="nc" id="L153">              buffer = Base64.decode(b64Encoded);</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">              if (buffer == null) {</span>
+<span class="nc" id="L155">                throw new IOException(&quot;Base64 decode of buffer returns null&quot;);</span>
+              }
+<span class="fc" id="L157">            } catch (DecoderException de) {</span>
+<span class="fc" id="L158">              throw new IOException(</span>
+                  &quot;Base64 decode fails, message not base64 encoded: &quot;
+<span class="fc" id="L160">                      + de.getMessage());</span>
+<span class="nc" id="L161">            }</span>
+          }
         }
-<span class="nc" id="L306">        return ret;</span>
-	}
+      }
+<span class="pc bpc" id="L165" title="1 of 2 branches missed.">      if (buffer == null) {</span>
+<span class="fc" id="L166">        buffer = FileTools.getBytesFromPEM(b64Encoded, beginKey, endKey);</span>
+      }
+<span class="fc" id="L168">    } else {</span>
+<span class="nc" id="L169">      throw new IOException(&quot;Base64 decode fails, message is empty&quot;);</span>
+    }
+<span class="fc" id="L171">    return buffer;</span>
+  }
 
+  /**
+   *
+   * @param username User
+   * @param password Pass
+   * @param req Request
+   * @param reqType Type
+   * @return Request message
+   * @throws SignRequestSignatureException faik
+   * @throws InvalidKeyException fail
+   * @throws NoSuchAlgorithmException fail
+   * @throws NoSuchProviderException fail
+   * @throws IOException fail
+   * @throws SignatureException fail
+   * @throws InvalidKeySpecException fail
+   * @throws ParseException fail
+   * @throws ConstructionException fail
+   * @throws NoSuchFieldException fail
+   */
+  public static RequestMessage getRequestMessageFromType(
+      final String username,
+      final String password,
+      final String req,
+      final int reqType)
+      throws SignRequestSignatureException, InvalidKeyException,
+          NoSuchAlgorithmException, NoSuchProviderException, IOException,
+          SignatureException, InvalidKeySpecException, ParseException,
+          ConstructionException, NoSuchFieldException {
+<span class="nc" id="L201">    RequestMessage ret = null;</span>
+<span class="nc bnc" id="L202" title="All 2 branches missed.">    if (reqType == CertificateConstants.CERT_REQ_TYPE_PKCS10) {</span>
+<span class="nc" id="L203">      final PKCS10RequestMessage pkcs10RequestMessage =</span>
+<span class="nc" id="L204">          RequestMessageUtils.genPKCS10RequestMessage(req.getBytes());</span>
+<span class="nc" id="L205">      pkcs10RequestMessage.setUsername(username);</span>
+<span class="nc" id="L206">      pkcs10RequestMessage.setPassword(password);</span>
+<span class="nc" id="L207">      ret = pkcs10RequestMessage;</span>
+<span class="nc bnc" id="L208" title="All 2 branches missed.">    } else if (reqType == CertificateConstants.CERT_REQ_TYPE_SPKAC) {</span>
+<span class="nc" id="L209">      byte[] reqBytes = req.getBytes();</span>
+<span class="nc bnc" id="L210" title="All 2 branches missed.">      if (reqBytes != null) {</span>
+<span class="nc bnc" id="L211" title="All 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L212">          LOG.debug(&quot;Received NS request: &quot; + new String(reqBytes));</span>
+        }
+<span class="nc" id="L214">        byte[] buffer = Base64.decode(reqBytes);</span>
+<span class="nc bnc" id="L215" title="All 2 branches missed.">        if (buffer == null) {</span>
+<span class="nc" id="L216">          return null;</span>
+        }
+<span class="nc" id="L218">        ASN1InputStream in =</span>
+            new ASN1InputStream(new ByteArrayInputStream(buffer));
+<span class="nc" id="L220">        ASN1Sequence spkacSeq = (ASN1Sequence) in.readObject();</span>
+<span class="nc" id="L221">        in.close();</span>
+<span class="nc" id="L222">        NetscapeCertRequest nscr = new NetscapeCertRequest(spkacSeq);</span>
+        // Verify POPO, we don't care about the challenge, it's not important.
+<span class="nc" id="L224">        nscr.setChallenge(&quot;challenge&quot;);</span>
+<span class="nc bnc" id="L225" title="All 2 branches missed.">        if (!nscr.verify(&quot;challenge&quot;)) {</span>
+<span class="nc bnc" id="L226" title="All 2 branches missed.">          if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L227">            LOG.debug(&quot;SPKAC POPO verification Failed&quot;);</span>
+          }
+<span class="nc" id="L229">          throw new SignRequestSignatureException(</span>
+              &quot;Invalid signature in NetscapeCertRequest, popo-verification&quot;
+                  + &quot; failed.&quot;);
+        }
+<span class="nc bnc" id="L233" title="All 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L234">          LOG.debug(&quot;POPO verification successful&quot;);</span>
+        }
+<span class="nc" id="L236">        PublicKey pubKey = nscr.getPublicKey();</span>
+<span class="nc" id="L237">        ret = new SimpleRequestMessage(pubKey, username, password);</span>
+      }
+<span class="nc bnc" id="L239" title="All 2 branches missed.">    } else if (reqType == CertificateConstants.CERT_REQ_TYPE_CRMF) {</span>
+<span class="nc" id="L240">      final byte[] certificateRequestMessages = Base64.decode(req.getBytes());</span>
+<span class="nc" id="L241">      final CertReqMsg certReqMsg =</span>
+<span class="nc" id="L242">          CertReqMsg.getInstance(</span>
+              ((ASN1Sequence)
+<span class="nc" id="L244">                      ASN1Sequence.fromByteArray(certificateRequestMessages))</span>
+<span class="nc" id="L245">                  .getObjectAt(0));</span>
+<span class="nc" id="L246">      final JcaCertificateRequestMessage jcrm =</span>
+          new JcaCertificateRequestMessage(certReqMsg);
+      try {
+<span class="nc" id="L249">        final PublicKey publicKey = jcrm.getPublicKey();</span>
+<span class="nc bnc" id="L250" title="All 2 branches missed.">        if (jcrm.hasProofOfPossession()) {</span>
+<span class="nc bnc" id="L251" title="All 5 branches missed.">          switch (jcrm.getProofOfPossessionType()) {</span>
+            case JcaCertificateRequestMessage.popRaVerified:
+
+                // The requestor claims that it is verified by an RA
+<span class="nc" id="L255">                break;</span>
+
+            case JcaCertificateRequestMessage.popSigningKey:
+
+                // RFC 4211 Section 4.1
+<span class="nc" id="L260">                final POPOSigningKey popoSigningKey =</span>
+<span class="nc" id="L261">                    POPOSigningKey.getInstance(</span>
+<span class="nc" id="L262">                        jcrm.toASN1Structure().getPopo().getObject());</span>
+<span class="nc bnc" id="L263" title="All 2 branches missed.">                if (LOG.isDebugEnabled()) {</span>
+<span class="nc bnc" id="L264" title="All 2 branches missed.">                  if (popoSigningKey != null) {</span>
+<span class="nc" id="L265">                    LOG.debug(</span>
+                        &quot;CRMF POPOSigningKey poposkInput:                      &quot;
+<span class="nc" id="L267">                            + popoSigningKey.getPoposkInput());</span>
+<span class="nc bnc" id="L268" title="All 2 branches missed.">                    if (popoSigningKey.getPoposkInput() != null) {</span>
+<span class="nc" id="L269">                      LOG.debug(</span>
+                          &quot;CRMF POPOSigningKey poposkInput PublicKey:         &quot;
+                              + &quot;   &quot;
+<span class="nc" id="L272">                              + popoSigningKey.getPoposkInput().getPublicKey());</span>
+<span class="nc" id="L273">                      LOG.debug(</span>
+                          &quot;CRMF POPOSigningKey poposkInput PublicKeyMAC:      &quot;
+                              + &quot;   &quot;
+                              + popoSigningKey
+<span class="nc" id="L277">                                  .getPoposkInput()</span>
+<span class="nc" id="L278">                                  .getPublicKeyMAC());</span>
+                    }
+<span class="nc" id="L280">                    LOG.debug(</span>
+                        &quot;CRMF POPOSigningKey algorithmIdentifier.algorithm.id: &quot;
+                            + popoSigningKey
+<span class="nc" id="L283">                                .getAlgorithmIdentifier()</span>
+<span class="nc" id="L284">                                .getAlgorithm()</span>
+<span class="nc" id="L285">                                .getId());</span>
+<span class="nc" id="L286">                    LOG.debug(</span>
+                        &quot;CRMF POPOSigningKey signature:                        &quot;
+<span class="nc" id="L288">                            + popoSigningKey.getSignature());</span>
+                  } else {
+<span class="nc" id="L290">                    LOG.debug(</span>
+                        &quot;CRMF POPOSigningKey is not defined even though POP&quot;
+                            + &quot; type is popSigningKey. Validation will fail.&quot;);
+                  }
+                }
+<span class="nc" id="L295">                final ContentVerifierProvider cvp =</span>
+<span class="nc" id="L296">                    CertTools.genContentVerifierProvider(publicKey);</span>
+                // Work around for bug in BC where
+                // jcrm.hasSigningKeyProofOfPossessionWithPKMAC() will throw NPE
+                // if PoposkInput is null
+<span class="nc bnc" id="L300" title="All 2 branches missed.">                if (popoSigningKey.getPoposkInput() != null</span>
+<span class="nc bnc" id="L301" title="All 2 branches missed.">                    &amp;&amp; jcrm.hasSigningKeyProofOfPossessionWithPKMAC()) {</span>
+<span class="nc" id="L302">                  final PKMACBuilder pkmacBuilder =</span>
+                      new PKMACBuilder(
+                          new JcePKMACValuesCalculator()
+<span class="nc" id="L305">                              .setProvider(BouncyCastleProvider.PROVIDER_NAME));</span>
+<span class="nc bnc" id="L306" title="All 2 branches missed.">                  if (!jcrm.isValidSigningKeyPOP(</span>
+<span class="nc" id="L307">                      cvp, pkmacBuilder, password.toCharArray())) {</span>
+<span class="nc" id="L308">                    throw new SignRequestSignatureException(</span>
+                        &quot;CRMF POP with PKMAC failed signature or MAC&quot;
+                            + &quot; validation.&quot;);
+                  } else {
+<span class="nc bnc" id="L312" title="All 2 branches missed.">                    if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L313">                      LOG.debug(</span>
+                          &quot;CRMF POP with PKMAC passed signature and PKMAC&quot;
+                              + &quot; validation.&quot;);
+                    }
+                  }
+<span class="nc" id="L318">                } else {</span>
+<span class="nc bnc" id="L319" title="All 2 branches missed.">                  if (!jcrm.isValidSigningKeyPOP(cvp)) {</span>
+<span class="nc" id="L320">                    throw new SignRequestSignatureException(</span>
+                        &quot;CRMF POP failed signature validation.&quot;);
+                  } else {
+<span class="nc bnc" id="L323" title="All 2 branches missed.">                    if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L324">                      LOG.debug(&quot;CRMF POP passed signature validation.&quot;);</span>
+                    }
+                  }
+                }
+                break;
+
+            case JcaCertificateRequestMessage.popKeyEncipherment:
+
+                // RFC 4211 Section 4.2 (Not implemented)
+<span class="nc" id="L333">                LOG.info(</span>
+                    &quot;CRMF RFC4211 Section 4.2 KeyEncipherment POP validation&quot;
+                        + &quot; is not implemented. Will try to use the request's&quot;
+                        + &quot; public key anyway.&quot;);
+<span class="nc" id="L337">                break;</span>
+
+            case JcaCertificateRequestMessage.popKeyAgreement:
+
+                // RFC 4211 Section 4.3 (Not implemented)
+<span class="nc" id="L342">                LOG.info(</span>
+                    &quot;CRMF RFC4211 Section 4.3 KeyAgreement POP validation is&quot;
+                        + &quot; not implemented. Will try to use the request's&quot;
+                        + &quot; public key anyway.&quot;);
+<span class="nc" id="L346">                break;</span>
+
+            default:
+<span class="nc" id="L349">              throw new SignRequestSignatureException(</span>
+                  &quot;CRMF POP of type &quot;
+<span class="nc" id="L351">                      + jcrm.getProofOfPossessionType()</span>
+                      + &quot; is unknown.&quot;);
+          }
+        }
+<span class="nc" id="L355">        final SimpleRequestMessage simpleRequestMessage =</span>
+            new SimpleRequestMessage(publicKey, username, password);
+<span class="nc" id="L357">        simpleRequestMessage.setRequestExtensions(</span>
+<span class="nc" id="L358">            jcrm.getCertTemplate().getExtensions());</span>
+<span class="nc" id="L359">        ret = simpleRequestMessage;</span>
+<span class="nc" id="L360">      } catch (CRMFException e) {</span>
+<span class="nc" id="L361">        throw new SignRequestSignatureException(</span>
+            &quot;CRMF POP verification failed.&quot;, e);
+<span class="nc" id="L363">      } catch (OperatorCreationException e) {</span>
+<span class="nc" id="L364">        throw new SignRequestSignatureException(</span>
+            &quot;CRMF POP verification failed.&quot;, e);
+<span class="nc" id="L366">      }</span>
+<span class="nc bnc" id="L367" title="All 2 branches missed.">    } else if (reqType == CertificateConstants.CERT_REQ_TYPE_PUBLICKEY) {</span>
+      byte[] request;
+      // Request can be Base64 encoded or in PEM format
+      try {
+<span class="nc" id="L371">        request =</span>
+<span class="nc" id="L372">            FileTools.getBytesFromPEM(</span>
+<span class="nc" id="L373">                req.getBytes(),</span>
+                CertTools.BEGIN_PUBLIC_KEY,
+                CertTools.END_PUBLIC_KEY);
+<span class="nc" id="L376">      } catch (IOException ex) {</span>
+        try {
+<span class="nc" id="L378">          request = Base64.decode(req.getBytes());</span>
+<span class="nc bnc" id="L379" title="All 2 branches missed.">          if (request == null) {</span>
+<span class="nc" id="L380">            throw new IOException(&quot;Base64 decode of buffer returns null&quot;);</span>
+          }
+<span class="nc" id="L382">        } catch (DecoderException de) {</span>
+<span class="nc" id="L383">          throw new IOException(</span>
+              &quot;Base64 decode fails, message not base64 encoded: &quot;
+<span class="nc" id="L385">                  + de.getMessage());</span>
+<span class="nc" id="L386">        }</span>
+<span class="nc" id="L387">      }</span>
+<span class="nc" id="L388">      final PublicKey pubKey = KeyTools.getPublicKeyFromBytes(request);</span>
+<span class="nc" id="L389">      ret = new SimpleRequestMessage(pubKey, username, password);</span>
+<span class="nc bnc" id="L390" title="All 2 branches missed.">    } else if (reqType == CertificateConstants.CERT_REQ_TYPE_CVC) {</span>
+<span class="nc" id="L391">      CVCObject parsedObject =</span>
+<span class="nc" id="L392">          CertificateParser.parseCVCObject(Base64.decode(req.getBytes()));</span>
+      // We will handle both the case if the request is an authenticated
+      // request, i.e. with an outer signature
+      // and when the request is missing the (optional) outer signature.
+<span class="nc" id="L396">      CVCertificate cvccert = null;</span>
+<span class="nc bnc" id="L397" title="All 2 branches missed.">      if (parsedObject instanceof CVCAuthenticatedRequest) {</span>
+<span class="nc" id="L398">        CVCAuthenticatedRequest cvcreq = (CVCAuthenticatedRequest) parsedObject;</span>
+<span class="nc" id="L399">        cvccert = cvcreq.getRequest();</span>
+<span class="nc" id="L400">      } else {</span>
+<span class="nc" id="L401">        cvccert = (CVCertificate) parsedObject;</span>
+      }
+<span class="nc" id="L403">      CVCRequestMessage reqmsg = new CVCRequestMessage(cvccert.getDEREncoded());</span>
+<span class="nc" id="L404">      reqmsg.setUsername(username);</span>
+<span class="nc" id="L405">      reqmsg.setPassword(password);</span>
+      // Popo is really actually verified by the CA (in SignSessionBean) as well
+<span class="nc bnc" id="L407" title="All 2 branches missed.">      if (!reqmsg.verify()) {</span>
+<span class="nc bnc" id="L408" title="All 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L409">          LOG.debug(&quot;CVC POPO verification Failed&quot;);</span>
+        }
+<span class="nc" id="L411">        throw new SignRequestSignatureException(</span>
+            &quot;Invalid inner signature in CVCRequest, popo-verification failed.&quot;);
+      } else {
+<span class="nc bnc" id="L414" title="All 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L415">          LOG.debug(&quot;POPO verification successful&quot;);</span>
+        }
+      }
+<span class="nc" id="L418">      ret = reqmsg;</span>
+    }
+<span class="nc" id="L420">    return ret;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

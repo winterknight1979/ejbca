@@ -18,101 +18,131 @@ import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.List;
-
 import javax.net.ssl.X509KeyManager;
-
 import org.apache.log4j.Logger;
 
 /**
- * Simple implementation for providing a private key and a certificate chain in SSL/TLS negotiations from the client.
- * 
+ * Simple implementation for providing a private key and a certificate chain in
+ * SSL/TLS negotiations from the client.
+ *
  * @version $Id: ClientX509KeyManager.java 19902 2014-09-30 14:32:24Z anatom $
  */
 public class ClientX509KeyManager implements X509KeyManager {
-    
-<span class="nc" id="L33">    private static final Logger log = Logger.getLogger(ClientX509KeyManager.class);</span>
-    
-    private final String alias;
-    private final PrivateKey privateKey;
-    private final X509Certificate[] certificateChain;
 
-<span class="nc" id="L39">    public ClientX509KeyManager(final String alias, final PrivateKey privateKey, final List&lt;X509Certificate&gt; certificateChain) {</span>
-<span class="nc" id="L40">        this.alias = alias;</span>
-<span class="nc" id="L41">        this.privateKey = privateKey;</span>
-<span class="nc bnc" id="L42" title="All 2 branches missed.">        if(certificateChain != null) {</span>
-<span class="nc" id="L43">            this.certificateChain = certificateChain.toArray(new X509Certificate[certificateChain.size()]);</span>
-        } else {
-<span class="nc" id="L45">            this.certificateChain = null;</span>
+    /** Logger. */
+<span class="nc" id="L33">  private static final Logger LOG =</span>
+<span class="nc" id="L34">      Logger.getLogger(ClientX509KeyManager.class);</span>
+
+  /** Alias. */
+  private final String alias;
+  /** Key. */
+  private final PrivateKey privateKey;
+  /** Chain. */
+  private final X509Certificate[] certificateChain;
+
+  /**
+   * @param aAlias Alias
+   * @param aPrivateKey Key
+   * @param aCertificateChain Chain
+   */
+  public ClientX509KeyManager(
+      final String aAlias,
+      final PrivateKey aPrivateKey,
+<span class="nc" id="L51">      final List&lt;X509Certificate&gt; aCertificateChain) {</span>
+<span class="nc" id="L52">    this.alias = aAlias;</span>
+<span class="nc" id="L53">    this.privateKey = aPrivateKey;</span>
+<span class="nc bnc" id="L54" title="All 2 branches missed.">    if (aCertificateChain != null) {</span>
+<span class="nc" id="L55">      this.certificateChain =</span>
+<span class="nc" id="L56">          aCertificateChain.toArray(</span>
+<span class="nc" id="L57">              new X509Certificate[aCertificateChain.size()]);</span>
+    } else {
+<span class="nc" id="L59">      this.certificateChain = null;</span>
+    }
+<span class="nc" id="L61">  }</span>
+
+  @Override
+  public String chooseClientAlias(
+      final String[] keyTypes, final Principal[] issuers, final Socket socket) {
+<span class="nc" id="L66">    logDebugIfEnabled(null, keyTypes, issuers, socket);</span>
+<span class="nc" id="L67">    return alias;</span>
+  }
+
+  @Override
+  public String chooseServerAlias(
+      final String keyType, final Principal[] issuers, final Socket socket) {
+<span class="nc" id="L73">    logDebugIfEnabled(null, new String[] {keyType}, issuers, socket);</span>
+<span class="nc" id="L74">    LOG.warn(</span>
+        &quot;Got a request for server aliases, but implementation only supports&quot;
+            + &quot; client side of TLS negotiations.&quot;);
+<span class="nc" id="L77">    return null; // We are not the server side</span>
+  }
+
+  @Override
+  public X509Certificate[] getCertificateChain(final String aAlias) {
+<span class="nc" id="L82">    logDebugIfEnabled(aAlias, null, null, null);</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">    if (this.alias.equals(aAlias)) {</span>
+<span class="nc" id="L84">      return certificateChain;</span>
+    }
+<span class="nc" id="L86">    return null;</span>
+  }
+
+  @Override
+  public String[] getClientAliases(
+      final String keyType, final Principal[] issuers) {
+<span class="nc" id="L92">    logDebugIfEnabled(null, new String[] {keyType}, issuers, null);</span>
+<span class="nc" id="L93">    return new String[] {alias};</span>
+  }
+
+  @Override
+  public PrivateKey getPrivateKey(final String aAlias) {
+<span class="nc" id="L98">    logDebugIfEnabled(aAlias, null, null, null);</span>
+<span class="nc bnc" id="L99" title="All 2 branches missed.">    if (this.alias.equals(aAlias)) {</span>
+<span class="nc" id="L100">      return privateKey;</span>
+    }
+<span class="nc" id="L102">    return null;</span>
+  }
+
+  @Override
+  public String[] getServerAliases(
+      final String keyType, final Principal[] issuers) {
+<span class="nc" id="L108">    logDebugIfEnabled(null, new String[] {keyType}, issuers, null);</span>
+<span class="nc" id="L109">    LOG.warn(</span>
+        &quot;Got a request for server aliases, but implementation only supports&quot;
+            + &quot; client side of TLS negotiations.&quot;);
+<span class="nc" id="L112">    return null; // We are not server side</span>
+  }
+
+  /**
+   * Write debug log if enabled for any of the provided nullable arguments.
+   *
+   * @param aAlias Alias
+   * @param keyTypes Types
+   * @param issuers Issuers
+   * @param socket Socket
+   */
+  private void logDebugIfEnabled(
+      final String aAlias,
+      final String[] keyTypes,
+      final Principal[] issuers,
+      final Socket socket) {
+<span class="nc bnc" id="L128" title="All 2 branches missed.">    if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L129">      LOG.debug(</span>
+<span class="nc" id="L130">          Thread.currentThread().getStackTrace()[2].getMethodName() + &quot;:&quot;);</span>
+<span class="nc bnc" id="L131" title="All 2 branches missed.">      if (aAlias != null) {</span>
+<span class="nc" id="L132">        LOG.debug(&quot; Alias: &quot; + aAlias);</span>
+      }
+<span class="nc bnc" id="L134" title="All 2 branches missed.">      if (keyTypes != null) {</span>
+<span class="nc" id="L135">        LOG.debug(&quot; KeyTypes: &quot; + Arrays.toString(keyTypes));</span>
+      }
+<span class="nc bnc" id="L137" title="All 2 branches missed.">      if (issuers != null) {</span>
+<span class="nc bnc" id="L138" title="All 2 branches missed.">        for (final Principal issuer : issuers) {</span>
+<span class="nc" id="L139">          LOG.debug(&quot; Issuer: &quot; + issuer);</span>
         }
-<span class="nc" id="L47">    }</span>
-    
-    @Override
-    public String chooseClientAlias(final String[] keyTypes, final Principal[] issuers, final Socket socket) {
-<span class="nc" id="L51">        logDebugIfEnabled(null, keyTypes, issuers, socket);</span>
-<span class="nc" id="L52">        return alias;</span>
+      }
+<span class="nc bnc" id="L142" title="All 2 branches missed.">      if (socket != null) {</span>
+<span class="nc" id="L143">        LOG.debug(&quot; RemoteSocketAddress: &quot; + socket.getRemoteSocketAddress());</span>
+      }
     }
-    
-    @Override
-    public String chooseServerAlias(final String keyType, final Principal[] issuers, final Socket socket) {
-<span class="nc" id="L57">        logDebugIfEnabled(null, new String[] {keyType}, issuers, socket);</span>
-<span class="nc" id="L58">        log.warn(&quot;Got a request for server aliases, but implementation only supports client side of TLS negotiations.&quot;);</span>
-<span class="nc" id="L59">        return null;    // We are not the server side</span>
-    }
-
-    @Override
-    public X509Certificate[] getCertificateChain(final String alias) {
-<span class="nc" id="L64">        logDebugIfEnabled(alias, null, null, null);</span>
-<span class="nc bnc" id="L65" title="All 2 branches missed.">        if (this.alias.equals(alias)) {</span>
-<span class="nc" id="L66">            return certificateChain;</span>
-        }
-<span class="nc" id="L68">        return null;</span>
-    }
-
-    @Override
-    public String[] getClientAliases(final String keyType, final Principal[] issuers) {
-<span class="nc" id="L73">        logDebugIfEnabled(null, new String[] {keyType}, issuers, null);</span>
-<span class="nc" id="L74">        return new String[] { alias };</span>
-    }
-
-    @Override
-    public PrivateKey getPrivateKey(final String alias) {
-<span class="nc" id="L79">        logDebugIfEnabled(alias, null, null, null);</span>
-<span class="nc bnc" id="L80" title="All 2 branches missed.">        if (this.alias.equals(alias)) {</span>
-<span class="nc" id="L81">            return privateKey;</span>
-        }
-<span class="nc" id="L83">        return null;</span>
-    }
-
-    @Override
-    public String[] getServerAliases(final String keyType, final Principal[] issuers) {
-<span class="nc" id="L88">        logDebugIfEnabled(null, new String[] {keyType}, issuers, null);</span>
-<span class="nc" id="L89">        log.warn(&quot;Got a request for server aliases, but implementation only supports client side of TLS negotiations.&quot;);</span>
-<span class="nc" id="L90">        return null;    // We are not server side</span>
-    }  
-
-    /** Write debug log if enabled for any of the provided nullable arguments 
-     * @param alias Alias
-     * @param keyTypes Types
-     * @param issuers Issuers
-     * @param socket Socket */
-    private void logDebugIfEnabled(final String alias, final String[] keyTypes, final Principal[] issuers, final Socket socket) {
-<span class="nc bnc" id="L99" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L100">            log.debug(Thread.currentThread().getStackTrace()[2].getMethodName() + &quot;:&quot;);</span>
-<span class="nc bnc" id="L101" title="All 2 branches missed.">            if (alias != null) {</span>
-<span class="nc" id="L102">                log.debug(&quot; Alias: &quot; + alias);</span>
-            }
-<span class="nc bnc" id="L104" title="All 2 branches missed.">            if (keyTypes != null) {</span>
-<span class="nc" id="L105">                log.debug(&quot; KeyTypes: &quot; + Arrays.toString(keyTypes));</span>
-            }
-<span class="nc bnc" id="L107" title="All 2 branches missed.">            if (issuers != null) {</span>
-<span class="nc bnc" id="L108" title="All 2 branches missed.">                for (final Principal issuer : issuers) {</span>
-<span class="nc" id="L109">                    log.debug(&quot; Issuer: &quot; + issuer);</span>
-                }
-            }
-<span class="nc bnc" id="L112" title="All 2 branches missed.">            if (socket != null) {</span>
-<span class="nc" id="L113">                log.debug(&quot; RemoteSocketAddress: &quot; + socket.getRemoteSocketAddress());</span>
-            }
-        }
-<span class="nc" id="L116">    }</span>
+<span class="nc" id="L146">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

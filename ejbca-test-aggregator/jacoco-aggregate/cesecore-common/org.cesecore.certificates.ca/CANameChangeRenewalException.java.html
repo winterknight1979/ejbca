@@ -9,46 +9,50 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.ca;
 
 import javax.ejb.ApplicationException;
-
 import org.cesecore.CesecoreException;
 import org.cesecore.ErrorCode;
-
 
 /**
  * An exception thrown when CA Name Change renewal could not be completed.
  *
- * @version $Id: CANameChangeRenewalException.java 26057 2017-06-22 08:08:34Z anatom $
+ * @version $Id: CANameChangeRenewalException.java 26057 2017-06-22 08:08:34Z
+ *     anatom $
  */
-@ApplicationException(rollback=true)
+@ApplicationException(rollback = true)
 public class CANameChangeRenewalException extends CesecoreException {
-    
-    private static final long serialVersionUID = 1542504214401684378L;
 
-    /**
-     * Creates a new instance of &lt;code&gt;CANameChangeRenewalException&lt;/code&gt; without detail message.
-     */
-    public CANameChangeRenewalException() {
-<span class="nc" id="L35">        super(ErrorCode.CA_NAME_CHANGE_RENEWAL_ERROR);</span>
-<span class="nc" id="L36">    }</span>
-        
-    /**
-     * Constructs an instance of &lt;code&gt;CANameChangeRenewalException&lt;/code&gt; with the specified detail message.
-     * @param msg the detail message.
-     */
-    public CANameChangeRenewalException(String msg) {
-<span class="nc" id="L43">        super(ErrorCode.CA_NAME_CHANGE_RENEWAL_ERROR, msg);</span>
-<span class="nc" id="L44">    }</span>
+  private static final long serialVersionUID = 1542504214401684378L;
 
-    /**
-     * Constructs an instance of &lt;code&gt;CANameChangeRenewalException&lt;/code&gt; with the specified cause.
-     * @param e the detail message.
-     */
-    public CANameChangeRenewalException(Exception e) {
-<span class="nc" id="L51">        super(e);</span>
-<span class="nc" id="L52">    }</span>
+  /**
+   * Creates a new instance of &lt;code&gt;CANameChangeRenewalException&lt;/code&gt; without
+   * detail message.
+   */
+  public CANameChangeRenewalException() {
+<span class="nc" id="L35">    super(ErrorCode.CA_NAME_CHANGE_RENEWAL_ERROR);</span>
+<span class="nc" id="L36">  }</span>
+
+  /**
+   * Constructs an instance of &lt;code&gt;CANameChangeRenewalException&lt;/code&gt; with
+   * the specified detail message.
+   *
+   * @param msg the detail message.
+   */
+  public CANameChangeRenewalException(final String msg) {
+<span class="nc" id="L45">    super(ErrorCode.CA_NAME_CHANGE_RENEWAL_ERROR, msg);</span>
+<span class="nc" id="L46">  }</span>
+
+  /**
+   * Constructs an instance of &lt;code&gt;CANameChangeRenewalException&lt;/code&gt; with
+   * the specified cause.
+   *
+   * @param e the detail message.
+   */
+  public CANameChangeRenewalException(final Exception e) {
+<span class="nc" id="L55">    super(e);</span>
+<span class="nc" id="L56">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

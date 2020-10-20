@@ -17,32 +17,38 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * An implementation of HashMap that base64 encodes all String's that you 'put', it encodes them to form &quot;B64:&amp;lt;base64 encoded string&amp;gt;&quot;. It only
- * encodes objects of type String.
- * 
+ * An implementation of HashMap that base64 encodes all String's that you 'put',
+ * it encodes them to form &quot;B64:&amp;lt;base64 encoded string&amp;gt;&quot;. It only encodes
+ * objects of type String.
+ *
  * @version $Id: Base64PutHashMap.java 24742 2016-11-15 13:59:14Z jeklund $
  */
 public class Base64PutHashMap extends LinkedHashMap&lt;Object, Object&gt; {
 
-    private static final long serialVersionUID = 785586648964618032L;
+  private static final long serialVersionUID = 785586648964618032L;
 
-    public Base64PutHashMap() {
-<span class="fc" id="L30">        super();</span>
-<span class="fc" id="L31">    }</span>
+  /** Default. */
+  public Base64PutHashMap() {
+<span class="fc" id="L32">    super();</span>
+<span class="fc" id="L33">  }</span>
 
-    public Base64PutHashMap(Map&lt;?, ?&gt; m) {
-<span class="fc" id="L34">        super(m);</span>
-<span class="fc" id="L35">    }</span>
+  /**
+   * @param m Map
+   */
+  public Base64PutHashMap(final Map&lt;?, ?&gt; m) {
+<span class="fc" id="L39">    super(m);</span>
+<span class="fc" id="L40">  }</span>
 
-    public Object put(Object key, Object value) {
-<span class="pc bpc" id="L38" title="1 of 2 branches missed.">        if (value == null) {</span>
-<span class="nc" id="L39">            return super.put(key, value);</span>
-        }
-<span class="fc bfc" id="L41" title="All 2 branches covered.">        if (value instanceof String) {</span>
-<span class="fc" id="L42">            String s = StringTools.putBase64String((String) value, true);</span>
-<span class="fc" id="L43">            return super.put(key, s);</span>
-        }
-<span class="fc" id="L45">        return super.put(key, value);</span>
+  @Override
+  public Object put(final Object key, final Object value) {
+<span class="pc bpc" id="L44" title="1 of 2 branches missed.">    if (value == null) {</span>
+<span class="nc" id="L45">      return super.put(key, value);</span>
     }
+<span class="fc bfc" id="L47" title="All 2 branches covered.">    if (value instanceof String) {</span>
+<span class="fc" id="L48">      String s = StringTools.putBase64String((String) value, true);</span>
+<span class="fc" id="L49">      return super.put(key, s);</span>
+    }
+<span class="fc" id="L51">    return super.put(key, value);</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

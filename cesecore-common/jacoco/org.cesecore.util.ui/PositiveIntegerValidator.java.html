@@ -15,36 +15,46 @@ package org.cesecore.util.ui;
 import org.cesecore.internal.InternalResources;
 
 /**
- * Validator which will validate an integer to greater or equal to 0
- * 
- * @version $Id: PositiveIntegerValidator.java 24964 2017-01-02 08:15:35Z mikekushner $
+ * Validator which will validate an integer to greater or equal to 0.
  *
+ * @version $Id: PositiveIntegerValidator.java 24964 2017-01-02 08:15:35Z
+ *     mikekushner $
  */
-<span class="nc" id="L23">public class PositiveIntegerValidator implements DynamicUiPropertyValidator&lt;Integer&gt; {</span>
+<span class="nc" id="L23">public class PositiveIntegerValidator</span>
+    implements DynamicUiPropertyValidator&lt;Integer&gt; {
 
-  
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    private static final String VALIDATOR_TYPE = &quot;positiveIntegerValidator&quot;;
-    
-<span class="nc" id="L30">    private static final InternalResources intres = InternalResources.getInstance();</span>
-    
-    @Override
-    public void validate(Integer value) throws PropertyValidationException{
-<span class="nc" id="L34">        validateInteger(value);</span>
-<span class="nc" id="L35">    }</span>
+  /** Type. */
+  private static final String VALIDATOR_TYPE = &quot;positiveIntegerValidator&quot;;
 
-    @Override
-    public String getValidatorType() {
-<span class="nc" id="L39">        return VALIDATOR_TYPE;</span>
+  /**Resource.
+   */
+<span class="nc" id="L33">  private static final InternalResources INTRES =</span>
+<span class="nc" id="L34">      InternalResources.getInstance();</span>
+
+  @Override
+  public void validate(final Integer value) throws PropertyValidationException {
+<span class="nc" id="L38">    validateInteger(value);</span>
+<span class="nc" id="L39">  }</span>
+
+  @Override
+  public String getValidatorType() {
+<span class="nc" id="L43">    return VALIDATOR_TYPE;</span>
+  }
+
+  /**
+   * @param value Value
+   * @throws PropertyValidationException Fail
+   */
+  public static void validateInteger(final Integer value)
+      throws PropertyValidationException {
+<span class="nc bnc" id="L52" title="All 2 branches missed.">    if (value.intValue() &lt; 0) {</span>
+<span class="nc" id="L53">      throw new PropertyValidationException(</span>
+<span class="nc" id="L54">          INTRES.getLocalizedMessage(</span>
+              &quot;dynamic.property.validation.positiveinteger.failure&quot;,
+<span class="nc" id="L56">              value.toString()));</span>
     }
-    
-    public static void validateInteger(Integer value) throws PropertyValidationException{
-<span class="nc bnc" id="L43" title="All 2 branches missed.">        if(value.intValue() &lt; 0) {</span>
-<span class="nc" id="L44">            throw new PropertyValidationException(intres.getLocalizedMessage(&quot;dynamic.property.validation.positiveinteger.failure&quot;, value.toString()));</span>
-        }
-<span class="nc" id="L46">    }</span>
-
-
+<span class="nc" id="L58">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

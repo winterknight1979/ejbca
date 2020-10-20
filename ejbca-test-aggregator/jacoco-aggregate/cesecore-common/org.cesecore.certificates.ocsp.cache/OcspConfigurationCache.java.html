@@ -13,123 +13,163 @@
 package org.cesecore.certificates.ocsp.cache;
 
 import java.util.regex.Pattern;
-
 import org.apache.log4j.Logger;
 import org.cesecore.config.OcspConfiguration;
 import org.cesecore.keybind.impl.OcspKeyBinding;
 
 /**
- * This cache contains non persistent configuration elements that need to be cached in order to be shared between all 
- * beans and servlets.
- * 
- * 
- * @version $Id: OcspConfigurationCache.java 25867 2017-05-17 16:18:06Z mikekushner $
+ * This cache contains non persistent configuration elements that need to be
+ * cached in order to be shared between all beans and servlets.
  *
+ * @version $Id: OcspConfigurationCache.java 25867 2017-05-17 16:18:06Z
+ *     mikekushner $
  */
-<span class="nc" id="L29">public enum OcspConfigurationCache {</span>
-<span class="nc" id="L30">    INSTANCE;</span>
+<span class="nc" id="L27">public enum OcspConfigurationCache {</span>
+    /** Singleton instance. */
+<span class="nc" id="L29">    INSTANCE;</span>
 
-<span class="nc" id="L32">    private static final Logger log = Logger.getLogger(OcspConfigurationCache.class);</span>
-    
-    /* If true a certificate that does not exist in the database, but is issued by a CA the responder handles
-     * will be treated as not revoked. Default is to treat is as &quot;unknown&quot;.
-     */
-    private boolean nonExistingIsGood;
-    /* If true a certificate that does not exist in the database, but is issued by a CA the responder handles
-     * will be treated as revoked. Default is to treat is as &quot;unknown&quot;.
-     */
-    private boolean nonExistingIsRevoked;
-    /* If true a certificate that does not exist in the database, but is issued by a CA the responder handles
-     * be replied to with an unsigned &quot;Unauthorized&quot; reply. Default is to treat is as &quot;unknown&quot;.
-     */
-    private boolean nonExistingIsUnauthorized;
+    /** Logger. */
+<span class="nc" id="L32">  private static final Logger LOG =</span>
+<span class="nc" id="L33">      Logger.getLogger(OcspConfigurationCache.class);</span>
 
-    /*
-     * If this regex is fulfilled the &quot;good&quot; will be return even if {@link #nonExistingIsGood} is false;
-     */
-    private Pattern nonExistingIsGoodOverideRegex;
-    /*
-     * If this regex is fulfilled the &quot;unknown&quot; will be return even if {@link #nonExistingIsGood} or {@link #nonExistingIsRevoked} are true;
-     */
-    private Pattern nonExistingIsBadOverideRegex;
-    /*
-     * If this regex is fulfilled the &quot;revoked&quot; will be return even if {@link #nonExistingIsRevoked} is false;
-     */
-    private Pattern nonExistingIsRevokedOverideRegex;
-    
-<span class="nc" id="L60">    private OcspConfigurationCache() {</span>
-<span class="nc" id="L61">        reloadConfiguration();</span>
-<span class="nc" id="L62">    }</span>
+  /** If true a certificate that does not exist in the database,
+   *  but is issued by a CA the responder handles
+   * will be treated as not revoked. Default is to treat is as &quot;unknown&quot;.
+   */
+  private boolean nonExistingIsGood;
+  /** If true a certificate that does not exist in the database,
+   * but is issued by a CA the responder handles
+   * will be treated as revoked. Default is to treat is as &quot;unknown&quot;.
+   */
+  private boolean nonExistingIsRevoked;
+  /** If true a certificate that does not exist
+   *  in the database, but is issued by a CA the responder handles
+   * be replied to with an unsigned &quot;Unauthorized&quot; reply.
+   * Default is to treat is as &quot;unknown&quot;.
+   */
+  private boolean nonExistingIsUnauthorized;
 
-    public void reloadConfiguration() {
-<span class="nc" id="L65">        this.nonExistingIsGood = OcspConfiguration.getNonExistingIsGood();</span>
-<span class="nc" id="L66">        this.nonExistingIsRevoked = OcspConfiguration.getNonExistingIsRevoked();</span>
-<span class="nc" id="L67">        this.nonExistingIsUnauthorized = OcspConfiguration.getNonExistingIsUnauthorized();</span>
-        
-        //Write an error to the logs if more than one of the above is true
-<span class="nc bnc" id="L70" title="All 10 branches missed.">        if( (this.nonExistingIsGood &amp;&amp; (this.nonExistingIsRevoked || this.nonExistingIsUnauthorized)) </span>
-                || (this.nonExistingIsRevoked &amp;&amp; this.nonExistingIsUnauthorized)) {
-<span class="nc" id="L72">            log.error(&quot;Error: More than one of ocsp.nonexistingisgood, ocsp.nonexistingisrevoked and ocsp.nonexistingisunauthorized has&quot;</span>
-                    + &quot; been set to true at the same time.&quot;);
-        }
-        
-        {
-<span class="nc" id="L77">            final String value = OcspConfiguration.getNonExistingIsGoodOverideRegex();</span>
-<span class="nc bnc" id="L78" title="All 2 branches missed.">            nonExistingIsGoodOverideRegex = value != null ? Pattern.compile(value) : null;</span>
-        }
-        {
-<span class="nc" id="L81">            final String value = OcspConfiguration.getNonExistingIsBadOverideRegex();</span>
-<span class="nc bnc" id="L82" title="All 2 branches missed.">            nonExistingIsBadOverideRegex = value != null ? Pattern.compile(value) : null;</span>
-        }
-        {
-<span class="nc" id="L85">            final String value = OcspConfiguration.getNonExistingIsRevokedOverideRegex();</span>
-<span class="nc bnc" id="L86" title="All 2 branches missed.">            nonExistingIsRevokedOverideRegex = value != null ? Pattern.compile(value) : null;</span>
-        }
-<span class="nc" id="L88">    }</span>
+  /**
+   * If this regex is fulfilled the &quot;good&quot; will be return
+   * even if {@link #nonExistingIsGood} is false.
+   */
+  private Pattern nonExistingIsGoodOverideRegex;
+  /**
+   * If this regex is fulfilled the &quot;unknown&quot; will be return even
+   * if {@link #nonExistingIsGood} or {@link #nonExistingIsRevoked} are true.
+   */
+  private Pattern nonExistingIsBadOverideRegex;
+  /**
+   * If this regex is fulfilled the &quot;revoked&quot; will be return
+   * even if {@link #nonExistingIsRevoked} is false.
+   */
+  private Pattern nonExistingIsRevokedOverideRegex;
 
-    public boolean isNonExistingUnauthorized(OcspKeyBinding ocspKeyBinding) {
-     // First we read the global default
-<span class="nc" id="L92">        boolean nonExistingIsUnauthorized = this.nonExistingIsUnauthorized;</span>
-        // If we have an OcspKeyBinding for this request we use it to override the default
-<span class="nc bnc" id="L94" title="All 2 branches missed.">        if (ocspKeyBinding != null) {</span>
-<span class="nc" id="L95">            nonExistingIsUnauthorized = ocspKeyBinding.getNonExistingUnauthorized();</span>
-        }
-<span class="nc" id="L97">        return nonExistingIsUnauthorized;</span>
-    }
-    
-    public boolean isNonExistingGood(StringBuffer url, OcspKeyBinding ocspKeyBinding) {
-        // First we read the global default
-<span class="nc" id="L102">        boolean nonExistingIsGood = this.nonExistingIsGood;</span>
-        // If we have an OcspKeyBinding for this request we use it to override the default
-<span class="nc bnc" id="L104" title="All 2 branches missed.">        if (ocspKeyBinding != null) {</span>
-<span class="nc" id="L105">            nonExistingIsGood = ocspKeyBinding.getNonExistingGood();</span>
-        }
-        // Finally, if we have explicit configuration of the URL, this will potentially override the value once again
-<span class="nc bnc" id="L108" title="All 2 branches missed.">        if (nonExistingIsGood) {</span>
-<span class="nc bnc" id="L109" title="All 2 branches missed.">            return !isRegexFulFilled(url, nonExistingIsBadOverideRegex);</span>
-        }
-<span class="nc" id="L111">        return isRegexFulFilled(url, nonExistingIsGoodOverideRegex);</span>
-    }
-    
-    public boolean isNonExistingRevoked(StringBuffer url, OcspKeyBinding ocspKeyBinding) {
-        // First we read the global default
-<span class="nc" id="L116">        boolean nonExistingIsRevoked = this.nonExistingIsRevoked;</span>
-        // If we have an OcspKeyBinding for this request we use it to override the default
-<span class="nc bnc" id="L118" title="All 2 branches missed.">        if (ocspKeyBinding != null) {</span>
-<span class="nc" id="L119">            nonExistingIsRevoked = ocspKeyBinding.getNonExistingRevoked();</span>
-        }
-        // Finally, if we have explicit configuration of the URL, this will potentially override the value once again
-<span class="nc bnc" id="L122" title="All 2 branches missed.">        if (nonExistingIsRevoked) {</span>
-<span class="nc bnc" id="L123" title="All 2 branches missed.">            return !isRegexFulFilled(url, nonExistingIsBadOverideRegex);</span>
-        }
-<span class="nc" id="L125">        return isRegexFulFilled(url, nonExistingIsRevokedOverideRegex);</span>
+  /** Private constructor. */
+<span class="nc" id="L69">  OcspConfigurationCache() {</span>
+<span class="nc" id="L70">    reloadConfiguration();</span>
+<span class="nc" id="L71">  }</span>
+
+  /** Reload config. */
+  public void reloadConfiguration() {
+<span class="nc" id="L75">    this.nonExistingIsGood = OcspConfiguration.getNonExistingIsGood();</span>
+<span class="nc" id="L76">    this.nonExistingIsRevoked = OcspConfiguration.getNonExistingIsRevoked();</span>
+<span class="nc" id="L77">    this.nonExistingIsUnauthorized =</span>
+<span class="nc" id="L78">        OcspConfiguration.getNonExistingIsUnauthorized();</span>
+
+    // Write an error to the logs if more than one of the above is true
+<span class="nc bnc" id="L81" title="All 10 branches missed.">    if ((this.nonExistingIsGood</span>
+            &amp;&amp; (this.nonExistingIsRevoked || this.nonExistingIsUnauthorized))
+        || (this.nonExistingIsRevoked &amp;&amp; this.nonExistingIsUnauthorized)) {
+<span class="nc" id="L84">      LOG.error(</span>
+          &quot;Error: More than one of ocsp.nonexistingisgood,&quot;
+              + &quot; ocsp.nonexistingisrevoked and ocsp.nonexistingisunauthorized&quot;
+              + &quot; has been set to true at the same time.&quot;);
     }
 
-    private boolean isRegexFulFilled(StringBuffer target, Pattern pattern) {
-<span class="nc bnc" id="L129" title="All 4 branches missed.">        if (pattern == null || target == null) {</span>
-<span class="nc" id="L130">            return false;</span>
-        }
-<span class="nc" id="L132">        return pattern.matcher(target.toString()).matches();</span>
+
+<span class="nc" id="L91">      String value = OcspConfiguration.getNonExistingIsGoodOverideRegex();</span>
+<span class="nc" id="L92">      nonExistingIsGoodOverideRegex =</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">          value != null ? Pattern.compile(value) : null;</span>
+
+
+<span class="nc" id="L96">      value = OcspConfiguration.getNonExistingIsBadOverideRegex();</span>
+<span class="nc" id="L97">      nonExistingIsBadOverideRegex =</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">          value != null ? Pattern.compile(value) : null;</span>
+
+
+<span class="nc" id="L101">       value = OcspConfiguration.getNonExistingIsRevokedOverideRegex();</span>
+<span class="nc" id="L102">      nonExistingIsRevokedOverideRegex =</span>
+<span class="nc bnc" id="L103" title="All 2 branches missed.">          value != null ? Pattern.compile(value) : null;</span>
+
+<span class="nc" id="L105">  }</span>
+
+  /**
+   * @param ocspKeyBinding Binding
+   * @return bool
+   */
+  public boolean isNonExistingUnauthorized(
+          final OcspKeyBinding ocspKeyBinding) {
+    // First we read the global default
+<span class="nc" id="L114">    boolean lNonExistingIsUnauthorized = this.nonExistingIsUnauthorized;</span>
+    // If we have an OcspKeyBinding for this request we use it to override the
+    // default
+<span class="nc bnc" id="L117" title="All 2 branches missed.">    if (ocspKeyBinding != null) {</span>
+<span class="nc" id="L118">      lNonExistingIsUnauthorized = ocspKeyBinding.getNonExistingUnauthorized();</span>
     }
+<span class="nc" id="L120">    return lNonExistingIsUnauthorized;</span>
+  }
+
+  /**
+   * @param url URL
+   * @param ocspKeyBinding Binding
+   * @return bool
+   */
+  public boolean isNonExistingGood(
+      final StringBuffer url, final OcspKeyBinding ocspKeyBinding) {
+    // First we read the global default
+<span class="nc" id="L131">    boolean lNonExistingIsGood = this.nonExistingIsGood;</span>
+    // If we have an OcspKeyBinding for this request we use it to override the
+    // default
+<span class="nc bnc" id="L134" title="All 2 branches missed.">    if (ocspKeyBinding != null) {</span>
+<span class="nc" id="L135">      lNonExistingIsGood = ocspKeyBinding.getNonExistingGood();</span>
+    }
+    // Finally, if we have explicit configuration of the URL, this will
+    // potentially override the value once again
+<span class="nc bnc" id="L139" title="All 2 branches missed.">    if (lNonExistingIsGood) {</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">      return !isRegexFulFilled(url, nonExistingIsBadOverideRegex);</span>
+    }
+<span class="nc" id="L142">    return isRegexFulFilled(url, nonExistingIsGoodOverideRegex);</span>
+  }
+
+  /**
+   * @param url URL
+   * @param ocspKeyBinding Binding
+   * @return bool
+   */
+  public boolean isNonExistingRevoked(
+      final StringBuffer url, final OcspKeyBinding ocspKeyBinding) {
+    // First we read the global default
+<span class="nc" id="L153">    boolean lNonExistingIsRevoked = this.nonExistingIsRevoked;</span>
+    // If we have an OcspKeyBinding for this request we use it to override the
+    // default
+<span class="nc bnc" id="L156" title="All 2 branches missed.">    if (ocspKeyBinding != null) {</span>
+<span class="nc" id="L157">      lNonExistingIsRevoked = ocspKeyBinding.getNonExistingRevoked();</span>
+    }
+    // Finally, if we have explicit configuration of the URL, this will
+    // potentially override the value once again
+<span class="nc bnc" id="L161" title="All 2 branches missed.">    if (lNonExistingIsRevoked) {</span>
+<span class="nc bnc" id="L162" title="All 2 branches missed.">      return !isRegexFulFilled(url, nonExistingIsBadOverideRegex);</span>
+    }
+<span class="nc" id="L164">    return isRegexFulFilled(url, nonExistingIsRevokedOverideRegex);</span>
+  }
+
+  private boolean isRegexFulFilled(
+          final StringBuffer target, final Pattern pattern) {
+<span class="nc bnc" id="L169" title="All 4 branches missed.">    if (pattern == null || target == null) {</span>
+<span class="nc" id="L170">      return false;</span>
+    }
+<span class="nc" id="L172">    return pattern.matcher(target.toString()).matches();</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

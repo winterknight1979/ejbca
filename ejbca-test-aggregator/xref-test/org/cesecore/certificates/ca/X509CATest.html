@@ -565,7 +565,7 @@
 <a class="jxr_linenumber" name="L557" href="#L557">557</a> 	    ExtensionsGenerator gen = ca.getSubjectAltNameExtensionForCert(ext, false);
 <a class="jxr_linenumber" name="L558" href="#L558">558</a> 	    Extensions exts = gen.generate();
 <a class="jxr_linenumber" name="L559" href="#L559">559</a> 	    Extension genext = exts.getExtension(Extension.subjectAlternativeName);
-<a class="jxr_linenumber" name="L560" href="#L560">560</a>         Extension ctext = exts.getExtension(<strong class="jxr_keyword">new</strong> ASN1ObjectIdentifier(CertTools.id_ct_redacted_domains));
+<a class="jxr_linenumber" name="L560" href="#L560">560</a>         Extension ctext = exts.getExtension(<strong class="jxr_keyword">new</strong> ASN1ObjectIdentifier(CertTools.ID_CT_REDACTED_DOMAINS));
 <a class="jxr_linenumber" name="L561" href="#L561">561</a> 	    assertNotNull(<span class="jxr_string">"A subjectAltName extension should be present"</span>, genext);
 <a class="jxr_linenumber" name="L562" href="#L562">562</a> 	    assertNull(<span class="jxr_string">"No CT redated extension should be present"</span>, ctext);
 <a class="jxr_linenumber" name="L563" href="#L563">563</a>         String altName = CertTools.getAltNameStringFromExtension(genext);
@@ -574,7 +574,7 @@
 <a class="jxr_linenumber" name="L566" href="#L566">566</a> 	    gen = ca.getSubjectAltNameExtensionForCert(ext, <strong class="jxr_keyword">true</strong>);
 <a class="jxr_linenumber" name="L567" href="#L567">567</a> 	    exts = gen.generate();
 <a class="jxr_linenumber" name="L568" href="#L568">568</a> 	    genext = exts.getExtension(Extension.subjectAlternativeName);
-<a class="jxr_linenumber" name="L569" href="#L569">569</a> 	    ctext = exts.getExtension(<strong class="jxr_keyword">new</strong> ASN1ObjectIdentifier(CertTools.id_ct_redacted_domains));
+<a class="jxr_linenumber" name="L569" href="#L569">569</a> 	    ctext = exts.getExtension(<strong class="jxr_keyword">new</strong> ASN1ObjectIdentifier(CertTools.ID_CT_REDACTED_DOMAINS));
 <a class="jxr_linenumber" name="L570" href="#L570">570</a> 	    assertNotNull(<span class="jxr_string">"A subjectAltName extension should be present"</span>, genext);
 <a class="jxr_linenumber" name="L571" href="#L571">571</a> 	    assertNotNull(<span class="jxr_string">"A CT redacted extension should be present"</span>, ctext);
 <a class="jxr_linenumber" name="L572" href="#L572">572</a>         ASN1Sequence seq = ASN1Sequence.getInstance(ctext.getExtnValue().getOctets());
@@ -599,7 +599,7 @@
 <a class="jxr_linenumber" name="L591" href="#L591">591</a>         ExtensionsGenerator gen = ca.getSubjectAltNameExtensionForCTCert(ext);
 <a class="jxr_linenumber" name="L592" href="#L592">592</a>         Extensions exts = gen.generate();
 <a class="jxr_linenumber" name="L593" href="#L593">593</a>         Extension genext = exts.getExtension(Extension.subjectAlternativeName);
-<a class="jxr_linenumber" name="L594" href="#L594">594</a>         Extension ctext = exts.getExtension(<strong class="jxr_keyword">new</strong> ASN1ObjectIdentifier(CertTools.id_ct_redacted_domains));
+<a class="jxr_linenumber" name="L594" href="#L594">594</a>         Extension ctext = exts.getExtension(<strong class="jxr_keyword">new</strong> ASN1ObjectIdentifier(CertTools.ID_CT_REDACTED_DOMAINS));
 <a class="jxr_linenumber" name="L595" href="#L595">595</a>         assertNotNull(<span class="jxr_string">"A subjectAltName extension should be present"</span>, genext);
 <a class="jxr_linenumber" name="L596" href="#L596">596</a>         assertNull(<span class="jxr_string">"No CT redated extension should be present"</span>, ctext);
 <a class="jxr_linenumber" name="L597" href="#L597">597</a>         String altName = CertTools.getAltNameStringFromExtension(genext);

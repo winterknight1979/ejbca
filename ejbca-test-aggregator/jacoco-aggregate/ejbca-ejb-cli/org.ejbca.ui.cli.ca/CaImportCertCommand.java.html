@@ -1,0 +1,450 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CaImportCertCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.ca</a> &gt; <span class="el_source">CaImportCertCommand.java</span></div><h1>CaImportCertCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.cli.ca;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Collection;
+import java.util.Date;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CADoesntExistsException;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.CaSessionRemote;
+import org.cesecore.certificates.ca.IllegalNameException;
+import org.cesecore.certificates.certificate.CertificateConstants;
+import org.cesecore.certificates.certificate.CertificateStoreSessionRemote;
+import org.cesecore.certificates.certificate.exception.CertificateSerialNumberException;
+import org.cesecore.certificates.certificateprofile.CertificateProfileConstants;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSessionRemote;
+import org.cesecore.certificates.crl.RevocationReasons;
+import org.cesecore.certificates.endentity.EndEntityConstants;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.certificates.endentity.EndEntityType;
+import org.cesecore.certificates.endentity.EndEntityTypes;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.EJBTools;
+import org.cesecore.util.EjbRemoteHelper;
+import org.cesecore.util.FileTools;
+import org.ejbca.core.ejb.ra.EndEntityAccessSessionRemote;
+import org.ejbca.core.ejb.ra.EndEntityExistsException;
+import org.ejbca.core.ejb.ra.EndEntityManagementSessionRemote;
+import org.ejbca.core.ejb.ra.NoSuchEndEntityException;
+import org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSessionRemote;
+import org.ejbca.core.model.SecConst;
+import org.ejbca.core.model.approval.ApprovalException;
+import org.ejbca.core.model.approval.WaitingForApprovalException;
+import org.ejbca.core.model.authorization.AccessRulesConstants;
+import org.ejbca.core.model.ra.AlreadyRevokedException;
+import org.ejbca.core.model.ra.CustomFieldException;
+import org.ejbca.core.model.ra.RevokeBackDateNotAllowedForProfileException;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfileNotFoundException;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfileValidationException;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+
+/**
+ * Imports a certificate file to the database.
+ *
+ * @version $Id: CaImportCertCommand.java 28168 2018-02-01 11:52:08Z anatom $
+ */
+<span class="nc" id="L74">public class CaImportCertCommand extends BaseCaAdminCommand {</span>
+
+<span class="nc" id="L76">    private static final Logger log = Logger.getLogger(CaImportCertCommand.class);</span>
+
+    private static final String ENDENTITY_USERNAME_KEY = &quot;--username&quot;;
+    private static final String ENDENTITY_PASSWORD_KEY = &quot;--password&quot;;
+    private static final String CA_NAME_KEY = &quot;--caname&quot;;
+    private static final String ACTIVE_KEY = &quot;-a&quot;;
+    private static final String E_MAIL_KEY = &quot;--email&quot;;
+    private static final String FILE_KEY = &quot;-f&quot;;
+    private static final String EE_PROFILE_KEY = &quot;--eeprofile&quot;;
+    private static final String CERT_PROFILE_KEY = &quot;--certprofile&quot;;
+    private static final String OVERRIDE_EXISTING_ENDENTITY = &quot;--overwrite&quot;;
+    private static final String REVOCATION_REASON = &quot;--revocation-reason&quot;;
+    private static final String REVOCATION_TIME = &quot;--revocation-time&quot;;
+
+    private static final String ACTIVE = &quot;ACTIVE&quot;;
+    private static final String REVOKED = &quot;REVOKED&quot;;
+
+    {
+<span class="nc" id="L94">        registerParameter(new Parameter(ENDENTITY_USERNAME_KEY, &quot;Username&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;End entity username&quot;));
+<span class="nc" id="L96">        registerParameter(new Parameter(ENDENTITY_PASSWORD_KEY, &quot;Password&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;End entity password.&quot;));
+<span class="nc" id="L98">        registerParameter(new Parameter(CA_NAME_KEY, &quot;CA Name&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;Name of the issuing CA.&quot;));
+<span class="nc" id="L100">        registerParameter(new Parameter(ACTIVE_KEY, ACTIVE + &quot;|&quot; + REVOKED, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;Set the status of the imported end entity.&quot;));
+<span class="nc" id="L102">        registerParameter(new Parameter(FILE_KEY, &quot;Certificate File&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;Must be PEM encoded&quot;));
+<span class="nc" id="L104">        registerParameter(new Parameter(EE_PROFILE_KEY, &quot;Profile Name&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID, ParameterMode.ARGUMENT,</span>
+                &quot;End Entity Profile to create end entity with. If no profile specified then the EMPTY profile will be used.&quot;));
+<span class="nc" id="L106">        registerParameter(new Parameter(CERT_PROFILE_KEY, &quot;Profile Name&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID, ParameterMode.ARGUMENT,</span>
+                &quot;Certificate Profile to create end entity with. If no profile specified then the default End Entity profile will be used.&quot;));
+<span class="nc" id="L108">        registerParameter(new Parameter(E_MAIL_KEY, &quot;E-Mail&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID, ParameterMode.ARGUMENT,</span>
+                &quot;E-Mail for imported End Entity, if any.&quot;));
+<span class="nc" id="L110">        registerParameter(new Parameter(OVERRIDE_EXISTING_ENDENTITY, &quot;&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID, ParameterMode.FLAG,</span>
+                &quot;Overwrite an existing end entity even if it was not revoked.&quot;));
+<span class="nc" id="L112">        registerParameter(new Parameter(REVOCATION_REASON, &quot;Reason&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID, ParameterMode.ARGUMENT,</span>
+<span class="nc" id="L113">                &quot;Revocation reason, if the certificate is to be imported as revoked. Will be set to &quot; + RevocationReasons.UNSPECIFIED.getStringValue() + &quot; if this option is not set.&quot;));</span>
+<span class="nc" id="L114">        registerParameter(new Parameter(REVOCATION_TIME, CaImportCertDirCommand.DATE_FORMAT, MandatoryMode.OPTIONAL, StandaloneMode.FORBID, ParameterMode.ARGUMENT,</span>
+                &quot;Revocation time, if the certificate is to be imported as revoked. Will be set to the current time if this option is not set. Format is &quot;
+                        + CaImportCertDirCommand.DATE_FORMAT + &quot;, i.e. 2015.05.04-10:15&quot;));
+<span class="nc" id="L117">    }</span>
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L121">        return &quot;importcert&quot;;</span>
+    }
+
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+<span class="nc" id="L126">        log.trace(&quot;&gt;execute()&quot;);</span>
+
+<span class="nc" id="L128">        CryptoProviderTools.installBCProviderIfNotAvailable();</span>
+<span class="nc" id="L129">        String username = parameters.get(ENDENTITY_USERNAME_KEY);</span>
+<span class="nc" id="L130">        String password = parameters.get(ENDENTITY_PASSWORD_KEY);</span>
+<span class="nc" id="L131">        String caname = parameters.get(CA_NAME_KEY);</span>
+<span class="nc" id="L132">        String active = parameters.get(ACTIVE_KEY);</span>
+<span class="nc" id="L133">        String email = parameters.get(E_MAIL_KEY);</span>
+<span class="nc" id="L134">        String certfile = parameters.get(FILE_KEY);</span>
+<span class="nc" id="L135">        String eeprofile = parameters.get(EE_PROFILE_KEY);</span>
+<span class="nc" id="L136">        String certificateprofile = parameters.get(CERT_PROFILE_KEY);</span>
+<span class="nc" id="L137">        final String revocationReasonString = parameters.get(REVOCATION_REASON);</span>
+<span class="nc" id="L138">        final String revocationTimeString = parameters.get(REVOCATION_TIME);</span>
+<span class="nc" id="L139">        EndEntityType endEntityType = EndEntityTypes.ENDUSER.toEndEntityType();</span>
+<span class="nc" id="L140">        StringBuilder errorString = new StringBuilder();</span>
+        int status;
+<span class="nc" id="L142">        RevocationReasons revocationReason = null;</span>
+<span class="nc" id="L143">        Date revocationTime = null;</span>
+<span class="nc bnc" id="L144" title="All 2 branches missed.">        if (ACTIVE.equalsIgnoreCase(active)) {</span>
+<span class="nc" id="L145">            status = CertificateConstants.CERT_ACTIVE;</span>
+<span class="nc bnc" id="L146" title="All 2 branches missed.">            if(revocationReasonString != null) {</span>
+<span class="nc" id="L147">                log.warn(&quot;Revocation reason has been set in spite of certificates being imported as active. Ignoring.&quot;);</span>
+            }
+<span class="nc bnc" id="L149" title="All 2 branches missed.">            if(revocationTimeString != null) {</span>
+<span class="nc" id="L150">                log.warn(&quot;Revocation time has been set in spite of certificates being imported as active. Ignoring.&quot;);</span>
+            }
+<span class="nc bnc" id="L152" title="All 2 branches missed.">        } else if (REVOKED.equalsIgnoreCase(active)) {</span>
+<span class="nc" id="L153">            status = CertificateConstants.CERT_REVOKED;</span>
+        
+            
+<span class="nc bnc" id="L156" title="All 2 branches missed.">            if(revocationReasonString != null) {</span>
+<span class="nc" id="L157">                revocationReason = RevocationReasons.getFromCliValue(revocationReasonString.toUpperCase());</span>
+<span class="nc bnc" id="L158" title="All 2 branches missed.">                if(revocationReason == null) {</span>
+<span class="nc" id="L159">                    log.error(&quot;ERROR: &quot; + revocationReasonString + &quot; is not a valid revocation reason.&quot;);</span>
+<span class="nc" id="L160">                    return CommandResult.CLI_FAILURE;</span>
+                }
+            } else {
+<span class="nc" id="L163">                revocationReason = RevocationReasons.UNSPECIFIED;</span>
+            } 
+<span class="nc bnc" id="L165" title="All 2 branches missed.">            if (revocationTimeString != null) {</span>
+                try {
+<span class="nc" id="L167">                    revocationTime = new SimpleDateFormat(CaImportCertDirCommand.DATE_FORMAT).parse(revocationTimeString);</span>
+<span class="nc" id="L168">                } catch (ParseException e) {</span>
+<span class="nc" id="L169">                    log.error(&quot;ERROR: &quot; + revocationTimeString + &quot; was not a valid revocation time.&quot;);</span>
+<span class="nc" id="L170">                    return CommandResult.CLI_FAILURE;</span>
+<span class="nc" id="L171">                }</span>
+            } else {
+<span class="nc" id="L173">                revocationTime = new Date();</span>
+            }
+        } else {
+<span class="nc" id="L176">            errorString.append(&quot;Invalid certificate status, must be &quot; + ACTIVE + &quot; or &quot; + REVOKED + &quot;\n&quot;);</span>
+<span class="nc" id="L177">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+        }
+
+        Certificate certificate;
+        try {
+<span class="nc" id="L182">            certificate = loadcert(certfile);</span>
+<span class="nc" id="L183">        } catch (FileNotFoundException e) {</span>
+<span class="nc" id="L184">            log.error(&quot;File &quot; + certfile + &quot; was not found.&quot;);</span>
+<span class="nc" id="L185">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L186">        } catch (CertificateException e) {</span>
+<span class="nc" id="L187">            log.error(&quot;PEM in file &quot; + certfile + &quot; could not be read.&quot;);</span>
+<span class="nc" id="L188">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L189">        } catch (IOException e) {</span>
+<span class="nc" id="L190">            log.error(&quot;File &quot; + certfile + &quot; does not seem to contain a PEM encoded certificate.&quot;);</span>
+<span class="nc" id="L191">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L192">        }</span>
+<span class="nc" id="L193">        final String fingerprint = CertTools.getFingerprintAsString(certificate);</span>
+<span class="nc bnc" id="L194" title="All 2 branches missed.">        if (EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateStoreSessionRemote.class).findCertificateByFingerprintRemote(fingerprint) != null) {</span>
+<span class="nc" id="L195">            errorString.append(&quot;Certificate number '&quot; + CertTools.getSerialNumberAsString(certificate) + &quot;' is already present.\n&quot;);</span>
+        }
+        // Certificate has expired, but we are obviously keeping it for archival purposes
+<span class="nc bnc" id="L198" title="All 2 branches missed.">        if (CertTools.getNotAfter(certificate).compareTo(new java.util.Date()) &lt; 0) {</span>
+<span class="nc" id="L199">            status = CertificateConstants.CERT_ARCHIVED;</span>
+        }
+
+        // Check if username already exists.
+        EndEntityInformation userdata;
+        try {
+<span class="nc" id="L205">            userdata = EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityAccessSessionRemote.class).findUser(getAuthenticationToken(), username);</span>
+<span class="nc" id="L206">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L207">            log.error(&quot;ERROR: CLI user not authorized to manage end entities.&quot;);</span>
+<span class="nc" id="L208">            return CommandResult.AUTHORIZATION_FAILURE;</span>
+<span class="nc" id="L209">        }</span>
+<span class="nc bnc" id="L210" title="All 4 branches missed.">        if ((userdata != null) &amp;&amp; !parameters.containsKey(OVERRIDE_EXISTING_ENDENTITY)) {</span>
+<span class="nc bnc" id="L211" title="All 2 branches missed.">            if (userdata.getStatus() != EndEntityConstants.STATUS_REVOKED) {</span>
+<span class="nc" id="L212">                errorString.append(&quot;User &quot; + username + &quot; already exists; only revoked user can be overwritten.\n&quot;);</span>
+            }
+        }
+
+<span class="nc bnc" id="L216" title="All 4 branches missed.">        if (StringUtils.isEmpty(email) || StringUtils.equalsIgnoreCase(email, &quot;null&quot;)) {</span>
+<span class="nc" id="L217">            email = CertTools.getEMailAddress(certificate);</span>
+        }
+
+<span class="nc" id="L220">        int endentityprofileid = EndEntityConstants.EMPTY_END_ENTITY_PROFILE;</span>
+<span class="nc bnc" id="L221" title="All 2 branches missed.">        if (eeprofile != null) {</span>
+<span class="nc" id="L222">            log.debug(&quot;Searching for End Entity Profile &quot; + eeprofile);</span>
+            try {
+<span class="nc" id="L224">                endentityprofileid = EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityProfileSessionRemote.class).getEndEntityProfileId(eeprofile);</span>
+<span class="nc" id="L225">            } catch (EndEntityProfileNotFoundException e) {</span>
+<span class="nc" id="L226">                errorString.append(&quot;End Entity Profile '&quot; + eeprofile + &quot;' does not exist.\n&quot;);</span>
+<span class="nc" id="L227">            }</span>
+        }
+
+<span class="nc" id="L230">        int certificateprofileid = CertificateProfileConstants.CERTPROFILE_FIXED_ENDUSER;</span>
+<span class="nc bnc" id="L231" title="All 2 branches missed.">        if (certificateprofile != null) {</span>
+<span class="nc" id="L232">            log.debug(&quot;Searching for Certificate Profile &quot; + certificateprofile);</span>
+<span class="nc" id="L233">            certificateprofileid = EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateProfileSessionRemote.class).getCertificateProfileId(</span>
+                    certificateprofile);
+<span class="nc bnc" id="L235" title="All 2 branches missed.">            if (certificateprofileid == CertificateProfileConstants.CERTPROFILE_NO_PROFILE) {</span>
+<span class="nc" id="L236">                log.error(&quot;Certificate Profile &quot; + certificateprofile + &quot; does not exist.&quot;);</span>
+<span class="nc" id="L237">                errorString.append(&quot;Certificate Profile '&quot; + certificateprofile + &quot;' does not exist.\n&quot;);</span>
+            }
+        }
+
+<span class="nc" id="L241">        CAInfo cainfo = getCAInfo(getAuthenticationToken(), caname);</span>
+<span class="nc bnc" id="L242" title="All 2 branches missed.">        if (cainfo == null) {</span>
+<span class="nc" id="L243">            log.error(&quot;CA with name &quot; + caname + &quot; does not exist.&quot;);</span>
+<span class="nc" id="L244">            errorString.append(&quot;CA with name '&quot; + caname + &quot;' does not exist.\n&quot;);</span>
+        }
+
+<span class="nc bnc" id="L247" title="All 2 branches missed.">        if (errorString.length() &gt; 0) {</span>
+<span class="nc" id="L248">            log.error(errorString.toString());</span>
+<span class="nc" id="L249">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+        }
+
+<span class="nc" id="L252">        final Certificate cacert = cainfo.getCertificateChain().iterator().next();</span>
+<span class="nc" id="L253">        log.info(&quot;Trying to add user:&quot;);</span>
+<span class="nc" id="L254">        log.info(&quot;Username: &quot; + username);</span>
+<span class="nc" id="L255">        log.info(&quot;Password (hashed only): &quot; + password);</span>
+<span class="nc" id="L256">        log.info(&quot;Email: &quot; + email);</span>
+<span class="nc" id="L257">        log.info(&quot;DN: &quot; + CertTools.getSubjectDN(certificate));</span>
+<span class="nc" id="L258">        log.info(&quot;CA Name: &quot; + caname);</span>
+<span class="nc" id="L259">        log.info(&quot;Certificate Profile: &quot;</span>
+<span class="nc" id="L260">                + EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateProfileSessionRemote.class).getCertificateProfileName(certificateprofileid));</span>
+<span class="nc" id="L261">        log.info(&quot;End Entity Profile: &quot;</span>
+<span class="nc" id="L262">                + EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityProfileSessionRemote.class).getEndEntityProfileName(endentityprofileid));</span>
+
+<span class="nc" id="L264">        String subjectAltName = CertTools.getSubjectAlternativeName(certificate);</span>
+<span class="nc bnc" id="L265" title="All 2 branches missed.">        if (subjectAltName != null) {</span>
+<span class="nc" id="L266">            log.info(&quot;SubjectAltName: &quot; + subjectAltName);</span>
+        }
+<span class="nc" id="L268">        log.info(&quot;Type: &quot; + endEntityType.getHexValue());</span>
+
+<span class="nc" id="L270">        log.debug(&quot;Loading/updating user &quot; + username);</span>
+<span class="nc" id="L271">        EndEntityManagementSessionRemote endEntityManagementSession = EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityManagementSessionRemote.class);</span>
+        try {
+<span class="nc bnc" id="L273" title="All 2 branches missed.">            if (userdata == null) {</span>
+
+                try {
+<span class="nc" id="L276">                endEntityManagementSession.addUser(getAuthenticationToken(), username,</span>
+<span class="nc" id="L277">                        password, CertTools.getSubjectDN(certificate), subjectAltName, email, false, endentityprofileid, certificateprofileid,</span>
+<span class="nc" id="L278">                        endEntityType, SecConst.TOKEN_SOFT_BROWSERGEN, SecConst.NO_HARDTOKENISSUER, cainfo.getCAId());</span>
+<span class="nc" id="L279">                } catch (EndEntityExistsException e) {</span>
+<span class="nc" id="L280">                    log.error(&quot;End entity with username &quot; + username + &quot; already exists.&quot;);</span>
+<span class="nc" id="L281">                    return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L282">                } </span>
+                try {
+<span class="nc bnc" id="L284" title="All 2 branches missed.">                    if (status == CertificateConstants.CERT_ACTIVE) {</span>
+<span class="nc" id="L285">                        endEntityManagementSession.setUserStatus(getAuthenticationToken(),</span>
+                                username, EndEntityConstants.STATUS_GENERATED);
+                    } else {
+<span class="nc" id="L288">                        endEntityManagementSession.setUserStatus(getAuthenticationToken(),</span>
+                                username, EndEntityConstants.STATUS_REVOKED);
+                    }
+<span class="nc" id="L291">                } catch (NoSuchEndEntityException e) {</span>
+<span class="nc" id="L292">                    throw new IllegalStateException(&quot;Newly added end entity could not be located&quot;, e);</span>
+<span class="nc" id="L293">                }</span>
+
+<span class="nc" id="L295">                log.info(&quot;End Entity '&quot; + username + &quot;' has been added.&quot;);</span>
+            } else {
+<span class="nc" id="L297">                EndEntityInformation endEntityInformation = new EndEntityInformation(username, CertTools.getSubjectDN(certificate), cainfo.getCAId(),</span>
+<span class="nc bnc" id="L298" title="All 2 branches missed.">                        subjectAltName, email, (status == CertificateConstants.CERT_ACTIVE ? EndEntityConstants.STATUS_GENERATED</span>
+<span class="nc" id="L299">                                : EndEntityConstants.STATUS_REVOKED), endEntityType, endentityprofileid, certificateprofileid, null, null,</span>
+                        SecConst.TOKEN_SOFT_BROWSERGEN, SecConst.NO_HARDTOKENISSUER, null);
+<span class="nc" id="L301">                endEntityInformation.setPassword(password);</span>
+                try {
+<span class="nc" id="L303">                    endEntityManagementSession.changeUser(getAuthenticationToken(), endEntityInformation, false);</span>
+<span class="nc" id="L304">                } catch (NoSuchEndEntityException e) {</span>
+<span class="nc" id="L305">                    log.error(&quot;No such end entity.&quot;);</span>
+<span class="nc" id="L306">                    return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L307">                }</span>
+
+<span class="nc" id="L309">                log.info(&quot;User '&quot; + username + &quot;' has been updated.&quot;);</span>
+            }
+<span class="nc" id="L311">        } catch (CADoesntExistsException e) {</span>
+<span class="nc" id="L312">            log.error(&quot;No such CA &quot; + caname);</span>
+<span class="nc" id="L313">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L314">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L315">            log.error(&quot;CLI user not authorized to create end entity.&quot;);</span>
+<span class="nc" id="L316">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L317">        } catch (EndEntityProfileValidationException e) {</span>
+<span class="nc" id="L318">            log.error(&quot;User doesn't fulfill End Entity Profile &quot;);</span>
+<span class="nc" id="L319">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L320">        } catch (WaitingForApprovalException e) {</span>
+<span class="nc" id="L321">            log.error(&quot;Approval is required to add End Entity.&quot;);</span>
+<span class="nc" id="L322">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L323">        } catch (CertificateSerialNumberException e) {</span>
+<span class="nc" id="L324">            log.error(e.getMessage());</span>
+<span class="nc" id="L325">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L326">        } catch (IllegalNameException e) {</span>
+<span class="nc" id="L327">            log.error(e.getMessage());</span>
+<span class="nc" id="L328">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L329">        } catch (ApprovalException e) {</span>
+<span class="nc" id="L330">            log.error(e.getMessage());</span>
+<span class="nc" id="L331">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L332">        } catch (CustomFieldException e) {</span>
+<span class="nc" id="L333">            log.error(e.getMessage());</span>
+<span class="nc" id="L334">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L335">        }</span>
+
+<span class="nc" id="L337">        int certificateType = CertificateConstants.CERTTYPE_ENDENTITY;</span>
+        try {
+<span class="nc" id="L339">            EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateStoreSessionRemote.class).storeCertificateRemote(getAuthenticationToken(), EJBTools.wrap(certificate),</span>
+<span class="nc" id="L340">                    username, CertTools.getFingerprintAsString(cacert), CertificateConstants.CERT_ACTIVE, certificateType, certificateprofileid, endentityprofileid, null, new Date().getTime());</span>
+<span class="nc bnc" id="L341" title="All 2 branches missed.">            if (status == CertificateConstants.CERT_REVOKED) {</span>
+                try {
+<span class="nc" id="L343">                    endEntityManagementSession.revokeCert(getAuthenticationToken(), CertTools.getSerialNumber(certificate), revocationTime, CertTools.getIssuerDN(certificate),</span>
+<span class="nc" id="L344">                            revocationReason.getDatabaseValue(), false);</span>
+<span class="nc" id="L345">                } catch (ApprovalException e) {</span>
+<span class="nc" id="L346">                    log.error(e.getMessage());</span>
+<span class="nc" id="L347">                    return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L348">                } catch (AlreadyRevokedException e) {</span>
+<span class="nc" id="L349">                    log.error(e.getMessage());</span>
+<span class="nc" id="L350">                    return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L351">                } catch (RevokeBackDateNotAllowedForProfileException e) {</span>
+<span class="nc" id="L352">                    log.error(e.getMessage());</span>
+<span class="nc" id="L353">                    return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L354">                } catch (NoSuchEndEntityException e) {</span>
+<span class="nc" id="L355">                    log.error(e.getMessage());</span>
+<span class="nc" id="L356">                    return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L357">                } catch (WaitingForApprovalException e) {</span>
+<span class="nc" id="L358">                    log.error(e.getMessage());</span>
+<span class="nc" id="L359">                    return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L360">                }</span>
+            }
+<span class="nc" id="L362">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L363">            log.error(&quot;CLI user not authorized to import certificate.&quot;);</span>
+<span class="nc" id="L364">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L365">        }</span>
+
+<span class="nc" id="L367">        log.info(&quot;Certificate number '&quot; + CertTools.getSerialNumberAsString(certificate) + &quot;' has been added.&quot;);</span>
+<span class="nc" id="L368">        return CommandResult.SUCCESS;</span>
+    }
+
+    /**
+     * 
+     * @param filename path to a file containing a PEM encoded certificate
+     * @return the certificate
+     * 
+     * @throws IOException if the file didn't contain the certificate keys.
+     * @throws CertificateException if the read PEM couldn't be decoded to a certificate
+     * @throws FileNotFoundException if file wasn't found
+     */
+    private Certificate loadcert(String filename) throws IOException, CertificateException {
+<span class="nc" id="L381">        File certfile = new File(filename);</span>
+<span class="nc bnc" id="L382" title="All 2 branches missed.">        if (!certfile.exists()) {</span>
+<span class="nc" id="L383">            throw new FileNotFoundException(filename + &quot; is not a file.&quot;);</span>
+        }
+
+<span class="nc" id="L386">        byte[] bytes = FileTools.getBytesFromPEM(FileTools.readFiletoBuffer(filename), &quot;-----BEGIN CERTIFICATE-----&quot;, &quot;-----END CERTIFICATE-----&quot;);</span>
+<span class="nc" id="L387">        Certificate cert = CertTools.getCertfromByteArray(bytes, Certificate.class);</span>
+<span class="nc" id="L388">        return cert;</span>
+
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L394">        return &quot;Imports a certificate file to the database&quot;;</span>
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L399">        StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L400">        sb.append(getCommandDescription() + &quot;\n\n&quot;);</span>
+<span class="nc" id="L401">        sb.append(&quot;If E-mail isn't set (&quot; + E_MAIL_KEY + &quot;), the value from the certificate will be tried.\n\n&quot;);</span>
+<span class="nc" id="L402">        String existingCas = &quot;&quot;;</span>
+
+<span class="nc" id="L404">        Collection&lt;Integer&gt; cas = EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class).getAuthorizedCaIds(getAuthenticationToken());</span>
+        try {
+<span class="nc bnc" id="L406" title="All 2 branches missed.">            for (int caid : cas) {</span>
+<span class="nc" id="L407">                CAInfo info = EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class).getCAInfo(getAuthenticationToken(), caid);</span>
+<span class="nc bnc" id="L408" title="All 2 branches missed.">                existingCas += (existingCas.length() == 0 ? &quot;&quot; : &quot;, &quot;) + &quot;\&quot;&quot; + info.getName() + &quot;\&quot;&quot;;</span>
+<span class="nc" id="L409">            }</span>
+<span class="nc" id="L410">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L411">            existingCas = &quot;ERROR: CLI user not authorized to fetch available CAs&gt;&quot;;</span>
+<span class="nc" id="L412">        }</span>
+<span class="nc" id="L413">        sb.append(&quot;Existing CAs: &quot; + existingCas + &quot;\n&quot;);</span>
+<span class="nc" id="L414">        String endEntityProfiles = &quot;&quot;;</span>
+<span class="nc" id="L415">        Collection&lt;Integer&gt; eps = EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityProfileSessionRemote.class).getAuthorizedEndEntityProfileIds(</span>
+<span class="nc" id="L416">                getAuthenticationToken(), AccessRulesConstants.CREATE_END_ENTITY);</span>
+<span class="nc bnc" id="L417" title="All 2 branches missed.">        for (int epid : eps) {</span>
+<span class="nc bnc" id="L418" title="All 2 branches missed.">            endEntityProfiles += (endEntityProfiles.length() == 0 ? &quot;&quot; : &quot;, &quot;) + &quot;\&quot;&quot;</span>
+<span class="nc" id="L419">                    + EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityProfileSessionRemote.class).getEndEntityProfileName(epid) + &quot;\&quot;&quot;;</span>
+<span class="nc" id="L420">        }</span>
+<span class="nc" id="L421">        sb.append(&quot;End entity profiles: &quot; + endEntityProfiles + &quot;\n&quot;);</span>
+<span class="nc" id="L422">        String certificateProfiles = &quot;&quot;;</span>
+<span class="nc" id="L423">        Collection&lt;Integer&gt; cps = EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateProfileSessionRemote.class)</span>
+<span class="nc" id="L424">                .getAuthorizedCertificateProfileIds(getAuthenticationToken(), CertificateConstants.CERTTYPE_ENDENTITY);</span>
+<span class="nc bnc" id="L425" title="All 2 branches missed.">        for (int cpid : cps) {</span>
+<span class="nc bnc" id="L426" title="All 2 branches missed.">            certificateProfiles += (certificateProfiles.length() == 0 ? &quot;&quot; : &quot;, &quot;) + &quot;\&quot;&quot;</span>
+<span class="nc" id="L427">                    + EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateProfileSessionRemote.class).getCertificateProfileName(cpid) + &quot;\&quot;&quot;;</span>
+<span class="nc" id="L428">        }</span>
+<span class="nc" id="L429">        sb.append(&quot;Certificate profiles: &quot; + certificateProfiles + &quot;\n\n&quot;);</span>
+<span class="nc" id="L430">        sb.append(&quot;If an End entity profile is selected it must allow selected Certificate profiles.\n&quot;);</span>
+<span class="nc" id="L431">        sb.append(&quot;Valid Revocation reasons: &quot;);</span>
+<span class="nc" id="L432">        RevocationReasons[] values = RevocationReasons.values();</span>
+<span class="nc bnc" id="L433" title="All 2 branches missed.">        for(int i = 0; i &lt; values.length; ++i) {</span>
+<span class="nc bnc" id="L434" title="All 2 branches missed.">            if(!values[i].equals(RevocationReasons.NOT_REVOKED)) {</span>
+<span class="nc" id="L435">                sb.append(values[i].getStringValue());</span>
+<span class="nc bnc" id="L436" title="All 2 branches missed.">                if(i &lt; values.length -1) {</span>
+<span class="nc" id="L437">                    sb.append(&quot; | &quot;);</span>
+                }
+            }
+        }
+        
+<span class="nc" id="L442">        return sb.toString();</span>
+    }
+    
+    @Override
+    protected Logger getLogger() {
+<span class="nc" id="L447">        return log;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

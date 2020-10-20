@@ -39,7 +39,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
@@ -65,890 +64,1125 @@ import org.ejbca.cvc.OIDField;
  * Various helper methods for handling the mappings between different key and
  * signature algorithms.
  *
- * This class has to be updated when new key or signature algorithms are
+ * &lt;p&gt;This class has to be updated when new key or signature algorithms are
  * added to EJBCA.
  *
  * @see AlgorithmConstants
  * @see KeyTools#getKeyLength
- *
  * @version $Id: AlgorithmTools.java 28555 2018-03-27 07:19:14Z tarmo_r_helmes $
  */
-<span class="nc" id="L76">public abstract class AlgorithmTools {</span>
+<span class="nc" id="L74">public abstract class AlgorithmTools {</span>
 
-    /** Log4j instance */
-<span class="fc" id="L79">    private static final Logger log = Logger.getLogger(AlgorithmTools.class);</span>
+  /** Log4j instance. */
+<span class="fc" id="L77">  private static final Logger LOG = Logger.getLogger(AlgorithmTools.class);</span>
 
-    /** String used for an unknown keyspec in CA token properties */
-    public static final String KEYSPEC_UNKNOWN = &quot;unknown&quot;;
+  /** String used for an unknown keyspec in CA token properties. */
+  public static final String KEYSPEC_UNKNOWN = &quot;unknown&quot;;
 
-    /** Signature algorithms supported by RSA keys */
-<span class="fc" id="L85">    public static final List&lt;String&gt; SIG_ALGS_RSA = Collections.unmodifiableList(Arrays.asList(</span>
-            AlgorithmConstants.SIGALG_SHA1_WITH_RSA,
-            AlgorithmConstants.SIGALG_SHA1_WITH_RSA_AND_MGF1,
-            AlgorithmConstants.SIGALG_SHA256_WITH_RSA,
-            AlgorithmConstants.SIGALG_SHA256_WITH_RSA_AND_MGF1,
-            AlgorithmConstants.SIGALG_SHA384_WITH_RSA,
-            AlgorithmConstants.SIGALG_SHA512_WITH_RSA,
-            AlgorithmConstants.SIGALG_SHA3_256_WITH_RSA,
-            AlgorithmConstants.SIGALG_SHA3_384_WITH_RSA,
-            AlgorithmConstants.SIGALG_SHA3_512_WITH_RSA
-    ));
+  /** Signature algorithms supported by RSA keys. */
+<span class="fc" id="L83">  public static final List&lt;String&gt; SIG_ALGS_RSA =</span>
+<span class="fc" id="L84">      Collections.unmodifiableList(</span>
+<span class="fc" id="L85">          Arrays.asList(</span>
+              AlgorithmConstants.SIGALG_SHA1_WITH_RSA,
+              AlgorithmConstants.SIGALG_SHA1_WITH_RSA_AND_MGF1,
+              AlgorithmConstants.SIGALG_SHA256_WITH_RSA,
+              AlgorithmConstants.SIGALG_SHA256_WITH_RSA_AND_MGF1,
+              AlgorithmConstants.SIGALG_SHA384_WITH_RSA,
+              AlgorithmConstants.SIGALG_SHA512_WITH_RSA,
+              AlgorithmConstants.SIGALG_SHA3_256_WITH_RSA,
+              AlgorithmConstants.SIGALG_SHA3_384_WITH_RSA,
+              AlgorithmConstants.SIGALG_SHA3_512_WITH_RSA));
 
-    /** Signature algorithms supported by DSA keys */
-<span class="fc" id="L98">    public static final List&lt;String&gt; SIG_ALGS_DSA = Collections.unmodifiableList(Arrays.asList(</span>
-            AlgorithmConstants.SIGALG_SHA1_WITH_DSA
-    ));
+  /** Signature algorithms supported by DSA keys. */
+<span class="fc" id="L97">  public static final List&lt;String&gt; SIG_ALGS_DSA =</span>
+<span class="fc" id="L98">      Collections.unmodifiableList(</span>
+<span class="fc" id="L99">          Arrays.asList(AlgorithmConstants.SIGALG_SHA1_WITH_DSA));</span>
 
-    /** Signature algorithms supported by ECDSA keys */
-<span class="fc" id="L103">    public static final List&lt;String&gt; SIG_ALGS_ECDSA = Collections.unmodifiableList(Arrays.asList(</span>
-            AlgorithmConstants.SIGALG_SHA1_WITH_ECDSA,
-            AlgorithmConstants.SIGALG_SHA224_WITH_ECDSA,
-            AlgorithmConstants.SIGALG_SHA256_WITH_ECDSA,
-            AlgorithmConstants.SIGALG_SHA384_WITH_ECDSA,
-            AlgorithmConstants.SIGALG_SHA512_WITH_ECDSA,
-            AlgorithmConstants.SIGALG_SHA3_256_WITH_ECDSA,
-            AlgorithmConstants.SIGALG_SHA3_384_WITH_ECDSA,
-            AlgorithmConstants.SIGALG_SHA3_512_WITH_ECDSA
-    ));
+  /** Signature algorithms supported by ECDSA keys. */
+<span class="fc" id="L102">  public static final List&lt;String&gt; SIG_ALGS_ECDSA =</span>
+<span class="fc" id="L103">      Collections.unmodifiableList(</span>
+<span class="fc" id="L104">          Arrays.asList(</span>
+              AlgorithmConstants.SIGALG_SHA1_WITH_ECDSA,
+              AlgorithmConstants.SIGALG_SHA224_WITH_ECDSA,
+              AlgorithmConstants.SIGALG_SHA256_WITH_ECDSA,
+              AlgorithmConstants.SIGALG_SHA384_WITH_ECDSA,
+              AlgorithmConstants.SIGALG_SHA512_WITH_ECDSA,
+              AlgorithmConstants.SIGALG_SHA3_256_WITH_ECDSA,
+              AlgorithmConstants.SIGALG_SHA3_384_WITH_ECDSA,
+              AlgorithmConstants.SIGALG_SHA3_512_WITH_ECDSA));
 
-    /** Signature algorithms supported by GOST keys */
-<span class="fc" id="L115">    public static final List&lt;String&gt; SIG_ALGS_ECGOST3410 = Collections.unmodifiableList(Arrays.asList(</span>
-            AlgorithmConstants.SIGALG_GOST3411_WITH_ECGOST3410
-    ));
+  /** Signature algorithms supported by GOST keys. */
+<span class="fc" id="L115">  public static final List&lt;String&gt; SIG_ALGS_ECGOST3410 =</span>
+<span class="fc" id="L116">      Collections.unmodifiableList(</span>
+<span class="fc" id="L117">          Arrays.asList(AlgorithmConstants.SIGALG_GOST3411_WITH_ECGOST3410));</span>
 
-    /** Signature algorithms supported by DSTU4145 keys */
-<span class="fc" id="L120">    public static final List&lt;String&gt; SIG_ALGS_DSTU4145 = Collections.unmodifiableList(Arrays.asList(</span>
-            AlgorithmConstants.SIGALG_GOST3411_WITH_DSTU4145
-    ));
+  /** Signature algorithms supported by DSTU4145 keys. */
+<span class="fc" id="L120">  public static final List&lt;String&gt; SIG_ALGS_DSTU4145 =</span>
+<span class="fc" id="L121">      Collections.unmodifiableList(</span>
+<span class="fc" id="L122">          Arrays.asList(AlgorithmConstants.SIGALG_GOST3411_WITH_DSTU4145));</span>
 
-    /**
-     * Gets the name of matching key algorithm from a public key as defined by
-     * &lt;i&gt;AlgorithmConstants&lt;/i&gt;.
-     * @param publickey Public key to find matching key algorithm for.
-     * @return Name of the matching key algorithm or null if no match.
-     * @see AlgorithmConstants#KEYALGORITHM_RSA
-     * @see AlgorithmConstants#KEYALGORITHM_DSA
-     * @see AlgorithmConstants#KEYALGORITHM_ECDSA
-     */
-    public static String getKeyAlgorithm(final PublicKey publickey) {
-<span class="fc" id="L134">        String keyAlg = null;</span>
-<span class="fc bfc" id="L135" title="All 2 branches covered.">        if ( publickey instanceof RSAPublicKey ) {</span>
-<span class="fc" id="L136">            keyAlg  = AlgorithmConstants.KEYALGORITHM_RSA;</span>
-<span class="fc bfc" id="L137" title="All 2 branches covered.">        } else if ( publickey instanceof DSAPublicKey ) {</span>
-<span class="fc" id="L138">            keyAlg = AlgorithmConstants.KEYALGORITHM_DSA;</span>
-<span class="fc bfc" id="L139" title="All 2 branches covered.">        } else if ( publickey instanceof ECPublicKey ) {</span>
-<span class="fc" id="L140">            final String algo = publickey.getAlgorithm();</span>
-<span class="pc bpc" id="L141" title="1 of 2 branches missed.">            if (StringUtils.equals(algo, AlgorithmConstants.KEYALGORITHM_ECGOST3410)) {</span>
-<span class="nc" id="L142">                keyAlg = AlgorithmConstants.KEYALGORITHM_ECGOST3410;</span>
-<span class="pc bpc" id="L143" title="1 of 2 branches missed.">            } else if (StringUtils.equals(algo, AlgorithmConstants.KEYALGORITHM_DSTU4145)) {</span>
-<span class="nc" id="L144">                keyAlg = AlgorithmConstants.KEYALGORITHM_DSTU4145;</span>
-            } else {
-<span class="fc" id="L146">                keyAlg = AlgorithmConstants.KEYALGORITHM_ECDSA;</span>
-            }
-        }
-<span class="fc" id="L149">        return keyAlg;</span>
+  /**
+   * Gets the name of matching key algorithm from a public key as defined by
+   * &lt;i&gt;AlgorithmConstants&lt;/i&gt;.
+   *
+   * @param publickey Public key to find matching key algorithm for.
+   * @return Name of the matching key algorithm or null if no match.
+   * @see AlgorithmConstants#KEYALGORITHM_RSA
+   * @see AlgorithmConstants#KEYALGORITHM_DSA
+   * @see AlgorithmConstants#KEYALGORITHM_ECDSA
+   */
+  public static String getKeyAlgorithm(final PublicKey publickey) {
+<span class="fc" id="L135">    String keyAlg = null;</span>
+<span class="fc bfc" id="L136" title="All 2 branches covered.">    if (publickey instanceof RSAPublicKey) {</span>
+<span class="fc" id="L137">      keyAlg = AlgorithmConstants.KEYALGORITHM_RSA;</span>
+<span class="fc bfc" id="L138" title="All 2 branches covered.">    } else if (publickey instanceof DSAPublicKey) {</span>
+<span class="fc" id="L139">      keyAlg = AlgorithmConstants.KEYALGORITHM_DSA;</span>
+<span class="fc bfc" id="L140" title="All 2 branches covered.">    } else if (publickey instanceof ECPublicKey) {</span>
+<span class="fc" id="L141">      final String algo = publickey.getAlgorithm();</span>
+<span class="pc bpc" id="L142" title="1 of 2 branches missed.">      if (StringUtils.equals(</span>
+          algo, AlgorithmConstants.KEYALGORITHM_ECGOST3410)) {
+<span class="nc" id="L144">        keyAlg = AlgorithmConstants.KEYALGORITHM_ECGOST3410;</span>
+<span class="pc bpc" id="L145" title="1 of 2 branches missed.">      } else if (StringUtils.equals(</span>
+          algo, AlgorithmConstants.KEYALGORITHM_DSTU4145)) {
+<span class="nc" id="L147">        keyAlg = AlgorithmConstants.KEYALGORITHM_DSTU4145;</span>
+      } else {
+<span class="fc" id="L149">        keyAlg = AlgorithmConstants.KEYALGORITHM_ECDSA;</span>
+      }
     }
+<span class="fc" id="L152">    return keyAlg;</span>
+  }
 
-    /** @return a list of all available key algorithms */
-    public static List&lt;String&gt; getAvailableKeyAlgorithms() {
-<span class="fc" id="L154">        final List&lt;String&gt; ret = new ArrayList&lt;&gt;(Arrays.asList(AlgorithmConstants.KEYALGORITHM_DSA, AlgorithmConstants.KEYALGORITHM_ECDSA,</span>
+  /** @return a list of all available key algorithms */
+  public static List&lt;String&gt; getAvailableKeyAlgorithms() {
+<span class="fc" id="L157">    final List&lt;String&gt; ret =</span>
+        new ArrayList&lt;&gt;(
+<span class="fc" id="L159">            Arrays.asList(</span>
+                AlgorithmConstants.KEYALGORITHM_DSA,
+                AlgorithmConstants.KEYALGORITHM_ECDSA,
                 AlgorithmConstants.KEYALGORITHM_RSA));
-<span class="pc bpc" id="L156" title="1 of 2 branches missed.">        for (final String algName : CesecoreConfiguration.getExtraAlgs()) {</span>
-<span class="nc" id="L157">            ret.add(CesecoreConfiguration.getExtraAlgTitle(algName));</span>
-<span class="nc" id="L158">        }</span>
-<span class="fc" id="L159">        return ret;</span>
-    }
+<span class="pc bpc" id="L163" title="1 of 2 branches missed.">    for (final String algName : CesecoreConfiguration.getExtraAlgs()) {</span>
+<span class="nc" id="L164">      ret.add(CesecoreConfiguration.getExtraAlgTitle(algName));</span>
+<span class="nc" id="L165">    }</span>
+<span class="fc" id="L166">    return ret;</span>
+  }
 
-    /**
-     * Get unique available named elliptic curves and their aliases.
-     *
-     * @param hasToBeKnownByDefaultProvider if the curve name needs to be known by the default provider (e.g. so Sun PKCS#11 can use it)
-     * @return a Map with elliptic curve names as key and the key+any alias as the value.
-     */
-    public static Map&lt;String,List&lt;String&gt;&gt; getNamedEcCurvesMap(final boolean hasToBeKnownByDefaultProvider) {
-        // Map of curve name and aliases which are the same curve
-<span class="nc" id="L170">        final Map&lt;String,List&lt;String&gt;&gt; processedCurveNames = new HashMap&lt;&gt;();</span>
-        @SuppressWarnings(&quot;unchecked&quot;)
-<span class="nc" id="L172">        final Enumeration&lt;String&gt; ecNamedCurvesStandard = ECNamedCurveTable.getNames();</span>
-        // Process standard curves, removing blacklisted ones and those not supported by the provider
-<span class="nc bnc" id="L174" title="All 2 branches missed.">        while (ecNamedCurvesStandard.hasMoreElements()) {</span>
-<span class="nc" id="L175">            final String ecNamedCurve = ecNamedCurvesStandard.nextElement();</span>
-<span class="nc" id="L176">            processCurveName(hasToBeKnownByDefaultProvider, processedCurveNames, ecNamedCurve);</span>
-<span class="nc" id="L177">        }</span>
+  /**
+   * Get unique available named elliptic curves and their aliases.
+   *
+   * @param hasToBeKnownByDefaultProvider if the curve name needs to be known by
+   *     the default provider (e.g. so Sun PKCS#11 can use it)
+   * @return a Map with elliptic curve names as key and the key+any alias as the
+   *     value.
+   */
+  public static Map&lt;String, List&lt;String&gt;&gt; getNamedEcCurvesMap(
+      final boolean hasToBeKnownByDefaultProvider) {
+    // Map of curve name and aliases which are the same curve
+<span class="nc" id="L180">    final Map&lt;String, List&lt;String&gt;&gt; processedCurveNames = new HashMap&lt;&gt;();</span>
+    @SuppressWarnings(&quot;unchecked&quot;)
+    final Enumeration&lt;String&gt; ecNamedCurvesStandard =
+<span class="nc" id="L183">        ECNamedCurveTable.getNames();</span>
+    // Process standard curves, removing blacklisted ones and those not
+    // supported by the provider
+<span class="nc bnc" id="L186" title="All 2 branches missed.">    while (ecNamedCurvesStandard.hasMoreElements()) {</span>
+<span class="nc" id="L187">      final String ecNamedCurve = ecNamedCurvesStandard.nextElement();</span>
+<span class="nc" id="L188">      processCurveName(</span>
+          hasToBeKnownByDefaultProvider, processedCurveNames, ecNamedCurve);
+<span class="nc" id="L190">    }</span>
 
-        // Process additional curves that we specify
-<span class="nc bnc" id="L180" title="All 2 branches missed.">        for (String ecNamedCurve : AlgorithmConstants.EXTRA_EC_CURVES) {</span>
-<span class="nc" id="L181">            processCurveName(hasToBeKnownByDefaultProvider, processedCurveNames, ecNamedCurve);</span>
-<span class="nc" id="L182">        }</span>
-<span class="nc" id="L183">        return processedCurveNames;</span>
+    // Process additional curves that we specify
+<span class="nc bnc" id="L193" title="All 2 branches missed.">    for (String ecNamedCurve : AlgorithmConstants.EXTRA_EC_CURVES) {</span>
+<span class="nc" id="L194">      processCurveName(</span>
+          hasToBeKnownByDefaultProvider, processedCurveNames, ecNamedCurve);
+<span class="nc" id="L196">    }</span>
+<span class="nc" id="L197">    return processedCurveNames;</span>
+  }
+
+  /**
+   * Get unique available named elliptic curves and their aliases.
+   *
+   * @param hasToBeKnownByDefaultProvider if the curve name needs to be known by
+   *     the default provider (e.g. so Sun PKCS#11 can use it)
+   * @return a Map with elliptic curve names as key and the list of alias
+   *     separated by '/' as the value.
+   */
+  public static TreeMap&lt;String, String&gt; getFlatNamedEcCurvesMap(
+      final boolean hasToBeKnownByDefaultProvider) {
+<span class="nc" id="L210">    final TreeMap&lt;String, String&gt; result = new TreeMap&lt;String, String&gt;();</span>
+<span class="nc" id="L211">    final Map&lt;String, List&lt;String&gt;&gt; map =</span>
+<span class="nc" id="L212">        getNamedEcCurvesMap(hasToBeKnownByDefaultProvider);</span>
+<span class="nc" id="L213">    final String[] keys = map.keySet().toArray(new String[map.size()]);</span>
+<span class="nc" id="L214">    Arrays.sort(keys);</span>
+<span class="nc bnc" id="L215" title="All 2 branches missed.">    for (final String name : keys) {</span>
+<span class="nc" id="L216">      result.put(</span>
+<span class="nc" id="L217">          name, StringTools.getAsStringWithSeparator(&quot; / &quot;, map.get(name)));</span>
     }
-    
-    /**
-     * Get unique available named elliptic curves and their aliases.
-     *  
-     * @param hasToBeKnownByDefaultProvider if the curve name needs to be known by the default provider (e.g. so Sun PKCS#11 can use it)
-     * @return a Map with elliptic curve names as key and the list of alias separated by '/' as the value.
-     */
-    public static TreeMap&lt;String,String&gt; getFlatNamedEcCurvesMap(final boolean hasToBeKnownByDefaultProvider) {
-<span class="nc" id="L193">        final TreeMap&lt;String,String&gt; result = new TreeMap&lt;String,String&gt;();</span>
-<span class="nc" id="L194">        final Map&lt;String, List&lt;String&gt;&gt; map = getNamedEcCurvesMap(hasToBeKnownByDefaultProvider);</span>
-<span class="nc" id="L195">        final String[] keys = map.keySet().toArray(new String[map.size()]);</span>
-<span class="nc" id="L196">        Arrays.sort(keys);</span>
-<span class="nc bnc" id="L197" title="All 2 branches missed.">        for (final String name : keys) {</span>
-<span class="nc" id="L198">            result.put(name, StringTools.getAsStringWithSeparator(&quot; / &quot;, map.get(name)));</span>
+<span class="nc" id="L219">    return result;</span>
+  }
+
+  /**
+   * Gets a list of allowed curves (@see &lt;a
+   * href=&quot;http://csrc.nist.gov/groups/ST/toolkit/documents/dss/NISTReCur.pdf&quot;&gt;NIST
+   * curves&lt;/a&gt;).
+   *
+   * @return the list of allowed curves.
+   */
+  public static List&lt;String&gt; getNistCurves() {
+    // Only apply most important conditions (sequence is Root-CA, Sub-CA,
+    // User-Certificate)!
+    // But this is not required at the time, because certificate validity
+    // conditions are before
+    // 2014 (now 2017). Allowed curves by NIST are NIST P 256, P 384, P 521
+    // See http://csrc.nist.gov/groups/ST/toolkit/documents/dss/NISTReCur.pdf
+    // chapter 1.2
+<span class="nc" id="L237">    final List&lt;String&gt; list = new ArrayList&lt;String&gt;();</span>
+<span class="nc" id="L238">    list.addAll(AlgorithmTools.getEcKeySpecAliases(&quot;P-256&quot;));</span>
+<span class="nc" id="L239">    list.addAll(AlgorithmTools.getEcKeySpecAliases(&quot;P-384&quot;));</span>
+<span class="nc" id="L240">    list.addAll(AlgorithmTools.getEcKeySpecAliases(&quot;P-521&quot;));</span>
+<span class="nc" id="L241">    return list;</span>
+  }
+
+  private static void processCurveName(
+      final boolean hasToBeKnownByDefaultProvider,
+      final Map&lt;String, List&lt;String&gt;&gt; processedCurveNames,
+      final String ecNamedCurve) {
+<span class="nc bnc" id="L248" title="All 2 branches missed.">    if (AlgorithmConstants.BLACKLISTED_EC_CURVES.contains(ecNamedCurve)) {</span>
+<span class="nc" id="L249">      return;</span>
+    }
+    // Only add it if the key-length is sufficient
+    try {
+<span class="nc" id="L253">      final ECNamedCurveParameterSpec parameterSpec =</span>
+<span class="nc" id="L254">          ECNamedCurveTable.getParameterSpec(ecNamedCurve);</span>
+<span class="nc" id="L255">      final int bitLength = parameterSpec.getN().bitLength();</span>
+<span class="nc" id="L256">      KeyTools.checkValidKeyLength(</span>
+          AlgorithmConstants.KEYALGORITHM_ECDSA, bitLength);
+      // Check if this exists under another alias
+<span class="nc" id="L259">      boolean added = false;</span>
+<span class="nc bnc" id="L260" title="All 2 branches missed.">      for (final String name : processedCurveNames.keySet()) {</span>
+<span class="nc" id="L261">        final ECNamedCurveParameterSpec parameterSpec2 =</span>
+<span class="nc" id="L262">            ECNamedCurveTable.getParameterSpec(name);</span>
+<span class="nc bnc" id="L263" title="All 2 branches missed.">        if (parameterSpec.equals(parameterSpec2)) {</span>
+          // We have already listed this curve under another name
+<span class="nc" id="L265">          added = true;</span>
+<span class="nc" id="L266">          break;</span>
         }
-<span class="nc" id="L200">        return result;</span>
-    }
-    
-    /**
-     * Gets a list of allowed curves (@see &lt;a href=&quot;http://csrc.nist.gov/groups/ST/toolkit/documents/dss/NISTReCur.pdf&quot;&gt;NIST curves&lt;/a&gt;).
-     * 
-     * @return the list of allowed curves.
-     */
-    public static List&lt;String&gt; getNistCurves() {
-        // Only apply most important conditions (sequence is Root-CA, Sub-CA, User-Certificate)!
-        // But this is not required at the time, because certificate validity conditions are before 
-        // 2014 (now 2017). Allowed curves by NIST are NIST P 256, P 384, P 521
-        // See http://csrc.nist.gov/groups/ST/toolkit/documents/dss/NISTReCur.pdf chapter 1.2
-<span class="nc" id="L213">        final List&lt;String&gt; list = new ArrayList&lt;String&gt;();</span>
-<span class="nc" id="L214">        list.addAll(AlgorithmTools.getEcKeySpecAliases(&quot;P-256&quot;));</span>
-<span class="nc" id="L215">        list.addAll(AlgorithmTools.getEcKeySpecAliases(&quot;P-384&quot;));</span>
-<span class="nc" id="L216">        list.addAll(AlgorithmTools.getEcKeySpecAliases(&quot;P-521&quot;));</span>
-<span class="nc" id="L217">        return list;</span>
-    }
-
-    private static void processCurveName(final boolean hasToBeKnownByDefaultProvider, final Map&lt;String, List&lt;String&gt;&gt; processedCurveNames,
-            final String ecNamedCurve) {
-<span class="nc bnc" id="L222" title="All 2 branches missed.">        if (AlgorithmConstants.BLACKLISTED_EC_CURVES.contains(ecNamedCurve)) {</span>
-<span class="nc" id="L223">            return;</span>
+<span class="nc" id="L268">      }</span>
+<span class="nc bnc" id="L269" title="All 2 branches missed.">      if (!added) {</span>
+<span class="nc bnc" id="L270" title="All 2 branches missed.">        if (hasToBeKnownByDefaultProvider) {</span>
+<span class="nc bnc" id="L271" title="All 2 branches missed.">          if (AlgorithmTools.isNamedECKnownInDefaultProvider(ecNamedCurve)) {</span>
+<span class="nc" id="L272">            processedCurveNames.put(</span>
+<span class="nc" id="L273">                ecNamedCurve, getEcKeySpecAliases(ecNamedCurve));</span>
+          }
+        } else {
+<span class="nc" id="L276">          processedCurveNames.put(</span>
+<span class="nc" id="L277">              ecNamedCurve, getEcKeySpecAliases(ecNamedCurve));</span>
         }
-        // Only add it if the key-length is sufficient
+      }
+<span class="nc" id="L280">    } catch (InvalidKeyException e) {</span>
+      // Ignore very silently
+<span class="nc bnc" id="L282" title="All 2 branches missed.">      if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L283">        LOG.trace(</span>
+            &quot;Not adding keys that are not allowed to key list: &quot;
+<span class="nc" id="L285">                + e.getMessage());</span>
+      }
+<span class="nc" id="L287">    } catch (RuntimeException e) {</span>
+      // Ignore
+<span class="nc bnc" id="L289" title="All 2 branches missed.">      if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L290">        LOG.debug(e.getMessage());</span>
+      }
+<span class="nc" id="L292">    }</span>
+<span class="nc" id="L293">  }</span>
+
+  /**
+   * @param ecNamedCurve Curve
+   * @return the number of bits a named elliptic curve has or 0 if the curve
+   *     name is unknown.
+   */
+  public static int getNamedEcCurveBitLength(final String ecNamedCurve) {
+<span class="nc" id="L301">    ECNamedCurveParameterSpec ecNamedCurveParameterSpec =</span>
+<span class="nc" id="L302">        ECGOST3410NamedCurveTable.getParameterSpec(ecNamedCurve);</span>
+<span class="nc bnc" id="L303" title="All 2 branches missed.">    if (ecNamedCurveParameterSpec != null) {</span>
+      // This always returns 0, so try to use the field size as an estimate of
+      // the bit strength
+      // return
+      // ECGOST3410NamedCurveTable.getParameterSpec(ecNamedCurve).getN().bitLength()
+<span class="nc" id="L308">      return ecNamedCurveParameterSpec.getCurve().getFieldSize();</span>
+    }
+<span class="nc" id="L310">    ecNamedCurveParameterSpec =</span>
+<span class="nc" id="L311">        ECNamedCurveTable.getParameterSpec(ecNamedCurve);</span>
+<span class="nc bnc" id="L312" title="All 2 branches missed.">    if (ecNamedCurveParameterSpec == null) {</span>
+<span class="nc" id="L313">      return 0;</span>
+    }
+<span class="nc" id="L315">    return ecNamedCurveParameterSpec.getN().bitLength();</span>
+  }
+
+  /**
+   * Gets a collection of signature algorithm names supported by the given key.
+   *
+   * @param publickey key to find supported algorithms for.
+   * @return Collection of zero or more signature algorithm names
+   * @see AlgorithmConstants
+   */
+  public static List&lt;String&gt; getSignatureAlgorithms(final PublicKey publickey) {
+<span class="fc bfc" id="L326" title="All 2 branches covered.">    if (publickey instanceof RSAPublicKey) {</span>
+<span class="fc" id="L327">      return SIG_ALGS_RSA;</span>
+    }
+<span class="fc bfc" id="L329" title="All 2 branches covered.">    if (publickey instanceof DSAPublicKey) {</span>
+<span class="fc" id="L330">      return SIG_ALGS_DSA;</span>
+    }
+<span class="fc bfc" id="L332" title="All 2 branches covered.">    if (publickey instanceof ECPublicKey) {</span>
+<span class="fc" id="L333">      final String algo = publickey.getAlgorithm();</span>
+<span class="pc bpc" id="L334" title="1 of 2 branches missed.">      if (StringUtils.equals(</span>
+          algo, AlgorithmConstants.KEYALGORITHM_ECGOST3410)) {
+<span class="nc" id="L336">        return SIG_ALGS_ECGOST3410;</span>
+      }
+<span class="pc bpc" id="L338" title="1 of 2 branches missed.">      if (StringUtils.equals(algo, AlgorithmConstants.KEYALGORITHM_DSTU4145)) {</span>
+<span class="nc" id="L339">        return SIG_ALGS_DSTU4145;</span>
+      }
+<span class="fc" id="L341">      return SIG_ALGS_ECDSA;</span>
+    }
+<span class="fc" id="L343">    return Collections.emptyList();</span>
+  }
+
+  /**
+   * Gets the key algorithm matching a specific signature algorithm.
+   *
+   * @param signatureAlgorithm to get matching key algorithm for
+   * @return The key algorithm matching the signature or algorithm or the
+   *     default if no matching was found.
+   * @see AlgorithmConstants
+   */
+  public static String getKeyAlgorithmFromSigAlg(
+      final String signatureAlgorithm) {
+    final String ret;
+<span class="fc bfc" id="L357" title="All 2 branches covered.">    if (signatureAlgorithm.contains(&quot;ECDSA&quot;)) {</span>
+<span class="fc" id="L358">      ret = AlgorithmConstants.KEYALGORITHM_ECDSA;</span>
+<span class="pc bpc" id="L359" title="1 of 2 branches missed.">    } else if (signatureAlgorithm.contains(&quot;GOST3410&quot;)) {</span>
+<span class="nc" id="L360">      ret = AlgorithmConstants.KEYALGORITHM_ECGOST3410;</span>
+<span class="pc bpc" id="L361" title="1 of 2 branches missed.">    } else if (signatureAlgorithm.contains(&quot;DSTU4145&quot;)) {</span>
+<span class="nc" id="L362">      ret = AlgorithmConstants.KEYALGORITHM_DSTU4145;</span>
+<span class="fc bfc" id="L363" title="All 2 branches covered.">    } else if (signatureAlgorithm.contains(&quot;DSA&quot;)) {</span>
+<span class="fc" id="L364">      ret = AlgorithmConstants.KEYALGORITHM_DSA;</span>
+    } else {
+<span class="fc" id="L366">      ret = AlgorithmConstants.KEYALGORITHM_RSA;</span>
+    }
+<span class="fc" id="L368">    return ret;</span>
+  }
+
+  /**
+   * Gets the key specification from a public key. Example: &quot;2048&quot; for a RSA or
+   * DSA key or &quot;secp256r1&quot; for EC key. The EC curve is only detected if
+   * &lt;i&gt;publickey&lt;/i&gt; is an object known by the bouncy castle provider.
+   *
+   * @param publicKey The public key to get the key specification from
+   * @return The key specification, &quot;unknown&quot; if it could not be determined and
+   *     null if the key algorithm is not supported
+   */
+  public static String getKeySpecification(final PublicKey publicKey) {
+<span class="pc bpc" id="L381" title="1 of 2 branches missed.">    if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L382">      LOG.trace(&quot;&gt;getKeySpecification&quot;);</span>
+    }
+<span class="fc" id="L384">    String keyspec = null;</span>
+<span class="fc bfc" id="L385" title="All 2 branches covered.">    if (publicKey instanceof RSAPublicKey) {</span>
+<span class="fc" id="L386">      keyspec =</span>
+<span class="fc" id="L387">          Integer.toString(((RSAPublicKey) publicKey).getModulus().bitLength());</span>
+<span class="fc bfc" id="L388" title="All 2 branches covered.">    } else if (publicKey instanceof DSAPublicKey) {</span>
+<span class="fc" id="L389">      keyspec =</span>
+<span class="fc" id="L390">          Integer.toString(</span>
+<span class="fc" id="L391">              ((DSAPublicKey) publicKey).getParams().getP().bitLength());</span>
+<span class="fc bfc" id="L392" title="All 2 branches covered.">    } else if (publicKey instanceof ECPublicKey) {</span>
+<span class="fc" id="L393">      final ECPublicKey ecPublicKey = (ECPublicKey) publicKey;</span>
+<span class="fc bfc" id="L394" title="All 2 branches covered.">      if (ecPublicKey.getParams() instanceof ECNamedCurveSpec) {</span>
+<span class="fc" id="L395">        keyspec = ((ECNamedCurveSpec) ecPublicKey.getParams()).getName();</span>
+        // Prefer to return a curve name alias that also works with the default
+        // and BC provider
+<span class="pc bpc" id="L398" title="1 of 2 branches missed.">        for (String keySpecAlias : getEcKeySpecAliases(keyspec)) {</span>
+<span class="pc bpc" id="L399" title="1 of 2 branches missed.">          if (isNamedECKnownInDefaultProvider(keySpecAlias)) {</span>
+<span class="fc" id="L400">            keyspec = keySpecAlias;</span>
+<span class="fc" id="L401">            break;</span>
+          }
+<span class="pc" id="L403">        }</span>
+      } else {
+<span class="fc" id="L405">        keyspec = KEYSPEC_UNKNOWN;</span>
+        // Try to detect if it is a curve name known by BC even though the
+        // public key isn't a BC key
+<span class="fc" id="L408">        final ECParameterSpec namedCurve = ecPublicKey.getParams();</span>
+<span class="pc bpc" id="L409" title="1 of 2 branches missed.">        if (namedCurve != null) {</span>
+<span class="nc" id="L410">          final int c1 = namedCurve.getCofactor();</span>
+<span class="nc" id="L411">          final EllipticCurve ec1 = namedCurve.getCurve();</span>
+<span class="nc" id="L412">          final BigInteger a1 = ec1.getA();</span>
+<span class="nc" id="L413">          final BigInteger b1 = ec1.getB();</span>
+<span class="nc" id="L414">          final int fs1 = ec1.getField().getFieldSize();</span>
+          // final byte[] s1 = ec1.getSeed();
+<span class="nc" id="L416">          final ECPoint g1 = namedCurve.getGenerator();</span>
+<span class="nc" id="L417">          final BigInteger ax1 = g1.getAffineX();</span>
+<span class="nc" id="L418">          final BigInteger ay1 = g1.getAffineY();</span>
+<span class="nc" id="L419">          final BigInteger o1 = namedCurve.getOrder();</span>
+<span class="nc bnc" id="L420" title="All 2 branches missed.">          if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L421">            LOG.debug(</span>
+                &quot;a1=&quot; + a1 + &quot; b1=&quot; + b1 + &quot; fs1=&quot; + fs1 + &quot; ax1=&quot; + ax1
+                    + &quot; ay1=&quot; + ay1 + &quot; o1=&quot; + o1 + &quot; c1=&quot; + c1);
+          }
+          @SuppressWarnings(&quot;unchecked&quot;)
+          final Enumeration&lt;String&gt; ecNamedCurves =
+<span class="nc" id="L427">              ECNamedCurveTable.getNames();</span>
+<span class="nc bnc" id="L428" title="All 2 branches missed.">          while (ecNamedCurves.hasMoreElements()) {</span>
+<span class="nc" id="L429">            final String ecNamedCurveBc = ecNamedCurves.nextElement();</span>
+<span class="nc" id="L430">            final ECNamedCurveParameterSpec parameterSpec2 =</span>
+<span class="nc" id="L431">                ECNamedCurveTable.getParameterSpec(ecNamedCurveBc);</span>
+<span class="nc" id="L432">            final ECCurve ec2 = parameterSpec2.getCurve();</span>
+<span class="nc" id="L433">            final BigInteger a2 = ec2.getA().toBigInteger();</span>
+<span class="nc" id="L434">            final BigInteger b2 = ec2.getB().toBigInteger();</span>
+<span class="nc" id="L435">            final int fs2 = ec2.getFieldSize();</span>
+<span class="nc" id="L436">            final org.bouncycastle.math.ec.ECPoint g2 = parameterSpec2.getG();</span>
+<span class="nc" id="L437">            final BigInteger ax2 = g2.getAffineXCoord().toBigInteger();</span>
+<span class="nc" id="L438">            final BigInteger ay2 = g2.getAffineYCoord().toBigInteger();</span>
+<span class="nc" id="L439">            final BigInteger h2 = parameterSpec2.getH();</span>
+<span class="nc" id="L440">            final BigInteger n2 = parameterSpec2.getN();</span>
+<span class="nc bnc" id="L441" title="All 2 branches missed.">            if (a1.equals(a2)</span>
+<span class="nc bnc" id="L442" title="All 2 branches missed.">                &amp;&amp; ax1.equals(ax2)</span>
+<span class="nc bnc" id="L443" title="All 2 branches missed.">                &amp;&amp; b1.equals(b2)</span>
+<span class="nc bnc" id="L444" title="All 4 branches missed.">                &amp;&amp; ay1.equals(ay2)</span>
+                &amp;&amp; fs1 == fs2
+<span class="nc bnc" id="L446" title="All 2 branches missed.">                &amp;&amp; o1.equals(n2)</span>
+<span class="nc bnc" id="L447" title="All 2 branches missed.">                &amp;&amp; c1 == h2.intValue()) {</span>
+              // We have a matching curve here!
+<span class="nc bnc" id="L449" title="All 2 branches missed.">              if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L450">                LOG.debug(</span>
+                    &quot;a2=&quot;
+                        + a2
+                        + &quot; b2=&quot;
+                        + b2
+                        + &quot; fs2=&quot;
+                        + fs2
+                        + &quot; ax2=&quot;
+                        + ax2
+                        + &quot; ay2=&quot;
+                        + ay2
+                        + &quot; h2=&quot;
+                        + h2
+                        + &quot; n2=&quot;
+                        + n2
+                        + &quot; &quot;
+                        + ecNamedCurveBc);
+              }
+              // Since this public key is a SUN PKCS#11 pub key if we get here,
+              // we only return an alias if it is recognized by the provider
+<span class="nc bnc" id="L470" title="All 2 branches missed.">              if (isNamedECKnownInDefaultProvider(ecNamedCurveBc)) {</span>
+<span class="nc" id="L471">                keyspec = ecNamedCurveBc;</span>
+<span class="nc" id="L472">                break;</span>
+              }
+            }
+<span class="nc" id="L475">          }</span>
+        }
+      }
+    }
+<span class="pc bpc" id="L479" title="1 of 2 branches missed.">    if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L480">      LOG.trace(&quot;&lt;getKeySpecification: &quot; + keyspec);</span>
+    }
+<span class="fc" id="L482">    return keyspec;</span>
+  }
+
+  /**
+   * Check if the curve name is known by the first found PKCS#11 provider or
+   * default (BC) (if no EC capable PKCS#11 provider were found).
+   *
+   * @param ecNamedCurveBc Curve
+   * @return boolean
+   */
+  public static boolean isNamedECKnownInDefaultProvider(
+          final String ecNamedCurveBc) {
+<span class="fc" id="L494">    final Provider[] providers = Security.getProviders(&quot;KeyPairGenerator.EC&quot;);</span>
+<span class="fc" id="L495">    String providerName = providers[0].getName();</span>
+    try {
+<span class="fc bfc" id="L497" title="All 2 branches covered.">      for (Provider ecProvider : providers) {</span>
+        // This will list something like: SunPKCS11-NSS, BC,
+        // SunPKCS11-&lt;library&gt;-slot&lt;slotnumber&gt;
+<span class="pc bpc" id="L500" title="1 of 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L501">          LOG.debug(&quot;Found EC capable provider named: &quot; + ecProvider.getName());</span>
+        }
+<span class="pc bpc" id="L503" title="1 of 2 branches missed.">        if (ecProvider.getName().startsWith(&quot;SunPKCS11-&quot;)</span>
+<span class="nc bnc" id="L504" title="All 2 branches missed.">            &amp;&amp; !ecProvider.getName().startsWith(&quot;SunPKCS11-NSS&quot;)) {</span>
+          // Sometimes the P11 provider will not even know about EC, skip these
+          // providers. As an example the SunP11
+          // provider in some version/installations will throw a:
+          // java.lang.RuntimeException: Cannot load SunEC provider
+          //   at
+          // sun.security.pkcs11.P11ECKeyFactory.getSunECProvider(P11ECKeyFactory.java:55)
+          // This was a bug of non upgraded NSS in RHEL at some point in time.
+          try {
+<span class="nc" id="L513">            KeyPairGenerator.getInstance(&quot;EC&quot;, ecProvider.getName());</span>
+<span class="nc" id="L514">            providerName = ecProvider.getName();</span>
+<span class="nc" id="L515">            break;</span>
+<span class="nc" id="L516">          } catch (RuntimeException e) {</span>
+<span class="nc" id="L517">            LOG.info(</span>
+                &quot;Provider &quot;
+<span class="nc" id="L519">                    + ecProvider.getName()</span>
+                    + &quot; bailed out on EC, ignored.&quot;,
+                e);
+          }
+        }
+      }
+<span class="fc" id="L525">      final KeyPairGenerator kpg =</span>
+<span class="fc" id="L526">          KeyPairGenerator.getInstance(&quot;EC&quot;, providerName);</span>
+<span class="fc" id="L527">      kpg.initialize(</span>
+<span class="fc" id="L528">          new ECGenParameterSpec(getEcKeySpecOidFromBcName(ecNamedCurveBc)));</span>
+<span class="fc" id="L529">      return true;</span>
+<span class="nc" id="L530">    } catch (InvalidAlgorithmParameterException e) {</span>
+<span class="nc bnc" id="L531" title="All 2 branches missed.">      if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L532">        LOG.debug(</span>
+            ecNamedCurveBc + &quot; is not available in provider &quot; + providerName);
+      }
+<span class="nc" id="L535">    } catch (NoSuchAlgorithmException e) {</span>
+<span class="nc" id="L536">      throw new RuntimeException(</span>
+          &quot;EC capable provider &quot;
+              + providerName
+              + &quot; could no longer handle elliptic curve algorithm..&quot;,
+          e);
+<span class="nc" id="L541">    } catch (NoSuchProviderException e) {</span>
+<span class="nc" id="L542">      throw new RuntimeException(</span>
+          &quot;EC capable provider &quot; + providerName + &quot; disappeard unexpectedly.&quot;,
+          e);
+<span class="nc" id="L545">    }</span>
+<span class="nc" id="L546">    return false;</span>
+  }
+
+  /**
+   * Convert from BC ECC curve names to the OID.
+   *
+   * @param ecNamedCurveBc the name as BC reports it
+   * @return the OID of the curve or the input curve name if it is unknown by BC
+   */
+  public static String getEcKeySpecOidFromBcName(final String ecNamedCurveBc) {
+    // Although the below class is in x9 package, it handles all different
+    // curves, including TeleTrust (brainpool)
+<span class="fc" id="L558">    final ASN1ObjectIdentifier oid =</span>
+<span class="fc" id="L559">        org.bouncycastle.asn1.x9.ECNamedCurveTable.getOID(ecNamedCurveBc);</span>
+<span class="pc bpc" id="L560" title="1 of 2 branches missed.">    if (oid == null) {</span>
+<span class="nc" id="L561">      return ecNamedCurveBc;</span>
+    }
+<span class="fc" id="L563">    return oid.getId();</span>
+  }
+
+  /**
+   * @param namedEllipticCurve Curve name
+   * @return a list of aliases for the provided curve name (including the
+   *     provided name)
+   */
+  public static List&lt;String&gt; getEcKeySpecAliases(
+      final String namedEllipticCurve) {
+<span class="fc" id="L573">    final ECNamedCurveParameterSpec parameterSpec =</span>
+<span class="fc" id="L574">        ECNamedCurveTable.getParameterSpec(namedEllipticCurve);</span>
+<span class="fc" id="L575">    final List&lt;String&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L576">    ret.add(namedEllipticCurve);</span>
+
+<span class="pc bpc" id="L578" title="1 of 2 branches missed.">    if (parameterSpec</span>
+        != null) { // GOST and DSTU aren't present in ECNamedCurveTable (and
+                   // don't have aliases)
+      @SuppressWarnings(&quot;unchecked&quot;)
+<span class="fc" id="L582">      final Enumeration&lt;String&gt; ecNamedCurves = ECNamedCurveTable.getNames();</span>
+<span class="fc bfc" id="L583" title="All 2 branches covered.">      while (ecNamedCurves.hasMoreElements()) {</span>
+<span class="fc" id="L584">        final String currentCurve = ecNamedCurves.nextElement();</span>
+<span class="fc bfc" id="L585" title="All 2 branches covered.">        if (!namedEllipticCurve.equals(currentCurve)) {</span>
+<span class="fc" id="L586">          final ECNamedCurveParameterSpec parameterSpec2 =</span>
+<span class="fc" id="L587">              ECNamedCurveTable.getParameterSpec(currentCurve);</span>
+<span class="fc bfc" id="L588" title="All 2 branches covered.">          if (parameterSpec.equals(parameterSpec2)) {</span>
+<span class="fc" id="L589">            ret.add(currentCurve);</span>
+          }
+        }
+<span class="fc" id="L592">      }</span>
+    }
+<span class="fc" id="L594">    return ret;</span>
+  }
+
+  /**
+   * Gets the algorithm to use for encryption given a specific signature
+   * algorithm. Some signature algorithms (i.e. DSA and ECDSA) can not be used
+   * for encryption so they are instead substituted with RSA with equivalent
+   * hash algorithm.
+   *
+   * @param signatureAlgorithm to find a encryption algorithm for
+   * @return an other encryption algorithm or same as signature algorithm if it
+   *     can be used for encryption
+   */
+  public static String getEncSigAlgFromSigAlg(final String signatureAlgorithm) {
+<span class="fc" id="L608">    String encSigAlg = signatureAlgorithm;</span>
+<span class="fc bfc" id="L609" title="All 2 branches covered.">    if (signatureAlgorithm.equals(</span>
+        AlgorithmConstants.SIGALG_SHA512_WITH_ECDSA)) {
+<span class="fc" id="L611">      encSigAlg = AlgorithmConstants.SIGALG_SHA256_WITH_RSA;</span>
+<span class="fc bfc" id="L612" title="All 2 branches covered.">    } else if (signatureAlgorithm.equals(</span>
+        AlgorithmConstants.SIGALG_SHA384_WITH_ECDSA)) {
+      // Even though SHA384 is used for ECDSA, play it safe and use SHA256 for
+      // RSA since we do not trust all PKCS#11 implementations
+      // to be so new to support SHA384WithRSA
+<span class="fc" id="L617">      encSigAlg = AlgorithmConstants.SIGALG_SHA256_WITH_RSA;</span>
+<span class="fc bfc" id="L618" title="All 2 branches covered.">    } else if (signatureAlgorithm.equals(</span>
+        AlgorithmConstants.SIGALG_SHA256_WITH_ECDSA)) {
+<span class="fc" id="L620">      encSigAlg = AlgorithmConstants.SIGALG_SHA256_WITH_RSA;</span>
+<span class="fc bfc" id="L621" title="All 2 branches covered.">    } else if (signatureAlgorithm.equals(</span>
+        AlgorithmConstants.SIGALG_SHA3_256_WITH_ECDSA)) {
+<span class="fc" id="L623">      encSigAlg = AlgorithmConstants.SIGALG_SHA3_256_WITH_RSA;</span>
+<span class="fc bfc" id="L624" title="All 2 branches covered.">    } else if (signatureAlgorithm.equals(</span>
+        AlgorithmConstants.SIGALG_SHA3_384_WITH_ECDSA)) {
+<span class="fc" id="L626">      encSigAlg = AlgorithmConstants.SIGALG_SHA3_384_WITH_RSA;</span>
+<span class="fc bfc" id="L627" title="All 2 branches covered.">    } else if (signatureAlgorithm.equals(</span>
+        AlgorithmConstants.SIGALG_SHA3_512_WITH_ECDSA)) {
+<span class="fc" id="L629">      encSigAlg = AlgorithmConstants.SIGALG_SHA3_512_WITH_RSA;</span>
+<span class="fc bfc" id="L630" title="All 2 branches covered.">    } else if (signatureAlgorithm.equals(</span>
+        AlgorithmConstants.SIGALG_SHA224_WITH_ECDSA)) {
+<span class="fc" id="L632">      encSigAlg = AlgorithmConstants.SIGALG_SHA256_WITH_RSA;</span>
+<span class="fc bfc" id="L633" title="All 2 branches covered.">    } else if (signatureAlgorithm.equals(</span>
+        AlgorithmConstants.SIGALG_SHA1_WITH_ECDSA)) {
+<span class="fc" id="L635">      encSigAlg = AlgorithmConstants.SIGALG_SHA1_WITH_RSA;</span>
+<span class="fc bfc" id="L636" title="All 2 branches covered.">    } else if (signatureAlgorithm.equals(</span>
+        AlgorithmConstants.SIGALG_SHA1_WITH_DSA)) {
+<span class="fc" id="L638">      encSigAlg = AlgorithmConstants.SIGALG_SHA1_WITH_RSA;</span>
+<span class="fc bfc" id="L639" title="All 2 branches covered.">    } else if (signatureAlgorithm.equals(</span>
+        AlgorithmConstants.SIGALG_GOST3411_WITH_ECGOST3410)) {
+<span class="fc" id="L641">      encSigAlg = AlgorithmConstants.SIGALG_SHA1_WITH_RSA;</span>
+<span class="fc bfc" id="L642" title="All 2 branches covered.">    } else if (signatureAlgorithm.equals(</span>
+        AlgorithmConstants.SIGALG_GOST3411_WITH_DSTU4145)) {
+<span class="fc" id="L644">      encSigAlg = AlgorithmConstants.SIGALG_SHA1_WITH_RSA;</span>
+    }
+<span class="fc" id="L646">    return encSigAlg;</span>
+  }
+
+  /**
+   * Answers if the key can be used together with the given signature algorithm.
+   *
+   * @param publicKey public key to use
+   * @param signatureAlgorithm algorithm to test
+   * @return true if signature algorithm can be used with the public key
+   *     algorithm
+   */
+  public static boolean isCompatibleSigAlg(
+      final PublicKey publicKey, final String signatureAlgorithm) {
+<span class="fc" id="L659">    String algname = publicKey.getAlgorithm();</span>
+<span class="fc bfc" id="L660" title="All 2 branches covered.">    if (algname == null) {</span>
+<span class="fc" id="L661">      algname = &quot;&quot;;</span>
+    }
+<span class="fc" id="L663">    boolean isGost3410 = algname.contains(&quot;GOST3410&quot;);</span>
+<span class="fc" id="L664">    boolean isDstu4145 = algname.contains(&quot;DSTU4145&quot;);</span>
+<span class="pc bpc" id="L665" title="2 of 4 branches missed.">    boolean isSpecialECC = isGost3410 || isDstu4145;</span>
+
+<span class="fc" id="L667">    boolean ret = false;</span>
+<span class="fc bfc" id="L668" title="All 2 branches covered.">    if (StringUtils.contains(</span>
+        signatureAlgorithm, AlgorithmConstants.KEYALGORITHM_RSA)) {
+<span class="fc bfc" id="L670" title="All 2 branches covered.">      if (publicKey instanceof RSAPublicKey) {</span>
+<span class="fc" id="L671">        ret = true;</span>
+      }
+<span class="fc bfc" id="L673" title="All 2 branches covered.">    } else if (StringUtils.contains(</span>
+        signatureAlgorithm, AlgorithmConstants.KEYALGORITHM_ECDSA)) {
+<span class="pc bpc" id="L675" title="1 of 4 branches missed.">      if (publicKey instanceof ECPublicKey &amp;&amp; !isSpecialECC) {</span>
+<span class="fc" id="L676">        ret = true;</span>
+      }
+<span class="pc bpc" id="L678" title="1 of 2 branches missed.">    } else if (StringUtils.contains(</span>
+        signatureAlgorithm, AlgorithmConstants.KEYALGORITHM_DSA)) {
+<span class="fc bfc" id="L680" title="All 2 branches covered.">      if (publicKey instanceof DSAPublicKey) {</span>
+<span class="fc" id="L681">        ret = true;</span>
+      }
+<span class="nc bnc" id="L683" title="All 2 branches missed.">    } else if (StringUtils.contains(</span>
+        signatureAlgorithm, AlgorithmConstants.KEYALGORITHM_ECGOST3410)) {
+<span class="nc bnc" id="L685" title="All 4 branches missed.">      if (publicKey instanceof ECPublicKey &amp;&amp; isGost3410) {</span>
+<span class="nc" id="L686">        ret = true;</span>
+      }
+<span class="nc bnc" id="L688" title="All 2 branches missed.">    } else if (StringUtils.contains(</span>
+        signatureAlgorithm, AlgorithmConstants.KEYALGORITHM_DSTU4145)) {
+<span class="nc bnc" id="L690" title="All 4 branches missed.">      if (publicKey instanceof ECPublicKey &amp;&amp; isDstu4145) {</span>
+<span class="nc" id="L691">        ret = true;</span>
+      }
+    }
+<span class="fc" id="L694">    return ret;</span>
+  }
+
+  /**
+   * Simple methods that returns the signature algorithm value from the
+   * certificate. Not usable for setting signature algorithms names in EJBCA,
+   * only for human presentation.
+   *
+   * @param cert certificate
+   * @return Signature algorithm name from the certificate as a human readable
+   *     string, for example SHA1WithRSA.
+   */
+  public static String getCertSignatureAlgorithmNameAsString(
+          final Certificate cert) {
+    final String certSignatureAlgorithm;
+
+      final String certSignatureAlgorithmTmp;
+<span class="fc bfc" id="L711" title="All 2 branches covered.">      if (cert instanceof X509Certificate) {</span>
+<span class="fc" id="L712">        final X509Certificate x509cert = (X509Certificate) cert;</span>
+<span class="fc" id="L713">        certSignatureAlgorithmTmp = x509cert.getSigAlgName();</span>
+<span class="pc bpc" id="L714" title="1 of 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L715">          LOG.debug(&quot;certSignatureAlgorithm is: &quot; + certSignatureAlgorithmTmp);</span>
+        }
+<span class="pc bpc" id="L717" title="1 of 2 branches missed.">      } else if (StringUtils.equals(cert.getType(), &quot;CVC&quot;)) {</span>
+<span class="fc" id="L718">        final CardVerifiableCertificate cvccert =</span>
+            (CardVerifiableCertificate) cert;
+        final CVCPublicKey cvcpk;
         try {
-<span class="nc" id="L227">            final ECNamedCurveParameterSpec parameterSpec = ECNamedCurveTable.getParameterSpec(ecNamedCurve);</span>
-<span class="nc" id="L228">            final int bitLength = parameterSpec.getN().bitLength();</span>
-<span class="nc" id="L229">            KeyTools.checkValidKeyLength(AlgorithmConstants.KEYALGORITHM_ECDSA, bitLength);</span>
-            // Check if this exists under another alias
-<span class="nc" id="L231">            boolean added = false;</span>
-<span class="nc bnc" id="L232" title="All 2 branches missed.">            for (final String name : processedCurveNames.keySet()) {</span>
-<span class="nc" id="L233">                final ECNamedCurveParameterSpec parameterSpec2 = ECNamedCurveTable.getParameterSpec(name);</span>
-<span class="nc bnc" id="L234" title="All 2 branches missed.">                if (parameterSpec.equals(parameterSpec2)) {</span>
-                    // We have already listed this curve under another name
-<span class="nc" id="L236">                    added = true;</span>
-<span class="nc" id="L237">                    break;</span>
-                }
-<span class="nc" id="L239">            }</span>
-<span class="nc bnc" id="L240" title="All 2 branches missed.">            if (!added) {</span>
-<span class="nc bnc" id="L241" title="All 2 branches missed.">                if (hasToBeKnownByDefaultProvider) {</span>
-<span class="nc bnc" id="L242" title="All 2 branches missed.">                    if (AlgorithmTools.isNamedECKnownInDefaultProvider(ecNamedCurve)) {</span>
-<span class="nc" id="L243">                        processedCurveNames.put(ecNamedCurve, getEcKeySpecAliases(ecNamedCurve));</span>
-                    }
-                } else {
-<span class="nc" id="L246">                    processedCurveNames.put(ecNamedCurve, getEcKeySpecAliases(ecNamedCurve));</span>
-                }
-            }
-<span class="nc" id="L249">        } catch (InvalidKeyException e) {</span>
-            // Ignore very silently
-<span class="nc bnc" id="L251" title="All 2 branches missed.">            if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L252">                log.trace(&quot;Not adding keys that are not allowed to key list: &quot;+e.getMessage());</span>
-            }
-<span class="nc" id="L254">        } catch (RuntimeException e) {</span>
-            // Ignore
-<span class="nc bnc" id="L256" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L257">                log.debug(e.getMessage());</span>
-            }
-<span class="nc" id="L259">        }</span>
-<span class="nc" id="L260">    }</span>
-
-    /** @param ecNamedCurve Curve
-     * @return the number of bits a named elliptic curve has or 0 if the curve name is unknown. */
-    public static int getNamedEcCurveBitLength(final String ecNamedCurve) {
-<span class="nc" id="L265">        ECNamedCurveParameterSpec ecNamedCurveParameterSpec = ECGOST3410NamedCurveTable.getParameterSpec(ecNamedCurve);</span>
-<span class="nc bnc" id="L266" title="All 2 branches missed.">        if (ecNamedCurveParameterSpec!=null) {</span>
-            // This always returns 0, so try to use the field size as an estimate of the bit strength
-            //return ECGOST3410NamedCurveTable.getParameterSpec(ecNamedCurve).getN().bitLength()
-<span class="nc" id="L269">            return ecNamedCurveParameterSpec.getCurve().getFieldSize();</span>
-        }
-<span class="nc" id="L271">        ecNamedCurveParameterSpec = ECNamedCurveTable.getParameterSpec(ecNamedCurve);</span>
-<span class="nc bnc" id="L272" title="All 2 branches missed.">        if (ecNamedCurveParameterSpec==null) {</span>
-<span class="nc" id="L273">            return 0;</span>
-        }
-<span class="nc" id="L275">        return ecNamedCurveParameterSpec.getN().bitLength();</span>
-    }
-
-    /**
-     * Gets a collection of signature algorithm names supported by the given
-     * key.
-     * @param publickey key to find supported algorithms for.
-     * @return Collection of zero or more signature algorithm names
-     * @see AlgorithmConstants
-     */
-    public static List&lt;String&gt; getSignatureAlgorithms(final PublicKey publickey) {
-<span class="fc bfc" id="L286" title="All 2 branches covered.">        if ( publickey instanceof RSAPublicKey ) {</span>
-<span class="fc" id="L287">            return SIG_ALGS_RSA;</span>
-        }
-<span class="fc bfc" id="L289" title="All 2 branches covered.">        if ( publickey instanceof DSAPublicKey ) {</span>
-<span class="fc" id="L290">            return SIG_ALGS_DSA;</span>
-        }
-<span class="fc bfc" id="L292" title="All 2 branches covered.">        if ( publickey instanceof ECPublicKey ) {</span>
-<span class="fc" id="L293">            final String algo = publickey.getAlgorithm();</span>
-<span class="pc bpc" id="L294" title="1 of 2 branches missed.">            if (StringUtils.equals(algo, AlgorithmConstants.KEYALGORITHM_ECGOST3410)) {</span>
-<span class="nc" id="L295">                return SIG_ALGS_ECGOST3410;</span>
-            }
-<span class="pc bpc" id="L297" title="1 of 2 branches missed.">            if (StringUtils.equals(algo, AlgorithmConstants.KEYALGORITHM_DSTU4145)) {</span>
-<span class="nc" id="L298">                return SIG_ALGS_DSTU4145;</span>
-            }
-<span class="fc" id="L300">            return SIG_ALGS_ECDSA;</span>
-        }
-<span class="fc" id="L302">        return Collections.emptyList();</span>
-    }
-
-    /**
-     * Gets the key algorithm matching a specific signature algorithm.
-     * @param signatureAlgorithm to get matching key algorithm for
-     * @return The key algorithm matching the signature or algorithm or
-     * the default if no matching was found.
-     * @see AlgorithmConstants
-     */
-    public static String getKeyAlgorithmFromSigAlg(final String signatureAlgorithm) {
-        final String ret;
-<span class="fc bfc" id="L314" title="All 2 branches covered.">        if ( signatureAlgorithm.contains(&quot;ECDSA&quot;) ) {</span>
-<span class="fc" id="L315">            ret = AlgorithmConstants.KEYALGORITHM_ECDSA;</span>
-<span class="pc bpc" id="L316" title="1 of 2 branches missed.">        } else if ( signatureAlgorithm.contains(&quot;GOST3410&quot;)) {</span>
-<span class="nc" id="L317">            ret = AlgorithmConstants.KEYALGORITHM_ECGOST3410;</span>
-<span class="pc bpc" id="L318" title="1 of 2 branches missed.">        } else if ( signatureAlgorithm.contains(&quot;DSTU4145&quot;)) {</span>
-<span class="nc" id="L319">            ret = AlgorithmConstants.KEYALGORITHM_DSTU4145;</span>
-<span class="fc bfc" id="L320" title="All 2 branches covered.">        } else if ( signatureAlgorithm.contains(&quot;DSA&quot;) ) {</span>
-<span class="fc" id="L321">            ret = AlgorithmConstants.KEYALGORITHM_DSA;</span>
+<span class="fc" id="L722">          cvcpk =</span>
+<span class="fc" id="L723">              cvccert.getCVCertificate().getCertificateBody().getPublicKey();</span>
+<span class="fc" id="L724">          final OIDField oid = cvcpk.getObjectIdentifier();</span>
+<span class="fc" id="L725">          certSignatureAlgorithmTmp = AlgorithmUtil.getAlgorithmName(oid);</span>
+<span class="nc" id="L726">        } catch (NoSuchFieldException e) {</span>
+<span class="nc" id="L727">          throw new AlgorithmsToolRuntimeException(</span>
+              &quot;Not a valid CVC certificate&quot;, e);
+<span class="fc" id="L729">        }</span>
+<span class="fc" id="L730">      } else {</span>
+<span class="nc" id="L731">        throw new AlgorithmsToolRuntimeException(</span>
+            &quot;Certificate type neither X509 nor CVS.&quot;);
+      }
+      // Try to make it easier to display some signature algorithms that
+      // cert.getSigAlgName() does not have a good string for.
+<span class="pc bpc" id="L736" title="3 of 4 branches missed.">      if (certSignatureAlgorithmTmp.equalsIgnoreCase(&quot;1.2.840.113549.1.1.10&quot;)</span>
+          &amp;&amp; cert instanceof X509Certificate) {
+        // Figure out if it is SHA1 or SHA256
+        // If we got this value we should have a x509 cert
+<span class="nc" id="L740">        final X509Certificate x509cert = (X509Certificate) cert;</span>
+<span class="nc" id="L741">        final byte[] params = x509cert.getSigAlgParams();</span>
+<span class="nc bnc" id="L742" title="All 4 branches missed.">        if ((params != null) &amp;&amp; (params.length == 2)) {</span>
+<span class="nc" id="L743">          certSignatureAlgorithm =</span>
+              AlgorithmConstants.SIGALG_SHA1_WITH_RSA_AND_MGF1;
         } else {
-<span class="fc" id="L323">            ret = AlgorithmConstants.KEYALGORITHM_RSA;</span>
+<span class="nc" id="L746">          certSignatureAlgorithm =</span>
+              AlgorithmConstants.SIGALG_SHA256_WITH_RSA_AND_MGF1;
         }
-<span class="fc" id="L325">        return ret;</span>
+<span class="nc" id="L749">      } else {</span>
+<span class="fc" id="L750">        certSignatureAlgorithm = certSignatureAlgorithmTmp;</span>
+      }
+
+    // SHA256WithECDSA does not work to be translated in JDK5.
+<span class="pc bpc" id="L754" title="1 of 2 branches missed.">    if (certSignatureAlgorithm.equalsIgnoreCase(&quot;1.2.840.10045.4.3.2&quot;)) {</span>
+<span class="nc" id="L755">      return AlgorithmConstants.SIGALG_SHA256_WITH_ECDSA;</span>
     }
-    
-    /**
-     * Gets the key specification from a public key. Example: &quot;2048&quot; for a RSA
-     * or DSA key or &quot;secp256r1&quot; for EC key. The EC curve is only detected
-     * if &lt;i&gt;publickey&lt;/i&gt; is an object known by the bouncy castle provider.
-     * @param publicKey The public key to get the key specification from
-     * @return The key specification, &quot;unknown&quot; if it could not be determined and
-     * null if the key algorithm is not supported
-     */
-    public static String getKeySpecification(final PublicKey publicKey) {
-<span class="pc bpc" id="L337" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L338">            log.trace(&quot;&gt;getKeySpecification&quot;);</span>
-        }
-<span class="fc" id="L340">        String keyspec = null;</span>
-<span class="fc bfc" id="L341" title="All 2 branches covered.">        if ( publicKey instanceof RSAPublicKey ) {</span>
-<span class="fc" id="L342">            keyspec = Integer.toString( ((RSAPublicKey) publicKey).getModulus().bitLength() );</span>
-<span class="fc bfc" id="L343" title="All 2 branches covered.">        } else if ( publicKey instanceof DSAPublicKey ) {</span>
-<span class="fc" id="L344">            keyspec = Integer.toString( ((DSAPublicKey) publicKey).getParams().getP().bitLength() );</span>
-<span class="fc bfc" id="L345" title="All 2 branches covered.">        } else if ( publicKey instanceof ECPublicKey) {</span>
-<span class="fc" id="L346">            final ECPublicKey ecPublicKey = (ECPublicKey) publicKey;</span>
-<span class="fc bfc" id="L347" title="All 2 branches covered.">            if ( ecPublicKey.getParams() instanceof ECNamedCurveSpec ) {</span>
-<span class="fc" id="L348">                keyspec = ((ECNamedCurveSpec) ecPublicKey.getParams()).getName();</span>
-                // Prefer to return a curve name alias that also works with the default and BC provider
-<span class="pc bpc" id="L350" title="1 of 2 branches missed.">                for (String keySpecAlias : getEcKeySpecAliases(keyspec)) {</span>
-<span class="pc bpc" id="L351" title="1 of 2 branches missed.">                    if (isNamedECKnownInDefaultProvider(keySpecAlias)) {</span>
-<span class="fc" id="L352">                        keyspec = keySpecAlias;</span>
-<span class="fc" id="L353">                        break;</span>
-                    }
-<span class="pc" id="L355">                }</span>
-            } else {
-<span class="fc" id="L357">                keyspec = KEYSPEC_UNKNOWN;</span>
-                // Try to detect if it is a curve name known by BC even though the public key isn't a BC key
-<span class="fc" id="L359">                final ECParameterSpec namedCurve = ecPublicKey.getParams();</span>
-<span class="pc bpc" id="L360" title="1 of 2 branches missed.">                if (namedCurve!=null) {</span>
-<span class="nc" id="L361">                    final int c1 = namedCurve.getCofactor();</span>
-<span class="nc" id="L362">                    final EllipticCurve ec1 = namedCurve.getCurve();</span>
-<span class="nc" id="L363">                    final BigInteger a1 = ec1.getA();</span>
-<span class="nc" id="L364">                    final BigInteger b1 = ec1.getB();</span>
-<span class="nc" id="L365">                    final int fs1 = ec1.getField().getFieldSize();</span>
-                    //final byte[] s1 = ec1.getSeed();
-<span class="nc" id="L367">                    final ECPoint g1 = namedCurve.getGenerator();</span>
-<span class="nc" id="L368">                    final BigInteger ax1 = g1.getAffineX();</span>
-<span class="nc" id="L369">                    final BigInteger ay1 = g1.getAffineY();</span>
-<span class="nc" id="L370">                    final BigInteger o1 = namedCurve.getOrder();</span>
-<span class="nc bnc" id="L371" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L372">                        log.debug(&quot;a1=&quot; + a1 + &quot; b1=&quot; + b1 + &quot; fs1=&quot; + fs1 + &quot; ax1=&quot; + ax1 + &quot; ay1=&quot; + ay1 + &quot; o1=&quot; + o1 + &quot; c1=&quot;+c1);</span>
-                    }
-                    @SuppressWarnings(&quot;unchecked&quot;)
-<span class="nc" id="L375">                    final Enumeration&lt;String&gt; ecNamedCurves = ECNamedCurveTable.getNames();</span>
-<span class="nc bnc" id="L376" title="All 2 branches missed.">                    while (ecNamedCurves.hasMoreElements()) {</span>
-<span class="nc" id="L377">                        final String ecNamedCurveBc = ecNamedCurves.nextElement();</span>
-<span class="nc" id="L378">                        final ECNamedCurveParameterSpec parameterSpec2 = ECNamedCurveTable.getParameterSpec(ecNamedCurveBc);</span>
-<span class="nc" id="L379">                        final ECCurve ec2 = parameterSpec2.getCurve();</span>
-<span class="nc" id="L380">                        final BigInteger a2 = ec2.getA().toBigInteger();</span>
-<span class="nc" id="L381">                        final BigInteger b2 = ec2.getB().toBigInteger();</span>
-<span class="nc" id="L382">                        final int fs2 = ec2.getFieldSize();</span>
-<span class="nc" id="L383">                        final org.bouncycastle.math.ec.ECPoint g2 = parameterSpec2.getG();</span>
-<span class="nc" id="L384">                        final BigInteger ax2 = g2.getAffineXCoord().toBigInteger();</span>
-<span class="nc" id="L385">                        final BigInteger ay2 = g2.getAffineYCoord().toBigInteger();</span>
-<span class="nc" id="L386">                        final BigInteger h2 = parameterSpec2.getH();</span>
-<span class="nc" id="L387">                        final BigInteger n2 = parameterSpec2.getN();</span>
-<span class="nc bnc" id="L388" title="All 14 branches missed.">                        if (a1.equals(a2) &amp;&amp; ax1.equals(ax2) &amp;&amp; b1.equals(b2) &amp;&amp; ay1.equals(ay2) &amp;&amp; fs1==fs2 &amp;&amp; o1.equals(n2) &amp;&amp; c1==h2.intValue()) {</span>
-                            // We have a matching curve here!
-<span class="nc bnc" id="L390" title="All 2 branches missed.">                            if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L391">                                log.debug(&quot;a2=&quot; + a2 + &quot; b2=&quot; + b2 + &quot; fs2=&quot; + fs2 + &quot; ax2=&quot; + ax2 + &quot; ay2=&quot; + ay2 + &quot; h2=&quot; + h2 + &quot; n2=&quot; + n2 + &quot; &quot; + ecNamedCurveBc);</span>
-                            }
-                            // Since this public key is a SUN PKCS#11 pub key if we get here, we only return an alias if it is recognized by the provider
-<span class="nc bnc" id="L394" title="All 2 branches missed.">                            if (isNamedECKnownInDefaultProvider(ecNamedCurveBc)) {</span>
-<span class="nc" id="L395">                                keyspec = ecNamedCurveBc;</span>
-<span class="nc" id="L396">                                break;</span>
-                            }
-                        }
-<span class="nc" id="L399">                    }</span>
-                }
-            }
-        }
-<span class="pc bpc" id="L403" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L404">            log.trace(&quot;&lt;getKeySpecification: &quot;+keyspec);</span>
-        }
-<span class="fc" id="L406">        return keyspec;</span>
+    // GOST3410
+<span class="pc bpc" id="L758" title="1 of 2 branches missed.">    if (isGost3410Enabled()</span>
+<span class="nc bnc" id="L759" title="All 2 branches missed.">        &amp;&amp; certSignatureAlgorithm.equalsIgnoreCase(</span>
+<span class="nc" id="L760">            CesecoreConfiguration.getOidGost3410())) {</span>
+<span class="nc" id="L761">      return AlgorithmConstants.SIGALG_GOST3411_WITH_ECGOST3410;</span>
     }
-
-    /** Check if the curve name is known by the first found PKCS#11 provider or default (BC) (if no EC capable PKCS#11 provider were found)
-     * @param ecNamedCurveBc Curve
-     * @return boolean */
-    public static boolean isNamedECKnownInDefaultProvider(String ecNamedCurveBc) {
-<span class="fc" id="L413">        final Provider[] providers = Security.getProviders(&quot;KeyPairGenerator.EC&quot;);</span>
-<span class="fc" id="L414">        String providerName = providers[0].getName();</span>
-        try {
-<span class="fc bfc" id="L416" title="All 2 branches covered.">            for (Provider ecProvider : providers) {</span>
-                //This will list something like: SunPKCS11-NSS, BC, SunPKCS11-&lt;library&gt;-slot&lt;slotnumber&gt;
-<span class="pc bpc" id="L418" title="1 of 2 branches missed.">                if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L419">                    log.debug(&quot;Found EC capable provider named: &quot; + ecProvider.getName());</span>
-                }
-<span class="pc bpc" id="L421" title="3 of 4 branches missed.">                if (ecProvider.getName().startsWith(&quot;SunPKCS11-&quot;) &amp;&amp; !ecProvider.getName().startsWith(&quot;SunPKCS11-NSS&quot;) ) {</span>
-                    // Sometimes the P11 provider will not even know about EC, skip these providers. As an example the SunP11
-                    // provider in some version/installations will throw a:
-                    // java.lang.RuntimeException: Cannot load SunEC provider
-                    //   at sun.security.pkcs11.P11ECKeyFactory.getSunECProvider(P11ECKeyFactory.java:55)
-                    // This was a bug of non upgraded NSS in RHEL at some point in time.
-                    try {
-<span class="nc" id="L428">                        KeyPairGenerator.getInstance(&quot;EC&quot;, ecProvider.getName());</span>
-<span class="nc" id="L429">                        providerName = ecProvider.getName();</span>
-<span class="nc" id="L430">                        break;</span>
-<span class="nc" id="L431">                    } catch (RuntimeException e) {</span>
-<span class="nc" id="L432">                        log.info(&quot;Provider &quot;+ecProvider.getName()+&quot; bailed out on EC, ignored.&quot;, e);</span>
-                    }
-                }
-            }
-<span class="fc" id="L436">            final KeyPairGenerator kpg = KeyPairGenerator.getInstance(&quot;EC&quot;, providerName);</span>
-<span class="fc" id="L437">            kpg.initialize(new ECGenParameterSpec(getEcKeySpecOidFromBcName(ecNamedCurveBc)));</span>
-<span class="fc" id="L438">            return true;</span>
-<span class="nc" id="L439">        } catch (InvalidAlgorithmParameterException e) {</span>
-<span class="nc bnc" id="L440" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L441">                log.debug(ecNamedCurveBc + &quot; is not available in provider &quot; + providerName);</span>
-            }
-<span class="nc" id="L443">        } catch (NoSuchAlgorithmException e) {</span>
-<span class="nc" id="L444">            throw new RuntimeException(&quot;EC capable provider &quot; + providerName + &quot; could no longer handle elliptic curve algorithm..&quot; ,e);</span>
-<span class="nc" id="L445">        } catch (NoSuchProviderException e) {</span>
-<span class="nc" id="L446">            throw new RuntimeException(&quot;EC capable provider &quot; + providerName + &quot; disappeard unexpectedly.&quot; ,e);</span>
-<span class="nc" id="L447">        }</span>
-<span class="nc" id="L448">        return false;</span>
+    // DSTU4145
+<span class="pc bpc" id="L764" title="1 of 2 branches missed.">    if (isDstu4145Enabled()</span>
+<span class="nc bnc" id="L765" title="All 2 branches missed.">        &amp;&amp; certSignatureAlgorithm.startsWith(</span>
+<span class="nc" id="L766">            CesecoreConfiguration.getOidDstu4145() + &quot;.&quot;)) {</span>
+<span class="nc" id="L767">      return AlgorithmConstants.SIGALG_GOST3411_WITH_DSTU4145;</span>
     }
+<span class="fc" id="L769">    return certSignatureAlgorithm;</span>
+  }
 
-    /**
-     * Convert from BC ECC curve names to the OID.
-     *
-     * @param ecNamedCurveBc the name as BC reports it
-     * @return the OID of the curve or the input curve name if it is unknown by BC
-     */
-    public static String getEcKeySpecOidFromBcName(final String ecNamedCurveBc) {
-        // Although the below class is in x9 package, it handles all different curves, including TeleTrust (brainpool)
-<span class="fc" id="L459">        final ASN1ObjectIdentifier oid = org.bouncycastle.asn1.x9.ECNamedCurveTable.getOID(ecNamedCurveBc);</span>
-<span class="pc bpc" id="L460" title="1 of 2 branches missed.">        if (oid==null) {</span>
-<span class="nc" id="L461">            return ecNamedCurveBc;</span>
+  /**
+   * Simple method that looks at the certificate and determines, from EJBCA's
+   * standpoint, which signature algorithm it is.
+   *
+   * @param cert the cert to examine
+   * @return Signature algorithm name from
+   *     AlgorithmConstants.SIGALG_SHA1_WITH_RSA etc.
+   */
+  public static String getSignatureAlgorithm(final Certificate cert) {
+<span class="fc" id="L781">    String signatureAlgorithm = null;</span>
+<span class="fc" id="L782">    String certSignatureAlgorithm = getCertSignatureAlgorithmNameAsString(cert);</span>
+
+    // The signature string returned from the certificate is often not usable as
+    // the signature algorithm we must
+    // specify for a CA in EJBCA, for example SHA1WithECDSA is returned as only
+    // ECDSA, so we need some magic to fix it up.
+<span class="fc" id="L788">    PublicKey publickey = cert.getPublicKey();</span>
+<span class="fc bfc" id="L789" title="All 2 branches covered.">    if (publickey instanceof RSAPublicKey) {</span>
+<span class="fc bfc" id="L790" title="All 2 branches covered.">      if (certSignatureAlgorithm.contains(&quot;SHA3-&quot;)) {</span>
+<span class="fc bfc" id="L791" title="All 2 branches covered.">        if (certSignatureAlgorithm.contains(&quot;256&quot;)) {</span>
+<span class="fc" id="L792">          signatureAlgorithm = AlgorithmConstants.SIGALG_SHA3_256_WITH_RSA;</span>
+<span class="pc bpc" id="L793" title="1 of 2 branches missed.">        } else if (certSignatureAlgorithm.contains(&quot;384&quot;)) {</span>
+<span class="nc" id="L794">          signatureAlgorithm = AlgorithmConstants.SIGALG_SHA3_384_WITH_RSA;</span>
+<span class="pc bpc" id="L795" title="1 of 2 branches missed.">        } else if (certSignatureAlgorithm.contains(&quot;512&quot;)) {</span>
+<span class="fc" id="L796">          signatureAlgorithm = AlgorithmConstants.SIGALG_SHA3_512_WITH_RSA;</span>
         }
-<span class="fc" id="L463">        return oid.getId();</span>
-    }
-
-    /** @param namedEllipticCurve Curve name
-     * @return a list of aliases for the provided curve name (including the provided name) */
-    public static List&lt;String&gt; getEcKeySpecAliases(final String namedEllipticCurve) {
-<span class="fc" id="L469">        final ECNamedCurveParameterSpec parameterSpec = ECNamedCurveTable.getParameterSpec(namedEllipticCurve);</span>
-<span class="fc" id="L470">        final List&lt;String&gt; ret = new ArrayList&lt;&gt;();</span>
-<span class="fc" id="L471">        ret.add(namedEllipticCurve);</span>
-
-<span class="pc bpc" id="L473" title="1 of 2 branches missed.">        if (parameterSpec != null) { // GOST and DSTU aren't present in ECNamedCurveTable (and don't have aliases)</span>
-            @SuppressWarnings(&quot;unchecked&quot;)
-<span class="fc" id="L475">            final Enumeration&lt;String&gt; ecNamedCurves = ECNamedCurveTable.getNames();</span>
-<span class="fc bfc" id="L476" title="All 2 branches covered.">            while (ecNamedCurves.hasMoreElements()) {</span>
-<span class="fc" id="L477">                final String currentCurve = ecNamedCurves.nextElement();</span>
-<span class="fc bfc" id="L478" title="All 2 branches covered.">                if (!namedEllipticCurve.equals(currentCurve)) {</span>
-<span class="fc" id="L479">                    final ECNamedCurveParameterSpec parameterSpec2 = ECNamedCurveTable.getParameterSpec(currentCurve);</span>
-<span class="fc bfc" id="L480" title="All 2 branches covered.">                    if (parameterSpec.equals(parameterSpec2)) {</span>
-<span class="fc" id="L481">                        ret.add(currentCurve);</span>
-                    }
-                }
-<span class="fc" id="L484">            }</span>
+<span class="fc bfc" id="L798" title="All 2 branches covered.">      } else if (certSignatureAlgorithm.indexOf(&quot;MGF1&quot;) == -1) {</span>
+<span class="fc bfc" id="L799" title="All 2 branches covered.">        if (certSignatureAlgorithm.indexOf(&quot;MD5&quot;) != -1) {</span>
+<span class="fc" id="L800">          signatureAlgorithm = &quot;MD5WithRSA&quot;;</span>
+<span class="fc bfc" id="L801" title="All 2 branches covered.">        } else if (certSignatureAlgorithm.indexOf(&quot;SHA1&quot;) != -1) {</span>
+<span class="fc" id="L802">          signatureAlgorithm = AlgorithmConstants.SIGALG_SHA1_WITH_RSA;</span>
+<span class="fc bfc" id="L803" title="All 2 branches covered.">        } else if (certSignatureAlgorithm.indexOf(&quot;256&quot;) != -1) {</span>
+<span class="fc" id="L804">          signatureAlgorithm = AlgorithmConstants.SIGALG_SHA256_WITH_RSA;</span>
+<span class="fc bfc" id="L805" title="All 2 branches covered.">        } else if (certSignatureAlgorithm.indexOf(&quot;384&quot;) != -1) {</span>
+<span class="fc" id="L806">          signatureAlgorithm = AlgorithmConstants.SIGALG_SHA384_WITH_RSA;</span>
+<span class="pc bpc" id="L807" title="1 of 2 branches missed.">        } else if (certSignatureAlgorithm.indexOf(&quot;512&quot;) != -1) {</span>
+<span class="fc" id="L808">          signatureAlgorithm = AlgorithmConstants.SIGALG_SHA512_WITH_RSA;</span>
         }
-<span class="fc" id="L486">        return ret;</span>
-    }
-
-    /**
-     * Gets the algorithm to use for encryption given a specific signature algorithm.
-     * Some signature algorithms (i.e. DSA and ECDSA) can not be used for
-     * encryption so they are instead substituted with RSA with equivalent hash
-     * algorithm.
-     * @param signatureAlgorithm to find a encryption algorithm for
-     * @return an other encryption algorithm or same as signature algorithm if it
-     * can be used for encryption
-     */
-    public static String getEncSigAlgFromSigAlg(final String signatureAlgorithm) {
-<span class="fc" id="L499">        String encSigAlg = signatureAlgorithm;</span>
-<span class="fc bfc" id="L500" title="All 2 branches covered.">        if (signatureAlgorithm.equals(AlgorithmConstants.SIGALG_SHA512_WITH_ECDSA)) {</span>
-<span class="fc" id="L501">            encSigAlg = AlgorithmConstants.SIGALG_SHA256_WITH_RSA;</span>
-<span class="fc bfc" id="L502" title="All 2 branches covered.">        } else if (signatureAlgorithm.equals(AlgorithmConstants.SIGALG_SHA384_WITH_ECDSA)) {</span>
-            // Even though SHA384 is used for ECDSA, play it safe and use SHA256 for RSA since we do not trust all PKCS#11 implementations
-            // to be so new to support SHA384WithRSA
-<span class="fc" id="L505">            encSigAlg = AlgorithmConstants.SIGALG_SHA256_WITH_RSA;</span>
-<span class="fc bfc" id="L506" title="All 2 branches covered.">        } else if (signatureAlgorithm.equals(AlgorithmConstants.SIGALG_SHA256_WITH_ECDSA)) {</span>
-<span class="fc" id="L507">            encSigAlg = AlgorithmConstants.SIGALG_SHA256_WITH_RSA;</span>
-<span class="fc bfc" id="L508" title="All 2 branches covered.">        } else if (signatureAlgorithm.equals(AlgorithmConstants.SIGALG_SHA3_256_WITH_ECDSA)) {</span>
-<span class="fc" id="L509">            encSigAlg = AlgorithmConstants.SIGALG_SHA3_256_WITH_RSA;</span>
-<span class="fc bfc" id="L510" title="All 2 branches covered.">        } else if (signatureAlgorithm.equals(AlgorithmConstants.SIGALG_SHA3_384_WITH_ECDSA)) {</span>
-<span class="fc" id="L511">            encSigAlg = AlgorithmConstants.SIGALG_SHA3_384_WITH_RSA;</span>
-<span class="fc bfc" id="L512" title="All 2 branches covered.">        } else if (signatureAlgorithm.equals(AlgorithmConstants.SIGALG_SHA3_512_WITH_ECDSA)) {</span>
-<span class="fc" id="L513">            encSigAlg = AlgorithmConstants.SIGALG_SHA3_512_WITH_RSA;</span>
-<span class="fc bfc" id="L514" title="All 2 branches covered.">        } else if (signatureAlgorithm.equals(AlgorithmConstants.SIGALG_SHA224_WITH_ECDSA)) {</span>
-<span class="fc" id="L515">            encSigAlg = AlgorithmConstants.SIGALG_SHA256_WITH_RSA;</span>
-<span class="fc bfc" id="L516" title="All 2 branches covered.">        } else if (signatureAlgorithm.equals(AlgorithmConstants.SIGALG_SHA1_WITH_ECDSA)) {</span>
-<span class="fc" id="L517">            encSigAlg = AlgorithmConstants.SIGALG_SHA1_WITH_RSA;</span>
-<span class="fc bfc" id="L518" title="All 2 branches covered.">        } else if (signatureAlgorithm.equals(AlgorithmConstants.SIGALG_SHA1_WITH_DSA)) {</span>
-<span class="fc" id="L519">            encSigAlg = AlgorithmConstants.SIGALG_SHA1_WITH_RSA;</span>
-<span class="fc bfc" id="L520" title="All 2 branches covered.">        } else if (signatureAlgorithm.equals(AlgorithmConstants.SIGALG_GOST3411_WITH_ECGOST3410)) {</span>
-<span class="fc" id="L521">            encSigAlg = AlgorithmConstants.SIGALG_SHA1_WITH_RSA;</span>
-<span class="fc bfc" id="L522" title="All 2 branches covered.">        } else if (signatureAlgorithm.equals(AlgorithmConstants.SIGALG_GOST3411_WITH_DSTU4145)) {</span>
-<span class="fc" id="L523">            encSigAlg = AlgorithmConstants.SIGALG_SHA1_WITH_RSA;</span>
-        }
-<span class="fc" id="L525">        return encSigAlg;</span>
-    }
-
-    /**
-     * Answers if the key can be used together with the given signature algorithm.
-     * @param publicKey public key to use
-     * @param signatureAlgorithm algorithm to test
-     * @return true if signature algorithm can be used with the public key algorithm
-     */
-    public static boolean isCompatibleSigAlg(final PublicKey publicKey, final String signatureAlgorithm) {
-<span class="fc" id="L535">        String algname = publicKey.getAlgorithm();</span>
-<span class="fc bfc" id="L536" title="All 2 branches covered.">        if (algname == null) {</span>
-<span class="fc" id="L537">            algname = &quot;&quot;;</span>
-        }
-<span class="fc" id="L539">        boolean isGost3410 = algname.contains(&quot;GOST3410&quot;);</span>
-<span class="fc" id="L540">        boolean isDstu4145 = algname.contains(&quot;DSTU4145&quot;);</span>
-<span class="pc bpc" id="L541" title="2 of 4 branches missed.">        boolean isSpecialECC = isGost3410 || isDstu4145;</span>
-
-<span class="fc" id="L543">        boolean ret = false;</span>
-<span class="fc bfc" id="L544" title="All 2 branches covered.">        if (StringUtils.contains(signatureAlgorithm, AlgorithmConstants.KEYALGORITHM_RSA)) {</span>
-<span class="fc bfc" id="L545" title="All 2 branches covered.">            if (publicKey instanceof RSAPublicKey) {</span>
-<span class="fc" id="L546">                ret = true;</span>
-            }
-<span class="fc bfc" id="L548" title="All 2 branches covered.">        } else if (StringUtils.contains(signatureAlgorithm, AlgorithmConstants.KEYALGORITHM_ECDSA)) {</span>
-<span class="pc bpc" id="L549" title="1 of 4 branches missed.">            if (publicKey instanceof ECPublicKey &amp;&amp; !isSpecialECC) {</span>
-<span class="fc" id="L550">                ret = true;</span>
-            }
-<span class="pc bpc" id="L552" title="1 of 2 branches missed.">        } else if (StringUtils.contains(signatureAlgorithm, AlgorithmConstants.KEYALGORITHM_DSA)) {</span>
-<span class="fc bfc" id="L553" title="All 2 branches covered.">            if (publicKey instanceof DSAPublicKey) {</span>
-<span class="fc" id="L554">                ret = true;</span>
-            }
-<span class="nc bnc" id="L556" title="All 2 branches missed.">        } else if (StringUtils.contains(signatureAlgorithm, AlgorithmConstants.KEYALGORITHM_ECGOST3410)) {</span>
-<span class="nc bnc" id="L557" title="All 4 branches missed.">             if (publicKey instanceof ECPublicKey &amp;&amp; isGost3410) {</span>
-<span class="nc" id="L558">                 ret = true;</span>
-             }
-<span class="nc bnc" id="L560" title="All 2 branches missed.">         } else if (StringUtils.contains(signatureAlgorithm, AlgorithmConstants.KEYALGORITHM_DSTU4145)) {</span>
-<span class="nc bnc" id="L561" title="All 4 branches missed.">            if (publicKey instanceof ECPublicKey &amp;&amp; isDstu4145) {</span>
-<span class="nc" id="L562">                ret = true;</span>
-            }
-         }
-<span class="fc" id="L565">        return ret;</span>
-    }
-
-    /**
-     * Simple methods that returns the signature algorithm value from the certificate. Not usable for setting signature algorithms names in EJBCA,
-     * only for human presentation.
-     * @param cert certificate
-     *
-     * @return Signature algorithm name from the certificate as a human readable string, for example SHA1WithRSA.
-     */
-    public static String getCertSignatureAlgorithmNameAsString(Certificate cert) {
-        final String certSignatureAlgorithm;
-        {
-            final String certSignatureAlgorithmTmp;
-<span class="fc bfc" id="L579" title="All 2 branches covered.">            if (cert instanceof X509Certificate) {</span>
-<span class="fc" id="L580">                final X509Certificate x509cert = (X509Certificate) cert;</span>
-<span class="fc" id="L581">                certSignatureAlgorithmTmp = x509cert.getSigAlgName();</span>
-<span class="pc bpc" id="L582" title="1 of 2 branches missed.">                if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L583">                    log.debug(&quot;certSignatureAlgorithm is: &quot; + certSignatureAlgorithmTmp);</span>
-                }
-<span class="pc bpc" id="L585" title="1 of 2 branches missed.">            } else if (StringUtils.equals(cert.getType(), &quot;CVC&quot;)) {</span>
-<span class="fc" id="L586">                final CardVerifiableCertificate cvccert = (CardVerifiableCertificate) cert;</span>
-                final CVCPublicKey cvcpk;
-                try {
-<span class="fc" id="L589">                    cvcpk = cvccert.getCVCertificate().getCertificateBody().getPublicKey();</span>
-<span class="fc" id="L590">                    final OIDField oid = cvcpk.getObjectIdentifier();</span>
-<span class="fc" id="L591">                    certSignatureAlgorithmTmp = AlgorithmUtil.getAlgorithmName(oid);</span>
-<span class="nc" id="L592">                } catch (NoSuchFieldException e) {</span>
-<span class="nc" id="L593">                    throw new AlgorithmsToolRuntimeException(&quot;Not a valid CVC certificate&quot;, e);</span>
-<span class="fc" id="L594">                }</span>
-<span class="fc" id="L595">            } else {</span>
-<span class="nc" id="L596">                throw new AlgorithmsToolRuntimeException(&quot;Certificate type neither X509 nor CVS.&quot;);</span>
-            }
-            // Try to make it easier to display some signature algorithms that cert.getSigAlgName() does not have a good string for.
-<span class="pc bpc" id="L599" title="3 of 4 branches missed.">            if (certSignatureAlgorithmTmp.equalsIgnoreCase(&quot;1.2.840.113549.1.1.10&quot;) &amp;&amp; cert instanceof X509Certificate) {</span>
-                // Figure out if it is SHA1 or SHA256
-                // If we got this value we should have a x509 cert
-<span class="nc" id="L602">                final X509Certificate x509cert = (X509Certificate) cert;</span>
-<span class="nc" id="L603">                final byte[] params = x509cert.getSigAlgParams();</span>
-<span class="nc bnc" id="L604" title="All 4 branches missed.">                if ((params != null) &amp;&amp; (params.length == 2)) {</span>
-<span class="nc" id="L605">                    certSignatureAlgorithm = AlgorithmConstants.SIGALG_SHA1_WITH_RSA_AND_MGF1;</span>
-                } else {
-<span class="nc" id="L607">                    certSignatureAlgorithm = AlgorithmConstants.SIGALG_SHA256_WITH_RSA_AND_MGF1;</span>
-                }
-<span class="nc" id="L609">            } else {</span>
-<span class="fc" id="L610">                certSignatureAlgorithm = certSignatureAlgorithmTmp;</span>
-            }
-        }
-        // SHA256WithECDSA does not work to be translated in JDK5.
-<span class="pc bpc" id="L614" title="1 of 2 branches missed.">        if (certSignatureAlgorithm.equalsIgnoreCase(&quot;1.2.840.10045.4.3.2&quot;)) {</span>
-<span class="nc" id="L615">            return AlgorithmConstants.SIGALG_SHA256_WITH_ECDSA;</span>
-        }
-        // GOST3410
-<span class="pc bpc" id="L618" title="3 of 4 branches missed.">        if(isGost3410Enabled() &amp;&amp; certSignatureAlgorithm.equalsIgnoreCase(CesecoreConfiguration.getOidGost3410())) {</span>
-<span class="nc" id="L619">            return AlgorithmConstants.SIGALG_GOST3411_WITH_ECGOST3410;</span>
-        }
-        // DSTU4145
-<span class="pc bpc" id="L622" title="3 of 4 branches missed.">        if(isDstu4145Enabled() &amp;&amp; certSignatureAlgorithm.startsWith(CesecoreConfiguration.getOidDstu4145()+&quot;.&quot;)) {</span>
-<span class="nc" id="L623">            return AlgorithmConstants.SIGALG_GOST3411_WITH_DSTU4145;</span>
-        }
-<span class="fc" id="L625">        return certSignatureAlgorithm;</span>
-    }
-
-    /**
-     * Simple method that looks at the certificate and determines, from EJBCA's standpoint, which signature algorithm it is
-     *
-     * @param cert the cert to examine
-     * @return Signature algorithm name from AlgorithmConstants.SIGALG_SHA1_WITH_RSA etc.
-     */
-    public static String getSignatureAlgorithm(Certificate cert) {
-<span class="fc" id="L635">        String signatureAlgorithm = null;</span>
-<span class="fc" id="L636">        String certSignatureAlgorithm = getCertSignatureAlgorithmNameAsString(cert);</span>
-
-        // The signature string returned from the certificate is often not usable as the signature algorithm we must
-        // specify for a CA in EJBCA, for example SHA1WithECDSA is returned as only ECDSA, so we need some magic to fix it up.
-<span class="fc" id="L640">        PublicKey publickey = cert.getPublicKey();</span>
-<span class="fc bfc" id="L641" title="All 2 branches covered.">        if (publickey instanceof RSAPublicKey) {</span>
-<span class="fc bfc" id="L642" title="All 2 branches covered.">            if (certSignatureAlgorithm.contains(&quot;SHA3-&quot;)) {</span>
-<span class="fc bfc" id="L643" title="All 2 branches covered.">                if (certSignatureAlgorithm.contains(&quot;256&quot;)) {</span>
-<span class="fc" id="L644">                    signatureAlgorithm = AlgorithmConstants.SIGALG_SHA3_256_WITH_RSA;</span>
-<span class="pc bpc" id="L645" title="1 of 2 branches missed.">                } else if (certSignatureAlgorithm.contains(&quot;384&quot;)) {</span>
-<span class="nc" id="L646">                    signatureAlgorithm = AlgorithmConstants.SIGALG_SHA3_384_WITH_RSA;</span>
-<span class="pc bpc" id="L647" title="1 of 2 branches missed.">                } else if (certSignatureAlgorithm.contains(&quot;512&quot;)) {</span>
-<span class="fc" id="L648">                    signatureAlgorithm = AlgorithmConstants.SIGALG_SHA3_512_WITH_RSA;</span>
-                }
-<span class="fc bfc" id="L650" title="All 2 branches covered.">            } else if (certSignatureAlgorithm.indexOf(&quot;MGF1&quot;) == -1) {</span>
-<span class="fc bfc" id="L651" title="All 2 branches covered.">                if (certSignatureAlgorithm.indexOf(&quot;MD5&quot;) != -1) {</span>
-<span class="fc" id="L652">                    signatureAlgorithm = &quot;MD5WithRSA&quot;;</span>
-<span class="fc bfc" id="L653" title="All 2 branches covered.">                } else if (certSignatureAlgorithm.indexOf(&quot;SHA1&quot;) != -1) {</span>
-<span class="fc" id="L654">                    signatureAlgorithm = AlgorithmConstants.SIGALG_SHA1_WITH_RSA;</span>
-<span class="fc bfc" id="L655" title="All 2 branches covered.">                } else if (certSignatureAlgorithm.indexOf(&quot;256&quot;) != -1) {</span>
-<span class="fc" id="L656">                    signatureAlgorithm = AlgorithmConstants.SIGALG_SHA256_WITH_RSA;</span>
-<span class="fc bfc" id="L657" title="All 2 branches covered.">                } else if (certSignatureAlgorithm.indexOf(&quot;384&quot;) != -1) {</span>
-<span class="fc" id="L658">                    signatureAlgorithm = AlgorithmConstants.SIGALG_SHA384_WITH_RSA;</span>
-<span class="pc bpc" id="L659" title="1 of 2 branches missed.">                } else if (certSignatureAlgorithm.indexOf(&quot;512&quot;) != -1) {</span>
-<span class="fc" id="L660">                    signatureAlgorithm = AlgorithmConstants.SIGALG_SHA512_WITH_RSA;</span>
-                }
-            } else {
-<span class="fc bfc" id="L663" title="All 2 branches covered.">                if (certSignatureAlgorithm.indexOf(&quot;SHA1&quot;) != -1) {</span>
-<span class="fc" id="L664">                    signatureAlgorithm = AlgorithmConstants.SIGALG_SHA1_WITH_RSA_AND_MGF1;</span>
-                } else {
-<span class="fc" id="L666">                    signatureAlgorithm = AlgorithmConstants.SIGALG_SHA256_WITH_RSA_AND_MGF1;</span>
-                }
-            }
-<span class="fc bfc" id="L669" title="All 2 branches covered.">        } else if (publickey instanceof DSAPublicKey) {</span>
-<span class="fc" id="L670">            signatureAlgorithm = AlgorithmConstants.SIGALG_SHA1_WITH_DSA;</span>
+      } else {
+<span class="fc bfc" id="L811" title="All 2 branches covered.">        if (certSignatureAlgorithm.indexOf(&quot;SHA1&quot;) != -1) {</span>
+<span class="fc" id="L812">          signatureAlgorithm = AlgorithmConstants.SIGALG_SHA1_WITH_RSA_AND_MGF1;</span>
         } else {
-<span class="fc bfc" id="L672" title="All 2 branches covered.">            if (certSignatureAlgorithm.contains(&quot;SHA3-&quot;)) {</span>
-<span class="fc bfc" id="L673" title="All 2 branches covered.">                if (certSignatureAlgorithm.contains(&quot;256&quot;)) {</span>
-<span class="fc" id="L674">                    return AlgorithmConstants.SIGALG_SHA3_256_WITH_ECDSA;</span>
-<span class="fc bfc" id="L675" title="All 2 branches covered.">                } else if (certSignatureAlgorithm.contains(&quot;384&quot;)) {</span>
-<span class="fc" id="L676">                    return AlgorithmConstants.SIGALG_SHA3_384_WITH_ECDSA;</span>
-<span class="pc bpc" id="L677" title="1 of 2 branches missed.">                } else if (certSignatureAlgorithm.contains(&quot;512&quot;)) {</span>
-<span class="fc" id="L678">                    return AlgorithmConstants.SIGALG_SHA3_512_WITH_ECDSA;</span>
-                }
-<span class="fc bfc" id="L680" title="All 2 branches covered.">            } else if (certSignatureAlgorithm.indexOf(&quot;256&quot;) != -1) {</span>
-<span class="fc" id="L681">                signatureAlgorithm = AlgorithmConstants.SIGALG_SHA256_WITH_ECDSA;</span>
-<span class="fc bfc" id="L682" title="All 2 branches covered.">            } else if (certSignatureAlgorithm.indexOf(&quot;224&quot;) != -1) {</span>
-<span class="fc" id="L683">                signatureAlgorithm = AlgorithmConstants.SIGALG_SHA224_WITH_ECDSA;</span>
-<span class="fc bfc" id="L684" title="All 2 branches covered.">            } else if (certSignatureAlgorithm.indexOf(&quot;384&quot;) != -1) {</span>
-<span class="fc" id="L685">                signatureAlgorithm = AlgorithmConstants.SIGALG_SHA384_WITH_ECDSA;</span>
-<span class="fc bfc" id="L686" title="All 2 branches covered.">            } else if (certSignatureAlgorithm.indexOf(&quot;512&quot;) != -1) {</span>
-<span class="fc" id="L687">                signatureAlgorithm = AlgorithmConstants.SIGALG_SHA512_WITH_ECDSA;</span>
-<span class="pc bpc" id="L688" title="1 of 2 branches missed.">            } else if (certSignatureAlgorithm.indexOf(&quot;ECDSA&quot;) != -1) {</span>
-                // From x509cert.getSigAlgName(), SHA1withECDSA only returns name ECDSA
-<span class="fc" id="L690">                signatureAlgorithm = AlgorithmConstants.SIGALG_SHA1_WITH_ECDSA;</span>
-<span class="nc bnc" id="L691" title="All 4 branches missed.">            } else if (isGost3410Enabled() &amp;&amp; certSignatureAlgorithm.equalsIgnoreCase(AlgorithmConstants.SIGALG_GOST3411_WITH_ECGOST3410)) {</span>
-<span class="nc" id="L692">                signatureAlgorithm = AlgorithmConstants.SIGALG_GOST3411_WITH_ECGOST3410;</span>
-<span class="nc bnc" id="L693" title="All 4 branches missed.">            } else if (isDstu4145Enabled() &amp;&amp; certSignatureAlgorithm.equalsIgnoreCase(AlgorithmConstants.SIGALG_GOST3411_WITH_DSTU4145)) {</span>
-<span class="nc" id="L694">                signatureAlgorithm = AlgorithmConstants.SIGALG_GOST3411_WITH_DSTU4145;</span>
-            }
+<span class="fc" id="L814">          signatureAlgorithm =</span>
+              AlgorithmConstants.SIGALG_SHA256_WITH_RSA_AND_MGF1;
         }
-<span class="pc bpc" id="L697" title="1 of 2 branches missed.">        if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L698">            log.debug(&quot;getSignatureAlgorithm: &quot; + signatureAlgorithm);</span>
+      }
+<span class="fc bfc" id="L818" title="All 2 branches covered.">    } else if (publickey instanceof DSAPublicKey) {</span>
+<span class="fc" id="L819">      signatureAlgorithm = AlgorithmConstants.SIGALG_SHA1_WITH_DSA;</span>
+    } else {
+<span class="fc bfc" id="L821" title="All 2 branches covered.">      if (certSignatureAlgorithm.contains(&quot;SHA3-&quot;)) {</span>
+<span class="fc bfc" id="L822" title="All 2 branches covered.">        if (certSignatureAlgorithm.contains(&quot;256&quot;)) {</span>
+<span class="fc" id="L823">          return AlgorithmConstants.SIGALG_SHA3_256_WITH_ECDSA;</span>
+<span class="fc bfc" id="L824" title="All 2 branches covered.">        } else if (certSignatureAlgorithm.contains(&quot;384&quot;)) {</span>
+<span class="fc" id="L825">          return AlgorithmConstants.SIGALG_SHA3_384_WITH_ECDSA;</span>
+<span class="pc bpc" id="L826" title="1 of 2 branches missed.">        } else if (certSignatureAlgorithm.contains(&quot;512&quot;)) {</span>
+<span class="fc" id="L827">          return AlgorithmConstants.SIGALG_SHA3_512_WITH_ECDSA;</span>
         }
-<span class="fc" id="L700">        return signatureAlgorithm;</span>
-    } // getSignatureAlgorithm
+<span class="fc bfc" id="L829" title="All 2 branches covered.">      } else if (certSignatureAlgorithm.indexOf(&quot;256&quot;) != -1) {</span>
+<span class="fc" id="L830">        signatureAlgorithm = AlgorithmConstants.SIGALG_SHA256_WITH_ECDSA;</span>
+<span class="fc bfc" id="L831" title="All 2 branches covered.">      } else if (certSignatureAlgorithm.indexOf(&quot;224&quot;) != -1) {</span>
+<span class="fc" id="L832">        signatureAlgorithm = AlgorithmConstants.SIGALG_SHA224_WITH_ECDSA;</span>
+<span class="fc bfc" id="L833" title="All 2 branches covered.">      } else if (certSignatureAlgorithm.indexOf(&quot;384&quot;) != -1) {</span>
+<span class="fc" id="L834">        signatureAlgorithm = AlgorithmConstants.SIGALG_SHA384_WITH_ECDSA;</span>
+<span class="fc bfc" id="L835" title="All 2 branches covered.">      } else if (certSignatureAlgorithm.indexOf(&quot;512&quot;) != -1) {</span>
+<span class="fc" id="L836">        signatureAlgorithm = AlgorithmConstants.SIGALG_SHA512_WITH_ECDSA;</span>
+<span class="pc bpc" id="L837" title="1 of 2 branches missed.">      } else if (certSignatureAlgorithm.indexOf(&quot;ECDSA&quot;) != -1) {</span>
+        // From x509cert.getSigAlgName(), SHA1withECDSA only returns name ECDSA
+<span class="fc" id="L839">        signatureAlgorithm = AlgorithmConstants.SIGALG_SHA1_WITH_ECDSA;</span>
+<span class="nc bnc" id="L840" title="All 2 branches missed.">      } else if (isGost3410Enabled()</span>
+<span class="nc bnc" id="L841" title="All 2 branches missed.">          &amp;&amp; certSignatureAlgorithm.equalsIgnoreCase(</span>
+              AlgorithmConstants.SIGALG_GOST3411_WITH_ECGOST3410)) {
+<span class="nc" id="L843">        signatureAlgorithm = AlgorithmConstants.SIGALG_GOST3411_WITH_ECGOST3410;</span>
+<span class="nc bnc" id="L844" title="All 2 branches missed.">      } else if (isDstu4145Enabled()</span>
+<span class="nc bnc" id="L845" title="All 2 branches missed.">          &amp;&amp; certSignatureAlgorithm.equalsIgnoreCase(</span>
+              AlgorithmConstants.SIGALG_GOST3411_WITH_DSTU4145)) {
+<span class="nc" id="L847">        signatureAlgorithm = AlgorithmConstants.SIGALG_GOST3411_WITH_DSTU4145;</span>
+      }
+    }
+<span class="pc bpc" id="L850" title="1 of 2 branches missed.">    if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L851">      LOG.debug(&quot;getSignatureAlgorithm: &quot; + signatureAlgorithm);</span>
+    }
+<span class="fc" id="L853">    return signatureAlgorithm;</span>
+  } // getSignatureAlgorithm
 
-    /**
-     * Get the digest algorithm corresponding to the signature algorithm. This is used for the creation of
-     * PKCS7 file. SHA1 shall always be used, but it is not working with GOST which needs GOST3411 digest.
-     * @param sigAlg Algorithm
-     * @return name
-     */
-    public static String getDigestFromSigAlg(String sigAlg) {
-<span class="nc bnc" id="L710" title="All 4 branches missed.">        if (sigAlg.toUpperCase().contains(&quot;GOST&quot;) || sigAlg.toUpperCase().contains(&quot;DSTU&quot;)) {</span>
-<span class="nc" id="L711">            return CMSSignedGenerator.DIGEST_GOST3411;</span>
-        }
-<span class="nc bnc" id="L713" title="All 4 branches missed.">        if(sigAlg.equals(X9ObjectIdentifiers.ecdsa_with_SHA1.getId()) || sigAlg.equals(PKCSObjectIdentifiers.sha1WithRSAEncryption.getId())) {</span>
-<span class="nc" id="L714">            return CMSSignedGenerator.DIGEST_SHA1;</span>
-        }
-<span class="nc bnc" id="L716" title="All 4 branches missed.">        if(sigAlg.equals(X9ObjectIdentifiers.ecdsa_with_SHA224.getId()) || sigAlg.equals(PKCSObjectIdentifiers.sha224WithRSAEncryption.getId())) {</span>
-<span class="nc" id="L717">            return CMSSignedGenerator.DIGEST_SHA224;</span>
-        }
-<span class="nc bnc" id="L719" title="All 2 branches missed.">        if(sigAlg.equals(X9ObjectIdentifiers.ecdsa_with_SHA256.getId()) ||</span>
-<span class="nc bnc" id="L720" title="All 2 branches missed.">                sigAlg.equals(PKCSObjectIdentifiers.sha256WithRSAEncryption.getId())) {</span>
-<span class="nc" id="L721">            return CMSSignedGenerator.DIGEST_SHA256;</span>
-        }
-<span class="nc bnc" id="L723" title="All 2 branches missed.">        if (sigAlg.equals(NISTObjectIdentifiers.id_rsassa_pkcs1_v1_5_with_sha3_256.getId())) {</span>
-<span class="nc" id="L724">            return NISTObjectIdentifiers.id_sha3_256.getId();</span>
-        }
-<span class="nc bnc" id="L726" title="All 2 branches missed.">        if (sigAlg.equals(NISTObjectIdentifiers.id_rsassa_pkcs1_v1_5_with_sha3_384.getId())) {</span>
-<span class="nc" id="L727">            return NISTObjectIdentifiers.id_sha3_384.getId();</span>
-        }
-<span class="nc bnc" id="L729" title="All 2 branches missed.">        if (sigAlg.equals(NISTObjectIdentifiers.id_rsassa_pkcs1_v1_5_with_sha3_512.getId())) {</span>
-<span class="nc" id="L730">            return NISTObjectIdentifiers.id_sha3_512.getId();</span>
-        }
-<span class="nc bnc" id="L732" title="All 2 branches missed.">        if (sigAlg.equals(NISTObjectIdentifiers.id_ecdsa_with_sha3_256.getId())) {</span>
-<span class="nc" id="L733">            return NISTObjectIdentifiers.id_sha3_256.getId();</span>
-        }
-<span class="nc bnc" id="L735" title="All 2 branches missed.">        if (sigAlg.equals(NISTObjectIdentifiers.id_ecdsa_with_sha3_384.getId())) {</span>
-<span class="nc" id="L736">            return NISTObjectIdentifiers.id_sha3_384.getId();</span>
-        }
-<span class="nc bnc" id="L738" title="All 2 branches missed.">        if (sigAlg.equals(NISTObjectIdentifiers.id_ecdsa_with_sha3_512.getId())) {</span>
-<span class="nc" id="L739">            return NISTObjectIdentifiers.id_sha3_512.getId();</span>
-        }
-<span class="nc bnc" id="L741" title="All 4 branches missed.">        if(sigAlg.equals(X9ObjectIdentifiers.ecdsa_with_SHA384.getId()) || sigAlg.equals(PKCSObjectIdentifiers.sha384WithRSAEncryption.getId())) {</span>
-<span class="nc" id="L742">            return CMSSignedGenerator.DIGEST_SHA384;</span>
-        }
-<span class="nc bnc" id="L744" title="All 4 branches missed.">        if(sigAlg.equals(X9ObjectIdentifiers.ecdsa_with_SHA512.getId()) || sigAlg.equals(PKCSObjectIdentifiers.sha512WithRSAEncryption.getId())) {</span>
-<span class="nc" id="L745">            return CMSSignedGenerator.DIGEST_SHA512;</span>
-        }
-<span class="nc bnc" id="L747" title="All 2 branches missed.">        if(sigAlg.equals(PKCSObjectIdentifiers.md5WithRSAEncryption.getId())) {</span>
-<span class="nc" id="L748">            return CMSSignedGenerator.DIGEST_MD5;</span>
-        }
-<span class="nc bnc" id="L750" title="All 2 branches missed.">        if(sigAlg.equals(CryptoProObjectIdentifiers.gostR3411_94_with_gostR3410_2001.getId()) ) {</span>
-<span class="nc" id="L751">            return CMSSignedGenerator.DIGEST_GOST3411;</span>
-        }
-<span class="nc" id="L753">        return CMSSignedGenerator.DIGEST_SHA1;</span>
+  /**
+   * Get the digest algorithm corresponding to the signature algorithm. This is
+   * used for the creation of PKCS7 file. SHA1 shall always be used, but it is
+   * not working with GOST which needs GOST3411 digest.
+   *
+   * @param sigAlg Algorithm
+   * @return name
+   */
+  public static String getDigestFromSigAlg(final String sigAlg) {
+<span class="nc bnc" id="L865" title="All 2 branches missed.">    if (sigAlg.toUpperCase().contains(&quot;GOST&quot;)</span>
+<span class="nc bnc" id="L866" title="All 2 branches missed.">        || sigAlg.toUpperCase().contains(&quot;DSTU&quot;)) {</span>
+<span class="nc" id="L867">      return CMSSignedGenerator.DIGEST_GOST3411;</span>
+    }
+<span class="nc bnc" id="L869" title="All 2 branches missed.">    if (sigAlg.equals(X9ObjectIdentifiers.ecdsa_with_SHA1.getId())</span>
+<span class="nc bnc" id="L870" title="All 2 branches missed.">        || sigAlg.equals(PKCSObjectIdentifiers.sha1WithRSAEncryption.getId())) {</span>
+<span class="nc" id="L871">      return CMSSignedGenerator.DIGEST_SHA1;</span>
+    }
+<span class="nc bnc" id="L873" title="All 2 branches missed.">    if (sigAlg.equals(X9ObjectIdentifiers.ecdsa_with_SHA224.getId())</span>
+<span class="nc bnc" id="L874" title="All 2 branches missed.">        || sigAlg.equals(</span>
+<span class="nc" id="L875">            PKCSObjectIdentifiers.sha224WithRSAEncryption.getId())) {</span>
+<span class="nc" id="L876">      return CMSSignedGenerator.DIGEST_SHA224;</span>
+    }
+<span class="nc bnc" id="L878" title="All 2 branches missed.">    if (sigAlg.equals(X9ObjectIdentifiers.ecdsa_with_SHA256.getId())</span>
+<span class="nc bnc" id="L879" title="All 2 branches missed.">        || sigAlg.equals(</span>
+<span class="nc" id="L880">            PKCSObjectIdentifiers.sha256WithRSAEncryption.getId())) {</span>
+<span class="nc" id="L881">      return CMSSignedGenerator.DIGEST_SHA256;</span>
+    }
+<span class="nc bnc" id="L883" title="All 2 branches missed.">    if (sigAlg.equals(</span>
+<span class="nc" id="L884">        NISTObjectIdentifiers.id_rsassa_pkcs1_v1_5_with_sha3_256.getId())) {</span>
+<span class="nc" id="L885">      return NISTObjectIdentifiers.id_sha3_256.getId();</span>
+    }
+<span class="nc bnc" id="L887" title="All 2 branches missed.">    if (sigAlg.equals(</span>
+<span class="nc" id="L888">        NISTObjectIdentifiers.id_rsassa_pkcs1_v1_5_with_sha3_384.getId())) {</span>
+<span class="nc" id="L889">      return NISTObjectIdentifiers.id_sha3_384.getId();</span>
+    }
+<span class="nc bnc" id="L891" title="All 2 branches missed.">    if (sigAlg.equals(</span>
+<span class="nc" id="L892">        NISTObjectIdentifiers.id_rsassa_pkcs1_v1_5_with_sha3_512.getId())) {</span>
+<span class="nc" id="L893">      return NISTObjectIdentifiers.id_sha3_512.getId();</span>
+    }
+<span class="nc bnc" id="L895" title="All 2 branches missed.">    if (sigAlg.equals(NISTObjectIdentifiers.id_ecdsa_with_sha3_256.getId())) {</span>
+<span class="nc" id="L896">      return NISTObjectIdentifiers.id_sha3_256.getId();</span>
+    }
+<span class="nc bnc" id="L898" title="All 2 branches missed.">    if (sigAlg.equals(NISTObjectIdentifiers.id_ecdsa_with_sha3_384.getId())) {</span>
+<span class="nc" id="L899">      return NISTObjectIdentifiers.id_sha3_384.getId();</span>
+    }
+<span class="nc bnc" id="L901" title="All 2 branches missed.">    if (sigAlg.equals(NISTObjectIdentifiers.id_ecdsa_with_sha3_512.getId())) {</span>
+<span class="nc" id="L902">      return NISTObjectIdentifiers.id_sha3_512.getId();</span>
+    }
+<span class="nc bnc" id="L904" title="All 2 branches missed.">    if (sigAlg.equals(X9ObjectIdentifiers.ecdsa_with_SHA384.getId())</span>
+<span class="nc bnc" id="L905" title="All 2 branches missed.">        || sigAlg.equals(</span>
+<span class="nc" id="L906">            PKCSObjectIdentifiers.sha384WithRSAEncryption.getId())) {</span>
+<span class="nc" id="L907">      return CMSSignedGenerator.DIGEST_SHA384;</span>
+    }
+<span class="nc bnc" id="L909" title="All 2 branches missed.">    if (sigAlg.equals(X9ObjectIdentifiers.ecdsa_with_SHA512.getId())</span>
+<span class="nc bnc" id="L910" title="All 2 branches missed.">        || sigAlg.equals(</span>
+<span class="nc" id="L911">            PKCSObjectIdentifiers.sha512WithRSAEncryption.getId())) {</span>
+<span class="nc" id="L912">      return CMSSignedGenerator.DIGEST_SHA512;</span>
+    }
+<span class="nc bnc" id="L914" title="All 2 branches missed.">    if (sigAlg.equals(PKCSObjectIdentifiers.md5WithRSAEncryption.getId())) {</span>
+<span class="nc" id="L915">      return CMSSignedGenerator.DIGEST_MD5;</span>
+    }
+<span class="nc bnc" id="L917" title="All 2 branches missed.">    if (sigAlg.equals(</span>
+<span class="nc" id="L918">        CryptoProObjectIdentifiers.gostR3411_94_with_gostR3410_2001.getId())) {</span>
+<span class="nc" id="L919">      return CMSSignedGenerator.DIGEST_GOST3411;</span>
+    }
+<span class="nc" id="L921">    return CMSSignedGenerator.DIGEST_SHA1;</span>
+  }
+
+  /**
+   * Calculates which signature algorithm to use given a key type and a digest
+   * algorithm.
+   *
+   * @param digestAlg objectId of a digest algorithm,
+   *     CMSSignedGenerator.DIGEST_SHA256 etc
+   * @param keyAlg RSA, EC, DSA
+   * @return ASN1ObjectIdentifier with the id of
+   *     PKCSObjectIdentifiers.sha1WithRSAEncryption,
+   *     X9ObjectIdentifiers.ecdsa_with_SHA1,
+   *     X9ObjectIdentifiers.id_dsa_with_sha1, etc
+   */
+  public static ASN1ObjectIdentifier getSignAlgOidFromDigestAndKey(
+      final String digestAlg, final String keyAlg) {
+<span class="nc bnc" id="L938" title="All 2 branches missed.">    if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L939">      LOG.trace(&quot;&gt;getSignAlg(&quot; + digestAlg + &quot;,&quot; + keyAlg + &quot;)&quot;);</span>
+    }
+    // Default to SHA1WithRSA if everything else fails
+<span class="nc" id="L942">    ASN1ObjectIdentifier oid = PKCSObjectIdentifiers.sha1WithRSAEncryption;</span>
+<span class="nc bnc" id="L943" title="All 2 branches missed.">    if (keyAlg.equals(AlgorithmConstants.KEYALGORITHM_EC)</span>
+<span class="nc bnc" id="L944" title="All 2 branches missed.">        || keyAlg.equals(AlgorithmConstants.KEYALGORITHM_ECDSA)) {</span>
+<span class="nc" id="L945">      oid = X9ObjectIdentifiers.ecdsa_with_SHA1;</span>
+<span class="nc bnc" id="L946" title="All 2 branches missed.">    } else if (keyAlg.equals(AlgorithmConstants.KEYALGORITHM_DSA)) {</span>
+<span class="nc" id="L947">      oid = X9ObjectIdentifiers.id_dsa_with_sha1;</span>
+<span class="nc bnc" id="L948" title="All 2 branches missed.">    } else if (keyAlg.equals(AlgorithmConstants.KEYALGORITHM_ECGOST3410)) {</span>
+<span class="nc" id="L949">      oid = CryptoProObjectIdentifiers.gostR3411_94_with_gostR3410_2001;</span>
+<span class="nc bnc" id="L950" title="All 2 branches missed.">    } else if (keyAlg.equals(AlgorithmConstants.KEYALGORITHM_DSTU4145)) {</span>
+<span class="nc" id="L951">      oid = new ASN1ObjectIdentifier(CesecoreConfiguration.getOidDstu4145());</span>
+    }
+<span class="nc bnc" id="L953" title="All 2 branches missed.">    if (digestAlg != null) {</span>
+<span class="nc bnc" id="L954" title="All 2 branches missed.">      if (digestAlg.equals(CMSSignedGenerator.DIGEST_SHA256)</span>
+<span class="nc bnc" id="L955" title="All 2 branches missed.">          &amp;&amp; keyAlg.equals(AlgorithmConstants.KEYALGORITHM_RSA)) {</span>
+<span class="nc" id="L956">        oid = PKCSObjectIdentifiers.sha256WithRSAEncryption;</span>
+<span class="nc bnc" id="L957" title="All 2 branches missed.">      } else if (digestAlg.equals(CMSSignedGenerator.DIGEST_SHA512)</span>
+<span class="nc bnc" id="L958" title="All 2 branches missed.">          &amp;&amp; keyAlg.equals(AlgorithmConstants.KEYALGORITHM_RSA)) {</span>
+<span class="nc" id="L959">        oid = PKCSObjectIdentifiers.sha512WithRSAEncryption;</span>
+<span class="nc bnc" id="L960" title="All 2 branches missed.">      } else if (digestAlg.equals(CMSSignedGenerator.DIGEST_MD5)</span>
+<span class="nc bnc" id="L961" title="All 2 branches missed.">          &amp;&amp; keyAlg.equals(AlgorithmConstants.KEYALGORITHM_RSA)) {</span>
+<span class="nc" id="L962">        oid = PKCSObjectIdentifiers.md5WithRSAEncryption;</span>
+<span class="nc bnc" id="L963" title="All 2 branches missed.">      } else if (digestAlg.equals(CMSSignedGenerator.DIGEST_SHA256)</span>
+<span class="nc bnc" id="L964" title="All 2 branches missed.">          &amp;&amp; (keyAlg.equals(AlgorithmConstants.KEYALGORITHM_ECDSA)</span>
+<span class="nc bnc" id="L965" title="All 2 branches missed.">              || keyAlg.equals(AlgorithmConstants.KEYALGORITHM_EC))) {</span>
+<span class="nc" id="L966">        oid = X9ObjectIdentifiers.ecdsa_with_SHA256;</span>
+<span class="nc bnc" id="L967" title="All 2 branches missed.">      } else if (digestAlg.equals(CMSSignedGenerator.DIGEST_SHA224)</span>
+<span class="nc bnc" id="L968" title="All 2 branches missed.">          &amp;&amp; (keyAlg.equals(AlgorithmConstants.KEYALGORITHM_ECDSA)</span>
+<span class="nc bnc" id="L969" title="All 2 branches missed.">              || keyAlg.equals(AlgorithmConstants.KEYALGORITHM_EC))) {</span>
+<span class="nc" id="L970">        oid = X9ObjectIdentifiers.ecdsa_with_SHA224;</span>
+<span class="nc bnc" id="L971" title="All 2 branches missed.">      } else if (digestAlg.equals(CMSSignedGenerator.DIGEST_SHA384)</span>
+<span class="nc bnc" id="L972" title="All 2 branches missed.">          &amp;&amp; (keyAlg.equals(AlgorithmConstants.KEYALGORITHM_ECDSA)</span>
+<span class="nc bnc" id="L973" title="All 2 branches missed.">              || keyAlg.equals(AlgorithmConstants.KEYALGORITHM_EC))) {</span>
+<span class="nc" id="L974">        oid = X9ObjectIdentifiers.ecdsa_with_SHA384;</span>
+<span class="nc bnc" id="L975" title="All 2 branches missed.">      } else if (digestAlg.equals(CMSSignedGenerator.DIGEST_SHA512)</span>
+<span class="nc bnc" id="L976" title="All 2 branches missed.">          &amp;&amp; (keyAlg.equals(AlgorithmConstants.KEYALGORITHM_ECDSA)</span>
+<span class="nc bnc" id="L977" title="All 2 branches missed.">              || keyAlg.equals(AlgorithmConstants.KEYALGORITHM_EC))) {</span>
+<span class="nc" id="L978">        oid = X9ObjectIdentifiers.ecdsa_with_SHA512;</span>
+<span class="nc bnc" id="L979" title="All 2 branches missed.">      } else if (digestAlg.equals(CMSSignedGenerator.DIGEST_SHA256)</span>
+<span class="nc bnc" id="L980" title="All 2 branches missed.">          &amp;&amp; keyAlg.equals(AlgorithmConstants.KEYALGORITHM_DSA)) {</span>
+<span class="nc" id="L981">        oid = NISTObjectIdentifiers.dsa_with_sha256;</span>
+<span class="nc bnc" id="L982" title="All 2 branches missed.">      } else if (digestAlg.equals(CMSSignedGenerator.DIGEST_SHA512)</span>
+<span class="nc bnc" id="L983" title="All 2 branches missed.">          &amp;&amp; keyAlg.equals(AlgorithmConstants.KEYALGORITHM_DSA)) {</span>
+<span class="nc" id="L984">        oid = NISTObjectIdentifiers.dsa_with_sha512;</span>
+<span class="nc bnc" id="L985" title="All 2 branches missed.">      } else if (digestAlg.equals(NISTObjectIdentifiers.id_sha3_256.toString())</span>
+<span class="nc bnc" id="L986" title="All 2 branches missed.">          &amp;&amp; keyAlg.equals(AlgorithmConstants.KEYALGORITHM_RSA)) {</span>
+<span class="nc" id="L987">        oid = NISTObjectIdentifiers.id_rsassa_pkcs1_v1_5_with_sha3_256;</span>
+<span class="nc bnc" id="L988" title="All 2 branches missed.">      } else if (digestAlg.equals(NISTObjectIdentifiers.id_sha3_384.toString())</span>
+<span class="nc bnc" id="L989" title="All 2 branches missed.">          &amp;&amp; keyAlg.equals(AlgorithmConstants.KEYALGORITHM_RSA)) {</span>
+<span class="nc" id="L990">        oid = NISTObjectIdentifiers.id_rsassa_pkcs1_v1_5_with_sha3_384;</span>
+<span class="nc bnc" id="L991" title="All 2 branches missed.">      } else if (digestAlg.equals(NISTObjectIdentifiers.id_sha3_512.toString())</span>
+<span class="nc bnc" id="L992" title="All 2 branches missed.">          &amp;&amp; keyAlg.equals(AlgorithmConstants.KEYALGORITHM_RSA)) {</span>
+<span class="nc" id="L993">        oid = NISTObjectIdentifiers.id_rsassa_pkcs1_v1_5_with_sha3_512;</span>
+<span class="nc bnc" id="L994" title="All 2 branches missed.">      } else if (digestAlg.equals(NISTObjectIdentifiers.id_sha3_256.toString())</span>
+<span class="nc bnc" id="L995" title="All 2 branches missed.">          &amp;&amp; (keyAlg.equals(AlgorithmConstants.KEYALGORITHM_ECDSA)</span>
+<span class="nc bnc" id="L996" title="All 2 branches missed.">              || keyAlg.equals(AlgorithmConstants.KEYALGORITHM_EC))) {</span>
+<span class="nc" id="L997">        oid = NISTObjectIdentifiers.id_ecdsa_with_sha3_256;</span>
+<span class="nc bnc" id="L998" title="All 2 branches missed.">      } else if (digestAlg.equals(NISTObjectIdentifiers.id_sha3_384.toString())</span>
+<span class="nc bnc" id="L999" title="All 2 branches missed.">          &amp;&amp; (keyAlg.equals(AlgorithmConstants.KEYALGORITHM_ECDSA)</span>
+<span class="nc bnc" id="L1000" title="All 2 branches missed.">              || keyAlg.equals(AlgorithmConstants.KEYALGORITHM_EC))) {</span>
+<span class="nc" id="L1001">        oid = NISTObjectIdentifiers.id_ecdsa_with_sha3_384;</span>
+<span class="nc bnc" id="L1002" title="All 2 branches missed.">      } else if (digestAlg.equals(NISTObjectIdentifiers.id_sha3_512.toString())</span>
+<span class="nc bnc" id="L1003" title="All 2 branches missed.">          &amp;&amp; (keyAlg.equals(AlgorithmConstants.KEYALGORITHM_ECDSA)</span>
+<span class="nc bnc" id="L1004" title="All 2 branches missed.">              || keyAlg.equals(AlgorithmConstants.KEYALGORITHM_EC))) {</span>
+<span class="nc" id="L1005">        oid = NISTObjectIdentifiers.id_ecdsa_with_sha3_512;</span>
+      }
+    }
+<span class="nc bnc" id="L1008" title="All 2 branches missed.">    if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L1009">      LOG.debug(&quot;getSignAlgOidFromDigestAndKey: &quot; + oid.getId());</span>
+    }
+<span class="nc" id="L1011">    return oid;</span>
+  }
+
+  /**
+   * @param digestAlg Digest
+   * @param keyAlg Key
+   * @return Name
+   */
+  public static String getAlgorithmNameFromDigestAndKey(
+      final String digestAlg, final String keyAlg) {
+<span class="nc" id="L1021">    return getAlgorithmNameFromOID(</span>
+<span class="nc" id="L1022">        getSignAlgOidFromDigestAndKey(digestAlg, keyAlg));</span>
+  }
+
+  /**
+   * @return bool
+   */
+  public static boolean isGost3410Enabled() {
+<span class="pc bpc" id="L1029" title="1 of 2 branches missed.">    return CesecoreConfiguration.getOidGost3410() != null;</span>
+  }
+
+  /**
+   * @return bool
+   */
+  public static boolean isDstu4145Enabled() {
+<span class="pc bpc" id="L1036" title="1 of 2 branches missed.">    return CesecoreConfiguration.getOidDstu4145() != null;</span>
+  }
+
+  /**
+   * @param sigAlg Algorithm
+   * @return bool
+   */
+  public static boolean isSigAlgEnabled(
+          final String sigAlg) {
+<span class="nc bnc" id="L1045" title="All 2 branches missed.">    if (AlgorithmConstants.SIGALG_GOST3411_WITH_ECGOST3410.equals(sigAlg)) {</span>
+<span class="nc" id="L1046">      return isGost3410Enabled();</span>
+<span class="nc bnc" id="L1047" title="All 2 branches missed.">    } else if (AlgorithmConstants.SIGALG_GOST3411_WITH_DSTU4145.equals(</span>
+        sigAlg)) {
+<span class="nc" id="L1049">      return isDstu4145Enabled();</span>
+    } else {
+<span class="nc" id="L1051">      return true;</span>
+    }
+  }
+
+  /**
+   * Determine whether the curve alias given as argument is a known elliptic
+   * curve.
+   *
+   * @param alias an alias of the elliptic curve to look for
+   * @return true if the elliptic curve is known by this alias, false otherwise
+   */
+  public static boolean isKnownAlias(final String alias) {
+<span class="nc bnc" id="L1063" title="All 2 branches missed.">    return !getAllCurveAliasesFromAlias(alias).isEmpty();</span>
+  }
+
+  /**
+   * Perform a case-insensitive lookup of all known aliases for an elliptic
+   * curve given one known alias.
+   *
+   * &lt;p&gt;To determine whether an alias is known, see {@link #isKnownAlias}.
+   *
+   * @param alias alias
+   * @return a sorted list of aliases for the elliptic curve specified, never
+   *     null
+   */
+  public static List&lt;String&gt; getAllCurveAliasesFromAlias(final String alias) {
+<span class="nc" id="L1077">    final String lowerCaseAlias = alias.toLowerCase();</span>
+    for (final Entry&lt;String, List&lt;String&gt;&gt; name
+<span class="nc bnc" id="L1079" title="All 2 branches missed.">        : getNamedEcCurvesMap(false).entrySet()) {</span>
+<span class="nc" id="L1080">      final String lowerCaseCanonicalName = name.getKey().toLowerCase();</span>
+<span class="nc" id="L1081">      final List&lt;String&gt; lowerCaseAliases =</span>
+<span class="nc" id="L1082">          StringTools.toLowerCase(name.getValue());</span>
+<span class="nc bnc" id="L1083" title="All 2 branches missed.">      if (StringUtils.equals(lowerCaseAlias, lowerCaseCanonicalName)</span>
+<span class="nc bnc" id="L1084" title="All 2 branches missed.">          || lowerCaseAliases.contains(lowerCaseAlias)) {</span>
+<span class="nc" id="L1085">        final List&lt;String&gt; aliases = new ArrayList&lt;String&gt;(name.getValue());</span>
+<span class="nc" id="L1086">        aliases.add(name.getKey());</span>
+<span class="nc" id="L1087">        Collections.sort(aliases);</span>
+<span class="nc" id="L1088">        return aliases;</span>
+      }
+<span class="nc" id="L1090">    }</span>
+<span class="nc" id="L1091">    return new ArrayList&lt;&gt;();</span>
+  }
+
+  /**
+   * Returns the name of the algorithm corresponding to the specified OID.
+   *
+   * @param sigAlgOid OID
+   * @return The name of the algorithm corresponding sigAlgOid or null if the
+   *     algorithm is not recognized.
+   */
+  public static String getAlgorithmNameFromOID(
+          final ASN1ObjectIdentifier sigAlgOid) {
+
+<span class="nc bnc" id="L1104" title="All 2 branches missed.">    if (sigAlgOid.equals(PKCSObjectIdentifiers.md5WithRSAEncryption)) {</span>
+<span class="nc" id="L1105">      return AlgorithmConstants.SIGALG_MD5_WITH_RSA;</span>
     }
 
-    /**
-     * Calculates which signature algorithm to use given a key type and a digest algorithm
-     *
-     * @param digestAlg objectId of a digest algorithm, CMSSignedGenerator.DIGEST_SHA256 etc
-     * @param keyAlg RSA, EC, DSA
-     * @return ASN1ObjectIdentifier with the id of PKCSObjectIdentifiers.sha1WithRSAEncryption, X9ObjectIdentifiers.ecdsa_with_SHA1, X9ObjectIdentifiers.id_dsa_with_sha1, etc
-     */
-    public static ASN1ObjectIdentifier getSignAlgOidFromDigestAndKey(final String digestAlg, final String keyAlg) {
-<span class="nc bnc" id="L764" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L765">            log.trace(&quot;&gt;getSignAlg(&quot;+digestAlg+&quot;,&quot;+keyAlg+&quot;)&quot;);</span>
-        }
-        // Default to SHA1WithRSA if everything else fails
-<span class="nc" id="L768">        ASN1ObjectIdentifier oid = PKCSObjectIdentifiers.sha1WithRSAEncryption;</span>
-<span class="nc bnc" id="L769" title="All 4 branches missed.">        if (keyAlg.equals(AlgorithmConstants.KEYALGORITHM_EC) || keyAlg.equals(AlgorithmConstants.KEYALGORITHM_ECDSA)) {</span>
-<span class="nc" id="L770">            oid = X9ObjectIdentifiers.ecdsa_with_SHA1;</span>
-<span class="nc bnc" id="L771" title="All 2 branches missed.">        } else if (keyAlg.equals(AlgorithmConstants.KEYALGORITHM_DSA)) {</span>
-<span class="nc" id="L772">            oid = X9ObjectIdentifiers.id_dsa_with_sha1;</span>
-<span class="nc bnc" id="L773" title="All 2 branches missed.">        } else if (keyAlg.equals(AlgorithmConstants.KEYALGORITHM_ECGOST3410)) {</span>
-<span class="nc" id="L774">            oid = CryptoProObjectIdentifiers.gostR3411_94_with_gostR3410_2001;</span>
-<span class="nc bnc" id="L775" title="All 2 branches missed.">        } else if (keyAlg.equals(AlgorithmConstants.KEYALGORITHM_DSTU4145)) {</span>
-<span class="nc" id="L776">            oid = new ASN1ObjectIdentifier(CesecoreConfiguration.getOidDstu4145());</span>
-        }
-<span class="nc bnc" id="L778" title="All 2 branches missed.">        if (digestAlg != null) {</span>
-<span class="nc bnc" id="L779" title="All 4 branches missed.">            if (digestAlg.equals(CMSSignedGenerator.DIGEST_SHA256) &amp;&amp; keyAlg.equals(AlgorithmConstants.KEYALGORITHM_RSA)) {</span>
-<span class="nc" id="L780">                oid = PKCSObjectIdentifiers.sha256WithRSAEncryption;</span>
-<span class="nc bnc" id="L781" title="All 4 branches missed.">            } else if (digestAlg.equals(CMSSignedGenerator.DIGEST_SHA512) &amp;&amp; keyAlg.equals(AlgorithmConstants.KEYALGORITHM_RSA)) {</span>
-<span class="nc" id="L782">                oid = PKCSObjectIdentifiers.sha512WithRSAEncryption;</span>
-<span class="nc bnc" id="L783" title="All 4 branches missed.">            } else if (digestAlg.equals(CMSSignedGenerator.DIGEST_MD5) &amp;&amp; keyAlg.equals(AlgorithmConstants.KEYALGORITHM_RSA)) {</span>
-<span class="nc" id="L784">                oid = PKCSObjectIdentifiers.md5WithRSAEncryption;</span>
-<span class="nc bnc" id="L785" title="All 6 branches missed.">            } else if (digestAlg.equals(CMSSignedGenerator.DIGEST_SHA256) &amp;&amp; (keyAlg.equals(AlgorithmConstants.KEYALGORITHM_ECDSA) || keyAlg.equals(AlgorithmConstants.KEYALGORITHM_EC)) ) {</span>
-<span class="nc" id="L786">                oid = X9ObjectIdentifiers.ecdsa_with_SHA256;</span>
-<span class="nc bnc" id="L787" title="All 6 branches missed.">            } else if (digestAlg.equals(CMSSignedGenerator.DIGEST_SHA224) &amp;&amp; (keyAlg.equals(AlgorithmConstants.KEYALGORITHM_ECDSA) || keyAlg.equals(AlgorithmConstants.KEYALGORITHM_EC)) ) {</span>
-<span class="nc" id="L788">                oid = X9ObjectIdentifiers.ecdsa_with_SHA224;</span>
-<span class="nc bnc" id="L789" title="All 6 branches missed.">            } else if (digestAlg.equals(CMSSignedGenerator.DIGEST_SHA384) &amp;&amp; (keyAlg.equals(AlgorithmConstants.KEYALGORITHM_ECDSA) || keyAlg.equals(AlgorithmConstants.KEYALGORITHM_EC)) ) {</span>
-<span class="nc" id="L790">                oid = X9ObjectIdentifiers.ecdsa_with_SHA384;</span>
-<span class="nc bnc" id="L791" title="All 6 branches missed.">            } else if (digestAlg.equals(CMSSignedGenerator.DIGEST_SHA512) &amp;&amp; (keyAlg.equals(AlgorithmConstants.KEYALGORITHM_ECDSA) || keyAlg.equals(AlgorithmConstants.KEYALGORITHM_EC)) ) {</span>
-<span class="nc" id="L792">                oid = X9ObjectIdentifiers.ecdsa_with_SHA512;</span>
-<span class="nc bnc" id="L793" title="All 4 branches missed.">            } else if (digestAlg.equals(CMSSignedGenerator.DIGEST_SHA256) &amp;&amp; keyAlg.equals(AlgorithmConstants.KEYALGORITHM_DSA)) {</span>
-<span class="nc" id="L794">                oid = NISTObjectIdentifiers.dsa_with_sha256;</span>
-<span class="nc bnc" id="L795" title="All 4 branches missed.">            } else if (digestAlg.equals(CMSSignedGenerator.DIGEST_SHA512) &amp;&amp; keyAlg.equals(AlgorithmConstants.KEYALGORITHM_DSA)) {</span>
-<span class="nc" id="L796">                oid = NISTObjectIdentifiers.dsa_with_sha512;</span>
-<span class="nc bnc" id="L797" title="All 4 branches missed.">            } else if (digestAlg.equals(NISTObjectIdentifiers.id_sha3_256.toString()) &amp;&amp; keyAlg.equals(AlgorithmConstants.KEYALGORITHM_RSA)) {</span>
-<span class="nc" id="L798">                oid = NISTObjectIdentifiers.id_rsassa_pkcs1_v1_5_with_sha3_256;</span>
-<span class="nc bnc" id="L799" title="All 4 branches missed.">            } else if (digestAlg.equals(NISTObjectIdentifiers.id_sha3_384.toString()) &amp;&amp; keyAlg.equals(AlgorithmConstants.KEYALGORITHM_RSA)) {</span>
-<span class="nc" id="L800">                oid = NISTObjectIdentifiers.id_rsassa_pkcs1_v1_5_with_sha3_384;</span>
-<span class="nc bnc" id="L801" title="All 4 branches missed.">            } else if (digestAlg.equals(NISTObjectIdentifiers.id_sha3_512.toString()) &amp;&amp; keyAlg.equals(AlgorithmConstants.KEYALGORITHM_RSA)) {</span>
-<span class="nc" id="L802">                oid = NISTObjectIdentifiers.id_rsassa_pkcs1_v1_5_with_sha3_512;</span>
-<span class="nc bnc" id="L803" title="All 2 branches missed.">            } else if (digestAlg.equals(NISTObjectIdentifiers.id_sha3_256.toString())</span>
-<span class="nc bnc" id="L804" title="All 4 branches missed.">                    &amp;&amp; (keyAlg.equals(AlgorithmConstants.KEYALGORITHM_ECDSA) || keyAlg.equals(AlgorithmConstants.KEYALGORITHM_EC))) {</span>
-<span class="nc" id="L805">                oid = NISTObjectIdentifiers.id_ecdsa_with_sha3_256;</span>
-<span class="nc bnc" id="L806" title="All 2 branches missed.">            } else if (digestAlg.equals(NISTObjectIdentifiers.id_sha3_384.toString())</span>
-<span class="nc bnc" id="L807" title="All 4 branches missed.">                    &amp;&amp; (keyAlg.equals(AlgorithmConstants.KEYALGORITHM_ECDSA) || keyAlg.equals(AlgorithmConstants.KEYALGORITHM_EC))) {</span>
-<span class="nc" id="L808">                oid = NISTObjectIdentifiers.id_ecdsa_with_sha3_384;</span>
-<span class="nc bnc" id="L809" title="All 2 branches missed.">            } else if (digestAlg.equals(NISTObjectIdentifiers.id_sha3_512.toString())</span>
-<span class="nc bnc" id="L810" title="All 4 branches missed.">                    &amp;&amp; (keyAlg.equals(AlgorithmConstants.KEYALGORITHM_ECDSA) || keyAlg.equals(AlgorithmConstants.KEYALGORITHM_EC))) {</span>
-<span class="nc" id="L811">                oid = NISTObjectIdentifiers.id_ecdsa_with_sha3_512;</span>
-            }
-        }
-<span class="nc bnc" id="L814" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L815">            log.debug(&quot;getSignAlgOidFromDigestAndKey: &quot; + oid.getId());</span>
-        }
-<span class="nc" id="L817">        return oid;</span>
+<span class="nc bnc" id="L1108" title="All 2 branches missed.">    if (sigAlgOid.equals(PKCSObjectIdentifiers.sha1WithRSAEncryption)) {</span>
+<span class="nc" id="L1109">      return AlgorithmConstants.SIGALG_SHA1_WITH_RSA;</span>
     }
 
-    public static String getAlgorithmNameFromDigestAndKey(final String digestAlg, final String keyAlg) {
-<span class="nc" id="L821">        return getAlgorithmNameFromOID(getSignAlgOidFromDigestAndKey(digestAlg, keyAlg));</span>
+<span class="nc bnc" id="L1112" title="All 2 branches missed.">    if (sigAlgOid.equals(PKCSObjectIdentifiers.sha256WithRSAEncryption)) {</span>
+<span class="nc" id="L1113">      return AlgorithmConstants.SIGALG_SHA256_WITH_RSA;</span>
     }
 
-    public static boolean isGost3410Enabled() {
-<span class="pc bpc" id="L825" title="1 of 2 branches missed.">        return CesecoreConfiguration.getOidGost3410() != null;</span>
+<span class="nc bnc" id="L1116" title="All 2 branches missed.">    if (sigAlgOid.equals(PKCSObjectIdentifiers.sha384WithRSAEncryption)) {</span>
+<span class="nc" id="L1117">      return AlgorithmConstants.SIGALG_SHA384_WITH_RSA;</span>
     }
 
-    public static boolean isDstu4145Enabled() {
-<span class="pc bpc" id="L829" title="1 of 2 branches missed.">        return CesecoreConfiguration.getOidDstu4145() != null;</span>
+<span class="nc bnc" id="L1120" title="All 2 branches missed.">    if (sigAlgOid.equals(PKCSObjectIdentifiers.sha512WithRSAEncryption)) {</span>
+<span class="nc" id="L1121">      return AlgorithmConstants.SIGALG_SHA512_WITH_RSA;</span>
     }
 
-    public static boolean isSigAlgEnabled(String sigAlg) {
-<span class="nc bnc" id="L833" title="All 2 branches missed.">        if (AlgorithmConstants.SIGALG_GOST3411_WITH_ECGOST3410.equals(sigAlg)) {</span>
-<span class="nc" id="L834">            return isGost3410Enabled();</span>
-<span class="nc bnc" id="L835" title="All 2 branches missed.">        } else if (AlgorithmConstants.SIGALG_GOST3411_WITH_DSTU4145.equals(sigAlg)) {</span>
-<span class="nc" id="L836">            return isDstu4145Enabled();</span>
-        } else {
-<span class="nc" id="L838">            return true;</span>
-        }
+<span class="nc bnc" id="L1124" title="All 2 branches missed.">    if (sigAlgOid.equals(</span>
+        NISTObjectIdentifiers.id_rsassa_pkcs1_v1_5_with_sha3_256)) {
+<span class="nc" id="L1126">      return AlgorithmConstants.SIGALG_SHA3_256_WITH_RSA;</span>
     }
 
-    /**
-     * Determine whether the curve alias given as argument is a known elliptic curve.
-     * @param alias an alias of the elliptic curve to look for
-     * @return true if the elliptic curve is known by this alias, false otherwise
-     */
-    public static boolean isKnownAlias(final String alias) {
-<span class="nc bnc" id="L848" title="All 2 branches missed.">        return !getAllCurveAliasesFromAlias(alias).isEmpty();</span>
+<span class="nc bnc" id="L1129" title="All 2 branches missed.">    if (sigAlgOid.equals(</span>
+        NISTObjectIdentifiers.id_rsassa_pkcs1_v1_5_with_sha3_384)) {
+<span class="nc" id="L1131">      return AlgorithmConstants.SIGALG_SHA3_384_WITH_RSA;</span>
     }
 
-    /**
-     * &lt;p&gt;Perform a case-insensitive lookup of all known aliases for an elliptic curve given one known alias.&lt;/p&gt;
-     * &lt;p&gt;To determine whether an alias is known, see {@link #isKnownAlias}.&lt;/p&gt;
-     * @param alias alias
-     * @return a sorted list of aliases for the elliptic curve specified, never null
-     */
-    public static List&lt;String&gt; getAllCurveAliasesFromAlias(final String alias) {
-<span class="nc" id="L858">        final String lowerCaseAlias = alias.toLowerCase();</span>
-<span class="nc bnc" id="L859" title="All 2 branches missed.">        for (final Entry&lt;String, List&lt;String&gt;&gt; name : getNamedEcCurvesMap(false).entrySet()) {</span>
-<span class="nc" id="L860">            final String lowerCaseCanonicalName = name.getKey().toLowerCase();</span>
-<span class="nc" id="L861">            final List&lt;String&gt; lowerCaseAliases = StringTools.toLowerCase(name.getValue());</span>
-<span class="nc bnc" id="L862" title="All 4 branches missed.">            if (StringUtils.equals(lowerCaseAlias, lowerCaseCanonicalName) || lowerCaseAliases.contains(lowerCaseAlias)) {</span>
-<span class="nc" id="L863">                final List&lt;String&gt; aliases = new ArrayList&lt;String&gt;(name.getValue());</span>
-<span class="nc" id="L864">                aliases.add(name.getKey());</span>
-<span class="nc" id="L865">                Collections.sort(aliases);</span>
-<span class="nc" id="L866">                return aliases;</span>
-            }
-<span class="nc" id="L868">        }</span>
-<span class="nc" id="L869">        return new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L1134" title="All 2 branches missed.">    if (sigAlgOid.equals(</span>
+        NISTObjectIdentifiers.id_rsassa_pkcs1_v1_5_with_sha3_512)) {
+<span class="nc" id="L1136">      return AlgorithmConstants.SIGALG_SHA3_512_WITH_RSA;</span>
     }
 
-    /**
-     * Returns the name of the algorithm corresponding to the specified OID
-     * @param sigAlgOid OID
-     * @return The name of the algorithm corresponding sigAlgOid or null if the algorithm is not recognized.
-     */
-    public static String getAlgorithmNameFromOID(ASN1ObjectIdentifier sigAlgOid) {
-
-<span class="nc bnc" id="L879" title="All 2 branches missed.">        if(sigAlgOid.equals(PKCSObjectIdentifiers.md5WithRSAEncryption)) {</span>
-<span class="nc" id="L880">            return AlgorithmConstants.SIGALG_MD5_WITH_RSA;</span>
-        }
-
-<span class="nc bnc" id="L883" title="All 2 branches missed.">        if(sigAlgOid.equals(PKCSObjectIdentifiers.sha1WithRSAEncryption)) {</span>
-<span class="nc" id="L884">            return AlgorithmConstants.SIGALG_SHA1_WITH_RSA;</span>
-        }
-
-<span class="nc bnc" id="L887" title="All 2 branches missed.">        if(sigAlgOid.equals(PKCSObjectIdentifiers.sha256WithRSAEncryption)) {</span>
-<span class="nc" id="L888">            return AlgorithmConstants.SIGALG_SHA256_WITH_RSA;</span>
-        }
-
-<span class="nc bnc" id="L891" title="All 2 branches missed.">        if(sigAlgOid.equals(PKCSObjectIdentifiers.sha384WithRSAEncryption)) {</span>
-<span class="nc" id="L892">            return AlgorithmConstants.SIGALG_SHA384_WITH_RSA;</span>
-        }
-
-<span class="nc bnc" id="L895" title="All 2 branches missed.">        if(sigAlgOid.equals(PKCSObjectIdentifiers.sha512WithRSAEncryption)) {</span>
-<span class="nc" id="L896">            return AlgorithmConstants.SIGALG_SHA512_WITH_RSA;</span>
-        }
-
-<span class="nc bnc" id="L899" title="All 2 branches missed.">        if (sigAlgOid.equals(NISTObjectIdentifiers.id_rsassa_pkcs1_v1_5_with_sha3_256)) {</span>
-<span class="nc" id="L900">            return AlgorithmConstants.SIGALG_SHA3_256_WITH_RSA;</span>
-        }
-
-<span class="nc bnc" id="L903" title="All 2 branches missed.">        if (sigAlgOid.equals(NISTObjectIdentifiers.id_rsassa_pkcs1_v1_5_with_sha3_384)) {</span>
-<span class="nc" id="L904">            return AlgorithmConstants.SIGALG_SHA3_384_WITH_RSA;</span>
-        }
-
-<span class="nc bnc" id="L907" title="All 2 branches missed.">        if (sigAlgOid.equals(NISTObjectIdentifiers.id_rsassa_pkcs1_v1_5_with_sha3_512)) {</span>
-<span class="nc" id="L908">            return AlgorithmConstants.SIGALG_SHA3_512_WITH_RSA;</span>
-        }
-
-<span class="nc bnc" id="L911" title="All 2 branches missed.">        if(sigAlgOid.equals(X9ObjectIdentifiers.ecdsa_with_SHA1)) {</span>
-<span class="nc" id="L912">            return AlgorithmConstants.SIGALG_SHA1_WITH_ECDSA;</span>
-        }
-
-<span class="nc bnc" id="L915" title="All 2 branches missed.">        if(sigAlgOid.equals(X9ObjectIdentifiers.ecdsa_with_SHA224)) {</span>
-<span class="nc" id="L916">            return AlgorithmConstants.SIGALG_SHA224_WITH_ECDSA;</span>
-        }
-
-<span class="nc bnc" id="L919" title="All 2 branches missed.">        if(sigAlgOid.equals(X9ObjectIdentifiers.ecdsa_with_SHA256)) {</span>
-<span class="nc" id="L920">            return AlgorithmConstants.SIGALG_SHA256_WITH_ECDSA;</span>
-        }
-
-<span class="nc bnc" id="L923" title="All 2 branches missed.">        if(sigAlgOid.equals(X9ObjectIdentifiers.ecdsa_with_SHA384)) {</span>
-<span class="nc" id="L924">            return AlgorithmConstants.SIGALG_SHA384_WITH_ECDSA;</span>
-        }
-
-<span class="nc bnc" id="L927" title="All 2 branches missed.">        if(sigAlgOid.equals(X9ObjectIdentifiers.ecdsa_with_SHA512)) {</span>
-<span class="nc" id="L928">            return AlgorithmConstants.SIGALG_SHA512_WITH_ECDSA;</span>
-        }
-
-<span class="nc bnc" id="L931" title="All 2 branches missed.">        if (sigAlgOid.equals(NISTObjectIdentifiers.id_ecdsa_with_sha3_256)) {</span>
-<span class="nc" id="L932">            return AlgorithmConstants.SIGALG_SHA3_256_WITH_ECDSA;</span>
-        }
-
-<span class="nc bnc" id="L935" title="All 2 branches missed.">        if (sigAlgOid.equals(NISTObjectIdentifiers.id_ecdsa_with_sha3_384)) {</span>
-<span class="nc" id="L936">            return AlgorithmConstants.SIGALG_SHA3_384_WITH_ECDSA;</span>
-        }
-
-<span class="nc bnc" id="L939" title="All 2 branches missed.">        if (sigAlgOid.equals(NISTObjectIdentifiers.id_ecdsa_with_sha3_512)) {</span>
-<span class="nc" id="L940">            return AlgorithmConstants.SIGALG_SHA3_512_WITH_ECDSA;</span>
-        }
-        // GOST3410
-<span class="nc bnc" id="L943" title="All 4 branches missed.">        if(isGost3410Enabled() &amp;&amp; sigAlgOid.getId().equalsIgnoreCase(CesecoreConfiguration.getOidGost3410())) {</span>
-<span class="nc" id="L944">            return AlgorithmConstants.SIGALG_GOST3411_WITH_ECGOST3410;</span>
-        }
-        // DSTU4145
-<span class="nc bnc" id="L947" title="All 4 branches missed.">        if(isDstu4145Enabled() &amp;&amp; sigAlgOid.getId().startsWith(CesecoreConfiguration.getOidDstu4145()+&quot;.&quot;)) {</span>
-<span class="nc" id="L948">            return AlgorithmConstants.SIGALG_GOST3411_WITH_DSTU4145;</span>
-        }
-
-<span class="nc" id="L951">        return null;</span>
+<span class="nc bnc" id="L1139" title="All 2 branches missed.">    if (sigAlgOid.equals(X9ObjectIdentifiers.ecdsa_with_SHA1)) {</span>
+<span class="nc" id="L1140">      return AlgorithmConstants.SIGALG_SHA1_WITH_ECDSA;</span>
     }
+
+<span class="nc bnc" id="L1143" title="All 2 branches missed.">    if (sigAlgOid.equals(X9ObjectIdentifiers.ecdsa_with_SHA224)) {</span>
+<span class="nc" id="L1144">      return AlgorithmConstants.SIGALG_SHA224_WITH_ECDSA;</span>
+    }
+
+<span class="nc bnc" id="L1147" title="All 2 branches missed.">    if (sigAlgOid.equals(X9ObjectIdentifiers.ecdsa_with_SHA256)) {</span>
+<span class="nc" id="L1148">      return AlgorithmConstants.SIGALG_SHA256_WITH_ECDSA;</span>
+    }
+
+<span class="nc bnc" id="L1151" title="All 2 branches missed.">    if (sigAlgOid.equals(X9ObjectIdentifiers.ecdsa_with_SHA384)) {</span>
+<span class="nc" id="L1152">      return AlgorithmConstants.SIGALG_SHA384_WITH_ECDSA;</span>
+    }
+
+<span class="nc bnc" id="L1155" title="All 2 branches missed.">    if (sigAlgOid.equals(X9ObjectIdentifiers.ecdsa_with_SHA512)) {</span>
+<span class="nc" id="L1156">      return AlgorithmConstants.SIGALG_SHA512_WITH_ECDSA;</span>
+    }
+
+<span class="nc bnc" id="L1159" title="All 2 branches missed.">    if (sigAlgOid.equals(NISTObjectIdentifiers.id_ecdsa_with_sha3_256)) {</span>
+<span class="nc" id="L1160">      return AlgorithmConstants.SIGALG_SHA3_256_WITH_ECDSA;</span>
+    }
+
+<span class="nc bnc" id="L1163" title="All 2 branches missed.">    if (sigAlgOid.equals(NISTObjectIdentifiers.id_ecdsa_with_sha3_384)) {</span>
+<span class="nc" id="L1164">      return AlgorithmConstants.SIGALG_SHA3_384_WITH_ECDSA;</span>
+    }
+
+<span class="nc bnc" id="L1167" title="All 2 branches missed.">    if (sigAlgOid.equals(NISTObjectIdentifiers.id_ecdsa_with_sha3_512)) {</span>
+<span class="nc" id="L1168">      return AlgorithmConstants.SIGALG_SHA3_512_WITH_ECDSA;</span>
+    }
+    // GOST3410
+<span class="nc bnc" id="L1171" title="All 2 branches missed.">    if (isGost3410Enabled()</span>
+        &amp;&amp; sigAlgOid
+<span class="nc" id="L1173">            .getId()</span>
+<span class="nc bnc" id="L1174" title="All 2 branches missed.">            .equalsIgnoreCase(CesecoreConfiguration.getOidGost3410())) {</span>
+<span class="nc" id="L1175">      return AlgorithmConstants.SIGALG_GOST3411_WITH_ECGOST3410;</span>
+    }
+    // DSTU4145
+<span class="nc bnc" id="L1178" title="All 2 branches missed.">    if (isDstu4145Enabled()</span>
+        &amp;&amp; sigAlgOid
+<span class="nc" id="L1180">            .getId()</span>
+<span class="nc bnc" id="L1181" title="All 2 branches missed.">            .startsWith(CesecoreConfiguration.getOidDstu4145() + &quot;.&quot;)) {</span>
+<span class="nc" id="L1182">      return AlgorithmConstants.SIGALG_GOST3411_WITH_DSTU4145;</span>
+    }
+
+<span class="nc" id="L1185">    return null;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

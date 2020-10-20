@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>SortBy.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">admin-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.rainterface</a> &gt; <span class="el_source">SortBy.java</span></div><h1>SortBy.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+/*
+ * SortBy.java
+ *
+ * Created on den 18 april 2002, 15:47
+ */
+
+package org.ejbca.ui.web.admin.rainterface;
+
+/**
+ * A class specifying which field to sort the userdata by. 
+ *
+ * @author  Philip Vendil
+ * @version $Id: SortBy.java 19947 2014-10-07 00:39:24Z davidcarella $
+ */
+public class SortBy implements java.io.Serializable {
+    private static final long serialVersionUID = -2924038902779549663L;
+    // Public constants
+      // Constants used by userdata.
+    public static final int USERNAME         = 0;
+    public static final int PASSWORD         = 1;
+    public static final int COMMONNAME       = 2;
+    public static final int DNSERIALNUMBER   = 3;  
+    public static final int TITLE            = 4;        
+    public static final int ORGANIZATIONALUNIT = 5;
+    public static final int ORGANIZATION     = 6;
+    public static final int LOCALITY         = 7;
+    public static final int STATEORPROVINCE  = 8;
+    public static final int DOMAINCOMPONENT  = 9;      
+    public static final int COUNTRY          = 10;
+    public static final int EMAIL            = 11;
+    public static final int STATUS           = 12; 
+    public static final int TIMECREATED      = 13;     
+    public static final int TIMEMODIFIED     = 14;     
+    public static final int CA               = 15;    
+      // Constants used by logentrydata. 
+
+    public static final int ADMINTYPE        = 1;
+    public static final int ADMINDATA        = 2;
+    public static final int MODULE           = 4;
+    public static final int TIME             = 5;
+    public static final int CERTIFICATE      = 6;    
+    public static final int EVENT            = 7;     
+    public static final int COMMENT          = 8;     
+    
+    public static final int ACCENDING        = 0;
+    public static final int DECENDING        = 1;
+
+    
+    /** Creates a new instance of SortBy */
+<span class="nc" id="L63">    public SortBy() {</span>
+<span class="nc" id="L64">      this.sortby=USERNAME;</span>
+<span class="nc" id="L65">      this.sortorder=ACCENDING;</span>
+<span class="nc" id="L66">    }</span>
+    
+<span class="nc" id="L68">    public SortBy(int sortby, int sortorder){</span>
+<span class="nc" id="L69">      this.sortby=sortby;   </span>
+<span class="nc" id="L70">      this.sortorder=sortorder;</span>
+<span class="nc" id="L71">    }</span>
+    
+    public int getSortBy() {
+<span class="nc" id="L74">      return sortby;</span>
+    }
+    
+    public int getSortOrder() {
+<span class="nc" id="L78">      return sortorder;</span>
+    }
+    
+    public void setSortBy(int sortby) {
+<span class="nc" id="L82">       this.sortby=sortby;      </span>
+<span class="nc" id="L83">    }</span>
+
+    public void setSortOrder(int sortorder){
+<span class="nc" id="L86">      this.sortorder=sortorder;        </span>
+<span class="nc" id="L87">    }</span>
+    // Private fields.
+    private int sortby;
+    private int sortorder;
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

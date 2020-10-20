@@ -1,0 +1,17 @@
+GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
+CLI Utility Library,org.ejbca.ui.cli.infrastructure.parameter.enums,StandaloneMode,0,37,0,0,0,6,0,3,0,3
+CLI Utility Library,org.ejbca.ui.cli.infrastructure.parameter.enums,MandatoryMode,0,37,0,0,0,6,0,3,0,3
+CLI Utility Library,org.ejbca.ui.cli.infrastructure.parameter.enums,ParameterMode,0,44,0,0,0,2,0,1,0,1
+CLI Utility Library,org.ejbca.ui.cli.infrastructure.parameter,ParameterHandler,136,501,35,61,25,103,31,28,6,5
+CLI Utility Library,org.ejbca.ui.cli.infrastructure.parameter,ParameterContainer.ParameterInformation,3,12,0,0,1,5,1,2,1,2
+CLI Utility Library,org.ejbca.ui.cli.infrastructure.parameter,Parameter,84,49,15,3,24,15,15,7,7,6
+CLI Utility Library,org.ejbca.ui.cli.infrastructure.parameter,ParameterContainer,37,36,3,1,9,8,5,4,3,4
+CLI Utility Library,org.ejbca.ui.cli.infrastructure.command,PasswordUsingCommandBase,404,0,56,0,102,0,34,0,6,0
+CLI Utility Library,org.ejbca.ui.cli.infrastructure.command,CommandResult,59,0,0,0,9,0,3,0,3,0
+CLI Utility Library,org.ejbca.ui.cli.infrastructure.command,CommandBase,759,18,77,3,160,4,55,1,14,1
+CLI Utility Library,org.ejbca.ui.cli.infrastructure,CliUsernameException,16,0,0,0,8,0,4,0,4,0
+CLI Utility Library,org.ejbca.ui.cli.infrastructure.library,CommandLibrary,114,0,12,0,28,0,11,0,5,0
+CLI Utility Library,org.ejbca.ui.cli.infrastructure.library,CommandLibrary.Branch.new Comparator() {...},10,0,0,0,2,0,2,0,2,0
+CLI Utility Library,org.ejbca.ui.cli.infrastructure.library,CommandLibrary.Branch.new Comparator() {...},10,0,0,0,2,0,2,0,2,0
+CLI Utility Library,org.ejbca.ui.cli.infrastructure.library,CommandLibrary.Branch,575,0,66,0,113,0,44,0,11,0
+CLI Utility Library,org.ejbca.ui.cli.infrastructure.library,CliCommandLibraryConflictException,16,0,0,0,8,0,4,0,4,0

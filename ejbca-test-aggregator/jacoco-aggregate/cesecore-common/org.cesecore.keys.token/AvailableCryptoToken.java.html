@@ -13,93 +13,110 @@
 package org.cesecore.keys.token;
 
 /**
- * Value class containing information about an available crypto token registered to the CryptoTokenCache.
- * 
- * @version $Id: AvailableCryptoToken.java 17625 2013-09-20 07:12:06Z netmackan $
+ * Value class containing information about an available crypto token registered
+ * to the CryptoTokenCache.
+ *
+ * @version $Id: AvailableCryptoToken.java 17625 2013-09-20 07:12:06Z netmackan
+ *     $
  */
 public class AvailableCryptoToken {
-	
-	private String classpath;
-	private String name;
-	private boolean translateable;
-	private boolean use;
-	
-<span class="fc" id="L27">	public AvailableCryptoToken(String classpath, String name, boolean translateable, boolean use){</span>
-<span class="fc" id="L28">		this.classpath = classpath;</span>
-<span class="fc" id="L29">		this.name = name;</span>
-<span class="fc" id="L30">		this.translateable = translateable;</span>
-<span class="fc" id="L31">		this.use = use;</span>
-<span class="fc" id="L32">	}</span>
-	
-	
-	/**
-	 *  Method returning the classpath used to create the plugin. Must implement the HardCAToken interface.
-	 * @return classpath
-	 */
-	public String getClassPath(){
-<span class="nc" id="L40">		return this.classpath;</span>
-	}
-	
-	/**
-	 *  Method returning the general name of the plug-in used in the adminweb-gui. If translateable flag is 
-	 *  set then must the resource be in the language files.
-	 * @return name
-	 */	
-	
-	public String getName(){
-<span class="nc" id="L50">		return this.name;		</span>
-	}
 
-	/**
-	 *  Indicates if the name should be translated in the adminweb-gui. 
-	 * @return boolean
-	 */	
-	public boolean isTranslateable(){
-<span class="nc" id="L58">		return this.translateable;</span>
-	}
+  /** Classpath. */
+  private String classpath;
+  /** Name. */
+  private String name;
+  /** Can be translated. */
+  private boolean translateable;
+  /** Enabled. */
+  private boolean use;
 
-	/**
-	 *  Indicates if the plug should be used in the system or if it's a dummy or test class.
-	 * @return boolean
-	 */		
-	public boolean isUsed(){
-<span class="nc" id="L66">		return this.use;</span>
-	}
+ /**
+  * @param aClasspath Classpath
+  * @param aName Name
+  * @param isTranslateable Can be translated
+  * @param doUse Enabled
+  */
+  public AvailableCryptoToken(
+      final String aClasspath,
+      final String aName,
+      final boolean isTranslateable,
+<span class="fc" id="L43">      final boolean doUse) {</span>
+<span class="fc" id="L44">    this.classpath = aClasspath;</span>
+<span class="fc" id="L45">    this.name = aName;</span>
+<span class="fc" id="L46">    this.translateable = isTranslateable;</span>
+<span class="fc" id="L47">    this.use = doUse;</span>
+<span class="fc" id="L48">  }</span>
 
+  /**
+   * Method returning the classpath used to create the plugin. Must implement
+   * the HardCAToken interface.
+   *
+   * @return classpath
+   */
+  public String getClassPath() {
+<span class="nc" id="L57">    return this.classpath;</span>
+  }
 
-	/** Classpath is considered the key for AvailableCryptoToken */
-	@Override
-	public int hashCode() {
-<span class="nc" id="L73">		final int prime = 31;</span>
-<span class="nc" id="L74">		int result = 1;</span>
-<span class="nc bnc" id="L75" title="All 2 branches missed.">		result = prime * result + ((classpath == null) ? 0 : classpath.hashCode());</span>
-<span class="nc" id="L76">		return result;</span>
-	}
+  /**
+   * Method returning the general name of the plug-in used in the adminweb-gui.
+   * If translateable flag is set then must the resource be in the language
+   * files.
+   *
+   * @return name
+   */
+  public String getName() {
+<span class="nc" id="L68">    return this.name;</span>
+  }
 
+  /**
+   * Indicates if the name should be translated in the adminweb-gui.
+   *
+   * @return boolean
+   */
+  public boolean isTranslateable() {
+<span class="nc" id="L77">    return this.translateable;</span>
+  }
 
-	/** Classpath is considered the key for AvailableCryptoToken */
-	@Override
-	public boolean equals(final Object obj) {
-<span class="pc bpc" id="L83" title="1 of 2 branches missed.">		if (this == obj) {</span>
-<span class="nc" id="L84">			return true;</span>
-		}
-<span class="pc bpc" id="L86" title="1 of 2 branches missed.">		if (obj == null) {</span>
-<span class="nc" id="L87">			return false;</span>
-		}
-<span class="pc bpc" id="L89" title="1 of 2 branches missed.">		if (getClass() != obj.getClass()) {</span>
-<span class="nc" id="L90">			return false;</span>
-		}
-<span class="fc" id="L92">		final AvailableCryptoToken other = (AvailableCryptoToken) obj;</span>
-<span class="pc bpc" id="L93" title="1 of 2 branches missed.">		if (classpath == null) {</span>
-<span class="nc bnc" id="L94" title="All 2 branches missed.">			if (other.classpath != null) {</span>
-<span class="nc" id="L95">				return false;</span>
-			}
-<span class="fc bfc" id="L97" title="All 2 branches covered.">		} else if (!classpath.equals(other.classpath)) {</span>
-<span class="fc" id="L98">			return false;</span>
-		}
-<span class="fc" id="L100">		return true;</span>
-	}
+  /**
+   * Indicates if the plug should be used in the system or if it's a dummy or
+   * test class.
+   *
+   * @return boolean
+   */
+  public boolean isUsed() {
+<span class="nc" id="L87">    return this.use;</span>
+  }
 
+  /** Classpath is considered the key for AvailableCryptoToken. */
+  @Override
+  public int hashCode() {
+<span class="nc" id="L93">    final int prime = 31;</span>
+<span class="nc" id="L94">    int result = 1;</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">    result = prime * result + ((classpath == null) ? 0 : classpath.hashCode());</span>
+<span class="nc" id="L96">    return result;</span>
+  }
 
+  /** Classpath is considered the key for AvailableCryptoToken. */
+  @Override
+  public boolean equals(final Object obj) {
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">    if (this == obj) {</span>
+<span class="nc" id="L103">      return true;</span>
+    }
+<span class="pc bpc" id="L105" title="1 of 2 branches missed.">    if (obj == null) {</span>
+<span class="nc" id="L106">      return false;</span>
+    }
+<span class="pc bpc" id="L108" title="1 of 2 branches missed.">    if (getClass() != obj.getClass()) {</span>
+<span class="nc" id="L109">      return false;</span>
+    }
+<span class="fc" id="L111">    final AvailableCryptoToken other = (AvailableCryptoToken) obj;</span>
+<span class="pc bpc" id="L112" title="1 of 2 branches missed.">    if (classpath == null) {</span>
+<span class="nc bnc" id="L113" title="All 2 branches missed.">      if (other.classpath != null) {</span>
+<span class="nc" id="L114">        return false;</span>
+      }
+<span class="fc bfc" id="L116" title="All 2 branches covered.">    } else if (!classpath.equals(other.classpath)) {</span>
+<span class="fc" id="L117">      return false;</span>
+    }
+<span class="fc" id="L119">    return true;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

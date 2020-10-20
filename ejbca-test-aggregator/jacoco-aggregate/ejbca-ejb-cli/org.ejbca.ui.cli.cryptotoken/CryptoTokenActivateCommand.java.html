@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CryptoTokenActivateCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.cryptotoken</a> &gt; <span class="el_source">CryptoTokenActivateCommand.java</span></div><h1>CryptoTokenActivateCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.cli.cryptotoken;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.keys.token.CryptoTokenInfo;
+import org.cesecore.keys.token.CryptoTokenManagementSessionRemote;
+import org.cesecore.keys.token.CryptoTokenOfflineException;
+import org.cesecore.util.EjbRemoteHelper;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+
+/**
+ * CryptoToken EJB CLI command. 
+ * 
+ * @version $Id: CryptoTokenActivateCommand.java 19902 2014-09-30 14:32:24Z anatom $
+ */
+<span class="nc" id="L33">public class CryptoTokenActivateCommand extends BaseCryptoTokenCommand {</span>
+
+<span class="nc" id="L35">    private static final Logger log = Logger.getLogger(CryptoTokenActivateCommand.class);</span>
+
+    private static final String PIN_KEY = &quot;--pin&quot;;
+
+    {
+<span class="nc" id="L40">        registerParameter(new Parameter(PIN_KEY, &quot;Pin&quot;, MandatoryMode.OPTIONAL, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;PIN to the CryptoToken. Leave blank to prompt.&quot;));
+<span class="nc" id="L42">    }</span>
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L46">        return &quot;activate&quot;;</span>
+    }
+
+    @Override
+    public CommandResult executeCommand(Integer cryptoTokenId, ParameterContainer parameters) throws AuthorizationDeniedException, CryptoTokenOfflineException {
+
+<span class="nc" id="L52">        final char[] authenticationCode = getAuthenticationCode(parameters.get(PIN_KEY));</span>
+        try {
+<span class="nc" id="L54">            final CryptoTokenManagementSessionRemote cryptoTokenManagementSession = EjbRemoteHelper.INSTANCE</span>
+<span class="nc" id="L55">                    .getRemoteSession(CryptoTokenManagementSessionRemote.class);</span>
+<span class="nc" id="L56">            final CryptoTokenInfo cryptoTokenInfo = cryptoTokenManagementSession.getCryptoTokenInfo(getAdmin(), cryptoTokenId.intValue());</span>
+<span class="nc" id="L57">            final boolean usingAutoActivation = cryptoTokenInfo.isAutoActivation();</span>
+<span class="nc" id="L58">            cryptoTokenManagementSession.activate(getAdmin(), cryptoTokenId, authenticationCode);</span>
+<span class="nc bnc" id="L59" title="All 2 branches missed.">            if (cryptoTokenManagementSession.isCryptoTokenStatusActive(getAdmin(), cryptoTokenId)) {</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">                if (usingAutoActivation) {</span>
+<span class="nc" id="L61">                    getLogger().info(&quot;CryptoToken activated successfully using auto-activation PIN. (The supplied PIN was ignored.)&quot;);</span>
+                } else {
+<span class="nc" id="L63">                    getLogger().info(&quot;CryptoToken activated successfully using supplied PIN.&quot;);</span>
+                }
+<span class="nc" id="L65">                return CommandResult.SUCCESS;</span>
+            } else {
+<span class="nc bnc" id="L67" title="All 2 branches missed.">                if (usingAutoActivation) {</span>
+<span class="nc" id="L68">                    getLogger()</span>
+<span class="nc" id="L69">                            .error(&quot;Failed to activate CryptoToken using auto-activation PIN even though request was process successfully. (The supplied PIN was ignored.)&quot;);         </span>
+                } else {
+<span class="nc" id="L71">                    getLogger().warn(&quot;CryptoToken still not active even though request was processed successfully.&quot;);</span>
+                }
+<span class="nc" id="L73">                return CommandResult.FUNCTIONAL_FAILURE;</span>
+            }
+<span class="nc" id="L75">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L76">            getLogger().info(e.getMessage());</span>
+<span class="nc" id="L77">            return CommandResult.AUTHORIZATION_FAILURE;</span>
+<span class="nc" id="L78">        } catch (Exception e) {</span>
+<span class="nc" id="L79">            getLogger().info(&quot;CryptoToken activation failed: &quot; + e.getMessage());</span>
+<span class="nc" id="L80">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+        }
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L86">        return &quot;Activate CryptoToken&quot;;</span>
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L91">        return getCommandDescription();</span>
+    }
+
+    @Override
+    protected Logger getLogger() {
+<span class="nc" id="L96">        return log;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

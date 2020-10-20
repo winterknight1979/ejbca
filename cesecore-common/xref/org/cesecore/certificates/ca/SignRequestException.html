@@ -17,36 +17,36 @@
 <a class="jxr_linenumber" name="L9" href="#L9">9</a>   <em class="jxr_javadoccomment"> *                                                                       *</em>
 <a class="jxr_linenumber" name="L10" href="#L10">10</a>  <em class="jxr_javadoccomment"> *  See terms of license at gnu.org.                                     *</em>
 <a class="jxr_linenumber" name="L11" href="#L11">11</a>  <em class="jxr_javadoccomment"> *                                                                       *</em>
-<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <em class="jxr_javadoccomment"> *************************************************************************/</em>  
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <em class="jxr_javadoccomment"> *************************************************************************/</em>
 <a class="jxr_linenumber" name="L13" href="#L13">13</a>  <strong class="jxr_keyword">package</strong> org.cesecore.certificates.ca;
 <a class="jxr_linenumber" name="L14" href="#L14">14</a>  
 <a class="jxr_linenumber" name="L15" href="#L15">15</a>  <strong class="jxr_keyword">import</strong> javax.xml.ws.WebFault;
-<a class="jxr_linenumber" name="L16" href="#L16">16</a>  
-<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <strong class="jxr_keyword">import</strong> org.cesecore.CesecoreException;
-<a class="jxr_linenumber" name="L18" href="#L18">18</a>  
-<a class="jxr_linenumber" name="L19" href="#L19">19</a>  
-<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <em class="jxr_javadoccomment"> * Error due to malformed certificate request. The cause of failure can be related to ASN.1,</em>
-<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <em class="jxr_javadoccomment"> * algorithm or other</em>
-<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <em class="jxr_javadoccomment"> * </em>
-<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <em class="jxr_javadoccomment"> * Probably based on EJCBA's org.ejbca.core.model.ca.SignRequestException r11201</em>
-<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <em class="jxr_javadoccomment"> *</em>
-<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <em class="jxr_javadoccomment"> * @version $Id: SignRequestException.java 17625 2013-09-20 07:12:06Z netmackan $</em>
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <strong class="jxr_keyword">import</strong> org.cesecore.CesecoreException;
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <em class="jxr_javadoccomment"> * Error due to malformed certificate request. The cause of failure can be</em>
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <em class="jxr_javadoccomment"> * related to ASN.1, algorithm or other</em>
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <em class="jxr_javadoccomment"> *</em>
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <em class="jxr_javadoccomment"> * &lt;p&gt;Probably based on EJCBA's org.ejbca.core.model.ca.SignRequestException</em>
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <em class="jxr_javadoccomment"> * r11201</em>
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <em class="jxr_javadoccomment"> *</em>
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <em class="jxr_javadoccomment"> * @version $Id: SignRequestException.java 17625 2013-09-20 07:12:06Z netmackan</em>
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <em class="jxr_javadoccomment"> *     $</em>
 <a class="jxr_linenumber" name="L27" href="#L27">27</a>  <em class="jxr_javadoccomment"> */</em>
 <a class="jxr_linenumber" name="L28" href="#L28">28</a>  @WebFault
 <a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="SignRequestException" href="../../../../org/cesecore/certificates/ca/SignRequestException.html#SignRequestException">SignRequestException</a> <strong class="jxr_keyword">extends</strong> <a name="CesecoreException" href="../../../../org/cesecore/CesecoreException.html#CesecoreException">CesecoreException</a> {
-<a class="jxr_linenumber" name="L30" href="#L30">30</a>    
-<a class="jxr_linenumber" name="L31" href="#L31">31</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> serialVersionUID = 4368820010501466071L;
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> serialVersionUID = 4368820010501466071L;
 <a class="jxr_linenumber" name="L32" href="#L32">32</a>  
-<a class="jxr_linenumber" name="L33" href="#L33">33</a>      <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <em class="jxr_javadoccomment">     * Constructor used to create exception with an errormessage. Calls the same constructor in</em>
-<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <em class="jxr_javadoccomment">     * baseclass &lt;code&gt;Exception&lt;/code&gt;.</em>
-<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <em class="jxr_javadoccomment">     *</em>
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <em class="jxr_javadoccomment">     * @param message Human redable error message, can not be NULL.</em>
-<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L39" href="#L39">39</a>      <strong class="jxr_keyword">public</strong> <a name="SignRequestException" href="../../../../org/cesecore/certificates/ca/SignRequestException.html#SignRequestException">SignRequestException</a>(String message) {
-<a class="jxr_linenumber" name="L40" href="#L40">40</a>          <strong class="jxr_keyword">super</strong>(message);
-<a class="jxr_linenumber" name="L41" href="#L41">41</a>      }
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>    <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <em class="jxr_javadoccomment">   * Constructor used to create exception with an errormessage. Calls the same</em>
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <em class="jxr_javadoccomment">   * constructor in baseclass &lt;code&gt;Exception&lt;/code&gt;.</em>
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <em class="jxr_javadoccomment">   *</em>
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <em class="jxr_javadoccomment">   * @param message Human redable error message, can not be NULL.</em>
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <em class="jxr_javadoccomment">   */</em>
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>    <strong class="jxr_keyword">public</strong> <a name="SignRequestException" href="../../../../org/cesecore/certificates/ca/SignRequestException.html#SignRequestException">SignRequestException</a>(<strong class="jxr_keyword">final</strong> String message) {
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>      <strong class="jxr_keyword">super</strong>(message);
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>    }
 <a class="jxr_linenumber" name="L42" href="#L42">42</a>  }
 </pre>
 <hr/>

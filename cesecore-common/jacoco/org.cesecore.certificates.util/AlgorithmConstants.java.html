@@ -15,81 +15,126 @@ package org.cesecore.certificates.util;
 import java.util.Arrays;
 import java.util.List;
 
-/** Constants for digital signature algorithms.
+/**
+ * Constants for digital signature algorithms.
  *
  * @version $Id: AlgorithmConstants.java 27720 2018-01-03 11:42:32Z bastianf $
  */
 public final class AlgorithmConstants {
 
-    public static final String SIGALG_MD5_WITH_RSA             = &quot;MD5WithRSA&quot;;
-    public static final String SIGALG_SHA1_WITH_RSA            = &quot;SHA1WithRSA&quot;;
-    public static final String SIGALG_SHA256_WITH_RSA          = &quot;SHA256WithRSA&quot;;
-    public static final String SIGALG_SHA384_WITH_RSA          = &quot;SHA384WithRSA&quot;;
-    public static final String SIGALG_SHA512_WITH_RSA          = &quot;SHA512WithRSA&quot;;
-    public static final String SIGALG_SHA3_256_WITH_RSA        = &quot;SHA3-256withRSA&quot;;
-    public static final String SIGALG_SHA3_384_WITH_RSA        = &quot;SHA3-384withRSA&quot;;
-    public static final String SIGALG_SHA3_512_WITH_RSA        = &quot;SHA3-512withRSA&quot;;
-    public static final String SIGALG_SHA1_WITH_ECDSA          = &quot;SHA1withECDSA&quot;;
-    public static final String SIGALG_SHA224_WITH_ECDSA        = &quot;SHA224withECDSA&quot;;
-    public static final String SIGALG_SHA256_WITH_ECDSA        = &quot;SHA256withECDSA&quot;;
-    public static final String SIGALG_SHA384_WITH_ECDSA        = &quot;SHA384withECDSA&quot;;
-    public static final String SIGALG_SHA512_WITH_ECDSA        = &quot;SHA512withECDSA&quot;;
-    public static final String SIGALG_SHA3_256_WITH_ECDSA      = &quot;SHA3-256withECDSA&quot;;
-    public static final String SIGALG_SHA3_384_WITH_ECDSA      = &quot;SHA3-384withECDSA&quot;;
-    public static final String SIGALG_SHA3_512_WITH_ECDSA      = &quot;SHA3-512withECDSA&quot;;
-    public static final String SIGALG_SHA256_WITH_RSA_AND_MGF1 = &quot;SHA256withRSAandMGF1&quot;;
-    public static final String SIGALG_SHA1_WITH_RSA_AND_MGF1   = &quot;SHA1withRSAandMGF1&quot;; // Not possible to select in Admin-GUI
-    public static final String SIGALG_SHA1_WITH_DSA            = &quot;SHA1WithDSA&quot;;
-    public static final String SIGALG_GOST3411_WITH_ECGOST3410 = &quot;GOST3411withECGOST3410&quot;;
-    public static final String SIGALG_GOST3411_WITH_DSTU4145   = &quot;GOST3411withDSTU4145&quot;;
 
-    /**
-     * Signature algorithms available to choose from.
-     * Call AlgorithmTools.isSigAlgEnabled() to determine if a given sigalg is enabled and should be shown in the UI.
-     */
-<span class="fc" id="L50">    public static final String[] AVAILABLE_SIGALGS = {</span>
-        SIGALG_SHA1_WITH_RSA,
-        SIGALG_SHA256_WITH_RSA,
-        SIGALG_SHA384_WITH_RSA,
-        SIGALG_SHA512_WITH_RSA,
-        SIGALG_SHA3_256_WITH_RSA,
-        SIGALG_SHA3_384_WITH_RSA,
-        SIGALG_SHA3_512_WITH_RSA,
-        SIGALG_SHA256_WITH_RSA_AND_MGF1,
-        SIGALG_SHA1_WITH_ECDSA,
-        SIGALG_SHA224_WITH_ECDSA,
-        SIGALG_SHA256_WITH_ECDSA,
-        SIGALG_SHA384_WITH_ECDSA,
-        SIGALG_SHA512_WITH_ECDSA,
-        SIGALG_SHA3_256_WITH_ECDSA,
-        SIGALG_SHA3_384_WITH_ECDSA,
-        SIGALG_SHA3_512_WITH_ECDSA,
-        SIGALG_SHA1_WITH_DSA,
-        SIGALG_GOST3411_WITH_ECGOST3410,
-        SIGALG_GOST3411_WITH_DSTU4145,
-    };
+  /** RSA/MD5. */
+  public static final String SIGALG_MD5_WITH_RSA = &quot;MD5WithRSA&quot;;
+  /** RSA/SHA1. */
+  public static final String SIGALG_SHA1_WITH_RSA = &quot;SHA1WithRSA&quot;;
+  /** RSA/SHA2-256. */
+  public static final String SIGALG_SHA256_WITH_RSA = &quot;SHA256WithRSA&quot;;
+  /** RSA/SHA2-384. */
+  public static final String SIGALG_SHA384_WITH_RSA = &quot;SHA384WithRSA&quot;;
+  /** RSA/SHA2-512. */
+  public static final String SIGALG_SHA512_WITH_RSA = &quot;SHA512WithRSA&quot;;
+  /** RSA/SHA3-256. */
+  public static final String SIGALG_SHA3_256_WITH_RSA = &quot;SHA3-256withRSA&quot;;
+  /** RSA/SHA3-384. */
+  public static final String SIGALG_SHA3_384_WITH_RSA = &quot;SHA3-384withRSA&quot;;
+  /** RSA/SHA3-512. */
+  public static final String SIGALG_SHA3_512_WITH_RSA = &quot;SHA3-512withRSA&quot;;
+  /** EC/SHA1. */
+  public static final String SIGALG_SHA1_WITH_ECDSA = &quot;SHA1withECDSA&quot;;
+  /** EC/SHA2-224. */
+  public static final String SIGALG_SHA224_WITH_ECDSA = &quot;SHA224withECDSA&quot;;
+  /** EC/SHA2-256. */
+  public static final String SIGALG_SHA256_WITH_ECDSA = &quot;SHA256withECDSA&quot;;
+  /** EC/SHA2-384. */
+  public static final String SIGALG_SHA384_WITH_ECDSA = &quot;SHA384withECDSA&quot;;
+  /** EC/SHA2-512. */
+  public static final String SIGALG_SHA512_WITH_ECDSA = &quot;SHA512withECDSA&quot;;
+  /** EC/SHA3-256. */
+  public static final String SIGALG_SHA3_256_WITH_ECDSA = &quot;SHA3-256withECDSA&quot;;
+  /** EC/SHA3-384. */
+  public static final String SIGALG_SHA3_384_WITH_ECDSA = &quot;SHA3-384withECDSA&quot;;
+  /** EC/SHA3-512. */
+  public static final String SIGALG_SHA3_512_WITH_ECDSA = &quot;SHA3-512withECDSA&quot;;
+  /** RSA/SHA1. */
+  public static final String SIGALG_SHA256_WITH_RSA_AND_MGF1 =
+      &quot;SHA256withRSAandMGF1&quot;;
+  /** RSA/SHA1. */
+  public static final String SIGALG_SHA1_WITH_RSA_AND_MGF1 =
+      &quot;SHA1withRSAandMGF1&quot;; // Not possible to select in Admin-GUI
+  /** DSA/SHA1. */
+  public static final String SIGALG_SHA1_WITH_DSA = &quot;SHA1WithDSA&quot;;
+  /** GOST/EC. */
+  public static final String SIGALG_GOST3411_WITH_ECGOST3410 =
+      &quot;GOST3411withECGOST3410&quot;;
+  /** GOST with DSTU. */
+  public static final String SIGALG_GOST3411_WITH_DSTU4145 =
+      &quot;GOST3411withDSTU4145&quot;;
 
-    public static final String KEYALGORITHM_RSA         = &quot;RSA&quot;;
-    public static final String KEYALGORITHM_EC          = &quot;EC&quot;;
-    public static final String KEYALGORITHM_ECDSA       = &quot;ECDSA&quot;; //The same as &quot;EC&quot;, just named differently sometimes. &quot;EC&quot; and &quot;ECDSA&quot; should be handled in the same way
-    public static final String KEYALGORITHM_DSA         = &quot;DSA&quot;;
-    public static final String KEYALGORITHM_ECGOST3410  = &quot;ECGOST3410&quot;;
-    public static final String KEYALGORITHM_DSTU4145    = &quot;DSTU4145&quot;;
+  /**
+   * Signature algorithms available to choose from. Call
+   * AlgorithmTools.isSigAlgEnabled() to determine if a given sigalg is enabled
+   * and should be shown in the UI.
+   */
+<span class="fc" id="L78">  public static final String[] AVAILABLE_SIGALGS = {</span>
+    SIGALG_SHA1_WITH_RSA,
+    SIGALG_SHA256_WITH_RSA,
+    SIGALG_SHA384_WITH_RSA,
+    SIGALG_SHA512_WITH_RSA,
+    SIGALG_SHA3_256_WITH_RSA,
+    SIGALG_SHA3_384_WITH_RSA,
+    SIGALG_SHA3_512_WITH_RSA,
+    SIGALG_SHA256_WITH_RSA_AND_MGF1,
+    SIGALG_SHA1_WITH_ECDSA,
+    SIGALG_SHA224_WITH_ECDSA,
+    SIGALG_SHA256_WITH_ECDSA,
+    SIGALG_SHA384_WITH_ECDSA,
+    SIGALG_SHA512_WITH_ECDSA,
+    SIGALG_SHA3_256_WITH_ECDSA,
+    SIGALG_SHA3_384_WITH_ECDSA,
+    SIGALG_SHA3_512_WITH_ECDSA,
+    SIGALG_SHA1_WITH_DSA,
+    SIGALG_GOST3411_WITH_ECGOST3410,
+    SIGALG_GOST3411_WITH_DSTU4145,
+  };
 
-    public static final String KEYSPECPREFIX_ECGOST3410 = &quot;GostR3410-&quot;;
+  /** RSA. */
+  public static final String KEYALGORITHM_RSA = &quot;RSA&quot;;
+  /** EC. */
+  public static final String KEYALGORITHM_EC = &quot;EC&quot;;
+  /** ECDSA. */
+  public static final String KEYALGORITHM_ECDSA =
+      &quot;ECDSA&quot;; // The same as &quot;EC&quot;, just named differently sometimes. &quot;EC&quot; and
+               // &quot;ECDSA&quot; should be handled in the same way
+  /** DSA. */
+  public static final String KEYALGORITHM_DSA = &quot;DSA&quot;;
+  /** ECGOST. */
+  public static final String KEYALGORITHM_ECGOST3410 = &quot;ECGOST3410&quot;;
+  /** DSTU. */
+  public static final String KEYALGORITHM_DSTU4145 = &quot;DSTU4145&quot;;
 
-<span class="fc" id="L81">    public static final List&lt;String&gt; BLACKLISTED_EC_CURVES = Arrays.asList(new String[]{</span>
+  /** GOST. */
+  public static final String KEYSPECPREFIX_ECGOST3410 = &quot;GostR3410-&quot;;
+
+  /** Blacklisted curves. */
+<span class="fc" id="L119">  public static final List&lt;String&gt; BLACKLISTED_EC_CURVES =</span>
+<span class="fc" id="L120">      Arrays.asList(</span>
+          new String[] {
             // No blacklisted EC curves at the moment
-    });
+          });
 
-    // Extra EC curves that we want to include that are not part of the &quot;standard&quot; curves in BC (ECNamedCurveTable.getNames)
-<span class="fc" id="L86">    public static final List&lt;String&gt; EXTRA_EC_CURVES = Arrays.asList(new String[]{</span>
+  /** Extra EC curves that we want to include
+   * that are not part of the &quot;standard&quot;
+   * curves in BC (ECNamedCurveTable.getNames). */
+<span class="fc" id="L128">  public static final List&lt;String&gt; EXTRA_EC_CURVES =</span>
+<span class="fc" id="L129">      Arrays.asList(</span>
+          new String[] {
             // Part of CustomNamedCurves in BouncyCastle 1.54
-            // Commented out due to experimental nature 2017-04 as the signatures using this currently probably is not correct
+            // Commented out due to experimental nature 2017-04 as the
+            // signatures using this currently probably is not correct
             // Should probably wait for edDSA, See ECA-5796 and linked issues.
-            //&quot;curve25519&quot;,
-    });
+            // &quot;curve25519&quot;,
+          });
 
-    private AlgorithmConstants () {} // Not for instantiation
+  private AlgorithmConstants() { } // Not for instantiation
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

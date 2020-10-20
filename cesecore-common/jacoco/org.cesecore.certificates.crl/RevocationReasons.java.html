@@ -16,77 +16,105 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * An enum for revocation reasons, with a numerical database value and a String value for CLI applications.
- * 
- * Based on RFC 5280 Section 5.3.1
- * 
+ * An enum for revocation reasons, with a numerical database value and a String
+ * value for CLI applications.
+ *
+ * &lt;p&gt;Based on RFC 5280 Section 5.3.1
+ *
  * @version $Id: RevocationReasons.java 28485 2018-03-14 12:59:48Z anatom $
  */
-<span class="fc" id="L25">public enum RevocationReasons {</span>
-<span class="fc" id="L26">    NOT_REVOKED(-1, &quot;NOT_REVOKED&quot;, &quot;The Certificate Is Not Revoked&quot;),</span>
-<span class="fc" id="L27">    UNSPECIFIED(0, &quot;UNSPECIFIED&quot;, &quot;Unspecified&quot;),</span>
-<span class="fc" id="L28">    KEYCOMPROMISE(1, &quot;KEY_COMPROMISE&quot;, &quot;Key Compromise&quot;),</span>
-<span class="fc" id="L29">    CACOMPROMISE(2, &quot;CA_COMPROMISE&quot;, &quot;CA Compromise&quot;),</span>
-<span class="fc" id="L30">    AFFILIATIONCHANGED(3, &quot;AFFILIATION_CHANGED&quot;, &quot;Affiliation Changed&quot;),</span>
-<span class="fc" id="L31">    SUPERSEDED(4, &quot;SUPERSEDED&quot;, &quot;Superseded&quot;),</span>
-<span class="fc" id="L32">    CESSATIONOFOPERATION(5, &quot;CESSATION_OF_OPERATION&quot;, &quot;Cessation of Operation&quot;),</span>
-<span class="fc" id="L33">    CERTIFICATEHOLD(6, &quot;CERTIFICATE_HOLD&quot;, &quot;Certificate Hold&quot;),</span>
-<span class="fc" id="L34">    REMOVEFROMCRL(8, &quot;REMOVE_FROM_CRL&quot;, &quot;Remove from CRL&quot;),</span>
-<span class="fc" id="L35">    PRIVILEGESWITHDRAWN(9, &quot;PRIVILEGES_WITHDRAWN&quot;, &quot;Privileges Withdrawn&quot;),</span>
-<span class="fc" id="L36">    AACOMPROMISE(10, &quot;AA_COMPROMISE&quot;, &quot;AA Compromise&quot;);</span>
-    
-    private final int databaseValue;
-    private final String stringValue;
-    private final String humanReadable;
+<span class="fc" id="L26">public enum RevocationReasons {</span>
+    /** Not revoked. */
+<span class="fc" id="L28">  NOT_REVOKED(-1, &quot;NOT_REVOKED&quot;, &quot;The Certificate Is Not Revoked&quot;),</span>
+  /** Unspecified. */
+<span class="fc" id="L30">  UNSPECIFIED(0, &quot;UNSPECIFIED&quot;, &quot;Unspecified&quot;),</span>
+  /** Key compromise. */
+<span class="fc" id="L32">  KEYCOMPROMISE(1, &quot;KEY_COMPROMISE&quot;, &quot;Key Compromise&quot;),</span>
+  /** CA compromise. */
+<span class="fc" id="L34">  CACOMPROMISE(2, &quot;CA_COMPROMISE&quot;, &quot;CA Compromise&quot;),</span>
+  /** Changed. */
+<span class="fc" id="L36">  AFFILIATIONCHANGED(3, &quot;AFFILIATION_CHANGED&quot;, &quot;Affiliation Changed&quot;),</span>
+  /** Superseded. */
+<span class="fc" id="L38">  SUPERSEDED(4, &quot;SUPERSEDED&quot;, &quot;Superseded&quot;),</span>
+  /** Ceased operating. */
+<span class="fc" id="L40">  CESSATIONOFOPERATION(5, &quot;CESSATION_OF_OPERATION&quot;, &quot;Cessation of Operation&quot;),</span>
+  /** Hold. */
+<span class="fc" id="L42">  CERTIFICATEHOLD(6, &quot;CERTIFICATE_HOLD&quot;, &quot;Certificate Hold&quot;),</span>
+  /** Remove. */
+<span class="fc" id="L44">  REMOVEFROMCRL(8, &quot;REMOVE_FROM_CRL&quot;, &quot;Remove from CRL&quot;),</span>
+  /** Withdrawn. */
+<span class="fc" id="L46">  PRIVILEGESWITHDRAWN(9, &quot;PRIVILEGES_WITHDRAWN&quot;, &quot;Privileges Withdrawn&quot;),</span>
+  /** Authority compromise. */
+<span class="fc" id="L48">  AACOMPROMISE(10, &quot;AA_COMPROMISE&quot;, &quot;AA Compromise&quot;);</span>
 
-<span class="fc" id="L42">    private static final Map&lt;Integer, RevocationReasons&gt; databaseLookupMap = new HashMap&lt;Integer, RevocationReasons&gt;();</span>
-<span class="fc" id="L43">    private static final Map&lt;String, RevocationReasons&gt; cliLookupMap = new HashMap&lt;String, RevocationReasons&gt;();</span>
+    /** ID. */
+  private final int databaseValue;
+  /** String. */
+  private final String stringValue;
+  /** Readable. */
+  private final String humanReadable;
 
-    
-    static {
-<span class="fc bfc" id="L47" title="All 2 branches covered.">        for(RevocationReasons reason : RevocationReasons.values()) {</span>
-<span class="fc" id="L48">            databaseLookupMap.put(reason.getDatabaseValue(), reason);</span>
-<span class="fc" id="L49">            cliLookupMap.put(reason.getStringValue(), reason);</span>
-        }
-<span class="fc" id="L51">    }</span>
+  /** DV values. */
+<span class="fc" id="L58">  private static final Map&lt;Integer, RevocationReasons&gt; DB_LOOKUP_MAP =</span>
+      new HashMap&lt;Integer, RevocationReasons&gt;();
+  /** CLI values. */
+<span class="fc" id="L61">  private static final Map&lt;String, RevocationReasons&gt; CLI_LOOKUP_MAP =</span>
+      new HashMap&lt;String, RevocationReasons&gt;();
 
-<span class="fc" id="L53">    private RevocationReasons(final int databaseValue, final String stringValue, String humanReadable) {</span>
-<span class="fc" id="L54">        this.databaseValue = databaseValue;</span>
-<span class="fc" id="L55">        this.stringValue = stringValue;</span>
-<span class="fc" id="L56">        this.humanReadable = humanReadable;</span>
-<span class="fc" id="L57">    }</span>
-    
-    public int getDatabaseValue() {
-<span class="fc" id="L60">        return databaseValue;</span>
+  static {
+<span class="fc bfc" id="L65" title="All 2 branches covered.">    for (RevocationReasons reason : RevocationReasons.values()) {</span>
+<span class="fc" id="L66">      DB_LOOKUP_MAP.put(reason.getDatabaseValue(), reason);</span>
+<span class="fc" id="L67">      CLI_LOOKUP_MAP.put(reason.getStringValue(), reason);</span>
     }
-    
-    public String getHumanReadable() {
-<span class="nc" id="L64">        return humanReadable;</span>
+<span class="fc" id="L69">  }</span>
+
+  RevocationReasons(
+      final int aDatabaseValue,
+<span class="fc" id="L73">      final String aStringValue, final String aHumanReadable) {</span>
+<span class="fc" id="L74">    this.databaseValue = aDatabaseValue;</span>
+<span class="fc" id="L75">    this.stringValue = aStringValue;</span>
+<span class="fc" id="L76">    this.humanReadable = aHumanReadable;</span>
+<span class="fc" id="L77">  }</span>
+
+  /**
+   * @return value from DB
+   */
+  public int getDatabaseValue() {
+<span class="fc" id="L83">    return databaseValue;</span>
+  }
+
+  /**
+   * @return Human-readable value
+   */
+  public String getHumanReadable() {
+<span class="nc" id="L90">    return humanReadable;</span>
+  }
+
+  /**
+   * @return Value as string
+   */
+  public String getStringValue() {
+<span class="fc" id="L97">    return stringValue;</span>
+  }
+
+  /**
+   * @param databaseValue the database value
+   * @return the relevant RevocationReasons object, null if none found.
+   */
+  public static RevocationReasons getFromDatabaseValue(
+          final int databaseValue) {
+<span class="nc" id="L106">    return DB_LOOKUP_MAP.get(databaseValue);</span>
+  }
+
+  /**
+   * @param cliValue the database value
+   * @return the relevant RevocationReasons object, null if none found.
+   */
+  public static RevocationReasons getFromCliValue(final  String cliValue) {
+<span class="nc bnc" id="L114" title="All 2 branches missed.">    if (cliValue == null) {</span>
+<span class="nc" id="L115">      return null;</span>
     }
-    
-    public String getStringValue() {
-<span class="fc" id="L68">        return stringValue;</span>
-    }
-    
-    /**
-     * 
-     * @param databaseValue the database value
-     * @return the relevant RevocationReasons object, null if none found. 
-     */
-    public static RevocationReasons getFromDatabaseValue(int databaseValue) {
-<span class="nc" id="L77">        return databaseLookupMap.get(databaseValue);</span>
-    }
-    
-    /**
-     * 
-     * @param cliValue the database value
-     * @return the relevant RevocationReasons object, null if none found. 
-     */
-    public static RevocationReasons getFromCliValue(String cliValue) {
-<span class="nc bnc" id="L86" title="All 2 branches missed.">        if(cliValue == null) {</span>
-<span class="nc" id="L87">            return null;</span>
-        }
-<span class="nc" id="L89">        return cliLookupMap.get(cliValue);</span>
-    }
+<span class="nc" id="L117">    return CLI_LOOKUP_MAP.get(cliValue);</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

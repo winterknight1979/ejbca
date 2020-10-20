@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CommandBase.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">CLI Utility Library</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.infrastructure.command</a> &gt; <span class="el_source">CommandBase.java</span></div><h1>CommandBase.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.cli.infrastructure.command;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+
+import org.apache.log4j.Logger;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterHandler;
+
+/**
+ * Base class for all commands
+ * 
+ * @version $Id: CommandBase.java 26057 2017-06-22 08:08:34Z anatom $
+ *
+ */
+<span class="nc" id="L36">public abstract class CommandBase implements CliCommandPlugin {</span>
+
+    private static final String TAB = &quot;    &quot;;
+    private static final String CR = &quot;\n&quot;;
+
+    protected final ParameterHandler parameterHandler;
+
+    {
+<span class="nc" id="L44">        parameterHandler = new ParameterHandler(getMainCommand());</span>
+<span class="nc" id="L45">        Parameter help = Parameter.createFlag(ParameterHandler.HELP_KEY, &quot;&quot;);</span>
+<span class="nc" id="L46">        help.setAllowList(false);</span>
+<span class="nc" id="L47">        registerParameter(help);</span>
+<span class="nc" id="L48">        registerParameter(Parameter.createFlag(ParameterHandler.VERBOSE_KEY, &quot;Set this value for verbose output of parameter values.&quot;));</span>
+<span class="nc" id="L49">    }</span>
+
+    /**
+     * Prompts for &quot;y&quot; or &quot;n&quot;.
+     * 
+     * @param prompt Prompt string. The string &quot; (y/n) &quot; will be appended.
+     * @param defaultYes If &quot;yes&quot; should be the default. Otherwise &quot;no&quot; will be the default.
+     * @return True if &quot;yes&quot; was answered, false if &quot;no&quot; was answered.
+     */
+    protected static boolean readYesNo(final String prompt, final boolean defaultYes) {
+<span class="nc" id="L59">        final BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">        final String promptLine = prompt + (defaultYes ? &quot; (Y/n) &quot; : &quot; (y/N) &quot;);</span>
+        try {
+            while (true) { // until a valid response has been provided
+<span class="nc" id="L63">                System.out.print(promptLine);</span>
+<span class="nc" id="L64">                System.out.flush();</span>
+
+<span class="nc" id="L66">                final String input = bufferedReader.readLine().trim();</span>
+<span class="nc bnc" id="L67" title="All 2 branches missed.">                if (input.isEmpty()) {</span>
+<span class="nc bnc" id="L68" title="All 2 branches missed.">                    System.out.println(defaultYes ? &quot;Yes.&quot; : &quot;No.&quot;);</span>
+<span class="nc" id="L69">                    return defaultYes;</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">                } else if (input.equalsIgnoreCase(&quot;y&quot;)) {</span>
+<span class="nc" id="L71">                    return true;</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">                } else if (input.equalsIgnoreCase(&quot;n&quot;)) {</span>
+<span class="nc" id="L73">                    return false;</span>
+                } else {
+<span class="nc" id="L75">                    System.out.println(&quot;Input not recognized: '&quot; + input + &quot;'&quot;);</span>
+                }
+<span class="nc" id="L77">            }</span>
+<span class="nc" id="L78">        } catch (IOException e) {</span>
+<span class="nc" id="L79">            throw new RuntimeException(&quot;Unknown IOException occurred.&quot;, e);</span>
+        }
+    }
+
+    @Override
+    public CommandResult execute(String... arguments) {
+<span class="nc" id="L85">        ParameterContainer parameters = parameterHandler.parseParameters(arguments);</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">        if (parameters == null) {</span>
+            //Parameters couldn't be parsed, but this should already be handled. 
+<span class="nc" id="L88">            return CommandResult.CLI_FAILURE;</span>
+        }
+<span class="nc bnc" id="L90" title="All 2 branches missed.">        if (parameters.containsKey(ParameterHandler.HELP_KEY)) {</span>
+<span class="nc" id="L91">            printManPage();</span>
+<span class="nc" id="L92">            return CommandResult.SUCCESS;</span>
+        } else {
+<span class="nc" id="L94">            return execute(parameters);</span>
+        }
+    }
+
+    // Return an empty set for commands without aliases
+    @Override
+    public Set&lt;String&gt; getMainCommandAliases() {
+<span class="nc" id="L101">        return new HashSet&lt;String&gt;();</span>
+    }
+
+    // Return an empty path for top level commands
+    @Override
+    public String[] getCommandPath() {
+<span class="nc" id="L107">        return new String[] {};</span>
+    }
+
+    // Return an empty set for commands without path aliases
+    @Override
+    public Set&lt;String[]&gt; getCommandPathAliases() {
+<span class="nc" id="L113">        return new HashSet&lt;String[]&gt;();</span>
+    }
+
+    /**
+     * Execute commands on a local level, sans boilerplate code
+     * 
+     * @param parameters a map of the parameters.  
+     * @return Result
+     */
+    protected abstract CommandResult execute(ParameterContainer parameters);
+
+    protected void registerParameter(Parameter parameter) {
+<span class="nc" id="L125">        parameterHandler.registerParameter(parameter);</span>
+<span class="nc" id="L126">    }</span>
+
+    protected boolean isParameterRegistered(final String keyword) {
+<span class="nc" id="L129">        return parameterHandler.isParameterRegistered(keyword);</span>
+    }
+
+    public abstract String getFullHelpText();
+
+    public abstract String getImplementationName();
+
+    /**
+     * 
+     * @return true if synopsis is to be printed for this command.
+     */
+    protected boolean doPrintSynopsis() {
+<span class="nc" id="L141">        return true;</span>
+    }
+
+    /**
+     * Prints an auto formatted man-esque page for this command.
+     */
+    protected void printManPage() {
+<span class="nc" id="L148">        StringBuffer sb = new StringBuffer();</span>
+<span class="nc" id="L149">        sb.append(CR);</span>
+<span class="nc" id="L150">        sb.append(bold(getMainCommand().toUpperCase()) + tab(3) + getImplementationName() + &quot; Commands Manual&quot; + tab(3)</span>
+<span class="nc" id="L151">                + bold(getMainCommand().toUpperCase()) + CR);</span>
+<span class="nc" id="L152">        sb.append(CR);</span>
+<span class="nc" id="L153">        sb.append(bold(&quot;NAME&quot;) + CR);</span>
+<span class="nc" id="L154">        sb.append(TAB + getMainCommand() + &quot; - &quot; + getCommandDescription() + CR);</span>
+<span class="nc" id="L155">        sb.append(CR);</span>
+<span class="nc" id="L156">        final List&lt;String&gt; mandatoryParameters = parameterHandler.getMandatoryParameters();</span>
+<span class="nc" id="L157">        final List&lt;String&gt; optionalParameters = parameterHandler.getOptionalParameters();</span>
+<span class="nc" id="L158">        final LinkedList&lt;String&gt; standaloneParameters = parameterHandler.getStandaloneParameters();</span>
+<span class="nc" id="L159">        sb.append(bold(&quot;SYNOPSIS&quot;) + CR);</span>
+<span class="nc bnc" id="L160" title="All 2 branches missed.">        if (doPrintSynopsis()) {</span>
+<span class="nc bnc" id="L161" title="All 2 branches missed.">            if (standaloneParameters.size() &gt; 0) {</span>
+                //Only make this synopsis if there are standalone parameters
+<span class="nc" id="L163">                sb.append(TAB + getMainCommand());</span>
+<span class="nc" id="L164">                Set&lt;String&gt; usedMandatories = new HashSet&lt;String&gt;();</span>
+<span class="nc bnc" id="L165" title="All 2 branches missed.">                for (String parameterString : standaloneParameters) {</span>
+<span class="nc" id="L166">                    Parameter parameter = parameterHandler.getRegisteredParameter(parameterString);</span>
+<span class="nc" id="L167">                    sb.append(&quot; &lt;&quot; + parameter.getName().toUpperCase().replaceAll(&quot; &quot;, &quot;_&quot;) + &quot;&gt;&quot;);</span>
+<span class="nc bnc" id="L168" title="All 2 branches missed.">                    if (parameter.isMandatory()) {</span>
+<span class="nc" id="L169">                        usedMandatories.add(parameterString);</span>
+                    }
+<span class="nc" id="L171">                }</span>
+<span class="nc bnc" id="L172" title="All 2 branches missed.">                for (String parameterString : mandatoryParameters) {</span>
+<span class="nc bnc" id="L173" title="All 2 branches missed.">                    if (!usedMandatories.contains(parameterString)) {</span>
+<span class="nc" id="L174">                        Parameter parameter = parameterHandler.getRegisteredParameter(parameterString);</span>
+<span class="nc" id="L175">                        sb.append(&quot; &quot; + parameter.getKeyWord() + &quot; &lt;&quot; + parameter.getName().toUpperCase().replaceAll(&quot; &quot;, &quot;_&quot;) + &quot;&gt;&quot;);</span>
+                    }
+<span class="nc" id="L177">                }</span>
+<span class="nc bnc" id="L178" title="All 2 branches missed.">                if (optionalParameters.size() &gt; 0) {</span>
+<span class="nc" id="L179">                    sb.append(&quot; [OPTIONAL PARAMETERS]&quot;);</span>
+                }
+<span class="nc" id="L181">                sb.append(CR);</span>
+            }
+<span class="nc" id="L183">            sb.append(TAB + getMainCommand());</span>
+<span class="nc bnc" id="L184" title="All 2 branches missed.">            for (String parameterString : mandatoryParameters) {</span>
+<span class="nc" id="L185">                Parameter parameter = parameterHandler.getRegisteredParameter(parameterString);</span>
+<span class="nc" id="L186">                sb.append(&quot; &quot; + parameter.getKeyWord() + &quot; &lt;&quot; + parameter.getName().toUpperCase().replaceAll(&quot; &quot;, &quot;_&quot;) + &quot;&gt;&quot;);</span>
+<span class="nc" id="L187">            }</span>
+<span class="nc bnc" id="L188" title="All 2 branches missed.">            if (optionalParameters.size() &gt; 0) {</span>
+<span class="nc" id="L189">                sb.append(&quot; [OPTIONAL PARAMETERS]&quot;);</span>
+            }
+<span class="nc" id="L191">            sb.append(CR);</span>
+<span class="nc" id="L192">            sb.append(CR);</span>
+        } else {
+<span class="nc" id="L194">            sb.append(TAB + &quot;Synposis not printed for this command.&quot; + CR + CR);</span>
+        }
+<span class="nc" id="L196">        sb.append(bold(&quot;DESCRIPTION&quot;) + CR);</span>
+<span class="nc bnc" id="L197" title="All 2 branches missed.">        for (String formattedString : splitStringIntoLines(getFullHelpText(), 120)) {</span>
+<span class="nc" id="L198">            sb.append(TAB + formattedString + CR);</span>
+<span class="nc" id="L199">        }</span>
+<span class="nc" id="L200">        sb.append(CR);</span>
+<span class="nc" id="L201">        sb.append(bold(&quot;PARAMETERS&quot;) + CR);</span>
+<span class="nc bnc" id="L202" title="All 2 branches missed.">        if (mandatoryParameters.size() &gt; 0) {</span>
+<span class="nc" id="L203">            Collections.sort(mandatoryParameters);</span>
+<span class="nc" id="L204">            sb.append(TAB + &quot;Mandatory parameters:&quot; + CR);</span>
+<span class="nc" id="L205">            sb.append(formatParameterList(mandatoryParameters));</span>
+<span class="nc" id="L206">            sb.append(CR);</span>
+        }
+<span class="nc bnc" id="L208" title="All 2 branches missed.">        if (optionalParameters.size() &gt; 0) {</span>
+<span class="nc" id="L209">            Collections.sort(optionalParameters);</span>
+<span class="nc" id="L210">            sb.append(TAB + &quot;Optional parameters:&quot; + CR);</span>
+<span class="nc" id="L211">            sb.append(formatParameterList(optionalParameters));</span>
+        }
+<span class="nc" id="L213">        getLogger().info(sb.toString());</span>
+<span class="nc" id="L214">    }</span>
+
+    protected static String bold(String text) {
+<span class="nc" id="L217">        return (char) 27 + &quot;[1m&quot; + text + (char) 27 + &quot;[0m&quot;;</span>
+    }
+
+    private String formatParameterList(List&lt;String&gt; parameterNames) {
+<span class="nc" id="L221">        StringBuilder sb = new StringBuilder();</span>
+<span class="nc bnc" id="L222" title="All 2 branches missed.">        for (String parameterName : parameterNames) {</span>
+<span class="nc" id="L223">            Parameter parameter = parameterHandler.getRegisteredParameter(parameterName);</span>
+<span class="nc bnc" id="L224" title="All 2 branches missed.">            if (parameter.allowList()) {</span>
+<span class="nc" id="L225">                sb.append(tab(2) + parameter.getKeyWord());</span>
+<span class="nc bnc" id="L226" title="All 4 branches missed.">                switch (parameter.getParameterMode()) {</span>
+                case ARGUMENT:
+<span class="nc" id="L228">                    sb.append(&quot; &lt;&quot; + parameter.getName().toUpperCase().replaceAll(&quot; &quot;, &quot;_&quot;) + &quot;&gt;&quot;</span>
+<span class="nc bnc" id="L229" title="All 2 branches missed.">                            + (parameter.isStandAlone() ? &quot; (Switch is not required)&quot; : &quot;&quot;) + CR);</span>
+<span class="nc" id="L230">                    break;</span>
+                case INPUT:
+<span class="nc" id="L232">                    sb.append(&quot; &lt;User will be prompted&gt;&quot; + CR);</span>
+<span class="nc" id="L233">                    break;</span>
+                case PASSWORD:
+<span class="nc" id="L235">                    sb.append(&quot; &lt;User will be prompted, input will not be shown&gt;&quot; + CR);</span>
+<span class="nc" id="L236">                    break;</span>
+                default:
+<span class="nc" id="L238">                    sb.append(CR);</span>
+                    break;
+                }
+<span class="nc bnc" id="L241" title="All 2 branches missed.">                for (String line : splitStringIntoLines(parameter.getInstruction(), 80)) {</span>
+<span class="nc" id="L242">                    sb.append(tab(3) + line + CR);</span>
+<span class="nc" id="L243">                }</span>
+            }
+<span class="nc" id="L245">        }</span>
+<span class="nc" id="L246">        return sb.toString();</span>
+    }
+
+    private static String tab(int times) {
+<span class="nc" id="L250">        StringBuffer sb = new StringBuffer();</span>
+<span class="nc bnc" id="L251" title="All 2 branches missed.">        for (int i = 0; i &lt; times; i++) {</span>
+<span class="nc" id="L252">            sb.append(TAB);</span>
+        }
+<span class="nc" id="L254">        return sb.toString();</span>
+    }
+
+    /**
+     * Private utility method that takes a string and splits it by line length
+     * 
+     * @param input the string to format 
+     * @param lineLength the length of each line
+     * @return an list of strings, no longer than the given length
+     */
+    public static List&lt;String&gt; splitStringIntoLines(String input, int lineLength) {
+<span class="fc" id="L265">        List&lt;String&gt; result = new ArrayList&lt;String&gt;();</span>
+<span class="pc bpc" id="L266" title="2 of 4 branches missed.">        while (input.length() &gt; lineLength || input.contains(&quot;\n&quot;)) {</span>
+<span class="nc" id="L267">            int newline = input.indexOf(&quot;\n&quot;);</span>
+<span class="nc bnc" id="L268" title="All 4 branches missed.">            if (newline != -1 &amp;&amp; newline &lt; lineLength) {</span>
+<span class="nc" id="L269">                String line = input.substring(0, newline);</span>
+<span class="nc" id="L270">                result.add(line);</span>
+<span class="nc" id="L271">                input = input.substring(newline + 1);</span>
+<span class="nc" id="L272">            } else {</span>
+<span class="nc" id="L273">                String subString = input.substring(0, lineLength);</span>
+<span class="nc" id="L274">                int lastSpace = subString.lastIndexOf(&quot; &quot;);</span>
+<span class="nc bnc" id="L275" title="All 2 branches missed.">                if (lastSpace == -1) {</span>
+                    // lineLength characters without a single space. Eh...fine.
+<span class="nc" id="L277">                    lastSpace = lineLength;</span>
+                }
+<span class="nc" id="L279">                String line = input.substring(0, lastSpace);</span>
+<span class="nc" id="L280">                result.add(line);</span>
+<span class="nc" id="L281">                input = input.substring(lastSpace + 1);</span>
+            }
+<span class="nc" id="L283">        }</span>
+<span class="pc bpc" id="L284" title="1 of 2 branches missed.">        if (!input.equals(&quot;&quot;)) {</span>
+<span class="nc" id="L285">            result.add(input);</span>
+        }
+<span class="fc" id="L287">        return result;</span>
+    }
+
+    protected abstract Logger getLogger();
+
+    protected static String formatTable(int tabs, String[] titles, List&lt;String[]&gt; contents) {
+<span class="nc" id="L293">        int[] offset = new int[titles.length];</span>
+        //Validate contents and figure out tab size per column
+<span class="nc bnc" id="L295" title="All 2 branches missed.">        for (int i = 0; i &lt; titles.length; i++) {</span>
+<span class="nc" id="L296">            offset[i] = titles[i].length() / TAB.length() + 2;</span>
+        }
+<span class="nc bnc" id="L298" title="All 2 branches missed.">        for (String[] row : contents) {</span>
+<span class="nc bnc" id="L299" title="All 2 branches missed.">            if (row.length &lt; titles.length) {</span>
+<span class="nc" id="L300">                throw new IllegalArgumentException(&quot;Invalid column length. Titlebar had &quot; + titles.length + &quot; columns, while content row had &quot;</span>
+                        + row.length);
+            }
+<span class="nc bnc" id="L303" title="All 2 branches missed.">            for (int i = 0; i &lt; row.length; i++) {</span>
+<span class="nc" id="L304">                int rowOffset = row[i].length() / TAB.length() + 2;</span>
+<span class="nc bnc" id="L305" title="All 2 branches missed.">                if (rowOffset &gt; offset[i]) {</span>
+<span class="nc" id="L306">                    offset[i] = rowOffset;</span>
+                }
+            }
+<span class="nc" id="L309">        }</span>
+<span class="nc" id="L310">        StringBuilder stringBuilder = new StringBuilder();</span>
+        //Build title bar
+<span class="nc" id="L312">        stringBuilder.append(tab(tabs));</span>
+<span class="nc bnc" id="L313" title="All 2 branches missed.">        for (int i = 0; i &lt; titles.length; i++) {</span>
+<span class="nc" id="L314">            String title = titles[i];</span>
+<span class="nc" id="L315">            String whitespace = tab(offset[i]);</span>
+<span class="nc" id="L316">            stringBuilder.append(bold(title) + whitespace.substring(title.length(), whitespace.length()));</span>
+        }
+<span class="nc" id="L318">        stringBuilder.append(&quot;\n&quot;);</span>
+        //And add contents
+<span class="nc bnc" id="L320" title="All 2 branches missed.">        for (String[] row : contents) {</span>
+<span class="nc" id="L321">            stringBuilder.append(tab(tabs));</span>
+<span class="nc bnc" id="L322" title="All 2 branches missed.">            for (int i = 0; i &lt; row.length; i++) {</span>
+<span class="nc" id="L323">                String rowWord = row[i];</span>
+<span class="nc" id="L324">                String whitespace = tab(offset[i]);</span>
+<span class="nc" id="L325">                stringBuilder.append(rowWord + whitespace.substring(rowWord.length(), whitespace.length()));</span>
+            }
+<span class="nc" id="L327">            stringBuilder.append(&quot;\n&quot;);</span>
+
+<span class="nc" id="L329">        }</span>
+<span class="nc" id="L330">        return stringBuilder.toString();</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

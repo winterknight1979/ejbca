@@ -13,158 +13,153 @@
 package org.ejbca.core.model.ca.certificateprofiles;
 
 import java.io.Serializable;
-
 import org.apache.commons.lang.StringUtils;
 import org.bouncycastle.asn1.x509.PolicyQualifierId;
 
-
-/** NOTE! This class is only kept for upgrade and backwards compatibility purposes.
- * Replaced by org.cesecore.certificates.certificateprofile.CertificatePolicy
- * 
+/**
+ * NOTE! This class is only kept for upgrade and backwards compatibility
+ * purposes. Replaced by
+ * org.cesecore.certificates.certificateprofile.CertificatePolicy
+ *
  * @version $Id: CertificatePolicy.java 19902 2014-09-30 14:32:24Z anatom $
  */
 public class CertificatePolicy implements Serializable, Cloneable {
 
-	/** Warning changing this value will cause upgrades to fail, because
-	 * it has been serialized in the database (in XML).
-	 * DONT CHANGE THIS!
-	 */
-    private static final long serialVersionUID = -6384137742329979249L;
+  /**
+   * Warning changing this value will cause upgrades to fail, because it has
+   * been serialized in the database (in XML). DONT CHANGE THIS!
+   */
+  private static final long serialVersionUID = -6384137742329979249L;
 
-    // Policy qualifier Ids are taken from BC classes
-<span class="fc" id="L35">    public static final String id_qt_cps = PolicyQualifierId.id_qt_cps.getId();</span>
-<span class="fc" id="L36">    public static final String id_qt_unotice = PolicyQualifierId.id_qt_unotice.getId();</span>
-    
-    /**
-     * The special &lt;code&gt;anyPolicy&lt;/code&gt; policy OID.
-     */
-    public static final String ANY_POLICY_OID = &quot;2.5.29.32.0&quot;;
-    
-    private String policyID;
-    /** CPS uri */
-    private String qualifierId;
-    /** user notice text */
-    private String qualifier;
+  // Policy qualifier Ids are taken from BC classes
+  /** ID. */
+<span class="fc" id="L36">  public static final String ID_QT_CPS = PolicyQualifierId.id_qt_cps.getId();</span>
+  /** ID. */
+<span class="fc" id="L38">  public static final String ID_QT_UNNOTICE =</span>
+<span class="fc" id="L39">      PolicyQualifierId.id_qt_unotice.getId();</span>
 
-    public CertificatePolicy() {
-<span class="nc" id="L50">        super();</span>
-<span class="nc" id="L51">    }</span>
+  /** The special &lt;code&gt;anyPolicy&lt;/code&gt; policy OID. */
+  public static final String ANY_POLICY_OID = &quot;2.5.29.32.0&quot;;
 
-    /**
-     * 
-     * @param policyID ID
-     * @param qualifierId QUD
-     * @param qualifier qualifier
-     */
-<span class="fc" id="L59">    public CertificatePolicy(final String policyID, final String qualifierId, final String qualifier) {</span>
-<span class="fc" id="L60">        this.policyID = policyID;</span>
-<span class="fc" id="L61">        this.qualifierId = qualifierId;</span>
-<span class="fc" id="L62">        this.qualifier = qualifier;</span>
-<span class="fc" id="L63">    }</span>
+  /** ID. */
+  private String policyID;
+  /** CPS uri.*/
+  private String qualifierId;
+  /** user notice text. */
+  private String qualifier;
 
-    /**
-     * @return the policyID
-     */
-    public String getPolicyID() {
-<span class="fc" id="L69">        return this.policyID;</span>
+  /** Null constructor. */
+  public CertificatePolicy() {
+<span class="nc" id="L53">    super();</span>
+<span class="nc" id="L54">  }</span>
+
+  /**
+   * @param aPolicyID ID
+   * @param aQualifierId QUD
+   * @param aQualifier qualifier
+   */
+  public CertificatePolicy(
+      final String aPolicyID,
+      final String aQualifierId,
+<span class="fc" id="L64">      final String aQualifier) {</span>
+<span class="fc" id="L65">    this.policyID = aPolicyID;</span>
+<span class="fc" id="L66">    this.qualifierId = aQualifierId;</span>
+<span class="fc" id="L67">    this.qualifier = aQualifier;</span>
+<span class="fc" id="L68">  }</span>
+
+  /** @return the policyID */
+  public String getPolicyID() {
+<span class="fc" id="L72">    return this.policyID;</span>
+  }
+
+  /** @param aPolicyID the policyID to set */
+  public void setPolicyID(final String aPolicyID) {
+<span class="nc" id="L77">    this.policyID = aPolicyID;</span>
+<span class="nc" id="L78">  }</span>
+
+  /** @return the qualifier string */
+  public String getQualifier() {
+<span class="fc" id="L82">    return this.qualifier;</span>
+  }
+
+  /** @param aQualifier the uri to set */
+  public void setQualifier(final String aQualifier) {
+<span class="nc" id="L87">    this.qualifier = aQualifier;</span>
+<span class="nc" id="L88">  }</span>
+
+  /** @return the QualifierId */
+  public String getQualifierId() {
+<span class="fc" id="L92">    return this.qualifierId;</span>
+  }
+
+  /** @param aQualifierId the QualifierId to set */
+  public void setQualifierId(final String aQualifierId) {
+<span class="nc" id="L97">    this.qualifierId = aQualifierId;</span>
+<span class="nc" id="L98">  }</span>
+
+  /** @see java.lang.Object#clone() */
+  @Override
+  protected Object clone()
+      throws CloneNotSupportedException { // NOPMD by tomas on 1/7/11 1:04 PM
+<span class="nc" id="L104">    return new CertificatePolicy(</span>
+        this.policyID, this.qualifierId, this.qualifier);
+  }
+
+  /** @see java.lang.Object#toString() */
+  @Override
+  public String toString() {
+<span class="nc" id="L111">    final StringBuilder strBuffer = new StringBuilder(100);</span>
+<span class="nc" id="L112">    strBuffer.append(&quot;CertificatePolicy(policyID=&quot;);</span>
+<span class="nc" id="L113">    strBuffer.append(this.policyID);</span>
+<span class="nc" id="L114">    strBuffer.append(&quot;, qualifierId=&quot;);</span>
+<span class="nc" id="L115">    strBuffer.append(this.qualifierId);</span>
+<span class="nc" id="L116">    strBuffer.append(&quot;, qualifier=&quot;);</span>
+<span class="nc" id="L117">    strBuffer.append(this.qualifier);</span>
+<span class="nc" id="L118">    strBuffer.append(')');</span>
+<span class="nc" id="L119">    return strBuffer.toString();</span>
+  }
+
+  /** @see java.lang.Object#equals(java.lang.Object) */
+  @Override
+  public boolean equals(final Object obj) {
+<span class="nc bnc" id="L125" title="All 4 branches missed.">    if ((obj == null) || !(obj instanceof CertificatePolicy)) {</span>
+<span class="nc" id="L126">      return false;</span>
     }
+<span class="nc" id="L128">    final CertificatePolicy policy = (CertificatePolicy) obj;</span>
 
-    /**
-     * @param policyID the policyID to set
-     */
-    public void setPolicyID(final String policyID) {
-<span class="nc" id="L76">        this.policyID = policyID;</span>
-<span class="nc" id="L77">    }</span>
-
-    
-    /**
-     * @return the qualifier string
-     */
-    public String getQualifier() {
-<span class="fc" id="L84">        return this.qualifier;</span>
+    // We want to let both null and &quot;&quot; be the same value here, i.e. an empty
+    // value
+    // Simply because, especially in gui code, it is somewhat tricky to trust
+    // which is a non-existant value
+<span class="nc" id="L134">    boolean policyeq = false;</span>
+<span class="nc bnc" id="L135" title="All 2 branches missed.">    if (StringUtils.isEmpty(policy.getPolicyID())</span>
+<span class="nc bnc" id="L136" title="All 2 branches missed.">        &amp;&amp; StringUtils.isEmpty(this.policyID)) {</span>
+<span class="nc" id="L137">      policyeq = true;</span>
+<span class="nc bnc" id="L138" title="All 2 branches missed.">    } else if (StringUtils.equals(policy.getPolicyID(), this.policyID)) {</span>
+<span class="nc" id="L139">      policyeq = true;</span>
     }
-
-    
-    /**
-     * @param qualifier the uri to set
-     */
-    public void setQualifier(final String qualifier) {
-<span class="nc" id="L92">        this.qualifier = qualifier;</span>
-<span class="nc" id="L93">    }</span>
-
-    /**
-     * @return the QualifierId
-     */
-    public String getQualifierId() {
-<span class="fc" id="L99">        return this.qualifierId;</span>
+<span class="nc" id="L141">    boolean qualifierideq = false;</span>
+<span class="nc bnc" id="L142" title="All 2 branches missed.">    if (StringUtils.isEmpty(policy.getQualifierId())</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">        &amp;&amp; StringUtils.isEmpty(this.qualifierId)) {</span>
+<span class="nc" id="L144">      qualifierideq = true;</span>
+<span class="nc bnc" id="L145" title="All 2 branches missed.">    } else if (StringUtils.equals(policy.getQualifierId(), this.qualifierId)) {</span>
+<span class="nc" id="L146">      qualifierideq = true;</span>
     }
-
-    
-    /**
-     * @param qualifierId the QualifierId to set
-     */
-    public void setQualifierId(final String qualifierId) {
-<span class="nc" id="L107">        this.qualifierId = qualifierId;</span>
-<span class="nc" id="L108">    }</span>
-    
-    /**
-     * @see java.lang.Object#clone()
-     */
-    protected Object clone() throws CloneNotSupportedException { // NOPMD by tomas on 1/7/11 1:04 PM
-<span class="nc" id="L114">        return new CertificatePolicy(this.policyID, this.qualifierId, this.qualifier);</span>
+<span class="nc" id="L148">    boolean aQualifier = false;</span>
+<span class="nc bnc" id="L149" title="All 2 branches missed.">    if (StringUtils.isEmpty(policy.getQualifier())</span>
+<span class="nc bnc" id="L150" title="All 2 branches missed.">        &amp;&amp; StringUtils.isEmpty(this.qualifier)) {</span>
+<span class="nc" id="L151">      aQualifier = true;</span>
+<span class="nc bnc" id="L152" title="All 2 branches missed.">    } else if (StringUtils.equals(policy.getQualifier(), this.qualifier)) {</span>
+<span class="nc" id="L153">      aQualifier = true;</span>
     }
+<span class="nc bnc" id="L155" title="All 6 branches missed.">    return policyeq &amp;&amp; qualifierideq &amp;&amp; aQualifier;</span>
+  }
 
-    /** @see java.lang.Object#toString() */
-    public String toString() {
-<span class="nc" id="L119">        final StringBuilder strBuffer = new StringBuilder(100);</span>
-<span class="nc" id="L120">        strBuffer.append(&quot;CertificatePolicy(policyID=&quot;);</span>
-<span class="nc" id="L121">        strBuffer.append(this.policyID);</span>
-<span class="nc" id="L122">        strBuffer.append(&quot;, qualifierId=&quot;);</span>
-<span class="nc" id="L123">        strBuffer.append(this.qualifierId);</span>
-<span class="nc" id="L124">        strBuffer.append(&quot;, qualifier=&quot;);</span>
-<span class="nc" id="L125">        strBuffer.append(this.qualifier);</span>
-<span class="nc" id="L126">        strBuffer.append(')');</span>
-<span class="nc" id="L127">        return strBuffer.toString();</span>
-    }
 
-    /**
-     * @see java.lang.Object#equals(java.lang.Object)
-     */
-    public boolean equals(final Object obj) {
-<span class="nc bnc" id="L134" title="All 4 branches missed.">        if((obj == null) || !(obj instanceof CertificatePolicy)) {</span>
-<span class="nc" id="L135">            return false;</span>
-        }
-<span class="nc" id="L137">        final CertificatePolicy policy = (CertificatePolicy) obj;</span>
-
-        // We want to let both null and &quot;&quot; be the same value here, i.e. an empty value
-        // Simply because, especially in gui code, it is somewhat tricky to trust which is a non-existant value
-<span class="nc" id="L141">        boolean policyeq = false;</span>
-<span class="nc bnc" id="L142" title="All 4 branches missed.">        if (StringUtils.isEmpty(policy.getPolicyID()) &amp;&amp; StringUtils.isEmpty(this.policyID)) {</span>
-<span class="nc" id="L143">        	policyeq = true;</span>
-<span class="nc bnc" id="L144" title="All 2 branches missed.">        } else if (StringUtils.equals(policy.getPolicyID(), this.policyID)) {</span>
-<span class="nc" id="L145">        	policyeq = true;</span>
-        }
-<span class="nc" id="L147">        boolean qualifierideq = false;</span>
-<span class="nc bnc" id="L148" title="All 4 branches missed.">        if (StringUtils.isEmpty(policy.getQualifierId()) &amp;&amp; StringUtils.isEmpty(this.qualifierId)) {</span>
-<span class="nc" id="L149">        	qualifierideq = true;</span>
-<span class="nc bnc" id="L150" title="All 2 branches missed.">        } else if (StringUtils.equals(policy.getQualifierId(), this.qualifierId)) {</span>
-<span class="nc" id="L151">        	qualifierideq = true;</span>
-        }
-<span class="nc" id="L153">        boolean qualifier = false;</span>
-<span class="nc bnc" id="L154" title="All 4 branches missed.">        if (StringUtils.isEmpty(policy.getQualifier()) &amp;&amp; StringUtils.isEmpty(this.qualifier)) {</span>
-<span class="nc" id="L155">        	qualifier = true;</span>
-<span class="nc bnc" id="L156" title="All 2 branches missed.">        } else if (StringUtils.equals(policy.getQualifier(), this.qualifier)) {</span>
-<span class="nc" id="L157">        	qualifier = true;</span>
-        }
-<span class="nc bnc" id="L159" title="All 6 branches missed.">        return policyeq &amp;&amp; qualifierideq &amp;&amp; qualifier; </span>
-    }
-
-    /**
-     * @see java.lang.Object#hashCode()
-     */
-    public int hashCode() {
-<span class="nc" id="L166">        return this.toString().hashCode();</span>
-    }
-
+  /** @see java.lang.Object#hashCode() */
+  @Override
+  public int hashCode() {
+<span class="nc" id="L162">    return this.toString().hashCode();</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

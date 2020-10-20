@@ -9,38 +9,45 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.ca.extendedservices;
 
-/** Used for illegal (invalid) CA Service Requests
- * 
- * @version $Id: IllegalExtendedCAServiceRequestException.java 17625 2013-09-20 07:12:06Z netmackan $
+/**
+ * Used for illegal (invalid) CA Service Requests.
+ *
+ * @version $Id: IllegalExtendedCAServiceRequestException.java 17625 2013-09-20
+ *     07:12:06Z netmackan $
  */
 public class IllegalExtendedCAServiceRequestException extends Exception {
-    
-    private static final long serialVersionUID = 2715976842113419606L;
 
-    /**
-     * Creates a new instance of &lt;code&gt;IllegalExtendedCAServiceRequestException&lt;/code&gt; without detail message.
-     */
-    public IllegalExtendedCAServiceRequestException() {
-<span class="nc" id="L27">        super();</span>
-<span class="nc" id="L28">    }</span>
-        
-    /**
-     * Constructs an instance of &lt;code&gt;IllegalExtendedCAServiceRequestException&lt;/code&gt; with the specified detail message.
-     * @param msg the detail message.
-     */
-    public IllegalExtendedCAServiceRequestException(String msg) {
-<span class="nc" id="L35">        super(msg);</span>
-<span class="nc" id="L36">    }</span>
+  private static final long serialVersionUID = 2715976842113419606L;
 
-    /**
-     * Constructs an instance of &lt;code&gt;IllegalExtendedCAServiceRequestException&lt;/code&gt; with the specified cause.
-     * @param e the detail message.
-     */
-    public IllegalExtendedCAServiceRequestException(Exception e) {
-<span class="nc" id="L43">        super(e);</span>
-<span class="nc" id="L44">    }</span>
+  /**
+   * Creates a new instance of &lt;code&gt;IllegalExtendedCAServiceRequestException
+   * &lt;/code&gt; without detail message.
+   */
+  public IllegalExtendedCAServiceRequestException() {
+<span class="nc" id="L30">    super();</span>
+<span class="nc" id="L31">  }</span>
+
+  /**
+   * Constructs an instance of &lt;code&gt;IllegalExtendedCAServiceRequestException
+   * &lt;/code&gt; with the specified detail message.
+   *
+   * @param msg the detail message.
+   */
+  public IllegalExtendedCAServiceRequestException(final String msg) {
+<span class="nc" id="L40">    super(msg);</span>
+<span class="nc" id="L41">  }</span>
+
+  /**
+   * Constructs an instance of &lt;code&gt;IllegalExtendedCAServiceRequestException
+   * &lt;/code&gt; with the specified cause.
+   *
+   * @param e the detail message.
+   */
+  public IllegalExtendedCAServiceRequestException(final Exception e) {
+<span class="nc" id="L50">    super(e);</span>
+<span class="nc" id="L51">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

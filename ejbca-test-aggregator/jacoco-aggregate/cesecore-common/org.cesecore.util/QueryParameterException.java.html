@@ -13,29 +13,40 @@
 package org.cesecore.util;
 
 /**
- * Query Criteria Exception. Thrown on entity parameter mismatch. 
- * 
- * @version $Id: QueryParameterException.java 17625 2013-09-20 07:12:06Z netmackan $
+ * Query Criteria Exception. Thrown on entity parameter mismatch.
+ *
+ * @version $Id: QueryParameterException.java 17625 2013-09-20 07:12:06Z
+ *     netmackan $
  */
 public class QueryParameterException extends RuntimeException {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    public QueryParameterException() {
-<span class="nc" id="L25">        super();</span>
-<span class="nc" id="L26">    }</span>
+  /** Default. */
+  public QueryParameterException() {
+<span class="nc" id="L27">    super();</span>
+<span class="nc" id="L28">  }</span>
 
-    public QueryParameterException(final String arg0, final Throwable arg1) {
-<span class="nc" id="L29">        super(arg0, arg1);</span>
-<span class="nc" id="L30">    }</span>
+  /**
+   * @param arg0 message
+   * @param arg1 cause
+   */
+  public QueryParameterException(final String arg0, final Throwable arg1) {
+<span class="nc" id="L35">    super(arg0, arg1);</span>
+<span class="nc" id="L36">  }</span>
 
-    public QueryParameterException(final String arg0) {
-<span class="fc" id="L33">        super(arg0);</span>
-<span class="fc" id="L34">    }</span>
+  /**
+   * @param arg0 message
+   */
+  public QueryParameterException(final String arg0) {
+<span class="fc" id="L42">    super(arg0);</span>
+<span class="fc" id="L43">  }</span>
 
-    public QueryParameterException(final Throwable arg0) {
-<span class="nc" id="L37">        super(arg0);</span>
-<span class="nc" id="L38">    }</span>
-
+  /**
+   * @param arg0 cause
+   */
+  public QueryParameterException(final Throwable arg0) {
+<span class="nc" id="L49">    super(arg0);</span>
+<span class="nc" id="L50">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CaInfoCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.ca</a> &gt; <span class="el_source">CaInfoCommand.java</span></div><h1>CaInfoCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.cli.ca;
+
+import java.security.cert.Certificate;
+import java.security.interfaces.ECPublicKey;
+import java.util.ArrayList;
+
+import org.apache.log4j.Logger;
+import org.bouncycastle.jce.spec.ECNamedCurveSpec;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.keys.util.KeyTools;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.CryptoProviderTools;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+
+/**
+ * Shows info about a CA.
+ *
+ * @version $Id: CaInfoCommand.java 19902 2014-09-30 14:32:24Z anatom $
+ */
+<span class="nc" id="L38">public class CaInfoCommand extends BaseCaAdminCommand {</span>
+
+<span class="nc" id="L40">    private static final Logger log = Logger.getLogger(CaInfoCommand.class);</span>
+    
+    private static final String CA_NAME_KEY = &quot;--caname&quot;;
+    
+    {
+<span class="nc" id="L45">        registerParameter(new Parameter(CA_NAME_KEY, &quot;CA Name&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;Name of the CA&quot;));
+<span class="nc" id="L47">    }</span>
+    
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L51">        return &quot;info&quot;;</span>
+    }
+
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+<span class="nc" id="L56">        CryptoProviderTools.installBCProvider();</span>
+<span class="nc" id="L57">        String caname = parameters.get(CA_NAME_KEY);</span>
+<span class="nc" id="L58">        CAInfo cainfo = getCAInfo(getAuthenticationToken(), caname);</span>
+<span class="nc bnc" id="L59" title="All 2 branches missed.">        if (cainfo != null) {</span>
+<span class="nc" id="L60">            ArrayList&lt;Certificate&gt; chain = new ArrayList&lt;Certificate&gt;(getCertChain(getAuthenticationToken(), caname));</span>
+<span class="nc" id="L61">            getLogger().info(&quot;CA name: &quot; + caname);</span>
+<span class="nc" id="L62">            getLogger().info(&quot;CA type: &quot; + cainfo.getCAType());</span>
+<span class="nc" id="L63">            getLogger().info(&quot;CA ID: &quot; + cainfo.getCAId());</span>
+<span class="nc" id="L64">            getLogger().info(&quot;CA CRL Expiration Period: &quot; + cainfo.getCRLPeriod());</span>
+<span class="nc" id="L65">            getLogger().info(&quot;CA CRL Issue Interval: &quot; + cainfo.getCRLIssueInterval());</span>
+<span class="nc" id="L66">            getLogger().info(&quot;CA Description: &quot; + cainfo.getDescription());</span>
+
+<span class="nc bnc" id="L68" title="All 2 branches missed.">            if (chain.size() &lt; 2) {</span>
+<span class="nc" id="L69">                getLogger().info(&quot;This is a Root CA.&quot;);</span>
+            } else {
+<span class="nc" id="L71">                getLogger().info(&quot;This is a subordinate CA.&quot;);</span>
+            }
+
+<span class="nc" id="L74">            getLogger().info(&quot;Size of chain: &quot; + chain.size());</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">            if (chain.size() &gt; 0) {</span>
+<span class="nc" id="L76">                Certificate rootcert = chain.get(chain.size() - 1);</span>
+<span class="nc" id="L77">                getLogger().info(&quot;Root CA DN: &quot; + CertTools.getSubjectDN(rootcert));</span>
+<span class="nc" id="L78">                getLogger().info(&quot;Root CA id: &quot; + CertTools.getSubjectDN(rootcert).hashCode());</span>
+<span class="nc" id="L79">                getLogger().info(&quot;Certificate valid from: &quot; + CertTools.getNotBefore(rootcert));</span>
+<span class="nc" id="L80">                getLogger().info(&quot;Certificate valid to: &quot; + CertTools.getNotAfter(rootcert));</span>
+<span class="nc" id="L81">                getLogger().info(&quot;Root CA key algorithm: &quot; + rootcert.getPublicKey().getAlgorithm());</span>
+<span class="nc" id="L82">                getLogger().info(&quot;Root CA key size: &quot; + KeyTools.getKeyLength(rootcert.getPublicKey()));</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">                if (rootcert.getPublicKey() instanceof ECPublicKey) {</span>
+<span class="nc bnc" id="L84" title="All 2 branches missed.">                    if (((ECPublicKey) rootcert.getPublicKey()).getParams() instanceof ECNamedCurveSpec) {</span>
+<span class="nc" id="L85">                        getLogger().info(</span>
+<span class="nc" id="L86">                                &quot;Root CA ECDSA key spec: &quot; + ((ECNamedCurveSpec) ((ECPublicKey) rootcert.getPublicKey()).getParams()).getName());</span>
+                    }
+                }
+<span class="nc bnc" id="L89" title="All 2 branches missed.">                for (int i = chain.size() - 2; i &gt;= 0; i--) {</span>
+<span class="nc" id="L90">                    Certificate cacert = chain.get(i);</span>
+<span class="nc" id="L91">                    getLogger().info(&quot;CA DN: &quot; + CertTools.getSubjectDN(cacert));</span>
+<span class="nc" id="L92">                    getLogger().info(&quot;Certificate valid from: &quot; + CertTools.getNotBefore(cacert));</span>
+<span class="nc" id="L93">                    getLogger().info(&quot;Certificate valid to: &quot; + CertTools.getNotAfter(cacert));</span>
+<span class="nc" id="L94">                    getLogger().info(&quot;CA key algorithm: &quot; + cacert.getPublicKey().getAlgorithm());</span>
+<span class="nc" id="L95">                    getLogger().info(&quot;CA key size: &quot; + KeyTools.getKeyLength(cacert.getPublicKey()));</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">                    if (cacert.getPublicKey() instanceof ECPublicKey) {</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">                        if (((ECPublicKey) cacert.getPublicKey()).getParams() instanceof ECNamedCurveSpec) {</span>
+<span class="nc" id="L98">                            getLogger()</span>
+<span class="nc" id="L99">                                    .info(&quot;CA ECDSA key spec: &quot; + ((ECNamedCurveSpec) ((ECPublicKey) cacert.getPublicKey()).getParams()).getName());</span>
+                        }
+                    }
+                }
+            }
+<span class="nc" id="L104">        } else {</span>
+<span class="nc" id="L105">            getLogger().info(&quot;No CA named '&quot; + caname + &quot;' was found.&quot;);</span>
+<span class="nc" id="L106">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+        }
+<span class="nc" id="L108">        return CommandResult.SUCCESS;</span>
+    }
+    
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L113">        return &quot;Shows info about a CA&quot;;</span>
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L118">        return getCommandDescription();</span>
+    }
+
+    @Override
+    protected Logger getLogger() {
+<span class="nc" id="L123">        return log;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

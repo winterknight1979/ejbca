@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RaStyleRequestFilter.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ra-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ra.jsfext</a> &gt; <span class="el_source">RaStyleRequestFilter.java</span></div><h1>RaStyleRequestFilter.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ra.jsfext;
+
+import java.io.CharArrayWriter;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+
+import javax.ejb.EJB;
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.WriteListener;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletResponseWrapper;
+
+import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.apache.log4j.Logger;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.config.RaStyleInfo;
+import org.cesecore.config.RaStyleInfo.RaCssInfo;
+import org.ejbca.core.ejb.authentication.web.WebAuthenticationProviderSessionLocal;
+import org.ejbca.core.ejb.ra.raadmin.AdminPreferenceSessionLocal;
+import org.ejbca.ra.RaAuthenticationHelper;
+
+/**
+ * 
+ * Filter used to intercept the resource requests while loading RA-web. If the requesting administrator
+ * belongs to a role which has a custom CSS or logo set, it will be injected instead of the default one.
+ * 
+ * The modified response will be browser cached as any other resource, and the request for 
+ * it will not pass this filter until the browser invalidates the cache. Hence requests for the
+ * modified resources will not be requested via Peers for every request.
+ * 
+ * This filter is mapped in web.xml to only process CSS / Image files in the RA-web.
+ * 
+ * @version $Id: RaStyleRequestFilter.java 26914 2017-10-27 10:10:32Z henriks $
+ *
+ */
+<span class="nc" id="L57">public class RaStyleRequestFilter implements Filter {</span>
+<span class="nc" id="L58">    private final String RA_LOGO_PATH = &quot;/ejbca/ra/img/pk_logo.png&quot;;</span>
+<span class="nc" id="L59">    private static Logger log = Logger.getLogger(RaStyleRequestFilter.class);</span>
+
+    @EJB
+    private AdminPreferenceSessionLocal adminPreferenceSessionLocal;
+    @EJB
+    private WebAuthenticationProviderSessionLocal webAuthenticationProviderSession;
+    
+<span class="nc" id="L66">    private RaAuthenticationHelper raAuthenticationHelper = null;</span>
+    
+    @Override
+    public void destroy() {
+        //NOOP
+<span class="nc" id="L71">    }</span>
+
+    @Override
+    public void init(FilterConfig arg0) throws ServletException {
+<span class="nc bnc" id="L75" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L76">            log.debug(this.getClass().getName() + &quot; initialized&quot;);        </span>
+        }
+<span class="nc" id="L78">    }</span>
+    
+    /** Called once for every requested resource on a RA page load. If modified resources are available, the response will be intercept */
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+<span class="nc" id="L83">        HttpServletRequest httpRequest = (HttpServletRequest) request;</span>
+<span class="nc" id="L84">        HttpServletResponse httpResponse = (HttpServletResponse) response;</span>
+<span class="nc" id="L85">        String requestPath = httpRequest.getRequestURI();</span>
+<span class="nc" id="L86">        String resource = requestPath.substring(requestPath.lastIndexOf('/') + 1, requestPath.length());</span>
+        RaStyleInfo customResponse;
+<span class="nc" id="L88">        AuthenticationToken authenticationToken = null;</span>
+<span class="nc" id="L89">        authenticationToken = getAuthenticationToken(httpRequest, httpResponse);</span>
+        try {
+<span class="nc" id="L91">            customResponse = adminPreferenceSessionLocal.getPreferedRaStyleInfo(authenticationToken);</span>
+<span class="nc" id="L92">        } catch (Exception e) {</span>
+            // In any case of error loading the styles, display default style rather than no styles at all.
+<span class="nc" id="L94">            e.printStackTrace();</span>
+<span class="nc" id="L95">            chain.doFilter(httpRequest, httpResponse);</span>
+<span class="nc" id="L96">            return;</span>
+<span class="nc" id="L97">        }</span>
+        
+        // TODO pure/base.css is currently unsupported for injection since it can't be differentiated from /css/base.css by name
+<span class="nc bnc" id="L100" title="All 4 branches missed.">        if (customResponse == null || requestPath.equals(&quot;/ejbca/ra/css/pure/base.css&quot;)) {</span>
+<span class="nc" id="L101">            chain.doFilter(httpRequest, httpResponse);</span>
+<span class="nc" id="L102">            return;</span>
+        }
+        
+        // When logo is requested and a custom logo is applied to the administrators role, the response is intercept with
+        // the replaced logo.
+<span class="nc bnc" id="L107" title="All 4 branches missed.">        if (requestPath.equals(RA_LOGO_PATH) &amp;&amp; customResponse.getLogoBytes() != null) {</span>
+<span class="nc" id="L108">            OutputStream clientPrintWriter = response.getOutputStream();</span>
+            try {
+<span class="nc" id="L110">                ResponseWrapper responseWrapper = new ResponseWrapper((HttpServletResponse) response);</span>
+<span class="nc" id="L111">                chain.doFilter(httpRequest, responseWrapper);</span>
+                
+<span class="nc" id="L113">                byte[] newLogoContent = customResponse.getLogoBytes();</span>
+<span class="nc" id="L114">                httpResponse.setContentType(customResponse.getLogoContentType());</span>
+<span class="nc" id="L115">                httpResponse.setContentLength(newLogoContent.length);</span>
+<span class="nc" id="L116">                clientPrintWriter.write(newLogoContent);</span>
+            } finally {
+<span class="nc" id="L118">                clientPrintWriter.close();</span>
+            }
+<span class="nc" id="L120">            return;</span>
+        }
+        
+        // When a CSS resource is requested, the response is intercept with a modified CSS if the administrators role
+        // has one applied
+<span class="nc" id="L125">        RaCssInfo cssResponse = customResponse.getRaCssInfos().get(resource);</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">        if (cssResponse != null) {</span>
+<span class="nc" id="L127">            PrintWriter clientPrintWriter = response.getWriter();</span>
+            try {
+<span class="nc" id="L129">                ResponseWrapper responseWrapper = new ResponseWrapper((HttpServletResponse) response);</span>
+<span class="nc" id="L130">                chain.doFilter(httpRequest, responseWrapper);</span>
+<span class="nc" id="L131">                String newCssContent = new String(cssResponse.getCssBytes());</span>
+<span class="nc" id="L132">                httpResponse.setContentType(&quot;text/css&quot;);</span>
+<span class="nc" id="L133">                httpResponse.setContentLength(newCssContent.length());</span>
+<span class="nc" id="L134">                clientPrintWriter.write(newCssContent);</span>
+            } finally {
+<span class="nc" id="L136">                clientPrintWriter.close();</span>
+                
+            }
+<span class="nc" id="L139">            return;</span>
+        }
+
+        // No match. Pass on request
+<span class="nc" id="L143">        chain.doFilter(httpRequest, httpResponse);</span>
+<span class="nc" id="L144">    }</span>
+
+    /** @param httpRequest Req
+     * @param httpResponse Resp
+     * @return the X509CertificateAuthenticationToken if the client has provided a certificate or a PublicAccessAuthenticationToken otherwise. */
+    private AuthenticationToken getAuthenticationToken(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+<span class="nc" id="L150">        raAuthenticationHelper = new RaAuthenticationHelper(webAuthenticationProviderSession);</span>
+<span class="nc" id="L151">        AuthenticationToken authenticationToken = raAuthenticationHelper.getAuthenticationToken(httpRequest, httpResponse);</span>
+<span class="nc" id="L152">        return authenticationToken;</span>
+    }
+    
+    
+<span class="nc" id="L156">    private class ResponseOutputStream extends ServletOutputStream {</span>
+<span class="nc" id="L157">        private ByteArrayOutputStream outStream = new ByteArrayOutputStream();</span>
+
+        @Override
+        public void write(int writeByte) throws IOException {
+<span class="nc" id="L161">            outStream.write(writeByte);</span>
+<span class="nc" id="L162">        }</span>
+
+		@Override
+		public boolean isReady() {
+<span class="nc" id="L166">			return true;</span>
+		}
+
+		@Override
+		public void setWriteListener(WriteListener writeListener) {
+			// no-op
+			
+<span class="nc" id="L173">		}</span>
+    }
+    
+    private class ResponseWrapper extends HttpServletResponseWrapper {
+        private final CharArrayWriter writer;
+        private final ResponseOutputStream imageOutputStream;
+
+<span class="nc" id="L180">        public ResponseWrapper(HttpServletResponse response) {</span>
+<span class="nc" id="L181">            super(response);</span>
+<span class="nc" id="L182">            writer = new CharArrayWriter();</span>
+<span class="nc" id="L183">            imageOutputStream = new ResponseOutputStream();</span>
+<span class="nc" id="L184">        }</span>
+        
+        @Override
+        public ServletOutputStream getOutputStream() throws IOException {
+<span class="nc" id="L188">            return imageOutputStream;</span>
+        }
+        
+        @Override
+        public PrintWriter getWriter() throws IOException {
+<span class="nc" id="L193">            return new PrintWriter(writer);</span>
+        }
+
+        @Override
+        public String toString() {
+<span class="nc" id="L198">            return writer.toString();</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -25,8 +25,8 @@ under the License.
     <language>en-us</language>
     <copyright>&#169;2020</copyright>
     <item>
-      <title>File: 93,
-             Errors: 15190,
+      <title>File: 101,
+             Errors: 14935,
              Warnings: 0,
              Infos: 0
       </title>
@@ -69,35 +69,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  10
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.protocol.cmp.ICmpMessageHandler.java">org/ejbca/core/protocol/cmp/ICmpMessageHandler.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  8
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.protocol.unid.UnidFnrHandler.java">org/ejbca/core/protocol/unid/UnidFnrHandler.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  106
+                  7
                 </td>
               </tr>
                           <tr>
@@ -111,21 +83,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  62
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.protocol.cmp.CmpConfirmResponseMessage.java">org/ejbca/core/protocol/cmp/CmpConfirmResponseMessage.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  62
+                  59
                 </td>
               </tr>
                           <tr>
@@ -144,20 +102,6 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.protocol.cmp.authentication.CmpVendorModeNoopImpl.java">org/ejbca/core/protocol/cmp/authentication/CmpVendorModeNoopImpl.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  7
-                </td>
-              </tr>
-                          <tr>
-                <td>
                   <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.protocol.cmp.authentication.CmpVendorMode.java">org/ejbca/core/protocol/cmp/authentication/CmpVendorMode.java</a>
                 </td>
                 <td>
@@ -167,35 +111,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  23
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.cesecoreintegration.ServerTimeWatcherSessionBean.java">org/ejbca/cesecoreintegration/ServerTimeWatcherSessionBean.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  6
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.ca.auth.EndEntityAuthenticationSessionBean.java">org/ejbca/core/ejb/ca/auth/EndEntityAuthenticationSessionBean.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  91
+                  24
                 </td>
               </tr>
                           <tr>
@@ -209,21 +125,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  218
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.util.SqlExecutor.java">org/ejbca/util/SqlExecutor.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  52
+                  216
                 </td>
               </tr>
                           <tr>
@@ -242,34 +144,6 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.ra.userdatasource.UserDataSourceSessionBean.java">org/ejbca/core/ejb/ra/userdatasource/UserDataSourceSessionBean.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  294
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.protocol.cmp.RevocationMessageHandler.java">org/ejbca/core/protocol/cmp/RevocationMessageHandler.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  150
-                </td>
-              </tr>
-                          <tr>
-                <td>
                   <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.keybind.InternalKeyBindingRulesReference.java">org/ejbca/core/ejb/keybind/InternalKeyBindingRulesReference.java</a>
                 </td>
                 <td>
@@ -279,21 +153,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  22
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.protocol.cmp.GeneralCmpMessage.java">org/ejbca/core/protocol/cmp/GeneralCmpMessage.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  26
+                  20
                 </td>
               </tr>
                           <tr>
@@ -307,35 +167,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  192
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.protocol.cmp.CrmfMessageHandler.java">org/ejbca/core/protocol/cmp/CrmfMessageHandler.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  459
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.ca.publisher.PublisherQueueSessionBean.java">org/ejbca/core/ejb/ca/publisher/PublisherQueueSessionBean.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  177
+                  189
                 </td>
               </tr>
                           <tr>
@@ -354,34 +186,6 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.util.FairStringLock.java">org/ejbca/util/FairStringLock.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  41
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.protocol.ocsp.extension.unid.OCSPUnidExtension.java">org/ejbca/core/protocol/ocsp/extension/unid/OCSPUnidExtension.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  80
-                </td>
-              </tr>
-                          <tr>
-                <td>
                   <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.authentication.cli.CliAuthenticationProviderSessionBean.java">org/ejbca/core/ejb/authentication/cli/CliAuthenticationProviderSessionBean.java</a>
                 </td>
                 <td>
@@ -391,7 +195,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  52
+                  51
                 </td>
               </tr>
                           <tr>
@@ -405,7 +209,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  1235
+                  1130
                 </td>
               </tr>
                           <tr>
@@ -433,7 +237,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  132
+                  131
                 </td>
               </tr>
                           <tr>
@@ -447,7 +251,679 @@ under the License.
                   0
                 </td>
                 <td>
-                  91
+                  88
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.cesecoreintegration.QueuedAuditorMockSessionBean.java">org/ejbca/cesecoreintegration/QueuedAuditorMockSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  30
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.protocol.cmp.BaseCmpMessageHandler.java">org/ejbca/core/protocol/cmp/BaseCmpMessageHandler.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  90
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.samples.AuthResult.java">org/ejbca/samples/AuthResult.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  7
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.cesecoreintegration.QueuedLoggerMockSessionBean.java">org/ejbca/cesecoreintegration/QueuedLoggerMockSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  20
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.EjbBridgeSessionBean.java">org/ejbca/core/ejb/EjbBridgeSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  209
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.model.ra.userdatasource.UserDataSourceDoesntExistsException.java">org/ejbca/core/model/ra/userdatasource/UserDataSourceDoesntExistsException.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  12
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.config.HealthCheckSessionBean.java">org/ejbca/core/ejb/config/HealthCheckSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  17
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.rest.EjbcaRestHelperUnitTest.java">org/ejbca/core/ejb/rest/EjbcaRestHelperUnitTest.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  85
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.keyrecovery.KeyRecoverySessionBean.java">org/ejbca/core/ejb/keyrecovery/KeyRecoverySessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  243
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.protocol.unid.RequestMessageSubjectDnAdapter.java">org/ejbca/core/protocol/unid/RequestMessageSubjectDnAdapter.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  34
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.util.Base64GetHashMap.java">org/ejbca/util/Base64GetHashMap.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  12
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.crl.PublishingCrlSessionBean.java">org/ejbca/core/ejb/crl/PublishingCrlSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  467
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.authentication.web.WebAuthenticationProviderSessionBean.java">org/ejbca/core/ejb/authentication/web/WebAuthenticationProviderSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  50
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.protocol.cmp.CrmfKeyUpdateHandler.java">org/ejbca/core/protocol/cmp/CrmfKeyUpdateHandler.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  166
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.audit.EjbcaAuditorSessionBean.java">org/ejbca/core/ejb/audit/EjbcaAuditorSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  80
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.util.dn.DistinguishedNameTest.java">org/ejbca/util/dn/DistinguishedNameTest.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  70
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.protocol.cmp.CmpMessageDispatcherSessionBean.java">org/ejbca/core/protocol/cmp/CmpMessageDispatcherSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  107
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.model.ra.EndEntityInformationFiller.java">org/ejbca/core/model/ra/EndEntityInformationFiller.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  88
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.ca.publisher.PublisherCache.java">org/ejbca/core/ejb/ca/publisher/PublisherCache.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  22
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.util.dn.DistinguishedName.java">org/ejbca/util/dn/DistinguishedName.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  57
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSessionBean.java">org/ejbca/core/ejb/ra/raadmin/EndEntityProfileSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  173
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.authorization.AuthorizationSystemSessionBean.java">org/ejbca/core/ejb/authorization/AuthorizationSystemSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  172
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.upgrade.UpgradeSessionBean.java">org/ejbca/core/ejb/upgrade/UpgradeSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  555
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.model.approval.profile.PartitionedApprovalProfileTest.java">org/ejbca/core/model/approval/profile/PartitionedApprovalProfileTest.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  12
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.approval.ApprovalProfileSessionBean.java">org/ejbca/core/ejb/approval/ApprovalProfileSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  96
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.ra.raadmin.RaStyleCacheBean.java">org/ejbca/core/ejb/ra/raadmin/RaStyleCacheBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  40
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.model.era.RaMasterApiProxyBean.java">org/ejbca/core/model/era/RaMasterApiProxyBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  867
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.model.approval.ApprovalOveradableClassName.java">org/ejbca/core/model/approval/ApprovalOveradableClassName.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  61
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.hardtoken.HardTokenSessionBean.java">org/ejbca/core/ejb/hardtoken/HardTokenSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  423
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.services.ServiceSessionBean.java">org/ejbca/core/ejb/services/ServiceSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  331
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.ws.EjbcaWSHelperSessionBean.java">org/ejbca/core/ejb/ws/EjbcaWSHelperSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  476
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.StartupSingletonBean.java">org/ejbca/core/ejb/StartupSingletonBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  176
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.protocol.cmp.ICmpMessageHandler.java">org/ejbca/core/protocol/cmp/ICmpMessageHandler.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  8
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.protocol.unid.UnidFnrHandler.java">org/ejbca/core/protocol/unid/UnidFnrHandler.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  102
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.protocol.cmp.CmpConfirmResponseMessage.java">org/ejbca/core/protocol/cmp/CmpConfirmResponseMessage.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  54
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.protocol.unid.UnidFnrHandlerTest.java">org/ejbca/core/protocol/unid/UnidFnrHandlerTest.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  82
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.cesecoreintegration.ServerTimeWatcherSessionBean.java">org/ejbca/cesecoreintegration/ServerTimeWatcherSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  5
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.protocol.cmp.authentication.CmpVendorModeNoopImpl.java">org/ejbca/core/protocol/cmp/authentication/CmpVendorModeNoopImpl.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  5
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.ca.auth.EndEntityAuthenticationSessionBean.java">org/ejbca/core/ejb/ca/auth/EndEntityAuthenticationSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  89
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.util.SqlExecutor.java">org/ejbca/util/SqlExecutor.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  52
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.ra.userdatasource.UserDataSourceSessionBean.java">org/ejbca/core/ejb/ra/userdatasource/UserDataSourceSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  277
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.protocol.cmp.RevocationMessageHandler.java">org/ejbca/core/protocol/cmp/RevocationMessageHandler.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  149
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.protocol.cmp.GeneralCmpMessage.java">org/ejbca/core/protocol/cmp/GeneralCmpMessage.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  26
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.protocol.cmp.CrmfMessageHandler.java">org/ejbca/core/protocol/cmp/CrmfMessageHandler.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  457
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.ca.publisher.PublisherQueueSessionBean.java">org/ejbca/core/ejb/ca/publisher/PublisherQueueSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  164
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.util.FairStringLock.java">org/ejbca/util/FairStringLock.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  39
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.protocol.ocsp.extension.unid.OCSPUnidExtension.java">org/ejbca/core/protocol/ocsp/extension/unid/OCSPUnidExtension.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  76
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.ca.publisher.PublisherCacheTest.java">org/ejbca/core/ejb/ca/publisher/PublisherCacheTest.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  193
                 </td>
               </tr>
                           <tr>
@@ -461,7 +937,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  160
+                  158
                 </td>
               </tr>
                           <tr>
@@ -480,7 +956,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.cesecoreintegration.QueuedAuditorMockSessionBean.java">org/ejbca/cesecoreintegration/QueuedAuditorMockSessionBean.java</a>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.model.ra.EndEntityInformationFillerTest.java">org/ejbca/core/model/ra/EndEntityInformationFillerTest.java</a>
                 </td>
                 <td>
                   0
@@ -489,35 +965,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  35
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.protocol.cmp.BaseCmpMessageHandler.java">org/ejbca/core/protocol/cmp/BaseCmpMessageHandler.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  96
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.samples.AuthResult.java">org/ejbca/samples/AuthResult.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  7
+                  36
                 </td>
               </tr>
                           <tr>
@@ -550,34 +998,6 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.cesecoreintegration.QueuedLoggerMockSessionBean.java">org/ejbca/cesecoreintegration/QueuedLoggerMockSessionBean.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  22
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.EjbBridgeSessionBean.java">org/ejbca/core/ejb/EjbBridgeSessionBean.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  259
-                </td>
-              </tr>
-                          <tr>
-                <td>
                   <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.rest.EjbcaRestHelperSessionBean.java">org/ejbca/core/ejb/rest/EjbcaRestHelperSessionBean.java</a>
                 </td>
                 <td>
@@ -587,21 +1007,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  82
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.model.ra.userdatasource.UserDataSourceDoesntExistsException.java">org/ejbca/core/model/ra/userdatasource/UserDataSourceDoesntExistsException.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  12
+                  80
                 </td>
               </tr>
                           <tr>
@@ -615,7 +1021,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  77
+                  72
                 </td>
               </tr>
                           <tr>
@@ -629,35 +1035,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  224
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.config.HealthCheckSessionBean.java">org/ejbca/core/ejb/config/HealthCheckSessionBean.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  18
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.samples.RemoteVerifyServlet.java">org/ejbca/samples/RemoteVerifyServlet.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  111
+                  200
                 </td>
               </tr>
                           <tr>
@@ -671,12 +1049,12 @@ under the License.
                   0
                 </td>
                 <td>
-                  38
+                  31
                 </td>
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.keyrecovery.KeyRecoverySessionBean.java">org/ejbca/core/ejb/keyrecovery/KeyRecoverySessionBean.java</a>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.samples.RemoteVerifyServlet.java">org/ejbca/samples/RemoteVerifyServlet.java</a>
                 </td>
                 <td>
                   0
@@ -685,7 +1063,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  261
+                  107
                 </td>
               </tr>
                           <tr>
@@ -699,7 +1077,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  82
+                  81
                 </td>
               </tr>
                           <tr>
@@ -713,7 +1091,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  130
+                  127
                 </td>
               </tr>
                           <tr>
@@ -732,20 +1110,6 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.ca.store.CertReqHistorySessionBean.java">org/ejbca/core/ejb/ca/store/CertReqHistorySessionBean.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  58
-                </td>
-              </tr>
-                          <tr>
-                <td>
                   <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.ca.publisher.PublisherSessionBean.java">org/ejbca/core/ejb/ca/publisher/PublisherSessionBean.java</a>
                 </td>
                 <td>
@@ -755,7 +1119,21 @@ under the License.
                   0
                 </td>
                 <td>
-                  256
+                  229
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.ca.store.CertReqHistorySessionBean.java">org/ejbca/core/ejb/ca/store/CertReqHistorySessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  53
                 </td>
               </tr>
                           <tr>
@@ -769,7 +1147,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  89
+                  67
                 </td>
               </tr>
                           <tr>
@@ -783,7 +1161,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  1139
+                  1098
                 </td>
               </tr>
                           <tr>
@@ -797,7 +1175,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  115
+                  101
                 </td>
               </tr>
                           <tr>
@@ -811,7 +1189,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  36
+                  31
                 </td>
               </tr>
                           <tr>
@@ -825,21 +1203,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  414
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.protocol.unid.RequestMessageSubjectDnAdapter.java">org/ejbca/core/protocol/unid/RequestMessageSubjectDnAdapter.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  73
+                  410
                 </td>
               </tr>
                           <tr>
@@ -853,12 +1217,12 @@ under the License.
                   0
                 </td>
                 <td>
-                  75
+                  74
                 </td>
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.util.Base64GetHashMap.java">org/ejbca/util/Base64GetHashMap.java</a>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.util.ObjectCacheTest.java">org/ejbca/util/ObjectCacheTest.java</a>
                 </td>
                 <td>
                   0
@@ -881,35 +1245,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  469
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.crl.PublishingCrlSessionBean.java">org/ejbca/core/ejb/crl/PublishingCrlSessionBean.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  474
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.authentication.web.WebAuthenticationProviderSessionBean.java">org/ejbca/core/ejb/authentication/web/WebAuthenticationProviderSessionBean.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  52
+                  447
                 </td>
               </tr>
                           <tr>
@@ -923,12 +1259,12 @@ under the License.
                   0
                 </td>
                 <td>
-                  77
+                  75
                 </td>
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.protocol.cmp.CrmfKeyUpdateHandler.java">org/ejbca/core/protocol/cmp/CrmfKeyUpdateHandler.java</a>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.model.ca.publisher.MultiGroupPublisherUnitTest.java">org/ejbca/core/model/ca/publisher/MultiGroupPublisherUnitTest.java</a>
                 </td>
                 <td>
                   0
@@ -937,21 +1273,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  167
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.audit.EjbcaAuditorSessionBean.java">org/ejbca/core/ejb/audit/EjbcaAuditorSessionBean.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  81
+                  124
                 </td>
               </tr>
                           <tr>
@@ -965,7 +1287,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  74
+                  63
                 </td>
               </tr>
                           <tr>
@@ -998,34 +1320,6 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.protocol.cmp.CmpMessageDispatcherSessionBean.java">org/ejbca/core/protocol/cmp/CmpMessageDispatcherSessionBean.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  108
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.model.ra.EndEntityInformationFiller.java">org/ejbca/core/model/ra/EndEntityInformationFiller.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  87
-                </td>
-              </tr>
-                          <tr>
-                <td>
                   <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.upgrade.UpgradeStatusSingletonBean.java">org/ejbca/core/ejb/upgrade/UpgradeStatusSingletonBean.java</a>
                 </td>
                 <td>
@@ -1035,21 +1329,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  38
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.ca.publisher.PublisherCache.java">org/ejbca/core/ejb/ca/publisher/PublisherCache.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  22
+                  32
                 </td>
               </tr>
                           <tr>
@@ -1063,35 +1343,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  1002
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.util.dn.DistinguishedName.java">org/ejbca/util/dn/DistinguishedName.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  57
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSessionBean.java">org/ejbca/core/ejb/ra/raadmin/EndEntityProfileSessionBean.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  198
+                  957
                 </td>
               </tr>
                           <tr>
@@ -1105,21 +1357,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  473
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.authorization.AuthorizationSystemSessionBean.java">org/ejbca/core/ejb/authorization/AuthorizationSystemSessionBean.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  178
+                  452
                 </td>
               </tr>
                           <tr>
@@ -1133,7 +1371,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  125
+                  116
                 </td>
               </tr>
                           <tr>
@@ -1147,21 +1385,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  154
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.upgrade.UpgradeSessionBean.java">org/ejbca/core/ejb/upgrade/UpgradeSessionBean.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  567
+                  150
                 </td>
               </tr>
                           <tr>
@@ -1180,76 +1404,6 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.ra.raadmin.RaStyleCacheBean.java">org/ejbca/core/ejb/ra/raadmin/RaStyleCacheBean.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  40
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.approval.ApprovalProfileSessionBean.java">org/ejbca/core/ejb/approval/ApprovalProfileSessionBean.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  112
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.model.era.RaMasterApiProxyBean.java">org/ejbca/core/model/era/RaMasterApiProxyBean.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  979
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.model.approval.ApprovalOveradableClassName.java">org/ejbca/core/model/approval/ApprovalOveradableClassName.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  61
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.hardtoken.HardTokenSessionBean.java">org/ejbca/core/ejb/hardtoken/HardTokenSessionBean.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  469
-                </td>
-              </tr>
-                          <tr>
-                <td>
                   <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.model.ra.FieldValidator.java">org/ejbca/core/model/ra/FieldValidator.java</a>
                 </td>
                 <td>
@@ -1259,7 +1413,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  24
+                  23
                 </td>
               </tr>
                           <tr>
@@ -1273,21 +1427,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  33
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.ws.EjbcaWSHelperSessionBean.java">org/ejbca/core/ejb/ws/EjbcaWSHelperSessionBean.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  494
+                  32
                 </td>
               </tr>
                           <tr>
@@ -1301,35 +1441,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  111
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.services.ServiceSessionBean.java">org/ejbca/core/ejb/services/ServiceSessionBean.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  353
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ejb/checkstyle.html#org.ejbca.core.ejb.StartupSingletonBean.java">org/ejbca/core/ejb/StartupSingletonBean.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  176
+                  101
                 </td>
               </tr>
                           <tr>
@@ -1343,7 +1455,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  132
+                  129
                 </td>
               </tr>
                       </tbody>

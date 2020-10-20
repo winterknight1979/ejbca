@@ -9,7 +9,7 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.keys.token;
 
 import java.io.IOException;
@@ -22,89 +22,97 @@ import java.security.PublicKey;
 import java.security.cert.CertificateException;
 import java.security.spec.AlgorithmParameterSpec;
 import java.util.Properties;
-
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
-
-/** This class is used as crypto Token for virtual CAs that does not have a keystore, such as external SubCAs.
- * 
+/**
+ * This class is used as crypto Token for virtual CAs that does not have a
+ * keystore, such as external SubCAs.
+ *
  * @version $Id: NullCryptoToken.java 22561 2016-01-12 14:35:29Z mikekushner $
  */
 public class NullCryptoToken extends BaseCryptoToken {
 
-    private static final long serialVersionUID = -1L;
+  private static final long serialVersionUID = -1L;
 
-    private int id;
+  /** ID. */
+  private int id;
 
-    public NullCryptoToken() {
-<span class="fc" id="L40">    	super();</span>
-<span class="fc" id="L41">    }</span>
+  /** null. */
+  public NullCryptoToken() {
+<span class="fc" id="L42">    super();</span>
+<span class="fc" id="L43">  }</span>
 
-    @Override
-    public void init(Properties properties, byte[] data, int id) throws Exception {
-    	// We only need to set JCA provider, if JCE provider is the same (which is the common case)
-<span class="nc" id="L46">    	setJCAProviderName(BouncyCastleProvider.PROVIDER_NAME);</span>
-<span class="nc" id="L47">    	this.id = id;</span>
-<span class="nc" id="L48">    }</span>
+  @Override
+  public void init(
+          final Properties properties, final byte[] data, final int anId)
+      throws Exception {
+    // We only need to set JCA provider, if JCE provider is the same (which is
+    // the common case)
+<span class="nc" id="L51">    setJCAProviderName(BouncyCastleProvider.PROVIDER_NAME);</span>
+<span class="nc" id="L52">    this.id = anId;</span>
+<span class="nc" id="L53">  }</span>
 
-    @Override
-    public int getId() {
-<span class="nc" id="L52">    	return this.id;</span>
-    }
+  @Override
+  public int getId() {
+<span class="nc" id="L57">    return this.id;</span>
+  }
 
-    @Override
-    public Properties getProperties(){
-<span class="nc" id="L57">    	return new Properties();</span>
-    }
+  @Override
+  public Properties getProperties() {
+<span class="nc" id="L62">    return new Properties();</span>
+  }
 
-    @Override
-    public PrivateKey getPrivateKey(String alias){
-<span class="nc" id="L62">      return null;        </span>
-    }
+  @Override
+  public PrivateKey getPrivateKey(final String alias) {
+<span class="nc" id="L67">    return null;</span>
+  }
 
-    @Override
-    public PublicKey getPublicKey(String alias){    
-<span class="nc" id="L67">      return null;        </span>
-    }
-    
-    @Override
-    public void deleteEntry(final String alias) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, CryptoTokenOfflineException {    	
-<span class="nc" id="L72">    }</span>
+  @Override
+  public PublicKey getPublicKey(final String alias) {
+<span class="nc" id="L72">    return null;</span>
+  }
 
-    @Override
-    public void generateKeyPair(final String keySpec, final String alias) throws InvalidAlgorithmParameterException,
-            CryptoTokenOfflineException {
-<span class="nc" id="L77">    }</span>
+  @Override
+  public void deleteEntry(final String alias)
+      throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
+<span class="nc" id="L78">          IOException, CryptoTokenOfflineException { }</span>
 
-    @Override
-    public void generateKeyPair(final AlgorithmParameterSpec spec, final String alias) throws InvalidAlgorithmParameterException,
-            CertificateException, IOException, CryptoTokenOfflineException {
-<span class="nc" id="L82">    }</span>
+  @Override
+  public void generateKeyPair(final String keySpec, final String alias)
+<span class="nc" id="L82">      throws InvalidAlgorithmParameterException, CryptoTokenOfflineException { }</span>
 
-    @Override
-    public void generateKey(final String algorithm, final int keysize, final String alias) throws NoSuchAlgorithmException, NoSuchProviderException, KeyStoreException, CryptoTokenOfflineException {
-<span class="nc" id="L86">    }</span>
+  @Override
+  public void generateKeyPair(
+      final AlgorithmParameterSpec spec, final String alias)
+      throws InvalidAlgorithmParameterException, CertificateException,
+<span class="nc" id="L88">          IOException, CryptoTokenOfflineException { }</span>
 
-    @Override
-	public void activate(char[] authenticationcode) throws CryptoTokenAuthenticationFailedException, CryptoTokenOfflineException {
-		// Do Nothing		
-<span class="nc" id="L91">	}</span>
+  @Override
+  public void generateKey(
+      final String algorithm, final int keysize, final String alias)
+      throws NoSuchAlgorithmException, NoSuchProviderException,
+<span class="nc" id="L94">          KeyStoreException, CryptoTokenOfflineException { }</span>
 
-    @Override
-	public void deactivate() {
-       // Do Nothing
-<span class="nc" id="L96">	}</span>
+  @Override
+  public void activate(final char[] authenticationcode)
+      throws CryptoTokenAuthenticationFailedException,
+          CryptoTokenOfflineException {
+    // Do Nothing
+<span class="nc" id="L101">  }</span>
 
-    @Override
-	public byte[] getTokenData() {
-<span class="nc" id="L100">    	return null;</span>
-	}
+  @Override
+  public void deactivate() {
+    // Do Nothing
+<span class="nc" id="L106">  }</span>
 
-    @Override
-    public boolean permitExtractablePrivateKeyForTest() {
-<span class="nc" id="L105">        return doPermitExtractablePrivateKey();</span>
-    }
+  @Override
+  public byte[] getTokenData() {
+<span class="nc" id="L110">    return null;</span>
+  }
 
+  @Override
+  public boolean permitExtractablePrivateKeyForTest() {
+<span class="nc" id="L115">    return doPermitExtractablePrivateKey();</span>
+  }
 }
-
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

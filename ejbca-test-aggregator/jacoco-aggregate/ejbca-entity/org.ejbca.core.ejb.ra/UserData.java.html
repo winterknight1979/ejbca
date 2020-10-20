@@ -524,7 +524,7 @@ public class UserData extends ProtectedData implements Serializable {
      */
     public boolean comparePassword(final String password) throws NoSuchAlgorithmException {
 <span class="pc bpc" id="L526" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
-<span class="fc" id="L527">            log.trace(&quot;&gt;comparePassword()&quot;);</span>
+<span class="nc" id="L527">            log.trace(&quot;&gt;comparePassword()&quot;);</span>
         }
 <span class="fc" id="L529">        boolean ret = false;</span>
 <span class="pc bpc" id="L530" title="1 of 2 branches missed.">        if (password != null) {</span>
@@ -547,7 +547,7 @@ public class UserData extends ProtectedData implements Serializable {
             }
         }
 <span class="pc bpc" id="L549" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
-<span class="fc" id="L550">            log.trace(&quot;&lt;comparePassword()&quot;);</span>
+<span class="nc" id="L550">            log.trace(&quot;&lt;comparePassword()&quot;);</span>
         }
 <span class="fc" id="L552">        return ret;</span>
     }

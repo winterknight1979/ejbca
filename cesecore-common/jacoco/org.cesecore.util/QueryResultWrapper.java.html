@@ -13,79 +13,87 @@
 package org.cesecore.util;
 
 import java.util.List;
-
 import javax.persistence.NonUniqueResultException;
 import javax.persistence.Query;
 
 /**
  * Helper class to cope with Hibernates JPA 1.0 Provider implementation.
- * 
+ *
  * @version $Id: QueryResultWrapper.java 17625 2013-09-20 07:12:06Z netmackan $
  */
-<span class="nc" id="L25">public abstract class QueryResultWrapper {</span>
+<span class="nc" id="L24">public abstract class QueryResultWrapper {</span>
 
-    /**
-     * Query.getSingleResult that on with older Hibernate JPA 1.0 provider bundled with EJBCA returns null and on newer JPA implementations throws
-     * NoResultException (as it should according to the specifications) is not suitable for EJBCA. We always want to return null when an object does
-     * not exist, since exceptions will mess with the garbage collection and lead to worse performance.
-     * 
-     * We still throws NonUniqueResultException and IllegalStateException, just as getSingleResult would.
-     * @param query query
-     * @param &lt;T&gt; response type
-     * 
-     * @return single result or null
+  /**
+   * Query.getSingleResult that on with older Hibernate JPA 1.0 provider bundled
+   * with EJBCA returns null and on newer JPA implementations throws
+   * NoResultException (as it should according to the specifications) is not
+   * suitable for EJBCA. We always want to return null when an object does not
+   * exist, since exceptions will mess with the garbage collection and lead to
+   * worse performance.
+   *
+   * &lt;p&gt;We still throws NonUniqueResultException and IllegalStateException, just
+   * as getSingleResult would.
+   *
+   * @param query query
+   * @param &lt;T&gt; response type
+   * @return single result or null
+   */
+  public static &lt;T&gt; T getSingleResult(final Query query) {
+    /*
+     * The odd syntax below is due to a bug in the hotspot compiler
+     * See http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6302954
      */
-    public static &lt;T&gt; T getSingleResult(final Query query) {
-        /*
-         * The odd syntax below is due to a bug in the hotspot compiler
-         * See http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6302954
-         */
-<span class="nc" id="L43">        return QueryResultWrapper.&lt;T&gt; getSingleResult(query, null);</span>
-    }
+<span class="nc" id="L46">    return QueryResultWrapper.&lt;T&gt;getSingleResult(query, null);</span>
+  }
 
-    /**
-     * Query.getSingleResult that on with older Hibernate JPA 1.0 provider bundled with EJBCA returns null and on newer JPA implementations throws
-     * NoResultException (as it should according to the specifications) is not suitable for EJBCA. We always want to return null when an object does
-     * not exist, since exceptions will mess with the garbage collection and lead to worse performance.
-     * 
-     * We still throws NonUniqueResultException and IllegalStateException, just as getSingleResult would.
-     * @param query Query
-     * @param defaultValue default value 
-     * @param &lt;T&gt; response type
-     * 
-     * @return single result or defaultValue
-     */
-    public static &lt;T&gt; T getSingleResult(final Query query, final T defaultValue) {
-        @SuppressWarnings(&quot;unchecked&quot;)
-<span class="nc" id="L60">        final List&lt;T&gt; resultList = query.getResultList();</span>
-<span class="nc bnc" id="L61" title="All 3 branches missed.">        switch (resultList.size()) {</span>
-        case 0:
-<span class="nc" id="L63">            return defaultValue;</span>
-        case 1:
-<span class="nc" id="L65">            final T value = (T) resultList.get(0);</span>
-<span class="nc bnc" id="L66" title="All 2 branches missed.">            if (value == null) {</span>
-<span class="nc" id="L67">                return defaultValue;</span>
-            } else {
-<span class="nc" id="L69">                return value;</span>
-            }
-        default:
-<span class="nc" id="L72">            throw new NonUniqueResultException();</span>
+  /**
+   * Query.getSingleResult that on with older Hibernate JPA 1.0 provider bundled
+   * with EJBCA returns null and on newer JPA implementations throws
+   * NoResultException (as it should according to the specifications) is not
+   * suitable for EJBCA. We always want to return null when an object does not
+   * exist, since exceptions will mess with the garbage collection and lead to
+   * worse performance.
+   *
+   * &lt;p&gt;We still throws NonUniqueResultException and IllegalStateException, just
+   * as getSingleResult would.
+   *
+   * @param query Query
+   * @param defaultValue default value
+   * @param &lt;T&gt; response type
+   * @return single result or defaultValue
+   */
+  public static &lt;T&gt; T getSingleResult(final Query query, final T defaultValue) {
+    @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L67">    final List&lt;T&gt; resultList = query.getResultList();</span>
+<span class="nc bnc" id="L68" title="All 3 branches missed.">    switch (resultList.size()) {</span>
+      case 0:
+<span class="nc" id="L70">        return defaultValue;</span>
+      case 1:
+<span class="nc" id="L72">        final T value = (T) resultList.get(0);</span>
+<span class="nc bnc" id="L73" title="All 2 branches missed.">        if (value == null) {</span>
+<span class="nc" id="L74">          return defaultValue;</span>
+        } else {
+<span class="nc" id="L76">          return value;</span>
         }
+      default:
+<span class="nc" id="L79">        throw new NonUniqueResultException();</span>
     }
+  }
 
-    /** @param query query
-     * @param &lt;T&gt; response type
-     * @return the first result of the query or null */
-    public static &lt;T&gt; T getLastResult(final Query query) {
-        @SuppressWarnings(&quot;unchecked&quot;)
-<span class="nc" id="L81">        final List&lt;T&gt; resultList = query.getResultList();</span>
-<span class="nc bnc" id="L82" title="All 2 branches missed.">        switch (resultList.size()) {</span>
-        case 0:
-<span class="nc" id="L84">            return null;</span>
-        default:
-<span class="nc" id="L86">            return resultList.get(resultList.size() - 1);</span>
-        }
+  /**
+   * @param query query
+   * @param &lt;T&gt; response type
+   * @return the first result of the query or null
+   */
+  public static &lt;T&gt; T getLastResult(final Query query) {
+    @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L90">    final List&lt;T&gt; resultList = query.getResultList();</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">    switch (resultList.size()) {</span>
+      case 0:
+<span class="nc" id="L93">        return null;</span>
+      default:
+<span class="nc" id="L95">        return resultList.get(resultList.size() - 1);</span>
     }
-
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

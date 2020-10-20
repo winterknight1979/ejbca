@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CACertReqServlet.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Administration GUI</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.cainterface</a> &gt; <span class="el_source">CACertReqServlet.java</span></div><h1>CACertReqServlet.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.ui.web.admin.cainterface;
+
+import java.io.IOException;
+import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
+
+import javax.ejb.EJB;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.control.StandardRules;
+import org.cesecore.certificates.certificate.request.PKCS10RequestMessage;
+import org.cesecore.certificates.certificate.request.RequestMessageUtils;
+import org.cesecore.util.Base64;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.StringTools;
+import org.ejbca.core.ejb.ca.sign.SignSessionLocal;
+import org.ejbca.core.model.InternalEjbcaResources;
+import org.ejbca.cvc.CVCAuthenticatedRequest;
+import org.ejbca.cvc.CVCObject;
+import org.ejbca.cvc.CVCertificate;
+import org.ejbca.cvc.CertificateParser;
+import org.ejbca.cvc.HolderReferenceField;
+import org.ejbca.cvc.exception.ParseException;
+import org.ejbca.ui.web.RequestHelper;
+import org.ejbca.ui.web.admin.cainterface.exception.AdminWebAuthenticationException;
+import org.ejbca.ui.web.pub.ServletUtils;
+
+/**
+ * Servlet used to handle certificate requests between CAs.&lt;br&gt;
+ *
+ * The servlet is called with method GET or POST and syntax
+ * &lt;code&gt;cmd=&amp;lt;command&amp;gt;&lt;/code&gt;.
+ * &lt;p&gt;The following commands are supported:&lt;br&gt;
+ * &lt;ul&gt;
+ * &lt;li&gt;certreq - receives a certificate request&lt;/li&gt;
+ * &lt;li&gt;cert - sends a certificate&lt;/li&gt;
+ * &lt;li&gt;certpkcs7 - sends a certificate in pkcs7 format&lt;/li&gt;
+ * &lt;/ul&gt;
+ *
+ * @version $Id: CACertReqServlet.java 34154 2019-12-23 13:38:17Z samuellb $
+ */
+<span class="nc" id="L60">public class CACertReqServlet extends BaseAdminServlet {</span>
+
+	private static final long serialVersionUID = 1L;
+<span class="nc" id="L63">	private static final Logger log = Logger.getLogger(CACertReqServlet.class);</span>
+    /** Internal localization of logs and errors */
+<span class="nc" id="L65">    private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();</span>
+
+    private static final String COMMAND_PROPERTY_NAME = &quot;cmd&quot;;
+    private static final String COMMAND_PROPERTY_CAID = &quot;caid&quot;;
+    private static final String COMMAND_CERTREQ = &quot;certreq&quot;;
+	private static final String COMMAND_CERT           = &quot;cert&quot;;    
+	private static final String COMMAND_CERTPKCS7 = &quot;certpkcs7&quot;;
+    private static final String COMMAND_CERTLINK = &quot;linkcert&quot;;
+    private static final String FORMAT_PROPERTY_NAME = &quot;format&quot;;
+
+    @EJB
+    private SignSessionLocal signSession;
+    
+    @Override
+    public void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException, ServletException {
+<span class="nc" id="L80">        log.trace(&quot;&gt;doPost()&quot;);</span>
+<span class="nc" id="L81">        doGet(req, res);</span>
+<span class="nc" id="L82">        log.trace(&quot;&lt;doPost()&quot;);</span>
+<span class="nc" id="L83">    }</span>
+
+    @Override
+    public void doGet(HttpServletRequest req,  HttpServletResponse res) throws java.io.IOException, ServletException {
+<span class="nc" id="L87">        log.trace(&quot;&gt;doGet()&quot;);</span>
+        final AuthenticationToken admin;
+        try {
+<span class="nc" id="L90">            admin = authenticateAdmin(req, res, StandardRules.ROLE_ROOT.resource());</span>
+<span class="nc" id="L91">        } catch (AdminWebAuthenticationException authExc) {</span>
+        	// TODO: localize this.
+<span class="nc" id="L93">        	log.info(&quot;Authentication failed&quot;, authExc);</span>
+<span class="nc" id="L94">            res.sendError(HttpServletResponse.SC_FORBIDDEN, &quot;Authentication failed&quot;);</span>
+<span class="nc" id="L95">            return;</span>
+<span class="nc" id="L96">        }</span>
+
+<span class="nc" id="L98">        CAInterfaceBean cabean = (CAInterfaceBean) req.getSession().getAttribute(&quot;cabean&quot;);</span>
+<span class="nc bnc" id="L99" title="All 2 branches missed.">		if ( cabean == null ){</span>
+		  try {
+<span class="nc" id="L101">			cabean = (CAInterfaceBean) java.beans.Beans.instantiate(Thread.currentThread().getContextClassLoader(), CAInterfaceBean.class.getName());</span>
+<span class="nc" id="L102">		   } catch (ClassNotFoundException exc) {</span>
+<span class="nc" id="L103">			   throw new ServletException(exc.getMessage());</span>
+<span class="nc" id="L104">		   }catch (Exception exc) {</span>
+<span class="nc" id="L105">			   throw new ServletException (&quot; Cannot create bean of class &quot;+CAInterfaceBean.class.getName(), exc);</span>
+<span class="nc" id="L106">		   }</span>
+<span class="nc" id="L107">		   req.getSession().setAttribute(&quot;cabean&quot;, cabean);</span>
+		}
+
+		try{
+<span class="nc" id="L111">		  cabean.initialize(getEjbcaWebBean(req));</span>
+<span class="nc" id="L112">		} catch(Exception e){</span>
+<span class="nc" id="L113">		   throw new java.io.IOException(&quot;Error initializing CACertReqServlet&quot;);</span>
+<span class="nc" id="L114">		}        </span>
+                
+        
+        // Keep this for logging.
+<span class="nc" id="L118">        String remoteAddr = req.getRemoteAddr();</span>
+<span class="nc" id="L119">        RequestHelper.setDefaultCharacterEncoding(req);</span>
+<span class="nc" id="L120">        String command = req.getParameter(COMMAND_PROPERTY_NAME);</span>
+<span class="nc" id="L121">        String format = req.getParameter(FORMAT_PROPERTY_NAME);</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">        if (command == null) {</span>
+<span class="nc" id="L123">            command = &quot;&quot;;</span>
+        }
+<span class="nc bnc" id="L125" title="All 2 branches missed.">        if (command.equalsIgnoreCase(COMMAND_CERTREQ)) {</span>
+            try {
+<span class="nc" id="L127">            	byte[] request = cabean.getRequestData();</span>
+<span class="nc" id="L128">                String filename = null;</span>
+<span class="nc" id="L129">                CVCertificate cvccert = null;</span>
+<span class="nc" id="L130">                boolean isx509cert = false;</span>
+                try {
+<span class="nc" id="L132">                    CVCObject parsedObject = CertificateParser.parseCVCObject(request);</span>
+                    // We will handle both the case if the request is an
+                    // authenticated request, i.e. with an outer signature
+                    // and when the request is missing the (optional) outer
+                    // signature.
+<span class="nc bnc" id="L137" title="All 2 branches missed.">                    if (parsedObject instanceof CVCAuthenticatedRequest) {</span>
+<span class="nc" id="L138">                        CVCAuthenticatedRequest cvcreq = (CVCAuthenticatedRequest) parsedObject;</span>
+<span class="nc" id="L139">                        cvccert = cvcreq.getRequest();</span>
+<span class="nc" id="L140">                    } else {</span>
+<span class="nc" id="L141">                        cvccert = (CVCertificate) parsedObject;</span>
+                    }
+<span class="nc" id="L143">                    HolderReferenceField chrf = cvccert.getCertificateBody().getHolderReference();</span>
+<span class="nc bnc" id="L144" title="All 2 branches missed.">                    if (chrf != null) {</span>
+<span class="nc" id="L145">                    	filename = chrf.getConcatenated();</span>
+                    }
+<span class="nc" id="L147">                } catch (ParseException ex) {</span>
+                    // Apparently it wasn't a CVC certificate, was it a certificate request?
+                    try {
+<span class="nc" id="L150">                        PKCS10RequestMessage p10 = RequestMessageUtils.genPKCS10RequestMessage(request);</span>
+<span class="nc" id="L151">                        filename = CertTools.getPartFromDN(p10.getRequestX500Name().toString(), &quot;CN&quot;) + &quot;_csr&quot;;</span>
+<span class="nc" id="L152">                    } catch (Exception e) { // NOPMD</span>
+                        // Nope, not a certificate request either, see if it was an X.509 certificate
+<span class="nc" id="L154">                        Certificate cert = CertTools.getCertfromByteArray(request, Certificate.class);</span>
+<span class="nc" id="L155">                        filename = CertTools.getPartFromDN(CertTools.getSubjectDN(cert), &quot;CN&quot;);</span>
+<span class="nc bnc" id="L156" title="All 2 branches missed.">                        if (filename == null) {</span>
+<span class="nc" id="L157">                            filename = &quot;cert&quot;;</span>
+                        }
+<span class="nc" id="L159">                        isx509cert = true;</span>
+<span class="nc" id="L160">                    }</span>
+<span class="nc" id="L161">                }</span>
+
+<span class="nc" id="L163">                int length = request.length;</span>
+<span class="nc" id="L164">                byte[] outbytes = request;</span>
+<span class="nc bnc" id="L165" title="All 2 branches missed.">            	if (!StringUtils.equals(format, &quot;binary&quot;)) {</span>
+<span class="nc" id="L166">            		String begin = RequestHelper.BEGIN_CERTIFICATE_REQUEST_WITH_NL;</span>
+<span class="nc" id="L167">            		String end = RequestHelper.END_CERTIFICATE_REQUEST_WITH_NL;</span>
+<span class="nc bnc" id="L168" title="All 2 branches missed.">            		if (isx509cert) {</span>
+<span class="nc" id="L169">            			begin = CertTools.BEGIN_CERTIFICATE_WITH_NL;</span>
+<span class="nc" id="L170">            			end = CertTools.END_CERTIFICATE_WITH_NL;</span>
+            		}
+<span class="nc" id="L172">    				byte[] b64certreq = Base64.encode(request);</span>
+<span class="nc" id="L173">    				String out = begin;</span>
+<span class="nc" id="L174">    				out += new String(b64certreq);</span>
+<span class="nc" id="L175">    				out += end;</span>
+<span class="nc" id="L176">    				length = out.length();</span>
+<span class="nc" id="L177">                    filename += &quot;.pem&quot;;</span>
+<span class="nc" id="L178">                    outbytes = out.getBytes();</span>
+<span class="nc bnc" id="L179" title="All 2 branches missed.">                } else if (cvccert != null) {</span>
+<span class="nc" id="L180">                    filename += &quot;.cvreq&quot;;</span>
+                } else {
+<span class="nc bnc" id="L182" title="All 2 branches missed.">                	if (isx509cert) {</span>
+<span class="nc" id="L183">                        filename += &quot;.crt&quot;;                		</span>
+                	} else {
+<span class="nc" id="L185">                        filename += &quot;.req&quot;;                		</span>
+                	}
+                }
+            	
+                // We must remove cache headers for IE
+<span class="nc" id="L190">                ServletUtils.removeCacheHeaders(res);</span>
+<span class="nc" id="L191">                res.setHeader(&quot;Content-disposition&quot;, &quot;attachment; filename=\&quot;&quot; + StringTools.stripFilename(filename)+&quot;\&quot;&quot;);</span>
+<span class="nc" id="L192">                res.setContentType(&quot;application/octet-stream&quot;);</span>
+<span class="nc" id="L193">                res.setContentLength(length);</span>
+<span class="nc" id="L194">                res.getOutputStream().write(outbytes);</span>
+<span class="nc" id="L195">        		String iMsg = intres.getLocalizedMessage(&quot;certreq.sentlatestcertreq&quot;, remoteAddr);</span>
+<span class="nc" id="L196">                log.info(iMsg);</span>
+<span class="nc" id="L197">            } catch (Exception e) {</span>
+<span class="nc" id="L198">        		String errMsg = intres.getLocalizedMessage(&quot;certreq.errorsendlatestcertreq&quot;, remoteAddr);</span>
+<span class="nc" id="L199">                log.error(errMsg, e);</span>
+<span class="nc" id="L200">                res.sendError(HttpServletResponse.SC_NOT_FOUND, errMsg);</span>
+<span class="nc" id="L201">                return;</span>
+<span class="nc" id="L202">            }</span>
+        }
+<span class="nc bnc" id="L204" title="All 2 branches missed.">		if (command.equalsIgnoreCase(COMMAND_CERT)) {</span>
+			 try {
+<span class="nc" id="L206">			 	Certificate cert = cabean.getProcessedCertificate();</span>
+<span class="nc bnc" id="L207" title="All 2 branches missed.">            	if (!StringUtils.equals(format, &quot;binary&quot;)) {</span>
+<span class="nc" id="L208">    				byte[] b64cert = Base64.encode(cert.getEncoded());	</span>
+<span class="nc" id="L209">    				RequestHelper.sendNewB64Cert(b64cert, res, CertTools.BEGIN_CERTIFICATE_WITH_NL, CertTools.END_CERTIFICATE_WITH_NL);</span>
+<span class="nc" id="L210">            	} else {</span>
+<span class="nc" id="L211">            		RequestHelper.sendBinaryBytes(cert.getEncoded(), res, &quot;application/octet-stream&quot;, &quot;cert.crt&quot;);</span>
+            	}
+<span class="nc" id="L213">			 } catch (Exception e) {</span>
+<span class="nc" id="L214">				 String errMsg = intres.getLocalizedMessage(&quot;certreq.errorsendcert&quot;, remoteAddr, e.getMessage());</span>
+<span class="nc" id="L215">                 log.error(errMsg, e);</span>
+<span class="nc" id="L216">				 res.sendError(HttpServletResponse.SC_NOT_FOUND, errMsg);</span>
+<span class="nc" id="L217">				 return;</span>
+<span class="nc" id="L218">			 }</span>
+		 }
+<span class="nc bnc" id="L220" title="All 2 branches missed.">		if (command.equalsIgnoreCase(COMMAND_CERTPKCS7)) {</span>
+			 try {
+<span class="nc" id="L222">			     X509Certificate cert = (X509Certificate) cabean.getProcessedCertificate();		</span>
+<span class="nc" id="L223">		        byte[] pkcs7 = signSession.createPKCS7(admin, cert, true);							 	</span>
+<span class="nc" id="L224">			    byte[] b64cert = Base64.encode(pkcs7);	</span>
+<span class="nc" id="L225">			    RequestHelper.sendNewB64Cert(b64cert, res, RequestHelper.BEGIN_PKCS7_WITH_NL, RequestHelper.END_PKCS7_WITH_NL);																		 					</span>
+<span class="nc" id="L226">			 } catch (Exception e) {</span>
+<span class="nc" id="L227">				 String errMsg = intres.getLocalizedMessage(&quot;certreq.errorsendcert&quot;, remoteAddr, e.getMessage());</span>
+<span class="nc" id="L228">                 log.error(errMsg, e);</span>
+<span class="nc" id="L229">				 res.sendError(HttpServletResponse.SC_NOT_FOUND, errMsg);</span>
+<span class="nc" id="L230">				 return;</span>
+<span class="nc" id="L231">			 }</span>
+		 }
+<span class="nc bnc" id="L233" title="All 2 branches missed.">        if (command.equalsIgnoreCase(COMMAND_CERTLINK)) {</span>
+            try {
+<span class="nc" id="L235">                final int caId = Integer.parseInt(req.getParameter(COMMAND_PROPERTY_CAID));</span>
+<span class="nc" id="L236">                final byte[] rawCert = cabean.getLinkCertificate(caId);</span>
+<span class="nc bnc" id="L237" title="All 2 branches missed.">                if (rawCert!=null) {</span>
+<span class="nc bnc" id="L238" title="All 2 branches missed.">                    if (!&quot;binary&quot;.equals(format)) {</span>
+<span class="nc" id="L239">                        final byte[] b64cert = Base64.encode(rawCert);  </span>
+<span class="nc" id="L240">                        RequestHelper.sendNewB64Cert(b64cert, res, CertTools.BEGIN_CERTIFICATE_WITH_NL, CertTools.END_CERTIFICATE_WITH_NL);</span>
+<span class="nc" id="L241">                    } else {</span>
+<span class="nc" id="L242">                        RequestHelper.sendBinaryBytes(rawCert, res, &quot;application/octet-stream&quot;, &quot;cert.crt&quot;);</span>
+                    }
+                }
+<span class="nc" id="L245">            } catch (Exception e) {</span>
+<span class="nc" id="L246">                String errMsg = intres.getLocalizedMessage(&quot;certreq.errorsendcert&quot;, remoteAddr, e.getMessage());</span>
+<span class="nc" id="L247">                log.error(errMsg, e);</span>
+<span class="nc" id="L248">                res.sendError(HttpServletResponse.SC_NOT_FOUND, errMsg);</span>
+<span class="nc" id="L249">                return;</span>
+<span class="nc" id="L250">            }</span>
+        }
+<span class="nc" id="L252">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

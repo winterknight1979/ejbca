@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RaLocaleBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ra-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ra</a> &gt; <span class="el_source">RaLocaleBean.java</span></div><h1>RaLocaleBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ra;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.MissingResourceException;
+import java.util.ResourceBundle;
+
+import javax.ejb.EJB;
+import javax.faces.application.Application;
+import javax.faces.application.FacesMessage;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.ManagedProperty;
+import javax.faces.bean.SessionScoped;
+import javax.faces.context.FacesContext;
+
+import org.apache.log4j.Logger;
+import org.cesecore.ErrorCode;
+import org.ejbca.core.ejb.ra.raadmin.AdminPreferenceSessionLocal;
+
+/**
+ * JSF Managed Bean for handling localization of clients.
+ * 
+ * @version $Id: RaLocaleBean.java 26904 2017-10-26 10:37:28Z aminkh $
+ * TODO: Use CDI beans
+ */
+@SuppressWarnings(&quot;deprecation&quot;)
+@ManagedBean
+@SessionScoped
+<span class="nc" id="L46">public class RaLocaleBean implements Serializable {</span>
+
+    private static final String LEFT_TO_RIGHT = &quot;ltr&quot;;
+    private static final String RIGHT_TO_LEFT = &quot;rtl&quot;;
+    
+    private static final long serialVersionUID = 1L;
+<span class="nc" id="L52">    private static final Logger log = Logger.getLogger(RaLocaleBean.class);</span>
+    
+<span class="nc" id="L54">    private Locale locale = null;</span>
+<span class="nc" id="L55">    private boolean directionLeftToRight = true;</span>
+
+    @EJB
+    private AdminPreferenceSessionLocal adminPreferenceSession;
+    
+    @ManagedProperty(value=&quot;#{raAuthenticationBean}&quot;)
+    private RaAuthenticationBean raAuthenticationBean;
+    
+    public void setRaAuthenticationBean(RaAuthenticationBean raAuthenticationBean) {
+<span class="nc" id="L64">        this.raAuthenticationBean = raAuthenticationBean;</span>
+<span class="nc" id="L65">    }</span>
+    
+    /** @return this sessions Locale */
+    public Locale getLocale() {
+
+<span class="nc" id="L70">        Locale localeFromDB = adminPreferenceSession.getCurrentRaLocale(raAuthenticationBean.getAuthenticationToken());</span>
+
+<span class="nc bnc" id="L72" title="All 2 branches missed.">        if (localeFromDB != null) {</span>
+<span class="nc" id="L73">            locale = localeFromDB;</span>
+<span class="nc" id="L74">            directionLeftToRight = isDirectionLeftToRight(locale);</span>
+        } else {
+<span class="nc bnc" id="L76" title="All 2 branches missed.">            if (locale == null) {</span>
+<span class="nc" id="L77">                final FacesContext facesContext = FacesContext.getCurrentInstance();</span>
+<span class="nc" id="L78">                final Locale requestLocale = facesContext.getExternalContext().getRequestLocale();</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">                if (getSupportedLocales().contains(requestLocale)) {</span>
+<span class="nc" id="L80">                    locale = requestLocale;</span>
+                } else {
+<span class="nc" id="L82">                    locale = facesContext.getApplication().getDefaultLocale();</span>
+                }
+<span class="nc" id="L84">                directionLeftToRight = isDirectionLeftToRight(locale);</span>
+            }
+        }
+<span class="nc" id="L87">        return locale;</span>
+    }
+    /** Set this sessions Locale 
+     * @param locale Locale*/
+    public void setLocale(final Locale locale) {
+
+<span class="nc" id="L93">        this.locale = locale;</span>
+<span class="nc" id="L94">        directionLeftToRight = isDirectionLeftToRight(locale);</span>
+<span class="nc" id="L95">    }</span>
+
+    /** @return a list of all locales as defined in faces-config.xml */
+    public List&lt;Locale&gt; getSupportedLocales() {
+<span class="nc" id="L99">        final Application application = FacesContext.getCurrentInstance().getApplication();</span>
+<span class="nc" id="L100">        final Iterator&lt;Locale&gt; iterator = application.getSupportedLocales();</span>
+<span class="nc" id="L101">        final List&lt;Locale&gt; ret = new ArrayList&lt;Locale&gt;();</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">        while (iterator.hasNext()) {</span>
+<span class="nc" id="L103">            ret.add(iterator.next());</span>
+        }
+<span class="nc" id="L105">        final Locale defaultLocale = application.getDefaultLocale();</span>
+<span class="nc bnc" id="L106" title="All 2 branches missed.">        if (!ret.contains(defaultLocale)) {</span>
+<span class="nc" id="L107">            ret.add(defaultLocale);</span>
+        }
+<span class="nc" id="L109">        Collections.sort(ret, new Comparator&lt;Locale&gt;() {</span>
+            @Override
+            public int compare(Locale o1, Locale o2) {
+<span class="nc" id="L112">                return o1.getLanguage().compareTo(o2.getLanguage());</span>
+            }
+        });
+<span class="nc" id="L115">        return ret;</span>
+    }
+
+    /** @param locale Locale
+     * @return true if the language direction is left to right */
+    private boolean isDirectionLeftToRight(final Locale locale) {
+<span class="nc" id="L121">        final int directionality = Character.getDirectionality(locale.getDisplayName(locale).charAt(0));</span>
+<span class="nc" id="L122">        log.debug(&quot;directionality is &quot; + directionality + &quot; for &quot; + locale.getLanguage() + &quot; (&quot; + locale.getDisplayName(locale) + &quot;).&quot;);</span>
+<span class="nc bnc" id="L123" title="All 8 branches missed.">        return directionality != Character.DIRECTIONALITY_RIGHT_TO_LEFT &amp;&amp; directionality != Character.DIRECTIONALITY_RIGHT_TO_LEFT_ARABIC &amp;&amp;</span>
+                directionality != Character.DIRECTIONALITY_RIGHT_TO_LEFT_EMBEDDING &amp;&amp; directionality != Character.DIRECTIONALITY_RIGHT_TO_LEFT_OVERRIDE;
+    }
+
+    /** @return true if the language direction is left to right */
+    public String getDirection() {
+<span class="nc bnc" id="L129" title="All 2 branches missed.">        return directionLeftToRight ? LEFT_TO_RIGHT : RIGHT_TO_LEFT;</span>
+    }
+
+    /** @return true if the language direction is left to right */
+    public String getIndentionDirection() {
+<span class="nc bnc" id="L134" title="All 2 branches missed.">        return directionLeftToRight ? &quot;left&quot; : &quot;right&quot;;</span>
+    }
+    
+    /** @return 
+     *     the reverse of the standard value, for cases when text needs to be aligned to the other side. */
+    public String getReverseIndentationDirection() {
+<span class="nc bnc" id="L140" title="All 2 branches missed.">        return !directionLeftToRight ? &quot;left&quot; : &quot;right&quot;;</span>
+    }
+
+    /** Add a faces message with the localized message summary with level FacesMessage.SEVERITY_ERROR. 
+     * @param messageKey Hey
+     * @param params Par ams*/
+    public void addMessageError(final String messageKey, final Object...params) {
+<span class="nc" id="L147">        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, getMessage(messageKey, params), null));</span>
+<span class="nc" id="L148">    }</span>
+    
+    /** Add a faces message with the localized error code message with level FacesMessage.SEVERITY_ERROR. 
+     * @param errorCode Code*/
+    public void addMessageError(ErrorCode errorCode) {
+<span class="nc" id="L153">        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, getErrorCodeMessage(errorCode), null));</span>
+<span class="nc" id="L154">    }</span>
+
+    /** Add a faces message with the localized message summary with level FacesMessage.SEVERITY_WARN. 
+     * @param messageKey Key
+     * @param params Params */
+    public void addMessageWarn(final String messageKey, final Object...params) {
+<span class="nc" id="L160">        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN, getMessage(messageKey, params), null));</span>
+<span class="nc" id="L161">    }</span>
+
+    /** Add a faces message with the localized message summary with level FacesMessage.SEVERITY_INFO. 
+     * @param messageKey Key
+     * @param params Params */
+    public void addMessageInfo(final String messageKey, final Object...params) {
+<span class="nc" id="L167">        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, getMessage(messageKey, params), null));</span>
+<span class="nc" id="L168">    }</span>
+
+    /**
+     * Find localized message template and replace the {number} place holders with the provided parameters.
+     * In the case where the localized language template is not available, the template from the default language will be tried.
+     * 
+     * @param messageKey the message key
+     * @param params to replace place holders with. Evaluated with String.valueOf() (null-safe).
+     * @return the localized message or &quot;???messageKey???&quot; if no key way found.
+     */
+    public String getMessage(final String messageKey, final Object...params) {
+<span class="nc bnc" id="L179" title="All 2 branches missed.">        if (messageKey==null) {</span>
+<span class="nc" id="L180">            return &quot;???null???&quot;;</span>
+        }
+<span class="nc" id="L182">        final FacesContext facesContext = FacesContext.getCurrentInstance();</span>
+<span class="nc" id="L183">        String messageTemplate = null;</span>
+        try {
+<span class="nc" id="L185">            final ResourceBundle resourceBundle = facesContext.getApplication().getResourceBundle(facesContext, &quot;msg&quot;);</span>
+<span class="nc" id="L186">            messageTemplate = resourceBundle.getString(messageKey);</span>
+<span class="nc" id="L187">        } catch (MissingResourceException e) {</span>
+            // Fall-back to trying the default locale
+<span class="nc" id="L189">            facesContext.getViewRoot().setLocale(facesContext.getApplication().getDefaultLocale());</span>
+            try {
+<span class="nc" id="L191">                final ResourceBundle resourceBundle = facesContext.getApplication().getResourceBundle(facesContext, &quot;msg&quot;);</span>
+<span class="nc" id="L192">                messageTemplate = resourceBundle.getString(messageKey);</span>
+<span class="nc" id="L193">            } catch (MissingResourceException e2) {</span>
+<span class="nc" id="L194">                return &quot;???&quot; + messageKey + &quot;???&quot;;</span>
+            } finally {
+<span class="nc" id="L196">                FacesContext.getCurrentInstance().getViewRoot().setLocale(getLocale());</span>
+            }
+<span class="nc" id="L198">        }</span>
+<span class="nc" id="L199">        final StringBuilder sb = new StringBuilder(messageTemplate);</span>
+        // Go backwards so if the value was the same a placeholder tag, we wont be affected
+<span class="nc bnc" id="L201" title="All 2 branches missed.">        if (params.length&gt;0) {</span>
+<span class="nc bnc" id="L202" title="All 2 branches missed.">            for (int i=params.length-1; i&gt;=0; i--) {</span>
+<span class="nc" id="L203">                final String placeHolder = &quot;{&quot;+i+&quot;}&quot;;</span>
+<span class="nc" id="L204">                final int currentIndex = sb.indexOf(placeHolder);</span>
+<span class="nc bnc" id="L205" title="All 2 branches missed.">                if (currentIndex==-1) {</span>
+<span class="nc bnc" id="L206" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L207">                        log.debug(&quot;messageKey '&quot; + messageKey + &quot;' was referenced using parameter '&quot; + params[i] + &quot;', but no &quot; + placeHolder + &quot; exists.&quot;);</span>
+                    }
+                    continue;
+                }
+<span class="nc" id="L211">                sb.replace(currentIndex, currentIndex+placeHolder.length(), String.valueOf(params[i]));</span>
+            }
+        }
+<span class="nc" id="L214">        return sb.toString();</span>
+    }
+    
+    /**
+     * Get localized error code.
+     * @param errorCode code
+     * @return localized error code
+     */
+    public String getErrorCodeMessage(final ErrorCode errorCode){
+<span class="nc bnc" id="L223" title="All 2 branches missed.">        if(errorCode == null){</span>
+<span class="nc" id="L224">            return &quot;???errorCodeNull???&quot;;</span>
+        }
+<span class="nc" id="L226">        return getMessage(&quot;errorcode_&quot; + errorCode.getInternalErrorCode());</span>
+    }
+    
+    /**
+     * Wraps the RaLocaleBean.getMessage()
+     * @param messageKey the message key
+     * @param params to replace place holders with. Evaluated with String.valueOf() (null-safe).
+     * @return the localized message or &quot;???messageKey???&quot; if no key way found.
+     * @see RaLocaleBean#getMessage 
+     */
+    public FacesMessage getFacesMessage(final String messageKey, final Object...params){
+<span class="nc" id="L237">        return new FacesMessage(getMessage(messageKey, params));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

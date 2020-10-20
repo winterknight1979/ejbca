@@ -1,0 +1,698 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+-->
+<rss version="0.91">
+  <channel>
+    <title>Registration Authority GUI - Checkstyle report</title>
+    <link>https://github.com/winterknight1979/ejbca/ra-gui</link>
+    <description>Registration Authority GUI - Checkstyle report</description>
+    <language>en-us</language>
+    <copyright>&#169;2020</copyright>
+    <item>
+      <title>File: 46,
+             Errors: 5760,
+             Warnings: 0,
+             Infos: 0
+      </title>
+            <link>https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html</link>
+      <description>
+        <p>Click <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html">here</a> for the full Checkstyle report.</p>
+
+        <table summary="Files" boder="1">
+          <thead>
+            <tr>
+              <th>Files</th>
+              <th style="width:30px;"><abbr title="Info">I</abbr></th>
+              <th style="width:30px;"><abbr title="Warning">W</abbr></th>
+              <th style="width:30px;"><abbr title="Error">E</abbr></th>
+            </tr>
+          </thead>
+          <tbody>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.RaSearchEesBean.java">org/ejbca/ra/RaSearchEesBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  339
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.RaEndEntityDetails.java">org/ejbca/ra/RaEndEntityDetails.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  283
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.SubjectAlternativeName.java">org/ejbca/ra/SubjectAlternativeName.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  7
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.RaEndEntityTools.java">org/ejbca/ra/RaEndEntityTools.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  24
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.RaExampleBean.java">org/ejbca/ra/RaExampleBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  21
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.RaSearchCertsBean.java">org/ejbca/ra/RaSearchCertsBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  401
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.RaErrorBean.java">org/ejbca/ra/RaErrorBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  42
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.jsfext.ExtendedRegexValidator.java">org/ejbca/ra/jsfext/ExtendedRegexValidator.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  31
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.jsfext.Utf8ResourceBundleMessages.java">org/ejbca/ra/jsfext/Utf8ResourceBundleMessages.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  22
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.StringConverter.java">org/ejbca/ra/StringConverter.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  14
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.RaAuthenticationBean.java">org/ejbca/ra/RaAuthenticationBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  33
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.RaRoleMemberBean.java">org/ejbca/ra/RaRoleMemberBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  160
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.RaRoleBean.java">org/ejbca/ra/RaRoleBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  195
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.jsfext.AddRemoveListState.java">org/ejbca/ra/jsfext/AddRemoveListState.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  64
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.RadioButtonConverter.java">org/ejbca/ra/RadioButtonConverter.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  14
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.jsfext.RaExceptionHandlerFactory.java">org/ejbca/ra/jsfext/RaExceptionHandlerFactory.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  34
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.LocaleConverter.java">org/ejbca/ra/LocaleConverter.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  10
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.RaCertificateDetails.java">org/ejbca/ra/RaCertificateDetails.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  368
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.jsfext.ExtendedRequiredValidator.java">org/ejbca/ra/jsfext/ExtendedRequiredValidator.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  39
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.RaRolesBean.java">org/ejbca/ra/RaRolesBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  116
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.EnrollWithUsernameBean.java">org/ejbca/ra/EnrollWithUsernameBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  112
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.RaEndEntityBean.java">org/ejbca/ra/RaEndEntityBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  101
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.RaAccessBean.java">org/ejbca/ra/RaAccessBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  108
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.RaRoleMembersBean.java">org/ejbca/ra/RaRoleMembersBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  232
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.RaManageRequestBean.java">org/ejbca/ra/RaManageRequestBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  319
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.SubjectDirectoryAttributes.java">org/ejbca/ra/SubjectDirectoryAttributes.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  9
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.jsfext.RaHttpSessionListener.java">org/ejbca/ra/jsfext/RaHttpSessionListener.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  11
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.SubjectDn.java">org/ejbca/ra/SubjectDn.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  7
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.RaCasPageBean.java">org/ejbca/ra/RaCasPageBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  102
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.RaManageRequestsBean.java">org/ejbca/ra/RaManageRequestsBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  191
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.RaAuthenticationHelper.java">org/ejbca/ra/RaAuthenticationHelper.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  104
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.RaPreferencesBean.java">org/ejbca/ra/RaPreferencesBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  110
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.RaAbstractDn.java">org/ejbca/ra/RaAbstractDn.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  41
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.RaRequestPreview.java">org/ejbca/ra/RaRequestPreview.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  122
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.jsfext.HtmlElementFocusBean.java">org/ejbca/ra/jsfext/HtmlElementFocusBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  14
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.EnrollMakeNewRequestBean.java">org/ejbca/ra/EnrollMakeNewRequestBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  793
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.jsfext.RaStyleRequestFilter.java">org/ejbca/ra/jsfext/RaStyleRequestFilter.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  65
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.jsfext.RequestControlFilter.java">org/ejbca/ra/jsfext/RequestControlFilter.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  100
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.RaLocaleBean.java">org/ejbca/ra/RaLocaleBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  94
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.RaSessionKeepAliveServlet.java">org/ejbca/ra/RaSessionKeepAliveServlet.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  24
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.EnrollWithRequestIdBean.java">org/ejbca/ra/EnrollWithRequestIdBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  319
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.RaRoleMemberGUIInfo.java">org/ejbca/ra/RaRoleMemberGUIInfo.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  35
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.RaViewCertBean.java">org/ejbca/ra/RaViewCertBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  63
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.RaCertDistServlet.java">org/ejbca/ra/RaCertDistServlet.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  141
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.ApprovalRequestGUIInfo.java">org/ejbca/ra/ApprovalRequestGUIInfo.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  312
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ra-gui/checkstyle.html#org.ejbca.ra.jsfext.NoCacheFilter.java">org/ejbca/ra/jsfext/NoCacheFilter.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  14
+                </td>
+              </tr>
+                      </tbody>
+        </table>
+        
+      </description>
+    </item>
+  </channel>
+</rss>
+

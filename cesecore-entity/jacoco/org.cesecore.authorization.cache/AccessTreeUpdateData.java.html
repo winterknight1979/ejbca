@@ -14,127 +14,157 @@
 package org.cesecore.authorization.cache;
 
 import java.io.Serializable;
-
 import javax.persistence.Entity;
 import javax.persistence.PostLoad;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 import javax.persistence.Transient;
-
 import org.cesecore.dbprotection.ProtectedData;
 import org.cesecore.dbprotection.ProtectionStringBuilder;
 
-/** AccessTreeUpdateData holds a counter, i.e. sequence for when the access rules have been changed. 
- * Especially in a cluster this is used in order to avoid rebuilding the internal access tree unless it has changed.
- * I.e. this is for efficiency reasons, since building to complete access tree requires multiple database accesses and some processing.
- *  
+/**
+ * AccessTreeUpdateData holds a counter, i.e. sequence for when the access rules
+ * have been changed. Especially in a cluster this is used in order to avoid
+ * rebuilding the internal access tree unless it has changed. I.e. this is for
+ * efficiency reasons, since building to complete access tree requires multiple
+ * database accesses and some processing.
+ *
  * @version $Id: AccessTreeUpdateData.java 25311 2017-02-21 19:07:00Z jeklund $
  */
 @Entity
 @Table(name = &quot;AuthorizationTreeUpdateData&quot;)
-public class AccessTreeUpdateData extends ProtectedData implements Serializable {
+public class AccessTreeUpdateData extends ProtectedData
+    implements Serializable {
 
-    private static final long serialVersionUID = 778158550351189295L;
+  private static final long serialVersionUID = 778158550351189295L;
 
-<span class="nc" id="L40">    public static final Integer AUTHORIZATIONTREEUPDATEDATA = Integer.valueOf(1);</span>
-<span class="nc" id="L41">    public static final Integer NEW_AUTHORIZATION_PATTERN_MARKER = Integer.valueOf(2);</span>
-    public static final int DEFAULTACCESSTREEUPDATENUMBER = 0;
+  /** Data. */
+<span class="nc" id="L43">  public static final Integer AUTHORIZATIONTREEUPDATEDATA = Integer.valueOf(1);</span>
+  /** Marker. */
+<span class="nc" id="L45">  public static final Integer NEW_AUTHORIZATION_PATTERN_MARKER =</span>
+<span class="nc" id="L46">          Integer.valueOf(2);</span>
+  /** Default. */
+  public static final int DEFAULTACCESSTREEUPDATENUMBER = 0;
 
-    private Integer primaryKey;
-    private int accessTreeUpdateNumber;
-<span class="nc" id="L46">    private int rowVersion = 0;</span>
-    private String rowProtection;
+  /** Key. */
+  private Integer primaryKey;
+  /** Number. */
+  private int accessTreeUpdateNumber;
+  /** Version. */
+<span class="nc" id="L55">  private int rowVersion = 0;</span>
+  /** Protction. */
+  private String rowProtection;
 
-<span class="nc" id="L49">    public AccessTreeUpdateData() {</span>
-<span class="nc" id="L50">        setPrimaryKey(AUTHORIZATIONTREEUPDATEDATA);</span>
-<span class="nc" id="L51">        setAccessTreeUpdateNumber(DEFAULTACCESSTREEUPDATENUMBER);</span>
-<span class="nc" id="L52">    }</span>
+  /**
+   * Constructor.
+   */
+<span class="nc" id="L62">  public AccessTreeUpdateData() {</span>
+<span class="nc" id="L63">    setPrimaryKey(AUTHORIZATIONTREEUPDATEDATA);</span>
+<span class="nc" id="L64">    setAccessTreeUpdateNumber(DEFAULTACCESSTREEUPDATENUMBER);</span>
+<span class="nc" id="L65">  }</span>
 
-    // @Id @Column
-    public Integer getPrimaryKey() {
-<span class="nc" id="L56">        return primaryKey;</span>
-    }
+  /**
+   * @return key
+   */
+  // @Id @Column
+  public Integer getPrimaryKey() {
+<span class="nc" id="L72">    return primaryKey;</span>
+  }
 
-    public final void setPrimaryKey(final Integer primKey) {
-<span class="nc" id="L60">        this.primaryKey = primKey;</span>
-<span class="nc" id="L61">    }</span>
+  /**
+   * @param primKey Key
+   */
+  public final void setPrimaryKey(final Integer primKey) {
+<span class="nc" id="L79">    this.primaryKey = primKey;</span>
+<span class="nc" id="L80">  }</span>
 
-    /**
-     * Method returning the newest authorizationtreeupdatenumber. Should be used after each time the authorization tree is built.
-     * 
-     * @return the newest accessruleset number.
-     */
-    // @Column
-    public int getAccessTreeUpdateNumber() {
-<span class="nc" id="L70">        return accessTreeUpdateNumber;</span>
-    }
+  /**
+   * Method returning the newest authorizationtreeupdatenumber. Should be used
+   * after each time the authorization tree is built.
+   *
+   * @return the newest accessruleset number.
+   */
+  // @Column
+  public int getAccessTreeUpdateNumber() {
+<span class="nc" id="L90">    return accessTreeUpdateNumber;</span>
+  }
 
-    public void setAccessTreeUpdateNumber(int accessTreeUpdateNumber) {
-<span class="nc" id="L74">        this.accessTreeUpdateNumber = accessTreeUpdateNumber;</span>
-<span class="nc" id="L75">    }</span>
+  /**
+   * @param anAccessTreeUpdateNumber No
+   */
+  public void setAccessTreeUpdateNumber(final int anAccessTreeUpdateNumber) {
+<span class="nc" id="L97">    this.accessTreeUpdateNumber = anAccessTreeUpdateNumber;</span>
+<span class="nc" id="L98">  }</span>
 
-    // @Version @Column
-    public int getRowVersion() {
-<span class="nc" id="L79">        return rowVersion;</span>
-    }
+  /**
+   * @return version
+   */
+  // @Version @Column
+  public int getRowVersion() {
+<span class="nc" id="L105">    return rowVersion;</span>
+  }
 
-    public void setRowVersion(final int rowVersion) {
-<span class="nc" id="L83">        this.rowVersion = rowVersion;</span>
-<span class="nc" id="L84">    }</span>
+  /**
+   * @param aRowVersion Version
+   */
+  public void setRowVersion(final int aRowVersion) {
+<span class="nc" id="L112">    this.rowVersion = aRowVersion;</span>
+<span class="nc" id="L113">  }</span>
 
-    // @Column @Lob
-	@Override
-    public String getRowProtection() {
-<span class="nc" id="L89">        return rowProtection;</span>
-    }
+  // @Column @Lob
+  @Override
+  public String getRowProtection() {
+<span class="nc" id="L118">    return rowProtection;</span>
+  }
 
-	@Override
-    public void setRowProtection(final String rowProtection) {
-<span class="nc" id="L94">        this.rowProtection = rowProtection;</span>
-<span class="nc" id="L95">    }</span>
+  @Override
+  public void setRowProtection(final String aRowProtection) {
+<span class="nc" id="L123">    this.rowProtection = aRowProtection;</span>
+<span class="nc" id="L124">  }</span>
 
-	//
-	// Start Database integrity protection methods
-	//
-	
-	@Transient
-	@Override
-	protected String getProtectString(final int version) {
-<span class="nc" id="L104">		final ProtectionStringBuilder build = new ProtectionStringBuilder();</span>
-		// What is important to protect here is the data that we define
-		// rowVersion is automatically updated by JPA, so it's not important, it is only used for optimistic locking
-<span class="nc" id="L107">		build.append(getPrimaryKey()).append(getAccessTreeUpdateNumber());</span>
-<span class="nc" id="L108">		return build.toString();</span>
-	}
+  //
+  // Start Database integrity protection methods
+  //
 
-	@Transient
-	@Override
-	protected int getProtectVersion() {
-<span class="nc" id="L114">		return 1;</span>
-	}
+  @Transient
+  @Override
+  protected String getProtectString(final int version) {
+<span class="nc" id="L133">    final ProtectionStringBuilder build = new ProtectionStringBuilder();</span>
+    // What is important to protect here is the data that we define
+    // rowVersion is automatically updated by JPA, so it's not important, it is
+    // only used for optimistic locking
+<span class="nc" id="L137">    build.append(getPrimaryKey()).append(getAccessTreeUpdateNumber());</span>
+<span class="nc" id="L138">    return build.toString();</span>
+  }
 
-	@PrePersist
-	@PreUpdate
-	@Override
-	protected void protectData() {
-<span class="nc" id="L121">		super.protectData();</span>
-<span class="nc" id="L122">	}</span>
-	
-	@PostLoad
-	@Override
-	protected void verifyData() {
-<span class="nc" id="L127">		super.verifyData();</span>
-<span class="nc" id="L128">	}</span>
+  @Transient
+  @Override
+  protected int getProtectVersion() {
+<span class="nc" id="L144">    return 1;</span>
+  }
 
-	@Override 
-    @Transient
-	protected String getRowId() {
-<span class="nc" id="L133">		return String.valueOf(getPrimaryKey());</span>
-	}
-	//
-	// End Database integrity protection methods
-	//
+  @PrePersist
+  @PreUpdate
+  @Override
+  protected void protectData() {
+<span class="nc" id="L151">    super.protectData();</span>
+<span class="nc" id="L152">  }</span>
+
+  @PostLoad
+  @Override
+  protected void verifyData() {
+<span class="nc" id="L157">    super.verifyData();</span>
+<span class="nc" id="L158">  }</span>
+
+  @Override
+  @Transient
+  protected String getRowId() {
+<span class="nc" id="L163">    return String.valueOf(getPrimaryKey());</span>
+  }
+  //
+  // End Database integrity protection methods
+  //
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

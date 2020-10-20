@@ -16,46 +16,56 @@ import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.cert.ocsp.RespID;
 import org.bouncycastle.operator.DigestCalculator;
 import org.cesecore.certificates.ocsp.exception.OcspFailureException;
 
 /**
- * @version $Id: SHA1DigestCalculator.java 18437 2014-02-03 12:46:08Z mikekushner $
- *
+ * @version $Id: SHA1DigestCalculator.java 18437 2014-02-03 12:46:08Z
+ *     mikekushner $
  */
 public class SHA1DigestCalculator implements DigestCalculator {
-<span class="fc" id="L30">    private ByteArrayOutputStream bOut = new ByteArrayOutputStream();</span>
-    private MessageDigest digest;
+    /** OS. */
+<span class="fc" id="L30">  private ByteArrayOutputStream bOut = new ByteArrayOutputStream();</span>
+  /** Digest. */
+  private MessageDigest digest;
+ /**
+  * @param adigest digest
+  */
+<span class="fc" id="L36">  public SHA1DigestCalculator(final MessageDigest adigest) {</span>
+<span class="fc" id="L37">    this.digest = adigest;</span>
+<span class="fc" id="L38">  }</span>
 
-<span class="fc" id="L33">    public SHA1DigestCalculator(MessageDigest digest) {</span>
-<span class="fc" id="L34">        this.digest = digest;</span>
-<span class="fc" id="L35">    }</span>
+  @Override
+  public AlgorithmIdentifier getAlgorithmIdentifier() {
+<span class="nc" id="L42">    return RespID.HASH_SHA1;</span>
+  }
 
-    public AlgorithmIdentifier getAlgorithmIdentifier() {
-<span class="nc" id="L38">        return RespID.HASH_SHA1;</span>
+  @Override
+  public OutputStream getOutputStream() {
+<span class="fc" id="L47">    return bOut;</span>
+  }
+
+
+  @Override
+  public byte[] getDigest() {
+<span class="fc" id="L53">    byte[] bytes = digest.digest(bOut.toByteArray());</span>
+
+<span class="fc" id="L55">    bOut.reset();</span>
+
+<span class="fc" id="L57">    return bytes;</span>
+  }
+
+  /**
+   * @return instance
+   */
+  public static SHA1DigestCalculator buildSha1Instance() {
+    try {
+<span class="fc" id="L65">      return new SHA1DigestCalculator(MessageDigest.getInstance(&quot;SHA1&quot;));</span>
+<span class="nc" id="L66">    } catch (NoSuchAlgorithmException e) {</span>
+<span class="nc" id="L67">      throw new OcspFailureException(e);</span>
     }
-
-    public OutputStream getOutputStream() {
-<span class="fc" id="L42">        return bOut;</span>
-    }
-
-    public byte[] getDigest() {
-<span class="fc" id="L46">        byte[] bytes = digest.digest(bOut.toByteArray());</span>
-
-<span class="fc" id="L48">        bOut.reset();</span>
-
-<span class="fc" id="L50">        return bytes;</span>
-    }
-    
-    public static SHA1DigestCalculator buildSha1Instance() {
-        try {
-<span class="fc" id="L55">            return new SHA1DigestCalculator(MessageDigest.getInstance(&quot;SHA1&quot;));</span>
-<span class="nc" id="L56">        } catch (NoSuchAlgorithmException e) {</span>
-<span class="nc" id="L57">            throw new OcspFailureException(e);</span>
-        }
-    }
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

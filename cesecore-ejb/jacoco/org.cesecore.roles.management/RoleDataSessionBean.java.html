@@ -14,7 +14,6 @@ package org.cesecore.roles.management;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -23,7 +22,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.cesecore.authorization.cache.AccessTreeUpdateSessionLocal;
@@ -37,166 +35,209 @@ import org.cesecore.util.QueryResultWrapper;
 
 /**
  * Implementation of the RoleDataSession local interface.
- * 
+ *
  * @version $Id: RoleDataSessionBean.java 26493 2017-09-05 13:31:40Z anatom $
  */
 @Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;RoleDataSessionRemote&quot;)
 @TransactionAttribute(TransactionAttributeType.REQUIRED)
-<span class="nc" id="L45">public class RoleDataSessionBean implements RoleDataSessionLocal, RoleDataSessionRemote {</span>
+<span class="nc" id="L43">public class RoleDataSessionBean</span>
+    implements RoleDataSessionLocal, RoleDataSessionRemote {
 
-<span class="nc" id="L47">    private static final Logger log = Logger.getLogger(RoleDataSessionBean.class);</span>
+    /** Logger. */
+<span class="nc" id="L47">  private static final Logger LOG = Logger.getLogger(RoleDataSessionBean.class);</span>
 
-    @EJB
-    private AccessTreeUpdateSessionLocal accessTreeUpdateSession;
-    @EJB
-    private RoleMemberDataSessionLocal roleMemberDataSession;
+  /** Session. */
+  @EJB private AccessTreeUpdateSessionLocal accessTreeUpdateSession;
+  /** Session. */
+  @EJB private RoleMemberDataSessionLocal roleMemberDataSession;
 
-    @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
-    private EntityManager entityManager;
+  /** EM. */
+  @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
+  private EntityManager entityManager;
 
-    @Override
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List&lt;Role&gt; getAllRoles() {
-<span class="nc" id="L60">        final TypedQuery&lt;RoleData&gt; query = entityManager.createQuery(&quot;SELECT a FROM RoleData a&quot;, RoleData.class);</span>
-<span class="nc" id="L61">        final List&lt;Role&gt; ret = new ArrayList&lt;&gt;();</span>
-<span class="nc bnc" id="L62" title="All 2 branches missed.">        for (final RoleData roleData : query.getResultList()) {</span>
-<span class="nc" id="L63">            ret.add(roleData.getRole());</span>
-<span class="nc" id="L64">        }</span>
-<span class="nc" id="L65">        return ret;</span>
+  @Override
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  public List&lt;Role&gt; getAllRoles() {
+<span class="nc" id="L61">    final TypedQuery&lt;RoleData&gt; query =</span>
+<span class="nc" id="L62">        entityManager.createQuery(&quot;SELECT a FROM RoleData a&quot;, RoleData.class);</span>
+<span class="nc" id="L63">    final List&lt;Role&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">    for (final RoleData roleData : query.getResultList()) {</span>
+<span class="nc" id="L65">      ret.add(roleData.getRole());</span>
+<span class="nc" id="L66">    }</span>
+<span class="nc" id="L67">    return ret;</span>
+  }
+
+  @Override
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  public Role getRole(final String nameSpace, final String roleName) {
+<span class="nc" id="L73">    final Integer roleId =</span>
+        RoleCache.INSTANCE
+<span class="nc" id="L75">            .getNameToIdMap()</span>
+<span class="nc" id="L76">            .get(Role.getRoleNameFullAsCacheName(nameSpace, roleName));</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">    if (roleId != null) {</span>
+<span class="nc" id="L78">      return getRole(roleId.intValue());</span>
     }
-
-    @Override
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public Role getRole(final String nameSpace, final String roleName) {
-<span class="nc" id="L71">        final Integer roleId = RoleCache.INSTANCE.getNameToIdMap().get(Role.getRoleNameFullAsCacheName(nameSpace, roleName));</span>
-<span class="nc bnc" id="L72" title="All 2 branches missed.">        if (roleId != null) {</span>
-<span class="nc" id="L73">            return getRole(roleId.intValue());</span>
-        }
-<span class="nc" id="L75">        final RoleData result = getRoleData(nameSpace, roleName);</span>
-<span class="nc bnc" id="L76" title="All 2 branches missed.">        final Role role = result==null ? null : result.getRole();</span>
-<span class="nc bnc" id="L77" title="All 2 branches missed.">        if (role!=null) {</span>
-<span class="nc" id="L78">            RoleCache.INSTANCE.updateWith(role.getRoleId(), role.hashCode(), Role.getRoleNameFullAsCacheName(role.getNameSpace(), role.getRoleName()), role);</span>
-        }
-<span class="nc" id="L80">        return role;</span>
+<span class="nc" id="L80">    final RoleData result = getRoleData(nameSpace, roleName);</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">    final Role role = result == null ? null : result.getRole();</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">    if (role != null) {</span>
+<span class="nc" id="L83">      RoleCache.INSTANCE.updateWith(</span>
+<span class="nc" id="L84">          role.getRoleId(),</span>
+<span class="nc" id="L85">          role.hashCode(),</span>
+<span class="nc" id="L86">          Role.getRoleNameFullAsCacheName(</span>
+<span class="nc" id="L87">              role.getNameSpace(), role.getRoleName()),</span>
+          role);
     }
+<span class="nc" id="L90">    return role;</span>
+  }
 
-    private RoleData getRoleData(final String nameSpace, final String roleName) {
-<span class="nc bnc" id="L84" title="All 2 branches missed.">        if (StringUtils.isEmpty(nameSpace)) {</span>
-<span class="nc" id="L85">            final Query query = entityManager.createQuery(&quot;SELECT a FROM RoleData a WHERE a.roleName=:roleName AND a.nameSpaceColumn IS NULL&quot;);</span>
-<span class="nc" id="L86">            query.setParameter(&quot;roleName&quot;, roleName);</span>
-<span class="nc" id="L87">            return QueryResultWrapper.getSingleResult(query);</span>
-        } else {
-<span class="nc" id="L89">            final Query query = entityManager.createQuery(&quot;SELECT a FROM RoleData a WHERE a.roleName=:roleName AND a.nameSpaceColumn=:nameSpace&quot;);</span>
-<span class="nc" id="L90">            query.setParameter(&quot;roleName&quot;, roleName);</span>
-<span class="nc" id="L91">            query.setParameter(&quot;nameSpace&quot;, nameSpace);</span>
-<span class="nc" id="L92">            return QueryResultWrapper.getSingleResult(query);</span>
-        }
+  private RoleData getRoleData(final String nameSpace, final String roleName) {
+<span class="nc bnc" id="L94" title="All 2 branches missed.">    if (StringUtils.isEmpty(nameSpace)) {</span>
+<span class="nc" id="L95">      final Query query =</span>
+<span class="nc" id="L96">          entityManager.createQuery(</span>
+              &quot;SELECT a FROM RoleData a WHERE a.roleName=:roleName AND&quot;
+                  + &quot; a.nameSpaceColumn IS NULL&quot;);
+<span class="nc" id="L99">      query.setParameter(&quot;roleName&quot;, roleName);</span>
+<span class="nc" id="L100">      return QueryResultWrapper.getSingleResult(query);</span>
+    } else {
+<span class="nc" id="L102">      final Query query =</span>
+<span class="nc" id="L103">          entityManager.createQuery(</span>
+              &quot;SELECT a FROM RoleData a WHERE a.roleName=:roleName AND&quot;
+                  + &quot; a.nameSpaceColumn=:nameSpace&quot;);
+<span class="nc" id="L106">      query.setParameter(&quot;roleName&quot;, roleName);</span>
+<span class="nc" id="L107">      query.setParameter(&quot;nameSpace&quot;, nameSpace);</span>
+<span class="nc" id="L108">      return QueryResultWrapper.getSingleResult(query);</span>
     }
+  }
 
-    @Override
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public Role getRole(final int roleId) {
-<span class="nc bnc" id="L99" title="All 2 branches missed.">        if (roleId==Role.ROLE_ID_UNASSIGNED) {</span>
-            // The reserved ID will never have a database entry, so return quickly with what we know will be the result
-<span class="nc" id="L101">            return null;</span>
-        }
-        // 1. Check cache if it is time to sync-up with database
-<span class="nc bnc" id="L104" title="All 2 branches missed.">        if (RoleCache.INSTANCE.shouldCheckForUpdates(roleId)) {</span>
-<span class="nc bnc" id="L105" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L106">                log.debug(&quot;Object with ID &quot; + roleId + &quot; will be checked for updates.&quot;);</span>
-            }
-            // 2. If cache is expired or missing, first thread to discover this reloads item from database and sends it to the cache
-<span class="nc" id="L109">            final RoleData roleData = getRoleData(roleId);</span>
-<span class="nc bnc" id="L110" title="All 2 branches missed.">            if (roleData==null) {</span>
-<span class="nc bnc" id="L111" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L112">                    log.debug(&quot;Requested object did not exist in database and will be purged from cache if present: &quot; + roleId);</span>
-                }
-                // Ensure that it is removed from cache when the object is no longer present in the database
-<span class="nc" id="L115">                RoleCache.INSTANCE.removeEntry(roleId);</span>
-            } else {
-<span class="nc" id="L117">                final Role role = roleData.getRole();</span>
-<span class="nc" id="L118">                final int digest = role.hashCode();</span>
-                // 3. The cache compares the database data with what is in the cache
-                // 4. If database is different from cache, replace it in the cache
-<span class="nc" id="L121">                RoleCache.INSTANCE.updateWith(roleId, digest, Role.getRoleNameFullAsCacheName(role.getNameSpace(), role.getRoleName()), role);</span>
-                // Return role, working even if the cache is disabled
-<span class="nc" id="L123">                return role;</span>
-            }
-        }
-        // 5. Get object from cache now (or null) and be merry
-<span class="nc" id="L127">        return RoleCache.INSTANCE.getEntry(roleId);</span>
+  @Override
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  public Role getRole(final int roleId) {
+<span class="nc bnc" id="L115" title="All 2 branches missed.">    if (roleId == Role.ROLE_ID_UNASSIGNED) {</span>
+      // The reserved ID will never have a database entry, so return quickly
+      // with what we know will be the result
+<span class="nc" id="L118">      return null;</span>
     }
-
-    private RoleData getRoleData(final int roleId) {
-<span class="nc" id="L131">        final TypedQuery&lt;RoleData&gt; query = entityManager.createQuery(&quot;SELECT a FROM RoleData a WHERE a.id=:id&quot;, RoleData.class);</span>
-<span class="nc" id="L132">        query.setParameter(&quot;id&quot;, roleId);</span>
-<span class="nc" id="L133">        return QueryResultWrapper.getSingleResult(query);</span>
+    // 1. Check cache if it is time to sync-up with database
+<span class="nc bnc" id="L121" title="All 2 branches missed.">    if (RoleCache.INSTANCE.shouldCheckForUpdates(roleId)) {</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">      if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L123">        LOG.debug(&quot;Object with ID &quot; + roleId + &quot; will be checked for updates.&quot;);</span>
+      }
+      // 2. If cache is expired or missing, first thread to discover this
+      // reloads item from database and sends it to the cache
+<span class="nc" id="L127">      final RoleData roleData = getRoleData(roleId);</span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">      if (roleData == null) {</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L130">          LOG.debug(</span>
+              &quot;Requested object did not exist in database and will be purged&quot;
+                  + &quot; from cache if present: &quot;
+                  + roleId);
+        }
+        // Ensure that it is removed from cache when the object is no longer
+        // present in the database
+<span class="nc" id="L137">        RoleCache.INSTANCE.removeEntry(roleId);</span>
+      } else {
+<span class="nc" id="L139">        final Role role = roleData.getRole();</span>
+<span class="nc" id="L140">        final int digest = role.hashCode();</span>
+        // 3. The cache compares the database data with what is in the cache
+        // 4. If database is different from cache, replace it in the cache
+<span class="nc" id="L143">        RoleCache.INSTANCE.updateWith(</span>
+            roleId,
+            digest,
+<span class="nc" id="L146">            Role.getRoleNameFullAsCacheName(</span>
+<span class="nc" id="L147">                role.getNameSpace(), role.getRoleName()),</span>
+            role);
+        // Return role, working even if the cache is disabled
+<span class="nc" id="L150">        return role;</span>
+      }
     }
+    // 5. Get object from cache now (or null) and be merry
+<span class="nc" id="L154">    return RoleCache.INSTANCE.getEntry(roleId);</span>
+  }
 
-    @Override
-    public Role persistRole(final Role role) {
-<span class="nc bnc" id="L138" title="All 2 branches missed.">        if (role==null) {</span>
-            // Successfully did nothing
-<span class="nc" id="L140">            return null;</span>
-        }
-<span class="nc" id="L142">        boolean authorizationMightHaveChanged = true;</span>
-<span class="nc bnc" id="L143" title="All 2 branches missed.">        if (role.getRoleId()==Role.ROLE_ID_UNASSIGNED) {</span>
-<span class="nc" id="L144">            role.setRoleId(findFreeRoleId());</span>
-<span class="nc" id="L145">            entityManager.persist(new RoleData(role));</span>
-        } else {
-<span class="nc" id="L147">            final RoleData roleData = getRoleData(role.getRoleId());</span>
-<span class="nc bnc" id="L148" title="All 2 branches missed.">            if (roleData==null) {</span>
-                // Must have been removed by another process, but caller wants to persist it, so we proceed (keeping the requested Role ID)
-<span class="nc" id="L150">                entityManager.persist(new RoleData(role));</span>
-            } else {
-<span class="nc" id="L152">                final Role oldRole = roleData.getRole();</span>
-<span class="nc bnc" id="L153" title="All 2 branches missed.">                if (role.getAccessRules().equals(oldRole.getAccessRules())) {</span>
-                    // We will not care if the role has any members, since there is no change to the access rules
-<span class="nc" id="L155">                    authorizationMightHaveChanged = false;</span>
-                }
-                // Since the entity is managed, we just update its values
-<span class="nc" id="L158">                roleData.setRole(role);</span>
-            }
-        }
-<span class="nc" id="L161">        RoleCache.INSTANCE.updateWith(role.getRoleId(), role.hashCode(), Role.getRoleNameFullAsCacheName(role.getNameSpace(), role.getRoleName()), role);</span>
-        // If we only created a new Role that has no members yet or the access rules did no change, the authorization would not have changed
-<span class="nc" id="L163">        authorizationMightHaveChanged &amp;= isRoleMembersPresent(role.getRoleId());</span>
-<span class="nc bnc" id="L164" title="All 2 branches missed.">        if (authorizationMightHaveChanged) {</span>
-<span class="nc" id="L165">            accessTreeUpdateSession.signalForAccessTreeUpdate();</span>
-        }
-<span class="nc" id="L167">        return role;</span>
+  private RoleData getRoleData(final int roleId) {
+<span class="nc" id="L158">    final TypedQuery&lt;RoleData&gt; query =</span>
+<span class="nc" id="L159">        entityManager.createQuery(</span>
+            &quot;SELECT a FROM RoleData a WHERE a.id=:id&quot;, RoleData.class);
+<span class="nc" id="L161">    query.setParameter(&quot;id&quot;, roleId);</span>
+<span class="nc" id="L162">    return QueryResultWrapper.getSingleResult(query);</span>
+  }
+
+  @Override
+  public Role persistRole(final Role role) {
+<span class="nc bnc" id="L167" title="All 2 branches missed.">    if (role == null) {</span>
+      // Successfully did nothing
+<span class="nc" id="L169">      return null;</span>
     }
+<span class="nc" id="L171">    boolean authorizationMightHaveChanged = true;</span>
+<span class="nc bnc" id="L172" title="All 2 branches missed.">    if (role.getRoleId() == Role.ROLE_ID_UNASSIGNED) {</span>
+<span class="nc" id="L173">      role.setRoleId(findFreeRoleId());</span>
+<span class="nc" id="L174">      entityManager.persist(new RoleData(role));</span>
+    } else {
+<span class="nc" id="L176">      final RoleData roleData = getRoleData(role.getRoleId());</span>
+<span class="nc bnc" id="L177" title="All 2 branches missed.">      if (roleData == null) {</span>
+        // Must have been removed by another process, but caller wants to
+        // persist it, so we proceed (keeping the requested Role ID)
+<span class="nc" id="L180">        entityManager.persist(new RoleData(role));</span>
+      } else {
+<span class="nc" id="L182">        final Role oldRole = roleData.getRole();</span>
+<span class="nc bnc" id="L183" title="All 2 branches missed.">        if (role.getAccessRules().equals(oldRole.getAccessRules())) {</span>
+          // We will not care if the role has any members, since there is no
+          // change to the access rules
+<span class="nc" id="L186">          authorizationMightHaveChanged = false;</span>
+        }
+        // Since the entity is managed, we just update its values
+<span class="nc" id="L189">        roleData.setRole(role);</span>
+      }
+    }
+<span class="nc" id="L192">    RoleCache.INSTANCE.updateWith(</span>
+<span class="nc" id="L193">        role.getRoleId(),</span>
+<span class="nc" id="L194">        role.hashCode(),</span>
+<span class="nc" id="L195">        Role.getRoleNameFullAsCacheName(</span>
+<span class="nc" id="L196">            role.getNameSpace(), role.getRoleName()),</span>
+        role);
+    // If we only created a new Role that has no members yet or the access rules
+    // did no change, the authorization would not have changed
+<span class="nc" id="L200">    authorizationMightHaveChanged &amp;= isRoleMembersPresent(role.getRoleId());</span>
+<span class="nc bnc" id="L201" title="All 2 branches missed.">    if (authorizationMightHaveChanged) {</span>
+<span class="nc" id="L202">      accessTreeUpdateSession.signalForAccessTreeUpdate();</span>
+    }
+<span class="nc" id="L204">    return role;</span>
+  }
 
-    /** @return a integer Id that is currently unused in the database */
-    private int findFreeRoleId() {
-<span class="nc" id="L172">        final ProfileID.DB db = new ProfileID.DB() {</span>
-            @Override
-            public boolean isFree(final int candidate) {
-<span class="nc bnc" id="L175" title="All 4 branches missed.">                return candidate!=Role.ROLE_ID_UNASSIGNED &amp;&amp; getRole(candidate) == null;</span>
-            }
+  /** @return a integer Id that is currently unused in the database */
+  private int findFreeRoleId() {
+<span class="nc" id="L209">    final ProfileID.DB db =</span>
+<span class="nc" id="L210">        new ProfileID.DB() {</span>
+          @Override
+          public boolean isFree(final int candidate) {
+<span class="nc bnc" id="L213" title="All 2 branches missed.">            return candidate != Role.ROLE_ID_UNASSIGNED</span>
+<span class="nc bnc" id="L214" title="All 2 branches missed.">                &amp;&amp; getRole(candidate) == null;</span>
+          }
         };
-<span class="nc" id="L178">        return ProfileID.getNotUsedID(db);</span>
-    }
+<span class="nc" id="L217">    return ProfileID.getNotUsedID(db);</span>
+  }
 
-    @Override
-    public boolean deleteRoleNoAuthorizationCheck(final int roleId) {
-        // Use an DELETE query instead of entityManager.remove to tolerate concurrent deletion better
-<span class="nc" id="L184">        final Query query = entityManager.createQuery(&quot;DELETE FROM RoleData a WHERE a.id=:id&quot;);</span>
-<span class="nc" id="L185">        query.setParameter(&quot;id&quot;, roleId);</span>
-<span class="nc bnc" id="L186" title="All 2 branches missed.">        final boolean ret = query.executeUpdate()==1;</span>
-<span class="nc bnc" id="L187" title="All 4 branches missed.">        if (ret &amp;&amp; isRoleMembersPresent(roleId)) {</span>
-<span class="nc" id="L188">            accessTreeUpdateSession.signalForAccessTreeUpdate();</span>
-        }
-<span class="nc" id="L190">        return ret;</span>
+  @Override
+  public boolean deleteRoleNoAuthorizationCheck(final int roleId) {
+    // Use an DELETE query instead of entityManager.remove to tolerate
+    // concurrent deletion better
+<span class="nc" id="L224">    final Query query =</span>
+<span class="nc" id="L225">        entityManager.createQuery(&quot;DELETE FROM RoleData a WHERE a.id=:id&quot;);</span>
+<span class="nc" id="L226">    query.setParameter(&quot;id&quot;, roleId);</span>
+<span class="nc bnc" id="L227" title="All 2 branches missed.">    final boolean ret = query.executeUpdate() == 1;</span>
+<span class="nc bnc" id="L228" title="All 4 branches missed.">    if (ret &amp;&amp; isRoleMembersPresent(roleId)) {</span>
+<span class="nc" id="L229">      accessTreeUpdateSession.signalForAccessTreeUpdate();</span>
     }
-    
-    private boolean isRoleMembersPresent(final int roleId) {
-<span class="nc bnc" id="L194" title="All 2 branches missed.">        return !roleMemberDataSession.findByRoleId(roleId).isEmpty();</span>
-    }
+<span class="nc" id="L231">    return ret;</span>
+  }
 
-    @Override
-    public void forceCacheExpire() {
-<span class="nc" id="L199">        RoleCache.INSTANCE.flush();</span>
-<span class="nc" id="L200">    }</span>
+  private boolean isRoleMembersPresent(final int roleId) {
+<span class="nc bnc" id="L235" title="All 2 branches missed.">    return !roleMemberDataSession.findByRoleId(roleId).isEmpty();</span>
+  }
+
+  @Override
+  public void forceCacheExpire() {
+<span class="nc" id="L240">    RoleCache.INSTANCE.flush();</span>
+<span class="nc" id="L241">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -9,11 +9,10 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.certificate.certextensions.standard;
 
 import java.security.PublicKey;
-
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.DERNull;
 import org.bouncycastle.asn1.ocsp.OCSPObjectIdentifiers;
@@ -22,27 +21,33 @@ import org.cesecore.certificates.ca.internal.CertificateValidity;
 import org.cesecore.certificates.certificateprofile.CertificateProfile;
 import org.cesecore.certificates.endentity.EndEntityInformation;
 
-/** OCSP nocheck extension (rfc 2560)
- * 
- * Class for standard X509 certificate extension. 
- * See rfc3280 or later for spec of this extension.      
- * 
+/**
+ * OCSP nocheck extension (rfc 2560)
+ *
+ * &lt;p&gt;Class for standard X509 certificate extension. See rfc3280 or later for
+ * spec of this extension.
+ *
  * @version $Id: OcspNoCheck.java 22092 2015-10-26 13:58:55Z mikekushner $
  */
 <span class="fc" id="L32">public class OcspNoCheck extends StandardCertificateExtension {</span>
-	
-    private static final long serialVersionUID = 1L;
 
-    @Override
-	public void init(final CertificateProfile certProf) {
-<span class="fc" id="L38">		super.setOID(OCSPObjectIdentifiers.id_pkix_ocsp_nocheck.getId());</span>
-<span class="fc" id="L39">		super.setCriticalFlag(false);</span>
-<span class="fc" id="L40">	}</span>
-    
-    @Override
-    public ASN1Encodable getValue(final EndEntityInformation subject, final CA ca, final CertificateProfile certProfile,
-            final PublicKey userPublicKey, final PublicKey caPublicKey, CertificateValidity val) {
-<span class="nc" id="L45">		return DERNull.INSTANCE;</span>
-	}	
+  private static final long serialVersionUID = 1L;
+
+  @Override
+  public void init(final CertificateProfile certProf) {
+<span class="fc" id="L38">    super.setOID(OCSPObjectIdentifiers.id_pkix_ocsp_nocheck.getId());</span>
+<span class="fc" id="L39">    super.setCriticalFlag(false);</span>
+<span class="fc" id="L40">  }</span>
+
+  @Override
+  public ASN1Encodable getValue(
+      final EndEntityInformation subject,
+      final CA ca,
+      final CertificateProfile certProfile,
+      final PublicKey userPublicKey,
+      final PublicKey caPublicKey,
+      final CertificateValidity val) {
+<span class="nc" id="L50">    return DERNull.INSTANCE;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

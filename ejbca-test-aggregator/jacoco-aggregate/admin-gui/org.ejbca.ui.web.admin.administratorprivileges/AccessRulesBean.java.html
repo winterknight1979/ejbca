@@ -1,0 +1,965 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>AccessRulesBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">admin-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.administratorprivileges</a> &gt; <span class="el_source">AccessRulesBean.java</span></div><h1>AccessRulesBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.web.admin.administratorprivileges;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import javax.annotation.PostConstruct;
+import javax.ejb.EJB;
+import javax.faces.application.FacesMessage;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.ViewScoped;
+import javax.faces.context.FacesContext;
+import javax.faces.event.AjaxBehaviorEvent;
+import javax.faces.model.SelectItem;
+
+import org.apache.commons.lang.math.NumberUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.authorization.control.AuditLogRules;
+import org.cesecore.authorization.control.CryptoTokenRules;
+import org.cesecore.authorization.control.StandardRules;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.keybind.InternalKeyBindingRules;
+import org.cesecore.keys.validation.KeyValidatorSessionLocal;
+import org.cesecore.roles.AccessRulesHelper;
+import org.cesecore.roles.Role;
+import org.cesecore.roles.RoleExistsException;
+import org.cesecore.roles.management.RoleSessionLocal;
+import org.ejbca.core.ejb.authorization.AuthorizationSystemSessionLocal;
+import org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSessionLocal;
+import org.ejbca.core.model.authorization.AccessRulesConstants;
+import org.ejbca.ui.web.admin.BaseManagedBean;
+
+/**
+ * Managed Bean for the Role's access rules pages:
+ * - Basic mode access rule configuration
+ * - Advanced mode access rule configuration
+ * - Advanced mode access rule summary
+ * 
+ * @version $Id: AccessRulesBean.java 29919 2018-09-28 10:44:43Z samuellb $
+ * TODO: Use CDI beans
+ */
+@SuppressWarnings(&quot;deprecation&quot;)
+@ViewScoped
+@ManagedBean
+<span class="nc" id="L69">public class AccessRulesBean extends BaseManagedBean implements Serializable {</span>
+
+    /** Basic mode access rule holder */
+    private static class AccessRule {
+        private final String resource;
+        private final boolean state;
+
+<span class="nc" id="L76">        AccessRule(final String resource, final boolean state) {</span>
+<span class="nc" id="L77">            this.resource = AccessRulesHelper.normalizeResource(resource);</span>
+<span class="nc" id="L78">            this.state = state;</span>
+<span class="nc" id="L79">        }</span>
+    }
+
+    /** Basic mode access rule holder sorted by section */
+    private static class AccessRulesTemplate {
+        private final String name;
+<span class="nc" id="L85">        private final HashMap&lt;String,Boolean&gt; accessRules = new HashMap&lt;&gt;();</span>
+
+<span class="nc" id="L87">        public AccessRulesTemplate(final String name, final AccessRule...accessRules) {</span>
+<span class="nc" id="L88">            this.name = name;</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">            for (final AccessRule accessRule : accessRules) {</span>
+<span class="nc" id="L90">                this.getAccessRules().put(accessRule.resource, accessRule.state);</span>
+            }
+<span class="nc" id="L92">            AccessRulesHelper.normalizeResources(this.accessRules);</span>
+<span class="nc" id="L93">            AccessRulesHelper.minimizeAccessRules(this.accessRules);</span>
+<span class="nc" id="L94">        }</span>
+
+<span class="nc" id="L96">        public String getName() { return name; }</span>
+<span class="nc" id="L97">        public HashMap&lt;String,Boolean&gt; getAccessRules() { return accessRules; }</span>
+    }
+
+    /** Advanced mode access rule holder sorted for a category */
+    public static class AccessRuleCollection {
+        private String name;
+        private List&lt;AccessRuleItem&gt; collection;
+
+<span class="nc" id="L105">        public AccessRuleCollection(String name, List&lt;AccessRuleItem&gt; collection) {</span>
+<span class="nc" id="L106">            this.name = name;</span>
+<span class="nc" id="L107">            this.collection = collection;</span>
+<span class="nc" id="L108">        }</span>
+
+<span class="nc" id="L110">        public String getName() { return name; }</span>
+<span class="nc" id="L111">        public List&lt;AccessRuleItem&gt; getCollection() { return collection; }</span>
+    }
+
+    /** Advanced mode access rule tri-state */
+<span class="nc" id="L115">    private static enum AccessRuleState {</span>
+<span class="nc" id="L116">        UNDEFINED, ALLOW, DENY;</span>
+
+        static AccessRuleState toAccessRuleState(final Boolean state) {
+<span class="nc bnc" id="L119" title="All 4 branches missed.">            return state==null ? UNDEFINED : state ? ALLOW : DENY;</span>
+        }
+    }
+
+    /** Advanced mode access rule representation */
+    public static class AccessRuleItem implements Comparable&lt;AccessRuleItem&gt;, Serializable {
+        private static final long serialVersionUID = 1L;
+
+        private final String category;
+        private final String resource;
+        private final String resourceName;
+        private final String resourceMain;
+        private final String resourceSub;
+<span class="nc" id="L132">        private AccessRuleState state = AccessRuleState.UNDEFINED;</span>
+
+<span class="nc" id="L134">        public AccessRuleItem(final String category, final String resource, final String resourceName) {</span>
+<span class="nc" id="L135">            this.category = category;</span>
+<span class="nc" id="L136">            this.resource = AccessRulesHelper.normalizeResource(resource);</span>
+<span class="nc bnc" id="L137" title="All 2 branches missed.">            this.resourceName = resourceName==null ? this.resource : AccessRulesHelper.normalizeResource(resourceName);</span>
+<span class="nc" id="L138">            final String[] resourceSplit = this.resourceName.split(&quot;/&quot;);</span>
+<span class="nc bnc" id="L139" title="All 2 branches missed.">            if (resourceSplit.length==0) {</span>
+<span class="nc" id="L140">                this.resourceSub = &quot;/&quot;;</span>
+<span class="nc" id="L141">                this.resourceMain = &quot;&quot;;</span>
+            } else {
+<span class="nc" id="L143">                this.resourceSub = resourceSplit[resourceSplit.length-1] + &quot;/&quot;;</span>
+<span class="nc" id="L144">                String resourceMain = &quot;/&quot;;</span>
+<span class="nc bnc" id="L145" title="All 2 branches missed.">                for (int i=1; i&lt;resourceSplit.length-1; i++) {</span>
+<span class="nc" id="L146">                    resourceMain += resourceSplit[i] + &quot;/&quot;;</span>
+                }
+<span class="nc" id="L148">                this.resourceMain = resourceMain;</span>
+            }
+<span class="nc" id="L150">        }</span>
+
+        /** @return the category this resource belongs to */
+<span class="nc" id="L153">        public String getCategory() { return category; }</span>
+        /** @return the normalized resource with Id kept intact for objects */
+<span class="nc" id="L155">        public String getResource() { return resource; }</span>
+        /** @return the normalized resource with Id replaced by names for objects */
+<span class="nc" id="L157">        public String getResourceName() { return resourceName; }</span>
+        /** @return the first part(s) of the resourceName e.g.  '/mainrule/subrule/' from '/mainrule/subrule/subsubrule/' */
+<span class="nc" id="L159">        public String getResourceMain() { return resourceMain; }</span>
+        /** @return the last part of the resourceName e.g. 'subsubrule/' from '/mainrule/subrule/subsubrule/' */
+<span class="nc" id="L161">        public String getResourceSub() { return resourceSub; }</span>
+        /** @return one of the {@link AccessRuleState} enum names representing the current state of this rule */
+<span class="nc" id="L163">        public String getState() { return state.name(); }</span>
+        /** Set one of the {@link AccessRuleState} enum names representing the current state of this rule 
+         * @param state state */
+<span class="nc" id="L166">        public void setState(String state) { this.state = AccessRuleState.valueOf(state); }</span>
+        /** @return one of the {@link AccessRuleState} enum representing the current state of this rule */
+<span class="nc" id="L168">        private AccessRuleState getStateEnum() { return state; }</span>
+        /** @return true if the resource in this istance is '/' */
+<span class="nc" id="L170">        public boolean isRootResource() { return StandardRules.ROLE_ROOT.resource().equals(resource); }</span>
+
+        @Override
+        public int compareTo(final AccessRuleItem other) {
+            // Sort by resource name (with IDs replaced by names)
+<span class="nc" id="L175">            return getResourceName().compareToIgnoreCase(other.getResourceName());</span>
+        }
+    }
+
+    private static final long serialVersionUID = 1L;
+<span class="nc" id="L180">    private static final Logger log = Logger.getLogger(AccessRulesBean.class);</span>
+
+    private static final String TEMPLATE_NAME_CUSTOM = &quot;CUSTOM&quot;;
+
+<span class="nc" id="L184">    private static final List&lt;AccessRulesTemplate&gt; accessRulesTemplates = Arrays.asList(</span>
+            new AccessRulesTemplate(&quot;SUPERVISOR&quot;,
+<span class="nc" id="L186">                    new AccessRule(AccessRulesConstants.ROLE_ADMINISTRATOR, Role.STATE_ALLOW),</span>
+<span class="nc" id="L187">                    new AccessRule(AuditLogRules.VIEW.resource(), Role.STATE_ALLOW),</span>
+<span class="nc" id="L188">                    new AccessRule(AccessRulesConstants.REGULAR_VIEWCERTIFICATE, Role.STATE_ALLOW),</span>
+                    // From legacy JS
+<span class="nc" id="L190">                    new AccessRule(AccessRulesConstants.REGULAR_VIEWENDENTITYHISTORY, Role.STATE_ALLOW),</span>
+<span class="nc" id="L191">                    new AccessRule(AccessRulesConstants.REGULAR_VIEWHARDTOKENS, Role.STATE_ALLOW),</span>
+<span class="nc" id="L192">                    new AccessRule(AccessRulesConstants.REGULAR_VIEWENDENTITY, Role.STATE_ALLOW)</span>
+                    ),
+            new AccessRulesTemplate(&quot;AUDITOR&quot;,
+<span class="nc" id="L195">                    new AccessRule(AccessRulesConstants.ROLE_ADMINISTRATOR, Role.STATE_ALLOW),</span>
+<span class="nc" id="L196">                    new AccessRule(AuditLogRules.VIEW.resource(), Role.STATE_ALLOW),</span>
+<span class="nc" id="L197">                    new AccessRule(AccessRulesConstants.REGULAR_VIEWCERTIFICATE, Role.STATE_ALLOW),</span>
+<span class="nc" id="L198">                    new AccessRule(InternalKeyBindingRules.VIEW.resource(), Role.STATE_ALLOW),</span>
+<span class="nc" id="L199">                    new AccessRule(StandardRules.CAVIEW.resource(), Role.STATE_ALLOW),</span>
+<span class="nc" id="L200">                    new AccessRule(StandardRules.CERTIFICATEPROFILEVIEW.resource(), Role.STATE_ALLOW),</span>
+<span class="nc" id="L201">                    new AccessRule(StandardRules.APPROVALPROFILEVIEW.resource(), Role.STATE_ALLOW),</span>
+<span class="nc" id="L202">                    new AccessRule(CryptoTokenRules.VIEW.resource(), Role.STATE_ALLOW),</span>
+<span class="nc" id="L203">                    new AccessRule(AccessRulesConstants.REGULAR_VIEWPUBLISHER, Role.STATE_ALLOW),</span>
+<span class="nc" id="L204">                    new AccessRule(AccessRulesConstants.REGULAR_VIEWVALIDATOR, Role.STATE_ALLOW),</span>
+<span class="nc" id="L205">                    new AccessRule(AccessRulesConstants.SERVICES_VIEW, Role.STATE_ALLOW),</span>
+<span class="nc" id="L206">                    new AccessRule(AccessRulesConstants.REGULAR_VIEWENDENTITYPROFILES, Role.STATE_ALLOW),</span>
+<span class="nc" id="L207">                    new AccessRule(AccessRulesConstants.REGULAR_PEERCONNECTOR_VIEW, Role.STATE_ALLOW),</span>
+<span class="nc" id="L208">                    new AccessRule(StandardRules.SYSTEMCONFIGURATION_VIEW.resource(), Role.STATE_ALLOW),</span>
+<span class="nc" id="L209">                    new AccessRule(StandardRules.EKUCONFIGURATION_VIEW.resource(), Role.STATE_ALLOW),</span>
+<span class="nc" id="L210">                    new AccessRule(StandardRules.CUSTOMCERTEXTENSIONCONFIGURATION_VIEW.resource(), Role.STATE_ALLOW),</span>
+<span class="nc" id="L211">                    new AccessRule(StandardRules.VIEWROLES.resource(), Role.STATE_ALLOW),</span>
+<span class="nc" id="L212">                    new AccessRule(AccessRulesConstants.REGULAR_VIEWENDENTITY, Role.STATE_ALLOW),</span>
+<span class="nc" id="L213">                    new AccessRule(AccessRulesConstants.REGULAR_VIEWENDENTITYHISTORY, Role.STATE_ALLOW)</span>
+                    ),
+            new AccessRulesTemplate(&quot;RAADMINISTRATOR&quot;,
+<span class="nc" id="L216">                    new AccessRule(AccessRulesConstants.ROLE_ADMINISTRATOR, Role.STATE_ALLOW),</span>
+<span class="nc" id="L217">                    new AccessRule(AccessRulesConstants.REGULAR_CREATECERTIFICATE, Role.STATE_ALLOW),</span>
+<span class="nc" id="L218">                    new AccessRule(AccessRulesConstants.REGULAR_VIEWCERTIFICATE, Role.STATE_ALLOW),</span>
+                    // From legacy JS
+<span class="nc" id="L220">                    new AccessRule(AccessRulesConstants.REGULAR_VIEWENDENTITY, Role.STATE_ALLOW),</span>
+<span class="nc" id="L221">                    new AccessRule(AccessRulesConstants.REGULAR_VIEWENDENTITYHISTORY, Role.STATE_ALLOW),</span>
+<span class="nc" id="L222">                    new AccessRule(AccessRulesConstants.REGULAR_CREATEENDENTITY, Role.STATE_ALLOW),</span>
+<span class="nc" id="L223">                    new AccessRule(AccessRulesConstants.REGULAR_EDITENDENTITY, Role.STATE_ALLOW),</span>
+<span class="nc" id="L224">                    new AccessRule(AccessRulesConstants.REGULAR_DELETEENDENTITY, Role.STATE_ALLOW),</span>
+<span class="nc" id="L225">                    new AccessRule(AccessRulesConstants.REGULAR_REVOKEENDENTITY, Role.STATE_ALLOW),</span>
+<span class="nc" id="L226">                    new AccessRule(AccessRulesConstants.REGULAR_KEYRECOVERY, Role.STATE_ALLOW),</span>
+<span class="nc" id="L227">                    new AccessRule(AccessRulesConstants.REGULAR_APPROVEENDENTITY, Role.STATE_ALLOW),</span>
+<span class="nc" id="L228">                    new AccessRule(AccessRulesConstants.REGULAR_VIEWPUKS, Role.STATE_ALLOW),</span>
+<span class="nc" id="L229">                    new AccessRule(AccessRulesConstants.REGULAR_VIEWAPPROVALS, Role.STATE_ALLOW),</span>
+<span class="nc" id="L230">                    new AccessRule(AuditLogRules.VIEW.resource(), Role.STATE_ALLOW)</span>
+                    ),
+            new AccessRulesTemplate(&quot;CAADMINISTRATOR&quot;,
+<span class="nc" id="L233">                    new AccessRule(AccessRulesConstants.ROLE_ADMINISTRATOR, Role.STATE_ALLOW),</span>
+<span class="nc" id="L234">                    new AccessRule(StandardRules.CAFUNCTIONALITY.resource(), Role.STATE_ALLOW),</span>
+<span class="nc" id="L235">                    new AccessRule(StandardRules.CAVIEW.resource(), Role.STATE_ALLOW),</span>
+<span class="nc" id="L236">                    new AccessRule(StandardRules.CERTIFICATEPROFILEVIEW.resource(), Role.STATE_ALLOW),</span>
+<span class="nc" id="L237">                    new AccessRule(AccessRulesConstants.REGULAR_EDITPUBLISHER, Role.STATE_ALLOW),</span>
+<span class="nc" id="L238">                    new AccessRule(AccessRulesConstants.REGULAR_VIEWPUBLISHER, Role.STATE_ALLOW),</span>
+<span class="nc" id="L239">                    new AccessRule(AccessRulesConstants.REGULAR_EDITVALIDATOR, Role.STATE_ALLOW),</span>
+<span class="nc" id="L240">                    new AccessRule(AccessRulesConstants.REGULAR_VIEWVALIDATOR, Role.STATE_ALLOW),</span>
+<span class="nc" id="L241">                    new AccessRule(AccessRulesConstants.REGULAR_EDITBLACKLIST, Role.STATE_ALLOW),</span>
+<span class="nc" id="L242">                    new AccessRule(StandardRules.VALIDATORACCESSBASE.resource(), Role.STATE_ALLOW),</span>
+                    // This was present in legacy DefaultRoles, but makes very little sense
+                    //new AccessRule(AuditLogRules.LOG.resource(), Role.STATE_ALLOW),
+<span class="nc" id="L245">                    new AccessRule(AccessRulesConstants.REGULAR_RAFUNCTIONALITY, Role.STATE_ALLOW),</span>
+<span class="nc" id="L246">                    new AccessRule(StandardRules.EDITROLES.resource(), Role.STATE_ALLOW),</span>
+<span class="nc" id="L247">                    new AccessRule(StandardRules.VIEWROLES.resource(), Role.STATE_ALLOW),</span>
+<span class="nc" id="L248">                    new AccessRule(AccessRulesConstants.ENDENTITYPROFILEBASE, Role.STATE_ALLOW),</span>
+                    //new AccessRule(AccessRulesConstants.REGULAR_VIEWENDENTITYPROFILES, Role.STATE_ALLOW),
+<span class="nc" id="L250">                    new AccessRule(AccessRulesConstants.HARDTOKEN_EDITHARDTOKENISSUERS, Role.STATE_ALLOW),</span>
+<span class="nc" id="L251">                    new AccessRule(AccessRulesConstants.HARDTOKEN_EDITHARDTOKENPROFILES, Role.STATE_ALLOW),</span>
+<span class="nc" id="L252">                    new AccessRule(CryptoTokenRules.VIEW.resource(), Role.STATE_ALLOW),</span>
+                    /*
+                     * Note:
+                     * We DO NOT allow CA Administrators to USE CryptoTokens, since this would mean that they could
+                     * bind any existing CryptoToken to a new CA and access the keys.
+                     * new AccessRule(CryptoTokenRules.USE.resource(), Role.STATE_ALLOW)
+                     */
+<span class="nc" id="L259">                    new AccessRule(InternalKeyBindingRules.DELETE.resource(), Role.STATE_ALLOW),</span>
+<span class="nc" id="L260">                    new AccessRule(InternalKeyBindingRules.MODIFY.resource(), Role.STATE_ALLOW),</span>
+<span class="nc" id="L261">                    new AccessRule(InternalKeyBindingRules.VIEW.resource(), Role.STATE_ALLOW),</span>
+                    // From legacy JS
+<span class="nc" id="L263">                    new AccessRule(AuditLogRules.VIEW.resource(), Role.STATE_ALLOW)</span>
+                    ),
+<span class="nc" id="L265">            new AccessRulesTemplate(&quot;SUPERADMINISTRATOR&quot;, new AccessRule(StandardRules.ROLE_ROOT.resource(), Role.STATE_ALLOW)),</span>
+            // Ignore the legacy &quot;HARDTOKENISSUER&quot; template since it is rarely used
+            //,new AccessRulesTemplate(&quot;HARDTOKENISSUER&quot;)
+            new AccessRulesTemplate(TEMPLATE_NAME_CUSTOM)
+            );
+
+    @EJB
+    private AuthorizationSessionLocal authorizationSession;
+    @EJB
+    private AuthorizationSystemSessionLocal authorizationSystemSession;
+    @EJB
+    private CaSessionLocal caSession;
+    @EJB
+    private EndEntityProfileSessionLocal endEntityProfileSession;
+    @EJB
+    private KeyValidatorSessionLocal keyValidatorSession;
+    @EJB
+    private RoleSessionLocal roleSession;
+
+    private Map&lt;Integer, String&gt; caIdToNameMap;
+    private Map&lt;Integer, String&gt; eepIdToNameMap;
+    private Map&lt;Integer, String&gt; keyValidatorsIdToNameMap;
+    private String roleIdParam;
+    private String advancedParam;
+    private String summaryParam;
+    private Role role;
+
+<span class="nc" id="L292">    private String accessRulesTemplateSelected = TEMPLATE_NAME_CUSTOM;</span>
+<span class="nc" id="L293">    private List&lt;SelectItem&gt; availableAccessRulesTemplates = null;</span>
+<span class="nc" id="L294">    private List&lt;String&gt; resourcesCaSelected = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L295">    private LinkedList&lt;SelectItem&gt; availableResourcesCa = null;</span>
+<span class="nc" id="L296">    private List&lt;String&gt; resourcesEeSelected = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L297">    private List&lt;SelectItem&gt; availableResourcesEe = null;</span>
+<span class="nc" id="L298">    private List&lt;String&gt; resourcesEepSelected = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L299">    private LinkedList&lt;SelectItem&gt; availableResourcesEep = null;</span>
+<span class="nc" id="L300">    private List&lt;String&gt; resourcesKeyValidatorsSelected = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L301">    private LinkedList&lt;SelectItem&gt; availableResourcesKeyValidators = null;</span>
+<span class="nc" id="L302">    private List&lt;String&gt; resourcesIkbSelected = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L303">    private List&lt;SelectItem&gt; availableResourcesIkb = null;</span>
+<span class="nc" id="L304">    private List&lt;String&gt; resourcesOtherSelected = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L305">    private List&lt;SelectItem&gt; availableResourcesOther = null;</span>
+
+<span class="nc" id="L307">    private List&lt;AccessRuleItem&gt; authorizedAccessRuleItems = null;</span>
+<span class="nc" id="L308">    private final List&lt;SelectItem&gt; availableAccessRuleStates = new ArrayList&lt;&gt;();</span>
+
+    @PostConstruct
+    private void postConstruct() {
+<span class="nc" id="L312">        final Map&lt;String, String&gt; requestParameterMap = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap();</span>
+        // Read HTTP param &quot;roleId&quot; that should be interpreted as an integer
+<span class="nc" id="L314">        roleIdParam = requestParameterMap.get(&quot;roleId&quot;);</span>
+        // Read HTTP param &quot;advanced&quot; that should be interpreted as an boolean
+<span class="nc" id="L316">        advancedParam = requestParameterMap.get(&quot;advanced&quot;);</span>
+        // Read HTTP param &quot;summary&quot; that should be interpreted as an boolean
+<span class="nc" id="L318">        summaryParam = requestParameterMap.get(&quot;summary&quot;);</span>
+<span class="nc" id="L319">        caIdToNameMap = caSession.getCAIdToNameMap();</span>
+<span class="nc" id="L320">        eepIdToNameMap = endEntityProfileSession.getEndEntityProfileIdToNameMap();</span>
+<span class="nc" id="L321">        keyValidatorsIdToNameMap = keyValidatorSession.getKeyValidatorIdToNameMap();</span>
+<span class="nc" id="L322">        reinitSelection();</span>
+<span class="nc" id="L323">    }</span>
+
+    /** Perform POST-REDIRECT-GET when this method is invoked from a non-AJAX context. */
+    private void nonAjaxPostRedirectGet() {
+<span class="nc" id="L327">        String requestParams = &quot;?roleId=&quot; + role.getRoleId();</span>
+<span class="nc bnc" id="L328" title="All 2 branches missed.">        if (isAdvancedMode()) {</span>
+<span class="nc" id="L329">            requestParams += &quot;&amp;advanced=true&quot;;</span>
+<span class="nc bnc" id="L330" title="All 2 branches missed.">            if (isAdvancedModeSummary()) {</span>
+<span class="nc" id="L331">                requestParams += &quot;&amp;summary=true&quot;;</span>
+            }
+        }
+<span class="nc" id="L334">        super.nonAjaxPostRedirectGet(requestParams);</span>
+<span class="nc" id="L335">    }</span>
+
+    /** @return true in advanced access rule mode */
+    public boolean isAdvancedMode() {
+<span class="nc" id="L339">        return Boolean.parseBoolean(advancedParam);</span>
+    }
+
+    /** @return true in advanced access rule mode */
+    public boolean isAdvancedModeSummary() {
+<span class="nc" id="L344">        return Boolean.parseBoolean(summaryParam);</span>
+    }
+
+    /** @return true when admin is authorized to edit access rules of this role */
+    public boolean isAuthorizedToEditRole() {
+<span class="nc bnc" id="L349" title="All 4 branches missed.">        return authorizationSession.isAuthorizedNoLogging(getAdmin(), StandardRules.EDITROLES.resource()) &amp;&amp; getRole()!=null;</span>
+    }
+
+    /** @return an authorized existing role based on the roleId HTTP param or null if no such role was found. */
+    public Role getRole() {
+<span class="nc bnc" id="L354" title="All 4 branches missed.">        if (role==null &amp;&amp; NumberUtils.isNumber(roleIdParam)) {</span>
+            try {
+<span class="nc" id="L356">                role = roleSession.getRole(getAdmin(), Integer.parseInt(roleIdParam));</span>
+<span class="nc bnc" id="L357" title="All 4 branches missed.">                if (role==null &amp;&amp; log.isDebugEnabled()) {</span>
+<span class="nc" id="L358">                    log.debug(&quot;Admin '&quot; + getAdmin() + &quot;' failed to access non-existing role.&quot;);</span>
+                }
+<span class="nc" id="L360">            } catch (NumberFormatException | AuthorizationDeniedException e) {</span>
+<span class="nc bnc" id="L361" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L362">                    log.debug(&quot;Admin '&quot; + getAdmin() + &quot;' failed to access a role: &quot; + e.getMessage());</span>
+                }
+<span class="nc" id="L364">            }</span>
+        }
+<span class="nc" id="L366">        return role;</span>
+    }
+
+    /** Recalculate selection based on current state of template selection or loaded role's access rules */
+    private void reinitSelection() {
+        // Reset available lists that might be rendered differently depending on selected template
+<span class="nc" id="L372">        availableResourcesCa = null;</span>
+<span class="nc" id="L373">        availableResourcesEe = null;</span>
+<span class="nc" id="L374">        availableResourcesEep = null;</span>
+<span class="nc" id="L375">        availableResourcesKeyValidators = null;</span>
+<span class="nc" id="L376">        availableResourcesIkb = null;</span>
+<span class="nc" id="L377">        availableResourcesOther = null;</span>
+        // Calculate available templates and the current best match
+<span class="nc" id="L379">        getAvailableAccessRulesTemplates();</span>
+        // Select access rules that are allowed by the role
+<span class="nc" id="L381">        final LinkedHashMap&lt;String, Boolean&gt; accessRules = getRole().getAccessRules();</span>
+        // Find CA access resources allowed by this role
+<span class="nc" id="L383">        setResourcesCaSelected(getSelectedRulesFromIdentifiers(accessRules, StandardRules.CAACCESS.resource(), caIdToNameMap.keySet()));</span>
+        // Find RA resources allowed by this role
+<span class="nc" id="L385">        setResourcesEeSelected(getSelectedRulesFromSelectItems(accessRules, getAvailableResourcesEe()));</span>
+        // Find EEP resources allowed by this role
+<span class="nc" id="L387">        setResourcesEepSelected(getSelectedRulesFromIdentifiers(accessRules, AccessRulesConstants.ENDENTITYPROFILEPREFIX, eepIdToNameMap.keySet(), getAvailableResourcesEe()));</span>
+        // Find KV resources allowed by this role
+<span class="nc" id="L389">        setResourcesKeyValidatorsSelected(getSelectedRulesFromIdentifiers(accessRules, StandardRules.VALIDATORACCESS.resource(), keyValidatorsIdToNameMap.keySet()));</span>
+        // Find IKB resources allowed by this role
+<span class="nc" id="L391">        setResourcesIkbSelected(getSelectedRulesFromSelectItems(accessRules, getAvailableResourcesIkb()));</span>
+        // Find Other resources allowed by this role
+<span class="nc" id="L393">        setResourcesOtherSelected(getSelectedRulesFromSelectItems(accessRules, getAvailableResourcesOther()));</span>
+<span class="nc" id="L394">    }</span>
+
+    /** @param accessRules Access Rules
+     * @param baseResource Base Resource
+     * @param ids IDs
+     * @return minimal list of resources that the provided access rules grants */
+    private List&lt;String&gt; getSelectedRulesFromIdentifiers(final LinkedHashMap&lt;String, Boolean&gt; accessRules, final String baseResource, final Set&lt;Integer&gt; ids) {
+<span class="nc" id="L401">        final List&lt;String&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L402" title="All 2 branches missed.">        if (AccessRulesHelper.hasAccessToResource(accessRules, baseResource)) {</span>
+<span class="nc" id="L403">            ret.add(baseResource);</span>
+        } else {
+<span class="nc bnc" id="L405" title="All 2 branches missed.">            for (final int id : ids) {</span>
+<span class="nc" id="L406">                final String resource = AccessRulesHelper.normalizeResource(baseResource + id);</span>
+<span class="nc bnc" id="L407" title="All 2 branches missed.">                if (AccessRulesHelper.hasAccessToResource(accessRules, resource)) {</span>
+<span class="nc" id="L408">                    ret.add(resource);</span>
+                }
+<span class="nc" id="L410">            }</span>
+        }
+<span class="nc" id="L412">        return ret;</span>
+    }
+    
+    /**
+     * Like {@link #getSelectedRulesFromIdentifiers}, but also includes rules that have all enabled sub-rules present.
+     * (example: if &quot;Create End Entity&quot; and &quot;Edit End Entity&quot; are selected, then it will also include all profiles that have those items allowed)
+     * @param accessRules Access Rules
+     * @param baseResource Base Resource
+     * @param ids  IDs
+     * @param selectedSubRules sub rules 
+     * @return minimal list of resources that the provided access rules grants
+     */
+    private List&lt;String&gt; getSelectedRulesFromIdentifiers(final LinkedHashMap&lt;String, Boolean&gt; accessRules, final String baseResource, final Set&lt;Integer&gt; ids,
+            final List&lt;SelectItem&gt; selectedSubRules) {
+        // Get all items that are allowed recursively
+<span class="nc" id="L427">        final List&lt;String&gt; ret = getSelectedRulesFromIdentifiers(accessRules, baseResource, ids);</span>
+        // Also add items where all allowed sub-rules are explicitly allowed for the item
+<span class="nc bnc" id="L429" title="All 2 branches missed.">        for (final int id : ids) {</span>
+<span class="nc" id="L430">            final String resource = AccessRulesHelper.normalizeResource(baseResource + id);</span>
+<span class="nc bnc" id="L431" title="All 2 branches missed.">            if (ret.contains(resource)) {</span>
+<span class="nc" id="L432">                continue; // Don't add twice</span>
+            }
+<span class="nc" id="L434">            boolean allSubRulesAllowed = true;</span>
+<span class="nc bnc" id="L435" title="All 2 branches missed.">            for (final SelectItem selectedSubRule : selectedSubRules) {</span>
+<span class="nc" id="L436">                final String subRule = String.valueOf(selectedSubRule.getValue()).replace(AccessRulesConstants.REGULAR_RAFUNCTIONALITY + &quot;/&quot;, &quot;&quot;);</span>
+<span class="nc bnc" id="L437" title="All 2 branches missed.">                if (!accessRules.containsKey(resource + subRule)) {</span>
+<span class="nc" id="L438">                    allSubRulesAllowed = false;</span>
+<span class="nc" id="L439">                    break;</span>
+                }
+<span class="nc" id="L441">            }</span>
+<span class="nc bnc" id="L442" title="All 2 branches missed.">            if (allSubRulesAllowed) {</span>
+<span class="nc bnc" id="L443" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L444">                    log.debug(&quot;Item &quot; + resource + &quot; is considered to be allowed, since all allowed sub-rules are also allowed for this item&quot;);</span>
+                }
+<span class="nc" id="L446">                ret.add(resource);</span>
+            }
+<span class="nc" id="L448">        }</span>
+<span class="nc" id="L449">        return ret;</span>
+    }
+
+    /** @param accessRules Rules
+     * @param selectItems Items
+     * @return minimal list of resources that the provided access rules grants */
+    private List&lt;String&gt; getSelectedRulesFromSelectItems(final LinkedHashMap&lt;String, Boolean&gt; accessRules, final List&lt;SelectItem&gt; selectItems) {
+<span class="nc" id="L456">        final List&lt;String&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L457" title="All 2 branches missed.">        for (final SelectItem selectItem : selectItems) {</span>
+<span class="nc" id="L458">            final String resource = AccessRulesHelper.normalizeResource(String.valueOf(selectItem.getValue()));</span>
+<span class="nc bnc" id="L459" title="All 2 branches missed.">            if (AccessRulesHelper.hasAccessToResource(getRole().getAccessRules(), resource)) {</span>
+<span class="nc" id="L460">                ret.add(resource);</span>
+            }
+<span class="nc" id="L462">        }</span>
+<span class="nc" id="L463">        return ret;</span>
+    }
+
+    /** @return the currently select role template */
+<span class="nc" id="L467">    public String getAccessRulesTemplateSelected() { return accessRulesTemplateSelected; }</span>
+    /** Set the currently select role template 
+     * @param accessRulesTemplateSelected template */
+<span class="nc" id="L470">    public void setAccessRulesTemplateSelected(String accessRulesTemplateSelected) { this.accessRulesTemplateSelected = accessRulesTemplateSelected; }</span>
+
+    /** @return true if this role is assumed to have been configured outside of the basic mode */
+<span class="nc" id="L473">    public boolean isAccessRulesTemplateCustom() { return TEMPLATE_NAME_CUSTOM.equals(getAccessRulesTemplateSelected()); }</span>
+    /** @return true if this role is assumed to have been configured using the CAAdministrator template */
+<span class="nc" id="L475">    private boolean isAccessRulesTemplateCaAdmin() { return &quot;CAADMINISTRATOR&quot;.equals(getAccessRulesTemplateSelected()); }</span>
+    /** @return true if this role is assumed to have been configured using the SuperAdministrator template */
+<span class="nc" id="L477">    private boolean isAccessRulesTemplateSuperAdmin() { return &quot;SUPERADMINISTRATOR&quot;.equals(getAccessRulesTemplateSelected()); }</span>
+    /** @return true if this role is assumed to have been configured using RaAdministrator template */
+<span class="nc" id="L479">    private boolean isAccessRulesTemplateRaAdmin() {return &quot;RAADMINISTRATOR&quot;.equals(getAccessRulesTemplateSelected());}</span>
+
+    /** @return currently selected AccessRuleTemplate */
+    private AccessRulesTemplate getAccessRulesTemplate() {
+<span class="nc bnc" id="L483" title="All 2 branches missed.">        for (final AccessRulesTemplate accessRulesTemplate : accessRulesTemplates) {</span>
+<span class="nc bnc" id="L484" title="All 2 branches missed.">            if (accessRulesTemplate.getName().equals(getAccessRulesTemplateSelected())) {</span>
+<span class="nc" id="L485">                return accessRulesTemplate;</span>
+            }
+<span class="nc" id="L487">        }</span>
+<span class="nc" id="L488">        return null;</span>
+    }
+
+    /** Invoked by the user when changing selected template and JavaScript is enabled 
+     * @param event  Event*/
+    public void actionAccessRulesTemplateSelectAjaxListener(final AjaxBehaviorEvent event) {
+<span class="nc" id="L494">        actionAccessRulesTemplateSelect();</span>
+<span class="nc" id="L495">    }</span>
+
+    /** Invoked by the user when changing selected template and JavaScript is disabled (or via the AJAX call) */
+    public void actionAccessRulesTemplateSelect() {
+<span class="nc" id="L499">        final AccessRulesTemplate accessRulesTemplate = getAccessRulesTemplate();</span>
+<span class="nc" id="L500">        final LinkedHashMap&lt;String, Boolean&gt; accessRules = getRole().getAccessRules();</span>
+<span class="nc" id="L501">        accessRules.clear();</span>
+<span class="nc" id="L502">        accessRules.putAll(accessRulesTemplate.getAccessRules());</span>
+<span class="nc" id="L503">        reinitSelection();</span>
+<span class="nc bnc" id="L504" title="All 2 branches missed.">        if (!isAccessRulesTemplateCustom()) {</span>
+            // Remove the CUSTOM template from the list of selectable templates since it is really configured in advanced mode
+<span class="nc" id="L506">            removeAccessRulesTemplateCustomOption();</span>
+        }
+<span class="nc" id="L508">    }</span>
+
+    /** @return a list of available access rules templates (and detects the best match to the existing role's rules for performance reasons at the same time) */
+    public List&lt;SelectItem&gt; getAvailableAccessRulesTemplates() {
+<span class="nc bnc" id="L512" title="All 2 branches missed.">        if (availableAccessRulesTemplates==null) {</span>
+<span class="nc" id="L513">            availableAccessRulesTemplates = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L514" title="All 2 branches missed.">            for (final AccessRulesTemplate accessRulesTemplate : accessRulesTemplates) {</span>
+                // Ensure that current admin is authorized to all access rules implied by the template
+<span class="nc" id="L516">                final List&lt;String&gt; allowedResources = new ArrayList&lt;&gt;();</span>
+                // Ensure that there is no access rule in role that is not covered by template to check for a match
+<span class="nc bnc" id="L518" title="All 2 branches missed.">                if (getRole() != null) {</span>
+<span class="nc bnc" id="L519" title="All 2 branches missed.">                    if (getRole().getAccessRules() != null) {</span>
+<span class="nc" id="L520">                        final HashMap&lt;String, Boolean&gt; remainingAccessRulesInRole = new HashMap&lt;&gt;(getRole().getAccessRules());</span>
+<span class="nc" id="L521">                        AccessRulesHelper.normalizeResources(remainingAccessRulesInRole);</span>
+<span class="nc" id="L522">                        AccessRulesHelper.minimizeAccessRules(remainingAccessRulesInRole);</span>
+<span class="nc" id="L523">                        filterOutSelectItems(remainingAccessRulesInRole, getAvailableResourcesCa());</span>
+<span class="nc" id="L524">                        filterOutSelectItems(remainingAccessRulesInRole, getAvailableResourcesEep());</span>
+<span class="nc" id="L525">                        filterOutSelectItems(remainingAccessRulesInRole, getAvailableResourcesKeyValidators());</span>
+<span class="nc bnc" id="L526" title="All 2 branches missed.">                        for (final Entry&lt;String, Boolean&gt; entry : accessRulesTemplate.getAccessRules().entrySet()) {</span>
+<span class="nc bnc" id="L527" title="All 2 branches missed.">                            if (entry.getValue().booleanValue()) {</span>
+<span class="nc" id="L528">                                final String resource = entry.getKey();</span>
+<span class="nc" id="L529">                                allowedResources.add(resource);</span>
+<span class="nc" id="L530">                                remainingAccessRulesInRole.remove(AccessRulesHelper.normalizeResource(resource));</span>
+                            }
+<span class="nc" id="L532">                        }</span>
+<span class="nc bnc" id="L533" title="All 2 branches missed.">                        if (authorizationSession.isAuthorizedNoLogging(getAdmin(), allowedResources.toArray(new String[0]))) {</span>
+<span class="nc" id="L534">                            availableAccessRulesTemplates.add(</span>
+<span class="nc" id="L535">                                    new SelectItem(accessRulesTemplate.getName(), super.getEjbcaWebBean().getText(accessRulesTemplate.getName())));</span>
+                            // Check if this template matches the Role's current access rules
+<span class="nc bnc" id="L537" title="All 2 branches missed.">                            if (remainingAccessRulesInRole.isEmpty()) {</span>
+<span class="nc" id="L538">                                accessRulesTemplateSelected = accessRulesTemplate.getName();</span>
+                            } else {
+<span class="nc bnc" id="L540" title="All 2 branches missed.">                                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L541">                                    log.debug(&quot;Role '&quot; + getRole().getRoleNameFull() + &quot;' does not qualify as a '&quot; + accessRulesTemplate.getName()</span>
+<span class="nc" id="L542">                                            + &quot;'. Extra rules: &quot; + Arrays.toString(remainingAccessRulesInRole.keySet().toArray()));</span>
+                                }
+                            }
+                        }
+<span class="nc" id="L546">                    } else {</span>
+<span class="nc bnc" id="L547" title="All 2 branches missed.">                        if(log.isDebugEnabled()) {</span>
+<span class="nc" id="L548">                            log.debug(&quot;Role with name &quot; + role.getRoleName() + &quot; returned a null access rule list.&quot;);</span>
+                        }
+                    }
+                } else {
+<span class="nc bnc" id="L552" title="All 2 branches missed.">                    if(log.isDebugEnabled()) {</span>
+<span class="nc" id="L553">                        log.debug(&quot;Role with ID &quot; + roleIdParam + &quot; could not be retrieved from the database.&quot;);</span>
+                    }
+                }
+<span class="nc" id="L556">            }</span>
+<span class="nc" id="L557">            super.sortSelectItemsByLabel(availableAccessRulesTemplates);</span>
+        }
+<span class="nc" id="L559">        return availableAccessRulesTemplates;</span>
+    }
+
+    private void removeAccessRulesTemplateCustomOption() {
+<span class="nc bnc" id="L563" title="All 2 branches missed.">        for (final SelectItem selectItem : new ArrayList&lt;&gt;(availableAccessRulesTemplates)) {</span>
+<span class="nc bnc" id="L564" title="All 2 branches missed.">            if (selectItem.getValue().equals(TEMPLATE_NAME_CUSTOM)) {</span>
+<span class="nc" id="L565">                availableAccessRulesTemplates.remove(selectItem);</span>
+<span class="nc" id="L566">                break;</span>
+            }
+<span class="nc" id="L568">        }</span>
+<span class="nc" id="L569">    }</span>
+
+    /** @return true if the CA selection box should be modifiable */
+    public boolean isRenderResourcesCaSelection() {
+<span class="nc bnc" id="L573" title="All 4 branches missed.">        return !isAccessRulesTemplateCustom() &amp;&amp; !isAccessRulesTemplateSuperAdmin();</span>
+    }
+
+    /** @return the currently selected CA access resources */
+<span class="nc" id="L577">    public List&lt;String&gt; getResourcesCaSelected() { return resourcesCaSelected; }</span>
+    /** Set the currently selected CA access resources 
+     * @param resourcesCaSelected Sccess resources */
+<span class="nc" id="L580">    public void setResourcesCaSelected(final List&lt;String&gt; resourcesCaSelected) { this.resourcesCaSelected = new ArrayList&lt;&gt;(resourcesCaSelected); }</span>
+
+    /** @return the selectable CA access resources */
+    public List&lt;SelectItem&gt; getAvailableResourcesCa() {
+<span class="nc bnc" id="L584" title="All 2 branches missed.">        if (availableResourcesCa==null) {</span>
+<span class="nc" id="L585">            availableResourcesCa = new LinkedList&lt;&gt;();</span>
+<span class="nc bnc" id="L586" title="All 2 branches missed.">            for (final int caId : caSession.getAuthorizedCaIds(getAdmin())) {</span>
+<span class="nc bnc" id="L587" title="All 2 branches missed.">                final String name = caIdToNameMap.containsKey(caId) ? caIdToNameMap.get(caId) : String.valueOf(caId);</span>
+<span class="nc" id="L588">                availableResourcesCa.add(new SelectItem(AccessRulesHelper.normalizeResource(StandardRules.CAACCESS.resource() + caId), name));</span>
+<span class="nc" id="L589">            }</span>
+<span class="nc" id="L590">            super.sortSelectItemsByLabel(availableResourcesCa);</span>
+<span class="nc bnc" id="L591" title="All 2 branches missed.">            if (authorizationSession.isAuthorizedNoLogging(getAdmin(), StandardRules.CAACCESS.resource())) {</span>
+<span class="nc" id="L592">                availableResourcesCa.addFirst(new SelectItem(StandardRules.CAACCESS.resource(), super.getEjbcaWebBean().getText(&quot;ALL&quot;)));</span>
+            }
+        }
+<span class="nc" id="L595">        return availableResourcesCa;</span>
+    }
+
+    /** @return true if the RA rules selection box should be modifiable */
+    public boolean isRenderResourcesEeSelection() {
+<span class="nc bnc" id="L600" title="All 6 branches missed.">        return !isAccessRulesTemplateCustom() &amp;&amp; !isAccessRulesTemplateSuperAdmin() &amp;&amp; !isAccessRulesTemplateCaAdmin();</span>
+    }
+
+    /** @return the currently selected RA functionality resources */
+<span class="nc" id="L604">    public List&lt;String&gt; getResourcesEeSelected() { return resourcesEeSelected; }</span>
+    /** Set the currently selected RA functionality resources 
+     * @param resourcesEeSelected EE Selection */
+<span class="nc" id="L607">    public void setResourcesEeSelected(final List&lt;String&gt; resourcesEeSelected) { this.resourcesEeSelected = new ArrayList&lt;&gt;(resourcesEeSelected); }</span>
+
+    /** @return the selectable RA functionality resources */
+    public List&lt;SelectItem&gt; getAvailableResourcesEe() {
+<span class="nc bnc" id="L611" title="All 2 branches missed.">        if (availableResourcesEe==null) {</span>
+<span class="nc" id="L612">            availableResourcesEe = new ArrayList&lt;&gt;(Arrays.asList(</span>
+                    // Not part of basic mode
+                    //new SelectItem(AccessRulesConstants.REGULAR_EDITENDENTITYPROFILES, super.getEjbcaWebBean().getText(&quot;EDITENDENTITYPROFILES&quot;)),
+                    //new SelectItem(AccessRulesConstants.REGULAR_VIEWENDENTITYPROFILES, super.getEjbcaWebBean().getText(&quot;VIEWENDENTITYPROFILES&quot;)),
+                    //new SelectItem(AccessRulesConstants.REGULAR_EDITUSERDATASOURCES, super.getEjbcaWebBean().getText(&quot;EDITUSERDATASOURCES&quot;)),
+<span class="nc" id="L617">                    new SelectItem(AccessRulesHelper.normalizeResource(AccessRulesConstants.REGULAR_APPROVEENDENTITY), super.getEjbcaWebBean().getText(&quot;APPROVEENDENTITYRULE&quot;)),</span>
+<span class="nc" id="L618">                    new SelectItem(AccessRulesHelper.normalizeResource(AccessRulesConstants.REGULAR_REVOKEENDENTITY), super.getEjbcaWebBean().getText(&quot;REVOKEENDENTITYRULE&quot;)),</span>
+<span class="nc" id="L619">                    new SelectItem(AccessRulesHelper.normalizeResource(AccessRulesConstants.REGULAR_VIEWENDENTITY), super.getEjbcaWebBean().getText(&quot;VIEWENDENTITYRULE&quot;)),</span>
+<span class="nc" id="L620">                    new SelectItem(AccessRulesHelper.normalizeResource(AccessRulesConstants.REGULAR_CREATEENDENTITY), super.getEjbcaWebBean().getText(&quot;CREATEENDENTITYRULE&quot;)),</span>
+<span class="nc" id="L621">                    new SelectItem(AccessRulesHelper.normalizeResource(AccessRulesConstants.REGULAR_EDITENDENTITY), super.getEjbcaWebBean().getText(&quot;EDITENDENTITYRULE&quot;)),</span>
+<span class="nc" id="L622">                    new SelectItem(AccessRulesHelper.normalizeResource(AccessRulesConstants.REGULAR_DELETEENDENTITY), super.getEjbcaWebBean().getText(&quot;DELETEENDENTITYRULE&quot;)),</span>
+<span class="nc" id="L623">                    new SelectItem(AccessRulesHelper.normalizeResource(AccessRulesConstants.REGULAR_VIEWENDENTITYHISTORY), super.getEjbcaWebBean().getText(&quot;VIEWHISTORYRULE&quot;))</span>
+                    ));
+<span class="nc bnc" id="L625" title="All 2 branches missed.">            if (isEnabledIssueHardwareTokens()) {</span>
+<span class="nc" id="L626">                availableResourcesEe.add(new SelectItem(AccessRulesHelper.normalizeResource(AccessRulesConstants.REGULAR_VIEWHARDTOKENS), super.getEjbcaWebBean().getText(&quot;VIEWHARDTOKENRULE&quot;)));</span>
+<span class="nc" id="L627">                availableResourcesEe.add(new SelectItem(AccessRulesHelper.normalizeResource(AccessRulesConstants.REGULAR_VIEWPUKS), super.getEjbcaWebBean().getText(&quot;VIEWPUKENDENTITYRULE&quot;)));</span>
+            }
+<span class="nc bnc" id="L629" title="All 2 branches missed.">            if (isEnabledKeyRecovery()) {</span>
+<span class="nc" id="L630">                availableResourcesEe.add(new SelectItem(AccessRulesHelper.normalizeResource(AccessRulesConstants.REGULAR_KEYRECOVERY), super.getEjbcaWebBean().getText(&quot;KEYRECOVERENDENTITYRULE&quot;)));</span>
+            }
+            // Disable the selections what it not allowed by current template
+<span class="nc bnc" id="L633" title="All 2 branches missed.">            for (final SelectItem selectItem : availableResourcesEe) {</span>
+<span class="nc bnc" id="L634" title="All 2 branches missed.">                if (!AccessRulesHelper.hasAccessToResource(getAccessRulesTemplate().getAccessRules(), String.valueOf(selectItem.getValue()))) {</span>
+<span class="nc" id="L635">                    selectItem.setDisabled(true);</span>
+                }
+<span class="nc" id="L637">            }</span>
+<span class="nc" id="L638">            super.sortSelectItemsByLabel(availableResourcesEe);</span>
+        }
+<span class="nc" id="L640">        return availableResourcesEe;</span>
+    }
+
+    /** @return true if the End Entity Profile rule selection box should be modifiable */
+    public boolean isRenderResourcesEepSelection() {
+<span class="nc bnc" id="L645" title="All 6 branches missed.">        return !isAccessRulesTemplateCustom() &amp;&amp; !isAccessRulesTemplateSuperAdmin() &amp;&amp; !isAccessRulesTemplateCaAdmin();</span>
+    }
+
+    /** @return the currently selected EEP resources */
+<span class="nc" id="L649">    public List&lt;String&gt; getResourcesEepSelected() { return resourcesEepSelected; }</span>
+    /** Set the currently selected EEP resources 
+     * @param resourcesEepSelected EEP resources*/
+<span class="nc" id="L652">    public void setResourcesEepSelected(final List&lt;String&gt; resourcesEepSelected) { this.resourcesEepSelected = new ArrayList&lt;&gt;(resourcesEepSelected); }</span>
+
+    /** @return the selectable EEP resources */
+    public List&lt;SelectItem&gt; getAvailableResourcesEep() {
+<span class="nc bnc" id="L656" title="All 2 branches missed.">        if (availableResourcesEep==null) {</span>
+<span class="nc" id="L657">            availableResourcesEep = new LinkedList&lt;&gt;();</span>
+<span class="nc bnc" id="L658" title="All 2 branches missed.">            for (final int eepId : endEntityProfileSession.getAuthorizedEndEntityProfileIds(getAdmin(), AccessRulesConstants.REGULAR_VIEWENDENTITY)) {</span>
+<span class="nc bnc" id="L659" title="All 2 branches missed.">                final String name = eepIdToNameMap.containsKey(eepId) ? eepIdToNameMap.get(eepId) : String.valueOf(eepId);</span>
+<span class="nc" id="L660">                availableResourcesEep.add(new SelectItem(AccessRulesHelper.normalizeResource(AccessRulesConstants.ENDENTITYPROFILEPREFIX + eepId), name));</span>
+<span class="nc" id="L661">            }</span>
+<span class="nc" id="L662">            super.sortSelectItemsByLabel(availableResourcesEep);</span>
+<span class="nc bnc" id="L663" title="All 2 branches missed.">            if (authorizationSession.isAuthorizedNoLogging(getAdmin(), AccessRulesConstants.ENDENTITYPROFILEPREFIX)) {</span>
+<span class="nc" id="L664">                availableResourcesEep.addFirst(new SelectItem(AccessRulesConstants.ENDENTITYPROFILEPREFIX, super.getEjbcaWebBean().getText(&quot;ALL&quot;)));</span>
+            }
+        }
+<span class="nc" id="L667">        return availableResourcesEep;</span>
+    }
+
+    /** @return true if the key validator rule selection box should be modifiable */
+    public boolean isRenderResourcesKvSelection() {
+<span class="nc bnc" id="L672" title="All 6 branches missed.">        return !isAccessRulesTemplateCustom() &amp;&amp; !isAccessRulesTemplateSuperAdmin() &amp;&amp; !isAccessRulesTemplateRaAdmin();</span>
+    }
+
+    /** @return the currently selected key validator resources */
+<span class="nc" id="L676">    public List&lt;String&gt; getResourcesKeyValidatorsSelected() { return resourcesKeyValidatorsSelected; }</span>
+
+    /** Set the currently selected key validator resources 
+     * @param resourcesKeyValidatorsSelected Validators */
+    public void setResourcesKeyValidatorsSelected(final List&lt;String&gt; resourcesKeyValidatorsSelected) {
+<span class="nc" id="L681">        this.resourcesKeyValidatorsSelected = new ArrayList&lt;&gt;(resourcesKeyValidatorsSelected);</span>
+<span class="nc" id="L682">    }</span>
+
+    /** @return the selectable key validator resources */
+    public List&lt;SelectItem&gt; getAvailableResourcesKeyValidators() {
+<span class="nc bnc" id="L686" title="All 2 branches missed.">        if (availableResourcesKeyValidators==null) {</span>
+<span class="nc" id="L687">            availableResourcesKeyValidators = new LinkedList&lt;&gt;();</span>
+<span class="nc" id="L688">            final Collection&lt;Integer&gt; authorizedKvIds = keyValidatorSession.getAuthorizedKeyValidatorIds(getAdmin(), AccessRulesConstants.REGULAR_VIEWVALIDATOR);</span>
+<span class="nc bnc" id="L689" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L690">                log.debug(&quot;Authorized key validator ids for &quot; + getAdmin().getUniqueId() + &quot; are &quot; + authorizedKvIds);</span>
+            }
+<span class="nc bnc" id="L692" title="All 2 branches missed.">            for (final int id : authorizedKvIds) {</span>
+<span class="nc" id="L693">                availableResourcesKeyValidators.add(new SelectItem(AccessRulesHelper.normalizeResource(StandardRules.VALIDATORACCESS.resource() + id), keyValidatorsIdToNameMap.get(id)));</span>
+<span class="nc" id="L694">            }</span>
+<span class="nc" id="L695">            super.sortSelectItemsByLabel(availableResourcesKeyValidators);</span>
+<span class="nc bnc" id="L696" title="All 2 branches missed.">            if (authorizationSession.isAuthorizedNoLogging(getAdmin(), StandardRules.VALIDATORACCESS.resource())) {</span>
+<span class="nc" id="L697">                availableResourcesKeyValidators.addFirst(new SelectItem(StandardRules.VALIDATORACCESS.resource(), super.getEjbcaWebBean().getText(&quot;ALL&quot;)));</span>
+            }
+        }
+<span class="nc" id="L700">        return availableResourcesKeyValidators;</span>
+    }
+
+    /** @return true if the InternalKeyBinding rule selection box should be modifiable */
+    public boolean isRenderResourcesIkbSelection() {
+<span class="nc bnc" id="L705" title="All 4 branches missed.">        return !isAccessRulesTemplateCustom() &amp;&amp; !isAccessRulesTemplateSuperAdmin();</span>
+    }
+
+    /** @return the currently selected IKB resources */
+<span class="nc" id="L709">    public List&lt;String&gt; getResourcesIkbSelected() { return resourcesIkbSelected; }</span>
+    /** Set the currently selected IKB resources 
+     * @param resourcesIkbSelected IKB Resources */
+<span class="nc" id="L712">    public void setResourcesIkbSelected(final List&lt;String&gt; resourcesIkbSelected) { this.resourcesIkbSelected = new ArrayList&lt;&gt;(resourcesIkbSelected); }</span>
+
+    /** @return the selectable IKB resources */
+    public List&lt;SelectItem&gt; getAvailableResourcesIkb() {
+<span class="nc bnc" id="L716" title="All 2 branches missed.">        if (availableResourcesIkb==null) {</span>
+<span class="nc" id="L717">            availableResourcesIkb = Arrays.asList(</span>
+<span class="nc" id="L718">                    new SelectItem(AccessRulesHelper.normalizeResource(InternalKeyBindingRules.DELETE.resource()), super.getEjbcaWebBean().getText(InternalKeyBindingRules.DELETE.getReference())),</span>
+<span class="nc" id="L719">                    new SelectItem(AccessRulesHelper.normalizeResource(InternalKeyBindingRules.MODIFY.resource()), super.getEjbcaWebBean().getText(InternalKeyBindingRules.MODIFY.getReference())),</span>
+<span class="nc" id="L720">                    new SelectItem(AccessRulesHelper.normalizeResource(InternalKeyBindingRules.VIEW.resource()), super.getEjbcaWebBean().getText(InternalKeyBindingRules.VIEW.getReference()))</span>
+                    );
+<span class="nc" id="L722">            super.sortSelectItemsByLabel(availableResourcesIkb);</span>
+            // Disable the selections what it not allowed by current template
+<span class="nc bnc" id="L724" title="All 2 branches missed.">            for (final SelectItem selectItem : availableResourcesIkb) {</span>
+<span class="nc bnc" id="L725" title="All 2 branches missed.">                if (!AccessRulesHelper.hasAccessToResource(getAccessRulesTemplate().getAccessRules(), String.valueOf(selectItem.getValue()))) {</span>
+<span class="nc" id="L726">                    selectItem.setDisabled(true);</span>
+                }
+<span class="nc" id="L728">            }</span>
+        }
+<span class="nc" id="L730">        return availableResourcesIkb;</span>
+    }
+
+    /** @return true if the Other rule selection box should be modifiable */
+    public boolean isRenderResourcesOtherSelection() {
+<span class="nc bnc" id="L735" title="All 4 branches missed.">        return !isAccessRulesTemplateCustom() &amp;&amp; !isAccessRulesTemplateSuperAdmin();</span>
+    }
+
+    /** @return the currently selected Other resources */
+<span class="nc" id="L739">    public List&lt;String&gt; getResourcesOtherSelected() { return resourcesOtherSelected; }</span>
+    /** Set the currently selected Other resources 
+     * @param resourcesOtherSelected Other resources */
+<span class="nc" id="L742">    public void setResourcesOtherSelected(final List&lt;String&gt; resourcesOtherSelected) { this.resourcesOtherSelected = new ArrayList&lt;&gt;(resourcesOtherSelected); }</span>
+
+    /** @return the selectable Other resources */
+    public List&lt;SelectItem&gt; getAvailableResourcesOther() {
+<span class="nc bnc" id="L746" title="All 2 branches missed.">        if (availableResourcesOther==null) {</span>
+<span class="nc" id="L747">            availableResourcesOther = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L748">            availableResourcesOther.add(new SelectItem(AccessRulesHelper.normalizeResource(AuditLogRules.VIEW.resource()), super.getEjbcaWebBean().getText(&quot;VIEWAUDITLOG&quot;)));</span>
+<span class="nc bnc" id="L749" title="All 2 branches missed.">            if (isEnabledIssueHardwareTokens()) {</span>
+<span class="nc" id="L750">                availableResourcesOther.add(new SelectItem(AccessRulesHelper.normalizeResource(AccessRulesConstants.HARDTOKEN_ISSUEHARDTOKENS), super.getEjbcaWebBean().getText(&quot;ISSUEHARDTOKENS&quot;)));</span>
+            }
+<span class="nc" id="L752">            super.sortSelectItemsByLabel(availableResourcesOther);</span>
+            // Disable the selections what it not allowed by current template
+<span class="nc bnc" id="L754" title="All 2 branches missed.">            for (final SelectItem selectItem : availableResourcesOther) {</span>
+<span class="nc bnc" id="L755" title="All 2 branches missed.">                if (!AccessRulesHelper.hasAccessToResource(getAccessRulesTemplate().getAccessRules(), String.valueOf(selectItem.getValue()))) {</span>
+<span class="nc" id="L756">                    selectItem.setDisabled(true);</span>
+                }
+<span class="nc" id="L758">            }</span>
+        }
+<span class="nc" id="L760">        return availableResourcesOther;</span>
+    }
+
+    /** @return true if this installation is configured to use EndEntityProfileLimitations */
+    private boolean isEnableEndEntityProfileLimitations() {
+<span class="nc" id="L765">        return super.getEjbcaWebBean().getGlobalConfiguration().getEnableEndEntityProfileLimitations();</span>
+    }
+
+    /** @return true if this installation is configured to issue hardware tokens */
+    private boolean isEnabledIssueHardwareTokens() {
+<span class="nc" id="L770">        return super.getEjbcaWebBean().getGlobalConfiguration().getIssueHardwareTokens();</span>
+    }
+
+    /** @return true if this installation is configured to perform key recovery */
+    private boolean isEnabledKeyRecovery() {
+<span class="nc" id="L775">        return super.getEjbcaWebBean().getGlobalConfiguration().getEnableKeyRecovery();</span>
+    }
+
+    /** Invoked by the user to save the current selection in Basic mode */
+    public void actionSaveAccessRules() {
+        // Add access rules from template that are not user configurable
+<span class="nc" id="L781">        final HashMap&lt;String,Boolean&gt; newAccessRules = new HashMap&lt;&gt;(getAccessRulesTemplate().getAccessRules());</span>
+<span class="nc" id="L782">        filterOutSelectItems(newAccessRules, getAvailableResourcesCa());</span>
+<span class="nc" id="L783">        filterOutSelectItems(newAccessRules, getAvailableResourcesEe());</span>
+<span class="nc" id="L784">        filterOutSelectItems(newAccessRules, getAvailableResourcesEep());</span>
+<span class="nc" id="L785">        filterOutSelectItems(newAccessRules, getAvailableResourcesKeyValidators());</span>
+<span class="nc" id="L786">        filterOutSelectItems(newAccessRules, getAvailableResourcesIkb());</span>
+<span class="nc" id="L787">        filterOutSelectItems(newAccessRules, getAvailableResourcesOther());</span>
+        // Add access rules selected by the user
+<span class="nc bnc" id="L789" title="All 2 branches missed.">        for (final String resource : getResourcesCaSelected()) {</span>
+<span class="nc" id="L790">            newAccessRules.put(resource, Role.STATE_ALLOW);</span>
+<span class="nc" id="L791">        }</span>
+<span class="nc bnc" id="L792" title="All 2 branches missed.">        for (final String resource : getResourcesEeSelected()) {</span>
+<span class="nc" id="L793">            newAccessRules.put(resource, Role.STATE_ALLOW);</span>
+<span class="nc" id="L794">        }</span>
+<span class="nc bnc" id="L795" title="All 2 branches missed.">        for (final String resource : getResourcesEepSelected()) {</span>
+<span class="nc" id="L796">            newAccessRules.put(resource, Role.STATE_ALLOW);</span>
+<span class="nc" id="L797">        }</span>
+<span class="nc bnc" id="L798" title="All 2 branches missed.">        if (isEnableEndEntityProfileLimitations()) {</span>
+            /*
+             * To be authorized to an EEP, the authentication token needs to be authorized to both
+             *  '/ra_functionality/some_function/'
+             *  '/endentityprofilesrules/&lt;eepId&gt;/some_function/'
+             *
+             * So here in basic mode, we simply allow '/endentityprofilesrules/&lt;eepId&gt;/' and rely
+             * on the '/ra_functionality/' sub-rules to limit functions.
+             *
+             * Long story short: Do nothing here.
+             */
+        }
+<span class="nc bnc" id="L810" title="All 2 branches missed.">        for (final String resource : getResourcesKeyValidatorsSelected()) {</span>
+<span class="nc" id="L811">            newAccessRules.put(resource, Role.STATE_ALLOW);</span>
+<span class="nc" id="L812">        }</span>
+<span class="nc bnc" id="L813" title="All 2 branches missed.">        for (final String resource : getResourcesIkbSelected()) {</span>
+<span class="nc" id="L814">            newAccessRules.put(resource, Role.STATE_ALLOW);</span>
+<span class="nc" id="L815">        }</span>
+<span class="nc bnc" id="L816" title="All 2 branches missed.">        for (final String resource : getResourcesOtherSelected()) {</span>
+<span class="nc" id="L817">            newAccessRules.put(resource, Role.STATE_ALLOW);</span>
+<span class="nc" id="L818">        }</span>
+        // Replace access rules and persist
+<span class="nc" id="L820">        final Role role = getRole();</span>
+<span class="nc" id="L821">        role.getAccessRules().clear();</span>
+<span class="nc" id="L822">        role.getAccessRules().putAll(newAccessRules);</span>
+        try {
+<span class="nc" id="L824">            this.role = roleSession.persistRole(getAdmin(), role);</span>
+<span class="nc" id="L825">            super.addGlobalMessage(FacesMessage.SEVERITY_INFO, &quot;ACCESSRULES_INFO_SAVED&quot;);</span>
+<span class="nc" id="L826">        } catch (RoleExistsException e) {</span>
+<span class="nc" id="L827">            throw new IllegalStateException(e);</span>
+<span class="nc" id="L828">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L829">            super.addGlobalMessage(FacesMessage.SEVERITY_ERROR, &quot;ACCESSRULES_ERROR_UNAUTH&quot;, e.getMessage());</span>
+        } finally {
+<span class="nc" id="L831">            nonAjaxPostRedirectGet();</span>
+        }
+<span class="nc" id="L833">    }</span>
+
+    /** Remove the resources of the SelectItem values from the access rule map if present 
+     * @param newAccessRules Rules
+     * @param selectItems Items */
+    private void filterOutSelectItems(final HashMap&lt;String, Boolean&gt; newAccessRules, final List&lt;SelectItem&gt; selectItems) {
+<span class="nc bnc" id="L839" title="All 2 branches missed.">        for (final SelectItem selectItem : selectItems) {</span>
+<span class="nc" id="L840">            final String selectedResource = String.valueOf(selectItem.getValue());</span>
+<span class="nc" id="L841">            final Iterator&lt;Map.Entry&lt;String, Boolean&gt;&gt; iter = newAccessRules.entrySet().iterator();</span>
+<span class="nc bnc" id="L842" title="All 2 branches missed.">            while (iter.hasNext()) {</span>
+<span class="nc" id="L843">                final Map.Entry&lt;String, Boolean&gt; accessRuleEntry = iter.next();</span>
+<span class="nc" id="L844">                final boolean allowed = accessRuleEntry.getValue();</span>
+<span class="nc" id="L845">                final String rule = accessRuleEntry.getKey();</span>
+<span class="nc bnc" id="L846" title="All 6 branches missed.">                if (allowed &amp;&amp; (rule.equals(selectedResource) || rule.startsWith(selectedResource))) {</span>
+<span class="nc" id="L847">                    iter.remove();</span>
+                }
+<span class="nc" id="L849">            }</span>
+<span class="nc" id="L850">        }</span>
+<span class="nc" id="L851">    }</span>
+
+    /** @return a normalized, minimized and sorted list of access rules that is set to ALLOW or DENY */
+    public List&lt;AccessRuleItem&gt; getAccessRules() {
+<span class="nc" id="L855">        final List&lt;AccessRuleItem&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L856" title="All 2 branches missed.">        for (final AccessRuleItem accessRuleItem : getAuthorizedAccessRuleItems()) {</span>
+<span class="nc bnc" id="L857" title="All 2 branches missed.">            if (!AccessRuleState.UNDEFINED.name().equals(accessRuleItem.getState())) {</span>
+<span class="nc" id="L858">                ret.add(accessRuleItem);</span>
+            }
+<span class="nc" id="L860">        }</span>
+<span class="nc" id="L861">        Collections.sort(ret);</span>
+<span class="nc" id="L862">        return ret;</span>
+    }
+
+    /** @return the advanced mode list of access rule collections  */
+    public List&lt;AccessRuleCollection&gt; getAuthorizedResourcesByCategory() {
+<span class="nc" id="L867">        final Map&lt;String, AccessRuleCollection&gt; categoryToAccessRuleCollectionMap = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L868" title="All 2 branches missed.">        for (final AccessRuleItem accessRuleItem : getAuthorizedAccessRuleItems()) {</span>
+<span class="nc" id="L869">            final String category = accessRuleItem.getCategory();</span>
+<span class="nc" id="L870">            AccessRuleCollection accessRuleCollection = categoryToAccessRuleCollectionMap.get(category);</span>
+<span class="nc bnc" id="L871" title="All 2 branches missed.">            if (accessRuleCollection==null) {</span>
+<span class="nc" id="L872">                accessRuleCollection = new AccessRuleCollection(category, new ArrayList&lt;AccessRuleItem&gt;());</span>
+<span class="nc" id="L873">                categoryToAccessRuleCollectionMap.put(category, accessRuleCollection);</span>
+            }
+<span class="nc" id="L875">            accessRuleCollection.getCollection().add(accessRuleItem);</span>
+<span class="nc" id="L876">        }</span>
+<span class="nc bnc" id="L877" title="All 2 branches missed.">        for (final AccessRuleCollection accessRuleCollection : categoryToAccessRuleCollectionMap.values()) {</span>
+<span class="nc" id="L878">            Collections.sort(accessRuleCollection.getCollection());</span>
+<span class="nc" id="L879">        }</span>
+<span class="nc" id="L880">        return new ArrayList&lt;&gt;(categoryToAccessRuleCollectionMap.values());</span>
+    }
+
+    /** @return the advanced mode list of all authorized access rule items */
+    private List&lt;AccessRuleItem&gt; getAuthorizedAccessRuleItems() {
+<span class="nc bnc" id="L885" title="All 2 branches missed.">        if (authorizedAccessRuleItems==null) {</span>
+<span class="nc" id="L886">            final List&lt;AccessRuleItem&gt; allAccessRuleItems = getAllAccessRuleItems();</span>
+<span class="nc" id="L887">            final LinkedHashMap&lt;String, Boolean&gt; rolesAccesssRules = getRole().getAccessRules();</span>
+<span class="nc" id="L888">            AccessRulesHelper.minimizeAccessRules(rolesAccesssRules);</span>
+<span class="nc bnc" id="L889" title="All 2 branches missed.">            for (final AccessRuleItem accessRuleItem : new ArrayList&lt;&gt;(allAccessRuleItems)) {</span>
+<span class="nc bnc" id="L890" title="All 2 branches missed.">                if (authorizationSession.isAuthorizedNoLogging(getAdmin(), accessRuleItem.getResource())) {</span>
+                    // Check current Role' state of this rule
+<span class="nc" id="L892">                    accessRuleItem.setState(AccessRuleState.toAccessRuleState(rolesAccesssRules.get(accessRuleItem.getResource())).name());</span>
+                } else {
+                    // Note that for EEPs you are only &quot;really&quot; authorized to it if you also are authorized to all the CAs in it
+                    // Similar goes for UserDataSources which is super-inefficient to check..
+                    // BUT if the current admin is authorized to a rule he is also authorized to give the same access to others
+<span class="nc" id="L897">                    allAccessRuleItems.remove(accessRuleItem);</span>
+                }
+<span class="nc" id="L899">            }</span>
+<span class="nc" id="L900">            authorizedAccessRuleItems = allAccessRuleItems;</span>
+        }
+<span class="nc" id="L902">        return authorizedAccessRuleItems;</span>
+    }
+
+    /** @return the advanced mode list of all access rule items without any state */
+    private List&lt;AccessRuleItem&gt; getAllAccessRuleItems() {
+<span class="nc" id="L907">        final List&lt;AccessRuleItem&gt; allAccessRuleItem = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L908">        final Map&lt;String, Map&lt;String,String&gt;&gt; categorizedAccessRules = authorizationSystemSession.getAllResourceAndResourceNamesByCategory();</span>
+<span class="nc bnc" id="L909" title="All 2 branches missed.">        for (final Entry&lt;String,Map&lt;String,String&gt;&gt; categoryEntry : categorizedAccessRules.entrySet()) {</span>
+<span class="nc bnc" id="L910" title="All 2 branches missed.">            for (final Entry&lt;String,String&gt; entry : categoryEntry.getValue().entrySet()) {</span>
+<span class="nc" id="L911">                allAccessRuleItem.add(new AccessRuleItem(categoryEntry.getKey(), entry.getKey(), entry.getValue()));</span>
+<span class="nc" id="L912">            }</span>
+<span class="nc" id="L913">        }</span>
+<span class="nc" id="L914">        return allAccessRuleItem;</span>
+    }
+
+    /** @return a viewable list of the possible values for a access rule */
+    public List&lt;SelectItem&gt; getAvailableAccessRuleStates() {
+<span class="nc bnc" id="L919" title="All 2 branches missed.">        if (availableAccessRuleStates.isEmpty()) {</span>
+<span class="nc" id="L920">            availableAccessRuleStates.add(new SelectItem(AccessRuleState.ALLOW.name(), super.getEjbcaWebBean().getText(&quot;ACCESSRULES_STATE_&quot;+AccessRuleState.ALLOW.name())));</span>
+<span class="nc" id="L921">            availableAccessRuleStates.add(new SelectItem(AccessRuleState.DENY.name(), super.getEjbcaWebBean().getText(&quot;ACCESSRULES_STATE_&quot;+AccessRuleState.DENY.name())));</span>
+<span class="nc" id="L922">            availableAccessRuleStates.add(new SelectItem(AccessRuleState.UNDEFINED.name(), super.getEjbcaWebBean().getText(&quot;ACCESSRULES_STATE_&quot;+AccessRuleState.UNDEFINED.name())));</span>
+        }
+<span class="nc" id="L924">        return availableAccessRuleStates;</span>
+    }
+
+    /** @return a viewable list of the possible values for a access rule */
+    public List&lt;SelectItem&gt; getAvailableAccessRuleStatesRoot() {
+<span class="nc" id="L929">        final List&lt;SelectItem&gt; result = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L930">        result.add(new SelectItem(AccessRuleState.ALLOW.name(), getEjbcaWebBean().getText(&quot;ACCESSRULES_STATE_&quot;+AccessRuleState.ALLOW.name())));</span>
+<span class="nc" id="L931">        result.add(new SelectItem(AccessRuleState.DENY.name(), getEjbcaWebBean().getText(&quot;ACCESSRULES_STATE_&quot;+AccessRuleState.DENY.name()), null, true));</span>
+<span class="nc" id="L932">        result.add(new SelectItem(AccessRuleState.UNDEFINED.name(), getEjbcaWebBean().getText(&quot;ACCESSRULES_STATE_&quot;+AccessRuleState.UNDEFINED.name() + &quot;_ROOT&quot;)));</span>
+<span class="nc" id="L933">        return result;</span>
+    }
+
+    /** Invoked by the admin when saving access rules in advanced mode. */
+    public void actionSaveAccessRulesAdvanced() {
+<span class="nc" id="L938">        final Role role = getRole();</span>
+<span class="nc" id="L939">        final LinkedHashMap&lt;String, Boolean&gt; accessRules = role.getAccessRules();</span>
+<span class="nc" id="L940">        accessRules.clear();</span>
+<span class="nc bnc" id="L941" title="All 2 branches missed.">        for (final AccessRuleItem accessRuleItem : authorizedAccessRuleItems) {</span>
+<span class="nc bnc" id="L942" title="All 2 branches missed.">            if (!AccessRuleState.UNDEFINED.equals(accessRuleItem.getStateEnum())) {</span>
+<span class="nc" id="L943">                accessRules.put(accessRuleItem.getResource(), AccessRuleState.ALLOW.equals(accessRuleItem.getStateEnum()));</span>
+            }
+<span class="nc" id="L945">        }</span>
+<span class="nc" id="L946">        final int numberOfRulesBeforeSave = accessRules.size();</span>
+        try {
+<span class="nc" id="L948">            this.role = roleSession.persistRole(getAdmin(), role);</span>
+<span class="nc" id="L949">            final int numberOfRedundantRules = numberOfRulesBeforeSave-role.getAccessRules().size();</span>
+<span class="nc bnc" id="L950" title="All 2 branches missed.">            if (numberOfRedundantRules==0) {</span>
+<span class="nc" id="L951">                super.addGlobalMessage(FacesMessage.SEVERITY_INFO, &quot;ACCESSRULES_INFO_SAVED&quot;);</span>
+            } else {
+<span class="nc" id="L953">                super.addGlobalMessage(FacesMessage.SEVERITY_INFO, &quot;ACCESSRULES_INFO_SAVED_MIN&quot;, numberOfRedundantRules);</span>
+            }
+<span class="nc" id="L955">        } catch (RoleExistsException e) {</span>
+<span class="nc" id="L956">            throw new IllegalStateException(e);</span>
+<span class="nc" id="L957">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L958">            super.addGlobalMessage(FacesMessage.SEVERITY_ERROR, &quot;ACCESSRULES_ERROR_UNAUTH&quot;, e.getMessage());</span>
+        } finally {
+<span class="nc" id="L960">            nonAjaxPostRedirectGet();</span>
+        }
+<span class="nc" id="L962">        authorizedAccessRuleItems = null;</span>
+<span class="nc" id="L963">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

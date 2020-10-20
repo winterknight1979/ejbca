@@ -14,45 +14,33 @@ package org.cesecore.certificates.ocsp.exception;
 
 /**
  * General RuntimeException for OCSP error that can't be handled.
- * 
- * @version $Id: OcspFailureException.java 18437 2014-02-03 12:46:08Z mikekushner $
  *
+ * @version $Id: OcspFailureException.java 18437 2014-02-03 12:46:08Z
+ *     mikekushner $
  */
 public class OcspFailureException extends RuntimeException {
 
-    private static final long serialVersionUID = 3024801898030204798L;
+  private static final long serialVersionUID = 3024801898030204798L;
 
-    /**
-     * 
-     */
-<span class="nc" id="L28">    public OcspFailureException() {</span>
-    
-<span class="nc" id="L30">    }</span>
+  /** Blank. */
+<span class="nc" id="L26">  public OcspFailureException() { }</span>
 
-    /**
-     * @param msg Message
-     */
-    public OcspFailureException(String msg) {
-<span class="nc" id="L36">        super(msg);</span>
+  /** @param msg Message */
+  public OcspFailureException(final String msg) {
+<span class="nc" id="L30">    super(msg);</span>
+<span class="nc" id="L31">  }</span>
 
-<span class="nc" id="L38">    }</span>
+  /** @param t cause */
+  public OcspFailureException(final Throwable t) {
+<span class="nc" id="L35">    super(t);</span>
+<span class="nc" id="L36">  }</span>
 
-    /**
-     * @param t cause
-     */
-    public OcspFailureException(Throwable t) {
-<span class="nc" id="L44">        super(t);</span>
-
-<span class="nc" id="L46">    }</span>
-
-    /**
-     * @param msg message
-     * @param t cause
-     */
-    public OcspFailureException(String msg, Throwable t) {
-<span class="nc" id="L53">        super(msg, t);</span>
-        
-<span class="nc" id="L55">    }</span>
-
+  /**
+   * @param msg message
+   * @param t cause
+   */
+  public OcspFailureException(final String msg, final Throwable t) {
+<span class="nc" id="L43">    super(msg, t);</span>
+<span class="nc" id="L44">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

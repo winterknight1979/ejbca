@@ -26,7 +26,7 @@ under the License.
     <copyright>&#169;2020</copyright>
     <item>
       <title>File: 17,
-             Errors: 1248,
+             Errors: 1246,
              Warnings: 0,
              Infos: 0
       </title>
@@ -55,7 +55,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  68
+                  67
                 </td>
               </tr>
                           <tr>
@@ -83,7 +83,21 @@ under the License.
                   0
                 </td>
                 <td>
-                  28
+                  27
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-common/checkstyle.html#org.ejbca.core.protocol.ws.common.CertificateHelper.java">org/ejbca/core/protocol/ws/common/CertificateHelper.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  32
                 </td>
               </tr>
                           <tr>
@@ -102,20 +116,6 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-common/checkstyle.html#org.ejbca.core.protocol.ws.common.CertificateHelper.java">org/ejbca/core/protocol/ws/common/CertificateHelper.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  31
-                </td>
-              </tr>
-                          <tr>
-                <td>
                   <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-common/checkstyle.html#org.ejbca.core.protocol.ws.common.IEjbcaWS.java">org/ejbca/core/protocol/ws/common/IEjbcaWS.java</a>
                 </td>
                 <td>
@@ -125,7 +125,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  468
+                  467
                 </td>
               </tr>
                           <tr>
@@ -195,7 +195,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  22
+                  23
                 </td>
               </tr>
                           <tr>
@@ -237,7 +237,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  136
+                  135
                 </td>
               </tr>
                           <tr>

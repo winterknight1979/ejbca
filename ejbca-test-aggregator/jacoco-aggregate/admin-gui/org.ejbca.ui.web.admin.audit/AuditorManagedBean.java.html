@@ -1,0 +1,725 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>AuditorManagedBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">admin-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.audit</a> &gt; <span class="el_source">AuditorManagedBean.java</span></div><h1>AuditorManagedBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.web.admin.audit;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.Serializable;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import javax.faces.application.FacesMessage;
+import javax.faces.context.FacesContext;
+import javax.faces.event.ActionEvent;
+import javax.faces.model.SelectItem;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.log4j.Logger;
+import org.cesecore.audit.AuditDevicesConfig;
+import org.cesecore.audit.AuditLogEntry;
+import org.cesecore.audit.audit.AuditExporter;
+import org.cesecore.audit.audit.SecurityEventsAuditorSessionLocal;
+import org.cesecore.audit.enums.EventStatus;
+import org.cesecore.audit.enums.EventType;
+import org.cesecore.audit.enums.EventTypes;
+import org.cesecore.audit.enums.ModuleType;
+import org.cesecore.audit.enums.ModuleTypes;
+import org.cesecore.audit.enums.ServiceType;
+import org.cesecore.audit.enums.ServiceTypes;
+import org.cesecore.audit.impl.AuditExporterXml;
+import org.cesecore.audit.impl.integrityprotected.AuditRecordData;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.util.StringTools;
+import org.cesecore.util.ValidityDate;
+import org.cesecore.util.XmlSerializer;
+import org.ejbca.core.ejb.audit.enums.EjbcaEventTypes;
+import org.ejbca.core.ejb.audit.enums.EjbcaModuleTypes;
+import org.ejbca.core.ejb.audit.enums.EjbcaServiceTypes;
+import org.ejbca.core.ejb.ca.caadmin.CAAdminSession;
+import org.ejbca.core.model.ca.caadmin.extendedcaservices.CmsCAServiceRequest;
+import org.ejbca.core.model.ca.caadmin.extendedcaservices.CmsCAServiceResponse;
+import org.ejbca.core.model.util.EjbLocalHelper;
+import org.ejbca.ui.web.admin.configuration.EjbcaJSFHelper;
+import org.ejbca.ui.web.admin.configuration.EjbcaWebBean;
+
+/**
+ * JSF Backing bean for viewing security audit logs.
+ * 
+ * Reloads the data lazily if when requested if something was cause for an update (first time, user has invoked reload etc).
+ * 
+ * getConditions() will handle special cases when HTTP GET parameters are passed (e.g. show history for a username).
+ * 
+ * @version $Id: AuditorManagedBean.java 28844 2018-05-04 08:31:02Z samuellb $
+ */
+public class AuditorManagedBean implements Serializable {
+
+	private static final long serialVersionUID = 1L;
+<span class="nc" id="L78">	private static final Logger log = Logger.getLogger(AuditorManagedBean.class);</span>
+
+	private static final boolean ORDER_ASC = true;
+	private static final boolean ORDER_DESC = false;
+	
+<span class="nc" id="L83">	private final SecurityEventsAuditorSessionLocal securityEventsAuditorSession = new EjbLocalHelper().getSecurityEventsAuditorSession();</span>
+<span class="nc" id="L84">	private final CaSessionLocal caSession = new EjbLocalHelper().getCaSession();</span>
+	
+<span class="nc" id="L86">	private boolean renderNext = false;</span>
+
+<span class="nc" id="L88">	private boolean reloadResultsNextView = true;</span>
+	private String device;
+<span class="nc" id="L90">	private String sortColumn = AuditLogEntry.FIELD_TIMESTAMP;</span>
+<span class="nc" id="L91">	private boolean sortOrder = ORDER_DESC;</span>
+<span class="nc" id="L92">	private int maxResults = 40;</span>
+<span class="nc" id="L93">	private int startIndex = 1;</span>
+<span class="nc" id="L94">	private final List&lt;SelectItem&gt; sortColumns = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L95">	private final List&lt;SelectItem&gt; columns = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L96">	private final List&lt;SelectItem&gt; sortOrders = new ArrayList&lt;&gt;();</span>
+	private List&lt;? extends AuditLogEntry&gt; results;
+	private Map&lt;Object, String&gt; caIdToNameMap;
+
+<span class="nc" id="L100">	private Map&lt;String, String&gt; columnNameMap = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L101">	private final List&lt;SelectItem&gt; eventStatusOptions = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L102">	private final List&lt;SelectItem&gt; eventTypeOptions = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L103">	private final List&lt;SelectItem&gt; moduleTypeOptions = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L104">	private final List&lt;SelectItem&gt; serviceTypeOptions = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L105">	private final List&lt;SelectItem&gt; operationsOptions = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L106">	private final List&lt;SelectItem&gt; conditionsOptions = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L107">    private final List&lt;SelectItem&gt; conditionsOptionsExact = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L108">    private final List&lt;SelectItem&gt; conditionsOptionsContains = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L109">    private final List&lt;SelectItem&gt; conditionsOptionsNumber = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L110">    private final List&lt;SelectItem&gt; cmsSigningCaOptions = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L111">    private Integer cmsSigningCa = null;</span>
+<span class="nc" id="L112">	private String conditionColumn = AuditLogEntry.FIELD_SEARCHABLE_DETAIL2;</span>
+	private AuditSearchCondition conditionToAdd;
+<span class="nc" id="L114">	private List&lt;AuditSearchCondition&gt; conditions = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L115">	private boolean automaticReload = true;</span>
+	
+<span class="nc" id="L117">	public AuditorManagedBean() {</span>
+<span class="nc" id="L118">		final EjbcaWebBean ejbcaWebBean = EjbcaJSFHelper.getBean().getEjbcaWebBean();</span>
+<span class="nc" id="L119">		columnNameMap.put(AuditLogEntry.FIELD_AUTHENTICATION_TOKEN, ejbcaWebBean.getText(&quot;ADMINISTRATOR&quot;));</span>
+<span class="nc" id="L120">		columnNameMap.put(AuditLogEntry.FIELD_CUSTOM_ID, ejbcaWebBean.getText(&quot;CUSTOM_ID&quot;));</span>
+<span class="nc" id="L121">		columnNameMap.put(AuditLogEntry.FIELD_EVENTSTATUS, ejbcaWebBean.getText(&quot;EVENTSTATUS&quot;));</span>
+<span class="nc" id="L122">		columnNameMap.put(AuditLogEntry.FIELD_EVENTTYPE, ejbcaWebBean.getText(&quot;EVENTTYPE&quot;));</span>
+<span class="nc" id="L123">		columnNameMap.put(AuditLogEntry.FIELD_MODULE, ejbcaWebBean.getText(&quot;MODULE&quot;));</span>
+<span class="nc" id="L124">		columnNameMap.put(AuditLogEntry.FIELD_NODEID, ejbcaWebBean.getText(&quot;NODE&quot;));</span>
+<span class="nc" id="L125">		columnNameMap.put(AuditLogEntry.FIELD_SEARCHABLE_DETAIL1, ejbcaWebBean.getText(&quot;CERTIFICATE&quot;));</span>
+<span class="nc" id="L126">		columnNameMap.put(AuditLogEntry.FIELD_SEARCHABLE_DETAIL2, ejbcaWebBean.getText(&quot;USERNAME_ABBR&quot;));</span>
+		//columnNameMap.put(AuditLogEntry.FIELD_SEQUENCENUMBER, ejbcaWebBean.getText(&quot;SEQUENCENUMBER&quot;));
+		//columnNameMap.put(AuditLogEntry.FIELD_SERVICE, ejbcaWebBean.getText(&quot;SERVICE&quot;));
+<span class="nc" id="L129">		columnNameMap.put(AuditLogEntry.FIELD_TIMESTAMP, ejbcaWebBean.getText(&quot;TIMESTAMP&quot;));</span>
+<span class="nc bnc" id="L130" title="All 2 branches missed.">		for (final Entry&lt;String,String&gt; entry : columnNameMap.entrySet()) {</span>
+<span class="nc" id="L131">			sortColumns.add(new SelectItem(entry.getKey(), entry.getValue()));</span>
+<span class="nc" id="L132">		}</span>
+<span class="nc" id="L133">		columnNameMap.put(AuditLogEntry.FIELD_ADDITIONAL_DETAILS, ejbcaWebBean.getText(&quot;ADDITIONAL_DETAILS&quot;));</span>
+<span class="nc" id="L134">		columns.addAll(sortColumns);</span>
+	    //Commented out due to the fact that searching through the details field is unreliable. If there are any non ascii-characters in the field,
+        // (such as é), it will in its entirety be b64-encoded, which renders it unsearchable, even for ascii characters that may happen to be there
+        // as well.
+		//columns.add(new SelectItem(AuditLogEntry.FIELD_ADDITIONAL_DETAILS, columnNameMap.get(AuditLogEntry.FIELD_ADDITIONAL_DETAILS)));
+<span class="nc" id="L139">		sortOrders.add(new SelectItem(ORDER_ASC, &quot;ASC&quot;));</span>
+<span class="nc" id="L140">		sortOrders.add(new SelectItem(ORDER_DESC, &quot;DESC&quot;));</span>
+		// If no device is chosen we select the first available as default
+<span class="nc bnc" id="L142" title="All 2 branches missed.">		if (getDevices().size()&gt;0) {</span>
+<span class="nc" id="L143">			device = (String) getDevices().get(0).getValue();</span>
+		}
+		// We can't use enums directly in JSF 1.2
+<span class="nc bnc" id="L146" title="All 2 branches missed.">		for (Operation current : Operation.values()) {</span>
+<span class="nc" id="L147">			operationsOptions.add(new SelectItem(current.toString(), ejbcaWebBean.getText(current.toString())));</span>
+		}
+<span class="nc bnc" id="L149" title="All 2 branches missed.">		for (Condition current : Condition.values()) {</span>
+<span class="nc" id="L150">			conditionsOptions.add(new SelectItem(current.toString(), ejbcaWebBean.getText(current.toString())));</span>
+		}
+<span class="nc" id="L152">        conditionsOptionsExact.add(new SelectItem(Condition.EQUALS.toString(), ejbcaWebBean.getText(Condition.EQUALS.toString())));</span>
+<span class="nc" id="L153">        conditionsOptionsExact.add(new SelectItem(Condition.NOT_EQUALS.toString(), ejbcaWebBean.getText(Condition.NOT_EQUALS.toString())));</span>
+<span class="nc" id="L154">        conditionsOptionsNumber.addAll(conditionsOptionsExact);</span>
+<span class="nc" id="L155">        conditionsOptionsNumber.add(new SelectItem(Condition.GREATER_THAN.toString(), ejbcaWebBean.getText(Condition.GREATER_THAN.toString())));</span>
+<span class="nc" id="L156">        conditionsOptionsNumber.add(new SelectItem(Condition.LESS_THAN.toString(), ejbcaWebBean.getText(Condition.LESS_THAN.toString())));</span>
+<span class="nc" id="L157">        conditionsOptionsContains.add(new SelectItem(Condition.CONTAINS.toString(), ejbcaWebBean.getText(Condition.CONTAINS.toString())));</span>
+<span class="nc bnc" id="L158" title="All 2 branches missed.">		for (EventStatus current : EventStatus.values()) {</span>
+<span class="nc" id="L159">			eventStatusOptions.add(new SelectItem(current.toString(), ejbcaWebBean.getText(current.toString())));</span>
+		}
+<span class="nc bnc" id="L161" title="All 2 branches missed.">		for (EventTypes current : EventTypes.values()) {</span>
+			// TODO: Verify if these are used by EJBCA
+<span class="nc bnc" id="L163" title="All 2 branches missed.">			switch (current) {</span>
+			case BACKUP:
+			case RESTORE:
+			case TIME_SYNC_ACQUIRE:
+			case TIME_SYNC_LOST:
+			//case LOG_MANAGEMENT_CHANGE:
+			//case LOG_SIGN:
+			case CERTIFICATE_KEY_BIND:
+			case CERTIFICATE_KEY_UNBIND:
+				// Ignore!
+<span class="nc" id="L173">				break;</span>
+			default:
+<span class="nc" id="L175">				eventTypeOptions.add(new SelectItem(current.toString(), ejbcaWebBean.getText(current.toString())));</span>
+			}
+		}
+<span class="nc bnc" id="L178" title="All 2 branches missed.">		for (EventType current : EjbcaEventTypes.values()) {</span>
+<span class="nc" id="L179">			eventTypeOptions.add(new SelectItem(current.toString(), ejbcaWebBean.getText(current.toString())));</span>
+		}
+<span class="nc bnc" id="L181" title="All 2 branches missed.">		for (ModuleType current : ModuleTypes.values()) {</span>
+<span class="nc" id="L182">			moduleTypeOptions.add(new SelectItem(current.toString(), ejbcaWebBean.getText(current.toString())));</span>
+		}
+<span class="nc bnc" id="L184" title="All 2 branches missed.">		for (ModuleType current : EjbcaModuleTypes.values()) {</span>
+<span class="nc" id="L185">			moduleTypeOptions.add(new SelectItem(current.toString(), ejbcaWebBean.getText(current.toString())));</span>
+		}
+<span class="nc bnc" id="L187" title="All 2 branches missed.">		for (ServiceType current : ServiceTypes.values()) {</span>
+<span class="nc" id="L188">			serviceTypeOptions.add(new SelectItem(current.toString(), ejbcaWebBean.getText(current.toString())));</span>
+		}
+<span class="nc bnc" id="L190" title="All 2 branches missed.">		for (ServiceType current : EjbcaServiceTypes.values()) {</span>
+<span class="nc" id="L191">			serviceTypeOptions.add(new SelectItem(current.toString(), ejbcaWebBean.getText(current.toString())));</span>
+		}
+		// By default, don't show the authorized to resource events
+<span class="nc" id="L194">		conditions.add(new AuditSearchCondition(AuditLogEntry.FIELD_EVENTTYPE, conditionsOptionsExact, eventTypeOptions, Condition.NOT_EQUALS, EventTypes.ACCESS_CONTROL.name()));</span>
+<span class="nc" id="L195">		updateCmsSigningCas();</span>
+<span class="nc" id="L196">	}</span>
+
+	public List&lt;SelectItem&gt; getDevices() {
+<span class="nc" id="L199">		final List&lt;SelectItem&gt; list = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L200" title="All 2 branches missed.">		for (final String deviceId : securityEventsAuditorSession.getQuerySupportingLogDevices()) {</span>
+<span class="nc" id="L201">			list.add(new SelectItem(deviceId, deviceId));</span>
+<span class="nc" id="L202">		}</span>
+<span class="nc" id="L203">		return list;</span>
+	}
+	
+	public boolean isOneLogDevice() {
+<span class="nc bnc" id="L207" title="All 2 branches missed.">		return getDevices().size()==1;</span>
+	}
+	
+	public boolean isRenderNext() {
+<span class="nc" id="L211">		getResults();</span>
+<span class="nc" id="L212">		return renderNext;</span>
+	}
+
+	public int getResultSize() {
+<span class="nc" id="L216">		getResults();</span>
+<span class="nc bnc" id="L217" title="All 2 branches missed.">		return results==null?0:results.size();</span>
+	}
+
+	public List&lt;SelectItem&gt; getSortColumns() {
+<span class="nc" id="L221">		return sortColumns;</span>
+	}
+
+	public List&lt;SelectItem&gt; getSortOrders() {
+<span class="nc" id="L225">		return sortOrders;</span>
+	}
+
+	public List&lt;SelectItem&gt; getColumns() {
+<span class="nc" id="L229">		return columns;</span>
+	}
+
+	public void setDevice(final String selectedDevice) {
+<span class="nc" id="L233">		this.device = selectedDevice;</span>
+<span class="nc" id="L234">	}</span>
+
+	public String getDevice() {
+<span class="nc" id="L237">		return device;</span>
+	}
+	
+	public List&lt;? extends AuditLogEntry&gt; getResults() {
+<span class="nc bnc" id="L241" title="All 4 branches missed.">		if (getDevice() != null &amp;&amp; reloadResultsNextView) {</span>
+<span class="nc" id="L242">			reloadResults();</span>
+<span class="nc" id="L243">			reloadResultsNextView = false;</span>
+		}
+<span class="nc" id="L245">		return results;</span>
+	}
+	
+	/** Converts a map with possibly Base64 encoded items to a string 
+	 * @param value Value
+	 * @return String */
+	public String mapToString(final Map&lt;String,Object&gt; value) {
+<span class="nc" id="L252">	    return MapToStringConverter.getAsString(value);</span>
+	}
+
+	public void setSortColumn(String sortColumn) {
+<span class="nc" id="L256">		this.sortColumn = sortColumn;</span>
+<span class="nc" id="L257">	}</span>
+
+	public String getSortColumn() {
+<span class="nc" id="L260">		return sortColumn;</span>
+	}
+
+	public void setMaxResults(final int maxResults) {
+<span class="nc" id="L264">		this.maxResults = Math.min(1000, Math.max(1, maxResults));	// 1-1000 results allowed</span>
+<span class="nc" id="L265">	}</span>
+
+	public int getMaxResults() {
+<span class="nc" id="L268">		return maxResults;</span>
+	}
+
+	public void setStartIndex(final int startIndex) {
+<span class="nc" id="L272">		this.startIndex = Math.max(1, startIndex);</span>
+<span class="nc" id="L273">	}</span>
+
+	public int getStartIndex() {
+<span class="nc" id="L276">		return startIndex;</span>
+	}
+
+	public void setSortOrder(boolean sortOrder) {
+<span class="nc" id="L280">		this.sortOrder = sortOrder;</span>
+<span class="nc" id="L281">	}</span>
+
+	public boolean isSortOrder() {
+<span class="nc" id="L284">		return sortOrder;</span>
+	}
+
+	public void setConditionColumn(String conditionColumn) {
+<span class="nc" id="L288">		this.conditionColumn = conditionColumn;</span>
+<span class="nc" id="L289">	}</span>
+
+	public String getConditionColumn() {
+<span class="nc" id="L292">		return conditionColumn;</span>
+	}
+
+	public void setConditionToAdd(AuditSearchCondition conditionToAdd) {
+<span class="nc" id="L296">		this.conditionToAdd = conditionToAdd;</span>
+<span class="nc" id="L297">	}</span>
+
+	public AuditSearchCondition getConditionToAdd() {
+<span class="nc" id="L300">		return conditionToAdd;</span>
+	}
+
+	public void clearConditions() {
+<span class="nc" id="L304">		setConditions(new ArrayList&lt;AuditSearchCondition&gt;());</span>
+<span class="nc" id="L305">		setConditionToAdd(null);</span>
+<span class="nc" id="L306">		onConditionChanged();</span>
+<span class="nc" id="L307">	}</span>
+
+	public void newCondition() {
+<span class="nc bnc" id="L310" title="All 2 branches missed.">		if (AuditLogEntry.FIELD_AUTHENTICATION_TOKEN.equals(conditionColumn)</span>
+<span class="nc bnc" id="L311" title="All 2 branches missed.">				|| AuditLogEntry.FIELD_NODEID.equals(conditionColumn)</span>
+<span class="nc bnc" id="L312" title="All 2 branches missed.">				|| AuditLogEntry.FIELD_SEARCHABLE_DETAIL1.equals(conditionColumn)</span>
+<span class="nc bnc" id="L313" title="All 2 branches missed.">				|| AuditLogEntry.FIELD_SEARCHABLE_DETAIL2.equals(conditionColumn)</span>
+<span class="nc bnc" id="L314" title="All 2 branches missed.">				|| AuditLogEntry.FIELD_SEQUENCENUMBER.equals(conditionColumn)) {</span>
+<span class="nc" id="L315">			setConditionToAdd(new AuditSearchCondition(conditionColumn, conditionsOptions, null, Condition.EQUALS, &quot;&quot;));</span>
+<span class="nc bnc" id="L316" title="All 2 branches missed.">		} else if (AuditLogEntry.FIELD_CUSTOM_ID.equals(conditionColumn)) {</span>
+<span class="nc" id="L317">			List&lt;SelectItem&gt; caIds = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L318" title="All 2 branches missed.">			for (Entry&lt;Object,String&gt; entry : caIdToNameMap.entrySet()) {</span>
+<span class="nc" id="L319">				caIds.add(new SelectItem(entry.getKey(), entry.getValue()));</span>
+<span class="nc" id="L320">			}</span>
+<span class="nc" id="L321">			setConditionToAdd(new AuditSearchCondition(conditionColumn, conditionsOptionsExact, caIds));</span>
+<span class="nc bnc" id="L322" title="All 2 branches missed.">		} else if (AuditLogEntry.FIELD_EVENTSTATUS.equals(conditionColumn)) {</span>
+<span class="nc" id="L323">			setConditionToAdd(new AuditSearchCondition(conditionColumn, conditionsOptionsExact, eventStatusOptions));</span>
+<span class="nc bnc" id="L324" title="All 2 branches missed.">		} else if (AuditLogEntry.FIELD_EVENTTYPE.equals(conditionColumn)) {</span>
+<span class="nc" id="L325">			setConditionToAdd(new AuditSearchCondition(conditionColumn, conditionsOptionsExact, eventTypeOptions));</span>
+<span class="nc bnc" id="L326" title="All 2 branches missed.">		} else if (AuditLogEntry.FIELD_MODULE.equals(conditionColumn)) {</span>
+<span class="nc" id="L327">			setConditionToAdd(new AuditSearchCondition(conditionColumn, conditionsOptionsExact, moduleTypeOptions));</span>
+<span class="nc bnc" id="L328" title="All 2 branches missed.">		} else if (AuditLogEntry.FIELD_SERVICE.equals(conditionColumn)) {</span>
+<span class="nc" id="L329">			setConditionToAdd(new AuditSearchCondition(conditionColumn, conditionsOptionsExact, serviceTypeOptions));</span>
+<span class="nc bnc" id="L330" title="All 2 branches missed.">		} else if (AuditLogEntry.FIELD_TIMESTAMP.equals(conditionColumn)) {</span>
+<span class="nc" id="L331">			setConditionToAdd(new AuditSearchCondition(conditionColumn, conditionsOptionsNumber, null, Condition.EQUALS, ValidityDate.formatAsISO8601(new Date(), ValidityDate.TIMEZONE_SERVER)));</span>
+<span class="nc bnc" id="L332" title="All 2 branches missed.">        } else if (AuditLogEntry.FIELD_ADDITIONAL_DETAILS.equals(conditionColumn)) {</span>
+<span class="nc" id="L333">            setConditionToAdd(new AuditSearchCondition(conditionColumn, conditionsOptionsContains, null, Condition.CONTAINS, &quot;&quot;));</span>
+		}
+<span class="nc" id="L335">	}</span>
+
+	public void cancelCondition() {
+<span class="nc" id="L338">		setConditionToAdd(null);</span>
+<span class="nc" id="L339">	}</span>
+
+	public void addCondition() {
+<span class="nc" id="L342">		getConditions().add(getConditionToAdd());</span>
+<span class="nc" id="L343">		setConditionToAdd(null);</span>
+<span class="nc" id="L344">		onConditionChanged();</span>
+<span class="nc" id="L345">	}</span>
+
+    public void removeCondition(ActionEvent event){
+<span class="nc" id="L348">        getConditions().remove(event.getComponent().getAttributes().get(&quot;removeCondition&quot;));</span>
+<span class="nc" id="L349">        onConditionChanged();</span>
+<span class="nc" id="L350">    }</span>
+
+    public boolean isAutomaticReload() {
+<span class="nc" id="L353">        return automaticReload;</span>
+    }
+    public void setAutomaticReload(boolean automaticReload) {
+<span class="nc" id="L356">        this.automaticReload = automaticReload;</span>
+<span class="nc" id="L357">    }</span>
+    
+    private void onConditionChanged() {
+<span class="nc" id="L360">        reloadResultsNextView = isAutomaticReload();</span>
+<span class="nc" id="L361">        first();</span>
+<span class="nc" id="L362">    }</span>
+
+    public void reload()  {
+<span class="nc" id="L365">		reloadResultsNextView = true;</span>
+<span class="nc" id="L366">	}</span>
+
+	private void reloadResults() {
+<span class="nc bnc" id="L369" title="All 2 branches missed.">		if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L370">			log.debug(&quot;Reloading audit load. selectedDevice=&quot; + device);</span>
+		}
+<span class="nc" id="L372">	    updateCaIdToNameMap();</span>
+		try {
+<span class="nc" id="L374">	        final AuthenticationToken authenticationToken = EjbcaJSFHelper.getBean().getEjbcaWebBean().getAdminObject();</span>
+<span class="nc" id="L375">	        results = getResults(authenticationToken, columnNameMap.keySet(), device, getConditions(), sortColumn, sortOrder, startIndex-1, maxResults);</span>
+<span class="nc" id="L376">		} catch (Exception e) {</span>
+<span class="nc bnc" id="L377" title="All 2 branches missed.">		    if (results!=null) {</span>
+<span class="nc" id="L378">	            results.clear();</span>
+		    }
+<span class="nc bnc" id="L380" title="All 2 branches missed.">		    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L381">		        log.debug(e.getMessage(), e);</span>
+		    }
+<span class="nc" id="L383">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(&quot;Invalid search conditions: &quot; + e.getMessage()));</span>
+<span class="nc" id="L384">		}</span>
+<span class="nc bnc" id="L385" title="All 6 branches missed.">		renderNext = results!=null &amp;&amp; !results.isEmpty() &amp;&amp; results.size()==maxResults;</span>
+<span class="nc" id="L386">	}</span>
+	
+    /**
+     * Build and executing audit log queries that are safe from SQL injection.
+     * 
+     * @param token the requesting entity. Will also limit the results to authorized CAs. 
+     * @param validColumns a Set of legal column names
+     * @param device the name of the audit log device
+     * @param conditions the list of conditions to transform into a query
+     * @param sortColumn ORDER BY column
+     * @param sortOrder true=ASC, false=DESC order
+     * @param firstResult first entry from the result set. Index starts with 0.
+     * @param maxResults number of results to return
+     * @return the query result
+     * @throws AuthorizationDeniedException if the administrator is not authorized to perform the requested query
+     */
+    private List&lt;? extends AuditLogEntry&gt; getResults(final AuthenticationToken token, final Set&lt;String&gt; validColumns, final String device,
+            final List&lt;AuditSearchCondition&gt; conditions, final String sortColumn, final boolean sortOrder, final int firstResult, final int maxResults)
+            throws AuthorizationDeniedException {
+<span class="nc" id="L405">        final List&lt;Object&gt; parameters = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L406">        final StringBuilder whereClause = new StringBuilder();</span>
+<span class="nc" id="L407">        final String errorMessage = &quot;This should never happen unless you are intentionally trying to perform an SQL injection attack.&quot;;</span>
+<span class="nc bnc" id="L408" title="All 2 branches missed.">        for (int i=0; i&lt;conditions.size(); i++) {</span>
+<span class="nc" id="L409">            final AuditSearchCondition condition = conditions.get(i);</span>
+<span class="nc bnc" id="L410" title="All 2 branches missed.">            if (i&gt;0) {</span>
+<span class="nc bnc" id="L411" title="All 3 branches missed.">                switch (condition.getOperation()) {</span>
+                case AND:
+<span class="nc" id="L413">                    whereClause.append(&quot; AND &quot;); break;</span>
+                case OR:
+<span class="nc" id="L415">                    whereClause.append(&quot; OR &quot;); break;</span>
+                }
+            }
+            // Validate that the column we are adding to the SQL WHERE clause is exactly one of the legal column names
+<span class="nc bnc" id="L419" title="All 2 branches missed.">            if (!validColumns.contains(condition.getColumn())) {</span>
+<span class="nc" id="L420">                throw new IllegalArgumentException(errorMessage);</span>
+            }
+<span class="nc" id="L422">            Object conditionValue = condition.getValue();</span>
+<span class="nc bnc" id="L423" title="All 2 branches missed.">            if (AuditLogEntry.FIELD_TIMESTAMP.equals(condition.getColumn())) {</span>
+                try {
+<span class="nc" id="L425">                    conditionValue = Long.valueOf(ValidityDate.parseAsIso8601(conditionValue.toString()).getTime());</span>
+<span class="nc" id="L426">                } catch (ParseException e) {</span>
+<span class="nc" id="L427">                    log.debug(&quot;Admin entered invalid date for audit log search: &quot; + condition.getValue());</span>
+<span class="nc" id="L428">                    continue;</span>
+<span class="nc" id="L429">                }</span>
+            }
+<span class="nc bnc" id="L431" title="All 8 branches missed.">            switch (Condition.valueOf(condition.getCondition())) {</span>
+            case EQUALS:
+<span class="nc" id="L433">                whereClause.append(&quot;a.&quot;).append(condition.getColumn()).append(&quot; = ?&quot;).append(i); break;</span>
+            case NOT_EQUALS:
+<span class="nc" id="L435">                whereClause.append(&quot;a.&quot;).append(condition.getColumn()).append(&quot; != ?&quot;).append(i); break;</span>
+            case CONTAINS:
+<span class="nc" id="L437">                whereClause.append(&quot;a.&quot;).append(condition.getColumn()).append(&quot; LIKE ?&quot;).append(i);</span>
+<span class="nc" id="L438">                conditionValue = &quot;%&quot; + conditionValue + &quot;%&quot;;</span>
+<span class="nc" id="L439">                break;</span>
+            case ENDS_WITH:
+<span class="nc" id="L441">                whereClause.append(&quot;a.&quot;).append(condition.getColumn()).append(&quot; LIKE ?&quot;).append(i);</span>
+<span class="nc" id="L442">                conditionValue = &quot;%&quot; + conditionValue;</span>
+<span class="nc" id="L443">                break;</span>
+            case STARTS_WITH:
+<span class="nc" id="L445">                whereClause.append(&quot;a.&quot;).append(condition.getColumn()).append(&quot; LIKE ?&quot;).append(i);</span>
+<span class="nc" id="L446">                conditionValue = conditionValue + &quot;%&quot;;</span>
+<span class="nc" id="L447">                break;</span>
+            case GREATER_THAN:
+<span class="nc" id="L449">                whereClause.append(&quot;a.&quot;).append(condition.getColumn()).append(&quot; &gt; ?&quot;).append(i); break;</span>
+            case LESS_THAN:
+<span class="nc" id="L451">                whereClause.append(&quot;a.&quot;).append(condition.getColumn()).append(&quot; &lt; ?&quot;).append(i); break;</span>
+            default:
+<span class="nc" id="L453">                throw new IllegalArgumentException(errorMessage);    </span>
+            }
+            // The condition value will be added to the query using JPA's setParameter (safe from SQL injection)
+<span class="nc" id="L456">            parameters.add(conditionValue);</span>
+        }
+        // Validate that the column we are adding to the SQL ORDER clause is exactly one of the legal column names
+<span class="nc bnc" id="L459" title="All 2 branches missed.">        if (!validColumns.contains(sortColumn)) {</span>
+<span class="nc" id="L460">            throw new IllegalArgumentException(errorMessage);</span>
+        }
+<span class="nc bnc" id="L462" title="All 2 branches missed.">        final String orderClause = new StringBuilder(&quot;a.&quot;).append(sortColumn).append(sortOrder?&quot; ASC&quot;:&quot; DESC&quot;).toString();</span>
+<span class="nc" id="L463">        return new EjbLocalHelper().getEjbcaAuditorSession().selectAuditLog(token, device, firstResult, maxResults, whereClause.toString(), orderClause, parameters);</span>
+    }
+	
+	public Map&lt;Object, String&gt; getCaIdToName() {
+<span class="nc" id="L467">		return caIdToNameMap;</span>
+	}
+
+	private void updateCaIdToNameMap() {
+<span class="nc" id="L471">		final Map&lt;Integer, String&gt; map = caSession.getCAIdToNameMap();</span>
+<span class="nc" id="L472">		final Map&lt;Object, String&gt; ret = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L473">		final AuthenticationToken authenticationToken = EjbcaJSFHelper.getBean().getEjbcaWebBean().getAdminObject();</span>
+<span class="nc bnc" id="L474" title="All 2 branches missed.">		for (final Entry&lt;Integer,String&gt; entry : map.entrySet()) {</span>
+<span class="nc bnc" id="L475" title="All 2 branches missed.">            if (caSession.authorizedToCANoLogging(authenticationToken, entry.getKey())) {</span>
+<span class="nc" id="L476">                ret.put(entry.getKey().toString(), entry.getValue());</span>
+            }
+<span class="nc" id="L478">		}</span>
+<span class="nc" id="L479">		caIdToNameMap = ret;</span>
+<span class="nc" id="L480">	}</span>
+
+	public Map&lt;String, String&gt; getNameFromColumn() {
+<span class="nc" id="L483">		return columnNameMap;</span>
+	}
+
+	public void first() {
+<span class="nc" id="L487">		setStartIndex(1);</span>
+<span class="nc" id="L488">		reloadResultsNextView = true;</span>
+<span class="nc" id="L489">	}</span>
+
+	public void next(){
+<span class="nc" id="L492">		setStartIndex(startIndex + maxResults);</span>
+<span class="nc" id="L493">		reloadResultsNextView = true;</span>
+<span class="nc" id="L494">	}</span>
+
+	public void previous() {
+<span class="nc" id="L497">		setStartIndex(startIndex - maxResults);</span>
+<span class="nc" id="L498">		reloadResultsNextView = true;</span>
+<span class="nc" id="L499">	}</span>
+
+	public void setConditions(List&lt;AuditSearchCondition&gt; conditions) {
+<span class="nc" id="L502">		this.conditions = conditions;</span>
+<span class="nc" id="L503">	}</span>
+
+	public List&lt;AuditSearchCondition&gt; getConditions() {
+		// Special case when we supply &quot;username&quot; as parameter to allow view of a user's history
+<span class="nc" id="L507">		final String searchDetail2String = getHttpParameter(&quot;username&quot;);</span>
+<span class="nc bnc" id="L508" title="All 2 branches missed.">		if (searchDetail2String!=null) {</span>
+<span class="nc" id="L509">			reloadResultsNextView = true;</span>
+<span class="nc" id="L510">			startIndex = 1;</span>
+<span class="nc" id="L511">			conditions.clear();</span>
+<span class="nc" id="L512">			conditions.add(new AuditSearchCondition(AuditLogEntry.FIELD_SEARCHABLE_DETAIL2, conditionsOptions, null, Condition.EQUALS, searchDetail2String));</span>
+<span class="nc" id="L513">			sortColumn = AuditLogEntry.FIELD_TIMESTAMP;</span>
+<span class="nc" id="L514">			sortOrder = ORDER_DESC;</span>
+		}
+<span class="nc" id="L516">		return conditions;</span>
+	}
+
+	public List&lt;SelectItem&gt; getDefinedOperations() {
+<span class="nc" id="L520">		return operationsOptions;</span>
+	}
+
+	public List&lt;SelectItem&gt; getDefinedConditions() {
+<span class="nc" id="L524">	    return conditionToAdd.getConditions();</span>
+	}
+
+	private String getHttpParameter(String key) {
+<span class="nc" id="L528">		return FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get(key);</span>
+	}
+	
+<span class="nc" id="L531">	public void reorderAscByTime() { reorderBy(AuditLogEntry.FIELD_TIMESTAMP, ORDER_ASC); }</span>
+<span class="nc" id="L532">	public void reorderDescByTime() { reorderBy(AuditLogEntry.FIELD_TIMESTAMP, ORDER_DESC); }</span>
+
+<span class="nc" id="L534">	public void reorderAscByEvent() { reorderBy(AuditLogEntry.FIELD_EVENTTYPE, ORDER_ASC); }</span>
+<span class="nc" id="L535">	public void reorderDescByEvent() { reorderBy(AuditLogEntry.FIELD_EVENTTYPE, ORDER_DESC); }</span>
+
+<span class="nc" id="L537">	public void reorderAscByStatus() { reorderBy(AuditLogEntry.FIELD_EVENTSTATUS, ORDER_ASC); }</span>
+<span class="nc" id="L538">	public void reorderDescByStatus() { reorderBy(AuditLogEntry.FIELD_EVENTSTATUS, ORDER_DESC); }</span>
+
+<span class="nc" id="L540">	public void reorderAscByAuthToken() { reorderBy(AuditLogEntry.FIELD_AUTHENTICATION_TOKEN, ORDER_ASC); }</span>
+<span class="nc" id="L541">	public void reorderDescByAuthToken() { reorderBy(AuditLogEntry.FIELD_AUTHENTICATION_TOKEN, ORDER_DESC); }</span>
+
+<span class="nc" id="L543">	public void reorderAscByModule() { reorderBy(AuditLogEntry.FIELD_MODULE, ORDER_ASC); }</span>
+<span class="nc" id="L544">	public void reorderDescByModule() { reorderBy(AuditLogEntry.FIELD_MODULE, ORDER_DESC); }</span>
+
+<span class="nc" id="L546">	public void reorderAscByCustomId() { reorderBy(AuditLogEntry.FIELD_CUSTOM_ID, ORDER_ASC); }</span>
+<span class="nc" id="L547">	public void reorderDescByCustomId() { reorderBy(AuditLogEntry.FIELD_CUSTOM_ID, ORDER_DESC); }</span>
+
+<span class="nc" id="L549">	public void reorderAscBySearchDetail1() { reorderBy(AuditLogEntry.FIELD_SEARCHABLE_DETAIL1, ORDER_ASC); }</span>
+<span class="nc" id="L550">	public void reorderDescBySearchDetail1() { reorderBy(AuditLogEntry.FIELD_SEARCHABLE_DETAIL1, ORDER_DESC); }</span>
+
+<span class="nc" id="L552">	public void reorderAscBySearchDetail2() { reorderBy(AuditLogEntry.FIELD_SEARCHABLE_DETAIL2, ORDER_ASC); }</span>
+<span class="nc" id="L553">	public void reorderDescBySearchDetail2() { reorderBy(AuditLogEntry.FIELD_SEARCHABLE_DETAIL2, ORDER_DESC); }</span>
+
+<span class="nc" id="L555">	public void reorderAscByNodeId() { reorderBy(AuditLogEntry.FIELD_NODEID, ORDER_ASC); }</span>
+<span class="nc" id="L556">	public void reorderDescByNodeId() { reorderBy(AuditLogEntry.FIELD_NODEID, ORDER_DESC); }</span>
+
+	private void reorderBy(String column, boolean orderAsc) {
+<span class="nc bnc" id="L559" title="All 2 branches missed.">		if (!sortColumn.equals(column)) {</span>
+<span class="nc" id="L560">			reloadResultsNextView = true;</span>
+		}
+<span class="nc" id="L562">		sortColumn = column;</span>
+<span class="nc bnc" id="L563" title="All 2 branches missed.">		if (sortOrder != orderAsc) {</span>
+<span class="nc" id="L564">			reloadResultsNextView = true;</span>
+		}
+<span class="nc bnc" id="L566" title="All 2 branches missed.">		sortOrder = orderAsc ? ORDER_ASC : ORDER_DESC;</span>
+<span class="nc" id="L567">	}</span>
+	
+	/**
+	 * Ugly hack to be able to read the length of the resulting String from JSF EL.
+	 * 
+	 * Example: &quot;#{auditor.stringTooLong[(auditLogEntry.mapAdditionalDetails)] &amp;gt; 50}&quot;
+	 * 
+	 * TODO: Use javax.faces.model.DataModel instead
+	 * 
+	 * @return a fake &quot;Map&quot; where the get(Map) returns the length of the output-formatted Map
+	 */
+	public Map&lt;String,Integer&gt; getStringTooLong() {
+<span class="nc" id="L579">		return new Map&lt;String,Integer&gt;() {</span>
+			@Override public Integer get(Object key) {
+<span class="nc" id="L581">				return new MapToStringConverter().getAsString(null, null, key).length();</span>
+			}
+<span class="nc" id="L583">			@Override public void clear() { }</span>
+<span class="nc" id="L584">			@Override public boolean containsKey(Object key) { return false; }</span>
+<span class="nc" id="L585">			@Override public boolean containsValue(Object value) { return false; }</span>
+<span class="nc" id="L586">			@Override public Set&lt;Entry&lt;String, Integer&gt;&gt; entrySet() { return null; }</span>
+<span class="nc" id="L587">			@Override public boolean isEmpty() { return false; }</span>
+<span class="nc" id="L588">			@Override public Set&lt;String&gt; keySet() { return null; }</span>
+<span class="nc" id="L589">			@Override public Integer put(String key, Integer value) { return null; }</span>
+<span class="nc" id="L590">			@Override public void putAll(Map&lt;? extends String, ? extends Integer&gt; m) { }</span>
+<span class="nc" id="L591">			@Override public Integer remove(Object key) { return null; }</span>
+<span class="nc" id="L592">			@Override public int size() { return 0; }</span>
+<span class="nc" id="L593">			@Override public Collection&lt;Integer&gt; values() { return null; }</span>
+		};
+	}
+
+    private void updateCmsSigningCas() {
+<span class="nc" id="L598">        final Map&lt;Integer, String&gt; map = caSession.getCAIdToNameMap();</span>
+<span class="nc" id="L599">        cmsSigningCaOptions.clear();</span>
+<span class="nc bnc" id="L600" title="All 2 branches missed.">        for (int caid :  caSession.getAuthorizedCaIds(EjbcaJSFHelper.getBean().getEjbcaWebBean().getAdminObject())) {</span>
+            // TODO: Would be nice to check if the CMS signer service is activated here before we add it
+<span class="nc" id="L602">            cmsSigningCaOptions.add(new SelectItem(caid, map.get(caid)));</span>
+<span class="nc" id="L603">        }</span>
+<span class="nc bnc" id="L604" title="All 4 branches missed.">        if (cmsSigningCa == null &amp;&amp; !cmsSigningCaOptions.isEmpty()) {</span>
+<span class="nc" id="L605">            cmsSigningCa = (Integer) cmsSigningCaOptions.get(0).getValue();</span>
+        }
+<span class="nc" id="L607">    }</span>
+	public List&lt;SelectItem&gt; getCmsSigningCas() {
+<span class="nc" id="L609">	    return cmsSigningCaOptions;</span>
+	}
+	public Integer getCmsSigningCa() {
+<span class="nc" id="L612">	    return cmsSigningCa;</span>
+	}
+	public void setCmsSigningCa(Integer cmsSigningCa) {
+<span class="nc" id="L615">	    this.cmsSigningCa = cmsSigningCa;</span>
+<span class="nc" id="L616">	}</span>
+	public void downloadResultsCms() {
+        try {
+<span class="nc bnc" id="L619" title="All 2 branches missed.">            if (cmsSigningCa == null) {</span>
+<span class="nc" id="L620">                FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(&quot;Invalid or no CMS signing CA.&quot;));</span>
+            } else {
+<span class="nc" id="L622">                final CmsCAServiceRequest request = new CmsCAServiceRequest(exportToByteArray(), CmsCAServiceRequest.MODE_SIGN);</span>
+<span class="nc" id="L623">                final CAAdminSession caAdminSession = new EjbLocalHelper().getCaAdminSession();</span>
+<span class="nc" id="L624">                final AuthenticationToken authenticationToken = EjbcaJSFHelper.getBean().getAdmin();</span>
+<span class="nc" id="L625">                final CmsCAServiceResponse resp = (CmsCAServiceResponse) caAdminSession.extendedService(authenticationToken, cmsSigningCa, request);</span>
+                try {
+<span class="nc" id="L627">                    downloadResults(resp.getCmsDocument(), &quot;application/octet-stream&quot;, &quot;export-&quot;+results.get(0).getTimeStamp()+&quot;.p7m&quot;);</span>
+<span class="nc" id="L628">                } catch (IOException e) {</span>
+<span class="nc" id="L629">                    log.info(&quot;Administration tried to export audit log, but failed. &quot; + e.getMessage());</span>
+<span class="nc" id="L630">                    FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(e.getMessage()));</span>
+<span class="nc" id="L631">                }</span>
+            }
+<span class="nc" id="L633">        } catch (Exception e) {</span>
+<span class="nc" id="L634">            log.info(&quot;Administration tried to export audit log, but failed. &quot; + e.getMessage());</span>
+<span class="nc" id="L635">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(e.getMessage()));</span>
+<span class="nc" id="L636">        }</span>
+<span class="nc" id="L637">	}</span>
+
+    public void downloadResults() {
+        try {
+            // text/xml doesn't work since it gets filtered and all non-ASCII bytes get encoded as entities as if they were Latin-1 (ECA-5831)
+<span class="nc" id="L642">            downloadResults(exportToByteArray(), &quot;application/octet-stream&quot;, &quot;export-&quot;+results.get(0).getTimeStamp()+&quot;.xml&quot;); // &quot;application/force-download&quot; is an alternative here..</span>
+<span class="nc" id="L643">        } catch (IOException e) {</span>
+<span class="nc" id="L644">            log.info(&quot;Administration tried to export audit log, but failed. &quot; + e.getMessage());</span>
+<span class="nc" id="L645">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(e.getMessage()));</span>
+<span class="nc" id="L646">        }</span>
+<span class="nc" id="L647">    }</span>
+    
+    private byte[] exportToByteArray() throws IOException {
+        // We could extend this without too much problems to allow the admin to choose between different formats.
+        // By reading it from the config we could drop a custom exporter in the class-path and use it if configured
+<span class="nc" id="L652">        final Class&lt;? extends AuditExporter&gt; exporterClass = AuditDevicesConfig.getExporter(getDevice());</span>
+<span class="nc" id="L653">        AuditExporter auditExporter = null;</span>
+<span class="nc bnc" id="L654" title="All 2 branches missed.">        if (exporterClass != null) {</span>
+<span class="nc bnc" id="L655" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L656">                log.debug(&quot;Using AuditExporter class: &quot; + exporterClass.getName());</span>
+            }
+            
+            try {
+<span class="nc" id="L660">                auditExporter = exporterClass.getConstructor().newInstance();</span>
+<span class="nc" id="L661">            } catch (Exception e) {</span>
+<span class="nc" id="L662">                log.warn(&quot;AuditExporter for &quot; + getDevice() + &quot; is not configured correctly.&quot;, e);</span>
+<span class="nc" id="L663">            }</span>
+        }
+        
+<span class="nc bnc" id="L666" title="All 2 branches missed.">        if (auditExporter==null) {</span>
+<span class="nc bnc" id="L667" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L668">                log.debug(&quot;AuditExporter not configured. Using default: &quot; + AuditExporterXml.class.getSimpleName());</span>
+            }
+<span class="nc" id="L670">            auditExporter = new AuditExporterXml(); // Use Java-friendly XML as default</span>
+        }
+<span class="nc" id="L672">        try (final ByteArrayOutputStream baos = new ByteArrayOutputStream()) {</span>
+<span class="nc" id="L673">            auditExporter.setOutputStream(baos);</span>
+<span class="nc bnc" id="L674" title="All 2 branches missed.">            for (final AuditLogEntry auditLogEntry : results) {</span>
+<span class="nc" id="L675">                writeToExport(auditExporter, (AuditRecordData) auditLogEntry);</span>
+<span class="nc" id="L676">            }</span>
+<span class="nc" id="L677">            auditExporter.close();</span>
+<span class="nc" id="L678">            return baos.toByteArray();</span>
+        }
+    }
+
+    /** Uses the provided exporter to generate export data in memory. Responds with the data instead of rendering a new page. 
+     * @param b Bytes
+     * @param contentType Type 
+     * @param filename File
+     * @throws IOException On error */
+    private void downloadResults(byte[] b, String contentType, String filename) throws IOException {
+<span class="nc" id="L688">            final HttpServletResponse response = (HttpServletResponse) FacesContext.getCurrentInstance().getExternalContext().getResponse();</span>
+<span class="nc" id="L689">            response.setContentType(contentType);</span>
+<span class="nc" id="L690">            response.addHeader(&quot;Content-Disposition&quot;, &quot;attachment; filename=\&quot;&quot;+StringTools.stripFilename(filename)+&quot;\&quot;&quot;);</span>
+<span class="nc" id="L691">            final ServletOutputStream out = response.getOutputStream();</span>
+<span class="nc" id="L692">            response.setContentLength(b.length);</span>
+<span class="nc" id="L693">            out.write(b);</span>
+<span class="nc" id="L694">            out.close();</span>
+<span class="nc" id="L695">            FacesContext.getCurrentInstance().responseComplete();   // No further JSF navigation</span>
+<span class="nc" id="L696">    }</span>
+
+    // Duplicate of code from org.cesecore.audit.impl.integrityprotected.IntegrityProtectedAuditorSessionBean.writeToExport
+    // (unusable from here.. :/)
+    /** We want to export exactly like it was stored in the database, to comply with requirements on logging systems where no altering of the original log data is allowed. 
+     * @param auditExporter Exporter
+     * @param auditRecordData Data
+     * @throws IOException On fail */
+    private void writeToExport(final AuditExporter auditExporter, final AuditRecordData auditRecordData) throws IOException {
+<span class="nc" id="L705">        auditExporter.writeStartObject();</span>
+<span class="nc" id="L706">        auditExporter.writeField(&quot;pk&quot;, auditRecordData.getPk());</span>
+<span class="nc" id="L707">        auditExporter.writeField(AuditLogEntry.FIELD_NODEID, auditRecordData.getNodeId());</span>
+<span class="nc" id="L708">        auditExporter.writeField(AuditLogEntry.FIELD_SEQUENCENUMBER, auditRecordData.getSequenceNumber());</span>
+<span class="nc" id="L709">        auditExporter.writeField(AuditLogEntry.FIELD_TIMESTAMP, auditRecordData.getTimeStamp());</span>
+<span class="nc" id="L710">        auditExporter.writeField(AuditLogEntry.FIELD_EVENTTYPE, auditRecordData.getEventTypeValue().toString());</span>
+<span class="nc" id="L711">        auditExporter.writeField(AuditLogEntry.FIELD_EVENTSTATUS, auditRecordData.getEventStatusValue().toString());</span>
+<span class="nc" id="L712">        auditExporter.writeField(AuditLogEntry.FIELD_AUTHENTICATION_TOKEN, auditRecordData.getAuthToken());</span>
+<span class="nc" id="L713">        auditExporter.writeField(AuditLogEntry.FIELD_SERVICE, auditRecordData.getServiceTypeValue().toString());</span>
+<span class="nc" id="L714">        auditExporter.writeField(AuditLogEntry.FIELD_MODULE, auditRecordData.getModuleTypeValue().toString());</span>
+<span class="nc" id="L715">        auditExporter.writeField(AuditLogEntry.FIELD_CUSTOM_ID, auditRecordData.getCustomId());</span>
+<span class="nc" id="L716">        auditExporter.writeField(AuditLogEntry.FIELD_SEARCHABLE_DETAIL1, auditRecordData.getSearchDetail1());</span>
+<span class="nc" id="L717">        auditExporter.writeField(AuditLogEntry.FIELD_SEARCHABLE_DETAIL2, auditRecordData.getSearchDetail2());</span>
+<span class="nc" id="L718">        final Map&lt;String,Object&gt; additionalDetails = XmlSerializer.decode(auditRecordData.getAdditionalDetails());</span>
+<span class="nc" id="L719">        final String additionalDetailsEncoded = XmlSerializer.encodeWithoutBase64(additionalDetails);</span>
+<span class="nc" id="L720">        auditExporter.writeField(AuditLogEntry.FIELD_ADDITIONAL_DETAILS, additionalDetailsEncoded);</span>
+<span class="nc" id="L721">        auditExporter.writeField(&quot;rowProtection&quot;, auditRecordData.getRowProtection());</span>
+<span class="nc" id="L722">        auditExporter.writeEndObject();</span>
+<span class="nc" id="L723">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

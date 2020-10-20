@@ -1,0 +1,583 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RaCertificateDetails.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ra-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ra</a> &gt; <span class="el_source">RaCertificateDetails.java</span></div><h1>RaCertificateDetails.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ra;
+
+import java.io.IOException;
+import java.math.BigInteger;
+import java.security.PublicKey;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateParsingException;
+import java.security.cert.X509Certificate;
+import java.security.interfaces.DSAPublicKey;
+import java.security.interfaces.ECPublicKey;
+import java.security.interfaces.RSAPublicKey;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TimeZone;
+
+import javax.faces.component.UIComponent;
+import javax.faces.component.UIInput;
+import javax.faces.context.FacesContext;
+import javax.faces.event.ComponentSystemEvent;
+import javax.faces.model.SelectItem;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.ASN1Primitive;
+import org.bouncycastle.asn1.util.ASN1Dump;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.util.encoders.Base64;
+import org.bouncycastle.util.encoders.Hex;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CADoesntExistsException;
+import org.cesecore.certificates.certificate.CertificateConstants;
+import org.cesecore.certificates.certificate.CertificateData;
+import org.cesecore.certificates.certificate.CertificateDataWrapper;
+import org.cesecore.certificates.certificateprofile.CertificateProfileConstants;
+import org.cesecore.certificates.certificatetransparency.CertificateTransparency;
+import org.cesecore.certificates.certificatetransparency.CertificateTransparencyFactory;
+import org.cesecore.certificates.crl.RevokedCertInfo;
+import org.cesecore.certificates.endentity.EndEntityConstants;
+import org.cesecore.certificates.util.AlgorithmTools;
+import org.cesecore.certificates.util.cert.QCStatementExtension;
+import org.cesecore.certificates.util.cert.SubjectDirAttrExtension;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.ValidityDate;
+import org.ejbca.core.ejb.ra.NoSuchEndEntityException;
+import org.ejbca.core.model.approval.ApprovalException;
+import org.ejbca.core.model.approval.WaitingForApprovalException;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfileValidationException;
+import org.ejbca.cvc.AuthorizationField;
+import org.ejbca.cvc.CVCertificateBody;
+import org.ejbca.cvc.CardVerifiableCertificate;
+
+/**
+ * UI representation of a certificate from the back end.
+ *
+ * @version $Id: RaCertificateDetails.java 28543 2018-03-23 06:52:44Z jekaterina_b_helmes $
+ */
+public class RaCertificateDetails {
+
+    public interface Callbacks {
+        RaLocaleBean getRaLocaleBean();
+        boolean changeStatus(RaCertificateDetails raCertificateDetails, int newStatus, int newRevocationReason) throws ApprovalException, WaitingForApprovalException;
+        boolean recoverKey(RaCertificateDetails raCertificateDetails) throws ApprovalException, CADoesntExistsException, AuthorizationDeniedException,
+                                                                                WaitingForApprovalException, NoSuchEndEntityException, EndEntityProfileValidationException;
+        boolean keyRecoveryPossible(RaCertificateDetails raCertificateDetails);
+        UIComponent getConfirmPasswordComponent();
+    }
+
+<span class="nc" id="L83">    private static final Logger log = Logger.getLogger(RaCertificateDetails.class);</span>
+<span class="nc" id="L84">    public static String PARAM_REQUESTID = &quot;requestId&quot;;</span>
+
+    private final Callbacks callbacks;
+
+    private CertificateDataWrapper cdw;
+    private String fingerprint;
+<span class="nc" id="L90">    private String fingerprintSha256 = &quot;&quot;;</span>
+    private String username;
+<span class="nc" id="L92">    private String type = &quot;&quot;;</span>
+<span class="nc" id="L93">    private String typeVersion = &quot;&quot;;</span>
+    private String serialnumber;
+    private String serialnumberRaw;
+    private String subjectDn;
+<span class="nc" id="L97">    private String subjectAn = &quot;&quot;;</span>
+<span class="nc" id="L98">    private String subjectDa = &quot;&quot;;</span>
+    private Integer eepId;
+    private String eepName;
+    private Integer cpId;
+    private String cpName;
+    private String issuerDn;
+    private String caName;
+<span class="nc" id="L105">    private String created = &quot;-&quot;;</span>
+    private long expireDate;
+    private String expires;
+    private int status;
+    private int revocationReason;
+    private String updated;
+<span class="nc" id="L111">    private String revocationDate = &quot;&quot;;</span>
+<span class="nc" id="L112">    private String publicKeyAlgorithm = &quot;&quot;;</span>
+<span class="nc" id="L113">    private String publicKeySpecification = &quot;&quot;;</span>
+<span class="nc" id="L114">    private String publicKeyParameter = &quot;&quot;;</span>
+<span class="nc" id="L115">    private String subjectKeyId = &quot;&quot;;</span>
+<span class="nc" id="L116">    private String basicConstraints = &quot;&quot;;</span>
+<span class="nc" id="L117">    private String cvcAuthorizationRole = &quot;&quot;;</span>
+<span class="nc" id="L118">    private String cvcAuthorizationAccessRights = &quot;&quot;;</span>
+<span class="nc" id="L119">    private final List&lt;String&gt; keyUsages = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L120">    private final List&lt;String&gt; extendedKeyUsages = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L121">    private boolean hasNameConstraints = false;</span>
+<span class="nc" id="L122">    private boolean hasQcStatements = false;</span>
+<span class="nc" id="L123">    private boolean hasCertificateTransparencyScts = false;</span>
+    private String signatureAlgorithm;
+    private String password;
+    private String confirmPassword;
+    private int requestId;
+
+<span class="nc" id="L129">    private boolean more = false;</span>
+<span class="nc" id="L130">    private boolean renderConfirmRecovery = false;</span>
+    private Boolean keyRecoveryPossible;
+<span class="nc" id="L132">    private int styleRowCallCounter = 0;</span>
+
+<span class="nc" id="L134">    private RaCertificateDetails next = null;</span>
+<span class="nc" id="L135">    private RaCertificateDetails previous = null;</span>
+
+
+<span class="nc" id="L138">    private int newRevocationReason = RevokedCertInfo.REVOCATION_REASON_UNSPECIFIED;</span>
+
+    public RaCertificateDetails(final CertificateDataWrapper cdw, final Callbacks callbacks,
+<span class="nc" id="L141">            final Map&lt;Integer, String&gt; cpIdToNameMap, final Map&lt;Integer, String&gt; eepIdToNameMap, final Map&lt;String,String&gt; caSubjectToNameMap) {</span>
+<span class="nc" id="L142">        this.callbacks = callbacks;</span>
+<span class="nc" id="L143">        reInitialize(cdw, cpIdToNameMap, eepIdToNameMap, caSubjectToNameMap);</span>
+<span class="nc" id="L144">    }</span>
+
+    public void reInitialize(final CertificateDataWrapper cdw,
+            final Map&lt;Integer, String&gt; cpIdToNameMap, final Map&lt;Integer, String&gt; eepIdToNameMap, final Map&lt;String,String&gt; caSubjectToNameMap) {
+<span class="nc" id="L148">        this.cdw = cdw;</span>
+<span class="nc" id="L149">        final CertificateData certificateData = cdw.getCertificateData();</span>
+<span class="nc" id="L150">        this.cpId = certificateData.getCertificateProfileId();</span>
+<span class="nc bnc" id="L151" title="All 4 branches missed.">        if (cpId != null &amp;&amp; cpIdToNameMap != null) {</span>
+<span class="nc" id="L152">            this.cpName = cpIdToNameMap.get(cpId);</span>
+        } else {
+<span class="nc" id="L154">            this.cpName = null;</span>
+        }
+<span class="nc" id="L156">        this.eepId = certificateData.getEndEntityProfileIdOrZero();</span>
+<span class="nc bnc" id="L157" title="All 2 branches missed.">        if (eepIdToNameMap != null) {</span>
+<span class="nc" id="L158">            this.eepName = eepIdToNameMap.get(Integer.valueOf(eepId));</span>
+        } else {
+<span class="nc" id="L160">            this.eepName = null;</span>
+        }
+<span class="nc" id="L162">        this.issuerDn = certificateData.getIssuerDN();</span>
+<span class="nc bnc" id="L163" title="All 2 branches missed.">        if (caSubjectToNameMap != null) {</span>
+<span class="nc" id="L164">            this.caName = getCaNameFromIssuerDn(caSubjectToNameMap, issuerDn);</span>
+        } else {
+<span class="nc" id="L166">            this.caName = null;</span>
+        }
+<span class="nc" id="L168">        this.status = certificateData.getStatus();</span>
+<span class="nc" id="L169">        this.revocationReason = certificateData.getRevocationReason();</span>
+<span class="nc" id="L170">        this.fingerprint = certificateData.getFingerprint();</span>
+<span class="nc" id="L171">        this.serialnumberRaw = certificateData.getSerialNumber();</span>
+        try {
+<span class="nc" id="L173">            this.serialnumber = new BigInteger(this.serialnumberRaw).toString(16);</span>
+<span class="nc" id="L174">        } catch (NumberFormatException e) {</span>
+<span class="nc bnc" id="L175" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L176">                log.debug(&quot;Failed to format serial number as hex. Probably a CVC certificate. Message: &quot; + e.getMessage());</span>
+            }
+<span class="nc" id="L178">        }</span>
+<span class="nc bnc" id="L179" title="All 2 branches missed.">        this.username = certificateData.getUsername()==null ? &quot;&quot; : certificateData.getUsername();</span>
+<span class="nc" id="L180">        this.subjectDn = certificateData.getSubjectDnNeverNull();</span>
+<span class="nc" id="L181">        final Certificate certificate = cdw.getCertificate();</span>
+<span class="nc" id="L182">        byte[] certificateEncoded = null;</span>
+<span class="nc bnc" id="L183" title="All 2 branches missed.">        if (certificate!=null) {</span>
+            try {
+<span class="nc" id="L185">                certificateEncoded = certificate.getEncoded();</span>
+<span class="nc" id="L186">            } catch (CertificateEncodingException e) {</span>
+<span class="nc bnc" id="L187" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L188">                    log.debug(&quot;Failed to encode the certificate as a byte array: &quot; + e.getMessage());</span>
+                }
+<span class="nc" id="L190">            }</span>
+        }
+<span class="nc bnc" id="L192" title="All 4 branches missed.">        if (certificate!=null || certificateEncoded!=null) {</span>
+<span class="nc" id="L193">            this.type = certificate.getType();</span>
+<span class="nc" id="L194">            this.fingerprintSha256 = new String(Hex.encode(CertTools.generateSHA256Fingerprint(certificateEncoded)));</span>
+<span class="nc" id="L195">            final PublicKey publicKey = certificate.getPublicKey();</span>
+<span class="nc" id="L196">            this.publicKeyAlgorithm = AlgorithmTools.getKeyAlgorithm(publicKey);</span>
+<span class="nc" id="L197">            this.publicKeySpecification = AlgorithmTools.getKeySpecification(publicKey);</span>
+<span class="nc bnc" id="L198" title="All 2 branches missed.">            if (publicKey instanceof RSAPublicKey) {</span>
+<span class="nc" id="L199">                this.publicKeyParameter = ((RSAPublicKey)publicKey).getModulus().toString(16);</span>
+<span class="nc bnc" id="L200" title="All 2 branches missed.">            } else if(certificate.getPublicKey() instanceof DSAPublicKey) {</span>
+<span class="nc" id="L201">                this.publicKeyParameter = ((DSAPublicKey)publicKey).getY().toString(16);</span>
+<span class="nc bnc" id="L202" title="All 2 branches missed.">            } else if(certificate.getPublicKey() instanceof ECPublicKey) {</span>
+<span class="nc" id="L203">                this.publicKeyParameter = ((ECPublicKey)publicKey).getW().getAffineX().toString(16) + &quot; &quot; + ((ECPublicKey)publicKey).getW().getAffineY().toString(16);</span>
+            }
+<span class="nc" id="L205">            this.created = ValidityDate.formatAsISO8601ServerTZ(CertTools.getNotBefore(certificate).getTime(), TimeZone.getDefault());</span>
+<span class="nc" id="L206">            this.signatureAlgorithm = AlgorithmTools.getCertSignatureAlgorithmNameAsString(certificate);</span>
+<span class="nc bnc" id="L207" title="All 2 branches missed.">            if (certificate instanceof X509Certificate) {</span>
+<span class="nc" id="L208">                final X509Certificate x509Certificate = (X509Certificate)certificate;</span>
+<span class="nc" id="L209">                this.typeVersion = Integer.toString(x509Certificate.getVersion());</span>
+<span class="nc" id="L210">                this.subjectAn = CertTools.getSubjectAlternativeName(certificate);</span>
+                try {
+<span class="nc" id="L212">                    this.subjectDa = SubjectDirAttrExtension.getSubjectDirectoryAttributes(certificate);</span>
+<span class="nc" id="L213">                } catch (ParseException e) {</span>
+<span class="nc bnc" id="L214" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L215">                        log.debug(&quot;Failed to parse Subject Directory Attributes extension: &quot; + e.getMessage());</span>
+                    }
+<span class="nc" id="L217">                }</span>
+<span class="nc" id="L218">                final int basicConstraints = x509Certificate.getBasicConstraints();</span>
+<span class="nc bnc" id="L219" title="All 2 branches missed.">                if (basicConstraints==Integer.MAX_VALUE) {</span>
+<span class="nc" id="L220">                    this.basicConstraints = &quot;&quot;;</span>
+<span class="nc bnc" id="L221" title="All 2 branches missed.">                } else if (basicConstraints == -1) {</span>
+<span class="nc" id="L222">                    this.basicConstraints = callbacks.getRaLocaleBean().getMessage(&quot;component_certdetails_info_basicconstraints_ee&quot;);</span>
+                } else {
+<span class="nc" id="L224">                    this.basicConstraints = callbacks.getRaLocaleBean().getMessage(&quot;component_certdetails_info_basicconstraints_ca&quot;, basicConstraints);</span>
+                }
+<span class="nc" id="L226">                keyUsages.clear();</span>
+<span class="nc" id="L227">                final boolean[] keyUsageArray = x509Certificate.getKeyUsage();</span>
+<span class="nc bnc" id="L228" title="All 2 branches missed.">                if (keyUsageArray != null) {</span>
+<span class="nc bnc" id="L229" title="All 2 branches missed.">                    for (int i=0; i&lt;keyUsageArray.length; i++) {</span>
+<span class="nc bnc" id="L230" title="All 2 branches missed.">                        if (keyUsageArray[i]) {</span>
+<span class="nc" id="L231">                            keyUsages.add(String.valueOf(i));</span>
+                        }
+                    }
+                }
+<span class="nc" id="L235">                extendedKeyUsages.clear();</span>
+                try {
+<span class="nc" id="L237">                    final List&lt;String&gt; extendedKeyUsages = x509Certificate.getExtendedKeyUsage();</span>
+<span class="nc bnc" id="L238" title="All 2 branches missed.">                    if (extendedKeyUsages != null) {</span>
+<span class="nc" id="L239">                        this.extendedKeyUsages.addAll(extendedKeyUsages);</span>
+                    }
+<span class="nc" id="L241">                } catch (CertificateParsingException e) {</span>
+<span class="nc bnc" id="L242" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L243">                        log.debug(&quot;Failed to parse Extended Key Usage extension: &quot; + e.getMessage());</span>
+                    }
+<span class="nc" id="L245">                }</span>
+<span class="nc bnc" id="L246" title="All 2 branches missed.">                this.hasNameConstraints = x509Certificate.getExtensionValue(Extension.nameConstraints.getId())!=null;</span>
+<span class="nc" id="L247">                final CertificateTransparency ct = CertificateTransparencyFactory.getInstance();</span>
+<span class="nc bnc" id="L248" title="All 2 branches missed.">                this.hasCertificateTransparencyScts = ct != null ? ct.hasSCTs(certificate) : false;</span>
+<span class="nc" id="L249">                this.hasQcStatements = QCStatementExtension.hasQcStatement(certificate);</span>
+<span class="nc bnc" id="L250" title="All 2 branches missed.">            } else if (certificate instanceof CardVerifiableCertificate) {</span>
+<span class="nc" id="L251">                final CardVerifiableCertificate cardVerifiableCertificate = (CardVerifiableCertificate)certificate;</span>
+<span class="nc" id="L252">                this.typeVersion = String.valueOf(CVCertificateBody.CVC_VERSION);</span>
+                // Role and access rights
+                try {
+<span class="nc" id="L255">                    final AuthorizationField authorizationField = cardVerifiableCertificate.getCVCertificate().getCertificateBody().getAuthorizationTemplate().getAuthorizationField();</span>
+<span class="nc bnc" id="L256" title="All 2 branches missed.">                    if (authorizationField!=null) {</span>
+<span class="nc" id="L257">                        this.cvcAuthorizationRole = String.valueOf(authorizationField.getAuthRole());</span>
+<span class="nc" id="L258">                        this.cvcAuthorizationAccessRights = String.valueOf(authorizationField.getAccessRights());</span>
+                    }
+<span class="nc" id="L260">                } catch (NoSuchFieldException e) {</span>
+<span class="nc bnc" id="L261" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L262">                        log.debug(&quot;Failed to parse CVC AuthorizationTemplate's AuthorizationField: &quot; + e.getMessage());</span>
+                    }
+<span class="nc" id="L264">                }</span>
+            }
+        }
+<span class="nc" id="L267">        this.expireDate = certificateData.getExpireDate();</span>
+<span class="nc" id="L268">        this.expires = ValidityDate.formatAsISO8601ServerTZ(expireDate, TimeZone.getDefault());</span>
+<span class="nc bnc" id="L269" title="All 4 branches missed.">        if (status==CertificateConstants.CERT_ARCHIVED || status==CertificateConstants.CERT_REVOKED) {</span>
+<span class="nc" id="L270">            this.updated = ValidityDate.formatAsISO8601ServerTZ(certificateData.getRevocationDate(), TimeZone.getDefault());</span>
+<span class="nc" id="L271">            this.revocationDate = ValidityDate.formatAsISO8601ServerTZ(certificateData.getRevocationDate(), TimeZone.getDefault());</span>
+        } else {
+<span class="nc" id="L273">            this.updated = ValidityDate.formatAsISO8601ServerTZ(certificateData.getUpdateTime(), TimeZone.getDefault());</span>
+        }
+<span class="nc" id="L275">        final String subjectKeyIdB64 = certificateData.getSubjectKeyId();</span>
+<span class="nc bnc" id="L276" title="All 2 branches missed.">        if (subjectKeyIdB64!=null) {</span>
+<span class="nc" id="L277">            this.subjectKeyId = new String(Hex.encode(Base64.decode(subjectKeyIdB64.getBytes())));</span>
+        }
+<span class="nc" id="L279">        styleRowCallCounter = 0;    // Reset</span>
+<span class="nc" id="L280">    }</span>
+
+<span class="nc" id="L282">    public String getFingerprint() { return fingerprint; }</span>
+<span class="nc" id="L283">    public String getFingerprintSha256() { return fingerprintSha256; }</span>
+<span class="nc" id="L284">    public String getUsername() { return username; }</span>
+<span class="nc" id="L285">    public String getType() { return type; }</span>
+<span class="nc" id="L286">    public boolean isTypeX509() { return &quot;X.509&quot;.equals(type); }</span>
+<span class="nc" id="L287">    public boolean isTypeCvc() { return &quot;CVC&quot;.equals(type); }</span>
+<span class="nc" id="L288">    public String getTypeVersion() { return typeVersion; }</span>
+<span class="nc" id="L289">    public String getSerialnumber() { return serialnumber; }</span>
+<span class="nc" id="L290">    public String getSerialnumberRaw() { return serialnumberRaw; }</span>
+<span class="nc" id="L291">    public String getIssuerDn() { return issuerDn; }</span>
+<span class="nc" id="L292">    public String getSubjectDn() { return subjectDn; }</span>
+
+    /** @return the Subject DN string of the current certificate in unescaped RDN format */
+    public final String getSubjectDnUnescapedValue() {
+<span class="nc bnc" id="L296" title="All 2 branches missed.">        if (StringUtils.isNotEmpty(subjectDn)) {</span>
+<span class="nc" id="L297">            return org.ietf.ldap.LDAPDN.unescapeRDN(subjectDn);</span>
+        } else {
+<span class="nc" id="L299">            return subjectDn;</span>
+        }
+    }
+<span class="nc" id="L302">    public String getSubjectAn() { return subjectAn; }</span>
+<span class="nc" id="L303">    public String getSubjectDa() { return subjectDa; }</span>
+<span class="nc" id="L304">    public String getCaName() { return caName; }</span>
+    /** @return Certificate Profile Name from the provided CP ID or a localized error String */
+    public String getCpName() {
+<span class="nc bnc" id="L307" title="All 4 branches missed.">        if (cpId != null &amp;&amp; cpId.intValue()==CertificateProfileConstants.NO_CERTIFICATE_PROFILE) {</span>
+<span class="nc" id="L308">            return callbacks.getRaLocaleBean().getMessage(&quot;component_certdetails_info_unknowncp&quot;);</span>
+<span class="nc bnc" id="L309" title="All 2 branches missed.">        } else if (cpName!=null) {</span>
+<span class="nc" id="L310">            return cpName;</span>
+        }
+<span class="nc" id="L312">        return callbacks.getRaLocaleBean().getMessage(&quot;component_certdetails_info_missingcp&quot;, cpId);</span>
+    }
+<span class="nc" id="L314">    public boolean isCpNameSameAsEepName() { return getEepName().equals(getCpName()); }</span>
+    /** @return End Entity Profile Name from the provided EEP ID or a localized error String */
+    public String getEepName() {
+<span class="nc bnc" id="L317" title="All 2 branches missed.">        if (eepId==EndEntityConstants.NO_END_ENTITY_PROFILE) {</span>
+<span class="nc" id="L318">            return callbacks.getRaLocaleBean().getMessage(&quot;component_certdetails_info_unknowneep&quot;);</span>
+        }
+<span class="nc bnc" id="L320" title="All 2 branches missed.">        if (eepName!=null) {</span>
+<span class="nc" id="L321">            return eepName;</span>
+        }
+<span class="nc" id="L323">        return callbacks.getRaLocaleBean().getMessage(&quot;component_certdetails_info_missingeep&quot;, eepId);</span>
+    }
+<span class="nc" id="L325">    public String getCreated() { return created; }</span>
+<span class="nc" id="L326">    public String getExpires() { return expires; }</span>
+
+<span class="nc bnc" id="L328" title="All 2 branches missed.">    public boolean isExpired() { return expireDate&lt;System.currentTimeMillis(); }</span>
+    public boolean isActive() {
+<span class="nc bnc" id="L330" title="All 4 branches missed.">        return status==CertificateConstants.CERT_ACTIVE || status==CertificateConstants.CERT_NOTIFIEDABOUTEXPIRATION;</span>
+    }
+    public boolean isSuspended() {
+<span class="nc bnc" id="L333" title="All 4 branches missed.">        return status == CertificateConstants.CERT_REVOKED &amp;&amp; revocationReason == RevokedCertInfo.REVOCATION_REASON_CERTIFICATEHOLD;</span>
+    }
+
+    /** @return a localized certificate (revocation) status string */
+    public String getStatus() {
+<span class="nc bnc" id="L338" title="All 3 branches missed.">        switch (status) {</span>
+        case CertificateConstants.CERT_ACTIVE:
+        case CertificateConstants.CERT_NOTIFIEDABOUTEXPIRATION:
+<span class="nc" id="L341">            return callbacks.getRaLocaleBean().getMessage(&quot;component_certdetails_status_active&quot;);</span>
+        case CertificateConstants.CERT_ARCHIVED:
+        case CertificateConstants.CERT_REVOKED:
+<span class="nc" id="L344">            return callbacks.getRaLocaleBean().getMessage(&quot;component_certdetails_status_revoked_&quot;+revocationReason);</span>
+        default:
+<span class="nc" id="L346">            return callbacks.getRaLocaleBean().getMessage(&quot;component_certdetails_status_other&quot;);</span>
+        }
+    }
+<span class="nc" id="L349">    public String getUpdated() { return updated; }</span>
+<span class="nc" id="L350">    public String getRevocationDate() { return revocationDate; }</span>
+<span class="nc" id="L351">    public String getPublicKeyAlgorithm() { return publicKeyAlgorithm; }</span>
+<span class="nc" id="L352">    public String getPublicKeySpecification() { return publicKeySpecification; }</span>
+<span class="nc" id="L353">    public String getPublicKeyParameter() { return publicKeyParameter; }</span>
+<span class="nc" id="L354">    public String getSubjectKeyId() { return subjectKeyId; }</span>
+<span class="nc" id="L355">    public String getBasicConstraints() { return basicConstraints; }</span>
+<span class="nc" id="L356">    public String getCvcAuthorizationRole() { return cvcAuthorizationRole; }</span>
+<span class="nc" id="L357">    public String getCvcAuthorizationAccessRights() { return cvcAuthorizationAccessRights; }</span>
+<span class="nc" id="L358">    public List&lt;String&gt; getKeyUsages() { return keyUsages; }</span>
+<span class="nc" id="L359">    public List&lt;String&gt; getExtendedKeyUsages() { return extendedKeyUsages; }</span>
+<span class="nc bnc" id="L360" title="All 2 branches missed.">    public String getNameConstraints() { return hasNameConstraints ? callbacks.getRaLocaleBean().getMessage(&quot;component_certdetails_info_present&quot;) : &quot;&quot;; }</span>
+<span class="nc bnc" id="L361" title="All 2 branches missed.">    public String getQcStatements() { return hasQcStatements ? callbacks.getRaLocaleBean().getMessage(&quot;component_certdetails_info_present&quot;) : &quot;&quot;; }</span>
+<span class="nc bnc" id="L362" title="All 2 branches missed.">    public String getCertificateTransparencyScts() { return hasCertificateTransparencyScts ? callbacks.getRaLocaleBean().getMessage(&quot;component_certdetails_info_present&quot;) : &quot;&quot;; }</span>
+<span class="nc" id="L363">    public String getSignatureAlgorithm() { return signatureAlgorithm; }</span>
+
+    public String getDump() {
+<span class="nc" id="L366">        final Certificate certificate = cdw.getCertificate();</span>
+<span class="nc bnc" id="L367" title="All 2 branches missed.">        if (certificate!=null) {</span>
+            try {
+<span class="nc" id="L369">                return CertTools.dumpCertificateAsString(certificate);</span>
+<span class="nc" id="L370">            } catch (RuntimeException e) {</span>
+                try {
+<span class="nc" id="L372">                    return ASN1Dump.dumpAsString(ASN1Primitive.fromByteArray(certificate.getEncoded()));</span>
+<span class="nc" id="L373">                } catch (CertificateEncodingException | IOException e2) {</span>
+<span class="nc bnc" id="L374" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L375">                        log.debug(&quot;Failed to parse certificate ASN.1: &quot; + e2.getMessage());</span>
+                    }
+                }
+            }
+        }
+<span class="nc" id="L380">        return &quot;&quot;;</span>
+    }
+
+    /** @return Certificate as java.security.cert.Certificate */
+    public Certificate getCertificate() {
+<span class="nc" id="L385">        return cdw.getCertificate();</span>
+    }
+
+    /** @return true if more details should be shown */
+<span class="nc" id="L389">    public boolean isMore() { return more; }</span>
+    public void actionToggleMore() {
+<span class="nc bnc" id="L391" title="All 2 branches missed.">        more = !more;</span>
+<span class="nc" id="L392">        styleRowCallCounter = 0;    // Reset</span>
+<span class="nc" id="L393">    }</span>
+
+    /** @return true every twice starting with every forth call */
+    public boolean isEven() {
+<span class="nc" id="L397">        styleRowCallCounter++;</span>
+<span class="nc bnc" id="L398" title="All 2 branches missed.">        return (styleRowCallCounter+1) / 2 % 2 == 0;</span>
+    }
+
+    /** @param caSubjectToNameMap Map
+     * @param issuerDn DN
+     * @return CA Name from the provided issuer DN or the IssuerDN itself if no name is known */
+    private String getCaNameFromIssuerDn(final Map&lt;String, String&gt; caSubjectToNameMap, final String issuerDn) {
+<span class="nc bnc" id="L405" title="All 4 branches missed.">        if (issuerDn != null &amp;&amp; caSubjectToNameMap.containsKey(issuerDn)) {</span>
+<span class="nc" id="L406">            return String.valueOf(caSubjectToNameMap.get(issuerDn));</span>
+        }
+<span class="nc" id="L408">        return String.valueOf(issuerDn);</span>
+    }
+
+<span class="nc" id="L411">    public RaCertificateDetails getNext() { return next; }</span>
+<span class="nc" id="L412">    public void setNext(RaCertificateDetails next) { this.next = next; }</span>
+
+<span class="nc" id="L414">    public RaCertificateDetails getPrevious() { return previous; }</span>
+<span class="nc" id="L415">    public void setPrevious(RaCertificateDetails previous) { this.previous = previous; }</span>
+
+    public List&lt;SelectItem&gt; getNewRevocationReasons() {
+<span class="nc bnc" id="L418" title="All 2 branches missed.">        return getNewRevocationReasons(!isSuspended());</span>
+    }
+
+    private List&lt;SelectItem&gt; getNewRevocationReasons(final boolean includeOnHold) {
+<span class="nc" id="L422">        final List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L423">        ret.add(new SelectItem(Integer.valueOf(RevokedCertInfo.REVOCATION_REASON_UNSPECIFIED), callbacks.getRaLocaleBean().getMessage(&quot;component_certdetails_status_revoked_reason_0&quot;)));</span>
+<span class="nc" id="L424">        ret.add(new SelectItem(Integer.valueOf(RevokedCertInfo.REVOCATION_REASON_KEYCOMPROMISE), callbacks.getRaLocaleBean().getMessage(&quot;component_certdetails_status_revoked_reason_1&quot;)));</span>
+<span class="nc" id="L425">        ret.add(new SelectItem(Integer.valueOf(RevokedCertInfo.REVOCATION_REASON_CACOMPROMISE), callbacks.getRaLocaleBean().getMessage(&quot;component_certdetails_status_revoked_reason_2&quot;)));</span>
+<span class="nc" id="L426">        ret.add(new SelectItem(Integer.valueOf(RevokedCertInfo.REVOCATION_REASON_AFFILIATIONCHANGED), callbacks.getRaLocaleBean().getMessage(&quot;component_certdetails_status_revoked_reason_3&quot;)));</span>
+<span class="nc" id="L427">        ret.add(new SelectItem(Integer.valueOf(RevokedCertInfo.REVOCATION_REASON_SUPERSEDED), callbacks.getRaLocaleBean().getMessage(&quot;component_certdetails_status_revoked_reason_4&quot;)));</span>
+<span class="nc" id="L428">        ret.add(new SelectItem(Integer.valueOf(RevokedCertInfo.REVOCATION_REASON_CESSATIONOFOPERATION), callbacks.getRaLocaleBean().getMessage(&quot;component_certdetails_status_revoked_reason_5&quot;)));</span>
+<span class="nc bnc" id="L429" title="All 2 branches missed.">        if (includeOnHold) {</span>
+<span class="nc" id="L430">            ret.add(new SelectItem(Integer.valueOf(RevokedCertInfo.REVOCATION_REASON_CERTIFICATEHOLD), callbacks.getRaLocaleBean().getMessage(&quot;component_certdetails_status_revoked_reason_6&quot;)));</span>
+        }
+<span class="nc" id="L432">        ret.add(new SelectItem(Integer.valueOf(RevokedCertInfo.REVOCATION_REASON_REMOVEFROMCRL), callbacks.getRaLocaleBean().getMessage(&quot;component_certdetails_status_revoked_reason_8&quot;)));</span>
+<span class="nc" id="L433">        ret.add(new SelectItem(Integer.valueOf(RevokedCertInfo.REVOCATION_REASON_PRIVILEGESWITHDRAWN), callbacks.getRaLocaleBean().getMessage(&quot;component_certdetails_status_revoked_reason_9&quot;)));</span>
+<span class="nc" id="L434">        ret.add(new SelectItem(Integer.valueOf(RevokedCertInfo.REVOCATION_REASON_AACOMPROMISE), callbacks.getRaLocaleBean().getMessage(&quot;component_certdetails_status_revoked_reason_10&quot;)));</span>
+<span class="nc" id="L435">        return ret;</span>
+    }
+
+<span class="nc" id="L438">    public Integer getNewRevocationReason() { return Integer.valueOf(newRevocationReason); }</span>
+<span class="nc" id="L439">    public void setNewRevocationReason(final Integer newRevocationReason) { this.newRevocationReason = newRevocationReason.intValue(); }</span>
+
+    public void actionRevoke() {
+        try {
+<span class="nc bnc" id="L443" title="All 2 branches missed.">            if (callbacks.changeStatus(this, CertificateConstants.CERT_REVOKED, newRevocationReason)) {</span>
+<span class="nc" id="L444">                callbacks.getRaLocaleBean().addMessageInfo(&quot;component_certdetails_info_revocation_successful&quot;);</span>
+            } else {
+<span class="nc" id="L446">                callbacks.getRaLocaleBean().addMessageError(&quot;component_certdetails_error_revocation_failed&quot;);</span>
+            }
+<span class="nc" id="L448">        } catch (ApprovalException e) {</span>
+<span class="nc" id="L449">            callbacks.getRaLocaleBean().addMessageError(&quot;component_certdetails_error_revocation_approvalrequest&quot;);</span>
+<span class="nc" id="L450">        } catch (WaitingForApprovalException e) {</span>
+<span class="nc" id="L451">            callbacks.getRaLocaleBean().addMessageInfo(&quot;component_certdetails_info_revocation_approvalrequest&quot;, e.getRequestId());</span>
+<span class="nc" id="L452">        }</span>
+<span class="nc" id="L453">        styleRowCallCounter = 0;    // Reset</span>
+<span class="nc" id="L454">    }</span>
+
+    public void actionReactivate() {
+        try {
+<span class="nc bnc" id="L458" title="All 2 branches missed.">            if (callbacks.changeStatus(this, CertificateConstants.CERT_ACTIVE, RevokedCertInfo.NOT_REVOKED)) {</span>
+<span class="nc" id="L459">                callbacks.getRaLocaleBean().addMessageInfo(&quot;component_certdetails_info_reactivation_successful&quot;);</span>
+            } else {
+<span class="nc" id="L461">                callbacks.getRaLocaleBean().addMessageError(&quot;component_certdetails_error_reactivation_failed&quot;);</span>
+            }
+<span class="nc" id="L463">        } catch (ApprovalException e) {</span>
+<span class="nc" id="L464">            callbacks.getRaLocaleBean().addMessageError(&quot;component_certdetails_error_reactivation_approvalrequest&quot;);</span>
+<span class="nc" id="L465">        } catch (WaitingForApprovalException e) {</span>
+<span class="nc" id="L466">            callbacks.getRaLocaleBean().addMessageInfo(&quot;component_certdetails_info_reactivation_approvalrequest&quot;, e.getRequestId());</span>
+<span class="nc" id="L467">        }</span>
+<span class="nc" id="L468">        styleRowCallCounter = 0;    // Reset</span>
+<span class="nc" id="L469">    }</span>
+
+    public void actionRecovery() {
+        try {
+<span class="nc bnc" id="L473" title="All 2 branches missed.">            if (callbacks.recoverKey(this)) {</span>
+<span class="nc" id="L474">                callbacks.getRaLocaleBean().addMessageInfo(&quot;component_certdetails_keyrecovery_successful&quot;);</span>
+            } else {
+<span class="nc" id="L476">                callbacks.getRaLocaleBean().addMessageInfo(&quot;component_certdetails_keyrecovery_unknown_error&quot;);</span>
+<span class="nc" id="L477">                log.info(&quot;Failed to perform key recovery for user: &quot; + subjectDn);</span>
+            }
+<span class="nc" id="L479">        } catch (ApprovalException e) {</span>
+<span class="nc" id="L480">            callbacks.getRaLocaleBean().addMessageInfo(&quot;component_certdetails_keyrecovery_pending&quot;);</span>
+<span class="nc bnc" id="L481" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L482">                log.debug(&quot;Request is still waiting for approval&quot;, e);</span>
+            }
+<span class="nc" id="L484">        } catch (WaitingForApprovalException e) {</span>
+            // Setting requestId will render link to 'enroll with request id' page
+<span class="nc" id="L486">            requestId = e.getRequestId();</span>
+<span class="nc" id="L487">            log.info(&quot;Request with Id: &quot; + e.getRequestId() + &quot; has been sent for approval&quot;);</span>
+<span class="nc" id="L488">        } catch (CADoesntExistsException e) {</span>
+<span class="nc" id="L489">            callbacks.getRaLocaleBean().addMessageInfo(&quot;component_certdetails_keyrecovery_unknown_error&quot;);</span>
+<span class="nc" id="L490">                log.debug(&quot;CA does not exist&quot;, e);</span>
+<span class="nc" id="L491">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L492">            callbacks.getRaLocaleBean().addMessageInfo(&quot;component_certdetails_keyrecovery_unauthorized&quot;);</span>
+<span class="nc" id="L493">                log.debug(&quot;Not authorized to perform key recovery&quot;, e);</span>
+<span class="nc" id="L494">        } catch (NoSuchEndEntityException e) {</span>
+<span class="nc" id="L495">            callbacks.getRaLocaleBean().addMessageInfo(&quot;component_certdetails_keyrecovery_no_such_end_entity&quot;, username);</span>
+<span class="nc bnc" id="L496" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L497">                log.debug(&quot;End entity with username: &quot; + username + &quot; does not exist&quot;, e);</span>
+            }
+<span class="nc" id="L499">        } catch (EndEntityProfileValidationException e) {</span>
+<span class="nc" id="L500">            callbacks.getRaLocaleBean().addMessageInfo(&quot;component_certdetails_keyrecovery_unknown_error&quot;);</span>
+<span class="nc bnc" id="L501" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L502">                log.debug(&quot;End entity with username: &quot; + username + &quot; does not match end entity profile&quot;);</span>
+            }
+<span class="nc" id="L504">        }</span>
+<span class="nc" id="L505">        styleRowCallCounter = 0;    // Reset</span>
+<span class="nc" id="L506">        renderConfirmRecoveryToggle();</span>
+<span class="nc" id="L507">    }</span>
+
+    /** Validate that password and password confirm entries match and render error messages otherwise. 
+     * @param event event */
+    public final void validatePassword(ComponentSystemEvent event) {
+<span class="nc bnc" id="L512" title="All 2 branches missed.">        if (renderConfirmRecovery){</span>
+<span class="nc" id="L513">            FacesContext fc = FacesContext.getCurrentInstance();</span>
+<span class="nc" id="L514">            UIComponent components = event.getComponent();</span>
+<span class="nc" id="L515">            UIInput uiInputPassword = (UIInput) components.findComponent(&quot;passwordField&quot;);</span>
+<span class="nc bnc" id="L516" title="All 2 branches missed.">            String password = uiInputPassword.getLocalValue() == null ? &quot;&quot; : uiInputPassword.getLocalValue().toString();</span>
+<span class="nc" id="L517">            UIInput uiInputConfirmPassword = (UIInput) components.findComponent(&quot;passwordConfirmField&quot;);</span>
+<span class="nc bnc" id="L518" title="All 2 branches missed.">            String confirmPassword = uiInputConfirmPassword.getLocalValue() == null ? &quot;&quot; : uiInputConfirmPassword.getLocalValue().toString();</span>
+<span class="nc bnc" id="L519" title="All 2 branches missed.">            if (password.isEmpty()){</span>
+<span class="nc" id="L520">                fc.addMessage(callbacks.getConfirmPasswordComponent().getClientId(fc), callbacks.getRaLocaleBean().getFacesMessage(&quot;enroll_password_can_not_be_empty&quot;));</span>
+<span class="nc" id="L521">                fc.renderResponse();</span>
+            }
+<span class="nc bnc" id="L523" title="All 2 branches missed.">            if (!password.equals(confirmPassword)) {</span>
+<span class="nc" id="L524">                fc.addMessage(callbacks.getConfirmPasswordComponent().getClientId(fc), callbacks.getRaLocaleBean().getFacesMessage(&quot;enroll_passwords_are_not_equal&quot;));</span>
+<span class="nc" id="L525">                fc.renderResponse();</span>
+            }
+        }
+<span class="nc" id="L528">    }</span>
+
+    public final String getParamRequestId(){
+<span class="nc" id="L531">        return PARAM_REQUESTID;</span>
+    }
+
+    public String getConfirmPassword() {
+<span class="nc" id="L535">        return confirmPassword;</span>
+    }
+
+    public void setConfirmPassword(String confirmPassword) {
+<span class="nc" id="L539">        this.confirmPassword = confirmPassword;</span>
+<span class="nc" id="L540">    }</span>
+
+    public String getPassword() {
+<span class="nc" id="L543">        return password;</span>
+    }
+
+    public void setPassword(String password) {
+<span class="nc" id="L547">        this.password = password;</span>
+<span class="nc" id="L548">    }</span>
+
+    public int getRequestId() {
+<span class="nc" id="L551">        return requestId;</span>
+    }
+
+    public void setRequestId(int requestId) {
+<span class="nc" id="L555">        this.requestId = requestId;</span>
+<span class="nc" id="L556">    }</span>
+
+    public boolean isKeyRecoveryPossible() {
+        // This check performs multiple database queries. Only check it on new page load
+<span class="nc bnc" id="L560" title="All 2 branches missed.">        if (keyRecoveryPossible == null) {</span>
+<span class="nc" id="L561">            this.keyRecoveryPossible = callbacks.keyRecoveryPossible(this);</span>
+        }
+<span class="nc" id="L563">        return keyRecoveryPossible;</span>
+    }
+
+    public boolean isRenderConfirmRecovery() {
+<span class="nc" id="L567">        return renderConfirmRecovery;</span>
+    }
+
+    public void renderConfirmRecoveryToggle() {
+<span class="nc bnc" id="L571" title="All 2 branches missed.">        renderConfirmRecovery = !renderConfirmRecovery;</span>
+<span class="nc" id="L572">    }</span>
+
+    public boolean isRequestIdInfoRendered(){
+<span class="nc bnc" id="L575" title="All 2 branches missed.">        return requestId != 0;</span>
+    }
+}
+
+
+
+
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

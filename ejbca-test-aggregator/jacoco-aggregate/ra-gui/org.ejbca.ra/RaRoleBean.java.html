@@ -1,0 +1,347 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RaRoleBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ra-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ra</a> &gt; <span class="el_source">RaRoleBean.java</span></div><h1>RaRoleBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ra;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.ejb.EJB;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.ManagedProperty;
+import javax.faces.bean.ViewScoped;
+import javax.faces.model.SelectItem;
+
+import org.apache.commons.lang.SerializationUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.control.StandardRules;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.roles.AccessRulesHelper;
+import org.cesecore.roles.Role;
+import org.cesecore.roles.RoleExistsException;
+import org.ejbca.core.model.authorization.AccessRulesConstants;
+import org.ejbca.core.model.era.IdNameHashMap;
+import org.ejbca.core.model.era.KeyToValueHolder;
+import org.ejbca.core.model.era.RaMasterApiProxyBeanLocal;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfile;
+import org.ejbca.ra.jsfext.AddRemoveListState;
+
+
+/**
+ * Backing bean for the Edit Role page
+ *
+ * @version $Id: RaRoleBean.java 34207 2020-01-08 13:22:50Z samuellb $
+ * TODO: Use CDI beans
+ */
+@SuppressWarnings(&quot;deprecation&quot;)
+@ManagedBean
+@ViewScoped
+<span class="nc" id="L56">public class RaRoleBean implements Serializable {</span>
+
+    private static final long serialVersionUID = 1L;
+<span class="nc" id="L59">    private static final Logger log = Logger.getLogger(RaRoleBean.class);</span>
+
+    @EJB
+    private RaMasterApiProxyBeanLocal raMasterApiProxyBean;
+
+    @ManagedProperty(value=&quot;#{raAccessBean}&quot;)
+    private RaAccessBean raAccessBean;
+<span class="nc" id="L66">    public void setRaAccessBean(final RaAccessBean raAccessBean) { this.raAccessBean = raAccessBean; }</span>
+
+    @ManagedProperty(value=&quot;#{raAuthenticationBean}&quot;)
+    private RaAuthenticationBean raAuthenticationBean;
+<span class="nc" id="L70">    public void setRaAuthenticationBean(final RaAuthenticationBean raAuthenticationBean) { this.raAuthenticationBean = raAuthenticationBean; }</span>
+
+    @ManagedProperty(value=&quot;#{raLocaleBean}&quot;)
+    private RaLocaleBean raLocaleBean;
+<span class="nc" id="L74">    public void setRaLocaleBean(final RaLocaleBean raLocaleBean) { this.raLocaleBean = raLocaleBean; }</span>
+
+    @ManagedProperty(value=&quot;#{raRolesBean}&quot;)
+    private RaRolesBean raRolesBean;
+<span class="nc" id="L78">    public void setRaRolesBean(final RaRolesBean raRolesBean) { this.raRolesBean = raRolesBean; }</span>
+
+<span class="nc" id="L80">    private static final Object NEW_NAMESPACE_ITEM = &quot;#NEW#&quot;;</span>
+    /** Matches e.g. /endentityprofilesrules/12345/create_end_entity, but not /endentityprofilesrules/12345 */
+<span class="nc" id="L82">    private static final Pattern detailedProfileRulePattern = Pattern.compile(&quot;.*/([-0-9]+)/.+$&quot;);</span>
+
+<span class="nc" id="L84">    private boolean initialized = false;</span>
+    
+    private Integer roleId;
+    private Integer cloneFromRoleId;
+    private Role role;
+
+    private String name;
+    private String namespace;
+    private String newNamespace;
+    private boolean hasAccessToEmptyNamespace;
+    private List&lt;String&gt; namespaces;
+<span class="nc" id="L95">    private List&lt;SelectItem&gt; namespaceOptions = new ArrayList&lt;&gt;();</span>
+    
+    /** Represents a checkbox for a rule in the GUI */
+    public final class RuleCheckboxInfo implements Serializable {
+        private static final long serialVersionUID = 1L;
+        private final String accessRule;
+        private final String label;
+        private boolean allowed;
+<span class="nc" id="L103">        public RuleCheckboxInfo(final String accessRule, final String labelMessageKey) {</span>
+<span class="nc" id="L104">            this.accessRule = accessRule;</span>
+<span class="nc" id="L105">            this.label = raLocaleBean.getMessage(labelMessageKey);</span>
+<span class="nc" id="L106">            this.allowed = AccessRulesHelper.hasAccessToResource(role.getAccessRules(), accessRule);</span>
+<span class="nc" id="L107">        }</span>
+<span class="nc" id="L108">        public String getAccessRule() { return accessRule; }</span>
+<span class="nc" id="L109">        public String getLabel() { return label; }</span>
+<span class="nc" id="L110">        public boolean isAllowed() { return allowed; }</span>
+<span class="nc" id="L111">        public void setAllowed(final boolean allowed) { this.allowed = allowed; }</span>
+        
+    }
+
+<span class="nc" id="L115">    private List&lt;RuleCheckboxInfo&gt; endEntityRules = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L116">    private AddRemoveListState&lt;String&gt; caListState = new AddRemoveListState&lt;&gt;();</span>
+<span class="nc" id="L117">    private AddRemoveListState&lt;String&gt; endEntityProfileListState = new AddRemoveListState&lt;&gt;();</span>
+<span class="nc" id="L118">    private Map&lt;Integer,String&gt; eeProfilesWithCustomPermissions = new HashMap&lt;&gt;();</span>
+    
+    public void initialize() throws AuthorizationDeniedException {
+<span class="nc bnc" id="L121" title="All 2 branches missed.">        if (initialized) {</span>
+<span class="nc" id="L122">            return;</span>
+        }
+<span class="nc" id="L124">        initialized = true;</span>
+        
+        // Get namespaces
+<span class="nc" id="L127">        namespaceOptions = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">        namespaces = raMasterApiProxyBean.getAuthorizedRoleNamespaces(raAuthenticationBean.getAuthenticationToken(), roleId != null ? roleId : Role.ROLE_ID_UNASSIGNED);</span>
+<span class="nc" id="L129">        Collections.sort(namespaces);</span>
+<span class="nc" id="L130">        hasAccessToEmptyNamespace = namespaces.contains(&quot;&quot;);</span>
+<span class="nc bnc" id="L131" title="All 2 branches missed.">        if (hasAccessToEmptyNamespace) {</span>
+<span class="nc" id="L132">            namespaceOptions.add(new SelectItem(&quot;&quot;, raLocaleBean.getMessage(&quot;role_page_namespace_none&quot;)));</span>
+<span class="nc" id="L133">            namespaceOptions.add(new SelectItem(NEW_NAMESPACE_ITEM, raLocaleBean.getMessage(&quot;role_page_namespace_createnew&quot;)));</span>
+        }
+<span class="nc bnc" id="L135" title="All 2 branches missed.">        for (final String namespace : namespaces) {</span>
+<span class="nc bnc" id="L136" title="All 2 branches missed.">            if (!namespace.equals(&quot;&quot;)) {</span>
+<span class="nc" id="L137">                namespaceOptions.add(new SelectItem(namespace, namespace));</span>
+            }
+<span class="nc" id="L139">        }</span>
+        
+        // Get role
+<span class="nc bnc" id="L142" title="All 4 branches missed.">        if (roleId != null || cloneFromRoleId != null) {</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">            int roleToFetch = (roleId != null ? roleId : cloneFromRoleId);</span>
+<span class="nc" id="L144">            role = raMasterApiProxyBean.getRole(raAuthenticationBean.getAuthenticationToken(), roleToFetch);</span>
+<span class="nc" id="L145">            name = role.getRoleName();</span>
+<span class="nc" id="L146">            namespace = role.getNameSpace();</span>
+<span class="nc bnc" id="L147" title="All 2 branches missed.">            if (roleId == null) {</span>
+<span class="nc" id="L148">                role.setRoleId(Role.ROLE_ID_UNASSIGNED); // force creation of a new role if we are cloning</span>
+            }
+<span class="nc" id="L150">        } else {</span>
+<span class="nc" id="L151">            role = new Role(getDefaultNamespace(), &quot;&quot;);</span>
+<span class="nc" id="L152">            name = &quot;&quot;;</span>
+        }
+
+        // Get available access rules and their values in this role
+<span class="nc" id="L156">        final IdNameHashMap&lt;CAInfo&gt; authorizedCas = raMasterApiProxyBean.getAuthorizedCAInfos(raAuthenticationBean.getAuthenticationToken());</span>
+<span class="nc bnc" id="L157" title="All 2 branches missed.">        for (final KeyToValueHolder&lt;CAInfo&gt; kv : authorizedCas.values()) {</span>
+<span class="nc" id="L158">            final CAInfo ca = kv.getValue();</span>
+<span class="nc" id="L159">            final String accessRule = StandardRules.CAACCESS.resource() + kv.getId();</span>
+<span class="nc" id="L160">            final boolean enabled = AccessRulesHelper.hasAccessToResource(role.getAccessRules(), accessRule);</span>
+<span class="nc" id="L161">            caListState.addListItem(accessRule, ca.getName(), enabled);</span>
+<span class="nc" id="L162">        }</span>
+        
+<span class="nc" id="L164">        final IdNameHashMap&lt;EndEntityProfile&gt; authorizedEndEntityProfiles = raMasterApiProxyBean.getAuthorizedEndEntityProfiles(raAuthenticationBean.getAuthenticationToken(), AccessRulesConstants.VIEW_END_ENTITY);</span>
+        // Only allow end entity profiles with either full or no access to be edited
+<span class="nc bnc" id="L166" title="All 2 branches missed.">        for (final String accessRule : role.getAccessRules().keySet()) {</span>
+<span class="nc bnc" id="L167" title="All 2 branches missed.">            if (accessRule.startsWith(AccessRulesConstants.ENDENTITYPROFILEPREFIX)) {</span>
+<span class="nc" id="L168">                final Matcher matcher = detailedProfileRulePattern.matcher(accessRule);</span>
+<span class="nc bnc" id="L169" title="All 2 branches missed.">                if (matcher.matches()) {</span>
+<span class="nc" id="L170">                    int profileId = Integer.parseInt(matcher.group(1));</span>
+<span class="nc" id="L171">                    eeProfilesWithCustomPermissions.put(profileId, authorizedEndEntityProfiles.get(profileId).getName());</span>
+                }
+            }
+<span class="nc" id="L174">        }</span>
+<span class="nc bnc" id="L175" title="All 2 branches missed.">        for (final KeyToValueHolder&lt;EndEntityProfile&gt; kv : authorizedEndEntityProfiles.values()) {</span>
+<span class="nc bnc" id="L176" title="All 2 branches missed.">            if (!eeProfilesWithCustomPermissions.containsKey(kv.getId())) {</span>
+<span class="nc" id="L177">                final String accessRule = AccessRulesConstants.ENDENTITYPROFILEPREFIX + kv.getId();</span>
+<span class="nc" id="L178">                final boolean enabled = AccessRulesHelper.hasAccessToResource(role.getAccessRules(), accessRule);</span>
+<span class="nc" id="L179">                endEntityProfileListState.addListItem(accessRule, kv.getName(), enabled);</span>
+            }
+<span class="nc" id="L181">        }</span>
+<span class="nc" id="L182">        endEntityRules.add(new RuleCheckboxInfo(AccessRulesConstants.REGULAR_APPROVEENDENTITY, &quot;role_page_access_approveendentity&quot;));</span>
+<span class="nc" id="L183">        endEntityRules.add(new RuleCheckboxInfo(AccessRulesConstants.REGULAR_CREATEENDENTITY, &quot;role_page_access_createdeleteendentity&quot;)); // we let this one imply delete as well</span>
+<span class="nc" id="L184">        endEntityRules.add(new RuleCheckboxInfo(AccessRulesConstants.REGULAR_EDITENDENTITY, &quot;role_page_access_editendentity&quot;));</span>
+<span class="nc" id="L185">        endEntityRules.add(new RuleCheckboxInfo(AccessRulesConstants.REGULAR_REVOKEENDENTITY, &quot;role_page_access_revokeendentity&quot;));</span>
+<span class="nc" id="L186">        endEntityRules.add(new RuleCheckboxInfo(AccessRulesConstants.REGULAR_VIEWENDENTITY, &quot;role_page_access_viewendentity&quot;));</span>
+<span class="nc" id="L187">        endEntityRules.add(new RuleCheckboxInfo(AccessRulesConstants.REGULAR_VIEWENDENTITYHISTORY, &quot;role_page_access_viewendentityhistory&quot;));</span>
+<span class="nc" id="L188">    }</span>
+    
+    public String getDefaultNamespace() {
+<span class="nc bnc" id="L191" title="All 4 branches missed.">        if (isLimitedToOneNamespace() || namespaces.isEmpty()) { // should never be empty, but better safe than sorry</span>
+<span class="nc" id="L192">            return &quot;&quot;;</span>
+        } else {
+<span class="nc" id="L194">            return namespaces.get(0);</span>
+        }
+    }
+
+<span class="nc" id="L198">    public Integer getRoleId() { return roleId; }</span>
+<span class="nc" id="L199">    public void setRoleId(final Integer roleId) { this.roleId = roleId; }</span>
+<span class="nc" id="L200">    public Integer getCloneFromRoleId() { return cloneFromRoleId; }</span>
+<span class="nc" id="L201">    public void setCloneFromRoleId(final Integer cloneFromRoleId) { this.cloneFromRoleId = cloneFromRoleId; }</span>
+<span class="nc" id="L202">    public Role getRole() { return role; }</span>
+<span class="nc" id="L203">    public String getName() { return name; }</span>
+<span class="nc" id="L204">    public void setName(final String name) { this.name = name; }</span>
+<span class="nc" id="L205">    public String getNamespace() { return namespace; }</span>
+<span class="nc" id="L206">    public void setNamespace(final String namespace) { this.namespace = namespace; }</span>
+<span class="nc" id="L207">    public String getNewNamespace() { return newNamespace; }</span>
+<span class="nc" id="L208">    public void setNewNamespace(final String newNamespace) { this.newNamespace = newNamespace; }</span>
+    
+    public boolean isLimitedToOneNamespace() {
+<span class="nc bnc" id="L211" title="All 4 branches missed.">        return !hasAccessToEmptyNamespace &amp;&amp; namespaces.size() == 1;</span>
+    }
+
+    public boolean getCanCreateNamespaces() {
+<span class="nc" id="L215">        return hasAccessToEmptyNamespace;</span>
+    }
+
+    public List&lt;SelectItem&gt; getNamespaceOptions() {
+<span class="nc" id="L219">        return namespaceOptions;</span>
+    }
+    
+    public boolean getCanEdit() {
+<span class="nc" id="L223">        return raAccessBean.isAuthorizedToEditRoleRules();</span>
+    }
+    
+    public boolean getHasCustomEndEntityProfilePermissions() {
+<span class="nc bnc" id="L227" title="All 2 branches missed.">        return !eeProfilesWithCustomPermissions.isEmpty();</span>
+    }
+    
+    public String getCustomEndEntityProfilePermissionsNotice() {
+<span class="nc" id="L231">        final String profileList = StringUtils.join(eeProfilesWithCustomPermissions.values(), &quot;, &quot;);</span>
+<span class="nc" id="L232">        return raLocaleBean.getMessage(&quot;role_page_custom_permissions_endentityprofiles&quot;, profileList);</span>
+    }
+    
+<span class="nc" id="L235">    public List&lt;RuleCheckboxInfo&gt; getEndEntityRules() { return endEntityRules; }</span>
+<span class="nc" id="L236">    public AddRemoveListState&lt;String&gt; getCaListState() { return caListState; }</span>
+<span class="nc" id="L237">    public AddRemoveListState&lt;String&gt; getEndEntityProfileListState() { return endEntityProfileListState; }</span>
+
+
+    public String getPageTitle() {
+<span class="nc bnc" id="L241" title="All 2 branches missed.">        if (!getCanEdit()) {</span>
+<span class="nc" id="L242">            return raLocaleBean.getMessage(&quot;role_page_title_view&quot;, name);</span>
+<span class="nc bnc" id="L243" title="All 2 branches missed.">        } else if (roleId != null) {</span>
+<span class="nc" id="L244">            return raLocaleBean.getMessage(&quot;role_page_title_edit&quot;, name);</span>
+<span class="nc bnc" id="L245" title="All 2 branches missed.">        } else if (cloneFromRoleId != null) {</span>
+<span class="nc" id="L246">            return raLocaleBean.getMessage(&quot;role_page_title_clone&quot;, name);</span>
+        } else {
+<span class="nc" id="L248">            return raLocaleBean.getMessage(&quot;role_page_title_add&quot;);</span>
+        }
+    }
+
+    public String getSaveButtonText() {
+        final String messageKey;
+<span class="nc bnc" id="L254" title="All 2 branches missed.">        if (roleId != null) {</span>
+<span class="nc" id="L255">            messageKey = &quot;role_page_save_command&quot;;</span>
+<span class="nc bnc" id="L256" title="All 2 branches missed.">        } else if (cloneFromRoleId != null) {</span>
+<span class="nc" id="L257">            messageKey = &quot;role_page_clone_command&quot;;</span>
+        } else {
+<span class="nc" id="L259">            messageKey = &quot;role_page_add_command&quot;;</span>
+        }
+<span class="nc" id="L261">        return raLocaleBean.getMessage(messageKey);</span>
+    }
+
+    public String save() throws AuthorizationDeniedException {
+        // The getRole method returns a reference to an object which should not be edited directly,
+        // so we make a deep copy of it here, which we can edit freely. This code is not performance critical,
+        // so cloning through serialization is OK (and does not require a copy constructor that needs to be maintained).
+<span class="nc" id="L268">        final Role roleWithChanges = (Role) SerializationUtils.clone(role);</span>
+        // Check and set namespace
+<span class="nc bnc" id="L270" title="All 2 branches missed.">        if (!isLimitedToOneNamespace()) {</span>
+            final String namespaceToUse;
+<span class="nc bnc" id="L272" title="All 2 branches missed.">            if (NEW_NAMESPACE_ITEM.equals(namespace)) {</span>
+<span class="nc bnc" id="L273" title="All 2 branches missed.">                if (StringUtils.isBlank(newNamespace)) {</span>
+<span class="nc" id="L274">                    log.debug(&quot;Empty namespace entered when 'New namespace' was selected. Cannot save role&quot;);</span>
+<span class="nc" id="L275">                    raLocaleBean.addMessageError(&quot;role_page_error_empty_namespace&quot;);</span>
+<span class="nc" id="L276">                    return &quot;&quot;;</span>
+                }
+<span class="nc" id="L278">                namespaceToUse = newNamespace;</span>
+            } else {
+<span class="nc bnc" id="L280" title="All 2 branches missed.">                if (!StringUtils.isBlank(newNamespace)) {</span>
+<span class="nc" id="L281">                    log.debug(&quot;New namespace name entered when an existing namespace was selected. Cannot save role&quot;);</span>
+<span class="nc" id="L282">                    raLocaleBean.addMessageError(&quot;role_page_error_new_and_existing_namespace&quot;);</span>
+<span class="nc" id="L283">                    return &quot;&quot;;</span>
+                }
+<span class="nc" id="L285">                namespaceToUse = namespace;</span>
+            }
+<span class="nc" id="L287">            roleWithChanges.setNameSpace(namespaceToUse);</span>
+<span class="nc bnc" id="L288" title="All 2 branches missed.">        } else if (role.getRoleId() == Role.ROLE_ID_UNASSIGNED) {</span>
+            // New role, and the admin is only allowed to use one namespace. Set the namespace to the only allowed one
+<span class="nc" id="L290">            roleWithChanges.setNameSpace(namespaces.get(0));</span>
+        }
+<span class="nc" id="L292">        roleWithChanges.setRoleName(name);</span>
+
+        // Set access rules
+<span class="nc" id="L295">        final Map&lt;String,Boolean&gt; accessMap = roleWithChanges.getAccessRules();</span>
+<span class="nc bnc" id="L296" title="All 2 branches missed.">        for (final RuleCheckboxInfo checkboxInfo : endEntityRules) {</span>
+<span class="nc" id="L297">            accessMap.put(checkboxInfo.accessRule, checkboxInfo.allowed);</span>
+            // We let create imply delete, because the &quot;make new request&quot; page needs delete access as well 
+<span class="nc bnc" id="L299" title="All 2 branches missed.">            if (checkboxInfo.accessRule.equals(AccessRulesConstants.REGULAR_CREATEENDENTITY)) {</span>
+<span class="nc" id="L300">                accessMap.put(AccessRulesConstants.REGULAR_DELETEENDENTITY, checkboxInfo.allowed);</span>
+            }
+<span class="nc" id="L302">        }</span>
+<span class="nc" id="L303">        accessMap.putAll(caListState.getItemStates());</span>
+<span class="nc" id="L304">        accessMap.putAll(endEntityProfileListState.getItemStates());</span>
+
+        try {
+<span class="nc" id="L307">            role = raMasterApiProxyBean.saveRole(raAuthenticationBean.getAuthenticationToken(), roleWithChanges);</span>
+<span class="nc" id="L308">        } catch (RoleExistsException e) {</span>
+<span class="nc bnc" id="L309" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L310">                log.debug(&quot;Role named '&quot; + roleWithChanges.getRoleName() + &quot;' in namespace '&quot; + roleWithChanges.getNameSpace() + &quot;' already exists.&quot;);</span>
+            }
+<span class="nc bnc" id="L312" title="All 2 branches missed.">            if (!StringUtils.isEmpty(roleWithChanges.getNameSpace())) {</span>
+<span class="nc" id="L313">                raLocaleBean.addMessageError(&quot;role_page_error_already_exists_with_namespace&quot;, roleWithChanges.getRoleName(), roleWithChanges.getNameSpace());</span>
+            } else {
+<span class="nc" id="L315">                raLocaleBean.addMessageError(&quot;role_page_error_already_exists&quot;, roleWithChanges.getRoleName());</span>
+            }
+<span class="nc" id="L317">            return &quot;&quot;;</span>
+<span class="nc" id="L318">        }</span>
+<span class="nc" id="L319">        roleId = role.getRoleId();</span>
+<span class="nc" id="L320">        return &quot;roles?faces-redirect=true&amp;includeViewParams=true&quot;;</span>
+    }
+
+    public String getDeletePageTitle() {
+<span class="nc" id="L324">        return raLocaleBean.getMessage(&quot;delete_role_page_title&quot;, name);</span>
+    }
+
+    public String getDeleteConfirmationText() {
+<span class="nc" id="L328">        return raLocaleBean.getMessage(&quot;delete_role_page_confirm&quot;, role.getAccessRules().size());</span>
+    }
+
+    public String delete() throws AuthorizationDeniedException {
+<span class="nc bnc" id="L332" title="All 2 branches missed.">        if (!raMasterApiProxyBean.deleteRole(raAuthenticationBean.getAuthenticationToken(), role.getRoleId())) {</span>
+<span class="nc bnc" id="L333" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L334">                log.debug(&quot;The role '&quot; + role.getRoleNameFull() + &quot;' could not be deleted. Role ID: &quot; + role.getRoleId());</span>
+            }
+<span class="nc" id="L336">            raLocaleBean.addMessageError(&quot;delete_role_page_error_generic&quot;);</span>
+<span class="nc" id="L337">            return &quot;&quot;;</span>
+        }
+<span class="nc" id="L339">        return &quot;roles?faces-redirect=true&amp;includeViewParams=true&quot;;</span>
+    }
+
+    public String cancel() {
+<span class="nc" id="L343">        return &quot;roles?faces-redirect=true&amp;includeViewParams=true&quot;;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

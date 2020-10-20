@@ -23,29 +23,27 @@
 <a class="jxr_linenumber" name="L15" href="#L15">15</a>  <strong class="jxr_keyword">import</strong> org.cesecore.time.providers.TrustedTimeProviderException;
 <a class="jxr_linenumber" name="L16" href="#L16">16</a>  
 <a class="jxr_linenumber" name="L17" href="#L17">17</a>  <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <em class="jxr_javadoccomment"> * This is the trusted time watcher. It will periodically update the status of trusted time (if is synchronous, accuracy, etc).</em>
-<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <em class="jxr_javadoccomment"> * The update period is self managed and is based on infromation gathered from the trusted time provider.</em>
-<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <em class="jxr_javadoccomment"> * </em>
-<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <em class="jxr_javadoccomment"> * @version $Id: TrustedTimeWatcherSession.java 17625 2013-09-20 07:12:06Z netmackan $</em>
-<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <em class="jxr_javadoccomment"> * </em>
-<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <em class="jxr_javadoccomment"> */</em>
-<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">interface</strong> <a name="TrustedTimeWatcherSession" href="../../../org/cesecore/time/TrustedTimeWatcherSession.html#TrustedTimeWatcherSession">TrustedTimeWatcherSession</a> {
-<a class="jxr_linenumber" name="L25" href="#L25">25</a>  
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <em class="jxr_javadoccomment"> * This is the trusted time watcher. It will periodically update the status of</em>
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <em class="jxr_javadoccomment"> * trusted time (if is synchronous, accuracy, etc). The update period is self</em>
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <em class="jxr_javadoccomment"> * managed and is based on infromation gathered from the trusted time provider.</em>
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <em class="jxr_javadoccomment"> *</em>
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <em class="jxr_javadoccomment"> * @version $Id: TrustedTimeWatcherSession.java 17625 2013-09-20 07:12:06Z</em>
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <em class="jxr_javadoccomment"> *     netmackan $</em>
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">interface</strong> <a name="TrustedTimeWatcherSession" href="../../../org/cesecore/time/TrustedTimeWatcherSession.html#TrustedTimeWatcherSession">TrustedTimeWatcherSession</a> {
 <a class="jxr_linenumber" name="L26" href="#L26">26</a>  
-<a class="jxr_linenumber" name="L27" href="#L27">27</a>      <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <em class="jxr_javadoccomment">     * </em>
-<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <em class="jxr_javadoccomment">     * Retrieves the current TrustedTime instance made available in the watcher.</em>
-<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <em class="jxr_javadoccomment">     * The first time this method is invoked it will update the current TrustedTime by making a direct call to </em>
-<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <em class="jxr_javadoccomment">     * the provider and it will schedule a new update interval based on information provided by ntp protocol. </em>
-<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <em class="jxr_javadoccomment">     *</em>
-<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <em class="jxr_javadoccomment">     * @param force forces the TrustedTime update from the provider.</em>
-<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <em class="jxr_javadoccomment">     * @return Watcher TrustedTime current instance.</em>
-<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <em class="jxr_javadoccomment">     * </em>
-<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <em class="jxr_javadoccomment">     * @throws TrustedTimeProviderException on fail</em>
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L38" href="#L38">38</a>      TrustedTime getTrustedTime(<strong class="jxr_keyword">boolean</strong> force) <strong class="jxr_keyword">throws</strong> TrustedTimeProviderException;
-<a class="jxr_linenumber" name="L39" href="#L39">39</a>  
-<a class="jxr_linenumber" name="L40" href="#L40">40</a>  }
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>    <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <em class="jxr_javadoccomment">   * Retrieves the current TrustedTime instance made available in the watcher.</em>
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <em class="jxr_javadoccomment">   * The first time this method is invoked it will update the current</em>
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <em class="jxr_javadoccomment">   * TrustedTime by making a direct call to the provider and it will schedule a</em>
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <em class="jxr_javadoccomment">   * new update interval based on information provided by ntp protocol.</em>
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <em class="jxr_javadoccomment">   *</em>
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <em class="jxr_javadoccomment">   * @param force forces the TrustedTime update from the provider.</em>
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <em class="jxr_javadoccomment">   * @return Watcher TrustedTime current instance.</em>
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <em class="jxr_javadoccomment">   * @throws TrustedTimeProviderException on fail</em>
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <em class="jxr_javadoccomment">   */</em>
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>    TrustedTime getTrustedTime(<strong class="jxr_keyword">boolean</strong> force) <strong class="jxr_keyword">throws</strong> TrustedTimeProviderException;
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2020. All rights reserved.</div>

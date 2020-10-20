@@ -15,72 +15,96 @@ package org.cesecore.authentication.tokens;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.cesecore.authorization.user.matchvalues.AccessMatchValue;
 
 /**
- * Common functions for meta data definitions for AuthenticationTokens that should be auto-detected via ServiceLoader of AuthenticationTokenMetaData.
- * 
- * @version $Id: AuthenticationTokenMetaDataBase.java 25431 2017-03-09 16:52:15Z mikekushner $
+ * Common functions for meta data definitions for AuthenticationTokens that
+ * should be auto-detected via ServiceLoader of AuthenticationTokenMetaData.
+ *
+ * @version $Id: AuthenticationTokenMetaDataBase.java 25431 2017-03-09 16:52:15Z
+ *     mikekushner $
  */
-public abstract class AuthenticationTokenMetaDataBase implements AuthenticationTokenMetaData {
-    
-    private final String tokenType;
-    private final List&lt;? extends AccessMatchValue&gt; accessMatchValues;
-    private final boolean userConfigurable;
-<span class="fc" id="L31">    private final Map&lt;Integer,AccessMatchValue&gt; accessMatchValueIdMap = new HashMap&lt;&gt;();</span>
-<span class="fc" id="L32">    private final Map&lt;String,AccessMatchValue&gt; accessMatchValueNameMap = new HashMap&lt;&gt;();</span>
-    private final AccessMatchValue defaultAccessMatchValue;
+public abstract class AuthenticationTokenMetaDataBase
+    implements AuthenticationTokenMetaData {
 
-<span class="fc" id="L35">    protected AuthenticationTokenMetaDataBase(final String tokenType, final List&lt;? extends AccessMatchValue&gt; accessMatchValues, final boolean userConfigurable) {</span>
-<span class="fc" id="L36">        this.tokenType = tokenType;</span>
-<span class="fc" id="L37">        this.accessMatchValues = accessMatchValues;</span>
-<span class="fc" id="L38">        this.userConfigurable = userConfigurable;</span>
-<span class="fc" id="L39">        AccessMatchValue defaultAccessMatchValue = null;</span>
-<span class="fc bfc" id="L40" title="All 2 branches covered.">        for (final AccessMatchValue accessMatchValue : getAccessMatchValues()) {</span>
-<span class="fc" id="L41">            accessMatchValueIdMap.put(accessMatchValue.getNumericValue(), accessMatchValue);</span>
-<span class="fc" id="L42">            accessMatchValueNameMap.put(accessMatchValue.name(), accessMatchValue);</span>
-<span class="fc bfc" id="L43" title="All 4 branches covered.">            if (defaultAccessMatchValue == null || accessMatchValue.isDefaultValue()) {</span>
-<span class="fc" id="L44">                defaultAccessMatchValue = accessMatchValue;</span>
-            }
-<span class="fc" id="L46">        }</span>
-<span class="fc" id="L47">        this.defaultAccessMatchValue = defaultAccessMatchValue;</span>
-<span class="fc" id="L48">    }</span>
+  /** Type of token. */
+  private final String tokenType;
+  /** List of matching values. */
+  private final List&lt;? extends AccessMatchValue&gt; accessMatchValues;
+  /** Allow configuration. */
+  private final boolean userConfigurable;
+  /** Map of match IDs. */
+<span class="fc" id="L37">  private final Map&lt;Integer, AccessMatchValue&gt; accessMatchValueIdMap =</span>
+      new HashMap&lt;&gt;();
+  /** Map of matching values. */
+<span class="fc" id="L40">  private final Map&lt;String, AccessMatchValue&gt; accessMatchValueNameMap =</span>
+      new HashMap&lt;&gt;();
+  /** Default match value. */
+  private final AccessMatchValue defaultAccessMatchValue;
 
-    @Override
-    public String getTokenType() {
-<span class="fc" id="L52">        return tokenType;</span>
-    }
+  /**
+   * Constructor.
+   *
+   * @param theTokenType Type of token
+   * @param theAccessMatchValues Values to match
+   * @param isUserConfigurable Allow config
+   */
+  protected AuthenticationTokenMetaDataBase(
+      final String theTokenType,
+      final List&lt;? extends AccessMatchValue&gt; theAccessMatchValues,
+<span class="fc" id="L55">      final boolean isUserConfigurable) {</span>
+<span class="fc" id="L56">    this.tokenType = theTokenType;</span>
+<span class="fc" id="L57">    this.accessMatchValues = theAccessMatchValues;</span>
+<span class="fc" id="L58">    this.userConfigurable = isUserConfigurable;</span>
+<span class="fc" id="L59">    AccessMatchValue theDefaultAccessMatchValue = null;</span>
+<span class="fc bfc" id="L60" title="All 2 branches covered.">    for (final AccessMatchValue accessMatchValue : getAccessMatchValues()) {</span>
+<span class="fc" id="L61">      accessMatchValueIdMap.put(</span>
+<span class="fc" id="L62">          accessMatchValue.getNumericValue(), accessMatchValue);</span>
+<span class="fc" id="L63">      accessMatchValueNameMap.put(accessMatchValue.name(), accessMatchValue);</span>
+<span class="fc bfc" id="L64" title="All 2 branches covered.">      if (theDefaultAccessMatchValue == null</span>
+<span class="fc bfc" id="L65" title="All 2 branches covered.">          || accessMatchValue.isDefaultValue()) {</span>
+<span class="fc" id="L66">        theDefaultAccessMatchValue = accessMatchValue;</span>
+      }
+<span class="fc" id="L68">    }</span>
+<span class="fc" id="L69">    this.defaultAccessMatchValue = theDefaultAccessMatchValue;</span>
+<span class="fc" id="L70">  }</span>
 
-    @Override
-    public boolean isUserConfigurable() {
-<span class="nc" id="L57">        return userConfigurable;</span>
-    }
+  @Override
+  public String getTokenType() {
+<span class="fc" id="L74">    return tokenType;</span>
+  }
 
-    @Override
-    public List&lt;? extends AccessMatchValue&gt; getAccessMatchValues() {
-<span class="fc" id="L62">        return accessMatchValues;</span>
-    }
+  @Override
+  public boolean isUserConfigurable() {
+<span class="nc" id="L79">    return userConfigurable;</span>
+  }
 
-    @Override
-    public Map&lt;Integer,AccessMatchValue&gt; getAccessMatchValueIdMap() {
-<span class="fc" id="L67">        return accessMatchValueIdMap;</span>
-    }
+  @Override
+  public List&lt;? extends AccessMatchValue&gt; getAccessMatchValues() {
+<span class="fc" id="L84">    return accessMatchValues;</span>
+  }
 
-    @Override
-    public Map&lt;String,AccessMatchValue&gt; getAccessMatchValueNameMap() {
-<span class="nc" id="L72">        return accessMatchValueNameMap;</span>
-    }
+  @Override
+  public Map&lt;Integer, AccessMatchValue&gt; getAccessMatchValueIdMap() {
+<span class="fc" id="L89">    return accessMatchValueIdMap;</span>
+  }
 
-    @Override
-    public AccessMatchValue getAccessMatchValueDefault() {
-<span class="nc" id="L77">        return defaultAccessMatchValue;</span>
-    }
-    
-    @Override
-    public boolean isSuperToken() {
-        // Legacy pattern: When default value is assigned number Integer.MAX_VALUE, the AuthenticationToken will grant any access rule...
-<span class="nc bnc" id="L83" title="All 2 branches missed.">        return getAccessMatchValueDefault().getNumericValue() == Integer.MAX_VALUE;</span>
-    }
+  @Override
+  public Map&lt;String, AccessMatchValue&gt; getAccessMatchValueNameMap() {
+<span class="nc" id="L94">    return accessMatchValueNameMap;</span>
+  }
+
+  @Override
+  public AccessMatchValue getAccessMatchValueDefault() {
+<span class="nc" id="L99">    return defaultAccessMatchValue;</span>
+  }
+
+  @Override
+  public boolean isSuperToken() {
+    // Legacy pattern: When default value is assigned number
+    // Integer.MAX_VALUE, the AuthenticationToken will grant
+    // any access rule...
+<span class="nc bnc" id="L107" title="All 2 branches missed.">    return getAccessMatchValueDefault().getNumericValue() == Integer.MAX_VALUE;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

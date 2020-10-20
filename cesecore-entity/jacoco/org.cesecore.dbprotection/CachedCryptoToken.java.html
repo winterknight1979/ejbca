@@ -27,10 +27,8 @@ import java.security.cert.CertificateException;
 import java.security.spec.AlgorithmParameterSpec;
 import java.util.List;
 import java.util.Properties;
-
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-
 import org.cesecore.keys.token.CryptoToken;
 import org.cesecore.keys.token.CryptoTokenAuthenticationFailedException;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
@@ -41,167 +39,197 @@ import org.cesecore.keys.token.CryptoTokenOfflineException;
  * be available.
  *
  * @version $Id: CachedCryptoToken.java 22596 2016-01-18 14:59:25Z mikekushner $
- *
  */
 public class CachedCryptoToken implements CryptoToken {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    private final CryptoToken wrappedCryptoToken;
-<span class="nc" id="L51">    private Key cachedKey = null;</span>
-<span class="nc" id="L52">    private PrivateKey cachedPrivateKey = null;</span>
-<span class="nc" id="L53">    private String cachedSignProviderName = null;</span>
+  /** Param. */
+  private final CryptoToken wrappedCryptoToken;
+  /** Param. */
+<span class="nc" id="L50">  private Key cachedKey = null;</span>
+  /** Param. */
+<span class="nc" id="L52">  private PrivateKey cachedPrivateKey = null;</span>
+  /** Param. */
+<span class="nc" id="L54">  private String cachedSignProviderName = null;</span>
 
-<span class="nc" id="L55">    public CachedCryptoToken(final CryptoToken wrappedCryptoToken) {</span>
-<span class="nc" id="L56">        this.wrappedCryptoToken = wrappedCryptoToken;</span>
-<span class="nc" id="L57">    }</span>
+  /**
+   * @param awrappedCryptoToken token
+   */
+<span class="nc" id="L59">  public CachedCryptoToken(final CryptoToken awrappedCryptoToken) {</span>
+<span class="nc" id="L60">    this.wrappedCryptoToken = awrappedCryptoToken;</span>
+<span class="nc" id="L61">  }</span>
 
-    @Override
-    public void activate(char[] authenticationcode) throws CryptoTokenOfflineException, CryptoTokenAuthenticationFailedException {
-<span class="nc" id="L61">        wrappedCryptoToken.activate(authenticationcode);</span>
-<span class="nc" id="L62">    }</span>
+  @Override
+  public void activate(final char[] authenticationcode)
+      throws CryptoTokenOfflineException,
+          CryptoTokenAuthenticationFailedException {
+<span class="nc" id="L67">    wrappedCryptoToken.activate(authenticationcode);</span>
+<span class="nc" id="L68">  }</span>
 
-    @Override
-    public void deactivate() {
-<span class="nc" id="L66">        wrappedCryptoToken.deactivate();</span>
-<span class="nc" id="L67">    }</span>
+  @Override
+  public void deactivate() {
+<span class="nc" id="L72">    wrappedCryptoToken.deactivate();</span>
+<span class="nc" id="L73">  }</span>
 
-    @Override
-    public void deleteEntry(String alias) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, CryptoTokenOfflineException {
-<span class="nc" id="L71">        wrappedCryptoToken.deleteEntry(alias);</span>
-<span class="nc" id="L72">    }</span>
+  @Override
+  public void deleteEntry(final String alias)
+      throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
+          IOException, CryptoTokenOfflineException {
+<span class="nc" id="L79">    wrappedCryptoToken.deleteEntry(alias);</span>
+<span class="nc" id="L80">  }</span>
 
-    @Override
-    public boolean doPermitExtractablePrivateKey() {
-<span class="nc" id="L76">        return wrappedCryptoToken.doPermitExtractablePrivateKey();</span>
+  @Override
+  public boolean doPermitExtractablePrivateKey() {
+<span class="nc" id="L84">    return wrappedCryptoToken.doPermitExtractablePrivateKey();</span>
+  }
+
+  @Override
+  public void generateKey(
+      final String algorithm, final int keysize, final String alias)
+      throws NoSuchAlgorithmException, NoSuchProviderException,
+          KeyStoreException, CryptoTokenOfflineException, InvalidKeyException,
+          InvalidAlgorithmParameterException, SignatureException,
+          CertificateException, IOException, NoSuchPaddingException,
+          IllegalBlockSizeException {
+<span class="nc" id="L95">    wrappedCryptoToken.generateKey(algorithm, keysize, alias);</span>
+<span class="nc" id="L96">  }</span>
+
+  @Override
+  public void generateKeyPair(final String keySpec, final String alias)
+      throws InvalidAlgorithmParameterException, CryptoTokenOfflineException {
+<span class="nc" id="L101">    wrappedCryptoToken.generateKeyPair(keySpec, alias);</span>
+<span class="nc" id="L102">  }</span>
+
+  @Override
+  public void generateKeyPair(
+      final AlgorithmParameterSpec spec, final String alias)
+      throws InvalidAlgorithmParameterException, CertificateException,
+          IOException, CryptoTokenOfflineException {
+<span class="nc" id="L109">    wrappedCryptoToken.generateKeyPair(spec, alias);</span>
+<span class="nc" id="L110">  }</span>
+
+  @Override
+  public String getEncProviderName() {
+<span class="nc" id="L114">    return wrappedCryptoToken.getEncProviderName();</span>
+  }
+
+  @Override
+  public int getId() {
+<span class="nc" id="L119">    return wrappedCryptoToken.getId();</span>
+  }
+
+  @Override
+  public String getTokenName() {
+<span class="nc" id="L124">    return wrappedCryptoToken.getTokenName();</span>
+  }
+
+  @Override
+  public void setTokenName(final String tokenName) {
+<span class="nc" id="L129">    wrappedCryptoToken.setTokenName(tokenName);</span>
+<span class="nc" id="L130">  }</span>
+
+  @Override
+  public boolean isAliasUsed(final String alias) {
+<span class="nc" id="L134">    return wrappedCryptoToken.isAliasUsed(alias);</span>
+  }
+
+  @Override
+  public Key getKey(final String alias) throws CryptoTokenOfflineException {
+<span class="nc bnc" id="L139" title="All 2 branches missed.">    if (cachedKey == null) {</span>
+<span class="nc" id="L140">      cachedKey = wrappedCryptoToken.getKey(alias);</span>
     }
+<span class="nc" id="L142">    return cachedKey;</span>
+  }
 
-    @Override
-    public void generateKey(String algorithm, int keysize, String alias) throws NoSuchAlgorithmException, NoSuchProviderException,
-            KeyStoreException, CryptoTokenOfflineException, InvalidKeyException, InvalidAlgorithmParameterException,
-            SignatureException, CertificateException, IOException, NoSuchPaddingException, IllegalBlockSizeException {
-<span class="nc" id="L83">        wrappedCryptoToken.generateKey(algorithm, keysize, alias);</span>
-<span class="nc" id="L84">    }</span>
-
-    @Override
-    public void generateKeyPair(String keySpec, String alias) throws InvalidAlgorithmParameterException,
-            CryptoTokenOfflineException {
-<span class="nc" id="L89">        wrappedCryptoToken.generateKeyPair(keySpec, alias);</span>
-<span class="nc" id="L90">    }</span>
-
-    @Override
-    public void generateKeyPair(AlgorithmParameterSpec spec, String alias) throws InvalidAlgorithmParameterException, CertificateException,
-            IOException, CryptoTokenOfflineException {
-<span class="nc" id="L95">        wrappedCryptoToken.generateKeyPair(spec, alias);</span>
-<span class="nc" id="L96">    }</span>
-
-    @Override
-    public String getEncProviderName() {
-<span class="nc" id="L100">        return wrappedCryptoToken.getEncProviderName();</span>
+  @Override
+  public PrivateKey getPrivateKey(final String alias)
+      throws CryptoTokenOfflineException {
+<span class="nc bnc" id="L148" title="All 2 branches missed.">    if (cachedPrivateKey == null) {</span>
+<span class="nc" id="L149">      cachedPrivateKey = wrappedCryptoToken.getPrivateKey(alias);</span>
     }
+<span class="nc" id="L151">    return cachedPrivateKey;</span>
+  }
 
-    @Override
-    public int getId() {
-<span class="nc" id="L105">        return wrappedCryptoToken.getId();</span>
+  @Override
+  public Properties getProperties() {
+<span class="nc" id="L156">    return wrappedCryptoToken.getProperties();</span>
+  }
+
+  @Override
+  public PublicKey getPublicKey(final String alias)
+      throws CryptoTokenOfflineException {
+<span class="nc" id="L162">    return wrappedCryptoToken.getPublicKey(alias);</span>
+  }
+
+  @Override
+  public String getSignProviderName() {
+<span class="nc bnc" id="L167" title="All 2 branches missed.">    if (cachedSignProviderName == null) {</span>
+<span class="nc" id="L168">      cachedSignProviderName = wrappedCryptoToken.getSignProviderName();</span>
     }
+<span class="nc" id="L170">    return cachedSignProviderName;</span>
+  }
 
-    @Override
-    public String getTokenName() {
-<span class="nc" id="L110">        return wrappedCryptoToken.getTokenName();</span>
-    }
+  @Override
+  public byte[] getTokenData() {
+<span class="nc" id="L175">    return wrappedCryptoToken.getTokenData();</span>
+  }
 
-    @Override
-    public void setTokenName(final String tokenName) {
-<span class="nc" id="L115">        wrappedCryptoToken.setTokenName(tokenName);</span>
-<span class="nc" id="L116">    }</span>
+  @Override
+  public int getTokenStatus() {
+<span class="nc" id="L180">    return wrappedCryptoToken.getTokenStatus();</span>
+  }
 
-    @Override
-    public boolean isAliasUsed(String alias) {
-<span class="nc" id="L120">        return wrappedCryptoToken.isAliasUsed(alias);</span>
-    }
-    
-    @Override
-    public Key getKey(String alias) throws CryptoTokenOfflineException {
-<span class="nc bnc" id="L125" title="All 2 branches missed.">        if (cachedKey==null) {</span>
-<span class="nc" id="L126">            cachedKey = wrappedCryptoToken.getKey(alias);</span>
-        }
-<span class="nc" id="L128">        return cachedKey;</span>
-    }
+  @Override
+  public void init(final Properties properties, final byte[] data, final int id)
+      throws Exception {
+<span class="nc" id="L186">    wrappedCryptoToken.init(properties, data, id);</span>
+<span class="nc" id="L187">  }</span>
 
-    @Override
-    public PrivateKey getPrivateKey(String alias) throws CryptoTokenOfflineException {
-<span class="nc bnc" id="L133" title="All 2 branches missed.">        if (cachedPrivateKey==null) {</span>
-<span class="nc" id="L134">            cachedPrivateKey = wrappedCryptoToken.getPrivateKey(alias);</span>
-        }
-<span class="nc" id="L136">        return cachedPrivateKey;</span>
-    }
+  @Override
+  public void reset() {
+<span class="nc" id="L191">    wrappedCryptoToken.reset();</span>
+<span class="nc" id="L192">  }</span>
 
-    @Override
-    public Properties getProperties() {
-<span class="nc" id="L141">        return wrappedCryptoToken.getProperties();</span>
-    }
+  @Override
+  public void setProperties(final Properties properties) {
+<span class="nc" id="L196">    wrappedCryptoToken.setProperties(properties);</span>
+<span class="nc" id="L197">  }</span>
 
-    @Override
-    public PublicKey getPublicKey(String alias) throws CryptoTokenOfflineException {
-<span class="nc" id="L146">        return wrappedCryptoToken.getPublicKey(alias);</span>
-    }
+  @Override
+  public void testKeyPair(final String alias)
+      throws InvalidKeyException, CryptoTokenOfflineException {
+<span class="nc" id="L202">    wrappedCryptoToken.testKeyPair(alias);</span>
+<span class="nc" id="L203">  }</span>
 
-    @Override
-    public String getSignProviderName() {
-<span class="nc bnc" id="L151" title="All 2 branches missed.">        if (cachedSignProviderName==null) {</span>
-<span class="nc" id="L152">            cachedSignProviderName = wrappedCryptoToken.getSignProviderName();</span>
-        }
-<span class="nc" id="L154">        return cachedSignProviderName;</span>
-    }
+  @Override
+  public void testKeyPair(
+      final String alias,
+      final PublicKey publicKey,
+      final PrivateKey privateKey)
+      throws InvalidKeyException {
+<span class="nc" id="L211">    wrappedCryptoToken.testKeyPair(alias, publicKey, privateKey);</span>
+<span class="nc" id="L212">  }</span>
 
-    @Override
-    public byte[] getTokenData() {
-<span class="nc" id="L159">        return wrappedCryptoToken.getTokenData();</span>
-    }
+  @Override
+  public List&lt;String&gt; getAliases()
+      throws KeyStoreException, CryptoTokenOfflineException {
+<span class="nc" id="L217">    return wrappedCryptoToken.getAliases();</span>
+  }
 
-    @Override
-    public int getTokenStatus() {
-<span class="nc" id="L164">        return wrappedCryptoToken.getTokenStatus();</span>
-    }
+  @Override
+  public void storeKey(
+      final String alias,
+      final Key key,
+      final Certificate[] chain,
+      final char[] password)
+      throws KeyStoreException {
+<span class="nc" id="L227">    wrappedCryptoToken.storeKey(alias, key, chain, password);</span>
+<span class="nc" id="L228">  }</span>
 
-    @Override
-    public void init(Properties properties, byte[] data, int id) throws Exception {
-<span class="nc" id="L169">        wrappedCryptoToken.init(properties, data, id);</span>
-<span class="nc" id="L170">    }</span>
-
-    @Override
-    public void reset() {
-<span class="nc" id="L174">        wrappedCryptoToken.reset();</span>
-<span class="nc" id="L175">    }</span>
-
-    @Override
-    public void setProperties(Properties properties) {
-<span class="nc" id="L179">        wrappedCryptoToken.setProperties(properties);</span>
-<span class="nc" id="L180">    }</span>
-
-    @Override
-    public void testKeyPair(final String alias) throws InvalidKeyException, CryptoTokenOfflineException {
-<span class="nc" id="L184">        wrappedCryptoToken.testKeyPair(alias);</span>
-<span class="nc" id="L185">    }</span>
-    @Override
-    public void testKeyPair(String alias, PublicKey publicKey, PrivateKey privateKey) throws InvalidKeyException {
-<span class="nc" id="L188">        wrappedCryptoToken.testKeyPair(alias, publicKey, privateKey);</span>
-<span class="nc" id="L189">    }</span>
-
-    @Override
-    public List&lt;String&gt; getAliases() throws KeyStoreException, CryptoTokenOfflineException {
-<span class="nc" id="L193">        return wrappedCryptoToken.getAliases();</span>
-    }
-
-    @Override
-    public void storeKey(String alias, Key key, Certificate[] chain, char[] password) throws KeyStoreException {
-<span class="nc" id="L198">        wrappedCryptoToken.storeKey(alias, key, chain, password);</span>
-        
-<span class="nc" id="L200">    }</span>
-
-    @Override
-    public boolean isAutoActivationPinPresent() {
-<span class="nc" id="L204">        return wrappedCryptoToken.isAutoActivationPinPresent();</span>
-    }
+  @Override
+  public boolean isAutoActivationPinPresent() {
+<span class="nc" id="L232">    return wrappedCryptoToken.isAutoActivationPinPresent();</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

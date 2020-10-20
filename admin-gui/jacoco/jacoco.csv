@@ -1,0 +1,207 @@
+GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
+Administration GUI,org.ejbca.ui.web,ParameterException,4,0,0,0,2,0,1,0,1,0
+Administration GUI,org.ejbca.ui.web,HttpUpload,169,0,20,0,43,0,14,0,4,0
+Administration GUI,org.ejbca.ui.web,DnObjectArrayListConverter,107,0,14,0,20,0,10,0,3,0
+Administration GUI,org.ejbca.ui.web,OidsObjectLinkedHashSetConverter,116,0,14,0,22,0,10,0,3,0
+Administration GUI,org.ejbca.ui.web,ParameterMap,32,0,4,0,10,0,7,0,5,0
+Administration GUI,org.ejbca.ui.web.admin.certprof,ProfilesExportServlet,391,0,30,0,106,0,21,0,6,0
+Administration GUI,org.ejbca.ui.web.admin.certprof,CertProfilesBean,1452,0,152,0,361,0,115,0,39,0
+Administration GUI,org.ejbca.ui.web.admin.certprof,CertProfilesBean.new Comparator() {...},40,0,8,0,6,0,6,0,2,0
+Administration GUI,org.ejbca.ui.web.admin.certprof,CertProfileBean.ApprovalRequestItem,26,0,0,0,9,0,5,0,5,0
+Administration GUI,org.ejbca.ui.web.admin.certprof,CertProfileBean.new Comparator() {...},12,0,0,0,2,0,2,0,2,0
+Administration GUI,org.ejbca.ui.web.admin.certprof,CertProfileBean.new Comparator() {...},12,0,0,0,2,0,2,0,2,0
+Administration GUI,org.ejbca.ui.web.admin.certprof,CertProfileBean.new Comparator() {...},12,0,0,0,2,0,2,0,2,0
+Administration GUI,org.ejbca.ui.web.admin.certprof,CertProfileBean.new Comparator() {...},12,0,0,0,2,0,2,0,2,0
+Administration GUI,org.ejbca.ui.web.admin.certprof,CertProfileBean.new Comparator() {...},12,0,0,0,2,0,2,0,2,0
+Administration GUI,org.ejbca.ui.web.admin.certprof,CertProfileBean.new DataModelListener() {...},37,0,4,0,7,0,4,0,2,0
+Administration GUI,org.ejbca.ui.web.admin.certprof,CertProfileBean.new Comparator() {...},12,0,0,0,2,0,2,0,2,0
+Administration GUI,org.ejbca.ui.web.admin.certprof,CertProfileBean,3537,0,362,0,702,0,371,0,190,0
+Administration GUI,org.ejbca.ui.web.admin.certprof,CertProfilesBean.CertificateProfileItem,30,0,0,0,10,0,5,0,5,0
+Administration GUI,org.ejbca.ui.web.admin.services.servicetypes,HsmKeepAliveWorkerType,16,0,0,0,5,0,1,0,1,0
+Administration GUI,org.ejbca.ui.web.admin.services.servicetypes,CustomActionType,90,0,6,0,26,0,15,0,12,0
+Administration GUI,org.ejbca.ui.web.admin.services.servicetypes,CustomIntervalType,90,0,6,0,26,0,15,0,12,0
+Administration GUI,org.ejbca.ui.web.admin.services.servicetypes,CertificateExpirationNotifierWorkerType,7,0,0,0,2,0,1,0,1,0
+Administration GUI,org.ejbca.ui.web.admin.services.servicetypes,CRLDownloadWorkerType,94,0,2,0,26,0,8,0,7,0
+Administration GUI,org.ejbca.ui.web.admin.services.servicetypes,MailActionType,75,0,4,0,21,0,11,0,9,0
+Administration GUI,org.ejbca.ui.web.admin.services.servicetypes,UserPasswordExpireWorkerType,7,0,0,0,2,0,1,0,1,0
+Administration GUI,org.ejbca.ui.web.admin.services.servicetypes,CustomWorkerType,324,0,16,0,73,0,28,0,20,0
+Administration GUI,org.ejbca.ui.web.admin.services.servicetypes,PeriodicalIntervalType,115,0,4,0,29,0,12,0,10,0
+Administration GUI,org.ejbca.ui.web.admin.services.servicetypes,PublishQueueWorkerType,96,0,8,0,24,0,9,0,5,0
+Administration GUI,org.ejbca.ui.web.admin.services.servicetypes,CRLUpdateWorkerType,14,0,0,0,4,0,1,0,1,0
+Administration GUI,org.ejbca.ui.web.admin.services.servicetypes,BaseEmailNotifyingWorkerType,288,0,8,0,75,0,24,0,20,0
+Administration GUI,org.ejbca.ui.web.admin.services.servicetypes,RenewCAWorkerType,49,0,2,0,14,0,6,0,5,0
+Administration GUI,org.ejbca.ui.web.admin.services.servicetypes,ServiceType,21,0,0,0,8,0,4,0,4,0
+Administration GUI,org.ejbca.ui.web.admin.services.servicetypes,WorkerType,6,0,0,0,2,0,1,0,1,0
+Administration GUI,org.ejbca.ui.web.admin.services.servicetypes,ActionType,6,0,0,0,2,0,1,0,1,0
+Administration GUI,org.ejbca.ui.web.admin.services.servicetypes,IntervalType,6,0,0,0,2,0,1,0,1,0
+Administration GUI,org.ejbca.ui.web.admin.services.servicetypes,RolloverWorkerType,7,0,0,0,2,0,1,0,1,0
+Administration GUI,org.ejbca.ui.web.admin.services.servicetypes,BaseWorkerType,192,0,16,0,54,0,23,0,15,0
+Administration GUI,org.ejbca.ui.web.admin.services.servicetypes,NoActionType,23,0,0,0,8,0,5,0,5,0
+Administration GUI,org.ejbca.ui.web.admin.administratorprivileges,RoleMembersBean.new Comparator() {...},48,0,4,0,12,0,4,0,2,0
+Administration GUI,org.ejbca.ui.web.admin.administratorprivileges,AccessRulesBean.AccessRuleCollection,15,0,0,0,6,0,3,0,3,0
+Administration GUI,org.ejbca.ui.web.admin.administratorprivileges,AccessRulesBean.AccessRuleItem,106,0,6,0,25,0,14,0,11,0
+Administration GUI,org.ejbca.ui.web.admin.administratorprivileges,AccessRulesBean.AccessRulesTemplate,48,0,2,0,10,0,4,0,3,0
+Administration GUI,org.ejbca.ui.web.admin.administratorprivileges,AccessRulesBean.AccessRuleState,45,0,4,0,3,0,4,0,2,0
+Administration GUI,org.ejbca.ui.web.admin.administratorprivileges,AccessRulesBean,2669,0,202,0,432,0,160,0,59,0
+Administration GUI,org.ejbca.ui.web.admin.administratorprivileges,AccessRulesBean.AccessRule,10,0,0,0,4,0,1,0,1,0
+Administration GUI,org.ejbca.ui.web.admin.administratorprivileges,RoleMembersBean,691,0,72,0,150,0,72,0,36,0
+Administration GUI,org.ejbca.ui.web.admin.administratorprivileges,RolesBean,581,0,46,0,136,0,59,0,36,0
+Administration GUI,org.ejbca.ui.web.admin.configuration,SystemConfigurationCtLogManager.CtLogEditor,125,0,6,0,41,0,21,0,18,0
+Administration GUI,org.ejbca.ui.web.admin.configuration,SystemConfigMBean.ProtocolGuiInfo,120,0,24,0,23,0,18,0,6,0
+Administration GUI,org.ejbca.ui.web.admin.configuration,CustomCertExtensionMBean.new Comparator() {...},12,0,0,0,2,0,2,0,2,0
+Administration GUI,org.ejbca.ui.web.admin.configuration,WebLanguages,247,0,26,0,55,0,20,0,7,0
+Administration GUI,org.ejbca.ui.web.admin.configuration,SystemConfigMBean.new Comparator() {...},12,0,0,0,2,0,2,0,2,0
+Administration GUI,org.ejbca.ui.web.admin.configuration,SystemConfigMBean.new ValidatorSettings.ValidatorSettingsHelper() {...},29,0,0,0,8,0,5,0,5,0
+Administration GUI,org.ejbca.ui.web.admin.configuration,SystemConfigMBean.new SystemConfigurationCtLogManager.SystemConfigurationHelper() {...},84,0,4,0,19,0,8,0,6,0
+Administration GUI,org.ejbca.ui.web.admin.configuration,SystemConfigMBean.new Comparator() {...},12,0,0,0,2,0,2,0,2,0
+Administration GUI,org.ejbca.ui.web.admin.configuration,ScepConfigMBean.new Comparator() {...},12,0,0,0,2,0,2,0,2,0
+Administration GUI,org.ejbca.ui.web.admin.configuration,SystemConfigMBean.new Comparator() {...},71,0,10,0,15,0,7,0,2,0
+Administration GUI,org.ejbca.ui.web.admin.configuration,SortableSelectItem,24,0,0,0,7,0,4,0,4,0
+Administration GUI,org.ejbca.ui.web.admin.configuration,ScepConfigMBean.ScepAliasGuiInfo,238,0,6,0,73,0,34,0,31,0
+Administration GUI,org.ejbca.ui.web.admin.configuration,SystemConfigMBean,3343,0,282,0,771,0,252,0,111,0
+Administration GUI,org.ejbca.ui.web.admin.configuration,SystemConfigMBean.CustomCertExtensionInfo,68,0,0,0,18,0,10,0,10,0
+Administration GUI,org.ejbca.ui.web.admin.configuration,LanguageProperties,391,0,70,0,99,0,43,0,7,0
+Administration GUI,org.ejbca.ui.web.admin.configuration,CacheClearException,16,0,0,0,8,0,4,0,4,0
+Administration GUI,org.ejbca.ui.web.admin.configuration,ScepConfigMBean,952,0,48,0,192,0,51,0,27,0
+Administration GUI,org.ejbca.ui.web.admin.configuration,EjbcaJSFHelper,227,0,20,0,55,0,25,0,15,0
+Administration GUI,org.ejbca.ui.web.admin.configuration,SystemConfigurationCtLogManager,466,0,58,0,109,0,42,0,13,0
+Administration GUI,org.ejbca.ui.web.admin.configuration,CustomCertExtensionMBean,333,0,24,0,74,0,25,0,13,0
+Administration GUI,org.ejbca.ui.web.admin.configuration,InvalidCustomExtensionPropertyException,16,0,0,0,8,0,4,0,4,0
+Administration GUI,org.ejbca.ui.web.admin.configuration,SystemConfigMBean.GuiInfo,376,0,6,0,102,0,66,0,63,0
+Administration GUI,org.ejbca.ui.web.admin.configuration,ValidatorSettings,188,0,10,0,48,0,16,0,11,0
+Administration GUI,org.ejbca.ui.web.admin.configuration,SystemConfigMBean.EKUInfo,26,0,0,0,8,0,5,0,5,0
+Administration GUI,org.ejbca.ui.web.admin.configuration,EjbcaWebBean.new Comparator() {...},26,0,6,0,4,0,5,0,2,0
+Administration GUI,org.ejbca.ui.web.admin.configuration,EjbcaWebBean,3155,0,306,0,693,0,282,0,129,0
+Administration GUI,org.ejbca.ui.web.admin.configuration,AdminExistsException,7,0,0,0,4,0,2,0,2,0
+Administration GUI,org.ejbca.ui.web.admin.configuration,CustomCertExtensionMBean.CurrentExtensionGUIInfo,200,0,8,0,44,0,22,0,18,0
+Administration GUI,org.ejbca.ui.web.admin.configuration,CustomCertExtensionMBean.CustomExtensionPropertyGUIInfo,80,0,10,0,22,0,12,0,7,0
+Administration GUI,org.ejbca.ui.web.admin.configuration,AdminDoesntExistException,7,0,0,0,4,0,2,0,2,0
+Administration GUI,org.ejbca.ui.web.admin.configuration,EjbcaJSFImageResource,72,0,2,0,15,0,14,0,13,0
+Administration GUI,org.ejbca.ui.web.admin.configuration,EjbcaJSFLanguageResource,75,0,2,0,16,0,14,0,13,0
+Administration GUI,org.ejbca.util.owaspcsrfguard,JavaLogger,130,0,28,0,38,0,25,0,6,0
+Administration GUI,org.ejbca.util.owaspcsrfguard,EncodingFilter,61,0,6,0,22,0,8,0,5,0
+Administration GUI,org.ejbca.ui.psm.jsf,JsfDynamicUiHtmlOutputLabel,41,0,6,0,12,0,8,0,5,0
+Administration GUI,org.ejbca.ui.psm.jsf,JsfDynamicUiActionListener,68,0,4,0,19,0,6,0,4,0
+Administration GUI,org.ejbca.ui.psm.jsf,JsfDynamicUiHtmlSelectManyListbox,40,0,6,0,12,0,7,0,4,0
+Administration GUI,org.ejbca.ui.psm.jsf,JsfDynamicUiAjaxBehaviorListener,41,0,4,0,13,0,5,0,3,0
+Administration GUI,org.ejbca.ui.psm.jsf,JsfDynamicUiPsmFactory,924,0,126,0,216,0,84,0,21,0
+Administration GUI,org.ejbca.ui.psm.jsf,JsfDynamicUiHtmlSelectOneMenu,40,0,6,0,12,0,7,0,4,0
+Administration GUI,org.ejbca.ui.psm.jsf,JsfDynamicUiHtmlSelectBooleanCheckbox,40,0,6,0,12,0,7,0,4,0
+Administration GUI,org.ejbca.ui.psm.jsf,JsfDynamicUiHtmlInputTextarea,40,0,6,0,12,0,7,0,4,0
+Administration GUI,org.ejbca.ui.psm.jsf,JsfDynamicUiValueChangeListener,106,0,14,0,32,0,13,0,6,0
+Administration GUI,org.ejbca.ui.psm.jsf,JsfDynamicUiHtmlInputText,40,0,6,0,12,0,7,0,4,0
+Administration GUI,org.ejbca.ui.web.admin.keybind,InternalKeyBindingMBean,3083,0,256,0,695,0,230,0,102,0
+Administration GUI,org.ejbca.ui.web.admin.keybind,InternalKeyBindingMBean.GuiInfo,142,0,6,0,43,0,26,0,23,0
+Administration GUI,org.ejbca.ui.web.admin.keybind,InternalKeyBindingMBean.new Comparator() {...},12,0,0,0,2,0,2,0,2,0
+Administration GUI,org.ejbca.ui.web.admin.keybind,InternalKeyBindingMBean.new Comparator() {...},12,0,0,0,2,0,2,0,2,0
+Administration GUI,org.ejbca.ui.web.admin.keybind,InternalKeyBindingMBean.new Comparator() {...},12,0,0,0,2,0,2,0,2,0
+Administration GUI,org.ejbca.ui.web.admin.approval,ApprovalDataVOView,719,0,66,0,163,0,59,0,26,0
+Administration GUI,org.ejbca.ui.web.admin.approval,ApprovalProfilesMBean,571,0,54,0,157,0,57,0,30,0
+Administration GUI,org.ejbca.ui.web.admin.approval,ApproveActionManagedBean.Action,76,0,2,0,12,0,5,0,4,0
+Administration GUI,org.ejbca.ui.web.admin.approval,TextComparisonView,28,0,4,0,9,0,6,0,4,0
+Administration GUI,org.ejbca.ui.web.admin.approval,ApprovalProfilesMBean.new Comparator() {...},12,0,0,0,2,0,2,0,2,0
+Administration GUI,org.ejbca.ui.web.admin.approval,ApprovalProfilesMBean.ApprovalProfileGuiInfo,18,0,0,0,6,0,3,0,3,0
+Administration GUI,org.ejbca.ui.web.admin.approval,ApprovalDataVOViewList.new Comparator() {...},101,0,18,0,13,0,11,0,2,0
+Administration GUI,org.ejbca.ui.web.admin.approval,ApprovalDataVOViewList,116,0,8,0,31,0,17,0,13,0
+Administration GUI,org.ejbca.ui.web.admin.approval,ApproveActionRequestBean,50,0,2,0,15,0,4,0,3,0
+Administration GUI,org.ejbca.ui.web.admin.approval,ApproveActionManagedBean,1451,0,157,0,324,0,112,0,32,0
+Administration GUI,org.ejbca.ui.web.admin.approval,ApprovalStepGuiObject,91,0,6,0,21,0,11,0,8,0
+Administration GUI,org.ejbca.ui.web.admin.approval,ApprovalProfileMBean,1389,0,92,0,330,0,97,0,48,0
+Administration GUI,org.ejbca.ui.web.admin.approval,ApprovalView,84,0,4,0,23,0,9,0,7,0
+Administration GUI,org.ejbca.ui.web.admin.approval,ApprovalPartitionProfileGuiObject,127,0,12,0,30,0,14,0,8,0
+Administration GUI,org.ejbca.ui.web.admin.approval,ListApproveActionManagedBean,573,0,34,0,88,0,39,0,22,0
+Administration GUI,org.ejbca.ui.web.admin.approval,ApprovalProfileMBean.FieldType,136,0,2,0,18,0,6,0,5,0
+Administration GUI,org.ejbca.ui.web.admin.audit,AuditorManagedBean.new Map() {...},36,0,0,0,13,0,13,0,13,0
+Administration GUI,org.ejbca.ui.web.admin.audit,AuditorManagedBean,1926,0,125,0,355,0,142,0,76,0
+Administration GUI,org.ejbca.ui.web.admin.audit,Operation,24,0,0,0,2,0,1,0,1,0
+Administration GUI,org.ejbca.ui.web.admin.audit,AuditSearchCondition,120,0,10,0,36,0,17,0,12,0
+Administration GUI,org.ejbca.ui.web.admin.audit,Condition,74,0,0,0,2,0,1,0,1,0
+Administration GUI,org.ejbca.ui.web.admin.audit,MapToStringConverter,67,0,12,0,16,0,10,0,4,0
+Administration GUI,org.ejbca.util.validator,NoNegativeNumbersValidator,67,0,8,0,14,0,7,0,3,0
+Administration GUI,org.ejbca.util.validator,PositiveIntegerValidator,20,0,0,0,6,0,2,0,2,0
+Administration GUI,org.ejbca.util.validator,DummyValidator,4,0,0,0,2,0,2,0,2,0
+Administration GUI,org.ejbca.util.validator,MinSmallerThanMaxValidator,72,0,8,0,12,0,7,0,3,0
+Administration GUI,org.ejbca.ui.web.admin.upgrade,UpgradeBean.LogEvent,70,0,6,0,16,0,10,0,7,0
+Administration GUI,org.ejbca.ui.web.admin.upgrade,UpgradeBean,157,0,26,0,27,0,32,0,19,0
+Administration GUI,org.ejbca.ui.web.admin.rainterface,AddedUserMemory,127,0,16,0,30,0,13,0,5,0
+Administration GUI,org.ejbca.ui.web.admin.rainterface,EditUserDataSourceJSPHelper,1046,0,98,0,199,0,55,0,6,0
+Administration GUI,org.ejbca.ui.web.admin.rainterface,UserView,541,0,28,0,137,0,73,0,52,0
+Administration GUI,org.ejbca.ui.web.admin.rainterface,RAInterfaceBean.new Comparator() {...},12,0,0,0,2,0,2,0,2,0
+Administration GUI,org.ejbca.ui.web.admin.rainterface,EditEndEntityBean,214,0,26,0,55,0,18,0,5,0
+Administration GUI,org.ejbca.ui.web.admin.rainterface,SortBy,32,0,0,0,14,0,6,0,6,0
+Administration GUI,org.ejbca.ui.web.admin.rainterface,EndEntityProfileNameProxy,38,0,4,0,11,0,4,0,2,0
+Administration GUI,org.ejbca.ui.web.admin.rainterface,UsersView,257,0,28,0,65,0,25,0,11,0
+Administration GUI,org.ejbca.ui.web.admin.rainterface,RAInterfaceBean,2976,0,302,0,689,0,242,0,91,0
+Administration GUI,org.ejbca.ui.web.admin.rainterface,ViewEndEntityHelper,553,0,68,0,101,0,40,0,6,0
+Administration GUI,org.ejbca.ui.web.admin.keys.validation,ValidatorsBean,471,0,26,0,131,0,42,0,29,0
+Administration GUI,org.ejbca.ui.web.admin.keys.validation,ValidatorBean.new Comparator() {...},12,0,0,0,2,0,2,0,2,0
+Administration GUI,org.ejbca.ui.web.admin.keys.validation,ValidatorBean.new Comparator() {...},12,0,0,0,2,0,2,0,2,0
+Administration GUI,org.ejbca.ui.web.admin.keys.validation,ValidatorsBean.new Comparator() {...},12,0,0,0,2,0,2,0,2,0
+Administration GUI,org.ejbca.ui.web.admin.keys.validation,ValidatorsBean.ValidatorItem,24,0,0,0,8,0,4,0,4,0
+Administration GUI,org.ejbca.ui.web.admin.keys.validation,ValidatorBean,803,0,76,0,172,0,75,0,37,0
+Administration GUI,org.ejbca.ui.web.admin.cryptotoken,CryptoTokenMBean.KeyPairGuiInfo,121,0,4,0,30,0,12,0,10,0
+Administration GUI,org.ejbca.ui.web.admin.cryptotoken,CryptoTokenMBean.CryptoTokenGuiInfo,105,0,4,0,26,0,20,0,18,0
+Administration GUI,org.ejbca.ui.web.admin.cryptotoken,CryptoTokenDownloadServlet,97,0,0,0,29,0,5,0,5,0
+Administration GUI,org.ejbca.ui.web.admin.cryptotoken,CryptoTokenMBean.CurrentCryptoTokenGuiInfo,202,0,0,0,58,0,39,0,39,0
+Administration GUI,org.ejbca.ui.web.admin.cryptotoken,CryptoTokenMBean.new Comparator() {...},12,0,0,0,2,0,2,0,2,0
+Administration GUI,org.ejbca.ui.web.admin.cryptotoken,CryptoTokenMBean.new Comparator() {...},13,0,0,0,2,0,2,0,2,0
+Administration GUI,org.ejbca.ui.web.admin.cryptotoken,CryptoTokenMBean.new Comparator() {...},13,0,0,0,2,0,2,0,2,0
+Administration GUI,org.ejbca.ui.web.admin.cryptotoken,CryptoTokenMBean.new Comparator() {...},12,0,0,0,2,0,2,0,2,0
+Administration GUI,org.ejbca.ui.web.admin.cryptotoken,CryptoTokenMBean,1913,0,190,0,418,0,147,0,52,0
+Administration GUI,org.ejbca.ui.web.admin.services,EditServiceManagedBean.new Comparator() {...},12,0,0,0,2,0,2,0,2,0
+Administration GUI,org.ejbca.ui.web.admin.services,EditServiceManagedBean.ManualCustomItems,27,0,0,0,7,0,4,0,4,0
+Administration GUI,org.ejbca.ui.web.admin.services,ServiceTypeManager,129,0,4,0,28,0,7,0,5,0
+Administration GUI,org.ejbca.ui.web.admin.services,ListServicesManagedBean,358,0,26,0,81,0,27,0,14,0
+Administration GUI,org.ejbca.ui.web.admin.services,EditServiceManagedBean,765,0,76,0,157,0,68,0,30,0
+Administration GUI,org.ejbca.ui.web.admin.services,ServiceConfigurationView,768,0,62,0,183,0,65,0,34,0
+Administration GUI,org.ejbca.ui.web.admin.services,ServiceConfigurationView.new Comparator() {...},12,0,0,0,2,0,2,0,2,0
+Administration GUI,org.ejbca.util,RadioButtonLabelConverter,26,0,6,0,7,0,6,0,3,0
+Administration GUI,org.ejbca.util,RadioButtonConverter,19,0,6,0,7,0,6,0,3,0
+Administration GUI,org.ejbca.util,SelectItemComparator,16,65,2,12,1,17,2,9,0,4
+Administration GUI,org.ejbca.util,StringConverter,26,0,8,0,9,0,7,0,3,0
+Administration GUI,org.ejbca.ui.web.admin.cainterface.exception,ExcessiveResultsException,16,0,0,0,8,0,4,0,4,0
+Administration GUI,org.ejbca.ui.web.admin.cainterface.exception,AdminWebAuthenticationException,9,0,0,0,4,0,2,0,2,0
+Administration GUI,org.ejbca.ui.web.admin.cainterface,CAActivationMBean.TokenAndCaActivationGuiComboInfo,24,0,0,0,8,0,4,0,4,0
+Administration GUI,org.ejbca.ui.web.admin.cainterface,CAInterfaceBean.CaCrlStatusInfo,24,0,0,0,8,0,4,0,4,0
+Administration GUI,org.ejbca.ui.web.admin.cainterface,CAActivationMBean.CaActivationGuiInfo,120,0,24,0,23,0,28,0,16,0
+Administration GUI,org.ejbca.ui.web.admin.cainterface,CAExportServlet,131,0,4,0,38,0,7,0,5,0
+Administration GUI,org.ejbca.ui.web.admin.cainterface,CAActivationMBean.TokenAndCaActivationGuiInfo,120,0,12,0,24,0,18,0,12,0
+Administration GUI,org.ejbca.ui.web.admin.cainterface,CAActivationMBean,470,0,50,0,91,0,33,0,8,0
+Administration GUI,org.ejbca.ui.web.admin.cainterface,EditPublisherJSPHelper,1667,265,263,22,442,59,175,14,38,4
+Administration GUI,org.ejbca.ui.web.admin.cainterface,GetCRLServlet,226,0,16,0,63,0,13,0,5,0
+Administration GUI,org.ejbca.ui.web.admin.cainterface,AdminCertReqServlet,494,0,36,0,152,0,27,0,9,0
+Administration GUI,org.ejbca.ui.web.admin.cainterface,CACertServlet,320,0,32,0,88,0,21,0,5,0
+Administration GUI,org.ejbca.ui.web.admin.cainterface,CAInfoView,505,0,27,0,72,0,24,0,8,0
+Administration GUI,org.ejbca.ui.web.admin.cainterface,ViewCAInfoJSPHelper,94,0,6,0,32,0,6,0,3,0
+Administration GUI,org.ejbca.ui.web.admin.cainterface,CAInterfaceBean.CertReqUserCreateComparator,16,0,0,0,2,0,2,0,2,0
+Administration GUI,org.ejbca.ui.web.admin.cainterface,CADataHandler,829,0,80,0,184,0,69,0,29,0
+Administration GUI,org.ejbca.ui.web.admin.cainterface,EditPublisherJSPHelper.new Comparator() {...},14,0,0,0,2,0,2,0,2,0
+Administration GUI,org.ejbca.ui.web.admin.cainterface,EndEntityCertServlet,220,0,18,0,60,0,13,0,4,0
+Administration GUI,org.ejbca.ui.web.admin.cainterface,CAInterfaceBean,3029,0,352,0,694,0,250,0,74,0
+Administration GUI,org.ejbca.ui.web.admin.cainterface,PublisherDataHandler,67,0,0,0,18,0,9,0,9,0
+Administration GUI,org.ejbca.ui.web.admin.cainterface,CACertReqServlet,453,0,32,0,131,0,20,0,4,0
+Administration GUI,org.ejbca.ui.web.admin.cainterface,BaseAdminServlet,200,0,10,0,58,0,11,0,6,0
+Administration GUI,org.ejbca.ui.web.admin.cainterface,CAActivationMBean.new Comparator() {...},12,0,0,0,2,0,2,0,2,0
+Administration GUI,org.ejbca.ui.web.admin.cainterface,CAActivationMBean.new Comparator() {...},12,0,0,0,2,0,2,0,2,0
+Administration GUI,org.ejbca.ui.web.admin.hardtokeninterface,EditHardTokenProfileJSPHelper,1454,0,258,0,408,0,134,0,4,0
+Administration GUI,org.ejbca.ui.web.admin.hardtokeninterface,HardTokenInterfaceBean,443,0,56,0,98,0,50,0,22,0
+Administration GUI,org.ejbca.ui.web.admin.hardtokeninterface,HardTokenProfileDataHandler,338,0,34,0,82,0,30,0,13,0
+Administration GUI,org.ejbca.ui.web.admin.hardtokeninterface,HardTokenView,113,0,4,0,31,0,20,0,18,0
+Administration GUI,org.ejbca.ui.web.admin.acme,AcmeConfigMBean.new Comparator() {...},12,0,0,0,2,0,2,0,2,0
+Administration GUI,org.ejbca.ui.web.admin.acme,AcmeConfigMBean,614,0,40,0,150,0,45,0,25,0
+Administration GUI,org.ejbca.ui.web.admin.acme,AcmeConfigMBean.AcmeAliasGuiInfo,147,0,4,0,53,0,27,0,25,0
+Administration GUI,org.ejbca.ui.web.admin.acme,AcmeConfigMBean.AcmeGlobalGuiInfo,29,0,0,0,10,0,5,0,5,0
+Administration GUI,org.ejbca.ui.web.admin,BaseManagedBean,232,0,12,0,54,0,19,0,13,0
+Administration GUI,org.ejbca.ui.web.admin,MultiLineFreeTextValidator,43,0,6,0,9,0,6,0,3,0
+Administration GUI,org.ejbca.ui.web.admin,ValidityDateValidator,139,0,24,0,35,0,15,0,3,0
+Administration GUI,org.ejbca.ui.web.admin,NoCacheFilter,74,0,12,0,17,0,12,0,6,0
+Administration GUI,org.ejbca.ui.web.admin,UrlValidator,52,0,2,0,13,0,4,0,3,0
+Administration GUI,org.ejbca.ui.web.admin,LegalCharsValidator,72,0,8,0,16,0,7,0,3,0
+Administration GUI,org.ejbca.ui.web.admin,AdminMenuBean,492,0,76,0,59,0,76,0,38,0
+Administration GUI,org.ejbca.ui.web.admin,CustomLoader,36,0,4,0,9,0,4,0,2,0
+Administration GUI,org.ejbca.ui.web.admin,HexSerialNumberValidator,80,0,6,0,18,0,6,0,3,0
+Administration GUI,org.ejbca.ui.web.admin,OptionalHexSerialNumberValidator,47,0,6,0,10,0,6,0,3,0
+Administration GUI,org.ejbca.ui.web.admin,ProxiedAuthenticationFilter,173,0,20,0,48,0,16,0,6,0
+Administration GUI,org.ejbca.ui.web.admin,LogOutServlet,44,0,2,0,14,0,4,0,3,0
+Administration GUI,org.ejbca.ui.web.admin,LinkView,27,0,0,0,10,0,5,0,5,0
+Administration GUI,org.ejbca.ui.web.admin,SimpleTimeValidator,107,0,16,0,25,0,11,0,3,0

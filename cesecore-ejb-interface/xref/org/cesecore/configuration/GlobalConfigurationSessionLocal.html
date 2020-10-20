@@ -21,23 +21,27 @@
 <a class="jxr_linenumber" name="L13" href="#L13">13</a>  <strong class="jxr_keyword">package</strong> org.cesecore.configuration;
 <a class="jxr_linenumber" name="L14" href="#L14">14</a>  
 <a class="jxr_linenumber" name="L15" href="#L15">15</a>  <strong class="jxr_keyword">import</strong> java.util.Set;
-<a class="jxr_linenumber" name="L16" href="#L16">16</a>  
-<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <strong class="jxr_keyword">import</strong> javax.ejb.Local;
-<a class="jxr_linenumber" name="L18" href="#L18">18</a>  
-<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <em class="jxr_javadoccomment"> * Local interface for GlobalConfigurationSession.</em>
-<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <em class="jxr_javadoccomment"> * @version $Id: GlobalConfigurationSessionLocal.java 25921 2017-05-31 01:02:34Z jeklund $</em>
-<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <em class="jxr_javadoccomment"> */</em>
-<a class="jxr_linenumber" name="L23" href="#L23">23</a>  @Local
-<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">interface</strong> <a name="GlobalConfigurationSessionLocal" href="../../../org/cesecore/configuration/GlobalConfigurationSessionLocal.html#GlobalConfigurationSessionLocal">GlobalConfigurationSessionLocal</a> <strong class="jxr_keyword">extends</strong> <a name="GlobalConfigurationSession" href="../../../org/cesecore/configuration/GlobalConfigurationSession.html#GlobalConfigurationSession">GlobalConfigurationSession</a> {
-<a class="jxr_linenumber" name="L25" href="#L25">25</a>      
-<a class="jxr_linenumber" name="L26" href="#L26">26</a>      <em class="jxr_javadoccomment">/** @param configurationId ID</em>
-<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <em class="jxr_javadoccomment">     * @return the found entity instance or null if the entity does not exist */</em>
-<a class="jxr_linenumber" name="L28" href="#L28">28</a>      GlobalConfigurationData findByConfigurationId(String configurationId);
-<a class="jxr_linenumber" name="L29" href="#L29">29</a>      
-<a class="jxr_linenumber" name="L30" href="#L30">30</a>      <em class="jxr_javadoccomment">/** @return all registered configuration IDs. */</em>
-<a class="jxr_linenumber" name="L31" href="#L31">31</a>      Set&lt;String&gt; getIds();
-<a class="jxr_linenumber" name="L32" href="#L32">32</a>  }
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <strong class="jxr_keyword">import</strong> javax.ejb.Local;
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <em class="jxr_javadoccomment"> * Local interface for GlobalConfigurationSession.</em>
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <em class="jxr_javadoccomment"> *</em>
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <em class="jxr_javadoccomment"> * @version $Id: GlobalConfigurationSessionLocal.java 25921 2017-05-31 01:02:34Z</em>
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <em class="jxr_javadoccomment"> *     jeklund $</em>
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  @Local
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">interface</strong> <a name="GlobalConfigurationSessionLocal" href="../../../org/cesecore/configuration/GlobalConfigurationSessionLocal.html#GlobalConfigurationSessionLocal">GlobalConfigurationSessionLocal</a>
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>      <strong class="jxr_keyword">extends</strong> <a name="GlobalConfigurationSession" href="../../../org/cesecore/configuration/GlobalConfigurationSession.html#GlobalConfigurationSession">GlobalConfigurationSession</a> {
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>    <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <em class="jxr_javadoccomment">   * @param configurationId ID</em>
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <em class="jxr_javadoccomment">   * @return the found entity instance or null if the entity does not exist</em>
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <em class="jxr_javadoccomment">   */</em>
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>    GlobalConfigurationData findByConfigurationId(String configurationId);
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>    <em class="jxr_javadoccomment">/** @return all registered configuration IDs. */</em>
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>    Set&lt;String&gt; getIds();
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2020. All rights reserved.</div>

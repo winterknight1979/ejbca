@@ -16,26 +16,24 @@ package org.cesecore.configuration;
 import org.cesecore.internal.UpgradeableDataHashMap;
 
 /**
- * 
  * @version $Id: ConfigurationBase.java 19986 2014-10-16 13:07:54Z mikekushner $
- *
  */
+<span class="fc" id="L21">public abstract class ConfigurationBase extends UpgradeableDataHashMap {</span>
 
-<span class="fc" id="L24">public abstract class ConfigurationBase extends UpgradeableDataHashMap {</span>
+  private static final long serialVersionUID = 4886872276324915327L;
 
-    private static final long serialVersionUID = 4886872276324915327L;
+  /** API version. */
+  public static final float LATEST_VERSION = 3f;
 
-    public static final float LATEST_VERSION = 3f;
-        
-    @Override
-    public float getLatestVersion() {
-<span class="fc" id="L32">        return LATEST_VERSION;</span>
-    }
+  @Override
+  public float getLatestVersion() {
+<span class="fc" id="L30">    return LATEST_VERSION;</span>
+  }
 
-    @Override
-    public abstract void upgrade();
-    
-    public abstract String getConfigurationId();
+  @Override
+  public abstract void upgrade();
 
+  /** @return ID. */
+  public abstract String getConfigurationId();
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

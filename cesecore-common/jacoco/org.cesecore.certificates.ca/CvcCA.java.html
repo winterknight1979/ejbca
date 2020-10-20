@@ -9,7 +9,7 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.ca;
 
 import java.io.Serializable;
@@ -20,7 +20,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ServiceLoader;
-
 import org.apache.log4j.Logger;
 import org.bouncycastle.cert.X509CRLHolder;
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceInfo;
@@ -30,207 +29,308 @@ import org.cesecore.config.CesecoreConfiguration;
 import org.cesecore.internal.InternalResources;
 import org.cesecore.keys.token.CryptoToken;
 
-
 /**
- * Base class for CVC CAs. Holds data specific for Certificate and CRL generation 
- * according to the CVC (Card Verifiable Certificate) standards, which are not real standards.
- * There can be many different implementations of CVC CA which are quite different, for example EU EAC electronic passports,
- * Tachographs and eIDs.  
+ * Base class for CVC CAs. Holds data specific for Certificate and CRL
+ * generation according to the CVC (Card Verifiable Certificate) standards,
+ * which are not real standards. There can be many different implementations of
+ * CVC CA which are quite different, for example EU EAC electronic passports,
+ * Tachographs and eIDs.
  *
  * @version $Id: CvcCA.java 30618 2018-11-26 07:27:19Z samuellb $
  */
-<span class="nc" id="L42">public abstract class CvcCA extends CA implements Serializable {</span>
+<span class="nc" id="L41">public abstract class CvcCA extends CA implements Serializable {</span>
 
-    private static final long serialVersionUID = 3L;
-<span class="nc" id="L45">	private static final Logger log = Logger.getLogger(CvcCA.class);</span>
+  private static final long serialVersionUID = 3L;
+  /** Logger. */
+<span class="nc" id="L45">  private static final Logger LOG = Logger.getLogger(CvcCA.class);</span>
 
-	/** Internal localization of logs and errors */
-<span class="nc" id="L48">	private static final InternalResources intres = InternalResources.getInstance();</span>
+  /** Internal localization of logs and errors. */
+<span class="nc" id="L48">  private static final InternalResources INTRES =</span>
+<span class="nc" id="L49">      InternalResources.getInstance();</span>
 
-	/** Version of this class, if this is increased the upgrade() method will be called automatically */
-	public static final float LATEST_VERSION = 4;
+  /**
+   * Version of this class, if this is increased the upgrade() method will be
+   * called automatically.
+   */
+  public static final float LATEST_VERSION = 4;
 
-	/** Creates a new instance of CA, this constructor should be used when a new CA is created 
-	 * @param cainfo info*/
-	public void init(CVCCAInfo cainfo) {
-<span class="nc" id="L56">	    super.init(cainfo);</span>
-<span class="nc" id="L57">        data.put(CA.CATYPE, Integer.valueOf(CAInfo.CATYPE_CVC));</span>
-<span class="nc" id="L58">        data.put(VERSION, Float.valueOf(LATEST_VERSION));   </span>
-<span class="nc" id="L59">	}</span>
+  /**
+   * Creates a new instance of CA, this constructor should be used when a new CA
+   * is created.
+   *
+   * @param cainfo info
+   */
+  public void init(final CVCCAInfo cainfo) {
+<span class="nc" id="L64">    super.init(cainfo);</span>
+<span class="nc" id="L65">    data.put(CA.CATYPE, Integer.valueOf(CAInfo.CATYPE_CVC));</span>
+<span class="nc" id="L66">    data.put(VERSION, Float.valueOf(LATEST_VERSION));</span>
+<span class="nc" id="L67">  }</span>
 
-	public static CvcCA getInstance(CVCCAInfo cainfo) {
-	    // For future: Type here should be extracted from cainfo to select between different implementations 
-<span class="nc" id="L63">	    CvcCA ret = (CvcCA)createCAImpl(&quot;EAC&quot;);</span>
-<span class="nc bnc" id="L64" title="All 2 branches missed.">	    if (ret != null) {</span>
-<span class="nc" id="L65">	        ret.init(cainfo);	        </span>
-	    }
-<span class="nc" id="L67">	    return ret;</span>
-	}
-	public static CvcCA getInstance(HashMap&lt;Object, Object&gt; data, int caId, String subjectDN, String name, int status, Date updateTime, Date expireTime) {
-        // For future: Type here should be extracted from data to select between different implementations 
-<span class="nc" id="L71">        CvcCA ret = (CvcCA)createCAImpl(&quot;EAC&quot;);</span>
-<span class="nc bnc" id="L72" title="All 2 branches missed.">        if (ret != null) {</span>
-<span class="nc" id="L73">            ret.init(data, caId, subjectDN, name, status, updateTime, expireTime);</span>
+  /**
+   *
+   * @param cainfo Info
+   * @return Instance
+   */
+  public static CvcCA getInstance(final CVCCAInfo cainfo) {
+    // For future: Type here should be extracted from cainfo to select between
+    // different implementations
+<span class="nc" id="L77">    CvcCA ret = (CvcCA) createCAImpl(&quot;EAC&quot;);</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">    if (ret != null) {</span>
+<span class="nc" id="L79">      ret.init(cainfo);</span>
+    }
+<span class="nc" id="L81">    return ret;</span>
+  }
+
+  /** @param data Data
+ * @param caId ID
+ * @param subjectDN DN
+ * @param name Name
+ * @param status Status
+ * @param updateTime Time
+ * @param expireTime Time
+ * @return singleton instance. */
+  public static CvcCA getInstance(
+      final HashMap&lt;Object, Object&gt; data,
+      final int caId,
+      final String subjectDN,
+      final String name,
+      final int status,
+      final Date updateTime,
+      final Date expireTime) {
+    // For future: Type here should be extracted from data to select between
+    // different implementations
+<span class="nc" id="L102">    CvcCA ret = (CvcCA) createCAImpl(&quot;EAC&quot;);</span>
+<span class="nc bnc" id="L103" title="All 2 branches missed.">    if (ret != null) {</span>
+<span class="nc" id="L104">      ret.init(data, caId, subjectDN, name, status, updateTime, expireTime);</span>
+    }
+<span class="nc" id="L106">    return ret;</span>
+  }
+
+  /** @return Class Loader */
+  public static ServiceLoader&lt;? extends CvcPlugin&gt; getImplementationClasses() {
+<span class="nc" id="L111">    ServiceLoader&lt;? extends CvcPlugin&gt; serviceLoader =</span>
+<span class="nc" id="L112">        ServiceLoader.load(CvcPlugin.class);</span>
+<span class="nc" id="L113">    return serviceLoader;</span>
+  }
+
+  private static CvcPlugin createCAImpl(final String type) {
+    // type can be used to differentiate between different types of CVC CA
+    // implementations as there
+    // can be several different types of CVC: EAC, Tachograph, eID etc.
+    ServiceLoader&lt;? extends CvcPlugin&gt; serviceLoader =
+<span class="nc" id="L121">        getImplementationClasses();</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">    for (CvcPlugin cvcPlugin : serviceLoader) {</span>
+<span class="nc bnc" id="L123" title="All 2 branches missed.">      if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L124">        LOG.debug(</span>
+            &quot;ServiceLoader found CvcPlugin implementation: &quot;
+<span class="nc" id="L126">                + cvcPlugin.getCvcType());</span>
+      }
+<span class="nc bnc" id="L128" title="All 2 branches missed.">      if (type.equals(cvcPlugin.getCvcType())) {</span>
+<span class="nc" id="L129">        return cvcPlugin;</span>
+      }
+<span class="nc" id="L131">    }</span>
+    // No implementation found, it is probably an Enterprise only feature
+<span class="nc" id="L133">    LOG.info(&quot;CVC CA is not available in this version of EJBCA.&quot;);</span>
+<span class="nc" id="L134">    return null;</span>
+  }
+
+  /**
+   * Constructor used when retrieving existing CVCCA from database.
+   *
+   * @param data data
+   * @param caId ID
+   * @param subjectDN DN
+   * @param name name
+   * @param status status
+   * @param updateTime Update time
+   * @param expireTime expiry
+   */
+  @SuppressWarnings(&quot;deprecation&quot;)
+  public void init(
+      final HashMap&lt;Object, Object&gt; data,
+      final int caId,
+      final String subjectDN,
+      final String name,
+      final int status,
+      final Date updateTime,
+      final Date expireTime) {
+<span class="nc" id="L157">    super.init(data);</span>
+<span class="nc" id="L158">    setExpireTime(expireTime);</span>
+<span class="nc" id="L159">    final List&lt;ExtendedCAServiceInfo&gt; externalcaserviceinfos =</span>
+        new ArrayList&lt;&gt;();
+<span class="nc bnc" id="L161" title="All 2 branches missed.">    for (final Integer externalCAServiceType : getExternalCAServiceTypes()) {</span>
+      // Type was removed in 6.0.0. It is removed from the database in the
+      // upgrade method in this class, but it needs to be ignored
+      // for instantiation.
+<span class="nc bnc" id="L165" title="All 2 branches missed.">      if (externalCAServiceType</span>
+          != ExtendedCAServiceTypes.TYPE_OCSPEXTENDEDSERVICE) {
+<span class="nc" id="L167">        final ExtendedCAServiceInfo info =</span>
+<span class="nc" id="L168">            this.getExtendedCAServiceInfo(externalCAServiceType.intValue());</span>
+<span class="nc bnc" id="L169" title="All 2 branches missed.">        if (info != null) {</span>
+<span class="nc" id="L170">          externalcaserviceinfos.add(info);</span>
         }
-<span class="nc" id="L75">        return ret;</span>
-	}
+      }
+<span class="nc" id="L173">    }</span>
 
-	public static ServiceLoader&lt;? extends CvcPlugin&gt; getImplementationClasses() {
-<span class="nc" id="L79">        ServiceLoader&lt;? extends CvcPlugin&gt; serviceLoader = ServiceLoader.load(CvcPlugin.class);</span>
-<span class="nc" id="L80">        return serviceLoader;</span>
-	}
-    private static CvcPlugin createCAImpl(final String type) {
-        // type can be used to differentiate between different types of CVC CA implementations as there
-        // can be several different types of CVC: EAC, Tachograph, eID etc.
-<span class="nc" id="L85">        ServiceLoader&lt;? extends CvcPlugin&gt; serviceLoader = getImplementationClasses();</span>
-<span class="nc bnc" id="L86" title="All 2 branches missed.">        for (CvcPlugin cvcPlugin : serviceLoader) {</span>
-<span class="nc bnc" id="L87" title="All 2 branches missed.">        	if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L88">        	    log.debug(&quot;ServiceLoader found CvcPlugin implementation: &quot;+cvcPlugin.getCvcType());</span>
-        	}
-<span class="nc bnc" id="L90" title="All 2 branches missed.">            if (type.equals(cvcPlugin.getCvcType())) {</span>
-<span class="nc" id="L91">                return cvcPlugin;</span>
-            }            
-<span class="nc" id="L93">        }</span>
-        // No implementation found, it is probably an Enterprise only feature
-<span class="nc" id="L95">        log.info(&quot;CVC CA is not available in this version of EJBCA.&quot;);</span>
-<span class="nc" id="L96">        return null;</span>
+<span class="nc" id="L175">    final CVCCAInfo info =</span>
+        new CVCCAInfo(
+            subjectDN,
+            name,
+            status,
+            updateTime,
+<span class="nc" id="L181">            getCertificateProfileId(),</span>
+<span class="nc" id="L182">            getDefaultCertificateProfileId(),</span>
+<span class="nc" id="L183">            getEncodedValidity(),</span>
+<span class="nc" id="L184">            getExpireTime(),</span>
+<span class="nc" id="L185">            getCAType(),</span>
+<span class="nc" id="L186">            getSignedBy(),</span>
+<span class="nc" id="L187">            getCertificateChain(),</span>
+<span class="nc" id="L188">            getCAToken(),</span>
+<span class="nc" id="L189">            getDescription(),</span>
+<span class="nc" id="L190">            getRevocationReason(),</span>
+<span class="nc" id="L191">            getRevocationDate(),</span>
+<span class="nc" id="L192">            getCRLPeriod(),</span>
+<span class="nc" id="L193">            getCRLIssueInterval(),</span>
+<span class="nc" id="L194">            getCRLOverlapTime(),</span>
+<span class="nc" id="L195">            getDeltaCRLPeriod(),</span>
+<span class="nc" id="L196">            getCRLPublishers(),</span>
+<span class="nc" id="L197">            getValidators(),</span>
+<span class="nc" id="L198">            getFinishUser(),</span>
+            externalcaserviceinfos,
+<span class="nc" id="L200">            getApprovals(),</span>
+<span class="nc" id="L201">            getIncludeInHealthCheck(),</span>
+<span class="nc" id="L202">            isDoEnforceUniquePublicKeys(),</span>
+<span class="nc" id="L203">            isDoEnforceUniqueDistinguishedName(),</span>
+<span class="nc" id="L204">            isDoEnforceUniqueSubjectDNSerialnumber(),</span>
+<span class="nc" id="L205">            isUseCertReqHistory(),</span>
+<span class="nc" id="L206">            isUseUserStorage(),</span>
+<span class="nc" id="L207">            isUseCertificateStorage(),</span>
+<span class="nc" id="L208">            isAcceptRevocationNonExistingEntry());</span>
+    // These to settings were deprecated in 6.8.0, but are still set for upgrade
+    // reasons
+<span class="nc" id="L211">    info.setApprovalProfile(getApprovalProfile());</span>
+<span class="nc" id="L212">    info.setApprovalSettings(getApprovalSettings());</span>
+<span class="nc" id="L213">    super.setCAInfo(info);</span>
+<span class="nc" id="L214">    setCAId(caId);</span>
+<span class="nc" id="L215">  }</span>
+
+  /** @return CVC type. */
+  public abstract String getCvcType();
+
+  @Override
+  public byte[] createPKCS7(
+      final CryptoToken cryptoToken,
+      final X509Certificate cert, final boolean includeChain) {
+<span class="nc" id="L224">    LOG.info(INTRES.getLocalizedMessage(&quot;cvc.info.nocvcpkcs7&quot;));</span>
+<span class="nc" id="L225">    return null;</span>
+  }
+
+  @Override
+  public byte[] createPKCS7Rollover(final CryptoToken cryptoToken) {
+<span class="nc" id="L230">    LOG.info(INTRES.getLocalizedMessage(&quot;cvc.info.nocvcpkcs7&quot;));</span>
+<span class="nc" id="L231">    return null;</span>
+  }
+
+  @Override
+  public X509CRLHolder generateCRL(
+      final CryptoToken cryptoToken,
+      final Collection&lt;RevokedCertInfo&gt; certs,
+      final int crlnumber) {
+<span class="nc" id="L239">    String msg = INTRES.getLocalizedMessage(&quot;createcrl.nocrlcreate&quot;, &quot;CVC&quot;);</span>
+<span class="nc" id="L240">    LOG.info(msg);</span>
+<span class="nc" id="L241">    return null;</span>
+  }
+
+  @Override
+  public X509CRLHolder generateDeltaCRL(
+      final CryptoToken cryptoToken,
+      final Collection&lt;RevokedCertInfo&gt; certs,
+      final int crlnumber,
+      final int basecrlnumber) {
+<span class="nc" id="L250">    String msg = INTRES.getLocalizedMessage(&quot;createcrl.nocrlcreate&quot;, &quot;CVC&quot;);</span>
+<span class="nc" id="L251">    LOG.info(msg);</span>
+<span class="nc" id="L252">    return null;</span>
+  }
+
+  /** Implementation of UpgradableDataHashMap function getLatestVersion. */
+  @Override
+  public float getLatestVersion() {
+<span class="nc" id="L258">    return LATEST_VERSION;</span>
+  }
+
+  /** Implementation of UpgradableDataHashMap function upgrade. */
+  @SuppressWarnings(&quot;deprecation&quot;)
+  @Override
+  public void upgrade() {
+<span class="nc bnc" id="L265" title="All 2 branches missed.">    if (Float.compare(LATEST_VERSION, getVersion()) != 0) {</span>
+      // New version of the class, upgrade
+<span class="nc" id="L267">      LOG.info(&quot;Upgrading CVCCA with version &quot; + getVersion());</span>
+
+      // Put upgrade code here...
+
+      // v1-&gt;v2 is only an upgrade in order to upgrade CA token
+      // v2-&gt;v3 is a upgrade of X509CA that has to be adjusted here too, due to
+      // the common heritage
+<span class="nc bnc" id="L274" title="All 2 branches missed.">      if (data.get(CRLPERIOD) instanceof Integer) {</span>
+<span class="nc" id="L275">        setCRLPeriod(0L);</span>
+      }
+<span class="nc bnc" id="L277" title="All 2 branches missed.">      if (data.get(CRLISSUEINTERVAL) instanceof Integer) {</span>
+<span class="nc" id="L278">        setCRLIssueInterval(0L);</span>
+      }
+<span class="nc bnc" id="L280" title="All 2 branches missed.">      if (data.get(CRLOVERLAPTIME) instanceof Integer) {</span>
+<span class="nc" id="L281">        setCRLOverlapTime(0L);</span>
+      }
+<span class="nc bnc" id="L283" title="All 2 branches missed.">      if (data.get(DELTACRLPERIOD) instanceof Integer) {</span>
+<span class="nc" id="L284">        setDeltaCRLPeriod(0L);</span>
+      }
+
+      // v4.
+      // 'encodedValidity' MUST set to &quot;&quot; (Empty String) here. The
+      // initialization is done during post-upgrade of EJBCA 6.6.1.
+<span class="nc bnc" id="L290" title="All 4 branches missed.">      if (null == data.get(ENCODED_VALIDITY) &amp;&amp; null != data.get(VALIDITY)) {</span>
+<span class="nc" id="L291">        setEncodedValidity(getEncodedValidity());</span>
+      }
+
+<span class="nc" id="L294">      data.put(VERSION, new Float(LATEST_VERSION));</span>
     }
+<span class="nc" id="L296">  }</span>
 
-	/** Constructor used when retrieving existing CVCCA from database. 
-	 * @param data data
-	 * @param caId ID
-	 * @param subjectDN DN
-	 * @param name name
-	 * @param status status
-	 * @param updateTime Update time
-	 * @param expireTime expiry*/
-	@SuppressWarnings(&quot;deprecation&quot;)
-    public void init(HashMap&lt;Object, Object&gt; data, int caId, String subjectDN, String name, int status, Date updateTime, Date expireTime) {
-<span class="nc" id="L109">		super.init(data);</span>
-<span class="nc" id="L110">		setExpireTime(expireTime);</span>
-<span class="nc" id="L111">		final List&lt;ExtendedCAServiceInfo&gt; externalcaserviceinfos = new ArrayList&lt;&gt;();</span>
-<span class="nc bnc" id="L112" title="All 2 branches missed.">        for (final Integer externalCAServiceType : getExternalCAServiceTypes()) {</span>
-            //Type was removed in 6.0.0. It is removed from the database in the upgrade method in this class, but it needs to be ignored 
-            //for instantiation. 
-<span class="nc bnc" id="L115" title="All 2 branches missed.">            if (externalCAServiceType != ExtendedCAServiceTypes.TYPE_OCSPEXTENDEDSERVICE) {</span>
-<span class="nc" id="L116">                final ExtendedCAServiceInfo info = this.getExtendedCAServiceInfo(externalCAServiceType.intValue());</span>
-<span class="nc bnc" id="L117" title="All 2 branches missed.">                if (info != null) {</span>
-<span class="nc" id="L118">                    externalcaserviceinfos.add(info);</span>
-                }
-            }
-<span class="nc" id="L121">		}</span>
-        
-<span class="nc" id="L123">		final CVCCAInfo info = new CVCCAInfo(subjectDN, name, status, updateTime, getCertificateProfileId(), getDefaultCertificateProfileId(),</span>
-<span class="nc" id="L124">		        getEncodedValidity(), getExpireTime(), getCAType(), getSignedBy(), getCertificateChain(),</span>
-<span class="nc" id="L125">				getCAToken(), getDescription(), getRevocationReason(), getRevocationDate(), getCRLPeriod(), getCRLIssueInterval(), getCRLOverlapTime(), getDeltaCRLPeriod(), </span>
-<span class="nc" id="L126">				getCRLPublishers(), getValidators(), getFinishUser(), externalcaserviceinfos, </span>
-<span class="nc" id="L127">				getApprovals(),</span>
-<span class="nc" id="L128">				getIncludeInHealthCheck(), isDoEnforceUniquePublicKeys(), isDoEnforceUniqueDistinguishedName(), isDoEnforceUniqueSubjectDNSerialnumber(),</span>
-<span class="nc" id="L129">				isUseCertReqHistory(), isUseUserStorage(), isUseCertificateStorage(), isAcceptRevocationNonExistingEntry());</span>
-        //These to settings were deprecated in 6.8.0, but are still set for upgrade reasons
-<span class="nc" id="L131">        info.setApprovalProfile(getApprovalProfile());</span>
-<span class="nc" id="L132">        info.setApprovalSettings(getApprovalSettings());</span>
-<span class="nc" id="L133">		super.setCAInfo(info);</span>
-<span class="nc" id="L134">        setCAId(caId);        </span>
-<span class="nc" id="L135">	}</span>
-
-	public abstract String getCvcType();
-	
-	@Override
-	public byte[] createPKCS7(CryptoToken cryptoToken, X509Certificate cert, boolean includeChain) {
-<span class="nc" id="L141">        log.info(intres.getLocalizedMessage(&quot;cvc.info.nocvcpkcs7&quot;));</span>
-<span class="nc" id="L142">        return null;</span>
-	}
-	
-	@Override
-	public byte[] createPKCS7Rollover(CryptoToken cryptoToken) {
-<span class="nc" id="L147">	    log.info(intres.getLocalizedMessage(&quot;cvc.info.nocvcpkcs7&quot;));</span>
-<span class="nc" id="L148">        return null;</span>
-	}
-
-    @Override
-    public X509CRLHolder generateCRL(CryptoToken cryptoToken, Collection&lt;RevokedCertInfo&gt; certs, int crlnumber) {
-<span class="nc" id="L153">        String msg = intres.getLocalizedMessage(&quot;createcrl.nocrlcreate&quot;, &quot;CVC&quot;);</span>
-<span class="nc" id="L154">        log.info(msg);</span>
-<span class="nc" id="L155">        return null;</span>
+  /**
+   * Method to upgrade new (or existing external caservices) This method needs
+   * to be called outside the regular upgrade since the CA isn't instantiated in
+   * the regular upgrade.
+   */
+  @Override
+  @SuppressWarnings(&quot;deprecation&quot;)
+  public boolean upgradeExtendedCAServices() {
+<span class="nc" id="L306">    boolean retval = false;</span>
+<span class="nc" id="L307">    Collection&lt;Integer&gt; externalServiceTypes = getExternalCAServiceTypes();</span>
+<span class="nc bnc" id="L308" title="All 2 branches missed.">    if (!CesecoreConfiguration.getCaKeepOcspExtendedService()</span>
+<span class="nc bnc" id="L309" title="All 2 branches missed.">        &amp;&amp; externalServiceTypes.contains(</span>
+<span class="nc" id="L310">            ExtendedCAServiceTypes.TYPE_OCSPEXTENDEDSERVICE)) {</span>
+      // This type has been removed, so remove it from any CAs it's been added
+      // to as well.
+<span class="nc" id="L313">      externalServiceTypes.remove(</span>
+<span class="nc" id="L314">          ExtendedCAServiceTypes.TYPE_OCSPEXTENDEDSERVICE);</span>
+<span class="nc" id="L315">      data.put(EXTENDEDCASERVICES, externalServiceTypes);</span>
+<span class="nc" id="L316">      retval = true;</span>
     }
+<span class="nc" id="L318">    return retval;</span>
+  }
 
-    @Override
-    public X509CRLHolder generateDeltaCRL(CryptoToken cryptoToken, Collection&lt;RevokedCertInfo&gt; certs, int crlnumber, int basecrlnumber) {
-<span class="nc" id="L160">        String msg = intres.getLocalizedMessage(&quot;createcrl.nocrlcreate&quot;, &quot;CVC&quot;);</span>
-<span class="nc" id="L161">        log.info(msg);</span>
-<span class="nc" id="L162">        return null;</span>
-    }
+  @Override
+  public byte[] decryptData(
+      final CryptoToken cryptoToken, final byte[] data,
+      final int cAKeyPurpose) {
+<span class="nc" id="L325">    throw new IllegalArgumentException(</span>
+        &quot;decryptData not implemented for CVC CA&quot;);
+  }
 
-	/** Implementation of UpgradableDataHashMap function getLatestVersion */
-    @Override
-	public float getLatestVersion(){
-<span class="nc" id="L168">		return LATEST_VERSION;</span>
-	}
-
-	/** Implementation of UpgradableDataHashMap function upgrade. 
-	 */
-    @SuppressWarnings(&quot;deprecation&quot;)
-    @Override
-	public void upgrade(){
-<span class="nc bnc" id="L176" title="All 2 branches missed.">		if(Float.compare(LATEST_VERSION, getVersion()) != 0) {</span>
-			// New version of the class, upgrade
-<span class="nc" id="L178">            log.info(&quot;Upgrading CVCCA with version &quot;+getVersion());</span>
-
-			// Put upgrade code here...
-            
-            // v1-&gt;v2 is only an upgrade in order to upgrade CA token
-            // v2-&gt;v3 is a upgrade of X509CA that has to be adjusted here too, due to the common heritage
-<span class="nc bnc" id="L184" title="All 2 branches missed.">            if (data.get(CRLPERIOD) instanceof Integer) {</span>
-<span class="nc" id="L185">            	setCRLPeriod(0L);</span>
-            }
-<span class="nc bnc" id="L187" title="All 2 branches missed.">            if (data.get(CRLISSUEINTERVAL) instanceof Integer) {</span>
-<span class="nc" id="L188">            	setCRLIssueInterval(0L);</span>
-            }
-<span class="nc bnc" id="L190" title="All 2 branches missed.">            if (data.get(CRLOVERLAPTIME) instanceof Integer) {</span>
-<span class="nc" id="L191">            	setCRLOverlapTime(0L);</span>
-            }
-<span class="nc bnc" id="L193" title="All 2 branches missed.">            if (data.get(DELTACRLPERIOD) instanceof Integer) {</span>
-<span class="nc" id="L194">            	setDeltaCRLPeriod(0L);</span>
-            }
-
-            // v4.
-            // 'encodedValidity' MUST set to &quot;&quot; (Empty String) here. The initialization is done during post-upgrade of EJBCA 6.6.1.
-<span class="nc bnc" id="L199" title="All 4 branches missed.">            if(null == data.get(ENCODED_VALIDITY) &amp;&amp; null != data.get(VALIDITY)) {</span>
-<span class="nc" id="L200">                setEncodedValidity(getEncodedValidity());</span>
-            }
-            
-<span class="nc" id="L203">            data.put(VERSION, new Float(LATEST_VERSION));</span>
-		}  
-<span class="nc" id="L205">	}</span>
-
-	/**
-	 * Method to upgrade new (or existing external caservices)
-	 * This method needs to be called outside the regular upgrade
-	 * since the CA isn't instantiated in the regular upgrade.
-	 */
-    @Override
-	@SuppressWarnings(&quot;deprecation&quot;)
-    public boolean upgradeExtendedCAServices() {
-<span class="nc" id="L215">	    boolean retval = false;</span>
-<span class="nc" id="L216">	    Collection&lt;Integer&gt; externalServiceTypes = getExternalCAServiceTypes();</span>
-<span class="nc bnc" id="L217" title="All 4 branches missed.">        if (!CesecoreConfiguration.getCaKeepOcspExtendedService() &amp;&amp; externalServiceTypes.contains(ExtendedCAServiceTypes.TYPE_OCSPEXTENDEDSERVICE)) {</span>
-            //This type has been removed, so remove it from any CAs it's been added to as well.
-<span class="nc" id="L219">            externalServiceTypes.remove(ExtendedCAServiceTypes.TYPE_OCSPEXTENDEDSERVICE);</span>
-<span class="nc" id="L220">            data.put(EXTENDEDCASERVICES, externalServiceTypes);</span>
-<span class="nc" id="L221">            retval = true;</span>
-        }
-<span class="nc" id="L223">		return retval;</span>
-	}
-
-	@Override
-	public byte[] decryptData(CryptoToken cryptoToken, byte[] data, int cAKeyPurpose) {
-<span class="nc" id="L228">		throw new IllegalArgumentException(&quot;decryptData not implemented for CVC CA&quot;);</span>
-	}
-
-    @Override
-	public byte[] encryptData(CryptoToken cryptoToken, byte[] data, int keyPurpose) {
-<span class="nc" id="L233">		throw new IllegalArgumentException(&quot;encryptData not implemented for CVC CA&quot;);</span>
-	}
+  @Override
+  public byte[] encryptData(
+      final CryptoToken cryptoToken, final byte[] data, final int keyPurpose) {
+<span class="nc" id="L332">    throw new IllegalArgumentException(</span>
+        &quot;encryptData not implemented for CVC CA&quot;);
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

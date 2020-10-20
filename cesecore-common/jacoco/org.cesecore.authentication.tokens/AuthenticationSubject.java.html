@@ -17,34 +17,44 @@ import java.security.Principal;
 import java.util.Set;
 
 /**
- * This class represents a Subject for the purpose of authentication/authorization. javax.security.auth.Subject was not implemented due to being
- * overly coupled with the JAAS paradigm. In order to avoid confusion with the End Entity concept, the word 'user' is avoided in both contexts.
- * 
- * TODO: Make proper hashcode/compare methods.
- * 
+ * This class represents a Subject for the purpose of
+ * authentication/authorization. javax.security.auth.Subject was not implemented
+ * due to being overly coupled with the JAAS paradigm. In order to avoid
+ * confusion with the End Entity concept, the word 'user' is avoided in both
+ * contexts.
+ *
+ * &lt;p&gt;TODO: Make proper hashcode/compare methods.
+ *
  * @version $Id: AuthenticationSubject.java 18305 2013-12-16 13:59:56Z anatom $
- * 
  */
 public class AuthenticationSubject implements Serializable {
 
-    private static final long serialVersionUID = 793575035911984396L;
+  private static final long serialVersionUID = 793575035911984396L;
+  /** Principals. */
+  protected final Set&lt;Principal&gt; principals;
+  /** Credentials. */
+  protected final Set&lt;?&gt; credentials;
 
-    protected final Set&lt;Principal&gt; principals;
-    protected final Set&lt;?&gt; credentials;
-    
-<span class="nc" id="L35">    public AuthenticationSubject(Set&lt;Principal&gt; principals, Set&lt;?&gt; credentials) {</span>
-<span class="nc" id="L36">        this.principals = principals;</span>
-<span class="nc" id="L37">        this.credentials = credentials;</span>
-<span class="nc" id="L38">    }</span>
+  /**
+   * Constructor.
+   *
+   * @param thePrincipals principals
+   * @param theCredentials Credentials
+   */
+  public AuthenticationSubject(
+<span class="nc" id="L45">      final Set&lt;Principal&gt; thePrincipals, final Set&lt;?&gt; theCredentials) {</span>
+<span class="nc" id="L46">    this.principals = thePrincipals;</span>
+<span class="nc" id="L47">    this.credentials = theCredentials;</span>
+<span class="nc" id="L48">  }</span>
 
-    public Set&lt;Principal&gt; getPrincipals() {
-<span class="nc" id="L41">        return principals;</span>
-    }
+  /** @return a {@link Set} of principals. */
+  public Set&lt;Principal&gt; getPrincipals() {
+<span class="nc" id="L52">    return principals;</span>
+  }
 
-
-    public Set&lt;?&gt; getCredentials() {
-<span class="nc" id="L46">        return credentials;</span>
-    }
-
+  /** @return a {@link Set} of Credentials. */
+  public Set&lt;?&gt; getCredentials() {
+<span class="nc" id="L57">    return credentials;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

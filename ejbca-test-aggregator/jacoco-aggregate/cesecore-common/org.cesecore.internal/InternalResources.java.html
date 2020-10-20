@@ -20,269 +20,317 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.util.Locale;
 import java.util.Properties;
-
 import org.apache.log4j.Logger;
 import org.cesecore.config.CesecoreConfiguration;
 
 /**
  * Class managing internal localization of texts such as notification messages
  * and log comments.
- * 
- * If fetched the resource files from the src/intresources directory and is
+ *
+ * &lt;p&gt;If fetched the resource files from the src/intresources directory and is
  * included in the file cesecore-ejb.jar
- * 
+ *
  * @version $Id: InternalResources.java 26298 2017-08-14 13:49:21Z anatom $
  */
 public class InternalResources implements Serializable {
 
-<span class="fc" id="L38">    private static final Logger log = Logger.getLogger(InternalResources.class);</span>
+    /** Logger. */
+<span class="fc" id="L38">  private static final Logger LOG = Logger.getLogger(InternalResources.class);</span>
 
-    /**
-     * Determines if a de-serialized file is compatible with this class.
-     * 
-     * Maintainers must change this value if and only if the new version of this
-     * class is not compatible with old versions. See Sun docs for &lt;a
-     * href=http://java.sun.com/products/jdk/1.1/docs/guide
-     * /serialization/spec/version.doc.html&gt; details. &lt;/a&gt;
-     * 
-     */
-    private static final long serialVersionUID = -1003L;
+  /**
+   * Determines if a de-serialized file is compatible with this class.
+   *
+   * &lt;p&gt;Maintainers must change this value if and only if the new version of
+   * this class is not compatible with old versions. See Sun docs for &lt;a
+   * href=http://java.sun.com/products/jdk/1.1/docs/guide
+   * /serialization/spec/version.doc.html&gt; details. &lt;/a&gt;
+   */
+  private static final long serialVersionUID = -1003L;
 
-<span class="fc" id="L51">    protected static InternalResources instance = null;</span>
+  /** instance. */
+<span class="fc" id="L51">  protected static InternalResources instance = null;</span>
 
-<span class="fc" id="L53">    protected Properties primaryResource = new Properties();</span>
-<span class="fc" id="L54">    protected Properties secondaryResource = new Properties();</span>
-<span class="fc" id="L55">    private static String[] placeHolders = null;</span>
+  /** primary. */
+<span class="fc" id="L54">  protected Properties primaryResource = new Properties();</span>
+  /** secondary. */
+<span class="fc" id="L56">  protected Properties secondaryResource = new Properties();</span>
+  /** placeholders. */
+<span class="fc" id="L58">  private static String[] placeHolders = null;</span>
 
-    private static final String RESOURCE_PATH = &quot;/intresources&quot;;
-    private static final String RESOURCE_NAME = &quot;/intresources.&quot;;
-    private static final String RESOURCE_LOCATION = RESOURCE_PATH+RESOURCE_NAME;
+  /** Path. */
+  private static final String RESOURCE_PATH = &quot;/intresources&quot;;
+  /** Name. */
+  private static final String RESOURCE_NAME = &quot;/intresources.&quot;;
+  /** Location. */
+  private static final String RESOURCE_LOCATION = RESOURCE_PATH + RESOURCE_NAME;
 
-    /**
-     * Method used to setup the Internal Resource management.
-     * 
-     *
-     */
-<span class="fc" id="L66">    protected InternalResources() {</span>
-<span class="fc" id="L67">        setupResources(RESOURCE_LOCATION);</span>
-<span class="fc" id="L68">    }</span>
+  /** Method used to setup the Internal Resource management. */
+<span class="fc" id="L68">  protected InternalResources() {</span>
+<span class="fc" id="L69">    setupResources(RESOURCE_LOCATION);</span>
+<span class="fc" id="L70">  }</span>
 
-<span class="fc" id="L70">    protected InternalResources(String resPath) {</span>
-<span class="fc" id="L71">        setupResources(resPath+RESOURCE_NAME);</span>
-<span class="fc" id="L72">    }</span>
+<span class="fc" id="L72">  protected InternalResources(final String resPath) {</span>
+<span class="fc" id="L73">    setupResources(resPath + RESOURCE_NAME);</span>
+<span class="fc" id="L74">  }</span>
 
-    private void setupResources(String resLocation) {
-<span class="fc" id="L75">        final String primaryLanguage = CesecoreConfiguration.getInternalResourcesPreferredLanguage().toLowerCase(Locale.ENGLISH);</span>
-<span class="fc" id="L76">        final String secondaryLanguage = CesecoreConfiguration.getInternalResourcesSecondaryLanguage().toLowerCase(Locale.ENGLISH);</span>
-        // The test flag is defined when called from test code (junit)
-<span class="fc" id="L78">        InputStream primaryStream = null;</span>
-<span class="fc" id="L79">        InputStream secondaryStream = null;</span>
+  private void setupResources(final String resLocation) {
+    final String primaryLanguage =
+<span class="fc" id="L78">        CesecoreConfiguration.getInternalResourcesPreferredLanguage()</span>
+<span class="fc" id="L79">            .toLowerCase(Locale.ENGLISH);</span>
+    final String secondaryLanguage =
+<span class="fc" id="L81">        CesecoreConfiguration.getInternalResourcesSecondaryLanguage()</span>
+<span class="fc" id="L82">            .toLowerCase(Locale.ENGLISH);</span>
+    // The test flag is defined when called from test code (junit)
+<span class="fc" id="L84">    InputStream primaryStream = null;</span>
+<span class="fc" id="L85">    InputStream secondaryStream = null;</span>
+    try {
+
+<span class="fc" id="L88">      primaryStream =</span>
+<span class="fc" id="L89">          InternalResources.class.getResourceAsStream(</span>
+              resLocation + primaryLanguage + &quot;.properties&quot;);
+<span class="pc bpc" id="L91" title="1 of 2 branches missed.">      if (primaryStream == null) {</span>
         try {
+<span class="nc" id="L93">          primaryStream =</span>
+              new FileInputStream(
+                  resLocation + primaryLanguage + &quot;.properties&quot;);
+<span class="nc" id="L96">        } catch (FileNotFoundException e) {</span>
+<span class="nc" id="L97">          LOG.error(&quot;Localization files not found: &quot; + e.getMessage());</span>
+<span class="nc" id="L98">        }</span>
+      }
+<span class="fc" id="L100">      secondaryStream =</span>
+<span class="fc" id="L101">          InternalResources.class.getResourceAsStream(</span>
+              resLocation + secondaryLanguage + &quot;.properties&quot;);
+<span class="pc bpc" id="L103" title="1 of 2 branches missed.">      if (secondaryStream == null) {</span>
+        try {
+<span class="nc" id="L105">          secondaryStream =</span>
+              new FileInputStream(
+                  resLocation + secondaryLanguage + &quot;.properties&quot;);
+<span class="nc" id="L108">        } catch (FileNotFoundException e) {</span>
+<span class="nc" id="L109">          LOG.error(&quot;Localization files not found: &quot; + e.getMessage());</span>
+<span class="nc" id="L110">        }</span>
+      }
 
-<span class="fc" id="L82">            primaryStream = InternalResources.class.getResourceAsStream(resLocation + primaryLanguage + &quot;.properties&quot;);</span>
-<span class="pc bpc" id="L83" title="1 of 2 branches missed.">            if (primaryStream == null) {</span>
-            	try {
-<span class="nc" id="L85">            		primaryStream = new FileInputStream(resLocation + primaryLanguage + &quot;.properties&quot;);</span>
-<span class="nc" id="L86">                } catch (FileNotFoundException e) {</span>
-<span class="nc" id="L87">                    log.error(&quot;Localization files not found: &quot;+e.getMessage());</span>
-<span class="nc" id="L88">                }</span>
-            }
-<span class="fc" id="L90">            secondaryStream = InternalResources.class.getResourceAsStream(resLocation + secondaryLanguage + &quot;.properties&quot;);</span>
-<span class="pc bpc" id="L91" title="1 of 2 branches missed.">            if (secondaryStream == null) {</span>
-            	try {
-<span class="nc" id="L93">            		secondaryStream = new FileInputStream(resLocation + secondaryLanguage + &quot;.properties&quot;);</span>
-<span class="nc" id="L94">                } catch (FileNotFoundException e) {</span>
-<span class="nc" id="L95">                    log.error(&quot;Localization files not found: &quot;+e.getMessage());</span>
-<span class="nc" id="L96">                }</span>
-            }
-
-            try {
-<span class="pc bpc" id="L100" title="1 of 2 branches missed.">                if (primaryStream != null) {</span>
-<span class="fc" id="L101">                    primaryResource.load(primaryStream);</span>
-                } else {
-<span class="nc" id="L103">                    log.warn(&quot;primaryResourse == null&quot;);</span>
-                }
-<span class="pc bpc" id="L105" title="1 of 2 branches missed.">                if (secondaryStream != null) {</span>
-<span class="fc" id="L106">                    secondaryResource.load(secondaryStream);</span>
-                } else {
-<span class="nc" id="L108">                    log.warn(&quot;secondaryResource == null&quot;);</span>
-                }
-<span class="nc" id="L110">            } catch (IOException e) {</span>
-<span class="nc" id="L111">                log.error(&quot;Error reading internal resourcefile&quot;, e);</span>
-<span class="fc" id="L112">            }</span>
-        } finally {
-            try {
-<span class="pc bpc" id="L115" title="1 of 2 branches missed.">                if (primaryStream != null) {</span>
-<span class="fc" id="L116">                    primaryStream.close();</span>
-                }
-<span class="pc bpc" id="L118" title="1 of 2 branches missed.">                if (secondaryStream != null) {</span>
-<span class="fc" id="L119">                    secondaryStream.close();</span>
-                }
-<span class="nc" id="L121">            } catch (IOException e) {</span>
-<span class="nc" id="L122">                log.error(&quot;Error closing internal resources language streams: &quot;, e);</span>
-<span class="fc" id="L123">            }</span>
-        }
-<span class="fc" id="L125">    }</span>
-
-    /** @return an instance of the InternalResources. */
-    public static synchronized InternalResources getInstance() {
-<span class="fc bfc" id="L129" title="All 2 branches covered.">        if (instance == null) {</span>
-<span class="fc" id="L130">            instance = new InternalResources();</span>
-        }
-<span class="fc" id="L132">        return instance;</span>
-    }
-
-    /**
-     * Method returning the localized message for the given resource key.
-     * 
-     * It first looks up in the primary language then in the secondary If not
-     * found in any of the resource file &quot;no text&quot; is returned.
-     * &lt;br&gt;&lt;br&gt;
-     * NOTE: String is immutable and you will get a copy of the String instead
-     * of a reference to it. This is more memory consuming than using
-     * getLocalizedMessageCs(..) if you pass on the result to Log4J.
-     * @see #getLocalizedMessageCs(String, Object...)
-     * 
-     * @param key
-     *            is the key searched for in the resource files
-     * @param params
-     *            indicates the parameter that will be replaced by {X} in the
-     *            language resource, a maximum of 10 parameters can be given.
-     * 
-     *            Ex Calling the method with key = TEST and param0 set to &quot;hi&quot;
-     *            and the resource file have &quot;TEST = messages is {0}&quot; will
-     *            result in the string &quot;message is hi&quot;.
-     * 
-     * @return The message as a String, not trimmed for whitespace
-     */
-    public String getLocalizedMessage(final String key, final Object... params) {
-<span class="fc" id="L159">        return getLocalizedMessageCs(key, params).toString();</span>
-    }
-
-    /**
-     * Method returning the localized message for the given resource key.
-     * 
-     * It first looks up in the primary language then in the secondary If not
-     * found in any of the resource file &quot;no text&quot; is returned.
-     * 
-     * @param key
-     *            is the key searched for in the resource files
-     * @param params
-     *            indicates the parameter that will be replaced by {X} in the
-     *            language resource, a maximum of 10 parameters can be given.
-     * 
-     *            Ex Calling the method with key = TEST and param0 set to &quot;hi&quot;
-     *            and the resource file have &quot;TEST = messages is {0}&quot; will
-     *            result in the string &quot;message is hi&quot;.
-     * 
-     * @return The message as a CharSequence, the return value is not trimmed for whitespace. 
-     */
-    protected CharSequence getLocalizedMessageCs(final String key, final Object... params) {
-<span class="fc" id="L181">        final StringBuilder sb = new StringBuilder();</span>
-<span class="fc" id="L182">        return getLocalizedMessageInternal(sb, key, params);</span>
-    }
-
-    /** Lookup the default string if the StringBuilder is empty. Perform place holder replacement processing. 
-     * @param sb StringBuilder buffer
-     * @param key key
-     * @param params parameters
-     * @return processed message */
-    protected CharSequence getLocalizedMessageInternal(final StringBuilder sb, final String key, final Object... params) {
-<span class="fc bfc" id="L191" title="All 2 branches covered.">        if (sb.length()==0) {</span>
-<span class="fc bfc" id="L192" title="All 2 branches covered.">            if (primaryResource.containsKey(key)) {</span>
-<span class="fc" id="L193">                sb.append(primaryResource.getProperty(key));</span>
-<span class="fc bfc" id="L194" title="All 2 branches covered.">            } else if (secondaryResource.containsKey(key)) {</span>
-<span class="fc" id="L195">                sb.append(secondaryResource.getProperty(key));</span>
-            } else {
-<span class="fc" id="L197">                sb.append(key);</span>
-<span class="fc bfc" id="L198" title="All 2 branches covered.">                for(Object param : params) {</span>
-<span class="pc bpc" id="L199" title="1 of 2 branches missed.">                    if (param != null) {</span>
-<span class="fc" id="L200">                        sb.append(&quot;, &quot;).append(param.toString());</span>
-                    }
-                }
-            }
-        }
-<span class="fc" id="L205">        replacePlaceholders(sb, params);</span>
-<span class="pc bpc" id="L206" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L207">            log.trace(key + &quot;=&quot; + sb.toString());</span>
-        }
-<span class="fc" id="L209">        return sb;</span>
-    }
-    
-    public static void replacePlaceholders(final StringBuilder sb, final Object... params) {
-<span class="fc bfc" id="L213" title="All 2 branches covered.">        for (int i=0; i&lt;params.length; i++) {</span>
-<span class="fc" id="L214">            replaceAll(sb, i, params[i]);</span>
-        }
-<span class="fc" id="L216">        removeUnusedPlaceHolders(sb, params.length);</span>
-<span class="fc" id="L217">    }</span>
-    
-    /** @return a lazily instantiated array of place holders like &quot;{number}&quot;. */
-    private static String[] getPlaceHolders() {
-<span class="fc bfc" id="L221" title="All 2 branches covered.">        if (placeHolders==null) {</span>
-<span class="fc" id="L222">            final String[] arr = new String[100];</span>
-<span class="fc bfc" id="L223" title="All 2 branches covered.">            for (int i=0; i&lt;arr.length; i++) {</span>
-<span class="fc" id="L224">                arr[i] = new StringBuilder('{').append(i).append('}').toString();</span>
-            }
-<span class="fc" id="L226">            placeHolders = arr;</span>
-        }
-<span class="fc" id="L228">        return placeHolders;</span>
-    }
-    
-    /** Replace any &quot;{placeHolderIndex}&quot; String that is present in the StringBuilder with 'replacementObject'. 
-     * @param sb StringBuilder buffer
-     * @param placeHolderIndex Index
-     * @param replacementObject Object */
-    private static void replaceAll(final StringBuilder sb, final int placeHolderIndex, final Object replacementObject) {
-<span class="pc bpc" id="L236" title="1 of 2 branches missed.">        if (sb==null) {</span>
-<span class="nc" id="L237">            log.error(&quot;No StringBuilder. Unable to create localized message.&quot;);</span>
-<span class="nc" id="L238">            return;</span>
-        }
-<span class="fc" id="L240">        final String[] placeHolders = getPlaceHolders();</span>
-<span class="pc bpc" id="L241" title="2 of 4 branches missed.">        if (placeHolderIndex&lt;0 || placeHolderIndex&gt;(placeHolders.length-1)) {</span>
-<span class="nc" id="L242">            log.error(&quot;Place holder index out of range. Unable to create localized message.&quot;);</span>
-<span class="nc" id="L243">            return;</span>
-        }
-<span class="fc" id="L245">        final String placeHolder = placeHolders[placeHolderIndex];</span>
-<span class="fc" id="L246">        final int placeHolderLength = placeHolder.length();</span>
-<span class="fc" id="L247">        int currentIndex = -placeHolderLength;</span>
-<span class="fc" id="L248">        int bar = 20; // never allow more than 20 placeholders to avoid recursion</span>
-<span class="fc bfc" id="L249" title="All 2 branches covered.">        if (replacementObject==null) {</span>
-<span class="pc bpc" id="L250" title="1 of 4 branches missed.">            while ((currentIndex=sb.indexOf(placeHolder, currentIndex+placeHolderLength))!=-1 &amp;&amp; bar &gt; 0) {</span>
-<span class="fc" id="L251">                sb.delete(currentIndex-1, currentIndex+placeHolderLength);</span>
-<span class="fc" id="L252">                bar--;</span>
-            }
+      try {
+<span class="pc bpc" id="L114" title="1 of 2 branches missed.">        if (primaryStream != null) {</span>
+<span class="fc" id="L115">          primaryResource.load(primaryStream);</span>
         } else {
-<span class="fc" id="L255">            final String replacement = replacementObject.toString();</span>
-<span class="fc bfc" id="L256" title="All 4 branches covered.">            while ((currentIndex=sb.indexOf(placeHolder, currentIndex+placeHolderLength))!=-1 &amp;&amp; bar &gt; 0) {</span>
-<span class="fc" id="L257">                sb.replace(currentIndex-1, currentIndex+placeHolderLength, replacement);</span>
-<span class="fc" id="L258">                bar--;</span>
-            }
+<span class="nc" id="L117">          LOG.warn(&quot;primaryResourse == null&quot;);</span>
         }
-<span class="fc" id="L261">    }</span>
+<span class="pc bpc" id="L119" title="1 of 2 branches missed.">        if (secondaryStream != null) {</span>
+<span class="fc" id="L120">          secondaryResource.load(secondaryStream);</span>
+        } else {
+<span class="nc" id="L122">          LOG.warn(&quot;secondaryResource == null&quot;);</span>
+        }
+<span class="nc" id="L124">      } catch (IOException e) {</span>
+<span class="nc" id="L125">        LOG.error(&quot;Error reading internal resourcefile&quot;, e);</span>
+<span class="fc" id="L126">      }</span>
+    } finally {
+      try {
+<span class="pc bpc" id="L129" title="1 of 2 branches missed.">        if (primaryStream != null) {</span>
+<span class="fc" id="L130">          primaryStream.close();</span>
+        }
+<span class="pc bpc" id="L132" title="1 of 2 branches missed.">        if (secondaryStream != null) {</span>
+<span class="fc" id="L133">          secondaryStream.close();</span>
+        }
+<span class="nc" id="L135">      } catch (IOException e) {</span>
+<span class="nc" id="L136">        LOG.error(&quot;Error closing internal resources language streams: &quot;, e);</span>
+<span class="fc" id="L137">      }</span>
+    }
+<span class="fc" id="L139">  }</span>
 
-    /** Remove any &quot;{number}&quot; string that is still present in the StringBuilder where number starts with 'startPlaceHolderIndex'. 
-     * @param sb StringBuilder buffer
-     * @param startPlaceHolderIndex  index */
-    private static void removeUnusedPlaceHolders(final StringBuilder sb, final int startPlaceHolderIndex) {
-<span class="fc" id="L267">        final String[] placeHolders = getPlaceHolders();</span>
-<span class="pc bpc" id="L268" title="2 of 4 branches missed.">        if (startPlaceHolderIndex&lt;0 || startPlaceHolderIndex&gt;(placeHolders.length-1)) {</span>
-<span class="nc" id="L269">            log.error(&quot;Place holder index out of range. Unable to create localized message.&quot;);</span>
-<span class="nc" id="L270">            return;</span>
+  /** @return an instance of the InternalResources. */
+  public static synchronized InternalResources getInstance() {
+<span class="fc bfc" id="L143" title="All 2 branches covered.">    if (instance == null) {</span>
+<span class="fc" id="L144">      instance = new InternalResources();</span>
+    }
+<span class="fc" id="L146">    return instance;</span>
+  }
+
+  /**
+   * Method returning the localized message for the given resource key.
+   *
+   * &lt;p&gt;It first looks up in the primary language then in the secondary If not
+   * found in any of the resource file &quot;no text&quot; is returned. &lt;br&gt;
+   * &lt;br&gt;
+   * NOTE: String is immutable and you will get a copy of the String instead of
+   * a reference to it. This is more memory consuming than using
+   * getLocalizedMessageCs(..) if you pass on the result to Log4J.
+   *
+   * @see #getLocalizedMessageCs(String, Object...)
+   * @param key is the key searched for in the resource files
+   * @param params indicates the parameter that will be replaced by {X} in the
+   *     language resource, a maximum of 10 parameters can be given.
+   *     &lt;p&gt;Ex Calling the method with key = TEST and param0 set to &quot;hi&quot; and the
+   *     resource file have &quot;TEST = messages is {0}&quot; will result in the string
+   *     &quot;message is hi&quot;.
+   * @return The message as a String, not trimmed for whitespace
+   */
+  public String getLocalizedMessage(final String key, final Object... params) {
+<span class="fc" id="L169">    return getLocalizedMessageCs(key, params).toString();</span>
+  }
+
+  /**
+   * Method returning the localized message for the given resource key.
+   *
+   * &lt;p&gt;It first looks up in the primary language then in the secondary If not
+   * found in any of the resource file &quot;no text&quot; is returned.
+   *
+   * @param key is the key searched for in the resource files
+   * @param params indicates the parameter that will be replaced by {X} in the
+   *     language resource, a maximum of 10 parameters can be given.
+   *     &lt;p&gt;Ex Calling the method with key = TEST and param0 set to &quot;hi&quot; and the
+   *     resource file have &quot;TEST = messages is {0}&quot; will result in the string
+   *     &quot;message is hi&quot;.
+   * @return The message as a CharSequence, the return value is not trimmed for
+   *     whitespace.
+   */
+  protected CharSequence getLocalizedMessageCs(
+      final String key, final Object... params) {
+<span class="fc" id="L189">    final StringBuilder sb = new StringBuilder();</span>
+<span class="fc" id="L190">    return getLocalizedMessageInternal(sb, key, params);</span>
+  }
+
+  /**
+   * Lookup the default string if the StringBuilder is empty. Perform place
+   * holder replacement processing.
+   *
+   * @param sb StringBuilder buffer
+   * @param key key
+   * @param params parameters
+   * @return processed message
+   */
+  protected CharSequence getLocalizedMessageInternal(
+      final StringBuilder sb, final String key, final Object... params) {
+<span class="fc bfc" id="L204" title="All 2 branches covered.">    if (sb.length() == 0) {</span>
+<span class="fc bfc" id="L205" title="All 2 branches covered.">      if (primaryResource.containsKey(key)) {</span>
+<span class="fc" id="L206">        sb.append(primaryResource.getProperty(key));</span>
+<span class="fc bfc" id="L207" title="All 2 branches covered.">      } else if (secondaryResource.containsKey(key)) {</span>
+<span class="fc" id="L208">        sb.append(secondaryResource.getProperty(key));</span>
+      } else {
+<span class="fc" id="L210">        sb.append(key);</span>
+<span class="fc bfc" id="L211" title="All 2 branches covered.">        for (Object param : params) {</span>
+<span class="pc bpc" id="L212" title="1 of 2 branches missed.">          if (param != null) {</span>
+<span class="fc" id="L213">            sb.append(&quot;, &quot;).append(param.toString());</span>
+          }
         }
-<span class="pc bpc" id="L272" title="1 of 2 branches missed.">        for (int i=startPlaceHolderIndex; i&lt;placeHolders.length; i++) {</span>
-<span class="fc" id="L273">            final String placeHolder = placeHolders[i];</span>
-<span class="fc" id="L274">            final int placeHolderLength = placeHolder.length();</span>
-<span class="fc" id="L275">            int currentIndex = -placeHolderLength;</span>
-<span class="fc" id="L276">            boolean someThingRemoved = false;</span>
-<span class="fc bfc" id="L277" title="All 2 branches covered.">            while ((currentIndex=sb.indexOf(placeHolder, currentIndex+placeHolderLength))!=-1) {</span>
-<span class="fc" id="L278">                sb.delete(currentIndex-1, currentIndex+placeHolderLength);</span>
-<span class="fc" id="L279">                someThingRemoved = true;</span>
-            }
-<span class="fc bfc" id="L281" title="All 2 branches covered.">            if (!someThingRemoved) {</span>
-                // If a place holder with the current number didn't exist, we assume that the ones with higher doesn't either..
-<span class="fc" id="L283">                break;</span>
-            }
-        }
-<span class="fc" id="L286">    }</span>
+      }
+    }
+<span class="fc" id="L218">    replacePlaceholders(sb, params);</span>
+<span class="pc bpc" id="L219" title="1 of 2 branches missed.">    if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L220">      LOG.trace(key + &quot;=&quot; + sb.toString());</span>
+    }
+<span class="fc" id="L222">    return sb;</span>
+  }
+
+  /**
+   * @param sb buffer
+   * @param params parameters
+   */
+  public static void replacePlaceholders(
+      final StringBuilder sb, final Object... params) {
+<span class="fc bfc" id="L231" title="All 2 branches covered.">    for (int i = 0; i &lt; params.length; i++) {</span>
+<span class="fc" id="L232">      replaceAll(sb, i, params[i]);</span>
+    }
+<span class="fc" id="L234">    removeUnusedPlaceHolders(sb, params.length);</span>
+<span class="fc" id="L235">  }</span>
+
+  /** @return a lazily instantiated array of place holders like &quot;{number}&quot;. */
+  private static String[] getPlaceHolders() {
+<span class="fc bfc" id="L239" title="All 2 branches covered.">    if (placeHolders == null) {</span>
+<span class="fc" id="L240">      final int length = 100;</span>
+<span class="fc" id="L241">      final String[] arr = new String[length];</span>
+<span class="fc bfc" id="L242" title="All 2 branches covered.">      for (int i = 0; i &lt; arr.length; i++) {</span>
+<span class="fc" id="L243">        arr[i] = new StringBuilder('{').append(i).append('}').toString();</span>
+      }
+<span class="fc" id="L245">      placeHolders = arr;</span>
+    }
+<span class="fc" id="L247">    return placeHolders;</span>
+  }
+
+  /**
+   * Replace any &quot;{placeHolderIndex}&quot; String that is present in the
+   * StringBuilder with 'replacementObject'.
+   *
+   * @param sb StringBuilder buffer
+   * @param placeHolderIndex Index
+   * @param replacementObject Object
+   */
+  private static void replaceAll(
+      final StringBuilder sb,
+      final int placeHolderIndex,
+      final Object replacementObject) {
+<span class="pc bpc" id="L262" title="1 of 2 branches missed.">    if (sb == null) {</span>
+<span class="nc" id="L263">      LOG.error(&quot;No StringBuilder. Unable to create localized message.&quot;);</span>
+<span class="nc" id="L264">      return;</span>
+    }
+<span class="fc" id="L266">    final String[] lplaceHolders = getPlaceHolders();</span>
+<span class="pc bpc" id="L267" title="2 of 4 branches missed.">    if (placeHolderIndex &lt; 0 || placeHolderIndex &gt; (lplaceHolders.length - 1)) {</span>
+<span class="nc" id="L268">      LOG.error(</span>
+          &quot;Place holder index out of range. Unable to create localized&quot;
+              + &quot; message.&quot;);
+<span class="nc" id="L271">      return;</span>
+    }
+<span class="fc" id="L273">    final String placeHolder = lplaceHolders[placeHolderIndex];</span>
+<span class="fc" id="L274">    final int placeHolderLength = placeHolder.length();</span>
+<span class="fc" id="L275">    int currentIndex = -placeHolderLength;</span>
+<span class="fc" id="L276">    final int maxBar = 20;</span>
+<span class="fc" id="L277">    int bar = maxBar; // never allow more than</span>
+                       // 20 placeholders to avoid recursion
+<span class="fc bfc" id="L279" title="All 2 branches covered.">    if (replacementObject == null) {</span>
+<span class="fc" id="L280">      while ((currentIndex =</span>
+<span class="pc bpc" id="L281" title="1 of 4 branches missed.">                  sb.indexOf(placeHolder, currentIndex + placeHolderLength))</span>
+              != -1
+          &amp;&amp; bar &gt; 0) {
+<span class="fc" id="L284">        sb.delete(currentIndex - 1, currentIndex + placeHolderLength);</span>
+<span class="fc" id="L285">        bar--;</span>
+      }
+    } else {
+<span class="fc" id="L288">      final String replacement = replacementObject.toString();</span>
+<span class="fc" id="L289">      while ((currentIndex =</span>
+<span class="fc bfc" id="L290" title="All 4 branches covered.">                  sb.indexOf(placeHolder, currentIndex + placeHolderLength))</span>
+              != -1
+          &amp;&amp; bar &gt; 0) {
+<span class="fc" id="L293">        sb.replace(</span>
+            currentIndex - 1, currentIndex + placeHolderLength, replacement);
+<span class="fc" id="L295">        bar--;</span>
+      }
+    }
+<span class="fc" id="L298">  }</span>
+
+  /**
+   * Remove any &quot;{number}&quot; string that is still present in the StringBuilder
+   * where number starts with 'startPlaceHolderIndex'.
+   *
+   * @param sb StringBuilder buffer
+   * @param astartPlaceHolderIndex index
+   */
+  private static void removeUnusedPlaceHolders(
+      final StringBuilder sb, final int astartPlaceHolderIndex) {
+<span class="fc" id="L309">    final String[] aPlaceHolders = getPlaceHolders();</span>
+<span class="pc bpc" id="L310" title="2 of 4 branches missed.">    if (astartPlaceHolderIndex &lt; 0</span>
+        || astartPlaceHolderIndex &gt; (aPlaceHolders.length - 1)) {
+<span class="nc" id="L312">      LOG.error(</span>
+          &quot;Place holder index out of range. Unable to create localized&quot;
+              + &quot; message.&quot;);
+<span class="nc" id="L315">      return;</span>
+    }
+<span class="pc bpc" id="L317" title="1 of 2 branches missed.">    for (int i = astartPlaceHolderIndex; i &lt; aPlaceHolders.length; i++) {</span>
+<span class="fc" id="L318">      final String placeHolder = aPlaceHolders[i];</span>
+<span class="fc" id="L319">      final int placeHolderLength = placeHolder.length();</span>
+<span class="fc" id="L320">      int currentIndex = -placeHolderLength;</span>
+<span class="fc" id="L321">      boolean someThingRemoved = false;</span>
+<span class="fc" id="L322">      while ((currentIndex =</span>
+<span class="fc bfc" id="L323" title="All 2 branches covered.">              sb.indexOf(placeHolder, currentIndex + placeHolderLength))</span>
+          != -1) {
+<span class="fc" id="L325">        sb.delete(currentIndex - 1, currentIndex + placeHolderLength);</span>
+<span class="fc" id="L326">        someThingRemoved = true;</span>
+      }
+<span class="fc bfc" id="L328" title="All 2 branches covered.">      if (!someThingRemoved) {</span>
+        // If a place holder with the current number didn't exist, we assume
+        // that the ones with higher doesn't either..
+<span class="fc" id="L331">        break;</span>
+      }
+    }
+<span class="fc" id="L334">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -16,143 +16,228 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
-
 import javax.persistence.EntityManager;
-
 import org.apache.log4j.Logger;
 import org.cesecore.config.CesecoreConfiguration;
 
 /**
- * Class Holding cache variable. Needed because EJB spec does not allow volatile, non-final fields
- * in session beans.
- * 
- * This cache is designed so only one thread at the time will update the cache if it is too old. Other
- * threads will happily return a bit too old object. If a cache update is forced, for example when
- * a profile is edited, it will always update the cache even if the commit of the transaction fails.
- * 
- * Another known issue during forced updates is the race condition exists, so an update in progress
- * might overwrite the result from forced update's database query.
- * 
- * The intention of this design is better throughput than fully ordered sequential updates.
- * 
- * Probably based on EJBCA's org.ejbca.core.ejb.ca.store.CertificateProfileCache r11155
- * 
- * @version $Id: CertificateProfileCache.java 21957 2015-09-30 18:39:55Z jeklund $
+ * Class Holding cache variable. Needed because EJB spec does not allow
+ * volatile, non-final fields in session beans.
+ *
+ * &lt;p&gt;This cache is designed so only one thread at the time will update the
+ * cache if it is too old. Other threads will happily return a bit too old
+ * object. If a cache update is forced, for example when a profile is edited, it
+ * will always update the cache even if the commit of the transaction fails.
+ *
+ * &lt;p&gt;Another known issue during forced updates is the race condition exists, so
+ * an update in progress might overwrite the result from forced update's
+ * database query.
+ *
+ * &lt;p&gt;The intention of this design is better throughput than fully ordered
+ * sequential updates.
+ *
+ * &lt;p&gt;Probably based on EJBCA's
+ * org.ejbca.core.ejb.ca.store.CertificateProfileCache r11155
+ *
+ * @version $Id: CertificateProfileCache.java 21957 2015-09-30 18:39:55Z jeklund
+ *     $
  */
-<span class="nc" id="L42">public enum CertificateProfileCache {</span>
-<span class="nc" id="L43">    INSTANCE;</span>
+<span class="nc" id="L45">public enum CertificateProfileCache {</span>
+  /** Singleton. */
+<span class="nc" id="L47">    INSTANCE;</span>
 
-<span class="nc" id="L45">    private final Logger LOG = Logger.getLogger(CertificateProfileCache.class);</span>
+    /** Logger. */
+<span class="nc" id="L50">  private static final Logger LOG =</span>
+<span class="nc" id="L51">          Logger.getLogger(CertificateProfileCache.class);</span>
 
-    /*
-     * Cache of profiles, with Id as keys. This cache may be
-     * unsynchronized between multiple instances of EJBCA, but is common to all
-     * threads in the same VM. Set volatile to make it thread friendly.
-     */
+  /*
+   * Cache of profiles, with Id as keys. This cache may be
+   * unsynchronized between multiple instances of EJBCA, but is common to all
+   * threads in the same VM. Set volatile to make it thread friendly.
+   */
 
-    /** Cache of mappings between profileId and profileName */
-<span class="nc" id="L54">    private volatile Map&lt;Integer, String&gt; idNameMapCache = null;</span>
-    /** Cache of mappings between profileName and profileId */
-<span class="nc" id="L56">    private volatile Map&lt;String, Integer&gt; nameIdMapCache = null;</span>
-    /** Cache of certificate profiles, with Id as keys */
-<span class="nc" id="L58">    private volatile Map&lt;Integer, CertificateProfile&gt; profileCache = null;</span>
+  /** Cache of mappings between profileId and profileName.*/
+<span class="nc" id="L60">  private volatile Map&lt;Integer, String&gt; idNameMapCache = null;</span>
+  /** Cache of mappings between profileName and profileId. */
+<span class="nc" id="L62">  private volatile Map&lt;String, Integer&gt; nameIdMapCache = null;</span>
+  /** Cache of certificate profiles, with Id as keys. */
+<span class="nc" id="L64">  private volatile Map&lt;Integer, CertificateProfile&gt; profileCache = null;</span>
 
-<span class="nc" id="L60">    private volatile long lastUpdate = 0;</span>
+  /** Time. */
+<span class="nc" id="L67">  private volatile long lastUpdate = 0;</span>
 
-    /* Create template maps with all static constants */
-<span class="nc" id="L63">    private final HashMap&lt;Integer, String&gt; idNameMapCacheTemplate = new HashMap&lt;Integer, String&gt;();</span>
-<span class="nc" id="L64">    private final HashMap&lt;String, Integer&gt; nameIdMapCacheTemplate = new HashMap&lt;String, Integer&gt;();</span>
+  /* Create template maps with all static constants */
+  /** Cache. */
+<span class="nc" id="L71">  private final HashMap&lt;Integer, String&gt; idNameMapCacheTemplate =</span>
+      new HashMap&lt;Integer, String&gt;();
+  /** Cache. */
+<span class="nc" id="L74">  private final HashMap&lt;String, Integer&gt; nameIdMapCacheTemplate =</span>
+      new HashMap&lt;String, Integer&gt;();
 
-<span class="nc" id="L66">    private final ReentrantLock lock = new ReentrantLock(false);</span>
+  /** Lock. */
+<span class="nc" id="L78">  private final ReentrantLock lock = new ReentrantLock(false);</span>
 
-<span class="nc" id="L68">    private CertificateProfileCache() {</span>
-<span class="nc" id="L69">        idNameMapCacheTemplate.put(Integer.valueOf(CertificateProfileConstants.CERTPROFILE_FIXED_ENDUSER), CertificateProfile.ENDUSERPROFILENAME);</span>
-<span class="nc" id="L70">        idNameMapCacheTemplate.put(Integer.valueOf(CertificateProfileConstants.CERTPROFILE_FIXED_SUBCA), CertificateProfile.SUBCAPROFILENAME);</span>
-<span class="nc" id="L71">        idNameMapCacheTemplate.put(Integer.valueOf(CertificateProfileConstants.CERTPROFILE_FIXED_ROOTCA), CertificateProfile.ROOTCAPROFILENAME);</span>
-<span class="nc" id="L72">        idNameMapCacheTemplate.put(Integer.valueOf(CertificateProfileConstants.CERTPROFILE_FIXED_OCSPSIGNER), CertificateProfile.OCSPSIGNERPROFILENAME);</span>
-<span class="nc" id="L73">        idNameMapCacheTemplate.put(Integer.valueOf(CertificateProfileConstants.CERTPROFILE_FIXED_SERVER), CertificateProfile.SERVERPROFILENAME);</span>
-<span class="nc" id="L74">        idNameMapCacheTemplate.put(Integer.valueOf(CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENAUTH), CertificateProfile.HARDTOKENAUTHPROFILENAME);</span>
-<span class="nc" id="L75">        idNameMapCacheTemplate.put(Integer.valueOf(CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENAUTHENC), CertificateProfile.HARDTOKENAUTHENCPROFILENAME);</span>
-<span class="nc" id="L76">        idNameMapCacheTemplate.put(Integer.valueOf(CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENENC), CertificateProfile.HARDTOKENENCPROFILENAME);</span>
-<span class="nc" id="L77">        idNameMapCacheTemplate.put(Integer.valueOf(CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENSIGN), CertificateProfile.HARDTOKENSIGNPROFILENAME);</span>
-<span class="nc" id="L78">        nameIdMapCacheTemplate.put(CertificateProfile.ENDUSERPROFILENAME, Integer.valueOf(CertificateProfileConstants.CERTPROFILE_FIXED_ENDUSER));</span>
-<span class="nc" id="L79">        nameIdMapCacheTemplate.put(CertificateProfile.SUBCAPROFILENAME, Integer.valueOf(CertificateProfileConstants.CERTPROFILE_FIXED_SUBCA));</span>
-<span class="nc" id="L80">        nameIdMapCacheTemplate.put(CertificateProfile.ROOTCAPROFILENAME, Integer.valueOf(CertificateProfileConstants.CERTPROFILE_FIXED_ROOTCA));</span>
-<span class="nc" id="L81">        nameIdMapCacheTemplate.put(CertificateProfile.OCSPSIGNERPROFILENAME, Integer.valueOf(CertificateProfileConstants.CERTPROFILE_FIXED_OCSPSIGNER));</span>
-<span class="nc" id="L82">        nameIdMapCacheTemplate.put(CertificateProfile.SERVERPROFILENAME, Integer.valueOf(CertificateProfileConstants.CERTPROFILE_FIXED_SERVER));</span>
-<span class="nc" id="L83">        nameIdMapCacheTemplate.put(CertificateProfile.HARDTOKENAUTHPROFILENAME, Integer.valueOf(CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENAUTH));</span>
-<span class="nc" id="L84">        nameIdMapCacheTemplate.put(CertificateProfile.HARDTOKENAUTHENCPROFILENAME, Integer.valueOf(CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENAUTHENC));</span>
-<span class="nc" id="L85">        nameIdMapCacheTemplate.put(CertificateProfile.HARDTOKENENCPROFILENAME, Integer.valueOf(CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENENC));</span>
-<span class="nc" id="L86">        nameIdMapCacheTemplate.put(CertificateProfile.HARDTOKENSIGNPROFILENAME, Integer.valueOf(CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENSIGN));</span>
-<span class="nc" id="L87">    }</span>
+<span class="nc" id="L80">  CertificateProfileCache() {</span>
+<span class="nc" id="L81">    idNameMapCacheTemplate.put(</span>
+<span class="nc" id="L82">        Integer.valueOf(CertificateProfileConstants.CERTPROFILE_FIXED_ENDUSER),</span>
+        CertificateProfile.ENDUSERPROFILENAME);
+<span class="nc" id="L84">    idNameMapCacheTemplate.put(</span>
+<span class="nc" id="L85">        Integer.valueOf(CertificateProfileConstants.CERTPROFILE_FIXED_SUBCA),</span>
+        CertificateProfile.SUBCAPROFILENAME);
+<span class="nc" id="L87">    idNameMapCacheTemplate.put(</span>
+<span class="nc" id="L88">        Integer.valueOf(CertificateProfileConstants.CERTPROFILE_FIXED_ROOTCA),</span>
+        CertificateProfile.ROOTCAPROFILENAME);
+<span class="nc" id="L90">    idNameMapCacheTemplate.put(</span>
+<span class="nc" id="L91">        Integer.valueOf(</span>
+            CertificateProfileConstants.CERTPROFILE_FIXED_OCSPSIGNER),
+        CertificateProfile.OCSPSIGNERPROFILENAME);
+<span class="nc" id="L94">    idNameMapCacheTemplate.put(</span>
+<span class="nc" id="L95">        Integer.valueOf(CertificateProfileConstants.CERTPROFILE_FIXED_SERVER),</span>
+        CertificateProfile.SERVERPROFILENAME);
+<span class="nc" id="L97">    idNameMapCacheTemplate.put(</span>
+<span class="nc" id="L98">        Integer.valueOf(</span>
+            CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENAUTH),
+        CertificateProfile.HARDTOKENAUTHPROFILENAME);
+<span class="nc" id="L101">    idNameMapCacheTemplate.put(</span>
+<span class="nc" id="L102">        Integer.valueOf(</span>
+            CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENAUTHENC),
+        CertificateProfile.HARDTOKENAUTHENCPROFILENAME);
+<span class="nc" id="L105">    idNameMapCacheTemplate.put(</span>
+<span class="nc" id="L106">        Integer.valueOf(</span>
+            CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENENC),
+        CertificateProfile.HARDTOKENENCPROFILENAME);
+<span class="nc" id="L109">    idNameMapCacheTemplate.put(</span>
+<span class="nc" id="L110">        Integer.valueOf(</span>
+            CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENSIGN),
+        CertificateProfile.HARDTOKENSIGNPROFILENAME);
+<span class="nc" id="L113">    nameIdMapCacheTemplate.put(</span>
+        CertificateProfile.ENDUSERPROFILENAME,
+<span class="nc" id="L115">        Integer.valueOf(CertificateProfileConstants.CERTPROFILE_FIXED_ENDUSER));</span>
+<span class="nc" id="L116">    nameIdMapCacheTemplate.put(</span>
+        CertificateProfile.SUBCAPROFILENAME,
+<span class="nc" id="L118">        Integer.valueOf(CertificateProfileConstants.CERTPROFILE_FIXED_SUBCA));</span>
+<span class="nc" id="L119">    nameIdMapCacheTemplate.put(</span>
+        CertificateProfile.ROOTCAPROFILENAME,
+<span class="nc" id="L121">        Integer.valueOf(CertificateProfileConstants.CERTPROFILE_FIXED_ROOTCA));</span>
+<span class="nc" id="L122">    nameIdMapCacheTemplate.put(</span>
+        CertificateProfile.OCSPSIGNERPROFILENAME,
+<span class="nc" id="L124">        Integer.valueOf(</span>
+            CertificateProfileConstants.CERTPROFILE_FIXED_OCSPSIGNER));
+<span class="nc" id="L126">    nameIdMapCacheTemplate.put(</span>
+        CertificateProfile.SERVERPROFILENAME,
+<span class="nc" id="L128">        Integer.valueOf(CertificateProfileConstants.CERTPROFILE_FIXED_SERVER));</span>
+<span class="nc" id="L129">    nameIdMapCacheTemplate.put(</span>
+        CertificateProfile.HARDTOKENAUTHPROFILENAME,
+<span class="nc" id="L131">        Integer.valueOf(</span>
+            CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENAUTH));
+<span class="nc" id="L133">    nameIdMapCacheTemplate.put(</span>
+        CertificateProfile.HARDTOKENAUTHENCPROFILENAME,
+<span class="nc" id="L135">        Integer.valueOf(</span>
+            CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENAUTHENC));
+<span class="nc" id="L137">    nameIdMapCacheTemplate.put(</span>
+        CertificateProfile.HARDTOKENENCPROFILENAME,
+<span class="nc" id="L139">        Integer.valueOf(</span>
+            CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENENC));
+<span class="nc" id="L141">    nameIdMapCacheTemplate.put(</span>
+        CertificateProfile.HARDTOKENSIGNPROFILENAME,
+<span class="nc" id="L143">        Integer.valueOf(</span>
+            CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENSIGN));
+<span class="nc" id="L145">  }</span>
 
-    /**
-     * Fetch all profiles from the database, unless cache is enabled, valid and we do not force an update.
-     * 
-     * @param entityManager is required for reading the profiles from the database if we need to update the cache
-     * @param force if true, this will force an update even if the cache is not yet invalid
-     */
-    public void updateProfileCache(final EntityManager entityManager, final boolean force) {
-<span class="nc bnc" id="L96" title="All 2 branches missed.">        if (LOG.isTraceEnabled()) {</span>
-<span class="nc" id="L97">            LOG.trace(&quot;&gt;updateProfileCache&quot;);</span>
-        }
-<span class="nc" id="L99">        final long cacheCertificateProfileTime = CesecoreConfiguration.getCacheCertificateProfileTime();</span>
-<span class="nc" id="L100">        final long now = System.currentTimeMillis();</span>
-        // Check before acquiring lock
-<span class="nc bnc" id="L102" title="All 6 branches missed.">        if (!force &amp;&amp; cacheCertificateProfileTime != 0 &amp;&amp; lastUpdate + cacheCertificateProfileTime &gt; now) {</span>
-<span class="nc" id="L103">            return; // We don't need to update cache</span>
-        }
-        try {
-<span class="nc" id="L106">            lock.lock();</span>
-<span class="nc bnc" id="L107" title="All 6 branches missed.">            if (!force &amp;&amp; cacheCertificateProfileTime != 0 &amp;&amp; lastUpdate + cacheCertificateProfileTime &gt; now) {</span>
-<span class="nc" id="L108">                return; // We don't need to update cache</span>
-            }
-<span class="nc" id="L110">            lastUpdate = now; // make sure next thread does not also pass the update test</span>
-        } finally {
-<span class="nc" id="L112">            lock.unlock();</span>
-        }
-<span class="nc" id="L114">        final Map&lt;Integer, String&gt; idNameCache = new HashMap&lt;Integer, String&gt;(idNameMapCacheTemplate);</span>
-<span class="nc" id="L115">        final Map&lt;String, Integer&gt; nameIdCache = new HashMap&lt;String, Integer&gt;(nameIdMapCacheTemplate);</span>
-<span class="nc" id="L116">        final Map&lt;Integer, CertificateProfile&gt; profCache = new HashMap&lt;Integer, CertificateProfile&gt;();</span>
-        try {
-<span class="nc" id="L118">            final List&lt;CertificateProfileData&gt; result = CertificateProfileData.findAll(entityManager);</span>
-<span class="nc bnc" id="L119" title="All 2 branches missed.">            for (final CertificateProfileData current : result) {</span>
-<span class="nc" id="L120">                final Integer id = Integer.valueOf(current.getId());</span>
-<span class="nc" id="L121">                final String certificateProfileName = current.getCertificateProfileName();</span>
-<span class="nc" id="L122">                idNameCache.put(id, certificateProfileName);</span>
-<span class="nc" id="L123">                nameIdCache.put(certificateProfileName, id);</span>
-<span class="nc" id="L124">                profCache.put(id, current.getCertificateProfile());</span>
-<span class="nc" id="L125">            }</span>
-<span class="nc" id="L126">        } catch (Exception e) {</span>
-<span class="nc" id="L127">            LOG.error(&quot;Error reading certificate profiles: &quot;, e);</span>
-<span class="nc" id="L128">        }</span>
-<span class="nc" id="L129">        idNameMapCache = idNameCache;</span>
-<span class="nc" id="L130">        nameIdMapCache = nameIdCache;</span>
-<span class="nc" id="L131">        profileCache = profCache;</span>
-<span class="nc bnc" id="L132" title="All 2 branches missed.">        if (LOG.isTraceEnabled()) {</span>
-<span class="nc" id="L133">            LOG.trace(&quot;&lt;updateProfileCache&quot;);</span>
-        }
-<span class="nc" id="L135">    }</span>
-
-    /** @param entityManager EM
-     * @return the latest object from the cache or a current database representation if no caching is used. */
-    public Map&lt;Integer, CertificateProfile&gt; getProfileCache(final EntityManager entityManager) {
-<span class="nc" id="L140">        updateProfileCache(entityManager, false);</span>
-<span class="nc" id="L141">        return profileCache;</span>
+  /**
+   * Fetch all profiles from the database, unless cache is enabled, valid and we
+   * do not force an update.
+   *
+   * @param entityManager is required for reading the profiles from the database
+   *     if we need to update the cache
+   * @param force if true, this will force an update even if the cache is not
+   *     yet invalid
+   */
+  public void updateProfileCache(
+      final EntityManager entityManager, final boolean force) {
+<span class="nc bnc" id="L158" title="All 2 branches missed.">    if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L159">      LOG.trace(&quot;&gt;updateProfileCache&quot;);</span>
     }
-
-    /** @param entityManager EM
-     * @return the latest object from the cache or a current database representation if no caching is used. */
-    public Map&lt;Integer, String&gt; getIdNameMapCache(final EntityManager entityManager) {
-<span class="nc" id="L147">        updateProfileCache(entityManager, false);</span>
-<span class="nc" id="L148">        return idNameMapCache;</span>
+    final long cacheCertificateProfileTime =
+<span class="nc" id="L162">        CesecoreConfiguration.getCacheCertificateProfileTime();</span>
+<span class="nc" id="L163">    final long now = System.currentTimeMillis();</span>
+    // Check before acquiring lock
+<span class="nc bnc" id="L165" title="All 6 branches missed.">    if (!force</span>
+        &amp;&amp; cacheCertificateProfileTime != 0
+        &amp;&amp; lastUpdate + cacheCertificateProfileTime &gt; now) {
+<span class="nc" id="L168">      return; // We don't need to update cache</span>
     }
-
-    /** @param entityManager EM
-     * @return the latest object from the cache or a current database representation if no caching is used. */
-    public Map&lt;String, Integer&gt; getNameIdMapCache(final EntityManager entityManager) {
-<span class="nc" id="L154">        updateProfileCache(entityManager, false);</span>
-<span class="nc" id="L155">        return nameIdMapCache;</span>
+    try {
+<span class="nc" id="L171">      lock.lock();</span>
+<span class="nc bnc" id="L172" title="All 6 branches missed.">      if (!force</span>
+          &amp;&amp; cacheCertificateProfileTime != 0
+          &amp;&amp; lastUpdate + cacheCertificateProfileTime &gt; now) {
+<span class="nc" id="L175">        return; // We don't need to update cache</span>
+      }
+<span class="nc" id="L177">      lastUpdate =</span>
+          now; // make sure next thread does not also pass the update test
+    } finally {
+<span class="nc" id="L180">      lock.unlock();</span>
     }
+<span class="nc" id="L182">    final Map&lt;Integer, String&gt; idNameCache =</span>
+        new HashMap&lt;Integer, String&gt;(idNameMapCacheTemplate);
+<span class="nc" id="L184">    final Map&lt;String, Integer&gt; nameIdCache =</span>
+        new HashMap&lt;String, Integer&gt;(nameIdMapCacheTemplate);
+<span class="nc" id="L186">    final Map&lt;Integer, CertificateProfile&gt; profCache =</span>
+        new HashMap&lt;Integer, CertificateProfile&gt;();
+    try {
+<span class="nc" id="L189">      final List&lt;CertificateProfileData&gt; result =</span>
+<span class="nc" id="L190">          CertificateProfileData.findAll(entityManager);</span>
+<span class="nc bnc" id="L191" title="All 2 branches missed.">      for (final CertificateProfileData current : result) {</span>
+<span class="nc" id="L192">        final Integer id = Integer.valueOf(current.getId());</span>
+<span class="nc" id="L193">        final String certificateProfileName =</span>
+<span class="nc" id="L194">            current.getCertificateProfileName();</span>
+<span class="nc" id="L195">        idNameCache.put(id, certificateProfileName);</span>
+<span class="nc" id="L196">        nameIdCache.put(certificateProfileName, id);</span>
+<span class="nc" id="L197">        profCache.put(id, current.getCertificateProfile());</span>
+<span class="nc" id="L198">      }</span>
+<span class="nc" id="L199">    } catch (Exception e) {</span>
+<span class="nc" id="L200">      LOG.error(&quot;Error reading certificate profiles: &quot;, e);</span>
+<span class="nc" id="L201">    }</span>
+<span class="nc" id="L202">    idNameMapCache = idNameCache;</span>
+<span class="nc" id="L203">    nameIdMapCache = nameIdCache;</span>
+<span class="nc" id="L204">    profileCache = profCache;</span>
+<span class="nc bnc" id="L205" title="All 2 branches missed.">    if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L206">      LOG.trace(&quot;&lt;updateProfileCache&quot;);</span>
+    }
+<span class="nc" id="L208">  }</span>
+
+  /**
+   * @param entityManager EM
+   * @return the latest object from the cache or a current database
+   *     representation if no caching is used.
+   */
+  public Map&lt;Integer, CertificateProfile&gt; getProfileCache(
+      final EntityManager entityManager) {
+<span class="nc" id="L217">    updateProfileCache(entityManager, false);</span>
+<span class="nc" id="L218">    return profileCache;</span>
+  }
+
+  /**
+   * @param entityManager EM
+   * @return the latest object from the cache or a current database
+   *     representation if no caching is used.
+   */
+  public Map&lt;Integer, String&gt; getIdNameMapCache(
+      final EntityManager entityManager) {
+<span class="nc" id="L228">    updateProfileCache(entityManager, false);</span>
+<span class="nc" id="L229">    return idNameMapCache;</span>
+  }
+
+  /**
+   * @param entityManager EM
+   * @return the latest object from the cache or a current database
+   *     representation if no caching is used.
+   */
+  public Map&lt;String, Integer&gt; getNameIdMapCache(
+      final EntityManager entityManager) {
+<span class="nc" id="L239">    updateProfileCache(entityManager, false);</span>
+<span class="nc" id="L240">    return nameIdMapCache;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

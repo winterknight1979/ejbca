@@ -13,32 +13,34 @@
 package org.cesecore.util.ui;
 
 /**
- * Any exception in dynamic UI property context which transports a user message. 
+ * Any exception in dynamic UI property context which transports a user message.
  * There is no inner exception, only the message MUST BE used.
- * 
- * @version $Id: DynamicUiCallbackException.java 28531 2018-03-21 06:57:37Z mikekushner $
  *
+ * @version $Id: DynamicUiCallbackException.java 28531 2018-03-21 06:57:37Z
+ *     mikekushner $
  */
 public final class DynamicUiCallbackException extends Exception {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    /**
-     * Creates an exception with a message.
-     * @param message the message.
-     */
-    public DynamicUiCallbackException(final String message) {
-<span class="nc" id="L31">        super(message);</span>
-<span class="nc" id="L32">    }</span>
+  /**
+   * Creates an exception with a message.
+   *
+   * @param message the message.
+   */
+  public DynamicUiCallbackException(final String message) {
+<span class="nc" id="L32">    super(message);</span>
+<span class="nc" id="L33">  }</span>
 
-    @SuppressWarnings(&quot;unused&quot;)
-    private DynamicUiCallbackException(final Throwable throwable) {
-<span class="nc" id="L36">        super(throwable);</span>
-<span class="nc" id="L37">    }</span>
+  @SuppressWarnings(&quot;unused&quot;)
+  private DynamicUiCallbackException(final Throwable throwable) {
+<span class="nc" id="L37">    super(throwable);</span>
+<span class="nc" id="L38">  }</span>
 
-    @SuppressWarnings(&quot;unused&quot;)
-    private DynamicUiCallbackException(final String message, final Throwable throwable) {
-<span class="nc" id="L41">        super(message, throwable);</span>
-<span class="nc" id="L42">    }</span>
+  @SuppressWarnings(&quot;unused&quot;)
+  private DynamicUiCallbackException(
+      final String message, final Throwable throwable) {
+<span class="nc" id="L43">    super(message, throwable);</span>
+<span class="nc" id="L44">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

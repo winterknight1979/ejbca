@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>FindEndEntityCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.ra</a> &gt; <span class="el_source">FindEndEntityCommand.java</span></div><h1>FindEndEntityCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.cli.ra;
+
+import java.util.HashSet;
+import java.util.Set;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.certificates.endentity.ExtendedInformation;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.EjbRemoteHelper;
+import org.ejbca.core.ejb.ra.EndEntityAccessSessionRemote;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+
+/**
+ * Find details of an end entity in the database.
+ *
+ * @version $Id: FindEndEntityCommand.java 26461 2017-08-29 23:09:05Z anatom $
+ */
+<span class="nc" id="L38">public class FindEndEntityCommand extends BaseRaCommand {</span>
+
+<span class="nc" id="L40">    private static final Logger log = Logger.getLogger(FindEndEntityCommand.class);</span>
+
+    private static final String COMMAND = &quot;findendentity&quot;;
+    private static final String OLD_COMMAND = &quot;finduser&quot;;
+
+<span class="nc" id="L45">    private static final Set&lt;String&gt; ALIASES = new HashSet&lt;String&gt;();</span>
+    static {
+<span class="nc" id="L47">        ALIASES.add(OLD_COMMAND);</span>
+<span class="nc" id="L48">    }</span>
+
+    private static final String USERNAME_KEY = &quot;--username&quot;;
+
+    {
+<span class="nc" id="L53">        registerParameter(new Parameter(USERNAME_KEY, &quot;Username&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;Username for the end entity to delete.&quot;));
+<span class="nc" id="L55">    }</span>
+
+    @Override
+    public Set&lt;String&gt; getMainCommandAliases() {
+<span class="nc" id="L59">        return ALIASES;</span>
+    }
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L64">        return COMMAND;</span>
+    }
+
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+<span class="nc" id="L69">        String username = parameters.get(USERNAME_KEY);</span>
+        try {
+<span class="nc" id="L71">            EndEntityInformation data = EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityAccessSessionRemote.class).findUser(</span>
+<span class="nc" id="L72">                    getAuthenticationToken(), username);</span>
+<span class="nc bnc" id="L73" title="All 2 branches missed.">            if (data != null) {</span>
+<span class="nc" id="L74">                getLogger().info(&quot;Found end entity:&quot;);</span>
+<span class="nc" id="L75">                getLogger().info(&quot;Username: &quot; + data.getUsername());</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">                getLogger().info(&quot;Password: &quot; + (data.getPassword() != null ? data.getPassword() : &quot;&lt;hidden&gt;&quot;));</span>
+<span class="nc" id="L77">                getLogger().info(&quot;DN: \&quot;&quot; + data.getDN() + &quot;\&quot;&quot;);</span>
+<span class="nc" id="L78">                getLogger().info(&quot;Alt Name: \&quot;&quot; + data.getSubjectAltName() + &quot;\&quot;&quot;);</span>
+<span class="nc" id="L79">                ExtendedInformation ei = data.getExtendedInformation();</span>
+<span class="nc bnc" id="L80" title="All 2 branches missed.">                getLogger().info(&quot;Directory Attributes: \&quot;&quot; + (ei != null ? ei.getSubjectDirectoryAttributes() : &quot;&quot;) + &quot;\&quot;&quot;);</span>
+<span class="nc" id="L81">                getLogger().info(&quot;E-Mail: &quot; + data.getEmail());</span>
+<span class="nc" id="L82">                getLogger().info(&quot;Status: &quot; + data.getStatus());</span>
+<span class="nc" id="L83">                getLogger().info(&quot;Type: &quot; + data.getType().getHexValue());</span>
+<span class="nc" id="L84">                getLogger().info(&quot;Token Type: &quot; + data.getTokenType());</span>
+<span class="nc" id="L85">                getLogger().info(&quot;End Entity Profile ID: &quot; + data.getEndEntityProfileId());</span>
+<span class="nc" id="L86">                getLogger().info(&quot;Certificate Profile ID: &quot; + data.getCertificateProfileId());</span>
+<span class="nc" id="L87">                getLogger().info(&quot;Hard Token Issuer ID: &quot; + data.getHardTokenIssuerId());</span>
+<span class="nc" id="L88">                getLogger().info(&quot;Created: &quot; + data.getTimeCreated());</span>
+<span class="nc" id="L89">                getLogger().info(&quot;Modified: &quot; + data.getTimeModified());</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">                if (data.getExtendedInformation() != null) {</span>
+<span class="nc" id="L91">                    byte[] csr = data.getExtendedInformation().getCertificateRequest();</span>
+<span class="nc bnc" id="L92" title="All 4 branches missed.">                    if ((csr != null) &amp;&amp; (csr.length &gt; 0)) {</span>
+<span class="nc" id="L93">                        getLogger().info(&quot;CSR:\n&quot;+new String(CertTools.getPEMFromCertificateRequest(csr)));</span>
+                    }                    
+                }
+<span class="nc" id="L96">                return CommandResult.SUCCESS;</span>
+            } else {
+<span class="nc" id="L98">                getLogger().error(&quot;End entity '&quot; + username + &quot;' does not exist.&quot;);</span>
+<span class="nc" id="L99">                return CommandResult.FUNCTIONAL_FAILURE;</span>
+            }
+<span class="nc" id="L101">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L102">            getLogger().error(&quot;ERROR: Not authorized to view end entity.&quot;);</span>
+<span class="nc" id="L103">            return CommandResult.AUTHORIZATION_FAILURE;</span>
+        }
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L109">        return &quot;Find and show details of an end entity&quot;;</span>
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L114">        StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L115">        sb.append(getCommandDescription() + &quot;.\n&quot;);</span>
+<span class="nc" id="L116">        return sb.toString();</span>
+    }
+
+    protected Logger getLogger() {
+<span class="nc" id="L120">        return log;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

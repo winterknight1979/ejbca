@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CustomCertExtensionMBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Administration GUI</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.configuration</a> &gt; <span class="el_source">CustomCertExtensionMBean.java</span></div><h1>CustomCertExtensionMBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.web.admin.configuration;
+    
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Properties;
+import java.util.ServiceLoader;
+
+import javax.faces.application.FacesMessage;
+import javax.faces.context.FacesContext;
+import javax.faces.event.ValueChangeEvent;
+import javax.faces.model.ListDataModel;
+import javax.faces.model.SelectItem;
+
+import org.apache.commons.lang.StringUtils;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.authorization.control.StandardRules;
+import org.cesecore.certificates.certificate.certextensions.AvailableCustomCertificateExtensionsConfiguration;
+import org.cesecore.certificates.certificate.certextensions.CustomCertificateExtension;
+import org.ejbca.ui.web.admin.BaseManagedBean;
+
+/**
+ * JavaServer Faces Managed Bean for managing the configuration of a single CustomCertificateExtension
+ * 
+ * 
+ * @version $Id: CustomCertExtensionMBean.java 29873 2018-09-13 09:36:27Z aminkh $
+ *
+ */
+public class CustomCertExtensionMBean extends BaseManagedBean implements Serializable {
+    
+    private static final long serialVersionUID = 1L;
+
+    /** Prefix for properties in custom certificate extensions */
+    private static final String CUSTOMCERTEXTENSION_PROPERTY_PREFIX = &quot;CUSTOMCERTEXTENSION_PROPERTY_&quot;;
+
+    public class CurrentExtensionGUIInfo implements Serializable {
+        private static final long serialVersionUID = 1L;
+        private int id;
+        private String oid;
+        private String displayName;
+        private boolean critical;
+        private boolean required;
+        private Map&lt;String, CustomExtensionPropertyGUIInfo&gt; extensionProperties;
+        private CustomCertificateExtension extension;
+
+
+<span class="nc" id="L65">        public CurrentExtensionGUIInfo(CustomCertificateExtension extension) {</span>
+<span class="nc" id="L66">            this.id = extension.getId();</span>
+<span class="nc" id="L67">            this.oid = extension.getOID();</span>
+<span class="nc" id="L68">            this.displayName = getEjbcaWebBean().getText(extension.getDisplayName());</span>
+<span class="nc" id="L69">            this.critical = extension.isCriticalFlag();</span>
+<span class="nc" id="L70">            this.required = extension.isRequiredFlag();</span>
+<span class="nc" id="L71">            setExtension(extension);</span>
+<span class="nc" id="L72">        }</span>
+        
+<span class="nc" id="L74">        public int getId() { return this.id; }</span>
+<span class="nc" id="L75">        public void setId(int id) { this.id = id; }</span>
+        
+<span class="nc" id="L77">        public String getOid() { return this.oid; }</span>
+<span class="nc" id="L78">        public void setOid(String oid) { this.oid=oid; }</span>
+        
+<span class="nc" id="L80">        public String getDisplayName() { return this.displayName; }</span>
+<span class="nc" id="L81">        public void setDisplayName(String displayName) { this.displayName=displayName; }</span>
+        
+<span class="nc" id="L83">        public boolean isCritical() { return this.critical; }</span>
+<span class="nc" id="L84">        public void setCritical(boolean critical) { this.critical=critical; }</span>
+        
+<span class="nc" id="L86">        public boolean isRequired() { return this.required; }</span>
+<span class="nc" id="L87">        public void setRequired(final boolean required) { this.required=required; }</span>
+        
+        public void setProperty(final String key, String value) throws InvalidCustomExtensionPropertyException {
+<span class="nc" id="L90">            CustomExtensionPropertyGUIInfo property  = extensionProperties.get(key);</span>
+<span class="nc" id="L91">            property.setValue(value);</span>
+<span class="nc" id="L92">            extensionProperties.put(key, property);            </span>
+<span class="nc" id="L93">        }</span>
+            
+        public  Map&lt;String, CustomExtensionPropertyGUIInfo&gt; getExtensionProperties() {         
+<span class="nc" id="L96">            return extensionProperties;</span>
+        }
+        
+        public Properties getProperties() {
+<span class="nc" id="L100">            Properties properties = new Properties();</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">            for(String key : extensionProperties.keySet()) {</span>
+<span class="nc" id="L102">                properties.put(key, extensionProperties.get(key).getValue());</span>
+<span class="nc" id="L103">            }</span>
+<span class="nc" id="L104">            return properties;</span>
+        }
+        
+        public CustomCertificateExtension getExtension() {
+<span class="nc" id="L108">            return extension;</span>
+        }
+        
+        public void setClassPath(String classPath) {
+<span class="nc" id="L112">            setExtension(availableCertificateExtensions.get(classPath));</span>
+<span class="nc" id="L113">        }</span>
+        
+        public void setExtension(CustomCertificateExtension extension) {
+<span class="nc" id="L116">            this.extension = extension;</span>
+            //Load the available properties
+<span class="nc" id="L118">            Map&lt;String, CustomExtensionPropertyGUIInfo&gt; extensionPropertiesCopy = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">            for (Entry&lt;String, String[]&gt; entry : extension.getAvailableProperties().entrySet()) {</span>
+<span class="nc" id="L120">                String key = entry.getKey();</span>
+<span class="nc" id="L121">                String label = getEjbcaWebBean().getText(CUSTOMCERTEXTENSION_PROPERTY_PREFIX + key);</span>
+<span class="nc" id="L122">                Properties properties = extension.getProperties();</span>
+<span class="nc bnc" id="L123" title="All 4 branches missed.">                String value = (properties != null &amp;&amp; properties.get(key) != null ? (String) properties.get(key) : null);</span>
+<span class="nc" id="L124">                CustomExtensionPropertyGUIInfo property = new CustomExtensionPropertyGUIInfo(key, label, value, entry.getValue());</span>
+<span class="nc" id="L125">                extensionPropertiesCopy.put(key, property);</span>
+<span class="nc" id="L126">            }</span>
+<span class="nc" id="L127">            extensionProperties = extensionPropertiesCopy;</span>
+<span class="nc" id="L128">        }</span>
+        
+        public String getClassPath() {
+<span class="nc" id="L131">            return extension.getClass().getCanonicalName();</span>
+        }
+        
+    }
+    
+    public class CustomExtensionPropertyGUIInfo {
+       
+        private final String key;
+        private final String label;
+        private String value;
+        private String[] possibleValues;
+        
+<span class="nc" id="L143">        public CustomExtensionPropertyGUIInfo(final String key, final String label, final String value, final String ... possibleValues) {</span>
+<span class="nc" id="L144">            this.key = key;</span>
+<span class="nc" id="L145">            this.label = label;</span>
+<span class="nc bnc" id="L146" title="All 2 branches missed.">            if(value != null) {</span>
+<span class="nc" id="L147">                this.value = value;</span>
+            } else {
+<span class="nc bnc" id="L149" title="All 2 branches missed.">                if(possibleValues.length &gt; 0) {</span>
+<span class="nc" id="L150">                    this.value = possibleValues[0];</span>
+                } else {
+<span class="nc" id="L152">                    this.value = &quot;&quot;;</span>
+                }
+            }
+<span class="nc" id="L155">            this.possibleValues = possibleValues;</span>
+<span class="nc" id="L156">        }</span>
+       
+        public String getKey() {
+<span class="nc" id="L159">            return key;</span>
+        }
+        
+        public String getLabel() {
+<span class="nc" id="L163">            return label;</span>
+        }
+
+        public String getValue() {
+<span class="nc" id="L167">            return value;</span>
+        }
+
+        /**
+         * Sets the value.
+         * 
+         * @param value the value to be set
+         * @throws InvalidCustomExtensionPropertyException if a list of possible values has been set, and the given value was not in the set. 
+         */
+        public void setValue(String value) throws InvalidCustomExtensionPropertyException {
+            //Evaluate the value, if any defaults have been given
+<span class="nc bnc" id="L178" title="All 2 branches missed.">            valueSearch: if (possibleValues.length &gt; 0) {</span>
+<span class="nc bnc" id="L179" title="All 2 branches missed.">                for (String possibleValue : possibleValues) {</span>
+<span class="nc bnc" id="L180" title="All 2 branches missed.">                    if (value.equals(possibleValue)) {</span>
+<span class="nc" id="L181">                        break valueSearch;</span>
+                    }
+                }
+                //There should be a check for property validity here, but since I can't manage to decouple the list of properties when the page is refreshed after
+                //the extension class has been changed, we'll fail nicely and simply ignore unfound values. 
+<span class="nc" id="L186">                return;</span>
+            }
+<span class="nc" id="L188">            this.value = value;</span>
+<span class="nc" id="L189">        }</span>
+        
+        public String[] getPossibleValues() {
+<span class="nc" id="L192">            return possibleValues;</span>
+        }
+        
+        public int getPossibleValuesCount() {
+<span class="nc" id="L196">            return possibleValues.length;</span>
+        }
+
+    }
+        
+        
+<span class="nc" id="L202">    private final AuthorizationSessionLocal authorizationSession = getEjbcaWebBean().getEjb().getAuthorizationSession();</span>
+    
+    // Declarations in faces-config.xml
+    //@javax.faces.bean.ManagedProperty(value=&quot;#{systemConfigMBean}&quot;)
+    private SystemConfigMBean systemConfigMBean;
+    
+<span class="nc" id="L208">    private AvailableCustomCertificateExtensionsConfiguration availableExtensionsConfig = null;</span>
+<span class="nc" id="L209">    private Map&lt;String, CustomCertificateExtension&gt; availableCertificateExtensions = null;</span>
+<span class="nc" id="L210">    private List&lt;SelectItem&gt; availableCertificateExtensionsList = null;</span>
+<span class="nc" id="L211">    private CurrentExtensionGUIInfo currentExtensionGUIInfo = null;</span>
+<span class="nc" id="L212">    private ListDataModel&lt;CustomExtensionPropertyGUIInfo&gt; currentExtensionProperties = null;</span>
+<span class="nc" id="L213">    private int currentExtensionId = 0;</span>
+    
+    public CustomCertExtensionMBean() {
+<span class="nc" id="L216">        super();</span>
+<span class="nc" id="L217">    }</span>
+            
+    private void flushCurrentExtension() {
+<span class="nc" id="L220">        availableExtensionsConfig = null;</span>
+<span class="nc" id="L221">        currentExtensionId = 0;</span>
+<span class="nc" id="L222">        currentExtensionGUIInfo = null;</span>
+<span class="nc" id="L223">        currentExtensionProperties = null;</span>
+<span class="nc" id="L224">    }</span>
+    
+
+    
+    private AvailableCustomCertificateExtensionsConfiguration getAvailableExtensionsConfig() {
+<span class="nc bnc" id="L229" title="All 2 branches missed.">        if(availableExtensionsConfig == null) {</span>
+<span class="nc" id="L230">            availableExtensionsConfig = getEjbcaWebBean().getAvailableCustomCertExtensionsConfiguration();</span>
+        }
+<span class="nc" id="L232">        return availableExtensionsConfig;</span>
+    }
+    
+<span class="nc" id="L235">    public SystemConfigMBean getSystemConfigMBean() { return systemConfigMBean; }</span>
+<span class="nc" id="L236">    public void setSystemConfigMBean(SystemConfigMBean systemConfigMBean) { this.systemConfigMBean = systemConfigMBean; }</span>
+    
+    public int getCurrentExtensionId() {
+<span class="nc" id="L239">        this.currentExtensionId = systemConfigMBean.getSelectedCustomCertExtensionID();</span>
+<span class="nc" id="L240">        return this.currentExtensionId;</span>
+    }
+    
+    public List&lt;SelectItem&gt; getAvailableCustomCertificateExtensions() {
+<span class="nc bnc" id="L244" title="All 2 branches missed.">        if (availableCertificateExtensions == null) {</span>
+<span class="nc" id="L245">            availableCertificateExtensions = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L246">            availableCertificateExtensionsList = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L247">            ServiceLoader&lt;? extends CustomCertificateExtension&gt; serviceLoader = ServiceLoader.load(CustomCertificateExtension.class);</span>
+<span class="nc bnc" id="L248" title="All 2 branches missed.">            for (CustomCertificateExtension extension : serviceLoader) {</span>
+<span class="nc" id="L249">                availableCertificateExtensionsList.add(new SelectItem(extension.getClass().getCanonicalName(), extension.getDisplayName()));</span>
+<span class="nc" id="L250">                availableCertificateExtensions.put(extension.getClass().getCanonicalName(), extension);</span>
+<span class="nc" id="L251">            }</span>
+<span class="nc" id="L252">            Collections.sort(availableCertificateExtensionsList, new Comparator&lt;SelectItem&gt;() {</span>
+                @Override
+                public int compare(SelectItem o1, SelectItem o2) {
+<span class="nc" id="L255">                    return o1.getLabel().compareTo(o2.getLabel());</span>
+                }
+            });
+        }
+<span class="nc" id="L259">        return availableCertificateExtensionsList;</span>
+    }
+    
+    /** @return cached or populate a new CustomCertificateExtension GUI representation for view or edit */
+    public CurrentExtensionGUIInfo getCurrentExtensionGUIInfo() {
+<span class="nc" id="L264">        AvailableCustomCertificateExtensionsConfiguration cceConfig = getAvailableExtensionsConfig();</span>
+<span class="nc" id="L265">        int currentID = getCurrentExtensionId();</span>
+<span class="nc bnc" id="L266" title="All 4 branches missed.">        if ((currentExtensionGUIInfo == null) || (currentExtensionGUIInfo.getId() != currentID)) {</span>
+<span class="nc" id="L267">            flushCurrentExtension();</span>
+<span class="nc" id="L268">            currentExtensionGUIInfo = new CurrentExtensionGUIInfo(cceConfig.getCustomCertificateExtension(currentID));</span>
+        } 
+<span class="nc" id="L270">        return currentExtensionGUIInfo;</span>
+    }
+        
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public void saveCurrentExtension() {
+<span class="nc bnc" id="L275" title="All 2 branches missed.">        if (StringUtils.isEmpty(currentExtensionGUIInfo.getOid())) {</span>
+<span class="nc" id="L276">            FacesContext.getCurrentInstance()</span>
+<span class="nc" id="L277">            .addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, &quot;No CustomCertificateExtension OID is set.&quot;, null));</span>
+<span class="nc" id="L278">            return;</span>
+        }
+<span class="nc bnc" id="L280" title="All 2 branches missed.">        if (StringUtils.isEmpty(currentExtensionGUIInfo.getDisplayName())) {</span>
+<span class="nc" id="L281">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, &quot;No CustomCertificateExtension Label is set.&quot;, null));</span>
+<span class="nc" id="L282">            return;</span>
+        }
+        
+<span class="nc bnc" id="L285" title="All 2 branches missed.">        if (StringUtils.isEmpty(currentExtensionGUIInfo.getClassPath())) {</span>
+<span class="nc" id="L286">            FacesContext.getCurrentInstance()</span>
+<span class="nc" id="L287">            .addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, &quot;No CustomCertificateExtension is set.&quot;, null));</span>
+<span class="nc" id="L288">            return;</span>
+        }
+        
+<span class="nc" id="L291">        Properties properties = new Properties();</span>
+<span class="nc bnc" id="L292" title="All 2 branches missed.">        for(CustomExtensionPropertyGUIInfo extensionProperty :  (List&lt;CustomExtensionPropertyGUIInfo&gt;) currentExtensionProperties.getWrappedData()) {</span>
+<span class="nc" id="L293">            properties.put(extensionProperty.getKey(), extensionProperty.getValue());</span>
+<span class="nc" id="L294">        }</span>
+        
+<span class="nc" id="L296">        AvailableCustomCertificateExtensionsConfiguration cceConfig = getAvailableExtensionsConfig();</span>
+        try {
+<span class="nc" id="L298">            cceConfig.addCustomCertExtension(currentExtensionGUIInfo.getId(), currentExtensionGUIInfo.getOid(), currentExtensionGUIInfo.getDisplayName(), </span>
+<span class="nc" id="L299">                    currentExtensionGUIInfo.getClassPath(), currentExtensionGUIInfo.isCritical(), currentExtensionGUIInfo.isRequired(), properties);</span>
+<span class="nc" id="L300">            getEjbcaWebBean().saveAvailableCustomCertExtensionsConfiguration(cceConfig);</span>
+<span class="nc" id="L301">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, &quot;Extension was saved successfully.&quot;, null));</span>
+<span class="nc" id="L302">        } catch(Exception e) {</span>
+<span class="nc" id="L303">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, &quot;Failed to edit Custom Certificate Extension. &quot; + e.getLocalizedMessage() , e.getLocalizedMessage()));</span>
+<span class="nc" id="L304">            return;</span>
+<span class="nc" id="L305">        }        </span>
+<span class="nc" id="L306">        flushCurrentExtension();</span>
+<span class="nc" id="L307">    }</span>
+
+    // -------------------------------------------------------------
+    //              Current Extension Properties
+    // ------------------------------------------------------------    
+    public ListDataModel&lt;CustomExtensionPropertyGUIInfo&gt; getCurrentExtensionPropertiesList() {
+<span class="nc bnc" id="L313" title="All 2 branches missed.">        if (currentExtensionProperties == null) {</span>
+<span class="nc" id="L314">            currentExtensionProperties = new ListDataModel&lt;&gt;(new ArrayList&lt;&gt;(getCurrentExtensionGUIInfo()</span>
+<span class="nc" id="L315">                    .getExtensionProperties().values()));</span>
+        }
+<span class="nc" id="L317">        return currentExtensionProperties;</span>
+    }
+       
+    public String update(){
+<span class="nc" id="L321">        return &quot;edit&quot;;</span>
+    }
+    
+    public void updateExtension(ValueChangeEvent e){
+<span class="nc" id="L325">        String extensionClass = (String) e.getNewValue();  </span>
+<span class="nc" id="L326">        currentExtensionGUIInfo.setClassPath(extensionClass); </span>
+<span class="nc" id="L327">        currentExtensionProperties.setWrappedData(null);</span>
+<span class="nc" id="L328">        currentExtensionProperties = null;</span>
+<span class="nc" id="L329">    }</span>
+    
+    /** @return true if admin may create new or modify existing Custom Certificate Extensions. */
+    public boolean isAllowedToEditCustomCertificateExtension() {
+<span class="nc bnc" id="L333" title="All 4 branches missed.">        return authorizationSession.isAuthorizedNoLogging(getAdmin(), StandardRules.CUSTOMCERTEXTENSIONCONFIGURATION_EDIT.resource()) &amp;&amp; !systemConfigMBean.getCustomCertificateExtensionViewMode();</span>
+    }
+   
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CRLStoreServlet.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">crlstore-war</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.protocol</a> &gt; <span class="el_source">CRLStoreServlet.java</span></div><h1>CRLStoreServlet.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.web.protocol;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.security.cert.X509Certificate;
+
+import javax.ejb.EJB;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang.StringUtils;
+import org.cesecore.certificates.certificate.HashID;
+import org.cesecore.certificates.crl.CrlStoreSessionLocal;
+import org.cesecore.util.StringTools;
+import org.ejbca.core.protocol.crlstore.CRLCache;
+import org.ejbca.util.HTMLTools;
+
+/** 
+ * Servlet implementing server side of the CRL Store.
+ * For a detailed description see RFC 4387.
+ * Addition to RFC 4387 is the ability to specify delta CRL with the parameter &quot;delta=&quot;
+ * Addition to RFC 4387 is the ability to specify download of a specific CRL by crlNumber with the parameter &quot;crlnumber=&amp;lt;number&amp;gt;&quot;
+ * 
+ * 
+ * @version  $Id: CRLStoreServlet.java 25645 2017-04-04 09:22:52Z anatom $
+ */
+<span class="nc" id="L42">public class CRLStoreServlet extends StoreServletBase {</span>
+
+	private static final long serialVersionUID = 1L;
+
+	@EJB
+	private CrlStoreSessionLocal crlSession;
+	
+	private CRLCache crlCache;
+
+	@Override
+	public void init(ServletConfig config) throws ServletException {
+<span class="nc" id="L53">		super.init(config);</span>
+<span class="nc" id="L54">		this.crlCache = CRLCache.getInstance(crlSession, certCache);		</span>
+<span class="nc" id="L55">	}</span>
+
+	@Override
+	public void sHash(String iHash, HttpServletResponse resp, HttpServletRequest req) throws IOException, ServletException {
+		// do nothing for CRLs
+<span class="nc" id="L60">	}</span>
+
+	@Override
+	public void iHash(String iHash, HttpServletResponse resp, HttpServletRequest req) throws IOException, ServletException {
+<span class="nc" id="L64">		returnCrl( this.crlCache.findByIssuerDN(HashID.getFromB64(iHash), isDelta(req), getCrlNumber(req, resp)), resp, iHash, isDelta(req) );		</span>
+<span class="nc" id="L65">	}</span>
+
+	@Override
+	public void sKIDHash(String sKIDHash, HttpServletResponse resp, HttpServletRequest req) throws IOException, ServletException {
+<span class="nc" id="L69">		sKIDHash( sKIDHash, resp, req, sKIDHash);</span>
+<span class="nc" id="L70">	}</span>
+
+	@Override
+	public void sKIDHash(String sKIDHash, HttpServletResponse resp, HttpServletRequest req, String name) throws IOException, ServletException {
+<span class="nc" id="L74">		returnCrl( this.crlCache.findBySubjectKeyIdentifier(HashID.getFromB64(sKIDHash), isDelta(req), getCrlNumber(req, resp)), resp, name, isDelta(req) );</span>
+<span class="nc" id="L75">	}</span>
+
+	@Override
+	public void printInfo(X509Certificate cert, String indent, PrintWriter pw, String url) {
+        // Important to escape output that have an even small chance of coming from untrusted source
+<span class="nc" id="L80">		pw.println(indent+HTMLTools.htmlescape(cert.getSubjectX500Principal().toString()));</span>
+<span class="nc" id="L81">		pw.println(indent+&quot; &quot;+RFC4387URL.iHash.getRef(url, HashID.getFromSubjectDN(cert)));</span>
+<span class="nc" id="L82">		pw.println(indent+&quot; &quot;+RFC4387URL.sKIDHash.getRef(url, HashID.getFromKeyID(cert)));</span>
+<span class="nc" id="L83">		pw.println(indent+&quot; &quot;+RFC4387URL.iHash.getRef(url, HashID.getFromSubjectDN(cert), true));</span>
+<span class="nc" id="L84">		pw.println(indent+&quot; &quot;+RFC4387URL.sKIDHash.getRef(url, HashID.getFromKeyID(cert), true));</span>
+<span class="nc" id="L85">	}</span>
+
+	@Override
+	public String getTitle() {
+<span class="nc" id="L89">		return &quot;CRLs&quot;;</span>
+	}
+
+	private boolean isDelta(HttpServletRequest req) {
+<span class="nc bnc" id="L93" title="All 2 branches missed.">		return req.getParameterMap().get(&quot;delta&quot;)!=null;</span>
+	}
+
+	private int getCrlNumber(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+<span class="nc" id="L97">	    final String crlNumber = req.getParameter(&quot;crlnumber&quot;);</span>
+<span class="nc bnc" id="L98" title="All 4 branches missed.">        if (StringUtils.isNumeric(crlNumber) &amp;&amp; (Integer.valueOf(crlNumber) &gt;= 0) ) {</span>
+<span class="nc" id="L99">            return Integer.valueOf(crlNumber);</span>
+        }
+<span class="nc" id="L101">        return -1;</span>
+	}
+
+	private void returnCrl( byte crl[], HttpServletResponse resp, String name, boolean isDelta ) throws IOException {
+<span class="nc bnc" id="L105" title="All 4 branches missed.">		if ( crl==null || crl.length&lt;1 ) {</span>
+<span class="nc" id="L106">			resp.sendError(HttpServletResponse.SC_NO_CONTENT, &quot;No CRL with hash: &quot;+HTMLTools.htmlescape(name));</span>
+<span class="nc" id="L107">			return;</span>
+		}
+<span class="nc" id="L109">		resp.setContentType(&quot;application/pkix-crl&quot;);</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">		resp.setHeader(&quot;Content-disposition&quot;, &quot;attachment; filename=\&quot;&quot;+(isDelta?&quot;delta&quot;:&quot;&quot;) + StringTools.stripFilename(name) + &quot;.crl\&quot;&quot;);</span>
+<span class="nc" id="L111">		resp.setContentLength(crl.length);</span>
+<span class="nc" id="L112">		resp.getOutputStream().write(crl);</span>
+<span class="nc" id="L113">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

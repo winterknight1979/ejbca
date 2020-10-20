@@ -1,0 +1,567 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ValidatorBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Administration GUI</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.keys.validation</a> &gt; <span class="el_source">ValidatorBean.java</span></div><h1>ValidatorBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.web.admin.keys.validation;
+
+import java.io.Serializable;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+
+import javax.ejb.EJB;
+import javax.faces.application.FacesMessage;
+import javax.faces.component.UIComponent;
+import javax.faces.component.html.HtmlPanelGrid;
+import javax.faces.component.html.HtmlSelectOneMenu;
+import javax.faces.context.FacesContext;
+import javax.faces.event.AjaxBehaviorEvent;
+import javax.faces.model.SelectItem;
+import javax.faces.validator.ValidatorException;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.certificate.CertificateConstants;
+import org.cesecore.certificates.certificateprofile.CertificateProfileConstants;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSessionLocal;
+import org.cesecore.configuration.GlobalConfigurationSessionLocal;
+import org.cesecore.keys.validation.ExternalCommandCertificateValidator;
+import org.cesecore.keys.validation.IssuancePhase;
+import org.cesecore.keys.validation.KeyValidationFailedActions;
+import org.cesecore.keys.validation.KeyValidatorBase;
+import org.cesecore.keys.validation.KeyValidatorDateConditions;
+import org.cesecore.keys.validation.KeyValidatorDoesntExistsException;
+import org.cesecore.keys.validation.KeyValidatorSessionLocal;
+import org.cesecore.keys.validation.KeyValidatorSettingsTemplate;
+import org.cesecore.keys.validation.PhasedValidator;
+import org.cesecore.keys.validation.Validator;
+import org.cesecore.keys.validation.ValidatorBase;
+import org.cesecore.keys.validation.ValidatorFactory;
+import org.cesecore.util.ui.DynamicUiModel;
+import org.cesecore.util.ui.DynamicUiModelAware;
+import org.cesecore.util.ui.DynamicUiModelException;
+import org.ejbca.config.GlobalConfiguration;
+import org.ejbca.core.model.authorization.AccessRulesConstants;
+import org.ejbca.ui.psm.jsf.JsfDynamicUiPsmFactory;
+import org.ejbca.ui.web.admin.BaseManagedBean;
+
+/**
+ * JSF MBean backing the edit key validators page.
+ *
+ * @version $Id: ValidatorBean.java 29467 2018-07-05 16:23:04Z mikekushner $
+ */
+// Declarations in faces-config.xml
+//@javax.faces.bean.ViewScoped
+//@javax.faces.bean.ManagedBean(name=&quot;validatorBean&quot;)
+<span class="nc" id="L69">public class ValidatorBean extends BaseManagedBean implements Serializable {</span>
+
+    private static final long serialVersionUID = -2889613238729145716L;
+
+    /** Class logger. */
+<span class="nc" id="L74">    private static final Logger log = Logger.getLogger(ValidatorBean.class);</span>
+
+    @EJB
+    private GlobalConfigurationSessionLocal configurationSession;
+
+    @EJB
+    private CertificateProfileSessionLocal certificateProfileSession;
+
+    @EJB
+    private KeyValidatorSessionLocal keyValidatorSession;
+
+    // Declarations in faces-config.xml
+    // @javax.faces.bean.ManagedProperty(value=&quot;#{validatorsBean}&quot;)
+    private ValidatorsBean validatorsBean;
+
+    /** The validators ID. */
+    private int validatorId;
+    
+    /** Selected key validator. */
+<span class="nc" id="L93">    private Validator validator = null;</span>
+
+    /** Dynamic UI PIM component. */
+    private DynamicUiModel uiModel;
+
+    /** Dynamic UI PSM component. */
+    private HtmlPanelGrid dataGrid;
+
+    /**
+     * Resets the dynamic UI properties PSM.
+     */
+    private void reset() {
+<span class="nc" id="L105">        setValidatorId(-1);</span>
+<span class="nc" id="L106">        validator = null;</span>
+<span class="nc" id="L107">    }</span>
+    
+    /**
+     * Checks if the administrator is authorized the edit key validators.
+     * 
+     * @return true if the administrator is authorized.
+     */
+    public boolean hasEditRights() {
+<span class="nc" id="L115">        return getEjbcaWebBean().isAuthorizedNoLogSilent(AccessRulesConstants.REGULAR_EDITVALIDATOR);</span>
+    }
+
+    /**
+     * Gets the ValidatorsBean reference.
+     * @return the ValidatorsBean.
+     */
+    public ValidatorsBean getValidatorsBean() {
+<span class="nc" id="L123">        return validatorsBean;</span>
+    }
+
+    /**
+     * Sets the ValidatorsBean reference.
+     * @param bean bean
+     */
+    public void setValidatorsBean(final ValidatorsBean bean) {
+<span class="nc" id="L131">        this.validatorsBean = bean;</span>
+<span class="nc" id="L132">    }</span>
+
+    /**
+     * Processes the key validation type changed event and renders the concrete validator view. 
+     * 
+     * @param e the event.
+     * @throws DynamicUiModelException if the PSM could not be initialized.
+     */
+    public void validatorTypeChanged(final AjaxBehaviorEvent e) throws DynamicUiModelException {
+<span class="nc" id="L141">        setValidatorType((String) ((HtmlSelectOneMenu) e.getComponent()).getValue());</span>
+<span class="nc" id="L142">        FacesContext.getCurrentInstance().renderResponse();</span>
+<span class="nc" id="L143">    }</span>
+    
+    public String getValidatorType() {
+<span class="nc" id="L146">        return getValidator().getValidatorTypeIdentifier();</span>
+    }
+  
+    /**˛
+     * Sets the selected validator type. This re-creates the entire validator, so only do it if it actually changed type.
+     * @param type the type {@link ValidatorBase#getValidatorTypeIdentifier()}.
+     */
+    public void setValidatorType(final String type) {
+<span class="nc" id="L154">        final String oldType = validator.getValidatorTypeIdentifier();</span>
+<span class="nc bnc" id="L155" title="All 2 branches missed.">        if (!oldType.equals(type)) {</span>
+<span class="nc bnc" id="L156" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L157">                log.debug(&quot;Change key validator type from &quot; + oldType + &quot; to &quot; + type);</span>
+            }
+<span class="nc" id="L159">            setValidator(ValidatorFactory.INSTANCE.getArcheType(type));</span>
+<span class="nc" id="L160">            getValidator().setDataMap(getValidator().getDataMap());</span>
+<span class="nc" id="L161">            getValidator().setProfileId(validatorsBean.getValidatorId());</span>
+<span class="nc" id="L162">            getValidator().setProfileName(validatorsBean.getValidatorName());</span>
+        }
+<span class="nc" id="L164">    }</span>
+    
+    /**
+     * Gets the selected validator.
+     * @return the  validator.
+     */
+    public Validator getValidator() {
+        // @ViewScoped: If the back link was called it may happen that the same view is rendered again with another validator.
+<span class="nc bnc" id="L172" title="All 2 branches missed.">        final int newId = ( validatorsBean.getValidatorId() != null ? validatorsBean.getValidatorId() : -1);</span>
+<span class="nc" id="L173">        final int oldId = getValidatorId();</span>
+<span class="nc bnc" id="L174" title="All 4 branches missed.">        if (validator != null &amp;&amp; oldId != newId) {</span>
+<span class="nc" id="L175">            reset();</span>
+        }
+<span class="nc bnc" id="L177" title="All 4 branches missed.">        if (validator == null &amp;&amp; newId != -1) {</span>
+<span class="nc bnc" id="L178" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L179">                log.debug(&quot;Request validator with id &quot; + newId);</span>
+            }
+<span class="nc" id="L181">            setValidatorId(newId);         </span>
+<span class="nc" id="L182">            setValidator(keyValidatorSession.getValidator(newId));</span>
+        }
+        // (Re-)initialize dynamic UI PSM.
+<span class="nc bnc" id="L185" title="All 2 branches missed.">        if (validator instanceof DynamicUiModelAware) {</span>
+<span class="nc bnc" id="L186" title="All 4 branches missed.">            if (uiModel == null || !uiModel.equals(((DynamicUiModelAware) validator).getDynamicUiModel())) {</span>
+<span class="nc" id="L187">                ((DynamicUiModelAware) validator).initDynamicUiModel();</span>
+<span class="nc" id="L188">                uiModel = ((DynamicUiModelAware) validator).getDynamicUiModel();</span>
+<span class="nc bnc" id="L189" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L190">                    log.debug(&quot;Request dynamic UI properties for validator with (id=&quot; + validator.getProfileId() + &quot;) with properties &quot; + validator.getDataMap());</span>
+                }
+                try {
+<span class="nc" id="L193">                    initGrid(uiModel, validator.getClass().getSimpleName());</span>
+<span class="nc" id="L194">                } catch (DynamicUiModelException e) {</span>
+<span class="nc" id="L195">                    log.warn(&quot;Could not initialize dynamic UI PSM: &quot; + e.getMessage(), e);</span>
+<span class="nc" id="L196">                }</span>
+            }
+        }
+<span class="nc" id="L199">        return validator;</span>
+     }
+    
+     /**
+      * Sets the current validator.
+      * @param validator the validator.
+      */
+     public void setValidator(final Validator validator) {
+<span class="nc" id="L207">         this.validator = validator;</span>
+<span class="nc" id="L208">     }</span>
+
+     /**
+      * Gets the validators ID.
+      * @return the ID.
+      */
+    public int getValidatorId() {
+<span class="nc" id="L215">        return validatorId;</span>
+    }
+
+    /**
+     * Sets the validators ID.
+     * @param validatorId the ID.
+     */
+    public void setValidatorId(int validatorId) {
+<span class="nc" id="L223">        this.validatorId = validatorId;</span>
+<span class="nc" id="L224">    }</span>
+
+    /**
+     * Gets the dynamic UI properties PSM component as HTML data grid.
+     * @return the data grid.
+     * @throws DynamicUiModelException if the PSM could not be initialized.
+     */
+    public HtmlPanelGrid getDataGrid() throws DynamicUiModelException {
+<span class="nc" id="L232">        return dataGrid;</span>
+    }
+
+    /**
+     * Sets the dynamic UI properties PSM component as HTML data grid.
+     * @param dataGrid the data grid.
+     */
+    public void setDataGrid(final HtmlPanelGrid dataGrid) {
+<span class="nc" id="L240">        this.dataGrid = dataGrid;</span>
+<span class="nc" id="L241">    }</span>
+    
+    /**
+     * Initializes the dynamic UI model grid panel.
+     * @param pim the PIM.
+     * @param prefix the HTML components ID prefix.
+     * @throws DynamicUiModelException if the PSM could not be created.
+     */
+    private void initGrid(final DynamicUiModel pim, final String prefix) throws DynamicUiModelException {
+<span class="nc bnc" id="L250" title="All 2 branches missed.">        if (dataGrid == null) {</span>
+<span class="nc" id="L251">            dataGrid = new HtmlPanelGrid();</span>
+<span class="nc" id="L252">            dataGrid.setId(getClass().getSimpleName()+&quot;-dataGrid&quot;);</span>
+        }
+<span class="nc" id="L254">        uiModel.setDisabled(validatorsBean.getViewOnly());</span>
+<span class="nc" id="L255">        JsfDynamicUiPsmFactory.initGridInstance(dataGrid, pim, prefix);</span>
+<span class="nc" id="L256">    }</span>
+
+    /**
+     * Checks whether the Validator settings template is set to &quot;Use custom settings&quot;.
+     * @return true if custom settings are enabled
+     */
+    public boolean isCustomBaseSettingsEnabled() {
+<span class="nc bnc" id="L263" title="All 2 branches missed.">        return KeyValidatorSettingsTemplate.USE_CUSTOM_SETTINGS.getOption() == getValidator().getSettingsTemplate();</span>
+    }
+
+    /**
+     * Gets the available key validator types.
+     *
+     * @return List of the available key validator types
+     */
+    public List&lt;SelectItem&gt; getAvailableValidators() {
+<span class="nc" id="L272">        final List&lt;Class&lt;?&gt;&gt; excludeClasses = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L273" title="All 2 branches missed.">        if (!((GlobalConfiguration) configurationSession.getCachedConfiguration(GlobalConfiguration.GLOBAL_CONFIGURATION_ID)).getEnableExternalScripts()) {</span>
+<span class="nc" id="L274">            excludeClasses.add(ExternalCommandCertificateValidator.class);</span>
+        }
+<span class="nc" id="L276">        final List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L277" title="All 2 branches missed.">        for (final Validator validator : ValidatorFactory.INSTANCE.getAllImplementations(excludeClasses)) {</span>
+<span class="nc" id="L278">            ret.add(new SelectItem(validator.getValidatorTypeIdentifier(), validator.getLabel()));</span>
+<span class="nc" id="L279">        }</span>
+<span class="nc" id="L280">        Collections.sort(ret, new Comparator&lt;SelectItem&gt;() {</span>
+            @Override
+            public int compare(SelectItem o1, SelectItem o2) {
+<span class="nc" id="L283">                return o1.getLabel().compareToIgnoreCase(o2.getLabel());</span>
+            }
+        });
+<span class="nc" id="L286">        return ret;</span>
+    }
+
+    /**
+     * Gets a list of select items of the available base parameter options.
+     * @return the list.
+     */
+    public List&lt;SelectItem&gt; getAvailableValidatorSettingsTemplates() {
+<span class="nc" id="L294">        final List&lt;SelectItem&gt; result = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L295">        final KeyValidatorSettingsTemplate[] items = KeyValidatorSettingsTemplate.values();</span>
+<span class="nc bnc" id="L296" title="All 2 branches missed.">        for (int i = 0, j = items.length; i &lt; j; i++) {</span>
+<span class="nc" id="L297">            result.add(new SelectItem(items[i].getOption(), getEjbcaWebBean().getText(items[i].getLabel())));</span>
+        }
+<span class="nc" id="L299">        return result;</span>
+    }
+
+    /**
+     * Gets a list of select items of the certificate issuance process phases (see {@link IssuancePhase}).
+     * @return the list.
+     */
+    public List&lt;SelectItem&gt; getAllApplicablePhases() {
+<span class="nc" id="L307">        final List&lt;SelectItem&gt; result = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L308">        final IssuancePhase[] items = IssuancePhase.values();</span>
+<span class="nc bnc" id="L309" title="All 2 branches missed.">        for(IssuancePhase phase : items) {</span>
+<span class="nc" id="L310">            result.add(new SelectItem(phase.getIndex(), getEjbcaWebBean().getText(phase.getLabel())));</span>
+        }
+<span class="nc" id="L312">        return result;</span>
+    }
+
+    /**
+     * Gets a list of select items of the certificate issuance process phases (see {@link IssuancePhase}).
+     * @return the list.
+     */
+    public List&lt;SelectItem&gt; getApplicablePhases() {
+<span class="nc" id="L320">        final List&lt;SelectItem&gt; result = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L321" title="All 2 branches missed.">        for (Integer index : ((PhasedValidator) getValidator()).getApplicablePhases()) {</span>
+<span class="nc" id="L322">            result.add(new SelectItem(index, getEjbcaWebBean().getText(IssuancePhase.fromIndex(index).getLabel())));</span>
+<span class="nc" id="L323">        }</span>
+<span class="nc" id="L324">        return result;</span>
+    }
+
+    /**
+     * Validates the description field, see {@link ValidatorBase#getDescription()}.
+     * @param context the faces context.
+     * @param component the events source component
+     * @param value the source components value attribute
+     * @throws ValidatorException if the validation fails.
+     */
+    public void validateDescription(FacesContext context, UIComponent component, Object value) throws ValidatorException {
+<span class="nc" id="L335">        final String descripion = (String) value;</span>
+<span class="nc bnc" id="L336" title="All 4 branches missed.">        if (StringUtils.isNotBlank(descripion) &amp;&amp; descripion.trim().length() &gt; 256) {</span>
+<span class="nc" id="L337">            final String message = &quot;Description must not contain more than 256 characters.&quot;;</span>
+<span class="nc bnc" id="L338" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L339">                log.debug(message);</span>
+            }
+<span class="nc" id="L341">            throw new ValidatorException(new FacesMessage(FacesMessage.SEVERITY_ERROR, message, message));</span>
+        }
+<span class="nc" id="L343">    }</span>
+
+    /**
+     * Validates the BaseKeyValildator notBefore field, see {@link org.cesecore.keys.validation.ValidityAwareValidator#getNotBefore()}.
+     * @param context the faces context.
+     * @param component the events source component
+     * @param value the source components value attribute
+     * @throws ValidatorException if the validation fails.
+     */
+    public void validateNotBefore(FacesContext context, UIComponent component, Object value) throws ValidatorException {
+<span class="nc" id="L353">        final String string = (String) value;</span>
+        try {
+<span class="nc bnc" id="L355" title="All 4 branches missed.">            if (StringUtils.isNotBlank(string) &amp;&amp; null == KeyValidatorBase.parseDate(string)) {</span>
+<span class="nc" id="L356">                final String message = &quot;Key validator not before must be a valid ISO 8601 date or time &quot; + value;</span>
+<span class="nc" id="L357">                throw new ValidatorException(new FacesMessage(FacesMessage.SEVERITY_ERROR, message, message));</span>
+            }
+<span class="nc" id="L359">        } catch (ParseException e) {</span>
+<span class="nc" id="L360">            log.debug(&quot;Could not parse Date: &quot; + string);</span>
+<span class="nc" id="L361">        }</span>
+<span class="nc" id="L362">    }</span>
+
+    /**
+     * Validates the BaseKeyValildator notBefore condition field, see {@link org.cesecore.keys.validation.ValidityAwareValidator#getNotBeforeCondition()}.
+     * @param context the faces context.
+     * @param component the events source component
+     * @param value the source components value attribute
+     * @throws ValidatorException if the validation fails.
+     */
+    public void validateNotBeforeCondition(FacesContext context, UIComponent component, Object value) throws ValidatorException {
+<span class="nc" id="L372">        final Integer type = (Integer) value;</span>
+<span class="nc bnc" id="L373" title="All 2 branches missed.">        if (!KeyValidatorDateConditions.index().contains(type)) {</span>
+<span class="nc" id="L374">            final String message = &quot;Key validator not before condition must be on of &quot; + KeyValidatorDateConditions.index();</span>
+<span class="nc" id="L375">            throw new ValidatorException(new FacesMessage(FacesMessage.SEVERITY_ERROR, message, message));</span>
+        }
+<span class="nc" id="L377">    }</span>
+
+    /**
+     * Validates the BaseKeyValildator notAfter field, see {@link org.cesecore.keys.validation.ValidityAwareValidator#getNotAfter()}.
+     * @param context the faces context.
+     * @param component the events source component
+     * @param value the source components value attribute
+     * @throws ValidatorException if the validation fails.
+     */
+    public void validateNotAfter(FacesContext context, UIComponent component, Object value) throws ValidatorException {
+<span class="nc" id="L387">        final String string = (String) value;</span>
+        try {
+<span class="nc bnc" id="L389" title="All 4 branches missed.">            if (StringUtils.isNotBlank(string) &amp;&amp; null == KeyValidatorBase.parseDate((String) value)) {</span>
+<span class="nc" id="L390">                final String message = &quot;Key validator not after must be a valid ISO 8601 date or time &quot; + value;</span>
+<span class="nc" id="L391">                throw new ValidatorException(new FacesMessage(FacesMessage.SEVERITY_ERROR, message, message));</span>
+            }
+<span class="nc" id="L393">        } catch (ParseException e) {</span>
+<span class="nc" id="L394">            log.debug(&quot;Could not parse Date: &quot; + string);</span>
+<span class="nc" id="L395">        }</span>
+<span class="nc" id="L396">    }</span>
+
+    /**
+     * Validates the BaseKeyValildator notAfter condition field, see {@link org.cesecore.keys.validation.ValidityAwareValidator#getNotAfterCondition()}.
+     * @param context the faces context.
+     * @param component the events source component
+     * @param value the source components value attribute
+     * @throws ValidatorException if the validation fails.
+     */
+    public void validateNotAfterCondition(FacesContext context, UIComponent component, Object value) throws ValidatorException {
+<span class="nc" id="L406">        final Integer index = (Integer) value;</span>
+<span class="nc bnc" id="L407" title="All 2 branches missed.">        if (!KeyValidatorDateConditions.index().contains(index)) {</span>
+<span class="nc" id="L408">            final String message = &quot;Key validator not after condition must be on of &quot; + KeyValidatorDateConditions.index();</span>
+<span class="nc" id="L409">            throw new ValidatorException(new FacesMessage(FacesMessage.SEVERITY_ERROR, message, message));</span>
+        }
+<span class="nc" id="L411">    }</span>
+
+    /**
+     * Validates the BaseKeyValildator failedAction field, see {@link ValidatorBase#getFailedAction()}.
+     * @param context the faces context.
+     * @param component the events source component
+     * @param value the source components value attribute
+     * @throws ValidatorException if the validation fails.
+     */
+    public void validateFailedAction(FacesContext context, UIComponent component, Object value) throws ValidatorException {
+<span class="nc" id="L421">        final Integer index = (Integer) value;</span>
+<span class="nc bnc" id="L422" title="All 2 branches missed.">        if (!KeyValidationFailedActions.index().contains(index)) {</span>
+<span class="nc" id="L423">            final String message = &quot;Key validator action must be on of &quot; + KeyValidatorDateConditions.index();</span>
+<span class="nc" id="L424">            throw new ValidatorException(new FacesMessage(FacesMessage.SEVERITY_ERROR, message, message));</span>
+        }
+<span class="nc" id="L426">    }</span>
+
+    /**
+     * Validates the BaseKeyValildator certificateProfileIds field, see {@link ValidatorBase#getCertificateProfileIds()}.
+     * @param context the faces context.
+     * @param component the events source component
+     * @param value the source components value attribute
+     * @throws ValidatorException if the validation fails.
+     */
+    public void validateCertificateProfileIds(FacesContext context, UIComponent component, Object value) throws ValidatorException {
+        @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L437">        final List&lt;String&gt; selectedIds = (List&lt;String&gt;) value;</span>
+<span class="nc" id="L438">        final List&lt;Integer&gt; ids = new ArrayList&lt;&gt;(certificateProfileSession.getCertificateProfileIdToNameMap().keySet());</span>
+<span class="nc bnc" id="L439" title="All 2 branches missed.">        for (String id : selectedIds) {</span>
+<span class="nc bnc" id="L440" title="All 2 branches missed.">            if (!ids.contains(Integer.parseInt(id))) {</span>
+<span class="nc" id="L441">                final String message = &quot;Key validator certificate profile id must be on of &quot; + ids;</span>
+<span class="nc" id="L442">                throw new ValidatorException(new FacesMessage(FacesMessage.SEVERITY_ERROR, message, message));</span>
+            }
+<span class="nc" id="L444">        }</span>
+<span class="nc" id="L445">    }</span>
+
+    /**
+     * Cancel action.
+     * @return the navigation outcome defined in faces-config.xml.
+     */
+    public String cancel() {
+<span class="nc" id="L452">        reset();</span>
+<span class="nc" id="L453">        return &quot;done&quot;;</span>
+    }
+
+    /**
+     * Save action.
+     * @return the navigation outcome defined in faces-config.xml.
+     */
+    public String save() {
+<span class="nc" id="L461">        final Validator validator = getValidator();</span>
+<span class="nc bnc" id="L462" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L463">            log.debug(&quot;Try to save validator: &quot; + validator);</span>
+        }
+        try {
+<span class="nc bnc" id="L466" title="All 2 branches missed.">            if (validator instanceof DynamicUiModelAware) {</span>
+<span class="nc" id="L467">                ((DynamicUiModelAware) validator).getDynamicUiModel().writeProperties(((ValidatorBase) validator).getRawData());</span>
+            }
+<span class="nc" id="L469">            keyValidatorSession.changeKeyValidator(getAdmin(), validator);</span>
+<span class="nc" id="L470">            addInfoMessage(&quot;VALIDATORSAVED&quot;);</span>
+<span class="nc" id="L471">            reset();</span>
+<span class="nc" id="L472">            return &quot;done&quot;;</span>
+<span class="nc" id="L473">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L474">            addNonTranslatedErrorMessage(&quot;Not authorized to edit validator &quot; + validator.getProfileName());</span>
+<span class="nc" id="L475">        } catch (KeyValidatorDoesntExistsException e) {</span>
+            // NOPMD: ignore do nothing
+<span class="nc" id="L477">        }</span>
+<span class="nc" id="L478">        return StringUtils.EMPTY;</span>
+    }
+
+    /**
+     * Gets a list of select items of the available certificate profiles.
+     * @return the list.
+     */
+    public List&lt;SelectItem&gt; getAvailableCertificateProfiles() {
+<span class="nc" id="L486">        final List&lt;SelectItem&gt; result = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L487">        List&lt;Integer&gt; authorizedCertificateProfiles = certificateProfileSession.getAuthorizedCertificateProfileIds(getAdmin(), CertificateConstants.CERTTYPE_UNKNOWN);</span>
+<span class="nc" id="L488">        final Map&lt;Integer, String&gt; map = certificateProfileSession.getCertificateProfileIdToNameMap();</span>
+<span class="nc bnc" id="L489" title="All 2 branches missed.">        for(Integer certificateProfileId : authorizedCertificateProfiles) {</span>
+            // Don't include fixed certificate profiles in validators, keep it clean and force usage of &quot;real&quot;
+            // profiles if you want to issue serious certificates.
+<span class="nc bnc" id="L492" title="All 2 branches missed.">            if (certificateProfileId &gt; CertificateProfileConstants.FIXED_CERTIFICATEPROFILE_BOUNDRY) {</span>
+<span class="nc" id="L493">                result.add(new SelectItem(certificateProfileId, map.get(certificateProfileId)));</span>
+            }
+<span class="nc" id="L495">        }</span>
+<span class="nc" id="L496">        Collections.sort(result, new Comparator&lt;SelectItem&gt;() {</span>
+            @Override
+            public int compare(SelectItem o1, SelectItem o2) {
+<span class="nc" id="L499">                return o1.getLabel().compareToIgnoreCase(o2.getLabel());</span>
+            }
+        });
+<span class="nc" id="L502">        return result;</span>
+    }
+
+    /**
+     * Gets the BaseKeyValidator certificateProfileIds field.
+     * @return the list
+     */
+    public List&lt;Integer&gt; getCertificateProfileIds() {
+<span class="nc" id="L510">        return getValidator().getCertificateProfileIds();</span>
+    }
+
+    /**
+     * Sets the BaseKeyValidator certificateProfileIds field.
+     * @param ids the list of certificate profile IDs.
+     */
+    public void setCertificateProfileIds(List&lt;String&gt; ids) {
+<span class="nc" id="L518">        final List&lt;Integer&gt; list = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L519" title="All 2 branches missed.">        for (String id : ids) {</span>
+<span class="nc" id="L520">            list.add(Integer.parseInt(id));</span>
+<span class="nc" id="L521">        }</span>
+<span class="nc" id="L522">        getValidator().setCertificateProfileIds(list);</span>
+<span class="nc" id="L523">    }</span>
+
+    /**
+     * Gets a list of select items of the available notBefore conditions.
+     * @return the list.
+     */
+    public List&lt;SelectItem&gt; getAvailableNotBeforeConditions() {
+<span class="nc" id="L530">        return conditionsToSelectItems();</span>
+    }
+
+    /**
+     * Gets a list of select items of the available notAfter conditions.
+     * @return the list.
+     */
+    public List&lt;SelectItem&gt; getAvailableNotAfterConditions() {
+<span class="nc" id="L538">        return conditionsToSelectItems();</span>
+    }
+
+    /**
+     * Gets a list of select items of the available failed actions.
+     * @return the list.
+     */
+    public List&lt;SelectItem&gt; getAvailableFailedActions() {
+<span class="nc" id="L546">        final List&lt;SelectItem&gt; result = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L547">        final KeyValidationFailedActions[] items = KeyValidationFailedActions.values();</span>
+<span class="nc bnc" id="L548" title="All 2 branches missed.">        for (int i = 0, j = items.length; i &lt; j; i++) {</span>
+<span class="nc" id="L549">            result.add(new SelectItem(items[i].getIndex(), getEjbcaWebBean().getText(items[i].getLabel())));</span>
+        }
+<span class="nc" id="L551">        return result;</span>
+    }
+
+    /**
+     * Transforms date condition enumerations to a list of select items.
+     * @return the list.
+     */
+    private List&lt;SelectItem&gt; conditionsToSelectItems() {
+<span class="nc" id="L559">        final List&lt;SelectItem&gt; result = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L560">        final KeyValidatorDateConditions[] items = KeyValidatorDateConditions.values();</span>
+<span class="nc bnc" id="L561" title="All 2 branches missed.">        for (int i = 0, j = items.length; i &lt; j; i++) {</span>
+<span class="nc" id="L562">            result.add(new SelectItem(items[i].getIndex(), getEjbcaWebBean().getText(items[i].getLabel())));</span>
+        }
+<span class="nc" id="L564">        return result;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -33,12 +33,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
-
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.bouncycastle.util.encoders.Hex;
@@ -64,858 +62,1390 @@ import org.cesecore.util.StringTools;
 
 /**
  * @see CryptoTokenManagementSession
- * @version $Id: CryptoTokenManagementSessionBean.java 30656 2018-11-28 08:59:00Z anatom $
+ * @version $Id: CryptoTokenManagementSessionBean.java 30656 2018-11-28
+ *     08:59:00Z anatom $
  */
-@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;CryptoTokenManagementSessionRemote&quot;)
+@Stateless(
+    mappedName =
+        JndiConstants.APP_JNDI_PREFIX + &quot;CryptoTokenManagementSessionRemote&quot;)
 @TransactionAttribute(TransactionAttributeType.REQUIRED)
-<span class="nc" id="L71">public class CryptoTokenManagementSessionBean implements CryptoTokenManagementSessionLocal, CryptoTokenManagementSessionRemote {</span>
+<span class="nc" id="L72">public class CryptoTokenManagementSessionBean</span>
+    implements CryptoTokenManagementSessionLocal,
+        CryptoTokenManagementSessionRemote {
+/** Logger. */
+<span class="nc" id="L76">  private static final Logger LOG =</span>
+<span class="nc" id="L77">      Logger.getLogger(CryptoTokenManagementSessionBean.class);</span>
+  /** Internal localization of logs and errors. */
+  private static final InternalResources INTRES =
+<span class="nc" id="L80">      InternalResources.getInstance();</span>
 
-<span class="nc" id="L73">    private static final Logger log = Logger.getLogger(CryptoTokenManagementSessionBean.class);</span>
-    /** Internal localization of logs and errors */
-<span class="nc" id="L75">    private static final InternalResources INTRES = InternalResources.getInstance();</span>
-<span class="nc" id="L76">    private static final Random rnd = new SecureRandom();</span>
+  /** Random. */
+<span class="nc" id="L83">  private static final Random RND = new SecureRandom();</span>
 
-    @EJB
-    private AuthorizationSessionLocal authorizationSession;
-    @EJB
-    private SecurityEventsLoggerSessionLocal securityEventsLoggerSession;
-    @EJB
-    private CryptoTokenSessionLocal cryptoTokenSession;
+  /** Session. */
+  @EJB private AuthorizationSessionLocal authorizationSession;
+  /** Session. */
+  @EJB private SecurityEventsLoggerSessionLocal securityEventsLoggerSession;
+  /** Session. */
+  @EJB private CryptoTokenSessionLocal cryptoTokenSession;
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    @Override
-    public List&lt;Integer&gt; getCryptoTokenIds(final AuthenticationToken authenticationToken) {
-<span class="nc" id="L88">        final List&lt;Integer&gt; allCryptoTokenIds = cryptoTokenSession.getCryptoTokenIds();</span>
-<span class="nc" id="L89">        final List&lt;Integer&gt; auhtorizedCryptoTokenIds = new ArrayList&lt;Integer&gt;();</span>
-<span class="nc bnc" id="L90" title="All 2 branches missed.">        for (final Integer current : allCryptoTokenIds) {</span>
-<span class="nc bnc" id="L91" title="All 2 branches missed.">            if (authorizationSession.isAuthorizedNoLogging(authenticationToken, CryptoTokenRules.VIEW.resource() + &quot;/&quot; + current.toString())) {</span>
-<span class="nc" id="L92">                auhtorizedCryptoTokenIds.add(current);</span>
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  @Override
+  public List&lt;Integer&gt; getCryptoTokenIds(
+      final AuthenticationToken authenticationToken) {
+<span class="nc" id="L96">    final List&lt;Integer&gt; allCryptoTokenIds =</span>
+<span class="nc" id="L97">        cryptoTokenSession.getCryptoTokenIds();</span>
+<span class="nc" id="L98">    final List&lt;Integer&gt; auhtorizedCryptoTokenIds = new ArrayList&lt;Integer&gt;();</span>
+<span class="nc bnc" id="L99" title="All 2 branches missed.">    for (final Integer current : allCryptoTokenIds) {</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">      if (authorizationSession.isAuthorizedNoLogging(</span>
+          authenticationToken,
+<span class="nc" id="L102">          CryptoTokenRules.VIEW.resource() + &quot;/&quot; + current.toString())) {</span>
+<span class="nc" id="L103">        auhtorizedCryptoTokenIds.add(current);</span>
+      }
+<span class="nc" id="L105">    }</span>
+<span class="nc" id="L106">    return auhtorizedCryptoTokenIds;</span>
+  }
+
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  @Override
+  public CryptoToken getCryptoToken(final int cryptoTokenId) {
+<span class="nc" id="L112">    return cryptoTokenSession.getCryptoToken(cryptoTokenId);</span>
+  }
+
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  @Override
+  public CryptoTokenInfo getCryptoTokenInfo(
+      final AuthenticationToken authenticationToken, final int cryptoTokenId)
+      throws AuthorizationDeniedException {
+<span class="nc bnc" id="L120" title="All 2 branches missed.">    if (!authorizationSession.isAuthorized(</span>
+        authenticationToken,
+<span class="nc" id="L122">        CryptoTokenRules.VIEW.resource() + &quot;/&quot; + cryptoTokenId)) {</span>
+<span class="nc" id="L123">      final String msg =</span>
+<span class="nc" id="L124">          INTRES.getLocalizedMessage(</span>
+              &quot;authorization.notauthorizedtoresource&quot;,
+<span class="nc" id="L126">              CryptoTokenRules.VIEW.resource(),</span>
+<span class="nc" id="L127">              authenticationToken.toString());</span>
+<span class="nc" id="L128">      throw new AuthorizationDeniedException(msg);</span>
+    }
+<span class="nc" id="L130">    return getCryptoTokenInfo(cryptoTokenId);</span>
+  }
+
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  @Override
+  public List&lt;CryptoTokenInfo&gt; getCryptoTokenInfos(
+      final AuthenticationToken authenticationToken) {
+<span class="nc" id="L137">    final List&lt;CryptoTokenInfo&gt; cryptoTokenInfos =</span>
+        new ArrayList&lt;CryptoTokenInfo&gt;();
+<span class="nc bnc" id="L139" title="All 2 branches missed.">    for (final Integer cryptoTokenId : getCryptoTokenIds(authenticationToken)) {</span>
+<span class="nc" id="L140">      cryptoTokenInfos.add(getCryptoTokenInfo(cryptoTokenId));</span>
+<span class="nc" id="L141">    }</span>
+<span class="nc" id="L142">    return cryptoTokenInfos;</span>
+  }
+
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  @Override
+  public CryptoTokenInfo getCryptoTokenInfo(final int cryptoTokenId) {
+<span class="nc" id="L148">    final CryptoToken cryptoToken =</span>
+<span class="nc" id="L149">        cryptoTokenSession.getCryptoToken(cryptoTokenId);</span>
+<span class="nc bnc" id="L150" title="All 2 branches missed.">    if (cryptoToken == null) {</span>
+<span class="nc" id="L151">      return null;</span>
+    }
+<span class="nc" id="L153">    final boolean isActive =</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">        cryptoToken.getTokenStatus() == CryptoToken.STATUS_ACTIVE;</span>
+<span class="nc" id="L155">    final Properties cryptoTokenProperties = cryptoToken.getProperties();</span>
+<span class="nc" id="L156">    final boolean autoActivation =</span>
+<span class="nc bnc" id="L157" title="All 2 branches missed.">        BaseCryptoToken.getAutoActivatePin(cryptoTokenProperties) != null;</span>
+<span class="nc" id="L158">    return new CryptoTokenInfo(</span>
+<span class="nc" id="L159">        cryptoTokenId,</span>
+<span class="nc" id="L160">        cryptoToken.getTokenName(),</span>
+        isActive,
+        autoActivation,
+<span class="nc" id="L163">        cryptoToken.getClass(),</span>
+        cryptoTokenProperties);
+  }
+
+  @Override
+  public List&lt;String&gt; isCryptoTokenSlotUsed(
+      final AuthenticationToken authenticationToken,
+      final String tokenName,
+      final String className,
+      final Properties properties)
+      throws AuthorizationDeniedException, CryptoTokenNameInUseException,
+          CryptoTokenOfflineException, CryptoTokenAuthenticationFailedException,
+          NoSuchSlotException {
+<span class="nc bnc" id="L176" title="All 2 branches missed.">    if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L177">      LOG.trace(&quot;&gt;isCryptoTokenUsed: &quot; + tokenName + &quot;, &quot; + className);</span>
+    }
+<span class="nc bnc" id="L179" title="All 2 branches missed.">    if (CryptoTokenFactory.instance().getAvailableCryptoToken(className)</span>
+        == null) {
+<span class="nc" id="L181">      throw new CryptoTokenClassNotFoundException(</span>
+          &quot;Invalid token class name: &quot; + className);
+    }
+    // Creating a duplicate P11 crypto token can be destructive, ideally we
+    // would check all crypto tokens,
+    // but we only check the ones the admin has access to in order to not leak
+    // information
+<span class="nc" id="L188">    List&lt;CryptoTokenInfo&gt; infos = getCryptoTokenInfos(authenticationToken);</span>
+<span class="nc" id="L189">    List&lt;String&gt; providers = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L190">    String tokenP11Lib =</span>
+<span class="nc" id="L191">        properties.getProperty(PKCS11CryptoToken.SHLIB_LABEL_KEY);</span>
+<span class="nc" id="L192">    final String providerNameToCheck =</span>
+<span class="nc" id="L193">        createProviderName(tokenName, className, properties);</span>
+<span class="nc bnc" id="L194" title="All 2 branches missed.">    if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L195">      LOG.debug(</span>
+          &quot;isCryptoTokenUsed: Provider name to check for: &quot;
+              + providerNameToCheck);
+    }
+    // Return list of Crypto Token name
+<span class="nc" id="L200">    List&lt;String&gt; ret = new ArrayList&lt;&gt;();</span>
+    // Only do this check for P11 tokens
+<span class="nc bnc" id="L202" title="All 2 branches missed.">    if (StringUtils.isNotEmpty(tokenP11Lib)) {</span>
+<span class="nc bnc" id="L203" title="All 2 branches missed.">      for (CryptoTokenInfo cti : infos) {</span>
+        // We are concerned about PKCS#11 usage
+<span class="nc" id="L205">        String ctiP11lib = cti.getP11Library();</span>
+<span class="nc" id="L206">        CryptoToken token =</span>
+<span class="nc" id="L207">            cryptoTokenSession.getCryptoToken(cti.getCryptoTokenId());</span>
+<span class="nc" id="L208">        final String ctiProviderName = token.getSignProviderName();</span>
+<span class="nc" id="L209">        providers.add(ctiProviderName);</span>
+<span class="nc bnc" id="L210" title="All 2 branches missed.">        if (token != null) {</span>
+<span class="nc bnc" id="L211" title="All 2 branches missed.">          if (isP11SlotSame(</span>
+              tokenP11Lib,
+              providerNameToCheck,
+              ctiP11lib,
+              ctiProviderName,
+<span class="nc" id="L216">              cti.getName())) {</span>
+<span class="nc" id="L217">            ret.add(ctiProviderName);</span>
+          }
+        }
+<span class="nc" id="L220">      }</span>
+      // Check for database protection crypto tokens as well, these are not
+      // stored as crypto tokens in the database, but only
+      // as parameters in databaseprotection.properties, and thus requires
+      // special handling
+<span class="nc" id="L225">      Provider[] installedProviders = Security.getProviders();</span>
+<span class="nc bnc" id="L226" title="All 2 branches missed.">      if (installedProviders != null) {</span>
+<span class="nc bnc" id="L227" title="All 2 branches missed.">        for (int i = 0; i &lt; installedProviders.length; i++) {</span>
+<span class="nc" id="L228">          final String installedProviderName = installedProviders[i].getName();</span>
+<span class="nc bnc" id="L229" title="All 2 branches missed.">          if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L230">            LOG.debug(</span>
+                &quot;isCryptoTokenUsed: Checking installed provider: &quot;
+                    + installedProviderName);
+          }
+<span class="nc bnc" id="L234" title="All 2 branches missed.">          if (StringUtils.equals(providerNameToCheck, installedProviderName)) {</span>
+            // We found a match, but don't add duplicates
+<span class="nc bnc" id="L236" title="All 2 branches missed.">            if (!providers.contains(installedProviderName)) {</span>
+<span class="nc" id="L237">              LOG.debug(</span>
+                  &quot;isCryptoTokenUsed: Found a match between &quot;
+                      + providerNameToCheck
+                      + &quot; and installed provider &quot;
+                      + installedProviderName
+                      + &quot;, which was not already listed, must be a database&quot;
+                      + &quot; protection token.&quot;);
+<span class="nc" id="L244">              ret.add(installedProviderName + &quot; (database protection?)&quot;);</span>
             }
-<span class="nc" id="L94">        }</span>
-<span class="nc" id="L95">        return auhtorizedCryptoTokenIds;</span>
+          }
+        }
+      }
+    }
+<span class="nc bnc" id="L250" title="All 2 branches missed.">    if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L251">      LOG.trace(</span>
+          &quot;&lt;isCryptoTokenUsed: &quot;
+              + tokenName
+              + &quot;, &quot;
+              + className
+              + &quot;, &quot;
+<span class="nc" id="L257">              + ret.size());</span>
+    }
+<span class="nc" id="L259">    return ret;</span>
+  }
+
+  private boolean isP11SlotSame(
+      final String tokenP11Lib,
+      final String providerNameToCheck,
+      final String ctiP11lib,
+      final String ctiProviderName,
+      final String ctiName)
+      throws NoSuchSlotException {
+<span class="nc" id="L269">    boolean ret = false;</span>
+<span class="nc bnc" id="L270" title="All 2 branches missed.">    if (StringUtils.isNotEmpty(ctiP11lib)) {</span>
+<span class="nc bnc" id="L271" title="All 2 branches missed.">      if (StringUtils.equalsIgnoreCase(tokenP11Lib, ctiP11lib)) {</span>
+        // We have a match on the library, watch out...check if we are using the
+        // same slot as well
+        // Now it gets exciting, since you can address the slot through
+        // different things (slotID, slotName, p11Config)
+        // it is really hard to check easily, we need to create the provider and
+        // see if the provider name is the same
+<span class="nc bnc" id="L278" title="All 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L279">          LOG.debug(</span>
+              &quot;isCryptoTokenUsed: Provider for token we check for: &quot;
+                  + providerNameToCheck);
+<span class="nc" id="L282">          LOG.debug(</span>
+              &quot;isCryptoTokenUsed Provider for existing token: &quot;
+                  + ctiProviderName);
+        }
+<span class="nc bnc" id="L286" title="All 2 branches missed.">        if (StringUtils.equals(providerNameToCheck, ctiProviderName)) {</span>
+          // We had a match, the caller knows the crypto token name
+<span class="nc" id="L288">          ret = true;</span>
+        }
+      }
+    }
+<span class="nc" id="L292">    return ret;</span>
+  }
+
+  private String createProviderName(
+      final String tokenName,
+      final String className,
+      final Properties tokenprops)
+      throws NoSuchSlotException {
+    // Make a complete clone of the original properties, as we modify it to be
+    // non-addable-provider token properties below
+    // if we did that on the original tokenprops, this method would have a side
+    // effect in modifying caller parameters
+    // (which causes things to break since the provider is not installed)
+<span class="nc" id="L305">    Properties properties = new Properties();</span>
+<span class="nc" id="L306">    properties.putAll(tokenprops);</span>
+<span class="nc" id="L307">    properties.setProperty(PKCS11CryptoToken.DO_NOT_ADD_P11_PROVIDER, &quot;true&quot;);</span>
+<span class="nc" id="L308">    final CryptoToken cryptoToken =</span>
+<span class="nc" id="L309">        CryptoTokenFactory.createCryptoToken(</span>
+            className, properties, null, -1, tokenName, false);
+<span class="nc" id="L311">    final String providerName = cryptoToken.getSignProviderName();</span>
+<span class="nc bnc" id="L312" title="All 2 branches missed.">    if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L313">      LOG.debug(</span>
+          &quot;isCryptoTokenUsed: Created provider (without installing) to check&quot;
+              + &quot; for collisions: &quot;
+              + providerName);
+    }
+<span class="nc" id="L318">    return providerName;</span>
+  }
+
+  @Override
+  public void createCryptoToken(
+      final AuthenticationToken authenticationToken,
+      final String tokenName,
+      final Integer cryptoTokenId,
+      final String className,
+      final Properties properties,
+      final byte[] data,
+      final char[] authenticationCode)
+      throws AuthorizationDeniedException, CryptoTokenNameInUseException,
+          CryptoTokenOfflineException, CryptoTokenAuthenticationFailedException,
+          NoSuchSlotException {
+<span class="nc bnc" id="L333" title="All 2 branches missed.">    if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L334">      LOG.trace(&quot;&gt;createCryptoToken: &quot; + tokenName + &quot;, &quot; + className);</span>
+    }
+<span class="nc" id="L336">    assertAuthorizedToModifyCryptoTokens(authenticationToken);</span>
+<span class="nc bnc" id="L337" title="All 2 branches missed.">    if (CryptoTokenFactory.instance().getAvailableCryptoToken(className)</span>
+        == null) {
+<span class="nc" id="L339">      throw new CryptoTokenClassNotFoundException(</span>
+          &quot;Invalid token class name: &quot; + className);
     }
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    @Override
-    public CryptoToken getCryptoToken(final int cryptoTokenId) {
-<span class="nc" id="L101">        return cryptoTokenSession.getCryptoToken(cryptoTokenId);</span>
+    // Note: if data is null, a new empty keystore will be created
+<span class="nc" id="L344">    final CryptoToken cryptoToken =</span>
+<span class="nc" id="L345">        CryptoTokenFactory.createCryptoToken(</span>
+            className,
+            properties,
+            data,
+<span class="nc" id="L349">            cryptoTokenId.intValue(),</span>
+            tokenName,
+            false);
+<span class="nc bnc" id="L352" title="All 2 branches missed.">    if (authenticationCode != null) {</span>
+<span class="nc bnc" id="L353" title="All 2 branches missed.">      if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L354">        LOG.debug(</span>
+            &quot;Activating new crypto token using supplied authentication code.&quot;);
+      }
+<span class="nc" id="L357">      cryptoToken.activate(authenticationCode);</span>
     }
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    @Override
-    public CryptoTokenInfo getCryptoTokenInfo(final AuthenticationToken authenticationToken, final int cryptoTokenId)
-            throws AuthorizationDeniedException {
-<span class="nc bnc" id="L108" title="All 2 branches missed.">        if (!authorizationSession.isAuthorized(authenticationToken, CryptoTokenRules.VIEW.resource() + &quot;/&quot; + cryptoTokenId)) {</span>
-<span class="nc" id="L109">            final String msg = INTRES.getLocalizedMessage(&quot;authorization.notauthorizedtoresource&quot;, CryptoTokenRules.VIEW.resource(),</span>
-<span class="nc" id="L110">                    authenticationToken.toString());</span>
-<span class="nc" id="L111">            throw new AuthorizationDeniedException(msg);</span>
-        }
-<span class="nc" id="L113">        return getCryptoTokenInfo(cryptoTokenId);</span>
+    // This property is used only once during crypto token creation
+<span class="nc" id="L361">    properties.remove(CryptoToken.ALLOW_NONEXISTING_SLOT_PROPERTY);</span>
+
+<span class="nc" id="L363">    final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L364">    details.put(&quot;msg&quot;, &quot;Created CryptoToken with id &quot; + cryptoTokenId);</span>
+<span class="nc" id="L365">    details.put(&quot;name&quot;, cryptoToken.getTokenName());</span>
+<span class="nc" id="L366">    details.put(&quot;encProviderName&quot;, cryptoToken.getEncProviderName());</span>
+<span class="nc" id="L367">    details.put(&quot;signProviderName&quot;, cryptoToken.getSignProviderName());</span>
+<span class="nc" id="L368">    putDelta(new Properties(), cryptoToken.getProperties(), details);</span>
+<span class="nc" id="L369">    cryptoTokenSession.mergeCryptoToken(cryptoToken);</span>
+<span class="nc" id="L370">    securityEventsLoggerSession.log(</span>
+        EventTypes.CRYPTOTOKEN_CREATE,
+        EventStatus.SUCCESS,
+        ModuleTypes.CRYPTOTOKEN,
+        ServiceTypes.CORE,
+<span class="nc" id="L375">        authenticationToken.toString(),</span>
+<span class="nc" id="L376">        String.valueOf(cryptoTokenId),</span>
+        null,
+        null,
+        details);
+<span class="nc bnc" id="L380" title="All 2 branches missed.">    if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L381">      LOG.trace(&quot;&lt;createCryptoToken: &quot; + tokenName + &quot;, &quot; + className);</span>
     }
+<span class="nc" id="L383">  }</span>
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    @Override
-    public List&lt;CryptoTokenInfo&gt; getCryptoTokenInfos(final AuthenticationToken authenticationToken) {
-<span class="nc" id="L119">        final List&lt;CryptoTokenInfo&gt; cryptoTokenInfos = new ArrayList&lt;CryptoTokenInfo&gt;();</span>
-<span class="nc bnc" id="L120" title="All 2 branches missed.">        for (final Integer cryptoTokenId : getCryptoTokenIds(authenticationToken)) {</span>
-<span class="nc" id="L121">            cryptoTokenInfos.add(getCryptoTokenInfo(cryptoTokenId));</span>
-<span class="nc" id="L122">        }</span>
-<span class="nc" id="L123">        return cryptoTokenInfos;</span>
+  @Override
+  public int createCryptoToken(
+      final AuthenticationToken authenticationToken,
+      final String tokenName,
+      final String className,
+      final Properties properties,
+      final byte[] data,
+      final char[] authenticationCode)
+      throws AuthorizationDeniedException, CryptoTokenOfflineException,
+          CryptoTokenAuthenticationFailedException,
+          CryptoTokenNameInUseException, NoSuchSlotException,
+          AuditRecordStorageException {
+<span class="nc" id="L397">    final List&lt;Integer&gt; allCryptoTokenIds =</span>
+<span class="nc" id="L398">        cryptoTokenSession.getCryptoTokenIds();</span>
+<span class="nc" id="L399">    Integer cryptoTokenId = null;</span>
+<span class="nc" id="L400">    final int max = 100;</span>
+<span class="nc bnc" id="L401" title="All 2 branches missed.">    for (int i = 0; i &lt; max; i++) {</span>
+<span class="nc" id="L402">      final int current = Integer.valueOf(RND.nextInt());</span>
+<span class="nc bnc" id="L403" title="All 2 branches missed.">      if (!allCryptoTokenIds.contains(current)) {</span>
+<span class="nc" id="L404">        cryptoTokenId = current;</span>
+<span class="nc" id="L405">        break;</span>
+      }
     }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    @Override
-    public CryptoTokenInfo getCryptoTokenInfo(final int cryptoTokenId) {
-<span class="nc" id="L129">        final CryptoToken cryptoToken = cryptoTokenSession.getCryptoToken(cryptoTokenId);</span>
-<span class="nc bnc" id="L130" title="All 2 branches missed.">        if (cryptoToken == null) {</span>
-<span class="nc" id="L131">            return null;</span>
-        }
-<span class="nc bnc" id="L133" title="All 2 branches missed.">        final boolean isActive = cryptoToken.getTokenStatus() == CryptoToken.STATUS_ACTIVE;</span>
-<span class="nc" id="L134">        final Properties cryptoTokenProperties = cryptoToken.getProperties();</span>
-<span class="nc bnc" id="L135" title="All 2 branches missed.">        final boolean autoActivation = BaseCryptoToken.getAutoActivatePin(cryptoTokenProperties) != null;</span>
-<span class="nc" id="L136">        return new CryptoTokenInfo(cryptoTokenId, cryptoToken.getTokenName(), isActive, autoActivation, cryptoToken.getClass(), cryptoTokenProperties);</span>
+<span class="nc bnc" id="L408" title="All 2 branches missed.">    if (cryptoTokenId == null) {</span>
+<span class="nc" id="L409">      throw new IllegalStateException(</span>
+          &quot;Failed to allocate a new cryptoTokenId.&quot;);
     }
+<span class="nc" id="L412">    createCryptoToken(</span>
+        authenticationToken,
+        tokenName,
+        cryptoTokenId,
+        className,
+        properties,
+        data,
+        authenticationCode);
+<span class="nc" id="L420">    return cryptoTokenId.intValue();</span>
+  }
 
-    @Override
-    public List&lt;String&gt; isCryptoTokenSlotUsed(final AuthenticationToken authenticationToken, final String tokenName,
-            final String className, final Properties properties)
-            throws AuthorizationDeniedException, CryptoTokenNameInUseException, CryptoTokenOfflineException,
-            CryptoTokenAuthenticationFailedException, NoSuchSlotException {
-<span class="nc bnc" id="L144" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L145">            log.trace(&quot;&gt;isCryptoTokenUsed: &quot; + tokenName + &quot;, &quot; + className);</span>
-        }
-<span class="nc bnc" id="L147" title="All 2 branches missed.">        if (CryptoTokenFactory.instance().getAvailableCryptoToken(className) == null) {</span>
-<span class="nc" id="L148">            throw new CryptoTokenClassNotFoundException(&quot;Invalid token class name: &quot; + className);</span>
-        }
-        // Creating a duplicate P11 crypto token can be destructive, ideally we would check all crypto tokens, 
-        // but we only check the ones the admin has access to in order to not leak information 
-<span class="nc" id="L152">        List&lt;CryptoTokenInfo&gt; infos = getCryptoTokenInfos(authenticationToken);</span>
-<span class="nc" id="L153">        List&lt;String&gt; providers = new ArrayList&lt;&gt;();</span>
-<span class="nc" id="L154">        String tokenP11Lib = properties.getProperty(PKCS11CryptoToken.SHLIB_LABEL_KEY);</span>
-<span class="nc" id="L155">        final String providerNameToCheck = createProviderName(tokenName, className, properties);</span>
-<span class="nc bnc" id="L156" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L157">            log.debug(&quot;isCryptoTokenUsed: Provider name to check for: &quot;+providerNameToCheck);</span>
-        }
-        // Return list of Crypto Token name
-<span class="nc" id="L160">        List&lt;String&gt; ret = new ArrayList&lt;&gt;();</span>
-        // Only do this check for P11 tokens
-<span class="nc bnc" id="L162" title="All 2 branches missed.">        if (StringUtils.isNotEmpty(tokenP11Lib)) {</span>
-<span class="nc bnc" id="L163" title="All 2 branches missed.">            for (CryptoTokenInfo cti : infos) {</span>
-                // We are concerned about PKCS#11 usage
-<span class="nc" id="L165">                String ctiP11lib = cti.getP11Library();</span>
-<span class="nc" id="L166">                CryptoToken token = cryptoTokenSession.getCryptoToken(cti.getCryptoTokenId());</span>
-<span class="nc" id="L167">                final String ctiProviderName = token.getSignProviderName();</span>
-<span class="nc" id="L168">                providers.add(ctiProviderName);</span>
-<span class="nc bnc" id="L169" title="All 2 branches missed.">                if (token != null) {</span>
-<span class="nc bnc" id="L170" title="All 2 branches missed.">                    if (isP11SlotSame(tokenP11Lib, providerNameToCheck, ctiP11lib, ctiProviderName, cti.getName())) {</span>
-<span class="nc" id="L171">                        ret.add(ctiProviderName);</span>
-                    }
-                }
-<span class="nc" id="L174">            }</span>
-            // Check for database protection crypto tokens as well, these are not stored as crypto tokens in the database, but only 
-            // as parameters in databaseprotection.properties, and thus requires special handling
-<span class="nc" id="L177">            Provider[] installedProviders = Security.getProviders();</span>
-<span class="nc bnc" id="L178" title="All 2 branches missed.">            if (installedProviders != null) {</span>
-<span class="nc bnc" id="L179" title="All 2 branches missed.">                for (int i = 0; i &lt; installedProviders.length; i++) {</span>
-<span class="nc" id="L180">                    final String installedProviderName = installedProviders[i].getName();</span>
-<span class="nc bnc" id="L181" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L182">                        log.debug(&quot;isCryptoTokenUsed: Checking installed provider: &quot;+installedProviderName);</span>
-                    }
-<span class="nc bnc" id="L184" title="All 2 branches missed.">                    if (StringUtils.equals(providerNameToCheck, installedProviderName)) {</span>
-                        // We found a match, but don't add duplicates
-<span class="nc bnc" id="L186" title="All 2 branches missed.">                        if (!providers.contains(installedProviderName)) {</span>
-<span class="nc" id="L187">                            log.debug(&quot;isCryptoTokenUsed: Found a match between &quot;+providerNameToCheck+&quot; and installed provider &quot;+installedProviderName+&quot;, which was not already listed, must be a database protection token.&quot;);</span>
-<span class="nc" id="L188">                            ret.add(installedProviderName+&quot; (database protection?)&quot;);</span>
-                        }
-                    }
-                }                
-            }
-        }
-<span class="nc bnc" id="L194" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L195">            log.trace(&quot;&lt;isCryptoTokenUsed: &quot; + tokenName + &quot;, &quot; + className + &quot;, &quot; + ret.size());</span>
-        }
-<span class="nc" id="L197">        return ret; </span>
+  /**
+   * Asserts if an authentication token is authorized to modify crypto tokens.
+   *
+   * @param authenticationToken the authentication token to check
+   * @throws AuthorizationDeniedException thrown if authorization was denied.
+   */
+  private void assertAuthorizedToModifyCryptoTokens(
+      final AuthenticationToken authenticationToken)
+      throws AuthorizationDeniedException {
+<span class="nc bnc" id="L432" title="All 2 branches missed.">    if (!authorizationSession.isAuthorized(</span>
+<span class="nc" id="L433">        authenticationToken, CryptoTokenRules.MODIFY_CRYPTOTOKEN.resource())) {</span>
+<span class="nc" id="L434">      final String msg =</span>
+<span class="nc" id="L435">          INTRES.getLocalizedMessage(</span>
+              &quot;authorization.notauthorizedtoresource&quot;,
+<span class="nc" id="L437">              CryptoTokenRules.MODIFY_CRYPTOTOKEN.resource(),</span>
+<span class="nc" id="L438">              authenticationToken.toString());</span>
+<span class="nc" id="L439">      throw new AuthorizationDeniedException(msg);</span>
     }
+<span class="nc" id="L441">  }</span>
 
-    private boolean isP11SlotSame(String tokenP11Lib, String providerNameToCheck, String ctiP11lib, String ctiProviderName, String ctiName) throws NoSuchSlotException {
-<span class="nc" id="L201">        boolean ret = false;</span>
-<span class="nc bnc" id="L202" title="All 2 branches missed.">        if (StringUtils.isNotEmpty(ctiP11lib)) {</span>
-<span class="nc bnc" id="L203" title="All 2 branches missed.">            if (StringUtils.equalsIgnoreCase(tokenP11Lib, ctiP11lib)) {</span>
-                // We have a match on the library, watch out...check if we are using the same slot as well
-                // Now it gets exciting, since you can address the slot through different things (slotID, slotName, p11Config)
-                // it is really hard to check easily, we need to create the provider and see if the provider name is the same
-<span class="nc bnc" id="L207" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L208">                    log.debug(&quot;isCryptoTokenUsed: Provider for token we check for: &quot;+providerNameToCheck);</span>
-<span class="nc" id="L209">                    log.debug(&quot;isCryptoTokenUsed Provider for existing token: &quot;+ctiProviderName);</span>
-                }
-<span class="nc bnc" id="L211" title="All 2 branches missed.">                if (StringUtils.equals(providerNameToCheck, ctiProviderName)) {</span>
-                    // We had a match, the caller knows the crypto token name
-<span class="nc" id="L213">                    ret = true;</span>
-                }
-            }
-        }
-<span class="nc" id="L217">        return ret;</span>
+  @Override
+  public void saveCryptoToken(
+      final AuthenticationToken authenticationToken,
+      final int cryptoTokenId,
+      final String tokenName,
+      final Properties properties,
+      final char[] oauthenticationCode)
+      throws AuthorizationDeniedException, CryptoTokenOfflineException,
+          CryptoTokenAuthenticationFailedException,
+          CryptoTokenNameInUseException, NoSuchSlotException {
+<span class="nc" id="L453">      char[] authenticationCode = oauthenticationCode;</span>
+<span class="nc bnc" id="L454" title="All 2 branches missed.">    if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L455">      LOG.trace(&quot;&gt;saveCryptoToken: &quot; + tokenName + &quot;, &quot; + cryptoTokenId);</span>
     }
-
-    private String createProviderName(final String tokenName, final String className, final Properties tokenprops) throws NoSuchSlotException {
-        // Make a complete clone of the original properties, as we modify it to be non-addable-provider token properties below
-        // if we did that on the original tokenprops, this method would have a side effect in modifying caller parameters 
-        // (which causes things to break since the provider is not installed)
-<span class="nc" id="L224">        Properties properties = new Properties();</span>
-<span class="nc" id="L225">        properties.putAll(tokenprops);</span>
-<span class="nc" id="L226">        properties.setProperty(PKCS11CryptoToken.DO_NOT_ADD_P11_PROVIDER, &quot;true&quot;);                       </span>
-<span class="nc" id="L227">        final CryptoToken cryptoToken = CryptoTokenFactory.createCryptoToken(className, properties, null, -1, tokenName, false);</span>
-<span class="nc" id="L228">        final String providerName = cryptoToken.getSignProviderName();</span>
-<span class="nc bnc" id="L229" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L230">            log.debug(&quot;isCryptoTokenUsed: Created provider (without installing) to check for collisions: &quot;+providerName);</span>
-        }
-<span class="nc" id="L232">        return providerName;</span>
+    // Note that an admin that is authorized to modify a token could gain access
+    // to another HSM slot etc..
+<span class="nc bnc" id="L459" title="All 2 branches missed.">    if (!authorizationSession.isAuthorized(</span>
+<span class="nc" id="L460">        authenticationToken, CryptoTokenRules.MODIFY_CRYPTOTOKEN.resource())) {</span>
+<span class="nc" id="L461">      final String msg =</span>
+<span class="nc" id="L462">          INTRES.getLocalizedMessage(</span>
+              &quot;authorization.notauthorizedtoresource&quot;,
+<span class="nc" id="L464">              CryptoTokenRules.MODIFY_CRYPTOTOKEN.resource(),</span>
+<span class="nc" id="L465">              authenticationToken.toString());</span>
+<span class="nc" id="L466">      throw new AuthorizationDeniedException(msg);</span>
     }
-
-    @Override
-    public void createCryptoToken(final AuthenticationToken authenticationToken, final String tokenName, final Integer cryptoTokenId,
-            final String className, final Properties properties, final byte[] data, final char[] authenticationCode)
-            throws AuthorizationDeniedException, CryptoTokenNameInUseException, CryptoTokenOfflineException,
-            CryptoTokenAuthenticationFailedException, NoSuchSlotException {
-<span class="nc bnc" id="L240" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L241">            log.trace(&quot;&gt;createCryptoToken: &quot; + tokenName + &quot;, &quot; + className);</span>
-        }
-<span class="nc" id="L243">        assertAuthorizedToModifyCryptoTokens(authenticationToken);</span>
-<span class="nc bnc" id="L244" title="All 2 branches missed.">        if (CryptoTokenFactory.instance().getAvailableCryptoToken(className) == null) {</span>
-<span class="nc" id="L245">            throw new CryptoTokenClassNotFoundException(&quot;Invalid token class name: &quot; + className);</span>
-        }
-
-        // Note: if data is null, a new empty keystore will be created
-<span class="nc" id="L249">        final CryptoToken cryptoToken = CryptoTokenFactory.createCryptoToken(className, properties, data, cryptoTokenId.intValue(), tokenName, false);</span>
-<span class="nc bnc" id="L250" title="All 2 branches missed.">        if (authenticationCode != null) {</span>
-<span class="nc bnc" id="L251" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L252">                log.debug(&quot;Activating new crypto token using supplied authentication code.&quot;);</span>
-            }
-<span class="nc" id="L254">            cryptoToken.activate(authenticationCode);</span>
-        }
-
-        // This property is used only once during crypto token creation
-<span class="nc" id="L258">        properties.remove(CryptoToken.ALLOW_NONEXISTING_SLOT_PROPERTY);</span>
-
-<span class="nc" id="L260">        final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
-<span class="nc" id="L261">        details.put(&quot;msg&quot;, &quot;Created CryptoToken with id &quot; + cryptoTokenId);</span>
-<span class="nc" id="L262">        details.put(&quot;name&quot;, cryptoToken.getTokenName());</span>
-<span class="nc" id="L263">        details.put(&quot;encProviderName&quot;, cryptoToken.getEncProviderName());</span>
-<span class="nc" id="L264">        details.put(&quot;signProviderName&quot;, cryptoToken.getSignProviderName());</span>
-<span class="nc" id="L265">        putDelta(new Properties(), cryptoToken.getProperties(), details);</span>
-<span class="nc" id="L266">        cryptoTokenSession.mergeCryptoToken(cryptoToken);</span>
-<span class="nc" id="L267">        securityEventsLoggerSession.log(EventTypes.CRYPTOTOKEN_CREATE, EventStatus.SUCCESS, ModuleTypes.CRYPTOTOKEN, ServiceTypes.CORE,</span>
-<span class="nc" id="L268">                authenticationToken.toString(), String.valueOf(cryptoTokenId), null, null, details);</span>
-<span class="nc bnc" id="L269" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L270">            log.trace(&quot;&lt;createCryptoToken: &quot; + tokenName + &quot;, &quot; + className);</span>
-        }
-<span class="nc" id="L272">    }</span>
-
-    @Override
-    public int createCryptoToken(final AuthenticationToken authenticationToken, final String tokenName, final String className,
-            final Properties properties, final byte[] data, final char[] authenticationCode) throws AuthorizationDeniedException,
-            CryptoTokenOfflineException, CryptoTokenAuthenticationFailedException, CryptoTokenNameInUseException, NoSuchSlotException,
-            AuditRecordStorageException {
-<span class="nc" id="L279">        final List&lt;Integer&gt; allCryptoTokenIds = cryptoTokenSession.getCryptoTokenIds();</span>
-<span class="nc" id="L280">        Integer cryptoTokenId = null;</span>
-<span class="nc bnc" id="L281" title="All 2 branches missed.">        for (int i = 0; i &lt; 100; i++) {</span>
-<span class="nc" id="L282">            final int current = Integer.valueOf(rnd.nextInt());</span>
-<span class="nc bnc" id="L283" title="All 2 branches missed.">            if (!allCryptoTokenIds.contains(current)) {</span>
-<span class="nc" id="L284">                cryptoTokenId = current;</span>
-<span class="nc" id="L285">                break;</span>
-            }
-        }
-<span class="nc bnc" id="L288" title="All 2 branches missed.">        if (cryptoTokenId == null) {</span>
-<span class="nc" id="L289">            throw new IllegalStateException(&quot;Failed to allocate a new cryptoTokenId.&quot;);</span>
-        }
-<span class="nc" id="L291">        createCryptoToken(authenticationToken, tokenName, cryptoTokenId, className, properties, data, authenticationCode);</span>
-<span class="nc" id="L292">        return cryptoTokenId.intValue();</span>
+<span class="nc" id="L468">    final CryptoToken currentCryptoToken =</span>
+<span class="nc" id="L469">        cryptoTokenSession.getCryptoToken(cryptoTokenId);</span>
+<span class="nc" id="L470">    final String className = currentCryptoToken.getClass().getName();</span>
+<span class="nc" id="L471">    final byte[] tokendata = currentCryptoToken.getTokenData();</span>
+    // Handle presence of auto-activation indicators
+<span class="nc" id="L473">    boolean keepAutoActivateIfPresent =</span>
+<span class="nc" id="L474">        Boolean.valueOf(</span>
+<span class="nc" id="L475">            String.valueOf(</span>
+<span class="nc" id="L476">                properties.get(</span>
+                    CryptoTokenManagementSession.KEEP_AUTO_ACTIVATION_PIN)));
+<span class="nc" id="L478">    properties.remove(CryptoTokenManagementSession.KEEP_AUTO_ACTIVATION_PIN);</span>
+<span class="nc" id="L479">    final String newPin = BaseCryptoToken.getAutoActivatePin(properties);</span>
+<span class="nc bnc" id="L480" title="All 2 branches missed.">    if (newPin != null) {</span>
+<span class="nc" id="L481">      BaseCryptoToken.setAutoActivatePin(properties, newPin, true);</span>
+<span class="nc" id="L482">      authenticationCode = newPin.toCharArray();</span>
+<span class="nc bnc" id="L483" title="All 2 branches missed.">    } else if (keepAutoActivateIfPresent) {</span>
+<span class="nc" id="L484">      final String currentPin =</span>
+<span class="nc" id="L485">          BaseCryptoToken.getAutoActivatePin(</span>
+<span class="nc" id="L486">              currentCryptoToken.getProperties());</span>
+<span class="nc bnc" id="L487" title="All 2 branches missed.">      if (currentPin != null) {</span>
+<span class="nc" id="L488">        BaseCryptoToken.setAutoActivatePin(properties, currentPin, true);</span>
+<span class="nc" id="L489">        authenticationCode =</span>
+            null; // We have an auto-activation pin and it didn't change;
+      }
+<span class="nc bnc" id="L492" title="All 4 branches missed.">    } else if (authenticationCode == null || authenticationCode.length == 0) {</span>
+      // Check if the token was auto-activated before. it is now manually
+      // activated, so use the auto-activation code one last time
+<span class="nc" id="L495">      final String currentPin =</span>
+<span class="nc" id="L496">          BaseCryptoToken.getAutoActivatePin(</span>
+<span class="nc" id="L497">              currentCryptoToken.getProperties());</span>
+<span class="nc bnc" id="L498" title="All 2 branches missed.">      if (currentPin != null) {</span>
+<span class="nc" id="L499">        authenticationCode = currentPin.toCharArray();</span>
+      }
     }
+    // TODO: If the current token is active we would like to dig out the code
+    // used to activate it and activate the new one as well..
+    // For SoftCryptoTokens, a new secret means that we should change it and it
+    // can only be done if the token is active
+    CryptoToken newCryptoToken;
+    try {
+<span class="nc" id="L508">      newCryptoToken =</span>
+<span class="nc" id="L509">          CryptoTokenFactory.createCryptoToken(</span>
+              className, properties, tokendata, cryptoTokenId, tokenName);
+      // If a new authenticationCode is provided we should verify it before we
+      // go ahead and merge
+<span class="nc bnc" id="L513" title="All 4 branches missed.">      if (authenticationCode != null &amp;&amp; authenticationCode.length &gt; 0) {</span>
+<span class="nc" id="L514">        newCryptoToken.deactivate();</span>
+<span class="nc" id="L515">        newCryptoToken.activate(authenticationCode);</span>
+      }
+<span class="nc" id="L517">    } catch (CryptoTokenOfflineException e) {</span>
+      // If the crypto token can not be initialized, we have a problem and can
+      // not even disable auto-activation.
+      // Go ahead and ignore this
+<span class="nc" id="L521">      LOG.info(</span>
+          &quot;CryptoTokenOfflineException getting new crypto token for saving,&quot;
+              + &quot; ignoring this error and saving anyway: &quot;,
+          e);
+<span class="nc" id="L525">      newCryptoToken = currentCryptoToken;</span>
+<span class="nc" id="L526">      newCryptoToken.setProperties(properties);</span>
+<span class="nc" id="L527">      newCryptoToken.setTokenName(tokenName);</span>
+<span class="nc" id="L528">    }</span>
+<span class="nc" id="L529">    final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L530">    details.put(&quot;msg&quot;, &quot;Modified CryptoToken with id &quot; + cryptoTokenId);</span>
+<span class="nc" id="L531">    putDelta(</span>
+        &quot;name&quot;,
+<span class="nc" id="L533">        currentCryptoToken.getTokenName(),</span>
+<span class="nc" id="L534">        newCryptoToken.getTokenName(),</span>
+        details);
+<span class="nc" id="L536">    putDelta(</span>
+        &quot;encProviderName&quot;,
+<span class="nc" id="L538">        currentCryptoToken.getEncProviderName(),</span>
+<span class="nc" id="L539">        newCryptoToken.getEncProviderName(),</span>
+        details);
+<span class="nc" id="L541">    putDelta(</span>
+        &quot;signProviderName&quot;,
+<span class="nc" id="L543">        currentCryptoToken.getSignProviderName(),</span>
+<span class="nc" id="L544">        newCryptoToken.getSignProviderName(),</span>
+        details);
+<span class="nc" id="L546">    putDelta(</span>
+<span class="nc" id="L547">        currentCryptoToken.getProperties(),</span>
+<span class="nc" id="L548">        newCryptoToken.getProperties(),</span>
+        details);
+<span class="nc" id="L550">    cryptoTokenSession.mergeCryptoToken(newCryptoToken);</span>
+<span class="nc" id="L551">    securityEventsLoggerSession.log(</span>
+        EventTypes.CRYPTOTOKEN_EDIT,
+        EventStatus.SUCCESS,
+        ModuleTypes.CRYPTOTOKEN,
+        ServiceTypes.CORE,
+<span class="nc" id="L556">        authenticationToken.toString(),</span>
+<span class="nc" id="L557">        String.valueOf(cryptoTokenId),</span>
+        null,
+        null,
+        details);
+<span class="nc bnc" id="L561" title="All 2 branches missed.">    if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L562">      LOG.trace(&quot;&lt;saveCryptoToken: &quot; + tokenName + &quot;, &quot; + cryptoTokenId);</span>
+    }
+<span class="nc" id="L564">  }</span>
 
-    /**
-     * Asserts if an authentication token is authorized to modify crypto tokens
-     *
-     * @param authenticationToken the authentication token to check
-     * @throws AuthorizationDeniedException thrown if authorization was denied.
-     */
-    private void assertAuthorizedToModifyCryptoTokens(AuthenticationToken authenticationToken) throws AuthorizationDeniedException {
-<span class="nc bnc" id="L302" title="All 2 branches missed.">        if (!authorizationSession.isAuthorized(authenticationToken, CryptoTokenRules.MODIFY_CRYPTOTOKEN.resource())) {</span>
-<span class="nc" id="L303">            final String msg = INTRES.getLocalizedMessage(&quot;authorization.notauthorizedtoresource&quot;, CryptoTokenRules.MODIFY_CRYPTOTOKEN.resource(),</span>
-<span class="nc" id="L304">                    authenticationToken.toString());</span>
-<span class="nc" id="L305">            throw new AuthorizationDeniedException(msg);</span>
-        }
-<span class="nc" id="L307">    }</span>
+  @Override
+  public void saveCryptoToken(
+      final AuthenticationToken authenticationToken,
+      final int cryptoTokenId,
+      final String newName,
+      final String newPlaceholders)
+      throws AuthorizationDeniedException, CryptoTokenNameInUseException {
+<span class="nc bnc" id="L573" title="All 2 branches missed.">    if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L574">      LOG.trace(</span>
+          &quot;&gt;saveCryptoToken: cryptoTokenId=&quot;
+              + cryptoTokenId
+              + &quot;, newName=&quot;
+              + newName);
+    }
+<span class="nc bnc" id="L580" title="All 2 branches missed.">    if (!authorizationSession.isAuthorized(</span>
+<span class="nc" id="L581">        authenticationToken, CryptoTokenRules.MODIFY_CRYPTOTOKEN.resource())) {</span>
+<span class="nc" id="L582">      final String msg =</span>
+<span class="nc" id="L583">          INTRES.getLocalizedMessage(</span>
+              &quot;authorization.notauthorizedtoresource&quot;,
+<span class="nc" id="L585">              CryptoTokenRules.MODIFY_CRYPTOTOKEN.resource(),</span>
+<span class="nc" id="L586">              authenticationToken.toString());</span>
+<span class="nc" id="L587">      throw new AuthorizationDeniedException(msg);</span>
+    }
+<span class="nc" id="L589">    final CryptoToken cryptoToken =</span>
+<span class="nc" id="L590">        cryptoTokenSession.getCryptoToken(cryptoTokenId);</span>
+<span class="nc" id="L591">    final String oldName = cryptoToken.getTokenName();</span>
+<span class="nc" id="L592">    cryptoToken.setTokenName(newName);</span>
+<span class="nc" id="L593">    final Properties properties = cryptoToken.getProperties();</span>
+<span class="nc" id="L594">    final String oldPlaceholders =</span>
+        cryptoToken
+<span class="nc" id="L596">            .getProperties()</span>
+<span class="nc" id="L597">            .getProperty(CryptoToken.KEYPLACEHOLDERS_PROPERTY);</span>
+<span class="nc" id="L598">    properties.setProperty(</span>
+        CryptoToken.KEYPLACEHOLDERS_PROPERTY, newPlaceholders);
+<span class="nc" id="L600">    cryptoToken.setProperties(properties);</span>
 
-    @Override
-    public void saveCryptoToken(AuthenticationToken authenticationToken, int cryptoTokenId, String tokenName, Properties properties,
-            char[] authenticationCode) throws AuthorizationDeniedException, CryptoTokenOfflineException, CryptoTokenAuthenticationFailedException,
-            CryptoTokenNameInUseException, NoSuchSlotException {
-<span class="nc bnc" id="L313" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L314">            log.trace(&quot;&gt;saveCryptoToken: &quot; + tokenName + &quot;, &quot; + cryptoTokenId);</span>
-        }
-        // Note that an admin that is authorized to modify a token could gain access to another HSM slot etc..
-<span class="nc bnc" id="L317" title="All 2 branches missed.">        if (!authorizationSession.isAuthorized(authenticationToken, CryptoTokenRules.MODIFY_CRYPTOTOKEN.resource())) {</span>
-<span class="nc" id="L318">            final String msg = INTRES.getLocalizedMessage(&quot;authorization.notauthorizedtoresource&quot;, CryptoTokenRules.MODIFY_CRYPTOTOKEN.resource(),</span>
-<span class="nc" id="L319">                    authenticationToken.toString());</span>
-<span class="nc" id="L320">            throw new AuthorizationDeniedException(msg);</span>
-        }
-<span class="nc" id="L322">        final CryptoToken currentCryptoToken = cryptoTokenSession.getCryptoToken(cryptoTokenId);</span>
-<span class="nc" id="L323">        final String className = currentCryptoToken.getClass().getName();</span>
-<span class="nc" id="L324">        final byte[] tokendata = currentCryptoToken.getTokenData();</span>
-        // Handle presence of auto-activation indicators
-<span class="nc" id="L326">        boolean keepAutoActivateIfPresent = Boolean.valueOf(String.valueOf(properties.get(CryptoTokenManagementSession.KEEP_AUTO_ACTIVATION_PIN)));</span>
-<span class="nc" id="L327">        properties.remove(CryptoTokenManagementSession.KEEP_AUTO_ACTIVATION_PIN);</span>
-<span class="nc" id="L328">        final String newPin = BaseCryptoToken.getAutoActivatePin(properties);</span>
-<span class="nc bnc" id="L329" title="All 2 branches missed.">        if (newPin != null) {</span>
-<span class="nc" id="L330">            BaseCryptoToken.setAutoActivatePin(properties, newPin, true);</span>
-<span class="nc" id="L331">            authenticationCode = newPin.toCharArray();</span>
-<span class="nc bnc" id="L332" title="All 2 branches missed.">        } else if (keepAutoActivateIfPresent) {</span>
-<span class="nc" id="L333">            final String currentPin = BaseCryptoToken.getAutoActivatePin(currentCryptoToken.getProperties());</span>
-<span class="nc bnc" id="L334" title="All 2 branches missed.">            if (currentPin != null) {</span>
-<span class="nc" id="L335">                BaseCryptoToken.setAutoActivatePin(properties, currentPin, true);</span>
-<span class="nc" id="L336">                authenticationCode = null; // We have an auto-activation pin and it didn't change;</span>
-            }
-<span class="nc bnc" id="L338" title="All 4 branches missed.">        } else if (authenticationCode == null || authenticationCode.length == 0) {</span>
-            // Check if the token was auto-activated before. it is now manually activated, so use the auto-activation code one last time
-<span class="nc" id="L340">            final String currentPin = BaseCryptoToken.getAutoActivatePin(currentCryptoToken.getProperties());</span>
-<span class="nc bnc" id="L341" title="All 2 branches missed.">            if (currentPin != null) {</span>
-<span class="nc" id="L342">                authenticationCode = currentPin.toCharArray();</span>
-            }
-        }
-        // TODO: If the current token is active we would like to dig out the code used to activate it and activate the new one as well..
-        // For SoftCryptoTokens, a new secret means that we should change it and it can only be done if the token is active
-        CryptoToken newCryptoToken;
+<span class="nc" id="L602">    final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L603">    details.put(</span>
+        &quot;msg&quot;,
+        &quot;Modified name/placeholders of CryptoToken with id &quot; + cryptoTokenId);
+<span class="nc" id="L606">    putDelta(&quot;name&quot;, oldName, newName, details);</span>
+<span class="nc" id="L607">    putDelta(&quot;keyPlaceholders&quot;, oldPlaceholders, newPlaceholders, details);</span>
+
+<span class="nc" id="L609">    cryptoTokenSession.mergeCryptoToken(cryptoToken);</span>
+<span class="nc" id="L610">    securityEventsLoggerSession.log(</span>
+        EventTypes.CRYPTOTOKEN_EDIT,
+        EventStatus.SUCCESS,
+        ModuleTypes.CRYPTOTOKEN,
+        ServiceTypes.CORE,
+<span class="nc" id="L615">        authenticationToken.toString(),</span>
+<span class="nc" id="L616">        String.valueOf(cryptoTokenId),</span>
+        null,
+        null,
+        details);
+<span class="nc bnc" id="L620" title="All 2 branches missed.">    if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L621">      LOG.trace(</span>
+          &quot;&lt;saveCryptoToken: cryptoTokenId=&quot;
+              + cryptoTokenId
+              + &quot;, newName=&quot;
+              + newName);
+    }
+<span class="nc" id="L627">  }</span>
+
+  // Only removes reference
+  @Override
+  public void deleteCryptoToken(
+      final AuthenticationToken authenticationToken, final int cryptoTokenId)
+      throws AuthorizationDeniedException {
+<span class="nc bnc" id="L634" title="All 2 branches missed.">    if (!authorizationSession.isAuthorized(</span>
+        authenticationToken,
+<span class="nc" id="L636">        CryptoTokenRules.DELETE_CRYPTOTOKEN.resource() + &quot;/&quot; + cryptoTokenId)) {</span>
+<span class="nc" id="L637">      throw new AuthorizationDeniedException();</span>
+    }
+<span class="nc bnc" id="L639" title="All 2 branches missed.">    if (cryptoTokenSession.removeCryptoToken(cryptoTokenId)) {</span>
+<span class="nc" id="L640">      securityEventsLoggerSession.log(</span>
+          EventTypes.CRYPTOTOKEN_DELETION,
+          EventStatus.SUCCESS,
+          ModuleTypes.CRYPTOTOKEN,
+          ServiceTypes.CORE,
+<span class="nc" id="L645">          authenticationToken.toString(),</span>
+<span class="nc" id="L646">          String.valueOf(cryptoTokenId),</span>
+          null,
+          null,
+          &quot;Deleted CryptoToken with id &quot; + cryptoTokenId);
+<span class="nc bnc" id="L650" title="All 2 branches missed.">    } else if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L651">      LOG.debug(</span>
+          &quot;Crypto token with id &quot;
+              + cryptoTokenId
+              + &quot; does not exist and can not be deleted.&quot;);
+    }
+<span class="nc" id="L656">  }</span>
+
+  @Override
+  public boolean isCryptoTokenStatusActive(
+      final AuthenticationToken authenticationToken, final int cryptoTokenId)
+      throws AuthorizationDeniedException {
+<span class="nc" id="L662">    assertAuthorizationNoLog(</span>
+        authenticationToken,
+        cryptoTokenId,
+<span class="nc" id="L665">        CryptoTokenRules.VIEW.resource() + &quot;/&quot; + cryptoTokenId);</span>
+<span class="nc" id="L666">    return isCryptoTokenStatusActive(cryptoTokenId);</span>
+  }
+
+  @Override
+  public boolean isCryptoTokenStatusActive(final int cryptoTokenId) {
+<span class="nc" id="L671">    final CryptoToken cryptoToken =</span>
+<span class="nc" id="L672">        cryptoTokenSession.getCryptoToken(cryptoTokenId);</span>
+<span class="nc bnc" id="L673" title="All 2 branches missed.">    if (cryptoToken == null) {</span>
+<span class="nc" id="L674">      return false;</span>
+    }
+<span class="nc bnc" id="L676" title="All 2 branches missed.">    return cryptoToken.getTokenStatus() == CryptoToken.STATUS_ACTIVE;</span>
+  }
+
+  @Override
+  public boolean isCryptoTokenPresent(
+      final AuthenticationToken authenticationToken, final int cryptoTokenId)
+      throws AuthorizationDeniedException {
+<span class="nc" id="L683">    assertAuthorizationNoLog(</span>
+        authenticationToken,
+        cryptoTokenId,
+<span class="nc" id="L686">        CryptoTokenRules.VIEW.resource() + &quot;/&quot; + cryptoTokenId);</span>
+<span class="nc" id="L687">    final CryptoToken cryptoToken =</span>
+<span class="nc" id="L688">        cryptoTokenSession.getCryptoToken(cryptoTokenId);</span>
+<span class="nc bnc" id="L689" title="All 2 branches missed.">    return cryptoToken != null;</span>
+  }
+
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  @Override
+  public void activate(
+      final AuthenticationToken authenticationToken,
+      final int cryptoTokenId,
+      final char[] authenticationCode)
+      throws AuthorizationDeniedException, CryptoTokenOfflineException,
+          CryptoTokenAuthenticationFailedException {
+<span class="nc" id="L700">    assertAuthorization(</span>
+        authenticationToken,
+        cryptoTokenId,
+<span class="nc" id="L703">        CryptoTokenRules.ACTIVATE.resource() + &quot;/&quot; + cryptoTokenId);</span>
+<span class="nc" id="L704">    final CryptoToken cryptoToken =</span>
+<span class="nc" id="L705">        getCryptoTokenAndAssertExistence(cryptoTokenId);</span>
+<span class="nc" id="L706">    cryptoToken.activate(authenticationCode);</span>
+<span class="nc" id="L707">    securityEventsLoggerSession.log(</span>
+        EventTypes.CRYPTOTOKEN_ACTIVATION,
+        EventStatus.SUCCESS,
+        ModuleTypes.CRYPTOTOKEN,
+        ServiceTypes.CORE,
+<span class="nc" id="L712">        authenticationToken.toString(),</span>
+<span class="nc" id="L713">        String.valueOf(cryptoTokenId),</span>
+        null,
+        null,
+        &quot;Activated CryptoToken '&quot;
+<span class="nc" id="L717">            + cryptoToken.getTokenName()</span>
+            + &quot;' with id &quot;
+            + cryptoTokenId);
+<span class="nc" id="L720">  }</span>
+
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  @Override
+  public void deactivate(
+      final AuthenticationToken authenticationToken, final int cryptoTokenId)
+      throws AuthorizationDeniedException {
+<span class="nc" id="L727">    assertAuthorization(</span>
+        authenticationToken,
+        cryptoTokenId,
+<span class="nc" id="L730">        CryptoTokenRules.DEACTIVATE.resource() + &quot;/&quot; + cryptoTokenId);</span>
+<span class="nc" id="L731">    final CryptoToken cryptoToken =</span>
+<span class="nc" id="L732">        getCryptoTokenAndAssertExistence(cryptoTokenId);</span>
+<span class="nc" id="L733">    cryptoToken.deactivate();</span>
+<span class="nc" id="L734">    securityEventsLoggerSession.log(</span>
+        EventTypes.CRYPTOTOKEN_DEACTIVATION,
+        EventStatus.SUCCESS,
+        ModuleTypes.CRYPTOTOKEN,
+        ServiceTypes.CORE,
+<span class="nc" id="L739">        authenticationToken.toString(),</span>
+<span class="nc" id="L740">        String.valueOf(cryptoTokenId),</span>
+        null,
+        null,
+        &quot;Deactivated CryptoToken '&quot;
+<span class="nc" id="L744">            + cryptoToken.getTokenName()</span>
+            + &quot;' with id &quot;
+            + cryptoTokenId);
+<span class="nc bnc" id="L747" title="All 2 branches missed.">    if (cryptoToken.isAutoActivationPinPresent()) {</span>
+<span class="nc" id="L748">      securityEventsLoggerSession.log(</span>
+          EventTypes.CRYPTOTOKEN_REACTIVATION,
+          EventStatus.VOID,
+          ModuleTypes.CRYPTOTOKEN,
+          ServiceTypes.CORE,
+<span class="nc" id="L753">          authenticationToken.toString(),</span>
+<span class="nc" id="L754">          String.valueOf(cryptoTokenId),</span>
+          null,
+          null,
+          &quot;Reactivated CryptoToken '&quot;
+<span class="nc" id="L758">              + cryptoToken.getTokenName()</span>
+              + &quot;' with id &quot;
+              + cryptoTokenId);
+    }
+<span class="nc" id="L762">  }</span>
+
+  @TransactionAttribute(TransactionAttributeType.REQUIRED)
+  @Override
+  public boolean updatePin(
+      final AuthenticationToken authenticationToken,
+      final Integer cryptoTokenId,
+      final char[] currentAuthenticationCode,
+      final char[] newAuthenticationCode,
+      final boolean updateOnly)
+      throws AuthorizationDeniedException,
+          CryptoTokenAuthenticationFailedException,
+          CryptoTokenOfflineException {
+<span class="nc" id="L775">    final String[] requiredAuthorization =</span>
+        new String[] {
+<span class="nc" id="L777">          CryptoTokenRules.MODIFY_CRYPTOTOKEN.resource() + &quot;/&quot; + cryptoTokenId,</span>
+<span class="nc" id="L778">          CryptoTokenRules.ACTIVATE.resource() + &quot;/&quot; + cryptoTokenId,</span>
+<span class="nc" id="L779">          CryptoTokenRules.DEACTIVATE.resource() + &quot;/&quot; + cryptoTokenId</span>
+        };
+<span class="nc bnc" id="L781" title="All 2 branches missed.">    if (!authorizationSession.isAuthorized(</span>
+        authenticationToken, requiredAuthorization)) {
+<span class="nc" id="L783">      final String msg =</span>
+<span class="nc" id="L784">          INTRES.getLocalizedMessage(</span>
+              &quot;authorization.notauthorizedtoresource&quot;,
+<span class="nc" id="L786">              Arrays.toString(requiredAuthorization),</span>
+<span class="nc" id="L787">              authenticationToken.toString());</span>
+<span class="nc" id="L788">      throw new AuthorizationDeniedException(msg);</span>
+    }
+<span class="nc" id="L790">    CryptoToken cryptoToken = getCryptoToken(cryptoTokenId);</span>
+<span class="nc" id="L791">    final Properties cryptoTokenProperties = cryptoToken.getProperties();</span>
+    // Get current auto-activation pin (if any)
+<span class="nc" id="L793">    final String oldAutoActivationPin =</span>
+<span class="nc" id="L794">        BaseCryptoToken.getAutoActivatePin(cryptoTokenProperties);</span>
+<span class="nc bnc" id="L795" title="All 6 branches missed.">    if (oldAutoActivationPin == null</span>
+        &amp;&amp; (updateOnly || newAuthenticationCode == null)) {
+      // This is a NOOP call that will not lead to any change
+<span class="nc" id="L798">      return false;</span>
+    }
+<span class="nc" id="L800">    if (SoftCryptoToken.class</span>
+<span class="nc" id="L801">        .getName()</span>
+<span class="nc bnc" id="L802" title="All 2 branches missed.">        .equals(cryptoToken.getClass().getName())) {</span>
+<span class="nc" id="L803">      CryptoProviderTools.installBCProviderIfNotAvailable();</span>
+      final KeyStore keystore;
+      try {
+<span class="nc" id="L806">        keystore = KeyStore.getInstance(&quot;PKCS12&quot;, &quot;BC&quot;);</span>
+<span class="nc" id="L807">        keystore.load(</span>
+<span class="nc" id="L808">            new ByteArrayInputStream(cryptoToken.getTokenData()),</span>
+            currentAuthenticationCode);
+<span class="nc" id="L810">      } catch (Exception e) {</span>
+<span class="nc" id="L811">        final String msg = &quot;Failed to use supplied current PIN.&quot; + &quot; &quot; + e;</span>
+<span class="nc" id="L812">        LOG.info(msg);</span>
+<span class="nc" id="L813">        throw new CryptoTokenAuthenticationFailedException(msg);</span>
+<span class="nc" id="L814">      }</span>
+<span class="nc bnc" id="L815" title="All 2 branches missed.">      if (newAuthenticationCode == null) {</span>
+        // When no new pin is supplied, we will not modify the key-store and
+        // just remove the current auto-activation pin
+<span class="nc" id="L818">        cryptoTokenProperties.remove(CryptoToken.AUTOACTIVATE_PIN_PROPERTY);</span>
+        // We'll also remove the default password option
+<span class="nc" id="L820">        cryptoTokenProperties.put(</span>
+<span class="nc" id="L821">            SoftCryptoToken.NODEFAULTPWD, Boolean.TRUE.toString());</span>
+<span class="nc" id="L822">        cryptoToken.setProperties(cryptoTokenProperties);</span>
+      } else {
         try {
-<span class="nc" id="L349">            newCryptoToken = CryptoTokenFactory.createCryptoToken(className, properties, tokendata, cryptoTokenId, tokenName);</span>
-            // If a new authenticationCode is provided we should verify it before we go ahead and merge
-<span class="nc bnc" id="L351" title="All 4 branches missed.">            if (authenticationCode != null &amp;&amp; authenticationCode.length &gt; 0) {</span>
-<span class="nc" id="L352">                newCryptoToken.deactivate();</span>
-<span class="nc" id="L353">                newCryptoToken.activate(authenticationCode);</span>
-            }
-<span class="nc" id="L355">        } catch (CryptoTokenOfflineException e) {</span>
-            // If the crypto token can not be initialized, we have a problem and can not even disable auto-activation.
-            // Go ahead and ignore this
-<span class="nc" id="L358">            log.info(&quot;CryptoTokenOfflineException getting new crypto token for saving, ignoring this error and saving anyway: &quot;, e);</span>
-<span class="nc" id="L359">            newCryptoToken = currentCryptoToken;</span>
-<span class="nc" id="L360">            newCryptoToken.setProperties(properties);</span>
-<span class="nc" id="L361">            newCryptoToken.setTokenName(tokenName);</span>
-<span class="nc" id="L362">        }</span>
-<span class="nc" id="L363">        final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
-<span class="nc" id="L364">        details.put(&quot;msg&quot;, &quot;Modified CryptoToken with id &quot; + cryptoTokenId);</span>
-<span class="nc" id="L365">        putDelta(&quot;name&quot;, currentCryptoToken.getTokenName(), newCryptoToken.getTokenName(), details);</span>
-<span class="nc" id="L366">        putDelta(&quot;encProviderName&quot;, currentCryptoToken.getEncProviderName(), newCryptoToken.getEncProviderName(), details);</span>
-<span class="nc" id="L367">        putDelta(&quot;signProviderName&quot;, currentCryptoToken.getSignProviderName(), newCryptoToken.getSignProviderName(), details);</span>
-<span class="nc" id="L368">        putDelta(currentCryptoToken.getProperties(), newCryptoToken.getProperties(), details);</span>
-<span class="nc" id="L369">        cryptoTokenSession.mergeCryptoToken(newCryptoToken);</span>
-<span class="nc" id="L370">        securityEventsLoggerSession.log(EventTypes.CRYPTOTOKEN_EDIT, EventStatus.SUCCESS, ModuleTypes.CRYPTOTOKEN, ServiceTypes.CORE,</span>
-<span class="nc" id="L371">                authenticationToken.toString(), String.valueOf(cryptoTokenId), null, null, details);</span>
-<span class="nc bnc" id="L372" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L373">            log.trace(&quot;&lt;saveCryptoToken: &quot; + tokenName + &quot;, &quot; + cryptoTokenId);</span>
-        }
-<span class="nc" id="L375">    }</span>
-
-    @Override
-    public void saveCryptoToken(final AuthenticationToken authenticationToken, final int cryptoTokenId,
-            final String newName, final String newPlaceholders) throws AuthorizationDeniedException, CryptoTokenNameInUseException {
-<span class="nc bnc" id="L380" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L381">            log.trace(&quot;&gt;saveCryptoToken: cryptoTokenId=&quot; + cryptoTokenId + &quot;, newName=&quot; + newName);</span>
-        }
-<span class="nc bnc" id="L383" title="All 2 branches missed.">        if (!authorizationSession.isAuthorized(authenticationToken, CryptoTokenRules.MODIFY_CRYPTOTOKEN.resource())) {</span>
-<span class="nc" id="L384">            final String msg = INTRES.getLocalizedMessage(&quot;authorization.notauthorizedtoresource&quot;, CryptoTokenRules.MODIFY_CRYPTOTOKEN.resource(),</span>
-<span class="nc" id="L385">                    authenticationToken.toString());</span>
-<span class="nc" id="L386">            throw new AuthorizationDeniedException(msg);</span>
-        }
-<span class="nc" id="L388">        final CryptoToken cryptoToken = cryptoTokenSession.getCryptoToken(cryptoTokenId);</span>
-<span class="nc" id="L389">        final String oldName = cryptoToken.getTokenName();</span>
-<span class="nc" id="L390">        cryptoToken.setTokenName(newName);</span>
-<span class="nc" id="L391">        final Properties properties = cryptoToken.getProperties();</span>
-<span class="nc" id="L392">        final String oldPlaceholders = cryptoToken.getProperties().getProperty(CryptoToken.KEYPLACEHOLDERS_PROPERTY);</span>
-<span class="nc" id="L393">        properties.setProperty(CryptoToken.KEYPLACEHOLDERS_PROPERTY, newPlaceholders);</span>
-<span class="nc" id="L394">        cryptoToken.setProperties(properties);</span>
-
-<span class="nc" id="L396">        final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
-<span class="nc" id="L397">        details.put(&quot;msg&quot;, &quot;Modified name/placeholders of CryptoToken with id &quot; + cryptoTokenId);</span>
-<span class="nc" id="L398">        putDelta(&quot;name&quot;, oldName, newName, details);</span>
-<span class="nc" id="L399">        putDelta(&quot;keyPlaceholders&quot;, oldPlaceholders, newPlaceholders, details);</span>
-
-<span class="nc" id="L401">        cryptoTokenSession.mergeCryptoToken(cryptoToken);</span>
-<span class="nc" id="L402">        securityEventsLoggerSession.log(EventTypes.CRYPTOTOKEN_EDIT, EventStatus.SUCCESS, ModuleTypes.CRYPTOTOKEN, ServiceTypes.CORE,</span>
-<span class="nc" id="L403">                authenticationToken.toString(), String.valueOf(cryptoTokenId), null, null, details);</span>
-<span class="nc bnc" id="L404" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L405">            log.trace(&quot;&lt;saveCryptoToken: cryptoTokenId=&quot; + cryptoTokenId + &quot;, newName=&quot; + newName);</span>
-        }
-<span class="nc" id="L407">    }</span>
-
-    // Only removes reference
-    @Override
-    public void deleteCryptoToken(final AuthenticationToken authenticationToken, final int cryptoTokenId) throws AuthorizationDeniedException {
-<span class="nc bnc" id="L412" title="All 2 branches missed.">        if (!authorizationSession.isAuthorized(authenticationToken, CryptoTokenRules.DELETE_CRYPTOTOKEN.resource() + &quot;/&quot; + cryptoTokenId)) {</span>
-<span class="nc" id="L413">            throw new AuthorizationDeniedException();</span>
-        }
-<span class="nc bnc" id="L415" title="All 2 branches missed.">        if (cryptoTokenSession.removeCryptoToken(cryptoTokenId)) {</span>
-<span class="nc" id="L416">            securityEventsLoggerSession.log(EventTypes.CRYPTOTOKEN_DELETION, EventStatus.SUCCESS, ModuleTypes.CRYPTOTOKEN, ServiceTypes.CORE,</span>
-<span class="nc" id="L417">                    authenticationToken.toString(), String.valueOf(cryptoTokenId), null, null, &quot;Deleted CryptoToken with id &quot; + cryptoTokenId);</span>
-<span class="nc bnc" id="L418" title="All 2 branches missed.">        } else if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L419">            log.debug(&quot;Crypto token with id &quot; + cryptoTokenId + &quot; does not exist and can not be deleted.&quot;);</span>
-        }
-<span class="nc" id="L421">    }</span>
-
-    @Override
-    public boolean isCryptoTokenStatusActive(AuthenticationToken authenticationToken, int cryptoTokenId) throws AuthorizationDeniedException {
-<span class="nc" id="L425">        assertAuthorizationNoLog(authenticationToken, cryptoTokenId, CryptoTokenRules.VIEW.resource() + &quot;/&quot; + cryptoTokenId);</span>
-<span class="nc" id="L426">        return isCryptoTokenStatusActive(cryptoTokenId);</span>
-    }
-
-    @Override
-    public boolean isCryptoTokenStatusActive(int cryptoTokenId) {
-<span class="nc" id="L431">        final CryptoToken cryptoToken = cryptoTokenSession.getCryptoToken(cryptoTokenId);</span>
-<span class="nc bnc" id="L432" title="All 2 branches missed.">        if (cryptoToken == null) {</span>
-<span class="nc" id="L433">            return false;</span>
-        }
-<span class="nc bnc" id="L435" title="All 2 branches missed.">        return cryptoToken.getTokenStatus() == CryptoToken.STATUS_ACTIVE;</span>
-    }
-    
-    @Override
-    public boolean isCryptoTokenPresent(final AuthenticationToken authenticationToken, final int cryptoTokenId) throws AuthorizationDeniedException {
-<span class="nc" id="L440">        assertAuthorizationNoLog(authenticationToken, cryptoTokenId, CryptoTokenRules.VIEW.resource() + &quot;/&quot; + cryptoTokenId);</span>
-<span class="nc" id="L441">        final CryptoToken cryptoToken = cryptoTokenSession.getCryptoToken(cryptoTokenId);</span>
-<span class="nc bnc" id="L442" title="All 2 branches missed.">        return cryptoToken != null;</span>
-    }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    @Override
-    public void activate(final AuthenticationToken authenticationToken, final int cryptoTokenId, final char[] authenticationCode)
-            throws AuthorizationDeniedException, CryptoTokenOfflineException, CryptoTokenAuthenticationFailedException {
-<span class="nc" id="L449">        assertAuthorization(authenticationToken, cryptoTokenId, CryptoTokenRules.ACTIVATE.resource() + &quot;/&quot; + cryptoTokenId);</span>
-<span class="nc" id="L450">        final CryptoToken cryptoToken = getCryptoTokenAndAssertExistence(cryptoTokenId);</span>
-<span class="nc" id="L451">        cryptoToken.activate(authenticationCode);</span>
-<span class="nc" id="L452">        securityEventsLoggerSession.log(EventTypes.CRYPTOTOKEN_ACTIVATION, EventStatus.SUCCESS, ModuleTypes.CRYPTOTOKEN, ServiceTypes.CORE,</span>
-<span class="nc" id="L453">                authenticationToken.toString(), String.valueOf(cryptoTokenId), null, null, &quot;Activated CryptoToken '&quot; + cryptoToken.getTokenName()</span>
-                        + &quot;' with id &quot; + cryptoTokenId);
-<span class="nc" id="L455">    }</span>
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    @Override
-    public void deactivate(final AuthenticationToken authenticationToken, final int cryptoTokenId) throws AuthorizationDeniedException {
-<span class="nc" id="L460">        assertAuthorization(authenticationToken, cryptoTokenId, CryptoTokenRules.DEACTIVATE.resource() + &quot;/&quot; + cryptoTokenId);</span>
-<span class="nc" id="L461">        final CryptoToken cryptoToken = getCryptoTokenAndAssertExistence(cryptoTokenId);</span>
-<span class="nc" id="L462">        cryptoToken.deactivate();</span>
-<span class="nc" id="L463">        securityEventsLoggerSession.log(EventTypes.CRYPTOTOKEN_DEACTIVATION, EventStatus.SUCCESS, ModuleTypes.CRYPTOTOKEN, ServiceTypes.CORE,</span>
-<span class="nc" id="L464">                authenticationToken.toString(), String.valueOf(cryptoTokenId), null, null,</span>
-<span class="nc" id="L465">                &quot;Deactivated CryptoToken '&quot; + cryptoToken.getTokenName() + &quot;' with id &quot; + cryptoTokenId);</span>
-<span class="nc bnc" id="L466" title="All 2 branches missed.">        if (cryptoToken.isAutoActivationPinPresent()) {</span>
-<span class="nc" id="L467">            securityEventsLoggerSession.log(EventTypes.CRYPTOTOKEN_REACTIVATION, EventStatus.VOID, ModuleTypes.CRYPTOTOKEN, ServiceTypes.CORE,</span>
-<span class="nc" id="L468">                    authenticationToken.toString(), String.valueOf(cryptoTokenId), null, null, &quot;Reactivated CryptoToken '&quot; + cryptoToken.getTokenName()</span>
-                            + &quot;' with id &quot; + cryptoTokenId);
-        }
-
-<span class="nc" id="L472">    }</span>
-
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    @Override
-    public boolean updatePin(AuthenticationToken authenticationToken, Integer cryptoTokenId, char[] currentAuthenticationCode,
-            char[] newAuthenticationCode, boolean updateOnly) throws AuthorizationDeniedException, CryptoTokenAuthenticationFailedException,
-            CryptoTokenOfflineException {
-<span class="nc" id="L479">        final String[] requiredAuthorization = new String[] { CryptoTokenRules.MODIFY_CRYPTOTOKEN.resource() + &quot;/&quot; + cryptoTokenId,</span>
-<span class="nc" id="L480">                CryptoTokenRules.ACTIVATE.resource() + &quot;/&quot; + cryptoTokenId, CryptoTokenRules.DEACTIVATE.resource() + &quot;/&quot; + cryptoTokenId };</span>
-<span class="nc bnc" id="L481" title="All 2 branches missed.">        if (!authorizationSession.isAuthorized(authenticationToken, requiredAuthorization)) {</span>
-<span class="nc" id="L482">            final String msg = INTRES.getLocalizedMessage(&quot;authorization.notauthorizedtoresource&quot;, Arrays.toString(requiredAuthorization),</span>
-<span class="nc" id="L483">                    authenticationToken.toString());</span>
-<span class="nc" id="L484">            throw new AuthorizationDeniedException(msg);</span>
-        }
-<span class="nc" id="L486">        CryptoToken cryptoToken = getCryptoToken(cryptoTokenId);</span>
-<span class="nc" id="L487">        final Properties cryptoTokenProperties = cryptoToken.getProperties();</span>
-        // Get current auto-activation pin (if any)
-<span class="nc" id="L489">        final String oldAutoActivationPin = BaseCryptoToken.getAutoActivatePin(cryptoTokenProperties);</span>
-<span class="nc bnc" id="L490" title="All 6 branches missed.">        if (oldAutoActivationPin == null &amp;&amp; (updateOnly || newAuthenticationCode == null)) {</span>
-            // This is a NOOP call that will not lead to any change
-<span class="nc" id="L492">            return false;</span>
-        }
-<span class="nc bnc" id="L494" title="All 2 branches missed.">        if (SoftCryptoToken.class.getName().equals(cryptoToken.getClass().getName())) {</span>
-<span class="nc" id="L495">            CryptoProviderTools.installBCProviderIfNotAvailable();</span>
-            final KeyStore keystore;
-            try {
-<span class="nc" id="L498">                keystore = KeyStore.getInstance(&quot;PKCS12&quot;, &quot;BC&quot;);</span>
-<span class="nc" id="L499">                keystore.load(new ByteArrayInputStream(cryptoToken.getTokenData()), currentAuthenticationCode);</span>
-<span class="nc" id="L500">            } catch (Exception e) {</span>
-<span class="nc" id="L501">                final String msg = &quot;Failed to use supplied current PIN.&quot; + &quot; &quot; + e;</span>
-<span class="nc" id="L502">                log.info(msg);</span>
-<span class="nc" id="L503">                throw new CryptoTokenAuthenticationFailedException(msg);</span>
-<span class="nc" id="L504">            }</span>
-<span class="nc bnc" id="L505" title="All 2 branches missed.">            if (newAuthenticationCode == null) {</span>
-                // When no new pin is supplied, we will not modify the key-store and just remove the current auto-activation pin
-<span class="nc" id="L507">                cryptoTokenProperties.remove(CryptoToken.AUTOACTIVATE_PIN_PROPERTY);</span>
-                // We'll also remove the default password option
-<span class="nc" id="L509">                cryptoTokenProperties.put(SoftCryptoToken.NODEFAULTPWD, Boolean.TRUE.toString());</span>
-<span class="nc" id="L510">                cryptoToken.setProperties(cryptoTokenProperties);</span>
-            } else {
-                try {
-<span class="nc" id="L513">                    final ByteArrayOutputStream baos = new ByteArrayOutputStream();</span>
-<span class="nc" id="L514">                    keystore.store(baos, newAuthenticationCode);</span>
-<span class="nc" id="L515">                    baos.close();</span>
-<span class="nc bnc" id="L516" title="All 4 branches missed.">                    if (oldAutoActivationPin != null || !updateOnly) {</span>
-<span class="nc" id="L517">                        BaseCryptoToken.setAutoActivatePin(cryptoTokenProperties, new String(newAuthenticationCode), true);</span>
-                    } else {
-<span class="nc" id="L519">                        log.debug(&quot;Auto-activation will not be used. Only changing pin for soft CryptoToken keystore.&quot;);</span>
-                    }
-<span class="nc" id="L521">                    cryptoToken = CryptoTokenFactory.createCryptoToken(SoftCryptoToken.class.getName(), cryptoTokenProperties, baos.toByteArray(),</span>
-<span class="nc" id="L522">                            cryptoTokenId, cryptoToken.getTokenName());</span>
-<span class="nc" id="L523">                } catch (Exception e) {</span>
-<span class="nc" id="L524">                    log.info(&quot;Unable to store soft keystore with new PIN: &quot; + e);</span>
-<span class="nc" id="L525">                    throw new CryptoTokenAuthenticationFailedException(&quot;Unable to store soft keystore with new PIN&quot;);</span>
-<span class="nc" id="L526">                }</span>
-            }
-<span class="nc" id="L528">        } else {</span>
-<span class="nc bnc" id="L529" title="All 2 branches missed.">            if (oldAutoActivationPin != null) {</span>
-                // If we have an old auto-activation pin we will compare the &quot;current&quot; with this value to avoid deactivating the token
-<span class="nc bnc" id="L531" title="All 2 branches missed.">                if (!oldAutoActivationPin.equals(new String(currentAuthenticationCode))) {</span>
-<span class="nc" id="L532">                    final String msg = &quot;Supplied PIN did not match auto-activation PIN.&quot;;</span>
-<span class="nc" id="L533">                    log.info(msg);</span>
-<span class="nc" id="L534">                    throw new CryptoTokenAuthenticationFailedException(msg);</span>
-                } else {
-<span class="nc" id="L536">                    log.debug(&quot;Successfully verified the PIN for non-soft CryptoToken by comparing supplied PIN to auto-activation PIN.&quot;);</span>
-                }
-            } else {
-                // If we don't have an auto-activation pin to compare the supplied PIN to, we need to verify the supplied
-                // PIN can be used in a de-activation/activation cycle.
-<span class="nc bnc" id="L541" title="All 2 branches missed.">                final boolean wasInactive = !isCryptoTokenStatusActive(authenticationToken, cryptoTokenId);</span>
-<span class="nc" id="L542">                cryptoToken.deactivate();</span>
-<span class="nc" id="L543">                cryptoToken.activate(currentAuthenticationCode);</span>
-<span class="nc bnc" id="L544" title="All 2 branches missed.">                if (wasInactive) {</span>
-                    // Note that there is a small glitch here where the token was active, but we have no other options to verify the pin
-<span class="nc" id="L546">                    cryptoToken.deactivate();</span>
-                }
-            }
-<span class="nc bnc" id="L549" title="All 2 branches missed.">            if (newAuthenticationCode == null) {</span>
-<span class="nc" id="L550">                cryptoTokenProperties.remove(CryptoToken.AUTOACTIVATE_PIN_PROPERTY);</span>
-            } else {
-<span class="nc" id="L552">                BaseCryptoToken.setAutoActivatePin(cryptoTokenProperties, new String(newAuthenticationCode), true);</span>
-            }
-<span class="nc" id="L554">            cryptoToken.setProperties(cryptoTokenProperties);</span>
-        }
-        // Save the modified CryptoToken
-        try {
-<span class="nc" id="L558">            cryptoTokenSession.mergeCryptoToken(cryptoToken);</span>
-<span class="nc" id="L559">        } catch (CryptoTokenNameInUseException e) {</span>
-            // This should not happen here since we use the same name and id
-<span class="nc" id="L561">            throw new RuntimeException(e);</span>
-<span class="nc" id="L562">        }</span>
-<span class="nc" id="L563">        securityEventsLoggerSession.log(EventTypes.CRYPTOTOKEN_UPDATEPIN, EventStatus.SUCCESS, ModuleTypes.CRYPTOTOKEN, ServiceTypes.CORE,</span>
-<span class="nc" id="L564">                authenticationToken.toString(), String.valueOf(cryptoTokenId), null, null,</span>
-<span class="nc" id="L565">                &quot;Updated PIN of CryptoToken '&quot; + cryptoToken.getTokenName() + &quot;' with id &quot; + cryptoTokenId);</span>
-        // Return the current auto-activation state
-<span class="nc bnc" id="L567" title="All 2 branches missed.">        return BaseCryptoToken.getAutoActivatePin(cryptoTokenProperties) != null;</span>
-    }
-
-    @Override
-    public List&lt;KeyPairInfo&gt; getKeyPairInfos(final AuthenticationToken authenticationToken, final int cryptoTokenId)
-            throws CryptoTokenOfflineException, AuthorizationDeniedException {
-<span class="nc" id="L573">        assertAuthorizationNoLog(authenticationToken, cryptoTokenId, CryptoTokenRules.VIEW.resource() + &quot;/&quot; + cryptoTokenId);</span>
-<span class="nc" id="L574">        final CryptoToken cryptoToken = getCryptoTokenAndAssertExistence(cryptoTokenId);</span>
-<span class="nc" id="L575">        final List&lt;KeyPairInfo&gt; ret = new ArrayList&lt;KeyPairInfo&gt;();</span>
-<span class="nc bnc" id="L576" title="All 2 branches missed.">        for (final String alias : getKeyPairAliasesInternal(cryptoToken)) {</span>
-<span class="nc" id="L577">            final PublicKey publicKey = cryptoToken.getPublicKey(alias);</span>
-<span class="nc" id="L578">            final String keyAlgorithm = AlgorithmTools.getKeyAlgorithm(publicKey);</span>
-<span class="nc" id="L579">            final String keySpecification = AlgorithmTools.getKeySpecification(publicKey);</span>
-<span class="nc" id="L580">            final String subjectKeyId = new String(Hex.encode(KeyTools.createSubjectKeyId(publicKey).getKeyIdentifier()));</span>
-<span class="nc" id="L581">            ret.add(new KeyPairInfo(alias, keyAlgorithm, keySpecification, subjectKeyId));</span>
-<span class="nc" id="L582">        }</span>
-<span class="nc" id="L583">        return ret;</span>
-    }
-
-    @Override
-    public KeyPairInfo getKeyPairInfo(AuthenticationToken authenticationToken, int cryptoTokenId, String alias) throws CryptoTokenOfflineException,
-            AuthorizationDeniedException {
-<span class="nc" id="L589">        assertAuthorizationNoLog(authenticationToken, cryptoTokenId, CryptoTokenRules.VIEW.resource() + &quot;/&quot; + cryptoTokenId);</span>
-<span class="nc" id="L590">        final CryptoToken cryptoToken = getCryptoTokenAndAssertExistence(cryptoTokenId);</span>
-<span class="nc bnc" id="L591" title="All 2 branches missed.">        if (!getKeyPairAliasesInternal(cryptoToken).contains(alias)) {</span>
-<span class="nc" id="L592">            return null;</span>
-        }
-<span class="nc" id="L594">        final PublicKey publicKey = cryptoToken.getPublicKey(alias);</span>
-<span class="nc" id="L595">        final String keyAlgorithm = AlgorithmTools.getKeyAlgorithm(publicKey);</span>
-<span class="nc" id="L596">        final String keySpecification = AlgorithmTools.getKeySpecification(publicKey);</span>
-<span class="nc" id="L597">        final String subjectKeyId = new String(Hex.encode(KeyTools.createSubjectKeyId(publicKey).getKeyIdentifier()));</span>
-<span class="nc" id="L598">        return new KeyPairInfo(alias, keyAlgorithm, keySpecification, subjectKeyId);</span>
-    }
-
-    @Override
-    public PublicKeyWrapper getPublicKey(AuthenticationToken authenticationToken, int cryptoTokenId, String alias) throws AuthorizationDeniedException,
-            CryptoTokenOfflineException {
-<span class="nc" id="L604">        assertAuthorizationNoLog(authenticationToken, cryptoTokenId, CryptoTokenRules.VIEW.resource() + &quot;/&quot; + cryptoTokenId);</span>
-<span class="nc" id="L605">        return new PublicKeyWrapper(getCryptoTokenAndAssertExistence(cryptoTokenId).getPublicKey(alias));</span>
-    }
-
-    @Override
-    public Integer getIdFromName(final String cryptoTokenName) {
-<span class="nc bnc" id="L610" title="All 2 branches missed.">        if (cryptoTokenName == null) {</span>
-<span class="nc" id="L611">            return null;</span>
-        }
-<span class="nc" id="L613">        final Map&lt;String, Integer&gt; cachedNameToIdMap = cryptoTokenSession.getCachedNameToIdMap();</span>
-<span class="nc" id="L614">        Integer cryptoTokenId = cachedNameToIdMap.get(cryptoTokenName);</span>
-<span class="nc bnc" id="L615" title="All 2 branches missed.">        if (cryptoTokenId == null) {</span>
-            // Ok.. so it's not in the cache.. look for it the hard way..
-<span class="nc bnc" id="L617" title="All 2 branches missed.">            for (final Integer currentCryptoTokenId : cryptoTokenSession.getCryptoTokenIds()) {</span>
-                // Don't lookup CryptoTokens we already have in the id to name cache
-<span class="nc bnc" id="L619" title="All 2 branches missed.">                if (!cachedNameToIdMap.values().contains(currentCryptoTokenId)) {</span>
-<span class="nc" id="L620">                    final CryptoToken currentCryptoToken = cryptoTokenSession.getCryptoToken(currentCryptoTokenId.intValue());</span>
-<span class="nc bnc" id="L621" title="All 2 branches missed.">                    final String currentCryptoTokenName = currentCryptoToken == null ? null : currentCryptoToken.getTokenName();</span>
-<span class="nc bnc" id="L622" title="All 2 branches missed.">                    if (cryptoTokenName.equals(currentCryptoTokenName)) {</span>
-<span class="nc" id="L623">                        cryptoTokenId = currentCryptoTokenId;</span>
-<span class="nc" id="L624">                        break;</span>
-                    }
-                }
-<span class="nc" id="L627">            }</span>
-        }
-<span class="nc" id="L629">        return cryptoTokenId;</span>
-    }
-
-    @Override
-    public List&lt;String&gt; getKeyPairAliases(final AuthenticationToken authenticationToken, final int cryptoTokenId)
-            throws AuthorizationDeniedException, CryptoTokenOfflineException {
-<span class="nc" id="L635">        assertAuthorizationNoLog(authenticationToken, cryptoTokenId, CryptoTokenRules.VIEW.resource() + &quot;/&quot; + cryptoTokenId);</span>
-<span class="nc" id="L636">        final CryptoToken cryptoToken = getCryptoTokenAndAssertExistence(cryptoTokenId);</span>
-<span class="nc" id="L637">        return getKeyPairAliasesInternal(cryptoToken);</span>
-    }
-
-    private List&lt;String&gt; getKeyPairAliasesInternal(final CryptoToken cryptoToken) throws CryptoTokenOfflineException {
-        try {
-<span class="nc" id="L642">            final List&lt;String&gt; aliasEnumeration = cryptoToken.getAliases();</span>
-<span class="nc" id="L643">            final List&lt;String&gt; keyPairAliases = new ArrayList&lt;String&gt;();</span>
-<span class="nc bnc" id="L644" title="All 2 branches missed.">            for(final String currentAlias : aliasEnumeration) {</span>
-                try {
-<span class="nc bnc" id="L646" title="All 4 branches missed.">                    if (cryptoToken.getPublicKey(currentAlias) != null &amp;&amp; cryptoToken.getPrivateKey(currentAlias) != null) {</span>
-                        // A key pair exists for this alias, so add it
-<span class="nc" id="L648">                        keyPairAliases.add(currentAlias);</span>
-                    }
-<span class="nc" id="L650">                } catch (CryptoTokenOfflineException ignored) {</span>
-<span class="nc bnc" id="L651" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L652">                        log.debug(&quot;Ignord key alias '&quot;+currentAlias+&quot;' in crypto token '&quot;+cryptoToken.getTokenName()+&quot;' since it is missing a public and/or private key. Perhaps it is a symmetric key?&quot;);</span>
-                    }
-<span class="nc" id="L654">                }</span>
-<span class="nc" id="L655">            }</span>
-<span class="nc" id="L656">            return keyPairAliases;</span>
-<span class="nc" id="L657">        } catch (KeyStoreException e) {</span>
-<span class="nc" id="L658">            throw new CryptoTokenOfflineException(e);</span>
-        }
-    }
-
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    @Override
-    public void createKeyPair(final AuthenticationToken authenticationToken, final int cryptoTokenId, final String alias,
-            final String keySpecificationParam) throws AuthorizationDeniedException, CryptoTokenOfflineException, InvalidKeyException,
-            InvalidAlgorithmParameterException {
-<span class="nc" id="L667">        assertAuthorization(authenticationToken, cryptoTokenId, CryptoTokenRules.GENERATE_KEYS.resource() + &quot;/&quot; + cryptoTokenId);</span>
-<span class="nc" id="L668">        final CryptoToken cryptoToken = getCryptoTokenAndAssertExistence(cryptoTokenId);</span>
-        // Check if alias is already in use
-<span class="nc" id="L670">        assertAliasNotInUse(cryptoToken, alias);</span>
-
-        // Support &quot;RSAnnnn&quot; and convert it to the legacy format &quot;nnnn&quot;
-        final String keySpecification;
-<span class="nc bnc" id="L674" title="All 2 branches missed.">        if (keySpecificationParam.startsWith(AlgorithmConstants.KEYALGORITHM_RSA)) {</span>
-<span class="nc" id="L675">            keySpecification = keySpecificationParam.substring(AlgorithmConstants.KEYALGORITHM_RSA.length());</span>
+<span class="nc" id="L825">          final ByteArrayOutputStream baos = new ByteArrayOutputStream();</span>
+<span class="nc" id="L826">          keystore.store(baos, newAuthenticationCode);</span>
+<span class="nc" id="L827">          baos.close();</span>
+<span class="nc bnc" id="L828" title="All 4 branches missed.">          if (oldAutoActivationPin != null || !updateOnly) {</span>
+<span class="nc" id="L829">            BaseCryptoToken.setAutoActivatePin(</span>
+                cryptoTokenProperties, new String(newAuthenticationCode), true);
+          } else {
+<span class="nc" id="L832">            LOG.debug(</span>
+                &quot;Auto-activation will not be used. Only changing pin for soft&quot;
+                    + &quot; CryptoToken keystore.&quot;);
+          }
+<span class="nc" id="L836">          cryptoToken =</span>
+<span class="nc" id="L837">              CryptoTokenFactory.createCryptoToken(</span>
+<span class="nc" id="L838">                  SoftCryptoToken.class.getName(),</span>
+                  cryptoTokenProperties,
+<span class="nc" id="L840">                  baos.toByteArray(),</span>
+<span class="nc" id="L841">                  cryptoTokenId,</span>
+<span class="nc" id="L842">                  cryptoToken.getTokenName());</span>
+<span class="nc" id="L843">        } catch (Exception e) {</span>
+<span class="nc" id="L844">          LOG.info(&quot;Unable to store soft keystore with new PIN: &quot; + e);</span>
+<span class="nc" id="L845">          throw new CryptoTokenAuthenticationFailedException(</span>
+              &quot;Unable to store soft keystore with new PIN&quot;);
+<span class="nc" id="L847">        }</span>
+      }
+<span class="nc" id="L849">    } else {</span>
+<span class="nc bnc" id="L850" title="All 2 branches missed.">      if (oldAutoActivationPin != null) {</span>
+        // If we have an old auto-activation pin we will compare the &quot;current&quot;
+        // with this value to avoid deactivating the token
+<span class="nc bnc" id="L853" title="All 2 branches missed.">        if (!oldAutoActivationPin.equals(</span>
+            new String(currentAuthenticationCode))) {
+<span class="nc" id="L855">          final String msg = &quot;Supplied PIN did not match auto-activation PIN.&quot;;</span>
+<span class="nc" id="L856">          LOG.info(msg);</span>
+<span class="nc" id="L857">          throw new CryptoTokenAuthenticationFailedException(msg);</span>
         } else {
-<span class="nc" id="L677">            keySpecification = keySpecificationParam;</span>
+<span class="nc" id="L859">          LOG.debug(</span>
+              &quot;Successfully verified the PIN for non-soft CryptoToken by&quot;
+                  + &quot; comparing supplied PIN to auto-activation PIN.&quot;);
         }
-        // Check if keySpec is valid
-<span class="nc" id="L680">        KeyTools.checkValidKeyLength(keySpecification);</span>
-        // Audit log before generation. If the token is an HSM the merge will not make a difference.
-<span class="nc" id="L682">        final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
-<span class="nc" id="L683">        details.put(&quot;msg&quot;, &quot;Generated new keypair in CryptoToken &quot; + cryptoTokenId);</span>
-<span class="nc" id="L684">        details.put(&quot;keyAlias&quot;, alias);</span>
-<span class="nc" id="L685">        details.put(&quot;keySpecification&quot;, keySpecification);</span>
-<span class="nc" id="L686">        cryptoToken.generateKeyPair(keySpecification, alias);</span>
-<span class="nc" id="L687">        cryptoToken.testKeyPair(alias);</span>
-        // Merge is important for soft tokens where the data is persisted in the database, but will also update lastUpdate
-        try {
-<span class="nc" id="L690">            cryptoTokenSession.mergeCryptoToken(cryptoToken);</span>
-<span class="nc" id="L691">        } catch (CryptoTokenNameInUseException e) {</span>
-<span class="nc" id="L692">            throw new RuntimeException(e); // We have not changed the name of the CrytpoToken here, so this should never happen</span>
-<span class="nc" id="L693">        }</span>
-<span class="nc" id="L694">        securityEventsLoggerSession.log(EventTypes.CRYPTOTOKEN_GEN_KEYPAIR, EventStatus.SUCCESS, ModuleTypes.CRYPTOTOKEN, ServiceTypes.CORE,</span>
-<span class="nc" id="L695">                authenticationToken.toString(), String.valueOf(cryptoTokenId), null, null, details);</span>
-<span class="nc" id="L696">    }</span>
-
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    @Override
-    public void createKeyPairWithSameKeySpec(final AuthenticationToken authenticationToken, final int cryptoTokenId, final String currentAlias,
-            final String newAlias) throws AuthorizationDeniedException, CryptoTokenOfflineException, InvalidKeyException,
-            InvalidAlgorithmParameterException {
-<span class="nc" id="L703">        assertAuthorization(authenticationToken, cryptoTokenId, CryptoTokenRules.GENERATE_KEYS.resource() + &quot;/&quot; + cryptoTokenId);</span>
-<span class="nc" id="L704">        final CryptoToken cryptoToken = getCryptoTokenAndAssertExistence(cryptoTokenId);</span>
-<span class="nc" id="L705">        assertAliasNotInUse(cryptoToken, newAlias);</span>
-<span class="nc" id="L706">        final PublicKey publicKey = cryptoToken.getPublicKey(currentAlias);</span>
-<span class="nc" id="L707">        final String keyAlgorithm = AlgorithmTools.getKeyAlgorithm(publicKey);</span>
-        final String keySpecification;
-<span class="nc bnc" id="L709" title="All 2 branches missed.">        if (AlgorithmConstants.KEYALGORITHM_DSA.equals(keyAlgorithm)) {</span>
-<span class="nc" id="L710">            keySpecification = AlgorithmConstants.KEYALGORITHM_DSA + AlgorithmTools.getKeySpecification(publicKey);</span>
-        } else {
-<span class="nc" id="L712">            keySpecification = AlgorithmTools.getKeySpecification(publicKey);</span>
+      } else {
+        // If we don't have an auto-activation pin to compare the supplied PIN
+        // to, we need to verify the supplied
+        // PIN can be used in a de-activation/activation cycle.
+<span class="nc" id="L867">        final boolean wasInactive =</span>
+<span class="nc bnc" id="L868" title="All 2 branches missed.">            !isCryptoTokenStatusActive(authenticationToken, cryptoTokenId);</span>
+<span class="nc" id="L869">        cryptoToken.deactivate();</span>
+<span class="nc" id="L870">        cryptoToken.activate(currentAuthenticationCode);</span>
+<span class="nc bnc" id="L871" title="All 2 branches missed.">        if (wasInactive) {</span>
+          // Note that there is a small glitch here where the token was active,
+          // but we have no other options to verify the pin
+<span class="nc" id="L874">          cryptoToken.deactivate();</span>
         }
-<span class="nc" id="L714">        KeyTools.checkValidKeyLength(keySpecification);</span>
-<span class="nc" id="L715">        final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
-<span class="nc" id="L716">        details.put(&quot;msg&quot;, &quot;Generated new keypair in CryptoToken &quot; + cryptoTokenId);</span>
-<span class="nc" id="L717">        details.put(&quot;keyAlias&quot;, newAlias);</span>
-<span class="nc" id="L718">        details.put(&quot;keySpecification&quot;, keySpecification);</span>
-<span class="nc" id="L719">        cryptoToken.generateKeyPair(keySpecification, newAlias);</span>
-<span class="nc" id="L720">        cryptoToken.testKeyPair(newAlias);</span>
+      }
+<span class="nc bnc" id="L877" title="All 2 branches missed.">      if (newAuthenticationCode == null) {</span>
+<span class="nc" id="L878">        cryptoTokenProperties.remove(CryptoToken.AUTOACTIVATE_PIN_PROPERTY);</span>
+      } else {
+<span class="nc" id="L880">        BaseCryptoToken.setAutoActivatePin(</span>
+            cryptoTokenProperties, new String(newAuthenticationCode), true);
+      }
+<span class="nc" id="L883">      cryptoToken.setProperties(cryptoTokenProperties);</span>
+    }
+    // Save the modified CryptoToken
+    try {
+<span class="nc" id="L887">      cryptoTokenSession.mergeCryptoToken(cryptoToken);</span>
+<span class="nc" id="L888">    } catch (CryptoTokenNameInUseException e) {</span>
+      // This should not happen here since we use the same name and id
+<span class="nc" id="L890">      throw new RuntimeException(e);</span>
+<span class="nc" id="L891">    }</span>
+<span class="nc" id="L892">    securityEventsLoggerSession.log(</span>
+        EventTypes.CRYPTOTOKEN_UPDATEPIN,
+        EventStatus.SUCCESS,
+        ModuleTypes.CRYPTOTOKEN,
+        ServiceTypes.CORE,
+<span class="nc" id="L897">        authenticationToken.toString(),</span>
+<span class="nc" id="L898">        String.valueOf(cryptoTokenId),</span>
+        null,
+        null,
+        &quot;Updated PIN of CryptoToken '&quot;
+<span class="nc" id="L902">            + cryptoToken.getTokenName()</span>
+            + &quot;' with id &quot;
+            + cryptoTokenId);
+    // Return the current auto-activation state
+<span class="nc bnc" id="L906" title="All 2 branches missed.">    return BaseCryptoToken.getAutoActivatePin(cryptoTokenProperties) != null;</span>
+  }
+
+  @Override
+  public List&lt;KeyPairInfo&gt; getKeyPairInfos(
+      final AuthenticationToken authenticationToken, final int cryptoTokenId)
+      throws CryptoTokenOfflineException, AuthorizationDeniedException {
+<span class="nc" id="L913">    assertAuthorizationNoLog(</span>
+        authenticationToken,
+        cryptoTokenId,
+<span class="nc" id="L916">        CryptoTokenRules.VIEW.resource() + &quot;/&quot; + cryptoTokenId);</span>
+<span class="nc" id="L917">    final CryptoToken cryptoToken =</span>
+<span class="nc" id="L918">        getCryptoTokenAndAssertExistence(cryptoTokenId);</span>
+<span class="nc" id="L919">    final List&lt;KeyPairInfo&gt; ret = new ArrayList&lt;KeyPairInfo&gt;();</span>
+<span class="nc bnc" id="L920" title="All 2 branches missed.">    for (final String alias : getKeyPairAliasesInternal(cryptoToken)) {</span>
+<span class="nc" id="L921">      final PublicKey publicKey = cryptoToken.getPublicKey(alias);</span>
+<span class="nc" id="L922">      final String keyAlgorithm = AlgorithmTools.getKeyAlgorithm(publicKey);</span>
+<span class="nc" id="L923">      final String keySpecification =</span>
+<span class="nc" id="L924">          AlgorithmTools.getKeySpecification(publicKey);</span>
+<span class="nc" id="L925">      final String subjectKeyId =</span>
+          new String(
+<span class="nc" id="L927">              Hex.encode(</span>
+<span class="nc" id="L928">                  KeyTools.createSubjectKeyId(publicKey).getKeyIdentifier()));</span>
+<span class="nc" id="L929">      ret.add(</span>
+          new KeyPairInfo(alias, keyAlgorithm, keySpecification, subjectKeyId));
+<span class="nc" id="L931">    }</span>
+<span class="nc" id="L932">    return ret;</span>
+  }
+
+  @Override
+  public KeyPairInfo getKeyPairInfo(
+      final AuthenticationToken authenticationToken,
+      final int cryptoTokenId,
+      final String alias)
+      throws CryptoTokenOfflineException, AuthorizationDeniedException {
+<span class="nc" id="L941">    assertAuthorizationNoLog(</span>
+        authenticationToken,
+        cryptoTokenId,
+<span class="nc" id="L944">        CryptoTokenRules.VIEW.resource() + &quot;/&quot; + cryptoTokenId);</span>
+<span class="nc" id="L945">    final CryptoToken cryptoToken =</span>
+<span class="nc" id="L946">        getCryptoTokenAndAssertExistence(cryptoTokenId);</span>
+<span class="nc bnc" id="L947" title="All 2 branches missed.">    if (!getKeyPairAliasesInternal(cryptoToken).contains(alias)) {</span>
+<span class="nc" id="L948">      return null;</span>
+    }
+<span class="nc" id="L950">    final PublicKey publicKey = cryptoToken.getPublicKey(alias);</span>
+<span class="nc" id="L951">    final String keyAlgorithm = AlgorithmTools.getKeyAlgorithm(publicKey);</span>
+<span class="nc" id="L952">    final String keySpecification =</span>
+<span class="nc" id="L953">        AlgorithmTools.getKeySpecification(publicKey);</span>
+<span class="nc" id="L954">    final String subjectKeyId =</span>
+        new String(
+<span class="nc" id="L956">            Hex.encode(</span>
+<span class="nc" id="L957">                KeyTools.createSubjectKeyId(publicKey).getKeyIdentifier()));</span>
+<span class="nc" id="L958">    return new KeyPairInfo(alias, keyAlgorithm, keySpecification, subjectKeyId);</span>
+  }
+
+  @Override
+  public PublicKeyWrapper getPublicKey(
+      final AuthenticationToken authenticationToken,
+      final int cryptoTokenId,
+      final String alias)
+      throws AuthorizationDeniedException, CryptoTokenOfflineException {
+<span class="nc" id="L967">    assertAuthorizationNoLog(</span>
+        authenticationToken,
+        cryptoTokenId,
+<span class="nc" id="L970">        CryptoTokenRules.VIEW.resource() + &quot;/&quot; + cryptoTokenId);</span>
+<span class="nc" id="L971">    return new PublicKeyWrapper(</span>
+<span class="nc" id="L972">        getCryptoTokenAndAssertExistence(cryptoTokenId).getPublicKey(alias));</span>
+  }
+
+  @Override
+  public Integer getIdFromName(final String cryptoTokenName) {
+<span class="nc bnc" id="L977" title="All 2 branches missed.">    if (cryptoTokenName == null) {</span>
+<span class="nc" id="L978">      return null;</span>
+    }
+<span class="nc" id="L980">    final Map&lt;String, Integer&gt; cachedNameToIdMap =</span>
+<span class="nc" id="L981">        cryptoTokenSession.getCachedNameToIdMap();</span>
+<span class="nc" id="L982">    Integer cryptoTokenId = cachedNameToIdMap.get(cryptoTokenName);</span>
+<span class="nc bnc" id="L983" title="All 2 branches missed.">    if (cryptoTokenId == null) {</span>
+      // Ok.. so it's not in the cache.. look for it the hard way..
+      for (final Integer currentCryptoTokenId
+<span class="nc bnc" id="L986" title="All 2 branches missed.">          : cryptoTokenSession.getCryptoTokenIds()) {</span>
+        // Don't lookup CryptoTokens we already have in the id to name cache
+<span class="nc bnc" id="L988" title="All 2 branches missed.">        if (!cachedNameToIdMap.values().contains(currentCryptoTokenId)) {</span>
+<span class="nc" id="L989">          final CryptoToken currentCryptoToken =</span>
+<span class="nc" id="L990">              cryptoTokenSession.getCryptoToken(</span>
+<span class="nc" id="L991">                  currentCryptoTokenId.intValue());</span>
+          final String currentCryptoTokenName =
+<span class="nc bnc" id="L993" title="All 2 branches missed.">              currentCryptoToken == null</span>
+<span class="nc" id="L994">                  ? null</span>
+<span class="nc" id="L995">                  : currentCryptoToken.getTokenName();</span>
+<span class="nc bnc" id="L996" title="All 2 branches missed.">          if (cryptoTokenName.equals(currentCryptoTokenName)) {</span>
+<span class="nc" id="L997">            cryptoTokenId = currentCryptoTokenId;</span>
+<span class="nc" id="L998">            break;</span>
+          }
+        }
+<span class="nc" id="L1001">      }</span>
+    }
+<span class="nc" id="L1003">    return cryptoTokenId;</span>
+  }
+
+  @Override
+  public List&lt;String&gt; getKeyPairAliases(
+      final AuthenticationToken authenticationToken, final int cryptoTokenId)
+      throws AuthorizationDeniedException, CryptoTokenOfflineException {
+<span class="nc" id="L1010">    assertAuthorizationNoLog(</span>
+        authenticationToken,
+        cryptoTokenId,
+<span class="nc" id="L1013">        CryptoTokenRules.VIEW.resource() + &quot;/&quot; + cryptoTokenId);</span>
+<span class="nc" id="L1014">    final CryptoToken cryptoToken =</span>
+<span class="nc" id="L1015">        getCryptoTokenAndAssertExistence(cryptoTokenId);</span>
+<span class="nc" id="L1016">    return getKeyPairAliasesInternal(cryptoToken);</span>
+  }
+
+  private List&lt;String&gt; getKeyPairAliasesInternal(final CryptoToken cryptoToken)
+      throws CryptoTokenOfflineException {
+    try {
+<span class="nc" id="L1022">      final List&lt;String&gt; aliasEnumeration = cryptoToken.getAliases();</span>
+<span class="nc" id="L1023">      final List&lt;String&gt; keyPairAliases = new ArrayList&lt;String&gt;();</span>
+<span class="nc bnc" id="L1024" title="All 2 branches missed.">      for (final String currentAlias : aliasEnumeration) {</span>
         try {
-<span class="nc" id="L722">            cryptoTokenSession.mergeCryptoToken(cryptoToken);</span>
-<span class="nc" id="L723">        } catch (CryptoTokenNameInUseException e) {</span>
-<span class="nc" id="L724">            throw new RuntimeException(e); // We have not changed the name of the CrytpoToken here, so this should never happen</span>
-<span class="nc" id="L725">        }</span>
-<span class="nc" id="L726">        securityEventsLoggerSession.log(EventTypes.CRYPTOTOKEN_GEN_KEYPAIR, EventStatus.SUCCESS, ModuleTypes.CRYPTOTOKEN, ServiceTypes.CORE,</span>
-<span class="nc" id="L727">                authenticationToken.toString(), String.valueOf(cryptoTokenId), null, null, details);</span>
-<span class="nc" id="L728">    }</span>
+<span class="nc bnc" id="L1026" title="All 2 branches missed.">          if (cryptoToken.getPublicKey(currentAlias) != null</span>
+<span class="nc bnc" id="L1027" title="All 2 branches missed.">              &amp;&amp; cryptoToken.getPrivateKey(currentAlias) != null) {</span>
+            // A key pair exists for this alias, so add it
+<span class="nc" id="L1029">            keyPairAliases.add(currentAlias);</span>
+          }
+<span class="nc" id="L1031">        } catch (CryptoTokenOfflineException ignored) {</span>
+<span class="nc bnc" id="L1032" title="All 2 branches missed.">          if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L1033">            LOG.debug(</span>
+                &quot;Ignord key alias '&quot;
+                    + currentAlias
+                    + &quot;' in crypto token '&quot;
+<span class="nc" id="L1037">                    + cryptoToken.getTokenName()</span>
+                    + &quot;' since it is missing a public and/or private key.&quot;
+                    + &quot; Perhaps it is a symmetric key?&quot;);
+          }
+<span class="nc" id="L1041">        }</span>
+<span class="nc" id="L1042">      }</span>
+<span class="nc" id="L1043">      return keyPairAliases;</span>
+<span class="nc" id="L1044">    } catch (KeyStoreException e) {</span>
+<span class="nc" id="L1045">      throw new CryptoTokenOfflineException(e);</span>
+    }
+  }
 
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    @Override
-    public void createKeyPairFromTemplate(AuthenticationToken authenticationToken, int cryptoTokenId, String alias, String keySpecification)
-            throws AuthorizationDeniedException, CryptoTokenOfflineException, InvalidKeyException, InvalidAlgorithmParameterException {
-<span class="nc" id="L734">        createKeyPair(authenticationToken, cryptoTokenId, alias, keySpecification);</span>
-<span class="nc" id="L735">        removeKeyPairPlaceholder(authenticationToken, cryptoTokenId, alias);</span>
-<span class="nc" id="L736">    }</span>
+  @TransactionAttribute(TransactionAttributeType.REQUIRED)
+  @Override
+  public void createKeyPair(
+      final AuthenticationToken authenticationToken,
+      final int cryptoTokenId,
+      final String alias,
+      final String keySpecificationParam)
+      throws AuthorizationDeniedException, CryptoTokenOfflineException,
+          InvalidKeyException, InvalidAlgorithmParameterException {
+<span class="nc" id="L1058">    assertAuthorization(</span>
+        authenticationToken,
+        cryptoTokenId,
+<span class="nc" id="L1061">        CryptoTokenRules.GENERATE_KEYS.resource() + &quot;/&quot; + cryptoTokenId);</span>
+<span class="nc" id="L1062">    final CryptoToken cryptoToken =</span>
+<span class="nc" id="L1063">        getCryptoTokenAndAssertExistence(cryptoTokenId);</span>
+    // Check if alias is already in use
+<span class="nc" id="L1065">    assertAliasNotInUse(cryptoToken, alias);</span>
 
-    @Override
-    public boolean isAliasUsedInCryptoToken(final int cryptoTokenId, final String alias) {
-<span class="nc" id="L740">        return getCryptoToken(cryptoTokenId).isAliasUsed(alias);</span>
+    // Support &quot;RSAnnnn&quot; and convert it to the legacy format &quot;nnnn&quot;
+    final String keySpecification;
+<span class="nc bnc" id="L1069" title="All 2 branches missed.">    if (keySpecificationParam.startsWith(AlgorithmConstants.KEYALGORITHM_RSA)) {</span>
+<span class="nc" id="L1070">      keySpecification =</span>
+<span class="nc" id="L1071">          keySpecificationParam.substring(</span>
+<span class="nc" id="L1072">              AlgorithmConstants.KEYALGORITHM_RSA.length());</span>
+    } else {
+<span class="nc" id="L1074">      keySpecification = keySpecificationParam;</span>
+    }
+    // Check if keySpec is valid
+<span class="nc" id="L1077">    KeyTools.checkValidKeyLength(keySpecification);</span>
+    // Audit log before generation. If the token is an HSM the merge will not
+    // make a difference.
+<span class="nc" id="L1080">    final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L1081">    details.put(&quot;msg&quot;, &quot;Generated new keypair in CryptoToken &quot; + cryptoTokenId);</span>
+<span class="nc" id="L1082">    details.put(&quot;keyAlias&quot;, alias);</span>
+<span class="nc" id="L1083">    details.put(&quot;keySpecification&quot;, keySpecification);</span>
+<span class="nc" id="L1084">    cryptoToken.generateKeyPair(keySpecification, alias);</span>
+<span class="nc" id="L1085">    cryptoToken.testKeyPair(alias);</span>
+    // Merge is important for soft tokens where the data is persisted in the
+    // database, but will also update lastUpdate
+    try {
+<span class="nc" id="L1089">      cryptoTokenSession.mergeCryptoToken(cryptoToken);</span>
+<span class="nc" id="L1090">    } catch (CryptoTokenNameInUseException e) {</span>
+<span class="nc" id="L1091">      throw new RuntimeException(</span>
+          e); // We have not changed the name of the CrytpoToken here, so this
+              // should never happen
+<span class="nc" id="L1094">    }</span>
+<span class="nc" id="L1095">    securityEventsLoggerSession.log(</span>
+        EventTypes.CRYPTOTOKEN_GEN_KEYPAIR,
+        EventStatus.SUCCESS,
+        ModuleTypes.CRYPTOTOKEN,
+        ServiceTypes.CORE,
+<span class="nc" id="L1100">        authenticationToken.toString(),</span>
+<span class="nc" id="L1101">        String.valueOf(cryptoTokenId),</span>
+        null,
+        null,
+        details);
+<span class="nc" id="L1105">  }</span>
+
+  @TransactionAttribute(TransactionAttributeType.REQUIRED)
+  @Override
+  public void createKeyPairWithSameKeySpec(
+      final AuthenticationToken authenticationToken,
+      final int cryptoTokenId,
+      final String currentAlias,
+      final String newAlias)
+      throws AuthorizationDeniedException, CryptoTokenOfflineException,
+          InvalidKeyException, InvalidAlgorithmParameterException {
+<span class="nc" id="L1116">    assertAuthorization(</span>
+        authenticationToken,
+        cryptoTokenId,
+<span class="nc" id="L1119">        CryptoTokenRules.GENERATE_KEYS.resource() + &quot;/&quot; + cryptoTokenId);</span>
+<span class="nc" id="L1120">    final CryptoToken cryptoToken =</span>
+<span class="nc" id="L1121">        getCryptoTokenAndAssertExistence(cryptoTokenId);</span>
+<span class="nc" id="L1122">    assertAliasNotInUse(cryptoToken, newAlias);</span>
+<span class="nc" id="L1123">    final PublicKey publicKey = cryptoToken.getPublicKey(currentAlias);</span>
+<span class="nc" id="L1124">    final String keyAlgorithm = AlgorithmTools.getKeyAlgorithm(publicKey);</span>
+    final String keySpecification;
+<span class="nc bnc" id="L1126" title="All 2 branches missed.">    if (AlgorithmConstants.KEYALGORITHM_DSA.equals(keyAlgorithm)) {</span>
+<span class="nc" id="L1127">      keySpecification =</span>
+          AlgorithmConstants.KEYALGORITHM_DSA
+<span class="nc" id="L1129">              + AlgorithmTools.getKeySpecification(publicKey);</span>
+    } else {
+<span class="nc" id="L1131">      keySpecification = AlgorithmTools.getKeySpecification(publicKey);</span>
+    }
+<span class="nc" id="L1133">    KeyTools.checkValidKeyLength(keySpecification);</span>
+<span class="nc" id="L1134">    final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L1135">    details.put(&quot;msg&quot;, &quot;Generated new keypair in CryptoToken &quot; + cryptoTokenId);</span>
+<span class="nc" id="L1136">    details.put(&quot;keyAlias&quot;, newAlias);</span>
+<span class="nc" id="L1137">    details.put(&quot;keySpecification&quot;, keySpecification);</span>
+<span class="nc" id="L1138">    cryptoToken.generateKeyPair(keySpecification, newAlias);</span>
+<span class="nc" id="L1139">    cryptoToken.testKeyPair(newAlias);</span>
+    try {
+<span class="nc" id="L1141">      cryptoTokenSession.mergeCryptoToken(cryptoToken);</span>
+<span class="nc" id="L1142">    } catch (CryptoTokenNameInUseException e) {</span>
+<span class="nc" id="L1143">      throw new RuntimeException(</span>
+          e); // We have not changed the name of the CrytpoToken here, so this
+              // should never happen
+<span class="nc" id="L1146">    }</span>
+<span class="nc" id="L1147">    securityEventsLoggerSession.log(</span>
+        EventTypes.CRYPTOTOKEN_GEN_KEYPAIR,
+        EventStatus.SUCCESS,
+        ModuleTypes.CRYPTOTOKEN,
+        ServiceTypes.CORE,
+<span class="nc" id="L1152">        authenticationToken.toString(),</span>
+<span class="nc" id="L1153">        String.valueOf(cryptoTokenId),</span>
+        null,
+        null,
+        details);
+<span class="nc" id="L1157">  }</span>
+
+  @TransactionAttribute(TransactionAttributeType.REQUIRED)
+  @Override
+  public void createKeyPairFromTemplate(
+      final AuthenticationToken authenticationToken,
+      final int cryptoTokenId,
+      final String alias,
+      final String keySpecification)
+      throws AuthorizationDeniedException, CryptoTokenOfflineException,
+          InvalidKeyException, InvalidAlgorithmParameterException {
+<span class="nc" id="L1168">    createKeyPair(authenticationToken, cryptoTokenId, alias, keySpecification);</span>
+<span class="nc" id="L1169">    removeKeyPairPlaceholder(authenticationToken, cryptoTokenId, alias);</span>
+<span class="nc" id="L1170">  }</span>
+
+  @Override
+  public boolean isAliasUsedInCryptoToken(
+      final int cryptoTokenId, final String alias) {
+<span class="nc" id="L1175">    return getCryptoToken(cryptoTokenId).isAliasUsed(alias);</span>
+  }
+
+  /**
+   * @param cryptoToken Token
+   * @param alias Alias
+   * @throws InvalidKeyException if the alias is in use by a private, public or
+   *     symmetric key
+   */
+  private void assertAliasNotInUse(
+      final CryptoToken cryptoToken, final String alias)
+      throws InvalidKeyException {
+<span class="nc bnc" id="L1187" title="All 2 branches missed.">    if (cryptoToken.isAliasUsed(alias)) {</span>
+<span class="nc" id="L1188">      throw new InvalidKeyException(&quot;alias &quot; + alias + &quot; is in use&quot;);</span>
+    }
+<span class="nc" id="L1190">  }</span>
+
+  @Override
+  public void removeKeyPair(
+      final AuthenticationToken authenticationToken,
+      final int cryptoTokenId,
+      final String alias)
+      throws AuthorizationDeniedException, CryptoTokenOfflineException,
+          InvalidKeyException {
+<span class="nc" id="L1199">    assertAuthorization(</span>
+        authenticationToken,
+        cryptoTokenId,
+<span class="nc" id="L1202">        CryptoTokenRules.REMOVE_KEYS.resource() + &quot;/&quot; + cryptoTokenId);</span>
+<span class="nc" id="L1203">    final CryptoToken cryptoToken =</span>
+<span class="nc" id="L1204">        getCryptoTokenAndAssertExistence(cryptoTokenId);</span>
+    // Check if alias is in use
+<span class="nc bnc" id="L1206" title="All 2 branches missed.">    if (!cryptoToken.isAliasUsed(alias)) {</span>
+<span class="nc" id="L1207">      throw new InvalidKeyException(&quot;Alias &quot; + alias + &quot; is not in use&quot;);</span>
+    }
+<span class="nc" id="L1209">    final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L1210">    details.put(&quot;msg&quot;, &quot;Deleted key pair from CryptoToken &quot; + cryptoTokenId);</span>
+<span class="nc" id="L1211">    details.put(&quot;keyAlias&quot;, alias);</span>
+    try {
+<span class="nc" id="L1213">      cryptoToken.deleteEntry(alias);</span>
+<span class="nc" id="L1214">    } catch (KeyStoreException e) {</span>
+<span class="nc" id="L1215">      throw new InvalidKeyException(e);</span>
+<span class="nc" id="L1216">    } catch (NoSuchAlgorithmException e) {</span>
+<span class="nc" id="L1217">      throw new InvalidKeyException(e);</span>
+<span class="nc" id="L1218">    } catch (CertificateException e) {</span>
+<span class="nc" id="L1219">      throw new InvalidKeyException(e);</span>
+<span class="nc" id="L1220">    } catch (IOException e) {</span>
+<span class="nc" id="L1221">      throw new InvalidKeyException(e);</span>
+<span class="nc" id="L1222">    }</span>
+<span class="nc" id="L1223">    assertAliasNotInUse(cryptoToken, alias);</span>
+<span class="nc" id="L1224">    LOG.debug(&quot;cryptoTokenSession.mergeCryptoToken&quot;);</span>
+    // Merge is important for soft tokens where the data is persisted in the
+    // database, but will also update lastUpdate
+    try {
+<span class="nc" id="L1228">      cryptoTokenSession.mergeCryptoToken(cryptoToken);</span>
+<span class="nc" id="L1229">    } catch (CryptoTokenNameInUseException e) {</span>
+<span class="nc" id="L1230">      throw new IllegalStateException(</span>
+          e); // We have not changed the name of the CrytpoToken here, so this
+              // should never happen
+<span class="nc" id="L1233">    }</span>
+<span class="nc" id="L1234">    securityEventsLoggerSession.log(</span>
+        EventTypes.CRYPTOTOKEN_DELETE_ENTRY,
+        EventStatus.SUCCESS,
+        ModuleTypes.CRYPTOTOKEN,
+        ServiceTypes.CORE,
+<span class="nc" id="L1239">        authenticationToken.toString(),</span>
+<span class="nc" id="L1240">        String.valueOf(cryptoTokenId),</span>
+        null,
+        null,
+        details);
+<span class="nc" id="L1244">  }</span>
+
+  @TransactionAttribute(TransactionAttributeType.REQUIRED)
+  @Override
+  public void removeKeyPairPlaceholder(
+      final AuthenticationToken authenticationToken,
+      final int cryptoTokenId,
+      final String alias)
+      throws AuthorizationDeniedException, InvalidKeyException {
+<span class="nc" id="L1253">    assertAuthorization(</span>
+        authenticationToken,
+        cryptoTokenId,
+<span class="nc" id="L1256">        CryptoTokenRules.REMOVE_KEYS.resource() + &quot;/&quot; + cryptoTokenId);</span>
+<span class="nc" id="L1257">    final CryptoToken cryptoToken =</span>
+<span class="nc" id="L1258">        getCryptoTokenAndAssertExistence(cryptoTokenId);</span>
+
+<span class="nc" id="L1260">    boolean removed = false;</span>
+<span class="nc" id="L1261">    final Properties props = new Properties();</span>
+<span class="nc" id="L1262">    props.putAll(cryptoToken.getProperties());</span>
+<span class="nc" id="L1263">    final String placeholdersString =</span>
+<span class="nc" id="L1264">        props.getProperty(CryptoToken.KEYPLACEHOLDERS_PROPERTY, &quot;&quot;);</span>
+<span class="nc" id="L1265">    final List&lt;String&gt; entries =</span>
+        new ArrayList&lt;String&gt;(
+<span class="nc" id="L1267">            Arrays.asList(</span>
+<span class="nc" id="L1268">                placeholdersString.split(</span>
+                    &quot;[&quot; + CryptoToken.KEYPLACEHOLDERS_OUTER_SEPARATOR + &quot;]&quot;)));
+<span class="nc" id="L1270">    final Iterator&lt;String&gt; iter = entries.iterator();</span>
+<span class="nc bnc" id="L1271" title="All 2 branches missed.">    while (iter.hasNext()) {</span>
+<span class="nc" id="L1272">      final String entry = iter.next();</span>
+<span class="nc bnc" id="L1273" title="All 2 branches missed.">      if (entry.startsWith(</span>
+          alias + CryptoToken.KEYPLACEHOLDERS_INNER_SEPARATOR)) {
+<span class="nc" id="L1275">        iter.remove();</span>
+<span class="nc" id="L1276">        removed = true;</span>
+      }
+<span class="nc" id="L1278">    }</span>
+
+<span class="nc bnc" id="L1280" title="All 2 branches missed.">    if (removed) {</span>
+<span class="nc" id="L1281">      final String newValue =</span>
+<span class="nc" id="L1282">          StringUtils.join(</span>
+              entries, CryptoToken.KEYPLACEHOLDERS_OUTER_SEPARATOR);
+<span class="nc" id="L1284">      props.setProperty(CryptoToken.KEYPLACEHOLDERS_PROPERTY, newValue);</span>
+<span class="nc" id="L1285">      cryptoToken.setProperties(props);</span>
     }
 
-    /** @param cryptoToken Token
-     * @param alias Alias
-     * @throws InvalidKeyException if the alias is in use by a private, public or symmetric key */
-    private void assertAliasNotInUse(final CryptoToken cryptoToken, final String alias) throws InvalidKeyException {
-<span class="nc bnc" id="L747" title="All 2 branches missed.">        if (cryptoToken.isAliasUsed(alias)) {</span>
-<span class="nc" id="L748">            throw new InvalidKeyException(&quot;alias &quot; + alias + &quot; is in use&quot;);</span>
-        }
-<span class="nc" id="L750">    }</span>
-
-    @Override
-    public void removeKeyPair(final AuthenticationToken authenticationToken, final int cryptoTokenId, final String alias)
-            throws AuthorizationDeniedException, CryptoTokenOfflineException, InvalidKeyException {
-<span class="nc" id="L755">        assertAuthorization(authenticationToken, cryptoTokenId, CryptoTokenRules.REMOVE_KEYS.resource() + &quot;/&quot; + cryptoTokenId);</span>
-<span class="nc" id="L756">        final CryptoToken cryptoToken = getCryptoTokenAndAssertExistence(cryptoTokenId);</span>
-        // Check if alias is in use
-<span class="nc bnc" id="L758" title="All 2 branches missed.">        if (!cryptoToken.isAliasUsed(alias)) {</span>
-<span class="nc" id="L759">            throw new InvalidKeyException(&quot;Alias &quot; + alias + &quot; is not in use&quot;);</span>
-        }
-<span class="nc" id="L761">        final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
-<span class="nc" id="L762">        details.put(&quot;msg&quot;, &quot;Deleted key pair from CryptoToken &quot; + cryptoTokenId);</span>
-<span class="nc" id="L763">        details.put(&quot;keyAlias&quot;, alias);</span>
-        try {
-<span class="nc" id="L765">            cryptoToken.deleteEntry(alias);</span>
-<span class="nc" id="L766">        } catch (KeyStoreException e) {</span>
-<span class="nc" id="L767">            throw new InvalidKeyException(e);</span>
-<span class="nc" id="L768">        } catch (NoSuchAlgorithmException e) {</span>
-<span class="nc" id="L769">            throw new InvalidKeyException(e);</span>
-<span class="nc" id="L770">        } catch (CertificateException e) {</span>
-<span class="nc" id="L771">            throw new InvalidKeyException(e);</span>
-<span class="nc" id="L772">        } catch (IOException e) {</span>
-<span class="nc" id="L773">            throw new InvalidKeyException(e);</span>
-<span class="nc" id="L774">        }</span>
-<span class="nc" id="L775">        assertAliasNotInUse(cryptoToken, alias);</span>
-<span class="nc" id="L776">        log.debug(&quot;cryptoTokenSession.mergeCryptoToken&quot;);</span>
-        // Merge is important for soft tokens where the data is persisted in the database, but will also update lastUpdate
-        try {
-<span class="nc" id="L779">            cryptoTokenSession.mergeCryptoToken(cryptoToken);</span>
-<span class="nc" id="L780">        } catch (CryptoTokenNameInUseException e) {</span>
-<span class="nc" id="L781">            throw new IllegalStateException(e); // We have not changed the name of the CrytpoToken here, so this should never happen</span>
-<span class="nc" id="L782">        }</span>
-<span class="nc" id="L783">        securityEventsLoggerSession.log(EventTypes.CRYPTOTOKEN_DELETE_ENTRY, EventStatus.SUCCESS, ModuleTypes.CRYPTOTOKEN, ServiceTypes.CORE,</span>
-<span class="nc" id="L784">                authenticationToken.toString(), String.valueOf(cryptoTokenId), null, null, details);</span>
-<span class="nc" id="L785">    }</span>
-
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    @Override
-    public void removeKeyPairPlaceholder(final AuthenticationToken authenticationToken, final int cryptoTokenId, final String alias)
-            throws AuthorizationDeniedException, InvalidKeyException {
-<span class="nc" id="L791">        assertAuthorization(authenticationToken, cryptoTokenId, CryptoTokenRules.REMOVE_KEYS.resource() + &quot;/&quot; + cryptoTokenId);</span>
-<span class="nc" id="L792">        final CryptoToken cryptoToken = getCryptoTokenAndAssertExistence(cryptoTokenId);</span>
-
-<span class="nc" id="L794">        boolean removed = false;</span>
-<span class="nc" id="L795">        final Properties props = new Properties();</span>
-<span class="nc" id="L796">        props.putAll(cryptoToken.getProperties());</span>
-<span class="nc" id="L797">        final String placeholdersString = props.getProperty(CryptoToken.KEYPLACEHOLDERS_PROPERTY, &quot;&quot;);</span>
-<span class="nc" id="L798">        final List&lt;String&gt; entries = new ArrayList&lt;String&gt;(Arrays.asList(placeholdersString.split(&quot;[&quot;+CryptoToken.KEYPLACEHOLDERS_OUTER_SEPARATOR+&quot;]&quot;)));</span>
-<span class="nc" id="L799">        final Iterator&lt;String&gt; iter = entries.iterator();</span>
-<span class="nc bnc" id="L800" title="All 2 branches missed.">        while (iter.hasNext()) {</span>
-<span class="nc" id="L801">            final String entry = iter.next();</span>
-<span class="nc bnc" id="L802" title="All 2 branches missed.">            if (entry.startsWith(alias + CryptoToken.KEYPLACEHOLDERS_INNER_SEPARATOR)) {</span>
-<span class="nc" id="L803">                iter.remove();</span>
-<span class="nc" id="L804">                removed = true;</span>
-            }
-<span class="nc" id="L806">        }</span>
-
-<span class="nc bnc" id="L808" title="All 2 branches missed.">        if (removed) {</span>
-<span class="nc" id="L809">            final String newValue = StringUtils.join(entries, CryptoToken.KEYPLACEHOLDERS_OUTER_SEPARATOR);</span>
-<span class="nc" id="L810">            props.setProperty(CryptoToken.KEYPLACEHOLDERS_PROPERTY, newValue);</span>
-<span class="nc" id="L811">            cryptoToken.setProperties(props);</span>
-        }
-
-        // Check if alias is in use
-<span class="nc bnc" id="L815" title="All 2 branches missed.">        if (!removed) {</span>
-<span class="nc" id="L816">            throw new InvalidKeyException(&quot;Alias &quot; + alias + &quot; is not in use&quot;);</span>
-        }
-
-        try {
-<span class="nc" id="L820">            cryptoTokenSession.mergeCryptoToken(cryptoToken);</span>
-<span class="nc" id="L821">        } catch (CryptoTokenNameInUseException e) {</span>
-<span class="nc" id="L822">            throw new IllegalStateException(e); // We have not changed the name of the CrytpoToken here, so this should never happen</span>
-<span class="nc" id="L823">        }</span>
-
-<span class="nc" id="L825">        final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
-<span class="nc" id="L826">        details.put(&quot;msg&quot;, &quot;Deleted key pair placeholder from CryptoToken &quot; + cryptoTokenId);</span>
-<span class="nc" id="L827">        details.put(&quot;keyAlias&quot;, alias);</span>
-<span class="nc" id="L828">        securityEventsLoggerSession.log(EventTypes.CRYPTOTOKEN_DELETE_ENTRY, EventStatus.SUCCESS, ModuleTypes.CRYPTOTOKEN, ServiceTypes.CORE,</span>
-<span class="nc" id="L829">                authenticationToken.toString(), String.valueOf(cryptoTokenId), null, null, details);</span>
-<span class="nc" id="L830">    }</span>
-
-    @Override
-    public void testKeyPair(final AuthenticationToken authenticationToken, final int cryptoTokenId, final String alias)
-            throws AuthorizationDeniedException, CryptoTokenOfflineException, InvalidKeyException {
-<span class="nc" id="L835">        assertAuthorization(authenticationToken, cryptoTokenId, CryptoTokenRules.TEST_KEYS.resource() + &quot;/&quot; + cryptoTokenId);</span>
-<span class="nc" id="L836">        final CryptoToken cryptoToken = getCryptoTokenAndAssertExistence(cryptoTokenId);</span>
-<span class="nc" id="L837">        cryptoToken.testKeyPair(alias);</span>
-<span class="nc" id="L838">    }</span>
-
-    private void assertAuthorization(final AuthenticationToken authenticationToken, final int cryptoTokenId, final String resource)
-            throws AuthorizationDeniedException {
-<span class="nc bnc" id="L842" title="All 2 branches missed.">        if (!authorizationSession.isAuthorized(authenticationToken, resource)) {</span>
-<span class="nc" id="L843">            final String msg = INTRES.getLocalizedMessage(&quot;authorization.notauthorizedtoresource&quot;, resource, authenticationToken.toString());</span>
-<span class="nc" id="L844">            throw new AuthorizationDeniedException(msg);</span>
-        }
-<span class="nc" id="L846">    }</span>
-    
-    private void assertAuthorizationNoLog(final AuthenticationToken authenticationToken, final int cryptoTokenId, final String resource)
-            throws AuthorizationDeniedException {
-<span class="nc bnc" id="L850" title="All 2 branches missed.">        if (!authorizationSession.isAuthorizedNoLogging(authenticationToken, resource)) {</span>
-<span class="nc" id="L851">            final String msg = INTRES.getLocalizedMessage(&quot;authorization.notauthorizedtoresource&quot;, resource, authenticationToken.toString());</span>
-<span class="nc" id="L852">            throw new AuthorizationDeniedException(msg);</span>
-        }
-<span class="nc" id="L854">    }</span>
-
-    /** @param cryptoTokenId ID
-     * @return a CryptoToken for the requested Id if exists. Never returns null. */
-    private CryptoToken getCryptoTokenAndAssertExistence(int cryptoTokenId) {
-<span class="nc" id="L859">        final CryptoToken cryptoToken = cryptoTokenSession.getCryptoToken(cryptoTokenId);</span>
-<span class="nc bnc" id="L860" title="All 2 branches missed.">        if (cryptoToken == null) {</span>
-<span class="nc" id="L861">            throw new RuntimeException(&quot;No such CryptoToken for id &quot; + cryptoTokenId);</span>
-        }
-<span class="nc" id="L863">        return cryptoToken;</span>
+    // Check if alias is in use
+<span class="nc bnc" id="L1289" title="All 2 branches missed.">    if (!removed) {</span>
+<span class="nc" id="L1290">      throw new InvalidKeyException(&quot;Alias &quot; + alias + &quot; is not in use&quot;);</span>
     }
 
-    /** Helper method for audit logging changes 
-     * @param oldProperties Old Props
-     * @param newProperties New Props
-     * @param details Details */
-    private void putDelta(Properties oldProperties, Properties newProperties, Map&lt;String, Object&gt; details) {
-        // Find out what has happended to all the old properties
-<span class="nc bnc" id="L872" title="All 2 branches missed.">        for (final Object key : oldProperties.keySet()) {</span>
-<span class="nc" id="L873">            final String oldValue = oldProperties.getProperty(String.valueOf(key));</span>
-<span class="nc" id="L874">            final String newValue = newProperties.getProperty(String.valueOf(key));</span>
-<span class="nc" id="L875">            putDelta(String.valueOf(key), oldValue, newValue, details);</span>
-<span class="nc" id="L876">        }</span>
-        // Find out which new properties that did not exist in the old
-<span class="nc bnc" id="L878" title="All 2 branches missed.">        for (final Object key : newProperties.keySet()) {</span>
-<span class="nc" id="L879">            final String oldValue = oldProperties.getProperty(String.valueOf(key));</span>
-<span class="nc bnc" id="L880" title="All 2 branches missed.">            if (oldValue == null) {</span>
-<span class="nc" id="L881">                final String newValue = newProperties.getProperty(String.valueOf(key));</span>
-<span class="nc" id="L882">                putDelta(String.valueOf(key), oldValue, newValue, details);</span>
-            }
-<span class="nc" id="L884">        }</span>
-<span class="nc" id="L885">    }</span>
+    try {
+<span class="nc" id="L1294">      cryptoTokenSession.mergeCryptoToken(cryptoToken);</span>
+<span class="nc" id="L1295">    } catch (CryptoTokenNameInUseException e) {</span>
+<span class="nc" id="L1296">      throw new IllegalStateException(</span>
+          e); // We have not changed the name of the CrytpoToken here, so this
+              // should never happen
+<span class="nc" id="L1299">    }</span>
 
-    /** Helper method for audit logging changes 
-     * @param key Key
-     * @param oldValue Old value 
-     * @param newValue New value 
-     * @param details Details */
-    private void putDelta(String key, String oldValue, String newValue, Map&lt;String, Object&gt; details) {
-        // Treat the auto-activation pin with care
-<span class="nc bnc" id="L894" title="All 2 branches missed.">        if (BaseCryptoToken.AUTOACTIVATE_PIN_PROPERTY.equals(key)) {</span>
-<span class="nc bnc" id="L895" title="All 4 branches missed.">            if (oldValue == null &amp;&amp; newValue == null) {</span>
-                // NOP
-<span class="nc bnc" id="L897" title="All 4 branches missed.">            } else if (oldValue == null &amp;&amp; newValue != null) {</span>
-<span class="nc" id="L898">                details.put(&quot;autoActivation&quot;, &quot;added&quot;);</span>
-<span class="nc" id="L899">                details.put(&quot;autoActivationPinProtection&quot;, StringTools.getEncryptVersionFromString(newValue));</span>
-<span class="nc bnc" id="L900" title="All 4 branches missed.">            } else if (oldValue != null &amp;&amp; newValue == null) {</span>
-<span class="nc" id="L901">                details.put(&quot;autoActivation&quot;, &quot;removed&quot;);</span>
-<span class="nc bnc" id="L902" title="All 2 branches missed.">            } else if (!oldValue.equals(newValue)) {</span>
-<span class="nc" id="L903">                details.put(&quot;autoActivation&quot;, &quot;pin changed&quot;);</span>
-<span class="nc" id="L904">                details.put(&quot;autoActivationPinProtection&quot;, StringTools.getEncryptVersionFromString(newValue));</span>
-            }
-        } else {
-<span class="nc bnc" id="L907" title="All 4 branches missed.">            if (oldValue == null &amp;&amp; newValue == null) {</span>
-                // NOP
-<span class="nc bnc" id="L909" title="All 4 branches missed.">            } else if (oldValue == null &amp;&amp; newValue != null) {</span>
-<span class="nc" id="L910">                details.put(&quot;added:&quot; + key, newValue);</span>
-<span class="nc bnc" id="L911" title="All 4 branches missed.">            } else if (oldValue != null &amp;&amp; newValue == null) {</span>
-<span class="nc" id="L912">                details.put(&quot;removed:&quot; + key, oldValue);</span>
-<span class="nc bnc" id="L913" title="All 2 branches missed.">            } else if (!oldValue.equals(newValue)) {</span>
-<span class="nc" id="L914">                details.put(&quot;changed:&quot; + key, newValue);</span>
-            } else {
-<span class="nc" id="L916">                details.put(key, newValue);</span>
-            }
-        }
-<span class="nc" id="L919">    }</span>
+<span class="nc" id="L1301">    final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L1302">    details.put(</span>
+        &quot;msg&quot;,
+        &quot;Deleted key pair placeholder from CryptoToken &quot; + cryptoTokenId);
+<span class="nc" id="L1305">    details.put(&quot;keyAlias&quot;, alias);</span>
+<span class="nc" id="L1306">    securityEventsLoggerSession.log(</span>
+        EventTypes.CRYPTOTOKEN_DELETE_ENTRY,
+        EventStatus.SUCCESS,
+        ModuleTypes.CRYPTOTOKEN,
+        ServiceTypes.CORE,
+<span class="nc" id="L1311">        authenticationToken.toString(),</span>
+<span class="nc" id="L1312">        String.valueOf(cryptoTokenId),</span>
+        null,
+        null,
+        details);
+<span class="nc" id="L1316">  }</span>
+
+  @Override
+  public void testKeyPair(
+      final AuthenticationToken authenticationToken,
+      final int cryptoTokenId,
+      final String alias)
+      throws AuthorizationDeniedException, CryptoTokenOfflineException,
+          InvalidKeyException {
+<span class="nc" id="L1325">    assertAuthorization(</span>
+        authenticationToken,
+        cryptoTokenId,
+<span class="nc" id="L1328">        CryptoTokenRules.TEST_KEYS.resource() + &quot;/&quot; + cryptoTokenId);</span>
+<span class="nc" id="L1329">    final CryptoToken cryptoToken =</span>
+<span class="nc" id="L1330">        getCryptoTokenAndAssertExistence(cryptoTokenId);</span>
+<span class="nc" id="L1331">    cryptoToken.testKeyPair(alias);</span>
+<span class="nc" id="L1332">  }</span>
+
+  private void assertAuthorization(
+      final AuthenticationToken authenticationToken,
+      final int cryptoTokenId,
+      final String resource)
+      throws AuthorizationDeniedException {
+<span class="nc bnc" id="L1339" title="All 2 branches missed.">    if (!authorizationSession.isAuthorized(authenticationToken, resource)) {</span>
+<span class="nc" id="L1340">      final String msg =</span>
+<span class="nc" id="L1341">          INTRES.getLocalizedMessage(</span>
+              &quot;authorization.notauthorizedtoresource&quot;,
+              resource,
+<span class="nc" id="L1344">              authenticationToken.toString());</span>
+<span class="nc" id="L1345">      throw new AuthorizationDeniedException(msg);</span>
+    }
+<span class="nc" id="L1347">  }</span>
+
+  private void assertAuthorizationNoLog(
+      final AuthenticationToken authenticationToken,
+      final int cryptoTokenId,
+      final String resource)
+      throws AuthorizationDeniedException {
+<span class="nc bnc" id="L1354" title="All 2 branches missed.">    if (!authorizationSession.isAuthorizedNoLogging(</span>
+        authenticationToken, resource)) {
+<span class="nc" id="L1356">      final String msg =</span>
+<span class="nc" id="L1357">          INTRES.getLocalizedMessage(</span>
+              &quot;authorization.notauthorizedtoresource&quot;,
+              resource,
+<span class="nc" id="L1360">              authenticationToken.toString());</span>
+<span class="nc" id="L1361">      throw new AuthorizationDeniedException(msg);</span>
+    }
+<span class="nc" id="L1363">  }</span>
+
+  /**
+   * @param cryptoTokenId ID
+   * @return a CryptoToken for the requested Id if exists. Never returns null.
+   */
+  private CryptoToken getCryptoTokenAndAssertExistence(
+      final int cryptoTokenId) {
+<span class="nc" id="L1371">    final CryptoToken cryptoToken =</span>
+<span class="nc" id="L1372">        cryptoTokenSession.getCryptoToken(cryptoTokenId);</span>
+<span class="nc bnc" id="L1373" title="All 2 branches missed.">    if (cryptoToken == null) {</span>
+<span class="nc" id="L1374">      throw new RuntimeException(&quot;No such CryptoToken for id &quot; + cryptoTokenId);</span>
+    }
+<span class="nc" id="L1376">    return cryptoToken;</span>
+  }
+
+  /**
+   * Helper method for audit logging changes.
+   *
+   * @param oldProperties Old Props
+   * @param newProperties New Props
+   * @param details Details
+   */
+  private void putDelta(
+      final Properties oldProperties,
+      final Properties newProperties,
+      final Map&lt;String, Object&gt; details) {
+    // Find out what has happended to all the old properties
+<span class="nc bnc" id="L1391" title="All 2 branches missed.">    for (final Object key : oldProperties.keySet()) {</span>
+<span class="nc" id="L1392">      final String oldValue = oldProperties.getProperty(String.valueOf(key));</span>
+<span class="nc" id="L1393">      final String newValue = newProperties.getProperty(String.valueOf(key));</span>
+<span class="nc" id="L1394">      putDelta(String.valueOf(key), oldValue, newValue, details);</span>
+<span class="nc" id="L1395">    }</span>
+    // Find out which new properties that did not exist in the old
+<span class="nc bnc" id="L1397" title="All 2 branches missed.">    for (final Object key : newProperties.keySet()) {</span>
+<span class="nc" id="L1398">      final String oldValue = oldProperties.getProperty(String.valueOf(key));</span>
+<span class="nc bnc" id="L1399" title="All 2 branches missed.">      if (oldValue == null) {</span>
+<span class="nc" id="L1400">        final String newValue = newProperties.getProperty(String.valueOf(key));</span>
+<span class="nc" id="L1401">        putDelta(String.valueOf(key), oldValue, newValue, details);</span>
+      }
+<span class="nc" id="L1403">    }</span>
+<span class="nc" id="L1404">  }</span>
+
+  /**
+   * Helper method for audit logging changes.
+   *
+   * @param key Key
+   * @param oldValue Old value
+   * @param newValue New value
+   * @param details Details
+   */
+  private void putDelta(
+      final String key,
+      final String oldValue,
+      final String newValue,
+      final Map&lt;String, Object&gt; details) {
+    // Treat the auto-activation pin with care
+<span class="nc bnc" id="L1420" title="All 2 branches missed.">    if (BaseCryptoToken.AUTOACTIVATE_PIN_PROPERTY.equals(key)) {</span>
+<span class="nc bnc" id="L1421" title="All 4 branches missed.">      if (oldValue == null &amp;&amp; newValue == null) {</span>
+        // NOP
+<span class="nc bnc" id="L1423" title="All 4 branches missed.">      } else if (oldValue == null &amp;&amp; newValue != null) {</span>
+<span class="nc" id="L1424">        details.put(&quot;autoActivation&quot;, &quot;added&quot;);</span>
+<span class="nc" id="L1425">        details.put(</span>
+            &quot;autoActivationPinProtection&quot;,
+<span class="nc" id="L1427">            StringTools.getEncryptVersionFromString(newValue));</span>
+<span class="nc bnc" id="L1428" title="All 4 branches missed.">      } else if (oldValue != null &amp;&amp; newValue == null) {</span>
+<span class="nc" id="L1429">        details.put(&quot;autoActivation&quot;, &quot;removed&quot;);</span>
+<span class="nc bnc" id="L1430" title="All 2 branches missed.">      } else if (!oldValue.equals(newValue)) {</span>
+<span class="nc" id="L1431">        details.put(&quot;autoActivation&quot;, &quot;pin changed&quot;);</span>
+<span class="nc" id="L1432">        details.put(</span>
+            &quot;autoActivationPinProtection&quot;,
+<span class="nc" id="L1434">            StringTools.getEncryptVersionFromString(newValue));</span>
+      }
+    } else {
+<span class="nc bnc" id="L1437" title="All 4 branches missed.">      if (oldValue == null &amp;&amp; newValue == null) {</span>
+        // NOP
+<span class="nc bnc" id="L1439" title="All 4 branches missed.">      } else if (oldValue == null &amp;&amp; newValue != null) {</span>
+<span class="nc" id="L1440">        details.put(&quot;added:&quot; + key, newValue);</span>
+<span class="nc bnc" id="L1441" title="All 4 branches missed.">      } else if (oldValue != null &amp;&amp; newValue == null) {</span>
+<span class="nc" id="L1442">        details.put(&quot;removed:&quot; + key, oldValue);</span>
+<span class="nc bnc" id="L1443" title="All 2 branches missed.">      } else if (!oldValue.equals(newValue)) {</span>
+<span class="nc" id="L1444">        details.put(&quot;changed:&quot; + key, newValue);</span>
+      } else {
+<span class="nc" id="L1446">        details.put(key, newValue);</span>
+      }
+    }
+<span class="nc" id="L1449">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

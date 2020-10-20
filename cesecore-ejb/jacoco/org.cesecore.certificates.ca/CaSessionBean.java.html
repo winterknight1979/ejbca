@@ -27,7 +27,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
 import java.util.TreeSet;
-
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.ejb.EJB;
@@ -39,7 +38,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.bouncycastle.util.encoders.Base64;
@@ -77,950 +75,1325 @@ import org.cesecore.util.EJBTools;
 import org.cesecore.util.QueryResultWrapper;
 
 /**
- * Implementation of CaSession, i.e takes care of all CA related CRUD operations.
+ * Implementation of CaSession, i.e takes care of all CA related CRUD
+ * operations.
  *
  * @version $Id: CaSessionBean.java 29306 2018-06-21 14:07:02Z andresjakobs $
  */
 @Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;CaSessionRemote&quot;)
 @TransactionAttribute(TransactionAttributeType.REQUIRED)
-<span class="nc" id="L86">public class CaSessionBean implements CaSessionLocal, CaSessionRemote {</span>
+<span class="nc" id="L85">public class CaSessionBean implements CaSessionLocal, CaSessionRemote {</span>
 
-<span class="nc" id="L88">    private static final Logger log = Logger.getLogger(CaSessionBean.class);</span>
+    /** Logger. */
+<span class="nc" id="L88">  private static final Logger LOG = Logger.getLogger(CaSessionBean.class);</span>
 
-    /* Internal localization of logs and errors */
-<span class="nc" id="L91">    private static final InternalResources intres = InternalResources.getInstance();</span>
+  /** Internal localization of logs and errors. */
+<span class="nc" id="L91">  private static final InternalResources INTRES =</span>
+<span class="nc" id="L92">      InternalResources.getInstance();</span>
 
-    @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
-    private EntityManager entityManager;
-    @Resource
-    private SessionContext sessionContext;
+  /** EM. */
+  @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
+  private EntityManager entityManager;
 
-    @EJB
-    private AuthorizationSessionLocal authorizationSession;
-    @EJB
-    private CryptoTokenManagementSessionLocal cryptoTokenManagementSession;
-    @EJB
-    private CryptoTokenSessionLocal cryptoTokenSession;
-    @EJB
-    private SecurityEventsLoggerSessionLocal logSession;
-    @EJB
-    private GlobalConfigurationSessionLocal globalConfigurationSession;
-    @EJB
-    private CaIDCacheBean caIDCache;
+  /** Context. */
+  @Resource private SessionContext sessionContext;
 
-    private CaSessionLocal caSession;
+  /** Auth. */
+  @EJB private AuthorizationSessionLocal authorizationSession;
+  /** Management. */
+  @EJB private CryptoTokenManagementSessionLocal cryptoTokenManagementSession;
+  /** Token session. */
+  @EJB private CryptoTokenSessionLocal cryptoTokenSession;
+  /** Log session. */
+  @EJB private SecurityEventsLoggerSessionLocal logSession;
+  /** Config. */
+  @EJB private GlobalConfigurationSessionLocal globalConfigurationSession;
+ /** Cache. */
+  @EJB private CaIDCacheBean caIDCache;
 
-    @PostConstruct
-    public void postConstruct() {
-    	// Install BouncyCastle provider if not available
-<span class="nc" id="L116">    	CryptoProviderTools.installBCProviderIfNotAvailable();</span>
-    	// It is not possible to @EJB-inject our self on all application servers so we need to do a lookup
-<span class="nc" id="L118">    	caSession = sessionContext.getBusinessObject(CaSessionLocal.class);</span>
-<span class="nc" id="L119">    }</span>
+  /** Session. */
+  private CaSessionLocal caSession;
 
-    @Override
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List&lt;CAData&gt; findAll() {
-<span class="nc" id="L124">        final TypedQuery&lt;CAData&gt; query = entityManager.createQuery(&quot;SELECT a FROM CAData a&quot;, CAData.class);</span>
-<span class="nc" id="L125">        return query.getResultList();</span>
+  /** Setup. **/
+  @PostConstruct
+  public void postConstruct() {
+    // Install BouncyCastle provider if not available
+<span class="nc" id="L121">    CryptoProviderTools.installBCProviderIfNotAvailable();</span>
+    // It is not possible to @EJB-inject our self on all application servers so
+    // we need to do a lookup
+<span class="nc" id="L124">    caSession = sessionContext.getBusinessObject(CaSessionLocal.class);</span>
+<span class="nc" id="L125">  }</span>
+
+  @Override
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  public List&lt;CAData&gt; findAll() {
+<span class="nc" id="L130">    final TypedQuery&lt;CAData&gt; query =</span>
+<span class="nc" id="L131">        entityManager.createQuery(&quot;SELECT a FROM CAData a&quot;, CAData.class);</span>
+<span class="nc" id="L132">    return query.getResultList();</span>
+  }
+
+  @Override
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  public CAData findById(final Integer cAId) {
+<span class="nc" id="L138">    return entityManager.find(CAData.class, cAId);</span>
+  }
+
+  @Override
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  public CAData findByIdOrThrow(final Integer cAId)
+      throws CADoesntExistsException {
+<span class="nc" id="L145">    final CAData ret = findById(cAId);</span>
+<span class="nc bnc" id="L146" title="All 2 branches missed.">    if (ret == null) {</span>
+<span class="nc" id="L147">      throw new CADoesntExistsException(&quot;CA id: &quot; + cAId);</span>
     }
+<span class="nc" id="L149">    return ret;</span>
+  }
 
-    @Override
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public CAData findById(final Integer cAId) {
-<span class="nc" id="L131">        return entityManager.find(CAData.class, cAId);</span>
+  @Override
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  public CAData findByName(final String name) {
+<span class="nc" id="L155">    final Query query =</span>
+<span class="nc" id="L156">        entityManager.createQuery(&quot;SELECT a FROM CAData a WHERE a.name=:name&quot;);</span>
+<span class="nc" id="L157">    query.setParameter(&quot;name&quot;, name);</span>
+<span class="nc" id="L158">    return (CAData) QueryResultWrapper.getSingleResult(query);</span>
+  }
+
+  @Override
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  public CAData findByNameOrThrow(final String name)
+      throws CADoesntExistsException {
+<span class="nc" id="L165">    final CAData ret = findByName(name);</span>
+<span class="nc bnc" id="L166" title="All 2 branches missed.">    if (ret == null) {</span>
+<span class="nc" id="L167">      throw new CADoesntExistsException(&quot;CA name: &quot; + name);</span>
     }
+<span class="nc" id="L169">    return ret;</span>
+  }
 
-    @Override
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public CAData findByIdOrThrow(final Integer cAId) throws CADoesntExistsException {
-<span class="nc" id="L137">        final CAData ret = findById(cAId);</span>
-<span class="nc bnc" id="L138" title="All 2 branches missed.">        if (ret == null) {</span>
-<span class="nc" id="L139">            throw new CADoesntExistsException(&quot;CA id: &quot; + cAId);</span>
+  @Override
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  public void flushCACache() {
+<span class="nc" id="L175">    CaCache.INSTANCE.flush();</span>
+<span class="nc" id="L176">    caIDCache.forceCacheExpiration();</span>
+<span class="nc bnc" id="L177" title="All 2 branches missed.">    if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L178">      LOG.debug(&quot;Flushed CA cache.&quot;);</span>
+    }
+<span class="nc" id="L180">  }</span>
+
+  @Override
+  public void addCA(final AuthenticationToken admin, final CA ca)
+      throws CAExistsException, AuthorizationDeniedException {
+<span class="nc bnc" id="L185" title="All 2 branches missed.">    if (ca != null) {</span>
+<span class="nc" id="L186">      final int cryptoTokenId = ca.getCAToken().getCryptoTokenId();</span>
+<span class="nc bnc" id="L187" title="All 2 branches missed.">      if (!authorizationSession.isAuthorized(</span>
+          admin,
+<span class="nc" id="L189">          StandardRules.CAADD.resource(),</span>
+<span class="nc" id="L190">          CryptoTokenRules.USE.resource() + &quot;/&quot; + cryptoTokenId)) {</span>
+<span class="nc" id="L191">        String msg =</span>
+<span class="nc" id="L192">            INTRES.getLocalizedMessage(</span>
+                &quot;caadmin.notauthorizedtoaddca&quot;,
+<span class="nc" id="L194">                admin.toString(),</span>
+<span class="nc" id="L195">                Integer.valueOf(ca.getCAId()));</span>
+<span class="nc" id="L196">        throw new AuthorizationDeniedException(msg);</span>
+      }
+<span class="nc" id="L198">      CAInfo cainfo = ca.getCAInfo();</span>
+      // The CA needs a name and a subject DN in order to store it
+<span class="nc bnc" id="L200" title="All 4 branches missed.">      if ((ca.getName() == null) || (ca.getSubjectDN() == null)) {</span>
+<span class="nc" id="L201">        throw new CAExistsException(</span>
+            &quot;Null CA name or SubjectDN. Name: '&quot;
+<span class="nc" id="L203">                + ca.getName()</span>
+                + &quot;', SubjectDN: '&quot;
+<span class="nc" id="L205">                + ca.getSubjectDN()</span>
+                + &quot;'.&quot;);
+      }
+<span class="nc bnc" id="L208" title="All 2 branches missed.">      if (findByName(cainfo.getName()) != null) {</span>
+<span class="nc" id="L209">        String msg =</span>
+<span class="nc" id="L210">            INTRES.getLocalizedMessage(</span>
+<span class="nc" id="L211">                &quot;caadmin.caexistsname&quot;, cainfo.getName());</span>
+<span class="nc" id="L212">        throw new CAExistsException(msg);</span>
+      }
+<span class="nc bnc" id="L214" title="All 2 branches missed.">      if (findById(ca.getCAId()) != null) {</span>
+<span class="nc" id="L215">        String msg =</span>
+<span class="nc" id="L216">            INTRES.getLocalizedMessage(</span>
+<span class="nc" id="L217">                &quot;caadmin.caexistsid&quot;, Integer.valueOf(ca.getCAId()));</span>
+<span class="nc" id="L218">        throw new CAExistsException(msg);</span>
+      }
+<span class="nc" id="L220">      final CAData caData =</span>
+          new CAData(
+<span class="nc" id="L222">              cainfo.getSubjectDN(), cainfo.getName(), cainfo.getStatus(), ca);</span>
+<span class="nc" id="L223">      entityManager.persist(caData);</span>
+<span class="nc" id="L224">      caIDCache</span>
+<span class="nc" id="L225">          .forceCacheExpiration(); // Clear ID cache so this one will be</span>
+                                   // reloaded as well.
+<span class="nc" id="L227">      String msg =</span>
+<span class="nc" id="L228">          INTRES.getLocalizedMessage(</span>
+              &quot;caadmin.addedca&quot;,
+<span class="nc" id="L230">              ca.getCAId(),</span>
+<span class="nc" id="L231">              cainfo.getName(),</span>
+<span class="nc" id="L232">              cainfo.getStatus());</span>
+<span class="nc" id="L233">      final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L234">      details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L235">      details.put(&quot;tokenproperties&quot;, ca.getCAToken().getProperties());</span>
+<span class="nc" id="L236">      details.put(&quot;tokensequence&quot;, ca.getCAToken().getKeySequence());</span>
+<span class="nc" id="L237">      logSession.log(</span>
+          EventTypes.CA_CREATION,
+          EventStatus.SUCCESS,
+          ModuleTypes.CA,
+          ServiceTypes.CORE,
+<span class="nc" id="L242">          admin.toString(),</span>
+<span class="nc" id="L243">          String.valueOf(ca.getCAId()),</span>
+          null,
+          null,
+          details);
+<span class="nc" id="L247">    } else {</span>
+<span class="nc" id="L248">      LOG.debug(&quot;Trying to add null CA, nothing done.&quot;);</span>
+    }
+<span class="nc" id="L250">  }</span>
+
+  @Override
+  public void editCA(final AuthenticationToken admin, final CAInfo cainfo)
+      throws CADoesntExistsException, AuthorizationDeniedException {
+<span class="nc bnc" id="L255" title="All 2 branches missed.">    if (cainfo != null) {</span>
+<span class="nc bnc" id="L256" title="All 2 branches missed.">      if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L257">        LOG.trace(&quot;&gt;editCA (CAInfo): &quot; + cainfo.getName());</span>
+      }
+      try {
+<span class="nc" id="L260">        final CA ca = getCAInternal(cainfo.getCAId(), null, false);</span>
+        // Check if we can edit the CA (also checks authorization)
+<span class="nc" id="L262">        int newCryptoTokenId = ca.getCAToken().getCryptoTokenId();</span>
+<span class="nc bnc" id="L263" title="All 2 branches missed.">        if (cainfo.getCAToken() != null) {</span>
+<span class="nc" id="L264">          newCryptoTokenId = cainfo.getCAToken().getCryptoTokenId();</span>
         }
-<span class="nc" id="L141">        return ret;</span>
+<span class="nc" id="L266">        assertAuthorizationAndTarget(</span>
+            admin,
+<span class="nc" id="L268">            cainfo.getName(),</span>
+<span class="nc" id="L269">            cainfo.getSubjectDN(),</span>
+            newCryptoTokenId,
+            ca);
+        @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L273">        final Map&lt;Object, Object&gt; orgmap = (Map&lt;Object, Object&gt;) ca.saveData();</span>
+<span class="nc" id="L274">        AvailableCustomCertificateExtensionsConfiguration cceConfig =</span>
+            (AvailableCustomCertificateExtensionsConfiguration)
+<span class="nc" id="L276">                globalConfigurationSession.getCachedConfiguration(</span>
+                    AvailableCustomCertificateExtensionsConfiguration
+                        .CONFIGURATION_ID);
+<span class="nc" id="L279">        ca.updateCA(</span>
+<span class="nc" id="L280">            cryptoTokenManagementSession.getCryptoToken(</span>
+<span class="nc" id="L281">                ca.getCAToken().getCryptoTokenId()),</span>
+            cainfo,
+            cceConfig);
+        // Audit log
+        @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L286">        final Map&lt;Object, Object&gt; newmap = (Map&lt;Object, Object&gt;) ca.saveData();</span>
+        // Get the diff of what changed
+<span class="nc" id="L288">        final Map&lt;Object, Object&gt; diff =</span>
+<span class="nc" id="L289">            UpgradeableDataHashMap.diffMaps(orgmap, newmap);</span>
+<span class="nc" id="L290">        final String msg =</span>
+<span class="nc" id="L291">            INTRES.getLocalizedMessage(</span>
+<span class="nc" id="L292">                &quot;caadmin.editedca&quot;, ca.getCAId(), ca.getName(), ca.getStatus());</span>
+        // Use a LinkedHashMap because we want the details logged (in the final
+        // log string) in the order we insert them, and not randomly
+<span class="nc" id="L295">        final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L296">        details.put(&quot;msg&quot;, msg);</span>
+<span class="nc bnc" id="L297" title="All 2 branches missed.">        for (final Map.Entry&lt;Object, Object&gt; entry : diff.entrySet()) {</span>
+<span class="nc" id="L298">          details.put(entry.getKey().toString(), entry.getValue().toString());</span>
+<span class="nc" id="L299">        }</span>
+<span class="nc" id="L300">        details.put(&quot;tokenproperties&quot;, ca.getCAToken().getProperties());</span>
+<span class="nc" id="L301">        details.put(&quot;tokensequence&quot;, ca.getCAToken().getKeySequence());</span>
+<span class="nc" id="L302">        logSession.log(</span>
+            EventTypes.CA_EDITING,
+            EventStatus.SUCCESS,
+            ModuleTypes.CA,
+            ServiceTypes.CORE,
+<span class="nc" id="L307">            admin.toString(),</span>
+<span class="nc" id="L308">            String.valueOf(ca.getCAId()),</span>
+            null,
+            null,
+            details);
+        // Store it
+<span class="nc" id="L313">        mergeCa(ca);</span>
+<span class="nc" id="L314">      } catch (InvalidAlgorithmException e) {</span>
+<span class="nc" id="L315">        throw new CADoesntExistsException(e);</span>
+<span class="nc" id="L316">      }</span>
+<span class="nc bnc" id="L317" title="All 2 branches missed.">      if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L318">        LOG.trace(&quot;&lt;editCA (CAInfo): &quot; + cainfo.getName());</span>
+      }
+    } else {
+<span class="nc" id="L321">      LOG.debug(&quot;Trying to edit null CAInfo, nothing done.&quot;);</span>
     }
+<span class="nc" id="L323">  }</span>
 
-    @Override
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public CAData findByName(final String name) {
-<span class="nc" id="L147">        final Query query = entityManager.createQuery(&quot;SELECT a FROM CAData a WHERE a.name=:name&quot;);</span>
-<span class="nc" id="L148">        query.setParameter(&quot;name&quot;, name);</span>
-<span class="nc" id="L149">        return (CAData) QueryResultWrapper.getSingleResult(query);</span>
+  @Override
+  public void editCA(
+      final AuthenticationToken admin, final CA ca, final boolean auditlog)
+      throws CADoesntExistsException, AuthorizationDeniedException {
+<span class="nc bnc" id="L329" title="All 2 branches missed.">    if (ca != null) {</span>
+<span class="nc bnc" id="L330" title="All 2 branches missed.">      if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L331">        LOG.trace(&quot;&gt;editCA (CA): &quot; + ca.getName());</span>
+      }
+<span class="nc" id="L333">      final CA orgca = getCAInternal(ca.getCAId(), null, true);</span>
+      // Check if we can edit the CA (also checks authorization)
+<span class="nc" id="L335">      assertAuthorizationAndTarget(</span>
+          admin,
+<span class="nc" id="L337">          ca.getName(),</span>
+<span class="nc" id="L338">          ca.getSubjectDN(),</span>
+<span class="nc" id="L339">          ca.getCAToken().getCryptoTokenId(),</span>
+          orgca);
+<span class="nc bnc" id="L341" title="All 2 branches missed.">      if (auditlog) {</span>
+        // Get the diff of what changed
+<span class="nc" id="L343">        final Map&lt;Object, Object&gt; diff = orgca.diff(ca);</span>
+<span class="nc" id="L344">        String msg =</span>
+<span class="nc" id="L345">            INTRES.getLocalizedMessage(</span>
+<span class="nc" id="L346">                &quot;caadmin.editedca&quot;, ca.getCAId(), ca.getName(), ca.getStatus());</span>
+        // Use a LinkedHashMap because we want the details logged (in the final
+        // log string) in the order we insert them, and not randomly
+<span class="nc" id="L349">        final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L350">        details.put(&quot;msg&quot;, msg);</span>
+<span class="nc bnc" id="L351" title="All 2 branches missed.">        for (Map.Entry&lt;Object, Object&gt; entry : diff.entrySet()) {</span>
+<span class="nc" id="L352">          details.put(entry.getKey().toString(), entry.getValue().toString());</span>
+<span class="nc" id="L353">        }</span>
+<span class="nc" id="L354">        details.put(&quot;tokenproperties&quot;, ca.getCAToken().getProperties());</span>
+<span class="nc" id="L355">        details.put(&quot;tokensequence&quot;, ca.getCAToken().getKeySequence());</span>
+<span class="nc" id="L356">        logSession.log(</span>
+            EventTypes.CA_EDITING,
+            EventStatus.SUCCESS,
+            ModuleTypes.CA,
+            ServiceTypes.CORE,
+<span class="nc" id="L361">            admin.toString(),</span>
+<span class="nc" id="L362">            String.valueOf(ca.getCAId()),</span>
+            null,
+            null,
+            details);
+      }
+<span class="nc bnc" id="L367" title="All 2 branches missed.">      if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L368">        LOG.trace(&quot;&lt;editCA (CA): &quot; + ca.getName());</span>
+      }
+      // Store it
+<span class="nc" id="L371">      mergeCa(ca);</span>
+<span class="nc" id="L372">    } else {</span>
+<span class="nc" id="L373">      LOG.debug(&quot;Trying to edit null CA, nothing done.&quot;);</span>
     }
+<span class="nc" id="L375">  }</span>
 
-    @Override
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public CAData findByNameOrThrow(final String name) throws CADoesntExistsException {
-<span class="nc" id="L155">        final CAData ret = findByName(name);</span>
-<span class="nc bnc" id="L156" title="All 2 branches missed.">        if (ret == null) {</span>
-<span class="nc" id="L157">            throw new CADoesntExistsException(&quot;CA name: &quot; + name);</span>
-        }
-<span class="nc" id="L159">        return ret;</span>
+  @Override
+  public boolean existsCa(final int caId) {
+<span class="nc bnc" id="L379" title="All 2 branches missed.">    return entityManager.find(CAData.class, caId) != null;</span>
+  }
+
+  @Override
+  public boolean existsCa(final String name) {
+<span class="nc bnc" id="L384" title="All 2 branches missed.">    return findByName(name) != null;</span>
+  }
+
+  @Override
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  public boolean existsKeyValidatorInCAs(final int keyValidatorId)
+      throws AuthorizationDeniedException {
+<span class="nc bnc" id="L391" title="All 2 branches missed.">    for (final Integer caId : getAllCaIds()) {</span>
+<span class="nc" id="L392">      final Collection&lt;Integer&gt; ids = getCAInfoInternal(caId).getValidators();</span>
+<span class="nc bnc" id="L393" title="All 2 branches missed.">      if (ids != null) {</span>
+<span class="nc bnc" id="L394" title="All 2 branches missed.">        for (final Integer id : ids) {</span>
+<span class="nc bnc" id="L395" title="All 2 branches missed.">          if (id.intValue() == keyValidatorId) {</span>
+            // We have found a match. No point in looking for more.
+<span class="nc" id="L397">            return true;</span>
+          }
+<span class="nc" id="L399">        }</span>
+      }
+<span class="nc" id="L401">    }</span>
+<span class="nc" id="L402">    return false;</span>
+  }
+
+  /**
+   * Ensure that the caller is authorized to the CA we are about to edit and
+   * that the CA name and subjectDN matches.
+   *
+   * @param admin Auth token
+   * @param name Name
+   * @param subjectDN DN
+   * @param cryptoTokenId ID
+   * @param ca CA
+   * @throws CADoesntExistsException If CA not found
+   * @throws AuthorizationDeniedException If access denied
+   */
+  private void assertAuthorizationAndTarget(
+      final AuthenticationToken admin,
+      final String name,
+      final String subjectDN,
+      final int cryptoTokenId,
+      final CA ca)
+      throws CADoesntExistsException, AuthorizationDeniedException {
+<span class="nc" id="L424">    assertAuthorizationAndTargetWithNewSubjectDn(</span>
+        admin, name, subjectDN, cryptoTokenId, ca);
+<span class="nc bnc" id="L426" title="All 2 branches missed.">    if (!StringUtils.equals(subjectDN, ca.getSubjectDN())</span>
+<span class="nc bnc" id="L427" title="All 2 branches missed.">        &amp;&amp; ca.getCAInfo().getStatus() != CAConstants.CA_UNINITIALIZED) {</span>
+<span class="nc" id="L428">      throw new CADoesntExistsException(&quot;Not same CA subject DN.&quot;);</span>
     }
+<span class="nc" id="L430">  }</span>
 
-    @Override
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public void flushCACache() {
-<span class="nc" id="L165">        CaCache.INSTANCE.flush();</span>
-<span class="nc" id="L166">        caIDCache.forceCacheExpiration();</span>
-<span class="nc bnc" id="L167" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L168">            log.debug(&quot;Flushed CA cache.&quot;);</span>
+  /**
+   * Ensure that the caller is authorized to the CA we are about to edit and
+   * that the CA name matches.
+   *
+   * @param admin Admin
+   * @param name Name
+   * @param subjectDN DN
+   * @param cryptoTokenId ID
+   * @param ca CA
+   * @throws CADoesntExistsException If CA not found
+   * @throws AuthorizationDeniedException If access denied
+   */
+  private void assertAuthorizationAndTargetWithNewSubjectDn(
+      final AuthenticationToken admin,
+      final String name,
+      final String subjectDN,
+      final int cryptoTokenId,
+      final CA ca)
+      throws CADoesntExistsException, AuthorizationDeniedException {
+    // Check if we are authorized to edit CA and authorization to specific CA
+<span class="nc bnc" id="L452" title="All 4 branches missed.">    if (cryptoTokenId == ca.getCAToken().getCryptoTokenId()</span>
+        || cryptoTokenId == 0) {
+<span class="nc bnc" id="L454" title="All 2 branches missed.">      if (!authorizationSession.isAuthorized(</span>
+          admin,
+<span class="nc" id="L456">          StandardRules.CAEDIT.resource(),</span>
+<span class="nc" id="L457">          StandardRules.CAACCESS.resource() + ca.getCAId())) {</span>
+<span class="nc" id="L458">        String msg =</span>
+<span class="nc" id="L459">            INTRES.getLocalizedMessage(</span>
+                &quot;caadmin.notauthorizedtoeditca&quot;,
+<span class="nc" id="L461">                admin.toString(),</span>
+<span class="nc" id="L462">                Integer.valueOf(ca.getCAId()));</span>
+<span class="nc" id="L463">        throw new AuthorizationDeniedException(msg);</span>
+      }
+    } else {
+      // We only need to check usage authorization if we change CryptoToken
+      // reference (and not to 0 which means &quot;removed&quot;).
+<span class="nc bnc" id="L468" title="All 2 branches missed.">      if (!authorizationSession.isAuthorized(</span>
+          admin,
+<span class="nc" id="L470">          StandardRules.CAEDIT.resource(),</span>
+<span class="nc" id="L471">          StandardRules.CAACCESS.resource() + ca.getCAId(),</span>
+<span class="nc" id="L472">          CryptoTokenRules.USE.resource() + &quot;/&quot; + cryptoTokenId)) {</span>
+<span class="nc" id="L473">        String msg =</span>
+<span class="nc" id="L474">            INTRES.getLocalizedMessage(</span>
+                &quot;caadmin.notauthorizedtoeditca&quot;,
+<span class="nc" id="L476">                admin.toString(),</span>
+<span class="nc" id="L477">                Integer.valueOf(ca.getCAId()));</span>
+<span class="nc" id="L478">        throw new AuthorizationDeniedException(msg);</span>
+      }
+    }
+    // The CA needs the same name and subject DN in order to store it
+<span class="nc bnc" id="L482" title="All 4 branches missed.">    if (name == null || subjectDN == null) {</span>
+<span class="nc" id="L483">      throw new CADoesntExistsException(&quot;Null CA name or SubjectDN&quot;);</span>
+<span class="nc bnc" id="L484" title="All 2 branches missed.">    } else if (!StringUtils.equals(name, ca.getName())) {</span>
+<span class="nc" id="L485">      throw new CADoesntExistsException(&quot;Not same CA name.&quot;);</span>
+    }
+<span class="nc" id="L487">  }</span>
+
+  @Override
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  public CA getCA(final AuthenticationToken admin, final int caid)
+      throws AuthorizationDeniedException {
+<span class="nc bnc" id="L493" title="All 2 branches missed.">    if (!authorizedToCA(admin, caid)) {</span>
+<span class="nc" id="L494">      String msg =</span>
+<span class="nc" id="L495">          INTRES.getLocalizedMessage(</span>
+              &quot;caadmin.notauthorizedtoca&quot;,
+<span class="nc" id="L497">              admin.toString(),</span>
+<span class="nc" id="L498">              Integer.valueOf(caid));</span>
+<span class="nc" id="L499">      throw new AuthorizationDeniedException(msg);</span>
+    }
+<span class="nc" id="L501">    return getCAInternal(caid, null, true);</span>
+  }
+
+  @Override
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  public CA getCA(final AuthenticationToken admin, final String name)
+      throws AuthorizationDeniedException {
+<span class="nc" id="L508">    CA ca = getCAInternal(-1, name, true);</span>
+<span class="nc bnc" id="L509" title="All 2 branches missed.">    if (ca != null) {</span>
+<span class="nc bnc" id="L510" title="All 2 branches missed.">      if (!authorizedToCA(admin, ca.getCAId())) {</span>
+<span class="nc" id="L511">        String msg =</span>
+<span class="nc" id="L512">            INTRES.getLocalizedMessage(</span>
+<span class="nc" id="L513">                &quot;caadmin.notauthorizedtoca&quot;, admin.toString(), name);</span>
+<span class="nc" id="L514">        throw new AuthorizationDeniedException(msg);</span>
+      }
+    }
+<span class="nc" id="L517">    return ca;</span>
+  }
+
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  @Override
+  public CA getCANoLog(final AuthenticationToken admin, final int caid)
+      throws AuthorizationDeniedException {
+<span class="nc bnc" id="L524" title="All 2 branches missed.">    if (!authorizedToCANoLogging(admin, caid)) {</span>
+<span class="nc" id="L525">      String msg =</span>
+<span class="nc" id="L526">          INTRES.getLocalizedMessage(</span>
+              &quot;caadmin.notauthorizedtoca&quot;,
+<span class="nc" id="L528">              admin.toString(),</span>
+<span class="nc" id="L529">              Integer.valueOf(caid));</span>
+<span class="nc" id="L530">      throw new AuthorizationDeniedException(msg);</span>
+    }
+<span class="nc" id="L532">    return getCAInternal(caid, null, true);</span>
+  }
+
+  @Override
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  public CA getCAForEdit(final AuthenticationToken admin, final int caid)
+      throws AuthorizationDeniedException {
+<span class="nc" id="L539">    CA ca = getCAInternal(caid, null, false);</span>
+<span class="nc bnc" id="L540" title="All 2 branches missed.">    if (ca != null) {</span>
+<span class="nc bnc" id="L541" title="All 2 branches missed.">      if (!authorizedToCA(admin, ca.getCAId())) {</span>
+<span class="nc" id="L542">        String msg =</span>
+<span class="nc" id="L543">            INTRES.getLocalizedMessage(</span>
+                &quot;caadmin.notauthorizedtoca&quot;,
+<span class="nc" id="L545">                admin.toString(),</span>
+<span class="nc" id="L546">                Integer.valueOf(caid));</span>
+<span class="nc" id="L547">        throw new AuthorizationDeniedException(msg);</span>
+      }
+    }
+<span class="nc" id="L550">    return ca;</span>
+  }
+
+  @Override
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  public CA getCAForEdit(final AuthenticationToken admin, final String name)
+      throws AuthorizationDeniedException {
+<span class="nc" id="L557">    CA ca = getCAInternal(-1, name, false);</span>
+<span class="nc bnc" id="L558" title="All 2 branches missed.">    if (ca == null) {</span>
+<span class="nc" id="L559">      return null;</span>
+    }
+<span class="nc bnc" id="L561" title="All 2 branches missed.">    if (!authorizedToCA(admin, ca.getCAId())) {</span>
+<span class="nc" id="L562">      String msg =</span>
+<span class="nc" id="L563">          INTRES.getLocalizedMessage(</span>
+<span class="nc" id="L564">              &quot;caadmin.notauthorizedtoca&quot;, admin.toString(), name);</span>
+<span class="nc" id="L565">      throw new AuthorizationDeniedException(msg);</span>
+    }
+<span class="nc" id="L567">    return ca;</span>
+  }
+
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  @Override
+  public CAInfo getCAInfo(final AuthenticationToken admin, final String name)
+      throws AuthorizationDeniedException {
+    // Authorization is handled by getCA
+<span class="nc" id="L575">    CA ca = getCA(admin, name);</span>
+<span class="nc bnc" id="L576" title="All 2 branches missed.">    if (ca == null) {</span>
+<span class="nc" id="L577">      return null;</span>
+    } else {
+<span class="nc" id="L579">      return ca.getCAInfo();</span>
+    }
+  }
+
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  @Override
+  public CAInfo getCAInfo(final AuthenticationToken admin, final int caid)
+      throws AuthorizationDeniedException {
+    // Authorization is handled by getCA
+<span class="nc" id="L588">    CA ca = getCA(admin, caid);</span>
+<span class="nc bnc" id="L589" title="All 2 branches missed.">    if (ca == null) {</span>
+<span class="nc" id="L590">      return null;</span>
+    } else {
+<span class="nc" id="L592">      return ca.getCAInfo();</span>
+    }
+  }
+
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  @Override
+  public CAInfo getCAInfoInternal(final int caid) {
+    // Authorization is handled by getCA
+<span class="nc" id="L600">    CA ca = getCAInternal(caid, null, true);</span>
+<span class="nc bnc" id="L601" title="All 2 branches missed.">    if (ca == null) {</span>
+<span class="nc" id="L602">      return null;</span>
+    } else {
+<span class="nc" id="L604">      return ca.getCAInfo();</span>
+    }
+  }
+
+  @Override
+  public Collection&lt;CertificateWrapper&gt; getCaChain(
+      final AuthenticationToken authenticationToken, final String caName)
+      throws AuthorizationDeniedException, CADoesntExistsException {
+<span class="nc" id="L612">    final CAInfo info = getCAInfo(authenticationToken, caName);</span>
+<span class="nc bnc" id="L613" title="All 2 branches missed.">    if (info == null) {</span>
+<span class="nc" id="L614">      throw new CADoesntExistsException(</span>
+          &quot;CA with name &quot; + caName + &quot; doesn't exist.&quot;);
+    }
+<span class="nc" id="L617">    final List&lt;CertificateWrapper&gt; result = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L618" title="All 2 branches missed.">    if (info.getStatus() != CAConstants.CA_WAITING_CERTIFICATE_RESPONSE) {</span>
+<span class="nc" id="L619">      result.addAll(EJBTools.wrapCertCollection(info.getCertificateChain()));</span>
+    }
+<span class="nc bnc" id="L621" title="All 2 branches missed.">    if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L622">      LOG.debug(</span>
+          &quot;CA chain request by admin &quot;
+<span class="nc" id="L624">              + authenticationToken.getUniqueId()</span>
+              + &quot; &quot;
+              + result);
+    }
+<span class="nc" id="L628">    return result;</span>
+  }
+
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  @Override
+  public CAInfo getCAInfoInternal(
+      final int caid, final String name, final boolean fromCache) {
+    // Authorization is handled by getCA
+<span class="nc" id="L636">    CA ca = getCAInternal(caid, name, fromCache);</span>
+<span class="nc bnc" id="L637" title="All 2 branches missed.">    if (ca == null) {</span>
+<span class="nc" id="L638">      return null;</span>
+    } else {
+<span class="nc" id="L640">      return ca.getCAInfo();</span>
+    }
+  }
+
+  @Override
+  public void removeCA(final AuthenticationToken admin, final int caid)
+      throws AuthorizationDeniedException {
+    // check authorization
+<span class="nc bnc" id="L648" title="All 2 branches missed.">    if (!authorizationSession.isAuthorized(</span>
+<span class="nc" id="L649">        admin, StandardRules.CAREMOVE.resource())) {</span>
+<span class="nc" id="L650">      String msg =</span>
+<span class="nc" id="L651">          INTRES.getLocalizedMessage(</span>
+              &quot;caadmin.notauthorizedtoremoveca&quot;,
+<span class="nc" id="L653">              admin.toString(),</span>
+<span class="nc" id="L654">              Integer.valueOf(caid));</span>
+<span class="nc" id="L655">      throw new AuthorizationDeniedException(msg);</span>
+    }
+    // Get CA from database if it does not exist, ignore
+<span class="nc" id="L658">    CAData cadata = findById(Integer.valueOf(caid));</span>
+<span class="nc bnc" id="L659" title="All 2 branches missed.">    if (cadata != null) {</span>
+      // Remove CA
+<span class="nc" id="L661">      entityManager.remove(cadata);</span>
+      // Invalidate CA cache to refresh information
+<span class="nc" id="L663">      CaCache.INSTANCE.removeEntry(caid);</span>
+<span class="nc" id="L664">      caIDCache</span>
+<span class="nc" id="L665">          .forceCacheExpiration(); // Clear ID cache so this one will be</span>
+                                   // reloaded as well.
+<span class="nc" id="L667">      final String detailsMsg =</span>
+<span class="nc" id="L668">          INTRES.getLocalizedMessage(</span>
+<span class="nc" id="L669">              &quot;caadmin.removedca&quot;, Integer.valueOf(caid), cadata.getName());</span>
+<span class="nc" id="L670">      logSession.log(</span>
+          EventTypes.CA_DELETION,
+          EventStatus.SUCCESS,
+          ModuleTypes.CA,
+          ServiceTypes.CORE,
+<span class="nc" id="L675">          admin.toString(),</span>
+<span class="nc" id="L676">          String.valueOf(caid),</span>
+          null,
+          null,
+          detailsMsg);
+    }
+<span class="nc" id="L681">  }</span>
+
+  @Override
+  public void renameCA(
+      final AuthenticationToken admin,
+      final String oldname,
+      final String newname)
+      throws CAExistsException, CADoesntExistsException,
+          AuthorizationDeniedException {
+    // Get CA from database
+<span class="nc" id="L691">    CAData cadata = findByNameOrThrow(oldname);</span>
+    // Check authorization, to rename we need remove (for the old name) and add
+    // for the new name)
+<span class="nc bnc" id="L694" title="All 2 branches missed.">    if (!authorizationSession.isAuthorized(</span>
+        admin,
+<span class="nc" id="L696">        StandardRules.CAREMOVE.resource(),</span>
+<span class="nc" id="L697">        StandardRules.CAADD.resource())) {</span>
+<span class="nc" id="L698">      String msg =</span>
+<span class="nc" id="L699">          INTRES.getLocalizedMessage(</span>
+              &quot;caadmin.notauthorizedtorenameca&quot;,
+<span class="nc" id="L701">              admin.toString(),</span>
+<span class="nc" id="L702">              cadata.getCaId());</span>
+<span class="nc" id="L703">      throw new AuthorizationDeniedException(msg);</span>
+    }
+<span class="nc bnc" id="L705" title="All 2 branches missed.">    if (findByName(newname) == null) {</span>
+      // The new CA doesn't exist, it's okay to rename old one.
+<span class="nc" id="L707">      cadata.setName(newname);</span>
+      // Invalidate CA cache to refresh information
+<span class="nc" id="L709">      int caid = cadata.getCaId().intValue();</span>
+<span class="nc" id="L710">      CaCache.INSTANCE.removeEntry(caid);</span>
+<span class="nc" id="L711">      caIDCache</span>
+<span class="nc" id="L712">          .forceCacheExpiration(); // Clear ID cache so this one will be</span>
+                                   // reloaded as well.
+<span class="nc" id="L714">      final String detailsMsg =</span>
+<span class="nc" id="L715">          INTRES.getLocalizedMessage(</span>
+<span class="nc" id="L716">              &quot;caadmin.renamedca&quot;, oldname, cadata.getCaId(), newname);</span>
+<span class="nc" id="L717">      logSession.log(</span>
+          EventTypes.CA_RENAMING,
+          EventStatus.SUCCESS,
+          ModuleTypes.CA,
+          ServiceTypes.CORE,
+<span class="nc" id="L722">          admin.toString(),</span>
+<span class="nc" id="L723">          String.valueOf(caid),</span>
+          null,
+          null,
+          detailsMsg);
+<span class="nc" id="L727">    } else {</span>
+<span class="nc" id="L728">      throw new CAExistsException(&quot;CA &quot; + newname + &quot; already exists.&quot;);</span>
+    }
+<span class="nc" id="L730">  }</span>
+
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  @Override
+  public List&lt;Integer&gt; getAllCaIds() {
+    // We need a cache of these, to not list from the database all the time
+<span class="nc" id="L736">    return caIDCache.getCacheContent();</span>
+  }
+
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  @Override
+  public List&lt;String&gt; getActiveCANames(final AuthenticationToken admin) {
+<span class="nc" id="L742">    return new ArrayList&lt;&gt;(getActiveCAIdToNameMap(admin).values());</span>
+  }
+
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  @Override
+  public Map&lt;Integer, String&gt; getActiveCAIdToNameMap(
+      final AuthenticationToken authenticationToken) {
+<span class="nc" id="L749">    final HashMap&lt;Integer, String&gt; returnval = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L750" title="All 2 branches missed.">    for (int caId : getAllCaIds()) {</span>
+<span class="nc bnc" id="L751" title="All 2 branches missed.">      if (authorizedToCANoLogging(authenticationToken, caId)) {</span>
+<span class="nc" id="L752">        CAInfo caInfo = getCAInfoInternal(caId);</span>
+<span class="nc bnc" id="L753" title="All 2 branches missed.">        if (caInfo != null</span>
+<span class="nc bnc" id="L754" title="All 2 branches missed.">            &amp;&amp; (caInfo.getStatus() == CAConstants.CA_ACTIVE</span>
+<span class="nc bnc" id="L755" title="All 2 branches missed.">                || caInfo.getStatus() == CAConstants.CA_UNINITIALIZED)) {</span>
+<span class="nc" id="L756">          returnval.put(caInfo.getCAId(), caInfo.getName());</span>
         }
-<span class="nc" id="L170">    }</span>
+      }
+<span class="nc" id="L759">    }</span>
 
-    @Override
-    public void addCA(final AuthenticationToken admin, final CA ca) throws CAExistsException, AuthorizationDeniedException {
-<span class="nc bnc" id="L174" title="All 2 branches missed.">        if (ca != null) {</span>
-<span class="nc" id="L175">            final int cryptoTokenId = ca.getCAToken().getCryptoTokenId();</span>
-<span class="nc bnc" id="L176" title="All 2 branches missed.">            if (!authorizationSession.isAuthorized(admin, StandardRules.CAADD.resource(), CryptoTokenRules.USE.resource() + &quot;/&quot; + cryptoTokenId)) {</span>
-<span class="nc" id="L177">                String msg = intres.getLocalizedMessage(&quot;caadmin.notauthorizedtoaddca&quot;, admin.toString(), Integer.valueOf(ca.getCAId()));</span>
-<span class="nc" id="L178">                throw new AuthorizationDeniedException(msg);</span>
-            }
-<span class="nc" id="L180">            CAInfo cainfo = ca.getCAInfo();</span>
-            // The CA needs a name and a subject DN in order to store it
-<span class="nc bnc" id="L182" title="All 4 branches missed.">            if ((ca.getName() == null) || (ca.getSubjectDN() == null)) {</span>
-<span class="nc" id="L183">                throw new CAExistsException(&quot;Null CA name or SubjectDN. Name: '&quot;+ca.getName()+&quot;', SubjectDN: '&quot;+ca.getSubjectDN()+&quot;'.&quot;);</span>
-            }
-<span class="nc bnc" id="L185" title="All 2 branches missed.">            if (findByName(cainfo.getName()) != null) {</span>
-<span class="nc" id="L186">                String msg = intres.getLocalizedMessage(&quot;caadmin.caexistsname&quot;, cainfo.getName());</span>
-<span class="nc" id="L187">                throw new CAExistsException(msg);</span>
-            }
-<span class="nc bnc" id="L189" title="All 2 branches missed.">            if (findById(ca.getCAId()) != null) {</span>
-<span class="nc" id="L190">                String msg = intres.getLocalizedMessage(&quot;caadmin.caexistsid&quot;, Integer.valueOf(ca.getCAId()));</span>
-<span class="nc" id="L191">                throw new CAExistsException(msg);</span>
-            }
-<span class="nc" id="L193">            final CAData caData = new CAData(cainfo.getSubjectDN(), cainfo.getName(), cainfo.getStatus(), ca);</span>
-<span class="nc" id="L194">            entityManager.persist(caData);</span>
-<span class="nc" id="L195">            caIDCache.forceCacheExpiration(); // Clear ID cache so this one will be reloaded as well.</span>
-<span class="nc" id="L196">            String msg = intres.getLocalizedMessage(&quot;caadmin.addedca&quot;, ca.getCAId(), cainfo.getName(), cainfo.getStatus());</span>
-<span class="nc" id="L197">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
-<span class="nc" id="L198">            details.put(&quot;msg&quot;, msg);</span>
-<span class="nc" id="L199">            details.put(&quot;tokenproperties&quot;, ca.getCAToken().getProperties());</span>
-<span class="nc" id="L200">            details.put(&quot;tokensequence&quot;, ca.getCAToken().getKeySequence());</span>
-<span class="nc" id="L201">            logSession.log(EventTypes.CA_CREATION, EventStatus.SUCCESS, ModuleTypes.CA, ServiceTypes.CORE, admin.toString(), String.valueOf(ca.getCAId()), null, null, details);</span>
-<span class="nc" id="L202">        } else {</span>
-<span class="nc" id="L203">            log.debug(&quot;Trying to add null CA, nothing done.&quot;);</span>
+<span class="nc" id="L761">    return returnval;</span>
+  }
+
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  @Override
+  public List&lt;Integer&gt; getAuthorizedCaIds(final AuthenticationToken admin) {
+<span class="nc" id="L767">    final Collection&lt;Integer&gt; availableCaIds = getAllCaIds();</span>
+<span class="nc" id="L768">    final ArrayList&lt;Integer&gt; returnval = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L769" title="All 2 branches missed.">    for (Integer caid : availableCaIds) {</span>
+<span class="nc bnc" id="L770" title="All 2 branches missed.">      if (authorizedToCANoLogging(admin, caid)) {</span>
+<span class="nc" id="L771">        returnval.add(caid);</span>
+      }
+<span class="nc" id="L773">    }</span>
+<span class="nc" id="L774">    return returnval;</span>
+  }
+
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  @Override
+  public Collection&lt;String&gt; getAuthorizedCaNames(
+      final AuthenticationToken admin) {
+<span class="nc" id="L781">    final Collection&lt;Integer&gt; availableCaIds = getAllCaIds();</span>
+<span class="nc" id="L782">    final TreeSet&lt;String&gt; names = new TreeSet&lt;&gt;();</span>
+<span class="nc bnc" id="L783" title="All 2 branches missed.">    for (Integer caid : availableCaIds) {</span>
+<span class="nc bnc" id="L784" title="All 2 branches missed.">      if (authorizedToCANoLogging(admin, caid)) {</span>
+<span class="nc" id="L785">        names.add(getCAInfoInternal(caid).getName());</span>
+      }
+<span class="nc" id="L787">    }</span>
+<span class="nc" id="L788">    return names;</span>
+  }
+
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  @Override
+  public TreeMap&lt;String, Integer&gt; getAuthorizedCaNamesToIds(
+      final AuthenticationToken admin) {
+<span class="nc" id="L795">    final Collection&lt;Integer&gt; availableCaIds = getAllCaIds();</span>
+<span class="nc" id="L796">    final TreeMap&lt;String, Integer&gt; names = new TreeMap&lt;&gt;();</span>
+<span class="nc bnc" id="L797" title="All 2 branches missed.">    for (Integer caid : availableCaIds) {</span>
+<span class="nc bnc" id="L798" title="All 2 branches missed.">      if (authorizedToCANoLogging(admin, caid)) {</span>
+<span class="nc" id="L799">        final CAInfo caInfo = getCAInfoInternal(caid);</span>
+<span class="nc bnc" id="L800" title="All 2 branches missed.">        if (caInfo != null) {</span>
+<span class="nc" id="L801">          names.put(caInfo.getName(), caInfo.getCAId());</span>
         }
-<span class="nc" id="L205">    }</span>
+      }
+<span class="nc" id="L804">    }</span>
+<span class="nc" id="L805">    return names;</span>
+  }
 
-    @Override
-    public void editCA(final AuthenticationToken admin, final CAInfo cainfo) throws CADoesntExistsException, AuthorizationDeniedException {
-<span class="nc bnc" id="L209" title="All 2 branches missed.">        if (cainfo != null) {</span>
-<span class="nc bnc" id="L210" title="All 2 branches missed.">        	if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L211">        		log.trace(&quot;&gt;editCA (CAInfo): &quot;+cainfo.getName());</span>
-        	}
-    		try {
-<span class="nc" id="L214">    			final CA ca = getCAInternal(cainfo.getCAId(), null, false);</span>
-    			// Check if we can edit the CA (also checks authorization)
-<span class="nc" id="L216">    			int newCryptoTokenId = ca.getCAToken().getCryptoTokenId();</span>
-<span class="nc bnc" id="L217" title="All 2 branches missed.">    			if (cainfo.getCAToken() != null) {</span>
-<span class="nc" id="L218">    			    newCryptoTokenId = cainfo.getCAToken().getCryptoTokenId();</span>
-    			}
-<span class="nc" id="L220">                assertAuthorizationAndTarget(admin, cainfo.getName(), cainfo.getSubjectDN(), newCryptoTokenId, ca);</span>
-                @SuppressWarnings(&quot;unchecked&quot;)
-<span class="nc" id="L222">                final Map&lt;Object, Object&gt; orgmap = (Map&lt;Object, Object&gt;)ca.saveData();</span>
-<span class="nc" id="L223">                AvailableCustomCertificateExtensionsConfiguration cceConfig = (AvailableCustomCertificateExtensionsConfiguration)</span>
-<span class="nc" id="L224">                        globalConfigurationSession.getCachedConfiguration(AvailableCustomCertificateExtensionsConfiguration.CONFIGURATION_ID);</span>
-<span class="nc" id="L225">                ca.updateCA(cryptoTokenManagementSession.getCryptoToken(ca.getCAToken().getCryptoTokenId()), cainfo, cceConfig);</span>
-                // Audit log
-                @SuppressWarnings(&quot;unchecked&quot;)
-<span class="nc" id="L228">                final Map&lt;Object, Object&gt; newmap = (Map&lt;Object, Object&gt;)ca.saveData();</span>
-    			// Get the diff of what changed
-<span class="nc" id="L230">                final Map&lt;Object, Object&gt; diff = UpgradeableDataHashMap.diffMaps(orgmap, newmap);</span>
-<span class="nc" id="L231">                final String msg = intres.getLocalizedMessage(&quot;caadmin.editedca&quot;, ca.getCAId(), ca.getName(), ca.getStatus());</span>
-    			// Use a LinkedHashMap because we want the details logged (in the final log string) in the order we insert them, and not randomly
-<span class="nc" id="L233">                final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
-<span class="nc" id="L234">                details.put(&quot;msg&quot;, msg);</span>
-<span class="nc bnc" id="L235" title="All 2 branches missed.">    			for (final Map.Entry&lt;Object,Object&gt; entry : diff.entrySet()) {</span>
-<span class="nc" id="L236">    				details.put(entry.getKey().toString(), entry.getValue().toString());</span>
-<span class="nc" id="L237">    			}</span>
-<span class="nc" id="L238">                details.put(&quot;tokenproperties&quot;, ca.getCAToken().getProperties());</span>
-<span class="nc" id="L239">                details.put(&quot;tokensequence&quot;, ca.getCAToken().getKeySequence());</span>
-<span class="nc" id="L240">                logSession.log(EventTypes.CA_EDITING, EventStatus.SUCCESS, ModuleTypes.CA, ServiceTypes.CORE,admin.toString(), String.valueOf(ca.getCAId()), null, null, details);</span>
-                // Store it
-<span class="nc" id="L242">                mergeCa(ca);</span>
-<span class="nc" id="L243">    		} catch (InvalidAlgorithmException e) {</span>
-<span class="nc" id="L244">                throw new CADoesntExistsException(e);</span>
-<span class="nc" id="L245">            }</span>
-<span class="nc bnc" id="L246" title="All 2 branches missed.">        	if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L247">        		log.trace(&quot;&lt;editCA (CAInfo): &quot;+cainfo.getName());</span>
-        	}
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  @Override
+  public List&lt;CAInfo&gt; getAuthorizedAndEnabledCaInfos(
+      final AuthenticationToken authenticationToken) {
+<span class="nc" id="L812">    List&lt;CAInfo&gt; result = new ArrayList&lt;CAInfo&gt;();</span>
+<span class="nc bnc" id="L813" title="All 2 branches missed.">    for (int caId : getAuthorizedCaIds(authenticationToken)) {</span>
+<span class="nc" id="L814">      CAInfo caInfo = getCAInfoInternal(caId);</span>
+<span class="nc bnc" id="L815" title="All 2 branches missed.">      if (caInfo != null</span>
+<span class="nc bnc" id="L816" title="All 2 branches missed.">          &amp;&amp; caInfo.getStatus() != CAConstants.CA_EXTERNAL</span>
+<span class="nc bnc" id="L817" title="All 2 branches missed.">          &amp;&amp; caInfo.getStatus() != CAConstants.CA_UNINITIALIZED</span>
+<span class="nc bnc" id="L818" title="All 2 branches missed.">          &amp;&amp; caInfo.getStatus()</span>
+              != CAConstants.CA_WAITING_CERTIFICATE_RESPONSE) {
+<span class="nc" id="L820">        result.add(caInfo);</span>
+      }
+<span class="nc" id="L822">    }</span>
+<span class="nc" id="L823">    return result;</span>
+  }
+
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  @Override
+  public List&lt;CAInfo&gt; getAuthorizedAndNonExternalCaInfos(
+      final AuthenticationToken authenticationToken) {
+<span class="nc" id="L830">    List&lt;CAInfo&gt; result = new ArrayList&lt;CAInfo&gt;();</span>
+<span class="nc bnc" id="L831" title="All 2 branches missed.">    for (Integer caId : getAuthorizedCaIds(authenticationToken)) {</span>
+<span class="nc" id="L832">      CAInfo caInfo = getCAInfoInternal(caId);</span>
+<span class="nc bnc" id="L833" title="All 4 branches missed.">      if (caInfo != null &amp;&amp; caInfo.getStatus() != CAConstants.CA_EXTERNAL) {</span>
+<span class="nc" id="L834">        result.add(caInfo);</span>
+      }
+<span class="nc" id="L836">    }</span>
+<span class="nc" id="L837">    return result;</span>
+  }
+
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  @Override
+  public List&lt;CAInfo&gt; getAuthorizedCaInfos(
+      final AuthenticationToken authenticationToken) {
+<span class="nc" id="L844">    List&lt;CAInfo&gt; result = new ArrayList&lt;CAInfo&gt;();</span>
+<span class="nc bnc" id="L845" title="All 2 branches missed.">    for (Integer caId : getAuthorizedCaIds(authenticationToken)) {</span>
+<span class="nc" id="L846">      CAInfo caInfo = getCAInfoInternal(caId);</span>
+<span class="nc bnc" id="L847" title="All 2 branches missed.">      if (caInfo != null) {</span>
+<span class="nc" id="L848">        result.add(caInfo);</span>
+      }
+<span class="nc" id="L850">    }</span>
+<span class="nc" id="L851">    return result;</span>
+  }
+
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  @Override
+  public void verifyExistenceOfCA(final int caid)
+      throws CADoesntExistsException {
+<span class="nc bnc" id="L858" title="All 2 branches missed.">    if (getCAInternal(caid, null, true) == null) {</span>
+<span class="nc" id="L859">      throw new CADoesntExistsException(</span>
+          &quot;CA with id &quot; + caid + &quot; does not exist.&quot;);
+    }
+<span class="nc" id="L862">  }</span>
+
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  @Override
+  public HashMap&lt;Integer, String&gt; getCAIdToNameMap() {
+<span class="nc" id="L867">    final HashMap&lt;Integer, String&gt; returnval = new HashMap&lt;Integer, String&gt;();</span>
+<span class="nc bnc" id="L868" title="All 2 branches missed.">    for (final CAData cadata : findAll()) {</span>
+<span class="nc" id="L869">      returnval.put(cadata.getCaId(), cadata.getName());</span>
+<span class="nc" id="L870">    }</span>
+<span class="nc" id="L871">    return returnval;</span>
+  }
+
+  /**
+   * Internal method for getting CA, to avoid code duplication. Tries to find
+   * the CA even if the CAId is wrong due to CA certificate DN not being the
+   * same as CA DN. Uses CACache directly if configured to do so in
+   * ejbca.properties.
+   *
+   * &lt;p&gt;Note! No authorization checks performed in this internal method
+   *
+   * @param caid numerical id of CA (subjectDN.hashCode()) that we search for,
+   *     or -1 if a name is to be used instead
+   * @param name human readable name of CA, used instead of caid if caid == -1,
+   *     can be null if caid != -1
+   * @param fromCache if we should use the CA cache or return a new, decoupled,
+   *     instance from the database, to be used when you need a completely
+   *     distinct object, for edit, and not a shared cached instance.
+   * @return CA value object, or null if it doesn't exist.
+   */
+  private CA getCAInternal(
+      final int caid, final String name, final boolean fromCache) {
+<span class="nc bnc" id="L893" title="All 2 branches missed.">    if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L894">      LOG.trace(&quot;&gt;getCAInternal: &quot; + caid + &quot;, &quot; + name);</span>
+    }
+<span class="nc" id="L896">    Integer caIdValue = Integer.valueOf(caid);</span>
+<span class="nc bnc" id="L897" title="All 2 branches missed.">    if (caid == -1) {</span>
+<span class="nc" id="L898">      caIdValue = CaCache.INSTANCE.getNameToIdMap().get(name);</span>
+    }
+<span class="nc" id="L900">    CA ca = null;</span>
+<span class="nc bnc" id="L901" title="All 4 branches missed.">    if (fromCache &amp;&amp; caIdValue != null) {</span>
+<span class="nc" id="L902">      ca = getCa(caIdValue.intValue());</span>
+<span class="nc bnc" id="L903" title="All 4 branches missed.">      if (ca != null &amp;&amp; hasCAExpiredNow(ca)) {</span>
+        // CA has expired, re-read from database with the side affect that the
+        // status will be updated
+<span class="nc" id="L906">        ca = getCAData(caid, name).getCA();</span>
+      }
+    } else {
+<span class="nc" id="L909">      CAData caData = getCAData(caid, name);</span>
+<span class="nc bnc" id="L910" title="All 2 branches missed.">      if (caData != null) {</span>
+<span class="nc" id="L911">        ca = caData.getCA();</span>
+      }
+    }
+<span class="nc bnc" id="L914" title="All 2 branches missed.">    if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L915">      LOG.trace(&quot;&lt;getCAInternal: &quot; + caid + &quot;, &quot; + name);</span>
+    }
+<span class="nc" id="L917">    return ca;</span>
+  }
+
+  /**
+   * Checks if the CA certificate has expired (or is not yet valid) since last
+   * check. Logs an info message first time that the CA certificate has expired,
+   * or every time when not yet valid.
+   *
+   * @param ca CA
+   * @return the true if the CA is expired
+   */
+  private boolean hasCAExpiredNow(final CA ca) {
+<span class="nc" id="L929">    boolean expired = false;</span>
+    // Check that CA hasn't expired.
+    try {
+<span class="nc" id="L932">      CertTools.checkValidity(ca.getCACertificate(), new Date());</span>
+<span class="nc" id="L933">    } catch (CertificateExpiredException cee) {</span>
+      // Signers Certificate has expired, we want to make sure that the
+      // status in the database is correctly EXPIRED for this CA
+      // Don't set external CAs to expired though, because they should always be
+      // treated as external CAs
+<span class="nc bnc" id="L938" title="All 2 branches missed.">      if (ca.getStatus() != CAConstants.CA_EXPIRED</span>
+<span class="nc bnc" id="L939" title="All 2 branches missed.">          &amp;&amp; ca.getStatus() != CAConstants.CA_EXTERNAL) {</span>
+<span class="nc" id="L940">        LOG.info(</span>
+<span class="nc" id="L941">            INTRES.getLocalizedMessage(&quot;caadmin.caexpired&quot;, ca.getSubjectDN())</span>
+                + &quot; &quot;
+<span class="nc" id="L943">                + cee.getMessage());</span>
+<span class="nc" id="L944">        expired = true;</span>
+      }
+<span class="nc" id="L946">    } catch (CertificateNotYetValidException e) {</span>
+      // Signers Certificate is not yet valid.
+<span class="nc" id="L948">      LOG.warn(</span>
+<span class="nc" id="L949">          INTRES.getLocalizedMessage(&quot;caadmin.canotyetvalid&quot;, ca.getSubjectDN())</span>
+              + &quot; &quot;
+<span class="nc" id="L951">              + e.getMessage());</span>
+<span class="nc" id="L952">    }</span>
+<span class="nc" id="L953">    return expired;</span>
+  }
+
+  /**
+   * Internal method for getting CAData. Tries to find the CA even if the CAId
+   * is wrong due to CA certificate DN not being the same as CA DN.
+   *
+   * &lt;p&gt;The returned CAData object is guaranteed to be upgraded and these
+   * upgrades merged back to the database.
+   *
+   * @param caid numerical id of CA (subjectDN.hashCode()) that we search for,
+   *     or -1 of a name is to ge used instead
+   * @param name human readable name of CA, used instead of caid if caid == -1,
+   *     can be null of caid != -1
+   * @return the CA, or null if it was not found
+   */
+  private CAData getCAData(final int caid, final String name) {
+<span class="nc" id="L970">    CAData cadata = null;</span>
+<span class="nc bnc" id="L971" title="All 2 branches missed.">    if (caid != -1) {</span>
+<span class="nc" id="L972">      cadata = upgradeAndMergeToDatabase(findById(Integer.valueOf(caid)));</span>
+<span class="nc bnc" id="L973" title="All 4 branches missed.">      if (LOG.isDebugEnabled() &amp;&amp; cadata == null) {</span>
+<span class="nc" id="L974">        LOG.debug(&quot;Unable to get CAData with ID (from SubjectDN): &quot; + caid);</span>
+      }
+    } else {
+<span class="nc" id="L977">      cadata = upgradeAndMergeToDatabase(findByName(name));</span>
+<span class="nc bnc" id="L978" title="All 4 branches missed.">      if (LOG.isDebugEnabled() &amp;&amp; cadata == null) {</span>
+<span class="nc" id="L979">        LOG.debug(&quot;Unable to get CAData with name: &quot; + name);</span>
+      }
+    }
+<span class="nc bnc" id="L982" title="All 2 branches missed.">    if (cadata == null) {</span>
+      // We should never get to here if we are searching for name, in any
+      // case if the name does not exist, the CA really does not exist
+      // We don't have to try to find another mapping for the CAId
+<span class="nc bnc" id="L986" title="All 2 branches missed.">      if (caid != -1) {</span>
+        // subject DN of the CA certificate might not have all objects
+        // that is the DN of the certificate data.
+<span class="nc" id="L989">        final Integer oRealCAId =</span>
+<span class="nc" id="L990">            CACacheHelper.getCaCertHash(Integer.valueOf(caid));</span>
+        // has the &quot;real&quot; CAID been mapped to the certificate subject
+        // hash by a previous call?
+<span class="nc bnc" id="L993" title="All 2 branches missed.">        if (oRealCAId != null) {</span>
+          // yes, using cached value of real caid.
+<span class="nc bnc" id="L995" title="All 2 branches missed.">          if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L996">            LOG.debug(</span>
+                &quot;Found a mapping from caid &quot;
+                    + caid
+                    + &quot; to realCaid &quot;
+                    + oRealCAId);
+          }
+<span class="nc" id="L1002">          cadata = findById(oRealCAId);</span>
         } else {
-<span class="nc" id="L250">            log.debug(&quot;Trying to edit null CAInfo, nothing done.&quot;);</span>
+          // no, we have to search for it among all CA certs
+<span class="nc bnc" id="L1005" title="All 2 branches missed.">          for (final CAData currentCaData : findAll()) {</span>
+<span class="nc" id="L1006">            final CAData currentUpgradedCaData =</span>
+<span class="nc" id="L1007">                upgradeAndMergeToDatabase(currentCaData);</span>
+<span class="nc" id="L1008">            final Certificate caCert =</span>
+<span class="nc" id="L1009">                currentUpgradedCaData.getCA().getCACertificate();</span>
+<span class="nc bnc" id="L1010" title="All 2 branches missed.">            if (caCert != null</span>
+<span class="nc bnc" id="L1011" title="All 2 branches missed.">                &amp;&amp; caid == CertTools.getSubjectDN(caCert).hashCode()) {</span>
+<span class="nc" id="L1012">              cadata = currentUpgradedCaData; // found.</span>
+              // Do also cache it if someone else is needing it later
+<span class="nc bnc" id="L1014" title="All 2 branches missed.">              if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L1015">                LOG.debug(</span>
+                    &quot;Adding a mapping from caid &quot;
+                        + caid
+                        + &quot; to realCaid &quot;
+<span class="nc" id="L1019">                        + cadata.getCaId());</span>
+              }
+<span class="nc" id="L1021">              CACacheHelper.putCaCertHash(</span>
+<span class="nc" id="L1022">                  Integer.valueOf(caid), Integer.valueOf(cadata.getCaId()));</span>
+            }
+<span class="nc bnc" id="L1024" title="All 2 branches missed.">            if (cadata != null) {</span>
+<span class="nc" id="L1025">              break;</span>
+            }
+<span class="nc" id="L1027">          }</span>
         }
-<span class="nc" id="L252">    }</span>
-
-    @Override
-    public void editCA(final AuthenticationToken admin, final CA ca, boolean auditlog) throws CADoesntExistsException, AuthorizationDeniedException {
-<span class="nc bnc" id="L256" title="All 2 branches missed.">        if (ca != null) {</span>
-<span class="nc bnc" id="L257" title="All 2 branches missed.">            if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L258">                log.trace(&quot;&gt;editCA (CA): &quot;+ca.getName());</span>
-            }
-<span class="nc" id="L260">            final CA orgca = getCAInternal(ca.getCAId(), null, true);</span>
-            // Check if we can edit the CA (also checks authorization)
-<span class="nc" id="L262">            assertAuthorizationAndTarget(admin, ca.getName(), ca.getSubjectDN(), ca.getCAToken().getCryptoTokenId(), orgca);</span>
-<span class="nc bnc" id="L263" title="All 2 branches missed.">            if (auditlog) {</span>
-                // Get the diff of what changed
-<span class="nc" id="L265">                final Map&lt;Object, Object&gt; diff = orgca.diff(ca);</span>
-<span class="nc" id="L266">                String msg = intres.getLocalizedMessage(&quot;caadmin.editedca&quot;, ca.getCAId(), ca.getName(), ca.getStatus());</span>
-                // Use a LinkedHashMap because we want the details logged (in the final log string) in the order we insert them, and not randomly
-<span class="nc" id="L268">                final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
-<span class="nc" id="L269">                details.put(&quot;msg&quot;, msg);</span>
-<span class="nc bnc" id="L270" title="All 2 branches missed.">                for (Map.Entry&lt;Object,Object&gt; entry : diff.entrySet()) {</span>
-<span class="nc" id="L271">                    details.put(entry.getKey().toString(), entry.getValue().toString());</span>
-<span class="nc" id="L272">                }</span>
-<span class="nc" id="L273">                details.put(&quot;tokenproperties&quot;, ca.getCAToken().getProperties());</span>
-<span class="nc" id="L274">                details.put(&quot;tokensequence&quot;, ca.getCAToken().getKeySequence());</span>
-<span class="nc" id="L275">                logSession.log(EventTypes.CA_EDITING, EventStatus.SUCCESS, ModuleTypes.CA, ServiceTypes.CORE,admin.toString(), String.valueOf(ca.getCAId()), null, null, details);</span>
-            }
-<span class="nc bnc" id="L277" title="All 2 branches missed.">            if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L278">                log.trace(&quot;&lt;editCA (CA): &quot;+ca.getName());</span>
-            }
-            // Store it
-<span class="nc" id="L281">            mergeCa(ca);</span>
-<span class="nc" id="L282">        } else {</span>
-<span class="nc" id="L283">            log.debug(&quot;Trying to edit null CA, nothing done.&quot;);</span>
-        }
-<span class="nc" id="L285">    }</span>
-
-    @Override
-    public boolean existsCa(final int caId) {
-<span class="nc bnc" id="L289" title="All 2 branches missed.">        return entityManager.find(CAData.class, caId) != null;</span>
-    }
-    @Override
-    public boolean existsCa(final String name) {
-<span class="nc bnc" id="L293" title="All 2 branches missed.">        return findByName(name) != null;</span>
-    }
-
-    @Override
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public boolean existsKeyValidatorInCAs(int keyValidatorId) throws AuthorizationDeniedException {
-<span class="nc bnc" id="L299" title="All 2 branches missed.">        for (final Integer caId : getAllCaIds()) {</span>
-<span class="nc" id="L300">            final Collection&lt;Integer&gt; ids = getCAInfoInternal(caId).getValidators();</span>
-<span class="nc bnc" id="L301" title="All 2 branches missed.">            if (ids != null) {</span>
-<span class="nc bnc" id="L302" title="All 2 branches missed.">                for (final Integer id : ids) {</span>
-<span class="nc bnc" id="L303" title="All 2 branches missed.">                    if (id.intValue() == keyValidatorId) {</span>
-                        // We have found a match. No point in looking for more.
-<span class="nc" id="L305">                        return true;</span>
-                    }
-<span class="nc" id="L307">                }</span>
-            }
-<span class="nc" id="L309">        }</span>
-<span class="nc" id="L310">        return false;</span>
-    }
-
-	/** Ensure that the caller is authorized to the CA we are about to edit and that the CA name and subjectDN matches. 
-	 * @param admin Auth token
-	 * @param name Name
-	 * @param subjectDN DN
-	 * @param cryptoTokenId ID
-	 * @param ca CA
-	 * @throws CADoesntExistsException If CA not found 
-	 * @throws AuthorizationDeniedException If access denied */
-	private void assertAuthorizationAndTarget(AuthenticationToken admin, final String name, final String subjectDN, final int cryptoTokenId, final CA ca)
-			throws CADoesntExistsException, AuthorizationDeniedException {
-<span class="nc" id="L323">		assertAuthorizationAndTargetWithNewSubjectDn(admin, name, subjectDN, cryptoTokenId, ca);</span>
-<span class="nc bnc" id="L324" title="All 4 branches missed.">        if (!StringUtils.equals(subjectDN, ca.getSubjectDN()) &amp;&amp; ca.getCAInfo().getStatus() != CAConstants.CA_UNINITIALIZED) {</span>
-<span class="nc" id="L325">            throw new CADoesntExistsException(&quot;Not same CA subject DN.&quot;);</span>
-        }
-<span class="nc" id="L327">	}</span>
-
-	/** Ensure that the caller is authorized to the CA we are about to edit and that the CA name matches. 
-	 * @param admin Admin
-	 * @param name Name
-	 * @param subjectDN DN 
-	 * @param cryptoTokenId ID
-	 * @param ca CA
-	 * @throws CADoesntExistsException If CA not found 
-	 * @throws AuthorizationDeniedException If access denied*/
-    private void assertAuthorizationAndTargetWithNewSubjectDn(AuthenticationToken admin, final String name, final String subjectDN, final int cryptoTokenId, final CA ca)
-            throws CADoesntExistsException, AuthorizationDeniedException {
-        // Check if we are authorized to edit CA and authorization to specific CA
-<span class="nc bnc" id="L340" title="All 4 branches missed.">        if (cryptoTokenId == ca.getCAToken().getCryptoTokenId() || cryptoTokenId==0) {</span>
-<span class="nc bnc" id="L341" title="All 2 branches missed.">            if (!authorizationSession.isAuthorized(admin, StandardRules.CAEDIT.resource(), StandardRules.CAACCESS.resource() + ca.getCAId())) {</span>
-<span class="nc" id="L342">                String msg = intres.getLocalizedMessage(&quot;caadmin.notauthorizedtoeditca&quot;, admin.toString(), Integer.valueOf(ca.getCAId()));</span>
-<span class="nc" id="L343">                throw new AuthorizationDeniedException(msg);</span>
-            }
+      }
+<span class="nc bnc" id="L1030" title="All 2 branches missed.">      if (cadata == null) {</span>
+        String msg;
+<span class="nc bnc" id="L1032" title="All 2 branches missed.">        if (caid != -1) {</span>
+<span class="nc" id="L1033">          msg =</span>
+<span class="nc" id="L1034">              INTRES.getLocalizedMessage(</span>
+<span class="nc" id="L1035">                  &quot;caadmin.canotexistsid&quot;, Integer.valueOf(caid));</span>
         } else {
-            // We only need to check usage authorization if we change CryptoToken reference (and not to 0 which means &quot;removed&quot;).
-<span class="nc bnc" id="L347" title="All 2 branches missed.">            if (!authorizationSession.isAuthorized(admin, StandardRules.CAEDIT.resource(), StandardRules.CAACCESS.resource() + ca.getCAId(), CryptoTokenRules.USE.resource() + &quot;/&quot; + cryptoTokenId)) {</span>
-<span class="nc" id="L348">                String msg = intres.getLocalizedMessage(&quot;caadmin.notauthorizedtoeditca&quot;, admin.toString(), Integer.valueOf(ca.getCAId()));</span>
-<span class="nc" id="L349">                throw new AuthorizationDeniedException(msg);</span>
-            }
+<span class="nc" id="L1037">          msg = INTRES.getLocalizedMessage(&quot;caadmin.canotexistsname&quot;, name);</span>
         }
-        // The CA needs the same name and subject DN in order to store it
-<span class="nc bnc" id="L353" title="All 4 branches missed.">        if (name == null || subjectDN == null) {</span>
-<span class="nc" id="L354">            throw new CADoesntExistsException(&quot;Null CA name or SubjectDN&quot;);</span>
-<span class="nc bnc" id="L355" title="All 2 branches missed.">        } else if (!StringUtils.equals(name, ca.getName())) {</span>
-<span class="nc" id="L356">            throw new CADoesntExistsException(&quot;Not same CA name.&quot;);</span>
-        }
-<span class="nc" id="L358">    }</span>
-
-    @Override
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public CA getCA(final AuthenticationToken admin, final int caid) throws AuthorizationDeniedException {
-<span class="nc bnc" id="L363" title="All 2 branches missed.">        if (!authorizedToCA(admin, caid)) {</span>
-<span class="nc" id="L364">            String msg = intres.getLocalizedMessage(&quot;caadmin.notauthorizedtoca&quot;, admin.toString(), Integer.valueOf(caid));</span>
-<span class="nc" id="L365">            throw new AuthorizationDeniedException(msg);</span>
-        }
-<span class="nc" id="L367">        return getCAInternal(caid, null, true);</span>
+<span class="nc" id="L1039">        LOG.info(msg);</span>
+      }
     }
+<span class="nc" id="L1042">    return cadata;</span>
+  }
 
-    @Override
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public CA getCA(final AuthenticationToken admin, final String name) throws AuthorizationDeniedException {
-<span class="nc" id="L373">        CA ca = getCAInternal(-1, name, true);</span>
-<span class="nc bnc" id="L374" title="All 2 branches missed.">        if(ca != null) { </span>
-<span class="nc bnc" id="L375" title="All 2 branches missed.">            if (!authorizedToCA(admin, ca.getCAId())) {</span>
-<span class="nc" id="L376">                String msg = intres.getLocalizedMessage(&quot;caadmin.notauthorizedtoca&quot;, admin.toString(), name);</span>
-<span class="nc" id="L377">                throw new AuthorizationDeniedException(msg);</span>
-            }
-        }
-<span class="nc" id="L380">        return ca;</span>
+  @Override
+  public boolean authorizedToCANoLogging(
+      final AuthenticationToken admin, final int caid) {
+<span class="nc" id="L1048">    final boolean ret =</span>
+<span class="nc" id="L1049">        authorizationSession.isAuthorizedNoLogging(</span>
+<span class="nc" id="L1050">            admin, StandardRules.CAACCESS.resource() + caid);</span>
+<span class="nc bnc" id="L1051" title="All 4 branches missed.">    if (LOG.isDebugEnabled() &amp;&amp; !ret) {</span>
+<span class="nc" id="L1052">      final String msg =</span>
+<span class="nc" id="L1053">          INTRES.getLocalizedMessage(</span>
+<span class="nc" id="L1054">              &quot;caadmin.notauthorizedtoca&quot;, admin.toString(), caid);</span>
+<span class="nc" id="L1055">      LOG.debug(msg);</span>
     }
+<span class="nc" id="L1057">    return ret;</span>
+  }
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    @Override
-    public CA getCANoLog(final AuthenticationToken admin, final int caid) throws AuthorizationDeniedException {
-<span class="nc bnc" id="L386" title="All 2 branches missed.">        if (!authorizedToCANoLogging(admin, caid)) {</span>
-<span class="nc" id="L387">            String msg = intres.getLocalizedMessage(&quot;caadmin.notauthorizedtoca&quot;, admin.toString(), Integer.valueOf(caid));</span>
-<span class="nc" id="L388">            throw new AuthorizationDeniedException(msg);</span>
-        }
-<span class="nc" id="L390">        return getCAInternal(caid, null, true);</span>
+  @Override
+  public boolean authorizedToCA(
+      final AuthenticationToken admin, final int caid) {
+<span class="nc" id="L1063">    final boolean ret =</span>
+<span class="nc" id="L1064">        authorizationSession.isAuthorized(</span>
+<span class="nc" id="L1065">            admin, StandardRules.CAACCESS.resource() + caid);</span>
+<span class="nc bnc" id="L1066" title="All 4 branches missed.">    if (LOG.isDebugEnabled() &amp;&amp; !ret) {</span>
+<span class="nc" id="L1067">      final String msg =</span>
+<span class="nc" id="L1068">          INTRES.getLocalizedMessage(</span>
+<span class="nc" id="L1069">              &quot;caadmin.notauthorizedtoca&quot;, admin.toString(), caid);</span>
+<span class="nc" id="L1070">      LOG.debug(msg);</span>
     }
+<span class="nc" id="L1072">    return ret;</span>
+  }
 
-    @Override
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public CA getCAForEdit(final AuthenticationToken admin, final int caid) throws AuthorizationDeniedException {
-<span class="nc" id="L396">        CA ca = getCAInternal(caid, null, false);</span>
-<span class="nc bnc" id="L397" title="All 2 branches missed.">        if (ca != null) {</span>
-<span class="nc bnc" id="L398" title="All 2 branches missed.">            if (!authorizedToCA(admin, ca.getCAId())) {</span>
-<span class="nc" id="L399">                String msg = intres.getLocalizedMessage(&quot;caadmin.notauthorizedtoca&quot;, admin.toString(), Integer.valueOf(caid));</span>
-<span class="nc" id="L400">                throw new AuthorizationDeniedException(msg);</span>
-            }
-        }
-<span class="nc" id="L403">        return ca;</span>
+  /**
+   * @param ocaId ID
+   * @return the CA object, from the database (including any upgrades) is
+   *     necessary
+   */
+  private CA getCa(final int ocaId) {
+<span class="nc" id="L1081">    final Integer realCAId =</span>
+<span class="nc" id="L1082">            CACacheHelper.getCaCertHash(Integer.valueOf(ocaId));</span>
+    int caId;
+<span class="nc bnc" id="L1084" title="All 2 branches missed.">    if (realCAId != null) {</span>
+      // Since we have found a cached &quot;real&quot; CA Id and the cache will use this
+      // one (if cached)
+<span class="nc" id="L1087">      caId = realCAId.intValue();</span>
+    } else {
+<span class="nc" id="L1089">        caId = ocaId;</span>
     }
-
-    @Override
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public CA getCAForEdit(final AuthenticationToken admin, final String name) throws AuthorizationDeniedException {
-<span class="nc" id="L409">        CA ca = getCAInternal(-1, name, false);</span>
-<span class="nc bnc" id="L410" title="All 2 branches missed.">        if(ca == null) {</span>
-<span class="nc" id="L411">            return null;</span>
+    // 1. Check (new) CaCache if it is time to sync-up with database
+<span class="nc bnc" id="L1092" title="All 2 branches missed.">    if (CaCache.INSTANCE.shouldCheckForUpdates(caId)) {</span>
+<span class="nc" id="L1093">      LOG.debug(&quot;CA with ID &quot; + caId + &quot; will be checked for updates.&quot;);</span>
+      // 2. If cache is expired or missing, first thread to discover this
+      // reloads item from database and sends it to the cache
+<span class="nc" id="L1096">      CAData caData = getCAData(caId, null);</span>
+<span class="nc bnc" id="L1097" title="All 2 branches missed.">      if (caData != null) {</span>
+<span class="nc" id="L1098">        final int digest = caData.getProtectString(0).hashCode();</span>
+        // Special for splitting out the CAToken and committing it..
+        // Since getCAData has already run upgradeAndMergeToDatabase we can just
+        // get the CA here..
+<span class="nc" id="L1102">        CA ca = caData.getCA();</span>
+<span class="nc bnc" id="L1103" title="All 2 branches missed.">        if (ca != null) {</span>
+          // Note that we store using the &quot;real&quot; CAId in the cache.
+<span class="nc" id="L1105">          CaCache.INSTANCE.updateWith(</span>
+<span class="nc" id="L1106">              caData.getCaId(), digest, ca.getName(), ca);</span>
         }
-<span class="nc bnc" id="L413" title="All 2 branches missed.">        if (!authorizedToCA(admin, ca.getCAId())) {</span>
-<span class="nc" id="L414">            String msg = intres.getLocalizedMessage(&quot;caadmin.notauthorizedtoca&quot;, admin.toString(), name);</span>
-<span class="nc" id="L415">            throw new AuthorizationDeniedException(msg);</span>
-        }
-<span class="nc" id="L417">        return ca;</span>
+        // Since caching might be disabled, we return the value returned from
+        // the database here
+<span class="nc" id="L1110">        return ca;</span>
+      } else {
+        // Ensure that it is removed from cache
+<span class="nc" id="L1113">        CaCache.INSTANCE.removeEntry(caId);</span>
+      }
+      // 3. The cache compares the database data with what is in the cache
+      // 4. If database is different from cache, replace it in the cache
     }
+    // 5. Get CA from cache (or null) and be merry
+<span class="nc" id="L1119">    return CaCache.INSTANCE.getEntry(caId);</span>
+  }
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    @Override
-    public CAInfo getCAInfo(final AuthenticationToken admin, final String name) throws AuthorizationDeniedException {
-        // Authorization is handled by getCA
-<span class="nc" id="L424">        CA ca = getCA(admin, name);</span>
-<span class="nc bnc" id="L425" title="All 2 branches missed.">        if (ca == null) {</span>
-<span class="nc" id="L426">            return null;</span>
-        } else {
-<span class="nc" id="L428">            return ca.getCAInfo();</span>
-        }
+  @TransactionAttribute(TransactionAttributeType.REQUIRED)
+  @Override
+  public int mergeCa(final CA ca) {
+<span class="nc" id="L1125">    final int caId = ca.getCAId();</span>
+<span class="nc" id="L1126">    CAData caData = entityManager.find(CAData.class, caId);</span>
+<span class="nc bnc" id="L1127" title="All 2 branches missed.">    if (caData == null) {</span>
+<span class="nc" id="L1128">      caData = new CAData(ca.getSubjectDN(), ca.getName(), ca.getStatus(), ca);</span>
+    } else {
+      // It might be the case that the calling transaction has already loaded a
+      // reference to this object
+      // and hence we need to get the same one and perform updates on this
+      // object instead of trying to
+      // merge a new object.
+<span class="nc" id="L1135">      caData.setCA(ca);</span>
     }
+<span class="nc" id="L1137">    caData = entityManager.merge(caData);</span>
+    // Since loading a CA is quite complex (populating CAInfo etc), we simple
+    // purge the cache here
+<span class="nc" id="L1140">    CaCache.INSTANCE.removeEntry(caId);</span>
+<span class="nc" id="L1141">    caIDCache.forceCacheExpiration();</span>
+<span class="nc" id="L1142">    return caId;</span>
+  }
 
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    @Override
-    public CAInfo getCAInfo(final AuthenticationToken admin, final int caid) throws AuthorizationDeniedException {
-        // Authorization is handled by getCA
-<span class="nc" id="L437">        CA ca = getCA(admin, caid);</span>
-<span class="nc bnc" id="L438" title="All 2 branches missed.">        if (ca == null) {</span>
-<span class="nc" id="L439">            return null;</span>
-        } else {
-<span class="nc" id="L441">            return ca.getCAInfo();</span>
-        }   
+  /**
+   * Performs upgrades on the entity if needed within a transaction.
+   *
+   * @param cadata Data
+   * @return Upgraded data
+   */
+  private CAData upgradeAndMergeToDatabase(final CAData cadata) {
+<span class="nc bnc" id="L1152" title="All 2 branches missed.">    if (cadata == null) {</span>
+<span class="nc" id="L1153">      return null;</span>
     }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    @Override
-    public CAInfo getCAInfoInternal(final int caid) {
-        // Authorization is handled by getCA
-<span class="nc" id="L449">        CA ca = getCAInternal(caid, null, true);</span>
-<span class="nc bnc" id="L450" title="All 2 branches missed.">        if (ca == null) {</span>
-<span class="nc" id="L451">            return null;</span>
-        } else {
-<span class="nc" id="L453">            return ca.getCAInfo();</span>
-        } 
+<span class="nc" id="L1155">    CAData caDataReturn = cadata;</span>
+<span class="nc" id="L1156">    final LinkedHashMap&lt;Object, Object&gt; caDataMap = cadata.getDataMap();</span>
+    // If CA-data is upgraded we want to save the new data, so we must get the
+    // old version before loading the data
+    // and perhaps upgrading
+<span class="nc" id="L1160">    final float oldversion =</span>
+<span class="nc" id="L1161">        ((Float) caDataMap.get(UpgradeableDataHashMap.VERSION)).floatValue();</span>
+    // Perform &quot;live&quot; upgrade from 5.0.x and earlier
+<span class="nc" id="L1163">    boolean adhocUpgrade =</span>
+<span class="nc" id="L1164">        adhocUpgradeFrom50(</span>
+<span class="nc" id="L1165">            cadata.getCaId().intValue(), caDataMap, cadata.getName());</span>
+<span class="nc bnc" id="L1166" title="All 2 branches missed.">    if (adhocUpgrade) {</span>
+      // Convert map into storage friendly format now since we changed it
+<span class="nc" id="L1168">      cadata.setDataMap(caDataMap);</span>
     }
-    
-    @Override
-    public Collection&lt;CertificateWrapper&gt; getCaChain(AuthenticationToken authenticationToken, String caName)
-            throws AuthorizationDeniedException, CADoesntExistsException {
-<span class="nc" id="L460">        final CAInfo info = getCAInfo(authenticationToken, caName);</span>
-<span class="nc bnc" id="L461" title="All 2 branches missed.">        if(info == null) {</span>
-<span class="nc" id="L462">            throw new CADoesntExistsException(&quot;CA with name &quot; + caName + &quot; doesn't exist.&quot;);</span>
+    // Fetching the CA object will trigger UpgradableHashMap upgrades
+<span class="nc" id="L1171">    CA ca = cadata.getCA();</span>
+<span class="nc bnc" id="L1172" title="All 2 branches missed.">    if (ca != null) {</span>
+<span class="nc" id="L1173">      final boolean expired = hasCAExpiredNow(ca);</span>
+<span class="nc bnc" id="L1174" title="All 2 branches missed.">      if (expired) {</span>
+<span class="nc" id="L1175">        ca.setStatus(CAConstants.CA_EXPIRED);</span>
+      }
+<span class="nc" id="L1177">      final boolean upgradedExtendedService = ca.upgradeExtendedCAServices();</span>
+      // Compare old version with current version and save the data if there has
+      // been a change
+<span class="nc" id="L1180">      final boolean upgradeCA =</span>
+<span class="nc bnc" id="L1181" title="All 2 branches missed.">          (Float.compare(oldversion, ca.getVersion()) != 0);</span>
+<span class="nc bnc" id="L1182" title="All 8 branches missed.">      if (adhocUpgrade || upgradedExtendedService || upgradeCA || expired) {</span>
+<span class="nc bnc" id="L1183" title="All 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L1184">          LOG.debug(</span>
+              &quot;Merging CA to database. Name: &quot;
+<span class="nc" id="L1186">                  + cadata.getName()</span>
+                  + &quot;, id: &quot;
+<span class="nc" id="L1188">                  + cadata.getCaId()</span>
+                  + &quot;, adhocUpgrade: &quot;
+                  + adhocUpgrade
+                  + &quot;, upgradedExtendedService: &quot;
+                  + upgradedExtendedService
+                  + &quot;, upgradeCA: &quot;
+                  + upgradeCA
+                  + &quot;, expired: &quot;
+                  + expired);
         }
-<span class="nc" id="L464">        final List&lt;CertificateWrapper&gt; result = new ArrayList&lt;&gt;();</span>
-<span class="nc bnc" id="L465" title="All 2 branches missed.">        if (info.getStatus() != CAConstants.CA_WAITING_CERTIFICATE_RESPONSE) {</span>
-<span class="nc" id="L466">            result.addAll(EJBTools.wrapCertCollection(info.getCertificateChain()));   </span>
-        }
-<span class="nc bnc" id="L468" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L469">            log.debug(&quot;CA chain request by admin &quot; + authenticationToken.getUniqueId() + &quot; &quot; + result);</span>
-        }
-<span class="nc" id="L471">        return result;</span>
+<span class="nc" id="L1198">        ca.getCAToken();</span>
+<span class="nc" id="L1199">        final int caId = caSession.mergeCa(ca);</span>
+<span class="nc" id="L1200">        caDataReturn = entityManager.find(CAData.class, caId);</span>
+      }
     }
+<span class="nc" id="L1203">    return caDataReturn;</span>
+  }
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    @Override
-    public CAInfo getCAInfoInternal(final int caid, final String name, boolean fromCache) {
-        // Authorization is handled by getCA
-<span class="nc" id="L478">        CA ca = getCAInternal(caid, name, fromCache);</span>
-<span class="nc bnc" id="L479" title="All 2 branches missed.">        if (ca == null) {</span>
-<span class="nc" id="L480">            return null;</span>
-        } else {
-<span class="nc" id="L482">            return ca.getCAInfo();</span>
-        }         
+  /**
+   * Extract keystore or keystore reference and store it as a CryptoToken. Add a
+   * reference to the keystore.
+   *
+   * @param caid ID
+   * @param data Data
+   * @param caName Name
+   * @return true if any changes where made
+   */
+  @SuppressWarnings(&quot;unchecked&quot;)
+  @Deprecated // Remove when we no longer need to support upgrades from 5.0.x
+  private boolean adhocUpgradeFrom50(
+      final int caid,
+      final LinkedHashMap&lt;Object, Object&gt; data,
+      final String caName) {
+<span class="nc" id="L1221">    HashMap&lt;String, String&gt; tokendata =</span>
+<span class="nc" id="L1222">        (HashMap&lt;String, String&gt;) data.get(CA.CATOKENDATA);</span>
+<span class="nc bnc" id="L1223" title="All 2 branches missed.">    if (tokendata.get(CAToken.CRYPTOTOKENID) != null) {</span>
+      // Already upgraded
+<span class="nc bnc" id="L1225" title="All 2 branches missed.">      if (!CesecoreConfiguration.isKeepInternalCAKeystores()) {</span>
+        // All nodes in the cluster has been upgraded so we can remove any
+        // internal CA keystore now
+<span class="nc bnc" id="L1228" title="All 2 branches missed.">        if (tokendata.get(CAToken.KEYSTORE) != null) {</span>
+<span class="nc" id="L1229">          tokendata.remove(CAToken.KEYSTORE);</span>
+<span class="nc" id="L1230">          tokendata.remove(CAToken.CLASSPATH);</span>
+<span class="nc" id="L1231">          LOG.info(</span>
+              &quot;Removed duplicate of upgraded CA's internal keystore for CA '&quot;
+                  + caName
+                  + &quot;' with id: &quot;
+                  + caid);
+<span class="nc" id="L1236">          return true;</span>
+        }
+      } else {
+<span class="nc bnc" id="L1239" title="All 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L1240">          LOG.debug(</span>
+              &quot;CA '&quot;
+                  + caName
+                  + &quot;' already has cryptoTokenId and will not have it's token&quot;
+                  + &quot; split of to a different db table because&quot;
+                  + &quot; db.keepinternalcakeystores=true: &quot;
+                  + caid);
+        }
+      }
+<span class="nc" id="L1249">      return false;</span>
     }
-
-    @Override
-    public void removeCA(final AuthenticationToken admin, final int caid) throws AuthorizationDeniedException {
-        // check authorization
-<span class="nc bnc" id="L489" title="All 2 branches missed.">        if (!authorizationSession.isAuthorized(admin, StandardRules.CAREMOVE.resource())) {</span>
-<span class="nc" id="L490">            String msg = intres.getLocalizedMessage(&quot;caadmin.notauthorizedtoremoveca&quot;, admin.toString(), Integer.valueOf(caid));</span>
-<span class="nc" id="L491">            throw new AuthorizationDeniedException(msg);</span>
-        }
-        // Get CA from database if it does not exist, ignore
-<span class="nc" id="L494">        CAData cadata = findById(Integer.valueOf(caid));</span>
-<span class="nc bnc" id="L495" title="All 2 branches missed.">        if (cadata != null) {</span>
-            // Remove CA
-<span class="nc" id="L497">            entityManager.remove(cadata);</span>
-            // Invalidate CA cache to refresh information
-<span class="nc" id="L499">            CaCache.INSTANCE.removeEntry(caid);</span>
-<span class="nc" id="L500">            caIDCache.forceCacheExpiration(); // Clear ID cache so this one will be reloaded as well.</span>
-<span class="nc" id="L501">            final String detailsMsg = intres.getLocalizedMessage(&quot;caadmin.removedca&quot;, Integer.valueOf(caid), cadata.getName());</span>
-<span class="nc" id="L502">            logSession.log(EventTypes.CA_DELETION, EventStatus.SUCCESS, ModuleTypes.CA, ServiceTypes.CORE,admin.toString(), String.valueOf(caid), null, null, detailsMsg);</span>
-        }
-<span class="nc" id="L504">    }</span>
-
-    @Override
-    public void renameCA(final AuthenticationToken admin, final String oldname, final String newname) throws CAExistsException,
-            CADoesntExistsException, AuthorizationDeniedException {
-        // Get CA from database
-<span class="nc" id="L510">        CAData cadata = findByNameOrThrow(oldname);</span>
-        // Check authorization, to rename we need remove (for the old name) and add for the new name)
-<span class="nc bnc" id="L512" title="All 2 branches missed.">        if (!authorizationSession.isAuthorized(admin, StandardRules.CAREMOVE.resource(), StandardRules.CAADD.resource())) {</span>
-<span class="nc" id="L513">            String msg = intres.getLocalizedMessage(&quot;caadmin.notauthorizedtorenameca&quot;, admin.toString(), cadata.getCaId());</span>
-<span class="nc" id="L514">            throw new AuthorizationDeniedException(msg);</span>
-        }
-<span class="nc bnc" id="L516" title="All 2 branches missed.">        if (findByName(newname) == null) {</span>
-            // The new CA doesn't exist, it's okay to rename old one.
-<span class="nc" id="L518">            cadata.setName(newname);</span>
-            // Invalidate CA cache to refresh information
-<span class="nc" id="L520">            int caid = cadata.getCaId().intValue();</span>
-<span class="nc" id="L521">            CaCache.INSTANCE.removeEntry(caid);</span>
-<span class="nc" id="L522">            caIDCache.forceCacheExpiration(); // Clear ID cache so this one will be reloaded as well.</span>
-<span class="nc" id="L523">            final String detailsMsg = intres.getLocalizedMessage(&quot;caadmin.renamedca&quot;, oldname, cadata.getCaId(), newname);</span>
-<span class="nc" id="L524">            logSession.log(EventTypes.CA_RENAMING, EventStatus.SUCCESS, ModuleTypes.CA, ServiceTypes.CORE,admin.toString(), String.valueOf(caid), null, null, detailsMsg);</span>
-<span class="nc" id="L525">        } else {</span>
-<span class="nc" id="L526">            throw new CAExistsException(&quot;CA &quot; + newname + &quot; already exists.&quot;);</span>
-        }
-<span class="nc" id="L528">    }</span>
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    @Override
-    public List&lt;Integer&gt; getAllCaIds() {
-        // We need a cache of these, to not list from the database all the time
-<span class="nc" id="L534">        return caIDCache.getCacheContent();</span>
+    // Perform pre-upgrade of CATokenData to correct classpath changes
+    // (org.ejbca.core.model.ca.catoken.SoftCAToken)
+<span class="nc" id="L1253">    tokendata =</span>
+<span class="nc" id="L1254">        (LinkedHashMap&lt;String, String&gt;) new CAToken(tokendata).saveData();</span>
+<span class="nc" id="L1255">    data.put(CA.CATOKENDATA, tokendata);</span>
+<span class="nc" id="L1256">    LOG.info(</span>
+        &quot;Pulling CryptoToken out of CA '&quot;
+            + caName
+            + &quot;' with id &quot;
+            + caid
+            + &quot; into a separate database table.&quot;);
+<span class="nc" id="L1262">    final String str = tokendata.get(CAToken.KEYSTORE);</span>
+<span class="nc" id="L1263">    byte[] keyStoreData = null;</span>
+<span class="nc bnc" id="L1264" title="All 2 branches missed.">    if (StringUtils.isNotEmpty(str)) {</span>
+<span class="nc" id="L1265">      keyStoreData = Base64.decode(str.getBytes());</span>
     }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    @Override
-    public List&lt;String&gt; getActiveCANames(final AuthenticationToken admin) {
-<span class="nc" id="L540">        return new ArrayList&lt;&gt;(getActiveCAIdToNameMap(admin).values());</span>
+<span class="nc" id="L1267">    String propertyStr = tokendata.get(CAToken.PROPERTYDATA);</span>
+<span class="nc" id="L1268">    final Properties prop = new Properties();</span>
+<span class="nc bnc" id="L1269" title="All 2 branches missed.">    if (StringUtils.isNotEmpty(propertyStr)) {</span>
+      try {
+        // If the input string contains \ (backslash on windows) we must convert
+        // it to \\
+        // Otherwise properties.load will parse it as an escaped character, and
+        // that is not good
+<span class="nc" id="L1275">        propertyStr = StringUtils.replace(propertyStr, &quot;\\&quot;, &quot;\\\\&quot;);</span>
+<span class="nc" id="L1276">        prop.load(new ByteArrayInputStream(propertyStr.getBytes()));</span>
+<span class="nc" id="L1277">      } catch (IOException e) {</span>
+<span class="nc" id="L1278">        LOG.error(&quot;Error getting CA token properties: &quot;, e);</span>
+<span class="nc" id="L1279">      }</span>
     }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    @Override
-    public Map&lt;Integer, String&gt; getActiveCAIdToNameMap(final AuthenticationToken authenticationToken) {
-<span class="nc" id="L546">        final HashMap&lt;Integer, String&gt; returnval = new HashMap&lt;&gt;();</span>
-<span class="nc bnc" id="L547" title="All 2 branches missed.">        for (int caId : getAllCaIds()) {</span>
-<span class="nc bnc" id="L548" title="All 2 branches missed.">            if (authorizedToCANoLogging(authenticationToken, caId)) {</span>
-<span class="nc" id="L549">                CAInfo caInfo = getCAInfoInternal(caId);</span>
-<span class="nc bnc" id="L550" title="All 6 branches missed.">                if (caInfo != null &amp;&amp; (caInfo.getStatus() == CAConstants.CA_ACTIVE || caInfo.getStatus() == CAConstants.CA_UNINITIALIZED)) {</span>
-<span class="nc" id="L551">                    returnval.put(caInfo.getCAId(), caInfo.getName());</span>
-                }
-            }
-<span class="nc" id="L554">        }</span>
-
-<span class="nc" id="L556">        return returnval;</span>
+<span class="nc" id="L1281">    final String classpath = tokendata.get(CAToken.CLASSPATH);</span>
+<span class="nc bnc" id="L1282" title="All 2 branches missed.">    if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L1283">      LOG.debug(&quot;CA token classpath: &quot; + classpath);</span>
     }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    @Override
-    public List&lt;Integer&gt; getAuthorizedCaIds(final AuthenticationToken admin) {
-<span class="nc" id="L562">        final Collection&lt;Integer&gt; availableCaIds = getAllCaIds();</span>
-<span class="nc" id="L563">        final ArrayList&lt;Integer&gt; returnval = new ArrayList&lt;&gt;();</span>
-<span class="nc bnc" id="L564" title="All 2 branches missed.">        for (Integer caid : availableCaIds) {</span>
-<span class="nc bnc" id="L565" title="All 2 branches missed.">            if (authorizedToCANoLogging(admin, caid)) {</span>
-<span class="nc" id="L566">                returnval.add(caid);</span>
-            }
-<span class="nc" id="L568">        }</span>
-<span class="nc" id="L569">        return returnval;</span>
+    // Upgrade the properties value
+<span class="nc" id="L1286">    final Properties upgradedProperties =</span>
+<span class="nc" id="L1287">        PKCS11CryptoToken.upgradePropertiesFileFrom50x(prop);</span>
+    // If it is an P11 we are using and the library and slot are the same as an
+    // existing CryptoToken we use that CryptoToken's id.
+<span class="nc" id="L1290">    int cryptoTokenId = 0;</span>
+<span class="nc bnc" id="L1291" title="All 2 branches missed.">    if (PKCS11CryptoToken.class.getName().equals(classpath)) {</span>
+<span class="nc bnc" id="L1292" title="All 2 branches missed.">      if (upgradedProperties.getProperty(PKCS11CryptoToken.SLOT_LABEL_TYPE)</span>
+          == null) {
+<span class="nc" id="L1294">        LOG.error(</span>
+            &quot;Upgrade of CA '&quot;
+                + caName
+                + &quot;' failed due to failed upgrade of PKCS#11 CA token&quot;
+                + &quot; properties.&quot;);
+<span class="nc" id="L1299">        return false;</span>
+      }
+      for (final Integer currentCryptoTokenId
+<span class="nc bnc" id="L1302" title="All 2 branches missed.">          : cryptoTokenSession.getCryptoTokenIds()) {</span>
+<span class="nc" id="L1303">        final CryptoToken cryptoToken =</span>
+<span class="nc" id="L1304">            cryptoTokenSession.getCryptoToken(currentCryptoTokenId.intValue());</span>
+<span class="nc" id="L1305">        final Properties cryptoTokenProperties = cryptoToken.getProperties();</span>
+<span class="nc bnc" id="L1306" title="All 2 branches missed.">        if (StringUtils.equals(</span>
+<span class="nc" id="L1307">                upgradedProperties.getProperty(</span>
+                    PKCS11CryptoToken.SHLIB_LABEL_KEY),
+<span class="nc" id="L1309">                cryptoTokenProperties.getProperty(</span>
+                    PKCS11CryptoToken.SHLIB_LABEL_KEY))
+<span class="nc bnc" id="L1311" title="All 2 branches missed.">            &amp;&amp; StringUtils.equals(</span>
+<span class="nc" id="L1312">                upgradedProperties.getProperty(</span>
+                    PKCS11CryptoToken.ATTRIB_LABEL_KEY),
+<span class="nc" id="L1314">                cryptoTokenProperties.getProperty(</span>
+                    PKCS11CryptoToken.ATTRIB_LABEL_KEY))
+<span class="nc bnc" id="L1316" title="All 2 branches missed.">            &amp;&amp; StringUtils.equals(</span>
+<span class="nc" id="L1317">                upgradedProperties.getProperty(</span>
+                    PKCS11CryptoToken.SLOT_LABEL_VALUE),
+<span class="nc" id="L1319">                cryptoTokenProperties.getProperty(</span>
+                    PKCS11CryptoToken.SLOT_LABEL_VALUE))
+<span class="nc bnc" id="L1321" title="All 2 branches missed.">            &amp;&amp; StringUtils.equals(</span>
+<span class="nc" id="L1322">                upgradedProperties.getProperty(</span>
+                    PKCS11CryptoToken.SLOT_LABEL_TYPE),
+<span class="nc" id="L1324">                cryptoTokenProperties.getProperty(</span>
+                    PKCS11CryptoToken.SLOT_LABEL_TYPE))) {
+          // The current CryptoToken point to the same HSM slot in the same
+          // way.. re-use this id!
+<span class="nc" id="L1328">          cryptoTokenId = currentCryptoTokenId.intValue();</span>
+<span class="nc" id="L1329">          break;</span>
+        }
+<span class="nc" id="L1331">      }</span>
     }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    @Override
-    public Collection&lt;String&gt; getAuthorizedCaNames(final AuthenticationToken admin) {
-<span class="nc" id="L575">        final Collection&lt;Integer&gt; availableCaIds = getAllCaIds();</span>
-<span class="nc" id="L576">        final TreeSet&lt;String&gt; names = new TreeSet&lt;&gt;();</span>
-<span class="nc bnc" id="L577" title="All 2 branches missed.">        for (Integer caid : availableCaIds) {</span>
-<span class="nc bnc" id="L578" title="All 2 branches missed.">            if (authorizedToCANoLogging(admin, caid)) {</span>
-<span class="nc" id="L579">                names.add(getCAInfoInternal(caid).getName());</span>
-            }
-<span class="nc" id="L581">        }</span>
-<span class="nc" id="L582">        return names;</span>
+<span class="nc bnc" id="L1333" title="All 2 branches missed.">    if (cryptoTokenId == 0) {</span>
+<span class="nc" id="L1334">      final String cryptoTokenName = &quot;Upgraded CA CryptoToken for &quot; + caName;</span>
+      try {
+<span class="nc" id="L1336">        cryptoTokenId =</span>
+<span class="nc" id="L1337">            cryptoTokenSession.mergeCryptoToken(</span>
+<span class="nc" id="L1338">                CryptoTokenFactory.createCryptoToken(</span>
+                    classpath,
+                    upgradedProperties,
+                    keyStoreData,
+                    caid,
+                    cryptoTokenName,
+                    true));
+<span class="nc" id="L1345">      } catch (CryptoTokenNameInUseException e) {</span>
+<span class="nc" id="L1346">        final String msg =</span>
+            &quot;Crypto token name already in use upgrading (adhocUpgradeFrom50)&quot;
+                + &quot; crypto token for CA '&quot;
+                + caName
+                + &quot;', cryptoTokenName '&quot;
+                + cryptoTokenName
+                + &quot;'.&quot;;
+<span class="nc" id="L1353">        LOG.info(msg, e);</span>
+<span class="nc" id="L1354">        throw new RuntimeException(</span>
+            msg,
+            e); // Since we have a constraint on CA names to be unique, this
+                // should never happen
+<span class="nc" id="L1358">      } catch (NoSuchSlotException e) {</span>
+<span class="nc" id="L1359">        final String msg =</span>
+            &quot;Slot as defined by &quot;
+<span class="nc" id="L1361">                + upgradedProperties.getProperty(</span>
+                    PKCS11CryptoToken.SLOT_LABEL_VALUE)
+                + &quot; for CA '&quot;
+                + caName
+                + &quot;' could not be found.&quot;;
+<span class="nc" id="L1366">        LOG.error(msg, e);</span>
+<span class="nc" id="L1367">        throw new RuntimeException(msg, e);</span>
+<span class="nc" id="L1368">      }</span>
     }
-    
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    @Override
-    public TreeMap&lt;String,Integer&gt; getAuthorizedCaNamesToIds(final AuthenticationToken admin) {
-<span class="nc" id="L588">        final Collection&lt;Integer&gt; availableCaIds = getAllCaIds();</span>
-<span class="nc" id="L589">        final TreeMap&lt;String,Integer&gt; names = new TreeMap&lt;&gt;();</span>
-<span class="nc bnc" id="L590" title="All 2 branches missed.">        for (Integer caid : availableCaIds) {</span>
-<span class="nc bnc" id="L591" title="All 2 branches missed.">            if (authorizedToCANoLogging(admin, caid)) {</span>
-<span class="nc" id="L592">                final CAInfo caInfo = getCAInfoInternal(caid);</span>
-<span class="nc bnc" id="L593" title="All 2 branches missed.">                if (caInfo != null) {</span>
-<span class="nc" id="L594">                    names.put(caInfo.getName(), caInfo.getCAId());</span>
-                }
-            }
-<span class="nc" id="L597">        }</span>
-<span class="nc" id="L598">        return names;</span>
+    // Mark this CA as upgraded by setting a reference to the CryptoToken if the
+    // merge was successful
+<span class="nc" id="L1372">    tokendata.put(CAToken.CRYPTOTOKENID, String.valueOf(cryptoTokenId));</span>
+    // Note: We did not remove the keystore in the CA properties here, so old
+    // versions running in parallel will still work
+<span class="nc" id="L1375">    LOG.info(</span>
+        &quot;CA '&quot;
+            + caName
+            + &quot;' with id &quot;
+            + caid
+            + &quot; is now using CryptoToken with cryptoTokenId &quot;
+            + cryptoTokenId);
+<span class="nc" id="L1382">    return true;</span>
+  }
+
+  @Override
+  public Certificate getFutureRolloverCertificate(final int caid)
+      throws CADoesntExistsException {
+<span class="nc" id="L1388">    final CA ca = getCa(caid);</span>
+<span class="nc bnc" id="L1389" title="All 2 branches missed.">    if (ca == null) {</span>
+<span class="nc" id="L1390">      throw new CADoesntExistsException(&quot;Method called on non-existent CA&quot;);</span>
     }
-
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    @Override
-    public List&lt;CAInfo&gt; getAuthorizedAndEnabledCaInfos(AuthenticationToken authenticationToken) {
-<span class="nc" id="L605">        List&lt;CAInfo&gt; result = new ArrayList&lt;CAInfo&gt;();</span>
-<span class="nc bnc" id="L606" title="All 2 branches missed.">        for (int caId : getAuthorizedCaIds(authenticationToken)) {</span>
-<span class="nc" id="L607">            CAInfo caInfo = getCAInfoInternal(caId);</span>
-<span class="nc bnc" id="L608" title="All 4 branches missed.">            if ( caInfo != null &amp;&amp; caInfo.getStatus() != CAConstants.CA_EXTERNAL</span>
-<span class="nc bnc" id="L609" title="All 2 branches missed.">                    &amp;&amp; caInfo.getStatus() != CAConstants.CA_UNINITIALIZED</span>
-<span class="nc bnc" id="L610" title="All 2 branches missed.">                    &amp;&amp; caInfo.getStatus() != CAConstants.CA_WAITING_CERTIFICATE_RESPONSE ) {</span>
-<span class="nc" id="L611">                result.add(caInfo);</span>
-            }
-<span class="nc" id="L613">        }</span>
-<span class="nc" id="L614">        return result;</span>
+<span class="nc" id="L1392">    final List&lt;Certificate&gt; chain = ca.getRolloverCertificateChain();</span>
+<span class="nc bnc" id="L1393" title="All 2 branches missed.">    if (chain == null) {</span>
+<span class="nc" id="L1394">      return null;</span>
     }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    @Override
-    public List&lt;CAInfo&gt; getAuthorizedAndNonExternalCaInfos(AuthenticationToken authenticationToken) {
-<span class="nc" id="L620">        List&lt;CAInfo&gt; result = new ArrayList&lt;CAInfo&gt;();</span>
-<span class="nc bnc" id="L621" title="All 2 branches missed.">        for (Integer caId : getAuthorizedCaIds(authenticationToken)) {</span>
-<span class="nc" id="L622">            CAInfo caInfo = getCAInfoInternal(caId);</span>
-<span class="nc bnc" id="L623" title="All 4 branches missed.">            if ( caInfo != null &amp;&amp; caInfo.getStatus() != CAConstants.CA_EXTERNAL ) {</span>
-<span class="nc" id="L624">                result.add(caInfo);</span>
-            }
-<span class="nc" id="L626">        }</span>
-<span class="nc" id="L627">        return result;</span>
-    }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    @Override
-    public List&lt;CAInfo&gt; getAuthorizedCaInfos(AuthenticationToken authenticationToken) {
-<span class="nc" id="L633">        List&lt;CAInfo&gt; result = new ArrayList&lt;CAInfo&gt;();</span>
-<span class="nc bnc" id="L634" title="All 2 branches missed.">        for (Integer caId : getAuthorizedCaIds(authenticationToken)) {</span>
-<span class="nc" id="L635">            CAInfo caInfo = getCAInfoInternal(caId);</span>
-<span class="nc bnc" id="L636" title="All 2 branches missed.">            if (caInfo != null) {</span>
-<span class="nc" id="L637">                result.add(caInfo);</span>
-            }
-<span class="nc" id="L639">        }</span>
-<span class="nc" id="L640">        return result;</span>
-    }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    @Override
-    public void verifyExistenceOfCA(int caid) throws CADoesntExistsException {
-<span class="nc bnc" id="L646" title="All 2 branches missed.">        if( getCAInternal(caid, null, true) == null) {</span>
-<span class="nc" id="L647">            throw new CADoesntExistsException(&quot;CA with id &quot; + caid + &quot; does not exist.&quot;);</span>
-        }
-       
-<span class="nc" id="L650">    }</span>
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    @Override
-    public HashMap&lt;Integer, String&gt; getCAIdToNameMap() {
-<span class="nc" id="L655">        final HashMap&lt;Integer, String&gt; returnval = new HashMap&lt;Integer, String&gt;();</span>
-<span class="nc bnc" id="L656" title="All 2 branches missed.">        for (final CAData cadata : findAll()) {</span>
-<span class="nc" id="L657">            returnval.put(cadata.getCaId(), cadata.getName());</span>
-<span class="nc" id="L658">        }</span>
-<span class="nc" id="L659">        return returnval;</span>
-    }
-
-
-    /**
-     * Internal method for getting CA, to avoid code duplication. Tries to find the CA even if the CAId is wrong due to CA certificate DN not being
-     * the same as CA DN. Uses CACache directly if configured to do so in ejbca.properties.
-     *
-     * Note! No authorization checks performed in this internal method
-     *
-     * @param caid
-     *            numerical id of CA (subjectDN.hashCode()) that we search for, or -1 if a name is to be used instead
-     * @param name
-     *            human readable name of CA, used instead of caid if caid == -1, can be null if caid != -1
-     * @param fromCache if we should use the CA cache or return a new, decoupled, instance from the database, to be used when you need
-     *             a completely distinct object, for edit, and not a shared cached instance.
-     * @return CA value object, or null if it doesn't exist.
-     */
-	private CA getCAInternal(int caid, final String name, boolean fromCache) {
-<span class="nc bnc" id="L678" title="All 2 branches missed.">	    if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L679">	        log.trace(&quot;&gt;getCAInternal: &quot; + caid + &quot;, &quot; + name);</span>
-	    }
-<span class="nc" id="L681">	    Integer caIdValue = Integer.valueOf(caid);</span>
-<span class="nc bnc" id="L682" title="All 2 branches missed.">	    if (caid == -1) {</span>
-<span class="nc" id="L683">	        caIdValue = CaCache.INSTANCE.getNameToIdMap().get(name);</span>
-	    }
-<span class="nc" id="L685">	    CA ca = null;</span>
-<span class="nc bnc" id="L686" title="All 4 branches missed.">	    if (fromCache &amp;&amp; caIdValue!=null) {</span>
-<span class="nc" id="L687">	        ca = getCa(caIdValue.intValue());</span>
-<span class="nc bnc" id="L688" title="All 4 branches missed.">	        if (ca != null &amp;&amp; hasCAExpiredNow(ca)) {</span>
-	            // CA has expired, re-read from database with the side affect that the status will be updated
-<span class="nc" id="L690">	            ca = getCAData(caid, name).getCA();</span>
-	        }
-	    } else {
-<span class="nc" id="L693">            CAData caData = getCAData(caid, name);</span>
-<span class="nc bnc" id="L694" title="All 2 branches missed.">            if (caData != null) {</span>
-<span class="nc" id="L695">                ca = caData.getCA();</span>
-            }
-        }
-<span class="nc bnc" id="L698" title="All 2 branches missed.">	    if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L699">	        log.trace(&quot;&lt;getCAInternal: &quot; + caid + &quot;, &quot; + name);</span>
-	    }
-<span class="nc" id="L701">	    return ca;</span>
-	}
-
-	/**
-     * Checks if the CA certificate has expired (or is not yet valid) since last check.
-     * Logs an info message first time that the CA certificate has expired, or every time when not yet valid.
-	 * @param ca CA
-     *
-     * @return the true if the CA is expired
-     */
-    private boolean hasCAExpiredNow(final CA ca) {
-<span class="nc" id="L712">        boolean expired = false;</span>
-        // Check that CA hasn't expired.
-        try {
-<span class="nc" id="L715">            CertTools.checkValidity(ca.getCACertificate(), new Date());</span>
-<span class="nc" id="L716">        } catch (CertificateExpiredException cee) {</span>
-            // Signers Certificate has expired, we want to make sure that the
-            // status in the database is correctly EXPIRED for this CA
-            // Don't set external CAs to expired though, because they should always be treated as external CAs
-<span class="nc bnc" id="L720" title="All 4 branches missed.">            if (ca.getStatus()!=CAConstants.CA_EXPIRED &amp;&amp; ca.getStatus()!=CAConstants.CA_EXTERNAL) {</span>
-<span class="nc" id="L721">                log.info(intres.getLocalizedMessage(&quot;caadmin.caexpired&quot;, ca.getSubjectDN()) + &quot; &quot; + cee.getMessage());</span>
-<span class="nc" id="L722">                expired = true;</span>
-            }
-<span class="nc" id="L724">        } catch (CertificateNotYetValidException e) {</span>
-            // Signers Certificate is not yet valid.
-<span class="nc" id="L726">            log.warn(intres.getLocalizedMessage(&quot;caadmin.canotyetvalid&quot;, ca.getSubjectDN()) + &quot; &quot; + e.getMessage());</span>
-<span class="nc" id="L727">        }</span>
-<span class="nc" id="L728">        return expired;</span>
-    }
-
-    /**
-     * Internal method for getting CAData. Tries to find the CA even if the CAId is wrong due to CA certificate DN not being the same as CA DN.
-     *
-     * The returned CAData object is guaranteed to be upgraded and these upgrades merged back to the database.
-     *
-     * @param caid numerical id of CA (subjectDN.hashCode()) that we search for, or -1 of a name is to ge used instead
-     * @param name human readable name of CA, used instead of caid if caid == -1, can be null of caid != -1
-     * 
-     * @return the CA, or null if it was not found
-     */
-    private CAData getCAData(final int caid, final String name)  {
-<span class="nc" id="L742">        CAData cadata = null;</span>
-<span class="nc bnc" id="L743" title="All 2 branches missed.">        if (caid != -1) {</span>
-<span class="nc" id="L744">            cadata = upgradeAndMergeToDatabase(findById(Integer.valueOf(caid)));</span>
-<span class="nc bnc" id="L745" title="All 4 branches missed.">            if (log.isDebugEnabled() &amp;&amp; cadata == null) {</span>
-<span class="nc" id="L746">                log.debug(&quot;Unable to get CAData with ID (from SubjectDN): &quot;+caid);</span>
-            }
-        } else {
-<span class="nc" id="L749">            cadata = upgradeAndMergeToDatabase(findByName(name));</span>
-<span class="nc bnc" id="L750" title="All 4 branches missed.">            if (log.isDebugEnabled() &amp;&amp; cadata == null) {</span>
-<span class="nc" id="L751">                log.debug(&quot;Unable to get CAData with name: &quot;+name);</span>
-            }
-        }
-<span class="nc bnc" id="L754" title="All 2 branches missed.">        if (cadata == null) {</span>
-            // We should never get to here if we are searching for name, in any
-            // case if the name does not exist, the CA really does not exist
-            // We don't have to try to find another mapping for the CAId
-<span class="nc bnc" id="L758" title="All 2 branches missed.">            if (caid != -1) {</span>
-                // subject DN of the CA certificate might not have all objects
-                // that is the DN of the certificate data.
-<span class="nc" id="L761">                final Integer oRealCAId = CACacheHelper.getCaCertHash(Integer.valueOf(caid));</span>
-                // has the &quot;real&quot; CAID been mapped to the certificate subject
-                // hash by a previous call?
-<span class="nc bnc" id="L764" title="All 2 branches missed.">                if (oRealCAId != null) {</span>
-                    // yes, using cached value of real caid.
-<span class="nc bnc" id="L766" title="All 2 branches missed.">                	if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L767">                		log.debug(&quot;Found a mapping from caid &quot;+caid+&quot; to realCaid &quot;+oRealCAId);</span>
-                	}
-<span class="nc" id="L769">                    cadata = findById(oRealCAId);</span>
-                } else {
-                    // no, we have to search for it among all CA certs
-<span class="nc bnc" id="L772" title="All 2 branches missed.">                    for (final CAData currentCaData : findAll()) {</span>
-<span class="nc" id="L773">                        final CAData currentUpgradedCaData = upgradeAndMergeToDatabase(currentCaData);</span>
-<span class="nc" id="L774">                        final Certificate caCert = currentUpgradedCaData.getCA().getCACertificate();</span>
-<span class="nc bnc" id="L775" title="All 4 branches missed.">                        if (caCert != null &amp;&amp; caid == CertTools.getSubjectDN(caCert).hashCode()) {</span>
-<span class="nc" id="L776">                            cadata = currentUpgradedCaData; // found.</span>
-                            // Do also cache it if someone else is needing it later
-<span class="nc bnc" id="L778" title="All 2 branches missed.">                        	if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L779">                        		log.debug(&quot;Adding a mapping from caid &quot;+caid+&quot; to realCaid &quot;+cadata.getCaId());</span>
-                        	}
-<span class="nc" id="L781">                            CACacheHelper.putCaCertHash(Integer.valueOf(caid), Integer.valueOf(cadata.getCaId()));</span>
-                        }
-<span class="nc bnc" id="L783" title="All 2 branches missed.">                        if (cadata != null) {</span>
-<span class="nc" id="L784">                            break;</span>
-                        }
-<span class="nc" id="L786">                    }</span>
-                }
-            }
-<span class="nc bnc" id="L789" title="All 2 branches missed.">            if (cadata == null) {</span>
-                String msg;
-<span class="nc bnc" id="L791" title="All 2 branches missed.">                if (caid != -1) {</span>
-<span class="nc" id="L792">                    msg = intres.getLocalizedMessage(&quot;caadmin.canotexistsid&quot;, Integer.valueOf(caid));</span>
-                } else {
-<span class="nc" id="L794">                    msg = intres.getLocalizedMessage(&quot;caadmin.canotexistsname&quot;, name);</span>
-                }
-<span class="nc" id="L796">                log.info(msg);</span>
-            }
-        }
-<span class="nc" id="L799">        return cadata;</span>
-    }
-
-    @Override
-    public boolean authorizedToCANoLogging(final AuthenticationToken admin, final int caid) {
-<span class="nc" id="L804">        final boolean ret = authorizationSession.isAuthorizedNoLogging(admin, StandardRules.CAACCESS.resource() + caid);</span>
-<span class="nc bnc" id="L805" title="All 4 branches missed.">        if (log.isDebugEnabled() &amp;&amp; !ret) {</span>
-<span class="nc" id="L806">            final String msg = intres.getLocalizedMessage(&quot;caadmin.notauthorizedtoca&quot;, admin.toString(), caid);</span>
-<span class="nc" id="L807">            log.debug(msg);</span>
-        }
-<span class="nc" id="L809">        return ret;</span>
-    }
-
-    @Override
-    public boolean authorizedToCA(final AuthenticationToken admin, final int caid) {
-<span class="nc" id="L814">    	final boolean ret = authorizationSession.isAuthorized(admin, StandardRules.CAACCESS.resource() + caid);</span>
-<span class="nc bnc" id="L815" title="All 4 branches missed.">        if (log.isDebugEnabled() &amp;&amp; !ret) {</span>
-<span class="nc" id="L816">        	final String msg = intres.getLocalizedMessage(&quot;caadmin.notauthorizedtoca&quot;, admin.toString(), caid);</span>
-<span class="nc" id="L817">        	log.debug(msg);</span>
-        }
-<span class="nc" id="L819">        return ret;</span>
-    }
-
-    /** @param caId ID
-     * @return the CA object, from the database (including any upgrades) is necessary */
-    private CA getCa(int caId) {
-<span class="nc" id="L825">        final Integer realCAId = CACacheHelper.getCaCertHash(Integer.valueOf(caId));</span>
-<span class="nc bnc" id="L826" title="All 2 branches missed.">        if (realCAId!=null) {</span>
-            // Since we have found a cached &quot;real&quot; CA Id and the cache will use this one (if cached)
-<span class="nc" id="L828">            caId = realCAId.intValue();</span>
-        }
-        // 1. Check (new) CaCache if it is time to sync-up with database
-<span class="nc bnc" id="L831" title="All 2 branches missed.">        if (CaCache.INSTANCE.shouldCheckForUpdates(caId)) {</span>
-<span class="nc" id="L832">            log.debug(&quot;CA with ID &quot; + caId + &quot; will be checked for updates.&quot;);</span>
-            // 2. If cache is expired or missing, first thread to discover this reloads item from database and sends it to the cache         
-<span class="nc" id="L834">            CAData caData = getCAData(caId, null);</span>
-<span class="nc bnc" id="L835" title="All 2 branches missed.">            if (caData != null) {</span>
-<span class="nc" id="L836">                final int digest = caData.getProtectString(0).hashCode();</span>
-                // Special for splitting out the CAToken and committing it..
-                // Since getCAData has already run upgradeAndMergeToDatabase we can just get the CA here..
-<span class="nc" id="L839">                CA ca = caData.getCA();</span>
-<span class="nc bnc" id="L840" title="All 2 branches missed.">                if (ca != null) {</span>
-                    // Note that we store using the &quot;real&quot; CAId in the cache.
-<span class="nc" id="L842">                    CaCache.INSTANCE.updateWith(caData.getCaId(), digest, ca.getName(), ca);</span>
-                }
-                // Since caching might be disabled, we return the value returned from the database here
-<span class="nc" id="L845">                return ca;</span>
-            } else {
-                // Ensure that it is removed from cache
-<span class="nc" id="L848">                CaCache.INSTANCE.removeEntry(caId);</span>
-            }
-            // 3. The cache compares the database data with what is in the cache
-            // 4. If database is different from cache, replace it in the cache
-        }
-        // 5. Get CA from cache (or null) and be merry
-<span class="nc" id="L854">        return CaCache.INSTANCE.getEntry(caId);</span>
-    }
-
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    @Override
-    public int mergeCa(final CA ca) {
-<span class="nc" id="L860">        final int caId = ca.getCAId();</span>
-<span class="nc" id="L861">        CAData caData = entityManager.find(CAData.class, caId);</span>
-<span class="nc bnc" id="L862" title="All 2 branches missed.">        if (caData == null) {</span>
-<span class="nc" id="L863">            caData = new CAData(ca.getSubjectDN(), ca.getName(), ca.getStatus(), ca);</span>
-        } else {
-            // It might be the case that the calling transaction has already loaded a reference to this object
-            // and hence we need to get the same one and perform updates on this object instead of trying to
-            // merge a new object.
-<span class="nc" id="L868">            caData.setCA(ca);</span>
-        }
-<span class="nc" id="L870">        caData = entityManager.merge(caData);</span>
-        // Since loading a CA is quite complex (populating CAInfo etc), we simple purge the cache here
-<span class="nc" id="L872">        CaCache.INSTANCE.removeEntry(caId);</span>
-<span class="nc" id="L873">        caIDCache.forceCacheExpiration();</span>
-<span class="nc" id="L874">        return caId;</span>
-    }
-
-    /** Performs upgrades on the entity if needed within a transaction. 
-     * @param cadata Data
-     * @return Upgraded data */
-    private CAData upgradeAndMergeToDatabase(CAData cadata) {
-<span class="nc bnc" id="L881" title="All 2 branches missed.">        if (cadata == null) {</span>
-<span class="nc" id="L882">            return null;</span>
-        }
-<span class="nc" id="L884">        CAData caDataReturn = cadata;</span>
-<span class="nc" id="L885">        final LinkedHashMap&lt;Object, Object&gt; caDataMap = cadata.getDataMap();</span>
-        // If CA-data is upgraded we want to save the new data, so we must get the old version before loading the data
-        // and perhaps upgrading
-<span class="nc" id="L888">        final float oldversion = ((Float) caDataMap.get(UpgradeableDataHashMap.VERSION)).floatValue();</span>
-        // Perform &quot;live&quot; upgrade from 5.0.x and earlier
-<span class="nc" id="L890">        boolean adhocUpgrade = adhocUpgradeFrom50(cadata.getCaId().intValue(), caDataMap, cadata.getName());</span>
-<span class="nc bnc" id="L891" title="All 2 branches missed.">        if (adhocUpgrade) {</span>
-            // Convert map into storage friendly format now since we changed it
-<span class="nc" id="L893">            cadata.setDataMap(caDataMap);</span>
-        }
-        // Fetching the CA object will trigger UpgradableHashMap upgrades
-<span class="nc" id="L896">        CA ca = cadata.getCA();</span>
-<span class="nc bnc" id="L897" title="All 2 branches missed.">        if (ca != null) {</span>
-<span class="nc" id="L898">            final boolean expired = hasCAExpiredNow(ca);</span>
-<span class="nc bnc" id="L899" title="All 2 branches missed.">            if (expired) {</span>
-<span class="nc" id="L900">                ca.setStatus(CAConstants.CA_EXPIRED);</span>
-            }
-<span class="nc" id="L902">            final boolean upgradedExtendedService = ca.upgradeExtendedCAServices();</span>
-            // Compare old version with current version and save the data if there has been a change
-<span class="nc bnc" id="L904" title="All 2 branches missed.">            final boolean upgradeCA = (Float.compare(oldversion, ca.getVersion()) != 0);</span>
-<span class="nc bnc" id="L905" title="All 8 branches missed.">            if (adhocUpgrade || upgradedExtendedService || upgradeCA || expired) {</span>
-<span class="nc bnc" id="L906" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L907">                    log.debug(&quot;Merging CA to database. Name: &quot; + cadata.getName() + &quot;, id: &quot; + cadata.getCaId() +</span>
-                            &quot;, adhocUpgrade: &quot; + adhocUpgrade+&quot;, upgradedExtendedService: &quot; + upgradedExtendedService +
-                            &quot;, upgradeCA: &quot; + upgradeCA + &quot;, expired: &quot; + expired);
-                }
-<span class="nc" id="L911">                ca.getCAToken();</span>
-<span class="nc" id="L912">                final int caId = caSession.mergeCa(ca);</span>
-<span class="nc" id="L913">                caDataReturn = entityManager.find(CAData.class, caId);</span>
-            }            
-        }
-<span class="nc" id="L916">        return caDataReturn;</span>
-    }
-
-    /**
-     * Extract keystore or keystore reference and store it as a CryptoToken. Add a reference to the keystore.
-     * @param caid ID
-     * @param data Data
-     * @param caName Name
-     * @return true if any changes where made
-     */
-    @SuppressWarnings(&quot;unchecked&quot;)
-    @Deprecated // Remove when we no longer need to support upgrades from 5.0.x
-    private boolean adhocUpgradeFrom50(int caid, LinkedHashMap&lt;Object, Object&gt; data, String caName) {
-<span class="nc" id="L929">        HashMap&lt;String, String&gt; tokendata = (HashMap&lt;String, String&gt;) data.get(CA.CATOKENDATA);</span>
-<span class="nc bnc" id="L930" title="All 2 branches missed.">        if (tokendata.get(CAToken.CRYPTOTOKENID) != null) {</span>
-            // Already upgraded
-<span class="nc bnc" id="L932" title="All 2 branches missed.">            if (!CesecoreConfiguration.isKeepInternalCAKeystores()) {</span>
-                // All nodes in the cluster has been upgraded so we can remove any internal CA keystore now
-<span class="nc bnc" id="L934" title="All 2 branches missed.">                if (tokendata.get(CAToken.KEYSTORE)!=null) {</span>
-<span class="nc" id="L935">                    tokendata.remove(CAToken.KEYSTORE);</span>
-<span class="nc" id="L936">                    tokendata.remove(CAToken.CLASSPATH);</span>
-<span class="nc" id="L937">                    log.info(&quot;Removed duplicate of upgraded CA's internal keystore for CA '&quot; + caName + &quot;' with id: &quot; + caid);</span>
-<span class="nc" id="L938">                    return true;</span>
-                }
-            } else {
-<span class="nc bnc" id="L941" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L942">                    log.debug(&quot;CA '&quot; + caName + &quot;' already has cryptoTokenId and will not have it's token split of to a different db table because db.keepinternalcakeystores=true: &quot; + caid);</span>
-                }
-            }
-<span class="nc" id="L945">            return false;</span>
-        }
-        // Perform pre-upgrade of CATokenData to correct classpath changes (org.ejbca.core.model.ca.catoken.SoftCAToken)
-<span class="nc" id="L948">        tokendata = (LinkedHashMap&lt;String, String&gt;) new CAToken(tokendata).saveData();</span>
-<span class="nc" id="L949">        data.put(CA.CATOKENDATA, tokendata);</span>
-<span class="nc" id="L950">        log.info(&quot;Pulling CryptoToken out of CA '&quot; + caName + &quot;' with id &quot; + caid + &quot; into a separate database table.&quot;);</span>
-<span class="nc" id="L951">        final String str = tokendata.get(CAToken.KEYSTORE);</span>
-<span class="nc" id="L952">        byte[] keyStoreData = null;</span>
-<span class="nc bnc" id="L953" title="All 2 branches missed.">        if (StringUtils.isNotEmpty(str)) {</span>
-<span class="nc" id="L954">            keyStoreData = Base64.decode(str.getBytes());</span>
-        }
-<span class="nc" id="L956">        String propertyStr = tokendata.get(CAToken.PROPERTYDATA);</span>
-<span class="nc" id="L957">        final Properties prop = new Properties();</span>
-<span class="nc bnc" id="L958" title="All 2 branches missed.">        if (StringUtils.isNotEmpty(propertyStr)) {</span>
-            try {
-                // If the input string contains \ (backslash on windows) we must convert it to \\
-                // Otherwise properties.load will parse it as an escaped character, and that is not good
-<span class="nc" id="L962">                propertyStr = StringUtils.replace(propertyStr, &quot;\\&quot;, &quot;\\\\&quot;);</span>
-<span class="nc" id="L963">                prop.load(new ByteArrayInputStream(propertyStr.getBytes()));</span>
-<span class="nc" id="L964">            } catch (IOException e) {</span>
-<span class="nc" id="L965">                log.error(&quot;Error getting CA token properties: &quot;, e);</span>
-<span class="nc" id="L966">            }</span>
-        }
-<span class="nc" id="L968">        final String classpath = tokendata.get(CAToken.CLASSPATH);</span>
-<span class="nc bnc" id="L969" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L970">            log.debug(&quot;CA token classpath: &quot; + classpath);</span>
-        }
-        // Upgrade the properties value
-<span class="nc" id="L973">        final Properties upgradedProperties = PKCS11CryptoToken.upgradePropertiesFileFrom5_0_x(prop);</span>
-        // If it is an P11 we are using and the library and slot are the same as an existing CryptoToken we use that CryptoToken's id.
-<span class="nc" id="L975">        int cryptoTokenId = 0;</span>
-<span class="nc bnc" id="L976" title="All 2 branches missed.">        if (PKCS11CryptoToken.class.getName().equals(classpath)) {</span>
-<span class="nc bnc" id="L977" title="All 2 branches missed.">            if (upgradedProperties.getProperty(PKCS11CryptoToken.SLOT_LABEL_TYPE)==null) {</span>
-<span class="nc" id="L978">                log.error(&quot;Upgrade of CA '&quot; + caName + &quot;' failed due to failed upgrade of PKCS#11 CA token properties.&quot;);</span>
-<span class="nc" id="L979">                return false;</span>
-            }
-<span class="nc bnc" id="L981" title="All 2 branches missed.">            for (final Integer currentCryptoTokenId : cryptoTokenSession.getCryptoTokenIds()) {</span>
-<span class="nc" id="L982">                final CryptoToken cryptoToken = cryptoTokenSession.getCryptoToken(currentCryptoTokenId.intValue());</span>
-<span class="nc" id="L983">                final Properties cryptoTokenProperties = cryptoToken.getProperties();</span>
-<span class="nc bnc" id="L984" title="All 2 branches missed.">                if (StringUtils.equals(upgradedProperties.getProperty(PKCS11CryptoToken.SHLIB_LABEL_KEY), cryptoTokenProperties.getProperty(PKCS11CryptoToken.SHLIB_LABEL_KEY))</span>
-<span class="nc bnc" id="L985" title="All 2 branches missed.">                        &amp;&amp; StringUtils.equals(upgradedProperties.getProperty(PKCS11CryptoToken.ATTRIB_LABEL_KEY), cryptoTokenProperties.getProperty(PKCS11CryptoToken.ATTRIB_LABEL_KEY))</span>
-<span class="nc bnc" id="L986" title="All 2 branches missed.">                        &amp;&amp; StringUtils.equals(upgradedProperties.getProperty(PKCS11CryptoToken.SLOT_LABEL_VALUE), cryptoTokenProperties.getProperty(PKCS11CryptoToken.SLOT_LABEL_VALUE))</span>
-<span class="nc bnc" id="L987" title="All 2 branches missed.">                        &amp;&amp; StringUtils.equals(upgradedProperties.getProperty(PKCS11CryptoToken.SLOT_LABEL_TYPE), cryptoTokenProperties.getProperty(PKCS11CryptoToken.SLOT_LABEL_TYPE))) {</span>
-                    // The current CryptoToken point to the same HSM slot in the same way.. re-use this id!
-<span class="nc" id="L989">                    cryptoTokenId = currentCryptoTokenId.intValue();</span>
-<span class="nc" id="L990">                    break;</span>
-                }
-<span class="nc" id="L992">            }</span>
-        }
-<span class="nc bnc" id="L994" title="All 2 branches missed.">        if (cryptoTokenId == 0) {</span>
-<span class="nc" id="L995">            final String cryptoTokenName = &quot;Upgraded CA CryptoToken for &quot; + caName;</span>
-            try {
-<span class="nc" id="L997">                cryptoTokenId = cryptoTokenSession.mergeCryptoToken(CryptoTokenFactory.createCryptoToken(classpath, upgradedProperties, keyStoreData, caid, cryptoTokenName, true));</span>
-<span class="nc" id="L998">            } catch (CryptoTokenNameInUseException e) {</span>
-<span class="nc" id="L999">                final String msg = &quot;Crypto token name already in use upgrading (adhocUpgradeFrom50) crypto token for CA '&quot;+caName+&quot;', cryptoTokenName '&quot;+cryptoTokenName+&quot;'.&quot;;</span>
-<span class="nc" id="L1000">                log.info(msg, e);</span>
-<span class="nc" id="L1001">                throw new RuntimeException(msg, e);  // Since we have a constraint on CA names to be unique, this should never happen</span>
-<span class="nc" id="L1002">            } catch (NoSuchSlotException e) {</span>
-<span class="nc" id="L1003">                final String msg = &quot;Slot as defined by &quot; + upgradedProperties.getProperty(PKCS11CryptoToken.SLOT_LABEL_VALUE) + &quot; for CA '&quot; + caName + &quot;' could not be found.&quot;;</span>
-<span class="nc" id="L1004">                log.error(msg, e);</span>
-<span class="nc" id="L1005">                throw new RuntimeException(msg, e);</span>
-<span class="nc" id="L1006">            }</span>
-        }
-        // Mark this CA as upgraded by setting a reference to the CryptoToken if the merge was successful
-<span class="nc" id="L1009">        tokendata.put(CAToken.CRYPTOTOKENID, String.valueOf(cryptoTokenId));</span>
-        // Note: We did not remove the keystore in the CA properties here, so old versions running in parallel will still work
-<span class="nc" id="L1011">        log.info(&quot;CA '&quot; + caName + &quot;' with id &quot; + caid + &quot; is now using CryptoToken with cryptoTokenId &quot; + cryptoTokenId);</span>
-<span class="nc" id="L1012">        return true;</span>
-    }
-
-    @Override
-    public Certificate getFutureRolloverCertificate(int caid) throws CADoesntExistsException {
-<span class="nc" id="L1017">        final CA ca = getCa(caid);</span>
-<span class="nc bnc" id="L1018" title="All 2 branches missed.">        if (ca == null) {</span>
-<span class="nc" id="L1019">            throw new CADoesntExistsException(&quot;Method called on non-existent CA&quot;);</span>
-        }
-<span class="nc" id="L1021">        final List&lt;Certificate&gt; chain = ca.getRolloverCertificateChain();</span>
-<span class="nc bnc" id="L1022" title="All 2 branches missed.">        if (chain == null) { return null; }</span>
-<span class="nc" id="L1023">        return chain.get(0);</span>
-    }
+<span class="nc" id="L1396">    return chain.get(0);</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

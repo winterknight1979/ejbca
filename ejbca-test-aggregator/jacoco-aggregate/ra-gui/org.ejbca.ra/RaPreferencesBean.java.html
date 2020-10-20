@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RaPreferencesBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ra-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ra</a> &gt; <span class="el_source">RaPreferencesBean.java</span></div><h1>RaPreferencesBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ra;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
+import javax.annotation.PostConstruct;
+import javax.ejb.EJB;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.ManagedProperty;
+import javax.faces.bean.ViewScoped;
+import javax.faces.component.UIComponent;
+import javax.faces.context.ExternalContext;
+import javax.faces.context.FacesContext;
+import javax.faces.convert.Converter;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authentication.tokens.X509CertificateAuthenticationToken;
+import org.cesecore.config.RaStyleInfo;
+import org.cesecore.util.CertTools;
+import org.ejbca.core.ejb.ra.raadmin.AdminPreferenceSessionLocal;
+import org.ejbca.core.model.ra.raadmin.AdminPreference;
+
+/**
+ * This is the backing bean supporting the preferences.xhtml page in RA web.
+ * Together with preferrences.xhtml it is used to produce the Preferences menu in RA web GUI.
+ * 
+ * @version $Id: RaPreferencesBean.java 26997 2017-11-06 08:07:17Z aminkh $
+ *TODO: Use CDI beans
+ */
+
+@SuppressWarnings(&quot;deprecation&quot;)
+@ManagedBean
+@ViewScoped
+<span class="nc" id="L50">public class RaPreferencesBean implements Converter, Serializable {</span>
+
+    private static final long serialVersionUID = 1L;
+<span class="nc" id="L53">    private static final Logger log = Logger.getLogger(RaPreferencesBean.class);</span>
+    private static final int DUMMY_STYLE_ARCHIVE_ID = 0;
+
+    @EJB
+    private AdminPreferenceSessionLocal adminPreferenceSession;
+
+    @ManagedProperty(value = &quot;#{raLocaleBean}&quot;)
+    private RaLocaleBean raLocaleBean;
+
+    public void setRaLocaleBean(final RaLocaleBean raLocaleBean) {
+<span class="nc" id="L63">        this.raLocaleBean = raLocaleBean;</span>
+<span class="nc" id="L64">    }</span>
+
+    @ManagedProperty(value = &quot;#{raAuthenticationBean}&quot;)
+    private RaAuthenticationBean raAuthenticationBean;
+
+    public void setRaAuthenticationBean(RaAuthenticationBean raAuthenticationBean) {
+<span class="nc" id="L70">        this.raAuthenticationBean = raAuthenticationBean;</span>
+<span class="nc" id="L71">    }</span>
+
+    private Locale currentLocale;
+
+    private RaStyleInfo currentStyle;
+    
+    /** The previousStyle property is used to keep track of changes in Preferred style dropdown
+     *  in case there is no entry in adminprefdata table for current admin. 
+    **/ 
+    private RaStyleInfo previousStyle; 
+ 
+<span class="nc" id="L82">    private boolean showLocaleInfo = false;</span>
+
+<span class="nc" id="L84">    private boolean showStyleInfo = false;</span>
+    
+<span class="nc" id="L86">    private boolean applyDisabled = true;</span>
+
+    @PostConstruct
+    public void init() {
+<span class="nc" id="L90">        initLocale();</span>
+<span class="nc" id="L91">        initRaStyle();</span>
+<span class="nc" id="L92">    }</span>
+    
+    public boolean isApplyDisabled() {
+<span class="nc" id="L95">        return applyDisabled;</span>
+    }
+    
+    public boolean isShowLocaleInfo() {
+<span class="nc" id="L99">        return showLocaleInfo;</span>
+    }
+
+    public boolean isShowStyleInfo() {
+<span class="nc" id="L103">        return showStyleInfo;</span>
+    }
+    
+    public void toggleShowLocaleInfo() {
+<span class="nc bnc" id="L107" title="All 2 branches missed.">        this.showLocaleInfo = !showLocaleInfo;</span>
+<span class="nc" id="L108">    }</span>
+    
+    public void toggleShowStyleInfo() {
+<span class="nc bnc" id="L111" title="All 2 branches missed.">        this.showStyleInfo = !showStyleInfo;</span>
+<span class="nc" id="L112">    }</span>
+
+    public RaStyleInfo getCurrentStyle() {
+<span class="nc" id="L115">        return currentStyle;</span>
+    }
+
+    public void setCurrentStyle(final RaStyleInfo newStyle) {
+<span class="nc" id="L119">        currentStyle = newStyle;</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">        if (previousStyle.getArchiveId() == newStyle.getArchiveId()) {</span>
+<span class="nc" id="L121">            this.applyDisabled = true;</span>
+<span class="nc" id="L122">            return;</span>
+        }
+<span class="nc" id="L124">        this.applyDisabled = false;</span>
+<span class="nc" id="L125">    }</span>
+
+    public Locale getCurrentLocale() {
+<span class="nc" id="L128">        return currentLocale;</span>
+    }
+
+    public void setCurrentLocale(final Locale locale) {
+<span class="nc" id="L132">        this.currentLocale = locale;</span>
+<span class="nc" id="L133">    }</span>
+
+    public List&lt;Locale&gt; getLocales() {
+<span class="nc" id="L136">        return raLocaleBean.getSupportedLocales();</span>
+    }
+
+    public List&lt;RaStyleInfo&gt; getStyles() {
+
+<span class="nc" id="L141">        List&lt;RaStyleInfo&gt; raStyleInfos = adminPreferenceSession.getAvailableRaStyleInfos(raAuthenticationBean.getAuthenticationToken());</span>
+        
+        // This extra list is used to avoid the dummy default RaStyleInfo ending up in the style cache.
+<span class="nc" id="L144">        List&lt;RaStyleInfo&gt; raStyleInfosArchiveName = new ArrayList&lt;&gt;();</span>
+        
+<span class="nc" id="L146">        raStyleInfosArchiveName.add(buildDummyStyleInfo());</span>
+        
+<span class="nc bnc" id="L148" title="All 2 branches missed.">        for (RaStyleInfo raStyleInfo : raStyleInfos) {</span>
+<span class="nc" id="L149">            raStyleInfosArchiveName.add(raStyleInfo);</span>
+<span class="nc" id="L150">        }</span>
+
+<span class="nc" id="L152">        return raStyleInfosArchiveName;</span>
+    }
+
+    public void localeChanged(final Locale locale) {
+<span class="nc bnc" id="L156" title="All 2 branches missed.">        if (raLocaleBean.getLocale().equals(locale)) {</span>
+<span class="nc" id="L157">            this.applyDisabled = true;</span>
+<span class="nc" id="L158">            return;</span>
+        }
+<span class="nc" id="L160">        this.applyDisabled = false;</span>
+<span class="nc" id="L161">    }</span>
+
+    /**
+     * Updates ra admin preferences data in database.
+     * Does nothings in case the current data is equal to the data going to be set.
+     */
+    public void updatePreferences() {
+
+<span class="nc" id="L169">        checkAdminHasRowInDbOrCreateOne();</span>
+
+<span class="nc" id="L171">        Locale previousLocale = adminPreferenceSession.getCurrentRaLocale(raAuthenticationBean.getAuthenticationToken());</span>
+<span class="nc" id="L172">        Integer previousRaStyleId = adminPreferenceSession.getCurrentRaStyleId(raAuthenticationBean.getAuthenticationToken());</span>
+
+<span class="nc bnc" id="L174" title="All 4 branches missed.">        if (previousLocale == null || previousRaStyleId == null) {</span>
+<span class="nc" id="L175">            adminPreferenceSession.setCurrentRaLocale(currentLocale, raAuthenticationBean.getAuthenticationToken());</span>
+<span class="nc" id="L176">            adminPreferenceSession.setCurrentRaStyleId(currentStyle.getArchiveId(), raAuthenticationBean.getAuthenticationToken());</span>
+<span class="nc" id="L177">            raLocaleBean.setLocale(currentLocale);</span>
+<span class="nc" id="L178">            this.applyDisabled = true;</span>
+        } else {
+<span class="nc bnc" id="L180" title="All 4 branches missed.">            if (!currentLocale.equals(previousLocale) &amp;&amp; (currentStyle.getArchiveId() != previousRaStyleId)) {</span>
+<span class="nc" id="L181">                adminPreferenceSession.setCurrentRaLocale(currentLocale, raAuthenticationBean.getAuthenticationToken());</span>
+<span class="nc" id="L182">                adminPreferenceSession.setCurrentRaStyleId(currentStyle.getArchiveId(), raAuthenticationBean.getAuthenticationToken());</span>
+<span class="nc" id="L183">                raLocaleBean.setLocale(currentLocale);</span>
+<span class="nc" id="L184">                this.applyDisabled = true;</span>
+<span class="nc bnc" id="L185" title="All 4 branches missed.">            } else if (currentLocale.equals(previousLocale) &amp;&amp; (currentStyle.getArchiveId() != previousRaStyleId)) {</span>
+<span class="nc" id="L186">                adminPreferenceSession.setCurrentRaStyleId(currentStyle.getArchiveId(), raAuthenticationBean.getAuthenticationToken());</span>
+<span class="nc" id="L187">                this.applyDisabled = true;</span>
+<span class="nc bnc" id="L188" title="All 4 branches missed.">            } else if (!currentLocale.equals(previousLocale) &amp;&amp; (currentStyle.getArchiveId() == previousRaStyleId)) {</span>
+<span class="nc" id="L189">                adminPreferenceSession.setCurrentRaLocale(currentLocale, raAuthenticationBean.getAuthenticationToken());</span>
+<span class="nc" id="L190">                raLocaleBean.setLocale(currentLocale);</span>
+<span class="nc" id="L191">                this.applyDisabled = true;</span>
+<span class="nc" id="L192">                return;</span>
+            } else {
+<span class="nc" id="L194">                return;</span>
+            }
+        }
+        try {
+<span class="nc" id="L198">            redirect();</span>
+<span class="nc" id="L199">        } catch (IOException e) {</span>
+<span class="nc" id="L200">            log.warn(&quot;Unexpected error happened while redirecting to index page!&quot;);</span>
+<span class="nc" id="L201">            reset();</span>
+<span class="nc" id="L202">        }</span>
+<span class="nc" id="L203">    }</span>
+
+    /**
+     * The following two methods are used in converting RaStyleInfo to String and vice versa.
+     * Required by JSF.
+     */
+    @Override
+    public Object getAsObject(FacesContext context, UIComponent component, String value) {
+
+<span class="nc" id="L212">        List&lt;RaStyleInfo&gt; styleInfos = adminPreferenceSession.getAvailableRaStyleInfos(raAuthenticationBean.getAuthenticationToken());</span>
+
+<span class="nc bnc" id="L214" title="All 2 branches missed.">        for (RaStyleInfo raStyleInfo : styleInfos) {</span>
+<span class="nc bnc" id="L215" title="All 2 branches missed.">            if (raStyleInfo.getArchiveName().equals(value)) {</span>
+<span class="nc" id="L216">                return raStyleInfo;</span>
+            }
+<span class="nc" id="L218">        }</span>
+
+<span class="nc" id="L220">        return buildDummyStyleInfo();</span>
+    }
+
+    /**
+     * Returns the string representation of style items to which are used (and required) by
+     * the preferences.xhtml page.
+     * It returns the archive name of the style info object to be displayed in the 
+     * select preferred theme dropdown in Preferences page in RA-WEB.
+     * 
+     */
+    @Override
+    public String getAsString(FacesContext context, UIComponent component, Object value) {
+
+<span class="nc" id="L233">        RaStyleInfo raStyleInfo = (RaStyleInfo) value;</span>
+<span class="nc" id="L234">        return raStyleInfo.getArchiveName();</span>
+    }
+
+    /**
+     * Private helpers
+     */
+
+    private void initLocale() {
+<span class="nc" id="L242">        Locale localeFromDB = adminPreferenceSession.getCurrentRaLocale(raAuthenticationBean.getAuthenticationToken());</span>
+
+<span class="nc bnc" id="L244" title="All 2 branches missed.">        if (localeFromDB != null) {</span>
+<span class="nc" id="L245">            currentLocale = localeFromDB;</span>
+        } else {
+<span class="nc" id="L247">            currentLocale = raLocaleBean.getLocale();</span>
+        }
+<span class="nc" id="L249">    }</span>
+
+    private void initRaStyle() {
+
+<span class="nc" id="L253">        RaStyleInfo preferedRaStyle = adminPreferenceSession.getPreferedRaStyleInfo(raAuthenticationBean.getAuthenticationToken());</span>
+
+<span class="nc bnc" id="L255" title="All 2 branches missed.">        if (preferedRaStyle == null) {</span>
+<span class="nc" id="L256">            currentStyle = buildDummyStyleInfo();</span>
+<span class="nc" id="L257">            previousStyle = buildDummyStyleInfo();</span>
+        } else {
+<span class="nc" id="L259">            currentStyle = preferedRaStyle;</span>
+<span class="nc" id="L260">            previousStyle = preferedRaStyle;</span>
+        }
+<span class="nc" id="L262">    }</span>
+    
+    /**
+     * This method is used to create a dummy style info object.
+     * Since we don't have any item in the styles list to represent the 
+     * Default style (which is needed by Preferences page) hence this method
+     * is used to create that dummy style when required. Example use in initRaStyle 
+     * function above. 
+     * @return info
+     */
+    private RaStyleInfo buildDummyStyleInfo() {
+
+<span class="nc" id="L274">        RaStyleInfo dummyStyle = new RaStyleInfo(&quot;Default&quot;, null, null, &quot;&quot;);</span>
+<span class="nc" id="L275">        dummyStyle.setArchiveId(DUMMY_STYLE_ARCHIVE_ID);</span>
+
+<span class="nc" id="L277">        return dummyStyle;</span>
+
+    }
+
+    /**
+     * Used to reset the preferences page
+     * @return String
+     */
+    public String reset() {
+<span class="nc" id="L286">        String viewId = FacesContext.getCurrentInstance().getViewRoot().getViewId();</span>
+<span class="nc" id="L287">        return viewId + &quot;?faces-redirect=true&quot;;</span>
+    }
+    
+    /**
+     * Redirects to the pereferences.xhtml. Triggers the java script reload.
+     * @throws IOException fail
+     */
+    private void redirect() throws IOException {
+<span class="nc" id="L295">        ExternalContext context = FacesContext.getCurrentInstance().getExternalContext();</span>
+<span class="nc" id="L296">        context.redirect(context.getRequestContextPath() + &quot;/preferences.xhtml&quot;);</span>
+<span class="nc" id="L297">    }</span>
+    
+    /**
+     * Create a row in Admin Preferences Data table for the current admin if it has not any row already.
+     * Returns otherwise. 
+     */
+    private void checkAdminHasRowInDbOrCreateOne() {
+
+<span class="nc" id="L305">        String certificatefingerprint = CertTools</span>
+<span class="nc" id="L306">                .getFingerprintAsString(((X509CertificateAuthenticationToken) raAuthenticationBean.getAuthenticationToken()).getCertificate());</span>
+
+<span class="nc bnc" id="L308" title="All 2 branches missed.">        if (!adminPreferenceSession.existsAdminPreference(certificatefingerprint)) {</span>
+<span class="nc" id="L309">            adminPreferenceSession.addAdminPreference((X509CertificateAuthenticationToken) raAuthenticationBean.getAuthenticationToken(),</span>
+                    new AdminPreference());
+        }
+<span class="nc" id="L312">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

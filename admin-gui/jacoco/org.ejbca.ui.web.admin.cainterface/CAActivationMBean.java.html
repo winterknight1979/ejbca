@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CAActivationMBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Administration GUI</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.cainterface</a> &gt; <span class="el_source">CAActivationMBean.java</span></div><h1>CAActivationMBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.web.admin.cainterface;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.authorization.control.CryptoTokenRules;
+import org.cesecore.certificates.ca.CAConstants;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.keys.token.CryptoTokenAuthenticationFailedException;
+import org.cesecore.keys.token.CryptoTokenInfo;
+import org.cesecore.keys.token.CryptoTokenManagementSessionLocal;
+import org.cesecore.keys.token.CryptoTokenOfflineException;
+import org.cesecore.keys.token.NullCryptoToken;
+import org.ejbca.core.ejb.ca.caadmin.CAAdminSessionLocal;
+import org.ejbca.core.model.authorization.AccessRulesConstants;
+import org.ejbca.core.model.util.EjbLocalHelper;
+import org.ejbca.ui.web.admin.BaseManagedBean;
+import org.ejbca.ui.web.admin.configuration.EjbcaJSFHelper;
+
+/**
+ * JSF Managed Bean or the CA Activation page of the Admin GUI.
+ *
+ * @version $Id: CAActivationMBean.java 28844 2018-05-04 08:31:02Z samuellb $
+ */
+<span class="nc" id="L48">public class CAActivationMBean extends BaseManagedBean implements Serializable {</span>
+
+<span class="nc" id="L50">	private static final Logger log = Logger.getLogger(CAActivationMBean.class);</span>
+
+	private static final long serialVersionUID = -2660384552215596717L;
+	
+	/** GUI representation of a CA for the activation view */
+	public class CaActivationGuiInfo {
+	    private final int status;
+	    private final String name;
+	    private final int caId;
+        private boolean monitored;
+        private boolean monitoredNewState;
+        private boolean newState;
+	    
+<span class="nc" id="L63">	    private CaActivationGuiInfo(int status, boolean monitored, String name, int caId) {</span>
+<span class="nc" id="L64">	        this.status = status;</span>
+<span class="nc" id="L65">            this.newState = isActive();</span>
+<span class="nc" id="L66">	        this.monitored = monitored;</span>
+<span class="nc" id="L67">	        this.monitoredNewState = monitored;</span>
+<span class="nc" id="L68">	        this.name = name;</span>
+<span class="nc" id="L69">	        this.caId = caId;</span>
+<span class="nc" id="L70">	    }</span>
+
+<span class="nc bnc" id="L72" title="All 2 branches missed.">        public boolean isActive() { return status == CAConstants.CA_ACTIVE; }</span>
+<span class="nc bnc" id="L73" title="All 2 branches missed.">        public boolean isExpired() { return status == CAConstants.CA_EXPIRED; }</span>
+<span class="nc bnc" id="L74" title="All 2 branches missed.">        public boolean isRevoked() { return status == CAConstants.CA_REVOKED; }</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">        public boolean isExternal() { return status == CAConstants.CA_EXTERNAL; }</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">        public boolean isWaiting() { return status == CAConstants.CA_WAITING_CERTIFICATE_RESPONSE; }</span>
+<span class="nc bnc" id="L77" title="All 8 branches missed.">        public boolean isUnableToChangeState() { return isRevoked() || isExpired() || isExternal() || isWaiting(); }</span>
+<span class="nc bnc" id="L78" title="All 6 branches missed.">        public boolean isOffline() { return !isActive() &amp;&amp; !isExpired() &amp;&amp; !isRevoked(); }</span>
+
+<span class="nc" id="L80">        public boolean isMonitoredNewState() { return monitoredNewState; }</span>
+<span class="nc" id="L81">        public void setMonitoredNewState(boolean monitoredNewState) { this.monitoredNewState = monitoredNewState; }</span>
+<span class="nc" id="L82">        public boolean isMonitored() { return monitored; }</span>
+<span class="nc" id="L83">        public int getStatus() { return status; }</span>
+<span class="nc" id="L84">        public String getName() { return name; }</span>
+<span class="nc" id="L85">        public int getCaId() { return caId; }</span>
+<span class="nc" id="L86">        public boolean isNewState() { return newState; }</span>
+<span class="nc" id="L87">        public void setNewState(boolean newState) { this.newState = newState; }</span>
+	}
+
+    /** GUI representation of a CryptoToken and its CA(s) for the activation view */
+	public class TokenAndCaActivationGuiInfo {
+	    private final CryptoTokenInfo cryptoTokenInfo;
+<span class="nc" id="L93">	    private final List&lt;CaActivationGuiInfo&gt; caActivationGuiInfos = new ArrayList&lt;&gt;();</span>
+        private final boolean allowedActivation;
+        private final boolean allowedDeactivation;
+        private boolean cryptoTokenNewState;
+
+<span class="nc" id="L98">        private TokenAndCaActivationGuiInfo(CryptoTokenInfo cryptoTokenInfo, boolean allowedActivation, boolean allowedDeactivation) {</span>
+<span class="nc" id="L99">	        this.cryptoTokenInfo = cryptoTokenInfo;</span>
+<span class="nc" id="L100">	        this.cryptoTokenNewState = cryptoTokenInfo.isActive();</span>
+<span class="nc" id="L101">            this.allowedActivation = allowedActivation;</span>
+<span class="nc" id="L102">            this.allowedDeactivation = allowedDeactivation;</span>
+<span class="nc" id="L103">	    }</span>
+
+<span class="nc" id="L105">	    public TokenAndCaActivationGuiInfo(Integer cryptoTokenId) {</span>
+<span class="nc" id="L106">            this.cryptoTokenInfo = new CryptoTokenInfo(cryptoTokenId, &quot;CryptoToken id &quot; + cryptoTokenId, false, false, NullCryptoToken.class,</span>
+                    new Properties());
+<span class="nc" id="L108">            this.cryptoTokenNewState = false;</span>
+<span class="nc" id="L109">            this.allowedActivation = false;</span>
+<span class="nc" id="L110">            this.allowedDeactivation = false;</span>
+<span class="nc" id="L111">        }</span>
+
+        public void add(CaActivationGuiInfo caActivationGuiInfo) {
+<span class="nc" id="L114">	        caActivationGuiInfos.add(caActivationGuiInfo);</span>
+<span class="nc" id="L115">	    }</span>
+
+<span class="nc" id="L117">        public List&lt;CaActivationGuiInfo&gt; getCas() { return caActivationGuiInfos; }</span>
+	    
+<span class="nc" id="L119">        public int getCryptoTokenId() { return cryptoTokenInfo.getCryptoTokenId(); }</span>
+<span class="nc" id="L120">        public String getCryptoTokenName() { return cryptoTokenInfo.getName(); }</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">        public boolean isExisting() { return !&quot;NullCryptoToken&quot;.equals(cryptoTokenInfo.getType()); }</span>
+<span class="nc" id="L122">        public boolean isCryptoTokenActive() { return cryptoTokenInfo.isActive(); }</span>
+<span class="nc" id="L123">        public boolean isAutoActivated() { return cryptoTokenInfo.isAutoActivation(); }</span>
+<span class="nc bnc" id="L124" title="All 10 branches missed.">        public boolean isStateChangeDisabled() { return isAutoActivated() || (isCryptoTokenActive() &amp;&amp; !allowedDeactivation) || (!isCryptoTokenActive() &amp;&amp; !allowedActivation);}</span>
+<span class="nc" id="L125">        public boolean isCryptoTokenNewState() { return cryptoTokenNewState; }</span>
+<span class="nc" id="L126">        public void setCryptoTokenNewState(boolean cryptoTokenNewState) { this.cryptoTokenNewState = cryptoTokenNewState; }</span>
+	}
+
+    /** GUI representation of a CryptoToken and its CA(s) for the activation view */
+    public class TokenAndCaActivationGuiComboInfo {
+        private final boolean firstCryptoTokenListing;
+        private final TokenAndCaActivationGuiInfo cryptoTokenInfo;
+        private final CaActivationGuiInfo caActivationGuiInfo;
+<span class="nc" id="L134">        public TokenAndCaActivationGuiComboInfo(TokenAndCaActivationGuiInfo cryptoTokenInfo, CaActivationGuiInfo caActivationGuiInfo, boolean first) {</span>
+<span class="nc" id="L135">            this.cryptoTokenInfo = cryptoTokenInfo;</span>
+<span class="nc" id="L136">            this.caActivationGuiInfo = caActivationGuiInfo;</span>
+<span class="nc" id="L137">            this.firstCryptoTokenListing = first;</span>
+<span class="nc" id="L138">        }</span>
+<span class="nc" id="L139">        public boolean isFirst() { return firstCryptoTokenListing; }</span>
+<span class="nc" id="L140">        public TokenAndCaActivationGuiInfo getCryptoToken() { return cryptoTokenInfo; }</span>
+<span class="nc" id="L141">        public CaActivationGuiInfo getCa() { return caActivationGuiInfo; }</span>
+    }
+
+<span class="nc" id="L144">	private final AuthenticationToken authenticationToken = EjbcaJSFHelper.getBean().getEjbcaWebBean().getAdminObject();</span>
+<span class="nc" id="L145">    private final EjbLocalHelper ejbLocalhelper = new EjbLocalHelper();</span>
+<span class="nc" id="L146">	private final CAAdminSessionLocal caAdminSession = ejbLocalhelper.getCaAdminSession();</span>
+<span class="nc" id="L147">	private final CaSessionLocal caSession = ejbLocalhelper.getCaSession(); </span>
+<span class="nc" id="L148">	private final CryptoTokenManagementSessionLocal cryptoTokenManagementSession = ejbLocalhelper.getCryptoTokenManagementSession();</span>
+<span class="nc" id="L149">    private final AuthorizationSessionLocal authorizationSession = ejbLocalhelper.getAuthorizationSession();</span>
+
+<span class="nc" id="L151">	private List&lt;TokenAndCaActivationGuiComboInfo&gt; authorizedTokensAndCas = null;</span>
+	private String authenticationcode;
+
+	public List&lt;TokenAndCaActivationGuiComboInfo&gt; getAuthorizedTokensAndCas() {
+<span class="nc" id="L155">        final Map&lt;Integer,TokenAndCaActivationGuiInfo&gt; sortMap = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L156" title="All 2 branches missed.">        for (final CAInfo caInfo : caSession.getAuthorizedAndEnabledCaInfos(authenticationToken)) {</span>
+<span class="nc" id="L157">                final Integer cryptoTokenId = Integer.valueOf(caInfo.getCAToken().getCryptoTokenId());</span>
+<span class="nc bnc" id="L158" title="All 2 branches missed.">                if (sortMap.get(cryptoTokenId)==null) {</span>
+                    // Perhaps not authorized to view the CryptoToken used by the CA, but we implicitly
+                    // allow this in the current context since we are authorized to the CA.
+<span class="nc" id="L161">                    final CryptoTokenInfo cryptoTokenInfo = cryptoTokenManagementSession.getCryptoTokenInfo(cryptoTokenId.intValue());</span>
+<span class="nc bnc" id="L162" title="All 2 branches missed.">                    if (cryptoTokenInfo==null) {</span>
+<span class="nc" id="L163">                        sortMap.put(cryptoTokenId, new TokenAndCaActivationGuiInfo(cryptoTokenId));</span>
+                    } else {
+<span class="nc" id="L165">                        final boolean allowedActivation = authorizationSession.isAuthorizedNoLogging(authenticationToken, CryptoTokenRules.ACTIVATE.resource() + '/' + cryptoTokenId);</span>
+<span class="nc" id="L166">                        final boolean allowedDeactivation = authorizationSession.isAuthorizedNoLogging(authenticationToken, CryptoTokenRules.DEACTIVATE.resource() + '/' + cryptoTokenId);</span>
+<span class="nc" id="L167">                        sortMap.put(cryptoTokenId, new TokenAndCaActivationGuiInfo(cryptoTokenInfo, allowedActivation, allowedDeactivation));</span>
+                    }
+                }
+<span class="nc" id="L170">                sortMap.get(cryptoTokenId).add(new CaActivationGuiInfo(caInfo.getStatus(), caInfo.getIncludeInHealthCheck(), caInfo.getName(), caInfo.getCAId()));</span>
+<span class="nc" id="L171">        }</span>
+<span class="nc" id="L172">        final TokenAndCaActivationGuiInfo[] tokenAndCasArray = sortMap.values().toArray(new TokenAndCaActivationGuiInfo[0]);</span>
+        // Sort array by CryptoToken name
+<span class="nc" id="L174">        Arrays.sort(tokenAndCasArray, new Comparator&lt;TokenAndCaActivationGuiInfo&gt;() {</span>
+            @Override
+            public int compare(TokenAndCaActivationGuiInfo o1, TokenAndCaActivationGuiInfo o2) {
+<span class="nc" id="L177">                return o1.getCryptoTokenName().compareToIgnoreCase(o2.getCryptoTokenName());</span>
+            }
+        });
+<span class="nc" id="L180">        final List&lt;TokenAndCaActivationGuiComboInfo&gt; retValues = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L181" title="All 2 branches missed.">        for (final TokenAndCaActivationGuiInfo value : tokenAndCasArray) {</span>
+<span class="nc" id="L182">            boolean first = true;</span>
+<span class="nc" id="L183">            final CaActivationGuiInfo[] casArray = value.getCas().toArray(new CaActivationGuiInfo[0]);</span>
+            // Sort array by CA name
+<span class="nc" id="L185">            Arrays.sort(casArray, new Comparator&lt;CaActivationGuiInfo&gt;() {</span>
+                @Override
+                public int compare(CaActivationGuiInfo o1, CaActivationGuiInfo o2) {
+<span class="nc" id="L188">                    return o1.getName().compareToIgnoreCase(o2.getName());</span>
+                }
+            });
+<span class="nc bnc" id="L191" title="All 2 branches missed.">            for (final CaActivationGuiInfo value2 : casArray) {</span>
+<span class="nc" id="L192">                retValues.add(new TokenAndCaActivationGuiComboInfo(value, value2, first));</span>
+<span class="nc" id="L193">                first = false;</span>
+            }
+        }
+<span class="nc" id="L196">        authorizedTokensAndCas = retValues;</span>
+<span class="nc" id="L197">        return retValues;</span>
+    }
+
+	/**
+	 * Tries to activate CryptoTokens (once for each), if authentication code is present and activation is requested.
+	 * Set the CA service status to the requested state for each CA.
+	 */
+	public void applyChanges() {
+<span class="nc bnc" id="L205" title="All 2 branches missed.">	    if (authorizedTokensAndCas==null) {</span>
+<span class="nc" id="L206">	        return;</span>
+	    }
+<span class="nc bnc" id="L208" title="All 2 branches missed.">	    for (final TokenAndCaActivationGuiComboInfo tokenAndCaCombo : authorizedTokensAndCas) {</span>
+<span class="nc bnc" id="L209" title="All 2 branches missed.">            if (tokenAndCaCombo.isFirst()) {</span>
+<span class="nc" id="L210">                TokenAndCaActivationGuiInfo tokenAndCa = tokenAndCaCombo.getCryptoToken();</span>
+<span class="nc bnc" id="L211" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L212">                    log.debug(&quot;isCryptoTokenActive(): &quot; + tokenAndCa.isCryptoTokenActive() + &quot; isCryptoTokenNewState(): &quot; + tokenAndCa.isCryptoTokenNewState());</span>
+                }
+<span class="nc bnc" id="L214" title="All 2 branches missed.">	            if (tokenAndCa.isCryptoTokenActive() != tokenAndCa.isCryptoTokenNewState()) {</span>
+<span class="nc bnc" id="L215" title="All 2 branches missed.">	                if (tokenAndCa.isCryptoTokenNewState()) {</span>
+	                    // Assert that authcode is present
+<span class="nc bnc" id="L217" title="All 4 branches missed.">	                    if (authenticationcode != null &amp;&amp; authenticationcode.length()&gt;0) {</span>
+	                        // Activate CA's CryptoToken
+	                        try {
+<span class="nc" id="L220">	                            cryptoTokenManagementSession.activate(authenticationToken, tokenAndCa.getCryptoTokenId(), authenticationcode.toCharArray());</span>
+<span class="nc" id="L221">	                            log.info(authenticationToken.toString() + &quot; activated CryptoToken &quot; + tokenAndCa.getCryptoTokenId());</span>
+<span class="nc" id="L222">	                        } catch (CryptoTokenAuthenticationFailedException e) {</span>
+<span class="nc" id="L223">	                            super.addNonTranslatedErrorMessage(&quot;Bad authentication code.&quot;);</span>
+<span class="nc" id="L224">	                        } catch (CryptoTokenOfflineException e) {</span>
+<span class="nc" id="L225">	                            super.addNonTranslatedErrorMessage(&quot;Crypto Token is offline and cannot be activated.&quot;);</span>
+<span class="nc" id="L226">	                        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L227">	                            super.addNonTranslatedErrorMessage(e.getMessage());</span>
+<span class="nc" id="L228">	                        }</span>
+	                    } else {
+<span class="nc" id="L230">	                        super.addNonTranslatedErrorMessage(&quot;Authentication code required.&quot;);</span>
+	                    }
+	                } else {
+	                    // Deactivate CA's CryptoToken
+	                    try {
+<span class="nc" id="L235">	                        cryptoTokenManagementSession.deactivate(authenticationToken, tokenAndCa.getCryptoTokenId());</span>
+<span class="nc" id="L236">	                        log.info(authenticationToken.toString() + &quot; deactivated CryptoToken &quot; + tokenAndCa.getCryptoTokenId());</span>
+<span class="nc" id="L237">	                    } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L238">	                        super.addNonTranslatedErrorMessage(e.getMessage());</span>
+<span class="nc" id="L239">	                    }</span>
+	                }
+	            }
+	        }
+<span class="nc" id="L243">	        CaActivationGuiInfo ca = tokenAndCaCombo.getCa();</span>
+<span class="nc bnc" id="L244" title="All 2 branches missed.">	        if (ca.isActive() != ca.isNewState()) {</span>
+	            // Valid transition 1: Currently offline, become active
+<span class="nc bnc" id="L246" title="All 4 branches missed.">	            if (ca.isNewState() &amp;&amp; ca.getStatus()==CAConstants.CA_OFFLINE) {</span>
+	                try {
+<span class="nc" id="L248">	                    caAdminSession.activateCAService(authenticationToken, ca.getCaId());</span>
+<span class="nc" id="L249">	                } catch (Exception e) {</span>
+<span class="nc" id="L250">	                    super.addNonTranslatedErrorMessage(e.getMessage());</span>
+<span class="nc" id="L251">	                }</span>
+	            } 
+	            // Valid transition 2: Currently online, become offline
+<span class="nc bnc" id="L254" title="All 4 branches missed.">	            if (!ca.isNewState() &amp;&amp; ca.getStatus()==CAConstants.CA_ACTIVE) {</span>
+	                try {
+<span class="nc" id="L256">	                    caAdminSession.deactivateCAService(authenticationToken, ca.getCaId());</span>
+<span class="nc" id="L257">	                } catch (Exception e) {</span>
+<span class="nc" id="L258">	                    super.addNonTranslatedErrorMessage(e.getMessage());</span>
+<span class="nc" id="L259">	                }</span>
+	            }
+	        }
+<span class="nc bnc" id="L262" title="All 2 branches missed.">	        if (ca.isMonitored() != ca.isMonitoredNewState()) {</span>
+	            // Only persist changes if there are any
+	            try {
+<span class="nc" id="L265">	                final CAInfo caInfo = caSession.getCAInfoInternal(ca.getCaId(), null, false);</span>
+<span class="nc" id="L266">	                caInfo.setIncludeInHealthCheck(ca.isMonitoredNewState());</span>
+<span class="nc" id="L267">	                caAdminSession.editCA(authenticationToken, caInfo);</span>
+<span class="nc" id="L268">	            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L269">	                super.addNonTranslatedErrorMessage(e.getMessage());</span>
+<span class="nc" id="L270">	            }</span>
+	        }
+<span class="nc bnc" id="L272" title="All 2 branches missed.">	        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L273">	            log.debug(&quot;caId: &quot; + ca.getCaId() + &quot; monitored: &quot; + ca.isMonitored() + &quot; newCaStatus: &quot; + ca.isNewState());</span>
+	        }
+<span class="nc" id="L275">	    }</span>
+<span class="nc" id="L276">	}</span>
+
+	/** @return true when there is at least one CryptoToken that can be activated. */
+    public boolean isActivationCodeShown() {
+<span class="nc bnc" id="L280" title="All 2 branches missed.">        if (authorizedTokensAndCas!=null) {</span>
+<span class="nc bnc" id="L281" title="All 2 branches missed.">            for (final TokenAndCaActivationGuiComboInfo tokenAndCa : authorizedTokensAndCas) {</span>
+<span class="nc bnc" id="L282" title="All 2 branches missed.">                if (tokenAndCa.isFirst()) {</span>
+<span class="nc bnc" id="L283" title="All 4 branches missed.">                    if (!tokenAndCa.getCryptoToken().isCryptoTokenActive() &amp;&amp; !tokenAndCa.getCryptoToken().isStateChangeDisabled()) {</span>
+<span class="nc" id="L284">                        return true;</span>
+                    }
+                }
+<span class="nc" id="L287">            }</span>
+        }
+<span class="nc" id="L289">        return false;</span>
+    }
+    
+    /**
+     * AccessRulesConstants.REGULAR_ACTIVATECA is not the best rule to check, but will work as a placeholder until authorization is revamped. 
+     * 
+     * @return true if admin is authorized to {@link AccessRulesConstants#REGULAR_ACTIVATECA}
+     */
+    public boolean isAuthorizedToBasicFunctions() {
+<span class="nc" id="L298">        return authorizationSession.isAuthorizedNoLogging(getAdmin(), AccessRulesConstants.REGULAR_ACTIVATECA);</span>
+    }
+    
+    
+    
+<span class="nc" id="L303">	public void setAuthenticationCode(String authenticationcode) { this.authenticationcode = authenticationcode; }</span>
+<span class="nc" id="L304">	public String getAuthenticationCode() { return &quot;&quot;; }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

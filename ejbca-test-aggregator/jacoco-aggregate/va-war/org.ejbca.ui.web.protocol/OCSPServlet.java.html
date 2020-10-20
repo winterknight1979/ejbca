@@ -1,0 +1,499 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>OCSPServlet.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">va-war</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.protocol</a> &gt; <span class="el_source">OCSPServlet.java</span></div><h1>OCSPServlet.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.web.protocol;
+
+import java.io.IOException;
+import java.net.URLDecoder;
+import java.security.InvalidKeyException;
+import java.security.KeyStoreException;
+import java.security.cert.X509Certificate;
+import java.util.Set;
+
+import javax.ejb.EJB;
+import javax.servlet.ServletException;
+import javax.servlet.ServletInputStream;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.bouncycastle.cert.ocsp.OCSPRespBuilder;
+import org.cesecore.certificates.certificateprofile.CertificateProfileConstants;
+import org.cesecore.certificates.ocsp.OcspResponseGeneratorSessionLocal;
+import org.cesecore.certificates.ocsp.OcspResponseInformation;
+import org.cesecore.certificates.ocsp.cache.OcspConfigurationCache;
+import org.cesecore.certificates.ocsp.exception.MalformedRequestException;
+import org.cesecore.certificates.ocsp.logging.AuditLogger;
+import org.cesecore.certificates.ocsp.logging.GuidHolder;
+import org.cesecore.certificates.ocsp.logging.PatternLogger;
+import org.cesecore.certificates.ocsp.logging.TransactionCounter;
+import org.cesecore.certificates.ocsp.logging.TransactionLogger;
+import org.cesecore.config.ConfigurationHolder;
+import org.cesecore.config.OcspConfiguration;
+import org.cesecore.configuration.GlobalConfigurationSessionLocal;
+import org.cesecore.keys.token.CryptoTokenOfflineException;
+import org.cesecore.util.Base64;
+import org.cesecore.util.GUIDGenerator;
+import org.cesecore.util.StringTools;
+import org.ejbca.config.AvailableProtocolsConfiguration;
+import org.ejbca.config.AvailableProtocolsConfiguration.AvailableProtocols;
+import org.ejbca.core.ejb.ocsp.OcspKeyRenewalSessionLocal;
+import org.ejbca.core.model.InternalEjbcaResources;
+import org.ejbca.ui.web.LimitLengthASN1Reader;
+import org.ejbca.util.HTMLTools;
+import org.ejbca.util.IPatternLogger;
+
+/** 
+ * Servlet implementing server side of the Online Certificate Status Protocol (OCSP)
+ * For a detailed description of OCSP refer to RFC2560.
+ *
+ * @version  $Id: OCSPServlet.java 29592 2018-08-09 07:50:12Z anatom $
+ */
+<span class="nc" id="L64">public class OCSPServlet extends HttpServlet {</span>
+
+    private static final long serialVersionUID = 8081630219584820112L;
+<span class="nc" id="L67">    private static final Logger log = Logger.getLogger(OCSPServlet.class);</span>
+<span class="nc" id="L68">    private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();</span>
+    
+<span class="nc" id="L70">    private final String sessionID = GUIDGenerator.generateGUID(this);</span>
+<span class="nc" id="L71">    private enum HttpMethod { GET, POST, OTHER};</span>
+    
+    @EJB
+    private OcspResponseGeneratorSessionLocal integratedOcspResponseGeneratorSession;
+    @EJB
+    private OcspKeyRenewalSessionLocal ocspKeyRenewalSession;
+    @EJB
+    private GlobalConfigurationSessionLocal globalConfigurationSession;
+
+    @Override
+    public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        try {
+<span class="nc bnc" id="L83" title="All 2 branches missed.">            if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L84">                log.trace(&quot;&gt;doGet()&quot;);</span>
+            }
+<span class="nc" id="L86">            final String keyRenewalSignerDN =  request.getParameter(&quot;renewSigner&quot;);</span>
+<span class="nc bnc" id="L87" title="All 4 branches missed.">            final boolean performKeyRenewal = keyRenewalSignerDN!=null &amp;&amp; keyRenewalSignerDN.length()&gt;0;           </span>
+            // We have a command to force reloading of keys that can only be run from localhost
+<span class="nc" id="L89">            final boolean doReload = StringUtils.equals(request.getParameter(&quot;reloadkeys&quot;), &quot;true&quot;);</span>
+<span class="nc" id="L90">            final String newConfig = request.getParameter(&quot;newConfig&quot;);</span>
+<span class="nc bnc" id="L91" title="All 4 branches missed.">            final boolean doNewConfig = newConfig != null &amp;&amp; newConfig.length() &gt; 0;</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">            final boolean doRestoreConfig = request.getParameter(&quot;restoreConfig&quot;) != null;</span>
+<span class="nc" id="L93">            final String remote = request.getRemoteAddr();</span>
+<span class="nc bnc" id="L94" title="All 6 branches missed.">            if (doReload || doNewConfig || doRestoreConfig) {</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">                if (!StringUtils.equals(remote, &quot;127.0.0.1&quot;)) {</span>
+<span class="nc" id="L96">                    log.info(&quot;Got reloadkeys or updateConfig of restoreConfig command from unauthorized ip: &quot; + remote);</span>
+<span class="nc" id="L97">                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED);</span>
+<span class="nc" id="L98">                    return;</span>
+                }
+            }
+<span class="nc bnc" id="L101" title="All 2 branches missed.">            if (doReload) {</span>
+<span class="nc" id="L102">                log.info(intres.getLocalizedMessage(&quot;ocsp.reloadkeys&quot;, remote));</span>
+                // Reload CA certificates
+<span class="nc" id="L104">                integratedOcspResponseGeneratorSession.reloadOcspSigningCache();</span>
+<span class="nc" id="L105">                return;</span>
+            }
+<span class="nc bnc" id="L107" title="All 2 branches missed.">            if (doNewConfig) {</span>
+<span class="nc" id="L108">                final String aConfig[] = newConfig.split(&quot;\\|\\|&quot;);</span>
+<span class="nc bnc" id="L109" title="All 2 branches missed.">                for (int i = 0; i &lt; aConfig.length; i++) {</span>
+<span class="nc" id="L110">                    log.debug(&quot;Config change: &quot; + aConfig[i]);</span>
+<span class="nc" id="L111">                    final int separatorIx = aConfig[i].indexOf('=');</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">                    if (separatorIx &lt; 0) {</span>
+<span class="nc" id="L113">                        ConfigurationHolder.updateConfiguration(aConfig[i], null);</span>
+<span class="nc" id="L114">                        continue;</span>
+                    }
+<span class="nc" id="L116">                    ConfigurationHolder.updateConfiguration(aConfig[i].substring(0, separatorIx),</span>
+<span class="nc" id="L117">                            aConfig[i].substring(separatorIx + 1, aConfig[i].length()));</span>
+                }
+                // This setting is cached and must be cleared on config update
+<span class="nc" id="L120">                OcspConfiguration.clearAcceptedSignatureAlgorithmCache();</span>
+<span class="nc" id="L121">                OcspConfigurationCache.INSTANCE.reloadConfiguration();</span>
+<span class="nc" id="L122">                log.info(&quot;Call from &quot; + remote + &quot; to update configuration&quot;);</span>
+<span class="nc" id="L123">                return;</span>
+            }
+<span class="nc bnc" id="L125" title="All 2 branches missed.">            if (doRestoreConfig) {</span>
+<span class="nc" id="L126">                ConfigurationHolder.restoreConfiguration();</span>
+<span class="nc" id="L127">                OcspConfigurationCache.INSTANCE.reloadConfiguration();</span>
+<span class="nc" id="L128">                log.info(&quot;Call from &quot; + remote + &quot; to restore configuration.&quot;);</span>
+<span class="nc" id="L129">                return;</span>
+            }
+<span class="nc bnc" id="L131" title="All 2 branches missed.">            if ( performKeyRenewal ) {</span>
+<span class="nc" id="L132">                final Set&lt;String&gt; rekeyingTriggeringHosts = OcspConfiguration.getRekeyingTriggingHosts();</span>
+<span class="nc bnc" id="L133" title="All 2 branches missed.">                if ( !rekeyingTriggeringHosts.contains(remote) ) {</span>
+<span class="nc" id="L134">                    log.info( intres.getLocalizedMessage(&quot;ocsp.rekey.triggered.unauthorized.ip&quot;, remote) );</span>
+<span class="nc" id="L135">                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED);</span>
+<span class="nc" id="L136">                    return;</span>
+                }
+<span class="nc" id="L138">                final String rekeyingTriggingPassword = OcspConfiguration.getRekeyingTriggingPassword();</span>
+<span class="nc bnc" id="L139" title="All 2 branches missed.">                if ( rekeyingTriggingPassword==null ) {</span>
+<span class="nc" id="L140">                    log.info( intres.getLocalizedMessage(&quot;ocsp.rekey.triggered.not.enabled&quot;,remote) );</span>
+<span class="nc" id="L141">                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED);</span>
+<span class="nc" id="L142">                    return;</span>
+                }
+<span class="nc" id="L144">                final String requestPassword = request.getParameter(&quot;password&quot;);</span>
+<span class="nc" id="L145">                final String keyrenewalSignerDn =  request.getParameter(&quot;renewSigner&quot;);</span>
+<span class="nc bnc" id="L146" title="All 2 branches missed.">                if ( !rekeyingTriggingPassword.equals(requestPassword) ) {</span>
+<span class="nc" id="L147">                    log.info( intres.getLocalizedMessage(&quot;ocsp.rekey.triggered.wrong.password&quot;, remote) );</span>
+<span class="nc" id="L148">                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED);</span>
+<span class="nc" id="L149">                    return;</span>
+                }
+                try {
+<span class="nc" id="L152">                    ocspKeyRenewalSession.renewKeyStores(keyrenewalSignerDn);</span>
+<span class="nc" id="L153">                } catch (KeyStoreException e) {</span>
+<span class="nc" id="L154">                    log.info( intres.getLocalizedMessage(&quot;ocsp.rekey.keystore.notactivated&quot;, remote) );</span>
+<span class="nc" id="L155">                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED);</span>
+<span class="nc" id="L156">                    return;</span>
+<span class="nc" id="L157">                } catch (CryptoTokenOfflineException e) {</span>
+<span class="nc" id="L158">                    log.info( intres.getLocalizedMessage(&quot;ocsp.rekey.cryptotoken.notactivated&quot;, remote) );</span>
+<span class="nc" id="L159">                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED);</span>
+<span class="nc" id="L160">                    return;</span>
+<span class="nc" id="L161">                } catch (InvalidKeyException e) {                   </span>
+<span class="nc" id="L162">                    log.info( intres.getLocalizedMessage(&quot;ocsp.rekey.invalid.key&quot;, remote) );</span>
+<span class="nc" id="L163">                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED);</span>
+<span class="nc" id="L164">                    return;</span>
+<span class="nc" id="L165">                }</span>
+<span class="nc" id="L166">                return;</span>
+            }
+<span class="nc" id="L168">            processOcspRequest(request, response, HttpMethod.GET);</span>
+        } finally {
+<span class="nc bnc" id="L170" title="All 2 branches missed.">            if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L171">                log.trace(&quot;&lt;doGet()&quot;);</span>
+            }
+        }
+<span class="nc" id="L174">    }</span>
+
+    @Override
+    public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+<span class="nc" id="L178">        boolean protocolEnabled = ((AvailableProtocolsConfiguration)globalConfigurationSession.getCachedConfiguration(AvailableProtocolsConfiguration.CONFIGURATION_ID)).</span>
+<span class="nc" id="L179">                getProtocolStatus(AvailableProtocols.OCSP.getName());</span>
+<span class="nc bnc" id="L180" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L181">            log.trace(&quot;&gt;doPost()&quot;);</span>
+        }
+<span class="nc bnc" id="L183" title="All 2 branches missed.">        if (!protocolEnabled) {</span>
+<span class="nc" id="L184">            log.info(&quot;OCSP Protocol is disabled&quot;);</span>
+<span class="nc" id="L185">            response.sendError(HttpServletResponse.SC_FORBIDDEN, &quot;OCSP is disabled&quot;);</span>
+<span class="nc" id="L186">            return;</span>
+        }
+        try {
+<span class="nc" id="L189">            final String contentType = request.getHeader(&quot;Content-Type&quot;);</span>
+<span class="nc bnc" id="L190" title="All 4 branches missed.">            if (contentType != null &amp;&amp; contentType.equalsIgnoreCase(&quot;application/ocsp-request&quot;)) {</span>
+<span class="nc" id="L191">                processOcspRequest(request, response, HttpMethod.POST);</span>
+<span class="nc" id="L192">                return;</span>
+            }
+<span class="nc" id="L194">            final String remoteAddr = request.getRemoteAddr();</span>
+            // Legacy support for activation using ClientToolBox. We will only use this once for upgrading the installation.
+<span class="nc" id="L196">            final String activationPassword = request.getHeader(&quot;activate&quot;);</span>
+<span class="nc bnc" id="L197" title="All 4 branches missed.">            if ( activationPassword!=null &amp;&amp; remoteAddr.equals(&quot;127.0.0.1&quot;)) {</span>
+                try {
+<span class="nc" id="L199">                    log.warn(&quot;'active' will only be used for initial one-time upgrade.&quot;+</span>
+                            &quot; Use regular CryptoToken activation in EJB CLI or Admin GUI to active your responder keystores.&quot;);
+<span class="nc" id="L201">                    integratedOcspResponseGeneratorSession.adhocUpgradeFromPre60(activationPassword.toCharArray());</span>
+<span class="nc" id="L202">                } catch (Exception e) {</span>
+<span class="nc" id="L203">                    log.error(&quot;Problem loading keys.&quot;, e);</span>
+<span class="nc" id="L204">                    response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, &quot;Problem. See ocsp responder server log.&quot;);</span>
+<span class="nc" id="L205">                }</span>
+<span class="nc" id="L206">                return;</span>
+            }
+<span class="nc bnc" id="L208" title="All 2 branches missed.">            if (contentType != null) {</span>
+<span class="nc" id="L209">                final String sError = &quot;Content-type is not application/ocsp-request. It is \'&quot; + HTMLTools.htmlescape(contentType) + &quot;\'.&quot;;</span>
+<span class="nc" id="L210">                log.debug(sError);</span>
+<span class="nc" id="L211">                response.sendError(HttpServletResponse.SC_BAD_REQUEST, sError);</span>
+<span class="nc" id="L212">                return;</span>
+            }
+<span class="nc bnc" id="L214" title="All 2 branches missed.">            if (!remoteAddr.equals(&quot;127.0.0.1&quot;)) {</span>
+<span class="nc" id="L215">                final String sError = &quot;You have connected from \'&quot; + remoteAddr + &quot;\'. You may only connect from 127.0.0.1&quot;;</span>
+<span class="nc" id="L216">                log.debug(sError);</span>
+<span class="nc" id="L217">                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, sError);</span>
+<span class="nc" id="L218">                return;</span>
+            }
+        } finally {
+<span class="nc bnc" id="L221" title="All 2 branches missed.">            if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L222">                log.trace(&quot;&lt;doPost()&quot;);</span>
+            }
+        }
+<span class="nc" id="L225">    }</span>
+
+    private void processOcspRequest(HttpServletRequest request, HttpServletResponse response, final HttpMethod httpMethod) throws ServletException {
+<span class="nc" id="L228">        final String remoteAddress = request.getRemoteAddr();</span>
+<span class="nc" id="L229">        final String xForwardedFor = StringTools.getCleanXForwardedFor(request.getHeader(&quot;X-Forwarded-For&quot;));</span>
+<span class="nc" id="L230">        final StringBuffer requestUrl = request.getRequestURL();</span>
+<span class="nc" id="L231">        final int localTransactionId = TransactionCounter.INSTANCE.getTransactionNumber();</span>
+        // Create the transaction logger for this transaction.
+<span class="nc" id="L233">        TransactionLogger transactionLogger = new TransactionLogger(localTransactionId, GuidHolder.INSTANCE.getGlobalUid(), remoteAddress);</span>
+        // Create the audit logger for this transaction.
+<span class="nc" id="L235">        AuditLogger auditLogger = new AuditLogger(&quot;&quot;, localTransactionId, GuidHolder.INSTANCE.getGlobalUid(), remoteAddress);</span>
+        try {
+<span class="nc bnc" id="L237" title="All 2 branches missed.">            if (auditLogger.isEnabled()) {</span>
+<span class="nc" id="L238">                auditLogger.paramPut(PatternLogger.LOG_ID, Integer.valueOf(localTransactionId));</span>
+<span class="nc" id="L239">                auditLogger.paramPut(PatternLogger.SESSION_ID, sessionID);</span>
+<span class="nc" id="L240">                auditLogger.paramPut(PatternLogger.CLIENT_IP, remoteAddress);</span>
+            }
+<span class="nc bnc" id="L242" title="All 2 branches missed.">            if (transactionLogger.isEnabled()) {</span>
+<span class="nc" id="L243">                transactionLogger.paramPut(PatternLogger.LOG_ID, Integer.valueOf(localTransactionId));</span>
+<span class="nc" id="L244">                transactionLogger.paramPut(PatternLogger.SESSION_ID, sessionID);</span>
+<span class="nc" id="L245">                transactionLogger.paramPut(PatternLogger.CLIENT_IP, remoteAddress);</span>
+<span class="nc" id="L246">                transactionLogger.paramPut(TransactionLogger.FORWARDED_FOR, xForwardedFor);</span>
+            }
+<span class="nc" id="L248">            OCSPRespBuilder responseGenerator = new OCSPRespBuilder();</span>
+<span class="nc" id="L249">            OcspResponseInformation ocspResponseInformation = null;</span>
+            try {
+<span class="nc" id="L251">                byte[] requestBytes = checkAndGetRequestBytes(request, httpMethod);</span>
+<span class="nc" id="L252">                X509Certificate[] requestCertificates = (X509Certificate[]) request.getAttribute(&quot;javax.servlet.request.X509Certificate&quot;);</span>
+<span class="nc" id="L253">                ocspResponseInformation = integratedOcspResponseGeneratorSession.getOcspResponse(</span>
+                        requestBytes, requestCertificates, remoteAddress, xForwardedFor, requestUrl, auditLogger, transactionLogger);
+<span class="nc" id="L255">            } catch (MalformedRequestException e) {</span>
+<span class="nc bnc" id="L256" title="All 2 branches missed.">                if (transactionLogger.isEnabled()) {</span>
+<span class="nc" id="L257">                    transactionLogger.paramPut(PatternLogger.PROCESS_TIME, PatternLogger.PROCESS_TIME);</span>
+                }
+<span class="nc bnc" id="L259" title="All 2 branches missed.">                if (auditLogger.isEnabled()) {</span>
+<span class="nc" id="L260">                    auditLogger.paramPut(PatternLogger.PROCESS_TIME, PatternLogger.PROCESS_TIME);</span>
+                }
+<span class="nc" id="L262">                String errMsg = intres.getLocalizedMessage(&quot;ocsp.errorprocessreq&quot;, e.getMessage());</span>
+<span class="nc" id="L263">                log.info(errMsg);</span>
+<span class="nc bnc" id="L264" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L265">                    log.debug(errMsg, e);</span>
+                }
+                // RFC 2560: responseBytes are not set on error.
+<span class="nc" id="L268">                ocspResponseInformation = new OcspResponseInformation(responseGenerator.build(OCSPRespBuilder.MALFORMED_REQUEST, null), OcspConfiguration.getMaxAge(CertificateProfileConstants.CERTPROFILE_NO_PROFILE), null);</span>
+<span class="nc bnc" id="L269" title="All 2 branches missed.">                if (transactionLogger.isEnabled()) {</span>
+<span class="nc" id="L270">                    transactionLogger.paramPut(TransactionLogger.STATUS, OCSPRespBuilder.MALFORMED_REQUEST);</span>
+<span class="nc" id="L271">                    transactionLogger.writeln();</span>
+                }
+<span class="nc bnc" id="L273" title="All 2 branches missed.">                if (auditLogger.isEnabled()) {</span>
+<span class="nc" id="L274">                    auditLogger.paramPut(AuditLogger.STATUS, OCSPRespBuilder.MALFORMED_REQUEST);</span>
+                }
+<span class="nc" id="L276">            } catch (Throwable e) { // NOPMD, we really want to catch everything here to return internal error on unexpected errors</span>
+<span class="nc bnc" id="L277" title="All 2 branches missed.">                if (transactionLogger.isEnabled()) {</span>
+<span class="nc" id="L278">                    transactionLogger.paramPut(IPatternLogger.PROCESS_TIME, IPatternLogger.PROCESS_TIME);</span>
+                }
+<span class="nc bnc" id="L280" title="All 2 branches missed.">                if (auditLogger.isEnabled()) {</span>
+<span class="nc" id="L281">                    auditLogger.paramPut(IPatternLogger.PROCESS_TIME, IPatternLogger.PROCESS_TIME);</span>
+                }
+<span class="nc" id="L283">                final String errMsg = intres.getLocalizedMessage(&quot;ocsp.errorprocessreq&quot;, e.getMessage());</span>
+<span class="nc" id="L284">                log.info(errMsg);</span>
+<span class="nc bnc" id="L285" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L286">                    log.debug(errMsg, e);</span>
+                }
+                // RFC 2560: responseBytes are not set on error.
+<span class="nc" id="L289">                ocspResponseInformation = new OcspResponseInformation(responseGenerator.build(OCSPRespBuilder.INTERNAL_ERROR, null), OcspConfiguration.getMaxAge(CertificateProfileConstants.CERTPROFILE_NO_PROFILE), null);</span>
+<span class="nc bnc" id="L290" title="All 2 branches missed.">                if (transactionLogger.isEnabled()) {</span>
+<span class="nc" id="L291">                    transactionLogger.paramPut(TransactionLogger.STATUS, OCSPRespBuilder.INTERNAL_ERROR);</span>
+<span class="nc" id="L292">                    transactionLogger.writeln();</span>
+                }
+<span class="nc bnc" id="L294" title="All 2 branches missed.">                if (auditLogger.isEnabled()) {</span>
+<span class="nc" id="L295">                    auditLogger.paramPut(AuditLogger.STATUS, OCSPRespBuilder.INTERNAL_ERROR);</span>
+                }
+<span class="nc" id="L297">            }</span>
+<span class="nc" id="L298">            byte[] ocspResponseBytes = ocspResponseInformation.getOcspResponse();    </span>
+<span class="nc" id="L299">            response.setContentType(&quot;application/ocsp-response&quot;);</span>
+<span class="nc" id="L300">            response.setContentLength(ocspResponseBytes.length);</span>
+<span class="nc bnc" id="L301" title="All 2 branches missed.">            if (HttpMethod.GET.equals(httpMethod)) {</span>
+<span class="nc" id="L302">                addRfc5019CacheHeaders(request, response, ocspResponseInformation);</span>
+            } else {
+<span class="nc bnc" id="L304" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L305">                    log.debug(&quot;Will not add RFC 5019 cache headers: \&quot;clients MUST use the GET method (to enable OCSP response caching)\&quot;&quot;);</span>
+                }
+            }
+            
+<span class="nc bnc" id="L309" title="All 2 branches missed.">            if (HttpMethod.POST.equals(httpMethod)) {</span>
+<span class="nc" id="L310">                addOscpPostHeaders(response, ocspResponseInformation);</span>
+            }
+            
+<span class="nc" id="L313">            response.getOutputStream().write(ocspResponseBytes);</span>
+<span class="nc" id="L314">            response.getOutputStream().flush();</span>
+<span class="nc" id="L315">        } catch (Exception e) {</span>
+<span class="nc" id="L316">            log.error(&quot;&quot;, e);</span>
+<span class="nc" id="L317">            transactionLogger.flush();</span>
+<span class="nc" id="L318">            auditLogger.flush();</span>
+<span class="nc" id="L319">        }</span>
+<span class="nc" id="L320">    }</span>
+    
+    private void addOscpPostHeaders(HttpServletResponse response, OcspResponseInformation ocspResponseInformation) {
+        
+<span class="nc bnc" id="L324" title="All 2 branches missed.">        if (!ocspResponseInformation.shouldAddCacheHeaders()) {</span>
+<span class="nc" id="L325">            return;</span>
+        }
+        
+<span class="nc" id="L328">        final long thisUpdate = ocspResponseInformation.getThisUpdate();</span>
+<span class="nc" id="L329">        long nextUpdate = ocspResponseInformation.getNextUpdate();</span>
+<span class="nc" id="L330">        String responseHeader = ocspResponseInformation.getResponseHeader();</span>
+        
+        // RFC 5019 6.2: Last-Modified: date and time at which the OCSP responder last modified the response. == thisUpdate
+<span class="nc" id="L333">        response.setDateHeader(&quot;Last-Modified&quot;, thisUpdate);</span>
+        // RFC 5019 6.2: Expires: This date and time will be the same as the nextUpdate timestamp in the OCSP response itself.
+<span class="nc" id="L335">        response.setDateHeader(&quot;Expires&quot;, nextUpdate); // This is overridden by max-age on HTTP/1.1 compatible components</span>
+        // RFC 5019 6.2: This profile RECOMMENDS that the ETag value be the ASCII HEX representation of the SHA1 hash of the OCSPResponse structure.
+<span class="nc" id="L337">        response.setHeader(&quot;ETag&quot;, &quot;\&quot;&quot; + responseHeader + &quot;\&quot;&quot;);</span>
+<span class="nc" id="L338">    }</span>
+    
+    
+    
+    /**
+     * RFC 2560 does not specify how cache headers should be used, but RFC 5019 does. Therefore we will only
+     * add the headers if the requirements of RFC 5019 is fulfilled: A GET-request, a single embedded response,
+     * the response contains a nextUpdate and no nonce is present.
+     * @param request is the incoming HttpServletRequest
+     * @param response is the outgoing HttpServletResponse
+     * @param ocspResponseInformation is the previously parsed data carrier that wraps the contents of an OCSPResp
+     * @throws IOException org.bouncycastle.cert.ocsp.OCSPException 
+     * @throws org.bouncycastle.cert.ocsp.OCSPException  fail
+     */
+    private void addRfc5019CacheHeaders(HttpServletRequest request, HttpServletResponse response, OcspResponseInformation ocspResponseInformation) 
+                throws IOException, org.bouncycastle.cert.ocsp.OCSPException {
+<span class="nc bnc" id="L354" title="All 2 branches missed.">        if (!ocspResponseInformation.shouldAddCacheHeaders()) {</span>
+<span class="nc" id="L355">            return;</span>
+        } 
+<span class="nc bnc" id="L357" title="All 2 branches missed.">        if (ocspResponseInformation.getMaxAge() &lt;= 0) {</span>
+<span class="nc bnc" id="L358" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L359">                log.debug(&quot;Will not add RFC 5019 cache headers: RFC 5019 6.2: max-age should be 'later than thisUpdate but earlier than nextUpdate'.&quot;);</span>
+            }
+<span class="nc" id="L361">            return;</span>
+        }
+<span class="nc" id="L363">        final long now = System.currentTimeMillis();</span>
+<span class="nc" id="L364">        final long thisUpdate = ocspResponseInformation.getThisUpdate();</span>
+<span class="nc" id="L365">        long nextUpdate = ocspResponseInformation.getNextUpdate();</span>
+        // Max-age and nextUpdate will be truncated if they point longer than the OCSP signer certificate is valid
+        // If we shrink nextUpdate, max-age will be automatically shrunk
+<span class="nc" id="L368">        X509Certificate signerCert = ocspResponseInformation.getSignerCert();</span>
+<span class="nc bnc" id="L369" title="All 4 branches missed.">        if (signerCert != null &amp;&amp; signerCert.getNotAfter().getTime() &lt; nextUpdate) {</span>
+<span class="nc" id="L370">            nextUpdate = signerCert.getNotAfter().getTime();</span>
+        }
+        // RFC 5019 6.2: Date: The date and time at which the OCSP server generated the HTTP response.
+        // On JBoss AS the &quot;Date&quot;-header is cached for 1 second, so this value will be overwritten and off by up to a second 
+<span class="nc" id="L374">        response.setDateHeader(&quot;Date&quot;, now);</span>
+        // RFC 5019 6.2: Last-Modified: date and time at which the OCSP responder last modified the response. == thisUpdate
+<span class="nc" id="L376">        response.setDateHeader(&quot;Last-Modified&quot;, thisUpdate);</span>
+        // RFC 5019 6.2: Expires: This date and time will be the same as the nextUpdate timestamp in the OCSP response itself.
+<span class="nc" id="L378">        response.setDateHeader(&quot;Expires&quot;, nextUpdate); // This is overridden by max-age on HTTP/1.1 compatible components</span>
+        // RFC 5019 6.2: This profile RECOMMENDS that the ETag value be the ASCII HEX representation of the SHA1 hash of the OCSPResponse structure.
+<span class="nc" id="L380">        response.setHeader(&quot;ETag&quot;, &quot;\&quot;&quot; + ocspResponseInformation.getResponseHeader() + &quot;\&quot;&quot;);</span>
+<span class="nc bnc" id="L381" title="All 2 branches missed.">        if (ocspResponseInformation.isExplicitNoCache()) {</span>
+            // Note that using no-cache here is not conforming to RFC5019, but with more recent CABForum discussions it seems RFC5019 will not
+            // be followed, or will be changed. (See ECA-3289)
+<span class="nc" id="L384">            response.setHeader(&quot;Cache-Control&quot;, &quot;no-cache, must-revalidate&quot;); //HTTP 1.1</span>
+<span class="nc" id="L385">            response.setHeader(&quot;Pragma&quot;, &quot;no-cache&quot;); //HTTP 1.0 </span>
+        } else {
+            // Max age is retrieved in milliseconds, but it must be in seconds in the cache-control header
+<span class="nc" id="L388">            long maxAge = ocspResponseInformation.getMaxAge();</span>
+<span class="nc bnc" id="L389" title="All 2 branches missed.">            if (maxAge &gt;= (nextUpdate - thisUpdate)) {</span>
+<span class="nc bnc" id="L390" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L391">                    log.debug(&quot;max-age (&quot;+maxAge+&quot;) is &gt;= (nextUpdate - thisUpdate): (&quot;+nextUpdate+&quot; - &quot;+thisUpdate+&quot;)&quot;);</span>
+                }
+<span class="nc" id="L393">                maxAge = nextUpdate - thisUpdate - 1;</span>
+<span class="nc" id="L394">                log.warn(intres.getLocalizedMessage(&quot;ocsp.shrinkmaxage&quot;, maxAge));</span>
+            } 
+<span class="nc" id="L396">            response.setHeader(&quot;Cache-Control&quot;, &quot;max-age=&quot; + (maxAge / 1000L) + &quot;,public,no-transform,must-revalidate&quot;);</span>
+        }
+<span class="nc" id="L398">    }</span>
+
+    /**
+     * Reads the request bytes and verifies min and max size of the request. If an error occurs it throws a MalformedRequestException. 
+     * Can get request bytes both from a HTTP GET and POST request
+     * 
+     * @param request request
+     * @param httpMethod response
+     * @return the request bytes or null if an error occured.
+     * @throws IOException In case there is no stream to read
+     * @throws MalformedRequestException  fail
+     */
+    private byte[] checkAndGetRequestBytes(HttpServletRequest request, HttpMethod httpMethod) throws IOException, MalformedRequestException {
+        final byte[] ret;
+        // Get the request data
+<span class="nc" id="L413">        final int n = request.getContentLength();</span>
+        // Expect n might be -1 for HTTP GET requests
+<span class="nc bnc" id="L415" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L416">            log.debug(&quot;&gt;checkAndGetRequestBytes. Received &quot; + httpMethod.name() + &quot; request with content length: &quot; + n + &quot; from &quot; + request.getRemoteAddr());</span>
+        }
+<span class="nc bnc" id="L418" title="All 2 branches missed.">        if (n &gt; LimitLengthASN1Reader.MAX_REQUEST_SIZE) {</span>
+<span class="nc" id="L419">            String msg = intres.getLocalizedMessage(&quot;ocsp.toolarge&quot;, LimitLengthASN1Reader.MAX_REQUEST_SIZE, n);</span>
+<span class="nc" id="L420">            log.info(msg);</span>
+<span class="nc" id="L421">            throw new MalformedRequestException(msg);</span>
+        }
+        // So we passed basic tests, now we can read the bytes, but still keep an eye on the size
+        // we can not fully trust the sent content length.
+<span class="nc bnc" id="L425" title="All 2 branches missed.">        if (HttpMethod.POST.equals(httpMethod)) {</span>
+<span class="nc" id="L426">            final ServletInputStream in = request.getInputStream(); // ServletInputStream does not have to be closed, container handles this</span>
+<span class="nc" id="L427">            LimitLengthASN1Reader limitLengthASN1Reader = new LimitLengthASN1Reader(in, n);</span>
+            try {
+<span class="nc" id="L429">                ret = limitLengthASN1Reader.readFirstASN1Object();</span>
+<span class="nc bnc" id="L430" title="All 2 branches missed.">                if (n &gt; ret.length) {</span>
+                    // The client is sending more data than the OCSP request. It might be slightly broken or trying to bog down the server on purpose.
+                    // In the interest of not breaking existing systems that might have slightly broken clients we just log for a warning for now.
+<span class="nc" id="L433">                    String msg = intres.getLocalizedMessage(&quot;ocsp.additionaldata&quot;, ret.length, n);</span>
+<span class="nc" id="L434">                    log.warn(msg);</span>
+                }
+            } finally {
+<span class="nc" id="L437">                limitLengthASN1Reader.close();</span>
+            }
+<span class="nc bnc" id="L439" title="All 2 branches missed.">        } else if (HttpMethod.GET.equals(httpMethod)) {</span>
+            // GET request
+<span class="nc" id="L441">            final StringBuffer url = request.getRequestURL();</span>
+            // RFC2560 A.1.1 says that request longer than 255 bytes SHOULD be sent by POST, we support GET for longer requests anyway.
+<span class="nc bnc" id="L443" title="All 2 branches missed.">            if (url.length() &lt;= LimitLengthASN1Reader.MAX_REQUEST_SIZE) {</span>
+                final String decodedRequest;
+                try {
+                    // We have to extract the pathInfo manually, to avoid multiple slashes being converted to a single
+                    // According to RFC 2396 2.2 chars only have to encoded if they conflict with the purpose, so
+                    // we can for example expect both '/' and &quot;%2F&quot; in the request.
+<span class="nc" id="L449">                    final String fullServletpath = request.getContextPath() + request.getServletPath();</span>
+<span class="nc" id="L450">                    final int paramIx = Math.max(url.indexOf(fullServletpath), 0) + fullServletpath.length() + 1;</span>
+<span class="nc bnc" id="L451" title="All 2 branches missed.">                    final String requestString = paramIx &lt; url.length() ? url.substring(paramIx) : &quot;&quot;;</span>
+<span class="nc" id="L452">                    decodedRequest = URLDecoder.decode(requestString, &quot;UTF-8&quot;).replaceAll(&quot; &quot;, &quot;+&quot;);</span>
+<span class="nc" id="L453">                } catch (Exception e) {</span>
+<span class="nc" id="L454">                    String msg = intres.getLocalizedMessage(&quot;ocsp.badurlenc&quot;);</span>
+<span class="nc" id="L455">                    log.info(msg);</span>
+<span class="nc" id="L456">                    throw new MalformedRequestException(e);</span>
+<span class="nc" id="L457">                }</span>
+<span class="nc bnc" id="L458" title="All 4 branches missed.">                if (decodedRequest != null &amp;&amp; decodedRequest.length() &gt; 0) {</span>
+<span class="nc bnc" id="L459" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+                        // Don't log the request if it's too long, we don't want to cause denial of service by filling log files or buffers.
+<span class="nc bnc" id="L461" title="All 2 branches missed.">                        if (decodedRequest.length() &lt; 2048) {</span>
+<span class="nc" id="L462">                            log.debug(&quot;decodedRequest: &quot; + decodedRequest);</span>
+                        } else {
+<span class="nc" id="L464">                            log.debug(&quot;decodedRequest too long to log: &quot; + decodedRequest.length());</span>
+                        }
+                    }
+                    try {
+<span class="nc" id="L468">                        ret = Base64.decode(decodedRequest.getBytes());</span>
+<span class="nc" id="L469">                    } catch (Exception e) {</span>
+<span class="nc" id="L470">                        String msg = intres.getLocalizedMessage(&quot;ocsp.badurlenc&quot;);</span>
+<span class="nc" id="L471">                        log.info(msg);</span>
+<span class="nc" id="L472">                        throw new MalformedRequestException(e);</span>
+<span class="nc" id="L473">                    }</span>
+                } else {
+<span class="nc" id="L475">                    String msg = intres.getLocalizedMessage(&quot;ocsp.missingreq&quot;);</span>
+<span class="nc" id="L476">                    log.info(msg);</span>
+<span class="nc" id="L477">                    throw new MalformedRequestException(msg);</span>
+                }
+<span class="nc" id="L479">            } else {</span>
+<span class="nc" id="L480">                String msg = intres.getLocalizedMessage(&quot;ocsp.toolarge&quot;, LimitLengthASN1Reader.MAX_REQUEST_SIZE, url.length());</span>
+<span class="nc" id="L481">                log.info(msg);</span>
+<span class="nc" id="L482">                throw new MalformedRequestException(msg);</span>
+            }
+<span class="nc" id="L484">        } else {</span>
+            // Strange, an unknown method
+<span class="nc" id="L486">            String msg = intres.getLocalizedMessage(&quot;ocsp.unknownmethod&quot;, request.getMethod());</span>
+<span class="nc" id="L487">            log.info(msg);</span>
+<span class="nc" id="L488">            throw new MalformedRequestException(msg);</span>
+        }
+        // Make a final check that we actually received something
+<span class="nc bnc" id="L491" title="All 4 branches missed.">        if (ret==null || ret.length==0) {</span>
+<span class="nc" id="L492">            String msg = intres.getLocalizedMessage(&quot;ocsp.emptyreq&quot;, request.getRemoteAddr());</span>
+<span class="nc" id="L493">            log.info(msg);</span>
+<span class="nc" id="L494">            throw new MalformedRequestException(msg);</span>
+        }
+<span class="nc" id="L496">        return ret;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

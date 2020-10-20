@@ -17,7 +17,6 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.concurrent.Callable;
-
 import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
 import org.bouncycastle.cert.ocsp.BasicOCSPResp;
 import org.bouncycastle.cert.ocsp.BasicOCSPRespBuilder;
@@ -30,52 +29,85 @@ import org.cesecore.certificates.ocsp.exception.OcspFailureException;
 import org.cesecore.util.CertTools;
 
 /**
- * This internal class exists for the sole purpose of catching deadlocks in the HSM hardware.
- * 
+ * This internal class exists for the sole purpose of catching deadlocks in the
+ * HSM hardware.
+ *
  * @version $Id: HsmResponseThread.java 26780 2017-10-10 09:37:56Z mikekushner $
  */
 public class HsmResponseThread implements Callable&lt;BasicOCSPResp&gt; {
 
-    public static final long HSM_TIMEOUT_SECONDS = 30;
+    /** Timeout. */
+  public static final long HSM_TIMEOUT_SECONDS = 30;
 
-    private final BasicOCSPRespBuilder basicRes;
-    private final String signingAlgorithm;
-    private final PrivateKey signerKey;
-    private final JcaX509CertificateHolder[] chain;
-    private final String provider;
-    private final Date producedAt;
+  /** Res. */
+  private final BasicOCSPRespBuilder basicRes;
+  /** Algo. */
+  private final String signingAlgorithm;
+  /** Key. */
+  private final PrivateKey signerKey;
+  /** Chain. */
+  private final JcaX509CertificateHolder[] chain;
+  /** Provider. */
+  private final String provider;
+  /** Date. */
+  private final Date producedAt;
 
-    public HsmResponseThread(final BasicOCSPRespBuilder basicRes, final String signingAlgorithm, final PrivateKey signerKey,
-<span class="nc" id="L49">            final X509Certificate[] chain, final String provider, final Date producedAt) throws OcspFailureException {</span>
-<span class="nc" id="L50">        this.basicRes = basicRes;</span>
-<span class="nc" id="L51">        this.signingAlgorithm = signingAlgorithm;</span>
-<span class="nc" id="L52">        this.signerKey = signerKey;</span>
-<span class="nc" id="L53">        this.provider = provider;</span>
-<span class="nc" id="L54">        this.producedAt = producedAt;</span>
-        try {
-<span class="nc" id="L56">            this.chain = CertTools.convertToX509CertificateHolder(chain);</span>
-<span class="nc" id="L57">        } catch (CertificateEncodingException e) {</span>
-<span class="nc" id="L58">            throw new OcspFailureException(e);</span>
-<span class="nc" id="L59">        }</span>
-<span class="nc" id="L60">    }</span>
+  /**   *
+   * @param theBasicRes     response
+   * @param aSigningAlgorithm algo
+   * @param aSignerKey key
+   * @param aChain chain
+   * @param aProvider provider
+   * @param wasProducedAt time
+   * @throws OcspFailureException fail
+   */
+  public HsmResponseThread(
+      final BasicOCSPRespBuilder theBasicRes,
+      final String aSigningAlgorithm,
+      final PrivateKey aSignerKey,
+      final X509Certificate[] aChain,
+      final String aProvider,
+      final Date wasProducedAt)
+<span class="nc" id="L71">      throws OcspFailureException {</span>
+<span class="nc" id="L72">    this.basicRes = theBasicRes;</span>
+<span class="nc" id="L73">    this.signingAlgorithm = aSigningAlgorithm;</span>
+<span class="nc" id="L74">    this.signerKey = aSignerKey;</span>
+<span class="nc" id="L75">    this.provider = aProvider;</span>
+<span class="nc" id="L76">    this.producedAt = wasProducedAt;</span>
+    try {
+<span class="nc" id="L78">      this.chain = CertTools.convertToX509CertificateHolder(aChain);</span>
+<span class="nc" id="L79">    } catch (CertificateEncodingException e) {</span>
+<span class="nc" id="L80">      throw new OcspFailureException(e);</span>
+<span class="nc" id="L81">    }</span>
+<span class="nc" id="L82">  }</span>
 
-    @Override
-    public BasicOCSPResp call() throws OCSPException {
-        try {
-            /*
-             * BufferingContentSigner defaults to allocating a 4096 bytes buffer. Since a rather large OCSP response (e.g. signed with 4K
-             * RSA key, nonce and a one level chain) is less then 2KiB, this is generally a waste of allocation and garbage collection.
-             * 
-             * In high performance environments, the full OCSP response should in general be smaller than 1492 bytes to fit in a single
-             * Ethernet frame.
-             * 
-             * Lowering this allocation from 20480 to 4096 bytes under ECA-4084 which should still be plenty.
-             */
-<span class="nc" id="L74">            final ContentSigner signer = new BufferingContentSigner(new JcaContentSignerBuilder(signingAlgorithm).setProvider(provider).build(signerKey), 20480);</span>
-<span class="nc bnc" id="L75" title="All 2 branches missed.">            return basicRes.build(signer, chain, producedAt!=null? producedAt : new Date());</span>
-<span class="nc" id="L76">        } catch (OperatorCreationException e) {</span>
-<span class="nc" id="L77">            throw new OcspFailureException(e);</span>
-        }
+  @Override
+  public BasicOCSPResp call() throws OCSPException {
+    try {
+      /*
+       * BufferingContentSigner defaults to allocating a 4096 bytes buffer.
+       *  Since a rather large OCSP response (e.g. signed with 4K
+       * RSA key, nonce and a one level chain) is less then 2KiB, this is
+       * generally a waste of allocation and garbage collection.
+       *
+       * In high performance environments, the full OCSP response should
+       *  in general be smaller than 1492 bytes to fit in a single
+       * Ethernet frame.
+       *
+       * Lowering this allocation from 20480 to 4096 bytes
+       * under ECA-4084 which should still be plenty.
+       */
+<span class="nc" id="L100">      final ContentSigner signer =</span>
+          new BufferingContentSigner(
+              new JcaContentSignerBuilder(signingAlgorithm)
+<span class="nc" id="L103">                  .setProvider(provider)</span>
+<span class="nc" id="L104">                  .build(signerKey),</span>
+              20480);
+<span class="nc" id="L106">      return basicRes.build(</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">          signer, chain, producedAt != null ? producedAt : new Date());</span>
+<span class="nc" id="L108">    } catch (OperatorCreationException e) {</span>
+<span class="nc" id="L109">      throw new OcspFailureException(e);</span>
     }
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>GetEndEntityCertificateCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.ra</a> &gt; <span class="el_source">GetEndEntityCertificateCommand.java</span></div><h1>GetEndEntityCertificateCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.ui.cli.ra;
+
+import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.apache.log4j.Logger;
+import org.cesecore.certificates.certificate.CertificateDataWrapper;
+import org.cesecore.certificates.certificate.CertificateStoreSessionRemote;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.EjbRemoteHelper;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+
+/**
+ * Output all certificates for an end entity.
+ *
+ * @version $Id: GetEndEntityCertificateCommand.java 22705 2016-02-03 22:03:45Z jeklund $
+ */
+<span class="nc" id="L40">public class GetEndEntityCertificateCommand extends BaseRaCommand {</span>
+    
+<span class="nc" id="L42">    private static final Logger log = Logger.getLogger(GetEndEntityCertificateCommand.class);</span>
+    
+    private static final String COMMAND = &quot;getendentitycert&quot;;
+    private static final String OLD_COMMAND = &quot;getusercert&quot;;
+    
+<span class="nc" id="L47">    private static final Set&lt;String&gt; ALIASES = new HashSet&lt;String&gt;();</span>
+    static {
+<span class="nc" id="L49">        ALIASES.add(OLD_COMMAND);</span>
+<span class="nc" id="L50">    }</span>
+    
+    private static final String USERNAME_KEY = &quot;--username&quot;;
+
+    {
+<span class="nc" id="L55">        registerParameter(new Parameter(USERNAME_KEY, &quot;Username&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;Username for the end entity whose certificate to get.&quot;));
+<span class="nc" id="L57">    }</span>
+    
+    @Override
+    public Set&lt;String&gt; getMainCommandAliases() {
+<span class="nc" id="L61">        return ALIASES;</span>
+    }
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L66">        return COMMAND;</span>
+    }
+
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+<span class="nc" id="L71">        final String username = parameters.get(USERNAME_KEY);</span>
+<span class="nc" id="L72">        final Collection&lt;CertificateDataWrapper&gt; wrappers = EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateStoreSessionRemote.class).getCertificateDataByUsername(username, false, null);</span>
+<span class="nc bnc" id="L73" title="All 2 branches missed.">        if (wrappers != null) {</span>
+<span class="nc" id="L74">            final Collection&lt;Certificate&gt; certs = new ArrayList&lt;Certificate&gt;();</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">            for (CertificateDataWrapper wrapper : wrappers) {</span>
+<span class="nc" id="L76">                certs.add(wrapper.getCertificate());</span>
+<span class="nc" id="L77">            }</span>
+            try {
+<span class="nc" id="L79">                getLogger().info(new String(CertTools.getPemFromCertificateChain(certs)));</span>
+<span class="nc" id="L80">                return CommandResult.SUCCESS;</span>
+<span class="nc" id="L81">            } catch (CertificateEncodingException e) {</span>
+<span class="nc" id="L82">                throw new IllegalStateException(&quot;Newly retrieved certificate could not be parsed&quot;, e);</span>
+            }
+        } else {
+<span class="nc" id="L85">            getLogger().info(&quot;End Entity with username '&quot; + username + &quot;' does not exist.&quot;);</span>
+<span class="nc" id="L86">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+        }
+    }
+    
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L92">        return &quot;Output all certificates for an end entity&quot;;</span>
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L97">        return getCommandDescription();</span>
+    }
+
+    protected Logger getLogger() {
+<span class="nc" id="L101">        return log;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

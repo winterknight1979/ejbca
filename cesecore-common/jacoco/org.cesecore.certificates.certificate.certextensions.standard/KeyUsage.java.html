@@ -9,11 +9,10 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.certificate.certextensions.standard;
 
 import java.security.PublicKey;
-
 import org.apache.log4j.Logger;
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.x509.Extension;
@@ -26,38 +25,44 @@ import org.cesecore.certificates.endentity.EndEntityInformation;
 import org.cesecore.util.CertTools;
 
 /**
- * Class for standard X509 certificate extension. 
- * See rfc3280 or later for spec of this extension.
- * 
+ * Class for standard X509 certificate extension. See rfc3280 or later for spec
+ * of this extension.
+ *
  * @version $Id: KeyUsage.java 22092 2015-10-26 13:58:55Z mikekushner $
  */
-<span class="fc" id="L34">public class KeyUsage extends StandardCertificateExtension {</span>
-    private static final long serialVersionUID = 1L;
-<span class="fc" id="L36">    private static final Logger log = Logger.getLogger(KeyUsage.class);</span>
+<span class="fc" id="L33">public class KeyUsage extends StandardCertificateExtension {</span>
+  private static final long serialVersionUID = 1L;
+  /** Logger. */
+<span class="fc" id="L36">  private static final Logger LOG = Logger.getLogger(KeyUsage.class);</span>
 
-    @Override
-	public void init(final CertificateProfile certProf) {
-<span class="fc" id="L40">		super.setOID(Extension.keyUsage.getId());</span>
-<span class="fc" id="L41">		super.setCriticalFlag(certProf.getKeyUsageCritical());</span>
-<span class="fc" id="L42">	}</span>
-    
-    @Override
-    public ASN1Encodable getValue(final EndEntityInformation subject, final CA ca, final CertificateProfile certProfile,
-            final PublicKey userPublicKey, final PublicKey caPublicKey, CertificateValidity val) throws
-            CertificateExtensionException {
-		// Key usage
-<span class="nc" id="L49">		X509KeyUsage ret = null;</span>
-<span class="nc" id="L50">		final int keyUsage = CertTools.sunKeyUsageToBC(certProfile.getKeyUsage());</span>
-<span class="nc bnc" id="L51" title="All 2 branches missed.">		if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L52">			log.debug(&quot;Using KeyUsage from profile: &quot;+keyUsage);</span>
-		}
-<span class="nc bnc" id="L54" title="All 2 branches missed.">		if (keyUsage &gt;=0) {</span>
-<span class="nc" id="L55">			ret = new X509KeyUsage(keyUsage);</span>
-		}
-<span class="nc bnc" id="L57" title="All 2 branches missed.">		if (ret == null) {</span>
-<span class="nc" id="L58">			log.error(&quot;KeyUsage missconfigured, key usage flag invalid: &quot;+keyUsage);</span>
-		}
-<span class="nc" id="L60">		return ret;</span>
-	}	
+  @Override
+  public void init(final CertificateProfile certProf) {
+<span class="fc" id="L40">    super.setOID(Extension.keyUsage.getId());</span>
+<span class="fc" id="L41">    super.setCriticalFlag(certProf.getKeyUsageCritical());</span>
+<span class="fc" id="L42">  }</span>
+
+  @Override
+  public ASN1Encodable getValue(
+      final EndEntityInformation subject,
+      final CA ca,
+      final CertificateProfile certProfile,
+      final PublicKey userPublicKey,
+      final PublicKey caPublicKey,
+      final CertificateValidity val)
+      throws CertificateExtensionException {
+    // Key usage
+<span class="nc" id="L54">    X509KeyUsage ret = null;</span>
+<span class="nc" id="L55">    final int keyUsage = CertTools.sunKeyUsageToBC(certProfile.getKeyUsage());</span>
+<span class="nc bnc" id="L56" title="All 2 branches missed.">    if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L57">      LOG.debug(&quot;Using KeyUsage from profile: &quot; + keyUsage);</span>
+    }
+<span class="nc bnc" id="L59" title="All 2 branches missed.">    if (keyUsage &gt;= 0) {</span>
+<span class="nc" id="L60">      ret = new X509KeyUsage(keyUsage);</span>
+    }
+<span class="nc bnc" id="L62" title="All 2 branches missed.">    if (ret == null) {</span>
+<span class="nc" id="L63">      LOG.error(&quot;KeyUsage missconfigured, key usage flag invalid: &quot; + keyUsage);</span>
+    }
+<span class="nc" id="L65">    return ret;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

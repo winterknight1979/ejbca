@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PublisherDataHandler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Administration GUI</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.cainterface</a> &gt; <span class="el_source">PublisherDataHandler.java</span></div><h1>PublisherDataHandler.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.web.admin.cainterface;
+
+import java.io.Serializable;
+
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.common.exception.ReferencesToItemExistException;
+import org.ejbca.core.ejb.ca.publisher.PublisherSessionLocal;
+import org.ejbca.core.model.ca.publisher.BasePublisher;
+import org.ejbca.core.model.ca.publisher.PublisherConnectionException;
+import org.ejbca.core.model.ca.publisher.PublisherDoesntExistsException;
+import org.ejbca.core.model.ca.publisher.PublisherExistsException;
+
+/**
+ * A class handling the hardtoken profile data in the webinterface.
+ * 
+ * @deprecated since 6.12.0. Use PublisherSession directly instead
+ *
+ * @version $Id: PublisherDataHandler.java 30470 2018-11-12 11:02:11Z samuellb $
+ */
+@Deprecated
+public class PublisherDataHandler implements Serializable {
+
+    private static final long serialVersionUID = -5646053740072121787L;
+
+    private PublisherSessionLocal publishersession;
+    private AuthenticationToken administrator;
+
+    /** Creates a new instance of PublisherDataHandler 
+     * @param administrator Admin
+     * @param publishersession Session */
+<span class="nc" id="L45">    public PublisherDataHandler(AuthenticationToken administrator, PublisherSessionLocal publishersession) {</span>
+<span class="nc" id="L46">        this.publishersession = publishersession;</span>
+<span class="nc" id="L47">        this.administrator = administrator;</span>
+<span class="nc" id="L48">    }</span>
+
+    /** Method to add a publisher. Throws PublisherExitsException if profile already exists  
+     * @param name Name
+     * @param publisher Pub 
+     * @throws PublisherExistsException Fail 
+     * @throws AuthorizationDeniedException Fail */
+    public void addPublisher(String name, BasePublisher publisher) throws PublisherExistsException, AuthorizationDeniedException {
+<span class="nc" id="L56">        publishersession.addPublisher(administrator, name, publisher);</span>
+
+<span class="nc" id="L58">    }</span>
+
+    /** Method to change a publisher. 
+     * @param name Name
+     * @param publisher Pub 
+     * @throws AuthorizationDeniedException fail  */
+    public void changePublisher(String name, BasePublisher publisher) throws AuthorizationDeniedException {
+<span class="nc" id="L65">        publishersession.changePublisher(administrator, name, publisher);</span>
+<span class="nc" id="L66">    }</span>
+
+    /**
+     * Removes a publisher
+     * @param name Name
+     * @throws AuthorizationDeniedException if not authorized
+     * @throws ReferencesToItemExistException if references exist.
+     */
+    public void removePublisher(String name) throws ReferencesToItemExistException, AuthorizationDeniedException {
+<span class="nc" id="L75">        publishersession.removePublisher(administrator, name);</span>
+<span class="nc" id="L76">    }</span>
+
+    /** Metod to rename a publisher 
+     * @param oldname Name
+     * @param newname Name
+     * @throws PublisherExistsException fail
+     * @throws AuthorizationDeniedException fail */
+    public void renamePublisher(String oldname, String newname) throws PublisherExistsException, AuthorizationDeniedException {
+<span class="nc" id="L84">        publishersession.renamePublisher(administrator, oldname, newname);</span>
+
+<span class="nc" id="L86">    }</span>
+
+    public void clonePublisher(String originalname, String newname) throws AuthorizationDeniedException, PublisherDoesntExistsException,
+            PublisherExistsException {
+<span class="nc" id="L90">        publishersession.clonePublisher(administrator, originalname, newname);</span>
+<span class="nc" id="L91">    }</span>
+
+    public void testConnection(String name) throws PublisherConnectionException {
+<span class="nc" id="L94">        publishersession.testConnection(publishersession.getPublisherId(name));</span>
+
+<span class="nc" id="L96">    }</span>
+    public BasePublisher getPublisher(String name) {
+<span class="nc" id="L98">        return publishersession.getPublisher(name);</span>
+    }
+
+    public int getPublisherId(String name) {
+<span class="nc" id="L102">        return publishersession.getPublisherId(name);</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

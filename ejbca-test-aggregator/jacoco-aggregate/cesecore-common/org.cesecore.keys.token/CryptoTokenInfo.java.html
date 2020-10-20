@@ -14,93 +14,167 @@ package org.cesecore.keys.token;
 
 import java.io.Serializable;
 import java.util.Properties;
-
 import org.cesecore.keys.token.p11.Pkcs11SlotLabelType;
 
 /**
  * Non-sensitive information about a CryptoToken.
- * 
- * @version $Id: CryptoTokenInfo.java 28849 2018-05-04 12:33:49Z jekaterina_b_helmes $
+ *
+ * @version $Id: CryptoTokenInfo.java 28849 2018-05-04 12:33:49Z
+ *     jekaterina_b_helmes $
  */
 public class CryptoTokenInfo implements Serializable {
 
-    private static final long serialVersionUID = 5025517840531557857L;
-    private final Integer cryptoTokenId;
-    private final String name;
-    private final boolean active;
-    private final boolean autoActivation;
-    private final String type;
-    private final Properties cryptoTokenProperties;
+  private static final long serialVersionUID = 5025517840531557857L;
+  /** ID. */
+  private final Integer cryptoTokenId;
+  /** Name. */
+  private final String name;
+  /** bool. */
+  private final boolean active;
+  /** bool. */
+  private final boolean autoActivation;
+  /** Type. */
+  private final String type;
+  /** Properties. */
+  private final Properties cryptoTokenProperties;
 
-<span class="nc" id="L35">    public CryptoTokenInfo(Integer cryptoTokenId, String name, boolean active, boolean autoActivation, Class&lt;? extends CryptoToken&gt; type, Properties cryptoTokenProperties) {</span>
-<span class="nc" id="L36">        this.cryptoTokenId = cryptoTokenId;</span>
-<span class="nc" id="L37">        this.name = name;</span>
-<span class="nc" id="L38">        this.active = active;</span>
-<span class="nc" id="L39">        this.autoActivation = autoActivation;</span>
-<span class="nc" id="L40">        this.type = type.getSimpleName();</span>
-<span class="nc" id="L41">        this.cryptoTokenProperties = cryptoTokenProperties;</span>
-<span class="nc" id="L42">    }</span>
+  /**   *
+   * @param aCryptoTokenId ID
+   * @param aName Name
+   * @param isActive Active
+   * @param isAutoActivation Auto activate
+   * @param aType Type
+   * @param aCryptoTokenProperties Properties
+   */
+  public CryptoTokenInfo(
+      final Integer aCryptoTokenId,
+      final String aName,
+      final boolean isActive,
+      final boolean isAutoActivation,
+      final Class&lt;? extends CryptoToken&gt; aType,
+<span class="nc" id="L55">      final Properties aCryptoTokenProperties) {</span>
+<span class="nc" id="L56">    this.cryptoTokenId = aCryptoTokenId;</span>
+<span class="nc" id="L57">    this.name = aName;</span>
+<span class="nc" id="L58">    this.active = isActive;</span>
+<span class="nc" id="L59">    this.autoActivation = isAutoActivation;</span>
+<span class="nc" id="L60">    this.type = aType.getSimpleName();</span>
+<span class="nc" id="L61">    this.cryptoTokenProperties = aCryptoTokenProperties;</span>
+<span class="nc" id="L62">  }</span>
 
-    public Integer getCryptoTokenId() {
-<span class="nc" id="L45">        return cryptoTokenId;</span>
-    }
+  /**
+   * @return id
+   */
+  public Integer getCryptoTokenId() {
+<span class="nc" id="L68">    return cryptoTokenId;</span>
+  }
 
-    public String getName() {
-<span class="nc" id="L49">        return name;</span>
-    }
+  /**
+   * @return name
+   */
+  public String getName() {
+<span class="nc" id="L75">    return name;</span>
+  }
 
-    public boolean isActive() {
-<span class="nc" id="L53">        return active;</span>
-    }
+  /**
+   * @return bool
+   */
+  public boolean isActive() {
+<span class="nc" id="L82">    return active;</span>
+  }
 
-    public boolean isAutoActivation() {
-<span class="nc" id="L57">        return autoActivation;</span>
-    }
+  /**
+   * @return bool
+   */
+  public boolean isAutoActivation() {
+<span class="nc" id="L89">    return autoActivation;</span>
+  }
 
-    public String getType() {
-<span class="nc" id="L61">        return type;</span>
-    }
+  /**
+   * @return type
+   */
+  public String getType() {
+<span class="nc" id="L96">    return type;</span>
+  }
 
-    public boolean isAllowExportPrivateKey() {
-<span class="nc" id="L65">        return Boolean.valueOf(cryptoTokenProperties.getProperty(SoftCryptoToken.ALLOW_EXTRACTABLE_PRIVATE_KEY, Boolean.FALSE.toString()));</span>
-    }
+  /**
+   * @return bool
+   */
+  public boolean isAllowExportPrivateKey() {
+<span class="nc" id="L103">    return Boolean.valueOf(</span>
+<span class="nc" id="L104">        cryptoTokenProperties.getProperty(</span>
+            SoftCryptoToken.ALLOW_EXTRACTABLE_PRIVATE_KEY,
+<span class="nc" id="L106">            Boolean.FALSE.toString()));</span>
+  }
 
-    public boolean isAllowExplicitParameters() {
-<span class="nc" id="L69">        return Boolean.valueOf(cryptoTokenProperties.getProperty(SoftCryptoToken.EXPLICIT_ECC_PUBLICKEY_PARAMETERS, Boolean.FALSE.toString()));</span>
-    }
-    
-    public String getP11Library() {
-<span class="nc" id="L73">        return cryptoTokenProperties.getProperty(PKCS11CryptoToken.SHLIB_LABEL_KEY, &quot;&quot;);</span>
-    }
+  /**
+   * @return bool
+   */
+  public boolean isAllowExplicitParameters() {
+<span class="nc" id="L113">    return Boolean.valueOf(</span>
+<span class="nc" id="L114">        cryptoTokenProperties.getProperty(</span>
+            SoftCryptoToken.EXPLICIT_ECC_PUBLICKEY_PARAMETERS,
+<span class="nc" id="L116">            Boolean.FALSE.toString()));</span>
+  }
 
-    public String getP11Slot() {
-<span class="nc" id="L77">        return cryptoTokenProperties.getProperty(PKCS11CryptoToken.SLOT_LABEL_VALUE);</span>
-    }
+  /**
+   * @return library
+   */
+  public String getP11Library() {
+<span class="nc" id="L123">    return cryptoTokenProperties.getProperty(</span>
+        PKCS11CryptoToken.SHLIB_LABEL_KEY, &quot;&quot;);
+  }
 
-    public String getP11SlotLabelType() {
-<span class="nc" id="L81">        Pkcs11SlotLabelType slotLabelType = Pkcs11SlotLabelType.getFromKey(cryptoTokenProperties.getProperty(PKCS11CryptoToken.SLOT_LABEL_TYPE));</span>
-<span class="nc bnc" id="L82" title="All 2 branches missed.">        if (slotLabelType != null) {</span>
-<span class="nc" id="L83">            return slotLabelType.getKey();</span>
-        } else {
-<span class="nc" id="L85">            return null;</span>
-        }
-    }
+  /**
+   * @return slot
+   */
+  public String getP11Slot() {
+<span class="nc" id="L131">    return cryptoTokenProperties.getProperty(</span>
+        PKCS11CryptoToken.SLOT_LABEL_VALUE);
+  }
 
-    public String getP11SlotLabelTypeDescription() {
-<span class="nc" id="L90">        Pkcs11SlotLabelType slotLabelType = Pkcs11SlotLabelType.getFromKey(cryptoTokenProperties.getProperty(PKCS11CryptoToken.SLOT_LABEL_TYPE));</span>
-<span class="nc bnc" id="L91" title="All 2 branches missed.">        if (slotLabelType != null) {</span>
-<span class="nc" id="L92">            return slotLabelType.getDescription();</span>
-        } else {
-<span class="nc" id="L94">            return null;</span>
-        }
+  /**
+   * @return label type
+   */
+  public String getP11SlotLabelType() {
+<span class="nc" id="L139">    Pkcs11SlotLabelType slotLabelType =</span>
+<span class="nc" id="L140">        Pkcs11SlotLabelType.getFromKey(</span>
+<span class="nc" id="L141">            cryptoTokenProperties.getProperty(</span>
+                PKCS11CryptoToken.SLOT_LABEL_TYPE));
+<span class="nc bnc" id="L143" title="All 2 branches missed.">    if (slotLabelType != null) {</span>
+<span class="nc" id="L144">      return slotLabelType.getKey();</span>
+    } else {
+<span class="nc" id="L146">      return null;</span>
     }
+  }
 
-    public String getP11AttributeFile() {
-<span class="nc" id="L99">        return cryptoTokenProperties.getProperty(PKCS11CryptoToken.ATTRIB_LABEL_KEY, &quot;&quot;);</span>
+  /**
+   * @return Label description
+   */
+  public String getP11SlotLabelTypeDescription() {
+<span class="nc" id="L154">    Pkcs11SlotLabelType slotLabelType =</span>
+<span class="nc" id="L155">        Pkcs11SlotLabelType.getFromKey(</span>
+<span class="nc" id="L156">            cryptoTokenProperties.getProperty(</span>
+                PKCS11CryptoToken.SLOT_LABEL_TYPE));
+<span class="nc bnc" id="L158" title="All 2 branches missed.">    if (slotLabelType != null) {</span>
+<span class="nc" id="L159">      return slotLabelType.getDescription();</span>
+    } else {
+<span class="nc" id="L161">      return null;</span>
     }
+  }
 
-    public Properties getCryptoTokenProperties() {
-<span class="nc" id="L103">        return cryptoTokenProperties;</span>
-    }
+  /**
+   * @return File
+   */
+  public String getP11AttributeFile() {
+<span class="nc" id="L169">    return cryptoTokenProperties.getProperty(</span>
+        PKCS11CryptoToken.ATTRIB_LABEL_KEY, &quot;&quot;);
+  }
+
+  /**
+   * @return Properties
+   */
+  public Properties getCryptoTokenProperties() {
+<span class="nc" id="L177">    return cryptoTokenProperties;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

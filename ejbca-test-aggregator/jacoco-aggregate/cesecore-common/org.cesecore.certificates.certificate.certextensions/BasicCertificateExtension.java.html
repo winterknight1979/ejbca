@@ -18,7 +18,6 @@ import java.security.PublicKey;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.bouncycastle.asn1.ASN1Boolean;
@@ -44,473 +43,620 @@ import org.cesecore.internal.InternalResources;
 
 /**
  * The default basic certificate extension that has two property.
- * 
- * 'value' : The value returned 'encoding' : How the value is encoded.
- * 
- * Optionally, a new property can be defined:
- * 
- * 'nvalues' : number of values of type 'encoding'
- * 
- * Thus, the extension will be of type 'SEQUENCE OF ENCODING' with a size of nvalues. The members will be: 'value1', 'value2' and so on.
- * 
- * Optionally, an other property can be defined:
- * 
- *  'dynamic' : true/false if the extension value(s) should be allowed to be 
- *              overridden by value(s) put as extensiondata in 
- *              ExtendedInformation. Default is 'false'.
  *
+ * &lt;p&gt;'value' : The value returned 'encoding' : How the value is encoded.
  *
- * See documentation for more information.
- * 
- * @version $Id: BasicCertificateExtension.java 30583 2018-11-22 17:32:11Z samuellb $
+ * &lt;p&gt;Optionally, a new property can be defined:
+ *
+ * &lt;p&gt;'nvalues' : number of values of type 'encoding'
+ *
+ * &lt;p&gt;Thus, the extension will be of type 'SEQUENCE OF ENCODING' with a size of
+ * nvalues. The members will be: 'value1', 'value2' and so on.
+ *
+ * &lt;p&gt;Optionally, an other property can be defined:
+ *
+ * &lt;p&gt;'dynamic' : true/false if the extension value(s) should be allowed to be
+ * overridden by value(s) put as extensiondata in ExtendedInformation. Default
+ * is 'false'.
+ *
+ * &lt;p&gt;See documentation for more information.
+ *
+ * @version $Id: BasicCertificateExtension.java 30583 2018-11-22 17:32:11Z
+ *     samuellb $
  */
-<span class="fc" id="L67">public class BasicCertificateExtension extends CertificateExtension implements CustomCertificateExtension {</span>
+<span class="fc" id="L67">public class BasicCertificateExtension extends CertificateExtension</span>
+    implements CustomCertificateExtension {
 
-    private static final long serialVersionUID = 6896964791897238060L;
+  private static final long serialVersionUID = 6896964791897238060L;
 
-    @SuppressWarnings(&quot;unused&quot;)
-<span class="fc" id="L72">	private static final Logger log = Logger.getLogger(BasicCertificateExtension.class);</span>
+  /** Logger. */
+  @SuppressWarnings(&quot;unused&quot;)
+<span class="fc" id="L74">  private static final Logger LOG =</span>
+<span class="fc" id="L75">      Logger.getLogger(BasicCertificateExtension.class);</span>
 
-<span class="fc" id="L74">    private static final InternalResources intres = InternalResources.getInstance();</span>
-    
-    private static final String DISPLAY_NAME = &quot;Basic Certificate Extension&quot;;
+  /** Internal resource. */
+  private static final InternalResources INT_RES =
+<span class="fc" id="L79">      InternalResources.getInstance();</span>
 
-<span class="fc" id="L78">    private enum Encoding {</span>
-<span class="fc" id="L79">        ENCODING_DERBITSTRING(&quot;DERBITSTRING&quot;),</span>
-<span class="fc" id="L80">        ENCODING_DERINTEGER(&quot;DERINTEGER&quot;),</span>
-<span class="fc" id="L81">        ENCODING_DEROCTETSTRING(&quot;DEROCTETSTRING&quot;),</span>
-<span class="fc" id="L82">        ENCODING_DERBOOLEAN(&quot;DERBOOLEAN&quot;),</span>
-<span class="fc" id="L83">        ENCODING_DERPRINTABLESTRING(&quot;DERPRINTABLESTRING&quot;),</span>
-<span class="fc" id="L84">        ENCODING_DERUTF8STRING(&quot;DERUTF8STRING&quot;),</span>
-<span class="fc" id="L85">        ENCODING_DERIA5STRING(&quot;DERIA5STRING&quot;),</span>
-<span class="fc" id="L86">        ENCODING_DERNULL(&quot;DERNULL&quot;),</span>
-<span class="fc" id="L87">        ENCODING_DEROBJECT(&quot;DEROBJECT&quot;),</span>
-<span class="fc" id="L88">        ENCODING_DEROID(&quot;DERBOJECTIDENTIFIER&quot;);</span>
-        
-<span class="fc" id="L90">        private static final Map&lt;String, Encoding&gt; lookupMap = new HashMap&lt;String, Encoding&gt;();</span>
-        
-        static {
-<span class="fc bfc" id="L93" title="All 2 branches covered.">            for(Encoding encoding : Encoding.values()) {</span>
-<span class="fc" id="L94">                lookupMap.put(encoding.value(), encoding);</span>
-            }
-<span class="fc" id="L96">        }</span>
-        
-        private final String value;
+  /** Display name. */
+  private static final String DISPLAY_NAME = &quot;Basic Certificate Extension&quot;;
 
-        
-<span class="fc" id="L101">        private Encoding(String value) {</span>
-<span class="fc" id="L102">            this.value = value;</span>
-<span class="fc" id="L103">        }</span>
-        
-        public String value() {
-<span class="fc" id="L106">            return value;</span>
-        }
-        
-        public boolean equals(Encoding otherValue) {
-<span class="pc bpc" id="L110" title="1 of 2 branches missed.">            if(otherValue == null) {</span>
-<span class="nc" id="L111">                return false;</span>
-            }
-<span class="fc" id="L113">            return value.equalsIgnoreCase(otherValue.value());</span>
-        }
-        
-        public static final Encoding fromString(String value) {
-<span class="fc" id="L117">            return lookupMap.get(StringUtils.upperCase(value, Locale.ROOT));</span>
-        }
-        
-      
-    }
+<span class="fc" id="L84">  private enum Encoding {</span>
+    /** Bitstring. */
+<span class="fc" id="L86">    ENCODING_DERBITSTRING(&quot;DERBITSTRING&quot;),</span>
+    /** Int. */
+<span class="fc" id="L88">    ENCODING_DERINTEGER(&quot;DERINTEGER&quot;),</span>
+    /** ASCII. */
+<span class="fc" id="L90">    ENCODING_DEROCTETSTRING(&quot;DEROCTETSTRING&quot;),</span>
+    /** Boolean. */
+<span class="fc" id="L92">    ENCODING_DERBOOLEAN(&quot;DERBOOLEAN&quot;),</span>
+    /** Printable. */
+<span class="fc" id="L94">    ENCODING_DERPRINTABLESTRING(&quot;DERPRINTABLESTRING&quot;),</span>
+    /** UTF-8. */
+<span class="fc" id="L96">    ENCODING_DERUTF8STRING(&quot;DERUTF8STRING&quot;),</span>
+    /** IA5 String. */
+<span class="fc" id="L98">    ENCODING_DERIA5STRING(&quot;DERIA5STRING&quot;),</span>
+    /** DER Null. */
+<span class="fc" id="L100">    ENCODING_DERNULL(&quot;DERNULL&quot;),</span>
+    /** DER Object. */
+<span class="fc" id="L102">    ENCODING_DEROBJECT(&quot;DEROBJECT&quot;),</span>
+    /** DER OID. */
+<span class="fc" id="L104">    ENCODING_DEROID(&quot;DERBOJECTIDENTIFIER&quot;);</span>
 
+    /** lookup map. */
+<span class="fc" id="L107">    private static final Map&lt;String, Encoding&gt; LOOKUP_MAP =</span>
+        new HashMap&lt;String, Encoding&gt;();
 
-    /** 
-     * The value is expected to by hex encoded and is added as an byte array 
-     * as the extension value. 
-     **/
-<span class="fc" id="L128">    private static String ENCODING_RAW = &quot;RAW&quot;;</span>
-<span class="fc" id="L129">    private static String ENCODING_DERNULL = &quot;DERNULL&quot;;</span>
-
-    // Defined Properties
-<span class="fc" id="L132">    private static String PROPERTY_VALUE = &quot;value&quot;;</span>
-<span class="fc" id="L133">    private static String PROPERTY_ENCODING = &quot;encoding&quot;;</span>
-<span class="fc" id="L134">    private static String PROPERTY_NVALUES = &quot;nvalues&quot;;</span>
-<span class="fc" id="L135">    private static String PROPERTY_DYNAMIC  = &quot;dynamic&quot;;</span>
-    
-<span class="fc" id="L137">    private static final Map&lt;String, String[]&gt; propertiesMap = new HashMap&lt;String, String[]&gt;();</span>
-    
     static {
-<span class="fc" id="L140">        Encoding[] encodings = Encoding.values();</span>
-        // +1 because we need to add RAW as well in the end
-<span class="fc" id="L142">        String[] encodingValues = new String[encodings.length+1];</span>
-<span class="fc bfc" id="L143" title="All 2 branches covered.">        for(int i = 0; i &lt; encodings.length; i++) {</span>
-<span class="fc" id="L144">            encodingValues[i] = encodings[i].value;</span>
+<span class="fc bfc" id="L111" title="All 2 branches covered.">      for (Encoding encoding : Encoding.values()) {</span>
+<span class="fc" id="L112">        LOOKUP_MAP.put(encoding.value(), encoding);</span>
+      }
+<span class="fc" id="L114">    }</span>
+
+    /** Value. */
+    private final String value;
+
+<span class="fc" id="L119">    Encoding(final String avalue) {</span>
+<span class="fc" id="L120">      this.value = avalue;</span>
+<span class="fc" id="L121">    }</span>
+
+    public String value() {
+<span class="fc" id="L124">      return value;</span>
+    }
+
+    public boolean equals(final Encoding otherValue) {
+<span class="pc bpc" id="L128" title="1 of 2 branches missed.">      if (otherValue == null) {</span>
+<span class="nc" id="L129">        return false;</span>
+      }
+<span class="fc" id="L131">      return value.equalsIgnoreCase(otherValue.value());</span>
+    }
+
+    public static Encoding fromString(final String value) {
+<span class="fc" id="L135">      return LOOKUP_MAP.get(StringUtils.upperCase(value, Locale.ROOT));</span>
+    }
+  }
+
+  /**
+   * The value is expected to by hex encoded and is added as an byte array as
+   * the extension value.
+   */
+  private static final String ENCODING_RAW = &quot;RAW&quot;;
+  /** DER null . */
+  private static final String ENCODING_DERNULL = &quot;DERNULL&quot;;
+
+  // Defined Properties
+  /** Value. */
+  private static final String PROPERTY_VALUE = &quot;value&quot;;
+  /** Encoding. */
+  private static final String PROPERTY_ENCODING = &quot;encoding&quot;;
+  /** Nvalues. */
+  private static final String PROPERTY_NVALUES = &quot;nvalues&quot;;
+  /** Dynamic. */
+  private static final String PROPERTY_DYNAMIC = &quot;dynamic&quot;;
+
+  /** Properties. */
+<span class="fc" id="L158">  private static final Map&lt;String, String[]&gt; PROPERTIES_MAP =</span>
+      new HashMap&lt;String, String[]&gt;();
+
+  static {
+<span class="fc" id="L162">    Encoding[] encodings = Encoding.values();</span>
+    // +1 because we need to add RAW as well in the end
+<span class="fc" id="L164">    String[] encodingValues = new String[encodings.length + 1];</span>
+<span class="fc bfc" id="L165" title="All 2 branches covered.">    for (int i = 0; i &lt; encodings.length; i++) {</span>
+<span class="fc" id="L166">      encodingValues[i] = encodings[i].value;</span>
+    }
+    // Add RAW last
+<span class="fc" id="L169">    encodingValues[encodingValues.length - 1] = ENCODING_RAW;</span>
+
+<span class="fc" id="L171">    PROPERTIES_MAP.put(PROPERTY_ENCODING, encodingValues);</span>
+<span class="fc" id="L172">    PROPERTIES_MAP.put(PROPERTY_VALUE, new String[] {});</span>
+<span class="fc" id="L173">    PROPERTIES_MAP.put(PROPERTY_DYNAMIC, CustomCertificateExtension.BOOLEAN);</span>
+<span class="fc" id="L174">  }</span>
+
+  {
+<span class="fc" id="L177">    setDisplayName(DISPLAY_NAME);</span>
+<span class="fc" id="L178">  }</span>
+
+  /**
+   * @param userData User
+   * @param ca CA
+   * @param certProfile profile
+   * @param userPublicKey key
+   * @param caPublicKey key
+   * @param val val
+   * @return asn.1
+   * @throws CertificateExtensionException on fail
+   * @deprecated use getValueEncoded instead. */
+  public ASN1Encodable getValue(
+      final EndEntityInformation userData,
+      final CA ca,
+      final CertificateProfile certProfile,
+      final PublicKey userPublicKey,
+      final PublicKey caPublicKey,
+      final CertificateValidity val)
+      throws CertificateExtensionException {
+<span class="nc" id="L198">    throw new UnsupportedOperationException(&quot;Use getValueEncoded instead&quot;);</span>
+  }
+
+  /**
+   * Returns the defined property 'value' in the encoding specified in
+   * 'encoding'.
+   *
+   * &lt;p&gt;This certificate extension implementations overrides this method as it
+   * want to be able to return a byte[] with the extension value. Otherwise the
+   * implementation could have been put in the getValue method as the super
+   * class CertificateExtension has a default implementation for getValueEncoded
+   * which calls getValue.
+   *
+   * @param userData Used to lookup extension data
+   * @param ca not used
+   * @param certProfile not used
+   * @see
+   *     org.cesecore.certificates.certificate.certextensions.CertificateExtension#getValueEncoded(EndEntityInformation,
+   *     CA, CertificateProfile, PublicKey, PublicKey, CertificateValidity)
+   */
+  @Override
+  public byte[] getValueEncoded(
+      final EndEntityInformation userData,
+      final CA ca,
+      final CertificateProfile certProfile,
+      final PublicKey userPublicKey,
+      final PublicKey caPublicKey,
+      final CertificateValidity val)
+      throws CertificateExtensionException {
+<span class="fc" id="L227">    String[] values = getValues(userData, null);</span>
+<span class="fc" id="L228">    return handleValues(values);</span>
+  }
+
+  @Override
+  public byte[] getValueEncoded(
+      final EndEntityInformation userData,
+      final CA ca,
+      final CertificateProfile certProfile,
+      final PublicKey userPublicKey,
+      final PublicKey caPublicKey,
+      final CertificateValidity val,
+      final String oid)
+      throws CertificateExtensionException {
+<span class="nc" id="L241">    String[] values = getValues(userData, oid);</span>
+<span class="nc" id="L242">    return handleValues(values);</span>
+  }
+
+  private byte[] handleValues(final String[] values)
+      throws CertificateExtensionException {
+    final byte[] result;
+<span class="fc" id="L248">    String encoding =</span>
+<span class="fc" id="L249">        StringUtils.trim(getProperties().getProperty(PROPERTY_ENCODING));</span>
+<span class="pc bpc" id="L250" title="2 of 6 branches missed.">    if (values == null</span>
+        || values.length == 0
+        || (values[0] == null
+<span class="fc bfc" id="L253" title="All 2 branches covered.">            &amp;&amp; !encoding.equalsIgnoreCase(ENCODING_DERNULL))) {</span>
+<span class="pc bpc" id="L254" title="1 of 2 branches missed.">      if (!isRequiredFlag()) {</span>
+<span class="nc" id="L255">        return null;</span>
+      }
+<span class="fc" id="L257">      throw new CertificateExtensionException(</span>
+<span class="fc" id="L258">          INT_RES.getLocalizedMessage(</span>
+              &quot;certext.basic.incorrectvalue&quot;,
+<span class="fc" id="L260">              Integer.valueOf(getId()),</span>
+<span class="fc" id="L261">              getOID()));</span>
+    }
+
+<span class="fc bfc" id="L264" title="All 2 branches covered.">    if (encoding.equalsIgnoreCase(ENCODING_RAW)) {</span>
+<span class="fc bfc" id="L265" title="All 2 branches covered.">      if (values.length &gt; 1) {</span>
+        // nvalues can not be used together with encoding=RAW
+<span class="fc" id="L267">        throw new CertificateExtensionException(</span>
+<span class="fc" id="L268">            INT_RES.getLocalizedMessage(</span>
+<span class="fc" id="L269">                &quot;certext.certextmissconfigured&quot;, Integer.valueOf(getId())));</span>
+      } else {
+<span class="fc" id="L271">        result = parseRaw(values[0]);</span>
+      }
+    } else {
+      try {
+<span class="fc bfc" id="L275" title="All 2 branches covered.">        if (values.length &gt; 1) {</span>
+<span class="fc" id="L276">          ASN1EncodableVector ev = new ASN1EncodableVector();</span>
+<span class="fc bfc" id="L277" title="All 2 branches covered.">          for (String value : values) {</span>
+<span class="fc" id="L278">            ASN1Encodable derval = parseValue(encoding, value);</span>
+<span class="fc" id="L279">            ev.add(derval);</span>
+          }
+<span class="fc" id="L281">          result = new DERSequence(ev).getEncoded();</span>
+<span class="fc" id="L282">        } else {</span>
+<span class="fc" id="L283">          result =</span>
+<span class="fc" id="L284">              parseValue(encoding, values[0]).toASN1Primitive().getEncoded();</span>
         }
-        // Add RAW last
-<span class="fc" id="L147">        encodingValues[encodingValues.length-1] = ENCODING_RAW;</span>
-        
-<span class="fc" id="L149">        propertiesMap.put(PROPERTY_ENCODING, encodingValues);</span>
-<span class="fc" id="L150">        propertiesMap.put(PROPERTY_VALUE, new String[]{});</span>
-<span class="fc" id="L151">        propertiesMap.put(PROPERTY_DYNAMIC, CustomCertificateExtension.BOOLEAN);</span>
-<span class="fc" id="L152">    }</span>
-    
-    {
-<span class="fc" id="L155">        setDisplayName(DISPLAY_NAME);</span>
-<span class="fc" id="L156">    }</span>
+<span class="nc" id="L286">      } catch (IOException ioe) {</span>
+<span class="nc" id="L287">        throw new CertificateExtensionException(ioe.getMessage(), ioe);</span>
+<span class="fc" id="L288">      }</span>
+    }
+<span class="fc" id="L290">    return result;</span>
+  }
 
-    /**
-     * @deprecated use getValueEncoded instead.
-     */
-    public ASN1Encodable getValue(EndEntityInformation userData, CA ca, CertificateProfile certProfile, PublicKey userPublicKey, PublicKey caPublicKey, CertificateValidity val)
-    throws CertificateExtensionException {
-<span class="nc" id="L163">        throw new UnsupportedOperationException(&quot;Use getValueEncoded instead&quot;);</span>
+  /**
+   * Get the extension value by first looking in the ExtendedInformation (if
+   * dynamic is enabled) and then in the static configuration.
+   *
+   * @param userData The userdata to get the ExtendedInformation from
+   * @param oid OID
+   * @return The value(s) for the extension (usually 1) or null if no value
+   *     found
+   */
+  private String[] getValues(
+          final EndEntityInformation userData, final String oid) {
+<span class="fc" id="L304">    String[] result = null;</span>
+
+<span class="fc" id="L306">    boolean dynamic =</span>
+<span class="fc" id="L307">        Boolean.parseBoolean(</span>
+<span class="fc" id="L308">            StringUtils.trim(</span>
+<span class="fc" id="L309">                getProperties()</span>
+<span class="fc" id="L310">                    .getProperty(PROPERTY_DYNAMIC, Boolean.FALSE.toString())));</span>
+
+<span class="fc" id="L312">    String strnvalues = getProperties().getProperty(PROPERTY_NVALUES);</span>
+    int nvalues;
+
+<span class="pc bpc" id="L315" title="1 of 4 branches missed.">    if (strnvalues == null || strnvalues.trim().equals(&quot;&quot;)) {</span>
+<span class="fc" id="L316">      nvalues = 0;</span>
+    } else {
+<span class="fc" id="L318">      nvalues = Integer.parseInt(strnvalues);</span>
     }
 
-    /**
-     * Returns the defined property 'value' in the encoding specified in 'encoding'.
-     * 
-     * This certificate extension implementations overrides this method as it 
-     * want to be able to return a byte[] with the extension value. Otherwise 
-     * the implementation could have been put in the getValue method as the 
-     * super class CertificateExtension has a default implementation for 
-     * getValueEncoded which calls getValue.
-     * 
-     * @param userData
-     *            Used to lookup extension data
-     * @param ca
-     *            not used
-     * @param certProfile
-     *            not used
-     * @see org.cesecore.certificates.certificate.certextensions.CertificateExtension#getValueEncoded(EndEntityInformation, CA, CertificateProfile, PublicKey,
-     *      PublicKey, CertificateValidity)
-     */
-    @Override
-    public byte[] getValueEncoded(EndEntityInformation userData, CA ca, CertificateProfile certProfile, PublicKey userPublicKey,
-            PublicKey caPublicKey, CertificateValidity val) throws CertificateExtensionException {
-<span class="fc" id="L187">        String[] values = getValues(userData, null);</span>
-<span class="fc" id="L188">        return handleValues(values);</span>
-    }
-    
-    @Override
-    public byte[] getValueEncoded(EndEntityInformation userData, CA ca, CertificateProfile certProfile, PublicKey userPublicKey,
-            PublicKey caPublicKey, CertificateValidity val, String oid) throws CertificateExtensionException {
-<span class="nc" id="L194">        String[] values = getValues(userData, oid);</span>
-<span class="nc" id="L195">        return handleValues(values);</span>
-    }
-
-    private byte[] handleValues(String[] values) throws CertificateExtensionException {
-        final byte[] result;
-<span class="fc" id="L200">        String encoding = StringUtils.trim(getProperties().getProperty(PROPERTY_ENCODING));</span>
-<span class="pc bpc" id="L201" title="2 of 8 branches missed.">        if (values == null || values.length == 0 || (values[0] == null &amp;&amp; !encoding.equalsIgnoreCase(ENCODING_DERNULL))) {</span>
-<span class="pc bpc" id="L202" title="1 of 2 branches missed.">            if (!isRequiredFlag()) {</span>
-<span class="nc" id="L203">                return null;</span>
+<span class="fc bfc" id="L321" title="All 2 branches covered.">    if (dynamic) {</span>
+<span class="fc" id="L322">      final ExtendedInformation ei = userData.getExtendedInformation();</span>
+<span class="pc bpc" id="L323" title="1 of 2 branches missed.">      if (ei == null) {</span>
+<span class="nc" id="L324">        result = null;</span>
+      } else {
+<span class="fc bfc" id="L326" title="All 2 branches covered.">        if (nvalues &lt; 1) {</span>
+<span class="fc" id="L327">          String value = null;</span>
+<span class="pc bpc" id="L328" title="1 of 2 branches missed.">          if (oid != null) {</span>
+<span class="nc" id="L329">            value = userData.getExtendedInformation().getExtensionData(oid);</span>
+<span class="nc bnc" id="L330" title="All 4 branches missed.">            if (value == null || value.trim().isEmpty()) {</span>
+<span class="nc" id="L331">              value =</span>
+                  userData
+<span class="nc" id="L333">                      .getExtendedInformation()</span>
+<span class="nc" id="L334">                      .getExtensionData(oid + &quot;.&quot; + PROPERTY_VALUE);</span>
             }
-<span class="fc" id="L205">            throw new CertificateExtensionException(intres.getLocalizedMessage(&quot;certext.basic.incorrectvalue&quot;, Integer.valueOf(getId()), getOID()));</span>
-        }
-
-<span class="fc bfc" id="L208" title="All 2 branches covered.">        if (encoding.equalsIgnoreCase(ENCODING_RAW)) {</span>
-<span class="fc bfc" id="L209" title="All 2 branches covered.">            if (values.length &gt; 1) {</span>
-                // nvalues can not be used together with encoding=RAW
-<span class="fc" id="L211">                throw new CertificateExtensionException(intres.getLocalizedMessage(&quot;certext.certextmissconfigured&quot;, Integer.valueOf(getId())));</span>
+          } else {
+<span class="fc" id="L337">            value =</span>
+<span class="fc" id="L338">                userData.getExtendedInformation().getExtensionData(getOID());</span>
+<span class="pc bpc" id="L339" title="1 of 4 branches missed.">            if (value == null || value.trim().isEmpty()) {</span>
+<span class="fc" id="L340">              value =</span>
+                  userData
+<span class="fc" id="L342">                      .getExtendedInformation()</span>
+<span class="fc" id="L343">                      .getExtensionData(getOID() + &quot;.&quot; + PROPERTY_VALUE);</span>
+            }
+          }
+<span class="fc bfc" id="L346" title="All 2 branches covered.">          if (value == null) {</span>
+<span class="fc" id="L347">            result = null;</span>
+          } else {
+<span class="fc" id="L349">            result = new String[] {value};</span>
+          }
+<span class="fc" id="L351">        } else {</span>
+<span class="fc bfc" id="L352" title="All 2 branches covered.">          for (int i = 1; i &lt;= nvalues; i++) {</span>
+<span class="fc" id="L353">            String value = null;</span>
+<span class="pc bpc" id="L354" title="1 of 2 branches missed.">            if (oid != null) {</span>
+<span class="nc" id="L355">              value =</span>
+                  userData
+<span class="nc" id="L357">                      .getExtendedInformation()</span>
+<span class="nc" id="L358">                      .getExtensionData(</span>
+<span class="nc" id="L359">                          oid + &quot;.&quot; + PROPERTY_VALUE + Integer.toString(i));</span>
             } else {
-<span class="fc" id="L213">                result = parseRaw(values[0]);</span>
+<span class="fc" id="L361">              value =</span>
+                  userData
+<span class="fc" id="L363">                      .getExtendedInformation()</span>
+<span class="fc" id="L364">                      .getExtensionData(</span>
+<span class="fc" id="L365">                          getOID()</span>
+                              + &quot;.&quot;
+                              + PROPERTY_VALUE
+<span class="fc" id="L368">                              + Integer.toString(i));</span>
             }
-        } else {
-            try {
-<span class="fc bfc" id="L217" title="All 2 branches covered.">                if (values.length &gt; 1) {</span>
-<span class="fc" id="L218">                    ASN1EncodableVector ev = new ASN1EncodableVector();</span>
-<span class="fc bfc" id="L219" title="All 2 branches covered.">                    for (String value : values) {</span>
-<span class="fc" id="L220">                        ASN1Encodable derval = parseValue(encoding, value);</span>
-<span class="fc" id="L221">                        ev.add(derval);</span>
-                    }
-<span class="fc" id="L223">                    result = new DERSequence(ev).getEncoded();</span>
-<span class="fc" id="L224">                } else {</span>
-<span class="fc" id="L225">                    result = parseValue(encoding, values[0]).toASN1Primitive().getEncoded();</span>
-                }
-<span class="nc" id="L227">            } catch (IOException ioe) {</span>
-<span class="nc" id="L228">                throw new CertificateExtensionException(ioe.getMessage(), ioe);</span>
-<span class="fc" id="L229">            }</span>
-        }
-<span class="fc" id="L231">        return result;</span>
-    }
-
-    /**
-     * Get the extension value by first looking in the ExtendedInformation (if 
-     * dynamic is enabled) and then in the static configuration.
-     * 
-     * @param userData The userdata to get the ExtendedInformation from
-     * @param oid OID
-     * @return The value(s) for the extension (usually 1) or null if no value found
-     */
-    private String[] getValues(EndEntityInformation userData, final String oid) {
-<span class="fc" id="L243">        String[] result = null;</span>
-
-<span class="fc" id="L245">        boolean dynamic = Boolean.parseBoolean(StringUtils.trim(getProperties().getProperty(PROPERTY_DYNAMIC, Boolean.FALSE.toString())));</span>
-
-<span class="fc" id="L247">        String strnvalues = getProperties().getProperty(PROPERTY_NVALUES);</span>
-        int nvalues;
-
-<span class="pc bpc" id="L250" title="1 of 4 branches missed.">        if ( strnvalues == null || strnvalues.trim().equals(&quot;&quot;) ) {</span>
-<span class="fc" id="L251">            nvalues = 0;</span>
-        } else {
-<span class="fc" id="L253">            nvalues = Integer.parseInt(strnvalues);</span>
-        }
-
-<span class="fc bfc" id="L256" title="All 2 branches covered.">        if (dynamic) {</span>
-<span class="fc" id="L257">            final ExtendedInformation ei = userData.getExtendedInformation();</span>
-<span class="pc bpc" id="L258" title="1 of 2 branches missed.">            if (ei == null) {</span>
-<span class="nc" id="L259">                result = null;</span>
-            } else {
-<span class="fc bfc" id="L261" title="All 2 branches covered.">                if (nvalues &lt; 1 ) {</span>
-<span class="fc" id="L262">                    String value = null;</span>
-<span class="pc bpc" id="L263" title="1 of 2 branches missed.">                    if (oid != null) {</span>
-<span class="nc" id="L264">                        value = userData.getExtendedInformation().getExtensionData(oid);</span>
-<span class="nc bnc" id="L265" title="All 4 branches missed.">                        if (value == null || value.trim().isEmpty()) {</span>
-<span class="nc" id="L266">                            value = userData.getExtendedInformation().getExtensionData(oid + &quot;.&quot; + PROPERTY_VALUE);</span>
-                        }
-                    } else {
-<span class="fc" id="L269">                        value = userData.getExtendedInformation().getExtensionData(getOID());</span>
-<span class="pc bpc" id="L270" title="1 of 4 branches missed.">                        if (value == null || value.trim().isEmpty()) {</span>
-<span class="fc" id="L271">                            value = userData.getExtendedInformation().getExtensionData(getOID() + &quot;.&quot; + PROPERTY_VALUE);</span>
-                        }
-                    }
-<span class="fc bfc" id="L274" title="All 2 branches covered.">                    if (value == null) {</span>
-<span class="fc" id="L275">                        result = null;</span>
-                    } else {
-<span class="fc" id="L277">                        result = new String[] { value };</span>
-                    }
-<span class="fc" id="L279">                } else {</span>
-<span class="fc bfc" id="L280" title="All 2 branches covered.">                    for (int i = 1; i &lt;= nvalues; i++) {</span>
-<span class="fc" id="L281">                        String value = null;</span>
-<span class="pc bpc" id="L282" title="1 of 2 branches missed.">                        if (oid != null) {</span>
-<span class="nc" id="L283">                            value = userData.getExtendedInformation().getExtensionData(oid + &quot;.&quot; + PROPERTY_VALUE + Integer.toString(i));</span>
-                        } else {
-<span class="fc" id="L285">                            value = userData.getExtendedInformation().getExtensionData(getOID() + &quot;.&quot; + PROPERTY_VALUE + Integer.toString(i));</span>
-                        }
-<span class="fc bfc" id="L287" title="All 2 branches covered.">                        if (value != null) {</span>
-<span class="fc bfc" id="L288" title="All 2 branches covered.">                            if (result == null) {</span>
-<span class="fc" id="L289">                                result = new String[nvalues];</span>
-                            }
-<span class="fc" id="L291">                            result[i - 1] = value;</span>
-                        }
-                    }
-                }
+<span class="fc bfc" id="L370" title="All 2 branches covered.">            if (value != null) {</span>
+<span class="fc bfc" id="L371" title="All 2 branches covered.">              if (result == null) {</span>
+<span class="fc" id="L372">                result = new String[nvalues];</span>
+              }
+<span class="fc" id="L374">              result[i - 1] = value;</span>
             }
+          }
         }
-<span class="fc bfc" id="L297" title="All 2 branches covered.">        if (result == null) {</span>
-<span class="fc bfc" id="L298" title="All 2 branches covered.">            if (nvalues &lt; 1 ) {</span>
-<span class="fc" id="L299">                String value = getProperties().getProperty(PROPERTY_VALUE);</span>
-<span class="fc bfc" id="L300" title="All 4 branches covered.">                if ( value == null || value.trim().equals(&quot;&quot;) ) {</span>
-<span class="fc" id="L301">                    value = getProperties().getProperty(PROPERTY_VALUE+&quot;1&quot;);</span>
-                }
-<span class="fc" id="L303">                result = new String[] { value };</span>
-<span class="fc" id="L304">            } else {</span>
-<span class="fc" id="L305">                result = new String[nvalues];</span>
-<span class="fc bfc" id="L306" title="All 2 branches covered.">                for (int i=1; i&lt;=nvalues; i++) {</span>
-<span class="fc" id="L307">                    result[i - 1] = getProperties().getProperty(PROPERTY_VALUE+Integer.toString(i));</span>
-                }
-            }
+      }
+    }
+<span class="fc bfc" id="L380" title="All 2 branches covered.">    if (result == null) {</span>
+<span class="fc bfc" id="L381" title="All 2 branches covered.">      if (nvalues &lt; 1) {</span>
+<span class="fc" id="L382">        String value = getProperties().getProperty(PROPERTY_VALUE);</span>
+<span class="fc bfc" id="L383" title="All 4 branches covered.">        if (value == null || value.trim().equals(&quot;&quot;)) {</span>
+<span class="fc" id="L384">          value = getProperties().getProperty(PROPERTY_VALUE + &quot;1&quot;);</span>
         }
-<span class="fc" id="L311">        return result;</span>
-    } 
+<span class="fc" id="L386">        result = new String[] {value};</span>
+<span class="fc" id="L387">      } else {</span>
+<span class="fc" id="L388">        result = new String[nvalues];</span>
+<span class="fc bfc" id="L389" title="All 2 branches covered.">        for (int i = 1; i &lt;= nvalues; i++) {</span>
+<span class="fc" id="L390">          result[i - 1] =</span>
+<span class="fc" id="L391">              getProperties().getProperty(PROPERTY_VALUE + Integer.toString(i));</span>
+        }
+      }
+    }
+<span class="fc" id="L395">    return result;</span>
+  }
 
-    private ASN1Encodable parseValue(String encoding, String value) throws CertificateExtensionException {
+  private ASN1Encodable parseValue(final String encoding, final String value)
+      throws CertificateExtensionException {
 
-<span class="fc" id="L316">        ASN1Encodable toret = null;</span>
-        
-<span class="fc" id="L318">        Encoding encodingType = Encoding.fromString(encoding);</span>
-        
-<span class="fc bfc" id="L320" title="All 2 branches covered.">        if(encodingType == null) {</span>
-<span class="fc" id="L321">            throw new CertificateExtensionException(intres.getLocalizedMessage(&quot;certext.basic.incorrectenc&quot;, encoding,</span>
-<span class="fc" id="L322">                    Integer.valueOf(getId())));</span>
-        }
+<span class="fc" id="L401">    ASN1Encodable toret = null;</span>
 
-<span class="pc bpc" id="L325" title="4 of 8 branches missed.">        if (!Encoding.ENCODING_DERNULL.equals(encodingType) &amp;&amp; ((value == null || value.trim().equals(&quot;&quot;)) &amp;&amp; isRequiredFlag())) {</span>
-<span class="nc" id="L326">            throw new CertificateExtensionException(intres.getLocalizedMessage(&quot;certext.basic.incorrectvalue&quot;, Integer.valueOf(getId()), getOID()));</span>
-        }
+<span class="fc" id="L403">    Encoding encodingType = Encoding.fromString(encoding);</span>
 
-<span class="pc bpc" id="L329" title="1 of 11 branches missed.">        switch(encodingType) { </span>
-        case ENCODING_DERBITSTRING:
-<span class="fc" id="L331">            toret = parseDERBitString(value);</span>
-<span class="fc" id="L332">            break;</span>
-        case ENCODING_DERINTEGER:
-<span class="fc" id="L334">            toret = parseDERInteger(value);</span>
-<span class="fc" id="L335">            break;</span>
-        case ENCODING_DEROCTETSTRING:
-<span class="fc" id="L337">            toret = parseDEROctetString(value);</span>
-<span class="fc" id="L338">            break;</span>
-        case ENCODING_DERBOOLEAN:
-<span class="fc" id="L340">            toret = parseDERBoolean(value);</span>
-<span class="fc" id="L341">            break;</span>
-        case ENCODING_DEROID:
-<span class="fc" id="L343">            toret = parseDEROID(value);</span>
-<span class="fc" id="L344">            break;</span>
-        case ENCODING_DERPRINTABLESTRING:
-<span class="fc" id="L346">            toret = parseDERPrintableString(value);</span>
-<span class="fc" id="L347">            break;</span>
-        case ENCODING_DERUTF8STRING:
-<span class="fc" id="L349">            toret = parseDERUTF8String(value);</span>
-<span class="fc" id="L350">            break;</span>
-        case ENCODING_DERIA5STRING:
-<span class="fc" id="L352">            toret = parseDERIA5String(value);</span>
-<span class="fc" id="L353">            break;</span>
-        case ENCODING_DERNULL:
-<span class="fc" id="L355">            toret = DERNull.INSTANCE;</span>
-<span class="fc" id="L356">            break;</span>
-        case ENCODING_DEROBJECT:
-<span class="fc" id="L358">            toret = parseHexEncodedDERObject(value);</span>
-<span class="fc" id="L359">            break;</span>
-        default:
-<span class="nc" id="L361">            throw new CertificateExtensionException(intres.getLocalizedMessage(&quot;certext.basic.incorrectenc&quot;, encoding,</span>
-<span class="nc" id="L362">                    Integer.valueOf(getId())));</span>
-        }
-<span class="fc" id="L364">        return toret;</span>
+<span class="fc bfc" id="L405" title="All 2 branches covered.">    if (encodingType == null) {</span>
+<span class="fc" id="L406">      throw new CertificateExtensionException(</span>
+<span class="fc" id="L407">          INT_RES.getLocalizedMessage(</span>
+              &quot;certext.basic.incorrectenc&quot;,
+              encoding,
+<span class="fc" id="L410">              Integer.valueOf(getId())));</span>
     }
 
-    private ASN1Encodable parseDERBitString(String value) throws CertificateExtensionException {
-<span class="fc" id="L368">        ASN1Encodable retval = null;</span>
-        try {
-<span class="fc" id="L370">            BigInteger bigInteger = new BigInteger(value, 2);</span>
-<span class="fc" id="L371">            int padBits = value.length() - 1 - value.lastIndexOf(&quot;1&quot;);</span>
-<span class="pc bpc" id="L372" title="1 of 2 branches missed.">            if (padBits == 8) {</span>
-<span class="nc" id="L373">                padBits = 0;</span>
-            }
-<span class="fc" id="L375">            byte[] byteArray = bigInteger.toByteArray();</span>
-<span class="fc bfc" id="L376" title="All 2 branches covered.">            if (byteArray[0] == 0) {</span>
-                // Remove empty extra byte
-                // System.arraycopy handles creating of temporary array when destinatio is the same
-<span class="fc" id="L379">                System.arraycopy(byteArray, 1, byteArray, 0, byteArray.length-1);</span>
-            }
-<span class="fc" id="L381">            retval = new DERBitString(byteArray, padBits);</span>
-<span class="fc" id="L382">        } catch (NumberFormatException e) {</span>
-<span class="fc" id="L383">            throw new CertificateExtensionException(intres.getLocalizedMessage(&quot;certext.basic.illegalvalue&quot;, value,</span>
-<span class="fc" id="L384">                    Integer.valueOf(getId()), getOID()));</span>
-<span class="fc" id="L385">        }</span>
-
-<span class="fc" id="L387">        return retval;</span>
+<span class="pc bpc" id="L413" title="1 of 4 branches missed.">    if (!Encoding.ENCODING_DERNULL.equals(encodingType)</span>
+<span class="pc bpc" id="L414" title="3 of 4 branches missed.">        &amp;&amp; ((value == null || value.trim().equals(&quot;&quot;)) &amp;&amp; isRequiredFlag())) {</span>
+<span class="nc" id="L415">      throw new CertificateExtensionException(</span>
+<span class="nc" id="L416">          INT_RES.getLocalizedMessage(</span>
+              &quot;certext.basic.incorrectvalue&quot;,
+<span class="nc" id="L418">              Integer.valueOf(getId()),</span>
+<span class="nc" id="L419">              getOID()));</span>
     }
 
-    private ASN1Encodable parseDEROID(String value) throws CertificateExtensionException {
-<span class="fc" id="L391">        ASN1Encodable retval = null;</span>
-        try {
-<span class="fc" id="L393">            retval = new ASN1ObjectIdentifier(value);</span>
-<span class="fc" id="L394">        } catch (Exception e) {</span>
-<span class="fc" id="L395">            throw new CertificateExtensionException(intres.getLocalizedMessage(&quot;certext.basic.illegalvalue&quot;, value,</span>
-<span class="fc" id="L396">                    Integer.valueOf(getId()), getOID()));</span>
-<span class="fc" id="L397">        }</span>
-
-<span class="fc" id="L399">        return retval;</span>
+<span class="pc bpc" id="L422" title="1 of 11 branches missed.">    switch (encodingType) {</span>
+      case ENCODING_DERBITSTRING:
+<span class="fc" id="L424">        toret = parseDERBitString(value);</span>
+<span class="fc" id="L425">        break;</span>
+      case ENCODING_DERINTEGER:
+<span class="fc" id="L427">        toret = parseDERInteger(value);</span>
+<span class="fc" id="L428">        break;</span>
+      case ENCODING_DEROCTETSTRING:
+<span class="fc" id="L430">        toret = parseDEROctetString(value);</span>
+<span class="fc" id="L431">        break;</span>
+      case ENCODING_DERBOOLEAN:
+<span class="fc" id="L433">        toret = parseDERBoolean(value);</span>
+<span class="fc" id="L434">        break;</span>
+      case ENCODING_DEROID:
+<span class="fc" id="L436">        toret = parseDEROID(value);</span>
+<span class="fc" id="L437">        break;</span>
+      case ENCODING_DERPRINTABLESTRING:
+<span class="fc" id="L439">        toret = parseDERPrintableString(value);</span>
+<span class="fc" id="L440">        break;</span>
+      case ENCODING_DERUTF8STRING:
+<span class="fc" id="L442">        toret = parseDERUTF8String(value);</span>
+<span class="fc" id="L443">        break;</span>
+      case ENCODING_DERIA5STRING:
+<span class="fc" id="L445">        toret = parseDERIA5String(value);</span>
+<span class="fc" id="L446">        break;</span>
+      case ENCODING_DERNULL:
+<span class="fc" id="L448">        toret = DERNull.INSTANCE;</span>
+<span class="fc" id="L449">        break;</span>
+      case ENCODING_DEROBJECT:
+<span class="fc" id="L451">        toret = parseHexEncodedDERObject(value);</span>
+<span class="fc" id="L452">        break;</span>
+      default:
+<span class="nc" id="L454">        throw new CertificateExtensionException(</span>
+<span class="nc" id="L455">            INT_RES.getLocalizedMessage(</span>
+                &quot;certext.basic.incorrectenc&quot;,
+                encoding,
+<span class="nc" id="L458">                Integer.valueOf(getId())));</span>
     }
+<span class="fc" id="L460">    return toret;</span>
+  }
 
-    private ASN1Encodable parseDERInteger(String value) throws CertificateExtensionException {
-<span class="fc" id="L403">        ASN1Encodable retval = null;</span>
-        try {
-<span class="fc" id="L405">            BigInteger intValue = new BigInteger(value, 10);</span>
-<span class="fc" id="L406">            retval = new ASN1Integer(intValue);</span>
-<span class="fc" id="L407">        } catch (NumberFormatException e) {</span>
-<span class="fc" id="L408">            throw new CertificateExtensionException(intres.getLocalizedMessage(&quot;certext.basic.illegalvalue&quot;, value,</span>
-<span class="fc" id="L409">                    Integer.valueOf(getId()), getOID()));</span>
-<span class="fc" id="L410">        }</span>
+  private ASN1Encodable parseDERBitString(final String value)
+      throws CertificateExtensionException {
+<span class="fc" id="L465">    ASN1Encodable retval = null;</span>
+    try {
+<span class="fc" id="L467">      BigInteger bigInteger = new BigInteger(value, 2);</span>
+<span class="fc" id="L468">      int padBits = value.length() - 1 - value.lastIndexOf(&quot;1&quot;);</span>
+<span class="pc bpc" id="L469" title="1 of 2 branches missed.">      if (padBits == 8) {</span>
+<span class="nc" id="L470">        padBits = 0;</span>
+      }
+<span class="fc" id="L472">      byte[] byteArray = bigInteger.toByteArray();</span>
+<span class="fc bfc" id="L473" title="All 2 branches covered.">      if (byteArray[0] == 0) {</span>
+        // Remove empty extra byte
+        // System.arraycopy handles creating of temporary array when destinatio
+        // is the same
+<span class="fc" id="L477">        System.arraycopy(byteArray, 1, byteArray, 0, byteArray.length - 1);</span>
+      }
+<span class="fc" id="L479">      retval = new DERBitString(byteArray, padBits);</span>
+<span class="fc" id="L480">    } catch (NumberFormatException e) {</span>
+<span class="fc" id="L481">      throw new CertificateExtensionException(</span>
+<span class="fc" id="L482">          INT_RES.getLocalizedMessage(</span>
+              &quot;certext.basic.illegalvalue&quot;,
+              value,
+<span class="fc" id="L485">              Integer.valueOf(getId()),</span>
+<span class="fc" id="L486">              getOID()));</span>
+<span class="fc" id="L487">    }</span>
 
-<span class="fc" id="L412">        return retval;</span>
+<span class="fc" id="L489">    return retval;</span>
+  }
+
+  private ASN1Encodable parseDEROID(final String value)
+      throws CertificateExtensionException {
+<span class="fc" id="L494">    ASN1Encodable retval = null;</span>
+    try {
+<span class="fc" id="L496">      retval = new ASN1ObjectIdentifier(value);</span>
+<span class="fc" id="L497">    } catch (Exception e) {</span>
+<span class="fc" id="L498">      throw new CertificateExtensionException(</span>
+<span class="fc" id="L499">          INT_RES.getLocalizedMessage(</span>
+              &quot;certext.basic.illegalvalue&quot;,
+              value,
+<span class="fc" id="L502">              Integer.valueOf(getId()),</span>
+<span class="fc" id="L503">              getOID()));</span>
+<span class="fc" id="L504">    }</span>
+
+<span class="fc" id="L506">    return retval;</span>
+  }
+
+  private ASN1Encodable parseDERInteger(final String value)
+      throws CertificateExtensionException {
+<span class="fc" id="L511">    ASN1Encodable retval = null;</span>
+    try {
+<span class="fc" id="L513">      BigInteger intValue = new BigInteger(value, 10);</span>
+<span class="fc" id="L514">      retval = new ASN1Integer(intValue);</span>
+<span class="fc" id="L515">    } catch (NumberFormatException e) {</span>
+<span class="fc" id="L516">      throw new CertificateExtensionException(</span>
+<span class="fc" id="L517">          INT_RES.getLocalizedMessage(</span>
+              &quot;certext.basic.illegalvalue&quot;,
+              value,
+<span class="fc" id="L520">              Integer.valueOf(getId()),</span>
+<span class="fc" id="L521">              getOID()));</span>
+<span class="fc" id="L522">    }</span>
+
+<span class="fc" id="L524">    return retval;</span>
+  }
+
+  private ASN1Encodable parseDEROctetString(final String value)
+      throws CertificateExtensionException {
+<span class="fc" id="L529">    ASN1Encodable retval = null;</span>
+<span class="fc bfc" id="L530" title="All 2 branches covered.">    if (value.matches(&quot;^\\p{XDigit}*&quot;)) {</span>
+<span class="fc" id="L531">      byte[] bytes = Hex.decode(value);</span>
+<span class="fc" id="L532">      retval = new DEROctetString(bytes);</span>
+<span class="fc" id="L533">    } else {</span>
+<span class="fc" id="L534">      throw new CertificateExtensionException(</span>
+<span class="fc" id="L535">          INT_RES.getLocalizedMessage(</span>
+              &quot;certext.basic.illegalvalue&quot;,
+              value,
+<span class="fc" id="L538">              Integer.valueOf(getId()),</span>
+<span class="fc" id="L539">              getOID()));</span>
     }
+<span class="fc" id="L541">    return retval;</span>
+  }
 
-    private ASN1Encodable parseDEROctetString(String value) throws CertificateExtensionException {
-<span class="fc" id="L416">        ASN1Encodable retval = null;</span>
-<span class="fc bfc" id="L417" title="All 2 branches covered.">        if (value.matches(&quot;^\\p{XDigit}*&quot;)) {</span>
-<span class="fc" id="L418">            byte[] bytes = Hex.decode(value);</span>
-<span class="fc" id="L419">            retval = new DEROctetString(bytes);</span>
-<span class="fc" id="L420">        } else {</span>
-<span class="fc" id="L421">            throw new CertificateExtensionException(intres.getLocalizedMessage(&quot;certext.basic.illegalvalue&quot;, value,</span>
-<span class="fc" id="L422">                    Integer.valueOf(getId()), getOID()));</span>
+  /**
+   * Tries to read the hex-string as an DERObject. If it contains more than one
+   * ASN1Encodable object, return a DERSequence of the objects.
+   *
+   * @param value value
+   * @return DER sequence
+   * @throws CertificateExtensionException on fail
+   */
+  private ASN1Encodable parseHexEncodedDERObject(final String value)
+      throws CertificateExtensionException {
+<span class="fc" id="L554">    ASN1Encodable retval = null;</span>
+<span class="fc bfc" id="L555" title="All 2 branches covered.">    if (value.matches(&quot;^\\p{XDigit}*&quot;)) {</span>
+<span class="fc" id="L556">      byte[] bytes = Hex.decode(value);</span>
+      try {
+<span class="fc" id="L558">        ASN1InputStream ais = new ASN1InputStream(bytes);</span>
+<span class="fc" id="L559">        ASN1Encodable firstObject = ais.readObject();</span>
+<span class="pc bpc" id="L560" title="1 of 2 branches missed.">        if (ais.available() &gt; 0) {</span>
+<span class="nc" id="L561">          ASN1EncodableVector ev = new ASN1EncodableVector();</span>
+<span class="nc" id="L562">          ev.add(firstObject);</span>
+<span class="nc bnc" id="L563" title="All 2 branches missed.">          while (ais.available() &gt; 0) {</span>
+<span class="nc" id="L564">            ev.add(ais.readObject());</span>
+          }
+<span class="nc" id="L566">          retval = new DERSequence(ev);</span>
+<span class="nc" id="L567">        } else {</span>
+<span class="fc" id="L568">          retval = firstObject;</span>
         }
-<span class="fc" id="L424">        return retval;</span>
+<span class="fc" id="L570">        ais.close();</span>
+<span class="nc" id="L571">      } catch (Exception e) {</span>
+<span class="nc" id="L572">        throw new CertificateExtensionException(</span>
+<span class="nc" id="L573">            INT_RES.getLocalizedMessage(</span>
+                &quot;certext.basic.illegalvalue&quot;,
+                value,
+<span class="nc" id="L576">                Integer.valueOf(getId()),</span>
+<span class="nc" id="L577">                getOID()));</span>
+<span class="fc" id="L578">      }</span>
+<span class="fc" id="L579">    } else {</span>
+<span class="fc" id="L580">      throw new CertificateExtensionException(</span>
+<span class="fc" id="L581">          INT_RES.getLocalizedMessage(</span>
+              &quot;certext.basic.illegalvalue&quot;,
+              value,
+<span class="fc" id="L584">              Integer.valueOf(getId()),</span>
+<span class="fc" id="L585">              getOID()));</span>
+    }
+<span class="fc" id="L587">    return retval;</span>
+  }
+
+  private ASN1Encodable parseDERBoolean(final String value)
+      throws CertificateExtensionException {
+<span class="fc" id="L592">    ASN1Encodable retval = null;</span>
+<span class="fc bfc" id="L593" title="All 2 branches covered.">    if (value.equalsIgnoreCase(&quot;TRUE&quot;)) {</span>
+<span class="fc" id="L594">      retval = ASN1Boolean.TRUE;</span>
     }
 
-    /**
-     * Tries to read the hex-string as an DERObject. If it contains more than one ASN1Encodable object, return a DERSequence of the objects.
-     * @param value value
-     * @return DER sequence
-     * @throws CertificateExtensionException on fail
-     */
-    private ASN1Encodable parseHexEncodedDERObject(String value) throws CertificateExtensionException {
-<span class="fc" id="L434">        ASN1Encodable retval = null;</span>
-<span class="fc bfc" id="L435" title="All 2 branches covered.">        if (value.matches(&quot;^\\p{XDigit}*&quot;)) {</span>
-<span class="fc" id="L436">            byte[] bytes = Hex.decode(value);</span>
-            try {
-<span class="fc" id="L438">                ASN1InputStream ais = new ASN1InputStream(bytes);</span>
-<span class="fc" id="L439">                ASN1Encodable firstObject = ais.readObject();</span>
-<span class="pc bpc" id="L440" title="1 of 2 branches missed.">                if (ais.available() &gt; 0) {</span>
-<span class="nc" id="L441">                    ASN1EncodableVector ev = new ASN1EncodableVector();</span>
-<span class="nc" id="L442">                    ev.add(firstObject);</span>
-<span class="nc bnc" id="L443" title="All 2 branches missed.">                    while (ais.available() &gt; 0) {</span>
-<span class="nc" id="L444">                        ev.add(ais.readObject());</span>
-                    }
-<span class="nc" id="L446">                    retval = new DERSequence(ev);</span>
-<span class="nc" id="L447">                } else {</span>
-<span class="fc" id="L448">                    retval = firstObject;</span>
-                }
-<span class="fc" id="L450">                ais.close();</span>
-<span class="nc" id="L451">            } catch (Exception e) {</span>
-<span class="nc" id="L452">                throw new CertificateExtensionException(intres.getLocalizedMessage(&quot;certext.basic.illegalvalue&quot;, value,</span>
-<span class="nc" id="L453">                        Integer.valueOf(getId()), getOID()));</span>
-<span class="fc" id="L454">            }</span>
-<span class="fc" id="L455">        } else {</span>
-<span class="fc" id="L456">            throw new CertificateExtensionException(intres.getLocalizedMessage(&quot;certext.basic.illegalvalue&quot;, value,</span>
-<span class="fc" id="L457">                    Integer.valueOf(getId()), getOID()));</span>
-        }
-<span class="fc" id="L459">        return retval;</span>
+<span class="fc bfc" id="L597" title="All 2 branches covered.">    if (value.equalsIgnoreCase(&quot;FALSE&quot;)) {</span>
+<span class="fc" id="L598">      retval = ASN1Boolean.FALSE;</span>
     }
 
-    private ASN1Encodable parseDERBoolean(String value) throws CertificateExtensionException {
-<span class="fc" id="L463">        ASN1Encodable retval = null;</span>
-<span class="fc bfc" id="L464" title="All 2 branches covered.">        if (value.equalsIgnoreCase(&quot;TRUE&quot;)) {</span>
-<span class="fc" id="L465">            retval = ASN1Boolean.TRUE;</span>
-        }
-
-<span class="fc bfc" id="L468" title="All 2 branches covered.">        if (value.equalsIgnoreCase(&quot;FALSE&quot;)) {</span>
-<span class="fc" id="L469">            retval = ASN1Boolean.FALSE;</span>
-        }
-
-<span class="fc bfc" id="L472" title="All 2 branches covered.">        if (retval == null) {</span>
-<span class="fc" id="L473">            throw new CertificateExtensionException(intres.getLocalizedMessage(&quot;certext.basic.illegalvalue&quot;, value,</span>
-<span class="fc" id="L474">                    Integer.valueOf(getId()), getOID()));</span>
-        }
-
-<span class="fc" id="L477">        return retval;</span>
+<span class="fc bfc" id="L601" title="All 2 branches covered.">    if (retval == null) {</span>
+<span class="fc" id="L602">      throw new CertificateExtensionException(</span>
+<span class="fc" id="L603">          INT_RES.getLocalizedMessage(</span>
+              &quot;certext.basic.illegalvalue&quot;,
+              value,
+<span class="fc" id="L606">              Integer.valueOf(getId()),</span>
+<span class="fc" id="L607">              getOID()));</span>
     }
 
-    private ASN1Encodable parseDERPrintableString(String value) throws CertificateExtensionException {
-        try {
-<span class="fc" id="L482">            return new DERPrintableString(value, true);</span>
-<span class="fc" id="L483">        } catch (IllegalArgumentException e) {</span>
-<span class="fc" id="L484">            throw new CertificateExtensionException(intres.getLocalizedMessage(&quot;certext.basic.illegalvalue&quot;, value,</span>
-<span class="fc" id="L485">                    Integer.valueOf(getId()), getOID()));</span>
-        }
+<span class="fc" id="L610">    return retval;</span>
+  }
+
+  private ASN1Encodable parseDERPrintableString(final String value)
+      throws CertificateExtensionException {
+    try {
+<span class="fc" id="L616">      return new DERPrintableString(value, true);</span>
+<span class="fc" id="L617">    } catch (IllegalArgumentException e) {</span>
+<span class="fc" id="L618">      throw new CertificateExtensionException(</span>
+<span class="fc" id="L619">          INT_RES.getLocalizedMessage(</span>
+              &quot;certext.basic.illegalvalue&quot;,
+              value,
+<span class="fc" id="L622">              Integer.valueOf(getId()),</span>
+<span class="fc" id="L623">              getOID()));</span>
     }
+  }
 
-    private ASN1Encodable parseDERUTF8String(String value) {
-<span class="fc" id="L490">        return new DERUTF8String(value);</span>
+  private ASN1Encodable parseDERUTF8String(final String value) {
+<span class="fc" id="L628">    return new DERUTF8String(value);</span>
+  }
+
+  private ASN1Encodable parseDERIA5String(final String value)
+      throws CertificateExtensionException {
+    try {
+<span class="fc" id="L634">      return new DERIA5String(value, true);</span>
+<span class="fc" id="L635">    } catch (java.lang.IllegalArgumentException e) {</span>
+<span class="fc" id="L636">      throw new CertificateExtensionException(</span>
+<span class="fc" id="L637">          INT_RES.getLocalizedMessage(</span>
+              &quot;certext.basic.illegalvalue&quot;,
+              value,
+<span class="fc" id="L640">              Integer.valueOf(getId()),</span>
+<span class="fc" id="L641">              getOID()));</span>
     }
+  }
 
-    private ASN1Encodable parseDERIA5String(String value) throws CertificateExtensionException {
-        try {
-<span class="fc" id="L495">            return new DERIA5String(value, true);</span>
-<span class="fc" id="L496">        } catch (java.lang.IllegalArgumentException e) {</span>
-<span class="fc" id="L497">            throw new CertificateExtensionException(intres.getLocalizedMessage(&quot;certext.basic.illegalvalue&quot;, value,</span>
-<span class="fc" id="L498">                    Integer.valueOf(getId()), getOID()));</span>
-        }
+  private byte[] parseRaw(
+          final String value) throws CertificateExtensionException {
+<span class="pc bpc" id="L647" title="1 of 2 branches missed.">    if (value == null) {</span>
+<span class="nc" id="L648">      throw new CertificateExtensionException(</span>
+<span class="nc" id="L649">          INT_RES.getLocalizedMessage(</span>
+              &quot;certext.basic.incorrectvalue&quot;,
+<span class="nc" id="L651">              Integer.valueOf(getId()),</span>
+<span class="nc" id="L652">              getOID()));</span>
     }
+<span class="fc" id="L654">    return Hex.decode(value);</span>
+  }
 
-    private byte[] parseRaw(String value) throws CertificateExtensionException {
-<span class="pc bpc" id="L503" title="1 of 2 branches missed.">        if(value == null) {</span>
-<span class="nc" id="L504">            throw new CertificateExtensionException(intres.getLocalizedMessage(&quot;certext.basic.incorrectvalue&quot;, Integer.valueOf(getId()), getOID()));</span>
-        }
-<span class="fc" id="L506">        return Hex.decode(value);</span>
-    }
-
-    @Override
-    public Map&lt;String, String[]&gt; getAvailableProperties() {
-<span class="nc" id="L511">        return propertiesMap;</span>
-    }
-
-
+  @Override
+  public Map&lt;String, String[]&gt; getAvailableProperties() {
+<span class="nc" id="L659">    return PROPERTIES_MAP;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

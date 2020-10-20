@@ -18,65 +18,75 @@ import org.apache.log4j.spi.ErrorHandler;
 import org.apache.log4j.spi.LoggingEvent;
 
 /**
- * Custom wrapper for Log4J ErrorHandler, so we can check if logging was successful or not.
- * 
- * @version $Id: Log4jDeviceErrorHandler.java 18374 2014-01-16 13:13:34Z anatom $
+ * Custom wrapper for Log4J ErrorHandler, so we can check if logging was
+ * successful or not.
+ *
+ * @version $Id: Log4jDeviceErrorHandler.java 18374 2014-01-16 13:13:34Z anatom
+ *     $
  */
 public class Log4jDeviceErrorHandler implements ErrorHandler {
-	
-<span class="nc" id="L27">	private boolean ok = true;</span>
-	
-	private final ErrorHandler errorHandler;
-	
-<span class="nc" id="L31">	public Log4jDeviceErrorHandler(final ErrorHandler errorHandler) {</span>
-<span class="nc" id="L32">		this.errorHandler = errorHandler;</span>
-<span class="nc" id="L33">	}</span>
-	
-	/** @return true if this error handler has not been invoked since last call to this method. */
-	public boolean isOk() {
-<span class="nc bnc" id="L37" title="All 2 branches missed.">		if (ok) {</span>
-<span class="nc" id="L38">			return true;</span>
-		}
-<span class="nc" id="L40">		ok = true;	// Reset</span>
-<span class="nc" id="L41">		return false;</span>
-	}
 
-	@Override
-	public void error(final String arg0) {
-<span class="nc" id="L46">		errorHandler.error(arg0);</span>
-<span class="nc" id="L47">		ok = false;</span>
-<span class="nc" id="L48">	}</span>
+    /** OK. */
+<span class="nc" id="L30">  private boolean ok = true;</span>
 
-	@Override
-	public void error(final String arg0, final Exception arg1, final int arg2) {
-<span class="nc" id="L52">		errorHandler.error(arg0, arg1, arg2);</span>
-<span class="nc" id="L53">		ok = false;</span>
-<span class="nc" id="L54">	}</span>
+  /** Handler. */
+  private final ErrorHandler errorHandler;
 
-	@Override
-	public void error(final String arg0, final Exception arg1, final int arg2, final LoggingEvent arg3) {
-<span class="nc" id="L58">		errorHandler.error(arg0, arg1, arg2, arg3);</span>
-<span class="nc" id="L59">		ok = false;</span>
-<span class="nc" id="L60">	}</span>
+  /**
+   * @param anErrorHandler Handler.
+   */
+<span class="nc" id="L38">  public Log4jDeviceErrorHandler(final ErrorHandler anErrorHandler) {</span>
+<span class="nc" id="L39">    this.errorHandler = anErrorHandler;</span>
+<span class="nc" id="L40">  }</span>
 
-	@Override
-	public void setAppender(final Appender arg0) {
-<span class="nc" id="L64">		errorHandler.setAppender(arg0);</span>
-<span class="nc" id="L65">	}</span>
+  /**
+   * @return true if this error handler has not been invoked since last call to
+   *     this method.
+   */
+  public boolean isOk() {
+<span class="nc bnc" id="L47" title="All 2 branches missed.">    if (ok) {</span>
+<span class="nc" id="L48">      return true;</span>
+    }
+<span class="nc" id="L50">    ok = true; // Reset</span>
+<span class="nc" id="L51">    return false;</span>
+  }
 
-	@Override
-	public void setBackupAppender(final Appender arg0) {
-<span class="nc" id="L69">		errorHandler.setBackupAppender(arg0);</span>
-<span class="nc" id="L70">	}</span>
+  @Override
+  public void error(final String arg0) {
+<span class="nc" id="L56">    errorHandler.error(arg0);</span>
+<span class="nc" id="L57">    ok = false;</span>
+<span class="nc" id="L58">  }</span>
 
-	@Override
-	public void setLogger(final Logger arg0) {
-<span class="nc" id="L74">		errorHandler.setLogger(arg0);</span>
-<span class="nc" id="L75">	}</span>
+  @Override
+  public void error(final String arg0, final Exception arg1, final int arg2) {
+<span class="nc" id="L62">    errorHandler.error(arg0, arg1, arg2);</span>
+<span class="nc" id="L63">    ok = false;</span>
+<span class="nc" id="L64">  }</span>
 
-	@Override
-	public void activateOptions() {
-<span class="nc" id="L79">		errorHandler.activateOptions();</span>
-<span class="nc" id="L80">	}</span>
+  @Override
+  public void error(
+      final String arg0,
+      final Exception arg1,
+      final int arg2,
+      final LoggingEvent arg3) {
+<span class="nc" id="L72">    errorHandler.error(arg0, arg1, arg2, arg3);</span>
+<span class="nc" id="L73">    ok = false;</span>
+<span class="nc" id="L74">  }</span>
+
+  @Override
+  public void setAppender(final Appender arg0) {
+<span class="nc" id="L78">    errorHandler.setAppender(arg0);</span>
+<span class="nc" id="L79">  }</span>
+
+  @Override
+  public void setBackupAppender(final Appender arg0) {
+<span class="nc" id="L83">    errorHandler.setBackupAppender(arg0);</span>
+<span class="nc" id="L84">  }</span>
+
+  @Override
+  public void setLogger(final Logger arg0) {
+<span class="nc" id="L88">    errorHandler.setLogger(arg0);</span>
+<span class="nc" id="L89">  }</span>
+
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

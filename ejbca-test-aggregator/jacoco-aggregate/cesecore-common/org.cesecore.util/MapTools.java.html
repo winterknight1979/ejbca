@@ -19,163 +19,208 @@ import java.util.Map.Entry;
 
 /**
  * Utility functions to work with maps.
- * 
+ *
  * @version $Id: MapTools.java 28328 2018-02-20 11:46:09Z samuellb $
  */
 public final class MapTools {
-    
-    /** Utility class, cannot be instantiated */
-    private MapTools() { }
-    
-    /**
-     * Adds an item to a map, and returns it. Useful for initialization:
-     * &lt;code&gt;
-     * doWorkWithMapExample(addToMap(new HashMap&amp;lt;Integer,String&amp;gt;(), 0, &quot;none&quot;));
-     * &lt;/code&gt;
-     * 
-     * &lt;p&gt;Unlike the &lt;code&gt;new HashMap&amp;lt;&amp;gt;() {{ put(x,y); }}&lt;/code&gt; pattern, this does not create a new class (which can create problems with de-serialization)
-     * 
-     * @param map Map to use.
-     * @param key1 First key.
-     * @param value1 Value of first key.
-     * @param &lt;K&gt; Key type
-     * @param &lt;V&gt; Value type
-     * @return Returns the map.
-     * @see #addToMap(Map, Object, Object, Object, Object)
-     * @see #addToMap(Map, Object, Object, Object, Object, Object, Object)
-     */
-    public static &lt;K,V&gt; Map&lt;K,V&gt; addToMap(final Map&lt;K,V&gt; map, final K key1, final V value1) {
-<span class="nc" id="L48">        map.put(key1, value1);</span>
-<span class="nc" id="L49">        return map;</span>
-    }
-    
-    /**
-     * Adds two items to a map, and returns it. Useful for initialization. See {@link #addToMap(Map, Object, Object)}.
-     * @param map Map
-     * @param key1 Key 1
-     * @param value1 Value 1
-     * @param key2 Key 2
-     * @param value2 Value 2
-     * @param &lt;K&gt; Key type
-     * @param &lt;V&gt; Value type
-     * @return Map
-     * @see #addToMap(Map, Object, Object)
-     * @see #addToMap(Map, Object, Object, Object, Object, Object, Object)
-     */
-    public static &lt;K,V&gt; Map&lt;K,V&gt; addToMap(final Map&lt;K,V&gt; map, final K key1, final V value1, final K key2, final V value2) {
-<span class="nc" id="L66">        map.put(key1, value1);</span>
-<span class="nc" id="L67">        map.put(key2, value2);</span>
-<span class="nc" id="L68">        return map;</span>
-    }
-    
-    /**
-     * Adds three items to a map, and returns it. Useful for initialization. See {@link #addToMap(Map, Object, Object)}.
-     * @param map Map
-     * @param key1 Key 1
-     * @param value1 Value 1
-     * @param key2 Key 2
-     * @param value2 Value 2
-     * @param &lt;K&gt; Key type
-     * @param &lt;V&gt; Value type
-     * @param key3 Key 3
-     * @param value3 Value 3
-     * @return Map
-     * @see #addToMap(Map, Object, Object)
-     * @see #addToMap(Map, Object, Object, Object, Object)
-     */
-    public static &lt;K,V&gt; Map&lt;K,V&gt; addToMap(final Map&lt;K,V&gt; map, final K key1, final V value1, final K key2, final V value2, final K key3, final V value3) {
-<span class="nc" id="L87">        map.put(key1, value1);</span>
-<span class="nc" id="L88">        map.put(key2, value2);</span>
-<span class="nc" id="L89">        map.put(key3, value3);</span>
-<span class="nc" id="L90">        return map;</span>
-    }
-    
-    /**
-     * Creates an unmodifiable map with two items. The returned map is backed by a LinkedHashMap, so it preserves order. Useful for initialization:
-     * &lt;code&gt;
-     * doWorkWithMapExample(unmodifiableMap(0, &quot;none&quot;));
-     * &lt;/code&gt;
-     * 
-     * &lt;p&gt;Unlike the &lt;code&gt;new HashMap&amp;lt;&amp;gt;() {{ put(x,y); }}&lt;/code&gt; pattern, this does not create a new class (which can create problems with de-serialization)
-     * 
-     * @param key1 First key.
-     * @param value1 Value of first key.
-     * @param &lt;K&gt; Key type
-     * @param &lt;V&gt; Value type
-     * @return Returns the map.
-     * @see #unmodifiableMap(Object, Object, Object, Object)
-     * @see #unmodifiableMap(Object, Object, Object, Object, Object, Object)
-     */
-    public static &lt;K,V&gt; Map&lt;K,V&gt; unmodifiableMap(final K key1, final V value1) {
-<span class="nc" id="L110">        return Collections.unmodifiableMap(addToMap(new LinkedHashMap&lt;K,V&gt;(), key1, value1));</span>
-    }
-    
-    
-    /**
-     * Creates an unmodifiable map with two items. The returned map is backed by a LinkedHashMap, so it preserves order.
-     * Useful for initialization. See {@link #unmodifiableMap(Object, Object)}.
-     *
-     * @param key1 Key 1
-     * @param value1 Value 1
-     * @param key2 Key 2
-     * @param value2 Value 2
-     * @param &lt;K&gt; Key type
-     * @param &lt;V&gt; Value type
-     * @return Map
-     * @see #unmodifiableMap(Object, Object)
-     * @see #unmodifiableMap(Object, Object, Object, Object, Object, Object)
-     */
-    public static &lt;K,V&gt; Map&lt;K,V&gt; unmodifiableMap(final K key1, final V value1, final K key2, final V value2) {
-<span class="nc" id="L129">        return Collections.unmodifiableMap(addToMap(new LinkedHashMap&lt;K,V&gt;(), key1, value1, key2, value2));</span>
-    }
-    
-    /**
-     * Creates an unmodifiable map with two items. The returned map is backed by a LinkedHashMap, so it preserves order.
-     * Useful for initialization. See {@link #unmodifiableMap(Object, Object)}.
-     * @param key1 Key 1
-     * @param value1 Value 1
-     * @param key2 Key 2
-     * @param value2 Value 2
-     * @param &lt;K&gt; Key type
-     * @param &lt;V&gt; Value type
-     * @param key3 Key 3
-     * @param value3 Value 3
-     * @return Map
-     * @see #unmodifiableMap(Object, Object)
-     * @see #unmodifiableMap(Object, Object, Object, Object)
-     */
-    public static &lt;K,V&gt; Map&lt;K,V&gt; unmodifiableMap(final K key1, final V value1, final K key2, final V value2, final K key3, final V value3) {
-<span class="nc" id="L148">        return Collections.unmodifiableMap(addToMap(new LinkedHashMap&lt;K,V&gt;(), key1, value1, key2, value2, key3, value3));</span>
-    }
 
-    /**
-     * Returns a human readable string representation for a map, based on toString() from the keys and values. 
-     * @param map Map of any type. May contain keys and values that are null.
-     * @return The string, for example &lt;code&gt;{'key 1': 'value 1', 'key 2': null}&lt;/code&gt;
-     */
-    public static String toString(final Map&lt;?, ?&gt; map) {
-<span class="nc" id="L157">        final StringBuilder sb = new StringBuilder();</span>
-<span class="nc" id="L158">        boolean first = true;</span>
-<span class="nc" id="L159">        sb.append('{');</span>
-<span class="nc bnc" id="L160" title="All 2 branches missed.">        for (final Entry&lt;?,?&gt; entry : map.entrySet()) {</span>
-<span class="nc bnc" id="L161" title="All 2 branches missed.">            if (!first) sb.append(&quot;, &quot;);</span>
-<span class="nc" id="L162">            appendToStringOrNull(sb, entry.getKey());</span>
-<span class="nc" id="L163">            sb.append(&quot;: &quot;);</span>
-<span class="nc" id="L164">            appendToStringOrNull(sb, entry.getValue());</span>
-<span class="nc" id="L165">        }</span>
-<span class="nc" id="L166">        sb.append('}');</span>
-<span class="nc" id="L167">        return sb.toString();</span>
-    }
+  /** Utility class, cannot be instantiated. */
+  private MapTools() { }
 
-    private static void appendToStringOrNull(final StringBuilder sb, final Object obj) {
-<span class="nc bnc" id="L171" title="All 2 branches missed.">        if (obj == null) {</span>
-<span class="nc" id="L172">            sb.append(&quot;null&quot;);</span>
-        } else {
-<span class="nc" id="L174">            sb.append('\'');</span>
-<span class="nc" id="L175">            sb.append(obj);</span>
-<span class="nc" id="L176">            sb.append('\'');</span>
-        }
-<span class="nc" id="L178">    }</span>
-    
+  /**
+   * Adds an item to a map, and returns it. Useful for initialization: &lt;code&gt;
+   * doWorkWithMapExample(addToMap(
+   *     new HashMap&amp;lt;Integer,String&amp;gt;(), 0, &quot;none&quot;));
+   * &lt;/code&gt;
+   *
+   * &lt;p&gt;Unlike the &lt;code&gt;new HashMap&amp;lt;&amp;gt;() {{ put(x,y); }}&lt;/code&gt; pattern,
+   * this does not create a new class (which can create problems with
+   * de-serialization)
+   *
+   * @param map Map to use.
+   * @param key1 First key.
+   * @param value1 Value of first key.
+   * @param &lt;K&gt; Key type
+   * @param &lt;V&gt; Value type
+   * @return Returns the map.
+   * @see #addToMap(Map, Object, Object, Object, Object)
+   * @see #addToMap(Map, Object, Object, Object, Object, Object, Object)
+   */
+  public static &lt;K, V&gt; Map&lt;K, V&gt; addToMap(
+      final Map&lt;K, V&gt; map, final K key1, final V value1) {
+<span class="nc" id="L51">    map.put(key1, value1);</span>
+<span class="nc" id="L52">    return map;</span>
+  }
+
+  /**
+   * Adds two items to a map, and returns it. Useful for initialization. See
+   * {@link #addToMap(Map, Object, Object)}.
+   *
+   * @param map Map
+   * @param key1 Key 1
+   * @param value1 Value 1
+   * @param key2 Key 2
+   * @param value2 Value 2
+   * @param &lt;K&gt; Key type
+   * @param &lt;V&gt; Value type
+   * @return Map
+   * @see #addToMap(Map, Object, Object)
+   * @see #addToMap(Map, Object, Object, Object, Object, Object, Object)
+   */
+  public static &lt;K, V&gt; Map&lt;K, V&gt; addToMap(
+      final Map&lt;K, V&gt; map,
+      final K key1,
+      final V value1,
+      final K key2,
+      final V value2) {
+<span class="nc" id="L76">    map.put(key1, value1);</span>
+<span class="nc" id="L77">    map.put(key2, value2);</span>
+<span class="nc" id="L78">    return map;</span>
+  }
+
+  /**
+   * Adds three items to a map, and returns it. Useful for initialization. See
+   * {@link #addToMap(Map, Object, Object)}.
+   *
+   * @param map Map
+   * @param key1 Key 1
+   * @param value1 Value 1
+   * @param key2 Key 2
+   * @param value2 Value 2
+   * @param &lt;K&gt; Key type
+   * @param &lt;V&gt; Value type
+   * @param key3 Key 3
+   * @param value3 Value 3
+   * @return Map
+   * @see #addToMap(Map, Object, Object)
+   * @see #addToMap(Map, Object, Object, Object, Object)
+   */
+  public static &lt;K, V&gt; Map&lt;K, V&gt; addToMap(
+      final Map&lt;K, V&gt; map,
+      final K key1,
+      final V value1,
+      final K key2,
+      final V value2,
+      final K key3,
+      final V value3) {
+<span class="nc" id="L106">    map.put(key1, value1);</span>
+<span class="nc" id="L107">    map.put(key2, value2);</span>
+<span class="nc" id="L108">    map.put(key3, value3);</span>
+<span class="nc" id="L109">    return map;</span>
+  }
+
+  /**
+   * Creates an unmodifiable map with two items. The returned map is backed by a
+   * LinkedHashMap, so it preserves order. Useful for initialization: &lt;code&gt;
+   * doWorkWithMapExample(unmodifiableMap(0, &quot;none&quot;));
+   * &lt;/code&gt;
+   *
+   * &lt;p&gt;Unlike the &lt;code&gt;new HashMap&amp;lt;&amp;gt;() {{ put(x,y); }}&lt;/code&gt; pattern,
+   * this does not create a new class (which can create problems with
+   * de-serialization)
+   *
+   * @param key1 First key.
+   * @param value1 Value of first key.
+   * @param &lt;K&gt; Key type
+   * @param &lt;V&gt; Value type
+   * @return Returns the map.
+   * @see #unmodifiableMap(Object, Object, Object, Object)
+   * @see #unmodifiableMap(Object, Object, Object, Object, Object, Object)
+   */
+  public static &lt;K, V&gt; Map&lt;K, V&gt; unmodifiableMap(final K key1, final V value1) {
+<span class="nc" id="L131">    return Collections.unmodifiableMap(</span>
+<span class="nc" id="L132">        addToMap(new LinkedHashMap&lt;K, V&gt;(), key1, value1));</span>
+  }
+
+  /**
+   * Creates an unmodifiable map with two items. The returned map is backed by a
+   * LinkedHashMap, so it preserves order. Useful for initialization. See {@link
+   * #unmodifiableMap(Object, Object)}.
+   *
+   * @param key1 Key 1
+   * @param value1 Value 1
+   * @param key2 Key 2
+   * @param value2 Value 2
+   * @param &lt;K&gt; Key type
+   * @param &lt;V&gt; Value type
+   * @return Map
+   * @see #unmodifiableMap(Object, Object)
+   * @see #unmodifiableMap(Object, Object, Object, Object, Object, Object)
+   */
+  public static &lt;K, V&gt; Map&lt;K, V&gt; unmodifiableMap(
+      final K key1, final V value1, final K key2, final V value2) {
+<span class="nc" id="L152">    return Collections.unmodifiableMap(</span>
+<span class="nc" id="L153">        addToMap(new LinkedHashMap&lt;K, V&gt;(), key1, value1, key2, value2));</span>
+  }
+
+  /**
+   * Creates an unmodifiable map with two items. The returned map is backed by a
+   * LinkedHashMap, so it preserves order. Useful for initialization. See {@link
+   * #unmodifiableMap(Object, Object)}.
+   *
+   * @param key1 Key 1
+   * @param value1 Value 1
+   * @param key2 Key 2
+   * @param value2 Value 2
+   * @param &lt;K&gt; Key type
+   * @param &lt;V&gt; Value type
+   * @param key3 Key 3
+   * @param value3 Value 3
+   * @return Map
+   * @see #unmodifiableMap(Object, Object)
+   * @see #unmodifiableMap(Object, Object, Object, Object)
+   */
+  public static &lt;K, V&gt; Map&lt;K, V&gt; unmodifiableMap(
+      final K key1,
+      final V value1,
+      final K key2,
+      final V value2,
+      final K key3,
+      final V value3) {
+<span class="nc" id="L180">    return Collections.unmodifiableMap(</span>
+<span class="nc" id="L181">        addToMap(</span>
+            new LinkedHashMap&lt;K, V&gt;(),
+            key1,
+            value1,
+            key2,
+            value2,
+            key3,
+            value3));
+  }
+
+  /**
+   * Returns a human readable string representation for a map, based on
+   * toString() from the keys and values.
+   *
+   * @param map Map of any type. May contain keys and values that are null.
+   * @return The string, for example &lt;code&gt;{'key 1': 'value 1', 'key 2': null}
+   *     &lt;/code&gt;
+   */
+  public static String toString(final Map&lt;?, ?&gt; map) {
+<span class="nc" id="L200">    final StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L201">    boolean first = true;</span>
+<span class="nc" id="L202">    sb.append('{');</span>
+<span class="nc bnc" id="L203" title="All 2 branches missed.">    for (final Entry&lt;?, ?&gt; entry : map.entrySet()) {</span>
+<span class="nc bnc" id="L204" title="All 2 branches missed.">      if (!first) {</span>
+<span class="nc" id="L205">          sb.append(&quot;, &quot;);</span>
+      }
+<span class="nc" id="L207">      appendToStringOrNull(sb, entry.getKey());</span>
+<span class="nc" id="L208">      sb.append(&quot;: &quot;);</span>
+<span class="nc" id="L209">      appendToStringOrNull(sb, entry.getValue());</span>
+<span class="nc" id="L210">    }</span>
+<span class="nc" id="L211">    sb.append('}');</span>
+<span class="nc" id="L212">    return sb.toString();</span>
+  }
+
+  private static void appendToStringOrNull(
+      final StringBuilder sb, final Object obj) {
+<span class="nc bnc" id="L217" title="All 2 branches missed.">    if (obj == null) {</span>
+<span class="nc" id="L218">      sb.append(&quot;null&quot;);</span>
+    } else {
+<span class="nc" id="L220">      sb.append('\'');</span>
+<span class="nc" id="L221">      sb.append(obj);</span>
+<span class="nc" id="L222">      sb.append('\'');</span>
+    }
+<span class="nc" id="L224">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

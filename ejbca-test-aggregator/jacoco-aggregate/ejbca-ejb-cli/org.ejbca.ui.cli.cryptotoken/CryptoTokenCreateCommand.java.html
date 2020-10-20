@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CryptoTokenCreateCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.cryptotoken</a> &gt; <span class="el_source">CryptoTokenCreateCommand.java</span></div><h1>CryptoTokenCreateCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.cli.cryptotoken;
+
+import java.io.File;
+import java.util.List;
+import java.util.Properties;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.keys.token.BaseCryptoToken;
+import org.cesecore.keys.token.CryptoToken;
+import org.cesecore.keys.token.CryptoTokenAuthenticationFailedException;
+import org.cesecore.keys.token.CryptoTokenManagementSessionRemote;
+import org.cesecore.keys.token.CryptoTokenNameInUseException;
+import org.cesecore.keys.token.CryptoTokenOfflineException;
+import org.cesecore.keys.token.PKCS11CryptoToken;
+import org.cesecore.keys.token.SoftCryptoToken;
+import org.cesecore.keys.token.p11.Pkcs11SlotLabelType;
+import org.cesecore.keys.token.p11.exception.NoSuchSlotException;
+import org.cesecore.util.EjbRemoteHelper;
+import org.cesecore.util.StringTools;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.command.EjbcaCliUserCommandBase;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+
+/**
+ * CryptoToken EJB CLI command. 
+ * 
+ * @version $Id: CryptoTokenCreateCommand.java 30510 2018-11-15 08:20:55Z anatom $
+ */
+<span class="nc" id="L47">public class CryptoTokenCreateCommand extends EjbcaCliUserCommandBase {</span>
+
+<span class="nc" id="L49">    private static final Logger log = Logger.getLogger(CryptoTokenCreateCommand.class);</span>
+
+    private static final String CRYPTOTOKEN_NAME_KEY = &quot;--token&quot;;
+    private static final String PIN_KEY = &quot;--pin&quot;;
+    private static final String AUTOACTIVATE_KEY = &quot;--autoactivate&quot;;
+    private static final String TYPE_KEY = &quot;--type&quot;;
+    private static final String PRIVATE_KEY_EXPORT_KEY = &quot;--exportkey&quot;;
+    private static final String USE_EXPLICIT_KEY_PARAMETERS = &quot;--explicitkeyparams&quot;;
+    private static final String PKCS11_LIB_KEY = &quot;--lib&quot;;
+    private static final String SLOT_REFERENCE_TYPE_KEY = &quot;--slotlabeltype&quot;;
+    private static final String SLOT_REFERENCE_KEY = &quot;--slotlabel&quot;;
+    private static final String PKCS11_ATTR_FILE_KEY = &quot;--attr&quot;;
+    private static final String PKCS11_SLOTCOLLIDE_IGNORE= &quot;--forceusedslots&quot;;
+
+    {
+<span class="nc" id="L64">        registerParameter(new Parameter(CRYPTOTOKEN_NAME_KEY, &quot;Token Name&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;The name of the crypto token.&quot;));
+        //Kept as a mandatory parameter for legacy reasons.
+<span class="nc" id="L67">        registerParameter(new Parameter(PIN_KEY, &quot;Pin&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;Pin code for the crypto token. Set to 'null' to prompt.&quot;));
+        // TODO: Make this a flag when legacy support isn't necessary
+<span class="nc" id="L70">        registerParameter(new Parameter(AUTOACTIVATE_KEY, &quot;true|false&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;Set to true|false to allow|disallow whether crypto token should be autoactivated or not.&quot;));
+<span class="nc" id="L72">        registerParameter(new Parameter(TYPE_KEY, &quot;Type&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT, &quot;Available types: &quot;</span>
+<span class="nc" id="L73">                + SoftCryptoToken.class.getSimpleName() + &quot;, &quot; + PKCS11CryptoToken.class.getSimpleName()));</span>
+        //Soft params
+<span class="nc" id="L75">        registerParameter(new Parameter(PRIVATE_KEY_EXPORT_KEY, &quot;true|false&quot;, MandatoryMode.OPTIONAL, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+<span class="nc" id="L76">                &quot;(&quot; + SoftCryptoToken.class.getSimpleName() + &quot;) Set to true|false to allow|disallow private key export.&quot;));</span>
+        //PKCS#11
+<span class="nc" id="L78">        registerParameter(new Parameter(PKCS11_LIB_KEY, &quot;Library Name&quot;, MandatoryMode.OPTIONAL, StandaloneMode.ALLOW, ParameterMode.ARGUMENT, &quot;(&quot;</span>
+<span class="nc" id="L79">                + PKCS11CryptoToken.class.getSimpleName() + &quot;) PKCS#11 library file. Required if type is &quot; + PKCS11CryptoToken.class.getSimpleName()));</span>
+<span class="nc" id="L80">        registerParameter(new Parameter(SLOT_REFERENCE_TYPE_KEY, &quot;Slot Reference Type&quot;, MandatoryMode.OPTIONAL, StandaloneMode.ALLOW,</span>
+<span class="nc" id="L81">                ParameterMode.ARGUMENT, &quot;(&quot; + PKCS11CryptoToken.class.getSimpleName() + &quot;) Slot Reference Type.&quot;));</span>
+<span class="nc" id="L82">        registerParameter(new Parameter(SLOT_REFERENCE_KEY, &quot;Slot Reference&quot;, MandatoryMode.OPTIONAL, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+<span class="nc" id="L83">                &quot;(&quot; + PKCS11CryptoToken.class.getSimpleName() + &quot;) Slot reference.&quot;));</span>
+<span class="nc" id="L84">        registerParameter(new Parameter(PKCS11_ATTR_FILE_KEY, &quot;Attribute File&quot;, MandatoryMode.OPTIONAL, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+<span class="nc" id="L85">                &quot;(&quot; + PKCS11CryptoToken.class.getSimpleName() + &quot;) PKCS#11 Attribute File&quot;));</span>
+<span class="nc" id="L86">        registerParameter(new Parameter(PKCS11_SLOTCOLLIDE_IGNORE, &quot;Ignore used P11 slots&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID, ParameterMode.FLAG, &quot;Ignore warnings, and confirm yes, for P11 slots that are already used.&quot;));</span>
+        // ePassport CSCA only
+<span class="nc" id="L88">        registerParameter(new Parameter(USE_EXPLICIT_KEY_PARAMETERS, &quot;true|false&quot;, MandatoryMode.OPTIONAL, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;Set to true|false to allow|disallow usage of explicit ECC parameters( Only for ICAO CSCA and DS certificates).&quot;));
+<span class="nc" id="L90">    }</span>
+    
+    @Override
+    public String[] getCommandPath() {
+<span class="nc" id="L94">        return new String[] { &quot;cryptotoken&quot; };</span>
+    }
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L99">        return &quot;create&quot;;</span>
+    }
+
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+
+<span class="nc" id="L105">        final String cryptoTokenName = parameters.get(CRYPTOTOKEN_NAME_KEY);</span>
+<span class="nc" id="L106">        final boolean autoActivate = Boolean.valueOf(parameters.get(AUTOACTIVATE_KEY));</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">        final boolean ignoreslotwarning = (parameters.get(PKCS11_SLOTCOLLIDE_IGNORE) != null);</span>
+<span class="nc" id="L108">        final String type = parameters.get(TYPE_KEY);</span>
+        final String className;
+<span class="nc" id="L110">        final Properties cryptoTokenPropertes = new Properties();</span>
+<span class="nc" id="L111">        final CryptoTokenManagementSessionRemote cryptoTokenManagementSession = EjbRemoteHelper.INSTANCE</span>
+<span class="nc" id="L112">                .getRemoteSession(CryptoTokenManagementSessionRemote.class);</span>
+<span class="nc bnc" id="L113" title="All 2 branches missed.">        if (SoftCryptoToken.class.getSimpleName().equals(type)) {</span>
+<span class="nc" id="L114">            className = SoftCryptoToken.class.getName();</span>
+<span class="nc" id="L115">            cryptoTokenPropertes.setProperty(CryptoToken.ALLOW_EXTRACTABLE_PRIVATE_KEY,</span>
+<span class="nc" id="L116">                    Boolean.toString(Boolean.valueOf(parameters.get(PRIVATE_KEY_EXPORT_KEY))));</span>
+<span class="nc" id="L117">            cryptoTokenPropertes.setProperty(SoftCryptoToken.NODEFAULTPWD, Boolean.TRUE.toString());</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">        } else if (PKCS11CryptoToken.class.getSimpleName().equals(type)) {</span>
+<span class="nc" id="L119">            className = PKCS11CryptoToken.class.getName();</span>
+            // Parse library file
+<span class="nc" id="L121">            String pkcs11LibFilename = parameters.get(PKCS11_LIB_KEY);</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">            if(null == pkcs11LibFilename) {</span>
+<span class="nc" id="L123">                getLogger().info(&quot;You need to specify a PKCS#11 library file.&quot;);</span>
+<span class="nc" id="L124">                return CommandResult.CLI_FAILURE;</span>
+            }
+<span class="nc bnc" id="L126" title="All 2 branches missed.">            if (!new File(pkcs11LibFilename).exists()) {</span>
+<span class="nc" id="L127">                getLogger().info(&quot;PKCS#11 library file &quot; + pkcs11LibFilename + &quot; does not exist!&quot;);</span>
+<span class="nc" id="L128">                return CommandResult.CLI_FAILURE;</span>
+            }
+<span class="nc" id="L130">            cryptoTokenPropertes.setProperty(PKCS11CryptoToken.SHLIB_LABEL_KEY, pkcs11LibFilename);         </span>
+<span class="nc" id="L131">            String slotPropertyValue = parameters.get(SLOT_REFERENCE_KEY);</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">            if(slotPropertyValue == null) {</span>
+<span class="nc" id="L133">                getLogger().info(&quot;Slot reference key (&quot; + SLOT_REFERENCE_KEY + &quot;) needs to be defined for PKCS#11 tokens.&quot;);</span>
+<span class="nc" id="L134">                return CommandResult.CLI_FAILURE;</span>
+            }
+            
+<span class="nc bnc" id="L137" title="All 2 branches missed.">            if (!parameters.containsKey(SLOT_REFERENCE_TYPE_KEY)) {</span>
+<span class="nc" id="L138">                getLogger().info(&quot;Slot reference type (&quot; + SLOT_REFERENCE_TYPE_KEY + &quot;) needs to be defined for PKCS#11 tokens.&quot;);</span>
+<span class="nc" id="L139">                return CommandResult.CLI_FAILURE;</span>
+            }
+<span class="nc" id="L141">            Pkcs11SlotLabelType labelType = Pkcs11SlotLabelType.getFromKey(parameters.get(SLOT_REFERENCE_TYPE_KEY));</span>
+<span class="nc bnc" id="L142" title="All 2 branches missed.">            if(labelType == null) {</span>
+<span class="nc" id="L143">                getLogger().info(parameters.get(SLOT_REFERENCE_TYPE_KEY) + &quot; was not a valid slot reference type.&quot;);</span>
+<span class="nc" id="L144">                return CommandResult.CLI_FAILURE;</span>
+            }
+<span class="nc" id="L146">            cryptoTokenPropertes.setProperty(PKCS11CryptoToken.SLOT_LABEL_VALUE, slotPropertyValue);</span>
+            //If an index was given, accept just numbers as well
+<span class="nc bnc" id="L148" title="All 2 branches missed.">            if (labelType.isEqual(Pkcs11SlotLabelType.SLOT_INDEX)) {</span>
+<span class="nc bnc" id="L149" title="All 2 branches missed.">                if (slotPropertyValue.charAt(0) != 'i') {</span>
+<span class="nc" id="L150">                    slotPropertyValue = &quot;i&quot; + slotPropertyValue;</span>
+                }
+            }
+<span class="nc bnc" id="L153" title="All 2 branches missed.">            if (!labelType.validate(slotPropertyValue)) {</span>
+<span class="nc" id="L154">                getLogger().info(&quot;Invalid value &quot; + slotPropertyValue + &quot; given for slot type &quot; + labelType.getDescription());</span>
+<span class="nc" id="L155">                return CommandResult.CLI_FAILURE;</span>
+            } else {
+<span class="nc" id="L157">                cryptoTokenPropertes.setProperty(PKCS11CryptoToken.SLOT_LABEL_TYPE, labelType.getKey());</span>
+            }
+            // Parse attribute file
+<span class="nc" id="L160">            String attributeFileName = parameters.get(PKCS11_ATTR_FILE_KEY);</span>
+<span class="nc bnc" id="L161" title="All 4 branches missed.">            if ( (attributeFileName != null) &amp;&amp; (!&quot;null&quot;.equalsIgnoreCase(attributeFileName)) ) {</span>
+<span class="nc bnc" id="L162" title="All 2 branches missed.">                if (!new File(attributeFileName).exists()) {</span>
+<span class="nc" id="L163">                    getLogger().info(&quot;PKCS#11 attribute file &quot; + attributeFileName + &quot; does not exist!&quot;);</span>
+<span class="nc" id="L164">                    return CommandResult.CLI_FAILURE;</span>
+                }
+<span class="nc" id="L166">                cryptoTokenPropertes.setProperty(PKCS11CryptoToken.ATTRIB_LABEL_KEY, attributeFileName);</span>
+            }
+
+            // Check if this crypto token is already used
+            try {
+<span class="nc" id="L171">                List&lt;String&gt; usedBy = cryptoTokenManagementSession.isCryptoTokenSlotUsed(getAuthenticationToken(), cryptoTokenName, className, cryptoTokenPropertes);</span>
+<span class="nc bnc" id="L172" title="All 4 branches missed.">                if (!usedBy.isEmpty() &amp;&amp; !ignoreslotwarning) {</span>
+<span class="nc bnc" id="L173" title="All 2 branches missed.">                    for (String usedByName : usedBy) {</span>
+<span class="nc" id="L174">                        String name = usedByName;</span>
+<span class="nc bnc" id="L175" title="All 2 branches missed.">                        if (StringUtils.isNumeric(name)) {</span>
+                            // if the crypto token name is purely numeric, it is likely to be a database protection token
+<span class="nc" id="L177">                            name = name + &quot; (database protection?)&quot;;</span>
+                        }
+<span class="nc" id="L179">                        getLogger().info(&quot;The P11 slot is already used by another crypto token: &quot;+name);</span>
+<span class="nc" id="L180">                    }</span>
+<span class="nc" id="L181">                    getLogger().info(&quot;Do you want to continue anyhow? [yes/no]: &quot;);</span>
+<span class="nc" id="L182">                    String yes = System.console().readLine();</span>
+<span class="nc bnc" id="L183" title="All 2 branches missed.">                    if (!StringUtils.equalsIgnoreCase(&quot;yes&quot;, yes)) {</span>
+<span class="nc" id="L184">                        getLogger().info(&quot;Exiting...&quot;);</span>
+<span class="nc" id="L185">                        return CommandResult.CLI_FAILURE;                    </span>
+                    }
+                }
+<span class="nc" id="L188">            } catch (CryptoTokenNameInUseException | CryptoTokenOfflineException | CryptoTokenAuthenticationFailedException</span>
+                    | AuthorizationDeniedException | NoSuchSlotException e) {
+<span class="nc" id="L190">                getLogger().info(&quot;There is an error creating the Crypto Token: &quot;+e.getMessage());</span>
+<span class="nc" id="L191">                getLogger().info(&quot;Do you want to continue anyhow? [yes/no]: &quot;);</span>
+<span class="nc" id="L192">                String yes = System.console().readLine();</span>
+<span class="nc bnc" id="L193" title="All 2 branches missed.">                if (!StringUtils.equalsIgnoreCase(&quot;yes&quot;, yes)) {</span>
+<span class="nc" id="L194">                    getLogger().info(&quot;Exiting...&quot;);</span>
+<span class="nc" id="L195">                    return CommandResult.CLI_FAILURE;                    </span>
+                }
+<span class="nc" id="L197">            }</span>
+
+<span class="nc" id="L199">        } else {</span>
+<span class="nc" id="L200">            getLogger().info(&quot;Invalid CryptoToken type: &quot; + type);</span>
+<span class="nc" id="L201">            return CommandResult.CLI_FAILURE;</span>
+        }
+<span class="nc" id="L203">        String useExplicitKeyParameter = parameters.get(USE_EXPLICIT_KEY_PARAMETERS);</span>
+<span class="nc bnc" id="L204" title="All 2 branches missed.">        if (useExplicitKeyParameter != null) {</span>
+<span class="nc" id="L205">            cryptoTokenPropertes.setProperty(CryptoToken.EXPLICIT_ECC_PUBLICKEY_PARAMETERS,</span>
+<span class="nc" id="L206">                    Boolean.toString(Boolean.valueOf(useExplicitKeyParameter)));</span>
+        }
+<span class="nc" id="L208">        final char[] authenticationCode = getAuthenticationCode(parameters.get(PIN_KEY));</span>
+<span class="nc bnc" id="L209" title="All 2 branches missed.">        if (autoActivate) {</span>
+<span class="nc" id="L210">            BaseCryptoToken.setAutoActivatePin(cryptoTokenPropertes, new String(authenticationCode), true);</span>
+        }
+        try {
+<span class="nc" id="L213">            final Integer cryptoTokenIdNew = cryptoTokenManagementSession.createCryptoToken(getAuthenticationToken(), cryptoTokenName, className,</span>
+                    cryptoTokenPropertes, null, authenticationCode);
+<span class="nc" id="L215">            getLogger().info(&quot;CryptoToken with id &quot; + cryptoTokenIdNew + &quot; created successfully.&quot;);</span>
+<span class="nc" id="L216">            return CommandResult.SUCCESS;</span>
+<span class="nc" id="L217">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L218">            getLogger().info(e.getMessage());</span>
+<span class="nc" id="L219">            return CommandResult.AUTHORIZATION_FAILURE;</span>
+<span class="nc" id="L220">        } catch (CryptoTokenOfflineException e) {</span>
+<span class="nc" id="L221">            getLogger().info(&quot;CryptoToken is not active. You need to activate the CryptoToken before you can interact with its content.&quot;);</span>
+<span class="nc" id="L222">        } catch (Exception e) {</span>
+<span class="nc" id="L223">            getLogger().info(&quot;Operation failed: &quot; + e.getMessage());</span>
+<span class="nc" id="L224">        }</span>
+<span class="nc" id="L225">        return CommandResult.FUNCTIONAL_FAILURE;</span>
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L230">        return &quot;Create a new CryptoToken&quot;;</span>
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L235">        StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L236">        sb.append(getCommandDescription() + &quot;\n\n&quot;);</span>
+<span class="nc" id="L237">        sb.append(&quot;Slot Reference Types:\n&quot;);</span>
+<span class="nc bnc" id="L238" title="All 2 branches missed.">        for (Pkcs11SlotLabelType type : Pkcs11SlotLabelType.values()) {</span>
+<span class="nc" id="L239">            sb.append(&quot;    &quot; + type.getKey() + &quot; - &quot; + type.getDescription() + &quot;\n&quot;);</span>
+        }
+<span class="nc" id="L241">        return sb.toString();</span>
+    }
+
+    @Override
+    protected Logger getLogger() {
+<span class="nc" id="L246">        return log;</span>
+    }
+    
+    /** @param commandLineArgument Arg
+     * @return a decrypted version of the parameter or use input if the parameter equals &quot;null&quot; */
+    private char[] getAuthenticationCode(final String commandLineArgument) {
+        final char[] authenticationCode;
+<span class="nc bnc" id="L253" title="All 4 branches missed.">        if (commandLineArgument == null || &quot;null&quot;.equalsIgnoreCase(commandLineArgument)) {</span>
+<span class="nc" id="L254">            getLogger().info(&quot;Enter CryptoToken password: &quot;);</span>
+<span class="nc" id="L255">            getLogger().info(&quot;&quot;);</span>
+<span class="nc" id="L256">            authenticationCode = StringTools.passwordDecryption(String.valueOf(System.console().readPassword()), &quot;CryptoToken pin&quot;).toCharArray();</span>
+        } else {
+<span class="nc" id="L258">            authenticationCode = StringTools.passwordDecryption(commandLineArgument, &quot;CryptoToken pin&quot;).toCharArray();</span>
+
+        }
+<span class="nc" id="L261">        return authenticationCode;</span>
+    }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

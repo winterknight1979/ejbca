@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>WebLanguages.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Administration GUI</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.configuration</a> &gt; <span class="el_source">WebLanguages.java</span></div><h1>WebLanguages.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.ui.web.admin.configuration;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
+import javax.servlet.ServletContext;
+
+import org.apache.log4j.Logger;
+import org.ejbca.config.GlobalConfiguration;
+import org.ejbca.core.model.InternalEjbcaResources;
+
+
+/**
+ * An class interpreting the language properties files. I contains one method getText that returns
+ * the presented text in the users preferred language.
+ *
+ * @version $Id: WebLanguages.java 23625 2016-06-07 19:32:11Z anatom $
+ */
+public class WebLanguages implements java.io.Serializable {
+    private static final long serialVersionUID = -2381623760140383128L;
+
+<span class="nc" id="L36">    private static final Logger log = Logger.getLogger(WebLanguages.class);</span>
+
+    /** Internal localization of logs and errors */
+<span class="nc" id="L39">    private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();</span>
+
+    /** Constructor used to load static content. An instance must be declared with this constructor before
+     *  any WebLanguage object can be used. */
+    /** Special constructor used by Ejbca web bean 
+     * @param servletContext Context
+     * @param globalconfiguration Config */
+    private void init(ServletContext servletContext, GlobalConfiguration globalconfiguration) {
+<span class="nc bnc" id="L47" title="All 2 branches missed.">        if(languages == null){</span>
+            // Get available languages.
+<span class="nc" id="L49">            availablelanguages=null;</span>
+<span class="nc" id="L50">            String availablelanguagesstring = globalconfiguration.getAvailableLanguagesAsString();</span>
+<span class="nc" id="L51">            availablelanguages =  availablelanguagesstring.split(&quot;,&quot;);</span>
+<span class="nc bnc" id="L52" title="All 2 branches missed.">            for(int i=0; i &lt; availablelanguages.length;i++){</span>
+<span class="nc" id="L53">                availablelanguages[i] = availablelanguages[i].trim().toLowerCase();</span>
+<span class="nc bnc" id="L54" title="All 2 branches missed.">                if (availablelanguages[i].equalsIgnoreCase(&quot;se&quot;)) {  /* For compatibility with EJBCA 6.2.x and before */</span>
+<span class="nc" id="L55">                    availablelanguages[i] = &quot;sv&quot;;</span>
+                }
+<span class="nc bnc" id="L57" title="All 2 branches missed.">                if (availablelanguages[i].equalsIgnoreCase(&quot;ua&quot;)) {  /* For compatibility with EJBCA 6.2.x and before */</span>
+<span class="nc" id="L58">                    availablelanguages[i] = &quot;uk&quot;;</span>
+                }
+            }
+            // Load available languages
+<span class="nc" id="L62">            languages = new LanguageProperties[availablelanguages.length];</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">            for(int i = 0; i &lt; availablelanguages.length; i++){</span>
+<span class="nc" id="L64">                languages[i] = new LanguageProperties();</span>
+<span class="nc" id="L65">                String propsfile = &quot;/&quot; + globalconfiguration.getLanguagePath() + &quot;/&quot;</span>
+<span class="nc" id="L66">                + globalconfiguration.getLanguageFilename() + &quot;.&quot;</span>
+                + availablelanguages[i] +&quot;.properties&quot;;
+                
+<span class="nc" id="L69">                InputStream is = null;</span>
+                try {
+                    try {
+<span class="nc bnc" id="L72" title="All 2 branches missed.">                        if (servletContext != null) {</span>
+<span class="nc" id="L73">                            is = servletContext.getResourceAsStream(propsfile);</span>
+                        } else {
+<span class="nc" id="L75">                            is = this.getClass().getResourceAsStream(propsfile);                	</span>
+                        }
+<span class="nc bnc" id="L77" title="All 2 branches missed.">                        if (is == null) {</span>
+                            //if not available as stream, try it as a file
+<span class="nc" id="L79">                            is = new FileInputStream(&quot;/tmp&quot; + propsfile);</span>
+                        }
+<span class="nc bnc" id="L81" title="All 2 branches missed.">                        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L82">                            log.debug(&quot;Loading language from file: &quot; + propsfile);</span>
+                        }
+<span class="nc" id="L84">                        languages[i].load(is);</span>
+                    } finally {
+<span class="nc bnc" id="L86" title="All 2 branches missed.">                        if (is != null) {is.close();}</span>
+                    }
+<span class="nc" id="L88">                } catch (IOException e) {</span>
+<span class="nc" id="L89">                    throw new IllegalStateException(&quot;Properties file &quot; + propsfile + &quot; could not be read.&quot;, e);</span>
+<span class="nc" id="L90">                }</span>
+               
+            }
+            // Get languages English and native names
+<span class="nc" id="L94">            languagesenglishnames = new String[availablelanguages.length];</span>
+<span class="nc" id="L95">            languagesnativenames = new String[availablelanguages.length];</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">            for(int i = 0; i &lt; availablelanguages.length; i++){</span>
+<span class="nc" id="L97">                languagesenglishnames[i] = languages[i].getProperty(&quot;LANGUAGE_ENGLISHNAME&quot;);</span>
+<span class="nc" id="L98">                languagesnativenames[i] = languages[i].getProperty(&quot;LANGUAGE_NATIVENAME&quot;);</span>
+            }
+        }
+<span class="nc" id="L101">    }</span>
+
+<span class="nc" id="L103">    public WebLanguages(ServletContext servletContext, GlobalConfiguration globalconfiguration, int preferedlang, int secondarylang) {</span>
+<span class="nc" id="L104">        init(servletContext, globalconfiguration);</span>
+<span class="nc" id="L105">        this.userspreferedlanguage=preferedlang;</span>
+<span class="nc" id="L106">        this.userssecondarylanguage=secondarylang;</span>
+<span class="nc" id="L107">    }</span>
+
+
+    /** The main method that looks up the template text in the users preferred language. 
+     * @param template Template
+     * @param params Params
+     * @return text */
+    public  String getText(String template, Object... params){
+<span class="nc" id="L115">      String returnvalue = null;</span>
+      try{
+<span class="nc" id="L117">        returnvalue= languages[userspreferedlanguage].getMessage(template, params);</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">        if(returnvalue == null){</span>
+<span class="nc" id="L119">          returnvalue= languages[userssecondarylanguage].getMessage(template, params);</span>
+        }
+<span class="nc bnc" id="L121" title="All 2 branches missed.">        if(returnvalue == null){</span>
+<span class="nc" id="L122">            returnvalue= intres.getLocalizedMessage(template, params);</span>
+        }        
+<span class="nc" id="L124">      }catch(java.lang.NullPointerException e){}</span>
+<span class="nc bnc" id="L125" title="All 2 branches missed.">      if(returnvalue == null) {</span>
+<span class="nc" id="L126">        returnvalue = template;</span>
+      }
+<span class="nc" id="L128">      return returnvalue;</span>
+    }
+
+    /* Returns a text string array containing the available languages */
+    public String[] getAvailableLanguages(){
+<span class="nc" id="L133">      return availablelanguages;</span>
+    }
+
+    /* Returns a text string array containing the languages English names */
+    public String[] getLanguagesEnglishNames(){
+<span class="nc" id="L138">      return languagesenglishnames;</span>
+    }
+
+    /* Returns a text string array containing the languages native names */
+    public String[] getLanguagesNativeNames(){
+<span class="nc" id="L143">      return languagesnativenames;</span>
+    }
+
+
+    // Protected fields
+    private int userspreferedlanguage;
+    private int userssecondarylanguage;
+
+    private String[] availablelanguages;
+    private String[] languagesenglishnames;
+    private String[] languagesnativenames;
+<span class="nc" id="L154">    private LanguageProperties[] languages = null;</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

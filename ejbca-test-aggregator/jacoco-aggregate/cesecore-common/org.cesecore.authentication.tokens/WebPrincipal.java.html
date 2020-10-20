@@ -17,41 +17,46 @@ import java.security.Principal;
 
 /**
  * Represents any type of web user, can be public web or a servlet.
- * 
+ *
  * @version $Id: WebPrincipal.java 22811 2016-02-15 16:48:23Z samuellb $
  */
 public class WebPrincipal implements Principal, Serializable {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
+  /** Module. */
+  private final String moduleName;
+  /** Client IP. */
+  private final String clientIPAddress;
 
-    final String moduleName;
-    final String clientIPAddress;
-    
-    /**
-     * @param moduleName Arbitrary identifier of the page or module, e.g. &quot;AutoEnrollServlet&quot;
-     * @param clientIPAddress Remote IP address
-     */
-<span class="nc" id="L34">    public WebPrincipal(final String moduleName, final String clientIPAddress) {</span>
-<span class="nc" id="L35">        this.clientIPAddress = clientIPAddress;</span>
-<span class="nc" id="L36">        this.moduleName = moduleName;</span>
-<span class="nc" id="L37">    }</span>
-    
-    @Override
-    public String getName() {
-<span class="nc" id="L41">        return clientIPAddress;</span>
-    }
+  /**
+   * @param aModuleName Arbitrary identifier of the page or module, e.g.
+   *     &quot;AutoEnrollServlet&quot;
+   * @param theClientIPAddress Remote IP address
+   */
+  public WebPrincipal(
+<span class="nc" id="L37">      final String aModuleName, final String theClientIPAddress) {</span>
+<span class="nc" id="L38">    this.clientIPAddress = theClientIPAddress;</span>
+<span class="nc" id="L39">    this.moduleName = aModuleName;</span>
+<span class="nc" id="L40">  }</span>
 
-    @Override
-    public String toString() {
-<span class="nc" id="L46">        return moduleName + &quot;: &quot; + clientIPAddress;</span>
-    }
-    
-    public String getModuleName() {
-<span class="nc" id="L50">        return moduleName;</span>
-    }
-    
-    public String getClientIPAddress() {
-<span class="nc" id="L54">        return clientIPAddress;</span>
-    }
+  @Override
+  public String getName() {
+<span class="nc" id="L44">    return clientIPAddress;</span>
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L49">    return moduleName + &quot;: &quot; + clientIPAddress;</span>
+  }
+
+  /** @return module */
+  public String getModuleName() {
+<span class="nc" id="L54">    return moduleName;</span>
+  }
+
+  /** @return IP address */
+  public String getClientIPAddress() {
+<span class="nc" id="L59">    return clientIPAddress;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

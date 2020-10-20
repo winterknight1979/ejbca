@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+-->
+<rss version="0.91">
+  <channel>
+    <title>Unit Test Aggregator - Checkstyle report</title>
+    <link>https://github.com/winterknight1979/ejbca/ejbca-test-aggregator</link>
+    <description>Unit Test Aggregator - Checkstyle report</description>
+    <language>en-us</language>
+    <copyright>&#169;2020</copyright>
+    <item>
+      <title>File: 15,
+             Errors: 1747,
+             Warnings: 0,
+             Infos: 0
+      </title>
+            <link>https://github.com/winterknight1979/ejbca/ejbca-test-aggregator/checkstyle.html</link>
+      <description>
+        <p>Click <a href="https://github.com/winterknight1979/ejbca/ejbca-test-aggregator/checkstyle.html">here</a> for the full Checkstyle report.</p>
+
+        <table summary="Files" boder="1">
+          <thead>
+            <tr>
+              <th>Files</th>
+              <th style="width:30px;"><abbr title="Info">I</abbr></th>
+              <th style="width:30px;"><abbr title="Warning">W</abbr></th>
+              <th style="width:30px;"><abbr title="Error">E</abbr></th>
+            </tr>
+          </thead>
+          <tbody>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-test-aggregator/checkstyle.html#org.cesecore.certificates.ca.MyExtendedCAServiceResponse.java">org/cesecore/certificates/ca/MyExtendedCAServiceResponse.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  4
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-test-aggregator/checkstyle.html#org.ejbca.core.protocol.cmp.CrmfRequestMessageTest.java">org/ejbca/core/protocol/cmp/CrmfRequestMessageTest.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  469
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-test-aggregator/checkstyle.html#org.cesecore.certificates.ca.X509CATest.java">org/cesecore/certificates/ca/X509CATest.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  524
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-test-aggregator/checkstyle.html#org.ejbca.core.model.approval.ApprovalJunitHelper.java">org/ejbca/core/model/approval/ApprovalJunitHelper.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  17
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-test-aggregator/checkstyle.html#org.ejbca.core.model.approval.DummyApprovalRequest.java">org/ejbca/core/model/approval/DummyApprovalRequest.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  96
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-test-aggregator/checkstyle.html#org.ejbca.core.model.ca.publisher.MultiGroupPublisherBuilder.java">org/ejbca/core/model/ca/publisher/MultiGroupPublisherBuilder.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  26
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-test-aggregator/checkstyle.html#org.ejbca.core.model.approval.ApprovalExecutorUtilTest.java">org/ejbca/core/model/approval/ApprovalExecutorUtilTest.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  154
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-test-aggregator/checkstyle.html#org.cesecore.certificates.ca.MyExtendedCAServiceRequest.java">org/cesecore/certificates/ca/MyExtendedCAServiceRequest.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  4
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-test-aggregator/checkstyle.html#org.cesecore.util.ui.DynamicUiPropertyTest.java">org/cesecore/util/ui/DynamicUiPropertyTest.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  17
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-test-aggregator/checkstyle.html#org.cesecore.certificates.ca.MyExtendedCAService.java">org/cesecore/certificates/ca/MyExtendedCAService.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  28
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-test-aggregator/checkstyle.html#org.cesecore.certificates.ca.MyExtendedCAServiceInfo.java">org/cesecore/certificates/ca/MyExtendedCAServiceInfo.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  9
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-test-aggregator/checkstyle.html#org.cesecore.authentication.tokens.X509CertificateAuthenticationTokenTest.java">org/cesecore/authentication/tokens/X509CertificateAuthenticationTokenTest.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  84
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-test-aggregator/checkstyle.html#org.cesecore.roles.AccessRulesHelperTest.java">org/cesecore/roles/AccessRulesHelperTest.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  71
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-test-aggregator/checkstyle.html#org.cesecore.util.QueryCriteriaTest.java">org/cesecore/util/QueryCriteriaTest.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  151
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-test-aggregator/checkstyle.html#org.ejbca.core.model.approval.ApprovalRequestTest.java">org/ejbca/core/model/approval/ApprovalRequestTest.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  93
+                </td>
+              </tr>
+                      </tbody>
+        </table>
+        
+      </description>
+    </item>
+  </channel>
+</rss>
+

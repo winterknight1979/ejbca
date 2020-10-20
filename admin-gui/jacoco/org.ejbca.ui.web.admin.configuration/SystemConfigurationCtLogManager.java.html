@@ -1,0 +1,374 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SystemConfigurationCtLogManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Administration GUI</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.configuration</a> &gt; <span class="el_source">SystemConfigurationCtLogManager.java</span></div><h1>SystemConfigurationCtLogManager.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA - Proprietary Modules: Enterprise Certificate Authority        *
+ *                                                                       *
+ *  Copyright (c), PrimeKey Solutions AB. All rights reserved.           *
+ *  The use of the Proprietary Modules are subject to specific           *
+ *  commercial license terms.                                            *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.web.admin.configuration;
+
+import java.io.IOException;
+import java.util.Calendar;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.apache.myfaces.custom.fileupload.UploadedFile;
+import org.cesecore.certificates.certificatetransparency.CTLogInfo;
+import org.cesecore.certificates.certificatetransparency.CtLogManager;
+import org.cesecore.keys.util.KeyTools;
+
+/**
+ * This class is used to manage CT logs in EJBCA's system configuration. It adds some additional
+ * functionality to the CtLogManager, such as loading and saving state from the database, editing of
+ * new CT logs, checking whether a CT log is in use before removing it and language awareness.
+ * @version $Id: SystemConfigurationCtLogManager.java 28511 2018-03-18 21:24:03Z bastianf $
+ */
+public class SystemConfigurationCtLogManager extends CtLogManager {
+    private static final String EDIT_CT_LOG = &quot;editCTLog&quot;;
+    private static final String CT_LOG_SAVED = &quot;saved&quot;;
+<span class="nc" id="L33">    private static final Logger log = Logger.getLogger(SystemConfigurationCtLogManager.class);</span>
+    private final SystemConfigurationHelper systemConfigurationHelper;
+    private final CtLogEditor ctLogEditor;
+
+<span class="nc" id="L37">    public class CtLogEditor {</span>
+        private String url;
+        private UploadedFile publicKeyFile;
+        private String label;
+<span class="nc" id="L41">        private int timeout = 5000;</span>
+        private CTLogInfo ctLogBeingEdited;
+        private boolean isAcceptingByExpirationYear;
+        private String expirationYearRequired;
+
+        public String getCtLogUrl() {
+<span class="nc bnc" id="L47" title="All 2 branches missed.">            if (StringUtils.isEmpty(url)) {</span>
+<span class="nc" id="L48">                return null;</span>
+            }
+<span class="nc" id="L50">            return CTLogInfo.fixUrl(url);</span>
+        }
+
+        public UploadedFile getPublicKeyFile() {
+<span class="nc" id="L54">            return publicKeyFile;</span>
+        }
+
+        public String getCtLogLabel() {
+<span class="nc" id="L58">            return label;</span>
+        }
+
+        public int getCtLogTimeout() {
+<span class="nc" id="L62">            return timeout;</span>
+        }
+
+        public void setCtLogUrl(final String url) {
+<span class="nc" id="L66">            this.url = url;</span>
+<span class="nc" id="L67">        }</span>
+
+        public void setPublicKeyFile(final UploadedFile publicKeyFile) {
+<span class="nc" id="L70">            this.publicKeyFile = publicKeyFile;</span>
+<span class="nc" id="L71">        }</span>
+
+        public void setCtLogLabel(final String label) {
+<span class="nc" id="L74">            this.label = label;</span>
+<span class="nc" id="L75">        }</span>
+
+        public void setCtLogTimeout(final int timeout) {
+<span class="nc" id="L78">            this.timeout = timeout;</span>
+<span class="nc" id="L79">        }</span>
+
+        public boolean hasValidUrl() {
+<span class="nc" id="L82">            return url.contains(&quot;://&quot;);</span>
+        }
+
+        /**
+         * Set a boolean indicating whether the log being edited only accepts certificates with
+         * a certain year of expiry, e.g. all certificates expiring in 2019.
+         * @param isAcceptingByExpirationYear true if the log is discriminating based on year of expiry
+         */
+        public void setIsAcceptingByExpirationYear(final boolean isAcceptingByExpirationYear) {
+<span class="nc" id="L91">            this.isAcceptingByExpirationYear = isAcceptingByExpirationYear;</span>
+<span class="nc" id="L92">        }</span>
+
+        public boolean getIsAcceptingByExpirationYear() {
+<span class="nc" id="L95">            return isAcceptingByExpirationYear;</span>
+        }
+
+        public void setExpirationYearRequired(final String expirationYearRequired) {
+<span class="nc" id="L99">            this.expirationYearRequired = expirationYearRequired;</span>
+<span class="nc" id="L100">        }</span>
+
+        public String getExpirationYearRequired() {
+<span class="nc" id="L103">            return expirationYearRequired;</span>
+        }
+
+        /**
+         * Load an existing CT log into the editor.
+         * @param ctLog Log
+         */
+        public void loadIntoEditor(final CTLogInfo ctLog) {
+<span class="nc" id="L111">            this.label = ctLog.getLabel();</span>
+            // Only replace the key if a new one was uploaded
+<span class="nc" id="L113">            this.publicKeyFile = null;</span>
+<span class="nc" id="L114">            this.timeout = ctLog.getTimeout();</span>
+<span class="nc" id="L115">            this.url = ctLog.getUrl();</span>
+<span class="nc" id="L116">            this.ctLogBeingEdited = ctLog;</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">            this.isAcceptingByExpirationYear = ctLog.getExpirationYearRequired() != null;</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">            this.expirationYearRequired = ctLog.getExpirationYearRequired() == null ?</span>
+<span class="nc" id="L119">                    String.valueOf(Calendar.getInstance().get(Calendar.YEAR)) : String.valueOf(ctLog.getExpirationYearRequired());</span>
+<span class="nc" id="L120">        }</span>
+
+        /**
+         * Reset all input to this CT log editor.
+         */
+        public void clear() {
+<span class="nc" id="L126">            url = null;</span>
+<span class="nc" id="L127">            publicKeyFile = null;</span>
+<span class="nc" id="L128">            label = null;</span>
+<span class="nc" id="L129">            timeout = 5000;</span>
+<span class="nc" id="L130">        }</span>
+
+        /**
+         * Returns the CT log currently being edited by this CT log editor.
+         * @return the CT log being edited, or null
+         */
+        public CTLogInfo getCtLogBeingEdited() {
+<span class="nc" id="L137">            return ctLogBeingEdited;</span>
+        }
+
+        public void stopEditing() {
+<span class="nc" id="L141">            ctLogBeingEdited = null;</span>
+<span class="nc" id="L142">            clear();</span>
+<span class="nc" id="L143">        }</span>
+    }
+
+    public interface SystemConfigurationHelper {
+        /**
+         * Displays an error message to the user.
+         * @param languageKey the language key of the message to show
+         */
+        public void addErrorMessage(String languageKey);
+
+        /**
+         * Displays an error message to the user with a formatted message.
+         * @param languageKey the language key of the message to show
+         * @param params additional parameters to include in the error message
+         */
+        public void addErrorMessage(String languageKey, Object... params);
+
+        /**
+         * Displays an information message to the user.
+         * @param languageKey the language key of the message to show
+         */
+        public void addInfoMessage(String languageKey);
+
+        /**
+         * Saves a list of CT logs to persistent storage.
+         * @param ctLogs the CT logs to save
+         */
+        public void saveCtLogs(List&lt;CTLogInfo&gt; ctLogs);
+
+        /**
+         * Get a list with names of certificate profiles which references a particular CT log.
+         * @param ctLog a CT log which should be checked
+         * @return a list of profile names, referencing the CT log given as input or empty if the CT log is not in use
+         */
+        public List&lt;String&gt; getCertificateProfileNamesByCtLog(CTLogInfo ctLog);
+    }
+
+    public SystemConfigurationCtLogManager(final List&lt;CTLogInfo&gt; ctLogs, final SystemConfigurationHelper systemConfigurationHelper) {
+<span class="nc" id="L181">        super(ctLogs);</span>
+<span class="nc" id="L182">        this.systemConfigurationHelper = systemConfigurationHelper;</span>
+<span class="nc" id="L183">        this.ctLogEditor = new CtLogEditor();</span>
+<span class="nc" id="L184">    }</span>
+
+    private byte[] getCtLogPublicKey(final UploadedFile upload) {
+<span class="nc bnc" id="L187" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L188">            log.debug(&quot;Received uploaded public key file: &quot; + upload.getName());</span>
+        }
+        try {
+<span class="nc" id="L191">            byte[] uploadedFileBytes = upload.getBytes();</span>
+<span class="nc" id="L192">            return KeyTools.getBytesFromPublicKeyFile(uploadedFileBytes);</span>
+<span class="nc" id="L193">        } catch (final IOException e) {</span>
+<span class="nc" id="L194">            log.info(&quot;Could not parse the public key file.&quot;, e);</span>
+<span class="nc" id="L195">            systemConfigurationHelper.addErrorMessage(&quot;CTLOGTAB_BADKEYFILE&quot;, upload.getName(), e.getLocalizedMessage());</span>
+<span class="nc" id="L196">            return null;</span>
+<span class="nc" id="L197">        } catch (final Exception e) {</span>
+<span class="nc" id="L198">            log.info(&quot;Failed to add CT Log.&quot;, e);</span>
+<span class="nc" id="L199">            systemConfigurationHelper.addErrorMessage(&quot;CTLOGTAB_GENERICADDERROR&quot;, e.getLocalizedMessage());</span>
+<span class="nc" id="L200">            return null;</span>
+        }
+    }
+
+    /**
+     * Adds a CT log with the information stored in the CT log editor.
+     */
+    public void addCtLog() {
+<span class="nc bnc" id="L208" title="All 4 branches missed.">        if (ctLogEditor.getCtLogUrl() == null || !ctLogEditor.getCtLogUrl().contains(&quot;://&quot;)) {</span>
+<span class="nc" id="L209">            systemConfigurationHelper.addErrorMessage(&quot;CTLOGTAB_MISSINGPROTOCOL&quot;);</span>
+<span class="nc" id="L210">            return;</span>
+        }
+<span class="nc bnc" id="L212" title="All 2 branches missed.">        if (ctLogEditor.getPublicKeyFile() == null) {</span>
+<span class="nc" id="L213">            systemConfigurationHelper.addErrorMessage(&quot;CTLOGTAB_UPLOADFAILED&quot;);</span>
+<span class="nc" id="L214">            return;</span>
+        }
+<span class="nc bnc" id="L216" title="All 2 branches missed.">        if (ctLogEditor.getCtLogTimeout() &lt;= 0) {</span>
+<span class="nc" id="L217">            systemConfigurationHelper.addErrorMessage(&quot;CTLOGTAB_TIMEOUTNEGATIVE&quot;);</span>
+<span class="nc" id="L218">            return;</span>
+        }
+
+<span class="nc" id="L221">        final byte[] newCtLogPublicKey = getCtLogPublicKey(ctLogEditor.getPublicKeyFile());</span>
+<span class="nc bnc" id="L222" title="All 2 branches missed.">        if (newCtLogPublicKey == null) {</span>
+            // Error already reported
+<span class="nc" id="L224">            return;</span>
+        }
+
+<span class="nc" id="L227">        final CTLogInfo newCtLog = new CTLogInfo(ctLogEditor.getCtLogUrl(), newCtLogPublicKey, ctLogEditor.getCtLogLabel(),</span>
+<span class="nc" id="L228">                ctLogEditor.getCtLogTimeout());</span>
+
+<span class="nc bnc" id="L230" title="All 2 branches missed.">        if (!super.canAdd(newCtLog)) {</span>
+<span class="nc" id="L231">            systemConfigurationHelper.addErrorMessage(&quot;CTLOGTAB_ALREADYEXISTS&quot;, newCtLog.toString());</span>
+<span class="nc" id="L232">            return;</span>
+        }
+
+<span class="nc" id="L235">        super.addCtLog(newCtLog);</span>
+<span class="nc" id="L236">        systemConfigurationHelper.saveCtLogs(super.getAllCtLogs());</span>
+<span class="nc" id="L237">        ctLogEditor.clear();</span>
+<span class="nc" id="L238">    }</span>
+
+    @Override
+    public void removeCtLog(final CTLogInfo ctLog) {
+<span class="nc" id="L242">        final List&lt;String&gt; usedByProfiles = systemConfigurationHelper.getCertificateProfileNamesByCtLog(ctLog);</span>
+<span class="nc bnc" id="L243" title="All 2 branches missed.">        if (!usedByProfiles.isEmpty()) {</span>
+<span class="nc" id="L244">            systemConfigurationHelper.addErrorMessage(&quot;CTLOGTAB_INUSEBYPROFILES&quot;, StringUtils.join(usedByProfiles, &quot;, &quot;));</span>
+<span class="nc" id="L245">            return;</span>
+        }
+<span class="nc" id="L247">        super.removeCtLog(ctLog);</span>
+<span class="nc" id="L248">        systemConfigurationHelper.saveCtLogs(super.getAllCtLogs());</span>
+<span class="nc" id="L249">    }</span>
+
+    @Override
+    public void moveUp(final CTLogInfo ctLog) {
+<span class="nc" id="L253">        super.moveUp(ctLog);</span>
+<span class="nc" id="L254">        systemConfigurationHelper.saveCtLogs(super.getAllCtLogs());</span>
+<span class="nc" id="L255">    }</span>
+
+    @Override
+    public void moveDown(final CTLogInfo ctLog) {
+<span class="nc" id="L259">        super.moveDown(ctLog);</span>
+<span class="nc" id="L260">        systemConfigurationHelper.saveCtLogs(super.getAllCtLogs());</span>
+<span class="nc" id="L261">    }</span>
+
+    /**
+     * Prepares for a CT log to be edited. This method will load the specified CT log into
+     * the CT log editor and set the editor in edit mode.
+     * @param ctLog the CT log to be edited
+     * @return the constant string EDIT_CT_LOG
+     */
+    public String editCtLog(final CTLogInfo ctLog) {
+<span class="nc" id="L270">        ctLogEditor.loadIntoEditor(ctLog);</span>
+<span class="nc" id="L271">        return EDIT_CT_LOG;</span>
+    }
+
+    /**
+     * Retrieves the CT log editor for this CT log manager.
+     * @return an editor which can be used to edit CT logs
+     */
+    public CtLogEditor getCtLogEditor() {
+<span class="nc" id="L279">        return ctLogEditor;</span>
+    }
+
+    /**
+     * Save the CT log currently being edited.
+     * @return an empty string on failure or the constant string CT_LOG_SAVED on success
+     * @throws IllegalStateException if there is no CT log to save
+     */
+    public String saveCtLogBeingEdited() {
+<span class="nc bnc" id="L288" title="All 2 branches missed.">        if (ctLogEditor.getCtLogBeingEdited() == null) {</span>
+<span class="nc" id="L289">            throw new IllegalStateException(&quot;The CT log being edited has already been saved or was never loaded.&quot;);</span>
+        }
+
+        /* Validate data entry by the user */
+<span class="nc bnc" id="L293" title="All 2 branches missed.">        if (!ctLogEditor.hasValidUrl()) {</span>
+<span class="nc" id="L294">            systemConfigurationHelper.addErrorMessage(&quot;CTLOGTAB_MISSINGPROTOCOL&quot;);</span>
+<span class="nc" id="L295">            return StringUtils.EMPTY;</span>
+        }
+<span class="nc bnc" id="L297" title="All 2 branches missed.">        if (ctLogEditor.getCtLogTimeout() &lt;= 0) {</span>
+<span class="nc" id="L298">            systemConfigurationHelper.addErrorMessage(&quot;CTLOGTAB_TIMEOUTNEGATIVE&quot;);</span>
+<span class="nc" id="L299">            return StringUtils.EMPTY;</span>
+        }
+<span class="nc bnc" id="L301" title="All 2 branches missed.">        if (ctLogEditor.getPublicKeyFile() != null) {</span>
+<span class="nc" id="L302">            final byte[] keyBytes = getCtLogPublicKey(ctLogEditor.getPublicKeyFile());</span>
+<span class="nc bnc" id="L303" title="All 2 branches missed.">            if (keyBytes == null) {</span>
+                // Error already reported
+<span class="nc" id="L305">                return StringUtils.EMPTY;</span>
+            }
+        }
+<span class="nc bnc" id="L308" title="All 4 branches missed.">        if (ctLogEditor.getIsAcceptingByExpirationYear() &amp;&amp; !StringUtils.isNumeric(ctLogEditor.getExpirationYearRequired())) {</span>
+<span class="nc" id="L309">            systemConfigurationHelper.addErrorMessage(&quot;CTLOGCONFIGURATION_INVALID_YEAR&quot;);</span>
+<span class="nc" id="L310">            return StringUtils.EMPTY;</span>
+        }
+
+        /* Ensure the new log configuration is not conflicting with another log */
+<span class="nc" id="L314">        final CTLogInfo ctLogToUpdate = ctLogEditor.getCtLogBeingEdited();</span>
+<span class="nc bnc" id="L315" title="All 2 branches missed.">        for (final CTLogInfo existing : super.getAllCtLogs()) {</span>
+<span class="nc bnc" id="L316" title="All 2 branches missed.">            final boolean isSameLog = existing.getLogId() == ctLogToUpdate.getLogId();</span>
+<span class="nc bnc" id="L317" title="All 2 branches missed.">            final boolean urlExistsInCtLogGroup = StringUtils.equals(existing.getUrl(), ctLogEditor.getCtLogUrl())</span>
+<span class="nc bnc" id="L318" title="All 2 branches missed.">                    &amp;&amp; StringUtils.equals(existing.getLabel(), ctLogEditor.getCtLogLabel());</span>
+<span class="nc bnc" id="L319" title="All 4 branches missed.">            if (!isSameLog &amp;&amp; urlExistsInCtLogGroup) {</span>
+<span class="nc" id="L320">                systemConfigurationHelper.addErrorMessage(&quot;CTLOGTAB_ALREADYEXISTS&quot;, existing.getUrl());</span>
+<span class="nc" id="L321">                return StringUtils.EMPTY;</span>
+            }
+<span class="nc" id="L323">        }</span>
+
+        /* Update the configuration */
+<span class="nc" id="L326">        final String url = ctLogEditor.getCtLogUrl();</span>
+<span class="nc bnc" id="L327" title="All 2 branches missed.">        final byte[] keyBytes = ctLogEditor.getPublicKeyFile() != null ? getCtLogPublicKey(ctLogEditor.getPublicKeyFile())</span>
+<span class="nc" id="L328">                : ctLogEditor.getCtLogBeingEdited().getPublicKeyBytes();</span>
+<span class="nc" id="L329">        final int timeout = ctLogEditor.getCtLogTimeout();</span>
+<span class="nc" id="L330">        final String label = ctLogEditor.getCtLogLabel();</span>
+<span class="nc" id="L331">        ctLogToUpdate.setLogPublicKey(keyBytes);</span>
+<span class="nc" id="L332">        ctLogToUpdate.setTimeout(timeout);</span>
+<span class="nc" id="L333">        ctLogToUpdate.setUrl(url);</span>
+<span class="nc" id="L334">        ctLogToUpdate.setLabel(label);</span>
+<span class="nc bnc" id="L335" title="All 2 branches missed.">        ctLogToUpdate.setExpirationYearRequired(ctLogEditor.getIsAcceptingByExpirationYear() ?</span>
+<span class="nc" id="L336">                Integer.valueOf(ctLogEditor.getExpirationYearRequired()) : null);</span>
+<span class="nc" id="L337">        systemConfigurationHelper.saveCtLogs(super.getAllCtLogs());</span>
+<span class="nc" id="L338">        ctLogEditor.stopEditing();</span>
+<span class="nc" id="L339">        return CT_LOG_SAVED;</span>
+    }
+
+    @Override
+    public void renameLabel(final String oldLabel, final String newLabel) {
+<span class="nc" id="L344">        super.renameLabel(oldLabel, newLabel);</span>
+<span class="nc" id="L345">        systemConfigurationHelper.saveCtLogs(super.getAllCtLogs());</span>
+<span class="nc" id="L346">    }</span>
+
+    public List&lt;String&gt; getAvailableLabels(CTLogInfo ctLog) {
+<span class="nc" id="L349">        final List&lt;String&gt; labels = super.getLabels();</span>
+        // Remove labels already containing a CT log with the same URL
+<span class="nc bnc" id="L351" title="All 2 branches missed.">        for (int i = labels.size() - 1; i &gt;= 0; i--) {</span>
+<span class="nc" id="L352">            final String label = labels.get(i);</span>
+<span class="nc bnc" id="L353" title="All 2 branches missed.">            if (StringUtils.equals(label, ctLog.getLabel())) {</span>
+                // Always add the CT log label of the log itself
+<span class="nc" id="L355">                continue;</span>
+            }
+<span class="nc" id="L357">            final List&lt;CTLogInfo&gt; logGroupMembers = super.getCtLogsByLabel(label);</span>
+<span class="nc bnc" id="L358" title="All 2 branches missed.">            if (logGroupHasAnotherCtLogWithSameUrl(logGroupMembers, ctLog)) {</span>
+<span class="nc" id="L359">                labels.remove(i);</span>
+            }
+        }
+<span class="nc" id="L362">        return labels;</span>
+    }
+
+    private boolean logGroupHasAnotherCtLogWithSameUrl(final List&lt;CTLogInfo&gt; logGroupMembers, final CTLogInfo ctLog) {
+<span class="nc bnc" id="L366" title="All 2 branches missed.">        for (final CTLogInfo logGroupMember : logGroupMembers) {</span>
+<span class="nc bnc" id="L367" title="All 4 branches missed.">            if (logGroupMember.getLogId() != ctLog.getLogId() &amp;&amp; StringUtils.equals(logGroupMember.getUrl(), ctLog.getUrl())) {</span>
+<span class="nc" id="L368">                return true;</span>
+            }
+<span class="nc" id="L370">        }</span>
+<span class="nc" id="L371">        return false;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

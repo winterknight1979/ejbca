@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CaImportCACommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.ca</a> &gt; <span class="el_source">CaImportCACommand.java</span></div><h1>CaImportCACommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.cli.ca;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.util.Collection;
+import java.util.Enumeration;
+
+import org.apache.log4j.Logger;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CAExistsException;
+import org.cesecore.certificates.ca.CAOfflineException;
+import org.cesecore.keys.token.CryptoTokenAuthenticationFailedException;
+import org.cesecore.keys.token.CryptoTokenOfflineException;
+import org.cesecore.keys.token.IllegalCryptoTokenException;
+import org.cesecore.keys.token.p11.exception.NoSuchSlotException;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.EjbRemoteHelper;
+import org.cesecore.util.FileTools;
+import org.ejbca.core.ejb.ca.caadmin.CAAdminSessionRemote;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+
+/**
+ * Imports a keystore and creates a new X509 CA from it
+ *
+ * @version $Id: CaImportCACommand.java 24602 2016-10-31 13:26:34Z anatom $
+ */
+<span class="nc" id="L55">public class CaImportCACommand extends BaseCaAdminCommand {</span>
+
+<span class="nc" id="L57">    private static final Logger log = Logger.getLogger(CaImportCACommand.class);</span>
+
+    private static final String CA_NAME_KEY = &quot;--caname&quot;;
+    private static final String HARD_SWITCH_KEY = &quot;--hard&quot;;
+    //P12
+    private static final String P12_FILE_KEY = &quot;--p12&quot;;
+    public static final String KEYSTORE_PASSWORD_KEY = &quot;-kspassword&quot;;
+    private static final String SIGNATURE_ALIAS_KEY = &quot;--signalias&quot;;
+    private static final String ENCRYPTION_ALIAS_KEY = &quot;--encalias&quot;;
+    //CACert
+    private static final String CA_TOKEN_CLASSPATH_KEY = &quot;--cp&quot;;
+    private static final String CA_TOKEN_PASSWORD_KEY = &quot;--ctpassword&quot;;
+    private static final String CA_TOKEN_PROPERTIES_FILE_KEY = &quot;--prop&quot;;
+    private static final String CA_CERTIFICATE_FILE_KEY = &quot;--cert&quot;;
+
+    {
+<span class="nc" id="L73">        registerParameter(new Parameter(HARD_SWITCH_KEY, &quot;&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID, ParameterMode.FLAG,</span>
+                &quot;Set this flag if importing a hard keystore (PKCS#11), default is a soft keystore (PKCS#12)&quot;));
+<span class="nc" id="L75">        registerParameter(new Parameter(CA_NAME_KEY, &quot;CA Name&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;The name of the CA to import.&quot;));
+        //P12 arguments        
+<span class="nc" id="L78">        registerParameter(new Parameter(P12_FILE_KEY, &quot;File name&quot;, MandatoryMode.OPTIONAL, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;(PKCS#12) The PKCS#12 file to import from. Mandatory for soft keys.&quot;));
+<span class="nc" id="L80">        registerParameter(new Parameter(KEYSTORE_PASSWORD_KEY, &quot;Password&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID, ParameterMode.ARGUMENT,</span>
+                &quot;(PKCS#12) The keystore password. If not set then it will be prompted for.&quot;));
+<span class="nc" id="L82">        registerParameter(new Parameter(SIGNATURE_ALIAS_KEY, &quot;Signature Alias&quot;, MandatoryMode.OPTIONAL, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;(PKCS#12) If left blank, will use the only available alias, or if multiple are available a list will be shown.&quot;));
+<span class="nc" id="L84">        registerParameter(new Parameter(ENCRYPTION_ALIAS_KEY, &quot;Encryption Alias&quot;, MandatoryMode.OPTIONAL, StandaloneMode.ALLOW,</span>
+                ParameterMode.ARGUMENT,
+                &quot;(PKCS#12) If left blank, will use the only available alias, or if multiple are available a list will be shown. &quot;
+                        + &quot;If no encryption alias is given, the encryption keys will be generated.&quot;));
+        //CA Certificate arguments
+<span class="nc" id="L89">        registerParameter(new Parameter(CA_TOKEN_CLASSPATH_KEY, &quot;CA Token Classpath&quot;, MandatoryMode.OPTIONAL, StandaloneMode.ALLOW,</span>
+                ParameterMode.ARGUMENT, &quot;(PKCS#11) Example: org.cesecore.keys.token.PKCS11CryptoToken for PKCS11 HSMs.&quot;));
+<span class="nc" id="L91">        registerParameter(new Parameter(CA_TOKEN_PASSWORD_KEY, &quot;CA Token Password&quot;, MandatoryMode.OPTIONAL, StandaloneMode.ALLOW,</span>
+                ParameterMode.ARGUMENT, &quot;(PKCS#11) Password for the CA Token.&quot;));
+<span class="nc" id="L93">        registerParameter(new Parameter(CA_TOKEN_PROPERTIES_FILE_KEY, &quot;CA Token Properties File&quot;, MandatoryMode.OPTIONAL, StandaloneMode.ALLOW,</span>
+                ParameterMode.ARGUMENT,
+                &quot;(PKCS#11) A file were you define key name, password and key alias for the HSM. Same as the Hard CA Token Properties in admin GUI.&quot;));
+<span class="nc" id="L96">        registerParameter(new Parameter(</span>
+                CA_CERTIFICATE_FILE_KEY,
+                &quot;CA Certificate File&quot;,
+                MandatoryMode.OPTIONAL,
+                StandaloneMode.ALLOW,
+                ParameterMode.ARGUMENT,
+                &quot;(PKCS#11) A file containing CA-certificates. One or more CA-certificates, with this CA's certificate first, and others following in certificate chain order.&quot;));
+
+<span class="nc" id="L104">    }</span>
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L108">        return &quot;importca&quot;;</span>
+    }
+
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+<span class="nc" id="L113">        CryptoProviderTools.installBCProvider();</span>
+<span class="nc" id="L114">        String caName = parameters.get(CA_NAME_KEY);</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">        boolean importHardToken = parameters.get(HARD_SWITCH_KEY) != null;</span>
+<span class="nc bnc" id="L116" title="All 2 branches missed.">        if (!importHardToken) {</span>
+            // Import soft keystore
+<span class="nc" id="L118">            log.info(&quot;Importing soft token.&quot;);</span>
+<span class="nc" id="L119">            String kspwd = parameters.get(KEYSTORE_PASSWORD_KEY);</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">            if (kspwd == null) {</span>
+<span class="nc" id="L121">                log.info(&quot;Enter keystore password: &quot;);</span>
+                // Read the password, but mask it so we don't display it on the console
+<span class="nc" id="L123">                kspwd = String.valueOf(System.console().readPassword());</span>
+            }
+<span class="nc" id="L125">            String p12file = parameters.get(P12_FILE_KEY);</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">            if(p12file == null) {</span>
+<span class="nc" id="L127">                log.error(&quot;P12 file needs to be specified for soft keys, use &quot;+P12_FILE_KEY+&quot; switch.&quot;);</span>
+<span class="nc" id="L128">                return CommandResult.CLI_FAILURE;</span>
+            }
+<span class="nc" id="L130">            String alias = parameters.get(SIGNATURE_ALIAS_KEY);</span>
+<span class="nc" id="L131">            String encryptionAlias = parameters.get(ENCRYPTION_ALIAS_KEY);</span>
+            // Read old keystore file in the beginning so we know it's good
+<span class="nc" id="L133">            byte[] keystorebytes = null;</span>
+            try {
+<span class="nc" id="L135">                keystorebytes = FileTools.readFiletoBuffer(p12file);</span>
+                // Import CA from PKCS12 file
+<span class="nc bnc" id="L137" title="All 2 branches missed.">                if (alias == null) {</span>
+                    // First we must find what aliases there is in the pkcs12-file
+                    KeyStore ks;
+                    try {
+<span class="nc" id="L141">                        ks = KeyStore.getInstance(&quot;PKCS12&quot;, BouncyCastleProvider.PROVIDER_NAME);</span>
+<span class="nc" id="L142">                    } catch (KeyStoreException e) {</span>
+<span class="nc" id="L143">                        throw new IllegalStateException(&quot;PKCS12 keystore couldn't be found in BouncyCastle provider.&quot;);</span>
+<span class="nc" id="L144">                    } catch (NoSuchProviderException e) {</span>
+<span class="nc" id="L145">                        throw new IllegalStateException(&quot;BouncyCastle provider couldn't be found.&quot;, e);</span>
+<span class="nc" id="L146">                    }</span>
+<span class="nc" id="L147">                    FileInputStream fis = new FileInputStream(p12file);</span>
+                    try {
+<span class="nc" id="L149">                        ks.load(fis, kspwd.toCharArray());</span>
+<span class="nc" id="L150">                    } catch (NoSuchAlgorithmException e) {</span>
+<span class="nc" id="L151">                        log.error(&quot;Keystore were created with an unknown algorithm&quot;, e);</span>
+<span class="nc" id="L152">                        return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L153">                    } catch (CertificateException e) {</span>
+<span class="nc" id="L154">                        log.error(&quot;Certificates in keystore could not be loaded for unknown reason&quot;);</span>
+<span class="nc" id="L155">                        return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L156">                    } catch (IOException e) {</span>
+<span class="nc bnc" id="L157" title="All 2 branches missed.">                        if (e.getCause() instanceof UnrecoverableKeyException) {</span>
+<span class="nc" id="L158">                            log.error(&quot;Incorrect password to the PKCS#12 keystore inputed.&quot;);</span>
+<span class="nc" id="L159">                            return CommandResult.FUNCTIONAL_FAILURE;</span>
+                        } else {
+<span class="nc" id="L161">                            throw new IllegalStateException(&quot;Uknown IOException was caught&quot;, e);</span>
+                        }
+<span class="nc" id="L163">                    }</span>
+                    try {
+<span class="nc" id="L165">                        fis.close();</span>
+<span class="nc" id="L166">                    } catch (IOException e) {</span>
+<span class="nc" id="L167">                        throw new IllegalStateException(&quot;Uknown IOException was caught&quot;, e);</span>
+<span class="nc" id="L168">                    }</span>
+                    Enumeration&lt;String&gt; aliases;
+                    try {
+<span class="nc" id="L171">                        aliases = ks.aliases();</span>
+<span class="nc" id="L172">                    } catch (KeyStoreException e) {</span>
+<span class="nc" id="L173">                        throw new IllegalStateException(&quot;Keystore was not initialized&quot;, e);</span>
+<span class="nc" id="L174">                    }</span>
+<span class="nc" id="L175">                    int length = 0;</span>
+<span class="nc bnc" id="L176" title="All 2 branches missed.">                    while (aliases.hasMoreElements()) {</span>
+<span class="nc" id="L177">                        alias = (String) aliases.nextElement();</span>
+<span class="nc" id="L178">                        log.info(&quot;Keystore contains alias: &quot; + alias);</span>
+<span class="nc" id="L179">                        length++;</span>
+                    }
+<span class="nc bnc" id="L181" title="All 2 branches missed.">                    if (length &gt; 1) {</span>
+<span class="nc" id="L182">                        log.info(&quot;Keystore contains more than one alias, alias must be provided as argument.&quot;);</span>
+<span class="nc" id="L183">                        return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc bnc" id="L184" title="All 2 branches missed.">                    } else if (length &lt; 1) {</span>
+<span class="nc" id="L185">                        log.info(&quot;Keystore does not contain any aliases. It can not be used for a CA.&quot;);</span>
+<span class="nc" id="L186">                        return CommandResult.FUNCTIONAL_FAILURE;</span>
+                    }
+                    // else alias already contains the only alias, so we can use that
+                }
+<span class="nc" id="L190">            } catch (FileNotFoundException e) {</span>
+<span class="nc" id="L191">                log.error(&quot;File &quot; + p12file + &quot; not found.&quot;);</span>
+<span class="nc" id="L192">                return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L193">            }</span>
+<span class="nc" id="L194">            EjbRemoteHelper.INSTANCE.getRemoteSession(CAAdminSessionRemote.class).importCAFromKeyStore(getAuthenticationToken(), caName,</span>
+                    keystorebytes, kspwd, kspwd, alias, encryptionAlias);
+<span class="nc" id="L196">            return CommandResult.SUCCESS;</span>
+        } else {
+            // Import HSM keystore
+            // &quot;Usage2: CA importca &lt;CA name&gt; &lt;catokenclasspath&gt; &lt;catokenpassword&gt; &lt;catokenproperties&gt; &lt;ca-certificate-file&gt;\n&quot; +
+<span class="nc" id="L200">            log.info(&quot;Importing hard token.&quot;);</span>
+<span class="nc" id="L201">            String tokenclasspath = parameters.get(CA_TOKEN_CLASSPATH_KEY);</span>
+<span class="nc" id="L202">            String tokenpwd = parameters.get(CA_TOKEN_PASSWORD_KEY);</span>
+            String catokenproperties;
+            try {
+<span class="nc" id="L205">                catokenproperties = new String(FileTools.readFiletoBuffer(parameters.get(CA_TOKEN_PROPERTIES_FILE_KEY)));</span>
+<span class="nc" id="L206">            } catch (FileNotFoundException e) {</span>
+<span class="nc" id="L207">                log.error(&quot;No such file: &quot; + parameters.get(CA_TOKEN_PROPERTIES_FILE_KEY));</span>
+<span class="nc" id="L208">                return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L209">            }</span>
+            Collection&lt;Certificate&gt; cacerts;
+            try {
+<span class="nc" id="L212">                cacerts = CertTools.getCertsFromPEM(parameters.get(CA_CERTIFICATE_FILE_KEY), Certificate.class);</span>
+<span class="nc" id="L213">            } catch (CertificateException e) {</span>
+<span class="nc" id="L214">                log.error(&quot;File &quot; + parameters.get(CA_CERTIFICATE_FILE_KEY) + &quot; was not a correctly formatted PEM file.&quot;);</span>
+<span class="nc" id="L215">                return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L216">            } catch (FileNotFoundException e) {</span>
+<span class="nc" id="L217">                log.error(&quot;No such file: &quot; + parameters.get(CA_CERTIFICATE_FILE_KEY));</span>
+<span class="nc" id="L218">                return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L219">            }</span>
+<span class="nc" id="L220">            Certificate[] cacertarray = cacerts.toArray(new Certificate[cacerts.size()]);</span>
+            try {
+<span class="nc" id="L222">                EjbRemoteHelper.INSTANCE.getRemoteSession(CAAdminSessionRemote.class).importCAFromHSM(getAuthenticationToken(), caName, cacertarray,</span>
+                        tokenpwd, tokenclasspath, catokenproperties);
+<span class="nc" id="L224">                return CommandResult.SUCCESS;</span>
+<span class="nc" id="L225">            } catch (CryptoTokenOfflineException e) {</span>
+<span class="nc" id="L226">                log.error(&quot;Crypto Token was offline.&quot;);</span>
+<span class="nc" id="L227">            } catch (CryptoTokenAuthenticationFailedException e) {</span>
+<span class="nc" id="L228">                log.error(&quot;Authentication to the crypto token failed.&quot;);</span>
+<span class="nc" id="L229">            } catch (IllegalCryptoTokenException e) {</span>
+<span class="nc" id="L230">                log.error(&quot;The certificate chain was incomplete.&quot;);</span>
+<span class="nc" id="L231">            } catch (CAExistsException e) {</span>
+<span class="nc" id="L232">                log.error(&quot;CA already exists in database.&quot;);</span>
+<span class="nc" id="L233">            } catch (CAOfflineException e) {</span>
+<span class="nc" id="L234">                log.error(&quot;Could not set CA to online and thus unable to publish CRL.&quot;);</span>
+<span class="nc" id="L235">            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L236">                log.error(&quot;Imported CA was signed by a CA that current CLI user does not have authorization to.&quot;);</span>
+<span class="nc" id="L237">            } catch (NoSuchSlotException e) {</span>
+<span class="nc" id="L238">                log.error(&quot;Slot defined in: &quot; + parameters.get(CA_TOKEN_PROPERTIES_FILE_KEY) + &quot; does not exist on HSM.&quot;);</span>
+<span class="nc" id="L239">            }</span>
+           
+        }
+<span class="nc" id="L242">        return CommandResult.FUNCTIONAL_FAILURE;</span>
+
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L248">        return &quot;Imports a keystore and creates a new X509 CA from it.&quot;;</span>
+
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L254">        return getCommandDescription()</span>
+                + &quot; This command has two modes: importing a CA from a PKCS#12 keystore (default) or importing from a CA certificate.&quot;
+                + &quot; PKCS#12 keystore is the default option, while CA certificate can be chosen by specifying the flag &quot; + HARD_SWITCH_KEY + &quot;\n&quot;
+                + &quot;The two usages are: \n&quot; + &quot;&lt;CA name&gt; &lt;pkcs12 file&gt; [&quot; + KEYSTORE_PASSWORD_KEY
+                + &quot; &lt;password&gt;] [&lt;signature alias&gt;] [&lt;encryption alias&gt;]\n&quot; + &quot;    or:\n&quot; + &quot;&lt;CA name&gt; &quot; + HARD_SWITCH_KEY
+                + &quot; &lt;catokenclasspath&gt; &lt;catokenpassword&gt; &lt;catokenproperties&gt; &lt;ca-certificate-file&gt;&quot;;
+    }
+    
+    @Override
+    protected Logger getLogger() {
+<span class="nc" id="L264">        return log;</span>
+    }
+    
+    @Override
+    protected boolean doPrintSynopsis() {
+        //Synopsis turns out kind of weird for this command. 
+<span class="nc" id="L270">        return false;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

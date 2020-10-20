@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EjbcaJSFHelper.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Administration GUI</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.configuration</a> &gt; <span class="el_source">EjbcaJSFHelper.java</span></div><h1>EjbcaJSFHelper.java</h1><pre class="source lang-java linenums">package org.ejbca.ui.web.admin.configuration;
+
+import javax.faces.application.Application;
+import javax.faces.context.FacesContext;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.ejbca.config.GlobalConfiguration;
+import org.ejbca.config.WebConfiguration;
+import org.ejbca.core.model.authorization.AccessRulesConstants;
+
+/**
+ * Class used to integrate the old jsp framework with the new JSF one.
+ * Contains methods for such things as language, themes ext
+ * 
+ * $Id: EjbcaJSFHelper.java 30330 2018-11-01 10:38:35Z anatom $
+ */
+public class EjbcaJSFHelper {
+<span class="nc" id="L22">	private static final Logger log = Logger.getLogger(EjbcaJSFHelper.class);</span>
+		
+<span class="nc" id="L24">	private EjbcaJSFLanguageResource text = null;</span>
+<span class="nc" id="L25">	private EjbcaJSFImageResource image = null;</span>
+	private EjbcaWebBean ejbcawebbean;
+<span class="nc" id="L27">    private Boolean legacyInternetExplorer = null;</span>
+
+<span class="nc" id="L29">	private boolean initialized = false;</span>
+	
+<span class="nc" id="L31">	public EjbcaJSFHelper(){}</span>
+	
+    public void setEjbcaWebBean(EjbcaWebBean ejbcawebbean){
+<span class="nc bnc" id="L34" title="All 2 branches missed.">    	if(!initialized){</span>
+<span class="nc" id="L35">    		this.ejbcawebbean = ejbcawebbean;</span>
+<span class="nc" id="L36">    		text = new EjbcaJSFLanguageResource(ejbcawebbean);</span>
+<span class="nc" id="L37">    		image = new EjbcaJSFImageResource(ejbcawebbean);</span>
+<span class="nc" id="L38">    		initialized = true;</span>
+    	}
+<span class="nc" id="L40">    }</span>
+    
+    /** Returns the EJBCA title 
+     * @return Title*/
+    public String getEjbcaTitle(){
+<span class="nc" id="L45">        GlobalConfiguration gc = getEjbcaWebBean().getGlobalConfiguration();</span>
+<span class="nc bnc" id="L46" title="All 2 branches missed.">        if (gc == null) {</span>
+<span class="nc" id="L47">            log.warn(&quot;GlobalConfiguration is null trying to get from EjbcaWebBean, returning default Title.&quot;);</span>
+<span class="nc" id="L48">            return  GlobalConfiguration.getEjbcaDefaultTitle();</span>
+        }
+<span class="nc" id="L50">    	return gc.getEjbcaTitle();</span>
+    }
+    
+    /** Returns the EJBCA theme 
+     * @return Theme */
+    public String getTheme(){
+<span class="nc" id="L56">    	return getEjbcaWebBean().getCssFile();</span>
+    }
+    
+    /** Returns the EJBCA base url 
+     * @return String */
+    public String getEjbcaBaseURL(){
+<span class="nc" id="L62">    	return getEjbcaWebBean().getBaseUrl();</span>
+    }   
+    
+    /** Returns the EJBCA content string 
+     * @return String */
+    public String getContent(){
+<span class="nc" id="L68">    	return &quot;text/html; charset=&quot; + WebConfiguration.getWebContentEncoding();</span>
+    } 
+    
+   /** Used for language resources. 
+ * @return Resource */
+    public EjbcaJSFLanguageResource getText(){
+<span class="nc" id="L74">    	setEjbcaWebBean(getEjbcaWebBean());</span>
+<span class="nc" id="L75">    	return text;</span>
+    }
+    
+    /** Used for image resources. 
+     * @return Resource */
+     public EjbcaJSFImageResource getImage(){
+<span class="nc" id="L81">        setEjbcaWebBean(getEjbcaWebBean());</span>
+<span class="nc" id="L82">     	return image;</span>
+     }
+    
+     /**
+      * Special function for approval pages since it has two different accessrules
+     * @throws AuthorizationDeniedException fail
+      *
+      */
+     public void authorizedToApprovalPages() throws AuthorizationDeniedException{
+		  // Check Authorization
+<span class="nc" id="L92">        boolean approveendentity = getEjbcaWebBean().isAuthorizedNoLogSilent(AccessRulesConstants.REGULAR_APPROVEENDENTITY);</span>
+<span class="nc" id="L93">        boolean approvecaaction = getEjbcaWebBean().isAuthorizedNoLogSilent(AccessRulesConstants.REGULAR_APPROVECAACTION);</span>
+<span class="nc bnc" id="L94" title="All 4 branches missed."> 		if (!approveendentity &amp;&amp; !approvecaaction) {</span>
+<span class="nc" id="L95"> 			throw new AuthorizationDeniedException(&quot;Not authorized to view approval pages&quot;);</span>
+ 		}
+<span class="nc" id="L97">     }</span>
+     
+     public int getEntriesPerPage(){
+<span class="nc" id="L100">    	 return getEjbcaWebBean().getEntriesPerPage();</span>
+     }
+    
+     public EjbcaWebBean getEjbcaWebBean(){
+<span class="nc" id="L104">         FacesContext ctx = FacesContext.getCurrentInstance();    		    	</span>
+<span class="nc" id="L105">         HttpSession session = (HttpSession) ctx.getExternalContext().getSession(true);</span>
+<span class="nc" id="L106">         synchronized (session) {</span>
+<span class="nc" id="L107">             ejbcawebbean = (org.ejbca.ui.web.admin.configuration.EjbcaWebBean) session.getAttribute(&quot;ejbcawebbean&quot;);</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">             if (ejbcawebbean == null){</span>
+<span class="nc" id="L109">                 ejbcawebbean = new org.ejbca.ui.web.admin.configuration.EjbcaWebBean();</span>
+                 try {
+<span class="nc" id="L111">                     ejbcawebbean.initialize((HttpServletRequest) ctx.getExternalContext().getRequest(), AccessRulesConstants.ROLE_ADMINISTRATOR);</span>
+<span class="nc" id="L112">                     session.setAttribute(&quot;ejbcawebbean&quot;, ejbcawebbean);</span>
+<span class="nc" id="L113">                 } catch (Exception e) {</span>
+<span class="nc" id="L114">                     log.error(e);</span>
+<span class="nc" id="L115">                 }</span>
+             }
+<span class="nc" id="L117">         }</span>
+<span class="nc" id="L118">         return ejbcawebbean;</span>
+     }
+
+     public AuthenticationToken getAdmin() {
+<span class="nc" id="L122">    	 return getEjbcaWebBean().getAdminObject();</span>
+     }
+
+     public static EjbcaJSFHelper getBean(){    
+<span class="nc" id="L126">    	 FacesContext context = FacesContext.getCurrentInstance();    </span>
+<span class="nc" id="L127">    	 Application app = context.getApplication();   </span>
+<span class="nc" id="L128">    	 EjbcaJSFHelper value = (EjbcaJSFHelper) app.evaluateExpressionGet(context, &quot;#{web}&quot;, EjbcaJSFHelper.class);</span>
+<span class="nc" id="L129">    	 return value;</span>
+     }
+
+     /** @return true if the client browser has identified itself as a legacy Internet Explorer 10 (or earlier) */
+     public boolean isLegacyInternetExplorer() {
+<span class="nc bnc" id="L134" title="All 2 branches missed.">         if (legacyInternetExplorer==null) {</span>
+<span class="nc" id="L135">             final HttpServletRequest httpServletRequest = (HttpServletRequest) FacesContext.getCurrentInstance().getExternalContext().getRequest();</span>
+<span class="nc" id="L136">             final String userAgent = httpServletRequest.getHeader(&quot;User-Agent&quot;);</span>
+<span class="nc bnc" id="L137" title="All 2 branches missed.">             if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L138">                 log.debug(&quot;User-Agent: &quot; + userAgent);</span>
+             }
+             // Check stolen from org.ejbca.ui.web.pub.ApplyBean.detectBrowser(HttpServletRequest)
+             // &quot;Gecko&quot;==Firefox, &quot;MSIE&quot;==Internet Exploder 10-, &quot;Trident&quot;==IE11
+<span class="nc bnc" id="L142" title="All 6 branches missed.">             legacyInternetExplorer = Boolean.valueOf(userAgent != null &amp;&amp; userAgent.contains(&quot;MSIE&quot;) &amp;&amp; !userAgent.contains(&quot;Gecko&quot;));</span>
+         }
+<span class="nc" id="L144">         return legacyInternetExplorer.booleanValue();</span>
+     }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

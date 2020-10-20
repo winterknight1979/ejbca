@@ -15,207 +15,219 @@ package org.cesecore.keys.token.p11;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.apache.log4j.Logger;
 
 /**
- * This enum class represents the typing of a slot label. In PKCS#11 an HSM is split up into separate partitions known 
- * as 'slots' and each slot contains a token in a 1:1 relationship. In a fixed HSM (such as a PCI HSM or a NetHSM) the slots
- * can be viewed as partitions on a disk containing a token, while in a SmartCard based solution each slot can be viewed as a 
- * card reader and the physical card as the token. 
- * This is highly relevant, because it does not guarantee for any solution that token always resides in the same slot. Some 
- * fixed HSMs guarantee this (such as SafeNet and Utimaco) while some don't (such as Thales/nCipher). In a smartcard based HSM, naturally
- * cards will continuously switch slots. 
+ * This enum class represents the typing of a slot label. In PKCS#11 an HSM is
+ * split up into separate partitions known as 'slots' and each slot contains a
+ * token in a 1:1 relationship. In a fixed HSM (such as a PCI HSM or a NetHSM)
+ * the slots can be viewed as partitions on a disk containing a token, while in
+ * a SmartCard based solution each slot can be viewed as a card reader and the
+ * physical card as the token. This is highly relevant, because it does not
+ * guarantee for any solution that token always resides in the same slot. Some
+ * fixed HSMs guarantee this (such as SafeNet and Utimaco) while some don't
+ * (such as Thales/nCipher). In a smartcard based HSM, naturally cards will
+ * continuously switch slots.
  *
- * For this reason there are at present four different ways of referring to a slot/token, and these are:
- *  * Slot Number   - the numeric representation of a slot. 0-indexed on certain HSMs, not on others.
- *  * Slot Index    - The index of the slot. Nearly always the same as the slot number. 
- *  * Slot Label    - In actuality the label of the token, so will stay constant even if the slot number shifts. 
- *  * Sun File      - Increasingly rare. Slot/token is defined by an external configuration file
- *  
- *  The Pkcs11SlotLabelType is made up of three fields. The first is the key, which is the string format in which the label
- *  type is persisted to the database and will require an upgrade instruction if it is ever changed. The second is a description
- *  which can be used for human friendly labels, and the last is a validator used to validate inputed values (such as checking that
- *  a slot number can be cast to an integer). 
- * 
+ * &lt;p&gt;For this reason there are at present four different ways of referring to a
+ * slot/token, and these are: * Slot Number - the numeric representation of a
+ * slot. 0-indexed on certain HSMs, not on others. * Slot Index - The index of
+ * the slot. Nearly always the same as the slot number. * Slot Label - In
+ * actuality the label of the token, so will stay constant even if the slot
+ * number shifts. * Sun File - Increasingly rare. Slot/token is defined by an
+ * external configuration file
+ *
+ * &lt;p&gt;The Pkcs11SlotLabelType is made up of three fields. The first is the key,
+ * which is the string format in which the label type is persisted to the
+ * database and will require an upgrade instruction if it is ever changed. The
+ * second is a description which can be used for human friendly labels, and the
+ * last is a validator used to validate inputed values (such as checking that a
+ * slot number can be cast to an integer).
+ *
  * @version $Id: Pkcs11SlotLabelType.java 19902 2014-09-30 14:32:24Z anatom $
- *
  */
+<span class="fc" id="L49">public enum Pkcs11SlotLabelType {</span>
+  /** Label. */
+<span class="fc" id="L51">  SLOT_LABEL(&quot;SLOT_LABEL&quot;, &quot;Slot Label&quot;, LabelValidator.class),</span>
+  /** Index. */
+<span class="fc" id="L53">  SLOT_INDEX(&quot;SLOT_INDEX&quot;, &quot;Slot Index&quot;, IndexValidator.class),</span>
+  /** Slot. */
+<span class="fc" id="L55">  SLOT_NUMBER(&quot;SLOT_NUMBER&quot;, &quot;Slot Number&quot;, NumberValidator.class),</span>
+  /** Config. */
+<span class="fc" id="L57">  SUN_FILE(&quot;SUN_FILE&quot;, &quot;Sun configuration file&quot;, null);</span>
 
-<span class="fc" id="L45">public enum Pkcs11SlotLabelType {</span>
-<span class="fc" id="L46">    SLOT_LABEL(&quot;SLOT_LABEL&quot;, &quot;Slot Label&quot;, LabelValidator.class), </span>
-<span class="fc" id="L47">    SLOT_INDEX(&quot;SLOT_INDEX&quot;, &quot;Slot Index&quot;, IndexValidator.class), </span>
-<span class="fc" id="L48">    SLOT_NUMBER(&quot;SLOT_NUMBER&quot;, &quot;Slot Number&quot;, NumberValidator.class), </span>
-<span class="fc" id="L49">    SUN_FILE(&quot;SUN_FILE&quot;, &quot;Sun configuration file&quot;, null);</span>
+    /** Logger. */
+<span class="fc" id="L60">  private static final Logger LOG = Logger.getLogger(Pkcs11SlotLabelType.class);</span>
 
-<span class="fc" id="L51">    private static final Logger log = Logger.getLogger(Pkcs11SlotLabelType.class);</span>
-    
-<span class="fc" id="L53">    private static final Map&lt;String, Pkcs11SlotLabelType&gt; keyLookUpMap = new HashMap&lt;String, Pkcs11SlotLabelType&gt;();</span>
-    
-    private final String description;
-    private final String key;
-    private final LabelTypeValidator validator;
+  /** Look-up table. **/
+<span class="fc" id="L63">  private static final Map&lt;String, Pkcs11SlotLabelType&gt; KEY_LOOKUP_MAP =</span>
+      new HashMap&lt;String, Pkcs11SlotLabelType&gt;();
 
-    static {
-<span class="fc bfc" id="L60" title="All 2 branches covered.">        for (Pkcs11SlotLabelType type : Pkcs11SlotLabelType.values()) {</span>
-<span class="fc" id="L61">            keyLookUpMap.put(type.getKey(), type);</span>
-        }
-<span class="fc" id="L63">    }</span>
-    
-<span class="fc" id="L65">    private Pkcs11SlotLabelType(String key, String _description, Class&lt;? extends LabelTypeValidator&gt; validator) {</span>
-<span class="fc" id="L66">        this.description = _description;</span>
-<span class="fc" id="L67">        this.key = key;</span>
-<span class="fc bfc" id="L68" title="All 2 branches covered.">        if (validator == null) {</span>
-<span class="fc" id="L69">            this.validator = null;</span>
-        } else {
-            try {
-<span class="fc" id="L72">                this.validator = validator.getConstructor().newInstance();</span>
-<span class="nc" id="L73">            } catch (InstantiationException | NoSuchMethodException | InvocationTargetException e) {</span>
-<span class="nc" id="L74">                throw new RuntimeException(&quot;Could not instansiate &quot; + validator, e);</span>
-<span class="nc" id="L75">            } catch (IllegalAccessException e) {</span>
-<span class="nc" id="L76">                throw new RuntimeException(&quot;Could not instansiate &quot; + validator, e);</span>
-<span class="fc" id="L77">            }</span>
-        }
-<span class="fc" id="L79">    }</span>
+  /** Description. */
+  private final String description;
+  /** Key. */
+  private final String key;
+  /** Validator. */
+  private final LabelTypeValidator validator;
+
+  static {
+<span class="fc bfc" id="L74" title="All 2 branches covered.">    for (Pkcs11SlotLabelType type : Pkcs11SlotLabelType.values()) {</span>
+<span class="fc" id="L75">      KEY_LOOKUP_MAP.put(type.getKey(), type);</span>
+    }
+<span class="fc" id="L77">  }</span>
+
+  Pkcs11SlotLabelType(
+      final String aKey,
+      final String aDescription,
+<span class="fc" id="L82">      final Class&lt;? extends LabelTypeValidator&gt; aValidator) {</span>
+<span class="fc" id="L83">    this.description = aDescription;</span>
+<span class="fc" id="L84">    this.key = aKey;</span>
+<span class="fc bfc" id="L85" title="All 2 branches covered.">    if (aValidator == null) {</span>
+<span class="fc" id="L86">      this.validator = null;</span>
+    } else {
+      try {
+<span class="fc" id="L89">        this.validator = aValidator.getConstructor().newInstance();</span>
+<span class="nc" id="L90">      } catch (InstantiationException</span>
+          | NoSuchMethodException
+          | InvocationTargetException e) {
+<span class="nc" id="L93">        throw new RuntimeException(&quot;Could not instansiate &quot; + aValidator, e);</span>
+<span class="nc" id="L94">      } catch (IllegalAccessException e) {</span>
+<span class="nc" id="L95">        throw new RuntimeException(&quot;Could not instansiate &quot; + aValidator, e);</span>
+<span class="fc" id="L96">      }</span>
+    }
+<span class="fc" id="L98">  }</span>
+
+  @Override
+  public String toString() {
+<span class="nc" id="L102">    return this.description;</span>
+  }
+
+  /** @return the key of this slot label type */
+  public String getKey() {
+<span class="fc" id="L107">    return key;</span>
+  }
+
+  /** @return the human friendly description of this slot label type */
+  public String getDescription() {
+<span class="nc" id="L112">    return description;</span>
+  }
+
+  /**
+   * Returns a Pkcs11SlotLabelType based on a key.
+   *
+   * @param key a key, must belong to one of the predefine types.
+   * @return the Pkcs11SlotLabelType. Returns null if not found.
+   */
+  public static Pkcs11SlotLabelType getFromKey(final String key) {
+<span class="nc" id="L122">    return KEY_LOOKUP_MAP.get(key);</span>
+  }
+
+  /**
+   * Compares the keys of two slot label types. Defined because .equals for
+   * enums are final, which means that .equals isn't always applicable for
+   * serialized objects.
+   *
+   * @param otherType the Pkcs11SlotLabelType to compare with
+   * @return true if the two types have the same key.
+   */
+  public boolean isEqual(final Pkcs11SlotLabelType otherType) {
+<span class="nc" id="L134">    return this.getKey().equals(otherType.getKey());</span>
+  }
+
+  /**
+   * Validates a given value, depending on what validator this enum type was
+   * instantiated with. If no validator has been defined, always return true.
+   *
+   * @param value the value to be validated
+   * @return true if the value can be used for this type.
+   */
+  public boolean validate(final String value) {
+<span class="pc bpc" id="L145" title="1 of 2 branches missed.">    if (validator != null) {</span>
+<span class="fc" id="L146">      return validator.validate(value);</span>
+    } else {
+<span class="nc" id="L148">      return true;</span>
+    }
+  }
+
+  /**
+   * An interface defining the private validator classes.
+   *
+   * @version $Id: Pkcs11SlotLabelType.java 19902 2014-09-30 14:32:24Z anatom $
+   */
+  private interface LabelTypeValidator {
+    /**
+     * @param value the value to check
+     * @return true if the value is applicable
+     */
+    boolean validate(String value);
+  }
+
+  /**
+   * Validates true if the inputed string can be cast to long integer.
+   *
+   * @version $Id: Pkcs11SlotLabelType.java 19902 2014-09-30 14:32:24Z anatom $
+   */
+  protected static class NumberValidator implements LabelTypeValidator {
+
+<span class="fc" id="L172">    public NumberValidator() { }</span>
 
     @Override
-    public String toString() {
-<span class="nc" id="L83">        return this.description;</span>
-    }
-    
-    /**
-     * 
-     * @return the key of this slot label type
-     */
-    public String getKey() {
-<span class="fc" id="L91">        return key;</span>
-    }
-    
-    /**
-     * 
-     * @return the human friendly description of this slot label type
-     */
-    public String getDescription() {
-<span class="nc" id="L99">        return description;</span>
-    }
-    
-    
-    /**
-     * Returns a Pkcs11SlotLabelType based on a key
-     * 
-     * @param key a key, must belong to one of the predefine types.
-     * @return the Pkcs11SlotLabelType. Returns null if not found. 
-     */
-    public static Pkcs11SlotLabelType getFromKey(String key) {
-<span class="nc" id="L110">        return keyLookUpMap.get(key);</span>
-    }
-    
-    /**
-     * Compares the keys of two slot label types. Defined because .equals for enums are final, which means that
-     * .equals isn't always applicable for serialized objects. 
-     * 
-     * @param otherType the Pkcs11SlotLabelType to compare with
-     * @return true if the two types have the same key.
-     */
-    public boolean isEqual(Pkcs11SlotLabelType otherType) {
-<span class="nc" id="L121">        return this.getKey().equals(otherType.getKey());</span>
-    }
-    
-    /**
-     * Validates a given value, depending on what validator this enum type was instantiated with. If no validator
-     * has been defined, always return true. 
-     * 
-     * @param value the value to be validated
-     * @return true if the value can be used for this type.
-     */
-    public boolean validate(String value) {
-<span class="pc bpc" id="L132" title="1 of 2 branches missed.">        if(validator != null) {</span>
-<span class="fc" id="L133">            return validator.validate(value);</span>
-        } else {
-<span class="nc" id="L135">            return true;</span>
+    public boolean validate(final String value) {
+      try {
+<span class="fc" id="L177">        Long.parseLong(value);</span>
+<span class="fc" id="L178">        return true;</span>
+<span class="fc" id="L179">      } catch (NumberFormatException e) {</span>
+<span class="pc bpc" id="L180" title="1 of 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L181">          LOG.debug(value + &quot; was not a number.&quot;, e);</span>
         }
+<span class="fc" id="L183">        return false;</span>
+      }
     }
-    
-    /**
-     * An interface defining the private validator classes.
-     * 
-     * @version $Id: Pkcs11SlotLabelType.java 19902 2014-09-30 14:32:24Z anatom $
-     *
-     */
-    private static interface LabelTypeValidator {
-        /**
-         * 
-         * @param value the value to check
-         * @return true if the value is applicable
-         */
-        boolean validate(String value);
-    }
-    
-    /**
-     * Validates true if the inputed string can be cast to long integer.
-     * 
-     * @version $Id: Pkcs11SlotLabelType.java 19902 2014-09-30 14:32:24Z anatom $
-     *
-     */
-    protected static class NumberValidator implements LabelTypeValidator {
-    	
-    	
-<span class="fc" id="L163">    	public NumberValidator() {}</span>
-        
-        @Override
-        public boolean validate(String value) {
-            try {
-<span class="fc" id="L168">                Long.parseLong(value);</span>
-<span class="fc" id="L169">                return true;</span>
-<span class="fc" id="L170">            } catch(NumberFormatException e) {</span>
-<span class="pc bpc" id="L171" title="1 of 2 branches missed.">                if(log.isDebugEnabled()) {</span>
-<span class="nc" id="L172">                    log.debug(value + &quot; was not a number.&quot;, e);</span>
-                }
-<span class="fc" id="L174">                return false;</span>
-            }
-        }   
-    }
+  }
 
-    /**
-     * Validates true if the inputed values is an 'i' followed by a string that can be cast to a long integer. 
-     * 
-     * @version $Id: Pkcs11SlotLabelType.java 19902 2014-09-30 14:32:24Z anatom $
-     *
-     */
-    protected static class IndexValidator extends NumberValidator {
-    	
-<span class="fc" id="L187">    	public IndexValidator() {}</span>
-        
-        @Override
-        public boolean validate(String value) {
-<span class="fc bfc" id="L191" title="All 2 branches covered.">            if(value.charAt(0) != 'i') {</span>
-<span class="pc bpc" id="L192" title="1 of 2 branches missed.">                if(log.isDebugEnabled()) {</span>
-<span class="nc" id="L193">                    log.debug(value + &quot; did not start with 'i'&quot;);</span>
-                }
-<span class="fc" id="L195">                return false;</span>
-            }
-<span class="fc" id="L197">            return super.validate(value.substring(1));</span>
-        }
-    }
-    
-    protected static class LabelValidator implements LabelTypeValidator {
-    	
-<span class="fc" id="L203">    	public LabelValidator() {}</span>
+  /**
+   * Validates true if the inputed values is an 'i' followed by a string that
+   * can be cast to a long integer.
+   *
+   * @version $Id: Pkcs11SlotLabelType.java 19902 2014-09-30 14:32:24Z anatom $
+   */
+  protected static class IndexValidator extends NumberValidator {
 
-        @Override
-        public boolean validate(String value) {
-           //According to the PKCS#11 standard, the label field can be max 32 chars long
-<span class="fc bfc" id="L208" title="All 2 branches covered.">            if(value.length() &gt; 32) {</span>
-<span class="pc bpc" id="L209" title="1 of 2 branches missed.">                if(log.isDebugEnabled()) {</span>
-<span class="nc" id="L210">                    log.debug(&quot;Value &quot; + value + &quot; was longer than the permitted 32 characters.&quot;);</span>
-                }
-<span class="fc" id="L212">                return false;</span>
-            } else {
-<span class="fc" id="L214">                return true;</span>
-            }
+<span class="fc" id="L196">    public IndexValidator() { }</span>
+
+    @Override
+    public boolean validate(final String value) {
+<span class="fc bfc" id="L200" title="All 2 branches covered.">      if (value.charAt(0) != 'i') {</span>
+<span class="pc bpc" id="L201" title="1 of 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L202">          LOG.debug(value + &quot; did not start with 'i'&quot;);</span>
         }
-        
+<span class="fc" id="L204">        return false;</span>
+      }
+<span class="fc" id="L206">      return super.validate(value.substring(1));</span>
     }
-    
+  }
+
+  protected static class LabelValidator implements LabelTypeValidator {
+
+<span class="fc" id="L212">    public LabelValidator() { }</span>
+
+    @Override
+    public boolean validate(final String value) {
+      // According to the PKCS#11 standard, the label field can be max 32 chars
+      // long
+<span class="fc" id="L218">      final int maxSize = 32;</span>
+<span class="fc bfc" id="L219" title="All 2 branches covered.">      if (value.length() &gt; maxSize) {</span>
+<span class="pc bpc" id="L220" title="1 of 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L221">          LOG.debug(</span>
+              &quot;Value &quot;
+                  + value
+                  + &quot; was longer than the permitted 32 characters.&quot;);
+        }
+<span class="fc" id="L226">        return false;</span>
+      } else {
+<span class="fc" id="L228">        return true;</span>
+      }
+    }
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

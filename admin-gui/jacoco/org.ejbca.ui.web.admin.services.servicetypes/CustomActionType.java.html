@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CustomActionType.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Administration GUI</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.services.servicetypes</a> &gt; <span class="el_source">CustomActionType.java</span></div><h1>CustomActionType.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.web.admin.services.servicetypes;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Properties;
+
+import org.ejbca.core.model.services.IAction;
+import org.ejbca.ui.web.admin.CustomLoader;
+
+/**
+ * Class used to populate the fields in the customaction.jsp subview page. 
+ * 
+ *
+ * @version $Id: CustomActionType.java 28844 2018-05-04 08:31:02Z samuellb $
+ */
+public class CustomActionType extends ActionType {
+	
+	private static final long serialVersionUID = -1897582972418437359L;
+
+    public static final String NAME = &quot;CUSTOMACTION&quot;;
+	
+	public CustomActionType() {
+<span class="nc" id="L37">		super(&quot;customaction.jsp&quot;, NAME, true);</span>
+<span class="nc" id="L38">	}</span>
+
+	private String autoClassPath;
+    private String manualClassPath;
+	
+	private String propertyText;
+
+	/**
+	 * @return the propertyText
+	 */
+	public String getPropertyText() {
+<span class="nc" id="L49">		return propertyText;</span>
+	}
+
+	/**
+	 * @param propertyText the propertyText to set
+	 */
+	public void setPropertyText(String propertyText) {
+<span class="nc" id="L56">		this.propertyText = propertyText;</span>
+<span class="nc" id="L57">	}</span>
+
+	/**
+     * Sets the class path, and detects if it is an auto-detected class
+     * or a manually specified class.
+	 * @param classPath CP
+     */
+    public void setClassPath(String classPath) {
+    	
+<span class="nc bnc" id="L66" title="All 2 branches missed.">        if (CustomLoader.isDisplayedInList(classPath, IAction.class)) {</span>
+<span class="nc" id="L67">            autoClassPath = classPath;</span>
+<span class="nc" id="L68">            manualClassPath = &quot;&quot;;</span>
+        } else {
+<span class="nc" id="L70">            autoClassPath = &quot;&quot;;</span>
+<span class="nc" id="L71">            manualClassPath = classPath;</span>
+        }
+<span class="nc" id="L73">    }</span>
+
+    @Override
+    public String getClassPath() {
+<span class="nc bnc" id="L77" title="All 4 branches missed.">        return autoClassPath != null &amp;&amp; !autoClassPath.isEmpty() ? autoClassPath : manualClassPath;</span>
+    }
+    
+    public void setAutoClassPath(String classPath) {
+<span class="nc" id="L81">        autoClassPath = classPath;</span>
+<span class="nc" id="L82">    }</span>
+
+    public String getAutoClassPath() {
+<span class="nc" id="L85">        return autoClassPath;</span>
+    }
+    
+    public void setManualClassPath(String classPath) {
+<span class="nc" id="L89">        manualClassPath = classPath;</span>
+<span class="nc" id="L90">    }</span>
+
+    public String getManualClassPath() {
+<span class="nc" id="L93">        return manualClassPath;</span>
+    }
+
+    @Override
+	public Properties getProperties(ArrayList&lt;String&gt; errorMessages) throws IOException{
+<span class="nc" id="L98">		Properties retval = new Properties();</span>
+<span class="nc" id="L99">	    retval.load(new ByteArrayInputStream(getPropertyText().getBytes()));		</span>
+<span class="nc" id="L100">		return retval;</span>
+	}
+
+    @Override
+	public void setProperties(Properties properties) throws IOException{
+<span class="nc" id="L105">		ByteArrayOutputStream baos = new ByteArrayOutputStream();		</span>
+<span class="nc" id="L106">		properties.store(baos, null);		</span>
+<span class="nc" id="L107">		setPropertyText(new String(baos.toByteArray()));</span>
+<span class="nc" id="L108">	}</span>
+	
+    @Override
+	public boolean isCustom() {
+<span class="nc" id="L112">		return true;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

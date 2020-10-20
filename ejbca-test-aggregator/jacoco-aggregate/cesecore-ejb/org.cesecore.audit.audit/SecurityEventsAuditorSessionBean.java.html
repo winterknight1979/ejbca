@@ -20,12 +20,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-
 import org.apache.log4j.Logger;
 import org.cesecore.audit.AuditDevicesConfig;
 import org.cesecore.audit.AuditLogEntry;
@@ -41,118 +39,189 @@ import org.cesecore.keys.token.CryptoToken;
 import org.cesecore.util.query.QueryCriteria;
 
 /**
- * This class handles secure logs auditing. This class is responsible for checking
- * authorization and delegating a request to the right implementation.
- * 
- * @version $Id: SecurityEventsAuditorSessionBean.java 25498 2017-03-15 17:01:37Z jeklund $
+ * This class handles secure logs auditing. This class is responsible for
+ * checking authorization and delegating a request to the right implementation.
+ *
+ * @version $Id: SecurityEventsAuditorSessionBean.java 25498 2017-03-15
+ *     17:01:37Z jeklund $
  */
-@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;SecurityEventsAuditorSessionRemote&quot;)
+@Stateless(
+    mappedName =
+        JndiConstants.APP_JNDI_PREFIX + &quot;SecurityEventsAuditorSessionRemote&quot;)
 @TransactionAttribute(TransactionAttributeType.REQUIRED)
-<span class="nc" id="L51">public class SecurityEventsAuditorSessionBean implements SecurityEventsAuditorSessionLocal, SecurityEventsAuditorSessionRemote {</span>
-	
-<span class="nc" id="L53">	private static final Logger LOG = Logger.getLogger(SecurityEventsAuditorSessionBean.class);</span>
+<span class="nc" id="L52">public class SecurityEventsAuditorSessionBean</span>
+    implements SecurityEventsAuditorSessionLocal,
+        SecurityEventsAuditorSessionRemote {
 
-    @EJB
-    private AuthorizationSessionLocal authorizationSession;
-    @EJB
-    private IntegrityProtectedAuditorSessionLocal integrityProtectedAuditorSession;
-    @EJB
-    private QueuedAuditorSessionLocal queuedAuditorSession;
-    
-    @Override
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public Set&lt;String&gt; getQuerySupportingLogDevices() {
-<span class="nc" id="L65">    	return AuditDevicesConfig.getQuerySupportingDeviceIds();</span>
+    /** Logger. */
+<span class="nc" id="L57">  private static final Logger LOG =</span>
+<span class="nc" id="L58">      Logger.getLogger(SecurityEventsAuditorSessionBean.class);</span>
+
+  /** Auth session. */
+  @EJB private AuthorizationSessionLocal authorizationSession;
+
+  /** Auditor session. */
+  @EJB
+  private IntegrityProtectedAuditorSessionLocal
+      integrityProtectedAuditorSession;
+
+  /** Auditor session. */
+  @EJB private QueuedAuditorSessionLocal queuedAuditorSession;
+
+  @Override
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  public Set&lt;String&gt; getQuerySupportingLogDevices() {
+<span class="nc" id="L74">    return AuditDevicesConfig.getQuerySupportingDeviceIds();</span>
+  }
+
+  @Override
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  public List&lt;? extends AuditLogEntry&gt; selectAuditLogs(
+      final AuthenticationToken token,
+      final int startIndex,
+      final int max,
+      final QueryCriteria criteria,
+      final String logDeviceId)
+      throws AuthorizationDeniedException {
+<span class="nc" id="L86">    assertAuthorization(token, AuditLogRules.VIEW.resource());</span>
+<span class="nc" id="L87">    return AuditDevicesConfig.getDevice(getEjbs(), logDeviceId)</span>
+<span class="nc" id="L88">        .selectAuditLogs(</span>
+            token,
+            startIndex,
+            max,
+            criteria,
+<span class="nc" id="L93">            AuditDevicesConfig.getProperties(logDeviceId));</span>
+  }
+
+  @Override
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  public AuditLogExportReport exportAuditLogs(
+      final AuthenticationToken token,
+      final CryptoToken cryptoToken,
+      final Date timestamp,
+      final boolean deleteAfterExport,
+      final String keyAlias,
+      final String algorithm,
+      final String logDeviceId)
+      throws AuditLogExporterException, AuthorizationDeniedException {
+<span class="nc" id="L107">    final HashMap&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L108">    details.put(SigningFileOutputStream.EXPORT_SIGN_KEYALIAS, keyAlias);</span>
+<span class="nc" id="L109">    details.put(SigningFileOutputStream.EXPORT_SIGN_ALG, algorithm);</span>
+<span class="nc" id="L110">    return exportAuditLogs(</span>
+        token, cryptoToken, timestamp, deleteAfterExport, details, logDeviceId);
+  }
+
+  @Override
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  public AuditLogExportReport exportAuditLogs(
+      final AuthenticationToken token,
+      final CryptoToken cryptoToken,
+      final Date timestamp,
+      final boolean deleteAfterExport,
+      final String keyAlias,
+      final String algorithm,
+      final Certificate certificate,
+      final String logDeviceId)
+      throws AuditLogExporterException, AuthorizationDeniedException {
+<span class="nc" id="L126">    final HashMap&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L127">    details.put(SigningFileOutputStream.EXPORT_SIGN_KEYALIAS, keyAlias);</span>
+<span class="nc" id="L128">    details.put(SigningFileOutputStream.EXPORT_SIGN_ALG, algorithm);</span>
+<span class="nc" id="L129">    details.put(SigningFileOutputStream.EXPORT_SIGN_CERT, certificate);</span>
+<span class="nc" id="L130">    return exportAuditLogs(</span>
+        token, cryptoToken, timestamp, deleteAfterExport, details, logDeviceId);
+  }
+
+  @Override
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  public AuditLogExportReport exportAuditLogs(
+      final AuthenticationToken token,
+      final CryptoToken cryptoToken,
+      final Date timestamp,
+      final boolean deleteAfterExport,
+      final Map&lt;String, Object&gt; signatureDetails,
+      final String logDeviceId)
+      throws AuditLogExporterException, AuthorizationDeniedException {
+    // StandardRules.AUDITLOGEXPORT export implies StandardRules.AUDITLOGVERIFY.
+<span class="nc" id="L145">    assertAuthorization(token, AuditLogRules.EXPORT_LOGS.resource());</span>
+<span class="nc" id="L146">    LOG.info(&quot;Export of audit logs from device &quot; + logDeviceId + &quot; requested.&quot;);</span>
+<span class="nc" id="L147">    final Class&lt;? extends AuditExporter&gt; exporter =</span>
+<span class="nc" id="L148">        AuditDevicesConfig.getExporter(logDeviceId);</span>
+<span class="nc" id="L149">    final Properties properties = AuditDevicesConfig.getProperties(logDeviceId);</span>
+<span class="nc" id="L150">    return AuditDevicesConfig.getDevice(getEjbs(), logDeviceId)</span>
+<span class="nc" id="L151">        .exportAuditLogs(</span>
+            token,
+            cryptoToken,
+            timestamp,
+            deleteAfterExport,
+            signatureDetails,
+            properties,
+            exporter);
+  }
+
+  @Override
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  public AuditLogValidationReport verifyLogsIntegrity(
+      final AuthenticationToken token,
+      final Date timestamp,
+      final String logDeviceId)
+      throws AuditLogValidatorException, AuthorizationDeniedException {
+<span class="nc" id="L168">    assertAuthorization(token, AuditLogRules.VERIFY.resource());</span>
+<span class="nc" id="L169">    LOG.info(</span>
+        &quot;Validation of audit logs in device &quot; + logDeviceId + &quot; requested.&quot;);
+<span class="nc" id="L171">    return AuditDevicesConfig.getDevice(getEjbs(), logDeviceId)</span>
+<span class="nc" id="L172">        .verifyLogsIntegrity(</span>
+<span class="nc" id="L173">            token, timestamp, AuditDevicesConfig.getProperties(logDeviceId));</span>
+  }
+
+  @Override
+  public void prepareReset() throws AuditLogResetException {
+<span class="nc" id="L178">    LogServiceState.INSTANCE.disable();</span>
+<span class="nc bnc" id="L179" title="All 2 branches missed.">    for (final String loggerId : AuditDevicesConfig.getAllDeviceIds()) {</span>
+<span class="nc" id="L180">      AuditDevicesConfig.getDevice(getEjbs(), loggerId).prepareReset();</span>
+<span class="nc" id="L181">    }</span>
+<span class="nc" id="L182">  }</span>
+
+  @Override
+  public void reset() throws AuditLogResetException {
+<span class="nc bnc" id="L186" title="All 2 branches missed.">    for (final String loggerId : AuditDevicesConfig.getAllDeviceIds()) {</span>
+<span class="nc" id="L187">      AuditDevicesConfig.getDevice(getEjbs(), loggerId).reset();</span>
+<span class="nc" id="L188">    }</span>
+    // should be called after the reset because if we enable log before might
+    // happen that a log call runs before reset
+<span class="nc" id="L191">    LogServiceState.INSTANCE.enable();</span>
+<span class="nc" id="L192">  }</span>
+
+  /**
+   * Assert that we are authorized to the requested resource.
+   *
+   * @param token Token
+   * @param accessRule accessRule
+   * @throws AuthorizationDeniedException if access denied
+   */
+  private void assertAuthorization(
+      final AuthenticationToken token, final String accessRule)
+      throws AuthorizationDeniedException {
+<span class="nc bnc" id="L204" title="All 2 branches missed.">    if (!authorizationSession.isAuthorized(token, accessRule)) {</span>
+<span class="nc" id="L205">      throw new AuthorizationDeniedException(</span>
+<span class="nc" id="L206">          &quot;not authorized to: &quot; + token.toString());</span>
     }
+<span class="nc" id="L208">  }</span>
 
-    @Override
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List&lt;? extends AuditLogEntry&gt; selectAuditLogs(final AuthenticationToken token, final int startIndex, final int max, final QueryCriteria criteria, final String logDeviceId) throws AuthorizationDeniedException {
-<span class="nc" id="L71">        assertAuthorization(token, AuditLogRules.VIEW.resource());</span>
-<span class="nc" id="L72">    	return AuditDevicesConfig.getDevice(getEjbs(), logDeviceId).selectAuditLogs(token, startIndex, max, criteria, AuditDevicesConfig.getProperties(logDeviceId));</span>
-    }
-
-    @Override
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public AuditLogExportReport exportAuditLogs(final AuthenticationToken token, final CryptoToken cryptoToken, final Date timestamp,
-            final boolean deleteAfterExport, final String keyAlias, final String algorithm, final String logDeviceId) throws AuditLogExporterException, AuthorizationDeniedException {
-<span class="nc" id="L79">        final HashMap&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
-<span class="nc" id="L80">        details.put(SigningFileOutputStream.EXPORT_SIGN_KEYALIAS, keyAlias);</span>
-<span class="nc" id="L81">        details.put(SigningFileOutputStream.EXPORT_SIGN_ALG, algorithm);</span>
-<span class="nc" id="L82">        return exportAuditLogs(token, cryptoToken, timestamp, deleteAfterExport, details, logDeviceId);</span>
-    }
-
-    @Override
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public AuditLogExportReport exportAuditLogs(final AuthenticationToken token, final CryptoToken cryptoToken, final Date timestamp,
-            final boolean deleteAfterExport, final String keyAlias, final String algorithm, final Certificate certificate, final String logDeviceId)
-            throws AuditLogExporterException, AuthorizationDeniedException {
-<span class="nc" id="L90">        final HashMap&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
-<span class="nc" id="L91">        details.put(SigningFileOutputStream.EXPORT_SIGN_KEYALIAS, keyAlias);</span>
-<span class="nc" id="L92">        details.put(SigningFileOutputStream.EXPORT_SIGN_ALG, algorithm);</span>
-<span class="nc" id="L93">        details.put(SigningFileOutputStream.EXPORT_SIGN_CERT, certificate);</span>
-<span class="nc" id="L94">        return exportAuditLogs(token, cryptoToken, timestamp, deleteAfterExport, details, logDeviceId);</span>
-    }
-
-    @Override
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public AuditLogExportReport exportAuditLogs(final AuthenticationToken token, final CryptoToken cryptoToken, final Date timestamp,
-            final boolean deleteAfterExport, final Map&lt;String, Object&gt; signatureDetails, final String logDeviceId) throws AuditLogExporterException, AuthorizationDeniedException {
-    	// StandardRules.AUDITLOGEXPORT export implies StandardRules.AUDITLOGVERIFY.
-<span class="nc" id="L102">        assertAuthorization(token, AuditLogRules.EXPORT_LOGS.resource());</span>
-<span class="nc" id="L103">        LOG.info(&quot;Export of audit logs from device &quot; + logDeviceId + &quot; requested.&quot;);</span>
-<span class="nc" id="L104">        final Class&lt;? extends AuditExporter&gt; exporter = AuditDevicesConfig.getExporter(logDeviceId);</span>
-<span class="nc" id="L105">        final Properties properties = AuditDevicesConfig.getProperties(logDeviceId);</span>
-<span class="nc" id="L106">    	return AuditDevicesConfig.getDevice(getEjbs(), logDeviceId).exportAuditLogs(token, cryptoToken, timestamp, deleteAfterExport, signatureDetails, properties, exporter);</span>
-    }
-
-    @Override
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public AuditLogValidationReport verifyLogsIntegrity(final AuthenticationToken token, final Date timestamp, final String logDeviceId) throws AuditLogValidatorException, AuthorizationDeniedException {
-<span class="nc" id="L112">    	assertAuthorization(token, AuditLogRules.VERIFY.resource());</span>
-<span class="nc" id="L113">        LOG.info(&quot;Validation of audit logs in device &quot; + logDeviceId + &quot; requested.&quot;);</span>
-<span class="nc" id="L114">    	return AuditDevicesConfig.getDevice(getEjbs(), logDeviceId).verifyLogsIntegrity(token, timestamp, AuditDevicesConfig.getProperties(logDeviceId));</span>
-    }
-
-
-	@Override
-	public void prepareReset() throws AuditLogResetException {
-<span class="nc" id="L120">		LogServiceState.INSTANCE.disable();</span>
-<span class="nc bnc" id="L121" title="All 2 branches missed.">        for (final String loggerId : AuditDevicesConfig.getAllDeviceIds()) {</span>
-<span class="nc" id="L122">    		AuditDevicesConfig.getDevice(getEjbs(), loggerId).prepareReset();</span>
-<span class="nc" id="L123">        }</span>
-<span class="nc" id="L124">	}</span>
-
-	@Override
-	public void reset() throws AuditLogResetException {
-<span class="nc bnc" id="L128" title="All 2 branches missed.">        for (final String loggerId : AuditDevicesConfig.getAllDeviceIds()) {</span>
-<span class="nc" id="L129">    		AuditDevicesConfig.getDevice(getEjbs(), loggerId).reset();</span>
-<span class="nc" id="L130">        }</span>
-        //should be called after the reset because if we enable log before might happen that a log call runs before reset
-<span class="nc" id="L132">        LogServiceState.INSTANCE.enable();</span>
-<span class="nc" id="L133">	}</span>
-
-	/** Assert that we are authorized to the requested resource. 
-	 * @param token Token
-	 * @param accessRule accessRule
-	 * @throws AuthorizationDeniedException if access denied*/
-    private void assertAuthorization(final AuthenticationToken token, final String accessRule) throws AuthorizationDeniedException {
-<span class="nc bnc" id="L140" title="All 2 branches missed.">        if (!authorizationSession.isAuthorized(token, accessRule)) {</span>
-<span class="nc" id="L141">			throw new AuthorizationDeniedException(&quot;not authorized to: &quot;+ token.toString());				</span>
-		} 
-<span class="nc" id="L143">    }</span>
-
-    /**
-     * Propagate the injected SSBs, since we can't use application server agnostic EJB lookup in EJB 3.0.
-     * With EJB 3.1 this should be delegated to each implementation where the implementation specific SSBs
-     * can be looked up.
-     * @return Map
-     */
-    private Map&lt;Class&lt;?&gt;, Object&gt; getEjbs() {
-<span class="nc" id="L152">    	final Map&lt;Class&lt;?&gt;, Object&gt; ejbs = new HashMap&lt;Class&lt;? extends Object&gt;, Object&gt;();</span>
-<span class="nc" id="L153">    	ejbs.put(IntegrityProtectedAuditorSessionLocal.class, integrityProtectedAuditorSession);</span>
-<span class="nc" id="L154">    	ejbs.put(QueuedAuditorSessionLocal.class, queuedAuditorSession);</span>
-<span class="nc" id="L155">    	return ejbs;</span>
-    }
+  /**
+   * Propagate the injected SSBs, since we can't use application server agnostic
+   * EJB lookup in EJB 3.0. With EJB 3.1 this should be delegated to each
+   * implementation where the implementation specific SSBs can be looked up.
+   *
+   * @return Map
+   */
+  private Map&lt;Class&lt;?&gt;, Object&gt; getEjbs() {
+<span class="nc" id="L218">    final Map&lt;Class&lt;?&gt;, Object&gt; ejbs =</span>
+        new HashMap&lt;Class&lt;? extends Object&gt;, Object&gt;();
+<span class="nc" id="L220">    ejbs.put(</span>
+        IntegrityProtectedAuditorSessionLocal.class,
+        integrityProtectedAuditorSession);
+<span class="nc" id="L223">    ejbs.put(QueuedAuditorSessionLocal.class, queuedAuditorSession);</span>
+<span class="nc" id="L224">    return ejbs;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

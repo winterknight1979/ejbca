@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CaImportCertDirCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.ca</a> &gt; <span class="el_source">CaImportCertDirCommand.java</span></div><h1>CaImportCertDirCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.cli.ca;
+
+import java.io.File;
+import java.security.cert.X509Certificate;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.certificate.CertificateConstants;
+import org.cesecore.certificates.certificateprofile.CertificateProfileConstants;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSessionRemote;
+import org.cesecore.certificates.crl.RevocationReasons;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.EjbRemoteHelper;
+import org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSessionRemote;
+import org.ejbca.core.model.authorization.AccessRulesConstants;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+
+/**
+ * Imports certificate files to the database for a given CA
+ *
+ * @version $Id: CaImportCertDirCommand.java 30251 2018-10-29 07:47:17Z bastianf $
+ */
+<span class="nc" id="L52">public class CaImportCertDirCommand extends BaseCaAdminCommand {</span>
+
+<span class="nc" id="L54">    private static final Logger log = Logger.getLogger(CaImportCertDirCommand.class);</span>
+
+    public static final String DATE_FORMAT = &quot;yyyy.MM.dd-HH:mm&quot;;
+
+    private static final String USERNAME_FILTER_KEY = &quot;--filter&quot;;
+    private static final String CA_NAME_KEY = &quot;--caname&quot;;
+    private static final String ACTIVE_KEY = &quot;-a&quot;;
+    private static final String RESUME_ON_ERROR_KEY = &quot;-resumeonerror&quot;;
+    private static final String DIRECTORY_KEY = &quot;--dir&quot;;
+    private static final String EE_PROFILE_KEY = &quot;--eeprofile&quot;;
+    private static final String CERT_PROFILE_KEY = &quot;--certprofile&quot;;
+    private static final String REVOCATION_REASON = &quot;--revocation-reason&quot;;
+    private static final String REVOCATION_TIME = &quot;--revocation-time&quot;;
+    private static final String THREAD_COUNT = &quot;--threads&quot;;
+
+    private static final String ACTIVE = &quot;ACTIVE&quot;;
+    private static final String REVOKED = &quot;REVOKED&quot;;
+
+    {
+<span class="nc" id="L73">        registerParameter(new Parameter(USERNAME_FILTER_KEY, &quot;Filter&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;\&quot;DN\&quot; means use certificate's SubjectDN as username, \&quot;CN\&quot; means use certificate subject's common name as username and \&quot;FILE\&quot; means user the file's name as username&quot;));
+<span class="nc" id="L75">        registerParameter(new Parameter(CA_NAME_KEY, &quot;CA Name&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;Name of the issuing CA.&quot;));
+<span class="nc" id="L77">        registerParameter(new Parameter(ACTIVE_KEY, ACTIVE + &quot;|&quot; + REVOKED, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;Set the status of the imported end entity.&quot;));
+<span class="nc" id="L79">        registerParameter(new Parameter(DIRECTORY_KEY, &quot;Certificate Directory&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW,</span>
+                ParameterMode.ARGUMENT, &quot;Directory of PEM certificates, which must be PEM encoded&quot;));
+<span class="nc" id="L81">        registerParameter(new Parameter(EE_PROFILE_KEY, &quot;Profile Name&quot;, MandatoryMode.MANDATORY, StandaloneMode.FORBID, ParameterMode.ARGUMENT,</span>
+                &quot;End Entity Profile to create end entity with.&quot;));
+<span class="nc" id="L83">        registerParameter(new Parameter(CERT_PROFILE_KEY, &quot;Profile Name&quot;, MandatoryMode.MANDATORY, StandaloneMode.FORBID, ParameterMode.ARGUMENT,</span>
+                &quot;Certificate Profile to create end entity with.&quot;));
+<span class="nc" id="L85">        registerParameter(Parameter.createFlag(RESUME_ON_ERROR_KEY,</span>
+                &quot;Set if the import should resume in case of errors, or stop on first one. Default is stop&quot;));
+<span class="nc" id="L87">        registerParameter(new Parameter(REVOCATION_REASON, &quot;Reason&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID, ParameterMode.ARGUMENT,</span>
+<span class="nc" id="L88">                &quot;Revocation reason, if the certificates are to be imported as revoked. Will be set to &quot; + RevocationReasons.UNSPECIFIED.getStringValue() + &quot; if this option is not set.&quot;));</span>
+<span class="nc" id="L89">        registerParameter(new Parameter(REVOCATION_TIME, DATE_FORMAT, MandatoryMode.OPTIONAL, StandaloneMode.FORBID, ParameterMode.ARGUMENT,</span>
+                &quot;Revocation time, if the certificates are to be imported as revoked. Will be set to the current time if this option is not set. Format is &quot;
+                        + DATE_FORMAT + &quot;, i.e. 2015.05.04-10:15&quot;));
+<span class="nc" id="L92">        registerParameter(new Parameter(THREAD_COUNT, &quot;Thread count&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID, ParameterMode.ARGUMENT,</span>
+                &quot;Number of threads used during the import. Default is 1 thread.&quot;));
+<span class="nc" id="L94">    }</span>
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L98">        return &quot;importcertdir&quot;;</span>
+    }
+
+    @Override
+    public CommandResult execute(final ParameterContainer parameters) {
+<span class="nc" id="L103">        log.trace(&quot;&gt;execute()&quot;);</span>
+
+<span class="nc" id="L105">        CryptoProviderTools.installBCProviderIfNotAvailable();</span>
+
+        // Parse arguments into more coder friendly variable names and validate switches
+<span class="nc" id="L108">        final String usernameFilter = parameters.get(USERNAME_FILTER_KEY);</span>
+<span class="nc" id="L109">        final String caName = parameters.get(CA_NAME_KEY);</span>
+<span class="nc" id="L110">        final String active = parameters.get(ACTIVE_KEY);</span>
+<span class="nc" id="L111">        final String certificateDir = parameters.get(DIRECTORY_KEY);</span>
+<span class="nc" id="L112">        final String eeProfile = parameters.get(EE_PROFILE_KEY);</span>
+<span class="nc" id="L113">        final String certificateProfile = parameters.get(CERT_PROFILE_KEY);</span>
+<span class="nc" id="L114">        final String revocationReasonString = parameters.get(REVOCATION_REASON);</span>
+<span class="nc" id="L115">        final String revocationTimeString = parameters.get(REVOCATION_TIME);</span>
+<span class="nc bnc" id="L116" title="All 2 branches missed.">        final int threadCount = parameters.get(THREAD_COUNT) == null ? 1 : Integer.valueOf(StringUtils.strip(parameters.get(THREAD_COUNT)));</span>
+
+<span class="nc bnc" id="L118" title="All 4 branches missed.">        if (threadCount &gt; 1 &amp;&amp; !usernameFilter.equalsIgnoreCase(&quot;FILE&quot;)) {</span>
+<span class="nc" id="L119">            log.error(&quot;If more than one thread is being used, filename must be used as filter (use the argument --filter FILE).&quot;);</span>
+<span class="nc" id="L120">            return CommandResult.CLI_FAILURE;</span>
+        }
+
+        // Specifies whether the import should resume in case of errors, or stop
+        // on first one. Default is stop.
+<span class="nc" id="L125">        final boolean resumeOnError = parameters.containsKey(RESUME_ON_ERROR_KEY);</span>
+
+        // Thread pool for running multiple import operations simultaneously
+<span class="nc" id="L128">        final ExecutorService executorService = Executors.newFixedThreadPool(threadCount);</span>
+
+        try {
+            final int status;
+<span class="nc" id="L132">            RevocationReasons revocationReason = null;</span>
+<span class="nc" id="L133">            Date revocationTime = null;</span>
+<span class="nc bnc" id="L134" title="All 2 branches missed.">            if (&quot;ACTIVE&quot;.equalsIgnoreCase(active)) {</span>
+<span class="nc" id="L135">                status = CertificateConstants.CERT_ACTIVE;</span>
+<span class="nc bnc" id="L136" title="All 2 branches missed.">                if(revocationReasonString != null) {</span>
+<span class="nc" id="L137">                    log.warn(&quot;Revocation reason has been set in spite of certificates being imported as active. Ignoring.&quot;);</span>
+                }
+<span class="nc bnc" id="L139" title="All 2 branches missed.">                if(revocationTimeString != null) {</span>
+<span class="nc" id="L140">                    log.warn(&quot;Revocation time has been set in spite of certificates being imported as active. Ignoring.&quot;);</span>
+                }
+<span class="nc bnc" id="L142" title="All 2 branches missed.">            } else if (&quot;REVOKED&quot;.equalsIgnoreCase(active)) {</span>
+<span class="nc" id="L143">                status = CertificateConstants.CERT_REVOKED;</span>
+<span class="nc bnc" id="L144" title="All 2 branches missed.">                if(revocationReasonString != null) {</span>
+<span class="nc" id="L145">                    revocationReason = RevocationReasons.getFromCliValue(revocationReasonString.toUpperCase());</span>
+<span class="nc bnc" id="L146" title="All 2 branches missed.">                    if(revocationReason == null) {</span>
+<span class="nc" id="L147">                        log.error(&quot;ERROR: &quot; + revocationReasonString + &quot; is not a valid revocation reason.&quot;);</span>
+<span class="nc" id="L148">                        return CommandResult.CLI_FAILURE;</span>
+                    }
+                } else {
+<span class="nc" id="L151">                    revocationReason = RevocationReasons.UNSPECIFIED;</span>
+                }
+<span class="nc bnc" id="L153" title="All 2 branches missed.">                if (revocationTimeString != null) {</span>
+                    try {
+<span class="nc" id="L155">                        revocationTime = new SimpleDateFormat(DATE_FORMAT).parse(revocationTimeString);</span>
+<span class="nc" id="L156">                    } catch (ParseException e) {</span>
+<span class="nc" id="L157">                        log.error(&quot;ERROR: &quot; + revocationTimeString + &quot; was not a valid revocation time.&quot;);</span>
+<span class="nc" id="L158">                        return CommandResult.CLI_FAILURE;</span>
+<span class="nc" id="L159">                    }</span>
+                } else {
+<span class="nc" id="L161">                    revocationTime = new Date();</span>
+                }
+
+            } else {
+<span class="nc" id="L165">                log.error(&quot;Invalid certificate status.&quot;);</span>
+<span class="nc" id="L166">                return CommandResult.CLI_FAILURE;</span>
+            }
+<span class="nc bnc" id="L168" title="All 6 branches missed.">            if (!usernameFilter.equalsIgnoreCase(&quot;DN&quot;) &amp;&amp; !usernameFilter.equalsIgnoreCase(&quot;CN&quot;) &amp;&amp; !usernameFilter.equalsIgnoreCase(&quot;FILE&quot;)) {</span>
+<span class="nc" id="L169">                log.error(usernameFilter</span>
+                        + &quot;is not a valid option. Currently only \&quot;DN\&quot;, \&quot;CN\&quot; and \&quot;FILE\&quot; username-source are implemented&quot;);
+<span class="nc" id="L171">                return CommandResult.CLI_FAILURE;</span>
+            }
+
+            // Fetch CA info
+<span class="nc" id="L175">            final CAInfo caInfo = getCAInfo(getAuthenticationToken(), caName);</span>
+<span class="nc" id="L176">            final X509Certificate cacert = (X509Certificate) caInfo.getCertificateChain().iterator().next();</span>
+<span class="nc" id="L177">            final String issuer = CertTools.stringToBCDNString(cacert.getSubjectDN().toString());</span>
+<span class="nc" id="L178">            log.info(&quot;CA: &quot; + issuer);</span>
+            // Fetch End Entity Profile info
+<span class="nc" id="L180">            log.debug(&quot;Searching for End Entity Profile &quot; + eeProfile);</span>
+<span class="nc" id="L181">            final int endEntityProfileId = EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityProfileSessionRemote.class)</span>
+<span class="nc" id="L182">                    .getEndEntityProfileId(eeProfile);</span>
+            // Fetch Certificate Profile info
+<span class="nc" id="L184">            log.debug(&quot;Searching for Certificate Profile &quot; + certificateProfile);</span>
+<span class="nc" id="L185">            final int certificateProfileId = EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateProfileSessionRemote.class).getCertificateProfileId(</span>
+                    certificateProfile);
+<span class="nc bnc" id="L187" title="All 2 branches missed.">            if (certificateProfileId == CertificateProfileConstants.CERTPROFILE_NO_PROFILE) {</span>
+<span class="nc" id="L188">                log.error(&quot;ERROR: Certificate Profile &quot; + certificateProfile + &quot; does not exist.&quot;);</span>
+<span class="nc" id="L189">                throw new Exception(&quot;Certificate Profile '&quot; + certificateProfile + &quot;' does not exist.&quot;);</span>
+            }
+            // Get all files in the directory to import from and try to read and import each as a certificate
+<span class="nc" id="L192">            final File dir = new File(certificateDir);</span>
+<span class="nc bnc" id="L193" title="All 2 branches missed.">            if (!dir.isDirectory()) {</span>
+<span class="nc" id="L194">                log.error(&quot;'&quot; + certificateDir + &quot;' is not a directory.&quot;);</span>
+<span class="nc" id="L195">                return CommandResult.CLI_FAILURE;</span>
+            }
+<span class="nc" id="L197">            final File files[] = dir.listFiles();</span>
+<span class="nc bnc" id="L198" title="All 4 branches missed.">            if (files == null || files.length &lt; 1) {</span>
+<span class="nc" id="L199">                log.error(&quot;No files in directory '&quot; + dir.getCanonicalPath() + &quot;'. Nothing to do.&quot;);</span>
+<span class="nc" id="L200">                return CommandResult.CLI_FAILURE;</span>
+            }
+
+<span class="nc" id="L203">            final Queue&lt;Future&lt;CertificateImporter.Result&gt;&gt; futures = new LinkedList&lt;&gt;();</span>
+<span class="nc" id="L204">            final List&lt;CertificateImporter.Result&gt; results = new LinkedList&lt;&gt;();</span>
+<span class="nc" id="L205">            int redundant = 0;</span>
+<span class="nc" id="L206">            int caMismatch = 0;</span>
+<span class="nc" id="L207">            int readError = 0;</span>
+<span class="nc" id="L208">            int constraintViolation = 0;</span>
+<span class="nc" id="L209">            int generalImportError = 0;</span>
+<span class="nc" id="L210">            int importOk = 0;</span>
+
+<span class="nc" id="L212">            final long startTime = System.currentTimeMillis();</span>
+
+
+<span class="nc bnc" id="L215" title="All 2 branches missed.">            for (final File file : files) {</span>
+<span class="nc" id="L216">                futures.add(executorService.submit(new CertificateImporter()</span>
+<span class="nc" id="L217">                        .setAuthenticationToken(getAuthenticationToken())</span>
+<span class="nc" id="L218">                        .setCaCertificate(cacert)</span>
+<span class="nc" id="L219">                        .setCaInfo(caInfo)</span>
+<span class="nc" id="L220">                        .setCertificateProfileId(certificateProfileId)</span>
+<span class="nc" id="L221">                        .setEndEntityProfileId(endEntityProfileId)</span>
+<span class="nc" id="L222">                        .setFileToImport(file)</span>
+<span class="nc" id="L223">                        .setIssuer(issuer)</span>
+<span class="nc" id="L224">                        .setResumeOnError(resumeOnError)</span>
+<span class="nc" id="L225">                        .setRevocationReason(revocationReason)</span>
+<span class="nc" id="L226">                        .setRevocationTime(revocationTime)</span>
+<span class="nc" id="L227">                        .setStatus(status)</span>
+<span class="nc" id="L228">                        .setUsernameFilter(usernameFilter)));</span>
+                // Process completed tasks
+<span class="nc bnc" id="L230" title="All 4 branches missed.">                while (futures.peek() != null &amp;&amp; futures.peek().isDone()) {</span>
+<span class="nc" id="L231">                    results.add(futures.remove().get());</span>
+                }
+            }
+
+<span class="nc bnc" id="L235" title="All 2 branches missed.">            for (final Future&lt;CertificateImporter.Result&gt; future : futures) {</span>
+<span class="nc" id="L236">                results.add(future.get());</span>
+<span class="nc" id="L237">            }</span>
+
+<span class="nc bnc" id="L239" title="All 2 branches missed.">            for (final CertificateImporter.Result result : results) {</span>
+<span class="nc bnc" id="L240" title="All 2 branches missed.">                if (result == CertificateImporter.Result.REDUNDANT) {</span>
+<span class="nc" id="L241">                    redundant++;</span>
+<span class="nc bnc" id="L242" title="All 2 branches missed.">                } else if (result == CertificateImporter.Result.CA_MISMATCH) {</span>
+<span class="nc" id="L243">                    caMismatch++;</span>
+<span class="nc bnc" id="L244" title="All 2 branches missed.">                } else if (result == CertificateImporter.Result.READ_ERROR) {</span>
+<span class="nc" id="L245">                    readError++;</span>
+<span class="nc bnc" id="L246" title="All 2 branches missed.">                } else if (result == CertificateImporter.Result.CONSTRAINT_VIOLATION) {</span>
+<span class="nc" id="L247">                    constraintViolation++;</span>
+<span class="nc bnc" id="L248" title="All 2 branches missed.">                } else if (result == CertificateImporter.Result.GENERAL_IMPORT_ERROR) {</span>
+<span class="nc" id="L249">                    generalImportError++;</span>
+<span class="nc bnc" id="L250" title="All 2 branches missed.">                } else if (result == CertificateImporter.Result.IMPORT_OK) {</span>
+<span class="nc" id="L251">                    importOk++;</span>
+                }
+<span class="nc" id="L253">            }</span>
+
+<span class="nc" id="L255">            final long stopTime = System.currentTimeMillis();</span>
+<span class="nc" id="L256">            final double seconds = (stopTime - startTime) / 1000;</span>
+
+            // Print resulting statistics
+<span class="nc" id="L259">            log.info(&quot;\nImport summary:&quot;);</span>
+<span class="nc" id="L260">            log.info(importOk + &quot; certificates were imported successfully.&quot;);</span>
+<span class="nc" id="L261">            log.info(&quot;Time: &quot; + seconds + &quot; seconds (&quot; + (files.length / seconds) + &quot; tps)&quot;);</span>
+<span class="nc bnc" id="L262" title="All 2 branches missed.">            if (redundant &gt; 0) {</span>
+<span class="nc" id="L263">                log.info(redundant + &quot; certificates were already present in the database.&quot;);</span>
+            }
+<span class="nc bnc" id="L265" title="All 2 branches missed.">            if (caMismatch &gt; 0) {</span>
+<span class="nc" id="L266">                log.info(caMismatch + &quot; certificates were not issued by the specified CA.&quot;);</span>
+            }
+<span class="nc bnc" id="L268" title="All 2 branches missed.">            if (readError &gt; 0) {</span>
+<span class="nc" id="L269">                log.info(readError + &quot; certificates could not be read.&quot;);</span>
+            }
+<span class="nc bnc" id="L271" title="All 2 branches missed.">            if (constraintViolation &gt; 0) {</span>
+<span class="nc" id="L272">                log.info(constraintViolation + &quot; certificates violated the end entity constraints.&quot;);</span>
+            }
+<span class="nc bnc" id="L274" title="All 2 branches missed.">            if (generalImportError &gt; 0) {</span>
+<span class="nc" id="L275">                log.info(generalImportError + &quot; certificates were not imported due to other errors.&quot;);</span>
+            }
+<span class="nc" id="L277">        } catch (Exception e) {</span>
+<span class="nc" id="L278">            log.error(&quot;ERROR: &quot; + e.getMessage());</span>
+<span class="nc" id="L279">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+        } finally {
+<span class="nc" id="L281">            executorService.shutdown();</span>
+<span class="nc" id="L282">            log.trace(&quot;&lt;execute()&quot;);</span>
+        }
+<span class="nc" id="L284">        return CommandResult.SUCCESS;</span>
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L289">        return &quot;Imports a directory with PEM encoded certficate file(s) to the database.&quot;;</span>
+
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L295">        StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L296">        sb.append(getCommandDescription() + &quot;\n\n&quot;);</span>
+<span class="nc" id="L297">        sb.append(&quot;The import will proceed as long as the only error encountered is a mismatch between the signer of end entity certificate &quot;</span>
+                + &quot;and the specified certification authority. If the -resumeonerror options is provided, the import will resume even in case of more &quot;
+                + &quot;critical errors (such as violation of end entity constraints, malformed files etc). The offending files will be printed-out to the &quot;
+                + &quot;standard output, and a summary will contain exact numbers on imported and failed certificates.&quot; + &quot;\n\n&quot;);
+        // List available CAs by name
+<span class="nc" id="L302">        sb.append(&quot;Available CAs: &quot; + getAvailableCasString() + &quot;\n&quot;);</span>
+<span class="nc" id="L303">        sb.append(&quot;Available end entity profiles: &quot; + getAvailableEepsString(AccessRulesConstants.CREATE_END_ENTITY) + &quot;\n&quot;);</span>
+<span class="nc" id="L304">        sb.append(&quot;Available certificate profiles: &quot; + getAvailableEndUserCpsString() + &quot;\n&quot;);</span>
+<span class="nc" id="L305">        sb.append(&quot;Valid Revocation reasons: &quot;);</span>
+<span class="nc" id="L306">        RevocationReasons[] values = RevocationReasons.values();</span>
+<span class="nc bnc" id="L307" title="All 2 branches missed.">        for(int i = 0; i &lt; values.length; ++i) {</span>
+<span class="nc bnc" id="L308" title="All 2 branches missed.">            if(!values[i].equals(RevocationReasons.NOT_REVOKED)) {</span>
+<span class="nc" id="L309">                sb.append(values[i].getStringValue());</span>
+<span class="nc bnc" id="L310" title="All 2 branches missed.">                if(i &lt; values.length -1) {</span>
+<span class="nc" id="L311">                    sb.append(&quot; | &quot;);</span>
+                }
+            }
+        }
+
+<span class="nc" id="L316">        return sb.toString();</span>
+    }
+
+    @Override
+    protected Logger getLogger() {
+<span class="nc" id="L321">        return log;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

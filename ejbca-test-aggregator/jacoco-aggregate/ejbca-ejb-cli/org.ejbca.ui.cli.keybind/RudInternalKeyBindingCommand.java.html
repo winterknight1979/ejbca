@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RudInternalKeyBindingCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.keybind</a> &gt; <span class="el_source">RudInternalKeyBindingCommand.java</span></div><h1>RudInternalKeyBindingCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.cli.keybind;
+
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.keybind.InternalKeyBindingMgmtSessionRemote;
+import org.cesecore.util.EjbRemoteHelper;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+
+/**
+ * RUD (Read, Update, Delete) class for the InternalKeyBinding API access.
+ * 
+ * @version $Id: RudInternalKeyBindingCommand.java 25678 2017-04-11 12:29:50Z mikekushner $
+ */
+<span class="nc" id="L27">public abstract class RudInternalKeyBindingCommand extends BaseInternalKeyBindingCommand {</span>
+
+    /**
+     * Overridable InternalKeyBinding-specific execution methods that will parse and interpret the first parameter
+     * (when present) as the name of a InternalKeyBinding and lookup its InternalKeyBindingId.
+     * @param internalKeyBindingId ID
+     * @param parameters Params
+     * @return Result
+     * @throws AuthorizationDeniedException Fail
+     * @throws Exception Fail
+     */
+    public abstract CommandResult executeCommand(Integer internalKeyBindingId, ParameterContainer parameters) throws AuthorizationDeniedException, Exception;
+
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+<span class="nc" id="L42">        Integer internalKeyBindingId = null;</span>
+<span class="nc" id="L43">        String internalKeyBindingName = parameters.get(KEYBINDING_NAME_KEY);</span>
+<span class="nc bnc" id="L44" title="All 2 branches missed.">        if (internalKeyBindingName!=null) {</span>
+<span class="nc" id="L45">            internalKeyBindingName = internalKeyBindingName.trim();</span>
+        }
+<span class="nc" id="L47">        internalKeyBindingId = EjbRemoteHelper.INSTANCE.getRemoteSession(InternalKeyBindingMgmtSessionRemote.class).getIdFromName(</span>
+                internalKeyBindingName);
+<span class="nc bnc" id="L49" title="All 2 branches missed.">        if (internalKeyBindingId == null) {</span>
+<span class="nc" id="L50">            getLogger().info(&quot;Unknown InternalKeyBinding: &quot; + internalKeyBindingName);</span>
+<span class="nc" id="L51">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+        }
+
+        try {
+<span class="nc" id="L55">            return executeCommand(internalKeyBindingId, parameters);</span>
+<span class="nc" id="L56">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L57">            getLogger().info(e.getMessage());</span>
+<span class="nc" id="L58">            return CommandResult.AUTHORIZATION_FAILURE;</span>
+<span class="nc" id="L59">        } catch (RuntimeException e) {</span>
+<span class="nc" id="L60">            getLogger().info(&quot;Operation failed: &quot; + e.getMessage());</span>
+<span class="nc" id="L61">            throw new IllegalStateException(e);</span>
+<span class="nc" id="L62">        } catch(Exception e) {</span>
+<span class="nc" id="L63">            getLogger().info(&quot;Failure during operation: &quot; + e.getMessage());</span>
+<span class="nc" id="L64">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+        }
+    }
+
+    /** @return the EJB CLI admin */
+    protected AuthenticationToken getAdmin() {
+<span class="nc" id="L70">        return getAuthenticationToken();</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

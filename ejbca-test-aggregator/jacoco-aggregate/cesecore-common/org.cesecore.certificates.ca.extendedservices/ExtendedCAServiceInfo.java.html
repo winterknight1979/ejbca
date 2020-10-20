@@ -15,46 +15,54 @@ package org.cesecore.certificates.ca.extendedservices;
 import java.io.Serializable;
 
 /**
- * Should be inherited by all ExtendedCAServiceInfo Value objects. These classes are used to retrieve general information about the service and also
- * used to send parameters to the service when creating it.
- * 
+ * Should be inherited by all ExtendedCAServiceInfo Value objects. These classes
+ * are used to retrieve general information about the service and also used to
+ * send parameters to the service when creating it.
+ *
  * @version $Id: ExtendedCAServiceInfo.java 21900 2015-09-17 19:22:21Z anatom $
  */
 public abstract class ExtendedCAServiceInfo implements Serializable {
 
-    private static final long serialVersionUID = 9064707908058917449L;
+  private static final long serialVersionUID = 9064707908058917449L;
 
-    /**
-     * Constants indicating the status of the service.
-     */
-    public static final int STATUS_INACTIVE = 1;
-    public static final int STATUS_ACTIVE = 2;
+  /** Constants indicating the status of the service. */
+  public static final int STATUS_INACTIVE = 1;
+  /** Active. */
+  public static final int STATUS_ACTIVE = 2;
+  /** Status. */
+<span class="fc" id="L33">  private int status = STATUS_INACTIVE;</span>
+  /** class. */
+  public static final String IMPLEMENTATIONCLASS = &quot;IMPLCLASS&quot;;
 
-<span class="fc" id="L33">    private int status = STATUS_INACTIVE;</span>
+  /**
+   * Constructor.
+   * @param aStatus status
+   */
+<span class="fc" id="L41">  public ExtendedCAServiceInfo(final int aStatus) {</span>
+<span class="fc" id="L42">    this.status = aStatus;</span>
+<span class="fc" id="L43">  }</span>
 
-    public static final String IMPLEMENTATIONCLASS = &quot;IMPLCLASS&quot;;
+  /** @return status */
+  public int getStatus() {
+<span class="nc" id="L47">    return this.status;</span>
+  }
 
-<span class="fc" id="L37">    public ExtendedCAServiceInfo(int status) {</span>
-<span class="fc" id="L38">        this.status = status;</span>
-<span class="fc" id="L39">    }</span>
+  /** @param aStatus status */
+  public void setStatus(final int aStatus) {
+<span class="nc" id="L52">    this.status = aStatus;</span>
+<span class="nc" id="L53">  }</span>
 
-    public int getStatus() {
-<span class="nc" id="L42">        return this.status;</span>
-    }
+  /**
+   * @return a unique type identifier, such as
+   *     ExtendedCAServiceTypes.TYPE_CMSEXTENDEDSERVICE etc
+   */
+  public abstract int getType();
 
-    public void setStatus(final int status) {
-<span class="nc" id="L46">        this.status = status;</span>
-<span class="nc" id="L47">    }</span>
-
-    /** @return a unique type identifier, such as ExtendedCAServiceTypes.TYPE_CMSEXTENDEDSERVICE etc */
-    public abstract int getType();
-
-    /**
-     * The extended CA service implementation will be created using reflection.
-     * 
-     * @return a class name implementing the extended CA service
-     */
-    public abstract String getImplClass();
-
+  /**
+   * The extended CA service implementation will be created using reflection.
+   *
+   * @return a class name implementing the extended CA service
+   */
+  public abstract String getImplClass();
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

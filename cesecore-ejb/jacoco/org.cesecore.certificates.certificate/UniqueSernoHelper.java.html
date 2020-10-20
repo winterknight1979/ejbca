@@ -18,73 +18,110 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
-
-/** This class only exists in order to avoid having static non-final variables in CertificateStoreSessionBean (not allowed according to EJB spec).
- * This class holds the variable isUniqueCertificateSerialNumberIndex, which is initialized by calling, once (or several times)
- * CertificateStoreSessionLocal.checkForUniqueCertificateSerialNumberIndex(). Actually calling this method only does something once, called several times does nothing
- * and does not change any values returned by isUniqueCertificateSerialNumberIndex().
- *  
+/**
+ * This class only exists in order to avoid having static non-final variables in
+ * CertificateStoreSessionBean (not allowed according to EJB spec). This class
+ * holds the variable isUniqueCertificateSerialNumberIndex, which is initialized
+ * by calling, once (or several times)
+ * CertificateStoreSessionLocal.checkForUniqueCertificateSerialNumberIndex().
+ * Actually calling this method only does something once, called several times
+ * does nothing and does not change any values returned by
+ * isUniqueCertificateSerialNumberIndex().
+ *
  * @version $Id: UniqueSernoHelper.java 20863 2015-03-09 12:03:37Z jeklund $
  */
 public final class UniqueSernoHelper {
+/** Bool. */
+<span class="nc" id="L35">  private static Boolean isUniqueCertificateSerialNumberIndex = null;</span>
 
-<span class="nc" id="L31">	static private Boolean isUniqueCertificateSerialNumberIndex = null;</span>
+  /** Cert 1. */
+  private static final String TEST_CERTIFICATE_B64_1 =
+      &quot;MIIB8zCCAVygAwIBAgIESZYC0jANBgkqhkiG9w0BAQUFADApMScwJQYDVQQDDB5D&quot;
+          + &quot;QSBmb3IgRUpCQ0EgdGVzdCBjZXJ0aWZpY2F0ZXMwHhcNMTAwNjI2MDU0OTM2WhcN&quot;
+          + &quot;MjAwNjI2MDU0OTM2WjA1MTMwMQYDVQQDDCpBbGxvdyBjZXJ0aWZpY2F0ZSBzZXJp&quot;
+          + &quot;YWwgbnVtYmVyIG92ZXJyaWRlIDEwXDANBgkqhkiG9w0BAQEFAANLADBIAkEAnnIj&quot;
+          + &quot;y8A6CJzASedM5MbZk/ld8R3P0aWfRSW2UUDaskm25oK5SsjwVZD3KEc3IJgyl1/D&quot;
+          + &quot;lWdywxEduWwc2nzGGQIDAQABo2AwXjAdBgNVHQ4EFgQUPL3Au/wYZbD3TpNGW1G4&quot;
+          + &quot;+Ck4A2swDAYDVR0TAQH/BAIwADAfBgNVHSMEGDAWgBQ/TRpUbLxt6j6EC3olHGWJ&quot;
+          + &quot;7XZqETAOBgNVHQ8BAf8EBAMCBwAwDQYJKoZIhvcNAQEFBQADgYEAPMWjE5hv3G5T&quot;
+          + &quot;q/fzPQlRMCQDoM5EgVwJYQu1S+wns/mKPI/bDv9s5nybKoro70LKpqLb1+f2TaD+&quot;
+          + &quot;W2Ro+ni8zYm5+H6okXRIc5Kd4LlD3tjsOF7bS7fixvMCSCUgLxQOt2creOqfDVjm&quot;
+          + &quot;i6MA48AhotWmx/rlzQXhnvuKnMI3m54=&quot;;
+  /** Cert 2. */
+  private static final String TEST_CERTIFICATE_B64_2 =
+      &quot;MIIB8zCCAVygAwIBAgIESZYC0jANBgkqhkiG9w0BAQUFADApMScwJQYDVQQDDB5D&quot;
+          + &quot;QSBmb3IgRUpCQ0EgdGVzdCBjZXJ0aWZpY2F0ZXMwHhcNMTAwNjI2MDU1MDA4WhcN&quot;
+          + &quot;MjAwNjI2MDU1MDA4WjA1MTMwMQYDVQQDDCpBbGxvdyBjZXJ0aWZpY2F0ZSBzZXJp&quot;
+          + &quot;YWwgbnVtYmVyIG92ZXJyaWRlIDIwXDANBgkqhkiG9w0BAQEFAANLADBIAkEAn2H4&quot;
+          + &quot;IAMYZyXqkSTY4Slq9LKZ/qB5wc+3hbEHNawdOoMBBkhLGi2q49sbCdcI8AZi3med&quot;
+          + &quot;sm8+A8Q4NHFRKdOYuwIDAQABo2AwXjAdBgNVHQ4EFgQUhWVwIsv18DIYszvRzqDg&quot;
+          + &quot;AkGO8QkwDAYDVR0TAQH/BAIwADAfBgNVHSMEGDAWgBQ/TRpUbLxt6j6EC3olHGWJ&quot;
+          + &quot;7XZqETAOBgNVHQ8BAf8EBAMCBwAwDQYJKoZIhvcNAQEFBQADgYEAM8laLm4bgMTz&quot;
+          + &quot;e9TLmwcmhwqevPrfea9jdiNafHCyb+JVppoLVHqAZjPs3Lvlxdt2d75au5+QcJ/Z&quot;
+          + &quot;9RgakF8Vq29Tz3xrYYIQe9VtlaUzw/dgsDfZi6V8W57uHLpU65fe5afwfi+5XDZk&quot;
+          + &quot;TaTsNgFz8NorE2f7ILSm2FcfIpC+GPI=&quot;;
+  /**
+   * @return Cert
+   */
+  public static X509Certificate getTestCertificate1() {
+<span class="nc" id="L67">    return getTestCertificate(TEST_CERTIFICATE_B64_1);</span>
+  }
 
-    private final static String TEST_CERTIFICATE_B64_1 =
-            &quot;MIIB8zCCAVygAwIBAgIESZYC0jANBgkqhkiG9w0BAQUFADApMScwJQYDVQQDDB5D&quot;+
-            &quot;QSBmb3IgRUpCQ0EgdGVzdCBjZXJ0aWZpY2F0ZXMwHhcNMTAwNjI2MDU0OTM2WhcN&quot;+
-            &quot;MjAwNjI2MDU0OTM2WjA1MTMwMQYDVQQDDCpBbGxvdyBjZXJ0aWZpY2F0ZSBzZXJp&quot;+
-            &quot;YWwgbnVtYmVyIG92ZXJyaWRlIDEwXDANBgkqhkiG9w0BAQEFAANLADBIAkEAnnIj&quot;+
-            &quot;y8A6CJzASedM5MbZk/ld8R3P0aWfRSW2UUDaskm25oK5SsjwVZD3KEc3IJgyl1/D&quot;+
-            &quot;lWdywxEduWwc2nzGGQIDAQABo2AwXjAdBgNVHQ4EFgQUPL3Au/wYZbD3TpNGW1G4&quot;+
-            &quot;+Ck4A2swDAYDVR0TAQH/BAIwADAfBgNVHSMEGDAWgBQ/TRpUbLxt6j6EC3olHGWJ&quot;+
-            &quot;7XZqETAOBgNVHQ8BAf8EBAMCBwAwDQYJKoZIhvcNAQEFBQADgYEAPMWjE5hv3G5T&quot;+
-            &quot;q/fzPQlRMCQDoM5EgVwJYQu1S+wns/mKPI/bDv9s5nybKoro70LKpqLb1+f2TaD+&quot;+
-            &quot;W2Ro+ni8zYm5+H6okXRIc5Kd4LlD3tjsOF7bS7fixvMCSCUgLxQOt2creOqfDVjm&quot;+
-            &quot;i6MA48AhotWmx/rlzQXhnvuKnMI3m54=&quot;;
-    private final static String TEST_CERTIFICATE_B64_2 =
-            &quot;MIIB8zCCAVygAwIBAgIESZYC0jANBgkqhkiG9w0BAQUFADApMScwJQYDVQQDDB5D&quot; +
-            &quot;QSBmb3IgRUpCQ0EgdGVzdCBjZXJ0aWZpY2F0ZXMwHhcNMTAwNjI2MDU1MDA4WhcN&quot; +
-            &quot;MjAwNjI2MDU1MDA4WjA1MTMwMQYDVQQDDCpBbGxvdyBjZXJ0aWZpY2F0ZSBzZXJp&quot; +
-            &quot;YWwgbnVtYmVyIG92ZXJyaWRlIDIwXDANBgkqhkiG9w0BAQEFAANLADBIAkEAn2H4&quot; +
-            &quot;IAMYZyXqkSTY4Slq9LKZ/qB5wc+3hbEHNawdOoMBBkhLGi2q49sbCdcI8AZi3med&quot; +
-            &quot;sm8+A8Q4NHFRKdOYuwIDAQABo2AwXjAdBgNVHQ4EFgQUhWVwIsv18DIYszvRzqDg&quot; +
-            &quot;AkGO8QkwDAYDVR0TAQH/BAIwADAfBgNVHSMEGDAWgBQ/TRpUbLxt6j6EC3olHGWJ&quot; +
-            &quot;7XZqETAOBgNVHQ8BAf8EBAMCBwAwDQYJKoZIhvcNAQEFBQADgYEAM8laLm4bgMTz&quot; +
-            &quot;e9TLmwcmhwqevPrfea9jdiNafHCyb+JVppoLVHqAZjPs3Lvlxdt2d75au5+QcJ/Z&quot; +
-            &quot;9RgakF8Vq29Tz3xrYYIQe9VtlaUzw/dgsDfZi6V8W57uHLpU65fe5afwfi+5XDZk&quot; +
-            &quot;TaTsNgFz8NorE2f7ILSm2FcfIpC+GPI=&quot;;
+  /**
+   * @return Cert
+   */
+  public static X509Certificate getTestCertificate2() {
+<span class="nc" id="L74">    return getTestCertificate(TEST_CERTIFICATE_B64_2);</span>
+  }
 
-<span class="nc" id="L58">    public static X509Certificate getTestCertificate1() { return getTestCertificate(TEST_CERTIFICATE_B64_1); }</span>
-<span class="nc" id="L59">    public static X509Certificate getTestCertificate2() { return getTestCertificate(TEST_CERTIFICATE_B64_2); }</span>
+  private static X509Certificate getTestCertificate(
+      final String base64EncodedCertificate) {
+    final X509Certificate ret;
+    final byte[] certEncoded1;
+<span class="nc" id="L81">    certEncoded1 =</span>
+<span class="nc" id="L82">        org.bouncycastle.util.encoders.Base64.decode(base64EncodedCertificate);</span>
+    try {
+<span class="nc" id="L84">      final CertificateFactory cf =</span>
+<span class="nc" id="L85">          CertificateFactory.getInstance(&quot;X.509&quot;, &quot;BC&quot;);</span>
+<span class="nc" id="L86">      ret =</span>
+          (X509Certificate)
+<span class="nc" id="L88">              cf.generateCertificate(new ByteArrayInputStream(certEncoded1));</span>
+<span class="nc" id="L89">    } catch (CertificateException e) {</span>
+<span class="nc" id="L90">      throw new RuntimeException(</span>
+          &quot;Not possible to generate predefined dummy certificate. Should never&quot;
+              + &quot; happen&quot;,
+          e);
+<span class="nc" id="L94">    } catch (NoSuchProviderException e) {</span>
+<span class="nc" id="L95">      throw new RuntimeException(</span>
+          &quot;Not possible to generate predefined dummy certificate. Should never&quot;
+              + &quot; happen&quot;,
+          e);
+<span class="nc" id="L99">    }</span>
+<span class="nc" id="L100">    return ret;</span>
+  }
 
-    private static X509Certificate getTestCertificate(final String base64EncodedCertificate) {
-        final X509Certificate ret;
-        final byte certEncoded1[];
-<span class="nc" id="L64">        certEncoded1= org.bouncycastle.util.encoders.Base64.decode(base64EncodedCertificate);</span>
-        try {
-<span class="nc" id="L66">            final CertificateFactory cf = CertificateFactory.getInstance(&quot;X.509&quot;, &quot;BC&quot;);</span>
-<span class="nc" id="L67">            ret = (X509Certificate)cf.generateCertificate(new ByteArrayInputStream(certEncoded1));</span>
-<span class="nc" id="L68">        } catch (CertificateException e) {</span>
-<span class="nc" id="L69">            throw new RuntimeException( &quot;Not possible to generate predefined dummy certificate. Should never happen&quot;, e );</span>
-<span class="nc" id="L70">        } catch (NoSuchProviderException e) {</span>
-<span class="nc" id="L71">            throw new RuntimeException( &quot;Not possible to generate predefined dummy certificate. Should never happen&quot;, e );</span>
-<span class="nc" id="L72">        }</span>
-<span class="nc" id="L73">        return ret;</span>
-    }
+  /** Don't create any of this. */
+  private UniqueSernoHelper() { }
 
-	/** Don't create any of this */
-	private UniqueSernoHelper() {};
-	
-	/** @return isUniqueCertificateSerialNumberIndex, can be null which should be interpreted as uninitialized */
-	public static Boolean getIsUniqueCertificateSerialNumberIndex() {
-<span class="nc" id="L81">        return isUniqueCertificateSerialNumberIndex;</span>
-    }
 
-	/** Sets isUniqueCertificateSerialNumberIndex, can set to null which should be interpreted as uninitialized 
-	 * @param isUniqueCertificateSerialNumberIndex boolean*/
-    public static void setIsUniqueCertificateSerialNumberIndex(Boolean isUniqueCertificateSerialNumberIndex) {
-<span class="nc" id="L87">        UniqueSernoHelper.isUniqueCertificateSerialNumberIndex = isUniqueCertificateSerialNumberIndex;</span>
-<span class="nc" id="L88">    }	</span>
+  /**
+   * @return isUniqueCertificateSerialNumberIndex, can be null which should be
+   *     interpreted as uninitialized
+   */
+  public static Boolean getIsUniqueCertificateSerialNumberIndex() {
+<span class="nc" id="L112">    return isUniqueCertificateSerialNumberIndex;</span>
+  }
+
+  /**
+   * Sets isUniqueCertificateSerialNumberIndex, can set to null which should be
+   * interpreted as uninitialized.
+   *
+   * @param lisUniqueCertificateSerialNumberIndex boolean
+   */
+  public static void setIsUniqueCertificateSerialNumberIndex(
+      final Boolean lisUniqueCertificateSerialNumberIndex) {
+<span class="nc" id="L123">    UniqueSernoHelper.isUniqueCertificateSerialNumberIndex =</span>
+        lisUniqueCertificateSerialNumberIndex;
+<span class="nc" id="L125">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

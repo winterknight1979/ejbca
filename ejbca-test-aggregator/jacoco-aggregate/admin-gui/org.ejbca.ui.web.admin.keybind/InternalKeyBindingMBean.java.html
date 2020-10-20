@@ -1,0 +1,1478 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>InternalKeyBindingMBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">admin-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.keybind</a> &gt; <span class="el_source">InternalKeyBindingMBean.java</span></div><h1>InternalKeyBindingMBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.web.admin.keybind;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.Serializable;
+import java.math.BigInteger;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PublicKey;
+import java.security.SignatureException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateExpiredException;
+import java.security.cert.CertificateNotYetValidException;
+import java.security.cert.X509Certificate;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.ServiceLoader;
+import java.util.Set;
+
+import javax.ejb.EJB;
+import javax.faces.application.FacesMessage;
+import javax.faces.context.FacesContext;
+import javax.faces.model.ListDataModel;
+import javax.faces.model.SelectItem;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.apache.myfaces.custom.fileupload.UploadedFile;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.authorization.control.CryptoTokenRules;
+import org.cesecore.certificates.ca.CA;
+import org.cesecore.certificates.ca.CAConstants;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.certificates.ca.InvalidAlgorithmException;
+import org.cesecore.certificates.certificate.CertificateInfo;
+import org.cesecore.certificates.certificate.CertificateStoreSessionLocal;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.certificates.ocsp.OcspResponseGeneratorSessionLocal;
+import org.cesecore.certificates.ocsp.extension.OCSPExtension;
+import org.cesecore.certificates.util.AlgorithmTools;
+import org.cesecore.config.GlobalOcspConfiguration;
+import org.cesecore.config.OcspConfiguration;
+import org.cesecore.configuration.GlobalConfigurationSessionLocal;
+import org.cesecore.keybind.CertificateImportException;
+import org.cesecore.keybind.InternalKeyBinding;
+import org.cesecore.keybind.InternalKeyBindingCache;
+import org.cesecore.keybind.InternalKeyBindingInfo;
+import org.cesecore.keybind.InternalKeyBindingMgmtSessionLocal;
+import org.cesecore.keybind.InternalKeyBindingNameInUseException;
+import org.cesecore.keybind.InternalKeyBindingRules;
+import org.cesecore.keybind.InternalKeyBindingStatus;
+import org.cesecore.keybind.InternalKeyBindingTrustEntry;
+import org.cesecore.keybind.impl.OcspKeyBinding;
+import org.cesecore.keybind.impl.OcspKeyBinding.ResponderIdType;
+import org.cesecore.keys.token.CryptoTokenInfo;
+import org.cesecore.keys.token.CryptoTokenManagementSessionLocal;
+import org.cesecore.keys.token.CryptoTokenOfflineException;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.ui.DynamicUiProperty;
+import org.ejbca.core.ejb.ra.EndEntityAccessSessionLocal;
+import org.ejbca.ui.web.admin.BaseManagedBean;
+import org.ejbca.util.passgen.IPasswordGenerator;
+import org.ejbca.util.passgen.PasswordGeneratorFactory;
+
+/**
+ * JavaServer Faces Managed Bean for managing InternalKeyBindings.
+ * Session scoped and will cache the list of tokens and keys.
+ *
+ * @version $Id: InternalKeyBindingMBean.java 29198 2018-06-11 11:05:00Z mikekushner $
+ */
+<span class="nc" id="L99">public class InternalKeyBindingMBean extends BaseManagedBean implements Serializable {</span>
+
+<span class="nc" id="L101">    protected static final Logger log = Logger.getLogger(InternalKeyBindingMBean.class);</span>
+
+    @EJB(description = &quot;Used to reload ocsp signing cache when user disables the internal ocsp key binding.&quot;)
+    private OcspResponseGeneratorSessionLocal ocspResponseGeneratorSession;
+
+    public class GuiInfo {
+        public static final String TEXTKEY_PREFIX = &quot;INTERNALKEYBINDING_STATUS_&quot;;
+        private final int internalKeyBindingId;
+        private final String name;
+        private final int cryptoTokenId;
+        private final String cryptoTokenName;
+        private final boolean authorizedToCryptotoken;
+        private final boolean authorizedToGenerateKeys;
+        private final boolean cryptoTokenActive;
+        private final String keyPairAlias;
+        private final String nextKeyPairAlias;
+        private final String status;
+        private final String operationalStatus;
+        private final String certificateId;
+        private final String certificateIssuerDn;
+        private final String certificateSerialNumber;
+        private final String caCertificateIssuerDn;
+        private final String caCertificateSerialNumber;
+        private final String certificateInternalCaName;
+        private final int certificateInternalCaId;
+        private final String certificateSubjectDn;
+
+        private GuiInfo(int internalKeyBindingId, String name, int cryptoTokenId, String cryptoTokenName, final boolean authorizedToCryptotoken, boolean authorizedToGenerateKeys,
+                boolean cryptoTokenActive, String keyPairAlias, String nextKeyPairAlias, String status, String operationalStatus, String certificateId,
+                String certificateIssuerDn, String certificateSubjectDn, String certificateInternalCaName, int certificateInternalCaId, String certificateSerialNumber,
+<span class="nc" id="L131">                String caCertificateIssuerDn, String caCertificateSerialNumber) {</span>
+<span class="nc" id="L132">            this.internalKeyBindingId = internalKeyBindingId;</span>
+<span class="nc" id="L133">            this.name = name;</span>
+<span class="nc" id="L134">            this.cryptoTokenId = cryptoTokenId;</span>
+<span class="nc" id="L135">            this.cryptoTokenName = cryptoTokenName;</span>
+<span class="nc" id="L136">            this.authorizedToCryptotoken = authorizedToCryptotoken;</span>
+<span class="nc" id="L137">            this.authorizedToGenerateKeys = authorizedToGenerateKeys;</span>
+<span class="nc" id="L138">            this.cryptoTokenActive = cryptoTokenActive;</span>
+<span class="nc" id="L139">            this.keyPairAlias = keyPairAlias;</span>
+<span class="nc" id="L140">            this.nextKeyPairAlias = nextKeyPairAlias;</span>
+<span class="nc" id="L141">            this.status = TEXTKEY_PREFIX + status;</span>
+<span class="nc" id="L142">            this.operationalStatus = operationalStatus;</span>
+<span class="nc" id="L143">            this.certificateId = certificateId;</span>
+<span class="nc" id="L144">            this.certificateIssuerDn = certificateIssuerDn;</span>
+<span class="nc" id="L145">            this.certificateSerialNumber = certificateSerialNumber;</span>
+<span class="nc" id="L146">            this.caCertificateIssuerDn = caCertificateIssuerDn;</span>
+<span class="nc" id="L147">            this.caCertificateSerialNumber = caCertificateSerialNumber;</span>
+<span class="nc" id="L148">            this.certificateInternalCaName = certificateInternalCaName;</span>
+<span class="nc" id="L149">            this.certificateInternalCaId = certificateInternalCaId;</span>
+<span class="nc" id="L150">            this.certificateSubjectDn = certificateSubjectDn;</span>
+<span class="nc" id="L151">        }</span>
+
+        public int getInternalKeyBindingId() {
+<span class="nc" id="L154">            return internalKeyBindingId;</span>
+        }
+
+        public String getName() {
+<span class="nc" id="L158">            return name;</span>
+        }
+
+        public int getCryptoTokenId() {
+<span class="nc" id="L162">            return cryptoTokenId;</span>
+        }
+
+        public String getCryptoTokenName() {
+<span class="nc" id="L166">            return cryptoTokenName;</span>
+        }
+
+        public String getKeyPairAlias() {
+<span class="nc" id="L170">            return keyPairAlias;</span>
+        }
+
+        public String getNextKeyPairAlias() {
+<span class="nc" id="L174">            return nextKeyPairAlias;</span>
+        }
+
+        public String getStatus() {
+<span class="nc" id="L178">            return status;</span>
+        }
+
+        public String getOperationalStatus() {
+<span class="nc" id="L182">            return operationalStatus;</span>
+        }
+
+        public String getCertificateId() {
+<span class="nc" id="L186">            return certificateId;</span>
+        }
+
+        public String getCertificateIssuerDn() {
+<span class="nc" id="L190">            return certificateIssuerDn;</span>
+        }
+
+        public String getCertificateSerialNumber() {
+<span class="nc" id="L194">            return certificateSerialNumber;</span>
+        }
+
+        public String getCaCertificateIssuerDn() {
+<span class="nc" id="L198">            return caCertificateIssuerDn;</span>
+        }
+
+        public String getCaCertificateSerialNumber() {
+<span class="nc" id="L202">            return caCertificateSerialNumber;</span>
+        }
+
+        public String getCertificateInternalCaName() {
+<span class="nc" id="L206">            return certificateInternalCaName;</span>
+        }
+
+        public int getCertificateInternalCaId() {
+<span class="nc" id="L210">            return certificateInternalCaId;</span>
+        }
+
+        public boolean isCertificateBound() {
+<span class="nc bnc" id="L214" title="All 2 branches missed.">            return certificateId != null;</span>
+        }
+
+        public boolean isIssuedByInternalCa() {
+<span class="nc bnc" id="L218" title="All 2 branches missed.">            return getCertificateInternalCaName() != null;</span>
+        }
+
+        public boolean isNextKeyAliasAvailable() {
+<span class="nc bnc" id="L222" title="All 2 branches missed.">            return nextKeyPairAlias != null;</span>
+        }
+
+        public boolean isAuthorizedToGenerateKeys() {
+<span class="nc" id="L226">            return authorizedToGenerateKeys;</span>
+        }
+        
+        public boolean isAuthorizedToCryptoToken() {
+<span class="nc" id="L230">            return authorizedToCryptotoken;</span>
+        }
+
+        public boolean isCryptoTokenActive() {
+<span class="nc" id="L234">            return cryptoTokenActive;</span>
+        }
+
+        public String getCertificateSubjectDn() {
+<span class="nc" id="L238">            return certificateSubjectDn;</span>
+        }
+    }
+
+    private static final long serialVersionUID = 2L;
+<span class="nc" id="L243">    private final AuthenticationToken authenticationToken = getAdmin();</span>
+
+<span class="nc" id="L245">    private final AuthorizationSessionLocal authorizationSession = getEjbcaWebBean().getEjb().getAuthorizationSession();</span>
+<span class="nc" id="L246">    private final CaSessionLocal caSession = getEjbcaWebBean().getEjb().getCaSession();</span>
+<span class="nc" id="L247">    private final CertificateStoreSessionLocal certificateStoreSession = getEjbcaWebBean().getEjb().getCertificateStoreSession();</span>
+<span class="nc" id="L248">    private final CryptoTokenManagementSessionLocal cryptoTokenManagementSession = getEjbcaWebBean().getEjb().getCryptoTokenManagementSession();</span>
+<span class="nc" id="L249">    private final EndEntityAccessSessionLocal endEntityAccessSessionSession = getEjbcaWebBean().getEjb().getEndEntityAccessSession();</span>
+<span class="nc" id="L250">    private final InternalKeyBindingMgmtSessionLocal internalKeyBindingSession = getEjbcaWebBean().getEjb().getInternalKeyBindingMgmtSession();</span>
+<span class="nc" id="L251">    private final GlobalConfigurationSessionLocal globalConfigurationSession = getEjbcaWebBean().getEjb().getGlobalConfigurationSession();</span>
+
+    ////
+    //// Below is code related to viewing and/or interacting with the list of InternalKeyBindings
+    ////
+
+<span class="nc" id="L257">    private String selectedInternalKeyBindingType = null;</span>
+<span class="nc" id="L258">    private ListDataModel&lt;GuiInfo&gt; internalKeyBindingGuiList = null;</span>
+<span class="nc" id="L259">    private Integer uploadTarget = null;</span>
+    private UploadedFile uploadToTargetFile;
+    private String defaultResponderTarget;
+    private Boolean nonceEnabled;
+    private OcspKeyBinding.ResponderIdType responderIdType;
+
+    public String getSelectedInternalKeyBindingType() {
+<span class="nc" id="L266">        final String typeHttpParam = ((HttpServletRequest) FacesContext.getCurrentInstance().getExternalContext().getRequest()).getParameter(&quot;type&quot;);</span>
+        // First, check if the user has requested a valid type
+<span class="nc bnc" id="L268" title="All 4 branches missed.">        if (typeHttpParam != null &amp;&amp; getAvailableKeyBindingTypes().contains(typeHttpParam)) {</span>
+            // The requested type is an existing type. Flush caches so we reload the page content
+<span class="nc" id="L270">            flushListCaches();</span>
+<span class="nc" id="L271">            selectedInternalKeyBindingType = typeHttpParam;</span>
+        }
+<span class="nc bnc" id="L273" title="All 2 branches missed.">        if (selectedInternalKeyBindingType == null) {</span>
+            // If no type was requested, we use the first available type as default
+<span class="nc" id="L275">            selectedInternalKeyBindingType = getAvailableKeyBindingTypes().get(0);</span>
+        }
+<span class="nc" id="L277">        return selectedInternalKeyBindingType;</span>
+    }
+
+    public boolean isOcspKeyBinding() {
+<span class="nc" id="L281">        return getSelectedInternalKeyBindingType().equals(&quot;OcspKeyBinding&quot;);</span>
+    }
+
+    public String getBackLinkTranslatedText() {
+<span class="nc" id="L285">        String pattern = super.getEjbcaWebBean().getText(&quot;INTERNALKEYBINDING_BACKTOOVERVIEW&quot;);</span>
+<span class="nc" id="L286">        String type = super.getEjbcaWebBean().getText(getSelectedInternalKeyBindingType());</span>
+<span class="nc" id="L287">        return MessageFormat.format(pattern, type);</span>
+    }
+
+    public List&lt;String&gt; getAvailableKeyBindingTypes() {
+<span class="nc" id="L291">        final List&lt;String&gt; availableKeyBindingTypes = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L292" title="All 2 branches missed.">        for (String current : internalKeyBindingSession.getAvailableTypesAndProperties().keySet()) {</span>
+<span class="nc" id="L293">            availableKeyBindingTypes.add(current);</span>
+<span class="nc" id="L294">        }</span>
+<span class="nc" id="L295">        return availableKeyBindingTypes;</span>
+    }
+
+    /** Workaround to cache the items used to render the page long enough for actions to be able to use them, but reload on every page view. 
+     * @return Bool */
+    public boolean isPageLoadResetTrigger() {
+    	
+<span class="nc" id="L302">        flushListCaches();</span>
+<span class="nc" id="L303">        return false;</span>
+    }
+
+    private void flushListCaches() {
+<span class="nc" id="L307">        internalKeyBindingGuiList = null;</span>
+<span class="nc" id="L308">    }</span>
+
+    public Integer getUploadTarget() {
+<span class="nc" id="L311">        return uploadTarget;</span>
+    }
+
+    public void setUploadTarget(Integer uploadTarget) {
+<span class="nc" id="L315">        this.uploadTarget = uploadTarget;</span>
+<span class="nc" id="L316">    }</span>
+
+    public UploadedFile getUploadToTargetFile() {
+<span class="nc" id="L319">        return uploadToTargetFile;</span>
+    }
+
+    public void setUploadToTargetFile(UploadedFile uploadToTargetFile) {
+<span class="nc" id="L323">        this.uploadToTargetFile = uploadToTargetFile;</span>
+<span class="nc" id="L324">    }</span>
+
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public List&lt;SelectItem/*&lt;Integer,String&gt;*/&gt; getUploadTargets() {
+<span class="nc" id="L329">        final List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L330" title="All 2 branches missed.">        for (final GuiInfo guiInfo : (List&lt;GuiInfo&gt;) getInternalKeyBindingGuiList().getWrappedData()) {</span>
+<span class="nc" id="L331">            ret.add(new SelectItem(guiInfo.getInternalKeyBindingId(), guiInfo.getName()));</span>
+<span class="nc" id="L332">        }</span>
+<span class="nc" id="L333">        return ret;</span>
+    }
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public List&lt;SelectItem/*&lt;String,String&gt;*/&gt; getDefaultResponderTargets() {
+<span class="nc" id="L338">        final List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L339">        ret.add(new SelectItem(&quot;&quot;, super.getEjbcaWebBean().getText(&quot;INTERNALKEYBINDING_OCSPKEYBINDING_NODEFAULTRESPONDER&quot;)));</span>
+        //Create a map so that we can exclude bounded CAs.
+<span class="nc" id="L341">        String currentValue = getDefaultResponderTarget();</span>
+<span class="nc" id="L342">        boolean currentValueMatched = false;</span>
+<span class="nc" id="L343">        Set&lt;String&gt; internalkeybindingSet = new HashSet&lt;&gt;();</span>
+<span class="nc bnc" id="L344" title="All 2 branches missed.">        for (final GuiInfo guiInfo : (List&lt;GuiInfo&gt;) getInternalKeyBindingGuiList().getWrappedData()) {</span>
+<span class="nc bnc" id="L345" title="All 2 branches missed.">            if (guiInfo.getStatus().equalsIgnoreCase(GuiInfo.TEXTKEY_PREFIX + InternalKeyBindingStatus.ACTIVE.name())) {</span>
+<span class="nc" id="L346">                internalkeybindingSet.add(guiInfo.getCertificateIssuerDn());</span>
+<span class="nc" id="L347">                ret.add(new SelectItem(guiInfo.getCertificateIssuerDn(), &quot;OCSPKeyBinding: &quot; + guiInfo.getName()));</span>
+<span class="nc bnc" id="L348" title="All 2 branches missed.">                if (currentValue.equals(guiInfo.getCertificateIssuerDn())) {</span>
+<span class="nc" id="L349">                    currentValueMatched = true;</span>
+                }
+            }
+<span class="nc" id="L352">        }</span>
+<span class="nc bnc" id="L353" title="All 2 branches missed.">        for (CAInfo caInfo : caSession.getAuthorizedAndEnabledCaInfos(authenticationToken)) {</span>
+<span class="nc bnc" id="L354" title="All 4 branches missed.">            if (caInfo.getCAType() == CAInfo.CATYPE_X509 &amp;&amp; caInfo.getStatus() == CAConstants.CA_ACTIVE) {</span>
+                //Checking actual certificate, because CA subject DN does not have to be CA certificate subject DN
+<span class="nc" id="L356">                final String caSubjectDn = CertTools.getSubjectDN(new ArrayList&lt;&gt;(caInfo.getCertificateChain()).get(0));</span>
+<span class="nc bnc" id="L357" title="All 2 branches missed.">                if (!internalkeybindingSet.contains(caSubjectDn)) {</span>
+                    //Skip CAs already represented by an internal keybinding
+<span class="nc" id="L359">                    ret.add(new SelectItem(caSubjectDn, &quot;CA: &quot; + caInfo.getName()));</span>
+<span class="nc bnc" id="L360" title="All 2 branches missed.">                    if (currentValue.equals(caSubjectDn)) {</span>
+<span class="nc" id="L361">                        currentValueMatched = true;</span>
+                    }
+                }
+            }
+<span class="nc" id="L365">        }</span>
+<span class="nc bnc" id="L366" title="All 4 branches missed.">        if (currentValueMatched == false &amp;&amp; !StringUtils.isEmpty(currentValue)) {</span>
+<span class="nc" id="L367">            ret.add(new SelectItem(currentValue, &quot;Unmatched DN: &quot; + currentValue));</span>
+        }
+
+<span class="nc" id="L370">        return ret;</span>
+    }
+
+    public List&lt;SelectItem&gt; getResponderIdTargets() {
+<span class="nc" id="L374">        List&lt;SelectItem&gt; selectItemList = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L375" title="All 2 branches missed.">        for(ResponderIdType responderIdType : ResponderIdType.values()) {</span>
+<span class="nc" id="L376">            selectItemList.add(new SelectItem(responderIdType, responderIdType.getLabel()));</span>
+        }
+<span class="nc" id="L378">        return selectItemList;</span>
+    }
+
+    public void saveDefaultResponder() {
+<span class="nc" id="L382">        GlobalOcspConfiguration globalConfiguration = (GlobalOcspConfiguration) globalConfigurationSession</span>
+<span class="nc" id="L383">                .getCachedConfiguration(GlobalOcspConfiguration.OCSP_CONFIGURATION_ID);</span>
+<span class="nc bnc" id="L384" title="All 4 branches missed.">        if (StringUtils.isEmpty(defaultResponderTarget) &amp;&amp; StringUtils.isNotEmpty(globalConfiguration.getOcspDefaultResponderReference())) {</span>
+<span class="nc" id="L385">            globalConfiguration.setOcspDefaultResponderReference(&quot;&quot;);</span>
+            try {
+<span class="nc" id="L387">                globalConfigurationSession.saveConfiguration(authenticationToken, globalConfiguration);</span>
+<span class="nc" id="L388">            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L389">                FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));</span>
+<span class="nc" id="L390">            }</span>
+        }
+<span class="nc bnc" id="L392" title="All 2 branches missed.">        else if (!StringUtils.equals(defaultResponderTarget, globalConfiguration.getOcspDefaultResponderReference())) {</span>
+<span class="nc" id="L393">            globalConfiguration.setOcspDefaultResponderReference(defaultResponderTarget);</span>
+            try {
+<span class="nc" id="L395">                globalConfigurationSession.saveConfiguration(authenticationToken, globalConfiguration);</span>
+<span class="nc" id="L396">            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L397">                FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));</span>
+<span class="nc" id="L398">            }</span>
+        }
+<span class="nc" id="L400">    }</span>
+
+    public void saveNonceEnabled() {
+<span class="nc" id="L403">        GlobalOcspConfiguration globalConfiguration = (GlobalOcspConfiguration) globalConfigurationSession</span>
+<span class="nc" id="L404">                .getCachedConfiguration(GlobalOcspConfiguration.OCSP_CONFIGURATION_ID);</span>
+<span class="nc bnc" id="L405" title="All 2 branches missed.">        if (!nonceEnabled.equals(globalConfiguration.getNonceEnabled())) {</span>
+<span class="nc" id="L406">            globalConfiguration.setNonceEnabled(nonceEnabled);</span>
+            try {
+<span class="nc" id="L408">                globalConfigurationSession.saveConfiguration(authenticationToken, globalConfiguration);</span>
+<span class="nc" id="L409">            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L410">                FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));</span>
+<span class="nc" id="L411">            }</span>
+        }
+<span class="nc" id="L413">    }</span>
+
+    public void saveResponderIdType() {
+<span class="nc" id="L416">        GlobalOcspConfiguration globalConfiguration = (GlobalOcspConfiguration) globalConfigurationSession</span>
+<span class="nc" id="L417">                .getCachedConfiguration(GlobalOcspConfiguration.OCSP_CONFIGURATION_ID);</span>
+<span class="nc bnc" id="L418" title="All 2 branches missed.">        if (!responderIdType.equals(globalConfiguration.getOcspResponderIdType())) {</span>
+<span class="nc" id="L419">            globalConfiguration.setOcspResponderIdType(responderIdType);</span>
+            try {
+<span class="nc" id="L421">                globalConfigurationSession.saveConfiguration(authenticationToken, globalConfiguration);</span>
+<span class="nc" id="L422">            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L423">                FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));</span>
+<span class="nc" id="L424">            }</span>
+        }
+<span class="nc" id="L426">    }</span>
+
+    public boolean getGloballyEnableNonce() {
+<span class="nc bnc" id="L429" title="All 2 branches missed.">        if (this.nonceEnabled == null) {</span>
+<span class="nc" id="L430">            GlobalOcspConfiguration configuration = (GlobalOcspConfiguration) globalConfigurationSession</span>
+<span class="nc" id="L431">                    .getCachedConfiguration(GlobalOcspConfiguration.OCSP_CONFIGURATION_ID);</span>
+<span class="nc" id="L432">            this.nonceEnabled = configuration.getNonceEnabled();</span>
+        }
+
+<span class="nc" id="L435">        return this.nonceEnabled;</span>
+    }
+
+    public void setGloballyEnableNonce(boolean nonceEnabled) {
+<span class="nc" id="L439">        this.nonceEnabled = nonceEnabled;</span>
+<span class="nc" id="L440">    }</span>
+
+    public String getDefaultResponderTarget() {
+<span class="nc" id="L443">        GlobalOcspConfiguration configuration = (GlobalOcspConfiguration) globalConfigurationSession.getCachedConfiguration(GlobalOcspConfiguration.OCSP_CONFIGURATION_ID);</span>
+<span class="nc" id="L444">        String reference = configuration.getOcspDefaultResponderReference();</span>
+<span class="nc bnc" id="L445" title="All 2 branches missed.">        if(reference == null) {</span>
+<span class="nc" id="L446">            this.defaultResponderTarget = &quot;&quot;;</span>
+        } else {
+
+<span class="nc" id="L449">            this.defaultResponderTarget = reference;</span>
+        }
+
+<span class="nc" id="L452">        return this.defaultResponderTarget;</span>
+    }
+
+    public void setDefaultResponderTarget(String defaultResponderTarget) {
+<span class="nc" id="L456">        this.defaultResponderTarget = defaultResponderTarget;</span>
+<span class="nc" id="L457">    }</span>
+
+    public OcspKeyBinding.ResponderIdType getResponderIdType() {
+<span class="nc" id="L460">        GlobalOcspConfiguration configuration = (GlobalOcspConfiguration) globalConfigurationSession.getCachedConfiguration(GlobalOcspConfiguration.OCSP_CONFIGURATION_ID);</span>
+<span class="nc" id="L461">        responderIdType = configuration.getOcspResponderIdType();</span>
+<span class="nc" id="L462">        return responderIdType;</span>
+    }
+
+    public void setResponderIdType(final OcspKeyBinding.ResponderIdType responderIdType) {
+<span class="nc" id="L466">        this.responderIdType = responderIdType;</span>
+<span class="nc" id="L467">    }</span>
+
+    /** Invoked when the user is trying to import a new certificate for an InternalKeyBinding */
+    public void uploadToTarget() {
+<span class="nc bnc" id="L471" title="All 2 branches missed.">        if (uploadTarget == null) {</span>
+<span class="nc" id="L472">            FacesContext.getCurrentInstance()</span>
+<span class="nc" id="L473">                    .addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, &quot;No InternalKeyBinding selected.&quot;, null));</span>
+<span class="nc" id="L474">            return;</span>
+        }
+<span class="nc bnc" id="L476" title="All 2 branches missed.">        if (uploadToTargetFile == null) {</span>
+<span class="nc" id="L477">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, &quot;File upload failed.&quot;, null));</span>
+<span class="nc" id="L478">            return;</span>
+        }
+        try {
+<span class="nc" id="L481">            internalKeyBindingSession.importCertificateForInternalKeyBinding(getAdmin(), uploadTarget.intValue(), uploadToTargetFile.getBytes());</span>
+<span class="nc" id="L482">            FacesContext.getCurrentInstance().addMessage(null,</span>
+                    new FacesMessage(FacesMessage.SEVERITY_INFO, &quot;Operation completed without errors.&quot;, null));
+<span class="nc" id="L484">            flushListCaches();</span>
+<span class="nc" id="L485">        } catch (IOException e) {</span>
+<span class="nc" id="L486">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, &quot;Import failed: &quot; + e.getMessage(), null));</span>
+<span class="nc" id="L487">        } catch (CertificateImportException e) {</span>
+<span class="nc" id="L488">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, &quot;Import failed: &quot; + e.getMessage(), null));</span>
+<span class="nc" id="L489">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L490">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, &quot;Import failed: &quot; + e.getMessage(), null));</span>
+<span class="nc" id="L491">        }</span>
+<span class="nc" id="L492">    }</span>
+
+    /** @return list of gui representations for all the InternalKeyBindings of the current type*/
+    public ListDataModel&lt;GuiInfo&gt; getInternalKeyBindingGuiList() {
+<span class="nc bnc" id="L496" title="All 2 branches missed.">        if (internalKeyBindingGuiList == null) {</span>
+            // Get the current type of tokens we operate on
+<span class="nc" id="L498">            final String internalKeyBindingType = getSelectedInternalKeyBindingType();</span>
+<span class="nc" id="L499">            List&lt;GuiInfo&gt; internalKeyBindingList = new LinkedList&lt;&gt;();</span>
+<span class="nc bnc" id="L500" title="All 2 branches missed.">            for (InternalKeyBindingInfo current : internalKeyBindingSession.getInternalKeyBindingInfos(authenticationToken, internalKeyBindingType)) {</span>
+<span class="nc" id="L501">                final int cryptoTokenId = current.getCryptoTokenId();</span>
+<span class="nc" id="L502">                final CryptoTokenInfo cryptoTokenInfo = cryptoTokenManagementSession.getCryptoTokenInfo(cryptoTokenId);</span>
+                final String cryptoTokenName;
+<span class="nc" id="L504">                boolean authorizedToCryptotoken = false;</span>
+<span class="nc" id="L505">                boolean authorizedToGenerateKeys = false;</span>
+<span class="nc" id="L506">                boolean cryptoTokenActive = false;</span>
+<span class="nc bnc" id="L507" title="All 2 branches missed.">                if (cryptoTokenInfo == null) {</span>
+<span class="nc" id="L508">                    cryptoTokenName = &quot;unknown&quot;;</span>
+                } else {
+<span class="nc" id="L510">                    authorizedToCryptotoken = authorizationSession.isAuthorizedNoLogging(authenticationToken, CryptoTokenRules.USE.resource()</span>
+                            + &quot;/&quot; + cryptoTokenId);
+<span class="nc" id="L512">                    authorizedToGenerateKeys = authorizationSession.isAuthorizedNoLogging(authenticationToken, CryptoTokenRules.GENERATE_KEYS.resource()</span>
+                            + &quot;/&quot; + cryptoTokenId);              
+<span class="nc" id="L514">                    cryptoTokenActive = cryptoTokenInfo.isActive();</span>
+<span class="nc" id="L515">                    cryptoTokenName = cryptoTokenInfo.getName();</span>
+                }
+<span class="nc" id="L517">                final String certificateId = current.getCertificateId();</span>
+<span class="nc bnc" id="L518" title="All 2 branches missed.">                final Certificate certificate = certificateId == null ? null : certificateStoreSession.findCertificateByFingerprint(certificateId);</span>
+<span class="nc" id="L519">                String certificateIssuerDn = &quot;&quot;;</span>
+<span class="nc" id="L520">                String certificateSubjectDn = &quot;&quot;;</span>
+<span class="nc" id="L521">                String certificateSerialNumber = &quot;&quot;;</span>
+<span class="nc" id="L522">                String caCertificateIssuerDn = &quot;&quot;;</span>
+<span class="nc" id="L523">                String caCertificateSerialNumber = &quot;&quot;;</span>
+<span class="nc" id="L524">                String certificateInternalCaName = null;</span>
+<span class="nc" id="L525">                int certificateInternalCaId = 0;</span>
+<span class="nc" id="L526">                String status = current.getStatus().name();</span>
+<span class="nc bnc" id="L527" title="All 2 branches missed.">                if (certificate != null) {</span>
+<span class="nc" id="L528">                    certificateSubjectDn = CertTools.getSubjectDN(certificate);</span>
+<span class="nc" id="L529">                    certificateIssuerDn = CertTools.getIssuerDN(certificate);</span>
+<span class="nc" id="L530">                    certificateSerialNumber = CertTools.getSerialNumberAsString(certificate);</span>
+                    try {
+                        // Note that we can do lookups using the .hashCode, but we will use the objects id
+<span class="nc" id="L533">                        final CA ca = caSession.getCANoLog(authenticationToken, certificateIssuerDn.hashCode());</span>
+<span class="nc" id="L534">                        certificateInternalCaName = ca.getName();</span>
+<span class="nc" id="L535">                        certificateInternalCaId = ca.getCAId();</span>
+<span class="nc" id="L536">                        caCertificateIssuerDn = CertTools.getIssuerDN(ca.getCACertificate());</span>
+<span class="nc" id="L537">                        caCertificateSerialNumber = CertTools.getSerialNumberAsString(ca.getCACertificate());</span>
+                        // Check that the current CA certificate is the issuer of the IKB certificate
+<span class="nc" id="L539">                        certificate.verify(ca.getCACertificate().getPublicKey(), BouncyCastleProvider.PROVIDER_NAME);</span>
+<span class="nc" id="L540">                    } catch (AuthorizationDeniedException | InvalidKeyException | CertificateException | NoSuchAlgorithmException |</span>
+                            NoSuchProviderException | SignatureException e) {
+                        // The CA is for the purpose of &quot;internal&quot; renewal not available to this administrator.
+                        // Try to find the issuer (CA) certificate by other means, trying to get it through CA certificate link from the bound certificate
+<span class="nc" id="L544">                        CertificateInfo info = certificateStoreSession.getCertificateInfo(certificateId);</span>
+<span class="nc bnc" id="L545" title="All 2 branches missed.">                        final Certificate cacertificate = info.getCAFingerprint() == null ? null : certificateStoreSession</span>
+<span class="nc" id="L546">                                .findCertificateByFingerprint(info.getCAFingerprint());</span>
+<span class="nc bnc" id="L547" title="All 2 branches missed.">                        if (cacertificate != null) {</span>
+<span class="nc" id="L548">                            caCertificateIssuerDn = CertTools.getIssuerDN(cacertificate);</span>
+<span class="nc" id="L549">                            caCertificateSerialNumber = CertTools.getSerialNumberAsString(cacertificate);</span>
+                        }
+<span class="nc" id="L551">                    }</span>
+                    // Check for additional informative UI states
+<span class="nc bnc" id="L553" title="All 2 branches missed.">                    if (InternalKeyBindingStatus.ACTIVE.equals(current.getStatus())) {</span>
+                        // Check if certificate is expired
+<span class="nc bnc" id="L555" title="All 2 branches missed.">                        if (certificate instanceof X509Certificate) {</span>
+<span class="nc" id="L556">                            final X509Certificate x509Certificate = (X509Certificate) certificate;</span>
+                            try {
+<span class="nc" id="L558">                                x509Certificate.checkValidity();</span>
+                                // Check if certificate is revoked
+<span class="nc bnc" id="L560" title="All 2 branches missed.">                                if (certificateStoreSession.isRevoked(certificateIssuerDn, x509Certificate.getSerialNumber())) {</span>
+<span class="nc" id="L561">                                    status = &quot;REVOKED&quot;;</span>
+                                }
+<span class="nc" id="L563">                            } catch (CertificateExpiredException e) {</span>
+<span class="nc" id="L564">                                status = &quot;EXPIRED&quot;;</span>
+<span class="nc" id="L565">                            } catch (CertificateNotYetValidException e) {</span>
+<span class="nc" id="L566">                                status = &quot;NOTYETVALID&quot;;</span>
+<span class="nc" id="L567">                            }</span>
+                        }
+                    }
+                }
+<span class="nc" id="L571">                internalKeyBindingList.add(new GuiInfo(current.getId(), current.getName(), cryptoTokenId, cryptoTokenName, authorizedToCryptotoken, authorizedToGenerateKeys,</span>
+<span class="nc" id="L572">                        cryptoTokenActive, current.getKeyPairAlias(), current.getNextKeyPairAlias(), status, updateOperationalStatus(current, cryptoTokenInfo),</span>
+<span class="nc" id="L573">                        current.getCertificateId(), certificateIssuerDn, certificateSubjectDn, certificateInternalCaName, certificateInternalCaId,</span>
+                        certificateSerialNumber, caCertificateIssuerDn, caCertificateSerialNumber));
+<span class="nc" id="L575">                Collections.sort(internalKeyBindingList, new Comparator&lt;GuiInfo&gt;() {</span>
+                    @Override
+                    public int compare(final GuiInfo guiInfo1, final GuiInfo guiInfo2) {
+<span class="nc" id="L578">                        return guiInfo1.getName().compareToIgnoreCase(guiInfo2.getName());</span>
+                    }
+                });
+<span class="nc" id="L581">            }</span>
+<span class="nc" id="L582">            internalKeyBindingGuiList = new ListDataModel&lt;&gt;(internalKeyBindingList);</span>
+        }
+        // View the list will purge the view cache
+<span class="nc" id="L585">        flushSingleViewCache();</span>
+<span class="nc" id="L586">        return internalKeyBindingGuiList;</span>
+    }
+
+    /** Invoked when the user wants to renew a the InternalKeyBinding certificates issued by a instance local CA */
+    public void commandRenewCertificate() {
+        try {
+<span class="nc" id="L592">            final GuiInfo guiInfo = internalKeyBindingGuiList.getRowData();</span>
+<span class="nc" id="L593">            final int internalKeyBindingId = guiInfo.getInternalKeyBindingId();</span>
+            // Find username and current data for this user
+<span class="nc" id="L595">            final InternalKeyBindingInfo internalKeyBindingInfo = internalKeyBindingSession.getInternalKeyBindingInfo(authenticationToken,</span>
+                    internalKeyBindingId);
+<span class="nc" id="L597">            final String currentCertificateId = internalKeyBindingInfo.getCertificateId();</span>
+<span class="nc bnc" id="L598" title="All 2 branches missed.">            if (currentCertificateId == null) {</span>
+<span class="nc" id="L599">                throw new CertificateImportException(&quot;Can only renew certificate when there already is one.&quot;);</span>
+            }
+<span class="nc" id="L601">            final String endEntityId = certificateStoreSession.findUsernameByFingerprint(currentCertificateId);</span>
+<span class="nc bnc" id="L602" title="All 2 branches missed.">            if (endEntityId == null) {</span>
+<span class="nc" id="L603">                throw new CertificateImportException(&quot;Cannot renew certificate without an existing end entity.&quot;);</span>
+            }
+            // Re-use the end entity's information with the current &quot;next&quot; public key to request a certificate
+<span class="nc" id="L606">            final EndEntityInformation endEntityInformation = endEntityAccessSessionSession.findUser(authenticationToken, endEntityId);</span>
+<span class="nc bnc" id="L607" title="All 2 branches missed.">            if (endEntityInformation != null) {</span>
+<span class="nc" id="L608">                final IPasswordGenerator passwordGenerator = PasswordGeneratorFactory.getInstance(PasswordGeneratorFactory.PASSWORDTYPE_ALLPRINTABLE);</span>
+<span class="nc" id="L609">                endEntityInformation.setPassword(passwordGenerator.getNewPassword(12, 12));</span>
+            }
+<span class="nc" id="L611">            final String certificateId = internalKeyBindingSession.renewInternallyIssuedCertificate(authenticationToken, internalKeyBindingId,</span>
+                    endEntityInformation);
+<span class="nc" id="L613">            FacesContext.getCurrentInstance().addMessage(null,</span>
+                    new FacesMessage(&quot;New certificate with fingerprint &quot; + certificateId + &quot; has been issued.&quot;));
+<span class="nc" id="L615">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L616">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));</span>
+<span class="nc" id="L617">        } catch (CertificateImportException e) {</span>
+<span class="nc" id="L618">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));</span>
+<span class="nc" id="L619">        } catch (CryptoTokenOfflineException e) {</span>
+<span class="nc" id="L620">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));</span>
+<span class="nc" id="L621">        }</span>
+<span class="nc" id="L622">        flushListCaches();</span>
+<span class="nc" id="L623">    }</span>
+
+    /** Invoked when the user wants to search the database for new certificates matching an InternalKeyBinding key pair */
+    public void commandReloadCertificate() {
+        try {
+<span class="nc" id="L628">            final GuiInfo guiInfo = internalKeyBindingGuiList.getRowData();</span>
+<span class="nc" id="L629">            final int internalKeyBindingId = guiInfo.getInternalKeyBindingId();</span>
+<span class="nc" id="L630">            final String certificateId = internalKeyBindingSession.updateCertificateForInternalKeyBinding(authenticationToken, internalKeyBindingId);</span>
+<span class="nc bnc" id="L631" title="All 2 branches missed.">            if (certificateId == null) {</span>
+<span class="nc" id="L632">                FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(&quot;No new certificate for &quot; + guiInfo.getName() + &quot;.&quot;));</span>
+            } else {
+<span class="nc" id="L634">                FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(&quot;New certificate found for &quot; + guiInfo.getName() + &quot;.&quot;));</span>
+            }
+<span class="nc" id="L636">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L637">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));</span>
+<span class="nc" id="L638">        } catch (CertificateImportException e) {</span>
+<span class="nc" id="L639">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));</span>
+<span class="nc" id="L640">        }</span>
+<span class="nc" id="L641">        flushListCaches();</span>
+<span class="nc" id="L642">    }</span>
+
+    /** Invoked when the user wants to generate a nextKeyPair for an InternalKeyBinding */
+    public void commandGenerateNewKey() {
+        try {
+<span class="nc" id="L647">            final GuiInfo guiInfo = internalKeyBindingGuiList.getRowData();</span>
+<span class="nc" id="L648">            final int internalKeyBindingId = guiInfo.getInternalKeyBindingId();</span>
+<span class="nc" id="L649">            final String nextKeyPairAlias = internalKeyBindingSession.generateNextKeyPair(authenticationToken, internalKeyBindingId);</span>
+<span class="nc" id="L650">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(&quot;Generated next key with alias &quot; + nextKeyPairAlias + &quot;.&quot;));</span>
+<span class="nc" id="L651">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L652">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));</span>
+<span class="nc" id="L653">        } catch (CryptoTokenOfflineException e) {</span>
+<span class="nc" id="L654">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));</span>
+<span class="nc" id="L655">        } catch (InvalidKeyException e) {</span>
+<span class="nc" id="L656">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));</span>
+<span class="nc" id="L657">        } catch (InvalidAlgorithmParameterException e) {</span>
+<span class="nc" id="L658">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));</span>
+<span class="nc" id="L659">        }</span>
+<span class="nc" id="L660">        flushListCaches();</span>
+<span class="nc" id="L661">    }</span>
+
+    /** Invoked when the user wants to get a CSR for the current or next KeyPair for an InternalKeyBinding */
+    public void commandGenerateRequest() {
+        try {
+<span class="nc" id="L666">            final GuiInfo guiInfo = internalKeyBindingGuiList.getRowData();</span>
+<span class="nc" id="L667">            final int internalKeyBindingId = guiInfo.getInternalKeyBindingId();</span>
+<span class="nc" id="L668">            final byte[] pkcs10 = internalKeyBindingSession.generateCsrForNextKey(authenticationToken, internalKeyBindingId, null);</span>
+<span class="nc" id="L669">            final byte[] pemEncodedPkcs10 = CertTools.getPEMFromCertificateRequest(pkcs10);</span>
+<span class="nc" id="L670">            final HttpServletResponse response = (HttpServletResponse) FacesContext.getCurrentInstance().getExternalContext().getResponse();</span>
+<span class="nc" id="L671">            final OutputStream outputStream = response.getOutputStream();</span>
+<span class="nc" id="L672">            response.setContentType(&quot;application/octet-stream&quot;);</span>
+<span class="nc" id="L673">            response.addHeader(&quot;Content-Disposition&quot;, &quot;attachment; filename=\&quot;&quot; + guiInfo.getName() + &quot;.pkcs10.pem&quot; + &quot;\&quot;&quot;);</span>
+<span class="nc" id="L674">            outputStream.flush();</span>
+<span class="nc" id="L675">            outputStream.write(pemEncodedPkcs10);</span>
+<span class="nc" id="L676">            outputStream.close();</span>
+<span class="nc" id="L677">            FacesContext.getCurrentInstance().responseComplete();</span>
+<span class="nc" id="L678">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L679">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));</span>
+<span class="nc" id="L680">        } catch (CryptoTokenOfflineException e) {</span>
+<span class="nc" id="L681">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));</span>
+<span class="nc" id="L682">        } catch (IOException e) {</span>
+<span class="nc" id="L683">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));</span>
+<span class="nc" id="L684">        }</span>
+<span class="nc" id="L685">    }</span>
+
+    /** Invoked when the user wants to disable an InternalKeyBinding */
+    public void commandDisable() {
+<span class="nc" id="L689">        changeStatus(internalKeyBindingGuiList.getRowData().getInternalKeyBindingId(), InternalKeyBindingStatus.DISABLED);</span>
+<span class="nc" id="L690">        flushListCaches();</span>
+<span class="nc" id="L691">        ocspResponseGeneratorSession.reloadOcspSigningCache(); // Force a reload of OcspSigningCache to make disable take effect immediately.</span>
+<span class="nc" id="L692">    }</span>
+
+    /** Invoked when the user wants to enable an InternalKeyBinding */
+    public void commandEnable() {
+<span class="nc" id="L696">        changeStatus(internalKeyBindingGuiList.getRowData().getInternalKeyBindingId(), InternalKeyBindingStatus.ACTIVE);</span>
+<span class="nc" id="L697">        flushListCaches();</span>
+<span class="nc" id="L698">    }</span>
+
+    private void changeStatus(final int internalKeyBindingId, final InternalKeyBindingStatus internalKeyBindingStatus) {
+        try {
+<span class="nc" id="L702">            final InternalKeyBinding internalKeyBinding = internalKeyBindingSession.getInternalKeyBinding(authenticationToken, internalKeyBindingId);</span>
+<span class="nc bnc" id="L703" title="All 4 branches missed.">            if (internalKeyBinding.getCertificateId() == null &amp;&amp; internalKeyBindingStatus.equals(InternalKeyBindingStatus.ACTIVE)) {</span>
+<span class="nc" id="L704">                FacesContext.getCurrentInstance().addMessage(null,</span>
+                        new FacesMessage(FacesMessage.SEVERITY_ERROR, &quot;Cannot activate InternalKeyBinding that has no certificate.&quot;, null));
+            } else {
+<span class="nc" id="L707">                internalKeyBinding.setStatus(internalKeyBindingStatus);</span>
+<span class="nc" id="L708">                internalKeyBindingSession.persistInternalKeyBinding(authenticationToken, internalKeyBinding);</span>
+<span class="nc" id="L709">                FacesContext.getCurrentInstance().addMessage(null,</span>
+<span class="nc" id="L710">                        new FacesMessage(internalKeyBinding.getName() + &quot; status is now &quot; + internalKeyBindingStatus.name()));</span>
+            }
+<span class="nc" id="L712">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L713">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));</span>
+<span class="nc" id="L714">        } catch (InternalKeyBindingNameInUseException e) {</span>
+<span class="nc" id="L715">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));</span>
+<span class="nc" id="L716">        }</span>
+<span class="nc" id="L717">        flushListCaches();</span>
+<span class="nc" id="L718">    }</span>
+
+    /** Invoked when the user wants to remove an InternalKeyBinding */
+    public void commandDelete() {
+        try {
+<span class="nc" id="L723">            final GuiInfo guiInfo = internalKeyBindingGuiList.getRowData();</span>
+<span class="nc bnc" id="L724" title="All 2 branches missed.">            if (internalKeyBindingSession.deleteInternalKeyBinding(authenticationToken, guiInfo.getInternalKeyBindingId())) {</span>
+<span class="nc" id="L725">                FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(guiInfo.getName() + &quot; deleted.&quot;));</span>
+            } else {
+<span class="nc" id="L727">                FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(guiInfo.getName() + &quot; had already been deleted.&quot;));</span>
+            }
+<span class="nc" id="L729">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L730">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));</span>
+<span class="nc" id="L731">        }</span>
+<span class="nc" id="L732">        flushListCaches();</span>
+<span class="nc" id="L733">    }</span>
+
+    //
+    // Below is code related to editing/viewing a specific InternalKeyBinding
+    //
+
+<span class="nc" id="L739">    private String currentInternalKeyBindingId = null;</span>
+<span class="nc" id="L740">    private String currentName = null;</span>
+<span class="nc" id="L741">    private Integer currentCryptoToken = null;</span>
+<span class="nc" id="L742">    private String currentKeyPairAlias = null;</span>
+<span class="nc" id="L743">    private String currentSignatureAlgorithm = null;</span>
+<span class="nc" id="L744">    private String currentNextKeyPairAlias = null;</span>
+<span class="nc" id="L745">    private ListDataModel&lt;DynamicUiProperty&lt;? extends Serializable&gt;&gt; internalKeyBindingPropertyList = null;</span>
+<span class="nc" id="L746">    private boolean inEditMode = false;</span>
+<span class="nc" id="L747">    private Integer currentCertificateAuthority = null;</span>
+<span class="nc" id="L748">    private String currentCertificateSerialNumber = null;</span>
+<span class="nc" id="L749">    private String currentTrustEntryDescription  = null;</span>
+<span class="nc" id="L750">    private String currentOcspExtension = null;</span>
+<span class="nc" id="L751">    private ListDataModel&lt;InternalKeyBindingTrustEntry&gt;trustedCertificates = null;</span>
+<span class="nc" id="L752">    private ListDataModel&lt;String&gt; ocspExtensions = null;</span>
+<span class="nc" id="L753">    private Map&lt;String, String&gt; ocspExtensionOidNameMap = new HashMap&lt;&gt;();</span>
+
+    public Integer getCurrentCertificateAuthority() {
+<span class="nc" id="L756">        return currentCertificateAuthority;</span>
+    }
+
+    public void setCurrentCertificateAuthority(Integer currentCertificateAuthority) {
+<span class="nc" id="L760">        this.currentCertificateAuthority = currentCertificateAuthority;</span>
+<span class="nc" id="L761">    }</span>
+
+    public String getCurrentOcspExtension() {
+<span class="nc" id="L764">        return currentOcspExtension;</span>
+    }
+
+    public void setCurrentOcspExtension(String currentOcspExtension) {
+<span class="nc" id="L768">        this.currentOcspExtension = currentOcspExtension;</span>
+<span class="nc" id="L769">    }</span>
+
+    private void flushSingleViewCache() {
+<span class="nc" id="L772">        currentInternalKeyBindingId = null;</span>
+<span class="nc" id="L773">        currentName = null;</span>
+<span class="nc" id="L774">        currentCryptoToken = null;</span>
+<span class="nc" id="L775">        currentKeyPairAlias = null;</span>
+<span class="nc" id="L776">        currentSignatureAlgorithm = null;</span>
+<span class="nc" id="L777">        currentNextKeyPairAlias = null;</span>
+<span class="nc" id="L778">        internalKeyBindingPropertyList = null;</span>
+<span class="nc" id="L779">        trustedCertificates = null;</span>
+<span class="nc" id="L780">        inEditMode = false;</span>
+<span class="nc" id="L781">    }</span>
+
+    /** @return the current InternalKeyBindingId as a String */
+    public String getCurrentInternalKeyBindingId() {
+<span class="nc" id="L785">        final String idHttpParam = ((HttpServletRequest) FacesContext.getCurrentInstance().getExternalContext().getRequest())</span>
+<span class="nc" id="L786">                .getParameter(&quot;internalKeyBindingId&quot;);</span>
+<span class="nc" id="L787">        boolean changed = false;</span>
+        // First, check if the user has requested a valid type
+<span class="nc bnc" id="L789" title="All 4 branches missed.">        if (idHttpParam != null &amp;&amp; isInteger(idHttpParam)) {</span>
+            // The requested type is an existing type. Check if this is a change from the current value.
+<span class="nc bnc" id="L791" title="All 2 branches missed.">            if (!idHttpParam.equals(currentInternalKeyBindingId)) {</span>
+                // Flush caches so we reload the page content
+<span class="nc" id="L793">                changed = true;</span>
+            }
+<span class="nc" id="L795">            currentInternalKeyBindingId = idHttpParam;</span>
+        }
+<span class="nc bnc" id="L797" title="All 2 branches missed.">        if (currentInternalKeyBindingId == null) {</span>
+            // If no valid id was requested, we assume that a new one should be created
+<span class="nc" id="L799">            currentInternalKeyBindingId = &quot;0&quot;;</span>
+<span class="nc" id="L800">            changed = true;</span>
+        }
+<span class="nc bnc" id="L802" title="All 2 branches missed.">        if (changed) {</span>
+<span class="nc bnc" id="L803" title="All 2 branches missed.">            if (&quot;0&quot;.equals(currentInternalKeyBindingId)) {</span>
+<span class="nc" id="L804">                switchToEdit();</span>
+            }
+<span class="nc" id="L806">            flushCurrentCache();</span>
+        }
+<span class="nc" id="L808">        return currentInternalKeyBindingId;</span>
+    }
+
+    private boolean isInteger(final String input) {
+        try {
+<span class="nc" id="L813">            Integer.parseInt(input);</span>
+<span class="nc" id="L814">        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L815">            return false;</span>
+<span class="nc" id="L816">        }</span>
+<span class="nc" id="L817">        return true;</span>
+    }
+
+    private void flushCurrentCache() {
+<span class="nc bnc" id="L821" title="All 2 branches missed.">        if (&quot;0&quot;.equals(currentInternalKeyBindingId)) {</span>
+            // Show defaults for a new object
+<span class="nc" id="L823">            currentName = &quot;&quot;;</span>
+<span class="nc" id="L824">            getAvailableCryptoTokens();</span>
+<span class="nc" id="L825">            getAvailableKeyPairAliases();</span>
+<span class="nc" id="L826">            getAvailableSignatureAlgorithms();</span>
+<span class="nc" id="L827">            internalKeyBindingPropertyList = new ListDataModel&lt;&gt;(new ArrayList&lt;&gt;(internalKeyBindingSession.getAvailableTypesAndProperties()</span>
+<span class="nc" id="L828">                    .get(getSelectedInternalKeyBindingType()).values()));</span>
+        } else {
+            // Load existing
+<span class="nc" id="L831">            final int internalKeyBindingId = Integer.parseInt(currentInternalKeyBindingId);</span>
+            final InternalKeyBinding internalKeyBinding;
+            try {
+<span class="nc" id="L834">                internalKeyBinding = internalKeyBindingSession.getInternalKeyBindingReference(authenticationToken, internalKeyBindingId);</span>
+<span class="nc" id="L835">            } catch (AuthorizationDeniedException e) {</span>
+                // No longer authorized to this token, or the user tried to pull a fast one
+<span class="nc" id="L837">                FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(e.getMessage()));</span>
+<span class="nc" id="L838">                return;</span>
+<span class="nc" id="L839">            }</span>
+<span class="nc" id="L840">            currentName = internalKeyBinding.getName();</span>
+<span class="nc" id="L841">            currentCryptoToken = internalKeyBinding.getCryptoTokenId();</span>
+<span class="nc" id="L842">            currentKeyPairAlias = internalKeyBinding.getKeyPairAlias();</span>
+<span class="nc" id="L843">            currentSignatureAlgorithm = internalKeyBinding.getSignatureAlgorithm();</span>
+<span class="nc" id="L844">            currentNextKeyPairAlias = internalKeyBinding.getNextKeyPairAlias();</span>
+<span class="nc" id="L845">            internalKeyBindingPropertyList = new ListDataModel&lt;&gt;(new ArrayList&lt;&gt;(internalKeyBinding.getCopyOfProperties().values()));</span>
+<span class="nc" id="L846">            trustedCertificates = null;</span>
+        }
+<span class="nc" id="L848">    }</span>
+
+
+    /** @return true for any InternalKeyBinding where the user is authorized to edit */
+    public boolean isSwitchToEditAllowed() {
+<span class="nc bnc" id="L853" title="All 2 branches missed.">        return !inEditMode</span>
+<span class="nc bnc" id="L854" title="All 2 branches missed.">                &amp;&amp; isAllowedToEdit();</span>
+    }
+
+    public boolean isAllowedToEdit() {
+<span class="nc" id="L858">        return authorizationSession.isAuthorizedNoLogging(authenticationToken, InternalKeyBindingRules.MODIFY.resource() + &quot;/&quot;</span>
+<span class="nc" id="L859">                + getCurrentInternalKeyBindingId());</span>
+    }
+
+    public boolean isForbiddenToEdit() {
+<span class="nc bnc" id="L863" title="All 2 branches missed.">        return !isAllowedToEdit();</span>
+    }
+
+    /** @return true for any InternalKeyBinding except new id=&quot;0&quot; */
+    public boolean isSwitchToViewAllowed() {
+<span class="nc bnc" id="L868" title="All 4 branches missed.">        return inEditMode &amp;&amp; !&quot;0&quot;.equals(getCurrentInternalKeyBindingId());</span>
+    }
+
+    /** @return true if we are currently in edit mode */
+    public boolean isInEditMode() {
+<span class="nc" id="L873">        return inEditMode;</span>
+    }
+
+    /** @return true if loaded InternalKeyBinding's referenced CryptoToken exists and is active */
+    public boolean isCryptoTokenActive() {
+        final boolean ret;
+<span class="nc bnc" id="L879" title="All 2 branches missed.">        if (currentCryptoToken != null) {</span>
+<span class="nc" id="L880">            final CryptoTokenInfo cryptoTokenInfo = cryptoTokenManagementSession.getCryptoTokenInfo(currentCryptoToken);</span>
+<span class="nc bnc" id="L881" title="All 4 branches missed.">            ret = (cryptoTokenInfo != null &amp;&amp; cryptoTokenInfo.isActive());</span>
+<span class="nc" id="L882">        } else {</span>
+<span class="nc" id="L883">            ret = false;</span>
+        }
+<span class="nc" id="L885">        return ret;</span>
+    }
+
+    public boolean isBoundToCertificate() {
+<span class="nc bnc" id="L889" title="All 4 branches missed.">        return !&quot;0&quot;.equals(getCurrentInternalKeyBindingId()) &amp;&amp; getBoundCertificateId() != null;</span>
+    }
+
+<span class="nc" id="L892">    private String boundCertificateId = null;</span>
+<span class="nc" id="L893">    private String boundCertificateIssuerDn = &quot;&quot;;</span>
+<span class="nc" id="L894">    private String boundCertificateSerialNumber = &quot;&quot;;</span>
+<span class="nc" id="L895">    private String boundCaCertificateIssuerDn = &quot;&quot;;</span>
+<span class="nc" id="L896">    private String boundCaCertificateSerialNumber = &quot;&quot;;</span>
+<span class="nc" id="L897">    private String boundCertificateInternalCaName = null;</span>
+<span class="nc" id="L898">    private String boundCertificateInternalCaId = null;</span>
+
+    public String getBoundCertificateId() {
+<span class="nc" id="L901">        loadCurrentCertificate();</span>
+<span class="nc" id="L902">        return boundCertificateId;</span>
+    }
+
+    public String getBoundCertificateIssuerDn() {
+<span class="nc" id="L906">        loadCurrentCertificate();</span>
+<span class="nc" id="L907">        return boundCertificateIssuerDn;</span>
+    }
+
+    public String getBoundCertificateSerialNumber() {
+<span class="nc" id="L911">        loadCurrentCertificate();</span>
+<span class="nc" id="L912">        return boundCertificateSerialNumber;</span>
+    }
+
+    public String getBoundCaCertificateIssuerDn() {
+<span class="nc" id="L916">        loadCurrentCertificate();</span>
+<span class="nc" id="L917">        return boundCaCertificateIssuerDn;</span>
+    }
+
+    public String getBoundCaCertificateSerialNumber() {
+<span class="nc" id="L921">        loadCurrentCertificate();</span>
+<span class="nc" id="L922">        return boundCaCertificateSerialNumber;</span>
+    }
+
+    public String getBoundCertificateInternalCaName() {
+<span class="nc" id="L926">        loadCurrentCertificate();</span>
+<span class="nc" id="L927">        return boundCertificateInternalCaName;</span>
+    }
+
+    public String getBoundCertificateInternalCaId() {
+<span class="nc" id="L931">        loadCurrentCertificate();</span>
+<span class="nc" id="L932">        return boundCertificateInternalCaId;</span>
+    }
+
+    private void loadCurrentCertificate() {
+<span class="nc" id="L936">        final int internalKeyBindingId = Integer.parseInt(getCurrentInternalKeyBindingId());</span>
+        InternalKeyBinding internalKeyBindingInfo;
+        try {
+<span class="nc" id="L939">            internalKeyBindingInfo = internalKeyBindingSession.getInternalKeyBindingInfoNoLog(authenticationToken, internalKeyBindingId);</span>
+<span class="nc" id="L940">        } catch (AuthorizationDeniedException e) {</span>
+            // Silently ignore that the admin has tried to access a token that he/she was not authorized to.
+<span class="nc" id="L942">            return;</span>
+<span class="nc" id="L943">        }</span>
+<span class="nc bnc" id="L944" title="All 4 branches missed.">        if (internalKeyBindingInfo.getCertificateId() != null &amp;&amp; !internalKeyBindingInfo.getCertificateId().equals(boundCertificateId)) {</span>
+<span class="nc" id="L945">            boundCertificateId = internalKeyBindingInfo.getCertificateId();</span>
+<span class="nc bnc" id="L946" title="All 2 branches missed.">            final Certificate certificate = boundCertificateId == null ? null : certificateStoreSession</span>
+<span class="nc" id="L947">                    .findCertificateByFingerprint(boundCertificateId);</span>
+<span class="nc" id="L948">            int certificateInternalCaId = boundCertificateIssuerDn.hashCode();</span>
+<span class="nc bnc" id="L949" title="All 2 branches missed.">            if (certificate != null) {</span>
+<span class="nc" id="L950">                boundCertificateIssuerDn = CertTools.getIssuerDN(certificate);</span>
+<span class="nc" id="L951">                boundCertificateSerialNumber = CertTools.getSerialNumberAsString(certificate);</span>
+                try {
+                    // Note that we can do lookups using the .hashCode, but we will use the objects id
+<span class="nc" id="L954">                    final CA ca = caSession.getCANoLog(authenticationToken, boundCertificateIssuerDn.hashCode());</span>
+<span class="nc" id="L955">                    boundCertificateInternalCaName = ca.getName();</span>
+<span class="nc" id="L956">                    certificateInternalCaId = ca.getCAId();</span>
+<span class="nc" id="L957">                    boundCaCertificateIssuerDn = CertTools.getIssuerDN(ca.getCACertificate());</span>
+<span class="nc" id="L958">                    boundCaCertificateSerialNumber = CertTools.getSerialNumberAsString(ca.getCACertificate());</span>
+<span class="nc" id="L959">                } catch (Exception e) {</span>
+                    // CADoesntExistsException or AuthorizationDeniedException
+                    // The CA is for the purpose of &quot;internal&quot; renewal not available to this administrator.
+                    // Try to find the issuer (CA) certificate by other means, trying to get it through CA certificate link from the bound certificate
+<span class="nc" id="L963">                    CertificateInfo info = certificateStoreSession.getCertificateInfo(boundCertificateId);</span>
+<span class="nc bnc" id="L964" title="All 2 branches missed.">                    final Certificate cacertificate = info.getCAFingerprint() == null ? null : certificateStoreSession</span>
+<span class="nc" id="L965">                            .findCertificateByFingerprint(info.getCAFingerprint());</span>
+<span class="nc" id="L966">                    boundCaCertificateIssuerDn = CertTools.getIssuerDN(cacertificate);</span>
+<span class="nc" id="L967">                    boundCaCertificateSerialNumber = CertTools.getSerialNumberAsString(cacertificate);</span>
+<span class="nc" id="L968">                }</span>
+            }
+<span class="nc" id="L970">            this.boundCertificateInternalCaId = Integer.valueOf(certificateInternalCaId).toString();</span>
+        }
+<span class="nc" id="L972">    }</span>
+
+    /**
+     * Switched to edit mode. Will fail silently if prohibited.
+     */
+    public void switchToEdit() {
+<span class="nc bnc" id="L978" title="All 2 branches missed.">        if (isSwitchToEditAllowed()) {</span>
+<span class="nc" id="L979">            inEditMode = true;</span>
+        }
+<span class="nc" id="L981">    }</span>
+
+    public void switchToView() {
+<span class="nc" id="L984">        inEditMode = false;</span>
+<span class="nc" id="L985">        flushCurrentCache();</span>
+<span class="nc" id="L986">    }</span>
+
+    /** @return true if there is yet no assigned InternalKeyBindingId ('0') */
+    public boolean isCreatingNew() {
+<span class="nc" id="L990">        return &quot;0&quot;.equals(getCurrentInternalKeyBindingId());</span>
+    }
+
+    public Integer getCurrentCryptoToken() {
+<span class="nc" id="L994">        return currentCryptoToken;</span>
+    }
+
+    public void setCurrentCryptoToken(Integer currentCryptoToken) {
+<span class="nc bnc" id="L998" title="All 4 branches missed.">        if (currentCryptoToken != null &amp;&amp; !currentCryptoToken.equals(this.currentCryptoToken)) {</span>
+            // Clear if we change CryptoToken
+<span class="nc" id="L1000">            currentKeyPairAlias = null;</span>
+<span class="nc" id="L1001">            currentSignatureAlgorithm = null;</span>
+<span class="nc" id="L1002">            currentNextKeyPairAlias = null;</span>
+        }
+<span class="nc" id="L1004">        this.currentCryptoToken = currentCryptoToken;</span>
+<span class="nc" id="L1005">    }</span>
+
+    public String getCurrentCryptoTokenName() {
+<span class="nc bnc" id="L1008" title="All 2 branches missed.">        if (currentCryptoToken == null) {</span>
+<span class="nc" id="L1009">            final List&lt;SelectItem&gt; availableCryptoTokens = getAvailableCryptoTokens();</span>
+<span class="nc bnc" id="L1010" title="All 2 branches missed.">            if (availableCryptoTokens.isEmpty()) {</span>
+<span class="nc" id="L1011">                return null;</span>
+            } else {
+<span class="nc" id="L1013">                currentCryptoToken = (Integer) availableCryptoTokens.get(0).getValue();</span>
+            }
+        }
+<span class="nc" id="L1016">        CryptoTokenInfo info = cryptoTokenManagementSession.getCryptoTokenInfo(currentCryptoToken.intValue());</span>
+<span class="nc bnc" id="L1017" title="All 2 branches missed.">        return info != null ? info.getName() : null;</span>
+    }
+
+    public String getCurrentName() {
+<span class="nc" id="L1021">        return currentName;</span>
+    }
+
+    public void setCurrentName(String currentName) {
+<span class="nc" id="L1025">        this.currentName = currentName;</span>
+<span class="nc" id="L1026">    }</span>
+
+    public String getCurrentKeyPairAlias() {
+<span class="nc" id="L1029">        return currentKeyPairAlias;</span>
+    }
+
+    public void setCurrentKeyPairAlias(String currentKeyPairAlias) {
+<span class="nc bnc" id="L1033" title="All 4 branches missed.">        if (currentKeyPairAlias != null &amp;&amp; !currentKeyPairAlias.equals(this.currentKeyPairAlias)) {</span>
+            // Clear if we change CryptoToken
+<span class="nc" id="L1035">            currentSignatureAlgorithm = null;</span>
+        }
+<span class="nc" id="L1037">        this.currentKeyPairAlias = currentKeyPairAlias;</span>
+<span class="nc" id="L1038">    }</span>
+
+    public String getCurrentSignatureAlgorithm() {
+<span class="nc" id="L1041">        return currentSignatureAlgorithm;</span>
+    }
+
+    public void setCurrentSignatureAlgorithm(String currentSignatureAlgorithm) {
+<span class="nc" id="L1045">        this.currentSignatureAlgorithm = currentSignatureAlgorithm;</span>
+<span class="nc" id="L1046">    }</span>
+
+    public String getCurrentNextKeyPairAlias() {
+<span class="nc" id="L1049">        return currentNextKeyPairAlias;</span>
+    }
+
+    public void setCurrentNextKeyPairAlias(String currentNextKeyPairAlias) {
+<span class="nc" id="L1053">        this.currentNextKeyPairAlias = currentNextKeyPairAlias;</span>
+<span class="nc" id="L1054">    }</span>
+
+    public List&lt;SelectItem/*&lt;Integer,String&gt;*/&gt; getAvailableCryptoTokens() {
+<span class="nc" id="L1057">        final List&lt;SelectItem&gt; availableCryptoTokens = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L1058" title="All 2 branches missed.">        for (CryptoTokenInfo current : cryptoTokenManagementSession.getCryptoTokenInfos(authenticationToken)) {</span>
+<span class="nc bnc" id="L1059" title="All 2 branches missed.">            if (current.isActive()</span>
+<span class="nc bnc" id="L1060" title="All 2 branches missed.">                    &amp;&amp; authorizationSession.isAuthorizedNoLogging(authenticationToken,</span>
+<span class="nc" id="L1061">                            CryptoTokenRules.USE.resource() + &quot;/&quot; + current.getCryptoTokenId())) {</span>
+<span class="nc" id="L1062">                availableCryptoTokens.add(new SelectItem(current.getCryptoTokenId(), current.getName()));</span>
+            }
+<span class="nc" id="L1064">        }</span>
+<span class="nc bnc" id="L1065" title="All 4 branches missed.">        if (!availableCryptoTokens.isEmpty() &amp;&amp; currentCryptoToken == null) {</span>
+<span class="nc" id="L1066">            currentCryptoToken = (Integer) availableCryptoTokens.get(0).getValue();</span>
+        }
+<span class="nc" id="L1068">        Collections.sort(availableCryptoTokens, new Comparator&lt;SelectItem&gt;() {</span>
+            @Override
+            public int compare(SelectItem o1, SelectItem o2) {
+
+<span class="nc" id="L1072">                return o1.getLabel().compareToIgnoreCase(o2.getLabel());</span>
+            }
+        });
+<span class="nc" id="L1075">        return availableCryptoTokens;</span>
+    }
+
+    /** Invoked when a CryptoToken has been selected and the &quot;Update Next&quot; button is clicked (or clicked by a JavaScript) */
+    public void reloadCryptoToken() {
+<span class="nc" id="L1080">        List&lt;SelectItem&gt; keyPairs = getAvailableKeyPairAliases();</span>
+        // Only try to set keys if there are any...
+<span class="nc bnc" id="L1082" title="All 4 branches missed.">        if ((keyPairs != null) &amp;&amp; (keyPairs.size() &gt; 0)) {</span>
+<span class="nc" id="L1083">            setCurrentKeyPairAlias((String) keyPairs.get(0).getValue());</span>
+            // No need to try to find signature algorithms if there are no keys
+<span class="nc bnc" id="L1085" title="All 2 branches missed.">            if (!getAvailableSignatureAlgorithms().isEmpty()) {</span>
+<span class="nc" id="L1086">                setCurrentSignatureAlgorithm((String) getAvailableSignatureAlgorithms().get(0).getValue());</span>
+            }
+        }
+<span class="nc" id="L1089">    }</span>
+
+    /** Invoked when a KeyPairAlias has been selected and the &quot;Update Next&quot; button is clicked (or clicked by a JavaScript) */
+    public void reloadKeyPairAlias() {
+<span class="nc bnc" id="L1093" title="All 2 branches missed.">        if (!getAvailableSignatureAlgorithms().isEmpty()) {</span>
+<span class="nc" id="L1094">            setCurrentSignatureAlgorithm((String) getAvailableSignatureAlgorithms().get(0).getValue());</span>
+        }
+<span class="nc" id="L1096">    }</span>
+
+    /** @return a list of available aliases in the currently selected CryptoToken */
+    public List&lt;SelectItem/*&lt;String,String&gt;*/&gt; getAvailableKeyPairAliases() {
+<span class="nc" id="L1100">        final List&lt;SelectItem&gt; availableKeyPairAliases = new ArrayList&lt;&gt;();</span>
+        try {
+<span class="nc bnc" id="L1102" title="All 2 branches missed.">            if (currentCryptoToken != null) {</span>
+<span class="nc bnc" id="L1103" title="All 2 branches missed.">                for (final String alias : cryptoTokenManagementSession.getKeyPairAliases(authenticationToken, currentCryptoToken.intValue())) {</span>
+<span class="nc" id="L1104">                    availableKeyPairAliases.add(new SelectItem(alias, alias));</span>
+<span class="nc" id="L1105">                }</span>
+<span class="nc bnc" id="L1106" title="All 4 branches missed.">                if (currentKeyPairAlias == null &amp;&amp; !availableKeyPairAliases.isEmpty()) {</span>
+<span class="nc" id="L1107">                    currentKeyPairAlias = (String) availableKeyPairAliases.get(0).getValue();</span>
+                }
+<span class="nc bnc" id="L1109" title="All 2 branches missed.">                if (currentSignatureAlgorithm == null) {</span>
+<span class="nc" id="L1110">                    final List&lt;SelectItem&gt; availableSignatureAlgorithms = getAvailableSignatureAlgorithms();</span>
+<span class="nc bnc" id="L1111" title="All 2 branches missed.">                    if (!availableSignatureAlgorithms.isEmpty()) {</span>
+<span class="nc" id="L1112">                        currentSignatureAlgorithm = (String) availableSignatureAlgorithms.get(0).getValue();</span>
+                    }
+                }
+            }
+<span class="nc" id="L1116">        } catch (Exception e) {</span>
+            // No longer active (CryptoTokenOfflineException) or No longer authorized (AuthorizationDeniedException)
+<span class="nc" id="L1118">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(e.getMessage()));</span>
+<span class="nc" id="L1119">            currentCryptoToken = null;</span>
+<span class="nc" id="L1120">            currentKeyPairAlias = null;</span>
+<span class="nc" id="L1121">            currentNextKeyPairAlias = null;</span>
+<span class="nc" id="L1122">        }</span>
+<span class="nc" id="L1123">        sortSelectItemsByLabel(availableKeyPairAliases);</span>
+<span class="nc" id="L1124">        return availableKeyPairAliases;</span>
+    }
+
+    /** @return a list of available signature algorithms for the currently selected key pair */
+    public List&lt;SelectItem/*&lt;String,String&gt;*/&gt; getAvailableSignatureAlgorithms() {
+<span class="nc" id="L1129">        final List&lt;SelectItem&gt; availableSignatureAlgorithms = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L1130" title="All 4 branches missed.">        if (currentCryptoToken != null &amp;&amp; currentKeyPairAlias != null) {</span>
+            try {
+<span class="nc" id="L1132">                final PublicKey currentPublicKey = cryptoTokenManagementSession.getPublicKey(authenticationToken, currentCryptoToken.intValue(),</span>
+<span class="nc" id="L1133">                        currentKeyPairAlias).getPublicKey();</span>
+<span class="nc bnc" id="L1134" title="All 2 branches missed.">                for (final String signatureAlgorithm : AlgorithmTools.getSignatureAlgorithms(currentPublicKey)) {</span>
+<span class="nc bnc" id="L1135" title="All 2 branches missed.">                    if (OcspConfiguration.isAcceptedSignatureAlgorithm(signatureAlgorithm)) {</span>
+<span class="nc" id="L1136">                        availableSignatureAlgorithms.add(new SelectItem(signatureAlgorithm));</span>
+                    }
+<span class="nc" id="L1138">                }</span>
+                // If we have a currently selected signature algorithm, but it's not one of the ones we would choose, add it so we don't hide the current selection
+<span class="nc bnc" id="L1140" title="All 4 branches missed.">                if (currentSignatureAlgorithm != null &amp;&amp; !OcspConfiguration.isAcceptedSignatureAlgorithm(currentSignatureAlgorithm)) {</span>
+<span class="nc" id="L1141">                    log.error(&quot;Adding '&quot;+currentSignatureAlgorithm+&quot;' because it was not one of '&quot;+OcspConfiguration.getSignatureAlgorithm()+&quot;'&quot;);</span>
+<span class="nc" id="L1142">                    availableSignatureAlgorithms.add(new SelectItem(currentSignatureAlgorithm));</span>
+                }
+<span class="nc bnc" id="L1144" title="All 4 branches missed.">                if (currentSignatureAlgorithm == null &amp;&amp; !availableSignatureAlgorithms.isEmpty()) {</span>
+<span class="nc" id="L1145">                    currentSignatureAlgorithm = (String) availableSignatureAlgorithms.get(0).getValue();</span>
+                }
+<span class="nc" id="L1147">            } catch (Exception e) {</span>
+                // No longer active (CryptoTokenOfflineException) or No longer authorized (AuthorizationDeniedException)
+<span class="nc" id="L1149">                FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(e.getMessage()));</span>
+<span class="nc" id="L1150">                currentCryptoToken = null;</span>
+<span class="nc" id="L1151">                currentKeyPairAlias = null;</span>
+<span class="nc" id="L1152">            }</span>
+        }
+<span class="nc" id="L1154">        return availableSignatureAlgorithms;</span>
+    }
+
+    /** @return a list of all CAs known to the system */
+    public List&lt;SelectItem/*&lt;Integer,String&gt;*/&gt; getAvailableCertificateAuthorities() {
+<span class="nc" id="L1159">        final List&lt;Integer&gt; availableCaIds = caSession.getAuthorizedCaIds(authenticationToken);</span>
+<span class="nc" id="L1160">        final Map&lt;Integer, String&gt; caIdToNameMap = caSession.getCAIdToNameMap();</span>
+<span class="nc" id="L1161">        final List&lt;SelectItem&gt; availableCertificateAuthorities = new ArrayList&lt;&gt;(availableCaIds.size());</span>
+<span class="nc bnc" id="L1162" title="All 2 branches missed.">        for (final Integer availableCaId : availableCaIds) {</span>
+<span class="nc" id="L1163">            availableCertificateAuthorities.add(new SelectItem(availableCaId, caIdToNameMap.get(availableCaId)));</span>
+<span class="nc" id="L1164">        }</span>
+<span class="nc bnc" id="L1165" title="All 4 branches missed.">        if (currentCertificateAuthority == null &amp;&amp; !availableCertificateAuthorities.isEmpty()) {</span>
+<span class="nc" id="L1166">            currentCertificateAuthority = (Integer) availableCertificateAuthorities.get(0).getValue();</span>
+        }
+<span class="nc" id="L1168">        Collections.sort(availableCertificateAuthorities, new Comparator&lt;SelectItem&gt;() {</span>
+            @Override
+            public int compare(SelectItem o1, SelectItem o2) {
+
+<span class="nc" id="L1172">                return o1.getLabel().compareToIgnoreCase(o2.getLabel());</span>
+            }
+        });
+<span class="nc" id="L1175">        return availableCertificateAuthorities;</span>
+    }
+
+    public List&lt;SelectItem&gt; getAvailableOcspExtensions() {
+<span class="nc" id="L1179">        final List&lt;SelectItem&gt; ocspExtensionItems = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L1180">        ServiceLoader&lt;OCSPExtension&gt; serviceLoader = ServiceLoader.load(OCSPExtension.class);</span>
+<span class="nc bnc" id="L1181" title="All 2 branches missed.">        for (OCSPExtension extension : serviceLoader) {</span>
+<span class="nc" id="L1182">            ocspExtensionItems.add(new SelectItem(extension.getOid(), extension.getName()));</span>
+<span class="nc" id="L1183">            ocspExtensionOidNameMap.put(extension.getOid(), extension.getName());</span>
+<span class="nc" id="L1184">        }</span>
+<span class="nc bnc" id="L1185" title="All 4 branches missed.">        if (currentOcspExtension == null &amp;&amp; !ocspExtensionItems.isEmpty()) {</span>
+<span class="nc" id="L1186">            currentOcspExtension = (String) ocspExtensionItems.get(0).getValue();</span>
+        }
+<span class="nc" id="L1188">        return ocspExtensionItems;</span>
+    }
+
+    public ListDataModel&lt;String&gt; getOcspExtensions() {
+<span class="nc bnc" id="L1192" title="All 2 branches missed.">        if (ocspExtensions == null) {</span>
+<span class="nc" id="L1193">            final int internalKeyBindingId = Integer.parseInt(currentInternalKeyBindingId);</span>
+<span class="nc bnc" id="L1194" title="All 2 branches missed.">            if (internalKeyBindingId == 0) {</span>
+<span class="nc" id="L1195">                ocspExtensions = new ListDataModel&lt;&gt;(new ArrayList&lt;String&gt;());</span>
+            } else {
+                try {
+<span class="nc" id="L1198">                    final InternalKeyBinding internalKeyBinding = internalKeyBindingSession.getInternalKeyBindingReference(</span>
+                            authenticationToken, internalKeyBindingId);
+<span class="nc" id="L1200">                    ocspExtensions = new ListDataModel&lt;&gt;(internalKeyBinding.getOcspExtensions());</span>
+<span class="nc" id="L1201">                } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L1202">                    FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(e.getMessage()));</span>
+<span class="nc" id="L1203">                }</span>
+            }
+        }
+<span class="nc" id="L1206">        return ocspExtensions;</span>
+    }
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public void addOcspExtension() {
+<span class="nc" id="L1211">        final List&lt;String&gt; ocspExtensionsCurrent = (List&lt;String&gt;) getOcspExtensions().getWrappedData();</span>
+<span class="nc bnc" id="L1212" title="All 2 branches missed.">        if (!ocspExtensionsCurrent.contains(getCurrentOcspExtension())) {</span>
+<span class="nc" id="L1213">            ocspExtensionsCurrent.add(getCurrentOcspExtension());</span>
+        } else {
+<span class="nc" id="L1215">            FacesContext.getCurrentInstance().addMessage(null,</span>
+<span class="nc" id="L1216">                new FacesMessage(FacesMessage.SEVERITY_ERROR, ocspExtensionOidNameMap.get(getCurrentOcspExtension()) + &quot; is already selected&quot;, null));</span>
+        }
+<span class="nc" id="L1218">        ocspExtensions.setWrappedData(ocspExtensionsCurrent);</span>
+<span class="nc" id="L1219">    }</span>
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public void removeOcspExtension() {
+<span class="nc" id="L1223">        final List&lt;String&gt; ocspExtensionsCurrent = (List&lt;String&gt;) getOcspExtensions().getWrappedData();</span>
+<span class="nc" id="L1224">        ocspExtensionsCurrent.remove(ocspExtensions.getRowData());</span>
+<span class="nc" id="L1225">        ocspExtensions.setWrappedData(ocspExtensionsCurrent);</span>
+<span class="nc" id="L1226">    }</span>
+
+    private String getOcspExtensionNameFromOid(String oid) {
+<span class="nc bnc" id="L1229" title="All 2 branches missed.">        return ocspExtensionOidNameMap.get(oid) == null ? &quot;&quot; : ocspExtensionOidNameMap.get(oid);</span>
+    }
+    
+    public String getOcspExtensionDisplayName() {
+<span class="nc" id="L1233">        return getOcspExtensionNameFromOid(getOcspExtensionOid());</span>
+    }
+    
+    public String getOcspExtensionOid() {
+<span class="nc" id="L1237">        return ocspExtensions.getRowData();</span>
+    }
+
+    public String getCurrentCertificateSerialNumber() {
+<span class="nc" id="L1241">        return currentCertificateSerialNumber;</span>
+    }
+
+    public void setCurrentCertificateSerialNumber(String currentCertificateSerialNumber) {
+<span class="nc" id="L1245">        this.currentCertificateSerialNumber = currentCertificateSerialNumber;</span>
+<span class="nc" id="L1246">    }</span>
+
+    public String getCurrentTrustEntryDescription() {
+<span class="nc" id="L1249">        return currentTrustEntryDescription;</span>
+    }
+    
+    public void setCurrentTrustEntryDescription(String description) {
+<span class="nc" id="L1253">        this.currentTrustEntryDescription = description;</span>
+<span class="nc" id="L1254">    }</span>
+    
+    public String getTrustedCertificatesCaName() {
+<span class="nc" id="L1257">        return caSession.getCAIdToNameMap().get(trustedCertificates.getRowData().getCaId());</span>
+    }
+
+    public String getTrustedCertificatesSerialNumberHex() {
+<span class="nc" id="L1261">        return trustedCertificates.getRowData().fetchCertificateSerialNumber().toString(16);</span>
+    }
+
+    /** @return a list of all currently trusted certificates references as pairs of [CAId,CertificateSerialNumber] */
+    public ListDataModel&lt;InternalKeyBindingTrustEntry&gt;getTrustedCertificates() {
+<span class="nc bnc" id="L1266" title="All 2 branches missed.">        if (trustedCertificates == null) {</span>
+<span class="nc" id="L1267">            final int internalKeyBindingId = Integer.parseInt(currentInternalKeyBindingId);</span>
+<span class="nc bnc" id="L1268" title="All 2 branches missed.">            if (internalKeyBindingId == 0) {</span>
+<span class="nc" id="L1269">                trustedCertificates = new ListDataModel&lt;&gt;(new ArrayList&lt;InternalKeyBindingTrustEntry&gt;());</span>
+            } else {
+                try {
+<span class="nc" id="L1272">                    final InternalKeyBinding internalKeyBinding = internalKeyBindingSession.getInternalKeyBindingReference(</span>
+                            authenticationToken, internalKeyBindingId);
+<span class="nc" id="L1274">                    trustedCertificates = new ListDataModel&lt;&gt;(internalKeyBinding.getTrustedCertificateReferences());</span>
+<span class="nc" id="L1275">                } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L1276">                    FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(e.getMessage()));</span>
+<span class="nc" id="L1277">                }</span>
+            }
+        }
+<span class="nc" id="L1280">        return trustedCertificates;</span>
+    }
+
+    /** Invoked when the user wants to a new entry to the list of trusted certificate references */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public void addTrust() {
+<span class="nc" id="L1286">        final List&lt;InternalKeyBindingTrustEntry&gt; trustedCertificateReferences = (List&lt;InternalKeyBindingTrustEntry&gt;) getTrustedCertificates()</span>
+<span class="nc" id="L1287">                .getWrappedData();</span>
+<span class="nc" id="L1288">        final String currentCertificateSerialNumber = getCurrentCertificateSerialNumber();</span>
+<span class="nc bnc" id="L1289" title="All 4 branches missed.">        if (currentCertificateSerialNumber == null || currentCertificateSerialNumber.trim().length() == 0) {</span>
+<span class="nc" id="L1290">            trustedCertificateReferences.add(new InternalKeyBindingTrustEntry(getCurrentCertificateAuthority(), null, currentTrustEntryDescription));</span>
+        } else {
+<span class="nc" id="L1292">            trustedCertificateReferences.add(new InternalKeyBindingTrustEntry(getCurrentCertificateAuthority(), new BigInteger(</span>
+<span class="nc" id="L1293">                    currentCertificateSerialNumber.trim(), 16), currentTrustEntryDescription));</span>
+        }
+<span class="nc" id="L1295">        trustedCertificates.setWrappedData(trustedCertificateReferences);</span>
+<span class="nc" id="L1296">    }</span>
+
+    /** Invoked when the user wants to remove an entry to the list of trusted certificate references */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public void removeTrust() {
+<span class="nc" id="L1301">        final InternalKeyBindingTrustEntry trustEntry = (trustedCertificates.getRowData());</span>
+<span class="nc" id="L1302">        final List&lt;InternalKeyBindingTrustEntry&gt; trustedCertificateReferences = (List&lt;InternalKeyBindingTrustEntry&gt;) getTrustedCertificates()</span>
+<span class="nc" id="L1303">                .getWrappedData();</span>
+<span class="nc" id="L1304">        trustedCertificateReferences.remove(trustEntry);</span>
+<span class="nc" id="L1305">        trustedCertificates.setWrappedData(trustedCertificateReferences);</span>
+<span class="nc" id="L1306">    }</span>
+
+    /** @return a list of the current InteralKeyBinding's properties */
+    public ListDataModel&lt;DynamicUiProperty&lt;? extends Serializable&gt;&gt; getInternalKeyBindingPropertyList() {
+<span class="nc" id="L1310">        return internalKeyBindingPropertyList;</span>
+    }
+
+    /** @return the lookup result of message key &quot;INTERNALKEYBINDING_&amp;lt;type&amp;gt;_&amp;lt;property-name&amp;gt;&quot; or property-name if no key exists. */
+    public String getPropertyNameTranslated() {
+<span class="nc" id="L1315">        final String name = ((DynamicUiProperty&lt;? extends Serializable&gt;) internalKeyBindingPropertyList.getRowData()).getName();</span>
+<span class="nc" id="L1316">        final String msgKey = &quot;INTERNALKEYBINDING_&quot; + getSelectedInternalKeyBindingType().toUpperCase() + &quot;_&quot; + name.toUpperCase();</span>
+<span class="nc" id="L1317">        final String translatedName = super.getEjbcaWebBean().getText(msgKey);</span>
+<span class="nc bnc" id="L1318" title="All 2 branches missed.">        return translatedName.equals(msgKey) ? name : translatedName;</span>
+    }
+
+    /** @return the current multi-valued property's possible values as JSF friendly SelectItems. */
+    public List&lt;SelectItem/*&lt;String,String&gt;*/&gt; getPropertyPossibleValues() {
+<span class="nc" id="L1323">        final List&lt;SelectItem&gt; propertyPossibleValues = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L1324" title="All 2 branches missed.">        if (internalKeyBindingPropertyList != null) {</span>
+<span class="nc" id="L1325">            final DynamicUiProperty&lt;? extends Serializable&gt; property = internalKeyBindingPropertyList</span>
+<span class="nc" id="L1326">                    .getRowData();</span>
+<span class="nc bnc" id="L1327" title="All 2 branches missed.">            for (final Serializable possibleValue : property.getPossibleValues()) {</span>
+<span class="nc" id="L1328">                propertyPossibleValues.add(new SelectItem(property.getAsEncodedValue(property.getType().cast(possibleValue)), possibleValue</span>
+<span class="nc" id="L1329">                        .toString()));</span>
+<span class="nc" id="L1330">            }</span>
+        }
+<span class="nc" id="L1332">        return propertyPossibleValues;</span>
+    }
+
+    /** Invoked when the user is done configuring a new InternalKeyBinding and wants to persist it */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public void createNew() {
+<span class="nc bnc" id="L1338" title="All 2 branches missed.">        if (currentCryptoToken == null) {</span>
+            // Should not happen
+<span class="nc" id="L1340">            FacesContext.getCurrentInstance().addMessage(</span>
+                    null,
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR, &quot;No Crypto Token exists when trying to create a new Key Binding with name &quot;
+<span class="nc" id="L1343">                            + getCurrentName(), null));</span>
+        } else {
+            try {
+<span class="nc" id="L1346">                final Map&lt;String, Serializable&gt; dataMap = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L1347">                final List&lt;DynamicUiProperty&lt;? extends Serializable&gt;&gt; internalKeyBindingProperties = (List&lt;DynamicUiProperty&lt;? extends Serializable&gt;&gt;) internalKeyBindingPropertyList</span>
+<span class="nc" id="L1348">                        .getWrappedData();</span>
+<span class="nc bnc" id="L1349" title="All 2 branches missed.">                for (final DynamicUiProperty&lt;? extends Serializable&gt; property : internalKeyBindingProperties) {</span>
+<span class="nc" id="L1350">                    dataMap.put(property.getName(), property.getValue());</span>
+<span class="nc" id="L1351">                }</span>
+<span class="nc" id="L1352">                currentInternalKeyBindingId = String.valueOf(internalKeyBindingSession.createInternalKeyBinding(authenticationToken,</span>
+<span class="nc" id="L1353">                        selectedInternalKeyBindingType, getCurrentName(), InternalKeyBindingStatus.DISABLED, null, currentCryptoToken.intValue(),</span>
+<span class="nc" id="L1354">                        currentKeyPairAlias, currentSignatureAlgorithm, dataMap, (List&lt;InternalKeyBindingTrustEntry&gt;) trustedCertificates.getWrappedData()));</span>
+<span class="nc" id="L1355">                FacesContext.getCurrentInstance().addMessage(null,</span>
+<span class="nc" id="L1356">                        new FacesMessage(getCurrentName() + &quot; created with ID &quot; + currentInternalKeyBindingId));</span>
+<span class="nc" id="L1357">                inEditMode = false;</span>
+<span class="nc" id="L1358">            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L1359">                FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));</span>
+<span class="nc" id="L1360">            } catch (InternalKeyBindingNameInUseException e) {</span>
+<span class="nc" id="L1361">                FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));</span>
+<span class="nc" id="L1362">            } catch (CryptoTokenOfflineException e) {</span>
+<span class="nc" id="L1363">                FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));</span>
+<span class="nc" id="L1364">            } catch (InvalidAlgorithmException e) {</span>
+<span class="nc" id="L1365">                FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));</span>
+<span class="nc" id="L1366">            }</span>
+        }
+<span class="nc" id="L1368">    }</span>
+
+    /** Invoked when the user is done re-configuring an InternalKeyBinding and wants to persist it */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public void saveCurrent() {
+        try {
+<span class="nc" id="L1374">            final InternalKeyBinding internalKeyBinding = internalKeyBindingSession.getInternalKeyBinding(authenticationToken,</span>
+<span class="nc" id="L1375">                    Integer.parseInt(currentInternalKeyBindingId));</span>
+<span class="nc" id="L1376">            internalKeyBinding.setName(getCurrentName());</span>
+<span class="nc bnc" id="L1377" title="All 2 branches missed.">            if (isCryptoTokenActive()) {</span>
+<span class="nc" id="L1378">                final int loadedCryptoTokenId = internalKeyBinding.getCryptoTokenId();</span>
+<span class="nc" id="L1379">                final String loadedKeyPairAlias = internalKeyBinding.getKeyPairAlias();</span>
+<span class="nc bnc" id="L1380" title="All 4 branches missed.">                if (loadedCryptoTokenId != currentCryptoToken.intValue() || !loadedKeyPairAlias.equals(currentKeyPairAlias)) {</span>
+                    // Since we have changed the referenced key, the referenced certificate (if any) is no longer valid
+<span class="nc" id="L1382">                    internalKeyBinding.setCertificateId(null);</span>
+                }
+<span class="nc" id="L1384">                internalKeyBinding.setCryptoTokenId(currentCryptoToken.intValue());</span>
+<span class="nc" id="L1385">                internalKeyBinding.setKeyPairAlias(currentKeyPairAlias);</span>
+<span class="nc" id="L1386">                internalKeyBinding.setSignatureAlgorithm(currentSignatureAlgorithm);</span>
+<span class="nc bnc" id="L1387" title="All 4 branches missed.">                if (currentNextKeyPairAlias == null || currentNextKeyPairAlias.length() == 0) {</span>
+<span class="nc" id="L1388">                    internalKeyBinding.setNextKeyPairAlias(null);</span>
+                } else {
+<span class="nc" id="L1390">                    internalKeyBinding.setNextKeyPairAlias(currentNextKeyPairAlias);</span>
+                }
+            }
+<span class="nc" id="L1393">            internalKeyBinding.setTrustedCertificateReferences((List&lt;InternalKeyBindingTrustEntry&gt;) trustedCertificates.getWrappedData());</span>
+<span class="nc bnc" id="L1394" title="All 2 branches missed.">            if (isOcspKeyBinding()) {</span>
+<span class="nc" id="L1395">                internalKeyBinding.setOcspExtensions((List&lt;String&gt;) ocspExtensions.getWrappedData());</span>
+            }
+<span class="nc" id="L1397">            final List&lt;DynamicUiProperty&lt;? extends Serializable&gt;&gt; internalKeyBindingProperties = (List&lt;DynamicUiProperty&lt;? extends Serializable&gt;&gt;) internalKeyBindingPropertyList</span>
+<span class="nc" id="L1398">                    .getWrappedData();</span>
+<span class="nc bnc" id="L1399" title="All 2 branches missed.">            for (final DynamicUiProperty&lt;? extends Serializable&gt; property : internalKeyBindingProperties) {</span>
+<span class="nc" id="L1400">                internalKeyBinding.setProperty(property.getName(), property.getValue());</span>
+<span class="nc" id="L1401">            }</span>
+<span class="nc" id="L1402">            currentInternalKeyBindingId = String</span>
+<span class="nc" id="L1403">                    .valueOf(internalKeyBindingSession.persistInternalKeyBinding(authenticationToken, internalKeyBinding));</span>
+<span class="nc" id="L1404">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(getCurrentName() + &quot; saved&quot;));</span>
+<span class="nc" id="L1405">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L1406">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));</span>
+<span class="nc" id="L1407">        } catch (InternalKeyBindingNameInUseException e) {</span>
+<span class="nc" id="L1408">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));</span>
+<span class="nc" id="L1409">        }</span>
+<span class="nc" id="L1410">    }</span>
+
+    /**
+     * Updates the current operational status of the current key binding.
+     * @param currentKeyBindingInfo Info
+     * @param cryptoTokenInfo Info
+     * @return path to corresponding icon based on the followings:
+     *
+     * Online if keybinding is enabled, crypto token is active and keybinding exists in the cache
+     * Pending if keybinding is enabled, crypto token is active, but cache hasn't been refreshed yet (keybinding is not in cache)
+     * Offline if keybinding is disabled, unknown or offline
+     */
+    private String updateOperationalStatus(final InternalKeyBindingInfo currentKeyBindingInfo, final CryptoTokenInfo cryptoTokenInfo) {
+<span class="nc bnc" id="L1423" title="All 2 branches missed.">        if (cryptoTokenInfo == null) {</span>
+<span class="nc" id="L1424">            return getEjbcaWebBean().getImagefileInfix(&quot;status-ca-offline.png&quot;);</span>
+        }
+<span class="nc bnc" id="L1426" title="All 2 branches missed.">        switch (currentKeyBindingInfo.getStatus()) {</span>
+        case ACTIVE:
+<span class="nc bnc" id="L1428" title="All 2 branches missed.">            if (currentKeyBindingInfo.getImplementationAlias().equals(OcspKeyBinding.IMPLEMENTATION_ALIAS)) {</span>
+<span class="nc" id="L1429">                return updateKeyBindingStatus(currentKeyBindingInfo, cryptoTokenInfo);</span>
+            }
+<span class="nc" id="L1431">            return updateGenericKeyBindingStatus(currentKeyBindingInfo, cryptoTokenInfo);</span>
+        default:
+<span class="nc" id="L1433">            return getEjbcaWebBean().getImagefileInfix(&quot;status-ca-offline.png&quot;);</span>
+        }
+    }
+
+    /**
+     * Just check crypto token status for keybindings other than ocsp
+     * @param currentKeyBindingInfo Info
+     * @param cryptoTokenInfo Info
+     * @return active logo if crypto token is active, offline logo otherwise.
+     */
+    private String updateGenericKeyBindingStatus(final InternalKeyBindingInfo currentKeyBindingInfo, final CryptoTokenInfo cryptoTokenInfo) {
+<span class="nc bnc" id="L1444" title="All 2 branches missed.">        if (cryptoTokenInfo.isActive()) {</span>
+<span class="nc" id="L1445">            return getEjbcaWebBean().getImagefileInfix(&quot;status-ca-active.png&quot;);</span>
+        }
+<span class="nc" id="L1447">        return getEjbcaWebBean().getImagefileInfix(&quot;status-ca-offline.png&quot;);</span>
+    }
+
+    /**
+     *
+     * @param currentKeyBindingInfo Info
+     * @param cryptoTokenInfo Info
+     * @return active if crypto token active and keybinding exists in cache.
+     *         pending if crypto token is active but keybidning not present in cache.
+     *         offline otherwise.
+     */
+    private String updateKeyBindingStatus(final InternalKeyBindingInfo currentKeyBindingInfo, final CryptoTokenInfo cryptoTokenInfo) {
+<span class="nc bnc" id="L1459" title="All 2 branches missed.">        if (cryptoTokenInfo.isActive()) {</span>
+<span class="nc bnc" id="L1460" title="All 2 branches missed.">            if (hasOcspCacheEntry(currentKeyBindingInfo.getId())) {</span>
+<span class="nc" id="L1461">                return getEjbcaWebBean().getImagefileInfix(&quot;status-ca-active.png&quot;);</span>
+            }
+<span class="nc" id="L1463">            return getEjbcaWebBean().getImagefileInfix(&quot;status-ca-pending.png&quot;);</span>
+        } else {
+<span class="nc" id="L1465">            return getEjbcaWebBean().getImagefileInfix(&quot;status-ca-offline.png&quot;);</span>
+        }
+    }
+
+    /**                                                                                                                                                                                                            
+     * Checks if the key binding exists in cache.                                                                                                                                                                  
+     * @param keyBindingId of the key binding we are looking for in the cache.                                                                                                                                               
+     * @return true if key binding exists in the cache, false otherwise.                                                                                                                                           
+     */
+    private boolean hasOcspCacheEntry(final int keyBindingId) {
+<span class="nc bnc" id="L1475" title="All 2 branches missed.">        return InternalKeyBindingCache.INSTANCE.getEntry(keyBindingId) != null;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

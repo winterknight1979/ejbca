@@ -15,87 +15,92 @@ package org.cesecore.util.log;
 
 import java.io.PrintStream;
 import java.util.Date;
-
 import org.apache.log4j.Appender;
 import org.apache.log4j.Logger;
 import org.apache.log4j.spi.ErrorHandler;
 import org.apache.log4j.spi.LoggingEvent;
 
 /**
- * The purpose of this errorhandler is that we can still respond with InternalServer error if and error occurs, but repeated errors will only be
+ * The purpose of this errorhandler is that we can still respond with
+ * InternalServer error if and error occurs, but repeated errors will only be
  * logged once.
- * 
- * @version $Id: ProbableErrorHandler.java 17647 2013-09-20 14:02:02Z netmackan $
+ *
+ * @version $Id: ProbableErrorHandler.java 17647 2013-09-20 14:02:02Z netmackan
+ *     $
  */
-
 <span class="nc" id="L31">public class ProbableErrorHandler implements ErrorHandler {</span>
-<span class="nc" id="L32">    private static Date lastFailure = null;</span>
+    /** date,. */
+<span class="nc" id="L33">  private static Date lastFailure = null;</span>
 
-<span class="nc" id="L34">    final String WARN_PREFIX = &quot;log4j warning: &quot;;</span>
-<span class="nc" id="L35">    final String ERROR_PREFIX = &quot;log4j error: &quot;;</span>
+  /** Warning. */
+  @SuppressWarnings(&quot;unused&quot;)
+private static final String WARN_PREFIX = &quot;log4j warning: &quot;;
+  /** Error. */
+  private static final String ERROR_PREFIX = &quot;log4j error: &quot;;
 
-<span class="nc" id="L37">    boolean firstTime = true;</span>
+  /** Bool. */
+<span class="nc" id="L42">  private boolean firstTime = true;</span>
 
-<span class="nc" id="L39">    static PrintStream output = System.err;</span>
-    
-    @Override
-    public void error(String arg0) {
-<span class="nc bnc" id="L43" title="All 2 branches missed.">        if (firstTime) {</span>
-<span class="nc" id="L44">            output.println(ERROR_PREFIX + arg0);</span>
-<span class="nc" id="L45">            firstTime = false;</span>
-        }
-<span class="nc" id="L47">        lastFailure = new Date();</span>
-<span class="nc" id="L48">    }</span>
+  /**
+   * Output.
+   */
+<span class="nc" id="L47">  private static PrintStream output = System.err;</span>
 
-    @Override
-    public void error(String arg0, Exception arg1, int arg2) {
-<span class="nc" id="L52">        error(arg0, arg1, arg2, null);</span>
-<span class="nc" id="L53">        lastFailure = new Date();</span>
-<span class="nc" id="L54">    }</span>
-
-    @Override
-    public void error(String arg0, Exception arg1, int arg2, LoggingEvent arg3) {
-<span class="nc bnc" id="L58" title="All 2 branches missed.">        if (firstTime) {</span>
-<span class="nc" id="L59">            output.println(ERROR_PREFIX + arg0);</span>
-<span class="nc" id="L60">            arg1.printStackTrace(output);</span>
-<span class="nc" id="L61">            firstTime = false;</span>
-        }
-<span class="nc" id="L63">        lastFailure = new Date();</span>
-<span class="nc" id="L64">    }</span>
-
-    /**
-     * Returns true if an error writing to the log files have happened since 'date'.
-     * 
-     * @param date see if an error happened later than this date
-     * @return true if an error has happened, false if logging works fine.
-     */
-    public static boolean hasFailedSince(Date date) {
-<span class="nc bnc" id="L73" title="All 2 branches missed.">        if (lastFailure != null) {</span>
-<span class="nc bnc" id="L74" title="All 2 branches missed.">            if (lastFailure.after(date)) {</span>
-<span class="nc" id="L75">                return true;</span>
-            }
-        }
-<span class="nc" id="L78">        return false;</span>
+  @Override
+  public void error(final String arg0) {
+<span class="nc bnc" id="L51" title="All 2 branches missed.">    if (firstTime) {</span>
+<span class="nc" id="L52">      output.println(ERROR_PREFIX + arg0);</span>
+<span class="nc" id="L53">      firstTime = false;</span>
     }
+<span class="nc" id="L55">    lastFailure = new Date();</span>
+<span class="nc" id="L56">  }</span>
 
-    /** Does not do anything. */
-    @Override
-    public void setLogger(Logger logger) {
-<span class="nc" id="L84">    }</span>
+  @Override
+  public void error(final String arg0, final Exception arg1, final int arg2) {
+<span class="nc" id="L60">    error(arg0, arg1, arg2, null);</span>
+<span class="nc" id="L61">    lastFailure = new Date();</span>
+<span class="nc" id="L62">  }</span>
 
-    /** No options to activate. */
-    @Override
-    public void activateOptions() {
-<span class="nc" id="L89">    }</span>
-    
-    /** Does not do anything. */
-    @Override
-    public void setAppender(Appender appender) {
-<span class="nc" id="L94">    }</span>
+  @Override
+  public void error(
+          final String arg0,
+          final Exception arg1,
+          final int arg2,
+          final LoggingEvent arg3) {
+<span class="nc bnc" id="L70" title="All 2 branches missed.">    if (firstTime) {</span>
+<span class="nc" id="L71">      output.println(ERROR_PREFIX + arg0);</span>
+<span class="nc" id="L72">      arg1.printStackTrace(output);</span>
+<span class="nc" id="L73">      firstTime = false;</span>
+    }
+<span class="nc" id="L75">    lastFailure = new Date();</span>
+<span class="nc" id="L76">  }</span>
 
-    /** Does not do anything. */
-    @Override
-    public void setBackupAppender(Appender appender) {
-<span class="nc" id="L99">    }</span>
+  /**
+   * Returns true if an error writing to the log files have happened since
+   * 'date'.
+   *
+   * @param date see if an error happened later than this date
+   * @return true if an error has happened, false if logging works fine.
+   */
+  public static boolean hasFailedSince(final Date date) {
+<span class="nc bnc" id="L86" title="All 2 branches missed.">    if (lastFailure != null) {</span>
+<span class="nc bnc" id="L87" title="All 2 branches missed.">      if (lastFailure.after(date)) {</span>
+<span class="nc" id="L88">        return true;</span>
+      }
+    }
+<span class="nc" id="L91">    return false;</span>
+  }
+
+  /** Does not do anything. */
+  @Override
+<span class="nc" id="L96">  public void setLogger(final Logger logger) { }</span>
+
+  /** Does not do anything. */
+  @Override
+<span class="nc" id="L100">  public void setAppender(final Appender appender) { }</span>
+
+  /** Does not do anything. */
+  @Override
+<span class="nc" id="L104">  public void setBackupAppender(final Appender appender) { }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

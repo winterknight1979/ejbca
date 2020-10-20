@@ -15,63 +15,75 @@ package org.cesecore.util.ui;
 import java.io.Serializable;
 
 /**
- * POJO for a set of radio buttons in a Dynamic UI Property
- * 
- * @version $Id: RadioButton.java 34324 2020-01-17 12:22:39Z henriks $
+ * POJO for a set of radio buttons in a Dynamic UI Property.
  *
+ * @version $Id: RadioButton.java 34324 2020-01-17 12:22:39Z henriks $
  */
 public class RadioButton implements Serializable {
-    
-    private static final long serialVersionUID = 1L;
-    private String label;
-    
-<span class="nc" id="L28">    public RadioButton(final String label) {</span>
-<span class="nc" id="L29">        this.label = label;</span>
-<span class="nc" id="L30">    }</span>
 
-    public String getLabel() {
-<span class="nc" id="L33">        return label;</span>
+  private static final long serialVersionUID = 1L;
+  /** Label. */
+  private String label;
+
+  /**
+   * @param aLabel Label
+   */
+<span class="nc" id="L31">  public RadioButton(final String aLabel) {</span>
+<span class="nc" id="L32">    this.label = aLabel;</span>
+<span class="nc" id="L33">  }</span>
+
+  /**
+   * @return label
+   */
+  public String getLabel() {
+<span class="nc" id="L39">    return label;</span>
+  }
+
+  /**
+   * @param aLabel Label
+   */
+  public void setLabel(final String aLabel) {
+<span class="nc" id="L46">    this.label = aLabel;</span>
+<span class="nc" id="L47">  }</span>
+
+  @Override
+  public String toString() {
+<span class="nc" id="L51">    return label;</span>
+  }
+
+  @Override
+  public int hashCode() {
+<span class="nc" id="L56">    final int prime = 31;</span>
+<span class="nc" id="L57">    int result = 1;</span>
+<span class="nc bnc" id="L58" title="All 2 branches missed.">    result = prime * result + ((label == null) ? 0 : label.hashCode());</span>
+<span class="nc" id="L59">    return result;</span>
+  }
+
+  @Override
+  public boolean equals(final Object obj) {
+<span class="nc bnc" id="L64" title="All 2 branches missed.">    if (this == obj) {</span>
+<span class="nc" id="L65">        return true;</span>
     }
-
-
-    public void setLabel(String label) {
-<span class="nc" id="L38">        this.label = label;</span>
-<span class="nc" id="L39">    }</span>
-
-
-    @Override
-    public String toString() {
-<span class="nc" id="L44">        return label;</span>
+<span class="nc bnc" id="L67" title="All 2 branches missed.">    if (obj == null) {</span>
+<span class="nc" id="L68">        return false;</span>
     }
-
-    
-    @Override
-    public int hashCode() {
-<span class="nc" id="L50">        final int prime = 31;</span>
-<span class="nc" id="L51">        int result = 1;</span>
-<span class="nc bnc" id="L52" title="All 2 branches missed.">        result = prime * result + ((label == null) ? 0 : label.hashCode());</span>
-<span class="nc" id="L53">        return result;</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">    if (getClass() != obj.getClass()) {</span>
+<span class="nc" id="L71">        return false;</span>
     }
-
-    @Override
-    public boolean equals(Object obj) {
-<span class="nc bnc" id="L58" title="All 2 branches missed.">        if (this == obj)</span>
-<span class="nc" id="L59">            return true;</span>
-<span class="nc bnc" id="L60" title="All 2 branches missed.">        if (obj == null)</span>
-<span class="nc" id="L61">            return false;</span>
-<span class="nc bnc" id="L62" title="All 2 branches missed.">        if (getClass() != obj.getClass())</span>
-<span class="nc" id="L63">            return false;</span>
-<span class="nc" id="L64">        RadioButton other = (RadioButton) obj;</span>
-<span class="nc bnc" id="L65" title="All 2 branches missed.">        if (label == null) {</span>
-<span class="nc bnc" id="L66" title="All 2 branches missed.">            return other.label == null;</span>
-        }
-<span class="nc" id="L68">        return label.equals(other.label);</span>
+<span class="nc" id="L73">    RadioButton other = (RadioButton) obj;</span>
+<span class="nc bnc" id="L74" title="All 2 branches missed.">    if (label == null) {</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">      return other.label == null;</span>
     }
+<span class="nc" id="L77">    return label.equals(other.label);</span>
+  }
 
-    public boolean equals(String encodedValue) {
-<span class="nc" id="L72">        return equals(DynamicUiProperty.getAsObject(encodedValue, RadioButton.class));</span>
-    }
-
-
+  /**
+   * @param encodedValue Value
+   * @return bool
+   */
+  public boolean equals(final String encodedValue) {
+<span class="nc" id="L85">    return equals(</span>
+<span class="nc" id="L86">        DynamicUiProperty.getAsObject(encodedValue, RadioButton.class));</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

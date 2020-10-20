@@ -18,73 +18,95 @@ import org.cesecore.keybind.impl.OcspKeyBinding.ResponderIdType;
 import org.cesecore.util.CertTools;
 
 /**
- * @version $Id: GlobalOcspConfiguration.java 25867 2017-05-17 16:18:06Z mikekushner $
- *
+ * @version $Id: GlobalOcspConfiguration.java 25867 2017-05-17 16:18:06Z
+ *     mikekushner $
  */
 <span class="nc" id="L24">public class GlobalOcspConfiguration extends ConfigurationBase {</span>
 
-    public static final String OCSP_CONFIGURATION_ID = &quot;OCSP&quot;;
-   
-    private static final long serialVersionUID = 1L;
+    /** ID. */
+  public static final String OCSP_CONFIGURATION_ID = &quot;OCSP&quot;;
 
-    private static final String DEFAULT_OCSP_RESPONDER_REFERENCE = &quot;defaultOcspResponderReference&quot;;
-    private static final String OCSP_RESPONDER_ID_TYPE_REFERENCE = &quot;ocspResponderIdType&quot;;
-    private static final String DEFAULT_NONCE_ENABLED_REFERENCE = &quot;defaultNonceEnabled&quot;;
-    
-    public String getOcspDefaultResponderReference() {
-<span class="nc" id="L35">        return CertTools.stringToBCDNString((String) data.get(DEFAULT_OCSP_RESPONDER_REFERENCE));</span>
-    }
-    
-    public void setOcspDefaultResponderReference(String reference) {
-<span class="nc" id="L39">        data.put(DEFAULT_OCSP_RESPONDER_REFERENCE, reference);</span>
-<span class="nc" id="L40">    }</span>
-    
-    @SuppressWarnings(&quot;deprecation&quot;)
-    public OcspKeyBinding.ResponderIdType getOcspResponderIdType() {
-<span class="nc" id="L44">        OcspKeyBinding.ResponderIdType ocspResponderIdType = (ResponderIdType) data.get(OCSP_RESPONDER_ID_TYPE_REFERENCE);</span>
-<span class="nc bnc" id="L45" title="All 2 branches missed.">        if(ocspResponderIdType == null) {</span>
-            //Lazy upgrade if running from versions prior to 6.7.0
-<span class="nc" id="L47">            ocspResponderIdType = OcspKeyBinding.ResponderIdType.getFromNumericValue(OcspConfiguration.getResponderIdType());</span>
-<span class="nc" id="L48">            setOcspResponderIdType(ocspResponderIdType);</span>
-        }
-<span class="nc" id="L50">        return ocspResponderIdType;</span>
-    }
-    
-    public void setOcspResponderIdType(OcspKeyBinding.ResponderIdType ocspResponderIdType) {
-<span class="nc" id="L54">        data.put(OCSP_RESPONDER_ID_TYPE_REFERENCE, ocspResponderIdType);</span>
-<span class="nc" id="L55">    }</span>
-    
-    /**
-     * 
-     * @return true if CA's replying to their own OCSP requests should include NONCE's in the replies. 
-     */
-    public boolean getNonceEnabled() {
-        //Lady upgrade
-<span class="nc bnc" id="L63" title="All 2 branches missed.">        if(data.get(DEFAULT_NONCE_ENABLED_REFERENCE) == null) {</span>
-<span class="nc" id="L64">            setNonceEnabled(true);</span>
-        }
-<span class="nc" id="L66">        return (Boolean) data.get(DEFAULT_NONCE_ENABLED_REFERENCE);</span>
-    }
-    
-    /**
-     * 
-     * @param enabled to true if CA's replying to their own OCSP requests should include NONCE's in the replies. 
-     */
-    public void setNonceEnabled(boolean enabled) {
-<span class="nc" id="L74">        data.put(DEFAULT_NONCE_ENABLED_REFERENCE, Boolean.valueOf(enabled));</span>
-<span class="nc" id="L75">    }</span>
-    
-    @Override
-    public void upgrade() {
-<span class="nc bnc" id="L79" title="All 2 branches missed.">        if(Float.compare(LATEST_VERSION, getVersion()) != 0) {</span>
-<span class="nc" id="L80">            data.put(VERSION,  Float.valueOf(LATEST_VERSION));          </span>
-        }
-<span class="nc" id="L82">    }</span>
+  private static final long serialVersionUID = 1L;
+  /** config. */
+  private static final String DEFAULT_OCSP_RESPONDER_REFERENCE =
+      &quot;defaultOcspResponderReference&quot;;
+  /** config. */
+  private static final String OCSP_RESPONDER_ID_TYPE_REFERENCE =
+      &quot;ocspResponderIdType&quot;;
+  /** config. */
+  private static final String DEFAULT_NONCE_ENABLED_REFERENCE =
+      &quot;defaultNonceEnabled&quot;;
 
-    @Override
-    public String getConfigurationId() {
-<span class="nc" id="L86">        return OCSP_CONFIGURATION_ID;</span>
-    }
+  /**
+   * @return ref
+   */
+  public String getOcspDefaultResponderReference() {
+<span class="nc" id="L44">    return CertTools.stringToBCDNString(</span>
+<span class="nc" id="L45">        (String) data.get(DEFAULT_OCSP_RESPONDER_REFERENCE));</span>
+  }
 
+  /**
+   * @param reference ref
+   */
+  public void setOcspDefaultResponderReference(final String reference) {
+<span class="nc" id="L52">    data.put(DEFAULT_OCSP_RESPONDER_REFERENCE, reference);</span>
+<span class="nc" id="L53">  }</span>
+
+  /**
+   * @return type
+   */
+  @SuppressWarnings(&quot;deprecation&quot;)
+  public OcspKeyBinding.ResponderIdType getOcspResponderIdType() {
+<span class="nc" id="L60">    OcspKeyBinding.ResponderIdType ocspResponderIdType =</span>
+<span class="nc" id="L61">        (ResponderIdType) data.get(OCSP_RESPONDER_ID_TYPE_REFERENCE);</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">    if (ocspResponderIdType == null) {</span>
+      // Lazy upgrade if running from versions prior to 6.7.0
+      ocspResponderIdType =
+<span class="nc" id="L65">          OcspKeyBinding.ResponderIdType.getFromNumericValue(</span>
+<span class="nc" id="L66">              OcspConfiguration.getResponderIdType());</span>
+<span class="nc" id="L67">      setOcspResponderIdType(ocspResponderIdType);</span>
+    }
+<span class="nc" id="L69">    return ocspResponderIdType;</span>
+  }
+
+  /**
+   * @param ocspResponderIdType type
+   */
+  public void setOcspResponderIdType(
+      final OcspKeyBinding.ResponderIdType ocspResponderIdType) {
+<span class="nc" id="L77">    data.put(OCSP_RESPONDER_ID_TYPE_REFERENCE, ocspResponderIdType);</span>
+<span class="nc" id="L78">  }</span>
+
+  /**
+   * @return true if CA's replying to their own OCSP requests should include
+   *     NONCE's in the replies.
+   */
+  public boolean getNonceEnabled() {
+    // Lady upgrade
+<span class="nc bnc" id="L86" title="All 2 branches missed.">    if (data.get(DEFAULT_NONCE_ENABLED_REFERENCE) == null) {</span>
+<span class="nc" id="L87">      setNonceEnabled(true);</span>
+    }
+<span class="nc" id="L89">    return (Boolean) data.get(DEFAULT_NONCE_ENABLED_REFERENCE);</span>
+  }
+
+  /**
+   * @param enabled to true if CA's replying to their own OCSP requests should
+   *     include NONCE's in the replies.
+   */
+  public void setNonceEnabled(final boolean enabled) {
+<span class="nc" id="L97">    data.put(DEFAULT_NONCE_ENABLED_REFERENCE, Boolean.valueOf(enabled));</span>
+<span class="nc" id="L98">  }</span>
+
+  @Override
+  public void upgrade() {
+<span class="nc bnc" id="L102" title="All 2 branches missed.">    if (Float.compare(LATEST_VERSION, getVersion()) != 0) {</span>
+<span class="nc" id="L103">      data.put(VERSION, Float.valueOf(LATEST_VERSION));</span>
+    }
+<span class="nc" id="L105">  }</span>
+
+  @Override
+  public String getConfigurationId() {
+<span class="nc" id="L109">    return OCSP_CONFIGURATION_ID;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

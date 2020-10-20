@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>TcpReturnMessage.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-cmp-tcp</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.tcp</a> &gt; <span class="el_source">TcpReturnMessage.java</span></div><h1>TcpReturnMessage.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.tcp;
+
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+
+import org.apache.log4j.Logger;
+
+/**
+ * Encodes a TCP messages to a client.
+ * 
+ * @author lars
+ * @version $Id: TcpReturnMessage.java 19902 2014-09-30 14:32:24Z anatom $
+ *
+ */
+public class TcpReturnMessage {
+<span class="nc" id="L30">	private static final Logger log = Logger.getLogger(TcpReceivedMessage.class.getName());</span>
+	/**
+	 * The message to be sent to be returned to the client.
+	 */
+	final public byte message[];
+	/**
+	 * true if the socket should be closed after returning the message to the client.
+	 */
+	final public boolean doClose;
+
+<span class="nc" id="L40">	private TcpReturnMessage(byte m[], boolean c) {</span>
+<span class="nc" id="L41">		this.message = m;</span>
+<span class="nc" id="L42">		this.doClose = c;</span>
+<span class="nc" id="L43">	}</span>
+	/**
+	 * @param inMsg resp message to be returned to the client.
+	 * @param close true if the session to the client should be closed.
+	 * @return the message to be sent to the client
+	 * @throws IOException Fail
+	 */
+	public static TcpReturnMessage createMessage(byte inMsg[], boolean close) throws IOException {
+		final byte[] msg;
+		final int msgType;
+		final boolean doClose;
+<span class="nc bnc" id="L54" title="All 4 branches missed.">		if ( inMsg!=null &amp;&amp; inMsg.length&gt;0 ) {</span>
+<span class="nc" id="L55">			msg = inMsg;</span>
+<span class="nc" id="L56">			doClose = close;</span>
+<span class="nc" id="L57">			msgType = 5;</span>
+		} else {
+<span class="nc" id="L59">			msg = new byte[1];</span>
+<span class="nc" id="L60">			msg[0] = 0;</span>
+<span class="nc" id="L61">			msgType = 3;</span>
+<span class="nc" id="L62">			doClose = true;</span>
+		}
+		// 5 is pkiRep, 6 is errorMsgRep, 3 is finRep
+		// errorMsgRep should only be used for TCP protocol errors, see 3.5.6 in cmp-transport-protocols
+		//if (resp.getStatus() != ResponseStatus.SUCCESS) {
+		//  msgType = 6;
+		//}
+<span class="nc" id="L69">		final ByteArrayOutputStream bao = new ByteArrayOutputStream();</span>
+<span class="nc" id="L70">		final DataOutputStream dos = new DataOutputStream(bao); </span>
+		// return msg length = msg.length + 3; 1 byte version, 1 byte flags and 1 byte message type
+<span class="nc" id="L72">		dos.writeInt(msg.length+3);</span>
+<span class="nc" id="L73">		dos.writeByte(10);</span>
+<span class="nc bnc" id="L74" title="All 2 branches missed.">		final int flags = doClose ? 1 : 0; // 1 if we should close, 0 otherwise</span>
+<span class="nc" id="L75">		dos.writeByte(flags); </span>
+<span class="nc" id="L76">		dos.writeByte(msgType); </span>
+<span class="nc" id="L77">		dos.write(msg);</span>
+<span class="nc" id="L78">		dos.flush();</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">		if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L80">			log.debug(&quot;Wrote length: '&quot;+msg.length+3+&quot;' Wrote version: '10' Wrote flags: '&quot;+flags+&quot;' Wrote msgType: '&quot;+msgType+&quot;' Wrote msg with length: &quot;+msg.length);</span>
+		}
+<span class="nc" id="L82">		return new TcpReturnMessage( bao.toByteArray(), doClose );</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

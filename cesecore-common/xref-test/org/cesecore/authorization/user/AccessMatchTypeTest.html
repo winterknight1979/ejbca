@@ -26,45 +26,58 @@
 <a class="jxr_linenumber" name="L18" href="#L18">18</a>  
 <a class="jxr_linenumber" name="L19" href="#L19">19</a>  <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="L20" href="#L20">20</a>  <em class="jxr_javadoccomment"> * Unit tests for the AccessMatchType enums.</em>
-<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <em class="jxr_javadoccomment"> * </em>
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <em class="jxr_javadoccomment"> *</em>
 <a class="jxr_linenumber" name="L22" href="#L22">22</a>  <em class="jxr_javadoccomment"> * @version $Id: AccessMatchTypeTest.java 26812 2017-10-15 03:30:26Z anatom $</em>
-<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <em class="jxr_javadoccomment"> *</em>
-<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <em class="jxr_javadoccomment"> */</em>
-<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="AccessMatchTypeTest" href="../../../../org/cesecore/authorization/user/AccessMatchTypeTest.html#AccessMatchTypeTest">AccessMatchTypeTest</a> {
-<a class="jxr_linenumber" name="L26" href="#L26">26</a>  
-<a class="jxr_linenumber" name="L27" href="#L27">27</a>      @Test
-<a class="jxr_linenumber" name="L28" href="#L28">28</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testAccessMatchEnum() <strong class="jxr_keyword">throws</strong> SecurityException {
-<a class="jxr_linenumber" name="L29" href="#L29">29</a>          AccessMatchType type0 = AccessMatchType.matchFromDatabase(0);
-<a class="jxr_linenumber" name="L30" href="#L30">30</a>          AccessMatchType type1000 = AccessMatchType.matchFromDatabase(1000);
-<a class="jxr_linenumber" name="L31" href="#L31">31</a>          AccessMatchType type1001 = AccessMatchType.matchFromDatabase(1001);
-<a class="jxr_linenumber" name="L32" href="#L32">32</a>          AccessMatchType type1002 = AccessMatchType.matchFromDatabase(1002);
-<a class="jxr_linenumber" name="L33" href="#L33">33</a>          AccessMatchType type1003 = AccessMatchType.matchFromDatabase(1003);
-<a class="jxr_linenumber" name="L34" href="#L34">34</a>          AccessMatchType type1999 = AccessMatchType.matchFromDatabase(1999);
-<a class="jxr_linenumber" name="L35" href="#L35">35</a>          AccessMatchType type2000 = AccessMatchType.matchFromDatabase(2000);
-<a class="jxr_linenumber" name="L36" href="#L36">36</a>          AccessMatchType type2001 = AccessMatchType.matchFromDatabase(2001);
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>          AccessMatchType type2002 = AccessMatchType.matchFromDatabase(2002);
-<a class="jxr_linenumber" name="L38" href="#L38">38</a>          AccessMatchType type2003 = AccessMatchType.matchFromDatabase(2003);
-<a class="jxr_linenumber" name="L39" href="#L39">39</a>          AccessMatchType type2004 = AccessMatchType.matchFromDatabase(2004);
-<a class="jxr_linenumber" name="L40" href="#L40">40</a>          AccessMatchType type2005 = AccessMatchType.matchFromDatabase(2005);
-<a class="jxr_linenumber" name="L41" href="#L41">41</a>          assertEquals(<span class="jxr_string">"name is incorrect"</span>, <span class="jxr_string">"TYPE_UNUSED"</span>, type0.name());
-<a class="jxr_linenumber" name="L42" href="#L42">42</a>          assertEquals(<span class="jxr_string">"name is incorrect"</span>, <span class="jxr_string">"TYPE_EQUALCASE"</span>, type1000.name());
-<a class="jxr_linenumber" name="L43" href="#L43">43</a>          assertEquals(<span class="jxr_string">"name is incorrect"</span>, <span class="jxr_string">"TYPE_EQUALCASEINS"</span>, type1001.name());
-<a class="jxr_linenumber" name="L44" href="#L44">44</a>          <em class="jxr_comment">// Types before the role rewrite in EJBCA 6.9, must be kept for upgrade reasons, </em>
-<a class="jxr_linenumber" name="L45" href="#L45">45</a>          <em class="jxr_comment">// these types are bound to be hanging around in the database</em>
-<a class="jxr_linenumber" name="L46" href="#L46">46</a>          assertEquals(<span class="jxr_string">"name is incorrect"</span>, <span class="jxr_string">"TYPE_NOT_EQUALCASE"</span>, type1002.name());
-<a class="jxr_linenumber" name="L47" href="#L47">47</a>          assertEquals(<span class="jxr_string">"name is incorrect"</span>, <span class="jxr_string">"TYPE_NOT_EQUALCASEINS"</span>, type1003.name());
-<a class="jxr_linenumber" name="L48" href="#L48">48</a>          assertEquals(<span class="jxr_string">"name is incorrect"</span>, <span class="jxr_string">"TYPE_NONE"</span>, type1999.name());
-<a class="jxr_linenumber" name="L49" href="#L49">49</a>          <em class="jxr_comment">// Types that were used earlier than EJBCA 4, must also be kept for upgrade reasons,</em>
-<a class="jxr_linenumber" name="L50" href="#L50">50</a>          <em class="jxr_comment">// since we support 100% uptime upgrades, we can not NPE if these are in the database</em>
-<a class="jxr_linenumber" name="L51" href="#L51">51</a>          assertEquals(<span class="jxr_string">"name is incorrect"</span>, <span class="jxr_string">"SPECIALADMIN_PUBLICWEBUSER"</span>, type2000.name());
-<a class="jxr_linenumber" name="L52" href="#L52">52</a>          assertEquals(<span class="jxr_string">"name is incorrect"</span>, <span class="jxr_string">"SPECIALADMIN_CACOMMANDLINEADMIN"</span>, type2001.name());
-<a class="jxr_linenumber" name="L53" href="#L53">53</a>          assertEquals(<span class="jxr_string">"name is incorrect"</span>, <span class="jxr_string">"SPECIALADMIN_RAADMIN"</span>, type2002.name());
-<a class="jxr_linenumber" name="L54" href="#L54">54</a>          assertEquals(<span class="jxr_string">"name is incorrect"</span>, <span class="jxr_string">"SPECIALADMIN_BATCHCOMMANDLINEADMIN"</span>, type2003.name());
-<a class="jxr_linenumber" name="L55" href="#L55">55</a>          assertEquals(<span class="jxr_string">"name is incorrect"</span>, <span class="jxr_string">"SPECIALADMIN_INTERNALUSER"</span>, type2004.name());
-<a class="jxr_linenumber" name="L56" href="#L56">56</a>          assertEquals(<span class="jxr_string">"name is incorrect"</span>, <span class="jxr_string">"SPECIALADMIN_NOUSER"</span>, type2005.name());
-<a class="jxr_linenumber" name="L57" href="#L57">57</a>      }
-<a class="jxr_linenumber" name="L58" href="#L58">58</a>  
-<a class="jxr_linenumber" name="L59" href="#L59">59</a>  }
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="AccessMatchTypeTest" href="../../../../org/cesecore/authorization/user/AccessMatchTypeTest.html#AccessMatchTypeTest">AccessMatchTypeTest</a> {
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>      <em class="jxr_javadoccomment">/** Match test.</em>
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <em class="jxr_javadoccomment">     *</em>
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <em class="jxr_javadoccomment">     * @throws SecurityException fail</em>
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>    @Test
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testAccessMatchEnum() <strong class="jxr_keyword">throws</strong> SecurityException {
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>      AccessMatchType type0 = AccessMatchType.matchFromDatabase(0);
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>      AccessMatchType type1000 = AccessMatchType.matchFromDatabase(1000);
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>      AccessMatchType type1001 = AccessMatchType.matchFromDatabase(1001);
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>      AccessMatchType type1002 = AccessMatchType.matchFromDatabase(1002);
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>      AccessMatchType type1003 = AccessMatchType.matchFromDatabase(1003);
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>      AccessMatchType type1999 = AccessMatchType.matchFromDatabase(1999);
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>      AccessMatchType type2000 = AccessMatchType.matchFromDatabase(2000);
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>      AccessMatchType type2001 = AccessMatchType.matchFromDatabase(2001);
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>      AccessMatchType type2002 = AccessMatchType.matchFromDatabase(2002);
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>      AccessMatchType type2003 = AccessMatchType.matchFromDatabase(2003);
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>      AccessMatchType type2004 = AccessMatchType.matchFromDatabase(2004);
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>      AccessMatchType type2005 = AccessMatchType.matchFromDatabase(2005);
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>      assertEquals(<span class="jxr_string">"name is incorrect"</span>, <span class="jxr_string">"TYPE_UNUSED"</span>, type0.name());
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>      assertEquals(<span class="jxr_string">"name is incorrect"</span>, <span class="jxr_string">"TYPE_EQUALCASE"</span>, type1000.name());
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>      assertEquals(<span class="jxr_string">"name is incorrect"</span>, <span class="jxr_string">"TYPE_EQUALCASEINS"</span>, type1001.name());
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>      <em class="jxr_comment">// Types before the role rewrite in EJBCA 6.9, must be kept for upgrade</em>
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>      <em class="jxr_comment">// reasons,</em>
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>      <em class="jxr_comment">// these types are bound to be hanging around in the database</em>
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>      assertEquals(<span class="jxr_string">"name is incorrect"</span>, <span class="jxr_string">"TYPE_NOT_EQUALCASE"</span>, type1002.name());
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>      assertEquals(<span class="jxr_string">"name is incorrect"</span>, <span class="jxr_string">"TYPE_NOT_EQUALCASEINS"</span>, type1003.name());
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>      assertEquals(<span class="jxr_string">"name is incorrect"</span>, <span class="jxr_string">"TYPE_NONE"</span>, type1999.name());
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>      <em class="jxr_comment">// Types that were used earlier than EJBCA 4, must also be kept for upgrade</em>
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>      <em class="jxr_comment">// reasons,</em>
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>      <em class="jxr_comment">// since we support 100% uptime upgrades, we can not NPE if these are in the</em>
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>      <em class="jxr_comment">// database</em>
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>      assertEquals(
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>          <span class="jxr_string">"name is incorrect"</span>, <span class="jxr_string">"SPECIALADMIN_PUBLICWEBUSER"</span>, type2000.name());
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>      assertEquals(
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>          <span class="jxr_string">"name is incorrect"</span>,
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>          <span class="jxr_string">"SPECIALADMIN_CACOMMANDLINEADMIN"</span>,
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>          type2001.name());
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>      assertEquals(<span class="jxr_string">"name is incorrect"</span>, <span class="jxr_string">"SPECIALADMIN_RAADMIN"</span>, type2002.name());
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>      assertEquals(
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>          <span class="jxr_string">"name is incorrect"</span>,
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>          <span class="jxr_string">"SPECIALADMIN_BATCHCOMMANDLINEADMIN"</span>,
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>          type2003.name());
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>      assertEquals(
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>          <span class="jxr_string">"name is incorrect"</span>, <span class="jxr_string">"SPECIALADMIN_INTERNALUSER"</span>, type2004.name());
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>      assertEquals(<span class="jxr_string">"name is incorrect"</span>, <span class="jxr_string">"SPECIALADMIN_NOUSER"</span>, type2005.name());
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>    }
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>  }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2020. All rights reserved.</div>

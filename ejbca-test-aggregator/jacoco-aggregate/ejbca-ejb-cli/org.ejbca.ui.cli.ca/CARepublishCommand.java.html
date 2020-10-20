@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CARepublishCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.ca</a> &gt; <span class="el_source">CARepublishCommand.java</span></div><h1>CARepublishCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.cli.ca;
+
+import java.security.cert.CRLException;
+import java.security.cert.Certificate;
+import java.security.cert.X509CRL;
+import java.security.cert.X509Certificate;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.CaSessionRemote;
+import org.cesecore.certificates.certificate.CertificateStoreSessionRemote;
+import org.cesecore.certificates.certificateprofile.CertificateProfile;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSessionRemote;
+import org.cesecore.certificates.crl.CrlStoreSessionRemote;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.certificates.util.cert.CrlExtensions;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.EJBTools;
+import org.cesecore.util.EjbRemoteHelper;
+import org.ejbca.core.ejb.ca.publisher.PublisherSessionRemote;
+import org.ejbca.core.ejb.ra.EndEntityAccessSessionRemote;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+
+/**
+ * Re-publishes the certificates of all users belonging to a particular CA.
+ * 
+ * @version $Id: CARepublishCommand.java 27740 2018-01-05 07:24:53Z mikekushner $
+ */
+<span class="nc" id="L53">public class CARepublishCommand extends BaseCaAdminCommand {</span>
+
+<span class="nc" id="L55">    private static final Logger log = Logger.getLogger(CARepublishCommand.class);</span>
+
+    private static final String CA_NAME_KEY = &quot;--caname&quot;;
+    private static final String ALL_KEY = &quot;-all&quot;;
+    private static final String CACERT_KEY = &quot;-cacert&quot;;
+    private static final String CACRL_KEY = &quot;-cacrl&quot;;
+    private static final String EECERT_KEY = &quot;-eecert&quot;;
+
+    {
+<span class="nc" id="L64">        registerParameter(new Parameter(CA_NAME_KEY, &quot;CA Name&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;Name of the CA&quot;));
+<span class="nc" id="L66">        registerParameter(Parameter.createFlag(ALL_KEY,</span>
+                &quot;Publish all certificates for each end entity instead of only the latest (default only publishes the latest).&quot;));
+<span class="nc" id="L68">        registerParameter(Parameter.createFlag(CACERT_KEY, &quot;Publish CA certificate.&quot;));</span>
+<span class="nc" id="L69">        registerParameter(Parameter.createFlag(CACRL_KEY, &quot;Publish CA CRL.&quot;));</span>
+<span class="nc" id="L70">        registerParameter(Parameter.createFlag(EECERT_KEY, &quot;Publish End Entity certificates.&quot;));</span>
+<span class="nc" id="L71">    }</span>
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L75">        return &quot;republish&quot;;</span>
+    }
+
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+<span class="nc" id="L80">        boolean addAll = parameters.containsKey(ALL_KEY);</span>
+<span class="nc" id="L81">        boolean cacertmode = parameters.containsKey(CACERT_KEY);</span>
+<span class="nc" id="L82">        boolean cacrlmode = parameters.containsKey(CACRL_KEY);</span>
+<span class="nc" id="L83">        boolean eecertmode = parameters.containsKey(EECERT_KEY);</span>
+<span class="nc" id="L84">        String caname = parameters.get(CA_NAME_KEY);</span>
+
+        try {
+            // Get the CAs info and id
+<span class="nc" id="L88">            CAInfo cainfo = EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class).getCAInfo(getAuthenticationToken(), caname);</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">            if (cainfo == null) {</span>
+<span class="nc" id="L90">                getLogger().info(&quot;CA with name '&quot; + caname + &quot;' does not exist.&quot;);</span>
+<span class="nc" id="L91">                return CommandResult.FUNCTIONAL_FAILURE;</span>
+            }
+            // If no mode is give we will enable all modes (backwards compatibility for when there were no modes)
+<span class="nc bnc" id="L94" title="All 6 branches missed.">            if (!cacertmode &amp;&amp; !cacrlmode &amp;&amp; !eecertmode) {</span>
+<span class="nc" id="L95">                cacertmode = cacrlmode = eecertmode = true;</span>
+            }
+<span class="nc" id="L97">            getLogger().info(&quot;Publishing with modes: cacert=&quot; + cacertmode + &quot;, cacrl=&quot; + cacrlmode + &quot;, eecert=&quot; + eecertmode);</span>
+            // Publish the CAs certificate and CRL
+<span class="nc" id="L99">            Collection&lt;Certificate&gt; cachain = cainfo.getCertificateChain();</span>
+<span class="nc" id="L100">            Iterator&lt;Certificate&gt; caiter = cachain.iterator();</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">            if (caiter.hasNext()) {</span>
+<span class="nc" id="L102">                final X509Certificate cacert = (X509Certificate) caiter.next();</span>
+<span class="nc" id="L103">                final byte[] crlbytes = EjbRemoteHelper.INSTANCE.getRemoteSession(CrlStoreSessionRemote.class).getLastCRL(cainfo.getSubjectDN(),</span>
+                        false);
+                // Get the CRLnumber
+                X509CRL crl;
+                try {
+<span class="nc" id="L108">                    crl = CertTools.getCRLfromByteArray(crlbytes);</span>
+<span class="nc" id="L109">                } catch (CRLException e) {</span>
+<span class="nc" id="L110">                    throw new IllegalStateException(&quot;Couldn't deserialize CRL&quot;, e);</span>
+<span class="nc" id="L111">                }</span>
+<span class="nc" id="L112">                int crlNumber = CrlExtensions.getCrlNumber(crl).intValue();</span>
+<span class="nc" id="L113">                final Collection&lt;Integer&gt; capublishers = cainfo.getCRLPublishers();</span>
+                // Store cert and CRL in ca publishers.
+<span class="nc bnc" id="L115" title="All 2 branches missed.">                if (capublishers != null) {</span>
+<span class="nc" id="L116">                    String fingerprint = CertTools.getFingerprintAsString(cacert);</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">                    if (cacertmode) {</span>
+<span class="nc" id="L118">                        getLogger().info(&quot;Publishing CA certificate to CA publishers.&quot;);</span>
+<span class="nc" id="L119">                        EjbRemoteHelper.INSTANCE.getRemoteSession(PublisherSessionRemote.class).storeCertificate(getAuthenticationToken(),</span>
+<span class="nc" id="L120">                                capublishers, fingerprint, null, cainfo.getSubjectDN(), null);</span>
+<span class="nc" id="L121">                        getLogger().info(&quot;Certificate published for &quot; + caname);</span>
+                    }
+<span class="nc bnc" id="L123" title="All 2 branches missed.">                    if (cacrlmode) {</span>
+<span class="nc bnc" id="L124" title="All 6 branches missed.">                        if (crlbytes != null &amp;&amp; crlbytes.length &gt; 0 &amp;&amp; crlNumber &gt; 0) {</span>
+<span class="nc" id="L125">                            getLogger().info(&quot;Publishing CRL to CA publishers.&quot;);</span>
+<span class="nc" id="L126">                            EjbRemoteHelper.INSTANCE.getRemoteSession(PublisherSessionRemote.class).storeCRL(getAuthenticationToken(), capublishers,</span>
+<span class="nc" id="L127">                                    crlbytes, fingerprint, crlNumber, cainfo.getSubjectDN());</span>
+<span class="nc" id="L128">                            getLogger().info(&quot;CRL with number &quot; + crlNumber + &quot; published for &quot; + caname);</span>
+                        } else {
+<span class="nc" id="L130">                            getLogger().info(&quot;CRL not published, no CRL exists for CA.&quot;);</span>
+                        }
+                    }
+<span class="nc" id="L133">                } else {</span>
+<span class="nc" id="L134">                    getLogger().info(&quot;No publishers configured for the CA, no CA certificate or CRL published.&quot;);</span>
+                }
+<span class="nc" id="L136">            } else {</span>
+<span class="nc" id="L137">                getLogger().info(&quot;CA does not have a certificate, no certificate or CRL published!&quot;);</span>
+            }
+
+<span class="nc bnc" id="L140" title="All 2 branches missed.">            if (eecertmode) {</span>
+                // Get all users for this CA
+<span class="nc" id="L142">                Collection&lt;EndEntityInformation&gt; coll = EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityAccessSessionRemote.class)</span>
+<span class="nc" id="L143">                        .findAllUsersByCaId(getAuthenticationToken(), cainfo.getCAId());</span>
+<span class="nc" id="L144">                Iterator&lt;EndEntityInformation&gt; iter = coll.iterator();</span>
+<span class="nc bnc" id="L145" title="All 2 branches missed.">                while (iter.hasNext()) {</span>
+<span class="nc" id="L146">                    EndEntityInformation data = iter.next();</span>
+<span class="nc" id="L147">                    getLogger().info(</span>
+<span class="nc" id="L148">                            &quot;User: &quot; + data.getUsername() + &quot;, \&quot;&quot; + data.getDN() + &quot;\&quot;, \&quot;&quot; + data.getSubjectAltName() + &quot;\&quot;, &quot; + data.getEmail()</span>
+<span class="nc" id="L149">                                    + &quot;, &quot; + data.getStatus() + &quot;, &quot; + data.getType().getHexValue() + &quot;, &quot; + data.getTokenType() + &quot;, &quot;</span>
+<span class="nc" id="L150">                                    + data.getHardTokenIssuerId() + &quot;, &quot; + data.getCertificateProfileId());</span>
+
+<span class="nc bnc" id="L152" title="All 2 branches missed.">                    if (data.getCertificateProfileId() &gt; 0) { // only if we find a</span>
+                        // certificate profile
+<span class="nc" id="L154">                        CertificateProfile certProfile = EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateProfileSessionRemote.class)</span>
+<span class="nc" id="L155">                                .getCertificateProfile(data.getCertificateProfileId());</span>
+<span class="nc bnc" id="L156" title="All 2 branches missed.">                        if (certProfile == null) {</span>
+<span class="nc" id="L157">                            getLogger().error(&quot;Can not get certificate profile with id: &quot; + data.getCertificateProfileId());</span>
+<span class="nc" id="L158">                            continue;</span>
+                        }
+                        // Get an ordered list of certificates, last expire date first
+<span class="nc" id="L161">                        List&lt;Certificate&gt; certCol = EJBTools.unwrapCertCollection(EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateStoreSessionRemote.class)</span>
+<span class="nc" id="L162">                                .findCertificatesByUsername(data.getUsername()));</span>
+<span class="nc bnc" id="L163" title="All 4 branches missed.">                        if ((certCol != null) &amp;&amp; certCol.iterator().hasNext()) {</span>
+<span class="nc bnc" id="L164" title="All 2 branches missed.">                            if (certProfile.getPublisherList() != null) {</span>
+<span class="nc" id="L165">                                getLogger().info(</span>
+<span class="nc" id="L166">                                        &quot;Re-publishing user &quot; + data.getUsername() + &quot; to publishers in users certificate profile &quot;</span>
+<span class="nc" id="L167">                                                + data.getCertificateProfileId());</span>
+<span class="nc bnc" id="L168" title="All 2 branches missed.">                                if (addAll) {</span>
+<span class="nc" id="L169">                                    getLogger().info(&quot;Re-publishing all certificates (&quot; + certCol.size() + &quot;).&quot;);</span>
+                                    // Reverse the collection so we publish the latest certificate last
+<span class="nc" id="L171">                                    Collections.reverse(certCol); // now the latest (last expire date) certificate is last in the List</span>
+<span class="nc" id="L172">                                    Iterator&lt;Certificate&gt; i = certCol.iterator();</span>
+<span class="nc bnc" id="L173" title="All 2 branches missed.">                                    while (i.hasNext()) {</span>
+<span class="nc" id="L174">                                        X509Certificate c = (X509Certificate) i.next();</span>
+<span class="nc" id="L175">                                        publishCert(getAuthenticationToken(), data, certProfile, c);</span>
+<span class="nc" id="L176">                                    }</span>
+<span class="nc" id="L177">                                } else {</span>
+                                    // Only publish the latest one (last expire date)
+                                    // The latest one is the first in the List according to findCertificatesByUsername()
+<span class="nc" id="L180">                                    publishCert(getAuthenticationToken(), data, certProfile, (X509Certificate) certCol.iterator().next());</span>
+                                }
+                            } else {
+<span class="nc" id="L183">                                getLogger().info(</span>
+<span class="nc" id="L184">                                        &quot;Not publishing certificate for user &quot; + data.getUsername() + &quot;, no publisher in certificate profile.&quot;);</span>
+                            }
+                        } else {
+<span class="nc" id="L187">                            getLogger().info(&quot;No certificate to publish for user &quot; + data.getUsername());</span>
+                        }
+<span class="nc" id="L189">                    } else {</span>
+<span class="nc" id="L190">                        getLogger().info(&quot;No certificate profile is set for user &quot; + data.getUsername());</span>
+                    }
+<span class="nc" id="L192">                }</span>
+               
+            } // if (eecertmode)
+<span class="nc" id="L195">            return CommandResult.SUCCESS;</span>
+<span class="nc" id="L196">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L197">            log.error(&quot;CLI user was not authorized to CA &quot; + caname);</span>
+<span class="nc" id="L198">            return CommandResult.AUTHORIZATION_FAILURE;</span>
+        }
+
+    }
+
+    private void publishCert(AuthenticationToken authenticationToken, EndEntityInformation data, CertificateProfile certProfile, X509Certificate cert) {
+        try {
+<span class="nc" id="L205">            String fingerprint = CertTools.getFingerprintAsString(cert);</span>
+<span class="nc" id="L206">            final String userDataDN = data.getCertificateDN();</span>
+<span class="nc" id="L207">            boolean ret = EjbRemoteHelper.INSTANCE.getRemoteSession(PublisherSessionRemote.class).storeCertificate(authenticationToken,</span>
+<span class="nc" id="L208">                    certProfile.getPublisherList(), fingerprint, data.getPassword(), userDataDN, null);</span>
+<span class="nc bnc" id="L209" title="All 2 branches missed.">            if (!ret) {</span>
+<span class="nc" id="L210">                getLogger().error(</span>
+<span class="nc" id="L211">                        &quot;Failed to publish certificate for user &quot; + data.getUsername() + &quot;, continuing with next user. Publish returned false.&quot;);</span>
+            }
+<span class="nc" id="L213">        } catch (Exception e) {</span>
+            // catch failure to publish one user and continue with the rest
+<span class="nc" id="L215">            getLogger().error(&quot;Failed to publish certificate for user &quot; + data.getUsername() + &quot;, continuing with next user. &quot; + e.getMessage());</span>
+<span class="nc" id="L216">        }</span>
+<span class="nc" id="L217">    }</span>
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L221">        return &quot;Re-publishes the certificates of a CA and/or all users issued by a particular CA. &quot;;</span>
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L226">        return getCommandDescription()</span>
+                + &quot;Default if none of cacert, cacrl or eecert is specific is to publish all types, you can specify one or several on the command line. &quot;
+                + &quot;For example to only publish CA certificate and CRL, no end entity certificates: ca republish ManagementCA -cacert -cacrl&quot;
+                + &quot;Example to only publish CA certificate and CRL, and latest end entity certificates: ca republish ManagementCA&quot;;
+    }
+
+    @Override
+    protected Logger getLogger() {
+<span class="nc" id="L234">        return log;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

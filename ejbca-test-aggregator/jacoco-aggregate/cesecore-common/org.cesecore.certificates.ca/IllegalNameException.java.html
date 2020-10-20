@@ -9,52 +9,50 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/  
+ *************************************************************************/
 package org.cesecore.certificates.ca;
 
 import javax.ejb.ApplicationException;
-
 import org.cesecore.CesecoreException;
-
-
 
 /**
  * Error due to an invalid request name for a certificate.
  *
  * @version $Id: IllegalNameException.java 18968 2014-05-20 17:09:49Z samuellb $
  */
-@ApplicationException(rollback=true) 
+@ApplicationException(rollback = true)
 public class IllegalNameException extends CesecoreException {
- 
-    private static final long serialVersionUID = 6774153561528947364L;
-  
-    /**
-     * Constructor used to create exception with an error message. Calls the same constructor in
-     * baseclass &lt;code&gt;CesecoreException&lt;/code&gt;.
-     *
-     * @param message Human readable error message, can not be NULL.
-     */
-    public IllegalNameException(final String message) {
-<span class="fc" id="L38">        super(message);</span>
-<span class="fc" id="L39">    }</span>
-    /**
-     * Constructor used to create exception with an embedded exception. Calls the same constructor
-     * in baseclass &lt;code&gt;CesecoreException&lt;/code&gt;.
-     *
-     * @param exception exception to be embedded.
-     */
-    public IllegalNameException(final Exception exception) {
-<span class="nc" id="L47">        super(exception);</span>
-<span class="nc" id="L48">    }</span>
-    /**
-     * Constructor used to create exception with a message and an embedded exception.
-     * Calls the same constructor in baseclass &lt;code&gt;CesecoreException&lt;/code&gt;.
-     * @param message message
-     *
-     * @param exception exception to be embedded.
-     */
-    public IllegalNameException(final String message, final Exception exception) {
-<span class="fc" id="L57">        super(message, exception);</span>
-<span class="fc" id="L58">    }</span>
+
+  private static final long serialVersionUID = 6774153561528947364L;
+
+  /**
+   * Constructor used to create exception with an error message. Calls the same
+   * constructor in baseclass &lt;code&gt;CesecoreException&lt;/code&gt;.
+   *
+   * @param message Human readable error message, can not be NULL.
+   */
+  public IllegalNameException(final String message) {
+<span class="fc" id="L35">    super(message);</span>
+<span class="fc" id="L36">  }</span>
+  /**
+   * Constructor used to create exception with an embedded exception. Calls the
+   * same constructor in baseclass &lt;code&gt;CesecoreException&lt;/code&gt;.
+   *
+   * @param exception exception to be embedded.
+   */
+  public IllegalNameException(final Exception exception) {
+<span class="nc" id="L44">    super(exception);</span>
+<span class="nc" id="L45">  }</span>
+  /**
+   * Constructor used to create exception with a message and an embedded
+   * exception. Calls the same constructor in baseclass &lt;code&gt;CesecoreException
+   * &lt;/code&gt;.
+   *
+   * @param message message
+   * @param exception exception to be embedded.
+   */
+  public IllegalNameException(final String message, final Exception exception) {
+<span class="fc" id="L55">    super(message, exception);</span>
+<span class="fc" id="L56">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

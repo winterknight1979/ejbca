@@ -26,7 +26,7 @@ under the License.
     <copyright>&#169;2020</copyright>
     <item>
       <title>File: 12,
-             Errors: 356,
+             Errors: 275,
              Warnings: 0,
              Infos: 0
       </title>
@@ -55,7 +55,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  7
+                  5
                 </td>
               </tr>
                           <tr>
@@ -69,7 +69,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  17
+                  11
                 </td>
               </tr>
                           <tr>
@@ -83,7 +83,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  9
+                  7
                 </td>
               </tr>
                           <tr>
@@ -97,21 +97,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  33
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/winterknight1979/ejbca/edition-specific-ejb/checkstyle.html#org.ejbca.core.ejb.EnterpriseEditionWSBridgeSessionBean.java">org/ejbca/core/ejb/EnterpriseEditionWSBridgeSessionBean.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  70
+                  24
                 </td>
               </tr>
                           <tr>
@@ -125,7 +111,21 @@ under the License.
                   0
                 </td>
                 <td>
-                  8
+                  7
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/edition-specific-ejb/checkstyle.html#org.ejbca.core.ejb.EnterpriseEditionWSBridgeSessionBean.java">org/ejbca/core/ejb/EnterpriseEditionWSBridgeSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  64
                 </td>
               </tr>
                           <tr>
@@ -139,21 +139,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  16
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/winterknight1979/ejbca/edition-specific-ejb/checkstyle.html#org.ejbca.core.ejb.AcmeOrderDataSessionBean.java">org/ejbca/core/ejb/AcmeOrderDataSessionBean.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  37
+                  15
                 </td>
               </tr>
                           <tr>
@@ -167,7 +153,21 @@ under the License.
                   0
                 </td>
                 <td>
-                  26
+                  19
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/edition-specific-ejb/checkstyle.html#org.ejbca.core.ejb.AcmeOrderDataSessionBean.java">org/ejbca/core/ejb/AcmeOrderDataSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  27
                 </td>
               </tr>
                           <tr>
@@ -181,7 +181,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  24
+                  19
                 </td>
               </tr>
                           <tr>
@@ -195,7 +195,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  7
+                  5
                 </td>
               </tr>
                           <tr>
@@ -209,7 +209,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  102
+                  72
                 </td>
               </tr>
                       </tbody>

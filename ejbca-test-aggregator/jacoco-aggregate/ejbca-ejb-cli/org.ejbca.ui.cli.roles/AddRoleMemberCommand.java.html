@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>AddRoleMemberCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.roles</a> &gt; <span class="el_source">AddRoleMemberCommand.java</span></div><h1>AddRoleMemberCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.cli.roles;
+
+import java.util.Collections;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.authentication.tokens.AuthenticationTokenMetaData;
+import org.cesecore.authentication.tokens.X509CertificateAuthenticationTokenMetaData;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.user.AccessMatchType;
+import org.cesecore.authorization.user.matchvalues.AccessMatchValue;
+import org.cesecore.authorization.user.matchvalues.AccessMatchValueReverseLookupRegistry;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.CaSessionRemote;
+import org.cesecore.roles.Role;
+import org.cesecore.roles.management.RoleSessionRemote;
+import org.cesecore.roles.member.RoleMember;
+import org.cesecore.roles.member.RoleMemberSessionRemote;
+import org.cesecore.util.EjbRemoteHelper;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+
+/**
+ * Adds a role member.
+ * 
+ * @version $Id: AddRoleMemberCommand.java 29199 2018-06-11 11:13:01Z jeklund $
+ */
+<span class="nc" id="L46">public class AddRoleMemberCommand extends BaseRolesCommand {</span>
+
+<span class="nc" id="L48">    private static final Logger log = Logger.getLogger(AddRoleMemberCommand.class);</span>
+
+    private static final String ROLE_NAME_KEY = &quot;--role&quot;;
+    private static final String CA_NAME_KEY = &quot;--caname&quot;;
+    private static final String MATCH_WITH_KEY = &quot;--with&quot;;
+    private static final String MATCH_TYPE_KEY = &quot;--type&quot;;
+    private static final String MATCH_VALUE_KEY = &quot;--value&quot;;
+    private static final String DESCRIPTION_KEY = &quot;--description&quot;;
+    private static final String ROLE_NAMESPACE_KEY = &quot;--namespace&quot;;
+
+    {
+<span class="nc" id="L59">        registerParameter(new Parameter(ROLE_NAME_KEY, &quot;Role Name&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;Role to add admin to.&quot;));
+<span class="nc" id="L61">        registerParameter(new Parameter(CA_NAME_KEY, &quot;CA Name&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;Name of issuing CA&quot;));
+<span class="nc" id="L63">        registerParameter(new Parameter(MATCH_WITH_KEY, &quot;Value&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;The MatchWith Value&quot;));
+<span class="nc" id="L65">        registerParameter(new Parameter(MATCH_TYPE_KEY, &quot;Type&quot;, MandatoryMode.OPTIONAL, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;(Ignored) Match operator type. Kept to prevent legacy scripts from breaking. Currently implied by &quot; + MATCH_WITH_KEY +&quot; switch.&quot;));
+<span class="nc" id="L67">        registerParameter(new Parameter(MATCH_VALUE_KEY, &quot;Value&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;The value to match against.&quot;));
+<span class="nc" id="L69">        registerParameter(new Parameter(DESCRIPTION_KEY, &quot;Description&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID, ParameterMode.ARGUMENT,</span>
+                &quot;A human readable description of the role member.&quot;));
+<span class="nc" id="L71">        registerParameter(new Parameter(ROLE_NAMESPACE_KEY, &quot;Role Namespace&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID, ParameterMode.ARGUMENT,</span>
+                &quot;The namespace the role belongs to.&quot;));
+<span class="nc" id="L73">    }</span>
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L77">        return &quot;addrolemember&quot;;</span>
+    }
+
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+<span class="nc" id="L82">        final String roleName = parameters.get(ROLE_NAME_KEY);</span>
+<span class="nc" id="L83">        final String namespace = parameters.get(ROLE_NAMESPACE_KEY);</span>
+        final Role role;
+        try {
+<span class="nc" id="L86">            role = EjbRemoteHelper.INSTANCE.getRemoteSession(RoleSessionRemote.class).getRole(getAuthenticationToken(), namespace, roleName);</span>
+<span class="nc" id="L87">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L88">            getLogger().error(&quot;Not authorized to role &quot; + super.getFullRoleName(namespace, roleName) + &quot;.&quot;);</span>
+<span class="nc" id="L89">            return CommandResult.AUTHORIZATION_FAILURE;</span>
+<span class="nc" id="L90">        }</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">        if (role == null) {</span>
+<span class="nc" id="L92">            getLogger().error(&quot;No such role &quot; + super.getFullRoleName(namespace, roleName) + &quot;.&quot;);</span>
+<span class="nc" id="L93">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+        }
+<span class="nc" id="L95">        final String matchWithKeyParam = parameters.get(MATCH_WITH_KEY);</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">        if (StringUtils.isEmpty(matchWithKeyParam)) {</span>
+<span class="nc" id="L97">            getLogger().error(&quot;No such thing to match with as '&quot; + parameters.get(MATCH_WITH_KEY) + &quot;'.&quot;);</span>
+<span class="nc" id="L98">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+        }
+        final String tokenType;
+        final String matchWithKey;
+<span class="nc" id="L102">        final String[] matchWithKeySplit = matchWithKeyParam.split(&quot;:&quot;);</span>
+<span class="nc bnc" id="L103" title="All 2 branches missed.">        if (matchWithKeySplit.length == 1) {</span>
+<span class="nc" id="L104">            tokenType = X509CertificateAuthenticationTokenMetaData.TOKEN_TYPE;</span>
+<span class="nc" id="L105">            matchWithKey = matchWithKeySplit[0];</span>
+<span class="nc" id="L106">            getLogger().info(&quot;Match TokenType is assumed to be '&quot; + tokenType + &quot;'.&quot;);</span>
+        } else {
+<span class="nc" id="L108">            tokenType = matchWithKeySplit[0];</span>
+<span class="nc" id="L109">            matchWithKey = matchWithKeySplit[1];</span>
+<span class="nc" id="L110">            final AuthenticationTokenMetaData authenticationTokenMetaData = AccessMatchValueReverseLookupRegistry.INSTANCE.getMetaData(tokenType);</span>
+<span class="nc bnc" id="L111" title="All 4 branches missed.">            if (authenticationTokenMetaData == null || !authenticationTokenMetaData.isUserConfigurable()) {</span>
+<span class="nc" id="L112">                getLogger().error(&quot;TokenType '&quot; + tokenType + &quot;' is not configurable.&quot;);</span>
+<span class="nc" id="L113">                return CommandResult.FUNCTIONAL_FAILURE;</span>
+            }
+        }
+        final int tokenIssuerId;
+<span class="nc bnc" id="L117" title="All 2 branches missed.">        if (X509CertificateAuthenticationTokenMetaData.TOKEN_TYPE.equals(tokenType)) {</span>
+<span class="nc" id="L118">            final String caName = parameters.get(CA_NAME_KEY);</span>
+            final CAInfo caInfo;
+            try {
+<span class="nc" id="L121">                caInfo = EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class).getCAInfo(getAuthenticationToken(), caName);</span>
+<span class="nc" id="L122">            }  catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L123">                getLogger().error(&quot;CLI user not authorized to CA&quot;);</span>
+<span class="nc" id="L124">                return CommandResult.AUTHORIZATION_FAILURE;</span>
+<span class="nc" id="L125">            }</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">            if (caInfo == null) {</span>
+<span class="nc" id="L127">                getLogger().error(&quot;No such CA '&quot; + caName + &quot;'.&quot;);</span>
+<span class="nc" id="L128">                return CommandResult.FUNCTIONAL_FAILURE;</span>
+            }
+<span class="nc" id="L130">            tokenIssuerId = caInfo.getCAId();</span>
+<span class="nc" id="L131">        } else {</span>
+            // To be backwards compatible with existing scripts in the wild, we will still have to require parameter but we ignore the value if is unused
+            //getLogger().info(&quot;Ignoring mandatory '&quot; + CA_NAME_KEY + &quot;' parameter value for the selected Token Type '&quot; + tokenType + &quot;'.&quot;);
+<span class="nc" id="L134">            tokenIssuerId = RoleMember.NO_ISSUER;</span>
+        }
+<span class="nc" id="L136">        final AccessMatchValue accessMatchValue = AccessMatchValueReverseLookupRegistry.INSTANCE.lookupMatchValueFromTokenTypeAndName(tokenType, matchWithKey);</span>
+<span class="nc bnc" id="L137" title="All 2 branches missed.">        if (accessMatchValue == null) {</span>
+<span class="nc" id="L138">            getLogger().error(&quot;No such thing to match with as '&quot; + parameters.get(MATCH_WITH_KEY) + &quot;'.&quot;);</span>
+<span class="nc" id="L139">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+        }
+        final AccessMatchType accessMatchType;
+<span class="nc bnc" id="L142" title="All 2 branches missed.">        if (accessMatchValue.getAvailableAccessMatchTypes().isEmpty()) {</span>
+<span class="nc" id="L143">            accessMatchType = AccessMatchType.TYPE_UNUSED;</span>
+        } else {
+            // Just grab the first one, since we according to ECA-3164 only will have a single allowed match operator for each match key
+<span class="nc" id="L146">            accessMatchType = accessMatchValue.getAvailableAccessMatchTypes().get(0);</span>
+        }
+<span class="nc" id="L148">        final String matchTypeParam = parameters.get(MATCH_TYPE_KEY);</span>
+<span class="nc bnc" id="L149" title="All 2 branches missed.">        if (StringUtils.isNotEmpty(matchTypeParam)) {</span>
+<span class="nc" id="L150">            getLogger().info(&quot;Parameter &quot; + MATCH_TYPE_KEY + &quot; is ignored. &quot; + MATCH_WITH_KEY + &quot; value &quot; + accessMatchValue.name() + &quot; implies &quot; + accessMatchType.name() + &quot;.&quot;);</span>
+        }
+<span class="nc" id="L152">        final String description = parameters.get(DESCRIPTION_KEY);</span>
+<span class="nc" id="L153">        final String matchValue = parameters.get(MATCH_VALUE_KEY);</span>
+<span class="nc" id="L154">        final RoleMember roleMember = new RoleMember(tokenType, tokenIssuerId, accessMatchValue.getNumericValue(), accessMatchType.getNumericValue(),</span>
+<span class="nc" id="L155">                matchValue, role.getRoleId(), description);</span>
+        try {
+<span class="nc" id="L157">            EjbRemoteHelper.INSTANCE.getRemoteSession(RoleMemberSessionRemote.class).persist(getAuthenticationToken(), roleMember);</span>
+<span class="nc" id="L158">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L159">            getLogger().error(&quot;CLI user not authorized to edit role&quot;);</span>
+<span class="nc" id="L160">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L161">        }</span>
+<span class="nc" id="L162">        return CommandResult.SUCCESS;</span>
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L167">        return &quot;Adds a member to a role.&quot;;</span>
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L172">        final StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L173">        sb.append(getCommandDescription() + &quot;.\n&quot;);</span>
+<span class="nc" id="L174">        final List&lt;Role&gt; roles = EjbRemoteHelper.INSTANCE.getRemoteSession(RoleSessionRemote.class).getAuthorizedRoles(getAuthenticationToken());</span>
+<span class="nc" id="L175">        Collections.sort(roles);</span>
+<span class="nc" id="L176">        String availableRoles = &quot;&quot;;</span>
+<span class="nc bnc" id="L177" title="All 2 branches missed.">        for (final Role role : roles) {</span>
+<span class="nc bnc" id="L178" title="All 2 branches missed.">            availableRoles += availableRoles.length() == 0 ? &quot;&quot; : &quot;, &quot;;</span>
+<span class="nc" id="L179">            availableRoles += &quot;'&quot; + super.getFullRoleName(role.getNameSpace(), role.getRoleName()) + &quot;'&quot;;</span>
+<span class="nc" id="L180">        }</span>
+<span class="nc" id="L181">        sb.append(&quot;Available Roles: &quot; + availableRoles + &quot;\n&quot;);</span>
+<span class="nc" id="L182">        String availableCas = &quot;&quot;;</span>
+<span class="nc bnc" id="L183" title="All 2 branches missed.">        for (final String caName : EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class).getAuthorizedCaNames(getAuthenticationToken())) {</span>
+<span class="nc bnc" id="L184" title="All 2 branches missed.">            availableCas += (availableCas.length() == 0 ? &quot;&quot; : &quot;, &quot;) + &quot;&quot; + caName + &quot;&quot;;</span>
+<span class="nc" id="L185">        }</span>
+<span class="nc" id="L186">        sb.append(&quot;Available CAs: &quot; + availableCas + &quot;\n&quot;);</span>
+<span class="nc" id="L187">        String availableAccessMatchValues = &quot;&quot;;</span>
+<span class="nc bnc" id="L188" title="All 2 branches missed.">        for (final String tokenType : AccessMatchValueReverseLookupRegistry.INSTANCE.getAllTokenTypes()) {</span>
+<span class="nc" id="L189">            final AuthenticationTokenMetaData authenticationTokenMetaData = AccessMatchValueReverseLookupRegistry.INSTANCE.getMetaData(tokenType);</span>
+<span class="nc bnc" id="L190" title="All 2 branches missed.">            if (authenticationTokenMetaData.isUserConfigurable()) {</span>
+<span class="nc bnc" id="L191" title="All 2 branches missed.">                for (final String accessMatchValueName : authenticationTokenMetaData.getAccessMatchValueNameMap().keySet()) {</span>
+<span class="nc bnc" id="L192" title="All 2 branches missed.">                    availableAccessMatchValues += (availableAccessMatchValues.isEmpty() ? &quot;&quot; : &quot;, &quot;) + tokenType + &quot;:&quot; + accessMatchValueName;</span>
+<span class="nc" id="L193">                }</span>
+            }
+<span class="nc" id="L195">        }</span>
+<span class="nc" id="L196">        sb.append(&quot;Match with is one of ('CertificateAuthenticationToken:' can be omitted): &quot; + availableAccessMatchValues + &quot;\n&quot;);</span>
+<span class="nc" id="L197">        return sb.toString();</span>
+    }
+
+    @Override
+    protected Logger getLogger() {
+<span class="nc" id="L202">        return log;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

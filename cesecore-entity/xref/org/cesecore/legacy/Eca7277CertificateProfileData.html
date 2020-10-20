@@ -25,46 +25,64 @@
 <a class="jxr_linenumber" name="L17" href="#L17">17</a>  <strong class="jxr_keyword">import</strong> org.cesecore.certificates.certificateprofile.CertificateProfileData;
 <a class="jxr_linenumber" name="L18" href="#L18">18</a>  
 <a class="jxr_linenumber" name="L19" href="#L19">19</a>  <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <em class="jxr_javadoccomment"> * CertificateProfileData was one of the old classes that used serialized binary data in a blob in the database.</em>
-<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <em class="jxr_javadoccomment"> * In order for CertificateProfileData.getProtectString to produce a String, the object was read in and then the</em>
-<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <em class="jxr_javadoccomment"> * getData() method returned a LinkedHashMap. StringBuilder.build() called toString() on the LinkedHashMap, which</em>
-<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <em class="jxr_javadoccomment"> * in turn called toString() on the objects in it. One of the objects was an ApprovalRequestType. In ECA-6518 the</em>
-<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <em class="jxr_javadoccomment"> * toString() method was overridden in this enum, causing the string representation to be different. This caused</em>
-<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <em class="jxr_javadoccomment"> * rowProtection signature verification to fail when you upgraded from a version &amp;lt;=6.11 to a version &amp;gt;=6.12.</em>
-<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <em class="jxr_javadoccomment"> *</em>
-<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <em class="jxr_javadoccomment"> * The aim of Eca7277CertificateProfileData is to fix this problem. Eca7277CertificateProfileData behaves exactly</em>
-<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <em class="jxr_javadoccomment"> * like CertificateProfileData, but replaces any faulty substrings found in the protect string returned by</em>
-<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <em class="jxr_javadoccomment"> * getProtectString() before returning it to the caller.</em>
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <em class="jxr_javadoccomment"> * CertificateProfileData was one of the old classes that used serialized binary</em>
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <em class="jxr_javadoccomment"> * data in a blob in the database. In order for</em>
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <em class="jxr_javadoccomment"> * CertificateProfileData.getProtectString to produce a String, the object was</em>
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <em class="jxr_javadoccomment"> * read in and then the getData() method returned a LinkedHashMap.</em>
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <em class="jxr_javadoccomment"> * StringBuilder.build() called toString() on the LinkedHashMap, which in turn</em>
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <em class="jxr_javadoccomment"> * called toString() on the objects in it. One of the objects was an</em>
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <em class="jxr_javadoccomment"> * ApprovalRequestType. In ECA-6518 the toString() method was overridden in this</em>
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <em class="jxr_javadoccomment"> * enum, causing the string representation to be different. This caused</em>
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <em class="jxr_javadoccomment"> * rowProtection signature verification to fail when you upgraded from a version</em>
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <em class="jxr_javadoccomment"> * &amp;lt;=6.11 to a version &amp;gt;=6.12.</em>
 <a class="jxr_linenumber" name="L30" href="#L30">30</a>  <em class="jxr_javadoccomment"> *</em>
-<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <em class="jxr_javadoccomment"> * This class and all references to it can be safely removed when we drop support for EJBCA 6.14.</em>
-<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <em class="jxr_javadoccomment"> *</em>
-<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <em class="jxr_javadoccomment"> * @version $Id: Eca7277CertificateProfileData.java 29814 2018-09-05 15:03:36Z bastianf $</em>
-<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <em class="jxr_javadoccomment"> */</em>
-<a class="jxr_linenumber" name="L35" href="#L35">35</a>  @SuppressWarnings(<span class="jxr_string">"serial"</span>)
-<a class="jxr_linenumber" name="L36" href="#L36">36</a>  @Deprecated
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="Eca7277CertificateProfileData" href="../../../org/cesecore/legacy/Eca7277CertificateProfileData.html#Eca7277CertificateProfileData">Eca7277CertificateProfileData</a> <strong class="jxr_keyword">extends</strong> <a name="CertificateProfileData" href="../../../org/cesecore/certificates/certificateprofile/CertificateProfileData.html#CertificateProfileData">CertificateProfileData</a> {
-<a class="jxr_linenumber" name="L38" href="#L38">38</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> Logger log = Logger.getLogger(Eca7277CertificateProfileData.<strong class="jxr_keyword">class</strong>);
-<a class="jxr_linenumber" name="L39" href="#L39">39</a>  
-<a class="jxr_linenumber" name="L40" href="#L40">40</a>      <strong class="jxr_keyword">public</strong> <a name="Eca7277CertificateProfileData" href="../../../org/cesecore/legacy/Eca7277CertificateProfileData.html#Eca7277CertificateProfileData">Eca7277CertificateProfileData</a>(<strong class="jxr_keyword">final</strong> <a name="CertificateProfileData" href="../../../org/cesecore/certificates/certificateprofile/CertificateProfileData.html#CertificateProfileData">CertificateProfileData</a> data) {
-<a class="jxr_linenumber" name="L41" href="#L41">41</a>          <strong class="jxr_keyword">super</strong>(data.getId(), data.getCertificateProfileName(), data.getCertificateProfile());
-<a class="jxr_linenumber" name="L42" href="#L42">42</a>          <strong class="jxr_keyword">this</strong>.setRowVersion(data.getRowVersion());
-<a class="jxr_linenumber" name="L43" href="#L43">43</a>          <strong class="jxr_keyword">this</strong>.setRowProtection(data.getRowProtection());
-<a class="jxr_linenumber" name="L44" href="#L44">44</a>      }
-<a class="jxr_linenumber" name="L45" href="#L45">45</a>  
-<a class="jxr_linenumber" name="L46" href="#L46">46</a>      @Override
-<a class="jxr_linenumber" name="L47" href="#L47">47</a>      <strong class="jxr_keyword">protected</strong> String getProtectString(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> rowversion) {
-<a class="jxr_linenumber" name="L48" href="#L48">48</a>          <strong class="jxr_keyword">if</strong> (log.isDebugEnabled()) {
-<a class="jxr_linenumber" name="L49" href="#L49">49</a>              log.debug(<span class="jxr_string">"Verification of row protected data for Certificate Profile "</span> + getCertificateProfileName()
-<a class="jxr_linenumber" name="L50" href="#L50">50</a>                      + <span class="jxr_string">" failed. Trying to fix the protect string now."</span>);
-<a class="jxr_linenumber" name="L51" href="#L51">51</a>          }
-<a class="jxr_linenumber" name="L52" href="#L52">52</a>          <em class="jxr_comment">// Signature was computer over "Add or Edit End Entity" ect. in EJBCA 6.11-6.14</em>
-<a class="jxr_linenumber" name="L53" href="#L53">53</a>          <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">super</strong>.getProtectString(rowversion)
-<a class="jxr_linenumber" name="L54" href="#L54">54</a>              .replace(<span class="jxr_string">"ADDEDITENDENTITY="</span>, <span class="jxr_string">"Add or Edit End Entity="</span>)
-<a class="jxr_linenumber" name="L55" href="#L55">55</a>              .replace(<span class="jxr_string">"KEYRECOVER="</span>, <span class="jxr_string">"Key Recovery="</span>)
-<a class="jxr_linenumber" name="L56" href="#L56">56</a>              .replace(<span class="jxr_string">"REVOCATION="</span>, <span class="jxr_string">"Revocation="</span>)
-<a class="jxr_linenumber" name="L57" href="#L57">57</a>              .replace(<span class="jxr_string">"ACTIVATECA="</span>, <span class="jxr_string">"CA Activation="</span>);
-<a class="jxr_linenumber" name="L58" href="#L58">58</a>      }
-<a class="jxr_linenumber" name="L59" href="#L59">59</a>  }
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <em class="jxr_javadoccomment"> * &lt;p&gt;The aim of Eca7277CertificateProfileData is to fix this problem.</em>
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <em class="jxr_javadoccomment"> * Eca7277CertificateProfileData behaves exactly like CertificateProfileData,</em>
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <em class="jxr_javadoccomment"> * but replaces any faulty substrings found in the protect string returned by</em>
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <em class="jxr_javadoccomment"> * getProtectString() before returning it to the caller.</em>
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <em class="jxr_javadoccomment"> *</em>
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <em class="jxr_javadoccomment"> * &lt;p&gt;This class and all references to it can be safely removed when we drop</em>
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <em class="jxr_javadoccomment"> * support for EJBCA 6.14.</em>
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <em class="jxr_javadoccomment"> *</em>
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <em class="jxr_javadoccomment"> * @version $Id: Eca7277CertificateProfileData.java 29814 2018-09-05 15:03:36Z</em>
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <em class="jxr_javadoccomment"> *     bastianf $</em>
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  @SuppressWarnings(<span class="jxr_string">"serial"</span>)
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  @Deprecated
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="Eca7277CertificateProfileData" href="../../../org/cesecore/legacy/Eca7277CertificateProfileData.html#Eca7277CertificateProfileData">Eca7277CertificateProfileData</a> <strong class="jxr_keyword">extends</strong> <a name="CertificateProfileData" href="../../../org/cesecore/certificates/certificateprofile/CertificateProfileData.html#CertificateProfileData">CertificateProfileData</a> {
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>    <em class="jxr_javadoccomment">/** Logger. */</em>
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> Logger LOG =
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>        Logger.getLogger(Eca7277CertificateProfileData.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>  
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>    <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>  <em class="jxr_javadoccomment">   * @param data data</em>
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>  <em class="jxr_javadoccomment">   */</em>
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>    <strong class="jxr_keyword">public</strong> <a name="Eca7277CertificateProfileData" href="../../../org/cesecore/legacy/Eca7277CertificateProfileData.html#Eca7277CertificateProfileData">Eca7277CertificateProfileData</a>(<strong class="jxr_keyword">final</strong> <a name="CertificateProfileData" href="../../../org/cesecore/certificates/certificateprofile/CertificateProfileData.html#CertificateProfileData">CertificateProfileData</a> data) {
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>      <strong class="jxr_keyword">super</strong>(
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>          data.getId(),
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>          data.getCertificateProfileName(),
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>          data.getCertificateProfile());
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>      <strong class="jxr_keyword">this</strong>.setRowVersion(data.getRowVersion());
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>      <strong class="jxr_keyword">this</strong>.setRowProtection(data.getRowProtection());
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>    }
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>  
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>    @Override
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>    <strong class="jxr_keyword">protected</strong> String getProtectString(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> rowversion) {
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>      <strong class="jxr_keyword">if</strong> (LOG.isDebugEnabled()) {
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>        LOG.debug(
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>            <span class="jxr_string">"Verification of row protected data for Certificate Profile "</span>
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>                + getCertificateProfileName()
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>                + <span class="jxr_string">" failed. Trying to fix the protect string now."</span>);
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>      }
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>      <em class="jxr_comment">// Signature was computer over "Add or Edit End Entity" ect. in EJBCA</em>
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>      <em class="jxr_comment">// 6.11-6.14</em>
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>      <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">super</strong>.getProtectString(rowversion)
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>          .replace(<span class="jxr_string">"ADDEDITENDENTITY="</span>, <span class="jxr_string">"Add or Edit End Entity="</span>)
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>          .replace(<span class="jxr_string">"KEYRECOVER="</span>, <span class="jxr_string">"Key Recovery="</span>)
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>          .replace(<span class="jxr_string">"REVOCATION="</span>, <span class="jxr_string">"Revocation="</span>)
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>          .replace(<span class="jxr_string">"ACTIVATECA="</span>, <span class="jxr_string">"CA Activation="</span>);
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>    }
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>  }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2020. All rights reserved.</div>

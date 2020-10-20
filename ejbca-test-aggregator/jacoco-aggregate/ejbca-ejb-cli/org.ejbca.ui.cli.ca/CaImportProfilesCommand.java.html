@@ -1,0 +1,393 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CaImportProfilesCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.ca</a> &gt; <span class="el_source">CaImportProfilesCommand.java</span></div><h1>CaImportProfilesCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.cli.ca;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.CaSessionRemote;
+import org.cesecore.certificates.certificateprofile.CertificateProfile;
+import org.cesecore.certificates.certificateprofile.CertificateProfileConstants;
+import org.cesecore.certificates.certificateprofile.CertificateProfileExistsException;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSessionRemote;
+import org.cesecore.certificates.endentity.EndEntityConstants;
+import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.EjbRemoteHelper;
+import org.cesecore.util.FileTools;
+import org.cesecore.util.SecureXMLDecoder;
+import org.ejbca.core.ejb.ca.publisher.PublisherSessionRemote;
+import org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSessionRemote;
+import org.ejbca.core.model.SecConst;
+import org.ejbca.core.model.ca.publisher.BasePublisher;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfile;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfileExistsException;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+
+/**
+ * Import profiles from XML-files to the database.
+ *
+ * @version $Id: CaImportProfilesCommand.java 34163 2020-01-02 15:00:17Z samuellb $
+ */
+<span class="nc" id="L57">public class CaImportProfilesCommand extends BaseCaAdminCommand {</span>
+
+<span class="nc" id="L59">    private static final Logger log = Logger.getLogger(CaImportProfilesCommand.class);</span>
+
+    private static final String DIRECTORY_KEY = &quot;-d&quot;;
+    private static final String CA_NAME_KEY = &quot;--caname&quot;;
+
+    {
+<span class="nc" id="L65">        registerParameter(new Parameter(DIRECTORY_KEY, &quot;Directory&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;Directory containing profiles.&quot;));
+<span class="nc" id="L67">        registerParameter(new Parameter(CA_NAME_KEY, &quot;CA Name&quot;, MandatoryMode.OPTIONAL, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;Name of a CA to restrict imported profiles to.&quot;));
+<span class="nc" id="L69">    }</span>
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L73">        return &quot;importprofiles&quot;;</span>
+    }
+
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+<span class="nc" id="L78">        String inpath = parameters.get(DIRECTORY_KEY);</span>
+<span class="nc" id="L79">        Integer caid = null;</span>
+<span class="nc" id="L80">        String caName = parameters.get(CA_NAME_KEY);</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">        if (caName != null) {</span>
+            CAInfo ca;
+            try {
+<span class="nc" id="L84">                ca = EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class).getCAInfo(getAuthenticationToken(), caName);</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">                if (ca == null) {</span>
+<span class="nc" id="L86">                    getLogger().error(&quot;CA '&quot; + caName + &quot;' does not exist.&quot;);</span>
+<span class="nc" id="L87">                    return CommandResult.FUNCTIONAL_FAILURE;</span>
+                }
+<span class="nc" id="L89">            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L90">                getLogger().error(&quot;CLI user not authorized to CA '&quot; + caName);</span>
+<span class="nc" id="L91">                return CommandResult.AUTHORIZATION_FAILURE;</span>
+<span class="nc" id="L92">            }</span>
+<span class="nc" id="L93">            caid = ca.getCAId();</span>
+
+        }
+<span class="nc" id="L96">        CryptoProviderTools.installBCProvider();</span>
+        // Mapping used to translate certificate profile ids when importing end entity profiles. Used when the profile id of a cert profile changes
+        // and we need to change the mapping from the ee profile to cert profiles
+<span class="nc" id="L99">        HashMap&lt;Integer, Integer&gt; certificateProfileIdMapping = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L100">        getLogger().info(&quot;Importing certificate and end entity profiles: &quot;);</span>
+<span class="nc" id="L101">        File inFile = new File(inpath);</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">        if (!inFile.isDirectory()) {</span>
+<span class="nc" id="L103">            getLogger().error(&quot;'&quot; + inpath + &quot;' is not a directory.&quot;);</span>
+<span class="nc" id="L104">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+        }
+        // List all filenames in the given directory, we will try to import them all
+<span class="nc" id="L107">        File[] infiles = inFile.listFiles();</span>
+<span class="nc" id="L108">        FileTools.sortByName(infiles);</span>
+        try {
+<span class="nc bnc" id="L110" title="All 2 branches missed.">            for (int i = 0; i &lt; infiles.length; i++) {</span>
+<span class="nc" id="L111">                getLogger().info(&quot;Filename: &quot; + infiles[i].getName());</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">                if (infiles[i].isFile()</span>
+<span class="nc bnc" id="L113" title="All 4 branches missed.">                        &amp;&amp; ((infiles[i].getName().indexOf(&quot;certprofile_&quot;) &gt; -1) || (infiles[i].getName().indexOf(&quot;entityprofile_&quot;) &gt; -1))) {</span>
+<span class="nc" id="L114">                    boolean entityprofile = false;</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">                    if (infiles[i].getName().indexOf(&quot;entityprofile_&quot;) &gt; -1) {</span>
+<span class="nc" id="L116">                        entityprofile = true;</span>
+                    }
+<span class="nc" id="L118">                    int index1 = infiles[i].getName().indexOf(&quot;_&quot;);</span>
+<span class="nc" id="L119">                    int index2 = infiles[i].getName().lastIndexOf(&quot;-&quot;);</span>
+<span class="nc" id="L120">                    int index3 = infiles[i].getName().lastIndexOf(&quot;.xml&quot;);</span>
+<span class="nc bnc" id="L121" title="All 6 branches missed.">                    if (index1 &lt; 0 || index2 &lt; 0 || index3 &lt; 0) {</span>
+<span class="nc" id="L122">                        getLogger().error(&quot;Filename not as expected (cert/entityprofile_&lt;name&gt;-&lt;id&gt;.xml).&quot;);</span>
+                    } else {
+<span class="nc" id="L124">                        final String filename = infiles[i].getName().substring(index1 + 1, index2);</span>
+                        String profilename;
+                        try {
+<span class="nc" id="L127">                            profilename = URLDecoder.decode(filename, &quot;UTF-8&quot;);</span>
+<span class="nc" id="L128">                        } catch (UnsupportedEncodingException e) {</span>
+<span class="nc" id="L129">                            throw new IllegalStateException(&quot;UTF-8 was not a known character encoding&quot;, e);</span>
+<span class="nc" id="L130">                        }</span>
+<span class="nc" id="L131">                        int profileid = Integer.parseInt(infiles[i].getName().substring(index2 + 1, index3));</span>
+                        // We don't add the fixed profiles, EJBCA handles those automagically
+<span class="nc bnc" id="L133" title="All 4 branches missed.">                        if (!entityprofile &amp;&amp; CertificateProfileConstants.isFixedCertificateProfile(profileid)) {</span>
+<span class="nc" id="L134">                            getLogger().error(&quot;Not adding fixed certificate profile '&quot; + profilename + &quot;'.&quot;);</span>
+                        } else {
+<span class="nc bnc" id="L136" title="All 4 branches missed.">                            if (entityprofile &amp;&amp; profileid == EndEntityConstants.EMPTY_END_ENTITY_PROFILE) {</span>
+<span class="nc" id="L137">                                getLogger().error(&quot;Not adding fixed entity profile '&quot; + profilename + &quot;'.&quot;);</span>
+                            } else {
+                                // Check if the profiles already exist, and change the name and id if already taken
+<span class="nc" id="L140">                                boolean error = false;</span>
+                                // when we need to create a new certprofile id, this will hodl the original value so we
+                                // can insert a mapping in certificateProfileIdMapping when we have created a new id
+<span class="nc" id="L143">                                int oldprofileid = -1;</span>
+<span class="nc bnc" id="L144" title="All 2 branches missed.">                                if (entityprofile) {</span>
+<span class="nc bnc" id="L145" title="All 2 branches missed.">                                    if (EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityProfileSessionRemote.class).getEndEntityProfile(</span>
+                                            profilename) != null) {
+<span class="nc" id="L147">                                        getLogger().error(&quot;Entity profile '&quot; + profilename + &quot;' already exist in database.&quot;);</span>
+<span class="nc" id="L148">                                        error = true;</span>
+<span class="nc bnc" id="L149" title="All 2 branches missed.">                                    } else if (EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityProfileSessionRemote.class).getEndEntityProfile(</span>
+                                            profileid) != null) {
+<span class="nc" id="L151">                                        int newprofileid = EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityProfileSessionRemote.class)</span>
+<span class="nc" id="L152">                                                .findFreeEndEntityProfileId();</span>
+<span class="nc" id="L153">                                        getLogger()</span>
+<span class="nc" id="L154">                                                .warn(&quot;Entity profileid '&quot; + profileid + &quot;' already exist in database. Using &quot; + newprofileid</span>
+                                                        + &quot; instead.&quot;);
+<span class="nc" id="L156">                                        profileid = newprofileid;</span>
+<span class="nc" id="L157">                                    }</span>
+                                } else {
+<span class="nc bnc" id="L159" title="All 2 branches missed.">                                    if (EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateProfileSessionRemote.class).getCertificateProfileId(</span>
+                                            profilename) != CertificateProfileConstants.CERTPROFILE_NO_PROFILE) {
+<span class="nc" id="L161">                                        getLogger().error(&quot;Error: Certificate profile '&quot; + profilename + &quot;' already exist in database.&quot;);</span>
+<span class="nc" id="L162">                                        error = true;</span>
+<span class="nc" id="L163">                                    } else if (EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateProfileSessionRemote.class)</span>
+<span class="nc bnc" id="L164" title="All 2 branches missed.">                                            .getCertificateProfile(profileid) != null) {</span>
+<span class="nc" id="L165">                                        getLogger().warn(</span>
+                                                &quot;Certificate profile id '&quot; + profileid
+                                                        + &quot;' already exist in database. Adding with a new profile id instead.&quot;);
+<span class="nc" id="L168">                                        oldprofileid = profileid;</span>
+<span class="nc" id="L169">                                        profileid = -1; // means we should create a new id when adding the cert profile</span>
+                                    }
+                                }
+<span class="nc bnc" id="L172" title="All 2 branches missed.">                                if (!error) {</span>
+<span class="nc" id="L173">                                    CertificateProfile cprofile = null;</span>
+<span class="nc" id="L174">                                    EndEntityProfile eprofile = null;</span>
+                                    final Object loadedObject;
+<span class="nc" id="L176">                                    try (SecureXMLDecoder decoder = new SecureXMLDecoder(new FileInputStream(infiles[i]))) {</span>
+<span class="nc" id="L177">                                        loadedObject = decoder.readObject();</span>
+<span class="nc" id="L178">                                    } catch (FileNotFoundException e) {</span>
+                                        //Shouldn't happen, we've already vetted the file directory above
+<span class="nc" id="L180">                                        throw new IllegalStateException(&quot;An exception was encountered with an already vetted file directory&quot;, e);</span>
+<span class="nc" id="L181">                                    } catch (IOException e) {</span>
+<span class="nc" id="L182">                                        log.error(&quot;Failed to parse profile XML in '&quot; + infiles[i] + &quot;': &quot; + e.getMessage());</span>
+<span class="nc" id="L183">                                        return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L184">                                    }</span>
+<span class="nc bnc" id="L185" title="All 2 branches missed.">                                    if (entityprofile) {</span>
+                                        // Add end entity profile
+<span class="nc" id="L187">                                        eprofile = new EndEntityProfile();</span>
+<span class="nc" id="L188">                                        eprofile.loadData(loadedObject);</span>
+                                        // Translate cert profile ids that have changed after import
+<span class="nc" id="L190">                                        final List&lt;Integer&gt; availableCertProfiles = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L191">                                        Integer defaultCertProfile = eprofile.getDefaultCertificateProfile();</span>
+                                        //getLogger().debug(&quot;Debug: Org - AVAILCERTPROFILES &quot; + eprofile.getValue(EndEntityProfile.AVAILCERTPROFILES,0) + &quot; DEFAULTCERTPROFILE &quot;+defaultCertProfile);
+<span class="nc bnc" id="L193" title="All 2 branches missed.">                                        for (int currentCertProfileId : eprofile.getAvailableCertificateProfileIds()) {</span>
+<span class="nc" id="L194">                                            Integer replacementCertProfileId = certificateProfileIdMapping.get(currentCertProfileId);</span>
+<span class="nc bnc" id="L195" title="All 2 branches missed.">                                            if (replacementCertProfileId != null) {</span>
+<span class="nc bnc" id="L196" title="All 2 branches missed.">                                                if (replacementCertProfileId != currentCertProfileId) {</span>
+<span class="nc" id="L197">                                                    getLogger().warn(</span>
+                                                            &quot;Replacing cert profile with id &quot; + currentCertProfileId + &quot; with &quot;
+                                                                    + replacementCertProfileId + &quot;.&quot;);
+                                                }
+<span class="nc" id="L201">                                                availableCertProfiles.add(replacementCertProfileId);</span>
+<span class="nc bnc" id="L202" title="All 2 branches missed.">                                                if (currentCertProfileId == defaultCertProfile) {</span>
+<span class="nc" id="L203">                                                    defaultCertProfile = replacementCertProfileId;</span>
+                                                }
+                                            } else {
+<span class="nc" id="L206">                                                if (EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateProfileSessionRemote.class)</span>
+<span class="nc bnc" id="L207" title="All 2 branches missed.">                                                        .getCertificateProfile(currentCertProfileId) != null</span>
+<span class="nc bnc" id="L208" title="All 2 branches missed.">                                                        || CertificateProfileConstants.isFixedCertificateProfile(currentCertProfileId)) {</span>
+<span class="nc" id="L209">                                                    availableCertProfiles.add(currentCertProfileId);</span>
+                                                } else {
+<span class="nc" id="L211">                                                    getLogger().warn(</span>
+                                                            &quot;End Entity Profile '&quot; + profilename + &quot;' references certificate profile &quot;
+                                                                    + currentCertProfileId + &quot; that does not exist.&quot;);
+<span class="nc bnc" id="L214" title="All 2 branches missed.">                                                    if (currentCertProfileId == defaultCertProfile) {</span>
+<span class="nc" id="L215">                                                        defaultCertProfile = null;</span>
+                                                    }
+                                                }
+                                            }
+<span class="nc" id="L219">                                        }</span>
+<span class="nc bnc" id="L220" title="All 2 branches missed.">                                        if (availableCertProfiles.isEmpty()) {</span>
+<span class="nc" id="L221">                                            getLogger()</span>
+<span class="nc" id="L222">                                                    .warn(&quot;End Entity Profile only references certificate profile(s) that does not exist. Using ENDUSER profile.&quot;);</span>
+<span class="nc" id="L223">                                            availableCertProfiles.add(EndEntityConstants.EMPTY_END_ENTITY_PROFILE); // At least make sure the default profile is available</span>
+                                        }
+<span class="nc bnc" id="L225" title="All 2 branches missed.">                                        if (defaultCertProfile == null) {</span>
+<span class="nc" id="L226">                                            defaultCertProfile = availableCertProfiles.get(0); // Use first available profile from list as default if original default was missing</span>
+                                        }
+<span class="nc" id="L228">                                        eprofile.setAvailableCertificateProfileIds(availableCertProfiles);</span>
+<span class="nc" id="L229">                                        eprofile.setDefaultCertificateProfile(defaultCertProfile);</span>
+                                        // Remove any unknown CA and break if none is left
+<span class="nc" id="L231">                                        Integer defaultCA = eprofile.getDefaultCA();</span>
+<span class="nc" id="L232">                                        final List&lt;Integer&gt; cas = eprofile.getAvailableCAs();</span>
+                                        //getOutputStream().println(&quot;Debug: Org - AVAILCAS &quot; + availableCAs + &quot; DEFAULTCA &quot;+defaultCA);
+<span class="nc" id="L234">                                        final List&lt;Integer&gt; availableCAs = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L235" title="All 2 branches missed.">                                        for (int currentCaId : cas) {</span>
+                                            // The constant ALLCAS will not be searched for among available CAs
+<span class="nc bnc" id="L237" title="All 2 branches missed.">                                            if (currentCaId != SecConst.ALLCAS) {</span>
+<span class="nc bnc" id="L238" title="All 2 branches missed.">                                                if (!EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class).existsCa(currentCaId)) {</span>
+<span class="nc" id="L239">                                                    getLogger().warn(&quot;CA with id &quot; + currentCaId</span>
+                                                            + &quot; was not found and will not be used in end entity profile '&quot; + profilename + &quot;'.&quot;);
+<span class="nc bnc" id="L241" title="All 2 branches missed.">                                                    if (defaultCA == currentCaId) {</span>
+<span class="nc" id="L242">                                                        defaultCA = null;</span>
+                                                    }
+                                                } else {
+<span class="nc" id="L245">                                                    availableCAs.add(currentCaId); </span>
+                                                }
+                                            } else {
+<span class="nc" id="L248">                                                availableCAs.add(SecConst.ALLCAS);</span>
+                                            }
+                                           
+
+<span class="nc" id="L252">                                        }</span>
+<span class="nc bnc" id="L253" title="All 2 branches missed.">                                        if (availableCAs.isEmpty()) {</span>
+<span class="nc bnc" id="L254" title="All 2 branches missed.">                                            if (caid == null) {</span>
+<span class="nc" id="L255">                                                getLogger().error(</span>
+                                                        &quot;No CAs left in end entity profile '&quot; + profilename
+                                                                + &quot;' and no CA specified on command line. Using ALLCAs.&quot;);
+<span class="nc" id="L258">                                                availableCAs.add(SecConst.ALLCAS);</span>
+                                            } else {
+<span class="nc" id="L260">                                                availableCAs.add(caid);</span>
+<span class="nc" id="L261">                                                getLogger().warn(</span>
+                                                        &quot;No CAs left in end entity profile '&quot; + profilename
+                                                                + &quot;'. Using CA supplied on command line with id '&quot; + caid + &quot;'.&quot;);
+                                            }
+                                        }
+<span class="nc bnc" id="L266" title="All 2 branches missed.">                                        if (defaultCA == null) {</span>
+<span class="nc" id="L267">                                            defaultCA = availableCAs.get(0); // Use first available</span>
+<span class="nc" id="L268">                                            getLogger().warn(&quot;Changing default CA in end entity profile '&quot; + profilename + &quot;' to &quot; + defaultCA + &quot;.&quot;);</span>
+                                        }
+                                        //getLogger().debug(&quot;New - AVAILCAS &quot; + availableCAs + &quot; DEFAULTCA &quot;+defaultCA);
+<span class="nc" id="L271">                                        eprofile.setAvailableCAs(availableCAs);</span>
+<span class="nc" id="L272">                                        eprofile.setDefaultCA(defaultCA);</span>
+                                        try {
+<span class="nc" id="L274">                                            EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityProfileSessionRemote.class).addEndEntityProfile(</span>
+<span class="nc" id="L275">                                                    getAuthenticationToken(), profileid, profilename, eprofile);</span>
+<span class="nc" id="L276">                                            getLogger().info(&quot;Added entity profile '&quot; + profilename + &quot;' to database.&quot;);</span>
+<span class="nc" id="L277">                                        } catch (EndEntityProfileExistsException eepee) {</span>
+<span class="nc" id="L278">                                            getLogger().error(&quot;Error adding entity profile '&quot; + profilename + &quot;' to database.&quot;);</span>
+<span class="nc" id="L279">                                        }</span>
+<span class="nc" id="L280">                                    } else {</span>
+                                        // Add certificate profile
+<span class="nc" id="L282">                                        cprofile = new CertificateProfile();</span>
+<span class="nc" id="L283">                                        cprofile.loadData(loadedObject);</span>
+                                        // Make sure CAs in profile exist
+<span class="nc" id="L285">                                        List&lt;Integer&gt; cas = cprofile.getAvailableCAs();</span>
+<span class="nc bnc" id="L286" title="All 2 branches missed.">                                        if (cas == null) {</span>
+<span class="nc" id="L287">                                            cas = new ArrayList&lt;&gt;();</span>
+                                        }
+<span class="nc" id="L289">                                        ArrayList&lt;Integer&gt; casToRemove = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L290" title="All 2 branches missed.">                                        for (Integer currentCA : cas) {</span>
+                                            // If the CA is not ANYCA and the CA does not exist, remove it from the profile before import
+<span class="nc bnc" id="L292" title="All 2 branches missed.">                                            if (currentCA != CertificateProfile.ANYCA) {</span>
+<span class="nc bnc" id="L293" title="All 2 branches missed.">                                                if (!EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class).existsCa(currentCA)) {</span>
+<span class="nc" id="L294">                                                    casToRemove.add(currentCA);</span>
+                                                }
+                                            }
+<span class="nc" id="L297">                                        }</span>
+<span class="nc bnc" id="L298" title="All 2 branches missed.">                                        for (Integer toRemove : casToRemove) {</span>
+<span class="nc" id="L299">                                            getLogger().warn(</span>
+                                                    &quot;Warning: CA with id &quot; + toRemove
+                                                            + &quot; was not found and will not be used in certificate profile '&quot; + profilename + &quot;'.&quot;);
+<span class="nc" id="L302">                                            cas.remove(toRemove);</span>
+<span class="nc" id="L303">                                        }</span>
+<span class="nc bnc" id="L304" title="All 2 branches missed.">                                        if (cas.size() == 0) {</span>
+<span class="nc bnc" id="L305" title="All 2 branches missed.">                                            if (caid == null) {</span>
+<span class="nc" id="L306">                                                getLogger().error(</span>
+                                                        &quot;Error: No CAs left in certificate profile '&quot; + profilename
+                                                                + &quot;' and no CA specified on command line. Using ANYCA.&quot;);
+<span class="nc" id="L309">                                                cas.add(Integer.valueOf(CertificateProfile.ANYCA));</span>
+                                            } else {
+<span class="nc" id="L311">                                                getLogger().warn(</span>
+                                                        &quot;Warning: No CAs left in certificate profile '&quot; + profilename
+                                                                + &quot;'. Using CA supplied on command line with id '&quot; + caid + &quot;'.&quot;);
+<span class="nc" id="L314">                                                cas.add(caid);</span>
+                                            }
+                                        }
+<span class="nc" id="L317">                                        cprofile.setAvailableCAs(cas);</span>
+                                        // Remove and warn about unknown publishers
+<span class="nc" id="L319">                                        List&lt;Integer&gt; publishers = cprofile.getPublisherList();</span>
+<span class="nc" id="L320">                                        ArrayList&lt;Integer&gt; allToRemove = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L321" title="All 2 branches missed.">                                        for (Integer publisher : publishers) {</span>
+<span class="nc" id="L322">                                            BasePublisher pub = null;</span>
+                                            try {
+<span class="nc" id="L324">                                                pub = EjbRemoteHelper.INSTANCE.getRemoteSession(PublisherSessionRemote.class).getPublisher(publisher);</span>
+<span class="nc" id="L325">                                            } catch (Exception e) {</span>
+<span class="nc" id="L326">                                                getLogger().warn(</span>
+                                                        &quot;Warning: There was an error loading publisher with id &quot; + publisher
+<span class="nc" id="L328">                                                                + &quot;. Use debug logging to see stack trace: &quot; + e.getMessage());</span>
+<span class="nc" id="L329">                                                getLogger().debug(&quot;Full stack trace: &quot;, e);</span>
+<span class="nc" id="L330">                                            }</span>
+<span class="nc bnc" id="L331" title="All 2 branches missed.">                                            if (pub == null) {</span>
+<span class="nc" id="L332">                                                allToRemove.add(publisher);</span>
+                                            }
+<span class="nc" id="L334">                                        }</span>
+<span class="nc bnc" id="L335" title="All 2 branches missed.">                                        for (Integer toRemove : allToRemove) {</span>
+<span class="nc" id="L336">                                            getLogger().warn(</span>
+                                                    &quot;Warning: Publisher with id &quot; + toRemove
+                                                            + &quot; was not found and will not be used in certificate profile '&quot; + profilename + &quot;'.&quot;);
+<span class="nc" id="L339">                                            publishers.remove(toRemove);</span>
+<span class="nc" id="L340">                                        }</span>
+<span class="nc" id="L341">                                        cprofile.setPublisherList(publishers);</span>
+                                        // Add profile
+                                        try {
+<span class="nc bnc" id="L344" title="All 2 branches missed.">                                            if (profileid == -1) {</span>
+                                                // id already existed, we need to create a new one
+<span class="nc" id="L346">                                                profileid = EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateProfileSessionRemote.class)</span>
+<span class="nc" id="L347">                                                        .addCertificateProfile(getAuthenticationToken(), profilename, cprofile);</span>
+                                                // make a mapping from the old id (that was already in use) to the new one so we can change end entity profiles
+<span class="nc" id="L349">                                                certificateProfileIdMapping.put(oldprofileid, profileid);</span>
+                                            } else {
+<span class="nc" id="L351">                                                EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateProfileSessionRemote.class)</span>
+<span class="nc" id="L352">                                                        .addCertificateProfile(getAuthenticationToken(), profileid, profilename, cprofile);</span>
+                                            }
+                                            // Make a mapping from the new to the new id, so we have a mapping if the profile id did not change at all
+<span class="nc" id="L355">                                            certificateProfileIdMapping.put(profileid,</span>
+<span class="nc" id="L356">                                                    EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateProfileSessionRemote.class)</span>
+<span class="nc" id="L357">                                                            .getCertificateProfileId(profilename));</span>
+<span class="nc" id="L358">                                            getLogger().info(&quot;Added certificate profile '&quot; + profilename + &quot;', '&quot; + profileid + &quot;' to database.&quot;);</span>
+<span class="nc" id="L359">                                        } catch (CertificateProfileExistsException cpee) {</span>
+<span class="nc" id="L360">                                            getLogger().error(</span>
+                                                    &quot;Error adding certificate profile '&quot; + profilename + &quot;', '&quot; + profileid + &quot;' to database.&quot;);
+<span class="nc" id="L362">                                        }</span>
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+<span class="nc" id="L370">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L371">            log.error(&quot;Current CLI user doesn't have sufficient privileges to import profiles.&quot;);</span>
+<span class="nc" id="L372">            return CommandResult.AUTHORIZATION_FAILURE;</span>
+<span class="nc" id="L373">        }</span>
+<span class="nc" id="L374">        return CommandResult.SUCCESS;</span>
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L379">        return &quot;Import profiles from XML-files to the database&quot;;</span>
+
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L385">        return getCommandDescription();</span>
+    }
+
+    @Override
+    protected Logger getLogger() {
+<span class="nc" id="L390">        return log;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -14,84 +14,86 @@ package org.cesecore.config;
 
 import java.util.HashMap;
 import java.util.Properties;
-
 import org.cesecore.configuration.ConfigurationBase;
 import org.cesecore.configuration.ConfigurationCache;
 
 /**
- * Class Holding cache variable for CESeCore global configuration. Needed because EJB spec does not allow volatile, non-final 
- * fields in session beans.
- * 
- * @version $Id: GlobalCesecoreConfigurationCache.java 22740 2016-02-05 13:28:45Z mikekushner $
+ * Class Holding cache variable for CESeCore global configuration. Needed
+ * because EJB spec does not allow volatile, non-final fields in session beans.
  *
+ * @version $Id: GlobalCesecoreConfigurationCache.java 22740 2016-02-05
+ *     13:28:45Z mikekushner $
  */
 public class GlobalCesecoreConfigurationCache implements ConfigurationCache {
 
-    /**
-     * Cache variable containing the global configuration. This cache may be
-     * unsynchronized between multiple instances of EJBCA, but is common to all
-     * threads in the same VM. Set volatile to make it thread friendly.
-     */
-<span class="nc" id="L35">    private volatile GlobalCesecoreConfiguration globalconfigurationCache = null;</span>
-    /** help variable used to control that GlobalConfiguration update isn't performed to often. */
-<span class="nc" id="L37">    private volatile long lastupdatetime = -1;  </span>
-    
-<span class="nc" id="L39">    public GlobalCesecoreConfigurationCache() {</span>
-<span class="nc" id="L40">    }</span>
+  /**
+   * Cache variable containing the global configuration. This cache may be
+   * unsynchronized between multiple instances of EJBCA, but is common to all
+   * threads in the same VM. Set volatile to make it thread friendly.
+   */
+<span class="nc" id="L34">  private volatile GlobalCesecoreConfiguration globalconfigurationCache = null;</span>
+  /**
+   * help variable used to control that GlobalConfiguration update isn't
+   * performed to often.
+   */
+<span class="nc" id="L39">  private volatile long lastupdatetime = -1;</span>
 
-    @Override
-    public String getConfigId() {
-<span class="nc" id="L44">        return GlobalCesecoreConfiguration.CESECORE_CONFIGURATION_ID;</span>
+  /** Default constructor. */
+<span class="nc" id="L42">  public GlobalCesecoreConfigurationCache() { }</span>
+
+  @Override
+  public String getConfigId() {
+<span class="nc" id="L46">    return GlobalCesecoreConfiguration.CESECORE_CONFIGURATION_ID;</span>
+  }
+
+  @Override
+  public void clearCache() {
+<span class="nc" id="L51">    globalconfigurationCache = null;</span>
+<span class="nc" id="L52">  }</span>
+
+  @Override
+  public void saveData() {
+<span class="nc" id="L56">    globalconfigurationCache.saveData();</span>
+<span class="nc" id="L57">  }</span>
+
+  @Override
+  public boolean needsUpdate() {
+<span class="nc bnc" id="L61" title="All 2 branches missed.">    if (globalconfigurationCache != null</span>
+        &amp;&amp; lastupdatetime
+<span class="nc" id="L63">                + CesecoreConfiguration.getCacheGlobalConfigurationTime()</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">            &gt; System.currentTimeMillis()) {</span>
+<span class="nc" id="L65">      return false;</span>
     }
+<span class="nc" id="L67">    return true;</span>
+  }
 
-    @Override
-    public void clearCache() {
-<span class="nc" id="L49">        globalconfigurationCache = null;</span>
+  @Override
+  public ConfigurationBase getConfiguration() {
+<span class="nc" id="L72">    return globalconfigurationCache;</span>
+  }
 
-<span class="nc" id="L51">    }</span>
+  @Override
+  public ConfigurationBase getConfiguration(
+      @SuppressWarnings(&quot;rawtypes&quot;) final HashMap data) {
+<span class="nc" id="L78">    ConfigurationBase returnval = new GlobalCesecoreConfiguration();</span>
+<span class="nc" id="L79">    returnval.loadData(data);</span>
+<span class="nc" id="L80">    return returnval;</span>
+  }
 
-    @Override
-    public void saveData() {
-<span class="nc" id="L55">        globalconfigurationCache.saveData();</span>
-<span class="nc" id="L56">    }</span>
+  @Override
+  public ConfigurationBase getNewConfiguration() {
+<span class="nc" id="L85">    return new GlobalCesecoreConfiguration();</span>
+  }
 
-    @Override
-    public boolean needsUpdate() {
-<span class="nc bnc" id="L60" title="All 4 branches missed.">        if (globalconfigurationCache != null &amp;&amp; lastupdatetime + CesecoreConfiguration.getCacheGlobalConfigurationTime() &gt; System.currentTimeMillis()) {</span>
-<span class="nc" id="L61">            return false;</span>
-        }
-<span class="nc" id="L63">        return true;</span>
-    }
+  @Override
+  public void updateConfiguration(final  ConfigurationBase configuration) {
+<span class="nc" id="L90">    this.globalconfigurationCache = (GlobalCesecoreConfiguration) configuration;</span>
+<span class="nc" id="L91">    lastupdatetime = System.currentTimeMillis();</span>
+<span class="nc" id="L92">  }</span>
 
-    @Override
-    public ConfigurationBase getConfiguration() {
-<span class="nc" id="L68">        return globalconfigurationCache;</span>
-
-    }
-
-    @Override
-    public ConfigurationBase getConfiguration(@SuppressWarnings(&quot;rawtypes&quot;) HashMap data) {
-<span class="nc" id="L74">        ConfigurationBase returnval = new GlobalCesecoreConfiguration();</span>
-<span class="nc" id="L75">        returnval.loadData(data);</span>
-<span class="nc" id="L76">        return returnval;</span>
-    }
-
-    @Override
-    public ConfigurationBase getNewConfiguration() {
-<span class="nc" id="L81">        return new GlobalCesecoreConfiguration();      </span>
-
-    }
-
-    @Override
-    public void updateConfiguration(ConfigurationBase configuration) {
-<span class="nc" id="L87">        this.globalconfigurationCache = (GlobalCesecoreConfiguration) configuration;</span>
-<span class="nc" id="L88">        lastupdatetime = System.currentTimeMillis();</span>
-<span class="nc" id="L89">    }</span>
-
-    @Override
-    public Properties getAllProperties() {
-<span class="nc" id="L93">        return ConfigurationHolder.getAsProperties();</span>
-    }
-
+  @Override
+  public Properties getAllProperties() {
+<span class="nc" id="L96">    return ConfigurationHolder.getAsProperties();</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

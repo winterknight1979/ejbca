@@ -16,50 +16,53 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-
 /**
  * Query Criteria DSL.
- * 
- * This object will not contain the generated query itself. Generation and validation will be done server-side.
- * 
- * This will not guarantee that the conjunction of all restrictions will result in a good query.
- * Restrictions order should be guaranteed by the third-party lib. If not it will result in a malformed query.
- * 
- * TODO: For now there is no support for prioritizing certain conditions using parenthesis but with the current queyr generator
- * this could be easily supported.  
- * 
- * &lt;em&gt;For usage example @see QueryCriteriaTest&lt;/em&gt;
- * 
+ *
+ * &lt;p&gt;This object will not contain the generated query itself. Generation and
+ * validation will be done server-side.
+ *
+ * &lt;p&gt;This will not guarantee that the conjunction of all restrictions will
+ * result in a good query. Restrictions order should be guaranteed by the
+ * third-party lib. If not it will result in a malformed query.
+ *
+ * &lt;p&gt;TODO: For now there is no support for prioritizing certain conditions
+ * using parenthesis but with the current queyr generator this could be easily
+ * supported.
+ *
+ * &lt;p&gt;&lt;em&gt;For usage example @see QueryCriteriaTest&lt;/em&gt;
+ *
  * @version $Id: QueryCriteria.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 public final class QueryCriteria implements Serializable {
-    
-    private static final long serialVersionUID = 1823996498624633259L;
-<span class="fc" id="L38">    private List&lt;Elem&gt; elements = new ArrayList&lt;Elem&gt;();</span>
 
+  private static final long serialVersionUID = 1823996498624633259L;
+  /** Elements. */
+<span class="fc" id="L41">  private final List&lt;Elem&gt; elements = new ArrayList&lt;Elem&gt;();</span>
 
-<span class="fc" id="L41">    private QueryCriteria() {</span>
-<span class="fc" id="L42">    }</span>
+<span class="fc" id="L43">  private QueryCriteria() { }</span>
 
-    /** @return a new QueryCriteria */
-    public static QueryCriteria create() {
-<span class="fc" id="L46">        return new QueryCriteria();</span>
-    }
-    
-    /**
-     * Adds a new Criteria (Restriction)
-     * @param elem element to be added
-     * 
-     * @return QueryCriteria instance for chained calls.
-     */
-    public QueryCriteria add(Elem elem) {
-<span class="fc" id="L56">        elements.add(elem);</span>
-<span class="fc" id="L57">        return this;</span>
-    }
+  /** @return a new QueryCriteria */
+  public static QueryCriteria create() {
+<span class="fc" id="L47">    return new QueryCriteria();</span>
+  }
 
-    public List&lt;Elem&gt; getElements() {
-<span class="fc" id="L61">        return elements;</span>
-    }
-    
+  /**
+   * Adds a new Criteria (Restriction).
+   *
+   * @param elem element to be added
+   * @return QueryCriteria instance for chained calls.
+   */
+  public QueryCriteria add(final Elem elem) {
+<span class="fc" id="L57">    elements.add(elem);</span>
+<span class="fc" id="L58">    return this;</span>
+  }
+
+  /**
+   * @return Elements.
+   */
+  public List&lt;Elem&gt; getElements() {
+<span class="fc" id="L65">    return elements;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

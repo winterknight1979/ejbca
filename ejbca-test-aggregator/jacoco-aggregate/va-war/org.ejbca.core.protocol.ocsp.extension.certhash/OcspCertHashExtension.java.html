@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>OcspCertHashExtension.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">va-war</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.ocsp.extension.certhash</a> &gt; <span class="el_source">OcspCertHashExtension.java</span></div><h1>OcspCertHashExtension.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.protocol.ocsp.extension.certhash;
+
+import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509Certificate;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.DEROctetString;
+import org.bouncycastle.asn1.isismtt.ocsp.CertHash;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.asn1.x509.Extension;
+import org.cesecore.certificates.ocsp.extension.OCSPExtension;
+import org.cesecore.certificates.ocsp.extension.OCSPExtensionType;
+import org.cesecore.keybind.InternalKeyBinding;
+
+/**
+ * ASN.1 OCSP extension used to return hash values for certificates as part of an OCSP response.
+ * 
+ * Certificates will be encoded with SHA256
+ * 
+ * OID for this extension is 1.3.36.8.3.13
+ * 
+ * This extension is specified in the German Common PKI standard.
+ * &lt;a href=&quot;http://www.t7ev.org/T7-de/Common-PKI&quot;&gt;Common PKI&lt;/a&gt; SigG CertHash OCSP extension.
+ * 
+ * CertHashExtension is a SINGLE_RESPONSE extension, which means it's inside the responseItem, 
+ * not generic for the Response (which can contain several responseItems)
+ * 
+ * @version $Id: OcspCertHashExtension.java 28881 2018-05-08 18:18:11Z anatom $
+ *
+ */
+<span class="nc" id="L51">public class OcspCertHashExtension implements OCSPExtension {</span>
+
+    public static final String CERT_HASH_OID = &quot;1.3.36.8.3.13&quot;;
+    public static final String CERT_HASH_NAME = &quot;Certificate Hash&quot;;
+<span class="nc" id="L55">    public static final ASN1ObjectIdentifier SHA256 = new ASN1ObjectIdentifier(&quot;2.16.840.1.101.3.4.2.1&quot;);</span>
+
+<span class="nc" id="L57">    private static final Logger log = Logger.getLogger(OcspCertHashExtension.class);</span>
+    
+    @Override
+    public String getOid() {
+<span class="nc" id="L61">        return CERT_HASH_OID;</span>
+    }
+    
+    @Override
+    public String getName() {
+<span class="nc" id="L66">        return CERT_HASH_NAME;</span>
+    }
+    
+    @Override
+    public Set&lt;OCSPExtensionType&gt; getExtensionType() {
+<span class="nc" id="L71">        return EnumSet.of(OCSPExtensionType.SINGLE_RESPONSE);</span>
+    }
+    
+    @Override
+    public void init() {
+       //Nothing much to do here.      
+<span class="nc" id="L77">    }</span>
+
+    @Override
+    public Map&lt;ASN1ObjectIdentifier, Extension&gt; process(X509Certificate[] requestCertificates, String remoteAddress, String remoteHost,
+            X509Certificate cert, org.bouncycastle.cert.ocsp.CertificateStatus status, InternalKeyBinding internalKeyBinding) {
+<span class="nc" id="L82">        MessageDigest md = null;</span>
+        try {
+<span class="nc" id="L84">            md = MessageDigest.getInstance(&quot;SHA256&quot;);</span>
+<span class="nc" id="L85">        } catch (NoSuchAlgorithmException e) {</span>
+            //This state can't be handled, shouldn't return null 
+<span class="nc" id="L87">            log.error(&quot;Could not create MessageDigest with algorithm SHA256&quot;, e);</span>
+<span class="nc" id="L88">            throw new IllegalStateException(&quot;Could not create MessageDigest with algorithm SHA256&quot;, e);</span>
+<span class="nc" id="L89">        }</span>
+        CertHash certHash;
+        try {
+<span class="nc" id="L92">            certHash = new CertHash(new AlgorithmIdentifier(SHA256), md.digest(cert.getEncoded()));</span>
+<span class="nc" id="L93">        } catch (CertificateEncodingException e) {</span>
+            //This state can't be handled, shouldn't return null 
+<span class="nc" id="L95">            log.error(&quot;Could not encode certificate &quot; + cert, e);</span>
+<span class="nc" id="L96">            throw new IllegalStateException(&quot;Could not encode certificate &quot; + cert, e);</span>
+<span class="nc" id="L97">        }</span>
+<span class="nc" id="L98">        HashMap&lt;ASN1ObjectIdentifier, Extension&gt; result = new HashMap&lt;ASN1ObjectIdentifier, Extension&gt;();</span>
+        try {
+<span class="nc" id="L100">            result.put(new ASN1ObjectIdentifier(CERT_HASH_OID), new Extension(new ASN1ObjectIdentifier(CERT_HASH_OID), false,</span>
+                    new DEROctetString(certHash)));
+<span class="nc" id="L102">        } catch (IOException e) {</span>
+<span class="nc" id="L103">            throw new IllegalStateException(&quot;Could not construct an ASN.1Primitive.&quot;, e);</span>
+<span class="nc" id="L104">        }</span>
+<span class="nc" id="L105">        return result;</span>
+    }
+
+    @Override
+    public int getLastErrorCode() {
+        //No error codes defined
+<span class="nc" id="L111">        return 0;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -15,74 +15,82 @@ package org.cesecore.util.provider;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
-
 import javax.net.ssl.ManagerFactoryParameters;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactorySpi;
 import javax.net.ssl.X509TrustManager;
 
 /**
- * 
- * @version $Id: TrustManagerFactoryImpl.java 17625 2013-09-20 07:12:06Z netmackan $
+ * @version $Id: TrustManagerFactoryImpl.java 17625 2013-09-20 07:12:06Z
+ *     netmackan $
  */
 abstract class TrustManagerFactoryImpl extends TrustManagerFactorySpi {
+  /** TM. */
+<span class="nc" id="L29">  private X509TrustManager trustManager = null;</span>
+  /** bool. */
+<span class="nc" id="L31">  private boolean isInitialized = false;</span>
 
-<span class="nc" id="L30">    private X509TrustManager trustManager = null;</span>
-<span class="nc" id="L31">    private boolean isInitialized = false;</span>
+<span class="nc" id="L33">  TrustManagerFactoryImpl() {</span>
+    // empty
+<span class="nc" id="L35">  }</span>
 
-<span class="nc" id="L33">    public TrustManagerFactoryImpl() {</span>
-        // empty
-<span class="nc" id="L35">    }</span>
+  /* (non-Javadoc)
+   * @see javax.net.ssl.TrustManagerFactorySpi#engineGetTrustManagers()
+   */
+  @Override
+  protected TrustManager[] engineGetTrustManagers() {
+<span class="nc bnc" id="L42" title="All 2 branches missed.">    if (!this.isInitialized) {</span>
+<span class="nc" id="L43">      throw new IllegalStateException(</span>
+          &quot;TrustManagerFactoryImpl is not initialized&quot;);
+    }
+<span class="nc" id="L46">    return new TrustManager[] {this.trustManager};</span>
+  }
 
+  /* (non-Javadoc)
+   * @see
+   * javax.net.ssl.TrustManagerFactorySpi#engineInit(java.security.KeyStore)
+   */
+  @Override
+  protected void engineInit(final KeyStore ks) throws KeyStoreException {
+<span class="nc" id="L55">    this.trustManager = getInstance(ks);</span>
+<span class="nc" id="L56">    this.isInitialized = true;</span>
+<span class="nc" id="L57">  }</span>
+
+  /* (non-Javadoc)
+   * @see
+   * javax.net.ssl.TrustManagerFactorySpi#engineInit(javax.net.ssl.ManagerFactoryParameters)
+   */
+  @Override
+  protected void engineInit(final ManagerFactoryParameters spec)
+      throws InvalidAlgorithmParameterException {
+<span class="nc" id="L66">    this.trustManager = getInstance(spec);</span>
+<span class="nc" id="L67">    this.isInitialized = true;</span>
+<span class="nc" id="L68">  }</span>
+
+  abstract X509TrustManager getInstance(KeyStore ks) throws KeyStoreException;
+
+  abstract X509TrustManager getInstance(ManagerFactoryParameters spec)
+      throws InvalidAlgorithmParameterException;
+
+<span class="nc" id="L75">  public static final class AcceptAll extends TrustManagerFactoryImpl {</span>
     /* (non-Javadoc)
-     * @see javax.net.ssl.TrustManagerFactorySpi#engineGetTrustManagers()
+     * @see
+     * org.ejbca.util.provider.TrustManagerFactoryImpl#getInstance(java.security.KeyStore)
      */
     @Override
-    protected TrustManager[] engineGetTrustManagers() {
-<span class="nc bnc" id="L42" title="All 2 branches missed.">        if (!this.isInitialized) {</span>
-<span class="nc" id="L43">            throw new IllegalStateException(&quot;TrustManagerFactoryImpl is not initialized&quot;);</span>
-        }
-<span class="nc" id="L45">        return new TrustManager[] { this.trustManager };</span>
+    X509TrustManager getInstance(final KeyStore ks) throws KeyStoreException {
+<span class="nc" id="L82">      return new X509TrustManagerAcceptAll();</span>
     }
 
     /* (non-Javadoc)
-     * @see javax.net.ssl.TrustManagerFactorySpi#engineInit(java.security.KeyStore)
+     * @see
+     * org.ejbca.util.provider.TrustManagerFactoryImpl#getInstance(javax.net.ssl.ManagerFactoryParameters)
      */
     @Override
-    protected void engineInit(KeyStore ks) throws KeyStoreException {
-<span class="nc" id="L53">        this.trustManager = getInstance(ks);</span>
-<span class="nc" id="L54">        this.isInitialized = true;</span>
-<span class="nc" id="L55">    }</span>
-
-    /* (non-Javadoc)
-     * @see javax.net.ssl.TrustManagerFactorySpi#engineInit(javax.net.ssl.ManagerFactoryParameters)
-     */
-    @Override
-    protected void engineInit(ManagerFactoryParameters spec) throws InvalidAlgorithmParameterException {
-<span class="nc" id="L62">        this.trustManager = getInstance(spec);</span>
-<span class="nc" id="L63">        this.isInitialized = true;</span>
-<span class="nc" id="L64">    }</span>
-
-    abstract X509TrustManager getInstance(KeyStore ks) throws KeyStoreException;
-
-    abstract X509TrustManager getInstance(ManagerFactoryParameters spec) throws InvalidAlgorithmParameterException;
-
-<span class="nc" id="L70">    public static final class AcceptAll extends TrustManagerFactoryImpl {</span>
-        /* (non-Javadoc)
-         * @see org.ejbca.util.provider.TrustManagerFactoryImpl#getInstance(java.security.KeyStore)
-         */
-        @Override
-        X509TrustManager getInstance(KeyStore ks) throws KeyStoreException {
-<span class="nc" id="L76">            return new X509TrustManagerAcceptAll();</span>
-        }
-
-        /* (non-Javadoc)
-         * @see org.ejbca.util.provider.TrustManagerFactoryImpl#getInstance(javax.net.ssl.ManagerFactoryParameters)
-         */
-        @Override
-        X509TrustManager getInstance(ManagerFactoryParameters spec) throws InvalidAlgorithmParameterException {
-<span class="nc" id="L84">            return new X509TrustManagerAcceptAll();</span>
-        }
+    X509TrustManager getInstance(final ManagerFactoryParameters spec)
+        throws InvalidAlgorithmParameterException {
+<span class="nc" id="L92">      return new X509TrustManagerAcceptAll();</span>
     }
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

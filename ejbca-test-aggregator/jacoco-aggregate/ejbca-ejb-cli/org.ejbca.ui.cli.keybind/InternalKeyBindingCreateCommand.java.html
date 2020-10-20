@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>InternalKeyBindingCreateCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.keybind</a> &gt; <span class="el_source">InternalKeyBindingCreateCommand.java</span></div><h1>InternalKeyBindingCreateCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.cli.keybind;
+
+import java.io.Serializable;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.InvalidAlgorithmException;
+import org.cesecore.keybind.InternalKeyBindingFactory;
+import org.cesecore.keybind.InternalKeyBindingMgmtSessionRemote;
+import org.cesecore.keybind.InternalKeyBindingNameInUseException;
+import org.cesecore.keybind.InternalKeyBindingStatus;
+import org.cesecore.keys.token.CryptoTokenManagementSessionRemote;
+import org.cesecore.keys.token.CryptoTokenOfflineException;
+import org.cesecore.util.EjbRemoteHelper;
+import org.cesecore.util.ui.DynamicUiProperty;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+
+/**
+ * See getDescription().
+ * 
+ * @version $Id: InternalKeyBindingCreateCommand.java 23648 2016-06-09 15:19:55Z mikekushner $
+ */
+<span class="nc" id="L43">public class InternalKeyBindingCreateCommand extends BaseInternalKeyBindingCommand {</span>
+
+<span class="nc" id="L45">    private static final Logger log = Logger.getLogger(InternalKeyBindingCreateCommand.class);</span>
+
+    private static final String TYPE_KEY = &quot;--type&quot;;
+    private static final String STATUS_KEY = &quot;--status&quot;;
+    private static final String CERTIFICATE_FINGERPRINT_KEY = &quot;--cert&quot;;
+    private static final String CRYPTO_TOKEN_KEY = &quot;--token&quot;;
+    private static final String KEYPAIR_ALIAS_KEY = &quot;--alias&quot;;
+    private static final String SIGNATURE_ALGORITHM_KEY = &quot;--sigalg&quot;;
+
+    {
+<span class="nc" id="L55">        registerParameter(new Parameter(TYPE_KEY, &quot;Type Name&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;Keybinding type.&quot;));
+<span class="nc" id="L57">        registerParameter(new Parameter(STATUS_KEY, &quot;Status&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;Keybinding status.&quot;));
+<span class="nc" id="L59">        registerParameter(new Parameter(CERTIFICATE_FINGERPRINT_KEY, &quot;Certificate Fingerprint&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW,</span>
+                ParameterMode.ARGUMENT, &quot;Fingerprint of a certificate from the bound keypair. Set as 'null' to set later.&quot;));
+<span class="nc" id="L61">        registerParameter(new Parameter(CRYPTO_TOKEN_KEY, &quot;Token Name&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;Name of the crypto token where the mapped key pair is stored&quot;));
+<span class="nc" id="L63">        registerParameter(new Parameter(KEYPAIR_ALIAS_KEY, &quot;Alias&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;alias of the mapped key pair in the specified CryptoToken.&quot;));
+<span class="nc" id="L65">        registerParameter(new Parameter(SIGNATURE_ALGORITHM_KEY, &quot;Algorithm&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;The signature algorithm that this InternalKeyBinding will use for signatures.&quot;));
+        //Register type specific properties dynamically
+<span class="nc" id="L68">        Map&lt;String, Map&lt;String, DynamicUiProperty&lt;? extends Serializable&gt;&gt;&gt; typesAndProperties = EjbRemoteHelper.INSTANCE.getRemoteSession(</span>
+<span class="nc" id="L69">                InternalKeyBindingMgmtSessionRemote.class).getAvailableTypesAndProperties();</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">        for (Entry&lt;String, Map&lt;String, DynamicUiProperty&lt;? extends Serializable&gt;&gt;&gt; entry : typesAndProperties.entrySet()) {</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">            for (DynamicUiProperty&lt;? extends Serializable&gt; property : entry.getValue().values()) {</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">                if (isParameterRegistered(&quot;-&quot;+property.getName())) {</span>
+                    //Different properties could contain the same keyword. Simply use the same one. 
+<span class="nc" id="L74">                    continue;</span>
+                }
+<span class="nc" id="L76">                Parameter parameter = new Parameter(&quot;-&quot;+property.getName(), &quot;&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID, ParameterMode.ARGUMENT, &quot;&quot;);</span>
+<span class="nc" id="L77">                parameter.setAllowList(false);</span>
+<span class="nc" id="L78">                registerParameter(parameter);</span>
+<span class="nc" id="L79">            }</span>
+<span class="nc" id="L80">        }</span>
+<span class="nc" id="L81">    }</span>
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L85">        return &quot;create&quot;;</span>
+    }
+
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+<span class="nc" id="L90">        final InternalKeyBindingMgmtSessionRemote internalKeyBindingMgmtSession = EjbRemoteHelper.INSTANCE</span>
+<span class="nc" id="L91">                .getRemoteSession(InternalKeyBindingMgmtSessionRemote.class);</span>
+
+        // Start by extracting any property
+<span class="nc" id="L94">        final Map&lt;String, String&gt; dataMap = new LinkedHashMap&lt;String, String&gt;();</span>
+
+        // Parse static arguments
+<span class="nc" id="L97">        final String name = parameters.get(KEYBINDING_NAME_KEY);</span>
+<span class="nc" id="L98">        final String type = parameters.get(TYPE_KEY);</span>
+<span class="nc bnc" id="L99" title="All 2 branches missed.">        if (!InternalKeyBindingFactory.INSTANCE.existsTypeAlias(type)) {</span>
+<span class="nc" id="L100">            getLogger().error(&quot;KeyBinding of type &quot; + type + &quot; does not exist.&quot;);</span>
+<span class="nc" id="L101">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+        }
+        //Get dynamically loaded properties
+<span class="nc" id="L104">        Map&lt;String, Map&lt;String, DynamicUiProperty&lt;? extends Serializable&gt;&gt;&gt; typesAndProperties = EjbRemoteHelper.INSTANCE.getRemoteSession(</span>
+<span class="nc" id="L105">                InternalKeyBindingMgmtSessionRemote.class).getAvailableTypesAndProperties();</span>
+<span class="nc bnc" id="L106" title="All 2 branches missed.">        for (String propertyName : typesAndProperties.get(type).keySet()) {</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">            if (parameters.containsKey(&quot;-&quot;+propertyName)) {</span>
+<span class="nc" id="L108">                dataMap.put(propertyName, parameters.get(&quot;-&quot;+propertyName));</span>
+            }
+<span class="nc" id="L110">        }</span>
+        //Validate all properties
+<span class="nc" id="L112">        Map&lt;String, Serializable&gt; validatedProperties = validateProperties(type, dataMap);</span>
+<span class="nc bnc" id="L113" title="All 2 branches missed.">        if (validatedProperties == null) {</span>
+<span class="nc" id="L114">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+        }
+<span class="nc" id="L116">        final InternalKeyBindingStatus status = InternalKeyBindingStatus.valueOf(parameters.get(STATUS_KEY).toUpperCase());</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">        final String certificateId = &quot;null&quot;.equalsIgnoreCase(parameters.get(CERTIFICATE_FINGERPRINT_KEY)) ? null : parameters</span>
+<span class="nc" id="L118">                .get(CERTIFICATE_FINGERPRINT_KEY);</span>
+<span class="nc" id="L119">        final Integer cryptoTokenId = EjbRemoteHelper.INSTANCE.getRemoteSession(CryptoTokenManagementSessionRemote.class).getIdFromName(</span>
+<span class="nc" id="L120">                parameters.get(CRYPTO_TOKEN_KEY));</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">        if(cryptoTokenId == null) {</span>
+<span class="nc" id="L122">            log.error(&quot;ERROR: CryptoToken  &quot; + parameters.get(CRYPTO_TOKEN_KEY) + &quot; was not found.&quot;);</span>
+<span class="nc" id="L123">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+        }
+<span class="nc" id="L125">        final String keyPairAlias = parameters.get(KEYPAIR_ALIAS_KEY);</span>
+<span class="nc" id="L126">        final String signatureAlgorithm = parameters.get(SIGNATURE_ALGORITHM_KEY);</span>
+        int internalKeyBindingIdNew;
+        try {
+<span class="nc" id="L129">            internalKeyBindingIdNew = internalKeyBindingMgmtSession.createInternalKeyBinding(getAuthenticationToken(), type, name, status,</span>
+<span class="nc" id="L130">                    certificateId, cryptoTokenId, keyPairAlias, signatureAlgorithm, validatedProperties, null);</span>
+<span class="nc" id="L131">        } catch (CryptoTokenOfflineException e) {</span>
+<span class="nc" id="L132">            log.error(&quot;ERROR: CryptoToken  &quot; + parameters.get(CRYPTO_TOKEN_KEY) + &quot; was offline.&quot;);</span>
+<span class="nc" id="L133">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L134">        } catch (InternalKeyBindingNameInUseException e) {</span>
+<span class="nc" id="L135">            log.error(&quot;ERROR: Keybinding of name &quot; + name + &quot; already exists,&quot;);</span>
+<span class="nc" id="L136">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L137">        } catch (InvalidAlgorithmException e) {</span>
+<span class="nc" id="L138">            log.error(&quot;ERROR: &quot; + signatureAlgorithm + &quot; was not a valid algorithm.&quot;);</span>
+<span class="nc" id="L139">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L140">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L141">            return CommandResult.AUTHORIZATION_FAILURE;</span>
+<span class="nc" id="L142">        }</span>
+<span class="nc" id="L143">        getLogger().info(&quot;InternalKeyBinding with id &quot; + internalKeyBindingIdNew + &quot; created successfully.&quot;);</span>
+<span class="nc" id="L144">        return CommandResult.SUCCESS;</span>
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L149">        return &quot;Creates a new InternalKeyBinding. &quot;;</span>
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L154">        StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L155">        sb.append(getCommandDescription() + &quot;\n\nOptional Type specific properties are listed below and are written as -propertyname=value, e.g. \&quot;-nonexistingisgood=true\&quot;. \n&quot;);</span>
+<span class="nc" id="L156">        sb.append(showTypesProperties() + &quot;\n&quot;);</span>
+<span class="nc" id="L157">        sb.append(showStatuses() + &quot;\n&quot;);</span>
+<span class="nc" id="L158">        sb.append(showSigAlgs() + &quot;\n&quot;);</span>
+<span class="nc" id="L159">        return sb.toString();</span>
+    }
+
+    protected Logger getLogger() {
+<span class="nc" id="L163">        return log;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

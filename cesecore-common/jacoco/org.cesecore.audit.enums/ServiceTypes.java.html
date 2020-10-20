@@ -15,23 +15,23 @@ package org.cesecore.audit.enums;
 /**
  * Represents the basic service types supported.
  *
- * When doing secure audit log ServiceType is used to indicate if the log  
- * was executed from the core itself or by an external application.
- * 
+ * &lt;p&gt;When doing secure audit log ServiceType is used to indicate if the log was
+ * executed from the core itself or by an external application.
+ *
  * @see org.cesecore.audit.enums.EventTypes
  * @see org.cesecore.audit.enums.ModuleTypes
  * @version $Id: ServiceTypes.java 20951 2015-03-20 13:15:30Z jeklund $
  */
 <span class="nc" id="L25">public enum ServiceTypes implements ServiceType {</span>
-    /** CE Security Core */
-<span class="nc" id="L27">	CORE;</span>
+  /** CE Security Core. */
+<span class="nc" id="L27">  CORE;</span>
 
-	@Override
-    public boolean equals(ServiceType value) {
-<span class="nc bnc" id="L31" title="All 2 branches missed.">        if(value == null) {</span>
-<span class="nc" id="L32">            return false;</span>
-        }
-<span class="nc" id="L34">        return this.toString().equals(value.toString());</span>
+  @Override
+  public boolean equals(final ServiceType value) {
+<span class="nc bnc" id="L31" title="All 2 branches missed.">    if (value == null) {</span>
+<span class="nc" id="L32">      return false;</span>
     }
+<span class="nc" id="L34">    return this.toString().equals(value.toString());</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

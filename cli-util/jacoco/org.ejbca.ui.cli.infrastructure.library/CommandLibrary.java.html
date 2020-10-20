@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CommandLibrary.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">CLI Utility Library</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.infrastructure.library</a> &gt; <span class="el_source">CommandLibrary.java</span></div><h1>CommandLibrary.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.cli.infrastructure.library;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.ServiceConfigurationError;
+import java.util.ServiceLoader;
+
+import org.apache.log4j.Logger;
+import org.ejbca.ui.cli.infrastructure.command.CliCommandPlugin;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+
+/**
+ * A library class to register and interface with commands. 
+ * 
+ * @version $Id: CommandLibrary.java 26134 2017-07-06 06:12:16Z oskareriksson $
+ *
+ */
+
+<span class="nc" id="L38">public enum CommandLibrary {</span>
+<span class="nc" id="L39">    INSTANCE;</span>
+
+    private static final String TAB = &quot;    &quot;;
+    private static final String DELIMITER = &quot;--------------------------------\n&quot;;
+
+<span class="nc" id="L44">    private final Logger log = Logger.getLogger(CommandLibrary.class);</span>
+
+    private Branch root;
+
+<span class="nc" id="L48">    private CommandLibrary() {</span>
+<span class="nc" id="L49">        synchronized (this) {</span>
+<span class="nc bnc" id="L50" title="All 2 branches missed.">            if (root == null) {</span>
+<span class="nc" id="L51">                root = new Branch(&quot;&quot;);</span>
+<span class="nc" id="L52">                ServiceLoader&lt;? extends CliCommandPlugin&gt; serviceLoader = ServiceLoader.load(CliCommandPlugin.class);</span>
+                try {
+<span class="nc bnc" id="L54" title="All 2 branches missed.">                    for (Iterator&lt;? extends CliCommandPlugin&gt; iterator = serviceLoader.iterator(); iterator.hasNext();) {</span>
+<span class="nc" id="L55">                        CliCommandPlugin command = iterator.next();</span>
+<span class="nc" id="L56">                        root.addChild(command, command.getCommandPath());</span>
+<span class="nc bnc" id="L57" title="All 2 branches missed.">                        if (!command.getCommandPathAliases().isEmpty()) {</span>
+<span class="nc" id="L58">                            Iterator&lt;String[]&gt; aliasIterator = command.getCommandPathAliases().iterator();</span>
+<span class="nc bnc" id="L59" title="All 2 branches missed.">                            while (aliasIterator.hasNext()) {</span>
+<span class="nc" id="L60">                                root.addChild(command, true, aliasIterator.next());</span>
+                            }
+                        }
+<span class="nc" id="L63">                    }</span>
+<span class="nc" id="L64">                } catch (ServiceConfigurationError e) {</span>
+<span class="nc bnc" id="L65" title="All 4 branches missed.">                    if (e.getCause() instanceof IllegalStateException &amp;&amp; e.getCause().getLocalizedMessage().contains(&quot;No EJB receiver&quot;)) {</span>
+<span class="nc" id="L66">                        log.error(&quot;Error: CLI could not contact EJBCA instance. Either your application server is not up and running,&quot;</span>
+                                + &quot; EJBCA has not been deployed successfully, or some firewall rule is blocking the CLI from the application server.&quot;);
+<span class="nc" id="L68">                        System.exit(1);</span>
+                    } else {
+<span class="nc" id="L70">                        throw e;</span>
+                    }
+<span class="nc" id="L72">                }</span>
+            }
+<span class="nc" id="L74">        }</span>
+<span class="nc" id="L75">    }</span>
+
+    public CommandResult findAndExecuteCommandFromParameters(String... parameters) {
+<span class="nc" id="L78">        return root.execute(parameters);</span>
+    }
+
+    public void listRootCommands() {
+<span class="nc" id="L82">        root.printManPage();</span>
+<span class="nc" id="L83">    }</span>
+
+    /**
+     * 
+     * @param args The full argument list from a command. Just pass the whole thing in there and the library will try to figure out if a command is 
+     *              hidden in there somewhere.
+     * @return true if a command can be found that matches the path in the args
+     */
+    public boolean doesCommandExist(String... args) {
+<span class="nc" id="L92">        return root.doesCommandExist(args);</span>
+    }
+
+    /**
+     * A private subclass which describes a branch in the command tree. A branch can contain both a number of subbranches as well as a number of 
+     * direct commands. 
+     * 
+     * @version $Id: CommandLibrary.java 26134 2017-07-06 06:12:16Z oskareriksson $
+     *
+     */
+    private static class Branch {
+        private final String name;
+        //Denotes that a branch is an alias branch, i.e it won't show up in the man page. 
+        private final boolean isAlternate;
+<span class="nc" id="L106">        private Map&lt;String, Branch&gt; subBranches = new HashMap&lt;String, Branch&gt;();</span>
+<span class="nc" id="L107">        private Map&lt;String, CliCommandPlugin&gt; commands = new HashMap&lt;String, CliCommandPlugin&gt;();</span>
+<span class="nc" id="L108">        private Map&lt;String, CliCommandPlugin&gt; alternateCommands = new HashMap&lt;String, CliCommandPlugin&gt;();</span>
+
+<span class="nc" id="L110">        public Branch(final String name) {</span>
+<span class="nc" id="L111">            this.name = name;</span>
+<span class="nc" id="L112">            this.isAlternate = false;</span>
+<span class="nc" id="L113">        }</span>
+
+<span class="nc" id="L115">        public Branch(final String name, final boolean isAlternate) {</span>
+<span class="nc" id="L116">            this.name = name;</span>
+<span class="nc" id="L117">            this.isAlternate = isAlternate;</span>
+<span class="nc" id="L118">        }</span>
+
+        /**
+         * Adds a child branch 
+         * 
+         * @param command the command to add
+         * @param path the remaining path elements
+         */
+        public void addChild(CliCommandPlugin command, String... path) {
+<span class="nc" id="L127">            addChild(command, false, path);</span>
+<span class="nc" id="L128">        }</span>
+
+        /**
+         * Recursively adds a child branch 
+         * 
+         * @param command the command
+         * @param isAlternatePath true if the path is an alternate
+         * @param path the remaining path elements
+         */
+        public void addChild(CliCommandPlugin command, boolean isAlternatePath, String... path) {
+<span class="nc bnc" id="L138" title="All 2 branches missed.">            if (path.length == 0) {</span>
+<span class="nc" id="L139">                Iterator&lt;String&gt; aliases = command.getMainCommandAliases().iterator();</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">                while (aliases.hasNext()) {</span>
+<span class="nc" id="L141">                    String alias = aliases.next();             </span>
+<span class="nc bnc" id="L142" title="All 2 branches missed.">                    if (commands.containsKey(alias)) {</span>
+<span class="nc" id="L143">                        throw new CliCommandLibraryConflictException(&quot;Command alias&quot; + alias + &quot; for command &quot; + command.getMainCommand()</span>
+                                + &quot; has been added twice.&quot;);
+<span class="nc bnc" id="L145" title="All 2 branches missed.">                    } else if (alternateCommands.containsKey(alias)) {</span>
+<span class="nc" id="L146">                        throw new CliCommandLibraryConflictException(&quot;Command alias&quot; + alias + &quot; for command &quot; + command.getMainCommand()</span>
+                                + &quot; has been added twice.&quot;);
+                    } else {
+<span class="nc" id="L149">                        alternateCommands.put(alias, command);</span>
+                    }
+<span class="nc" id="L151">                }</span>
+<span class="nc bnc" id="L152" title="All 2 branches missed.">                if (commands.containsKey(command.getMainCommand())) {</span>
+<span class="nc" id="L153">                    throw new CliCommandLibraryConflictException(&quot;Command &quot; + command.getMainCommand() + &quot;(&quot; + command.getClass()</span>
+<span class="nc" id="L154">                            + &quot;) has been added twice. Conflicts with &quot; + commands.get(command.getMainCommand()).getClass());</span>
+                } else {
+<span class="nc" id="L156">                    commands.put(command.getMainCommand(), command);</span>
+                }
+<span class="nc" id="L158">            } else {</span>
+                Branch childBranch;
+<span class="nc" id="L160">                final String childName = path[0];</span>
+<span class="nc bnc" id="L161" title="All 4 branches missed.">                if (childName == command.getMainCommand() || command.getMainCommandAliases().contains(childName)) {</span>
+<span class="nc" id="L162">                    throw new CliCommandLibraryConflictException(&quot;Naming conflict when attempting to construct command library: &quot; + childName);</span>
+                }
+<span class="nc bnc" id="L164" title="All 2 branches missed.">                if (subBranches.containsKey(childName)) {</span>
+<span class="nc" id="L165">                    childBranch = (Branch) subBranches.get(path[0]);</span>
+                } else {
+<span class="nc" id="L167">                    childBranch = new Branch(childName, isAlternatePath);</span>
+<span class="nc" id="L168">                    subBranches.put(childBranch.getKey(), childBranch);</span>
+                }
+<span class="nc" id="L170">                childBranch.addChild(command, Arrays.copyOfRange(path, 1, path.length));</span>
+            }
+<span class="nc" id="L172">        }</span>
+
+        /**
+         * 
+         * @param args a list of arguments
+         * @return true if command exists, or if a request to print the man page of a subbranch has come in. 
+         */
+        public boolean doesCommandExist(String... args) {
+<span class="nc bnc" id="L180" title="All 2 branches missed.">            if (args.length == 0) {</span>
+<span class="nc" id="L181">                return false;</span>
+            } else {
+<span class="nc" id="L183">                String key = args[0].toLowerCase(Locale.ENGLISH);</span>
+<span class="nc bnc" id="L184" title="All 2 branches missed.">                if (commands.containsKey(key)) {</span>
+<span class="nc" id="L185">                    return true;</span>
+<span class="nc bnc" id="L186" title="All 2 branches missed.">                } else if (alternateCommands.containsKey(key)) {</span>
+<span class="nc" id="L187">                    return true;</span>
+                } else {
+<span class="nc bnc" id="L189" title="All 2 branches missed.">                    if (subBranches.containsKey(key)) {</span>
+<span class="nc" id="L190">                        String[] subset = Arrays.copyOfRange(args, 1, args.length);</span>
+<span class="nc bnc" id="L191" title="All 2 branches missed.">                        if (subset.length == 0) {</span>
+                            //Counts as a request for a man page
+<span class="nc" id="L193">                            return true;</span>
+                        } else {
+<span class="nc" id="L195">                            return subBranches.get(key).doesCommandExist(subset);</span>
+                        }
+                    } else {
+<span class="nc" id="L198">                        return false;</span>
+                    }
+                }
+            }
+
+        }
+
+        public void printManPage() {
+<span class="nc" id="L206">            StringBuffer stringBuffer = new StringBuffer();</span>
+<span class="nc" id="L207">            List&lt;String&gt; sortedSubCommandList = new ArrayList&lt;String&gt;();</span>
+<span class="nc bnc" id="L208" title="All 2 branches missed.">            for (String subBranchKey : subBranches.keySet()) {</span>
+<span class="nc" id="L209">                Branch subBranch = subBranches.get(subBranchKey);</span>
+<span class="nc bnc" id="L210" title="All 2 branches missed.">                if (!subBranch.isAlternate()) {</span>
+<span class="nc" id="L211">                    sortedSubCommandList.add(subBranch.getName());</span>
+                }
+<span class="nc" id="L213">            }</span>
+
+<span class="nc" id="L215">            Collections.sort(sortedSubCommandList, new Comparator&lt;String&gt;() {</span>
+                @Override
+                public int compare(String o1, String o2) {
+<span class="nc" id="L218">                    return o1.compareToIgnoreCase(o2);</span>
+                }
+            });
+<span class="nc bnc" id="L221" title="All 2 branches missed.">            if (sortedSubCommandList.size() &gt; 0) {</span>
+<span class="nc" id="L222">                stringBuffer.append(DELIMITER);</span>
+<span class="nc bnc" id="L223" title="All 2 branches missed.">                stringBuffer.append(&quot;The following &quot; + (name.length() &gt; 0 ? &quot;sub&quot; : &quot;&quot;) + &quot;categories are available&quot;</span>
+<span class="nc bnc" id="L224" title="All 2 branches missed.">                        + (name.length() &gt; 0 ? &quot; for the command '&quot; + name + &quot;'&quot; : &quot;&quot;) + &quot;:\n&quot;);</span>
+<span class="nc" id="L225">                stringBuffer.append(TAB + &quot;[ &quot;);</span>
+<span class="nc" id="L226">                final String subcommandDelimiter = &quot; | &quot;;</span>
+<span class="nc bnc" id="L227" title="All 2 branches missed.">                for (String subCommand : sortedSubCommandList) {</span>
+<span class="nc" id="L228">                    stringBuffer.append(subCommand + subcommandDelimiter);</span>
+<span class="nc" id="L229">                }</span>
+<span class="nc" id="L230">                stringBuffer.replace(stringBuffer.length() - subcommandDelimiter.length(), stringBuffer.length(), &quot; ]\n&quot;);</span>
+            }
+<span class="nc" id="L232">            List&lt;String&gt; sortedCommandList = new ArrayList&lt;String&gt;();</span>
+<span class="nc" id="L233">            sortedCommandList.addAll(commands.keySet());</span>
+<span class="nc" id="L234">            Collections.sort(sortedCommandList, new Comparator&lt;String&gt;() {</span>
+                @Override
+                public int compare(String o1, String o2) {
+<span class="nc" id="L237">                    return o1.compareToIgnoreCase(o2);</span>
+                }
+            });
+<span class="nc" id="L240">            int longestCommandLength = 0;</span>
+<span class="nc bnc" id="L241" title="All 2 branches missed.">            for (String command : sortedCommandList) {</span>
+<span class="nc bnc" id="L242" title="All 2 branches missed.">                if (command.length() &gt; longestCommandLength) {</span>
+<span class="nc" id="L243">                    longestCommandLength = command.length();</span>
+                }
+<span class="nc" id="L245">            }</span>
+<span class="nc" id="L246">            String indent = tab(longestCommandLength / TAB.length() + 2);</span>
+<span class="nc bnc" id="L247" title="All 2 branches missed.">            if (sortedCommandList.size() &gt; 0) {</span>
+<span class="nc" id="L248">                stringBuffer.append(DELIMITER);</span>
+<span class="nc bnc" id="L249" title="All 2 branches missed.">                stringBuffer.append((sortedSubCommandList.size() &gt; 0 ? &quot;And the &quot; : &quot;The &quot;) + &quot;following commands are available:\n&quot;);</span>
+<span class="nc bnc" id="L250" title="All 2 branches missed.">                for (String command : sortedCommandList) {</span>
+<span class="nc" id="L251">                    stringBuffer.append(TAB + command + indent.substring(command.length()) + commands.get(command).getCommandDescription() + &quot;\n&quot;);</span>
+<span class="nc" id="L252">                }</span>
+            }
+<span class="nc" id="L254">            stringBuffer.append(&quot;\nType a command and \&quot;--help\&quot; for more information.\n&quot;);</span>
+<span class="nc" id="L255">            INSTANCE.log.info(stringBuffer.toString());</span>
+<span class="nc" id="L256">        }</span>
+
+        private final String tab(int indentation) {
+<span class="nc" id="L259">            StringBuilder sb = new StringBuilder();</span>
+<span class="nc bnc" id="L260" title="All 2 branches missed.">            for (int i = 0; i &lt; indentation; i++) {</span>
+<span class="nc" id="L261">                sb.append(TAB);</span>
+            }
+<span class="nc" id="L263">            return sb.toString();</span>
+        }
+
+        public CommandResult execute(String... parameters) {
+<span class="nc bnc" id="L267" title="All 2 branches missed.">            if (parameters.length == 0) {</span>
+                //We only got to a branch
+<span class="nc bnc" id="L269" title="All 2 branches missed.">                if (isAlternate) {</span>
+<span class="nc" id="L270">                    INSTANCE.log.warn(&quot;WARNING: The path used is an unlisted alternate path and may be deprecated, and may cease to exist at any point.&quot;</span>
+                            + &quot; Please start using the updated path as soon as possible.\n&quot;);
+                }
+<span class="nc" id="L273">                printManPage();</span>
+<span class="nc" id="L274">                return CommandResult.SUCCESS;</span>
+            } else {
+<span class="nc" id="L276">                String key = parameters[0].toLowerCase(Locale.ENGLISH);</span>
+<span class="nc bnc" id="L277" title="All 4 branches missed.">                if (commands.containsKey(key) || alternateCommands.containsKey(key)) {</span>
+<span class="nc bnc" id="L278" title="All 2 branches missed.">                    if (isAlternate) {</span>
+<span class="nc" id="L279">                        INSTANCE.log.warn(&quot;WARNING: The path used is an unlisted alternate path and may be deprecated, and may cease to exist at any point.&quot;</span>
+                                + &quot; Please start using the updated path as soon as possible.\n&quot;);
+                    }
+<span class="nc bnc" id="L282" title="All 2 branches missed.">                    if(alternateCommands.containsKey(key)) {</span>
+<span class="nc" id="L283">                        INSTANCE.log.warn(&quot;WARNING: The command \&quot;&quot; + key + &quot;\&quot; used is an unlisted alternate command and may be deprecated, and may cease to exist at any point.&quot;</span>
+<span class="nc" id="L284">                                + &quot; Please start using the updated command \&quot;&quot; + alternateCommands.get(key).getMainCommand() + &quot;\&quot; as soon as possible.\n&quot;);</span>
+<span class="nc" id="L285">                        return alternateCommands.get(key).execute(Arrays.copyOfRange(parameters, 1, parameters.length));</span>
+                    } else {
+<span class="nc" id="L287">                        return commands.get(key).execute(Arrays.copyOfRange(parameters, 1, parameters.length));</span>
+                    }
+<span class="nc bnc" id="L289" title="All 2 branches missed.">                } else if (!subBranches.containsKey(key)) {</span>
+<span class="nc bnc" id="L290" title="All 2 branches missed.">                    if (isAlternate) {</span>
+<span class="nc" id="L291">                        INSTANCE.log.warn(&quot;WARNING: The path used is an unlisted alternate path and may be deprecated, and may cease to exist at any point.&quot;</span>
+                                + &quot; Please start using the updated path as soon as possible.\n&quot;);
+                    }
+<span class="nc" id="L294">                    printManPage();</span>
+<span class="nc" id="L295">                    return CommandResult.SUCCESS;</span>
+                } else {
+<span class="nc" id="L297">                    return subBranches.get(key).execute(Arrays.copyOfRange(parameters, 1, parameters.length));</span>
+                }
+            }
+        }
+
+        /**
+         * 
+         * @return the name, but in lowercase. 
+         */
+        private final String getKey() {
+<span class="nc" id="L307">            return name.toLowerCase(Locale.ENGLISH);</span>
+        }
+
+        private final String getName() {
+<span class="nc" id="L311">            return name;</span>
+        }
+
+        private final boolean isAlternate() {
+<span class="nc" id="L315">            return isAlternate;</span>
+        }
+
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -16,47 +16,52 @@ import java.io.Serializable;
 import java.util.Map;
 
 /**
- * Generic configuration parameters for the {@link CertificateTransparency#fetchSCTList} methods,
- * that are not specific to the certificate profiles.
- * @version $Id: CTSubmissionConfigParams.java 27506 2017-12-09 17:18:37Z samuellb $
+ * Generic configuration parameters for the {@link
+ * CertificateTransparency#fetchSCTList} methods, that are not specific to the
+ * certificate profiles.
+ *
+ * @version $Id: CTSubmissionConfigParams.java 27506 2017-12-09 17:18:37Z
+ *     samuellb $
  */
-<span class="nc" id="L23">public final class CTSubmissionConfigParams implements Serializable {</span>
+<span class="nc" id="L26">public final class CTSubmissionConfigParams implements Serializable {</span>
 
-    private static final long serialVersionUID = 1L;
-    
-    private Map&lt;Integer,CTLogInfo&gt; configuredCTLogs;
-    private GoogleCtPolicy validityPolicy;
-    
-    /**
-     * @return definitions (URL, public key, etc.) of the logs that can be used.
-     */
-    public Map&lt;Integer, CTLogInfo&gt; getConfiguredCTLogs() {
-<span class="nc" id="L34">        return configuredCTLogs;</span>
-    }
-    
-    /**
-     * @param configuredCTLogs Logs
-     * @see #getConfiguredCTLogs
-     */
-    public void setConfiguredCTLogs(final Map&lt;Integer, CTLogInfo&gt; configuredCTLogs) {
-<span class="nc" id="L42">        this.configuredCTLogs = configuredCTLogs;</span>
-<span class="nc" id="L43">    }</span>
-    
-    /**
-     * Policy for setting min/max SCTs based on the validity
-     * @return policy
-     */
-    public GoogleCtPolicy getValidityPolicy() {
-<span class="nc" id="L50">        return validityPolicy;</span>
-    }
-    
-    /**
-     * @param validityPolicy policy
-     * @see #getValidityPolicy
-     */
-    public void setValidityPolicy(final GoogleCtPolicy validityPolicy) {
-<span class="nc" id="L58">        this.validityPolicy = validityPolicy;</span>
-<span class="nc" id="L59">    }</span>
-    
+  private static final long serialVersionUID = 1L;
+  /** Logs. */
+  private Map&lt;Integer, CTLogInfo&gt; configuredCTLogs;
+  /** Policy. */
+  private GoogleCtPolicy validityPolicy;
+
+  /**
+   * @return definitions (URL, public key, etc.) of the logs that can be used.
+   */
+  public Map&lt;Integer, CTLogInfo&gt; getConfiguredCTLogs() {
+<span class="nc" id="L38">    return configuredCTLogs;</span>
+  }
+
+  /**
+   * @param aConfiguredCTLogs Logs
+   * @see #getConfiguredCTLogs
+   */
+  public void setConfiguredCTLogs(
+      final Map&lt;Integer, CTLogInfo&gt; aConfiguredCTLogs) {
+<span class="nc" id="L47">    this.configuredCTLogs = aConfiguredCTLogs;</span>
+<span class="nc" id="L48">  }</span>
+
+  /**
+   * Policy for setting min/max SCTs based on the validity.
+   *
+   * @return policy
+   */
+  public GoogleCtPolicy getValidityPolicy() {
+<span class="nc" id="L56">    return validityPolicy;</span>
+  }
+
+  /**
+   * @param aValidityPolicy policy
+   * @see #getValidityPolicy
+   */
+  public void setValidityPolicy(final GoogleCtPolicy aValidityPolicy) {
+<span class="nc" id="L64">    this.validityPolicy = aValidityPolicy;</span>
+<span class="nc" id="L65">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

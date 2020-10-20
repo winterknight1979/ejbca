@@ -13,33 +13,48 @@
 package org.cesecore.util.query.clauses;
 
 import org.cesecore.util.query.Elem;
+
 /**
  * Query ORDER BY element.
- * 
+ *
  * @version $Id: Order.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 public class Order implements Elem {
-    private static final long serialVersionUID = 4277517808022497240L;
+  private static final long serialVersionUID = 4277517808022497240L;
 
-<span class="nc" id="L24">    public enum Value {</span>
-<span class="nc" id="L25">        ASC, DESC</span>
-    }
+<span class="nc" id="L25">  public enum Value {</span>
+      /** Ascending. */
+<span class="nc" id="L27">    ASC,</span>
+    /** Descending. */
+<span class="nc" id="L29">    DESC</span>
+  }
 
-    private final String name;
-    private final Value order;
+  /** Name. */
+  private final String name;
+  /** Order. */
+  private final Value order;
 
-<span class="nc" id="L31">    public Order(final String name, final Value order) {</span>
-<span class="nc" id="L32">        this.name = name;</span>
-<span class="nc" id="L33">        this.order = order;</span>
-<span class="nc" id="L34">    }</span>
+  /**
+   * @param aName Name
+   * @param anOrder Order
+   */
+<span class="nc" id="L41">  public Order(final String aName, final Value anOrder) {</span>
+<span class="nc" id="L42">    this.name = aName;</span>
+<span class="nc" id="L43">    this.order = anOrder;</span>
+<span class="nc" id="L44">  }</span>
 
-    public String getName() {
-<span class="nc" id="L37">        return name;</span>
-    }
+  /**
+   * @return Name
+   */
+  public String getName() {
+<span class="nc" id="L50">    return name;</span>
+  }
 
-    public Value getOrder() {
-<span class="nc" id="L41">        return order;</span>
-    }
-
+  /**
+   * @return Order
+   */
+  public Value getOrder() {
+<span class="nc" id="L57">    return order;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

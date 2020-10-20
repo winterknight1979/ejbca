@@ -1,0 +1,362 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RaRoleMembersBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ra-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ra</a> &gt; <span class="el_source">RaRoleMembersBean.java</span></div><h1>RaRoleMembersBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ra;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import javax.ejb.EJB;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.ManagedProperty;
+import javax.faces.bean.ViewScoped;
+import javax.faces.event.AjaxBehaviorEvent;
+import javax.faces.model.SelectItem;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.roles.Role;
+import org.cesecore.roles.member.RoleMember;
+import org.ejbca.core.model.era.RaMasterApiProxyBeanLocal;
+import org.ejbca.core.model.era.RaRoleMemberSearchRequest;
+import org.ejbca.core.model.era.RaRoleMemberSearchResponse;
+import org.ejbca.core.model.era.RaRoleMemberTokenTypeInfo;
+
+
+/**
+ * Backing bean for the Role Members page
+ *  
+ * @version $Id: RaRoleMembersBean.java 25626 2017-03-30 17:09:50Z jeklund $
+ * TODO: Use CDI beans
+ */
+@SuppressWarnings(&quot;deprecation&quot;)
+@ManagedBean
+@ViewScoped
+<span class="nc" id="L52">public class RaRoleMembersBean implements Serializable {</span>
+
+    private static final long serialVersionUID = 1L;
+<span class="nc" id="L55">    private static final Logger log = Logger.getLogger(RaRoleMembersBean.class);</span>
+    
+    @EJB
+    private RaMasterApiProxyBeanLocal raMasterApiProxyBean;
+
+    @ManagedProperty(value=&quot;#{raAccessBean}&quot;)
+    private RaAccessBean raAccessBean;
+<span class="nc" id="L62">    public void setRaAccessBean(final RaAccessBean raAccessBean) { this.raAccessBean = raAccessBean; }</span>
+    
+    @ManagedProperty(value=&quot;#{raAuthenticationBean}&quot;)
+    private RaAuthenticationBean raAuthenticationBean;
+<span class="nc" id="L66">    public void setRaAuthenticationBean(final RaAuthenticationBean raAuthenticationBean) { this.raAuthenticationBean = raAuthenticationBean; }</span>
+
+    @ManagedProperty(value=&quot;#{raLocaleBean}&quot;)
+    private RaLocaleBean raLocaleBean;
+<span class="nc" id="L70">    public void setRaLocaleBean(final RaLocaleBean raLocaleBean) { this.raLocaleBean = raLocaleBean; }</span>
+    
+<span class="nc" id="L72">    private List&lt;SelectItem&gt; availableRoles = null;</span>
+<span class="nc" id="L73">    private List&lt;SelectItem&gt; availableCas = null;</span>
+<span class="nc" id="L74">    private List&lt;SelectItem&gt; availableTokenTypes = null;</span>
+    private Map&lt;String,RaRoleMemberTokenTypeInfo&gt; tokenTypeInfos;
+    
+    private String genericSearchString;
+    private Integer criteriaRoleId;
+    private Integer criteriaCaId;
+    private String criteriaTokenType;
+    private boolean fromRolesPage;
+    
+<span class="nc" id="L83">    private RaRoleMemberSearchResponse lastExecutedResponse = null;</span>
+    
+<span class="nc" id="L85">    private List&lt;RaRoleMemberGUIInfo&gt; resultsFiltered = new ArrayList&lt;&gt;();</span>
+    private Map&lt;Integer,String&gt; caIdToNameMap;
+    private Map&lt;Integer,String&gt; roleIdToNameMap;
+    private Map&lt;Integer,String&gt; roleIdToNamespaceMap;
+    private boolean hasMultipleNamespaces;
+    
+<span class="nc" id="L91">    private enum SortBy { ROLE, ROLENAMESPACE, CA, TOKENTYPE, TOKENMATCHVALUE, DESCRIPTION };</span>
+<span class="nc" id="L92">    private SortBy sortBy = SortBy.ROLE;</span>
+<span class="nc" id="L93">    private boolean sortAscending = true;</span>
+    
+    
+    public void initialize() {
+<span class="nc" id="L97">        searchAndFilterCommon();</span>
+<span class="nc" id="L98">    }</span>
+    
+    public String getGenericSearchString() {
+<span class="nc" id="L101">        return genericSearchString;</span>
+    }
+    
+    public void setGenericSearchString(final String genericSearchString) {
+<span class="nc" id="L105">        this.genericSearchString = genericSearchString;</span>
+<span class="nc" id="L106">    }</span>
+
+    public Integer getCriteriaRoleId() {
+<span class="nc" id="L109">        return criteriaRoleId;</span>
+    }
+
+    public void setCriteriaRoleId(final Integer criteriaRoleId) {
+<span class="nc" id="L113">        this.criteriaRoleId = criteriaRoleId;</span>
+<span class="nc" id="L114">    }</span>
+
+    public Integer getCriteriaCaId() {
+<span class="nc" id="L117">        return criteriaCaId;</span>
+    }
+
+    public void setCriteriaCaId(final Integer criteriaCaId) {
+<span class="nc" id="L121">        this.criteriaCaId = criteriaCaId;</span>
+<span class="nc" id="L122">    }</span>
+    
+    public String getCriteriaTokenType() {
+<span class="nc" id="L125">        return criteriaTokenType;</span>
+    }
+
+    public void setCriteriaTokenType(final String criteriaTokenType) {
+<span class="nc" id="L129">        this.criteriaTokenType = criteriaTokenType;</span>
+<span class="nc" id="L130">    }</span>
+    
+    public boolean isFromRolesPage() {
+<span class="nc" id="L133">        return fromRolesPage;</span>
+    }
+    
+    public void setFromRolesPage(final boolean fromRolesPage) {
+<span class="nc" id="L137">        this.fromRolesPage = fromRolesPage;</span>
+<span class="nc" id="L138">    }</span>
+
+
+    /** Invoked action on search form post */
+    public void searchAndFilterAction() {
+<span class="nc" id="L143">        searchAndFilterCommon();</span>
+<span class="nc" id="L144">    }</span>
+
+    /** Invoked on criteria changes 
+     * @param event Event */
+    public void searchAndFilterAjaxListener(final AjaxBehaviorEvent event) {
+<span class="nc" id="L149">        searchAndFilterCommon();</span>
+<span class="nc" id="L150">    }</span>
+    
+    /** Determine if we need to query back end or just filter and execute the required action. */
+    private void searchAndFilterCommon() {
+        // First make sure we have all CA and Role names
+<span class="nc" id="L155">        getAvailableCas();</span>
+<span class="nc" id="L156">        getAvailableRoles();</span>
+        
+        // Make search request
+<span class="nc" id="L159">        final RaRoleMemberSearchRequest searchRequest = new RaRoleMemberSearchRequest();</span>
+<span class="nc bnc" id="L160" title="All 4 branches missed.">        if (criteriaCaId != null &amp;&amp; criteriaCaId.intValue() != 0) { // JBoss EAP 6.4 sets the parameters to 0 instead of null</span>
+<span class="nc" id="L161">            searchRequest.setCaIds(new ArrayList&lt;&gt;(Arrays.asList(criteriaCaId)));</span>
+        }
+<span class="nc bnc" id="L163" title="All 4 branches missed.">        if (criteriaRoleId != null &amp;&amp; criteriaRoleId.intValue() != 0) {</span>
+<span class="nc" id="L164">            searchRequest.setRoleIds(new ArrayList&lt;&gt;(Arrays.asList(criteriaRoleId)));</span>
+        }
+<span class="nc bnc" id="L166" title="All 2 branches missed.">        if (!StringUtils.isEmpty(criteriaTokenType)) {</span>
+<span class="nc" id="L167">            searchRequest.setTokenTypes(new ArrayList&lt;&gt;(Arrays.asList(criteriaTokenType)));</span>
+        }
+<span class="nc" id="L169">        searchRequest.setGenericSearchString(genericSearchString);</span>
+<span class="nc" id="L170">        lastExecutedResponse = raMasterApiProxyBean.searchForRoleMembers(raAuthenticationBean.getAuthenticationToken(), searchRequest);</span>
+        
+        // Add names of CAs and roles
+<span class="nc" id="L173">        resultsFiltered = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L174" title="All 2 branches missed.">        for (final RoleMember member : lastExecutedResponse.getRoleMembers()) {</span>
+<span class="nc" id="L175">            final String caName = StringUtils.defaultString(caIdToNameMap.get(member.getTokenIssuerId()), raLocaleBean.getMessage(&quot;role_members_page_info_unknownca&quot;));</span>
+<span class="nc" id="L176">            final String roleName = StringUtils.defaultString(roleIdToNameMap.get(member.getRoleId()));</span>
+<span class="nc" id="L177">            final String namespace = roleIdToNamespaceMap.get(member.getRoleId());</span>
+<span class="nc" id="L178">            final String tokenTypeText = raLocaleBean.getMessage(&quot;role_member_token_type_&quot; + member.getTokenType());</span>
+<span class="nc" id="L179">            resultsFiltered.add(new RaRoleMemberGUIInfo(member, caName, roleName, StringUtils.defaultString(namespace), tokenTypeText));</span>
+<span class="nc" id="L180">        }</span>
+        
+<span class="nc" id="L182">        sort();</span>
+<span class="nc" id="L183">    }</span>
+    
+    public List&lt;RaRoleMemberGUIInfo&gt; getFilteredResults() {
+<span class="nc" id="L186">        return resultsFiltered;</span>
+    }
+    
+    public boolean isMoreResultsAvailable() {
+<span class="nc" id="L190">        return lastExecutedResponse.isMightHaveMoreResults();</span>
+    }
+    
+    // Sorting
+    private void sort() {
+<span class="nc" id="L195">        Collections.sort(resultsFiltered, new Comparator&lt;RaRoleMemberGUIInfo&gt;() {</span>
+            @Override
+            public int compare(RaRoleMemberGUIInfo o1, RaRoleMemberGUIInfo o2) {
+<span class="nc bnc" id="L198" title="All 2 branches missed.">                int sortDir = (isSortAscending() ? 1 : -1);</span>
+<span class="nc" id="L199">                final RoleMember rm1 = o1.getRoleMember();</span>
+<span class="nc" id="L200">                final RoleMember rm2 = o2.getRoleMember();</span>
+<span class="nc bnc" id="L201" title="All 7 branches missed.">                switch (sortBy) {</span>
+                // TODO locale-aware sorting
+                case ROLE: {
+<span class="nc" id="L204">                    int diff = o1.getRoleName().compareTo(o2.getRoleName()) * sortDir;</span>
+<span class="nc bnc" id="L205" title="All 2 branches missed.">                    if (diff != 0) {</span>
+<span class="nc" id="L206">                        return diff;</span>
+                    } else {
+<span class="nc" id="L208">                        return o1.getRoleNamespace().compareTo(o2.getRoleNamespace()) * sortDir;</span>
+                    }
+                }
+                case ROLENAMESPACE: {
+<span class="nc" id="L212">                    int diff = o1.getRoleNamespace().compareTo(o2.getRoleNamespace()) * sortDir;</span>
+<span class="nc bnc" id="L213" title="All 2 branches missed.">                    if (diff != 0) {</span>
+<span class="nc" id="L214">                        return diff;</span>
+                    } else {
+<span class="nc" id="L216">                        return o1.getRoleName().compareTo(o2.getRoleName()) * sortDir;</span>
+                    }
+                }
+<span class="nc" id="L219">                case CA: return o1.getCaName().compareTo(o2.getCaName()) * sortDir;</span>
+<span class="nc" id="L220">                case TOKENTYPE: return StringUtils.defaultString(rm1.getTokenType()).compareTo(StringUtils.defaultString(rm2.getTokenType())) * sortDir;</span>
+<span class="nc" id="L221">                case TOKENMATCHVALUE: return StringUtils.defaultString(rm1.getTokenMatchValue()).compareTo(StringUtils.defaultString(rm2.getTokenMatchValue())) * sortDir;</span>
+<span class="nc" id="L222">                case DESCRIPTION: return StringUtils.defaultString(rm1.getDescription()).compareTo(StringUtils.defaultString(rm2.getDescription())) * sortDir;</span>
+                default:
+<span class="nc" id="L224">                    throw new IllegalStateException(&quot;Invalid sortBy value&quot;);</span>
+                }
+            }
+        });
+<span class="nc" id="L228">    }</span>
+    
+<span class="nc" id="L230">    public String getSortedByRole() { return getSortedBy(SortBy.ROLE); }</span>
+<span class="nc" id="L231">    public void sortByRole() { sortBy(SortBy.ROLE, true); }</span>
+<span class="nc" id="L232">    public String getSortedByRoleNamespace() { return getSortedBy(SortBy.ROLENAMESPACE); }</span>
+<span class="nc" id="L233">    public void sortByRoleNamespace() { sortBy(SortBy.ROLENAMESPACE, true); }</span>
+<span class="nc" id="L234">    public String getSortedByCA() { return getSortedBy(SortBy.CA); }</span>
+<span class="nc" id="L235">    public void sortByCA() { sortBy(SortBy.CA, true); }</span>
+<span class="nc" id="L236">    public String getSortedByTokenType() { return getSortedBy(SortBy.TOKENTYPE); }</span>
+<span class="nc" id="L237">    public void sortByTokenType() { sortBy(SortBy.TOKENTYPE, true); }</span>
+<span class="nc" id="L238">    public String getSortedByTokenMatchValue() { return getSortedBy(SortBy.TOKENMATCHVALUE); }</span>
+<span class="nc" id="L239">    public void sortByTokenMatchValue() { sortBy(SortBy.TOKENMATCHVALUE, true); }</span>
+<span class="nc" id="L240">    public String getSortedByDescription() { return getSortedBy(SortBy.DESCRIPTION); }</span>
+<span class="nc" id="L241">    public void sortByDescription() { sortBy(SortBy.DESCRIPTION, true); }</span>
+    
+    public String getSortColumn() {
+<span class="nc" id="L244">        return sortBy.name();</span>
+    }
+    
+    public void setSortColumn(final String value) {
+        try {
+<span class="nc bnc" id="L249" title="All 2 branches missed.">            sortBy = !StringUtils.isBlank(value) ? SortBy.valueOf(value.toUpperCase(Locale.ROOT)) : SortBy.ROLE;</span>
+<span class="nc" id="L250">        } catch (IllegalArgumentException e) {</span>
+<span class="nc bnc" id="L251" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L252">                log.debug(&quot;Invalid value for the 'sortColumn' parameter: '&quot; + value + &quot;'&quot;);</span>
+            }
+<span class="nc" id="L254">            sortBy = SortBy.ROLE;</span>
+<span class="nc" id="L255">        }</span>
+<span class="nc" id="L256">    }</span>
+    
+    private String getSortedBy(final SortBy sortBy) {
+<span class="nc bnc" id="L259" title="All 2 branches missed.">        if (this.sortBy.equals(sortBy)) {</span>
+<span class="nc bnc" id="L260" title="All 2 branches missed.">            return isSortAscending() ? &quot;\u25bc&quot; : &quot;\u25b2&quot;;</span>
+        }
+<span class="nc" id="L262">        return &quot;&quot;;</span>
+    }
+    
+    /** Set current sort column. Flip the order if the column was already selected. 
+     * @param sortBy Column
+     * @param defaultAscending Order */
+    private void sortBy(final SortBy sortBy, final boolean defaultAscending) {
+<span class="nc bnc" id="L269" title="All 2 branches missed.">        if (this.sortBy.equals(sortBy)) {</span>
+<span class="nc bnc" id="L270" title="All 2 branches missed.">            sortAscending = !isSortAscending();</span>
+        } else {
+<span class="nc" id="L272">            sortAscending = defaultAscending;</span>
+        }
+<span class="nc" id="L274">        this.sortBy = sortBy;</span>
+<span class="nc" id="L275">        sort();</span>
+<span class="nc" id="L276">    }</span>
+    
+    public boolean isSortAscending() {
+<span class="nc" id="L279">        return sortAscending;</span>
+    }
+    
+    public void setSortAscending(final boolean value) {
+<span class="nc" id="L283">        sortAscending = value;</span>
+<span class="nc" id="L284">    }</span>
+    
+    public boolean getHasMultipleNamespaces() {
+<span class="nc" id="L287">        return hasMultipleNamespaces;</span>
+    }
+    
+<span class="nc bnc" id="L290" title="All 2 branches missed.">    public boolean isOnlyOneRoleAvailable() { return getAvailableRoles().size()==2; } // two including the &quot;any role&quot; choice</span>
+    public List&lt;SelectItem&gt; getAvailableRoles() {
+<span class="nc bnc" id="L292" title="All 2 branches missed.">        if (availableRoles == null) {</span>
+<span class="nc" id="L293">            availableRoles = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L294">            final List&lt;Role&gt; roles = new ArrayList&lt;&gt;(raMasterApiProxyBean.getAuthorizedRoles(raAuthenticationBean.getAuthenticationToken()));</span>
+<span class="nc" id="L295">            Collections.sort(roles);</span>
+<span class="nc" id="L296">            roleIdToNameMap = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L297">            roleIdToNamespaceMap = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L298">            String lastNamespace = null;</span>
+<span class="nc" id="L299">            hasMultipleNamespaces = false;</span>
+<span class="nc bnc" id="L300" title="All 2 branches missed.">            for (final Role role : roles) {</span>
+<span class="nc" id="L301">                roleIdToNameMap.put(role.getRoleId(), role.getRoleName());</span>
+<span class="nc bnc" id="L302" title="All 2 branches missed.">                if (!StringUtils.isEmpty(role.getNameSpace())) {</span>
+<span class="nc" id="L303">                    roleIdToNamespaceMap.put(role.getRoleId(), role.getNameSpace());</span>
+                }
+                // Check if there's more than one namespace. If so the namespaces are shown in the GUI
+<span class="nc bnc" id="L306" title="All 4 branches missed.">                if (lastNamespace != null &amp;&amp; !lastNamespace.equals(role.getNameSpace())) {</span>
+<span class="nc" id="L307">                    hasMultipleNamespaces = true;</span>
+                }
+<span class="nc" id="L309">                lastNamespace = role.getNameSpace();</span>
+<span class="nc" id="L310">            }</span>
+<span class="nc" id="L311">            availableRoles.add(new SelectItem(null, raLocaleBean.getMessage(&quot;role_members_page_criteria_role_optionany&quot;)));</span>
+<span class="nc bnc" id="L312" title="All 2 branches missed.">            for (final Role role : roles) {</span>
+<span class="nc bnc" id="L313" title="All 2 branches missed.">                final String label = hasMultipleNamespaces ? role.getRoleNameFull() : role.getRoleName();</span>
+<span class="nc" id="L314">                availableRoles.add(new SelectItem(role.getRoleId(), label));</span>
+<span class="nc" id="L315">            }</span>
+        }
+<span class="nc" id="L317">        return availableRoles;</span>
+    }
+    
+<span class="nc bnc" id="L320" title="All 2 branches missed.">    public boolean isOnlyOneCaAvailable() { return getAvailableCas().size()==2; } // two including the &quot;any CA&quot; choice</span>
+    public List&lt;SelectItem&gt; getAvailableCas() {
+<span class="nc bnc" id="L322" title="All 2 branches missed.">        if (availableCas == null) {</span>
+<span class="nc" id="L323">            availableCas = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L324">            final List&lt;CAInfo&gt; caInfos = new ArrayList&lt;&gt;(raMasterApiProxyBean.getAuthorizedCas(raAuthenticationBean.getAuthenticationToken()));</span>
+<span class="nc" id="L325">            Collections.sort(caInfos, new Comparator&lt;CAInfo&gt;() {</span>
+                @Override
+                public int compare(final CAInfo caInfo1, final CAInfo caInfo2) {
+<span class="nc" id="L328">                    return caInfo1.getName().compareTo(caInfo2.getName());</span>
+                }
+            });
+<span class="nc" id="L331">            caIdToNameMap = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L332" title="All 2 branches missed.">            for (final CAInfo caInfo : caInfos) {</span>
+<span class="nc" id="L333">                caIdToNameMap.put(caInfo.getCAId(), caInfo.getName());</span>
+<span class="nc" id="L334">            }</span>
+<span class="nc" id="L335">            availableCas.add(new SelectItem(null, raLocaleBean.getMessage(&quot;role_members_page_criteria_ca_optionany&quot;)));</span>
+<span class="nc bnc" id="L336" title="All 2 branches missed.">            for (final CAInfo caInfo : caInfos) {</span>
+<span class="nc" id="L337">                availableCas.add(new SelectItem(caInfo.getCAId(), caInfo.getName()));</span>
+<span class="nc" id="L338">            }</span>
+        }
+<span class="nc" id="L340">        return availableCas;</span>
+    }
+    
+<span class="nc bnc" id="L343" title="All 2 branches missed.">    public boolean isOnlyOneTokenTypeAvailable() { return getAvailableTokenTypes().size()==2; } // two including the &quot;any token type&quot; choice</span>
+<span class="nc bnc" id="L344" title="All 2 branches missed.">    public boolean getHasMultipleTokenTypes() { return getAvailableTokenTypes().size()&gt;2; }     // dito</span>
+    public List&lt;SelectItem&gt; getAvailableTokenTypes() {
+<span class="nc bnc" id="L346" title="All 2 branches missed.">        if (availableTokenTypes == null) {</span>
+<span class="nc bnc" id="L347" title="All 2 branches missed.">            if (tokenTypeInfos == null) {</span>
+<span class="nc" id="L348">                tokenTypeInfos = raMasterApiProxyBean.getAvailableRoleMemberTokenTypes(raAuthenticationBean.getAuthenticationToken());</span>
+            }
+<span class="nc" id="L350">            final List&lt;String&gt; tokenTypes = new ArrayList&lt;&gt;(tokenTypeInfos.keySet());</span>
+<span class="nc" id="L351">            Collections.sort(tokenTypes);</span>
+<span class="nc" id="L352">            availableTokenTypes = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L353">            availableTokenTypes.add(new SelectItem(null, raLocaleBean.getMessage(&quot;role_members_page_criteria_tokentype_optionany&quot;)));</span>
+<span class="nc bnc" id="L354" title="All 2 branches missed.">            for (final String tokenType : tokenTypes) {</span>
+<span class="nc" id="L355">                availableTokenTypes.add(new SelectItem(tokenType, raLocaleBean.getMessage(&quot;role_member_token_type_&quot; + tokenType)));</span>
+<span class="nc" id="L356">            }</span>
+        }
+<span class="nc" id="L358">        return availableTokenTypes;</span>
+    }
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

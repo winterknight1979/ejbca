@@ -15,10 +15,8 @@ package org.cesecore.certificates.certificate;
 import java.math.BigInteger;
 import java.util.Collection;
 import java.util.List;
-
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
-
 import org.apache.log4j.Logger;
 import org.cesecore.certificates.crl.RevokedCertInfo;
 import org.cesecore.config.CesecoreConfiguration;
@@ -26,96 +24,164 @@ import org.cesecore.util.CompressedCollection;
 import org.cesecore.util.ValueExtractor;
 
 /**
- * Contains common function for CertificateDataSessionBean and NoConflictCertificateDataSessionBean.
- * 
- * @version $Id: BaseCertificateDataSessionBean.java 34193 2020-01-07 15:18:15Z samuellb $
+ * Contains common function for CertificateDataSessionBean and
+ * NoConflictCertificateDataSessionBean.
+ *
+ * @version $Id: BaseCertificateDataSessionBean.java 34193 2020-01-07 15:18:15Z
+ *     samuellb $
  */
 <span class="nc" id="L33">public abstract class BaseCertificateDataSessionBean {</span>
 
-<span class="nc" id="L35">    private static final Logger log = Logger.getLogger(CertificateDataSessionBean.class);</span>
-    
-    /** Returns the name of the table in the database. Either &quot;CertificateData&quot; or &quot;NoConflictCertificateData&quot; 
-     * @return name*/
-    protected abstract String getTableName();
-    
-    /** @return the entity manager to use. */
-    protected abstract EntityManager getEntityManager();
-    
-    /**
-     * @param issuerDN DN
-     * @param lastbasecrldate CRL date 
-     * @param forceGetAll Get all?
-     * @return a list with information about revoked certificates. Depending on the table, the result can
-     * either contain at most one entry per certificate, or it may contain duplicates.
-     */
-    protected Collection&lt;RevokedCertInfo&gt; getRevokedCertInfosInternal(final String issuerDN, final long lastbasecrldate, final boolean forceGetAll) {
-<span class="nc" id="L52">        final String tableName = getTableName();</span>
-        final Query query;
-<span class="nc bnc" id="L54" title="All 2 branches missed.">        if (lastbasecrldate &gt; 0) {</span>
-            // Delta CRL
-<span class="nc" id="L56">            query = getEntityManager().createNativeQuery(</span>
-                    &quot;SELECT a.fingerprint as fingerprint, a.serialNumber as serialNumber, a.expireDate as expireDate, a.revocationDate as revocationDate, a.revocationReason as revocationReason FROM &quot; + tableName + &quot; a WHERE &quot;
-                            + &quot;a.issuerDN=:issuerDN AND a.revocationDate&gt;:revocationDate AND (a.status=:status1 OR a.status=:status2 OR a.status=:status3)&quot;,
-                    &quot;RevokedCertInfoSubset&quot;);
-<span class="nc" id="L60">            query.setParameter(&quot;issuerDN&quot;, issuerDN);</span>
-<span class="nc" id="L61">            query.setParameter(&quot;revocationDate&quot;, lastbasecrldate);</span>
-<span class="nc" id="L62">            query.setParameter(&quot;status1&quot;, CertificateConstants.CERT_REVOKED);</span>
-<span class="nc" id="L63">            query.setParameter(&quot;status2&quot;, CertificateConstants.CERT_ACTIVE); // in case the certificate has been changed from on hold, we need to include it as &quot;removeFromCRL&quot; in the Delta CRL</span>
-<span class="nc" id="L64">            query.setParameter(&quot;status3&quot;, CertificateConstants.CERT_NOTIFIEDABOUTEXPIRATION); // could happen if a cert is re-activated just before expiration</span>
-<span class="nc bnc" id="L65" title="All 2 branches missed.">        } else if (forceGetAll) {</span>
-            // Base CRL
-<span class="nc" id="L67">            query = getEntityManager().createNativeQuery(</span>
-                    &quot;SELECT a.fingerprint as fingerprint, a.serialNumber as serialNumber, a.expireDate as expireDate, a.revocationDate as revocationDate, a.revocationReason as revocationReason FROM &quot; + tableName + &quot; a WHERE &quot;
-                            + &quot;a.issuerDN=:issuerDN AND (a.status=:status1 OR a.status=:status2 OR a.status=:status3)&quot;,
-                    &quot;RevokedCertInfoSubset&quot;);
-<span class="nc" id="L71">            query.setParameter(&quot;issuerDN&quot;, issuerDN);</span>
-<span class="nc" id="L72">            query.setParameter(&quot;status1&quot;, CertificateConstants.CERT_REVOKED);</span>
-<span class="nc" id="L73">            query.setParameter(&quot;status2&quot;, CertificateConstants.CERT_ACTIVE); // in case the certificate has been changed from on hold, we need to include it as &quot;removeFromCRL&quot; in the Delta CRL</span>
-<span class="nc" id="L74">            query.setParameter(&quot;status3&quot;, CertificateConstants.CERT_NOTIFIEDABOUTEXPIRATION); // could happen if a cert is re-activated just before expiration</span>
-        } else {
-            // Base CRL
-<span class="nc" id="L77">            query = getEntityManager().createNativeQuery(</span>
-                    &quot;SELECT a.fingerprint as fingerprint, a.serialNumber as serialNumber, a.expireDate as expireDate, a.revocationDate as revocationDate, a.revocationReason as revocationReason FROM &quot; + tableName + &quot; a WHERE &quot;
-                            + &quot;a.issuerDN=:issuerDN AND a.status=:status&quot;,
-                    &quot;RevokedCertInfoSubset&quot;);
-<span class="nc" id="L81">            query.setParameter(&quot;issuerDN&quot;, issuerDN);</span>
-<span class="nc" id="L82">            query.setParameter(&quot;status&quot;, CertificateConstants.CERT_REVOKED);</span>
+    /** Logger. */
+<span class="nc" id="L36">  private static final Logger LOG =</span>
+<span class="nc" id="L37">      Logger.getLogger(CertificateDataSessionBean.class);</span>
+
+  /**
+   * Returns the name of the table in the database. Either &quot;CertificateData&quot; or
+   * &quot;NoConflictCertificateData&quot;
+   *
+   * @return name
+   */
+  protected abstract String getTableName();
+
+  /** @return the entity manager to use. */
+  protected abstract EntityManager getEntityManager();
+
+  /**
+   * @param issuerDN DN
+   * @param lastbasecrldate CRL date
+   * @param forceGetAll Get all?
+   * @return a list with information about revoked certificates. Depending on
+   *     the table, the result can either contain at most one entry per
+   *     certificate, or it may contain duplicates.
+   */
+  protected Collection&lt;RevokedCertInfo&gt; getRevokedCertInfosInternal(
+      final String issuerDN,
+      final long lastbasecrldate,
+      final boolean forceGetAll) {
+<span class="nc" id="L62">    final String tableName = getTableName();</span>
+    final Query query;
+<span class="nc bnc" id="L64" title="All 2 branches missed.">    if (lastbasecrldate &gt; 0) {</span>
+      // Delta CRL
+<span class="nc" id="L66">      query =</span>
+<span class="nc" id="L67">          getEntityManager()</span>
+<span class="nc" id="L68">              .createNativeQuery(</span>
+                  &quot;SELECT a.fingerprint as fingerprint, a.serialNumber as&quot;
+                      + &quot; serialNumber, a.expireDate as expireDate,&quot;
+                      + &quot; a.revocationDate as revocationDate,&quot;
+                      + &quot; a.revocationReason as revocationReason FROM &quot;
+                      + tableName
+                      + &quot; a WHERE a.issuerDN=:issuerDN AND&quot;
+                      + &quot; a.revocationDate&gt;:revocationDate AND&quot;
+                      + &quot; (a.status=:status1 OR a.status=:status2 OR&quot;
+                      + &quot; a.status=:status3)&quot;,
+                  &quot;RevokedCertInfoSubset&quot;);
+<span class="nc" id="L79">      query.setParameter(&quot;issuerDN&quot;, issuerDN);</span>
+<span class="nc" id="L80">      query.setParameter(&quot;revocationDate&quot;, lastbasecrldate);</span>
+<span class="nc" id="L81">      query.setParameter(&quot;status1&quot;, CertificateConstants.CERT_REVOKED);</span>
+<span class="nc" id="L82">      query.setParameter(</span>
+          &quot;status2&quot;,
+<span class="nc" id="L84">          CertificateConstants</span>
+              .CERT_ACTIVE); // in case the certificate has been changed from on
+                             // hold, we need to include it as &quot;removeFromCRL&quot;
+                             // in the Delta CRL
+<span class="nc" id="L88">      query.setParameter(</span>
+          &quot;status3&quot;,
+<span class="nc" id="L90">          CertificateConstants</span>
+              .CERT_NOTIFIEDABOUTEXPIRATION); // could happen if a cert is
+                                              // re-activated just before
+                                              // expiration
+<span class="nc bnc" id="L94" title="All 2 branches missed.">    } else if (forceGetAll) {</span>
+      // Base CRL
+<span class="nc" id="L96">      query =</span>
+<span class="nc" id="L97">          getEntityManager()</span>
+<span class="nc" id="L98">              .createNativeQuery(</span>
+                  &quot;SELECT a.fingerprint as fingerprint, a.serialNumber as&quot;
+                      + &quot; serialNumber, a.expireDate as expireDate,&quot;
+                      + &quot; a.revocationDate as revocationDate,&quot;
+                      + &quot; a.revocationReason as revocationReason FROM &quot;
+                      + tableName
+                      + &quot; a WHERE a.issuerDN=:issuerDN AND (a.status=:status1&quot;
+                      + &quot; OR a.status=:status2 OR a.status=:status3)&quot;,
+                  &quot;RevokedCertInfoSubset&quot;);
+<span class="nc" id="L107">      query.setParameter(&quot;issuerDN&quot;, issuerDN);</span>
+<span class="nc" id="L108">      query.setParameter(&quot;status1&quot;, CertificateConstants.CERT_REVOKED);</span>
+<span class="nc" id="L109">      query.setParameter(</span>
+          &quot;status2&quot;,
+<span class="nc" id="L111">          CertificateConstants</span>
+              .CERT_ACTIVE); // in case the certificate has been changed from on
+                             // hold, we need to include it as &quot;removeFromCRL&quot;
+                             // in the Delta CRL
+<span class="nc" id="L115">      query.setParameter(</span>
+          &quot;status3&quot;,
+<span class="nc" id="L117">          CertificateConstants</span>
+              .CERT_NOTIFIEDABOUTEXPIRATION); // could happen if a cert is
+                                              // re-activated just before
+                                              // expiration
+    } else {
+      // Base CRL
+<span class="nc" id="L123">      query =</span>
+<span class="nc" id="L124">          getEntityManager()</span>
+<span class="nc" id="L125">              .createNativeQuery(</span>
+                  &quot;SELECT a.fingerprint as fingerprint, a.serialNumber as&quot;
+                      + &quot; serialNumber, a.expireDate as expireDate,&quot;
+                      + &quot; a.revocationDate as revocationDate,&quot;
+                      + &quot; a.revocationReason as revocationReason FROM &quot;
+                      + tableName
+                      + &quot; a WHERE &quot;
+                      + &quot;a.issuerDN=:issuerDN AND a.status=:status&quot;,
+                  &quot;RevokedCertInfoSubset&quot;);
+<span class="nc" id="L134">      query.setParameter(&quot;issuerDN&quot;, issuerDN);</span>
+<span class="nc" id="L135">      query.setParameter(&quot;status&quot;, CertificateConstants.CERT_REVOKED);</span>
+    }
+<span class="nc" id="L137">    return getRevokedCertInfosInternal(query);</span>
+  }
+
+  private Collection&lt;RevokedCertInfo&gt; getRevokedCertInfosInternal(
+      final Query query) {
+    final int maxResults =
+<span class="nc" id="L143">        CesecoreConfiguration.getDatabaseRevokedCertInfoFetchSize();</span>
+<span class="nc" id="L144">    query.setMaxResults(maxResults);</span>
+<span class="nc" id="L145">    int firstResult = 0;</span>
+<span class="nc" id="L146">    final CompressedCollection&lt;RevokedCertInfo&gt; revokedCertInfos =</span>
+        new CompressedCollection&lt;&gt;(RevokedCertInfo.class);
+    while (true) {
+<span class="nc" id="L149">      query.setFirstResult(firstResult);</span>
+      @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L151">      final List&lt;Object[]&gt; incompleteCertificateDatas = query.getResultList();</span>
+<span class="nc bnc" id="L152" title="All 2 branches missed.">      if (incompleteCertificateDatas.size() == 0) {</span>
+<span class="nc" id="L153">        break;</span>
+      }
+<span class="nc bnc" id="L155" title="All 2 branches missed.">      if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L156">        LOG.debug(</span>
+            &quot;Read batch of &quot;
+<span class="nc" id="L158">                + incompleteCertificateDatas.size()</span>
+                + &quot; RevokedCertInfo.&quot;);
+      }
+<span class="nc bnc" id="L161" title="All 2 branches missed.">      for (final Object[] current : incompleteCertificateDatas) {</span>
+        // The order of the results are defined by the SqlResultSetMapping
+        // annotation
+<span class="nc" id="L164">        final byte[] fingerprint = ((String) current[0]).getBytes();</span>
+<span class="nc" id="L165">        final byte[] serialNumber =</span>
+<span class="nc" id="L166">            new BigInteger((String) current[1]).toByteArray();</span>
+<span class="nc" id="L167">        final long expireDate = ValueExtractor.extractLongValue(current[2]);</span>
+<span class="nc" id="L168">        final long revocationDate = ValueExtractor.extractLongValue(current[3]);</span>
+<span class="nc" id="L169">        int revocationReason = ValueExtractor.extractIntValue(current[4]);</span>
+<span class="nc bnc" id="L170" title="All 2 branches missed.">        if (revocationReason == -1) {</span>
+<span class="nc" id="L171">          revocationReason = RevokedCertInfo.REVOCATION_REASON_REMOVEFROMCRL;</span>
         }
-<span class="nc" id="L84">        return getRevokedCertInfosInternal(query);</span>
-    }
-    
-    private Collection&lt;RevokedCertInfo&gt; getRevokedCertInfosInternal(final Query query) {
-<span class="nc" id="L88">        final int maxResults = CesecoreConfiguration.getDatabaseRevokedCertInfoFetchSize();</span>
-<span class="nc" id="L89">        query.setMaxResults(maxResults);</span>
-<span class="nc" id="L90">        int firstResult = 0;</span>
-<span class="nc" id="L91">        final CompressedCollection&lt;RevokedCertInfo&gt; revokedCertInfos = new CompressedCollection&lt;&gt;(RevokedCertInfo.class);</span>
-        while (true) {
-<span class="nc" id="L93">            query.setFirstResult(firstResult);</span>
-            @SuppressWarnings(&quot;unchecked&quot;)
-<span class="nc" id="L95">            final List&lt;Object[]&gt; incompleteCertificateDatas = query.getResultList();</span>
-<span class="nc bnc" id="L96" title="All 2 branches missed.">            if (incompleteCertificateDatas.size()==0) {</span>
-<span class="nc" id="L97">                break;</span>
-            }
-<span class="nc bnc" id="L99" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L100">                log.debug(&quot;Read batch of &quot; + incompleteCertificateDatas.size() + &quot; RevokedCertInfo.&quot;);</span>
-            }
-<span class="nc bnc" id="L102" title="All 2 branches missed.">            for (final Object[] current : incompleteCertificateDatas) {</span>
-                // The order of the results are defined by the SqlResultSetMapping annotation
-<span class="nc" id="L104">                final byte[] fingerprint = ((String)current[0]).getBytes();</span>
-<span class="nc" id="L105">                final byte[] serialNumber = new BigInteger((String)current[1]).toByteArray();</span>
-<span class="nc" id="L106">                final long expireDate = ValueExtractor.extractLongValue(current[2]);</span>
-<span class="nc" id="L107">                final long revocationDate = ValueExtractor.extractLongValue(current[3]);</span>
-<span class="nc" id="L108">                int revocationReason = ValueExtractor.extractIntValue(current[4]);</span>
-<span class="nc bnc" id="L109" title="All 2 branches missed.">                if (revocationReason == -1) {</span>
-<span class="nc" id="L110">                    revocationReason = RevokedCertInfo.REVOCATION_REASON_REMOVEFROMCRL;</span>
-                }
-<span class="nc" id="L112">                revokedCertInfos.add(new RevokedCertInfo(fingerprint, serialNumber, revocationDate, revocationReason, expireDate));</span>
-<span class="nc" id="L113">            }</span>
-<span class="nc" id="L114">            firstResult += maxResults;</span>
-<span class="nc" id="L115">        }</span>
-<span class="nc" id="L116">        revokedCertInfos.closeForWrite();</span>
-<span class="nc" id="L117">        return revokedCertInfos;</span>
-    }
-    
+<span class="nc" id="L173">        revokedCertInfos.add(</span>
+            new RevokedCertInfo(
+                fingerprint,
+                serialNumber,
+                revocationDate,
+                revocationReason,
+                expireDate));
+<span class="nc" id="L180">      }</span>
+<span class="nc" id="L181">      firstResult += maxResults;</span>
+<span class="nc" id="L182">    }</span>
+<span class="nc" id="L183">    revokedCertInfos.closeForWrite();</span>
+<span class="nc" id="L184">    return revokedCertInfos;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

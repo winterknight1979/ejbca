@@ -19,49 +19,53 @@ import java.security.NoSuchProviderException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
-
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 /**
- * Wrapper class for serializing PublicKey objects. 
- * 
- * @version $Id: PublicKeyWrapper.java 22566 2016-01-13 08:49:18Z mikekushner $
+ * Wrapper class for serializing PublicKey objects.
  *
+ * @version $Id: PublicKeyWrapper.java 22566 2016-01-13 08:49:18Z mikekushner $
  */
 public class PublicKeyWrapper implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    final byte[] encodedKey;
-    final String algorithm;
-    transient PublicKey publicKey;
+  /** Encoded. */
+  private final byte[] encodedKey;
+  /** Alg. */
+  private final String algorithm;
+  /** Key. */
+  private transient PublicKey publicKey;
 
-<span class="fc" id="L39">    public PublicKeyWrapper(final PublicKey publicKey) {</span>
-<span class="fc" id="L40">        this.encodedKey = publicKey.getEncoded();</span>
-<span class="fc" id="L41">        this.algorithm = publicKey.getAlgorithm();</span>
-<span class="fc" id="L42">    }</span>
+  /**
+   * @param aPublicKey Key
+   */
+<span class="fc" id="L43">  public PublicKeyWrapper(final PublicKey aPublicKey) {</span>
+<span class="fc" id="L44">    this.encodedKey = aPublicKey.getEncoded();</span>
+<span class="fc" id="L45">    this.algorithm = aPublicKey.getAlgorithm();</span>
+<span class="fc" id="L46">  }</span>
 
-    /**
-     * 
-     * @return the decoded PublicKey object wrapped in this class.
-     * 
-     */
-    public PublicKey getPublicKey() {
-<span class="pc bpc" id="L50" title="1 of 2 branches missed.">        if (publicKey == null) {</span>
-            try {
-<span class="fc" id="L52">                KeyFactory keyFactory = KeyFactory.getInstance(algorithm, BouncyCastleProvider.PROVIDER_NAME);</span>
-<span class="fc" id="L53">                X509EncodedKeySpec keySpec = new X509EncodedKeySpec(encodedKey);</span>
-<span class="fc" id="L54">                publicKey = keyFactory.generatePublic(keySpec);</span>
-<span class="nc" id="L55">            } catch (NoSuchProviderException e) {</span>
-<span class="nc" id="L56">                throw new IllegalStateException(&quot;BouncyCastle was not a known provider.&quot;, e);</span>
-<span class="nc" id="L57">            } catch (NoSuchAlgorithmException e) {</span>
-<span class="nc" id="L58">                throw new IllegalStateException(&quot;Algorithm &quot; + algorithm + &quot; was not known at deserialisation&quot;, e);</span>
-<span class="nc" id="L59">            } catch (InvalidKeySpecException e) {</span>
-<span class="nc" id="L60">                throw new IllegalStateException(&quot;The incorrect key specification was implemented.&quot;, e);</span>
-<span class="fc" id="L61">            }</span>
-        }
-<span class="fc" id="L63">        return publicKey;</span>
+  /** @return the decoded PublicKey object wrapped in this class. */
+  public PublicKey getPublicKey() {
+<span class="pc bpc" id="L50" title="1 of 2 branches missed.">    if (publicKey == null) {</span>
+      try {
+<span class="fc" id="L52">        KeyFactory keyFactory =</span>
+<span class="fc" id="L53">            KeyFactory.getInstance(</span>
+                algorithm, BouncyCastleProvider.PROVIDER_NAME);
+<span class="fc" id="L55">        X509EncodedKeySpec keySpec = new X509EncodedKeySpec(encodedKey);</span>
+<span class="fc" id="L56">        publicKey = keyFactory.generatePublic(keySpec);</span>
+<span class="nc" id="L57">      } catch (NoSuchProviderException e) {</span>
+<span class="nc" id="L58">        throw new IllegalStateException(</span>
+            &quot;BouncyCastle was not a known provider.&quot;, e);
+<span class="nc" id="L60">      } catch (NoSuchAlgorithmException e) {</span>
+<span class="nc" id="L61">        throw new IllegalStateException(</span>
+            &quot;Algorithm &quot; + algorithm + &quot; was not known at deserialisation&quot;, e);
+<span class="nc" id="L63">      } catch (InvalidKeySpecException e) {</span>
+<span class="nc" id="L64">        throw new IllegalStateException(</span>
+            &quot;The incorrect key specification was implemented.&quot;, e);
+<span class="fc" id="L66">      }</span>
     }
-
+<span class="fc" id="L68">    return publicKey;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

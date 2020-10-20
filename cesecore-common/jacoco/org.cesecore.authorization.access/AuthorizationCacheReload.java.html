@@ -15,29 +15,40 @@ package org.cesecore.authorization.access;
 import java.io.Serializable;
 
 /**
- * You can have a method that has a parameter of this type with the &amp;#64;Observes attribute to be
- * notified when the access rules or roles have been changed. Please make the method
- * &amp;#64;Asynchronous so it doesn't block the caller (currently
- *  org.cesecore.authorization.cache.AccessTreeUpdateSessionBean#signalForAccessTreeUpdate() in cesecore-ejb.
- * 
- * Currently we can't use JEE events, because it requires that we use CDI.
- * Instead the method org.cesecore.authorization.cache.AccessTreeUpdateSessionLocal.addReloadEvent(AuthorizationCacheReloadListener) can be used
- * 
- * @version $Id: AuthorizationCacheReload.java 25591 2017-03-23 13:13:02Z jeklund $
+ * You can have a method that has a parameter of this type with the
+ * &amp;#64;Observes attribute to be notified when the access rules or roles have
+ * been changed. Please make the method &amp;#64;Asynchronous so it doesn't block
+ * the caller (currently
+ * org.cesecore.authorization.cache.AccessTreeUpdateSessionBean#signalForAccessTreeUpdate()
+ * in cesecore-ejb.
+ *
+ * &lt;p&gt;Currently we can't use JEE events, because it requires that we use CDI.
+ * Instead the method
+ * org.cesecore.authorization.cache.AccessTreeUpdateSessionLocal.addReloadEvent(AuthorizationCacheReloadListener)
+ * can be used
+ *
+ * @version $Id: AuthorizationCacheReload.java 25591 2017-03-23 13:13:02Z
+ *     jeklund $
  */
 public final class AuthorizationCacheReload implements Serializable {
 
-    private static final long serialVersionUID = 1L;
-    
-    private final int accessTreeUpdateNumber;
-    
-<span class="fc" id="L34">    public AuthorizationCacheReload(final int accessTreeUpdateNumber) {</span>
-<span class="fc" id="L35">        this.accessTreeUpdateNumber = accessTreeUpdateNumber;</span>
-<span class="fc" id="L36">    }</span>
-    
-    public int getAccessTreeUpdateNumber() {
-<span class="fc" id="L39">        return accessTreeUpdateNumber;</span>
-    }
+  private static final long serialVersionUID = 1L;
 
+  /** Update number. */
+  private final int accessTreeUpdateNumber;
+
+  /**
+   * Set tree number.
+   *
+   * @param anAccessTreeUpdateNumber Number
+   */
+<span class="fc" id="L45">  public AuthorizationCacheReload(final int anAccessTreeUpdateNumber) {</span>
+<span class="fc" id="L46">    this.accessTreeUpdateNumber = anAccessTreeUpdateNumber;</span>
+<span class="fc" id="L47">  }</span>
+
+  /** @return number */
+  public int getAccessTreeUpdateNumber() {
+<span class="fc" id="L51">    return accessTreeUpdateNumber;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

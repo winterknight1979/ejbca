@@ -24,40 +24,39 @@
 <a class="jxr_linenumber" name="L16" href="#L16">16</a>  <strong class="jxr_keyword">import</strong> java.util.Map.Entry;
 <a class="jxr_linenumber" name="L17" href="#L17">17</a>  <strong class="jxr_keyword">import</strong> java.util.Set;
 <a class="jxr_linenumber" name="L18" href="#L18">18</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.ExecutorService;
-<a class="jxr_linenumber" name="L19" href="#L19">19</a>  
-<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">import</strong> org.cesecore.util.ui.DynamicUiModelAware;
-<a class="jxr_linenumber" name="L21" href="#L21">21</a>  
-<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <em class="jxr_javadoccomment"> * Base interface for DNS name validators. All DNS name validators must implement this interface.</em>
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <strong class="jxr_keyword">import</strong> org.cesecore.util.ui.DynamicUiModelAware;
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <em class="jxr_javadoccomment"> * Base interface for DNS name validators. All DNS name validators must</em>
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <em class="jxr_javadoccomment"> * implement this interface.</em>
 <a class="jxr_linenumber" name="L24" href="#L24">24</a>  <em class="jxr_javadoccomment"> *</em>
 <a class="jxr_linenumber" name="L25" href="#L25">25</a>  <em class="jxr_javadoccomment"> * @version $Id: DnsNameValidator.java 29535 2018-07-31 14:21:33Z mikekushner $</em>
-<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <em class="jxr_javadoccomment"> *</em>
-<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <em class="jxr_javadoccomment"> */</em>
-<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">interface</strong> <a name="DnsNameValidator" href="../../../../org/cesecore/keys/validation/DnsNameValidator.html#DnsNameValidator">DnsNameValidator</a> <strong class="jxr_keyword">extends</strong> Validator, <a name="DynamicUiModelAware" href="../../../../org/cesecore/util/ui/DynamicUiModelAware.html#DynamicUiModelAware">DynamicUiModelAware</a> {
-<a class="jxr_linenumber" name="L29" href="#L29">29</a>  
-<a class="jxr_linenumber" name="L30" href="#L30">30</a>      <em class="jxr_javadoccomment">/** The validator type. */</em>
-<a class="jxr_linenumber" name="L31" href="#L31">31</a>      <strong class="jxr_keyword">final</strong> String CAA_TYPE_IDENTIFIER = <span class="jxr_string">"CAA_VALIDATOR"</span>;
-<a class="jxr_linenumber" name="L32" href="#L32">32</a>      
-<a class="jxr_linenumber" name="L33" href="#L33">33</a>      <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <em class="jxr_javadoccomment">     * Validates DNS names, specifically the dnsName value in the SubjectAltName (SAN) extension</em>
-<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <em class="jxr_javadoccomment">     *</em>
-<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <em class="jxr_javadoccomment">     * @param executorService a thread pool facilitating parallel lookups</em>
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <em class="jxr_javadoccomment">     * @param domainNames one or several domain names (Varargs)</em>
-<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <em class="jxr_javadoccomment">     * @return an Entry where key is the final validation result, true or false, and the value is a list is messages corresponding to</em>
-<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <em class="jxr_javadoccomment">     * domain names passed as varargs, messages can include both success and failure messages, one failure will result in the key returned being false.</em>
-<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L41" href="#L41">41</a>      Entry&lt;Boolean, List&lt;String&gt;&gt; validate(<strong class="jxr_keyword">final</strong> ExecutorService executorService, String... domainNames);
-<a class="jxr_linenumber" name="L42" href="#L42">42</a>  
-<a class="jxr_linenumber" name="L43" href="#L43">43</a>      <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L44" href="#L44">44</a>  <em class="jxr_javadoccomment">     * @return a newline separated string of issuers. </em>
-<a class="jxr_linenumber" name="L45" href="#L45">45</a>  <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L46" href="#L46">46</a>      String getIssuer();
-<a class="jxr_linenumber" name="L47" href="#L47">47</a>  
-<a class="jxr_linenumber" name="L48" href="#L48">48</a>      <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L49" href="#L49">49</a>  <em class="jxr_javadoccomment">     * @return a set of issuer names for this validator</em>
-<a class="jxr_linenumber" name="L50" href="#L50">50</a>  <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L51" href="#L51">51</a>      Set&lt;String&gt; getIssuers();
-<a class="jxr_linenumber" name="L52" href="#L52">52</a>  }
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">interface</strong> <a name="DnsNameValidator" href="../../../../org/cesecore/keys/validation/DnsNameValidator.html#DnsNameValidator">DnsNameValidator</a> <strong class="jxr_keyword">extends</strong> Validator, <a name="DynamicUiModelAware" href="../../../../org/cesecore/util/ui/DynamicUiModelAware.html#DynamicUiModelAware">DynamicUiModelAware</a> {
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>    <em class="jxr_javadoccomment">/** The validator type. */</em>
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>    String CAA_TYPE_IDENTIFIER = <span class="jxr_string">"CAA_VALIDATOR"</span>;
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>    <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <em class="jxr_javadoccomment">   * Validates DNS names, specifically the dnsName value in the SubjectAltName</em>
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <em class="jxr_javadoccomment">   * (SAN) extension.</em>
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <em class="jxr_javadoccomment">   *</em>
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <em class="jxr_javadoccomment">   * @param executorService a thread pool facilitating parallel lookups</em>
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <em class="jxr_javadoccomment">   * @param domainNames one or several domain names (Varargs)</em>
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <em class="jxr_javadoccomment">   * @return an Entry where key is the final validation result, true or false,</em>
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <em class="jxr_javadoccomment">   *     and the value is a list is messages corresponding to domain names</em>
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <em class="jxr_javadoccomment">   *     passed as varargs, messages can include both success and failure</em>
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <em class="jxr_javadoccomment">   *     messages, one failure will result in the key returned being false.</em>
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  <em class="jxr_javadoccomment">   */</em>
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>    Entry&lt;Boolean, List&lt;String&gt;&gt; validate(
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>        ExecutorService executorService, String... domainNames);
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>  
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>    <em class="jxr_javadoccomment">/** @return a newline separated string of issuers. */</em>
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>    String getIssuer();
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>  
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>    <em class="jxr_javadoccomment">/** @return a set of issuer names for this validator */</em>
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>    Set&lt;String&gt; getIssuers();
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>  }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2020. All rights reserved.</div>

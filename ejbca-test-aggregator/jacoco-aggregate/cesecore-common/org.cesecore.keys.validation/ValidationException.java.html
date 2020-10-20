@@ -16,29 +16,34 @@ package org.cesecore.keys.validation;
 import org.cesecore.CesecoreException;
 
 /**
- * An exception thrown when validation fails for some reason and the certificate issuance has to be aborted.
+ * An exception thrown when validation fails for some reason and the certificate
+ * issuance has to be aborted.
  *
- * @version $Id: ValidationException.java 26329 2017-08-16 15:06:47Z mikekushner $
+ * @version $Id: ValidationException.java 26329 2017-08-16 15:06:47Z mikekushner
+ *     $
  */
 public class ValidationException extends CesecoreException {
 
-    private static final long serialVersionUID = -3123446231118692L;
+  private static final long serialVersionUID = -3123446231118692L;
 
-    /**
-     * Creates a new instance with a detail message.
-     * @param message the message.
-     */
-    public ValidationException(String message) {
-<span class="nc" id="L32">        super(message, null);</span>
-<span class="nc" id="L33">    }</span>
+  /**
+   * Creates a new instance with a detail message.
+   *
+   * @param message the message.
+   */
+  public ValidationException(final String message) {
+<span class="nc" id="L35">    super(message, null);</span>
+<span class="nc" id="L36">  }</span>
 
-    /**
-     * Creates a new instance with a detail message and a root cause, mainly technical errors.
-     * @param message the message.
-     * @param cause the root cause.
-     */
-    public ValidationException(String message, Throwable cause) {
-<span class="nc" id="L41">        super(message, cause);</span>
-<span class="nc" id="L42">    }</span>
+  /**
+   * Creates a new instance with a detail message and a root cause, mainly
+   * technical errors.
+   *
+   * @param message the message.
+   * @param cause the root cause.
+   */
+  public ValidationException(final String message, final Throwable cause) {
+<span class="nc" id="L46">    super(message, cause);</span>
+<span class="nc" id="L47">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

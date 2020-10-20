@@ -9,13 +9,12 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.certificate.certextensions.standard;
 
 import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
-
 import org.apache.log4j.Logger;
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1EncodableVector;
@@ -34,57 +33,70 @@ import org.cesecore.certificates.certificate.certextensions.CertificateExtension
 import org.cesecore.certificates.certificateprofile.CertificateProfile;
 import org.cesecore.certificates.endentity.EndEntityInformation;
 
-/** 
- * 
- * Class for standard X509 certificate extension. 
- * See rfc3280 or later for spec of this extension.      
- * 
+/**
+ * Class for standard X509 certificate extension. See rfc3280 or later for spec
+ * of this extension.
+ *
  * @version $Id: FreshestCrl.java 22092 2015-10-26 13:58:55Z mikekushner $
  */
-<span class="fc" id="L44">public class FreshestCrl extends StandardCertificateExtension {</span>
-    private static final long serialVersionUID = 1L;
-<span class="fc" id="L46">    private static final Logger log = Logger.getLogger(FreshestCrl.class);</span>
-	
-    @Override
-	public void init(final CertificateProfile certProf) {
-<span class="fc" id="L50">		super.setOID(Extension.freshestCRL.getId());</span>
-<span class="fc" id="L51">		super.setCriticalFlag(false);</span>
-<span class="fc" id="L52">	}</span>
-    
-    @Override
-    public ASN1Encodable getValue(final EndEntityInformation subject, final CA ca, final CertificateProfile certProfile,
-            final PublicKey userPublicKey, final PublicKey caPublicKey, CertificateValidity val) throws
-            CertificateExtensionException {
-<span class="nc" id="L58">        String freshestcrldistpoint = certProfile.getFreshestCRLURI();</span>
-<span class="nc" id="L59">        final X509CA x509ca = (X509CA)ca;</span>
-<span class="nc bnc" id="L60" title="All 2 branches missed.">        if(certProfile.getUseCADefinedFreshestCRL()){</span>
-<span class="nc" id="L61">            freshestcrldistpoint = x509ca.getCADefinedFreshestCRL();</span>
+<span class="fc" id="L42">public class FreshestCrl extends StandardCertificateExtension {</span>
+  private static final long serialVersionUID = 1L;
+  /** Logger. */
+<span class="fc" id="L45">  private static final Logger LOG = Logger.getLogger(FreshestCrl.class);</span>
+
+  @Override
+  public void init(final CertificateProfile certProf) {
+<span class="fc" id="L49">    super.setOID(Extension.freshestCRL.getId());</span>
+<span class="fc" id="L50">    super.setCriticalFlag(false);</span>
+<span class="fc" id="L51">  }</span>
+
+  @Override
+  public ASN1Encodable getValue(
+      final EndEntityInformation subject,
+      final CA ca,
+      final CertificateProfile certProfile,
+      final PublicKey userPublicKey,
+      final PublicKey caPublicKey,
+      final CertificateValidity val)
+      throws CertificateExtensionException {
+<span class="nc" id="L62">    String freshestcrldistpoint = certProfile.getFreshestCRLURI();</span>
+<span class="nc" id="L63">    final X509CA x509ca = (X509CA) ca;</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">    if (certProfile.getUseCADefinedFreshestCRL()) {</span>
+<span class="nc" id="L65">      freshestcrldistpoint = x509ca.getCADefinedFreshestCRL();</span>
+    }
+    // Multiple FCDPs are separated with the ';' sign
+<span class="nc" id="L68">    CRLDistPoint ret = null;</span>
+<span class="nc bnc" id="L69" title="All 2 branches missed.">    if (freshestcrldistpoint != null) {</span>
+<span class="nc" id="L70">      final StringTokenizer tokenizer =</span>
+          new StringTokenizer(freshestcrldistpoint, &quot;;&quot;, false);
+<span class="nc" id="L72">      final ArrayList&lt;DistributionPoint&gt; distpoints =</span>
+          new ArrayList&lt;DistributionPoint&gt;();
+<span class="nc bnc" id="L74" title="All 2 branches missed.">      while (tokenizer.hasMoreTokens()) {</span>
+<span class="nc" id="L75">        final String uri = tokenizer.nextToken();</span>
+<span class="nc" id="L76">        final GeneralName gn =</span>
+            new GeneralName(
+                GeneralName.uniformResourceIdentifier, new DERIA5String(uri));
+<span class="nc bnc" id="L79" title="All 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L80">          LOG.debug(&quot;Added freshest CRL distpoint: &quot; + uri);</span>
         }
-        // Multiple FCDPs are separated with the ';' sign
-<span class="nc" id="L64">        CRLDistPoint ret = null;</span>
-<span class="nc bnc" id="L65" title="All 2 branches missed.">        if (freshestcrldistpoint != null) {</span>
-<span class="nc" id="L66">        	final StringTokenizer tokenizer = new StringTokenizer(freshestcrldistpoint, &quot;;&quot;, false);</span>
-<span class="nc" id="L67">        	final ArrayList&lt;DistributionPoint&gt; distpoints = new ArrayList&lt;DistributionPoint&gt;();</span>
-<span class="nc bnc" id="L68" title="All 2 branches missed.">            while (tokenizer.hasMoreTokens()) {</span>
-<span class="nc" id="L69">            	final String uri = tokenizer.nextToken();</span>
-<span class="nc" id="L70">                final GeneralName gn = new GeneralName(GeneralName.uniformResourceIdentifier, new DERIA5String(uri));</span>
-<span class="nc bnc" id="L71" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L72">                	log.debug(&quot;Added freshest CRL distpoint: &quot;+uri);</span>
-                }
-<span class="nc" id="L74">                final ASN1EncodableVector vec = new ASN1EncodableVector();</span>
-<span class="nc" id="L75">                vec.add(gn);</span>
-<span class="nc" id="L76">                final GeneralNames gns = GeneralNames.getInstance(new DERSequence(vec));</span>
-<span class="nc" id="L77">                final DistributionPointName dpn = new DistributionPointName(0, gns);</span>
-<span class="nc" id="L78">                distpoints.add(new DistributionPoint(dpn, null, null));</span>
-<span class="nc" id="L79">            }</span>
-<span class="nc bnc" id="L80" title="All 2 branches missed.">            if (!distpoints.isEmpty()) {</span>
-<span class="nc" id="L81">                ret = new CRLDistPoint((DistributionPoint[])distpoints.toArray(new DistributionPoint[distpoints.size()]));</span>
-            }            	 
-        } 
-<span class="nc bnc" id="L84" title="All 2 branches missed.">		if (ret == null) {</span>
-<span class="nc" id="L85">	       	 log.error(&quot;UseFreshestCRL is true, but no URI string defined!&quot;);</span>
-		}
-<span class="nc" id="L87">		return ret;</span>
-	}	
+<span class="nc" id="L82">        final ASN1EncodableVector vec = new ASN1EncodableVector();</span>
+<span class="nc" id="L83">        vec.add(gn);</span>
+<span class="nc" id="L84">        final GeneralNames gns = GeneralNames.getInstance(new DERSequence(vec));</span>
+<span class="nc" id="L85">        final DistributionPointName dpn = new DistributionPointName(0, gns);</span>
+<span class="nc" id="L86">        distpoints.add(new DistributionPoint(dpn, null, null));</span>
+<span class="nc" id="L87">      }</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">      if (!distpoints.isEmpty()) {</span>
+<span class="nc" id="L89">        ret =</span>
+            new CRLDistPoint(
+                (DistributionPoint[])
+<span class="nc" id="L92">                    distpoints.toArray(</span>
+<span class="nc" id="L93">                        new DistributionPoint[distpoints.size()]));</span>
+      }
+    }
+<span class="nc bnc" id="L96" title="All 2 branches missed.">    if (ret == null) {</span>
+<span class="nc" id="L97">      LOG.error(&quot;UseFreshestCRL is true, but no URI string defined!&quot;);</span>
+    }
+<span class="nc" id="L99">    return ret;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

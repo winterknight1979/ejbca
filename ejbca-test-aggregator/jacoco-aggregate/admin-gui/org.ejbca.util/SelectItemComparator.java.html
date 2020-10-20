@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>SelectItemComparator.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">admin-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.util</a> &gt; <span class="el_source">SelectItemComparator.java</span></div><h1>SelectItemComparator.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.util;
+
+import java.io.Serializable;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Set;
+
+import javax.faces.model.SelectItem;
+
+import org.apache.commons.lang.ObjectUtils;
+import org.apache.log4j.Logger;
+
+/**
+ * Comparator for sorting select items by displayed name.  
+ * @version $Id: SelectItemComparator.java 29652 2018-08-15 12:05:16Z anatom $
+ */
+public class SelectItemComparator implements Comparator&lt;SelectItem&gt;, Serializable {
+
+    private static final long serialVersionUID = 1L;
+<span class="fc" id="L33">    private static final Logger log = Logger.getLogger(SelectItemComparator.class);</span>
+    
+    private final Set&lt;Object&gt; specialObjects;
+    
+    public SelectItemComparator() {
+<span class="fc" id="L38">        this(new Object[0]);</span>
+<span class="fc" id="L39">    }</span>
+    
+    /** specialObjects will be placed first. Typically these will be IDs 
+     * @param specialObjects Objects*/ 
+<span class="fc" id="L43">    public SelectItemComparator(Object... specialObjects) {</span>
+<span class="fc" id="L44">        this.specialObjects = new HashSet&lt;&gt;(Arrays.asList(specialObjects));</span>
+<span class="fc" id="L45">    }</span>
+
+    @Override
+    public int compare(SelectItem o1, SelectItem o2) {
+<span class="fc" id="L49">        final boolean special1 = specialObjects.contains(o1.getValue());</span>
+<span class="fc" id="L50">        final boolean special2 = specialObjects.contains(o2.getValue());</span>
+<span class="pc bpc" id="L51" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L52">            log.trace(&quot;compare(&quot; + o1.getLabel() + &quot;,&quot; + o2.getLabel() + &quot;). 1 is special: &quot; + special1 + &quot;,  2 is special: &quot; + special2 + &quot;,  value comparison: &quot; + ObjectUtils.compare(o1.getLabel(), o2.getLabel()));</span>
+        }
+<span class="fc bfc" id="L54" title="All 2 branches covered.">        if (special1 == special2) {</span>
+<span class="pc bpc" id="L55" title="1 of 4 branches missed.">            if (o1.getLabel() == null &amp;&amp; o2.getLabel() == null) { return 0; }</span>
+<span class="fc bfc" id="L56" title="All 2 branches covered.">            else if (o1.getLabel() == null) { return -1; }</span>
+<span class="fc bfc" id="L57" title="All 2 branches covered.">            else if (o2.getLabel() == null) { return 1; }</span>
+<span class="fc" id="L58">            else { return o1.getLabel().compareToIgnoreCase(o2.getLabel()); }</span>
+<span class="fc bfc" id="L59" title="All 2 branches covered.">        } else if (special1) {</span>
+<span class="fc" id="L60">            return -1;</span>
+        } else {
+<span class="fc" id="L62">            return 1;</span>
+        }
+    }
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

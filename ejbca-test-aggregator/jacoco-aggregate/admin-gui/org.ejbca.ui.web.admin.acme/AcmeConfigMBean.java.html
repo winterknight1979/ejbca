@@ -1,0 +1,456 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>AcmeConfigMBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">admin-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.acme</a> &gt; <span class="el_source">AcmeConfigMBean.java</span></div><h1>AcmeConfigMBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA - Proprietary Modules: Enterprise Certificate Authority        *
+ *                                                                       *
+ *  Copyright (c), PrimeKey Solutions AB. All rights reserved.           *
+ *  The use of the Proprietary Modules are subject to specific           *
+ *  commercial license terms.                                            *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.web.admin.acme;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+
+import javax.faces.context.FacesContext;
+import javax.faces.model.ListDataModel;
+import javax.faces.model.SelectItem;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.authorization.control.StandardRules;
+import org.cesecore.certificates.endentity.EndEntityConstants;
+import org.cesecore.configuration.GlobalConfigurationSessionLocal;
+import org.ejbca.config.AcmeConfiguration;
+import org.ejbca.config.GlobalAcmeConfiguration;
+import org.ejbca.core.EjbcaException;
+import org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSessionLocal;
+import org.ejbca.core.model.authorization.AccessRulesConstants;
+import org.ejbca.ui.web.admin.BaseManagedBean;
+
+/**
+ * JavaServer Faces Managed Bean for managing ACME configuration.
+ *
+ * @version $Id: AcmeConfigMBean.java 28125 2018-01-29 16:41:28Z bastianf $
+ */
+public class AcmeConfigMBean extends BaseManagedBean implements Serializable {
+    private static final long serialVersionUID = 1L;
+<span class="nc" id="L46">    private static final Logger log = Logger.getLogger(AcmeConfigMBean.class);</span>
+<span class="nc" id="L47">    private ListDataModel&lt;AcmeAliasGuiInfo&gt; aliasGuiList = null;</span>
+
+    private GlobalAcmeConfiguration globalAcmeConfigurationConfig;
+<span class="nc" id="L50">    private AcmeAliasGuiInfo currentAlias = null;</span>
+<span class="nc" id="L51">    private AcmeGlobalGuiInfo globalInfo = null;</span>
+<span class="nc" id="L52">    private boolean currentAliasEditMode = false;</span>
+    private String currentAliasStr;
+<span class="nc" id="L54">    private String newAlias = &quot;&quot;;</span>
+
+
+<span class="nc" id="L57">    private final GlobalConfigurationSessionLocal globalConfigSession = getEjbcaWebBean().getEjb().getGlobalConfigurationSession();</span>
+<span class="nc" id="L58">    private final AuthorizationSessionLocal authorizationSession = getEjbcaWebBean().getEjb().getAuthorizationSession();</span>
+<span class="nc" id="L59">    private final EndEntityProfileSessionLocal endentityProfileSession = getEjbcaWebBean().getEjb().getEndEntityProfileSession();</span>
+<span class="nc" id="L60">    private final AuthenticationToken authenticationToken = getAdmin();</span>
+
+    public AcmeConfigMBean() {
+<span class="nc" id="L63">        super();</span>
+<span class="nc" id="L64">        globalAcmeConfigurationConfig = (GlobalAcmeConfiguration) globalConfigSession.getCachedConfiguration(GlobalAcmeConfiguration.ACME_CONFIGURATION_ID);</span>
+<span class="nc" id="L65">    }</span>
+
+    /** Force reload from underlying (cache) layer for the current ACME configuration alias */
+    private void flushCache() {
+<span class="nc" id="L69">        currentAlias = null;</span>
+<span class="nc" id="L70">        aliasGuiList = null;</span>
+<span class="nc" id="L71">        currentAliasEditMode = false;</span>
+<span class="nc" id="L72">        globalAcmeConfigurationConfig = (GlobalAcmeConfiguration) globalConfigSession.getCachedConfiguration(GlobalAcmeConfiguration.ACME_CONFIGURATION_ID);</span>
+<span class="nc" id="L73">        globalInfo = new AcmeGlobalGuiInfo(globalAcmeConfigurationConfig);</span>
+
+<span class="nc" id="L75">    }</span>
+    /** Build a list sorted by name from the existing ACME configuration aliases 
+     * @return Model*/
+    public ListDataModel&lt;AcmeAliasGuiInfo&gt; getAliasGuiList() {
+<span class="nc" id="L79">        flushCache();</span>
+<span class="nc" id="L80">        final List&lt;AcmeAliasGuiInfo&gt; list = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">        for (String alias : globalAcmeConfigurationConfig.getAcmeConfigurationIds()) {</span>
+<span class="nc" id="L82">            list.add(new AcmeAliasGuiInfo(globalAcmeConfigurationConfig, alias));</span>
+<span class="nc" id="L83">            Collections.sort(list, new Comparator&lt;AcmeAliasGuiInfo&gt;() {</span>
+                @Override
+                public int compare(AcmeAliasGuiInfo alias1, AcmeAliasGuiInfo alias2) {
+<span class="nc" id="L86">                    return alias1.getAlias().compareToIgnoreCase(alias2.getAlias());</span>
+                }
+            });
+<span class="nc" id="L89">            aliasGuiList = new ListDataModel&lt;&gt;(list);</span>
+<span class="nc" id="L90">        }</span>
+        // If show the list, then we are on the main page and want to flush the cache
+<span class="nc" id="L92">        currentAlias = null;</span>
+<span class="nc" id="L93">        return aliasGuiList;</span>
+    }
+
+    public void addAlias() {
+<span class="nc bnc" id="L97" title="All 4 branches missed.">        if (StringUtils.isNotEmpty(newAlias) &amp;&amp; !globalAcmeConfigurationConfig.aliasExists(newAlias)) {</span>
+<span class="nc" id="L98">            AcmeConfiguration newConfig = new AcmeConfiguration();</span>
+<span class="nc" id="L99">            newConfig.setConfigurationId(newAlias);</span>
+<span class="nc" id="L100">            newConfig.initialize(newAlias);</span>
+<span class="nc" id="L101">            globalAcmeConfigurationConfig.updateAcmeConfiguration(newConfig);</span>
+            try {
+<span class="nc" id="L103">                globalConfigSession.saveConfiguration(authenticationToken, globalAcmeConfigurationConfig);</span>
+<span class="nc" id="L104">            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L105">                String msg = &quot;Failed to add alias: &quot; + e.getLocalizedMessage();</span>
+<span class="nc" id="L106">                log.info(msg, e);</span>
+<span class="nc" id="L107">                super.addNonTranslatedErrorMessage(msg);</span>
+<span class="nc" id="L108">            }</span>
+<span class="nc" id="L109">        } else {</span>
+<span class="nc" id="L110">            String msg = &quot;Cannot add alias. Alias '&quot; + newAlias + &quot;' already exists.&quot;;</span>
+<span class="nc" id="L111">            log.info(msg);</span>
+<span class="nc" id="L112">            super.addNonTranslatedErrorMessage(msg);</span>
+        }
+<span class="nc" id="L114">        flushCache();</span>
+<span class="nc" id="L115">    }</span>
+
+    public void renameAlias() {
+<span class="nc bnc" id="L118" title="All 4 branches missed.">        if (StringUtils.isNotEmpty(newAlias) &amp;&amp; !globalAcmeConfigurationConfig.aliasExists(newAlias)) {</span>
+<span class="nc" id="L119">            globalAcmeConfigurationConfig.renameConfigId(newAlias, currentAliasStr);</span>
+            try {
+<span class="nc" id="L121">                globalConfigSession.saveConfiguration(authenticationToken, globalAcmeConfigurationConfig);</span>
+<span class="nc" id="L122">            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L123">                String msg = &quot;Failed to rename alias: &quot; + e.getLocalizedMessage();</span>
+<span class="nc" id="L124">                log.info(msg, e);</span>
+<span class="nc" id="L125">                super.addNonTranslatedErrorMessage(msg);</span>
+<span class="nc" id="L126">            }</span>
+        } else {
+<span class="nc" id="L128">            String msg = &quot;Cannot rename alias. Either the new alias is empty or it already exists.&quot;;</span>
+<span class="nc" id="L129">            log.info(msg);</span>
+<span class="nc" id="L130">            super.addNonTranslatedErrorMessage(msg);</span>
+        }
+<span class="nc" id="L132">        flushCache();</span>
+<span class="nc" id="L133">    }</span>
+
+    public void deleteAlias() {
+<span class="nc bnc" id="L136" title="All 2 branches missed.">        if (globalAcmeConfigurationConfig.aliasExists(currentAliasStr)) {</span>
+<span class="nc" id="L137">            globalAcmeConfigurationConfig.removeConfigId(currentAliasStr);</span>
+            try {
+<span class="nc" id="L139">                globalConfigSession.saveConfiguration(authenticationToken, globalAcmeConfigurationConfig);</span>
+<span class="nc" id="L140">            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L141">                String msg = &quot;Failed to remove alias: &quot; + e.getLocalizedMessage();</span>
+<span class="nc" id="L142">                log.info(msg, e);</span>
+<span class="nc" id="L143">                super.addNonTranslatedErrorMessage(msg);</span>
+<span class="nc" id="L144">            }</span>
+        } else {
+<span class="nc" id="L146">            String msg = &quot;Cannot remove alias. It does not exist.&quot;;</span>
+<span class="nc" id="L147">            log.info(msg);</span>
+<span class="nc" id="L148">            super.addNonTranslatedErrorMessage(msg);</span>
+        }
+<span class="nc" id="L150">        flushCache();</span>
+<span class="nc" id="L151">    }</span>
+
+    /** @return cached or populate a new ACME alias GUI representation for view or edit */
+    public AcmeAliasGuiInfo getCurrentAlias() {
+<span class="nc bnc" id="L155" title="All 2 branches missed.">        if (this.currentAlias == null) {</span>
+<span class="nc" id="L156">            final String alias = getCurrentAliasStr();</span>
+<span class="nc" id="L157">            this.currentAlias = new AcmeAliasGuiInfo(globalAcmeConfigurationConfig, alias);</span>
+        }
+
+<span class="nc" id="L160">        return this.currentAlias;</span>
+    }
+    public String getNewAlias() {
+<span class="nc" id="L163">        return newAlias;</span>
+    }
+
+    public void setNewAlias(String newAlias) {
+<span class="nc" id="L167">        this.newAlias = newAlias;</span>
+<span class="nc" id="L168">    }</span>
+
+    /** @return the name of the ACME alias that is subject to view or edit */
+    public String getCurrentAliasStr() {
+        // Get the HTTP GET/POST parameter named &quot;alias&quot;
+<span class="nc" id="L173">        final String inputAlias = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get(&quot;alias&quot;);</span>
+<span class="nc bnc" id="L174" title="All 4 branches missed.">        if (inputAlias != null &amp;&amp; inputAlias.length() &gt; 0) {</span>
+<span class="nc bnc" id="L175" title="All 2 branches missed.">            if (!inputAlias.equals(currentAliasStr)) {</span>
+<span class="nc" id="L176">                flushCache();</span>
+<span class="nc" id="L177">                this.currentAliasStr = inputAlias;</span>
+            }
+        }
+<span class="nc" id="L180">        return currentAliasStr;</span>
+    }
+
+    /** @return a list of EndEntity profiles that this admin is authorized to, and that are usable for ACME */
+    public List&lt;SelectItem&gt; getUsableEEProfileNames() {
+<span class="nc" id="L185">        Collection&lt;Integer&gt; endEntityProfileIds = endentityProfileSession.getAuthorizedEndEntityProfileIds(getAdmin(), AccessRulesConstants.CREATE_END_ENTITY);</span>
+<span class="nc" id="L186">        Map&lt;Integer, String&gt; nameMap = endentityProfileSession.getEndEntityProfileIdToNameMap();</span>
+<span class="nc" id="L187">        final List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L188" title="All 2 branches missed.">        for (Integer id : endEntityProfileIds) {</span>
+<span class="nc bnc" id="L189" title="All 2 branches missed.">            if (id != EndEntityConstants.EMPTY_END_ENTITY_PROFILE) {</span>
+<span class="nc" id="L190">                String name = nameMap.get(id);</span>
+<span class="nc" id="L191">                ret.add(new SelectItem(id, name));</span>
+            }
+<span class="nc" id="L193">        }</span>
+<span class="nc" id="L194">        sortSelectItemsByLabel(ret);</span>
+<span class="nc" id="L195">        return ret;</span>
+    }
+    
+    /** Returns an information text to show below the End Entity Profile selection. 
+     * @return String */
+    public String getDefaultCaText() {
+<span class="nc bnc" id="L201" title="All 2 branches missed.">        if (getUsableEEProfileNames().isEmpty()) {</span>
+<span class="nc" id="L202">            return getEjbcaWebBean().getText(&quot;ACME_MUST_HAVE_ONE_PROFILE&quot;);</span>
+        } else {
+<span class="nc" id="L204">            return getEjbcaWebBean().getText(&quot;ACME_DEFAULT_CA_WILL_BE_USED&quot;);</span>
+        }
+    }
+
+    public List&lt;SelectItem&gt; getAliasSeletItemList() {
+<span class="nc" id="L209">        final List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L210" title="All 2 branches missed.">        for (String alias : globalAcmeConfigurationConfig.getAcmeConfigurationIds()) {</span>
+<span class="nc" id="L211">            ret.add(new SelectItem(alias, alias));</span>
+<span class="nc" id="L212">        }</span>
+<span class="nc" id="L213">        return ret;</span>
+    }
+
+    /** Invoked when admin cancels a ACME alias create or edit. */
+    public void cancelCurrentAlias() {
+<span class="nc" id="L218">        flushCache();</span>
+<span class="nc" id="L219">    }</span>
+
+    /** Invoked when admin saves the ACME alias configurations 
+     * @throws EjbcaException On fail */
+    public void saveCurrentAlias() throws EjbcaException {
+<span class="nc bnc" id="L224" title="All 2 branches missed.">        if (currentAlias != null) {</span>
+<span class="nc" id="L225">            AcmeConfiguration acmeConfig = globalAcmeConfigurationConfig.getAcmeConfiguration(currentAliasStr);</span>
+<span class="nc" id="L226">            acmeConfig.setEndEntityProfileId(Integer.valueOf(currentAlias.endEntityProfileId));</span>
+<span class="nc" id="L227">            acmeConfig.setPreAuthorizationAllowed(currentAlias.isPreAuthorizationAllowed());</span>
+<span class="nc" id="L228">            acmeConfig.setRequireExternalAccountBinding(currentAlias.isRequireExternalAccountBinding());</span>
+<span class="nc" id="L229">            acmeConfig.setWildcardCertificateIssuanceAllowed(currentAlias.isWildcardCertificateIssuanceAllowed());</span>
+<span class="nc" id="L230">            acmeConfig.setWebSiteUrl(currentAlias.getUrlTemplate());</span>
+<span class="nc" id="L231">            acmeConfig.setDnsResolver(currentAlias.getDnsResolver());</span>
+<span class="nc" id="L232">            acmeConfig.setDnsPort(currentAlias.getDnsPort());</span>
+<span class="nc" id="L233">            acmeConfig.setDnssecTrustAnchor(currentAlias.getDnssecTrustAnchor());</span>
+<span class="nc" id="L234">            acmeConfig.setUseDnsSecValidation(currentAlias.isUseDnsSecValidation());</span>
+<span class="nc" id="L235">            acmeConfig.setTermsOfServiceRequireNewApproval(currentAlias.getTermsOfServiceApproval());</span>
+<span class="nc" id="L236">            acmeConfig.setTermsOfServiceUrl(currentAlias.getTermsOfServiceUrl());</span>
+            
+<span class="nc bnc" id="L238" title="All 2 branches missed.">            if(StringUtils.isEmpty(acmeConfig.getTermsOfServiceUrl())) {</span>
+<span class="nc" id="L239">                throw new EjbcaException(&quot;Please enter Terms of Service URL&quot;);</span>
+            }
+            
+<span class="nc" id="L242">            globalAcmeConfigurationConfig.updateAcmeConfiguration(acmeConfig);</span>
+            try {
+<span class="nc" id="L244">                globalConfigSession.saveConfiguration(authenticationToken, globalAcmeConfigurationConfig);</span>
+<span class="nc" id="L245">            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L246">                String msg = &quot;Cannot save alias. Administrator is not authorized.&quot;;</span>
+<span class="nc" id="L247">                log.info(msg + e.getLocalizedMessage());</span>
+<span class="nc" id="L248">                super.addNonTranslatedErrorMessage(msg);</span>
+<span class="nc" id="L249">            }</span>
+        }
+<span class="nc" id="L251">        flushCache();</span>
+<span class="nc" id="L252">    }</span>
+    
+    public boolean isSaveCurrentAliasDisabled() {
+<span class="nc" id="L255">        return getUsableEEProfileNames().isEmpty(); </span>
+    }
+
+    public void saveGlobalConfigs(){
+<span class="nc" id="L259">        globalAcmeConfigurationConfig.setDefaultAcmeConfigurationId(globalInfo.getDefaultAcmeConfiguration());</span>
+<span class="nc" id="L260">        globalAcmeConfigurationConfig.setReplayNonceValidity(Long.valueOf(globalInfo.getReplayNonceValidity()));</span>
+        try {
+<span class="nc" id="L262">            globalConfigSession.saveConfiguration(authenticationToken, globalAcmeConfigurationConfig);</span>
+<span class="nc" id="L263">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L264">            String msg = &quot;Cannot save ACME configurations. Administrator is not authorized.&quot;;</span>
+<span class="nc" id="L265">            log.info(msg + e.getLocalizedMessage());</span>
+<span class="nc" id="L266">            super.addNonTranslatedErrorMessage(msg);</span>
+<span class="nc" id="L267">        }</span>
+<span class="nc" id="L268">    }</span>
+
+    public void setCurrentAliasStr(String currentAliasStr) {
+<span class="nc" id="L271">        this.currentAliasStr = currentAliasStr;</span>
+<span class="nc" id="L272">    }</span>
+
+    public boolean isCurrentAliasEditMode() {
+<span class="nc" id="L275">        return currentAliasEditMode;</span>
+    }
+
+    public void setCurrentAliasEditMode(boolean currentAliasEditMode) {
+<span class="nc bnc" id="L279" title="All 4 branches missed.">        this.currentAliasEditMode = currentAliasEditMode &amp;&amp; isAllowedToEdit();</span>
+<span class="nc" id="L280">    }</span>
+
+    public void toggleCurrentAliasEditMode() {
+<span class="nc" id="L283">        currentAliasEditMode ^= true;</span>
+<span class="nc bnc" id="L284" title="All 4 branches missed.">        currentAliasEditMode = currentAliasEditMode &amp;&amp; isAllowedToEdit();</span>
+<span class="nc" id="L285">    }</span>
+    public boolean isAllowedToEdit() {
+<span class="nc" id="L287">        return authorizationSession.isAuthorizedNoLogging(getAdmin(), StandardRules.SYSTEMCONFIGURATION_EDIT.resource());</span>
+    }
+
+    public AcmeGlobalGuiInfo getGlobalInfo() {
+<span class="nc" id="L291">        return globalInfo;</span>
+    }
+
+    public void setGlobalInfo(AcmeGlobalGuiInfo globalInfo) {
+<span class="nc" id="L295">        this.globalInfo = globalInfo;</span>
+<span class="nc" id="L296">    }</span>
+
+    public class AcmeAliasGuiInfo {
+        private String alias;
+        private String endEntityProfileId;
+        private boolean preAuthorizationAllowed;
+        private boolean requireExternalAccountBinding;
+        private String urlTemplate;
+        private boolean wildcardCertificateIssuanceAllowed;
+        private String dnsResolver;
+        private int dnsPort;
+        private String dnssecTrustAnchor;
+        private String termsOfServiceUrl;
+        private boolean termsOfServiceApproval;
+        private boolean useDnsSecValidation;
+
+<span class="nc" id="L312">        public AcmeAliasGuiInfo(GlobalAcmeConfiguration globalAcmeConfigurationConfig, String alias) {</span>
+<span class="nc bnc" id="L313" title="All 2 branches missed.">            if (alias != null) {</span>
+<span class="nc" id="L314">                this.alias = alias;</span>
+<span class="nc" id="L315">                AcmeConfiguration acmeConfiguration = globalAcmeConfigurationConfig.getAcmeConfiguration(alias);</span>
+<span class="nc bnc" id="L316" title="All 2 branches missed.">                if(acmeConfiguration != null) {</span>
+<span class="nc" id="L317">                    this.endEntityProfileId = String.valueOf(acmeConfiguration.getEndEntityProfileId());</span>
+<span class="nc" id="L318">                    this.preAuthorizationAllowed = acmeConfiguration.isPreAuthorizationAllowed();</span>
+<span class="nc" id="L319">                    this.requireExternalAccountBinding = acmeConfiguration.isRequireExternalAccountBinding();</span>
+<span class="nc" id="L320">                    this.urlTemplate = acmeConfiguration.getWebSiteUrl();</span>
+<span class="nc" id="L321">                    this.wildcardCertificateIssuanceAllowed = acmeConfiguration.isWildcardCertificateIssuanceAllowed();</span>
+<span class="nc" id="L322">                    this.dnsResolver = acmeConfiguration.getDnsResolver();</span>
+<span class="nc" id="L323">                    this.dnsPort = acmeConfiguration.getDnsPort();</span>
+<span class="nc" id="L324">                    this.dnssecTrustAnchor = acmeConfiguration.getDnssecTrustAnchor();</span>
+<span class="nc" id="L325">                    this.termsOfServiceUrl = String.valueOf(acmeConfiguration.getTermsOfServiceUrl());</span>
+<span class="nc" id="L326">                    this.useDnsSecValidation = acmeConfiguration.isUseDnsSecValidation();</span>
+<span class="nc" id="L327">                    this.termsOfServiceApproval = acmeConfiguration.isTermsOfServiceRequireNewApproval();</span>
+                }
+            }
+<span class="nc" id="L330">        }</span>
+
+        public String getAlias() {
+<span class="nc" id="L333">            return alias;</span>
+        }
+
+        public void setAlias(String alias) {
+<span class="nc" id="L337">            this.alias = alias;</span>
+<span class="nc" id="L338">        }</span>
+
+        public String getEndEntityProfileId() {
+<span class="nc" id="L341">            return endEntityProfileId;</span>
+        }
+
+        public void setEndEntityProfileId(String endEntityProfileId) {
+<span class="nc" id="L345">            this.endEntityProfileId = endEntityProfileId;</span>
+<span class="nc" id="L346">        }</span>
+
+        public boolean isPreAuthorizationAllowed() {
+<span class="nc" id="L349">            return preAuthorizationAllowed;</span>
+        }
+
+        public void setPreAuthorizationAllowed(boolean preAuthorizationAllowed) {
+<span class="nc" id="L353">            this.preAuthorizationAllowed = preAuthorizationAllowed;</span>
+<span class="nc" id="L354">        }</span>
+
+        public boolean isRequireExternalAccountBinding() {
+<span class="nc" id="L357">            return requireExternalAccountBinding;</span>
+        }
+
+        public void setRequireExternalAccountBinding(boolean requireExternalAccountBinding) {
+<span class="nc" id="L361">            this.requireExternalAccountBinding = requireExternalAccountBinding;</span>
+<span class="nc" id="L362">        }</span>
+
+        public String getUrlTemplate() {
+<span class="nc" id="L365">            return urlTemplate;</span>
+        }
+
+        public void setUrlTemplate(String urlTemplate) {
+<span class="nc" id="L369">            this.urlTemplate = urlTemplate;</span>
+<span class="nc" id="L370">        }</span>
+
+        public boolean isWildcardCertificateIssuanceAllowed() {
+<span class="nc" id="L373">            return wildcardCertificateIssuanceAllowed;</span>
+        }
+
+        public void setWildcardCertificateIssuanceAllowed(boolean wildcardCertificateIssuanceAllowed) {
+<span class="nc" id="L377">            this.wildcardCertificateIssuanceAllowed = wildcardCertificateIssuanceAllowed;</span>
+<span class="nc" id="L378">        }</span>
+
+        public String getDnssecTrustAnchor() {
+<span class="nc" id="L381">            return dnssecTrustAnchor;</span>
+        }
+
+        public void setDnssecTrustAnchor(String dnssecTrustAnchor) {
+<span class="nc" id="L385">            this.dnssecTrustAnchor = dnssecTrustAnchor;</span>
+<span class="nc" id="L386">        }</span>
+
+        public String getDnsResolver() {
+<span class="nc" id="L389">            return dnsResolver;</span>
+        }
+
+        public void setDnsResolver(String dnsResolver) {
+<span class="nc" id="L393">            this.dnsResolver = dnsResolver;</span>
+<span class="nc" id="L394">        }</span>
+        
+        public int getDnsPort() {
+<span class="nc" id="L397">            return dnsPort;</span>
+        }
+
+        public void setDnsPort(final int dnsPort) {
+<span class="nc" id="L401">            this.dnsPort = dnsPort;</span>
+<span class="nc" id="L402">        }</span>
+
+        public String getTermsOfServiceUrl() {
+<span class="nc" id="L405">            return termsOfServiceUrl;</span>
+        }
+
+        public void setTermsOfServiceUrl(String termsOfServiceUrl) {
+<span class="nc" id="L409">            this.termsOfServiceUrl = termsOfServiceUrl;</span>
+<span class="nc" id="L410">        }</span>
+
+        public boolean getTermsOfServiceApproval() {
+<span class="nc" id="L413">            return termsOfServiceApproval;</span>
+        }
+
+        public void setTermsOfServiceApproval(final boolean termsOfServiceApproval) {
+<span class="nc" id="L417">            this.termsOfServiceApproval = termsOfServiceApproval;</span>
+<span class="nc" id="L418">        }</span>
+        
+        public boolean isUseDnsSecValidation() {
+<span class="nc" id="L421">            return useDnsSecValidation;</span>
+        }
+        
+        public void setUseDnsSecValidation (final boolean useDnsSecValidation) {
+<span class="nc" id="L425">            this.useDnsSecValidation = useDnsSecValidation;</span>
+<span class="nc" id="L426">        }</span>
+        
+    }
+    public class AcmeGlobalGuiInfo {
+        private String defaultAcmeConfiguration;
+        private String replayNonceValidity;
+
+<span class="nc" id="L433">        public AcmeGlobalGuiInfo(GlobalAcmeConfiguration globalAcmeConfigurationConfig) {</span>
+<span class="nc" id="L434">            this.defaultAcmeConfiguration = globalAcmeConfigurationConfig.getDefaultAcmeConfigurationId();</span>
+<span class="nc" id="L435">            this.replayNonceValidity = String.valueOf(globalAcmeConfigurationConfig.getReplayNonceValidity());</span>
+<span class="nc" id="L436">        }</span>
+
+        public String getDefaultAcmeConfiguration() {
+<span class="nc" id="L439">            return defaultAcmeConfiguration;</span>
+        }
+
+        public void setDefaultAcmeConfiguration(String defaultAcmeConfiguration) {
+<span class="nc" id="L443">            this.defaultAcmeConfiguration = defaultAcmeConfiguration;</span>
+<span class="nc" id="L444">        }</span>
+
+        public String getReplayNonceValidity() {
+<span class="nc" id="L447">            return replayNonceValidity;</span>
+        }
+
+        public void setReplayNonceValidity(String replayNonceValidity) {
+<span class="nc" id="L451">            this.replayNonceValidity = replayNonceValidity;</span>
+<span class="nc" id="L452">        }</span>
+
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -17,15 +17,20 @@ import java.security.Provider;
 /**
  * Provider with to be used for TLS session.
  *
- * @version  $Id: TLSProvider.java 17625 2013-09-20 07:12:06Z netmackan $
+ * @version $Id: TLSProvider.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 public class TLSProvider extends Provider {
 
-    private static final long serialVersionUID = -5295903987266780293L;
-<span class="nc" id="L25">    private static String info = &quot;CESECORE TLS Provider&quot;;</span>
-    public TLSProvider() {
-<span class="nc" id="L27">        super(&quot;TLSProvider&quot;, &quot;0.0&quot;, info);</span>
-<span class="nc" id="L28">        put(&quot;TrustManagerFactory.AcceptAll&quot;, TrustManagerFactoryImpl.AcceptAll.class.getName());</span>
-<span class="nc" id="L29">    }</span>
+  private static final long serialVersionUID = -5295903987266780293L;
+  /** Info. */
+<span class="nc" id="L26">  private static String info = &quot;CESECORE TLS Provider&quot;;</span>
+
+  /** Constructor. */
+  public TLSProvider() {
+<span class="nc" id="L30">    super(&quot;TLSProvider&quot;, &quot;0.0&quot;, info);</span>
+<span class="nc" id="L31">    put(</span>
+        &quot;TrustManagerFactory.AcceptAll&quot;,
+<span class="nc" id="L33">        TrustManagerFactoryImpl.AcceptAll.class.getName());</span>
+<span class="nc" id="L34">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CaChangeCertProfileCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.ca</a> &gt; <span class="el_source">CaChangeCertProfileCommand.java</span></div><h1>CaChangeCertProfileCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.cli.ca;
+
+import java.util.Collection;
+
+import org.apache.log4j.Logger;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.CaSessionRemote;
+import org.cesecore.certificates.certificate.CertificateConstants;
+import org.cesecore.certificates.certificateprofile.CertificateProfileConstants;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSessionRemote;
+import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.EjbRemoteHelper;
+import org.ejbca.core.ejb.ca.caadmin.CAAdminSessionRemote;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+
+/**
+ * Changes the certificate profile of a CA.
+ *
+ * @version $Id: CaChangeCertProfileCommand.java 19968 2014-10-09 13:13:58Z mikekushner $
+ */
+<span class="nc" id="L39">public class CaChangeCertProfileCommand extends BaseCaAdminCommand {</span>
+
+    private static final String CA_NAME_KEY = &quot;--caname&quot;;
+    private static final String CERTIFICATE_PROFILE_NAME = &quot;--certprofile&quot;;
+
+<span class="nc" id="L44">    private static final Logger log = Logger.getLogger(CaChangeCertProfileCommand.class);</span>
+
+    {
+<span class="nc" id="L47">        registerParameter(new Parameter(CA_NAME_KEY, &quot;CA Name&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;The name of the CA.&quot;));
+<span class="nc" id="L49">        registerParameter(new Parameter(CERTIFICATE_PROFILE_NAME, &quot;Certificate Progile Name&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW,</span>
+                ParameterMode.ARGUMENT, &quot;The name of the certificate profile&quot;));
+<span class="nc" id="L51">    }</span>
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L55">        return &quot;changecertprofile&quot;;</span>
+    }
+
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+<span class="nc" id="L60">        log.trace(&quot;&gt;execute()&quot;);</span>
+<span class="nc" id="L61">        CryptoProviderTools.installBCProvider(); // need this for CVC certificate</span>
+
+        try {
+<span class="nc" id="L64">            final String caName = parameters.get(CA_NAME_KEY);</span>
+            {
+<span class="nc" id="L66">                final CAInfo cainfo = EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class).getCAInfo(getAuthenticationToken(), caName);</span>
+<span class="nc" id="L67">                final String certProfileName = parameters.get(CERTIFICATE_PROFILE_NAME);</span>
+<span class="nc" id="L68">                log.debug(&quot;Searching for Certificate Profile &quot; + certProfileName);</span>
+<span class="nc" id="L69">                final int certificateprofileid = EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateProfileSessionRemote.class)</span>
+<span class="nc" id="L70">                        .getCertificateProfileId(certProfileName);</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">                if (certificateprofileid == CertificateProfileConstants.CERTPROFILE_NO_PROFILE) {</span>
+<span class="nc" id="L72">                    log.error(&quot;Certificate Profile &quot; + certProfileName + &quot; does not exist.&quot;);</span>
+<span class="nc" id="L73">                    throw new Exception(&quot;Certificate Profile '&quot; + certProfileName + &quot;' does not exist.&quot;);</span>
+                }
+<span class="nc" id="L75">                cainfo.setCertificateProfileId(certificateprofileid);</span>
+<span class="nc" id="L76">                EjbRemoteHelper.INSTANCE.getRemoteSession(CAAdminSessionRemote.class).editCA(getAuthenticationToken(), cainfo);</span>
+            }
+            {
+<span class="nc" id="L79">                final CAInfo cainfo = EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class).getCAInfo(getAuthenticationToken(), caName);</span>
+<span class="nc" id="L80">                log.info(&quot;Certificate profile for CA changed:&quot;);</span>
+<span class="nc" id="L81">                log.info(&quot;CA Name: &quot; + caName);</span>
+<span class="nc" id="L82">                log.info(&quot;Certificate Profile: &quot;</span>
+<span class="nc" id="L83">                        + EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateProfileSessionRemote.class).getCertificateProfileName(</span>
+<span class="nc" id="L84">                                cainfo.getCertificateProfileId()));</span>
+            }
+<span class="nc" id="L86">        } catch (Exception e) {</span>
+<span class="nc" id="L87">            log.error(e.getMessage());</span>
+<span class="nc" id="L88">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L89">        }</span>
+<span class="nc" id="L90">        log.trace(&quot;&lt;execute()&quot;);</span>
+<span class="nc" id="L91">        return CommandResult.SUCCESS;</span>
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L96">        return &quot;Changes the certificate profile of a CA.&quot;;</span>
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L101">        StringBuffer sb = new StringBuffer();</span>
+<span class="nc" id="L102">        sb.append(getCommandDescription() + &quot;\n\n&quot;);</span>
+<span class="nc" id="L103">        sb.append(getCaList());</span>
+        // Print available Root CA and Sub CA profiles
+<span class="nc" id="L105">        Collection&lt;Integer&gt; cpssub = EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateProfileSessionRemote.class)</span>
+<span class="nc" id="L106">                .getAuthorizedCertificateProfileIds(getAuthenticationToken(), CertificateConstants.CERTTYPE_SUBCA);</span>
+<span class="nc" id="L107">        Collection&lt;Integer&gt; cpsroot = EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateProfileSessionRemote.class)</span>
+<span class="nc" id="L108">                .getAuthorizedCertificateProfileIds(getAuthenticationToken(), CertificateConstants.CERTTYPE_ROOTCA);</span>
+<span class="nc" id="L109">        sb.append(&quot;Root CA profiles:\n&quot;);</span>
+<span class="nc" id="L110">        StringBuilder rootCaProfiles = new StringBuilder();</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">        for (Integer id : cpsroot) {</span>
+<span class="nc" id="L112">            rootCaProfiles.append(&quot;   &quot;</span>
+<span class="nc" id="L113">                    + EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateProfileSessionRemote.class).getCertificateProfileName(id) + &quot;\n&quot;);</span>
+<span class="nc" id="L114">        }</span>
+<span class="nc" id="L115">        sb.append(rootCaProfiles);</span>
+<span class="nc" id="L116">        sb.append(&quot;Sub CA profiles:\n&quot;);</span>
+<span class="nc" id="L117">        StringBuilder subCaProfiles = new StringBuilder();</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">        for (Integer id : cpssub) {</span>
+<span class="nc" id="L119">            subCaProfiles.append(&quot;   &quot;</span>
+<span class="nc" id="L120">                    + EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateProfileSessionRemote.class).getCertificateProfileName(id) + &quot;\n&quot;);</span>
+<span class="nc" id="L121">        }</span>
+<span class="nc" id="L122">        subCaProfiles.append(&quot;\n&quot;);</span>
+<span class="nc" id="L123">        sb.append(subCaProfiles);</span>
+<span class="nc" id="L124">        return sb.toString();</span>
+    }
+
+    @Override
+    protected Logger getLogger() {
+<span class="nc" id="L129">        return log;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

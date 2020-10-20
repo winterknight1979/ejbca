@@ -9,67 +9,71 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.dbprotection;
 
-
-
 /**
- * An exception thrown when there is an error with database protection, this error is fatal and should lead to 
- * application not working, thus the use of RuntimeException.
+ * An exception thrown when there is an error with database protection, this
+ * error is fatal and should lead to application not working, thus the use of
+ * RuntimeException.
  *
- * @version $Id: DatabaseProtectionException.java 17625 2013-09-20 07:12:06Z netmackan $
+ * @version $Id: DatabaseProtectionException.java 17625 2013-09-20 07:12:06Z
+ *     netmackan $
  */
 public class DatabaseProtectionException extends RuntimeException {
-    
-    private static final long serialVersionUID = -1L;
 
-    /* We don't want to send raw database entries outside the JVM. */
-    private transient final ProtectedData entity;
+  private static final long serialVersionUID = -1L;
 
-    /**
-     * Constructs an instance of exception with a simple details message
-     * and the read entity causing the error.
-     * @param msg msg
-     * @param entity Entitt
-     */
-    public DatabaseProtectionException(final String msg, final ProtectedData entity) {
-<span class="nc" id="L37">        super(msg);</span>
-<span class="nc" id="L38">        this.entity = entity;</span>
-<span class="nc" id="L39">    }</span>
+  /** We don't want to send raw database entries outside the JVM. */
+  private final transient ProtectedData entity;
 
-    
-    /**
-     * Constructs an instance of exception with a simple details message
-     * and the underlying exception
-     * @param msg message
-     * @param e cause
-     */
-    public DatabaseProtectionException(final String msg, final Exception e) {
-<span class="nc" id="L49">        super(msg, e);</span>
-<span class="nc" id="L50">        this.entity = null;</span>
-<span class="nc" id="L51">    }</span>
-    /**
-     * Constructs an instance of exception with a simple details message
-     * @param msg message
-     */
-    public DatabaseProtectionException(final String msg) {
-<span class="nc" id="L57">        super(msg);</span>
-<span class="nc" id="L58">        this.entity = null;</span>
-<span class="nc" id="L59">    }</span>
+  /**
+   * Constructs an instance of exception with a simple details message and the
+   * read entity causing the error.
+   *
+   * @param msg msg
+   * @param anEntity Entitt
+   */
+  public DatabaseProtectionException(
+      final String msg, final ProtectedData anEntity) {
+<span class="nc" id="L39">    super(msg);</span>
+<span class="nc" id="L40">    this.entity = anEntity;</span>
+<span class="nc" id="L41">  }</span>
 
-    /**
-     * Constructs an instance of exception wrapping the causing error
-     * @param e cause
-     */
-    public DatabaseProtectionException(final Exception e) {
-<span class="nc" id="L66">        super(e);</span>
-<span class="nc" id="L67">        this.entity = null;</span>
-<span class="nc" id="L68">    }</span>
-    
-    /** @return the entity that we tried to read that failed the verification. */
-    public ProtectedData getEntity() {
-<span class="nc" id="L72">    	return entity;</span>
-    }
+  /**
+   * Constructs an instance of exception with a simple details message and the
+   * underlying exception.
+   *
+   * @param msg message
+   * @param e cause
+   */
+  public DatabaseProtectionException(final String msg, final Exception e) {
+<span class="nc" id="L51">    super(msg, e);</span>
+<span class="nc" id="L52">    this.entity = null;</span>
+<span class="nc" id="L53">  }</span>
+  /**
+   * Constructs an instance of exception with a simple details message.
+   *
+   * @param msg message
+   */
+  public DatabaseProtectionException(final String msg) {
+<span class="nc" id="L60">    super(msg);</span>
+<span class="nc" id="L61">    this.entity = null;</span>
+<span class="nc" id="L62">  }</span>
+
+  /**
+   * Constructs an instance of exception wrapping the causing error.
+   *
+   * @param e cause
+   */
+  public DatabaseProtectionException(final Exception e) {
+<span class="nc" id="L70">    super(e);</span>
+<span class="nc" id="L71">    this.entity = null;</span>
+<span class="nc" id="L72">  }</span>
+
+  /** @return the entity that we tried to read that failed the verification. */
+  public ProtectedData getEntity() {
+<span class="nc" id="L76">    return entity;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

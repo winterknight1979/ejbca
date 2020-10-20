@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>AdminMenuBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">admin-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin</a> &gt; <span class="el_source">AdminMenuBean.java</span></div><h1>AdminMenuBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.web.admin;
+
+import java.io.Serializable;
+
+import javax.ejb.EJB;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.RequestScoped;
+
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.authorization.control.AuditLogRules;
+import org.cesecore.authorization.control.CryptoTokenRules;
+import org.cesecore.authorization.control.StandardRules;
+import org.cesecore.configuration.GlobalConfigurationSessionLocal;
+import org.cesecore.keybind.InternalKeyBindingRules;
+import org.ejbca.config.GlobalConfiguration;
+import org.ejbca.config.InternalConfiguration;
+import org.ejbca.core.model.authorization.AccessRulesConstants;
+import org.ejbca.ui.web.admin.configuration.EjbcaJSFHelper;
+
+/**
+ * Backing bean for the menu on the left (in the default theme) in the AdminWeb.
+ * @version $Id: AdminMenuBean.java 30655 2018-11-28 08:58:52Z aminkh $
+ * TODO: Switch to CDI
+ */
+@SuppressWarnings(&quot;deprecation&quot;)
+@RequestScoped
+@ManagedBean
+<span class="nc" id="L40">public class AdminMenuBean extends BaseManagedBean implements Serializable {</span>
+    
+    private static final long serialVersionUID = 1L;
+    
+    @EJB
+    private AuthorizationSessionLocal authorizationSession;
+    @EJB
+    private GlobalConfigurationSessionLocal globalConfigurationSession;
+    
+    private GlobalConfiguration getGlobalConfiguration() {
+<span class="nc" id="L50">        return (GlobalConfiguration) globalConfigurationSession.getCachedConfiguration(GlobalConfiguration.GLOBAL_CONFIGURATION_ID);</span>
+    }
+
+    /*===CA FUNCTIONS===*/
+    public boolean isAuthorizedToViewCA() {
+<span class="nc" id="L55">        return authorizationSession.isAuthorizedNoLogging(getAdmin(), StandardRules.CAVIEW.resource());</span>
+    }
+    
+    public boolean isAuthorizedToViewCertificateProfile() {
+<span class="nc" id="L59">        return authorizationSession.isAuthorizedNoLogging(getAdmin(), StandardRules.CERTIFICATEPROFILEVIEW.resource());</span>
+    }
+    
+    public boolean isAuthorizedToViewCryptotoken() {
+<span class="nc" id="L63">        return authorizationSession.isAuthorizedNoLogging(getAdmin(), CryptoTokenRules.VIEW.resource());</span>
+    }
+    
+    public boolean isAuthorizedToViewPublishers() {
+<span class="nc" id="L67">        return authorizationSession.isAuthorizedNoLogging(getAdmin(), AccessRulesConstants.REGULAR_VIEWPUBLISHER);</span>
+    }
+    
+    public boolean isAuthorizedToViewValidators() {
+<span class="nc" id="L71">        return authorizationSession.isAuthorizedNoLogging(getAdmin(), AccessRulesConstants.REGULAR_VIEWVALIDATOR);</span>
+    }
+    
+    public boolean isAuthorizedToViewCAHeader() {
+<span class="nc bnc" id="L75" title="All 2 branches missed.">        return isAuthorizedToViewCA()</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">                || isAuthorizedToViewCertificateProfile()</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">                || isAuthorizedToViewCryptotoken()</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">                || isAuthorizedToViewPublishers()</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">                || isAuthorizedToViewValidators();</span>
+    }
+       
+    /*===RA FUNCTIONS===*/
+    
+    public boolean isAuthorizedToCreateEndEntity() {
+<span class="nc" id="L85">        return authorizationSession.isAuthorizedNoLogging(getAdmin(), AccessRulesConstants.REGULAR_CREATEENDENTITY);</span>
+    }
+    
+    public boolean isAuthorizedToViewEndEntityProfiles() {
+<span class="nc" id="L89">        return authorizationSession.isAuthorizedNoLogging(getAdmin(), AccessRulesConstants.REGULAR_VIEWENDENTITYPROFILES);</span>
+    }
+    
+    public boolean isAuthorizedToViewEndEntity() {
+<span class="nc" id="L93">        return authorizationSession.isAuthorizedNoLogging(getAdmin(), AccessRulesConstants.REGULAR_VIEWENDENTITY);</span>
+    }
+    
+    public boolean isAuthorizedToEditUserDataSources() {
+<span class="nc" id="L97">        return authorizationSession.isAuthorizedNoLogging(getAdmin(), AccessRulesConstants.REGULAR_EDITUSERDATASOURCES);</span>
+    }
+    
+    public boolean isAuthorizedToViewRAHeader() {
+<span class="nc bnc" id="L101" title="All 2 branches missed.">        return isAuthorizedToCreateEndEntity()</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">                || isAuthorizedToViewEndEntityProfiles()</span>
+<span class="nc bnc" id="L103" title="All 2 branches missed.">                || isAuthorizedToViewEndEntity()</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">                || isAuthorizedToEditUserDataSources();</span>
+    }
+    
+    /*===HARD TOKEN FUNCTIONALITY===*/
+    
+    public boolean isAuthorizedToEditHardTokenIssuers() {
+<span class="nc bnc" id="L110" title="All 2 branches missed.">        return getGlobalConfiguration().getIssueHardwareTokens() &amp;&amp;</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">                authorizationSession.isAuthorizedNoLogging(getAdmin(), &quot;/hardtoken_functionality/edit_hardtoken_issuers&quot;);</span>
+    }
+    
+    public boolean isAuthorizedToEditHardTokenProfiles() {
+<span class="nc bnc" id="L115" title="All 2 branches missed.">        return getGlobalConfiguration().getIssueHardwareTokens() &amp;&amp;</span>
+<span class="nc bnc" id="L116" title="All 2 branches missed.">                authorizationSession.isAuthorizedNoLogging(getAdmin(), &quot;/hardtoken_functionality/edit_hardtoken_profiles&quot;);</span>
+    }
+    
+    public boolean isAuthorizedToViewHTHeader() {
+<span class="nc bnc" id="L120" title="All 2 branches missed.">        return getGlobalConfiguration().getIssueHardwareTokens() &amp;&amp;</span>
+<span class="nc bnc" id="L121" title="All 4 branches missed.">                (isAuthorizedToEditHardTokenIssuers() || isAuthorizedToEditHardTokenProfiles());</span>
+    }
+    
+    /*===SUPERVISION FUNCTIONS===*/
+    
+    public boolean isAuthorizedToViewApprovalProfiles() {
+<span class="nc" id="L127">        return authorizationSession.isAuthorizedNoLogging(getAdmin(), StandardRules.APPROVALPROFILEVIEW.resource());</span>
+    }
+    
+    public boolean isAuthorizedToApproveActions() {
+<span class="nc bnc" id="L131" title="All 2 branches missed.">        return authorizationSession.isAuthorizedNoLogging(getAdmin(), AccessRulesConstants.REGULAR_APPROVEENDENTITY) </span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">                || authorizationSession.isAuthorizedNoLogging(getAdmin(), AccessRulesConstants.REGULAR_APPROVECAACTION);</span>
+    }
+    
+    public boolean isAuthorizedToViewLog() {
+<span class="nc" id="L136">        return authorizationSession.isAuthorizedNoLogging(getAdmin(), AuditLogRules.VIEW.resource());</span>
+    }
+    
+    public boolean isAuthorizedToViewSupervisionFunctionsHeader() {
+<span class="nc bnc" id="L140" title="All 2 branches missed.">        return isAuthorizedToViewApprovalProfiles()</span>
+<span class="nc bnc" id="L141" title="All 2 branches missed.">                || isAuthorizedToApproveActions()</span>
+<span class="nc bnc" id="L142" title="All 2 branches missed.">                || isAuthorizedToViewLog();</span>
+    }
+    
+    /*===SYSTEM FUNCTIONS===*/
+    
+    public boolean isAuthorizedToViewRoles() {
+<span class="nc" id="L148">        return authorizationSession.isAuthorizedNoLogging(getAdmin(), StandardRules.VIEWROLES.resource());</span>
+    }
+    
+    public boolean isAuthorizedViewInternalKeyBindings() {
+<span class="nc" id="L152">        return authorizationSession.isAuthorizedNoLogging(getAdmin(), InternalKeyBindingRules.VIEW.resource());</span>
+    }
+    
+    public boolean isAuthorizedToViewPeerConnectors() {
+<span class="nc bnc" id="L156" title="All 4 branches missed.">        return getEjbcaWebBean().isPeerConnectorPresent() &amp;&amp; authorizationSession.isAuthorizedNoLogging(getAdmin(), AccessRulesConstants.REGULAR_PEERCONNECTOR_VIEW);</span>
+    }
+    
+    public boolean isAuthorizedToViewServices() {
+<span class="nc" id="L160">        return authorizationSession.isAuthorizedNoLogging(getAdmin(), AccessRulesConstants.SERVICES_VIEW);</span>
+    }
+    
+    public boolean isAuthorizedToViewSystemFunctionsHeader() {
+<span class="nc bnc" id="L164" title="All 2 branches missed.">        return isAuthorizedToViewRoles()</span>
+<span class="nc bnc" id="L165" title="All 2 branches missed.">                || isAuthorizedViewInternalKeyBindings()</span>
+<span class="nc bnc" id="L166" title="All 2 branches missed.">                || isAuthorizedToViewPeerConnectors()</span>
+<span class="nc bnc" id="L167" title="All 2 branches missed.">                || isAuthorizedToViewServices();</span>
+    }
+    
+    /*===SYSTEM CONFIGURATION===*/
+    
+    public boolean isAuthorizedToViewSystemConfiguration() {
+<span class="nc" id="L173">        return authorizationSession.isAuthorizedNoLogging(getAdmin(), StandardRules.SYSTEMCONFIGURATION_VIEW.resource());</span>
+    }
+    
+    public boolean isAuthorizedToViewEstConfiguration() {
+<span class="nc bnc" id="L177" title="All 4 branches missed.">        return getEjbcaWebBean().isRunningEnterprise() &amp;&amp; isAuthorizedToViewSystemConfiguration();</span>
+    }
+
+    public boolean isAuthorizedToViewAcmeConfiguration() {
+<span class="nc bnc" id="L181" title="All 4 branches missed.">        return getEjbcaWebBean().isRunningEnterprise() &amp;&amp; isAuthorizedToViewSystemConfiguration();</span>
+    }
+    
+    public boolean isAuthorizedToConfigureSystem() {
+<span class="nc bnc" id="L185" title="All 2 branches missed.">        return authorizationSession.isAuthorizedNoLogging(getAdmin(), StandardRules.SYSTEMCONFIGURATION_VIEW.resource()) </span>
+<span class="nc bnc" id="L186" title="All 2 branches missed.">                || authorizationSession.isAuthorizedNoLogging(getAdmin(), StandardRules.EKUCONFIGURATION_VIEW.resource()) </span>
+<span class="nc bnc" id="L187" title="All 2 branches missed.">                || authorizationSession.isAuthorizedNoLogging(getAdmin(), StandardRules.CUSTOMCERTEXTENSIONCONFIGURATION_VIEW.resource());</span>
+    }
+    
+    public boolean isUpgradeRequired() {
+<span class="nc" id="L191">        return EjbcaJSFHelper.getBean().getEjbcaWebBean().isPostUpgradeRequired();</span>
+    }
+    
+    public boolean isAuthorizedToViewSystemConfigurationHeader() {
+<span class="nc bnc" id="L195" title="All 2 branches missed.">        return isAuthorizedToViewSystemConfiguration()</span>
+<span class="nc bnc" id="L196" title="All 2 branches missed.">                || isAuthorizedToViewEstConfiguration()</span>
+<span class="nc bnc" id="L197" title="All 2 branches missed.">                || isAuthorizedToConfigureSystem()</span>
+<span class="nc bnc" id="L198" title="All 2 branches missed.">                || isUpgradeRequired();</span>
+    }
+    
+    /*===OTHER===*/
+    
+    public boolean isAuthorizedToEditPreferences() {
+<span class="nc" id="L204">        return authorizationSession.isAuthorizedNoLogging(getAdmin(), AccessRulesConstants.ROLE_ADMINISTRATOR);</span>
+    }
+    
+    public boolean isHelpEnabled() {
+<span class="nc" id="L208">        return EjbcaJSFHelper.getBean().getEjbcaWebBean().isHelpEnabled();</span>
+    }
+    
+    public String getHeadBannerUrl() {
+<span class="nc" id="L212">        return EjbcaJSFHelper.getBean().getEjbcaWebBean().getBaseUrl() + getGlobalConfiguration().getHeadBanner();</span>
+    }
+    
+    public boolean isNonDefaultHeadBanner() {
+<span class="nc" id="L216">        return getGlobalConfiguration().isNonDefaultHeadBanner();</span>
+    }
+    
+    public String getAppNameCapital() {
+<span class="nc" id="L220">        return InternalConfiguration.getAppNameCapital();</span>
+    }
+    
+    public String getLogoUrl() {
+<span class="nc" id="L224">        return getEjbcaWebBean().getImagefileInfix(&quot;banner_&quot;+InternalConfiguration.getAppNameLower()+&quot;-admin.png&quot;);</span>
+    }
+    
+    public String getAdminWebUrl() {
+<span class="nc" id="L228">        return getEjbcaWebBean().getBaseUrl() + getGlobalConfiguration().getAdminWebPath();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

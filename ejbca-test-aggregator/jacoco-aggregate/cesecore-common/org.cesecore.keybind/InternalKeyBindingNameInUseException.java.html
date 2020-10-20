@@ -16,45 +16,57 @@ import org.cesecore.CesecoreException;
 import org.cesecore.ErrorCode;
 
 /**
- * An exception thrown when someone tries to create an InternalKeyBinding with an existing name.
+ * An exception thrown when someone tries to create an InternalKeyBinding with
+ * an existing name.
  *
- * @version $Id: InternalKeyBindingNameInUseException.java 19902 2014-09-30 14:32:24Z anatom $
+ * @version $Id: InternalKeyBindingNameInUseException.java 19902 2014-09-30
+ *     14:32:24Z anatom $
  */
 public class InternalKeyBindingNameInUseException extends CesecoreException {
 
-    private static final long serialVersionUID = 1L;
-<span class="nc" id="L26">    public static final ErrorCode INTERNAL_KEY_BINDING_NAME_IN_USE = ErrorCode.INTERNAL_KEY_BINDING_NAME_IN_USE;</span>
+  private static final long serialVersionUID = 1L;
+  /** Code. */
+<span class="nc" id="L29">  public static final ErrorCode INTERNAL_KEY_BINDING_NAME_IN_USE =</span>
+      ErrorCode.INTERNAL_KEY_BINDING_NAME_IN_USE;
 
-    /**
-     * Creates a new instance of &lt;code&gt;InternalKeyBindingNameInUseException&lt;/code&gt; without detail message.
-     */
-    public InternalKeyBindingNameInUseException() {
-<span class="nc" id="L32">        super(INTERNAL_KEY_BINDING_NAME_IN_USE);</span>
-<span class="nc" id="L33">    }</span>
+  /**
+   * Creates a new instance of &lt;code&gt;InternalKeyBindingNameInUseException&lt;/code&gt;
+   * without detail message.
+   */
+  public InternalKeyBindingNameInUseException() {
+<span class="nc" id="L37">    super(INTERNAL_KEY_BINDING_NAME_IN_USE);</span>
+<span class="nc" id="L38">  }</span>
 
-    /**
-     * Constructs an instance of &lt;code&gt;InternalKeyBindingNameInUseException&lt;/code&gt; with the specified detail message.
-     * @param msg the detail message.
-     */
-    public InternalKeyBindingNameInUseException(String msg) {
-<span class="nc" id="L40">        super(INTERNAL_KEY_BINDING_NAME_IN_USE, msg);</span>
-<span class="nc" id="L41">    }</span>
+  /**
+   * Constructs an instance of &lt;code&gt;InternalKeyBindingNameInUseException&lt;/code&gt;
+   * with the specified detail message.
+   *
+   * @param msg the detail message.
+   */
+  public InternalKeyBindingNameInUseException(final String msg) {
+<span class="nc" id="L47">    super(INTERNAL_KEY_BINDING_NAME_IN_USE, msg);</span>
+<span class="nc" id="L48">  }</span>
 
-    /**
-     * Constructs an instance of &lt;code&gt;InternalKeyBindingNameInUseException&lt;/code&gt; with the specified detail message.
-     * @param exception the exception that caused this
-     */
-    public InternalKeyBindingNameInUseException(Exception exception) {
-<span class="nc" id="L48">        super(INTERNAL_KEY_BINDING_NAME_IN_USE, exception);</span>
-<span class="nc" id="L49">    }</span>
+  /**
+   * Constructs an instance of &lt;code&gt;InternalKeyBindingNameInUseException&lt;/code&gt;
+   * with the specified detail message.
+   *
+   * @param exception the exception that caused this
+   */
+  public InternalKeyBindingNameInUseException(final Exception exception) {
+<span class="nc" id="L57">    super(INTERNAL_KEY_BINDING_NAME_IN_USE, exception);</span>
+<span class="nc" id="L58">  }</span>
 
-    /**
-     * Constructs an instance of &lt;code&gt;InternalKeyBindingNameInUseException&lt;/code&gt; with the specified detail message.
-     * @param msg the detail message.
-     * @param e the exception that caused this
-     */
-    public InternalKeyBindingNameInUseException(String msg, Exception e) {
-<span class="nc" id="L57">        super(INTERNAL_KEY_BINDING_NAME_IN_USE, msg, e);</span>
-<span class="nc" id="L58">    }</span>
+  /**
+   * Constructs an instance of &lt;code&gt;InternalKeyBindingNameInUseException&lt;/code&gt;
+   * with the specified detail message.
+   *
+   * @param msg the detail message.
+   * @param e the exception that caused this
+   */
+  public InternalKeyBindingNameInUseException(
+          final String msg, final Exception e) {
+<span class="nc" id="L69">    super(INTERNAL_KEY_BINDING_NAME_IN_USE, msg, e);</span>
+<span class="nc" id="L70">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

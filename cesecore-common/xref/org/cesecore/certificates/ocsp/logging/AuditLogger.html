@@ -24,38 +24,48 @@
 <a class="jxr_linenumber" name="L16" href="#L16">16</a>  
 <a class="jxr_linenumber" name="L17" href="#L17">17</a>  <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="L18" href="#L18">18</a>  <em class="jxr_javadoccomment"> * TODO: Document me!</em>
-<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <em class="jxr_javadoccomment"> * </em>
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <em class="jxr_javadoccomment"> *</em>
 <a class="jxr_linenumber" name="L20" href="#L20">20</a>  <em class="jxr_javadoccomment"> * @version $Id: AuditLogger.java 18042 2013-11-01 14:37:20Z mikekushner $</em>
-<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <em class="jxr_javadoccomment"> * </em>
-<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <em class="jxr_javadoccomment"> */</em>
-<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="AuditLogger" href="../../../../../org/cesecore/certificates/ocsp/logging/AuditLogger.html#AuditLogger">AuditLogger</a> <strong class="jxr_keyword">extends</strong> <a name="PatternLogger" href="../../../../../org/cesecore/certificates/ocsp/logging/PatternLogger.html#PatternLogger">PatternLogger</a> {
-<a class="jxr_linenumber" name="L24" href="#L24">24</a>      
-<a class="jxr_linenumber" name="L25" href="#L25">25</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> serialVersionUID = 4474243795289459488L;
-<a class="jxr_linenumber" name="L26" href="#L26">26</a>      <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <em class="jxr_javadoccomment">     * The byte[] ocsp-request that came with the http-request</em>
-<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L29" href="#L29">29</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String OCSPREQUEST = <span class="jxr_string">"OCSPREQUEST"</span>;
-<a class="jxr_linenumber" name="L30" href="#L30">30</a>      <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <em class="jxr_javadoccomment">     * The byte[] ocsp-response that was included in the http-response</em>
-<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L33" href="#L33">33</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String OCSPRESPONSE = <span class="jxr_string">"OCSPRESPONSE"</span>;
-<a class="jxr_linenumber" name="L34" href="#L34">34</a>  
-<a class="jxr_linenumber" name="L35" href="#L35">35</a>      <strong class="jxr_keyword">public</strong> <a name="AuditLogger" href="../../../../../org/cesecore/certificates/ocsp/logging/AuditLogger.html#AuditLogger">AuditLogger</a>(String ocspRequest, Integer logId, String sessionId, String clientIp) {
-<a class="jxr_linenumber" name="L36" href="#L36">36</a>          <strong class="jxr_keyword">super</strong>(OcspConfiguration.getAuditLog(), AuditLogger.<strong class="jxr_keyword">class</strong>, OcspConfiguration.getAuditLogPattern(), OcspConfiguration.getAuditLogOrder(), OcspConfiguration.getLogDateFormat(), OcspConfiguration.getLogTimeZone());
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>  
-<a class="jxr_linenumber" name="L38" href="#L38">38</a>          paramPut(OCSPREQUEST, ocspRequest);
-<a class="jxr_linenumber" name="L39" href="#L39">39</a>          paramPut(PatternLogger.LOG_ID, logId);
-<a class="jxr_linenumber" name="L40" href="#L40">40</a>          paramPut(PatternLogger.SESSION_ID, sessionId);
-<a class="jxr_linenumber" name="L41" href="#L41">41</a>          paramPut(PatternLogger.CLIENT_IP, clientIp);
-<a class="jxr_linenumber" name="L42" href="#L42">42</a>          
-<a class="jxr_linenumber" name="L43" href="#L43">43</a>       <em class="jxr_comment">//   paramPut(PatternLogger.CLIENT_IP, "0");</em>
-<a class="jxr_linenumber" name="L44" href="#L44">44</a>          paramPut(OCSPREQUEST, <span class="jxr_string">"0"</span>);
-<a class="jxr_linenumber" name="L45" href="#L45">45</a>          paramPut(OCSPRESPONSE, <span class="jxr_string">"0"</span>);
-<a class="jxr_linenumber" name="L46" href="#L46">46</a>          paramPut(PatternLogger.STATUS, <span class="jxr_string">"-1"</span>);
-<a class="jxr_linenumber" name="L47" href="#L47">47</a>          paramPut(PatternLogger.PROCESS_TIME, <span class="jxr_string">"-1"</span>);
-<a class="jxr_linenumber" name="L48" href="#L48">48</a>      }
-<a class="jxr_linenumber" name="L49" href="#L49">49</a>  
-<a class="jxr_linenumber" name="L50" href="#L50">50</a>  }
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="AuditLogger" href="../../../../../org/cesecore/certificates/ocsp/logging/AuditLogger.html#AuditLogger">AuditLogger</a> <strong class="jxr_keyword">extends</strong> <a name="PatternLogger" href="../../../../../org/cesecore/certificates/ocsp/logging/PatternLogger.html#PatternLogger">PatternLogger</a> {
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> serialVersionUID = 4474243795289459488L;
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>    <em class="jxr_javadoccomment">/** The byte[] ocsp-request that came with the http-request. */</em>
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String OCSPREQUEST = <span class="jxr_string">"OCSPREQUEST"</span>;
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>    <em class="jxr_javadoccomment">/** The byte[] ocsp-response that was included in the http-response. */</em>
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String OCSPRESPONSE = <span class="jxr_string">"OCSPRESPONSE"</span>;
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>    <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <em class="jxr_javadoccomment">   * @param ocspRequest Request</em>
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <em class="jxr_javadoccomment">   * @param logId ID</em>
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <em class="jxr_javadoccomment">   * @param sessionId ID</em>
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <em class="jxr_javadoccomment">   * @param clientIp IP</em>
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <em class="jxr_javadoccomment">   */</em>
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>    <strong class="jxr_keyword">public</strong> <a name="AuditLogger" href="../../../../../org/cesecore/certificates/ocsp/logging/AuditLogger.html#AuditLogger">AuditLogger</a>(
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>        <strong class="jxr_keyword">final</strong> String ocspRequest,
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>        <strong class="jxr_keyword">final</strong> Integer logId,
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>        <strong class="jxr_keyword">final</strong> String sessionId,
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>        <strong class="jxr_keyword">final</strong> String clientIp) {
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>      <strong class="jxr_keyword">super</strong>(
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>          OcspConfiguration.getAuditLog(),
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>          AuditLogger.<strong class="jxr_keyword">class</strong>,
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>          OcspConfiguration.getAuditLogPattern(),
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>          OcspConfiguration.getAuditLogOrder(),
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>          OcspConfiguration.getLogDateFormat(),
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>          OcspConfiguration.getLogTimeZone());
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>  
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>      paramPut(OCSPREQUEST, ocspRequest);
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>      paramPut(PatternLogger.LOG_ID, logId);
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>      paramPut(PatternLogger.SESSION_ID, sessionId);
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>      paramPut(PatternLogger.CLIENT_IP, clientIp);
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>  
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>      <em class="jxr_comment">//   paramPut(PatternLogger.CLIENT_IP, "0");</em>
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>      paramPut(OCSPREQUEST, <span class="jxr_string">"0"</span>);
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>      paramPut(OCSPRESPONSE, <span class="jxr_string">"0"</span>);
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>      paramPut(PatternLogger.STATUS, <span class="jxr_string">"-1"</span>);
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>      paramPut(PatternLogger.PROCESS_TIME, <span class="jxr_string">"-1"</span>);
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>    }
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>  }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2020. All rights reserved.</div>

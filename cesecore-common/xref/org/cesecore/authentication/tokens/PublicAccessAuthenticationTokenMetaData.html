@@ -23,18 +23,23 @@
 <a class="jxr_linenumber" name="L15" href="#L15">15</a>  <strong class="jxr_keyword">import</strong> java.util.Arrays;
 <a class="jxr_linenumber" name="L16" href="#L16">16</a>  
 <a class="jxr_linenumber" name="L17" href="#L17">17</a>  <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <em class="jxr_javadoccomment"> * Meta data definition and ServiceLoader marker for {@link org.cesecore.authentication.tokens.PublicAccessAuthenticationToken}.</em>
-<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <em class="jxr_javadoccomment"> * </em>
-<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <em class="jxr_javadoccomment"> * @version $Id: PublicAccessAuthenticationTokenMetaData.java 25241 2017-02-10 02:10:43Z jeklund $</em>
-<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <em class="jxr_javadoccomment"> */</em>
-<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="PublicAccessAuthenticationTokenMetaData" href="../../../../org/cesecore/authentication/tokens/PublicAccessAuthenticationTokenMetaData.html#PublicAccessAuthenticationTokenMetaData">PublicAccessAuthenticationTokenMetaData</a> <strong class="jxr_keyword">extends</strong> <a name="AuthenticationTokenMetaDataBase" href="../../../../org/cesecore/authentication/tokens/AuthenticationTokenMetaDataBase.html#AuthenticationTokenMetaDataBase">AuthenticationTokenMetaDataBase</a> {
-<a class="jxr_linenumber" name="L23" href="#L23">23</a>  
-<a class="jxr_linenumber" name="L24" href="#L24">24</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String TOKEN_TYPE = <span class="jxr_string">"PublicAccessAuthenticationToken"</span>;
-<a class="jxr_linenumber" name="L25" href="#L25">25</a>  
-<a class="jxr_linenumber" name="L26" href="#L26">26</a>      <strong class="jxr_keyword">public</strong> <a name="PublicAccessAuthenticationTokenMetaData" href="../../../../org/cesecore/authentication/tokens/PublicAccessAuthenticationTokenMetaData.html#PublicAccessAuthenticationTokenMetaData">PublicAccessAuthenticationTokenMetaData</a>() {
-<a class="jxr_linenumber" name="L27" href="#L27">27</a>          <strong class="jxr_keyword">super</strong>(TOKEN_TYPE, Arrays.asList(PublicAccessMatchValue.values()), <strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="L28" href="#L28">28</a>      }
-<a class="jxr_linenumber" name="L29" href="#L29">29</a>  }
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <em class="jxr_javadoccomment"> * Meta data definition and ServiceLoader marker for {@link</em>
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <em class="jxr_javadoccomment"> * org.cesecore.authentication.tokens.PublicAccessAuthenticationToken}.</em>
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <em class="jxr_javadoccomment"> *</em>
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <em class="jxr_javadoccomment"> * @version $Id: PublicAccessAuthenticationTokenMetaData.java 25241 2017-02-10</em>
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <em class="jxr_javadoccomment"> *     02:10:43Z jeklund $</em>
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="PublicAccessAuthenticationTokenMetaData" href="../../../../org/cesecore/authentication/tokens/PublicAccessAuthenticationTokenMetaData.html#PublicAccessAuthenticationTokenMetaData">PublicAccessAuthenticationTokenMetaData</a>
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>      <strong class="jxr_keyword">extends</strong> <a name="AuthenticationTokenMetaDataBase" href="../../../../org/cesecore/authentication/tokens/AuthenticationTokenMetaDataBase.html#AuthenticationTokenMetaDataBase">AuthenticationTokenMetaDataBase</a> {
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>    <em class="jxr_javadoccomment">/** Type. */</em>
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String TOKEN_TYPE = <span class="jxr_string">"PublicAccessAuthenticationToken"</span>;
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>    <em class="jxr_javadoccomment">/** Constructor. */</em>
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>    <strong class="jxr_keyword">public</strong> <a name="PublicAccessAuthenticationTokenMetaData" href="../../../../org/cesecore/authentication/tokens/PublicAccessAuthenticationTokenMetaData.html#PublicAccessAuthenticationTokenMetaData">PublicAccessAuthenticationTokenMetaData</a>() {
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>      <strong class="jxr_keyword">super</strong>(TOKEN_TYPE, Arrays.asList(PublicAccessMatchValue.values()), <strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>    }
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2020. All rights reserved.</div>

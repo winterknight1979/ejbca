@@ -16,138 +16,165 @@ package org.cesecore.certificates.certificatetransparency;
 import java.io.Serializable;
 
 /**
- * This class contains Google's CT policy as specified in &quot;Certificate Transparency in Chrome&quot; from May 2016.
- * The policy document can be found here: https://goo.gl/cZZqLw
+ * This class contains Google's CT policy as specified in &quot;Certificate
+ * Transparency in Chrome&quot; from May 2016. The policy document can be found here:
+ * https://goo.gl/cZZqLw
+ *
  * @version $Id: GoogleCtPolicy.java 27474 2017-12-07 19:53:25Z samuellb $
  */
-<span class="nc" id="L23">public class GoogleCtPolicy implements Serializable {</span>
-    private static final long serialVersionUID = 1337L;
+<span class="nc" id="L25">public class GoogleCtPolicy implements Serializable {</span>
+  private static final long serialVersionUID = 1337L;
 
-    /* Constants representing rows from Table 1 */
-    private static final int LESS_THAN_15_MONTHS = 0;
-    private static final int BETWEEN_15_AND_27_MONTHS = 1;
-    private static final int BETWEEN_27_AND_39_MONTHS = 2;
-    private static final int MORE_THAN_39_MONTHS = 3;
+  /* Constants representing rows from Table 1 */
+  /** Duration. */
+  private static final int LESS_THAN_15_MONTHS = 0;
+  /** Duration. */
+  private static final int BETWEEN_15_AND_27_MONTHS = 1;
+  /** Duration. */
+  private static final int BETWEEN_27_AND_39_MONTHS = 2;
+  /** Duration. */
+  private static final int MORE_THAN_39_MONTHS = 3;
 
-    /* Default policy values. Should not be changed unless the policy changes. */
-<span class="nc" id="L33">    private final int[] minScts = new int[] { 2, 3, 4, 5, };</span>
-<span class="nc" id="L34">    private final int[] lessThanMonths = new int[] { 15, 27, 39, Integer.MAX_VALUE };</span>
+  /** Default policy values. Should not be changed unless the policy changes. */
+<span class="nc" id="L39">  private final int[] minScts =</span>
+      new int[] {
+        2, 3, 4, 5,
+      };
+  /**
+   * Months.
+   */
+<span class="nc" id="L46">  private final int[] lessThanMonths =</span>
+      new int[] {15, 27, 39, Integer.MAX_VALUE};
 
-    /**
-     * Validate the CT policy stored in this object. Currently checking the following:
-     * &lt;ul&gt;
-     *   &lt;li&gt;Ensure the number of CT logs are all greater than zero.&lt;/li&gt;
-     * &lt;/ul&gt;
-     * @return boolean
-     */
-    public boolean isValid() {
-<span class="nc bnc" id="L44" title="All 2 branches missed.">        for (int i = 0; i &lt; minScts.length; i++) {</span>
-<span class="nc bnc" id="L45" title="All 2 branches missed.">            if (minScts[i] &lt;= 0) {</span>
-<span class="nc" id="L46">                return false;</span>
-            }
-        }
-<span class="nc" id="L49">        return true;</span>
+  /**
+   * Validate the CT policy stored in this object. Currently checking the
+   * following:
+   *
+   * &lt;ul&gt;
+   *   &lt;li&gt;Ensure the number of CT logs are all greater than zero.
+   * &lt;/ul&gt;
+   *
+   * @return boolean
+   */
+  public boolean isValid() {
+<span class="nc bnc" id="L60" title="All 2 branches missed.">    for (int i = 0; i &lt; minScts.length; i++) {</span>
+<span class="nc bnc" id="L61" title="All 2 branches missed.">      if (minScts[i] &lt;= 0) {</span>
+<span class="nc" id="L62">        return false;</span>
+      }
     }
+<span class="nc" id="L65">    return true;</span>
+  }
 
-    /**
-     * Set the minimum number of SCTs required for certificates with a lifetime
-     * of less than 15 Months.
-     * @param value a number of SCTs
-     */
-    public void setLessThan15Months(final int value) {
-<span class="nc" id="L58">        this.minScts[LESS_THAN_15_MONTHS] = value;</span>
-<span class="nc" id="L59">    }</span>
+  /**
+   * Set the minimum number of SCTs required for certificates with a lifetime of
+   * less than 15 Months.
+   *
+   * @param value a number of SCTs
+   */
+  public void setLessThan15Months(final int value) {
+<span class="nc" id="L75">    this.minScts[LESS_THAN_15_MONTHS] = value;</span>
+<span class="nc" id="L76">  }</span>
 
-    /**
-     * Set the minimum number of SCTs required for certificates with a lifetime
-     * of ≥15 Months but ≤27 Months.
-     * @param value a number of SCTs
-     */
-    public void setBetween15And27Months(final int value) {
-<span class="nc" id="L67">        this.minScts[BETWEEN_15_AND_27_MONTHS] = value;</span>
-<span class="nc" id="L68">    }</span>
+  /**
+   * Set the minimum number of SCTs required for certificates with a lifetime of
+   * ≥15 Months but ≤27 Months.
+   *
+   * @param value a number of SCTs
+   */
+  public void setBetween15And27Months(final int value) {
+<span class="nc" id="L85">    this.minScts[BETWEEN_15_AND_27_MONTHS] = value;</span>
+<span class="nc" id="L86">  }</span>
 
-    /**
-     * Set the minimum number of SCTs required for certificates with a lifetime
-     * of &amp;gt;27 Months but ≤39 Months.
-     * @param value a number of SCTs
-     */
-    public void setBetween27And39Months(final int value) {
-<span class="nc" id="L76">        this.minScts[BETWEEN_27_AND_39_MONTHS] = value;</span>
-<span class="nc" id="L77">    }</span>
+  /**
+   * Set the minimum number of SCTs required for certificates with a lifetime of
+   * &amp;gt;27 Months but ≤39 Months.
+   *
+   * @param value a number of SCTs
+   */
+  public void setBetween27And39Months(final int value) {
+<span class="nc" id="L95">    this.minScts[BETWEEN_27_AND_39_MONTHS] = value;</span>
+<span class="nc" id="L96">  }</span>
 
-    /**
-     * Set the minimum number of SCTs required for non EV-certificates with a lifetime
-     * of more than 39 Months.
-     * @param value a number of SCTs
-     */
-    public void setMoreThan39Months(final int value) {
-<span class="nc" id="L85">        this.minScts[MORE_THAN_39_MONTHS] = value;</span>
-<span class="nc" id="L86">    }</span>
+  /**
+   * Set the minimum number of SCTs required for non EV-certificates with a
+   * lifetime of more than 39 Months.
+   *
+   * @param value a number of SCTs
+   */
+  public void setMoreThan39Months(final int value) {
+<span class="nc" id="L105">    this.minScts[MORE_THAN_39_MONTHS] = value;</span>
+<span class="nc" id="L106">  }</span>
 
-    /**
-     * Get the minimum number of SCTs required for certificates with a lifetime
-     * of less than 15 Months.
-     * @return a number of SCTs
-     */
-    public int getLessThan15Months() {
-<span class="nc" id="L94">        return minScts[LESS_THAN_15_MONTHS];</span>
-    }
+  /**
+   * Get the minimum number of SCTs required for certificates with a lifetime of
+   * less than 15 Months.
+   *
+   * @return a number of SCTs
+   */
+  public int getLessThan15Months() {
+<span class="nc" id="L115">    return minScts[LESS_THAN_15_MONTHS];</span>
+  }
 
-    /**
-     * Get the minimum number of SCTs required for certificates with a lifetime
-     * of ≥15 Months but ≤27 Months.
-     * @return a number of SCTs
-     */
-    public int getBetween15And27Months() {
-<span class="nc" id="L103">        return minScts[BETWEEN_15_AND_27_MONTHS];</span>
-    }
+  /**
+   * Get the minimum number of SCTs required for certificates with a lifetime of
+   * ≥15 Months but ≤27 Months.
+   *
+   * @return a number of SCTs
+   */
+  public int getBetween15And27Months() {
+<span class="nc" id="L125">    return minScts[BETWEEN_15_AND_27_MONTHS];</span>
+  }
 
-    /**
-     * Get the minimum number of SCTs required for certificates with a lifetime
-     * of &amp;gt;27 Months but ≤39 Months.
-     * @return a number of SCTs
-     */
-    public int getBetween27And39Months() {
-<span class="nc" id="L112">        return minScts[BETWEEN_27_AND_39_MONTHS];</span>
-    }
+  /**
+   * Get the minimum number of SCTs required for certificates with a lifetime of
+   * &amp;gt;27 Months but ≤39 Months.
+   *
+   * @return a number of SCTs
+   */
+  public int getBetween27And39Months() {
+<span class="nc" id="L135">    return minScts[BETWEEN_27_AND_39_MONTHS];</span>
+  }
 
-    /**
-     * Get the minimum number of SCTs required for non EV-certificates with a lifetime
-     * of more than 39 Months.
-     * @return a number of SCTs
-     */
-    public int getMoreThan39Months() {
-<span class="nc" id="L121">        return minScts[MORE_THAN_39_MONTHS];</span>
-    }
-    
-    /**
-     * Returns the minimum SCTs for the given index.
-     * @param breakpointIndex Index
-     * @throws IndexOutOfBoundsException if out of bounds.
-     * @return Minimum SCTs
-     * @see #getNumberOfBreakpoints
-     */
-    public int getMinSctsByIndex(int breakpointIndex) {
-<span class="nc" id="L132">        return minScts[breakpointIndex];</span>
-    }
-    
-    /**
-     * Returns the &quot;less than months&quot; validity restriction for the given index.
-     * @param breakpointIndex Index
-     * @throws IndexOutOfBoundsException if out of bounds.
-     * @return &quot;Less than months&quot; value, or Integer.MAX_VALUE if infinite
-     * @see #getNumberOfBreakpoints
-     */
-    public int getLessThanMonthsByIndex(int breakpointIndex) {
-<span class="nc" id="L143">        return lessThanMonths[breakpointIndex];</span>
-    }
-    
-    /**
-     * @return the number of breakpoints (i.e. indices to getMinSctsByIndex/getLessThanMonthsByIndex)
-     */
-    public int getNumberOfBreakpoints() {
-<span class="nc" id="L150">        return minScts.length;</span>
-    }
+  /**
+   * Get the minimum number of SCTs required for non EV-certificates with a
+   * lifetime of more than 39 Months.
+   *
+   * @return a number of SCTs
+   */
+  public int getMoreThan39Months() {
+<span class="nc" id="L145">    return minScts[MORE_THAN_39_MONTHS];</span>
+  }
+
+  /**
+   * Returns the minimum SCTs for the given index.
+   *
+   * @param breakpointIndex Index
+   * @throws IndexOutOfBoundsException if out of bounds.
+   * @return Minimum SCTs
+   * @see #getNumberOfBreakpoints
+   */
+  public int getMinSctsByIndex(final int breakpointIndex) {
+<span class="nc" id="L157">    return minScts[breakpointIndex];</span>
+  }
+
+  /**
+   * Returns the &quot;less than months&quot; validity restriction for the given index.
+   *
+   * @param breakpointIndex Index
+   * @throws IndexOutOfBoundsException if out of bounds.
+   * @return &quot;Less than months&quot; value, or Integer.MAX_VALUE if infinite
+   * @see #getNumberOfBreakpoints
+   */
+  public int getLessThanMonthsByIndex(final int breakpointIndex) {
+<span class="nc" id="L169">    return lessThanMonths[breakpointIndex];</span>
+  }
+
+  /**
+   * @return the number of breakpoints (i.e. indices to
+   *     getMinSctsByIndex/getLessThanMonthsByIndex)
+   */
+  public int getNumberOfBreakpoints() {
+<span class="nc" id="L177">    return minScts.length;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -18,30 +18,31 @@ import javax.xml.ws.WebFault;
 /**
  * An exception thrown by the isauthorized method in the EjbcaAthorization bean.
  *
- * @version $Id: AuthorizationDeniedException.java 17625 2013-09-20 07:12:06Z netmackan $
+ * @version $Id: AuthorizationDeniedException.java 17625 2013-09-20 07:12:06Z
+ *     netmackan $
  */
 @WebFault
-@ApplicationException(rollback=true)  
+@ApplicationException(rollback = true)
 public class AuthorizationDeniedException extends Exception {
-    
 
-    private static final long serialVersionUID = 4400551462100867374L;
+  private static final long serialVersionUID = 4400551462100867374L;
 
+  /**
+   * Creates a new instance of &lt;code&gt;AuthorizationDeniedException&lt;/code&gt; without
+   * detail message.
+   */
+  public AuthorizationDeniedException() {
+<span class="nc" id="L35">    super();</span>
+<span class="nc" id="L36">  }</span>
 
-    /**
-     * Creates a new instance of &lt;code&gt;AuthorizationDeniedException&lt;/code&gt; without detail message.
-     */
-    public AuthorizationDeniedException() {
-<span class="nc" id="L35">      super();  </span>
-<span class="nc" id="L36">    }</span>
-    
-    
-    /**
-     * Constructs an instance of &lt;code&gt;AuthorizationDeniedException&lt;/code&gt; with the specified detail message.
-     * @param msg the detail message.
-     */
-    public AuthorizationDeniedException(String msg) {
-<span class="nc" id="L44">        super(msg);</span>
-<span class="nc" id="L45">    }</span>
+  /**
+   * Constructs an instance of &lt;code&gt;AuthorizationDeniedException&lt;/code&gt; with
+   * the specified detail message.
+   *
+   * @param msg the detail message.
+   */
+  public AuthorizationDeniedException(final String msg) {
+<span class="nc" id="L45">    super(msg);</span>
+<span class="nc" id="L46">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

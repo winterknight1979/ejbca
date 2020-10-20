@@ -1,0 +1,681 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RaSearchCertsBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ra-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ra</a> &gt; <span class="el_source">RaSearchCertsBean.java</span></div><h1>RaSearchCertsBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ra;
+
+import java.io.Serializable;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TimeZone;
+
+import javax.ejb.EJB;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.ManagedProperty;
+import javax.faces.bean.ViewScoped;
+import javax.faces.component.UIComponent;
+import javax.faces.component.html.HtmlOutputLabel;
+import javax.faces.context.FacesContext;
+import javax.faces.event.AjaxBehaviorEvent;
+import javax.faces.model.SelectItem;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CADoesntExistsException;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.certificate.CertificateConstants;
+import org.cesecore.certificates.certificate.CertificateDataWrapper;
+import org.cesecore.certificates.crl.RevokedCertInfo;
+import org.cesecore.util.EJBTools;
+import org.cesecore.util.ValidityDate;
+import org.ejbca.core.ejb.ra.NoSuchEndEntityException;
+import org.ejbca.core.model.approval.ApprovalException;
+import org.ejbca.core.model.approval.WaitingForApprovalException;
+import org.ejbca.core.model.era.RaCertificateSearchRequest;
+import org.ejbca.core.model.era.RaCertificateSearchResponse;
+import org.ejbca.core.model.era.RaMasterApiProxyBeanLocal;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfileValidationException;
+import org.ejbca.ra.RaCertificateDetails.Callbacks;
+
+/**
+ * Backing bean for Search Certificates page.
+ *
+ * @version $Id: RaSearchCertsBean.java 26524 2017-09-11 09:12:49Z bastianf $
+ * TODO: Use CDI beans
+ */
+@SuppressWarnings(&quot;deprecation&quot;)
+@ManagedBean
+@ViewScoped
+<span class="nc" id="L65">public class RaSearchCertsBean implements Serializable {</span>
+
+    private static final long serialVersionUID = 1L;
+<span class="nc" id="L68">    private static final Logger log = Logger.getLogger(RaSearchCertsBean.class);</span>
+
+    @EJB
+    private RaMasterApiProxyBeanLocal raMasterApiProxyBean;
+
+    @ManagedProperty(value=&quot;#{raAuthenticationBean}&quot;)
+    private RaAuthenticationBean raAuthenticationBean;
+<span class="nc" id="L75">    public void setRaAuthenticationBean(final RaAuthenticationBean raAuthenticationBean) { this.raAuthenticationBean = raAuthenticationBean; }</span>
+
+    @ManagedProperty(value=&quot;#{raLocaleBean}&quot;)
+    private RaLocaleBean raLocaleBean;
+<span class="nc" id="L79">    public void setRaLocaleBean(final RaLocaleBean raLocaleBean) { this.raLocaleBean = raLocaleBean; }</span>
+
+<span class="nc" id="L81">    private final List&lt;RaCertificateDetails&gt; resultsFiltered = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L82">    private Map&lt;Integer,String&gt; eepIdToNameMap = null;</span>
+<span class="nc" id="L83">    private Map&lt;Integer,String&gt; cpIdToNameMap = null;</span>
+<span class="nc" id="L84">    private Map&lt;String,String&gt; caSubjectToNameMap = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L85">    private List&lt;SelectItem&gt; availableEeps = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L86">    private List&lt;SelectItem&gt; availableCps = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L87">    private List&lt;SelectItem&gt; availableCas = new ArrayList&lt;&gt;();</span>
+
+<span class="nc" id="L89">    private RaCertificateSearchRequest stagedRequest = new RaCertificateSearchRequest();</span>
+<span class="nc" id="L90">    private RaCertificateSearchRequest lastExecutedRequest = null;</span>
+<span class="nc" id="L91">    private RaCertificateSearchResponse lastExecutedResponse = null;</span>
+
+<span class="nc" id="L93">    private String genericSearchString = &quot;&quot;;</span>
+
+<span class="nc" id="L95">    private String issuedAfter = &quot;&quot;;</span>
+<span class="nc" id="L96">    private String issuedBefore = &quot;&quot;;</span>
+<span class="nc" id="L97">    private String expiresAfter = &quot;&quot;;</span>
+<span class="nc" id="L98">    private String expiresBefore = &quot;&quot;;</span>
+<span class="nc" id="L99">    private String revokedAfter = &quot;&quot;;</span>
+<span class="nc" id="L100">    private String revokedBefore = &quot;&quot;;</span>
+
+    private UIComponent confirmPasswordComponent;
+
+<span class="nc" id="L104">    private enum SortOrder { PROFILE, CA, SERIALNUMBER, SUBJECT, USERNAME, ISSUANCE, EXPIRATION, STATUS };</span>
+
+<span class="nc" id="L106">    private SortOrder sortBy = SortOrder.USERNAME;</span>
+<span class="nc" id="L107">    private boolean sortAscending = true;</span>
+
+<span class="nc" id="L109">    private boolean moreOptions = false;</span>
+
+<span class="nc" id="L111">    private RaCertificateDetails currentCertificateDetails = null;</span>
+
+<span class="nc" id="L113">    private final Callbacks raCertificateDetailsCallbacks = new RaCertificateDetails.Callbacks() {</span>
+        @Override
+        public RaLocaleBean getRaLocaleBean() {
+<span class="nc" id="L116">            return raLocaleBean;</span>
+        }
+        @Override
+        public UIComponent getConfirmPasswordComponent() {
+<span class="nc" id="L120">            return confirmPasswordComponent;</span>
+        }
+        @Override
+        public boolean changeStatus(RaCertificateDetails raCertificateDetails, int newStatus, int newRevocationReason) throws ApprovalException, WaitingForApprovalException {
+<span class="nc" id="L124">            final boolean ret = raMasterApiProxyBean.changeCertificateStatus(raAuthenticationBean.getAuthenticationToken(), raCertificateDetails.getFingerprint(),</span>
+                    newStatus, newRevocationReason);
+<span class="nc bnc" id="L126" title="All 2 branches missed.">            if (ret) {</span>
+                // Re-initialize object if status has changed
+<span class="nc" id="L128">                final CertificateDataWrapper cdw = raMasterApiProxyBean.searchForCertificate(raAuthenticationBean.getAuthenticationToken(), raCertificateDetails.getFingerprint());</span>
+<span class="nc" id="L129">                raCertificateDetails.reInitialize(cdw, cpIdToNameMap, eepIdToNameMap, caSubjectToNameMap);</span>
+            }
+<span class="nc" id="L131">            return ret;</span>
+        }
+        @Override
+        public boolean recoverKey(RaCertificateDetails raCertificateDetails) throws ApprovalException, CADoesntExistsException, AuthorizationDeniedException, WaitingForApprovalException,
+                                    NoSuchEndEntityException, EndEntityProfileValidationException {
+<span class="nc" id="L136">            final boolean ret = raMasterApiProxyBean.markForRecovery(raAuthenticationBean.getAuthenticationToken(), raCertificateDetails.getUsername(), raCertificateDetails.getPassword(),</span>
+<span class="nc" id="L137">                    EJBTools.wrap(raCertificateDetails.getCertificate()), false);</span>
+<span class="nc" id="L138">            return ret;</span>
+        }
+        @Override
+        public boolean keyRecoveryPossible(RaCertificateDetails raCertificateDetails) {
+<span class="nc" id="L142">            final boolean ret = raMasterApiProxyBean.keyRecoveryPossible(raAuthenticationBean.getAuthenticationToken(), raCertificateDetails.getCertificate(), raCertificateDetails.getUsername());</span>
+<span class="nc" id="L143">            return ret;</span>
+        }
+    };
+
+    /** Invoked when the page is loaded */
+    public void initialize() {
+        // Perform a search if parameters where passed in the query string
+<span class="nc bnc" id="L150" title="All 2 branches missed.">        if (genericSearchString != null) {</span>
+<span class="nc" id="L151">            searchAndFilterCommon();</span>
+        }
+<span class="nc" id="L153">    }</span>
+
+    /** Invoked action on search form post */
+    public void searchAndFilterAction() {
+<span class="nc" id="L157">        searchAndFilterCommon();</span>
+<span class="nc" id="L158">    }</span>
+
+    /** Invoked on criteria changes 
+     * @param event Event */
+    public void searchAndFilterAjaxListener(final AjaxBehaviorEvent event) {
+<span class="nc" id="L163">        searchAndFilterCommon();</span>
+<span class="nc" id="L164">    }</span>
+
+    /** Determine if we need to query back end or just filter and execute the required action. */
+    private void searchAndFilterCommon() {
+<span class="nc" id="L168">        final int compared = stagedRequest.compareTo(lastExecutedRequest);</span>
+<span class="nc bnc" id="L169" title="All 2 branches missed.">        boolean search = compared &gt; 0;</span>
+<span class="nc bnc" id="L170" title="All 2 branches missed.">        if (compared != 0) {</span>
+<span class="nc" id="L171">            stagedRequest.setPageNumber(0);</span>
+        }
+<span class="nc bnc" id="L173" title="All 4 branches missed.">        if (compared&lt;=0 &amp;&amp; lastExecutedResponse!=null) {</span>
+            // More narrow search → filter and check if there are sufficient results left
+<span class="nc bnc" id="L175" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L176">                log.debug(&quot;More narrow criteria → Filter&quot;);</span>
+            }
+<span class="nc" id="L178">            filterTransformSort();</span>
+            // Check if there are sufficient results to fill screen and search for more
+<span class="nc bnc" id="L180" title="All 4 branches missed.">            if (resultsFiltered.size()&lt;lastExecutedRequest.getMaxResults() &amp;&amp; lastExecutedResponse.isMightHaveMoreResults()) {</span>
+<span class="nc bnc" id="L181" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L182">                    log.debug(&quot;Trying to load more results since filter left too few results → Query&quot;);</span>
+                }
+<span class="nc" id="L184">                search = true;</span>
+            } else {
+<span class="nc" id="L186">                search = false;</span>
+            }
+        }
+<span class="nc bnc" id="L189" title="All 2 branches missed.">        if (search) {</span>
+            // Wider search → Query back-end
+<span class="nc bnc" id="L191" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L192">                log.debug(&quot;Wider criteria → Query&quot;);</span>
+            }
+<span class="nc" id="L194">            searchForCertificates();</span>
+        }
+<span class="nc" id="L196">    }</span>
+
+    private void searchForCertificates() {
+<span class="nc" id="L199">        lastExecutedResponse = raMasterApiProxyBean.searchForCertificates(raAuthenticationBean.getAuthenticationToken(), stagedRequest);</span>
+<span class="nc bnc" id="L200" title="All 4 branches missed.">        if (!lastExecutedResponse.isMightHaveMoreResults() || !lastExecutedResponse.getCdws().isEmpty()) {</span>
+            // Only update last executed request when there is no timeout
+<span class="nc" id="L202">            lastExecutedRequest = stagedRequest;</span>
+<span class="nc" id="L203">            stagedRequest = new RaCertificateSearchRequest(stagedRequest);</span>
+<span class="nc" id="L204">            filterTransformSort();</span>
+        }
+<span class="nc" id="L206">    }</span>
+
+    /** Perform in memory filtering using the current search criteria of the last result set from the back end. */
+    private void filterTransformSort() {
+<span class="nc" id="L210">        resultsFiltered.clear();</span>
+<span class="nc bnc" id="L211" title="All 6 branches missed.">        if (eepIdToNameMap==null || cpIdToNameMap==null || caSubjectToNameMap==null) {</span>
+            // If the session has been discontinued we need to ensure that we repopulate the objects
+<span class="nc" id="L213">            getAvailableEeps();</span>
+<span class="nc" id="L214">            getAvailableCps();</span>
+<span class="nc" id="L215">            getAvailableCas();</span>
+        }
+<span class="nc bnc" id="L217" title="All 2 branches missed.">        if (lastExecutedResponse != null) {</span>
+<span class="nc bnc" id="L218" title="All 2 branches missed.">            for (final CertificateDataWrapper cdw : lastExecutedResponse.getCdws()) {</span>
+                // ...we don't filter if the requested maxResults is lower than the search request
+<span class="nc bnc" id="L220" title="All 2 branches missed.">                if (!genericSearchString.isEmpty() &amp;&amp; (</span>
+<span class="nc bnc" id="L221" title="All 2 branches missed.">                        !stagedRequest.matchSerialNumber(cdw.getCertificateData().getSerialNumber()) &amp;&amp;</span>
+<span class="nc bnc" id="L222" title="All 2 branches missed.">                        !stagedRequest.matchUsername(cdw.getCertificateData().getUsername()) &amp;&amp;</span>
+<span class="nc bnc" id="L223" title="All 2 branches missed.">                        !stagedRequest.matchSubjectDn(cdw.getCertificateData().getSubjectDnNeverNull()) &amp;&amp;</span>
+<span class="nc bnc" id="L224" title="All 2 branches missed.">                        !stagedRequest.matchSubjectAn(cdw.getCertificateData().getSubjectAltNameNeverNull())</span>
+                        )) {
+<span class="nc" id="L226">                    continue;</span>
+                }
+<span class="nc bnc" id="L228" title="All 2 branches missed.">                if (!stagedRequest.matchEep(cdw.getCertificateData().getEndEntityProfileIdOrZero())) { continue; }</span>
+<span class="nc bnc" id="L229" title="All 2 branches missed.">                if (!stagedRequest.matchCp(cdw.getCertificateData().getCertificateProfileId())) { continue; }</span>
+<span class="nc bnc" id="L230" title="All 2 branches missed.">                if (!stagedRequest.matchCa(cdw.getCertificateData().getIssuerDN().hashCode())) { continue; }</span>
+<span class="nc bnc" id="L231" title="All 2 branches missed.">                if (!stagedRequest.matchIssuedInterval(cdw.getCertificateData().getNotBefore())) { continue; }</span>
+<span class="nc bnc" id="L232" title="All 2 branches missed.">                if (!stagedRequest.matchExpiresInterval(cdw.getCertificateData().getExpireDate())) { continue; }</span>
+<span class="nc bnc" id="L233" title="All 2 branches missed.">                if (!stagedRequest.matchRevokedInterval(cdw.getCertificateData().getRevocationDate())) { continue; }</span>
+<span class="nc bnc" id="L234" title="All 2 branches missed.">                if (!stagedRequest.matchStatusAndReason(cdw.getCertificateData().getStatus(), cdw.getCertificateData().getRevocationReason())) { continue; }</span>
+<span class="nc" id="L235">                resultsFiltered.add(new RaCertificateDetails(cdw, raCertificateDetailsCallbacks, cpIdToNameMap, eepIdToNameMap, caSubjectToNameMap));</span>
+<span class="nc" id="L236">            }</span>
+<span class="nc bnc" id="L237" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L238">                log.debug(&quot;Filtered &quot; + lastExecutedResponse.getCdws().size() + &quot; responses down to &quot; + resultsFiltered.size() + &quot; results.&quot;);</span>
+            }
+<span class="nc" id="L240">            sort();</span>
+<span class="nc" id="L241">            chain();</span>
+        }
+<span class="nc" id="L243">    }</span>
+
+    /** Sort the filtered result set based on the select column and sort order. */
+    private void sort() {
+<span class="nc" id="L247">        Collections.sort(resultsFiltered, new Comparator&lt;RaCertificateDetails&gt;() {</span>
+            @Override
+            public int compare(RaCertificateDetails o1, RaCertificateDetails o2) {
+<span class="nc bnc" id="L250" title="All 8 branches missed.">                switch (sortBy) {</span>
+                case PROFILE:
+<span class="nc bnc" id="L252" title="All 2 branches missed.">                    return o1.getEepName().concat(o1.getCpName()).compareTo(o2.getEepName().concat(o2.getCpName())) * (sortAscending ? 1 : -1);</span>
+                case CA:
+<span class="nc bnc" id="L254" title="All 2 branches missed.">                    return o1.getCaName().compareTo(o2.getCaName()) * (sortAscending ? 1 : -1);</span>
+                case SERIALNUMBER:
+<span class="nc bnc" id="L256" title="All 2 branches missed.">                    return o1.getSerialnumber().compareTo(o2.getSerialnumber()) * (sortAscending ? 1 : -1);</span>
+                case SUBJECT:
+<span class="nc bnc" id="L258" title="All 2 branches missed.">                    return (o1.getSubjectDn()+o1.getSubjectAn()).compareTo(o2.getSubjectDn()+o2.getSubjectAn()) * (sortAscending ? 1 : -1);</span>
+                case ISSUANCE:
+<span class="nc bnc" id="L260" title="All 2 branches missed.">                    return o1.getCreated().compareTo(o2.getCreated()) * (sortAscending ? 1 : -1);</span>
+                case EXPIRATION:
+<span class="nc bnc" id="L262" title="All 2 branches missed.">                    return o1.getExpires().compareTo(o2.getExpires()) * (sortAscending ? 1 : -1);</span>
+                case STATUS:
+<span class="nc bnc" id="L264" title="All 2 branches missed.">                    return o1.getStatus().compareTo(o2.getStatus()) * (sortAscending ? 1 : -1);</span>
+                case USERNAME:
+                default:
+<span class="nc bnc" id="L267" title="All 2 branches missed.">                    return o1.getUsername().compareTo(o2.getUsername()) * (sortAscending ? 1 : -1);</span>
+                }
+            }
+        });
+<span class="nc" id="L271">    }</span>
+
+    /** @return true if there were no matching search results for the current criteria. */
+    public boolean isResultsNone() {
+<span class="nc bnc" id="L275" title="All 4 branches missed.">        return getFilteredResults().isEmpty() &amp;&amp; !isMoreResultsAvailable();</span>
+    }
+    /** @return true if there might be more search results for the current criteria than shown here. */
+    public boolean isResultsMoreAvailable() {
+<span class="nc bnc" id="L279" title="All 4 branches missed.">        return !getFilteredResults().isEmpty() &amp;&amp; isMoreResultsAvailable();</span>
+    }
+    /** @return true if there more search results for the given criteria, but there are no result which we assume is caused by a search or peer timeout. */
+    public boolean isResultsTimeout() {
+<span class="nc bnc" id="L283" title="All 4 branches missed.">        return getFilteredResults().isEmpty() &amp;&amp; isMoreResultsAvailable();</span>
+    }
+
+<span class="nc" id="L286">    public String getSortedByProfile() { return getSortedBy(SortOrder.PROFILE); }</span>
+<span class="nc" id="L287">    public void sortByProfile() { sortBy(SortOrder.PROFILE, true); }</span>
+<span class="nc" id="L288">    public String getSortedByCa() { return getSortedBy(SortOrder.CA); }</span>
+<span class="nc" id="L289">    public void sortByCa() { sortBy(SortOrder.CA, true); }</span>
+<span class="nc" id="L290">    public String getSortedBySerialNumber() { return getSortedBy(SortOrder.SERIALNUMBER); }</span>
+<span class="nc" id="L291">    public void sortBySerialNumber() { sortBy(SortOrder.SERIALNUMBER, true); }</span>
+<span class="nc" id="L292">    public String getSortedBySubject() { return getSortedBy(SortOrder.SUBJECT); }</span>
+<span class="nc" id="L293">    public void sortBySubject() { sortBy(SortOrder.SUBJECT, true); }</span>
+<span class="nc" id="L294">    public String getSortedByIssuance() { return getSortedBy(SortOrder.ISSUANCE); }</span>
+<span class="nc" id="L295">    public void sortByIssuance() { sortBy(SortOrder.ISSUANCE, false); }</span>
+<span class="nc" id="L296">    public String getSortedByExpiration() { return getSortedBy(SortOrder.EXPIRATION); }</span>
+<span class="nc" id="L297">    public void sortByExpiration() { sortBy(SortOrder.EXPIRATION, false); }</span>
+<span class="nc" id="L298">    public String getSortedByStatus() { return getSortedBy(SortOrder.STATUS); }</span>
+<span class="nc" id="L299">    public void sortByStatus() { sortBy(SortOrder.STATUS, true); }</span>
+<span class="nc" id="L300">    public String getSortedByUsername() { return getSortedBy(SortOrder.USERNAME); }</span>
+<span class="nc" id="L301">    public void sortByUsername() { sortBy(SortOrder.USERNAME, true); }</span>
+
+    /** @param sortOrder Order
+     * @return an up or down arrow character depending on sort order if the sort column matches */
+    private String getSortedBy(final SortOrder sortOrder) {
+<span class="nc bnc" id="L306" title="All 2 branches missed.">        if (sortBy.equals(sortOrder)) {</span>
+<span class="nc bnc" id="L307" title="All 2 branches missed.">            return sortAscending ? &quot;\u25bc&quot; : &quot;\u25b2&quot;;</span>
+        }
+<span class="nc" id="L309">        return &quot;&quot;;</span>
+    }
+    /** Set current sort column. Flip the order if the column was already selected. 
+     * @param sortOrder Order
+     * @param defaultAscending Order */
+    private void sortBy(final SortOrder sortOrder, final boolean defaultAscending) {
+<span class="nc bnc" id="L315" title="All 2 branches missed.">        if (sortBy.equals(sortOrder)) {</span>
+<span class="nc bnc" id="L316" title="All 2 branches missed.">            sortAscending = !sortAscending;</span>
+        } else {
+<span class="nc" id="L318">            sortAscending = defaultAscending;</span>
+        }
+<span class="nc" id="L320">        this.sortBy = sortOrder;</span>
+<span class="nc" id="L321">        sort();</span>
+<span class="nc" id="L322">    }</span>
+
+    /** @return true if there might be more results in the back end than retrieved based on the current criteria. */
+    public boolean isMoreResultsAvailable() {
+<span class="nc bnc" id="L326" title="All 4 branches missed.">        return lastExecutedResponse!=null &amp;&amp; lastExecutedResponse.isMightHaveMoreResults();</span>
+    }
+
+    /** @return true of more search criteria than just the basics should be shown */
+<span class="nc" id="L330">    public boolean isMoreOptions() { return moreOptions; };</span>
+
+    /** Invoked when more or less options action is invoked. */
+    public void moreOptionsAction() {
+<span class="nc bnc" id="L334" title="All 2 branches missed.">        moreOptions = !moreOptions;</span>
+        // Reset any criteria in the advanced section
+<span class="nc" id="L336">        stagedRequest.resetMaxResults();</span>
+<span class="nc" id="L337">        stagedRequest.resetIssuedAfter();</span>
+<span class="nc" id="L338">        stagedRequest.resetIssuedBefore();</span>
+<span class="nc" id="L339">        stagedRequest.resetExpiresAfter();</span>
+<span class="nc" id="L340">        stagedRequest.resetExpiresBefore();</span>
+<span class="nc" id="L341">        stagedRequest.resetRevokedAfter();</span>
+<span class="nc" id="L342">        stagedRequest.resetRevokedBefore();</span>
+<span class="nc" id="L343">        issuedAfter = &quot;&quot;;</span>
+<span class="nc" id="L344">        issuedBefore = &quot;&quot;;</span>
+<span class="nc" id="L345">        expiresAfter = &quot;&quot;;</span>
+<span class="nc" id="L346">        expiresBefore = &quot;&quot;;</span>
+<span class="nc" id="L347">        revokedAfter = &quot;&quot;;</span>
+<span class="nc" id="L348">        revokedBefore = &quot;&quot;;</span>
+<span class="nc" id="L349">        searchAndFilterCommon();</span>
+<span class="nc" id="L350">    }</span>
+
+    public List&lt;RaCertificateDetails&gt; getFilteredResults() {
+<span class="nc" id="L353">        return resultsFiltered;</span>
+    }
+
+<span class="nc" id="L356">    public String getGenericSearchString() { return this.genericSearchString; }</span>
+    public void setGenericSearchString(final String genericSearchString) {
+<span class="nc" id="L358">        this.genericSearchString = genericSearchString;</span>
+<span class="nc" id="L359">        stagedRequest.setSubjectDnSearchString(genericSearchString);</span>
+<span class="nc" id="L360">        stagedRequest.setSubjectAnSearchString(genericSearchString);</span>
+<span class="nc" id="L361">        stagedRequest.setUsernameSearchString(genericSearchString);</span>
+<span class="nc" id="L362">        stagedRequest.setSerialNumberSearchStringFromDec(genericSearchString);</span>
+<span class="nc" id="L363">        stagedRequest.setSerialNumberSearchStringFromHex(genericSearchString);</span>
+<span class="nc" id="L364">    }</span>
+
+<span class="nc" id="L366">    public int getCriteriaMaxResults() { return stagedRequest.getMaxResults(); }</span>
+<span class="nc" id="L367">    public void setCriteriaMaxResults(final int criteriaMaxResults) { stagedRequest.setMaxResults(criteriaMaxResults); }</span>
+    public List&lt;SelectItem&gt; getAvailableMaxResults() {
+<span class="nc" id="L369">        List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L370" title="All 2 branches missed.">        for (final int value : new int[]{ RaCertificateSearchRequest.DEFAULT_MAX_RESULTS, 50, 100, 200, 400}) {</span>
+<span class="nc" id="L371">            ret.add(new SelectItem(value, raLocaleBean.getMessage(&quot;search_certs_page_criteria_results_option&quot;, value)));</span>
+        }
+<span class="nc" id="L373">        return ret;</span>
+    }
+
+    public int getCriteriaEepId() {
+<span class="nc bnc" id="L377" title="All 2 branches missed.">        return stagedRequest.getEepIds().isEmpty() ? 0 : stagedRequest.getEepIds().get(0);</span>
+    }
+    public void setCriteriaEepId(final int criteriaEepId) {
+<span class="nc bnc" id="L380" title="All 2 branches missed.">        if (criteriaEepId==0) {</span>
+<span class="nc" id="L381">            stagedRequest.setEepIds(new ArrayList&lt;Integer&gt;());</span>
+        } else {
+<span class="nc" id="L383">            stagedRequest.setEepIds(new ArrayList&lt;&gt;(Arrays.asList(new Integer[]{ criteriaEepId })));</span>
+        }
+<span class="nc" id="L385">    }</span>
+<span class="nc bnc" id="L386" title="All 2 branches missed.">    public boolean isOnlyOneEepAvailable() { return getAvailableEeps().size()==1; }</span>
+    public List&lt;SelectItem&gt; getAvailableEeps() {
+<span class="nc bnc" id="L388" title="All 2 branches missed.">        if (availableEeps.isEmpty()) {</span>
+<span class="nc" id="L389">            eepIdToNameMap = raMasterApiProxyBean.getAuthorizedEndEntityProfileIdsToNameMap(raAuthenticationBean.getAuthenticationToken());</span>
+<span class="nc" id="L390">            availableEeps.add(new SelectItem(0, raLocaleBean.getMessage(&quot;search_certs_page_criteria_eep_optionany&quot;)));</span>
+<span class="nc bnc" id="L391" title="All 2 branches missed.">            for (final Entry&lt;Integer,String&gt; entry : getAsSortedByValue(eepIdToNameMap.entrySet())) {</span>
+<span class="nc" id="L392">                availableEeps.add(new SelectItem(entry.getKey(), &quot;- &quot; + entry.getValue()));</span>
+<span class="nc" id="L393">            }</span>
+        }
+<span class="nc" id="L395">        return availableEeps;</span>
+    }
+
+    public int getCriteriaCpId() {
+<span class="nc bnc" id="L399" title="All 2 branches missed.">        return stagedRequest.getCpIds().isEmpty() ? 0 : stagedRequest.getCpIds().get(0);</span>
+    }
+    public void setCriteriaCpId(final int criteriaCpId) {
+<span class="nc bnc" id="L402" title="All 2 branches missed.">        if (criteriaCpId==0) {</span>
+<span class="nc" id="L403">            stagedRequest.setCpIds(new ArrayList&lt;Integer&gt;());</span>
+        } else {
+<span class="nc" id="L405">            stagedRequest.setCpIds(new ArrayList&lt;&gt;(Arrays.asList(new Integer[]{ criteriaCpId })));</span>
+        }
+<span class="nc" id="L407">    }</span>
+<span class="nc bnc" id="L408" title="All 2 branches missed.">    public boolean isOnlyOneCpAvailable() { return getAvailableCps().size()==1; }</span>
+    public List&lt;SelectItem&gt; getAvailableCps() {
+<span class="nc bnc" id="L410" title="All 2 branches missed.">        if (availableCps.isEmpty()) {</span>
+<span class="nc" id="L411">            cpIdToNameMap = raMasterApiProxyBean.getAuthorizedCertificateProfileIdsToNameMap(raAuthenticationBean.getAuthenticationToken());</span>
+<span class="nc" id="L412">            availableCps.add(new SelectItem(0, raLocaleBean.getMessage(&quot;search_certs_page_criteria_cp_optionany&quot;)));</span>
+<span class="nc bnc" id="L413" title="All 2 branches missed.">            for (final Entry&lt;Integer,String&gt; entry : getAsSortedByValue(cpIdToNameMap.entrySet())) {</span>
+<span class="nc" id="L414">                availableCps.add(new SelectItem(entry.getKey(), &quot;- &quot; + entry.getValue()));</span>
+<span class="nc" id="L415">            }</span>
+        }
+<span class="nc" id="L417">        return availableCps;</span>
+    }
+
+    public int getCriteriaCaId() {
+<span class="nc bnc" id="L421" title="All 2 branches missed.">        return stagedRequest.getCaIds().isEmpty() ? 0 : stagedRequest.getCaIds().get(0);</span>
+    }
+    public void setCriteriaCaId(int criteriaCaId) {
+<span class="nc bnc" id="L424" title="All 2 branches missed.">        if (criteriaCaId==0) {</span>
+<span class="nc" id="L425">            stagedRequest.setCaIds(new ArrayList&lt;Integer&gt;());</span>
+        } else {
+<span class="nc" id="L427">            stagedRequest.setCaIds(new ArrayList&lt;&gt;(Arrays.asList(new Integer[]{ criteriaCaId })));</span>
+        }
+<span class="nc" id="L429">    }</span>
+<span class="nc bnc" id="L430" title="All 2 branches missed.">    public boolean isOnlyOneCaAvailable() { return getAvailableCas().size()==1; }</span>
+    public List&lt;SelectItem&gt; getAvailableCas() {
+<span class="nc bnc" id="L432" title="All 2 branches missed.">        if (availableCas.isEmpty()) {</span>
+<span class="nc" id="L433">            final List&lt;CAInfo&gt; caInfos = new ArrayList&lt;&gt;(raMasterApiProxyBean.getAuthorizedCas(raAuthenticationBean.getAuthenticationToken()));</span>
+<span class="nc" id="L434">            Collections.sort(caInfos, new Comparator&lt;CAInfo&gt;() {</span>
+                @Override
+                public int compare(final CAInfo caInfo1, final CAInfo caInfo2) {
+<span class="nc" id="L437">                    return caInfo1.getName().compareTo(caInfo2.getName());</span>
+                }
+            });
+<span class="nc bnc" id="L440" title="All 2 branches missed.">            for (final CAInfo caInfo : caInfos) {</span>
+<span class="nc" id="L441">                caSubjectToNameMap.put(caInfo.getSubjectDN(), caInfo.getName());</span>
+<span class="nc" id="L442">            }</span>
+<span class="nc" id="L443">            availableCas.add(new SelectItem(0, raLocaleBean.getMessage(&quot;search_certs_page_criteria_ca_optionany&quot;)));</span>
+<span class="nc bnc" id="L444" title="All 2 branches missed.">            for (final CAInfo caInfo : caInfos) {</span>
+<span class="nc" id="L445">                availableCas.add(new SelectItem(caInfo.getCAId(), &quot;- &quot; + caInfo.getName()));</span>
+<span class="nc" id="L446">            }</span>
+        }
+<span class="nc" id="L448">        return availableCas;</span>
+    }
+
+    public boolean isShowNextPageButton() {
+<span class="nc bnc" id="L452" title="All 4 branches missed.">        return lastExecutedResponse != null &amp;&amp; lastExecutedResponse.isMightHaveMoreResults();</span>
+    }
+
+    public boolean isShowPreviousPageButton() {
+<span class="nc bnc" id="L456" title="All 4 branches missed.">        return stagedRequest != null &amp;&amp; stagedRequest.getPageNumber() &gt; 0;</span>
+    }
+
+    public String getIssuedAfter() {
+<span class="nc" id="L460">        return getDateAsString(issuedAfter, stagedRequest.getIssuedAfter(), 0L);</span>
+    }
+    public void setIssuedAfter(final String issuedAfter) {
+<span class="nc" id="L463">        this.issuedAfter = issuedAfter;</span>
+<span class="nc" id="L464">        stagedRequest.setIssuedAfter(parseDateAndUseDefaultOnFail(issuedAfter, 0L));</span>
+<span class="nc" id="L465">    }</span>
+    public String getIssuedBefore() {
+<span class="nc" id="L467">        return getDateAsString(issuedBefore, stagedRequest.getIssuedBefore(), Long.MAX_VALUE);</span>
+    }
+    public void setIssuedBefore(final String issuedBefore) {
+<span class="nc" id="L470">        this.issuedBefore = issuedBefore;</span>
+<span class="nc" id="L471">        stagedRequest.setIssuedBefore(parseDateAndUseDefaultOnFail(issuedBefore, Long.MAX_VALUE));</span>
+<span class="nc" id="L472">    }</span>
+    public String getExpiresAfter() {
+<span class="nc" id="L474">        return getDateAsString(expiresAfter, stagedRequest.getExpiresAfter(), 0L);</span>
+    }
+    public void setExpiresAfter(final String expiresAfter) {
+<span class="nc" id="L477">        this.expiresAfter = expiresAfter;</span>
+<span class="nc" id="L478">        stagedRequest.setExpiresAfter(parseDateAndUseDefaultOnFail(expiresAfter, 0L));</span>
+<span class="nc" id="L479">    }</span>
+    public String getExpiresBefore() {
+<span class="nc" id="L481">        return getDateAsString(expiresBefore, stagedRequest.getExpiresBefore(), Long.MAX_VALUE);</span>
+    }
+    public void setExpiresBefore(final String expiresBefore) {
+<span class="nc" id="L484">        this.expiresBefore = expiresBefore;</span>
+<span class="nc" id="L485">        stagedRequest.setExpiresBefore(parseDateAndUseDefaultOnFail(expiresBefore, Long.MAX_VALUE));</span>
+<span class="nc" id="L486">    }</span>
+    public String getRevokedAfter() {
+<span class="nc" id="L488">        return getDateAsString(revokedAfter, stagedRequest.getRevokedAfter(), 0L);</span>
+    }
+    public void setRevokedAfter(final String revokedAfter) {
+<span class="nc" id="L491">        this.revokedAfter = revokedAfter;</span>
+<span class="nc" id="L492">        stagedRequest.setRevokedAfter(parseDateAndUseDefaultOnFail(revokedAfter, 0L));</span>
+<span class="nc" id="L493">    }</span>
+    public String getRevokedBefore() {
+<span class="nc" id="L495">        return getDateAsString(revokedBefore, stagedRequest.getRevokedBefore(), Long.MAX_VALUE);</span>
+    }
+    public void setRevokedBefore(final String revokedBefore) {
+<span class="nc" id="L498">        this.revokedBefore = revokedBefore;</span>
+<span class="nc" id="L499">        stagedRequest.setRevokedBefore(parseDateAndUseDefaultOnFail(revokedBefore, Long.MAX_VALUE));</span>
+<span class="nc" id="L500">    }</span>
+
+    /**
+     * Query for the next page of search results.
+     * @param event Event
+     */
+    public void queryNextPage(final AjaxBehaviorEvent event) {
+<span class="nc" id="L507">        stagedRequest.setPageNumber(stagedRequest.getPageNumber() + 1);</span>
+<span class="nc" id="L508">        searchForCertificates();</span>
+<span class="nc" id="L509">    }</span>
+
+    /**
+     * Query for the previous page of search results.
+     * @param event Event 
+     */
+    public void queryPreviousPage(final AjaxBehaviorEvent event) {
+<span class="nc" id="L516">        stagedRequest.setPageNumber(stagedRequest.getPageNumber() - 1);</span>
+<span class="nc" id="L517">        searchForCertificates();</span>
+<span class="nc" id="L518">    }</span>
+
+    /** @param stagedValue Value
+     * @param value Value
+     * @param defaultValue Default  
+     * @return the current value if the staged request value if the default value */
+    private String getDateAsString(final String stagedValue, final long value, final long defaultValue) {
+<span class="nc bnc" id="L525" title="All 2 branches missed.">        if (value==defaultValue) {</span>
+<span class="nc" id="L526">            return stagedValue;</span>
+        }
+<span class="nc" id="L528">        return ValidityDate.formatAsISO8601ServerTZ(value, TimeZone.getDefault());</span>
+    }
+    /** @param input Input 
+     * @param defaultValue Value
+     * @return the staged request value if it is a parsable date and the default value otherwise */
+    private long parseDateAndUseDefaultOnFail(final String input, final long defaultValue) {
+<span class="nc" id="L534">        markCurrentComponentAsValid(true);</span>
+<span class="nc bnc" id="L535" title="All 2 branches missed.">        if (!input.trim().isEmpty()) {</span>
+            try {
+<span class="nc" id="L537">                return ValidityDate.parseAsIso8601(input).getTime();</span>
+<span class="nc" id="L538">            } catch (ParseException e) {</span>
+<span class="nc" id="L539">                markCurrentComponentAsValid(false);</span>
+<span class="nc" id="L540">                raLocaleBean.addMessageWarn(&quot;search_certs_page_warn_invaliddate&quot;);</span>
+            }
+        }
+<span class="nc" id="L543">        return defaultValue;</span>
+    }
+
+    /** Set or remove the styleClass &quot;invalidInput&quot; on the label with a for-attribute matching the current input component. 
+     * @param valid Valid */
+    private void markCurrentComponentAsValid(final boolean valid) {
+<span class="nc" id="L549">        final String STYLE_CLASS_INVALID = &quot;invalidInput&quot;;</span>
+        // UIComponent.getCurrentComponent only works when invoked via f:ajax
+<span class="nc" id="L551">        final UIComponent uiComponent = UIComponent.getCurrentComponent(FacesContext.getCurrentInstance());</span>
+<span class="nc" id="L552">        final String id = uiComponent.getId();</span>
+<span class="nc" id="L553">        final List&lt;UIComponent&gt; siblings = uiComponent.getParent().getChildren();</span>
+<span class="nc bnc" id="L554" title="All 2 branches missed.">        for (final UIComponent sibling : siblings) {</span>
+<span class="nc bnc" id="L555" title="All 2 branches missed.">            if (sibling instanceof HtmlOutputLabel) {</span>
+<span class="nc" id="L556">                final HtmlOutputLabel htmlOutputLabel = (HtmlOutputLabel) sibling;</span>
+<span class="nc bnc" id="L557" title="All 2 branches missed.">                if (htmlOutputLabel.getFor().equals(id)) {</span>
+<span class="nc" id="L558">                    String styleClass = htmlOutputLabel.getStyleClass();</span>
+<span class="nc bnc" id="L559" title="All 2 branches missed.">                    if (valid) {</span>
+<span class="nc bnc" id="L560" title="All 4 branches missed.">                        if (styleClass!=null &amp;&amp; styleClass.contains(STYLE_CLASS_INVALID)) {</span>
+<span class="nc" id="L561">                            styleClass = styleClass.replace(STYLE_CLASS_INVALID, &quot;&quot;).trim();</span>
+                        }
+                    } else {
+<span class="nc bnc" id="L564" title="All 2 branches missed.">                        if (styleClass==null) {</span>
+<span class="nc" id="L565">                            styleClass = STYLE_CLASS_INVALID;</span>
+                        } else {
+<span class="nc bnc" id="L567" title="All 2 branches missed.">                            if (!styleClass.contains(STYLE_CLASS_INVALID)) {</span>
+<span class="nc" id="L568">                                styleClass = styleClass.concat(&quot; &quot; + STYLE_CLASS_INVALID);</span>
+                            }
+                        }
+                    }
+<span class="nc" id="L572">                    htmlOutputLabel.setStyleClass(styleClass);</span>
+                }
+            }
+<span class="nc" id="L575">        }</span>
+<span class="nc" id="L576">    }</span>
+
+    public String getCriteriaStatus() {
+<span class="nc" id="L579">        final StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L580">        final List&lt;Integer&gt; statuses = stagedRequest.getStatuses();</span>
+<span class="nc" id="L581">        final List&lt;Integer&gt; revocationReasons = stagedRequest.getRevocationReasons();</span>
+<span class="nc bnc" id="L582" title="All 2 branches missed.">        if (statuses.contains(CertificateConstants.CERT_ACTIVE)) {</span>
+<span class="nc" id="L583">            sb.append(CertificateConstants.CERT_ACTIVE);</span>
+<span class="nc bnc" id="L584" title="All 2 branches missed.">        } else if (statuses.contains(CertificateConstants.CERT_REVOKED)) {</span>
+<span class="nc" id="L585">            sb.append(CertificateConstants.CERT_REVOKED);</span>
+<span class="nc bnc" id="L586" title="All 2 branches missed.">            if (!revocationReasons.isEmpty()) {</span>
+<span class="nc" id="L587">                sb.append(&quot;_&quot;).append(revocationReasons.get(0));</span>
+            }
+        }
+<span class="nc" id="L590">        return sb.toString();</span>
+    }
+    public void setCriteriaStatus(final String criteriaStatus) {
+<span class="nc" id="L593">        final List&lt;Integer&gt; statuses = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L594">        final List&lt;Integer&gt; revocationReasons = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L595" title="All 4 branches missed.">        if (criteriaStatus!=null &amp;&amp; !criteriaStatus.isEmpty()) {</span>
+<span class="nc" id="L596">            final String[] criteriaStatusSplit = criteriaStatus.split(&quot;_&quot;);</span>
+<span class="nc bnc" id="L597" title="All 2 branches missed.">            if (String.valueOf(CertificateConstants.CERT_ACTIVE).equals(criteriaStatusSplit[0])) {</span>
+<span class="nc" id="L598">                statuses.addAll(Arrays.asList(new Integer[]{ CertificateConstants.CERT_ACTIVE, CertificateConstants.CERT_NOTIFIEDABOUTEXPIRATION }));</span>
+            } else {
+<span class="nc" id="L600">                statuses.addAll(Arrays.asList(new Integer[]{ CertificateConstants.CERT_REVOKED, CertificateConstants.CERT_ARCHIVED }));</span>
+<span class="nc bnc" id="L601" title="All 2 branches missed.">                if (criteriaStatusSplit.length&gt;1) {</span>
+<span class="nc" id="L602">                    revocationReasons.addAll(Arrays.asList(new Integer[]{ Integer.parseInt(criteriaStatusSplit[1]) }));</span>
+                }
+            }
+        }
+<span class="nc" id="L606">        stagedRequest.setStatuses(statuses);</span>
+<span class="nc" id="L607">        stagedRequest.setRevocationReasons(revocationReasons);</span>
+<span class="nc" id="L608">    }</span>
+
+    public List&lt;SelectItem&gt; getAvailableStatuses() {
+<span class="nc" id="L611">        final List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L612">        ret.add(new SelectItem(&quot;&quot;, raLocaleBean.getMessage(&quot;search_certs_page_criteria_status_option_any&quot;)));</span>
+<span class="nc" id="L613">        ret.add(new SelectItem(String.valueOf(CertificateConstants.CERT_ACTIVE), raLocaleBean.getMessage(&quot;search_certs_page_criteria_status_option_active&quot;)));</span>
+<span class="nc" id="L614">        ret.add(new SelectItem(String.valueOf(CertificateConstants.CERT_REVOKED), raLocaleBean.getMessage(&quot;search_certs_page_criteria_status_option_revoked&quot;)));</span>
+<span class="nc" id="L615">        ret.add(getAvailableStatusRevoked(RevokedCertInfo.REVOCATION_REASON_UNSPECIFIED));</span>
+<span class="nc" id="L616">        ret.add(getAvailableStatusRevoked(RevokedCertInfo.REVOCATION_REASON_KEYCOMPROMISE));</span>
+<span class="nc" id="L617">        ret.add(getAvailableStatusRevoked(RevokedCertInfo.REVOCATION_REASON_CACOMPROMISE));</span>
+<span class="nc" id="L618">        ret.add(getAvailableStatusRevoked(RevokedCertInfo.REVOCATION_REASON_AFFILIATIONCHANGED));</span>
+<span class="nc" id="L619">        ret.add(getAvailableStatusRevoked(RevokedCertInfo.REVOCATION_REASON_SUPERSEDED));</span>
+<span class="nc" id="L620">        ret.add(getAvailableStatusRevoked(RevokedCertInfo.REVOCATION_REASON_CESSATIONOFOPERATION));</span>
+<span class="nc" id="L621">        ret.add(getAvailableStatusRevoked(RevokedCertInfo.REVOCATION_REASON_CERTIFICATEHOLD));</span>
+<span class="nc" id="L622">        ret.add(getAvailableStatusRevoked(RevokedCertInfo.REVOCATION_REASON_REMOVEFROMCRL));</span>
+<span class="nc" id="L623">        ret.add(getAvailableStatusRevoked(RevokedCertInfo.REVOCATION_REASON_PRIVILEGESWITHDRAWN));</span>
+<span class="nc" id="L624">        ret.add(getAvailableStatusRevoked(RevokedCertInfo.REVOCATION_REASON_AACOMPROMISE));</span>
+<span class="nc" id="L625">        return ret;</span>
+    }
+    private SelectItem getAvailableStatusRevoked(final int reason) {
+<span class="nc" id="L628">        return new SelectItem(CertificateConstants.CERT_REVOKED + &quot;_&quot; + reason, raLocaleBean.getMessage(&quot;search_certs_page_criteria_status_option_revoked_reason_&quot;+reason));</span>
+    }
+
+    private &lt;T&gt; List&lt;Entry&lt;T, String&gt;&gt; getAsSortedByValue(final Set&lt;Entry&lt;T, String&gt;&gt; entrySet) {
+<span class="nc" id="L632">        final List&lt;Entry&lt;T, String&gt;&gt; entrySetSorted = new ArrayList&lt;&gt;(entrySet);</span>
+<span class="nc" id="L633">        Collections.sort(entrySetSorted, new Comparator&lt;Entry&lt;T, String&gt;&gt;() {</span>
+            @Override
+            public int compare(final Entry&lt;T, String&gt; o1, final Entry&lt;T, String&gt; o2) {
+<span class="nc" id="L636">                return o1.getValue().compareTo(o2.getValue());</span>
+            }
+        });
+<span class="nc" id="L639">        return entrySetSorted;</span>
+    }
+
+    public UIComponent getConfirmPasswordComponent() {
+<span class="nc" id="L643">        return confirmPasswordComponent;</span>
+    }
+
+    public void setConfirmPasswordComponent(UIComponent confirmPasswordComponent) {
+<span class="nc" id="L647">        this.confirmPasswordComponent = confirmPasswordComponent;</span>
+<span class="nc" id="L648">    }</span>
+
+    /** Chain the results in the current order for certificate details navigation. */
+    private void chain() {
+<span class="nc" id="L652">        RaCertificateDetails previous = null;</span>
+<span class="nc bnc" id="L653" title="All 2 branches missed.">        for (final RaCertificateDetails current: resultsFiltered) {</span>
+<span class="nc" id="L654">            current.setPrevious(previous);</span>
+<span class="nc bnc" id="L655" title="All 2 branches missed.">            if (previous!=null) {</span>
+<span class="nc" id="L656">                previous.setNext(current);</span>
+            }
+<span class="nc" id="L658">            previous = current;</span>
+<span class="nc" id="L659">        }</span>
+<span class="nc bnc" id="L660" title="All 2 branches missed.">        if (!resultsFiltered.isEmpty()) {</span>
+<span class="nc" id="L661">            resultsFiltered.get(resultsFiltered.size()-1).setNext(null);</span>
+        }
+<span class="nc" id="L663">    }</span>
+
+    public void openCertificateDetails(final RaCertificateDetails selected) {
+<span class="nc" id="L666">        currentCertificateDetails = selected;</span>
+<span class="nc" id="L667">    }</span>
+    public RaCertificateDetails getCurrentCertificateDetails() {
+<span class="nc" id="L669">        return currentCertificateDetails;</span>
+    }
+    public void nextCertificateDetails() {
+<span class="nc" id="L672">        currentCertificateDetails = currentCertificateDetails.getNext();</span>
+<span class="nc" id="L673">    }</span>
+    public void previousCertificateDetails() {
+<span class="nc" id="L675">        currentCertificateDetails = currentCertificateDetails.getPrevious();</span>
+<span class="nc" id="L676">    }</span>
+    public void closeCertificateDetails() {
+<span class="nc" id="L678">        currentCertificateDetails = null;</span>
+<span class="nc" id="L679">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

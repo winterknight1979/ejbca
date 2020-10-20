@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RolesBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Administration GUI</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.administratorprivileges</a> &gt; <span class="el_source">RolesBean.java</span></div><h1>RolesBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.web.admin.administratorprivileges;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+
+import javax.annotation.PostConstruct;
+import javax.ejb.EJB;
+import javax.faces.application.FacesMessage;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.ViewScoped;
+import javax.faces.model.ListDataModel;
+import javax.faces.model.SelectItem;
+
+import org.apache.commons.lang.StringUtils;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.authorization.control.StandardRules;
+import org.cesecore.config.RaStyleInfo;
+import org.cesecore.configuration.GlobalConfigurationSessionLocal;
+import org.cesecore.roles.Role;
+import org.cesecore.roles.RoleExistsException;
+import org.cesecore.roles.management.RoleSessionLocal;
+import org.ejbca.config.GlobalCustomCssConfiguration;
+import org.ejbca.ui.web.admin.BaseManagedBean;
+
+/**
+ * Managed Bean for the Roles overview page.
+ * 
+ * @version $Id: RolesBean.java 28844 2018-05-04 08:31:02Z samuellb $
+ * TODO: CDI beans
+ */
+@SuppressWarnings(&quot;deprecation&quot;)
+@ViewScoped
+@ManagedBean
+<span class="nc" id="L50">public class RolesBean extends BaseManagedBean implements Serializable {</span>
+
+    private static final long serialVersionUID = 1L;
+    //private static final Logger log = Logger.getLogger(RolesBean.class);
+    @EJB
+    private AuthorizationSessionLocal authorizationSession;
+    @EJB
+    private RoleSessionLocal roleSession;
+    @EJB
+    private GlobalConfigurationSessionLocal globalConfigurationSession;
+    
+<span class="nc" id="L61">    private boolean addRoleInProgress = false;</span>
+<span class="nc" id="L62">    private Role roleToRename = null;</span>
+<span class="nc" id="L63">    private Role roleToDelete = null;</span>
+    private String editNameSpaceSelected;
+    private String editNameSpace;
+    private String editRoleName;
+    private int selectedStyle;
+    private List&lt;SelectItem&gt; raStyleList;
+    private ListDataModel&lt;Role&gt; rolesAvailable;
+    private List&lt;String&gt; nameSpacesAvailable;
+<span class="nc" id="L71">    private boolean onlyEmptyNameSpaceInUse = true;</span>
+
+    @PostConstruct
+    private void postConstruct() {
+<span class="nc" id="L75">        reloadRolesAndNameSpaces();</span>
+<span class="nc" id="L76">        editReset();</span>
+<span class="nc" id="L77">    }</span>
+
+    /** @return true when admin is authorized to view roles */
+    public boolean isAuthorizedToViewRoles() {
+<span class="nc" id="L81">        return authorizationSession.isAuthorizedNoLogging(getAdmin(), StandardRules.VIEWROLES.resource());</span>
+    }
+
+    /** @return true when admin is authorized to edit roles (which implies view rights) */
+    public boolean isAuthorizedToEditRoles() {
+<span class="nc" id="L86">        return authorizationSession.isAuthorizedNoLogging(getAdmin(), StandardRules.EDITROLES.resource());</span>
+    }
+    
+    /** @return true if the only the empty namespace currently exists on this system */
+    public boolean isOnlyEmptyNameSpaceInUse() {
+<span class="nc" id="L91">        return onlyEmptyNameSpaceInUse;</span>
+    }
+
+    /** @return the ListDataModel of all roles the admin is authorized to */
+    public ListDataModel&lt;Role&gt; getRolesAvailable() {
+<span class="nc bnc" id="L96" title="All 2 branches missed.">        if (rolesAvailable==null) {</span>
+<span class="nc" id="L97">            final List&lt;Role&gt; roles = roleSession.getAuthorizedRoles(super.getAdmin());</span>
+<span class="nc" id="L98">            boolean onlyEmptyNameSpaceInUse = true;</span>
+<span class="nc bnc" id="L99" title="All 2 branches missed.">            for (final Role role : roles) {</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">                if (!role.getNameSpace().isEmpty()) {</span>
+<span class="nc" id="L101">                    onlyEmptyNameSpaceInUse = false;</span>
+<span class="nc" id="L102">                    break;</span>
+                }
+<span class="nc" id="L104">            }</span>
+<span class="nc" id="L105">            this.onlyEmptyNameSpaceInUse = onlyEmptyNameSpaceInUse;</span>
+<span class="nc" id="L106">            Collections.sort(roles);</span>
+<span class="nc" id="L107">            rolesAvailable = new ListDataModel&lt;&gt;(roles);</span>
+        }
+<span class="nc" id="L109">        return rolesAvailable;</span>
+    }
+
+    /** Trigger a reload of Roles and available namespaces on next request */
+    private void reloadRolesAndNameSpaces() {
+<span class="nc" id="L114">        nameSpacesAvailable = null;</span>
+<span class="nc" id="L115">        rolesAvailable = null;</span>
+<span class="nc" id="L116">    }</span>
+    
+    /** @return true if the admin has access to the empty namespace (and hence is allowed to create new ones) */
+    public boolean isAuthorizedToCreateNewNameSpace() {
+<span class="nc bnc" id="L120" title="All 4 branches missed.">        return isAuthorizedToEditRoles() &amp;&amp; getNameSpaceAvailable().contains(&quot;&quot;);</span>
+    }
+
+    /** @return a list of existing and authorized namespaces that the admin has access to */
+    public List&lt;String&gt; getNameSpaceAvailable() {
+<span class="nc bnc" id="L125" title="All 2 branches missed.">        if (nameSpacesAvailable==null) {</span>
+<span class="nc" id="L126">            nameSpacesAvailable = new LinkedList&lt;&gt;(roleSession.getAuthorizedNamespaces(getAdmin()));</span>
+<span class="nc" id="L127">            Collections.sort(nameSpacesAvailable);</span>
+        }
+<span class="nc" id="L129">        return nameSpacesAvailable;</span>
+    }
+
+    /** Invoked while adding or renaming a role to create a new namespace, instead of using one of the existing ones */
+    public void actionEditNewNameSpace() {
+        // Use the current selected one for convenience, if it's not selected any namespace however, we set it to something so we can edit it.
+        // otherwise the isRenderEditNameSpace will not trigger a possibility to edit
+<span class="nc bnc" id="L136" title="All 2 branches missed.">        if (StringUtils.isEmpty(editNameSpaceSelected)) {</span>
+<span class="nc" id="L137">            editNameSpace = &quot;&quot;;</span>
+        } else {
+<span class="nc" id="L139">            editNameSpace = editNameSpaceSelected;</span>
+        }
+<span class="nc" id="L141">    }</span>
+    
+    /** @return true when creating a new namespace, instead of using on of the existing ones while adding or renaming a role */
+    public boolean isRenderEditNameSpace() {
+<span class="nc bnc" id="L145" title="All 2 branches missed.">        return editNameSpace != null;</span>
+    }
+
+    /** @return the currently selected namespace when adding or renaming a role */
+<span class="nc" id="L149">    public String getEditNameSpaceSelected() { return editNameSpaceSelected; }</span>
+    /** Set the currently selected namespace when adding or renaming a role 
+     * @param editNameSpaceSelected Selected*/
+<span class="nc" id="L152">    public void setEditNameSpaceSelected(String editNameSpaceSelected) { this.editNameSpaceSelected = editNameSpaceSelected; }</span>
+
+    /** @return the currently free-text namespace when adding or renaming a role (or null if no free text editing is currently ongoing) */
+<span class="nc" id="L155">    public String getEditNameSpace() { return editNameSpace; }</span>
+    /** Set the currently free-text namespace when adding or renaming a role (or null if no free text editing is currently ongoing) 
+     * @param editNameSpace NS */
+<span class="nc" id="L158">    public void setEditNameSpace(String editNameSpace) { this.editNameSpace = editNameSpace.trim(); }</span>
+
+    /** @return the free-text role name when adding or renaming a role */
+<span class="nc" id="L161">    public String getEditRoleName() { return editRoleName; }</span>
+    /** Set the free-text role name when adding or renaming a role 
+     * @param editRoleName Name */
+<span class="nc" id="L164">    public void setEditRoleName(String editRoleName) { this.editRoleName = editRoleName.trim(); }</span>
+    
+    public int getSelectedStyle() {
+<span class="nc" id="L167">        Role roleToSelect = rolesAvailable.getRowData();</span>
+<span class="nc" id="L168">        selectedStyle = roleToSelect.getStyleId();</span>
+<span class="nc" id="L169">        return selectedStyle;</span>
+    }
+    
+    public void setSelectedStyle(int selectedStyle) {
+<span class="nc" id="L173">        this.selectedStyle = selectedStyle;</span>
+<span class="nc" id="L174">        saveStyle();</span>
+<span class="nc" id="L175">    }</span>
+    
+    public boolean isStyleSelectable() {
+<span class="nc" id="L178">        boolean authorizedToStyleArchives = authorizationSession.isAuthorizedNoLogging(getAdmin(), </span>
+<span class="nc" id="L179">                StandardRules.SYSTEMCONFIGURATION_VIEW.resource(), StandardRules.EDITROLES.resource(), StandardRules.VIEWROLES.resource());</span>
+<span class="nc bnc" id="L180" title="All 6 branches missed.">        if (authorizedToStyleArchives &amp;&amp; raStyleList != null &amp;&amp; raStyleList.size() &gt; 1) {</span>
+<span class="nc" id="L181">            return true;</span>
+        }
+<span class="nc" id="L183">        return false;</span>
+    }
+    
+    public List&lt;SelectItem&gt; getAvailableStylesList() {
+<span class="nc" id="L187">        GlobalCustomCssConfiguration globalCustomCssConfiguration = (GlobalCustomCssConfiguration) globalConfigurationSession.getCachedConfiguration(GlobalCustomCssConfiguration.CSS_CONFIGURATION_ID);</span>
+<span class="nc" id="L188">        raStyleList = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L189">        raStyleList.add(new SelectItem(0, &quot;Default&quot;));</span>
+<span class="nc bnc" id="L190" title="All 2 branches missed.">        for (RaStyleInfo raStyleInfo : globalCustomCssConfiguration.getRaStyleInfo().values()) {</span>
+<span class="nc" id="L191">            raStyleList.add(new SelectItem(raStyleInfo.getArchiveId(), raStyleInfo.getArchiveName()));</span>
+<span class="nc" id="L192">        }</span>
+<span class="nc" id="L193">        return raStyleList;</span>
+    }
+    
+    private void saveStyle() {
+<span class="nc" id="L197">        Role roleToSave = rolesAvailable.getRowData();</span>
+<span class="nc" id="L198">        roleToSave.setStyleId(selectedStyle);</span>
+        try {
+<span class="nc" id="L200">            roleSession.persistRole(getAdmin(), roleToSave, false);</span>
+<span class="nc" id="L201">        } catch (RoleExistsException e) {</span>
+<span class="nc" id="L202">            super.addGlobalMessage(FacesMessage.SEVERITY_ERROR, &quot;ROLEEXISTS&quot;);</span>
+<span class="nc" id="L203">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L204">            super.addGlobalMessage(FacesMessage.SEVERITY_ERROR, &quot;ROLES_ERROR_UNAUTHORIZED&quot;, e.getMessage());</span>
+<span class="nc" id="L205">        }</span>
+<span class="nc" id="L206">    }</span>
+    
+    private void editReset() {
+<span class="nc" id="L209">        editNameSpaceSelected = &quot;&quot;;</span>
+<span class="nc" id="L210">        editNameSpace = null;</span>
+<span class="nc" id="L211">        editRoleName = &quot;&quot;;</span>
+<span class="nc" id="L212">    }</span>
+
+    /** @return true when the admin is in process of adding a new role */
+    public boolean isRenderAddRole() {
+<span class="nc bnc" id="L216" title="All 4 branches missed.">        return isAuthorizedToEditRoles() &amp;&amp; addRoleInProgress;</span>
+    }
+    /** Invoked when starting process to add a new role */
+    public void actionAddRoleStart() {
+<span class="nc" id="L220">        addRoleInProgress = true;</span>
+<span class="nc" id="L221">        editNameSpaceSelected = getNameSpaceAvailable().get(0);</span>
+<span class="nc" id="L222">    }</span>
+    /** Invoked when canceling process to add a new role */
+    public void actionAddRoleReset() {
+<span class="nc" id="L225">        editReset();</span>
+<span class="nc" id="L226">        addRoleInProgress = false;</span>
+<span class="nc" id="L227">    }</span>
+    /** Invoked when confirming process to add a new role */
+    public void actionAddRoleConfirm() {
+<span class="nc bnc" id="L230" title="All 2 branches missed.">        if (StringUtils.isEmpty(editRoleName)) {</span>
+<span class="nc" id="L231">            super.addGlobalMessage(FacesMessage.SEVERITY_ERROR, &quot;ROLES_ERROR_EMPTYNAME&quot;);</span>
+<span class="nc" id="L232">            return;</span>
+        }
+        try {
+<span class="nc bnc" id="L235" title="All 2 branches missed.">            if (editNameSpace==null) {</span>
+<span class="nc" id="L236">                editNameSpace = editNameSpaceSelected;</span>
+            }
+<span class="nc" id="L238">            final Role role = new Role(editNameSpace, editRoleName);</span>
+<span class="nc" id="L239">            roleSession.persistRole(getAdmin(), role);</span>
+<span class="nc" id="L240">            reloadRolesAndNameSpaces();</span>
+<span class="nc" id="L241">            actionAddRoleReset();</span>
+<span class="nc" id="L242">            super.addGlobalMessage(FacesMessage.SEVERITY_INFO, &quot;ROLES_INFO_ROLEADDED&quot;);</span>
+<span class="nc" id="L243">        } catch (RoleExistsException e) {</span>
+<span class="nc" id="L244">            super.addGlobalMessage(FacesMessage.SEVERITY_ERROR, &quot;ROLEEXISTS&quot;);</span>
+<span class="nc" id="L245">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L246">            super.addGlobalMessage(FacesMessage.SEVERITY_ERROR, &quot;ROLES_ERROR_UNAUTHORIZED&quot;, e.getMessage());</span>
+<span class="nc" id="L247">        }</span>
+<span class="nc" id="L248">    }</span>
+    
+    /** @return true when the admin is in process of renaming a role */
+    public boolean isRenderRenameRole() {
+<span class="nc bnc" id="L252" title="All 4 branches missed.">        return isAuthorizedToEditRoles() &amp;&amp; roleToRename!=null;</span>
+    }
+    /** Invoked when starting process to rename a role */
+    public void actionRenameRoleStart() {
+<span class="nc" id="L256">        roleToRename = rolesAvailable.getRowData();</span>
+<span class="nc" id="L257">        setEditNameSpaceSelected(roleToRename.getNameSpace());</span>
+<span class="nc" id="L258">        setEditRoleName(roleToRename.getRoleName());</span>
+<span class="nc" id="L259">    }</span>
+    /** Invoked when canceling process to rename a role */
+    public void actionRenameRoleReset() {
+<span class="nc" id="L262">        editReset();</span>
+<span class="nc" id="L263">        roleToRename = null;</span>
+<span class="nc" id="L264">    }</span>
+    /** Invoked when confirming process to rename a role */
+    public void actionRenameRoleConfirm() {
+<span class="nc bnc" id="L267" title="All 2 branches missed.">        if (StringUtils.isEmpty(editRoleName)) {</span>
+<span class="nc" id="L268">            super.addGlobalMessage(FacesMessage.SEVERITY_ERROR, &quot;ROLES_ERROR_EMPTYNAME&quot;);</span>
+        }
+        try {
+<span class="nc bnc" id="L271" title="All 2 branches missed.">            if (editNameSpace==null) {</span>
+<span class="nc" id="L272">                editNameSpace = editNameSpaceSelected;</span>
+            }
+<span class="nc" id="L274">            roleToRename.setNameSpace(editNameSpace);</span>
+<span class="nc" id="L275">            roleToRename.setRoleName(editRoleName);</span>
+<span class="nc" id="L276">            roleSession.persistRole(getAdmin(), roleToRename);</span>
+<span class="nc" id="L277">            actionRenameRoleReset();</span>
+<span class="nc" id="L278">            reloadRolesAndNameSpaces();</span>
+<span class="nc" id="L279">            super.addGlobalMessage(FacesMessage.SEVERITY_INFO, &quot;ROLES_INFO_RENAMED&quot;);</span>
+<span class="nc" id="L280">        } catch (RoleExistsException e) {</span>
+<span class="nc" id="L281">            super.addGlobalMessage(FacesMessage.SEVERITY_ERROR, &quot;ROLEEXISTS&quot;);</span>
+<span class="nc" id="L282">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L283">            super.addGlobalMessage(FacesMessage.SEVERITY_ERROR, &quot;ROLES_ERROR_UNAUTHORIZED&quot;, e.getMessage());</span>
+<span class="nc" id="L284">        }</span>
+<span class="nc" id="L285">        super.nonAjaxPostRedirectGet(null);</span>
+<span class="nc" id="L286">    }</span>
+
+    /** @return true when the admin is in process of deleting a new role */
+    public boolean isRenderDeleteRole() {
+<span class="nc bnc" id="L290" title="All 4 branches missed.">        return isAuthorizedToEditRoles() &amp;&amp; roleToDelete!=null;</span>
+    }
+    /** @return the role that is the admin has started the process of deleting */
+    public Role getRoleToDelete() {
+<span class="nc" id="L294">        return roleToDelete;</span>
+    }
+    /** Invoked when starting process to delete a role */
+    public void actionDeleteRoleStart() {
+<span class="nc" id="L298">        roleToDelete = rolesAvailable.getRowData();</span>
+<span class="nc" id="L299">    }</span>
+    /** Invoked when canceling process to delete a role */
+    public void actionDeleteRoleReset() {
+<span class="nc" id="L302">        roleToDelete = null;</span>
+<span class="nc" id="L303">    }</span>
+    /** Invoked when confirming process to delete a role */
+    public void actionDeleteRoleConfirm() {
+        try {
+<span class="nc bnc" id="L307" title="All 2 branches missed.">            if (roleSession.deleteRoleIdempotent(getAdmin(), roleToDelete.getRoleId())) {</span>
+<span class="nc" id="L308">                super.addGlobalMessage(FacesMessage.SEVERITY_INFO, &quot;ROLES_INFO_DELETED&quot;);</span>
+            }
+<span class="nc" id="L310">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L311">            super.addGlobalMessage(FacesMessage.SEVERITY_ERROR, &quot;ROLES_ERROR_UNAUTHORIZED&quot;, e.getMessage());</span>
+<span class="nc" id="L312">        }</span>
+<span class="nc" id="L313">        actionDeleteRoleReset();</span>
+<span class="nc" id="L314">        reloadRolesAndNameSpaces();</span>
+<span class="nc" id="L315">        super.nonAjaxPostRedirectGet(null);</span>
+<span class="nc" id="L316">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

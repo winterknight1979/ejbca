@@ -13,29 +13,39 @@
 package org.cesecore.keys;
 
 /**
- * This exception is thrown when an error is encountered when trying to create a key.
- * 
- * @version $Id: KeyCreationException.java 17625 2013-09-20 07:12:06Z netmackan $
+ * This exception is thrown when an error is encountered when trying to create a
+ * key.
+ *
+ * @version $Id: KeyCreationException.java 17625 2013-09-20 07:12:06Z netmackan
+ *     $
  */
 public class KeyCreationException extends RuntimeException {
 
-    private static final long serialVersionUID = 6589133117806842102L;
+  private static final long serialVersionUID = 6589133117806842102L;
 
-<span class="nc" id="L24">    public KeyCreationException() {</span>
+  /** default. */
+<span class="nc" id="L27">  public KeyCreationException() { }</span>
 
-<span class="nc" id="L26">    }</span>
+  /**
+   * @param arg0 Message
+   */
+  public KeyCreationException(final String arg0) {
+<span class="nc" id="L33">    super(arg0);</span>
+<span class="nc" id="L34">  }</span>
 
-    public KeyCreationException(String arg0) {
-<span class="nc" id="L29">        super(arg0);</span>
-<span class="nc" id="L30">    }</span>
+  /**
+   * @param arg0 cause
+   */
+  public KeyCreationException(final Throwable arg0) {
+<span class="nc" id="L40">    super(arg0);</span>
+<span class="nc" id="L41">  }</span>
 
-    public KeyCreationException(Throwable arg0) {
-<span class="nc" id="L33">        super(arg0);</span>
-<span class="nc" id="L34">    }</span>
-
-    public KeyCreationException(String arg0, Throwable arg1) {
-<span class="nc" id="L37">        super(arg0, arg1);</span>
-<span class="nc" id="L38">    }</span>
-
+  /**
+   * @param arg0 Message
+   * @param arg1 Cause
+   */
+  public KeyCreationException(final String arg0, final Throwable arg1) {
+<span class="nc" id="L48">    super(arg0, arg1);</span>
+<span class="nc" id="L49">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

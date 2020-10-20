@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ImportDataCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.hardtoken</a> &gt; <span class="el_source">ImportDataCommand.java</span></div><h1>ImportDataCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.cli.hardtoken;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Properties;
+
+import org.apache.log4j.Logger;
+import org.cesecore.certificates.ca.CaSessionRemote;
+import org.cesecore.util.EjbRemoteHelper;
+import org.ejbca.core.ejb.hardtoken.HardTokenSessionRemote;
+import org.ejbca.core.model.hardtoken.HardTokenDoesntExistsException;
+import org.ejbca.core.model.hardtoken.HardTokenExistsException;
+import org.ejbca.core.model.hardtoken.HardTokenInformation;
+import org.ejbca.ui.cli.hardtoken.importer.IHardTokenImporter;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.command.EjbcaCliUserCommandBase;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+
+/**
+ * Command used to import hard token data from a source.
+ * 
+ * It reads its properties from a file specified and there are two required
+ * properties by default.
+ * importer.classpath pointing to an implementation of a org.ejbca.ui.cli.hardtoken.IHardTokenImporter 
+ * significantissuerdn should contain the DN of the CA that the tokens should be connected to, used 
+ * for authorization purposes. 
+ * 
+ * The -force flag indicates that rows that already exists in the data will be overwritten.
+ * @version $Id: ImportDataCommand.java 27740 2018-01-05 07:24:53Z mikekushner $
+ */
+<span class="nc" id="L50">public class ImportDataCommand extends EjbcaCliUserCommandBase {</span>
+
+<span class="nc" id="L52">    private static final Logger log = Logger.getLogger(ImportDataCommand.class);</span>
+
+    private static final String FORCE_KEY = &quot;-force&quot;;
+    private static final String FILE_KEY = &quot;-f&quot;;
+
+    {
+<span class="nc" id="L58">        registerParameter(new Parameter(FILE_KEY, &quot;Filename&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;Properties file to import from.&quot;));
+<span class="nc" id="L60">        registerParameter(Parameter.createFlag(FORCE_KEY, &quot;Indicates that existing hard token info will be overwritten.&quot;));</span>
+<span class="nc" id="L61">    }</span>
+
+    @Override
+    public String[] getCommandPath() {
+<span class="nc" id="L65">        return new String[] { &quot;hardtoken&quot; };</span>
+    }
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L70">        return &quot;importdata&quot;;</span>
+    }
+
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+<span class="nc" id="L75">        Properties props = new Properties();</span>
+<span class="nc" id="L76">        String filename = parameters.get(FILE_KEY);</span>
+<span class="nc" id="L77">        boolean force = parameters.containsKey(FORCE_KEY);</span>
+        try {
+            try {
+<span class="nc" id="L80">                props.load(new FileInputStream(filename));</span>
+<span class="nc" id="L81">            } catch (FileNotFoundException e) {</span>
+<span class="nc" id="L82">                log.error(&quot;ERROR: File &quot; + filename + &quot; not found.&quot;);</span>
+<span class="nc" id="L83">                return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L84">            }</span>
+            // Read the significant issuer dn and check that it exists
+<span class="nc bnc" id="L86" title="All 2 branches missed.">            if (props.getProperty(&quot;significantissuerdn&quot;) == null) {</span>
+<span class="nc" id="L87">                log.error(&quot;ERROR: The property significantissuerdn isn't set in the propertyfile &quot; + filename);</span>
+<span class="nc" id="L88">                return CommandResult.FUNCTIONAL_FAILURE;</span>
+            }
+<span class="nc" id="L90">            String significantIssuerDN = props.getProperty(&quot;significantissuerdn&quot;);</span>
+<span class="nc" id="L91">            int cAId = significantIssuerDN.hashCode();</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">            if(!EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class).existsCa(cAId)) {</span>
+<span class="nc" id="L93">                log.error(&quot;ERROR: the property significantissuerdn '&quot; + significantIssuerDN + &quot;' does not exist as CA in the system.&quot;);</span>
+<span class="nc" id="L94">                return CommandResult.FUNCTIONAL_FAILURE;</span>
+            }
+            // Create the importer
+<span class="nc bnc" id="L97" title="All 2 branches missed.">            if (props.getProperty(&quot;importer.classpath&quot;) == null) {</span>
+<span class="nc" id="L98">                log.error(&quot;ERROR: the property importer.classpath isn't set in the propertyfile &quot; + filename);</span>
+<span class="nc" id="L99">                return CommandResult.FUNCTIONAL_FAILURE;</span>
+            }
+            IHardTokenImporter importer;
+            try {
+<span class="nc" id="L103">                importer = (IHardTokenImporter) Thread.currentThread().getContextClassLoader().loadClass(props.getProperty(&quot;importer.classpath&quot;))</span>
+<span class="nc" id="L104">                        .getConstructor().newInstance();</span>
+<span class="nc" id="L105">            } catch (InstantiationException | InvocationTargetException e) {</span>
+<span class="nc" id="L106">                log.error(&quot;ERROR: Class &quot; + props.getProperty(&quot;importer.classpath&quot;) + &quot; defined by 'importer.classpath' could not be instantiated.&quot;);</span>
+<span class="nc" id="L107">                return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L108">            } catch (IllegalAccessException e) {</span>
+<span class="nc" id="L109">                log.error(&quot;ERROR: Class &quot; + props.getProperty(&quot;importer.classpath&quot;)</span>
+                        + &quot; defined by 'importer.classpath' could not be instantiated legally.&quot;, e);
+<span class="nc" id="L111">                return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L112">            } catch (ClassNotFoundException | NoSuchMethodException e) {</span>
+<span class="nc" id="L113">                log.error(&quot;ERROR: Class &quot; + props.getProperty(&quot;importer.classpath&quot;) + &quot; defined by 'importer.classpath' could not be found.&quot;);</span>
+<span class="nc" id="L114">                return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L115">            }</span>
+<span class="nc" id="L116">            importer.startImport(props);</span>
+            HardTokenInformation htd;
+            try {
+<span class="nc bnc" id="L119" title="All 2 branches missed.">                while ((htd = importer.readHardTokenData()) != null) {</span>
+                    try {
+<span class="nc" id="L121">                        EjbRemoteHelper.INSTANCE.getRemoteSession(HardTokenSessionRemote.class).addHardToken(getAuthenticationToken(),</span>
+<span class="nc" id="L122">                                htd.getTokenSN(), htd.getUsername(), significantIssuerDN, htd.getTokenType(), htd.getHardToken(), null,</span>
+<span class="nc" id="L123">                                htd.getCopyOf());</span>
+<span class="nc" id="L124">                        getLogger().info(&quot;Token with SN &quot; + htd.getTokenSN() + &quot; were added to the database.&quot;);</span>
+<span class="nc" id="L125">                    } catch (HardTokenExistsException e) {</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">                        if (force) {</span>
+                            try {
+<span class="nc" id="L128">                                EjbRemoteHelper.INSTANCE.getRemoteSession(HardTokenSessionRemote.class).removeHardToken(getAuthenticationToken(),</span>
+<span class="nc" id="L129">                                        htd.getTokenSN());</span>
+<span class="nc" id="L130">                            } catch (HardTokenDoesntExistsException e1) {</span>
+<span class="nc" id="L131">                                throw new IllegalStateException(&quot;Hard token that should exist apparently doesn't.&quot;, e);</span>
+<span class="nc" id="L132">                            }</span>
+                            try {
+<span class="nc" id="L134">                                EjbRemoteHelper.INSTANCE.getRemoteSession(HardTokenSessionRemote.class).addHardToken(getAuthenticationToken(),</span>
+<span class="nc" id="L135">                                        htd.getTokenSN(), htd.getUsername(), significantIssuerDN, htd.getTokenType(), htd.getHardToken(), null,</span>
+<span class="nc" id="L136">                                        htd.getCopyOf());</span>
+<span class="nc" id="L137">                            } catch (HardTokenExistsException e1) {</span>
+<span class="nc" id="L138">                                throw new IllegalStateException(&quot;Hard token that shouldn't exist apparently does.&quot;, e);</span>
+<span class="nc" id="L139">                            }</span>
+<span class="nc" id="L140">                            getLogger().info(&quot;Token with SN &quot; + htd.getTokenSN() + &quot; already existed in the database but was OVERWRITTEN.&quot;);</span>
+                        } else {
+<span class="nc" id="L142">                            getLogger().error(&quot;Token with SN &quot; + htd.getTokenSN() + &quot; already exists in the database and is NOT imported.&quot;);</span>
+                        }
+<span class="nc" id="L144">                    }</span>
+                }
+            } finally {
+<span class="nc" id="L147">                importer.endImport();</span>
+            }
+<span class="nc" id="L149">        } catch (IOException e) {</span>
+<span class="nc" id="L150">            throw new IllegalStateException(&quot;Unknown IOException was caught.&quot;, e);</span>
+<span class="nc" id="L151">        } </span>
+<span class="nc" id="L152">        return CommandResult.SUCCESS;</span>
+
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L158">        return &quot;Used to import hard token data from a source&quot;;</span>
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L163">        return getCommandDescription();</span>
+    }
+
+    protected Logger getLogger() {
+<span class="nc" id="L167">        return log;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -26,19 +26,19 @@
 <a class="jxr_linenumber" name="L18" href="#L18">18</a>  <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="L19" href="#L19">19</a>  <em class="jxr_javadoccomment"> * General interface for any object that wraps a certificate, such as</em>
 <a class="jxr_linenumber" name="L20" href="#L20">20</a>  <em class="jxr_javadoccomment"> * CertificateDataWrapper and CertificateSerializableWrapper.</em>
-<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <em class="jxr_javadoccomment"> * </em>
-<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <em class="jxr_javadoccomment"> * Implementations of this interface are expected to handle (de-)serialization of certificates</em>
-<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <em class="jxr_javadoccomment"> * from the BouncyCastle provider. E.g. having a transient Certificate object and</em>
-<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <em class="jxr_javadoccomment"> * having an encoded certificate that is actually serialized.</em>
-<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <em class="jxr_javadoccomment"> *</em>
-<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <em class="jxr_javadoccomment"> * @see org.cesecore.util.EJBTools</em>
-<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <em class="jxr_javadoccomment"> * </em>
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <em class="jxr_javadoccomment"> *</em>
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <em class="jxr_javadoccomment"> * &lt;p&gt;Implementations of this interface are expected to handle</em>
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <em class="jxr_javadoccomment"> * (de-)serialization of certificates from the BouncyCastle provider. E.g.</em>
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <em class="jxr_javadoccomment"> * having a transient Certificate object and having an encoded certificate that</em>
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <em class="jxr_javadoccomment"> * is actually serialized.</em>
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <em class="jxr_javadoccomment"> *</em>
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <em class="jxr_javadoccomment"> * @see org.cesecore.util.EJBTools</em>
 <a class="jxr_linenumber" name="L28" href="#L28">28</a>  <em class="jxr_javadoccomment"> * @version $Id: CertificateWrapper.java 21875 2015-09-16 19:57:31Z samuellb $</em>
 <a class="jxr_linenumber" name="L29" href="#L29">29</a>  <em class="jxr_javadoccomment"> */</em>
 <a class="jxr_linenumber" name="L30" href="#L30">30</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">interface</strong> <a name="CertificateWrapper" href="../../../../org/cesecore/certificates/certificate/CertificateWrapper.html#CertificateWrapper">CertificateWrapper</a> <strong class="jxr_keyword">extends</strong> Serializable {
 <a class="jxr_linenumber" name="L31" href="#L31">31</a>  
-<a class="jxr_linenumber" name="L32" href="#L32">32</a>      Certificate getCertificate();
-<a class="jxr_linenumber" name="L33" href="#L33">33</a>      
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>      <em class="jxr_javadoccomment">/** @return certificate */</em>
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>    Certificate getCertificate();
 <a class="jxr_linenumber" name="L34" href="#L34">34</a>  }
 </pre>
 <hr/>

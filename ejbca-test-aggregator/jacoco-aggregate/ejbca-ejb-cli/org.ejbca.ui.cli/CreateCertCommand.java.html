@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CreateCertCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli</a> &gt; <span class="el_source">CreateCertCommand.java</span></div><h1>CreateCertCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.cli;
+
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.security.cert.CertificateException;
+import java.util.Arrays;
+
+import org.apache.log4j.Logger;
+import org.cesecore.CesecoreException;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.certificate.certextensions.CertificateExtensionException;
+import org.cesecore.certificates.certificate.request.PKCS10RequestMessage;
+import org.cesecore.certificates.certificate.request.RequestMessage;
+import org.cesecore.certificates.certificate.request.RequestMessageUtils;
+import org.cesecore.certificates.certificate.request.ResponseMessage;
+import org.cesecore.certificates.certificate.request.X509ResponseMessage;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.EjbRemoteHelper;
+import org.cesecore.util.FileTools;
+import org.ejbca.core.EjbcaException;
+import org.ejbca.core.ejb.ca.sign.SignSessionRemote;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.command.EjbcaCliUserCommandBase;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+
+/**
+ * Issue a certificate for a user based on a CSR
+ *
+ * @version $Id: CreateCertCommand.java 19902 2014-09-30 14:32:24Z anatom $
+ */
+<span class="nc" id="L49">public class CreateCertCommand extends EjbcaCliUserCommandBase {</span>
+
+<span class="nc" id="L51">    private static final Logger log = Logger.getLogger(CreateCertCommand.class);</span>
+
+    private static final String ENTITY_NAME = &quot;--username&quot;;
+    private static final String ENTITY_PASSWORD = &quot;--password&quot;;
+    private static final String CSR = &quot;-c&quot;;
+    private static final String DESTINATION_FILE = &quot;-f&quot;;
+
+    //Register parameters 
+    {
+<span class="nc" id="L60">        registerParameter(new Parameter(ENTITY_NAME, &quot;End entity username&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;The username of an end entity&quot;));
+<span class="nc" id="L62">        registerParameter(new Parameter(ENTITY_PASSWORD, &quot;End entity password&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW,</span>
+                ParameterMode.ARGUMENT, &quot;The password of the specified end entity.&quot;));
+<span class="nc" id="L64">        registerParameter(new Parameter(CSR, &quot;Certificate Request&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;Must be a PKCS#10 request in PEM format.&quot;));
+<span class="nc" id="L66">        registerParameter(new Parameter(DESTINATION_FILE, &quot;Destination file&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;The issued certificate will be written to this file.&quot;));
+<span class="nc" id="L68">    }</span>
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L72">        return &quot;createcert&quot;;</span>
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L77">        return &quot;Issue a certificate for a user based on a CSR&quot;;</span>
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L82">        return &quot;Issue a certificate for a user based on a CSR&quot;;</span>
+    }
+
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+<span class="nc" id="L87">        String username = parameters.get(ENTITY_NAME);</span>
+<span class="nc" id="L88">        String password = parameters.get(ENTITY_PASSWORD);</span>
+<span class="nc" id="L89">        String csr = parameters.get(CSR);</span>
+<span class="nc" id="L90">        String certf = parameters.get(DESTINATION_FILE);</span>
+
+        byte[] bytes;
+        try {
+<span class="nc" id="L94">            bytes = FileTools.readFiletoBuffer(csr);</span>
+<span class="nc" id="L95">        } catch (FileNotFoundException e) {</span>
+<span class="nc" id="L96">            log.error(&quot;File &quot; + csr + &quot; not found.&quot;);</span>
+<span class="nc" id="L97">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L98">        }</span>
+<span class="nc" id="L99">        RequestMessage req = RequestMessageUtils.parseRequestMessage(bytes);</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">        if (req instanceof PKCS10RequestMessage) {</span>
+<span class="nc" id="L101">            PKCS10RequestMessage p10req = (PKCS10RequestMessage) req;</span>
+<span class="nc" id="L102">            p10req.setUsername(username);</span>
+<span class="nc" id="L103">            p10req.setPassword(password);</span>
+<span class="nc" id="L104">        } else {</span>
+<span class="nc" id="L105">            log.error(&quot;Input file '&quot; + csr + &quot;' is not a PKCS#10 request.&quot;);</span>
+<span class="nc" id="L106">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+        }
+<span class="nc" id="L108">        final SignSessionRemote signSession = EjbRemoteHelper.INSTANCE.getRemoteSession(SignSessionRemote.class);</span>
+        // Call signsession to create a certificate
+        ResponseMessage resp;
+        try {
+<span class="nc" id="L112">            resp = signSession.createCertificate(getAuthenticationToken(), req, X509ResponseMessage.class, null);</span>
+<span class="nc" id="L113">        } catch (EjbcaException e) {</span>
+<span class="nc" id="L114">            log.error(&quot;Could not create certificate: &quot; + e.getMessage());</span>
+<span class="nc" id="L115">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L116">        } catch (CesecoreException e) {</span>
+<span class="nc" id="L117">            log.error(&quot;Could not create certificate: &quot; + e.getMessage());</span>
+<span class="nc" id="L118">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L119">        } catch (AuthorizationDeniedException ee) {</span>
+<span class="nc" id="L120">            log.error(&quot;CLI user with username &quot; + parameters.get(USERNAME_KEY) + &quot; was not authorized to create a certificate.&quot;);</span>
+<span class="nc" id="L121">            return CommandResult.AUTHORIZATION_FAILURE;</span>
+<span class="nc" id="L122">        } catch (CertificateExtensionException e) {</span>
+<span class="nc" id="L123">            log.error(&quot;CSR specified extensions which were invalid: &quot; + e.getMessage());</span>
+<span class="nc" id="L124">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L125">        }</span>
+        byte[] pembytes;
+        try {
+<span class="nc" id="L128">            pembytes = CertTools.getPemFromCertificateChain(Arrays.asList(((X509ResponseMessage) resp).getCertificate()));</span>
+<span class="nc" id="L129">        } catch (CertificateException e) {</span>
+<span class="nc" id="L130">            throw new IllegalStateException(&quot;Newly created certificate could not be parsed. This should not happen.&quot;, e);</span>
+<span class="nc" id="L131">        }</span>
+        // Write the resulting cert to file
+        try {
+<span class="nc" id="L134">            FileOutputStream fos = new FileOutputStream(certf);</span>
+<span class="nc" id="L135">            fos.write(pembytes);</span>
+<span class="nc" id="L136">            fos.close();</span>
+<span class="nc" id="L137">        } catch (IOException e) {</span>
+<span class="nc" id="L138">            log.error(&quot;Could not write to certificate file &quot; + certf + &quot;. &quot; + e.getMessage());</span>
+<span class="nc" id="L139">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L140">        }</span>
+<span class="nc" id="L141">        log.info(&quot;PEM certificate written to file '&quot; + certf + &quot;'&quot;);</span>
+<span class="nc" id="L142">        return CommandResult.SUCCESS;</span>
+    }
+    
+    @Override
+    protected Logger getLogger() {
+<span class="nc" id="L147">        return log;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

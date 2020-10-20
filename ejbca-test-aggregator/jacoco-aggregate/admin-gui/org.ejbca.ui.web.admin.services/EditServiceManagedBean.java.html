@@ -1,0 +1,414 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>EditServiceManagedBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">admin-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.services</a> &gt; <span class="el_source">EditServiceManagedBean.java</span></div><h1>EditServiceManagedBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.web.admin.services;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.TreeMap;
+
+import javax.faces.application.Application;
+import javax.faces.context.FacesContext;
+import javax.faces.event.ValueChangeEvent;
+import javax.faces.model.SelectItem;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.control.StandardRules;
+import org.cesecore.certificates.ca.CAConstants;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.certificate.CertificateConstants;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSessionLocal;
+import org.ejbca.core.model.SecConst;
+import org.ejbca.core.model.authorization.AccessRulesConstants;
+import org.ejbca.core.model.services.IAction;
+import org.ejbca.core.model.services.IInterval;
+import org.ejbca.core.model.services.IWorker;
+import org.ejbca.core.model.services.ServiceConfiguration;
+import org.ejbca.core.model.services.workers.CRLDownloadWorker;
+import org.ejbca.core.model.services.workers.CRLUpdateWorker;
+import org.ejbca.core.model.services.workers.CertificateExpirationNotifierWorker;
+import org.ejbca.core.model.services.workers.HsmKeepAliveWorker;
+import org.ejbca.core.model.services.workers.PublishQueueProcessWorker;
+import org.ejbca.core.model.services.workers.RenewCAWorker;
+import org.ejbca.core.model.services.workers.RolloverWorker;
+import org.ejbca.core.model.services.workers.UserPasswordExpireWorker;
+import org.ejbca.core.model.util.EjbLocalHelper;
+import org.ejbca.ui.web.admin.BaseManagedBean;
+import org.ejbca.ui.web.admin.CustomLoader;
+import org.ejbca.ui.web.admin.configuration.EjbcaJSFHelper;
+import org.ejbca.ui.web.admin.services.servicetypes.ActionType;
+import org.ejbca.ui.web.admin.services.servicetypes.BaseEmailNotifyingWorkerType;
+import org.ejbca.ui.web.admin.services.servicetypes.BaseWorkerType;
+import org.ejbca.ui.web.admin.services.servicetypes.CRLDownloadWorkerType;
+import org.ejbca.ui.web.admin.services.servicetypes.CRLUpdateWorkerType;
+import org.ejbca.ui.web.admin.services.servicetypes.CertificateExpirationNotifierWorkerType;
+import org.ejbca.ui.web.admin.services.servicetypes.CustomActionType;
+import org.ejbca.ui.web.admin.services.servicetypes.CustomIntervalType;
+import org.ejbca.ui.web.admin.services.servicetypes.CustomWorkerType;
+import org.ejbca.ui.web.admin.services.servicetypes.HsmKeepAliveWorkerType;
+import org.ejbca.ui.web.admin.services.servicetypes.IntervalType;
+import org.ejbca.ui.web.admin.services.servicetypes.MailActionType;
+import org.ejbca.ui.web.admin.services.servicetypes.PeriodicalIntervalType;
+import org.ejbca.ui.web.admin.services.servicetypes.PublishQueueWorkerType;
+import org.ejbca.ui.web.admin.services.servicetypes.RenewCAWorkerType;
+import org.ejbca.ui.web.admin.services.servicetypes.RolloverWorkerType;
+import org.ejbca.ui.web.admin.services.servicetypes.UserPasswordExpireWorkerType;
+import org.ejbca.ui.web.admin.services.servicetypes.WorkerType;
+
+/**
+ * Class used to manage the GUI editing of a Service Configuration
+ *
+ * @version $Id: EditServiceManagedBean.java 28844 2018-05-04 08:31:02Z samuellb $
+ */
+public class EditServiceManagedBean extends BaseManagedBean {
+
+    private static final long serialVersionUID = 1L;
+<span class="nc" id="L82">    private static final Logger log = Logger.getLogger(EditServiceManagedBean.class);</span>
+
+<span class="nc" id="L84">	private final EjbLocalHelper ejb = new EjbLocalHelper();</span>
+<span class="nc" id="L85">	private final CertificateProfileSessionLocal certificateProfileSession = ejb.getCertificateProfileSession();</span>
+	private ServiceConfigurationView serviceConfigurationView;
+<span class="nc" id="L87">	private String serviceName = &quot;&quot;;</span>
+
+<span class="nc" id="L89">    public EditServiceManagedBean() {</span>
+<span class="nc" id="L90">        setServiceConfiguration(new ServiceConfiguration());</span>
+<span class="nc" id="L91">    }</span>
+	
+    public static EditServiceManagedBean getBean() {    
+<span class="nc" id="L94">    	FacesContext context = FacesContext.getCurrentInstance();</span>
+<span class="nc" id="L95">    	Application app = context.getApplication();</span>
+<span class="nc" id="L96">    	EditServiceManagedBean value = app.evaluateExpressionGet(context, &quot;#{editService}&quot;, EditServiceManagedBean.class);</span>
+<span class="nc" id="L97">    	return value;</span>
+    }
+    
+	/** @return the serviceName */
+	public String getServiceName() {
+<span class="nc" id="L102">		return serviceName;</span>
+	}
+
+	/** @param serviceName the serviceName to set */
+	public void setServiceName(String serviceName) {
+<span class="nc" id="L107">		this.serviceName = serviceName;		</span>
+<span class="nc" id="L108">	}</span>
+
+	/** @return the serviceConfigurationView */
+	public ServiceConfigurationView getServiceConfigurationView() {
+<span class="nc" id="L112">		return serviceConfigurationView;</span>
+	}
+	
+	public void setServiceConfiguration(ServiceConfiguration serviceConfiguration) {
+<span class="nc" id="L116">		this.serviceConfigurationView = new ServiceConfigurationView(serviceConfiguration);</span>
+<span class="nc" id="L117">	}</span>
+
+	public String save(){
+<span class="nc" id="L120">		String retval = &quot;listservices&quot;;</span>
+<span class="nc" id="L121">		ArrayList&lt;String&gt; errorMessages = new ArrayList&lt;&gt;();</span>
+		try {
+<span class="nc" id="L123">			serviceConfigurationView.getServiceConfiguration(errorMessages);</span>
+<span class="nc bnc" id="L124" title="All 2 branches missed.">			if(errorMessages.size() == 0){</span>
+<span class="nc" id="L125">				ejb.getServiceSession().changeService(getAdmin(), serviceName, serviceConfigurationView.getServiceConfiguration(errorMessages), false);</span>
+<span class="nc" id="L126">				ejb.getServiceSession().activateServiceTimer(getAdmin(), serviceName);</span>
+			}else{
+<span class="nc" id="L128">				Iterator&lt;String&gt; iter = errorMessages.iterator();</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">				while(iter.hasNext()){</span>
+<span class="nc" id="L130">					addErrorMessage(iter.next());</span>
+				}
+<span class="nc" id="L132">				retval = null;				</span>
+			}
+<span class="nc" id="L134">		} catch (IOException e) {</span>
+<span class="nc" id="L135">			addErrorMessage(EjbcaJSFHelper.getBean().getText().get(&quot;ERROREDITINGSERVICE&quot;) + &quot; &quot; + e.getMessage());</span>
+<span class="nc" id="L136">		}</span>
+<span class="nc" id="L137">		return retval;</span>
+	}
+	
+	public String cancel(){		
+<span class="nc" id="L141">		return &quot;listservices&quot;;</span>
+	}
+	
+	public String update(){
+<span class="nc" id="L145">		return &quot;editservice&quot;;</span>
+	}
+
+	/** Help method used to edit data in the custom worker type. 
+	 * @return type */
+	public CustomWorkerType getCustomWorkerType(){
+<span class="nc" id="L151">		return (CustomWorkerType) serviceConfigurationView.getServiceTypeManager().getServiceTypeByName(CustomWorkerType.NAME);</span>
+	}
+	
+	/** Help method used to edit data in the custom action type. 
+	 * @return Type */
+	public CustomActionType getCustomActionType(){
+<span class="nc" id="L157">		return (CustomActionType) serviceConfigurationView.getServiceTypeManager().getServiceTypeByName(CustomActionType.NAME);</span>
+	}	
+	
+	/** Help method used to edit data in the custom interval type. 
+	 * @return Type */
+	public CustomIntervalType getCustomIntervalType(){
+<span class="nc" id="L163">		return (CustomIntervalType) serviceConfigurationView.getServiceTypeManager().getServiceTypeByName(CustomIntervalType.NAME);</span>
+	}
+	
+	/** 
+     * @return true if admin has access to /services/edit
+     */
+    public boolean getHasEditRights() {
+<span class="nc" id="L170">        return ejb.getAuthorizationSession().isAuthorizedNoLogging(getAdmin(), AccessRulesConstants.SERVICES_EDIT);</span>
+    }
+	
+	/** Help method used to edit data in the mail action type. 
+	 * @return Type*/
+	public MailActionType getMailActionType(){
+<span class="nc" id="L176">		return (MailActionType) serviceConfigurationView.getServiceTypeManager().getServiceTypeByName(MailActionType.NAME);</span>
+	}	
+	
+	public BaseWorkerType getBaseWorkerType() {
+<span class="nc" id="L180">		String name = null;</span>
+		try {
+<span class="nc" id="L182">			ServiceConfiguration conf = serviceConfigurationView.getServiceConfiguration(new ArrayList&lt;String&gt;());		</span>
+<span class="nc" id="L183">			String cp = conf.getWorkerClassPath();</span>
+<span class="nc" id="L184">			name = getTypeNameFromClassPath(cp);			</span>
+<span class="nc" id="L185">		} catch (IOException e) {</span>
+<span class="nc" id="L186">			log.error(e);</span>
+<span class="nc" id="L187">		}</span>
+<span class="nc bnc" id="L188" title="All 2 branches missed.">		if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L189">			log.debug(&quot;Get baseWorkerType by name: &quot;+name);</span>
+		}
+<span class="nc" id="L191">		BaseWorkerType ret = (BaseWorkerType) serviceConfigurationView.getServiceTypeManager().getServiceTypeByName(name);</span>
+<span class="nc" id="L192">		return ret; 		</span>
+	}
+	
+	/** Help method used to edit data in the notifying worker type. 
+	 * @return type */
+	public BaseEmailNotifyingWorkerType getNotifyingType(){
+<span class="nc" id="L198">		log.trace(&quot;&gt;getNotifyingType&quot;);</span>
+<span class="nc" id="L199">		BaseEmailNotifyingWorkerType ret = null;</span>
+<span class="nc" id="L200">		BaseWorkerType type = getBaseWorkerType();	</span>
+<span class="nc bnc" id="L201" title="All 2 branches missed.">		if (type instanceof BaseEmailNotifyingWorkerType) {</span>
+<span class="nc" id="L202">			ret = (BaseEmailNotifyingWorkerType)type;</span>
+		} else {
+			// Use default type in order to avoid model update errors when switching to a worker with a different type
+			// i.e. switching for example from CertificateExpirationWorker to CRLUpdateWorker
+			// We can't return null either so...
+<span class="nc" id="L207">			ret =(BaseEmailNotifyingWorkerType)serviceConfigurationView.getServiceTypeManager().getServiceTypeByName(CertificateExpirationNotifierWorkerType.NAME);</span>
+		}
+<span class="nc" id="L209">		log.trace(&quot;&lt;getNotifyingType&quot;);</span>
+<span class="nc" id="L210">		return ret;</span>
+	}
+
+	private String getTypeNameFromClassPath(String cp) {
+<span class="nc" id="L214">		log.debug(&quot;ClassPath: &quot;+cp);</span>
+<span class="nc" id="L215">		String ret = null;</span>
+<span class="nc bnc" id="L216" title="All 4 branches missed.">		if ( (cp != null) &amp;&amp; cp.equals(CertificateExpirationNotifierWorker.class.getName()) ) {</span>
+<span class="nc" id="L217">			ret = CertificateExpirationNotifierWorkerType.NAME;</span>
+		}			
+<span class="nc bnc" id="L219" title="All 4 branches missed.">		if ( (cp != null) &amp;&amp; cp.equals(UserPasswordExpireWorker.class.getName()) ) {</span>
+<span class="nc" id="L220">			ret = UserPasswordExpireWorkerType.NAME;</span>
+		}			
+<span class="nc bnc" id="L222" title="All 4 branches missed.">		if ( (cp != null) &amp;&amp; cp.equals(RenewCAWorker.class.getName()) ) {</span>
+<span class="nc" id="L223">			ret = RenewCAWorkerType.NAME;</span>
+		}			
+<span class="nc bnc" id="L225" title="All 4 branches missed.">		if ( (cp != null) &amp;&amp; cp.equals(RolloverWorker.class.getName()) ) {</span>
+<span class="nc" id="L226">            ret = RolloverWorkerType.NAME;</span>
+        }
+<span class="nc bnc" id="L228" title="All 4 branches missed.">		if ( (cp != null) &amp;&amp; cp.equals(PublishQueueProcessWorker.class.getName()) ) {</span>
+<span class="nc" id="L229">			ret = PublishQueueWorkerType.NAME;</span>
+		}			
+<span class="nc bnc" id="L231" title="All 4 branches missed.">		if ( (cp != null) &amp;&amp; cp.equals(CRLUpdateWorker.class.getName()) ) {</span>
+<span class="nc" id="L232">			ret = CRLUpdateWorkerType.NAME;</span>
+		}
+<span class="nc bnc" id="L234" title="All 4 branches missed.">        if ( (cp != null) &amp;&amp; cp.equals(CRLDownloadWorker.class.getName()) ) {</span>
+<span class="nc" id="L235">            ret = CRLDownloadWorkerType.NAME;</span>
+        }
+<span class="nc bnc" id="L237" title="All 4 branches missed.">        if ( (cp != null) &amp;&amp; cp.equals(HsmKeepAliveWorker.class.getName()) ) {</span>
+<span class="nc" id="L238">            ret = HsmKeepAliveWorkerType.NAME;</span>
+        }
+<span class="nc bnc" id="L240" title="All 2 branches missed.">        if (ret==null) {</span>
+<span class="nc" id="L241">            ret = CustomWorkerType.NAME;</span>
+        }
+<span class="nc" id="L243">		return ret;</span>
+	}
+
+	/** Help method used to edit data in the RenewCAWorkerType. 
+	 * @return Type */
+	public RenewCAWorkerType getRenewType(){
+<span class="nc" id="L249">		String name = RenewCAWorkerType.NAME;</span>
+<span class="nc" id="L250">		return (RenewCAWorkerType) serviceConfigurationView.getServiceTypeManager().getServiceTypeByName(name);</span>
+	}
+
+	/** Help method to edit data in the publish queue worker type 
+	 * @return Type */
+	public PublishQueueWorkerType getPublishWorkerType() {
+<span class="nc" id="L256">		return (PublishQueueWorkerType)serviceConfigurationView.getServiceTypeManager().getServiceTypeByName(PublishQueueWorkerType.NAME);</span>
+	}
+    
+	/** Help method used to edit data in the CRLDownloadWorkerType. 
+	 * @return Type */
+    public CRLDownloadWorkerType getCrlDownloadWorkerType() {
+<span class="nc" id="L262">        String name = CRLDownloadWorkerType.NAME;</span>
+<span class="nc" id="L263">        return (CRLDownloadWorkerType) serviceConfigurationView.getServiceTypeManager().getServiceTypeByName(name);</span>
+    }
+
+	/** Help method used to edit data in the custom interval type. 
+	 * @return Type */
+	public PeriodicalIntervalType getPeriodicalIntervalType(){
+<span class="nc" id="L269">		return (PeriodicalIntervalType) serviceConfigurationView.getServiceTypeManager().getServiceTypeByName(PeriodicalIntervalType.NAME);</span>
+	}
+
+	public void changeInterval(ValueChangeEvent e){
+<span class="nc" id="L273">		String newName = (String) e.getNewValue();		</span>
+<span class="nc" id="L274">        WorkerType workerType = serviceConfigurationView.getWorkerType();</span>
+<span class="nc bnc" id="L275" title="All 2 branches missed.">		if(workerType.getCompatibleIntervalTypeNames().contains(newName)){</span>
+<span class="nc" id="L276">			IntervalType newIntervalType = (IntervalType) serviceConfigurationView.getServiceTypeManager().getServiceTypeByName(newName);</span>
+<span class="nc" id="L277">			serviceConfigurationView.setIntervalType(newIntervalType);</span>
+<span class="nc" id="L278">			serviceConfigurationView.setSelectedInterval(newName);</span>
+		}
+<span class="nc" id="L280">	}</span>
+	
+	public void changeAction(ValueChangeEvent e){
+<span class="nc" id="L283">		String newName = (String) e.getNewValue();		</span>
+<span class="nc" id="L284">        WorkerType workerType = serviceConfigurationView.getWorkerType();</span>
+<span class="nc bnc" id="L285" title="All 2 branches missed.">		if(workerType.getCompatibleActionTypeNames().contains(newName)){</span>
+<span class="nc" id="L286">		  ActionType newActionType = (ActionType) serviceConfigurationView.getServiceTypeManager().getServiceTypeByName(newName);</span>
+<span class="nc" id="L287">		  serviceConfigurationView.setActionType(newActionType);</span>
+<span class="nc" id="L288">		  serviceConfigurationView.setSelectedAction(newName);		  </span>
+		}
+<span class="nc" id="L290">	}</span>
+	
+	/** Returns the list of available CAs, only including the actually present CAs.
+     * 
+     * @return List&amp;lt;javax.faces.model.SelectItem&amp;gt;(String, String) of CA id's (as String) and CA names
+     */
+    public List&lt;SelectItem&gt; getAvailableCAs() {
+<span class="nc" id="L297">        List&lt;SelectItem&gt; availableCANames = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L298" title="All 2 branches missed.">        for (Integer caid : ejb.getCaSession().getAuthorizedCaIds(getAdmin())) {</span>
+            try {
+<span class="nc" id="L300">                availableCANames.add(new SelectItem(caid.toString(), ejb.getCaSession().getCAInfo(getAdmin(), caid).getName()));</span>
+<span class="nc" id="L301">            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L302">                log.debug(&quot;Not authorized to CA: &quot; + caid);</span>
+<span class="nc" id="L303">            }</span>
+<span class="nc" id="L304">        }</span>
+<span class="nc" id="L305">        return availableCANames;</span>
+    }
+	/** Returns the list of available CAs, also including the special option 'Any CA'.
+	 * 
+	 * @return List&amp;lt;javax.faces.model.SelectItem&amp;gt;(String, String) of CA id's (as String) and CA names
+	 */
+    public List&lt;SelectItem&gt; getAvailableCAsWithAnyOption() {
+<span class="nc" id="L312">        List&lt;SelectItem&gt; availableCANames = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L313">        String caname = EjbcaJSFHelper.getBean().getText().get(&quot;ANYCA&quot;);</span>
+<span class="nc" id="L314">        availableCANames.add(new SelectItem(String.valueOf(SecConst.ALLCAS), caname));</span>
+<span class="nc" id="L315">        availableCANames.addAll(getAvailableCAs());</span>
+<span class="nc" id="L316">        return availableCANames;</span>
+    }
+
+    /** Returns the list of available external X509 CAs, also including the special option 'Any CA'.
+     * 
+     * @return List&amp;lt;javax.faces.model.SelectItem&amp;gt;(String, String) of CA id's (as String) and CA names
+     */
+    public List&lt;SelectItem&gt; getAvailableExternalX509CAsWithAnyOption() {
+<span class="nc" id="L324">        final List&lt;SelectItem&gt; availableCANames = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L325">        final String caname = EjbcaJSFHelper.getBean().getText().get(&quot;ANYCA&quot;);</span>
+<span class="nc" id="L326">        availableCANames.add(new SelectItem(String.valueOf(SecConst.ALLCAS), caname));</span>
+<span class="nc bnc" id="L327" title="All 2 branches missed.">        for (final Integer caid : ejb.getCaSession().getAuthorizedCaIds(getAdmin())) {</span>
+            try {
+<span class="nc" id="L329">                CAInfo caInfo = ejb.getCaSession().getCAInfo(getAdmin(), caid);</span>
+<span class="nc" id="L330">                availableCANames.add(new SelectItem(caid.toString(), ejb.getCaSession().getCAInfo(getAdmin(), caid).getName(), null,</span>
+<span class="nc bnc" id="L331" title="All 4 branches missed.">                        caInfo.getCAType() != CAInfo.CATYPE_X509 || caInfo.getStatus() != CAConstants.CA_EXTERNAL));</span>
+<span class="nc" id="L332">            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L333">                log.debug(&quot;Not authorized to CA: &quot; + caid);</span>
+<span class="nc" id="L334">            }</span>
+<span class="nc" id="L335">        }</span>
+<span class="nc" id="L336">        return availableCANames;</span>
+    }    
+    
+    /**
+     * 
+     * 
+     * @return a {@link List} of {@link SelectItem}s containing the ID's and names of all ENDENTITY, ROOTCA and SUBCA 
+     * (and HARDTOKEN if available) certificate profiles current admin is authorized to.
+     */
+    public Collection&lt;SelectItem&gt; getCertificateProfiles() {
+<span class="nc" id="L346">        TreeMap&lt;String, SelectItem&gt; certificateProfiles = new TreeMap&lt;&gt;();</span>
+         
+<span class="nc" id="L348">        final List&lt;Integer&gt; certificateProfileTypes = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L349">        certificateProfileTypes.add(CertificateConstants.CERTTYPE_ENDENTITY);</span>
+<span class="nc bnc" id="L350" title="All 2 branches missed.">        if (isAuthorizedTo(StandardRules.ROLE_ROOT.resource())) {</span>
+            //Only root users may use CA profiles
+<span class="nc" id="L352">            certificateProfileTypes.add(CertificateConstants.CERTTYPE_ROOTCA);</span>
+<span class="nc" id="L353">            certificateProfileTypes.add(CertificateConstants.CERTTYPE_SUBCA);</span>
+        }
+        
+<span class="nc bnc" id="L356" title="All 2 branches missed.">        if (getEjbcaWebBean().getGlobalConfiguration().getIssueHardwareTokens()) {</span>
+<span class="nc" id="L357">            certificateProfileTypes.add(CertificateConstants.CERTTYPE_HARDTOKEN);</span>
+        }
+             
+<span class="nc bnc" id="L360" title="All 2 branches missed.">        for (Integer certificateProfileType : certificateProfileTypes) {</span>
+<span class="nc" id="L361">            Collection&lt;Integer&gt; profiles = certificateProfileSession.getAuthorizedCertificateProfileIds(getAdmin(), certificateProfileType);</span>
+<span class="nc bnc" id="L362" title="All 2 branches missed.">            for (Integer certificateProfile : profiles) {</span>
+<span class="nc" id="L363">                String profileName = certificateProfileSession.getCertificateProfileName(</span>
+<span class="nc" id="L364">                        certificateProfile);</span>
+<span class="nc" id="L365">                certificateProfiles.put(profileName.toLowerCase(), new SelectItem(certificateProfile.toString(), profileName));</span>
+<span class="nc" id="L366">            }</span>
+<span class="nc" id="L367">        }        </span>
+<span class="nc" id="L368">        return certificateProfiles.values();</span>
+    }
+
+
+	public List&lt;SelectItem&gt; getAvailablePublishers(){
+<span class="nc" id="L373">		List&lt;SelectItem&gt; availablePublisherNames = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L374" title="All 2 branches missed.">        for (int next : ejb.getCaAdminSession().getAuthorizedPublisherIds(getAdmin())) {</span>
+            // Display it in the list as &quot;PublisherName (publisherId)&quot; with publisherId as the value sent
+<span class="nc" id="L376">            availablePublisherNames.add(new SelectItem(String.valueOf(next), ejb.getPublisherSession().getPublisherName(next) + &quot; (&quot; + next + &quot;)&quot;));</span>
+<span class="nc" id="L377">        }</span>
+<span class="nc" id="L378">        Collections.sort(availablePublisherNames, new Comparator&lt;SelectItem&gt;() {</span>
+            @Override
+            public int compare(SelectItem first, SelectItem second) {
+<span class="nc" id="L381">                return first.getLabel().compareToIgnoreCase(second.getLabel());</span>
+            }
+        });
+<span class="nc" id="L384">		return availablePublisherNames;		</span>
+	}
+	
+	/** Return type used by getManualCustomActionItems */
+<span class="nc" id="L388">    public static class ManualCustomItems {</span>
+<span class="nc" id="L389">        private final List&lt;SelectItem&gt; workers = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L390">        private final List&lt;SelectItem&gt; intervals = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L391">        private final List&lt;SelectItem&gt; actions = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L392">        public List&lt;SelectItem&gt; getWorkers() { return workers; }</span>
+<span class="nc" id="L393">        public List&lt;SelectItem&gt; getIntervals() { return intervals; }</span>
+<span class="nc" id="L394">        public List&lt;SelectItem&gt; getActions() { return actions; }</span>
+    }
+    
+    public ManualCustomItems getManualCustomItems() {
+<span class="nc" id="L398">        ManualCustomItems manual = new ManualCustomItems();</span>
+<span class="nc" id="L399">        final String workerClass = getCustomWorkerType().getAutoClassPath();</span>
+<span class="nc bnc" id="L400" title="All 4 branches missed.">        if (!StringUtils.isEmpty(workerClass) &amp;&amp; !CustomLoader.getCustomClasses(IWorker.class).contains(workerClass)) {</span>
+<span class="nc" id="L401">            manual.getWorkers().add(new SelectItem(workerClass, workerClass+&quot;*&quot;));</span>
+        }
+<span class="nc" id="L403">        final String intervalClass = getCustomIntervalType().getAutoClassPath();</span>
+<span class="nc bnc" id="L404" title="All 4 branches missed.">        if (!StringUtils.isEmpty(intervalClass) &amp;&amp; !CustomLoader.getCustomClasses(IInterval.class).contains(intervalClass)) {</span>
+<span class="nc" id="L405">            manual.getIntervals().add(new SelectItem(intervalClass, intervalClass+&quot;*&quot;));</span>
+        }
+<span class="nc" id="L407">        final String actionClass = getCustomActionType().getAutoClassPath();</span>
+<span class="nc bnc" id="L408" title="All 4 branches missed.">        if (!StringUtils.isEmpty(actionClass) &amp;&amp; !CustomLoader.getCustomClasses(IAction.class).contains(actionClass)) {</span>
+<span class="nc" id="L409">            manual.getActions().add(new SelectItem(actionClass, actionClass+&quot;*&quot;));</span>
+        }
+<span class="nc" id="L411">        return manual;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

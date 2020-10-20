@@ -25,8 +25,8 @@ under the License.
     <language>en-us</language>
     <copyright>&#169;2020</copyright>
     <item>
-      <title>File: 25,
-             Errors: 2572,
+      <title>File: 29,
+             Errors: 2657,
              Warnings: 0,
              Infos: 0
       </title>
@@ -55,7 +55,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  66
+                  60
                 </td>
               </tr>
                           <tr>
@@ -69,7 +69,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  222
+                  215
                 </td>
               </tr>
                           <tr>
@@ -83,21 +83,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  95
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-entity/checkstyle.html#org.ejbca.core.ejb.ca.store.CertReqHistoryData.java">org/ejbca/core/ejb/ca/store/CertReqHistoryData.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  202
+                  88
                 </td>
               </tr>
                           <tr>
@@ -111,7 +97,21 @@ under the License.
                   0
                 </td>
                 <td>
-                  223
+                  217
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-entity/checkstyle.html#org.ejbca.core.ejb.ca.store.CertReqHistoryData.java">org/ejbca/core/ejb/ca/store/CertReqHistoryData.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  195
                 </td>
               </tr>
                           <tr>
@@ -139,7 +139,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  90
+                  83
                 </td>
               </tr>
                           <tr>
@@ -153,7 +153,21 @@ under the License.
                   0
                 </td>
                 <td>
-                  69
+                  62
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-entity/checkstyle.html#org.ejbca.database.DatabaseSchemaTest.java">org/ejbca/database/DatabaseSchemaTest.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  122
                 </td>
               </tr>
                           <tr>
@@ -167,7 +181,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  96
+                  89
                 </td>
               </tr>
                           <tr>
@@ -181,7 +195,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  115
+                  108
                 </td>
               </tr>
                           <tr>
@@ -195,7 +209,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  63
+                  56
                 </td>
               </tr>
                           <tr>
@@ -209,7 +223,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  143
+                  136
                 </td>
               </tr>
                           <tr>
@@ -223,7 +237,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  161
+                  154
                 </td>
               </tr>
                           <tr>
@@ -237,7 +251,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  72
+                  64
                 </td>
               </tr>
                           <tr>
@@ -251,7 +265,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  68
+                  62
                 </td>
               </tr>
                           <tr>
@@ -265,7 +279,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  92
+                  85
                 </td>
               </tr>
                           <tr>
@@ -279,7 +293,21 @@ under the License.
                   0
                 </td>
                 <td>
-                  44
+                  36
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-entity/checkstyle.html#org.ejbca.core.ejb.profiles.ProfileDataTest.java">org/ejbca/core/ejb/profiles/ProfileDataTest.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  11
                 </td>
               </tr>
                           <tr>
@@ -293,21 +321,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  90
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/winterknight1979/ejbca/ejbca-entity/checkstyle.html#org.ejbca.peerconnector.PeerData.java">org/ejbca/peerconnector/PeerData.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  87
+                  83
                 </td>
               </tr>
                           <tr>
@@ -321,7 +335,21 @@ under the License.
                   0
                 </td>
                 <td>
-                  151
+                  143
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-entity/checkstyle.html#org.ejbca.peerconnector.PeerData.java">org/ejbca/peerconnector/PeerData.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  80
                 </td>
               </tr>
                           <tr>
@@ -335,7 +363,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  78
+                  71
                 </td>
               </tr>
                           <tr>
@@ -363,7 +391,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  102
+                  95
                 </td>
               </tr>
                           <tr>
@@ -377,7 +405,35 @@ under the License.
                   0
                 </td>
                 <td>
-                  47
+                  46
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-entity/checkstyle.html#org.ejbca.util.FixEndOfBrokenXMLTest.java">org/ejbca/util/FixEndOfBrokenXMLTest.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  94
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-entity/checkstyle.html#org.ejbca.core.ejb.ra.UserDataTest.java">org/ejbca/core/ejb/ra/UserDataTest.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  13
                 </td>
               </tr>
                           <tr>
@@ -391,7 +447,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  72
+                  65
                 </td>
               </tr>
                       </tbody>

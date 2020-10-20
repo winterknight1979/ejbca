@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CaImportCRLCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.ca</a> &gt; <span class="el_source">CaImportCRLCommand.java</span></div><h1>CaImportCRLCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.cli.ca;
+
+import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.security.KeyPair;
+import java.security.cert.X509CRL;
+import java.security.cert.X509CRLEntry;
+import java.security.cert.X509Certificate;
+import java.util.Date;
+import java.util.Set;
+
+import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.ASN1Enumerated;
+import org.bouncycastle.asn1.ASN1InputStream;
+import org.bouncycastle.asn1.ASN1OctetString;
+import org.bouncycastle.asn1.ASN1Primitive;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.X509v3CertificateBuilder;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.operator.BufferingContentSigner;
+import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.certificate.CertificateConstants;
+import org.cesecore.certificates.certificate.CertificateStoreSessionRemote;
+import org.cesecore.certificates.certificateprofile.CertificateProfileConstants;
+import org.cesecore.certificates.crl.CrlStoreSessionRemote;
+import org.cesecore.certificates.crl.RevokedCertInfo;
+import org.cesecore.certificates.endentity.EndEntityConstants;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.certificates.endentity.EndEntityType;
+import org.cesecore.certificates.endentity.EndEntityTypes;
+import org.cesecore.certificates.util.AlgorithmConstants;
+import org.cesecore.certificates.util.cert.CrlExtensions;
+import org.cesecore.keys.util.KeyTools;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.EJBTools;
+import org.cesecore.util.EjbRemoteHelper;
+import org.ejbca.core.ejb.ra.EndEntityAccessSessionRemote;
+import org.ejbca.core.ejb.ra.EndEntityManagementSessionRemote;
+import org.ejbca.core.model.SecConst;
+import org.ejbca.core.model.ra.AlreadyRevokedException;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+
+/**
+ * Imports a CRL file to the database.
+ *
+ * @version $Id: CaImportCRLCommand.java 29401 2018-06-28 12:09:06Z andresjakobs $
+ */
+<span class="nc" id="L74">public class CaImportCRLCommand extends BaseCaAdminCommand {</span>
+
+<span class="nc" id="L76">    private static final Logger log = Logger.getLogger(CaImportCRLCommand.class);</span>
+
+    public static final String MISSING_USERNAME_PREFIX = &quot;*** Missing During CRL Import to: &quot;;
+
+    private static final String STRICT_OP = &quot;STRICT&quot;;
+    private static final String LENIENT_OP = &quot;LENIENT&quot;;
+    private static final String ADAPTIVE_OP = &quot;ADAPTIVE&quot;;
+
+    private static final String CA_NAME_KEY = &quot;--caname&quot;;
+    private static final String CRL_FILE_KEY = &quot;-f&quot;;
+    private static final String OPERATION_KEY = &quot;-o&quot;;
+
+    {
+<span class="nc" id="L89">        registerParameter(new Parameter(CA_NAME_KEY, &quot;CA Name&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;Name of the issuing CA.&quot;));
+<span class="nc" id="L91">        registerParameter(new Parameter(CRL_FILE_KEY, &quot;Filename&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;The file containing the CRL.&quot;));
+<span class="nc" id="L93">        registerParameter(new Parameter(OPERATION_KEY, STRICT_OP + &quot;|&quot; + LENIENT_OP + &quot;|&quot; + ADAPTIVE_OP, MandatoryMode.MANDATORY,</span>
+                StandaloneMode.ALLOW, ParameterMode.ARGUMENT, &quot;Operations mode. Must be one of &quot; + STRICT_OP + &quot;, &quot; + LENIENT_OP + &quot; or &quot;
+                        + ADAPTIVE_OP + &quot;.&quot;));
+<span class="nc" id="L96">    }</span>
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L100">        return &quot;importcrl&quot;;</span>
+    }
+
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+<span class="nc" id="L105">        log.trace(&quot;&gt;execute()&quot;);</span>
+<span class="nc" id="L106">        CryptoProviderTools.installBCProvider();</span>
+
+        try {
+            // Parse arguments
+<span class="nc" id="L110">            final String caname = parameters.get(CA_NAME_KEY);</span>
+<span class="nc" id="L111">            final String crl_file = parameters.get(CRL_FILE_KEY);</span>
+<span class="nc" id="L112">            final String operationsMode = parameters.get(OPERATION_KEY);</span>
+<span class="nc" id="L113">            final boolean strict = operationsMode.equalsIgnoreCase(STRICT_OP);</span>
+<span class="nc" id="L114">            final boolean adaptive = operationsMode.equalsIgnoreCase(ADAPTIVE_OP);</span>
+<span class="nc bnc" id="L115" title="All 6 branches missed.">            if (!strict &amp;&amp; !adaptive &amp;&amp; !operationsMode.equalsIgnoreCase(LENIENT_OP)) {</span>
+                //None of the above.
+<span class="nc" id="L117">                log.error(&quot;Operations mode must be one of &quot; + STRICT_OP + &quot;, &quot; + LENIENT_OP + &quot; or &quot; + ADAPTIVE_OP + &quot;.&quot;);</span>
+<span class="nc" id="L118">                return CommandResult.CLI_FAILURE;</span>
+            }
+            // Fetch CA and related info
+<span class="nc" id="L121">            final CAInfo cainfo = getCAInfo(getAuthenticationToken(), caname);</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">            if(cainfo == null) {</span>
+<span class="nc" id="L123">                log.error(&quot;CA by name of &quot; + caname + &quot; could not be found.&quot;);</span>
+<span class="nc" id="L124">                return CommandResult.FUNCTIONAL_FAILURE;</span>
+            }
+<span class="nc" id="L126">            final X509Certificate cacert = (X509Certificate) cainfo.getCertificateChain().iterator().next();</span>
+<span class="nc" id="L127">            final String issuer = CertTools.stringToBCDNString(cacert.getSubjectDN().toString());</span>
+<span class="nc" id="L128">            log.info(&quot;CA: &quot; + issuer);</span>
+            // Read the supplied CRL and verify that it is issued by the specified CA
+<span class="nc" id="L130">            final X509CRL x509crl = (X509CRL) CertTools.getCertificateFactory().generateCRL(new FileInputStream(crl_file));</span>
+<span class="nc bnc" id="L131" title="All 2 branches missed.">            if (!x509crl.getIssuerX500Principal().equals(cacert.getSubjectX500Principal())) {</span>
+<span class="nc" id="L132">                throw new IOException(&quot;CRL wasn't issued by this CA&quot;);</span>
+            }
+<span class="nc" id="L134">            x509crl.verify(cacert.getPublicKey());</span>
+<span class="nc" id="L135">            int crl_no = CrlExtensions.getCrlNumber(x509crl).intValue();</span>
+<span class="nc" id="L136">            log.info(&quot;Processing CRL #&quot; + crl_no);</span>
+<span class="nc" id="L137">            int miss_count = 0; // Number of certs not already in database</span>
+<span class="nc" id="L138">            int revoked = 0; // Number of certs activly revoked by this algorithm</span>
+<span class="nc" id="L139">            int already_revoked = 0; // Number of certs already revoked in database and ignored in non-strict mode</span>
+<span class="nc" id="L140">            final String missing_user_name = MISSING_USERNAME_PREFIX + caname;</span>
+            @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L142">            Set&lt;X509CRLEntry&gt; entries = (Set&lt;X509CRLEntry&gt;) x509crl.getRevokedCertificates();</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">            if (entries != null) {</span>
+<span class="nc bnc" id="L144" title="All 2 branches missed.">                for (final X509CRLEntry entry : entries) {</span>
+<span class="nc" id="L145">                    final BigInteger serialNr = entry.getSerialNumber();</span>
+<span class="nc" id="L146">                    final String serialHex = serialNr.toString(16).toUpperCase();</span>
+<span class="nc" id="L147">                    final String username = EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateStoreSessionRemote.class).findUsernameByCertSerno(</span>
+                            serialNr, issuer);
+                    // If this certificate exists and has an assigned username, we keep using that. Otherwise we create this coupling to a user.
+<span class="nc bnc" id="L150" title="All 2 branches missed.">                    if (username == null) {</span>
+<span class="nc" id="L151">                        log.info(&quot;Certificate '&quot; + serialHex + &quot;' missing in the database&quot;);</span>
+<span class="nc bnc" id="L152" title="All 2 branches missed.">                        if (strict) {</span>
+<span class="nc" id="L153">                            throw new IOException(&quot;Aborted! Running in strict mode and is missing certificate in database.&quot;);</span>
+                        }
+<span class="nc" id="L155">                        miss_count++;</span>
+<span class="nc bnc" id="L156" title="All 2 branches missed.">                        if (!adaptive) {</span>
+<span class="nc" id="L157">                            continue;</span>
+                        }
+<span class="nc" id="L159">                        final Date time = new Date(); // time from which certificate is valid</span>
+<span class="nc" id="L160">                        final KeyPair key_pair = KeyTools.genKeys(&quot;2048&quot;, AlgorithmConstants.KEYALGORITHM_RSA);</span>
+
+<span class="nc" id="L162">                        final SubjectPublicKeyInfo pkinfo = SubjectPublicKeyInfo.getInstance(key_pair.getPublic().getEncoded());</span>
+<span class="nc" id="L163">                        final X500Name dnName = new X500Name(&quot;CN=Dummy Missing in Imported CRL, serialNumber=&quot; + serialHex);</span>
+<span class="nc" id="L164">                        final Date notAfter = new Date(time.getTime() + 1000L * 60 * 60 * 24 * 365 * 10); // 10 years of life</span>
+<span class="nc" id="L165">                        final X509v3CertificateBuilder certbuilder = new X509v3CertificateBuilder(X500Name.getInstance(cacert</span>
+<span class="nc" id="L166">                                .getSubjectX500Principal().getEncoded()), serialNr, time, notAfter, dnName, pkinfo);</span>
+<span class="nc" id="L167">                        final ContentSigner signer = new BufferingContentSigner(new JcaContentSignerBuilder(&quot;SHA1withRSA&quot;).setProvider(BouncyCastleProvider.PROVIDER_NAME).build(key_pair</span>
+<span class="nc" id="L168">                                .getPrivate()), 20480);</span>
+<span class="nc" id="L169">                        final X509CertificateHolder certHolder = certbuilder.build(signer);</span>
+<span class="nc" id="L170">                        final X509Certificate certificate = CertTools.getCertfromByteArray(certHolder.getEncoded(), X509Certificate.class);</span>
+
+<span class="nc" id="L172">                        final String fingerprint = CertTools.getFingerprintAsString(certificate);</span>
+                        // We add all certificates that does not have a user already to &quot;missing_user_name&quot;
+<span class="nc" id="L174">                        final EndEntityInformation missingUserEndEntityInformation = EjbRemoteHelper.INSTANCE.getRemoteSession(</span>
+<span class="nc" id="L175">                                EndEntityAccessSessionRemote.class).findUser(getAuthenticationToken(), missing_user_name);</span>
+<span class="nc bnc" id="L176" title="All 2 branches missed.">                        if (missingUserEndEntityInformation == null) {</span>
+                            // Add the user and change status to REVOKED
+<span class="nc" id="L178">                            log.debug(&quot;Loading/updating user &quot; + missing_user_name);</span>
+<span class="nc" id="L179">                            final EndEntityInformation userdataNew = new EndEntityInformation(missing_user_name, CertTools.getSubjectDN(certificate),</span>
+<span class="nc" id="L180">                                    cainfo.getCAId(), null, null, EndEntityConstants.STATUS_NEW, new EndEntityType(EndEntityTypes.ENDUSER),</span>
+                                    EndEntityConstants.EMPTY_END_ENTITY_PROFILE, CertificateProfileConstants.CERTPROFILE_FIXED_ENDUSER, null, null,
+                                    SecConst.TOKEN_SOFT_BROWSERGEN, SecConst.NO_HARDTOKENISSUER, null);
+<span class="nc" id="L183">                            userdataNew.setPassword(&quot;foo123&quot;);</span>
+<span class="nc" id="L184">                            EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityManagementSessionRemote.class).addUser(getAuthenticationToken(),</span>
+                                    userdataNew, false);
+<span class="nc" id="L186">                            log.info(&quot;User '&quot; + missing_user_name + &quot;' has been added.&quot;);</span>
+<span class="nc" id="L187">                            EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityManagementSessionRemote.class).setUserStatus(getAuthenticationToken(),</span>
+                                    missing_user_name, EndEntityConstants.STATUS_REVOKED);
+<span class="nc" id="L189">                            log.info(&quot;User '&quot; + missing_user_name + &quot;' has been updated.&quot;);</span>
+                        }
+<span class="nc" id="L191">                        EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateStoreSessionRemote.class).storeCertificateRemote(getAuthenticationToken(),</span>
+<span class="nc" id="L192">                                EJBTools.wrap(certificate), missing_user_name, fingerprint, CertificateConstants.CERT_ACTIVE,</span>
+                                CertificateConstants.CERTTYPE_ENDENTITY, CertificateProfileConstants.CERTPROFILE_FIXED_ENDUSER, EndEntityConstants.NO_END_ENTITY_PROFILE, null,
+<span class="nc" id="L194">                                new Date().getTime());</span>
+<span class="nc" id="L195">                        log.info(&quot;Dummy certificate  '&quot; + serialHex + &quot;' has been stored.&quot;);</span>
+                    }
+                    // This check will not catch a certificate with status CertificateConstants.CERT_ARCHIVED
+<span class="nc bnc" id="L198" title="All 4 branches missed.">                    if (!strict &amp;&amp; EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateStoreSessionRemote.class).isRevoked(issuer, serialNr)) {</span>
+<span class="nc" id="L199">                        log.info(&quot;Certificate '&quot; + serialHex + &quot;' is already revoked&quot;);</span>
+<span class="nc" id="L200">                        already_revoked++;</span>
+<span class="nc" id="L201">                        continue;</span>
+                    }
+<span class="nc" id="L203">                    log.info(&quot;Revoking '&quot; + serialHex + &quot;' &quot; + &quot;(&quot; + serialNr.toString() + &quot;)&quot;);</span>
+                    try {
+<span class="nc" id="L205">                        int reason = getCRLReasonValue(entry);</span>
+<span class="nc" id="L206">                        log.info(&quot;Reason code: &quot; + reason);</span>
+<span class="nc" id="L207">                        EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityManagementSessionRemote.class).revokeCert(getAuthenticationToken(),</span>
+<span class="nc" id="L208">                                serialNr, entry.getRevocationDate(), issuer, reason, false);</span>
+<span class="nc" id="L209">                        revoked++;</span>
+<span class="nc" id="L210">                    } catch (AlreadyRevokedException e) {</span>
+<span class="nc" id="L211">                        already_revoked++;</span>
+<span class="nc" id="L212">                        log.warn(&quot;Failed to revoke '&quot; + serialHex + &quot;'. (Status might be 'Archived'.) Error message was: &quot; + e.getMessage());</span>
+<span class="nc" id="L213">                    }</span>
+<span class="nc" id="L214">                }</span>
+            } // if (entries != null)
+<span class="nc bnc" id="L216" title="All 2 branches missed.">            if (EjbRemoteHelper.INSTANCE.getRemoteSession(CrlStoreSessionRemote.class).getLastCRLNumber(issuer, false) &lt; crl_no) {</span>
+<span class="nc" id="L217">                EjbRemoteHelper.INSTANCE.getRemoteSession(CrlStoreSessionRemote.class).storeCRL(getAuthenticationToken(), x509crl.getEncoded(),</span>
+<span class="nc" id="L218">                        CertTools.getFingerprintAsString(cacert), crl_no, issuer, x509crl.getThisUpdate(), x509crl.getNextUpdate(), -1);</span>
+            } else {
+<span class="nc bnc" id="L220" title="All 2 branches missed.">                if (strict) {</span>
+<span class="nc" id="L221">                    throw new IOException(&quot;CRL #&quot; + crl_no + &quot; or higher is already in the database&quot;);</span>
+                }
+            }
+<span class="nc" id="L224">            log.info(&quot;\nSummary:\nRevoked &quot; + revoked + &quot; certificates&quot;);</span>
+<span class="nc bnc" id="L225" title="All 2 branches missed.">            if (already_revoked &gt; 0) {</span>
+<span class="nc" id="L226">                log.info(already_revoked + &quot; certificates were already revoked&quot;);</span>
+            }
+<span class="nc bnc" id="L228" title="All 2 branches missed.">            if (miss_count &gt; 0) {</span>
+<span class="nc bnc" id="L229" title="All 2 branches missed.">                log.info(&quot;There were &quot; + miss_count + (adaptive ? &quot; dummy certificates added to&quot; : &quot; certificates missing in&quot;) + &quot; the database&quot;);</span>
+            }
+<span class="nc" id="L231">            log.info(&quot;CRL #&quot; + crl_no + &quot; stored in the database&quot;);</span>
+<span class="nc" id="L232">        } catch (Exception e) {</span>
+            //FIXME: This is all kinds of suboptimal.
+<span class="nc" id="L234">            log.info(&quot;Error: &quot; + e.getMessage());</span>
+<span class="nc" id="L235">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L236">        }</span>
+<span class="nc" id="L237">        log.trace(&quot;&lt;execute()&quot;);</span>
+<span class="nc" id="L238">        return CommandResult.SUCCESS;</span>
+    }
+
+    /**
+     * Return a CRL reason code from a CRL entry, or RevokedCertInfo.REVOCATION_REASON_UNSPECIFIED if a reson code extension does not exist
+     * @param entry Entry
+     * @return Value
+     * @throws IOException Fail 
+     */
+    private int getCRLReasonValue(final X509CRLEntry entry) throws IOException {
+<span class="nc" id="L248">        int reason = RevokedCertInfo.REVOCATION_REASON_UNSPECIFIED;</span>
+<span class="nc bnc" id="L249" title="All 4 branches missed.">        if ((entry != null) &amp;&amp; entry.hasExtensions()) {</span>
+<span class="nc" id="L250">            final byte[] bytes = entry.getExtensionValue(Extension.reasonCode.getId());</span>
+<span class="nc bnc" id="L251" title="All 2 branches missed.">            if (bytes != null) {</span>
+<span class="nc" id="L252">                ASN1InputStream aIn = new ASN1InputStream(new ByteArrayInputStream(bytes));</span>
+<span class="nc" id="L253">                final ASN1OctetString octs = (ASN1OctetString) aIn.readObject();</span>
+<span class="nc" id="L254">                aIn = new ASN1InputStream(new ByteArrayInputStream(octs.getOctets()));</span>
+<span class="nc" id="L255">                final ASN1Primitive obj = aIn.readObject();</span>
+<span class="nc bnc" id="L256" title="All 2 branches missed.">                if (obj != null) {</span>
+                    try {
+<span class="nc" id="L258">                        final ASN1Enumerated ext = (ASN1Enumerated) obj;</span>
+<span class="nc" id="L259">                        reason = ext.getValue().intValue();</span>
+<span class="nc" id="L260">                    } catch (ClassCastException e) {</span>
+                        // this was not a reason code, very strange
+<span class="nc" id="L262">                        log.info(&quot;Reason code extension did not contain DEREnumerated, is this CRL corrupt?. &quot; + obj.getClass().getName());</span>
+<span class="nc" id="L263">                    }</span>
+                }
+            }
+        }
+<span class="nc" id="L267">        return reason;</span>
+    } // getCRLReasonValue
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L272">        return &quot;Imports a CRL file (and updates certificates) to the database&quot;;</span>
+
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L278">        StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L279">        sb.append(getCommandDescription() + &quot;\n&quot;);</span>
+<span class="nc" id="L280">        sb.append(&quot;Operation modes: \n&quot;);</span>
+<span class="nc" id="L281">        sb.append(&quot;    &quot; + STRICT_OP + &quot; means that all certificates must be in the database and that the CRL must not already be in the database.\n&quot;);</span>
+<span class="nc" id="L282">        sb.append(&quot;    &quot;</span>
+                + LENIENT_OP
+                + &quot; means not strict and not adaptive, i.e. all certificates must not be in the database, but no dummy certificates will be created.\n&quot;);
+<span class="nc" id="L285">        sb.append(&quot;    &quot; + ADAPTIVE_OP</span>
+                + &quot; means that missing certficates will be replaced by dummy certificates to cater for proper CRLs for missing certificates.\n&quot;);
+<span class="nc" id="L287">        sb.append(&quot; Existing CAs: &quot; + getAvailableCasString());</span>
+<span class="nc" id="L288">        return sb.toString();</span>
+    }
+    
+    @Override
+    protected Logger getLogger() {
+<span class="nc" id="L293">        return log;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -19,164 +19,238 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import org.apache.log4j.Logger;
 import org.cesecore.authorization.access.AccessTreeState;
 import org.cesecore.authorization.rules.AccessRuleData;
 
 /**
- * Helper class for performing access rule upgrades between the EJBCA 6.8.0+ format and before.
- * 
- * @version $Id: AccessRulesMigrator.java 25893 2017-05-23 20:10:03Z mikekushner $
+ * Helper class for performing access rule upgrades between the EJBCA 6.8.0+
+ * format and before.
+ *
+ * @version $Id: AccessRulesMigrator.java 25893 2017-05-23 20:10:03Z mikekushner
+ *     $
  */
 @SuppressWarnings(&quot;deprecation&quot;)
 public class AccessRulesMigrator {
 
-<span class="fc" id="L35">    private static final Logger log = Logger.getLogger(AccessRulesMigrator.class);</span>
+    /** Logger. */
+<span class="fc" id="L37">  private static final Logger LOG = Logger.getLogger(AccessRulesMigrator.class);</span>
 
-<span class="fc" id="L37">    private final List&lt;String&gt; allKnownResourcesNormalized = new ArrayList&lt;&gt;();</span>
-    
-<span class="fc" id="L39">    public AccessRulesMigrator(final Collection&lt;String&gt; allKnownResourcesInInstallation) {</span>
-<span class="fc bfc" id="L40" title="All 2 branches covered.">        for (final String current : allKnownResourcesInInstallation) {</span>
-<span class="fc" id="L41">            this.allKnownResourcesNormalized.add(AccessRulesHelper.normalizeResource(current));</span>
-<span class="fc" id="L42">        }</span>
-<span class="fc" id="L43">    }</span>
-    
-    public HashMap&lt;String, Boolean&gt; toNewAccessRules(final Collection&lt;AccessRuleData&gt; oldAccessRules, final String roleNameForLogging) {
-<span class="fc" id="L46">        final HashMap&lt;String, Boolean&gt; ret = new HashMap&lt;&gt;();</span>
-        /*
-         * 1. AccessTreeState.STATE_DECLINE is always recursive and cannot be trumped by any subrule
-         * 2. AccessTreeState.STATE_ACCEPT_RECURSIVE can only be reverted by a subnode with AccessTreeState.STATE_DECLINE
-         * 3. Unknown leaf nodes are declined unless a previous node had AccessTreeState.STATE_ACCEPT_RECURSIVE
-         * 4. Only access rules configured in an AdminGroup are added to the AccessTree
-         * 5. Application knows about all existing resource that can be configured 
-         * 
-         * Order of conversion below matters.
-         * 
-         * Generic rules:
-         *  (From 1) Any /rulea/:decline          -&gt; Remove all rules starting with /rulea/ and add /rulea/:deny to new rules
-         *  (From 2) Any /ruleb/:accept+recursive -&gt; Remove all rules starting with /ruleb/ and add /ruleb/:allow to new rules
-         * 
-         * Conversion of accept+nonRecursive:
-         *  (From 3 and 5)
-         *   Any /rulec/:accept+nonRecursive where all currently existing sub-resource are also accepted
-         *     -&gt; Add /rulec/:allow to new rules
-         *   Any /rulec/:accept+nonRecursive where not all currently existing sub-resource are accepted
-         *     -&gt; Add /rulec/:allow to new rules and a /rulec/sub/:deny for each not accepted sub-resource
-         * 
-         * (Note that this last step changes the behavior when new sub-resources are created if all existing ones where granted at upgrade time!)
-         * 
-         * Complexity per role: &lt;2*N^2+N+N*M ≃ N*M [N configured access rules in role, M total access rules in system]
-         */
-<span class="fc" id="L71">        final Set&lt;AccessRuleData&gt; oldRules = new HashSet&lt;&gt;(oldAccessRules);</span>
-        // If there is entries with unknown, remove them first since they provide no info
-<span class="fc bfc" id="L73" title="All 2 branches covered.">        for (final AccessRuleData accessRuleData : new ArrayList&lt;&gt;(oldRules)) {</span>
-<span class="pc bpc" id="L74" title="1 of 2 branches missed.">            if (AccessTreeState.STATE_UNKNOWN.equals(accessRuleData.getTreeState())) {</span>
-<span class="nc" id="L75">                oldRules.remove(accessRuleData);</span>
-<span class="nc bnc" id="L76" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L77">                    log.debug(&quot;Ignoring STATE_UNKNOWN for resource '&quot; + AccessRulesHelper.normalizeResource(accessRuleData.getAccessRuleName()) + &quot;'.&quot;);</span>
-                }
-            }
-<span class="fc" id="L80">        }</span>
-        // Any /rulea/:decline -&gt; Remove all rules starting with /rulea/ and add /rulea/:deny to new rules
-<span class="fc bfc" id="L82" title="All 2 branches covered.">        for (final AccessRuleData accessRuleData : new ArrayList&lt;&gt;(oldRules)) {</span>
-<span class="fc bfc" id="L83" title="All 2 branches covered.">            if (AccessTreeState.STATE_DECLINE.equals(accessRuleData.getTreeState())) {</span>
-<span class="fc" id="L84">                final String resource = AccessRulesHelper.normalizeResource(accessRuleData.getAccessRuleName());</span>
-<span class="fc bfc" id="L85" title="All 2 branches covered.">                for (final AccessRuleData current : new ArrayList&lt;&gt;(oldRules)) {</span>
-<span class="fc" id="L86">                    final String resourceCurrent = AccessRulesHelper.normalizeResource(current.getAccessRuleName());</span>
-<span class="fc bfc" id="L87" title="All 2 branches covered.">                    if (resourceCurrent.startsWith(resource)) {</span>
-<span class="fc" id="L88">                        oldRules.remove(current);</span>
-                        // Remove longer resource paths that might have been added in the previous iterations of the loop
-<span class="fc" id="L90">                        ret.remove(resourceCurrent);</span>
-                    }
-<span class="fc" id="L92">                }</span>
-<span class="pc bpc" id="L93" title="1 of 2 branches missed.">                if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L94">                    log.debug(&quot;Adding STATE_DENY for resource '&quot; + resource + &quot;'.&quot;);</span>
-                }
-<span class="fc" id="L96">                ret.put(resource, Role.STATE_DENY);</span>
-            }
-<span class="fc" id="L98">        }</span>
-        // Any /ruleb/:accept+recursive -&gt; Remove all rules starting with /ruleb/ and add /ruleb/:allow to new rules
-<span class="fc bfc" id="L100" title="All 2 branches covered.">        for (final AccessRuleData accessRuleData : new ArrayList&lt;&gt;(oldRules)) {</span>
-<span class="fc bfc" id="L101" title="All 2 branches covered.">            if (AccessTreeState.STATE_ACCEPT_RECURSIVE.equals(accessRuleData.getTreeState())) {</span>
-<span class="fc" id="L102">                final String resource = AccessRulesHelper.normalizeResource(accessRuleData.getAccessRuleName());</span>
-<span class="fc bfc" id="L103" title="All 2 branches covered.">                for (final AccessRuleData current : new ArrayList&lt;&gt;(oldRules)) {</span>
-<span class="fc" id="L104">                    final String resourceCurrent = AccessRulesHelper.normalizeResource(current.getAccessRuleName());</span>
-<span class="fc bfc" id="L105" title="All 2 branches covered.">                    if (resourceCurrent.startsWith(resource)) {</span>
-<span class="fc" id="L106">                        oldRules.remove(current);</span>
-                        // Remove longer resource paths that might have been added in the previous iterations of the loop
-<span class="fc" id="L108">                        ret.remove(resourceCurrent);</span>
-                    }
-<span class="fc" id="L110">                }</span>
-<span class="pc bpc" id="L111" title="1 of 2 branches missed.">                if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L112">                    log.debug(&quot;Adding STATE_ALLOW for resource '&quot; + resource + &quot;'.&quot;);</span>
-                }
-<span class="fc" id="L114">                ret.put(resource, Role.STATE_ALLOW);</span>
-            }
-<span class="fc" id="L116">        }</span>
-        // Any /rulec/:accept+nonRecursive where all currently existing sub-resource are also accepted
-        //  -&gt; Add /rulec/:allow to new rules
-        // Any /rulec/:accept+nonRecursive where not all currently existing sub-resource are accepted
-        //  -&gt; Add /rulec/:allow to new rules and a /rulec/sub/:deny for each sub-resource
-<span class="fc" id="L121">        final Set&lt;String&gt; acceptNonRecursiveRules = new HashSet&lt;&gt;();</span>
-<span class="fc bfc" id="L122" title="All 2 branches covered.">        for (final AccessRuleData accessRuleData : new ArrayList&lt;&gt;(oldRules)) {</span>
-<span class="pc bpc" id="L123" title="1 of 2 branches missed.">            if (AccessTreeState.STATE_ACCEPT.equals(accessRuleData.getTreeState())) {</span>
-<span class="fc" id="L124">                acceptNonRecursiveRules.add(AccessRulesHelper.normalizeResource(accessRuleData.getAccessRuleName()));</span>
-<span class="fc" id="L125">                oldRules.remove(accessRuleData);</span>
-            }
-<span class="fc" id="L127">        }</span>
-<span class="fc" id="L128">        final List&lt;String&gt; acceptNonRecursiveRulesList = new ArrayList&lt;&gt;(acceptNonRecursiveRules);</span>
-        // Sort the list copy of the rules so log is easier to follow 
-<span class="fc" id="L130">        Collections.sort(acceptNonRecursiveRulesList);</span>
-<span class="fc bfc" id="L131" title="All 2 branches covered.">        for (final String acceptNonRecursiveRule : acceptNonRecursiveRulesList) {</span>
-<span class="fc" id="L132">            final Set&lt;String&gt; granted = new HashSet&lt;&gt;();</span>
-<span class="fc" id="L133">            final Set&lt;String&gt; denied = new HashSet&lt;&gt;();</span>
-<span class="fc bfc" id="L134" title="All 2 branches covered.">            for (final String existingResource : allKnownResourcesNormalized) {</span>
-                // Is the known resource a sub resource to the currently processed resource
-<span class="fc bfc" id="L136" title="All 4 branches covered.">                if (existingResource.startsWith(acceptNonRecursiveRule) &amp;&amp; !existingResource.equals(acceptNonRecursiveRule)) {</span>
-                    // Deny the sub-resource, unless 
-                    // - is explicitly granted by an old accept rule
-                    // - has already been granted by an accept recursive
-<span class="fc bfc" id="L140" title="All 2 branches covered.">                    if (acceptNonRecursiveRules.contains(existingResource)) {</span>
-<span class="fc" id="L141">                        granted.add(existingResource);</span>
-                    } else {
-<span class="fc bfc" id="L143" title="All 2 branches covered.">                        if (!AccessRulesHelper.hasAccessToResource(ret, existingResource)) {</span>
-<span class="fc" id="L144">                            denied.add(existingResource);</span>
-                        }
-                    }
-                }
-<span class="fc" id="L148">            }</span>
-<span class="fc bfc" id="L149" title="All 2 branches covered.">            if (denied.isEmpty()) {</span>
-<span class="pc bpc" id="L150" title="1 of 2 branches missed.">                if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L151">                    log.debug(&quot;Adding STATE_ALLOW for resource '&quot; + acceptNonRecursiveRule + &quot;'.&quot;);</span>
-                }
-<span class="fc bfc" id="L153" title="All 2 branches covered.">                if (!granted.isEmpty()) {</span>
-<span class="fc" id="L154">                    log.debug(&quot;Role '&quot; + roleNameForLogging + &quot;' will be been granted access to all future new sub resources under '&quot; +</span>
-                            acceptNonRecursiveRule + &quot;', since it had access to all current sub-resources.&quot;);
-                }
-<span class="fc" id="L157">                ret.put(acceptNonRecursiveRule, Role.STATE_ALLOW);</span>
-            } else {
-<span class="pc bpc" id="L159" title="1 of 2 branches missed.">                if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L160">                    log.debug(&quot;Adding STATE_ALLOW for resource '&quot; + acceptNonRecursiveRule + &quot;'.&quot;);</span>
-                }
-<span class="fc" id="L162">                ret.put(acceptNonRecursiveRule, Role.STATE_ALLOW);</span>
-<span class="fc bfc" id="L163" title="All 2 branches covered.">                for (final String deniedSubResource : denied) {</span>
-<span class="pc bpc" id="L164" title="1 of 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L165">                        log.debug(&quot; and adding STATE_DENY for resource '&quot; + deniedSubResource + &quot;'.&quot;);</span>
-                    }
-<span class="fc" id="L167">                    ret.put(deniedSubResource, Role.STATE_DENY);</span>
-<span class="fc" id="L168">                }</span>
-<span class="fc" id="L169">                log.info(&quot;Role '&quot; + roleNameForLogging + &quot;' will be been granted access to all future new sub resources under '&quot; +</span>
-                        acceptNonRecursiveRule + &quot;'. Current decline rules for sub-resources will continue to be denied.&quot;);
-            }
-<span class="fc" id="L172">        }</span>
-        // The unused rule '/ca_functionality/store_certificate/' was still added to roles before EJBCA 6.6.0 (clean it up now during conversion)
-<span class="fc" id="L174">        ret.remove(&quot;/ca_functionality/store_certificate/&quot;);</span>
-<span class="pc bpc" id="L175" title="1 of 2 branches missed.">        if (!oldRules.isEmpty()) {</span>
-<span class="nc" id="L176">            throw new IllegalStateException(&quot;Failed to convert access rules from old to new format. &quot; + oldRules.size() + &quot; rules remained.&quot;);</span>
+  /** resources. */
+<span class="fc" id="L40">  private final List&lt;String&gt; allKnownResourcesNormalized = new ArrayList&lt;&gt;();</span>
+
+  /**   *
+   * @param allKnownResourcesInInstallation Rresources
+   */
+  public AccessRulesMigrator(
+<span class="fc" id="L46">      final Collection&lt;String&gt; allKnownResourcesInInstallation) {</span>
+<span class="fc bfc" id="L47" title="All 2 branches covered.">    for (final String current : allKnownResourcesInInstallation) {</span>
+<span class="fc" id="L48">      this.allKnownResourcesNormalized.add(</span>
+<span class="fc" id="L49">          AccessRulesHelper.normalizeResource(current));</span>
+<span class="fc" id="L50">    }</span>
+<span class="fc" id="L51">  }</span>
+
+  /**   *
+   * @param oldAccessRules rules
+   * @param roleNameForLogging name
+   * @return map
+   */
+  public HashMap&lt;String, Boolean&gt; toNewAccessRules(
+      final Collection&lt;AccessRuleData&gt; oldAccessRules,
+      final String roleNameForLogging) {
+<span class="fc" id="L61">    final HashMap&lt;String, Boolean&gt; ret = new HashMap&lt;&gt;();</span>
+    /*
+     * 1. AccessTreeState.STATE_DECLINE is always recursive and cannot
+     * be trumped by any subrule
+     * 2. AccessTreeState.STATE_ACCEPT_RECURSIVE can only be reverted
+     * by a subnode with AccessTreeState.STATE_DECLINE
+     * 3. Unknown leaf nodes are declined unless a previous node had
+     * AccessTreeState.STATE_ACCEPT_RECURSIVE
+     * 4. Only access rules configured in an AdminGroup are added
+     * to the AccessTree
+     * 5. Application knows about all existing resource that can be configured
+     *
+     * Order of conversion below matters.
+     *
+     * Generic rules:
+     *  (From 1) Any /rulea/:decline          -&gt; Remove all rules starting
+     *  with /rulea/ and add /rulea/:deny to new rules
+     *  (From 2) Any /ruleb/:accept+recursive -&gt; Remove all rules starting
+     *  with /ruleb/ and add /ruleb/:allow to new rules
+     *
+     * Conversion of accept+nonRecursive:
+     *  (From 3 and 5)
+     *   Any /rulec/:accept+nonRecursive where all currently existing
+     *   sub-resource are also accepted
+     *     -&gt; Add /rulec/:allow to new rules
+     *   Any /rulec/:accept+nonRecursive where not all currently existing
+     *    sub-resource are accepted
+     *     -&gt; Add /rulec/:allow to new rules and a /rulec/sub/:deny for each
+     *     not accepted sub-resource
+     *
+     * (Note that this last step changes the behavior when new sub-resources
+     * are created if all existing ones where granted at upgrade time!)
+     *
+     * Complexity per role: &lt;2*N^2+N+N*M ≃ N*M [N configured access rules in
+     *  role, M total access rules in system]
+     */
+<span class="fc" id="L97">    final Set&lt;AccessRuleData&gt; oldRules = new HashSet&lt;&gt;(oldAccessRules);</span>
+    // If there is entries with unknown, remove them first since they provide no
+    // info
+<span class="fc bfc" id="L100" title="All 2 branches covered.">    for (final AccessRuleData accessRuleData : new ArrayList&lt;&gt;(oldRules)) {</span>
+<span class="pc bpc" id="L101" title="1 of 2 branches missed.">      if (AccessTreeState.STATE_UNKNOWN.equals(accessRuleData.getTreeState())) {</span>
+<span class="nc" id="L102">        oldRules.remove(accessRuleData);</span>
+<span class="nc bnc" id="L103" title="All 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L104">          LOG.debug(</span>
+              &quot;Ignoring STATE_UNKNOWN for resource '&quot;
+<span class="nc" id="L106">                  + AccessRulesHelper.normalizeResource(</span>
+<span class="nc" id="L107">                      accessRuleData.getAccessRuleName())</span>
+                  + &quot;'.&quot;);
         }
-<span class="fc" id="L178">        AccessRulesHelper.minimizeAccessRules(ret);</span>
-<span class="fc" id="L179">        return ret;</span>
+      }
+<span class="fc" id="L111">    }</span>
+    // Any /rulea/:decline -&gt; Remove all rules starting with /rulea/ and add
+    // /rulea/:deny to new rules
+<span class="fc bfc" id="L114" title="All 2 branches covered.">    for (final AccessRuleData accessRuleData : new ArrayList&lt;&gt;(oldRules)) {</span>
+<span class="fc bfc" id="L115" title="All 2 branches covered.">      if (AccessTreeState.STATE_DECLINE.equals(accessRuleData.getTreeState())) {</span>
+<span class="fc" id="L116">        final String resource =</span>
+<span class="fc" id="L117">            AccessRulesHelper.normalizeResource(</span>
+<span class="fc" id="L118">                accessRuleData.getAccessRuleName());</span>
+<span class="fc bfc" id="L119" title="All 2 branches covered.">        for (final AccessRuleData current : new ArrayList&lt;&gt;(oldRules)) {</span>
+<span class="fc" id="L120">          final String resourceCurrent =</span>
+<span class="fc" id="L121">              AccessRulesHelper.normalizeResource(current.getAccessRuleName());</span>
+<span class="fc bfc" id="L122" title="All 2 branches covered.">          if (resourceCurrent.startsWith(resource)) {</span>
+<span class="fc" id="L123">            oldRules.remove(current);</span>
+            // Remove longer resource paths that might have been added in the
+            // previous iterations of the loop
+<span class="fc" id="L126">            ret.remove(resourceCurrent);</span>
+          }
+<span class="fc" id="L128">        }</span>
+<span class="pc bpc" id="L129" title="1 of 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L130">          LOG.debug(&quot;Adding STATE_DENY for resource '&quot; + resource + &quot;'.&quot;);</span>
+        }
+<span class="fc" id="L132">        ret.put(resource, Role.STATE_DENY);</span>
+      }
+<span class="fc" id="L134">    }</span>
+    // Any /ruleb/:accept+recursive -&gt; Remove all rules starting with /ruleb/
+    // and add /ruleb/:allow to new rules
+<span class="fc bfc" id="L137" title="All 2 branches covered.">    for (final AccessRuleData accessRuleData : new ArrayList&lt;&gt;(oldRules)) {</span>
+<span class="fc bfc" id="L138" title="All 2 branches covered.">      if (AccessTreeState.STATE_ACCEPT_RECURSIVE.equals(</span>
+<span class="fc" id="L139">          accessRuleData.getTreeState())) {</span>
+<span class="fc" id="L140">        final String resource =</span>
+<span class="fc" id="L141">            AccessRulesHelper.normalizeResource(</span>
+<span class="fc" id="L142">                accessRuleData.getAccessRuleName());</span>
+<span class="fc bfc" id="L143" title="All 2 branches covered.">        for (final AccessRuleData current : new ArrayList&lt;&gt;(oldRules)) {</span>
+<span class="fc" id="L144">          final String resourceCurrent =</span>
+<span class="fc" id="L145">              AccessRulesHelper.normalizeResource(current.getAccessRuleName());</span>
+<span class="fc bfc" id="L146" title="All 2 branches covered.">          if (resourceCurrent.startsWith(resource)) {</span>
+<span class="fc" id="L147">            oldRules.remove(current);</span>
+            // Remove longer resource paths that might have been added in the
+            // previous iterations of the loop
+<span class="fc" id="L150">            ret.remove(resourceCurrent);</span>
+          }
+<span class="fc" id="L152">        }</span>
+<span class="pc bpc" id="L153" title="1 of 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L154">          LOG.debug(&quot;Adding STATE_ALLOW for resource '&quot; + resource + &quot;'.&quot;);</span>
+        }
+<span class="fc" id="L156">        ret.put(resource, Role.STATE_ALLOW);</span>
+      }
+<span class="fc" id="L158">    }</span>
+    // Any /rulec/:accept+nonRecursive where all currently existing sub-resource
+    // are also accepted
+    //  -&gt; Add /rulec/:allow to new rules
+    // Any /rulec/:accept+nonRecursive where not all currently existing
+    // sub-resource are accepted
+    //  -&gt; Add /rulec/:allow to new rules and a /rulec/sub/:deny for each
+    // sub-resource
+<span class="fc" id="L166">    final Set&lt;String&gt; acceptNonRecursiveRules = new HashSet&lt;&gt;();</span>
+<span class="fc bfc" id="L167" title="All 2 branches covered.">    for (final AccessRuleData accessRuleData : new ArrayList&lt;&gt;(oldRules)) {</span>
+<span class="pc bpc" id="L168" title="1 of 2 branches missed.">      if (AccessTreeState.STATE_ACCEPT.equals(accessRuleData.getTreeState())) {</span>
+<span class="fc" id="L169">        acceptNonRecursiveRules.add(</span>
+<span class="fc" id="L170">            AccessRulesHelper.normalizeResource(</span>
+<span class="fc" id="L171">                accessRuleData.getAccessRuleName()));</span>
+<span class="fc" id="L172">        oldRules.remove(accessRuleData);</span>
+      }
+<span class="fc" id="L174">    }</span>
+<span class="fc" id="L175">    final List&lt;String&gt; acceptNonRecursiveRulesList =</span>
+        new ArrayList&lt;&gt;(acceptNonRecursiveRules);
+    // Sort the list copy of the rules so log is easier to follow
+<span class="fc" id="L178">    Collections.sort(acceptNonRecursiveRulesList);</span>
+<span class="fc bfc" id="L179" title="All 2 branches covered.">    for (final String acceptNonRecursiveRule : acceptNonRecursiveRulesList) {</span>
+<span class="fc" id="L180">      final Set&lt;String&gt; granted = new HashSet&lt;&gt;();</span>
+<span class="fc" id="L181">      final Set&lt;String&gt; denied = new HashSet&lt;&gt;();</span>
+<span class="fc bfc" id="L182" title="All 2 branches covered.">      for (final String existingResource : allKnownResourcesNormalized) {</span>
+        // Is the known resource a sub resource to the currently processed
+        // resource
+<span class="fc bfc" id="L185" title="All 2 branches covered.">        if (existingResource.startsWith(acceptNonRecursiveRule)</span>
+<span class="fc bfc" id="L186" title="All 2 branches covered.">            &amp;&amp; !existingResource.equals(acceptNonRecursiveRule)) {</span>
+          // Deny the sub-resource, unless
+          // - is explicitly granted by an old accept rule
+          // - has already been granted by an accept recursive
+<span class="fc bfc" id="L190" title="All 2 branches covered.">          if (acceptNonRecursiveRules.contains(existingResource)) {</span>
+<span class="fc" id="L191">            granted.add(existingResource);</span>
+          } else {
+<span class="fc bfc" id="L193" title="All 2 branches covered.">            if (!AccessRulesHelper.hasAccessToResource(ret, existingResource)) {</span>
+<span class="fc" id="L194">              denied.add(existingResource);</span>
+            }
+          }
+        }
+<span class="fc" id="L198">      }</span>
+<span class="fc bfc" id="L199" title="All 2 branches covered.">      if (denied.isEmpty()) {</span>
+<span class="pc bpc" id="L200" title="1 of 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L201">          LOG.debug(</span>
+              &quot;Adding STATE_ALLOW for resource '&quot;
+                  + acceptNonRecursiveRule
+                  + &quot;'.&quot;);
+        }
+<span class="fc bfc" id="L206" title="All 2 branches covered.">        if (!granted.isEmpty()) {</span>
+<span class="fc" id="L207">          LOG.debug(</span>
+              &quot;Role '&quot;
+                  + roleNameForLogging
+                  + &quot;' will be been granted access to all future new sub&quot;
+                  + &quot; resources under '&quot;
+                  + acceptNonRecursiveRule
+                  + &quot;', since it had access to all current sub-resources.&quot;);
+        }
+<span class="fc" id="L215">        ret.put(acceptNonRecursiveRule, Role.STATE_ALLOW);</span>
+      } else {
+<span class="pc bpc" id="L217" title="1 of 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L218">          LOG.debug(</span>
+              &quot;Adding STATE_ALLOW for resource '&quot;
+                  + acceptNonRecursiveRule
+                  + &quot;'.&quot;);
+        }
+<span class="fc" id="L223">        ret.put(acceptNonRecursiveRule, Role.STATE_ALLOW);</span>
+<span class="fc bfc" id="L224" title="All 2 branches covered.">        for (final String deniedSubResource : denied) {</span>
+<span class="pc bpc" id="L225" title="1 of 2 branches missed.">          if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L226">            LOG.debug(</span>
+                &quot; and adding STATE_DENY for resource '&quot;
+                    + deniedSubResource
+                    + &quot;'.&quot;);
+          }
+<span class="fc" id="L231">          ret.put(deniedSubResource, Role.STATE_DENY);</span>
+<span class="fc" id="L232">        }</span>
+<span class="fc" id="L233">        LOG.info(</span>
+            &quot;Role '&quot;
+                + roleNameForLogging
+                + &quot;' will be been granted access to all future new sub&quot;
+                + &quot; resources under '&quot;
+                + acceptNonRecursiveRule
+                + &quot;'. Current decline rules for sub-resources will continue to&quot;
+                + &quot; be denied.&quot;);
+      }
+<span class="fc" id="L242">    }</span>
+    // The unused rule '/ca_functionality/store_certificate/' was still added to
+    // roles before EJBCA 6.6.0 (clean it up now during conversion)
+<span class="fc" id="L245">    ret.remove(&quot;/ca_functionality/store_certificate/&quot;);</span>
+<span class="pc bpc" id="L246" title="1 of 2 branches missed.">    if (!oldRules.isEmpty()) {</span>
+<span class="nc" id="L247">      throw new IllegalStateException(</span>
+          &quot;Failed to convert access rules from old to new format. &quot;
+<span class="nc" id="L249">              + oldRules.size()</span>
+              + &quot; rules remained.&quot;);
     }
+<span class="fc" id="L252">    AccessRulesHelper.minimizeAccessRules(ret);</span>
+<span class="fc" id="L253">    return ret;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

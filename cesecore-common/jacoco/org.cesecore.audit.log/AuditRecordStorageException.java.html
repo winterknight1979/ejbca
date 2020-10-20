@@ -15,30 +15,47 @@ package org.cesecore.audit.log;
 import javax.ejb.ApplicationException;
 
 /**
- * Handles secure audit log storage exceptions
- * 
- * @version $Id: AuditRecordStorageException.java 17625 2013-09-20 07:12:06Z netmackan $
- * 
+ * Handles secure audit log storage exceptions.
+ *
+ * @version $Id: AuditRecordStorageException.java 17625 2013-09-20 07:12:06Z
+ *     netmackan $
  */
-@ApplicationException(rollback=true)
+@ApplicationException(rollback = true)
 public class AuditRecordStorageException extends RuntimeException {
 
-    private static final long serialVersionUID = -2049206241984967597L;
+  private static final long serialVersionUID = -2049206241984967597L;
 
-    public AuditRecordStorageException() {
-<span class="nc" id="L29">        super();</span>
-<span class="nc" id="L30">    }</span>
+  /** Empty exception. */
+  public AuditRecordStorageException() {
+<span class="nc" id="L30">    super();</span>
+<span class="nc" id="L31">  }</span>
 
-    public AuditRecordStorageException(String message) {
-<span class="nc" id="L33">        super(message);</span>
-<span class="nc" id="L34">    }</span>
+  /**
+   * Exception with message.
+   *
+   * @param message Message
+   */
+  public AuditRecordStorageException(final String message) {
+<span class="nc" id="L39">    super(message);</span>
+<span class="nc" id="L40">  }</span>
 
-    public AuditRecordStorageException(Throwable t) {
-<span class="nc" id="L37">        super(t);</span>
-<span class="nc" id="L38">    }</span>
+  /**
+   * Exception with cause.
+   *
+   * @param t Cause
+   */
+  public AuditRecordStorageException(final Throwable t) {
+<span class="nc" id="L48">    super(t);</span>
+<span class="nc" id="L49">  }</span>
 
-    public AuditRecordStorageException(String s, Throwable t) {
-<span class="nc" id="L41">        super(s, t);</span>
-<span class="nc" id="L42">    }</span>
+  /**
+   * Exception with cause and message.
+   *
+   * @param s Message
+   * @param t Cause
+   */
+  public AuditRecordStorageException(final String s, final Throwable t) {
+<span class="nc" id="L58">    super(s, t);</span>
+<span class="nc" id="L59">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

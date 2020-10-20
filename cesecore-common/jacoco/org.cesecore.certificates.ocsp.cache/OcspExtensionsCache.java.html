@@ -15,68 +15,76 @@ package org.cesecore.certificates.ocsp.cache;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ServiceLoader;
-
 import org.apache.log4j.Logger;
 import org.cesecore.certificates.ocsp.extension.OCSPExtension;
 
 /**
  * Enum based singleton to contain a Map of OCSP extensions.
- * 
- * Note that this class is currently not thread safe, and use of the reloadCache()-method should be extremely limited. 
- * 
+ *
+ * &lt;p&gt;Note that this class is currently not thread safe, and use of the
+ * reloadCache()-method should be extremely limited.
+ *
  * @version $Id: OcspExtensionsCache.java 28566 2018-03-27 14:59:55Z henriks $
- * 
  */
-<span class="nc" id="L30">public enum OcspExtensionsCache {</span>
+<span class="nc" id="L29">public enum OcspExtensionsCache {</span>
+  /** Singleton instance. */
 <span class="nc" id="L31">    INSTANCE;</span>
 
-    private static Logger log; // static initialization happens after the enum instance is constructed, so we can't initialize the logger here
+/** Logger. */
+  private static Logger
+      log; // static initialization happens after the enum instance is
+           // constructed, so we can't initialize the logger here
 
-    private Map&lt;String, OCSPExtension&gt; extensionMap;
+  /** Map. */
+  private Map&lt;String, OCSPExtension&gt; extensionMap;
 
-<span class="nc" id="L37">    private OcspExtensionsCache() {</span>
-<span class="nc" id="L38">        initializeLogger();</span>
-<span class="nc" id="L39">        reloadCache(buildExtensionsMap());</span>
-<span class="nc" id="L40">    }</span>
-    
-    /** Helper method to assign the log, which can't be done directly from the constructor */
-    private static void initializeLogger() {
-<span class="nc" id="L44">        log = Logger.getLogger(OcspExtensionsCache.class);</span>
-<span class="nc" id="L45">    }</span>
+  /** private constructor. */
+<span class="nc" id="L42">  OcspExtensionsCache() {</span>
+<span class="nc" id="L43">    initializeLogger();</span>
+<span class="nc" id="L44">    reloadCache(buildExtensionsMap());</span>
+<span class="nc" id="L45">  }</span>
 
-    /**
-     * 
-     * @return a map containing all loaded extensions. 
-     */
-    public Map&lt;String, OCSPExtension&gt; getExtensions() {
-<span class="nc" id="L52">        return extensionMap;</span>
-    }
+  /**
+   * Helper method to assign the log, which can't be done directly from the
+   * constructor.
+   */
+  private static void initializeLogger() {
+<span class="nc" id="L52">    log = Logger.getLogger(OcspExtensionsCache.class);</span>
+<span class="nc" id="L53">  }</span>
 
-    /**
-     * Method to manually reload the cache. 
-     * @param newExtensionMap new cache
-     */
-    private void reloadCache(Map&lt;String, OCSPExtension&gt; newExtensionMap) {
-<span class="nc" id="L60">        extensionMap = newExtensionMap;</span>
-<span class="nc" id="L61">    }</span>
+  /** @return a map containing all loaded extensions. */
+  public Map&lt;String, OCSPExtension&gt; getExtensions() {
+<span class="nc" id="L57">    return extensionMap;</span>
+  }
 
-    /**
-     * Reloads the cache manually, reading configuration anew. 
-     */
-    public void reloadCache() {
-<span class="nc" id="L67">        reloadCache(buildExtensionsMap());</span>
-<span class="nc" id="L68">    }</span>
-    
-    private static Map&lt;String, OCSPExtension&gt; buildExtensionsMap() {
-<span class="nc" id="L71">        Map&lt;String, OCSPExtension&gt; result = new HashMap&lt;String, OCSPExtension&gt;();</span>
-<span class="nc" id="L72">        ServiceLoader&lt;OCSPExtension&gt; extensionLoader = ServiceLoader.load(OCSPExtension.class);</span>
-<span class="nc bnc" id="L73" title="All 2 branches missed.">        for (OCSPExtension extension : extensionLoader) {</span>
-<span class="nc" id="L74">            result.put(extension.getOid(), extension);</span>
-<span class="nc bnc" id="L75" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L76">                log.debug(&quot;Added OCSP extension with OID: &quot; + extension.getOid() + &quot; to the OCSP extension map&quot;);</span>
-            }
-<span class="nc" id="L78">        }</span>
-<span class="nc" id="L79">        return result;</span>
-    }
+  /**
+   * Method to manually reload the cache.
+   *
+   * @param newExtensionMap new cache
+   */
+  private void reloadCache(final Map&lt;String, OCSPExtension&gt; newExtensionMap) {
+<span class="nc" id="L66">    extensionMap = newExtensionMap;</span>
+<span class="nc" id="L67">  }</span>
+
+  /** Reloads the cache manually, reading configuration anew. */
+  public void reloadCache() {
+<span class="nc" id="L71">    reloadCache(buildExtensionsMap());</span>
+<span class="nc" id="L72">  }</span>
+
+  private static Map&lt;String, OCSPExtension&gt; buildExtensionsMap() {
+<span class="nc" id="L75">    Map&lt;String, OCSPExtension&gt; result = new HashMap&lt;String, OCSPExtension&gt;();</span>
+<span class="nc" id="L76">    ServiceLoader&lt;OCSPExtension&gt; extensionLoader =</span>
+<span class="nc" id="L77">        ServiceLoader.load(OCSPExtension.class);</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">    for (OCSPExtension extension : extensionLoader) {</span>
+<span class="nc" id="L79">      result.put(extension.getOid(), extension);</span>
+<span class="nc bnc" id="L80" title="All 2 branches missed.">      if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L81">        log.debug(</span>
+            &quot;Added OCSP extension with OID: &quot;
+<span class="nc" id="L83">                + extension.getOid()</span>
+                + &quot; to the OCSP extension map&quot;);
+      }
+<span class="nc" id="L86">    }</span>
+<span class="nc" id="L87">    return result;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

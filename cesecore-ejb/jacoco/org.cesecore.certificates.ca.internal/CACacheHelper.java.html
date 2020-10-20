@@ -9,7 +9,7 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.ca.internal;
 
 import java.util.HashMap;
@@ -17,28 +17,39 @@ import java.util.Map;
 
 /**
  * Caching of CA SubjectDN hashes that maps to real CAId.
- * 
- * In some border cases the content of the CA certificate's subjectDN is not
+ *
+ * &lt;p&gt;In some border cases the content of the CA certificate's subjectDN is not
  * what was used to generate the CA Id and therefore we often want to lookup
  * this &quot;real&quot; value.
- * 
+ *
  * @version $Id: CACacheHelper.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 public final class CACacheHelper {
 
-    /** Caching of CA IDs with CA cert DN hash as ID */
-<span class="nc" id="L30">    protected static volatile Map&lt;Integer, Integer&gt; caIdToCaCertHash = new HashMap&lt;Integer, Integer&gt;();</span>
+  /** Caching of CA IDs with CA cert DN hash as ID. */
+<span class="nc" id="L30">  protected static volatile Map&lt;Integer, Integer&gt; caIdToCaCertHash =</span>
+      new HashMap&lt;Integer, Integer&gt;();
 
-	private CACacheHelper() {
-		// Do nothing
-	}
+  /** null constructor. */
+  private CACacheHelper() {
+    // Do nothing
+  }
 
-	public static Integer getCaCertHash(Integer caid) {
-<span class="nc" id="L37">		return caIdToCaCertHash.get(Integer.valueOf(caid));</span>
-	}
+  /**
+   * @param caid ID
+   * @return Hash
+   */
+  public static Integer getCaCertHash(final Integer caid) {
+<span class="nc" id="L43">    return caIdToCaCertHash.get(Integer.valueOf(caid));</span>
+  }
 
-	public static void putCaCertHash(Integer caid, Integer caCertHash) {
-<span class="nc" id="L41">		caIdToCaCertHash.put(caid, caCertHash);</span>
-<span class="nc" id="L42">	}</span>
+  /**
+   * @param caid ID
+   * @param caCertHash Hash
+   */
+  public static void putCaCertHash(
+      final Integer caid, final Integer caCertHash) {
+<span class="nc" id="L52">    caIdToCaCertHash.put(caid, caCertHash);</span>
+<span class="nc" id="L53">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

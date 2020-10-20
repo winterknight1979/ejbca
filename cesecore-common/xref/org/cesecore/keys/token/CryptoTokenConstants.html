@@ -21,18 +21,24 @@
 <a class="jxr_linenumber" name="L13" href="#L13">13</a>  <strong class="jxr_keyword">package</strong> org.cesecore.keys.token;
 <a class="jxr_linenumber" name="L14" href="#L14">14</a>  
 <a class="jxr_linenumber" name="L15" href="#L15">15</a>  <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <em class="jxr_javadoccomment"> * @version $Id: CryptoTokenConstants.java 17625 2013-09-20 07:12:06Z netmackan $</em>
-<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <em class="jxr_javadoccomment"> */</em>
-<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a name="CryptoTokenConstants" href="../../../../org/cesecore/keys/token/CryptoTokenConstants.html#CryptoTokenConstants">CryptoTokenConstants</a> {
-<a class="jxr_linenumber" name="L19" href="#L19">19</a>  
-<a class="jxr_linenumber" name="L20" href="#L20">20</a>      <em class="jxr_javadoccomment">/** constants needed for soft crypto tokens */</em>
-<a class="jxr_linenumber" name="L21" href="#L21">21</a>      <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String SIGNKEYSPEC       = <span class="jxr_string">"SIGNKEYSPEC"</span>;
-<a class="jxr_linenumber" name="L22" href="#L22">22</a>      <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String ENCKEYSPEC        = <span class="jxr_string">"ENCKEYSPEC"</span>;
-<a class="jxr_linenumber" name="L23" href="#L23">23</a>      <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String SIGNKEYALGORITHM  = <span class="jxr_string">"SIGNKEYALGORITHM"</span>;
-<a class="jxr_linenumber" name="L24" href="#L24">24</a>      <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String ENCKEYALGORITHM   = <span class="jxr_string">"ENCKEYALGORITHM"</span>;
-<a class="jxr_linenumber" name="L25" href="#L25">25</a>      <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String KEYSTORE          = <span class="jxr_string">"KEYSTORE"</span>;
-<a class="jxr_linenumber" name="L26" href="#L26">26</a>  
-<a class="jxr_linenumber" name="L27" href="#L27">27</a>  }
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <em class="jxr_javadoccomment"> * @version $Id: CryptoTokenConstants.java 17625 2013-09-20 07:12:06Z netmackan</em>
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <em class="jxr_javadoccomment"> *     $</em>
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a name="CryptoTokenConstants" href="../../../../org/cesecore/keys/token/CryptoTokenConstants.html#CryptoTokenConstants">CryptoTokenConstants</a> {
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>    <strong class="jxr_keyword">private</strong> <a name="CryptoTokenConstants" href="../../../../org/cesecore/keys/token/CryptoTokenConstants.html#CryptoTokenConstants">CryptoTokenConstants</a>() { }
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>    <em class="jxr_javadoccomment">/** constants needed for soft crypto tokens. */</em>
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>    <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String SIGNKEYSPEC = <span class="jxr_string">"SIGNKEYSPEC"</span>;
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>    <em class="jxr_javadoccomment">/** Encrypt. */</em>
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>    <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String ENCKEYSPEC = <span class="jxr_string">"ENCKEYSPEC"</span>;
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>    <em class="jxr_javadoccomment">/** Sign. */</em>
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>    <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String SIGNKEYALGORITHM = <span class="jxr_string">"SIGNKEYALGORITHM"</span>;
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>    <em class="jxr_javadoccomment">/** Encrypt. */</em>
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>    <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String ENCKEYALGORITHM = <span class="jxr_string">"ENCKEYALGORITHM"</span>;
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>    <em class="jxr_javadoccomment">/** Store. */</em>
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>    <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String KEYSTORE = <span class="jxr_string">"KEYSTORE"</span>;
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2020. All rights reserved.</div>

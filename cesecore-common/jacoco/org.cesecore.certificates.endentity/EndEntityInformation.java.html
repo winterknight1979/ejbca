@@ -23,7 +23,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.log4j.Logger;
 import org.cesecore.certificates.util.dn.DNFieldsUtil;
 import org.cesecore.util.Base64GetHashMap;
@@ -31,420 +30,702 @@ import org.cesecore.util.Base64PutHashMap;
 import org.cesecore.util.SecureXMLDecoder;
 import org.cesecore.util.StringTools;
 
-
 /**
- * Holds admin data collected from UserData in the database. Strings are stored in Base64 encoded format to be safe for storing in database, xml etc.
+ * Holds admin data collected from UserData in the database. Strings are stored
+ * in Base64 encoded format to be safe for storing in database, xml etc.
  *
  * @version $Id: EndEntityInformation.java 34163 2020-01-02 15:00:17Z samuellb $
  */
 public class EndEntityInformation implements Serializable {
 
-<span class="fc" id="L42">    private static final Logger log = Logger.getLogger(EndEntityInformation.class);</span>
+    /** Logger. */
+<span class="fc" id="L42">  private static final Logger LOG =</span>
+<span class="fc" id="L43">      Logger.getLogger(EndEntityInformation.class);</span>
 
-    /**
-     * Determines if a de-serialized file is compatible with this class.
-     *
-     * Maintainers must change this value if and only if the new version
-     * of this class is not compatible with old versions. See Sun docs
-     * for &lt;a href=http://java.sun.com/products/jdk/1.1/docs/guide
-     * /serialization/spec/version.doc.html&gt; details. &lt;/a&gt;
-     *
-     */
-    private static final long serialVersionUID = 3837505643343885941L;
+  /**
+   * Determines if a de-serialized file is compatible with this class.
+   *
+   * &lt;p&gt;Maintainers must change this value if and only if the new version of
+   * this class is not compatible with old versions. See Sun docs for &lt;a
+   * href=http://java.sun.com/products/jdk/1.1/docs/guide
+   * /serialization/spec/version.doc.html&gt; details. &lt;/a&gt;
+   */
+  private static final long serialVersionUID = 3837505643343885941L;
 
-    private String username;
-    private String subjectDN;
-<span class="pc" id="L57">    transient private String subjectDNClean = null;</span>
-    private int caid;
-    private String subjectAltName;
-    private String subjectEmail;
-    private String password;
-    private String cardNumber;
-    /** Status of user, from {@link EndEntityConstants#STATUS_NEW} etc*/
-    private int status;
-    private int type;
-    private int endentityprofileid;
-    private int certificateprofileid;
-    private Date timecreated;
-    private Date timemodified;
-    /** Type of token, from {@link EndEntityConstants#TOKEN_USERGEN} etc*/
-    private int tokentype;
-    private int hardtokenissuerid;
-    /** ExtendedInformation holding extra data of the End entity */
-    private ExtendedInformation extendedinformation;
+  /** User. */
+  private String username;
+  /** DN. */
+  private String subjectDN;
+  /** Cleaned-up DN. */
+<span class="pc" id="L60">  private transient String subjectDNClean = null;</span>
+  /** CA. */
+  private int caid;
+  /** Name. */
+  private String subjectAltName;
+  /** Email. */
+  private String subjectEmail;
+  /** Password. */
+  private String password;
+  /** Number. */
+  private String cardNumber;
+  /** Status of user, from {@link EndEntityConstants#STATUS_NEW} etc. */
+  private int status;
+  /** Type. */
+  private int type;
+  /** EE ID. */
+  private int endentityprofileid;
+  /** Cert ID. */
+  private int certificateprofileid;
+  /** Created. */
+  private Date timecreated;
+  /** Modified. */
+  private Date timemodified;
+  /** Type of token, from {@link EndEntityConstants#TOKEN_USERGEN} etc. */
+  private int tokentype;
 
-    /** Creates new empty EndEntityInformation */
-<span class="fc" id="L77">    public EndEntityInformation() {</span>
-<span class="fc" id="L78">    }</span>
+  /** Issuer ID. */
+  private int hardtokenissuerid;
+  /** ExtendedInformation holding extra data of the End entity. */
+  private ExtendedInformation extendedinformation;
 
-    /**
-     * Copy constructor for {@link EndEntityInformation}
-     *
-     * @param endEntityInformation an end entity to copy
-     */
-<span class="nc" id="L85">    public EndEntityInformation(final EndEntityInformation endEntityInformation) {</span>
-<span class="nc" id="L86">        this.username = endEntityInformation.getUsername();</span>
-<span class="nc" id="L87">        this.subjectDN = endEntityInformation.getDN();</span>
-<span class="nc" id="L88">        this.caid = endEntityInformation.getCAId();</span>
-<span class="nc" id="L89">        this.subjectAltName = endEntityInformation.getSubjectAltName();</span>
-<span class="nc" id="L90">        this.subjectEmail = endEntityInformation.getEmail();</span>
-<span class="nc" id="L91">        this.password = endEntityInformation.getPassword();</span>
-<span class="nc" id="L92">        this.cardNumber = endEntityInformation.getCardNumber();</span>
-<span class="nc" id="L93">        this.status = endEntityInformation.getStatus();</span>
-<span class="nc" id="L94">        this.type = endEntityInformation.getType().getHexValue();</span>
-<span class="nc" id="L95">        this.tokentype = endEntityInformation.getTokenType();</span>
-<span class="nc" id="L96">        this.endentityprofileid = endEntityInformation.getEndEntityProfileId();</span>
-<span class="nc" id="L97">        this.certificateprofileid = endEntityInformation.getCertificateProfileId();</span>
-<span class="nc" id="L98">        this.timecreated = endEntityInformation.getTimeCreated();</span>
-<span class="nc" id="L99">        this.timemodified = endEntityInformation.getTimeModified();</span>
-<span class="nc" id="L100">        this.tokentype = endEntityInformation.getTokenType();</span>
-<span class="nc bnc" id="L101" title="All 2 branches missed.">        this.extendedinformation = (endEntityInformation.getExtendedInformation() != null ? new ExtendedInformation(endEntityInformation.getExtendedInformation()) : null);</span>
-<span class="nc" id="L102">    }</span>
+  /** Creates new empty EndEntityInformation. */
+<span class="fc" id="L92">  public EndEntityInformation() { }</span>
 
-    /**
-     * Creates new EndEntityInformation. All fields are almost required in this constructor. Password must
-     * be set manually though. This is so you should be sure what you do with the password.
-     *
-     * @param username the unique username.
-     * @param dn the DN the subject is given in his certificate.
-     * @param caid CA id of the CA that the user is registered with
-     * @param subjectaltname the Subject Alternative Name to be used.
-     * @param email the email of the subject (may be null).
-     * @param status Status of user, from {@link EndEntityConstants#STATUS_NEW} etc
-     * @param type Type of user, from {@link EndEntityTypes#ENDUSER} etc, can be &quot;or:ed&quot; together, i.e. EndEntityTypes#ENDUSER | {@link EndEntityTypes#SENDNOTIFICATION}
-     * @param endentityprofileid the id number of the end entity profile bound to this user.
-     * @param certificateprofileid the id number of the certificate profile that should be generated for the user.
-     * @param timecreated DOCUMENT ME!
-     * @param timemodified DOCUMENT ME!
-     * @param tokentype the type of token, from {@link EndEntityConstants#TOKEN_USERGEN} etc
-     * @param hardtokenissuerid if token should be hard, the id of the hard token issuer, else 0.
-     * @param extendedinfo info
+  /**
+   * Copy constructor for {@link EndEntityInformation}.
+   *
+   * @param endEntityInformation an end entity to copy
+   */
+<span class="nc" id="L99">  public EndEntityInformation(final EndEntityInformation endEntityInformation) {</span>
+<span class="nc" id="L100">    this.username = endEntityInformation.getUsername();</span>
+<span class="nc" id="L101">    this.subjectDN = endEntityInformation.getDN();</span>
+<span class="nc" id="L102">    this.caid = endEntityInformation.getCAId();</span>
+<span class="nc" id="L103">    this.subjectAltName = endEntityInformation.getSubjectAltName();</span>
+<span class="nc" id="L104">    this.subjectEmail = endEntityInformation.getEmail();</span>
+<span class="nc" id="L105">    this.password = endEntityInformation.getPassword();</span>
+<span class="nc" id="L106">    this.cardNumber = endEntityInformation.getCardNumber();</span>
+<span class="nc" id="L107">    this.status = endEntityInformation.getStatus();</span>
+<span class="nc" id="L108">    this.type = endEntityInformation.getType().getHexValue();</span>
+<span class="nc" id="L109">    this.tokentype = endEntityInformation.getTokenType();</span>
+<span class="nc" id="L110">    this.endentityprofileid = endEntityInformation.getEndEntityProfileId();</span>
+<span class="nc" id="L111">    this.certificateprofileid = endEntityInformation.getCertificateProfileId();</span>
+<span class="nc" id="L112">    this.timecreated = endEntityInformation.getTimeCreated();</span>
+<span class="nc" id="L113">    this.timemodified = endEntityInformation.getTimeModified();</span>
+<span class="nc" id="L114">    this.tokentype = endEntityInformation.getTokenType();</span>
+<span class="nc" id="L115">    this.extendedinformation =</span>
+<span class="nc bnc" id="L116" title="All 2 branches missed.">        (endEntityInformation.getExtendedInformation() != null</span>
+<span class="nc" id="L117">            ? new ExtendedInformation(</span>
+<span class="nc" id="L118">                endEntityInformation.getExtendedInformation())</span>
+<span class="nc" id="L119">            : null);</span>
+<span class="nc" id="L120">  }</span>
 
-     */
-    public EndEntityInformation(final String username, final String dn, final int caid, final String subjectaltname, final String email,
-            final int status, final EndEntityType type, final int endentityprofileid, final int certificateprofileid, final Date timecreated,
-<span class="nc" id="L126">            final Date timemodified, final int tokentype, final int hardtokenissuerid, final ExtendedInformation extendedinfo) {</span>
-<span class="nc" id="L127">        setUsername(username);</span>
-<span class="nc" id="L128">        setPassword(null);</span>
-<span class="nc" id="L129">        setCardNumber(null);</span>
-<span class="nc" id="L130">        setDN(dn);</span>
-<span class="nc" id="L131">        setCAId(caid);</span>
-<span class="nc" id="L132">        setSubjectAltName(subjectaltname);</span>
-<span class="nc" id="L133">        setEmail(email);</span>
-<span class="nc" id="L134">        setStatus(status);</span>
-<span class="nc" id="L135">        setType(type);</span>
-<span class="nc" id="L136">        setEndEntityProfileId(endentityprofileid);</span>
-<span class="nc" id="L137">        setCertificateProfileId(certificateprofileid);</span>
-<span class="nc" id="L138">        setTimeCreated(timecreated);</span>
-<span class="nc" id="L139">        setTimeModified(timemodified);</span>
-<span class="nc" id="L140">        setTokenType(tokentype);</span>
-<span class="nc" id="L141">        setHardTokenIssuerId(hardtokenissuerid);</span>
-<span class="nc" id="L142">        setExtendedInformation(extendedinfo);</span>
-<span class="nc" id="L143">        setCardNumber(null);</span>
-<span class="nc" id="L144">    }</span>
+  /**
+   * Creates new EndEntityInformation. All fields are almost required in this
+   * constructor. Password must be set manually though. This is so you should be
+   * sure what you do with the password.
+   *
+   * @param ausername the unique username.
+   * @param dn the DN the subject is given in his certificate.
+   * @param acaid CA id of the CA that the user is registered with
+   * @param subjectaltname the Subject Alternative Name to be used.
+   * @param email the email of the subject (may be null).
+   * @param astatus Status of user, from {@link EndEntityConstants#STATUS_NEW}
+   *     etc
+   * @param atype Type of user, from {@link EndEntityTypes#ENDUSER} etc, can be
+   *     &quot;or:ed&quot; together, i.e. EndEntityTypes#ENDUSER | {@link
+   *     EndEntityTypes#SENDNOTIFICATION}
+   * @param aendentityprofileid the id number of the end entity profile bound to
+   *     this user.
+   * @param acertificateprofileid the id number of the certificate profile that
+   *     should be generated for the user.
+   * @param atimecreated DOCUMENT ME!
+   * @param atimemodified DOCUMENT ME!
+   * @param atokentype the type of token, from {@link
+   *     EndEntityConstants#TOKEN_USERGEN} etc
+   * @param ahardtokenissuerid if token should be hard, the id of the hard token
+   *     issuer, else 0.
+   * @param extendedinfo info
+   */
+  public EndEntityInformation(
+      final String ausername,
+      final String dn,
+      final int acaid,
+      final String subjectaltname,
+      final String email,
+      final int astatus,
+      final EndEntityType atype,
+      final int aendentityprofileid,
+      final int acertificateprofileid,
+      final Date atimecreated,
+      final Date atimemodified,
+      final int atokentype,
+      final int ahardtokenissuerid,
+<span class="nc" id="L163">      final ExtendedInformation extendedinfo) {</span>
+<span class="nc" id="L164">    setUsername(ausername);</span>
+<span class="nc" id="L165">    setPassword(null);</span>
+<span class="nc" id="L166">    setCardNumber(null);</span>
+<span class="nc" id="L167">    setDN(dn);</span>
+<span class="nc" id="L168">    setCAId(acaid);</span>
+<span class="nc" id="L169">    setSubjectAltName(subjectaltname);</span>
+<span class="nc" id="L170">    setEmail(email);</span>
+<span class="nc" id="L171">    setStatus(astatus);</span>
+<span class="nc" id="L172">    setType(atype);</span>
+<span class="nc" id="L173">    setEndEntityProfileId(aendentityprofileid);</span>
+<span class="nc" id="L174">    setCertificateProfileId(acertificateprofileid);</span>
+<span class="nc" id="L175">    setTimeCreated(atimecreated);</span>
+<span class="nc" id="L176">    setTimeModified(atimemodified);</span>
+<span class="nc" id="L177">    setTokenType(atokentype);</span>
+<span class="nc" id="L178">    setHardTokenIssuerId(ahardtokenissuerid);</span>
+<span class="nc" id="L179">    setExtendedInformation(extendedinfo);</span>
+<span class="nc" id="L180">    setCardNumber(null);</span>
+<span class="nc" id="L181">  }</span>
 
-    /**
-     * Creates new EndEntityInformation. This constructor should only be used from UserDataSource
-     * implementations. Status and dates aren't used in these cases.
-     *
-     * @param username the unique username.
-     * @param dn the DN the subject is given in his certificate.
-     * @param caid the id of the CA that should be used to issue the users certificate
-     * @param subjectaltname the Subject Alternative Name to be used.
-     * @param email the email of the subject (may be null).
-     * @param type one of EndEntityTypes.USER_ENDUSER || ...
-     * @param endentityprofileid the id number of the end entity profile bound to this user.
-     * @param certificateprofileid the id number of the certificate profile that should be generated for the user.
-     * @param tokentype the type of token, from {@link EndEntityConstants#TOKEN_USERGEN} etc
-     * @param hardtokenissuerid if token should be hard, the id of the hard token issuer, else 0.
-     * @param extendedinfo info
-     */
-    public EndEntityInformation(final String username, final String dn, final int caid, final String subjectaltname, final String email,
-            final EndEntityType type, final int endentityprofileid, final int certificateprofileid, final int tokentype, final int hardtokenissuerid,
-<span class="nc" id="L164">            final ExtendedInformation extendedinfo) {</span>
-<span class="nc" id="L165">        setUsername(username);</span>
-<span class="nc" id="L166">        setPassword(null);</span>
-<span class="nc" id="L167">        setDN(dn);</span>
-<span class="nc" id="L168">        setCAId(caid);</span>
-<span class="nc" id="L169">        setSubjectAltName(subjectaltname);</span>
-<span class="nc" id="L170">        setEmail(email);</span>
-<span class="nc" id="L171">        setType(type);</span>
-<span class="nc" id="L172">        setEndEntityProfileId(endentityprofileid);</span>
-<span class="nc" id="L173">        setCertificateProfileId(certificateprofileid);</span>
-<span class="nc" id="L174">        setTokenType(tokentype);</span>
-<span class="nc" id="L175">        setHardTokenIssuerId(hardtokenissuerid);</span>
-<span class="nc" id="L176">        setExtendedInformation(extendedinfo);</span>
-<span class="nc" id="L177">        setCardNumber(null);</span>
-<span class="nc" id="L178">    }</span>
+  /**
+   * Creates new EndEntityInformation. This constructor should only be used from
+   * UserDataSource implementations. Status and dates aren't used in these
+   * cases.
+   *
+   * @param ausername the unique username.
+   * @param dn the DN the subject is given in his certificate.
+   * @param acaid the id of the CA that should be used to issue the users
+   *     certificate
+   * @param subjectaltname the Subject Alternative Name to be used.
+   * @param email the email of the subject (may be null).
+   * @param atype one of EndEntityTypes.USER_ENDUSER || ...
+   * @param aendentityprofileid the id number of the end entity profile bound to
+   *     this user.
+   * @param acertificateprofileid the id number of the certificate profile that
+   *     should be generated for the user.
+   * @param atokentype the type of token, from {@link
+   *     EndEntityConstants#TOKEN_USERGEN} etc
+   * @param ahardtokenissuerid if token should be hard, the id of the hard token
+   *     issuer, else 0.
+   * @param extendedinfo info
+   */
+  public EndEntityInformation(
+      final String ausername,
+      final String dn,
+      final int acaid,
+      final String subjectaltname,
+      final String email,
+      final EndEntityType atype,
+      final int aendentityprofileid,
+      final int acertificateprofileid,
+      final int atokentype,
+      final int ahardtokenissuerid,
+<span class="nc" id="L216">      final ExtendedInformation extendedinfo) {</span>
+<span class="nc" id="L217">    setUsername(ausername);</span>
+<span class="nc" id="L218">    setPassword(null);</span>
+<span class="nc" id="L219">    setDN(dn);</span>
+<span class="nc" id="L220">    setCAId(acaid);</span>
+<span class="nc" id="L221">    setSubjectAltName(subjectaltname);</span>
+<span class="nc" id="L222">    setEmail(email);</span>
+<span class="nc" id="L223">    setType(atype);</span>
+<span class="nc" id="L224">    setEndEntityProfileId(aendentityprofileid);</span>
+<span class="nc" id="L225">    setCertificateProfileId(acertificateprofileid);</span>
+<span class="nc" id="L226">    setTokenType(atokentype);</span>
+<span class="nc" id="L227">    setHardTokenIssuerId(ahardtokenissuerid);</span>
+<span class="nc" id="L228">    setExtendedInformation(extendedinfo);</span>
+<span class="nc" id="L229">    setCardNumber(null);</span>
+<span class="nc" id="L230">  }</span>
 
+  /**
+   * @param user User
+   */
+  public void setUsername(final String user) {
+<span class="nc" id="L236">    this.username =</span>
+<span class="nc" id="L237">        StringTools.putBase64String(StringTools.stripUsername(user));</span>
+<span class="nc" id="L238">  }</span>
 
-<span class="nc" id="L181">    public void setUsername(String user) { this.username=StringTools.putBase64String(StringTools.stripUsername(user));}</span>
-<span class="fc" id="L182">    public String getUsername() {return StringTools.getBase64String(username);}</span>
-    public void setDN(String dn) {
-<span class="pc bpc" id="L184" title="1 of 2 branches missed.">        if (dn==null) {</span>
-<span class="nc" id="L185">            dn = &quot;&quot;;</span>
-        }
-<span class="fc" id="L187">    	final StringBuilder removedAllEmpties = new StringBuilder(dn.length());</span>
-<span class="fc" id="L188">        final StringBuilder removedTrailingEmpties = DNFieldsUtil.removeEmpties(dn, removedAllEmpties, true);</span>
-<span class="pc bpc" id="L189" title="1 of 2 branches missed.">        if (removedTrailingEmpties == null) {</span>
-<span class="fc" id="L190">        	this.subjectDNClean=StringTools.putBase64String(removedAllEmpties.toString());</span>
-<span class="fc" id="L191">        	this.subjectDN=this.subjectDNClean;</span>
-    	} else {
-<span class="nc" id="L193">        	this.subjectDNClean=StringTools.putBase64String(removedAllEmpties.toString());</span>
-<span class="nc" id="L194">        	this.subjectDN=StringTools.putBase64String(removedTrailingEmpties.toString());</span>
-    	}
-<span class="fc" id="L196">    }</span>
+  /**
+   * @return User
+   */
+  public String getUsername() {
+<span class="fc" id="L244">    return StringTools.getBase64String(username);</span>
+  }
 
-    /** User DN as stored in the database. If the registered DN has unused DN fields the empty ones are kept, i.e.
-     * CN=Tomas,OU=,OU=PrimeKey,C=SE. See ECA-1841 for an explanation of this.
-     * Use method getCertificateDN() to get the DN stripped from empty fields.
-     * @see #getCertificateDN()
-     * @return String with DN, might contain empty fields, use getCertificateDN to get without empty fields
-     */
-<span class="nc" id="L204">    public String getDN() {return StringTools.getBase64String(subjectDN);}</span>
-<span class="nc" id="L205">    public int getCAId(){return this.caid;}</span>
-<span class="nc" id="L206">    public void setCAId(int caid){this.caid=caid;}</span>
-<span class="nc" id="L207">    public void setSubjectAltName( String subjectaltname) { this.subjectAltName=StringTools.putBase64String(subjectaltname); }</span>
-<span class="nc" id="L208">    public String getSubjectAltName() {return StringTools.getBase64String(subjectAltName);}</span>
-<span class="nc" id="L209">    public void setEmail(String email) {this.subjectEmail = StringTools.putBase64String(email);}</span>
-<span class="nc" id="L210">    public String getEmail() {return StringTools.getBase64String(subjectEmail);}</span>
-<span class="nc" id="L211">    public void setCardNumber(String cardNumber) {this.cardNumber =  StringTools.putBase64String(cardNumber);}</span>
-<span class="nc" id="L212">    public String getCardNumber() {return StringTools.getBase64String(cardNumber);}</span>
-<span class="nc" id="L213">    public void setPassword(String pwd) {this.password = StringTools.putBase64String(pwd);}</span>
-
-    /**
-     * Gets the user's clear text password. For empty passwords, it can either return
-     * null or an empty string depending on the database software used.
-     * @return password
-     */
-<span class="nc" id="L220">    public String getPassword() {return StringTools.getBase64String(password);}</span>
-<span class="nc" id="L221">    public void setStatus(int status) {this.status=status;}</span>
-<span class="nc" id="L222">    public int getStatus() {return status;}</span>
-<span class="nc" id="L223">    public void setType(EndEntityType type) {this.type=type.getHexValue();}</span>
-<span class="nc" id="L224">    public EndEntityType getType() {return new EndEntityType(type);}</span>
-<span class="nc" id="L225">    public void setEndEntityProfileId(int endentityprofileid) { this.endentityprofileid=endentityprofileid; }</span>
-<span class="nc" id="L226">    public int getEndEntityProfileId(){ return this.endentityprofileid; }</span>
-<span class="nc" id="L227">    public void setCertificateProfileId(int certificateprofileid) { this.certificateprofileid=certificateprofileid; }</span>
-<span class="nc" id="L228">    public int getCertificateProfileId() {return this.certificateprofileid;}</span>
-<span class="nc" id="L229">    public void setTimeCreated(Date timecreated) { this.timecreated=timecreated; }</span>
-<span class="nc" id="L230">    public Date getTimeCreated() {return this.timecreated;}</span>
-<span class="nc" id="L231">    public void setTimeModified(Date timemodified) { this.timemodified=timemodified; }</span>
-<span class="nc" id="L232">    public Date getTimeModified() {return this.timemodified;}</span>
-<span class="nc" id="L233">    public int getTokenType(){ return this.tokentype;}</span>
-<span class="nc" id="L234">    public void setTokenType(int tokentype) {this.tokentype=tokentype;}</span>
-<span class="nc" id="L235">    public int getHardTokenIssuerId() {return this.hardtokenissuerid;}</span>
-<span class="nc" id="L236">    public void setHardTokenIssuerId(int hardtokenissuerid) { this.hardtokenissuerid=hardtokenissuerid;}</span>
-
-
-    /**
-     * @return boolean
-     * @deprecated from EJBCA 3.8.0. The admin property is no longer used. This method is still used for deserializing objects in CertReqHistoryDataBean.
-     */
-    @Deprecated
-    public boolean getAdministrator(){
-<span class="nc" id="L245">      return getType().contains(EndEntityTypes.ADMINISTRATOR);</span>
+  /**
+   * @param odn DN
+   */
+  public void setDN(final String odn) {
+     String dn;
+<span class="pc bpc" id="L252" title="1 of 2 branches missed.">     if (odn == null) {</span>
+<span class="nc" id="L253">      dn = &quot;&quot;;</span>
+    } else {
+<span class="fc" id="L255">        dn = odn;</span>
     }
-
-    /**
-     * @param administrator boolean
-     * @deprecated from EJBCA 3.8.0. The admin property is no longer used. This method is still used for deserializing objects in CertReqHistoryDataBean.
-     */
-    @Deprecated
-    public void setAdministrator(final boolean administrator){
-<span class="nc" id="L254">        final EndEntityType type = getType();</span>
-<span class="nc bnc" id="L255" title="All 2 branches missed.">        if (administrator) {</span>
-<span class="nc" id="L256">            type.addType(EndEntityTypes.ADMINISTRATOR);</span>
-        } else {
-<span class="nc" id="L258">            type.removeType(EndEntityTypes.ADMINISTRATOR);</span>
-        }
-<span class="nc" id="L260">        setType(type);</span>
-<span class="nc" id="L261">    }</span>
-
-    public boolean getKeyRecoverable(){
-<span class="nc" id="L264">        return getType().contains(EndEntityTypes.KEYRECOVERABLE);</span>
+<span class="fc" id="L257">    final StringBuilder removedAllEmpties = new StringBuilder(dn.length());</span>
+<span class="fc" id="L258">    final StringBuilder removedTrailingEmpties =</span>
+<span class="fc" id="L259">        DNFieldsUtil.removeEmpties(dn, removedAllEmpties, true);</span>
+<span class="pc bpc" id="L260" title="1 of 2 branches missed.">    if (removedTrailingEmpties == null) {</span>
+<span class="fc" id="L261">      this.subjectDNClean =</span>
+<span class="fc" id="L262">          StringTools.putBase64String(removedAllEmpties.toString());</span>
+<span class="fc" id="L263">      this.subjectDN = this.subjectDNClean;</span>
+    } else {
+<span class="nc" id="L265">      this.subjectDNClean =</span>
+<span class="nc" id="L266">          StringTools.putBase64String(removedAllEmpties.toString());</span>
+<span class="nc" id="L267">      this.subjectDN =</span>
+<span class="nc" id="L268">          StringTools.putBase64String(removedTrailingEmpties.toString());</span>
     }
+<span class="fc" id="L270">  }</span>
 
-    public void setKeyRecoverable(final boolean keyrecoverable){
-<span class="nc" id="L268">        final EndEntityType type = getType();</span>
-<span class="nc bnc" id="L269" title="All 2 branches missed.">        if (keyrecoverable) {</span>
-<span class="nc" id="L270">            type.addType(EndEntityTypes.KEYRECOVERABLE);</span>
-        } else {
-<span class="nc" id="L272">            type.removeType(EndEntityTypes.KEYRECOVERABLE);</span>
-        }
-<span class="nc" id="L274">        setType(type);</span>
-<span class="nc" id="L275">    }</span>
+  /**
+   * User DN as stored in the database. If the registered DN has unused DN
+   * fields the empty ones are kept, i.e. CN=Tomas,OU=,OU=PrimeKey,C=SE. See
+   * ECA-1841 for an explanation of this. Use method getCertificateDN() to get
+   * the DN stripped from empty fields.
+   *
+   * @see #getCertificateDN()
+   * @return String with DN, might contain empty fields, use getCertificateDN to
+   *     get without empty fields
+   */
+  public String getDN() {
+<span class="nc" id="L283">    return StringTools.getBase64String(subjectDN);</span>
+  }
 
-    public boolean getSendNotification(){
-<span class="nc" id="L278">        return getType().contains(EndEntityTypes.SENDNOTIFICATION);</span>
+  /**
+   * @return ID
+   */
+  public int getCAId() {
+<span class="nc" id="L290">    return this.caid;</span>
+  }
+
+  /**
+   * @param aCaid ID
+   */
+  public void setCAId(final int aCaid) {
+<span class="nc" id="L297">    this.caid = aCaid;</span>
+<span class="nc" id="L298">  }</span>
+
+  /**
+   * @param aSubjectaltname Name
+   */
+  public void setSubjectAltName(final String aSubjectaltname) {
+<span class="nc" id="L304">    this.subjectAltName = StringTools.putBase64String(aSubjectaltname);</span>
+<span class="nc" id="L305">  }</span>
+
+  /**
+   * @return Name
+   */
+  public String getSubjectAltName() {
+<span class="nc" id="L311">    return StringTools.getBase64String(subjectAltName);</span>
+  }
+
+  /**
+   * @param aEmail mail
+   */
+  public void setEmail(final String aEmail) {
+<span class="nc" id="L318">    this.subjectEmail = StringTools.putBase64String(aEmail);</span>
+<span class="nc" id="L319">  }</span>
+
+  /**
+   * @return Email
+   */
+  public String getEmail() {
+<span class="nc" id="L325">    return StringTools.getBase64String(subjectEmail);</span>
+  }
+
+  /**
+   * @param aCardNumber Number
+   */
+  public void setCardNumber(final String aCardNumber) {
+<span class="nc" id="L332">    this.cardNumber = StringTools.putBase64String(aCardNumber);</span>
+<span class="nc" id="L333">  }</span>
+
+  /**
+   * @return Number
+   */
+  public String getCardNumber() {
+<span class="nc" id="L339">    return StringTools.getBase64String(cardNumber);</span>
+  }
+
+  /**
+   * @param aPwd password
+   */
+  public void setPassword(final String aPwd) {
+<span class="nc" id="L346">    this.password = StringTools.putBase64String(aPwd);</span>
+<span class="nc" id="L347">  }</span>
+
+  /**
+   * Gets the user's clear text password. For empty passwords, it can either
+   * return null or an empty string depending on the database software used.
+   *
+   * @return password
+   */
+  public String getPassword() {
+<span class="nc" id="L356">    return StringTools.getBase64String(password);</span>
+  }
+
+  /**
+   * @param aStatus status
+   */
+  public void setStatus(final int aStatus) {
+<span class="nc" id="L363">    this.status = aStatus;</span>
+<span class="nc" id="L364">  }</span>
+
+  /**
+   * @return Status
+   */
+  public int getStatus() {
+<span class="nc" id="L370">    return status;</span>
+  }
+
+  /**
+   * @param aType type
+   */
+  public void setType(final EndEntityType aType) {
+<span class="nc" id="L377">    this.type = aType.getHexValue();</span>
+<span class="nc" id="L378">  }</span>
+
+  /**
+   * @return Type.
+   */
+  public EndEntityType getType() {
+<span class="nc" id="L384">    return new EndEntityType(type);</span>
+  }
+
+  /**
+   * @param aEndentityprofileid ID
+   */
+  public void setEndEntityProfileId(final int aEndentityprofileid) {
+<span class="nc" id="L391">    this.endentityprofileid = aEndentityprofileid;</span>
+<span class="nc" id="L392">  }</span>
+
+  /**
+   * @return ID
+   */
+  public int getEndEntityProfileId() {
+<span class="nc" id="L398">    return this.endentityprofileid;</span>
+  }
+
+  /**
+   * @param aCertificateprofileid ID
+   */
+  public void setCertificateProfileId(final int aCertificateprofileid) {
+<span class="nc" id="L405">    this.certificateprofileid = aCertificateprofileid;</span>
+<span class="nc" id="L406">  }</span>
+
+  /**
+   * @return Id
+   */
+  public int getCertificateProfileId() {
+<span class="nc" id="L412">    return this.certificateprofileid;</span>
+  }
+
+  /**
+   * @param aTimecreated time
+   */
+  public void setTimeCreated(final Date aTimecreated) {
+<span class="nc" id="L419">    this.timecreated = aTimecreated;</span>
+<span class="nc" id="L420">  }</span>
+
+  /**
+   * @return time
+   */
+  public Date getTimeCreated() {
+<span class="nc" id="L426">    return this.timecreated;</span>
+  }
+
+  /**
+   * @param aTimemodified time
+   */
+  public void setTimeModified(final Date aTimemodified) {
+<span class="nc" id="L433">    this.timemodified = aTimemodified;</span>
+<span class="nc" id="L434">  }</span>
+
+  /**
+   * @return time
+   */
+  public Date getTimeModified() {
+<span class="nc" id="L440">    return this.timemodified;</span>
+  }
+
+  /**
+   * @return type
+   */
+  public int getTokenType() {
+<span class="nc" id="L447">    return this.tokentype;</span>
+  }
+
+  /**
+   * @param aTokentype type
+   */
+  public void setTokenType(final int aTokentype) {
+<span class="nc" id="L454">    this.tokentype = aTokentype;</span>
+<span class="nc" id="L455">  }</span>
+
+  /**
+   * @return ID
+   */
+  public int getHardTokenIssuerId() {
+<span class="nc" id="L461">    return this.hardtokenissuerid;</span>
+  }
+
+  /**
+   * @param aHardtokenissuerid ID
+   */
+  public void setHardTokenIssuerId(final int aHardtokenissuerid) {
+<span class="nc" id="L468">    this.hardtokenissuerid = aHardtokenissuerid;</span>
+<span class="nc" id="L469">  }</span>
+
+  /**
+   * @return boolean
+   * @deprecated from EJBCA 3.8.0. The admin property is no longer used. This
+   *     method is still used for deserializing objects in
+   *     CertReqHistoryDataBean.
+   */
+  @Deprecated
+  public boolean getAdministrator() {
+<span class="nc" id="L479">    return getType().contains(EndEntityTypes.ADMINISTRATOR);</span>
+  }
+
+  /**
+   * @param administrator boolean
+   * @deprecated from EJBCA 3.8.0. The admin property is no longer used. This
+   *     method is still used for deserializing objects in
+   *     CertReqHistoryDataBean.
+   */
+  @Deprecated
+  public void setAdministrator(final boolean administrator) {
+<span class="nc" id="L490">    final EndEntityType aType = getType();</span>
+<span class="nc bnc" id="L491" title="All 2 branches missed.">    if (administrator) {</span>
+<span class="nc" id="L492">      aType.addType(EndEntityTypes.ADMINISTRATOR);</span>
+    } else {
+<span class="nc" id="L494">      aType.removeType(EndEntityTypes.ADMINISTRATOR);</span>
     }
+<span class="nc" id="L496">    setType(aType);</span>
+<span class="nc" id="L497">  }</span>
 
-    /** Sets flag (part of end entity type) that an email notification (triggered through the End Entity Profile) should be sent.
-     * setSendNotification() must be called after setType(), because it adds to the type
-     * @param sendnotification true or false
-     */
-    public void setSendNotification(final boolean sendnotification){
-<span class="nc" id="L286">        final EndEntityType type = getType();</span>
-<span class="nc bnc" id="L287" title="All 2 branches missed.">        if (sendnotification) {</span>
-<span class="nc" id="L288">            type.addType(EndEntityTypes.SENDNOTIFICATION);</span>
-        } else {
-<span class="nc" id="L290">            type.removeType(EndEntityTypes.SENDNOTIFICATION);</span>
-        }
-<span class="nc" id="L292">        setType(type);</span>
-<span class="nc" id="L293">    }</span>
+  /**
+   * @return bool
+   */
+  public boolean getKeyRecoverable() {
+<span class="nc" id="L503">    return getType().contains(EndEntityTypes.KEYRECOVERABLE);</span>
+  }
 
-    public boolean getPrintUserData(){
-<span class="nc" id="L296">        return getType().contains(EndEntityTypes.PRINT);</span>
+  /**
+   * @param keyrecoverable bool
+   */
+  public void setKeyRecoverable(final boolean keyrecoverable) {
+<span class="nc" id="L510">    final EndEntityType aType = getType();</span>
+<span class="nc bnc" id="L511" title="All 2 branches missed.">    if (keyrecoverable) {</span>
+<span class="nc" id="L512">      aType.addType(EndEntityTypes.KEYRECOVERABLE);</span>
+    } else {
+<span class="nc" id="L514">      aType.removeType(EndEntityTypes.KEYRECOVERABLE);</span>
     }
+<span class="nc" id="L516">    setType(aType);</span>
+<span class="nc" id="L517">  }</span>
 
-    public void setPrintUserData(final boolean printUserData){
-<span class="nc" id="L300">        final EndEntityType type = getType();</span>
-<span class="nc bnc" id="L301" title="All 2 branches missed.">        if (printUserData) {</span>
-<span class="nc" id="L302">            type.addType(EndEntityTypes.PRINT);</span>
-        } else {
-<span class="nc" id="L304">            type.removeType(EndEntityTypes.PRINT);</span>
-        }
-<span class="nc" id="L306">        setType(type);</span>
-<span class="nc" id="L307">    }</span>
+  /**
+   * @return bool
+   */
+  public boolean getSendNotification() {
+<span class="nc" id="L523">    return getType().contains(EndEntityTypes.SENDNOTIFICATION);</span>
+  }
 
-	/**
-	 * @return Returns the extendedinformation or null if no extended information exists.
-	 */
-	public ExtendedInformation getExtendedInformation() {
-<span class="fc" id="L313">		return extendedinformation;</span>
-	}
-	/**
-	 * @param extendedinformation The extendedinformation to set.
-	 */
-	public void setExtendedInformation(ExtendedInformation extendedinformation) {
-<span class="fc" id="L319">		this.extendedinformation = extendedinformation;</span>
-<span class="fc" id="L320">	}</span>
-
-    /**
-     * Help Method used to create an ExtendedInformation from String representation.
-     * Used when creating an ExtendedInformation from queries.
-     * @param extendedinfostring info string
-     * @return info object
-     */
-    public static ExtendedInformation getExtendedInformationFromStringData(final String extendedinfostring) {
-<span class="nc" id="L329">        ExtendedInformation returnval = null;</span>
-<span class="nc bnc" id="L330" title="All 4 branches missed.">        if (extendedinfostring != null &amp;&amp; !extendedinfostring.isEmpty() ) {</span>
-<span class="nc" id="L331">            try (final SecureXMLDecoder decoder = new SecureXMLDecoder(new ByteArrayInputStream(extendedinfostring.getBytes(StandardCharsets.UTF_8)))) {</span>
-<span class="nc" id="L332">            	final HashMap&lt;?, ?&gt; data = (HashMap&lt;?, ?&gt;) decoder.readObject();</span>
-            	// No need to b64 decode Integer value, just read it
-<span class="nc" id="L334">            	final int type = ((Integer) data.get(ExtendedInformation.TYPE)).intValue();</span>
-<span class="nc bnc" id="L335" title="All 2 branches missed.">            	switch (type) {</span>
-            	case ExtendedInformation.TYPE_BASIC :
-<span class="nc" id="L337">            	    returnval = new ExtendedInformation();</span>
-<span class="nc" id="L338">            	    returnval.loadData(data);</span>
-            	    break;
-            	}
-<span class="nc" id="L341">            } catch (IOException e) {</span>
-<span class="nc bnc" id="L342" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L343">                    log.debug(&quot;Failed to parse ExtendedInformation for End Entity. Data:\n&quot; + extendedinfostring);</span>
-                }
-<span class="nc" id="L345">                throw new IllegalStateException(&quot;Failed to parse ExtendedInformation data map for End Entity: &quot; + e.getMessage(), e);</span>
-<span class="nc" id="L346">            }</span>
-        }
-<span class="nc" id="L348">        return returnval;</span>
+  /**
+   * Sets flag (part of end entity type) that an email notification (triggered
+   * through the End Entity Profile) should be sent. setSendNotification() must
+   * be called after setType(), because it adds to the type
+   *
+   * @param sendnotification true or false
+   */
+  public void setSendNotification(final boolean sendnotification) {
+<span class="nc" id="L534">    final EndEntityType aType = getType();</span>
+<span class="nc bnc" id="L535" title="All 2 branches missed.">    if (sendnotification) {</span>
+<span class="nc" id="L536">      aType.addType(EndEntityTypes.SENDNOTIFICATION);</span>
+    } else {
+<span class="nc" id="L538">      aType.removeType(EndEntityTypes.SENDNOTIFICATION);</span>
     }
+<span class="nc" id="L540">    setType(aType);</span>
+<span class="nc" id="L541">  }</span>
 
-    public static String extendedInformationToStringData(final ExtendedInformation extendedinformation) {
-<span class="nc" id="L352">    	String ret = null;</span>
-<span class="nc bnc" id="L353" title="All 2 branches missed.">    	if (extendedinformation != null){</span>
-            // We must base64 encode string for UTF safety
-<span class="nc" id="L355">            final HashMap&lt;Object, Object&gt; b64DataMap = new Base64PutHashMap();</span>
-<span class="nc" id="L356">            b64DataMap.putAll(extendedinformation.getRawData());</span>
-<span class="nc" id="L357">            final ByteArrayOutputStream baos = new ByteArrayOutputStream(512);</span>
-<span class="nc" id="L358">    		try (final java.beans.XMLEncoder encoder = new java.beans.XMLEncoder(baos);) {</span>
-<span class="nc" id="L359">    		    encoder.writeObject(b64DataMap);</span>
-    		}
-<span class="nc" id="L361">    		ret = new String(baos.toByteArray(), StandardCharsets.UTF_8);</span>
-    	}
-<span class="nc" id="L363">    	return ret;</span>
+  /**
+   * @return bool
+   */
+  public boolean getPrintUserData() {
+<span class="nc" id="L547">    return getType().contains(EndEntityTypes.PRINT);</span>
+  }
+
+  /**
+   * @param printUserData bool
+   */
+  public void setPrintUserData(final boolean printUserData) {
+<span class="nc" id="L554">    final EndEntityType aType = getType();</span>
+<span class="nc bnc" id="L555" title="All 2 branches missed.">    if (printUserData) {</span>
+<span class="nc" id="L556">      aType.addType(EndEntityTypes.PRINT);</span>
+    } else {
+<span class="nc" id="L558">      aType.removeType(EndEntityTypes.PRINT);</span>
     }
+<span class="nc" id="L560">    setType(aType);</span>
+<span class="nc" id="L561">  }</span>
 
-    /** @return the DN to be used when creating a certificate (without empty fields).
-     * If the registered DN has unused DN fields the empty ones are kept, i.e.
-     * CN=Tomas,OU=,OU=PrimeKey,C=SE. See ECA-1841 for an explanation of this.
-     * Use method getCertificateDN() to get the DN stripped from empty fields, getDN() returns DN with empty fields.
-     * @see #getDN()
-     */
-    public String getCertificateDN() {
-<span class="nc bnc" id="L373" title="All 2 branches missed.">    	if (subjectDNClean == null) {</span>
-    		// This might be fetched from database serialization so we need to perform the cleaning all over again
-<span class="nc" id="L375">    		return DNFieldsUtil.removeAllEmpties(getDN());</span>
-    	} else {
-<span class="nc" id="L377">            return StringTools.getBase64String(subjectDNClean);</span>
-    	}
-    }
+  /**
+   * @return Returns the extendedinformation or null if no extended information
+   *     exists.
+   */
+  public ExtendedInformation getExtendedInformation() {
+<span class="fc" id="L568">    return extendedinformation;</span>
+  }
+  /** @param aExtendedinformation The extendedinformation to set. */
+  public void setExtendedInformation(
+          final ExtendedInformation aExtendedinformation) {
+<span class="fc" id="L573">    this.extendedinformation = aExtendedinformation;</span>
+<span class="fc" id="L574">  }</span>
 
-    /**
-     * @return an information map about this end entity, listing all general fields.
-     */
-    public Map&lt;String, String&gt; getDetailMap() {
-        @SuppressWarnings(&quot;unchecked&quot;)
-<span class="nc" id="L386">        Map&lt;String, String&gt; details = new Base64GetHashMap();</span>
-<span class="nc" id="L387">        details.put(&quot;caid&quot;, Integer.toString(caid));</span>
-<span class="nc" id="L388">        details.put(&quot;cardnumber&quot;, cardNumber);</span>
-<span class="nc" id="L389">        details.put(&quot;certificateprofileid&quot;, Integer.toString(certificateprofileid));</span>
-<span class="nc" id="L390">        details.put(&quot;endentityprofileid&quot;, Integer.toString(endentityprofileid));</span>
-<span class="nc bnc" id="L391" title="All 2 branches missed.">        if (extendedinformation != null) {</span>
-<span class="nc" id="L392">            StringBuilder extendedInformationDump = new StringBuilder(&quot;{&quot;);</span>
-<span class="nc" id="L393">            LinkedHashMap&lt;Object, Object&gt; rawData = extendedinformation.getRawData();</span>
-<span class="nc bnc" id="L394" title="All 2 branches missed.">            for (Object key : rawData.keySet()) {</span>
-<span class="nc bnc" id="L395" title="All 2 branches missed.">                if (rawData.get(key) != null) {</span>
-<span class="nc" id="L396">                    extendedInformationDump.append(&quot;, [&quot; + (String) key + &quot;:&quot; + rawData.get(key).toString() + &quot;]&quot;);</span>
-                }
-<span class="nc" id="L398">            }</span>
-<span class="nc" id="L399">            extendedInformationDump.append(&quot;}&quot;);</span>
-<span class="nc" id="L400">            details.put(&quot;extendedInformation&quot;, extendedInformationDump.substring(2));</span>
+  /**
+   * Help Method used to create an ExtendedInformation from String
+   * representation. Used when creating an ExtendedInformation from queries.
+   *
+   * @param extendedinfostring info string
+   * @return info object
+   */
+  public static ExtendedInformation getExtendedInformationFromStringData(
+      final String extendedinfostring) {
+<span class="nc" id="L585">    ExtendedInformation returnval = null;</span>
+<span class="nc bnc" id="L586" title="All 4 branches missed.">    if (extendedinfostring != null &amp;&amp; !extendedinfostring.isEmpty()) {</span>
+<span class="nc" id="L587">      try (SecureXMLDecoder decoder =</span>
+          new SecureXMLDecoder(
+              new ByteArrayInputStream(
+<span class="nc" id="L590">                  extendedinfostring.getBytes(StandardCharsets.UTF_8)))) {</span>
+<span class="nc" id="L591">        final HashMap&lt;?, ?&gt; data = (HashMap&lt;?, ?&gt;) decoder.readObject();</span>
+        // No need to b64 decode Integer value, just read it
+<span class="nc" id="L593">        final int type =</span>
+<span class="nc" id="L594">            ((Integer) data.get(ExtendedInformation.TYPE)).intValue();</span>
+<span class="nc bnc" id="L595" title="All 2 branches missed.">        switch (type) {</span>
+          case ExtendedInformation.TYPE_BASIC:
+<span class="nc" id="L597">            returnval = new ExtendedInformation();</span>
+<span class="nc" id="L598">            returnval.loadData(data);</span>
+<span class="nc" id="L599">            break;</span>
+          default:
+              // do nothing
         }
-<span class="nc" id="L402">        details.put(&quot;hardtokenissuerid&quot;, Integer.toString(hardtokenissuerid));</span>
-<span class="nc" id="L403">        details.put(&quot;status&quot;, Integer.toString(status));</span>
-<span class="nc" id="L404">        details.put(&quot;subjectAltName&quot;, subjectAltName);</span>
-<span class="nc" id="L405">        details.put(&quot;subjectDN&quot;, subjectDN);</span>
-<span class="nc" id="L406">        details.put(&quot;subjectEmail&quot;, subjectEmail);</span>
-<span class="nc bnc" id="L407" title="All 2 branches missed.">        if (timecreated != null) {</span>
-<span class="nc" id="L408">            details.put(&quot;timecreated&quot;, timecreated.toString());</span>
+<span class="nc" id="L603">      } catch (IOException e) {</span>
+<span class="nc bnc" id="L604" title="All 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L605">          LOG.debug(</span>
+              &quot;Failed to parse ExtendedInformation for End Entity. Data:\n&quot;
+                  + extendedinfostring);
         }
-<span class="nc bnc" id="L410" title="All 2 branches missed.">        if (timemodified != null) {</span>
-<span class="nc" id="L411">            details.put(&quot;timemodified&quot;, timemodified.toString());</span>
-        }
-<span class="nc" id="L413">        details.put(&quot;tokentype&quot;, Integer.toString(tokentype));</span>
-<span class="nc" id="L414">        details.put(&quot;type&quot;, Integer.toString(type));</span>
-<span class="nc" id="L415">        details.put(&quot;username&quot;, username);</span>
-<span class="nc" id="L416">        return details;</span>
+<span class="nc" id="L609">        throw new IllegalStateException(</span>
+            &quot;Failed to parse ExtendedInformation data map for End Entity: &quot;
+<span class="nc" id="L611">                + e.getMessage(),</span>
+            e);
+<span class="nc" id="L613">      }</span>
     }
+<span class="nc" id="L615">    return returnval;</span>
+  }
 
-    /**
-     *
-     *
-     * @param other another {@link EndEntityInformation}
-     * @return the differences between this map and the parameter, as &amp;lt;key, [thisValue, otherValue]&amp;gt;
-     */
-    public Map&lt;String, String[]&gt; getDiff(EndEntityInformation other) {
-<span class="nc" id="L426">        Map&lt;String, String[]&gt; changedValues = new LinkedHashMap&lt;&gt;();</span>
-<span class="nc" id="L427">        Map&lt;String, String&gt; thisValues = getDetailMap();</span>
-<span class="nc" id="L428">        Map&lt;String, String&gt; otherValues = other.getDetailMap();</span>
-<span class="nc" id="L429">        List&lt;String&gt; thisKeySet = new ArrayList&lt;&gt;(thisValues.keySet());</span>
-<span class="nc bnc" id="L430" title="All 2 branches missed.">        for (String key : thisKeySet) {</span>
-<span class="nc" id="L431">            String thisValue = thisValues.get(key);</span>
-<span class="nc" id="L432">            String otherValue = otherValues.get(key);</span>
-<span class="nc bnc" id="L433" title="All 2 branches missed.">            if (thisValue == null) {</span>
-<span class="nc bnc" id="L434" title="All 2 branches missed.">                if (otherValue != null) {</span>
-<span class="nc" id="L435">                    changedValues.put(key, new String[] { &quot;&lt;null&gt;&quot;, otherValue });</span>
-                }
-<span class="nc bnc" id="L437" title="All 2 branches missed.">            } else if (!thisValue.equals(otherValue)) {</span>
-<span class="nc" id="L438">                changedValues.put(key, new String[] { thisValue, otherValue });</span>
-            }
-<span class="nc" id="L440">            thisValues.remove(key);</span>
-<span class="nc" id="L441">            otherValues.remove(key);</span>
-<span class="nc" id="L442">        }</span>
-        //Add in any values that may have been in otherValues but not here
-<span class="nc bnc" id="L444" title="All 2 branches missed.">        for (String otherKey : otherValues.keySet()) {</span>
-<span class="nc" id="L445">            changedValues.put(otherKey, new String[] { &quot;&lt;null&gt;&quot;, otherValues.get(otherKey) });</span>
-<span class="nc" id="L446">        }</span>
-<span class="nc" id="L447">        return changedValues;</span>
+  /**
+   * @param extendedinformation Info
+   * @return String representation.
+   */
+  public static String extendedInformationToStringData(
+      final ExtendedInformation extendedinformation) {
+<span class="nc" id="L624">    String ret = null;</span>
+<span class="nc bnc" id="L625" title="All 2 branches missed.">    if (extendedinformation != null) {</span>
+      // We must base64 encode string for UTF safety
+<span class="nc" id="L627">      final HashMap&lt;Object, Object&gt; b64DataMap = new Base64PutHashMap();</span>
+<span class="nc" id="L628">      b64DataMap.putAll(extendedinformation.getRawData());</span>
+<span class="nc" id="L629">      ByteArrayOutputStream baos = new ByteArrayOutputStream(INFO_SIZE);</span>
+<span class="nc" id="L630">      try (java.beans.XMLEncoder encoder =</span>
+          new java.beans.XMLEncoder(baos); ) {
+<span class="nc" id="L632">        encoder.writeObject(b64DataMap);</span>
+      }
+<span class="nc" id="L634">      ret = new String(baos.toByteArray(), StandardCharsets.UTF_8);</span>
     }
+<span class="nc" id="L636">    return ret;</span>
+  }
+
+  /** Maz size of Extended Info buffer. */
+  private static final int INFO_SIZE = 512;
+
+  /**
+   * @return the DN to be used when creating a certificate (without empty
+   *     fields). If the registered DN has unused DN fields the empty ones are
+   *     kept, i.e. CN=Tomas,OU=,OU=PrimeKey,C=SE. See ECA-1841 for an
+   *     explanation of this. Use method getCertificateDN() to get the DN
+   *     stripped from empty fields, getDN() returns DN with empty fields.
+   * @see #getDN()
+   */
+  public String getCertificateDN() {
+<span class="nc bnc" id="L651" title="All 2 branches missed.">    if (subjectDNClean == null) {</span>
+      // This might be fetched from database serialization so we need to perform
+      // the cleaning all over again
+<span class="nc" id="L654">      return DNFieldsUtil.removeAllEmpties(getDN());</span>
+    } else {
+<span class="nc" id="L656">      return StringTools.getBase64String(subjectDNClean);</span>
+    }
+  }
+
+  /**
+   * @return an information map about this end entity, listing all general
+   *     fields.
+   */
+  public Map&lt;String, String&gt; getDetailMap() {
+    @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L666">    Map&lt;String, String&gt; details = new Base64GetHashMap();</span>
+<span class="nc" id="L667">    details.put(&quot;caid&quot;, Integer.toString(caid));</span>
+<span class="nc" id="L668">    details.put(&quot;cardnumber&quot;, cardNumber);</span>
+<span class="nc" id="L669">    details.put(&quot;certificateprofileid&quot;, Integer.toString(certificateprofileid));</span>
+<span class="nc" id="L670">    details.put(&quot;endentityprofileid&quot;, Integer.toString(endentityprofileid));</span>
+<span class="nc bnc" id="L671" title="All 2 branches missed.">    if (extendedinformation != null) {</span>
+<span class="nc" id="L672">      StringBuilder extendedInformationDump = new StringBuilder(&quot;{&quot;);</span>
+<span class="nc" id="L673">      LinkedHashMap&lt;Object, Object&gt; rawData = extendedinformation.getRawData();</span>
+<span class="nc bnc" id="L674" title="All 2 branches missed.">      for (Object key : rawData.keySet()) {</span>
+<span class="nc bnc" id="L675" title="All 2 branches missed.">        if (rawData.get(key) != null) {</span>
+<span class="nc" id="L676">          extendedInformationDump.append(</span>
+<span class="nc" id="L677">              &quot;, [&quot; + (String) key + &quot;:&quot; + rawData.get(key).toString() + &quot;]&quot;);</span>
+        }
+<span class="nc" id="L679">      }</span>
+<span class="nc" id="L680">      extendedInformationDump.append(&quot;}&quot;);</span>
+<span class="nc" id="L681">      details.put(&quot;extendedInformation&quot;, extendedInformationDump.substring(2));</span>
+    }
+<span class="nc" id="L683">    details.put(&quot;hardtokenissuerid&quot;, Integer.toString(hardtokenissuerid));</span>
+<span class="nc" id="L684">    details.put(&quot;status&quot;, Integer.toString(status));</span>
+<span class="nc" id="L685">    details.put(&quot;subjectAltName&quot;, subjectAltName);</span>
+<span class="nc" id="L686">    details.put(&quot;subjectDN&quot;, subjectDN);</span>
+<span class="nc" id="L687">    details.put(&quot;subjectEmail&quot;, subjectEmail);</span>
+<span class="nc bnc" id="L688" title="All 2 branches missed.">    if (timecreated != null) {</span>
+<span class="nc" id="L689">      details.put(&quot;timecreated&quot;, timecreated.toString());</span>
+    }
+<span class="nc bnc" id="L691" title="All 2 branches missed.">    if (timemodified != null) {</span>
+<span class="nc" id="L692">      details.put(&quot;timemodified&quot;, timemodified.toString());</span>
+    }
+<span class="nc" id="L694">    details.put(&quot;tokentype&quot;, Integer.toString(tokentype));</span>
+<span class="nc" id="L695">    details.put(&quot;type&quot;, Integer.toString(type));</span>
+<span class="nc" id="L696">    details.put(&quot;username&quot;, username);</span>
+<span class="nc" id="L697">    return details;</span>
+  }
+
+  /**
+   * @param other another {@link EndEntityInformation}
+   * @return the differences between this map and the parameter, as &amp;lt;key,
+   *     [thisValue, otherValue]&amp;gt;
+   */
+  public Map&lt;String, String[]&gt; getDiff(final EndEntityInformation other) {
+<span class="nc" id="L706">    Map&lt;String, String[]&gt; changedValues = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L707">    Map&lt;String, String&gt; thisValues = getDetailMap();</span>
+<span class="nc" id="L708">    Map&lt;String, String&gt; otherValues = other.getDetailMap();</span>
+<span class="nc" id="L709">    List&lt;String&gt; thisKeySet = new ArrayList&lt;&gt;(thisValues.keySet());</span>
+<span class="nc bnc" id="L710" title="All 2 branches missed.">    for (String key : thisKeySet) {</span>
+<span class="nc" id="L711">      String thisValue = thisValues.get(key);</span>
+<span class="nc" id="L712">      String otherValue = otherValues.get(key);</span>
+<span class="nc bnc" id="L713" title="All 2 branches missed.">      if (thisValue == null) {</span>
+<span class="nc bnc" id="L714" title="All 2 branches missed.">        if (otherValue != null) {</span>
+<span class="nc" id="L715">          changedValues.put(key, new String[] {&quot;&lt;null&gt;&quot;, otherValue});</span>
+        }
+<span class="nc bnc" id="L717" title="All 2 branches missed.">      } else if (!thisValue.equals(otherValue)) {</span>
+<span class="nc" id="L718">        changedValues.put(key, new String[] {thisValue, otherValue});</span>
+      }
+<span class="nc" id="L720">      thisValues.remove(key);</span>
+<span class="nc" id="L721">      otherValues.remove(key);</span>
+<span class="nc" id="L722">    }</span>
+    // Add in any values that may have been in otherValues but not here
+<span class="nc bnc" id="L724" title="All 2 branches missed.">    for (String otherKey : otherValues.keySet()) {</span>
+<span class="nc" id="L725">      changedValues.put(</span>
+<span class="nc" id="L726">          otherKey, new String[] {&quot;&lt;null&gt;&quot;, otherValues.get(otherKey)});</span>
+<span class="nc" id="L727">    }</span>
+<span class="nc" id="L728">    return changedValues;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

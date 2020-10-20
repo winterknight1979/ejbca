@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>EncryptPwdCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli</a> &gt; <span class="el_source">EncryptPwdCommand.java</span></div><h1>EncryptPwdCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.cli;
+
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.spec.InvalidKeySpecException;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+
+import org.apache.log4j.Logger;
+import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.StringTools;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.command.EjbcaCommandBase;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+
+/**
+ * Implements the password encryption mechanism
+ *
+ * @version $Id: EncryptPwdCommand.java 30372 2018-11-02 19:09:35Z mikekushner $
+ */
+<span class="nc" id="L39">public class EncryptPwdCommand extends EjbcaCommandBase {</span>
+
+<span class="nc" id="L41">    private static final Logger log = Logger.getLogger(EncryptPwdCommand.class);</span>
+
+    private static final String ENCRYPT_KEY = &quot;--key&quot;;
+
+    {
+<span class="nc" id="L46">        registerParameter(new Parameter(ENCRYPT_KEY, &quot;Input encryption key&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID,</span>
+                ParameterMode.FLAG, &quot;Read a custom encryption key instead of using the default value from cesecore.properties.&quot;));
+<span class="nc" id="L48">    }</span>
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L51">        return &quot;encryptpwd&quot;;</span>
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L56">        return &quot;Encrypts a password&quot;;</span>
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L61">        return &quot;Encrypts a password. This command takes no parameters, but will instead prompt for the password when run.&quot;;</span>
+    }
+
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+
+<span class="nc bnc" id="L67" title="All 2 branches missed.">        final boolean readKey = parameters.get(ENCRYPT_KEY) != null;</span>
+<span class="nc" id="L68">        log.info(&quot;Please note that this encryption does not provide absolute security. &quot;</span>
+                + &quot;If 'password.encryption.key' property haven't been customized it doesn't provide more security than just preventing accidental viewing.&quot;);
+<span class="nc" id="L70">        char[] encryptionKey = null;</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">        if (readKey) {</span>
+<span class="nc" id="L72">            log.info(&quot;Enter encryption key: &quot;);</span>
+<span class="nc" id="L73">            encryptionKey = System.console().readPassword();</span>
+        }
+<span class="nc" id="L75">        log.info(&quot;Enter word to encrypt: &quot;);</span>
+<span class="nc" id="L76">        String s = String.valueOf(System.console().readPassword());</span>
+<span class="nc" id="L77">        CryptoProviderTools.installBCProvider();</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">        log.info(&quot;Encrypting pwd (&quot; + (readKey ? &quot;with custom key&quot; : &quot;with default key&quot;) + &quot;)&quot;);</span>
+        final String enc;
+
+        try {
+<span class="nc bnc" id="L82" title="All 2 branches missed.">            if (readKey) {</span>
+<span class="nc" id="L83">                enc = StringTools.pbeEncryptStringWithSha256Aes192(s, encryptionKey);</span>
+            } else {
+<span class="nc" id="L85">                enc = StringTools.pbeEncryptStringWithSha256Aes192(s);</span>
+            }
+<span class="nc" id="L87">        } catch (InvalidKeyException | InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException</span>
+                | InvalidKeySpecException e) {
+<span class="nc" id="L89">            log.error(e.getMessage());</span>
+<span class="nc" id="L90">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L91">        }</span>
+
+<span class="nc" id="L93">        log.info(enc);</span>
+
+<span class="nc" id="L95">        return CommandResult.SUCCESS;</span>
+    }
+    
+    @Override
+    protected Logger getLogger() {
+<span class="nc" id="L100">        return log;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

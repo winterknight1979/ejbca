@@ -15,21 +15,30 @@ package org.cesecore.certificates.certificate.exception;
 import org.cesecore.CesecoreException;
 
 /**
- * Exception used in order to catch the error that we are trying to use custom certificate serial numbers, but are not using a unique
- * issuerDN/certSerialNo index in the database. This index is needed in order to use custom certificate serial numbers.
- * 
- * @version $Id: CustomCertificateSerialNumberException.java 18868 2014-05-02 06:12:20Z mikekushner $
+ * Exception used in order to catch the error that we are trying to use custom
+ * certificate serial numbers, but are not using a unique issuerDN/certSerialNo
+ * index in the database. This index is needed in order to use custom
+ * certificate serial numbers.
+ *
+ * @version $Id: CustomCertificateSerialNumberException.java 18868 2014-05-02
+ *     06:12:20Z mikekushner $
  */
 public class CustomCertificateSerialNumberException extends CesecoreException {
 
-    private static final long serialVersionUID = -2969078756967846634L;
+  private static final long serialVersionUID = -2969078756967846634L;
 
-    public CustomCertificateSerialNumberException(String message) {
-<span class="nc" id="L28">        super(message);</span>
-<span class="nc" id="L29">    }</span>
+  /**
+   * @param message Message
+   */
+  public CustomCertificateSerialNumberException(final String message) {
+<span class="nc" id="L34">    super(message);</span>
+<span class="nc" id="L35">  }</span>
 
-    public CustomCertificateSerialNumberException(Exception e) {
-<span class="nc" id="L32">        super(e);</span>
-<span class="nc" id="L33">    }</span>
+  /**
+   * @param e cause
+   */
+  public CustomCertificateSerialNumberException(final Exception e) {
+<span class="nc" id="L41">    super(e);</span>
+<span class="nc" id="L42">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

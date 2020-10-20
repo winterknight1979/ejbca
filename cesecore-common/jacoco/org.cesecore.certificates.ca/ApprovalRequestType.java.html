@@ -19,39 +19,63 @@ import java.util.Map;
  * Represents a type of approval request.
  *
  * @version $Id: ApprovalRequestType.java 29813 2018-09-05 15:01:59Z bastianf $
- *
  */
-<span class="nc" id="L24">public enum ApprovalRequestType {</span>
-<span class="nc" id="L25">    ADDEDITENDENTITY(1, &quot;APPROVEADDEDITENDENTITY&quot;),</span>
-<span class="nc" id="L26">    KEYRECOVER(2, &quot;APPROVEKEYRECOVER&quot;),</span>
-<span class="nc" id="L27">    REVOCATION(3, &quot;APPROVEREVOCATION&quot;),</span>
-<span class="nc" id="L28">    ACTIVATECA(4, &quot;APPROVEACTIVATECA&quot;);</span>
+<span class="nc" id="L23">public enum ApprovalRequestType {</span>
+  /** Add. */
+<span class="nc" id="L25">  ADDEDITENDENTITY(1, &quot;APPROVEADDEDITENDENTITY&quot;),</span>
+  /** Recover. */
+<span class="nc" id="L27">  KEYRECOVER(2, &quot;APPROVEKEYRECOVER&quot;),</span>
+  /** Revoke. */
+<span class="nc" id="L29">  REVOCATION(3, &quot;APPROVEREVOCATION&quot;),</span>
+  /** Activate. */
+<span class="nc" id="L31">  ACTIVATECA(4, &quot;APPROVEACTIVATECA&quot;);</span>
 
-    private final  int integerValue;
-    private final String languageString;
-<span class="nc" id="L32">    private static final Map&lt;Integer, ApprovalRequestType&gt; reverseLookupMap = new HashMap&lt;&gt;();</span>
+  /** Value. */
+  private final int integerValue;
+  /** Language. */
+  private final String languageString;
+  /** Map of request types. */
+<span class="nc" id="L38">  private static final Map&lt;Integer, ApprovalRequestType&gt; REVERSE_LOOKUP_MAP =</span>
+      new HashMap&lt;&gt;();
 
-    static {
-<span class="nc bnc" id="L35" title="All 2 branches missed.">        for(ApprovalRequestType approvalRequestType : ApprovalRequestType.values()) {</span>
-<span class="nc" id="L36">            reverseLookupMap.put(approvalRequestType.getIntegerValue(), approvalRequestType);</span>
-        }
-<span class="nc" id="L38">    }</span>
-
-<span class="nc" id="L40">    private ApprovalRequestType(int integerValue, String languageString) {</span>
-<span class="nc" id="L41">        this.integerValue = integerValue;</span>
-<span class="nc" id="L42">        this.languageString = languageString;</span>
-<span class="nc" id="L43">    }</span>
-
-    public int getIntegerValue() {
-<span class="nc" id="L46">        return integerValue;</span>
+  static {
+    for (ApprovalRequestType approvalRequestType
+<span class="nc bnc" id="L43" title="All 2 branches missed.">        : ApprovalRequestType.values()) {</span>
+<span class="nc" id="L44">      REVERSE_LOOKUP_MAP.put(</span>
+<span class="nc" id="L45">          approvalRequestType.getIntegerValue(), approvalRequestType);</span>
     }
+<span class="nc" id="L47">  }</span>
 
-    public String getLanguageString() {
-<span class="nc" id="L50">        return languageString;</span>
-    }
+  /**
+   * Constructor.
+   *
+   * @param anIntegerValue Value
+   * @param aLanguageString Language
+   */
+<span class="nc" id="L55">  ApprovalRequestType(final int anIntegerValue, final String aLanguageString) {</span>
+<span class="nc" id="L56">    this.integerValue = anIntegerValue;</span>
+<span class="nc" id="L57">    this.languageString = aLanguageString;</span>
+<span class="nc" id="L58">  }</span>
 
-    public static ApprovalRequestType getFromIntegerValue(int integerValue) {
-<span class="nc" id="L54">        return reverseLookupMap.get(integerValue);</span>
-    }
+  /** @return value */
+  public int getIntegerValue() {
+<span class="nc" id="L62">    return integerValue;</span>
+  }
+
+  /** @return language */
+  public String getLanguageString() {
+<span class="nc" id="L67">    return languageString;</span>
+  }
+
+  /**
+   * Get request type.
+   *
+   * @param integerValue Value.
+   * @return Type
+   */
+  public static ApprovalRequestType getFromIntegerValue(
+      final int integerValue) {
+<span class="nc" id="L78">    return REVERSE_LOOKUP_MAP.get(integerValue);</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

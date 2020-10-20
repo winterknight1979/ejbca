@@ -13,29 +13,42 @@
 package org.cesecore.util;
 
 /**
- * Thrown when there's too much data, e.g. in a stream when using FileTools.streamCopyWithLimit
- * 
- * @version $Id: StreamSizeLimitExceededException.java 22658 2016-01-28 10:11:11Z mikekushner $
+ * Thrown when there's too much data, e.g. in a stream when using
+ * FileTools.streamCopyWithLimit
+ *
+ * @version $Id: StreamSizeLimitExceededException.java 22658 2016-01-28
+ *     10:11:11Z mikekushner $
  */
 public class StreamSizeLimitExceededException extends Exception {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    public StreamSizeLimitExceededException() {
-<span class="nc" id="L25">        super();</span>
-<span class="nc" id="L26">    }</span>
-    
-    public StreamSizeLimitExceededException(String message) {
-<span class="fc" id="L29">        super(message);</span>
-<span class="fc" id="L30">    }</span>
+  /** Default constructor. */
+  public StreamSizeLimitExceededException() {
+<span class="nc" id="L28">    super();</span>
+<span class="nc" id="L29">  }</span>
 
-    public StreamSizeLimitExceededException(String message, Throwable cause) {
-<span class="nc" id="L33">        super(message, cause);</span>
-<span class="nc" id="L34">    }</span>
+  /**
+   * @param message message
+   */
+  public StreamSizeLimitExceededException(final String message) {
+<span class="fc" id="L35">    super(message);</span>
+<span class="fc" id="L36">  }</span>
 
-    public StreamSizeLimitExceededException(Throwable cause) {
-<span class="nc" id="L37">        super(cause);</span>
-<span class="nc" id="L38">    }</span>
-    
+  /**
+   * @param message message
+   * @param cause cause
+   */
+  public StreamSizeLimitExceededException(
+          final String message, final Throwable cause) {
+<span class="nc" id="L44">    super(message, cause);</span>
+<span class="nc" id="L45">  }</span>
+
+  /**
+   * @param cause cause
+   */
+  public StreamSizeLimitExceededException(final Throwable cause) {
+<span class="nc" id="L51">    super(cause);</span>
+<span class="nc" id="L52">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

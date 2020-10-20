@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CryptoTokenUpdatePinCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.cryptotoken</a> &gt; <span class="el_source">CryptoTokenUpdatePinCommand.java</span></div><h1>CryptoTokenUpdatePinCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.cli.cryptotoken;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.keys.token.CryptoTokenManagementSessionRemote;
+import org.cesecore.keys.token.CryptoTokenOfflineException;
+import org.cesecore.util.EjbRemoteHelper;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+
+/**
+ * CryptoToken EJB CLI command. 
+ * 
+ * @version $Id: CryptoTokenUpdatePinCommand.java 19902 2014-09-30 14:32:24Z anatom $
+ */
+<span class="nc" id="L32">public class CryptoTokenUpdatePinCommand extends BaseCryptoTokenCommand {</span>
+
+<span class="nc" id="L34">    private static final Logger log = Logger.getLogger(CryptoTokenUpdatePinCommand.class);</span>
+
+    private static final String SWITCH_UPDATE_ONLY_KEY = &quot;--update&quot;;
+    private static final String SWITCH_REMOVE_AUTO_KEY = &quot;--remove&quot;;
+    private static final String OLD_PIN_KEY = &quot;--oldpin&quot;;
+    private static final String NEW_PIN_KEY = &quot;--newpin&quot;;
+
+    {
+<span class="nc" id="L42">        registerParameter(new Parameter(OLD_PIN_KEY, &quot;Pin&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;The old pin. Set as \&quot;null\&quot; to prompt&quot;));
+<span class="nc" id="L44">        registerParameter(new Parameter(NEW_PIN_KEY, &quot;Pin&quot;, MandatoryMode.OPTIONAL, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;The new pin. Set as \&quot;null\&quot; to prompt&quot;));
+<span class="nc" id="L46">        registerParameter(Parameter.createFlag(SWITCH_UPDATE_ONLY_KEY,</span>
+                &quot;Set the auto-activation pin and make the token auto-activated if it was so previously.&quot;));
+<span class="nc" id="L48">        registerParameter(Parameter.createFlag(SWITCH_REMOVE_AUTO_KEY,</span>
+                &quot;Will remove any auto-activation pin if present (new pin is not required when this is used).&quot;));
+<span class="nc" id="L50">    }</span>
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L54">        return &quot;setpin&quot;;</span>
+    }
+
+    @Override
+    public CommandResult executeCommand(Integer cryptoTokenId, ParameterContainer parameters) throws AuthorizationDeniedException, CryptoTokenOfflineException {
+<span class="nc" id="L59">        final boolean updateOnly = parameters.containsKey(SWITCH_UPDATE_ONLY_KEY);</span>
+<span class="nc" id="L60">        final boolean removeAuto = parameters.containsKey(SWITCH_REMOVE_AUTO_KEY);</span>
+
+<span class="nc" id="L62">        final char[] currentAuthenticationCode = getAuthenticationCode(parameters.get(OLD_PIN_KEY));</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">        final char[] newAuthenticationCode = removeAuto ? null : getAuthenticationCode(parameters.get(NEW_PIN_KEY));</span>
+        try {
+<span class="nc" id="L65">            final CryptoTokenManagementSessionRemote cryptoTokenManagementSession = EjbRemoteHelper.INSTANCE</span>
+<span class="nc" id="L66">                    .getRemoteSession(CryptoTokenManagementSessionRemote.class);</span>
+<span class="nc" id="L67">            boolean result = cryptoTokenManagementSession.updatePin(getAdmin(), cryptoTokenId.intValue(), currentAuthenticationCode,</span>
+                    newAuthenticationCode, updateOnly);
+<span class="nc bnc" id="L69" title="All 2 branches missed.">            if (result) {</span>
+<span class="nc" id="L70">                getLogger().info(&quot;Auto-activation is now in use for this CryptoToken.&quot;);</span>
+            } else {
+<span class="nc" id="L72">                getLogger().info(&quot;Auto-activation is now not in use for this CryptoToken.&quot;);</span>
+            }
+<span class="nc" id="L74">            final boolean isActive = cryptoTokenManagementSession.isCryptoTokenStatusActive(getAdmin(), cryptoTokenId.intValue());</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">            getLogger().info(&quot;CryptoToken is &quot; + (isActive ? &quot;active&quot; : &quot;deactivated&quot;) + &quot;.&quot;);</span>
+<span class="nc" id="L76">            return CommandResult.SUCCESS;</span>
+<span class="nc" id="L77">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L78">            getLogger().info(e.getMessage());</span>
+<span class="nc" id="L79">            return CommandResult.AUTHORIZATION_FAILURE;</span>
+<span class="nc" id="L80">        } catch (Exception e) {</span>
+<span class="nc" id="L81">            getLogger().info(&quot;CryptoToken activation failed: &quot; + e.getMessage());</span>
+        }
+<span class="nc" id="L83">        return CommandResult.FUNCTIONAL_FAILURE;</span>
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L88">        return &quot;Modifies the current keystore and/or auto-activation pin.&quot;;</span>
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L93">        return getCommandDescription()</span>
+                + &quot; For soft CryptoTokens the underlying keystore's pin will be modified and this requires the current activation PIN.&quot;
+                + &quot; For PKCS#11 CryptoTokens this will only modify the auto-activation pin and requires the current (auto-activation or) activation PIN.&quot;;
+    }
+
+    @Override
+    protected Logger getLogger() {
+<span class="nc" id="L100">        return log;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>BaseCaAdminCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.ca</a> &gt; <span class="el_source">BaseCaAdminCommand.java</span></div><h1>BaseCaAdminCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.cli.ca;
+
+import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.SignatureException;
+import java.security.cert.Certificate;
+import java.util.ArrayList;
+import java.util.Collection;
+
+import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.DEROutputStream;
+import org.bouncycastle.asn1.DERSet;
+import org.bouncycastle.operator.ContentVerifierProvider;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.bouncycastle.pkcs.PKCSException;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CAConstants;
+import org.cesecore.certificates.ca.CADoesntExistsException;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.CaSessionRemote;
+import org.cesecore.certificates.certificate.CertificateConstants;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSessionRemote;
+import org.cesecore.certificates.crl.CrlStoreSessionRemote;
+import org.cesecore.keys.token.CryptoTokenInfo;
+import org.cesecore.keys.token.CryptoTokenManagementSessionRemote;
+import org.cesecore.util.Base64;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.EjbRemoteHelper;
+import org.ejbca.core.ejb.authorization.AuthorizationSystemSessionRemote;
+import org.ejbca.core.ejb.crl.PublishingCrlSessionRemote;
+import org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSessionRemote;
+import org.ejbca.ui.cli.infrastructure.command.EjbcaCliUserCommandBase;
+
+/**
+ * Base for CA commands, contains common functions for CA operations
+ * 
+ * @version $Id: BaseCaAdminCommand.java 27740 2018-01-05 07:24:53Z mikekushner $
+ */
+<span class="nc" id="L59">public abstract class BaseCaAdminCommand extends EjbcaCliUserCommandBase {</span>
+
+<span class="nc" id="L61">    private static final Logger log = Logger.getLogger(BaseCaAdminCommand.class);</span>
+
+    protected static final String MAINCOMMAND = &quot;ca&quot;;
+
+    protected static final String defaultSuperAdminCN = &quot;SuperAdmin&quot;;
+
+    /** Private key alias in PKCS12 keystores */
+<span class="nc" id="L68">    protected String privKeyAlias = &quot;privateKey&quot;;</span>
+<span class="nc" id="L69">    protected char[] privateKeyPass = null;</span>
+
+    @Override
+    public String[] getCommandPath() {
+<span class="nc" id="L73">        return new String[] { MAINCOMMAND };</span>
+    }
+
+    /**
+     * Retrieves the complete certificate chain from the CA
+     * @param authenticationToken token
+     * 
+     * @param caname human readable name of CA
+     * @return a Collection of certificates
+     */
+    protected Collection&lt;Certificate&gt; getCertChain(AuthenticationToken authenticationToken, String caname) {
+<span class="nc" id="L84">        log.trace(&quot;&gt;getCertChain()&quot;);</span>
+<span class="nc" id="L85">        Collection&lt;Certificate&gt; returnval = new ArrayList&lt;Certificate&gt;();</span>
+        try {
+<span class="nc" id="L87">            CAInfo cainfo = EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class).getCAInfo(authenticationToken, caname);</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">            if (cainfo != null) {</span>
+<span class="nc" id="L89">                returnval = cainfo.getCertificateChain();</span>
+            }
+<span class="nc" id="L91">        } catch (Exception e) {</span>
+<span class="nc" id="L92">            log.error(&quot;Error while getting certfificate chain from CA.&quot;, e);</span>
+<span class="nc" id="L93">        }</span>
+<span class="nc" id="L94">        log.trace(&quot;&lt;getCertChain()&quot;);</span>
+<span class="nc" id="L95">        return returnval;</span>
+    }
+
+    protected void makeCertRequest(String dn, KeyPair rsaKeys, String reqfile) throws NoSuchAlgorithmException, IOException, NoSuchProviderException,
+            InvalidKeyException, SignatureException, OperatorCreationException, PKCSException {
+<span class="nc" id="L100">        log.trace(&quot;&gt;makeCertRequest: dn='&quot; + dn + &quot;', reqfile='&quot; + reqfile + &quot;'.&quot;);</span>
+
+<span class="nc" id="L102">        PKCS10CertificationRequest req = CertTools.genPKCS10CertificationRequest(&quot;SHA1WithRSA&quot;, CertTools.stringToBcX500Name(dn),</span>
+<span class="nc" id="L103">                rsaKeys.getPublic(), new DERSet(), rsaKeys.getPrivate(), null);</span>
+
+        /*
+         * We don't use these unnecessary attributes DERConstructedSequence kName
+         * = new DERConstructedSequence(); DERConstructedSet kSeq = new
+         * DERConstructedSet();
+         * kName.addObject(PKCSObjectIdentifiers.pkcs_9_at_emailAddress);
+         * kSeq.addObject(new DERIA5String(&quot;foo@bar.se&quot;));
+         * kName.addObject(kSeq); req.setAttributes(kName);
+         */
+<span class="nc" id="L113">        ByteArrayOutputStream bOut = new ByteArrayOutputStream();</span>
+<span class="nc" id="L114">        DEROutputStream dOut = new DEROutputStream(bOut);</span>
+<span class="nc" id="L115">        dOut.writeObject(req.toASN1Structure());</span>
+<span class="nc" id="L116">        dOut.close();</span>
+
+<span class="nc" id="L118">        PKCS10CertificationRequest req2 = new PKCS10CertificationRequest(bOut.toByteArray());</span>
+<span class="nc" id="L119">        ContentVerifierProvider contentVerifier = CertTools.genContentVerifierProvider(rsaKeys.getPublic());</span>
+<span class="nc" id="L120">        boolean verify = req2.isSignatureValid(contentVerifier); //req2.verify();</span>
+<span class="nc" id="L121">        log.info(&quot;Verify returned &quot; + verify);</span>
+
+<span class="nc bnc" id="L123" title="All 2 branches missed.">        if (verify == false) {</span>
+<span class="nc" id="L124">            log.info(&quot;Aborting!&quot;);</span>
+<span class="nc" id="L125">            return;</span>
+        }
+
+<span class="nc" id="L128">        FileOutputStream os1 = new FileOutputStream(reqfile);</span>
+<span class="nc" id="L129">        os1.write(&quot;-----BEGIN CERTIFICATE REQUEST-----\n&quot;.getBytes());</span>
+<span class="nc" id="L130">        os1.write(Base64.encode(bOut.toByteArray()));</span>
+<span class="nc" id="L131">        os1.write(&quot;\n-----END CERTIFICATE REQUEST-----\n&quot;.getBytes());</span>
+<span class="nc" id="L132">        os1.close();</span>
+<span class="nc" id="L133">        log.info(&quot;CertificationRequest '&quot; + reqfile + &quot;' generated successfully.&quot;);</span>
+<span class="nc" id="L134">        log.trace(&quot;&lt;makeCertRequest: dn='&quot; + dn + &quot;', reqfile='&quot; + reqfile + &quot;'.&quot;);</span>
+<span class="nc" id="L135">    }</span>
+
+    protected void createCRL(final String issuerdn, final boolean deltaCRL) {
+<span class="nc" id="L138">        log.trace(&quot;&gt;createCRL()&quot;);</span>
+        try {
+<span class="nc bnc" id="L140" title="All 2 branches missed.">            if (issuerdn != null) {</span>
+<span class="nc" id="L141">                CAInfo cainfo = EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class).getCAInfo(getAuthenticationToken(),</span>
+<span class="nc" id="L142">                        issuerdn.hashCode());</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">                if (!deltaCRL) {</span>
+<span class="nc" id="L144">                    EjbRemoteHelper.INSTANCE.getRemoteSession(PublishingCrlSessionRemote.class).forceCRL(getAuthenticationToken(), cainfo.getCAId());</span>
+<span class="nc" id="L145">                    int number = EjbRemoteHelper.INSTANCE.getRemoteSession(CrlStoreSessionRemote.class).getLastCRLNumber(issuerdn, false);</span>
+<span class="nc" id="L146">                    log.info(&quot;CRL with number &quot; + number + &quot; generated.&quot;);</span>
+<span class="nc" id="L147">                } else {</span>
+<span class="nc" id="L148">                    EjbRemoteHelper.INSTANCE.getRemoteSession(PublishingCrlSessionRemote.class).forceDeltaCRL(getAuthenticationToken(),</span>
+<span class="nc" id="L149">                            cainfo.getCAId());</span>
+<span class="nc" id="L150">                    int number = EjbRemoteHelper.INSTANCE.getRemoteSession(CrlStoreSessionRemote.class).getLastCRLNumber(issuerdn, true);</span>
+<span class="nc" id="L151">                    log.info(&quot;Delta CRL with number &quot; + number + &quot; generated.&quot;);</span>
+                }
+<span class="nc" id="L153">            } else {</span>
+<span class="nc" id="L154">                int createdcrls = EjbRemoteHelper.INSTANCE.getRemoteSession(PublishingCrlSessionRemote.class).createCRLs(getAuthenticationToken());</span>
+<span class="nc" id="L155">                log.info(&quot;  &quot; + createdcrls + &quot; CRLs have been created.&quot;);</span>
+<span class="nc" id="L156">                int createddeltacrls = EjbRemoteHelper.INSTANCE.getRemoteSession(PublishingCrlSessionRemote.class).createDeltaCRLs(</span>
+<span class="nc" id="L157">                        getAuthenticationToken());</span>
+<span class="nc" id="L158">                log.info(&quot;  &quot; + createddeltacrls + &quot; delta CRLs have been created.&quot;);</span>
+            }
+<span class="nc" id="L160">        } catch (Exception e) {</span>
+<span class="nc" id="L161">            log.error(&quot;Error while creating CRL for CA: &quot; + issuerdn, e);</span>
+<span class="nc" id="L162">        }</span>
+<span class="nc" id="L163">        log.trace(&quot;&gt;createCRL()&quot;);</span>
+<span class="nc" id="L164">    }</span>
+
+    protected String getIssuerDN(AuthenticationToken authenticationToken, String caname) throws CADoesntExistsException, AuthorizationDeniedException {
+<span class="nc" id="L167">        CAInfo cainfo = EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class).getCAInfo(authenticationToken, caname);</span>
+<span class="nc bnc" id="L168" title="All 2 branches missed.">        return cainfo != null ? cainfo.getSubjectDN() : null;</span>
+    }
+
+    protected CAInfo getCAInfo(AuthenticationToken authenticationToken, String caname) {
+<span class="nc" id="L172">        CAInfo result = null;</span>
+        try {
+<span class="nc" id="L174">            result = EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class).getCAInfo(authenticationToken, caname);</span>
+<span class="nc" id="L175">        }  catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L176">            log.error(&quot;Authorization denied&quot;, e);</span>
+<span class="nc" id="L177">        }</span>
+<span class="nc bnc" id="L178" title="All 2 branches missed.">        if (result == null) {</span>
+<span class="nc" id="L179">            log.debug(&quot;CA &quot; + caname + &quot; not found.&quot;);</span>
+        }
+<span class="nc" id="L181">        return result;</span>
+    }
+
+    protected void initAuthorizationModule(AuthenticationToken authenticationToken, int caid, String superAdminCN)
+            throws AuthorizationDeniedException {
+<span class="nc bnc" id="L186" title="All 2 branches missed.">        if (superAdminCN == null) {</span>
+<span class="nc" id="L187">            log.info(&quot;Not initializing authorization module.&quot;);</span>
+        } else {
+<span class="nc" id="L189">            log.info(&quot;Initalizing authorization module with caid=&quot; + caid + &quot; and superadmin CN '&quot; + superAdminCN + &quot;'.&quot;);</span>
+        }
+<span class="nc" id="L191">        EjbRemoteHelper.INSTANCE.getRemoteSession(AuthorizationSystemSessionRemote.class).initializeAuthorizationModuleWithSuperAdmin(authenticationToken, caid,</span>
+                superAdminCN);
+<span class="nc" id="L193">    }</span>
+
+    protected String getAvailableCasString() {
+        // List available CAs by name
+<span class="nc" id="L197">        final StringBuilder existingCas = new StringBuilder();</span>
+        try {
+<span class="nc bnc" id="L199" title="All 2 branches missed.">            for (final Integer nextId : EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class).getAuthorizedCaIds(getAuthenticationToken())) {</span>
+<span class="nc" id="L200">                final String caName = EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class)</span>
+<span class="nc" id="L201">                        .getCAInfo(getAuthenticationToken(), nextId.intValue()).getName();</span>
+<span class="nc bnc" id="L202" title="All 2 branches missed.">                if (existingCas.length() &gt; 0) {</span>
+<span class="nc" id="L203">                    existingCas.append(&quot;, &quot;);</span>
+                }
+<span class="nc" id="L205">                existingCas.append(&quot;\&quot;&quot;).append(caName).append(&quot;\&quot;&quot;);</span>
+<span class="nc" id="L206">            }</span>
+<span class="nc" id="L207">        } catch (Exception e) {</span>
+<span class="nc" id="L208">            existingCas.append(&quot;&lt;unable to fetch available CA(s)&gt;&quot;);</span>
+<span class="nc" id="L209">        }</span>
+<span class="nc" id="L210">        return existingCas.toString();</span>
+    }
+
+    protected String getAvailableEepsString(final String endentityAccessRule) {
+        // List available EndEntityProfiles by name
+<span class="nc" id="L215">        final StringBuilder availableEEPs = new StringBuilder();</span>
+        try {
+<span class="nc bnc" id="L217" title="All 2 branches missed.">            for (final Integer nextId : EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityProfileSessionRemote.class)</span>
+<span class="nc" id="L218">                    .getAuthorizedEndEntityProfileIds(getAuthenticationToken(), endentityAccessRule)) {</span>
+<span class="nc" id="L219">                final String eepName = EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityProfileSessionRemote.class).getEndEntityProfileName(</span>
+<span class="nc" id="L220">                        nextId.intValue());</span>
+<span class="nc bnc" id="L221" title="All 2 branches missed.">                if (availableEEPs.length() &gt; 0) {</span>
+<span class="nc" id="L222">                    availableEEPs.append(&quot;, &quot;);</span>
+                }
+<span class="nc" id="L224">                availableEEPs.append(&quot;\&quot;&quot;).append(eepName).append(&quot;\&quot;&quot;);</span>
+<span class="nc" id="L225">            }</span>
+<span class="nc" id="L226">        } catch (Exception e) {</span>
+<span class="nc" id="L227">            availableEEPs.append(&quot;&lt;unable to fetch available End Entity Profile(s)&gt;&quot;);</span>
+<span class="nc" id="L228">        }</span>
+<span class="nc" id="L229">        return availableEEPs.toString();</span>
+    }
+
+    protected String getAvailableEndUserCpsString() {
+        // List available CertificateProfiles by name
+<span class="nc" id="L234">        final StringBuilder availableCPs = new StringBuilder();</span>
+        try {
+<span class="nc bnc" id="L236" title="All 2 branches missed.">            for (final Integer nextId : EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateProfileSessionRemote.class)</span>
+<span class="nc" id="L237">                    .getAuthorizedCertificateProfileIds(getAuthenticationToken(), CertificateConstants.CERTTYPE_ENDENTITY)) {</span>
+<span class="nc" id="L238">                final String cpName = EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateProfileSessionRemote.class).getCertificateProfileName(</span>
+<span class="nc" id="L239">                        nextId.intValue());</span>
+<span class="nc bnc" id="L240" title="All 2 branches missed.">                if (availableCPs.length() &gt; 0) {</span>
+<span class="nc" id="L241">                    availableCPs.append(&quot;, &quot;);</span>
+                }
+<span class="nc" id="L243">                availableCPs.append(&quot;\&quot;&quot;).append(cpName).append(&quot;\&quot;&quot;);</span>
+<span class="nc" id="L244">            }</span>
+<span class="nc" id="L245">        } catch (Exception e) {</span>
+<span class="nc" id="L246">            availableCPs.append(&quot;&lt;unable to fetch available Certificate Profile(s)&gt;&quot;);</span>
+<span class="nc" id="L247">        }</span>
+<span class="nc" id="L248">        return availableCPs.toString();</span>
+    }
+    
+    protected String getCaList() {
+<span class="nc" id="L252">        final String TAB = &quot;    &quot;;</span>
+<span class="nc" id="L253">        Collection&lt;Integer&gt; cas = EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class).getAuthorizedCaIds(getAuthenticationToken());</span>
+<span class="nc" id="L254">        String casList = &quot;Available CAs:\n&quot;;</span>
+<span class="nc bnc" id="L255" title="All 2 branches missed.">        for (Integer caid : cas) {</span>
+            CAInfo info;
+            try {
+<span class="nc" id="L258">                info = EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class).getCAInfo(getAuthenticationToken(), caid);</span>
+<span class="nc bnc" id="L259" title="All 2 branches missed.">                if (info.getStatus() == CAConstants.CA_EXTERNAL) {</span>
+<span class="nc" id="L260">                    casList += TAB + info.getName() + &quot;: External CA\n&quot;;</span>
+                } else {
+<span class="nc" id="L262">                    int cryptoTokenId = info.getCAToken().getCryptoTokenId();</span>
+<span class="nc" id="L263">                    String cryptoTokenName = &quot;Current CLI user does not have authorization to Crypto Tokens.\n&quot;;</span>
+                    try {
+<span class="nc" id="L265">                        CryptoTokenInfo ctInfo = EjbRemoteHelper.INSTANCE.getRemoteSession(CryptoTokenManagementSessionRemote.class).getCryptoTokenInfo(getAuthenticationToken(), cryptoTokenId);</span>
+<span class="nc bnc" id="L266" title="All 2 branches missed.">                        if (ctInfo != null) {</span>
+<span class="nc" id="L267">                            cryptoTokenName = ctInfo.getName();</span>
+                        } else {
+<span class="nc" id="L269">                            cryptoTokenName = &quot;ID &quot;+cryptoTokenId;</span>
+                        }
+<span class="nc" id="L271">                    } catch (AuthorizationDeniedException e) {</span>
+                        // NOPMD: ignore, use string above
+<span class="nc" id="L273">                    }</span>
+<span class="nc" id="L274">                    casList += TAB + info.getName() + &quot;:&quot; + cryptoTokenName + &quot;:&quot; + info.getCAToken().getSignatureAlgorithm() + &quot;\n&quot;;</span>
+                }
+<span class="nc" id="L276">            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L277">                casList = &quot;Current CLI user does not have authorization to any CAs.\n&quot;;</span>
+<span class="nc" id="L278">                break;</span>
+<span class="nc" id="L279">            }</span>
+<span class="nc" id="L280">        }</span>
+<span class="nc" id="L281">        return casList;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

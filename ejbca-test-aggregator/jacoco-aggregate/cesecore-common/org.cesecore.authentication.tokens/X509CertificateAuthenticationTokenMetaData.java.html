@@ -13,20 +13,25 @@
 package org.cesecore.authentication.tokens;
 
 import java.util.Arrays;
-
 import org.cesecore.authorization.user.matchvalues.X500PrincipalAccessMatchValue;
 
 /**
- * Meta data definition and ServiceLoader marker for {@link org.cesecore.authentication.tokens.X509CertificateAuthenticationToken}.
- * 
- * @version $Id: X509CertificateAuthenticationTokenMetaData.java 25241 2017-02-10 02:10:43Z jeklund $
+ * Meta data definition and ServiceLoader marker for {@link
+ * org.cesecore.authentication.tokens.X509CertificateAuthenticationToken}.
+ *
+ * @version $Id: X509CertificateAuthenticationTokenMetaData.java 25241
+ *     2017-02-10 02:10:43Z jeklund $
  */
-public class X509CertificateAuthenticationTokenMetaData extends AuthenticationTokenMetaDataBase {
-
-    public static final String TOKEN_TYPE = &quot;CertificateAuthenticationToken&quot;;
-
-    public X509CertificateAuthenticationTokenMetaData() {
-<span class="fc" id="L29">        super(TOKEN_TYPE, Arrays.asList(X500PrincipalAccessMatchValue.values()), true);</span>
-<span class="fc" id="L30">    }</span>
+public class X509CertificateAuthenticationTokenMetaData
+    extends AuthenticationTokenMetaDataBase {
+  /** Type. */
+  public static final String TOKEN_TYPE = &quot;CertificateAuthenticationToken&quot;;
+  /** Constructor. */
+  public X509CertificateAuthenticationTokenMetaData() {
+<span class="fc" id="L31">    super(</span>
+        TOKEN_TYPE,
+<span class="fc" id="L33">        Arrays.asList(X500PrincipalAccessMatchValue.values()),</span>
+        true);
+<span class="fc" id="L35">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,711 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ApprovalProfileMBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">admin-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.approval</a> &gt; <span class="el_source">ApprovalProfileMBean.java</span></div><h1>ApprovalProfileMBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.web.admin.approval;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.ejb.EJB;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.ManagedProperty;
+import javax.faces.bean.ViewScoped;
+import javax.faces.context.FacesContext;
+import javax.faces.model.ListDataModel;
+import javax.faces.model.SelectItem;
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.configuration.GlobalConfigurationSessionLocal;
+import org.cesecore.internal.InternalResources;
+import org.cesecore.roles.AccessRulesHelper;
+import org.cesecore.roles.Role;
+import org.cesecore.roles.RoleInformation;
+import org.cesecore.roles.management.RoleSessionLocal;
+import org.cesecore.roles.member.RoleMember;
+import org.cesecore.roles.member.RoleMemberSessionLocal;
+import org.cesecore.util.SimpleTime;
+import org.cesecore.util.ui.DynamicUiProperty;
+import org.cesecore.util.ui.MultiLineString;
+import org.cesecore.util.ui.PropertyValidationException;
+import org.cesecore.util.ui.RadioButton;
+import org.ejbca.config.GlobalConfiguration;
+import org.ejbca.core.ejb.approval.ApprovalProfileSessionLocal;
+import org.ejbca.core.model.approval.profile.ApprovalPartition;
+import org.ejbca.core.model.approval.profile.ApprovalProfile;
+import org.ejbca.core.model.approval.profile.ApprovalProfilesFactory;
+import org.ejbca.core.model.approval.profile.ApprovalStep;
+import org.ejbca.core.model.authorization.AccessRulesConstants;
+import org.ejbca.ui.web.admin.BaseManagedBean;
+import org.ejbca.util.HTMLTools;
+
+/**
+ * JSF MBean backing the approval profile pages.
+ * @version $Id: ApprovalProfileMBean.java 34227 2020-01-09 14:20:59Z henriks $
+ * TODO: switch to CDI beans
+ */
+@SuppressWarnings(&quot;deprecation&quot;)
+@ViewScoped // Local variables will live as long as actions on the backed page return &quot;&quot; or void.
+@ManagedBean(name=&quot;approvalProfileMBean&quot;)
+<span class="nc" id="L65">public class ApprovalProfileMBean extends BaseManagedBean implements Serializable {</span>
+
+    private static final long serialVersionUID = -3751383340600251434L;
+<span class="nc" id="L68">    private static final InternalResources intres = InternalResources.getInstance();</span>
+<span class="nc" id="L69">    private static final Logger log = Logger.getLogger(ApprovalProfileMBean.class);</span>
+
+    /**
+     * This enum field represents the types of data fields that can be added to an approval partition dynamically.
+     *
+     */
+<span class="nc" id="L75">    private enum FieldType {</span>
+<span class="nc" id="L76">        CHECKBOX(intres.getLocalizedMessage(&quot;approval.profile.metadata.field.checkbox&quot;)),</span>
+<span class="nc" id="L77">        INTEGER(intres.getLocalizedMessage(&quot;approval.profile.metadata.field.integer&quot;)),</span>
+<span class="nc" id="L78">        LONG(intres.getLocalizedMessage(&quot;approval.profile.metadata.field.long&quot;)),</span>
+<span class="nc" id="L79">        RADIOBUTTON(intres.getLocalizedMessage(&quot;approval.profile.metadata.field.radio.button&quot;)),</span>
+<span class="nc" id="L80">        TEXT(intres.getLocalizedMessage(&quot;approval.profile.metadata.field.freetext&quot;));</span>
+
+       private static List&lt;SelectItem&gt; selectItems;
+       private static Map&lt;String, FieldType&gt; nameLookupMap;
+       private final String label;
+
+       static {
+<span class="nc" id="L87">           selectItems = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L88">           nameLookupMap = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">           for(FieldType action : FieldType.values()) {</span>
+<span class="nc" id="L90">               selectItems.add(new SelectItem(action, action.getLabel()));</span>
+<span class="nc" id="L91">               nameLookupMap.put(action.name(), action);</span>
+           }
+<span class="nc" id="L93">       }</span>
+
+<span class="nc" id="L95">       private FieldType(final String label) {</span>
+<span class="nc" id="L96">           this.label = label;</span>
+
+<span class="nc" id="L98">       }</span>
+
+       public String getLabel() {
+<span class="nc" id="L101">           return label;</span>
+       }
+
+       public static List&lt;SelectItem&gt; asSelectItems() {
+<span class="nc" id="L105">           return selectItems;</span>
+       }
+
+       public static FieldType getFromName(String name) {
+<span class="nc" id="L109">           return nameLookupMap.get(name);</span>
+       }
+
+    }
+
+    @EJB
+    private ApprovalProfileSessionLocal approvalProfileSession;
+    @EJB
+    private GlobalConfigurationSessionLocal globalConfigurationSession;
+    @EJB
+    private RoleSessionLocal roleSession;
+    @EJB
+    private RoleMemberSessionLocal roleMemberSession;
+
+    @ManagedProperty(value = &quot;#{approvalProfilesMBean}&quot;)
+    private ApprovalProfilesMBean approvalProfilesMBean;
+
+<span class="nc" id="L126">    private int currentApprovalProfileId = -1;</span>
+<span class="nc" id="L127">    private ApprovalProfile currentApprovalProfile = null;</span>
+
+<span class="nc" id="L129">    private ListDataModel&lt;ApprovalStepGuiObject&gt; steps = null;</span>
+
+    /**
+     * The type of metadata field to add to a partition, if any.
+     */
+<span class="nc" id="L134">    private Map&lt;Integer, String&gt; fieldToAdd = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L135">    private Map&lt;Integer, String&gt; fieldLabel = new HashMap&lt;&gt;();</span>
+
+   public ApprovalProfilesMBean getApprovalProfilesMBean() {
+<span class="nc" id="L138">        return approvalProfilesMBean;</span>
+    }
+
+    public void setApprovalProfilesMBean(ApprovalProfilesMBean approvalProfilesMBean) {
+<span class="nc" id="L142">        this.approvalProfilesMBean = approvalProfilesMBean;</span>
+<span class="nc" id="L143">    }</span>
+    /** @return the selected profile id from the list view or the one cached in this view (this will never change in the view) */
+    public int getSelectedApprovalProfileId() {
+<span class="nc bnc" id="L146" title="All 2 branches missed.">        if (currentApprovalProfileId==-1) {</span>
+<span class="nc" id="L147">            final Integer id = approvalProfilesMBean.getSelectedApprovalProfileId();</span>
+<span class="nc bnc" id="L148" title="All 2 branches missed.">            if (id!=null) {</span>
+<span class="nc" id="L149">                currentApprovalProfileId = id.intValue();</span>
+            }
+        }
+<span class="nc" id="L152">        return currentApprovalProfileId;</span>
+    }
+
+    public String getSelectedApprovalProfileName() {
+<span class="nc" id="L156">        return approvalProfileSession.getApprovalProfileName(getSelectedApprovalProfileId());</span>
+    }
+
+    public ApprovalProfile getApprovalProfile() {
+<span class="nc bnc" id="L160" title="All 4 branches missed.">        if (currentApprovalProfile == null &amp;&amp; getSelectedApprovalProfileId()!=-1) {</span>
+<span class="nc" id="L161">            final ApprovalProfile approvalProfile = approvalProfileSession.getApprovalProfile(getSelectedApprovalProfileId());</span>
+<span class="nc bnc" id="L162" title="All 2 branches missed.">            if (approvalProfile!=null) {</span>
+<span class="nc" id="L163">                this.currentApprovalProfile = approvalProfile.clone();</span>
+            }
+        }
+<span class="nc" id="L166">        return currentApprovalProfile;</span>
+    }
+
+    public String getRequestExpirationPeriod() {
+<span class="nc" id="L170">        final long millis = getApprovalProfile().getRequestExpirationPeriod();</span>
+<span class="nc" id="L171">        final SimpleTime time = SimpleTime.getInstance(millis);</span>
+<span class="nc" id="L172">        return time.toString(SimpleTime.TYPE_DAYS);</span>
+    }
+
+    public void setRequestExpirationPeriod(String expirationPeriod) {
+<span class="nc" id="L176">        final SimpleTime time = SimpleTime.getInstance(expirationPeriod);</span>
+<span class="nc" id="L177">        getApprovalProfile().setRequestExpirationPeriod(time.getLong());</span>
+<span class="nc" id="L178">    }</span>
+
+    public String getApprovalExpirationPeriod() {
+<span class="nc" id="L181">        final long millis = getApprovalProfile().getApprovalExpirationPeriod();</span>
+<span class="nc" id="L182">        final SimpleTime time = SimpleTime.getInstance(millis);</span>
+<span class="nc" id="L183">        return time.toString(SimpleTime.TYPE_DAYS);</span>
+    }
+
+    public void setApprovalExpirationPeriod(String expirationPeriod) {
+<span class="nc" id="L187">        final SimpleTime time = SimpleTime.getInstance(expirationPeriod);</span>
+<span class="nc" id="L188">        getApprovalProfile().setApprovalExpirationPeriod(time.getLong());</span>
+<span class="nc" id="L189">    }</span>
+
+    public String getMaxExtensionTime() {
+<span class="nc" id="L192">        final long millis = getApprovalProfile().getMaxExtensionTime();</span>
+<span class="nc" id="L193">        final SimpleTime time = SimpleTime.getInstance(millis);</span>
+<span class="nc" id="L194">        return time.toString(SimpleTime.TYPE_DAYS);</span>
+    }
+
+    public boolean getAllowSelfEdit() {
+<span class="nc" id="L198">        return getApprovalProfile().getAllowSelfEdit();</span>
+    }
+
+    public void setAllowSelfEdit(boolean allowSelfEdit) {
+<span class="nc" id="L202">       getApprovalProfile().setAllowSelfEdit(allowSelfEdit);</span>
+<span class="nc" id="L203">    }</span>
+
+    public void setMaxExtensionTime(final String maxExtensionTime) {
+<span class="nc" id="L206">        final SimpleTime time = SimpleTime.getInstance(maxExtensionTime);</span>
+<span class="nc" id="L207">        getApprovalProfile().setMaxExtensionTime(time.getLong());</span>
+<span class="nc" id="L208">    }</span>
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public String save() {
+        try {
+<span class="nc" id="L213">            final ApprovalProfile approvalProfile = getApprovalProfile();</span>
+<span class="nc" id="L214">            List&lt;Integer&gt; stepOrder = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L215" title="All 2 branches missed.">            for (final ApprovalStepGuiObject approvalSequenceGuiObject : steps) {</span>
+<span class="nc" id="L216">                final int sequenceIdentifier = approvalSequenceGuiObject.getIdentifier();</span>
+<span class="nc bnc" id="L217" title="All 2 branches missed.">                for (final ApprovalPartitionProfileGuiObject approvalPartitionGuiObject : approvalSequenceGuiObject.getPartitionGuiObjects()) {</span>
+<span class="nc" id="L218">                    approvalProfile.addPropertiesToPartition(sequenceIdentifier, approvalPartitionGuiObject.getPartitionId(),</span>
+<span class="nc" id="L219">                            (List&lt;DynamicUiProperty&lt;? extends Serializable&gt;&gt;) approvalPartitionGuiObject.getProfilePropertyList().getWrappedData());</span>
+<span class="nc" id="L220">                }</span>
+<span class="nc" id="L221">                stepOrder.add(sequenceIdentifier);</span>
+<span class="nc" id="L222">            }</span>
+<span class="nc" id="L223">            approvalProfileSession.changeApprovalProfile(getAdmin(), approvalProfile);</span>
+<span class="nc" id="L224">            addInfoMessage(&quot;APPROVALPROFILESAVED&quot;);</span>
+<span class="nc" id="L225">            return &quot;done&quot;;</span>
+<span class="nc" id="L226">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L227">            addNonTranslatedErrorMessage(&quot;Not authorized to edit approval profiles.&quot;);</span>
+        }
+<span class="nc" id="L229">        return &quot;&quot;;</span>
+    }
+
+    /**
+     * Saves the current approval profile to a temporary variable managed by this bean. Should be
+     * used to save the current state before the UI is refreshed. This prevents data entry in UI
+     * controls to be discarded, causing poor user experience. To permanently save the approval
+     * profile, see {@link #save}. In comparison, this method does not require any authorisation,
+     * and will not throw any exceptions, nor show any error messages to the user.
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public void saveTemporary() {
+<span class="nc" id="L241">        final ApprovalProfile approvalProfile = getApprovalProfile();</span>
+<span class="nc" id="L242">        final List&lt;Integer&gt; stepOrder = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L243" title="All 2 branches missed.">        for (final ApprovalStepGuiObject step : steps) {</span>
+<span class="nc bnc" id="L244" title="All 2 branches missed.">            for (final ApprovalPartitionProfileGuiObject partition : step.getPartitionGuiObjects()) {</span>
+<span class="nc" id="L245">                final int stepId = step.getIdentifier();</span>
+<span class="nc" id="L246">                final int partitionId = partition.getPartitionId();</span>
+<span class="nc" id="L247">                final Object guiObject = partition.getProfilePropertyList().getWrappedData();</span>
+<span class="nc" id="L248">                approvalProfile.addPropertiesToPartition(stepId, partitionId, (List&lt;DynamicUiProperty&lt;? extends Serializable&gt;&gt;) guiObject);</span>
+<span class="nc" id="L249">            }</span>
+<span class="nc" id="L250">            stepOrder.add(step.getIdentifier());</span>
+<span class="nc" id="L251">        }</span>
+<span class="nc" id="L252">        steps = createStepListFromProfile(approvalProfile);</span>
+<span class="nc" id="L253">    }</span>
+
+    public String cancel() {
+<span class="nc" id="L256">        return &quot;done&quot;;</span>
+    }
+
+    /**
+     * Adds the currently selected field to the partition specified by the parameter. The step that the partition resides in is retrieved from
+     * the steps class member.
+     *
+     * @param partitionId the ID of the partition to add the field to
+     * @return an empty string to keep the scope.
+     */
+    public String addField(int partitionId) {
+<span class="nc" id="L267">        final Integer currentStep = steps.getRowData().getIdentifier();</span>
+
+<span class="nc" id="L269">        saveTemporary();</span>
+
+<span class="nc" id="L271">        ApprovalProfile updatedApprovalProfile = getApprovalProfile();</span>
+        DynamicUiProperty&lt;? extends Serializable&gt; property;
+<span class="nc" id="L273">        String fieldLabel = this.fieldLabel.get(partitionId);</span>
+<span class="nc" id="L274">        FieldType fieldType = FieldType.getFromName(fieldToAdd.get(partitionId));</span>
+<span class="nc bnc" id="L275" title="All 6 branches missed.">        switch (fieldType) {</span>
+        case TEXT:
+<span class="nc" id="L277">            property = new DynamicUiProperty&lt;&gt;(fieldLabel, new MultiLineString(&quot;&quot;));</span>
+<span class="nc" id="L278">            break;</span>
+        case RADIOBUTTON:
+<span class="nc" id="L280">            property = new DynamicUiProperty&lt;&gt;(fieldLabel, null, new ArrayList&lt;RadioButton&gt;());</span>
+<span class="nc" id="L281">            property.setType(RadioButton.class);</span>
+<span class="nc" id="L282">            break;</span>
+        case CHECKBOX:
+<span class="nc" id="L284">            property = new DynamicUiProperty&lt;&gt;(fieldLabel, Boolean.FALSE);</span>
+<span class="nc" id="L285">            break;</span>
+        case INTEGER:
+<span class="nc" id="L287">            property = new DynamicUiProperty&lt;&gt;(fieldLabel, Integer.valueOf(0));</span>
+<span class="nc" id="L288">            break;</span>
+        case LONG:
+<span class="nc" id="L290">            property = new DynamicUiProperty&lt;&gt;(fieldLabel, Long.valueOf(0L));</span>
+<span class="nc" id="L291">            break;</span>
+        default:
+<span class="nc" id="L293">            return &quot;&quot;;</span>
+        }
+
+<span class="nc bnc" id="L296" title="All 2 branches missed.">        if (updatedApprovalProfile.getStep(currentStep).getPartition(partitionId).getProperty(fieldLabel) != null) {</span>
+<span class="nc" id="L297">            addErrorMessage(&quot;APPROVAL_PROFILE_FIELD_EXISTS&quot;);</span>
+        } else {
+<span class="nc" id="L299">            updatedApprovalProfile.addPropertyToPartition(currentStep, partitionId, property);</span>
+<span class="nc" id="L300">            steps = createStepListFromProfile(updatedApprovalProfile);</span>
+<span class="nc" id="L301">            this.fieldLabel = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L302">            fieldToAdd = new HashMap&lt;&gt;();</span>
+        }
+
+<span class="nc" id="L305">        return &quot;&quot;;</span>
+    }
+
+    /**
+     * A special method for adding rows to radio button arrays. The ID of the partition is required, but the step identity and the radio button
+     * field identity can be derived from class members.
+     *
+     * @param partitionId the ID of the partition that the radio button resides in
+     * @param label the label for the new row
+     * @return an empty string to keep the scope.
+     */
+    public String addRowToRadioButton(int partitionId, String label) {
+<span class="nc" id="L317">        final Integer currentStep = steps.getRowData().getIdentifier();</span>
+<span class="nc" id="L318">        final ApprovalProfile updatedApprovalProfile = getApprovalProfile();</span>
+<span class="nc" id="L319">        final List&lt;ApprovalPartitionProfileGuiObject&gt; guiPartitions = steps.getRowData().getPartitionGuiObjects();</span>
+<span class="nc bnc" id="L320" title="All 2 branches missed.">        for (ApprovalPartitionProfileGuiObject approvalPartitionProfileGuiObject : guiPartitions) {</span>
+            //find the right partition
+<span class="nc bnc" id="L322" title="All 2 branches missed.">            if (approvalPartitionProfileGuiObject.getPartitionId() == partitionId) {</span>
+                @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L324">                DynamicUiProperty&lt;RadioButton&gt; radioButtonProperty = (DynamicUiProperty&lt;RadioButton&gt;) approvalPartitionProfileGuiObject</span>
+<span class="nc" id="L325">                        .getProfilePropertyList().getRowData();</span>
+<span class="nc" id="L326">                Collection&lt;RadioButton&gt; possibleValues = radioButtonProperty.getPossibleValues();</span>
+<span class="nc" id="L327">                RadioButton newRadio = new RadioButton(label);</span>
+<span class="nc bnc" id="L328" title="All 2 branches missed.">                if(possibleValues.contains(newRadio)) {</span>
+<span class="nc" id="L329">                    addErrorMessage(&quot;APPROVAL_PROFILE_FIELD_RADIO_EXISTS&quot;);</span>
+<span class="nc" id="L330">                    return &quot;&quot;;</span>
+                }
+<span class="nc bnc" id="L332" title="All 2 branches missed.">                if (possibleValues.size() == 0) {</span>
+<span class="nc" id="L333">                    radioButtonProperty.setDefaultValue(newRadio);</span>
+                }
+<span class="nc" id="L335">                possibleValues.add(newRadio);</span>
+<span class="nc" id="L336">                radioButtonProperty.setPossibleValues(possibleValues);</span>
+<span class="nc" id="L337">                saveTemporary();</span>
+<span class="nc" id="L338">                updatedApprovalProfile.addPropertyToPartition(currentStep, partitionId, radioButtonProperty);</span>
+<span class="nc" id="L339">                steps = createStepListFromProfile(updatedApprovalProfile);</span>
+<span class="nc" id="L340">                break;</span>
+            }
+<span class="nc" id="L342">        }</span>
+<span class="nc" id="L343">        return &quot;&quot;;</span>
+    }
+
+    /**
+     * Similar to the above, the below method removes a row from a radio button array.
+     *
+     * @param partitionId the ID of the partition that the radio button resides in
+     * @param encodedRadioButton the encoded radio button
+     * @return an empty string to keep the scope.
+     */
+    public String removeRowFromRadioButton(int partitionId, String encodedRadioButton) {
+<span class="nc" id="L354">        final Integer currentStep = steps.getRowData().getIdentifier();</span>
+<span class="nc" id="L355">        final ApprovalProfile updatedApprovalProfile = getApprovalProfile();</span>
+<span class="nc" id="L356">        final RadioButton radioButton = DynamicUiProperty.getAsObject(encodedRadioButton, RadioButton.class);</span>
+<span class="nc" id="L357">        final List&lt;ApprovalPartitionProfileGuiObject&gt; guiPartitions = steps.getRowData().getPartitionGuiObjects();</span>
+<span class="nc bnc" id="L358" title="All 2 branches missed.">        for(ApprovalPartitionProfileGuiObject approvalPartitionProfileGuiObject : guiPartitions) {</span>
+            //find the right partition
+<span class="nc bnc" id="L360" title="All 2 branches missed.">            if(approvalPartitionProfileGuiObject.getPartitionId() == partitionId) {</span>
+                @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L362">                DynamicUiProperty&lt;RadioButton&gt; radioButtonProperty = (DynamicUiProperty&lt;RadioButton&gt;) approvalPartitionProfileGuiObject.getProfilePropertyList().getRowData();</span>
+<span class="nc" id="L363">                List&lt;RadioButton&gt; oldValues = new ArrayList&lt;&gt;(radioButtonProperty.getPossibleValues());</span>
+<span class="nc" id="L364">                List&lt;RadioButton&gt; prunedValues = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L365" title="All 2 branches missed.">                for(RadioButton dynamicRadioButton : oldValues) {</span>
+<span class="nc bnc" id="L366" title="All 2 branches missed.">                    if(!dynamicRadioButton.equals(radioButton)) {</span>
+<span class="nc" id="L367">                        prunedValues.add(dynamicRadioButton);</span>
+                    }
+<span class="nc" id="L369">                }</span>
+<span class="nc bnc" id="L370" title="All 4 branches missed.">                if(radioButtonProperty.getDefaultValue().equals(radioButton) &amp;&amp; !prunedValues.isEmpty()) {</span>
+<span class="nc" id="L371">                    radioButtonProperty.setDefaultValue(prunedValues.get(0));</span>
+                }
+<span class="nc" id="L373">                radioButtonProperty.setPossibleValues(prunedValues);</span>
+<span class="nc" id="L374">                saveTemporary();</span>
+<span class="nc" id="L375">                updatedApprovalProfile.addPropertyToPartition(currentStep, partitionId, radioButtonProperty);</span>
+<span class="nc" id="L376">                steps = createStepListFromProfile(updatedApprovalProfile);</span>
+<span class="nc" id="L377">                break;</span>
+            }
+<span class="nc" id="L379">        }</span>
+<span class="nc" id="L380">        return &quot;&quot;;</span>
+    }
+
+    public String removeField(int partitionId, String propertyName) {
+<span class="nc" id="L384">        final Integer currentStep = steps.getRowData().getIdentifier();</span>
+<span class="nc" id="L385">        saveTemporary();</span>
+<span class="nc" id="L386">        ApprovalProfile updatedApprovalProfile = getApprovalProfile();</span>
+<span class="nc" id="L387">        updatedApprovalProfile.removePropertyFromPartition(currentStep, partitionId, propertyName);</span>
+<span class="nc" id="L388">        steps = createStepListFromProfile(updatedApprovalProfile);</span>
+<span class="nc" id="L389">        return &quot;&quot;;</span>
+    }
+
+    public void addStep() {
+<span class="nc" id="L393">        saveTemporary();</span>
+<span class="nc" id="L394">        getApprovalProfile().addStepLast();</span>
+<span class="nc" id="L395">        steps = null;</span>
+<span class="nc" id="L396">    }</span>
+
+    public void moveStepDown() {
+<span class="nc" id="L399">        final Integer currentStep = steps.getRowData().getIdentifier();</span>
+<span class="nc" id="L400">        final Integer nextStep = steps.getRowData().getNextStep();</span>
+<span class="nc" id="L401">        saveTemporary();</span>
+<span class="nc" id="L402">        getApprovalProfile().switchStepOrder(currentStep, nextStep);</span>
+<span class="nc" id="L403">        steps = null;</span>
+<span class="nc" id="L404">    }</span>
+
+    public void moveStepUp() {
+<span class="nc" id="L407">        final Integer currentStep = steps.getRowData().getIdentifier();</span>
+<span class="nc" id="L408">        final Integer previousStep = steps.getRowData().getPreviousStep();</span>
+<span class="nc" id="L409">        saveTemporary();</span>
+<span class="nc" id="L410">        getApprovalProfile().switchStepOrder(previousStep, currentStep);</span>
+<span class="nc" id="L411">        steps = null;</span>
+<span class="nc" id="L412">    }</span>
+
+    public void deleteStep() {
+<span class="nc" id="L415">        final Integer currentStep = steps.getRowData().getIdentifier();</span>
+<span class="nc" id="L416">        saveTemporary();</span>
+<span class="nc" id="L417">        getApprovalProfile().deleteStep(currentStep);</span>
+<span class="nc" id="L418">        steps = null;</span>
+<span class="nc" id="L419">    }</span>
+
+    public void addPartition() {
+<span class="nc" id="L422">        final Integer currentStep = steps.getRowData().getIdentifier();</span>
+<span class="nc" id="L423">        saveTemporary();</span>
+<span class="nc" id="L424">        getApprovalProfile().addPartition(currentStep);</span>
+<span class="nc" id="L425">        steps = null;</span>
+<span class="nc" id="L426">    }</span>
+
+    public void deletePartition(int partitionId) {
+<span class="nc" id="L429">        final Integer currentStep = steps.getRowData().getIdentifier();</span>
+<span class="nc" id="L430">        saveTemporary();</span>
+<span class="nc" id="L431">        getApprovalProfile().deletePartition(currentStep, partitionId);</span>
+<span class="nc" id="L432">        steps = null;</span>
+<span class="nc" id="L433">    }</span>
+
+    public boolean isPropertyPredefined(int partitionId, String propertyName) {
+<span class="nc" id="L436">        ApprovalProfile approvalProfile = getApprovalProfile();</span>
+<span class="nc" id="L437">        return approvalProfile.isPropertyPredefined(steps.getRowData().getIdentifier(), partitionId, propertyName);</span>
+    }
+
+    public void selectUpdate() {
+        // NOOP: Only for page reload
+<span class="nc" id="L442">    }</span>
+
+    public String getCurrentApprovalProfileTypeName() {
+<span class="nc" id="L445">        return getApprovalProfile().getApprovalProfileTypeIdentifier();</span>
+    }
+
+    public void setCurrentApprovalProfileTypeName(String typeName) {
+        // Re-instantiate approval profile if we've changed type
+<span class="nc bnc" id="L450" title="All 2 branches missed.">        if (!getApprovalProfile().getApprovalProfileTypeIdentifier().equals(typeName)) {</span>
+<span class="nc" id="L451">            final ApprovalProfile newApprovalProfile = ApprovalProfilesFactory.INSTANCE.getArcheType(typeName);</span>
+<span class="nc" id="L452">            newApprovalProfile.setProfileId(getSelectedApprovalProfileId());</span>
+<span class="nc" id="L453">            newApprovalProfile.setProfileName(getSelectedApprovalProfileName());</span>
+<span class="nc" id="L454">            currentApprovalProfile = newApprovalProfile;</span>
+<span class="nc" id="L455">            steps = null;</span>
+        }
+<span class="nc" id="L457">    }</span>
+
+    public List&lt;SelectItem&gt; getApprovalProfileTypesAvailable() {
+<span class="nc" id="L460">        final List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L461" title="All 2 branches missed.">        for (final ApprovalProfile type : ApprovalProfilesFactory.INSTANCE.getAllImplementations()) {</span>
+<span class="nc" id="L462">            ret.add(new SelectItem(type.getApprovalProfileTypeIdentifier(), type.getApprovalProfileLabel()));</span>
+<span class="nc" id="L463">        }</span>
+<span class="nc" id="L464">        return ret;</span>
+    }
+
+    /** @return a list of the current steps in the current Approval Profile object */
+    public ListDataModel&lt;ApprovalStepGuiObject&gt; getSteps() {
+<span class="nc bnc" id="L469" title="All 2 branches missed.">        if (steps == null) {</span>
+<span class="nc" id="L470">            final ApprovalProfile approvalProfile = getApprovalProfile();</span>
+<span class="nc bnc" id="L471" title="All 2 branches missed.">            if (approvalProfile!=null) {</span>
+<span class="nc" id="L472">                steps = createStepListFromProfile(approvalProfile);</span>
+            }
+        }
+<span class="nc" id="L475">        return steps;</span>
+    }
+
+    private ListDataModel&lt;ApprovalStepGuiObject&gt; createStepListFromProfile(final ApprovalProfile approvalProfile) {
+<span class="nc" id="L479">        List&lt;ApprovalStepGuiObject&gt; steps = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L480">        int ordinal = 1;</span>
+        //Use the internal ordering for sequences, if one is predefined
+<span class="nc" id="L482">        ApprovalStep step = approvalProfile.getFirstStep();</span>
+<span class="nc" id="L483">        Map&lt;Integer, List&lt;DynamicUiProperty&lt;? extends Serializable&gt;&gt;&gt; partitionProperties = getPartitionProperties(step);</span>
+<span class="nc" id="L484">        steps.add(new ApprovalStepGuiObject(step, approvalProfile.getApprovalProfileTypeIdentifier(), ordinal, partitionProperties));</span>
+<span class="nc bnc" id="L485" title="All 2 branches missed.">        while (step.getNextStep() != null) {</span>
+<span class="nc" id="L486">            step = approvalProfile.getStep(step.getNextStep());</span>
+<span class="nc" id="L487">            partitionProperties = getPartitionProperties(step);</span>
+<span class="nc" id="L488">            steps.add(new ApprovalStepGuiObject(step, approvalProfile.getApprovalProfileTypeIdentifier(), ++ordinal, partitionProperties));</span>
+        }
+<span class="nc" id="L490">        return new ListDataModel&lt;&gt;(steps);</span>
+    }
+
+    /**
+     * Take an approval step and extract its partitions and respective properties, filling in with values from the database where required.
+     *
+     * @param step an approval step
+     * @return a Map linking partitions IDs to lists of each partitions properties.
+     */
+    private Map&lt;Integer, List&lt;DynamicUiProperty&lt;? extends Serializable&gt;&gt;&gt; getPartitionProperties(ApprovalStep step) {
+<span class="nc" id="L500">        Map&lt;Integer, List&lt;DynamicUiProperty&lt;? extends Serializable&gt;&gt;&gt; partitionProperties = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L501" title="All 2 branches missed.">        for(ApprovalPartition approvalPartition : step.getPartitions().values() ) {</span>
+<span class="nc" id="L502">            List&lt;DynamicUiProperty&lt;? extends Serializable&gt;&gt; propertyList = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L503" title="All 2 branches missed.">            for(DynamicUiProperty&lt;? extends Serializable&gt; property : approvalPartition.getPropertyList().values()) {</span>
+<span class="nc" id="L504">                DynamicUiProperty&lt;? extends Serializable&gt; propertyClone = new DynamicUiProperty&lt;&gt;(property);</span>
+<span class="nc bnc" id="L505" title="All 4 branches missed.">                switch (propertyClone.getPropertyCallback()) {</span>
+                case ROLES:
+<span class="nc" id="L507">                    final List&lt;Role&gt; allAuthorizedRoles = roleSession.getAuthorizedRoles(getAdmin());</span>
+<span class="nc" id="L508">                    final List&lt;RoleInformation&gt; roleRepresentations = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L509" title="All 2 branches missed.">                    for (final Role role : allAuthorizedRoles) {</span>
+<span class="nc bnc" id="L510" title="All 2 branches missed.">                        if (AccessRulesHelper.hasAccessToResource(role.getAccessRules(), AccessRulesConstants.REGULAR_APPROVEENDENTITY)</span>
+<span class="nc bnc" id="L511" title="All 2 branches missed.">                                || AccessRulesHelper.hasAccessToResource(role.getAccessRules(), AccessRulesConstants.REGULAR_APPROVECAACTION)) {</span>
+                            try {
+<span class="nc" id="L513">                                final List&lt;RoleMember&gt; roleMembers = roleMemberSession.getRoleMembersByRoleId(getAdmin(), role.getRoleId());</span>
+<span class="nc" id="L514">                                roleRepresentations.add(RoleInformation.fromRoleMembers(role.getRoleId(), role.getNameSpace(), role.getRoleName(), roleMembers));</span>
+<span class="nc" id="L515">                            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc bnc" id="L516" title="All 2 branches missed.">                                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L517">                                    log.debug(&quot;Not authorized to members of authorized role '&quot;+role.getRoleNameFull()+&quot;' (?):&quot; + e.getMessage());</span>
+                                }
+<span class="nc" id="L519">                            }</span>
+                        }
+<span class="nc" id="L521">                    }</span>
+<span class="nc bnc" id="L522" title="All 2 branches missed.">                    if(!roleRepresentations.contains(propertyClone.getDefaultValue())) {</span>
+                        //Add the default, because it makes no sense why it wouldn't be there. Also, it may be a placeholder for something else.
+<span class="nc" id="L524">                        roleRepresentations.add(0, (RoleInformation) propertyClone.getDefaultValue());</span>
+                    }
+<span class="nc" id="L526">                    propertyClone.setPossibleValues(roleRepresentations);</span>
+<span class="nc" id="L527">                    updateEncodedValues(propertyClone, property);</span>
+<span class="nc" id="L528">                    break;</span>
+                case ROLES_VIEW:
+<span class="nc" id="L530">                    final List&lt;Role&gt; allAuthorizedRolesForViewing = roleSession.getAuthorizedRoles(getAdmin());</span>
+<span class="nc" id="L531">                    final List&lt;RoleInformation&gt; viewingRoleRepresentations = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L532" title="All 2 branches missed.">                    for (final Role role : allAuthorizedRolesForViewing) {</span>
+<span class="nc bnc" id="L533" title="All 2 branches missed.">                        if (AccessRulesHelper.hasAccessToResource(role.getAccessRules(), AccessRulesConstants.REGULAR_VIEWAPPROVALS)</span>
+<span class="nc bnc" id="L534" title="All 2 branches missed.">                                || AccessRulesHelper.hasAccessToResource(role.getAccessRules(), AccessRulesConstants.REGULAR_APPROVEENDENTITY)</span>
+<span class="nc bnc" id="L535" title="All 2 branches missed.">                                || AccessRulesHelper.hasAccessToResource(role.getAccessRules(), AccessRulesConstants.REGULAR_APPROVECAACTION)) {</span>
+                            try {
+<span class="nc" id="L537">                                final List&lt;RoleMember&gt; roleMembers = roleMemberSession.getRoleMembersByRoleId(getAdmin(), role.getRoleId());</span>
+<span class="nc" id="L538">                                viewingRoleRepresentations.add(RoleInformation.fromRoleMembers(role.getRoleId(), role.getNameSpace(), role.getRoleName(), roleMembers));</span>
+<span class="nc" id="L539">                            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc bnc" id="L540" title="All 2 branches missed.">                                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L541">                                    log.debug(&quot;Not authorized to members of authorized role '&quot;+role.getRoleNameFull()+&quot;' (?):&quot; + e.getMessage());</span>
+                                }
+<span class="nc" id="L543">                            }</span>
+                        }
+<span class="nc" id="L545">                    }</span>
+<span class="nc bnc" id="L546" title="All 2 branches missed.">                    if(!viewingRoleRepresentations.contains(propertyClone.getDefaultValue())) {</span>
+<span class="nc" id="L547">                        viewingRoleRepresentations.add(0, (RoleInformation) propertyClone.getDefaultValue());</span>
+                    }
+<span class="nc" id="L549">                    propertyClone.setPossibleValues(viewingRoleRepresentations);</span>
+<span class="nc" id="L550">                    updateEncodedValues(propertyClone, property);</span>
+<span class="nc" id="L551">                    break;    </span>
+                case NONE:
+<span class="nc" id="L553">                    break;</span>
+                default:
+                    break;
+                }
+<span class="nc" id="L557">                propertyList.add(propertyClone);</span>
+<span class="nc" id="L558">            }</span>
+<span class="nc" id="L559">            partitionProperties.put(approvalPartition.getPartitionIdentifier(), propertyList);</span>
+<span class="nc" id="L560">        }</span>
+<span class="nc" id="L561">        return partitionProperties;</span>
+    }
+
+    /** @return true of the approval profile is of a type where sequences can be added  */
+    public boolean isStepSizeFixed() {
+<span class="nc" id="L566">        return ApprovalProfilesFactory.INSTANCE.getArcheType(getCurrentApprovalProfileTypeName()).isStepSizeFixed();</span>
+    }
+
+    /**
+     * @return true if it's possible to add fields to the partitions of this profile
+     */
+    public boolean arePartitionsFixed() {
+<span class="nc" id="L573">        return ApprovalProfilesFactory.INSTANCE.getArcheType(getCurrentApprovalProfileTypeName()).arePartitionsFixed();</span>
+    }
+
+
+    public List&lt;SelectItem&gt; getFieldsAvailable() {
+<span class="nc" id="L578">        return FieldType.asSelectItems();</span>
+    }
+
+    public Map&lt;Integer, String&gt; getFieldToAdd() {
+<span class="nc" id="L582">        return fieldToAdd;</span>
+    }
+
+
+    public Map&lt;Integer, String&gt; getFieldLabel() {
+<span class="nc" id="L587">        return fieldLabel;</span>
+    }
+
+
+    // Notifications
+
+    public boolean isNotificationEnabled(final int partitionIdentifier) {
+<span class="nc" id="L594">        final ApprovalProfile approvalProfile = getApprovalProfile();</span>
+<span class="nc" id="L595">        final ApprovalStep approvalStep = approvalProfile.getStep(steps.getRowData().getIdentifier());</span>
+<span class="nc" id="L596">        final ApprovalPartition approvalPartition = approvalStep.getPartition(partitionIdentifier);</span>
+<span class="nc" id="L597">        return approvalProfile.isNotificationEnabled(approvalPartition);</span>
+    }
+
+    public void addNotification(final int partitionIdentifier) {
+<span class="nc" id="L601">        final Integer currentStep = steps.getRowData().getIdentifier();</span>
+<span class="nc" id="L602">        saveTemporary();</span>
+<span class="nc" id="L603">        final ApprovalProfile approvalProfile = getApprovalProfile();</span>
+<span class="nc" id="L604">        final ApprovalStep approvalStep = approvalProfile.getStep(currentStep);</span>
+<span class="nc" id="L605">        final ApprovalPartition approvalPartition = approvalStep.getPartition(partitionIdentifier);</span>
+        // Configure some nice defaults
+<span class="nc" id="L607">        final GlobalConfiguration globalConfiguration = (GlobalConfiguration) globalConfigurationSession.getCachedConfiguration(GlobalConfiguration.GLOBAL_CONFIGURATION_ID);</span>
+<span class="nc" id="L608">        final HttpServletRequest httpServletRequest = ((HttpServletRequest) FacesContext.getCurrentInstance().getExternalContext().getRequest());</span>
+        // Escape value taken from the request, just to be sure there can be no XSS
+<span class="nc" id="L610">        final String hostnameFromRequest = HTMLTools.htmlescape(httpServletRequest.getServerName());</span>
+<span class="nc" id="L611">        final String baseUrl = globalConfiguration.getBaseUrl(HTMLTools.htmlescape(httpServletRequest.getScheme()), hostnameFromRequest, httpServletRequest.getServerPort());</span>
+<span class="nc" id="L612">        final String defaultSubject = &quot;[AR-${approvalRequest.ID}-${approvalRequest.STEP_ID}-${approvalRequest.PARTITION_ID}] &quot; +</span>
+                &quot;Approval Request to ${approvalRequest.TYPE} is now in state ${approvalRequest.WORKFLOWSTATE}&quot;;
+<span class="nc" id="L614">        final String defaultBody = &quot;Approval Request to ${approvalRequest.TYPE} from ${approvalRequest.REQUESTOR} is now in state ${approvalRequest.WORKFLOWSTATE}.\n&quot; +</span>
+                &quot;\n&quot; +
+                &quot;Direct link to the request: &quot; + baseUrl + &quot;ra/managerequest.xhtml?id=${approvalRequest.ID}&quot;;
+<span class="nc" id="L617">        approvalProfile.addNotificationProperties(approvalPartition, &quot;approval-admin-group@example.org supervisor@example.org&quot;, &quot;no-reply@&quot;+hostnameFromRequest, defaultSubject, defaultBody);</span>
+<span class="nc" id="L618">        steps = null;</span>
+<span class="nc" id="L619">    }</span>
+
+    public void removeNotification(final int partitionIdentifier) {
+<span class="nc" id="L622">        final Integer currentStep = steps.getRowData().getIdentifier();</span>
+<span class="nc" id="L623">        saveTemporary();</span>
+<span class="nc" id="L624">        final ApprovalProfile approvalProfile = getApprovalProfile();</span>
+<span class="nc" id="L625">        final ApprovalStep approvalStep = approvalProfile.getStep(currentStep);</span>
+<span class="nc" id="L626">        final ApprovalPartition approvalPartition = approvalStep.getPartition(partitionIdentifier);</span>
+<span class="nc" id="L627">        approvalProfile.removeNotificationProperties(approvalPartition);</span>
+<span class="nc" id="L628">        steps = null;</span>
+<span class="nc" id="L629">    }</span>
+
+    // User Notification
+
+    public boolean isUserNotificationEnabled(final int partitionIdentifier) {
+<span class="nc" id="L634">        final ApprovalProfile approvalProfile = getApprovalProfile();</span>
+<span class="nc" id="L635">        final ApprovalStep approvalStep = approvalProfile.getStep(steps.getRowData().getIdentifier());</span>
+<span class="nc" id="L636">        final ApprovalPartition approvalPartition = approvalStep.getPartition(partitionIdentifier);</span>
+<span class="nc" id="L637">        return approvalProfile.isUserNotificationEnabled(approvalPartition);</span>
+    }
+
+    public void addUserNotification(final int partitionIdentifier) {
+<span class="nc" id="L641">        final Integer currentStep = steps.getRowData().getIdentifier();</span>
+<span class="nc" id="L642">        saveTemporary();</span>
+<span class="nc" id="L643">        final ApprovalProfile approvalProfile = getApprovalProfile();</span>
+<span class="nc" id="L644">        final ApprovalStep approvalStep = approvalProfile.getStep(currentStep);</span>
+<span class="nc" id="L645">        final ApprovalPartition approvalPartition = approvalStep.getPartition(partitionIdentifier);</span>
+        // Configure some nice defaults
+<span class="nc" id="L647">        final GlobalConfiguration globalConfiguration = (GlobalConfiguration) globalConfigurationSession.getCachedConfiguration(GlobalConfiguration.GLOBAL_CONFIGURATION_ID);</span>
+<span class="nc" id="L648">        final HttpServletRequest httpServletRequest = ((HttpServletRequest) FacesContext.getCurrentInstance().getExternalContext().getRequest());</span>
+        // Escape value taken from the request, just to be sure there can be no XSS
+<span class="nc" id="L650">        final String hostnameFromRequest = HTMLTools.htmlescape(httpServletRequest.getServerName());</span>
+<span class="nc" id="L651">        final String baseUrl = globalConfiguration.getBaseUrl(HTMLTools.htmlescape(httpServletRequest.getScheme()), hostnameFromRequest, httpServletRequest.getServerPort());</span>
+<span class="nc" id="L652">        final String defaultSubject = &quot;[AR-${approvalRequest.ID}-${approvalRequest.STEP_ID}-${approvalRequest.PARTITION_ID}] &quot; +</span>
+                &quot;Approval Request to ${approvalRequest.TYPE} is now in state ${approvalRequest.WORKFLOWSTATE}&quot;;
+<span class="nc" id="L654">        final String defaultBody = &quot;Approval Request to ${approvalRequest.TYPE} from ${approvalRequest.REQUESTOR} is now in state ${approvalRequest.WORKFLOWSTATE}.\n&quot; +</span>
+                &quot;\n&quot; +
+                &quot;Direct link to view request status: &quot; + baseUrl + &quot;ra/enrollwithrequestid.xhtml?requestId=${approvalRequest.ID}&quot;;
+<span class="nc" id="L657">        approvalProfile.addUserNotificationProperties(approvalPartition, &quot;no-reply@&quot;+hostnameFromRequest, defaultSubject, defaultBody);</span>
+<span class="nc" id="L658">        steps = null;</span>
+<span class="nc" id="L659">    }</span>
+
+    public void removeUserNotification(final int partitionIdentifier) {
+<span class="nc" id="L662">        final Integer currentStep = steps.getRowData().getIdentifier();</span>
+<span class="nc" id="L663">        saveTemporary();</span>
+<span class="nc" id="L664">        final ApprovalProfile approvalProfile = getApprovalProfile();</span>
+<span class="nc" id="L665">        final ApprovalStep approvalStep = approvalProfile.getStep(currentStep);</span>
+<span class="nc" id="L666">        final ApprovalPartition approvalPartition = approvalStep.getPartition(partitionIdentifier);</span>
+<span class="nc" id="L667">        approvalProfile.removeUserNotificationProperties(approvalPartition);</span>
+<span class="nc" id="L668">        steps = null;</span>
+<span class="nc" id="L669">    }</span>
+
+    /**
+     * Updates the encoded values of propertyClone if
+     * there has been a change in the role members of the
+     * any of the roles which were selected in the list box
+     * before the change.
+     * Uses property identifier as a base for comparison.
+     *
+     * @param propertyClone updated property
+     * @param property current property
+     */
+    private void updateEncodedValues(
+            final DynamicUiProperty&lt;? extends Serializable&gt; propertyClone,
+            final DynamicUiProperty&lt;? extends Serializable&gt; property) {
+
+<span class="nc" id="L685">        List&lt;Integer&gt; currentIds = new ArrayList&lt;&gt;();</span>
+
+<span class="nc bnc" id="L687" title="All 2 branches missed.">        for (final String value : property.getEncodedValues()) {</span>
+<span class="nc" id="L688">            RoleInformation roleInfo = DynamicUiProperty.getAsObject(value, RoleInformation.class);</span>
+<span class="nc" id="L689">            currentIds.add(roleInfo.getIdentifier());</span>
+<span class="nc" id="L690">        }</span>
+
+<span class="nc" id="L692">        List&lt;String&gt; finalListOfEncodedValues = new ArrayList&lt;&gt;();</span>
+
+<span class="nc bnc" id="L694" title="All 2 branches missed.">        for (final Serializable value : propertyClone.getPossibleValues()) {</span>
+<span class="nc" id="L695">            RoleInformation roleInformation = (RoleInformation) value;</span>
+
+<span class="nc bnc" id="L697" title="All 2 branches missed.">            if (currentIds.contains(roleInformation.getIdentifier())) {</span>
+<span class="nc" id="L698">                finalListOfEncodedValues.add(property.getAsEncodedValue(property.getType().cast(value)));</span>
+            }
+<span class="nc" id="L700">        }</span>
+
+        // Here we update the propertyClone set of encoded values.
+        try {
+<span class="nc" id="L704">            propertyClone.setEncodedValues(finalListOfEncodedValues);</span>
+<span class="nc" id="L705">        } catch (PropertyValidationException e) {</span>
+<span class="nc" id="L706">            log.error(&quot;Invalid propery value while setting the encoded values for property clone!&quot; + e);</span>
+<span class="nc" id="L707">        }</span>
+<span class="nc" id="L708">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

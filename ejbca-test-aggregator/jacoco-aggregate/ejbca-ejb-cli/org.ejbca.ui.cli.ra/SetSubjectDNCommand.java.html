@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>SetSubjectDNCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.ra</a> &gt; <span class="el_source">SetSubjectDNCommand.java</span></div><h1>SetSubjectDNCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.cli.ra;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CADoesntExistsException;
+import org.cesecore.certificates.ca.IllegalNameException;
+import org.cesecore.certificates.certificate.exception.CertificateSerialNumberException;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.util.EjbRemoteHelper;
+import org.ejbca.core.ejb.ra.EndEntityAccessSessionRemote;
+import org.ejbca.core.ejb.ra.EndEntityManagementSessionRemote;
+import org.ejbca.core.ejb.ra.NoSuchEndEntityException;
+import org.ejbca.core.model.approval.ApprovalException;
+import org.ejbca.core.model.approval.WaitingForApprovalException;
+import org.ejbca.core.model.ra.CustomFieldException;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfileValidationException;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+
+/**
+ * Set the SubjectDN for an end entity.
+ *
+ * @version $Id: SetSubjectDNCommand.java 25012 2017-01-16 09:36:04Z mikekushner $
+ */
+<span class="nc" id="L43">public class SetSubjectDNCommand extends BaseRaCommand {</span>
+
+<span class="nc" id="L45">    private static final Logger log = Logger.getLogger(SetSubjectDNCommand.class);</span>
+
+    private static final String USERNAME_KEY = &quot;--username&quot;;
+    private static final String DN_KEY = &quot;--dn&quot;;
+
+    {
+<span class="nc" id="L51">        registerParameter(new Parameter(USERNAME_KEY, &quot;Username&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;Username of the end entity to modify.&quot;));
+<span class="nc" id="L53">        registerParameter(new Parameter(DN_KEY, &quot;Subject DN&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;The new subject DN.&quot;));
+<span class="nc" id="L55">    }</span>
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L59">        return &quot;setsubjectdn&quot;;</span>
+    }
+
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+
+<span class="nc" id="L65">        String username = parameters.get(USERNAME_KEY);</span>
+<span class="nc" id="L66">        String subjectDN = parameters.get(DN_KEY);</span>
+<span class="nc bnc" id="L67" title="All 2 branches missed.">        if (StringUtils.isEmpty(subjectDN)) {</span>
+<span class="nc" id="L68">            getLogger().error(&quot;SubjectDN must be supplied.&quot;);</span>
+<span class="nc" id="L69">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+        }
+<span class="nc" id="L71">        getLogger().info(&quot;Setting subjectDN '&quot; + subjectDN + &quot;' for end entity with username &quot; + username);</span>
+        try {
+<span class="nc" id="L73">            EndEntityInformation uservo = EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityAccessSessionRemote.class)</span>
+<span class="nc" id="L74">                    .findUser(getAuthenticationToken(), username);</span>
+<span class="nc" id="L75">            uservo.setDN(subjectDN);</span>
+<span class="nc" id="L76">            EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityManagementSessionRemote.class).changeUser(getAuthenticationToken(), uservo, false);</span>
+<span class="nc" id="L77">            return CommandResult.SUCCESS;</span>
+<span class="nc" id="L78">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L79">            getLogger().error(&quot;Not authorized to change end entity.&quot;);</span>
+<span class="nc" id="L80">        } catch (EndEntityProfileValidationException e) {</span>
+<span class="nc" id="L81">            getLogger().error(&quot;Given end entity doesn't fulfill end entity profile. : &quot; + e.getMessage());</span>
+<span class="nc" id="L82">        } catch (CADoesntExistsException | WaitingForApprovalException | ApprovalException | CertificateSerialNumberException | IllegalNameException</span>
+                | CustomFieldException e) {
+<span class="nc" id="L84">            getLogger().error(&quot;ERROR: &quot; + e.getMessage());</span>
+<span class="nc" id="L85">        } catch (NoSuchEndEntityException e) {</span>
+<span class="nc" id="L86">            getLogger().error(&quot;No such end entity.&quot;);</span>
+<span class="nc" id="L87">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L88">        }</span>
+<span class="nc" id="L89">        return CommandResult.FUNCTIONAL_FAILURE;</span>
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L94">        return &quot;Set or update the SubjectDN for an end entity&quot;;</span>
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L99">        return getCommandDescription()</span>
+                + &quot;\n\nThe SubjectDN fields are: emailAddress=&lt;string&gt;, UID=&lt; unique identifier&gt;, CN=&lt;common name&gt;, serialNumber=&lt;serialnumber&gt;, &quot;
+                + &quot;givenName=&lt;string&gt;, initials=&lt;string&gt;, surname=&lt;string&gt;, title=&lt;string&gt;, &quot;
+                + &quot;OU=&lt;the organizational unit&gt;, O=&lt;the organization&gt;, L=&lt;locality&gt;, ST=&lt;state of province&gt;, &quot;
+                + &quot;DC=&lt;domain component&gt;, C=&lt;two letter ISO3166&gt;, unstructuredAddress=&lt;IP address&gt;, &quot;
+                + &quot;unstructuredName=&lt;domain name&gt;, postalCode=&lt;string&gt;, businessCategory=&lt;organization type&gt;, &quot;
+                + &quot;dnQualifier=&lt;string&gt;, postalAddress=&lt;the postal address&gt;, telephoneNumber=&lt;telephone number&gt;, &quot;
+                + &quot;pseudonym=&lt;string&gt;, streetAddress=&lt;string&gt;, name=&lt;string&gt;, CIF=&lt;tax ID code for companies in Spain&gt;, &quot;
+                + &quot;NIF=&lt;tax ID number for companied in Spain&gt;&quot;;
+    }
+
+    protected Logger getLogger() {
+<span class="nc" id="L111">        return log;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,750 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>EditHardTokenProfileJSPHelper.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">admin-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.hardtokeninterface</a> &gt; <span class="el_source">EditHardTokenProfileJSPHelper.java</span></div><h1>EditHardTokenProfileJSPHelper.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.web.admin.hardtokeninterface;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileUploadException;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.control.StandardRules;
+import org.ejbca.core.model.hardtoken.HardTokenProfileExistsException;
+import org.ejbca.core.model.hardtoken.profiles.EIDProfile;
+import org.ejbca.core.model.hardtoken.profiles.EnhancedEIDProfile;
+import org.ejbca.core.model.hardtoken.profiles.HardTokenProfile;
+import org.ejbca.core.model.hardtoken.profiles.HardTokenProfileWithAdressLabel;
+import org.ejbca.core.model.hardtoken.profiles.HardTokenProfileWithPINEnvelope;
+import org.ejbca.core.model.hardtoken.profiles.HardTokenProfileWithReceipt;
+import org.ejbca.core.model.hardtoken.profiles.HardTokenProfileWithVisualLayout;
+import org.ejbca.core.model.hardtoken.profiles.IAdressLabelSettings;
+import org.ejbca.core.model.hardtoken.profiles.IPINEnvelopeSettings;
+import org.ejbca.core.model.hardtoken.profiles.IReceiptSettings;
+import org.ejbca.core.model.hardtoken.profiles.IVisualLayoutSettings;
+import org.ejbca.core.model.hardtoken.profiles.SwedishEIDProfile;
+import org.ejbca.core.model.hardtoken.profiles.TurkishEIDProfile;
+import org.ejbca.ui.web.RequestHelper;
+import org.ejbca.ui.web.admin.configuration.EjbcaWebBean;
+
+/**
+ * Contains help methods used to parse a hard token profile jsp page requests.
+ *
+ * @version $Id: EditHardTokenProfileJSPHelper.java 28844 2018-05-04 08:31:02Z samuellb $
+ */
+public class EditHardTokenProfileJSPHelper implements java.io.Serializable {
+
+    private static final long serialVersionUID = -310960445499242212L;
+
+    public static final String ACTION = &quot;action&quot;;
+    public static final String ACTION_EDIT_HARDTOKENPROFILES = &quot;edithardtokenprofiles&quot;;
+    public static final String ACTION_EDIT_HARDTOKENPROFILE = &quot;edithardtokenprofile&quot;;
+    public static final String ACTION_UPLOADENVELOPETEMP = &quot;uploadenvelopetemp&quot;;
+    public static final String ACTION_UPLOADVISUALTEMP = &quot;uploadvisualtemp&quot;;
+    public static final String ACTION_UPLOADRECEIPTTEMP = &quot;uploadreceipttemp&quot;;
+    public static final String ACTION_UPLOADADRESSLABELTEMP = &quot;uploadadresstemp&quot;;
+
+    public static final String ACTION_CHANGE_PROFILETYPE = &quot;changeprofiletype&quot;;
+
+    public static final String CHECKBOX_VALUE = HardTokenProfile.TRUE;
+
+    //	  Used in profiles.jsp
+    public static final String BUTTON_EDIT_HARDTOKENPROFILES = &quot;buttonedithardtokenprofile&quot;;
+    public static final String BUTTON_DELETE_HARDTOKENPROFILES = &quot;buttondeletehardtokenprofile&quot;;
+    public static final String BUTTON_ADD_HARDTOKENPROFILES = &quot;buttonaddhardtokenprofile&quot;;
+    public static final String BUTTON_RENAME_HARDTOKENPROFILES = &quot;buttonrenamehardtokenprofile&quot;;
+    public static final String BUTTON_CLONE_HARDTOKENPROFILES = &quot;buttonclonehardtokenprofile&quot;;
+
+    public static final String SELECT_HARDTOKENPROFILES = &quot;selecthardtokenprofile&quot;;
+    public static final String TEXTFIELD_HARDTOKENPROFILESNAME = &quot;textfieldhardtokenprofilename&quot;;
+    public static final String HIDDEN_HARDTOKENPROFILENAME = &quot;hiddenhardtokenprofilename&quot;;
+
+    //	 Buttons used in profile.jsp
+    public static final String BUTTON_SAVE = &quot;buttonsave&quot;;
+    public static final String BUTTON_CANCEL = &quot;buttoncancel&quot;;
+    public static final String BUTTON_UPLOADENVELOPETEMP = &quot;buttonuploadenvelopetemplate&quot;;
+    public static final String BUTTON_UPLOADVISUALTEMP = &quot;buttonuploadvisualtemplate&quot;;
+    public static final String BUTTON_UPLOADRECEIPTTEMP = &quot;buttonuploadreceipttemplate&quot;;
+    public static final String BUTTON_UPLOADADRESSLABELTEMP = &quot;buttonuploadadresslabeltemplate&quot;;
+    public static final String BUTTON_UPLOADFILE = &quot;buttonuploadfile&quot;;
+
+    public static final String TYPE_SWEDISHEID = &quot;typeswedisheid&quot;;
+    public static final String TYPE_ENCHANCEDEID = &quot;typeenchancedeid&quot;;
+    public static final String TYPE_TURKISHEID = &quot;typeturkisheid&quot;;
+
+    public static final String TEXTFIELD_VISUALVALIDITY = &quot;textfieldvisualvalidity&quot;;
+    public static final String TEXTFIELD_SNPREFIX = &quot;textfieldsnprefix&quot;;
+
+    public static final String CHECKBOX_EREASBLE = &quot;checkboxereasable&quot;;
+    public static final String CHECKBOX_CERTWRITABLE = &quot;checkboxcertwritable&quot;;
+    public static final String CHECKBOX_KEYRECOVERABLE = &quot;checkboxkeyrecoverable&quot;;
+    public static final String CHECKBOX_REUSEOLDCERT = &quot;checkboxreuseoldcert&quot;;
+    public static final String CHECKBOX_USEIDENTICALPINS = &quot;useidenticalpins&quot;;
+
+    public static final String HIDDEN_HARDTOKENTYPE = &quot;hiddenhardtokentype&quot;;
+
+    public static final String SELECT_HARDTOKENTYPE = &quot;selecthardtokentype&quot;;
+    public static final String SELECT_CERTIFICATEPROFILE = &quot;selectcertificateprofile&quot;;
+    public static final String SELECT_CA = &quot;selectca&quot;;
+    public static final String SELECT_PINTYPE = &quot;selectpintype&quot;;
+    public static final String SELECT_MINKEYLENGTH = &quot;selectminkeylength&quot;;
+    public static final String SELECT_ENVELOPETYPE = &quot;selectenvelopetype&quot;;
+    public static final String SELECT_NUMOFENVELOPECOPIES = &quot;selectenvelopecopies&quot;;
+    public static final String SELECT_RECEIPTTYPE = &quot;selectreceipttype&quot;;
+    public static final String SELECT_NUMOFRECEIPTCOPIES = &quot;selectreceiptcopies&quot;;
+    public static final String SELECT_ADRESSLABELTYPE = &quot;selectadresslabeltype&quot;;
+    public static final String SELECT_NUMOFADRESSLABELCOPIES = &quot;selectadresslabelcopies&quot;;
+    public static final String SELECT_VISUALLAYOUTTYPE = &quot;selectvisuallayouttype&quot;;
+    public static final String SELECT_NUMOFTOKENCOPIES = &quot;selectnumoftokencopies&quot;;
+    public static final String SELECT_MINPINLENGTH = &quot;selectminpinlength&quot;;
+
+    public static final String FILE_TEMPLATE = &quot;filetemplate&quot;;
+
+    public static final int UPLOADMODE_ENVELOPE = 0;
+    public static final int UPLOADMODE_VISUAL = 1;
+    public static final int UPLOADMODE_RECEIPT = 2;
+    public static final int UPLOADMODE_ADRESSLABEL = 3;
+
+    public static final String PAGE_HARDTOKENPROFILE = &quot;hardtokenprofilepage.jspf&quot;;
+    public static final String PAGE_HARDTOKENPROFILES = &quot;hardtokenprofilespage.jspf&quot;;
+    public static final String PAGE_UPLOADTEMPLATE = &quot;uploadtemplate.jspf&quot;;
+
+    /** Creates new LogInterfaceBean */
+<span class="nc" id="L132">    public EditHardTokenProfileJSPHelper() {</span>
+<span class="nc" id="L133">    }</span>
+
+    // Public methods.
+    /**
+     * Method that initialized the bean.
+     * @param ejbcawebbean Web bean
+     * @param hardtokenbean Token bean
+     *
+     * @throws Exception Fail
+     */
+    public void initialize(EjbcaWebBean ejbcawebbean, HardTokenInterfaceBean hardtokenbean) throws Exception {
+
+<span class="nc bnc" id="L145" title="All 2 branches missed.">        if (!initialized) {</span>
+<span class="nc" id="L146">            this.hardtokenbean = hardtokenbean;</span>
+<span class="nc" id="L147">            initialized = true;</span>
+<span class="nc" id="L148">            issuperadministrator = ejbcawebbean.isAuthorizedNoLogSilent(StandardRules.ROLE_ROOT.resource());</span>
+        }
+<span class="nc" id="L150">    }</span>
+
+    @SuppressWarnings(&quot;deprecation&quot;)
+	public String parseRequest(HttpServletRequest request) throws AuthorizationDeniedException {
+<span class="nc" id="L154">        String includefile = PAGE_HARDTOKENPROFILES;</span>
+<span class="nc" id="L155">        String profile = null;</span>
+<span class="nc" id="L156">		HardTokenProfileDataHandler handler = hardtokenbean.getHardTokenProfileDataHandler();</span>
+<span class="nc" id="L157">        String action = null;</span>
+
+<span class="nc" id="L159">        InputStream file = null;</span>
+
+<span class="nc" id="L161">        boolean buttonupload = false;</span>
+<span class="nc" id="L162">        String filename = null;</span>
+
+        try {
+<span class="nc" id="L165">            RequestHelper.setDefaultCharacterEncoding(request);</span>
+<span class="nc" id="L166">        } catch (UnsupportedEncodingException e1) {</span>
+            // ignore
+<span class="nc" id="L168">        }</span>
+
+<span class="nc bnc" id="L170" title="All 2 branches missed.">        if (ServletFileUpload.isMultipartContent(request)) {</span>
+            try {
+<span class="nc" id="L172">                final DiskFileItemFactory diskFileItemFactory = new DiskFileItemFactory();</span>
+<span class="nc" id="L173">                diskFileItemFactory.setSizeThreshold(1999999);</span>
+<span class="nc" id="L174">                ServletFileUpload upload = new ServletFileUpload(diskFileItemFactory);</span>
+<span class="nc" id="L175">                upload.setSizeMax(2000000);</span>
+<span class="nc" id="L176">                List&lt;FileItem&gt; items = upload.parseRequest(request);</span>
+
+<span class="nc" id="L178">                Iterator&lt;FileItem&gt; iter = items.iterator();</span>
+<span class="nc bnc" id="L179" title="All 2 branches missed.">                while (iter.hasNext()) {</span>
+<span class="nc" id="L180">                    FileItem item = iter.next();</span>
+
+<span class="nc bnc" id="L182" title="All 2 branches missed.">                    if (item.isFormField()) {</span>
+<span class="nc bnc" id="L183" title="All 2 branches missed.">                        if (item.getFieldName().equals(ACTION)) {</span>
+<span class="nc" id="L184">                            action = item.getString();</span>
+                        }
+<span class="nc bnc" id="L186" title="All 2 branches missed.">                        if (item.getFieldName().equals(HIDDEN_HARDTOKENPROFILENAME)) {</span>
+<span class="nc" id="L187">                            profilename = item.getString();</span>
+                        }
+<span class="nc bnc" id="L189" title="All 2 branches missed.">                        if (item.getFieldName().equals(BUTTON_CANCEL)) {</span>
+                            // do nothing
+                        }
+<span class="nc bnc" id="L192" title="All 2 branches missed.">                        if (item.getFieldName().equals(BUTTON_UPLOADFILE)) {</span>
+<span class="nc" id="L193">                            buttonupload = true;</span>
+                        }
+                    } else {
+<span class="nc" id="L196">                        file = item.getInputStream();</span>
+<span class="nc" id="L197">                        filename = item.getName();</span>
+                    }
+<span class="nc" id="L199">                }</span>
+<span class="nc" id="L200">            } catch (IOException e) {</span>
+<span class="nc" id="L201">                fileuploadfailed = true;</span>
+<span class="nc" id="L202">                includefile = PAGE_HARDTOKENPROFILE;</span>
+<span class="nc" id="L203">            } catch (FileUploadException e) {</span>
+<span class="nc" id="L204">                fileuploadfailed = true;</span>
+<span class="nc" id="L205">                includefile = PAGE_HARDTOKENPROFILE;</span>
+<span class="nc" id="L206">            }</span>
+        } else {
+<span class="nc" id="L208">            action = request.getParameter(ACTION);</span>
+        }
+
+<span class="nc bnc" id="L211" title="All 2 branches missed.">        if (action != null) {</span>
+<span class="nc bnc" id="L212" title="All 2 branches missed.">            if (action.equals(ACTION_EDIT_HARDTOKENPROFILES)) {</span>
+<span class="nc bnc" id="L213" title="All 2 branches missed.">                if (request.getParameter(BUTTON_EDIT_HARDTOKENPROFILES) != null) {</span>
+                    // Display  profilepage.jsp
+<span class="nc" id="L215">                    profile = request.getParameter(SELECT_HARDTOKENPROFILES);</span>
+<span class="nc bnc" id="L216" title="All 2 branches missed.">                    if (profile != null) {</span>
+<span class="nc bnc" id="L217" title="All 2 branches missed.">                        if (!profile.trim().equals(&quot;&quot;)) {</span>
+<span class="nc" id="L218">                            includefile = PAGE_HARDTOKENPROFILE;</span>
+<span class="nc" id="L219">                            this.profilename = profile;</span>
+<span class="nc" id="L220">                            this.profiledata = handler.getHardTokenProfile(profilename);</span>
+                        } else {
+<span class="nc" id="L222">                            profile = null;</span>
+                        }
+                    }
+<span class="nc bnc" id="L225" title="All 2 branches missed.">                    if (profile == null) {</span>
+<span class="nc" id="L226">                        includefile = PAGE_HARDTOKENPROFILES;</span>
+                    }
+                }
+<span class="nc bnc" id="L229" title="All 2 branches missed.">                if (request.getParameter(BUTTON_DELETE_HARDTOKENPROFILES) != null) {</span>
+                    // Delete profile and display profilespage. 
+<span class="nc" id="L231">                    profile = request.getParameter(SELECT_HARDTOKENPROFILES);</span>
+<span class="nc bnc" id="L232" title="All 2 branches missed.">                    if (profile != null) {</span>
+<span class="nc bnc" id="L233" title="All 2 branches missed.">                        if (!profile.trim().equals(&quot;&quot;)) {</span>
+<span class="nc" id="L234">                            hardtokenprofiledeletefailed = handler.removeHardTokenProfile(profile);</span>
+                        }
+                    }
+<span class="nc" id="L237">                    includefile = PAGE_HARDTOKENPROFILES;</span>
+                }
+<span class="nc bnc" id="L239" title="All 2 branches missed.">                if (request.getParameter(BUTTON_RENAME_HARDTOKENPROFILES) != null) {</span>
+                    // Rename selected profile and display profilespage.
+<span class="nc" id="L241">                    String newhardtokenprofilename = request.getParameter(TEXTFIELD_HARDTOKENPROFILESNAME);</span>
+<span class="nc" id="L242">                    String oldhardtokenprofilename = request.getParameter(SELECT_HARDTOKENPROFILES);</span>
+<span class="nc bnc" id="L243" title="All 4 branches missed.">                    if (oldhardtokenprofilename != null &amp;&amp; newhardtokenprofilename != null) {</span>
+<span class="nc bnc" id="L244" title="All 4 branches missed.">                        if (!newhardtokenprofilename.trim().equals(&quot;&quot;) &amp;&amp; !oldhardtokenprofilename.trim().equals(&quot;&quot;)) {</span>
+                            try {
+<span class="nc" id="L246">                                handler.renameHardTokenProfile(oldhardtokenprofilename.trim(), newhardtokenprofilename.trim());</span>
+<span class="nc" id="L247">                            } catch (HardTokenProfileExistsException e) {</span>
+<span class="nc" id="L248">                                hardtokenprofileexists = true;</span>
+<span class="nc" id="L249">                            }</span>
+                        }
+                    }
+<span class="nc" id="L252">                    includefile = PAGE_HARDTOKENPROFILES;</span>
+                }
+<span class="nc bnc" id="L254" title="All 2 branches missed.">                if (request.getParameter(BUTTON_ADD_HARDTOKENPROFILES) != null) {</span>
+                    // Add profile and display profilespage.
+<span class="nc" id="L256">                    profile = request.getParameter(TEXTFIELD_HARDTOKENPROFILESNAME);</span>
+<span class="nc bnc" id="L257" title="All 2 branches missed.">                    if (profile != null) {</span>
+<span class="nc bnc" id="L258" title="All 2 branches missed.">                        if (!profile.trim().equals(&quot;&quot;)) {</span>
+                            try {
+<span class="nc bnc" id="L260" title="All 2 branches missed.">                                if (!handler.addHardTokenProfile(profile.trim(), new SwedishEIDProfile())) {</span>
+<span class="nc" id="L261">                                    profilemalformed = true;</span>
+                                }
+<span class="nc" id="L263">                            } catch (HardTokenProfileExistsException e) {</span>
+<span class="nc" id="L264">                                hardtokenprofileexists = true;</span>
+<span class="nc" id="L265">                            }</span>
+                        }
+                    }
+<span class="nc" id="L268">                    includefile = PAGE_HARDTOKENPROFILES;</span>
+                }
+<span class="nc bnc" id="L270" title="All 2 branches missed.">                if (request.getParameter(BUTTON_CLONE_HARDTOKENPROFILES) != null) {</span>
+                    // clone profile and display profilespage.
+<span class="nc" id="L272">                    String newhardtokenprofilename = request.getParameter(TEXTFIELD_HARDTOKENPROFILESNAME);</span>
+<span class="nc" id="L273">                    String oldhardtokenprofilename = request.getParameter(SELECT_HARDTOKENPROFILES);</span>
+<span class="nc bnc" id="L274" title="All 4 branches missed.">                    if (oldhardtokenprofilename != null &amp;&amp; newhardtokenprofilename != null) {</span>
+<span class="nc bnc" id="L275" title="All 4 branches missed.">                        if (!newhardtokenprofilename.trim().equals(&quot;&quot;) &amp;&amp; !oldhardtokenprofilename.trim().equals(&quot;&quot;)) {</span>
+                            try {
+<span class="nc" id="L277">                                handler.cloneHardTokenProfile(oldhardtokenprofilename.trim(), newhardtokenprofilename.trim());</span>
+<span class="nc" id="L278">                            } catch (HardTokenProfileExistsException e) {</span>
+<span class="nc" id="L279">                                hardtokenprofileexists = true;</span>
+<span class="nc" id="L280">                            }</span>
+                        }
+                    }
+<span class="nc" id="L283">                    includefile = PAGE_HARDTOKENPROFILES;</span>
+                }
+            }
+
+<span class="nc bnc" id="L287" title="All 2 branches missed.">            if (action.equals(ACTION_EDIT_HARDTOKENPROFILE)) {</span>
+                // Display edit access rules page.
+<span class="nc" id="L289">                profile = request.getParameter(HIDDEN_HARDTOKENPROFILENAME);</span>
+<span class="nc bnc" id="L290" title="All 2 branches missed.">                if (profile != null) {</span>
+<span class="nc bnc" id="L291" title="All 2 branches missed.">                    if (!profile.trim().equals(&quot;&quot;)) {</span>
+<span class="nc bnc" id="L292" title="All 4 branches missed.">                        if (request.getParameter(BUTTON_SAVE) != null || request.getParameter(BUTTON_UPLOADENVELOPETEMP) != null</span>
+<span class="nc bnc" id="L293" title="All 4 branches missed.">                                || request.getParameter(BUTTON_UPLOADVISUALTEMP) != null || request.getParameter(BUTTON_UPLOADRECEIPTTEMP) != null</span>
+<span class="nc bnc" id="L294" title="All 2 branches missed.">                                || request.getParameter(BUTTON_UPLOADADRESSLABELTEMP) != null) {</span>
+
+<span class="nc bnc" id="L296" title="All 2 branches missed.">                            if (profiledata == null) {</span>
+<span class="nc" id="L297">                                String tokentype = request.getParameter(HIDDEN_HARDTOKENTYPE);</span>
+<span class="nc bnc" id="L298" title="All 2 branches missed.">                                if (tokentype.equals(TYPE_SWEDISHEID)) {</span>
+<span class="nc" id="L299">                                    profiledata = new SwedishEIDProfile();</span>
+                                }
+<span class="nc bnc" id="L301" title="All 2 branches missed.">                                if (tokentype.equals(TYPE_ENCHANCEDEID)) {</span>
+<span class="nc" id="L302">                                    profiledata = new EnhancedEIDProfile();</span>
+                                }
+<span class="nc bnc" id="L304" title="All 2 branches missed.">                                if (tokentype.equals(TYPE_TURKISHEID)) {</span>
+<span class="nc" id="L305">                                    profiledata = new TurkishEIDProfile();</span>
+                                }
+                            }
+                            // Save changes.
+
+                            // General settings   
+<span class="nc" id="L311">                            String value = request.getParameter(TEXTFIELD_SNPREFIX);</span>
+<span class="nc bnc" id="L312" title="All 2 branches missed.">                            if (value != null) {</span>
+<span class="nc" id="L313">                                value = value.trim();</span>
+<span class="nc" id="L314">                                profiledata.setHardTokenSNPrefix(value);</span>
+                            }
+<span class="nc" id="L316">                            value = request.getParameter(CHECKBOX_EREASBLE);</span>
+<span class="nc bnc" id="L317" title="All 2 branches missed.">                            if (value != null) {</span>
+<span class="nc" id="L318">                                profiledata.setEreasableToken(value.equals(CHECKBOX_VALUE));</span>
+                            } else {
+<span class="nc" id="L320">                                profiledata.setEreasableToken(false);</span>
+                            }
+<span class="nc" id="L322">                            value = request.getParameter(SELECT_NUMOFTOKENCOPIES);</span>
+<span class="nc bnc" id="L323" title="All 2 branches missed.">                            if (value != null) {</span>
+<span class="nc" id="L324">                                profiledata.setNumberOfCopies(Integer.parseInt(value));</span>
+                            }
+
+<span class="nc" id="L327">                            value = request.getParameter(CHECKBOX_USEIDENTICALPINS);</span>
+<span class="nc bnc" id="L328" title="All 2 branches missed.">                            if (value != null) {</span>
+<span class="nc" id="L329">                                profiledata.setGenerateIdenticalPINForCopies(value.equals(CHECKBOX_VALUE));</span>
+                            } else {
+<span class="nc" id="L331">                                profiledata.setGenerateIdenticalPINForCopies(false);</span>
+                            }
+<span class="nc bnc" id="L333" title="All 2 branches missed.">                            if (profiledata instanceof HardTokenProfileWithPINEnvelope) {</span>
+<span class="nc" id="L334">                                value = request.getParameter(SELECT_ENVELOPETYPE);</span>
+<span class="nc bnc" id="L335" title="All 2 branches missed.">                                if (value != null) {</span>
+<span class="nc" id="L336">                                    ((HardTokenProfileWithPINEnvelope) profiledata).setPINEnvelopeType(Integer.parseInt(value));</span>
+                                }
+<span class="nc" id="L338">                                value = request.getParameter(SELECT_NUMOFENVELOPECOPIES);</span>
+<span class="nc bnc" id="L339" title="All 2 branches missed.">                                if (value != null) {</span>
+<span class="nc" id="L340">                                    ((HardTokenProfileWithPINEnvelope) profiledata).setNumberOfPINEnvelopeCopies(Integer.parseInt(value));</span>
+                                }
+<span class="nc" id="L342">                                value = request.getParameter(TEXTFIELD_VISUALVALIDITY);</span>
+<span class="nc bnc" id="L343" title="All 2 branches missed.">                                if (value != null) {</span>
+<span class="nc" id="L344">                                    ((HardTokenProfileWithPINEnvelope) profiledata).setVisualValidity(Integer.parseInt(value));</span>
+                                }
+                            }
+
+<span class="nc bnc" id="L348" title="All 2 branches missed.">                            if (profiledata instanceof HardTokenProfileWithVisualLayout) {</span>
+<span class="nc" id="L349">                                HardTokenProfileWithVisualLayout visprof = (HardTokenProfileWithVisualLayout) profiledata;</span>
+<span class="nc" id="L350">                                value = request.getParameter(SELECT_VISUALLAYOUTTYPE);</span>
+<span class="nc bnc" id="L351" title="All 2 branches missed.">                                if (value != null) {</span>
+<span class="nc" id="L352">                                    visprof.setVisualLayoutType(Integer.parseInt(value));</span>
+                                }
+                            }
+
+<span class="nc bnc" id="L356" title="All 2 branches missed.">                            if (profiledata instanceof HardTokenProfileWithReceipt) {</span>
+<span class="nc" id="L357">                                value = request.getParameter(SELECT_RECEIPTTYPE);</span>
+<span class="nc bnc" id="L358" title="All 2 branches missed.">                                if (value != null) {</span>
+<span class="nc" id="L359">                                    ((HardTokenProfileWithReceipt) profiledata).setReceiptType(Integer.parseInt(value));</span>
+                                }
+<span class="nc" id="L361">                                value = request.getParameter(SELECT_NUMOFRECEIPTCOPIES);</span>
+<span class="nc bnc" id="L362" title="All 2 branches missed.">                                if (value != null) {</span>
+<span class="nc" id="L363">                                    ((HardTokenProfileWithReceipt) profiledata).setNumberOfReceiptCopies(Integer.parseInt(value));</span>
+                                }
+                            }
+<span class="nc bnc" id="L366" title="All 2 branches missed.">                            if (profiledata instanceof HardTokenProfileWithAdressLabel) {</span>
+<span class="nc" id="L367">                                value = request.getParameter(SELECT_ADRESSLABELTYPE);</span>
+<span class="nc bnc" id="L368" title="All 2 branches missed.">                                if (value != null) {</span>
+<span class="nc" id="L369">                                    ((HardTokenProfileWithAdressLabel) profiledata).setAdressLabelType(Integer.parseInt(value));</span>
+                                }
+<span class="nc" id="L371">                                value = request.getParameter(SELECT_NUMOFADRESSLABELCOPIES);</span>
+<span class="nc bnc" id="L372" title="All 2 branches missed.">                                if (value != null) {</span>
+<span class="nc" id="L373">                                    ((HardTokenProfileWithAdressLabel) profiledata).setNumberOfAdressLabelCopies(Integer.parseInt(value));</span>
+                                }
+                            }
+
+<span class="nc bnc" id="L377" title="All 2 branches missed.">                            if (profiledata instanceof SwedishEIDProfile) {</span>
+<span class="nc" id="L378">                                SwedishEIDProfile sweprof = (SwedishEIDProfile) profiledata;</span>
+
+<span class="nc" id="L380">                                value = request.getParameter(SELECT_MINKEYLENGTH);</span>
+<span class="nc bnc" id="L381" title="All 2 branches missed.">                                if (value != null) {</span>
+<span class="nc" id="L382">                                    int val = Integer.parseInt(value);</span>
+<span class="nc" id="L383">                                    sweprof.setMinimumKeyLength(SwedishEIDProfile.CERTUSAGE_SIGN, val);</span>
+<span class="nc" id="L384">                                    sweprof.setMinimumKeyLength(SwedishEIDProfile.CERTUSAGE_AUTHENC, val);</span>
+<span class="nc" id="L385">                                    sweprof.setKeyType(SwedishEIDProfile.CERTUSAGE_SIGN, EIDProfile.KEYTYPE_RSA);</span>
+<span class="nc" id="L386">                                    sweprof.setKeyType(SwedishEIDProfile.CERTUSAGE_AUTHENC, EIDProfile.KEYTYPE_RSA);</span>
+                                }
+<span class="nc" id="L388">                                value = request.getParameter(CHECKBOX_CERTWRITABLE);</span>
+<span class="nc bnc" id="L389" title="All 2 branches missed.">                                if (value != null) {</span>
+<span class="nc" id="L390">                                    sweprof.setCertWritable(SwedishEIDProfile.CERTUSAGE_SIGN, value.equals(CHECKBOX_VALUE));</span>
+<span class="nc" id="L391">                                    sweprof.setCertWritable(SwedishEIDProfile.CERTUSAGE_AUTHENC, value.equals(CHECKBOX_VALUE));</span>
+                                } else {
+<span class="nc" id="L393">                                    sweprof.setCertWritable(SwedishEIDProfile.CERTUSAGE_SIGN, false);</span>
+<span class="nc" id="L394">                                    sweprof.setCertWritable(SwedishEIDProfile.CERTUSAGE_AUTHENC, false);</span>
+                                }
+
+<span class="nc" id="L397">                                value = request.getParameter(SELECT_CERTIFICATEPROFILE + &quot;0&quot;);</span>
+<span class="nc bnc" id="L398" title="All 2 branches missed.">                                if (value != null) {</span>
+<span class="nc" id="L399">                                    sweprof.setCertificateProfileId(SwedishEIDProfile.CERTUSAGE_SIGN, Integer.parseInt(value));</span>
+                                }
+<span class="nc" id="L401">                                value = request.getParameter(SELECT_CA + &quot;0&quot;);</span>
+<span class="nc bnc" id="L402" title="All 2 branches missed.">                                if (value != null) {</span>
+<span class="nc" id="L403">                                    sweprof.setCAId(SwedishEIDProfile.CERTUSAGE_SIGN, Integer.parseInt(value));</span>
+                                }
+<span class="nc" id="L405">                                value = request.getParameter(SELECT_PINTYPE + &quot;0&quot;);</span>
+<span class="nc bnc" id="L406" title="All 2 branches missed.">                                if (value != null) {</span>
+<span class="nc" id="L407">                                    sweprof.setPINType(SwedishEIDProfile.CERTUSAGE_SIGN, Integer.parseInt(value));</span>
+                                }
+<span class="nc" id="L409">                                value = request.getParameter(SELECT_MINPINLENGTH + &quot;0&quot;);</span>
+<span class="nc bnc" id="L410" title="All 2 branches missed.">                                if (value != null) {</span>
+<span class="nc" id="L411">                                    sweprof.setMinimumPINLength(SwedishEIDProfile.CERTUSAGE_SIGN, Integer.parseInt(value));</span>
+                                }
+<span class="nc" id="L413">                                value = request.getParameter(SELECT_CERTIFICATEPROFILE + &quot;1&quot;);</span>
+<span class="nc bnc" id="L414" title="All 2 branches missed.">                                if (value != null) {</span>
+<span class="nc" id="L415">                                    sweprof.setCertificateProfileId(SwedishEIDProfile.CERTUSAGE_AUTHENC, Integer.parseInt(value));</span>
+                                }
+<span class="nc" id="L417">                                value = request.getParameter(SELECT_CA + &quot;1&quot;);</span>
+<span class="nc bnc" id="L418" title="All 2 branches missed.">                                if (value != null) {</span>
+<span class="nc" id="L419">                                    sweprof.setCAId(SwedishEIDProfile.CERTUSAGE_AUTHENC, Integer.parseInt(value));</span>
+                                }
+<span class="nc" id="L421">                                value = request.getParameter(SELECT_PINTYPE + &quot;1&quot;);</span>
+<span class="nc bnc" id="L422" title="All 2 branches missed.">                                if (value != null) {</span>
+<span class="nc" id="L423">                                    sweprof.setPINType(SwedishEIDProfile.CERTUSAGE_AUTHENC, Integer.parseInt(value));</span>
+                                }
+<span class="nc" id="L425">                                value = request.getParameter(SELECT_MINPINLENGTH + &quot;1&quot;);</span>
+<span class="nc bnc" id="L426" title="All 2 branches missed.">                                if (value != null) {</span>
+<span class="nc" id="L427">                                    sweprof.setMinimumPINLength(SwedishEIDProfile.CERTUSAGE_AUTHENC, Integer.parseInt(value));</span>
+                                }
+                            }
+
+<span class="nc bnc" id="L431" title="All 2 branches missed.">                            if (profiledata instanceof TurkishEIDProfile) {</span>
+<span class="nc" id="L432">                                TurkishEIDProfile turkprof = (TurkishEIDProfile) profiledata;</span>
+
+<span class="nc" id="L434">                                value = request.getParameter(SELECT_MINKEYLENGTH);</span>
+<span class="nc bnc" id="L435" title="All 2 branches missed.">                                if (value != null) {</span>
+<span class="nc" id="L436">                                    int val = Integer.parseInt(value);</span>
+<span class="nc" id="L437">                                    turkprof.setMinimumKeyLength(TurkishEIDProfile.CERTUSAGE_SIGN, val);</span>
+<span class="nc" id="L438">                                    turkprof.setMinimumKeyLength(TurkishEIDProfile.CERTUSAGE_AUTHENC, val);</span>
+<span class="nc" id="L439">                                    turkprof.setKeyType(TurkishEIDProfile.CERTUSAGE_SIGN, EIDProfile.KEYTYPE_RSA);</span>
+<span class="nc" id="L440">                                    turkprof.setKeyType(TurkishEIDProfile.CERTUSAGE_AUTHENC, EIDProfile.KEYTYPE_RSA);</span>
+                                }
+<span class="nc" id="L442">                                value = request.getParameter(CHECKBOX_CERTWRITABLE);</span>
+<span class="nc bnc" id="L443" title="All 2 branches missed.">                                if (value != null) {</span>
+<span class="nc" id="L444">                                    turkprof.setCertWritable(TurkishEIDProfile.CERTUSAGE_SIGN, value.equals(CHECKBOX_VALUE));</span>
+<span class="nc" id="L445">                                    turkprof.setCertWritable(TurkishEIDProfile.CERTUSAGE_AUTHENC, value.equals(CHECKBOX_VALUE));</span>
+                                } else {
+<span class="nc" id="L447">                                    turkprof.setCertWritable(TurkishEIDProfile.CERTUSAGE_SIGN, false);</span>
+<span class="nc" id="L448">                                    turkprof.setCertWritable(TurkishEIDProfile.CERTUSAGE_AUTHENC, false);</span>
+                                }
+
+<span class="nc" id="L451">                                value = request.getParameter(SELECT_CERTIFICATEPROFILE + &quot;0&quot;);</span>
+<span class="nc bnc" id="L452" title="All 2 branches missed.">                                if (value != null) {</span>
+<span class="nc" id="L453">                                    turkprof.setCertificateProfileId(TurkishEIDProfile.CERTUSAGE_SIGN, Integer.parseInt(value));</span>
+                                }
+<span class="nc" id="L455">                                value = request.getParameter(SELECT_CA + &quot;0&quot;);</span>
+<span class="nc bnc" id="L456" title="All 2 branches missed.">                                if (value != null) {</span>
+<span class="nc" id="L457">                                    turkprof.setCAId(TurkishEIDProfile.CERTUSAGE_SIGN, Integer.parseInt(value));</span>
+                                }
+<span class="nc" id="L459">                                value = request.getParameter(SELECT_PINTYPE + &quot;0&quot;);</span>
+<span class="nc bnc" id="L460" title="All 2 branches missed.">                                if (value != null) {</span>
+<span class="nc" id="L461">                                    turkprof.setPINType(TurkishEIDProfile.CERTUSAGE_SIGN, Integer.parseInt(value));</span>
+                                }
+<span class="nc" id="L463">                                value = request.getParameter(SELECT_MINPINLENGTH + &quot;0&quot;);</span>
+<span class="nc bnc" id="L464" title="All 2 branches missed.">                                if (value != null) {</span>
+<span class="nc" id="L465">                                    turkprof.setMinimumPINLength(TurkishEIDProfile.CERTUSAGE_SIGN, Integer.parseInt(value));</span>
+                                }
+<span class="nc" id="L467">                                value = request.getParameter(SELECT_CERTIFICATEPROFILE + &quot;1&quot;);</span>
+<span class="nc bnc" id="L468" title="All 2 branches missed.">                                if (value != null) {</span>
+<span class="nc" id="L469">                                    turkprof.setCertificateProfileId(TurkishEIDProfile.CERTUSAGE_AUTHENC, Integer.parseInt(value));</span>
+                                }
+<span class="nc" id="L471">                                value = request.getParameter(SELECT_CA + &quot;1&quot;);</span>
+<span class="nc bnc" id="L472" title="All 2 branches missed.">                                if (value != null) {</span>
+<span class="nc" id="L473">                                    turkprof.setCAId(TurkishEIDProfile.CERTUSAGE_AUTHENC, Integer.parseInt(value));</span>
+                                }
+                            }
+
+<span class="nc bnc" id="L477" title="All 2 branches missed.">                            if (profiledata instanceof EnhancedEIDProfile) {</span>
+<span class="nc" id="L478">                                EnhancedEIDProfile enhprof = (EnhancedEIDProfile) profiledata;</span>
+
+<span class="nc" id="L480">                                value = request.getParameter(SELECT_MINKEYLENGTH);</span>
+<span class="nc bnc" id="L481" title="All 2 branches missed.">                                if (value != null) {</span>
+<span class="nc" id="L482">                                    int val = Integer.parseInt(value);</span>
+<span class="nc" id="L483">                                    enhprof.setMinimumKeyLength(EnhancedEIDProfile.CERTUSAGE_SIGN, val);</span>
+<span class="nc" id="L484">                                    enhprof.setMinimumKeyLength(EnhancedEIDProfile.CERTUSAGE_AUTH, val);</span>
+<span class="nc" id="L485">                                    enhprof.setMinimumKeyLength(EnhancedEIDProfile.CERTUSAGE_ENC, val);</span>
+<span class="nc" id="L486">                                    enhprof.setKeyType(EnhancedEIDProfile.CERTUSAGE_SIGN, EIDProfile.KEYTYPE_RSA);</span>
+<span class="nc" id="L487">                                    enhprof.setKeyType(EnhancedEIDProfile.CERTUSAGE_ENC, EIDProfile.KEYTYPE_RSA);</span>
+<span class="nc" id="L488">                                    enhprof.setKeyType(EnhancedEIDProfile.CERTUSAGE_ENC, EIDProfile.KEYTYPE_RSA);</span>
+                                }
+
+<span class="nc" id="L491">                                value = request.getParameter(CHECKBOX_CERTWRITABLE);</span>
+<span class="nc bnc" id="L492" title="All 2 branches missed.">                                if (value != null) {</span>
+<span class="nc" id="L493">                                    enhprof.setCertWritable(EnhancedEIDProfile.CERTUSAGE_SIGN, value.equals(CHECKBOX_VALUE));</span>
+<span class="nc" id="L494">                                    enhprof.setCertWritable(EnhancedEIDProfile.CERTUSAGE_AUTH, value.equals(CHECKBOX_VALUE));</span>
+<span class="nc" id="L495">                                    enhprof.setCertWritable(EnhancedEIDProfile.CERTUSAGE_ENC, value.equals(CHECKBOX_VALUE));</span>
+                                } else {
+<span class="nc" id="L497">                                    enhprof.setCertWritable(EnhancedEIDProfile.CERTUSAGE_SIGN, false);</span>
+<span class="nc" id="L498">                                    enhprof.setCertWritable(EnhancedEIDProfile.CERTUSAGE_AUTH, false);</span>
+<span class="nc" id="L499">                                    enhprof.setCertWritable(EnhancedEIDProfile.CERTUSAGE_ENC, false);</span>
+                                }
+
+<span class="nc" id="L502">                                value = request.getParameter(SELECT_CERTIFICATEPROFILE + &quot;0&quot;);</span>
+<span class="nc bnc" id="L503" title="All 2 branches missed.">                                if (value != null) {</span>
+<span class="nc" id="L504">                                    enhprof.setCertificateProfileId(EnhancedEIDProfile.CERTUSAGE_SIGN, Integer.parseInt(value));</span>
+                                }
+<span class="nc" id="L506">                                value = request.getParameter(SELECT_CA + &quot;0&quot;);</span>
+<span class="nc bnc" id="L507" title="All 2 branches missed.">                                if (value != null) {</span>
+<span class="nc" id="L508">                                    enhprof.setCAId(EnhancedEIDProfile.CERTUSAGE_SIGN, Integer.parseInt(value));</span>
+                                }
+<span class="nc" id="L510">                                value = request.getParameter(SELECT_PINTYPE + &quot;0&quot;);</span>
+<span class="nc bnc" id="L511" title="All 2 branches missed.">                                if (value != null) {</span>
+<span class="nc" id="L512">                                    enhprof.setPINType(EnhancedEIDProfile.CERTUSAGE_SIGN, Integer.parseInt(value));</span>
+                                }
+<span class="nc" id="L514">                                value = request.getParameter(SELECT_MINPINLENGTH + &quot;0&quot;);</span>
+<span class="nc bnc" id="L515" title="All 2 branches missed.">                                if (value != null) {</span>
+<span class="nc" id="L516">                                    enhprof.setMinimumPINLength(EnhancedEIDProfile.CERTUSAGE_SIGN, Integer.parseInt(value));</span>
+                                }
+<span class="nc" id="L518">                                enhprof.setIsKeyRecoverable(EnhancedEIDProfile.CERTUSAGE_SIGN, false);</span>
+
+<span class="nc" id="L520">                                value = request.getParameter(SELECT_CERTIFICATEPROFILE + &quot;1&quot;);</span>
+<span class="nc bnc" id="L521" title="All 2 branches missed.">                                if (value != null) {</span>
+<span class="nc" id="L522">                                    enhprof.setCertificateProfileId(EnhancedEIDProfile.CERTUSAGE_AUTH, Integer.parseInt(value));</span>
+                                }
+<span class="nc" id="L524">                                value = request.getParameter(SELECT_CA + &quot;1&quot;);</span>
+<span class="nc bnc" id="L525" title="All 2 branches missed.">                                if (value != null) {</span>
+<span class="nc" id="L526">                                    enhprof.setCAId(EnhancedEIDProfile.CERTUSAGE_AUTH, Integer.parseInt(value));</span>
+                                }
+<span class="nc" id="L528">                                value = request.getParameter(SELECT_PINTYPE + &quot;1&quot;);</span>
+<span class="nc bnc" id="L529" title="All 2 branches missed.">                                if (value != null) {</span>
+<span class="nc" id="L530">                                    enhprof.setPINType(EnhancedEIDProfile.CERTUSAGE_AUTH, Integer.parseInt(value));</span>
+                                }
+<span class="nc" id="L532">                                value = request.getParameter(SELECT_MINPINLENGTH + &quot;1&quot;);</span>
+<span class="nc bnc" id="L533" title="All 2 branches missed.">                                if (value != null) {</span>
+<span class="nc" id="L534">                                    enhprof.setMinimumPINLength(EnhancedEIDProfile.CERTUSAGE_AUTH, Integer.parseInt(value));</span>
+                                }
+<span class="nc" id="L536">                                enhprof.setIsKeyRecoverable(EnhancedEIDProfile.CERTUSAGE_AUTH, false);</span>
+
+<span class="nc" id="L538">                                value = request.getParameter(SELECT_CERTIFICATEPROFILE + &quot;2&quot;);</span>
+<span class="nc bnc" id="L539" title="All 2 branches missed.">                                if (value != null) {</span>
+<span class="nc" id="L540">                                    enhprof.setCertificateProfileId(EnhancedEIDProfile.CERTUSAGE_ENC, Integer.parseInt(value));</span>
+                                }
+<span class="nc" id="L542">                                value = request.getParameter(SELECT_CA + &quot;2&quot;);</span>
+<span class="nc bnc" id="L543" title="All 2 branches missed.">                                if (value != null) {</span>
+<span class="nc" id="L544">                                    enhprof.setCAId(EnhancedEIDProfile.CERTUSAGE_ENC, Integer.parseInt(value));</span>
+                                }
+<span class="nc" id="L546">                                value = request.getParameter(SELECT_PINTYPE + &quot;2&quot;);</span>
+<span class="nc bnc" id="L547" title="All 2 branches missed.">                                if (value != null) {</span>
+<span class="nc" id="L548">                                    enhprof.setPINType(EnhancedEIDProfile.CERTUSAGE_ENC, Integer.parseInt(value));</span>
+                                }
+<span class="nc" id="L550">                                value = request.getParameter(SELECT_MINPINLENGTH + &quot;2&quot;);</span>
+<span class="nc bnc" id="L551" title="All 2 branches missed.">                                if (value != null) {</span>
+<span class="nc" id="L552">                                    enhprof.setMinimumPINLength(EnhancedEIDProfile.CERTUSAGE_ENC, Integer.parseInt(value));</span>
+                                }
+<span class="nc" id="L554">                                value = request.getParameter(CHECKBOX_KEYRECOVERABLE + &quot;2&quot;);</span>
+<span class="nc bnc" id="L555" title="All 2 branches missed.">                                if (value != null) {</span>
+<span class="nc" id="L556">                                    enhprof.setIsKeyRecoverable(EnhancedEIDProfile.CERTUSAGE_ENC, value.equals(CHECKBOX_VALUE));</span>
+                                } else {
+<span class="nc" id="L558">                                    enhprof.setIsKeyRecoverable(EnhancedEIDProfile.CERTUSAGE_ENC, false);</span>
+                                }
+<span class="nc" id="L560">                                value = request.getParameter(CHECKBOX_REUSEOLDCERT + &quot;2&quot;);</span>
+<span class="nc bnc" id="L561" title="All 2 branches missed.">                                if (value != null) {</span>
+<span class="nc" id="L562">                                    enhprof.setReuseOldCertificate(EnhancedEIDProfile.CERTUSAGE_ENC, value.equals(CHECKBOX_VALUE));</span>
+                                } else {
+<span class="nc" id="L564">                                    enhprof.setReuseOldCertificate(EnhancedEIDProfile.CERTUSAGE_ENC, false);</span>
+                                }
+
+                            }
+
+<span class="nc bnc" id="L569" title="All 2 branches missed.">                            if (request.getParameter(BUTTON_SAVE) != null) {</span>
+<span class="nc bnc" id="L570" title="All 2 branches missed.">                                if (!handler.changeHardTokenProfile(profile, profiledata)) {</span>
+<span class="nc" id="L571">                                    profilemalformed = true;</span>
+                                }
+<span class="nc" id="L573">                                includefile = PAGE_HARDTOKENPROFILES;</span>
+                            }
+<span class="nc bnc" id="L575" title="All 2 branches missed.">                            if (request.getParameter(BUTTON_UPLOADENVELOPETEMP) != null) {</span>
+<span class="nc" id="L576">                                uploadmode = UPLOADMODE_ENVELOPE;</span>
+<span class="nc" id="L577">                                includefile = PAGE_UPLOADTEMPLATE;</span>
+                            }
+<span class="nc bnc" id="L579" title="All 2 branches missed.">                            if (request.getParameter(BUTTON_UPLOADVISUALTEMP) != null) {</span>
+<span class="nc" id="L580">                                uploadmode = UPLOADMODE_VISUAL;</span>
+<span class="nc" id="L581">                                includefile = PAGE_UPLOADTEMPLATE;</span>
+                            }
+<span class="nc bnc" id="L583" title="All 2 branches missed.">                            if (request.getParameter(BUTTON_UPLOADRECEIPTTEMP) != null) {</span>
+<span class="nc" id="L584">                                uploadmode = UPLOADMODE_RECEIPT;</span>
+<span class="nc" id="L585">                                includefile = PAGE_UPLOADTEMPLATE;</span>
+                            }
+<span class="nc bnc" id="L587" title="All 2 branches missed.">                            if (request.getParameter(BUTTON_UPLOADADRESSLABELTEMP) != null) {</span>
+<span class="nc" id="L588">                                uploadmode = UPLOADMODE_ADRESSLABEL;</span>
+<span class="nc" id="L589">                                includefile = PAGE_UPLOADTEMPLATE;</span>
+                            }
+
+                        }
+<span class="nc bnc" id="L593" title="All 2 branches missed.">                        if (request.getParameter(BUTTON_CANCEL) != null) {</span>
+                            // Don't save changes.
+<span class="nc" id="L595">                            includefile = PAGE_HARDTOKENPROFILES;</span>
+                        }
+
+                    }
+                }
+            }
+
+<span class="nc bnc" id="L602" title="All 2 branches missed.">            if (action.equals(ACTION_CHANGE_PROFILETYPE)) {</span>
+<span class="nc" id="L603">                this.profilename = request.getParameter(HIDDEN_HARDTOKENPROFILENAME);</span>
+<span class="nc" id="L604">                String value = request.getParameter(SELECT_HARDTOKENTYPE);</span>
+<span class="nc bnc" id="L605" title="All 2 branches missed.">                if (value != null) {</span>
+<span class="nc" id="L606">                    int profiletype = Integer.parseInt(value);</span>
+<span class="nc" id="L607">                    EIDProfile newprofile = null;</span>
+<span class="nc bnc" id="L608" title="All 4 branches missed.">                    switch (profiletype) {</span>
+                    case SwedishEIDProfile.TYPE_SWEDISHEID:
+<span class="nc" id="L610">                        newprofile = new SwedishEIDProfile();</span>
+<span class="nc" id="L611">                        break;</span>
+                    case EnhancedEIDProfile.TYPE_ENHANCEDEID:
+<span class="nc" id="L613">                        newprofile = new EnhancedEIDProfile();</span>
+<span class="nc" id="L614">                        break;</span>
+                    case TurkishEIDProfile.TYPE_TURKISHEID:
+<span class="nc" id="L616">                        newprofile = new TurkishEIDProfile();</span>
+                        break;
+                    }
+<span class="nc bnc" id="L619" title="All 4 branches missed.">                    if (profiledata != null &amp;&amp; profiledata instanceof EIDProfile) {</span>
+<span class="nc" id="L620">                        ((EIDProfile) profiledata).clone(newprofile);</span>
+<span class="nc" id="L621">                        newprofile.reInit();</span>
+<span class="nc" id="L622">                        profiledata = newprofile;</span>
+                    }
+
+                }
+
+<span class="nc" id="L627">                includefile = PAGE_HARDTOKENPROFILE;</span>
+            }
+<span class="nc bnc" id="L629" title="All 2 branches missed.">            if (action.equals(ACTION_UPLOADENVELOPETEMP)) {</span>
+<span class="nc bnc" id="L630" title="All 2 branches missed.">                if (buttonupload) {</span>
+<span class="nc bnc" id="L631" title="All 2 branches missed.">                    if (profiledata instanceof IPINEnvelopeSettings) {</span>
+                        try {
+<span class="nc" id="L633">                            BufferedReader br = new BufferedReader(new InputStreamReader(file, &quot;UTF8&quot;));</span>
+<span class="nc" id="L634">                            String filecontent = &quot;&quot;;</span>
+<span class="nc" id="L635">                            String nextline = &quot;&quot;;</span>
+<span class="nc bnc" id="L636" title="All 2 branches missed.">                            while (nextline != null) {</span>
+<span class="nc" id="L637">                                nextline = br.readLine();</span>
+<span class="nc bnc" id="L638" title="All 2 branches missed.">                                if (nextline != null) {</span>
+<span class="nc" id="L639">                                    filecontent += nextline + &quot;\n&quot;;</span>
+                                }
+                            }
+<span class="nc" id="L642">                            ((IPINEnvelopeSettings) profiledata).setPINEnvelopeData(filecontent);</span>
+<span class="nc" id="L643">                            ((IPINEnvelopeSettings) profiledata).setPINEnvelopeTemplateFilename(filename);</span>
+<span class="nc" id="L644">                            fileuploadsuccess = true;</span>
+<span class="nc" id="L645">                        } catch (IOException ioe) {</span>
+<span class="nc" id="L646">                            fileuploadfailed = true;</span>
+<span class="nc" id="L647">                        }</span>
+                    }
+                }
+<span class="nc" id="L650">                includefile = PAGE_HARDTOKENPROFILE;</span>
+            }
+<span class="nc bnc" id="L652" title="All 2 branches missed.">            if (action.equals(ACTION_UPLOADVISUALTEMP)) {</span>
+<span class="nc bnc" id="L653" title="All 2 branches missed.">                if (profiledata instanceof IVisualLayoutSettings) {</span>
+                    try {
+<span class="nc" id="L655">                        BufferedReader br = new BufferedReader(new InputStreamReader(file, &quot;UTF8&quot;));</span>
+<span class="nc" id="L656">                        String filecontent = &quot;&quot;;</span>
+<span class="nc" id="L657">                        String nextline = &quot;&quot;;</span>
+<span class="nc bnc" id="L658" title="All 2 branches missed.">                        while (nextline != null) {</span>
+<span class="nc" id="L659">                            nextline = br.readLine();</span>
+<span class="nc bnc" id="L660" title="All 2 branches missed.">                            if (nextline != null) {</span>
+<span class="nc" id="L661">                                filecontent += nextline + &quot;\n&quot;;</span>
+                            }
+                        }
+<span class="nc" id="L664">                        ((IVisualLayoutSettings) profiledata).setVisualLayoutData(filecontent);</span>
+<span class="nc" id="L665">                        ((IVisualLayoutSettings) profiledata).setVisualLayoutTemplateFilename(filename);</span>
+<span class="nc" id="L666">                        fileuploadsuccess = true;</span>
+<span class="nc" id="L667">                    } catch (IOException ioe) {</span>
+<span class="nc" id="L668">                        fileuploadfailed = true;</span>
+<span class="nc" id="L669">                    }</span>
+                }
+<span class="nc" id="L671">                includefile = PAGE_HARDTOKENPROFILE;</span>
+            }
+<span class="nc bnc" id="L673" title="All 2 branches missed.">            if (action.equals(ACTION_UPLOADRECEIPTTEMP)) {</span>
+<span class="nc bnc" id="L674" title="All 2 branches missed.">                if (profiledata instanceof IReceiptSettings) {</span>
+                    try {
+<span class="nc" id="L676">                        BufferedReader br = new BufferedReader(new InputStreamReader(file, &quot;UTF8&quot;));</span>
+<span class="nc" id="L677">                        String filecontent = &quot;&quot;;</span>
+<span class="nc" id="L678">                        String nextline = &quot;&quot;;</span>
+<span class="nc bnc" id="L679" title="All 2 branches missed.">                        while (nextline != null) {</span>
+<span class="nc" id="L680">                            nextline = br.readLine();</span>
+<span class="nc bnc" id="L681" title="All 2 branches missed.">                            if (nextline != null) {</span>
+<span class="nc" id="L682">                                filecontent += nextline + &quot;\n&quot;;</span>
+                            }
+                        }
+<span class="nc" id="L685">                        ((IReceiptSettings) profiledata).setReceiptData(filecontent);</span>
+<span class="nc" id="L686">                        ((IReceiptSettings) profiledata).setReceiptTemplateFilename(filename);</span>
+<span class="nc" id="L687">                        fileuploadsuccess = true;</span>
+<span class="nc" id="L688">                    } catch (IOException ioe) {</span>
+<span class="nc" id="L689">                        fileuploadfailed = true;</span>
+<span class="nc" id="L690">                    }</span>
+                }
+<span class="nc" id="L692">                includefile = PAGE_HARDTOKENPROFILE;</span>
+            }
+<span class="nc bnc" id="L694" title="All 2 branches missed.">            if (action.equals(ACTION_UPLOADADRESSLABELTEMP)) {</span>
+<span class="nc bnc" id="L695" title="All 2 branches missed.">                if (profiledata instanceof IAdressLabelSettings) {</span>
+                    try {
+<span class="nc" id="L697">                        BufferedReader br = new BufferedReader(new InputStreamReader(file, &quot;UTF8&quot;));</span>
+<span class="nc" id="L698">                        String filecontent = &quot;&quot;;</span>
+<span class="nc" id="L699">                        String nextline = &quot;&quot;;</span>
+<span class="nc bnc" id="L700" title="All 2 branches missed.">                        while (nextline != null) {</span>
+<span class="nc" id="L701">                            nextline = br.readLine();</span>
+<span class="nc bnc" id="L702" title="All 2 branches missed.">                            if (nextline != null) {</span>
+<span class="nc" id="L703">                                filecontent += nextline + &quot;\n&quot;;</span>
+                            }
+                        }
+<span class="nc" id="L706">                        ((IAdressLabelSettings) profiledata).setAdressLabelData(filecontent);</span>
+<span class="nc" id="L707">                        ((IAdressLabelSettings) profiledata).setAdressLabelTemplateFilename(filename);</span>
+<span class="nc" id="L708">                        fileuploadsuccess = true;</span>
+<span class="nc" id="L709">                    } catch (IOException ioe) {</span>
+<span class="nc" id="L710">                        fileuploadfailed = true;</span>
+<span class="nc" id="L711">                    }</span>
+                }
+<span class="nc" id="L713">                includefile = PAGE_HARDTOKENPROFILE;</span>
+            }
+
+        }
+
+<span class="nc" id="L718">        return includefile;</span>
+    }
+
+    public int getProfileType() {
+<span class="nc" id="L722">        int retval = SwedishEIDProfile.TYPE_SWEDISHEID;</span>
+
+<span class="nc bnc" id="L724" title="All 2 branches missed.">        if (profiledata instanceof SwedishEIDProfile) {</span>
+<span class="nc" id="L725">            retval = SwedishEIDProfile.TYPE_SWEDISHEID;</span>
+        }
+<span class="nc bnc" id="L727" title="All 2 branches missed.">        if (profiledata instanceof EnhancedEIDProfile) {</span>
+<span class="nc" id="L728">            retval = EnhancedEIDProfile.TYPE_ENHANCEDEID;</span>
+        }
+<span class="nc bnc" id="L730" title="All 2 branches missed.">        if (profiledata instanceof TurkishEIDProfile) {</span>
+<span class="nc" id="L731">            retval = TurkishEIDProfile.TYPE_TURKISHEID;</span>
+        }
+<span class="nc" id="L733">        return retval;</span>
+    }
+
+    // Private fields.
+    private HardTokenInterfaceBean hardtokenbean;
+<span class="nc" id="L738">    private boolean initialized = false;</span>
+<span class="nc" id="L739">    public boolean hardtokenprofileexists = false;</span>
+<span class="nc" id="L740">    public boolean profilemalformed = false;</span>
+<span class="nc" id="L741">    public boolean hardtokenprofiledeletefailed = false;</span>
+<span class="nc" id="L742">    public boolean issuperadministrator = false;</span>
+<span class="nc" id="L743">    public boolean fileuploadsuccess = false;</span>
+<span class="nc" id="L744">    public boolean fileuploadfailed = false;</span>
+<span class="nc" id="L745">    public HardTokenProfile profiledata = null;</span>
+<span class="nc" id="L746">    public String profilename = null;</span>
+<span class="nc" id="L747">    public int uploadmode = 0;</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

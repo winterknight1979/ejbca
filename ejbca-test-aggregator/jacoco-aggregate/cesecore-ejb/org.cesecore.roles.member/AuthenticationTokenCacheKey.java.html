@@ -13,91 +13,112 @@
 package org.cesecore.roles.member;
 
 import java.util.List;
-
 import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.cesecore.authorization.user.AccessMatchType;
 
 /**
- * POJO that provides a search key for recently used authentication tokens. 
- * 
- * @version $Id: AuthenticationTokenCacheKey.java 26457 2017-08-29 08:12:10Z mikekushner $
+ * POJO that provides a search key for recently used authentication tokens.
  *
+ * @version $Id: AuthenticationTokenCacheKey.java 26457 2017-08-29 08:12:10Z
+ *     mikekushner $
  */
 public class AuthenticationTokenCacheKey {
-    private final String tokenType;
-    private final int preferredMatchKey;
-    private final int preferredOperator;
-    private final String preferredTokenMatchValue;
-    
-<span class="nc" id="L32">    public AuthenticationTokenCacheKey(AuthenticationToken authenticationToken) {</span>
-<span class="nc" id="L33">        tokenType = authenticationToken.getMetaData().getTokenType();</span>
-<span class="nc" id="L34">        preferredMatchKey = authenticationToken.getPreferredMatchKey();</span>
-<span class="nc bnc" id="L35" title="All 2 branches missed.">        if(preferredMatchKey != AuthenticationToken.NO_PREFERRED_MATCH_KEY) {</span>
-<span class="nc" id="L36">            List&lt;AccessMatchType&gt; accessMatchType= authenticationToken.getMetaData().getAccessMatchValueIdMap().get(preferredMatchKey).getAvailableAccessMatchTypes();</span>
-<span class="nc bnc" id="L37" title="All 2 branches missed.">            preferredOperator = accessMatchType.isEmpty() ? AccessMatchType.TYPE_UNUSED.getNumericValue() : accessMatchType.get(0).getNumericValue();</span>
-<span class="nc" id="L38">        } else {</span>
-<span class="nc" id="L39">            preferredOperator = AccessMatchType.TYPE_UNUSED.getNumericValue();</span>
-        }            
-<span class="nc" id="L41">        preferredTokenMatchValue = authenticationToken.getPreferredMatchValue();</span>
-<span class="nc" id="L42">    }</span>
-
-    /**
-     * Copy constructor 
-     * 
-     * @param authenticationTokenCacheKey on fail
-     */
-<span class="nc" id="L49">    public AuthenticationTokenCacheKey(AuthenticationTokenCacheKey authenticationTokenCacheKey) {</span>
-<span class="nc" id="L50">        tokenType = authenticationTokenCacheKey.tokenType;</span>
-<span class="nc" id="L51">        preferredMatchKey = authenticationTokenCacheKey.preferredMatchKey;</span>
-<span class="nc" id="L52">        preferredOperator = authenticationTokenCacheKey.preferredOperator;</span>
-<span class="nc" id="L53">        preferredTokenMatchValue = authenticationTokenCacheKey.preferredTokenMatchValue;</span>
-<span class="nc" id="L54">    }</span>
-    
-    @Override
-    public int hashCode() {
-<span class="nc" id="L58">        final int prime = 31;</span>
-<span class="nc" id="L59">        int result = 1;</span>
-<span class="nc" id="L60">        result = prime * result + preferredMatchKey;</span>
-<span class="nc" id="L61">        result = prime * result + preferredOperator;</span>
-<span class="nc bnc" id="L62" title="All 2 branches missed.">        result = prime * result + ((preferredTokenMatchValue == null) ? 0 : preferredTokenMatchValue.hashCode());</span>
-<span class="nc bnc" id="L63" title="All 2 branches missed.">        result = prime * result + ((tokenType == null) ? 0 : tokenType.hashCode());</span>
-<span class="nc" id="L64">        return result;</span>
+    /** Type. */
+  private final String tokenType;
+  /** Key. */
+  private final int preferredMatchKey;
+  /** Op. */
+  private final int preferredOperator;
+  /** Value. */
+  private final String preferredTokenMatchValue;
+/**
+ * @param authenticationToken token.
+ */
+  public AuthenticationTokenCacheKey(
+<span class="nc" id="L38">      final AuthenticationToken authenticationToken) {</span>
+<span class="nc" id="L39">    tokenType = authenticationToken.getMetaData().getTokenType();</span>
+<span class="nc" id="L40">    preferredMatchKey = authenticationToken.getPreferredMatchKey();</span>
+<span class="nc bnc" id="L41" title="All 2 branches missed.">    if (preferredMatchKey != AuthenticationToken.NO_PREFERRED_MATCH_KEY) {</span>
+<span class="nc" id="L42">      List&lt;AccessMatchType&gt; accessMatchType =</span>
+          authenticationToken
+<span class="nc" id="L44">              .getMetaData()</span>
+<span class="nc" id="L45">              .getAccessMatchValueIdMap()</span>
+<span class="nc" id="L46">              .get(preferredMatchKey)</span>
+<span class="nc" id="L47">              .getAvailableAccessMatchTypes();</span>
+<span class="nc" id="L48">      preferredOperator =</span>
+<span class="nc bnc" id="L49" title="All 2 branches missed.">          accessMatchType.isEmpty()</span>
+<span class="nc" id="L50">              ? AccessMatchType.TYPE_UNUSED.getNumericValue()</span>
+<span class="nc" id="L51">              : accessMatchType.get(0).getNumericValue();</span>
+<span class="nc" id="L52">    } else {</span>
+<span class="nc" id="L53">      preferredOperator = AccessMatchType.TYPE_UNUSED.getNumericValue();</span>
     }
+<span class="nc" id="L55">    preferredTokenMatchValue = authenticationToken.getPreferredMatchValue();</span>
+<span class="nc" id="L56">  }</span>
 
-    @Override
-    public boolean equals(Object obj) {
-<span class="nc bnc" id="L69" title="All 2 branches missed.">        if (this == obj) {</span>
-<span class="nc" id="L70">            return true;</span>
-        }
-<span class="nc bnc" id="L72" title="All 2 branches missed.">        if (obj == null) {</span>
-<span class="nc" id="L73">            return false;</span>
-        }
-<span class="nc bnc" id="L75" title="All 2 branches missed.">        if (getClass() != obj.getClass()) {</span>
-<span class="nc" id="L76">            return false;</span>
-        }
-<span class="nc" id="L78">        AuthenticationTokenCacheKey other = (AuthenticationTokenCacheKey) obj;</span>
- 
-<span class="nc bnc" id="L80" title="All 2 branches missed.">        if (preferredMatchKey != other.preferredMatchKey) {</span>
-<span class="nc" id="L81">            return false;</span>
-        }
-<span class="nc bnc" id="L83" title="All 2 branches missed.">        if (preferredOperator != other.preferredOperator) {</span>
-<span class="nc" id="L84">            return false;</span>
-        }
-<span class="nc bnc" id="L86" title="All 2 branches missed.">        if (preferredTokenMatchValue == null) {</span>
-<span class="nc bnc" id="L87" title="All 2 branches missed.">            if (other.preferredTokenMatchValue != null) {</span>
-<span class="nc" id="L88">                return false;</span>
-            }
-<span class="nc bnc" id="L90" title="All 2 branches missed.">        } else if (!preferredTokenMatchValue.equals(other.preferredTokenMatchValue)) {</span>
-<span class="nc" id="L91">            return false;</span>
-        }
-<span class="nc bnc" id="L93" title="All 2 branches missed.">        if (tokenType == null) {</span>
-<span class="nc bnc" id="L94" title="All 2 branches missed.">            if (other.tokenType != null) {</span>
-<span class="nc" id="L95">                return false;</span>
-            }
-<span class="nc bnc" id="L97" title="All 2 branches missed.">        } else if (!tokenType.equals(other.tokenType)) {</span>
-<span class="nc" id="L98">            return false;</span>
-        }
-<span class="nc" id="L100">        return true;</span>
+  /**
+   * Copy constructor.
+   *
+   * @param authenticationTokenCacheKey on fail
+   */
+  public AuthenticationTokenCacheKey(
+<span class="nc" id="L64">      final AuthenticationTokenCacheKey authenticationTokenCacheKey) {</span>
+<span class="nc" id="L65">    tokenType = authenticationTokenCacheKey.tokenType;</span>
+<span class="nc" id="L66">    preferredMatchKey = authenticationTokenCacheKey.preferredMatchKey;</span>
+<span class="nc" id="L67">    preferredOperator = authenticationTokenCacheKey.preferredOperator;</span>
+<span class="nc" id="L68">    preferredTokenMatchValue =</span>
+        authenticationTokenCacheKey.preferredTokenMatchValue;
+<span class="nc" id="L70">  }</span>
+
+  @Override
+  public int hashCode() {
+<span class="nc" id="L74">    final int prime = 31;</span>
+<span class="nc" id="L75">    int result = 1;</span>
+<span class="nc" id="L76">    result = prime * result + preferredMatchKey;</span>
+<span class="nc" id="L77">    result = prime * result + preferredOperator;</span>
+<span class="nc" id="L78">    result =</span>
+        prime * result
+<span class="nc bnc" id="L80" title="All 2 branches missed.">            + ((preferredTokenMatchValue == null)</span>
+<span class="nc" id="L81">                ? 0</span>
+<span class="nc" id="L82">                : preferredTokenMatchValue.hashCode());</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">    result = prime * result + ((tokenType == null) ? 0 : tokenType.hashCode());</span>
+<span class="nc" id="L84">    return result;</span>
+  }
+
+  @Override
+  public boolean equals(final Object obj) {
+<span class="nc bnc" id="L89" title="All 2 branches missed.">    if (this == obj) {</span>
+<span class="nc" id="L90">      return true;</span>
     }
+<span class="nc bnc" id="L92" title="All 2 branches missed.">    if (obj == null) {</span>
+<span class="nc" id="L93">      return false;</span>
+    }
+<span class="nc bnc" id="L95" title="All 2 branches missed.">    if (getClass() != obj.getClass()) {</span>
+<span class="nc" id="L96">      return false;</span>
+    }
+<span class="nc" id="L98">    AuthenticationTokenCacheKey other = (AuthenticationTokenCacheKey) obj;</span>
+
+<span class="nc bnc" id="L100" title="All 2 branches missed.">    if (preferredMatchKey != other.preferredMatchKey) {</span>
+<span class="nc" id="L101">      return false;</span>
+    }
+<span class="nc bnc" id="L103" title="All 2 branches missed.">    if (preferredOperator != other.preferredOperator) {</span>
+<span class="nc" id="L104">      return false;</span>
+    }
+<span class="nc bnc" id="L106" title="All 2 branches missed.">    if (preferredTokenMatchValue == null) {</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">      if (other.preferredTokenMatchValue != null) {</span>
+<span class="nc" id="L108">        return false;</span>
+      }
+<span class="nc bnc" id="L110" title="All 2 branches missed.">    } else if (!preferredTokenMatchValue.equals(</span>
+        other.preferredTokenMatchValue)) {
+<span class="nc" id="L112">      return false;</span>
+    }
+<span class="nc bnc" id="L114" title="All 2 branches missed.">    if (tokenType == null) {</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">      if (other.tokenType != null) {</span>
+<span class="nc" id="L116">        return false;</span>
+      }
+<span class="nc bnc" id="L118" title="All 2 branches missed.">    } else if (!tokenType.equals(other.tokenType)) {</span>
+<span class="nc" id="L119">      return false;</span>
+    }
+<span class="nc" id="L121">    return true;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

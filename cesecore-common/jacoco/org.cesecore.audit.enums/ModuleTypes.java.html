@@ -13,53 +13,54 @@
 package org.cesecore.audit.enums;
 
 /**
- * When doing secure audit log it is necessary to identify from which module a security audit event originates.
+ * When doing secure audit log it is necessary to identify from which module a
+ * security audit event originates.
  *
- * A modules is a group of related functionality. This class contains the modules in the CESeCore core itself.
- * 
+ * &lt;p&gt;A modules is a group of related functionality. This class contains the
+ * modules in the CESeCore core itself.
+ *
  * @see org.cesecore.audit.enums.EventTypes
  * @see org.cesecore.audit.enums.ServiceTypes
  * @version $Id: ModuleTypes.java 26323 2017-08-15 17:24:53Z anatom $
  */
-<span class="nc" id="L24">public enum ModuleTypes implements ModuleType {</span>
-	/** Access control module. */
-<span class="nc" id="L26">	ACCESSCONTROL,</span>
-	/** Authentication module. */
-<span class="nc" id="L28">	AUTHENTICATION,</span>
-	/** Certificate Authority module. */
-<span class="nc" id="L30">	CA,</span>
-	/** Certificate issuance and handling module. */
-<span class="nc" id="L32">	CERTIFICATE,</span>
-	/** Certificate profile module. */
-<span class="nc" id="L34">	CERTIFICATEPROFILE,</span>
-    /** Certificate Revocation List issuance and handling module. */
-<span class="nc" id="L36">	CRL,</span>
-    /** Crypto Token module. */
-<span class="nc" id="L38">    CRYPTOTOKEN,</span>
-    /** &lt;i&gt;Module type is currently not used in EJBCA.&lt;/i&gt; */
-<span class="nc" id="L40">	KEY_MANAGEMENT,</span>
-	/** &lt;i&gt;Module type for Key validator.&lt;/i&gt; */
-<span class="nc" id="L42">    VALIDATOR,</span>
-    /** &lt;i&gt;Module type is currently not used in EJBCA.&lt;/i&gt; */
-<span class="nc" id="L44">	RECOVERY,</span>
-	/** Administrator role management module. */
-<span class="nc" id="L46">	ROLES,</span>
-    /** Security event audit log module. */
-<span class="nc" id="L48">	SECURITY_AUDIT,</span>
-    /** &lt;i&gt;Module type is currently not used in EJBCA.&lt;/i&gt; */
-<span class="nc" id="L50">	TRUSTED_TIME,</span>
-    /** Internal Key Binding module. */
-<span class="nc" id="L52">	INTERNALKEYBINDING,</span>
-    /** Module for system settings stored in the database. */
-<span class="nc" id="L54">    GLOBALCONF;</span>
+<span class="nc" id="L26">public enum ModuleTypes implements ModuleType {</span>
+  /** Access control module. */
+<span class="nc" id="L28">  ACCESSCONTROL,</span>
+  /** Authentication module. */
+<span class="nc" id="L30">  AUTHENTICATION,</span>
+  /** Certificate Authority module. */
+<span class="nc" id="L32">  CA,</span>
+  /** Certificate issuance and handling module. */
+<span class="nc" id="L34">  CERTIFICATE,</span>
+  /** Certificate profile module. */
+<span class="nc" id="L36">  CERTIFICATEPROFILE,</span>
+  /** Certificate Revocation List issuance and handling module. */
+<span class="nc" id="L38">  CRL,</span>
+  /** Crypto Token module. */
+<span class="nc" id="L40">  CRYPTOTOKEN,</span>
+  /** &lt;i&gt;Module type is currently not used in EJBCA.&lt;/i&gt; */
+<span class="nc" id="L42">  KEY_MANAGEMENT,</span>
+  /** &lt;i&gt;Module type for Key validator.&lt;/i&gt; */
+<span class="nc" id="L44">  VALIDATOR,</span>
+  /** &lt;i&gt;Module type is currently not used in EJBCA.&lt;/i&gt; */
+<span class="nc" id="L46">  RECOVERY,</span>
+  /** Administrator role management module. */
+<span class="nc" id="L48">  ROLES,</span>
+  /** Security event audit log module. */
+<span class="nc" id="L50">  SECURITY_AUDIT,</span>
+  /** &lt;i&gt;Module type is currently not used in EJBCA.&lt;/i&gt; */
+<span class="nc" id="L52">  TRUSTED_TIME,</span>
+  /** Internal Key Binding module. */
+<span class="nc" id="L54">  INTERNALKEYBINDING,</span>
+  /** Module for system settings stored in the database. */
+<span class="nc" id="L56">  GLOBALCONF;</span>
 
-    @Override
-    public boolean equals(ModuleType value) {
-<span class="nc bnc" id="L58" title="All 2 branches missed.">        if(value == null) {</span>
-<span class="nc" id="L59">            return false;</span>
-        }
-<span class="nc" id="L61">        return this.toString().equals(value.toString());</span>
+  @Override
+  public boolean equals(final ModuleType aValue) {
+<span class="nc bnc" id="L60" title="All 2 branches missed.">    if (aValue == null) {</span>
+<span class="nc" id="L61">      return false;</span>
     }
-
+<span class="nc" id="L63">    return this.toString().equals(aValue.toString());</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

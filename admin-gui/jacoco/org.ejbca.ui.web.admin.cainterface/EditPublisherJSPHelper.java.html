@@ -1,0 +1,1004 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EditPublisherJSPHelper.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Administration GUI</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.cainterface</a> &gt; <span class="el_source">EditPublisherJSPHelper.java</span></div><h1>EditPublisherJSPHelper.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.web.admin.cainterface;
+
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.ServiceLoader;
+import java.util.TreeSet;
+
+import javax.faces.model.SelectItem;
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.common.exception.ReferencesToItemExistException;
+import org.ejbca.config.GlobalConfiguration;
+import org.ejbca.config.WebConfiguration;
+import org.ejbca.core.model.authorization.AccessRulesConstants;
+import org.ejbca.core.model.ca.publisher.ActiveDirectoryPublisher;
+import org.ejbca.core.model.ca.publisher.BasePublisher;
+import org.ejbca.core.model.ca.publisher.CustomPublisherContainer;
+import org.ejbca.core.model.ca.publisher.CustomPublisherProperty;
+import org.ejbca.core.model.ca.publisher.GeneralPurposeCustomPublisher;
+import org.ejbca.core.model.ca.publisher.ICustomPublisher;
+import org.ejbca.core.model.ca.publisher.LdapPublisher;
+import org.ejbca.core.model.ca.publisher.LdapPublisher.ConnectionSecurity;
+import org.ejbca.core.model.ca.publisher.LdapSearchPublisher;
+import org.ejbca.core.model.ca.publisher.LegacyValidationAuthorityPublisher;
+import org.ejbca.core.model.ca.publisher.MultiGroupPublisher;
+import org.ejbca.core.model.ca.publisher.PublisherConnectionException;
+import org.ejbca.core.model.ca.publisher.PublisherConst;
+import org.ejbca.core.model.ca.publisher.PublisherDoesntExistsException;
+import org.ejbca.core.model.ca.publisher.PublisherExistsException;
+import org.ejbca.core.model.ca.publisher.PublisherException;
+import org.ejbca.ui.web.RequestHelper;
+import org.ejbca.ui.web.admin.configuration.EjbcaWebBean;
+
+
+/**
+ * Contains help methods used to parse a publisher jsp page requests.
+ *
+ * @version $Id: EditPublisherJSPHelper.java 34119 2019-12-18 15:43:14Z aminkh $
+ */
+public class EditPublisherJSPHelper {
+
+<span class="fc" id="L65">    private static final Logger log = Logger.getLogger(EditPublisherJSPHelper.class);</span>
+	
+    public static final String ACTION                              = &quot;action&quot;;
+    public static final String ACTION_EDIT_PUBLISHERS              = &quot;editpublishers&quot;;
+    public static final String ACTION_EDIT_PUBLISHER               = &quot;editpublisher&quot;;
+
+    public static final String ACTION_CHANGE_PUBLISHERTYPE         = &quot;changepublishertype&quot;;
+
+
+    public static final String CHECKBOX_VALUE                     = BasePublisher.TRUE;
+
+//  Used in publishers.jsp
+    public static final String BUTTON_EDIT_PUBLISHER              = &quot;buttoneditpublisher&quot;;
+    public static final String BUTTON_DELETE_PUBLISHER            = &quot;buttondeletepublisher&quot;;
+    public static final String BUTTON_ADD_PUBLISHER               = &quot;buttonaddpublisher&quot;;
+    public static final String BUTTON_RENAME_PUBLISHER            = &quot;buttonrenamepublisher&quot;;
+    public static final String BUTTON_CLONE_PUBLISHER             = &quot;buttonclonepublisher&quot;;
+
+    public static final String SELECT_PUBLISHER                   = &quot;selectpublisher&quot;;
+    public static final String TEXTFIELD_PUBLISHERNAME            = &quot;textfieldpublishername&quot;;
+    public static final String HIDDEN_PUBLISHERNAME               = &quot;hiddenpublishername&quot;;
+
+//  Buttons used in publisher.jsp
+    public static final String BUTTON_TESTCONNECTION    = &quot;buttontestconnection&quot;;
+    public static final String BUTTON_SAVE              = &quot;buttonsave&quot;;
+    public static final String BUTTON_CANCEL            = &quot;buttoncancel&quot;;
+
+    public static final String TYPE_CUSTOM              = &quot;typecustom&quot;;
+    public static final String TYPE_LDAP                = &quot;typeldap&quot;;
+    public static final String TYPE_AD                  = &quot;typead&quot;;
+    public static final String TYPE_LDAP_SEARCH         = &quot;typeldapsearch&quot;;
+
+    public static final String HIDDEN_PUBLISHERTYPE      = &quot;hiddenpublishertype&quot;;
+    public static final String SELECT_PUBLISHERTYPE      = &quot;selectpublishertype&quot;;
+
+    public static final String SELECT_APPLICABLECAS      = &quot;selectapplicablecas&quot;;
+    public static final String TEXTAREA_DESCRIPTION      = &quot;textareadescription&quot;;
+
+    public static final String SELECT_CUSTOMCLASS        = &quot;selectcustomclass&quot;;
+    public static final String TEXTFIELD_CUSTOMCLASSPATH = &quot;textfieldcustomclasspath&quot;;
+    public static final String TEXTAREA_CUSTOMPROPERTIES = &quot;textareacustomproperties&quot;;
+    public static final String TEXTAREA_PROPERTIES = &quot;textareaproperties&quot;;
+    public static final String TEXTAREA_GROUPS                 = &quot;textareagroups&quot;;
+
+    public static final String TEXTFIELD_LDAPHOSTNAME          = &quot;textfieldldaphostname&quot;;
+    public static final String TEXTFIELD_LDAPPORT              = &quot;textfieldldapport&quot;;
+    public static final String TEXTFIELD_LDAPBASEDN            = &quot;textfieldldapbasedn&quot;;
+    public static final String TEXTFIELD_LDAPLOGINDN           = &quot;textfieldldaplogindn&quot;;
+    public static final String TEXTFIELD_LDAPUSEROBJECTCLASS   = &quot;textfieldldapuserobjectclass&quot;;
+    public static final String TEXTFIELD_LDAPCAOBJECTCLASS     = &quot;textfieldldapcaobjectclass&quot;;
+    public static final String TEXTFIELD_LDAPUSERCERTATTRIBUTE = &quot;textfieldldapusercertattribute&quot;;
+    public static final String TEXTFIELD_LDAPCACERTATTRIBUTE   = &quot;textfieldldapcacertattribute&quot;;
+    public static final String TEXTFIELD_LDAPCRLATTRIBUTE      = &quot;textfieldldapcrlattribute&quot;;
+    public static final String TEXTFIELD_LDAPDELTACRLATTRIBUTE = &quot;textfieldldapdeltacrlattribute&quot;;
+    public static final String TEXTFIELD_LDAPARLATTRIBUTE      = &quot;textfieldldaparlattribute&quot;;
+    public static final String TEXTFIELD_LDAPSEARCHBASEDN      = &quot;textfieldldapsearchbasedn&quot;;
+    public static final String TEXTFIELD_LDAPSEARCHFILTER      = &quot;textfieldldapsearchfilter&quot;;
+    public static final String TEXTFIELD_LDAPTIMEOUT           = &quot;textfieldldaptimeout&quot;;
+    public static final String TEXTFIELD_LDAPREADTIMEOUT       = &quot;textfieldldapreadtimeout&quot;;
+    public static final String TEXTFIELD_LDAPSTORETIMEOUT      = &quot;textfieldldapstoretimeout&quot;;
+    public static final String TEXTFIELD_VA_DATASOURCE         = &quot;textfieldvadatasource&quot;;
+    public static final String PASSWORD_LDAPLOGINPASSWORD      = &quot;textfieldldaploginpassword&quot;;
+    public static final String PASSWORD_LDAPLOGINPASSWORDPLACEHOLDER = &quot;placeholder&quot;;    
+    public static final String PASSWORD_LDAPCONFIRMLOGINPWD    = &quot;textfieldldaploginconfirmpwd&quot;;
+    public static final String RADIO_LDAPCONNECTIONSECURITY    = &quot;radioldapconnectionsecurity&quot;;
+    public static final String CHECKBOX_LDAPCREATENONEXISTING  = &quot;checkboxldapcreatenonexisting&quot;;
+    public static final String CHECKBOX_LDAPMODIFYEXISTING     = &quot;checkboxldapmodifyexisting&quot;;
+    public static final String CHECKBOX_LDAPMODIFYEXISTINGATTRIBUTES     = &quot;checkboxldapmodifyexistingattributes&quot;;
+    public static final String CHECKBOX_LDAPADDNONEXISTING     = &quot;checkboxldapaddnonexisting&quot;;
+    public static final String CHECKBOX_LDAP_CREATEINTERMEDIATENODES = &quot;checkboxldapcreateintermediatenodes&quot;;
+    public static final String CHECKBOX_LDAPADDMULTIPLECERTIFICATES= &quot;checkboxaldapddmultiplecertificates&quot;;
+    public static final String CHECKBOX_LDAP_REVOKE_REMOVECERTIFICATE = &quot;checkboxldaprevokeremovecertificate&quot;;
+    public static final String CHECKBOX_LDAP_REVOKE_REMOVEUSERONCERTREVOKE = &quot;checkboxldaprevokeuseroncertrevoke&quot;;
+    public static final String CHECKBOX_LDAP_SET_USERPASSWORD  = &quot;checkboxldapsetuserpassword&quot;;
+    public static final String CHECKBOX_ONLYUSEQUEUE           = &quot;textfieldonlyusequeue&quot;;
+    public static final String CHECKBOX_KEEPPUBLISHEDINQUEUE   = &quot;textfieldkeeppublishedinqueue&quot;;
+    public static final String CHECKBOX_USEQUEUEFORCRLS        = &quot;textfieldusequeueforcrls&quot;;
+    public static final String CHECKBOX_USEQUEUEFORCERTIFICATES = &quot;textfieldusequeueforcertificates&quot;;
+    public static final String CHECKBOX_VA_STORECERT           = &quot;textfieldvastorecert&quot;;
+    public static final String CHECKBOX_VA_STORECRL            = &quot;textfieldvastorecrl&quot;;
+    public static final String CHECKBOX_VA_ONLY_PUBLISH_REVOKED = &quot;checkboxonlypublishrevoked&quot;;
+    
+    public static final String SELECT_LDAPUSEFIELDINLDAPDN     = &quot;selectldapusefieldsinldapdn&quot;;
+
+    public static final String CHECKBOX_ADUSEPASSWORD          = &quot;checkboxadusepassword&quot;;
+    public static final String SELECT_ADUSERACCOUNTCONTROL     = &quot;selectaduseraccountcontrol&quot;;
+    public static final String SELECT_ADSAMACCOUNTNAME         = &quot;selectsamaccountname&quot;;
+    public static final String TEXTFIELD_ADUSERDESCRIPTION     = &quot;textfieldaduserdescription&quot;;
+
+    public static final String PAGE_PUBLISHER                  = &quot;publisherpage.jspf&quot;;
+    public static final String PAGE_PUBLISHERS                 = &quot;publisherspage.jspf&quot;;
+
+    private EjbcaWebBean ejbcawebbean;
+    
+    private CAInterfaceBean cabean;
+<span class="fc" id="L160">    private boolean initialized=false;</span>
+<span class="fc" id="L161">    private boolean  publisherexists       = false;</span>
+<span class="fc" id="L162">    private boolean  publisherdeletefailed = false;</span>
+<span class="fc" id="L163">    private String   publisherDeleteFailedMessage = &quot;&quot;;</span>
+<span class="fc" id="L164">    private boolean  publisherEditFailed = false;</span>
+<span class="fc" id="L165">    private String   publisherEditMessage = &quot;&quot;;</span>
+<span class="fc" id="L166">    private boolean  connectionmessage = false;</span>
+<span class="fc" id="L167">    private boolean  connectionsuccessful = false;</span>
+<span class="fc" id="L168">    private String   connectionerrormessage = &quot;&quot;;</span>
+<span class="fc" id="L169">    private BasePublisher publisherdata = null;</span>
+
+
+<span class="fc" id="L172">    private String publishername = null;</span>
+<span class="fc" id="L173">    private Integer publisherId = null;</span>
+
+    /** Creates new LogInterfaceBean */
+<span class="fc" id="L176">    public EditPublisherJSPHelper(){</span>
+<span class="fc" id="L177">    }</span>
+    // Public methods.
+    /**
+     * Method that initialized the bean.
+     *
+     * @param request is a reference to the http request.
+     * @param ejbcawebbean Web bean
+     * @param cabean CA bean
+     * @throws Exception Fail
+     */
+    public void initialize(HttpServletRequest request, EjbcaWebBean ejbcawebbean,
+            CAInterfaceBean cabean) throws  Exception{
+
+<span class="nc bnc" id="L190" title="All 2 branches missed.">        if(!initialized){</span>
+<span class="nc" id="L191">            this.cabean = cabean;</span>
+<span class="nc" id="L192">            this.ejbcawebbean = ejbcawebbean;</span>
+<span class="nc" id="L193">            initialized = true;</span>
+
+        }
+<span class="nc" id="L196">    }</span>
+
+    @SuppressWarnings({ &quot;deprecation&quot; })
+    public String parseRequest(HttpServletRequest request) throws AuthorizationDeniedException, PublisherDoesntExistsException, PublisherExistsException{
+<span class="nc" id="L200">        String includefile = PAGE_PUBLISHERS;</span>
+<span class="nc" id="L201">        String publisher = null;</span>
+<span class="nc" id="L202">        PublisherDataHandler handler  = cabean.getPublisherDataHandler();</span>
+<span class="nc" id="L203">        String action = null;</span>
+
+        try {
+<span class="nc" id="L206">            RequestHelper.setDefaultCharacterEncoding(request);</span>
+<span class="nc" id="L207">        } catch (UnsupportedEncodingException e1) {</span>
+            // itgnore
+<span class="nc" id="L209">        }</span>
+<span class="nc" id="L210">        action = request.getParameter(ACTION);</span>
+<span class="nc bnc" id="L211" title="All 2 branches missed.">        if( action != null){</span>
+<span class="nc bnc" id="L212" title="All 2 branches missed.">            if( action.equals(ACTION_EDIT_PUBLISHERS)){</span>
+<span class="nc bnc" id="L213" title="All 2 branches missed.">                if( request.getParameter(BUTTON_EDIT_PUBLISHER) != null){</span>
+<span class="nc" id="L214">                    publisher = request.getParameter(SELECT_PUBLISHER);</span>
+<span class="nc bnc" id="L215" title="All 2 branches missed.">                    if(publisher != null){</span>
+<span class="nc bnc" id="L216" title="All 2 branches missed.">                        if(!publisher.trim().equals(&quot;&quot;)){</span>
+<span class="nc" id="L217">                            includefile=PAGE_PUBLISHER;</span>
+<span class="nc" id="L218">                            this.publishername = publisher;</span>
+<span class="nc" id="L219">                            this.publisherdata = handler.getPublisher(publishername);</span>
+<span class="nc" id="L220">                            this.publisherId = publisherdata.getPublisherId();</span>
+                        }
+                        else{
+<span class="nc" id="L223">                            publisher= null;</span>
+                        }
+                    }
+<span class="nc bnc" id="L226" title="All 2 branches missed.">                    if(publisher == null){</span>
+<span class="nc" id="L227">                        includefile=PAGE_PUBLISHERS;</span>
+                    }
+                }
+<span class="nc bnc" id="L230" title="All 2 branches missed.">                if( request.getParameter(BUTTON_DELETE_PUBLISHER) != null) {</span>
+<span class="nc" id="L231">                    publisher = request.getParameter(SELECT_PUBLISHER);</span>
+<span class="nc bnc" id="L232" title="All 2 branches missed.">                    if(publisher != null){</span>
+<span class="nc bnc" id="L233" title="All 2 branches missed.">                        if(!publisher.trim().equals(&quot;&quot;)){</span>
+                            try {
+<span class="nc" id="L235">                                handler.removePublisher(publisher);</span>
+<span class="nc" id="L236">                            } catch (ReferencesToItemExistException e) {</span>
+<span class="nc" id="L237">                                setPublisherdeletefailed(true);</span>
+<span class="nc" id="L238">                                setPublisherDeleteFailedMessage(e.getMessage());</span>
+<span class="nc" id="L239">                            }</span>
+                        }
+                    }
+<span class="nc" id="L242">                    includefile=PAGE_PUBLISHERS;</span>
+                }
+<span class="nc bnc" id="L244" title="All 2 branches missed.">                if( request.getParameter(BUTTON_RENAME_PUBLISHER) != null){</span>
+                    // Rename selected publisher and display profilespage.
+<span class="nc" id="L246">                    String newpublishername = request.getParameter(TEXTFIELD_PUBLISHERNAME);</span>
+<span class="nc" id="L247">                    String oldpublishername = request.getParameter(SELECT_PUBLISHER);</span>
+<span class="nc bnc" id="L248" title="All 4 branches missed.">                    if(oldpublishername != null &amp;&amp; newpublishername != null){</span>
+<span class="nc bnc" id="L249" title="All 4 branches missed.">                        if(!newpublishername.trim().equals(&quot;&quot;) &amp;&amp; !oldpublishername.trim().equals(&quot;&quot;)){</span>
+                            try{
+<span class="nc" id="L251">                                handler.renamePublisher(oldpublishername.trim(),newpublishername.trim());</span>
+<span class="nc" id="L252">                            }catch( PublisherExistsException e){</span>
+<span class="nc" id="L253">                                setPublisherexists(true);</span>
+<span class="nc" id="L254">                            }</span>
+                        }
+                    }
+<span class="nc" id="L257">                    includefile=PAGE_PUBLISHERS;</span>
+                }
+<span class="nc bnc" id="L259" title="All 2 branches missed.">                if( request.getParameter(BUTTON_ADD_PUBLISHER) != null){</span>
+<span class="nc" id="L260">                    publisher = request.getParameter(TEXTFIELD_PUBLISHERNAME);</span>
+<span class="nc bnc" id="L261" title="All 2 branches missed.">                    if(publisher != null){</span>
+<span class="nc bnc" id="L262" title="All 2 branches missed.">                        if(!publisher.trim().equals(&quot;&quot;)){</span>
+                            try{
+<span class="nc" id="L264">                                handler.addPublisher(publisher.trim(), new LdapPublisher());</span>
+<span class="nc" id="L265">                            }catch( PublisherExistsException e){</span>
+<span class="nc" id="L266">                                setPublisherexists(true);</span>
+<span class="nc" id="L267">                            }</span>
+                        }
+                    }
+<span class="nc" id="L270">                    includefile=PAGE_PUBLISHERS;</span>
+                }
+<span class="nc bnc" id="L272" title="All 2 branches missed.">                if( request.getParameter(BUTTON_CLONE_PUBLISHER) != null){</span>
+<span class="nc" id="L273">                    String newpublishername = request.getParameter(TEXTFIELD_PUBLISHERNAME);</span>
+<span class="nc" id="L274">                    String oldpublishername = request.getParameter(SELECT_PUBLISHER);</span>
+<span class="nc bnc" id="L275" title="All 4 branches missed.">                    if(oldpublishername != null &amp;&amp; newpublishername != null){</span>
+<span class="nc bnc" id="L276" title="All 4 branches missed.">                        if(!newpublishername.trim().equals(&quot;&quot;) &amp;&amp; !oldpublishername.trim().equals(&quot;&quot;)){</span>
+<span class="nc" id="L277">                            handler.clonePublisher(oldpublishername.trim(),newpublishername.trim());</span>
+                        }
+                    }
+<span class="nc" id="L280">                    includefile=PAGE_PUBLISHERS;</span>
+                }
+            }
+<span class="nc bnc" id="L283" title="All 2 branches missed.">            if( action.equals(ACTION_EDIT_PUBLISHER)){</span>
+                // Display edit access rules page.
+<span class="nc" id="L285">                publisher = request.getParameter(HIDDEN_PUBLISHERNAME);</span>
+<span class="nc" id="L286">                this.publishername = publisher;</span>
+<span class="nc bnc" id="L287" title="All 2 branches missed.">                if(publisher != null){</span>
+<span class="nc bnc" id="L288" title="All 2 branches missed.">                    if(!publisher.trim().equals(&quot;&quot;)){</span>
+<span class="nc bnc" id="L289" title="All 4 branches missed.">                        if (request.getParameter(BUTTON_SAVE) != null || request.getParameter(BUTTON_TESTCONNECTION) != null) {</span>
+<span class="nc bnc" id="L290" title="All 2 branches missed.">                            if (publisherdata == null) {</span>
+<span class="nc" id="L291">                                int tokentype = Integer.parseInt(request.getParameter(HIDDEN_PUBLISHERTYPE));</span>
+<span class="nc bnc" id="L292" title="All 7 branches missed.">                                switch (tokentype) {</span>
+                                case PublisherConst.TYPE_CUSTOMPUBLISHERCONTAINER:
+<span class="nc" id="L294">                                    publisherdata = new CustomPublisherContainer();</span>
+<span class="nc" id="L295">                                    break;</span>
+                                case PublisherConst.TYPE_LDAPPUBLISHER:
+<span class="nc" id="L297">                                    publisherdata = new LdapPublisher();</span>
+<span class="nc" id="L298">                                    break;</span>
+                                case PublisherConst.TYPE_LDAPSEARCHPUBLISHER:
+<span class="nc" id="L300">                                    publisherdata = new LdapSearchPublisher();</span>
+<span class="nc" id="L301">                                    break;</span>
+                                case PublisherConst.TYPE_ADPUBLISHER:
+<span class="nc" id="L303">                                    publisherdata = new ActiveDirectoryPublisher();</span>
+<span class="nc" id="L304">                                    break;</span>
+                                case PublisherConst.TYPE_VAPUBLISHER:
+<span class="nc" id="L306">                                    publisherdata = null;</span>
+<span class="nc" id="L307">                                    break;</span>
+                                case PublisherConst.TYPE_MULTIGROUPPUBLISHER:
+<span class="nc" id="L309">                                    publisherdata = new MultiGroupPublisher();</span>
+<span class="nc" id="L310">                                    break;</span>
+                                default:
+                                    break;
+                                }                     
+                            }
+                            // Save changes.
+
+                            // General settings
+<span class="nc" id="L318">                            String value = request.getParameter(TEXTAREA_DESCRIPTION);</span>
+<span class="nc bnc" id="L319" title="All 2 branches missed.">                            if(value != null){</span>
+<span class="nc" id="L320">                                value = value.trim();</span>
+<span class="nc" id="L321">                                publisherdata.setDescription(value);</span>
+                            }
+<span class="nc" id="L323">                        	value = request.getParameter(CHECKBOX_ONLYUSEQUEUE);</span>
+<span class="nc bnc" id="L324" title="All 4 branches missed.">                        	publisherdata.setOnlyUseQueue(value != null &amp;&amp; value.equals(CHECKBOX_VALUE));</span>
+<span class="nc" id="L325">                        	value = request.getParameter(CHECKBOX_KEEPPUBLISHEDINQUEUE);</span>
+<span class="nc bnc" id="L326" title="All 4 branches missed.">                        	publisherdata.setKeepPublishedInQueue(value != null &amp;&amp; value.equals(CHECKBOX_VALUE));</span>
+<span class="nc" id="L327">                        	value = request.getParameter(CHECKBOX_USEQUEUEFORCRLS);</span>
+<span class="nc bnc" id="L328" title="All 4 branches missed.">                        	publisherdata.setUseQueueForCRLs(value != null &amp;&amp; value.equals(CHECKBOX_VALUE));</span>
+<span class="nc" id="L329">                        	value = request.getParameter(CHECKBOX_USEQUEUEFORCERTIFICATES);</span>
+<span class="nc bnc" id="L330" title="All 4 branches missed.">                        	publisherdata.setUseQueueForCertificates(value != null &amp;&amp; value.equals(CHECKBOX_VALUE));</span>
+
+<span class="nc bnc" id="L332" title="All 2 branches missed.">                            if(publisherdata instanceof CustomPublisherContainer){</span>
+<span class="nc" id="L333">                                final CustomPublisherContainer custompublisherdata = ((CustomPublisherContainer) publisherdata);</span>
+<span class="nc" id="L334">                                String customClass = request.getParameter(TEXTFIELD_CUSTOMCLASSPATH);</span>
+<span class="nc" id="L335">                                String selectClass = request.getParameter(SELECT_CUSTOMCLASS);</span>
+<span class="nc bnc" id="L336" title="All 4 branches missed.">                                if(selectClass != null &amp;&amp; !selectClass.isEmpty()) {</span>
+<span class="nc" id="L337">                                    value = selectClass.trim();</span>
+<span class="nc" id="L338">                                    custompublisherdata.setClassPath(value);</span>
+<span class="nc bnc" id="L339" title="All 4 branches missed.">                                } else if (customClass != null &amp;&amp; !customClass.isEmpty()) {</span>
+<span class="nc" id="L340">                                    value = customClass.trim();</span>
+<span class="nc" id="L341">                                    custompublisherdata.setClassPath(value);</span>
+                                } else {
+                                    // can happen if the user has Javascript turned off
+<span class="nc" id="L344">                                    throw new IllegalArgumentException(&quot;No class path selected&quot;);</span>
+                                }
+<span class="nc bnc" id="L346" title="All 2 branches missed.">                                if (custompublisherdata.isCustomUiRenderingSupported()) {</span>
+<span class="nc" id="L347">                                    final StringBuilder sb = new StringBuilder();</span>
+<span class="nc bnc" id="L348" title="All 2 branches missed.">                                    for (final CustomPublisherProperty customPublisherProperty : custompublisherdata.getCustomUiPropertyList(this.cabean.getAuthenticationToken())) {</span>
+<span class="nc" id="L349">                                        final String customValue = request.getParameter(customPublisherProperty.getName());</span>
+<span class="nc bnc" id="L350" title="All 2 branches missed.">                                        if (customPublisherProperty.getType()==CustomPublisherProperty.UI_BOOLEAN) {</span>
+<span class="nc bnc" id="L351" title="All 2 branches missed.">                                            if (customValue==null) {</span>
+<span class="nc" id="L352">                                                sb.append(customPublisherProperty.getName()).append('=').append(&quot;false&quot;).append('\n');</span>
+                                            } else {
+<span class="nc" id="L354">                                                sb.append(customPublisherProperty.getName()).append('=').append(&quot;true&quot;).append('\n');</span>
+                                            }
+                                        } else {
+<span class="nc bnc" id="L357" title="All 2 branches missed.">                                            if (customValue!=null) {</span>
+<span class="nc" id="L358">                                                sb.append(customPublisherProperty.getName()).append('=').append(customValue).append('\n');</span>
+                                            }
+                                        }
+<span class="nc" id="L361">                                    }</span>
+									try {
+<span class="nc" id="L363">										custompublisherdata.setPropertyData(sb.toString());</span>
+<span class="nc" id="L364">									} catch (PublisherException e) {</span>
+<span class="nc" id="L365">										setPublisherEditFailed(true);</span>
+<span class="nc" id="L366">										setPublisherEditMessage(e.getMessage());</span>
+<span class="nc" id="L367">									}</span>
+<span class="nc" id="L368">                                } else {</span>
+<span class="nc" id="L369">                                    value = request.getParameter(TEXTAREA_CUSTOMPROPERTIES);</span>
+<span class="nc bnc" id="L370" title="All 2 branches missed.">                                    if(value != null){</span>
+<span class="nc" id="L371">                                        value = value.trim();</span>
+    									try {
+<span class="nc" id="L373">    										custompublisherdata.setPropertyData(value);</span>
+<span class="nc" id="L374">    									} catch (PublisherException e) {</span>
+<span class="nc" id="L375">    										setPublisherEditFailed(true);</span>
+<span class="nc" id="L376">    										setPublisherEditMessage(e.getMessage());</span>
+<span class="nc" id="L377">    									}</span>
+                                    }
+                                }
+                            }
+
+<span class="nc bnc" id="L382" title="All 2 branches missed.">                            if(publisherdata instanceof LdapPublisher){</span>
+<span class="nc" id="L383">                                LdapPublisher ldappublisher = (LdapPublisher) publisherdata;</span>
+
+<span class="nc" id="L385">                                value = request.getParameter(TEXTFIELD_LDAPHOSTNAME);</span>
+<span class="nc bnc" id="L386" title="All 2 branches missed.">                                if(value != null){</span>
+<span class="nc" id="L387">                                    value = value.trim();</span>
+<span class="nc" id="L388">                                    ldappublisher.setHostnames(value);</span>
+                                }
+<span class="nc" id="L390">                                value = request.getParameter(TEXTFIELD_LDAPPORT);</span>
+<span class="nc bnc" id="L391" title="All 2 branches missed.">                                if(value != null){</span>
+<span class="nc" id="L392">                                    value = value.trim();</span>
+<span class="nc" id="L393">                                    ldappublisher.setPort(value);</span>
+                                }
+<span class="nc" id="L395">                                value = request.getParameter(TEXTFIELD_LDAPBASEDN);</span>
+<span class="nc bnc" id="L396" title="All 2 branches missed.">                                if(value != null){</span>
+<span class="nc" id="L397">                                    value = value.trim();</span>
+<span class="nc" id="L398">                                    ldappublisher.setBaseDN(value);</span>
+                                }
+<span class="nc" id="L400">                                value = request.getParameter(TEXTFIELD_LDAPLOGINDN);</span>
+<span class="nc bnc" id="L401" title="All 2 branches missed.">                                if(value != null){</span>
+<span class="nc" id="L402">                                    value = value.trim();</span>
+<span class="nc" id="L403">                                    ldappublisher.setLoginDN(value);</span>
+                                }
+<span class="nc" id="L405">                                value = request.getParameter(PASSWORD_LDAPLOGINPASSWORD);</span>
+<span class="nc bnc" id="L406" title="All 2 branches missed.">                                if(value != null){</span>
+<span class="nc" id="L407">                                    value = value.trim();</span>
+                                    // If we have a password that wasn't shown in the html page, and this wasn't changed by the user
+                                    // we will not edit the old password. This is a &quot;security&quot; feature so we don't send the actual password
+                                    // to be available in clear text in the users web browser
+<span class="nc bnc" id="L411" title="All 2 branches missed.">                                    if (!PASSWORD_LDAPLOGINPASSWORDPLACEHOLDER.equals(value)) {</span>
+<span class="nc" id="L412">                                        ldappublisher.setLoginPassword(value);</span>
+                                    }
+                                }
+<span class="nc" id="L415">                                value = request.getParameter(TEXTFIELD_LDAPTIMEOUT);</span>
+<span class="nc bnc" id="L416" title="All 2 branches missed.">                                if(value != null){</span>
+<span class="nc" id="L417">                                    value = value.trim();</span>
+<span class="nc" id="L418">                                    ldappublisher.setConnectionTimeOut(Integer.parseInt(value));</span>
+                                }
+<span class="nc" id="L420">                                value = request.getParameter(TEXTFIELD_LDAPREADTIMEOUT);</span>
+<span class="nc bnc" id="L421" title="All 2 branches missed.">                                if(value != null){</span>
+<span class="nc" id="L422">                                    value = value.trim();</span>
+<span class="nc" id="L423">                                    ldappublisher.setReadTimeOut(Integer.parseInt(value));</span>
+                                }
+<span class="nc" id="L425">                                value = request.getParameter(TEXTFIELD_LDAPSTORETIMEOUT);</span>
+<span class="nc bnc" id="L426" title="All 2 branches missed.">                                if(value != null){</span>
+<span class="nc" id="L427">                                    value = value.trim();</span>
+<span class="nc" id="L428">                                    ldappublisher.setStoreTimeOut(Integer.parseInt(value));</span>
+                                }
+<span class="nc" id="L430">                                value = request.getParameter(TEXTFIELD_LDAPUSEROBJECTCLASS);</span>
+<span class="nc bnc" id="L431" title="All 2 branches missed.">                                if(value != null){</span>
+<span class="nc" id="L432">                                    value = value.trim();</span>
+<span class="nc" id="L433">                                    ldappublisher.setUserObjectClass(value);</span>
+                                }
+<span class="nc" id="L435">                                value = request.getParameter(TEXTFIELD_LDAPCAOBJECTCLASS);</span>
+<span class="nc bnc" id="L436" title="All 2 branches missed.">                                if(value != null){</span>
+<span class="nc" id="L437">                                    value = value.trim();</span>
+<span class="nc" id="L438">                                    ldappublisher.setCAObjectClass(value);</span>
+                                }
+<span class="nc" id="L440">                                value = request.getParameter(TEXTFIELD_LDAPUSERCERTATTRIBUTE);</span>
+<span class="nc bnc" id="L441" title="All 2 branches missed.">                                if(value != null){</span>
+<span class="nc" id="L442">                                    value = value.trim();</span>
+<span class="nc" id="L443">                                    ldappublisher.setUserCertAttribute(value);</span>
+                                }
+<span class="nc" id="L445">                                value = request.getParameter(TEXTFIELD_LDAPCACERTATTRIBUTE);</span>
+<span class="nc bnc" id="L446" title="All 2 branches missed.">                                if(value != null){</span>
+<span class="nc" id="L447">                                    value = value.trim();</span>
+<span class="nc" id="L448">                                    ldappublisher.setCACertAttribute(value);</span>
+                                }
+<span class="nc" id="L450">                                value = request.getParameter(TEXTFIELD_LDAPCRLATTRIBUTE);</span>
+<span class="nc bnc" id="L451" title="All 2 branches missed.">                                if(value != null){</span>
+<span class="nc" id="L452">                                    value = value.trim();</span>
+<span class="nc" id="L453">                                    ldappublisher.setCRLAttribute(value);</span>
+                                }
+<span class="nc" id="L455">                                value = request.getParameter(TEXTFIELD_LDAPDELTACRLATTRIBUTE);</span>
+<span class="nc bnc" id="L456" title="All 2 branches missed.">                                if(value != null){</span>
+<span class="nc" id="L457">                                	value = value.trim();</span>
+<span class="nc" id="L458">                                	ldappublisher.setDeltaCRLAttribute(value);</span>
+                                }
+<span class="nc" id="L460">                                value = request.getParameter(TEXTFIELD_LDAPARLATTRIBUTE);</span>
+<span class="nc bnc" id="L461" title="All 2 branches missed.">                                if(value != null){</span>
+<span class="nc" id="L462">                                    value = value.trim();</span>
+<span class="nc" id="L463">                                    ldappublisher.setARLAttribute(value);</span>
+                                }
+
+<span class="nc" id="L466">                                value = request.getParameter(RADIO_LDAPCONNECTIONSECURITY);</span>
+<span class="nc bnc" id="L467" title="All 2 branches missed.">                                if(value != null){</span>
+<span class="nc" id="L468">                                    ldappublisher.setConnectionSecurity(ConnectionSecurity.valueOf(value));</span>
+                                }
+
+<span class="nc" id="L471">                                value = request.getParameter(CHECKBOX_LDAPCREATENONEXISTING);</span>
+<span class="nc bnc" id="L472" title="All 2 branches missed.">                                if(value != null) {</span>
+<span class="nc" id="L473">                                    ldappublisher.setCreateNonExistingUsers(value.equals(CHECKBOX_VALUE));</span>
+                                }
+                                else {
+<span class="nc" id="L476">                                    ldappublisher.setCreateNonExistingUsers(false);</span>
+                                }
+<span class="nc" id="L478">                                value = request.getParameter(CHECKBOX_LDAPMODIFYEXISTING);</span>
+<span class="nc bnc" id="L479" title="All 2 branches missed.">                                if(value != null) {</span>
+<span class="nc" id="L480">                                    ldappublisher.setModifyExistingUsers(value.equals(CHECKBOX_VALUE));</span>
+                                } 
+                                else {
+<span class="nc" id="L483">                                    ldappublisher.setModifyExistingUsers(false);</span>
+                                }
+<span class="nc" id="L485">                                value = request.getParameter(CHECKBOX_LDAPMODIFYEXISTINGATTRIBUTES);</span>
+<span class="nc bnc" id="L486" title="All 2 branches missed.">                                if(value != null) {</span>
+<span class="nc" id="L487">                                    ldappublisher.setModifyExistingAttributes(value.equals(CHECKBOX_VALUE));</span>
+                                }
+                                else {
+<span class="nc" id="L490">                                    ldappublisher.setModifyExistingAttributes(false);</span>
+                                }
+<span class="nc" id="L492">                                value = request.getParameter(CHECKBOX_LDAPADDNONEXISTING);</span>
+<span class="nc bnc" id="L493" title="All 2 branches missed.">                                if(value != null) {</span>
+<span class="nc" id="L494">                                    ldappublisher.setAddNonExistingAttributes(value.equals(CHECKBOX_VALUE));</span>
+                                }
+                                else {
+<span class="nc" id="L497">                                    ldappublisher.setAddNonExistingAttributes(false);</span>
+                                }
+<span class="nc" id="L499">                                value = request.getParameter(CHECKBOX_LDAP_CREATEINTERMEDIATENODES);</span>
+<span class="nc bnc" id="L500" title="All 2 branches missed.">                                if(value != null) {</span>
+<span class="nc" id="L501">                                    ldappublisher.setCreateIntermediateNodes(value.equals(CHECKBOX_VALUE));</span>
+                                }
+                                else {
+<span class="nc" id="L504">                                    ldappublisher.setCreateIntermediateNodes(false);</span>
+                                }
+<span class="nc" id="L506">                                value = request.getParameter(CHECKBOX_LDAPADDMULTIPLECERTIFICATES);</span>
+<span class="nc bnc" id="L507" title="All 2 branches missed.">                                if(value != null) {</span>
+<span class="nc" id="L508">                                    ldappublisher.setAddMultipleCertificates(value.equals(CHECKBOX_VALUE));</span>
+                                }
+                                else {
+<span class="nc" id="L511">                                    ldappublisher.setAddMultipleCertificates(false);</span>
+                                }
+<span class="nc" id="L513">                                value = request.getParameter(CHECKBOX_LDAP_REVOKE_REMOVECERTIFICATE);</span>
+<span class="nc bnc" id="L514" title="All 2 branches missed.">                                if(value != null) {</span>
+<span class="nc" id="L515">                                    ldappublisher.setRemoveRevokedCertificates(value.equals(CHECKBOX_VALUE));</span>
+                                }
+                                else {
+<span class="nc" id="L518">                                    ldappublisher.setRemoveRevokedCertificates(false);</span>
+                                }
+<span class="nc" id="L520">                                value = request.getParameter(CHECKBOX_LDAP_REVOKE_REMOVEUSERONCERTREVOKE);</span>
+<span class="nc bnc" id="L521" title="All 2 branches missed.">                                if(value != null) {</span>
+<span class="nc" id="L522">                                    ldappublisher.setRemoveUsersWhenCertRevoked(value.equals(CHECKBOX_VALUE));</span>
+                                }
+                                else {
+<span class="nc" id="L525">                                    ldappublisher.setRemoveUsersWhenCertRevoked(false);</span>
+                                }
+<span class="nc" id="L527">                                value = request.getParameter(CHECKBOX_LDAP_SET_USERPASSWORD);</span>
+<span class="nc bnc" id="L528" title="All 2 branches missed.">                                if(value != null) {</span>
+<span class="nc" id="L529">                                    ldappublisher.setUserPassword(value.equals(CHECKBOX_VALUE));</span>
+                                } else {
+<span class="nc" id="L531">                                    ldappublisher.setUserPassword(false);</span>
+                                }
+                                
+<span class="nc" id="L534">                                String[] values = request.getParameterValues(SELECT_LDAPUSEFIELDINLDAPDN);</span>
+<span class="nc bnc" id="L535" title="All 2 branches missed.">                                if(values != null){</span>
+<span class="nc" id="L536">                                    ArrayList&lt;Integer&gt; usefields = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L537" title="All 2 branches missed.">                                    for(int i=0;i&lt; values.length;i++){</span>
+<span class="nc" id="L538">                                        usefields.add(Integer.valueOf(values[i]));</span>
+                                    }
+
+<span class="nc" id="L541">                                    ldappublisher.setUseFieldInLdapDN(usefields);</span>
+                                }
+                            }
+
+
+<span class="nc bnc" id="L546" title="All 2 branches missed.">                            if (publisherdata instanceof LdapSearchPublisher) {</span>
+<span class="nc" id="L547">                              LdapSearchPublisher ldapsearchpublisher = (LdapSearchPublisher) publisherdata;</span>
+
+<span class="nc" id="L549">                              value = request.getParameter(TEXTFIELD_LDAPSEARCHBASEDN);</span>
+<span class="nc bnc" id="L550" title="All 2 branches missed.">                              if (value != null) {</span>
+<span class="nc" id="L551">                                value = value.trim();</span>
+<span class="nc" id="L552">                                ldapsearchpublisher.setSearchBaseDN(value);</span>
+                              }
+<span class="nc" id="L554">                              value = request.getParameter(TEXTFIELD_LDAPSEARCHFILTER);</span>
+<span class="nc bnc" id="L555" title="All 2 branches missed.">                              if (value != null) {</span>
+<span class="nc" id="L556">                                value = value.trim();</span>
+<span class="nc" id="L557">                                ldapsearchpublisher.setSearchFilter(value);</span>
+                              }
+                            }
+
+
+<span class="nc bnc" id="L562" title="All 2 branches missed.">                            if(publisherdata instanceof ActiveDirectoryPublisher){</span>
+<span class="nc" id="L563">                                ActiveDirectoryPublisher adpublisher = (ActiveDirectoryPublisher) publisherdata;</span>
+
+<span class="nc" id="L565">                                value = request.getParameter(SELECT_ADSAMACCOUNTNAME);</span>
+<span class="nc bnc" id="L566" title="All 2 branches missed.">                                if(value != null){</span>
+<span class="nc" id="L567">                                    value = value.trim();</span>
+<span class="nc" id="L568">                                    adpublisher.setSAMAccountName(Integer.parseInt(value));</span>
+                                }
+
+<span class="nc" id="L571">                                value = request.getParameter(TEXTFIELD_ADUSERDESCRIPTION);</span>
+<span class="nc bnc" id="L572" title="All 2 branches missed.">                                if(value != null){</span>
+<span class="nc" id="L573">                                    value = value.trim();</span>
+<span class="nc" id="L574">                                    adpublisher.setUserDescription(value);</span>
+                                }
+
+<span class="nc" id="L577">                                value = request.getParameter(CHECKBOX_ADUSEPASSWORD);</span>
+<span class="nc bnc" id="L578" title="All 2 branches missed.">                                if(value != null) {</span>
+<span class="nc" id="L579">                                    adpublisher.setUseUserPassword(value.equals(CHECKBOX_VALUE));</span>
+                                }
+                                else {
+<span class="nc" id="L582">                                    adpublisher.setUseUserPassword(false);</span>
+                                }
+<span class="nc" id="L584">                                value = request.getParameter(SELECT_ADUSERACCOUNTCONTROL);</span>
+<span class="nc bnc" id="L585" title="All 2 branches missed.">                                if(value != null) {</span>
+<span class="nc" id="L586">                                    value = value.trim();</span>
+<span class="nc" id="L587">                                    adpublisher.setUserAccountControl(Integer.parseInt(value));</span>
+                                }
+                            }
+
+<span class="nc bnc" id="L591" title="All 2 branches missed.">                            if (publisherdata instanceof MultiGroupPublisher) {</span>
+<span class="nc" id="L592">                                MultiGroupPublisher multiGroupPublisher = (MultiGroupPublisher) this.publisherdata;</span>
+<span class="nc" id="L593">                                String groups = request.getParameter(TEXTAREA_GROUPS);</span>
+<span class="nc" id="L594">                                HashMap&lt;String, Integer&gt; publisherNameToIdMap = ejbcawebbean.getEjb().getPublisherSession().getPublisherNameToIdMap();</span>
+                                try {
+<span class="nc" id="L596">                                    List&lt;TreeSet&lt;Integer&gt;&gt; multiPublisherGroups = convertMultiPublishersStringToData(publisherNameToIdMap, groups);</span>
+<span class="nc" id="L597">                                    multiGroupPublisher.setPublisherGroups(multiPublisherGroups);</span>
+<span class="nc" id="L598">                                } catch (PublisherDoesntExistsException | PublisherExistsException e){</span>
+<span class="nc" id="L599">                                    publisherEditFailed = true;</span>
+<span class="nc" id="L600">                                    publisherEditMessage = e.getMessage();</span>
+<span class="nc" id="L601">                                    return PAGE_PUBLISHER;</span>
+<span class="nc" id="L602">                                }</span>
+                            }
+
+<span class="nc bnc" id="L605" title="All 2 branches missed.">                            if(request.getParameter(BUTTON_SAVE) != null){</span>
+<span class="nc" id="L606">                                handler.changePublisher(publisher,publisherdata);</span>
+<span class="nc" id="L607">                                includefile=PAGE_PUBLISHERS;</span>
+                            }
+<span class="nc bnc" id="L609" title="All 2 branches missed.">                            if(request.getParameter(BUTTON_TESTCONNECTION)!= null){</span>
+<span class="nc" id="L610">                                setConnectionmessage(true);</span>
+<span class="nc" id="L611">                                handler.changePublisher(publisher,publisherdata);</span>
+                                try{
+<span class="nc" id="L613">                                    handler.testConnection(publisher);</span>
+<span class="nc" id="L614">                                    setConnectionsuccessful(true);</span>
+<span class="nc" id="L615">                                }catch(PublisherConnectionException pce){</span>
+<span class="nc" id="L616">                                    setConnectionerrormessage(pce.getMessage());</span>
+<span class="nc" id="L617">                                }</span>
+<span class="nc" id="L618">                                includefile=PAGE_PUBLISHER;</span>
+                            }
+
+                        }
+<span class="nc bnc" id="L622" title="All 2 branches missed.">                        if(request.getParameter(BUTTON_CANCEL) != null){</span>
+                            // Don't save changes.
+<span class="nc" id="L624">                            includefile=PAGE_PUBLISHERS;</span>
+                        }
+
+                    }
+                }
+            }
+
+<span class="nc bnc" id="L631" title="All 2 branches missed.">            if( action.equals(ACTION_CHANGE_PUBLISHERTYPE)){</span>
+<span class="nc" id="L632">                this.publishername = request.getParameter(HIDDEN_PUBLISHERNAME);</span>
+<span class="nc" id="L633">                String value = request.getParameter(SELECT_PUBLISHERTYPE);</span>
+<span class="nc bnc" id="L634" title="All 2 branches missed.">                if(value!=null){</span>
+<span class="nc" id="L635">                    int dashPos = value.indexOf('-');</span>
+<span class="nc bnc" id="L636" title="All 2 branches missed.">                    if (dashPos==-1) {</span>
+<span class="nc" id="L637">                        int profiletype = Integer.parseInt(value);</span>
+<span class="nc bnc" id="L638" title="All 6 branches missed.">                        switch(profiletype){</span>
+                        case PublisherConst.TYPE_CUSTOMPUBLISHERCONTAINER :
+<span class="nc" id="L640">                            publisherdata = new CustomPublisherContainer();</span>
+<span class="nc" id="L641">                            break;</span>
+                        case PublisherConst.TYPE_LDAPPUBLISHER :
+<span class="nc" id="L643">                            publisherdata =  new LdapPublisher();</span>
+<span class="nc" id="L644">                            break;</span>
+                        case PublisherConst.TYPE_LDAPSEARCHPUBLISHER:
+<span class="nc" id="L646">                            publisherdata = new LdapSearchPublisher();</span>
+<span class="nc" id="L647">                            break;</span>
+                        case PublisherConst.TYPE_ADPUBLISHER :
+<span class="nc" id="L649">                            publisherdata =  new ActiveDirectoryPublisher();</span>
+<span class="nc" id="L650">                            break;</span>
+                        case PublisherConst.TYPE_MULTIGROUPPUBLISHER :
+<span class="nc" id="L652">                            publisherdata =  new MultiGroupPublisher();</span>
+                            break;
+                        }
+<span class="nc" id="L655">                    } else {</span>
+<span class="nc" id="L656">                        publisherdata = new CustomPublisherContainer();</span>
+<span class="nc" id="L657">                        final String customClassName = value.substring(dashPos+1);</span>
+<span class="nc bnc" id="L658" title="All 2 branches missed.">                        if (getCustomClasses().contains(customClassName)) {</span>
+<span class="nc" id="L659">                            ((CustomPublisherContainer)publisherdata).setClassPath(customClassName);</span>
+                        }
+                    }
+                }
+
+<span class="nc" id="L664">                includefile=PAGE_PUBLISHER;</span>
+            }
+        }
+
+<span class="nc" id="L668">        return includefile;</span>
+    }
+    
+<span class="fc" id="L671">    private static final int[] AVAILABLEPUBLISHER_TYPES = new int[] {</span>
+        PublisherConst.TYPE_LDAPPUBLISHER, PublisherConst.TYPE_LDAPSEARCHPUBLISHER, PublisherConst.TYPE_ADPUBLISHER,
+        PublisherConst.TYPE_CUSTOMPUBLISHERCONTAINER, PublisherConst.TYPE_MULTIGROUPPUBLISHER
+    };
+<span class="fc" id="L675">    private static final String[] AVAILABLEPUBLISHER_TYPETEXTS = new String[] {</span>
+        &quot;LDAPPUBLISHER&quot;, &quot;LDAPSEARCHPUBLISHER&quot;, &quot;ACTIVEDIRECTORYPUBLISHER&quot;,
+        &quot;CUSTOMPUBLISHER&quot;, &quot;MULTIGROUPPUBLISHER&quot;
+    };
+    
+    public String getPublisherName() {
+<span class="nc" id="L681">        return publishername;</span>
+    }
+
+    public int getPublisherId(){
+<span class="nc" id="L685">        return publisherId;</span>
+    }
+    
+    public String getPublisherName(String className) {
+<span class="nc" id="L689">        final String klassSimpleName = className.substring(className.lastIndexOf('.')+1);</span>
+        // Present the publisher with a nice name if a language key is present
+<span class="nc" id="L691">        String text = ejbcawebbean.getText(klassSimpleName.toUpperCase());</span>
+<span class="nc bnc" id="L692" title="All 2 branches missed.">        if (text.equals(klassSimpleName.toUpperCase())) {</span>
+            // Present the publisher with the class name when no language key is present
+<span class="nc" id="L694">            text = klassSimpleName + &quot; (&quot;+ejbcawebbean.getText(AVAILABLEPUBLISHER_TYPETEXTS[3])+&quot;)&quot;;</span>
+        }
+<span class="nc" id="L696">        return text;</span>
+    }
+    
+    public String getCurrentPublisherName() {
+<span class="nc bnc" id="L700" title="All 2 branches missed.">        if (publisherdata instanceof CustomPublisherContainer) {</span>
+<span class="nc" id="L701">            ICustomPublisher iCustomPublisher = ((CustomPublisherContainer) publisherdata).getCustomPublisher();</span>
+<span class="nc bnc" id="L702" title="All 2 branches missed.">            if(iCustomPublisher != null) {</span>
+<span class="nc" id="L703">                return getPublisherName(iCustomPublisher.getClass().getName());</span>
+            } 
+        }
+<span class="nc" id="L706">        return getPublisherName(publisherdata.getClass().getName());</span>
+    }
+    
+    /** @return the available publishers as list that can be used by JSF h:datatable in the future. */
+    public List&lt;SelectItem&gt; getSelectablePublishers() {
+<span class="nc" id="L711">        final List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+        // List all built in publisher types and all the dynamic ones
+<span class="nc bnc" id="L713" title="All 2 branches missed.">        for (int i=0; i&lt;AVAILABLEPUBLISHER_TYPES.length; i++) {</span>
+<span class="nc" id="L714">            final int type = AVAILABLEPUBLISHER_TYPES[i];</span>
+<span class="nc bnc" id="L715" title="All 2 branches missed.">            if (type==PublisherConst.TYPE_CUSTOMPUBLISHERCONTAINER) {</span>
+<span class="nc bnc" id="L716" title="All 2 branches missed.">                for (final String klass : getCustomClasses()) {</span>
+<span class="nc" id="L717">                    ret.add(new SelectItem(Integer.valueOf(type).toString()+&quot;-&quot;+klass, getPublisherName(klass)));</span>
+<span class="nc" id="L718">                }</span>
+            } else {
+                // Add built in publisher types
+<span class="nc" id="L721">                ret.add(new SelectItem(Integer.valueOf(type).toString(), ejbcawebbean.getText(AVAILABLEPUBLISHER_TYPETEXTS[i])));</span>
+            }
+        }
+        // Allow selection of any class path
+<span class="nc bnc" id="L725" title="All 2 branches missed.">        if (WebConfiguration.isManualClassPathsEnabled()) {</span>
+<span class="nc" id="L726">            ret.add(new SelectItem(Integer.valueOf(PublisherConst.TYPE_CUSTOMPUBLISHERCONTAINER).toString(), ejbcawebbean.getText(AVAILABLEPUBLISHER_TYPETEXTS[3])));</span>
+        }
+        // If an publisher was configured before the plugin mechanism we still want to show it
+<span class="nc" id="L729">        boolean customNoLongerAvailable = true;</span>
+<span class="nc" id="L730">        final String selectedPublisherValue = getSelectedPublisherValue();</span>
+<span class="nc bnc" id="L731" title="All 2 branches missed.">        for (final SelectItem current : ret) {</span>
+<span class="nc bnc" id="L732" title="All 2 branches missed.">            if (current.getValue().equals(selectedPublisherValue)) {</span>
+<span class="nc" id="L733">                customNoLongerAvailable = false;</span>
+<span class="nc" id="L734">                break;</span>
+            }
+<span class="nc" id="L736">        }</span>
+<span class="nc bnc" id="L737" title="All 2 branches missed.">        if (customNoLongerAvailable) {</span>
+<span class="nc" id="L738">            ret.add(new SelectItem(selectedPublisherValue, selectedPublisherValue.split(&quot;-&quot;)[1]));</span>
+        }
+        // Sort by label
+<span class="nc" id="L741">        Collections.sort(ret, new Comparator&lt;SelectItem&gt;() {</span>
+            @Override
+            public int compare(final SelectItem selectItem0, final SelectItem selectItem1) {
+<span class="nc" id="L744">                return String.valueOf(selectItem0.getLabel()).compareTo(String.valueOf(selectItem1.getLabel()));</span>
+            }
+        });
+<span class="nc" id="L747">        return ret;</span>
+    }
+    
+    public String getSelectedPublisherValue() {
+<span class="nc bnc" id="L751" title="All 2 branches missed.">        if (getPublisherType()==PublisherConst.TYPE_CUSTOMPUBLISHERCONTAINER) {</span>
+<span class="nc" id="L752">            final CustomPublisherContainer custompublisher = (CustomPublisherContainer) publisherdata;</span>
+<span class="nc" id="L753">            final String currentClass = custompublisher.getClassPath();</span>
+<span class="nc bnc" id="L754" title="All 4 branches missed.">            if (currentClass==null || currentClass.isEmpty()) {</span>
+<span class="nc" id="L755">                return Integer.valueOf(PublisherConst.TYPE_CUSTOMPUBLISHERCONTAINER).toString();</span>
+            } else {
+<span class="nc" id="L757">                return Integer.valueOf(PublisherConst.TYPE_CUSTOMPUBLISHERCONTAINER).toString() + &quot;-&quot; + currentClass;</span>
+            }
+        }
+<span class="nc" id="L760">        return Integer.valueOf(getPublisherType()).toString();</span>
+    }
+    
+    @SuppressWarnings(&quot;deprecation&quot;)
+    public int getPublisherType(){
+<span class="nc" id="L765">        int retval = PublisherConst.TYPE_CUSTOMPUBLISHERCONTAINER;</span>
+<span class="nc bnc" id="L766" title="All 2 branches missed.">        if(publisherdata instanceof CustomPublisherContainer) {</span>
+<span class="nc" id="L767">            retval = PublisherConst.TYPE_CUSTOMPUBLISHERCONTAINER;</span>
+        }
+<span class="nc bnc" id="L769" title="All 2 branches missed.">        if(publisherdata instanceof LdapPublisher) {</span>
+<span class="nc" id="L770">            retval = PublisherConst.TYPE_LDAPPUBLISHER;</span>
+        }
+<span class="nc bnc" id="L772" title="All 2 branches missed.">        if (publisherdata instanceof LdapSearchPublisher) {</span>
+<span class="nc" id="L773">            retval = PublisherConst.TYPE_LDAPSEARCHPUBLISHER;</span>
+        }
+        // Legacy VA publisher doesn't exist in community edition, so check the qualified class name instead. 
+<span class="nc bnc" id="L776" title="All 2 branches missed.">        if (publisherdata.getClass().getName().equals(&quot;org.ejbca.core.model.ca.publisher.ValidationAuthorityPublisher&quot;)) {</span>
+<span class="nc" id="L777">            retval = PublisherConst.TYPE_VAPUBLISHER;</span>
+        }
+<span class="nc bnc" id="L779" title="All 2 branches missed.">        if(publisherdata instanceof ActiveDirectoryPublisher) {</span>
+<span class="nc" id="L780">            retval = PublisherConst.TYPE_ADPUBLISHER;</span>
+        }
+<span class="nc bnc" id="L782" title="All 2 branches missed.">        if (publisherdata instanceof MultiGroupPublisher) {</span>
+<span class="nc" id="L783">            retval = PublisherConst.TYPE_MULTIGROUPPUBLISHER;</span>
+        }
+<span class="nc" id="L785">        return retval;</span>
+    }
+
+    public boolean hasEditRights() {
+<span class="nc" id="L789">        return ejbcawebbean.isAuthorizedNoLogSilent(AccessRulesConstants.REGULAR_EDITPUBLISHER);</span>
+    }
+    
+    /**
+     * 
+     * @return true if the publisher type is inherently read-only
+     */
+    public boolean isReadOnly() {
+<span class="nc bnc" id="L797" title="All 2 branches missed.">        if(!hasEditRights()) {</span>
+<span class="nc" id="L798">            return true;</span>
+<span class="nc bnc" id="L799" title="All 2 branches missed.">        } else if (publisherdata instanceof CustomPublisherContainer) {</span>
+<span class="nc" id="L800">            ICustomPublisher pub = ((CustomPublisherContainer) publisherdata).getCustomPublisher();</span>
+            // Can be null if custom publisher has not been set up yet, then it has to be editable
+<span class="nc bnc" id="L802" title="All 2 branches missed.">            return pub == null ? false : pub.isReadOnly();</span>
+        } else {
+<span class="nc" id="L804">            return false;</span>
+        }
+    }
+    
+    /**
+     * 
+     * @return true if the publisher is deprecated and shouldn't be editable.
+     */
+    public boolean isDeprecated() {
+<span class="nc bnc" id="L813" title="All 2 branches missed.">       if(publisherdata.getClass().getName().equals(LegacyValidationAuthorityPublisher.OLD_VA_PUBLISHER_QUALIFIED_NAME)) {</span>
+<span class="nc" id="L814">           return true;</span>
+       } else {
+<span class="nc" id="L816">           return false;</span>
+       }
+    }
+    
+    public int getPublisherQueueLength() {
+<span class="nc" id="L821">    	return getPublisherQueueLength(publishername);</span>
+    }
+    public int[] getPublisherQueueLength(int[] intervalLower, int[] intervalUpper) {
+<span class="nc" id="L824">    	return getPublisherQueueLength(publishername, intervalLower, intervalUpper);</span>
+    }
+    
+    @SuppressWarnings(&quot;deprecation&quot;)
+	public int getPublisherQueueLength(String publishername) {
+<span class="nc" id="L829">    	return cabean.getPublisherQueueLength(cabean.getPublisherDataHandler().getPublisherId(publishername));</span>
+    }
+    @SuppressWarnings(&quot;deprecation&quot;)
+	public int[] getPublisherQueueLength(String publishername, int[] intervalLower, int[] intervalUpper) {
+<span class="nc" id="L833">    	return cabean.getPublisherQueueLength(cabean.getPublisherDataHandler().getPublisherId(publishername), intervalLower, intervalUpper);</span>
+    }
+    
+    public List&lt;String&gt; getCustomClasses() {        
+<span class="nc" id="L837">        final List&lt;String&gt; classes = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L838">        final ServiceLoader&lt;ICustomPublisher&gt; svcloader = ServiceLoader.load(ICustomPublisher.class);</span>
+<span class="nc" id="L839">        final boolean enabled = ((GlobalConfiguration) ejbcawebbean.getEjb().getGlobalConfigurationSession().getCachedConfiguration(GlobalConfiguration.GLOBAL_CONFIGURATION_ID)).getEnableExternalScripts();</span>
+<span class="nc" id="L840">        String name = null;</span>
+<span class="nc bnc" id="L841" title="All 2 branches missed.">        for (ICustomPublisher implInstance : svcloader) {</span>
+<span class="nc bnc" id="L842" title="All 2 branches missed.">            if (!implInstance.isReadOnly()) {</span>
+<span class="nc" id="L843">                name = implInstance.getClass().getName();</span>
+<span class="nc bnc" id="L844" title="All 4 branches missed.">                if (enabled || !GeneralPurposeCustomPublisher.class.getName().equals(name)) {</span>
+<span class="nc" id="L845">                    classes.add(name);</span>
+                }
+            }
+<span class="nc" id="L848">        }</span>
+<span class="nc" id="L849">        return classes;</span>
+    }
+    public boolean isPublisherexists() {
+<span class="nc" id="L852">        return publisherexists;</span>
+    }
+    public void setPublisherexists(boolean publisherexists) {
+<span class="nc" id="L855">        this.publisherexists = publisherexists;</span>
+<span class="nc" id="L856">    }</span>
+    public boolean isPublisherdeletefailed() {
+<span class="nc" id="L858">        return publisherdeletefailed;</span>
+    }
+    public void setPublisherdeletefailed(boolean publisherdeletefailed) {
+<span class="nc" id="L861">        this.publisherdeletefailed = publisherdeletefailed;</span>
+<span class="nc" id="L862">    }</span>
+    public String getPublisherDeleteFailedMessage() {
+<span class="nc" id="L864">        return publisherDeleteFailedMessage;</span>
+    }
+    public void setPublisherDeleteFailedMessage(String publisherDeleteFailedMessage) {
+<span class="nc" id="L867">        this.publisherDeleteFailedMessage = publisherDeleteFailedMessage;</span>
+<span class="nc" id="L868">    }</span>
+
+    public boolean isPublisherEditFailed() {
+<span class="nc" id="L871">        return publisherEditFailed;</span>
+    }
+
+    public void setPublisherEditFailed(boolean publisherEditFailed) {
+<span class="nc" id="L875">        this.publisherEditFailed = publisherEditFailed;</span>
+<span class="nc" id="L876">    }</span>
+
+    public String getPublisherEditMessage() {
+<span class="nc" id="L879">        return publisherEditMessage;</span>
+    }
+
+    public void setPublisherEditMessage(String publisherEditMessage) {
+<span class="nc" id="L883">        this.publisherEditMessage = publisherEditMessage;</span>
+<span class="nc" id="L884">    }</span>
+
+    public boolean getConnectionmessage() {
+<span class="nc" id="L887">        return connectionmessage;</span>
+    }
+    public void setConnectionmessage(boolean connectionmessage) {
+<span class="nc" id="L890">        this.connectionmessage = connectionmessage;</span>
+<span class="nc" id="L891">    }</span>
+    public boolean isConnectionsuccessful() {
+<span class="nc" id="L893">        return connectionsuccessful;</span>
+    }
+    public void setConnectionsuccessful(boolean connectionsuccessful) {
+<span class="nc" id="L896">        this.connectionsuccessful = connectionsuccessful;</span>
+<span class="nc" id="L897">    }</span>
+    public String getConnectionerrormessage() {
+<span class="nc" id="L899">        return connectionerrormessage;</span>
+    }
+    public void setConnectionerrormessage(String connectionerrormessage) {
+<span class="nc" id="L902">        this.connectionerrormessage = connectionerrormessage;</span>
+<span class="nc" id="L903">    }</span>
+
+    public BasePublisher getPublisherdata() {
+<span class="nc" id="L906">        return publisherdata;</span>
+    }
+    public void setPublisherdata(BasePublisher publisherdata) {
+<span class="nc" id="L909">        this.publisherdata = publisherdata;</span>
+<span class="nc" id="L910">    }</span>
+    
+    /** 
+     * @return password placeholder instead of real password in order to not send clear text password to browser, or empty string in case there is no ldap password (i.e. new publisher).
+     */
+    public String getPasswordPlaceholder() {
+<span class="nc bnc" id="L916" title="All 2 branches missed.">       if (this.publisherdata != null) {</span>
+<span class="nc" id="L917">           final String str = (String)this.publisherdata.getRawData().get(LdapPublisher.LOGINPASSWORD);</span>
+<span class="nc bnc" id="L918" title="All 2 branches missed.">           if (StringUtils.isNotEmpty(str)) {</span>
+<span class="nc" id="L919">               return EditPublisherJSPHelper.PASSWORD_LDAPLOGINPASSWORDPLACEHOLDER;</span>
+           }
+       }
+<span class="nc" id="L922">       return &quot;&quot;;</span>
+    }
+
+    List&lt;TreeSet&lt;Integer&gt;&gt; convertMultiPublishersStringToData(final Map&lt;String, Integer&gt; publisherNameToIdMap, final String textareaData) throws PublisherDoesntExistsException, PublisherExistsException {
+<span class="fc" id="L926">        TreeSet&lt;Integer&gt; selectedPublishers = new TreeSet&lt;&gt;(); </span>
+<span class="fc" id="L927">        List&lt;String&gt; listOfPublisherNames = Arrays.asList(textareaData.split(&quot;\n&quot;));</span>
+<span class="fc" id="L928">        ArrayList&lt;TreeSet&lt;Integer&gt;&gt; data = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L929">        TreeSet&lt;Integer&gt; tree = new TreeSet&lt;&gt;();</span>
+<span class="fc bfc" id="L930" title="All 2 branches covered.">        for (String publisherName : listOfPublisherNames) {</span>
+<span class="fc" id="L931">            publisherName = publisherName.trim();</span>
+<span class="fc bfc" id="L932" title="All 2 branches covered.">            if (StringUtils.isEmpty(publisherName)) {</span>
+<span class="fc bfc" id="L933" title="All 2 branches covered.">                if (!tree.isEmpty()) {</span>
+<span class="fc" id="L934">                    data.add(tree);</span>
+<span class="fc" id="L935">                    tree = new TreeSet&lt;&gt;();</span>
+                }
+            } else {
+<span class="fc" id="L938">                Integer publisherId = publisherNameToIdMap.get(publisherName);</span>
+<span class="fc bfc" id="L939" title="All 2 branches covered.">                if (publisherId != null) {</span>
+<span class="fc bfc" id="L940" title="All 2 branches covered.">                    if (!selectedPublishers.contains(publisherId)) {</span>
+<span class="fc" id="L941">                        tree.add(publisherId);</span>
+<span class="fc" id="L942">                        selectedPublishers.add(publisherId);</span>
+                    } else {
+<span class="fc" id="L944">                        throw new PublisherExistsException(&quot;Publisher selected at least twice: &quot; + publisherName);</span>
+                    }
+                } else {
+<span class="fc" id="L947">                    throw new PublisherDoesntExistsException(&quot;Could not find publisher: \&quot;&quot; + publisherName + &quot;\&quot;&quot;);</span>
+                }
+            }
+<span class="fc" id="L950">        }</span>
+<span class="pc bpc" id="L951" title="1 of 2 branches missed.">        if (!tree.isEmpty()) {</span>
+<span class="fc" id="L952">            data.add(tree);</span>
+        }
+<span class="fc" id="L954">        return data;</span>
+    }
+
+    String convertMultiPublishersDataToString(final Map&lt;Integer,String&gt; publisherIdToNameMap, final List&lt;TreeSet&lt;Integer&gt;&gt; data){
+<span class="fc" id="L958">        StringBuffer result = new StringBuffer();</span>
+<span class="fc" id="L959">        String prefix = &quot;&quot;;</span>
+<span class="fc bfc" id="L960" title="All 2 branches covered.">        for (TreeSet&lt;Integer&gt; group : data) {</span>
+<span class="fc" id="L961">            List&lt;String&gt; publisherNames = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L962" title="All 2 branches covered.">            for (Integer publisherId : group) {</span>
+<span class="fc" id="L963">                String name = publisherIdToNameMap.get(publisherId);</span>
+<span class="fc bfc" id="L964" title="All 2 branches covered.">                if (StringUtils.isNotEmpty(name)) {</span>
+<span class="fc" id="L965">                    publisherNames.add(name);</span>
+<span class="pc bpc" id="L966" title="1 of 2 branches missed.">                } else if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L967">                    log.info(&quot;No name found for publisher with id &quot; + publisherId);</span>
+                }
+<span class="fc" id="L969">            }</span>
+<span class="fc" id="L970">            Collections.sort(publisherNames);</span>
+<span class="fc bfc" id="L971" title="All 2 branches covered.">            for (String publisherName : publisherNames) {</span>
+<span class="fc" id="L972">                result.append(prefix);</span>
+<span class="fc" id="L973">                result.append(publisherName);</span>
+<span class="fc" id="L974">                prefix = &quot;\n&quot;;</span>
+<span class="fc" id="L975">            }</span>
+<span class="fc bfc" id="L976" title="All 2 branches covered.">            if (!publisherNames.isEmpty()) {</span>
+<span class="fc" id="L977">                result.append(&quot;\n&quot;);</span>
+            }
+<span class="fc" id="L979">        }</span>
+<span class="fc" id="L980">        result.setLength(Math.max(result.length() - 1, 0));</span>
+<span class="fc" id="L981">        return result.toString();</span>
+    }
+
+    public List&lt;String&gt; getPublisherListAvailable() {
+<span class="nc" id="L985">        final List&lt;String&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L986">        final Collection&lt;Integer&gt; authorizedPublisherIds = ejbcawebbean.getEjb().getCaAdminSession().getAuthorizedPublisherIds(ejbcawebbean.getAdminObject(),</span>
+<span class="nc" id="L987">                Arrays.asList(PublisherConst.TYPE_MULTIGROUPPUBLISHER));</span>
+<span class="nc" id="L988">        authorizedPublisherIds.remove(this.publisherId);</span>
+<span class="nc" id="L989">        final Map&lt;Integer, String&gt; publisherIdToNameMap = ejbcawebbean.getEjb().getPublisherSession().getPublisherIdToNameMap();</span>
+<span class="nc bnc" id="L990" title="All 2 branches missed.">        for (final Integer publisherId : authorizedPublisherIds) {</span>
+<span class="nc" id="L991">            ret.add(publisherIdToNameMap.get(publisherId));</span>
+<span class="nc" id="L992">        }</span>
+<span class="nc" id="L993">        Collections.sort(ret);</span>
+<span class="nc" id="L994">        return ret;</span>
+    }
+
+    public String getMultiPublishersDataAsString(){
+<span class="nc" id="L998">        MultiGroupPublisher multiGroupPublisher = (MultiGroupPublisher) this.publisherdata;</span>
+<span class="nc" id="L999">        final List&lt;TreeSet&lt;Integer&gt;&gt; publisherGroups = multiGroupPublisher.getPublisherGroups();</span>
+<span class="nc" id="L1000">        final Map&lt;Integer, String&gt; publisherIdToNameMap = ejbcawebbean.getEjb().getPublisherSession().getPublisherIdToNameMap();</span>
+<span class="nc" id="L1001">        return convertMultiPublishersDataToString(publisherIdToNameMap, publisherGroups);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

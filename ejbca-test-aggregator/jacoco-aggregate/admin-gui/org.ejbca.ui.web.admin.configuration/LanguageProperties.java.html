@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>LanguageProperties.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">admin-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.configuration</a> &gt; <span class="el_source">LanguageProperties.java</span></div><h1>LanguageProperties.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.web.admin.configuration;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.Properties;
+
+import org.apache.log4j.Logger;
+import org.cesecore.internal.InternalResources;
+
+/** Properties bag that handles &quot;double type encoding&quot;.
+ * 
+ * @version $Id: LanguageProperties.java 22667 2016-01-28 15:49:56Z samuellb $
+ */
+<span class="nc" id="L29">public class LanguageProperties extends Properties {  </span>
+    private static final long serialVersionUID = -2652154499847668359L;
+
+<span class="nc" id="L32">    private static Logger log = Logger.getLogger(LanguageProperties.class);</span>
+    
+	private static final String keyValueSeparators = &quot;=: \t\r\n\f&quot;;  
+	private static final String strictKeyValueSeparators = &quot;=:&quot;;
+	//private static final String specialSaveChars = &quot;=: \t\r\n\f#!&quot;;
+	private static final String whiteSpaceChars = &quot; \t\r\n\f&quot;;
+	
+	@Override
+	public synchronized void load(InputStream inStream) throws IOException {   
+		// Try first with system default, revert to ISO-8859-1 if it bombs
+	    // Note: This is not true, we try with ISO-8859-1 and try again if it fails??
+<span class="nc" id="L43">		BufferedReader in = new BufferedReader(new InputStreamReader(inStream, &quot;ISO-8859-1&quot;)); //This sentence is crucial</span>
+		try {
+<span class="nc" id="L45">			put(in); 			</span>
+<span class="nc" id="L46">		} catch (Throwable t) {</span>
+<span class="nc" id="L47">			log.info(&quot;Caught exception loading LanguageProperties with system default encoding, will try with ISO-8859-1: &quot;+t.getMessage());</span>
+<span class="nc" id="L48">			in = new BufferedReader(new InputStreamReader(inStream, &quot;ISO-8859-1&quot;));</span>
+<span class="nc" id="L49">			clear(); // Clear any possibly inserted keys from the faulty download</span>
+<span class="nc" id="L50">			put(in); 			</span>
+<span class="nc" id="L51">		}</span>
+<span class="nc" id="L52">	}</span>
+	private void put(BufferedReader in) throws IOException {
+		while (true) { 
+			// Get next line 
+<span class="nc" id="L56">			String line = in.readLine();   </span>
+<span class="nc bnc" id="L57" title="All 2 branches missed.">			if (line == null) {  </span>
+<span class="nc" id="L58">				return;   </span>
+			}   
+<span class="nc bnc" id="L60" title="All 2 branches missed.">			if (line.length() &gt; 0) {   </span>
+				// Continue lines that end in slashes if they are not comments    
+<span class="nc" id="L62">				char firstChar = line.charAt(0);   </span>
+<span class="nc bnc" id="L63" title="All 4 branches missed.">				if ( (firstChar != '#') &amp;&amp; (firstChar != '!')) { </span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">					while (continueLine(line)) {  </span>
+<span class="nc" id="L65">						String nextLine = in.readLine();  </span>
+<span class="nc bnc" id="L66" title="All 2 branches missed.">						if (nextLine == null) { </span>
+<span class="nc" id="L67">							nextLine = &quot;&quot;;</span>
+						}  
+<span class="nc" id="L69">						String loppedLine = line.substring(0, line.length() - 1); </span>
+						// Advance beyond whitespace on new line  
+<span class="nc" id="L71">						int startIndex = 0;    </span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">						for (startIndex = 0; startIndex &lt; nextLine.length(); startIndex++) { </span>
+<span class="nc bnc" id="L73" title="All 2 branches missed.">							if (whiteSpaceChars.indexOf(nextLine.charAt(startIndex)) == -1) { </span>
+<span class="nc" id="L74">								break; </span>
+							} 
+						}
+<span class="nc" id="L77">						nextLine = nextLine.substring(startIndex, nextLine.length());  </span>
+<span class="nc" id="L78">						line = new String(loppedLine + nextLine); </span>
+<span class="nc" id="L79">					} </span>
+					// Find start of key
+<span class="nc" id="L81">					int len = line.length();   </span>
+					int keyStart;  
+<span class="nc bnc" id="L83" title="All 2 branches missed.">					for (keyStart = 0; keyStart &lt; len; keyStart++) {</span>
+<span class="nc bnc" id="L84" title="All 2 branches missed.">						if (whiteSpaceChars.indexOf(line.charAt(keyStart)) == -1) {</span>
+<span class="nc" id="L85">							break; </span>
+						}        
+					} 
+					// Blank lines are ignored
+<span class="nc bnc" id="L89" title="All 2 branches missed.">					if (keyStart == len) { </span>
+<span class="nc" id="L90">						continue; </span>
+					}
+					// Find separation between key and value
+					int separatorIndex; 
+<span class="nc bnc" id="L94" title="All 2 branches missed.">					for (separatorIndex = keyStart; separatorIndex &lt; len; separatorIndex++) {</span>
+<span class="nc" id="L95">						char currentChar = line.charAt(separatorIndex); </span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">						if (currentChar == '\\') { </span>
+<span class="nc" id="L97">							separatorIndex++; </span>
+						}  
+<span class="nc bnc" id="L99" title="All 2 branches missed.">						else if (keyValueSeparators.indexOf(currentChar) != -1) { </span>
+<span class="nc" id="L100">							break;</span>
+						}
+					}
+					// Skip over whitespace after key if any 
+					int valueIndex; 
+<span class="nc bnc" id="L105" title="All 2 branches missed.">					for (valueIndex = separatorIndex; valueIndex &lt; len; valueIndex++) { </span>
+<span class="nc bnc" id="L106" title="All 2 branches missed.">						if (whiteSpaceChars.indexOf(line.charAt(valueIndex)) == -1) {  </span>
+<span class="nc" id="L107">							break; </span>
+						}
+					}
+					// Skip over one non whitespace key value separators if any
+<span class="nc bnc" id="L111" title="All 2 branches missed.">					if (valueIndex &lt; len) { </span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">						if (strictKeyValueSeparators.indexOf(line.charAt(valueIndex)) != -1) { </span>
+<span class="nc" id="L113">							valueIndex++; </span>
+							// Skip over white space after other separators if any
+						} 
+					}
+<span class="nc bnc" id="L117" title="All 2 branches missed.">					while (valueIndex &lt; len) {</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">						if (whiteSpaceChars.indexOf(line.charAt(valueIndex)) == -1) {</span>
+<span class="nc" id="L119">							break; </span>
+						}
+<span class="nc" id="L121">						valueIndex++;  </span>
+					} 
+<span class="nc" id="L123">					String key = line.substring(keyStart, separatorIndex);</span>
+<span class="nc bnc" id="L124" title="All 2 branches missed.">					String value = (separatorIndex &lt; len) ? line.substring(valueIndex, len) : &quot;&quot;;</span>
+					// Convert then store key and value  
+<span class="nc" id="L126">					key = loadConvert(key);  </span>
+<span class="nc" id="L127">					value = loadConvert(value); </span>
+<span class="nc" id="L128">					put(key, value);     </span>
+				}  
+			} 
+<span class="nc" id="L131">		}</span>
+	} 
+	/**
+	 * Returns true if the given line is a line that must
+	 * be appended to the next line  
+	 * @param line Line
+	 * @return bool
+	 */  
+	private boolean continueLine (String line) {
+<span class="nc" id="L140">		int slashCount = 0;   </span>
+<span class="nc" id="L141">		int index = line.length() - 1; </span>
+<span class="nc bnc" id="L142" title="All 4 branches missed.">		while((index &gt;= 0) &amp;&amp; (line.charAt(index--) == '\\')) {  </span>
+<span class="nc" id="L143">			slashCount++;</span>
+		}
+<span class="nc bnc" id="L145" title="All 2 branches missed.">		return (slashCount % 2 == 1);</span>
+	}
+	/**
+	 * Converts encoded \\uxxxx to unicode chars 
+	 * and changes special saved chars to their original forms 
+	 * @param theString String
+	 * @return String
+	 */  
+	private String loadConvert (String theString) {  
+		char aChar;  
+<span class="nc" id="L155">		int len = theString.length();   </span>
+<span class="nc" id="L156">		StringBuilder outBuffer = new StringBuilder(len);</span>
+<span class="nc bnc" id="L157" title="All 2 branches missed.">		for(int x=0; x&lt;len; ) {  </span>
+<span class="nc" id="L158">			aChar = theString.charAt(x++);    </span>
+<span class="nc bnc" id="L159" title="All 2 branches missed.">			if (aChar == '\\') {     </span>
+<span class="nc" id="L160">				aChar = theString.charAt(x++);   </span>
+<span class="nc bnc" id="L161" title="All 2 branches missed.">				if(aChar == 'u') { </span>
+					// Read the xxxx     
+<span class="nc" id="L163">					int value=0;   </span>
+<span class="nc bnc" id="L164" title="All 2 branches missed.">					for (int i=0; i&lt;4; i++) {</span>
+<span class="nc" id="L165">						aChar = theString.charAt(x++);</span>
+<span class="nc bnc" id="L166" title="All 4 branches missed.">						switch (aChar) {     </span>
+							case '0': case '1': case '2': case '3': case '4':  
+							case '5': case '6': case '7': case '8': case '9':       
+<span class="nc" id="L169">								value = (value &lt;&lt; 4) + aChar - '0'; </span>
+<span class="nc" id="L170">								break;            </span>
+							case 'a': case 'b': case 'c':      
+							case 'd': case 'e': case 'f':    
+<span class="nc" id="L173">								value = (value &lt;&lt; 4) + 10 + aChar - 'a';              </span>
+<span class="nc" id="L174">								break;</span>
+							case 'A': case 'B': case 'C':   
+							case 'D': case 'E': case 'F': 
+<span class="nc" id="L177">								value = (value &lt;&lt; 4) + 10 + aChar - 'A'; </span>
+<span class="nc" id="L178">								break;                              </span>
+							default: 
+<span class="nc" id="L180">								throw new IllegalArgumentException(&quot;Malformed \\uxxxx encoding.&quot;);  </span>
+						}  
+					}      
+<span class="nc" id="L183">					outBuffer.append((char)value);</span>
+<span class="nc" id="L184">				} else { </span>
+<span class="nc bnc" id="L185" title="All 2 branches missed.">					if (aChar == 't') { </span>
+<span class="nc" id="L186">						aChar = '\t'; </span>
+<span class="nc bnc" id="L187" title="All 2 branches missed.">					} else if (aChar == 'r') { </span>
+<span class="nc" id="L188">						aChar = '\r';    </span>
+<span class="nc bnc" id="L189" title="All 2 branches missed.">					} else if (aChar == 'n') { </span>
+<span class="nc" id="L190">						aChar = '\n';   </span>
+<span class="nc bnc" id="L191" title="All 2 branches missed.">					} else if (aChar == 'f') { </span>
+<span class="nc" id="L192">						aChar = '\f'; </span>
+					}                      
+<span class="nc" id="L194">					outBuffer.append(aChar);</span>
+				}  
+			} else {     
+<span class="nc" id="L197">				outBuffer.append(aChar);</span>
+			}
+		} 
+<span class="nc" id="L200">		return outBuffer.toString();</span>
+	}
+	/**
+	 * Gets a message string and replaces {0}, {1}, {2}... parameters in it.
+	 * @param key Key
+	 * @param params Params
+	 * @return Message
+	 */
+	public String getMessage(final String key, final Object... params) {
+<span class="nc" id="L209">	    final String format = getProperty(key);</span>
+<span class="nc bnc" id="L210" title="All 2 branches missed.">	    if (format == null) {</span>
+<span class="nc" id="L211">	        return null;</span>
+	    }
+	    
+<span class="nc" id="L214">	    final StringBuilder sb = new StringBuilder(format);</span>
+<span class="nc" id="L215">	    InternalResources.replacePlaceholders(sb, params);</span>
+<span class="nc" id="L216">	    return sb.toString();</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

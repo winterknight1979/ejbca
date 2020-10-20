@@ -17,7 +17,6 @@ import java.security.cert.CRLException;
 import java.security.cert.X509CRL;
 import java.util.Date;
 import java.util.List;
-
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.PostLoad;
@@ -26,7 +25,6 @@ import javax.persistence.PreUpdate;
 import javax.persistence.Query;
 import javax.persistence.Table;
 import javax.persistence.Transient;
-
 import org.apache.log4j.Logger;
 import org.cesecore.dbprotection.ProtectedData;
 import org.cesecore.dbprotection.ProtectionStringBuilder;
@@ -36,324 +34,441 @@ import org.cesecore.util.QueryResultWrapper;
 
 /**
  * Representation of a CRL.
- * 
+ *
  * @version $Id: CRLData.java 22592 2016-01-18 12:09:44Z marko $
  */
 @Entity
 @Table(name = &quot;CRLData&quot;)
 public class CRLData extends ProtectedData implements Serializable {
 
-    private static final long serialVersionUID = 5542295476157001912L;
+  private static final long serialVersionUID = 5542295476157001912L;
 
-<span class="nc" id="L48">    private static final Logger log = Logger.getLogger(CRLData.class);</span>
+  /** Logger. */
+<span class="nc" id="L47">  private static final Logger LOG = Logger.getLogger(CRLData.class);</span>
 
-    private int cRLNumber;
-    private int deltaCRLIndicator;
-    private String issuerDN;
-    private String fingerprint;
-    private String cAFingerprint;
-    private long thisUpdate;
-    private long nextUpdate;
-    private String base64Crl;
-<span class="nc" id="L58">    private int rowVersion = 0;</span>
-    private String rowProtection;
+  /** param. */
+  private int cRLNumber;
+  /** param. */
+  private int deltaCRLIndicator;
+  /** param. */
+  private String issuerDN;
+  /** param. */
+  private String fingerprint;
+  /** param. */
+  private String cAFingerprint;
+  /** param. */
+  private long thisUpdate;
+  /** param. */
+  private long nextUpdate;
+  /** param. */
+  private String base64Crl;
+  /** param. */
+<span class="nc" id="L66">  private int rowVersion = 0;</span>
+  /** param. */
+  private String rowProtection;
 
-    /**
-     * Entity holding info about a CRL. Create by sending in the CRL, which extracts (from the crl) fingerprint (primary key), CRLNumber, issuerDN,
-     * thisUpdate, nextUpdate. CAFingerprint is the hash of the CA certificate.
-     * 
-     * @param incrl
-     *            the (X509)CRL to be stored in the database.
-     * @param number
-     *            monotonically increasing CRL number
-     * @param issuerDN DN
-     * @param thisUpdate Date 
-     * @param nextUpdate Date of next update
-     * @param cafingerprint FP
-     * @param deltaCRLIndicator
-     *            -1 for a normal CRL and 1 for a deltaCRL
-     */
-<span class="nc" id="L76">    public CRLData(byte[] incrl, int number, String issuerDN, Date thisUpdate, Date nextUpdate, String cafingerprint, int deltaCRLIndicator) {</span>
-<span class="nc" id="L77">        String b64Crl = new String(Base64.encode(incrl));</span>
-<span class="nc" id="L78">        setBase64Crl(b64Crl);</span>
-<span class="nc" id="L79">        String fp = CertTools.getFingerprintAsString(incrl);</span>
-<span class="nc" id="L80">        setFingerprint(fp);</span>
-        // Make sure names are always looking the same
-<span class="nc" id="L82">        String issuer = CertTools.stringToBCDNString(issuerDN);</span>
-<span class="nc" id="L83">        setIssuerDN(issuer);</span>
-<span class="nc bnc" id="L84" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L85">            log.debug(&quot;Creating crldata, fp=&quot; + fp + &quot;, issuer=&quot; + issuer + &quot;, crlNumber=&quot; + number + &quot;, deltaCRLIndicator=&quot; + deltaCRLIndicator);</span>
-        }
-<span class="nc" id="L87">        setCaFingerprint(cafingerprint);</span>
-<span class="nc" id="L88">        setCrlNumber(number);</span>
-<span class="nc" id="L89">        setThisUpdate(thisUpdate);</span>
-<span class="nc" id="L90">        setNextUpdate(nextUpdate);</span>
-<span class="nc" id="L91">        setDeltaCRLIndicator(deltaCRLIndicator);</span>
-<span class="nc" id="L92">    }</span>
-
-<span class="nc" id="L94">    public CRLData() {</span>
-<span class="nc" id="L95">    }</span>
-
-    // @Column
-    public int getCrlNumber() {
-<span class="nc" id="L99">        return cRLNumber;</span>
+  /**
+   * Entity holding info about a CRL. Create by sending in the CRL, which
+   * extracts (from the crl) fingerprint (primary key), CRLNumber, issuerDN,
+   * thisUpdate, nextUpdate. CAFingerprint is the hash of the CA certificate.
+   *
+   * @param incrl the (X509)CRL to be stored in the database.
+   * @param number monotonically increasing CRL number
+   * @param anIssuerDN DN
+   * @param aThisUpdate Date
+   * @param aNextUpdate Date of next update
+   * @param cafingerprint FP
+   * @param aDeltaCRLIndicator -1 for a normal CRL and 1 for a deltaCRL
+   */
+  public CRLData(
+      final byte[] incrl,
+      final int number,
+      final String anIssuerDN,
+      final Date aThisUpdate,
+      final Date aNextUpdate,
+      final String cafingerprint,
+<span class="nc" id="L90">      final int aDeltaCRLIndicator) {</span>
+<span class="nc" id="L91">    String b64Crl = new String(Base64.encode(incrl));</span>
+<span class="nc" id="L92">    setBase64Crl(b64Crl);</span>
+<span class="nc" id="L93">    String fp = CertTools.getFingerprintAsString(incrl);</span>
+<span class="nc" id="L94">    setFingerprint(fp);</span>
+    // Make sure names are always looking the same
+<span class="nc" id="L96">    String issuer = CertTools.stringToBCDNString(anIssuerDN);</span>
+<span class="nc" id="L97">    setIssuerDN(issuer);</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">    if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L99">      LOG.debug(</span>
+          &quot;Creating crldata, fp=&quot;
+              + fp
+              + &quot;, issuer=&quot;
+              + issuer
+              + &quot;, crlNumber=&quot;
+              + number
+              + &quot;, deltaCRLIndicator=&quot;
+              + aDeltaCRLIndicator);
     }
+<span class="nc" id="L109">    setCaFingerprint(cafingerprint);</span>
+<span class="nc" id="L110">    setCrlNumber(number);</span>
+<span class="nc" id="L111">    setThisUpdate(aThisUpdate);</span>
+<span class="nc" id="L112">    setNextUpdate(aNextUpdate);</span>
+<span class="nc" id="L113">    setDeltaCRLIndicator(aDeltaCRLIndicator);</span>
+<span class="nc" id="L114">  }</span>
 
-    public void setCrlNumber(int cRLNumber) {
-<span class="nc" id="L103">        this.cRLNumber = cRLNumber;</span>
-<span class="nc" id="L104">    }</span>
+  /** Null constructor. */
+<span class="nc" id="L117">  public CRLData() { }</span>
 
-    // @Column
-    public int getDeltaCRLIndicator() {
-<span class="nc" id="L108">        return deltaCRLIndicator;</span>
+  /**
+   * @return num
+   */
+  // @Column
+  public int getCrlNumber() {
+<span class="nc" id="L124">    return cRLNumber;</span>
+  }
+
+  /**
+   * @param aCRLNumber Num
+   */
+  public void setCrlNumber(final int aCRLNumber) {
+<span class="nc" id="L131">    this.cRLNumber = aCRLNumber;</span>
+<span class="nc" id="L132">  }</span>
+
+  /**
+   * @return delta
+   */
+  // @Column
+  public int getDeltaCRLIndicator() {
+<span class="nc" id="L139">    return deltaCRLIndicator;</span>
+  }
+
+  /**
+   * @param aDeltaCRLIndicator delta
+   */
+  public void setDeltaCRLIndicator(final int aDeltaCRLIndicator) {
+<span class="nc" id="L146">    this.deltaCRLIndicator = aDeltaCRLIndicator;</span>
+<span class="nc" id="L147">  }</span>
+
+  /**
+   * @return DN
+   */
+  // @Column
+  public String getIssuerDN() {
+<span class="nc" id="L154">    return issuerDN;</span>
+  }
+
+  /**
+   * Use setIssuer instead.
+   *
+   * @param anIssuerDN DN
+   * @see #setIssuer(String)
+   */
+  public void setIssuerDN(final String anIssuerDN) {
+<span class="nc" id="L164">    this.issuerDN = anIssuerDN;</span>
+<span class="nc" id="L165">  }</span>
+
+  /**
+   * @return FP
+   */
+  // @Id @Column
+  public String getFingerprint() {
+<span class="nc" id="L172">    return fingerprint;</span>
+  }
+
+  /**
+   * @param aFingerprint FP
+   */
+  public void setFingerprint(final String aFingerprint) {
+<span class="nc" id="L179">    this.fingerprint = aFingerprint;</span>
+<span class="nc" id="L180">  }</span>
+
+  /**
+   * @return FP
+   */
+  // @Column
+  public String getCaFingerprint() {
+<span class="nc" id="L187">    return cAFingerprint;</span>
+  }
+
+  /**
+   * @param aCAFingerprint FP
+   */
+  public void setCaFingerprint(final String aCAFingerprint) {
+<span class="nc" id="L194">    this.cAFingerprint = aCAFingerprint;</span>
+<span class="nc" id="L195">  }</span>
+
+  /**
+   * @return dtae
+   */
+  // @Column
+  public long getThisUpdate() {
+<span class="nc" id="L202">    return thisUpdate;</span>
+  }
+
+  /**
+   * Date formated as seconds since 1970 (== Date.getTime()).
+   *
+   * @param aThisUpdate Date
+   */
+  public void setThisUpdate(final long aThisUpdate) {
+<span class="nc" id="L211">    this.thisUpdate = aThisUpdate;</span>
+<span class="nc" id="L212">  }</span>
+
+  /**
+   * @return date
+   */
+  // @Column
+  public long getNextUpdate() {
+<span class="nc" id="L219">    return nextUpdate;</span>
+  }
+
+  /**
+   * Date formated as seconds since 1970 (== Date.getTime()).
+   *
+   * @param aNextUpdate date
+   */
+  public void setNextUpdate(final long aNextUpdate) {
+<span class="nc" id="L228">    this.nextUpdate = aNextUpdate;</span>
+<span class="nc" id="L229">  }</span>
+
+  /**
+   * @return CRL
+   */
+  // @Column @Lob
+  public String getBase64Crl() {
+<span class="nc" id="L236">    return base64Crl;</span>
+  }
+
+  /**
+   * @param aBase64Crl CRL
+   */
+  public void setBase64Crl(final String aBase64Crl) {
+<span class="nc" id="L243">    this.base64Crl = aBase64Crl;</span>
+<span class="nc" id="L244">  }</span>
+
+  /**
+   * @return version
+   */
+  // @Version @Column
+  public int getRowVersion() {
+<span class="nc" id="L251">    return rowVersion;</span>
+  }
+
+  /**
+   * @param aRowVersion version
+   */
+  public void setRowVersion(final int aRowVersion) {
+<span class="nc" id="L258">    this.rowVersion = aRowVersion;</span>
+<span class="nc" id="L259">  }</span>
+
+  // @Column @Lob
+  @Override
+  public String getRowProtection() {
+<span class="nc" id="L264">    return rowProtection;</span>
+  }
+
+  @Override
+  public void setRowProtection(final String aRowProtection) {
+<span class="nc" id="L269">    this.rowProtection = aRowProtection;</span>
+<span class="nc" id="L270">  }</span>
+
+  //
+  // Public methods used to help us manage CRLs
+  //
+  /**
+   * @return CRL
+   */
+  @Transient
+  public X509CRL getCRL() {
+<span class="nc" id="L280">    X509CRL crl = null;</span>
+    try {
+<span class="nc" id="L282">      String b64Crl = getBase64Crl();</span>
+<span class="nc" id="L283">      crl = CertTools.getCRLfromByteArray(Base64.decode(b64Crl.getBytes()));</span>
+<span class="nc" id="L284">    } catch (CRLException ce) {</span>
+<span class="nc" id="L285">      LOG.error(&quot;Can't decode CRL.&quot;, ce);</span>
+<span class="nc" id="L286">      return null;</span>
+<span class="nc" id="L287">    }</span>
+<span class="nc" id="L288">    return crl;</span>
+  }
+
+  /**
+   * @param incrl CRL
+   */
+  public void setCRL(final X509CRL incrl) {
+    try {
+<span class="nc" id="L296">      String b64Crl = new String(Base64.encode((incrl).getEncoded()));</span>
+<span class="nc" id="L297">      setBase64Crl(b64Crl);</span>
+<span class="nc" id="L298">    } catch (CRLException ce) {</span>
+<span class="nc" id="L299">      LOG.error(&quot;Can't extract DER encoded CRL.&quot;, ce);</span>
+<span class="nc" id="L300">    }</span>
+<span class="nc" id="L301">  }</span>
+
+  /**
+   * @return CRL
+   */
+  @Transient
+  public byte[] getCRLBytes() {
+<span class="nc" id="L308">    byte[] crl = null;</span>
+<span class="nc" id="L309">    String b64Crl = getBase64Crl();</span>
+<span class="nc" id="L310">    crl = Base64.decode(b64Crl.getBytes());</span>
+<span class="nc" id="L311">    return crl;</span>
+  }
+
+  /**
+   * @param dn Issuer DN
+   */
+  public void setIssuer(final String dn) {
+<span class="nc" id="L318">    setIssuerDN(CertTools.stringToBCDNString(dn));</span>
+<span class="nc" id="L319">  }</span>
+
+  /**
+   * @param aThisUpdate Date
+   */
+  public void setThisUpdate(final Date aThisUpdate) {
+<span class="nc bnc" id="L325" title="All 2 branches missed.">    if (aThisUpdate == null) {</span>
+<span class="nc" id="L326">      setThisUpdate(-1L);</span>
     }
+<span class="nc" id="L328">    setThisUpdate(aThisUpdate.getTime());</span>
+<span class="nc" id="L329">  }</span>
 
-    public void setDeltaCRLIndicator(int deltaCRLIndicator) {
-<span class="nc" id="L112">        this.deltaCRLIndicator = deltaCRLIndicator;</span>
-<span class="nc" id="L113">    }</span>
-
-    // @Column
-    public String getIssuerDN() {
-<span class="nc" id="L117">        return issuerDN;</span>
+  /**
+   * @param aNextUpdate Date
+   */
+  public void setNextUpdate(final Date aNextUpdate) {
+<span class="nc bnc" id="L335" title="All 2 branches missed.">    if (aNextUpdate == null) {</span>
+<span class="nc" id="L336">      setNextUpdate(-1L);</span>
     }
+<span class="nc" id="L338">    setNextUpdate(aNextUpdate.getTime());</span>
+<span class="nc" id="L339">  }</span>
 
-    /**
-     * Use setIssuer instead
-     * @param issuerDN DN
-     * 
-     * @see #setIssuer(String)
-     */
-    public void setIssuerDN(String issuerDN) {
-<span class="nc" id="L127">        this.issuerDN = issuerDN;</span>
-<span class="nc" id="L128">    }</span>
+  //
+  // Search functions.
+  //
 
-    // @Id @Column
-    public String getFingerprint() {
-<span class="nc" id="L132">        return fingerprint;</span>
+  /**
+   * @param entityManager EM
+   * @param fingerprint FP
+   * @return the found entity instance or null if the entity does not exist
+   */
+  public static CRLData findByFingerprint(
+      final EntityManager entityManager, final String fingerprint) {
+<span class="nc" id="L352">    return entityManager.find(CRLData.class, fingerprint);</span>
+  }
+
+  /**
+   * @param entityManager EM
+   * @param issuerDN DN
+   * @param crlNumber CRL
+   * @throws javax.persistence.NonUniqueResultException if more than one entity
+   *     with the name exists
+   * @return the found entity instance or null if the entity does not exist
+   */
+  public static CRLData findByIssuerDNAndCRLNumber(
+      final EntityManager entityManager,
+      final String issuerDN,
+      final int crlNumber) {
+<span class="nc" id="L367">    final Query query =</span>
+<span class="nc" id="L368">        entityManager.createQuery(</span>
+            &quot;SELECT a FROM CRLData a WHERE a.issuerDN=:issuerDN AND&quot;
+                + &quot; a.crlNumber=:crlNumber&quot;);
+<span class="nc" id="L371">    query.setParameter(&quot;issuerDN&quot;, issuerDN);</span>
+<span class="nc" id="L372">    query.setParameter(&quot;crlNumber&quot;, crlNumber);</span>
+<span class="nc" id="L373">    return (CRLData) QueryResultWrapper.getSingleResult(query);</span>
+  }
+
+  /**
+   * @param entityManager EM
+   * @param issuerDN DN
+   * @return the all list of CRLData for specified issuerDN
+   */
+  public static List&lt;CRLData&gt; findByIssuerDN(
+      final EntityManager entityManager, final String issuerDN) {
+<span class="nc" id="L383">    final Query query =</span>
+<span class="nc" id="L384">        entityManager.createQuery(</span>
+            &quot;SELECT a FROM CRLData a WHERE a.issuerDN=:issuerDN&quot;);
+<span class="nc" id="L386">    query.setParameter(&quot;issuerDN&quot;, issuerDN);</span>
+    @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L388">    List&lt;CRLData&gt; resultList = query.getResultList();</span>
+<span class="nc" id="L389">    return resultList;</span>
+  }
+
+  /**
+   * @param entityManager EM
+   * @param issuerDN DN
+   * @param deltaCRL CRL
+   * @return the highest CRL number or null if no CRL for the specified issuer
+   *     exists.
+   */
+  public static Integer findHighestCRLNumber(
+      final EntityManager entityManager,
+      final String issuerDN,
+      final boolean deltaCRL) {
+    Integer ret;
+<span class="nc bnc" id="L404" title="All 2 branches missed.">    if (deltaCRL) {</span>
+<span class="nc" id="L405">      final Query query =</span>
+<span class="nc" id="L406">          entityManager.createQuery(</span>
+              &quot;SELECT MAX(a.crlNumber) FROM CRLData a WHERE&quot;
+                  + &quot; a.issuerDN=:issuerDN AND a.deltaCRLIndicator&gt;0&quot;);
+<span class="nc" id="L409">      query.setParameter(&quot;issuerDN&quot;, issuerDN);</span>
+<span class="nc" id="L410">      ret = (Integer) QueryResultWrapper.getSingleResult(query);</span>
+<span class="nc" id="L411">    } else {</span>
+<span class="nc" id="L412">      final Query query =</span>
+<span class="nc" id="L413">          entityManager.createQuery(</span>
+              &quot;SELECT MAX(a.crlNumber) FROM CRLData a WHERE&quot;
+                  + &quot; a.issuerDN=:issuerDN AND a.deltaCRLIndicator=-1&quot;);
+<span class="nc" id="L416">      query.setParameter(&quot;issuerDN&quot;, issuerDN);</span>
+<span class="nc" id="L417">      ret = (Integer) QueryResultWrapper.getSingleResult(query);</span>
     }
+<span class="nc" id="L419">    return ret;</span>
+  }
 
-    public void setFingerprint(String fingerprint) {
-<span class="nc" id="L136">        this.fingerprint = fingerprint;</span>
-<span class="nc" id="L137">    }</span>
+  //
+  // Start Database integrity protection methods
+  //
 
-    // @Column
-    public String getCaFingerprint() {
-<span class="nc" id="L141">        return cAFingerprint;</span>
-    }
+  @Transient
+  @Override
+  protected String getProtectString(final int version) {
+<span class="nc" id="L429">    final ProtectionStringBuilder build = new ProtectionStringBuilder(3000);</span>
+    // What is important to protect here is the data that we define
+    // rowVersion is automatically updated by JPA, so it's not important, it is
+    // only used for optimistic locking
+<span class="nc" id="L433">    build</span>
+<span class="nc" id="L434">        .append(getFingerprint())</span>
+<span class="nc" id="L435">        .append(getCrlNumber())</span>
+<span class="nc" id="L436">        .append(getDeltaCRLIndicator())</span>
+<span class="nc" id="L437">        .append(getIssuerDN())</span>
+<span class="nc" id="L438">        .append(getCaFingerprint())</span>
+<span class="nc" id="L439">        .append(getThisUpdate())</span>
+<span class="nc" id="L440">        .append(getNextUpdate())</span>
+<span class="nc" id="L441">        .append(getBase64Crl());</span>
+<span class="nc" id="L442">    return build.toString();</span>
+  }
 
-    public void setCaFingerprint(String cAFingerprint) {
-<span class="nc" id="L145">        this.cAFingerprint = cAFingerprint;</span>
-<span class="nc" id="L146">    }</span>
+  @Transient
+  @Override
+  protected int getProtectVersion() {
+<span class="nc" id="L448">    return 1;</span>
+  }
 
-    // @Column
-    public long getThisUpdate() {
-<span class="nc" id="L150">        return thisUpdate;</span>
-    }
+  @PrePersist
+  @PreUpdate
+  @Override
+  protected void protectData() {
+<span class="nc" id="L455">    super.protectData();</span>
+<span class="nc" id="L456">  }</span>
 
-    /**
-     * Date formated as seconds since 1970 (== Date.getTime())
-     * @param thisUpdate Date
-     */
-    public void setThisUpdate(long thisUpdate) {
-<span class="nc" id="L158">        this.thisUpdate = thisUpdate;</span>
-<span class="nc" id="L159">    }</span>
+  @PostLoad
+  @Override
+  protected void verifyData() {
+<span class="nc" id="L461">    super.verifyData();</span>
+<span class="nc" id="L462">  }</span>
 
-    // @Column
-    public long getNextUpdate() {
-<span class="nc" id="L163">        return nextUpdate;</span>
-    }
-
-    /**
-     * Date formated as seconds since 1970 (== Date.getTime())
-     * @param nextUpdate date
-     */
-    public void setNextUpdate(long nextUpdate) {
-<span class="nc" id="L171">        this.nextUpdate = nextUpdate;</span>
-<span class="nc" id="L172">    }</span>
-
-    // @Column @Lob
-    public String getBase64Crl() {
-<span class="nc" id="L176">        return base64Crl;</span>
-    }
-
-    public void setBase64Crl(String base64Crl) {
-<span class="nc" id="L180">        this.base64Crl = base64Crl;</span>
-<span class="nc" id="L181">    }</span>
-
-    // @Version @Column
-    public int getRowVersion() {
-<span class="nc" id="L185">        return rowVersion;</span>
-    }
-
-    public void setRowVersion(int rowVersion) {
-<span class="nc" id="L189">        this.rowVersion = rowVersion;</span>
-<span class="nc" id="L190">    }</span>
-
-    // @Column @Lob
-    @Override
-    public String getRowProtection() {
-<span class="nc" id="L195">        return rowProtection;</span>
-    }
-
-    @Override
-    public void setRowProtection(String rowProtection) {
-<span class="nc" id="L200">        this.rowProtection = rowProtection;</span>
-<span class="nc" id="L201">    }</span>
-
-    //
-    // Public methods used to help us manage CRLs
-    //
-    @Transient
-    public X509CRL getCRL() {
-<span class="nc" id="L208">        X509CRL crl = null;</span>
-        try {
-<span class="nc" id="L210">            String b64Crl = getBase64Crl();</span>
-<span class="nc" id="L211">            crl = CertTools.getCRLfromByteArray(Base64.decode(b64Crl.getBytes()));</span>
-<span class="nc" id="L212">        } catch (CRLException ce) {</span>
-<span class="nc" id="L213">            log.error(&quot;Can't decode CRL.&quot;, ce);</span>
-<span class="nc" id="L214">            return null;</span>
-<span class="nc" id="L215">        }</span>
-<span class="nc" id="L216">        return crl;</span>
-    }
-
-    public void setCRL(X509CRL incrl) {
-        try {
-<span class="nc" id="L221">            String b64Crl = new String(Base64.encode((incrl).getEncoded()));</span>
-<span class="nc" id="L222">            setBase64Crl(b64Crl);</span>
-<span class="nc" id="L223">        } catch (CRLException ce) {</span>
-<span class="nc" id="L224">            log.error(&quot;Can't extract DER encoded CRL.&quot;, ce);</span>
-<span class="nc" id="L225">        }</span>
-<span class="nc" id="L226">    }</span>
-
-    @Transient
-    public byte[] getCRLBytes() {
-<span class="nc" id="L230">        byte[] crl = null;</span>
-<span class="nc" id="L231">        String b64Crl = getBase64Crl();</span>
-<span class="nc" id="L232">        crl = Base64.decode(b64Crl.getBytes());</span>
-<span class="nc" id="L233">        return crl;</span>
-    }
-
-    public void setIssuer(String dn) {
-<span class="nc" id="L237">        setIssuerDN(CertTools.stringToBCDNString(dn));</span>
-<span class="nc" id="L238">    }</span>
-
-    public void setThisUpdate(Date thisUpdate) {
-<span class="nc bnc" id="L241" title="All 2 branches missed.">        if (thisUpdate == null) {</span>
-<span class="nc" id="L242">            setThisUpdate(-1L);</span>
-        }
-<span class="nc" id="L244">        setThisUpdate(thisUpdate.getTime());</span>
-<span class="nc" id="L245">    }</span>
-
-    public void setNextUpdate(Date nextUpdate) {
-<span class="nc bnc" id="L248" title="All 2 branches missed.">        if (nextUpdate == null) {</span>
-<span class="nc" id="L249">            setNextUpdate(-1L);</span>
-        }
-<span class="nc" id="L251">        setNextUpdate(nextUpdate.getTime());</span>
-<span class="nc" id="L252">    }</span>
-
-    //
-    // Search functions.
-    //
-
-    /** @param entityManager EM
-     * @param fingerprint FP
-     * @return the found entity instance or null if the entity does not exist */
-    public static CRLData findByFingerprint(EntityManager entityManager, String fingerprint) {
-<span class="nc" id="L262">        return entityManager.find(CRLData.class, fingerprint);</span>
-    }
-
-    /**
-     * @param entityManager EM
-     * @param issuerDN DN
-     * @param crlNumber CRL
-     * @throws javax.persistence.NonUniqueResultException
-     *             if more than one entity with the name exists
-     * @return the found entity instance or null if the entity does not exist
-     */
-    public static CRLData findByIssuerDNAndCRLNumber(EntityManager entityManager, String issuerDN, int crlNumber) {
-<span class="nc" id="L274">        final Query query = entityManager.createQuery(&quot;SELECT a FROM CRLData a WHERE a.issuerDN=:issuerDN AND a.crlNumber=:crlNumber&quot;);</span>
-<span class="nc" id="L275">        query.setParameter(&quot;issuerDN&quot;, issuerDN);</span>
-<span class="nc" id="L276">        query.setParameter(&quot;crlNumber&quot;, crlNumber);</span>
-<span class="nc" id="L277">        return (CRLData) QueryResultWrapper.getSingleResult(query);</span>
-    }
-    
-    /**
-     * @param entityManager EM
-     * @param issuerDN DN
-     * @return the all list of CRLData for specified issuerDN
-     */
-    public static List&lt;CRLData&gt; findByIssuerDN(EntityManager entityManager, String issuerDN) {
-<span class="nc" id="L286">        final Query query = entityManager.createQuery(&quot;SELECT a FROM CRLData a WHERE a.issuerDN=:issuerDN&quot;);</span>
-<span class="nc" id="L287">        query.setParameter(&quot;issuerDN&quot;, issuerDN);</span>
-        @SuppressWarnings(&quot;unchecked&quot;)
-<span class="nc" id="L289">        List&lt;CRLData&gt; resultList = query.getResultList();</span>
-<span class="nc" id="L290">        return resultList;</span>
-    }
-
-    /**
-     * @param entityManager EM
-     * @param issuerDN DN
-     * @param deltaCRL CRL
-     * @return the highest CRL number or null if no CRL for the specified issuer exists.
-     */
-    public static Integer findHighestCRLNumber(EntityManager entityManager, String issuerDN, boolean deltaCRL) {
-        Integer ret;
-<span class="nc bnc" id="L301" title="All 2 branches missed.">        if (deltaCRL) {</span>
-<span class="nc" id="L302">            final Query query = entityManager</span>
-<span class="nc" id="L303">                    .createQuery(&quot;SELECT MAX(a.crlNumber) FROM CRLData a WHERE a.issuerDN=:issuerDN AND a.deltaCRLIndicator&gt;0&quot;);</span>
-<span class="nc" id="L304">            query.setParameter(&quot;issuerDN&quot;, issuerDN);</span>
-<span class="nc" id="L305">            ret = (Integer) QueryResultWrapper.getSingleResult(query);</span>
-<span class="nc" id="L306">        } else {</span>
-<span class="nc" id="L307">            final Query query = entityManager</span>
-<span class="nc" id="L308">                    .createQuery(&quot;SELECT MAX(a.crlNumber) FROM CRLData a WHERE a.issuerDN=:issuerDN AND a.deltaCRLIndicator=-1&quot;);</span>
-<span class="nc" id="L309">            query.setParameter(&quot;issuerDN&quot;, issuerDN);</span>
-<span class="nc" id="L310">            ret = (Integer) QueryResultWrapper.getSingleResult(query);</span>
-        }
-<span class="nc" id="L312">        return ret;</span>
-    }
-
-    //
-    // Start Database integrity protection methods
-    //
-
-    @Transient
-    @Override
-    protected String getProtectString(final int version) {
-<span class="nc" id="L322">    	final ProtectionStringBuilder build = new ProtectionStringBuilder(3000);</span>
-        // What is important to protect here is the data that we define
-        // rowVersion is automatically updated by JPA, so it's not important, it is only used for optimistic locking
-<span class="nc" id="L325">        build.append(getFingerprint()).append(getCrlNumber()).append(getDeltaCRLIndicator()).append(getIssuerDN()).append(getCaFingerprint())</span>
-<span class="nc" id="L326">                .append(getThisUpdate()).append(getNextUpdate()).append(getBase64Crl());</span>
-<span class="nc" id="L327">        return build.toString();</span>
-    }
-
-    @Transient
-    @Override
-    protected int getProtectVersion() {
-<span class="nc" id="L333">        return 1;</span>
-    }
-
-    @PrePersist
-    @PreUpdate
-    @Override
-    protected void protectData() {
-<span class="nc" id="L340">        super.protectData();</span>
-<span class="nc" id="L341">    }</span>
-
-    @PostLoad
-    @Override
-    protected void verifyData() {
-<span class="nc" id="L346">        super.verifyData();</span>
-<span class="nc" id="L347">    }</span>
-
-    @Override
-    @Transient
-    protected String getRowId() {
-<span class="nc" id="L352">        return getFingerprint();</span>
-    }
-    //
-    // End Database integrity protection methods
-    //
+  @Override
+  @Transient
+  protected String getRowId() {
+<span class="nc" id="L467">    return getFingerprint();</span>
+  }
+  //
+  // End Database integrity protection methods
+  //
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

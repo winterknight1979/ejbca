@@ -16,42 +16,56 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * @version $Id: AuditLogRules.java 25428 2017-03-09 14:45:59Z jeklund $
- *
- */
-<span class="nc" id="L23">public enum AuditLogRules {</span>
-<span class="nc" id="L24">    BASE(&quot;/secureaudit&quot;),</span>
-<span class="nc" id="L25">    CONFIGURE(BASE.resource() + &quot;/management/manage&quot;),</span>
-<span class="nc" id="L26">    EXPORT_LOGS(BASE.resource() + &quot;/auditor/export&quot;),</span>
-<span class="nc" id="L27">    VIEW(BASE.resource() + &quot;/auditor/select&quot;),</span>
-<span class="nc" id="L28">    VERIFY(BASE.resource() + &quot;/auditor/verify&quot;),</span>
-<span class="nc" id="L29">    LOG(BASE.resource() + &quot;/log&quot;),</span>
-<span class="nc" id="L30">    LOG_CUSTOM(BASE.resource() + &quot;/log_custom_events&quot;);</span>
+/** @version $Id: AuditLogRules.java 25428 2017-03-09 14:45:59Z jeklund $ */
+<span class="nc" id="L20">public enum AuditLogRules {</span>
+  /** Base. */
+<span class="nc" id="L22">  BASE(&quot;/secureaudit&quot;),</span>
+  /** Configure. */
+<span class="nc" id="L24">  CONFIGURE(BASE.resource() + &quot;/management/manage&quot;),</span>
+  /** Export. */
+<span class="nc" id="L26">  EXPORT_LOGS(BASE.resource() + &quot;/auditor/export&quot;),</span>
+  /** View. */
+<span class="nc" id="L28">  VIEW(BASE.resource() + &quot;/auditor/select&quot;),</span>
+  /** Verify. */
+<span class="nc" id="L30">  VERIFY(BASE.resource() + &quot;/auditor/verify&quot;),</span>
+  /** Log. */
+<span class="nc" id="L32">  LOG(BASE.resource() + &quot;/log&quot;),</span>
+  /** Custom log. */
+<span class="nc" id="L34">  LOG_CUSTOM(BASE.resource() + &quot;/log_custom_events&quot;);</span>
 
-    private final String resource;
-<span class="nc" id="L33">    private static final Map&lt;String,String&gt; allResources = new HashMap&lt;&gt;();</span>
-    
-    static {
-<span class="nc bnc" id="L36" title="All 2 branches missed.">        for (AuditLogRules rule : AuditLogRules.values()) {</span>
-<span class="nc" id="L37">            allResources.put(rule.resource(), rule.resource());</span>
-        }
-<span class="nc" id="L39">    }</span>
-    
-<span class="nc" id="L41">    private AuditLogRules(String resource) {</span>
-<span class="nc" id="L42">        this.resource = resource;</span>
-<span class="nc" id="L43">    }</span>
+  /** Resource. */
+  private final String resource;
+  /** All resources. */
+<span class="nc" id="L39">  private static final Map&lt;String, String&gt; ALL_RESOURCES = new HashMap&lt;&gt;();</span>
 
-    public String resource() {
-<span class="nc" id="L46">        return this.resource;</span>
+  static {
+<span class="nc bnc" id="L42" title="All 2 branches missed.">    for (AuditLogRules rule : AuditLogRules.values()) {</span>
+<span class="nc" id="L43">      ALL_RESOURCES.put(rule.resource(), rule.resource());</span>
     }
+<span class="nc" id="L45">  }</span>
 
-    public String toString() {
-<span class="nc" id="L50">        return this.resource;</span>
-    }
+  /**
+   * Constructor.
+   *
+   * @param aResource Resource
+   */
+<span class="nc" id="L52">  AuditLogRules(final String aResource) {</span>
+<span class="nc" id="L53">    this.resource = aResource;</span>
+<span class="nc" id="L54">  }</span>
 
-    public static Map&lt;String,String&gt; getAllResources() {
-<span class="nc" id="L54">        return Collections.unmodifiableMap(allResources);</span>
-    }
+  /** @return resource */
+  public String resource() {
+<span class="nc" id="L58">    return this.resource;</span>
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L63">    return this.resource;</span>
+  }
+
+  /** @return Map of all resources */
+  public static Map&lt;String, String&gt; getAllResources() {
+<span class="nc" id="L68">    return Collections.unmodifiableMap(ALL_RESOURCES);</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

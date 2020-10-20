@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RaViewCertBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ra-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ra</a> &gt; <span class="el_source">RaViewCertBean.java</span></div><h1>RaViewCertBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ra;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.PostConstruct;
+import javax.ejb.EJB;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.ManagedProperty;
+import javax.faces.bean.ViewScoped;
+import javax.faces.component.UIComponent;
+import javax.faces.context.FacesContext;
+import javax.servlet.http.HttpServletRequest;
+
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CADoesntExistsException;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.certificate.CertificateDataWrapper;
+import org.cesecore.util.EJBTools;
+import org.ejbca.core.ejb.ra.NoSuchEndEntityException;
+import org.ejbca.core.model.approval.ApprovalException;
+import org.ejbca.core.model.approval.WaitingForApprovalException;
+import org.ejbca.core.model.era.RaMasterApiProxyBeanLocal;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfileValidationException;
+import org.ejbca.ra.RaCertificateDetails.Callbacks;
+
+/**
+ * Backing bean for certificate details view.
+ *  
+ * @version $Id: RaViewCertBean.java 26138 2017-07-06 14:39:48Z henriks $
+ * TODO: Use CDI beans
+ */
+@SuppressWarnings(&quot;deprecation&quot;)
+@ManagedBean
+@ViewScoped
+<span class="nc" id="L51">public class RaViewCertBean implements Serializable {</span>
+
+    private static final long serialVersionUID = 1L;
+
+    @EJB
+    private RaMasterApiProxyBeanLocal raMasterApiProxyBean;
+
+    @ManagedProperty(value=&quot;#{raAuthenticationBean}&quot;)
+    private RaAuthenticationBean raAuthenticationBean;
+<span class="nc" id="L60">    public void setRaAuthenticationBean(final RaAuthenticationBean raAuthenticationBean) { this.raAuthenticationBean = raAuthenticationBean; }</span>
+
+    @ManagedProperty(value=&quot;#{raLocaleBean}&quot;)
+    private RaLocaleBean raLocaleBean;
+<span class="nc" id="L64">    public void setRaLocaleBean(final RaLocaleBean raLocaleBean) { this.raLocaleBean = raLocaleBean; }</span>
+
+<span class="nc" id="L66">    private String fingerprint = null;</span>
+<span class="nc" id="L67">    private RaCertificateDetails raCertificateDetails = null;</span>
+<span class="nc" id="L68">    private Map&lt;Integer, String&gt; eepIdToNameMap = null;</span>
+<span class="nc" id="L69">    private Map&lt;Integer, String&gt; cpIdToNameMap = null;</span>
+<span class="nc" id="L70">    private Map&lt;String,String&gt; caSubjectToNameMap = new HashMap&lt;&gt;();</span>
+
+<span class="nc" id="L72">    private final Callbacks raCertificateDetailsCallbacks = new RaCertificateDetails.Callbacks() {</span>
+        @Override
+        public RaLocaleBean getRaLocaleBean() {
+<span class="nc" id="L75">            return raLocaleBean;</span>
+        }
+        @Override
+        public UIComponent getConfirmPasswordComponent() {
+<span class="nc" id="L79">            return null;</span>
+        }
+        @Override
+        public boolean changeStatus(RaCertificateDetails raCertificateDetails, int newStatus, int newRevocationReason) throws ApprovalException, WaitingForApprovalException {
+<span class="nc" id="L83">            final boolean ret = raMasterApiProxyBean.changeCertificateStatus(raAuthenticationBean.getAuthenticationToken(), raCertificateDetails.getFingerprint(),</span>
+                    newStatus, newRevocationReason);
+<span class="nc bnc" id="L85" title="All 2 branches missed.">            if (ret) {</span>
+                // Re-initialize object if status has changed
+<span class="nc" id="L87">                final CertificateDataWrapper cdw = raMasterApiProxyBean.searchForCertificate(raAuthenticationBean.getAuthenticationToken(), raCertificateDetails.getFingerprint());</span>
+<span class="nc" id="L88">                raCertificateDetails.reInitialize(cdw, cpIdToNameMap, eepIdToNameMap, caSubjectToNameMap);</span>
+            }
+<span class="nc" id="L90">            return ret;</span>
+        }
+        @Override
+        public boolean recoverKey(RaCertificateDetails raCertificateDetails) throws ApprovalException, CADoesntExistsException, AuthorizationDeniedException, WaitingForApprovalException, 
+                                    NoSuchEndEntityException, EndEntityProfileValidationException {
+<span class="nc" id="L95">            final boolean ret = raMasterApiProxyBean.markForRecovery(raAuthenticationBean.getAuthenticationToken(), raCertificateDetails.getUsername(), raCertificateDetails.getPassword(), </span>
+<span class="nc" id="L96">                                    EJBTools.wrap(raCertificateDetails.getCertificate()), false);</span>
+<span class="nc" id="L97">            return ret;</span>
+        }
+        @Override
+        public boolean keyRecoveryPossible(RaCertificateDetails raCertificateDetails) {
+<span class="nc" id="L101">            final boolean ret = raMasterApiProxyBean.keyRecoveryPossible(raAuthenticationBean.getAuthenticationToken(), raCertificateDetails.getCertificate(), raCertificateDetails.getUsername());</span>
+<span class="nc" id="L102">            return ret;</span>
+        }
+    };
+
+    @PostConstruct
+    public void postConstruct() {
+<span class="nc" id="L108">        fingerprint = ((HttpServletRequest) FacesContext.getCurrentInstance().getExternalContext().getRequest()).getParameter(&quot;fp&quot;);</span>
+<span class="nc bnc" id="L109" title="All 2 branches missed.">        if (fingerprint!=null) {</span>
+<span class="nc" id="L110">            final CertificateDataWrapper cdw = raMasterApiProxyBean.searchForCertificate(raAuthenticationBean.getAuthenticationToken(), fingerprint);</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">            if (cdw!=null) {</span>
+<span class="nc" id="L112">                cpIdToNameMap = raMasterApiProxyBean.getAuthorizedCertificateProfileIdsToNameMap(raAuthenticationBean.getAuthenticationToken());</span>
+<span class="nc" id="L113">                eepIdToNameMap = raMasterApiProxyBean.getAuthorizedEndEntityProfileIdsToNameMap(raAuthenticationBean.getAuthenticationToken());</span>
+<span class="nc" id="L114">                final List&lt;CAInfo&gt; caInfos = new ArrayList&lt;&gt;(raMasterApiProxyBean.getAuthorizedCas(raAuthenticationBean.getAuthenticationToken()));</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">                for (final CAInfo caInfo : caInfos) {</span>
+<span class="nc" id="L116">                    caSubjectToNameMap.put(caInfo.getSubjectDN(), caInfo.getName());</span>
+<span class="nc" id="L117">                }</span>
+<span class="nc" id="L118">                raCertificateDetails = new RaCertificateDetails(cdw, raCertificateDetailsCallbacks, cpIdToNameMap, eepIdToNameMap, caSubjectToNameMap);</span>
+            }
+        }
+<span class="nc" id="L121">    }</span>
+
+<span class="nc" id="L123">    public String getFingerprint() { return fingerprint; }</span>
+<span class="nc" id="L124">    public RaCertificateDetails getCertificate() { return raCertificateDetails; }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

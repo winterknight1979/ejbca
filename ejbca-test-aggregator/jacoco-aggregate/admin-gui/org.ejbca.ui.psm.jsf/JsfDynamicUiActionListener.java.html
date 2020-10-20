@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>JsfDynamicUiActionListener.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">admin-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.psm.jsf</a> &gt; <span class="el_source">JsfDynamicUiActionListener.java</span></div><h1>JsfDynamicUiActionListener.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.psm.jsf;
+
+import java.io.Serializable;
+
+import javax.faces.application.FacesMessage;
+import javax.faces.component.html.HtmlCommandButton;
+import javax.faces.context.FacesContext;
+import javax.faces.event.AbortProcessingException;
+import javax.faces.event.ActionEvent;
+import javax.faces.event.ActionListener;
+
+import org.apache.log4j.Logger;
+import org.cesecore.util.ui.DynamicUiActionCallback;
+import org.cesecore.util.ui.DynamicUiCallbackException;
+import org.cesecore.util.ui.DynamicUiModel;
+import org.cesecore.util.ui.DynamicUiModelException;
+import org.cesecore.util.ui.DynamicUiProperty;
+
+/**
+ * This MyFaces ActionListener implementation for {@link DynamicUiModel} delegates the event to 
+ * the {@link DynamicUiActionCallback} associated with the dynamic UI property and renders the 
+ * outcome on the view.
+ * 
+ * @version $Id: JsfDynamicUiActionListener.java 28530 2018-03-21 06:55:55Z mikekushner $
+ */
+public class JsfDynamicUiActionListener implements Serializable, ActionListener {
+
+    private static final long serialVersionUID = -1L;
+
+	/** Class logger. */
+<span class="nc" id="L43">    private static final Logger log = Logger.getLogger(JsfDynamicUiActionListener.class);</span>
+
+    /** DynamicUIProperty reference. */
+    private DynamicUiProperty&lt;?&gt; dynamicUiProperty;
+
+    /** Required by java.lang.Serializable */
+<span class="nc" id="L49">    public JsfDynamicUiActionListener() {</span>
+<span class="nc" id="L50">    }</span>
+
+    /** 
+     * Constructor with DynamicUiProperty reference.
+     * @param dynamicUiProperty Property
+     */
+<span class="nc" id="L56">    public JsfDynamicUiActionListener(final DynamicUiProperty&lt;?&gt; dynamicUiProperty) {</span>
+<span class="nc" id="L57">        this.dynamicUiProperty = dynamicUiProperty;</span>
+<span class="nc" id="L58">    }</span>
+
+    @Override
+    public void processAction(final ActionEvent event) throws AbortProcessingException {
+<span class="nc" id="L62">        final HtmlCommandButton button = (HtmlCommandButton) event.getSource();</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L64">            log.debug(&quot;Dynamic UI model action called: &quot; + event + &quot; by component &quot; + button);</span>
+        }
+<span class="nc bnc" id="L66" title="All 2 branches missed.">        if (dynamicUiProperty.getActionCallback() != null) {</span>
+            try {
+<span class="nc" id="L68">                dynamicUiProperty.getActionCallback().action(button.getValue());</span>
+<span class="nc" id="L69">                FacesContext.getCurrentInstance().renderResponse();</span>
+<span class="nc" id="L70">            } catch (DynamicUiCallbackException e) {</span>
+<span class="nc" id="L71">                log.info(&quot;Could not process dynamic UI model action callback: &quot; + e.getMessage());</span>
+<span class="nc" id="L72">                FacesContext.getCurrentInstance().addMessage(&quot;error&quot;, new FacesMessage(FacesMessage.SEVERITY_INFO, e.getMessage(), e.getMessage()));</span>
+                // throw new AbortProcessingException(e);
+                // -&gt; Renders the message (no stack trace) on UI.
+<span class="nc" id="L75">            }</span>
+        } else {
+<span class="nc" id="L77">            throw new AbortProcessingException(new DynamicUiModelException(</span>
+<span class="nc" id="L78">                    &quot;Registered dynamic UI model action &quot; + dynamicUiProperty.getName() + &quot; does not have an action callback.&quot;));</span>
+        }
+<span class="nc" id="L80">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

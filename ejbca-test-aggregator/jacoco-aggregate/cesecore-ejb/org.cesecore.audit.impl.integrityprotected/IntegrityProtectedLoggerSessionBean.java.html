@@ -14,7 +14,6 @@ package org.cesecore.audit.impl.integrityprotected;
 
 import java.util.Map;
 import java.util.Properties;
-
 import javax.annotation.PostConstruct;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -22,7 +21,6 @@ import javax.ejb.TransactionAttributeType;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
-
 import org.apache.log4j.Logger;
 import org.cesecore.audit.enums.EventStatus;
 import org.cesecore.audit.enums.EventType;
@@ -35,74 +33,125 @@ import org.cesecore.util.CryptoProviderTools;
 import org.cesecore.util.QueryResultWrapper;
 
 /**
- * An alternative implementation of the SecurityEventsLogger interface. It handles the creation of a signed log for an event.
- * 
- * This was created to evaluate the performance of using database integrity protection instead of custom code for log singing.
- * 
- * @version $Id: IntegrityProtectedLoggerSessionBean.java 24600 2016-10-31 12:01:55Z jeklund $
+ * An alternative implementation of the SecurityEventsLogger interface. It
+ * handles the creation of a signed log for an event.
+ *
+ * &lt;p&gt;This was created to evaluate the performance of using database integrity
+ * protection instead of custom code for log singing.
+ *
+ * @version $Id: IntegrityProtectedLoggerSessionBean.java 24600 2016-10-31
+ *     12:01:55Z jeklund $
  */
 @Stateless
 @TransactionAttribute(TransactionAttributeType.REQUIRED)
-<span class="nc" id="L46">public class IntegrityProtectedLoggerSessionBean implements IntegrityProtectedLoggerSessionLocal {</span>
+<span class="nc" id="L47">public class IntegrityProtectedLoggerSessionBean</span>
+    implements IntegrityProtectedLoggerSessionLocal {
 
-<span class="nc" id="L48">    private static final Logger log = Logger.getLogger(IntegrityProtectedLoggerSessionBean.class);</span>
+    /** Logger. */
+<span class="nc" id="L51">  private static final Logger LOG =</span>
+<span class="nc" id="L52">      Logger.getLogger(IntegrityProtectedLoggerSessionBean.class);</span>
 
-    @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
-    private EntityManager entityManager;
+  /** EM. */
+  @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
+  private EntityManager entityManager;
 
-    @PostConstruct
-    public void postConstruct() {
-<span class="nc" id="L55">        CryptoProviderTools.installBCProviderIfNotAvailable();</span>
-<span class="nc" id="L56">    }</span>
+  /** Setup. */
+  @PostConstruct
+  public void postConstruct() {
+<span class="nc" id="L61">    CryptoProviderTools.installBCProviderIfNotAvailable();</span>
+<span class="nc" id="L62">  }</span>
 
-    /**
-     * Initialization of the log sequence number in combination with nodeId should be performed exactly once.
-     * 
-     * This callback will be invoked on the first call to NodeSequenceHolder.getNext(...) to perform this initialization.
-     * 
-     * In this callback implementation, the nodeId is first read from the configuration (which may default to reading
-     * the current hostname from the system). This hostname is then passed to the next method to figure out what the
-     * highest present sequenceNumber for this nodeId is in the database (e.g. last write before shutting down).
-     */
-<span class="nc" id="L67">    private final NodeSequenceHolder.OnInitCallBack sequenceHolderInitialization = new NodeSequenceHolder.OnInitCallBack() {</span>
+  /**
+   * Initialization of the log sequence number in combination with nodeId should
+   * be performed exactly once.
+   *
+   * &lt;p&gt;This callback will be invoked on the first call to
+   * NodeSequenceHolder.getNext(...) to perform this initialization.
+   *
+   * &lt;p&gt;In this callback implementation, the nodeId is first read from the
+   * configuration (which may default to reading the current hostname from the
+   * system). This hostname is then passed to the next method to figure out what
+   * the highest present sequenceNumber for this nodeId is in the database (e.g.
+   * last write before shutting down).
+   */
+<span class="nc" id="L77">  private final NodeSequenceHolder.OnInitCallBack sequenceHolderInitialization =</span>
+<span class="nc" id="L78">      new NodeSequenceHolder.OnInitCallBack() {</span>
         @Override
         public String getNodeId() {
-<span class="nc" id="L70">            return CesecoreConfiguration.getNodeIdentifier();</span>
+<span class="nc" id="L81">          return CesecoreConfiguration.getNodeIdentifier();</span>
         }
+
         @Override
         public long getMaxSequenceNumberForNode(final String nodeId) {
-            // Get the latest sequenceNumber from last run from the database..
-<span class="nc" id="L75">            final Query query = entityManager.createQuery(&quot;SELECT MAX(a.sequenceNumber) FROM AuditRecordData a WHERE a.nodeId=:nodeId&quot;);</span>
-<span class="nc" id="L76">            query.setParameter(&quot;nodeId&quot;, nodeId);</span>
-<span class="nc" id="L77">            return QueryResultWrapper.getSingleResult(query, Long.valueOf(-1)).longValue();</span>
+          // Get the latest sequenceNumber from last run from the database..
+<span class="nc" id="L87">          final Query query =</span>
+<span class="nc" id="L88">              entityManager.createQuery(</span>
+                  &quot;SELECT MAX(a.sequenceNumber) FROM AuditRecordData a WHERE&quot;
+                      + &quot; a.nodeId=:nodeId&quot;);
+<span class="nc" id="L91">          query.setParameter(&quot;nodeId&quot;, nodeId);</span>
+<span class="nc" id="L92">          return QueryResultWrapper.getSingleResult(query, Long.valueOf(-1))</span>
+<span class="nc" id="L93">              .longValue();</span>
         }
-    };
+      };
 
-    @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    // Always persist audit log
-    public void log(final TrustedTime trustedTime, final EventType eventType, final EventStatus eventStatus, final ModuleType module,
-            final ServiceType service, final String authToken, final String customId, final String searchDetail1, final String searchDetail2,
-            final Map&lt;String, Object&gt; additionalDetails, final Properties properties) throws AuditRecordStorageException {
-<span class="nc bnc" id="L87" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L88">            log.trace(String.format(&quot;&gt;log:%s:%s:%s:%s:%s:%s&quot;, eventType, eventStatus, module, service, authToken, additionalDetails));</span>
-        }
-        try {
-<span class="nc" id="L91">            final Long sequenceNumber = NodeSequenceHolder.INSTANCE.getNext(sequenceHolderInitialization);</span>
-            // Make sure to use the Node Identifier that this log sequence was initialized with (for example hostnames reported by the system could change)
-<span class="nc" id="L93">            final String nodeId = NodeSequenceHolder.INSTANCE.getNodeId();</span>
-<span class="nc" id="L94">            final Long timeStamp = Long.valueOf(trustedTime.getTime().getTime());</span>
-<span class="nc" id="L95">            final AuditRecordData auditRecordData = new AuditRecordData(nodeId, sequenceNumber, timeStamp, eventType, eventStatus, authToken,</span>
-                    service, module, customId, searchDetail1, searchDetail2, additionalDetails);
-<span class="nc" id="L97">            entityManager.persist(auditRecordData);</span>
-<span class="nc" id="L98">        } catch (Exception e) {</span>
-<span class="nc" id="L99">            log.error(e.getMessage(), e);</span>
-<span class="nc" id="L100">            throw new AuditRecordStorageException(e.getMessage(), e);</span>
-        } finally {
-<span class="nc bnc" id="L102" title="All 2 branches missed.">            if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L103">                log.trace(&quot;&lt;log&quot;);</span>
-            }
-        }
-<span class="nc" id="L106">    }</span>
+  @Override
+  @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+  // Always persist audit log
+  public void log(
+      final TrustedTime trustedTime,
+      final EventType eventType,
+      final EventStatus eventStatus,
+      final ModuleType module,
+      final ServiceType service,
+      final String authToken,
+      final String customId,
+      final String searchDetail1,
+      final String searchDetail2,
+      final Map&lt;String, Object&gt; additionalDetails,
+      final Properties properties)
+      throws AuditRecordStorageException {
+<span class="nc bnc" id="L113" title="All 2 branches missed.">    if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L114">      LOG.trace(</span>
+<span class="nc" id="L115">          String.format(</span>
+              &quot;&gt;log:%s:%s:%s:%s:%s:%s&quot;,
+              eventType,
+              eventStatus,
+              module,
+              service,
+              authToken,
+              additionalDetails));
+    }
+    try {
+<span class="nc" id="L125">      final Long sequenceNumber =</span>
+<span class="nc" id="L126">          NodeSequenceHolder.INSTANCE.getNext(sequenceHolderInitialization);</span>
+      // Make sure to use the Node Identifier that this log sequence was
+      // initialized with (for example hostnames reported by the system could
+      // change)
+<span class="nc" id="L130">      final String nodeId = NodeSequenceHolder.INSTANCE.getNodeId();</span>
+<span class="nc" id="L131">      final Long timeStamp = Long.valueOf(trustedTime.getTime().getTime());</span>
+<span class="nc" id="L132">      final AuditRecordData auditRecordData =</span>
+          new AuditRecordData(
+              nodeId,
+              sequenceNumber,
+              timeStamp,
+              eventType,
+              eventStatus,
+              authToken,
+              service,
+              module,
+              customId,
+              searchDetail1,
+              searchDetail2,
+              additionalDetails);
+<span class="nc" id="L146">      entityManager.persist(auditRecordData);</span>
+<span class="nc" id="L147">    } catch (Exception e) {</span>
+<span class="nc" id="L148">      LOG.error(e.getMessage(), e);</span>
+<span class="nc" id="L149">      throw new AuditRecordStorageException(e.getMessage(), e);</span>
+    } finally {
+<span class="nc bnc" id="L151" title="All 2 branches missed.">      if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L152">        LOG.trace(&quot;&lt;log&quot;);</span>
+      }
+    }
+<span class="nc" id="L155">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

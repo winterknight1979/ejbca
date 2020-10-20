@@ -9,116 +9,104 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.certificate.request;
 
 import java.io.Serializable;
 
 /**
- * Encapsulates the possible values for the failinfo part of a SCEP or CMP FAILURE response.
- * In CMP (RFC4210) the codes are specified in E.7.
+ * Encapsulates the possible values for the failinfo part of a SCEP or CMP
+ * FAILURE response. In CMP (RFC4210) the codes are specified in E.7.
  *
  * @version $Id: FailInfo.java 22446 2015-12-15 03:12:07Z anatom $
  */
-public class FailInfo implements Serializable {
+public final class FailInfo implements Serializable {
 
-    private static final long serialVersionUID = 5198024740242161138L;
+  private static final long serialVersionUID = 5198024740242161138L;
 
-    /**
-     * Unrecognized or unsupported algorithm ident
-     */
-<span class="fc" id="L30">    public static final FailInfo BAD_ALGORITHM = new FailInfo(0);</span>
+  /** Unrecognized or unsupported algorithm ident. */
+<span class="fc" id="L28">  public static final FailInfo BAD_ALGORITHM = new FailInfo(0);</span>
 
-    /**
-     * Integrity check failed
-     */
-<span class="fc" id="L35">    public static final FailInfo BAD_MESSAGE_CHECK = new FailInfo(1);</span>
+  /** Integrity check failed. */
+<span class="fc" id="L31">  public static final FailInfo BAD_MESSAGE_CHECK = new FailInfo(1);</span>
 
-    /**
-     * Transaction not permitted or supported
-     */
-<span class="fc" id="L40">    public static final FailInfo BAD_REQUEST = new FailInfo(2);</span>
+  /** Transaction not permitted or supported. */
+<span class="fc" id="L34">  public static final FailInfo BAD_REQUEST = new FailInfo(2);</span>
 
-    /**
-     * Message time field was not sufficiently close to the system time
-     */
-<span class="fc" id="L45">    public static final FailInfo BAD_TIME = new FailInfo(3);</span>
+  /** Message time field was not sufficiently close to the system time. */
+<span class="fc" id="L37">  public static final FailInfo BAD_TIME = new FailInfo(3);</span>
 
-    /**
-     * No certificate could be identified matching the provided criteria
-     */
-<span class="fc" id="L50">    public static final FailInfo BAD_CERTIFICATE_ID = new FailInfo(4);</span>
-    
-    // The below codes are not specified in the SCEP draft RFC
-    
-    /**
-     * Request for wrong certificate authority
-     */
-<span class="fc" id="L57">    public static final FailInfo WRONG_AUTHORITY = new FailInfo(6);</span>
-    /**
-     * Data incorrect, for example request for a non-existing user
-     */
-<span class="fc" id="L61">    public static final FailInfo INCORRECT_DATA = new FailInfo(7);</span>
-    /**
-     * Verification of Proof of possession failed
-     */
-<span class="fc" id="L65">    public static final FailInfo BAD_POP = new FailInfo(9);</span>
-    /**
-     * RFC4210 PKIFailureInfo certRevoked. &quot;the certificate has already been revoked&quot;
-     */
-<span class="fc" id="L69">    public static final FailInfo CERT_REVOKED = new FailInfo(10);</span>
-    /**
-     * Not authorized
-     */
-<span class="fc" id="L73">    public static final FailInfo NOT_AUTHORIZED = new FailInfo(23);</span>
-    /**
-     * (Timeout), system was unavailable and could not be reached
-     */
-<span class="fc" id="L77">    public static final FailInfo SYSTEM_UNAVAILABLE = new FailInfo(24);</span>
-    /**
-     * The value actually encoded into the response message as the failinfo attribute
-     */
-    private final int value;
+  /** No certificate could be identified matching the provided criteria. */
+<span class="fc" id="L40">  public static final FailInfo BAD_CERTIFICATE_ID = new FailInfo(4);</span>
 
-<span class="fc" id="L83">    private FailInfo(int value) {</span>
-<span class="fc" id="L84">        this.value = value;</span>
-<span class="fc" id="L85">    }</span>
+  // The below codes are not specified in the SCEP draft RFC
 
-    /**
-     * Gets the value embedded in the response message as a failinfo attribute
-     * @return  the value to use
-     */
-    public String getValue() {
-<span class="nc" id="L92">        return Integer.toString(value);</span>
+  /** Request for wrong certificate authority. */
+<span class="fc" id="L45">  public static final FailInfo WRONG_AUTHORITY = new FailInfo(6);</span>
+  /** Data incorrect, for example request for a non-existing user. */
+<span class="fc" id="L47">  public static final FailInfo INCORRECT_DATA = new FailInfo(7);</span>
+  /** Verification of Proof of possession failed. */
+<span class="fc" id="L49">  public static final FailInfo BAD_POP = new FailInfo(9);</span>
+  /**
+   * RFC4210 PKIFailureInfo certRevoked. &quot;the certificate has already been
+   * revoked&quot;
+   */
+<span class="fc" id="L54">  public static final FailInfo CERT_REVOKED = new FailInfo(10);</span>
+  /** Not authorized. */
+<span class="fc" id="L56">  public static final FailInfo NOT_AUTHORIZED = new FailInfo(23);</span>
+  /** (Timeout), system was unavailable and could not be reached. */
+<span class="fc" id="L58">  public static final FailInfo SYSTEM_UNAVAILABLE = new FailInfo(24);</span>
+  /**
+   * The value actually encoded into the response message as the failinfo
+   * attribute.
+   */
+  private final int value;
+
+<span class="fc" id="L65">  private FailInfo(final int aValue) {</span>
+<span class="fc" id="L66">    this.value = aValue;</span>
+<span class="fc" id="L67">  }</span>
+
+  /**
+   * Gets the value embedded in the response message as a failinfo attribute.
+   *
+   * @return the value to use
+   */
+  public String getValue() {
+<span class="nc" id="L75">    return Integer.toString(value);</span>
+  }
+
+  /**
+   * Gets the error integer value.
+   *
+   * @return the error code
+   */
+  public int intValue() {
+<span class="fc" id="L84">    return value;</span>
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+<span class="nc bnc" id="L89" title="All 2 branches missed.">    if (this == o) {</span>
+<span class="nc" id="L90">      return true;</span>
     }
+<span class="nc bnc" id="L92" title="All 2 branches missed.">    if (!(o instanceof FailInfo)) {</span>
+<span class="nc" id="L93">      return false;</span>
+    }
+<span class="nc" id="L95">    final FailInfo scepResponseStatus = (FailInfo) o;</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">    if (value != scepResponseStatus.value) {</span>
+<span class="nc" id="L97">      return false;</span>
+    }
+<span class="nc" id="L99">    return true;</span>
+  }
 
-    /**
-     * Gets the error integer value
-     * @return the error code
-     */
-    public int intValue() {
-<span class="fc" id="L100">        return value;</span>
-    }
-    
-    public boolean equals(Object o) {
-<span class="nc bnc" id="L104" title="All 2 branches missed.">        if (this == o) {</span>
-<span class="nc" id="L105">        	return true;</span>
-        }
-<span class="nc bnc" id="L107" title="All 2 branches missed.">        if (!(o instanceof FailInfo)) { </span>
-<span class="nc" id="L108">        	return false;</span>
-        }
-<span class="nc" id="L110">        final FailInfo scepResponseStatus = (FailInfo) o;</span>
-<span class="nc bnc" id="L111" title="All 2 branches missed.">        if (value != scepResponseStatus.value) {</span>
-<span class="nc" id="L112">        	return false;</span>
-        }
-<span class="nc" id="L114">        return true;</span>
-    }
+  @Override
+  public int hashCode() {
+<span class="nc" id="L104">    return value;</span>
+  }
 
-    public int hashCode() {
-<span class="nc" id="L118">        return value;</span>
-    }
-    public String toString() {
-<span class="nc" id="L121">    	return Integer.toString(value);</span>
-    }
+  @Override
+  public String toString() {
+<span class="nc" id="L109">    return Integer.toString(value);</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -18,205 +18,251 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
-
 import org.apache.commons.lang.StringUtils;
 
 /**
- * This class is responsible for managing a list of CT logs. The CT logs backed by
- * this class can be grouped or reordered and there is functionality for adding
- * new CT logs or removing existing ones. This class does not load or store changes
- * in a persistent storage, and relies on its creator to load the CT logs from e.g.
- * a database or a file.
+ * This class is responsible for managing a list of CT logs. The CT logs backed
+ * by this class can be grouped or reordered and there is functionality for
+ * adding new CT logs or removing existing ones. This class does not load or
+ * store changes in a persistent storage, and relies on its creator to load the
+ * CT logs from e.g. a database or a file.
+ *
  * @version $Id: CtLogManager.java 28511 2018-03-18 21:24:03Z bastianf $
  */
 public class CtLogManager {
-    private final List&lt;CTLogInfo&gt; ctLogs;
+    /** Logs. */
+  private final List&lt;CTLogInfo&gt; ctLogs;
 
-    /**
-     * Create a new CT log manager responsible for a list of logs specified.
-     * @param ctLogs the logs managed by this CT log manager
-     */
-<span class="nc" id="L39">    public CtLogManager(final List&lt;CTLogInfo&gt; ctLogs) {</span>
-<span class="nc" id="L40">        this.ctLogs = ctLogs;</span>
-<span class="nc" id="L41">    }</span>
+  /**
+   * Create a new CT log manager responsible for a list of logs specified.
+   *
+   * @param aCtLogs the logs managed by this CT log manager
+   */
+<span class="nc" id="L41">  public CtLogManager(final List&lt;CTLogInfo&gt; aCtLogs) {</span>
+<span class="nc" id="L42">    this.ctLogs = aCtLogs;</span>
+<span class="nc" id="L43">  }</span>
 
-    /**
-     * Group the CT logs managed by this CT log manager by label. Returns a map
-     * which maps a label to a list of all CT logs which has this label.
-     * @return a mapping between labels and CT logs with this label
-     */
-    public LinkedHashMap&lt;String, List&lt;CTLogInfo&gt;&gt; getCtLogGroups() {
-<span class="nc" id="L49">        final LinkedHashMap&lt;String, List&lt;CTLogInfo&gt;&gt; logLogMap = new LinkedHashMap&lt;&gt;();</span>
-<span class="nc bnc" id="L50" title="All 2 branches missed.">        for (final CTLogInfo ctLog : ctLogs) {</span>
-<span class="nc bnc" id="L51" title="All 2 branches missed.">            if (!logLogMap.containsKey(ctLog.getLabel())) {</span>
-<span class="nc" id="L52">                logLogMap.put(ctLog.getLabel(), new ArrayList&lt;CTLogInfo&gt;());</span>
-            }
-<span class="nc" id="L54">            logLogMap.get(ctLog.getLabel()).add(ctLog);</span>
-<span class="nc" id="L55">        }</span>
-<span class="nc" id="L56">        return logLogMap;</span>
-    }
+  /**
+   * Group the CT logs managed by this CT log manager by label. Returns a map
+   * which maps a label to a list of all CT logs which has this label.
+   *
+   * @return a mapping between labels and CT logs with this label
+   */
+  public LinkedHashMap&lt;String, List&lt;CTLogInfo&gt;&gt; getCtLogGroups() {
+<span class="nc" id="L52">    final LinkedHashMap&lt;String, List&lt;CTLogInfo&gt;&gt; logLogMap =</span>
+        new LinkedHashMap&lt;&gt;();
+<span class="nc bnc" id="L54" title="All 2 branches missed.">    for (final CTLogInfo ctLog : ctLogs) {</span>
+<span class="nc bnc" id="L55" title="All 2 branches missed.">      if (!logLogMap.containsKey(ctLog.getLabel())) {</span>
+<span class="nc" id="L56">        logLogMap.put(ctLog.getLabel(), new ArrayList&lt;CTLogInfo&gt;());</span>
+      }
+<span class="nc" id="L58">      logLogMap.get(ctLog.getLabel()).add(ctLog);</span>
+<span class="nc" id="L59">    }</span>
+<span class="nc" id="L60">    return logLogMap;</span>
+  }
 
-    /**
-     * Returns all unique labels for the CT logs managed by this CT log manager.
-     * @return a list of all unique labels
-     */
-    public List&lt;String&gt; getLabels() {
-<span class="nc" id="L64">        List&lt;String&gt; ret = new ArrayList&lt;String&gt;(getCtLogGroups().keySet());</span>
-<span class="nc" id="L65">        Collections.sort(ret, new Comparator&lt;String&gt;() {</span>
-            @Override
-            public int compare(String label1, String label2) {
-<span class="nc" id="L68">                return label1.compareToIgnoreCase(label2);</span>
-            }
+  /**
+   * Returns all unique labels for the CT logs managed by this CT log manager.
+   *
+   * @return a list of all unique labels
+   */
+  public List&lt;String&gt; getLabels() {
+<span class="nc" id="L69">    List&lt;String&gt; ret = new ArrayList&lt;String&gt;(getCtLogGroups().keySet());</span>
+<span class="nc" id="L70">    Collections.sort(</span>
+        ret,
+<span class="nc" id="L72">        new Comparator&lt;String&gt;() {</span>
+          @Override
+          public int compare(final String label1, final String label2) {
+<span class="nc" id="L75">            return label1.compareToIgnoreCase(label2);</span>
+          }
         });
-<span class="nc" id="L71">        return ret;</span>
+<span class="nc" id="L78">    return ret;</span>
+  }
+
+  /**
+   * Returns a list of all logs managed by this CT log manager. This list can be
+   * persisted to a database and used to initialise an identical log manager.
+   *
+   * @return a list of all CT logs
+   */
+  public List&lt;CTLogInfo&gt; getAllCtLogs() {
+<span class="nc" id="L88">    return ctLogs;</span>
+  }
+
+  /**
+   * Get a list of CT logs labelled as specified. If no logs have the label
+   * specified, an empty list will be returned.
+   *
+   * @param label the label of the CT logs to retrieve
+   * @return a list of CT logs matching the given label, never null
+   */
+  public List&lt;CTLogInfo&gt; getCtLogsByLabel(final String label) {
+<span class="nc" id="L99">    final List&lt;CTLogInfo&gt; ctLogGroup = getCtLogGroups().get(label);</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">    if (ctLogGroup == null) {</span>
+<span class="nc" id="L101">      return new ArrayList&lt;CTLogInfo&gt;();</span>
     }
+<span class="nc" id="L103">    return ctLogGroup;</span>
+  }
 
-    /**
-     * Returns a list of all logs managed by this CT log manager. This list can be
-     * persisted to a database and used to initialise an identical log manager.
-     * @return a list of all CT logs
-     */
-    public List&lt;CTLogInfo&gt; getAllCtLogs() {
-<span class="nc" id="L80">        return ctLogs;</span>
+  /**
+   * Moves the specified CT log up one step. This method does nothing if the CT
+   * log is already on top or if the CT log group to which the CT log belongs
+   * only contains one log.
+   *
+   * @param ctLog Log
+   * @throws IllegalArgumentException if the CT log given as argument is not
+   *     managed by this CT log manager
+   */
+  public void moveUp(final CTLogInfo ctLog) {
+<span class="nc" id="L116">    final List&lt;CTLogInfo&gt; ctLogGroup = getCtLogsByLabel(ctLog.getLabel());</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">    if (!ctLogGroup.contains(ctLog)) {</span>
+<span class="nc" id="L118">      throw new IllegalArgumentException(</span>
+          &quot;The CT log &quot;
+<span class="nc" id="L120">              + ctLog.toString()</span>
+              + &quot; is not managed by this CT log manager.&quot;);
     }
-
-    /**
-     * Get a list of CT logs labelled as specified. If no logs have the label specified,
-     * an empty list will be returned.
-     * @param label the label of the CT logs to retrieve
-     * @return a list of CT logs matching the given label, never null
-     */
-    public List&lt;CTLogInfo&gt; getCtLogsByLabel(final String label) {
-<span class="nc" id="L90">        final List&lt;CTLogInfo&gt; ctLogGroup = getCtLogGroups().get(label);</span>
-<span class="nc bnc" id="L91" title="All 2 branches missed.">        if (ctLogGroup == null) {</span>
-<span class="nc" id="L92">            return new ArrayList&lt;CTLogInfo&gt;();</span>
-        }
-<span class="nc" id="L94">        return ctLogGroup;</span>
+<span class="nc bnc" id="L123" title="All 4 branches missed.">    if (ctLogGroup.size() == 1 || isOnTop(ctLog)) {</span>
+<span class="nc" id="L124">      return;</span>
     }
+<span class="nc" id="L126">    final CTLogInfo previousCtLog =</span>
+<span class="nc" id="L127">        ctLogGroup.get(ctLogGroup.indexOf(ctLog) - 1);</span>
+<span class="nc" id="L128">    Collections.swap(</span>
+<span class="nc" id="L129">        ctLogs, ctLogs.indexOf(ctLog), ctLogs.indexOf(previousCtLog));</span>
+<span class="nc" id="L130">  }</span>
 
-    /**
-     * Moves the specified CT log up one step. This method does nothing if the CT log is already
-     * on top or if the CT log group to which the CT log belongs only contains one log.
-     * @param ctLog Log
-     * @throws IllegalArgumentException if the CT log given as argument is not managed by this CT log manager
-     */
-    public void moveUp(final CTLogInfo ctLog) {
-<span class="nc" id="L104">        final List&lt;CTLogInfo&gt; ctLogGroup = getCtLogsByLabel(ctLog.getLabel());</span>
-<span class="nc bnc" id="L105" title="All 2 branches missed.">        if (!ctLogGroup.contains(ctLog)) {</span>
-<span class="nc" id="L106">            throw new IllegalArgumentException(&quot;The CT log &quot; + ctLog.toString() + &quot; is not managed by this CT log manager.&quot;);</span>
-        }
-<span class="nc bnc" id="L108" title="All 4 branches missed.">        if (ctLogGroup.size() == 1 || isOnTop(ctLog)) {</span>
-<span class="nc" id="L109">            return;</span>
-        }
-<span class="nc" id="L111">        final CTLogInfo previousCtLog = ctLogGroup.get(ctLogGroup.indexOf(ctLog) - 1);</span>
-<span class="nc" id="L112">        Collections.swap(ctLogs, ctLogs.indexOf(ctLog), ctLogs.indexOf(previousCtLog));</span>
-<span class="nc" id="L113">    }</span>
-
-    /**
-     * Moves the specified CT log down one step. This method does nothing if the CT log is already
-     * on the bottom or if the CT log group to which the CT log belongs only contains one log.
-     * @param ctLog Log
-     * @throws IllegalArgumentException if the CT log given as argument is not managed by this CT log manager
-     */
-    public void moveDown(final CTLogInfo ctLog) {
-<span class="nc" id="L122">        final List&lt;CTLogInfo&gt; ctLogGroup = getCtLogsByLabel(ctLog.getLabel());</span>
-<span class="nc bnc" id="L123" title="All 2 branches missed.">        if (!ctLogGroup.contains(ctLog)) {</span>
-<span class="nc" id="L124">            throw new IllegalArgumentException(&quot;The CT log &quot; + ctLog.toString() + &quot; is not managed by this CT log manager.&quot;);</span>
-        }
-<span class="nc bnc" id="L126" title="All 4 branches missed.">        if (ctLogGroup.size() == 1 || isOnBottom(ctLog)) {</span>
-<span class="nc" id="L127">            return;</span>
-        }
-<span class="nc" id="L129">        final CTLogInfo nextCtLog = ctLogGroup.get(ctLogGroup.indexOf(ctLog) + 1);</span>
-<span class="nc" id="L130">        Collections.swap(ctLogs, ctLogs.indexOf(ctLog), ctLogs.indexOf(nextCtLog));</span>
-<span class="nc" id="L131">    }</span>
-
-    /**
-     * Add a new CT log to this CT log manager. This method will prevent duplicate logs from being added.
-     * @param ctLog the CT log to add
-     * @throws DuplicateCtLogException if the CT log to add is a duplicate according to {@link #canAdd(CTLogInfo)}
-     */
-    public void addCtLog(final CTLogInfo ctLog) {
-<span class="nc bnc" id="L139" title="All 2 branches missed.">        if (!canAdd(ctLog)) {</span>
-<span class="nc" id="L140">            throw new DuplicateCtLogException(&quot;The CT log &quot; + ctLog.toString() + &quot; already exists in the log group '&quot; + ctLog.getLabel() + &quot;'.&quot;);</span>
-        }
-<span class="nc" id="L142">        ctLogs.add(ctLog);</span>
-<span class="nc" id="L143">    }</span>
-
-    /**
-     * Removes an existing CT log from this log manager.
-     * @param ctLog the CT log to remove
-     * @throws IllegalArgumentException if the CT log is not managed by this CT log manager
-     */
-    public void removeCtLog(final CTLogInfo ctLog) {
-<span class="nc bnc" id="L151" title="All 2 branches missed.">        if (!ctLogs.contains(ctLog)) {</span>
-<span class="nc" id="L152">            throw new IllegalArgumentException(&quot;The CT log &quot; + ctLog.toString() + &quot; is not managed by this CT log manager.&quot;);</span>
-        }
-<span class="nc" id="L154">        ctLogs.remove(ctLog);</span>
-<span class="nc" id="L155">    }</span>
-
-    /**
-     * Determine whether the CT log given as input can be added to this CT log manager. A CT log cannot be added
-     * if any of the following conditions hold for another CT log:
-     * &lt;ul&gt;
-     *   &lt;li&gt;The other log has an ID identical to the new CT log&lt;/li&gt;
-     *   &lt;li&gt;The other log is has an identical URL and label as the new CT log&lt;/li&gt;
-     * &lt;/ul&gt;
-     * @param ctLog the new CT log to check
-     * @return true if the CT log given as input can be added, false otherwise
-     */
-    public boolean canAdd(final CTLogInfo ctLog) {
-<span class="nc bnc" id="L168" title="All 2 branches missed.">        for (CTLogInfo existing : ctLogs) {</span>
-<span class="nc bnc" id="L169" title="All 2 branches missed.">            final boolean hasSameId = existing.getLogId() == ctLog.getLogId();</span>
-<span class="nc bnc" id="L170" title="All 2 branches missed.">            final boolean urlExistsInCtLogGroup = StringUtils.equals(existing.getUrl(), ctLog.getUrl())</span>
-<span class="nc bnc" id="L171" title="All 2 branches missed.">                    &amp;&amp; StringUtils.equals(existing.getLabel(), ctLog.getLabel());</span>
-<span class="nc bnc" id="L172" title="All 4 branches missed.">            if (hasSameId || urlExistsInCtLogGroup) {</span>
-<span class="nc" id="L173">                return false;</span>
-            }
-<span class="nc" id="L175">        }</span>
-<span class="nc" id="L176">        return true;</span>
+  /**
+   * Moves the specified CT log down one step. This method does nothing if the
+   * CT log is already on the bottom or if the CT log group to which the CT log
+   * belongs only contains one log.
+   *
+   * @param ctLog Log
+   * @throws IllegalArgumentException if the CT log given as argument is not
+   *     managed by this CT log manager
+   */
+  public void moveDown(final CTLogInfo ctLog) {
+<span class="nc" id="L142">    final List&lt;CTLogInfo&gt; ctLogGroup = getCtLogsByLabel(ctLog.getLabel());</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">    if (!ctLogGroup.contains(ctLog)) {</span>
+<span class="nc" id="L144">      throw new IllegalArgumentException(</span>
+          &quot;The CT log &quot;
+<span class="nc" id="L146">              + ctLog.toString()</span>
+              + &quot; is not managed by this CT log manager.&quot;);
     }
-
-    /**
-     * Determine whether the CT log given as input is on the top in its CT log group.
-     * @param ctLog the CT log to check
-     * @return true iff the CT log is on the top in its CT log group
-     */
-    public boolean isOnTop(final CTLogInfo ctLog) {
-<span class="nc" id="L185">        final List&lt;CTLogInfo&gt; ctLogGroup = getCtLogsByLabel(ctLog.getLabel());</span>
-<span class="nc bnc" id="L186" title="All 4 branches missed.">        return !ctLogGroup.isEmpty() &amp;&amp; ctLogGroup.get(0).equals(ctLog);</span>
+<span class="nc bnc" id="L149" title="All 4 branches missed.">    if (ctLogGroup.size() == 1 || isOnBottom(ctLog)) {</span>
+<span class="nc" id="L150">      return;</span>
     }
+<span class="nc" id="L152">    final CTLogInfo nextCtLog = ctLogGroup.get(ctLogGroup.indexOf(ctLog) + 1);</span>
+<span class="nc" id="L153">    Collections.swap(ctLogs, ctLogs.indexOf(ctLog), ctLogs.indexOf(nextCtLog));</span>
+<span class="nc" id="L154">  }</span>
 
-    /**
-     * Determine whether the CT log given as input is on the bottom in its CT log group.
-     * @param ctLog the CT log to check
-     * @return true iff the CT log is on the bottom in its CT log group
-     */
-    public boolean isOnBottom(final CTLogInfo ctLog) {
-<span class="nc" id="L195">        final List&lt;CTLogInfo&gt; ctLogGroup = getCtLogsByLabel(ctLog.getLabel());</span>
-<span class="nc bnc" id="L196" title="All 4 branches missed.">        return !ctLogGroup.isEmpty() &amp;&amp; ctLogGroup.get(ctLogGroup.size() - 1).equals(ctLog);</span>
+  /**
+   * Add a new CT log to this CT log manager. This method will prevent duplicate
+   * logs from being added.
+   *
+   * @param ctLog the CT log to add
+   * @throws DuplicateCtLogException if the CT log to add is a duplicate
+   *     according to {@link #canAdd(CTLogInfo)}
+   */
+  public void addCtLog(final CTLogInfo ctLog) {
+<span class="nc bnc" id="L165" title="All 2 branches missed.">    if (!canAdd(ctLog)) {</span>
+<span class="nc" id="L166">      throw new DuplicateCtLogException(</span>
+          &quot;The CT log &quot;
+<span class="nc" id="L168">              + ctLog.toString()</span>
+              + &quot; already exists in the log group '&quot;
+<span class="nc" id="L170">              + ctLog.getLabel()</span>
+              + &quot;'.&quot;);
     }
+<span class="nc" id="L173">    ctLogs.add(ctLog);</span>
+<span class="nc" id="L174">  }</span>
 
-    /**
-     * Rename a label. This will effectively set the label of CT logs to the
-     * new label for every CT log with the old label.
-     * @param oldLabel the label to change
-     * @param newLabel the new label to set
-     */
-    public void renameLabel(final String oldLabel, final String newLabel) {
-<span class="nc bnc" id="L206" title="All 2 branches missed.">        for (CTLogInfo ctLog : ctLogs) {</span>
-<span class="nc bnc" id="L207" title="All 2 branches missed.">            if (oldLabel.equals(ctLog.getLabel())) {</span>
-<span class="nc" id="L208">                ctLog.setLabel(newLabel);</span>
-            }
-<span class="nc" id="L210">        }</span>
-<span class="nc" id="L211">    }</span>
-
-    /**
-     * Returns the string representation of this object containing
-     * the CT logs currently managed by this CT log manager.
-     */
-    @Override
-    public String toString() {
-<span class="nc" id="L219">        return &quot;CT logs: &quot; + getAllCtLogs().toString();</span>
+  /**
+   * Removes an existing CT log from this log manager.
+   *
+   * @param ctLog the CT log to remove
+   * @throws IllegalArgumentException if the CT log is not managed by this CT
+   *     log manager
+   */
+  public void removeCtLog(final CTLogInfo ctLog) {
+<span class="nc bnc" id="L184" title="All 2 branches missed.">    if (!ctLogs.contains(ctLog)) {</span>
+<span class="nc" id="L185">      throw new IllegalArgumentException(</span>
+          &quot;The CT log &quot;
+<span class="nc" id="L187">              + ctLog.toString()</span>
+              + &quot; is not managed by this CT log manager.&quot;);
     }
+<span class="nc" id="L190">    ctLogs.remove(ctLog);</span>
+<span class="nc" id="L191">  }</span>
+
+  /**
+   * Determine whether the CT log given as input can be added to this CT log
+   * manager. A CT log cannot be added if any of the following conditions hold
+   * for another CT log:
+   *
+   * &lt;ul&gt;
+   *   &lt;li&gt;The other log has an ID identical to the new CT log
+   *   &lt;li&gt;The other log is has an identical URL and label as the new CT log
+   * &lt;/ul&gt;
+   *
+   * @param ctLog the new CT log to check
+   * @return true if the CT log given as input can be added, false otherwise
+   */
+  public boolean canAdd(final CTLogInfo ctLog) {
+<span class="nc bnc" id="L207" title="All 2 branches missed.">    for (CTLogInfo existing : ctLogs) {</span>
+<span class="nc bnc" id="L208" title="All 2 branches missed.">      final boolean hasSameId = existing.getLogId() == ctLog.getLogId();</span>
+<span class="nc" id="L209">      final boolean urlExistsInCtLogGroup =</span>
+<span class="nc bnc" id="L210" title="All 2 branches missed.">          StringUtils.equals(existing.getUrl(), ctLog.getUrl())</span>
+<span class="nc bnc" id="L211" title="All 2 branches missed.">              &amp;&amp; StringUtils.equals(existing.getLabel(), ctLog.getLabel());</span>
+<span class="nc bnc" id="L212" title="All 4 branches missed.">      if (hasSameId || urlExistsInCtLogGroup) {</span>
+<span class="nc" id="L213">        return false;</span>
+      }
+<span class="nc" id="L215">    }</span>
+<span class="nc" id="L216">    return true;</span>
+  }
+
+  /**
+   * Determine whether the CT log given as input is on the top in its CT log
+   * group.
+   *
+   * @param ctLog the CT log to check
+   * @return true iff the CT log is on the top in its CT log group
+   */
+  public boolean isOnTop(final CTLogInfo ctLog) {
+<span class="nc" id="L227">    final List&lt;CTLogInfo&gt; ctLogGroup = getCtLogsByLabel(ctLog.getLabel());</span>
+<span class="nc bnc" id="L228" title="All 4 branches missed.">    return !ctLogGroup.isEmpty() &amp;&amp; ctLogGroup.get(0).equals(ctLog);</span>
+  }
+
+  /**
+   * Determine whether the CT log given as input is on the bottom in its CT log
+   * group.
+   *
+   * @param ctLog the CT log to check
+   * @return true iff the CT log is on the bottom in its CT log group
+   */
+  public boolean isOnBottom(final CTLogInfo ctLog) {
+<span class="nc" id="L239">    final List&lt;CTLogInfo&gt; ctLogGroup = getCtLogsByLabel(ctLog.getLabel());</span>
+<span class="nc bnc" id="L240" title="All 2 branches missed.">    return !ctLogGroup.isEmpty()</span>
+<span class="nc bnc" id="L241" title="All 2 branches missed.">        &amp;&amp; ctLogGroup.get(ctLogGroup.size() - 1).equals(ctLog);</span>
+  }
+
+  /**
+   * Rename a label. This will effectively set the label of CT logs to the new
+   * label for every CT log with the old label.
+   *
+   * @param oldLabel the label to change
+   * @param newLabel the new label to set
+   */
+  public void renameLabel(final String oldLabel, final String newLabel) {
+<span class="nc bnc" id="L252" title="All 2 branches missed.">    for (CTLogInfo ctLog : ctLogs) {</span>
+<span class="nc bnc" id="L253" title="All 2 branches missed.">      if (oldLabel.equals(ctLog.getLabel())) {</span>
+<span class="nc" id="L254">        ctLog.setLabel(newLabel);</span>
+      }
+<span class="nc" id="L256">    }</span>
+<span class="nc" id="L257">  }</span>
+
+  /**
+   * Returns the string representation of this object containing the CT logs
+   * currently managed by this CT log manager.
+   */
+  @Override
+  public String toString() {
+<span class="nc" id="L265">    return &quot;CT logs: &quot; + getAllCtLogs().toString();</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

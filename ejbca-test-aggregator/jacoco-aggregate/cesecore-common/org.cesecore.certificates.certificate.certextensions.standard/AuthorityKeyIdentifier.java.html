@@ -16,7 +16,6 @@ import java.security.PublicKey;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.List;
-
 import org.apache.log4j.Logger;
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1EncodableVector;
@@ -37,62 +36,82 @@ import org.cesecore.certificates.ocsp.SHA1DigestCalculator;
 import org.cesecore.util.CertTools;
 
 /**
- * 
- * Class for standard X509 certificate extension. See rfc3280 or later for spec of this extension.
- * 
+ * Class for standard X509 certificate extension. See rfc3280 or later for spec
+ * of this extension.
+ *
  * @version $Id: AuthorityKeyIdentifier.java 22618 2016-01-20 15:00:45Z marko $
  */
-<span class="fc" id="L45">public class AuthorityKeyIdentifier extends StandardCertificateExtension {</span>
-    private static final long serialVersionUID = 1L;
-<span class="fc" id="L47">    private static final Logger log = Logger.getLogger(AuthorityKeyIdentifier.class);</span>
+<span class="fc" id="L44">public class AuthorityKeyIdentifier extends StandardCertificateExtension {</span>
+  private static final long serialVersionUID = 1L;
+  /** Logger. */
+<span class="fc" id="L47">  private static final Logger LOG =</span>
+<span class="fc" id="L48">      Logger.getLogger(AuthorityKeyIdentifier.class);</span>
 
-    @Override
-    public void init(final CertificateProfile certProf) {
-<span class="fc" id="L51">        super.setOID(Extension.authorityKeyIdentifier.getId());</span>
-<span class="fc" id="L52">        super.setCriticalFlag(certProf.getAuthorityKeyIdentifierCritical());</span>
-<span class="fc" id="L53">    }</span>
+  @Override
+  public void init(final CertificateProfile certProf) {
+<span class="fc" id="L52">    super.setOID(Extension.authorityKeyIdentifier.getId());</span>
+<span class="fc" id="L53">    super.setCriticalFlag(certProf.getAuthorityKeyIdentifierCritical());</span>
+<span class="fc" id="L54">  }</span>
 
-    @Override
-    public ASN1Encodable getValue(final EndEntityInformation subject, final CA ca, final CertificateProfile certProfile, final PublicKey userPublicKey,
-            final PublicKey caPublicKey, CertificateValidity val) throws CertificateExtensionException {
-<span class="fc" id="L58">        org.bouncycastle.asn1.x509.AuthorityKeyIdentifier ret = null;</span>
-        // Default value is that we calculate it from scratch!
-        // (If this is a root CA we must calculate the AuthorityKeyIdentifier from scratch)
-        // (If the CA signing this cert does not have a SubjectKeyIdentifier we must calculate the AuthorityKeyIdentifier from scratch)
-<span class="fc" id="L62">        JcaX509ExtensionUtils extensionUtils = new JcaX509ExtensionUtils(SHA1DigestCalculator.buildSha1Instance());</span>
-<span class="fc" id="L63">        ret = extensionUtils.createAuthorityKeyIdentifier(caPublicKey);</span>
-        // If we have a CA-certificate (i.e. this is not a Root CA), we must take the authority key identifier from
-        // the CA-certificates SubjectKeyIdentifier if it exists. If we don't do that we will get the wrong identifier if the
-        // CA does not follow RFC3280 (guess if MS-CA follows RFC3280?)
-<span class="fc" id="L67">        final X509Certificate cacert = getCACertificate(ca, caPublicKey);</span>
-<span class="pc bpc" id="L68" title="1 of 2 branches missed.">        final boolean isRootCA = (certProfile.getType() == CertificateConstants.CERTTYPE_ROOTCA);</span>
-<span class="pc bpc" id="L69" title="2 of 4 branches missed.">        if ((cacert != null) &amp;&amp; (!isRootCA)) {</span>
-            byte[] akibytes;
-<span class="fc" id="L71">            akibytes = CertTools.getSubjectKeyId(cacert);</span>
-<span class="pc bpc" id="L72" title="1 of 2 branches missed.">            if (akibytes != null) {</span>
-                // TODO: The code below is snipped from AuthorityKeyIdentifier.java in BC 1.36, because there is no method there
-                // to set only a pre-computed key identifier
-                // This should be replaced when such a method is added to BC
-<span class="fc" id="L76">                final ASN1OctetString keyidentifier = new DEROctetString(akibytes);</span>
-<span class="fc" id="L77">                final ASN1EncodableVector v = new ASN1EncodableVector();</span>
-<span class="fc" id="L78">                v.add(new DERTaggedObject(false, 0, keyidentifier));</span>
-<span class="fc" id="L79">                final ASN1Sequence seq = new DERSequence(v);</span>
-<span class="fc" id="L80">                ret = org.bouncycastle.asn1.x509.AuthorityKeyIdentifier.getInstance(seq);</span>
-<span class="pc bpc" id="L81" title="1 of 2 branches missed.">                if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L82">                    log.debug(&quot;Using AuthorityKeyIdentifier from CA-certificates SubjectKeyIdentifier.&quot;);</span>
-                }
-            }
+  @Override
+  public ASN1Encodable getValue(
+      final EndEntityInformation subject,
+      final CA ca,
+      final CertificateProfile certProfile,
+      final PublicKey userPublicKey,
+      final PublicKey caPublicKey,
+      final CertificateValidity val)
+      throws CertificateExtensionException {
+<span class="fc" id="L65">    org.bouncycastle.asn1.x509.AuthorityKeyIdentifier ret = null;</span>
+    // Default value is that we calculate it from scratch!
+    // (If this is a root CA we must calculate the AuthorityKeyIdentifier from
+    // scratch)
+    // (If the CA signing this cert does not have a SubjectKeyIdentifier we must
+    // calculate the AuthorityKeyIdentifier from scratch)
+<span class="fc" id="L71">    JcaX509ExtensionUtils extensionUtils =</span>
+<span class="fc" id="L72">        new JcaX509ExtensionUtils(SHA1DigestCalculator.buildSha1Instance());</span>
+<span class="fc" id="L73">    ret = extensionUtils.createAuthorityKeyIdentifier(caPublicKey);</span>
+    // If we have a CA-certificate (i.e. this is not a Root CA), we must take
+    // the authority key identifier from
+    // the CA-certificates SubjectKeyIdentifier if it exists. If we don't do
+    // that we will get the wrong identifier if the
+    // CA does not follow RFC3280 (guess if MS-CA follows RFC3280?)
+<span class="fc" id="L79">    final X509Certificate cacert = getCACertificate(ca, caPublicKey);</span>
+<span class="fc" id="L80">    final boolean isRootCA =</span>
+<span class="pc bpc" id="L81" title="1 of 2 branches missed.">        (certProfile.getType() == CertificateConstants.CERTTYPE_ROOTCA);</span>
+<span class="pc bpc" id="L82" title="2 of 4 branches missed.">    if ((cacert != null) &amp;&amp; (!isRootCA)) {</span>
+      byte[] akibytes;
+<span class="fc" id="L84">      akibytes = CertTools.getSubjectKeyId(cacert);</span>
+<span class="pc bpc" id="L85" title="1 of 2 branches missed.">      if (akibytes != null) {</span>
+        // TODO: The code below is snipped from AuthorityKeyIdentifier.java in
+        // BC 1.36, because there is no method there
+        // to set only a pre-computed key identifier
+        // This should be replaced when such a method is added to BC
+<span class="fc" id="L90">        final ASN1OctetString keyidentifier = new DEROctetString(akibytes);</span>
+<span class="fc" id="L91">        final ASN1EncodableVector v = new ASN1EncodableVector();</span>
+<span class="fc" id="L92">        v.add(new DERTaggedObject(false, 0, keyidentifier));</span>
+<span class="fc" id="L93">        final ASN1Sequence seq = new DERSequence(v);</span>
+<span class="fc" id="L94">        ret =</span>
+<span class="fc" id="L95">            org.bouncycastle.asn1.x509.AuthorityKeyIdentifier.getInstance(seq);</span>
+<span class="pc bpc" id="L96" title="1 of 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L97">          LOG.debug(</span>
+              &quot;Using AuthorityKeyIdentifier from CA-certificates&quot;
+                  + &quot; SubjectKeyIdentifier.&quot;);
         }
-<span class="fc" id="L86">        return ret;</span>
+      }
     }
+<span class="fc" id="L103">    return ret;</span>
+  }
 
-    private X509Certificate getCACertificate(final CA ca, final PublicKey caPublicKey) {
-<span class="fc" id="L90">        final List&lt;Certificate&gt; rolloverChain = ca.getRolloverCertificateChain();</span>
-<span class="pc bpc" id="L91" title="3 of 4 branches missed.">        if (rolloverChain != null &amp;&amp; rolloverChain.get(0).getPublicKey().equals(caPublicKey)) {</span>
-<span class="nc" id="L92">            return (X509Certificate) rolloverChain.get(0);</span>
-        } else {
-<span class="fc" id="L94">            return (X509Certificate) ca.getCACertificate();</span>
-        }
+  private X509Certificate getCACertificate(
+      final CA ca, final PublicKey caPublicKey) {
+<span class="fc" id="L108">    final List&lt;Certificate&gt; rolloverChain = ca.getRolloverCertificateChain();</span>
+<span class="pc bpc" id="L109" title="1 of 2 branches missed.">    if (rolloverChain != null</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">        &amp;&amp; rolloverChain.get(0).getPublicKey().equals(caPublicKey)) {</span>
+<span class="nc" id="L111">      return (X509Certificate) rolloverChain.get(0);</span>
+    } else {
+<span class="fc" id="L113">      return (X509Certificate) ca.getCACertificate();</span>
     }
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

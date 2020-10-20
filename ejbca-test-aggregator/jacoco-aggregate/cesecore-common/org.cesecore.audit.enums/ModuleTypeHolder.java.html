@@ -14,30 +14,36 @@ package org.cesecore.audit.enums;
 
 /**
  * Simple implementation of ModuleType that holds the identifier.
- * 
+ *
  * @version $Id: ModuleTypeHolder.java 26796 2017-10-12 04:29:58Z anatom $
  */
 public class ModuleTypeHolder implements ModuleType {
 
-	private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-	private final String value;
-	
-<span class="nc" id="L26">	public ModuleTypeHolder(final String value) {</span>
-<span class="nc" id="L27">		this.value = value;</span>
-<span class="nc" id="L28">	}</span>
-	
-	@Override
-	public String toString() {
-<span class="nc" id="L32">		return value;</span>
-	}
-	
-	@Override
-	public boolean equals(final ModuleType value) {
-<span class="nc bnc" id="L37" title="All 2 branches missed.">		if (value == null) {</span>
-<span class="nc" id="L38">			return false;</span>
-		}
-<span class="nc" id="L40">		return this.value.equals(value.toString());</span>
-	}
+  /** Value. */
+  private final String value;
+
+  /**
+   * Constructor.
+   *
+   * @param aValue Value
+   */
+<span class="nc" id="L32">  public ModuleTypeHolder(final String aValue) {</span>
+<span class="nc" id="L33">    this.value = aValue;</span>
+<span class="nc" id="L34">  }</span>
+
+  @Override
+  public String toString() {
+<span class="nc" id="L38">    return value;</span>
+  }
+
+  @Override
+  public boolean equals(final ModuleType aValue) {
+<span class="nc bnc" id="L43" title="All 2 branches missed.">    if (aValue == null) {</span>
+<span class="nc" id="L44">      return false;</span>
+    }
+<span class="nc" id="L46">    return this.value.equals(aValue.toString());</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

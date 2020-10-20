@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SimpleTimeValidator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Administration GUI</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin</a> &gt; <span class="el_source">SimpleTimeValidator.java</span></div><h1>SimpleTimeValidator.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.web.admin;
+
+import javax.faces.application.FacesMessage;
+import javax.faces.component.UIComponent;
+import javax.faces.context.FacesContext;
+import javax.faces.validator.Validator;
+import javax.faces.validator.ValidatorException;
+
+import org.apache.log4j.Logger;
+import org.cesecore.util.SimpleTime;
+import org.cesecore.util.StringTools;
+import org.cesecore.util.TimeUnitFormat;
+import org.ejbca.ui.web.admin.configuration.EjbcaJSFHelper;
+
+/** JSF validator to check that the input does not contain any invalid characters and is a valid time unit format (i.e. '3y 6mo -10d 6h +30m 30s'). 
+ * 
+ * @version $Id: SimpleTimeValidator.java 25545 2017-03-20 16:50:07Z mikekushner $
+ */
+<span class="nc" id="L32">public class SimpleTimeValidator implements Validator {</span>
+
+<span class="nc" id="L34">    private static final Logger log = Logger.getLogger(SimpleTimeValidator.class);</span>
+
+    @Override
+    public void validate(FacesContext facesContext, UIComponent component, Object object) throws ValidatorException {
+<span class="nc" id="L38">        final String value = (String) object;</span>
+<span class="nc" id="L39">        final TimeUnitFormat format = SimpleTime.getTimeUnitFormatOrThrow( (String) component.getAttributes().get(&quot;precision&quot;));</span>
+<span class="nc" id="L40">        long minimumValue = Long.MIN_VALUE;</span>
+<span class="nc bnc" id="L41" title="All 2 branches missed.">        if (null != component.getAttributes().get(&quot;minimumValue&quot;)) {</span>
+<span class="nc" id="L42">            minimumValue = Long.parseLong((String) component.getAttributes().get(&quot;minimumValue&quot;)); </span>
+        }
+<span class="nc" id="L44">        long maximumValue = Long.MAX_VALUE;</span>
+<span class="nc bnc" id="L45" title="All 2 branches missed.">        if (null != component.getAttributes().get(&quot;maximumValue&quot;)) {</span>
+<span class="nc" id="L46">            maximumValue = Long.parseLong((String) component.getAttributes().get(&quot;maximumValue&quot;)); </span>
+        }
+<span class="nc" id="L48">        boolean failed = true;</span>
+<span class="nc bnc" id="L49" title="All 2 branches missed.">        if (StringTools.hasSqlStripChars(value).isEmpty()) {</span>
+            try {
+<span class="nc" id="L51">                final long millis = format.parseMillis(value);</span>
+<span class="nc bnc" id="L52" title="All 4 branches missed.">                if (minimumValue &lt;= millis &amp;&amp; millis &lt;= maximumValue) {</span>
+<span class="nc" id="L53">                    failed = false;</span>
+                }
+<span class="nc" id="L55">            } catch (NumberFormatException e) {</span>
+                // NOOP
+<span class="nc" id="L57">            }</span>
+        }
+<span class="nc bnc" id="L59" title="All 2 branches missed.">        if (failed) {</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L61">                log.debug(&quot;Validating component &quot; + component.getClientId(facesContext) + &quot; with value \&quot;&quot; + value + &quot;\&quot; failed.&quot;);</span>
+            }
+<span class="nc" id="L63">            final String message = EjbcaJSFHelper.getBean().getEjbcaWebBean().getText(&quot;INVALIDTIMEFORMAT&quot;);</span>
+<span class="nc" id="L64">            throw new ValidatorException(new FacesMessage(FacesMessage.SEVERITY_ERROR, message, null));</span>
+        } else {
+<span class="nc bnc" id="L66" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L67">                log.debug(&quot;Validating component &quot; + component.getClientId(facesContext) + &quot; with value \&quot;&quot; + value + &quot;\&quot;&quot;);</span>
+            }
+        }
+<span class="nc" id="L70">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

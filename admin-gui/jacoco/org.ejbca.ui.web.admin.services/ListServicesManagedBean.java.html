@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ListServicesManagedBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Administration GUI</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.services</a> &gt; <span class="el_source">ListServicesManagedBean.java</span></div><h1>ListServicesManagedBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.web.admin.services;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
+import javax.faces.application.Application;
+import javax.faces.context.FacesContext;
+
+import org.apache.commons.lang.StringUtils;
+import org.ejbca.core.model.authorization.AccessRulesConstants;
+import org.ejbca.core.model.services.ServiceConfiguration;
+import org.ejbca.core.model.services.ServiceExistsException;
+import org.ejbca.core.model.util.EjbLocalHelper;
+import org.ejbca.ui.web.admin.BaseManagedBean;
+import org.ejbca.ui.web.admin.configuration.EjbcaJSFHelper;
+import org.ejbca.ui.web.admin.configuration.SortableSelectItem;
+
+/**
+ * Class used to manage the listservices.jsp page
+ * Contains and manages the available services
+ * 
+ *
+ * @version $Id: ListServicesManagedBean.java 28844 2018-05-04 08:31:02Z samuellb $
+ */
+public class ListServicesManagedBean extends BaseManagedBean {
+
+	private static final long serialVersionUID = 1L;
+<span class="nc" id="L43">	private final EjbLocalHelper ejb = new EjbLocalHelper();</span>
+	private String selectedServiceName;
+<span class="nc" id="L45">	private String newServiceName = &quot;&quot;;</span>
+
+<span class="nc" id="L47">	public ListServicesManagedBean() { }</span>
+
+	public String getSelectedServiceName() {
+<span class="nc" id="L50">		return selectedServiceName;</span>
+	}
+
+	public void setSelectedServiceName(String string) {
+<span class="nc" id="L54">		selectedServiceName = string;</span>
+<span class="nc" id="L55">	}</span>
+
+    public List&lt;SortableSelectItem&gt; getAvailableServices() {
+<span class="nc" id="L58">        List&lt;SortableSelectItem&gt; availableServices = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L59">        Collection&lt;Integer&gt; availableServicesIds = ejb.getServiceSession().getVisibleServiceIds();</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">        for (Integer id : availableServicesIds) {</span>
+<span class="nc" id="L61">            ServiceConfiguration serviceConfig = ejb.getServiceSession().getServiceConfiguration(id.intValue());</span>
+<span class="nc" id="L62">            String serviceName = ejb.getServiceSession().getServiceName(id.intValue());</span>
+<span class="nc" id="L63">            String hidden = &quot;&quot;;</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">            if (serviceConfig.isHidden()) {</span>
+<span class="nc" id="L65">                hidden = &quot;&lt;Hidden, Debug mode&gt;&quot;;</span>
+            }
+<span class="nc bnc" id="L67" title="All 2 branches missed.">            if (serviceConfig.isActive()) {</span>
+<span class="nc" id="L68">                availableServices.add(new SortableSelectItem(serviceName, serviceName + &quot; (&quot; + EjbcaJSFHelper.getBean().getText().get(&quot;ACTIVE&quot;) + &quot;)&quot;</span>
+                        + hidden));
+            } else {
+<span class="nc" id="L71">                availableServices.add(new SortableSelectItem(serviceName, serviceName + &quot; (&quot; + EjbcaJSFHelper.getBean().getText().get(&quot;INACTIVE&quot;)</span>
+                        + &quot;)&quot; + hidden));
+            }
+<span class="nc" id="L74">        }</span>
+<span class="nc" id="L75">        Collections.sort(availableServices);</span>
+<span class="nc" id="L76">        return availableServices;</span>
+    }
+
+	public String editService(){
+<span class="nc" id="L80">		String retval = &quot;editservice&quot;;</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">        if (StringUtils.isNotEmpty(selectedServiceName)) {</span>
+<span class="nc" id="L82">            getEditServiceBean().setServiceName(selectedServiceName);</span>
+<span class="nc" id="L83">            ServiceConfiguration serviceConf = ejb.getServiceSession().getService(selectedServiceName);</span>
+<span class="nc" id="L84">            getEditServiceBean().setServiceConfiguration(serviceConf);</span>
+<span class="nc" id="L85">        } else {</span>
+<span class="nc" id="L86">			addErrorMessage(&quot;YOUHAVETOSELECTASERVICE&quot;);</span>
+<span class="nc" id="L87">			retval = &quot;listservices&quot;;</span>
+		}
+<span class="nc" id="L89">		newServiceName = &quot;&quot;;</span>
+<span class="nc" id="L90">		return retval;</span>
+	}
+	
+	public String deleteService(){
+<span class="nc bnc" id="L94" title="All 2 branches missed.">        if (StringUtils.isNotEmpty(selectedServiceName)) {</span>
+<span class="nc" id="L95">			ejb.getServiceSession().removeService(getAdmin(), selectedServiceName);</span>
+		}else{
+<span class="nc" id="L97">			addErrorMessage(&quot;YOUHAVETOSELECTASERVICE&quot;);</span>
+		}
+<span class="nc" id="L99">		newServiceName = &quot;&quot;;</span>
+<span class="nc" id="L100">		return &quot;listservices&quot;;</span>
+	}
+	
+	public String renameService(){
+<span class="nc bnc" id="L104" title="All 2 branches missed.">        if (StringUtils.isEmpty(selectedServiceName)) {</span>
+<span class="nc" id="L105">			addErrorMessage(&quot;YOUHAVETOSELECTASERVICE&quot;);</span>
+<span class="nc bnc" id="L106" title="All 2 branches missed.">        } else if (StringUtils.isEmpty(StringUtils.trim(newServiceName))) {</span>
+<span class="nc" id="L107">			addErrorMessage(&quot;YOUHAVETOENTERASERVICE&quot;);</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">		} else if (errorInServiceName(newServiceName)) {</span>
+<span class="nc" id="L109">			addErrorMessage(&quot;THECHARACTERSARENTALLOWED&quot;);</span>
+		} else {			
+			try {
+<span class="nc" id="L112">				ejb.getServiceSession().renameService(getAdmin(), selectedServiceName, newServiceName);</span>
+<span class="nc" id="L113">			} catch (ServiceExistsException e) {</span>
+<span class="nc" id="L114">				addNonTranslatedErrorMessage(EjbcaJSFHelper.getBean().getText().get(&quot;SERVICENAMEALREADYEXISTS&quot;));</span>
+<span class="nc" id="L115">			}			</span>
+		}
+<span class="nc" id="L117">		newServiceName = &quot;&quot;;</span>
+<span class="nc" id="L118">		return &quot;listservices&quot;;</span>
+	}
+
+	public String addService(){
+<span class="nc bnc" id="L122" title="All 2 branches missed.">		if (StringUtils.isEmpty(StringUtils.trim(newServiceName))) {</span>
+<span class="nc" id="L123">			addErrorMessage(&quot;YOUHAVETOENTERASERVICE&quot;);</span>
+<span class="nc bnc" id="L124" title="All 2 branches missed.">		} else if (errorInServiceName(newServiceName)) {</span>
+<span class="nc" id="L125">			addErrorMessage(&quot;THECHARACTERSARENTALLOWED&quot;);</span>
+		} else {			
+			try {
+<span class="nc" id="L128">				ServiceConfiguration serviceConfig = new ServiceConfiguration();			</span>
+<span class="nc" id="L129">				ejb.getServiceSession().addService(getAdmin(), newServiceName, serviceConfig);</span>
+<span class="nc" id="L130">				getEditServiceBean().setServiceConfiguration(serviceConfig);</span>
+<span class="nc" id="L131">				getEditServiceBean().setServiceName(newServiceName);</span>
+<span class="nc" id="L132">			} catch (ServiceExistsException e) {</span>
+<span class="nc" id="L133">				addNonTranslatedErrorMessage(EjbcaJSFHelper.getBean().getText().get(&quot;SERVICENAMEALREADYEXISTS&quot;));</span>
+<span class="nc" id="L134">			} </span>
+		}
+<span class="nc" id="L136">		newServiceName = &quot;&quot;;</span>
+<span class="nc" id="L137">		return &quot;listservices&quot;;</span>
+	}
+	
+	public String cloneService(){
+<span class="nc bnc" id="L141" title="All 2 branches missed.">		if (StringUtils.isEmpty(selectedServiceName)) {</span>
+<span class="nc" id="L142">			addErrorMessage(&quot;YOUHAVETOSELECTASERVICE&quot;);</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">        } else if (StringUtils.isEmpty(StringUtils.trim(newServiceName))) {</span>
+<span class="nc" id="L144">			addErrorMessage(&quot;YOUHAVETOENTERASERVICE&quot;);</span>
+<span class="nc bnc" id="L145" title="All 2 branches missed.">		} else if (errorInServiceName(newServiceName)) {</span>
+<span class="nc" id="L146">			addErrorMessage(&quot;THECHARACTERSARENTALLOWED&quot;);</span>
+		} else {			
+			try {
+<span class="nc" id="L149">				ejb.getServiceSession().cloneService(getAdmin(), selectedServiceName, newServiceName);</span>
+<span class="nc" id="L150">			} catch (ServiceExistsException e) {</span>
+<span class="nc" id="L151">				addErrorMessage(&quot;SERVICENAMEALREADYEXISTS&quot;);				</span>
+<span class="nc" id="L152">			}			</span>
+		}
+<span class="nc" id="L154">		newServiceName = &quot;&quot;;</span>
+<span class="nc" id="L155">		return &quot;listservices&quot;;</span>
+	}
+
+	/** @return the newServiceName  */
+	public String getNewServiceName() {
+<span class="nc" id="L160">		return newServiceName;</span>
+	}
+
+	/** @param newServiceName the newServiceName to set */
+	public void setNewServiceName(String newServiceName) {
+<span class="nc" id="L165">		this.newServiceName = newServiceName;</span>
+<span class="nc" id="L166">	}</span>
+
+	/** 
+	 * @return true if admin has access to /services/edit
+	 */
+	public boolean getHasEditRights() {
+<span class="nc" id="L172">	    return ejb.getAuthorizationSession().isAuthorizedNoLogging(getAdmin(), AccessRulesConstants.SERVICES_EDIT);</span>
+	}
+	
+	/**
+	 * returns true if the is a faulty service name.
+	 * @param newServiceName name
+	 * @return bool
+	 */
+	private boolean errorInServiceName(String newServiceName) {
+<span class="nc" id="L181">		return StringUtils.contains(newServiceName, &quot;;&quot;);</span>
+	}
+
+	private EditServiceManagedBean getEditServiceBean(){
+<span class="nc" id="L185">		FacesContext context = FacesContext.getCurrentInstance();    </span>
+<span class="nc" id="L186">		Application app = context.getApplication();   </span>
+<span class="nc" id="L187">		EditServiceManagedBean value =  app.evaluateExpressionGet(context, &quot;#{editService}&quot;, EditServiceManagedBean.class);</span>
+<span class="nc" id="L188">		return value;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

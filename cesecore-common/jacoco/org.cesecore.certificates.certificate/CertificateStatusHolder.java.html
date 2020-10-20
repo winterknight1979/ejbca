@@ -16,34 +16,41 @@ import java.io.Serializable;
 import java.security.cert.Certificate;
 
 /**
- * Richer version of the standard CertificateStatus object which also contains the sought certificate, in order to avoid
- * extra database lookups when both are required. 
- * 
- * @version $Id: CertificateStatusHolder.java 20496 2014-12-22 06:41:16Z mikekushner $
+ * Richer version of the standard CertificateStatus object which also contains
+ * the sought certificate, in order to avoid extra database lookups when both
+ * are required.
  *
+ * @version $Id: CertificateStatusHolder.java 20496 2014-12-22 06:41:16Z
+ *     mikekushner $
  */
 public class CertificateStatusHolder implements Serializable {
 
-    private static final long serialVersionUID = -2881054831054645112L;
-    private final Certificate certificate;
-    private final CertificateStatus certificateStatus;
-    
-<span class="nc" id="L31">    public CertificateStatusHolder(Certificate certificate, CertificateStatus certificateStatus) {</span>
-<span class="nc" id="L32">        this.certificate = certificate;</span>
-<span class="nc" id="L33">        this.certificateStatus = certificateStatus;</span>
-<span class="nc" id="L34">    }</span>
+  private static final long serialVersionUID = -2881054831054645112L;
+  /** Certificate. */
+  private final Certificate certificate;
+  /** Status. */
+  private final CertificateStatus certificateStatus;
 
-    /**
-     * 
-     * @return the sought certificate. May be null if status was unknown.
-     */
-    public Certificate getCertificate() {
-<span class="nc" id="L41">        return certificate;</span>
-    }
+  /** Constructor.
+   *
+   * @param cert Cert
+   * @param status Status
+   */
+  public CertificateStatusHolder(
+      final Certificate cert,
+<span class="nc" id="L41">      final CertificateStatus status) {</span>
+<span class="nc" id="L42">    this.certificate = cert;</span>
+<span class="nc" id="L43">    this.certificateStatus = status;</span>
+<span class="nc" id="L44">  }</span>
 
-    public CertificateStatus getCertificateStatus() {
-<span class="nc" id="L45">        return certificateStatus;</span>
-    }
+  /** @return the sought certificate. May be null if status was unknown. */
+  public Certificate getCertificate() {
+<span class="nc" id="L48">    return certificate;</span>
+  }
 
+  /** @return Status. */
+  public CertificateStatus getCertificateStatus() {
+<span class="nc" id="L53">    return certificateStatus;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

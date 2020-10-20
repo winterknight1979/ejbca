@@ -27,298 +27,376 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.apache.log4j.Logger;
 
-/** Can be used instead of ObjectInputStream to safely deserialize(readObject) unverified serialized java object. 
- * 
- * Simple usage:
- * LookAheadObjectInputStream lookAheadObjectInputStream = new LookAheadObjectInputStream(new ByteArrayInputStream(someByteArray);
- * HashSet&amp;lt;Class&amp;lt;? extends Serializable&amp;gt;&amp;gt; acceptedClasses = new HashSet&amp;lt;Class&amp;lt;? extends Serializable&amp;gt;&amp;gt;(3);
-            acceptedClasses.add(X509Certificate.class);
-            lookAheadObjectInputStream.setAcceptedClasses(acceptedClasses);
- * lookAheadObjectInputStream.setMaxObjects(1);
- * X509Certificate certificate = (X509Certificate) lookAheadObjectInputStream.readObject(); //If serialized object is not of the type X509Certificate SecurityException will be thrown
- * 
- * See &quot;LookAheadObjectInputStreamTest&quot; in the test code for more examples
- * 
- * @version $Id: LookAheadObjectInputStream.java 34325 2020-01-17 15:40:23Z jekaterina_b_helmes $
+/**
+ * Can be used instead of ObjectInputStream to safely deserialize(readObject)
+ * unverified serialized java object.
+ *
+ * &lt;p&gt;Simple usage: LookAheadObjectInputStream lookAheadObjectInputStream = new
+ * LookAheadObjectInputStream(new ByteArrayInputStream(someByteArray);
+ * HashSet&amp;lt;Class&amp;lt;? extends Serializable&amp;gt;&amp;gt; acceptedClasses = new
+ * HashSet&amp;lt;Class&amp;lt;? extends Serializable&amp;gt;&amp;gt;(3);
+ * acceptedClasses.add(X509Certificate.class);
+ * lookAheadObjectInputStream.setAcceptedClasses(acceptedClasses);
+ * lookAheadObjectInputStream.setMaxObjects(1); X509Certificate certificate =
+ * (X509Certificate) lookAheadObjectInputStream.readObject(); //If serialized
+ * object is not of the type X509Certificate SecurityException will be thrown
+ *
+ * &lt;p&gt;See &quot;LookAheadObjectInputStreamTest&quot; in the test code for more examples
+ *
+ * @version $Id: LookAheadObjectInputStream.java 34325 2020-01-17 15:40:23Z
+ *     jekaterina_b_helmes $
  */
 public class LookAheadObjectInputStream extends ObjectInputStream {
+  /** Logger. */
+<span class="fc" id="L53">  private static final Logger LOG =</span>
+<span class="fc" id="L54">      Logger.getLogger(LookAheadObjectInputStream.class);</span>
+  /** Accepted. */
+<span class="fc" id="L56">  private Set&lt;Class&lt;? extends Serializable&gt;&gt; acceptedClasses = null;</span>
+  /** Accepted. */
+<span class="fc" id="L58">  private Set&lt;Class&lt;? extends Serializable&gt;&gt; acceptedClassesDynamically = null;</span>
+ /** Subclasses. */
+<span class="fc" id="L60">  private boolean enabledSubclassing = false;</span>
+  /** Interfaces. */
+<span class="fc" id="L62">  private boolean enabledInterfaceImplementations = false;</span>
+  /** Max objects. */
+<span class="fc" id="L64">   private int maxObjects = 1;</span>
+  /** Bool. */
+<span class="fc" id="L66">  private boolean enabledMaxObjects = true;</span>
+  /** Objects. */
+<span class="fc" id="L68">  private int objCount = 0;</span>
+  /** Prefixes. */
+<span class="fc" id="L70">  private List&lt;String&gt; allowedSubclassingPackagePrefixes = Arrays.asList();</span>
+  /** Prefixes. */
+<span class="fc" id="L72">  private List&lt;String&gt; allowedInterfaceImplementationsPackagePrefixes =</span>
+<span class="fc" id="L73">      Arrays.asList();</span>
 
-<span class="fc" id="L49">    private static final Logger log = Logger.getLogger(LookAheadObjectInputStream.class);</span>
-<span class="fc" id="L50">    private Set&lt;Class&lt;? extends Serializable&gt;&gt; acceptedClasses = null;</span>
-<span class="fc" id="L51">    private Set&lt;Class&lt;? extends Serializable&gt;&gt; acceptedClassesDynamically = null;</span>
-    
-<span class="fc" id="L53">    private boolean enabledSubclassing = false;</span>
-<span class="fc" id="L54">    private boolean enabledInterfaceImplementations = false;</span>
-<span class="fc" id="L55">    private int maxObjects = 1;</span>
-<span class="fc" id="L56">    private boolean enabledMaxObjects = true;</span>
-<span class="fc" id="L57">    private int objCount = 0;</span>
-<span class="fc" id="L58">    private List&lt;String&gt; allowedSubclassingPackagePrefixes = Arrays.asList();</span>
-<span class="fc" id="L59">    private List&lt;String&gt; allowedInterfaceImplementationsPackagePrefixes = Arrays.asList();</span>
+  /**
+   * @param inputStream stream
+   * @throws IOException fail
+   */
+  public LookAheadObjectInputStream(final InputStream inputStream)
+      throws IOException {
+<span class="fc" id="L81">    super(inputStream);</span>
+<span class="fc" id="L82">    enableResolveObject(true);</span>
+<span class="fc" id="L83">  }</span>
 
-    public LookAheadObjectInputStream(InputStream inputStream) throws IOException {
-<span class="fc" id="L62">        super(inputStream);</span>
-<span class="fc" id="L63">        enableResolveObject(true);</span>
-<span class="fc" id="L64">    }</span>
+  /**
+   * @return set of accepted classes etc. Classes that are allowed to be read
+   *     from this ObjectInputStream. This set can be modified with:
+   * @see LookAheadObjectInputStream#setAcceptedClasses
+   */
+  public Collection&lt;Class&lt;? extends Serializable&gt;&gt; getAcceptedClasses() {
+<span class="nc" id="L91">    return acceptedClasses;</span>
+  }
 
-    /**
-     * @return set of accepted classes etc. Classes that are allowed to be read from this ObjectInputStream. This set can be modified with:
-     * @see LookAheadObjectInputStream#setAcceptedClasses
-     */
-    public Collection&lt;Class&lt;? extends Serializable&gt;&gt; getAcceptedClasses() {
-<span class="nc" id="L71">        return acceptedClasses;</span>
+  /**
+   * @return true if class should be accepted if it extends super class directly
+   *     or indirectly that is listed in accepted class names, false otherwise.
+   */
+  public boolean isEnabledSubclassing() {
+<span class="nc" id="L99">    return enabledSubclassing;</span>
+  }
+
+  /**
+   * @param enabled True if class should be accepted if it extends super class
+   *     directly or indirectly that is listed in accepted class names, false
+   *     otherwise.
+   * @param packagePrefixes An array of class name prefixes that are allowed to
+   *     be sub-classed like &quot;org.ejbca&quot;.
+   */
+  public void setEnabledSubclassing(
+      final boolean enabled, final String... packagePrefixes) {
+<span class="fc" id="L111">    this.enabledSubclassing = enabled;</span>
+<span class="fc" id="L112">    this.allowedSubclassingPackagePrefixes = Arrays.asList(packagePrefixes);</span>
+<span class="fc" id="L113">  }</span>
+
+  /**
+   * @return true if class should be accepted if it implements an interface
+   *     directly or indirectly that is listed in accepted class names, false
+   *     otherwise.
+   */
+  public boolean isEnabledInterfaceImplementations() {
+<span class="nc" id="L121">    return enabledInterfaceImplementations;</span>
+  }
+
+  /**
+   * @param enabled True if class should be accepted if it extends super class
+   *     directly or indirectly that is listed in accepted class names, false
+   *     otherwise.
+   * @param packagePrefixes An array of class name prefixes that implementations
+   *     must comply to if set like &quot;org.ejbca&quot;.
+   */
+  public void setEnabledInterfaceImplementations(
+      final boolean enabled, final String... packagePrefixes) {
+<span class="fc" id="L133">    this.enabledInterfaceImplementations = enabled;</span>
+<span class="fc" id="L134">    this.allowedInterfaceImplementationsPackagePrefixes =</span>
+<span class="fc" id="L135">        Arrays.asList(packagePrefixes);</span>
+<span class="fc" id="L136">  }</span>
+
+  /**
+   * Set accepted classes that can be deserialized using this
+   * LookAheadObjectInputStream. Primitive types (boolean, char, int,...), their
+   * wrappers (Boolean, Character, Integer,...) and String class are always
+   * accepted. All other classes have to be specified with setAcceptedClassName*
+   *
+   * @param theAcceptedClasses Collection of class names that
+   *     will be accepted for deserializing readObject. Default: null
+   */
+  public void setAcceptedClasses(
+      final Set&lt;Class&lt;? extends Serializable&gt;&gt; theAcceptedClasses) {
+<span class="fc" id="L149">    this.acceptedClasses = theAcceptedClasses;</span>
+<span class="fc" id="L150">    this.acceptedClassesDynamically = null;</span>
+<span class="fc" id="L151">  }</span>
+
+  /**
+   * NOTE: If you want to re-use the same Set of accepted classes, you should
+   * use {@link #setAcceptedClasses(Set)}
+   *
+   * &lt;p&gt;Set accepted classes that can be deserialized using this
+   * LookAheadObjectInputStream. Primitive types (boolean, char, int,...), their
+   * wrappers (Boolean, Character, Integer,...) and String class are always
+   * accepted. All other classes have to be specified with setAcceptedClassName*
+   *
+   * @param theAcceptedClasses Collection of class names that will be
+   *     accepted for deserializing readObject. Default: null
+   */
+  public void setAcceptedClasses(
+      final Collection&lt;Class&lt;? extends Serializable&gt;&gt; theAcceptedClasses) {
+<span class="fc" id="L167">    this.acceptedClasses = new HashSet&lt;&gt;(theAcceptedClasses);</span>
+<span class="fc" id="L168">    this.acceptedClassesDynamically = null;</span>
+<span class="fc" id="L169">  }</span>
+
+  /**
+   * Get maximum amount of objects that can be read with this
+   * LookAheadObjectInputStream.
+   *
+   * @return maximum amount of objects that can be read. Default: 1
+   */
+  public int getMaxObjects() {
+<span class="nc" id="L178">    return maxObjects;</span>
+  }
+
+  /**
+   * Set maximum amount of objects that can be read with this
+   * LookAheadObjectInputStream. This method will also reset internal counter
+   * for read objects.
+   *
+   * @param theMaxObjects maximum amount of objects that can be read.
+   *     Default: 1
+   */
+  public void setMaxObjects(final int theMaxObjects) {
+<span class="fc" id="L190">    objCount = 0;</span>
+<span class="fc" id="L191">    this.maxObjects = theMaxObjects;</span>
+<span class="fc" id="L192">  }</span>
+
+  /** Overriding resolveObject to limit amount of objects that could be read. */
+  @Override
+  protected Object resolveObject(final Object obj) throws IOException {
+<span class="fc bfc" id="L197" title="All 4 branches covered.">    if (enabledMaxObjects &amp;&amp; ++objCount &gt; maxObjects) {</span>
+<span class="fc" id="L198">      throw new SecurityException(</span>
+          &quot;Attempt to deserialize too many objects from stream. Limit is &quot;
+              + maxObjects);
     }
+<span class="fc" id="L202">    Object object = super.resolveObject(obj);</span>
+<span class="fc" id="L203">    return object;</span>
+  }
 
-    /**
-     * @return true if class should be accepted if it extends super class directly or indirectly
-     *          that is listed in accepted class names, false otherwise.
-     */
-    public boolean isEnabledSubclassing() {
-<span class="nc" id="L79">        return enabledSubclassing;</span>
-    }
-
-    /**
-     * @param enabled
-     *      True if class should be accepted if it extends super class directly or indirectly
-     *      that is listed in accepted class names, false otherwise.
-     * @param packagePrefixes
-     *      An array of class name prefixes that are allowed to be sub-classed like &quot;org.ejbca&quot;.
-     */
-    public void setEnabledSubclassing(boolean enabled, String...packagePrefixes) {
-<span class="fc" id="L90">        this.enabledSubclassing = enabled;</span>
-<span class="fc" id="L91">        this.allowedSubclassingPackagePrefixes = Arrays.asList(packagePrefixes);</span>
-<span class="fc" id="L92">    }</span>
-
-    /**
-     * @return true if class should be accepted if it implements an interface directly or indirectly
-     *          that is listed in accepted class names, false otherwise.
-     */
-    public boolean isEnabledInterfaceImplementations() {
-<span class="nc" id="L99">        return enabledInterfaceImplementations;</span>
-    }
-
-    /**
-     * @param enabled
-     *      True if class should be accepted if it extends super class directly or indirectly
-     *      that is listed in accepted class names, false otherwise.
-     * @param packagePrefixes
-     *      An array of class name prefixes that implementations must comply to if set like &quot;org.ejbca&quot;.
-     */
-    public void setEnabledInterfaceImplementations(boolean enabled, String...packagePrefixes) {
-<span class="fc" id="L110">        this.enabledInterfaceImplementations = enabled;</span>
-<span class="fc" id="L111">        this.allowedInterfaceImplementationsPackagePrefixes = Arrays.asList(packagePrefixes);</span>
-<span class="fc" id="L112">    }</span>
-
-    /**
-     * Set accepted classes that can be deserialized using this LookAheadObjectInputStream.
-     * Primitive types (boolean, char, int,...), their wrappers (Boolean, Character, Integer,...) and String class
-     * are always accepted. All other classes have to be specified with setAcceptedClassName*
-     * @param acceptedClasses
-     *      Collection of class names that will be accepted for deserializing readObject. Default: null
-     */
-    public void setAcceptedClasses(final Set&lt;Class&lt;? extends Serializable&gt;&gt; acceptedClasses) {
-<span class="fc" id="L122">        this.acceptedClasses = acceptedClasses;</span>
-<span class="fc" id="L123">        this.acceptedClassesDynamically = null;</span>
-<span class="fc" id="L124">    }</span>
-
-    /**
-     * NOTE: If you want to re-use the same Set of accepted classes, you should use {@link #setAcceptedClasses(Set)}
-     * 
-     * Set accepted classes that can be deserialized using this LookAheadObjectInputStream.
-     * Primitive types (boolean, char, int,...), their wrappers (Boolean, Character, Integer,...) and String class
-     * are always accepted. All other classes have to be specified with setAcceptedClassName*
-     * @param acceptedClasses
-     *      Collection of class names that will be accepted for deserializing readObject. Default: null
-     */
-    public void setAcceptedClasses(final Collection&lt;Class&lt;? extends Serializable&gt;&gt; acceptedClasses) {
-<span class="fc" id="L136">        this.acceptedClasses = new HashSet&lt;&gt;(acceptedClasses);</span>
-<span class="fc" id="L137">        this.acceptedClassesDynamically = null;</span>
-<span class="fc" id="L138">    }</span>
-
-    /**
-     * Get maximum amount of objects that can be read with this LookAheadObjectInputStream.
-     * @return 
-     *      maximum amount of objects that can be read. Default: 1
-     */
-    public int getMaxObjects() {
-<span class="nc" id="L146">        return maxObjects;</span>
-    }
-
-    /**
-     * Set maximum amount of objects that can be read with this LookAheadObjectInputStream.
-     * This method will also reset internal counter for read objects.
-     * @param 
-     *      maxObjects maximum amount of objects that can be read. Default: 1
-     */
-    public void setMaxObjects(int maxObjects) {
-<span class="fc" id="L156">        objCount = 0;</span>
-<span class="fc" id="L157">        this.maxObjects = maxObjects;</span>
-<span class="fc" id="L158">    }</span>
-
-    /**
-     * Overriding resolveObject to limit amount of objects that could be read
-     */
-    @Override
-    protected Object resolveObject(Object obj) throws IOException {
-<span class="fc bfc" id="L165" title="All 4 branches covered.">        if (enabledMaxObjects &amp;&amp; ++objCount &gt; maxObjects) {</span>
-<span class="fc" id="L166">            throw new SecurityException(&quot;Attempt to deserialize too many objects from stream. Limit is &quot; + maxObjects);</span>
+  /**
+   * Overrides resolveClass to check Class type of serialized object before
+   * deserializing readObject.
+   *
+   * @throws SecurityException if serialized object is not one of following: 1)
+   *     a String 2) a java primitive data type or its corresponding class
+   *     wrapper 3) in the list of accepted classes 4) extends class from the
+   *     list of accepted classes (if enabledSubclassing==true)
+   */
+  @Override
+  protected Class&lt;?&gt; resolveClass(final ObjectStreamClass desc)
+      throws IOException, ClassNotFoundException {
+<span class="fc" id="L218">    Class&lt;?&gt; resolvedClass = super.resolveClass(desc); // can be an array</span>
+    Class&lt;?&gt; resolvedClassType =
+<span class="fc bfc" id="L220" title="All 2 branches covered.">        resolvedClass.isArray()</span>
+<span class="fc" id="L221">            ? resolvedClass.getComponentType()</span>
+<span class="fc" id="L222">            : resolvedClass;</span>
+<span class="fc bfc" id="L223" title="All 2 branches covered.">    if (isClassAlwaysWhiteListed(resolvedClassType)) {</span>
+<span class="fc" id="L224">      return resolvedClass;</span>
+<span class="pc bpc" id="L225" title="1 of 4 branches missed.">    } else if (acceptedClasses != null &amp;&amp; !acceptedClasses.isEmpty()) {</span>
+<span class="fc bfc" id="L226" title="All 2 branches covered.">      if (acceptedClasses.contains(resolvedClassType)) {</span>
+<span class="fc" id="L227">        return resolvedClass;</span>
+      }
+<span class="fc bfc" id="L229" title="All 2 branches covered.">      if (acceptedClassesDynamically != null</span>
+<span class="fc bfc" id="L230" title="All 2 branches covered.">          &amp;&amp; acceptedClassesDynamically.contains(resolvedClassType)) {</span>
+<span class="fc" id="L231">        whitelistImplementation(resolvedClassType);</span>
+<span class="fc" id="L232">        return resolvedClass;</span>
+      }
+<span class="fc bfc" id="L234" title="All 2 branches covered.">      if (enabledSubclassing) {</span>
+<span class="fc" id="L235">        final String resolvedClassName = resolvedClassType.getName();</span>
+<span class="pc bpc" id="L236" title="1 of 2 branches missed.">        if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L237">          LOG.trace(&quot;resolvedClassName: &quot; + resolvedClassName);</span>
         }
-<span class="fc" id="L168">        Object object = super.resolveObject(obj);</span>
-<span class="fc" id="L169">        return object;</span>
-    }
-
-    /**
-     * Overrides resolveClass to check Class type of serialized object before deserializing readObject.
-     * @throws SecurityException if serialized object is not one of following:
-     *      1) a String
-     *      2) a java primitive data type or its corresponding class wrapper
-     *      3) in the list of accepted classes
-     *      4) extends class from the list of accepted classes (if enabledSubclassing==true) 
-     */
-    @Override
-    protected Class&lt;?&gt; resolveClass(ObjectStreamClass desc) throws IOException, ClassNotFoundException {
-<span class="fc" id="L182">        Class&lt;?&gt; resolvedClass = super.resolveClass(desc); //can be an array</span>
-<span class="fc bfc" id="L183" title="All 2 branches covered.">        Class&lt;?&gt; resolvedClassType = resolvedClass.isArray() ? resolvedClass.getComponentType() : resolvedClass;</span>
-<span class="fc bfc" id="L184" title="All 2 branches covered.">        if (isClassAlwaysWhiteListed(resolvedClassType)) {</span>
-<span class="fc" id="L185">            return resolvedClass;</span>
-<span class="pc bpc" id="L186" title="1 of 4 branches missed.">        } else if (acceptedClasses != null &amp;&amp; !acceptedClasses.isEmpty()) {</span>
-<span class="fc bfc" id="L187" title="All 2 branches covered.">            if (acceptedClasses.contains(resolvedClassType)) {</span>
-<span class="fc" id="L188">                return resolvedClass;</span>
+<span class="fc" id="L239">        boolean allowedPrefixFound = false;</span>
+<span class="fc bfc" id="L240" title="All 2 branches covered.">        for (final String allowedPrefix : allowedSubclassingPackagePrefixes) {</span>
+<span class="pc bpc" id="L241" title="1 of 2 branches missed.">          if (resolvedClassName.startsWith(allowedPrefix + &quot;.&quot;)) {</span>
+<span class="fc" id="L242">            allowedPrefixFound = true;</span>
+<span class="fc" id="L243">            break;</span>
+          }
+<span class="nc" id="L245">        }</span>
+<span class="pc bpc" id="L246" title="1 of 4 branches missed.">        if (allowedSubclassingPackagePrefixes.isEmpty() || allowedPrefixFound) {</span>
+<span class="fc" id="L247">          Class&lt;?&gt; superclass = resolvedClassType.getSuperclass();</span>
+<span class="fc bfc" id="L248" title="All 2 branches covered.">          while (superclass != null) {</span>
+<span class="fc bfc" id="L249" title="All 2 branches covered.">            if (acceptedClasses.contains(superclass)) {</span>
+<span class="fc" id="L250">              whitelistImplementation(resolvedClassType);</span>
+<span class="fc" id="L251">              return resolvedClass;</span>
             }
-<span class="fc bfc" id="L190" title="All 4 branches covered.">            if (acceptedClassesDynamically!=null &amp;&amp; acceptedClassesDynamically.contains(resolvedClassType)) {</span>
-<span class="fc" id="L191">                whitelistImplementation(resolvedClassType);</span>
-<span class="fc" id="L192">                return resolvedClass;</span>
+<span class="fc" id="L253">            superclass = superclass.getSuperclass();</span>
+          }
+        }
+      }
+<span class="fc bfc" id="L257" title="All 2 branches covered.">      if (enabledInterfaceImplementations) {</span>
+<span class="fc" id="L258">        final String resolvedClassName = resolvedClassType.getName();</span>
+<span class="pc bpc" id="L259" title="1 of 2 branches missed.">        if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L260">          LOG.trace(&quot;resolvedClassName: &quot; + resolvedClassName);</span>
+        }
+<span class="fc" id="L262">        boolean allowedPrefixFound = false;</span>
+        for (final String allowedPrefix
+<span class="fc bfc" id="L264" title="All 2 branches covered.">            : allowedInterfaceImplementationsPackagePrefixes) {</span>
+<span class="fc bfc" id="L265" title="All 2 branches covered.">          if (resolvedClassName.startsWith(allowedPrefix + &quot;.&quot;)) {</span>
+<span class="fc" id="L266">            allowedPrefixFound = true;</span>
+<span class="fc" id="L267">            break;</span>
+          }
+<span class="fc" id="L269">        }</span>
+<span class="fc bfc" id="L270" title="All 4 branches covered.">        if (allowedInterfaceImplementationsPackagePrefixes.isEmpty()</span>
+            || allowedPrefixFound) {
+<span class="fc" id="L272">          Class&lt;?&gt; superclass = resolvedClassType;</span>
+<span class="pc bpc" id="L273" title="1 of 2 branches missed.">          while (superclass != null) {</span>
+<span class="pc bpc" id="L274" title="1 of 2 branches missed.">            if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L275">              LOG.trace(</span>
+<span class="nc" id="L276">                  superclass.getName()</span>
+                      + &quot; implements &quot;
+<span class="nc" id="L278">                      + Arrays.toString(superclass.getInterfaces()));</span>
             }
-<span class="fc bfc" id="L194" title="All 2 branches covered.">            if (enabledSubclassing) {</span>
-<span class="fc" id="L195">                final String resolvedClassName = resolvedClassType.getName();</span>
-<span class="pc bpc" id="L196" title="1 of 2 branches missed.">                if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L197">                    log.trace(&quot;resolvedClassName: &quot; + resolvedClassName);</span>
-                }
-<span class="fc" id="L199">                boolean allowedPrefixFound = false;</span>
-<span class="fc bfc" id="L200" title="All 2 branches covered.">                for (final String allowedPrefix : allowedSubclassingPackagePrefixes) {</span>
-<span class="pc bpc" id="L201" title="1 of 2 branches missed.">                    if (resolvedClassName.startsWith(allowedPrefix + &quot;.&quot;)) {</span>
-<span class="fc" id="L202">                        allowedPrefixFound = true;</span>
-<span class="fc" id="L203">                        break;</span>
-                    }
-<span class="nc" id="L205">                }</span>
-<span class="pc bpc" id="L206" title="1 of 4 branches missed.">                if (allowedSubclassingPackagePrefixes.isEmpty() || allowedPrefixFound) {</span>
-<span class="fc" id="L207">                    Class&lt;?&gt; superclass = resolvedClassType.getSuperclass();</span>
-<span class="fc bfc" id="L208" title="All 2 branches covered.">                    while (superclass != null) {</span>
-<span class="fc bfc" id="L209" title="All 2 branches covered.">                        if (acceptedClasses.contains(superclass)) {</span>
-<span class="fc" id="L210">                            whitelistImplementation(resolvedClassType);</span>
-<span class="fc" id="L211">                            return resolvedClass;</span>
-                        }
-<span class="fc" id="L213">                        superclass = superclass.getSuperclass();</span>
-                    }
-                }
+            for (final Class&lt;?&gt; implementedInterface
+<span class="pc bpc" id="L281" title="1 of 2 branches missed.">                : superclass.getInterfaces()) {</span>
+<span class="pc bpc" id="L282" title="1 of 2 branches missed.">              if (acceptedClasses.contains(implementedInterface)) {</span>
+<span class="fc" id="L283">                whitelistImplementation(resolvedClassType);</span>
+<span class="fc" id="L284">                return resolvedClass;</span>
+              }
             }
-<span class="fc bfc" id="L217" title="All 2 branches covered.">            if (enabledInterfaceImplementations) {</span>
-<span class="fc" id="L218">                final String resolvedClassName = resolvedClassType.getName();</span>
-<span class="fc bfc" id="L219" title="All 2 branches covered.">                if (log.isTraceEnabled()) {</span>
-<span class="fc" id="L220">                    log.trace(&quot;resolvedClassName: &quot; + resolvedClassName);</span>
-                }
-<span class="fc" id="L222">                boolean allowedPrefixFound = false;</span>
-<span class="fc bfc" id="L223" title="All 2 branches covered.">                for (final String allowedPrefix : allowedInterfaceImplementationsPackagePrefixes) {</span>
-<span class="fc bfc" id="L224" title="All 2 branches covered.">                    if (resolvedClassName.startsWith(allowedPrefix + &quot;.&quot;)) {</span>
-<span class="fc" id="L225">                        allowedPrefixFound = true;</span>
-<span class="fc" id="L226">                        break;</span>
-                    }
-<span class="fc" id="L228">                }</span>
-<span class="fc bfc" id="L229" title="All 4 branches covered.">                if (allowedInterfaceImplementationsPackagePrefixes.isEmpty() || allowedPrefixFound) {</span>
-<span class="fc" id="L230">                    Class&lt;?&gt; superclass = resolvedClassType;</span>
-<span class="pc bpc" id="L231" title="1 of 2 branches missed.">                    while (superclass != null) {</span>
-<span class="fc bfc" id="L232" title="All 2 branches covered.">                        if (log.isTraceEnabled()) {</span>
-<span class="fc" id="L233">                            log.trace(superclass.getName() + &quot; implements &quot; +Arrays.toString(superclass.getInterfaces()));</span>
-                        }
-<span class="pc bpc" id="L235" title="1 of 2 branches missed.">                        for (final Class&lt;?&gt; implementedInterface : superclass.getInterfaces()) {</span>
-<span class="pc bpc" id="L236" title="1 of 2 branches missed.">                            if (acceptedClasses.contains(implementedInterface)) {</span>
-<span class="fc" id="L237">                                whitelistImplementation(resolvedClassType);</span>
-<span class="fc" id="L238">                                return resolvedClass;</span>
-                            }
-                        }
-<span class="nc" id="L241">                        superclass = superclass.getSuperclass();</span>
-                    }
-                }
+<span class="nc" id="L287">            superclass = superclass.getSuperclass();</span>
+          }
+        }
+      }
+    }
+<span class="fc" id="L292">    final String msg =</span>
+        &quot;Prevented unauthorized deserialization attempt for type '&quot;
+<span class="fc" id="L294">            + resolvedClassType.getName()</span>
+            + &quot;': &quot;
+            + desc;
+<span class="fc" id="L297">    LOG.info(msg);</span>
+<span class="fc" id="L298">    throw new SecurityException(msg);</span>
+  }
+
+  /**
+   * @param c Class
+   * @return Bool
+   */
+  public static boolean isClassAlwaysWhiteListed(final Class&lt;?&gt; c) {
+<span class="pc bpc" id="L306" title="1 of 2 branches missed.">    final Class&lt;?&gt; classType = c.isArray() ? c.getComponentType() : c;</span>
+<span class="fc bfc" id="L307" title="All 2 branches covered.">    return classType.equals(String.class)</span>
+<span class="fc bfc" id="L308" title="All 2 branches covered.">        || classType.isPrimitive()</span>
+<span class="fc bfc" id="L309" title="All 2 branches covered.">        || Boolean.class.isAssignableFrom(classType)</span>
+<span class="fc bfc" id="L310" title="All 2 branches covered.">        || Number.class.isAssignableFrom(classType)</span>
+<span class="fc bfc" id="L311" title="All 2 branches covered.">        || Character.class.isAssignableFrom(classType);</span>
+  }
+
+  /**
+   * Add the provided class and all its dependencies needed for deserialization
+   * to this instance's accept class white list.
+   *
+   * @param resolvedClassType type
+   */
+  @SuppressWarnings(&quot;unchecked&quot;)
+  private void whitelistImplementation(final Class&lt;?&gt; resolvedClassType) {
+<span class="fc" id="L322">    final Set&lt;Class&lt;? extends Serializable&gt;&gt; newAcceptedClassesDynamically =</span>
+        new HashSet&lt;&gt;();
+<span class="fc" id="L324">    newAcceptedClassesDynamically.add(</span>
+        (Class&lt;? extends Serializable&gt;) resolvedClassType);
+<span class="fc" id="L326">    newAcceptedClassesDynamically.addAll(</span>
+<span class="fc" id="L327">        getRequiredClassesToSerialize(resolvedClassType));</span>
+<span class="fc" id="L328">    newAcceptedClassesDynamically.removeAll(acceptedClasses);</span>
+<span class="pc bpc" id="L329" title="1 of 2 branches missed.">    if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L330">      LOG.trace(</span>
+          &quot;Dynamically white-listed these classes for deserialization: &quot;
+<span class="nc" id="L332">              + Arrays.toString(newAcceptedClassesDynamically.toArray()));</span>
+    }
+<span class="fc bfc" id="L334" title="All 2 branches covered.">    if (acceptedClassesDynamically == null) {</span>
+<span class="fc" id="L335">      acceptedClassesDynamically = new HashSet&lt;&gt;();</span>
+    }
+<span class="fc" id="L337">    acceptedClassesDynamically.addAll(newAcceptedClassesDynamically);</span>
+<span class="fc" id="L338">  }</span>
+
+  /**
+   * @param clazz class
+   * @return a Set of all classes declared as non-transient, non-static field in
+   *     the class and its superclasses if such is defined
+   * @throws NoClassDefFoundError if class not found
+   */
+  @SuppressWarnings(&quot;unchecked&quot;)
+  public static Set&lt;Class&lt;? extends Serializable&gt;&gt;
+      getRequiredClassesToSerialize(final Class&lt;?&gt; clazz)
+          throws NoClassDefFoundError {
+<span class="fc" id="L350">    final Set&lt;Class&lt;? extends Serializable&gt;&gt; acceptedClasses = new HashSet&lt;&gt;();</span>
+<span class="fc bfc" id="L351" title="All 2 branches covered.">    for (final Field field : clazz.getDeclaredFields()) {</span>
+<span class="fc bfc" id="L352" title="All 2 branches covered.">      if (!Modifier.isStatic(field.getModifiers())</span>
+<span class="fc bfc" id="L353" title="All 2 branches covered.">          &amp;&amp; !Modifier.isTransient(field.getModifiers())) {</span>
+        Class&lt;?&gt; type =
+<span class="pc bpc" id="L355" title="1 of 2 branches missed.">            field.getType().isArray()</span>
+<span class="nc" id="L356">                ? field.getType().getComponentType()</span>
+<span class="fc" id="L357">                : field.getType();</span>
+<span class="fc bfc" id="L358" title="All 2 branches covered.">        if (!Object.class.equals(type)) {</span>
+<span class="fc" id="L359">          acceptedClasses.add((Class&lt;? extends Serializable&gt;) type);</span>
+        }
+<span class="fc bfc" id="L361" title="All 2 branches covered.">        if (field.getGenericType() instanceof ParameterizedType</span>
+<span class="pc bpc" id="L362" title="1 of 2 branches missed.">            &amp;&amp; (Collection.class.isAssignableFrom(field.getType())</span>
+<span class="nc bnc" id="L363" title="All 2 branches missed.">                || Map.class.isAssignableFrom(field.getType()))) {</span>
+<span class="fc" id="L364">          Type[] actualTypeArguments =</span>
+<span class="fc" id="L365">              ((ParameterizedType) field.getGenericType())</span>
+<span class="fc" id="L366">                  .getActualTypeArguments();</span>
+<span class="fc bfc" id="L367" title="All 2 branches covered.">          for (Type actualType : actualTypeArguments) {</span>
+<span class="pc bpc" id="L368" title="1 of 2 branches missed.">            if (actualType instanceof ParameterizedType) {</span>
+<span class="nc" id="L369">              actualType = ((ParameterizedType) actualType).getRawType();</span>
             }
-        }
-<span class="fc" id="L246">        final String msg = &quot;Prevented unauthorized deserialization attempt for type '&quot; + resolvedClassType.getName() + &quot;': &quot; + desc;</span>
-<span class="fc" id="L247">        log.info(msg);</span>
-<span class="fc" id="L248">        throw new SecurityException(msg);</span>
-    }
-    
-    public static boolean isClassAlwaysWhiteListed(final Class&lt;?&gt; c) {
-<span class="pc bpc" id="L252" title="1 of 2 branches missed.">        final Class&lt;?&gt; classType = c.isArray() ? c.getComponentType() : c;</span>
-<span class="fc bfc" id="L253" title="All 6 branches covered.">        return classType.equals(String.class) || classType.isPrimitive() || Boolean.class.isAssignableFrom(classType) ||</span>
-<span class="fc bfc" id="L254" title="All 4 branches covered.">                Number.class.isAssignableFrom(classType) || Character.class.isAssignableFrom(classType);</span>
-    }
-    
-    /** Add the provided class and all its dependencies needed for deserialization to this instance's accept class white list. 
-     * @param resolvedClassType type*/
-    @SuppressWarnings(&quot;unchecked&quot;)
-    private void whitelistImplementation(final Class&lt;?&gt; resolvedClassType) {
-<span class="fc" id="L261">        final Set&lt;Class&lt;? extends Serializable&gt;&gt; newAcceptedClassesDynamically = new HashSet&lt;&gt;();</span>
-<span class="fc" id="L262">        newAcceptedClassesDynamically.add((Class&lt;? extends Serializable&gt;) resolvedClassType);</span>
-<span class="fc" id="L263">        newAcceptedClassesDynamically.addAll(getRequiredClassesToSerialize(resolvedClassType));</span>
-<span class="fc" id="L264">        newAcceptedClassesDynamically.removeAll(acceptedClasses);</span>
-<span class="fc bfc" id="L265" title="All 2 branches covered.">        if (log.isTraceEnabled()) {</span>
-<span class="fc" id="L266">            log.trace(&quot;Dynamically white-listed these classes for deserialization: &quot; + Arrays.toString(newAcceptedClassesDynamically.toArray()));</span>
-        }
-<span class="fc bfc" id="L268" title="All 2 branches covered.">        if (acceptedClassesDynamically==null) {</span>
-<span class="fc" id="L269">            acceptedClassesDynamically = new HashSet&lt;&gt;();</span>
-        }
-<span class="fc" id="L271">        acceptedClassesDynamically.addAll(newAcceptedClassesDynamically);</span>
-<span class="fc" id="L272">    }</span>
-
-    /** @param clazz class
-     * @return a Set of all classes declared as non-transient, non-static field in the class and its superclasses if such is defined 
-     * @throws NoClassDefFoundError if class not found */
-    @SuppressWarnings(&quot;unchecked&quot;)
-    public static Set&lt;Class&lt;? extends Serializable&gt;&gt; getRequiredClassesToSerialize(final Class&lt;?&gt; clazz) throws NoClassDefFoundError {
-<span class="fc" id="L279">        final Set&lt;Class&lt;? extends Serializable&gt;&gt; acceptedClasses = new HashSet&lt;&gt;();</span>
-<span class="fc bfc" id="L280" title="All 2 branches covered.">        for (final Field field : clazz.getDeclaredFields()) {</span>
-<span class="fc bfc" id="L281" title="All 4 branches covered.">            if (!Modifier.isStatic(field.getModifiers()) &amp;&amp; !Modifier.isTransient(field.getModifiers())) {</span>
-<span class="pc bpc" id="L282" title="1 of 2 branches missed.">                Class&lt;?&gt; type = field.getType().isArray() ? field.getType().getComponentType() : field.getType();</span>
-<span class="fc bfc" id="L283" title="All 2 branches covered.">                if (!Object.class.equals(type)) {</span>
-<span class="fc" id="L284">                    acceptedClasses.add((Class&lt;? extends Serializable&gt;) type);</span>
-                }
-<span class="fc bfc" id="L286" title="All 2 branches covered.">                if (field.getGenericType() instanceof ParameterizedType &amp;&amp;</span>
-<span class="pc bpc" id="L287" title="3 of 4 branches missed.">                        (Collection.class.isAssignableFrom(field.getType()) || Map.class.isAssignableFrom(field.getType()))) {</span>
-<span class="fc" id="L288">                    Type[] actualTypeArguments = ((ParameterizedType) field.getGenericType()).getActualTypeArguments();</span>
-<span class="fc bfc" id="L289" title="All 2 branches covered.">                    for (Type actualType : actualTypeArguments) {</span>
-<span class="pc bpc" id="L290" title="1 of 2 branches missed.">                        if (actualType instanceof ParameterizedType) {</span>
-<span class="nc" id="L291">                            actualType = ((ParameterizedType) actualType).getRawType();</span>
-                        }
-<span class="pc bpc" id="L293" title="3 of 4 branches missed.">                        if (actualType instanceof Serializable &amp;&amp; !Object.class.equals(actualType)) {</span>
-<span class="nc" id="L294">                            acceptedClasses.add((Class&lt;? extends Serializable&gt;) actualType);</span>
-                        }
-                    }
-                }
+<span class="pc bpc" id="L371" title="1 of 2 branches missed.">            if (actualType instanceof Serializable</span>
+<span class="nc bnc" id="L372" title="All 2 branches missed.">                &amp;&amp; !Object.class.equals(actualType)) {</span>
+<span class="nc" id="L373">              acceptedClasses.add((Class&lt;? extends Serializable&gt;) actualType);</span>
             }
+          }
         }
-<span class="fc" id="L300">        final Class&lt;?&gt; superClass = clazz.getSuperclass();</span>
-<span class="fc bfc" id="L301" title="All 2 branches covered.">        if (superClass!=null) {</span>
-<span class="fc" id="L302">            acceptedClasses.addAll(getRequiredClassesToSerialize(superClass));</span>
-        }
-<span class="fc" id="L304">        return acceptedClasses;</span>
+      }
     }
-
-    /**
-     * @return true if checking for max objects is enabled, false otherwise
-     */
-    public boolean isEnabledMaxObjects() {
-<span class="nc" id="L311">        return enabledMaxObjects;</span>
+<span class="fc" id="L379">    final Class&lt;?&gt; superClass = clazz.getSuperclass();</span>
+<span class="fc bfc" id="L380" title="All 2 branches covered.">    if (superClass != null) {</span>
+<span class="fc" id="L381">      acceptedClasses.addAll(getRequiredClassesToSerialize(superClass));</span>
     }
+<span class="fc" id="L383">    return acceptedClasses;</span>
+  }
 
-    /** Enable or disable checking for max objects that can be read.
-     *  This method will also reset internal counter for read objects.
-     * @param enabledMaxObjects true or false
-     */
-    public void setEnabledMaxObjects(boolean enabledMaxObjects) {
-<span class="fc" id="L319">        objCount = 0;</span>
-<span class="fc" id="L320">        this.enabledMaxObjects = enabledMaxObjects;</span>
-<span class="fc" id="L321">    }</span>
+  /** @return true if checking for max objects is enabled, false otherwise */
+  public boolean isEnabledMaxObjects() {
+<span class="nc" id="L388">    return enabledMaxObjects;</span>
+  }
 
+  /**
+   * Enable or disable checking for max objects that can be read. This method
+   * will also reset internal counter for read objects.
+   *
+   * @param theEnabledMaxObjects true or false
+   */
+  public void setEnabledMaxObjects(final boolean theEnabledMaxObjects) {
+<span class="fc" id="L398">    objCount = 0;</span>
+<span class="fc" id="L399">    this.enabledMaxObjects = theEnabledMaxObjects;</span>
+<span class="fc" id="L400">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

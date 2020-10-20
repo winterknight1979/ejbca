@@ -18,46 +18,71 @@ import java.util.Map;
 
 /**
  * Authorization Rules for InternalKeyBindings.
- * 
- * @version $Id: InternalKeyBindingRules.java 19902 2014-09-30 14:32:24Z anatom $
+ *
+ * @version $Id: InternalKeyBindingRules.java 19902 2014-09-30 14:32:24Z anatom
+ *     $
  */
-<span class="nc" id="L24">public enum InternalKeyBindingRules {</span>
-<span class="nc" id="L25">    BASE(&quot;/internalkeybinding&quot;, &quot;&quot;),</span>
-<span class="nc" id="L26">    DELETE(BASE.resource() + &quot;/delete&quot;, &quot;DELETE&quot;),</span>
-<span class="nc" id="L27">    MODIFY(BASE.resource() + &quot;/modify&quot;, &quot;MODIFY&quot;),</span>
-<span class="nc" id="L28">    VIEW(BASE.resource() + &quot;/view&quot;, &quot;VIEW&quot;);</span>
+<span class="nc" id="L25">public enum InternalKeyBindingRules {</span>
+    /** Base. */
+<span class="nc" id="L27">  BASE(&quot;/internalkeybinding&quot;, &quot;&quot;),</span>
+  /** Delete. */
+<span class="nc" id="L29">  DELETE(BASE.resource() + &quot;/delete&quot;, &quot;DELETE&quot;),</span>
+  /** Modify. */
+<span class="nc" id="L31">  MODIFY(BASE.resource() + &quot;/modify&quot;, &quot;MODIFY&quot;),</span>
+  /** View. */
+<span class="nc" id="L33">  VIEW(BASE.resource() + &quot;/view&quot;, &quot;VIEW&quot;);</span>
 
-    private static final Map&lt;String, InternalKeyBindingRules&gt; reverseResourceLookup;
-    
-    static {
-<span class="nc" id="L33">        reverseResourceLookup = new HashMap&lt;String, InternalKeyBindingRules&gt;();</span>
-<span class="nc bnc" id="L34" title="All 2 branches missed.">        for(InternalKeyBindingRules rule : InternalKeyBindingRules.values()) {</span>
-<span class="nc" id="L35">            reverseResourceLookup.put(rule.resource(), rule);</span>
-        }
-<span class="nc" id="L37">    }</span>
-    
-    private final String resource;
-    private final String reference;
-    
-<span class="nc" id="L42">    private InternalKeyBindingRules(String resource, String reference) {</span>
-<span class="nc" id="L43">        this.resource = resource;</span>
-<span class="nc" id="L44">        this.reference = reference;</span>
-<span class="nc" id="L45">    }</span>
+    /** Reverse lookup table. */
+  private static final Map&lt;String, InternalKeyBindingRules&gt;
+      REV_RESOURCE_LOOKUP;
 
-    public String resource() {
-<span class="nc" id="L48">        return this.resource;</span>
+  static {
+<span class="nc" id="L40">    REV_RESOURCE_LOOKUP = new HashMap&lt;String, InternalKeyBindingRules&gt;();</span>
+<span class="nc bnc" id="L41" title="All 2 branches missed.">    for (InternalKeyBindingRules rule : InternalKeyBindingRules.values()) {</span>
+<span class="nc" id="L42">      REV_RESOURCE_LOOKUP.put(rule.resource(), rule);</span>
     }
+<span class="nc" id="L44">  }</span>
 
-    public String toString() {
-<span class="nc" id="L52">        return this.resource;</span>
-    }
-    
-    public String getReference() {
-<span class="nc" id="L56">        return reference;</span>
-    }
-    
-    public static InternalKeyBindingRules getFromResource(String resource) {
-<span class="nc" id="L60">        return reverseResourceLookup.get(resource);</span>
-    }
+  /** Resource. */
+  private final String resource;
+  /** Ref. */
+  private final String reference;
+
+  /**
+   * @param aResource resource
+   * @param aReference ref
+   */
+  InternalKeyBindingRules(
+<span class="nc" id="L56">          final String aResource, final String aReference) {</span>
+<span class="nc" id="L57">    this.resource = aResource;</span>
+<span class="nc" id="L58">    this.reference = aReference;</span>
+<span class="nc" id="L59">  }</span>
+
+  /**
+   * @return resource
+   */
+  public String resource() {
+<span class="nc" id="L65">    return this.resource;</span>
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L70">    return this.resource;</span>
+  }
+
+  /**
+   * @return ref
+   */
+  public String getReference() {
+<span class="nc" id="L77">    return reference;</span>
+  }
+
+  /**
+   * @param resource resource
+   * @return rules
+   */
+  public static InternalKeyBindingRules getFromResource(final String resource) {
+<span class="nc" id="L85">    return REV_RESOURCE_LOOKUP.get(resource);</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

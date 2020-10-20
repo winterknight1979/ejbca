@@ -23,38 +23,45 @@
 <a class="jxr_linenumber" name="L15" href="#L15">15</a>  <strong class="jxr_keyword">import</strong> org.cesecore.authentication.tokens.AuthenticationToken;
 <a class="jxr_linenumber" name="L16" href="#L16">16</a>  
 <a class="jxr_linenumber" name="L17" href="#L17">17</a>  <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <em class="jxr_javadoccomment"> * Main interface for checking authorization. This interface makes use of roles and entity authentication to verify authorization.</em>
-<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <em class="jxr_javadoccomment"> * </em>
-<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <em class="jxr_javadoccomment"> * @version $Id: AuthorizationSession.java 25135 2017-01-27 15:27:27Z jeklund $</em>
-<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <em class="jxr_javadoccomment"> */</em>
-<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">interface</strong> <a name="AuthorizationSession" href="../../../org/cesecore/authorization/AuthorizationSession.html#AuthorizationSession">AuthorizationSession</a> {
-<a class="jxr_linenumber" name="L23" href="#L23">23</a>  
-<a class="jxr_linenumber" name="L24" href="#L24">24</a>      <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <em class="jxr_javadoccomment">     * Checks if the current user is authorized for the given resource.</em>
-<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <em class="jxr_javadoccomment">     * Will create audit log. </em>
-<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <em class="jxr_javadoccomment">     * </em>
-<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <em class="jxr_javadoccomment">     * @param authenticationToken The {@link AuthenticationToken} to check access for.</em>
-<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <em class="jxr_javadoccomment">     * @param resources String identifier(s) of the resource(s) in question.</em>
-<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <em class="jxr_javadoccomment">     * @return true if user is authorized, false if not.</em>
-<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L32" href="#L32">32</a>      <strong class="jxr_keyword">boolean</strong> isAuthorized(AuthenticationToken authenticationToken, String...resources);
-<a class="jxr_linenumber" name="L33" href="#L33">33</a>  
-<a class="jxr_linenumber" name="L34" href="#L34">34</a>      <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <em class="jxr_javadoccomment">     * Checks if the current user is authorized for the given resource.</em>
-<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <em class="jxr_javadoccomment">     * Will not create any audit log. </em>
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <em class="jxr_javadoccomment">     * </em>
-<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <em class="jxr_javadoccomment">     * @param authenticationToken The {@link AuthenticationToken} to check access for.</em>
-<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <em class="jxr_javadoccomment">     * @param resources String identifier(s) of the resource(s) in question.</em>
-<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <em class="jxr_javadoccomment">     * @return true if user is authorized, false if not.</em>
-<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L42" href="#L42">42</a>      <strong class="jxr_keyword">boolean</strong> isAuthorizedNoLogging(AuthenticationToken authenticationToken, String...resources);
-<a class="jxr_linenumber" name="L43" href="#L43">43</a>  
-<a class="jxr_linenumber" name="L44" href="#L44">44</a>      <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L45" href="#L45">45</a>  <em class="jxr_javadoccomment">     * Helper method to clear the local access control rule cache. Normally the cache expires after configured time, but when modifying access rules</em>
-<a class="jxr_linenumber" name="L46" href="#L46">46</a>  <em class="jxr_javadoccomment">     * on the local node we can force cache clearing so we don't have to wait. Other nodes in a cluster will still wait until expire though.</em>
-<a class="jxr_linenumber" name="L47" href="#L47">47</a>  <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L48" href="#L48">48</a>      <strong class="jxr_keyword">void</strong> forceCacheExpire();
-<a class="jxr_linenumber" name="L49" href="#L49">49</a>  }
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <em class="jxr_javadoccomment"> * Main interface for checking authorization. This interface makes use of roles</em>
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <em class="jxr_javadoccomment"> * and entity authentication to verify authorization.</em>
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <em class="jxr_javadoccomment"> *</em>
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <em class="jxr_javadoccomment"> * @version $Id: AuthorizationSession.java 25135 2017-01-27 15:27:27Z jeklund $</em>
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">interface</strong> <a name="AuthorizationSession" href="../../../org/cesecore/authorization/AuthorizationSession.html#AuthorizationSession">AuthorizationSession</a> {
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>    <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <em class="jxr_javadoccomment">   * Checks if the current user is authorized for the given resource. Will</em>
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <em class="jxr_javadoccomment">   * create audit log.</em>
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <em class="jxr_javadoccomment">   *</em>
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <em class="jxr_javadoccomment">   * @param authenticationToken The {@link AuthenticationToken} to check access</em>
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <em class="jxr_javadoccomment">   *     for.</em>
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <em class="jxr_javadoccomment">   * @param resources String identifier(s) of the resource(s) in question.</em>
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <em class="jxr_javadoccomment">   * @return true if user is authorized, false if not.</em>
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <em class="jxr_javadoccomment">   */</em>
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>    <strong class="jxr_keyword">boolean</strong> isAuthorized(
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>        AuthenticationToken authenticationToken, String... resources);
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>    <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <em class="jxr_javadoccomment">   * Checks if the current user is authorized for the given resource. Will not</em>
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <em class="jxr_javadoccomment">   * create any audit log.</em>
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <em class="jxr_javadoccomment">   *</em>
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <em class="jxr_javadoccomment">   * @param authenticationToken The {@link AuthenticationToken} to check access</em>
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  <em class="jxr_javadoccomment">   *     for.</em>
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <em class="jxr_javadoccomment">   * @param resources String identifier(s) of the resource(s) in question.</em>
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>  <em class="jxr_javadoccomment">   * @return true if user is authorized, false if not.</em>
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>  <em class="jxr_javadoccomment">   */</em>
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>    <strong class="jxr_keyword">boolean</strong> isAuthorizedNoLogging(
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>        AuthenticationToken authenticationToken, String... resources);
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>  
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>    <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>  <em class="jxr_javadoccomment">   * Helper method to clear the local access control rule cache. Normally the</em>
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>  <em class="jxr_javadoccomment">   * cache expires after configured time, but when modifying access rules on the</em>
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>  <em class="jxr_javadoccomment">   * local node we can force cache clearing so we don't have to wait. Other</em>
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>  <em class="jxr_javadoccomment">   * nodes in a cluster will still wait until expire though.</em>
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>  <em class="jxr_javadoccomment">   */</em>
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>    <strong class="jxr_keyword">void</strong> forceCacheExpire();
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>  }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2020. All rights reserved.</div>

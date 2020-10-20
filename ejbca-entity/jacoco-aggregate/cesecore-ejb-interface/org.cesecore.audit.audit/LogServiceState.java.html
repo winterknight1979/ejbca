@@ -13,38 +13,49 @@
 package org.cesecore.audit.audit;
 
 import java.util.concurrent.atomic.AtomicBoolean;
-
 import org.cesecore.audit.log.AuditLogResetException;
 
 /**
  * Keep the state of security audit logging. Enabled or disabled.
- * 
+ *
  * @version $Id: LogServiceState.java 17625 2013-09-20 07:12:06Z netmackan $
  */
-<span class="fc" id="L24">public enum LogServiceState {</span>
-<span class="fc" id="L25">	INSTANCE;</span>
+<span class="fc" id="L23">public enum LogServiceState {</span>
+    /** Singleton. */
+<span class="fc" id="L25">  INSTANCE;</span>
 
-<span class="fc" id="L27">	private AtomicBoolean disabled = new AtomicBoolean(false);</span>
+    /** True if disabled. */
+<span class="fc" id="L28">  private final AtomicBoolean disabled = new AtomicBoolean(false);</span>
 
-	/** @return true if security audit logging has been disabled. */
-	public boolean isDisabled() {
-<span class="fc" id="L31">		return disabled.get();</span>
-	}
-	
-	/** Disable security audit logging. 
-	 * @throws AuditLogResetException On fail*/
-	protected void disable() throws AuditLogResetException {
-<span class="fc bfc" id="L37" title="All 2 branches covered.">		if (disabled.getAndSet(true)) {</span>
-<span class="fc" id="L38">			throw new AuditLogResetException(&quot;Cannot disable Security audit logging, since it was already disabled.&quot;);</span>
-		}
-<span class="fc" id="L40">	}</span>
-	
-	/** Enable security audit logging. 
-	 * @throws AuditLogResetException On fail*/
-	protected void enable() throws AuditLogResetException {
-<span class="fc bfc" id="L45" title="All 2 branches covered.">		if (!disabled.getAndSet(false)) {</span>
-<span class="fc" id="L46">			throw new AuditLogResetException(&quot;Cannot enable Security audit logging, since it was already enabled.&quot;);</span>
-		}
-<span class="fc" id="L48">	}</span>
+  /** @return true if security audit logging has been disabled. */
+  public boolean isDisabled() {
+<span class="fc" id="L32">    return disabled.get();</span>
+  }
+
+  /**
+   * Disable security audit logging.
+   *
+   * @throws AuditLogResetException On fail
+   */
+  protected void disable() throws AuditLogResetException {
+<span class="fc bfc" id="L41" title="All 2 branches covered.">    if (disabled.getAndSet(true)) {</span>
+<span class="fc" id="L42">      throw new AuditLogResetException(</span>
+          &quot;Cannot disable Security audit logging, since it was already&quot;
+              + &quot; disabled.&quot;);
+    }
+<span class="fc" id="L46">  }</span>
+
+  /**
+   * Enable security audit logging.
+   *
+   * @throws AuditLogResetException On fail
+   */
+  protected void enable() throws AuditLogResetException {
+<span class="fc bfc" id="L54" title="All 2 branches covered.">    if (!disabled.getAndSet(false)) {</span>
+<span class="fc" id="L55">      throw new AuditLogResetException(</span>
+          &quot;Cannot enable Security audit logging, since it was already&quot;
+              + &quot; enabled.&quot;);
+    }
+<span class="fc" id="L59">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

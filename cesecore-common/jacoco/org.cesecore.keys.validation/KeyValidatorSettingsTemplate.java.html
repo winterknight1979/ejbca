@@ -21,86 +21,99 @@ import java.util.Map;
 /**
  * An enum domain class representing all key validator base parameter options.
  *
- * @version $Id: KeyValidatorSettingsTemplate.java 28140 2018-01-30 12:40:30Z andresjakobs $
+ * @version $Id: KeyValidatorSettingsTemplate.java 28140 2018-01-30 12:40:30Z
+ *     andresjakobs $
  */
-<span class="fc" id="L26">public enum KeyValidatorSettingsTemplate {</span>
+<span class="fc" id="L27">public enum KeyValidatorSettingsTemplate {</span>
 
-    // @formatter:off
-<span class="fc" id="L29">    USE_CERTIFICATE_PROFILE_SETTINGS(0, &quot;VALIDATORSETTINGSTEMPLATE_USE_CP_SETTINGS&quot;), </span>
-<span class="fc" id="L30">    USE_CAB_FORUM_SETTINGS(1, &quot;VALIDATORSETTINGSTEMPLATE_USE_CAB_FORUM_SETTINGS&quot;), </span>
-<span class="fc" id="L31">    USE_CUSTOM_SETTINGS(2, &quot;VALIDATORSETTINGSTEMPLATE_USE_CUSTOM_SETTINGS&quot;);</span>
-    // @formatter:on
+  // @formatter:off
+    /** profile. */
+<span class="fc" id="L31">  USE_CERTIFICATE_PROFILE_SETTINGS(</span>
+      0, &quot;VALIDATORSETTINGSTEMPLATE_USE_CP_SETTINGS&quot;),
+  /** forum. */
+<span class="fc" id="L34">  USE_CAB_FORUM_SETTINGS(1, &quot;VALIDATORSETTINGSTEMPLATE_USE_CAB_FORUM_SETTINGS&quot;),</span>
+  /** custom. */
+<span class="fc" id="L36">  USE_CUSTOM_SETTINGS(2, &quot;VALIDATORSETTINGSTEMPLATE_USE_CUSTOM_SETTINGS&quot;);</span>
+  // @formatter:on
 
-    /** The unique option index. */
-    private int option;
+  /** The unique option index. */
+  private int option;
 
-    /** The resource key or label. */
-    private String label;
+  /** The resource key or label. */
+  private String label;
 
-    /**
-     * Creates a new instance.
-     * 
-     * @param option option index
-     * @param label resource key or label.
-     */
-<span class="fc" id="L46">    private KeyValidatorSettingsTemplate(final int option, final String label) {</span>
-<span class="fc" id="L47">        this.option = option;</span>
-<span class="fc" id="L48">        this.label = label;</span>
-<span class="fc" id="L49">    }</span>
+  /**
+   * Creates a new instance.
+   *
+   * @param anOption option index
+   * @param aLabel resource key or label.
+   */
+  KeyValidatorSettingsTemplate(
+<span class="fc" id="L52">          final int anOption, final String aLabel) {</span>
+<span class="fc" id="L53">    this.option = anOption;</span>
+<span class="fc" id="L54">    this.label = aLabel;</span>
+<span class="fc" id="L55">  }</span>
 
-    /**
-     * Gets the option index.
-     * @return index
-     */
-    public int getOption() {
-<span class="fc" id="L56">        return option;</span>
+  /**
+   * Gets the option index.
+   *
+   * @return index
+   */
+  public int getOption() {
+<span class="fc" id="L63">    return option;</span>
+  }
+
+  /**
+   * Gets the resource key or label.
+   *
+   * @return label
+   */
+  public String getLabel() {
+<span class="nc" id="L72">    return label;</span>
+  }
+
+  /**
+   * Gets an Integer list instance containing all options.
+   *
+   * @return indices
+   */
+  public static List&lt;Integer&gt; types() {
+<span class="nc" id="L81">    final List&lt;Integer&gt; result = new ArrayList&lt;Integer&gt;();</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">    for (KeyValidatorSettingsTemplate option : values()) {</span>
+<span class="nc" id="L83">      result.add(option.getOption());</span>
     }
+<span class="nc" id="L85">    return result;</span>
+  }
 
-    /**
-     * Gets the resource key or label.
-     * @return label
-     */
-    public String getLabel() {
-<span class="nc" id="L64">        return label;</span>
+  /**
+   * Gets a String list instance containing all I18N label keys.
+   *
+   * @return keys
+   */
+  public static Map&lt;Integer, String&gt; map() {
+<span class="nc" id="L94">    final Map&lt;Integer, String&gt; result = new LinkedHashMap&lt;Integer, String&gt;();</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">    for (KeyValidatorSettingsTemplate option : values()) {</span>
+<span class="nc" id="L96">      result.put(option.getOption(), option.getLabel());</span>
     }
+<span class="nc" id="L98">    return result;</span>
+  }
 
-    /**
-     * Gets an Integer list instance containing all options.
-     * @return indices
-     */
-    public static final List&lt;Integer&gt; types() {
-<span class="nc" id="L72">        final List&lt;Integer&gt; result = new ArrayList&lt;Integer&gt;();</span>
-<span class="nc bnc" id="L73" title="All 2 branches missed.">        for (KeyValidatorSettingsTemplate option : values()) {</span>
-<span class="nc" id="L74">            result.add(option.getOption());</span>
-        }
-<span class="nc" id="L76">        return result;</span>
+  /**
+   * Gets the KeyValidatorBaseParameterOptions object with the option
+   * optionIndex.
+   *
+   * @param optionIndex the options index
+   * @return the option.
+   */
+  public static KeyValidatorSettingsTemplate optionOf(
+      final int optionIndex) {
+<span class="nc" id="L110">    KeyValidatorSettingsTemplate result = null;</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">    for (KeyValidatorSettingsTemplate option : values()) {</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">      if (option.getOption() == optionIndex) {</span>
+<span class="nc" id="L113">        result = option;</span>
+      }
     }
-    
-    /**
-     * Gets a String list instance containing all I18N label keys.
-     * @return keys
-     */
-    public static final Map&lt;Integer,String&gt; map() {
-<span class="nc" id="L84">        final Map&lt;Integer,String&gt; result = new LinkedHashMap&lt;Integer,String&gt;();</span>
-<span class="nc bnc" id="L85" title="All 2 branches missed.">        for (KeyValidatorSettingsTemplate option : values()) {</span>
-<span class="nc" id="L86">            result.put(option.getOption(), option.getLabel());</span>
-        }
-<span class="nc" id="L88">        return result;</span>
-    }
-
-    /**
-     * Gets the KeyValidatorBaseParameterOptions object with the option optionIndex
-     * @param optionIndex the options index
-     * @return the option.
-     */
-    public static final KeyValidatorSettingsTemplate optionOf(final int optionIndex) {
-<span class="nc" id="L97">        KeyValidatorSettingsTemplate result = null;</span>
-<span class="nc bnc" id="L98" title="All 2 branches missed.">        for (KeyValidatorSettingsTemplate option : values()) {</span>
-<span class="nc bnc" id="L99" title="All 2 branches missed.">            if (option.getOption() == optionIndex) {</span>
-<span class="nc" id="L100">                result = option;</span>
-            }
-        }
-<span class="nc" id="L103">        return result;</span>
-    }
+<span class="nc" id="L116">    return result;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

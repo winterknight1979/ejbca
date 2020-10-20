@@ -1,0 +1,417 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RoleMembersBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">admin-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.administratorprivileges</a> &gt; <span class="el_source">RoleMembersBean.java</span></div><h1>RoleMembersBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.web.admin.administratorprivileges;
+
+import java.io.Serializable;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.annotation.PostConstruct;
+import javax.ejb.EJB;
+import javax.faces.application.FacesMessage;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.ViewScoped;
+import javax.faces.context.FacesContext;
+import javax.faces.model.ListDataModel;
+import javax.faces.model.SelectItem;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.NumberUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.authentication.tokens.AuthenticationTokenMetaData;
+import org.cesecore.authentication.tokens.X509CertificateAuthenticationTokenMetaData;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.authorization.control.StandardRules;
+import org.cesecore.authorization.user.AccessMatchType;
+import org.cesecore.authorization.user.matchvalues.AccessMatchValue;
+import org.cesecore.authorization.user.matchvalues.AccessMatchValueReverseLookupRegistry;
+import org.cesecore.authorization.user.matchvalues.X500PrincipalAccessMatchValue;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.roles.Role;
+import org.cesecore.roles.management.RoleSessionLocal;
+import org.cesecore.roles.member.RoleMember;
+import org.cesecore.roles.member.RoleMemberDataSessionLocal;
+import org.cesecore.roles.member.RoleMemberSessionLocal;
+import org.cesecore.util.StringTools;
+import org.ejbca.ui.web.admin.BaseManagedBean;
+
+/**
+ * Managed Bean for the Role Member manage/view page.
+ * 
+ * @version $Id: RoleMembersBean.java 29157 2018-06-08 08:00:08Z anatom $
+ * 
+ * TODO: CDI beans
+ */
+
+@SuppressWarnings(&quot;deprecation&quot;)
+@ViewScoped
+@ManagedBean
+<span class="nc" id="L65">public class RoleMembersBean extends BaseManagedBean implements Serializable {</span>
+
+    private static final long serialVersionUID = 1L;
+<span class="nc" id="L68">    private static final Logger log = Logger.getLogger(RoleMembersBean.class);</span>
+
+    @EJB
+    private AuthorizationSessionLocal authorizationSession;
+    @EJB
+    private CaSessionLocal caSession;
+    @EJB
+    private RoleSessionLocal roleSession;
+    @EJB
+    private RoleMemberSessionLocal roleMemberSession;
+    @EJB
+    private RoleMemberDataSessionLocal roleMemberDataSession;
+
+    private String roleIdParam;
+    private Role role;
+
+<span class="nc" id="L84">    private List&lt;SelectItem&gt; matchWithItems = null;</span>
+<span class="nc" id="L85">    private String matchWithSelected = X509CertificateAuthenticationTokenMetaData.TOKEN_TYPE + &quot;:&quot; + X500PrincipalAccessMatchValue.WITH_SERIALNUMBER.getNumericValue();</span>
+    private Integer tokenIssuerId;
+<span class="nc" id="L87">    private String tokenMatchValue = &quot;&quot;;</span>
+<span class="nc" id="L88">    private String description = &quot;&quot;;</span>
+
+<span class="nc" id="L90">    private ListDataModel&lt;RoleMember&gt; roleMembers = null;</span>
+<span class="nc" id="L91">    private RoleMember roleMemberToDelete = null;</span>
+    
+<span class="nc" id="L93">    private Map&lt;Integer, String&gt; caIdToNameMap = null;</span>
+
+    @PostConstruct
+    private void postConstruct() {
+        // Read HTTP param &quot;roleId&quot; that should be interpreted as an integer
+<span class="nc" id="L98">        roleIdParam = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get(&quot;roleId&quot;);</span>
+<span class="nc" id="L99">    }</span>
+    
+    /** Redirect back to this page with the correct roleId for non-ajax requests */
+    private void nonAjaxPostRedirectGet() {
+<span class="nc" id="L103">        super.nonAjaxPostRedirectGet(&quot;?roleId=&quot;+roleIdParam);</span>
+<span class="nc" id="L104">    }</span>
+    
+    /**
+     * Get the appropriate Access match type based on the access match value.
+     * @param accessMatchValue Value
+     * @return Equal Case sensitive unless access match value forces something else.
+     */
+    private AccessMatchType getAccessMatchType(AccessMatchValue accessMatchValue) {
+<span class="nc bnc" id="L112" title="All 2 branches missed.">        if (accessMatchValue.equals(X500PrincipalAccessMatchValue.WITH_SERIALNUMBER)</span>
+<span class="nc bnc" id="L113" title="All 2 branches missed.">                || accessMatchValue.equals(X500PrincipalAccessMatchValue.WITH_COUNTRY)</span>
+<span class="nc bnc" id="L114" title="All 2 branches missed.">                || accessMatchValue.equals(X500PrincipalAccessMatchValue.WITH_DNEMAILADDRESS)</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">                || accessMatchValue.equals(X500PrincipalAccessMatchValue.WITH_STATEORPROVINCE)</span>
+<span class="nc bnc" id="L116" title="All 2 branches missed.">                || accessMatchValue.equals(X500PrincipalAccessMatchValue.WITH_RFC822NAME)){</span>
+<span class="nc" id="L117">            return AccessMatchType.TYPE_EQUALCASEINS;</span>
+        }
+<span class="nc" id="L119">        return AccessMatchType.TYPE_EQUALCASE;</span>
+    }
+
+    /** @return true when admin is authorized to edit members of this role */
+    public boolean isAuthorizedToEditRole() {
+        try {
+<span class="nc bnc" id="L125" title="All 4 branches missed.">            if (authorizationSession.isAuthorizedNoLogging(getAdmin(), StandardRules.EDITROLES.resource()) &amp;&amp; getRole()!=null) {</span>
+<span class="nc" id="L126">                roleSession.assertAuthorizedToRoleMembers(getAdmin(), getRole().getRoleId(), true);</span>
+<span class="nc" id="L127">                return true;</span>
+            }
+<span class="nc" id="L129">        } catch (AuthorizationDeniedException e) {</span>
+            // NOPMD: Ignore.. would be nicer with a API call returning a boolean
+<span class="nc" id="L131">        }</span>
+<span class="nc" id="L132">        return false;</span>
+    }
+
+    /** @return an authorized existing role based on the roleId HTTP param or null if no such role was found. */
+    public Role getRole() {
+<span class="nc bnc" id="L137" title="All 4 branches missed.">        if (role==null &amp;&amp; NumberUtils.isNumber(roleIdParam)) {</span>
+            try {
+<span class="nc" id="L139">                role = roleSession.getRole(getAdmin(), Integer.parseInt(roleIdParam));</span>
+<span class="nc bnc" id="L140" title="All 4 branches missed.">                if (role==null &amp;&amp; log.isDebugEnabled()) {</span>
+<span class="nc" id="L141">                    log.debug(&quot;Admin '&quot; + getAdmin() + &quot;' failed to access non-existing role.&quot;);</span>
+                }
+<span class="nc" id="L143">            } catch (NumberFormatException | AuthorizationDeniedException e) {</span>
+<span class="nc bnc" id="L144" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L145">                    log.debug(&quot;Admin '&quot; + getAdmin() + &quot;' failed to access a role: &quot; + e.getMessage());</span>
+                }
+<span class="nc" id="L147">            }</span>
+        }
+<span class="nc" id="L149">        return role;</span>
+    }
+
+    /** @return a ListDataModel of all RoleMembers in this Role (sorted) */
+    public ListDataModel&lt;RoleMember&gt; getRoleMembers() {
+<span class="nc bnc" id="L154" title="All 2 branches missed.">        if (roleMembers==null) {</span>
+<span class="nc" id="L155">            final List&lt;RoleMember&gt; roleMembers = roleMemberDataSession.findRoleMemberByRoleId(role.getRoleId());</span>
+<span class="nc" id="L156">            Collections.sort(roleMembers, new Comparator&lt;RoleMember&gt;() {</span>
+                @Override
+                public int compare(final RoleMember roleMember1, final RoleMember roleMember2) {
+<span class="nc" id="L159">                    final String matchWithItemString1 = getMatchWithItemString(roleMember1);</span>
+<span class="nc" id="L160">                    final String matchWithItemString2 = getMatchWithItemString(roleMember2);</span>
+<span class="nc" id="L161">                    final int compareA = matchWithItemString1.compareTo(matchWithItemString2);</span>
+<span class="nc bnc" id="L162" title="All 2 branches missed.">                    if (compareA!=0) {</span>
+<span class="nc" id="L163">                        return compareA;</span>
+                    }
+<span class="nc" id="L165">                    final String tokenIssuerIdString1 = getTokenIssuerIdString(roleMember1);</span>
+<span class="nc" id="L166">                    final String tokenIssuerIdString2 = getTokenIssuerIdString(roleMember2);</span>
+<span class="nc" id="L167">                    final int compareB = tokenIssuerIdString1.compareTo(tokenIssuerIdString2);</span>
+<span class="nc bnc" id="L168" title="All 2 branches missed.">                    if (compareB!=0) {</span>
+<span class="nc" id="L169">                        return compareB;</span>
+                    }
+<span class="nc" id="L171">                    return roleMember1.getTokenMatchValue().compareTo(roleMember2.getTokenMatchValue());</span>
+                }
+            });
+<span class="nc" id="L174">            this.roleMembers = new ListDataModel&lt;&gt;(roleMembers);</span>
+        }
+<span class="nc" id="L176">        return roleMembers;</span>
+    }
+
+    /** @return a viewable list of 'match with'-texts */
+    public List&lt;SelectItem&gt; getMatchWithItems() {
+<span class="nc bnc" id="L181" title="All 2 branches missed.">        if (matchWithItems == null) {</span>
+<span class="nc" id="L182">            matchWithItems = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L183">            final List&lt;String&gt; tokenTypes = new ArrayList&lt;&gt;(AccessMatchValueReverseLookupRegistry.INSTANCE.getAllTokenTypes());</span>
+<span class="nc" id="L184">            Collections.sort(tokenTypes);</span>
+<span class="nc bnc" id="L185" title="All 2 branches missed.">            for (final String tokenType : tokenTypes) {</span>
+<span class="nc" id="L186">                final AuthenticationTokenMetaData authenticationTokenMetaData = AccessMatchValueReverseLookupRegistry.INSTANCE.getMetaData(tokenType);</span>
+<span class="nc bnc" id="L187" title="All 2 branches missed.">                if (authenticationTokenMetaData.isUserConfigurable()) {</span>
+<span class="nc bnc" id="L188" title="All 2 branches missed.">                    for (final AccessMatchValue accessMatchValue : authenticationTokenMetaData.getAccessMatchValues()) {</span>
+                        // Special exclusion of this rather useless match value that will never match anything
+<span class="nc bnc" id="L190" title="All 2 branches missed.">                        if (!X500PrincipalAccessMatchValue.NONE.equals(accessMatchValue)) {</span>
+<span class="nc" id="L191">                            matchWithItems.add(new SelectItem(tokenType + &quot;:&quot; + accessMatchValue.getNumericValue(), </span>
+<span class="nc" id="L192">                                    getEjbcaWebBean().getText(tokenType) + &quot;: &quot; + getEjbcaWebBean().getText(accessMatchValue.name())));</span>
+                        }
+<span class="nc" id="L194">                    }</span>
+                }
+<span class="nc" id="L196">            }</span>
+        }
+<span class="nc" id="L198">        return matchWithItems;</span>
+    }
+
+    /** @return the selected tokenType and tokenMatchKey combo */
+<span class="nc" id="L202">    public String getMatchWithSelected() { return matchWithSelected; }</span>
+    /** Set the selected tokenType and tokenMatchKey combo 
+     * @param matchWithSelected string */
+<span class="nc" id="L205">    public void setMatchWithSelected(final String matchWithSelected) { this.matchWithSelected = matchWithSelected; }</span>
+
+    /** @param roleMember member
+     * @return a human readable version of the tokenType and tokenMatchKey values */
+    public String getMatchWithItemString(final RoleMember roleMember) {
+<span class="nc" id="L210">        final AuthenticationTokenMetaData authenticationTokenMetaData = AccessMatchValueReverseLookupRegistry.INSTANCE.getMetaData(roleMember.getTokenType());</span>
+<span class="nc" id="L211">        final String tokenTypeString = getEjbcaWebBean().getText(authenticationTokenMetaData.getTokenType());</span>
+<span class="nc" id="L212">        final String tokenMatchKeyString = getEjbcaWebBean().getText(authenticationTokenMetaData.getAccessMatchValueIdMap().get(roleMember.getTokenMatchKey()).name());</span>
+<span class="nc" id="L213">        return tokenTypeString + &quot;:&quot; + tokenMatchKeyString;</span>
+    }
+
+    /** @return true if the currently selected tokenType and tokenMatchKey combo implies that is has been issued by a CA */
+    public boolean isRenderTokenIssuerIdInput() {
+<span class="nc" id="L218">        return getAccessMatchValue(getSelectedTokenType(), getSelectedTokenMatchKey()).isIssuedByCa();</span>
+    }
+
+    /** @return a List of (SelectItem&amp;lt;Integer, String&amp;gt;) authorized CAs */
+    public List&lt;SelectItem&gt; getAvailableCas() {
+<span class="nc" id="L223">        final List&lt;SelectItem&gt; availableCas = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L224">        final List&lt;Integer&gt; authorizedCaIds = caSession.getAuthorizedCaIds(getAdmin());</span>
+<span class="nc bnc" id="L225" title="All 2 branches missed.">        for (final int caId : authorizedCaIds) {</span>
+<span class="nc" id="L226">            availableCas.add(new SelectItem(caId, getCaIdToNameMap().get(caId)));</span>
+<span class="nc" id="L227">        }</span>
+<span class="nc" id="L228">        super.sortSelectItemsByLabel(availableCas);</span>
+<span class="nc" id="L229">        return availableCas;</span>
+    }
+
+    /** @return the currently selected CA if any */
+<span class="nc" id="L233">    public Integer getTokenIssuerId() { return tokenIssuerId; }</span>
+    /** Set the currently selected CA 
+     * @param tokenIssuerId Issuer*/
+<span class="nc" id="L236">    public void setTokenIssuerId(final Integer tokenIssuerId) { this.tokenIssuerId = tokenIssuerId; }</span>
+
+    /** @param roleMember Role
+     * @return a human readable version of the RoleMember's tokenIsserId (CA name) */
+    public String getTokenIssuerIdString(final RoleMember roleMember) {
+<span class="nc" id="L241">        final int tokenIssuerId = roleMember.getTokenIssuerId();</span>
+<span class="nc bnc" id="L242" title="All 2 branches missed.">        if (tokenIssuerId==RoleMember.NO_ISSUER) {</span>
+<span class="nc" id="L243">            return &quot;-&quot;;</span>
+        }
+<span class="nc bnc" id="L245" title="All 2 branches missed.">        if (getAccessMatchValue(roleMember.getTokenType(), roleMember.getTokenMatchKey()).isIssuedByCa()) {</span>
+<span class="nc" id="L246">            final String caName = getCaIdToNameMap().get(tokenIssuerId);</span>
+<span class="nc bnc" id="L247" title="All 2 branches missed.">            if (caName==null) {</span>
+<span class="nc" id="L248">                return super.getEjbcaWebBean().getText(&quot;UNKNOWNCAID&quot;) + &quot; &quot; + tokenIssuerId;</span>
+            } else {
+<span class="nc" id="L250">                return caName;</span>
+            }
+        } else {
+<span class="nc" id="L253">            return String.valueOf(tokenIssuerId);</span>
+        }
+    }
+    
+    /** @return the ViewScoped cache of the CA to name map or a fresh copy from the backend if none is present yet. */
+    private Map&lt;Integer, String&gt; getCaIdToNameMap() {
+<span class="nc bnc" id="L259" title="All 2 branches missed.">        if (this.caIdToNameMap==null) {</span>
+<span class="nc" id="L260">            this.caIdToNameMap = caSession.getCAIdToNameMap();</span>
+        }
+<span class="nc" id="L262">        return this.caIdToNameMap;</span>
+    }
+
+    /** @param roleMember Member
+     * @return a human readable version of the RoleMember's tokenMatchOperator */
+    public String getTokenMatchOperatorString(final RoleMember roleMember) {
+<span class="nc" id="L268">        return getEjbcaWebBean().getText(AccessMatchType.matchFromDatabase(roleMember.getTokenMatchOperator()).name());</span>
+    }
+
+    /** @return true if the currently selected tokenType and tokenMatchKey combo implies that it needs a tokenMatchValue */
+    public boolean isRenderTokenMatchValueInput() {
+<span class="nc bnc" id="L273" title="All 2 branches missed.">        return !getAccessMatchValue(getSelectedTokenType(), getSelectedTokenMatchKey()).getAvailableAccessMatchTypes().isEmpty();</span>
+    }
+
+    /** @return the current tokenMatchValue */
+<span class="nc" id="L277">    public String getTokenMatchValue() { return tokenMatchValue; }</span>
+    /** Set the current tokenMatchValue 
+     * @param tokenMatchValue Match*/
+<span class="nc" id="L280">    public void setTokenMatchValue(final String tokenMatchValue) { this.tokenMatchValue = tokenMatchValue.trim(); }</span>
+    
+    /** @param roleMember Member
+     * @return true if the currently selected tokenType and tokenMatchKey combo implies that the tokenMatchValue is a hex certificate serial number */
+    public boolean isRenderCertificateLink(final RoleMember roleMember) {
+<span class="nc bnc" id="L285" title="All 2 branches missed.">        return X509CertificateAuthenticationTokenMetaData.TOKEN_TYPE.equals(roleMember.getTokenType()) &amp;&amp;</span>
+<span class="nc bnc" id="L286" title="All 2 branches missed.">                X500PrincipalAccessMatchValue.WITH_SERIALNUMBER.getNumericValue() == roleMember.getTokenMatchKey();</span>
+    }
+
+    /** @return the tokenType from the currently selected tokenType and tokenMatchKey combo */
+    private String getSelectedTokenType() {
+<span class="nc" id="L291">        return matchWithSelected.split(&quot;:&quot;)[0];</span>
+    }
+    /** @return the tokenMatchKey from the currently selected tokenType and tokenMatchKey combo */
+    private int getSelectedTokenMatchKey() {
+<span class="nc" id="L295">        return Integer.parseInt(matchWithSelected.split(&quot;:&quot;)[1]);</span>
+    }
+    /** @param tokenType type
+     * @param tokenMatchKey key
+     * @return the AccessMatchValue from the specified tokenType and tokenMatchKey combo */
+    private AccessMatchValue getAccessMatchValue(final String tokenType, final int tokenMatchKey) {
+<span class="nc" id="L301">        final AuthenticationTokenMetaData metaData = AccessMatchValueReverseLookupRegistry.INSTANCE.getMetaData(tokenType);</span>
+<span class="nc" id="L302">        return metaData.getAccessMatchValueIdMap().get(tokenMatchKey);</span>
+    }
+
+    /** @return the current human readable description */
+<span class="nc" id="L306">    public String getDescription() { return description; }</span>
+    /** Set the current human readable description 
+     * @param description Description*/
+<span class="nc" id="L309">    public void setDescription(final String description) { this.description = description.trim(); }</span>
+
+    /** Invoked by the admin when adding a new RoleMember. */
+    public void actionAddRoleMember() {
+        try {
+<span class="nc" id="L314">            final String tokenType = getSelectedTokenType();</span>
+<span class="nc" id="L315">            final int tokenMatchKey = getSelectedTokenMatchKey();</span>
+<span class="nc" id="L316">            final AccessMatchValue accessMatchValue = getAccessMatchValue(tokenType, tokenMatchKey);</span>
+            final AccessMatchType accessMatchType;
+<span class="nc bnc" id="L318" title="All 2 branches missed.">            if (accessMatchValue.getAvailableAccessMatchTypes().isEmpty()) {</span>
+<span class="nc" id="L319">                accessMatchType = AccessMatchType.TYPE_UNUSED;</span>
+            } else {
+<span class="nc" id="L321">                accessMatchType = getAccessMatchType(accessMatchValue);</span>
+            }
+
+<span class="nc bnc" id="L324" title="All 2 branches missed.">            if (AccessMatchType.TYPE_UNUSED.equals(accessMatchType)) {</span>
+<span class="nc" id="L325">                tokenMatchValue = &quot;&quot;;</span>
+            } else {
+                // Validate that a required tokenMatchValue has been entered
+<span class="nc bnc" id="L328" title="All 2 branches missed.">                if (StringUtils.isEmpty(tokenMatchValue)) {</span>
+<span class="nc" id="L329">                    super.addGlobalMessage(FacesMessage.SEVERITY_ERROR, &quot;MATCHVALUEREQUIRED&quot;);</span>
+<span class="nc" id="L330">                    return;</span>
+                }
+            }
+            // Validate that the tokenMatchValue contains no illegal characters
+            // (Check this here instead of using an f:validator validatorId=&quot;legalCharsValidator&quot; since we might need to do PRG later)
+<span class="nc" id="L335">            Set&lt;String&gt; invalidCharacters = StringTools.hasSqlStripChars(tokenMatchValue);</span>
+<span class="nc bnc" id="L336" title="All 2 branches missed.">            if (!invalidCharacters.isEmpty()) {</span>
+<span class="nc" id="L337">                StringBuilder sb = new StringBuilder(&quot;&quot;);</span>
+<span class="nc bnc" id="L338" title="All 2 branches missed.">                for (String error : invalidCharacters) {</span>
+<span class="nc" id="L339">                    sb.append(&quot;, &quot; + error);</span>
+<span class="nc" id="L340">                }</span>
+<span class="nc" id="L341">                super.addGlobalMessage(FacesMessage.SEVERITY_ERROR, &quot;INVALIDCHARS&quot;, sb.substring(2) );</span>
+<span class="nc" id="L342">                return;</span>
+            }
+            // If the tokenMatchValue should be a hex number, validate that it is
+<span class="nc bnc" id="L345" title="All 2 branches missed.">            if (X509CertificateAuthenticationTokenMetaData.TOKEN_TYPE.equals(tokenType) &amp;&amp;</span>
+<span class="nc bnc" id="L346" title="All 2 branches missed.">                    X500PrincipalAccessMatchValue.WITH_SERIALNUMBER.getNumericValue()==tokenMatchKey) {</span>
+                try {
+<span class="nc" id="L348">                    new BigInteger(tokenMatchValue, 16);</span>
+<span class="nc" id="L349">                } catch (NumberFormatException e) {</span>
+<span class="nc" id="L350">                    super.addGlobalMessage(FacesMessage.SEVERITY_ERROR, &quot;HEXREQUIRED&quot;);</span>
+<span class="nc" id="L351">                    return;</span>
+<span class="nc" id="L352">                }</span>
+            }
+            final int tokenIssuerId;
+<span class="nc bnc" id="L355" title="All 2 branches missed.">            if (accessMatchValue.isIssuedByCa()) {</span>
+<span class="nc" id="L356">                tokenIssuerId = this.tokenIssuerId;</span>
+            } else {
+<span class="nc" id="L358">                tokenIssuerId = RoleMember.NO_ISSUER;</span>
+            }
+            try {
+<span class="nc" id="L361">                roleMemberSession.persist(getAdmin(), new RoleMember(tokenType, tokenIssuerId, tokenMatchKey,</span>
+<span class="nc" id="L362">                        accessMatchType.getNumericValue(), tokenMatchValue, role.getRoleId(), description));</span>
+<span class="nc" id="L363">            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L364">                super.addGlobalMessage(FacesMessage.SEVERITY_ERROR, &quot;AUTHORIZATIONDENIED&quot;);</span>
+<span class="nc" id="L365">            }</span>
+            // Only reset this one, since admin might want to add additional matches of the same type
+<span class="nc" id="L367">            tokenMatchValue = &quot;&quot;;</span>
+            // Trigger a reload of the RoleMember list (if this is an AJAX requests and no new viewscope will be created)
+<span class="nc" id="L369">            roleMembers = null;</span>
+        } finally {
+<span class="nc" id="L371">            nonAjaxPostRedirectGet();</span>
+        }
+<span class="nc" id="L373">    }</span>
+
+    /** @param roleMember Member
+     * @return true if the RoleMember's tokenType and tokenMatchKey combo implies that it is issued by a CA */
+    public boolean isTokenIssuerIdUsed(final RoleMember roleMember) {
+<span class="nc" id="L378">        return getAccessMatchValue(roleMember.getTokenType(), roleMember.getTokenMatchKey()).isIssuedByCa();</span>
+    }
+
+    /** @param roleMember Member
+     * @return true if the RoleMember's tokenType and tokenMatchKey combo implies a tokenMatchValue is used */
+    public boolean isTokenMatchValueUsed(final RoleMember roleMember) {
+<span class="nc bnc" id="L384" title="All 2 branches missed.">        return !getAccessMatchValue(roleMember.getTokenType(), roleMember.getTokenMatchKey()).getAvailableAccessMatchTypes().isEmpty();</span>
+    }
+
+    /** @return the RoleMember that has been selected for deletion */
+    public RoleMember getRoleMemberToDelete() {
+<span class="nc" id="L389">        return roleMemberToDelete;</span>
+    }
+    /** @return true if a RoleMember that has been selected for deletion */
+    public boolean isRenderDeleteRoleMember() {
+<span class="nc bnc" id="L393" title="All 2 branches missed.">        return roleMemberToDelete!=null;</span>
+    }
+    /** Invoked by the admin to start the process of deleting a RoleMember */
+    public void actionDeleteRoleMemberStart() {
+<span class="nc" id="L397">        roleMemberToDelete = getRoleMembers().getRowData();</span>
+<span class="nc" id="L398">    }</span>
+    /** Invoked by the admin to cancel the process of deleting a RoleMember */
+    public void actionDeleteRoleMemberReset() {
+<span class="nc" id="L401">        roleMemberToDelete = null;</span>
+<span class="nc" id="L402">        nonAjaxPostRedirectGet();</span>
+<span class="nc" id="L403">    }</span>
+    /** Invoked by the admin to confirm the process of deleting a RoleMember */
+    public void actionDeleteRoleMemberConfirm() {
+        try {
+<span class="nc" id="L407">            roleMemberSession.remove(getAdmin(), roleMemberToDelete.getId());</span>
+<span class="nc" id="L408">            super.addGlobalMessage(FacesMessage.SEVERITY_INFO, &quot;ROLEMEMBERS_INFO_REMOVED&quot;);</span>
+<span class="nc" id="L409">            roleMembers = null;</span>
+<span class="nc" id="L410">            roleMemberToDelete = null;</span>
+<span class="nc" id="L411">            nonAjaxPostRedirectGet();</span>
+<span class="nc" id="L412">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L413">            super.addGlobalMessage(FacesMessage.SEVERITY_ERROR, &quot;ROLEMEMBERS_ERROR_UNAUTH&quot;, e.getMessage());</span>
+<span class="nc" id="L414">        }</span>
+<span class="nc" id="L415">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

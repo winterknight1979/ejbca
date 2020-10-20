@@ -25,17 +25,22 @@
 <a class="jxr_linenumber" name="L17" href="#L17">17</a>  <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="L18" href="#L18">18</a>  <em class="jxr_javadoccomment"> * Provider with to be used for TLS session.</em>
 <a class="jxr_linenumber" name="L19" href="#L19">19</a>  <em class="jxr_javadoccomment"> *</em>
-<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <em class="jxr_javadoccomment"> * @version  $Id: TLSProvider.java 17625 2013-09-20 07:12:06Z netmackan $</em>
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <em class="jxr_javadoccomment"> * @version $Id: TLSProvider.java 17625 2013-09-20 07:12:06Z netmackan $</em>
 <a class="jxr_linenumber" name="L21" href="#L21">21</a>  <em class="jxr_javadoccomment"> */</em>
 <a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="TLSProvider" href="../../../../org/cesecore/util/provider/TLSProvider.html#TLSProvider">TLSProvider</a> <strong class="jxr_keyword">extends</strong> Provider {
 <a class="jxr_linenumber" name="L23" href="#L23">23</a>  
-<a class="jxr_linenumber" name="L24" href="#L24">24</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> serialVersionUID = -5295903987266780293L;
-<a class="jxr_linenumber" name="L25" href="#L25">25</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> String info = <span class="jxr_string">"CESECORE TLS Provider"</span>;
-<a class="jxr_linenumber" name="L26" href="#L26">26</a>      <strong class="jxr_keyword">public</strong> <a name="TLSProvider" href="../../../../org/cesecore/util/provider/TLSProvider.html#TLSProvider">TLSProvider</a>() {
-<a class="jxr_linenumber" name="L27" href="#L27">27</a>          <strong class="jxr_keyword">super</strong>(<span class="jxr_string">"TLSProvider"</span>, <span class="jxr_string">"0.0"</span>, info);
-<a class="jxr_linenumber" name="L28" href="#L28">28</a>          put(<span class="jxr_string">"TrustManagerFactory.AcceptAll"</span>, TrustManagerFactoryImpl.AcceptAll.<strong class="jxr_keyword">class</strong>.getName());
-<a class="jxr_linenumber" name="L29" href="#L29">29</a>      }
-<a class="jxr_linenumber" name="L30" href="#L30">30</a>  }
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> serialVersionUID = -5295903987266780293L;
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>    <em class="jxr_javadoccomment">/** Info. */</em>
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> String info = <span class="jxr_string">"CESECORE TLS Provider"</span>;
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>    <em class="jxr_javadoccomment">/** Constructor. */</em>
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>    <strong class="jxr_keyword">public</strong> <a name="TLSProvider" href="../../../../org/cesecore/util/provider/TLSProvider.html#TLSProvider">TLSProvider</a>() {
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>      <strong class="jxr_keyword">super</strong>(<span class="jxr_string">"TLSProvider"</span>, <span class="jxr_string">"0.0"</span>, info);
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>      put(
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>          <span class="jxr_string">"TrustManagerFactory.AcceptAll"</span>,
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>          TrustManagerFactoryImpl.AcceptAll.<strong class="jxr_keyword">class</strong>.getName());
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>    }
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2020. All rights reserved.</div>

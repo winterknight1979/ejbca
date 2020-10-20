@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>SVGTemplatePrinterCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli</a> &gt; <span class="el_source">SVGTemplatePrinterCommand.java</span></div><h1>SVGTemplatePrinterCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.cli;
+
+import java.awt.print.PrinterException;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Properties;
+import java.util.Set;
+
+import org.apache.log4j.Logger;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.certificates.endentity.EndEntityType;
+import org.cesecore.certificates.endentity.EndEntityTypes;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.command.EjbcaCommandBase;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+import org.ejbca.util.PrinterManager;
+/**
+ *
+ *
+ * Class used as a help tool when creating hard token visual layout templates
+ * @version $Id: SVGTemplatePrinterCommand.java 19902 2014-09-30 14:32:24Z anatom $
+ */
+<span class="nc" id="L43">public class SVGTemplatePrinterCommand extends EjbcaCommandBase {</span>
+
+<span class="nc" id="L45">    private static final Logger log = Logger.getLogger(SVGTemplatePrinterCommand.class);</span>
+
+    private static final String USERDATAFILENAME = &quot;src/cli/svgtemplateprinttester.properties&quot;;
+    private static final String TEMPLATEFILENAME_KEYWORD = &quot;-t&quot;;
+    private static final String PRINTERNAME_KEYWORD = &quot;-p&quot;;
+
+    //Register parameters
+    {
+<span class="nc" id="L53">        registerParameter(new Parameter(TEMPLATEFILENAME_KEYWORD, &quot;Template filename&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW,</span>
+                ParameterMode.ARGUMENT, &quot;The template file name.&quot;));
+<span class="nc" id="L55">        registerParameter(new Parameter(PRINTERNAME_KEYWORD, &quot;Printer name&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;The name of the printer.&quot;));
+<span class="nc" id="L57">    }</span>
+
+    @Override
+    public String[] getCommandPath() {
+<span class="nc" id="L61">        return new String[] { &quot;svgtemplate&quot; };</span>
+    }
+
+    @Override
+    public Set&lt;String[]&gt; getCommandPathAliases() {
+<span class="nc" id="L66">        Set&lt;String[]&gt; aliases = new HashSet&lt;String[]&gt;();</span>
+<span class="nc" id="L67">        aliases.add(new String[] { &quot;template&quot; });</span>
+<span class="nc" id="L68">        return aliases;</span>
+    }
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L73">        return &quot;print&quot;;</span>
+    }
+
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+<span class="nc" id="L78">        String templatefilename = parameters.get(TEMPLATEFILENAME_KEYWORD);</span>
+<span class="nc" id="L79">        String printername = parameters.get(PRINTERNAME_KEYWORD);</span>
+<span class="nc" id="L80">        Properties data = new Properties();</span>
+        try {
+            try {
+<span class="nc" id="L83">                data.load(new FileInputStream(USERDATAFILENAME));</span>
+<span class="nc" id="L84">            } catch (FileNotFoundException e) {</span>
+<span class="nc" id="L85">                log.error(&quot;File &quot; + USERDATAFILENAME + &quot; does not exist, command cannot run.&quot;);</span>
+<span class="nc" id="L86">                return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L87">            }</span>
+<span class="nc" id="L88">            EndEntityInformation userdata = new EndEntityInformation(&quot;&quot;, data.getProperty(&quot;DN&quot;), 0, &quot;&quot;, data.getProperty(&quot;EMAIL&quot;), 0,</span>
+                    new EndEntityType(EndEntityTypes.INVALID), 0, 0, (Date) null, (Date) null, 0, 0, null);
+<span class="nc" id="L90">            String[] pins = new String[2];</span>
+<span class="nc" id="L91">            String[] puks = new String[2];</span>
+<span class="nc" id="L92">            pins[0] = data.getProperty(&quot;PIN1&quot;);</span>
+<span class="nc" id="L93">            pins[1] = data.getProperty(&quot;PIN2&quot;);</span>
+<span class="nc" id="L94">            puks[0] = data.getProperty(&quot;PUK1&quot;);</span>
+<span class="nc" id="L95">            puks[1] = data.getProperty(&quot;PUK2&quot;);</span>
+<span class="nc" id="L96">            String copyofhardtokensn = data.getProperty(&quot;COPYOFHARDTOKENSN&quot;);</span>
+<span class="nc" id="L97">            String hardtokensn = data.getProperty(&quot;HARDTOKENSN&quot;);</span>
+<span class="nc" id="L98">            int validity = Integer.parseInt(data.getProperty(&quot;VALIDITY&quot;));</span>
+<span class="nc" id="L99">            String hardtokensnprefix = data.getProperty(&quot;HARDTOKENSNPREFIX&quot;);</span>
+            FileInputStream fis;
+            try {
+<span class="nc" id="L102">                fis = new FileInputStream(templatefilename);</span>
+<span class="nc" id="L103">            } catch (FileNotFoundException e) {</span>
+<span class="nc" id="L104">                log.error(&quot;File &quot; + templatefilename + &quot; could not be found, command cannot run.&quot;);</span>
+<span class="nc" id="L105">                return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L106">            }</span>
+            try {
+<span class="nc" id="L108">                byte[] byteData = new byte[fis.available()];</span>
+<span class="nc" id="L109">                fis.read(byteData);</span>
+<span class="nc" id="L110">                String sVGData = new String(byteData, &quot;UTF8&quot;);</span>
+                try {
+<span class="nc" id="L112">                    PrinterManager.print(printername, templatefilename, sVGData, 1, validity, userdata, pins, puks, hardtokensnprefix, hardtokensn,</span>
+                            copyofhardtokensn);
+<span class="nc" id="L114">                } catch (PrinterException e) {</span>
+<span class="nc" id="L115">                    log.error(&quot;Printing failed, see associated stack trace.&quot;, e);</span>
+<span class="nc" id="L116">                }</span>
+            } finally {
+<span class="nc" id="L118">                fis.close();</span>
+            }
+<span class="nc" id="L120">            return CommandResult.SUCCESS;</span>
+<span class="nc" id="L121">        } catch (IOException e) {</span>
+<span class="nc" id="L122">            throw new IllegalStateException(&quot;IOException was caught, see underlying error.&quot;, e);</span>
+        }
+
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L129">        return &quot;Tool for creating hard token visual layout templates&quot;;</span>
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L134">        return &quot;Tool for creating hard token visual layout templates. User data is configured in  &quot; + USERDATAFILENAME;</span>
+    }
+    
+    @Override
+    protected Logger getLogger() {
+<span class="nc" id="L139">        return log;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

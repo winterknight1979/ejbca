@@ -1,0 +1,996 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CryptoTokenMBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">admin-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.cryptotoken</a> &gt; <span class="el_source">CryptoTokenMBean.java</span></div><h1>CryptoTokenMBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.web.admin.cryptotoken;
+
+import java.io.File;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Properties;
+
+import javax.faces.application.FacesMessage;
+import javax.faces.context.FacesContext;
+import javax.faces.model.ListDataModel;
+import javax.faces.model.SelectItem;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.authorization.control.CryptoTokenRules;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.certificates.util.AlgorithmConstants;
+import org.cesecore.certificates.util.AlgorithmTools;
+import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.keybind.InternalKeyBindingInfo;
+import org.cesecore.keybind.InternalKeyBindingMgmtSessionLocal;
+import org.cesecore.keys.token.AvailableCryptoToken;
+import org.cesecore.keys.token.BaseCryptoToken;
+import org.cesecore.keys.token.CryptoToken;
+import org.cesecore.keys.token.CryptoTokenAuthenticationFailedException;
+import org.cesecore.keys.token.CryptoTokenFactory;
+import org.cesecore.keys.token.CryptoTokenInfo;
+import org.cesecore.keys.token.CryptoTokenManagementSession;
+import org.cesecore.keys.token.CryptoTokenManagementSessionLocal;
+import org.cesecore.keys.token.CryptoTokenOfflineException;
+import org.cesecore.keys.token.KeyPairInfo;
+import org.cesecore.keys.token.NullCryptoToken;
+import org.cesecore.keys.token.PKCS11CryptoToken;
+import org.cesecore.keys.token.SoftCryptoToken;
+import org.cesecore.keys.token.p11.Pkcs11SlotLabel;
+import org.cesecore.keys.token.p11.Pkcs11SlotLabelType;
+import org.cesecore.keys.util.KeyTools;
+import org.cesecore.util.StringTools;
+import org.ejbca.config.WebConfiguration;
+import org.ejbca.ui.web.admin.BaseManagedBean;
+import org.ejbca.ui.web.admin.configuration.EjbcaJSFHelper;
+import org.ejbca.util.SlotList;
+
+/**
+ * JavaServer Faces Managed Bean for managing CryptoTokens.
+ * Session scoped and will cache the list of tokens and keys.
+ * 
+ * @version $Id: CryptoTokenMBean.java 30510 2018-11-15 08:20:55Z anatom $
+ */
+<span class="nc" id="L73">public class CryptoTokenMBean extends BaseManagedBean implements Serializable {</span>
+
+    private static final String CRYPTOTOKEN_LABEL_TYPE_TEXTPREFIX = &quot;CRYPTOTOKEN_LABEL_TYPE_&quot;;
+    
+    /** GUI table representation of a CryptoToken that can be interacted with. */
+    public class CryptoTokenGuiInfo {
+        private final CryptoTokenInfo cryptoTokenInfo;
+        private final String p11LibraryAlias;
+        private final boolean allowedActivation;
+        private final boolean allowedDeactivation;
+        private String authenticationCode;
+        private final boolean referenced;
+        
+<span class="nc" id="L86">        private CryptoTokenGuiInfo(CryptoTokenInfo cryptoTokenInfo, String p11LibraryAlias, boolean allowedActivation, boolean allowedDectivation, boolean referenced) {</span>
+<span class="nc" id="L87">            this.cryptoTokenInfo = cryptoTokenInfo;</span>
+<span class="nc" id="L88">            this.p11LibraryAlias = p11LibraryAlias;</span>
+<span class="nc" id="L89">            this.allowedActivation = allowedActivation;</span>
+<span class="nc" id="L90">            this.allowedDeactivation = allowedDectivation;</span>
+<span class="nc" id="L91">            this.referenced = referenced;</span>
+<span class="nc" id="L92">        }</span>
+        
+        public String getStatusImg() {
+<span class="nc bnc" id="L95" title="All 2 branches missed.">            return getEjbcaWebBean().getImagefileInfix(isActive()?&quot;status-ca-active.png&quot;:&quot;status-ca-offline.png&quot;);</span>
+        }
+        public String getAutoActivationYesImg() {
+<span class="nc" id="L98">            return getEjbcaWebBean().getImagefileInfix(&quot;status-ca-active.png&quot;);</span>
+        }
+<span class="nc" id="L100">        public Integer getCryptoTokenId() { return cryptoTokenInfo.getCryptoTokenId(); }</span>
+<span class="nc" id="L101">        public String getTokenName() { return cryptoTokenInfo.getName(); }</span>
+<span class="nc" id="L102">        public boolean isActive() { return cryptoTokenInfo.isActive(); }</span>
+<span class="nc" id="L103">        public boolean isAutoActivation() { return cryptoTokenInfo.isAutoActivation(); }</span>
+<span class="nc" id="L104">        public String getTokenType() { return cryptoTokenInfo.getType(); }</span>
+        
+        /**
+         * @return A string representing slot:index:label for a P11 slot
+         */
+<span class="nc" id="L109">        public String getP11Slot() { return cryptoTokenInfo.getP11Slot(); }</span>
+<span class="nc" id="L110">        public String getP11SlotLabelType() { return cryptoTokenInfo.getP11SlotLabelType(); }</span>
+        public String getP11SlotLabelTypeText() {
+<span class="nc bnc" id="L112" title="All 2 branches missed.">            if (!isP11SlotType()) {</span>
+<span class="nc" id="L113">                return &quot;&quot;;</span>
+            }
+<span class="nc" id="L115">            return EjbcaJSFHelper.getBean().getText().get(CRYPTOTOKEN_LABEL_TYPE_TEXTPREFIX + cryptoTokenInfo.getP11SlotLabelType());</span>
+        }
+<span class="nc" id="L117">        public String getP11LibraryAlias() { return p11LibraryAlias; }</span>
+<span class="nc" id="L118">        public String getAuthenticationCode() { return authenticationCode; }</span>
+<span class="nc" id="L119">        public void setAuthenticationCode(String authenticationCode) { this.authenticationCode = authenticationCode; }</span>
+<span class="nc" id="L120">        public boolean isAllowedActivation() { return allowedActivation; }</span>
+<span class="nc" id="L121">        public boolean isAllowedDeactivation() { return allowedDeactivation; }</span>
+<span class="nc" id="L122">        public boolean isReferenced() { return referenced; }</span>
+<span class="nc" id="L123">        public boolean isP11SlotType() { return PKCS11CryptoToken.class.getSimpleName().equals(cryptoTokenInfo.getType()); }</span>
+    }
+
+    /** GUI edit/view representation of a CryptoToken that can be interacted with. */
+    public class CurrentCryptoTokenGuiInfo {
+<span class="nc" id="L128">        private String name = &quot;&quot;;</span>
+<span class="nc" id="L129">        private String type = SoftCryptoToken.class.getSimpleName();</span>
+<span class="nc" id="L130">        private String secret1 = &quot;&quot;;</span>
+<span class="nc" id="L131">        private String secret2 = &quot;&quot;;</span>
+<span class="nc" id="L132">        private boolean autoActivate = false;</span>
+<span class="nc" id="L133">        private boolean allowExportPrivateKey = false;</span>
+<span class="nc" id="L134">        private String p11Library = &quot;&quot;;</span>
+<span class="nc" id="L135">        private String p11Slot = WebConfiguration.getDefaultP11SlotNumber();</span>
+<span class="nc" id="L136">        private Pkcs11SlotLabelType p11SlotLabelType = Pkcs11SlotLabelType.SLOT_NUMBER;</span>
+<span class="nc" id="L137">        private String p11AttributeFile = &quot;default&quot;;</span>
+<span class="nc" id="L138">        private boolean active = false;</span>
+<span class="nc" id="L139">        private boolean referenced = false;</span>
+        private String keyPlaceholders;
+<span class="nc" id="L141">        private boolean allowExplicitParameters = false;</span>
+<span class="nc" id="L142">        private boolean canGenerateKey= true;</span>
+<span class="nc" id="L143">        private String canGenerateKeyMsg = null;</span>
+        
+<span class="nc" id="L145">        private CurrentCryptoTokenGuiInfo() {}</span>
+        
+<span class="nc" id="L147">        public String getName() { return name; }</span>
+<span class="nc" id="L148">        public void setName(String name) { this.name = name; }</span>
+<span class="nc" id="L149">        public String getType() { return type; }</span>
+<span class="nc" id="L150">        public void setType(String type) { this.type = type; }</span>
+<span class="nc" id="L151">        public String getSecret1() { return secret1; }</span>
+<span class="nc" id="L152">        public void setSecret1(String secret1) { this.secret1 = secret1; }</span>
+<span class="nc" id="L153">        public String getSecret2() { return secret2; }</span>
+<span class="nc" id="L154">        public void setSecret2(String secret2) { this.secret2 = secret2; }</span>
+<span class="nc" id="L155">        public boolean isAutoActivate() { return autoActivate; }</span>
+<span class="nc" id="L156">        public void setAutoActivate(boolean autoActivate) { this.autoActivate = autoActivate; }</span>
+<span class="nc" id="L157">        public boolean isAllowExportPrivateKey() { return allowExportPrivateKey; }</span>
+<span class="nc" id="L158">        public void setAllowExportPrivateKey(boolean allowExportPrivateKey) { this.allowExportPrivateKey = allowExportPrivateKey; }</span>
+<span class="nc" id="L159">        public String getP11Library() { return p11Library; }</span>
+<span class="nc" id="L160">        public void setP11Library(String p11Library) { this.p11Library = p11Library; }</span>
+<span class="nc" id="L161">        public String getP11Slot() { return p11Slot; }</span>
+<span class="nc" id="L162">        public void setP11Slot(String p11Slot) { this.p11Slot = p11Slot; }</span>
+<span class="nc" id="L163">        public String getP11SlotLabelType() { return p11SlotLabelType.getKey(); }</span>
+        public void setP11SlotLabelType(String p11SlotLabelType) {
+<span class="nc" id="L165">            this.p11SlotLabelType = Pkcs11SlotLabelType.getFromKey(p11SlotLabelType);</span>
+<span class="nc" id="L166">        }</span>
+        public String getP11SlotLabelTypeText() {
+<span class="nc" id="L168">            return EjbcaJSFHelper.getBean().getText().get(CRYPTOTOKEN_LABEL_TYPE_TEXTPREFIX + getP11SlotLabelType());</span>
+        }
+<span class="nc" id="L170">        public String getP11AttributeFile() { return p11AttributeFile; }</span>
+<span class="nc" id="L171">        public void setP11AttributeFile(String p11AttributeFile) { this.p11AttributeFile = p11AttributeFile; }</span>
+<span class="nc" id="L172">        public boolean isActive() { return active; }</span>
+<span class="nc" id="L173">        public void setActive(boolean active) { this.active = active; }</span>
+<span class="nc" id="L174">        public boolean isReferenced() { return referenced; }</span>
+<span class="nc" id="L175">        public void setReferenced(boolean referenced) { this.referenced = referenced; }</span>
+<span class="nc" id="L176">        public String getKeyPlaceholders() { return keyPlaceholders; }</span>
+<span class="nc" id="L177">        public void setKeyPlaceholders(String keyTemplates) { this.keyPlaceholders = keyTemplates; }</span>
+
+        public boolean isAllowExplicitParameters() {
+<span class="nc" id="L180">            return allowExplicitParameters;</span>
+        }
+
+        public void setAllowExplicitParameters(boolean allowExplicitParameters) {
+<span class="nc" id="L184">            this.allowExplicitParameters = allowExplicitParameters;</span>
+<span class="nc" id="L185">        }</span>
+        public boolean isCanGenerateKey() {
+<span class="nc" id="L187">            return canGenerateKey;</span>
+        }
+
+        public void setCanGenerateKey(boolean canGenerateKey) {
+<span class="nc" id="L191">            this.canGenerateKey = canGenerateKey;</span>
+<span class="nc" id="L192">        }</span>
+        public void setCanGenerateKeyMsg(String msg) {
+<span class="nc" id="L194">            this.canGenerateKeyMsg = msg;</span>
+<span class="nc" id="L195">        }</span>
+        public String getCanGenerateKeyMsg() {
+<span class="nc" id="L197">            return canGenerateKeyMsg;</span>
+        }
+
+<span class="nc" id="L200">        public String getP11LibraryAlias() { return CryptoTokenMBean.this.getP11LibraryAlias(p11Library); }</span>
+<span class="nc" id="L201">        public String getP11AttributeFileAlias() { return CryptoTokenMBean.this.getP11AttributeFileAlias(p11AttributeFile); }</span>
+        public boolean isShowSoftCryptoToken() {
+<span class="nc" id="L203">            return SoftCryptoToken.class.getSimpleName().equals(getType());</span>
+        }
+
+        public boolean isShowP11CryptoToken() {
+<span class="nc" id="L207">            return PKCS11CryptoToken.class.getSimpleName().equals(getType());</span>
+        }
+
+        public boolean isSlotOfTokenLabelType() {
+<span class="nc" id="L211">            return p11SlotLabelType.equals(Pkcs11SlotLabelType.SLOT_LABEL);</span>
+        }
+    }
+    
+    /** Selectable key pair GUI representation */
+    public class KeyPairGuiInfo {
+        private final String alias;
+        private final String keyAlgorithm;
+        private final String keySpecification; // to be displayed in GUI
+        private final String rawKeySpec; // to be used for key generation
+        private final String subjectKeyID;
+        private final boolean placeholder;
+<span class="nc" id="L223">        private boolean selected = false;</span>
+        
+<span class="nc" id="L225">        private KeyPairGuiInfo(KeyPairInfo keyPairInfo) {</span>
+<span class="nc" id="L226">            alias = keyPairInfo.getAlias();</span>
+<span class="nc" id="L227">            keyAlgorithm = keyPairInfo.getKeyAlgorithm();</span>
+<span class="nc" id="L228">            rawKeySpec = keyPairInfo.getKeySpecification();</span>
+<span class="nc bnc" id="L229" title="All 2 branches missed.">            if (AlgorithmConstants.KEYALGORITHM_ECDSA.equals(keyPairInfo.getKeyAlgorithm())) {</span>
+<span class="nc" id="L230">                keySpecification = getEcKeySpecAliases(rawKeySpec);</span>
+            } else {
+<span class="nc" id="L232">                keySpecification = rawKeySpec;</span>
+            }
+<span class="nc" id="L234">            subjectKeyID = keyPairInfo.getSubjectKeyID();</span>
+<span class="nc" id="L235">            placeholder = false;</span>
+<span class="nc" id="L236">        }</span>
+        
+        /**
+         * Creates a placeholder with a template string, in the form of &quot;alias;keyspec&quot;.
+         * Placeholders are created in CryptoTokens that are imported from Statedump. 
+         * @param templateString Template
+         */
+<span class="nc" id="L243">        private KeyPairGuiInfo(String templateString) {</span>
+        	
+<span class="nc" id="L245">            String[] pieces = templateString.split(&quot;[&quot;+CryptoToken.KEYPLACEHOLDERS_INNER_SEPARATOR+&quot;]&quot;);</span>
+<span class="nc" id="L246">            alias = pieces[0];</span>
+<span class="nc" id="L247">            keyAlgorithm = KeyTools.keyspecToKeyalg(pieces[1]);</span>
+<span class="nc" id="L248">            rawKeySpec = KeyTools.shortenKeySpec(pieces[1]);</span>
+<span class="nc bnc" id="L249" title="All 2 branches missed.">            if (AlgorithmConstants.KEYALGORITHM_ECDSA.equals(keyAlgorithm)) {</span>
+<span class="nc" id="L250">                keySpecification = getEcKeySpecAliases(rawKeySpec);</span>
+            } else {
+<span class="nc" id="L252">                keySpecification = rawKeySpec;</span>
+            }
+<span class="nc" id="L254">            subjectKeyID = &quot;&quot;;</span>
+<span class="nc" id="L255">            placeholder = true;</span>
+<span class="nc" id="L256">        }</span>
+        
+<span class="nc" id="L258">        public String getAlias() { return alias; }</span>
+<span class="nc" id="L259">        public String getKeyAlgorithm() { return keyAlgorithm; }</span>
+<span class="nc" id="L260">        public String getKeySpecification() { return keySpecification; }</span>
+<span class="nc" id="L261">        public String getRawKeySpec() { return rawKeySpec; }</span>
+<span class="nc" id="L262">        public String getSubjectKeyID() { return subjectKeyID; }</span>
+<span class="nc" id="L263">        public boolean isPlaceholder() { return placeholder; }</span>
+        
+<span class="nc" id="L265">        public boolean isSelected() { return selected; }</span>
+<span class="nc" id="L266">        public void setSelected(boolean selected) { this.selected = selected; }</span>
+    }
+
+    private static final long serialVersionUID = 1L;
+<span class="nc" id="L270">    private static final Logger log = Logger.getLogger(CryptoTokenMBean.class);</span>
+
+<span class="nc" id="L272">    private List&lt;CryptoTokenGuiInfo&gt; cryptoTokenGuiInfos = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L273">    private ListDataModel&lt;CryptoTokenGuiInfo&gt; cryptoTokenGuiList = null;</span>
+<span class="nc" id="L274">    private List&lt;KeyPairGuiInfo&gt; keyPairGuiInfos = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L275">    private ListDataModel&lt;KeyPairGuiInfo&gt; keyPairGuiList = null;</span>
+<span class="nc" id="L276">    private String keyPairGuiListError = null;</span>
+<span class="nc" id="L277">    private int currentCryptoTokenId = 0;</span>
+<span class="nc" id="L278">    private CurrentCryptoTokenGuiInfo currentCryptoToken = null;</span>
+<span class="nc" id="L279">    private boolean p11SlotUsed = false; // Note if the P11 slot is already used by another crypto token, forcing a confirm</span>
+<span class="nc" id="L280">    private boolean currentCryptoTokenEditMode = true;  // currentCryptoTokenId==0 from start</span>
+
+<span class="nc" id="L282">    private final CryptoTokenManagementSessionLocal cryptoTokenManagementSession = getEjbcaWebBean().getEjb().getCryptoTokenManagementSession();</span>
+<span class="nc" id="L283">    private final AuthorizationSessionLocal authorizationSession = getEjbcaWebBean().getEjb().getAuthorizationSession();</span>
+<span class="nc" id="L284">    private final AuthenticationToken authenticationToken = getAdmin();</span>
+<span class="nc" id="L285">    private final CaSessionLocal caSession = getEjbcaWebBean().getEjb().getCaSession();</span>
+<span class="nc" id="L286">    private final InternalKeyBindingMgmtSessionLocal internalKeyBindingMgmtSession = getEjbcaWebBean().getEjb().getInternalKeyBindingMgmtSession();</span>
+
+    /** Workaround to cache the items used to render the page long enough for actions to be able to use them, but reload on every page view. 
+     * @return bool*/
+    public boolean isPageLoadResetTrigger() {
+<span class="nc" id="L291">        flushCaches();</span>
+<span class="nc" id="L292">        return false;</span>
+    }
+
+    /** Force reload from underlying (cache) layer */
+    private void flushCaches() {
+<span class="nc" id="L297">        cryptoTokenGuiList = null;</span>
+<span class="nc" id="L298">        flushCurrent();</span>
+<span class="nc" id="L299">    }</span>
+    
+    /** Force reload from underlying (cache) layer for the current CryptoToken and its list of key pairs */
+    private void flushCurrent() {
+<span class="nc" id="L303">        keyPairGuiList = null;</span>
+<span class="nc" id="L304">        currentCryptoToken = null;</span>
+<span class="nc" id="L305">        p11SlotUsed = false;</span>
+<span class="nc" id="L306">    }</span>
+    
+    /** @return a List of all CryptoToken Identifiers referenced by CAs. */
+    private List&lt;Integer&gt; getReferencedCryptoTokenIds() {
+<span class="nc" id="L310">        final List&lt;Integer&gt; ret = new ArrayList&lt;&gt;();</span>
+        // Add all CryptoToken ids referenced by CAs
+<span class="nc bnc" id="L312" title="All 2 branches missed.">        for (int caId : caSession.getAllCaIds()) {</span>
+<span class="nc" id="L313">            final CAInfo cainfo = caSession.getCAInfoInternal(caId);</span>
+            // We may have CAIds that can not be resolved to a real CA, for example CVC CAs on Community
+<span class="nc bnc" id="L315" title="All 2 branches missed.">            if (cainfo != null) {</span>
+<span class="nc" id="L316">                ret.add(Integer.valueOf(cainfo.getCAToken().getCryptoTokenId()));</span>
+            }
+<span class="nc" id="L318">        }</span>
+        // Add all CryptoToken ids referenced by InternalKeyBindings
+<span class="nc bnc" id="L320" title="All 2 branches missed.">        for (final String internalKeyBindingType : internalKeyBindingMgmtSession.getAvailableTypesAndProperties().keySet()) {</span>
+<span class="nc bnc" id="L321" title="All 2 branches missed.">            for (final InternalKeyBindingInfo internalKeyBindingInfo : internalKeyBindingMgmtSession.getAllInternalKeyBindingInfos(internalKeyBindingType)) {</span>
+<span class="nc" id="L322">                ret.add(Integer.valueOf(internalKeyBindingInfo.getCryptoTokenId()));</span>
+<span class="nc" id="L323">            }</span>
+<span class="nc" id="L324">        }</span>
+        // In the future other components that use CryptoTokens should be checked here as well!
+<span class="nc" id="L326">        return ret;</span>
+    }
+    
+    /** Build a list sorted by name from the authorized cryptoTokens that can be presented to the user 
+     * @return Model*/
+    public ListDataModel&lt;CryptoTokenGuiInfo&gt; getCryptoTokenGuiList() {
+<span class="nc bnc" id="L332" title="All 2 branches missed.">        if (cryptoTokenGuiList==null) {</span>
+<span class="nc" id="L333">            final List&lt;Integer&gt; referencedCryptoTokenIds = getReferencedCryptoTokenIds();</span>
+<span class="nc" id="L334">            final List&lt;CryptoTokenGuiInfo&gt; list = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L335" title="All 2 branches missed.">            for (final CryptoTokenInfo cryptoTokenInfo : cryptoTokenManagementSession.getCryptoTokenInfos(authenticationToken)) {</span>
+<span class="nc" id="L336">                final String p11LibraryAlias = getP11LibraryAlias(cryptoTokenInfo.getP11Library());</span>
+<span class="nc" id="L337">                final boolean allowedActivation = authorizationSession.isAuthorizedNoLogging(authenticationToken, CryptoTokenRules.ACTIVATE + &quot;/&quot; + cryptoTokenInfo.getCryptoTokenId().toString());</span>
+<span class="nc" id="L338">                final boolean allowedDeactivation = authorizationSession.isAuthorizedNoLogging(authenticationToken, CryptoTokenRules.DEACTIVATE + &quot;/&quot; + cryptoTokenInfo.getCryptoTokenId().toString());</span>
+<span class="nc" id="L339">                final boolean referenced = referencedCryptoTokenIds.contains(Integer.valueOf(cryptoTokenInfo.getCryptoTokenId()));</span>
+<span class="nc" id="L340">                list.add(new CryptoTokenGuiInfo(cryptoTokenInfo, p11LibraryAlias, allowedActivation, allowedDeactivation, referenced));</span>
+<span class="nc" id="L341">                Collections.sort(list, new Comparator&lt;CryptoTokenGuiInfo&gt;() {</span>
+                    @Override
+                    public int compare(CryptoTokenGuiInfo cryptoTokenInfo1, CryptoTokenGuiInfo cryptoTokenInfo2) {
+<span class="nc" id="L344">                        return cryptoTokenInfo1.getTokenName().compareToIgnoreCase(cryptoTokenInfo2.getTokenName());</span>
+                    }
+                });
+<span class="nc" id="L347">            }</span>
+<span class="nc" id="L348">            cryptoTokenGuiInfos = list;</span>
+<span class="nc" id="L349">            cryptoTokenGuiList = new ListDataModel&lt;&gt;(cryptoTokenGuiInfos);</span>
+        }
+        // If show the list, then we are on the main page and want to flush the two caches
+<span class="nc" id="L352">        flushCurrent();</span>
+<span class="nc" id="L353">        setCurrentCryptoTokenEditMode(false);</span>
+<span class="nc" id="L354">        return cryptoTokenGuiList;</span>
+    }
+
+    /** Invoked when admin requests a CryptoToken activation. 
+     * @throws AuthorizationDeniedException fail*/
+    public void activateCryptoToken() throws AuthorizationDeniedException {
+<span class="nc bnc" id="L360" title="All 2 branches missed.">        if (cryptoTokenGuiList!=null) {</span>
+<span class="nc" id="L361">            final CryptoTokenGuiInfo current = cryptoTokenGuiList.getRowData();</span>
+            try {
+<span class="nc" id="L363">                cryptoTokenManagementSession.activate(authenticationToken, current.getCryptoTokenId(), current.getAuthenticationCode().toCharArray());</span>
+<span class="nc" id="L364">            } catch (CryptoTokenOfflineException e) {</span>
+<span class="nc" id="L365">                final String msg = &quot;Activation of CryptoToken '&quot; + current.getTokenName() + &quot;' (&quot; + current.getCryptoTokenId() +</span>
+<span class="nc" id="L366">                        &quot;) by administrator &quot; + authenticationToken.toString() + &quot; failed. Device was unavailable.&quot;;</span>
+<span class="nc" id="L367">                super.addNonTranslatedErrorMessage(msg);</span>
+<span class="nc" id="L368">                log.info(msg);</span>
+<span class="nc" id="L369">            } catch (CryptoTokenAuthenticationFailedException e) {</span>
+<span class="nc" id="L370">                final String msg = &quot;Activation of CryptoToken '&quot; + current.getTokenName() + &quot;' (&quot; + current.getCryptoTokenId() +</span>
+<span class="nc" id="L371">                        &quot;) by administrator &quot; + authenticationToken.toString() + &quot; failed. Authentication code was not correct.&quot;;</span>
+<span class="nc" id="L372">                super.addNonTranslatedErrorMessage(msg);</span>
+<span class="nc" id="L373">                log.info(msg);</span>
+<span class="nc" id="L374">            }</span>
+<span class="nc" id="L375">            flushCaches();</span>
+        }
+<span class="nc" id="L377">    }</span>
+
+    /** Invoked when admin requests a CryptoToken deactivation. 
+     * @throws AuthorizationDeniedException Fail*/
+    public void deactivateCryptoToken() throws AuthorizationDeniedException {
+<span class="nc bnc" id="L382" title="All 2 branches missed.">        if (cryptoTokenGuiList!=null) {</span>
+<span class="nc" id="L383">            final CryptoTokenGuiInfo rowData = cryptoTokenGuiList.getRowData();</span>
+<span class="nc" id="L384">            cryptoTokenManagementSession.deactivate(authenticationToken, rowData.getCryptoTokenId());</span>
+<span class="nc" id="L385">            flushCaches();</span>
+        }
+<span class="nc" id="L387">    }</span>
+    
+    /** Invoked when admin requests a CryptoToken deletion. 
+     * @throws AuthorizationDeniedException Fail */
+    public void deleteCryptoToken() throws AuthorizationDeniedException {
+<span class="nc bnc" id="L392" title="All 2 branches missed.">        if (cryptoTokenGuiList!=null) {</span>
+<span class="nc" id="L393">            final CryptoTokenGuiInfo rowData = cryptoTokenGuiList.getRowData();</span>
+<span class="nc" id="L394">            cryptoTokenManagementSession.deleteCryptoToken(authenticationToken, rowData.getCryptoTokenId());</span>
+<span class="nc" id="L395">            flushCaches();</span>
+        }
+<span class="nc" id="L397">    }</span>
+    
+    /** @return true if admin may create new or modify existing CryptoTokens. */
+    public boolean isAllowedToModify() {
+<span class="nc" id="L401">        return authorizationSession.isAuthorizedNoLogging(authenticationToken, CryptoTokenRules.MODIFY_CRYPTOTOKEN.resource());</span>
+    }
+    
+    /** @return true if admin may delete CryptoTokens. */
+    public boolean isAllowedToDelete() {
+<span class="nc" id="L406">        return authorizationSession.isAuthorizedNoLogging(authenticationToken, CryptoTokenRules.DELETE_CRYPTOTOKEN.resource());</span>
+    }
+
+    public void saveCurrentCryptoTokenWithCheck() throws AuthorizationDeniedException {
+<span class="nc" id="L410">        saveCurrentCryptoToken(true);</span>
+<span class="nc" id="L411">    }</span>
+    public void saveCurrentCryptoToken() throws AuthorizationDeniedException {
+<span class="nc" id="L413">        saveCurrentCryptoToken(false);</span>
+<span class="nc" id="L414">    }</span>
+    
+    /** Invoked when admin requests a CryptoToken creation. 
+     * @param checkSlotInUse bool
+     * @throws AuthorizationDeniedException Fail */
+    private void saveCurrentCryptoToken(boolean checkSlotInUse) throws AuthorizationDeniedException {
+<span class="nc" id="L420">        String msg = null;</span>
+<span class="nc bnc" id="L421" title="All 2 branches missed.">        if (!getCurrentCryptoToken().getSecret1().equals(getCurrentCryptoToken().getSecret2())) {</span>
+<span class="nc" id="L422">            msg = &quot;Authentication codes do not match!&quot;;</span>
+        } else {
+            try {
+<span class="nc" id="L425">                final String name = getCurrentCryptoToken().getName();</span>
+<span class="nc" id="L426">                final Properties properties = new Properties();</span>
+<span class="nc" id="L427">                String className = null;</span>
+<span class="nc" id="L428">                boolean alreadyUsed = false;</span>
+<span class="nc bnc" id="L429" title="All 2 branches missed.">                if (PKCS11CryptoToken.class.getSimpleName().equals(getCurrentCryptoToken().getType())) {</span>
+<span class="nc" id="L430">                    className = PKCS11CryptoToken.class.getName();</span>
+<span class="nc" id="L431">                    String library = getCurrentCryptoToken().getP11Library();</span>
+<span class="nc" id="L432">                    properties.setProperty(PKCS11CryptoToken.SHLIB_LABEL_KEY, library);</span>
+<span class="nc" id="L433">                    String slotTextValue = getCurrentCryptoToken().getP11Slot().trim();</span>
+<span class="nc" id="L434">                    String slotLabelType =   getCurrentCryptoToken().getP11SlotLabelType();</span>
+                    //Perform some name validation
+<span class="nc bnc" id="L436" title="All 2 branches missed.">                    if(slotLabelType.equals(Pkcs11SlotLabelType.SLOT_NUMBER.getKey())) {</span>
+<span class="nc bnc" id="L437" title="All 2 branches missed.">                        if(!Pkcs11SlotLabelType.SLOT_NUMBER.validate(slotTextValue)) {</span>
+<span class="nc" id="L438">                            msg = &quot;Slot must be an absolute number&quot;;</span>
+                        }
+<span class="nc bnc" id="L440" title="All 2 branches missed.">                    } else if(slotLabelType.equals(Pkcs11SlotLabelType.SLOT_INDEX.getKey())) {</span>
+<span class="nc bnc" id="L441" title="All 2 branches missed.">                        if(slotTextValue.charAt(0) != 'i') {</span>
+<span class="nc" id="L442">                            slotTextValue = &quot;i&quot; + slotTextValue;</span>
+                        }
+<span class="nc bnc" id="L444" title="All 2 branches missed.">                        if(!Pkcs11SlotLabelType.SLOT_INDEX.validate(slotTextValue)) {</span>
+<span class="nc" id="L445">                            msg = &quot;Slot must be an absolute number or use prefix 'i' for indexed slots.&quot;;</span>
+                        }                 
+                    }
+                 
+                    // Verify that it is allowed
+<span class="nc" id="L450">                    SlotList allowedSlots = getP11SlotList();</span>
+<span class="nc bnc" id="L451" title="All 4 branches missed.">                    if (allowedSlots != null &amp;&amp; !allowedSlots.contains(slotTextValue)) {</span>
+<span class="nc" id="L452">                        throw new IllegalArgumentException(&quot;Slot number &quot;+slotTextValue+&quot; is not allowed. Allowed slots are: &quot;+allowedSlots);</span>
+                    }
+                    
+<span class="nc" id="L455">                    properties.setProperty(PKCS11CryptoToken.SLOT_LABEL_VALUE, slotTextValue);</span>
+<span class="nc" id="L456">                    properties.setProperty(PKCS11CryptoToken.SLOT_LABEL_TYPE, slotLabelType);</span>
+                    // The default should be null, but we will get a value &quot;default&quot; from the GUI code in this case..
+<span class="nc" id="L458">                    final String p11AttributeFile = getCurrentCryptoToken().getP11AttributeFile();</span>
+<span class="nc bnc" id="L459" title="All 2 branches missed.">                    if (!&quot;default&quot;.equals(p11AttributeFile)) {</span>
+<span class="nc" id="L460">                        properties.setProperty(PKCS11CryptoToken.ATTRIB_LABEL_KEY, p11AttributeFile);</span>
+                    }
+<span class="nc bnc" id="L462" title="All 2 branches missed.">                    if (checkSlotInUse) {</span>
+<span class="nc" id="L463">                        log.info(&quot;Checking if slot is already used&quot;);</span>
+<span class="nc" id="L464">                        List&lt;String&gt; usedBy = cryptoTokenManagementSession.isCryptoTokenSlotUsed(authenticationToken, name, className, properties);</span>
+<span class="nc bnc" id="L465" title="All 2 branches missed.">                        if (!usedBy.isEmpty()) {</span>
+<span class="nc" id="L466">                            msg = &quot;The P11 slot is already used by other crypto token(s)&quot;;</span>
+<span class="nc bnc" id="L467" title="All 2 branches missed.">                            for (String cryptoTokenName : usedBy) {</span>
+<span class="nc" id="L468">                                String usedByName = cryptoTokenName;</span>
+<span class="nc bnc" id="L469" title="All 2 branches missed.">                                if (StringUtils.isNumeric(usedByName)) {</span>
+                                    // if the crypto token name is purely numeric, it is likely to be a database protection token
+<span class="nc" id="L471">                                    usedByName = usedByName + &quot; (database protection?)&quot;;</span>
+                                }
+<span class="nc" id="L473">                                msg += &quot;; &quot;+usedByName;</span>
+<span class="nc" id="L474">                            }</span>
+<span class="nc" id="L475">                            msg += &quot;. Re-using P11 slots in multiple crypto tokens is discouraged, and all parameters must be identical. Re-enter authentication code and Confirm Save to continue.&quot;;</span>
+<span class="nc" id="L476">                            alreadyUsed = true;</span>
+<span class="nc" id="L477">                            p11SlotUsed = true;</span>
+                        }
+                    }
+<span class="nc bnc" id="L480" title="All 2 branches missed.">                } else if (SoftCryptoToken.class.getSimpleName().equals(getCurrentCryptoToken().getType())) {</span>
+<span class="nc" id="L481">                    className = SoftCryptoToken.class.getName();</span>
+<span class="nc" id="L482">                    properties.setProperty(SoftCryptoToken.NODEFAULTPWD, &quot;true&quot;);</span>
+                }
+<span class="nc bnc" id="L484" title="All 2 branches missed.">                if (getCurrentCryptoToken().isAllowExportPrivateKey()) {</span>
+<span class="nc" id="L485">                    properties.setProperty(CryptoToken.ALLOW_EXTRACTABLE_PRIVATE_KEY, String.valueOf(getCurrentCryptoToken().isAllowExportPrivateKey()));</span>
+                }
+<span class="nc bnc" id="L487" title="All 2 branches missed.">                if (getCurrentCryptoToken().getKeyPlaceholders() != null) {</span>
+<span class="nc" id="L488">                    properties.setProperty(CryptoToken.KEYPLACEHOLDERS_PROPERTY, getCurrentCryptoToken().getKeyPlaceholders());</span>
+                }
+<span class="nc bnc" id="L490" title="All 2 branches missed.">                if (getCurrentCryptoToken().isAllowExplicitParameters()) {</span>
+<span class="nc" id="L491">                    properties.setProperty(CryptoToken.EXPLICIT_ECC_PUBLICKEY_PARAMETERS, String.valueOf(getCurrentCryptoToken().isAllowExplicitParameters()));</span>
+                }
+
+<span class="nc bnc" id="L494" title="All 2 branches missed.">                if (!alreadyUsed) {</span>
+<span class="nc" id="L495">                    final char[] secret = getCurrentCryptoToken().getSecret1().toCharArray();</span>
+<span class="nc bnc" id="L496" title="All 2 branches missed.">                    if (getCurrentCryptoTokenId() == 0) {</span>
+<span class="nc bnc" id="L497" title="All 2 branches missed.">                        if (secret.length&gt;0) {</span>
+<span class="nc bnc" id="L498" title="All 2 branches missed.">                            if (getCurrentCryptoToken().isAutoActivate()) {</span>
+<span class="nc" id="L499">                                BaseCryptoToken.setAutoActivatePin(properties, new String(secret), true);</span>
+                            }
+<span class="nc" id="L501">                            currentCryptoTokenId = cryptoTokenManagementSession.createCryptoToken(authenticationToken, name, className, properties, null, secret);</span>
+<span class="nc" id="L502">                            msg = &quot;CryptoToken created successfully.&quot;;</span>
+                        } else {
+<span class="nc" id="L504">                            super.addNonTranslatedErrorMessage(&quot;You must provide an authentication code to create a CryptoToken.&quot;);</span>
+                        }
+                    } else {
+<span class="nc bnc" id="L507" title="All 2 branches missed.">                        if (getCurrentCryptoToken().isAutoActivate()) {</span>
+<span class="nc bnc" id="L508" title="All 2 branches missed.">                            if (secret.length&gt;0) {</span>
+<span class="nc" id="L509">                                BaseCryptoToken.setAutoActivatePin(properties, new String(secret), true);</span>
+                            } else {
+                                // Indicate that we want to reuse current auto-pin if present
+<span class="nc" id="L512">                                properties.put(CryptoTokenManagementSession.KEEP_AUTO_ACTIVATION_PIN, Boolean.TRUE.toString());</span>
+                            }
+                        }
+<span class="nc" id="L515">                        cryptoTokenManagementSession.saveCryptoToken(authenticationToken, getCurrentCryptoTokenId(), name, properties, secret);</span>
+<span class="nc" id="L516">                        msg = &quot;CryptoToken saved successfully.&quot;;</span>
+                    }
+<span class="nc" id="L518">                    flushCaches();</span>
+<span class="nc" id="L519">                    setCurrentCryptoTokenEditMode(false);                    </span>
+                }
+<span class="nc" id="L521">            } catch (CryptoTokenOfflineException e) {</span>
+<span class="nc" id="L522">                msg = e.getMessage();</span>
+<span class="nc" id="L523">            } catch (CryptoTokenAuthenticationFailedException e) {</span>
+<span class="nc" id="L524">                msg = e.getMessage();</span>
+<span class="nc" id="L525">            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L526">                msg = e.getMessage();</span>
+<span class="nc" id="L527">            } catch (IllegalArgumentException e) {</span>
+<span class="nc" id="L528">                msg = e.getMessage();</span>
+<span class="nc" id="L529">            } catch (Throwable e) {</span>
+<span class="nc" id="L530">                msg = e.getMessage();</span>
+<span class="nc" id="L531">                log.info(&quot;&quot;, e);</span>
+<span class="nc" id="L532">            }</span>
+        }
+<span class="nc bnc" id="L534" title="All 2 branches missed.">        if (msg != null) {</span>
+<span class="nc bnc" id="L535" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L536">                log.debug(&quot;Message displayed to user: &quot; + msg);</span>
+            }
+<span class="nc" id="L538">            super.addNonTranslatedErrorMessage(msg);</span>
+        }
+<span class="nc" id="L540">    }</span>
+
+    /** Invoked when admin cancels a CryptoToken create or edit. */
+    public void cancelCurrentCryptoToken() {
+<span class="nc" id="L544">        setCurrentCryptoTokenEditMode(false);</span>
+<span class="nc" id="L545">        flushCaches();</span>
+<span class="nc" id="L546">    }</span>
+    
+    public boolean isAnyP11LibraryAvailable() {
+<span class="nc bnc" id="L549" title="All 2 branches missed.">        return !getAvailableCryptoTokenP11Libraries().isEmpty();</span>
+    }
+    
+    /** @return a list of library SelectItems sort by display name for detected P11 libraries. */
+    public List&lt;SelectItem&gt; getAvailableCryptoTokenP11Libraries() {
+<span class="nc" id="L554">        final List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L555" title="All 2 branches missed.">        for (Entry&lt;String, WebConfiguration.P11LibraryInfo&gt; entry : WebConfiguration.getAvailableP11LibraryToAliasMap().entrySet()) {</span>
+<span class="nc" id="L556">            ret.add(new SelectItem(entry.getKey(), entry.getValue().getAlias()));</span>
+<span class="nc" id="L557">        }</span>
+        // Sort by display name
+<span class="nc" id="L559">        Collections.sort(ret, new Comparator&lt;SelectItem&gt;() {</span>
+            @Override
+            public int compare(SelectItem s0, SelectItem s1) {
+<span class="nc" id="L562">                return String.valueOf(s0.getValue()).compareTo(String.valueOf(s1));</span>
+            }
+        });
+<span class="nc" id="L565">        return ret;</span>
+    }
+
+    /** @param library Library
+     * @return alias if present otherwise the filename */
+    private String getP11LibraryAlias(String library) {
+<span class="nc bnc" id="L571" title="All 2 branches missed.">        if (library == null) {</span>
+<span class="nc" id="L572">            return &quot;&quot;;</span>
+        }
+        
+<span class="nc" id="L575">        WebConfiguration.P11LibraryInfo libinfo = WebConfiguration.getAvailableP11LibraryToAliasMap().get(library);</span>
+<span class="nc bnc" id="L576" title="All 2 branches missed.">        if (libinfo == null) return library;</span>
+<span class="nc" id="L577">        String alias = libinfo.getAlias();</span>
+<span class="nc bnc" id="L578" title="All 4 branches missed.">        if (alias == null || alias.isEmpty()) return library;</span>
+<span class="nc" id="L579">        return alias;</span>
+    }
+
+    /** @return a list of library SelectItems sort by display name for detected P11 libraries. */
+    public List&lt;SelectItem&gt; getAvailableCryptoTokenP11AttributeFiles() {
+<span class="nc" id="L584">        final List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L585">        ret.add(new SelectItem(&quot;default&quot;, &quot;Default&quot;));</span>
+<span class="nc bnc" id="L586" title="All 2 branches missed.">        for (Entry&lt;String, String&gt; entry: WebConfiguration.getAvailableP11AttributeFiles().entrySet()) {</span>
+<span class="nc" id="L587">            ret.add(new SelectItem(entry.getKey(), entry.getValue()));</span>
+<span class="nc" id="L588">        }</span>
+        // Sort by display name
+<span class="nc" id="L590">        Collections.sort(ret, new Comparator&lt;SelectItem&gt;() {</span>
+            @Override
+            public int compare(SelectItem s0, SelectItem s1) {
+<span class="nc" id="L593">                return String.valueOf(s0.getValue()).compareTo(String.valueOf(s1));</span>
+            }
+        });
+<span class="nc" id="L596">        return ret;</span>
+    }
+    
+    public List&lt;SelectItem&gt; getAvailableCryptoTokenP11SlotLabelTypes() {
+<span class="nc" id="L600">        final List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L601" title="All 2 branches missed.">        for (Pkcs11SlotLabelType type : Pkcs11SlotLabelType.values()) {</span>
+<span class="nc bnc" id="L602" title="All 2 branches missed.">            if (type.equals(Pkcs11SlotLabelType.SUN_FILE)) {</span>
+                // jeklund doesn't believe that this is used anywhere, but he might be wrong
+<span class="nc" id="L604">                continue;</span>
+            }
+<span class="nc" id="L606">            final String display = EjbcaJSFHelper.getBean().getText().get(CRYPTOTOKEN_LABEL_TYPE_TEXTPREFIX + type.name());</span>
+<span class="nc" id="L607">            ret.add(new SelectItem(type.name(), display));</span>
+        }
+<span class="nc" id="L609">        return ret;</span>
+    }
+
+    /** Tries to retrieve the list of PKCS#11 slots (including token labels) using the Sun PKCS#11 Wrapper 
+     * @return Labels */
+    public List&lt;SelectItem&gt; getAvailableCryptoTokenP11SlotTokenLabels() {
+<span class="nc" id="L615">        final List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+        try {
+<span class="nc" id="L617">            final File p11Library = new File(currentCryptoToken.getP11Library());</span>
+<span class="nc" id="L618">            SlotList allowedSlots = getP11SlotList();</span>
+<span class="nc bnc" id="L619" title="All 2 branches missed.">            if (p11Library.exists()) {</span>
+<span class="nc" id="L620">                int index = 0;</span>
+<span class="nc bnc" id="L621" title="All 2 branches missed.">                for (final String extendedTokenLabel : Pkcs11SlotLabel.getExtendedTokenLabels(p11Library)) {</span>
+                    // Returned list is in form &quot;slotId;tokenLabel&quot;
+<span class="nc" id="L623">                    final String slotId = extendedTokenLabel.substring(0, extendedTokenLabel.indexOf(';'));</span>
+<span class="nc" id="L624">                    final String tokenLabel = extendedTokenLabel.substring(extendedTokenLabel.indexOf(';')+1);</span>
+<span class="nc bnc" id="L625" title="All 2 branches missed.">                    if (!tokenLabel.isEmpty()) {</span>
+                        // Bravely assume that slots without a token label are not initialized or irrelevant
+<span class="nc bnc" id="L627" title="All 4 branches missed.">                        if (allowedSlots == null || allowedSlots.contains(slotId)) {</span>
+                            // Only show white-listed slots
+<span class="nc" id="L629">                            ret.add(new SelectItem(tokenLabel, tokenLabel + &quot; (index=&quot;+index + &quot;, id=&quot;+slotId+&quot;)&quot;));</span>
+                        }
+                    }
+<span class="nc" id="L632">                    index++;</span>
+<span class="nc" id="L633">                }</span>
+            }
+<span class="nc" id="L635">        } catch (Exception e) {</span>
+<span class="nc" id="L636">            log.info(&quot;Administrator &quot; + authenticationToken.toString() + &quot; tries to list pkcs#11 slots using token label. Failed with: &quot;, e);</span>
+<span class="nc" id="L637">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR,</span>
+                    &quot;Unable to retrieve token labels.&quot;, &quot;&quot;));
+<span class="nc" id="L639">        }</span>
+<span class="nc" id="L640">        return ret;</span>
+    }
+
+    /** @param p11AttributeFile File
+     * @return alias if present otherwise the filename */
+    public String getP11AttributeFileAlias(String p11AttributeFile) {
+<span class="nc bnc" id="L646" title="All 4 branches missed.">        if (p11AttributeFile == null || p11AttributeFile.length()==0) {</span>
+<span class="nc" id="L647">            return &quot;Default&quot;;</span>
+        }
+<span class="nc" id="L649">        String ret = WebConfiguration.getAvailableP11AttributeFiles().get(p11AttributeFile);</span>
+<span class="nc bnc" id="L650" title="All 4 branches missed.">        if (ret == null || ret.length()==0) {</span>
+<span class="nc" id="L651">            ret = p11AttributeFile;</span>
+        }
+<span class="nc" id="L653">        return ret;</span>
+    }
+
+    /** @return a list of usable CryptoToken types */
+    public List&lt;SelectItem&gt; getAvailableCryptoTokenTypes() {
+<span class="nc" id="L658">        final List&lt;SelectItem&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L659">        final Collection&lt;AvailableCryptoToken&gt; availableCryptoTokens = CryptoTokenFactory.instance().getAvailableCryptoTokens();</span>
+<span class="nc bnc" id="L660" title="All 2 branches missed.">        for (AvailableCryptoToken availableCryptoToken : availableCryptoTokens) {</span>
+<span class="nc bnc" id="L661" title="All 2 branches missed.">            if (availableCryptoToken.getClassPath().equals(NullCryptoToken.class.getName())) {</span>
+                // Special case: Never expose the NullCryptoToken when creating new tokens
+<span class="nc" id="L663">                continue;</span>
+            }
+<span class="nc bnc" id="L665" title="All 2 branches missed.">            if (availableCryptoToken.getClassPath().equals(PKCS11CryptoToken.class.getName())) {</span>
+                // Special case: Never expose the PKCS11CryptoToken when creating new tokens if no libraries are detected
+<span class="nc bnc" id="L667" title="All 2 branches missed.">                if (!isAnyP11LibraryAvailable()) {</span>
+<span class="nc bnc" id="L668" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L669">                        log.debug(&quot;No known PKCS#11 libraries are available, not enabling PKCS#11 support in GUI. See web.properties for configuration of new PKCS#11 libraries.&quot;);</span>
+                    }
+                    continue;
+                }
+            }
+            // Use one the class's simpleName
+<span class="nc" id="L675">            final String fullClassName = availableCryptoToken.getClassPath();</span>
+<span class="nc" id="L676">            ret.add(new SelectItem(fullClassName.substring(fullClassName.lastIndexOf('.')+1), availableCryptoToken.getName()));</span>
+<span class="nc" id="L677">        }</span>
+<span class="nc" id="L678">        return ret;</span>
+    }
+
+    /** Used to draw the back link. No white-listing to the calling method must be careful to only use this for branching. 
+     * @return Ref */
+    public String getParamRef() {
+<span class="nc" id="L684">        final String reference = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get(&quot;ref&quot;);</span>
+<span class="nc bnc" id="L685" title="All 4 branches missed.">        if (reference==null || reference.isEmpty()) {</span>
+<span class="nc" id="L686">            return &quot;default&quot;;</span>
+        }
+<span class="nc" id="L688">        return reference;</span>
+    }
+    
+    /** @return the id of the CryptoToken that is subject to view or edit */
+    public int getCurrentCryptoTokenId() {
+        // Get the HTTP GET/POST parameter named &quot;cryptoTokenId&quot;
+<span class="nc" id="L694">        final String cryptoTokenIdString = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get(&quot;cryptoTokenId&quot;);        </span>
+<span class="nc bnc" id="L695" title="All 4 branches missed.">        if (cryptoTokenIdString!=null &amp;&amp; cryptoTokenIdString.length()&gt;0) {</span>
+            try {
+<span class="nc" id="L697">                int currentCryptoTokenId = Integer.parseInt(cryptoTokenIdString);</span>
+                // If there is a query parameter present and the id is different we flush the cache!
+<span class="nc bnc" id="L699" title="All 2 branches missed.">                if (currentCryptoTokenId != this.currentCryptoTokenId) {</span>
+<span class="nc" id="L700">                    flushCaches();</span>
+<span class="nc" id="L701">                    this.currentCryptoTokenId = currentCryptoTokenId;</span>
+                }
+                // Always switch to edit mode for new ones and view mode for all others
+<span class="nc bnc" id="L704" title="All 2 branches missed.">                setCurrentCryptoTokenEditMode(currentCryptoTokenId == 0);</span>
+<span class="nc" id="L705">            } catch (NumberFormatException e) {</span>
+<span class="nc" id="L706">                log.info(&quot;Bad 'cryptoTokenId' parameter value.. set, but not a number..&quot;);</span>
+<span class="nc" id="L707">            }</span>
+        }
+<span class="nc" id="L709">        return currentCryptoTokenId;</span>
+    }
+
+    /** @return cached or populate a new CryptoToken GUI representation for view or edit 
+     * @throws AuthorizationDeniedException Fail */
+    public CurrentCryptoTokenGuiInfo getCurrentCryptoToken() throws AuthorizationDeniedException {
+<span class="nc bnc" id="L715" title="All 2 branches missed.">        if (this.currentCryptoToken == null) {</span>
+<span class="nc" id="L716">            final int cryptoTokenId = getCurrentCryptoTokenId();</span>
+<span class="nc" id="L717">            final CurrentCryptoTokenGuiInfo currentCryptoToken = new CurrentCryptoTokenGuiInfo();</span>
+            // If the id is non-zero we try to load an existing token
+<span class="nc bnc" id="L719" title="All 2 branches missed.">            if (cryptoTokenId!=0) {</span>
+<span class="nc" id="L720">                final CryptoTokenInfo cryptoTokenInfo = cryptoTokenManagementSession.getCryptoTokenInfo(authenticationToken, cryptoTokenId);</span>
+<span class="nc bnc" id="L721" title="All 2 branches missed.">                if (cryptoTokenInfo == null) {</span>
+<span class="nc" id="L722">                    throw new RuntimeException(&quot;Could not load CryptoToken with cryptoTokenId &quot; + cryptoTokenId);</span>
+                } else {
+<span class="nc" id="L724">                    currentCryptoToken.setAllowExportPrivateKey(cryptoTokenInfo.isAllowExportPrivateKey());</span>
+<span class="nc" id="L725">                    currentCryptoToken.setAutoActivate(cryptoTokenInfo.isAutoActivation());</span>
+<span class="nc" id="L726">                    currentCryptoToken.setSecret1(&quot;&quot;);</span>
+<span class="nc" id="L727">                    currentCryptoToken.setSecret2(&quot;&quot;);</span>
+<span class="nc" id="L728">                    currentCryptoToken.setName(cryptoTokenInfo.getName());</span>
+<span class="nc" id="L729">                    currentCryptoToken.setType(cryptoTokenInfo.getType());</span>
+<span class="nc" id="L730">                    currentCryptoToken.setKeyPlaceholders(cryptoTokenInfo.getCryptoTokenProperties().getProperty(CryptoToken.KEYPLACEHOLDERS_PROPERTY, &quot;&quot;));</span>
+<span class="nc" id="L731">                    currentCryptoToken.setAllowExplicitParameters(cryptoTokenInfo.isAllowExplicitParameters());</span>
+
+<span class="nc bnc" id="L733" title="All 2 branches missed.">                    if (cryptoTokenInfo.getType().equals(PKCS11CryptoToken.class.getSimpleName())) {</span>
+<span class="nc" id="L734">                        currentCryptoToken.setP11AttributeFile(cryptoTokenInfo.getP11AttributeFile());</span>
+<span class="nc" id="L735">                        currentCryptoToken.setP11Library(cryptoTokenInfo.getP11Library());</span>
+<span class="nc" id="L736">                        currentCryptoToken.setP11Slot(cryptoTokenInfo.getP11Slot());</span>
+<span class="nc" id="L737">                        currentCryptoToken.setP11SlotLabelType(cryptoTokenInfo.getP11SlotLabelType());</span>
+                        // Extra capabilities not stored in the crypto token, but defined for this type of P11 crypto token
+<span class="nc" id="L739">                        WebConfiguration.P11LibraryInfo libinfo = WebConfiguration.getAvailableP11LibraryToAliasMap().get(currentCryptoToken.getP11Library());</span>
+<span class="nc" id="L740">                        currentCryptoToken.setCanGenerateKey(libinfo.isCanGenerateKey());</span>
+<span class="nc" id="L741">                        currentCryptoToken.setCanGenerateKeyMsg(libinfo.getCanGenerateKeyMsg());</span>
+                    }
+<span class="nc" id="L743">                    currentCryptoToken.setActive(cryptoTokenInfo.isActive());</span>
+<span class="nc" id="L744">                    currentCryptoToken.setReferenced(getReferencedCryptoTokenIds().contains(Integer.valueOf(cryptoTokenId)));</span>
+                }
+            }
+<span class="nc" id="L747">            this.currentCryptoToken = currentCryptoToken;</span>
+        }
+<span class="nc" id="L749">        return this.currentCryptoToken;</span>
+    }
+    
+    public void selectCryptoTokenType() {
+        // NOOP: Only for page reload
+<span class="nc" id="L754">    }</span>
+    public void selectCryptoTokenLabelType() {
+        // Clear slot reference when we change type
+<span class="nc" id="L757">        currentCryptoToken.setP11Slot(&quot;&quot;);</span>
+<span class="nc" id="L758">    }</span>
+
+<span class="nc" id="L760">    public boolean isCurrentCryptoTokenEditMode() { return currentCryptoTokenEditMode; }</span>
+<span class="nc" id="L761">    public void setCurrentCryptoTokenEditMode(boolean currentCryptoTokenEditMode) { this.currentCryptoTokenEditMode = currentCryptoTokenEditMode; }</span>
+<span class="nc" id="L762">    public void toggleCurrentCryptoTokenEditMode() { currentCryptoTokenEditMode ^= true; }</span>
+    
+    //
+    // KeyPair related stuff
+    //
+    
+    // This default is taken from CAToken.SOFTPRIVATESIGNKEYALIAS, but we don't want to depend on the CA module
+<span class="nc" id="L769">    private String newKeyPairAlias = &quot;signKey&quot;;</span>
+<span class="nc" id="L770">    private String newKeyPairSpec = AlgorithmConstants.KEYALGORITHM_RSA+&quot;4096&quot;;</span>
+    
+    /** @return a List of available (but not necessarily supported by the underlying CryptoToken) key specs */
+    public List&lt;SelectItem&gt; getAvailableKeySpecs() {
+<span class="nc" id="L774">        final List&lt;SelectItem&gt; availableKeySpecs = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L775">        final int[] SIZES_RSA = {1024, 1536, 2048, 3072, 4096, 6144, 8192};</span>
+<span class="nc" id="L776">        final int[] SIZES_DSA = {1024};</span>
+<span class="nc bnc" id="L777" title="All 2 branches missed.">        for (int size : SIZES_RSA) {</span>
+<span class="nc" id="L778">            availableKeySpecs.add(new SelectItem(AlgorithmConstants.KEYALGORITHM_RSA+size, AlgorithmConstants.KEYALGORITHM_RSA+&quot; &quot;+size));</span>
+        }
+<span class="nc bnc" id="L780" title="All 2 branches missed.">        for (int size : SIZES_DSA) {</span>
+<span class="nc" id="L781">            availableKeySpecs.add(new SelectItem(AlgorithmConstants.KEYALGORITHM_DSA+size, AlgorithmConstants.KEYALGORITHM_DSA+&quot; &quot;+size));</span>
+        }
+        try {
+<span class="nc" id="L784">            final Map&lt;String, List&lt;String&gt;&gt; namedEcCurvesMap = AlgorithmTools.getNamedEcCurvesMap(PKCS11CryptoToken.class.getSimpleName().equals(getCurrentCryptoToken().getType()));</span>
+<span class="nc" id="L785">            final String[] keys = namedEcCurvesMap.keySet().toArray(new String[namedEcCurvesMap.size()]);</span>
+<span class="nc" id="L786">            Arrays.sort(keys);</span>
+<span class="nc bnc" id="L787" title="All 2 branches missed.">            for (final String name : keys) {</span>
+<span class="nc" id="L788">                availableKeySpecs.add(new SelectItem(name, AlgorithmConstants.KEYALGORITHM_ECDSA + &quot; &quot; + StringTools.getAsStringWithSeparator(&quot; / &quot;, namedEcCurvesMap.get(name))));</span>
+            }
+<span class="nc" id="L790">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc bnc" id="L791" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L792">                log.debug(&quot;Ignoring exception &quot; + e.getMessage());</span>
+            }
+<span class="nc" id="L794">        }</span>
+<span class="nc bnc" id="L795" title="All 2 branches missed.">        for (String alg : CesecoreConfiguration.getExtraAlgs()) {</span>
+<span class="nc bnc" id="L796" title="All 2 branches missed.">            for (String subalg : CesecoreConfiguration.getExtraAlgSubAlgs(alg)) {</span>
+<span class="nc" id="L797">                final String title = CesecoreConfiguration.getExtraAlgSubAlgTitle(alg, subalg);</span>
+<span class="nc" id="L798">                final String name = CesecoreConfiguration.getExtraAlgSubAlgName(alg, subalg);</span>
+<span class="nc" id="L799">                availableKeySpecs.add(new SelectItem(name, title));</span>
+<span class="nc" id="L800">            }</span>
+<span class="nc" id="L801">        }</span>
+<span class="nc" id="L802">        return availableKeySpecs;</span>
+    }
+
+    private String getEcKeySpecAliases(final String ecKeySpec) {
+<span class="nc" id="L806">        StringBuilder ret = new StringBuilder();</span>
+<span class="nc bnc" id="L807" title="All 2 branches missed.">        for (final String alias : AlgorithmTools.getEcKeySpecAliases(ecKeySpec)) {</span>
+<span class="nc bnc" id="L808" title="All 2 branches missed.">            if (ret.length()!=0) {</span>
+<span class="nc" id="L809">                ret.append(&quot; / &quot;);</span>
+            }
+<span class="nc" id="L811">            ret.append(alias);</span>
+<span class="nc" id="L812">        }</span>
+<span class="nc" id="L813">        return ret.toString();</span>
+    }
+
+    /** @return true if admin may generate keys in the current CryptoTokens. */
+    public boolean isAllowedToKeyGeneration() {
+<span class="nc" id="L818">        return authorizationSession.isAuthorizedNoLogging(authenticationToken, CryptoTokenRules.GENERATE_KEYS.resource() + '/' + getCurrentCryptoTokenId());</span>
+    }
+
+    /** @return true if admin may test keys from the current CryptoTokens. */
+    public boolean isAllowedToKeyTest() {
+<span class="nc" id="L823">        return authorizationSession.isAuthorizedNoLogging(authenticationToken, CryptoTokenRules.TEST_KEYS.resource() + '/' + getCurrentCryptoTokenId());</span>
+    }
+
+    /** @return true if admin may remove keys from the current CryptoTokens. */
+    public boolean isAllowedToKeyRemoval() {
+<span class="nc" id="L828">        return authorizationSession.isAuthorizedNoLogging(authenticationToken, CryptoTokenRules.REMOVE_KEYS.resource() + '/' + getCurrentCryptoTokenId());</span>
+    }
+
+    public boolean isKeyPairGuiListEmpty() throws AuthorizationDeniedException {
+<span class="nc bnc" id="L832" title="All 2 branches missed.">        return getKeyPairGuiList().getRowCount()==0;</span>
+    }
+    
+    public boolean isKeyPairGuiListFailed() throws AuthorizationDeniedException {
+<span class="nc" id="L836">        getKeyPairGuiList(); // ensure loaded</span>
+<span class="nc bnc" id="L837" title="All 2 branches missed.">        return keyPairGuiListError!=null;</span>
+    }
+    
+    public String getKeyPairGuiListError() throws AuthorizationDeniedException {
+<span class="nc" id="L841">        getKeyPairGuiList(); // ensure loaded</span>
+<span class="nc" id="L842">        return keyPairGuiListError;</span>
+    }
+    
+    /** @return a list of all the keys in the current CryptoToken. 
+     * @throws AuthorizationDeniedException Fail */
+    public ListDataModel&lt;KeyPairGuiInfo&gt; getKeyPairGuiList() throws AuthorizationDeniedException {
+<span class="nc bnc" id="L848" title="All 2 branches missed.">        if (keyPairGuiList==null) {</span>
+<span class="nc" id="L849">            final List&lt;KeyPairGuiInfo&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L850" title="All 2 branches missed.">            if (getCurrentCryptoToken().isActive()) {</span>
+                // Add existing key pairs
+                try {
+<span class="nc bnc" id="L853" title="All 2 branches missed.">                    for (KeyPairInfo keyPairInfo : cryptoTokenManagementSession.getKeyPairInfos(getAdmin(), getCurrentCryptoTokenId())) {</span>
+<span class="nc" id="L854">                        ret.add(new KeyPairGuiInfo(keyPairInfo));</span>
+<span class="nc" id="L855">                    }</span>
+<span class="nc" id="L856">                } catch (CryptoTokenOfflineException ctoe) {</span>
+<span class="nc" id="L857">                    keyPairGuiListError = &quot;Failed to load key pairs from CryptoToken: &quot;+ctoe.getMessage();</span>
+<span class="nc" id="L858">                }</span>
+                // Add placeholders for key pairs
+<span class="nc" id="L860">                String keyPlaceholders = getCurrentCryptoToken().getKeyPlaceholders();</span>
+<span class="nc bnc" id="L861" title="All 2 branches missed.">                for (String template : keyPlaceholders.split(&quot;[&quot;+CryptoToken.KEYPLACEHOLDERS_OUTER_SEPARATOR+&quot;]&quot;)) {</span>
+<span class="nc bnc" id="L862" title="All 2 branches missed.">                    if (!template.trim().isEmpty()) {</span>
+<span class="nc" id="L863">                        ret.add(new KeyPairGuiInfo(template));</span>
+                    }
+                }
+            }
+<span class="nc" id="L867">            Collections.sort(ret, new Comparator&lt;KeyPairGuiInfo&gt;() {</span>
+                @Override
+                public int compare(KeyPairGuiInfo keyPairInfo1, KeyPairGuiInfo keyPairInfo2) {
+<span class="nc" id="L870">                    return keyPairInfo1.getAlias().compareTo(keyPairInfo2.getAlias());</span>
+                }
+            });
+<span class="nc" id="L873">            keyPairGuiInfos = ret;</span>
+<span class="nc" id="L874">            keyPairGuiList = new ListDataModel&lt;&gt;(keyPairGuiInfos);</span>
+        }
+<span class="nc" id="L876">        return keyPairGuiList;</span>
+    }
+
+<span class="nc" id="L879">    public String getNewKeyPairSpec() { return newKeyPairSpec; }</span>
+<span class="nc" id="L880">    public void setNewKeyPairSpec(String newKeyPairSpec) { this.newKeyPairSpec = newKeyPairSpec; }</span>
+
+<span class="nc" id="L882">    public String getNewKeyPairAlias() { return newKeyPairAlias; }</span>
+<span class="nc" id="L883">    public void setNewKeyPairAlias(String newKeyPairAlias) { this.newKeyPairAlias = newKeyPairAlias; }</span>
+
+    /** Invoked when admin requests a new key pair generation. */
+    public void generateNewKeyPair() {
+<span class="nc bnc" id="L887" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L888">            log.trace(&quot;&gt;generateNewKeyPair&quot;);</span>
+        }
+        try {
+<span class="nc" id="L891">            cryptoTokenManagementSession.createKeyPair(getAdmin(), getCurrentCryptoTokenId(), getNewKeyPairAlias(), getNewKeyPairSpec());</span>
+<span class="nc" id="L892">        } catch (CryptoTokenOfflineException e) {</span>
+<span class="nc" id="L893">            super.addNonTranslatedErrorMessage(&quot;Token is off-line. KeyPair cannot be generated.&quot;);</span>
+<span class="nc" id="L894">        } catch (Exception e) {</span>
+<span class="nc" id="L895">            super.addNonTranslatedErrorMessage(e.getMessage());</span>
+<span class="nc" id="L896">            final String logMsg = getAdmin().toString() + &quot; failed to generate a keypair:&quot;;</span>
+<span class="nc bnc" id="L897" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L898">                log.debug(logMsg, e);</span>
+            } else {
+<span class="nc" id="L900">                log.info(logMsg + e.getMessage());</span>
+            }
+<span class="nc" id="L902">        }</span>
+<span class="nc" id="L903">        flushCaches();</span>
+<span class="nc bnc" id="L904" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L905">            log.trace(&quot;&lt;generateNewKeyPair&quot;);</span>
+        }
+<span class="nc" id="L907">    }</span>
+    
+    /** Invoked when admin requests key pair generation from a template placeholder */
+    public void generateFromTemplate() {
+<span class="nc bnc" id="L911" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L912">            log.trace(&quot;&gt;generateFromTemplate&quot;);</span>
+        }
+<span class="nc" id="L914">        final KeyPairGuiInfo keyPairGuiInfo = keyPairGuiList.getRowData();</span>
+<span class="nc" id="L915">        final String alias = keyPairGuiInfo.getAlias();</span>
+<span class="nc" id="L916">        final String keyspec = KeyTools.keyalgspecToKeyspec(keyPairGuiInfo.getKeyAlgorithm(), keyPairGuiInfo.getRawKeySpec());</span>
+        try {
+<span class="nc" id="L918">            cryptoTokenManagementSession.createKeyPairFromTemplate(getAdmin(), getCurrentCryptoTokenId(), alias, keyspec);</span>
+<span class="nc" id="L919">        } catch (CryptoTokenOfflineException e) {</span>
+<span class="nc" id="L920">            super.addNonTranslatedErrorMessage(&quot;Token is off-line. KeyPair cannot be generated.&quot;);</span>
+<span class="nc" id="L921">        } catch (Exception e) {</span>
+<span class="nc" id="L922">            super.addNonTranslatedErrorMessage(e.getMessage());</span>
+<span class="nc" id="L923">            final String logMsg = getAdmin().toString() + &quot; failed to generate a keypair:&quot;;</span>
+<span class="nc bnc" id="L924" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L925">                log.debug(logMsg, e);</span>
+            } else {
+<span class="nc" id="L927">                log.info(logMsg + e.getMessage());</span>
+            }
+<span class="nc" id="L929">        }</span>
+<span class="nc" id="L930">        flushCaches();</span>
+<span class="nc bnc" id="L931" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L932">            log.trace(&quot;&lt;generateFromTemplate&quot;);</span>
+        }
+<span class="nc" id="L934">    }</span>
+    
+    /** Invoked when admin requests a test of a key pair. */
+    public void testKeyPair() {
+<span class="nc" id="L938">        final KeyPairGuiInfo keyPairGuiInfo = keyPairGuiList.getRowData();</span>
+<span class="nc" id="L939">        final String alias = keyPairGuiInfo.getAlias();</span>
+        try {
+<span class="nc" id="L941">            cryptoTokenManagementSession.testKeyPair(getAdmin(), getCurrentCryptoTokenId(), alias);</span>
+<span class="nc" id="L942">            super.addNonTranslatedInfoMessage(alias + &quot; tested successfully.&quot;);</span>
+<span class="nc" id="L943">        } catch (Exception e) {</span>
+<span class="nc" id="L944">            super.addNonTranslatedErrorMessage(e.getMessage());</span>
+<span class="nc" id="L945">        }</span>
+<span class="nc" id="L946">    }</span>
+    
+    /** Invoked when admin requests the removal of a key pair. */
+    public void removeKeyPair() {
+<span class="nc" id="L950">        final KeyPairGuiInfo keyPairGuiInfo = keyPairGuiList.getRowData();</span>
+<span class="nc" id="L951">        final String alias = keyPairGuiInfo.getAlias();</span>
+        try {
+<span class="nc bnc" id="L953" title="All 2 branches missed.">            if (!keyPairGuiInfo.isPlaceholder()) {</span>
+<span class="nc" id="L954">                cryptoTokenManagementSession.removeKeyPair(getAdmin(), getCurrentCryptoTokenId(), alias);</span>
+            } else {
+<span class="nc" id="L956">                cryptoTokenManagementSession.removeKeyPairPlaceholder(getAdmin(), getCurrentCryptoTokenId(), alias);</span>
+            }
+<span class="nc" id="L958">            flushCaches();</span>
+<span class="nc" id="L959">        } catch (Exception e) {</span>
+<span class="nc" id="L960">            super.addNonTranslatedErrorMessage(e.getMessage());</span>
+<span class="nc" id="L961">        }</span>
+<span class="nc" id="L962">    }</span>
+
+    /** Invoked when admin requests the removal of multiple key pair. */
+    public void removeSelectedKeyPairs() {
+<span class="nc bnc" id="L966" title="All 2 branches missed.">        if (keyPairGuiInfos!=null) {</span>
+<span class="nc bnc" id="L967" title="All 2 branches missed.">            for (KeyPairGuiInfo cryptoTokenKeyPairInfo : keyPairGuiInfos) {</span>
+<span class="nc bnc" id="L968" title="All 2 branches missed.">                if (cryptoTokenKeyPairInfo.isSelected()) {</span>
+                    try {
+<span class="nc" id="L970">                        cryptoTokenManagementSession.removeKeyPair(getAdmin(), getCurrentCryptoTokenId(), cryptoTokenKeyPairInfo.getAlias());</span>
+<span class="nc" id="L971">                    } catch (Exception e) {</span>
+<span class="nc" id="L972">                        super.addNonTranslatedErrorMessage(e.getMessage());</span>
+<span class="nc" id="L973">                    }</span>
+                }
+<span class="nc" id="L975">            }</span>
+        }
+<span class="nc" id="L977">        flushCaches();</span>
+<span class="nc" id="L978">    }</span>
+    
+    /** @return A SlotList that contains the allowed slots numbers and indexes, or null if there's no such restriction */
+    private SlotList getP11SlotList() {
+<span class="nc" id="L982">        String library = currentCryptoToken.getP11Library();</span>
+<span class="nc bnc" id="L983" title="All 2 branches missed.">        if (library == null) return null;</span>
+<span class="nc" id="L984">        WebConfiguration.P11LibraryInfo libinfo = WebConfiguration.getAvailableP11LibraryToAliasMap().get(library);</span>
+<span class="nc bnc" id="L985" title="All 2 branches missed.">        if (libinfo == null) return null;</span>
+<span class="nc" id="L986">        return libinfo.getSlotList();</span>
+    }
+
+    /** @return true if we have checked and noticed that the P11 slot of the crypto token we try to create is the same as an already existing crypto token (including database protection tokens)
+     */
+    public boolean isP11SlotUsed() {
+<span class="nc" id="L992">        return p11SlotUsed;</span>
+    }
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ExtendedRequiredValidator.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ra-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ra.jsfext</a> &gt; <span class="el_source">ExtendedRequiredValidator.java</span></div><h1>ExtendedRequiredValidator.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ra.jsfext;
+
+import java.util.Map;
+
+import javax.faces.component.UIComponent;
+import javax.faces.context.FacesContext;
+import javax.faces.validator.FacesValidator;
+import javax.faces.validator.RequiredValidator;
+import javax.faces.validator.ValidatorException;
+
+import org.apache.log4j.Logger;
+
+/**
+ * Extended variant of RequiredValidator that requires request parameter &quot;validationRequiredFromRequest&quot; set to true to
+ * be sent alongside with request to process validation. Use for component that validation is NOT needed
+ * for ALL POST requests. Beside the request parameter &quot;validationRequiredFromRequest&quot; input component has to have
+ * attribute &quot;_required&quot; set to true (or expression that evaluates to true) to perform validation.
+ * 
+ * DO NOT try to rename the &quot;_required&quot; into &quot;required&quot;. It will be treated as &amp;lt;h:inputText required=&quot;...&quot;&amp;gt; thus breaking
+ * the extendedRequiredValidator.
+ * 
+ * Example usage:
+&amp;lt;h:inputText value=&quot;#{someBean.componentForWhichValidationIsNotAllwaysRequired}&quot;&amp;gt;
+    &amp;lt;f:validator validatorId=&quot;extendedRequiredValidator&quot; /&amp;gt;
+    &amp;lt;f:attribute name=&quot;_required&quot; value=&quot;true&quot; /&amp;gt;
+    &amp;lt;f:ajax event=&quot;change&quot; execute=&quot;@this&quot; listener=&quot;#{someBean.someMethodThatDoesntValidateRequired}&quot;
+    render=&quot;...&quot;/&amp;gt;
+&amp;lt;/h:inputText&amp;gt;
+&amp;lt;h:commandButton 
+    action=&quot;#{someBean.someMethodThatDoesntValidateRequired}&quot;&amp;gt;
+&amp;lt;/h:commandButton&amp;gt;
+&amp;lt;h:commandButton 
+    action=&quot;#{someBean.someMethodThatValidatesRequired}&quot;&amp;gt;
+    &amp;lt;f:param name=&quot;validationRequiredFromRequest&quot; value=&quot;true&quot; /&amp;gt;
+&amp;lt;/h:commandButton&amp;gt;
+ * 
+ * @version $Id: ExtendedRequiredValidator.java 24496 2016-10-10 15:25:13Z marko $
+ */
+@FacesValidator(&quot;extendedRequiredValidator&quot;)
+<span class="nc" id="L52">public class ExtendedRequiredValidator extends RequiredValidator {</span>
+    
+<span class="nc" id="L54">    private static final Logger log = Logger.getLogger(ExtendedRequiredValidator.class);</span>
+
+    @Override
+    public void validate(FacesContext context, UIComponent component, Object value) throws ValidatorException {
+<span class="nc" id="L58">        Object _required = component.getAttributes().get(&quot;_required&quot;);</span>
+<span class="nc" id="L59">        boolean required = false;</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">        if(_required != null){</span>
+<span class="nc" id="L61">            required = Boolean.parseBoolean(_required.toString()); //_required can be of String or Boolean type</span>
+        }
+<span class="nc" id="L63">        Map&lt;String, String&gt; params = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap();</span>
+<span class="nc" id="L64">        String validationRequiredFromRequest = params.get(&quot;validationRequiredFromRequest&quot;);</span>
+<span class="nc bnc" id="L65" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L66">            log.trace(&quot;validationRequiredFromRequest=&quot; + validationRequiredFromRequest + &quot;, _required=&quot;+ required + &quot;, clientId=&quot; + component.getClientId() + &quot; value=&quot; + value);</span>
+        }
+        
+<span class="nc bnc" id="L69" title="All 6 branches missed.">        if(!required || validationRequiredFromRequest == null || validationRequiredFromRequest.equalsIgnoreCase(&quot;false&quot;)){</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">            if(log.isTraceEnabled()){</span>
+<span class="nc" id="L71">                log.trace(&quot;Ignoring extendedRequiredValidator for component &quot; + component.getClientId());</span>
+            }
+<span class="nc" id="L73">            return;</span>
+        }
+        
+<span class="nc" id="L76">        super.validate(context, component, value);</span>
+        
+<span class="nc" id="L78">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

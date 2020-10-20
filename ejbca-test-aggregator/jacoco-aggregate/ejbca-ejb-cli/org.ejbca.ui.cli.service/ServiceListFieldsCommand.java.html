@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ServiceListFieldsCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.service</a> &gt; <span class="el_source">ServiceListFieldsCommand.java</span></div><h1>ServiceListFieldsCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.cli.service;
+
+import org.apache.log4j.Logger;
+import org.cesecore.util.EjbRemoteHelper;
+import org.ejbca.core.ejb.services.ServiceSessionRemote;
+import org.ejbca.core.model.services.ServiceConfiguration;
+import org.ejbca.ui.cli.FieldEditor;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+
+/**
+ * CLI subcommand that lists all available fields
+ * 
+ * @version $Id: ServiceListFieldsCommand.java 21708 2015-08-24 14:48:34Z mikekushner $
+ */
+<span class="nc" id="L28">public class ServiceListFieldsCommand extends BaseServiceCommand {</span>
+
+<span class="nc" id="L30">    private static final Logger log = Logger.getLogger(ServiceListFieldsCommand.class);</span>
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L34">        return &quot;listfields&quot;;</span>
+    }
+
+    @Override
+    public CommandResult execute(ParameterContainer parameters, int serviceId) {
+<span class="nc" id="L39">        ServiceConfiguration serviceConfig = EjbRemoteHelper.INSTANCE.getRemoteSession(ServiceSessionRemote.class).getServiceConfiguration(serviceId);</span>
+<span class="nc" id="L40">        final FieldEditor fieldEditor = new FieldEditor(log);</span>
+<span class="nc" id="L41">        fieldEditor.listSetMethods(serviceConfig);</span>
+<span class="nc" id="L42">        return CommandResult.SUCCESS;</span>
+
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L48">        return &quot;Lists all available fields for a service&quot;;</span>
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L53">        return getCommandDescription();</span>
+    }
+
+    @Override
+    protected Logger getLogger() {
+<span class="nc" id="L58">        return log;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

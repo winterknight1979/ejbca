@@ -19,7 +19,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.ejb.EJB;
@@ -31,7 +30,6 @@ import javax.ejb.TimerConfig;
 import javax.ejb.TimerService;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-
 import org.apache.log4j.Logger;
 import org.cesecore.audit.enums.EventStatus;
 import org.cesecore.audit.enums.EventTypes;
@@ -59,245 +57,357 @@ import org.cesecore.time.providers.TrustedTimeProviderException;
 
 /**
  * Business logic for the EJBCA 6.8.0+ authorization system.
- * 
- * @version $Id: AuthorizationSessionBean.java 26485 2017-09-05 11:06:37Z anatom $
+ *
+ * @version $Id: AuthorizationSessionBean.java 26485 2017-09-05 11:06:37Z anatom
+ *     $
  */
 @SuppressWarnings(&quot;deprecation&quot;)
-@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;AuthorizationSessionRemote&quot;)
+@Stateless(
+    mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;AuthorizationSessionRemote&quot;)
 @TransactionAttribute(TransactionAttributeType.REQUIRED)
-<span class="nc" id="L68">public class AuthorizationSessionBean implements AuthorizationSessionLocal, AuthorizationSessionRemote {</span>
+<span class="nc" id="L68">public class AuthorizationSessionBean</span>
+    implements AuthorizationSessionLocal, AuthorizationSessionRemote {
 
-<span class="nc" id="L70">    private static final Logger log = Logger.getLogger(AuthorizationSessionBean.class);</span>
+    /** Logger. */
+<span class="nc" id="L72">  private static final Logger LOG =</span>
+<span class="nc" id="L73">      Logger.getLogger(AuthorizationSessionBean.class);</span>
 
-    @EJB
-    private AccessTreeUpdateSessionLocal accessTreeUpdateSession;
-    @EJB
-    private RoleDataSessionLocal roleDataSession;
-    @EJB
-    private RoleMemberDataSessionLocal roleMemberDataSession;
-    @EJB
-    private InternalSecurityEventsLoggerSessionLocal internalSecurityEventsLoggerSession;
-    @EJB
-    private TrustedTimeWatcherSessionLocal trustedTimeWatcherSession;
+  /** Access. */
+  @EJB private AccessTreeUpdateSessionLocal accessTreeUpdateSession;
+  /** Roles. */
+  @EJB private RoleDataSessionLocal roleDataSession;
+  /** Role members. */
+  @EJB private RoleMemberDataSessionLocal roleMemberDataSession;
 
-    @Resource
-    private SessionContext sessionContext;
-    private TimerService timerService; // When the sessionContext is injected, the timerService should be looked up.
-    private AuthorizationSessionLocal authorizationSession;
+  /** Log session. */
+  @EJB
+  private InternalSecurityEventsLoggerSessionLocal
+      internalSecurityEventsLoggerSession;
 
-    @PostConstruct
-    public void postConstruct() {
-<span class="nc" id="L90">        timerService = sessionContext.getTimerService();</span>
-<span class="nc" id="L91">        authorizationSession = sessionContext.getBusinessObject(AuthorizationSessionLocal.class);</span>
-<span class="nc" id="L92">    }</span>
+  /** Watcher. */
+  @EJB private TrustedTimeWatcherSessionLocal trustedTimeWatcherSession;
 
-    @Override
-    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
-    public void scheduleBackgroundRefresh() {
-<span class="nc bnc" id="L97" title="All 2 branches missed.">        for (final Timer timer : timerService.getTimers()) {</span>
-<span class="nc" id="L98">            timer.cancel();</span>
-<span class="nc" id="L99">        }</span>
-<span class="nc" id="L100">        timerService.createSingleActionTimer(0, new TimerConfig(&quot;AuthorizationSessionTimer&quot;, false));</span>
-<span class="nc" id="L101">    }</span>
+  /** Context. */
+  @Resource private SessionContext sessionContext;
+  /** Timer. */
+  private TimerService
+      timerService; // When the sessionContext is injected, the timerService
+                    // should be looked up.
+  /** Session. */
+  private AuthorizationSessionLocal authorizationSession;
 
-    @Override
-    @Timeout
-    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
-    public void timeOut(final Timer timer) {
-<span class="nc" id="L107">        authorizationSession.refreshAuthorizationCache();</span>
-<span class="nc" id="L108">        final long interval = CesecoreConfiguration.getCacheAuthorizationTime();</span>
-<span class="nc bnc" id="L109" title="All 2 branches missed.">        if (interval &gt; 0) {</span>
-<span class="nc" id="L110">            timerService.createSingleActionTimer(interval, new TimerConfig(&quot;AuthorizationSessionTimer&quot;, false));</span>
+  /** Setup. */
+  @PostConstruct
+  public void postConstruct() {
+<span class="nc" id="L102">    timerService = sessionContext.getTimerService();</span>
+<span class="nc" id="L103">    authorizationSession =</span>
+<span class="nc" id="L104">        sessionContext.getBusinessObject(AuthorizationSessionLocal.class);</span>
+<span class="nc" id="L105">  }</span>
+
+  @Override
+  @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+  public void scheduleBackgroundRefresh() {
+<span class="nc bnc" id="L110" title="All 2 branches missed.">    for (final Timer timer : timerService.getTimers()) {</span>
+<span class="nc" id="L111">      timer.cancel();</span>
+<span class="nc" id="L112">    }</span>
+<span class="nc" id="L113">    timerService.createSingleActionTimer(</span>
+        0, new TimerConfig(&quot;AuthorizationSessionTimer&quot;, false));
+<span class="nc" id="L115">  }</span>
+
+  @Override
+  @Timeout
+  @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+  public void timeOut(final Timer timer) {
+<span class="nc" id="L121">    authorizationSession.refreshAuthorizationCache();</span>
+<span class="nc" id="L122">    final long interval = CesecoreConfiguration.getCacheAuthorizationTime();</span>
+<span class="nc bnc" id="L123" title="All 2 branches missed.">    if (interval &gt; 0) {</span>
+<span class="nc" id="L124">      timerService.createSingleActionTimer(</span>
+          interval, new TimerConfig(&quot;AuthorizationSessionTimer&quot;, false));
+    } else {
+<span class="nc" id="L127">      LOG.debug(&quot;Authorization cache disabled (-1), not creating new timer.&quot;);</span>
+    }
+<span class="nc" id="L129">  }</span>
+
+  @Override
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  public boolean isAuthorized(
+      final AuthenticationToken authenticationToken,
+      final String... resources) {
+<span class="nc" id="L136">    return isAuthorized(authenticationToken, true, resources);</span>
+  }
+
+  @Override
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  public boolean isAuthorizedNoLogging(
+      final AuthenticationToken authenticationToken,
+      final String... resources) {
+<span class="nc" id="L144">    return isAuthorized(authenticationToken, false, resources);</span>
+  }
+
+  private boolean isAuthorized(
+      final AuthenticationToken authenticationToken,
+      final boolean doLogging,
+      final String... resources) {
+    try {
+<span class="nc" id="L152">      final HashMap&lt;String, Boolean&gt; accessRules =</span>
+<span class="nc" id="L153">          getAccessAvailableToAuthenticationToken(authenticationToken);</span>
+      final Map&lt;String, Object&gt; details =
+<span class="nc bnc" id="L155" title="All 2 branches missed.">          doLogging ? new LinkedHashMap&lt;String, Object&gt;() : null;</span>
+<span class="nc bnc" id="L156" title="All 2 branches missed.">      for (int i = 0; i &lt; resources.length; i++) {</span>
+<span class="nc" id="L157">        final String resource = resources[i];</span>
+<span class="nc" id="L158">        final boolean authorizedToResource =</span>
+<span class="nc" id="L159">            AccessRulesHelper.hasAccessToResource(accessRules, resource);</span>
+<span class="nc bnc" id="L160" title="All 2 branches missed.">        if (authorizedToResource) {</span>
+<span class="nc bnc" id="L161" title="All 2 branches missed.">          if (doLogging) {</span>
+<span class="nc" id="L162">            details.put(&quot;resource&quot; + i, resource);</span>
+          }
         } else {
-<span class="nc" id="L112">            log.debug(&quot;Authorization cache disabled (-1), not creating new timer.&quot;);</span>
+          // At least log failed authorization attempts as INFO, even though CC
+          // does not require any sec audit
+          // If we are checking authorization without logging, for example to
+          // see if an admin menu should be available, only log at debug level.
+          // Note: same message below, but if debug logging is not enabled we
+          // don't want to construct the string at all (to save time and
+          // objects) for debug logging, therefore code copied.
+<span class="nc bnc" id="L172" title="All 2 branches missed.">          if (doLogging) {</span>
+<span class="nc" id="L173">            LOG.info(</span>
+                &quot;Authorization failed for &quot;
+<span class="nc" id="L175">                    + authenticationToken.toString()</span>
+                    + &quot; of type &quot;
+<span class="nc" id="L177">                    + authenticationToken.getClass().getSimpleName()</span>
+                    + &quot; for resource &quot;
+                    + resource);
+<span class="nc bnc" id="L180" title="All 2 branches missed.">          } else if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L181">            LOG.debug(</span>
+                &quot;Authorization failed for &quot;
+<span class="nc" id="L183">                    + authenticationToken.toString()</span>
+                    + &quot; of type &quot;
+<span class="nc" id="L185">                    + authenticationToken.getClass().getSimpleName()</span>
+                    + &quot; for resource &quot;
+                    + resource);
+          }
+          // We failed one of the checks, so there is no point in continuing..
+          // If we failed an authorization check, there is no need to log
+          // successful ones before this point since
+          // the requester has not yet been (and never will be) notified of the
+          // successful outcomes.
+<span class="nc" id="L194">          return false;</span>
         }
-<span class="nc" id="L114">    }</span>
-
-    @Override
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public boolean isAuthorized(final AuthenticationToken authenticationToken, final String... resources) {
-<span class="nc" id="L119">        return isAuthorized(authenticationToken, true, resources);</span>
+      }
+<span class="nc bnc" id="L197" title="All 2 branches missed.">      if (doLogging) {</span>
+<span class="nc" id="L198">        internalSecurityEventsLoggerSession.log(</span>
+<span class="nc" id="L199">            getTrustedTime(),</span>
+            EventTypes.ACCESS_CONTROL,
+            EventStatus.SUCCESS,
+            ModuleTypes.ACCESSCONTROL,
+            ServiceTypes.CORE,
+<span class="nc" id="L204">            authenticationToken.toString(),</span>
+            null,
+            null,
+            null,
+            details);
+      }
+<span class="nc" id="L210">      return true;</span>
+<span class="nc" id="L211">    } catch (AuthenticationFailedException e) {</span>
+<span class="nc" id="L212">      final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L213">      details.put(</span>
+          &quot;msg&quot;,
+<span class="nc" id="L215">          InternalResources.getInstance()</span>
+<span class="nc" id="L216">              .getLocalizedMessage(&quot;authentication.failed&quot;, e.getMessage()));</span>
+<span class="nc" id="L217">      internalSecurityEventsLoggerSession.log(</span>
+<span class="nc" id="L218">          getTrustedTime(),</span>
+          EventTypes.AUTHENTICATION,
+          EventStatus.FAILURE,
+          ModuleTypes.AUTHENTICATION,
+          ServiceTypes.CORE,
+<span class="nc" id="L223">          authenticationToken.toString(),</span>
+          null,
+          null,
+          null,
+          details);
     }
+<span class="nc" id="L229">    return false;</span>
+  }
 
-    @Override
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public boolean isAuthorizedNoLogging(final AuthenticationToken authenticationToken, final String... resources) {
-<span class="nc" id="L125">        return isAuthorized(authenticationToken, false, resources);</span>
+  @Override
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  public void forceCacheExpire() {
+<span class="nc bnc" id="L235" title="All 2 branches missed.">    if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L236">      LOG.trace(&quot;forceCacheExpire&quot;);</span>
     }
+<span class="nc" id="L238">    AuthorizationCache.INSTANCE.clear(</span>
+<span class="nc" id="L239">        accessTreeUpdateSession.getAccessTreeUpdateNumber());</span>
+    // Clear the local RA Access Set Cache
+<span class="nc" id="L241">    RemoteAccessSetCacheHolder.forceEmptyCache();</span>
+<span class="nc" id="L242">    authorizationSession.scheduleBackgroundRefresh();</span>
+<span class="nc" id="L243">  }</span>
 
-    private boolean isAuthorized(final AuthenticationToken authenticationToken, final boolean doLogging, final String... resources) {
-        try {
-<span class="nc" id="L130">            final HashMap&lt;String, Boolean&gt; accessRules = getAccessAvailableToAuthenticationToken(authenticationToken);</span>
-<span class="nc bnc" id="L131" title="All 2 branches missed.">            final Map&lt;String, Object&gt; details = doLogging ? new LinkedHashMap&lt;String, Object&gt;() : null;</span>
-<span class="nc bnc" id="L132" title="All 2 branches missed.">            for (int i=0; i&lt;resources.length; i++) {</span>
-<span class="nc" id="L133">                final String resource = resources[i];</span>
-<span class="nc" id="L134">                final boolean authorizedToResource = AccessRulesHelper.hasAccessToResource(accessRules, resource);</span>
-<span class="nc bnc" id="L135" title="All 2 branches missed.">                if (authorizedToResource) {</span>
-<span class="nc bnc" id="L136" title="All 2 branches missed.">                    if (doLogging) {</span>
-<span class="nc" id="L137">                        details.put(&quot;resource&quot;+i, resource);</span>
-                    }
-                } else {
-                    // At least log failed authorization attempts as INFO, even though CC does not require any sec audit
-                    // If we are checking authorization without logging, for example to see if an admin menu should be available, only log at debug level.
-                    // Note: same message below, but if debug logging is not enabled we don't want to construct the string at all (to save time and objects) for debug logging, therefore code copied.
-<span class="nc bnc" id="L143" title="All 2 branches missed.">                    if (doLogging) {</span>
-<span class="nc" id="L144">                        log.info(&quot;Authorization failed for &quot; + authenticationToken.toString() + &quot; of type &quot; + authenticationToken.getClass().getSimpleName() + &quot; for resource &quot; + resource);</span>
-<span class="nc bnc" id="L145" title="All 2 branches missed.">                    } else if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L146">                        log.debug(&quot;Authorization failed for &quot; + authenticationToken.toString() + &quot; of type &quot; + authenticationToken.getClass().getSimpleName() + &quot; for resource &quot; + resource);</span>
-                    }
-                    // We failed one of the checks, so there is no point in continuing..
-                    // If we failed an authorization check, there is no need to log successful ones before this point since
-                    // the requester has not yet been (and never will be) notified of the successful outcomes.
-<span class="nc" id="L151">                    return false;</span>
-                }
-            }
-<span class="nc bnc" id="L154" title="All 2 branches missed.">            if (doLogging) {</span>
-<span class="nc" id="L155">                internalSecurityEventsLoggerSession.log(getTrustedTime(), EventTypes.ACCESS_CONTROL, EventStatus.SUCCESS, ModuleTypes.ACCESSCONTROL,</span>
-<span class="nc" id="L156">                        ServiceTypes.CORE, authenticationToken.toString(), null, null, null, details);</span>
-            }
-<span class="nc" id="L158">            return true;</span>
-<span class="nc" id="L159">        } catch (AuthenticationFailedException e) {</span>
-<span class="nc" id="L160">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
-<span class="nc" id="L161">            details.put(&quot;msg&quot;, InternalResources.getInstance().getLocalizedMessage(&quot;authentication.failed&quot;, e.getMessage()));</span>
-<span class="nc" id="L162">            internalSecurityEventsLoggerSession.log(getTrustedTime(), EventTypes.AUTHENTICATION, EventStatus.FAILURE, ModuleTypes.AUTHENTICATION,</span>
-<span class="nc" id="L163">                    ServiceTypes.CORE, authenticationToken.toString(), null, null, null, details);</span>
-        }
-<span class="nc" id="L165">        return false;</span>
+  @Override
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  public void refreshAuthorizationCache() {
+<span class="nc bnc" id="L248" title="All 2 branches missed.">    if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L249">      LOG.trace(&quot;updateCache&quot;);</span>
     }
+<span class="nc" id="L251">    AuthorizationCache.INSTANCE.refresh(</span>
+        authorizationCacheCallback,
+<span class="nc" id="L253">        accessTreeUpdateSession.getAccessTreeUpdateNumber());</span>
+<span class="nc" id="L254">  }</span>
 
-    @Override
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public void forceCacheExpire() {
-<span class="nc bnc" id="L171" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L172">            log.trace(&quot;forceCacheExpire&quot;);</span>
-        }
-<span class="nc" id="L174">        AuthorizationCache.INSTANCE.clear(accessTreeUpdateSession.getAccessTreeUpdateNumber());</span>
-        // Clear the local RA Access Set Cache
-<span class="nc" id="L176">        RemoteAccessSetCacheHolder.forceEmptyCache();</span>
-<span class="nc" id="L177">        authorizationSession.scheduleBackgroundRefresh();</span>
-<span class="nc" id="L178">    }</span>
-    
-    @Override
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public void refreshAuthorizationCache() {
-<span class="nc bnc" id="L183" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L184">            log.trace(&quot;updateCache&quot;);</span>
-        }
-<span class="nc" id="L186">        AuthorizationCache.INSTANCE.refresh(authorizationCacheCallback, accessTreeUpdateSession.getAccessTreeUpdateNumber());</span>
-<span class="nc" id="L187">    }</span>
-    
-    @Override
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public HashMap&lt;String, Boolean&gt; getAccessAvailableToAuthenticationToken(final AuthenticationToken authenticationToken) throws AuthenticationFailedException {
-<span class="nc" id="L192">        return AuthorizationCache.INSTANCE.get(authenticationToken, authorizationCacheCallback);</span>
-    }
-    
-    /** Callback for loading cache misses */
-<span class="nc" id="L196">    private AuthorizationCacheCallback authorizationCacheCallback = new AuthorizationCacheCallback() {</span>
+  @Override
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  public HashMap&lt;String, Boolean&gt; getAccessAvailableToAuthenticationToken(
+      final AuthenticationToken authenticationToken)
+      throws AuthenticationFailedException {
+<span class="nc" id="L261">    return AuthorizationCache.INSTANCE.get(</span>
+        authenticationToken, authorizationCacheCallback);
+  }
+
+  /** Callback for loading cache misses. */
+<span class="nc" id="L266">  private final AuthorizationCacheCallback authorizationCacheCallback =</span>
+<span class="nc" id="L267">      new AuthorizationCacheCallback() {</span>
         @Override
-        public AuthorizationResult loadAuthorization(AuthenticationToken authenticationToken) throws AuthenticationFailedException {
-<span class="nc" id="L199">            HashMap&lt;String, Boolean&gt; accessRules = getAccessAvailableToSingleToken(authenticationToken);</span>
-<span class="nc bnc" id="L200" title="All 2 branches missed.">            if (authenticationToken instanceof NestableAuthenticationToken) {</span>
-<span class="nc" id="L201">                final List&lt;NestableAuthenticationToken&gt; nestedAuthenticatonTokens = ((NestableAuthenticationToken)authenticationToken).getNestedAuthenticationTokens();</span>
-<span class="nc bnc" id="L202" title="All 2 branches missed.">                for (final NestableAuthenticationToken nestableAuthenticationToken : nestedAuthenticatonTokens) {</span>
-<span class="nc" id="L203">                    final HashMap&lt;String, Boolean&gt; accessRulesForNestedToken = getAccessAvailableToSingleToken(nestableAuthenticationToken);</span>
-<span class="nc" id="L204">                    accessRules = AccessRulesHelper.getAccessRulesIntersection(accessRules, accessRulesForNestedToken);</span>
-<span class="nc" id="L205">                }</span>
-            }
-<span class="nc bnc" id="L207" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L208">                debugLogAccessRules(authenticationToken, accessRules);</span>
-            }
-<span class="nc" id="L210">            return new AuthorizationResult(accessRules, accessTreeUpdateSession.getAccessTreeUpdateNumber());</span>
+        public AuthorizationResult loadAuthorization(
+            final AuthenticationToken authenticationToken)
+            throws AuthenticationFailedException {
+<span class="nc" id="L272">          HashMap&lt;String, Boolean&gt; accessRules =</span>
+<span class="nc" id="L273">              getAccessAvailableToSingleToken(authenticationToken);</span>
+<span class="nc bnc" id="L274" title="All 2 branches missed.">          if (authenticationToken instanceof NestableAuthenticationToken) {</span>
+<span class="nc" id="L275">            final List&lt;NestableAuthenticationToken&gt; nestedAuthenticatonTokens =</span>
+                ((NestableAuthenticationToken) authenticationToken)
+<span class="nc" id="L277">                    .getNestedAuthenticationTokens();</span>
+            for (final NestableAuthenticationToken nestableAuthenticationToken
+<span class="nc bnc" id="L279" title="All 2 branches missed.">               : nestedAuthenticatonTokens) {</span>
+<span class="nc" id="L280">              final HashMap&lt;String, Boolean&gt; accessRulesForNestedToken =</span>
+<span class="nc" id="L281">                  getAccessAvailableToSingleToken(nestableAuthenticationToken);</span>
+<span class="nc" id="L282">              accessRules =</span>
+<span class="nc" id="L283">                  AccessRulesHelper.getAccessRulesIntersection(</span>
+                      accessRules, accessRulesForNestedToken);
+<span class="nc" id="L285">            }</span>
+          }
+<span class="nc bnc" id="L287" title="All 2 branches missed.">          if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L288">            debugLogAccessRules(authenticationToken, accessRules);</span>
+          }
+<span class="nc" id="L290">          return new AuthorizationResult(</span>
+<span class="nc" id="L291">              accessRules, accessTreeUpdateSession.getAccessTreeUpdateNumber());</span>
         }
 
         @Override
         public long getKeepUnusedEntriesFor() {
-            // Setting this to the same as the background cache refresh interval means that any token that has not been used will be purged
-<span class="nc" id="L216">            return CesecoreConfiguration.getCacheAuthorizationTime();</span>
+          // Setting this to the same as the background cache refresh interval
+          // means that any token that has not been used will be purged
+<span class="nc" id="L298">          return CesecoreConfiguration.getCacheAuthorizationTime();</span>
         }
 
         @Override
-        public void subscribeToAuthorizationCacheReload(final AuthorizationCacheReloadListener authorizationCacheReloadListener) {
-<span class="nc" id="L221">            accessTreeUpdateSession.addReloadEvent(authorizationCacheReloadListener);</span>
-<span class="nc" id="L222">        }</span>
-    };
+        public void subscribeToAuthorizationCacheReload(
+            final AuthorizationCacheReloadListener
+                authorizationCacheReloadListener) {
+<span class="nc" id="L305">          accessTreeUpdateSession.addReloadEvent(</span>
+              authorizationCacheReloadListener);
+<span class="nc" id="L307">        }</span>
+      };
 
-    private void debugLogAccessRules(final AuthenticationToken authenticationToken, final HashMap&lt;String, Boolean&gt; accessRules) {
-<span class="nc" id="L226">        final StringBuilder sb = new StringBuilder(authenticationToken.toString()).append(&quot; has the following access rules:\n&quot;);</span>
-<span class="nc" id="L227">        final List&lt;String&gt; resources = new ArrayList&lt;&gt;(accessRules.keySet());</span>
-<span class="nc" id="L228">        Collections.sort(resources);</span>
-<span class="nc bnc" id="L229" title="All 2 branches missed.">        for (final String resource : resources) {</span>
-<span class="nc bnc" id="L230" title="All 2 branches missed.">            if (accessRules.get(resource).booleanValue()) {</span>
-<span class="nc" id="L231">                sb.append(&quot; allow &quot;);</span>
-            } else {
-<span class="nc" id="L233">                sb.append(&quot; deny  &quot;);</span>
-            }
-<span class="nc" id="L235">            sb.append(resource).append('\n');</span>
-<span class="nc" id="L236">        }</span>
-<span class="nc" id="L237">        log.debug(sb);</span>
-<span class="nc" id="L238">    }</span>
+  private void debugLogAccessRules(
+      final AuthenticationToken authenticationToken,
+      final HashMap&lt;String, Boolean&gt; accessRules) {
+<span class="nc" id="L313">    final StringBuilder sb =</span>
+<span class="nc" id="L314">        new StringBuilder(authenticationToken.toString())</span>
+<span class="nc" id="L315">            .append(&quot; has the following access rules:\n&quot;);</span>
+<span class="nc" id="L316">    final List&lt;String&gt; resources = new ArrayList&lt;&gt;(accessRules.keySet());</span>
+<span class="nc" id="L317">    Collections.sort(resources);</span>
+<span class="nc bnc" id="L318" title="All 2 branches missed.">    for (final String resource : resources) {</span>
+<span class="nc bnc" id="L319" title="All 2 branches missed.">      if (accessRules.get(resource).booleanValue()) {</span>
+<span class="nc" id="L320">        sb.append(&quot; allow &quot;);</span>
+      } else {
+<span class="nc" id="L322">        sb.append(&quot; deny  &quot;);</span>
+      }
+<span class="nc" id="L324">      sb.append(resource).append('\n');</span>
+<span class="nc" id="L325">    }</span>
+<span class="nc" id="L326">    LOG.debug(sb);</span>
+<span class="nc" id="L327">  }</span>
 
-    /** @param authenticationToken Token
-     * @return the union of access rules available to the AuthenticationToken if it matches several roles (ignoring any nested tokens)  
-     * @throws AuthenticationFailedException if access denied */
-    
-    private HashMap&lt;String, Boolean&gt; getAccessAvailableToSingleToken(final AuthenticationToken authenticationToken) throws AuthenticationFailedException {
-<span class="nc" id="L245">        HashMap&lt;String, Boolean&gt; accessRules = new HashMap&lt;&gt;();</span>
-<span class="nc bnc" id="L246" title="All 2 branches missed.">        if (authenticationToken!=null) {</span>
-<span class="nc bnc" id="L247" title="All 2 branches missed.">            if (authenticationToken.getMetaData().isSuperToken()) {</span>
-                try {
-<span class="nc bnc" id="L249" title="All 2 branches missed.">                    if (authenticationToken.matches(null)) {</span>
-                        // Special handing of the AlwaysAllowAuthenticationToken to grant full access
-<span class="nc" id="L251">                        accessRules.put(&quot;/&quot;, Boolean.TRUE);</span>
-                    }
-<span class="nc" id="L253">                } catch (AuthenticationFailedException e) {</span>
-<span class="nc" id="L254">                    log.debug(e.getMessage(), e);</span>
-<span class="nc" id="L255">                }</span>
-            } else {
-<span class="nc bnc" id="L257" title="All 2 branches missed.">                if (accessTreeUpdateSession.isNewAuthorizationPatternMarkerPresent()) {</span>
-                    // This is the new 6.8.0+ behavior (combine access of matched rules)
-<span class="nc bnc" id="L259" title="All 2 branches missed.">                    for (final int matchingRoleId : roleMemberDataSession.getRoleIdsMatchingAuthenticationTokenOrFail(authenticationToken)) {</span>
-<span class="nc" id="L260">                        accessRules = AccessRulesHelper.getAccessRulesUnion(accessRules, roleDataSession.getRole(matchingRoleId).getAccessRules());</span>
-<span class="nc" id="L261">                    }</span>
-                } else {
-                    // This is the legacy behavior (use priority matching). Remove this once we no longer need to support upgrades to 6.8.0.
-                    // Greater tokenMatchKey number has higher priority. When equal, deny trumps accept
-<span class="nc" id="L265">                    final Map&lt;Integer, Integer&gt; roleIdToTokenMatchKeyMap = roleMemberDataSession.getRoleIdsAndTokenMatchKeysMatchingAuthenticationToken(authenticationToken);</span>
-<span class="nc" id="L266">                    final Map&lt;Integer, Integer&gt; keepMap = new HashMap&lt;&gt;();</span>
-                    // 1. Find highest tokenMatchKey number and keep these entries
-<span class="nc" id="L268">                    int highest = 0;</span>
-<span class="nc bnc" id="L269" title="All 2 branches missed.">                    for (final Entry&lt;Integer,Integer&gt; entry : roleIdToTokenMatchKeyMap.entrySet()) {</span>
-<span class="nc" id="L270">                        final int current = entry.getValue();</span>
-<span class="nc bnc" id="L271" title="All 2 branches missed.">                        if (highest&lt;current) {</span>
-<span class="nc" id="L272">                            keepMap.clear();</span>
-<span class="nc" id="L273">                            highest = current;</span>
-                        }
-<span class="nc bnc" id="L275" title="All 2 branches missed.">                        if (highest == current) {</span>
-<span class="nc" id="L276">                            keepMap.put(entry.getKey(), entry.getValue());</span>
-                        }
-<span class="nc" id="L278">                    }</span>
-                    // 2. Get the intersection of rights for all matching roles
-<span class="nc bnc" id="L280" title="All 2 branches missed.">                    if (!keepMap.isEmpty()) {</span>
-<span class="nc" id="L281">                        accessRules.put(&quot;/&quot;, Boolean.TRUE);</span>
-<span class="nc bnc" id="L282" title="All 2 branches missed.">                        for (final int matchingRoleId : keepMap.keySet()) {</span>
-<span class="nc" id="L283">                            accessRules = AccessRulesHelper.getAccessRulesIntersection(accessRules, roleDataSession.getRole(matchingRoleId).getAccessRules());</span>
-<span class="nc" id="L284">                        }</span>
-                    }
-                }
-            }
-        }
-<span class="nc" id="L289">        return accessRules;</span>
-    }
-
-    /** @return the trusted time requires for audit logging 
-     * @throws AuditRecordStorageException if store fails*/
-    private TrustedTime getTrustedTime() throws AuditRecordStorageException {
+  /**
+   * @param authenticationToken Token
+   * @return the union of access rules available to the AuthenticationToken if
+   *     it matches several roles (ignoring any nested tokens)
+   * @throws AuthenticationFailedException if access denied
+   */
+  private HashMap&lt;String, Boolean&gt; getAccessAvailableToSingleToken(
+      final AuthenticationToken authenticationToken)
+      throws AuthenticationFailedException {
+<span class="nc" id="L338">    HashMap&lt;String, Boolean&gt; accessRules = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L339" title="All 2 branches missed.">    if (authenticationToken != null) {</span>
+<span class="nc bnc" id="L340" title="All 2 branches missed.">      if (authenticationToken.getMetaData().isSuperToken()) {</span>
         try {
-<span class="nc" id="L296">            return trustedTimeWatcherSession.getTrustedTime(false);</span>
-<span class="nc" id="L297">        } catch (TrustedTimeProviderException e) {</span>
-<span class="nc" id="L298">            log.error(e.getMessage(), e);</span>
-<span class="nc" id="L299">            throw new AuditRecordStorageException(e.getMessage(), e);</span>
+<span class="nc bnc" id="L342" title="All 2 branches missed.">          if (authenticationToken.matches(null)) {</span>
+            // Special handing of the AlwaysAllowAuthenticationToken to grant
+            // full access
+<span class="nc" id="L345">            accessRules.put(&quot;/&quot;, Boolean.TRUE);</span>
+          }
+<span class="nc" id="L347">        } catch (AuthenticationFailedException e) {</span>
+<span class="nc" id="L348">          LOG.debug(e.getMessage(), e);</span>
+<span class="nc" id="L349">        }</span>
+      } else {
+<span class="nc bnc" id="L351" title="All 2 branches missed.">        if (accessTreeUpdateSession.isNewAuthorizationPatternMarkerPresent()) {</span>
+          // This is the new 6.8.0+ behavior (combine access of matched rules)
+          for (final int matchingRoleId
+<span class="nc bnc" id="L354" title="All 2 branches missed.">            : roleMemberDataSession.getRoleIdsMatchingAuthenticationTokenOrFail(</span>
+                  authenticationToken)) {
+<span class="nc" id="L356">            accessRules =</span>
+<span class="nc" id="L357">                AccessRulesHelper.getAccessRulesUnion(</span>
+                    accessRules,
+<span class="nc" id="L359">                    roleDataSession.getRole(matchingRoleId).getAccessRules());</span>
+<span class="nc" id="L360">          }</span>
+        } else {
+          // This is the legacy behavior (use priority matching). Remove this
+          // once we no longer need to support upgrades to 6.8.0.
+          // Greater tokenMatchKey number has higher priority. When equal, deny
+          // trumps accept
+<span class="nc" id="L366">          final Map&lt;Integer, Integer&gt; roleIdToTokenMatchKeyMap =</span>
+              roleMemberDataSession
+<span class="nc" id="L368">                  .getRoleIdsAndTokenMatchKeysMatchingAuthenticationToken(</span>
+                      authenticationToken);
+<span class="nc" id="L370">          final Map&lt;Integer, Integer&gt; keepMap = new HashMap&lt;&gt;();</span>
+          // 1. Find highest tokenMatchKey number and keep these entries
+<span class="nc" id="L372">          int highest = 0;</span>
+          for (final Entry&lt;Integer, Integer&gt; entry
+<span class="nc bnc" id="L374" title="All 2 branches missed.">              : roleIdToTokenMatchKeyMap.entrySet()) {</span>
+<span class="nc" id="L375">            final int current = entry.getValue();</span>
+<span class="nc bnc" id="L376" title="All 2 branches missed.">            if (highest &lt; current) {</span>
+<span class="nc" id="L377">              keepMap.clear();</span>
+<span class="nc" id="L378">              highest = current;</span>
+            }
+<span class="nc bnc" id="L380" title="All 2 branches missed.">            if (highest == current) {</span>
+<span class="nc" id="L381">              keepMap.put(entry.getKey(), entry.getValue());</span>
+            }
+<span class="nc" id="L383">          }</span>
+          // 2. Get the intersection of rights for all matching roles
+<span class="nc bnc" id="L385" title="All 2 branches missed.">          if (!keepMap.isEmpty()) {</span>
+<span class="nc" id="L386">            accessRules.put(&quot;/&quot;, Boolean.TRUE);</span>
+<span class="nc bnc" id="L387" title="All 2 branches missed.">            for (final int matchingRoleId : keepMap.keySet()) {</span>
+<span class="nc" id="L388">              accessRules =</span>
+<span class="nc" id="L389">                  AccessRulesHelper.getAccessRulesIntersection(</span>
+                      accessRules,
+<span class="nc" id="L391">                      roleDataSession.getRole(matchingRoleId).getAccessRules());</span>
+<span class="nc" id="L392">            }</span>
+          }
         }
+      }
     }
+<span class="nc" id="L397">    return accessRules;</span>
+  }
+
+  /**
+   * @return the trusted time requires for audit logging
+   * @throws AuditRecordStorageException if store fails
+   */
+  private TrustedTime getTrustedTime() throws AuditRecordStorageException {
+    try {
+<span class="nc" id="L406">      return trustedTimeWatcherSession.getTrustedTime(false);</span>
+<span class="nc" id="L407">    } catch (TrustedTimeProviderException e) {</span>
+<span class="nc" id="L408">      LOG.error(e.getMessage(), e);</span>
+<span class="nc" id="L409">      throw new AuditRecordStorageException(e.getMessage(), e);</span>
+    }
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

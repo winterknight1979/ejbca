@@ -12,37 +12,36 @@
  *************************************************************************/
 package org.cesecore.dbprotection;
 
-
 /**
- * @version $Id: ProtectedDataNoopImpl.java 29874 2018-09-13 09:38:35Z samuellb $
+ * @version $Id: ProtectedDataNoopImpl.java 29874 2018-09-13 09:38:35Z samuellb
+ *     $
  */
 <span class="fc" id="L19">public class ProtectedDataNoopImpl implements ProtectedDataImpl {</span>
 
-    @Override
-    public void setTableName(final String table) {
-        // Do nothing
-<span class="nc" id="L24">    }</span>
+  @Override
+  public void setTableName(final String table) {
+    // Do nothing
+<span class="nc" id="L24">  }</span>
 
-    @Override
-    public void protectData(final ProtectedData obj) {
-        // Do nothing
-<span class="fc" id="L29">    }</span>
+  @Override
+  public void protectData(final ProtectedData obj) {
+    // Do nothing
+<span class="fc" id="L29">  }</span>
 
-    @Override
-    public void verifyData(final ProtectedData obj) {
-        // Do nothing
-<span class="nc" id="L34">    }</span>
-	
-    @Override
-    public String calculateProtection(final ProtectedData obj) {
-        // Do nothing
-<span class="nc" id="L39">        return null;</span>
-    }
+  @Override
+  public void verifyData(final ProtectedData obj) {
+    // Do nothing
+<span class="nc" id="L34">  }</span>
 
-    @Override
-    public void onDataVerificationError(DatabaseProtectionException e) {
-        // Do nothing
-<span class="nc" id="L45">    }</span>
+  @Override
+  public String calculateProtection(final ProtectedData obj) {
+    // Do nothing
+<span class="nc" id="L39">    return null;</span>
+  }
 
+  @Override
+  public void onDataVerificationError(final DatabaseProtectionException e) {
+    // Do nothing
+<span class="nc" id="L45">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

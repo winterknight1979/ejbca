@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ListApproveActionManagedBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">admin-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.approval</a> &gt; <span class="el_source">ListApproveActionManagedBean.java</span></div><h1>ListApproveActionManagedBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.ui.web.admin.approval;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import javax.faces.application.FacesMessage;
+import javax.faces.context.FacesContext;
+import javax.faces.model.SelectItem;
+
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.ejbca.core.model.approval.ApprovalDataVO;
+import org.ejbca.core.model.authorization.AccessRulesConstants;
+import org.ejbca.core.model.ra.RAAuthorization;
+import org.ejbca.core.model.util.EjbLocalHelper;
+import org.ejbca.ui.web.admin.BaseManagedBean;
+import org.ejbca.ui.web.admin.configuration.EjbcaJSFHelper;
+import org.ejbca.util.query.ApprovalMatch;
+import org.ejbca.util.query.BasicMatch;
+import org.ejbca.util.query.IllegalQueryException;
+import org.ejbca.util.query.Query;
+import org.ejbca.util.query.TimeMatch;
+
+/**
+ * Managed bean in the actionapprovallist page.
+ * 
+ * @version $Id: ListApproveActionManagedBean.java 28844 2018-05-04 08:31:02Z samuellb $
+ */
+public class ListApproveActionManagedBean extends BaseManagedBean {
+
+	private static final long serialVersionUID = 1L;
+<span class="nc" id="L45">	public static int QUERY_MAX_NUM_ROWS = 300;</span>
+<span class="nc" id="L46">	private static String TIME_5MIN = Integer.toString(5 * 60 * 1000);</span>
+<span class="nc" id="L47">	private static String TIME_30MIN = Integer.toString(30 * 60 * 1000);</span>
+<span class="nc" id="L48">	private static String TIME_8HOURS = Integer.toString(8 * 60 * 60 * 1000);</span>
+<span class="nc" id="L49">	private static String ALL_STATUSES = Integer.toString(-9);</span>
+<span class="nc" id="L50">	private final EjbLocalHelper ejbLocalHelper = new EjbLocalHelper();</span>
+	private List&lt;SelectItem&gt; availableStatus;
+	private String selectedStatus;	
+	private List&lt;SelectItem&gt; availableTimeSpans;
+	private String selectedTimeSpan;
+	
+	private ApprovalDataVOViewList listData;
+
+<span class="nc" id="L58">	public ListApproveActionManagedBean() {		      			 			 	 	</span>
+<span class="nc" id="L59">		setSelectedStatus(&quot;&quot; + ApprovalDataVO.STATUS_WAITINGFORAPPROVAL);</span>
+<span class="nc" id="L60">		setSelectedTimeSpan(TIME_30MIN);</span>
+<span class="nc" id="L61">		list();</span>
+<span class="nc" id="L62">	}</span>
+	
+	public List&lt;SelectItem&gt; getAvailableStatus() {
+<span class="nc bnc" id="L65" title="All 2 branches missed.">		if(availableStatus == null){</span>
+<span class="nc" id="L66">			  availableStatus = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L67">			  availableStatus.add(new SelectItem(&quot;&quot; + ApprovalDataVO.STATUS_WAITINGFORAPPROVAL,getEjbcaWebBean().getText(&quot;WAITING&quot;, true),&quot;&quot;));	 </span>
+<span class="nc" id="L68">			  availableStatus.add(new SelectItem(&quot;&quot; + ApprovalDataVO.STATUS_EXPIRED,getEjbcaWebBean().getText(&quot;EXPIRED&quot;, true),&quot;&quot;));</span>
+<span class="nc" id="L69">			  availableStatus.add(new SelectItem(&quot;&quot; + ApprovalDataVO.STATUS_EXPIREDANDNOTIFIED,getEjbcaWebBean().getText(&quot;EXPIREDANDNOTIFIED&quot;, true),&quot;&quot;));	  </span>
+<span class="nc" id="L70">			  availableStatus.add(new SelectItem(&quot;&quot; + ApprovalDataVO.STATUS_EXECUTED,getEjbcaWebBean().getText(&quot;EXECUTED&quot;, true),&quot;&quot;));</span>
+<span class="nc" id="L71">			  availableStatus.add(new SelectItem(&quot;&quot; + ApprovalDataVO.STATUS_EXECUTIONFAILED,getEjbcaWebBean().getText(&quot;EXECUTIONFAILED&quot;, true),&quot;&quot;));</span>
+<span class="nc" id="L72">			  availableStatus.add(new SelectItem(&quot;&quot; + ApprovalDataVO.STATUS_EXECUTIONDENIED,getEjbcaWebBean().getText(&quot;EXECUTIONDENIED&quot;, true),&quot;&quot;));			  </span>
+<span class="nc" id="L73">			  availableStatus.add(new SelectItem(&quot;&quot; + ApprovalDataVO.STATUS_APPROVED,getEjbcaWebBean().getText(&quot;APPROVED&quot;, true),&quot;&quot;));	</span>
+<span class="nc" id="L74">			  availableStatus.add(new SelectItem(&quot;&quot; + ApprovalDataVO.STATUS_REJECTED,getEjbcaWebBean().getText(&quot;REJECTED&quot;, true),&quot;&quot;));</span>
+<span class="nc" id="L75">			  availableStatus.add(new SelectItem(ALL_STATUSES, getEjbcaWebBean().getText(&quot;ALL&quot;, true),&quot;&quot;));			</span>
+		}
+<span class="nc" id="L77">		return availableStatus;</span>
+	}
+
+	public void setAvailableStatus(List&lt;SelectItem&gt; availableStatus) {
+<span class="nc" id="L81">		this.availableStatus = availableStatus;</span>
+<span class="nc" id="L82">	}</span>
+
+	public List&lt;SelectItem&gt; getAvailableTimeSpans() {
+<span class="nc bnc" id="L85" title="All 2 branches missed.">        if (availableTimeSpans == null) {</span>
+<span class="nc" id="L86">            availableTimeSpans = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L87">            availableTimeSpans.add(new SelectItem(TIME_5MIN, &quot;5 &quot; + getEjbcaWebBean().getText(&quot;MINUTES&quot;, true), &quot;&quot;));</span>
+<span class="nc" id="L88">            availableTimeSpans.add(new SelectItem(TIME_30MIN, &quot;30 &quot; + getEjbcaWebBean().getText(&quot;MINUTES&quot;, true), &quot;&quot;));</span>
+<span class="nc" id="L89">            availableTimeSpans.add(new SelectItem(TIME_8HOURS, &quot;8 &quot; + getEjbcaWebBean().getText(&quot;HOURS&quot;, true), &quot;&quot;));</span>
+<span class="nc" id="L90">            availableTimeSpans.add(new SelectItem(&quot;0&quot;, getEjbcaWebBean().getText(&quot;EVER&quot;, true), &quot;&quot;));</span>
+        }
+<span class="nc" id="L92">		return availableTimeSpans;</span>
+	}
+
+	public void setAvailableTimeSpans(List&lt;SelectItem&gt; availableTimeSpans) {
+<span class="nc" id="L96">		this.availableTimeSpans = availableTimeSpans;</span>
+<span class="nc" id="L97">	}</span>
+
+	public String list() {
+<span class="nc" id="L100">		Query query = new Query(Query.TYPE_APPROVALQUERY);</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">		if (selectedStatus.equals(ALL_STATUSES)){			</span>
+<span class="nc" id="L102">			query.add(getStartDate(), new Date());			</span>
+<span class="nc bnc" id="L103" title="All 2 branches missed.">		} else if (selectedStatus.equals(Integer.toString(ApprovalDataVO.STATUS_EXPIRED))) {</span>
+		    //Expired requests will remain set as Waiting in the database. 
+<span class="nc" id="L105">		    query.add(ApprovalMatch.MATCH_WITH_STATUS, BasicMatch.MATCH_TYPE_EQUALS, Integer.toString(ApprovalDataVO.STATUS_WAITINGFORAPPROVAL), Query.CONNECTOR_AND);</span>
+<span class="nc" id="L106">		    query.add(TimeMatch.MATCH_WITH_EXPIRETIME, null, new Date(), Query.CONNECTOR_AND);</span>
+<span class="nc" id="L107">            query.add(getStartDate(), new Date());</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">		} else if (selectedStatus.equals(Integer.toString(ApprovalDataVO.STATUS_WAITINGFORAPPROVAL))) {</span>
+<span class="nc" id="L109">		    query.add(ApprovalMatch.MATCH_WITH_STATUS, BasicMatch.MATCH_TYPE_EQUALS, Integer.toString(ApprovalDataVO.STATUS_WAITINGFORAPPROVAL), Query.CONNECTOR_ANDNOT);</span>
+<span class="nc" id="L110">		    query.add(TimeMatch.MATCH_WITH_EXPIRETIME, null, new Date(), Query.CONNECTOR_AND);</span>
+<span class="nc" id="L111">            query.add(getStartDate(), new Date());</span>
+		} else {	
+<span class="nc" id="L113">			query.add(ApprovalMatch.MATCH_WITH_STATUS, BasicMatch.MATCH_TYPE_EQUALS, selectedStatus, Query.CONNECTOR_AND);</span>
+<span class="nc" id="L114">			query.add(getStartDate(), new Date());</span>
+		}
+<span class="nc" id="L116">        List&lt;ApprovalDataVO&gt; result = new ArrayList&lt;&gt;();</span>
+		try {
+<span class="nc" id="L118">            RAAuthorization raAuthorization = new RAAuthorization(EjbcaJSFHelper.getBean().getAdmin(), ejbLocalHelper.getGlobalConfigurationSession(),</span>
+<span class="nc" id="L119">            		ejbLocalHelper.getAuthorizationSession(), ejbLocalHelper.getCaSession(), ejbLocalHelper.getEndEntityProfileSession());</span>
+<span class="nc" id="L120">			result = ejbLocalHelper.getApprovalSession().query(query, 0, QUERY_MAX_NUM_ROWS, </span>
+<span class="nc" id="L121">			        raAuthorization.getCAAuthorizationString(), raAuthorization.getEndEntityProfileAuthorizationString(AccessRulesConstants.APPROVE_END_ENTITY));</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">			if(result.size() == QUERY_MAX_NUM_ROWS){</span>
+<span class="nc" id="L123">				String messagestring = getEjbcaWebBean().getText(&quot;MAXAPPROVALQUERYROWS1&quot;, true) + &quot; &quot; + QUERY_MAX_NUM_ROWS + &quot; &quot; + getEjbcaWebBean().getText(&quot;MAXAPPROVALQUERYROWS2&quot;, true);</span>
+<span class="nc" id="L124">				FacesContext ctx = FacesContext.getCurrentInstance();</span>
+<span class="nc" id="L125">				ctx.addMessage(&quot;error&quot;, new FacesMessage(FacesMessage.SEVERITY_ERROR,messagestring,messagestring));</span>
+			}
+<span class="nc" id="L127">		} catch (IllegalQueryException e) {</span>
+<span class="nc" id="L128">           addErrorMessage(&quot;INVALIDQUERY&quot;);</span>
+<span class="nc" id="L129">		} catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L130">			addErrorMessage(&quot;AUTHORIZATIONDENIED&quot;);</span>
+<span class="nc" id="L131">		}</span>
+<span class="nc" id="L132">		listData = new ApprovalDataVOViewList(result);</span>
+<span class="nc" id="L133">		return null;		</span>
+	}
+	
+	/** @return true if approval data is sorted by request date*/
+	public boolean isSortedByRequestDate() {
+	    //ApprovalDataVOViewList.sort treats null (initial value on page load) as requestDate
+<span class="nc bnc" id="L139" title="All 4 branches missed.">	    return getSort() == null || getSort().equals(&quot;requestDate&quot;);</span>
+	}
+
+   /** @return true if approval data is sorted by approve action name*/
+	public boolean isSortedByApproveActionName() {
+<span class="nc bnc" id="L144" title="All 4 branches missed.">	    return getSort() != null &amp;&amp; getSort().equals(&quot;approveActionName&quot;);</span>
+	}
+	
+    /** @return true if approval data is sorted by requesting administrator*/
+	public boolean isSortedByRequestUsername() {
+<span class="nc bnc" id="L149" title="All 4 branches missed.">	    return getSort() != null &amp;&amp; getSort().equals(&quot;requestUsername&quot;);</span>
+	}
+	
+    /** @return true if approval data is sorted by request status*/	
+	public boolean isSortedByStatus() {
+<span class="nc bnc" id="L154" title="All 4 branches missed.">	    return getSort() != null &amp;&amp; getSort().equals(&quot;status&quot;);</span>
+	}
+	
+	/**
+	 * Help method to list.
+	 * @return Date
+	 */
+	private Date getStartDate(){
+<span class="nc bnc" id="L162" title="All 2 branches missed.">		if(Integer.parseInt(selectedTimeSpan) == 0){</span>
+<span class="nc" id="L163">			return new Date(0);</span>
+		}
+<span class="nc" id="L165">		return new Date(new Date().getTime() - Integer.parseInt(selectedTimeSpan));</span>
+	}
+	
+	public String getRowClasses(){		
+<span class="nc bnc" id="L169" title="All 2 branches missed.">		if(listData.size() == 0){</span>
+<span class="nc" id="L170">			return &quot;&quot;;</span>
+		}
+<span class="nc bnc" id="L172" title="All 2 branches missed.">		if(listData.size() == 1){</span>
+<span class="nc" id="L173">			return &quot;Row0&quot;;</span>
+		}
+<span class="nc" id="L175">		return &quot;Row0, Row1&quot;;</span>
+	}
+
+	public List&lt;ApprovalDataVOView&gt; getListData() {
+<span class="nc" id="L179">		return listData.getData();</span>
+	}
+
+    public String getSort() {
+<span class="nc" id="L183">        return listData.getSort();</span>
+    }
+
+    public void setSort(String sort) {
+<span class="nc" id="L187">    	listData.setSort(sort);</span>
+<span class="nc" id="L188">    }</span>
+
+    public boolean isAscending() {
+<span class="nc" id="L191">        return listData.isAscending();</span>
+    }
+
+    public void setAscending(boolean ascending) {
+<span class="nc" id="L195">        listData.setAscending(ascending);</span>
+<span class="nc" id="L196">    }</span>
+
+	public String getSelectedStatus() {
+<span class="nc" id="L199">		return selectedStatus;</span>
+	}
+
+	public void setSelectedStatus(String selectedStatus) {
+<span class="nc" id="L203">		this.selectedStatus = selectedStatus;</span>
+<span class="nc" id="L204">	}</span>
+
+	public String getSelectedTimeSpan() {
+<span class="nc" id="L207">		return selectedTimeSpan;</span>
+	}
+
+	public void setSelectedTimeSpan(String selectedTimeSpan) {
+<span class="nc" id="L211">		this.selectedTimeSpan = selectedTimeSpan;</span>
+<span class="nc" id="L212">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

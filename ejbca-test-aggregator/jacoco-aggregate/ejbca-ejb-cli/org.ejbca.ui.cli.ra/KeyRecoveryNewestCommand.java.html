@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>KeyRecoveryNewestCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.ra</a> &gt; <span class="el_source">KeyRecoveryNewestCommand.java</span></div><h1>KeyRecoveryNewestCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.cli.ra;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CADoesntExistsException;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.configuration.GlobalConfigurationSessionRemote;
+import org.cesecore.util.EjbRemoteHelper;
+import org.ejbca.config.GlobalConfiguration;
+import org.ejbca.core.ejb.keyrecovery.KeyRecoverySessionRemote;
+import org.ejbca.core.ejb.ra.EndEntityAccessSessionRemote;
+import org.ejbca.core.ejb.ra.EndEntityManagementSessionRemote;
+import org.ejbca.core.model.approval.ApprovalException;
+import org.ejbca.core.model.approval.WaitingForApprovalException;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+
+/**
+ * Set status to key recovery for an end entity's newest certificate
+ *
+ * @version $Id: KeyRecoveryNewestCommand.java 23397 2016-05-11 14:53:14Z aveen4711 $
+ */
+<span class="nc" id="L40">public class KeyRecoveryNewestCommand extends BaseRaCommand {</span>
+
+<span class="nc" id="L42">    private static final Logger log = Logger.getLogger(KeyRecoveryNewestCommand.class);</span>
+
+    private static final String USERNAME_KEY = &quot;--username&quot;;
+
+    {
+<span class="nc" id="L47">        registerParameter(new Parameter(USERNAME_KEY, &quot;Username&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;Username for the end entity to perform key recovery upon.&quot;));
+<span class="nc" id="L49">    }</span>
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L53">        return &quot;keyrecovernewest&quot;;</span>
+    }
+
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+
+<span class="nc" id="L59">        String username = parameters.get(USERNAME_KEY);</span>
+<span class="nc" id="L60">        boolean usekeyrecovery = ((GlobalConfiguration) EjbRemoteHelper.INSTANCE.getRemoteSession(GlobalConfigurationSessionRemote.class)</span>
+<span class="nc" id="L61">                .getCachedConfiguration(GlobalConfiguration.GLOBAL_CONFIGURATION_ID)).getEnableKeyRecovery();</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">        if (!usekeyrecovery) {</span>
+<span class="nc" id="L63">            getLogger().error(&quot;ERROR: Keyrecovery have to be enabled in the system configuration in order to use this command.&quot;);</span>
+<span class="nc" id="L64">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+        }
+<span class="nc bnc" id="L66" title="All 2 branches missed.">        if (EjbRemoteHelper.INSTANCE.getRemoteSession(KeyRecoverySessionRemote.class).isUserMarked(username)) {</span>
+<span class="nc" id="L67">            getLogger().error(&quot;ERROR: End entity is already marked for recovery.&quot;);</span>
+<span class="nc" id="L68">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+        }
+        try {
+<span class="nc" id="L71">            EndEntityInformation userdata = EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityAccessSessionRemote.class).findUser(</span>
+<span class="nc" id="L72">                    getAuthenticationToken(), username);</span>
+<span class="nc bnc" id="L73" title="All 2 branches missed.">            if (userdata == null) {</span>
+<span class="nc" id="L74">                getLogger().error(&quot;The user doesn't exist.&quot;);</span>
+<span class="nc" id="L75">                return CommandResult.FUNCTIONAL_FAILURE;</span>
+            }
+<span class="nc bnc" id="L77" title="All 2 branches missed.">            if (EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityManagementSessionRemote.class).prepareForKeyRecovery(getAuthenticationToken(),</span>
+<span class="nc" id="L78">                    userdata.getUsername(), userdata.getEndEntityProfileId(), null)) {</span>
+<span class="nc" id="L79">                getLogger().info(&quot;Key corresponding to users newest certificate has been marked for recovery.&quot;);</span>
+<span class="nc" id="L80">                return CommandResult.SUCCESS;</span>
+            } else {
+<span class="nc" id="L82">                getLogger().info(&quot;ERROR: Failed to mark key corresponding to users newest certificate for recovery.&quot;);</span>
+            }
+<span class="nc" id="L84">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L85">            log.error(&quot;ERROR: CLI use not authorized to perform key recovery on user &quot; + username);</span>
+<span class="nc" id="L86">        } catch (ApprovalException e) {</span>
+<span class="nc" id="L87">            log.error(&quot;ERROR: &quot; + e.getMessage());</span>
+<span class="nc" id="L88">        } catch (WaitingForApprovalException e) {</span>
+<span class="nc" id="L89">            log.error(&quot;ERROR: &quot; + e.getMessage());</span>
+<span class="nc" id="L90">        } catch (CADoesntExistsException e) {</span>
+<span class="nc" id="L91">            log.error(&quot;ERROR: &quot; + e.getMessage());</span>
+<span class="nc" id="L92">        }</span>
+<span class="nc" id="L93">        return CommandResult.FUNCTIONAL_FAILURE;</span>
+
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L99">        return &quot;Set status to key recovery for an end entity's newest certificate&quot;;</span>
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L104">        return getCommandDescription();</span>
+    }
+
+    protected Logger getLogger() {
+<span class="nc" id="L108">        return log;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

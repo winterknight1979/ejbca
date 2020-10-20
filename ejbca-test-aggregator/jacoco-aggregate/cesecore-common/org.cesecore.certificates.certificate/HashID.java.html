@@ -16,9 +16,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-
 import javax.security.auth.x500.X500Principal;
-
 import org.apache.log4j.Logger;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.X509CertificateHolder;
@@ -32,130 +30,178 @@ import org.cesecore.util.CertTools;
  *
  * @version $Id: HashID.java 26020 2017-06-14 12:41:08Z mikekushner $
  */
-public class HashID {
-	/** Log4j instance for Base */
-<span class="fc" id="L37">	private static final Logger log = Logger.getLogger(HashID.class);</span>
-	/**
-	 * True if the ID confirms to a RFC4387 ID.
-	 */
-	private final boolean isOK;
-	/*
-	 * The RFC4387 identification string. This is a base64 encoding of the hash.
-	 */
-	private final String b64;
+public final class HashID {
+  /** Log4j instance for Base. */
+<span class="fc" id="L35">  private static final Logger LOG = Logger.getLogger(HashID.class);</span>
+  /** True if the ID confirms to a RFC4387 ID. */
+  private final boolean isOK;
+  /**
+   * The RFC4387 identification string. This is a base64 encoding of the hash.
+   */
+  private final String b64;
 
-    /**
-	 * The b64 with \ substituted with %2B to be used for URLs
-	 */
-	private final String b64url;
-	/**
-	 * Key to be used for hash tables.
-	 */
-	private final Integer key;
-	
-<span class="fc" id="L56">	private HashID(byte hash[]) {</span>
-<span class="fc" id="L57">		final String b64padded = new String(Base64.encode(hash));</span>
-<span class="pc bpc" id="L58" title="2 of 4 branches missed.">		if ( b64padded.length()!=28 || b64padded.charAt(27)!='=' ) {</span>
-<span class="nc" id="L59">			this.isOK = false;</span>
-<span class="nc" id="L60">			this.b64 = b64padded;</span>
-		} else {
-<span class="fc" id="L62">			this.isOK = true;</span>
-<span class="fc" id="L63">			this.b64 = b64padded.substring(0, 27);</span>
-		}
-<span class="fc" id="L65">		this.b64url = this.b64.replaceAll(&quot;\\+&quot;, &quot;%2B&quot;);</span>
-<span class="fc" id="L66">		this.key = Integer.valueOf(new BigInteger(hash).hashCode());</span>
-<span class="fc" id="L67">	}</span>
-	private static byte[] hashFromPrincipalDN( X500Principal principal ) {
-<span class="fc" id="L69">		return CertTools.generateSHA1Fingerprint(principal.getEncoded());</span>
-	}
-	private static HashID getFromDN(X500Principal principal) {
-<span class="fc" id="L72">		final HashID id = new HashID(hashFromPrincipalDN(principal));</span>
-<span class="pc bpc" id="L73" title="1 of 2 branches missed.">		if ( id.isOK ) {</span>
-<span class="pc bpc" id="L74" title="1 of 2 branches missed.">			if ( log.isDebugEnabled() ) {</span>
-<span class="nc" id="L75">				log.debug(&quot;The DN '&quot;+principal.getName()+&quot;' is identified by the Hash string '&quot;+id.b64+&quot;' when accessing the VA.&quot;);</span>
-			}
-		} else {
-<span class="nc" id="L78">			log.error(&quot;The DN '&quot;+principal.getName()+&quot;' has a non valid Hash identification string: &quot;+id.b64);</span>
-		}
-<span class="fc" id="L80">		return id;</span>
-	}
-	/**
-	 * @param cert The subject DN of the certificate should be the identifier.
-	 * @return the ID
-	 */
-	public static HashID getFromSubjectDN(X509Certificate cert) {
-<span class="fc" id="L87">		return getFromDN( cert.getSubjectX500Principal() );</span>
-	}
-	/**
-	 * @param cert The issuer DN of the certificate should be the identifier.
-	 * @return the ID
-	 */
-	public static HashID getFromIssuerDN(X509Certificate cert) {
-<span class="fc" id="L94">		return getFromDN( cert.getIssuerX500Principal() );</span>
-	}
-	
-	/**
-     * @param certificateHolder The issuer DN of the certificate should be the identifier.
-     * @return the ID
-	 * @throws CertificateException on failure 
-     */
-	public static HashID getFromIssuerDN(X509CertificateHolder certificateHolder) throws CertificateException {
-<span class="nc" id="L103">        return getFromIssuerDN(new JcaX509CertificateConverter().getCertificate(certificateHolder));</span>
+  /** The b64 with \ substituted with %2B to be used for URLs. */
+  private final String b64url;
+  /** Key to be used for hash tables. */
+  private final Integer key;
+
+<span class="fc" id="L48">  private HashID(final byte[] hash) {</span>
+<span class="fc" id="L49">    final String b64padded = new String(Base64.encode(hash));</span>
+<span class="pc bpc" id="L50" title="1 of 2 branches missed.">    if (b64padded.length() != HASH_LENGTH + 1</span>
+<span class="pc bpc" id="L51" title="1 of 2 branches missed.">            || b64padded.charAt(HASH_LENGTH) != '=') {</span>
+<span class="nc" id="L52">      this.isOK = false;</span>
+<span class="nc" id="L53">      this.b64 = b64padded;</span>
+    } else {
+<span class="fc" id="L55">      this.isOK = true;</span>
+<span class="fc" id="L56">      this.b64 = b64padded.substring(0, HASH_LENGTH);</span>
     }
-    /**
-     * @param sDN A string representation of a DN to be as ID. The DN will not be transformed in any way.
-     * @return the ID.
-     */
-    public static HashID getFromDNString(String sDN) {
-		// Note that the DN string has to be encoded to an ASN1 with the BC lib. BC endcoding is EJBCA standard.
-        try {
-<span class="fc bfc" id="L112" title="All 2 branches covered.">            return getFromDN( new X500Principal(new X500Name(CertTools.isDNReversed(sDN) ? CertTools.reverseDN(sDN) : sDN).getEncoded()));</span>
-<span class="nc" id="L113">        } catch (IOException e) {</span>
-<span class="nc" id="L114">           throw new IllegalStateException(e);</span>
-        }
-	}
-	/**
-	 * @param s The hash base64 encoded. See RFC4387
-	 * @return the ID.
-	 */
-	public static HashID getFromB64( String s ) {
-<span class="nc bnc" id="L122" title="All 2 branches missed.">		return new HashID( Base64.decode(s.length()==27 ? s+'=' : s) );</span>
-	}
-	/**
-	 * @param cert The public key of the certificate will be used as ID.
-	 * @return the ID.
-	 */
-	public static HashID getFromKeyID(X509Certificate cert) {
-<span class="fc" id="L129">		final HashID id  = new HashID( KeyTools.createSubjectKeyId(cert.getPublicKey()).getKeyIdentifier() );</span>
-<span class="pc bpc" id="L130" title="1 of 2 branches missed.">		if ( id.isOK ) {</span>
-<span class="pc bpc" id="L131" title="1 of 2 branches missed.">			if ( log.isDebugEnabled() ) {</span>
-<span class="nc" id="L132">				log.debug(&quot;The certificate with subject DN '&quot;+cert.getSubjectX500Principal().getName()+&quot;' can be fetched with 'search.cgi?sKIDHash=&quot;+id.b64+&quot;' from the VA.&quot;);</span>
-			}
-		} else {
-<span class="nc" id="L135">			log.error(&quot;The certificate with subject DN '&quot;+cert.getSubjectX500Principal().getName()+&quot;' gives a sKIDHash with a not valid format: &quot;+id.b64);</span>
-		}
-<span class="fc" id="L137">		return id;</span>
-	}
-	public static HashID getFromAuthorityKeyId(X509Certificate cert) throws IOException {
-<span class="nc" id="L140">		final byte hash[]  = CertTools.getAuthorityKeyId(cert);</span>
-<span class="nc bnc" id="L141" title="All 2 branches missed.">		if ( hash==null ) {</span>
-<span class="nc" id="L142">			return null;</span>
-		}
-<span class="nc" id="L144">		final HashID id  = new HashID( CertTools.getAuthorityKeyId(cert) );</span>
-<span class="nc bnc" id="L145" title="All 2 branches missed.">		if ( !id.isOK ) {</span>
-<span class="nc" id="L146">			log.error(&quot;The certificate with subject DN '&quot;+cert.getSubjectX500Principal().getName()+&quot;' don't have a valid AuthorityKeyId: &quot;+id.b64);</span>
-		}
-<span class="nc" id="L148">		return id;</span>
-	}
-    public String getB64url() {
-<span class="nc" id="L151">        return b64url;</span>
+<span class="fc" id="L58">    this.b64url = this.b64.replaceAll(&quot;\\+&quot;, &quot;%2B&quot;);</span>
+<span class="fc" id="L59">    this.key = Integer.valueOf(new BigInteger(hash).hashCode());</span>
+<span class="fc" id="L60">  }</span>
+
+  private static byte[] hashFromPrincipalDN(final X500Principal principal) {
+<span class="fc" id="L63">    return CertTools.generateSHA1Fingerprint(principal.getEncoded());</span>
+  }
+
+  private static HashID getFromDN(final X500Principal principal) {
+<span class="fc" id="L67">    final HashID id = new HashID(hashFromPrincipalDN(principal));</span>
+<span class="pc bpc" id="L68" title="1 of 2 branches missed.">    if (id.isOK) {</span>
+<span class="pc bpc" id="L69" title="1 of 2 branches missed.">      if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L70">        LOG.debug(</span>
+            &quot;The DN '&quot;
+<span class="nc" id="L72">                + principal.getName()</span>
+                + &quot;' is identified by the Hash string '&quot;
+                + id.b64
+                + &quot;' when accessing the VA.&quot;);
+      }
+    } else {
+<span class="nc" id="L78">      LOG.error(</span>
+          &quot;The DN '&quot;
+<span class="nc" id="L80">              + principal.getName()</span>
+              + &quot;' has a non valid Hash identification string: &quot;
+              + id.b64);
     }
-    public Integer getKey() {
-<span class="fc" id="L154">        return key;</span>
+<span class="fc" id="L84">    return id;</span>
+  }
+  /**
+   * @param cert The subject DN of the certificate should be the identifier.
+   * @return the ID
+   */
+  public static HashID getFromSubjectDN(final X509Certificate cert) {
+<span class="fc" id="L91">    return getFromDN(cert.getSubjectX500Principal());</span>
+  }
+  /**
+   * @param cert The issuer DN of the certificate should be the identifier.
+   * @return the ID
+   */
+  public static HashID getFromIssuerDN(final X509Certificate cert) {
+<span class="fc" id="L98">    return getFromDN(cert.getIssuerX500Principal());</span>
+  }
+
+  /**
+   * @param certificateHolder The issuer DN of the certificate should be the
+   *     identifier.
+   * @return the ID
+   * @throws CertificateException on failure
+   */
+  public static HashID getFromIssuerDN(
+          final X509CertificateHolder certificateHolder)
+      throws CertificateException {
+<span class="nc" id="L110">    return getFromIssuerDN(</span>
+<span class="nc" id="L111">        new JcaX509CertificateConverter().getCertificate(certificateHolder));</span>
+  }
+  /**
+   * @param sDN A string representation of a DN to be as ID. The DN will not be
+   *     transformed in any way.
+   * @return the ID.
+   */
+  public static HashID getFromDNString(final String sDN) {
+    // Note that the DN string has to be encoded to an ASN1 with the BC lib. BC
+    // endcoding is EJBCA standard.
+    try {
+<span class="fc" id="L122">      return getFromDN(</span>
+          new X500Principal(
+              new X500Name(
+<span class="fc bfc" id="L125" title="All 2 branches covered.">                      CertTools.isDNReversed(sDN)</span>
+<span class="fc" id="L126">                          ? CertTools.reverseDN(sDN)</span>
+<span class="fc" id="L127">                          : sDN)</span>
+<span class="fc" id="L128">                  .getEncoded()));</span>
+<span class="nc" id="L129">    } catch (IOException e) {</span>
+<span class="nc" id="L130">      throw new IllegalStateException(e);</span>
     }
-    
-    public String getB64() {
-<span class="nc" id="L158">        return b64;</span>
+  }
+
+  /** Length. */
+  private static final int HASH_LENGTH = 27;
+  /**
+   * @param s The hash base64 encoded. See RFC4387
+   * @return the ID.
+   */
+  public static HashID getFromB64(final String s) {
+<span class="nc bnc" id="L141" title="All 2 branches missed.">    return new HashID(Base64.decode(s.length() == HASH_LENGTH ? s + '=' : s));</span>
+  }
+  /**
+   * @param cert The public key of the certificate will be used as ID.
+   * @return the ID.
+   */
+  public static HashID getFromKeyID(final X509Certificate cert) {
+<span class="fc" id="L148">    final HashID id =</span>
+        new HashID(
+<span class="fc" id="L150">            KeyTools.createSubjectKeyId(cert.getPublicKey())</span>
+<span class="fc" id="L151">                .getKeyIdentifier());</span>
+<span class="pc bpc" id="L152" title="1 of 2 branches missed.">    if (id.isOK) {</span>
+<span class="pc bpc" id="L153" title="1 of 2 branches missed.">      if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L154">        LOG.debug(</span>
+            &quot;The certificate with subject DN '&quot;
+<span class="nc" id="L156">                + cert.getSubjectX500Principal().getName()</span>
+                + &quot;' can be fetched with 'search.cgi?sKIDHash=&quot;
+                + id.b64
+                + &quot;' from the VA.&quot;);
+      }
+    } else {
+<span class="nc" id="L162">      LOG.error(</span>
+          &quot;The certificate with subject DN '&quot;
+<span class="nc" id="L164">              + cert.getSubjectX500Principal().getName()</span>
+              + &quot;' gives a sKIDHash with a not valid format: &quot;
+              + id.b64);
     }
+<span class="fc" id="L168">    return id;</span>
+  }
+
+  /**
+   * @param cert certificate
+   * @return ID
+   * @throws IOException on fail*/
+  public static HashID getFromAuthorityKeyId(final X509Certificate cert)
+      throws IOException {
+<span class="nc" id="L177">    final byte[] hash = CertTools.getAuthorityKeyId(cert);</span>
+<span class="nc bnc" id="L178" title="All 2 branches missed.">    if (hash == null) {</span>
+<span class="nc" id="L179">      return null;</span>
+    }
+<span class="nc" id="L181">    final HashID id = new HashID(CertTools.getAuthorityKeyId(cert));</span>
+<span class="nc bnc" id="L182" title="All 2 branches missed.">    if (!id.isOK) {</span>
+<span class="nc" id="L183">      LOG.error(</span>
+          &quot;The certificate with subject DN '&quot;
+<span class="nc" id="L185">              + cert.getSubjectX500Principal().getName()</span>
+              + &quot;' don't have a valid AuthorityKeyId: &quot;
+              + id.b64);
+    }
+<span class="nc" id="L189">    return id;</span>
+  }
+
+  /** @return base64 encoded URI */
+  public String getB64url() {
+<span class="nc" id="L194">    return b64url;</span>
+  }
+
+  /** @return key. */
+  public Integer getKey() {
+<span class="fc" id="L199">    return key;</span>
+  }
+
+  /** @return base64 encoded. */
+  public String getB64() {
+<span class="nc" id="L204">    return b64;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

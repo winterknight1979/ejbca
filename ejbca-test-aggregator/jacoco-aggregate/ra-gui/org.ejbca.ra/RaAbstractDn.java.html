@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RaAbstractDn.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ra-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ra</a> &gt; <span class="el_source">RaAbstractDn.java</span></div><h1>RaAbstractDn.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ra;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+import org.bouncycastle.asn1.x500.X500NameStyle;
+import org.cesecore.certificates.util.DNFieldExtractor;
+import org.cesecore.certificates.util.DnComponents;
+import org.cesecore.util.CeSecoreNameStyle;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfile;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfile.Field;
+
+/**
+ * Represents two APIs: list (needed for JSF) and map
+ * for the DN fields of the specified end entity profile. It is
+ * extended by Subject DN, SubjectAlternateName and Subject Directory Attributes
+ * 
+ * @version $Id: RaAbstractDn.java 26570 2017-09-18 18:42:48Z oskareriksson $
+ *
+ */
+public abstract class RaAbstractDn {
+
+    //private static final Logger log = Logger.getLogger(RaAbstractDn.class);
+    
+<span class="nc" id="L40">    private final Collection&lt;EndEntityProfile.FieldInstance&gt; fieldInstances = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L41">    private final Map&lt;String, Map&lt;Integer, EndEntityProfile.FieldInstance&gt;&gt; fieldInstancesMap = new HashMap&lt;&gt;();</span>
+    protected String value;
+<span class="nc" id="L43">    protected X500NameStyle nameStyle = CeSecoreNameStyle.INSTANCE;</span>
+<span class="nc" id="L44">    protected boolean ldapOrder = true;</span>
+
+    /**
+     * @return one of the DNFieldExtractor.TYPE_*
+     */
+    protected abstract int getAbstractDnFieldExtractorType();
+    
+    /**
+     * @return one of the DnComponents.getDnProfileFields, DnComponents.getAltNameFields() or DnComponents.getDirAttrFields
+     */
+    protected abstract ArrayList&lt;String&gt; getAbstractDnFields();
+    
+    /**
+     * Intended to be used for Subject DN: ;
+     * @param dnBeforeReordering DN
+     * @return reordered dn value
+     */
+    protected abstract String reorder(String dnBeforeReordering);
+    
+    public RaAbstractDn(final EndEntityProfile endEntityProfile) {
+<span class="nc" id="L64">        this(endEntityProfile, null);</span>
+<span class="nc" id="L65">    }</span>
+
+<span class="nc" id="L67">    public RaAbstractDn(final EndEntityProfile endEntityProfile, final String dn) {</span>
+<span class="nc" id="L68">        DNFieldExtractor dnFieldExtractor = null;</span>
+<span class="nc bnc" id="L69" title="All 2 branches missed.">        if (dn!=null) {</span>
+<span class="nc" id="L70">            dnFieldExtractor = new DNFieldExtractor(dn, getAbstractDnFieldExtractorType());</span>
+        }
+<span class="nc bnc" id="L72" title="All 2 branches missed.">        for (final String key : getAbstractDnFields()) {</span>
+<span class="nc" id="L73">            final Field field = endEntityProfile.new Field(key);</span>
+<span class="nc" id="L74">            fieldInstancesMap.put(key, new HashMap&lt;Integer, EndEntityProfile.FieldInstance&gt;());</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">            for (final EndEntityProfile.FieldInstance fieldInstance : field.getInstances()) {</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">                if (dnFieldExtractor!=null) {</span>
+<span class="nc" id="L77">                    fieldInstance.setValue(dnFieldExtractor.getField(DnComponents.profileIdToDnId(fieldInstance.getProfileId()), fieldInstance.getNumber()));</span>
+                }
+<span class="nc" id="L79">                fieldInstances.add(fieldInstance);</span>
+<span class="nc" id="L80">                fieldInstancesMap.get(key).put(fieldInstance.getNumber(), fieldInstance);</span>
+<span class="nc" id="L81">            }</span>
+<span class="nc" id="L82">        }</span>
+<span class="nc" id="L83">    }</span>
+    
+    /**
+     * @return the list interface for the subject DN fields
+     */
+    public Collection&lt;EndEntityProfile.FieldInstance&gt; getFieldInstances() {
+<span class="nc" id="L89">        return fieldInstances;</span>
+    }
+
+    /**
+     * @return the map interface for the subject DN fields.
+     */
+    public Map&lt;String, Map&lt;Integer, EndEntityProfile.FieldInstance&gt;&gt; getFieldInstancesMap() {
+<span class="nc" id="L96">        return fieldInstancesMap;</span>
+    }
+
+    /**
+     * Updates the the result string value of Subject DN.
+     */
+    public void update() {
+<span class="nc" id="L103">        StringBuilder dn = new StringBuilder();</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">        for (EndEntityProfile.FieldInstance fieldInstance : fieldInstances) {</span>
+<span class="nc bnc" id="L105" title="All 2 branches missed.">            if (fieldInstance != null) {</span>
+<span class="nc" id="L106">                String value = fieldInstance.getValue();</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">                if (!StringUtils.isBlank(value)) {</span>
+<span class="nc" id="L108">                    value = value.trim();</span>
+<span class="nc" id="L109">                    int dnId = DnComponents.profileIdToDnId(fieldInstance.getProfileId());</span>
+<span class="nc" id="L110">                    String nameValueDnPart = DNFieldExtractor.getFieldComponent(dnId, getAbstractDnFieldExtractorType()) + value;</span>
+<span class="nc" id="L111">                    nameValueDnPart = org.ietf.ldap.LDAPDN.escapeRDN(nameValueDnPart);</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">                    if (dn.length() != 0) {</span>
+<span class="nc" id="L113">                        dn.append(&quot;, &quot;);</span>
+                    }
+<span class="nc" id="L115">                    dn.append(nameValueDnPart);</span>
+                }
+            }
+<span class="nc" id="L118">        }</span>
+<span class="nc" id="L119">        value = reorder(dn.toString());</span>
+<span class="nc" id="L120">    }</span>
+
+    @Override
+    public String toString() {
+<span class="nc" id="L124">        return getUpdatedValue();</span>
+    }
+
+    /**
+     * Returns non-updated string value of abstract DN.
+     * @return DN as String
+     * @see RaAbstractDn#update()
+     */
+    public String getValue() {
+<span class="nc bnc" id="L133" title="All 2 branches missed.">        if(value == null){</span>
+<span class="nc" id="L134">            update();</span>
+        }
+<span class="nc" id="L136">        return value;</span>
+    }
+    
+    /**
+     * Updates the string value of abstract DN and then returns it.
+     * @return DN as String
+     */
+    public String getUpdatedValue() {
+<span class="nc" id="L144">        update();</span>
+<span class="nc" id="L145">        return value;</span>
+    }
+
+    @SuppressWarnings(&quot;unused&quot;)
+    private void setValue(String value) {
+<span class="nc" id="L150">        this.value = value;</span>
+<span class="nc" id="L151">    }</span>
+
+    /**
+     * @return the ldapOrder
+     */
+    public boolean isLdapOrder() {
+<span class="nc" id="L157">        return ldapOrder;</span>
+    }
+
+    /**
+     * @param ldapOrder the ldapOrder to set
+     */
+    public void setLdapOrder(boolean ldapOrder) {
+<span class="nc" id="L164">        this.ldapOrder = ldapOrder;</span>
+<span class="nc" id="L165">    }</span>
+
+    /**
+     * @return the nameStyle
+     */
+    public X500NameStyle getNameStyle() {
+<span class="nc" id="L171">        return nameStyle;</span>
+    }
+
+    /**
+     * @param nameStyle the nameStyle to set
+     */
+    public void setNameStyle(X500NameStyle nameStyle) {
+<span class="nc" id="L178">        this.nameStyle = nameStyle;</span>
+<span class="nc" id="L179">    }</span>
+
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

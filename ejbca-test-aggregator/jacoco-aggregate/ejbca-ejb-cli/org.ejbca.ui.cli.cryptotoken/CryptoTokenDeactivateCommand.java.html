@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CryptoTokenDeactivateCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.cryptotoken</a> &gt; <span class="el_source">CryptoTokenDeactivateCommand.java</span></div><h1>CryptoTokenDeactivateCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.cli.cryptotoken;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.keys.token.CryptoTokenInfo;
+import org.cesecore.keys.token.CryptoTokenManagementSessionRemote;
+import org.cesecore.keys.token.CryptoTokenOfflineException;
+import org.cesecore.util.EjbRemoteHelper;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+
+/**
+ * CryptoToken EJB CLI command. 
+ * 
+ * @version $Id: CryptoTokenDeactivateCommand.java 19902 2014-09-30 14:32:24Z anatom $
+ */
+<span class="nc" id="L29">public class CryptoTokenDeactivateCommand extends BaseCryptoTokenCommand {</span>
+
+<span class="nc" id="L31">    private static final Logger log = Logger.getLogger(CryptoTokenDeactivateCommand.class);</span>
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L35">        return &quot;deactivate&quot;;</span>
+    }
+
+    @Override
+    public CommandResult executeCommand(Integer cryptoTokenId, ParameterContainer parameters) throws AuthorizationDeniedException, CryptoTokenOfflineException {
+        try {
+<span class="nc" id="L41">            final CryptoTokenManagementSessionRemote cryptoTokenManagementSession = EjbRemoteHelper.INSTANCE</span>
+<span class="nc" id="L42">                    .getRemoteSession(CryptoTokenManagementSessionRemote.class);</span>
+<span class="nc" id="L43">            final CryptoTokenInfo cryptoTokenInfo = cryptoTokenManagementSession.getCryptoTokenInfo(getAdmin(), cryptoTokenId.intValue());</span>
+<span class="nc" id="L44">            final boolean usingAutoActivation = cryptoTokenInfo.isAutoActivation();</span>
+<span class="nc" id="L45">            cryptoTokenManagementSession.deactivate(getAdmin(), cryptoTokenId.intValue());</span>
+<span class="nc bnc" id="L46" title="All 2 branches missed.">            if (cryptoTokenManagementSession.isCryptoTokenStatusActive(getAdmin(), cryptoTokenId.intValue())) {</span>
+<span class="nc" id="L47">                final String msg = &quot;CryptoToken is still active after deactivation request.&quot;;</span>
+<span class="nc bnc" id="L48" title="All 2 branches missed.">                if (usingAutoActivation) {</span>
+<span class="nc" id="L49">                    getLogger().info(msg);</span>
+<span class="nc" id="L50">                    getLogger().info(</span>
+                            &quot;This is the expected outcome since the CryptoTokens is instantly auto-activated after the deactivation request.&quot;);
+                } else {
+<span class="nc" id="L53">                    getLogger().error(msg);</span>
+                }
+<span class="nc" id="L55">                return CommandResult.SUCCESS;</span>
+            } else {
+<span class="nc bnc" id="L57" title="All 2 branches missed.">                if (usingAutoActivation) {</span>
+<span class="nc" id="L58">                    getLogger().error(&quot;CryptoTokens was deactivated despite auto-activation being used. This is an unexpected outcome.&quot;);</span>
+                } else {
+<span class="nc" id="L60">                    getLogger().info(&quot;CryptoToken deactivated successfully.&quot;);</span>
+                }
+<span class="nc" id="L62">                return CommandResult.FUNCTIONAL_FAILURE;</span>
+            }
+<span class="nc" id="L64">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L65">            getLogger().info(e.getMessage());</span>
+<span class="nc" id="L66">            return CommandResult.AUTHORIZATION_FAILURE;</span>
+<span class="nc" id="L67">        } catch (Exception e) {</span>
+<span class="nc" id="L68">            getLogger().info(&quot;CryptoToken deactivation failed: &quot; + e.getMessage());</span>
+<span class="nc" id="L69">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+        }
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L75">        return &quot;Deactivate CryptoToken&quot;;</span>
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L80">        return getCommandDescription();</span>
+    }
+
+    @Override
+    protected Logger getLogger() {
+<span class="nc" id="L85">        return log;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

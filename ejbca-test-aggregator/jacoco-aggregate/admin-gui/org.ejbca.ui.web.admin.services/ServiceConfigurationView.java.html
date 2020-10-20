@@ -1,0 +1,446 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ServiceConfigurationView.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">admin-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.services</a> &gt; <span class="el_source">ServiceConfigurationView.java</span></div><h1>ServiceConfigurationView.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.web.admin.services;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+
+import javax.faces.model.SelectItem;
+
+import org.apache.log4j.Logger;
+import org.ejbca.core.model.services.IAction;
+import org.ejbca.core.model.services.IInterval;
+import org.ejbca.core.model.services.IWorker;
+import org.ejbca.core.model.services.ServiceConfiguration;
+import org.ejbca.ui.web.admin.CustomLoader;
+import org.ejbca.ui.web.admin.configuration.EjbcaJSFHelper;
+import org.ejbca.ui.web.admin.services.servicetypes.ActionType;
+import org.ejbca.ui.web.admin.services.servicetypes.CustomActionType;
+import org.ejbca.ui.web.admin.services.servicetypes.CustomIntervalType;
+import org.ejbca.ui.web.admin.services.servicetypes.CustomWorkerType;
+import org.ejbca.ui.web.admin.services.servicetypes.IntervalType;
+import org.ejbca.ui.web.admin.services.servicetypes.NoActionType;
+import org.ejbca.ui.web.admin.services.servicetypes.PeriodicalIntervalType;
+import org.ejbca.ui.web.admin.services.servicetypes.ServiceType;
+import org.ejbca.ui.web.admin.services.servicetypes.WorkerType;
+
+/**
+ * Class responsible for converting the data between the GUI and a
+ * ServiceConfiguration VO
+ *
+ * @version $Id: ServiceConfigurationView.java 28844 2018-05-04 08:31:02Z samuellb $
+ */
+public class ServiceConfigurationView implements Serializable{
+
+	private static final long serialVersionUID = 1L;
+<span class="nc" id="L55">	private static final Logger log = Logger.getLogger(ServiceConfigurationView.class);</span>
+	
+	private WorkerType workerType;
+	private ActionType actionType;
+	private IntervalType intervalType;
+	
+    private String selectedInterval;
+    private String selectedAction;
+    
+    private ServiceTypeManager typeManager;
+	
+<span class="nc" id="L66">	private boolean active = false;</span>
+<span class="nc" id="L67">	private boolean hidden = false;</span>
+<span class="nc" id="L68">	private String description = &quot;&quot;;</span>
+<span class="nc" id="L69">	private String[] pinToNodes = new String[0];</span>
+<span class="nc" id="L70">	private boolean runOnAllNodes = false;</span>
+	
+	private ServiceConfiguration serviceConfiguration;
+	
+<span class="nc" id="L74">	public ServiceConfigurationView(ServiceConfiguration serviceConfiguration) {</span>
+		
+<span class="nc" id="L76">		typeManager = new ServiceTypeManager();</span>
+	
+<span class="nc" id="L78">		this.serviceConfiguration = serviceConfiguration;</span>
+<span class="nc" id="L79">		WorkerType workerType = (WorkerType) typeManager.getServiceTypeByClassPath(serviceConfiguration.getWorkerClassPath());</span>
+<span class="nc bnc" id="L80" title="All 2 branches missed.">		if (workerType == null) {</span>
+<span class="nc" id="L81">		    workerType = (WorkerType) typeManager.getServiceTypeByName(CustomWorkerType.NAME);</span>
+<span class="nc" id="L82">		    ((CustomWorkerType) workerType).setClassPath(serviceConfiguration.getWorkerClassPath());</span>
+		}			
+<span class="nc" id="L84">	    setWorkerType(workerType);</span>
+		
+<span class="nc" id="L86">		IntervalType intervalType = (IntervalType) typeManager.getServiceTypeByClassPath(serviceConfiguration.getIntervalClassPath());</span>
+<span class="nc bnc" id="L87" title="All 2 branches missed.">		if (intervalType == null) {</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">		    if (workerType.getCompatibleIntervalTypeNames().contains(PeriodicalIntervalType.NAME)) {</span>
+	            // It seems most likely that the admin wants to configure a periodic interval even if custom interval are available
+<span class="nc" id="L90">	            intervalType = (IntervalType) typeManager.getServiceTypeByName(PeriodicalIntervalType.NAME);</span>
+		    } else {
+<span class="nc" id="L92">	            intervalType = (IntervalType) typeManager.getServiceTypeByName(CustomIntervalType.NAME);</span>
+<span class="nc" id="L93">	            ((CustomIntervalType) intervalType).setClassPath(serviceConfiguration.getIntervalClassPath());</span>
+		    }
+		}						
+<span class="nc" id="L96">		setIntervalType(intervalType);</span>
+<span class="nc" id="L97">		selectedInterval = intervalType.getName();</span>
+		
+<span class="nc" id="L99">		ActionType actionType = (ActionType) typeManager.getServiceTypeByClassPath(serviceConfiguration.getActionClassPath());</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">		if (actionType == null) {</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">            if (workerType.getCompatibleActionTypeNames().contains(NoActionType.NAME)) {</span>
+                // It seems most likely that the admin wants to configure a &quot;no action&quot; action even if custom actions are available
+<span class="nc" id="L103">                actionType = (ActionType) typeManager.getServiceTypeByName(NoActionType.NAME);</span>
+            } else {
+<span class="nc" id="L105">                actionType = (ActionType) typeManager.getServiceTypeByName(CustomActionType.NAME);</span>
+<span class="nc" id="L106">                ((CustomActionType) actionType).setClassPath(serviceConfiguration.getActionClassPath());</span>
+            }
+		}						
+<span class="nc" id="L109">	    setActionType(actionType);</span>
+<span class="nc" id="L110">	    selectedAction = actionType.getName();</span>
+		
+<span class="nc" id="L112">		setDescription(serviceConfiguration.getDescription());</span>
+<span class="nc" id="L113">		setActive(serviceConfiguration.isActive());</span>
+<span class="nc" id="L114">		setHidden(serviceConfiguration.isHidden());</span>
+<span class="nc" id="L115">		setPinToNodes(serviceConfiguration.getPinToNodes());</span>
+<span class="nc" id="L116">		setRunOnAllNodes(serviceConfiguration.isRunOnAllNodes());</span>
+<span class="nc" id="L117">	}</span>
+	
+	/**
+	 * Method that populates a service configuration from a
+	 * GUI data.
+	 * @param errorMessages Messages
+	 * @return Config
+	 * @throws IOException Fail 
+	 */
+	public ServiceConfiguration getServiceConfiguration(ArrayList&lt;String&gt; errorMessages) throws IOException{
+<span class="nc" id="L127">		ServiceConfiguration retval = new ServiceConfiguration();</span>
+<span class="nc" id="L128">		retval.setActive(isActive());</span>
+<span class="nc" id="L129">		retval.setHidden(isHidden());</span>
+<span class="nc" id="L130">		retval.setDescription(getDescription());</span>
+<span class="nc" id="L131">		retval.setActionClassPath(getActionType().getClassPath());</span>
+<span class="nc" id="L132">		retval.setActionProperties(getActionType().getProperties(errorMessages)); </span>
+<span class="nc" id="L133">		retval.setIntervalClassPath(getIntervalType().getClassPath());</span>
+<span class="nc" id="L134">		retval.setIntervalProperties(getIntervalType().getProperties(errorMessages));</span>
+<span class="nc" id="L135">		retval.setWorkerClassPath(getWorkerType().getClassPath());</span>
+<span class="nc" id="L136">		retval.setWorkerProperties(getWorkerType().getProperties(errorMessages));</span>
+<span class="nc" id="L137">		retval.setPinToNodes(getPinToNodes());</span>
+<span class="nc" id="L138">		retval.setRunOnAllNodes(isRunOnAllNodes());</span>
+<span class="nc" id="L139">		return retval;</span>
+	}
+
+	/**
+	 * @return the actionType
+	 */
+	public ActionType getActionType() {
+<span class="nc" id="L146">		return actionType;</span>
+	}
+
+	/**
+	 * @param actionType the actionType to set
+	 */
+	public void setActionType(ActionType actionType) {
+		try {
+<span class="nc" id="L154">			actionType.setProperties(serviceConfiguration.getActionProperties());</span>
+<span class="nc" id="L155">		} catch (IOException e) {</span>
+<span class="nc" id="L156">		  log.error(e);</span>
+<span class="nc" id="L157">		}</span>
+<span class="nc" id="L158">		this.actionType = actionType;</span>
+<span class="nc" id="L159">	}</span>
+
+	/**
+	 * @return the active flag
+	 */
+	public boolean isActive() {
+<span class="nc" id="L165">		return active;</span>
+	}
+
+	/**
+	 * @param active the active flag to set
+	 */
+	public void setActive(boolean active) {
+<span class="nc" id="L172">		this.active = active;</span>
+<span class="nc" id="L173">	}</span>
+
+	public boolean isHidden() {
+<span class="nc" id="L176">		return hidden;</span>
+	}
+
+	/**
+	 * @param hidden the hidden flag to set
+	 */
+	public void setHidden(boolean hidden) {
+<span class="nc" id="L183">		this.hidden = hidden;</span>
+<span class="nc" id="L184">	}</span>
+	
+	/**
+	 * @return the description
+	 */
+	public String getDescription() {
+<span class="nc" id="L190">		return description;</span>
+	}
+
+	/**
+	 * @param description the description to set
+	 */
+	public void setDescription(String description) {
+<span class="nc" id="L197">		this.description = description;</span>
+<span class="nc" id="L198">	}</span>
+
+	/**
+	 * @return the intervalType
+	 */
+	public IntervalType getIntervalType() {
+<span class="nc" id="L204">		return intervalType;</span>
+	}
+
+	/**
+	 * @param intervalType the intervalType to set
+	 */
+	public void setIntervalType(IntervalType intervalType) {	
+		try {
+<span class="nc" id="L212">			intervalType.setProperties(serviceConfiguration.getIntervalProperties());</span>
+<span class="nc" id="L213">		} catch (IOException e) {</span>
+<span class="nc" id="L214">		  log.error(e);</span>
+<span class="nc" id="L215">		}</span>
+<span class="nc" id="L216">		this.intervalType = intervalType;</span>
+<span class="nc" id="L217">	}</span>
+
+	/**
+	 * @return the workerType
+	 */
+	public WorkerType getWorkerType() {
+<span class="nc" id="L223">		return workerType;</span>
+	}
+
+	/**
+	 * @param workerType the workerType to set
+	 */
+	public void setWorkerType(WorkerType workerType) {
+		try{
+<span class="nc" id="L231">		  workerType.setProperties(serviceConfiguration.getWorkerProperties());</span>
+<span class="nc" id="L232">		  this.workerType = workerType;</span>
+		  
+		
+<span class="nc bnc" id="L235" title="All 4 branches missed.">		  if(selectedInterval != null &amp;&amp; !workerType.getCompatibleIntervalTypeNames().contains(selectedInterval)){				</span>
+<span class="nc" id="L236">			setSelectedInterval(workerType.getCompatibleIntervalTypeNames().iterator().next());</span>
+<span class="nc" id="L237">			setIntervalType((IntervalType) typeManager.getServiceTypeByName(getSelectedInterval()));</span>
+		  }
+		  
+		
+<span class="nc bnc" id="L241" title="All 4 branches missed.">		  if(selectedAction != null &amp;&amp; !workerType.getCompatibleActionTypeNames().contains(selectedAction)){</span>
+<span class="nc" id="L242">			setSelectedAction(workerType.getCompatibleActionTypeNames().iterator().next());</span>
+<span class="nc" id="L243">			setActionType((ActionType) typeManager.getServiceTypeByName(getSelectedAction()));</span>
+		  }
+		  
+<span class="nc" id="L246">		}catch(IOException e){</span>
+<span class="nc" id="L247">			log.error(e);</span>
+<span class="nc" id="L248">		}</span>
+<span class="nc" id="L249">	}</span>
+	
+
+
+	/**
+	 * @return the selectedAction
+	 */
+	public String getSelectedAction() {
+<span class="nc" id="L257">		return selectedAction;</span>
+	}
+
+	/**
+	 * @param selectedAction the selectedAction to set
+	 */
+	public void setSelectedAction(String selectedAction) {
+<span class="nc" id="L264">		this.selectedAction = selectedAction;</span>
+<span class="nc" id="L265">	}</span>
+
+	/**
+	 * @return the selectedInterval
+	 */
+	public String getSelectedInterval() {
+<span class="nc" id="L271">		return selectedInterval;</span>
+	}
+
+	/**
+	 * @param selectedInterval the selectedInterval to set
+	 */
+	public void setSelectedInterval(String selectedInterval) {
+<span class="nc" id="L278">		this.selectedInterval = selectedInterval;</span>
+<span class="nc" id="L279">	}</span>
+
+	/**
+	 * @return the selectedWorker
+	 */
+	public String getSelectedWorker() {
+<span class="nc" id="L285">	    final WorkerType workerType = getWorkerType();</span>
+<span class="nc bnc" id="L286" title="All 2 branches missed.">	    if (workerType instanceof CustomWorkerType) {</span>
+<span class="nc" id="L287">	        final CustomWorkerType customWorkerType = (CustomWorkerType) workerType;</span>
+<span class="nc bnc" id="L288" title="All 4 branches missed.">	        if (customWorkerType.getClassPath()!=null &amp;&amp; customWorkerType.getClassPath().length()&gt;0) {</span>
+<span class="nc" id="L289">	            return workerType.getName() + &quot;-&quot; + customWorkerType.getClassPath();</span>
+	        }
+	    }
+<span class="nc" id="L292">		return workerType.getName();</span>
+	}
+
+	/**
+	 * @param selectedWorker the selectedWorker to set
+	 */
+	public void setSelectedWorker(final String selectedWorker) {
+<span class="nc" id="L299">	    final int separatorPos = selectedWorker.indexOf('-');</span>
+<span class="nc bnc" id="L300" title="All 2 branches missed.">	    if (separatorPos==-1) {</span>
+<span class="nc" id="L301">	        final WorkerType workerType = (WorkerType) getServiceTypeManager().getServiceTypeByName(selectedWorker);</span>
+<span class="nc bnc" id="L302" title="All 2 branches missed.">	        if (workerType instanceof CustomWorkerType) {</span>
+<span class="nc" id="L303">	            ((CustomWorkerType) workerType).setClassPath(&quot;&quot;);</span>
+	        }
+<span class="nc" id="L305">	        setWorkerType(workerType);</span>
+<span class="nc" id="L306">	    } else {</span>
+<span class="nc" id="L307">	        final String customClassPath = selectedWorker.split(&quot;-&quot;)[1];</span>
+<span class="nc" id="L308">	        final WorkerType workerType = (WorkerType) typeManager.getServiceTypeByName(CustomWorkerType.NAME);</span>
+<span class="nc" id="L309">            ((CustomWorkerType) workerType).setClassPath(customClassPath);</span>
+<span class="nc" id="L310">	        setWorkerType(workerType);</span>
+	    }
+<span class="nc" id="L312">	}	</span>
+	
+	public List&lt;SelectItem&gt; getAvailableWorkers(){
+<span class="nc" id="L315">		final ArrayList&lt;SelectItem&gt; retval = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L316">		final Collection&lt;ServiceType&gt; available = typeManager.getAvailableWorkerTypes();</span>
+<span class="nc bnc" id="L317" title="All 2 branches missed.">		for (final ServiceType next : available) {</span>
+<span class="nc" id="L318">			String label = next.getName();</span>
+<span class="nc bnc" id="L319" title="All 2 branches missed.">			if (next.isTranslatable()) {</span>
+<span class="nc" id="L320">				label = EjbcaJSFHelper.getBean().getText().get(next.getName());</span>
+			}
+<span class="nc" id="L322">            retval.add(new SelectItem(next.getName(),label));</span>
+<span class="nc bnc" id="L323" title="All 2 branches missed.">			if (next instanceof CustomWorkerType) {</span>
+<span class="nc" id="L324">		        List&lt;String&gt; customClasses = CustomLoader.getCustomClasses(IWorker.class);</span>
+<span class="nc bnc" id="L325" title="All 2 branches missed.">		        for (final String customClass : customClasses) {</span>
+<span class="nc" id="L326">		            final String customClassSimpleName = customClass.substring(customClass.lastIndexOf('.')+1);</span>
+<span class="nc" id="L327">		            final String labelKey = customClassSimpleName.toUpperCase()+&quot;_TITLE&quot;;</span>
+<span class="nc" id="L328">		            label = EjbcaJSFHelper.getBean().getText().get(labelKey);</span>
+<span class="nc bnc" id="L329" title="All 2 branches missed.">		            if (label.equals(labelKey)) {</span>
+<span class="nc" id="L330">		                label = customClassSimpleName + &quot; (&quot;+EjbcaJSFHelper.getBean().getText().get(next.getName())+&quot;)&quot;;</span>
+		            }
+<span class="nc" id="L332">		            retval.add(new SelectItem(next.getName()+&quot;-&quot;+customClass, label));</span>
+<span class="nc" id="L333">		        }</span>
+			}
+<span class="nc" id="L335">		}</span>
+		// Sort by label
+<span class="nc" id="L337">		Collections.sort(retval, new Comparator&lt;SelectItem&gt;() {</span>
+            @Override
+            public int compare(SelectItem arg0, SelectItem arg1) {
+<span class="nc" id="L340">                return arg0.getLabel().compareTo(arg1.getLabel());</span>
+            }
+		});
+<span class="nc" id="L343">		return retval;</span>
+	}
+	
+	public List&lt;SelectItem&gt; getAvailableIntervals(){
+<span class="nc" id="L347">		final ArrayList&lt;SelectItem&gt; retval = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L348">		final WorkerType currentWorkerType = getWorkerType();</span>
+<span class="nc bnc" id="L349" title="All 2 branches missed.">		for (final String name : currentWorkerType.getCompatibleIntervalTypeNames()) {</span>
+<span class="nc" id="L350">			final ServiceType next = typeManager.getServiceTypeByName(name);</span>
+<span class="nc" id="L351">			String label = name;</span>
+<span class="nc bnc" id="L352" title="All 2 branches missed.">			if(next.isTranslatable()){</span>
+<span class="nc" id="L353">				label = EjbcaJSFHelper.getBean().getText().get(name);</span>
+			}
+<span class="nc" id="L355">			retval.add(new SelectItem(name,label));</span>
+<span class="nc" id="L356">		}</span>
+<span class="nc" id="L357">		return retval;</span>
+	}
+	
+	public List&lt;SelectItem&gt; getAvailableActions(){
+<span class="nc" id="L361">		final ArrayList&lt;SelectItem&gt; retval = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L362">		final WorkerType currentWorkerType = getWorkerType();</span>
+<span class="nc bnc" id="L363" title="All 2 branches missed.">		for (final String name : currentWorkerType.getCompatibleActionTypeNames()) {</span>
+<span class="nc" id="L364">			final ServiceType next = typeManager.getServiceTypeByName(name);</span>
+<span class="nc" id="L365">			String label = name;</span>
+<span class="nc bnc" id="L366" title="All 2 branches missed.">			if (next.isTranslatable()) {</span>
+<span class="nc" id="L367">				label = EjbcaJSFHelper.getBean().getText().get(name);</span>
+			}
+<span class="nc" id="L369">			retval.add(new SelectItem(name,label));</span>
+<span class="nc" id="L370">		}		</span>
+<span class="nc" id="L371">		return retval;</span>
+	}
+	
+	private List&lt;SelectItem&gt; stringsToItems(List&lt;String&gt; stringList) {
+<span class="nc" id="L375">	   List&lt;SelectItem&gt; itemList = new ArrayList&lt;&gt;(stringList.size());</span>
+<span class="nc bnc" id="L376" title="All 2 branches missed.">	   for (String s : stringList) {</span>
+<span class="nc" id="L377">	       itemList.add(new SelectItem(s, s));</span>
+<span class="nc" id="L378">	   }</span>
+<span class="nc" id="L379">	   return itemList;</span>
+	}
+	
+	public List&lt;SelectItem&gt; getAvailableCustomWorkerItems() {
+<span class="nc" id="L383">	    final List&lt;String&gt; customClasses = CustomLoader.getCustomClasses(IWorker.class);</span>
+<span class="nc" id="L384">	    final List&lt;String&gt; customClassesWithoutUiSupport = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L385" title="All 2 branches missed.">	    for (final String classPath : customClasses) {</span>
+	    	// Exclude all the workers that have custom UI support and will be shown as any other worker
+<span class="nc bnc" id="L387" title="All 2 branches missed.">	        if (!CustomWorkerType.isCustomUiRenderingSupported(classPath)) {</span>
+<span class="nc" id="L388">	            customClassesWithoutUiSupport.add(classPath);</span>
+	        }
+<span class="nc" id="L390">	    }</span>
+<span class="nc" id="L391">	    return stringsToItems(customClassesWithoutUiSupport);</span>
+	}
+	
+	public List&lt;SelectItem&gt; getAvailableCustomIntervalItems() {
+<span class="nc" id="L395">       return stringsToItems(CustomLoader.getCustomClasses(IInterval.class));</span>
+    }
+    
+    public List&lt;SelectItem&gt; getAvailableCustomActionItems() {
+<span class="nc" id="L399">       return stringsToItems(CustomLoader.getCustomClasses(IAction.class));</span>
+    }
+	
+	/** returns this sessions service type manager 
+	 * @return Manager*/
+	public ServiceTypeManager getServiceTypeManager(){
+<span class="nc" id="L405">		return typeManager;</span>
+	}
+
+	public String[] getPinToNodes() {
+<span class="nc" id="L409">		return pinToNodes;</span>
+	}
+
+	public void setPinToNodes(String[] pinToNodes) {
+<span class="nc bnc" id="L413" title="All 2 branches missed.">		if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L414">			log.debug(&quot;view setPinToNodes: &quot; + Arrays.toString(pinToNodes));</span>
+		}
+<span class="nc" id="L416">		this.pinToNodes = pinToNodes;</span>
+<span class="nc" id="L417">	}</span>
+
+    public boolean isRunOnAllNodes() {
+<span class="nc" id="L420">        return runOnAllNodes;</span>
+    }
+    
+	public void setRunOnAllNodes(boolean runOnAllNodes) {
+<span class="nc bnc" id="L424" title="All 2 branches missed.">	    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L425">	        log.debug(&quot;view setRunOnAllNodes: &quot; + runOnAllNodes);</span>
+	    }
+<span class="nc" id="L427">	    this.runOnAllNodes = runOnAllNodes;</span>
+<span class="nc" id="L428">	}</span>
+
+	public List&lt;SelectItem&gt; getNodesInCluster() {
+<span class="nc" id="L431">		final List&lt;SelectItem&gt; ret = new LinkedList&lt;&gt;();</span>
+<span class="nc" id="L432">		final Set&lt;String&gt; nodes = EjbcaJSFHelper.getBean().getEjbcaWebBean().getGlobalConfiguration().getNodesInCluster();  </span>
+<span class="nc bnc" id="L433" title="All 2 branches missed.">		for (String node : nodes) {</span>
+<span class="nc" id="L434">			ret.add(new SelectItem(node));</span>
+<span class="nc" id="L435">		}</span>
+		// Also add unknown nodes, that is nodes that has been removed but this service still is pinned to
+<span class="nc bnc" id="L437" title="All 2 branches missed.">		for (String node : getPinToNodes()) {</span>
+<span class="nc bnc" id="L438" title="All 2 branches missed.">			if (!nodes.contains(node)) {</span>
+<span class="nc" id="L439">				ret.add(new SelectItem(node, node + &quot; &quot; + EjbcaJSFHelper.getBean().getText().get(&quot;PINTONODESUNKNOWNNODE&quot;)));</span>
+			}
+		}
+<span class="nc" id="L442">		return ret; </span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>EndEntityProfileNameProxy.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">admin-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.rainterface</a> &gt; <span class="el_source">EndEntityProfileNameProxy.java</span></div><h1>EndEntityProfileNameProxy.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+/*
+ * cProfileNameProxy.java
+ *
+ * Created on den 23 juli 2002, 17:49
+ */
+
+package org.ejbca.ui.web.admin.rainterface;
+
+import java.util.HashMap;
+
+import org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSession;
+
+/**
+ * A class used to improve performance by proxying end entity profileid to profilename mappings by minimizing the number of needed lockups over rmi.
+ * 
+ * @author  TomSelleck
+ * @version $Id: EndEntityProfileNameProxy.java 28844 2018-05-04 08:31:02Z samuellb $
+ */
+public class EndEntityProfileNameProxy implements java.io.Serializable {
+    
+    private static final long serialVersionUID = 7866894775948690845L;
+    private HashMap&lt;Integer, String&gt; profilenamestore;
+    private EndEntityProfileSession endEntityProfileSession;
+
+    /** Creates a new instance of ProfileNameProxy 
+     * @param endEntityProfileSession Session */
+<span class="nc" id="L40">    public EndEntityProfileNameProxy(EndEntityProfileSession endEntityProfileSession){</span>
+              // Get the RaAdminSession instance.
+<span class="nc" id="L42">      this.endEntityProfileSession = endEntityProfileSession;</span>
+      
+<span class="nc" id="L44">      profilenamestore = new HashMap&lt;&gt;(); </span>
+<span class="nc" id="L45">    }</span>
+    
+    /**
+     * Method that first tries to find profilename in local hashmap and if it does not exist looks it up over RMI.
+     *
+     * @param profileid the profile id number to look up.
+     * @return the profilename or null if no profilename is relatied to the given id
+     */
+    public String getEndEntityProfileName(int profileid) {
+<span class="nc" id="L54">      String returnval = null;  </span>
+      // Check if name is in hashmap
+<span class="nc" id="L56">      returnval = profilenamestore.get(Integer.valueOf(profileid));</span>
+      
+<span class="nc bnc" id="L58" title="All 2 branches missed.">      if(returnval==null){</span>
+        // Retreive profilename
+<span class="nc" id="L60">        returnval = endEntityProfileSession.getEndEntityProfileName(profileid);</span>
+<span class="nc bnc" id="L61" title="All 2 branches missed.">        if(returnval != null) {</span>
+<span class="nc" id="L62">          profilenamestore.put(Integer.valueOf(profileid),returnval);</span>
+        }
+      }    
+<span class="nc" id="L65">      return returnval;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

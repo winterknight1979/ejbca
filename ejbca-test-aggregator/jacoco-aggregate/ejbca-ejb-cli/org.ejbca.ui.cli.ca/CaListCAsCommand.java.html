@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CaListCAsCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.ca</a> &gt; <span class="el_source">CaListCAsCommand.java</span></div><h1>CaListCAsCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.cli.ca;
+
+import java.security.cert.Certificate;
+import java.util.Collection;
+import java.util.Iterator;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.CaSessionRemote;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.EjbRemoteHelper;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+
+/**
+ * Lists the names of all available CAs.
+ *
+ * @version $Id: CaListCAsCommand.java 27740 2018-01-05 07:24:53Z mikekushner $
+ */
+<span class="nc" id="L35">public class CaListCAsCommand extends BaseCaAdminCommand {</span>
+
+<span class="nc" id="L37">    private static final Logger log = Logger.getLogger(CaListCAsCommand.class);</span>
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L41">        return &quot;listcas&quot;;</span>
+    }
+
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+
+<span class="nc" id="L47">        CryptoProviderTools.installBCProvider();</span>
+<span class="nc" id="L48">        Collection&lt;Integer&gt; caids = EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class).getAuthorizedCaIds(getAuthenticationToken());</span>
+        try {
+<span class="nc bnc" id="L50" title="All 2 branches missed.">            for (int caid : caids) {</span>
+<span class="nc" id="L51">                CAInfo ca = EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class).getCAInfo(getAuthenticationToken(), caid);       </span>
+<span class="nc" id="L52">                Collection&lt;Certificate&gt; certs = ca.getCertificateChain();</span>
+<span class="nc" id="L53">                Iterator&lt;Certificate&gt; ci = certs.iterator();</span>
+<span class="nc" id="L54">                Certificate cacert = null;</span>
+<span class="nc bnc" id="L55" title="All 2 branches missed.">                if (ci.hasNext()) {</span>
+<span class="nc" id="L56">                    cacert = (Certificate) ci.next();</span>
+                }
+<span class="nc" id="L58">                getLogger().info(&quot;CA Name: &quot; + ca.getName());</span>
+<span class="nc" id="L59">                getLogger().info(&quot; Id: &quot; + ca.getCAId());</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">                if (cacert != null) {</span>
+<span class="nc" id="L61">                    getLogger().info(&quot; Issuer DN: &quot; + CertTools.getIssuerDN(cacert));</span>
+                }
+<span class="nc" id="L63">                getLogger().info(&quot; Subject DN: &quot; + ca.getSubjectDN());</span>
+<span class="nc" id="L64">                getLogger().info(&quot; Type: &quot; + ca.getCAType());</span>
+<span class="nc" id="L65">                getLogger().info(&quot; Expire time: &quot; + ca.getExpireTime());</span>
+<span class="nc" id="L66">                getLogger().info(&quot; Signed by: &quot; + ca.getSignedBy());</span>
+<span class="nc" id="L67">            }</span>
+<span class="nc" id="L68">            return CommandResult.SUCCESS;</span>
+<span class="nc" id="L69">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L70">            log.error(&quot;CLI user not authorized to view CAs&quot;);</span>
+<span class="nc" id="L71">            return CommandResult.AUTHORIZATION_FAILURE;</span>
+        }
+
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L78">        return &quot;Lists the names of all available CAs&quot;;</span>
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L83">        return getCommandDescription();</span>
+    }
+
+    @Override
+    protected Logger getLogger() {
+<span class="nc" id="L88">        return log;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

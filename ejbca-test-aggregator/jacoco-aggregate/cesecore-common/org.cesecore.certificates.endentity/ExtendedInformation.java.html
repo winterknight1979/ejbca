@@ -23,7 +23,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.apache.commons.lang.time.FastDateFormat;
@@ -38,579 +37,769 @@ import org.cesecore.util.StringTools;
 import org.cesecore.util.ValidityDate;
 
 /**
- * The model representation of Extended Information about a user. It's used for non-searchable data about a user,
- * like a image, in an effort to minimize the need for database alterations
+ * The model representation of Extended Information about a user. It's used for
+ * non-searchable data about a user, like a image, in an effort to minimize the
+ * need for database alterations.
  *
- * TODO: Clean out whatever final static variables which aren't externally references.
+ * &lt;p&gt;TODO: Clean out whatever final static variables which aren't externally
+ * references.
  *
- * @version $Id: ExtendedInformation.java 34306 2020-01-16 12:21:31Z andrey_s_helmes $
- *
+ * @version $Id: ExtendedInformation.java 34306 2020-01-16 12:21:31Z
+ *     andrey_s_helmes $
  */
-public class ExtendedInformation extends UpgradeableDataHashMap implements Serializable {
+public class ExtendedInformation extends UpgradeableDataHashMap
+    implements Serializable {
 
-    public static final String TYPE = &quot;type&quot;;
-    /** Different types of implementations of extended information, can be used to have different implementing classes of extended information */
-    public static final int TYPE_BASIC = 0;
+    /** Type. */
+  public static final String TYPE = &quot;type&quot;;
+  /**
+   * Different types of implementations of extended information, can be used to
+   * have different implementing classes of extended information.
+   */
+  public static final int TYPE_BASIC = 0;
 
-<span class="fc" id="L55">    private static final Logger log = Logger.getLogger(ExtendedInformation.class);</span>
-    /** Internal localization of logs and errors */
-<span class="fc" id="L57">    private static final InternalResources intres = InternalResources.getInstance();</span>
+  /** LOG. */
+<span class="fc" id="L62">  private static final Logger LOG = Logger.getLogger(ExtendedInformation.class);</span>
+  /** Internal localization of logs and errors. */
+  private static final InternalResources INTRES =
+<span class="fc" id="L65">      InternalResources.getInstance();</span>
 
-    private static final long serialVersionUID = 3981761824188420320L;
+  private static final long serialVersionUID = 3981761824188420320L;
 
-    private static final float LATEST_VERSION = 4;
+  /** API Version. */
+  private static final float LATEST_VERSION = 4;
 
+  /**
+   * Used to store subject directory attributes, which are put in an extension
+   * in the certificate. SubjectDirectoryAttributes are standard attributes, see
+   * rfc3280.
+   */
+  public static final String SUBJECTDIRATTRIBUTES = &quot;subjectdirattributes&quot;;
+  /**
+   * Custom data can be used by various custom work-flows and other non-standard
+   * things to store information needed.
+   */
+  public static final String CUSTOMDATA = &quot;customdata_&quot;;
 
-    /**
-     * Used to store subject directory attributes, which are put in an extension in the certificate. SubjectDirectoryAttributes are standard
-     * attributes, see rfc3280
-     */
-    public  static final String SUBJECTDIRATTRIBUTES = &quot;subjectdirattributes&quot;;
-    /** Custom data can be used by various custom work-flows and other non-standard things to store information needed */
-    public  static final String CUSTOMDATA = &quot;customdata_&quot;;
+  /**
+   * Extension data can be used by the BasicCertificateExtension or custom
+   * certificate extensions to store data to be used when creating the extension
+   * such as the extension value.
+   */
+  public static final String EXTENSIONDATA = &quot;extensiondata_&quot;;
 
-    /**
-     * Extension data can be used by the BasicCertificateExtension or custom
-     * certificate extensions to store data to be used when creating the
-     * extension such as the extension value.
-     */
-    public static final String EXTENSIONDATA = &quot;extensiondata_&quot;;
+  /**
+   * Identifier for Custom data holding a end time when the users certificate
+   * should be valid extInfo.setCustomData(EndEntityProfile.STARTTIME, &quot;&quot;);.
+   */
+  public static final String CUSTOM_STARTTIME =
+      &quot;STARTTIME&quot;; // EndEntityProfile.STARTTIME;
+  /**
+   * Identifier for Custom data holding a end time when the users certificate
+   * should be valid extInfo.setCustomData(EndEntityProfile.ENDTIME, &quot;&quot;);.
+   */
+  public static final String CUSTOM_ENDTIME =
+      &quot;ENDTIME&quot;; // EndEntityProfile.ENDTIME;
 
-    /**
-     * Identifier for Custom data holding a end time when the users certificate should be valid extInfo.setCustomData(EndEntityProfile.STARTTIME, &quot;&quot;);
-     */
-    public  static final String CUSTOM_STARTTIME = &quot;STARTTIME&quot;; // EndEntityProfile.STARTTIME;
-    /**
-     * Identifier for Custom data holding a end time when the users certificate should be valid extInfo.setCustomData(EndEntityProfile.ENDTIME, &quot;&quot;);
-     */
-    public  static final String CUSTOM_ENDTIME = &quot;ENDTIME&quot;; // EndEntityProfile.ENDTIME;
+  /**
+   * The (optional) revocation status a certificate issued to this user will
+   * have, immediately upon issuance.
+   */
+  public static final String CUSTOM_REVOCATIONREASON = &quot;REVOCATIONREASON&quot;;
 
-    /** The (optional) revocation status a certificate issued to this user will have, immediately upon issuance. */
-    public  static final String CUSTOM_REVOCATIONREASON = &quot;REVOCATIONREASON&quot;;
+  /**
+   * The subject DN exactly as requested in the UserDataVOWS object. Should be
+   * stored B64 encoded to avoid possible XML/database encoding issues,
+   * getRawSubjectDn does decoding if it is encoded.
+   */
+  public static final String RAWSUBJECTDN = &quot;RAWSUBJECTDN&quot;;
 
-    /** The subject DN exactly as requested in the UserDataVOWS object.
-     * Should be stored B64 encoded to avoid possible XML/database encoding issues, getRawSubjectDn does decoding if it is encoded */
-    public static final String RAWSUBJECTDN = &quot;RAWSUBJECTDN&quot;;
+  /**
+   * The counter is a counter for how many failed login attempts that can be
+   * performed before the userstatus is changed to GENERATED.
+   */
+  private static final String REMAININGLOGINATTEMPTS = &quot;remainingloginattempts&quot;;
 
-    /** The counter is a counter for how many failed login attempts that can be performed before the userstatus is changed to GENERATED */
-    private static final String REMAININGLOGINATTEMPTS = &quot;remainingloginattempts&quot;;
+  /**
+   * The maximum number of login attempts before the user is locked by setting
+   * its status to GENERATED.
+   */
+  private static final String MAXFAILEDLOGINATTEMPTS = &quot;maxfailedloginattempts&quot;;
 
-    /** The maximum number of login attempts before the user is locked by setting its status to GENERATED */
-    private static final String MAXFAILEDLOGINATTEMPTS = &quot;maxfailedloginattempts&quot;;
+  /**
+   * Default value for how many failed
+   * login attempts are allow = -1 (unlimited).
+   */
+  public static final int DEFAULT_MAXLOGINATTEMPTS = -1;
 
-    /** Default value for how many failed login attempts are allow = -1 (unlimited) */
-    public static final int DEFAULT_MAXLOGINATTEMPTS = -1;
+  /**
+   * Default value for how many of the allowed failed login attempts that are
+   * remaining = -1 (unlimited).
+   */
+  public static final int DEFAULT_REMAININGLOGINATTEMPTS = -1;
 
-    /** Default value for how many of the allowed failed login attempts that are remaining = -1 (unlimited) */
-    public static final int DEFAULT_REMAININGLOGINATTEMPTS = -1;
+  /** Map key for certificate serial number. */
+  private static final String CERTIFICATESERIALNUMBER =
+      &quot;CERTIFICATESERIALNUMBER&quot;;
+  /** constraints. */
+<span class="fc" id="L145">  private static final Object NAMECONSTRAINTS_PERMITTED =</span>
+      &quot;nameconstraints_permitted&quot;;
+  /** Constraints. */
+<span class="fc" id="L148">  private static final Object NAMECONSTRAINTS_EXCLUDED =</span>
+      &quot;nameconstraints_excluded&quot;;
 
-    /** Map key for certificate serial number */
-    private  static final String CERTIFICATESERIALNUMBER = &quot;CERTIFICATESERIALNUMBER&quot;;
-<span class="fc" id="L109">    private static final Object NAMECONSTRAINTS_PERMITTED = &quot;nameconstraints_permitted&quot;;</span>
-<span class="fc" id="L110">    private static final Object NAMECONSTRAINTS_EXCLUDED = &quot;nameconstraints_excluded&quot;;</span>
+  /**
+   * Keystore specifications used for enrolling end entity user with key-pair
+   * generated on a server side (KickAssRA).
+   */
+  private static final String KEYSTORE_ALGORITHM_SUBTYPE =
+      &quot;KEYSTORE_ALGORITHM_SUBTYPE&quot;;
 
-    /** Keystore specifications used for enrolling end entity user with key-pair generated on a server side (KickAssRA).*/
-<span class="fc" id="L113">    private static String KEYSTORE_ALGORITHM_SUBTYPE = &quot;KEYSTORE_ALGORITHM_SUBTYPE&quot;;</span>
-<span class="fc" id="L114">    private static String KEYSTORE_ALGORITHM_TYPE = &quot;KEYSTORE_ALGORITHM_TYPE&quot;;</span>
+  /** Type. */
+  private static final String KEYSTORE_ALGORITHM_TYPE =
+          &quot;KEYSTORE_ALGORITHM_TYPE&quot;;
 
-    /** The ID of the approval request that was submitted to create the end entity */
-<span class="fc" id="L117">    private static String ADD_EE_APPROVAL_REQUEST_ID = &quot;ADD_EE_APPROVAL_REQUEST_ID&quot;;</span>
-    /** The IDs of the approval requests that were submitted to edit the end entity */
-<span class="fc" id="L119">    private static String EDIT_EE_APPROVAL_REQUEST_IDS = &quot;EDIT_EE_APPROVAL_REQUEST_IDS&quot;;</span>
-    /** The IDs of the approval requests that were submitted to revoke the end entity */
-<span class="fc" id="L121">    private static String REVOKE_EE_APPROVAL_REQUEST_IDS = &quot;REVOKE_EE_APPROVAL_REQUEST_IDS&quot;;</span>
+  /**
+   * The ID of the approval request that was submitted to create the end entity.
+   */
+  private static final String ADD_EE_APPROVAL_REQUEST_ID =
+      &quot;ADD_EE_APPROVAL_REQUEST_ID&quot;;
+  /**
+   * The IDs of the approval requests that were submitted
+   * to edit the end entity.
+   */
+  private static final String EDIT_EE_APPROVAL_REQUEST_IDS =
+      &quot;EDIT_EE_APPROVAL_REQUEST_IDS&quot;;
+  /**
+   * The IDs of the approval requests that were submitted to revoke the end
+   * entity.
+   */
+  private static final String REVOKE_EE_APPROVAL_REQUEST_IDS =
+      &quot;REVOKE_EE_APPROVAL_REQUEST_IDS&quot;;
 
-    /** Certificate request used for enrolling end entity user with public key provided by user (KickAssRA). */
-<span class="fc" id="L124">    private static String CERTIFICATE_REQUEST = &quot;CERTIFICATE_REQUEST&quot;;</span>
+  /**
+   * Certificate request used for enrolling end entity user with public key
+   * provided by user (KickAssRA).
+   */
+  private static final String CERTIFICATE_REQUEST = &quot;CERTIFICATE_REQUEST&quot;;
 
+  /** Creates a new instance of ExtendedInformation. */
+<span class="fc" id="L187">  public ExtendedInformation() {</span>
+<span class="fc" id="L188">    setType(TYPE_BASIC);</span>
+<span class="fc" id="L189">    data.put(SUBJECTDIRATTRIBUTES, &quot;&quot;);</span>
+<span class="fc" id="L190">    setMaxLoginAttempts(DEFAULT_MAXLOGINATTEMPTS);</span>
+<span class="fc" id="L191">    setRemainingLoginAttempts(DEFAULT_REMAININGLOGINATTEMPTS);</span>
+<span class="fc" id="L192">    setCertificateRequest(null);</span>
+<span class="fc" id="L193">  }</span>
 
-    /** Creates a new instance of ExtendedInformation */
-<span class="fc" id="L128">    public ExtendedInformation() {</span>
-<span class="fc" id="L129">        setType(TYPE_BASIC);</span>
-<span class="fc" id="L130">        data.put(SUBJECTDIRATTRIBUTES, &quot;&quot;);</span>
-<span class="fc" id="L131">        setMaxLoginAttempts(DEFAULT_MAXLOGINATTEMPTS);</span>
-<span class="fc" id="L132">        setRemainingLoginAttempts(DEFAULT_REMAININGLOGINATTEMPTS);</span>
-<span class="fc" id="L133">        setCertificateRequest(null);</span>
-<span class="fc" id="L134">    }</span>
+  /**
+   * Copy constructor.
+   *
+   * @param extendedInformation the ExtendedInformation map top copy
+   */
+<span class="fc" id="L200">  public ExtendedInformation(final ExtendedInformation extendedInformation) {</span>
+<span class="fc" id="L201">    this.data = extendedInformation.getClonedData();</span>
+<span class="fc" id="L202">  }</span>
 
-    /**
-     * Copy constructor
-     *
-     * @param extendedInformation the ExtendedInformation map top copy
-     */
-<span class="fc" id="L141">    public ExtendedInformation(final ExtendedInformation extendedInformation) {</span>
-<span class="fc" id="L142">        this.data = extendedInformation.getClonedData();</span>
-<span class="fc" id="L143">    }</span>
+  /**
+   * @return The keystore algorithm subtype is the key length for RSA/DSA
+   *     ('2046', '4096',...) or curve specification for ECDSA
+   *     ('brainpoolP224r1', 'prime239v1', 'secp256k1'...) if it was provided
+   *     during user enrollment request, null otherwise. Default: null
+   */
+  public String getKeyStoreAlgorithmSubType() {
+<span class="fc" id="L211">    return (String) data.get(KEYSTORE_ALGORITHM_SUBTYPE);</span>
+  }
 
-    /** @return The keystore algorithm subtype is the key length for RSA/DSA ('2046', '4096',...) or curve specification for ECDSA
-     *  ('brainpoolP224r1', 'prime239v1', 'secp256k1'...) if it was provided during user enrollment request, null otherwise. Default: null*/
-    public String getKeyStoreAlgorithmSubType(){
-<span class="fc" id="L148">        return (String) data.get(KEYSTORE_ALGORITHM_SUBTYPE);</span>
+  /**
+   * @param keyStoreAlgorithmSubType type
+   */
+  public void setKeyStoreAlgorithmSubType(
+          final String keyStoreAlgorithmSubType) {
+<span class="fc" id="L219">    data.put(KEYSTORE_ALGORITHM_SUBTYPE, keyStoreAlgorithmSubType);</span>
+<span class="fc" id="L220">  }</span>
+
+  /**
+   * @return The keystore algorithm type (RSA, DSA, ECDSA) if it was provided
+   *     during user enrollment request, null otherwise. Default: null
+   */
+  public String getKeyStoreAlgorithmType() {
+<span class="fc" id="L227">    return (String) data.get(KEYSTORE_ALGORITHM_TYPE);</span>
+  }
+
+  /**
+   * @param keyStoreAlgorithmType Type
+   */
+  public void setKeyStoreAlgorithmType(final String keyStoreAlgorithmType) {
+<span class="fc" id="L234">    data.put(KEYSTORE_ALGORITHM_TYPE, keyStoreAlgorithmType);</span>
+<span class="fc" id="L235">  }</span>
+
+  /**
+   * @return The certificate request in binary asn.1 form if it was provided
+   *     during user enrollment request, null otherwise.
+   */
+  public byte[] getCertificateRequest() {
+    // For legacy reasons (&lt;EJBCA 6.7.0) the data in the database may be stored
+    // in binary format.
+    // We will make the optimistic assumption that it is b64 encoded first
+<span class="fc" id="L245">    final Object o = data.get(CERTIFICATE_REQUEST);</span>
+<span class="fc bfc" id="L246" title="All 2 branches covered.">    if (o == null) {</span>
+<span class="fc" id="L247">      return null;</span>
     }
-
-    public void setKeyStoreAlgorithmSubType(String keyStoreAlgorithmSubType){
-<span class="fc" id="L152">        data.put(KEYSTORE_ALGORITHM_SUBTYPE, keyStoreAlgorithmSubType);</span>
-<span class="fc" id="L153">    }</span>
-
-    /** @return The keystore algorithm type (RSA, DSA, ECDSA) if it was provided during user enrollment request, null otherwise. Default: null*/
-    public String getKeyStoreAlgorithmType(){
-<span class="fc" id="L157">        return (String) data.get(KEYSTORE_ALGORITHM_TYPE);</span>
+    try {
+<span class="fc" id="L250">      return Base64.decode(((String) o).getBytes(StandardCharsets.UTF_8));</span>
+<span class="fc" id="L251">    } catch (DecoderException | ClassCastException e) {</span>
+      // Not base 64 encoded, return binary bytes
+<span class="fc" id="L253">      return (byte[]) o;</span>
     }
+  }
 
-    public void setKeyStoreAlgorithmType(String keyStoreAlgorithmType){
-<span class="fc" id="L161">        data.put(KEYSTORE_ALGORITHM_TYPE, keyStoreAlgorithmType);</span>
-<span class="fc" id="L162">    }</span>
+  /** @param certificateRequest a CSR in binary asn.1 format */
+  public void setCertificateRequest(final byte[] certificateRequest) {
+<span class="fc bfc" id="L259" title="All 2 branches covered.">    if (certificateRequest == null) {</span>
+<span class="fc" id="L260">      this.data.remove(CERTIFICATE_REQUEST);</span>
+<span class="fc" id="L261">      return;</span>
+    }
+    // Store it in the database in base64 encoded format, without CSR headers or
+    // linebreaks (or null)
+<span class="fc" id="L265">    final String str =</span>
+<span class="fc" id="L266">        new String(Base64.encode(certificateRequest), StandardCharsets.UTF_8);</span>
+<span class="fc" id="L267">    data.put(CERTIFICATE_REQUEST, str);</span>
+<span class="fc" id="L268">  }</span>
 
-    /** @return The certificate request in binary asn.1 form if it was provided during user enrollment request, null otherwise.*/
-    public byte[] getCertificateRequest() {
-        // For legacy reasons (&lt;EJBCA 6.7.0) the data in the database may be stored in binary format.
-        // We will make the optimistic assumption that it is b64 encoded first
-<span class="fc" id="L168">        final Object o = data.get(CERTIFICATE_REQUEST);</span>
-<span class="fc bfc" id="L169" title="All 2 branches covered.">        if (o == null) {</span>
-<span class="fc" id="L170">            return null;</span>
+  /**
+   * @return attributes
+   */
+  public String getSubjectDirectoryAttributes() {
+<span class="fc" id="L274">    String ret = (String) data.get(SUBJECTDIRATTRIBUTES);</span>
+<span class="pc bpc" id="L275" title="1 of 2 branches missed.">    if (ret == null) {</span>
+<span class="nc" id="L276">      ret = &quot;&quot;;</span>
+    }
+<span class="fc" id="L278">    return ret;</span>
+  }
+
+  /**
+   * @param subjdirattr attributes
+   */
+  public void setSubjectDirectoryAttributes(final String subjdirattr) {
+<span class="pc bpc" id="L285" title="1 of 2 branches missed.">    if (subjdirattr == null) {</span>
+<span class="nc" id="L286">      data.put(SUBJECTDIRATTRIBUTES, &quot;&quot;);</span>
+    } else {
+<span class="fc" id="L288">      data.put(SUBJECTDIRATTRIBUTES, subjdirattr);</span>
+    }
+<span class="fc" id="L290">  }</span>
+
+  /**
+   * @return The number of remaining allowed failed login attempts or -1 for
+   *     unlimited
+   */
+  public int getRemainingLoginAttempts() {
+<span class="fc" id="L297">    return Integer.valueOf(data.get(REMAININGLOGINATTEMPTS).toString());</span>
+  }
+
+  /**
+   * Set the number of remaining login attempts. -1 means unlimited.
+   *
+   * @param remainingLoginAttempts The number to set
+   */
+  public void setRemainingLoginAttempts(final int remainingLoginAttempts) {
+<span class="fc" id="L306">    data.put(REMAININGLOGINATTEMPTS, remainingLoginAttempts);</span>
+<span class="fc" id="L307">  }</span>
+
+  /**
+   * @return The maximum number of allowed failed login attempts or -1 for
+   *     unlimited
+   */
+  public int getMaxLoginAttempts() {
+<span class="fc" id="L314">    return Integer.valueOf(data.get(MAXFAILEDLOGINATTEMPTS).toString());</span>
+  }
+
+  /** @return The certificate validity end time or null if not specified. */
+  public String getCertificateStartTime() {
+<span class="nc" id="L319">    return getCustomData(CUSTOM_STARTTIME);</span>
+  }
+
+  /**
+   * Set the certificate validity end time to a user-defined value.
+   *
+   * @param value The certificate validity
+   */
+  public void setCertificateStartTime(final String value) {
+<span class="nc" id="L328">    setCustomData(CUSTOM_STARTTIME, value);</span>
+<span class="nc" id="L329">  }</span>
+
+  /** @return The certificate validity end time or null if not specified. */
+  public String getCertificateEndTime() {
+<span class="fc" id="L333">    return getCustomData(CUSTOM_ENDTIME);</span>
+  }
+
+  /**
+   * Set the certificate validity end time to a user-defined value.
+   *
+   * @param value The certificate validity
+   */
+  public void setCertificateEndTime(final String value) {
+<span class="fc" id="L342">    setCustomData(CUSTOM_ENDTIME, value);</span>
+<span class="fc" id="L343">  }</span>
+
+  /**
+   * Set the number of maximum allowed failed login attempts. -1 means
+   * unlimited.
+   *
+   * @param maxLoginAttempts The number to set
+   */
+  public void setMaxLoginAttempts(final int maxLoginAttempts) {
+<span class="fc" id="L352">    data.put(MAXFAILEDLOGINATTEMPTS, maxLoginAttempts);</span>
+<span class="fc" id="L353">  }</span>
+
+  /**
+   * @return the serial number to be used for the certificate or null if no
+   *     number defined.
+   */
+  public BigInteger certificateSerialNumber() {
+<span class="fc" id="L360">    final String s = (String) this.data.get(CERTIFICATESERIALNUMBER);</span>
+<span class="fc bfc" id="L361" title="All 2 branches covered.">    if (s == null) {</span>
+<span class="fc" id="L362">      return null;</span>
+    }
+<span class="fc" id="L364">    return new BigInteger(Base64.decode(s));</span>
+  }
+
+  /** @param sn the serial number to be used for the certificate */
+  public void setCertificateSerialNumber(final BigInteger sn) {
+<span class="pc bpc" id="L369" title="1 of 2 branches missed.">    if (sn == null) {</span>
+<span class="nc" id="L370">      this.data.remove(CERTIFICATESERIALNUMBER);</span>
+<span class="nc" id="L371">      return;</span>
+    }
+<span class="fc" id="L373">    final String s = new String(Base64.encode(sn.toByteArray()));</span>
+<span class="fc" id="L374">    this.data.put(CERTIFICATESERIALNUMBER, s);</span>
+<span class="fc" id="L375">  }</span>
+
+  /**
+   * Returns the issuance revocation code configured on the end entity extended
+   * information.
+   *
+   * @return issuance revocation code configured on the end entity extended
+   *     information, a constant from RevokedCertInfo. Default
+   *     RevokedCertInfo.NOT_REVOKED.
+   */
+  public int getIssuanceRevocationReason() {
+<span class="fc" id="L386">    int ret = RevokedCertInfo.NOT_REVOKED;</span>
+<span class="fc" id="L387">    final String revocationReason =</span>
+<span class="fc" id="L388">        getCustomData(ExtendedInformation.CUSTOM_REVOCATIONREASON);</span>
+<span class="pc bpc" id="L389" title="1 of 2 branches missed.">    if (revocationReason != null) {</span>
+<span class="fc" id="L390">      ret = Integer.valueOf(revocationReason);</span>
+    }
+<span class="pc bpc" id="L392" title="1 of 2 branches missed.">    if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L393">      LOG.debug(&quot;User issuance revocation reason is &quot; + ret);</span>
+    }
+<span class="fc" id="L395">    return ret;</span>
+  }
+
+  /**
+   * Sets the issuance revocation code configured on the end entity extended
+   * information.
+   *
+   * @param reason issuance revocation code, a constant from RevokedCertInfo
+   *     such as RevokedCertInfo.REVOCATION_REASON_CERTIFICATEHOLD.
+   */
+  public void setIssuanceRevocationReason(final int reason) {
+<span class="fc" id="L406">    setCustomData(ExtendedInformation.CUSTOM_REVOCATIONREASON, &quot;&quot; + reason);</span>
+<span class="fc" id="L407">  }</span>
+
+  /** @return Encoded name constraints to permit */
+  public List&lt;String&gt; getNameConstraintsPermitted() {
+<span class="fc" id="L411">    String value = (String) data.get(NAMECONSTRAINTS_PERMITTED);</span>
+<span class="pc bpc" id="L412" title="1 of 4 branches missed.">    if (value == null || value.isEmpty()) {</span>
+<span class="fc" id="L413">      return null;</span>
+    }
+<span class="fc" id="L415">    return new ArrayList&lt;String&gt;(Arrays.asList(value.split(&quot;;&quot;)));</span>
+  }
+
+  /**
+   * @param encodedNames names
+   */
+  public void setNameConstraintsPermitted(final List&lt;String&gt; encodedNames) {
+<span class="pc bpc" id="L422" title="1 of 2 branches missed.">    if (encodedNames == null) {</span>
+<span class="nc" id="L423">      data.remove(NAMECONSTRAINTS_PERMITTED);</span>
+    } else {
+<span class="fc" id="L425">      data.put(NAMECONSTRAINTS_PERMITTED, StringUtils.join(encodedNames, ';'));</span>
+    }
+<span class="fc" id="L427">  }</span>
+
+  /** @return Encoded name constraints to exclude */
+  public List&lt;String&gt; getNameConstraintsExcluded() {
+<span class="fc" id="L431">    String value = (String) data.get(NAMECONSTRAINTS_EXCLUDED);</span>
+<span class="pc bpc" id="L432" title="1 of 4 branches missed.">    if (value == null || value.isEmpty()) {</span>
+<span class="fc" id="L433">      return null;</span>
+    }
+<span class="fc" id="L435">    return new ArrayList&lt;&gt;(Arrays.asList(value.split(&quot;;&quot;)));</span>
+  }
+
+  /**
+   * @param encodedNames Names
+   */
+  public void setNameConstraintsExcluded(final List&lt;String&gt; encodedNames) {
+<span class="pc bpc" id="L442" title="1 of 2 branches missed.">    if (encodedNames == null) {</span>
+<span class="nc" id="L443">      data.remove(NAMECONSTRAINTS_EXCLUDED);</span>
+    } else {
+<span class="fc" id="L445">      data.put(NAMECONSTRAINTS_EXCLUDED, StringUtils.join(encodedNames, ';'));</span>
+    }
+<span class="fc" id="L447">  }</span>
+
+  /** @return the subject DN exactly as requested (via WS ) */
+  public String getRawSubjectDn() {
+<span class="nc" id="L451">    final String value = (String) data.get(RAWSUBJECTDN);</span>
+<span class="nc bnc" id="L452" title="All 2 branches missed.">    if (StringUtils.isEmpty(value)) {</span>
+<span class="nc" id="L453">      return null;</span>
+    }
+    // It could/should B64 encoded to avoid XML baddies
+<span class="nc" id="L456">    return StringTools.getBase64String(value);</span>
+  }
+
+  /**
+   * Gets generic string data from the ExtendedInformation map.
+   *
+   * @param key Key
+   * @return a string from the ExtendedInformation map or null.
+   */
+  public String getMapData(final String key) {
+<span class="fc" id="L466">    String ret = null;</span>
+<span class="fc" id="L467">    Object o = data.get(key);</span>
+<span class="pc bpc" id="L468" title="1 of 2 branches missed.">    if (o instanceof String) {</span>
+<span class="fc" id="L469">      ret = (String) o;</span>
+    }
+<span class="fc" id="L471">    return ret;</span>
+  }
+
+  /**
+   * Sets generic string data in the ExtendedInformation map.
+   *
+   * @param key Key
+   * @param value Value
+   */
+  public void setMapData(final String key, final String value) {
+<span class="fc" id="L481">    data.put(key, value);</span>
+<span class="fc" id="L482">  }</span>
+
+  /**
+   * Special method used to retrieve custom set userdata.
+   *
+   * @param key Key
+   * @return The data or null if no such data have been set for the user
+   */
+  public String getCustomData(final String key) {
+<span class="fc" id="L491">    return (String) data.get(CUSTOMDATA + key);</span>
+  }
+
+  /**
+   * Sets extension data.
+   *
+   * @param key defined key to store the data with
+   * @param value string representation of the data
+   */
+  public void setExtensionData(final String key, final String value) {
+<span class="fc" id="L501">    data.put(EXTENSIONDATA + key, value);</span>
+<span class="fc" id="L502">  }</span>
+
+  /**
+   * Special method used to retrieve custom extension data.
+   *
+   * @param key Key
+   * @return The data or null if no such data have been set for the user
+   */
+  public String getExtensionData(final String key) {
+<span class="fc" id="L511">    return (String) data.get(EXTENSIONDATA + key);</span>
+  }
+
+  /** @return Set containing all extension OIDs */
+  public Set&lt;String&gt; getExtensionDataOids() {
+<span class="fc" id="L516">    final Set&lt;String&gt; oids = new HashSet&lt;&gt;();</span>
+<span class="fc bfc" id="L517" title="All 2 branches covered.">    for (Object o : data.keySet()) {</span>
+<span class="pc bpc" id="L518" title="1 of 2 branches missed.">      if (o instanceof String) {</span>
+<span class="fc" id="L519">        String key = (String) o;</span>
+<span class="pc bpc" id="L520" title="1 of 2 branches missed.">        if (key.startsWith(ExtendedInformation.EXTENSIONDATA)) {</span>
+<span class="nc" id="L521">          String oidString =</span>
+<span class="nc" id="L522">              key.substring(ExtendedInformation.EXTENSIONDATA.length());</span>
+<span class="nc" id="L523">          oids.add(CertTools.getOidFromString(oidString));</span>
         }
+      }
+<span class="fc" id="L526">    }</span>
+<span class="fc" id="L527">    return oids;</span>
+  }
+
+  /**
+   * @param key defined key to store the data with
+   * @param value string representation of the data
+   */
+  public void setCustomData(final String key, final String value) {
+<span class="fc" id="L535">    data.put(CUSTOMDATA + key, value);</span>
+<span class="fc" id="L536">  }</span>
+
+  /**
+   * Function required by XMLEncoder to do a proper serialisation.
+   *
+   * @param hmData data
+   */
+  public void setData(final Object hmData) {
+<span class="fc" id="L544">    loadData(hmData);</span>
+<span class="fc" id="L545">  }</span>
+
+  /**
+   * Function required by XMLEncoder to do a proper serialization.
+   *
+   * @return data
+   */
+  public Object getData() {
+<span class="nc" id="L553">    return saveData();</span>
+  }
+
+  /** Implementation of UpgradableDataHashMap function getLatestVersion. */
+  @Override
+  public float getLatestVersion() {
+<span class="fc" id="L559">    return LATEST_VERSION;</span>
+  }
+
+  /** Implementation of UpgradableDataHashMap function upgrade. */
+  @Override
+  public void upgrade() {
+<span class="nc bnc" id="L565" title="All 2 branches missed.">    if (Float.compare(LATEST_VERSION, getVersion()) != 0) {</span>
+      // New version of the class, upgrade
+<span class="nc" id="L567">      String msg =</span>
+<span class="nc" id="L568">          INTRES.getLocalizedMessage(</span>
+<span class="nc" id="L569">              &quot;endentity.extendedinfoupgrade&quot;, getVersion());</span>
+<span class="nc" id="L570">      LOG.info(msg);</span>
+
+<span class="nc bnc" id="L572" title="All 2 branches missed.">      if (data.get(SUBJECTDIRATTRIBUTES) == null) {</span>
+<span class="nc" id="L573">        data.put(SUBJECTDIRATTRIBUTES, &quot;&quot;);</span>
+      }
+<span class="nc bnc" id="L575" title="All 2 branches missed.">      if (data.get(MAXFAILEDLOGINATTEMPTS) == null) {</span>
+<span class="nc" id="L576">        setMaxLoginAttempts(DEFAULT_MAXLOGINATTEMPTS);</span>
+      }
+<span class="nc bnc" id="L578" title="All 2 branches missed.">      if (data.get(REMAININGLOGINATTEMPTS) == null) {</span>
+<span class="nc" id="L579">        setRemainingLoginAttempts(DEFAULT_REMAININGLOGINATTEMPTS);</span>
+      }
+      // In EJBCA 4.0.0 we changed the date format
+<span class="nc bnc" id="L582" title="All 2 branches missed.">      if (getVersion() &lt; 3) {</span>
+<span class="nc" id="L583">        final DateFormat oldDateFormat =</span>
+<span class="nc" id="L584">            DateFormat.getDateTimeInstance(</span>
+                DateFormat.MEDIUM, DateFormat.SHORT, Locale.US);
+<span class="nc" id="L586">        final FastDateFormat newDateFormat =</span>
+<span class="nc" id="L587">            FastDateFormat.getInstance(&quot;yyyy-MM-dd HH:mm&quot;);</span>
         try {
-<span class="fc" id="L173">            return Base64.decode(((String)o).getBytes(StandardCharsets.UTF_8));</span>
-<span class="fc" id="L174">        } catch (DecoderException | ClassCastException e) {</span>
-            // Not base 64 encoded, return binary bytes
-<span class="fc" id="L176">            return (byte[])o;</span>
-        }
-    }
-
-    /**
-     * @param certificateRequest a CSR in binary asn.1 format
-     */
-    public void setCertificateRequest(byte[] certificateRequest) {
-<span class="fc bfc" id="L184" title="All 2 branches covered.">        if (certificateRequest == null) {</span>
-<span class="fc" id="L185">            this.data.remove(CERTIFICATE_REQUEST);</span>
-<span class="fc" id="L186">            return;</span>
-        }
-        // Store it in the database in base64 encoded format, without CSR headers or linebreaks (or null)
-<span class="fc" id="L189">        final String str = new String(Base64.encode(certificateRequest), StandardCharsets.UTF_8);</span>
-<span class="fc" id="L190">        data.put(CERTIFICATE_REQUEST, str);</span>
-<span class="fc" id="L191">    }</span>
-
-    public String getSubjectDirectoryAttributes() {
-<span class="fc" id="L194">        String ret = (String) data.get(SUBJECTDIRATTRIBUTES);</span>
-<span class="pc bpc" id="L195" title="1 of 2 branches missed.">        if (ret == null) {</span>
-<span class="nc" id="L196">            ret = &quot;&quot;;</span>
-        }
-<span class="fc" id="L198">        return ret;</span>
-    }
-
-    public void setSubjectDirectoryAttributes(String subjdirattr) {
-<span class="pc bpc" id="L202" title="1 of 2 branches missed.">        if (subjdirattr == null) {</span>
-<span class="nc" id="L203">            data.put(SUBJECTDIRATTRIBUTES, &quot;&quot;);</span>
-        } else {
-<span class="fc" id="L205">            data.put(SUBJECTDIRATTRIBUTES, subjdirattr);</span>
-        }
-<span class="fc" id="L207">    }</span>
-
-    /**
-     * @return The number of remaining allowed failed login attempts or -1 for unlimited
-     */
-    public int getRemainingLoginAttempts() {
-<span class="fc" id="L213">        return Integer.valueOf(data.get(REMAININGLOGINATTEMPTS).toString());</span>
-    }
-
-    /**
-     * Set the number of remaining login attempts. -1 means unlimited.
-     *
-     * @param remainingLoginAttempts The number to set
-     */
-    public void setRemainingLoginAttempts(int remainingLoginAttempts) {
-<span class="fc" id="L222">        data.put(REMAININGLOGINATTEMPTS, remainingLoginAttempts);</span>
-<span class="fc" id="L223">    }</span>
-
-    /**
-     * @return The maximum number of allowed failed login attempts or -1 for unlimited
-     */
-    public int getMaxLoginAttempts() {
-<span class="fc" id="L229">        return Integer.valueOf(data.get(MAXFAILEDLOGINATTEMPTS).toString());</span>
-    }
-
-    /**
-     * @return The certificate validity end time or null if not specified.
-     */
-    public String getCertificateStartTime() {
-<span class="nc" id="L236">        return getCustomData(CUSTOM_STARTTIME);</span>
-    }
-
-    /**
-     * Set the certificate validity end time to a user-defined value.
-     * @param value The certificate validity
-     */
-    public void setCertificateStartTime(final String value) {
-<span class="nc" id="L244">        setCustomData(CUSTOM_STARTTIME, value);</span>
-<span class="nc" id="L245">    }</span>
-
-    /**
-     * @return The certificate validity end time or null if not specified.
-     */
-    public String getCertificateEndTime() {
-<span class="fc" id="L251">        return getCustomData(CUSTOM_ENDTIME);</span>
-    }
-
-    /**
-     * Set the certificate validity end time to a user-defined value.
-     * @param value The certificate validity
-     */
-    public void setCertificateEndTime(final String value) {
-<span class="fc" id="L259">        setCustomData(CUSTOM_ENDTIME, value);</span>
-<span class="fc" id="L260">    }</span>
-
-    /**
-     * Set the number of maximum allowed failed login attempts. -1 means unlimited.
-     *
-     * @param maxLoginAttempts The number to set
-     */
-    public void setMaxLoginAttempts(int maxLoginAttempts) {
-<span class="fc" id="L268">        data.put(MAXFAILEDLOGINATTEMPTS, maxLoginAttempts);</span>
-<span class="fc" id="L269">    }</span>
-
-    /**
-     * @return the serial number to be used for the certificate or null if no number defined.
-     */
-    public BigInteger certificateSerialNumber() {
-<span class="fc" id="L275">        final String s = (String) this.data.get(CERTIFICATESERIALNUMBER);</span>
-<span class="fc bfc" id="L276" title="All 2 branches covered.">        if (s == null) {</span>
-<span class="fc" id="L277">            return null;</span>
-        }
-<span class="fc" id="L279">        return new BigInteger(Base64.decode(s));</span>
-    }
-
-    /**
-     * @param sn the serial number to be used for the certificate
-     */
-    public void setCertificateSerialNumber(BigInteger sn) {
-<span class="pc bpc" id="L286" title="1 of 2 branches missed.">        if (sn == null) {</span>
-<span class="nc" id="L287">            this.data.remove(CERTIFICATESERIALNUMBER);</span>
-<span class="nc" id="L288">            return;</span>
-        }
-<span class="fc" id="L290">        final String s = new String(Base64.encode(sn.toByteArray()));</span>
-<span class="fc" id="L291">        this.data.put(CERTIFICATESERIALNUMBER, s);</span>
-<span class="fc" id="L292">    }</span>
-
-    /**
-     * Returns the issuance revocation code configured on the end entity extended information.
-     *
-     * @return issuance revocation code configured on the end entity extended information, a constant from RevokedCertInfo. Default
-     *         RevokedCertInfo.NOT_REVOKED.
-     */
-    public int getIssuanceRevocationReason() {
-<span class="fc" id="L301">        int ret = RevokedCertInfo.NOT_REVOKED;</span>
-<span class="fc" id="L302">        final String revocationReason = getCustomData(ExtendedInformation.CUSTOM_REVOCATIONREASON);</span>
-<span class="pc bpc" id="L303" title="1 of 2 branches missed.">        if (revocationReason != null) {</span>
-<span class="fc" id="L304">            ret = Integer.valueOf(revocationReason);</span>
-        }
-<span class="pc bpc" id="L306" title="1 of 2 branches missed.">        if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L307">            log.debug(&quot;User issuance revocation reason is &quot; + ret);</span>
-        }
-<span class="fc" id="L309">        return ret;</span>
-    }
-
-    /**
-    * Sets the issuance revocation code configured on the end entity extended information.
-    *
-    * @param reason issuance revocation code, a constant from RevokedCertInfo such as RevokedCertInfo.REVOCATION_REASON_CERTIFICATEHOLD.
-    */
-    public void setIssuanceRevocationReason(int reason) {
-<span class="fc" id="L318">    	setCustomData(ExtendedInformation.CUSTOM_REVOCATIONREASON, &quot;&quot; + reason);</span>
-<span class="fc" id="L319">    }</span>
-
-    /** @return Encoded name constraints to permit */
-    public List&lt;String&gt; getNameConstraintsPermitted() {
-<span class="fc" id="L323">        String value = (String) data.get(NAMECONSTRAINTS_PERMITTED);</span>
-<span class="pc bpc" id="L324" title="1 of 4 branches missed.">        if (value == null || value.isEmpty()) {</span>
-<span class="fc" id="L325">            return null;</span>
-        }
-<span class="fc" id="L327">        return new ArrayList&lt;String&gt;(Arrays.asList(value.split(&quot;;&quot;)));</span>
-    }
-
-    public void setNameConstraintsPermitted(List&lt;String&gt; encodedNames) {
-<span class="pc bpc" id="L331" title="1 of 2 branches missed.">        if (encodedNames == null) {</span>
-<span class="nc" id="L332">            data.remove(NAMECONSTRAINTS_PERMITTED);</span>
-        } else {
-<span class="fc" id="L334">            data.put(NAMECONSTRAINTS_PERMITTED, StringUtils.join(encodedNames, ';'));</span>
-        }
-<span class="fc" id="L336">    }</span>
-
-    /** @return Encoded name constraints to exclude */
-    public List&lt;String&gt; getNameConstraintsExcluded() {
-<span class="fc" id="L340">        String value = (String) data.get(NAMECONSTRAINTS_EXCLUDED);</span>
-<span class="pc bpc" id="L341" title="1 of 4 branches missed.">        if (value == null || value.isEmpty()) {</span>
-<span class="fc" id="L342">            return null;</span>
-        }
-<span class="fc" id="L344">        return new ArrayList&lt;&gt;(Arrays.asList(value.split(&quot;;&quot;)));</span>
-    }
-
-    public void setNameConstraintsExcluded(List&lt;String&gt; encodedNames) {
-<span class="pc bpc" id="L348" title="1 of 2 branches missed.">        if (encodedNames == null) {</span>
-<span class="nc" id="L349">            data.remove(NAMECONSTRAINTS_EXCLUDED);</span>
-        } else {
-<span class="fc" id="L351">            data.put(NAMECONSTRAINTS_EXCLUDED, StringUtils.join(encodedNames, ';'));</span>
-        }
-<span class="fc" id="L353">    }</span>
-
-    /** @return the subject DN exactly as requested (via WS ) */
-    public String getRawSubjectDn() {
-<span class="nc" id="L357">        final String value = (String) data.get(RAWSUBJECTDN);</span>
-<span class="nc bnc" id="L358" title="All 2 branches missed.">        if (StringUtils.isEmpty(value)) {</span>
-<span class="nc" id="L359">            return null;</span>
-        }
-        // It could/should B64 encoded to avoid XML baddies
-<span class="nc" id="L362">        return StringTools.getBase64String(value);</span>
-    }
-
-    /**
-     * Gets generic string data from the ExtendedInformation map.
-     * @param key Key
-     * @return a string from the ExtendedInformation map or null.
-     */
-    public String getMapData(String key) {
-<span class="fc" id="L371">        String ret = null;</span>
-<span class="fc" id="L372">        Object o = data.get(key);</span>
-<span class="pc bpc" id="L373" title="1 of 2 branches missed.">        if (o instanceof String) {</span>
-<span class="fc" id="L374">            ret = (String) o;</span>
-        }
-<span class="fc" id="L376">        return ret;</span>
-    }
-
-    /**
-     * Sets generic string data in the ExtendedInformation map.
-     * @param key Key
-     * @param value Value
-     */
-    public void setMapData(String key, String value) {
-<span class="fc" id="L385">        data.put(key, value);</span>
-<span class="fc" id="L386">    }</span>
-
-    /**
-     * Special method used to retrieve custom set userdata
-     * @param key Key
-     *
-     * @return The data or null if no such data have been set for the user
-     */
-    public String getCustomData(String key) {
-<span class="fc" id="L395">        return  (String) data.get(CUSTOMDATA + key);</span>
-    }
-
-    /**
-     * Sets extension data.
-     * @param key defined key to store the data with
-     * @param value string representation of the data
-     */
-    public void setExtensionData(String key, String value) {
-<span class="fc" id="L404">    	data.put(EXTENSIONDATA + key, value);</span>
-<span class="fc" id="L405">    }</span>
-
-    /**
-     * Special method used to retrieve custom extension data.
-     * @param key Key
-     * @return The data or null if no such data have been set for the user
-     */
-    public String getExtensionData(String key){
-<span class="fc" id="L413">    	return  (String) data.get(EXTENSIONDATA + key);</span>
-    }
-
-    /**
-     * @return Set containing all extension OIDs
-     */
-    public Set&lt;String&gt; getExtensionDataOids() {
-<span class="fc" id="L420">        final Set&lt;String&gt; oids = new HashSet&lt;&gt;();</span>
-<span class="fc bfc" id="L421" title="All 2 branches covered.">        for (Object o : data.keySet()) {</span>
-<span class="pc bpc" id="L422" title="1 of 2 branches missed.">            if (o instanceof String) {</span>
-<span class="fc" id="L423">                String key = (String) o;</span>
-<span class="pc bpc" id="L424" title="1 of 2 branches missed.">                if (key.startsWith(ExtendedInformation.EXTENSIONDATA)) {</span>
-<span class="nc" id="L425">                    String oidString = key.substring(ExtendedInformation.EXTENSIONDATA.length());</span>
-<span class="nc" id="L426">                    oids.add(CertTools.getOidFromString(oidString));</span>
-                }
+<span class="nc" id="L589">          final String oldCustomStartTime =</span>
+<span class="nc" id="L590">              getCustomData(ExtendedInformation.CUSTOM_STARTTIME);</span>
+<span class="nc bnc" id="L591" title="All 2 branches missed.">          if (!isEmptyOrRelative(oldCustomStartTime)) {</span>
+            // We use an absolute time format, so we need to upgrade
+<span class="nc" id="L593">            final String newCustomStartTime =</span>
+<span class="nc" id="L594">                newDateFormat.format(oldDateFormat.parse(oldCustomStartTime));</span>
+<span class="nc" id="L595">            setCustomData(</span>
+                ExtendedInformation.CUSTOM_STARTTIME, newCustomStartTime);
+<span class="nc bnc" id="L597" title="All 2 branches missed.">            if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L598">              LOG.debug(</span>
+                  &quot;Upgraded &quot;
+                      + ExtendedInformation.CUSTOM_STARTTIME
+                      + &quot; from \&quot;&quot;
+                      + oldCustomStartTime
+                      + &quot;\&quot; to \&quot;&quot;
+                      + newCustomStartTime
+                      + &quot;\&quot; in ExtendedInformation.&quot;);
             }
-<span class="fc" id="L429">        }</span>
-<span class="fc" id="L430">        return oids;</span>
-    }
-    
-    /**
-     *
-     * @param key defined key to store the data with
-     * @param value string representation of the data
-     */
-    public void setCustomData(String key, String value) {
-<span class="fc" id="L439">        data.put(CUSTOMDATA + key, value);</span>
-<span class="fc" id="L440">    }</span>
-
-    /** Function required by XMLEncoder to do a proper serialisation. 
-     * @param hmData data*/
-    public void setData(Object hmData) {
-<span class="fc" id="L445">        loadData(hmData);</span>
-<span class="fc" id="L446">    }</span>
-
-    /** Function required by XMLEncoder to do a proper serialization. 
-     * @return data*/
-    public Object getData() {
-<span class="nc" id="L451">        return saveData();</span>
-    }
-
-    /** Implementation of UpgradableDataHashMap function getLatestVersion */
-    @Override
-    public float getLatestVersion() {
-<span class="fc" id="L457">        return LATEST_VERSION;</span>
-    }
-
-    /** Implementation of UpgradableDataHashMap function upgrade. */
-
-    @Override
-    public void upgrade() {
-<span class="nc bnc" id="L464" title="All 2 branches missed.">        if (Float.compare(LATEST_VERSION, getVersion()) != 0) {</span>
-            // New version of the class, upgrade
-<span class="nc" id="L466">            String msg = intres.getLocalizedMessage(&quot;endentity.extendedinfoupgrade&quot;, getVersion());</span>
-<span class="nc" id="L467">            log.info(msg);</span>
-
-<span class="nc bnc" id="L469" title="All 2 branches missed.">            if (data.get(SUBJECTDIRATTRIBUTES) == null) {</span>
-<span class="nc" id="L470">                data.put(SUBJECTDIRATTRIBUTES, &quot;&quot;);</span>
+          }
+<span class="nc" id="L608">        } catch (ParseException e) {</span>
+<span class="nc" id="L609">          LOG.error(</span>
+              &quot;Unable to upgrade &quot;
+                  + ExtendedInformation.CUSTOM_STARTTIME
+                  + &quot; in extended user information.&quot;,
+              e);
+<span class="nc" id="L614">        }</span>
+        try {
+<span class="nc" id="L616">          final String oldCustomEndTime =</span>
+<span class="nc" id="L617">              getCustomData(ExtendedInformation.CUSTOM_ENDTIME);</span>
+<span class="nc bnc" id="L618" title="All 2 branches missed.">          if (!isEmptyOrRelative(oldCustomEndTime)) {</span>
+            // We use an absolute time format, so we need to upgrade
+<span class="nc" id="L620">            final String newCustomEndTime =</span>
+<span class="nc" id="L621">                newDateFormat.format(oldDateFormat.parse(oldCustomEndTime));</span>
+<span class="nc" id="L622">            setCustomData(ExtendedInformation.CUSTOM_ENDTIME, newCustomEndTime);</span>
+<span class="nc bnc" id="L623" title="All 2 branches missed.">            if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L624">              LOG.debug(</span>
+                  &quot;Upgraded &quot;
+                      + ExtendedInformation.CUSTOM_ENDTIME
+                      + &quot; from \&quot;&quot;
+                      + oldCustomEndTime
+                      + &quot;\&quot; to \&quot;&quot;
+                      + newCustomEndTime
+                      + &quot;\&quot; in ExtendedInformation.&quot;);
             }
-<span class="nc bnc" id="L472" title="All 2 branches missed.">            if (data.get(MAXFAILEDLOGINATTEMPTS) == null) {</span>
-<span class="nc" id="L473">                setMaxLoginAttempts(DEFAULT_MAXLOGINATTEMPTS);</span>
+          }
+<span class="nc" id="L634">        } catch (ParseException e) {</span>
+<span class="nc" id="L635">          LOG.error(</span>
+              &quot;Unable to upgrade &quot;
+                  + ExtendedInformation.CUSTOM_ENDTIME
+                  + &quot; in extended user information.&quot;,
+              e);
+<span class="nc" id="L640">        }</span>
+      }
+      // In 4.0.2 we further specify the storage format by saying that UTC
+      // TimeZone is implied instead of local server time
+<span class="nc bnc" id="L644" title="All 2 branches missed.">      if (getVersion() &lt; 4) {</span>
+<span class="nc" id="L645">        final String[] timePatterns = {&quot;yyyy-MM-dd HH:mm&quot;};</span>
+<span class="nc" id="L646">        final String oldStartTime =</span>
+<span class="nc" id="L647">            getCustomData(ExtendedInformation.CUSTOM_STARTTIME);</span>
+<span class="nc bnc" id="L648" title="All 2 branches missed.">        if (!isEmptyOrRelative(oldStartTime)) {</span>
+          try {
+<span class="nc" id="L650">            final String newStartTime =</span>
+<span class="nc" id="L651">                ValidityDate.formatAsUTC(</span>
+<span class="nc" id="L652">                    DateUtils.parseDateStrictly(oldStartTime, timePatterns));</span>
+<span class="nc" id="L653">            setCustomData(ExtendedInformation.CUSTOM_STARTTIME, newStartTime);</span>
+<span class="nc bnc" id="L654" title="All 2 branches missed.">            if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L655">              LOG.debug(</span>
+                  &quot;Upgraded &quot;
+                      + ExtendedInformation.CUSTOM_STARTTIME
+                      + &quot; from \&quot;&quot;
+                      + oldStartTime
+                      + &quot;\&quot; to \&quot;&quot;
+                      + newStartTime
+                      + &quot;\&quot; in EndEntityProfile.&quot;);
             }
-<span class="nc bnc" id="L475" title="All 2 branches missed.">            if (data.get(REMAININGLOGINATTEMPTS) == null) {</span>
-<span class="nc" id="L476">                setRemainingLoginAttempts(DEFAULT_REMAININGLOGINATTEMPTS);</span>
+<span class="nc" id="L664">          } catch (ParseException e) {</span>
+<span class="nc" id="L665">            LOG.error(</span>
+                &quot;Unable to upgrade &quot;
+                    + ExtendedInformation.CUSTOM_STARTTIME
+                    + &quot; to UTC in EndEntityProfile! Manual interaction is&quot;
+                    + &quot; required (edit and verify).&quot;,
+                e);
+<span class="nc" id="L671">          }</span>
+        }
+<span class="nc" id="L673">        final String oldEndTime =</span>
+<span class="nc" id="L674">            getCustomData(ExtendedInformation.CUSTOM_ENDTIME);</span>
+<span class="nc bnc" id="L675" title="All 2 branches missed.">        if (!isEmptyOrRelative(oldEndTime)) {</span>
+          // We use an absolute time format, so we need to upgrade
+          try {
+<span class="nc" id="L678">            final String newEndTime =</span>
+<span class="nc" id="L679">                ValidityDate.formatAsUTC(</span>
+<span class="nc" id="L680">                    DateUtils.parseDateStrictly(oldEndTime, timePatterns));</span>
+<span class="nc" id="L681">            setCustomData(ExtendedInformation.CUSTOM_ENDTIME, newEndTime);</span>
+<span class="nc bnc" id="L682" title="All 2 branches missed.">            if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L683">              LOG.debug(</span>
+                  &quot;Upgraded &quot;
+                      + ExtendedInformation.CUSTOM_ENDTIME
+                      + &quot; from \&quot;&quot;
+                      + oldEndTime
+                      + &quot;\&quot; to \&quot;&quot;
+                      + newEndTime
+                      + &quot;\&quot; in EndEntityProfile.&quot;);
             }
-            // In EJBCA 4.0.0 we changed the date format
-<span class="nc bnc" id="L479" title="All 2 branches missed.">        	if (getVersion() &lt; 3) {</span>
-<span class="nc" id="L480">        		final DateFormat oldDateFormat = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, Locale.US);</span>
-<span class="nc" id="L481">        		final FastDateFormat newDateFormat = FastDateFormat.getInstance(&quot;yyyy-MM-dd HH:mm&quot;);</span>
-        		try {
-<span class="nc" id="L483">        			final String oldCustomStartTime = getCustomData(ExtendedInformation.CUSTOM_STARTTIME);</span>
-<span class="nc bnc" id="L484" title="All 2 branches missed.">        			if ( !isEmptyOrRelative(oldCustomStartTime) ) {</span>
-        				// We use an absolute time format, so we need to upgrade
-<span class="nc" id="L486">            			final String newCustomStartTime = newDateFormat.format(oldDateFormat.parse(oldCustomStartTime));</span>
-<span class="nc" id="L487">    					setCustomData(ExtendedInformation.CUSTOM_STARTTIME, newCustomStartTime);</span>
-<span class="nc bnc" id="L488" title="All 2 branches missed.">    					if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L489">    						log.debug(&quot;Upgraded &quot; + ExtendedInformation.CUSTOM_STARTTIME + &quot; from \&quot;&quot; + oldCustomStartTime + &quot;\&quot; to \&quot;&quot; + newCustomStartTime + &quot;\&quot; in ExtendedInformation.&quot;);</span>
-    					}
-        			}
-<span class="nc" id="L492">				} catch (ParseException e) {</span>
-<span class="nc" id="L493">					log.error(&quot;Unable to upgrade &quot; + ExtendedInformation.CUSTOM_STARTTIME + &quot; in extended user information.&quot;, e);</span>
-<span class="nc" id="L494">				}</span>
-        		try {
-<span class="nc" id="L496">        			final String oldCustomEndTime = getCustomData(ExtendedInformation.CUSTOM_ENDTIME);</span>
-<span class="nc bnc" id="L497" title="All 2 branches missed.">        			if ( !isEmptyOrRelative(oldCustomEndTime) ) {</span>
-        				// We use an absolute time format, so we need to upgrade
-<span class="nc" id="L499">            			final String newCustomEndTime = newDateFormat.format(oldDateFormat.parse(oldCustomEndTime));</span>
-<span class="nc" id="L500">    					setCustomData(ExtendedInformation.CUSTOM_ENDTIME, newCustomEndTime);</span>
-<span class="nc bnc" id="L501" title="All 2 branches missed.">    					if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L502">    						log.debug(&quot;Upgraded &quot; + ExtendedInformation.CUSTOM_ENDTIME + &quot; from \&quot;&quot; + oldCustomEndTime + &quot;\&quot; to \&quot;&quot; + newCustomEndTime + &quot;\&quot; in ExtendedInformation.&quot;);</span>
-    					}
-        			}
-<span class="nc" id="L505">				} catch (ParseException e) {</span>
-<span class="nc" id="L506">					log.error(&quot;Unable to upgrade &quot; + ExtendedInformation.CUSTOM_ENDTIME + &quot; in extended user information.&quot;, e);</span>
-<span class="nc" id="L507">				}</span>
-        	}
-        	// In 4.0.2 we further specify the storage format by saying that UTC TimeZone is implied instead of local server time
-<span class="nc bnc" id="L510" title="All 2 branches missed.">        	if (getVersion() &lt; 4) {</span>
-<span class="nc" id="L511">        		final String[] timePatterns = {&quot;yyyy-MM-dd HH:mm&quot;};</span>
-<span class="nc" id="L512">    			final String oldStartTime = getCustomData(ExtendedInformation.CUSTOM_STARTTIME);</span>
-<span class="nc bnc" id="L513" title="All 2 branches missed.">    			if (!isEmptyOrRelative(oldStartTime)) {</span>
-            		try {
-<span class="nc" id="L515">            			final String newStartTime = ValidityDate.formatAsUTC(DateUtils.parseDateStrictly(oldStartTime, timePatterns));</span>
-<span class="nc" id="L516">    					setCustomData(ExtendedInformation.CUSTOM_STARTTIME, newStartTime);</span>
-<span class="nc bnc" id="L517" title="All 2 branches missed.">    					if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L518">    						log.debug(&quot;Upgraded &quot; + ExtendedInformation.CUSTOM_STARTTIME + &quot; from \&quot;&quot; + oldStartTime + &quot;\&quot; to \&quot;&quot; + newStartTime + &quot;\&quot; in EndEntityProfile.&quot;);</span>
-    					}
-<span class="nc" id="L520">					} catch (ParseException e) {</span>
-<span class="nc" id="L521">						log.error(&quot;Unable to upgrade &quot; + ExtendedInformation.CUSTOM_STARTTIME + &quot; to UTC in EndEntityProfile! Manual interaction is required (edit and verify).&quot;, e);</span>
-<span class="nc" id="L522">					}</span>
-    			}
-<span class="nc" id="L524">    			final String oldEndTime = getCustomData(ExtendedInformation.CUSTOM_ENDTIME);</span>
-<span class="nc bnc" id="L525" title="All 2 branches missed.">    			if (!isEmptyOrRelative(oldEndTime)) {</span>
-    				// We use an absolute time format, so we need to upgrade
-					try {
-<span class="nc" id="L528">						final String newEndTime = ValidityDate.formatAsUTC(DateUtils.parseDateStrictly(oldEndTime, timePatterns));</span>
-<span class="nc" id="L529">						setCustomData(ExtendedInformation.CUSTOM_ENDTIME, newEndTime);</span>
-<span class="nc bnc" id="L530" title="All 2 branches missed.">						if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L531">							log.debug(&quot;Upgraded &quot; + ExtendedInformation.CUSTOM_ENDTIME + &quot; from \&quot;&quot; + oldEndTime + &quot;\&quot; to \&quot;&quot; + newEndTime + &quot;\&quot; in EndEntityProfile.&quot;);</span>
-						}
-<span class="nc" id="L533">					} catch (ParseException e) {</span>
-<span class="nc" id="L534">						log.error(&quot;Unable to upgrade &quot; + ExtendedInformation.CUSTOM_ENDTIME + &quot; to UTC in EndEntityProfile! Manual interaction is required (edit and verify).&quot;, e);</span>
-<span class="nc" id="L535">					}</span>
-    			}
-        	}
-<span class="nc" id="L538">            data.put(VERSION, LATEST_VERSION);</span>
+<span class="nc" id="L692">          } catch (ParseException e) {</span>
+<span class="nc" id="L693">            LOG.error(</span>
+                &quot;Unable to upgrade &quot;
+                    + ExtendedInformation.CUSTOM_ENDTIME
+                    + &quot; to UTC in EndEntityProfile! Manual interaction is&quot;
+                    + &quot; required (edit and verify).&quot;,
+                e);
+<span class="nc" id="L699">          }</span>
         }
-<span class="nc" id="L540">    }</span>
-
-    /** @param time time
-     * @return true if argument is null, empty or in the relative time format. */
-    private boolean isEmptyOrRelative(final String time) {
-<span class="nc bnc" id="L545" title="All 6 branches missed.">    	return (time == null || time.length()==0 || time.matches(&quot;^\\d+:\\d?\\d:\\d?\\d$&quot;));</span>
+      }
+<span class="nc" id="L702">      data.put(VERSION, LATEST_VERSION);</span>
     }
+<span class="nc" id="L704">  }</span>
 
-    /**
-     * Method that returns the classpath to the this or inheriting classes.
-     *
-     * @return String containing the classpath.
-     */
-    public int getType() {
-<span class="nc" id="L554">        return (Integer) data.get(TYPE);</span>
+  /**
+   * @param time time
+   * @return true if argument is null, empty or in the relative time format.
+   */
+  private boolean isEmptyOrRelative(final String time) {
+<span class="nc bnc" id="L711" title="All 2 branches missed.">    return (time == null</span>
+<span class="nc bnc" id="L712" title="All 2 branches missed.">        || time.length() == 0</span>
+<span class="nc bnc" id="L713" title="All 2 branches missed.">        || time.matches(&quot;^\\d+:\\d?\\d:\\d?\\d$&quot;));</span>
+  }
+
+  /**
+   * Method that returns the classpath to the this or inheriting classes.
+   *
+   * @return String containing the classpath.
+   */
+  public int getType() {
+<span class="nc" id="L722">    return (Integer) data.get(TYPE);</span>
+  }
+
+  /**
+   * Method used to specify which kind of object that should be created during
+   * deserialization process.
+   *
+   * &lt;p&gt;Inheriting class should call 'setClassPath(this) in it's constructor.
+   *
+   * @param type Type
+   */
+  private void setType(final int type) {
+<span class="fc" id="L734">    data.put(TYPE, type);</span>
+<span class="fc" id="L735">  }</span>
+
+  /**
+   * @return ID
+   */
+  public Integer getAddEndEntityApprovalRequestId() {
+<span class="fc" id="L741">    Object id = data.get(ADD_EE_APPROVAL_REQUEST_ID);</span>
+<span class="pc bpc" id="L742" title="1 of 2 branches missed.">    if (id != null) {</span>
+<span class="fc" id="L743">      return (Integer) id;</span>
     }
+<span class="nc" id="L745">    return null;</span>
+  }
 
-    /**
-     * Method used to specify which kind of object that should be created during deserialization process.
-     *
-     * Inheriting class should call 'setClassPath(this) in it's constructor.
-     *
-     * @param type Type
-     */
-    private void setType(int type) {
-<span class="fc" id="L565">        data.put(TYPE, type);</span>
-<span class="fc" id="L566">    }</span>
+  /**
+   * @param requestId ID
+   */
+  public void setAddEndEntityApprovalRequestId(final Integer requestId) {
+<span class="fc" id="L752">    data.put(ADD_EE_APPROVAL_REQUEST_ID, requestId);</span>
+<span class="fc" id="L753">  }</span>
 
-
-    public Integer getAddEndEntityApprovalRequestId() {
-<span class="fc" id="L570">        Object id = data.get(ADD_EE_APPROVAL_REQUEST_ID);</span>
-<span class="pc bpc" id="L571" title="1 of 2 branches missed.">        if(id != null) {</span>
-<span class="fc" id="L572">            return (Integer) id;</span>
-        }
-<span class="nc" id="L574">        return null;</span>
+  /**
+   * @return IDs
+   */
+  public List&lt;Integer&gt; getEditEndEntityApprovalRequestIds() {
+    @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L760">    ArrayList&lt;Integer&gt; ids =</span>
+<span class="nc" id="L761">        (ArrayList&lt;Integer&gt;) data.get(EDIT_EE_APPROVAL_REQUEST_IDS);</span>
+<span class="nc bnc" id="L762" title="All 2 branches missed.">    if (ids != null) {</span>
+<span class="nc" id="L763">      return ids;</span>
     }
+<span class="nc" id="L765">    return new ArrayList&lt;Integer&gt;();</span>
+  }
 
-    public void setAddEndEntityApprovalRequestId(Integer requestId) {
-<span class="fc" id="L578">        data.put(ADD_EE_APPROVAL_REQUEST_ID, requestId);</span>
-<span class="fc" id="L579">    }</span>
+  /**
+   * @param requestId ID
+   */
+  public void addEditEndEntityApprovalRequestId(final Integer requestId) {
+<span class="nc" id="L772">    Object obj = data.get(EDIT_EE_APPROVAL_REQUEST_IDS);</span>
+    @SuppressWarnings(&quot;unchecked&quot;)
+    ArrayList&lt;Integer&gt; ids =
+<span class="nc bnc" id="L775" title="All 2 branches missed.">        obj == null ? new ArrayList&lt;Integer&gt;() : (ArrayList&lt;Integer&gt;) obj;</span>
+<span class="nc" id="L776">    ids.add(requestId);</span>
+<span class="nc" id="L777">    data.put(EDIT_EE_APPROVAL_REQUEST_IDS, ids);</span>
+<span class="nc" id="L778">  }</span>
 
-    public List&lt;Integer&gt; getEditEndEntityApprovalRequestIds() {
-        @SuppressWarnings(&quot;unchecked&quot;)
-<span class="nc" id="L583">        ArrayList&lt;Integer&gt; ids = (ArrayList&lt;Integer&gt;) data.get(EDIT_EE_APPROVAL_REQUEST_IDS);</span>
-<span class="nc bnc" id="L584" title="All 2 branches missed.">        if(ids != null) {</span>
-<span class="nc" id="L585">            return ids;</span>
-        }
-<span class="nc" id="L587">        return new ArrayList&lt;Integer&gt;();</span>
+  /**
+   * @return IDs
+   */
+  public List&lt;Integer&gt; getRevokeEndEntityApprovalRequestIds() {
+    @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L785">    ArrayList&lt;Integer&gt; ids =</span>
+<span class="nc" id="L786">        (ArrayList&lt;Integer&gt;) data.get(REVOKE_EE_APPROVAL_REQUEST_IDS);</span>
+<span class="nc bnc" id="L787" title="All 2 branches missed.">    if (ids != null) {</span>
+<span class="nc" id="L788">      return ids;</span>
     }
+<span class="nc" id="L790">    return new ArrayList&lt;Integer&gt;();</span>
+  }
 
-    public void addEditEndEntityApprovalRequestId(Integer requestId) {
-<span class="nc" id="L591">        Object obj = data.get(EDIT_EE_APPROVAL_REQUEST_IDS);</span>
-        @SuppressWarnings(&quot;unchecked&quot;)
-<span class="nc bnc" id="L593" title="All 2 branches missed.">        ArrayList&lt;Integer&gt; ids = obj==null? new ArrayList&lt;Integer&gt;() : (ArrayList&lt;Integer&gt;) obj;</span>
-<span class="nc" id="L594">        ids.add(requestId);</span>
-<span class="nc" id="L595">        data.put(EDIT_EE_APPROVAL_REQUEST_IDS, ids);</span>
-<span class="nc" id="L596">    }</span>
-
-    public List&lt;Integer&gt; getRevokeEndEntityApprovalRequestIds() {
-        @SuppressWarnings(&quot;unchecked&quot;)
-<span class="nc" id="L600">        ArrayList&lt;Integer&gt; ids = (ArrayList&lt;Integer&gt;) data.get(REVOKE_EE_APPROVAL_REQUEST_IDS);</span>
-<span class="nc bnc" id="L601" title="All 2 branches missed.">        if(ids != null) {</span>
-<span class="nc" id="L602">            return ids;</span>
-        }
-<span class="nc" id="L604">        return new ArrayList&lt;Integer&gt;();</span>
-    }
-
-    public void addRevokeEndEntityApprovalRequestId(Integer requestId) {
-        @SuppressWarnings(&quot;unchecked&quot;)
-<span class="nc" id="L609">        List&lt;Integer&gt; obj = (List&lt;Integer&gt;) data.get(REVOKE_EE_APPROVAL_REQUEST_IDS);</span>
-<span class="nc bnc" id="L610" title="All 2 branches missed.">        List&lt;Integer&gt; ids = obj==null? new ArrayList&lt;Integer&gt;() : obj;</span>
-<span class="nc" id="L611">        ids.add(requestId);</span>
-<span class="nc" id="L612">        data.put(REVOKE_EE_APPROVAL_REQUEST_IDS, ids);</span>
-<span class="nc" id="L613">    }</span>
-
+  /**
+   * @param requestId ID
+   */
+  public void addRevokeEndEntityApprovalRequestId(final Integer requestId) {
+    @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L798">    List&lt;Integer&gt; obj =</span>
+<span class="nc" id="L799">        (List&lt;Integer&gt;) data.get(REVOKE_EE_APPROVAL_REQUEST_IDS);</span>
+<span class="nc bnc" id="L800" title="All 2 branches missed.">    List&lt;Integer&gt; ids = obj == null ? new ArrayList&lt;Integer&gt;() : obj;</span>
+<span class="nc" id="L801">    ids.add(requestId);</span>
+<span class="nc" id="L802">    data.put(REVOKE_EE_APPROVAL_REQUEST_IDS, ids);</span>
+<span class="nc" id="L803">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

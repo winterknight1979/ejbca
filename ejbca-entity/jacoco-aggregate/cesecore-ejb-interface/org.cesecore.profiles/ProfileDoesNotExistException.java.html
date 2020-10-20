@@ -14,32 +14,33 @@ package org.cesecore.profiles;
 
 import org.cesecore.CesecoreException;
 
-
 /**
- * An exception thrown when someone tries to access a profile that doesn't exist.
- * 
- * @version $Id: ProfileDoesNotExistException.java 29395 2018-06-28 11:10:02Z andresjakobs $
+ * An exception thrown when someone tries to access a profile that doesn't
+ * exist.
+ *
+ * @version $Id: ProfileDoesNotExistException.java 29395 2018-06-28 11:10:02Z
+ *     andresjakobs $
  */
 public class ProfileDoesNotExistException extends CesecoreException {
-    
 
-    private static final long serialVersionUID = -1038676703612812109L;
+  private static final long serialVersionUID = -1038676703612812109L;
 
+  /**
+   * Creates a new instance of &lt;code&gt;ProfileDoesNotExistException&lt;/code&gt; without
+   * detail message.
+   */
+  public ProfileDoesNotExistException() {
+<span class="nc" id="L33">    super();</span>
+<span class="nc" id="L34">  }</span>
 
-    /**
-     * Creates a new instance of &lt;code&gt;ProfileDoesNotExistException&lt;/code&gt; without detail message.
-     */
-    public ProfileDoesNotExistException() {
-<span class="nc" id="L33">        super();</span>
-<span class="nc" id="L34">    }</span>
-    
-    
-    /**
-     * Constructs an instance of &lt;code&gt;ProfileDoesNotExistException&lt;/code&gt; with the specified detail message.
-     * @param msg the detail message.
-     */
-    public ProfileDoesNotExistException(String msg) {
-<span class="nc" id="L42">        super(msg);</span>
-<span class="nc" id="L43">    }</span>
+  /**
+   * Constructs an instance of &lt;code&gt;ProfileDoesNotExistException&lt;/code&gt; with
+   * the specified detail message.
+   *
+   * @param msg the detail message.
+   */
+  public ProfileDoesNotExistException(final String msg) {
+<span class="nc" id="L43">    super(msg);</span>
+<span class="nc" id="L44">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

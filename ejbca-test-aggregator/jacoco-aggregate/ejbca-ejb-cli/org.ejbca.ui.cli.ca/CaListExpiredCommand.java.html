@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CaListExpiredCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.ca</a> &gt; <span class="el_source">CaListExpiredCommand.java</span></div><h1>CaListExpiredCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.cli.ca;
+
+import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
+import java.util.Collection;
+import java.util.Date;
+
+import org.apache.log4j.Logger;
+import org.cesecore.certificates.certificate.CertificateStoreSessionRemote;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.EJBTools;
+import org.cesecore.util.EjbRemoteHelper;
+import org.ejbca.cvc.CardVerifiableCertificate;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.command.EjbcaCommandBase;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+
+/**
+ * List certificates that will expire within the given number of days.
+ *
+ * @version $Id: CaListExpiredCommand.java 21956 2015-09-30 16:23:43Z jeklund $
+ */
+<span class="nc" id="L41">public class CaListExpiredCommand extends EjbcaCommandBase {</span>
+
+<span class="nc" id="L43">    private static final Logger log = Logger.getLogger(CaListExpiredCommand.class);</span>
+
+    private static final String DAYS_KEY = &quot;-d&quot;;
+
+    {
+<span class="nc" id="L48">        registerParameter(new Parameter(DAYS_KEY, &quot;Days&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;Expire time in days&quot;));
+<span class="nc" id="L50">    }</span>
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L54">        return &quot;listexpired&quot;;</span>
+    }
+
+    @Override
+    public String[] getCommandPath() {
+<span class="nc" id="L59">        return new String[] { &quot;ca&quot; };</span>
+    }
+    
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+<span class="nc" id="L64">        CryptoProviderTools.installBCProvider();</span>
+        long days;
+        try {
+<span class="nc" id="L67">            days = Long.parseLong(parameters.get(DAYS_KEY));</span>
+<span class="nc" id="L68">        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L69">            log.error(parameters.get(DAYS_KEY) + &quot; was not a number.&quot;);</span>
+<span class="nc" id="L70">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L71">        }</span>
+<span class="nc" id="L72">        Date findDate = new Date();</span>
+<span class="nc" id="L73">        long millis = (days * 24 * 60 * 60 * 1000);</span>
+<span class="nc" id="L74">        findDate.setTime(findDate.getTime() + millis);</span>
+<span class="nc" id="L75">        getLogger().info(&quot;Looking for certificates that expire before &quot; + findDate + &quot;.&quot;);</span>
+
+<span class="nc bnc" id="L77" title="All 2 branches missed.">        for (Certificate cert : getExpiredCerts(findDate)) {</span>
+            Date retDate;
+<span class="nc bnc" id="L79" title="All 2 branches missed.">            if (cert instanceof CardVerifiableCertificate) {</span>
+                try {
+<span class="nc" id="L81">                    retDate = ((CardVerifiableCertificate) cert).getCVCertificate().getCertificateBody().getValidTo();</span>
+<span class="nc" id="L82">                } catch (NoSuchFieldException e) {</span>
+<span class="nc" id="L83">                    throw new IllegalStateException(&quot;Dependent library failure.&quot;, e);</span>
+<span class="nc" id="L84">                }</span>
+            } else {
+<span class="nc" id="L86">                retDate = ((X509Certificate) cert).getNotAfter();</span>
+            }
+<span class="nc" id="L88">            String subjectDN = CertTools.getSubjectDN(cert);</span>
+<span class="nc" id="L89">            String serNo = CertTools.getSerialNumberAsString(cert);</span>
+<span class="nc" id="L90">            getLogger().info(&quot;Certificate with subjectDN '&quot; + subjectDN + &quot;' and serialNumber '&quot; + serNo + &quot;' expires at &quot; + retDate + &quot;.&quot;);</span>
+<span class="nc" id="L91">        }</span>
+<span class="nc" id="L92">        return CommandResult.SUCCESS;</span>
+
+    }
+
+    private Collection&lt;Certificate&gt; getExpiredCerts(Date findDate) {
+        try {
+<span class="nc" id="L98">            getLogger().debug(&quot;Looking for cert with expireDate=&quot; + findDate);</span>
+<span class="nc" id="L99">            Collection&lt;Certificate&gt; certs = EJBTools.unwrapCertCollection(EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateStoreSessionRemote.class)</span>
+<span class="nc" id="L100">                    .findCertificatesByExpireTimeWithLimit(findDate));</span>
+<span class="nc" id="L101">            getLogger().debug(&quot;Found &quot; + certs.size() + &quot; certs.&quot;);</span>
+<span class="nc" id="L102">            return certs;</span>
+<span class="nc" id="L103">        } catch (Exception e) {</span>
+<span class="nc" id="L104">            getLogger().error(&quot;Error getting list of certificates&quot;, e);</span>
+        }
+<span class="nc" id="L106">        return null;</span>
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L111">        return &quot;List certificates that will expire within the given number of days&quot;;</span>
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L116">        return getCommandDescription();</span>
+    }
+
+    @Override
+    protected Logger getLogger() {
+<span class="nc" id="L121">        return log;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

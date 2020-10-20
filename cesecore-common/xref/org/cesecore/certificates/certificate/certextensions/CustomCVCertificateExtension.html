@@ -21,50 +21,56 @@
 <a class="jxr_linenumber" name="L13" href="#L13">13</a>  <strong class="jxr_keyword">package</strong> org.cesecore.certificates.certificate.certextensions;
 <a class="jxr_linenumber" name="L14" href="#L14">14</a>  
 <a class="jxr_linenumber" name="L15" href="#L15">15</a>  <strong class="jxr_keyword">import</strong> java.security.PublicKey;
-<a class="jxr_linenumber" name="L16" href="#L16">16</a>  
-<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <strong class="jxr_keyword">import</strong> org.cesecore.certificates.ca.CA;
-<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <strong class="jxr_keyword">import</strong> org.cesecore.certificates.ca.internal.CertificateValidity;
-<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <strong class="jxr_keyword">import</strong> org.cesecore.certificates.certificateprofile.CertificateProfile;
-<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">import</strong> org.cesecore.certificates.endentity.EndEntityInformation;
-<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">import</strong> org.ejbca.cvc.CVCDiscretionaryDataTemplate;
-<a class="jxr_linenumber" name="L22" href="#L22">22</a>  
-<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <em class="jxr_javadoccomment"> * Additional interface for custom CV (Card Verifiable) Certificate extensions.</em>
-<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <em class="jxr_javadoccomment"> * </em>
-<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <em class="jxr_javadoccomment"> * @version $Id: CustomCVCertificateExtension.java 27581 2017-12-19 08:40:07Z samuellb $</em>
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <strong class="jxr_keyword">import</strong> org.cesecore.certificates.ca.CA;
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <strong class="jxr_keyword">import</strong> org.cesecore.certificates.ca.internal.CertificateValidity;
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <strong class="jxr_keyword">import</strong> org.cesecore.certificates.certificateprofile.CertificateProfile;
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <strong class="jxr_keyword">import</strong> org.cesecore.certificates.endentity.EndEntityInformation;
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">import</strong> org.ejbca.cvc.CVCDiscretionaryDataTemplate;
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <em class="jxr_javadoccomment"> * Additional interface for custom CV (Card Verifiable) Certificate extensions.</em>
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <em class="jxr_javadoccomment"> *</em>
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <em class="jxr_javadoccomment"> * @version $Id: CustomCVCertificateExtension.java 27581 2017-12-19 08:40:07Z</em>
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <em class="jxr_javadoccomment"> *     samuellb $</em>
 <a class="jxr_linenumber" name="L27" href="#L27">27</a>  <em class="jxr_javadoccomment"> */</em>
-<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">interface</strong> <a name="CustomCVCertificateExtension" href="../../../../../org/cesecore/certificates/certificate/certextensions/CustomCVCertificateExtension.html#CustomCVCertificateExtension">CustomCVCertificateExtension</a> <strong class="jxr_keyword">extends</strong> <a name="CustomCertificateExtension" href="../../../../../org/cesecore/certificates/certificate/certextensions/CustomCertificateExtension.html#CustomCertificateExtension">CustomCertificateExtension</a> {
-<a class="jxr_linenumber" name="L29" href="#L29">29</a>  
-<a class="jxr_linenumber" name="L30" href="#L30">30</a>      <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <em class="jxr_javadoccomment">     * Constructs the Discretionary Data Template object for the certificate extension.</em>
-<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <em class="jxr_javadoccomment">     * @param userData End Entity information, or null in CSRs and link certificates.</em>
-<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <em class="jxr_javadoccomment">     * @param ca Issuing CA.</em>
-<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <em class="jxr_javadoccomment">     * @param certProfile Certificate profile.</em>
-<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <em class="jxr_javadoccomment">     * @param userPublicKey Public key of user.</em>
-<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <em class="jxr_javadoccomment">     * @param caPublicKey Public key of CA, or old public key in link certificates. Null in CSRs.</em>
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <em class="jxr_javadoccomment">     * @param validity Validity, or null in CSRs and link certificates.</em>
-<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <em class="jxr_javadoccomment">     * @param extensionLocation location</em>
-<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <em class="jxr_javadoccomment">     * @return The Discretionary Data Template object</em>
-<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <em class="jxr_javadoccomment">     * @throws CertificateExtensionException In case of encoding errors etc.</em>
-<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L42" href="#L42">42</a>      CVCDiscretionaryDataTemplate getValueCVC(<a name="EndEntityInformation" href="../../../../../org/cesecore/certificates/endentity/EndEntityInformation.html#EndEntityInformation">EndEntityInformation</a> userData, <a name="CA" href="../../../../../org/cesecore/certificates/ca/CA.html#CA">CA</a> ca, <a name="CertificateProfile" href="../../../../../org/cesecore/certificates/certificateprofile/CertificateProfile.html#CertificateProfile">CertificateProfile</a> certProfile, PublicKey userPublicKey,
-<a class="jxr_linenumber" name="L43" href="#L43">43</a>              PublicKey caPublicKey, <a name="CertificateValidity" href="../../../../../org/cesecore/certificates/ca/internal/CertificateValidity.html#CertificateValidity">CertificateValidity</a> validity, <a name="CertificateExtensionLocation" href="../../../../../org/cesecore/certificates/certificate/certextensions/CertificateExtensionLocation.html#CertificateExtensionLocation">CertificateExtensionLocation</a> extensionLocation) <strong class="jxr_keyword">throws</strong> CertificateExtensionException;
-<a class="jxr_linenumber" name="L44" href="#L44">44</a>      
-<a class="jxr_linenumber" name="L45" href="#L45">45</a>      <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L46" href="#L46">46</a>  <em class="jxr_javadoccomment">     * @return true if the certificate is to be included in certificates.</em>
-<a class="jxr_linenumber" name="L47" href="#L47">47</a>  <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L48" href="#L48">48</a>      <strong class="jxr_keyword">boolean</strong> isIncludedInCertificates();
-<a class="jxr_linenumber" name="L49" href="#L49">49</a>      
-<a class="jxr_linenumber" name="L50" href="#L50">50</a>      <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L51" href="#L51">51</a>  <em class="jxr_javadoccomment">     * @return true if the certificate is to be included in CSRs.</em>
-<a class="jxr_linenumber" name="L52" href="#L52">52</a>  <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L53" href="#L53">53</a>      <strong class="jxr_keyword">boolean</strong> isIncludedInCSR();
-<a class="jxr_linenumber" name="L54" href="#L54">54</a>      
-<a class="jxr_linenumber" name="L55" href="#L55">55</a>      <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L56" href="#L56">56</a>  <em class="jxr_javadoccomment">     * @return true if the certificate is to be included in link certificates.</em>
-<a class="jxr_linenumber" name="L57" href="#L57">57</a>  <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L58" href="#L58">58</a>      <strong class="jxr_keyword">boolean</strong> isIncludedInLinkCertificates();
-<a class="jxr_linenumber" name="L59" href="#L59">59</a>  }
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">interface</strong> <a name="CustomCVCertificateExtension" href="../../../../../org/cesecore/certificates/certificate/certextensions/CustomCVCertificateExtension.html#CustomCVCertificateExtension">CustomCVCertificateExtension</a>
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>      <strong class="jxr_keyword">extends</strong> <a name="CustomCertificateExtension" href="../../../../../org/cesecore/certificates/certificate/certextensions/CustomCertificateExtension.html#CustomCertificateExtension">CustomCertificateExtension</a> {
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>    <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <em class="jxr_javadoccomment">   * Constructs the Discretionary Data Template object for the certificate</em>
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <em class="jxr_javadoccomment">   * extension.</em>
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <em class="jxr_javadoccomment">   *</em>
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <em class="jxr_javadoccomment">   * @param userData End Entity information, or null in CSRs and link</em>
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <em class="jxr_javadoccomment">   *     certificates.</em>
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <em class="jxr_javadoccomment">   * @param ca Issuing CA.</em>
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <em class="jxr_javadoccomment">   * @param certProfile Certificate profile.</em>
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <em class="jxr_javadoccomment">   * @param userPublicKey Public key of user.</em>
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <em class="jxr_javadoccomment">   * @param caPublicKey Public key of CA, or old public key in link</em>
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <em class="jxr_javadoccomment">   *     certificates. Null in CSRs.</em>
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  <em class="jxr_javadoccomment">   * @param validity Validity, or null in CSRs and link certificates.</em>
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <em class="jxr_javadoccomment">   * @param extensionLocation location</em>
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>  <em class="jxr_javadoccomment">   * @return The Discretionary Data Template object</em>
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>  <em class="jxr_javadoccomment">   * @throws CertificateExtensionException In case of encoding errors etc.</em>
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>  <em class="jxr_javadoccomment">   */</em>
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>    CVCDiscretionaryDataTemplate getValueCVC(
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>        <a name="EndEntityInformation" href="../../../../../org/cesecore/certificates/endentity/EndEntityInformation.html#EndEntityInformation">EndEntityInformation</a> userData,
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>        <a name="CA" href="../../../../../org/cesecore/certificates/ca/CA.html#CA">CA</a> ca,
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>        <a name="CertificateProfile" href="../../../../../org/cesecore/certificates/certificateprofile/CertificateProfile.html#CertificateProfile">CertificateProfile</a> certProfile,
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>        PublicKey userPublicKey,
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>        PublicKey caPublicKey,
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>        <a name="CertificateValidity" href="../../../../../org/cesecore/certificates/ca/internal/CertificateValidity.html#CertificateValidity">CertificateValidity</a> validity,
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>        <a name="CertificateExtensionLocation" href="../../../../../org/cesecore/certificates/certificate/certextensions/CertificateExtensionLocation.html#CertificateExtensionLocation">CertificateExtensionLocation</a> extensionLocation)
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>        <strong class="jxr_keyword">throws</strong> CertificateExtensionException;
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>  
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>    <em class="jxr_javadoccomment">/** @return true if the certificate is to be included in certificates. */</em>
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>    <strong class="jxr_keyword">boolean</strong> isIncludedInCertificates();
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>  
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>    <em class="jxr_javadoccomment">/** @return true if the certificate is to be included in CSRs. */</em>
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>    <strong class="jxr_keyword">boolean</strong> isIncludedInCSR();
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>  
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>    <em class="jxr_javadoccomment">/** @return true if the certificate is to be included in link certificates. */</em>
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>    <strong class="jxr_keyword">boolean</strong> isIncludedInLinkCertificates();
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>  }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2020. All rights reserved.</div>

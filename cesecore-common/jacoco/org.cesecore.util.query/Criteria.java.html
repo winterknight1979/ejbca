@@ -14,7 +14,6 @@ package org.cesecore.util.query;
 
 import java.io.Serializable;
 import java.util.AbstractMap;
-
 import org.cesecore.util.query.clauses.Order;
 import org.cesecore.util.query.elems.LogicOperator;
 import org.cesecore.util.query.elems.Operation;
@@ -23,95 +22,138 @@ import org.cesecore.util.query.elems.Term;
 
 /**
  * This class is a DSL sugar to all possible Criterias.
- * 
+ *
  * @version $Id: Criteria.java 17625 2013-09-20 07:12:06Z netmackan $
  */
-<span class="nc" id="L29">public class Criteria implements Serializable {</span>
+public final class Criteria implements Serializable {
 
-    private static final long serialVersionUID = 3186042047323993627L;
+    private Criteria() { }
+  private static final long serialVersionUID = 3186042047323993627L;
 
-    public static Elem eq(final String name, final Object value) {
-<span class="nc" id="L34">        return new Term(RelationalOperator.EQ, name, value);</span>
-    }
+  /**
+   * @param name Name
+   * @param value Value
+   * @return Element
+   */
+  public static Elem eq(final String name, final Object value) {
+<span class="nc" id="L39">    return new Term(RelationalOperator.EQ, name, value);</span>
+  }
 
-    /** @param name name
-     * @param value value
-     * @return the query with an appended &quot;not equal to&quot; condition */
-    public static Elem neq(final String name, final Object value) {
-<span class="nc" id="L41">        return new Term(RelationalOperator.NEQ, name, value);</span>
-    }
+  /**
+   * @param name name
+   * @param value value
+   * @return the query with an appended &quot;not equal to&quot; condition
+   */
+  public static Elem neq(final String name, final Object value) {
+<span class="nc" id="L48">    return new Term(RelationalOperator.NEQ, name, value);</span>
+  }
 
-    /** @param name name
-     * @param value value
-     * @return the query with an appended &quot;greater than or equal to&quot; condition */
-    public static Elem geq(final String name, final Object value) {
-<span class="nc" id="L48">        return new Term(RelationalOperator.GE, name, value);</span>
+  /**
+   * @param name name
+   * @param value value
+   * @return the query with an appended &quot;greater than or equal to&quot; condition
+   */
+  public static Elem geq(final String name, final Object value) {
+<span class="nc" id="L57">    return new Term(RelationalOperator.GE, name, value);</span>
+  }
 
-    }
+  /**
+   * @param name name
+   * @param value value
+   * @return the query with an appended &quot;greater than&quot; condition
+   */
+  public static Elem grt(final String name, final Object value) {
+<span class="nc" id="L66">    return new Term(RelationalOperator.GT, name, value);</span>
+  }
 
-    /** @param name name
-     * @param value value
-     * @return the query with an appended &quot;greater than&quot; condition */
-    public static Elem grt(final String name, final Object value) {
-<span class="nc" id="L56">        return new Term(RelationalOperator.GT, name, value);</span>
+  /**
+   * @param name name
+   * @param value value
+   * @return the query with an appended &quot;less than or equal to&quot; condition
+   */
+  public static Elem leq(final String name, final Object value) {
+<span class="nc" id="L75">    return new Term(RelationalOperator.LE, name, value);</span>
+  }
 
-    }
+  /**
+   * @param name name
+   * @param value value
+   * @return the query with an appended &quot;less than to&quot; condition
+   */
+  public static Elem lsr(final String name, final Object value) {
+<span class="nc" id="L84">    return new Term(RelationalOperator.LT, name, value);</span>
+  }
 
-    /** @param name name
-     * @param value value
-     * @return the query with an appended &quot;less than or equal to&quot; condition */
-    public static Elem leq(final String name, final Object value) {
-<span class="nc" id="L64">        return new Term(RelationalOperator.LE, name, value);</span>
+  /**
+   * @param name name
+   * @param after after
+   * @param before before
+   * @return the query with an appended &quot;between&quot; condition
+   */
+  public static Elem between(
+      final String name, final Object after, final Object before) {
+<span class="nc" id="L95">    return new Term(</span>
+        RelationalOperator.BETWEEN,
+        name,
+        new AbstractMap.SimpleEntry&lt;Object, Object&gt;(after, before));
+  }
 
-    }
+/**
+ * @param name name
+ * @param value value
+ * @return Element
+ */
+  public static Elem like(final String name, final Object value) {
+<span class="nc" id="L107">    return new Term(RelationalOperator.LIKE, name, value);</span>
+  }
 
-    /** @param name name
-     * @param value value
-     * @return the query with an appended &quot;less than to&quot; condition */
-    public static Elem lsr(final String name, final Object value) {
-<span class="nc" id="L72">        return new Term(RelationalOperator.LT, name, value);</span>
+  /**
+   * @param name Name
+   * @return Element
+   */
+  public static Elem isNull(final String name) {
+<span class="nc" id="L115">    return new Term(RelationalOperator.NULL, name, null);</span>
+  }
 
-    }
+  /**
+   * @param name Name
+   * @return Element
+   */
+  public static Elem isNotNull(final String name) {
+<span class="nc" id="L123">    return new Term(RelationalOperator.NOTNULL, name, null);</span>
+  }
 
-    /**@param name name
-     * @param after after
-     * @param before before
-     *  @return the query with an appended &quot;between&quot; condition */
-    public static Elem between(final String name, final Object after,
-            final Object before) {
-<span class="nc" id="L82">        return new Term(RelationalOperator.BETWEEN, name,</span>
-                new  AbstractMap.SimpleEntry&lt;Object, Object&gt;(after, before));
+  /**
+   * @param first First
+   * @param second Second
+   * @return First &amp;amp;&amp;amp; Second
+   */
+  public static Elem and(final Elem first, final Elem second) {
+<span class="nc" id="L132">    return new Operation(LogicOperator.AND, (Term) first, second);</span>
+  }
 
-    }
-    
-    public static Elem like(final String name, final Object value) {
-<span class="nc" id="L88">        return new Term(RelationalOperator.LIKE, name, value);</span>
-    }
-    
-    public static Elem isNull(final String name) {
-<span class="nc" id="L92">        return new Term(RelationalOperator.NULL, name, null);</span>
-    }
-    
-    public static Elem isNotNull(final String name) {
-<span class="nc" id="L96">        return new Term(RelationalOperator.NOTNULL, name, null);</span>
-    }
-    
-    public static Elem and(final Elem first, final Elem second) {
-<span class="nc" id="L100">        return new Operation(LogicOperator.AND, (Term)first, second);</span>
-    }
-    
-    public static Elem or(final Elem first, final Elem second) {
-<span class="nc" id="L104">        return new Operation(LogicOperator.OR, (Term)first, second);</span>
-    }
-    
-    public static Elem orderAsc(final String name) {
-<span class="nc" id="L108">        return new Order(name, Order.Value.ASC);</span>
-    }
-        
-    public static Elem orderDesc(final String name) {
-<span class="nc" id="L112">        return new Order(name, Order.Value.DESC);</span>
-    }
+  /**
+   * @param first First
+   * @param second Second
+   * @return First || Second
+   */
+  public static Elem or(final Elem first, final Elem second) {
+<span class="nc" id="L141">    return new Operation(LogicOperator.OR, (Term) first, second);</span>
+  }
+  /**
+   * @param name name
+   * @return Element
+   */
+  public static Elem orderAsc(final String name) {
+<span class="nc" id="L148">    return new Order(name, Order.Value.ASC);</span>
+  }
 
-    
+  /**
+   * @param name name
+   * @return Element
+   */
+  public static Elem orderDesc(final String name) {
+<span class="nc" id="L156">    return new Order(name, Order.Value.DESC);</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

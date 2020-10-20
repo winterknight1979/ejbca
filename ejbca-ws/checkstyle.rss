@@ -25,8 +25,8 @@ under the License.
     <language>en-us</language>
     <copyright>&#169;2020</copyright>
     <item>
-      <title>File: 4,
-             Errors: 1409,
+      <title>File: 5,
+             Errors: 1375,
              Warnings: 0,
              Infos: 0
       </title>
@@ -69,7 +69,21 @@ under the License.
                   0
                 </td>
                 <td>
-                  35
+                  36
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ws/checkstyle.html#org.ejbca.core.protocol.ws.EjbcaWSHelperMethodsTest.java">org/ejbca/core/protocol/ws/EjbcaWSHelperMethodsTest.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  27
                 </td>
               </tr>
                           <tr>
@@ -83,7 +97,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  1328
+                  1267
                 </td>
               </tr>
                           <tr>
@@ -97,7 +111,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  12
+                  11
                 </td>
               </tr>
                       </tbody>

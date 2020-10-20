@@ -606,12 +606,16 @@ public class RequestHelper {
      */
     public static void sendResultPage(byte[] certbytes, HttpServletResponse out, boolean hidemenu, CertificateResponseType resulttype) throws Exception {
 <span class="nc" id="L608">        Certificate cert = CertTools.getCertfromByteArray(certbytes, Certificate.class);</span>
-<span class="nc" id="L609">        String issuerDN = CertTools.getIssuerDN(cert);</span>
-<span class="nc" id="L610">        String serialNumber = CertTools.getSerialNumberAsString(cert);</span>
-<span class="nc" id="L611">        String resultTypeStr = String.valueOf(resulttype.getNumber()); </span>
-        
-<span class="nc" id="L613">        out.sendRedirect(&quot;enrol/result_download.jsp?issuer=&quot;+URLEncoder.encode(issuerDN, &quot;UTF-8&quot;)+&quot;&amp;serno=&quot;+serialNumber+&quot;&amp;resulttype=&quot;+resultTypeStr+&quot;&amp;hidemenu=&quot;+hidemenu);</span>
-<span class="nc" id="L614">    }</span>
+<span class="nc" id="L609">        String issuerDN = CertTools.getIssuerDN(cert);	       </span>
+<span class="nc" id="L610">        String serialNumber = CertTools.getSerialNumberAsString(cert);	       </span>
+<span class="nc" id="L611">        String resultTypeStr = String.valueOf(resulttype.getNumber()); 	       </span>
+
+
+<span class="nc" id="L614">        out.sendRedirect(&quot;enrol/result_download.jsp?issuer=&quot;+URLEncoder.encode(issuerDN, &quot;UTF-8&quot;)+&quot;&amp;serno=&quot;+serialNumber+&quot;&amp;resulttype=&quot;+resultTypeStr+&quot;&amp;hidemenu=&quot;+hidemenu);</span>
+        		
+<span class="nc" id="L616">    }</span>
+    
+   
     
     /**
      * Sends a page with certificate information and an automatic redirect to the
@@ -626,13 +630,13 @@ public class RequestHelper {
      * @throws Exception fail
      */
     public static void sendResultPage(byte[] certbytes, HttpServletResponse out, boolean hidemenu, String installToBrowser) throws Exception {
-<span class="nc" id="L629">        Certificate cert = CertTools.getCertfromByteArray(certbytes, Certificate.class);</span>
-        
-<span class="nc" id="L631">        String issuerDN = CertTools.getIssuerDN(cert);</span>
-<span class="nc" id="L632">        String serialNumber = CertTools.getSerialNumberAsString(cert);</span>
-        
-<span class="nc" id="L634">        out.sendRedirect(&quot;enrol/result_download.jsp?issuer=&quot;+URLEncoder.encode(issuerDN, &quot;UTF-8&quot;)+&quot;&amp;serno=&quot;+serialNumber+&quot;&amp;installtobrowser=&quot;+installToBrowser+&quot;&amp;hidemenu=&quot;+hidemenu);</span>
-<span class="nc" id="L635">    }</span>
+<span class="nc" id="L633">        Certificate cert = CertTools.getCertfromByteArray(certbytes, Certificate.class);</span>
+
+<span class="nc" id="L635">        String issuerDN = CertTools.getIssuerDN(cert);	        </span>
+<span class="nc" id="L636">        String serialNumber = CertTools.getSerialNumberAsString(cert);	       </span>
+
+<span class="nc" id="L638">        out.sendRedirect(&quot;enrol/result_download.jsp?issuer=&quot;+URLEncoder.encode(issuerDN, &quot;UTF-8&quot;)+&quot;&amp;serno=&quot;+serialNumber+&quot;&amp;installtobrowser=&quot;+installToBrowser+&quot;&amp;hidemenu=&quot;+hidemenu);</span>
+<span class="nc" id="L639">    }</span>
     
     /** Sets the default character encoding for decoding post and get parameters. 
      * First tries to get the character encoding from the request, if the browser is so kind to tell us which it is using, which it never does...
@@ -643,55 +647,55 @@ public class RequestHelper {
      * 
      */
     public static void setDefaultCharacterEncoding(HttpServletRequest request) throws UnsupportedEncodingException {
-<span class="nc" id="L646">        String encoding = request.getCharacterEncoding();</span>
-<span class="nc bnc" id="L647" title="All 2 branches missed.">        if(StringUtils.isEmpty(encoding)) {</span>
-<span class="nc" id="L648">            encoding = org.ejbca.config.WebConfiguration.getWebContentEncoding();</span>
-<span class="nc bnc" id="L649" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L650">                log.debug(&quot;Setting encoding to default value: &quot;+encoding);</span>
+<span class="nc" id="L650">        String encoding = request.getCharacterEncoding();</span>
+<span class="nc bnc" id="L651" title="All 2 branches missed.">        if(StringUtils.isEmpty(encoding)) {</span>
+<span class="nc" id="L652">            encoding = org.ejbca.config.WebConfiguration.getWebContentEncoding();</span>
+<span class="nc bnc" id="L653" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L654">                log.debug(&quot;Setting encoding to default value: &quot;+encoding);</span>
             }
-<span class="nc" id="L652">            request.setCharacterEncoding(encoding);</span>
+<span class="nc" id="L656">            request.setCharacterEncoding(encoding);</span>
         } else {
-<span class="nc bnc" id="L654" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L655">                log.debug(&quot;Setting encoding to value from request: &quot;+encoding);</span>
+<span class="nc bnc" id="L658" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L659">                log.debug(&quot;Setting encoding to value from request: &quot;+encoding);</span>
             }
-<span class="nc" id="L657">            request.setCharacterEncoding(encoding);         </span>
+<span class="nc" id="L661">            request.setCharacterEncoding(encoding);         </span>
         }        
-<span class="nc" id="L659">    }</span>
+<span class="nc" id="L663">    }</span>
 
     public static String getFileNameFromCertNoEnding(Certificate cacert, String defaultname) throws NoSuchFieldException {
-<span class="nc" id="L662">    	String dnpart = null;</span>
-<span class="nc bnc" id="L663" title="All 2 branches missed.">    	if (StringUtils.equals(cacert.getType(), &quot;CVC&quot;)) {</span>
-<span class="nc" id="L664">    		CardVerifiableCertificate cvccert = (CardVerifiableCertificate) cacert;</span>
-<span class="nc" id="L665">    		String car = &quot;car&quot;;</span>
-<span class="nc" id="L666">    		CAReferenceField carf = cvccert.getCVCertificate().getCertificateBody().getAuthorityReference();</span>
-<span class="nc bnc" id="L667" title="All 2 branches missed.">    		if (carf != null) {</span>
-<span class="nc" id="L668">    			car = carf.getConcatenated();</span>
+<span class="nc" id="L666">    	String dnpart = null;</span>
+<span class="nc bnc" id="L667" title="All 2 branches missed.">    	if (StringUtils.equals(cacert.getType(), &quot;CVC&quot;)) {</span>
+<span class="nc" id="L668">    		CardVerifiableCertificate cvccert = (CardVerifiableCertificate) cacert;</span>
+<span class="nc" id="L669">    		String car = &quot;car&quot;;</span>
+<span class="nc" id="L670">    		CAReferenceField carf = cvccert.getCVCertificate().getCertificateBody().getAuthorityReference();</span>
+<span class="nc bnc" id="L671" title="All 2 branches missed.">    		if (carf != null) {</span>
+<span class="nc" id="L672">    			car = carf.getConcatenated();</span>
     		}
-<span class="nc" id="L670">    		String chr = &quot;chr&quot;;</span>
-<span class="nc" id="L671">    		HolderReferenceField chrf = cvccert.getCVCertificate().getCertificateBody().getHolderReference();</span>
-<span class="nc bnc" id="L672" title="All 2 branches missed.">    		if (chrf != null) {</span>
-<span class="nc" id="L673">    			chr = chrf.getConcatenated();</span>
+<span class="nc" id="L674">    		String chr = &quot;chr&quot;;</span>
+<span class="nc" id="L675">    		HolderReferenceField chrf = cvccert.getCVCertificate().getCertificateBody().getHolderReference();</span>
+<span class="nc bnc" id="L676" title="All 2 branches missed.">    		if (chrf != null) {</span>
+<span class="nc" id="L677">    			chr = chrf.getConcatenated();</span>
     		}
-<span class="nc" id="L675">    		dnpart = car + &quot;_&quot; + chr;</span>
-<span class="nc" id="L676">    	} else {</span>
-<span class="nc" id="L677">    		String dn = CertTools.getSubjectDN(cacert);</span>
-<span class="nc" id="L678">    		dnpart = CertTools.getPartFromDN(dn, &quot;CN&quot;);</span>
-<span class="nc bnc" id="L679" title="All 2 branches missed.">    		if (dnpart == null) {</span>
-<span class="nc" id="L680">    			dnpart = CertTools.getPartFromDN(dn, &quot;SN&quot;);</span>
+<span class="nc" id="L679">    		dnpart = car + &quot;_&quot; + chr;</span>
+<span class="nc" id="L680">    	} else {</span>
+<span class="nc" id="L681">    		String dn = CertTools.getSubjectDN(cacert);</span>
+<span class="nc" id="L682">    		dnpart = CertTools.getPartFromDN(dn, &quot;CN&quot;);</span>
+<span class="nc bnc" id="L683" title="All 2 branches missed.">    		if (dnpart == null) {</span>
+<span class="nc" id="L684">    			dnpart = CertTools.getPartFromDN(dn, &quot;SN&quot;);</span>
     		}
-<span class="nc bnc" id="L682" title="All 2 branches missed.">    		if (dnpart == null) {</span>
-<span class="nc" id="L683">    			dnpart = CertTools.getPartFromDN(dn, &quot;O&quot;);</span>
+<span class="nc bnc" id="L686" title="All 2 branches missed.">    		if (dnpart == null) {</span>
+<span class="nc" id="L687">    			dnpart = CertTools.getPartFromDN(dn, &quot;O&quot;);</span>
     		}
     	}
-<span class="nc bnc" id="L686" title="All 2 branches missed.">    	if (dnpart == null) {</span>
-<span class="nc" id="L687">    		dnpart = defaultname;</span>
+<span class="nc bnc" id="L690" title="All 2 branches missed.">    	if (dnpart == null) {</span>
+<span class="nc" id="L691">    		dnpart = defaultname;</span>
     	}
-<span class="nc bnc" id="L689" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L690">            log.debug(&quot;dnpart: &quot;+dnpart);</span>
+<span class="nc bnc" id="L693" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L694">            log.debug(&quot;dnpart: &quot;+dnpart);</span>
         }
     	// Strip whitespace though
-<span class="nc" id="L693">    	String filename = dnpart.replaceAll(&quot;\\W&quot;, &quot;&quot;);</span>
-<span class="nc" id="L694">    	return filename;</span>
+<span class="nc" id="L697">    	String filename = dnpart.replaceAll(&quot;\\W&quot;, &quot;&quot;);</span>
+<span class="nc" id="L698">    	return filename;</span>
     }
 
     // Uniform Resource Identifier specification has a section on parsing URIs with a regular expression. The regular expression, written by Berners-Lee, et al., is:
@@ -708,7 +712,7 @@ public class RequestHelper {
     //$9 = Related
     // Port is part of the name in $4
     // See https://stackoverflow.com/questions/27745/getting-parts-of-a-url-regex
-<span class="fc" id="L711">    private static java.util.regex.Pattern reg = java.util.regex.Pattern.compile(&quot;^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?&quot;);</span>
+<span class="fc" id="L715">    private static java.util.regex.Pattern reg = java.util.regex.Pattern.compile(&quot;^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?&quot;);</span>
     /**
      * Method that returns the servername including port, extracted from the HTTPServlet Request, no protocol or application path is returned
      * @param request req
@@ -716,32 +720,32 @@ public class RequestHelper {
      * @return the server name and port requested, i.e. localhost:8443
      */
     public static String getRequestServerName(final String request) {
-<span class="fc bfc" id="L719" title="All 2 branches covered.">        if (request == null) {</span>
-<span class="fc" id="L720">            return null;</span>
+<span class="fc bfc" id="L723" title="All 2 branches covered.">        if (request == null) {</span>
+<span class="fc" id="L724">            return null;</span>
         }
-<span class="fc" id="L722">        final java.util.regex.Matcher m = reg.matcher(request);</span>
-<span class="fc" id="L723">        String requestURL = null;</span>
-<span class="pc bpc" id="L724" title="2 of 4 branches missed.">        if (m.matches() &amp;&amp; m.groupCount() &gt;= 4) {</span>
-<span class="pc bpc" id="L725" title="1 of 2 branches missed.">            if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L726">                log.trace(&quot;regexp match with &quot;+m.groupCount()+&quot; groups, 0 being: &quot;+m.group(0));</span>
+<span class="fc" id="L726">        final java.util.regex.Matcher m = reg.matcher(request);</span>
+<span class="fc" id="L727">        String requestURL = null;</span>
+<span class="pc bpc" id="L728" title="2 of 4 branches missed.">        if (m.matches() &amp;&amp; m.groupCount() &gt;= 4) {</span>
+<span class="pc bpc" id="L729" title="1 of 2 branches missed.">            if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L730">                log.trace(&quot;regexp match with &quot;+m.groupCount()+&quot; groups, 0 being: &quot;+m.group(0));</span>
             }
-<span class="fc" id="L728">            requestURL = m.group(4);</span>
+<span class="fc" id="L732">            requestURL = m.group(4);</span>
         } else {
-<span class="nc bnc" id="L730" title="All 2 branches missed.">            if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L731">                log.trace(&quot;no reqexp match: &quot;+request);</span>
+<span class="nc bnc" id="L734" title="All 2 branches missed.">            if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L735">                log.trace(&quot;no reqexp match: &quot;+request);</span>
             }
             // Remove https://
-<span class="nc" id="L734">            requestURL = request.substring(8);</span>
-<span class="nc" id="L735">            int firstSlash = requestURL.indexOf(&quot;/&quot;);</span>
+<span class="nc" id="L738">            requestURL = request.substring(8);</span>
+<span class="nc" id="L739">            int firstSlash = requestURL.indexOf(&quot;/&quot;);</span>
             // Remove application path
-<span class="nc" id="L737">            requestURL = requestURL.substring(0, firstSlash);            </span>
+<span class="nc" id="L741">            requestURL = requestURL.substring(0, firstSlash);            </span>
         }        
         // Escape in order to be sure not to have any XSS
-<span class="fc" id="L740">        requestURL = HTMLTools.htmlescape(requestURL);</span>
-<span class="pc bpc" id="L741" title="1 of 2 branches missed.">        if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L742">            log.debug(&quot;requestServerName: &quot; + requestURL);</span>
+<span class="fc" id="L744">        requestURL = HTMLTools.htmlescape(requestURL);</span>
+<span class="pc bpc" id="L745" title="1 of 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L746">            log.debug(&quot;requestServerName: &quot; + requestURL);</span>
         }
-<span class="fc" id="L744">        return requestURL;</span>
+<span class="fc" id="L748">        return requestURL;</span>
     }
 
 }

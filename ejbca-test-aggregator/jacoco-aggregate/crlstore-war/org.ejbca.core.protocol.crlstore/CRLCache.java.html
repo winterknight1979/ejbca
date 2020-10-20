@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CRLCache.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">crlstore-war</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.crlstore</a> &gt; <span class="el_source">CRLCache.java</span></div><h1>CRLCache.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.protocol.crlstore;
+
+import java.security.cert.X509Certificate;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+import org.apache.log4j.Logger;
+import org.cesecore.certificates.ca.internal.CaCertificateCache;
+import org.cesecore.certificates.certificate.HashID;
+import org.cesecore.certificates.crl.CRLInfo;
+import org.cesecore.certificates.crl.CrlStoreSessionLocal;
+import org.cesecore.util.CertTools;
+
+/**
+ * An implementation of this is managing a cache of CRLs. The implementation should be optimized for quick lookups of CRLs that the 
+ * VA responder needs to fetch.
+ *
+ * @version $Id: CRLCache.java 25645 2017-04-04 09:22:52Z anatom $
+ */
+public class CRLCache {
+<span class="nc" id="L36">	private static final Logger log = Logger.getLogger(CRLCache.class);</span>
+	
+<span class="nc" id="L38">    private static CRLCache instance = null;</span>
+<span class="nc" id="L39">    private static final Lock lock = new ReentrantLock();</span>
+	
+	private final CrlStoreSessionLocal crlSession;
+	private final CaCertificateCache certCache;
+<span class="nc" id="L43">	final private Map&lt;Integer, CRLEntity&gt; crls = new HashMap&lt;Integer, CRLEntity&gt;();</span>
+<span class="nc" id="L44">	final private Map&lt;Integer, CRLEntity&gt; deltaCrls = new HashMap&lt;Integer, CRLEntity&gt;();</span>
+	private class CRLEntity {
+		final CRLInfo crlInfo;
+		final byte encoded[];
+		/**
+		 * @param crlInfo Info
+		 * @param encoded Data 
+		 */
+<span class="nc" id="L52">		CRLEntity(CRLInfo crlInfo, byte[] encoded) {</span>
+<span class="nc" id="L53">			super();</span>
+<span class="nc" id="L54">			this.crlInfo = crlInfo;</span>
+<span class="nc" id="L55">			this.encoded = encoded;</span>
+<span class="nc" id="L56">		}</span>
+	}
+	/** We need an object to synchronize around when rebuilding and reading the cache. When rebuilding the cache no thread
+	 * can be allowed to read the cache, since the cache will be in an inconsistent state. In the normal case we want to use
+	 * as fast objects as possible (HashMap) for reading fast.
+	 */
+<span class="nc" id="L62">	final private Lock rebuildlock = new ReentrantLock();</span>
+
+	 /**
+     * @param crlSession Session
+	 * @param certCache Cache
+	 * @return  {@link CRLCache} for the CA.
+     */
+    public static CRLCache getInstance(CrlStoreSessionLocal crlSession, CaCertificateCache certCache) {
+<span class="nc bnc" id="L70" title="All 2 branches missed.">        if (instance != null) {</span>
+<span class="nc" id="L71">            return instance;</span>
+        }
+<span class="nc" id="L73">        lock.lock();</span>
+        try {
+<span class="nc bnc" id="L75" title="All 2 branches missed.">            if ( instance==null ) {</span>
+<span class="nc" id="L76">                instance = new CRLCache(crlSession, certCache);</span>
+            }
+<span class="nc" id="L78">            return instance;</span>
+        } finally {
+<span class="nc" id="L80">            lock.unlock();</span>
+        }
+    }
+	
+	/**
+	 * @param crlSession reference to CRLStoreSession
+	 * @param certCache references to needed CA certificates.
+	 */
+	private CRLCache(CrlStoreSessionLocal crlSession, CaCertificateCache certCache) {
+<span class="nc" id="L89">		super();</span>
+<span class="nc" id="L90">		this.crlSession = crlSession;</span>
+<span class="nc" id="L91">		this.certCache = certCache;</span>
+<span class="nc" id="L92">	}</span>
+
+	/**
+     * @param id The ID of the subject key identifier.
+     * @param isDelta true if delta CRL
+     * @param crlNumber specific crlNumber of the CRL to be retrieved, when not the latest, or -1 for the latest
+     * @return CRL or null if the CRL does not exist in the cache.
+     */
+	public byte[] findBySubjectKeyIdentifier(HashID id, boolean isDelta, int crlNumber) {
+<span class="nc" id="L101">		return findCRL(certCache.findBySubjectKeyIdentifier(id), isDelta, crlNumber);</span>
+	}
+
+	/**
+     * @param id The ID of the issuer DN.
+     * @param isDelta true if delta CRL
+     * @param crlNumber specific crlNumber of the CRL to be retrieved, when not the latest, or -1 for the latest
+     * @return CRL or null if the CRL does not exist in the cache.
+     */
+	public byte[] findByIssuerDN(HashID id, boolean isDelta, int crlNumber) {
+<span class="nc" id="L111">		return findCRL(certCache.findLatestBySubjectDN(id), isDelta, crlNumber);</span>
+	}
+
+	private byte[] findCRL(X509Certificate caCert, boolean isDelta, int crlNumber) {
+<span class="nc bnc" id="L115" title="All 2 branches missed.">		if ( caCert==null ) {</span>
+<span class="nc bnc" id="L116" title="All 2 branches missed.">			if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L117">				log.debug(&quot;No CA certificate, returning null.&quot;);</span>
+			}
+<span class="nc" id="L119">			return null;</span>
+		}
+<span class="nc" id="L121">		final HashID id = HashID.getFromSubjectDN(caCert);</span>
+<span class="nc" id="L122">		final String issuerDN = CertTools.getSubjectDN(caCert);</span>
+<span class="nc" id="L123">		this.rebuildlock.lock();</span>
+		try {
+<span class="nc" id="L125">			final CRLInfo crlInfo = this.crlSession.getLastCRLInfo(issuerDN, isDelta);</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">			if ( crlInfo==null ) {</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">				if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L128">					log.debug(&quot;No CRL found with issuerDN '&quot;+issuerDN+&quot;', returning null.&quot;);</span>
+				}
+<span class="nc" id="L130">				return null;</span>
+			}
+<span class="nc bnc" id="L132" title="All 2 branches missed.">            final Map&lt;Integer, CRLEntity&gt; usedCrls = isDelta ? this.deltaCrls : this.crls;</span>
+			// If we have not specified a crlNumber we can try to find the latest CRL in the cache
+<span class="nc bnc" id="L134" title="All 2 branches missed.">			if (crlNumber == -1) {</span>
+<span class="nc" id="L135">			    final CRLEntity cachedCRL = usedCrls.get(id.getKey());</span>
+<span class="nc bnc" id="L136" title="All 4 branches missed.">			    if ( cachedCRL!=null &amp;&amp; !crlInfo.getCreateDate().after(cachedCRL.crlInfo.getCreateDate()) ) {</span>
+<span class="nc bnc" id="L137" title="All 2 branches missed.">			        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L138">			            log.debug(&quot;Retrieved CRL (from cache) with issuerDN '&quot;+issuerDN+&quot;', with CRL number &quot;+crlInfo.getLastCRLNumber());</span>
+			        }
+<span class="nc" id="L140">			        return cachedCRL.encoded;</span>
+			    }
+			}
+			final CRLEntity entry;
+<span class="nc bnc" id="L144" title="All 2 branches missed.">			if (crlNumber &gt; -1) {</span>
+<span class="nc bnc" id="L145" title="All 2 branches missed.">			    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L146">			        log.debug(&quot;Getting CRL with CRL number &quot;+crlNumber);</span>
+			    }
+<span class="nc" id="L148">			    entry = new CRLEntity( crlInfo, this.crlSession.getCRL(issuerDN, crlNumber) );			    </span>
+			} else {
+<span class="nc" id="L150">			    entry = new CRLEntity( crlInfo, this.crlSession.getLastCRL(issuerDN, isDelta) );</span>
+			    // Only cache latest CRLs, these should be the ones accessed regularly, and we don't want to fill the cache with old CRLs
+<span class="nc" id="L152">	            usedCrls.put(id.getKey(), entry);</span>
+			}
+<span class="nc bnc" id="L154" title="All 2 branches missed.">			if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L155">				log.debug(&quot;Retrieved CRL (not from cache) with issuerDN '&quot;+issuerDN+&quot;', with CRL number &quot;+crlInfo.getLastCRLNumber());</span>
+			}
+<span class="nc" id="L157">			return entry.encoded;</span>
+		} finally {
+<span class="nc" id="L159">			this.rebuildlock.unlock();</span>
+		}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

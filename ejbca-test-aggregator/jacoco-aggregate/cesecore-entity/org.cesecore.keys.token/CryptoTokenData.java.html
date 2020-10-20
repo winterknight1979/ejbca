@@ -18,171 +18,302 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.util.Properties;
-
 import javax.persistence.Entity;
 import javax.persistence.PostLoad;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 import javax.persistence.Transient;
-
 import org.cesecore.dbprotection.ProtectedData;
 import org.cesecore.dbprotection.ProtectionStringBuilder;
 import org.cesecore.util.Base64;
 
 /**
  * Database representation of a CryptoToken.
- * 
+ *
  * @version $Id: CryptoTokenData.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 @Entity
 @Table(name = &quot;CryptoTokenData&quot;)
 public class CryptoTokenData extends ProtectedData implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    private int id;            // Internal and static over time representation when referencing this token
-    private String tokenName;       // The name the creator has given to token
-    private String tokenType;       // Mapped to implementation class
-<span class="pc" id="L47">    private long lastUpdate = 0;    // Last update to database</span>
-    private String tokenProps;      // Properties of the token
-    private String tokenData;       // Raw data like a soft keystore
-<span class="pc" id="L50">    private int rowVersion = 0;</span>
-    private String rowProtection;
+  /** Param. */
+  private int
+      id; // Internal and static over time representation when referencing this
+          // token
+  /** Param. */
+  private String tokenName; // The name the creator has given to token
+  /** Param. */
+  private String tokenType; // Mapped to implementation class
+  /** Param. */
+<span class="pc" id="L51">  private long lastUpdate = 0; // Last update to database</span>
+  /** Param. */
+  private String tokenProps; // Properties of the token
+  /** Param. */
+  private String tokenData; // Raw data like a soft keystore
+  /** Param. */
+<span class="pc" id="L57">  private int rowVersion = 0;</span>
+  /** Param. */
+  private String rowProtection;
 
-<span class="nc" id="L53">    public CryptoTokenData(int id, String tokenName, String tokenType, long lastUpdate, Properties tokenProperties, byte[] tokenDataAsBytes) {</span>
-<span class="nc" id="L54">        setId(id);</span>
-<span class="nc" id="L55">        setTokenName(tokenName);</span>
-<span class="nc" id="L56">        setTokenType(tokenType);</span>
-<span class="nc" id="L57">        setLastUpdate(lastUpdate);</span>
-<span class="nc" id="L58">        setTokenProperties(tokenProperties);</span>
-<span class="nc" id="L59">        setTokenDataAsBytes(tokenDataAsBytes);</span>
-<span class="nc" id="L60">    }</span>
+  /**
+   * @param anId ID
+   * @param aTokenName Name
+   * @param aTokenType Type
+   * @param theLastUpdate Time
+   * @param tokenProperties Props
+   * @param tokenDataAsBytes Data
+   */
+  public CryptoTokenData(
+      final int anId,
+      final String aTokenName,
+      final String aTokenType,
+      final long theLastUpdate,
+      final Properties tokenProperties,
+<span class="nc" id="L75">      final byte[] tokenDataAsBytes) {</span>
+<span class="nc" id="L76">    setId(anId);</span>
+<span class="nc" id="L77">    setTokenName(aTokenName);</span>
+<span class="nc" id="L78">    setTokenType(aTokenType);</span>
+<span class="nc" id="L79">    setLastUpdate(theLastUpdate);</span>
+<span class="nc" id="L80">    setTokenProperties(tokenProperties);</span>
+<span class="nc" id="L81">    setTokenDataAsBytes(tokenDataAsBytes);</span>
+<span class="nc" id="L82">  }</span>
 
-<span class="fc" id="L62">    public CryptoTokenData() {}</span>
+  /** Null constructor. */
+<span class="fc" id="L85">  public CryptoTokenData() { }</span>
 
-    // @Id @Column
-<span class="fc" id="L65">    public int getId() { return id; }</span>
-<span class="fc" id="L66">    public void setId(int id) { this.id = id; }</span>
+  /**
+   * @return ID
+   */
+  // @Id @Column
+  public int getId() {
+<span class="fc" id="L92">    return id;</span>
+  }
 
-    // @Column
-<span class="fc" id="L69">    public String getTokenName() { return tokenName; }</span>
-<span class="fc" id="L70">    public void setTokenName(String tokenName) { this.tokenName = tokenName; }</span>
+  /**
+   * @param anId ID
+   */
+  public void setId(final int anId) {
+<span class="fc" id="L99">    this.id = anId;</span>
+<span class="fc" id="L100">  }</span>
 
-    // @Column
-<span class="fc" id="L73">    public String getTokenType() { return tokenType; }</span>
-<span class="fc" id="L74">    public void setTokenType(String tokenType) { this.tokenType = tokenType; }</span>
+  /**
+   * @return name
+   */
+  // @Column
+  public String getTokenName() {
+<span class="fc" id="L107">    return tokenName;</span>
+  }
 
-    // @Column
-<span class="fc" id="L77">    public long getLastUpdate() { return lastUpdate; }</span>
-<span class="fc" id="L78">    public void setLastUpdate(long lastUpdate) { this.lastUpdate = lastUpdate; }</span>
+  /**
+   * @param aTokenName name
+   */
+  public void setTokenName(final String aTokenName) {
+<span class="fc" id="L114">    this.tokenName = aTokenName;</span>
+<span class="fc" id="L115">  }</span>
 
-    // @Column @Lob
-<span class="fc" id="L81">    public String getTokenProps() { return tokenProps; }</span>
-<span class="fc" id="L82">    public void setTokenProps(String tokenProps) { this.tokenProps = tokenProps; }</span>
+  /**
+   * @return type
+   */
+  // @Column
+  public String getTokenType() {
+<span class="fc" id="L122">    return tokenType;</span>
+  }
 
-    // @Column @Lob
-<span class="fc" id="L85">    public String getTokenData() { return tokenData; }</span>
-<span class="fc" id="L86">    public void setTokenData(String tokenData) { this.tokenData = tokenData; }</span>
+  /**
+   * @param aTokenType type
+   */
+  public void setTokenType(final String aTokenType) {
+<span class="fc" id="L129">    this.tokenType = aTokenType;</span>
+<span class="fc" id="L130">  }</span>
 
-    // @Version @Column
-<span class="fc" id="L89">    public int getRowVersion() { return rowVersion; }</span>
-<span class="fc" id="L90">    public void setRowVersion(int rowVersion) { this.rowVersion = rowVersion; }</span>
+  /**
+   * @return time
+   */
+  // @Column
+  public long getLastUpdate() {
+<span class="fc" id="L137">    return lastUpdate;</span>
+  }
 
-    // @Column @Lob
-    @Override
-<span class="fc" id="L94">    public String getRowProtection() { return rowProtection; }</span>
-    @Override
-<span class="fc" id="L96">    public void setRowProtection(String rowProtection) { this.rowProtection = rowProtection; }</span>
-    
-    //
-    // Start Database integrity protection methods
-    //
+  /**
+   * @param theLastUpdate time
+   */
+  public void setLastUpdate(final long theLastUpdate) {
+<span class="fc" id="L144">    this.lastUpdate = theLastUpdate;</span>
+<span class="fc" id="L145">  }</span>
 
-    @Transient
-    @Override
-    public String getProtectString(final int version) {
-<span class="nc" id="L105">        final ProtectionStringBuilder build = new ProtectionStringBuilder(3000);</span>
-        // What is important to protect here is the data that we define
-        // rowVersion is automatically updated by JPA, so it's not important, it is only used for optimistic locking
-<span class="nc" id="L108">        build.append(getId()).append(getTokenName()).append(getTokenType()).append(getLastUpdate()).append(getTokenProps()).append(getTokenData())/*.append(getCertRefs())*/;</span>
-<span class="nc" id="L109">        return build.toString();</span>
+  /**
+   * @return props
+   */
+  // @Column @Lob
+  public String getTokenProps() {
+<span class="fc" id="L152">    return tokenProps;</span>
+  }
+
+  /**
+   * @param theTokenProps props
+   */
+  public void setTokenProps(final String theTokenProps) {
+<span class="fc" id="L159">    this.tokenProps = theTokenProps;</span>
+<span class="fc" id="L160">  }</span>
+
+  /**
+   * @return data
+   */
+  // @Column @Lob
+  public String getTokenData() {
+<span class="fc" id="L167">    return tokenData;</span>
+  }
+
+  /**
+   * @param theTokenData data
+   */
+  public void setTokenData(final String theTokenData) {
+<span class="fc" id="L174">    this.tokenData = theTokenData;</span>
+<span class="fc" id="L175">  }</span>
+
+  /**
+   * @return version
+   */
+  // @Version @Column
+  public int getRowVersion() {
+<span class="fc" id="L182">    return rowVersion;</span>
+  }
+
+
+  /**
+   * @param aRowVersion version
+   */
+  public void setRowVersion(final int aRowVersion) {
+<span class="fc" id="L190">    this.rowVersion = aRowVersion;</span>
+<span class="fc" id="L191">  }</span>
+
+  // @Column @Lob
+  @Override
+  public String getRowProtection() {
+<span class="fc" id="L196">    return rowProtection;</span>
+  }
+
+  @Override
+  public void setRowProtection(final String aRowProtection) {
+<span class="fc" id="L201">    this.rowProtection = aRowProtection;</span>
+<span class="fc" id="L202">  }</span>
+
+  //
+  // Start Database integrity protection methods
+  //
+
+  @Transient
+  @Override
+  public String getProtectString(final int version) {
+<span class="nc" id="L211">    final ProtectionStringBuilder build = new ProtectionStringBuilder(3000);</span>
+    // What is important to protect here is the data that we define
+    // rowVersion is automatically updated by JPA, so it's not important, it is
+    // only used for optimistic locking
+<span class="nc" id="L215">    build</span>
+<span class="nc" id="L216">        .append(getId())</span>
+<span class="nc" id="L217">        .append(getTokenName())</span>
+<span class="nc" id="L218">        .append(getTokenType())</span>
+<span class="nc" id="L219">        .append(getLastUpdate())</span>
+<span class="nc" id="L220">        .append(getTokenProps())</span>
+<span class="nc" id="L221">        .append(getTokenData()) /*.append(getCertRefs())*/;</span>
+<span class="nc" id="L222">    return build.toString();</span>
+  }
+
+  @Transient
+  @Override
+  protected int getProtectVersion() {
+<span class="nc" id="L228">    return 1;</span>
+  }
+
+  @PrePersist
+  @PreUpdate
+  @Override
+  protected void protectData() {
+<span class="fc" id="L235">    super.protectData();</span>
+<span class="fc" id="L236">  }</span>
+
+  @PostLoad
+  @Override
+  protected void verifyData() {
+<span class="nc" id="L241">    super.verifyData();</span>
+<span class="nc" id="L242">  }</span>
+
+  @Override
+  @Transient
+  protected String getRowId() {
+<span class="nc" id="L247">    return String.valueOf(getId());</span>
+  }
+  //
+  // End Database integrity protection methods
+  //
+
+  /**
+   * @return properties
+   */
+  @Transient
+  public Properties getTokenProperties() {
+<span class="nc" id="L258">    final Properties props = new Properties();</span>
+    try {
+<span class="nc" id="L260">      props.load(</span>
+          new ByteArrayInputStream(
+<span class="nc" id="L262">              Base64.decode(getTokenProps().getBytes(&quot;UTF8&quot;))));</span>
+<span class="nc" id="L263">    } catch (IOException e) {</span>
+<span class="nc" id="L264">      throw new RuntimeException(e);</span>
+<span class="nc" id="L265">    }</span>
+<span class="nc" id="L266">    return props;</span>
+  }
+
+  /**
+   * @param props properties
+   */
+  @Transient
+  public void setTokenProperties(final Properties props) {
+<span class="nc" id="L274">    final ByteArrayOutputStream baos = new ByteArrayOutputStream();</span>
+    try {
+<span class="nc" id="L276">      props.store(baos, null);</span>
+<span class="nc" id="L277">      setTokenProps(</span>
+<span class="nc" id="L278">          new String(Base64.encode(baos.toByteArray(), false), &quot;UTF8&quot;));</span>
+<span class="nc" id="L279">      baos.close();</span>
+<span class="nc" id="L280">    } catch (IOException e) {</span>
+<span class="nc" id="L281">      throw new RuntimeException(e);</span>
+<span class="nc" id="L282">    }</span>
+<span class="nc" id="L283">  }</span>
+
+  /**
+   * @return data
+   */
+  @Transient
+  public byte[] getTokenDataAsBytes() {
+    try {
+<span class="nc" id="L291">      final String data = getTokenData();</span>
+<span class="nc bnc" id="L292" title="All 4 branches missed.">      if (data == null || data.length() == 0) {</span>
+<span class="nc" id="L293">        return new byte[0];</span>
+      }
+<span class="nc" id="L295">      return Base64.decode(data.getBytes(&quot;UTF8&quot;));</span>
+<span class="nc" id="L296">    } catch (UnsupportedEncodingException e) {</span>
+<span class="nc" id="L297">      throw new RuntimeException(e);</span>
     }
+  }
 
-    @Transient
-    @Override
-    protected int getProtectVersion() {
-<span class="nc" id="L115">        return 1;</span>
+  /**
+   * @param odata data
+   */
+  @Transient
+  public void setTokenDataAsBytes(final byte[] odata) {
+    byte[] data;
+<span class="nc bnc" id="L307" title="All 2 branches missed.">    if (odata == null) {</span>
+<span class="nc" id="L308">      data = new byte[0];</span>
+    } else {
+<span class="nc" id="L310">        data = odata;</span>
     }
-
-    @PrePersist
-    @PreUpdate
-    @Override
-    protected void protectData() {
-<span class="fc" id="L122">        super.protectData();</span>
-<span class="fc" id="L123">    }</span>
-
-    @PostLoad
-    @Override
-    protected void verifyData() {
-<span class="nc" id="L128">        super.verifyData();</span>
-<span class="nc" id="L129">    }</span>
-
-    @Override
-    @Transient
-    protected String getRowId() {
-<span class="nc" id="L134">        return String.valueOf(getId());</span>
-    }
-    //
-    // End Database integrity protection methods
-    //
-
-    @Transient
-    public Properties getTokenProperties() {
-<span class="nc" id="L142">        final Properties props = new Properties();</span>
-        try {
-<span class="nc" id="L144">            props.load(new ByteArrayInputStream(Base64.decode(getTokenProps().getBytes(&quot;UTF8&quot;))));</span>
-<span class="nc" id="L145">        } catch (IOException e) {</span>
-<span class="nc" id="L146">            throw new RuntimeException(e);</span>
-<span class="nc" id="L147">        }</span>
-<span class="nc" id="L148">        return props;</span>
-    }
-
-    @Transient
-    public void setTokenProperties(final Properties props) {
-<span class="nc" id="L153">        final ByteArrayOutputStream baos = new ByteArrayOutputStream();</span>
-        try {
-<span class="nc" id="L155">            props.store(baos, null);</span>
-<span class="nc" id="L156">            setTokenProps(new String(Base64.encode(baos.toByteArray(), false), &quot;UTF8&quot;));</span>
-<span class="nc" id="L157">            baos.close();</span>
-<span class="nc" id="L158">        } catch (IOException e) {</span>
-<span class="nc" id="L159">            throw new RuntimeException(e);</span>
-<span class="nc" id="L160">        }</span>
-<span class="nc" id="L161">    }</span>
-
-    @Transient
-    public byte[] getTokenDataAsBytes() {
-        try {
-<span class="nc" id="L166">            final String data = getTokenData();</span>
-<span class="nc bnc" id="L167" title="All 4 branches missed.">            if (data == null || data.length() == 0) {</span>
-<span class="nc" id="L168">                return new byte[0];</span>
-            }
-<span class="nc" id="L170">            return Base64.decode(data.getBytes(&quot;UTF8&quot;));</span>
-<span class="nc" id="L171">        } catch (UnsupportedEncodingException e) {</span>
-<span class="nc" id="L172">            throw new RuntimeException(e);</span>
-        }
-    }
-
-    @Transient
-    public void setTokenDataAsBytes(byte[] data) {
-<span class="nc bnc" id="L178" title="All 2 branches missed.">        if (data==null) {</span>
-<span class="nc" id="L179">            data = new byte[0];</span>
-        }
-        try {
-<span class="nc" id="L182">            setTokenData(new String(Base64.encode(data, false), &quot;UTF8&quot;));</span>
-<span class="nc" id="L183">        } catch (UnsupportedEncodingException e) {</span>
-<span class="nc" id="L184">            throw new RuntimeException(e);</span>
-<span class="nc" id="L185">        }</span>
-<span class="nc" id="L186">    }</span>
+    try {
+<span class="nc" id="L313">      setTokenData(new String(Base64.encode(data, false), &quot;UTF8&quot;));</span>
+<span class="nc" id="L314">    } catch (UnsupportedEncodingException e) {</span>
+<span class="nc" id="L315">      throw new RuntimeException(e);</span>
+<span class="nc" id="L316">    }</span>
+<span class="nc" id="L317">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

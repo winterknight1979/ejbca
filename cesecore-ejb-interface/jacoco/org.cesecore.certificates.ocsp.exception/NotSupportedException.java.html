@@ -15,31 +15,31 @@ package org.cesecore.certificates.ocsp.exception;
 
 /**
  * Error due to some part of the request is not supported.
- * 
+ *
  * @version $Id: NotSupportedException.java 19902 2014-09-30 14:32:24Z anatom $
  */
-public class NotSupportedException extends Exception  {
- 
-    private static final long serialVersionUID = -3185825591813094581L;
+public class NotSupportedException extends Exception {
 
-    /**
-     * Constructor used to create exception with an errormessage. Calls the same constructor in
-     * baseclass &lt;code&gt;Exception&lt;/code&gt;.
-     *
-     * @param message Human redable error message, can not be NULL.
-     */
-    public NotSupportedException(String message) {
-<span class="nc" id="L32">        super(message);</span>
-<span class="nc" id="L33">    }</span>
+  private static final long serialVersionUID = -3185825591813094581L;
 
-    /**
-     * Constructor used to create exception with an embedded exception. Calls the same constructor
-     * in baseclass &lt;code&gt;Exception&lt;/code&gt;.
-     *
-     * @param exception exception to be embedded.
-     */
-    public NotSupportedException(Exception exception) {
-<span class="nc" id="L42">        super(exception);</span>
-<span class="nc" id="L43">    }</span>
+  /**
+   * Constructor used to create exception with an errormessage. Calls the same
+   * constructor in baseclass &lt;code&gt;Exception&lt;/code&gt;.
+   *
+   * @param message Human redable error message, can not be NULL.
+   */
+  public NotSupportedException(final String message) {
+<span class="nc" id="L32">    super(message);</span>
+<span class="nc" id="L33">  }</span>
+
+  /**
+   * Constructor used to create exception with an embedded exception. Calls the
+   * same constructor in baseclass &lt;code&gt;Exception&lt;/code&gt;.
+   *
+   * @param exception exception to be embedded.
+   */
+  public NotSupportedException(final Exception exception) {
+<span class="nc" id="L42">    super(exception);</span>
+<span class="nc" id="L43">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

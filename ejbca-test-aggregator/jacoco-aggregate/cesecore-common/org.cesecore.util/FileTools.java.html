@@ -10,7 +10,7 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
+
 package org.cesecore.util;
 
 import java.io.BufferedReader;
@@ -27,209 +27,244 @@ import java.io.PrintStream;
 import java.text.Collator;
 import java.util.Arrays;
 import java.util.Comparator;
-
 import org.apache.log4j.Logger;
-
 
 /**
  * Tools to handle some common file operations.
  *
  * @version $Id: FileTools.java 27126 2017-11-13 09:28:54Z anatom $
  */
-<span class="nc" id="L39">public abstract class FileTools {</span>
-<span class="fc" id="L40">    private static final Logger log = Logger.getLogger(FileTools.class);</span>
+<span class="nc" id="L37">public abstract class FileTools {</span>
+    /** Log.*/
+<span class="fc" id="L39">  private static final Logger LOG = Logger.getLogger(FileTools.class);</span>
+  /** kilobyte. */
+  private static final int K = 1024;
+  /**
+   * Reads binary bytes from a PEM-file. The PEM-file may contain other stuff,
+   * the first item between beginKey and endKey is read. Example: &lt;code&gt;
+   * -----BEGIN CERTIFICATE REQUEST-----
+   * base64 encoded PKCS10 certification request
+   *  -----END CERTIFICATE REQUEST-----
+   * &lt;/code&gt;
+   *
+   * @param inbuf input buffer containing PEM-formatted stuff.
+   * @param beginKey begin line of PEM message
+   * @param endKey end line of PEM message
+   * @return byte[] containing binary Base64 decoded bytes.
+   * @throws IOException if the PEM file does not contain the right keys.
+   */
+  public static byte[] getBytesFromPEM(
+      final byte[] inbuf, final String beginKey, final String endKey)
+      throws IOException {
+<span class="fc" id="L59">    final ByteArrayInputStream instream = new ByteArrayInputStream(inbuf);</span>
+<span class="fc" id="L60">    return getBytesFromPEM(instream, beginKey, endKey);</span>
+  } // getBytesfromPEM
 
-    /**
-     * Reads binary bytes from a PEM-file. The PEM-file may contain other stuff, the first item
-     * between beginKey and endKey is read. Example: &lt;code&gt;-----BEGIN CERTIFICATE REQUEST-----
-     * base64 encoded PKCS10 certification request -----END CERTIFICATE REQUEST----- &lt;/code&gt;
-     *
-     * @param inbuf input buffer containing PEM-formatted stuff.
-     * @param beginKey begin line of PEM message
-     * @param endKey end line of PEM message
-     *
-     * @return byte[] containing binary Base64 decoded bytes.
-     *
-     * @throws IOException if the PEM file does not contain the right keys.
-     */
-    public static byte[] getBytesFromPEM(final byte[] inbuf, final String beginKey, final String endKey)
-        throws IOException {
-<span class="fc" id="L57">        final ByteArrayInputStream instream = new ByteArrayInputStream(inbuf);</span>
-<span class="fc" id="L58">        return getBytesFromPEM(instream, beginKey, endKey);</span>
-    } // getBytesfromPEM
-
-    public static byte[] getBytesFromPEM(final InputStream instream, final String beginKey, final String endKey)
-            throws IOException {
-<span class="pc bpc" id="L63" title="1 of 2 branches missed.">            if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L64">                log.trace(&quot;&gt;getBytesFromPEM&quot;);</span>
-            }
-
-<span class="fc" id="L67">            final BufferedReader bufRdr = new BufferedReader(new InputStreamReader(instream));</span>
-<span class="fc" id="L68">            final ByteArrayOutputStream ostr = new ByteArrayOutputStream();</span>
-<span class="fc" id="L69">            final PrintStream opstr = new PrintStream(ostr);</span>
-            
-            String temp;
-
-<span class="pc bpc" id="L73" title="2 of 4 branches missed.">            while (((temp = bufRdr.readLine()) != null) &amp;&amp; !temp.equals(beginKey)) {</span>
-<span class="nc" id="L74">                continue;</span>
-            }
-
-<span class="pc bpc" id="L77" title="1 of 2 branches missed.">            if (temp == null) {</span>
-<span class="nc" id="L78">                throw new IOException(&quot;Error in input buffer, missing &quot; + beginKey + &quot; boundary&quot;);</span>
-            }
-
-<span class="pc bpc" id="L81" title="1 of 4 branches missed.">            while (((temp = bufRdr.readLine()) != null) &amp;&amp; !temp.equals(endKey)) {</span>
-                // Skip empty lines
-<span class="pc bpc" id="L83" title="1 of 2 branches missed.">                if (temp.trim().length() &gt; 0) {</span>
-<span class="fc" id="L84">                    opstr.print(temp);</span>
-                }
-            }
-
-<span class="pc bpc" id="L88" title="1 of 2 branches missed.">            if (temp == null) {</span>
-<span class="nc" id="L89">                throw new IOException(&quot;Error in input buffer, missing &quot; + endKey + &quot; boundary&quot;);</span>
-            }
-
-<span class="fc" id="L92">            opstr.close();</span>
-
-            final byte[] bytes;
-            try {
-<span class="fc" id="L96">                bytes = Base64.decode(ostr.toByteArray());</span>
-<span class="nc" id="L97">            } catch (Exception e) {</span>
-<span class="nc" id="L98">                throw new IOException(&quot;Malformed PEM encoding or PEM of unknown type: &quot; + e.getMessage());</span>
-<span class="fc" id="L99">            }</span>
-<span class="pc bpc" id="L100" title="1 of 2 branches missed.">            if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L101">                log.trace(&quot;&lt;getBytesFromPEM&quot;);</span>
-            }
-<span class="fc" id="L103">            return bytes;</span>
-        } // getBytesfromPEM
-
-    /**
-     * Helpfunction to read a file to a byte array.
-     *
-     * @param file filename of file.
-     *
-     * @return byte[] containing the contents of the file.
-     * @throws FileNotFoundException if file was not found
-     *
-     * @throws FileNotFoundException if the file does not exist or cannot be read.
-     */
-    public static byte[] readFiletoBuffer(final String file) throws FileNotFoundException {
-<span class="nc" id="L117">        final InputStream in = new FileInputStream(file);</span>
-<span class="nc" id="L118">        return readInputStreamtoBuffer(in);</span>
-    } 
-
-    /**
-     * Help function to read an InputStream to a byte array.
-     * @param in stream
-     *
-     * @return byte[] containing the contents of the file.
-     *
-     */
-    public static byte[] readInputStreamtoBuffer(final InputStream in)  {
-<span class="nc" id="L129">        final ByteArrayOutputStream os = new ByteArrayOutputStream();</span>
-        try {
-<span class="nc" id="L131">        int len = 0;</span>
-<span class="nc" id="L132">        final byte[] buf = new byte[1024];</span>
-<span class="nc bnc" id="L133" title="All 2 branches missed.">        while ((len = in.read(buf)) &gt; 0) {</span>
-<span class="nc" id="L134">            os.write(buf, 0, len);</span>
-        }
-<span class="nc" id="L136">        in.close();</span>
-<span class="nc" id="L137">        os.close();</span>
-<span class="nc" id="L138">        return os.toByteArray();</span>
-<span class="nc" id="L139">        } catch(IOException e) {</span>
-<span class="nc" id="L140">            throw new RuntimeException(&quot;Caught IOException for unknown reason&quot;, e);      </span>
-        }
+  /**
+   * @param instream stream
+   * @param beginKey start
+   * @param endKey end
+   * @return PEM
+   * @throws IOException Fail
+   */
+  public static byte[] getBytesFromPEM(
+      final InputStream instream, final String beginKey, final String endKey)
+      throws IOException {
+<span class="pc bpc" id="L73" title="1 of 2 branches missed.">    if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L74">      LOG.trace(&quot;&gt;getBytesFromPEM&quot;);</span>
     }
 
-    /**
-     * Sort the files by name with directories first.
-     * @param files files
-     */
-    public static void sortByName(final File[] files) {
-<span class="nc bnc" id="L149" title="All 2 branches missed.">    	if (files == null) {</span>
-<span class="nc" id="L150">    		return;</span>
-    	}
-<span class="nc" id="L152">    	Arrays.sort(files, new FileComp());</span>
-<span class="nc" id="L153">    }</span>
-    
-<span class="nc" id="L155">    private static class FileComp implements Comparator&lt;File&gt; {</span>
-<span class="nc" id="L156">    	private final Collator c = Collator.getInstance();</span>
+<span class="fc" id="L77">    final BufferedReader bufRdr =</span>
+        new BufferedReader(new InputStreamReader(instream));
+<span class="fc" id="L79">    final ByteArrayOutputStream ostr = new ByteArrayOutputStream();</span>
+<span class="fc" id="L80">    final PrintStream opstr = new PrintStream(ostr);</span>
 
-    	@Override
-    	public int compare(final File f1, final File f2) {
-<span class="nc bnc" id="L160" title="All 2 branches missed.">    		if(f1 == f2) {</span>
-<span class="nc" id="L161">    			return 0;</span>
-    		}
-<span class="nc bnc" id="L163" title="All 4 branches missed.">    		if(f1.isDirectory() &amp;&amp; f2.isFile()) {</span>
-<span class="nc" id="L164">    			return -1;</span>
-    		}
-<span class="nc bnc" id="L166" title="All 4 branches missed.">    		if(f1.isFile() &amp;&amp; f2.isDirectory()) {</span>
-<span class="nc" id="L167">    			return 1;</span>
-    		}
-<span class="nc" id="L169">    		return c.compare(f1.getName(), f2.getName());</span>
-    	}
-    }
-    
-    public static File createTempDirectory() throws IOException {
-<span class="nc" id="L174">        return createTempDirectory(null);</span>
+    String temp;
+
+<span class="pc bpc" id="L84" title="2 of 4 branches missed.">    while (((temp = bufRdr.readLine()) != null) &amp;&amp; !temp.equals(beginKey)) {</span>
+<span class="nc" id="L85">      continue;</span>
     }
 
-    public static File createTempDirectory(File location) throws IOException {
-<span class="nc" id="L178">        final File temp = File.createTempFile(&quot;tmp&quot;, Long.toString(System.nanoTime()), location);</span>
-<span class="nc bnc" id="L179" title="All 2 branches missed.">        if (!(temp.delete())) {</span>
-<span class="nc" id="L180">            throw new IOException(&quot;Could not delete temp file: &quot; + temp.getAbsolutePath());</span>
-        }
-        //Known race condition exists here, not sure what an attacker would accomplish with it though
-<span class="nc bnc" id="L183" title="All 2 branches missed.">        if (!temp.mkdir()) {</span>
-<span class="nc" id="L184">            throw new IOException(&quot;Could not create temp directory: &quot; + temp.getAbsolutePath());</span>
-        }
-<span class="nc" id="L186">        return temp;</span>
+<span class="pc bpc" id="L88" title="1 of 2 branches missed.">    if (temp == null) {</span>
+<span class="nc" id="L89">      throw new IOException(</span>
+          &quot;Error in input buffer, missing &quot; + beginKey + &quot; boundary&quot;);
     }
-    
-    /**
-     * Recursively deletes a file. If file is a directory, then it will delete all files and subdirectories contained.
-     * 
-     * @param file the file to delete
-     */
-    public static void delete(File file) {
-<span class="nc bnc" id="L195" title="All 2 branches missed.">        if (file.isDirectory()) {</span>
-<span class="nc bnc" id="L196" title="All 2 branches missed.">            for (File subFile : file.listFiles()) {</span>
-<span class="nc" id="L197">                delete(subFile);</span>
-            }
-        }
-<span class="nc bnc" id="L200" title="All 2 branches missed.">        if (!file.delete()) {</span>
-<span class="nc" id="L201">            log.error(&quot;Could not delete directory &quot; + file.getAbsolutePath());</span>
-        }
-<span class="nc" id="L203">    }</span>
-    
-    /**
-     * Copies the data from an input stream to an output stream. A limit on the file size is imposed.
-     * 
-     * @param input Stream to copy from.
-     * @param output Stream to copy to.
-     * @param maxBytes Throw a SizeLimitExceededException if more than this number of bytes are read.
-     * @return The number of bytes copied.
-     * @throws IOException If reading from or writing to the streams fail.
-     * @throws StreamSizeLimitExceededException If more than maxBytes are read.
-     */
-    public static long streamCopyWithLimit(final InputStream input, final OutputStream output, final long maxBytes) throws IOException, StreamSizeLimitExceededException {
-<span class="fc bfc" id="L216" title="All 2 branches covered.">        if (maxBytes &lt;= 0) {</span>
-<span class="fc" id="L217">            throw new StreamSizeLimitExceededException(&quot;Size limit was reached&quot;);</span>
-        }
 
-<span class="fc" id="L220">        final byte[] buff = new byte[16*1024];</span>
-<span class="fc" id="L221">        long bytesCopied = 0;</span>
-        while (true) {
-<span class="fc" id="L223">            int len = input.read(buff);</span>
-<span class="fc bfc" id="L224" title="All 2 branches covered.">            if (len &lt;= 0) { break; }</span>
-<span class="fc" id="L225">            bytesCopied += len;</span>
-<span class="fc bfc" id="L226" title="All 2 branches covered.">            if (bytesCopied &gt; maxBytes) {</span>
-<span class="fc" id="L227">                throw new StreamSizeLimitExceededException(&quot;Size limit was reached&quot;);</span>
-            }
-<span class="fc" id="L229">            output.write(buff, 0, len);</span>
-<span class="fc" id="L230">        }</span>
-        
-<span class="fc" id="L232">        return bytesCopied;</span>
+<span class="pc bpc" id="L93" title="1 of 4 branches missed.">    while (((temp = bufRdr.readLine()) != null) &amp;&amp; !temp.equals(endKey)) {</span>
+      // Skip empty lines
+<span class="pc bpc" id="L95" title="1 of 2 branches missed.">      if (temp.trim().length() &gt; 0) {</span>
+<span class="fc" id="L96">        opstr.print(temp);</span>
+      }
     }
+
+<span class="pc bpc" id="L100" title="1 of 2 branches missed.">    if (temp == null) {</span>
+<span class="nc" id="L101">      throw new IOException(</span>
+          &quot;Error in input buffer, missing &quot; + endKey + &quot; boundary&quot;);
+    }
+
+<span class="fc" id="L105">    opstr.close();</span>
+
+    final byte[] bytes;
+    try {
+<span class="fc" id="L109">      bytes = Base64.decode(ostr.toByteArray());</span>
+<span class="nc" id="L110">    } catch (Exception e) {</span>
+<span class="nc" id="L111">      throw new IOException(</span>
+<span class="nc" id="L112">          &quot;Malformed PEM encoding or PEM of unknown type: &quot; + e.getMessage());</span>
+<span class="fc" id="L113">    }</span>
+<span class="pc bpc" id="L114" title="1 of 2 branches missed.">    if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L115">      LOG.trace(&quot;&lt;getBytesFromPEM&quot;);</span>
+    }
+<span class="fc" id="L117">    return bytes;</span>
+  } // getBytesfromPEM
+
+  /**
+   * Helpfunction to read a file to a byte array.
+   *
+   * @param file filename of file.
+   * @return byte[] containing the contents of the file.
+   * @throws FileNotFoundException if file was not found
+   * @throws FileNotFoundException if the file does not exist or cannot be read.
+   */
+  public static byte[] readFiletoBuffer(final String file)
+      throws FileNotFoundException {
+<span class="nc" id="L130">    final InputStream in = new FileInputStream(file);</span>
+<span class="nc" id="L131">    return readInputStreamtoBuffer(in);</span>
+  }
+
+  /**
+   * Help function to read an InputStream to a byte array.
+   *
+   * @param in stream
+   * @return byte[] containing the contents of the file.
+   */
+  public static byte[] readInputStreamtoBuffer(final InputStream in) {
+<span class="nc" id="L141">    final ByteArrayOutputStream os = new ByteArrayOutputStream();</span>
+    try {
+<span class="nc" id="L143">      int len = 0;</span>
+<span class="nc" id="L144">      final byte[] buf = new byte[K];</span>
+<span class="nc bnc" id="L145" title="All 2 branches missed.">      while ((len = in.read(buf)) &gt; 0) {</span>
+<span class="nc" id="L146">        os.write(buf, 0, len);</span>
+      }
+<span class="nc" id="L148">      in.close();</span>
+<span class="nc" id="L149">      os.close();</span>
+<span class="nc" id="L150">      return os.toByteArray();</span>
+<span class="nc" id="L151">    } catch (IOException e) {</span>
+<span class="nc" id="L152">      throw new RuntimeException(&quot;Caught IOException for unknown reason&quot;, e);</span>
+    }
+  }
+
+  /**
+   * Sort the files by name with directories first.
+   *
+   * @param files files
+   */
+  public static void sortByName(final File[] files) {
+<span class="nc bnc" id="L162" title="All 2 branches missed.">    if (files == null) {</span>
+<span class="nc" id="L163">      return;</span>
+    }
+<span class="nc" id="L165">    Arrays.sort(files, new FileComp());</span>
+<span class="nc" id="L166">  }</span>
+
+<span class="nc" id="L168">  private static class FileComp implements Comparator&lt;File&gt; {</span>
+     /** Collator. */
+<span class="nc" id="L170">    private final Collator c = Collator.getInstance();</span>
+
+    @Override
+    public int compare(final File f1, final File f2) {
+<span class="nc bnc" id="L174" title="All 2 branches missed.">      if (f1 == f2) {</span>
+<span class="nc" id="L175">        return 0;</span>
+      }
+<span class="nc bnc" id="L177" title="All 4 branches missed.">      if (f1.isDirectory() &amp;&amp; f2.isFile()) {</span>
+<span class="nc" id="L178">        return -1;</span>
+      }
+<span class="nc bnc" id="L180" title="All 4 branches missed.">      if (f1.isFile() &amp;&amp; f2.isDirectory()) {</span>
+<span class="nc" id="L181">        return 1;</span>
+      }
+<span class="nc" id="L183">      return c.compare(f1.getName(), f2.getName());</span>
+    }
+  }
+
+  /**
+   * @return Location
+   * @throws IOException Fail
+   */
+  public static File createTempDirectory() throws IOException {
+<span class="nc" id="L192">    return createTempDirectory(null);</span>
+  }
+
+  /**
+   * @param location Location
+   * @return Diectory
+   * @throws IOException Fail
+   */
+  public static File createTempDirectory(final File location)
+          throws IOException {
+<span class="nc" id="L202">    final File temp =</span>
+<span class="nc" id="L203">        File.createTempFile(&quot;tmp&quot;, Long.toString(System.nanoTime()), location);</span>
+<span class="nc bnc" id="L204" title="All 2 branches missed.">    if (!(temp.delete())) {</span>
+<span class="nc" id="L205">      throw new IOException(</span>
+<span class="nc" id="L206">          &quot;Could not delete temp file: &quot; + temp.getAbsolutePath());</span>
+    }
+    // Known race condition exists here, not sure what an attacker would
+    // accomplish with it though
+<span class="nc bnc" id="L210" title="All 2 branches missed.">    if (!temp.mkdir()) {</span>
+<span class="nc" id="L211">      throw new IOException(</span>
+<span class="nc" id="L212">          &quot;Could not create temp directory: &quot; + temp.getAbsolutePath());</span>
+    }
+<span class="nc" id="L214">    return temp;</span>
+  }
+
+  /**
+   * Recursively deletes a file. If file is a directory, then it will delete all
+   * files and subdirectories contained.
+   *
+   * @param file the file to delete
+   */
+  public static void delete(final File file) {
+<span class="nc bnc" id="L224" title="All 2 branches missed.">    if (file.isDirectory()) {</span>
+<span class="nc bnc" id="L225" title="All 2 branches missed.">      for (File subFile : file.listFiles()) {</span>
+<span class="nc" id="L226">        delete(subFile);</span>
+      }
+    }
+<span class="nc bnc" id="L229" title="All 2 branches missed.">    if (!file.delete()) {</span>
+<span class="nc" id="L230">      LOG.error(&quot;Could not delete directory &quot; + file.getAbsolutePath());</span>
+    }
+<span class="nc" id="L232">  }</span>
+
+  /**
+   * Copies the data from an input stream to an output stream. A limit on the
+   * file size is imposed.
+   *
+   * @param input Stream to copy from.
+   * @param output Stream to copy to.
+   * @param maxBytes Throw a SizeLimitExceededException if more than this number
+   *     of bytes are read.
+   * @return The number of bytes copied.
+   * @throws IOException If reading from or writing to the streams fail.
+   * @throws StreamSizeLimitExceededException If more than maxBytes are read.
+   */
+  public static long streamCopyWithLimit(
+      final InputStream input, final OutputStream output, final long maxBytes)
+      throws IOException, StreamSizeLimitExceededException {
+<span class="fc bfc" id="L249" title="All 2 branches covered.">    if (maxBytes &lt;= 0) {</span>
+<span class="fc" id="L250">      throw new StreamSizeLimitExceededException(&quot;Size limit was reached&quot;);</span>
+    }
+
+<span class="fc" id="L253">    final byte[] buff = new byte[16 * K];</span>
+<span class="fc" id="L254">    long bytesCopied = 0;</span>
+    while (true) {
+<span class="fc" id="L256">      int len = input.read(buff);</span>
+<span class="fc bfc" id="L257" title="All 2 branches covered.">      if (len &lt;= 0) {</span>
+<span class="fc" id="L258">        break;</span>
+      }
+<span class="fc" id="L260">      bytesCopied += len;</span>
+<span class="fc bfc" id="L261" title="All 2 branches covered.">      if (bytesCopied &gt; maxBytes) {</span>
+<span class="fc" id="L262">        throw new StreamSizeLimitExceededException(&quot;Size limit was reached&quot;);</span>
+      }
+<span class="fc" id="L264">      output.write(buff, 0, len);</span>
+<span class="fc" id="L265">    }</span>
+
+<span class="fc" id="L267">    return bytesCopied;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

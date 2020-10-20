@@ -14,37 +14,53 @@ package org.cesecore.authorization.cache;
 
 import java.util.HashSet;
 import java.util.Set;
-
 import org.apache.log4j.Logger;
 import org.cesecore.authorization.access.AuthorizationCacheReload;
 import org.cesecore.authorization.access.AuthorizationCacheReloadListener;
 
 /**
  * Singleton for broadcasting AuthorizationCacheReload events to subscribers.
- * 
- * @version $Id: AuthorizationCacheReloadListeners.java 26057 2017-06-22 08:08:34Z anatom $
+ *
+ * @version $Id: AuthorizationCacheReloadListeners.java 26057 2017-06-22
+ *     08:08:34Z anatom $
  */
 <span class="nc" id="L27">public enum AuthorizationCacheReloadListeners {</span>
-<span class="nc" id="L28">    INSTANCE;</span>
+  /** Singleton. */
+<span class="nc" id="L29">    INSTANCE;</span>
 
-<span class="nc" id="L30">    private final Set&lt;AuthorizationCacheReloadListener&gt; authCacheReloadEvent = new HashSet&lt;&gt;();</span>
-<span class="nc" id="L31">    private final Logger log = Logger.getLogger(AuthorizationCacheReloadListeners.class);</span>
+    /** Events. */
+<span class="nc" id="L32">  private final Set&lt;AuthorizationCacheReloadListener&gt; authCacheReloadEvent =</span>
+      new HashSet&lt;&gt;();
+  /** Logger. */
+<span class="nc" id="L35">  private final Logger log =</span>
+<span class="nc" id="L36">      Logger.getLogger(AuthorizationCacheReloadListeners.class);</span>
 
-    /** Broadcast the specified event to all registered listeners 
-     * @param event Event*/
-    public void onReload(final AuthorizationCacheReload event) {
-<span class="nc bnc" id="L36" title="All 2 branches missed.">        for (final AuthorizationCacheReloadListener observer : authCacheReloadEvent) {</span>
-<span class="nc" id="L37">            observer.onReload(event);</span>
-<span class="nc" id="L38">        }</span>
-<span class="nc" id="L39">    }</span>
+  /**
+   * Broadcast the specified event to all registered listeners.
+   *
+   * @param event Event
+   */
+  public void onReload(final AuthorizationCacheReload event) {
+    for (final AuthorizationCacheReloadListener observer
+<span class="nc bnc" id="L45" title="All 2 branches missed.">        : authCacheReloadEvent) {</span>
+<span class="nc" id="L46">      observer.onReload(event);</span>
+<span class="nc" id="L47">    }</span>
+<span class="nc" id="L48">  }</span>
 
-    /** Subscribe the listener to AuthorizationCacheReload events 
-     * @param authorizationCacheReloadListener Listener*/
-    public void addListener(final AuthorizationCacheReloadListener authorizationCacheReloadListener) {
-<span class="nc" id="L44">        authCacheReloadEvent.add(authorizationCacheReloadListener);</span>
-<span class="nc bnc" id="L45" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L46">            log.debug(&quot;'&quot;+authorizationCacheReloadListener.getListenerName()+&quot;' is now subscribing to AuthorizationCacheReload events.&quot;);</span>
-        }
-<span class="nc" id="L48">    }</span>
+  /**
+   * Subscribe the listener to AuthorizationCacheReload events.
+   *
+   * @param authorizationCacheReloadListener Listener
+   */
+  public void addListener(
+      final AuthorizationCacheReloadListener authorizationCacheReloadListener) {
+<span class="nc" id="L57">    authCacheReloadEvent.add(authorizationCacheReloadListener);</span>
+<span class="nc bnc" id="L58" title="All 2 branches missed.">    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L59">      log.debug(</span>
+          &quot;'&quot;
+<span class="nc" id="L61">              + authorizationCacheReloadListener.getListenerName()</span>
+              + &quot;' is now subscribing to AuthorizationCacheReload events.&quot;);
+    }
+<span class="nc" id="L64">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

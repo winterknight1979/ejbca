@@ -14,39 +14,32 @@ package org.cesecore.certificates.ocsp.exception;
 
 /**
  * Thrown when a byte array couldn't be formed into a proper OCSP request.
- * 
- * @version $Id: MalformedRequestException.java 17625 2013-09-20 07:12:06Z netmackan $
- * 
+ *
+ * @version $Id: MalformedRequestException.java 17625 2013-09-20 07:12:06Z
+ *     netmackan $
  */
 public class MalformedRequestException extends Exception {
 
-    private static final long serialVersionUID = -6603931681530067622L;
+  private static final long serialVersionUID = -6603931681530067622L;
+  /** Null constructor. */
+<span class="nc" id="L25">  public MalformedRequestException() { }</span>
 
-<span class="nc" id="L25">    public MalformedRequestException() {</span>
+  /** @param arg0 Message */
+  public MalformedRequestException(final String arg0) {
+<span class="fc" id="L29">    super(arg0);</span>
+<span class="fc" id="L30">  }</span>
 
-<span class="nc" id="L27">    }</span>
+  /** @param arg0 Cause */
+  public MalformedRequestException(final Throwable arg0) {
+<span class="nc" id="L34">    super(arg0);</span>
+<span class="nc" id="L35">  }</span>
 
-    /**
-     * @param arg0 Message
-     */
-    public MalformedRequestException(String arg0) {
-<span class="fc" id="L33">        super(arg0);</span>
-<span class="fc" id="L34">    }</span>
-
-    /**
-     * @param arg0 Cause
-     */
-    public MalformedRequestException(Throwable arg0) {
-<span class="nc" id="L40">        super(arg0);</span>
-<span class="nc" id="L41">    }</span>
-
-    /**
-     * @param arg0 Message
-     * @param arg1 Cause
-     */
-    public MalformedRequestException(String arg0, Throwable arg1) {
-<span class="nc" id="L48">        super(arg0, arg1);</span>
-<span class="nc" id="L49">    }</span>
-
+  /**
+   * @param arg0 Message
+   * @param arg1 Cause
+   */
+  public MalformedRequestException(final String arg0, final Throwable arg1) {
+<span class="nc" id="L42">    super(arg0, arg1);</span>
+<span class="nc" id="L43">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

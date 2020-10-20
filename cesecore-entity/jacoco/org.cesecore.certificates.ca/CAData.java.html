@@ -9,7 +9,7 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/  
+ *************************************************************************/
 package org.cesecore.certificates.ca;
 
 import java.io.IOException;
@@ -20,14 +20,12 @@ import java.security.cert.Certificate;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
 import javax.persistence.Entity;
 import javax.persistence.PostLoad;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 import javax.persistence.Transient;
-
 import org.apache.log4j.Logger;
 import org.cesecore.dbprotection.ProtectedData;
 import org.cesecore.dbprotection.ProtectionStringBuilder;
@@ -38,224 +36,390 @@ import org.cesecore.util.SecureXMLDecoder;
 
 /**
  * Representation of a CA instance.
- * 
+ *
  * @version $Id: CAData.java 34163 2020-01-02 15:00:17Z samuellb $
  */
 @Entity
-@Table(name=&quot;CAData&quot;)
+@Table(name = &quot;CAData&quot;)
 public class CAData extends ProtectedData implements Serializable {
 
-	private static final long serialVersionUID = 1L;
-<span class="nc" id="L49">	private static final Logger log = Logger.getLogger(CAData.class);</span>
+  private static final long serialVersionUID = 1L;
+  /** Logger. */
+<span class="nc" id="L48">  private static final Logger LOG = Logger.getLogger(CAData.class);</span>
 
-	private Integer cAId;
-	private String name;
-	private String subjectDN;
-<span class="nc" id="L54">	private int status = 0;			// not null, we need a default</span>
-<span class="nc" id="L55">	private long expireTime = 0;	// not null, we need a default</span>
-<span class="nc" id="L56">	private long updateTime = 0;	// not null, we need a default</span>
-	private String data;
-<span class="nc" id="L58">	private int rowVersion = 0;		// not null, we need a default</span>
-	private String rowProtection;
-	
-	public static Integer calculateCAId(final String subjectdn){
-<span class="nc" id="L62">	    return Integer.valueOf(subjectdn.hashCode());</span>
-	}
-    
-	/**
-	 * Entity Bean holding data of a CA.
-	 * @param subjectdn DN
-	 * @param name of CA
-	 * @param status initial status
-	 * @param ca CA to store
-	 */
-<span class="nc" id="L72">	public CAData(final String subjectdn, final String name, final int status, final CA ca) {</span>
-<span class="nc" id="L73">	    setCaId(calculateCAId(subjectdn));</span>
-<span class="nc" id="L74">	    setName(name);</span>
-<span class="nc" id="L75">	    setSubjectDN(subjectdn);</span>
-<span class="nc bnc" id="L76" title="All 2 branches missed.">	    if (ca.getCACertificate() != null) {</span>
-<span class="nc" id="L77">	        final Certificate cacert = ca.getCACertificate();</span>
-<span class="nc" id="L78">	        setExpireTime(CertTools.getNotAfter(cacert).getTime());  </span>
-<span class="nc" id="L79">	        ca.setExpireTime(CertTools.getNotAfter(cacert)); </span>
-	    }  
-	    // Set status, because it can occur in the ca object as well, but we think the one passed as argument here is what
-	    // is desired primarily, so make sure we set that
-<span class="nc" id="L83">	    ca.setStatus(status);        </span>
-<span class="nc" id="L84">	    setCA(ca);</span>
-<span class="nc bnc" id="L85" title="All 2 branches missed.">	    if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L86">	        log.debug(&quot;Created CA &quot;+ name);</span>
-	    }
-<span class="nc" id="L88">	}</span>
-	
-<span class="nc" id="L90">	public CAData() { }</span>
-	
-	//@Id @Column
-<span class="nc" id="L93">	public Integer getCaId() { return cAId; }</span>
-<span class="nc" id="L94">	public final void setCaId(final Integer cAId) { this.cAId = cAId; }</span>
+  /** ID. */
+  private Integer cAId;
+  /** Name. */
+  private String name;
+  /** DN. */
+  private String subjectDN;
+  /** Status. */
+<span class="nc" id="L57">  private int status = 0; // not null, we need a default</span>
+  /** Time. */
+<span class="nc" id="L59">  private long expireTime = 0; // not null, we need a default</span>
+  /** Time. */
+<span class="nc" id="L61">  private long updateTime = 0; // not null, we need a default</span>
+  /** Data. */
+  private String data;
+  /** Version. */
+<span class="nc" id="L65">  private int rowVersion = 0; // not null, we need a default</span>
+  /** Protect. */
+  private String rowProtection;
 
-	//@Column
-<span class="nc" id="L97">	public String getName() { return name; }</span>
-<span class="nc" id="L98">	public void setName(String name) { this.name = name; }</span>
+  /**
+   * @param subjectdn DN
+   * @return ID
+   */
+  public static Integer calculateCAId(final String subjectdn) {
+<span class="nc" id="L74">    return Integer.valueOf(subjectdn.hashCode());</span>
+  }
 
-	//@Column
-<span class="nc" id="L101">	public String getSubjectDN() { return subjectDN; }</span>
-<span class="nc" id="L102">	public void setSubjectDN(String subjectDN) { this.subjectDN = subjectDN; }</span>
-
-	//@Column
-<span class="nc" id="L105">	public int getStatus() { return status; }</span>
-<span class="nc" id="L106">	public void setStatus(int status) { this.status = status; }</span>
-
-	//@Column
-<span class="nc" id="L109">	public long getExpireTime() { return expireTime; }</span>
-<span class="nc" id="L110">	public void setExpireTime(long expireTime) { this.expireTime = expireTime; }</span>
-
-	/** When was this CA updated in the database 
-	 * @return time */
-	//@Column
-<span class="nc" id="L115">	public long getUpdateTime() { return updateTime; }</span>
-<span class="nc" id="L116">	public void setUpdateTime(long updateTime){ this.updateTime = updateTime; }</span>
-
-	//@Column @Lob
-<span class="nc" id="L119">	public String getData() { return data; }</span>
-<span class="nc" id="L120">	public void setData(String data) { this.data = data; }</span>
-
-	//@Version @Column
-<span class="nc" id="L123">	public int getRowVersion() { return rowVersion; }</span>
-<span class="nc" id="L124">	public void setRowVersion(final int rowVersion) { this.rowVersion = rowVersion; }</span>
-
-	//@Column @Lob
-	@Override
-<span class="nc" id="L128">	public String getRowProtection() { return rowProtection; }</span>
-	@Override
-<span class="nc" id="L130">	public void setRowProtection(final String rowProtection) { this.rowProtection = rowProtection; }</span>
-
-	@Transient
-	public Date getUpdateTimeAsDate() {
-<span class="nc" id="L134">		return new Date(getUpdateTime());</span>
-	}
-
-	/** @return a CA in the form it was saved in the database + regular UpgradableHashMap upgrade-on-load */
-    @Transient
-    public CA getCA() {
-<span class="nc" id="L140">        final LinkedHashMap&lt;Object, Object&gt; dataMap = getDataMap();</span>
-<span class="nc" id="L141">        CA ca = null;</span>
-<span class="nc bnc" id="L142" title="All 3 branches missed.">        switch (((Integer)(dataMap.get(CA.CATYPE))).intValue()) {</span>
-        case CAInfo.CATYPE_X509:
-<span class="nc" id="L144">            ca = new X509CA(dataMap, getCaId().intValue(), getSubjectDN(), getName(), getStatus(), getUpdateTimeAsDate(), new Date(getExpireTime()));                    </span>
-<span class="nc" id="L145">            break;</span>
-        case CAInfo.CATYPE_CVC:
-<span class="nc" id="L147">            ca = CvcCA.getInstance(dataMap, getCaId().intValue(), getSubjectDN(), getName(), getStatus(), getUpdateTimeAsDate(), new Date(getExpireTime()));                    </span>
-            break;
-        }
-<span class="nc" id="L150">        return ca;</span>
+  /**
+   * Entity Bean holding data of a CA.
+   *
+   * @param subjectdn DN
+   * @param aName of CA
+   * @param aStatus initial status
+   * @param ca CA to store
+   */
+  public CAData(
+      final String subjectdn,
+      final String aName,
+      final int aStatus,
+<span class="nc" id="L89">      final CA ca) {</span>
+<span class="nc" id="L90">    setCaId(calculateCAId(subjectdn));</span>
+<span class="nc" id="L91">    setName(aName);</span>
+<span class="nc" id="L92">    setSubjectDN(subjectdn);</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">    if (ca.getCACertificate() != null) {</span>
+<span class="nc" id="L94">      final Certificate cacert = ca.getCACertificate();</span>
+<span class="nc" id="L95">      setExpireTime(CertTools.getNotAfter(cacert).getTime());</span>
+<span class="nc" id="L96">      ca.setExpireTime(CertTools.getNotAfter(cacert));</span>
     }
+    // Set status, because it can occur in the ca object as well, but we think
+    // the one passed as argument here is what
+    // is desired primarily, so make sure we set that
+<span class="nc" id="L101">    ca.setStatus(aStatus);</span>
+<span class="nc" id="L102">    setCA(ca);</span>
+<span class="nc bnc" id="L103" title="All 2 branches missed.">    if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L104">      LOG.debug(&quot;Created CA &quot; + aName);</span>
+    }
+<span class="nc" id="L106">  }</span>
 
-	/**  Method that converts the CA object to storage representation. 
-	 * @param ca CA */
-	@SuppressWarnings({&quot;unchecked&quot;})
-    @Transient
-    public final void setCA(final CA ca) {
-<span class="nc" id="L158">        setDataMap((LinkedHashMap&lt;Object, Object&gt;) ca.saveData());</span>
-<span class="nc" id="L159">        setUpdateTime(System.currentTimeMillis());</span>
-        // We have to update status as well, because it is kept in it's own database column, but only do that if it was actually provided in the request
-<span class="nc bnc" id="L161" title="All 2 branches missed.">        if (ca.getStatus() &gt; 0) {</span>
-<span class="nc" id="L162">            setStatus(ca.getStatus());        	</span>
-        }
-<span class="nc" id="L164">        setName(ca.getName());</span>
-<span class="nc" id="L165">        setSubjectDN(ca.getSubjectDN());</span>
-        // set expire time, perhaps we have updated the CA certificate
-<span class="nc" id="L167">        final Certificate cacert = ca.getCACertificate();</span>
-<span class="nc bnc" id="L168" title="All 2 branches missed.">        if (cacert != null) {</span>
-<span class="nc" id="L169">            setExpireTime(CertTools.getNotAfter(cacert).getTime());</span>
-        }
-<span class="nc" id="L171">	}   </span>
+  /** Default. */
+<span class="nc" id="L109">  public CAData() { }</span>
 
-	@Transient
-	public LinkedHashMap&lt;Object, Object&gt; getDataMap() {
-<span class="nc" id="L175">        try (SecureXMLDecoder decoder = new SecureXMLDecoder(new java.io.ByteArrayInputStream(getData().getBytes(StandardCharsets.UTF_8)))) {</span>
-<span class="nc" id="L176">            final Map&lt;?, ?&gt; h = (Map&lt;?, ?&gt;)decoder.readObject();</span>
-            // Handle Base64 encoded string values
-            @SuppressWarnings(&quot;unchecked&quot;)
-<span class="nc" id="L179">            final LinkedHashMap&lt;Object, Object&gt; dataMap = new Base64GetHashMap(h);</span>
-<span class="nc" id="L180">            return dataMap;</span>
-<span class="nc" id="L181">        } catch (IOException e) {</span>
-<span class="nc" id="L182">            final String msg = &quot;Failed to parse data map for CA '&quot; + getName() + &quot;': &quot; + e.getMessage();</span>
-<span class="nc bnc" id="L183" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L184">                log.debug(msg + &quot;. Data:\n&quot; + getData());</span>
-            }
-<span class="nc" id="L186">            throw new IllegalStateException(msg, e);</span>
-        }
-	}
+  /**
+   * @return ID
+   */
+  // @Id @Column
+  public Integer getCaId() {
+<span class="nc" id="L116">    return cAId;</span>
+  }
 
-    @Transient
-    @SuppressWarnings({&quot;rawtypes&quot;, &quot;unchecked&quot;})
-	public void setDataMap(final LinkedHashMap&lt;Object, Object&gt; dataMap) {
-        try {
-            // We must base64 encode string for UTF safety
-<span class="nc" id="L195">            final LinkedHashMap&lt;?, ?&gt; a = new Base64PutHashMap();</span>
-<span class="nc" id="L196">            a.putAll((LinkedHashMap)dataMap);</span>
-<span class="nc" id="L197">            final java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();</span>
-<span class="nc" id="L198">            final java.beans.XMLEncoder encoder = new java.beans.XMLEncoder(baos);</span>
-<span class="nc" id="L199">            encoder.writeObject(a);</span>
-<span class="nc" id="L200">            encoder.close();</span>
-<span class="nc" id="L201">            final String data = baos.toString(&quot;UTF8&quot;);</span>
-<span class="nc bnc" id="L202" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L203">                log.debug(&quot;Saving CA data with length: &quot;+data.length()+&quot; for CA.&quot;);</span>
-            }
-<span class="nc" id="L205">            setData(data);</span>
-<span class="nc" id="L206">            setUpdateTime(System.currentTimeMillis());</span>
-<span class="nc" id="L207">        } catch (UnsupportedEncodingException e) {</span>
-<span class="nc" id="L208">            throw new RuntimeException(e);</span>
-<span class="nc" id="L209">        }</span>
-<span class="nc" id="L210">	}</span>
+  /**
+   * @param aCAId ID
+   */
+  public final void setCaId(final Integer aCAId) {
+<span class="nc" id="L123">    this.cAId = aCAId;</span>
+<span class="nc" id="L124">  }</span>
 
-	//
-	// Start Database integrity protection methods
-	//
-	
-	@Transient
-	@Override
-	public String getProtectString(final int version) {
-<span class="nc" id="L219">		final ProtectionStringBuilder build = new ProtectionStringBuilder(8000);</span>
-		// What is important to protect here is the data that we define
-		// rowVersion is automatically updated by JPA, so it's not important, it is only used for optimistic locking
-<span class="nc" id="L222">		build.append(getCaId()).append(getName()).append(getSubjectDN()).append(getStatus()).append(getExpireTime()).append(getUpdateTime()).append(getData());</span>
-<span class="nc bnc" id="L223" title="All 2 branches missed.">		if (log.isDebugEnabled()) {</span>
-			// Some profiling
-<span class="nc bnc" id="L225" title="All 2 branches missed.">			if (build.length() &gt; 8000) {</span>
-<span class="nc" id="L226">				log.debug(&quot;CAData.getProtectString gives size: &quot;+build.length());</span>
-			}
-		}
-<span class="nc" id="L229">		return build.toString();</span>
-	}
+  /**
+   * @return name
+   */
+  // @Column
+  public String getName() {
+<span class="nc" id="L131">    return name;</span>
+  }
 
-	@Transient
-	@Override
-	protected int getProtectVersion() {
-<span class="nc" id="L235">		return 1;</span>
-	}
+  /**
+   * @param aName Name
+   */
+  public void setName(final String aName) {
+<span class="nc" id="L138">    this.name = aName;</span>
+<span class="nc" id="L139">  }</span>
 
-	@PrePersist
-	@PreUpdate
-	@Override
-	protected void protectData() {
-<span class="nc" id="L242">		super.protectData();</span>
-<span class="nc" id="L243">	}</span>
-	
-	@PostLoad
-	@Override
-	protected void verifyData() {
-<span class="nc" id="L248">		super.verifyData();</span>
-<span class="nc" id="L249">	}</span>
 
-	@Override 
-	@Transient
-	protected String getRowId() {
-<span class="nc" id="L254">		return getCaId().toString();		</span>
-	}
-	//
-	// End Database integrity protection methods
-	//
+  /**
+   * @return DN
+   */
+  // @Column
+  public String getSubjectDN() {
+<span class="nc" id="L147">    return subjectDN;</span>
+  }
+
+  /**
+   * @param aSubjectDN DN
+   */
+  public void setSubjectDN(final String aSubjectDN) {
+<span class="nc" id="L154">    this.subjectDN = aSubjectDN;</span>
+<span class="nc" id="L155">  }</span>
+
+  /**
+   * @return Status
+   */
+  // @Column
+  public int getStatus() {
+<span class="nc" id="L162">    return status;</span>
+  }
+
+  /**
+   * @param aStatus Status
+   */
+  public void setStatus(final int aStatus) {
+<span class="nc" id="L169">    this.status = aStatus;</span>
+<span class="nc" id="L170">  }</span>
+
+  /**
+   * @return Time
+   */
+  // @Column
+  public long getExpireTime() {
+<span class="nc" id="L177">    return expireTime;</span>
+  }
+
+  /**
+   * @param anExpireTime time
+   */
+  public void setExpireTime(final long anExpireTime) {
+<span class="nc" id="L184">    this.expireTime = anExpireTime;</span>
+<span class="nc" id="L185">  }</span>
+
+  /**
+   * When was this CA updated in the database.
+   *
+   * @return time
+   */
+  // @Column
+  public long getUpdateTime() {
+<span class="nc" id="L194">    return updateTime;</span>
+  }
+
+  /**
+   * @param anUpdateTime time
+   */
+  public void setUpdateTime(final long anUpdateTime) {
+<span class="nc" id="L201">    this.updateTime = anUpdateTime;</span>
+<span class="nc" id="L202">  }</span>
+
+  /**
+   * @return Data
+   */
+  // @Column @Lob
+  public String getData() {
+<span class="nc" id="L209">    return data;</span>
+  }
+
+  /**
+   * @param theData Data
+   */
+  public void setData(final String theData) {
+<span class="nc" id="L216">    this.data = theData;</span>
+<span class="nc" id="L217">  }</span>
+
+  /**
+   * @return version
+   */
+  // @Version @Column
+  public int getRowVersion() {
+<span class="nc" id="L224">    return rowVersion;</span>
+  }
+
+  /**
+   * @param aRowVersion version
+   */
+  public void setRowVersion(final int aRowVersion) {
+<span class="nc" id="L231">    this.rowVersion = aRowVersion;</span>
+<span class="nc" id="L232">  }</span>
+
+  // @Column @Lob
+  @Override
+  public String getRowProtection() {
+<span class="nc" id="L237">    return rowProtection;</span>
+  }
+
+  @Override
+  public void setRowProtection(final String aRowProtection) {
+<span class="nc" id="L242">    this.rowProtection = aRowProtection;</span>
+<span class="nc" id="L243">  }</span>
+
+  /**
+   * @return Date
+   */
+  @Transient
+  public Date getUpdateTimeAsDate() {
+<span class="nc" id="L250">    return new Date(getUpdateTime());</span>
+  }
+
+  /**
+   * @return a CA in the form it was saved in the database + regular
+   *     UpgradableHashMap upgrade-on-load
+   */
+  @Transient
+  public CA getCA() {
+<span class="nc" id="L259">    final LinkedHashMap&lt;Object, Object&gt; dataMap = getDataMap();</span>
+<span class="nc" id="L260">    CA ca = null;</span>
+<span class="nc bnc" id="L261" title="All 3 branches missed.">    switch (((Integer) (dataMap.get(CA.CATYPE))).intValue()) {</span>
+      case CAInfo.CATYPE_X509:
+<span class="nc" id="L263">        ca =</span>
+            new X509CA(
+                dataMap,
+<span class="nc" id="L266">                getCaId().intValue(),</span>
+<span class="nc" id="L267">                getSubjectDN(),</span>
+<span class="nc" id="L268">                getName(),</span>
+<span class="nc" id="L269">                getStatus(),</span>
+<span class="nc" id="L270">                getUpdateTimeAsDate(),</span>
+<span class="nc" id="L271">                new Date(getExpireTime()));</span>
+<span class="nc" id="L272">        break;</span>
+      case CAInfo.CATYPE_CVC:
+<span class="nc" id="L274">        ca =</span>
+<span class="nc" id="L275">            CvcCA.getInstance(</span>
+                dataMap,
+<span class="nc" id="L277">                getCaId().intValue(),</span>
+<span class="nc" id="L278">                getSubjectDN(),</span>
+<span class="nc" id="L279">                getName(),</span>
+<span class="nc" id="L280">                getStatus(),</span>
+<span class="nc" id="L281">                getUpdateTimeAsDate(),</span>
+<span class="nc" id="L282">                new Date(getExpireTime()));</span>
+<span class="nc" id="L283">        break;</span>
+      default: // no-op
+          break;
+    }
+<span class="nc" id="L287">    return ca;</span>
+  }
+
+  /**
+   * Method that converts the CA object to storage representation.
+   *
+   * @param ca CA
+   */
+  @SuppressWarnings({&quot;unchecked&quot;})
+  @Transient
+  public final void setCA(final CA ca) {
+<span class="nc" id="L298">    setDataMap((LinkedHashMap&lt;Object, Object&gt;) ca.saveData());</span>
+<span class="nc" id="L299">    setUpdateTime(System.currentTimeMillis());</span>
+    // We have to update status as well, because it is kept in it's own database
+    // column, but only do that if it was actually provided in the request
+<span class="nc bnc" id="L302" title="All 2 branches missed.">    if (ca.getStatus() &gt; 0) {</span>
+<span class="nc" id="L303">      setStatus(ca.getStatus());</span>
+    }
+<span class="nc" id="L305">    setName(ca.getName());</span>
+<span class="nc" id="L306">    setSubjectDN(ca.getSubjectDN());</span>
+    // set expire time, perhaps we have updated the CA certificate
+<span class="nc" id="L308">    final Certificate cacert = ca.getCACertificate();</span>
+<span class="nc bnc" id="L309" title="All 2 branches missed.">    if (cacert != null) {</span>
+<span class="nc" id="L310">      setExpireTime(CertTools.getNotAfter(cacert).getTime());</span>
+    }
+<span class="nc" id="L312">  }</span>
+
+  /**
+   * @return Map
+   */
+  @Transient
+  public LinkedHashMap&lt;Object, Object&gt; getDataMap() {
+<span class="nc" id="L319">    try (SecureXMLDecoder decoder =</span>
+        new SecureXMLDecoder(
+            new java.io.ByteArrayInputStream(
+<span class="nc" id="L322">                getData().getBytes(StandardCharsets.UTF_8)))) {</span>
+<span class="nc" id="L323">      final Map&lt;?, ?&gt; h = (Map&lt;?, ?&gt;) decoder.readObject();</span>
+      // Handle Base64 encoded string values
+      @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L326">      final LinkedHashMap&lt;Object, Object&gt; dataMap = new Base64GetHashMap(h);</span>
+<span class="nc" id="L327">      return dataMap;</span>
+<span class="nc" id="L328">    } catch (IOException e) {</span>
+<span class="nc" id="L329">      final String msg =</span>
+          &quot;Failed to parse data map for CA '&quot;
+<span class="nc" id="L331">              + getName()</span>
+              + &quot;': &quot;
+<span class="nc" id="L333">              + e.getMessage();</span>
+<span class="nc bnc" id="L334" title="All 2 branches missed.">      if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L335">        LOG.debug(msg + &quot;. Data:\n&quot; + getData());</span>
+      }
+<span class="nc" id="L337">      throw new IllegalStateException(msg, e);</span>
+    }
+  }
+
+  /**
+   * @param dataMap Map
+   */
+  @Transient
+  @SuppressWarnings({&quot;rawtypes&quot;, &quot;unchecked&quot;})
+  public void setDataMap(final LinkedHashMap&lt;Object, Object&gt; dataMap) {
+    try {
+      // We must base64 encode string for UTF safety
+<span class="nc" id="L349">      final LinkedHashMap&lt;?, ?&gt; a = new Base64PutHashMap();</span>
+<span class="nc" id="L350">      a.putAll((LinkedHashMap) dataMap);</span>
+<span class="nc" id="L351">      final java.io.ByteArrayOutputStream baos =</span>
+          new java.io.ByteArrayOutputStream();
+<span class="nc" id="L353">      final java.beans.XMLEncoder encoder = new java.beans.XMLEncoder(baos);</span>
+<span class="nc" id="L354">      encoder.writeObject(a);</span>
+<span class="nc" id="L355">      encoder.close();</span>
+<span class="nc" id="L356">      final String aData = baos.toString(&quot;UTF8&quot;);</span>
+<span class="nc bnc" id="L357" title="All 2 branches missed.">      if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L358">        LOG.debug(&quot;Saving CA data with length: &quot; + aData.length() + &quot; for CA.&quot;);</span>
+      }
+<span class="nc" id="L360">      setData(aData);</span>
+<span class="nc" id="L361">      setUpdateTime(System.currentTimeMillis());</span>
+<span class="nc" id="L362">    } catch (UnsupportedEncodingException e) {</span>
+<span class="nc" id="L363">      throw new RuntimeException(e);</span>
+<span class="nc" id="L364">    }</span>
+<span class="nc" id="L365">  }</span>
+
+  //
+  // Start Database integrity protection methods
+  //
+
+  @Transient
+  @Override
+  public String getProtectString(final int version) {
+<span class="nc" id="L374">    final int capacity = 8000;</span>
+<span class="nc" id="L375">    final ProtectionStringBuilder build = new ProtectionStringBuilder(capacity);</span>
+    // What is important to protect here is the data that we define
+    // rowVersion is automatically updated by JPA, so it's not important, it is
+    // only used for optimistic locking
+<span class="nc" id="L379">    build</span>
+<span class="nc" id="L380">        .append(getCaId())</span>
+<span class="nc" id="L381">        .append(getName())</span>
+<span class="nc" id="L382">        .append(getSubjectDN())</span>
+<span class="nc" id="L383">        .append(getStatus())</span>
+<span class="nc" id="L384">        .append(getExpireTime())</span>
+<span class="nc" id="L385">        .append(getUpdateTime())</span>
+<span class="nc" id="L386">        .append(getData());</span>
+<span class="nc bnc" id="L387" title="All 2 branches missed.">    if (LOG.isDebugEnabled()) {</span>
+      // Some profiling
+<span class="nc bnc" id="L389" title="All 2 branches missed.">      if (build.length() &gt; capacity) {</span>
+<span class="nc" id="L390">        LOG.debug(&quot;CAData.getProtectString gives size: &quot; + build.length());</span>
+      }
+    }
+<span class="nc" id="L393">    return build.toString();</span>
+  }
+
+  @Transient
+  @Override
+  protected int getProtectVersion() {
+<span class="nc" id="L399">    return 1;</span>
+  }
+
+  @PrePersist
+  @PreUpdate
+  @Override
+  protected void protectData() {
+<span class="nc" id="L406">    super.protectData();</span>
+<span class="nc" id="L407">  }</span>
+
+  @PostLoad
+  @Override
+  protected void verifyData() {
+<span class="nc" id="L412">    super.verifyData();</span>
+<span class="nc" id="L413">  }</span>
+
+  @Override
+  @Transient
+  protected String getRowId() {
+<span class="nc" id="L418">    return getCaId().toString();</span>
+  }
+  //
+  // End Database integrity protection methods
+  //
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

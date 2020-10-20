@@ -496,7 +496,7 @@ import org.ejbca.util.HTMLTools;
                     } else {
 <span class="nc" id="L497">                        pout.println(&quot;&lt;h1&gt;REVOKED&lt;/h1&gt;&quot;);</span>
 <span class="nc" id="L498">                        pout.println(&quot;Certificate with issuer '&quot;+HTMLTools.htmlescape(dn)+&quot;' and serial number '&quot;+HTMLTools.htmlescape(serno)+&quot;' is revoked.&quot;);</span>
-<span class="nc" id="L499">                        pout.println(&quot;RevocationDate is '&quot;+revinfo.revocationDate+&quot;' and reason '&quot;+revinfo.revocationReason+&quot;'.&quot;);</span>
+<span class="nc" id="L499">                        pout.println(&quot;RevocationDate is '&quot;+revinfo.getRevocationDate()+&quot;' and reason '&quot;+revinfo.getRevocationReason()+&quot;'.&quot;);</span>
                     }
                 } else {
 <span class="nc" id="L502">                    pout.println(&quot;&lt;h1&gt;CERTIFICATE DOES NOT EXIST&lt;/h1&gt;&quot;);</span>

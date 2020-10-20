@@ -16,22 +16,26 @@ import org.cesecore.util.GUIDGenerator;
 
 /**
  * Keeps track of a GUID which identifies this instance.
- * 
+ *
  * @version $Id: GuidHolder.java 17625 2013-09-20 07:12:06Z netmackan $
- * 
  */
-<span class="fc" id="L23">public enum GuidHolder {</span>
+<span class="fc" id="L22">public enum GuidHolder {</span>
+  /** Singleton instance. */
 <span class="fc" id="L24">    INSTANCE;</span>
 
-<span class="fc" id="L26">    private GuidHolder() {</span>
-<span class="fc" id="L27">        guid = GUIDGenerator.generateGUID(this);</span>
-<span class="fc" id="L28">    }</span>
+    /** Constructor. */
+<span class="fc" id="L27">  GuidHolder() {</span>
+<span class="fc" id="L28">    guid = GUIDGenerator.generateGUID(this);</span>
+<span class="fc" id="L29">  }</span>
 
-    public String getGlobalUid() {
-<span class="fc" id="L31">        return guid;</span>
-    }
+  /**
+   * @return GUID
+   */
+  public String getGlobalUid() {
+<span class="fc" id="L35">    return guid;</span>
+  }
 
-    private final String guid;
-
+  /** GUID.*/
+  private final String guid;
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

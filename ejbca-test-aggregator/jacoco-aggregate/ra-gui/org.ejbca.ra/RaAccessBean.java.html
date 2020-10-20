@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RaAccessBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ra-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ra</a> &gt; <span class="el_source">RaAccessBean.java</span></div><h1>RaAccessBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ra;
+
+import java.io.Serializable;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import javax.ejb.EJB;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.ManagedProperty;
+import javax.faces.bean.SessionScoped;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authentication.AuthenticationFailedException;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.authorization.access.AccessSet;
+import org.cesecore.authorization.access.AuthorizationCacheReload;
+import org.cesecore.authorization.access.AuthorizationCacheReloadListener;
+import org.cesecore.authorization.cache.AccessTreeUpdateSessionLocal;
+import org.cesecore.authorization.cache.RemoteAccessSetCacheHolder;
+import org.cesecore.authorization.control.AuditLogRules;
+import org.cesecore.authorization.control.StandardRules;
+import org.cesecore.util.ConcurrentCache;
+import org.ejbca.core.model.authorization.AccessRulesConstants;
+import org.ejbca.core.model.era.RaMasterApiProxyBeanLocal;
+
+/**
+ * Managed bean with isAuthorized method.
+ *
+ * @version $Id: RaAccessBean.java 28562 2018-03-27 14:07:49Z undulf $
+ * TODO: Use CDI beans
+ */
+@SuppressWarnings(&quot;deprecation&quot;)
+@ManagedBean
+@SessionScoped
+<span class="nc" id="L47">public class RaAccessBean implements Serializable {</span>
+
+    private static final long serialVersionUID = 1L;
+<span class="nc" id="L50">    private static final Logger log = Logger.getLogger(RaAccessBean.class);</span>
+
+    private static final long CACHE_READ_TIMEOUT = 2000L; // milliseconds
+
+    @EJB
+    private RaMasterApiProxyBeanLocal raMasterApiProxyBean;
+    @EJB
+    private AuthorizationSessionLocal authorizationSession;
+    @EJB
+    private AccessTreeUpdateSessionLocal accessTreeUpdateSession;
+
+    @ManagedProperty(value=&quot;#{raAuthenticationBean}&quot;)
+    private RaAuthenticationBean raAuthenticationBean;
+<span class="nc" id="L63">    public void setRaAuthenticationBean(final RaAuthenticationBean raAuthenticationBean) { this.raAuthenticationBean = raAuthenticationBean; }</span>
+
+<span class="nc" id="L65">    private static AtomicBoolean reloadEventRegistered = new AtomicBoolean(false);</span>
+
+    private boolean isAuthorized(String... resources) {
+<span class="nc" id="L68">        final AuthenticationToken authenticationToken = raAuthenticationBean.getAuthenticationToken();</span>
+<span class="nc bnc" id="L69" title="All 2 branches missed.">        if (raMasterApiProxyBean.getApiVersion()&gt;=1) {</span>
+<span class="nc" id="L70">            return raMasterApiProxyBean.isAuthorizedNoLogging(authenticationToken, resources);</span>
+        } else {
+<span class="nc" id="L72">            return isAuthorizedViaAccessSet(authenticationToken, resources);</span>
+        }
+    }
+
+    /**
+     * Check authorization using AccessSet which do not support deny rules.
+     * @param authenticationToken Token
+     * @param resources Resources
+     * @return bool
+     * @deprecated since EJBCA 6.8.0
+     */
+    @Deprecated
+    private boolean isAuthorizedViaAccessSet(final AuthenticationToken authenticationToken, String... resources) {
+<span class="nc" id="L85">        ensureCacheReloadEventRegistered();</span>
+        AccessSet myAccess;
+<span class="nc" id="L87">        final ConcurrentCache&lt;AuthenticationToken,AccessSet&gt; cache = RemoteAccessSetCacheHolder.getCache();</span>
+
+        // Try to read from cache
+<span class="nc" id="L90">        final ConcurrentCache&lt;AuthenticationToken,AccessSet&gt;.Entry entry = cache.openCacheEntry(authenticationToken, CACHE_READ_TIMEOUT);</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">        if (entry == null) {</span>
+            // Other thread could not fetch the AccessSet on time
+<span class="nc" id="L93">            throw new IllegalStateException(&quot;Timed out waiting for access rules&quot;);</span>
+        }
+        try {
+<span class="nc bnc" id="L96" title="All 2 branches missed.">            if (entry.isInCache()) {</span>
+<span class="nc" id="L97">                myAccess = entry.getValue();</span>
+            } else {
+                try {
+<span class="nc" id="L100">                    myAccess = raMasterApiProxyBean.getUserAccessSet(authenticationToken);</span>
+<span class="nc" id="L101">                } catch (AuthenticationFailedException e) {</span>
+<span class="nc" id="L102">                    log.info(&quot;Failed to match authentication token '&quot; + authenticationToken + &quot;' to a role.&quot;);</span>
+<span class="nc" id="L103">                    myAccess = new AccessSet();</span>
+<span class="nc" id="L104">                }</span>
+<span class="nc" id="L105">                entry.putValue(myAccess);</span>
+            }
+        } finally {
+<span class="nc" id="L108">            entry.close();</span>
+        }
+<span class="nc" id="L110">        return myAccess.isAuthorized(resources);</span>
+    }
+
+    @Deprecated
+    private void ensureCacheReloadEventRegistered() {
+<span class="nc bnc" id="L115" title="All 2 branches missed.">        if (reloadEventRegistered.compareAndSet(false, true)) {</span>
+<span class="nc" id="L116">          accessTreeUpdateSession.addReloadEvent(new AuthorizationCacheReloadListener() {</span>
+<span class="nc" id="L117">                private int lastUpdate = -1;</span>
+
+                @Override
+                public void onReload(final AuthorizationCacheReload event) {
+<span class="nc bnc" id="L121" title="All 2 branches missed.">                    if (event.getAccessTreeUpdateNumber() &gt; lastUpdate) {</span>
+<span class="nc" id="L122">                        lastUpdate = event.getAccessTreeUpdateNumber();</span>
+<span class="nc" id="L123">                        RemoteAccessSetCacheHolder.forceEmptyCache();</span>
+                    }
+<span class="nc" id="L125">                }</span>
+
+                @Override
+                public String getListenerName() {
+<span class="nc" id="L129">                    return RemoteAccessSetCacheHolder.class.getName();</span>
+                }
+            });
+        }
+<span class="nc" id="L133">    }</span>
+
+    // Methods for checking authorization to various parts of EJBCA can be defined below
+
+    /** Example method 
+     * @return bool*/
+    @Deprecated
+    public boolean isAuthorizedToRootTEST() {
+<span class="nc" id="L141">        return isAuthorized(StandardRules.ROLE_ROOT.resource());</span>
+    }
+
+    /** correspond to menu items in menu.xhtml
+     * This method shows and hides the whole enrollment menu 
+     * @return bool */
+    public boolean isAuthorizedToEnroll() {
+<span class="nc bnc" id="L148" title="All 2 branches missed.">        return isAuthorizedToEnrollMakeRequest() ||</span>
+<span class="nc bnc" id="L149" title="All 2 branches missed.">                isAuthorizedToEnrollWithRequestId();</span>
+    }
+
+    /** correspond to menu items in menu.xhtml
+     * This method shows and hides the make request sub menu item 
+     * @return bool */
+    public boolean isAuthorizedToEnrollMakeRequest() {
+        /*
+         * Only check if this admin has been configured to create end entities to display the meny.
+         * In order to actually make a request, the admin has to have access to
+         *  AccessRulesConstants.ENDENTITYPROFILEPREFIX + eepId + AccessRulesConstants.CREATE_END_ENTITY
+         * and the CAs available via this profile.
+         */
+<span class="nc" id="L162">        return isAuthorized(AccessRulesConstants.REGULAR_CREATEENDENTITY);</span>
+    }
+
+    /** correspond to menu items in menu.xhtml
+     * This method shows and hides the use request id sub menu item 
+     * @return bool */
+    public boolean isAuthorizedToEnrollWithRequestId() {
+        // There are no access rules available for &quot;finalizing&quot; requests, i.e. retrieving the certificate for your request
+        // For starters we will assume that the same person who made the request is finalizing it with request ID, therefore
+        // The same access rules aply as when making a request.
+        // This is a safe default until we can add access rules to allow &quot;public&quot; users to enroll
+<span class="nc" id="L173">        return isAuthorizedToEnrollMakeRequest();</span>
+    }
+
+    public boolean isAuthorizedToCas() {
+<span class="nc" id="L177">        final boolean auth = isAuthorized(StandardRules.CAVIEW.resource());</span>
+<span class="nc bnc" id="L178" title="All 4 branches missed.">        if (!auth &amp;&amp; log.isDebugEnabled()) {</span>
+<span class="nc" id="L179">            log.debug(&quot;&gt;isAuthorizedToCas: Not authorized to &quot;+StandardRules.CAVIEW.resource());</span>
+        }
+<span class="nc" id="L181">        return auth;</span>
+    }
+     
+    public boolean isAuthorizedToManageRequests() {
+<span class="nc bnc" id="L185" title="All 4 branches missed.">        final boolean auth = isAuthorized(AccessRulesConstants.REGULAR_APPROVEENDENTITY) || isAuthorized(AccessRulesConstants.REGULAR_APPROVECAACTION) </span>
+<span class="nc bnc" id="L186" title="All 4 branches missed.">                || isAuthorized(AccessRulesConstants.REGULAR_VIEWAPPROVALS) || isAuthorized(AuditLogRules.VIEW.resource());</span>
+<span class="nc bnc" id="L187" title="All 4 branches missed.">        if (!auth &amp;&amp; log.isDebugEnabled()) {</span>
+<span class="nc" id="L188">            log.debug(&quot;&gt;isAuthorizedToManageRequests: Not authorized to &quot;+AccessRulesConstants.REGULAR_APPROVEENDENTITY+&quot;, &quot;+AccessRulesConstants.REGULAR_APPROVECAACTION+&quot;, &quot;</span>
+<span class="nc" id="L189">                +AccessRulesConstants.REGULAR_VIEWAPPROVALS+&quot; or &quot;+AuditLogRules.VIEW.resource()); </span>
+        }
+<span class="nc" id="L191">        return auth;</span>
+    }
+
+    public boolean isAuthorizedToApproveEndEntityRequests() {
+<span class="nc" id="L195">        final boolean auth = isAuthorized(AccessRulesConstants.REGULAR_APPROVEENDENTITY);</span>
+<span class="nc bnc" id="L196" title="All 4 branches missed.">        if (!auth &amp;&amp; log.isDebugEnabled()) {</span>
+<span class="nc" id="L197">            log.debug(&quot;&gt;isAuthorizedToApproveEndEntityRequests: Not authorized to &quot;+AccessRulesConstants.REGULAR_APPROVEENDENTITY);</span>
+        }
+<span class="nc" id="L199">        return auth;</span>
+    }
+
+    public boolean isAuthorizedToApproveCARequests() {
+<span class="nc" id="L203">        final boolean auth = isAuthorized(AccessRulesConstants.REGULAR_APPROVECAACTION);</span>
+<span class="nc bnc" id="L204" title="All 4 branches missed.">        if (!auth &amp;&amp; log.isDebugEnabled()) {</span>
+<span class="nc" id="L205">            log.debug(&quot;&gt;isAuthorizedToApproveCARequests: Not authorized to &quot;+AccessRulesConstants.REGULAR_APPROVECAACTION);</span>
+        }
+<span class="nc" id="L207">        return auth;</span>
+    }
+
+    public boolean isAuthorizedToEditEndEntities() {
+<span class="nc" id="L211">        return isAuthorized(AccessRulesConstants.REGULAR_EDITENDENTITY);</span>
+    }
+
+    public boolean isAuthorizedToSearch() {
+<span class="nc bnc" id="L215" title="All 2 branches missed.">        return isAuthorizedToSearchCerts() ||</span>
+<span class="nc bnc" id="L216" title="All 2 branches missed.">                isAuthorizedToSearchEndEntities();</span>
+    }
+
+    public boolean isAuthorizedToSearchCerts() {
+<span class="nc" id="L220">        return isAuthorized(AccessRulesConstants.REGULAR_VIEWCERTIFICATE);</span>
+    }
+
+    public boolean isAuthorizedToSearchEndEntities() {
+<span class="nc" id="L224">        return isAuthorized(AccessRulesConstants.REGULAR_VIEWENDENTITY);</span>
+    }
+
+    public boolean isAuthorizedToRoles() {
+<span class="nc bnc" id="L228" title="All 4 branches missed.">        return isAuthorizedToRoleRules() || isAuthorizedToRoleMembers();</span>
+    }
+
+    public boolean isAuthorizedToEditRoleRules() {
+<span class="nc" id="L232">        return isAuthorized(StandardRules.EDITROLES.resource());</span>
+    }
+
+    public boolean isAuthorizedToRoleRules() {
+<span class="nc" id="L236">        return isAuthorized(StandardRules.VIEWROLES.resource());</span>
+    }
+
+    public boolean isAuthorizedToRoleMembers() {
+<span class="nc" id="L240">        return isAuthorized(StandardRules.VIEWROLES.resource());</span>
+    }
+
+    public boolean isAuthorizedToEditRoleMembers() {
+<span class="nc" id="L244">        return isAuthorized(StandardRules.EDITROLES.resource());</span>
+    }
+
+    public boolean isAuthorizedToRevokeCertificates() {
+<span class="nc" id="L248">        return isAuthorized(AccessRulesConstants.REGULAR_REVOKEENDENTITY);</span>
+    }
+
+    /**
+     * Determine if the RA master API is functional. Note that this method will
+     * return true if there is a signing CA available locally on this RA.
+     * @return true if there is at least one CA serving this RA
+     */
+    public boolean isBackendAvailable() {
+<span class="nc" id="L257">        final boolean isBackendAvailable = raMasterApiProxyBean.isBackendAvailable();</span>
+<span class="nc bnc" id="L258" title="All 2 branches missed.">        if (!isBackendAvailable) {</span>
+<span class="nc" id="L259">            log.warn(&quot;Unable to serve RA requests since there is no connection to the upstream CA or lack of authorization of this RA node.&quot;);</span>
+        }
+<span class="nc" id="L261">        return isBackendAvailable;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

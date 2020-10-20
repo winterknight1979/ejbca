@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ValidatorSettings.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Administration GUI</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.configuration</a> &gt; <span class="el_source">ValidatorSettings.java</span></div><h1>ValidatorSettings.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.web.admin.configuration;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map.Entry;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.keys.validation.ExternalScriptsWhitelist;
+import org.ejbca.config.GlobalConfiguration;
+
+/**
+ * This class is responsible for managing the configuration shown under the &quot;Validators&quot; tab
+ * in System Configuration.
+ */
+public class ValidatorSettings {
+    
+    public interface ValidatorSettingsHelper {
+        GlobalConfiguration getGlobalConfiguration();
+        void addErrorMessage(final String languageKey, final Object... params);
+        void addInfoMessage(final String languageKey);
+        void persistConfiguration(final GlobalConfiguration globalConfiguration) throws AuthorizationDeniedException;
+    }
+
+<span class="nc" id="L39">    private final static Logger log = Logger.getLogger(ValidatorSettings.class);</span>
+    private final ValidatorSettingsHelper validatorSettingsHelper;
+<span class="nc" id="L41">    private ArrayList&lt;String&gt; validationResult = new ArrayList&lt;&gt;();</span>
+    private String externalScriptsWhitelist;
+    private boolean isExternalScriptsEnabled;
+    private boolean isExternalScriptsWhitelistEnabled;
+
+<span class="nc" id="L46">    public ValidatorSettings(final ValidatorSettingsHelper validatorSettingsHelper) {</span>
+<span class="nc" id="L47">        this.validatorSettingsHelper = validatorSettingsHelper;</span>
+<span class="nc" id="L48">        this.externalScriptsWhitelist = validatorSettingsHelper.getGlobalConfiguration().getExternalScriptsWhitelist();</span>
+<span class="nc" id="L49">        this.isExternalScriptsEnabled = validatorSettingsHelper.getGlobalConfiguration().getEnableExternalScripts();</span>
+<span class="nc" id="L50">        this.isExternalScriptsWhitelistEnabled = validatorSettingsHelper.getGlobalConfiguration().getIsExternalScriptsWhitelistEnabled();</span>
+<span class="nc" id="L51">    }</span>
+
+    public boolean getIsExternalScriptsEnabled() {
+<span class="nc" id="L54">        return isExternalScriptsEnabled;</span>
+    }
+
+    public void setIsExternalScriptsEnabled(final boolean isExternalScriptsEnabled) {
+<span class="nc" id="L58">        this.isExternalScriptsEnabled = isExternalScriptsEnabled;</span>
+<span class="nc" id="L59">    }</span>
+
+    public String getExternalScriptsWhitelist() {
+<span class="nc" id="L62">        return externalScriptsWhitelist;</span>
+    }
+
+    public void setExternalScriptsWhitelist(final String value) {
+<span class="nc" id="L66">        this.externalScriptsWhitelist = value;</span>
+<span class="nc" id="L67">    }</span>
+
+    public boolean getIsExternalScriptsWhitelistEnabled() {
+<span class="nc" id="L70">        return isExternalScriptsWhitelistEnabled;</span>
+    }
+
+    public void setIsExternalScriptsWhitelistEnabled(final boolean value) {
+<span class="nc" id="L74">        this.isExternalScriptsWhitelistEnabled = value;</span>
+<span class="nc" id="L75">    }</span>
+
+    public void save() {
+        try {
+<span class="nc" id="L79">            final ExternalScriptsWhitelist whitelist = ExternalScriptsWhitelist.fromText(externalScriptsWhitelist, isExternalScriptsWhitelistEnabled);</span>
+<span class="nc bnc" id="L80" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L81">                log.debug(&quot;Saving whitelist of permitted scripts: &quot; + whitelist.getScriptsPaths());</span>
+            }
+<span class="nc bnc" id="L83" title="All 4 branches missed.">            if (isExternalScriptsWhitelistEnabled &amp;&amp; whitelist.hasInvalidPaths()) {</span>
+<span class="nc" id="L84">                log.info(</span>
+                        &quot;Unable to save (enabled) whitelist containing external scripts permitted to be used in External Command Validators. One or file paths are invalid.&quot;);
+<span class="nc" id="L86">                validatorSettingsHelper.addErrorMessage(&quot;EXTERNAL_SCRIPTS_SAVE_FAILED&quot;);</span>
+<span class="nc" id="L87">                return;</span>
+            }
+<span class="nc" id="L89">            final GlobalConfiguration globalConfiguration = validatorSettingsHelper.getGlobalConfiguration();</span>
+<span class="nc" id="L90">            globalConfiguration.setEnableExternalScripts(isExternalScriptsEnabled);</span>
+<span class="nc" id="L91">            globalConfiguration.setExternalScriptsWhitelist(externalScriptsWhitelist);</span>
+<span class="nc" id="L92">            globalConfiguration.setIsExternalScriptsWhitelistEnabled(isExternalScriptsWhitelistEnabled);</span>
+<span class="nc" id="L93">            validatorSettingsHelper.persistConfiguration(globalConfiguration);</span>
+<span class="nc" id="L94">            validatorSettingsHelper.addInfoMessage(&quot;EXTERNAL_SCRIPTS_SAVED&quot;);</span>
+<span class="nc" id="L95">        } catch (final AuthorizationDeniedException e) {</span>
+<span class="nc" id="L96">            log.warn(&quot;Unable to save configuration, because authorization was denied.&quot;, e);</span>
+<span class="nc" id="L97">            validatorSettingsHelper.addErrorMessage(&quot;EXTERNAL_SCRIPTS_SAVE_FAILED&quot;, e.getMessage());</span>
+<span class="nc" id="L98">        }</span>
+<span class="nc" id="L99">    }</span>
+
+    public void validateScripts() {
+<span class="nc" id="L102">        final ExternalScriptsWhitelist whitelist = ExternalScriptsWhitelist.fromText(externalScriptsWhitelist);</span>
+<span class="nc" id="L103">        final List&lt;String&gt; validationMessages = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">        for (final Entry&lt;File, String&gt; validationEntry : whitelist.validateScripts().entrySet()) {</span>
+<span class="nc bnc" id="L105" title="All 2 branches missed.">            if (validationEntry.getValue() == null) {</span>
+                // No problem detected
+<span class="nc" id="L107">                continue;</span>
+            }
+<span class="nc" id="L109">            validationMessages</span>
+<span class="nc" id="L110">                    .add(String.format(&quot;Script %s has the following problem: %s&quot;, validationEntry.getKey().getPath(), validationEntry.getValue()));</span>
+<span class="nc" id="L111">        }</span>
+<span class="nc" id="L112">        validationResult.clear();</span>
+<span class="nc" id="L113">        validationResult.add(whitelist.size() + &quot; scripts have been checked. &quot; + validationMessages.size() + &quot; problems were detected.&quot;);</span>
+<span class="nc" id="L114">        validationResult.addAll(validationMessages);</span>
+<span class="nc" id="L115">    }</span>
+
+    /**
+     * Returns a list of strings containing the output of the latest invocation to {@link #validateScripts()}.
+     * @return a list of validation messages
+     */
+    public List&lt;String&gt; getValidationResult() {
+<span class="nc" id="L122">        return validationResult;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

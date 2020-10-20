@@ -18,66 +18,73 @@ import java.io.Serializable;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateParsingException;
-
 import org.cesecore.certificates.certificate.CertificateWrapper;
 
 /**
- * &lt;p&gt;Wrapper class for transmitting certificates over remote EJB. This wrapper is needed
- * because Java will always deserialize Certificate objects using the first security provider
- * configured on the system. That does not work with Certificates that use other signature
- * algorithms than the ones that are built into Java.&lt;/p&gt;
- * 
- * &lt;p&gt;This class encodes and decodes the Certificate objects lazily only when serializing or
- * deserializing. So it should have a minimal performance impact.&lt;/p&gt;
- * 
+ * Wrapper class for transmitting certificates over remote EJB. This wrapper is
+ * needed because Java will always deserialize Certificate objects using the
+ * first security provider configured on the system. That does not work with
+ * Certificates that use other signature algorithms than the ones that are built
+ * into Java.
+ *
+ * &lt;p&gt;This class encodes and decodes the Certificate objects lazily only when
+ * serializing or deserializing. So it should have a minimal performance impact.
+ *
  * &lt;p&gt;This implementation shouldn't be used directly, and is package-internal.
- * You can create an instance of this class through {@link org.cesecore.util.EJBTools}.&lt;/p&gt;
- * 
- * @version $Id: CertificateSerializableWrapper.java 23173 2016-04-12 14:54:52Z samuellb $
+ * You can create an instance of this class through {@link
+ * org.cesecore.util.EJBTools}.
+ *
+ * @version $Id: CertificateSerializableWrapper.java 23173 2016-04-12 14:54:52Z
+ *     samuellb $
  */
-final class CertificateSerializableWrapper implements CertificateWrapper, Serializable {
+final class CertificateSerializableWrapper
+    implements CertificateWrapper, Serializable {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    private byte[] certificateBytes;
-<span class="fc" id="L43">    private transient Certificate certificate = null;</span>
+  /** Butes. */
+  private byte[] certificateBytes;
+  /** Crt. */
+<span class="fc" id="L48">  private transient Certificate certificate = null;</span>
 
-    /**
-     * Constructor is internal. Please use {@link org.cesecore.util.EJBTools#wrap(Certificate)} to create a wrapper.
-     * @param certificate Certificate, non-null.
-     */
-<span class="fc" id="L49">    CertificateSerializableWrapper(final Certificate certificate) {</span>
-<span class="pc bpc" id="L50" title="1 of 2 branches missed.">        if (certificate == null) {</span>
-<span class="nc" id="L51">            throw new IllegalStateException(&quot;Can't wrap null certificate&quot;);</span>
-        }
-<span class="fc" id="L53">        this.certificate = certificate;</span>
-<span class="fc" id="L54">        this.certificateBytes = null;</span>
-<span class="fc" id="L55">    }</span>
-    
-    @Override
-    public Certificate getCertificate() {
-<span class="nc bnc" id="L59" title="All 4 branches missed.">        if (certificate == null &amp;&amp; certificateBytes != null) {</span>
-            // Lazy restore in case of deserialization
-            try {
-<span class="nc" id="L62">                certificate = CertTools.getCertfromByteArray(certificateBytes, Certificate.class);</span>
-<span class="nc" id="L63">            } catch (CertificateParsingException e) {</span>
-<span class="nc" id="L64">                throw new IllegalStateException(e);</span>
-<span class="nc" id="L65">            }</span>
-        }
-<span class="nc" id="L67">        return certificate;</span>
+  /**
+   * Constructor is internal. Please use {@link
+   * org.cesecore.util.EJBTools#wrap(Certificate)} to create a wrapper.
+   *
+   * @param aCertificate Certificate, non-null.
+   */
+<span class="fc" id="L56">  CertificateSerializableWrapper(final Certificate aCertificate) {</span>
+<span class="pc bpc" id="L57" title="1 of 2 branches missed.">    if (aCertificate == null) {</span>
+<span class="nc" id="L58">      throw new IllegalStateException(&quot;Can't wrap null certificate&quot;);</span>
     }
-    
-    private void writeObject(ObjectOutputStream stream) throws IOException {
-        // Lazy encode before serialization
-<span class="nc bnc" id="L72" title="All 2 branches missed.">        if (certificateBytes == null) {</span>
-            try {
-<span class="nc" id="L74">                certificateBytes = certificate.getEncoded();</span>
-<span class="nc" id="L75">            } catch (CertificateEncodingException e) {</span>
-<span class="nc" id="L76">                throw new IllegalStateException(e);</span>
-<span class="nc" id="L77">            }</span>
-        }
-<span class="nc" id="L79">        stream.defaultWriteObject();</span>
-<span class="nc" id="L80">    }</span>
+<span class="fc" id="L60">    this.certificate = aCertificate;</span>
+<span class="fc" id="L61">    this.certificateBytes = null;</span>
+<span class="fc" id="L62">  }</span>
 
+  @Override
+  public Certificate getCertificate() {
+<span class="nc bnc" id="L66" title="All 4 branches missed.">    if (certificate == null &amp;&amp; certificateBytes != null) {</span>
+      // Lazy restore in case of deserialization
+      try {
+<span class="nc" id="L69">        certificate =</span>
+<span class="nc" id="L70">            CertTools.getCertfromByteArray(certificateBytes, Certificate.class);</span>
+<span class="nc" id="L71">      } catch (CertificateParsingException e) {</span>
+<span class="nc" id="L72">        throw new IllegalStateException(e);</span>
+<span class="nc" id="L73">      }</span>
+    }
+<span class="nc" id="L75">    return certificate;</span>
+  }
+
+  private void writeObject(final ObjectOutputStream stream) throws IOException {
+    // Lazy encode before serialization
+<span class="nc bnc" id="L80" title="All 2 branches missed.">    if (certificateBytes == null) {</span>
+      try {
+<span class="nc" id="L82">        certificateBytes = certificate.getEncoded();</span>
+<span class="nc" id="L83">      } catch (CertificateEncodingException e) {</span>
+<span class="nc" id="L84">        throw new IllegalStateException(e);</span>
+<span class="nc" id="L85">      }</span>
+    }
+<span class="nc" id="L87">    stream.defaultWriteObject();</span>
+<span class="nc" id="L88">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

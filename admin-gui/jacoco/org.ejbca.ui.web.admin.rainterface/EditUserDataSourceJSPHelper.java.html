@@ -1,0 +1,416 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EditUserDataSourceJSPHelper.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Administration GUI</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.rainterface</a> &gt; <span class="el_source">EditUserDataSourceJSPHelper.java</span></div><h1>EditUserDataSourceJSPHelper.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.web.admin.rainterface;
+
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeMap;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.control.StandardRules;
+import org.cesecore.certificates.util.DNFieldExtractor;
+import org.ejbca.core.ejb.ra.userdatasource.UserDataSourceSession;
+import org.ejbca.core.model.ra.userdatasource.BaseUserDataSource;
+import org.ejbca.core.model.ra.userdatasource.CustomUserDataSourceContainer;
+import org.ejbca.core.model.ra.userdatasource.UserDataSourceConnectionException;
+import org.ejbca.core.model.ra.userdatasource.UserDataSourceExistsException;
+import org.ejbca.core.model.ra.userdatasource.UserDataSourceVO;
+import org.ejbca.ui.web.RequestHelper;
+import org.ejbca.ui.web.admin.configuration.EjbcaWebBean;
+
+
+/**
+ * Contains help methods used to parse a edit user data source jsp page requests.
+ *
+ * @author  Philip Vendil
+ * @version $Id: EditUserDataSourceJSPHelper.java 28844 2018-05-04 08:31:02Z samuellb $
+ */
+public class EditUserDataSourceJSPHelper implements java.io.Serializable {
+
+    /**
+     * Determines if a de-serialized file is compatible with this class.
+     *
+     * Maintainers must change this value if and only if the new version
+     * of this class is not compatible with old versions. See Sun docs
+     * for &lt;a href=http://java.sun.com/products/jdk/1.1/docs/guide
+     * /serialization/spec/version.doc.html&gt; details. &lt;/a&gt;
+     *
+     */
+	private static final long serialVersionUID = 436830207093078432L;
+	
+    public static final String ACTION                                  = &quot;action&quot;;
+    public static final String ACTION_EDIT_USERDATASOURCES             = &quot;edituserdatasources&quot;;
+    public static final String ACTION_EDIT_USERDATASOURCE              = &quot;edituserdatasource&quot;;
+
+    public static final String ACTION_CHANGE_USERDATASOURCETYPE        = &quot;changeuserdatasourcetype&quot;;
+
+
+    public static final String CHECKBOX_VALUE                          = BaseUserDataSource.TRUE;
+
+//  Used in userdatasources.jsp
+    public static final String BUTTON_EDIT_USERDATASOURCE              = &quot;buttonedituserdatasource&quot;;
+    public static final String BUTTON_DELETE_USERDATASOURCE            = &quot;buttondeleteuserdatasource&quot;;
+    public static final String BUTTON_ADD_USERDATASOURCE               = &quot;buttonadduserdatasource&quot;;
+    public static final String BUTTON_RENAME_USERDATASOURCE            = &quot;buttonrenameuserdatasource&quot;;
+    public static final String BUTTON_CLONE_USERDATASOURCE             = &quot;buttoncloneuserdatasource&quot;;
+
+    public static final String SELECT_USERDATASOURCE                   = &quot;selectuserdatasource&quot;;
+    public static final String TEXTFIELD_USERDATASOURCENAME            = &quot;textfielduserdatasourcename&quot;;
+    public static final String HIDDEN_USERDATASOURCENAME               = &quot;hiddenuserdatasourcename&quot;;
+
+//  Buttons used in userdatasource.jsp
+    public static final String BUTTON_TESTCONNECTION    = &quot;buttontestconnection&quot;;
+    public static final String BUTTON_SAVE              = &quot;buttonsave&quot;;
+    public static final String BUTTON_CANCEL            = &quot;buttoncancel&quot;;
+
+    public static final String TYPE_CUSTOM              = &quot;typecustom&quot;;
+
+    public static final String HIDDEN_USERDATASOURCETYPE      = &quot;hiddenuserdatasourcetype&quot;;
+    public static final String SELECT_USERDATASOURCETYPE      = &quot;selectuserdatasourcetype&quot;;
+
+    public static final String SELECT_APPLICABLECAS           = &quot;selectapplicablecas&quot;;
+    public static final String SELECT_MODIFYABLEFIELDS        = &quot;selectmodifyablefields&quot;;
+    public static final String TEXTAREA_DESCRIPTION           = &quot;textareadescription&quot;;
+
+    public static final String TEXTFIELD_CUSTOMCLASSPATH = &quot;textfieldcustomclasspath&quot;;
+    public static final String TEXTAREA_CUSTOMPROPERTIES = &quot;textareacustomproperties&quot;;
+
+    public static final String PAGE_USERDATASOURCE                  = &quot;userdatasourcepage.jspf&quot;;
+    public static final String PAGE_USERDATASOURCES                 = &quot;userdatasourcespage.jspf&quot;;
+
+<span class="nc" id="L99">    public boolean  userdatasourceexists       = false;</span>
+<span class="nc" id="L100">    public boolean  userdatasourcedeletefailed = false;</span>
+<span class="nc" id="L101">    public boolean  connectionmessage = false;</span>
+<span class="nc" id="L102">    public boolean  connectionsuccessful = false;</span>
+<span class="nc" id="L103">    public String   connectionerrormessage = &quot;&quot;;</span>
+<span class="nc" id="L104">    public boolean  issuperadministrator = false;</span>
+<span class="nc" id="L105">    public BaseUserDataSource userdatasourcedata = null;</span>
+<span class="nc" id="L106">    public String userdatasourcename = null;</span>
+    
+<span class="nc" id="L108">    private boolean initialized=false;</span>
+<span class="nc" id="L109">    private TreeMap&lt;String, Integer&gt; modifyableFieldTexts = null;</span>
+<span class="nc" id="L110">    private UserDataSourceSession userdatasourcesession = null;</span>
+<span class="nc" id="L111">    private AuthenticationToken admin = null;</span>
+<span class="nc" id="L112">    private EjbcaWebBean ejbcawebbean = null;</span>
+
+
+
+    /** Creates new LogInterfaceBean */
+<span class="nc" id="L117">    public EditUserDataSourceJSPHelper(){</span>
+<span class="nc" id="L118">    }</span>
+    // Public methods.
+    /**
+     * Method that initialized the bean.
+     *
+     * @param request is a reference to the http request.
+     * @param ejbcawebbean Bean
+     * @param rabean RA Bean
+     * @throws Exception Fail
+     */
+    public void initialize(HttpServletRequest request, EjbcaWebBean ejbcawebbean,
+            RAInterfaceBean rabean) throws  Exception{
+
+<span class="nc bnc" id="L131" title="All 2 branches missed.">        if(!initialized){</span>
+<span class="nc" id="L132">            initialized = true;</span>
+<span class="nc" id="L133">            userdatasourcesession = rabean.getUserDataSourceSession();</span>
+<span class="nc" id="L134">            admin = ejbcawebbean.getAdminObject();</span>
+<span class="nc" id="L135">            this.ejbcawebbean = ejbcawebbean;</span>
+<span class="nc" id="L136">            issuperadministrator = ejbcawebbean.isAuthorizedNoLogSilent(StandardRules.ROLE_ROOT.resource());</span>
+        }
+<span class="nc" id="L138">    }</span>
+
+    public String parseRequest(HttpServletRequest request) throws AuthorizationDeniedException{
+<span class="nc" id="L141">        String includefile = PAGE_USERDATASOURCES;</span>
+<span class="nc" id="L142">        String userdatasource = null;        </span>
+<span class="nc" id="L143">        String action = null;</span>
+
+        try {
+<span class="nc" id="L146">            RequestHelper.setDefaultCharacterEncoding(request);</span>
+<span class="nc" id="L147">        } catch (UnsupportedEncodingException e1) {</span>
+            // itgnore
+<span class="nc" id="L149">        }</span>
+<span class="nc" id="L150">        action = request.getParameter(ACTION);</span>
+<span class="nc bnc" id="L151" title="All 2 branches missed.">        if( action != null){</span>
+<span class="nc bnc" id="L152" title="All 2 branches missed.">            if( action.equals(ACTION_EDIT_USERDATASOURCES)){</span>
+<span class="nc bnc" id="L153" title="All 2 branches missed.">                if( request.getParameter(BUTTON_EDIT_USERDATASOURCE) != null){</span>
+<span class="nc" id="L154">                    userdatasource = request.getParameter(SELECT_USERDATASOURCE);</span>
+<span class="nc bnc" id="L155" title="All 2 branches missed.">                    if(userdatasource != null){</span>
+<span class="nc bnc" id="L156" title="All 2 branches missed.">                        if(!userdatasource.trim().equals(&quot;&quot;)){</span>
+<span class="nc" id="L157">                            includefile=PAGE_USERDATASOURCE;</span>
+<span class="nc" id="L158">                            this.userdatasourcename = userdatasource;</span>
+<span class="nc" id="L159">                            this.userdatasourcedata = userdatasourcesession.getUserDataSource(admin,userdatasourcename);</span>
+                        }
+                        else{
+<span class="nc" id="L162">                            userdatasource= null;</span>
+                        }
+                    }
+<span class="nc bnc" id="L165" title="All 2 branches missed.">                    if(userdatasource == null){</span>
+<span class="nc" id="L166">                        includefile=PAGE_USERDATASOURCES;</span>
+                    }
+                }
+<span class="nc bnc" id="L169" title="All 2 branches missed.">                if( request.getParameter(BUTTON_DELETE_USERDATASOURCE) != null) {</span>
+<span class="nc" id="L170">                    userdatasource = request.getParameter(SELECT_USERDATASOURCE);</span>
+<span class="nc bnc" id="L171" title="All 2 branches missed.">                    if(userdatasource != null){</span>
+<span class="nc bnc" id="L172" title="All 2 branches missed.">                        if(!userdatasource.trim().equals(&quot;&quot;)){</span>
+<span class="nc bnc" id="L173" title="All 2 branches missed.">                            userdatasourcedeletefailed = !userdatasourcesession.removeUserDataSource(admin,userdatasource);</span>
+                        }
+                    }
+<span class="nc" id="L176">                    includefile=PAGE_USERDATASOURCES;</span>
+                }
+<span class="nc bnc" id="L178" title="All 2 branches missed.">                if( request.getParameter(BUTTON_RENAME_USERDATASOURCE) != null){</span>
+                    // Rename selected userdatasource and display profilespage.
+<span class="nc" id="L180">                    String newuserdatasourcename = request.getParameter(TEXTFIELD_USERDATASOURCENAME);</span>
+<span class="nc" id="L181">                    String olduserdatasourcename = request.getParameter(SELECT_USERDATASOURCE);</span>
+<span class="nc bnc" id="L182" title="All 4 branches missed.">                    if(olduserdatasourcename != null &amp;&amp; newuserdatasourcename != null){</span>
+<span class="nc bnc" id="L183" title="All 4 branches missed.">                        if(!newuserdatasourcename.trim().equals(&quot;&quot;) &amp;&amp; !olduserdatasourcename.trim().equals(&quot;&quot;)){</span>
+                            try{
+<span class="nc" id="L185">                            	userdatasourcesession.renameUserDataSource(admin,olduserdatasourcename.trim(),newuserdatasourcename.trim());</span>
+<span class="nc" id="L186">                            }catch( UserDataSourceExistsException e){</span>
+<span class="nc" id="L187">                                userdatasourceexists=true;</span>
+<span class="nc" id="L188">                            }</span>
+                        }
+                    }
+<span class="nc" id="L191">                    includefile=PAGE_USERDATASOURCES;</span>
+                }
+<span class="nc bnc" id="L193" title="All 2 branches missed.">                if( request.getParameter(BUTTON_ADD_USERDATASOURCE) != null){</span>
+<span class="nc" id="L194">                    userdatasource = request.getParameter(TEXTFIELD_USERDATASOURCENAME);</span>
+<span class="nc bnc" id="L195" title="All 2 branches missed.">                    if(userdatasource != null){</span>
+<span class="nc bnc" id="L196" title="All 2 branches missed.">                        if(!userdatasource.trim().equals(&quot;&quot;)){</span>
+                            try{
+<span class="nc" id="L198">                            	userdatasourcesession.addUserDataSource(admin,userdatasource.trim(), new CustomUserDataSourceContainer());</span>
+<span class="nc" id="L199">                            }catch( UserDataSourceExistsException e){</span>
+<span class="nc" id="L200">                                userdatasourceexists=true;</span>
+<span class="nc" id="L201">                            }</span>
+                        }
+                    }
+<span class="nc" id="L204">                    includefile=PAGE_USERDATASOURCES;</span>
+                }
+<span class="nc bnc" id="L206" title="All 2 branches missed.">                if( request.getParameter(BUTTON_CLONE_USERDATASOURCE) != null){</span>
+<span class="nc" id="L207">                    String newuserdatasourcename = request.getParameter(TEXTFIELD_USERDATASOURCENAME);</span>
+<span class="nc" id="L208">                    String olduserdatasourcename = request.getParameter(SELECT_USERDATASOURCE);</span>
+<span class="nc bnc" id="L209" title="All 4 branches missed.">                    if(olduserdatasourcename != null &amp;&amp; newuserdatasourcename != null){</span>
+<span class="nc bnc" id="L210" title="All 4 branches missed.">                    	if(!newuserdatasourcename.trim().equals(&quot;&quot;) &amp;&amp; !olduserdatasourcename.trim().equals(&quot;&quot;)){</span>
+                    		try{
+<span class="nc" id="L212">                    			userdatasourcesession.cloneUserDataSource(admin,olduserdatasourcename.trim(),newuserdatasourcename.trim());</span>
+<span class="nc" id="L213">                    		}catch( UserDataSourceExistsException e){</span>
+<span class="nc" id="L214">                    			userdatasourceexists=true;</span>
+<span class="nc" id="L215">                    		}</span>
+                    	}
+                    }
+<span class="nc" id="L218">                    includefile=PAGE_USERDATASOURCES;</span>
+                }
+            }
+<span class="nc bnc" id="L221" title="All 2 branches missed.">            if( action.equals(ACTION_EDIT_USERDATASOURCE)){</span>
+                // Display edit access rules page.
+<span class="nc" id="L223">                userdatasource = request.getParameter(HIDDEN_USERDATASOURCENAME);</span>
+<span class="nc" id="L224">                this.userdatasourcename = userdatasource;</span>
+<span class="nc bnc" id="L225" title="All 2 branches missed.">                if(userdatasource != null){</span>
+<span class="nc bnc" id="L226" title="All 2 branches missed.">                    if(!userdatasource.trim().equals(&quot;&quot;)){</span>
+<span class="nc bnc" id="L227" title="All 2 branches missed.">                        if(request.getParameter(BUTTON_SAVE) != null ||</span>
+<span class="nc bnc" id="L228" title="All 2 branches missed.">                                request.getParameter(BUTTON_TESTCONNECTION) != null){</span>
+
+<span class="nc bnc" id="L230" title="All 2 branches missed.">                            if(userdatasourcedata == null){</span>
+<span class="nc" id="L231">                                int tokentype = Integer.parseInt(request.getParameter(HIDDEN_USERDATASOURCETYPE));</span>
+<span class="nc bnc" id="L232" title="All 2 branches missed.">                                if(tokentype == CustomUserDataSourceContainer.TYPE_CUSTOMUSERDATASOURCECONTAINER) {</span>
+<span class="nc" id="L233">                                    userdatasourcedata = new CustomUserDataSourceContainer();</span>
+                                }
+                            }
+                            // Save changes.
+
+                            // General settings
+<span class="nc" id="L239">                            String value = request.getParameter(TEXTAREA_DESCRIPTION);</span>
+<span class="nc bnc" id="L240" title="All 2 branches missed.">                            if(value != null){</span>
+<span class="nc" id="L241">                                value = value.trim();</span>
+<span class="nc" id="L242">                                userdatasourcedata.setDescription(value);</span>
+                            }
+                            
+<span class="nc" id="L245">                            String[] values = request.getParameterValues(SELECT_MODIFYABLEFIELDS);</span>
+<span class="nc bnc" id="L246" title="All 2 branches missed.">                            if(values != null){</span>
+<span class="nc" id="L247">                                Set&lt;Integer&gt; modifyablefields = new HashSet&lt;&gt;();</span>
+<span class="nc bnc" id="L248" title="All 2 branches missed.">                                for(int i=0;i&lt; values.length;i++){</span>
+<span class="nc" id="L249">                                	modifyablefields.add(Integer.valueOf(values[i]));</span>
+                                }
+
+<span class="nc" id="L252">                                userdatasourcedata.setModifiableFields(modifyablefields);</span>
+<span class="nc" id="L253">                            }else{</span>
+<span class="nc" id="L254">                            	userdatasourcedata.setModifiableFields(new HashSet&lt;Integer&gt;());</span>
+                            }
+
+<span class="nc" id="L257">                            values = request.getParameterValues(SELECT_APPLICABLECAS);</span>
+<span class="nc bnc" id="L258" title="All 2 branches missed.">                            if(values != null){</span>
+<span class="nc" id="L259">                                List&lt;Integer&gt; useCAs = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L260" title="All 2 branches missed.">                                for(int i=0;i&lt; values.length;i++){</span>
+<span class="nc" id="L261">                                	Integer caid = Integer.valueOf(values[i]);</span>
+<span class="nc bnc" id="L262" title="All 2 branches missed.">                                	if(caid.intValue() == BaseUserDataSource.ANYCA){</span>
+<span class="nc" id="L263">                                		useCAs = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L264">                                		useCAs.add(caid);</span>
+<span class="nc" id="L265">                                		break;</span>
+                                	}
+<span class="nc" id="L267">                                	useCAs.add(Integer.valueOf(values[i]));</span>
+                                }
+
+<span class="nc" id="L270">                                userdatasourcedata.setApplicableCAs(useCAs);</span>
+<span class="nc" id="L271">                            }else{</span>
+<span class="nc" id="L272">                            	userdatasourcedata.setApplicableCAs(new ArrayList&lt;Integer&gt;());</span>
+                            }
+                            
+                           
+
+
+<span class="nc bnc" id="L278" title="All 2 branches missed.">                            if(userdatasourcedata instanceof CustomUserDataSourceContainer){</span>
+<span class="nc" id="L279">                                value = request.getParameter(TEXTFIELD_CUSTOMCLASSPATH);</span>
+<span class="nc bnc" id="L280" title="All 2 branches missed.">                                if(value != null){</span>
+<span class="nc" id="L281">                                    value = value.trim();</span>
+<span class="nc" id="L282">                                    ((CustomUserDataSourceContainer) userdatasourcedata).setClassPath(value);</span>
+                                }
+<span class="nc" id="L284">                                value = request.getParameter(TEXTAREA_CUSTOMPROPERTIES);</span>
+<span class="nc bnc" id="L285" title="All 2 branches missed.">                                if(value != null){</span>
+<span class="nc" id="L286">                                    value = value.trim();</span>
+<span class="nc" id="L287">                                    ((CustomUserDataSourceContainer) userdatasourcedata).setPropertyData(value);</span>
+                                }
+                            }
+
+<span class="nc bnc" id="L291" title="All 2 branches missed.">                            if(request.getParameter(BUTTON_SAVE) != null){</span>
+<span class="nc" id="L292">                                userdatasourcesession.changeUserDataSource(admin,userdatasource,userdatasourcedata);</span>
+<span class="nc" id="L293">                                includefile=PAGE_USERDATASOURCES;</span>
+                            }
+<span class="nc bnc" id="L295" title="All 2 branches missed.">                            if(request.getParameter(BUTTON_TESTCONNECTION)!= null){</span>
+<span class="nc" id="L296">                                connectionmessage = true;</span>
+<span class="nc" id="L297">                                userdatasourcesession.changeUserDataSource(admin, userdatasource,userdatasourcedata);</span>
+                                try{
+<span class="nc" id="L299">                                	int userdatasourceid = userdatasourcesession.getUserDataSourceId(admin,userdatasource);</span>
+<span class="nc" id="L300">                                	userdatasourcesession.testConnection(admin,userdatasourceid);</span>
+<span class="nc" id="L301">                                    connectionsuccessful = true;</span>
+<span class="nc" id="L302">                                }catch(UserDataSourceConnectionException pce){</span>
+<span class="nc" id="L303">                                    connectionerrormessage = pce.getMessage();</span>
+<span class="nc" id="L304">                                }</span>
+<span class="nc" id="L305">                                includefile=PAGE_USERDATASOURCE;</span>
+                            }
+
+                        }
+<span class="nc bnc" id="L309" title="All 2 branches missed.">                        if(request.getParameter(BUTTON_CANCEL) != null){</span>
+                            // Don't save changes.
+<span class="nc" id="L311">                            includefile=PAGE_USERDATASOURCES;</span>
+                        }
+
+                    }
+                }
+            }
+
+<span class="nc bnc" id="L318" title="All 2 branches missed.">            if( action.equals(ACTION_CHANGE_USERDATASOURCETYPE)){</span>
+<span class="nc" id="L319">                this.userdatasourcename = request.getParameter(HIDDEN_USERDATASOURCENAME);</span>
+<span class="nc" id="L320">                String value = request.getParameter(SELECT_USERDATASOURCETYPE);</span>
+<span class="nc bnc" id="L321" title="All 2 branches missed.">                if(value!=null){</span>
+<span class="nc" id="L322">                    int profiletype = Integer.parseInt(value);</span>
+<span class="nc bnc" id="L323" title="All 2 branches missed.">                    switch(profiletype){</span>
+                    case CustomUserDataSourceContainer.TYPE_CUSTOMUSERDATASOURCECONTAINER :
+<span class="nc" id="L325">                        userdatasourcedata = new CustomUserDataSourceContainer();</span>
+                        break;                    
+                    }
+                }
+
+<span class="nc" id="L330">                includefile=PAGE_USERDATASOURCE;</span>
+            }
+        }
+
+<span class="nc" id="L334">        return includefile;</span>
+    }
+
+    public int getUserDataSourceType(){
+<span class="nc" id="L338">        int retval = CustomUserDataSourceContainer.TYPE_CUSTOMUSERDATASOURCECONTAINER;</span>
+
+<span class="nc bnc" id="L340" title="All 2 branches missed.">        if(userdatasourcedata instanceof CustomUserDataSourceContainer) {</span>
+<span class="nc" id="L341">            retval = CustomUserDataSourceContainer.TYPE_CUSTOMUSERDATASOURCECONTAINER;</span>
+        }
+
+<span class="nc" id="L344">        return retval;</span>
+    }
+
+    
+    public TreeMap&lt;String, Integer&gt; getAuthorizedUserDataSourceNames(){
+<span class="nc" id="L349">    	TreeMap&lt;String, Integer&gt; retval = new TreeMap&lt;&gt;();</span>
+    	
+<span class="nc" id="L351">    	Collection&lt;Integer&gt; authorizedsources = userdatasourcesession.getAuthorizedUserDataSourceIds(admin,false);</span>
+<span class="nc bnc" id="L352" title="All 2 branches missed.">        for(Integer id : authorizedsources) {</span>
+<span class="nc" id="L353">    		retval.put(userdatasourcesession.getUserDataSourceName(admin,id.intValue()),id);</span>
+<span class="nc" id="L354">    	}  	</span>
+    	
+<span class="nc" id="L356">    	return retval;</span>
+    }
+    
+    public TreeMap&lt;String, Integer&gt; getModifyableFieldTexts(){
+<span class="nc bnc" id="L360" title="All 2 branches missed.">    	if(modifyableFieldTexts ==null){</span>
+<span class="nc" id="L361">    		modifyableFieldTexts = new TreeMap&lt;&gt;();</span>
+    		
+<span class="nc" id="L363">    		String subjectdntext = ejbcawebbean.getText(&quot;CERT_SUBJECTDN&quot;);</span>
+<span class="nc" id="L364">    		String subjectaltnametext = ejbcawebbean.getText(&quot;EXT_ABBR_SUBJECTALTNAME&quot;);</span>
+<span class="nc" id="L365">    		String subjectdirattrtext = ejbcawebbean.getText(&quot;EXT_ABBR_SUBJECTDIRATTRS&quot;);</span>
+    		
+<span class="nc" id="L367">    		modifyableFieldTexts.put(subjectdntext + &quot; : &quot; +  ejbcawebbean.getText(&quot;DN_PKIX_UID&quot;),Integer.valueOf(DNFieldExtractor.UID));  </span>
+<span class="nc" id="L368">    		modifyableFieldTexts.put(subjectdntext + &quot; : &quot; +  ejbcawebbean.getText(&quot;DN_PKIX_COMMONNAME&quot;),Integer.valueOf(DNFieldExtractor.CN));  </span>
+<span class="nc" id="L369">    		modifyableFieldTexts.put(subjectdntext + &quot; : &quot; +  ejbcawebbean.getText(&quot;DN_PKIX_SERIALNUMBER&quot;), Integer.valueOf(DNFieldExtractor.SN)); </span>
+<span class="nc" id="L370">    		modifyableFieldTexts.put(subjectdntext + &quot; : &quot; +  ejbcawebbean.getText(&quot;DN_PKIX_GIVENNAME&quot;),Integer.valueOf(DNFieldExtractor.GIVENNAME)); </span>
+<span class="nc" id="L371">    		modifyableFieldTexts.put(subjectdntext + &quot; : &quot; +  ejbcawebbean.getText(&quot;DN_PKIX_INITIALS&quot;), Integer.valueOf(DNFieldExtractor.INITIALS)); </span>
+<span class="nc" id="L372">    		modifyableFieldTexts.put(subjectdntext + &quot; : &quot; +  ejbcawebbean.getText(&quot;DN_PKIX_SURNAME&quot;), Integer.valueOf(DNFieldExtractor.SURNAME)); </span>
+<span class="nc" id="L373">    		modifyableFieldTexts.put(subjectdntext + &quot; : &quot; +  ejbcawebbean.getText(&quot;DN_PKIX_TITLE&quot;), Integer.valueOf(DNFieldExtractor.T));</span>
+<span class="nc" id="L374">    		modifyableFieldTexts.put(subjectdntext + &quot; : &quot; +  ejbcawebbean.getText(&quot;DN_PKIX_ORGANIZATIONALUNIT&quot;), Integer.valueOf(DNFieldExtractor.OU));</span>
+<span class="nc" id="L375">    		modifyableFieldTexts.put(subjectdntext + &quot; : &quot; +  ejbcawebbean.getText(&quot;DN_PKIX_ORGANIZATION&quot;), Integer.valueOf(DNFieldExtractor.O));</span>
+<span class="nc" id="L376">    		modifyableFieldTexts.put(subjectdntext + &quot; : &quot; +  ejbcawebbean.getText(&quot;DN_PKIX_LOCALITY&quot;), Integer.valueOf(DNFieldExtractor.L));</span>
+<span class="nc" id="L377">    		modifyableFieldTexts.put(subjectdntext + &quot; : &quot; +  ejbcawebbean.getText(&quot;DN_PKIX_STATEORPROVINCE&quot;), Integer.valueOf(DNFieldExtractor.ST));</span>
+<span class="nc" id="L378">    		modifyableFieldTexts.put(subjectdntext + &quot; : &quot; +  ejbcawebbean.getText(&quot;DN_PKIX_DOMAINCOMPONENT&quot;), Integer.valueOf(DNFieldExtractor.DC));</span>
+<span class="nc" id="L379">    		modifyableFieldTexts.put(subjectdntext + &quot; : &quot; +  ejbcawebbean.getText(&quot;DN_PKIX_COUNTRY&quot;), Integer.valueOf(DNFieldExtractor.C));</span>
+<span class="nc" id="L380">    		modifyableFieldTexts.put(subjectdntext + &quot; : &quot; +  ejbcawebbean.getText(&quot;DN_PKIX_UNSTRUCTUREDADDRESS&quot;), Integer.valueOf(DNFieldExtractor.UNSTRUCTUREDADDRESS));</span>
+<span class="nc" id="L381">    		modifyableFieldTexts.put(subjectdntext + &quot; : &quot; +  ejbcawebbean.getText(&quot;DN_PKIX_UNSTRUCTUREDNAME&quot;), Integer.valueOf(DNFieldExtractor.UNSTRUCTUREDNAME));</span>
+    		    		
+<span class="nc" id="L383">    		modifyableFieldTexts.put(subjectaltnametext + &quot; : &quot; +  ejbcawebbean.getText(&quot;ALT_PKIX_DNSNAME&quot;), Integer.valueOf(DNFieldExtractor.DNSNAME));</span>
+<span class="nc" id="L384">    		modifyableFieldTexts.put(subjectaltnametext + &quot; : &quot; +  ejbcawebbean.getText(&quot;ALT_PKIX_IPADDRESS&quot;), Integer.valueOf(DNFieldExtractor.IPADDRESS));</span>
+<span class="nc" id="L385">    		modifyableFieldTexts.put(subjectaltnametext + &quot; : &quot; +  ejbcawebbean.getText(&quot;ALT_PKIX_DIRECTORYNAME&quot;), Integer.valueOf(DNFieldExtractor.DIRECTORYNAME));</span>
+<span class="nc" id="L386">    		modifyableFieldTexts.put(subjectaltnametext + &quot; : &quot; +  ejbcawebbean.getText(&quot;ALT_PKIX_UNIFORMRESOURCEID&quot;), Integer.valueOf(DNFieldExtractor.URI));</span>
+<span class="nc" id="L387">    		modifyableFieldTexts.put(subjectaltnametext + &quot; : &quot; +  ejbcawebbean.getText(&quot;ALT_MS_UPN&quot;), Integer.valueOf(DNFieldExtractor.UPN));</span>
+<span class="nc" id="L388">    		modifyableFieldTexts.put(subjectaltnametext + &quot; : &quot; +  ejbcawebbean.getText(&quot;ALT_MS_GUID&quot;), Integer.valueOf(DNFieldExtractor.GUID));</span>
+<span class="nc" id="L389">    		modifyableFieldTexts.put(subjectaltnametext + &quot; : &quot; +  ejbcawebbean.getText(&quot;ALT_KERBEROS_KPN&quot;), Integer.valueOf(DNFieldExtractor.KRB5PRINCIPAL));</span>
+<span class="nc" id="L390">    		modifyableFieldTexts.put(subjectaltnametext + &quot; : &quot; +  ejbcawebbean.getText(&quot;ALT_PKIX_PERMANENTIDENTIFIER&quot;), Integer.valueOf(DNFieldExtractor.PERMANTIDENTIFIER));</span>
+<span class="nc" id="L391">    		modifyableFieldTexts.put(subjectaltnametext + &quot; : &quot; +  ejbcawebbean.getText(&quot;ALT_PKIX_SUBJECTIDENTIFICATIONMETHOD&quot;), Integer.valueOf(DNFieldExtractor.SUBJECTIDENTIFICATIONMETHOD));</span>
+    		
+<span class="nc" id="L393">    		modifyableFieldTexts.put(subjectdirattrtext + &quot; : &quot; +  ejbcawebbean.getText(&quot;SDA_DATEOFBIRTH&quot;), Integer.valueOf(DNFieldExtractor.DATEOFBIRTH));</span>
+<span class="nc" id="L394">    		modifyableFieldTexts.put(subjectdirattrtext + &quot; : &quot; +  ejbcawebbean.getText(&quot;SDA_PLACEOFBIRTH&quot;),Integer.valueOf( DNFieldExtractor.PLACEOFBIRTH));</span>
+<span class="nc" id="L395">    		modifyableFieldTexts.put(subjectdirattrtext + &quot; : &quot; +  ejbcawebbean.getText(&quot;SDA_GENDER&quot;),Integer.valueOf( DNFieldExtractor.GENDER));</span>
+<span class="nc" id="L396">    		modifyableFieldTexts.put(subjectdirattrtext + &quot; : &quot; +  ejbcawebbean.getText(&quot;SDA_COUNTRYOFCITIZENSHIP&quot;),Integer.valueOf( DNFieldExtractor.COUNTRYOFCITIZENSHIP));</span>
+<span class="nc" id="L397">    		modifyableFieldTexts.put(subjectdirattrtext + &quot; : &quot; +  ejbcawebbean.getText(&quot;SDA_COUNTRYOFRESIDENCE&quot;),Integer.valueOf( DNFieldExtractor.COUNTRYOFRESIDENCE));</span>
+
+
+<span class="nc" id="L400">    		modifyableFieldTexts.put(ejbcawebbean.getText(&quot;USERNAME&quot;), Integer.valueOf(UserDataSourceVO.ISMODIFYABLE_USERNAME));</span>
+<span class="nc" id="L401">    		modifyableFieldTexts.put(ejbcawebbean.getText(&quot;PASSWORD&quot;), Integer.valueOf(UserDataSourceVO.ISMODIFYABLE_PASSWORD));</span>
+<span class="nc" id="L402">    		modifyableFieldTexts.put(ejbcawebbean.getText(&quot;CA&quot;), Integer.valueOf(UserDataSourceVO.ISMODIFYABLE_CAID));</span>
+<span class="nc" id="L403">    		modifyableFieldTexts.put(ejbcawebbean.getText(&quot;EMAIL&quot;), Integer.valueOf(UserDataSourceVO.ISMODIFYABLE_EMAILDATA));</span>
+<span class="nc" id="L404">    		modifyableFieldTexts.put(ejbcawebbean.getText(&quot;PASSWORD&quot;), Integer.valueOf(UserDataSourceVO.ISMODIFYABLE_TYPE));</span>
+<span class="nc" id="L405">    		modifyableFieldTexts.put(ejbcawebbean.getText(&quot;ENDENTITYPROFILE&quot;), Integer.valueOf(UserDataSourceVO.ISMODIFYABLE_ENDENTITYPROFILE));</span>
+<span class="nc" id="L406">    		modifyableFieldTexts.put(ejbcawebbean.getText(&quot;CERTIFICATEPROFILE&quot;), Integer.valueOf(UserDataSourceVO.ISMODIFYABLE_CERTIFICATEPROFILE));</span>
+<span class="nc" id="L407">    		modifyableFieldTexts.put(ejbcawebbean.getText(&quot;TOKEN&quot;), Integer.valueOf(UserDataSourceVO.ISMODIFYABLE_TOKENTYPE));    		</span>
+<span class="nc" id="L408">    		modifyableFieldTexts.put(ejbcawebbean.getText(&quot;HARDTOKENISSUER&quot;), Integer.valueOf(UserDataSourceVO.ISMODIFYABLE_HARDTOKENISSUER));    		</span>
+    	    		
+    		
+    	}
+<span class="nc" id="L412">    	return modifyableFieldTexts;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

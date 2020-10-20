@@ -347,11 +347,11 @@ public class PublisherQueueData extends ProtectedData implements Serializable {
 <span class="nc" id="L347">            sql.append(PublisherConst.STATUS_PENDING);</span>
 <span class="nc bnc" id="L348" title="All 2 branches missed.">            if(lowerBounds[i] &gt; 0) {</span>
 <span class="nc" id="L349">                sql.append(&quot; AND timeCreated &lt; &quot;);</span>
-<span class="nc" id="L350">                sql.append(now - 1000 * lowerBounds[i]);</span>
+<span class="nc" id="L350">                sql.append(now - 1000L * lowerBounds[i]);</span>
             }
 <span class="nc bnc" id="L352" title="All 2 branches missed.">            if(upperBounds[i] &gt; 0) {</span>
 <span class="nc" id="L353">                sql.append(&quot; AND timeCreated &gt; &quot;);</span>
-<span class="nc" id="L354">                sql.append(now - 1000 * upperBounds[i]);</span>
+<span class="nc" id="L354">                sql.append(now - 1000L * upperBounds[i]);</span>
             }
 <span class="nc bnc" id="L356" title="All 2 branches missed.">            if(i &lt; lowerBounds.length-1) {</span>
 <span class="nc" id="L357">                sql.append(&quot; UNION ALL &quot;);</span>

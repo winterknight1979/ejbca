@@ -1,0 +1,726 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>EnrollWithRequestIdBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ra-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ra</a> &gt; <span class="el_source">EnrollWithRequestIdBean.java</span></div><h1>EnrollWithRequestIdBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ra;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.Serializable;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateParsingException;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+
+import javax.annotation.PostConstruct;
+import javax.ejb.EJB;
+import javax.faces.application.FacesMessage;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.ManagedProperty;
+import javax.faces.bean.ViewScoped;
+import javax.faces.component.UIComponent;
+import javax.faces.context.ExternalContext;
+import javax.faces.context.FacesContext;
+import javax.faces.model.SelectItem;
+import javax.faces.validator.ValidatorException;
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.bouncycastle.cms.CMSException;
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequest;
+import org.cesecore.ErrorCode;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.certificateprofile.CertificateProfile;
+import org.cesecore.certificates.endentity.EndEntityConstants;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.certificates.endentity.ExtendedInformation;
+import org.cesecore.certificates.util.AlgorithmConstants;
+import org.cesecore.certificates.util.AlgorithmTools;
+import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.StringTools;
+import org.ejbca.core.EjbcaException;
+import org.ejbca.core.ejb.ra.NoSuchEndEntityException;
+import org.ejbca.core.model.SecConst;
+import org.ejbca.core.model.approval.ApprovalDataVO;
+import org.ejbca.core.model.approval.ApprovalRequest;
+import org.ejbca.core.model.approval.approvalrequests.KeyRecoveryApprovalRequest;
+import org.ejbca.core.model.authorization.AccessRulesConstants;
+import org.ejbca.core.model.ca.AuthLoginException;
+import org.ejbca.core.model.ca.AuthStatusException;
+import org.ejbca.core.model.era.IdNameHashMap;
+import org.ejbca.core.model.era.RaApprovalRequestInfo;
+import org.ejbca.core.model.era.RaMasterApiProxyBeanLocal;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfile;
+
+/**
+ * Managed bean that backs up the enrollwithrequestid.xhtml page
+ *
+ * @version $Id: EnrollWithRequestIdBean.java 29541 2018-08-01 09:53:21Z anatom $
+ * TODO: Use CDI beans
+ */
+@SuppressWarnings(&quot;deprecation&quot;)
+@ManagedBean
+@ViewScoped
+<span class="nc" id="L86">public class EnrollWithRequestIdBean implements Serializable {</span>
+
+    private static final long serialVersionUID = 1L;
+<span class="nc" id="L89">    private static final Logger log = Logger.getLogger(EnrollWithRequestIdBean.class);</span>
+
+    @EJB
+    private RaMasterApiProxyBeanLocal raMasterApiProxyBean;
+
+    @ManagedProperty(value = &quot;#{raAuthenticationBean}&quot;)
+    private RaAuthenticationBean raAuthenticationBean;
+
+    public void setRaAuthenticationBean(final RaAuthenticationBean raAuthenticationBean) {
+<span class="nc" id="L98">        this.raAuthenticationBean = raAuthenticationBean;</span>
+<span class="nc" id="L99">    }</span>
+
+    @ManagedProperty(value = &quot;#{raLocaleBean}&quot;)
+    protected RaLocaleBean raLocaleBean;
+
+    public void setRaLocaleBean(final RaLocaleBean raLocaleBean) {
+<span class="nc" id="L105">        this.raLocaleBean = raLocaleBean;</span>
+<span class="nc" id="L106">    }</span>
+
+    private CertificateProfile certificateProfile;
+    private String requestId;
+    private String requestUsername;
+    private String selectedAlgorithm;
+    private String certificateRequest;
+    private int requestStatus;
+    private EndEntityInformation endEntityInformation;
+    private byte[] generatedToken;
+    private IdNameHashMap&lt;CAInfo&gt; authorizedCAInfos;
+<span class="nc" id="L117">    private IdNameHashMap&lt;EndEntityProfile&gt; authorizedEndEntityProfiles = new IdNameHashMap&lt;&gt;();</span>
+    private boolean isCsrChanged;
+    private boolean isKeyRecovery;
+
+    @PostConstruct
+    protected void postConstruct() {
+<span class="nc" id="L123">        HttpServletRequest httpServletRequest = (HttpServletRequest)FacesContext.getCurrentInstance().getExternalContext().getRequest();</span>
+<span class="nc" id="L124">        this.authorizedEndEntityProfiles = raMasterApiProxyBean.getAuthorizedEndEntityProfiles(raAuthenticationBean.getAuthenticationToken(), AccessRulesConstants.CREATE_END_ENTITY);</span>
+<span class="nc" id="L125">        requestId = httpServletRequest.getParameter(EnrollMakeNewRequestBean.PARAM_REQUESTID);</span>
+<span class="nc" id="L126">        this.authorizedCAInfos = raMasterApiProxyBean.getAuthorizedCAInfos(raAuthenticationBean.getAuthenticationToken());</span>
+<span class="nc" id="L127">        reset();</span>
+<span class="nc" id="L128">    }</span>
+
+    public void reset() {
+<span class="nc" id="L131">        requestStatus = ApprovalDataVO.STATUS_WAITINGFORAPPROVAL;</span>
+<span class="nc" id="L132">        endEntityInformation = null;</span>
+<span class="nc" id="L133">        selectedAlgorithm = null;</span>
+<span class="nc" id="L134">        certificateProfile = null;</span>
+<span class="nc" id="L135">    }</span>
+
+    /** Check the status of request ID */
+    public void checkRequestId() {
+<span class="nc bnc" id="L139" title="All 2 branches missed.">        if (Integer.parseInt(requestId) != 0) {</span>
+<span class="nc" id="L140">            RaApprovalRequestInfo raApprovalRequestInfo = raMasterApiProxyBean</span>
+<span class="nc" id="L141">                    .getApprovalRequest(raAuthenticationBean.getAuthenticationToken(), Integer.parseInt(requestId));</span>
+<span class="nc bnc" id="L142" title="All 2 branches missed.">            if (raApprovalRequestInfo == null) {</span>
+<span class="nc" id="L143">                raLocaleBean.addMessageError(&quot;enrollwithrequestid_could_not_find_request_with_request_id&quot;, Integer.parseInt(requestId));</span>
+<span class="nc" id="L144">                return;</span>
+            }
+
+<span class="nc" id="L147">            requestStatus = raApprovalRequestInfo.getStatus();</span>
+<span class="nc bnc" id="L148" title="All 6 branches missed.">            switch (requestStatus) {</span>
+            case ApprovalDataVO.STATUS_WAITINGFORAPPROVAL:
+<span class="nc" id="L150">                raLocaleBean.addMessageInfo(&quot;enrollwithrequestid_request_with_request_id_is_still_waiting_for_approval&quot;, Integer.parseInt(requestId));</span>
+<span class="nc" id="L151">                break;</span>
+            case ApprovalDataVO.STATUS_REJECTED:
+            case ApprovalDataVO.STATUS_EXECUTIONDENIED:
+<span class="nc" id="L154">                raLocaleBean.addMessageInfo(&quot;enrollwithrequestid_request_with_request_id_has_been_rejected&quot;, Integer.parseInt(requestId));</span>
+<span class="nc" id="L155">                break;</span>
+            case ApprovalDataVO.STATUS_APPROVED:
+            case ApprovalDataVO.STATUS_EXECUTED:
+<span class="nc" id="L158">                ApprovalRequest approvalRequest = raApprovalRequestInfo.getApprovalData().getApprovalRequest();</span>
+<span class="nc bnc" id="L159" title="All 2 branches missed.">                if (approvalRequest instanceof KeyRecoveryApprovalRequest) {</span>
+<span class="nc" id="L160">                    KeyRecoveryApprovalRequest keyRecoveryApprovalRequest = (KeyRecoveryApprovalRequest) approvalRequest;</span>
+<span class="nc" id="L161">                    requestUsername = keyRecoveryApprovalRequest.getUsername();</span>
+<span class="nc" id="L162">                    isKeyRecovery = true;</span>
+<span class="nc" id="L163">                } else {</span>
+<span class="nc" id="L164">                    requestUsername = raApprovalRequestInfo.getEditableData().getUsername();</span>
+                }
+<span class="nc" id="L166">                endEntityInformation = raMasterApiProxyBean.searchUser(raAuthenticationBean.getAuthenticationToken(), requestUsername);</span>
+<span class="nc bnc" id="L167" title="All 2 branches missed.">                if (endEntityInformation == null) {</span>
+<span class="nc" id="L168">                    log.error(&quot;Could not find endEntity for the username='&quot; + requestUsername + &quot;'&quot;);</span>
+<span class="nc bnc" id="L169" title="All 2 branches missed.">                }else if(endEntityInformation.getStatus() == EndEntityConstants.STATUS_GENERATED){</span>
+<span class="nc" id="L170">                    raLocaleBean.addMessageInfo(&quot;enrollwithrequestid_enrollment_with_request_id_has_already_been_finalized&quot;, Integer.parseInt(requestId));</span>
+                }else{
+<span class="nc" id="L172">                    raLocaleBean.addMessageInfo(&quot;enrollwithrequestid_request_with_request_id_has_been_approved&quot;, Integer.parseInt(requestId));</span>
+                }
+<span class="nc" id="L174">                break;</span>
+            case ApprovalDataVO.STATUS_EXPIRED:
+            case ApprovalDataVO.STATUS_EXPIREDANDNOTIFIED:
+<span class="nc" id="L177">                raLocaleBean.addMessageInfo(&quot;enrollwithrequestid_request_with_request_id_has_been_expired&quot;, Integer.parseInt(requestId));</span>
+<span class="nc" id="L178">                break;</span>
+            case ApprovalDataVO.STATUS_EXECUTIONFAILED:
+<span class="nc" id="L180">                raLocaleBean.addMessageInfo(&quot;enrollwithrequestid_request_with_request_id_could_not_be_executed&quot;, Integer.parseInt(requestId));</span>
+<span class="nc" id="L181">                break;</span>
+            default:
+<span class="nc" id="L183">                raLocaleBean.addMessageError(&quot;enrollwithrequestid_status_of_request_id_is_unknown&quot;, Integer.parseInt(requestId));</span>
+                break;
+            }
+        }
+<span class="nc" id="L187">    }</span>
+
+    public boolean isFinalizeEnrollmentRendered() {
+<span class="nc bnc" id="L190" title="All 6 branches missed.">        return (requestStatus == ApprovalDataVO.STATUS_APPROVED || requestStatus == ApprovalDataVO.STATUS_EXECUTED) &amp;&amp; endEntityInformation != null &amp;&amp;</span>
+<span class="nc bnc" id="L191" title="All 4 branches missed.">                (endEntityInformation.getStatus() == EndEntityConstants.STATUS_NEW || endEntityInformation.getStatus() == EndEntityConstants.STATUS_KEYRECOVERY);</span>
+    }
+
+    public void generateCertificatePem() {
+<span class="nc" id="L195">        generateCertificate();</span>
+<span class="nc bnc" id="L196" title="All 2 branches missed.">        if (generatedToken != null) {</span>
+            try {
+<span class="nc" id="L198">                X509Certificate certificate = CertTools.getCertfromByteArray(generatedToken, X509Certificate.class);</span>
+<span class="nc" id="L199">                byte[] pemToDownload = CertTools.getPemFromCertificateChain(Arrays.asList((Certificate) certificate));</span>
+<span class="nc" id="L200">                downloadToken(pemToDownload, &quot;application/octet-stream&quot;, &quot;.pem&quot;);</span>
+<span class="nc" id="L201">            } catch (CertificateParsingException | CertificateEncodingException e) {</span>
+<span class="nc" id="L202">                log.info(e);</span>
+<span class="nc" id="L203">            }</span>
+        } else {
+<span class="nc" id="L205">            log.debug(&quot;No token was generated an error message should have been logged&quot;);</span>
+        }
+<span class="nc" id="L207">        reset();</span>
+<span class="nc" id="L208">    }</span>
+
+    public void generateCertificatePemFullChain() {
+<span class="nc" id="L211">        generateCertificate();</span>
+<span class="nc bnc" id="L212" title="All 2 branches missed.">        if (generatedToken != null) {</span>
+            try {
+<span class="nc" id="L214">                X509Certificate certificate = CertTools.getCertfromByteArray(generatedToken, X509Certificate.class);</span>
+<span class="nc" id="L215">                CAInfo caInfo = authorizedCAInfos.get(endEntityInformation.getCAId()).getValue();</span>
+<span class="nc" id="L216">                LinkedList&lt;Certificate&gt; chain = new LinkedList&lt;&gt;(caInfo.getCertificateChain());</span>
+<span class="nc" id="L217">                chain.addFirst(certificate);</span>
+<span class="nc" id="L218">                byte[] pemToDownload = CertTools.getPemFromCertificateChain(chain);</span>
+<span class="nc" id="L219">                downloadToken(pemToDownload, &quot;application/octet-stream&quot;, &quot;.pem&quot;);</span>
+<span class="nc" id="L220">            } catch (CertificateParsingException | CertificateEncodingException e) {</span>
+<span class="nc" id="L221">                log.info(e);</span>
+<span class="nc" id="L222">            }</span>
+        } else {
+<span class="nc" id="L224">            log.debug(&quot;No token was generated an error message should have been logged&quot;);</span>
+        }
+<span class="nc" id="L226">        reset();</span>
+<span class="nc" id="L227">    }</span>
+
+    public void generateCertificateDer() {
+<span class="nc" id="L230">        generateCertificate();</span>
+<span class="nc" id="L231">        downloadToken(generatedToken, &quot;application/octet-stream&quot;, &quot;.der&quot;);</span>
+<span class="nc" id="L232">        reset();</span>
+<span class="nc" id="L233">    }</span>
+
+    public void generateCertificatePkcs7() {
+<span class="nc" id="L236">        generateCertificate();</span>
+<span class="nc bnc" id="L237" title="All 2 branches missed.">        if (generatedToken != null) {</span>
+            try {
+<span class="nc" id="L239">                X509Certificate certificate = CertTools.getCertfromByteArray(generatedToken, X509Certificate.class);</span>
+<span class="nc" id="L240">                CAInfo caInfo = authorizedCAInfos.get(endEntityInformation.getCAId()).getValue();</span>
+<span class="nc" id="L241">                LinkedList&lt;Certificate&gt; chain = new LinkedList&lt;&gt;(caInfo.getCertificateChain());</span>
+<span class="nc" id="L242">                chain.addFirst(certificate);</span>
+<span class="nc" id="L243">                byte[] pkcs7ToDownload = CertTools.getPemFromPkcs7(CertTools.createCertsOnlyCMS(CertTools.convertCertificateChainToX509Chain(chain)));</span>
+<span class="nc" id="L244">                downloadToken(pkcs7ToDownload, &quot;application/octet-stream&quot;, &quot;.p7b&quot;);</span>
+<span class="nc" id="L245">            } catch (CertificateParsingException | CertificateEncodingException | ClassCastException | CMSException e) {</span>
+<span class="nc" id="L246">                log.info(e);</span>
+<span class="nc" id="L247">            }</span>
+        } else {
+<span class="nc" id="L249">            log.debug(&quot;No token was generated an error message should have been logged&quot;);</span>
+        }
+<span class="nc" id="L251">        reset();</span>
+<span class="nc" id="L252">    }</span>
+
+    protected final void generateCertificateAfterCheck(){
+        try {
+<span class="nc" id="L256">            generatedToken = raMasterApiProxyBean.createCertificate(raAuthenticationBean.getAuthenticationToken(), endEntityInformation);</span>
+<span class="nc" id="L257">            log.info(endEntityInformation.getTokenType() + &quot; token has been generated for the end entity with username &quot; +</span>
+<span class="nc" id="L258">                    endEntityInformation.getUsername());</span>
+<span class="nc" id="L259">        } catch (AuthorizationDeniedException e){</span>
+<span class="nc" id="L260">            raLocaleBean.addMessageInfo(&quot;enroll_unauthorized_operation&quot;, e.getMessage());</span>
+<span class="nc" id="L261">            log.info(raAuthenticationBean.getAuthenticationToken() + &quot; is not authorized to execute this operation&quot;, e);</span>
+<span class="nc" id="L262">        } catch (EjbcaException e) {</span>
+<span class="nc" id="L263">            ErrorCode errorCode = EjbcaException.getErrorCode(e);</span>
+<span class="nc bnc" id="L264" title="All 2 branches missed.">            if (errorCode != null) {</span>
+<span class="nc bnc" id="L265" title="All 2 branches missed.">                if (errorCode.equals(ErrorCode.LOGIN_ERROR)) {</span>
+<span class="nc" id="L266">                    raLocaleBean.addMessageError(&quot;enroll_keystore_could_not_be_generated&quot;, endEntityInformation.getUsername(), errorCode);</span>
+<span class="nc" id="L267">                    log.info(&quot;Keystore could not be generated for user &quot; + endEntityInformation.getUsername()+&quot;: &quot;+e.getMessage()+&quot;, &quot;+errorCode);</span>
+                } else {
+<span class="nc" id="L269">                    raLocaleBean.addMessageError(errorCode);</span>
+<span class="nc" id="L270">                    log.info(&quot;Exception generating certificate. Error Code: &quot; + errorCode, e);</span>
+                }
+            } else {
+<span class="nc" id="L273">                raLocaleBean.addMessageError(&quot;enroll_certificate_could_not_be_generated&quot;, endEntityInformation.getUsername(), e.getMessage());</span>
+<span class="nc" id="L274">                log.info(&quot;Certificate could not be generated for end entity with username &quot; + endEntityInformation.getUsername(), e);</span>
+            }
+<span class="nc" id="L276">        }</span>
+<span class="nc" id="L277">    }</span>
+
+    protected void generateCertificate() {
+<span class="nc bnc" id="L280" title="All 2 branches missed.">        if (getEndEntityInformation().getExtendedInformation() == null) {</span>
+<span class="nc" id="L281">            getEndEntityInformation().setExtendedInformation(new ExtendedInformation());</span>
+        }
+<span class="nc" id="L283">        byte[] certificateRequest = getEndEntityInformation().getExtendedInformation().getCertificateRequest();</span>
+<span class="nc bnc" id="L284" title="All 4 branches missed.">        if (certificateRequest == null || isCsrChanged) {</span>
+<span class="nc bnc" id="L285" title="All 2 branches missed.">            if (getCertificateRequest() == null) {</span>
+<span class="nc" id="L286">                raLocaleBean.addMessageError(&quot;enrollwithrequestid_could_not_find_csr_inside_enrollment_request_with_request_id&quot;, requestId);</span>
+<span class="nc" id="L287">                log.info(&quot;Could not find CSR inside enrollment request with ID &quot; + requestId);</span>
+<span class="nc" id="L288">                return;</span>
+            }
+            try {
+<span class="nc" id="L291">                getEndEntityInformation().getExtendedInformation().setCertificateRequest(CertTools.getCertificateRequestFromPem(getCertificateRequest()).getEncoded());</span>
+<span class="nc" id="L292">            } catch (IOException e) {</span>
+<span class="nc" id="L293">                raLocaleBean.addMessageError(&quot;enroll_invalid_certificate_request&quot;);</span>
+<span class="nc" id="L294">                return;</span>
+<span class="nc" id="L295">            }</span>
+        }
+<span class="nc" id="L297">        generateCertificateAfterCheck();</span>
+<span class="nc" id="L298">    }</span>
+
+    public void generateKeyStoreJks() {
+<span class="nc" id="L301">        endEntityInformation.setTokenType(EndEntityConstants.TOKEN_SOFT_JKS);</span>
+<span class="nc" id="L302">        generateKeyStore();</span>
+<span class="nc" id="L303">        downloadToken(generatedToken, &quot;application/octet-stream&quot;, &quot;.jks&quot;);</span>
+<span class="nc" id="L304">        reset();</span>
+<span class="nc" id="L305">    }</span>
+
+    public void generateKeyStorePkcs12() {
+<span class="nc" id="L308">        endEntityInformation.setTokenType(EndEntityConstants.TOKEN_SOFT_P12);</span>
+<span class="nc" id="L309">        generateKeyStore();</span>
+<span class="nc" id="L310">        downloadToken(generatedToken, &quot;application/x-pkcs12&quot;, &quot;.p12&quot;);</span>
+<span class="nc" id="L311">        reset();</span>
+<span class="nc" id="L312">    }</span>
+
+    public void generateKeyStorePem() {
+<span class="nc" id="L315">        endEntityInformation.setTokenType(EndEntityConstants.TOKEN_SOFT_PEM);</span>
+<span class="nc" id="L316">        generateKeyStore();</span>
+<span class="nc" id="L317">        downloadToken(generatedToken, &quot;application/octet-stream&quot;, &quot;.pem&quot;);</span>
+<span class="nc" id="L318">        reset();</span>
+<span class="nc" id="L319">    }</span>
+
+    protected void generateKeyStore() {
+<span class="nc bnc" id="L322" title="All 2 branches missed.">        if (isKeyRecovery) {</span>
+            try {
+<span class="nc" id="L324">                raMasterApiProxyBean.checkUserStatus(raAuthenticationBean.getAuthenticationToken(), endEntityInformation.getUsername(), endEntityInformation.getPassword());</span>
+<span class="nc" id="L325">            } catch (NoSuchEndEntityException | AuthStatusException | AuthLoginException e) {</span>
+<span class="nc" id="L326">                raLocaleBean.addMessageError(&quot;enrollwithusername_user_not_found_or_wrongstatus_or_invalid_enrollmentcode&quot;, endEntityInformation.getUsername());</span>
+<span class="nc" id="L327">                return;</span>
+<span class="nc" id="L328">            }</span>
+        }
+        // If key algorithm is missing from EEI, we need to fetch it from CSR / select list first
+<span class="nc bnc" id="L331" title="All 2 branches missed.">        if (!isKeyAlgorithmPreSet()) {</span>
+<span class="nc bnc" id="L332" title="All 2 branches missed.">            if (StringUtils.isEmpty(selectedAlgorithm)) {</span>
+<span class="nc" id="L333">                raLocaleBean.addMessageError(&quot;enroll_no_key_algorithm&quot;);</span>
+<span class="nc" id="L334">                log.info(&quot;No key algorithm was provided.&quot;);</span>
+<span class="nc" id="L335">                return;</span>
+            }
+<span class="nc" id="L337">            final String[] parts = StringUtils.split(selectedAlgorithm, '_');</span>
+<span class="nc bnc" id="L338" title="All 4 branches missed.">            if (parts == null || parts.length &lt; 2) {</span>
+<span class="nc" id="L339">                raLocaleBean.addMessageError(&quot;enroll_no_key_algorithm&quot;);</span>
+<span class="nc" id="L340">                log.info(&quot;No full key algorithm was provided: &quot;+selectedAlgorithm);</span>
+<span class="nc" id="L341">                return;</span>
+            }
+<span class="nc" id="L343">            final String keyAlg = parts[0];</span>
+<span class="nc bnc" id="L344" title="All 2 branches missed.">            if (StringUtils.isEmpty(keyAlg)) {</span>
+<span class="nc" id="L345">                raLocaleBean.addMessageError(&quot;enroll_no_key_algorithm&quot;);</span>
+<span class="nc" id="L346">                log.info(&quot;No key algorithm was provided: &quot;+selectedAlgorithm);</span>
+<span class="nc" id="L347">                return;</span>
+            }
+<span class="nc" id="L349">            final String keySpec = parts[1];</span>
+<span class="nc bnc" id="L350" title="All 2 branches missed.">            if (StringUtils.isEmpty(keySpec)) {</span>
+<span class="nc" id="L351">                raLocaleBean.addMessageError(&quot;enroll_no_key_specification&quot;);</span>
+<span class="nc" id="L352">                log.info(&quot;No key specification was provided: &quot;+selectedAlgorithm);</span>
+<span class="nc" id="L353">                return;</span>
+            }
+<span class="nc bnc" id="L355" title="All 2 branches missed.">            if (getEndEntityInformation().getExtendedInformation() == null) {</span>
+<span class="nc" id="L356">                getEndEntityInformation().setExtendedInformation(new ExtendedInformation());</span>
+            }
+<span class="nc" id="L358">            getEndEntityInformation().getExtendedInformation().setKeyStoreAlgorithmType(keyAlg);</span>
+<span class="nc" id="L359">            getEndEntityInformation().getExtendedInformation().setKeyStoreAlgorithmSubType(keySpec);</span>
+        }
+
+        try {
+<span class="nc" id="L363">            byte[] keystoreAsByteArray = raMasterApiProxyBean.generateKeyStore(raAuthenticationBean.getAuthenticationToken(), endEntityInformation);</span>
+<span class="nc" id="L364">            log.info(endEntityInformation.getTokenType() + &quot; token has been generated for the end entity with username &quot; +</span>
+<span class="nc" id="L365">                    endEntityInformation.getUsername());</span>
+<span class="nc" id="L366">            try(ByteArrayOutputStream buffer = new ByteArrayOutputStream()){</span>
+<span class="nc" id="L367">                buffer.write(keystoreAsByteArray);</span>
+<span class="nc" id="L368">                generatedToken = buffer.toByteArray();</span>
+            }
+<span class="nc" id="L370">        } catch (AuthorizationDeniedException e){</span>
+<span class="nc" id="L371">            raLocaleBean.addMessageInfo(&quot;enroll_unauthorized_operation&quot;, e.getMessage());</span>
+<span class="nc" id="L372">            log.info(raAuthenticationBean.getAuthenticationToken() + &quot; is not authorized to execute this operation&quot;, e);</span>
+<span class="nc" id="L373">        } catch (EjbcaException | IOException e) {</span>
+<span class="nc" id="L374">            ErrorCode errorCode = EjbcaException.getErrorCode(e);</span>
+<span class="nc bnc" id="L375" title="All 2 branches missed.">            if (errorCode != null) {</span>
+<span class="nc bnc" id="L376" title="All 2 branches missed.">                if (errorCode.equals(ErrorCode.LOGIN_ERROR)) {</span>
+<span class="nc" id="L377">                    raLocaleBean.addMessageError(&quot;enroll_keystore_could_not_be_generated&quot;, endEntityInformation.getUsername(), errorCode);</span>
+<span class="nc" id="L378">                    log.info(&quot;Keystore could not be generated for user &quot; + endEntityInformation.getUsername()+&quot;: &quot;+e.getMessage()+&quot;, &quot;+errorCode);</span>
+                } else {
+<span class="nc" id="L380">                    raLocaleBean.addMessageError(errorCode);</span>
+<span class="nc" id="L381">                    log.info(&quot;Exception generating keystore. Error Code: &quot; + errorCode, e);</span>
+                }
+            } else {
+<span class="nc" id="L384">                raLocaleBean.addMessageError(&quot;enroll_keystore_could_not_be_generated&quot;, endEntityInformation.getUsername(), e.getMessage());</span>
+<span class="nc" id="L385">                log.info(&quot;Keystore could not be generated for user &quot; + endEntityInformation.getUsername());</span>
+            }
+<span class="nc" id="L387">            return;</span>
+<span class="nc" id="L388">        } catch (Exception e){</span>
+<span class="nc" id="L389">            raLocaleBean.addMessageError(&quot;enroll_keystore_could_not_be_generated&quot;, endEntityInformation.getUsername(), e.getMessage());</span>
+<span class="nc" id="L390">            log.info(&quot;Keystore could not be generated for user &quot; + endEntityInformation.getUsername());</span>
+<span class="nc" id="L391">        }</span>
+<span class="nc" id="L392">    }</span>
+
+    public boolean isRenderGenerateCertificate(){
+<span class="nc bnc" id="L395" title="All 2 branches missed.">        if (endEntityInformation.getTokenType() == EndEntityConstants.TOKEN_USERGEN) {</span>
+            // If CSR is already uploaded, load its key algorithm and display it to end user
+<span class="nc bnc" id="L397" title="All 4 branches missed.">            if (isCsrPreSet() &amp;&amp; !isCsrChanged) {</span>
+<span class="nc" id="L398">                selectKeyAlgorithmFromCsr();</span>
+            }
+<span class="nc" id="L400">            return true;</span>
+        }
+<span class="nc" id="L402">        return false;</span>
+    }
+
+    public boolean isRenderGenerateKeyStoreJks(){
+<span class="nc bnc" id="L406" title="All 2 branches missed.">        if(endEntityInformation.getTokenType() == EndEntityConstants.TOKEN_USERGEN){</span>
+<span class="nc" id="L407">            return false;</span>
+        }
+<span class="nc" id="L409">        EndEntityProfile endEntityProfile = authorizedEndEntityProfiles.get(endEntityInformation.getEndEntityProfileId()).getValue();</span>
+<span class="nc bnc" id="L410" title="All 2 branches missed.">        if (endEntityProfile == null) {</span>
+<span class="nc" id="L411">            return false;</span>
+        }
+<span class="nc" id="L413">        String availableKeyStores = endEntityProfile.getValue(EndEntityProfile.AVAILKEYSTORE, 0);</span>
+<span class="nc bnc" id="L414" title="All 4 branches missed.">        return availableKeyStores != null &amp;&amp; availableKeyStores.contains(String.valueOf(SecConst.TOKEN_SOFT_JKS));</span>
+    }
+
+    public boolean isRenderGenerateKeyStorePkcs12(){
+<span class="nc bnc" id="L418" title="All 2 branches missed.">        if(endEntityInformation.getTokenType() == EndEntityConstants.TOKEN_USERGEN){</span>
+<span class="nc" id="L419">            return false;</span>
+        }
+<span class="nc" id="L421">        EndEntityProfile endEntityProfile = authorizedEndEntityProfiles.get(endEntityInformation.getEndEntityProfileId()).getValue();</span>
+<span class="nc bnc" id="L422" title="All 2 branches missed.">        if (endEntityProfile == null) {</span>
+<span class="nc" id="L423">            return false;</span>
+        }
+<span class="nc" id="L425">        String availableKeyStores = endEntityProfile.getValue(EndEntityProfile.AVAILKEYSTORE, 0);</span>
+<span class="nc bnc" id="L426" title="All 4 branches missed.">        return availableKeyStores != null &amp;&amp; availableKeyStores.contains(String.valueOf(SecConst.TOKEN_SOFT_P12));</span>
+    }
+
+    public boolean isRenderGenerateKeyStorePem(){
+<span class="nc bnc" id="L430" title="All 2 branches missed.">        if(endEntityInformation.getTokenType() == EndEntityConstants.TOKEN_USERGEN){</span>
+<span class="nc" id="L431">            return false;</span>
+        }
+<span class="nc" id="L433">        EndEntityProfile endEntityProfile = authorizedEndEntityProfiles.get(endEntityInformation.getEndEntityProfileId()).getValue();</span>
+<span class="nc bnc" id="L434" title="All 2 branches missed.">        if (endEntityProfile == null) {</span>
+<span class="nc" id="L435">            return false;</span>
+        }
+<span class="nc" id="L437">        String availableKeyStores = endEntityProfile.getValue(EndEntityProfile.AVAILKEYSTORE, 0);</span>
+<span class="nc bnc" id="L438" title="All 4 branches missed.">        return availableKeyStores != null &amp;&amp; availableKeyStores.contains(String.valueOf(SecConst.TOKEN_SOFT_PEM));</span>
+    }
+
+    /**
+     * Checks if key algorithm is already set in an earlier stage or by a CSR.
+     * @return true if key algorithm is set in EEI or to be uploaded by CSR
+     */
+    public boolean isKeyAlgorithmPreSet() {
+<span class="nc bnc" id="L446" title="All 4 branches missed.">        return  (endEntityInformation.getExtendedInformation() != null &amp;&amp; endEntityInformation.getExtendedInformation().getKeyStoreAlgorithmType() != null) ||</span>
+<span class="nc bnc" id="L447" title="All 2 branches missed.">                endEntityInformation.getTokenType() == EndEntityConstants.TOKEN_USERGEN ||</span>
+<span class="nc bnc" id="L448" title="All 2 branches missed.">                endEntityInformation.getStatus() == EndEntityConstants.STATUS_KEYRECOVERY;</span>
+    }
+
+    /**
+     * Checks if a non-modifiable text displaying the previously set key algorithm should be shown.
+     * @return bool
+     */
+    public boolean isPreSetKeyAlgorithmRendered() {
+<span class="nc bnc" id="L456" title="All 2 branches missed.">        return endEntityInformation.getExtendedInformation() != null &amp;&amp;</span>
+<span class="nc bnc" id="L457" title="All 2 branches missed.">               endEntityInformation.getExtendedInformation().getKeyStoreAlgorithmType() != null &amp;&amp;</span>
+<span class="nc bnc" id="L458" title="All 2 branches missed.">               endEntityInformation.getStatus() != EndEntityConstants.STATUS_KEYRECOVERY;</span>
+    }
+
+    /**
+     * Checks if a CSR has been uploaded in an earlier stage (before the finalize enrollment stage)
+     * @return true if a CSR is set in EEI
+     */
+    public boolean isCsrPreSet() {
+<span class="nc bnc" id="L466" title="All 4 branches missed.">        return endEntityInformation.getExtendedInformation() != null &amp;&amp; endEntityInformation.getExtendedInformation().getCertificateRequest() != null;</span>
+    }
+
+    private final void downloadToken(byte[] token, String responseContentType, String fileExtension) {
+<span class="nc bnc" id="L470" title="All 2 branches missed.">        if (token == null) {</span>
+<span class="nc" id="L471">            return;</span>
+        }
+        //Download the token
+<span class="nc" id="L474">        FacesContext fc = FacesContext.getCurrentInstance();</span>
+<span class="nc" id="L475">        ExternalContext ec = fc.getExternalContext();</span>
+<span class="nc" id="L476">        ec.responseReset(); // Some JSF component library or some Filter might have set some headers in the buffer beforehand. We want to get rid of them, else it may collide.</span>
+<span class="nc" id="L477">        ec.setResponseContentType(responseContentType);</span>
+<span class="nc" id="L478">        ec.setResponseContentLength(token.length);</span>
+<span class="nc" id="L479">        String fileName = CertTools.getPartFromDN(endEntityInformation.getDN(), &quot;CN&quot;);</span>
+<span class="nc bnc" id="L480" title="All 2 branches missed.">        if(fileName == null){</span>
+<span class="nc" id="L481">            fileName = &quot;certificatetoken&quot;;</span>
+        }
+
+<span class="nc" id="L484">        final String filename = StringTools.stripFilename(fileName + fileExtension);</span>
+<span class="nc" id="L485">        ec.setResponseHeader(&quot;Content-Disposition&quot;, &quot;attachment; filename=\&quot;&quot; + filename + &quot;\&quot;&quot;); // The Save As popup magic is done here. You can give it any file name you want, this only won't work in MSIE, it will use current request URL as file name instead.</span>
+<span class="nc" id="L486">        try (final OutputStream output = ec.getResponseOutputStream()) {</span>
+<span class="nc" id="L487">            output.write(token);</span>
+<span class="nc" id="L488">            output.flush();</span>
+<span class="nc" id="L489">            fc.responseComplete(); // Important! Otherwise JSF will attempt to render the response which obviously will fail since it's already written with a file and closed.</span>
+<span class="nc" id="L490">        } catch (IOException e) {</span>
+<span class="nc" id="L491">            log.info(&quot;Token &quot; + filename + &quot; could not be downloaded&quot;, e);</span>
+<span class="nc" id="L492">            raLocaleBean.addMessageError(&quot;enroll_token_could_not_be_downloaded&quot;, filename);</span>
+<span class="nc" id="L493">        }</span>
+<span class="nc" id="L494">    }</span>
+
+    /** @return true if the the CSR has been uploaded */
+    public boolean isUploadCsrDoneRendered() {
+<span class="nc bnc" id="L498" title="All 2 branches missed.">        return selectedAlgorithm != null;</span>
+    }
+
+    /** @return the current certificateRequest if available */
+    public String getCertificateRequest() {
+<span class="nc bnc" id="L503" title="All 2 branches missed.">        if (StringUtils.isEmpty(certificateRequest)) {</span>
+            // Multi-line place holders are not allowed according to https://www.w3.org/TR/html5/forms.html#the-placeholder-attribute
+<span class="nc" id="L505">            certificateRequest = raLocaleBean.getMessage(&quot;enroll_upload_csr_placeholder&quot;);</span>
+        }
+<span class="nc" id="L507">        return certificateRequest;</span>
+    }
+
+    /** @param certificateRequest the certificateRequest to set */
+    public void setCertificateRequest(final String certificateRequest) {
+<span class="nc" id="L512">        this.certificateRequest = certificateRequest;</span>
+<span class="nc" id="L513">    }</span>
+
+    /** Backing method for upload CSR button (used for uploading pasted CSR) populating fields is handled by AJAX */
+    public void uploadCsr() {
+<span class="nc" id="L517">    }</span>
+
+    /** Resets selected key algorithm and flags CSR as changed */
+    public void uploadCsrChange() {
+<span class="nc" id="L521">        selectedAlgorithm = null;</span>
+<span class="nc" id="L522">        isCsrChanged = true;</span>
+<span class="nc" id="L523">    }</span>
+
+    /** Updates selected algorithm with key algorithm and key size from the CSR preset in EEI. */
+    protected void selectKeyAlgorithmFromCsr() {
+<span class="nc bnc" id="L527" title="All 2 branches missed.">        if (endEntityInformation.getExtendedInformation() != null) {</span>
+            try {
+<span class="nc" id="L529">                PKCS10CertificationRequest pkcs10CertificationRequest = new PKCS10CertificationRequest(endEntityInformation.getExtendedInformation().getCertificateRequest());</span>
+<span class="nc" id="L530">                final JcaPKCS10CertificationRequest jcaPKCS10CertificationRequest = new JcaPKCS10CertificationRequest(pkcs10CertificationRequest);</span>
+<span class="nc" id="L531">                final String keySpecification = AlgorithmTools.getKeySpecification(jcaPKCS10CertificationRequest.getPublicKey());</span>
+<span class="nc" id="L532">                final String keyAlgorithm = AlgorithmTools.getKeyAlgorithm(jcaPKCS10CertificationRequest.getPublicKey());</span>
+<span class="nc" id="L533">                selectedAlgorithm = keyAlgorithm + &quot; &quot; + keySpecification; // Save for later use</span>
+<span class="nc" id="L534">            } catch (IOException e) {</span>
+<span class="nc" id="L535">                throw new ValidatorException(new FacesMessage(raLocaleBean.getMessage(&quot;enroll_invalid_certificate_request&quot;)));</span>
+<span class="nc" id="L536">            } catch (InvalidKeyException | NoSuchAlgorithmException e) {</span>
+<span class="nc" id="L537">                throw new ValidatorException(new FacesMessage(raLocaleBean.getMessage(&quot;enroll_unknown_key_algorithm&quot;)));</span>
+<span class="nc" id="L538">            }</span>
+        }
+<span class="nc" id="L540">    }</span>
+
+    /** Validate an uploaded CSR and store the extracted key algorithm and CSR for later use. 
+     * @param context Context
+     * @param component Component
+     * @param value Value
+     * @throws ValidatorException Fail */
+    public void validateCsr(FacesContext context, UIComponent component, Object value) throws ValidatorException {
+<span class="nc" id="L548">        selectedAlgorithm = null;</span>
+<span class="nc" id="L549">        final String valueStr = value.toString();</span>
+<span class="nc bnc" id="L550" title="All 4 branches missed.">        if (valueStr != null &amp;&amp; valueStr.length() &gt; EnrollMakeNewRequestBean.MAX_CSR_LENGTH) {</span>
+<span class="nc" id="L551">            log.info(&quot;CSR uploaded was too large: &quot;+valueStr.length());</span>
+<span class="nc" id="L552">            throw new ValidatorException(new FacesMessage(raLocaleBean.getMessage(&quot;enroll_invalid_certificate_request&quot;)));</span>
+        }
+<span class="nc" id="L554">        PKCS10CertificationRequest pkcs10CertificateRequest = CertTools.getCertificateRequestFromPem(valueStr);</span>
+<span class="nc bnc" id="L555" title="All 2 branches missed.">        if (pkcs10CertificateRequest == null) {</span>
+<span class="nc" id="L556">            throw new ValidatorException(new FacesMessage(raLocaleBean.getMessage(&quot;enroll_invalid_certificate_request&quot;)));</span>
+        }
+
+        //Get public key algorithm from CSR and check if it's allowed in certificate profile
+<span class="nc" id="L560">        final JcaPKCS10CertificationRequest jcaPKCS10CertificationRequest = new JcaPKCS10CertificationRequest(pkcs10CertificateRequest);</span>
+        try {
+<span class="nc" id="L562">            final String keySpecification = AlgorithmTools.getKeySpecification(jcaPKCS10CertificationRequest.getPublicKey());</span>
+<span class="nc" id="L563">            final String keyAlgorithm = AlgorithmTools.getKeyAlgorithm(jcaPKCS10CertificationRequest.getPublicKey());</span>
+            // If we have an End Entity, use this to verify that the algorithm and keyspec are allowed
+<span class="nc" id="L565">            final CertificateProfile certificateProfile = getCertificateProfile();</span>
+<span class="nc bnc" id="L566" title="All 2 branches missed.">            if (certificateProfile != null) {</span>
+<span class="nc bnc" id="L567" title="All 2 branches missed.">                if (!certificateProfile.isKeyTypeAllowed(keyAlgorithm, keySpecification)) {</span>
+<span class="nc" id="L568">                    throw new ValidatorException(new FacesMessage(raLocaleBean.getMessage(&quot;enroll_key_algorithm_is_not_available&quot;, keyAlgorithm + &quot;_&quot; + keySpecification)));</span>
+                }
+            } else {
+<span class="nc bnc" id="L571" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L572">                    log.debug(&quot;Ignoring algorithm validation on CSR because we can not find a Certificate Profile for request with ID: &quot; + requestId);</span>
+                }
+            }
+<span class="nc" id="L575">            selectedAlgorithm = keyAlgorithm + &quot; &quot; + keySpecification; // Save for later use</span>
+            // For yet unknown reasons, the setter is never when invoked during AJAX request
+<span class="nc" id="L577">            certificateRequest = value.toString();</span>
+<span class="nc" id="L578">        } catch (InvalidKeyException | NoSuchAlgorithmException e) {</span>
+<span class="nc" id="L579">            throw new ValidatorException(new FacesMessage(raLocaleBean.getMessage(&quot;enroll_unknown_key_algorithm&quot;)));</span>
+<span class="nc" id="L580">        }</span>
+<span class="nc" id="L581">    }</span>
+
+    public boolean isRenderPassword() {
+<span class="nc" id="L584">        EndEntityProfile endEntityProfile = authorizedEndEntityProfiles.get(endEntityInformation.getEndEntityProfileId()).getValue();</span>
+<span class="nc bnc" id="L585" title="All 2 branches missed.">        return !endEntityProfile.useAutoGeneratedPasswd();</span>
+    }
+
+    private CertificateProfile getCertificateProfile() {
+<span class="nc bnc" id="L589" title="All 2 branches missed.">        if (this.certificateProfile == null) {</span>
+<span class="nc" id="L590">            EndEntityInformation ei = getEndEntityInformation();</span>
+<span class="nc bnc" id="L591" title="All 2 branches missed.">            if (ei != null) {</span>
+<span class="nc" id="L592">                this.certificateProfile = raMasterApiProxyBean.getCertificateProfile(ei.getCertificateProfileId());</span>
+            }
+        }
+<span class="nc" id="L595">        return this.certificateProfile;</span>
+    }
+
+    /** @return the current availableAlgorithms as determined by state of dependencies */
+    public List&lt;SelectItem&gt; getAvailableAlgorithmSelectItems() {
+<span class="nc" id="L600">        final List&lt;SelectItem&gt; availableAlgorithmSelectItems = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L601">        final CertificateProfile certificateProfile = getCertificateProfile();</span>
+<span class="nc bnc" id="L602" title="All 2 branches missed.">        if (certificateProfile!=null) {</span>
+<span class="nc" id="L603">            final List&lt;String&gt; availableKeyAlgorithms = certificateProfile.getAvailableKeyAlgorithmsAsList();</span>
+<span class="nc" id="L604">            final List&lt;Integer&gt; availableBitLengths = certificateProfile.getAvailableBitLengthsAsList();</span>
+<span class="nc bnc" id="L605" title="All 2 branches missed.">            if (availableKeyAlgorithms.contains(AlgorithmConstants.KEYALGORITHM_DSA)) {</span>
+<span class="nc bnc" id="L606" title="All 2 branches missed.">                for (final int availableBitLength : availableBitLengths) {</span>
+<span class="nc bnc" id="L607" title="All 2 branches missed.">                    if (availableBitLength == 1024) {</span>
+<span class="nc" id="L608">                        availableAlgorithmSelectItems.add(new SelectItem(AlgorithmConstants.KEYALGORITHM_DSA + &quot;_&quot; + availableBitLength,</span>
+                                AlgorithmConstants.KEYALGORITHM_DSA + &quot; &quot; + availableBitLength + &quot; bits&quot;));
+                    }
+<span class="nc" id="L611">                }</span>
+            }
+<span class="nc bnc" id="L613" title="All 2 branches missed.">            if (availableKeyAlgorithms.contains(AlgorithmConstants.KEYALGORITHM_RSA)) {</span>
+<span class="nc bnc" id="L614" title="All 2 branches missed.">                for (final int availableBitLength : availableBitLengths) {</span>
+<span class="nc bnc" id="L615" title="All 2 branches missed.">                    if (availableBitLength &gt;= 1024) {</span>
+<span class="nc" id="L616">                        availableAlgorithmSelectItems.add(new SelectItem(AlgorithmConstants.KEYALGORITHM_RSA + &quot;_&quot; + availableBitLength,</span>
+                                AlgorithmConstants.KEYALGORITHM_RSA + &quot; &quot; + availableBitLength + &quot; bits&quot;));
+                    }
+<span class="nc" id="L619">                }</span>
+            }
+<span class="nc bnc" id="L621" title="All 2 branches missed.">            if (availableKeyAlgorithms.contains(AlgorithmConstants.KEYALGORITHM_ECDSA)) {</span>
+<span class="nc" id="L622">                final Set&lt;String&gt; ecChoices = new HashSet&lt;&gt;();</span>
+<span class="nc bnc" id="L623" title="All 2 branches missed.">                if (certificateProfile.getAvailableEcCurvesAsList().contains(CertificateProfile.ANY_EC_CURVE)) {</span>
+<span class="nc bnc" id="L624" title="All 2 branches missed.">                    for (final String ecNamedCurve : AlgorithmTools.getNamedEcCurvesMap(false).keySet()) {</span>
+<span class="nc bnc" id="L625" title="All 2 branches missed.">                        if (CertificateProfile.ANY_EC_CURVE.equals(ecNamedCurve)) {</span>
+<span class="nc" id="L626">                            continue;</span>
+                        }
+<span class="nc" id="L628">                        final int bitLength = AlgorithmTools.getNamedEcCurveBitLength(ecNamedCurve);</span>
+<span class="nc bnc" id="L629" title="All 2 branches missed.">                        if (availableBitLengths.contains(Integer.valueOf(bitLength))) {</span>
+<span class="nc" id="L630">                            ecChoices.add(ecNamedCurve);</span>
+                        }
+<span class="nc" id="L632">                    }</span>
+                }
+<span class="nc" id="L634">                ecChoices.addAll(certificateProfile.getAvailableEcCurvesAsList());</span>
+<span class="nc" id="L635">                ecChoices.remove(CertificateProfile.ANY_EC_CURVE);</span>
+<span class="nc" id="L636">                final List&lt;String&gt; ecChoicesList = new ArrayList&lt;&gt;(ecChoices);</span>
+<span class="nc" id="L637">                Collections.sort(ecChoicesList);</span>
+<span class="nc bnc" id="L638" title="All 2 branches missed.">                for (final String ecNamedCurve : ecChoicesList) {</span>
+<span class="nc" id="L639">                    availableAlgorithmSelectItems.add(new SelectItem(AlgorithmConstants.KEYALGORITHM_ECDSA + &quot;_&quot; + ecNamedCurve, AlgorithmConstants.KEYALGORITHM_ECDSA + &quot; &quot;</span>
+<span class="nc" id="L640">                                    + StringTools.getAsStringWithSeparator(&quot; / &quot;, AlgorithmTools.getAllCurveAliasesFromAlias(ecNamedCurve))));</span>
+<span class="nc" id="L641">                }</span>
+            }
+<span class="nc bnc" id="L643" title="All 2 branches missed.">            for (final String algName : CesecoreConfiguration.getExtraAlgs()) {</span>
+<span class="nc bnc" id="L644" title="All 2 branches missed.">                if (availableKeyAlgorithms.contains(CesecoreConfiguration.getExtraAlgTitle(algName))) {</span>
+<span class="nc bnc" id="L645" title="All 2 branches missed.">                    for (final String subAlg : CesecoreConfiguration.getExtraAlgSubAlgs(algName)) {</span>
+<span class="nc" id="L646">                        final String name = CesecoreConfiguration.getExtraAlgSubAlgName(algName, subAlg);</span>
+<span class="nc" id="L647">                        final int bitLength = AlgorithmTools.getNamedEcCurveBitLength(name);</span>
+<span class="nc bnc" id="L648" title="All 2 branches missed.">                        if (availableBitLengths.contains(Integer.valueOf(bitLength))) {</span>
+<span class="nc" id="L649">                            availableAlgorithmSelectItems.add(new SelectItem(CesecoreConfiguration.getExtraAlgTitle(algName) + &quot;_&quot; + name,</span>
+<span class="nc" id="L650">                                    CesecoreConfiguration.getExtraAlgSubAlgTitle(algName, subAlg)));</span>
+                        } else {
+<span class="nc bnc" id="L652" title="All 2 branches missed.">                            if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L653">                                log.trace(&quot;Excluding &quot; + name + &quot; from enrollment options since bit length &quot; + bitLength + &quot; is not available.&quot;);</span>
+                            }
+                        }
+<span class="nc" id="L656">                    }</span>
+                }
+<span class="nc" id="L658">            }</span>
+<span class="nc bnc" id="L659" title="All 2 branches missed.">            if (availableAlgorithmSelectItems.size() &lt; 1) {</span>
+<span class="nc" id="L660">                availableAlgorithmSelectItems.add(new SelectItem(null, raLocaleBean.getMessage(&quot;enroll_select_ka_nochoice&quot;), raLocaleBean.getMessage(&quot;enroll_select_ka_nochoice&quot;), true));</span>
+            }
+        }
+<span class="nc" id="L663">        EnrollMakeNewRequestBean.sortSelectItemsByLabel(availableAlgorithmSelectItems);</span>
+<span class="nc" id="L664">        return availableAlgorithmSelectItems;</span>
+    }
+
+    //-----------------------------------------------------------------
+    //Getters/setters
+
+    /** @return EEI of current end entity*/
+    public EndEntityInformation getEndEntityInformation() {
+<span class="nc" id="L672">        return endEntityInformation;</span>
+    }
+
+    /** @param endEntityInformation EEI to be set*/
+    public void setEndEntityInformation(EndEntityInformation endEntityInformation) {
+<span class="nc" id="L677">        this.endEntityInformation = endEntityInformation;</span>
+<span class="nc" id="L678">    }</span>
+
+     /** @return the requestId */
+    public String getRequestId() {
+<span class="nc" id="L682">        return requestId;</span>
+    }
+
+    /** @param requestId the requestId to set */
+    public void setRequestId(String requestId) {
+<span class="nc" id="L687">        this.requestId = requestId;</span>
+<span class="nc" id="L688">    }</span>
+
+    /** @return the request status*/
+    public int getRequestStatus() {
+<span class="nc" id="L692">        return requestStatus;</span>
+    }
+
+    /** @param requestStatus the request status to be set*/
+    public void setRequestStatus(int requestStatus) {
+<span class="nc" id="L697">        this.requestStatus = requestStatus;</span>
+<span class="nc" id="L698">    }</span>
+
+    /** @return key algorithm and size to be used for keystore / certificate enrollment. Format: 'algorithm keysize' */
+    public String getSelectedAlgorithm() {
+<span class="nc" id="L702">        return selectedAlgorithm;</span>
+    }
+
+    /** @param selectedAlgorithm sets the algorithm and key size to be used for keystore / certificate enrollment. Format: 'algorithm keysize'*/
+    public void setSelectedAlgorithm(String selectedAlgorithm) {
+<span class="nc" id="L707">        this.selectedAlgorithm = selectedAlgorithm;</span>
+<span class="nc" id="L708">    }</span>
+
+    /**
+     * @return the generatedToken (.p12, .jks or .pem without full chain)
+     */
+    public byte[] getGeneratedToken() {
+<span class="nc" id="L714">        return generatedToken;</span>
+    }
+
+    /** @param generatedToken byte array of generated token*/
+    public void setGeneratedToken(byte[] generatedToken) {
+<span class="nc" id="L719">        this.generatedToken = generatedToken;</span>
+<span class="nc" id="L720">    }</span>
+
+    public String getPreSetKeyAlgorithm() {
+<span class="nc" id="L723">        return endEntityInformation.getExtendedInformation().getKeyStoreAlgorithmType() + &quot; &quot; + endEntityInformation.getExtendedInformation().getKeyStoreAlgorithmSubType();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -9,29 +9,31 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.ca;
 
 import org.cesecore.CesecoreException;
 import org.cesecore.ErrorCode;
 
-
 /**
- * Thrown when trying to create a new CA signed by an external CA using the WS *
- * @version $Id: SignedByExternalCANotSupportedException.java 26057 2017-06-22 08:08:34Z anatom $
+ * Thrown when trying to create a new CA signed by
+ * an external CA using the WS. *
+ *
+ * @version $Id: SignedByExternalCANotSupportedException.java 26057 2017-06-22
+ *     08:08:34Z anatom $
  */
 public class SignedByExternalCANotSupportedException extends CesecoreException {
 
-    
-    private static final long serialVersionUID = -8917528643510939912L;
+  private static final long serialVersionUID = -8917528643510939912L;
 
-    /**
-     * Constructs an instance of &lt;code&gt;SignedByExternalCANotSupportedException&lt;/code&gt; with the specified detail message.
-     * @param msg the detail message.
-     */
-    public SignedByExternalCANotSupportedException(String msg) {
-<span class="nc" id="L33">        super(ErrorCode.SIGNED_BY_EXTERNAL_CA_NOT_SUPPORTED, msg);</span>
-<span class="nc" id="L34">    }</span>
-    
+  /**
+   * Constructs an instance of &lt;code&gt;SignedByExternalCANotSupportedException
+   * &lt;/code&gt; with the specified detail message.
+   *
+   * @param msg the detail message.
+   */
+  public SignedByExternalCANotSupportedException(final String msg) {
+<span class="nc" id="L36">    super(ErrorCode.SIGNED_BY_EXTERNAL_CA_NOT_SUPPORTED, msg);</span>
+<span class="nc" id="L37">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

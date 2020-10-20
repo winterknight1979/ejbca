@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EjbcaJSFLanguageResource.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Administration GUI</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.configuration</a> &gt; <span class="el_source">EjbcaJSFLanguageResource.java</span></div><h1>EjbcaJSFLanguageResource.java</h1><pre class="source lang-java linenums">package org.ejbca.ui.web.admin.configuration;
+
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
+
+import javax.ejb.EJBException;
+
+import org.ejbca.util.HTMLTools;
+
+/**
+ * Class used to retrieve EJBCA language resources in JSF views
+ * 
+ * Implements a Map used for retrieving resources.
+ * @version $Id: EjbcaJSFLanguageResource.java 13640 2012-01-02 16:00:28Z mikekushner $
+ */
+public class EjbcaJSFLanguageResource implements Map&lt;String, String&gt; {
+
+	private EjbcaWebBean ejbcawebbean;
+	
+<span class="nc" id="L21">	public EjbcaJSFLanguageResource(EjbcaWebBean ejbcawebbean){</span>
+<span class="nc" id="L22">		this.ejbcawebbean = ejbcawebbean;</span>
+<span class="nc" id="L23">	}</span>
+	
+	@Override
+	public void clear() {
+<span class="nc" id="L27">		throw new EJBException(&quot;Method clear not supported&quot;);</span>
+	}
+
+	@Override
+	public boolean containsKey(Object arg0) {
+<span class="nc bnc" id="L32" title="All 2 branches missed.">		return ejbcawebbean.getText((String) arg0) != null;</span>
+	}
+
+	@Override
+	public boolean containsValue(Object arg0) {
+<span class="nc" id="L37">		throw new EJBException(&quot;Method containsValue not supported&quot;);</span>
+	}
+
+	@Override
+	public Set&lt;Entry&lt;String, String&gt;&gt; entrySet() {
+<span class="nc" id="L42">		throw new EJBException(&quot;Method entrySet not supported&quot;);</span>
+	}
+
+	@Override
+	public String get(Object arg0) {
+<span class="nc" id="L47">		String str = ejbcawebbean.getText(arg0.toString());</span>
+<span class="nc" id="L48">		return HTMLTools.htmlunescape(str);</span>
+	}
+
+	@Override
+	public boolean isEmpty() {
+<span class="nc" id="L53">		throw new EJBException(&quot;Method isEmpty not supported&quot;);</span>
+	}
+
+	@Override
+	public Set&lt;String&gt; keySet() {
+<span class="nc" id="L58">		throw new EJBException(&quot;Method keySet not supported&quot;);</span>
+	}
+
+	@Override
+	public String put(String arg0, String arg1) {
+<span class="nc" id="L63">		throw new EJBException(&quot;Method put not supported&quot;);</span>
+	}
+
+	@Override
+	public String remove(Object arg0) {
+<span class="nc" id="L68">		throw new EJBException(&quot;Method remove not supported&quot;);</span>
+	}
+
+	@Override
+	public int size() {
+<span class="nc" id="L73">		throw new EJBException(&quot;Method size not supported&quot;);</span>
+	}
+
+	@Override
+	public Collection&lt;String&gt; values() {
+<span class="nc" id="L78">		throw new EJBException(&quot;Method values not supported&quot;);</span>
+	}
+
+    @Override
+    public void putAll(Map&lt;? extends String, ? extends String&gt; arg0) {
+<span class="nc" id="L83">        throw new EJBException(&quot;Method putAll not supported&quot;);</span>
+        
+    }
+
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

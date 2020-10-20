@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>UsersView.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">admin-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.rainterface</a> &gt; <span class="el_source">UsersView.java</span></div><h1>UsersView.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.ui.web.admin.rainterface;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import org.cesecore.certificates.endentity.EndEntityInformation;
+
+/**
+ * A class representing a set of users
+ * 
+ * @version $Id: UsersView.java 28844 2018-05-04 08:31:02Z samuellb $
+ */
+public class UsersView implements Serializable {
+        
+    private static final long serialVersionUID = -7382135359016557800L;
+    /** Creates a new instance of UsersView */
+<span class="nc" id="L36">    public UsersView() {</span>
+<span class="nc" id="L37">      users = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L38">      sortby = new SortBy();</span>
+<span class="nc" id="L39">    }</span>
+    
+<span class="nc" id="L41">    public UsersView(EndEntityInformation importuser, HashMap&lt;Integer, String&gt; caidtonamemap){</span>
+<span class="nc" id="L42">      users = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L43">      sortby = new SortBy();        </span>
+<span class="nc" id="L44">      users.add(new UserView(importuser, caidtonamemap)); </span>
+      
+<span class="nc" id="L46">      Collections.sort(users); </span>
+<span class="nc" id="L47">    }</span>
+    
+<span class="nc" id="L49">    public UsersView(Collection&lt;EndEntityInformation&gt; importusers, HashMap&lt;Integer, String&gt;caidtonamemap){ </span>
+<span class="nc" id="L50">      users = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L51">      sortby = new SortBy();</span>
+      
+<span class="nc" id="L53">      setUsers(importusers, caidtonamemap);</span>
+<span class="nc" id="L54">    }</span>
+    // Public methods.
+    
+    public void sortBy(int sortby, int sortorder) {
+<span class="nc" id="L58">      this.sortby.setSortBy(sortby);</span>
+<span class="nc" id="L59">      this.sortby.setSortOrder(sortorder);</span>
+      
+<span class="nc" id="L61">      Collections.sort(users);</span>
+<span class="nc" id="L62">    }</span>
+    
+    public UserView[] getUsers(int index, int size) {       
+      int endindex;  
+      UserView[] returnval;
+   
+<span class="nc bnc" id="L68" title="All 2 branches missed.">      if(index &gt; users.size()) {</span>
+<span class="nc" id="L69">    	  index = users.size()-1;</span>
+      }
+<span class="nc bnc" id="L71" title="All 2 branches missed.">      if(index &lt; 0) {</span>
+<span class="nc" id="L72">    	  index =0;</span>
+      }
+      
+      // The below is used in order to return all the values in one page
+      // JasperReports has its own multiple page setings (right now it will print all pages inside a single web page, one after the other)
+      // i think this functions were first used in very specific places, where the user asks directly for a single page at once depending on the number of
+      // results in one page.  If this number is -1 then all results will be on one single page
+<span class="nc bnc" id="L79" title="All 2 branches missed.">      if (size == -1)  {</span>
+<span class="nc" id="L80">    	  endindex = users.size();</span>
+      } else {
+<span class="nc" id="L82">    	  endindex = index + size;</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">    	  if(endindex &gt; users.size()) {</span>
+<span class="nc" id="L84">    		  endindex = users.size();</span>
+    	  }
+      }
+      
+<span class="nc" id="L88">      returnval = new UserView[endindex-index];  </span>
+      
+<span class="nc" id="L90">      int end = endindex - index;</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">      for(int i = 0; i &lt; end; i++){</span>
+<span class="nc" id="L92">        returnval[i] = users.get(index+i);   </span>
+      }
+      
+<span class="nc" id="L95">      return returnval;</span>
+    }
+    
+    public void setUsers(UserView[] users) {
+<span class="nc" id="L99">      this.users.clear();</span>
+<span class="nc bnc" id="L100" title="All 4 branches missed.">      if(users !=null &amp;&amp; users.length &gt; 0){       </span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">        for(int i=0; i &lt; users.length; i++){</span>
+<span class="nc" id="L102">          users[i].setSortBy(this.sortby);</span>
+<span class="nc" id="L103">          this.users.add(users[i]);</span>
+        }
+      }
+<span class="nc" id="L106">      Collections.sort(this.users);</span>
+<span class="nc" id="L107">    }</span>
+    
+    public void setUsers(EndEntityInformation[] users, Map&lt;Integer, String&gt; caidtonamemap) {
+      UserView user;  
+<span class="nc" id="L111">      this.users.clear();</span>
+<span class="nc bnc" id="L112" title="All 4 branches missed.">      if(users !=null &amp;&amp; users.length &gt; 0){ </span>
+<span class="nc bnc" id="L113" title="All 2 branches missed.">        for(int i=0; i&lt; users.length; i++){</span>
+<span class="nc" id="L114">          user = new UserView(users[i], caidtonamemap); </span>
+<span class="nc" id="L115">          user.setSortBy(this.sortby);</span>
+<span class="nc" id="L116">          this.users.add(user);</span>
+        }
+<span class="nc" id="L118">        Collections.sort(this.users);</span>
+      }
+<span class="nc" id="L120">    }</span>
+
+    public void setUsers(Collection&lt;EndEntityInformation&gt; importusers, Map&lt;Integer, String&gt; caidtonamemap) { 
+        
+      UserView user;  
+      Iterator&lt;EndEntityInformation&gt; i;  
+<span class="nc" id="L126">      this.users.clear();</span>
+<span class="nc bnc" id="L127" title="All 4 branches missed.">      if(importusers!=null &amp;&amp; importusers.size() &gt; 0){</span>
+<span class="nc" id="L128">        i=importusers.iterator();</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">        while(i.hasNext()){</span>
+<span class="nc" id="L130">        	EndEntityInformation nextuser = i.next();  </span>
+<span class="nc" id="L131">          user = new UserView(nextuser, caidtonamemap); </span>
+<span class="nc" id="L132">          user.setSortBy(this.sortby);</span>
+<span class="nc" id="L133">          users.add(user);</span>
+<span class="nc" id="L134">        }</span>
+<span class="nc" id="L135">        Collections.sort(users);</span>
+      }
+<span class="nc" id="L137">    }</span>
+
+    public void addUser(UserView user) {
+<span class="nc" id="L140">       user.setSortBy(this.sortby);        </span>
+<span class="nc" id="L141">       users.add(user);</span>
+<span class="nc" id="L142">    }</span>
+    
+    public int size(){
+<span class="nc" id="L145">      return users.size();   </span>
+    }
+    
+    public void clear(){
+<span class="nc" id="L149">      this.users.clear();   </span>
+<span class="nc" id="L150">    }</span>
+    // Private fields
+    private List&lt;UserView&gt; users;
+    private SortBy sortby;
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

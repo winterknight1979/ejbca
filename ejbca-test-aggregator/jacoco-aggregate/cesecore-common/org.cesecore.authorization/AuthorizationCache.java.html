@@ -18,7 +18,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import org.apache.log4j.Logger;
 import org.cesecore.authentication.AuthenticationFailedException;
 import org.cesecore.authentication.tokens.AuthenticationToken;
@@ -28,220 +27,338 @@ import org.cesecore.util.ValidityDate;
 
 /**
  * Cache of the authorization granted to different AuthenticationTokens.
- * 
- * Features:
- * - Concurrent cache misses for the same AuthenticationToken will only lead to a single call-back while the other threads wait
- * - Never return stale entries (when signaled that newer data might be available)
- * - Supports background reload via the rebuild(...) method which also purges unused entries
- * 
+ *
+ * &lt;p&gt;Features: - Concurrent cache misses for the same AuthenticationToken will
+ * only lead - to a single call-back while the other threads wait - Never return
+ * stale entries (when signaled that newer data - might be available) - Supports
+ * background reload via the rebuild(...) method - which also purges unused
+ * entries
+ *
  * @version $Id: AuthorizationCache.java 25694 2017-04-13 15:28:04Z jeklund $
  */
 <span class="fc" id="L39">public enum AuthorizationCache {</span>
-<span class="fc" id="L40">    INSTANCE, RAINSTANCE;</span>
-    
-<span class="fc" id="L42">    private final Logger log = Logger.getLogger(AuthorizationCache.class);</span>
+  /** Default instance. */
+<span class="fc" id="L41">  INSTANCE,</span>
+  /** RA instance. */
+<span class="fc" id="L43">  RAINSTANCE;</span>
 
-    /** The access available to an authentication token and corresponding version of the authorization systems updateNumber */
-    public static class AuthorizationResult {
-        final HashMap&lt;String, Boolean&gt; accessRules;
-        final int updateNumber;
+  /** Logger. */
+<span class="fc" id="L46">  private final Logger log = Logger.getLogger(AuthorizationCache.class);</span>
 
-<span class="fc" id="L49">        public AuthorizationResult(final HashMap&lt;String, Boolean&gt; accessRules, final int updateNumber) {</span>
-<span class="fc" id="L50">            this.accessRules = accessRules;</span>
-<span class="fc" id="L51">            this.updateNumber = updateNumber;</span>
-<span class="fc" id="L52">        }</span>
+  /**
+   * The access available to an authentication token and corresponding version
+   * of the authorization systems updateNumber.
+   */
+  public static class AuthorizationResult {
+    /** Rules. */
+    private final HashMap&lt;String, Boolean&gt; accessRules;
+    /** Update number. */
+    private final int updateNumber;
 
-<span class="nc" id="L54">        public HashMap&lt;String, Boolean&gt; getAccessRules() { return accessRules; }</span>
-<span class="nc" id="L55">        public int getUpdateNumeber() { return updateNumber; }</span>
-    }
-    
-    /** Call-back interface for loading access rules on cache miss */
-    public interface AuthorizationCacheCallback {
-        /** @param authenticationToken Authentication
-         * @return the access rules and corresponding update number for the specified authenticationToken  
-         * @throws AuthenticationFailedException  If authentication fails*/
-        AuthorizationResult loadAuthorization(AuthenticationToken authenticationToken) throws AuthenticationFailedException;
-        
-        /** @return the number of milliseconds to keep cache entries for after an authentication token was last seen */
-        long getKeepUnusedEntriesFor();
-
-        /** Invoked by cache on first cache miss to start listening to authorization updates 
-         * @param authorizationCacheReloadListener Listener*/
-        void subscribeToAuthorizationCacheReload(AuthorizationCacheReloadListener authorizationCacheReloadListener);
-    }
-    
-<span class="fc" id="L73">    private class AuthorizationCacheEntry {</span>
-        HashMap&lt;String, Boolean&gt; accessRules;
-<span class="fc" id="L75">        int updateNumber = 0;</span>
-<span class="fc" id="L76">        long timeOfLastUse = 0L;</span>
-        AuthenticationToken authenticationToken;
-<span class="fc" id="L78">        final CountDownLatch countDownLatch = new CountDownLatch(1);</span>
-    }
-    
-<span class="fc" id="L81">    private ConcurrentHashMap&lt;String, AuthorizationCacheEntry&gt; cacheMap = new ConcurrentHashMap&lt;&gt;();</span>
-<span class="fc" id="L82">    private AtomicInteger latestUpdateNumber = new AtomicInteger(0);</span>
-
-<span class="fc" id="L84">    private final AtomicBoolean authorizationCacheReloadListenerRegistered = new AtomicBoolean(false);</span>
-<span class="fc" id="L85">    private final AuthorizationCacheReloadListener authorizationCacheReloadListener = new AuthorizationCacheReloadListener() {</span>
-        @Override
-        public void onReload(final AuthorizationCacheReload event) {
-<span class="fc" id="L88">            setUpdateNumberIfLower(event.getAccessTreeUpdateNumber());</span>
-<span class="fc" id="L89">        }</span>
-        @Override
-        public String getListenerName() {
-<span class="nc" id="L92">            return AuthorizationCache.class.getSimpleName();</span>
-        }
-    };
-    
-    public void clear(final int updateNumber) {
-<span class="nc" id="L97">        setUpdateNumberIfLower(updateNumber);</span>
-<span class="nc" id="L98">        cacheMap.clear();</span>
-<span class="nc" id="L99">    }</span>
-
-    public void clearWhenStale(final int updateNumber) {
-<span class="nc bnc" id="L102" title="All 2 branches missed.">        if (setUpdateNumberIfLower(updateNumber)) {</span>
-<span class="nc" id="L103">            cacheMap.clear();</span>
-        }
-<span class="nc" id="L105">    }</span>
-
-    /** Full reset should only be invoked by JUnit tests */
-    protected void reset() {
-<span class="fc" id="L109">        cacheMap.clear();</span>
-<span class="fc" id="L110">        latestUpdateNumber.set(0);</span>
-<span class="fc" id="L111">        authorizationCacheReloadListenerRegistered.set(false);</span>
-<span class="fc" id="L112">    }</span>
-
-    /** Re-build the authorization cache for all entries that been seen recently (as determined by authorizationCacheCallback.getKeepUnusedEntriesFor()). 
-     * @param authorizationCacheCallback Callback
-     * @param refreshUpdateNumber Update No. */
-    public void refresh(final AuthorizationCacheCallback authorizationCacheCallback, final int refreshUpdateNumber) {
-        //final int refreshUpdateNumber = authorizationCacheCallback.getUpdateNumber();
-<span class="pc bpc" id="L119" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L120">            log.trace(&quot;Starting cache refresh when update number was &quot; + refreshUpdateNumber + &quot;.&quot;);</span>
-        }
-<span class="fc" id="L122">        setUpdateNumberIfLower(refreshUpdateNumber);</span>
-<span class="fc" id="L123">        final long purgeUnusedAuthorizationAfter = authorizationCacheCallback.getKeepUnusedEntriesFor();</span>
-<span class="fc" id="L124">        final long now = System.currentTimeMillis();</span>
-<span class="fc" id="L125">        final HashSet&lt;String&gt; existingKeysWhenInvoked = new HashSet&lt;&gt;(cacheMap.keySet());</span>
-<span class="fc bfc" id="L126" title="All 2 branches covered.">        for (final String key : existingKeysWhenInvoked) {</span>
-<span class="fc" id="L127">            final AuthorizationCacheEntry entry = cacheMap.get(key);</span>
-<span class="pc bpc" id="L128" title="1 of 2 branches missed.">            if (entry!=null) {</span>
-<span class="fc bfc" id="L129" title="All 2 branches covered.">                if (entry.updateNumber&lt;latestUpdateNumber.get()) {</span>
-                    // Newer access rules might be available
-<span class="pc bpc" id="L131" title="1 of 2 branches missed.">                    if (cacheMap.remove(key, entry)) {</span>
-<span class="pc bpc" id="L132" title="1 of 2 branches missed.">                        if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L133">                            log.debug(&quot;Removed entry for key '&quot; + key + &quot;' since its updateNumber was &quot; + entry.updateNumber + &quot;.&quot;);</span>
-                        }
-                        // Recalculate the authorization right away if this AuthenticationToken was seen recently
-<span class="pc bpc" id="L136" title="1 of 2 branches missed.">                        if (entry.timeOfLastUse+purgeUnusedAuthorizationAfter&lt;now) {</span>
-                            try {
-<span class="nc" id="L138">                                get(entry.authenticationToken, authorizationCacheCallback);</span>
-<span class="nc" id="L139">                            } catch (AuthenticationFailedException e) {</span>
-<span class="nc" id="L140">                                log.debug(&quot;Unexpected failure during refresh if authroization cache: &quot; + e.getMessage());</span>
-<span class="nc" id="L141">                            }</span>
-                        }
-                    }
-<span class="fc bfc" id="L144" title="All 2 branches covered.">                } else if (entry.timeOfLastUse+purgeUnusedAuthorizationAfter&lt;now) {</span>
-                    // Remove the unused entry
-<span class="pc bpc" id="L146" title="1 of 2 branches missed.">                    if (cacheMap.remove(key, entry)) {</span>
-<span class="pc bpc" id="L147" title="1 of 2 branches missed.">                        if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L148">                            log.debug(&quot;Removed entry for key '&quot; + key + &quot;' since it was last seen &quot; + ValidityDate.formatAsUTC(entry.timeOfLastUse) + &quot;.&quot;);</span>
-                        }
-                    }
-                }
-            }
-<span class="fc" id="L153">        }</span>
-<span class="fc" id="L154">    }</span>
-
-    /** @param authenticationToken Authentication 
-     * @param authorizationCacheCallback  Callback
-     * @return the access rules granted to the specified authenticationToken using the callback to load them if needed. Never null.  
-     * @throws AuthenticationFailedException If authentication fails*/
-    public HashMap&lt;String, Boolean&gt; get(final AuthenticationToken authenticationToken, final AuthorizationCacheCallback authorizationCacheCallback) throws AuthenticationFailedException {
-<span class="fc" id="L161">        return getAuthorizationResult(authenticationToken, authorizationCacheCallback).accessRules;</span>
-    }
-
-    /** @param authenticationToken Auth token
-     * @param authorizationCacheCallback Callback
-     * @return the access rules granted to the specified authenticationToken and corresponding update number using the callback to load them if needed. Never null.  
-     * @throws AuthenticationFailedException  if authentication fails */
-    public AuthorizationResult getAuthorizationResult(final AuthenticationToken authenticationToken, final AuthorizationCacheCallback authorizationCacheCallback) throws AuthenticationFailedException {
-<span class="fc bfc" id="L169" title="All 4 branches covered.">        if (authenticationToken==null || authorizationCacheCallback==null) {</span>
-<span class="fc" id="L170">            return new AuthorizationResult(new HashMap&lt;String,Boolean&gt;(), 0);</span>
-        }
-<span class="fc" id="L172">        final String key = authenticationToken.getUniqueId();</span>
-<span class="fc" id="L173">        final AuthorizationCacheEntry authorizationCacheEntry = new AuthorizationCacheEntry();</span>
-<span class="fc" id="L174">        AuthorizationCacheEntry ret = cacheMap.putIfAbsent(key, authorizationCacheEntry);</span>
-<span class="fc bfc" id="L175" title="All 2 branches covered.">        if (ret == null) {</span>
-            // Start subscribing to authorization system updates on first cache miss (which happens on application startup)
-<span class="fc bfc" id="L177" title="All 2 branches covered.">            if (!authorizationCacheReloadListenerRegistered.getAndSet(true)) {</span>
-<span class="fc" id="L178">                authorizationCacheCallback.subscribeToAuthorizationCacheReload(authorizationCacheReloadListener);</span>
-            }
-<span class="fc" id="L180">            ret = authorizationCacheEntry;</span>
-            try {
-<span class="fc" id="L182">                ret.authenticationToken = authenticationToken;</span>
-<span class="fc" id="L183">                final AuthorizationResult authorizationResult = authorizationCacheCallback.loadAuthorization(authenticationToken);</span>
-<span class="fc" id="L184">                ret.updateNumber = authorizationResult.updateNumber;</span>
-<span class="fc" id="L185">                setUpdateNumberIfLower(ret.updateNumber);</span>
-<span class="fc" id="L186">                ret.accessRules = new HashMap&lt;&gt;();</span>
-<span class="pc bpc" id="L187" title="1 of 2 branches missed.">                if (authorizationResult.accessRules != null) {</span>
-                    // Cache a copy of the loaded access rules map
-<span class="fc" id="L189">                    ret.accessRules.putAll(authorizationResult.accessRules);</span>
-                }
-            } finally {
-                // Ensure that we release any waiting thread
-<span class="fc" id="L193">                ret.countDownLatch.countDown();</span>
-            }
-<span class="pc bpc" id="L195" title="1 of 2 branches missed.">            if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L196">                log.debug(&quot;Added entry for key '&quot; + key + &quot;'.&quot;);</span>
-            }
-        } else {
-<span class="pc bpc" id="L199" title="1 of 2 branches missed.">            if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L200">                log.trace(&quot;Cache hit for key '&quot; + key + &quot;'.&quot;);</span>
-            }
-            try {
-                // Block while it is loading (if it is still loading)
-<span class="fc" id="L204">                ret.countDownLatch.await();</span>
-<span class="nc" id="L205">            } catch (InterruptedException e) {</span>
-<span class="nc" id="L206">                Thread.currentThread().interrupt();</span>
-<span class="fc" id="L207">            }</span>
-            // Check if the returned entry is stale
-<span class="fc bfc" id="L209" title="All 2 branches covered.">            if (ret.updateNumber&lt;latestUpdateNumber.get()) {</span>
-                // Trigger an update on next get and recurse
-<span class="pc bpc" id="L211" title="1 of 2 branches missed.">                if (cacheMap.remove(key, ret)) {</span>
-<span class="pc bpc" id="L212" title="1 of 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L213">                        log.debug(&quot;Removed entry for key '&quot; + key + &quot;' since its updateNumber was &quot; + ret.updateNumber + &quot;.&quot;);</span>
-                    }
-                }
-<span class="fc" id="L216">                return getAuthorizationResult(authenticationToken, authorizationCacheCallback);</span>
-            }
-            // Don't care about last time of use here, just be happy that it was found if it was found 
-        }
-        // Weak indication of last use, so rebuild can eventually purge unused entries
-<span class="fc" id="L221">        ret.timeOfLastUse = System.currentTimeMillis();</span>
-<span class="fc" id="L222">        return new AuthorizationResult(ret.accessRules, ret.updateNumber);</span>
-    }
-    
-    public int getLastUpdateNumber() {
-<span class="nc" id="L226">        return latestUpdateNumber.get();</span>
-    }
-
-    /** 
-     * Non-blocking atomic update of the last known update number.
-     * @param readUpdateNumber Update no.
-     * @return true if the number was updated, false if it was already set
+    /**
+     * Constructor.
+     *
+     * @param theAccessRules Rules
+     * @param theUpdateNumber Update number.
      */
-    private boolean setUpdateNumberIfLower(final int readUpdateNumber) {
-        int current;
-<span class="fc bfc" id="L236" title="All 2 branches covered.">        while ((current = latestUpdateNumber.get()) &lt; readUpdateNumber) {</span>
-<span class="pc bpc" id="L237" title="1 of 2 branches missed.">            if (latestUpdateNumber.compareAndSet(current, readUpdateNumber)) {</span>
-<span class="pc bpc" id="L238" title="1 of 2 branches missed.">                if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L239">                    log.debug(&quot;latestUpdateNumber is now &quot; + readUpdateNumber + &quot;.&quot;);</span>
-                }
-<span class="fc" id="L241">                return true;</span>
-            }
-        }
-<span class="fc" id="L244">        return false;</span>
+    public AuthorizationResult(
+        final HashMap&lt;String, Boolean&gt; theAccessRules,
+<span class="fc" id="L66">        final int theUpdateNumber) {</span>
+<span class="fc" id="L67">      this.accessRules = theAccessRules;</span>
+<span class="fc" id="L68">      this.updateNumber = theUpdateNumber;</span>
+<span class="fc" id="L69">    }</span>
+    /** @return rules */
+    public HashMap&lt;String, Boolean&gt; getAccessRules() {
+<span class="nc" id="L72">      return accessRules;</span>
     }
+    /** @return update number */
+    public int getUpdateNumeber() {
+<span class="nc" id="L76">      return updateNumber;</span>
+    }
+  }
+
+  /** Call-back interface for loading access rules on cache miss. */
+  public interface AuthorizationCacheCallback {
+    /**
+     * @param authenticationToken Authentication
+     * @return the access rules and corresponding update number for the
+     *     specified authenticationToken
+     * @throws AuthenticationFailedException If authentication fails
+     */
+    AuthorizationResult loadAuthorization(
+        AuthenticationToken authenticationToken)
+        throws AuthenticationFailedException;
+
+    /**
+     * @return the number of milliseconds to keep cache entries for after an
+     *     authentication token was last seen
+     */
+    long getKeepUnusedEntriesFor();
+
+    /**
+     * Invoked by cache on first cache miss to start listening to authorization
+     * updates.
+     *
+     * @param authorizationCacheReloadListener Listener
+     */
+    void subscribeToAuthorizationCacheReload(
+        AuthorizationCacheReloadListener authorizationCacheReloadListener);
+  }
+
+<span class="fc" id="L108">  private class AuthorizationCacheEntry {</span>
+    /** Rules. */
+    private HashMap&lt;String, Boolean&gt; accessRules;
+    /** Update. */
+<span class="fc" id="L112">    private int updateNumber = 0;</span>
+    /** Last used. */
+<span class="fc" id="L114">    private long timeOfLastUse = 0L;</span>
+    /** Auth token. */
+    private AuthenticationToken authenticationToken;
+    /** Countdown. */
+<span class="fc" id="L118">    private final CountDownLatch countDownLatch = new CountDownLatch(1);</span>
+  }
+
+  /** Cache. */
+<span class="fc" id="L122">  private ConcurrentHashMap&lt;String, AuthorizationCacheEntry&gt; cacheMap =</span>
+      new ConcurrentHashMap&lt;&gt;();
+
+  /** Last update. */
+<span class="fc" id="L126">  private AtomicInteger latestUpdateNumber = new AtomicInteger(0);</span>
+
+  /** True if listener has been registered. */
+<span class="fc" id="L129">  private final AtomicBoolean authorizationCacheReloadListenerRegistered =</span>
+      new AtomicBoolean(false);
+
+  /** Reload listener. */
+<span class="fc" id="L133">  private final AuthorizationCacheReloadListener</span>
+      authorizationCacheReloadListener =
+<span class="fc" id="L135">          new AuthorizationCacheReloadListener() {</span>
+            @Override
+            public void onReload(final AuthorizationCacheReload event) {
+<span class="fc" id="L138">              setUpdateNumberIfLower(event.getAccessTreeUpdateNumber());</span>
+<span class="fc" id="L139">            }</span>
+
+            @Override
+            public String getListenerName() {
+<span class="nc" id="L143">              return AuthorizationCache.class.getSimpleName();</span>
+            }
+          };
+
+  /**
+   * Clear stale cache.
+   *
+   * @param updateNumber Update number
+   */
+  public void clear(final int updateNumber) {
+<span class="nc" id="L153">    setUpdateNumberIfLower(updateNumber);</span>
+<span class="nc" id="L154">    cacheMap.clear();</span>
+<span class="nc" id="L155">  }</span>
+
+  /**
+   * Clear stale cache.
+   *
+   * @param updateNumber Update number
+   */
+  public void clearWhenStale(final int updateNumber) {
+<span class="nc bnc" id="L163" title="All 2 branches missed.">    if (setUpdateNumberIfLower(updateNumber)) {</span>
+<span class="nc" id="L164">      cacheMap.clear();</span>
+    }
+<span class="nc" id="L166">  }</span>
+
+  /** Full reset should only be invoked by JUnit tests. */
+  protected void reset() {
+<span class="fc" id="L170">    cacheMap.clear();</span>
+<span class="fc" id="L171">    latestUpdateNumber.set(0);</span>
+<span class="fc" id="L172">    authorizationCacheReloadListenerRegistered.set(false);</span>
+<span class="fc" id="L173">  }</span>
+
+  /**
+   * Re-build the authorization cache for all entries that been seen recently
+   * (as determined by authorizationCacheCallback.getKeepUnusedEntriesFor()).
+   *
+   * @param authorizationCacheCallback Callback
+   * @param refreshUpdateNumber Update No.
+   */
+  public void refresh(
+      final AuthorizationCacheCallback authorizationCacheCallback,
+      final int refreshUpdateNumber) {
+    // final int refreshUpdateNumber
+    // = authorizationCacheCallback.getUpdateNumber();
+<span class="pc bpc" id="L187" title="1 of 2 branches missed.">    if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L188">      log.trace(</span>
+          &quot;Starting cache refresh when update number was &quot;
+              + refreshUpdateNumber
+              + &quot;.&quot;);
+    }
+<span class="fc" id="L193">    setUpdateNumberIfLower(refreshUpdateNumber);</span>
+<span class="fc" id="L194">    final long purgeUnusedAuthorizationAfter =</span>
+<span class="fc" id="L195">        authorizationCacheCallback.getKeepUnusedEntriesFor();</span>
+<span class="fc" id="L196">    final long now = System.currentTimeMillis();</span>
+<span class="fc" id="L197">    final HashSet&lt;String&gt; existingKeysWhenInvoked =</span>
+<span class="fc" id="L198">        new HashSet&lt;&gt;(cacheMap.keySet());</span>
+<span class="fc bfc" id="L199" title="All 2 branches covered.">    for (final String key : existingKeysWhenInvoked) {</span>
+<span class="fc" id="L200">      final AuthorizationCacheEntry entry = cacheMap.get(key);</span>
+<span class="pc bpc" id="L201" title="1 of 2 branches missed.">      if (entry != null) {</span>
+<span class="fc bfc" id="L202" title="All 2 branches covered.">        if (entry.updateNumber &lt; latestUpdateNumber.get()) {</span>
+          // Newer access rules might be available
+<span class="pc bpc" id="L204" title="1 of 2 branches missed.">          if (cacheMap.remove(key, entry)) {</span>
+<span class="pc bpc" id="L205" title="1 of 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L206">              log.debug(</span>
+                  &quot;Removed entry for key '&quot;
+                      + key
+                      + &quot;' since its updateNumber was &quot;
+                      + entry.updateNumber
+                      + &quot;.&quot;);
+            }
+            // Recalculate the authorization right away if this
+            // AuthenticationToken was seen recently
+<span class="pc bpc" id="L215" title="1 of 2 branches missed.">            if (entry.timeOfLastUse + purgeUnusedAuthorizationAfter &lt; now) {</span>
+              try {
+<span class="nc" id="L217">                get(entry.authenticationToken, authorizationCacheCallback);</span>
+<span class="nc" id="L218">              } catch (AuthenticationFailedException e) {</span>
+<span class="nc" id="L219">                log.debug(</span>
+                    &quot;Unexpected failure during refresh &quot;
+                        + &quot;if authroization cache: &quot;
+<span class="nc" id="L222">                        + e.getMessage());</span>
+<span class="nc" id="L223">              }</span>
+            }
+          }
+<span class="fc bfc" id="L226" title="All 2 branches covered.">        } else if (entry.timeOfLastUse + purgeUnusedAuthorizationAfter &lt; now) {</span>
+          // Remove the unused entry
+<span class="pc bpc" id="L228" title="1 of 2 branches missed.">          if (cacheMap.remove(key, entry)) {</span>
+<span class="pc bpc" id="L229" title="1 of 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L230">              log.debug(</span>
+                  &quot;Removed entry for key '&quot;
+                      + key
+                      + &quot;' since it was last seen &quot;
+<span class="nc" id="L234">                      + ValidityDate.formatAsUTC(entry.timeOfLastUse)</span>
+                      + &quot;.&quot;);
+            }
+          }
+        }
+      }
+<span class="fc" id="L240">    }</span>
+<span class="fc" id="L241">  }</span>
+
+  /**
+   * @param authenticationToken Authentication
+   * @param authorizationCacheCallback Callback
+   * @return the access rules granted to the specified authenticationToken using
+   *     the callback to load them if needed. Never null.
+   * @throws AuthenticationFailedException If authentication fails
+   */
+  public HashMap&lt;String, Boolean&gt; get(
+      final AuthenticationToken authenticationToken,
+      final AuthorizationCacheCallback authorizationCacheCallback)
+      throws AuthenticationFailedException {
+<span class="fc" id="L254">    return getAuthorizationResult(</span>
+            authenticationToken, authorizationCacheCallback)
+        .accessRules;
+  }
+
+  /**
+   * @param authenticationToken Auth token
+   * @param authorizationCacheCallback Callback
+   * @return the access rules granted to the specified authenticationToken and
+   *     corresponding update number using the callback to load them if needed.
+   *     Never null.
+   * @throws AuthenticationFailedException if authentication fails
+   */
+  public AuthorizationResult getAuthorizationResult(
+      final AuthenticationToken authenticationToken,
+      final AuthorizationCacheCallback authorizationCacheCallback)
+      throws AuthenticationFailedException {
+<span class="fc bfc" id="L271" title="All 4 branches covered.">    if (authenticationToken == null || authorizationCacheCallback == null) {</span>
+<span class="fc" id="L272">      return new AuthorizationResult(new HashMap&lt;String, Boolean&gt;(), 0);</span>
+    }
+<span class="fc" id="L274">    final String key = authenticationToken.getUniqueId();</span>
+<span class="fc" id="L275">    final AuthorizationCacheEntry authorizationCacheEntry =</span>
+        new AuthorizationCacheEntry();
+<span class="fc" id="L277">    AuthorizationCacheEntry ret =</span>
+<span class="fc" id="L278">        cacheMap.putIfAbsent(key, authorizationCacheEntry);</span>
+<span class="fc bfc" id="L279" title="All 2 branches covered.">    if (ret == null) {</span>
+      // Start subscribing to authorization system updates on first
+      // cache miss (which happens on application startup)
+<span class="fc bfc" id="L282" title="All 2 branches covered.">      if (!authorizationCacheReloadListenerRegistered.getAndSet(true)) {</span>
+<span class="fc" id="L283">        authorizationCacheCallback.subscribeToAuthorizationCacheReload(</span>
+            authorizationCacheReloadListener);
+      }
+<span class="fc" id="L286">      ret = authorizationCacheEntry;</span>
+      try {
+<span class="fc" id="L288">        ret.authenticationToken = authenticationToken;</span>
+<span class="fc" id="L289">        final AuthorizationResult authorizationResult =</span>
+<span class="fc" id="L290">            authorizationCacheCallback.loadAuthorization(authenticationToken);</span>
+<span class="fc" id="L291">        ret.updateNumber = authorizationResult.updateNumber;</span>
+<span class="fc" id="L292">        setUpdateNumberIfLower(ret.updateNumber);</span>
+<span class="fc" id="L293">        ret.accessRules = new HashMap&lt;&gt;();</span>
+<span class="pc bpc" id="L294" title="1 of 2 branches missed.">        if (authorizationResult.accessRules != null) {</span>
+          // Cache a copy of the loaded access rules map
+<span class="fc" id="L296">          ret.accessRules.putAll(authorizationResult.accessRules);</span>
+        }
+      } finally {
+        // Ensure that we release any waiting thread
+<span class="fc" id="L300">        ret.countDownLatch.countDown();</span>
+      }
+<span class="pc bpc" id="L302" title="1 of 2 branches missed.">      if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L303">        log.debug(&quot;Added entry for key '&quot; + key + &quot;'.&quot;);</span>
+      }
+    } else {
+<span class="pc bpc" id="L306" title="1 of 2 branches missed.">      if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L307">        log.trace(&quot;Cache hit for key '&quot; + key + &quot;'.&quot;);</span>
+      }
+      try {
+        // Block while it is loading (if it is still loading)
+<span class="fc" id="L311">        ret.countDownLatch.await();</span>
+<span class="nc" id="L312">      } catch (InterruptedException e) {</span>
+<span class="nc" id="L313">        Thread.currentThread().interrupt();</span>
+<span class="fc" id="L314">      }</span>
+      // Check if the returned entry is stale
+<span class="fc bfc" id="L316" title="All 2 branches covered.">      if (ret.updateNumber &lt; latestUpdateNumber.get()) {</span>
+        // Trigger an update on next get and recurse
+<span class="pc bpc" id="L318" title="1 of 2 branches missed.">        if (cacheMap.remove(key, ret)) {</span>
+<span class="pc bpc" id="L319" title="1 of 2 branches missed.">          if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L320">            log.debug(</span>
+                &quot;Removed entry for key '&quot;
+                    + key
+                    + &quot;' since its updateNumber was &quot;
+                    + ret.updateNumber
+                    + &quot;.&quot;);
+          }
+        }
+<span class="fc" id="L328">        return getAuthorizationResult(</span>
+            authenticationToken, authorizationCacheCallback);
+      }
+      // Don't care about last time of use here, just be happy that
+      // it was found if it was found
+    }
+    // Weak indication of last use, so rebuild can
+    // eventually purge unused entries
+<span class="fc" id="L336">    ret.timeOfLastUse = System.currentTimeMillis();</span>
+<span class="fc" id="L337">    return new AuthorizationResult(ret.accessRules, ret.updateNumber);</span>
+  }
+
+  /** @return Last Update Number */
+  public int getLastUpdateNumber() {
+<span class="nc" id="L342">    return latestUpdateNumber.get();</span>
+  }
+
+  /**
+   * Non-blocking atomic update of the last known update number.
+   *
+   * @param readUpdateNumber Update no.
+   * @return true if the number was updated, false if it was already set
+   */
+  private boolean setUpdateNumberIfLower(final int readUpdateNumber) {
+    int current;
+<span class="fc bfc" id="L353" title="All 2 branches covered.">    while ((current = latestUpdateNumber.get()) &lt; readUpdateNumber) {</span>
+<span class="pc bpc" id="L354" title="1 of 2 branches missed.">      if (latestUpdateNumber.compareAndSet(current, readUpdateNumber)) {</span>
+<span class="pc bpc" id="L355" title="1 of 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L356">          log.debug(&quot;latestUpdateNumber is now &quot; + readUpdateNumber + &quot;.&quot;);</span>
+        }
+<span class="fc" id="L358">        return true;</span>
+      }
+    }
+<span class="fc" id="L361">    return false;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

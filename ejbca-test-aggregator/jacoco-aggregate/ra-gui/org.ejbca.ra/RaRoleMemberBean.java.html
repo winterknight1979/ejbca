@@ -1,0 +1,367 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RaRoleMemberBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ra-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ra</a> &gt; <span class="el_source">RaRoleMemberBean.java</span></div><h1>RaRoleMemberBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ra;
+
+import java.io.Serializable;
+import java.text.Collator;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+
+import javax.ejb.EJB;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.ManagedProperty;
+import javax.faces.bean.ViewScoped;
+import javax.faces.model.SelectItem;
+
+import org.apache.commons.lang.SerializationUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.authentication.tokens.X509CertificateAuthenticationTokenMetaData;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.roles.Role;
+import org.cesecore.roles.member.RoleMember;
+import org.ejbca.core.model.era.RaMasterApiProxyBeanLocal;
+import org.ejbca.core.model.era.RaRoleMemberTokenTypeInfo;
+
+
+/**
+ * Backing bean for the (Add) Role Member page
+ *
+ * @version $Id: RaRoleMemberBean.java 34207 2020-01-08 13:22:50Z samuellb $
+ * TODO: Use CDI beans
+ */
+@SuppressWarnings(&quot;deprecation&quot;)
+@ManagedBean
+@ViewScoped
+<span class="nc" id="L50">public class RaRoleMemberBean implements Serializable {</span>
+
+    private static final long serialVersionUID = 1L;
+<span class="nc" id="L53">    private static final Logger log = Logger.getLogger(RaRoleMemberBean.class);</span>
+
+    @EJB
+    private RaMasterApiProxyBeanLocal raMasterApiProxyBean;
+
+    @ManagedProperty(value=&quot;#{raAccessBean}&quot;)
+    private RaAccessBean raAccessBean;
+<span class="nc" id="L60">    public void setRaAccessBean(final RaAccessBean raAccessBean) { this.raAccessBean = raAccessBean; }</span>
+
+    @ManagedProperty(value=&quot;#{raAuthenticationBean}&quot;)
+    private RaAuthenticationBean raAuthenticationBean;
+<span class="nc" id="L64">    public void setRaAuthenticationBean(final RaAuthenticationBean raAuthenticationBean) { this.raAuthenticationBean = raAuthenticationBean; }</span>
+
+    @ManagedProperty(value=&quot;#{raLocaleBean}&quot;)
+    private RaLocaleBean raLocaleBean;
+<span class="nc" id="L68">    public void setRaLocaleBean(final RaLocaleBean raLocaleBean) { this.raLocaleBean = raLocaleBean; }</span>
+
+    @ManagedProperty(value=&quot;#{raRoleMembersBean}&quot;)
+    private RaRoleMembersBean raRoleMembersBean;
+<span class="nc" id="L72">    public void setRaRoleMembersBean(final RaRoleMembersBean raRoleMembersBean) { this.raRoleMembersBean = raRoleMembersBean; }</span>
+
+<span class="nc" id="L74">    private List&lt;SelectItem&gt; availableRoles = null;</span>
+<span class="nc" id="L75">    private List&lt;SelectItem&gt; availableTokenTypes = null;</span>
+<span class="nc" id="L76">    private List&lt;SelectItem&gt; availableCAs = null;</span>
+    private Map&lt;String,RaRoleMemberTokenTypeInfo&gt; tokenTypeInfos;
+
+    private Integer roleMemberId;
+    private RoleMember roleMember;
+    private Role role;
+
+    private int roleId;
+    private String tokenType;
+    private int caId;
+    private Integer matchKey;
+    private String matchValue;
+    private String description;
+
+    public void initialize() {
+<span class="nc bnc" id="L91" title="All 4 branches missed.">        if (tokenType != null &amp;&amp; tokenTypeInfos != null) {</span>
+            // Don't re-initialize, that would overwrite the fields (tokenType, etc.)
+<span class="nc" id="L93">            return;</span>
+        }
+
+<span class="nc" id="L96">        tokenTypeInfos = raMasterApiProxyBean.getAvailableRoleMemberTokenTypes(raAuthenticationBean.getAuthenticationToken());</span>
+
+<span class="nc bnc" id="L98" title="All 2 branches missed.">        if (roleMemberId != null) {</span>
+            try {
+<span class="nc" id="L100">                roleMember = raMasterApiProxyBean.getRoleMember(raAuthenticationBean.getAuthenticationToken(), roleMemberId);</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">                if (roleMember == null) {</span>
+<span class="nc" id="L102">                    log.debug(&quot;Role member with ID &quot; + roleMemberId + &quot; was not found.&quot;);</span>
+<span class="nc" id="L103">                    return;</span>
+                }
+<span class="nc" id="L105">                roleId = roleMember.getRoleId();</span>
+<span class="nc" id="L106">                tokenType = roleMember.getTokenType();</span>
+<span class="nc" id="L107">                caId = roleMember.getTokenIssuerId();</span>
+<span class="nc" id="L108">                matchKey = roleMember.getTokenMatchKey();</span>
+<span class="nc" id="L109">                matchValue = roleMember.getTokenMatchValue();</span>
+<span class="nc" id="L110">                description = roleMember.getDescription();</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">                if (roleId != RoleMember.NO_ROLE) {</span>
+<span class="nc" id="L112">                    role = raMasterApiProxyBean.getRole(raAuthenticationBean.getAuthenticationToken(), roleId);</span>
+<span class="nc bnc" id="L113" title="All 2 branches missed.">                    if (role == null) {</span>
+<span class="nc" id="L114">                        log.debug(&quot;Reference to missing role with ID &quot; + roleId + &quot; in role member with ID &quot; + roleMemberId);</span>
+                    }
+                }
+<span class="nc" id="L117">            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L119">                    log.debug(&quot;Authorization denied to role member &quot; + roleMemberId + &quot;. &quot; + e.getMessage(), e);</span>
+                }
+<span class="nc" id="L121">                roleMember = null;</span>
+<span class="nc" id="L122">            }</span>
+        } else {
+<span class="nc" id="L124">            roleMember = new RoleMember(&quot;&quot;, RoleMember.NO_ISSUER, 0, 0, &quot;&quot;, 0, &quot;&quot;);</span>
+            // Default values
+<span class="nc bnc" id="L126" title="All 2 branches missed.">            if (StringUtils.isEmpty(tokenType)) {</span>
+<span class="nc" id="L127">                tokenType = &quot;CertificateAuthenticationToken&quot;;</span>
+            }
+
+<span class="nc bnc" id="L130" title="All 2 branches missed.">            if (matchKey == null) {</span>
+<span class="nc" id="L131">                final RaRoleMemberTokenTypeInfo tokenTypeInfo = tokenTypeInfos.get(tokenType);</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">                if (tokenTypeInfo != null) {</span>
+<span class="nc" id="L133">                    matchKey = tokenTypeInfo.getMatchKeysMap().get(tokenTypeInfo.getDefaultMatchKey());</span>
+                } else {
+<span class="nc" id="L135">                    log.debug(&quot;Missing information about token type &quot; + tokenType);</span>
+<span class="nc" id="L136">                    matchKey = 0;</span>
+                }
+            }
+        }
+<span class="nc" id="L140">    }</span>
+
+
+    public Integer getRoleMemberId() {
+<span class="nc" id="L144">        return roleMemberId;</span>
+    }
+
+    public void setRoleMemberId(final Integer roleMemberId) {
+<span class="nc" id="L148">        this.roleMemberId = roleMemberId;</span>
+<span class="nc" id="L149">    }</span>
+
+    public RoleMember getRoleMember() {
+<span class="nc" id="L152">        return roleMember;</span>
+    }
+
+
+    public Integer getRoleId() {
+<span class="nc" id="L157">        return roleId;</span>
+    }
+
+    public void setRoleId(final Integer roleId) {
+<span class="nc" id="L161">        this.roleId = roleId;</span>
+<span class="nc" id="L162">    }</span>
+
+    public String getTokenType() {
+<span class="nc" id="L165">        return tokenType;</span>
+    }
+
+    public void setTokenType(final String tokenType) {
+<span class="nc" id="L169">        this.tokenType = tokenType;</span>
+<span class="nc" id="L170">    }</span>
+
+    public int getCaId() {
+<span class="nc" id="L173">        return caId;</span>
+    }
+
+    public void setCaId(final int caId) {
+<span class="nc" id="L177">        this.caId = caId;</span>
+<span class="nc" id="L178">    }</span>
+
+    public int getMatchKey() {
+<span class="nc" id="L181">        return matchKey;</span>
+    }
+
+    public void setMatchKey(final int matchKey) {
+<span class="nc" id="L185">        this.matchKey = matchKey;</span>
+<span class="nc" id="L186">    }</span>
+
+    public String getMatchValue() {
+<span class="nc" id="L189">        return matchValue;</span>
+    }
+
+    public void setMatchValue(final String matchValue) {
+<span class="nc" id="L193">        this.matchValue = matchValue;</span>
+<span class="nc" id="L194">    }</span>
+
+    public String getDescription() {
+<span class="nc" id="L197">        return this.description;</span>
+    }
+
+    public void setDescription(final String description) {
+<span class="nc" id="L201">        this.description = description.trim();</span>
+<span class="nc" id="L202">    }</span>
+
+    public List&lt;SelectItem&gt; getAvailableRoles() {
+<span class="nc bnc" id="L205" title="All 2 branches missed.">        if (availableRoles == null) {</span>
+<span class="nc" id="L206">            availableRoles = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L207">            final List&lt;Role&gt; roles = new ArrayList&lt;&gt;(raMasterApiProxyBean.getAuthorizedRoles(raAuthenticationBean.getAuthenticationToken()));</span>
+<span class="nc" id="L208">            Collections.sort(roles);</span>
+<span class="nc" id="L209">            boolean hasNamespaces = false;</span>
+<span class="nc bnc" id="L210" title="All 2 branches missed.">            for (final Role role : roles) {</span>
+<span class="nc bnc" id="L211" title="All 2 branches missed.">                if (!StringUtils.isEmpty(role.getNameSpace())) {</span>
+<span class="nc" id="L212">                    hasNamespaces = true;</span>
+                }
+<span class="nc" id="L214">            }</span>
+<span class="nc bnc" id="L215" title="All 2 branches missed.">            for (final Role role : roles) {</span>
+<span class="nc bnc" id="L216" title="All 2 branches missed.">                final String name = hasNamespaces ? role.getRoleNameFull() : role.getRoleName();</span>
+<span class="nc" id="L217">                availableRoles.add(new SelectItem(role.getRoleId(), name));</span>
+<span class="nc" id="L218">            }</span>
+        }
+<span class="nc" id="L220">        return availableRoles;</span>
+    }
+
+    public List&lt;SelectItem&gt; getAvailableTokenTypes() {
+<span class="nc bnc" id="L224" title="All 2 branches missed.">        if (availableTokenTypes == null) {</span>
+<span class="nc" id="L225">            final List&lt;String&gt; tokenTypes = new ArrayList&lt;&gt;(tokenTypeInfos.keySet());</span>
+<span class="nc" id="L226">            Collections.sort(tokenTypes);</span>
+<span class="nc" id="L227">            availableTokenTypes = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L228" title="All 2 branches missed.">            for (final String tokenType : tokenTypes) {</span>
+<span class="nc" id="L229">                availableTokenTypes.add(new SelectItem(tokenType, raLocaleBean.getMessage(&quot;role_member_token_type_&quot; + tokenType)));</span>
+<span class="nc" id="L230">            }</span>
+        }
+<span class="nc" id="L232">        return availableTokenTypes;</span>
+    }
+
+    public List&lt;SelectItem&gt; getAvailableCAs() {
+<span class="nc bnc" id="L236" title="All 2 branches missed.">        if (availableCAs == null) {</span>
+<span class="nc" id="L237">            availableCAs = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L238">            final List&lt;CAInfo&gt; caInfos = new ArrayList&lt;&gt;(raMasterApiProxyBean.getAuthorizedCas(raAuthenticationBean.getAuthenticationToken()));</span>
+<span class="nc" id="L239">            Collections.sort(caInfos, new Comparator&lt;CAInfo&gt;() {</span>
+                @Override
+                public int compare(final CAInfo caInfo1, final CAInfo caInfo2) {
+<span class="nc" id="L242">                    return caInfo1.getName().compareTo(caInfo2.getName());</span>
+                }
+            });
+<span class="nc bnc" id="L245" title="All 2 branches missed.">            for (final CAInfo caInfo : caInfos) {</span>
+<span class="nc" id="L246">                availableCAs.add(new SelectItem(caInfo.getCAId(), caInfo.getName()));</span>
+<span class="nc" id="L247">            }</span>
+        }
+<span class="nc" id="L249">        return availableCAs;</span>
+    }
+
+    public List&lt;SelectItem&gt; getAvailableMatchKeys() {
+<span class="nc" id="L253">        final RaRoleMemberTokenTypeInfo tokenTypeInfo = tokenTypeInfos.get(tokenType);</span>
+<span class="nc" id="L254">        final List&lt;SelectItem&gt; result = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L255" title="All 2 branches missed.">        if (tokenTypeInfo != null) {</span>
+<span class="nc" id="L256">            final List&lt;String&gt; namesSorted = new ArrayList&lt;&gt;(tokenTypeInfo.getMatchKeysMap().keySet());</span>
+<span class="nc" id="L257">            Collator coll = Collator.getInstance();</span>
+<span class="nc" id="L258">            coll.setStrength(Collator.PRIMARY);</span>
+<span class="nc" id="L259">            Collections.sort(namesSorted, coll);</span>
+<span class="nc bnc" id="L260" title="All 2 branches missed.">            for (final String name : namesSorted) {</span>
+<span class="nc bnc" id="L261" title="All 4 branches missed.">                if (X509CertificateAuthenticationTokenMetaData.TOKEN_TYPE.equals(tokenType) &amp;&amp; &quot;NONE&quot;.equals(name) &amp;&amp;</span>
+<span class="nc bnc" id="L262" title="All 2 branches missed.">                        !String.valueOf(matchKey).equals(tokenType)) {</span>
+<span class="nc" id="L263">                    continue; // deprecated value</span>
+                }
+<span class="nc" id="L265">                result.add(new SelectItem(tokenTypeInfo.getMatchKeysMap().get(name), raLocaleBean.getMessage(&quot;role_member_matchkey_&quot; + tokenType + &quot;_&quot; + name)));</span>
+<span class="nc" id="L266">            }</span>
+        }
+<span class="nc" id="L268">        return result;</span>
+    }
+
+    public boolean isTokenTypeIssuedByCA() {
+<span class="nc" id="L272">        final RaRoleMemberTokenTypeInfo tokenTypeInfo = tokenTypeInfos.get(tokenType);</span>
+<span class="nc bnc" id="L273" title="All 4 branches missed.">        return tokenTypeInfo == null || tokenTypeInfo.isIssuedByCA();</span>
+    }
+
+    public boolean getTokenTypeHasMatchValue() {
+<span class="nc" id="L277">        final RaRoleMemberTokenTypeInfo tokenTypeInfo = tokenTypeInfos.get(tokenType);</span>
+<span class="nc" id="L278">        return tokenTypeInfo.getHasMatchValue();</span>
+    }
+
+    public String getEditPageTitle() {
+<span class="nc bnc" id="L282" title="All 2 branches missed.">        return raLocaleBean.getMessage(roleMemberId != null ? &quot;role_member_page_edit_title&quot; : &quot;role_member_page_add_title&quot;);</span>
+    }
+
+    public String getSaveButtonText() {
+<span class="nc bnc" id="L286" title="All 2 branches missed.">        return raLocaleBean.getMessage(roleMemberId != null ? &quot;role_member_page_save_command&quot; : &quot;role_member_page_add_command&quot;);</span>
+    }
+
+    /** Called when the token type is changed. Does nothing */
+    public void update() {
+<span class="nc" id="L291">    }</span>
+
+    public String save() throws AuthorizationDeniedException {
+<span class="nc" id="L294">        final RaRoleMemberTokenTypeInfo tokenTypeInfo = tokenTypeInfos.get(tokenType);</span>
+<span class="nc bnc" id="L295" title="All 2 branches missed.">        if (!tokenTypeInfo.isIssuedByCA()) {</span>
+<span class="nc" id="L296">            caId = RoleMember.NO_ISSUER;</span>
+        }
+
+        // The getRoleMember method returns a reference to an object which should not be edited directly,
+        // so we make a deep copy of it here, which we can edit freely. This code is not performance critical,
+        // so cloning through serialization is OK (and does not require a copy constructor that needs to be maintained).
+<span class="nc" id="L302">        final RoleMember roleMemberWithChanges = (RoleMember) SerializationUtils.clone(roleMember);</span>
+<span class="nc" id="L303">        roleMemberWithChanges.setRoleId(roleId);</span>
+<span class="nc" id="L304">        roleMemberWithChanges.setTokenType(tokenType);</span>
+<span class="nc" id="L305">        roleMemberWithChanges.setTokenIssuerId(caId);</span>
+<span class="nc" id="L306">        roleMemberWithChanges.setTokenMatchKey(matchKey);</span>
+<span class="nc" id="L307">        roleMemberWithChanges.setTokenMatchOperator(tokenTypeInfo.getMatchOperator());</span>
+<span class="nc bnc" id="L308" title="All 2 branches missed.">        roleMemberWithChanges.setTokenMatchValue(getTokenTypeHasMatchValue() ? matchValue : &quot;&quot;);</span>
+<span class="nc" id="L309">        roleMemberWithChanges.setDescription(description);</span>
+
+<span class="nc" id="L311">        final RoleMember savedRoleMember = raMasterApiProxyBean.saveRoleMember(raAuthenticationBean.getAuthenticationToken(), roleMemberWithChanges);</span>
+<span class="nc bnc" id="L312" title="All 2 branches missed.">        if (savedRoleMember == null) {</span>
+<span class="nc bnc" id="L313" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L314">                log.debug(&quot;The role member could not be saved. Role member ID: &quot; + roleMemberId + &quot;. Role ID: &quot; + roleId + &quot;. Match value: '&quot; + matchValue + &quot;'&quot;);</span>
+            }
+<span class="nc" id="L316">            raLocaleBean.addMessageError(&quot;role_member_page_error_generic&quot;);</span>
+<span class="nc" id="L317">            return &quot;&quot;;</span>
+        }
+<span class="nc" id="L319">        roleMember = savedRoleMember;</span>
+<span class="nc" id="L320">        roleMemberId = roleMember.getId();</span>
+
+        // If the active filter does not include the newly added role member, then change the filter to show it
+<span class="nc bnc" id="L323" title="All 4 branches missed.">        if (raRoleMembersBean.getCriteriaCaId() != null &amp;&amp; raRoleMembersBean.getCriteriaCaId().intValue() != roleMember.getTokenIssuerId()) {</span>
+<span class="nc bnc" id="L324" title="All 2 branches missed.">            raRoleMembersBean.setCriteriaCaId(caId != RoleMember.NO_ISSUER ? caId : null);</span>
+        }
+
+<span class="nc bnc" id="L327" title="All 4 branches missed.">        if (raRoleMembersBean.getCriteriaTokenType() != null &amp;&amp; !raRoleMembersBean.getCriteriaTokenType().equals(roleMember.getTokenType())) {</span>
+<span class="nc" id="L328">            raRoleMembersBean.setCriteriaTokenType(tokenType);</span>
+        }
+
+<span class="nc bnc" id="L331" title="All 4 branches missed.">        if (raRoleMembersBean.getCriteriaRoleId() != null &amp;&amp; raRoleMembersBean.getCriteriaRoleId().intValue() != roleMember.getRoleId()) {</span>
+<span class="nc" id="L332">            raRoleMembersBean.setCriteriaRoleId(roleId);</span>
+        }
+
+<span class="nc" id="L335">        return &quot;role_members?faces-redirect=true&amp;includeViewParams=true&quot;;</span>
+    }
+
+
+    public String getRemovePageTitle() {
+<span class="nc" id="L340">        return raLocaleBean.getMessage(&quot;remove_role_member_page_title&quot;, StringUtils.defaultString(matchValue));</span>
+    }
+
+    public String getRemoveConfirmationText() {
+<span class="nc bnc" id="L344" title="All 2 branches missed.">        if (role != null) {</span>
+<span class="nc" id="L345">            return raLocaleBean.getMessage(&quot;remove_role_member_page_confirm_with_role&quot;, role.getRoleName());</span>
+        } else {
+<span class="nc" id="L347">            return raLocaleBean.getMessage(&quot;remove_role_member_page_confirm&quot;);</span>
+        }
+    }
+
+    public String delete() throws AuthorizationDeniedException {
+<span class="nc bnc" id="L352" title="All 2 branches missed.">        if (!raMasterApiProxyBean.deleteRoleMember(raAuthenticationBean.getAuthenticationToken(), roleMember.getRoleId(), roleMember.getId())) {</span>
+<span class="nc bnc" id="L353" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L354">                log.debug(&quot;The role member could not be deleted. Role member ID: &quot; + roleMemberId + &quot;. Role ID: &quot; + roleId + &quot;. Match value: '&quot; + matchValue + &quot;'&quot;);</span>
+            }
+<span class="nc" id="L356">            raLocaleBean.addMessageError(&quot;remove_role_member_page_error_generic&quot;);</span>
+<span class="nc" id="L357">            return &quot;&quot;;</span>
+        }
+<span class="nc" id="L359">        return &quot;role_members?faces-redirect=true&amp;includeViewParams=true&quot;;</span>
+    }
+
+    public String cancel() {
+<span class="nc" id="L363">        return &quot;role_members?faces-redirect=true&amp;includeViewParams=true&quot;;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

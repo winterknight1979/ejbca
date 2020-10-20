@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>InternalKeyBindingModifyCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.keybind</a> &gt; <span class="el_source">InternalKeyBindingModifyCommand.java</span></div><h1>InternalKeyBindingModifyCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.cli.keybind;
+
+import java.io.Serializable;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.CaSessionRemote;
+import org.cesecore.keybind.InternalKeyBinding;
+import org.cesecore.keybind.InternalKeyBindingMgmtSessionRemote;
+import org.cesecore.keybind.InternalKeyBindingTrustEntry;
+import org.cesecore.keys.token.CryptoTokenManagementSessionRemote;
+import org.cesecore.util.EjbRemoteHelper;
+import org.cesecore.util.ui.DynamicUiProperty;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+
+/**
+ * See getDescription().
+ * 
+ * @version $Id: InternalKeyBindingModifyCommand.java 27740 2018-01-05 07:24:53Z mikekushner $
+ */
+<span class="nc" id="L45">public class InternalKeyBindingModifyCommand extends RudInternalKeyBindingCommand {</span>
+
+<span class="nc" id="L47">    private static final Logger log = Logger.getLogger(InternalKeyBindingModifyCommand.class);</span>
+
+    private static final String NEXTKEYPAIR_KEY = &quot;--nextkeypair&quot;;
+    private static final String ADDTRUST_KEY = &quot;--addtrust&quot;;
+    private static final String REMOVETRUST_KEY = &quot;--removetrust&quot;;
+
+    private static final String TRUSTARGUMENT_SEPARATOR = &quot;,&quot;;
+
+    // TODO: Implement escape characters for the trusts. Both ',' and ';' are valid in CA names. 
+    // TODO: Test adding and removing multiple trusts
+
+    {
+<span class="nc" id="L59">        registerParameter(new Parameter(NEXTKEYPAIR_KEY, &quot;Alias&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID, ParameterMode.ARGUMENT,</span>
+                &quot;Use of setting the name of the next key pair&quot;));
+<span class="nc" id="L61">        registerParameter(new Parameter(</span>
+                ADDTRUST_KEY,
+                &quot;TrustEntry&quot;,
+                MandatoryMode.OPTIONAL,
+                StandaloneMode.FORBID,
+                ParameterMode.ARGUMENT,
+                &quot;Adds trust entries to the given keybinding. Trust entries can be of the form &lt;CAName[;CertificateSerialNumber]&gt; where the serialnumber is in hex and optional. &quot;
+                        + &quot;Multiple trust entries can be added by separating them with a ',' i.e. &lt;CA1[;CertificateSerialNumber],CA2[;CertificateSerialNumber]&gt;&quot;));
+<span class="nc" id="L69">        registerParameter(new Parameter(</span>
+                REMOVETRUST_KEY,
+                &quot;TrustEntry&quot;,
+                MandatoryMode.OPTIONAL,
+                StandaloneMode.FORBID,
+                ParameterMode.ARGUMENT,
+                &quot;Removes trust entries to the given keybinding. Trust entries can be of the form &lt;CAName[;CertificateSerialNumber]&gt; where the serialnumber is in hex and optional. &quot;
+                        + &quot;Multiple trust entries can be added by separating them with a ',' i.e. &lt;CA1[;CertificateSerialNumber],CA2[;CertificateSerialNumber]&gt;&quot;));
+        //Register type specific properties dynamically
+<span class="nc" id="L78">        Map&lt;String, Map&lt;String, DynamicUiProperty&lt;? extends Serializable&gt;&gt;&gt; typesAndProperties = EjbRemoteHelper.INSTANCE.getRemoteSession(</span>
+<span class="nc" id="L79">                InternalKeyBindingMgmtSessionRemote.class).getAvailableTypesAndProperties();</span>
+<span class="nc bnc" id="L80" title="All 2 branches missed.">        for (Entry&lt;String, Map&lt;String, DynamicUiProperty&lt;? extends Serializable&gt;&gt;&gt; entry : typesAndProperties.entrySet()) {</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">            for (DynamicUiProperty&lt;? extends Serializable&gt; property : entry.getValue().values()) {</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">                if (isParameterRegistered(&quot;-&quot;+property.getName())) {</span>
+                    //Different properties could contain the same keyword. Simply use the same one. 
+<span class="nc" id="L84">                    continue;</span>
+                }
+<span class="nc" id="L86">                Parameter parameter = new Parameter(&quot;-&quot;+property.getName(), &quot;&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID, ParameterMode.ARGUMENT, &quot;&quot;);</span>
+<span class="nc" id="L87">                parameter.setAllowList(false);</span>
+<span class="nc" id="L88">                registerParameter(parameter);</span>
+<span class="nc" id="L89">            }</span>
+<span class="nc" id="L90">        }</span>
+<span class="nc" id="L91">    }</span>
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L95">        return &quot;modify&quot;;</span>
+    }
+
+    @Override
+    public CommandResult executeCommand(Integer internalKeyBindingId, ParameterContainer parameters) throws AuthorizationDeniedException, Exception {
+<span class="nc" id="L100">        final InternalKeyBindingMgmtSessionRemote internalKeyBindingMgmtSession = EjbRemoteHelper.INSTANCE</span>
+<span class="nc" id="L101">                .getRemoteSession(InternalKeyBindingMgmtSessionRemote.class);</span>
+<span class="nc" id="L102">        final CaSessionRemote caSession = EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class);</span>
+<span class="nc" id="L103">        final InternalKeyBinding internalKeyBinding = internalKeyBindingMgmtSession</span>
+<span class="nc" id="L104">                .getInternalKeyBinding(getAdmin(), internalKeyBindingId.intValue());</span>
+
+        // Extract properties      
+<span class="nc" id="L107">        final Map&lt;String, String&gt; propertyMap = new HashMap&lt;String, String&gt;();</span>
+        //Get dynamically loaded properties
+<span class="nc" id="L109">        Map&lt;String, Map&lt;String, DynamicUiProperty&lt;? extends Serializable&gt;&gt;&gt; typesAndProperties = EjbRemoteHelper.INSTANCE.getRemoteSession(</span>
+<span class="nc" id="L110">                InternalKeyBindingMgmtSessionRemote.class).getAvailableTypesAndProperties();</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">        for (String propertyName : typesAndProperties.get(internalKeyBinding.getImplementationAlias()).keySet()) {</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">            if (parameters.containsKey(&quot;-&quot;+propertyName)) {</span>
+<span class="nc" id="L113">                propertyMap.put(propertyName, parameters.get(&quot;-&quot;+propertyName));</span>
+            }
+<span class="nc" id="L115">        }</span>
+        // Extract remove trust entries
+<span class="nc" id="L117">        final List&lt;InternalKeyBindingTrustEntry&gt; removeTrustList = new ArrayList&lt;InternalKeyBindingTrustEntry&gt;();</span>
+<span class="nc" id="L118">        final String removeTrustArguments = parameters.get(REMOVETRUST_KEY);</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">        if (removeTrustArguments != null) {</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">            for (String trustArgument : removeTrustArguments.split(TRUSTARGUMENT_SEPARATOR)) {</span>
+                String value;
+                String key;
+<span class="nc" id="L123">                int indexOfEqualsSign = trustArgument.indexOf(';');</span>
+<span class="nc bnc" id="L124" title="All 2 branches missed.">                if (indexOfEqualsSign == -1) {</span>
+<span class="nc" id="L125">                    value = null;</span>
+<span class="nc" id="L126">                    key = trustArgument;</span>
+                } else {
+<span class="nc" id="L128">                    key = trustArgument.substring(0, indexOfEqualsSign);</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">                    if (trustArgument.length() == indexOfEqualsSign) {</span>
+<span class="nc" id="L130">                        value = null;</span>
+                    } else {
+<span class="nc" id="L132">                        value = trustArgument.substring(indexOfEqualsSign + 1);</span>
+                    }
+                }
+<span class="nc" id="L135">                final CAInfo caInfo = caSession.getCAInfo(getAdmin(), key);</span>
+<span class="nc bnc" id="L136" title="All 2 branches missed.">                if (caInfo == null) {</span>
+<span class="nc" id="L137">                    getLogger().info(&quot; Ignoring trustEntry with unknown CA: &quot; + key);</span>
+
+                } else {
+<span class="nc bnc" id="L140" title="All 2 branches missed.">                    if (value == null) {</span>
+<span class="nc" id="L141">                        removeTrustList.add(new InternalKeyBindingTrustEntry(Integer.valueOf(caInfo.getCAId()), null));</span>
+                    } else {
+                        try {
+<span class="nc" id="L144">                            final BigInteger serialNumber = new BigInteger(value, 16);</span>
+<span class="nc" id="L145">                            removeTrustList.add(new InternalKeyBindingTrustEntry(Integer.valueOf(caInfo.getCAId()), serialNumber));</span>
+<span class="nc" id="L146">                        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L147">                            getLogger().info(&quot; Ignoring trustEntry with invalid certificate serial number: &quot; + value);</span>
+<span class="nc" id="L148">                        }</span>
+                    }
+                }
+            }
+        }
+     // Extract add trust entries
+<span class="nc" id="L154">        final List&lt;InternalKeyBindingTrustEntry&gt; addTrustList = new ArrayList&lt;InternalKeyBindingTrustEntry&gt;();</span>
+<span class="nc" id="L155">        final String addTrustArguments = parameters.get(ADDTRUST_KEY);</span>
+<span class="nc bnc" id="L156" title="All 2 branches missed.">        if (addTrustArguments != null) {</span>
+<span class="nc bnc" id="L157" title="All 2 branches missed.">            for (String trustArgument : addTrustArguments.split(TRUSTARGUMENT_SEPARATOR)) {</span>
+                String value;
+                String key;
+<span class="nc" id="L160">                int indexOfEqualsSign = trustArgument.indexOf(';');</span>
+<span class="nc bnc" id="L161" title="All 2 branches missed.">                if (indexOfEqualsSign == -1) {</span>
+<span class="nc" id="L162">                    value = null;</span>
+<span class="nc" id="L163">                    key = trustArgument;</span>
+                } else {
+<span class="nc" id="L165">                    key = trustArgument.substring(0, indexOfEqualsSign);</span>
+<span class="nc bnc" id="L166" title="All 2 branches missed.">                    if (trustArgument.length() == indexOfEqualsSign) {</span>
+<span class="nc" id="L167">                        value = null;</span>
+                    } else {
+<span class="nc" id="L169">                        value = trustArgument.substring(indexOfEqualsSign + 1);</span>
+                    }
+                }
+<span class="nc" id="L172">                final CAInfo caInfo = caSession.getCAInfo(getAdmin(), key);</span>
+<span class="nc bnc" id="L173" title="All 2 branches missed.">                if (caInfo == null) {</span>
+<span class="nc" id="L174">                    getLogger().info(&quot; Ignoring trustEntry with unknown CA: &quot; + key);</span>
+
+                } else {
+<span class="nc bnc" id="L177" title="All 2 branches missed.">                    if (value == null) {</span>
+<span class="nc" id="L178">                        addTrustList.add(new InternalKeyBindingTrustEntry(Integer.valueOf(caInfo.getCAId()), null));</span>
+                    } else {
+                        try {
+<span class="nc" id="L181">                            final BigInteger serialNumber = new BigInteger(value, 16);</span>
+<span class="nc" id="L182">                            addTrustList.add(new InternalKeyBindingTrustEntry(Integer.valueOf(caInfo.getCAId()), serialNumber));</span>
+<span class="nc" id="L183">                        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L184">                            getLogger().info(&quot; Ignoring trustEntry with invalid certificate serial number: &quot; + value);</span>
+<span class="nc" id="L185">                        }</span>
+                    }
+                }
+
+            }
+        }
+        // Extract nextKeyPair
+<span class="nc" id="L192">        final String nextKeyPairAlias = parameters.get(NEXTKEYPAIR_KEY);</span>
+<span class="nc" id="L193">        boolean modified = false;</span>
+        // Perform nextKeyPair changes
+<span class="nc bnc" id="L195" title="All 2 branches missed.">        if (nextKeyPairAlias != null) {</span>
+<span class="nc bnc" id="L196" title="All 2 branches missed.">            if (&quot;null&quot;.equals(nextKeyPairAlias)) {</span>
+<span class="nc bnc" id="L197" title="All 2 branches missed.">                if (internalKeyBinding.getNextKeyPairAlias() == null) {</span>
+<span class="nc" id="L198">                    getLogger().info(&quot; No nextKeyPairAlias mapping was currently set.&quot;);</span>
+                } else {
+<span class="nc" id="L200">                    getLogger().info(&quot; Removing nextKeyPairAlias mapping.&quot;);</span>
+<span class="nc" id="L201">                    internalKeyBinding.setNextKeyPairAlias(null);</span>
+<span class="nc" id="L202">                    modified = true;</span>
+                }
+            } else {
+<span class="nc" id="L205">                final List&lt;String&gt; availableKeyPairAliases = EjbRemoteHelper.INSTANCE.getRemoteSession(CryptoTokenManagementSessionRemote.class)</span>
+<span class="nc" id="L206">                        .getKeyPairAliases(getAdmin(), internalKeyBinding.getCryptoTokenId());</span>
+<span class="nc bnc" id="L207" title="All 2 branches missed.">                if (internalKeyBinding.getKeyPairAlias().equals(nextKeyPairAlias)) {</span>
+<span class="nc" id="L208">                    getLogger().info(</span>
+                            &quot; Ignoring --nextkeypair with value &quot; + nextKeyPairAlias + &quot;. The value is already used as the current keyPairAlias.&quot;);
+<span class="nc bnc" id="L210" title="All 2 branches missed.">                } else if (!availableKeyPairAliases.contains(nextKeyPairAlias)) {</span>
+<span class="nc" id="L211">                    getLogger().info(</span>
+                            &quot; Ignoring --nextkeypair with value &quot; + nextKeyPairAlias + &quot;. The alias is not present in the bound CryptoToken.&quot;
+<span class="nc" id="L213">                                    + &quot; Available aliases: &quot; + availableKeyPairAliases.toString());</span>
+                } else {
+<span class="nc" id="L215">                    getLogger().info(&quot; Setting nextKeyPairAlias to \&quot;&quot; + nextKeyPairAlias + &quot;\&quot;.&quot;);</span>
+<span class="nc" id="L216">                    internalKeyBinding.setNextKeyPairAlias(nextKeyPairAlias);</span>
+<span class="nc" id="L217">                    modified = true;</span>
+                }
+            }
+        }
+        // Perform trust changes
+<span class="nc" id="L222">        final List&lt;InternalKeyBindingTrustEntry&gt; internalKeyBindingTrustEntries = internalKeyBinding.getTrustedCertificateReferences();</span>
+<span class="nc bnc" id="L223" title="All 2 branches missed.">        for (final InternalKeyBindingTrustEntry internalKeyBindingTrustEntry : removeTrustList) {</span>
+<span class="nc bnc" id="L224" title="All 2 branches missed.">            if (!internalKeyBindingTrustEntries.remove(internalKeyBindingTrustEntry)) {</span>
+<span class="nc" id="L225">                getLogger().info(&quot; Unable to remove non-existing trustEntry: &quot; + internalKeyBindingTrustEntry.toString());</span>
+            } else {
+<span class="nc" id="L227">                getLogger().info(&quot; Removed trustEntry: &quot; + internalKeyBindingTrustEntry.toString());</span>
+<span class="nc" id="L228">                modified = true;</span>
+            }
+<span class="nc" id="L230">        }</span>
+<span class="nc bnc" id="L231" title="All 2 branches missed.">        for (final InternalKeyBindingTrustEntry internalKeyBindingTrustEntry : addTrustList) {</span>
+<span class="nc bnc" id="L232" title="All 2 branches missed.">            if (internalKeyBindingTrustEntries.contains(internalKeyBindingTrustEntry)) {</span>
+<span class="nc" id="L233">                getLogger().info(&quot; Unable to add existing trustEntry: &quot; + internalKeyBindingTrustEntry.toString());</span>
+            } else {
+<span class="nc" id="L235">                internalKeyBindingTrustEntries.add(internalKeyBindingTrustEntry);</span>
+<span class="nc" id="L236">                getLogger().info(&quot; Added trustEntry: &quot; + internalKeyBindingTrustEntry.toString());</span>
+<span class="nc" id="L237">                modified = true;</span>
+            }
+<span class="nc" id="L239">        }</span>
+<span class="nc" id="L240">        internalKeyBinding.setTrustedCertificateReferences(internalKeyBindingTrustEntries);</span>
+        // Perform property changes
+<span class="nc" id="L242">        Map&lt;String, Serializable&gt; validatedProperties = validateProperties(internalKeyBinding.getImplementationAlias(), propertyMap);</span>
+<span class="nc bnc" id="L243" title="All 2 branches missed.">        if (validatedProperties == null) {</span>
+<span class="nc" id="L244">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+        }
+<span class="nc bnc" id="L246" title="All 2 branches missed.">        for (Entry&lt;String, Serializable&gt; entry : validatedProperties.entrySet()) {</span>
+<span class="nc" id="L247">            DynamicUiProperty&lt;? extends Serializable&gt; oldProperty = internalKeyBinding.getProperty(entry.getKey());</span>
+<span class="nc bnc" id="L248" title="All 2 branches missed.">            if (!oldProperty.getValue().equals(entry.getValue())) {</span>
+<span class="nc" id="L249">                internalKeyBinding.setProperty(entry.getKey(), entry.getValue());</span>
+<span class="nc" id="L250">                getLogger().info(&quot; Setting &quot; + entry.getKey() + &quot; to &quot; + String.valueOf(entry.getValue()) + &quot;&quot;);</span>
+<span class="nc" id="L251">                modified = true;</span>
+            }
+
+<span class="nc" id="L254">        }</span>
+        // Persist modifications
+<span class="nc bnc" id="L256" title="All 2 branches missed.">        if (modified) {</span>
+<span class="nc" id="L257">            internalKeyBindingMgmtSession.persistInternalKeyBinding(getAdmin(), internalKeyBinding);</span>
+<span class="nc" id="L258">            getLogger().info(&quot;InternalKeyBinding with id &quot; + internalKeyBindingId.intValue() + &quot; modified successfully.&quot;);</span>
+<span class="nc" id="L259">            return CommandResult.SUCCESS;</span>
+        } else {
+<span class="nc" id="L261">            getLogger().error(&quot;No changes were made to InternalKeyBinding with id &quot; + internalKeyBindingId.intValue() + &quot;.&quot;);</span>
+<span class="nc" id="L262">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+        }
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L268">        return &quot;Modify an existing InternalKeyBinding.&quot;;</span>
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L273">        StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L274">        sb.append(getCommandDescription() + &quot;\n\nOptional Type specific properties are listed below and are written as -propertyname=value, e.g. \&quot;-nonexistingisgood=true\&quot;. \n&quot;);</span>
+<span class="nc" id="L275">        sb.append(showTypesProperties() + &quot;\n&quot;);</span>
+<span class="nc" id="L276">        return sb.toString();</span>
+    }
+
+    protected Logger getLogger() {
+<span class="nc" id="L280">        return log;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

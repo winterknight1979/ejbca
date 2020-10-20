@@ -13,26 +13,44 @@
 package org.cesecore.audit.log;
 
 /**
- * @version $Id: AuditLogResetException.java 17625 2013-09-20 07:12:06Z netmackan $
+ * @version $Id: AuditLogResetException.java 17625 2013-09-20 07:12:06Z
+ *     netmackan $
  */
 public class AuditLogResetException extends Exception {
 
-	private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-	public AuditLogResetException() {
-<span class="nc" id="L23">        super();</span>
-<span class="nc" id="L24">    }</span>
+  /** Construct empty exception. */
+  public AuditLogResetException() {
+<span class="nc" id="L25">    super();</span>
+<span class="nc" id="L26">  }</span>
 
-    public AuditLogResetException(final String message) {
-<span class="nc" id="L27">        super(message);</span>
-<span class="nc" id="L28">    }</span>
+  /**
+   * Construct exception with message.
+   *
+   * @param message Message
+   */
+  public AuditLogResetException(final String message) {
+<span class="nc" id="L34">    super(message);</span>
+<span class="nc" id="L35">  }</span>
 
-    public AuditLogResetException(final Throwable t) {
-<span class="nc" id="L31">        super(t);</span>
-<span class="nc" id="L32">    }</span>
+  /**
+   * Exception with cause.
+   *
+   * @param t Cause
+   */
+  public AuditLogResetException(final Throwable t) {
+<span class="nc" id="L43">    super(t);</span>
+<span class="nc" id="L44">  }</span>
 
-    public AuditLogResetException(final String s, final Throwable t) {
-<span class="nc" id="L35">        super(s, t);</span>
-<span class="nc" id="L36">    }</span>
+  /**
+   * Exception with cause and message.
+   *
+   * @param s Message
+   * @param t Cause
+   */
+  public AuditLogResetException(final String s, final Throwable t) {
+<span class="nc" id="L53">    super(s, t);</span>
+<span class="nc" id="L54">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

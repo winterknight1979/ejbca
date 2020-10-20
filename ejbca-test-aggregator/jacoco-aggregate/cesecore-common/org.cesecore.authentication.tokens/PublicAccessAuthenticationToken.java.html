@@ -16,145 +16,197 @@ import java.io.Serializable;
 import java.security.Principal;
 import java.util.Arrays;
 import java.util.HashSet;
-
 import org.cesecore.authentication.AuthenticationFailedException;
 import org.cesecore.authorization.user.AccessUserAspect;
 
 /**
- * AuthenticationToken representing a user that has provided no means of authentication,
- * e.g. a client accessing an interface like public RA web pages.
- * 
- * @version $Id: PublicAccessAuthenticationToken.java 26057 2017-06-22 08:08:34Z anatom $
+ * AuthenticationToken representing a user that has provided no means of
+ * authentication, e.g. a client accessing an interface like public RA web
+ * pages.
+ *
+ * @version $Id: PublicAccessAuthenticationToken.java 26057 2017-06-22 08:08:34Z
+ *     anatom $
  */
-public class PublicAccessAuthenticationToken extends NestableAuthenticationToken {
+public class PublicAccessAuthenticationToken
+    extends NestableAuthenticationToken {
 
-    /** Public access to the RA. Compare to PublicWebPrincipal which serves the same purpose, but is used in the PublicWeb */
-    public static class PublicAccessPrincipal implements Principal, Serializable {
-        private static final long serialVersionUID = 1L;
-        private final String principal;
-
-<span class="fc" id="L36">        public PublicAccessPrincipal(final String principal) {</span>
-<span class="fc" id="L37">            this.principal = principal;</span>
-<span class="fc" id="L38">        }</span>
-
-        @Override
-        public String getName() {
-<span class="fc" id="L42">            return principal;</span>
-        }
-    }
-
-    private static class PublicAccessCredential implements Serializable {
-        private static final long serialVersionUID = 1L;
-        private final boolean confidentialTransport;
-
-<span class="fc" id="L50">        public PublicAccessCredential(final boolean confidentialTransport) {</span>
-<span class="fc" id="L51">            this.confidentialTransport = confidentialTransport;</span>
-<span class="fc" id="L52">        }</span>
-
-        public boolean isConfidentialTransport() {
-<span class="fc" id="L55">            return confidentialTransport;</span>
-        }
-    }
-
+  /**
+   * Public access to the RA. Compare to PublicWebPrincipal which serves the
+   * same purpose, but is used in the PublicWeb.
+   */
+  public static class PublicAccessPrincipal implements Principal, Serializable {
     private static final long serialVersionUID = 1L;
-<span class="fc" id="L60">    public static final PublicAccessAuthenticationTokenMetaData metaData = new PublicAccessAuthenticationTokenMetaData();</span>
-    
-    private final PublicAccessPrincipal principal;
-    private final PublicAccessCredential credential;
+    /** Principal. */
+    private final String principal;
 
-    @Deprecated
-    public PublicAccessAuthenticationToken(final String principal) {
-<span class="nc" id="L67">        this(principal, false);</span>
-<span class="nc" id="L68">    }</span>
-
-    public PublicAccessAuthenticationToken(final String principal, final boolean confidentialTransport) {
-<span class="fc" id="L71">        super(new HashSet&lt;&gt;(Arrays.asList(new PublicAccessPrincipal(principal))),</span>
-<span class="fc" id="L72">                new HashSet&lt;&gt;(Arrays.asList(new PublicAccessCredential(confidentialTransport))));</span>
-<span class="fc" id="L73">        this.principal = new PublicAccessPrincipal(principal);</span>
-<span class="fc" id="L74">        this.credential = new PublicAccessCredential(confidentialTransport);</span>
-<span class="fc" id="L75">    }</span>
+    /**
+     * Constrictor.
+     *
+     * @param aPrincipal principal
+     */
+<span class="fc" id="L47">    public PublicAccessPrincipal(final String aPrincipal) {</span>
+<span class="fc" id="L48">      this.principal = aPrincipal;</span>
+<span class="fc" id="L49">    }</span>
 
     @Override
-    public boolean matches(AccessUserAspect accessUser) throws AuthenticationFailedException {
-        // Protect against spoofing by checking if this token was created locally
-<span class="nc bnc" id="L80" title="All 2 branches missed.">        if (!super.isCreatedInThisJvm()) {</span>
-<span class="nc" id="L81">            return false;</span>
-        }
-<span class="nc bnc" id="L83" title="All 2 branches missed.">        if (!matchTokenType(accessUser.getTokenType())) {</span>
-<span class="nc" id="L84">            return false;</span>
-        }
-<span class="nc" id="L86">        final PublicAccessMatchValue matchValue = (PublicAccessMatchValue) getMatchValueFromDatabaseValue(accessUser.getMatchWith());</span>
-<span class="nc bnc" id="L87" title="All 4 branches missed.">        switch (matchValue) {</span>
-        case TRANSPORT_CONFIDENTIAL:
-<span class="nc" id="L89">            return credential.isConfidentialTransport();</span>
-        case TRANSPORT_PLAIN:
-<span class="nc bnc" id="L91" title="All 2 branches missed.">            return !credential.isConfidentialTransport();</span>
-        case TRANSPORT_ANY:
-<span class="nc" id="L93">            return true;</span>
-        default:
-<span class="nc" id="L95">            return false;</span>
-        }
+    public String getName() {
+<span class="fc" id="L53">      return principal;</span>
     }
-    
-    @Override
-    public int getPreferredMatchKey() {
-<span class="nc" id="L101">        return AuthenticationToken.NO_PREFERRED_MATCH_KEY; // not applicable to this type of authentication token</span>
-    }
-    
-    @Override
-    public String getPreferredMatchValue() {
-<span class="nc" id="L106">        return null;</span>
-    }
+  }
 
-    /** Returns information of the entity this authentication token belongs to. */
-    @Override
-    public String toString() {
-<span class="nc" id="L112">        return super.toString();</span>
-    }
+  private static class PublicAccessCredential implements Serializable {
+    private static final long serialVersionUID = 1L;
+    /** Should we encrypt. */
+    private final boolean confidentialTransport;
 
-    /** Override the default Principal.getName() when doing toString on this object. */
-    @Override
-    protected String toStringOverride() {
-<span class="nc bnc" id="L118" title="All 2 branches missed.">        return principal.getName() + (credential.isConfidentialTransport() ? &quot; (TRANSPORT_CONFIDENTIAL)&quot; : &quot; (TRANSPORT_PLAIN)&quot;);</span>
-    }
+<span class="fc" id="L62">    PublicAccessCredential(final boolean isConfidentialTransport) {</span>
+<span class="fc" id="L63">      this.confidentialTransport = isConfidentialTransport;</span>
+<span class="fc" id="L64">    }</span>
 
-    @Override
-    public int hashCode() {
-<span class="pc bpc" id="L123" title="1 of 2 branches missed.">        int hashCode = 4711 * 1 + ((principal.getName() == null) ? 0 : principal.getName().hashCode());</span>
-<span class="pc bpc" id="L124" title="1 of 2 branches missed.">        hashCode *= 17 + (credential.isConfidentialTransport() ? 0 : 1);</span>
-<span class="fc" id="L125">        return hashCode;</span>
+    public boolean isConfidentialTransport() {
+<span class="fc" id="L67">      return confidentialTransport;</span>
     }
+  }
 
-    @Override
-    public boolean equals(final Object obj) {
-<span class="pc bpc" id="L130" title="1 of 2 branches missed.">        if (this == obj) {</span>
-<span class="fc" id="L131">            return true;</span>
-        }
-<span class="nc bnc" id="L133" title="All 2 branches missed.">        if (obj == null) {</span>
-<span class="nc" id="L134">            return false;</span>
-        }
-<span class="nc bnc" id="L136" title="All 2 branches missed.">        if (getClass() != obj.getClass()) {</span>
-<span class="nc" id="L137">            return false;</span>
-        }
-<span class="nc" id="L139">        PublicAccessAuthenticationToken other = (PublicAccessAuthenticationToken) obj;</span>
-<span class="nc bnc" id="L140" title="All 2 branches missed.">        if (principal.getName() == null) {</span>
-<span class="nc bnc" id="L141" title="All 2 branches missed.">            if (other.principal.getName() != null) {</span>
-<span class="nc" id="L142">                return false;</span>
-            }
-<span class="nc bnc" id="L144" title="All 2 branches missed.">        } else if (!principal.getName().equals(other.principal.getName())) {</span>
-<span class="nc" id="L145">            return false;</span>
-        }
-<span class="nc bnc" id="L147" title="All 2 branches missed.">        return credential.isConfidentialTransport()==other.credential.isConfidentialTransport();</span>
-    }
+  private static final long serialVersionUID = 1L;
+  /** Metadata. */
+<span class="fc" id="L73">  public static final PublicAccessAuthenticationTokenMetaData METADATA =</span>
+      new PublicAccessAuthenticationTokenMetaData();
 
-    @Override
-    protected String generateUniqueId() {
-<span class="nc" id="L152">        return generateUniqueId(super.isCreatedInThisJvm(), principal.getName(), credential.isConfidentialTransport()) + &quot;;&quot; + super.generateUniqueId();</span>
-    }
+  /** Principal. */
+  private final PublicAccessPrincipal principal;
+  /** Credential. */
+  private final PublicAccessCredential credential;
 
-    @Override
-    public AuthenticationTokenMetaData getMetaData() {
-<span class="nc" id="L157">        return metaData;</span>
+  /**
+   * Constructor.
+   *
+   * @param aPrincipal Proncipal.
+   */
+  @Deprecated
+  public PublicAccessAuthenticationToken(final String aPrincipal) {
+<span class="nc" id="L88">    this(aPrincipal, false);</span>
+<span class="nc" id="L89">  }</span>
+
+  /**
+   * Constructor.
+   *
+   * @param aPrincipal Principal
+   * @param confidentialTransport Transport
+   */
+  public PublicAccessAuthenticationToken(
+      final String aPrincipal, final boolean confidentialTransport) {
+<span class="fc" id="L99">    super(</span>
+<span class="fc" id="L100">        new HashSet&lt;&gt;(Arrays.asList(new PublicAccessPrincipal(aPrincipal))),</span>
+        new HashSet&lt;&gt;(
+<span class="fc" id="L102">            Arrays.asList(new PublicAccessCredential(confidentialTransport))));</span>
+<span class="fc" id="L103">    this.principal = new PublicAccessPrincipal(aPrincipal);</span>
+<span class="fc" id="L104">    this.credential = new PublicAccessCredential(confidentialTransport);</span>
+<span class="fc" id="L105">  }</span>
+
+  @Override
+  public boolean matches(final AccessUserAspect accessUser)
+      throws AuthenticationFailedException {
+    // Protect against spoofing by checking if this
+    // token was created locally
+<span class="nc bnc" id="L112" title="All 2 branches missed.">    if (!super.isCreatedInThisJvm()) {</span>
+<span class="nc" id="L113">      return false;</span>
     }
+<span class="nc bnc" id="L115" title="All 2 branches missed.">    if (!matchTokenType(accessUser.getTokenType())) {</span>
+<span class="nc" id="L116">      return false;</span>
+    }
+<span class="nc" id="L118">    final PublicAccessMatchValue matchValue =</span>
+        (PublicAccessMatchValue)
+<span class="nc" id="L120">            getMatchValueFromDatabaseValue(accessUser.getMatchWith());</span>
+<span class="nc bnc" id="L121" title="All 4 branches missed.">    switch (matchValue) {</span>
+      case TRANSPORT_CONFIDENTIAL:
+<span class="nc" id="L123">        return credential.isConfidentialTransport();</span>
+      case TRANSPORT_PLAIN:
+<span class="nc bnc" id="L125" title="All 2 branches missed.">        return !credential.isConfidentialTransport();</span>
+      case TRANSPORT_ANY:
+<span class="nc" id="L127">        return true;</span>
+      default:
+<span class="nc" id="L129">        return false;</span>
+    }
+  }
+
+  @Override
+  public int getPreferredMatchKey() {
+<span class="nc" id="L135">    return AuthenticationToken.NO_PREFERRED_MATCH_KEY;</span>
+    // not applicable to this type of authentication token
+  }
+
+  @Override
+  public String getPreferredMatchValue() {
+<span class="nc" id="L141">    return null;</span>
+  }
+
+  /** Returns information of the entity this authentication token belongs to. */
+  @Override
+  public String toString() {
+<span class="nc" id="L147">    return super.toString();</span>
+  }
+
+  /**
+   * Override the default Principal.getName() when doing toString on this
+   * object.
+   */
+  @Override
+  protected String toStringOverride() {
+<span class="nc" id="L156">    return principal.getName()</span>
+<span class="nc bnc" id="L157" title="All 2 branches missed.">        + (credential.isConfidentialTransport()</span>
+<span class="nc" id="L158">            ? &quot; (TRANSPORT_CONFIDENTIAL)&quot;</span>
+<span class="nc" id="L159">            : &quot; (TRANSPORT_PLAIN)&quot;);</span>
+  }
+
+  @Override
+  public int hashCode() {
+<span class="fc" id="L164">    int hashCode =</span>
+        4711 * 1
+<span class="pc bpc" id="L166" title="1 of 2 branches missed.">            + ((principal.getName() == null)</span>
+<span class="nc" id="L167">                ? 0</span>
+<span class="fc" id="L168">                : principal.getName().hashCode());</span>
+<span class="pc bpc" id="L169" title="1 of 2 branches missed.">    hashCode *= 17 + (credential.isConfidentialTransport() ? 0 : 1);</span>
+<span class="fc" id="L170">    return hashCode;</span>
+  }
+
+  @Override
+  public boolean equals(final Object obj) {
+<span class="pc bpc" id="L175" title="1 of 2 branches missed.">    if (this == obj) {</span>
+<span class="fc" id="L176">      return true;</span>
+    }
+<span class="nc bnc" id="L178" title="All 2 branches missed.">    if (obj == null) {</span>
+<span class="nc" id="L179">      return false;</span>
+    }
+<span class="nc bnc" id="L181" title="All 2 branches missed.">    if (getClass() != obj.getClass()) {</span>
+<span class="nc" id="L182">      return false;</span>
+    }
+<span class="nc" id="L184">    PublicAccessAuthenticationToken other =</span>
+        (PublicAccessAuthenticationToken) obj;
+<span class="nc bnc" id="L186" title="All 2 branches missed.">    if (principal.getName() == null) {</span>
+<span class="nc bnc" id="L187" title="All 2 branches missed.">      if (other.principal.getName() != null) {</span>
+<span class="nc" id="L188">        return false;</span>
+      }
+<span class="nc bnc" id="L190" title="All 2 branches missed.">    } else if (!principal.getName().equals(other.principal.getName())) {</span>
+<span class="nc" id="L191">      return false;</span>
+    }
+<span class="nc" id="L193">    return credential.isConfidentialTransport()</span>
+<span class="nc bnc" id="L194" title="All 2 branches missed.">        == other.credential.isConfidentialTransport();</span>
+  }
+
+  @Override
+  protected String generateUniqueId() {
+<span class="nc" id="L199">    return generateUniqueId(</span>
+<span class="nc" id="L200">            super.isCreatedInThisJvm(),</span>
+<span class="nc" id="L201">            principal.getName(),</span>
+<span class="nc" id="L202">            credential.isConfidentialTransport())</span>
+        + &quot;;&quot;
+<span class="nc" id="L204">        + super.generateUniqueId();</span>
+  }
+
+  @Override
+  public AuthenticationTokenMetaData getMetaData() {
+<span class="nc" id="L209">    return METADATA;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

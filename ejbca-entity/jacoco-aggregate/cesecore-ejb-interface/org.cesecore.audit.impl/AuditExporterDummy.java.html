@@ -14,46 +14,40 @@ package org.cesecore.audit.impl;
 
 import java.io.IOException;
 import java.io.OutputStream;
-
 import org.cesecore.audit.audit.AuditExporter;
 
 /**
  * Dummy implementation of AuditExporter that does nothing.
- * 
+ *
  * @version $Id: AuditExporterDummy.java 17625 2013-09-20 07:12:06Z netmackan $
  */
-<span class="nc" id="L25">public class AuditExporterDummy implements AuditExporter {</span>
+<span class="nc" id="L24">public class AuditExporterDummy implements AuditExporter {</span>
 
-	@Override
-	public void close() throws IOException {
-<span class="nc" id="L29">	}</span>
+  @Override
+<span class="nc" id="L27">  public void close() throws IOException { }</span>
 
-	@Override
-	public void setOutputStream(OutputStream outputStream) throws IOException {
-<span class="nc" id="L33">	}</span>
+  @Override
+  public void setOutputStream(final OutputStream outputStream)
+<span class="nc" id="L31">      throws IOException { }</span>
 
-	@Override
-	public void writeEndObject() throws IOException {
-<span class="nc" id="L37">	}</span>
+  @Override
+<span class="nc" id="L34">  public void writeEndObject() throws IOException { }</span>
 
-	@Override
-	public void writeField(String key, long value) throws IOException {
-<span class="nc" id="L41">	}</span>
+  @Override
+  public void writeField(final String key, final long value)
+<span class="nc" id="L38">      throws IOException { }</span>
 
-	@Override
-	public void writeStartObject() throws IOException {
-<span class="nc" id="L45">	}</span>
+  @Override
+<span class="nc" id="L41">  public void writeStartObject() throws IOException { }</span>
 
-	@Override
-	public void writeField(String key, String value) throws IOException {
-<span class="nc" id="L49">	}</span>
-	
-    @Override
-    public void startObjectLabel(String label) throws IOException {
-<span class="nc" id="L53">    }</span>
+  @Override
+  public void writeField(final String key, final String value)
+<span class="nc" id="L45">      throws IOException { }</span>
 
-    @Override
-    public void endObjectLabel() throws IOException {
-<span class="nc" id="L57">    }</span>
+  @Override
+<span class="nc" id="L48">  public void startObjectLabel(final String label) throws IOException { }</span>
+
+  @Override
+<span class="nc" id="L51">  public void endObjectLabel() throws IOException { }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

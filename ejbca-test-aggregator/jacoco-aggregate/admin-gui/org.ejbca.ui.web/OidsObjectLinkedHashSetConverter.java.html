@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>OidsObjectLinkedHashSetConverter.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">admin-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web</a> &gt; <span class="el_source">OidsObjectLinkedHashSetConverter.java</span></div><h1>OidsObjectLinkedHashSetConverter.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.web;
+
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+
+import javax.faces.application.FacesMessage;
+import javax.faces.component.UIComponent;
+import javax.faces.context.FacesContext;
+import javax.faces.convert.Converter;
+import javax.faces.convert.ConverterException;
+import javax.faces.convert.FacesConverter;
+
+
+/**
+ * A JSF converter that makes it possible to input a comma separated list of Oids Strings (2.5.29.15,2.5.29.37,2.5.29.32,etc) and store it into an LinkedHashSet&amp;lt;String&amp;gt;.
+ * The converter makes validation that it is Oids Strings that are input.
+ * 
+ * To Use:
+ * &amp;lt;h:inputText ... converter=&quot;org.ejbca.OidsObjectLinkedHashSetConverter&quot;/&amp;gt;
+ *  
+ * @version $Id: OidsObjectLinkedHashSetConverter.java 28844 2018-05-04 08:31:02Z samuellb $
+ */
+@FacesConverter(value=&quot;org.ejbca.OidsObjectLinkedHashSetConverter&quot;)
+<span class="nc" id="L37">public class OidsObjectLinkedHashSetConverter implements Converter {</span>
+<span class="nc" id="L38">    final String oid_pattern = &quot;^[0-9]+(\\.?[0-9]+)*$&quot;;</span>
+    
+    @Override
+    public Object getAsObject(final FacesContext context, final UIComponent component, final String values) {
+
+<span class="nc" id="L43">        final LinkedHashSet&lt;String&gt; result = new LinkedHashSet&lt;&gt;(); </span>
+<span class="nc bnc" id="L44" title="All 2 branches missed.">        for (String value : values.split(&quot;,&quot;, 0)) {           </span>
+<span class="nc" id="L45">            final String trimmedValue = value.trim();</span>
+<span class="nc bnc" id="L46" title="All 2 branches missed.">            if (!trimmedValue.isEmpty()) {</span>
+                // Validate the OID object here, as this is called when we save the value from the GUI
+<span class="nc bnc" id="L48" title="All 2 branches missed.">                if(!trimmedValue.matches(oid_pattern)){                </span>
+<span class="nc" id="L49">                    throw new ConverterException(new FacesMessage(FacesMessage.SEVERITY_ERROR, &quot;The value '&quot; + value + &quot;' is not a valid OID object.&quot;,&quot;&quot;));                </span>
+                }
+<span class="nc" id="L51">                result.add(trimmedValue);</span>
+            }
+        }       
+<span class="nc" id="L54">        return result;</span>
+    }
+
+    @Override
+    public String getAsString(final FacesContext context, final UIComponent component, final Object value) {
+<span class="nc bnc" id="L59" title="All 2 branches missed.">        if (value instanceof LinkedHashSet&lt;?&gt;) {</span>
+<span class="nc" id="L60">            final StringBuffer result = new StringBuffer();</span>
+
+            @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L63">            final LinkedHashSet&lt;String&gt; lhs = (LinkedHashSet&lt;String&gt;) value;</span>
+<span class="nc" id="L64">            final List&lt;?&gt; list = new ArrayList&lt;&gt;(lhs);</span>
+
+<span class="nc bnc" id="L66" title="All 2 branches missed.">            for (int i = 0; i &lt; list.size(); i++) {               </span>
+<span class="nc bnc" id="L67" title="All 2 branches missed.">                if (list.get(i) instanceof String) {</span>
+<span class="nc" id="L68">                    result.append(list.get(i));</span>
+<span class="nc bnc" id="L69" title="All 2 branches missed.">                    if (i &lt; list.size()-1) {</span>
+<span class="nc" id="L70">                        result.append(&quot;, &quot;);</span>
+                    }
+                } else {
+<span class="nc" id="L73">                    throw new IllegalArgumentException( &quot;Cannot convert &quot; + value + &quot; object to String in OidsObjectLinkedHashSetConverter.&quot; );</span>
+                }
+            }
+<span class="nc" id="L76">            return result.toString();</span>
+        } else {
+<span class="nc" id="L78">            throw new IllegalArgumentException( &quot;Cannot convert &quot; + value + &quot; object to List in OidsObjectLinkedHashSetConverter.&quot; );</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

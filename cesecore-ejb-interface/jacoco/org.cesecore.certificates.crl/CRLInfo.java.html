@@ -9,7 +9,7 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.crl;
 
 import java.io.Serializable;
@@ -21,24 +21,60 @@ import java.util.Date;
  * @version $Id: CRLInfo.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 public class CRLInfo implements Serializable {
-    
-    private static final long serialVersionUID = 4942836797714142516L;
-    protected String subjectdn;
-    protected int lastcrlnumber;
-    protected Date thisupdate;
-    protected Date nextupdate;
-    
-<span class="nc" id="L31">    public CRLInfo(String subjectdn, int lastcrlnumber, long thisupdate, long nextupdate){</span>
-<span class="nc" id="L32">      this.subjectdn = subjectdn;</span>
-<span class="nc" id="L33">      this.lastcrlnumber = lastcrlnumber;</span>
-<span class="nc" id="L34">      this.thisupdate = new Date(thisupdate);</span>
-<span class="nc" id="L35">      this.nextupdate = new Date(nextupdate);</span>
-<span class="nc" id="L36">    }</span>
-    
-<span class="nc" id="L38">    public String getSubjectDN() {return subjectdn;}</span>
-<span class="nc" id="L39">    public int getLastCRLNumber() { return lastcrlnumber; }</span>
-<span class="nc" id="L40">    public Date getCreateDate() { return thisupdate; }</span>
-<span class="nc" id="L41">    public Date getExpireDate() { return nextupdate; }</span>
-    
+
+  private static final long serialVersionUID = 4942836797714142516L;
+  /** DN. */
+  protected String subjectdn;
+  /** Number. */
+  protected int lastcrlnumber;
+  /** Date. */
+  protected Date thisupdate;
+  /** Date. */
+  protected Date nextupdate;
+
+  /**
+   * @param aSubjectdn DN
+   * @param theLastcrlnumber Number
+   * @param theLastupdate Date
+   * @param theNextupdate Date
+   */
+  public CRLInfo(
+      final String aSubjectdn,
+      final int theLastcrlnumber,
+      final long theLastupdate,
+<span class="nc" id="L45">      final long theNextupdate) {</span>
+<span class="nc" id="L46">    this.subjectdn = aSubjectdn;</span>
+<span class="nc" id="L47">    this.lastcrlnumber = theLastcrlnumber;</span>
+<span class="nc" id="L48">    this.thisupdate = new Date(theLastupdate);</span>
+<span class="nc" id="L49">    this.nextupdate = new Date(theNextupdate);</span>
+<span class="nc" id="L50">  }</span>
+
+  /**
+   * @return DN
+   */
+  public String getSubjectDN() {
+<span class="nc" id="L56">    return subjectdn;</span>
+  }
+
+  /**
+   * @return Number
+   */
+  public int getLastCRLNumber() {
+<span class="nc" id="L63">    return lastcrlnumber;</span>
+  }
+
+  /**
+   * @return Date
+   */
+  public Date getCreateDate() {
+<span class="nc" id="L70">    return thisupdate;</span>
+  }
+
+  /**
+   * @return Date
+   */
+  public Date getExpireDate() {
+<span class="nc" id="L77">    return nextupdate;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

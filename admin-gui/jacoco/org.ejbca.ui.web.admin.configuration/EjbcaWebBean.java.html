@@ -1,0 +1,1703 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EjbcaWebBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Administration GUI</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.configuration</a> &gt; <span class="el_source">EjbcaWebBean.java</span></div><h1>EjbcaWebBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.web.admin.configuration;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.math.BigInteger;
+import java.net.HttpURLConnection;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.net.URL;
+import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
+import java.security.cert.X509Certificate;
+import java.sql.SQLException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TimeZone;
+import java.util.TreeMap;
+
+import javax.ejb.EJBException;
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.NumberUtils;
+import org.apache.log4j.Logger;
+import org.bouncycastle.util.encoders.Hex;
+import org.cesecore.audit.enums.EventStatus;
+import org.cesecore.audit.log.SecurityEventsLoggerSessionLocal;
+import org.cesecore.authentication.AuthenticationFailedException;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authentication.tokens.PublicAccessAuthenticationToken;
+import org.cesecore.authentication.tokens.X509CertificateAuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.authorization.control.StandardRules;
+import org.cesecore.certificates.ca.CA;
+import org.cesecore.certificates.ca.CAConstants;
+import org.cesecore.certificates.ca.CADoesntExistsException;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.certificates.certificate.CertificateConstants;
+import org.cesecore.certificates.certificate.CertificateStoreSessionLocal;
+import org.cesecore.certificates.certificate.certextensions.AvailableCustomCertificateExtensionsConfiguration;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSessionLocal;
+import org.cesecore.certificates.util.DNFieldExtractor;
+import org.cesecore.config.AvailableExtendedKeyUsagesConfiguration;
+import org.cesecore.configuration.GlobalConfigurationSessionLocal;
+import org.cesecore.keys.util.KeyTools;
+import org.cesecore.roles.management.RoleSessionLocal;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.StringTools;
+import org.cesecore.util.ValidityDate;
+import org.ejbca.config.CmpConfiguration;
+import org.ejbca.config.EstConfiguration;
+import org.ejbca.config.GlobalConfiguration;
+import org.ejbca.config.WebConfiguration;
+import org.ejbca.core.ejb.approval.ApprovalProfileSessionLocal;
+import org.ejbca.core.ejb.audit.enums.EjbcaEventTypes;
+import org.ejbca.core.ejb.audit.enums.EjbcaModuleTypes;
+import org.ejbca.core.ejb.audit.enums.EjbcaServiceTypes;
+import org.ejbca.core.ejb.authentication.web.WebAuthenticationProviderSessionLocal;
+import org.ejbca.core.ejb.ca.caadmin.CAAdminSessionLocal;
+import org.ejbca.core.ejb.ca.publisher.PublisherSessionLocal;
+import org.ejbca.core.ejb.hardtoken.HardTokenSessionLocal;
+import org.ejbca.core.ejb.ra.EndEntityManagementSessionLocal;
+import org.ejbca.core.ejb.ra.raadmin.AdminPreferenceSessionLocal;
+import org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSessionLocal;
+import org.ejbca.core.ejb.upgrade.UpgradeSessionLocal;
+import org.ejbca.core.model.approval.profile.ApprovalProfile;
+import org.ejbca.core.model.hardtoken.HardTokenIssuerInformation;
+import org.ejbca.core.model.ra.RAAuthorization;
+import org.ejbca.core.model.ra.raadmin.AdminPreference;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfile;
+import org.ejbca.core.model.util.EjbLocalHelper;
+import org.ejbca.core.model.util.EnterpriseEjbLocalHelper;
+import org.ejbca.util.HTMLTools;
+
+/**
+ * The main bean for the web interface, it contains all basic functions.
+ *
+ * @version $Id: EjbcaWebBean.java 34360 2020-01-23 09:25:05Z samuellb $
+ */
+public class EjbcaWebBean implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+<span class="nc" id="L117">    private static Logger log = Logger.getLogger(EjbcaWebBean.class);</span>
+
+<span class="nc" id="L119">    private final EjbLocalHelper ejbLocalHelper = new EjbLocalHelper();</span>
+<span class="nc" id="L120">    private final EnterpriseEjbLocalHelper enterpriseEjbLocalHelper = new EnterpriseEjbLocalHelper();</span>
+<span class="nc" id="L121">    private final AdminPreferenceSessionLocal adminPreferenceSession = ejbLocalHelper.getAdminPreferenceSession();</span>
+<span class="nc" id="L122">    private final ApprovalProfileSessionLocal approvalProfileSession = ejbLocalHelper.getApprovalProfileSession();</span>
+<span class="nc" id="L123">    private final AuthorizationSessionLocal authorizationSession = ejbLocalHelper.getAuthorizationSession();</span>
+<span class="nc" id="L124">    private final CAAdminSessionLocal caAdminSession = ejbLocalHelper.getCaAdminSession();</span>
+<span class="nc" id="L125">    private final CaSessionLocal caSession = ejbLocalHelper.getCaSession();</span>
+<span class="nc" id="L126">    private final CertificateProfileSessionLocal certificateProfileSession = ejbLocalHelper.getCertificateProfileSession();</span>
+<span class="nc" id="L127">    private final CertificateStoreSessionLocal certificateStoreSession = ejbLocalHelper.getCertificateStoreSession();</span>
+<span class="nc" id="L128">    private final EndEntityManagementSessionLocal endEntityManagementSession = ejbLocalHelper.getEndEntityManagementSession();</span>
+<span class="nc" id="L129">    private final EndEntityProfileSessionLocal endEntityProfileSession = ejbLocalHelper.getEndEntityProfileSession();</span>
+<span class="nc" id="L130">    private final HardTokenSessionLocal hardTokenSession = ejbLocalHelper.getHardTokenSession();</span>
+<span class="nc" id="L131">    private final PublisherSessionLocal publisherSession = ejbLocalHelper.getPublisherSession();</span>
+<span class="nc" id="L132">    private final SecurityEventsLoggerSessionLocal auditSession = ejbLocalHelper.getSecurityEventsLoggerSession();</span>
+<span class="nc" id="L133">    private final RoleSessionLocal roleSession = ejbLocalHelper.getRoleSession();</span>
+<span class="nc" id="L134">    private final UpgradeSessionLocal upgradeSession = ejbLocalHelper.getUpgradeSession();</span>
+<span class="nc" id="L135">    private final GlobalConfigurationSessionLocal globalConfigurationSession = ejbLocalHelper.getGlobalConfigurationSession();</span>
+<span class="nc" id="L136">    private final WebAuthenticationProviderSessionLocal authenticationSession = ejbLocalHelper.getWebAuthenticationProviderSession();</span>
+
+    private AdminPreference currentAdminPreference;
+    private GlobalConfiguration globalconfiguration;
+<span class="nc" id="L140">    private CmpConfiguration cmpconfiguration = null;</span>
+<span class="nc" id="L141">    private CmpConfiguration cmpConfigForEdit = null;</span>
+<span class="nc" id="L142">    private EstConfiguration estconfiguration = null;</span>
+<span class="nc" id="L143">    private EstConfiguration estConfigForEdit = null;</span>
+<span class="nc" id="L144">    private AvailableExtendedKeyUsagesConfiguration availableExtendedKeyUsagesConfig = null;</span>
+<span class="nc" id="L145">    private AvailableCustomCertificateExtensionsConfiguration availableCustomCertExtensionsConfig = null;</span>
+<span class="nc" id="L146">    private ServletContext servletContext = null;</span>
+    private WebLanguages adminsweblanguage;
+<span class="nc" id="L148">    private String usercommonname = &quot;&quot;;</span>
+    private String certificateFingerprint; // Unique key to identify the admin in this session. Usually a hash of the admin's certificate
+    private String authenticationTokenTlsSessionId; // Keep the currect TLS session ID so we can detect changes
+<span class="nc" id="L151">    private boolean initialized = false;</span>
+<span class="nc" id="L152">    private boolean errorpage_initialized = false;</span>
+    private AuthenticationToken administrator;
+    private String requestScheme;
+    private String requestServerName;
+    private int requestServerPort;
+
+    /*
+     * We should make this configurable, so GUI client can use their own time zone rather than the
+     * servers. Using JavaScript's &quot;new Date().getTimezoneOffset()&quot; in a cookie will not work on
+     * the first load of the GUI, so a configurable parameter in the user's preferences is probably
+     * the way to go.
+     */
+<span class="nc" id="L164">    private final TimeZone timeZone = ValidityDate.TIMEZONE_SERVER;</span>
+
+    /** Creates a new instance of EjbcaWebBean */
+<span class="nc" id="L167">    public EjbcaWebBean() {</span>
+<span class="nc" id="L168">    }</span>
+
+    private void commonInit() throws Exception {
+<span class="nc" id="L171">        reloadGlobalConfiguration();</span>
+<span class="nc" id="L172">        reloadCmpConfiguration();</span>
+<span class="nc" id="L173">        reloadAvailableExtendedKeyUsagesConfiguration();</span>
+<span class="nc" id="L174">        reloadAvailableCustomCertExtensionsConfiguration();</span>
+<span class="nc" id="L175">    }</span>
+
+    private X509Certificate getClientX509Certificate(final HttpServletRequest httpServletRequest) {
+<span class="nc" id="L178">        final X509Certificate[] certificates = (X509Certificate[]) httpServletRequest.getAttribute(&quot;javax.servlet.request.X509Certificate&quot;);</span>
+<span class="nc bnc" id="L179" title="All 4 branches missed.">        return certificates == null || certificates.length==0 ? null : certificates[0];</span>
+    }
+
+    private String getTlsSessionId(final HttpServletRequest httpServletRequest) {
+        final String sslSessionIdServletsStandard;
+<span class="nc" id="L184">        final Object sslSessionIdServletsStandardObject = httpServletRequest.getAttribute(&quot;javax.servlet.request.ssl_session_id&quot;);</span>
+<span class="nc bnc" id="L185" title="All 4 branches missed.">        if (sslSessionIdServletsStandardObject!=null &amp;&amp; sslSessionIdServletsStandardObject instanceof byte[]) {</span>
+            // Wildfly 9 stores the TLS sessions as a raw byte array. Convert it to a hex String.
+<span class="nc" id="L187">            sslSessionIdServletsStandard = new String(Hex.encode((byte[]) sslSessionIdServletsStandardObject), StandardCharsets.UTF_8);</span>
+        } else {
+<span class="nc" id="L189">            sslSessionIdServletsStandard = (String) sslSessionIdServletsStandardObject;</span>
+        }
+<span class="nc" id="L191">        final String sslSessionIdJBoss7 = (String)httpServletRequest.getAttribute(&quot;javax.servlet.request.ssl_session&quot;);</span>
+<span class="nc bnc" id="L192" title="All 2 branches missed.">        return sslSessionIdJBoss7==null ? sslSessionIdServletsStandard : sslSessionIdJBoss7;</span>
+    }
+
+    /* Sets the current user and returns the global configuration */
+    public GlobalConfiguration initialize(HttpServletRequest httpServletRequest, String... resources) throws Exception {
+        // Get some variables so we can detect if the TLS session and/or TLS client certificate changes within this session
+<span class="nc" id="L198">        final X509Certificate certificate = getClientX509Certificate(httpServletRequest);</span>
+<span class="nc" id="L199">        final String fingerprint = CertTools.getFingerprintAsString(certificate);</span>
+<span class="nc" id="L200">        final String currentTlsSessionId = getTlsSessionId(httpServletRequest);</span>
+        // Re-initialize if we are not initialized (new session) or if authentication parameters change within an existing session (TLS session ID or client certificate).
+        // If authentication parameters change it can be an indication of session hijacking, which should be denied if we re-auth, or just session re-use in web browser such as what FireFox 57 seems to do even after browser re-start
+<span class="nc bnc" id="L203" title="All 6 branches missed.">        if (!initialized || !StringUtils.equals(authenticationTokenTlsSessionId, currentTlsSessionId) || !StringUtils.equals(fingerprint, certificateFingerprint)) {</span>
+<span class="nc bnc" id="L204" title="All 4 branches missed.">            if (log.isDebugEnabled() &amp;&amp; initialized) {</span>
+                // Only log this if we are not initialized, i.e. if we entered here because session authentication parameters changed
+<span class="nc" id="L206">                log.debug(&quot;TLS session authentication changed withing the HTTP Session, re-authenticating admin. Old TLS session ID: &quot;+authenticationTokenTlsSessionId+&quot;, new TLS session ID: &quot;+currentTlsSessionId+&quot;, old cert fp: &quot;+certificateFingerprint+&quot;, new cert fp: &quot;+fingerprint);</span>
+            }
+            // Escape value taken from the request, just to be sure there can be no XSS
+<span class="nc" id="L209">            requestScheme = HTMLTools.htmlescape(httpServletRequest.getScheme());</span>
+<span class="nc" id="L210">            requestServerName = HTMLTools.htmlescape(httpServletRequest.getServerName());</span>
+<span class="nc" id="L211">            requestServerPort = httpServletRequest.getServerPort();</span>
+<span class="nc bnc" id="L212" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L213">                log.debug(&quot;requestServerName: &quot;+requestServerName);</span>
+            }
+<span class="nc bnc" id="L215" title="All 4 branches missed.">            if (WebConfiguration.getRequireAdminCertificate() &amp;&amp; certificate == null) {</span>
+<span class="nc" id="L216">                throw new AuthenticationFailedException(&quot;Client certificate required.&quot;);</span>
+            }
+<span class="nc bnc" id="L218" title="All 2 branches missed.">            if (certificate != null) {</span>
+<span class="nc" id="L219">                administrator = authenticationSession.authenticateUsingClientCertificate(certificate);</span>
+<span class="nc bnc" id="L220" title="All 2 branches missed.">                if (administrator == null) {</span>
+<span class="nc" id="L221">                    throw new AuthenticationFailedException(&quot;Authentication failed for certificate: &quot; + CertTools.getSubjectDN(certificate));</span>
+                }
+                // Check if certificate and user is an RA Admin
+<span class="nc" id="L224">                final String userdn = CertTools.getSubjectDN(certificate);</span>
+<span class="nc" id="L225">                final DNFieldExtractor dn = new DNFieldExtractor(userdn, DNFieldExtractor.TYPE_SUBJECTDN);</span>
+<span class="nc" id="L226">                usercommonname = dn.getField(DNFieldExtractor.CN, 0);</span>
+<span class="nc bnc" id="L227" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L228">                    log.debug(&quot;Verifying authorization of '&quot; + userdn + &quot;'&quot;);</span>
+                }
+<span class="nc" id="L230">                final String issuerDN = CertTools.getIssuerDN(certificate);</span>
+<span class="nc" id="L231">                final String sernostr = CertTools.getSerialNumberAsString(certificate);</span>
+<span class="nc" id="L232">                final BigInteger serno = CertTools.getSerialNumber(certificate);</span>
+                // Set current TLS certificate fingerprint
+<span class="nc" id="L234">                certificateFingerprint = fingerprint;</span>
+                // Check if certificate belongs to a user. checkIfCertificateBelongToUser will always return true if WebConfiguration.getRequireAdminCertificateInDatabase is set to false (in properties file)
+<span class="nc bnc" id="L236" title="All 2 branches missed.">                if (!endEntityManagementSession.checkIfCertificateBelongToUser(serno, issuerDN)) {</span>
+<span class="nc" id="L237">                    throw new AuthenticationFailedException(&quot;Certificate with SN &quot; + serno + &quot; and issuerDN '&quot; + issuerDN+ &quot;' did not belong to any user in the database.&quot;);</span>
+                }
+<span class="nc" id="L239">                Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L240" title="All 2 branches missed.">                if (certificateStoreSession.findCertificateByIssuerAndSerno(issuerDN, serno) == null) {</span>
+<span class="nc" id="L241">                    details.put(&quot;msg&quot;, &quot;Logging in: Administrator Certificate is issued by external CA and not present in the database.&quot;);</span>
+                }
+<span class="nc bnc" id="L243" title="All 2 branches missed.">                if (WebConfiguration.getAdminLogRemoteAddress()) {</span>
+<span class="nc" id="L244">                    details.put(&quot;remoteip&quot;, httpServletRequest.getRemoteAddr());</span>
+                }
+<span class="nc bnc" id="L246" title="All 2 branches missed.">                if (WebConfiguration.getAdminLogForwardedFor()) {</span>
+<span class="nc" id="L247">                    details.put(&quot;forwardedip&quot;, StringTools.getCleanXForwardedFor(httpServletRequest.getHeader(&quot;X-Forwarded-For&quot;)));</span>
+                }
+                // Also check if this administrator is present in any role, if not, login failed
+<span class="nc bnc" id="L250" title="All 2 branches missed.">                if (roleSession.getRolesAuthenticationTokenIsMemberOf(administrator).isEmpty()) {</span>
+<span class="nc" id="L251">                    details.put(&quot;reason&quot;, &quot;Certificate has no access&quot;);</span>
+<span class="nc" id="L252">                    auditSession.log(EjbcaEventTypes.ADMINWEB_ADMINISTRATORLOGGEDIN, EventStatus.FAILURE, EjbcaModuleTypes.ADMINWEB, EjbcaServiceTypes.EJBCA,</span>
+<span class="nc" id="L253">                            administrator.toString(), Integer.toString(issuerDN.hashCode()), sernostr, null, details);</span>
+<span class="nc" id="L254">                    throw new AuthenticationFailedException(&quot;Authentication failed for certificate with no access: &quot; + CertTools.getSubjectDN(certificate));</span>
+                }
+                // Continue with login
+<span class="nc bnc" id="L257" title="All 2 branches missed.">                if (details.isEmpty()) {</span>
+<span class="nc" id="L258">                    details = null;</span>
+                }
+<span class="nc" id="L260">                auditSession.log(EjbcaEventTypes.ADMINWEB_ADMINISTRATORLOGGEDIN, EventStatus.SUCCESS, EjbcaModuleTypes.ADMINWEB, EjbcaServiceTypes.EJBCA,</span>
+<span class="nc" id="L261">                        administrator.toString(), Integer.toString(issuerDN.hashCode()), sernostr, null, details);</span>
+<span class="nc" id="L262">            } else {</span>
+                // TODO: When other types of authentication are implemented, check the distinct configured tokenTypes and try to authenticate for each
+<span class="nc bnc" id="L264" title="All 2 branches missed.">                administrator = authenticationSession.authenticateUsingNothing(httpServletRequest.getRemoteAddr(), currentTlsSessionId!=null);</span>
+<span class="nc" id="L265">                Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L266" title="All 2 branches missed.">                if (WebConfiguration.getAdminLogRemoteAddress()) {</span>
+<span class="nc" id="L267">                    details.put(&quot;remoteip&quot;, httpServletRequest.getRemoteAddr());</span>
+                }
+<span class="nc bnc" id="L269" title="All 2 branches missed.">                if (WebConfiguration.getAdminLogForwardedFor()) {</span>
+<span class="nc" id="L270">                    details.put(&quot;forwardedip&quot;, StringTools.getCleanXForwardedFor(httpServletRequest.getHeader(&quot;X-Forwarded-For&quot;)));</span>
+                }
+                // Also check if this administrator is present in any role, if not, login failed
+<span class="nc bnc" id="L273" title="All 2 branches missed.">                if (roleSession.getRolesAuthenticationTokenIsMemberOf(administrator).isEmpty()) {</span>
+<span class="nc" id="L274">                    details.put(&quot;reason&quot;, &quot;AuthenticationToken has no access&quot;);</span>
+<span class="nc" id="L275">                    auditSession.log(EjbcaEventTypes.ADMINWEB_ADMINISTRATORLOGGEDIN, EventStatus.FAILURE, EjbcaModuleTypes.ADMINWEB, EjbcaServiceTypes.EJBCA,</span>
+<span class="nc" id="L276">                            administrator.toString(), null, null, null, details);</span>
+<span class="nc" id="L277">                    throw new AuthenticationFailedException(&quot;Authentication failed for certificate with no access: &quot; + CertTools.getSubjectDN(certificate));</span>
+                }
+                // Continue with login
+<span class="nc bnc" id="L280" title="All 2 branches missed.">                if (details.isEmpty()) {</span>
+<span class="nc" id="L281">                    details = null;</span>
+                }
+<span class="nc" id="L283">                auditSession.log(EjbcaEventTypes.ADMINWEB_ADMINISTRATORLOGGEDIN, EventStatus.SUCCESS, EjbcaModuleTypes.ADMINWEB, EjbcaServiceTypes.EJBCA,</span>
+<span class="nc" id="L284">                        administrator.toString(), null, null, null, details);</span>
+            }
+<span class="nc" id="L286">            commonInit();</span>
+            // Set the current TLS session
+<span class="nc" id="L288">            authenticationTokenTlsSessionId = currentTlsSessionId;</span>
+            // Set ServletContext for reading language files from resources
+<span class="nc" id="L290">            servletContext = httpServletRequest.getSession(true).getServletContext();</span>
+        }
+        try {
+<span class="nc bnc" id="L293" title="All 4 branches missed.">            if (resources.length &gt; 0 &amp;&amp; !authorizationSession.isAuthorized(administrator, resources)) {</span>
+<span class="nc" id="L294">                throw new AuthorizationDeniedException(&quot;You are not authorized to view this page.&quot;);</span>
+            }
+<span class="nc" id="L296">        } catch (EJBException e) {</span>
+            // Will this code ever execute? You are &quot;initialized&quot; (logged in) when the database went under
+            // and your AppServer + JDBC driver throws an EJBException with SQLException as cause..?
+            // Since the errorpage.jsp requires a database connection to show, it does not make any sense
+            // to move this code there..
+<span class="nc" id="L301">            final Throwable cause = e.getCause();</span>
+<span class="nc bnc" id="L302" title="All 6 branches missed.">            if ( cause instanceof SQLException || (cause.getMessage() != null &amp;&amp; cause.getMessage().contains(&quot;SQLException&quot;)) ) {</span>
+<span class="nc" id="L303">                throw new Exception(getText(&quot;DATABASEDOWN&quot;), e);</span>
+            }
+<span class="nc" id="L305">            throw e;</span>
+<span class="nc" id="L306">        }</span>
+<span class="nc bnc" id="L307" title="All 2 branches missed.">        if (!initialized) {</span>
+<span class="nc" id="L308">            currentAdminPreference = adminPreferenceSession.getAdminPreference(certificateFingerprint);</span>
+<span class="nc bnc" id="L309" title="All 2 branches missed.">            if (currentAdminPreference == null) {</span>
+<span class="nc" id="L310">                currentAdminPreference = getDefaultAdminPreference();</span>
+            }
+<span class="nc" id="L312">            adminsweblanguage = new WebLanguages(servletContext, globalconfiguration, currentAdminPreference.getPreferedLanguage(), currentAdminPreference.getSecondaryLanguage());</span>
+<span class="nc" id="L313">            initialized = true;</span>
+        }
+
+<span class="nc" id="L316">        return globalconfiguration;</span>
+    }
+
+    public GlobalConfiguration initialize_errorpage(HttpServletRequest request) throws Exception {
+<span class="nc bnc" id="L320" title="All 2 branches missed.">        if (!errorpage_initialized) {</span>
+<span class="nc bnc" id="L321" title="All 2 branches missed.">            if (administrator == null) {</span>
+<span class="nc" id="L322">                final String remoteAddr = request.getRemoteAddr();</span>
+<span class="nc" id="L323">                administrator = new PublicAccessAuthenticationToken(remoteAddr, true);</span>
+            }
+<span class="nc" id="L325">            commonInit();</span>
+            // Set ServletContext for reading language files from resources
+<span class="nc" id="L327">            servletContext = request.getSession(true).getServletContext();</span>
+<span class="nc bnc" id="L328" title="All 2 branches missed.">            if (currentAdminPreference == null) {</span>
+<span class="nc" id="L329">                currentAdminPreference = getDefaultAdminPreference();</span>
+            }
+<span class="nc" id="L331">            adminsweblanguage = new WebLanguages(servletContext, globalconfiguration, currentAdminPreference.getPreferedLanguage(), currentAdminPreference.getSecondaryLanguage());</span>
+<span class="nc" id="L332">            errorpage_initialized = true;</span>
+        }
+<span class="nc" id="L334">        return globalconfiguration;</span>
+    }
+
+    /** Returns the current users common name 
+     * @return Name */
+    public String getUsersCommonName() {
+<span class="nc" id="L340">        return usercommonname;</span>
+    }
+
+    /** Returns the users certificate serialnumber, user to id the adminpreference. 
+     * @return  FP */
+    public String getCertificateFingerprint() {
+<span class="nc" id="L346">        return certificateFingerprint;</span>
+    }
+
+    /** Return the admins selected theme including its trailing '.css' 
+     * @return CSS */
+    public String getCssFile() {
+<span class="nc" id="L352">        return globalconfiguration.getAdminWebPath() + globalconfiguration.getThemePath() + &quot;/&quot; + currentAdminPreference.getTheme() + &quot;.css&quot;;</span>
+    }
+
+    /** Return the IE fixes CSS of the admins selected theme including it's trailing '.css' 
+     * @return CSS */
+    public String getIeFixesCssFile() {
+<span class="nc" id="L358">        return globalconfiguration.getAdminWebPath() + globalconfiguration.getThemePath() + &quot;/&quot; + currentAdminPreference.getTheme()</span>
+<span class="nc" id="L359">                + globalconfiguration.getIeCssFilenamePostfix() + &quot;.css&quot;;</span>
+    }
+
+    /** Returns the admins prefered language 
+     * @return language */
+    public int getPreferedLanguage() {
+<span class="nc" id="L365">        return currentAdminPreference.getPreferedLanguage();</span>
+    }
+
+    /** Returns the admins secondary language. 
+     * @return Language */
+    public int getSecondaryLanguage() {
+<span class="nc" id="L371">        return currentAdminPreference.getSecondaryLanguage();</span>
+    }
+
+    public int getEntriesPerPage() {
+<span class="nc" id="L375">        return currentAdminPreference.getEntriesPerPage();</span>
+    }
+
+    public int getLogEntriesPerPage() {
+<span class="nc" id="L379">        return currentAdminPreference.getLogEntriesPerPage();</span>
+    }
+
+    public void setLogEntriesPerPage(int logentriesperpage) throws AdminDoesntExistException, AdminExistsException {
+<span class="nc" id="L383">        currentAdminPreference.setLogEntriesPerPage(logentriesperpage);</span>
+<span class="nc" id="L384">        saveCurrentAdminPreference();</span>
+<span class="nc" id="L385">    }</span>
+
+    public int getLastFilterMode() {
+<span class="nc" id="L388">        return currentAdminPreference.getLastFilterMode();</span>
+    }
+
+    public void setLastFilterMode(int lastfiltermode) throws AdminDoesntExistException, AdminExistsException {
+<span class="nc" id="L392">        currentAdminPreference.setLastFilterMode(lastfiltermode);</span>
+<span class="nc" id="L393">        saveCurrentAdminPreference();</span>
+<span class="nc" id="L394">    }</span>
+
+    public int getLastLogFilterMode() {
+<span class="nc" id="L397">        return currentAdminPreference.getLastLogFilterMode();</span>
+    }
+
+    public void setLastLogFilterMode(int lastlogfiltermode) throws AdminDoesntExistException, AdminExistsException {
+<span class="nc" id="L401">        currentAdminPreference.setLastLogFilterMode(lastlogfiltermode);</span>
+<span class="nc" id="L402">        saveCurrentAdminPreference();</span>
+<span class="nc" id="L403">    }</span>
+
+    public int getLastEndEntityProfile() {
+<span class="nc" id="L406">        return currentAdminPreference.getLastProfile();</span>
+    }
+
+    public void setLastEndEntityProfile(int lastprofile) throws AdminDoesntExistException, AdminExistsException {
+<span class="nc" id="L410">        currentAdminPreference.setLastProfile(lastprofile);</span>
+<span class="nc" id="L411">        saveCurrentAdminPreference();</span>
+<span class="nc" id="L412">    }</span>
+
+    public boolean existsAdminPreference() {
+<span class="nc" id="L415">        return adminPreferenceSession.existsAdminPreference(certificateFingerprint);</span>
+    }
+
+    public void addAdminPreference(final AdminPreference adminPreference) throws AdminExistsException {
+<span class="nc" id="L419">        currentAdminPreference = adminPreference;</span>
+<span class="nc bnc" id="L420" title="All 2 branches missed.">        if (administrator instanceof X509CertificateAuthenticationToken) {</span>
+<span class="nc bnc" id="L421" title="All 2 branches missed.">            if (!adminPreferenceSession.addAdminPreference((X509CertificateAuthenticationToken)administrator, adminPreference)) {</span>
+<span class="nc" id="L422">                throw new AdminExistsException(&quot;Admin already exists in the database.&quot;);</span>
+            }
+        } else {
+<span class="nc" id="L425">            log.debug(&quot;Changes to admin preference will not be persisted for the currently logged in AuthenticationToken type and lost when the session ends.&quot;);</span>
+        }
+<span class="nc" id="L427">        adminsweblanguage = new WebLanguages(servletContext, globalconfiguration, currentAdminPreference.getPreferedLanguage(),</span>
+<span class="nc" id="L428">                currentAdminPreference.getSecondaryLanguage());</span>
+<span class="nc" id="L429">    }</span>
+
+    public void changeAdminPreference(AdminPreference adminPreference) throws AdminDoesntExistException {
+<span class="nc" id="L432">        currentAdminPreference = adminPreference;</span>
+<span class="nc bnc" id="L433" title="All 2 branches missed.">        if (administrator instanceof X509CertificateAuthenticationToken) {</span>
+<span class="nc bnc" id="L434" title="All 2 branches missed.">            if (!adminPreferenceSession.changeAdminPreference((X509CertificateAuthenticationToken)administrator, adminPreference)) {</span>
+<span class="nc" id="L435">                throw new AdminDoesntExistException(&quot;Admin does not exist in the database.&quot;);</span>
+            }
+        } else {
+<span class="nc" id="L438">            log.debug(&quot;Changes to admin preference will not be persisted for the currently logged in AuthenticationToken type and lost when the session ends.&quot;);</span>
+        }
+<span class="nc" id="L440">        adminsweblanguage = new WebLanguages(servletContext, globalconfiguration, currentAdminPreference.getPreferedLanguage(),</span>
+<span class="nc" id="L441">                currentAdminPreference.getSecondaryLanguage());</span>
+<span class="nc" id="L442">    }</span>
+
+    /** @return the current admin's preference */
+    public AdminPreference getAdminPreference() {
+<span class="nc bnc" id="L446" title="All 2 branches missed.">        if (currentAdminPreference==null) {</span>
+<span class="nc" id="L447">            currentAdminPreference = adminPreferenceSession.getAdminPreference(certificateFingerprint);</span>
+<span class="nc bnc" id="L448" title="All 2 branches missed.">            if (currentAdminPreference == null) {</span>
+<span class="nc" id="L449">                currentAdminPreference = getDefaultAdminPreference();</span>
+            }
+        }
+<span class="nc" id="L452">        return currentAdminPreference;</span>
+    }
+
+    private void saveCurrentAdminPreference() throws AdminDoesntExistException, AdminExistsException {
+<span class="nc bnc" id="L456" title="All 2 branches missed.">        if (administrator instanceof X509CertificateAuthenticationToken) {</span>
+<span class="nc bnc" id="L457" title="All 2 branches missed.">            if (existsAdminPreference()) {</span>
+<span class="nc bnc" id="L458" title="All 2 branches missed.">                if (!adminPreferenceSession.changeAdminPreferenceNoLog((X509CertificateAuthenticationToken)administrator, currentAdminPreference)) {</span>
+<span class="nc" id="L459">                    throw new AdminDoesntExistException(&quot;Admin does not exist in the database.&quot;);</span>
+                }
+            } else {
+<span class="nc bnc" id="L462" title="All 2 branches missed.">                if (!adminPreferenceSession.addAdminPreference((X509CertificateAuthenticationToken)administrator, currentAdminPreference)) {</span>
+<span class="nc" id="L463">                    throw new AdminExistsException(&quot;Admin already exists in the database.&quot;);</span>
+                }
+            }
+        } else {
+<span class="nc" id="L467">            log.debug(&quot;Changes to admin preference will not be persisted for the currently logged in AuthenticationToken type and lost when the session ends.&quot;);</span>
+        }
+<span class="nc" id="L469">    }</span>
+    
+    public AdminPreference getDefaultAdminPreference() {
+<span class="nc" id="L472">        return adminPreferenceSession.getDefaultAdminPreference();</span>
+    }
+    
+    public void saveDefaultAdminPreference(final AdminPreference adminPreference) throws AuthorizationDeniedException {
+<span class="nc" id="L476">        adminPreferenceSession.saveDefaultAdminPreference(administrator, adminPreference);</span>
+        // Reload preferences
+<span class="nc" id="L478">        currentAdminPreference = adminPreferenceSession.getAdminPreference(certificateFingerprint);</span>
+<span class="nc bnc" id="L479" title="All 2 branches missed.">        if (currentAdminPreference == null) {</span>
+<span class="nc" id="L480">            currentAdminPreference = getDefaultAdminPreference();</span>
+        }
+<span class="nc" id="L482">        adminsweblanguage = new WebLanguages(servletContext, globalconfiguration, currentAdminPreference.getPreferedLanguage(),</span>
+<span class="nc" id="L483">                currentAdminPreference.getSecondaryLanguage());</span>
+<span class="nc" id="L484">    }</span>
+
+    /**
+     * Checks if the admin have authorization to view the resource without performing any logging. Used by menu page Does not return false if not
+     * authorized, instead throws an AuthorizationDeniedException.
+     * @param resources resources 
+     *
+     * @deprecated Don't use as is in a new admin GUI. Use {@link #isAuthorizedNoLogSilent(String...)} instead.
+     *
+     * @return true if is authorized to resource, throws AuthorizationDeniedException if not authorized, never returns false.
+     * @throws AuthorizationDeniedException is not authorized to resource
+     */
+    @Deprecated
+    public boolean isAuthorizedNoLog(String... resources) throws AuthorizationDeniedException { // still used by JSP code (viewcertificate.jsp and viewtoken.jsp)
+<span class="nc bnc" id="L498" title="All 2 branches missed.">        if (!authorizationSession.isAuthorizedNoLogging(administrator, resources)) {</span>
+<span class="nc" id="L499">            throw new AuthorizationDeniedException(&quot;Not authorized to &quot; + Arrays.toString(resources));</span>
+        }
+<span class="nc" id="L501">        return true;</span>
+    }
+
+    /**
+     * Checks if the admin have authorization to view the resource without performing any logging. Will simply return a boolean,
+     * does not throw exception.
+     * @param resources resources 
+     *
+     * @return true if is authorized to resource, false if not
+     */
+    public boolean isAuthorizedNoLogSilent(String... resources) {
+<span class="nc" id="L512">        return authorizationSession.isAuthorizedNoLogging(administrator, resources);</span>
+    }
+
+    public String getBaseUrl() {
+<span class="nc" id="L516">        return globalconfiguration.getBaseUrl(requestScheme, requestServerName, requestServerPort);</span>
+    }
+
+    public String getReportsPath() {
+<span class="nc" id="L520">        return globalconfiguration.getReportsPath();</span>
+    }
+
+    /* Returns the global configuration */
+    public GlobalConfiguration getGlobalConfiguration() {
+<span class="nc" id="L525">        return globalconfiguration;</span>
+    }
+
+    /**
+     * A functions that returns wanted imagefile in preferred language and theme. If none of the language specific images are found the original
+     * imagefilename will be returned.
+     *
+     * The priority of filenames are in the following order 1. imagename.theme.preferedlanguage.png/jpg/gif 2. imagename.theme.secondarylanguage.png/jpg/gif
+     * 3. imagename.theme.png/jpg/gif 4. imagename.preferedlanguage.png/jpg/gif 5. imagename.secondarylanguage.png/jpg/gif 6. imagename.png/jpg/gif
+     *
+     * The parameter imagefilename should the wanted filename without language infix. For example: given imagefilename 'caimg.png' would return
+     * 'caimg.en.png' if English was the users preferred language. It's important that all letters in imagefilename is lowercase.
+     * @param imagefilename filename
+     * @return image
+     */
+
+    public String getImagefileInfix(String imagefilename) {
+<span class="nc" id="L542">        String returnedurl = null;</span>
+<span class="nc" id="L543">        String[] strs = adminsweblanguage.getAvailableLanguages();</span>
+<span class="nc" id="L544">        int index = currentAdminPreference.getPreferedLanguage();</span>
+<span class="nc" id="L545">        String prefered = strs[index];</span>
+<span class="nc" id="L546">        String secondary = adminsweblanguage.getAvailableLanguages()[currentAdminPreference.getSecondaryLanguage()];</span>
+
+<span class="nc" id="L548">        String imagefile = imagefilename.substring(0, imagefilename.lastIndexOf('.'));</span>
+<span class="nc" id="L549">        String theme = currentAdminPreference.getTheme().toLowerCase();</span>
+<span class="nc" id="L550">        String postfix = imagefilename.substring(imagefilename.lastIndexOf('.') + 1);</span>
+
+<span class="nc" id="L552">        String preferedthemefilename = &quot;/&quot; + globalconfiguration.getImagesPath() + &quot;/&quot; + imagefile + &quot;.&quot; + theme + &quot;.&quot; + prefered + &quot;.&quot; + postfix;</span>
+<span class="nc" id="L553">        String secondarythemefilename = &quot;/&quot; + globalconfiguration.getImagesPath() + &quot;/&quot; + imagefile + &quot;.&quot; + theme + &quot;.&quot; + secondary + &quot;.&quot; + postfix;</span>
+<span class="nc" id="L554">        String themefilename = &quot;/&quot; + globalconfiguration.getImagesPath() + &quot;/&quot; + imagefile + &quot;.&quot; + theme + &quot;.&quot; + postfix;</span>
+
+<span class="nc" id="L556">        String preferedfilename = &quot;/&quot; + globalconfiguration.getImagesPath() + &quot;/&quot; + imagefile + &quot;.&quot; + prefered + &quot;.&quot; + postfix;</span>
+
+<span class="nc" id="L558">        String secondaryfilename = &quot;/&quot; + globalconfiguration.getImagesPath() + &quot;/&quot; + imagefile + &quot;.&quot; + secondary + &quot;.&quot; + postfix;</span>
+
+<span class="nc" id="L560">        String preferedthemeurl = getBaseUrl() + globalconfiguration.getAdminWebPath() + globalconfiguration.getImagesPath() + &quot;/&quot; + imagefile + &quot;.&quot;</span>
+                + theme + &quot;.&quot; + prefered + &quot;.&quot; + postfix;
+
+<span class="nc" id="L563">        String secondarythemeurl = getBaseUrl() + globalconfiguration.getAdminWebPath() + globalconfiguration.getImagesPath() + &quot;/&quot; + imagefile + &quot;.&quot;</span>
+                + theme + &quot;.&quot; + secondary + &quot;.&quot; + postfix;
+
+<span class="nc" id="L566">        String imagethemeurl = getBaseUrl() + globalconfiguration.getAdminWebPath() + globalconfiguration.getImagesPath() + &quot;/&quot; + imagefile + &quot;.&quot;</span>
+                + theme + &quot;.&quot; + postfix;
+
+<span class="nc" id="L569">        String preferedurl = getBaseUrl() + globalconfiguration.getAdminWebPath() + globalconfiguration.getImagesPath() + &quot;/&quot; + imagefile + &quot;.&quot;</span>
+                + prefered + &quot;.&quot; + postfix;
+
+<span class="nc" id="L572">        String secondaryurl = getBaseUrl() + globalconfiguration.getAdminWebPath() + globalconfiguration.getImagesPath() + &quot;/&quot; + imagefile + &quot;.&quot;</span>
+                + secondary + &quot;.&quot; + postfix;
+
+<span class="nc" id="L575">        String imageurl = getBaseUrl() + globalconfiguration.getAdminWebPath() + globalconfiguration.getImagesPath() + &quot;/&quot; + imagefile + &quot;.&quot;</span>
+                + postfix;
+<span class="nc bnc" id="L577" title="All 2 branches missed.">        if (this.getClass().getResourceAsStream(preferedthemefilename) != null) {</span>
+<span class="nc" id="L578">            returnedurl = preferedthemeurl;</span>
+        } else {
+<span class="nc bnc" id="L580" title="All 2 branches missed.">            if (this.getClass().getResourceAsStream(secondarythemefilename) != null) {</span>
+<span class="nc" id="L581">                returnedurl = secondarythemeurl;</span>
+            } else {
+<span class="nc bnc" id="L583" title="All 2 branches missed.">                if (this.getClass().getResourceAsStream(themefilename) != null) {</span>
+<span class="nc" id="L584">                    returnedurl = imagethemeurl;</span>
+                } else {
+<span class="nc bnc" id="L586" title="All 2 branches missed.">                    if (this.getClass().getResourceAsStream(preferedfilename) != null) {</span>
+<span class="nc" id="L587">                        returnedurl = preferedurl;</span>
+                    } else {
+<span class="nc bnc" id="L589" title="All 2 branches missed.">                        if (this.getClass().getResourceAsStream(secondaryfilename) != null) {</span>
+<span class="nc" id="L590">                            returnedurl = secondaryurl;</span>
+                        } else {
+<span class="nc" id="L592">                            returnedurl = imageurl;</span>
+                        }
+                    }
+                }
+            }
+        }
+<span class="nc" id="L598">        return returnedurl;</span>
+    }
+
+    public String[] getAvailableLanguages() {
+<span class="nc" id="L602">        return adminsweblanguage.getAvailableLanguages();</span>
+    }
+
+    public String[] getLanguagesEnglishNames() {
+<span class="nc" id="L606">        return adminsweblanguage.getLanguagesEnglishNames();</span>
+    }
+
+    public String[] getLanguagesNativeNames() {
+<span class="nc" id="L610">        return adminsweblanguage.getLanguagesNativeNames();</span>
+    }
+
+    public String getText(String template) {
+<span class="nc" id="L614">        return adminsweblanguage.getText(template);</span>
+    }
+
+    /**
+     * @param template the entry in the language file to get
+     * @param unescape true if html entities should be unescaped (&amp;auml; converted to the real char)
+     * @param params values of {0}, {1}, {2}... parameters
+     * @return text string, possibly unescaped, or &quot;template&quot; if the template does not match any entry in the language files
+     */
+    public String getText(String template, boolean unescape, Object... params) {
+<span class="nc" id="L624">        String str = adminsweblanguage.getText(template, params);</span>
+<span class="nc bnc" id="L625" title="All 2 branches missed.">        if (unescape == true) {</span>
+<span class="nc" id="L626">            str = HTMLTools.htmlunescape(str);</span>
+            // log.debug(&quot;String after unescape: &quot;+str);
+            // If unescape == true it most likely means we will be displaying a javascript
+<span class="nc" id="L629">            str = HTMLTools.javascriptEscape(str);</span>
+            // log.debug(&quot;String after javascriptEscape: &quot;+str);
+        }
+<span class="nc" id="L632">        return str;</span>
+    }
+
+    /** @param date date
+     * @return a more user friendly representation of a Date. */
+    public String formatAsISO8601(final Date date) {
+<span class="nc" id="L638">        return ValidityDate.formatAsISO8601(date, timeZone);</span>
+    }
+
+    /** Parse a Date and reformat it as vailidation. 
+     * @param value value
+     * @return format
+     * @throws ParseException  fail */
+    public String validateDateFormat(String value) throws ParseException {
+<span class="nc" id="L646">        return ValidityDate.formatAsUTC(ValidityDate.parseAsUTC(value));</span>
+    }
+
+    /** Check if the argument is a relative date/time in the form days:min:seconds. 
+     * @param dateString date
+     * @return bool  */
+    public boolean isRelativeDateTime(final String dateString) {
+<span class="nc" id="L653">        return dateString.matches(&quot;^\\d+:\\d?\\d:\\d?\\d$&quot;);</span>
+    }
+
+    /** To be used when giving format example. 
+     * @return example */
+    public String getDateExample() {
+<span class="nc" id="L659">        return &quot;[&quot; + ValidityDate.ISO8601_DATE_FORMAT + &quot;]: '&quot; + formatAsISO8601(new Date()) + &quot;'&quot;;</span>
+    }
+
+    /** Convert a the format &quot;yyyy-MM-dd HH:mm:ssZZ&quot; to &quot;yyyy-MM-dd HH:mm&quot; with implied TimeZone UTC used when storing. 
+     * @param dateString String
+     * @return UTC
+     * @throws ParseException fail */
+    public String getImpliedUTCFromISO8601(final String dateString) throws ParseException {
+<span class="nc" id="L667">        return ValidityDate.getImpliedUTCFromISO8601(dateString);</span>
+    }
+
+    /**
+     * Convert a the format &quot;yyyy-MM-dd HH:mm:ssZZ&quot; to &quot;yyyy-MM-dd HH:mm&quot; with implied TimeZone UTC used when storing. If it is a relative date we
+     * return it as it was. Otherwise we try to parse it as a ISO8601 date time.
+     * @param dateString String
+     * @return UTC
+     * @throws ParseException Fail
+     */
+    public String getImpliedUTCFromISO8601OrRelative(final String dateString) throws ParseException {
+<span class="nc bnc" id="L678" title="All 2 branches missed.">        if (!isRelativeDateTime(dateString)) {</span>
+<span class="nc" id="L679">            return getImpliedUTCFromISO8601(dateString);</span>
+        }
+<span class="nc" id="L681">        return dateString;</span>
+    }
+
+    /** Convert a the format &quot;yyyy-MM-dd HH:mm&quot; with implied TimeZone UTC to a more user friendly &quot;yyyy-MM-dd HH:mm:ssZZ&quot;. 
+     * @param dateString String
+     * @return ISO
+     * @throws ParseException fail */
+    public String getISO8601FromImpliedUTC(final String dateString) throws ParseException {
+<span class="nc" id="L689">        return ValidityDate.getISO8601FromImpliedUTC(dateString, timeZone);</span>
+    }
+
+    /**
+     * Convert a the format &quot;yyyy-MM-dd HH:mm&quot; with implied TimeZone UTC to a more user friendly &quot;yyyy-MM-dd HH:mm:ssZZ&quot;. If it is a relative date we
+     * return it as it was. If we fail to parse the stored date we return an error-string followed by the stored value.
+     * If the passed in value is empty, we return an empty string
+     * @param dateString String
+     * @return ISO
+     */
+    public String getISO8601FromImpliedUTCOrRelative(final String dateString) {
+<span class="nc bnc" id="L700" title="All 2 branches missed.">        if (StringUtils.isEmpty(dateString)) {</span>
+<span class="nc" id="L701">            return &quot;&quot;;</span>
+        }
+<span class="nc bnc" id="L703" title="All 2 branches missed.">        if (!isRelativeDateTime(dateString)) {</span>
+            try {
+<span class="nc" id="L705">                return getISO8601FromImpliedUTC(dateString);</span>
+<span class="nc" id="L706">            } catch (ParseException e) {</span>
+<span class="nc" id="L707">                log.debug(e.getMessage());</span>
+                // If we somehow managed to store an invalid date, we want to give the admin the option
+                // to correct this. If we just throw an Exception here it would not be possible.
+<span class="nc" id="L710">                return &quot;INVALID: &quot; + dateString;</span>
+            }
+        }
+<span class="nc" id="L713">        return dateString;</span>
+    }
+
+    public void reloadGlobalConfiguration() {
+<span class="nc" id="L717">        globalconfiguration = (GlobalConfiguration) globalConfigurationSession.getCachedConfiguration(GlobalConfiguration.GLOBAL_CONFIGURATION_ID);</span>
+<span class="nc" id="L718">        globalconfiguration.initializeAdminWeb();</span>
+<span class="nc" id="L719">    }</span>
+
+    public void saveGlobalConfiguration(GlobalConfiguration gc) throws AuthorizationDeniedException {
+<span class="nc" id="L722">        globalConfigurationSession.saveConfiguration(administrator, gc);</span>
+<span class="nc" id="L723">        reloadGlobalConfiguration();</span>
+<span class="nc" id="L724">    }</span>
+
+    public void saveGlobalConfiguration() throws Exception {
+<span class="nc" id="L727">        globalConfigurationSession.saveConfiguration(administrator, globalconfiguration);</span>
+<span class="nc" id="L728">    }</span>
+
+    /**
+     * Save the given CMP configuration.
+     *
+     * @param cmpconfiguration A CMPConfiguration
+     * @throws AuthorizationDeniedException if the current admin doesn't have access to global configurations
+     */
+    public void saveCmpConfiguration(CmpConfiguration cmpconfiguration) throws AuthorizationDeniedException {
+<span class="nc" id="L737">        this.cmpconfiguration = cmpconfiguration;</span>
+<span class="nc" id="L738">        globalConfigurationSession.saveConfiguration(administrator, cmpconfiguration);</span>
+<span class="nc" id="L739">    }</span>
+
+    /**
+     * Save the given EST configuration.
+     *
+     * @param estconfiguration A EstConfiguration
+     * @throws AuthorizationDeniedException if the current admin doesn't have access to global configurations
+     */
+    public void saveEstConfiguration(EstConfiguration estconfiguration) throws AuthorizationDeniedException {
+<span class="nc" id="L748">        this.estconfiguration = estconfiguration;</span>
+<span class="nc" id="L749">        globalConfigurationSession.saveConfiguration(administrator, estconfiguration);</span>
+<span class="nc" id="L750">    }</span>
+
+    /**
+     * Reload the current configuration from the database.
+     */
+    public void reloadCmpConfiguration() {
+<span class="nc" id="L756">        cmpconfiguration = (CmpConfiguration) globalConfigurationSession.getCachedConfiguration(CmpConfiguration.CMP_CONFIGURATION_ID);</span>
+<span class="nc" id="L757">    }</span>
+
+    public void reloadEstConfiguration() {
+<span class="nc" id="L760">        estconfiguration = (EstConfiguration) globalConfigurationSession.getCachedConfiguration(EstConfiguration.EST_CONFIGURATION_ID);</span>
+<span class="nc" id="L761">    }</span>
+
+    public TreeMap&lt;String,Integer&gt; getHardTokenProfiles() {
+<span class="nc" id="L764">        final TreeMap&lt;String,Integer&gt; hardtokenprofiles = new TreeMap&lt;&gt;();</span>
+<span class="nc bnc" id="L765" title="All 2 branches missed.">        for (Integer id : hardTokenSession.getAuthorizedHardTokenProfileIds(administrator)){</span>
+<span class="nc" id="L766">            final String name = hardTokenSession.getHardTokenProfileName(id.intValue());</span>
+<span class="nc" id="L767">            hardtokenprofiles.put(name, id);</span>
+<span class="nc" id="L768">        }</span>
+<span class="nc" id="L769">        return hardtokenprofiles;</span>
+    }
+
+    public TreeMap&lt;String, HardTokenIssuerInformation&gt; getHardTokenIssuers() {
+<span class="nc" id="L773">        return hardTokenSession.getHardTokenIssuers(administrator);</span>
+    }
+
+    public Map&lt;Integer,String&gt; getCAIdToNameMap() {
+<span class="nc" id="L777">        return caSession.getCAIdToNameMap();</span>
+    }
+
+    public List&lt;Integer&gt; getAuthorizedCAIds() {
+<span class="nc" id="L781">        return caSession.getAuthorizedCaIds(administrator);</span>
+    }
+
+    public TreeMap&lt;String,Integer&gt; getCANames() {
+<span class="nc" id="L785">        return caSession.getAuthorizedCaNamesToIds(administrator);</span>
+    }
+
+    public TreeMap&lt;String,Integer&gt; getExternalCANames() {
+<span class="nc" id="L789">        TreeMap&lt;String,Integer&gt; ret = new TreeMap&lt;&gt;();</span>
+<span class="nc bnc" id="L790" title="All 2 branches missed.">        for (CAInfo caInfo : caSession.getAuthorizedCaInfos(administrator)) {</span>
+<span class="nc bnc" id="L791" title="All 2 branches missed.">            if (caInfo.getStatus() == CAConstants.CA_EXTERNAL) {</span>
+<span class="nc" id="L792">                ret.put(caInfo.getName(), caInfo.getCAId());</span>
+            }
+<span class="nc" id="L794">        }</span>
+<span class="nc" id="L795">        return ret;</span>
+    }
+
+    public TreeMap&lt;String,Integer&gt; getActiveCANames() {
+<span class="nc" id="L799">        TreeMap&lt;String, Integer&gt; ret = new TreeMap&lt;&gt;();</span>
+<span class="nc" id="L800">        Map&lt;Integer, String&gt; idtonamemap = this.caSession.getActiveCAIdToNameMap(administrator);</span>
+<span class="nc bnc" id="L801" title="All 2 branches missed.">        for (Integer id : idtonamemap.keySet()) {</span>
+<span class="nc" id="L802">            ret.put(idtonamemap.get(id), id);</span>
+<span class="nc" id="L803">        }</span>
+<span class="nc" id="L804">        return ret;</span>
+    }
+
+    /** @return authorized CA Ids sorted by CA name alphabetically*/
+    public Collection&lt;Integer&gt; getAuthorizedCAIdsByName() {
+<span class="nc" id="L809">        return caSession.getAuthorizedCaNamesToIds(administrator).values();</span>
+    }
+
+    public boolean isAuthorizedToAllCAs() {
+<span class="nc bnc" id="L813" title="All 2 branches missed.">        return caSession.getAllCaIds().size() == getAuthorizedCAIds().size();</span>
+    }
+
+    public String getCertificateProfileName(final int profileId) {
+<span class="nc" id="L817">        return certificateProfileSession.getCertificateProfileName(profileId);</span>
+    }
+
+    /**
+     * Returns authorized end entity  profile names as a treemap of name (String) -&amp;gt; id (Integer)
+     * @return Map
+     */
+    public TreeMap&lt;String, Integer&gt; getAuthorizedEndEntityCertificateProfileNames() {
+<span class="nc" id="L825">        final TreeMap&lt;String,Integer&gt; ret = new TreeMap&lt;&gt;();</span>
+        final List&lt;Integer&gt; authorizedIds;
+<span class="nc bnc" id="L827" title="All 2 branches missed.">        if (globalconfiguration.getIssueHardwareTokens()) {</span>
+<span class="nc" id="L828">            authorizedIds = certificateProfileSession.getAuthorizedCertificateProfileIds(administrator, CertificateConstants.CERTTYPE_HARDTOKEN);</span>
+        } else {
+<span class="nc" id="L830">            authorizedIds = certificateProfileSession.getAuthorizedCertificateProfileIds(administrator, CertificateConstants.CERTTYPE_ENDENTITY);</span>
+        }
+<span class="nc" id="L832">        final Map&lt;Integer, String&gt; idtonamemap = certificateProfileSession.getCertificateProfileIdToNameMap();</span>
+<span class="nc bnc" id="L833" title="All 2 branches missed.">        for (final int id : authorizedIds) {</span>
+<span class="nc" id="L834">            ret.put(idtonamemap.get(id),id);</span>
+<span class="nc" id="L835">        }</span>
+<span class="nc" id="L836">        return ret;</span>
+    }
+
+    /**
+     * Returns authorized sub CA certificate profile names as a treemap of name (String) -&amp;gt; id (Integer)
+     * @return Map
+     */
+    public TreeMap&lt;String, Integer&gt; getAuthorizedSubCACertificateProfileNames() {
+<span class="nc" id="L844">        final TreeMap&lt;String,Integer&gt; ret = new TreeMap&lt;&gt;();</span>
+<span class="nc" id="L845">        final List&lt;Integer&gt; authorizedIds = certificateProfileSession.getAuthorizedCertificateProfileIds(administrator, CertificateConstants.CERTTYPE_SUBCA);</span>
+<span class="nc" id="L846">        final Map&lt;Integer, String&gt; idtonamemap = certificateProfileSession.getCertificateProfileIdToNameMap();</span>
+<span class="nc bnc" id="L847" title="All 2 branches missed.">        for (final int id : authorizedIds) {</span>
+<span class="nc" id="L848">            ret.put(idtonamemap.get(id),id);</span>
+<span class="nc" id="L849">        }</span>
+<span class="nc" id="L850">        return ret;</span>
+    }
+
+    /**
+     * Returns authorized root CA certificate profile names as a treemap of name (String) -&amp;gt; id (Integer)
+     * @return Map
+     */
+    public TreeMap&lt;String, Integer&gt; getAuthorizedRootCACertificateProfileNames() {
+<span class="nc" id="L858">        final TreeMap&lt;String,Integer&gt; ret = new TreeMap&lt;&gt;();</span>
+<span class="nc" id="L859">        final List&lt;Integer&gt; authorizedIds = certificateProfileSession.getAuthorizedCertificateProfileIds(administrator, CertificateConstants.CERTTYPE_ROOTCA);</span>
+<span class="nc" id="L860">        final Map&lt;Integer, String&gt; idtonamemap = certificateProfileSession.getCertificateProfileIdToNameMap();</span>
+<span class="nc bnc" id="L861" title="All 2 branches missed.">        for (final int id : authorizedIds) {</span>
+<span class="nc" id="L862">            ret.put(idtonamemap.get(id),id);</span>
+<span class="nc" id="L863">        }</span>
+<span class="nc" id="L864">        return ret;</span>
+    }
+
+    /**
+     * Method returning the all available approval profiles id to name.
+     *
+     * @return the approvalprofiles-id-to-name-map (HashMap)
+     */
+    public Map&lt;Integer, String&gt; getApprovalProfileIdToNameMap() {
+<span class="nc" id="L873">        Map&lt;Integer, String&gt; approvalProfileMap = approvalProfileSession.getApprovalProfileIdToNameMap();</span>
+<span class="nc" id="L874">        approvalProfileMap.put(-1, getText(&quot;NONE&quot;));</span>
+<span class="nc" id="L875">        return approvalProfileMap;</span>
+    }
+
+    public List&lt;Integer&gt; getSortedApprovalProfileIds() {
+<span class="nc" id="L879">        List&lt;ApprovalProfile&gt; sortedProfiles = new ArrayList&lt;&gt;(approvalProfileSession.getAllApprovalProfiles().values());</span>
+<span class="nc" id="L880">        Collections.sort(sortedProfiles);</span>
+<span class="nc" id="L881">        List&lt;Integer&gt; result = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L882">        result.add(-1);</span>
+<span class="nc bnc" id="L883" title="All 2 branches missed.">        for(ApprovalProfile approvalProfile : sortedProfiles) {</span>
+<span class="nc" id="L884">            result.add(approvalProfile.getProfileId());</span>
+<span class="nc" id="L885">        }</span>
+<span class="nc" id="L886">        return result;</span>
+    }
+
+    /**
+     * Returns all authorized publishers names as a treemap of name (String) -&amp;gt; id (Integer).
+     * @return Map
+     */
+    public TreeMap&lt;String, Integer&gt; getAuthorizedPublisherNames() {
+<span class="nc" id="L894">        final TreeMap&lt;String,Integer&gt; ret = new TreeMap&lt;&gt;();</span>
+<span class="nc" id="L895">        final Map&lt;Integer, String&gt; idtonamemap = publisherSession.getPublisherIdToNameMap();</span>
+<span class="nc bnc" id="L896" title="All 2 branches missed.">        for(Integer id : caAdminSession.getAuthorizedPublisherIds(administrator)) {</span>
+<span class="nc" id="L897">            ret.put(idtonamemap.get(id), id);</span>
+<span class="nc" id="L898">        }</span>
+<span class="nc" id="L899">        return ret;</span>
+    }
+
+    /**
+     * Method returning the all available publishers id to name.
+     *
+     * @return the publisheridtonamemap (HashMap) sorted by value
+     */
+    public Map&lt;Integer, String&gt; getPublisherIdToNameMapByValue() {
+<span class="nc" id="L908">        final Map&lt;Integer,String&gt; publisheridtonamemap = publisherSession.getPublisherIdToNameMap();</span>
+<span class="nc" id="L909">        final List&lt;Map.Entry&lt;Integer, String&gt;&gt; publisherIdToNameMapList = new LinkedList&lt;&gt;(publisheridtonamemap.entrySet());</span>
+<span class="nc" id="L910">        Collections.sort(publisherIdToNameMapList, new Comparator&lt;Map.Entry&lt;Integer, String&gt;&gt;() {</span>
+            @Override
+            public int compare(Map.Entry&lt;Integer, String&gt; o1, Map.Entry&lt;Integer, String&gt; o2) {
+<span class="nc bnc" id="L913" title="All 4 branches missed.">                if (o1 == null) { return o2 == null ? 0 : -1; }</span>
+<span class="nc bnc" id="L914" title="All 2 branches missed.">                else if (o2 == null) { return 1; }</span>
+<span class="nc" id="L915">                return o1.getValue().compareToIgnoreCase(o2.getValue());</span>
+            }
+        });
+<span class="nc" id="L918">        Map&lt;Integer, String&gt; sortedMap = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L919" title="All 2 branches missed.">        for (Map.Entry&lt;Integer, String&gt; entry : publisherIdToNameMapList) {</span>
+<span class="nc" id="L920">            sortedMap.put(entry.getKey(), entry.getValue());</span>
+<span class="nc" id="L921">        }</span>
+<span class="nc" id="L922">        return sortedMap;</span>
+    }
+
+    /**
+     * Returns authorized end entity profile names as a treemap of name (String) -&amp;gt; id (String)
+     * @param endentityAccessRule Rule
+     * @return Map
+     */
+    public TreeMap&lt;String, String&gt; getAuthorizedEndEntityProfileNames(final String endentityAccessRule) {
+<span class="nc" id="L931">        final RAAuthorization raAuthorization = new RAAuthorization(administrator, globalConfigurationSession, authorizationSession, caSession, endEntityProfileSession);</span>
+<span class="nc" id="L932">        return raAuthorization.getAuthorizedEndEntityProfileNames(endentityAccessRule);</span>
+    }
+
+    public AuthenticationToken getAdminObject() {
+<span class="nc" id="L936">        return this.administrator;</span>
+    }
+
+    /**
+     * Method returning all CA ids with CMS service enabled
+     * @return IDs
+     */
+    public Collection&lt;Integer&gt; getCAIdsWithCMSServiceActive() {
+<span class="nc" id="L944">        ArrayList&lt;Integer&gt; retval = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L945">        Collection&lt;Integer&gt; caids = caSession.getAuthorizedCaIds(administrator);</span>
+<span class="nc" id="L946">        Iterator&lt;Integer&gt; iter = caids.iterator();</span>
+<span class="nc bnc" id="L947" title="All 2 branches missed.">        while (iter.hasNext()) {</span>
+<span class="nc" id="L948">            Integer caid = iter.next();</span>
+<span class="nc" id="L949">            retval.add(caid);</span>
+<span class="nc" id="L950">        }</span>
+<span class="nc" id="L951">        return retval;</span>
+    }
+
+    /**
+     * Detect if &quot;Unlimited Strength&quot; Policy files has bean properly installed.
+     *
+     * @return true if key strength is limited
+     */
+    public boolean isUsingExportableCryptography() {
+<span class="nc" id="L960">        return KeyTools.isUsingExportableCryptography();</span>
+    }
+
+    public boolean isPostUpgradeRequired() {
+<span class="nc" id="L964">        return upgradeSession.isPostUpgradeNeeded();</span>
+    }
+
+    /**
+     * @return The host's name or &quot;unknown&quot; if it could not be determined.
+     */
+    public String getHostName() {
+<span class="nc" id="L971">        String hostname = &quot;unknown&quot;;</span>
+        try {
+<span class="nc" id="L973">            InetAddress addr = InetAddress.getLocalHost();</span>
+            // Get hostname
+<span class="nc" id="L975">            hostname = addr.getHostName();</span>
+<span class="nc" id="L976">        } catch (UnknownHostException e) {</span>
+            // Ignored
+<span class="nc" id="L978">        }</span>
+<span class="nc" id="L979">        return hostname;</span>
+    }
+
+    /** @return The current time on the server */
+    public String getServerTime() {
+<span class="nc" id="L984">        return ValidityDate.formatAsISO8601(new Date(), ValidityDate.TIMEZONE_SERVER);</span>
+    }
+
+    /**
+     * Uses the language in the Administration GUI to determine which locale is preferred.
+     *
+     * @return the locale of the Admin GUI
+     */
+    public Locale getLocale() {
+<span class="nc" id="L993">        Locale[] locales = DateFormat.getAvailableLocales(); // TODO: Why not use Locale.getAvailableLocales()? Difference?</span>
+<span class="nc" id="L994">        Locale returnValue = null;</span>
+<span class="nc" id="L995">        String prefered = adminsweblanguage.getAvailableLanguages()[currentAdminPreference.getPreferedLanguage()];</span>
+<span class="nc" id="L996">        String secondary = adminsweblanguage.getAvailableLanguages()[currentAdminPreference.getSecondaryLanguage()];</span>
+<span class="nc bnc" id="L997" title="All 2 branches missed.">        for (int i = 0; i &lt; locales.length; i++) {</span>
+<span class="nc bnc" id="L998" title="All 2 branches missed.">            if (locales[i].getLanguage().equalsIgnoreCase(prefered)) {</span>
+<span class="nc" id="L999">                returnValue = locales[i];</span>
+<span class="nc bnc" id="L1000" title="All 4 branches missed.">            } else if (returnValue == null &amp;&amp; locales[i].getLanguage().equalsIgnoreCase(secondary)) {</span>
+<span class="nc" id="L1001">                returnValue = locales[i];</span>
+            }
+        }
+<span class="nc bnc" id="L1004" title="All 2 branches missed.">        if (returnValue == null) {</span>
+<span class="nc" id="L1005">            returnValue = Locale.US;</span>
+        }
+<span class="nc" id="L1007">        return returnValue;</span>
+    }
+    
+    
+
+
+    public boolean isHelpEnabled() {
+<span class="nc bnc" id="L1014" title="All 2 branches missed.">        return !&quot;disabled&quot;.equalsIgnoreCase(WebConfiguration.getDocBaseUri());</span>
+    }
+
+    public String getHelpBaseURI() {
+<span class="nc" id="L1018">        String helpBaseURI = WebConfiguration.getDocBaseUri();</span>
+<span class="nc bnc" id="L1019" title="All 2 branches missed.">        if (&quot;internal&quot;.equalsIgnoreCase(helpBaseURI)) {</span>
+<span class="nc" id="L1020">            return getBaseUrl() + &quot;doc&quot;;</span>
+        } else {
+<span class="nc" id="L1022">            return helpBaseURI;</span>
+        }
+    }
+    
+    public String getHelpReference(String lastPart) {
+<span class="nc bnc" id="L1027" title="All 2 branches missed.">        if (!isHelpEnabled()) {</span>
+<span class="nc" id="L1028">            return &quot;&quot;;</span>
+        }
+<span class="nc" id="L1030">        return &quot;[&lt;a href=\&quot;&quot; + getHelpBaseURI() + lastPart + &quot;\&quot; target=\&quot;&quot; + GlobalConfiguration.DOCWINDOW + &quot;\&quot; rel=\&quot;noopener noreferer\&quot; title=\&quot;&quot;</span>
+<span class="nc" id="L1031">                + getText(&quot;OPENHELPSECTION&quot;) + &quot;\&quot; &gt;?&lt;/a&gt;]&quot;;</span>
+    }
+
+    public String getExternalHelpReference(String linkPart) {
+<span class="nc bnc" id="L1035" title="All 2 branches missed.">        if (!isHelpEnabled()) {</span>
+<span class="nc" id="L1036">            return &quot;&quot;;</span>
+        }
+<span class="nc" id="L1038">        return &quot;[&lt;a href=\&quot;&quot; + linkPart + &quot;\&quot; target=\&quot;&quot; + GlobalConfiguration.DOCWINDOW + &quot;\&quot; rel=\&quot;noopener noreferer\&quot; title=\&quot;&quot; + getText(&quot;OPENHELPSECTION&quot;) + &quot;\&quot; &gt;?&lt;/a&gt;]&quot;;</span>
+    }
+
+    public String[] getCertSernoAndIssuerdn(String certdata) {
+<span class="nc" id="L1042">        final String[] ret = StringTools.parseCertData(certdata);</span>
+<span class="nc bnc" id="L1043" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc bnc" id="L1044" title="All 2 branches missed.">            log.debug(&quot;getCertSernoAndIssuerdn: &quot; + certdata + &quot; -&gt; &quot; + (ret==null?&quot;null&quot;:(ret[0] + &quot;,&quot; + ret[1])));</span>
+        }
+<span class="nc" id="L1046">        return ret;</span>
+    }
+
+    public String getCleanOption(String parameter, String[] validOptions) {
+<span class="nc bnc" id="L1050" title="All 2 branches missed.">        for (int i = 0; i &lt; validOptions.length; i++) {</span>
+<span class="nc bnc" id="L1051" title="All 2 branches missed.">            if (parameter.equals(validOptions[i])) {</span>
+<span class="nc" id="L1052">                return parameter;</span>
+            }
+        }
+<span class="nc" id="L1055">        throw new IllegalArgumentException(&quot;Parameter &quot; + parameter + &quot; not found among valid options.&quot;);</span>
+    }
+
+    public void clearClusterCache(boolean excludeActiveCryptoTokens) throws CacheClearException {
+<span class="nc bnc" id="L1059" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1060">            log.trace(&quot;&gt;clearClusterCache&quot;);</span>
+        }
+<span class="nc" id="L1062">        final Set&lt;String&gt; nodes = globalconfiguration.getNodesInCluster();</span>
+<span class="nc" id="L1063">        final StringBuilder failedHosts = new StringBuilder();</span>
+<span class="nc" id="L1064">        final StringBuilder succeededHost = new StringBuilder();</span>
+<span class="nc bnc" id="L1065" title="All 2 branches missed.">        for (final String host : nodes) {</span>
+            try {
+<span class="nc bnc" id="L1067" title="All 2 branches missed.">                if (host != null) {</span>
+<span class="nc bnc" id="L1068" title="All 2 branches missed.">                    if (checkHost(host, excludeActiveCryptoTokens)) {</span>
+<span class="nc" id="L1069">                        succeededHost.append(' ').append(host);</span>
+                    } else {
+<span class="nc bnc" id="L1071" title="All 2 branches missed.">                        if (isLocalHost(host)) {</span>
+                            // If we are trying to clear the cache on this instance and failed,
+                            // we give it another chance using 127.0.0.1 (which is allowed by default)
+<span class="nc" id="L1074">                            log.info(&quot;Failed to clear cache on local node using '&quot; + host + &quot;'. Will try with 'localhost'.&quot;);</span>
+<span class="nc bnc" id="L1075" title="All 2 branches missed.">                            if (checkHost(&quot;localhost&quot;, excludeActiveCryptoTokens)) {</span>
+<span class="nc" id="L1076">                                succeededHost.append(' ').append(host);</span>
+                            } else {
+<span class="nc" id="L1078">                                failedHosts.append(' ').append(host);</span>
+                            }
+                        } else {
+<span class="nc" id="L1081">                            failedHosts.append(' ').append(host);</span>
+                        }
+                    }
+                }
+<span class="nc" id="L1085">            } catch (IOException e) {</span>
+<span class="nc" id="L1086">                failedHosts.append(' ').append(host);</span>
+<span class="nc" id="L1087">            }</span>
+<span class="nc" id="L1088">        }</span>
+        // Invalidate local GUI cache
+<span class="nc" id="L1090">        initialized = false;</span>
+<span class="nc bnc" id="L1091" title="All 2 branches missed.">        if (failedHosts.length() &gt; 0) {</span>
+            // The below will print hosts starting with a blank (space), but it's worth it to not have to consider error handling if toString is empty
+<span class="nc" id="L1093">            throw new CacheClearException(&quot;Failed to clear cache on hosts (&quot; + failedHosts.toString() + &quot;), but succeeded on (&quot; + succeededHost.toString() + &quot;).&quot;);</span>
+        }
+<span class="nc bnc" id="L1095" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1096">            log.trace(&quot;&lt;clearClusterCache&quot;);</span>
+        }
+<span class="nc" id="L1098">    }</span>
+
+    /** Perform HTTP connection to the cluster nodes clear-cache Servlet
+     * @param hostname Host
+     * @param excludeActiveCryptoTokens bool
+     * @return bool
+     * @throws IOException if any of the external hosts couldn't be contacted
+     */
+    private boolean checkHost(String hostname, boolean excludeActiveCryptoTokens) throws IOException {
+        // get http port of remote host, this requires that all cluster nodes uses the same public htt port
+<span class="nc" id="L1108">        final int pubport = WebConfiguration.getPublicHttpPort();</span>
+<span class="nc" id="L1109">        final String requestUrl = &quot;http://&quot; + hostname + &quot;:&quot; + pubport + &quot;/ejbca/clearcache?command=clearcaches&amp;excludeactivects=&quot;</span>
+                + excludeActiveCryptoTokens;
+<span class="nc" id="L1111">        final URL url = new URL(requestUrl);</span>
+<span class="nc" id="L1112">        final HttpURLConnection con = (HttpURLConnection) url.openConnection();</span>
+<span class="nc bnc" id="L1113" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1114">            log.debug(&quot;Contacting host with url:&quot; + requestUrl);</span>
+        }
+        try {
+<span class="nc" id="L1117">            final int responseCode = con.getResponseCode();</span>
+<span class="nc bnc" id="L1118" title="All 2 branches missed.">            if (responseCode == HttpURLConnection.HTTP_OK) {</span>
+<span class="nc" id="L1119">                return true;</span>
+            }
+<span class="nc" id="L1121">            log.info(&quot;Failed to clear caches for host: &quot; + hostname + &quot;, responseCode=&quot; + responseCode);</span>
+<span class="nc" id="L1122">        } catch (SocketException e) {</span>
+<span class="nc" id="L1123">            log.info(&quot;Failed to clear caches for host: &quot; + hostname + &quot;, message=&quot; + e.getMessage());</span>
+<span class="nc" id="L1124">        } catch (IOException e) {</span>
+<span class="nc" id="L1125">            log.info(&quot;Failed to clear caches for host: &quot; + hostname + &quot;, message=&quot; + e.getMessage());</span>
+<span class="nc" id="L1126">        }</span>
+<span class="nc" id="L1127">        return false;</span>
+    }
+
+    /** @param hostname Host
+     * @return true if the provided hostname matches the name reported by the system for localhost */
+    private boolean isLocalHost(final String hostname) {
+        try {
+<span class="nc bnc" id="L1134" title="All 2 branches missed.">            if (hostname.equals(InetAddress.getLocalHost().getHostName())) {</span>
+<span class="nc" id="L1135">                return true;</span>
+            }
+<span class="nc" id="L1137">        } catch (UnknownHostException e) {</span>
+<span class="nc" id="L1138">            log.error(&quot;Hostname could not be determined&quot;, e);</span>
+<span class="nc" id="L1139">        }</span>
+<span class="nc" id="L1140">        return false;</span>
+    }
+
+    public EjbLocalHelper getEjb() {
+<span class="nc" id="L1144">        return ejbLocalHelper;</span>
+    }
+
+    public EnterpriseEjbLocalHelper getEnterpriseEjb() {
+<span class="nc" id="L1148">        return enterpriseEjbLocalHelper;</span>
+    }
+
+    //**********************
+    //     CMP
+    //**********************
+
+    public CmpConfiguration getCmpConfiguration() {
+<span class="nc bnc" id="L1156" title="All 2 branches missed.">        if (cmpconfiguration == null) {</span>
+<span class="nc" id="L1157">            reloadCmpConfiguration();</span>
+        }
+        //Clear CMP config of unauthorized aliases (aliases referring to CA, EEP or CPs that the current admin doesn't have access to)
+<span class="nc" id="L1160">        return clearCmpConfigurationFromUnauthorizedAliases(cmpconfiguration);</span>
+    }
+
+    /**
+     * Returns a clone of the current CMPConfiguration containing only the given alias. Also caches the clone locally.
+     *
+     * @param alias a CMP config alias
+     * @return a clone of the current CMPConfiguration containing only the given alias. Will return an alias with only default values if the CmpConfiguration doesn't
+     *          contain that alias.
+     */
+    public CmpConfiguration getCmpConfigForEdit(String alias) {
+<span class="nc bnc" id="L1171" title="All 2 branches missed.">        if (cmpConfigForEdit != null) {</span>
+<span class="nc" id="L1172">            return cmpConfigForEdit;</span>
+        }
+<span class="nc" id="L1174">        reloadCmpConfiguration();</span>
+<span class="nc" id="L1175">        cmpConfigForEdit = new CmpConfiguration();</span>
+<span class="nc" id="L1176">        cmpConfigForEdit.setAliasList(new LinkedHashSet&lt;String&gt;());</span>
+<span class="nc" id="L1177">        cmpConfigForEdit.addAlias(alias);</span>
+<span class="nc bnc" id="L1178" title="All 2 branches missed.">        for(String key : CmpConfiguration.getAllAliasKeys(alias)) {</span>
+<span class="nc" id="L1179">            String value = cmpconfiguration.getValue(key, alias);</span>
+<span class="nc" id="L1180">            cmpConfigForEdit.setValue(key, value, alias);</span>
+<span class="nc" id="L1181">        }</span>
+<span class="nc" id="L1182">        return cmpConfigForEdit;</span>
+    }
+
+    /**
+     * Merges together an alias from the editing clone into the proper configuration cache and saves it to the database.
+     *
+     * @param alias a CMP config alias.
+     * @throws AuthorizationDeniedException if the current admin isn't authorized to edit configurations
+     */
+    public void updateCmpConfigFromClone(String alias) throws AuthorizationDeniedException {
+<span class="nc bnc" id="L1192" title="All 4 branches missed.">        if (cmpconfiguration.aliasExists(alias) &amp;&amp; cmpConfigForEdit.aliasExists(alias)) {</span>
+<span class="nc bnc" id="L1193" title="All 2 branches missed.">            for(String key : CmpConfiguration.getAllAliasKeys(alias)) {</span>
+<span class="nc" id="L1194">                String value = cmpConfigForEdit.getValue(key, alias);</span>
+<span class="nc" id="L1195">                cmpconfiguration.setValue(key, value, alias);</span>
+<span class="nc" id="L1196">            }</span>
+        }
+<span class="nc" id="L1198">        saveCmpConfiguration(cmpconfiguration);</span>
+<span class="nc" id="L1199">    }</span>
+
+    /**
+     * Adds an alias to the database.
+     *
+     * @param alias the name of a CMP alias.
+     * @throws AuthorizationDeniedException if the current admin isn't authorized to edit configurations
+     */
+    public void addCmpAlias(final String alias) throws AuthorizationDeniedException {
+<span class="nc" id="L1208">        cmpconfiguration.addAlias(alias);</span>
+<span class="nc" id="L1209">        saveCmpConfiguration(cmpconfiguration);</span>
+<span class="nc" id="L1210">    }</span>
+
+    /**
+     * Makes a copy of a given alias
+     *
+     * @param oldName the name of the alias to copy
+     * @param newName the name of the new alias
+     * @throws AuthorizationDeniedException if the current admin isn't authorized to edit configurations
+     */
+    public void cloneCmpAlias(final String oldName, final String newName) throws AuthorizationDeniedException {
+<span class="nc" id="L1220">        cmpconfiguration.cloneAlias(oldName, newName);</span>
+<span class="nc" id="L1221">        saveCmpConfiguration(cmpconfiguration);</span>
+<span class="nc" id="L1222">    }</span>
+
+    /**
+     * Deletes a CMP alias from the database.
+     *
+     * @param alias the name of the alias to delete.
+     * @throws AuthorizationDeniedException if the current admin isn't authorized to edit configurations
+     */
+    public void removeCmpAlias(final String alias) throws AuthorizationDeniedException {
+<span class="nc" id="L1231">        cmpconfiguration.removeAlias(alias);</span>
+<span class="nc" id="L1232">        saveCmpConfiguration(cmpconfiguration);</span>
+<span class="nc" id="L1233">    }</span>
+
+    /**
+     * Renames a CMP alias
+     *
+     * @param oldName the old alias name
+     * @param newName the new alias name
+     * @throws AuthorizationDeniedException if the current admin isn't authorized to edit configurations
+     */
+    public void renameCmpAlias(final String oldName, final String newName) throws AuthorizationDeniedException {
+<span class="nc" id="L1243">        cmpconfiguration.renameAlias(oldName, newName);</span>
+<span class="nc" id="L1244">        saveCmpConfiguration(cmpconfiguration);</span>
+<span class="nc" id="L1245">    }</span>
+
+    public void clearCmpConfigClone() {
+<span class="nc" id="L1248">        cmpConfigForEdit = null;</span>
+<span class="nc" id="L1249">    }</span>
+
+    public void clearCmpCache() {
+<span class="nc" id="L1252">        globalConfigurationSession.flushConfigurationCache(CmpConfiguration.CMP_CONFIGURATION_ID);</span>
+<span class="nc" id="L1253">        reloadCmpConfiguration();</span>
+<span class="nc" id="L1254">    }</span>
+
+    /**
+     *
+     * Note that this method modifies the parameter, which is has to due to the design of UpgradableHashMap.
+     *
+     * @param cmpConfiguration the full CMP configuration
+     * @return the modified cmpConfiguration, same as the parameter.
+     */
+    private CmpConfiguration clearCmpConfigurationFromUnauthorizedAliases(final CmpConfiguration cmpConfiguration) {
+        //Copy the configuration, because modifying parameters is nasty
+<span class="nc" id="L1265">        CmpConfiguration returnValue = new CmpConfiguration(cmpConfiguration);</span>
+        //Build a lookup map due to the fact that default CA is stored as a SubjectDNs
+<span class="nc" id="L1267">        Map&lt;String, String&gt; subjectDnToCaNameMap = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L1268" title="All 2 branches missed.">        for (int caId : caSession.getAllCaIds()) {</span>
+<span class="nc" id="L1269">            CAInfo caInfo = caSession.getCAInfoInternal(caId);</span>
+<span class="nc bnc" id="L1270" title="All 2 branches missed.">            if (caInfo != null) {</span>
+<span class="nc" id="L1271">                subjectDnToCaNameMap.put(caInfo.getSubjectDN(), caInfo.getName());</span>
+            }
+<span class="nc" id="L1273">        }</span>
+<span class="nc" id="L1274">        Set&lt;Integer&gt; authorizedProfileIds = new HashSet&lt;&gt;(endEntityProfileSession.getAuthorizedEndEntityProfileIds(administrator, &quot;&quot;));</span>
+        //Exclude all aliases which refer to CAs that current admin doesn't have access to
+<span class="nc bnc" id="L1276" title="All 2 branches missed.">        aliasloop: for (String alias : new ArrayList&lt;&gt;(cmpConfiguration.getAliasList())) {</span>
+            //Collect CA names
+<span class="nc" id="L1278">            Set&lt;String&gt; caNames = new HashSet&lt;&gt;();</span>
+<span class="nc" id="L1279">            String defaultCaSubjectDn = cmpConfiguration.getCMPDefaultCA(alias);</span>
+<span class="nc bnc" id="L1280" title="All 2 branches missed.">            if (!StringUtils.isEmpty(defaultCaSubjectDn)) {</span>
+<span class="nc" id="L1281">                caNames.add(subjectDnToCaNameMap.get(defaultCaSubjectDn));</span>
+            }
+<span class="nc bnc" id="L1283" title="All 2 branches missed.">            if (cmpConfiguration.getRAMode(alias)) {</span>
+<span class="nc" id="L1284">                String authenticationCa = cmpConfiguration.getAuthenticationParameter(CmpConfiguration.AUTHMODULE_ENDENTITY_CERTIFICATE, alias);</span>
+<span class="nc bnc" id="L1285" title="All 2 branches missed.">                if (!StringUtils.isEmpty(authenticationCa)) {</span>
+<span class="nc" id="L1286">                    caNames.add(authenticationCa);</span>
+                }
+<span class="nc" id="L1288">                final String raCaName = cmpconfiguration.getRACAName(alias);</span>
+<span class="nc bnc" id="L1289" title="All 2 branches missed.">                if (!&quot;ProfileDefault&quot;.equals(raCaName)) {</span>
+                    // &quot;ProfileDefault&quot; is not a CA name and if the profile default is used, this will be implicitly checked be checking access to the EEP
+<span class="nc" id="L1291">                    caNames.add(raCaName);</span>
+                }
+<span class="nc" id="L1293">                String eeProfileIdString = cmpconfiguration.getRAEEProfile(alias);</span>
+                // If value is set to KeyId we will not hide it, because it can be any EE profile
+<span class="nc bnc" id="L1295" title="All 2 branches missed.">                if (!StringUtils.equals(CmpConfiguration.PROFILE_USE_KEYID, eeProfileIdString)) {</span>
+<span class="nc bnc" id="L1296" title="All 4 branches missed.">                    if (eeProfileIdString != null &amp;&amp; endEntityProfileSession.getEndEntityProfile(Integer.valueOf(eeProfileIdString)) != null) {</span>
+<span class="nc bnc" id="L1297" title="All 2 branches missed.">                        if (!authorizedProfileIds.contains(Integer.valueOf(eeProfileIdString))) {</span>
+<span class="nc bnc" id="L1298" title="All 2 branches missed.">                            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1299">                                log.debug(&quot;CMP alias &quot; + alias + &quot; hidden because admin lacks access to a CA used in end entity profile with ID: &quot;</span>
+                                        + eeProfileIdString);
+                            }
+<span class="nc" id="L1302">                            returnValue.removeAlias(alias);</span>
+                            //Profile was not in the authorized list, skip out on this alias.
+<span class="nc" id="L1304">                            continue aliasloop;</span>
+                        }
+                    }
+                }
+                //Certificate Profiles are tested implicitly, since we can't choose any CP which isn't part of the EEP, and we can't choose the EEP if we don't have access to its CPs.
+            }
+<span class="nc" id="L1310">            TreeMap&lt;String, Integer&gt; caNameToIdMap = caSession.getAuthorizedCaNamesToIds(administrator);</span>
+<span class="nc bnc" id="L1311" title="All 2 branches missed.">            for (String caName : caNames) {</span>
+<span class="nc bnc" id="L1312" title="All 2 branches missed.">                if(caName != null) { //CA might have been removed</span>
+<span class="nc" id="L1313">                    Integer caId = caNameToIdMap.get(caName);</span>
+<span class="nc bnc" id="L1314" title="All 2 branches missed.">                    if (caId != null) {</span>
+<span class="nc bnc" id="L1315" title="All 2 branches missed.">                        if (!caSession.authorizedToCANoLogging(administrator, caId)) {</span>
+<span class="nc bnc" id="L1316" title="All 2 branches missed.">                            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1317">                                log.debug(&quot;CMP alias &quot; + alias + &quot; hidden because admin lacks access to CA rule: &quot; + StandardRules.CAACCESS.resource()</span>
+<span class="nc" id="L1318">                                        + caNameToIdMap.get(caName));</span>
+                            }
+<span class="nc" id="L1320">                            returnValue.removeAlias(alias);</span>
+                            //Our work here is done, skip to the next alias.
+<span class="nc" id="L1322">                            continue aliasloop;</span>
+                        }
+                    }
+                }
+<span class="nc" id="L1326">            }</span>
+<span class="nc" id="L1327">        }</span>
+
+<span class="nc" id="L1329">        return returnValue;</span>
+    }
+
+    /**
+     * Retrieve a mapping between authorized end entity profile names and their ids which can be displayed in the GUI.
+     * The returned map will contain an additional &quot;KeyID&quot; entry which allows the end user to specify the end entity
+     * in the CMP request.
+     * @param endEntityAccessRule the access rule used for authorization
+     * @return a map {end entity profile name} =&amp;gt; {end entity profile id} with authorized end entituy profiles
+     */
+    public Map&lt;String, String&gt; getAuthorizedEEProfileNamesAndIds(final String endEntityAccessRule) {
+<span class="nc" id="L1340">        final RAAuthorization raAuthorization = new RAAuthorization(administrator, globalConfigurationSession, authorizationSession, caSession, endEntityProfileSession);</span>
+<span class="nc" id="L1341">        final TreeMap&lt;String, String&gt; authorizedEEProfileNamesAndIds = new TreeMap&lt;&gt;(</span>
+<span class="nc" id="L1342">                raAuthorization.getAuthorizedEndEntityProfileNames(endEntityAccessRule));</span>
+        // Add KeyId option. If used, extract the EE profile name from the senderKID field of the CMP request.
+        // Important to add KeyId entry to a fresh copy, since the &quot;Add End Entity&quot; page will try to load end
+        // entity profiles from this map.
+<span class="nc" id="L1346">        authorizedEEProfileNamesAndIds.put(CmpConfiguration.PROFILE_USE_KEYID, CmpConfiguration.PROFILE_USE_KEYID);</span>
+<span class="nc" id="L1347">        return authorizedEEProfileNamesAndIds;</span>
+    }
+
+    public Map&lt;String, String&gt; getAuthorizedEEProfilesAndIdsNoKeyId(final String endEntityAccessRule) {
+<span class="nc" id="L1351">        final RAAuthorization raAuthorization = new RAAuthorization(administrator, globalConfigurationSession, authorizationSession, caSession, endEntityProfileSession);</span>
+<span class="nc" id="L1352">        return new TreeMap&lt;&gt;(raAuthorization.getAuthorizedEndEntityProfileNames(endEntityAccessRule));</span>
+    }
+
+    /**
+     * Retrieve a collection of available certificate authority ids based on end entity profile id. The returned list may
+     * contain an additional &quot;KeyID&quot; option which allows the end user to specify the CA in the CMP request.
+     * @param endEntityProfileId the id of an end entity profile
+     * @return a sorted list of certificate authorities for the specified end entity profile
+     * @throws NumberFormatException if the end entity profile id is not a number
+     * @throws CADoesntExistsException if the certificate authority pointed to by an end entity profile does not exist
+     * @throws AuthorizationDeniedException if we were denied access control
+     */
+    public Collection&lt;String&gt; getAvailableCAsOfEEProfile(final String endEntityProfileId)
+            throws NumberFormatException, CADoesntExistsException, AuthorizationDeniedException {
+<span class="nc bnc" id="L1366" title="All 2 branches missed.">        if (StringUtils.equals(endEntityProfileId, CmpConfiguration.PROFILE_USE_KEYID)) {</span>
+<span class="nc" id="L1367">            final List&lt;String&gt; certificateAuthorities = new ArrayList&lt;&gt;(getCANames().keySet());</span>
+<span class="nc" id="L1368">            return addKeyIdAndSort(certificateAuthorities);</span>
+        }
+<span class="nc" id="L1370">        final EndEntityProfile endEntityProfile = endEntityProfileSession.getEndEntityProfile(Integer.valueOf(endEntityProfileId));</span>
+<span class="nc bnc" id="L1371" title="All 2 branches missed.">        if (endEntityProfile == null) {</span>
+<span class="nc" id="L1372">            return Collections.emptyList();</span>
+        }
+<span class="nc" id="L1374">        final Collection&lt;Integer&gt; certificateAuthorityIds = endEntityProfile.getAvailableCAs();</span>
+<span class="nc bnc" id="L1375" title="All 2 branches missed.">        if (certificateAuthorityIds.contains(CAConstants.ALLCAS)) {</span>
+            // End entity contains &quot;Any CA&quot;
+<span class="nc" id="L1377">            final List&lt;String&gt; certificateAuthorities = new ArrayList&lt;&gt;(getCANames().keySet());</span>
+<span class="nc" id="L1378">            return addKeyIdAndSort(certificateAuthorities);</span>
+        }
+<span class="nc" id="L1380">        final List&lt;String&gt; certificateAuthorities = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L1381" title="All 2 branches missed.">        for (final int id : certificateAuthorityIds) {</span>
+<span class="nc" id="L1382">            final CA ca = caSession.getCANoLog(administrator, id);</span>
+<span class="nc" id="L1383">            certificateAuthorities.add(ca.getName());</span>
+<span class="nc" id="L1384">        }</span>
+<span class="nc" id="L1385">        return addKeyIdAndSort(certificateAuthorities);</span>
+    }
+
+    /**
+     * Retrieve a list of certificate profile ids based on an end entity profile id. The returned list may contain
+     * an additional &quot;KeyID&quot; option which allows the end user to specify the certificate profile in the CMP request.
+     * @param endEntityProfileId the end entity profile id for which we want to fetch certificate profiles
+     * @return a sorted list of certificate profile names
+     */
+    public Collection&lt;String&gt; getAvailableCertProfilesOfEEProfile(final String endEntityProfileId) {
+<span class="nc bnc" id="L1395" title="All 2 branches missed.">        if (StringUtils.equals(endEntityProfileId, CmpConfiguration.PROFILE_USE_KEYID)) {</span>
+<span class="nc" id="L1396">            final List&lt;Integer&gt; allCertificateProfileIds = certificateProfileSession.getAuthorizedCertificateProfileIds(administrator, 0);</span>
+<span class="nc" id="L1397">            final List&lt;String&gt; allCertificateProfiles = new ArrayList&lt;&gt;(allCertificateProfileIds.size());</span>
+<span class="nc bnc" id="L1398" title="All 2 branches missed.">            for (final int id : allCertificateProfileIds) {</span>
+<span class="nc" id="L1399">                allCertificateProfiles.add(certificateProfileSession.getCertificateProfileName(id));</span>
+<span class="nc" id="L1400">            }</span>
+<span class="nc" id="L1401">            return addKeyIdAndSort(allCertificateProfiles);</span>
+        }
+<span class="nc" id="L1403">        final EndEntityProfile profile = endEntityProfileSession.getEndEntityProfile(Integer.valueOf(endEntityProfileId));</span>
+<span class="nc bnc" id="L1404" title="All 2 branches missed.">        if (profile == null) {</span>
+<span class="nc" id="L1405">            return Collections.emptyList();</span>
+        }
+<span class="nc" id="L1407">        final Collection&lt;Integer&gt; certificateProfileIds = profile.getAvailableCertificateProfileIds();</span>
+<span class="nc" id="L1408">        final List&lt;String&gt; certificateProfiles = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L1409" title="All 2 branches missed.">        for (final int id : certificateProfileIds) {</span>
+<span class="nc" id="L1410">            final String certificateProfile = certificateProfileSession.getCertificateProfileName(id);</span>
+<span class="nc" id="L1411">            certificateProfiles.add(certificateProfile);</span>
+<span class="nc" id="L1412">        }</span>
+<span class="nc" id="L1413">        return addKeyIdAndSort(certificateProfiles);</span>
+    }
+
+    private Collection&lt;String&gt; getAvailableCertProfileIDsOfEEProfileNoKeyID(final String endEntityProfileId) {
+<span class="nc bnc" id="L1417" title="All 2 branches missed.">        if (StringUtils.equals(endEntityProfileId, CmpConfiguration.PROFILE_USE_KEYID)) {</span>
+<span class="nc" id="L1418">            final List&lt;Integer&gt; allCertificateProfileIds = certificateProfileSession.getAuthorizedCertificateProfileIds(administrator, 0);</span>
+<span class="nc" id="L1419">            final List&lt;String&gt; allCertificateProfiles = new ArrayList&lt;&gt;(allCertificateProfileIds.size());</span>
+<span class="nc bnc" id="L1420" title="All 2 branches missed.">            for (final int id : allCertificateProfileIds) {</span>
+<span class="nc" id="L1421">                allCertificateProfiles.add(certificateProfileSession.getCertificateProfileName(id));</span>
+<span class="nc" id="L1422">            }</span>
+<span class="nc" id="L1423">            return allCertificateProfiles;</span>
+        }
+<span class="nc" id="L1425">        final EndEntityProfile profile = endEntityProfileSession.getEndEntityProfile(Integer.valueOf(endEntityProfileId));</span>
+<span class="nc bnc" id="L1426" title="All 2 branches missed.">        if (profile == null) {</span>
+<span class="nc" id="L1427">            return Collections.emptyList();</span>
+        }
+<span class="nc" id="L1429">        final Collection&lt;String&gt; certificateProfileIds = profile.getAvailableCertificateProfileIdsAsStrings();</span>
+<span class="nc" id="L1430">        return certificateProfileIds;</span>
+    }
+
+    /**
+     * Retrieve a mapping between certificate profiles names and IDs available in the end entity profile. To be displayed in the GUI.
+     * @param endEntityProfileId the the end entity profile in which we want to find certificate profiles
+     * @return a map (TreeMap so it's sorted by key) {certificate profile name, certificate profile id} with authorized certificate profiles
+     */
+    public Map&lt;String, String&gt; getCertificateProfilesNoKeyId(final String endEntityProfileId) {
+<span class="nc" id="L1439">        final Map&lt;Integer, String&gt; map = certificateProfileSession.getCertificateProfileIdToNameMap();</span>
+<span class="nc" id="L1440">        final TreeMap&lt;String, String&gt; certificateProfiles = new TreeMap&lt;&gt;();</span>
+<span class="nc" id="L1441">        final Collection&lt;String&gt; ids = getAvailableCertProfileIDsOfEEProfileNoKeyID(endEntityProfileId);</span>
+<span class="nc bnc" id="L1442" title="All 2 branches missed.">        for (String idstr : ids) {</span>
+<span class="nc" id="L1443">            certificateProfiles.put(map.get(Integer.valueOf(idstr)), idstr);</span>
+<span class="nc" id="L1444">        }</span>
+<span class="nc" id="L1445">        return certificateProfiles;</span>
+    }
+
+    public Collection&lt;String&gt; getCertificateProfileIDsNoKeyId(final String endEntityProfileId) {
+<span class="nc" id="L1449">        final Collection&lt;String&gt; certificateProfiles = getAvailableCertProfilesOfEEProfile(endEntityProfileId);</span>
+<span class="nc" id="L1450">        certificateProfiles.remove(CmpConfiguration.PROFILE_USE_KEYID);</span>
+<span class="nc" id="L1451">        return certificateProfiles;</span>
+    }
+
+    private Collection&lt;String&gt; addKeyIdAndSort(final List&lt;String&gt; entries) {
+        // No point in adding KeyId if there are no options to choose from
+<span class="nc bnc" id="L1456" title="All 2 branches missed.">        if (entries.size() &gt; 1) {</span>
+<span class="nc" id="L1457">            entries.add(CmpConfiguration.PROFILE_USE_KEYID);</span>
+        }
+<span class="nc" id="L1459">        Collections.sort(entries);</span>
+<span class="nc" id="L1460">        return entries;</span>
+    }
+
+    public TreeMap&lt;String, Integer&gt; getCAOptions() {
+<span class="nc" id="L1464">        return getCANames();</span>
+    }
+
+    /**
+     * Gets the list of CA names by the list of CA IDs.
+     * @param idString the semicolon separated list of CA IDs.
+     * @return the list of CA names as semicolon separated String.
+     * @throws NumberFormatException if a CA ID could not be parsed.
+     * @throws AuthorizationDeniedException if authorization was denied.
+     */
+    public String getCaNamesString(final String idString) throws NumberFormatException, AuthorizationDeniedException {
+<span class="nc" id="L1475">        final TreeMap&lt;String, Integer&gt; availableCas = getCAOptions();</span>
+<span class="nc" id="L1476">        final List&lt;String&gt; result = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L1477" title="All 2 branches missed.">        if (StringUtils.isNotBlank(idString)) {</span>
+<span class="nc bnc" id="L1478" title="All 2 branches missed.">            for (String id : idString.split(&quot;;&quot;)) {</span>
+<span class="nc bnc" id="L1479" title="All 2 branches missed.">                if (availableCas.containsValue(Integer.valueOf(id))) {</span>
+<span class="nc bnc" id="L1480" title="All 2 branches missed.">                    for (Entry&lt;String,Integer&gt; entry : availableCas.entrySet()) {</span>
+<span class="nc bnc" id="L1481" title="All 4 branches missed.">                        if (entry.getValue() != null &amp;&amp; entry.getValue().equals( Integer.valueOf(id))) {</span>
+<span class="nc" id="L1482">                            result.add(entry.getKey());</span>
+                        }
+<span class="nc" id="L1484">                    }</span>
+                }
+            }
+        }
+<span class="nc" id="L1488">        return StringUtils.join(result, &quot;;&quot;);</span>
+    }
+
+    /** @return true if we are running in the enterprise mode otherwise false. */
+    public boolean isRunningEnterprise() {
+<span class="nc" id="L1493">        return enterpriseEjbLocalHelper.isRunningEnterprise();</span>
+    }
+
+    public EstConfiguration getEstConfiguration() {
+<span class="nc bnc" id="L1497" title="All 2 branches missed.">        if (estconfiguration == null) {</span>
+<span class="nc" id="L1498">            reloadEstConfiguration();</span>
+        }
+
+        //Clear EST config of unauthorized aliases (aliases referring to CA, EEP or CPs that the current admin doesn't have access to)
+<span class="nc" id="L1502">        return clearEstConfigurationFromUnauthorizedAliases(estconfiguration);</span>
+    }
+
+    /**
+     * Returns a clone of the current EstConfiguration containing only the given alias. Also caches the clone locally.
+     *
+     * @param alias a EST config alias
+     * @return a clone of the current EstConfiguration containing only the given alias. Will return an alias with only default values if the EstConfiguration doesn't
+     *          contain that alias.
+     */
+    public EstConfiguration getEstConfigForEdit(String alias) {
+<span class="nc bnc" id="L1513" title="All 2 branches missed.">        if (estConfigForEdit != null) {</span>
+<span class="nc" id="L1514">            return estConfigForEdit;</span>
+        }
+<span class="nc" id="L1516">        reloadEstConfiguration();</span>
+<span class="nc" id="L1517">        estConfigForEdit = new EstConfiguration();</span>
+<span class="nc" id="L1518">        estConfigForEdit.setAliasList(new LinkedHashSet&lt;String&gt;());</span>
+<span class="nc" id="L1519">        estConfigForEdit.addAlias(alias);</span>
+<span class="nc bnc" id="L1520" title="All 2 branches missed.">        for(String key : EstConfiguration.getAllAliasKeys(alias)) {</span>
+<span class="nc" id="L1521">            String value = estconfiguration.getValue(key, alias);</span>
+<span class="nc" id="L1522">            estConfigForEdit.setValue(key, value, alias);</span>
+<span class="nc" id="L1523">        }</span>
+<span class="nc" id="L1524">        return estConfigForEdit;</span>
+    }
+
+    /**
+     * Merges together an alias from the editing clone into the proper configuration cache and saves it to the database.
+     *
+     * @param alias a EST config alias.
+     * @throws AuthorizationDeniedException if the current admin isn't authorized to edit configurations
+     */
+    public void updateEstConfigFromClone(String alias) throws AuthorizationDeniedException {
+<span class="nc bnc" id="L1534" title="All 4 branches missed.">        if (estconfiguration.aliasExists(alias) &amp;&amp; estConfigForEdit.aliasExists(alias)) {</span>
+<span class="nc bnc" id="L1535" title="All 2 branches missed.">            for(String key : EstConfiguration.getAllAliasKeys(alias)) {</span>
+<span class="nc" id="L1536">                String value = estConfigForEdit.getValue(key, alias);</span>
+<span class="nc" id="L1537">                estconfiguration.setValue(key, value, alias);</span>
+<span class="nc" id="L1538">            }</span>
+        }
+<span class="nc" id="L1540">        saveEstConfiguration(estconfiguration);</span>
+<span class="nc" id="L1541">    }</span>
+
+    /**
+     * Adds an alias to the database.
+     *
+     * @param alias the name of a EST alias.
+     * @throws AuthorizationDeniedException if the current admin isn't authorized to edit configurations
+     */
+    public void addEstAlias(final String alias) throws AuthorizationDeniedException {
+<span class="nc" id="L1550">        estconfiguration.addAlias(alias);</span>
+<span class="nc" id="L1551">        saveEstConfiguration(estconfiguration);</span>
+<span class="nc" id="L1552">    }</span>
+
+    /**
+     * Makes a copy of a given alias
+     *
+     * @param oldName the name of the alias to copy
+     * @param newName the name of the new alias
+     * @throws AuthorizationDeniedException if the current admin isn't authorized to edit configurations
+     */
+    public void cloneEstAlias(final String oldName, final String newName) throws AuthorizationDeniedException {
+<span class="nc" id="L1562">        estconfiguration.cloneAlias(oldName, newName);</span>
+<span class="nc" id="L1563">        saveEstConfiguration(estconfiguration);</span>
+<span class="nc" id="L1564">    }</span>
+
+    /**
+     * Deletes a EST alias from the database.
+     *
+     * @param alias the name of the alias to delete.
+     * @throws AuthorizationDeniedException if the current admin isn't authorized to edit configurations
+     */
+    public void removeEstAlias(final String alias) throws AuthorizationDeniedException {
+<span class="nc" id="L1573">        estconfiguration.removeAlias(alias);</span>
+<span class="nc" id="L1574">        saveEstConfiguration(estconfiguration);</span>
+<span class="nc" id="L1575">    }</span>
+
+    /**
+     * Renames a EST alias
+     *
+     * @param oldName the old alias name
+     * @param newName the new alias name
+     * @throws AuthorizationDeniedException if the current admin isn't authorized to edit configurations
+     */
+    public void renameEstAlias(final String oldName, final String newName) throws AuthorizationDeniedException {
+<span class="nc" id="L1585">        estconfiguration.renameAlias(oldName, newName);</span>
+<span class="nc" id="L1586">        saveEstConfiguration(estconfiguration);</span>
+<span class="nc" id="L1587">    }</span>
+
+    public void clearEstConfigClone() {
+<span class="nc" id="L1590">        estConfigForEdit = null;</span>
+<span class="nc" id="L1591">    }</span>
+
+    public void clearEstCache() {
+<span class="nc" id="L1594">        globalConfigurationSession.flushConfigurationCache(EstConfiguration.EST_CONFIGURATION_ID);</span>
+<span class="nc" id="L1595">        reloadEstConfiguration();</span>
+<span class="nc" id="L1596">    }</span>
+
+    /**
+     * Removes EST aliases where the administrator does not have permissions to CA set as defaultCA
+     * Note that this method modifies the parameter, which is has to due to the design of UpgradableHashMap.
+     *
+     * @param estConfiguration the full CMP configuration
+     * @return the modified estConfiguration, same as the parameter.
+     */
+    private EstConfiguration clearEstConfigurationFromUnauthorizedAliases(final EstConfiguration estConfiguration) {
+        //Copy the configuration, because modifying parameters is nasty
+<span class="nc" id="L1607">        EstConfiguration returnValue = new EstConfiguration(estConfiguration);</span>
+        //Exclude all aliases which refer to CAs that current admin doesn't have access to
+<span class="nc bnc" id="L1609" title="All 2 branches missed.">        aliasloop: for (String alias : new ArrayList&lt;&gt;(estConfiguration.getAliasList())) {</span>
+<span class="nc" id="L1610">            Integer caId = 0;</span>
+            // To be backward compatible with EJBCA 6.11, where this was stored as the name instead of ID, we make it possible to use both. See ECA-6556
+<span class="nc" id="L1612">            String defaultCAIDStr = estConfiguration.getDefaultCAID(alias);</span>
+<span class="nc bnc" id="L1613" title="All 2 branches missed.">            if (NumberUtils.isNumber(defaultCAIDStr)) {</span>
+<span class="nc" id="L1614">                caId = Integer.valueOf(defaultCAIDStr);</span>
+            } else {
+                // We have a caName, and want the Id
+<span class="nc" id="L1617">                CAInfo cainfo = caSession.getCAInfoInternal(-1, defaultCAIDStr, true);</span>
+<span class="nc bnc" id="L1618" title="All 2 branches missed.">                if (cainfo != null) {</span>
+<span class="nc" id="L1619">                    caId = cainfo.getCAId();</span>
+                } else {
+<span class="nc bnc" id="L1621" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1622">                        log.debug(&quot;CA with name '&quot;+defaultCAIDStr+&quot;' does not exist, allowing everyone to view EST alias '&quot;+alias+&quot;'.&quot;);</span>
+                    }
+                }
+            }
+<span class="nc bnc" id="L1626" title="All 2 branches missed.">            if (caId != 0) {</span>
+<span class="nc bnc" id="L1627" title="All 2 branches missed.">                if (!caSession.authorizedToCANoLogging(administrator, caId)) {</span>
+<span class="nc bnc" id="L1628" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1629">                        log.debug(&quot;EST alias &quot; + alias + &quot; hidden because admin lacks access to CA rule: &quot; + StandardRules.CAACCESS.resource() + caId);</span>
+                    }
+<span class="nc" id="L1631">                    returnValue.removeAlias(alias);</span>
+                    //Our work here is done, skip to the next alias.
+<span class="nc" id="L1633">                    continue aliasloop;</span>
+                }
+            }
+<span class="nc" id="L1636">        }</span>
+<span class="nc" id="L1637">        return returnValue;</span>
+    }
+
+    //*************************************************
+    //      AvailableExtendedKeyUsagesConfigration
+    //*************************************************
+
+    public AvailableExtendedKeyUsagesConfiguration getAvailableExtendedKeyUsagesConfiguration() {
+<span class="nc bnc" id="L1645" title="All 2 branches missed.">        if (availableExtendedKeyUsagesConfig == null) {</span>
+<span class="nc" id="L1646">            reloadAvailableExtendedKeyUsagesConfiguration();</span>
+        }
+<span class="nc" id="L1648">        return availableExtendedKeyUsagesConfig;</span>
+    }
+
+    public void reloadAvailableExtendedKeyUsagesConfiguration() {
+<span class="nc" id="L1652">        availableExtendedKeyUsagesConfig = (AvailableExtendedKeyUsagesConfiguration) globalConfigurationSession</span>
+<span class="nc" id="L1653">                .getCachedConfiguration(AvailableExtendedKeyUsagesConfiguration.CONFIGURATION_ID);</span>
+<span class="nc" id="L1654">    }</span>
+
+    public void saveAvailableExtendedKeyUsagesConfiguration(AvailableExtendedKeyUsagesConfiguration ekuConfig) throws AuthorizationDeniedException {
+<span class="nc" id="L1657">        globalConfigurationSession.saveConfiguration(administrator, ekuConfig);</span>
+<span class="nc" id="L1658">        availableExtendedKeyUsagesConfig = ekuConfig;</span>
+<span class="nc" id="L1659">    }</span>
+
+    //*****************************************************************
+    //       AvailableCustomCertificateExtensionsConfiguration
+    //*****************************************************************
+
+    public AvailableCustomCertificateExtensionsConfiguration getAvailableCustomCertExtensionsConfiguration() {
+<span class="nc bnc" id="L1666" title="All 2 branches missed.">        if (availableCustomCertExtensionsConfig == null) {</span>
+<span class="nc" id="L1667">            reloadAvailableCustomCertExtensionsConfiguration();</span>
+        }
+<span class="nc" id="L1669">        return availableCustomCertExtensionsConfig;</span>
+    }
+
+    public void reloadAvailableCustomCertExtensionsConfiguration() {
+<span class="nc" id="L1673">        availableCustomCertExtensionsConfig = (AvailableCustomCertificateExtensionsConfiguration) globalConfigurationSession</span>
+<span class="nc" id="L1674">                .getCachedConfiguration(AvailableCustomCertificateExtensionsConfiguration.CONFIGURATION_ID);</span>
+<span class="nc" id="L1675">    }</span>
+
+    public void saveAvailableCustomCertExtensionsConfiguration(AvailableCustomCertificateExtensionsConfiguration cceConfig)
+            throws AuthorizationDeniedException {
+<span class="nc" id="L1679">        globalConfigurationSession.saveConfiguration(administrator, cceConfig);</span>
+<span class="nc" id="L1680">        availableCustomCertExtensionsConfig = cceConfig;</span>
+<span class="nc" id="L1681">    }</span>
+
+    //*******************************
+    //         Peer Connector
+    //*******************************
+
+<span class="nc" id="L1687">    private Boolean peerConnectorPresent = null;</span>
+
+    /** @return true if the PeerConnectors GUI implementation is present. */
+    public boolean isPeerConnectorPresent() {
+<span class="nc bnc" id="L1691" title="All 2 branches missed.">        if (peerConnectorPresent == null) {</span>
+            try {
+<span class="nc" id="L1693">                Class.forName(&quot;org.ejbca.ui.web.admin.peerconnector.PeerConnectorsMBean&quot;);</span>
+<span class="nc" id="L1694">                peerConnectorPresent = Boolean.TRUE;</span>
+<span class="nc" id="L1695">            } catch (ClassNotFoundException e) {</span>
+<span class="nc" id="L1696">                peerConnectorPresent = Boolean.FALSE;</span>
+<span class="nc" id="L1697">            }</span>
+        }
+<span class="nc" id="L1699">        return peerConnectorPresent.booleanValue();</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

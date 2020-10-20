@@ -19,64 +19,146 @@ import java.util.Date;
  * This class encapsulates a Date object that represents a trusted time. It also
  * provides information related to thhe trusted time source: accuracy and
  * stratum
- * 
+ *
  * @version $Id: TrustedTime.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 public class TrustedTime implements Serializable {
 
-    private static final long serialVersionUID = 1L;
-<span class="nc" id="L28">    private static final Integer delta = 1;</span>
+  private static final long serialVersionUID = 1L;
+  /** Delta. */
+<span class="nc" id="L29">  private static final Integer DELTA = 1;</span>
+  /** Source. */
+  private String source;
+  /** Accuracy. */
+  private Double accuracy;
+  /** Stratum. */
+  private Integer stratum;
+  /** Last update. */
+  private Long previousUpdate; // seconds
+  /** Nest update. */
+  private Long nextUpdate; // seconds
+  /** Sync. */
+<span class="nc" id="L41">  private boolean sync = false;</span>
 
-    private String source;
-    private Double accuracy;
-    private Integer stratum;
-    private Long previousUpdate; //seconds
-    private Long nextUpdate; //seconds
-<span class="nc" id="L35">    private boolean sync = false;</span>
+  /** Default constructor. */
+<span class="nc" id="L44">  public TrustedTime() { }</span>
 
-<span class="nc" id="L37">    public TrustedTime() { }</span>
+  /**
+   * @return stratum
+   */
+  public Integer getStratum() {
+<span class="nc" id="L50">    return stratum;</span>
+  }
 
-<span class="nc" id="L39">    public Integer getStratum() { return stratum; }</span>
-<span class="nc" id="L40">    public void setStratum(final Integer stratum) { this.stratum = stratum; }</span>
+  /**
+   * @param aStratum stratum
+   */
+  public void setStratum(final Integer aStratum) {
+<span class="nc" id="L57">    this.stratum = aStratum;</span>
+<span class="nc" id="L58">  }</span>
 
-<span class="nc" id="L42">    public Long getPreviousUpdate() { return this.previousUpdate; }</span>
-<span class="nc" id="L43">    public Long getNextUpdate() { return this.nextUpdate; }</span>
+  /**
+   * @return last update
+   */
+  public Long getPreviousUpdate() {
+<span class="nc" id="L64">    return this.previousUpdate;</span>
+  }
 
-    public void setNextUpdate(Integer when, Integer poll) {
-<span class="nc" id="L46">        Long nextUpdate = Long.valueOf(((poll - when) + delta)*1000);</span>
-<span class="nc bnc" id="L47" title="All 2 branches missed.">        if(nextUpdate.longValue() &lt;= 0) { </span>
-<span class="nc" id="L48">            nextUpdate = Long.valueOf(1); </span>
-        }
+  /**
+   * @return Nest update
+   */
+  public Long getNextUpdate() {
+<span class="nc" id="L71">    return this.nextUpdate;</span>
+  }
 
-<span class="nc bnc" id="L51" title="All 2 branches missed.">        if(this.nextUpdate != null) {</span>
-<span class="nc" id="L52">            this.previousUpdate = this.nextUpdate;</span>
-        } 
-
-<span class="nc" id="L55">        this.nextUpdate = nextUpdate;</span>
-<span class="nc" id="L56">    }</span>
-
-<span class="nc" id="L58">    public boolean isSync() { return this.sync; }</span>
-<span class="nc" id="L59">    public void setSync(boolean sync) { this.sync = sync; }</span>
-
-<span class="nc" id="L61">    public Date getTime() { return new Date(); }</span>
-
-<span class="nc" id="L63">    public String getSource() { return this.source; }</span>
-<span class="nc" id="L64">    public void setSource(String source) { this.source = source; }</span>
-
-
-<span class="nc" id="L67">    public Double getAccuracy() { return accuracy; }</span>
-<span class="nc" id="L68">    public void setAccuracy(final Double accuracy) { this.accuracy = accuracy; }</span>
-
-<span class="nc" id="L70">    public TrustedTime(final Double accuracy) {</span>
-<span class="nc" id="L71">        this.accuracy = accuracy;</span>
-<span class="nc" id="L72">    }</span>
-
-    public String toString() {
-<span class="nc" id="L75">        final StringBuilder sb = new StringBuilder();</span>
-<span class="nc" id="L76">        sb.append(this.accuracy).append(&quot;;&quot;).append(this.stratum).append(&quot;;&quot;).</span>
-<span class="nc" id="L77">            append(this.previousUpdate).append(&quot;;&quot;).append(this.nextUpdate).</span>
-<span class="nc" id="L78">            append(&quot;;&quot;).append(this.sync).append(this.source);</span>
-<span class="nc" id="L79">        return sb.toString();</span>
+  /**
+   * @param when When
+   * @param poll Poll
+   */
+  public void setNextUpdate(final Integer when, final Integer poll) {
+<span class="nc" id="L79">    final long msPerSec = 1000L;</span>
+<span class="nc" id="L80">    Long lnextUpdate = Long.valueOf(((poll - when) + DELTA) * msPerSec);</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">    if (lnextUpdate.longValue() &lt;= 0) {</span>
+<span class="nc" id="L82">      lnextUpdate = Long.valueOf(1);</span>
     }
+
+<span class="nc bnc" id="L85" title="All 2 branches missed.">    if (this.nextUpdate != null) {</span>
+<span class="nc" id="L86">      this.previousUpdate = this.nextUpdate;</span>
+    }
+
+<span class="nc" id="L89">    this.nextUpdate = lnextUpdate;</span>
+<span class="nc" id="L90">  }</span>
+
+  /**
+   * @return sync
+   */
+  public boolean isSync() {
+<span class="nc" id="L96">    return this.sync;</span>
+  }
+
+  /**
+   * @param aSync sync
+   */
+  public void setSync(final boolean aSync) {
+<span class="nc" id="L103">    this.sync = aSync;</span>
+<span class="nc" id="L104">  }</span>
+
+  /**
+   * @return time
+   */
+  public Date getTime() {
+<span class="nc" id="L110">    return new Date();</span>
+  }
+
+  /**
+   * @return source
+   */
+  public String getSource() {
+<span class="nc" id="L117">    return this.source;</span>
+  }
+
+  /**
+   * @param aSource source
+   */
+  public void setSource(final String aSource) {
+<span class="nc" id="L124">    this.source = aSource;</span>
+<span class="nc" id="L125">  }</span>
+
+  /**
+   * @return Accuracy
+   */
+  public Double getAccuracy() {
+<span class="nc" id="L131">    return accuracy;</span>
+  }
+
+  /**
+   * @param anAccuracy Accuracy
+   */
+  public void setAccuracy(final Double anAccuracy) {
+<span class="nc" id="L138">    this.accuracy = anAccuracy;</span>
+<span class="nc" id="L139">  }</span>
+
+  /**
+   * @param anAccuracy accuracy
+   */
+<span class="nc" id="L144">  public TrustedTime(final Double anAccuracy) {</span>
+<span class="nc" id="L145">    this.accuracy = anAccuracy;</span>
+<span class="nc" id="L146">  }</span>
+
+  @Override
+  public String toString() {
+<span class="nc" id="L150">    final StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L151">    sb.append(this.accuracy)</span>
+<span class="nc" id="L152">        .append(&quot;;&quot;)</span>
+<span class="nc" id="L153">        .append(this.stratum)</span>
+<span class="nc" id="L154">        .append(&quot;;&quot;)</span>
+<span class="nc" id="L155">        .append(this.previousUpdate)</span>
+<span class="nc" id="L156">        .append(&quot;;&quot;)</span>
+<span class="nc" id="L157">        .append(this.nextUpdate)</span>
+<span class="nc" id="L158">        .append(&quot;;&quot;)</span>
+<span class="nc" id="L159">        .append(this.sync)</span>
+<span class="nc" id="L160">        .append(this.source);</span>
+<span class="nc" id="L161">    return sb.toString();</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

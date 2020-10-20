@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CryptoTokenDownloadServlet.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">admin-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.cryptotoken</a> &gt; <span class="el_source">CryptoTokenDownloadServlet.java</span></div><h1>CryptoTokenDownloadServlet.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.web.admin.cryptotoken;
+
+import java.io.IOException;
+import java.security.PublicKey;
+
+import javax.ejb.EJB;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.control.CryptoTokenRules;
+import org.cesecore.keys.token.CryptoTokenManagementSessionLocal;
+import org.cesecore.keys.token.CryptoTokenOfflineException;
+import org.cesecore.keys.util.KeyTools;
+import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.StringTools;
+import org.ejbca.ui.web.admin.cainterface.BaseAdminServlet;
+import org.ejbca.ui.web.admin.cainterface.exception.AdminWebAuthenticationException;
+
+/**
+ * Servlet for download of CryptoToken related files, such as the the public key as PEM for a key pair.
+ * 
+ * @version $Id: CryptoTokenDownloadServlet.java 34154 2019-12-23 13:38:17Z samuellb $
+ */
+<span class="nc" id="L41">public class CryptoTokenDownloadServlet extends BaseAdminServlet {</span>
+
+    private static final long serialVersionUID = 1L;
+<span class="nc" id="L44">    private static final Logger log = Logger.getLogger(CryptoTokenDownloadServlet.class);</span>
+
+    @EJB
+    private CryptoTokenManagementSessionLocal cryptoTokenManagementSession;
+
+    @Override
+    public void init(ServletConfig config) throws ServletException {
+<span class="nc" id="L51">        super.init(config);</span>
+<span class="nc" id="L52">        CryptoProviderTools.installBCProviderIfNotAvailable();</span>
+<span class="nc" id="L53">    }</span>
+
+    /** Handles HTTP POST the same way HTTP GET is handled. */
+    @Override
+    public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+<span class="nc" id="L58">        doGet(request, response);</span>
+<span class="nc" id="L59">    }</span>
+
+    /** Handles HTTP GET */
+    @Override
+    public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+<span class="nc" id="L64">        log.trace(&quot;&gt;doGet()&quot;);</span>
+        final AuthenticationToken admin;
+        try {
+<span class="nc" id="L67">            admin = authenticateAdmin(request, response, CryptoTokenRules.VIEW.resource());</span>
+<span class="nc" id="L68">        } catch (AdminWebAuthenticationException authExc) {</span>
+        	// TODO: localize this.
+<span class="nc" id="L70">        	log.info(&quot;Authentication failed&quot;, authExc);</span>
+<span class="nc" id="L71">            response.sendError(HttpServletResponse.SC_FORBIDDEN, &quot;Authentication failed&quot;);</span>
+<span class="nc" id="L72">            return;</span>
+<span class="nc" id="L73">        }</span>
+<span class="nc" id="L74">        final String cryptoTokenIdParam = request.getParameter(&quot;cryptoTokenId&quot;);</span>
+<span class="nc" id="L75">        final int cryptoTokenId = Integer.parseInt(cryptoTokenIdParam);</span>
+<span class="nc" id="L76">        final String aliasParam = request.getParameter(&quot;alias&quot;);</span>
+        try {
+<span class="nc" id="L78">            final PublicKey publicKey = cryptoTokenManagementSession.getPublicKey(admin, cryptoTokenId, aliasParam).getPublicKey();</span>
+<span class="nc" id="L79">            response.setContentType(&quot;application/octet-stream&quot;);</span>
+<span class="nc" id="L80">            response.setHeader(&quot;Content-disposition&quot;, &quot; attachment; filename=\&quot;&quot; + StringTools.stripFilename(aliasParam + &quot;.pem&quot;) + &quot;\&quot;&quot;);</span>
+<span class="nc" id="L81">            response.getOutputStream().write(KeyTools.getAsPem(publicKey).getBytes());</span>
+<span class="nc" id="L82">            response.flushBuffer();</span>
+<span class="nc" id="L83">        } catch (CryptoTokenOfflineException e) {</span>
+<span class="nc" id="L84">            throw new ServletException(e);</span>
+<span class="nc" id="L85">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L86">            throw new ServletException(e);</span>
+<span class="nc" id="L87">        }</span>
+<span class="nc" id="L88">        log.trace(&quot;&lt;doGet()&quot;);</span>
+<span class="nc" id="L89">    }   </span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

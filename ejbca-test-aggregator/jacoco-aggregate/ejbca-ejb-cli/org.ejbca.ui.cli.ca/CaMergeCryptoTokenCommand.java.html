@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CaMergeCryptoTokenCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.ca</a> &gt; <span class="el_source">CaMergeCryptoTokenCommand.java</span></div><h1>CaMergeCryptoTokenCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.cli.ca;
+
+import java.util.List;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CADoesntExistsException;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.CaSessionRemote;
+import org.cesecore.certificates.ca.catoken.CAToken;
+import org.cesecore.keys.token.CryptoTokenInfo;
+import org.cesecore.keys.token.CryptoTokenManagementSessionRemote;
+import org.cesecore.keys.token.PKCS11CryptoToken;
+import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.EjbRemoteHelper;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+
+/**
+ * CLI command to consolidate the referenced PKCS#11 Crypto Tokens.
+ * 
+ * The command will look for other CAs that reference the same HSM slot and use the specified CA's CryptoToken id for
+ * all the CAs.
+ * 
+ * @version $Id: CaMergeCryptoTokenCommand.java 20457 2014-12-12 14:38:32Z jeklund $
+ */
+<span class="nc" id="L43">public class CaMergeCryptoTokenCommand extends BaseCaAdminCommand {</span>
+
+<span class="nc" id="L45">    private static final Logger log = Logger.getLogger(CaMergeCryptoTokenCommand.class);</span>
+    private static final String CA_NAME_KEY = &quot;--caname&quot;;
+    private static final String EXECUTE_KEY = &quot;--execute&quot;;
+
+    {
+<span class="nc" id="L50">        registerParameter(new Parameter(CA_NAME_KEY, &quot;CA Name&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT, &quot;The name of the CA.&quot;));</span>
+<span class="nc" id="L51">        registerParameter(Parameter.createFlag(EXECUTE_KEY, &quot;Make the change instead of displaying what would change.&quot;));</span>
+<span class="nc" id="L52">    }</span>
+
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L57">        return &quot;mergecatokens&quot;;</span>
+    }
+
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+<span class="nc" id="L62">        log.trace(&quot;&gt;execute()&quot;);</span>
+<span class="nc" id="L63">        CryptoProviderTools.installBCProvider(); // need this for CVC certificate</span>
+<span class="nc" id="L64">        final String caName = parameters.get(CA_NAME_KEY);</span>
+<span class="nc" id="L65">        final boolean force = parameters.containsKey(EXECUTE_KEY);</span>
+        try {
+<span class="nc" id="L67">            final CaSessionRemote caSession = EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class);</span>
+<span class="nc" id="L68">            final CryptoTokenManagementSessionRemote cryptoTokenManagementSession = EjbRemoteHelper.INSTANCE.getRemoteSession(CryptoTokenManagementSessionRemote.class);</span>
+<span class="nc" id="L69">            final CAInfo caInfo = caSession.getCAInfo(getAuthenticationToken(), caName);</span>
+<span class="nc" id="L70">            final int cryptoTokenId = caInfo.getCAToken().getCryptoTokenId();</span>
+<span class="nc" id="L71">            final CryptoTokenInfo cryptoTokenInfo = cryptoTokenManagementSession.getCryptoTokenInfo(getAuthenticationToken(), cryptoTokenId);</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">            if (!cryptoTokenInfo.getType().equals(PKCS11CryptoToken.class.getSimpleName())) {</span>
+<span class="nc" id="L73">                log.error(&quot;CA with name &quot; + caName + &quot; does not reference a PKCS#11 Crypto Token. Merge is not possible.&quot;);</span>
+<span class="nc" id="L74">                return CommandResult.FUNCTIONAL_FAILURE;</span>
+            }
+<span class="nc" id="L76">            log.info(&quot;CA '&quot; + caInfo.getName() + &quot;' references crypto token '&quot; + cryptoTokenInfo.getName() + &quot;'&quot;);</span>
+<span class="nc" id="L77">            log.info(&quot; PKCS#11 Library: &quot; + cryptoTokenInfo.getP11Library());</span>
+<span class="nc" id="L78">            log.info(&quot; SlotLabelType:   &quot; + cryptoTokenInfo.getP11SlotLabelType());</span>
+<span class="nc" id="L79">            log.info(&quot; SlotLabel:       &quot; + cryptoTokenInfo.getP11Slot());</span>
+<span class="nc" id="L80">            log.info(&quot; Attribute file:  &quot; + cryptoTokenInfo.getP11AttributeFile());</span>
+<span class="nc" id="L81">            log.info(&quot;&quot;);</span>
+<span class="nc" id="L82">            int mergeCount = 0;</span>
+<span class="nc" id="L83">            final List&lt;Integer&gt; caIds = caSession.getAuthorizedCaIds(getAuthenticationToken());</span>
+<span class="nc bnc" id="L84" title="All 2 branches missed.">            for (final int currentCaId : caIds) {</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">                if (currentCaId == caInfo.getCAId()) {</span>
+                    // Skip the target CA
+<span class="nc" id="L87">                    continue;</span>
+                }
+<span class="nc" id="L89">                final CAInfo currentCaInfo = caSession.getCAInfo(getAuthenticationToken(), currentCaId);</span>
+<span class="nc" id="L90">                final int currentCryptoTokenId = currentCaInfo.getCAToken().getCryptoTokenId();</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">                if (currentCryptoTokenId == cryptoTokenId) {</span>
+                    // Skip CA when the cryptoToken already is the same
+<span class="nc" id="L93">                    continue;</span>
+                }
+<span class="nc" id="L95">                final CryptoTokenInfo currentCryptoTokenInfo = cryptoTokenManagementSession.getCryptoTokenInfo(getAuthenticationToken(), currentCryptoTokenId);</span>
+<span class="nc bnc" id="L96" title="All 4 branches missed.">                if (currentCryptoTokenInfo==null || !currentCryptoTokenInfo.getType().equals(PKCS11CryptoToken.class.getSimpleName())) {</span>
+                    // Skip non PKCS#11 crypto token CAs
+<span class="nc" id="L98">                    continue;</span>
+                }
+<span class="nc bnc" id="L100" title="All 2 branches missed.">                if (!currentCryptoTokenInfo.getP11Library().equals(cryptoTokenInfo.getP11Library())) {</span>
+                    // Skip when HSM driver isn't the same
+<span class="nc" id="L102">                    continue;</span>
+                }
+<span class="nc bnc" id="L104" title="All 2 branches missed.">                if (!currentCryptoTokenInfo.getP11SlotLabelType().equals(cryptoTokenInfo.getP11SlotLabelType())) {</span>
+                    // Skip when the slot label isn't referenced the same way
+<span class="nc" id="L106">                    continue;</span>
+                }
+<span class="nc bnc" id="L108" title="All 2 branches missed.">                if (!currentCryptoTokenInfo.getP11Slot().equals(cryptoTokenInfo.getP11Slot())) {</span>
+                    // Skip when the same slot isn't referenced
+<span class="nc" id="L110">                    continue;</span>
+                }
+<span class="nc bnc" id="L112" title="All 2 branches missed.">                log.info((force?&quot;Merging &quot;:&quot;Would merge&quot; )+&quot; CA '&quot; + currentCaInfo.getName() + &quot;' that currently references crypto token '&quot; + currentCryptoTokenInfo.getName() + &quot;' to instead reference '&quot; + cryptoTokenInfo.getName() + &quot;'.&quot;);</span>
+<span class="nc" id="L113">                log.info(&quot; Current PKCS#11 Library: &quot; + currentCryptoTokenInfo.getP11Library());</span>
+<span class="nc" id="L114">                log.info(&quot; Current SlotLabelType:   &quot; + currentCryptoTokenInfo.getP11SlotLabelType());</span>
+<span class="nc" id="L115">                log.info(&quot; Current SlotLabel:       &quot; + currentCryptoTokenInfo.getP11Slot());</span>
+<span class="nc" id="L116">                log.info(&quot; Current Attribute file:  &quot; + currentCryptoTokenInfo.getP11AttributeFile());</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">                if (!currentCryptoTokenInfo.getP11AttributeFile().equals(cryptoTokenInfo.getP11AttributeFile())) {</span>
+<span class="nc" id="L118">                    log.warn(&quot; Ignoring that attribute file is different.&quot;);</span>
+                }
+<span class="nc bnc" id="L120" title="All 2 branches missed.">                if (force) {</span>
+<span class="nc" id="L121">                    final CAToken currentCaToken = currentCaInfo.getCAToken();</span>
+<span class="nc" id="L122">                    currentCaToken.setCryptoTokenId(cryptoTokenId);</span>
+<span class="nc" id="L123">                    caSession.editCA(getAuthenticationToken(), currentCaInfo);</span>
+<span class="nc" id="L124">                    log.info(&quot; Merged.&quot;);</span>
+                }
+<span class="nc" id="L126">                log.info(&quot;&quot;);</span>
+<span class="nc" id="L127">                mergeCount++;</span>
+<span class="nc" id="L128">            }</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">            if (force) {</span>
+<span class="nc" id="L130">                log.info(&quot;Modified referenced CryptoToken for &quot; + mergeCount + &quot; CAs.&quot;);</span>
+            } else {
+<span class="nc" id="L132">                log.info(&quot;Will modify referenced CryptoToken for &quot; + mergeCount + &quot; CAs if '&quot; + EXECUTE_KEY + &quot;' option is used.&quot;);</span>
+            }
+<span class="nc" id="L134">            log.trace(&quot;&lt;execute()&quot;);          </span>
+<span class="nc" id="L135">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L136">            log.error(&quot;CLI User was not authorized to modify CA &quot; + caName);</span>
+<span class="nc" id="L137">            log.trace(&quot;&lt;execute()&quot;);</span>
+<span class="nc" id="L138">            return CommandResult.AUTHORIZATION_FAILURE;</span>
+<span class="nc" id="L139">        } catch (CADoesntExistsException e) {</span>
+<span class="nc" id="L140">            log.error(&quot;No such CA with by name &quot; + caName);</span>
+<span class="nc" id="L141">            log.error(getCaList());</span>
+<span class="nc" id="L142">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L143">        } </span>
+<span class="nc" id="L144">        log.trace(&quot;&lt;execute()&quot;);</span>
+<span class="nc" id="L145">        return CommandResult.SUCCESS;</span>
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L150">        return &quot;Merge all CA's sharing a PKCS#11 slot to use the same Crypto Token&quot;;</span>
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L155">        return getCommandDescription()</span>
+                + &quot;\n\n&quot;
+                + &quot;The specified CA's Crypto Token will be the one referenced by other CAs that have the same HSM configuration.\n\n&quot;
+                + &quot;The default behavior is to only show what would have changed since this command is potentially very dangerous.\n&quot;
+                + &quot;Use the &quot; + EXECUTE_KEY + &quot; switch to execute modifications.&quot;
+<span class="nc" id="L160">                + &quot;\n\n&quot; + getCaList();</span>
+    }
+
+    @Override
+    protected Logger getLogger() {
+<span class="nc" id="L165">        return log;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

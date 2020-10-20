@@ -20,7 +20,6 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map.Entry;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.cesecore.certificates.ca.CAInfo;
@@ -29,281 +28,315 @@ import org.cesecore.internal.UpgradeableDataHashMap;
 import org.cesecore.profiles.ProfileBase;
 
 /**
- * BaseKeyValidator is a basic class that should be inherited by all types
- * of key validator in the system.
- *  
+ * BaseKeyValidator is a basic class that should be inherited by all types of
+ * key validator in the system.
  *
  * @version $Id: ValidatorBase.java 28140 2018-01-30 12:40:30Z andresjakobs $
  */
-public abstract class ValidatorBase extends ProfileBase implements Serializable, Cloneable, Validator {
+public abstract class ValidatorBase extends ProfileBase
+    implements Serializable, Cloneable, Validator {
 
-    private static final long serialVersionUID = -335459158399850925L;
+  private static final long serialVersionUID = -335459158399850925L;
 
-    /** Class logger. */
-<span class="fc" id="L43">    private static final Logger log = Logger.getLogger(ValidatorBase.class);</span>
+  /** Class logger. */
+<span class="fc" id="L42">  private static final Logger LOG = Logger.getLogger(ValidatorBase.class);</span>
 
-<span class="fc" id="L45">    protected static final InternalResources intres = InternalResources.getInstance();</span>
+  /** Resource. */
+  protected static final InternalResources INTRES =
+<span class="fc" id="L46">      InternalResources.getInstance();</span>
 
-    /** List of applicable issuance phases (see {@link IssuancePhase}). */ 
-    protected static List&lt;Integer&gt; APPLICABLE_PHASES;
-    
-    /** List of applicable CA types (see {@link #getApplicableCaTypes()}. */ 
-    protected static List&lt;Integer&gt; APPLICABLE_CA_TYPES;
-        
-    public static final float LATEST_VERSION = 7F;
+  /** List of applicable issuance phases (see {@link IssuancePhase}). */
+  protected static List&lt;Integer&gt; applicablePhases;
 
-    public static final String TYPE = &quot;type&quot;;
-    public static final String SETTINGS_TEMPLATE = &quot;settingsTemplate&quot;;
-    protected static final String PHASE = &quot;phase&quot;;
-    protected static final String DESCRIPTION = &quot;description&quot;;
-    protected static final String NOT_BEFORE = &quot;notBefore&quot;;
-    protected static final String NOT_BEFORE_CONDITION = &quot;notBeforeCondition&quot;;
-    protected static final String NOT_AFTER = &quot;notAfter&quot;;
-    protected static final String NOT_AFTER_CONDITION = &quot;notAfterCondition&quot;;
-    protected static final String ALL_CERTIFICATE_PROFILE_IDS = &quot;allCertificateProfileIds&quot;;
-    protected static final String CERTIFICATE_PROFILE_IDS = &quot;certificateProfileIds&quot;;
-    protected static final String FAILED_ACTION = &quot;failedAction&quot;;
-    protected static final String NOT_APPLICABLE_ACTION = &quot;notApplicableAction&quot;;
-        
-    static {
-<span class="fc" id="L69">        APPLICABLE_PHASES = new ArrayList&lt;Integer&gt;();</span>
-<span class="fc" id="L70">        APPLICABLE_PHASES.add(IssuancePhase.DATA_VALIDATION.getIndex());</span>
-<span class="fc" id="L71">        APPLICABLE_PHASES.add(IssuancePhase.PRE_CERTIFICATE_VALIDATION.getIndex());</span>
-<span class="fc" id="L72">        APPLICABLE_PHASES.add(IssuancePhase.CERTIFICATE_VALIDATION.getIndex());</span>
-        
-<span class="fc" id="L74">        APPLICABLE_CA_TYPES = new ArrayList&lt;Integer&gt;();</span>
-<span class="fc" id="L75">        APPLICABLE_CA_TYPES.add(CAInfo.CATYPE_X509);</span>
-<span class="fc" id="L76">        APPLICABLE_CA_TYPES.add(CAInfo.CATYPE_CVC);</span>
-<span class="fc" id="L77">    }</span>
+  /** List of applicable CA types (see {@link #getApplicableCaTypes()}. */
+  protected static List&lt;Integer&gt; applicableCaTypes;
+ /** API version. */
+  public static final float LATEST_VERSION = 7F;
+ /** Type. */
+  public static final String TYPE = &quot;type&quot;;
+  /** Template. */
+  public static final String SETTINGS_TEMPLATE = &quot;settingsTemplate&quot;;
+  /** Phase. */
+  protected static final String PHASE = &quot;phase&quot;;
+  /** Desc. */
+  protected static final String DESCRIPTION = &quot;description&quot;;
+  /** Date. */
+  protected static final String NOT_BEFORE = &quot;notBefore&quot;;
+  /** Condition. */
+  protected static final String NOT_BEFORE_CONDITION = &quot;notBeforeCondition&quot;;
+  /** Date. */
+  protected static final String NOT_AFTER = &quot;notAfter&quot;;
+  /** Condition. */
+  protected static final String NOT_AFTER_CONDITION = &quot;notAfterCondition&quot;;
+  /** IDs. */
+  protected static final String ALL_CERTIFICATE_PROFILE_IDS =
+      &quot;allCertificateProfileIds&quot;;
+  /** IDs. */
+  protected static final String CERTIFICATE_PROFILE_IDS =
+      &quot;certificateProfileIds&quot;;
+  /** failed. */
+  protected static final String FAILED_ACTION = &quot;failedAction&quot;;
+  /** not applicable. */
+  protected static final String NOT_APPLICABLE_ACTION = &quot;notApplicableAction&quot;;
 
-    // Values used for lookup that are not stored in the data hash map.
-    private int id;
+  static {
+<span class="fc" id="L83">    applicablePhases = new ArrayList&lt;Integer&gt;();</span>
+<span class="fc" id="L84">    applicablePhases.add(IssuancePhase.DATA_VALIDATION.getIndex());</span>
+<span class="fc" id="L85">    applicablePhases.add(IssuancePhase.PRE_CERTIFICATE_VALIDATION.getIndex());</span>
+<span class="fc" id="L86">    applicablePhases.add(IssuancePhase.CERTIFICATE_VALIDATION.getIndex());</span>
 
-    /**
-     * Public constructor needed for deserialization.
-     */
-    public ValidatorBase() {
-<span class="fc" id="L86">        super();</span>
-<span class="fc" id="L87">        init();</span>
-<span class="fc" id="L88">    }</span>
-    
-    /**
-     * Creates a new instance.
-     * @param name name
-     */
-    public ValidatorBase(final String name) {
-<span class="fc" id="L95">        super(name);</span>
-<span class="fc" id="L96">        init();</span>
-<span class="fc" id="L97">    }</span>
-   
-    @Override
-    public List&lt;Integer&gt; getApplicableCaTypes() {
-<span class="nc" id="L101">        return APPLICABLE_CA_TYPES;</span>
+<span class="fc" id="L88">    applicableCaTypes = new ArrayList&lt;Integer&gt;();</span>
+<span class="fc" id="L89">    applicableCaTypes.add(CAInfo.CATYPE_X509);</span>
+<span class="fc" id="L90">    applicableCaTypes.add(CAInfo.CATYPE_CVC);</span>
+<span class="fc" id="L91">  }</span>
+
+  // Values used for lookup that are not stored in the data hash map.
+  /** ID. */
+  private int id;
+
+  /** Public constructor needed for deserialization. */
+  public ValidatorBase() {
+<span class="fc" id="L99">    super();</span>
+<span class="fc" id="L100">    init();</span>
+<span class="fc" id="L101">  }</span>
+
+  /**
+   * Creates a new instance.
+   *
+   * @param name name
+   */
+  public ValidatorBase(final String name) {
+<span class="fc" id="L109">    super(name);</span>
+<span class="fc" id="L110">    init();</span>
+<span class="fc" id="L111">  }</span>
+
+  @Override
+  public List&lt;Integer&gt; getApplicableCaTypes() {
+<span class="nc" id="L115">    return applicableCaTypes;</span>
+  }
+
+  @Override
+  public String getProfileType() {
+<span class="nc" id="L120">    return Validator.TYPE_NAME;</span>
+  }
+
+  /** Initializes uninitialized data fields. */
+  public void init() {
+<span class="fc" id="L125">    super.initialize();</span>
+<span class="pc bpc" id="L126" title="1 of 2 branches missed.">    if (null == data.get(VERSION)) {</span>
+<span class="nc" id="L127">      data.put(VERSION, Float.valueOf(LATEST_VERSION));</span>
     }
-
-    @Override
-    public String getProfileType() {
-<span class="nc" id="L106">        return Validator.TYPE_NAME;</span>
+<span class="pc bpc" id="L129" title="1 of 2 branches missed.">    if (null == data.get(PHASE)) {</span>
+<span class="fc" id="L130">      setPhase(getApplicablePhases().get(0));</span>
     }
-    
-    /**
-     * Initializes uninitialized data fields.
-     */
-    public void init() {
-<span class="fc" id="L113">        super.initialize();</span>
-<span class="pc bpc" id="L114" title="1 of 2 branches missed.">        if (null == data.get(VERSION)) {</span>
-<span class="nc" id="L115">            data.put(VERSION, Float.valueOf(LATEST_VERSION));</span>
-        }
-<span class="pc bpc" id="L117" title="1 of 2 branches missed.">        if (null == data.get(PHASE)) {</span>
-<span class="fc" id="L118">            setPhase(getApplicablePhases().get(0));</span>
-        }
-<span class="pc bpc" id="L120" title="1 of 2 branches missed.">        if (null == data.get(SETTINGS_TEMPLATE)) {</span>
-<span class="fc" id="L121">            setSettingsTemplate(KeyValidatorSettingsTemplate.USE_CERTIFICATE_PROFILE_SETTINGS.getOption());</span>
-        }
-<span class="pc bpc" id="L123" title="1 of 2 branches missed.">        if (null == data.get(DESCRIPTION)) {</span>
-<span class="fc" id="L124">            setDescription(StringUtils.EMPTY);</span>
-        }
-<span class="pc bpc" id="L126" title="1 of 2 branches missed.">        if (null == data.get(CERTIFICATE_PROFILE_IDS)) {</span>
-<span class="fc" id="L127">            setCertificateProfileIds(new ArrayList&lt;Integer&gt;());</span>
-        }
-<span class="pc bpc" id="L129" title="1 of 2 branches missed.">        if (null == data.get(FAILED_ACTION)) {</span>
-<span class="fc" id="L130">            setFailedAction(KeyValidationFailedActions.ABORT_CERTIFICATE_ISSUANCE.getIndex());</span>
-        }
-<span class="pc bpc" id="L132" title="1 of 2 branches missed.">        if (null == data.get(NOT_APPLICABLE_ACTION)) {</span>
-<span class="fc" id="L133">            setNotApplicableAction(KeyValidationFailedActions.ABORT_CERTIFICATE_ISSUANCE.getIndex());</span>
-        }
-        // Added in v2
-<span class="pc bpc" id="L136" title="1 of 2 branches missed.">        if (null == data.get(ALL_CERTIFICATE_PROFILE_IDS)) {</span>
-<span class="fc" id="L137">            setAllCertificateProfileIds(true);</span>
-        }
-<span class="fc" id="L139">    }</span>
-
-    @Override
-    public List&lt;Integer&gt; getApplicablePhases() {
-<span class="nc" id="L143">        return APPLICABLE_PHASES;</span>
+<span class="pc bpc" id="L132" title="1 of 2 branches missed.">    if (null == data.get(SETTINGS_TEMPLATE)) {</span>
+<span class="fc" id="L133">      setSettingsTemplate(</span>
+<span class="fc" id="L134">          KeyValidatorSettingsTemplate.USE_CERTIFICATE_PROFILE_SETTINGS</span>
+<span class="fc" id="L135">              .getOption());</span>
     }
-    
-    @Override
-    public int getPhase() {
-<span class="nc" id="L148">        return ((Integer) data.get(PHASE)).intValue();</span>
+<span class="pc bpc" id="L137" title="1 of 2 branches missed.">    if (null == data.get(DESCRIPTION)) {</span>
+<span class="fc" id="L138">      setDescription(StringUtils.EMPTY);</span>
     }
-
-    @Override
-    public void setPhase(int index) {
-<span class="fc" id="L153">        data.put(PHASE, index);</span>
-<span class="fc" id="L154">    }</span>
-    
-    @Override
-    public void setKeyValidatorSettingsTemplate(KeyValidatorSettingsTemplate template) {
-<span class="nc" id="L158">    }</span>
-
-    @Override
-    public Integer getSettingsTemplate() {
-<span class="fc" id="L162">        return (Integer) data.get(SETTINGS_TEMPLATE);</span>
+<span class="pc bpc" id="L140" title="1 of 2 branches missed.">    if (null == data.get(CERTIFICATE_PROFILE_IDS)) {</span>
+<span class="fc" id="L141">      setCertificateProfileIds(new ArrayList&lt;Integer&gt;());</span>
     }
-
-    @Override
-    public void setSettingsTemplate(Integer option) {
-<span class="fc" id="L167">        data.put(SETTINGS_TEMPLATE, option);</span>
-<span class="fc" id="L168">    }</span>
-
-    @Override
-    public String getDescription() {
-<span class="nc" id="L172">        return (String) data.get(DESCRIPTION);</span>
+<span class="pc bpc" id="L143" title="1 of 2 branches missed.">    if (null == data.get(FAILED_ACTION)) {</span>
+<span class="fc" id="L144">      setFailedAction(</span>
+<span class="fc" id="L145">          KeyValidationFailedActions.ABORT_CERTIFICATE_ISSUANCE.getIndex());</span>
     }
-
-    @Override
-    public void setDescription(String description) {
-<span class="fc" id="L177">        data.put(DESCRIPTION, description);</span>
-<span class="fc" id="L178">    }</span>
-
-    @Override
-    public boolean isAllCertificateProfileIds() {
-<span class="nc" id="L182">        return ((Boolean) data.get(ALL_CERTIFICATE_PROFILE_IDS)).booleanValue();</span>
+<span class="pc bpc" id="L147" title="1 of 2 branches missed.">    if (null == data.get(NOT_APPLICABLE_ACTION)) {</span>
+<span class="fc" id="L148">      setNotApplicableAction(</span>
+<span class="fc" id="L149">          KeyValidationFailedActions.ABORT_CERTIFICATE_ISSUANCE.getIndex());</span>
     }
-    
-    @Override 
-    public void setAllCertificateProfileIds(boolean isAll) {
-<span class="fc" id="L187">        data.put(ALL_CERTIFICATE_PROFILE_IDS, Boolean.valueOf(isAll));</span>
-<span class="fc" id="L188">    }</span>
-    
-    @Override
-    public List&lt;Integer&gt; getCertificateProfileIds() {
-<span class="nc" id="L192">        final String value = (String) data.get(CERTIFICATE_PROFILE_IDS);</span>
-<span class="nc" id="L193">        final List&lt;Integer&gt; result = new ArrayList&lt;Integer&gt;();</span>
-        // Can be empty String here.
-<span class="nc bnc" id="L195" title="All 2 branches missed.">        if (StringUtils.isNotBlank(value)) {</span>
-<span class="nc" id="L196">            final String[] tokens = value.trim().split(LIST_SEPARATOR);</span>
-<span class="nc bnc" id="L197" title="All 2 branches missed.">            for (int i = 0, j = tokens.length; i &lt; j; i++) {</span>
-<span class="nc" id="L198">                result.add(Integer.valueOf(tokens[i]));</span>
-            }
-        }
-<span class="nc" id="L201">        return result;</span>
+    // Added in v2
+<span class="pc bpc" id="L152" title="1 of 2 branches missed.">    if (null == data.get(ALL_CERTIFICATE_PROFILE_IDS)) {</span>
+<span class="fc" id="L153">      setAllCertificateProfileIds(true);</span>
     }
+<span class="fc" id="L155">  }</span>
 
-    @Override
-    public void setCertificateProfileIds(Collection&lt;Integer&gt; ids) {
-<span class="fc" id="L206">        final StringBuilder builder = new StringBuilder();</span>
-<span class="pc bpc" id="L207" title="1 of 2 branches missed.">        for (Integer id : ids) {</span>
-<span class="nc bnc" id="L208" title="All 2 branches missed.">            if (builder.length() == 0) {</span>
-<span class="nc" id="L209">                builder.append(id);</span>
-            } else {
-<span class="nc" id="L211">                builder.append(LIST_SEPARATOR).append(id);</span>
-            }
-<span class="nc" id="L213">        }</span>
-<span class="fc" id="L214">        data.put(CERTIFICATE_PROFILE_IDS, builder.toString());</span>
-<span class="fc" id="L215">    }</span>
+  @Override
+  public List&lt;Integer&gt; getApplicablePhases() {
+<span class="nc" id="L159">    return applicablePhases;</span>
+  }
 
-    @Override
-    public void setFailedAction(int index) {
-<span class="fc" id="L219">        data.put(FAILED_ACTION, index);</span>
-<span class="fc" id="L220">    }</span>
+  @Override
+  public int getPhase() {
+<span class="nc" id="L164">    return ((Integer) data.get(PHASE)).intValue();</span>
+  }
 
-    @Override
-    public int getFailedAction() {
-<span class="nc" id="L224">        return ((Integer) data.get(FAILED_ACTION)).intValue();</span>
+  @Override
+  public void setPhase(final int index) {
+<span class="fc" id="L169">    data.put(PHASE, index);</span>
+<span class="fc" id="L170">  }</span>
+
+  @Override
+  public void setKeyValidatorSettingsTemplate(
+<span class="nc" id="L174">      final KeyValidatorSettingsTemplate template) { }</span>
+
+  @Override
+  public Integer getSettingsTemplate() {
+<span class="fc" id="L178">    return (Integer) data.get(SETTINGS_TEMPLATE);</span>
+  }
+
+  @Override
+  public void setSettingsTemplate(final Integer option) {
+<span class="fc" id="L183">    data.put(SETTINGS_TEMPLATE, option);</span>
+<span class="fc" id="L184">  }</span>
+
+  @Override
+  public String getDescription() {
+<span class="nc" id="L188">    return (String) data.get(DESCRIPTION);</span>
+  }
+
+  @Override
+  public void setDescription(final String description) {
+<span class="fc" id="L193">    data.put(DESCRIPTION, description);</span>
+<span class="fc" id="L194">  }</span>
+
+  @Override
+  public boolean isAllCertificateProfileIds() {
+<span class="nc" id="L198">    return ((Boolean) data.get(ALL_CERTIFICATE_PROFILE_IDS)).booleanValue();</span>
+  }
+
+  @Override
+  public void setAllCertificateProfileIds(final boolean isAll) {
+<span class="fc" id="L203">    data.put(ALL_CERTIFICATE_PROFILE_IDS, Boolean.valueOf(isAll));</span>
+<span class="fc" id="L204">  }</span>
+
+  @Override
+  public List&lt;Integer&gt; getCertificateProfileIds() {
+<span class="nc" id="L208">    final String value = (String) data.get(CERTIFICATE_PROFILE_IDS);</span>
+<span class="nc" id="L209">    final List&lt;Integer&gt; result = new ArrayList&lt;Integer&gt;();</span>
+    // Can be empty String here.
+<span class="nc bnc" id="L211" title="All 2 branches missed.">    if (StringUtils.isNotBlank(value)) {</span>
+<span class="nc" id="L212">      final String[] tokens = value.trim().split(LIST_SEPARATOR);</span>
+<span class="nc bnc" id="L213" title="All 2 branches missed.">      for (int i = 0, j = tokens.length; i &lt; j; i++) {</span>
+<span class="nc" id="L214">        result.add(Integer.valueOf(tokens[i]));</span>
+      }
     }
+<span class="nc" id="L217">    return result;</span>
+  }
 
-    @Override
-    public void setNotApplicableAction(int index) {
-<span class="fc" id="L229">        data.put(NOT_APPLICABLE_ACTION, index);</span>
-<span class="fc" id="L230">    }</span>
+  @Override
+  public void setCertificateProfileIds(final Collection&lt;Integer&gt; ids) {
+<span class="fc" id="L222">    final StringBuilder builder = new StringBuilder();</span>
+<span class="pc bpc" id="L223" title="1 of 2 branches missed.">    for (Integer lid : ids) {</span>
+<span class="nc bnc" id="L224" title="All 2 branches missed.">      if (builder.length() == 0) {</span>
+<span class="nc" id="L225">        builder.append(lid);</span>
+      } else {
+<span class="nc" id="L227">        builder.append(LIST_SEPARATOR).append(lid);</span>
+      }
+<span class="nc" id="L229">    }</span>
+<span class="fc" id="L230">    data.put(CERTIFICATE_PROFILE_IDS, builder.toString());</span>
+<span class="fc" id="L231">  }</span>
 
-    @Override
-    public int getNotApplicableAction() {
-<span class="nc" id="L234">        return ((Integer) data.get(NOT_APPLICABLE_ACTION)).intValue();</span>
+  @Override
+  public void setFailedAction(final int index) {
+<span class="fc" id="L235">    data.put(FAILED_ACTION, index);</span>
+<span class="fc" id="L236">  }</span>
+
+  @Override
+  public int getFailedAction() {
+<span class="nc" id="L240">    return ((Integer) data.get(FAILED_ACTION)).intValue();</span>
+  }
+
+  @Override
+  public void setNotApplicableAction(final int index) {
+<span class="fc" id="L245">    data.put(NOT_APPLICABLE_ACTION, index);</span>
+<span class="fc" id="L246">  }</span>
+
+  @Override
+  public int getNotApplicableAction() {
+<span class="nc" id="L250">    return ((Integer) data.get(NOT_APPLICABLE_ACTION)).intValue();</span>
+  }
+
+  /** Implementation of UpgradableDataHashMap function getLatestVersion. */
+  @Override
+  public float getLatestVersion() {
+<span class="fc" id="L256">    return LATEST_VERSION;</span>
+  }
+
+  @Override
+  public void upgrade() {
+<span class="nc bnc" id="L261" title="All 2 branches missed.">    if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L262">      LOG.trace(&quot;&gt;upgrade: &quot; + getLatestVersion() + &quot;, &quot; + getVersion());</span>
     }
-
-    /** Implementation of UpgradableDataHashMap function getLatestVersion */
-    @Override
-    public float getLatestVersion(){
-<span class="fc" id="L240">       return LATEST_VERSION;</span>
+<span class="nc" id="L264">    super.upgrade();</span>
+<span class="nc bnc" id="L265" title="All 2 branches missed.">    if (Float.compare(LATEST_VERSION, getVersion()) != 0) {</span>
+      // New version of the class, upgrade.
+<span class="nc" id="L267">      LOG.info(</span>
+<span class="nc" id="L268">          INTRES.getLocalizedMessage(</span>
+<span class="nc" id="L269">              &quot;validator.upgrade&quot;, Float.valueOf(getVersion())));</span>
+<span class="nc" id="L270">      init();</span>
+      // Finished upgrade, set new version
+<span class="nc" id="L272">      data.put(VERSION, Float.valueOf(LATEST_VERSION));</span>
     }
+<span class="nc" id="L274">  }</span>
 
-    @Override
-    public void upgrade() {
-<span class="nc bnc" id="L245" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L246">            log.trace(&quot;&gt;upgrade: &quot; + getLatestVersion() + &quot;, &quot; + getVersion());</span>
-        }
-<span class="nc" id="L248">        super.upgrade();</span>
-<span class="nc bnc" id="L249" title="All 2 branches missed.">        if (Float.compare(LATEST_VERSION, getVersion()) != 0) {</span>
-            // New version of the class, upgrade.
-<span class="nc" id="L251">            log.info(intres.getLocalizedMessage(&quot;validator.upgrade&quot;, Float.valueOf(getVersion())));</span>
-<span class="nc" id="L252">            init();</span>
-            // Finished upgrade, set new version
-<span class="nc" id="L254">            data.put(VERSION, Float.valueOf(LATEST_VERSION));</span>
-        }
-<span class="nc" id="L256">    }</span>
+  @Override
+  public String toDisplayString() {
+<span class="nc" id="L278">    final StringBuilder result = new StringBuilder();</span>
+<span class="nc" id="L279">    result</span>
+<span class="nc" id="L280">        .append(&quot;BaseKeyValidator [id=&quot;)</span>
+<span class="nc" id="L281">        .append(id)</span>
+<span class="nc" id="L282">        .append(&quot;, name=&quot;)</span>
+<span class="nc" id="L283">        .append(getProfileName())</span>
+<span class="nc" id="L284">        .append(&quot;, applicableCertificateProfileIds=&quot;)</span>
+<span class="nc" id="L285">        .append(data.get(CERTIFICATE_PROFILE_IDS))</span>
+<span class="nc" id="L286">        .append(&quot;, notBefore=&quot;)</span>
+<span class="nc" id="L287">        .append(data.get(NOT_BEFORE))</span>
+<span class="nc" id="L288">        .append(&quot;, notBeforeCondition=&quot;)</span>
+<span class="nc" id="L289">        .append(data.get(NOT_BEFORE_CONDITION))</span>
+<span class="nc" id="L290">        .append(&quot;, notAfter=&quot;)</span>
+<span class="nc" id="L291">        .append(data.get(NOT_AFTER))</span>
+<span class="nc" id="L292">        .append(&quot;, notAfterCondition=&quot;)</span>
+<span class="nc" id="L293">        .append(data.get(NOT_AFTER_CONDITION))</span>
+<span class="nc" id="L294">        .append(&quot;, failedAction=&quot;)</span>
+<span class="nc" id="L295">        .append(data.get(FAILED_ACTION));</span>
+<span class="nc" id="L296">    return result.toString();</span>
+  }
 
-    @Override
-    public String toDisplayString() {
-<span class="nc" id="L260">        final StringBuilder result = new StringBuilder();</span>
-<span class="nc" id="L261">        result.append(&quot;BaseKeyValidator [id=&quot;).append(id).append(&quot;, name=&quot;).append(getProfileName()).append(&quot;, applicableCertificateProfileIds=&quot;).append(data.get(CERTIFICATE_PROFILE_IDS))</span>
-<span class="nc" id="L262">                .append(&quot;, notBefore=&quot;).append(data.get(NOT_BEFORE)).append(&quot;, notBeforeCondition=&quot;).append(data.get(NOT_BEFORE_CONDITION))</span>
-<span class="nc" id="L263">                .append(&quot;, notAfter=&quot;).append(data.get(NOT_AFTER)).append(&quot;, notAfterCondition=&quot;).append(data.get(NOT_AFTER_CONDITION))</span>
-<span class="nc" id="L264">                .append(&quot;, failedAction=&quot;).append(data.get(FAILED_ACTION));</span>
-<span class="nc" id="L265">        return result.toString();</span>
-    }
-    
-    @Override
-    public Validator clone() {
-<span class="nc" id="L270">        getType();</span>
-        Validator clone;
-        try {
-<span class="nc" id="L273">            clone = (Validator) getType().getConstructor().newInstance();</span>
-<span class="nc" id="L274">        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {</span>
-<span class="nc" id="L275">            throw new IllegalStateException(&quot;Could not instansiate class of type &quot; + getType().getCanonicalName());</span>
-<span class="nc" id="L276">        }</span>
-<span class="nc" id="L277">        clone.setProfileName(getProfileName());</span>
-<span class="nc" id="L278">        clone.setProfileId(getProfileId());</span>
+  @Override
+  public Validator clone() {
+<span class="nc" id="L301">    getType();</span>
+    Validator clone;
+    try {
+<span class="nc" id="L304">      clone = (Validator) getType().getConstructor().newInstance();</span>
+<span class="nc" id="L305">    } catch (InstantiationException</span>
+        | IllegalAccessException
+        | NoSuchMethodException
+        | InvocationTargetException e) {
+<span class="nc" id="L309">      throw new IllegalStateException(</span>
+          &quot;Could not instansiate class of type &quot;
+<span class="nc" id="L311">              + getType().getCanonicalName());</span>
+<span class="nc" id="L312">    }</span>
+<span class="nc" id="L313">    clone.setProfileName(getProfileName());</span>
+<span class="nc" id="L314">    clone.setProfileId(getProfileId());</span>
 
-        // We need to make a deep copy of the hashmap here
-<span class="nc" id="L281">        LinkedHashMap&lt;Object, Object&gt; dataMap = new LinkedHashMap&lt;&gt;(data.size());</span>
-<span class="nc bnc" id="L282" title="All 2 branches missed.">        for (final Entry&lt;Object, Object&gt; entry : data.entrySet()) {</span>
-<span class="nc" id="L283">            Object value = entry.getValue();</span>
-<span class="nc bnc" id="L284" title="All 2 branches missed.">            if (value instanceof ArrayList&lt;?&gt;) {</span>
-                // We need to make a clone of this object, but the stored immutables can still be referenced
-<span class="nc" id="L286">                value = ((ArrayList&lt;?&gt;) value).clone();</span>
-            }
-<span class="nc" id="L288">            dataMap.put(entry.getKey(), value);</span>
-<span class="nc" id="L289">        }</span>
-<span class="nc" id="L290">        clone.setDataMap(dataMap);</span>
-<span class="nc" id="L291">        return clone;</span>
-    }
-    
-    @Override
-    protected void saveTransientObjects() {
+    // We need to make a deep copy of the hashmap here
+<span class="nc" id="L317">    LinkedHashMap&lt;Object, Object&gt; dataMap = new LinkedHashMap&lt;&gt;(data.size());</span>
+<span class="nc bnc" id="L318" title="All 2 branches missed.">    for (final Entry&lt;Object, Object&gt; entry : data.entrySet()) {</span>
+<span class="nc" id="L319">      Object value = entry.getValue();</span>
+<span class="nc bnc" id="L320" title="All 2 branches missed.">      if (value instanceof ArrayList&lt;?&gt;) {</span>
+        // We need to make a clone of this object, but the stored immutables can
+        // still be referenced
+<span class="nc" id="L323">        value = ((ArrayList&lt;?&gt;) value).clone();</span>
+      }
+<span class="nc" id="L325">      dataMap.put(entry.getKey(), value);</span>
+<span class="nc" id="L326">    }</span>
+<span class="nc" id="L327">    clone.setDataMap(dataMap);</span>
+<span class="nc" id="L328">    return clone;</span>
+  }
 
-<span class="nc" id="L297">    }</span>
+  @Override
+<span class="nc" id="L332">  protected void saveTransientObjects() { }</span>
 
-    @Override
-    protected void loadTransientObjects() {
-<span class="nc" id="L301">    }</span>
-    
-    @Override
-    public UpgradeableDataHashMap getUpgradableHashmap() {
-<span class="nc" id="L305">        return this;</span>
-    }
-    
+  @Override
+<span class="nc" id="L335">  protected void loadTransientObjects() { }</span>
+
+  @Override
+  public UpgradeableDataHashMap getUpgradableHashmap() {
+<span class="nc" id="L339">    return this;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ListAliasCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.config.cmp</a> &gt; <span class="el_source">ListAliasCommand.java</span></div><h1>ListAliasCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.cli.config.cmp;
+
+import java.util.List;
+
+import org.apache.log4j.Logger;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+
+/**
+ * @version $Id: ListAliasCommand.java 23180 2016-04-12 20:41:14Z mikekushner $
+ *
+ */
+<span class="nc" id="L25">public class ListAliasCommand extends BaseCmpConfigCommand {</span>
+
+<span class="nc" id="L27">    private static final Logger log = Logger.getLogger(ListAliasCommand.class);</span>
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L31">        return &quot;listalias&quot;;</span>
+    }
+
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+<span class="nc" id="L36">        List&lt;String&gt; aliaslist = getCmpConfiguration().getSortedAliasList();</span>
+<span class="nc bnc" id="L37" title="All 2 branches missed.">        for(String alias : aliaslist) {</span>
+<span class="nc" id="L38">            log.info(alias);</span>
+<span class="nc" id="L39">        }</span>
+<span class="nc" id="L40">        return CommandResult.SUCCESS;</span>
+
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L46">        return &quot;Lists all existing CMP configuration aliases&quot;;</span>
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L51">        return getCommandDescription();</span>
+    }
+    
+    @Override
+    protected Logger getLogger() {
+<span class="nc" id="L56">        return log;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

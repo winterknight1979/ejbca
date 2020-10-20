@@ -15,33 +15,52 @@ package org.cesecore.util.query.elems;
 import org.cesecore.util.query.Elem;
 
 /**
- * Query term. Each term is composed as followed: [name] [operator] [value] 
- * 
+ * Query term. Each term is composed as followed: [name] [operator] [value]
+ *
  * @version $Id: Term.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 public final class Term implements Elem {
 
-    private static final long serialVersionUID = 3569353821030638847L;
-    private final String name;
-    private final Object value;
-    private final RelationalOperator operator;
+  private static final long serialVersionUID = 3569353821030638847L;
+  /** Name. */
+  private final String name;
+  /** Value. */
+  private final Object value;
+  /** Op. */
+  private final RelationalOperator operator;
 
-<span class="fc" id="L29">    public Term(final RelationalOperator operator, final String name, final Object value) {</span>
-<span class="fc" id="L30">        this.name = name;</span>
-<span class="fc" id="L31">        this.value = value;</span>
-<span class="fc" id="L32">        this.operator = operator;</span>
-<span class="fc" id="L33">    }</span>
+  /**
+   * @param anOperator Op
+   * @param aName Name
+   * @param aValue Value
+   */
+  public Term(
+      final RelationalOperator anOperator,
+      final String aName,
+<span class="fc" id="L40">      final Object aValue) {</span>
+<span class="fc" id="L41">    this.name = aName;</span>
+<span class="fc" id="L42">    this.value = aValue;</span>
+<span class="fc" id="L43">    this.operator = anOperator;</span>
+<span class="fc" id="L44">  }</span>
 
-    public String getName() {
-<span class="fc" id="L36">        return name;</span>
-    }
 
-    public Object getValue() {
-<span class="fc" id="L40">        return value;</span>
-    }
+  /**
+   * @return name
+   */
+  public String getName() {
+<span class="fc" id="L51">    return name;</span>
+  }
 
-    public RelationalOperator getOperator() {
-<span class="fc" id="L44">        return operator;</span>
-    }
+  /** @return Value. */
+  public Object getValue() {
+<span class="fc" id="L56">    return value;</span>
+  }
+
+  /**
+   * @return Operator.
+   */
+  public RelationalOperator getOperator() {
+<span class="fc" id="L63">    return operator;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

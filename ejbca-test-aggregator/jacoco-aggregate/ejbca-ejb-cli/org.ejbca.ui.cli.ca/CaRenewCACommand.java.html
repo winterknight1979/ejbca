@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CaRenewCACommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.ca</a> &gt; <span class="el_source">CaRenewCACommand.java</span></div><h1>CaRenewCACommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.cli.ca;
+
+import java.security.PublicKey;
+import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Properties;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.x509.SubjectKeyIdentifier;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.cert.X509ExtensionUtils;
+import org.bouncycastle.crypto.Digest;
+import org.bouncycastle.crypto.digests.SHA1Digest;
+import org.bouncycastle.util.encoders.Hex;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CADoesntExistsException;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.CaSessionRemote;
+import org.cesecore.certificates.ocsp.SHA1DigestCalculator;
+import org.cesecore.keys.token.BaseCryptoToken;
+import org.cesecore.keys.token.CryptoToken;
+import org.cesecore.keys.token.CryptoTokenAuthenticationFailedException;
+import org.cesecore.keys.token.CryptoTokenInfo;
+import org.cesecore.keys.token.CryptoTokenManagementSessionRemote;
+import org.cesecore.keys.token.CryptoTokenNameInUseException;
+import org.cesecore.keys.token.CryptoTokenOfflineException;
+import org.cesecore.keys.token.p11.exception.NoSuchSlotException;
+import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.EjbRemoteHelper;
+import org.cesecore.util.ValidityDate;
+import org.ejbca.core.ejb.ca.caadmin.CAAdminSessionRemote;
+import org.ejbca.cvc.CardVerifiableCertificate;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+
+/**
+ * Renews the CA certificate and optionally regenerates the key pair. This is the CLI equivalent of pushing 
+ * the renewal button in EJBCA Admin Web.
+ *
+ * @version $Id: CaRenewCACommand.java 28491 2018-03-16 08:19:42Z anatom $
+ */
+<span class="nc" id="L63">public class CaRenewCACommand extends BaseCaAdminCommand {</span>
+
+<span class="nc" id="L65">    private static final Logger log = Logger.getLogger(CaRenewCACommand.class);</span>
+
+<span class="nc" id="L67">    private static final String NEWLINE = System.getProperty(&quot;line.separator&quot;);</span>
+
+    private static final String CA_NAME_KEY = &quot;--caname&quot;;
+    private static final String REGENERATE_KEYS_KEY = &quot;-R&quot;;
+    private static final String AUTHORIZATION_CODE_KEY = &quot;--auth&quot;;
+    private static final String CUSTOM_NOT_BEFORE_KEY = &quot;--notbefore&quot;;
+    private static final String EXPLICIT_ECC_KEY = &quot;-explicitecc&quot;;
+
+    {
+<span class="nc" id="L76">        registerParameter(new Parameter(CA_NAME_KEY, &quot;CA Name&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;Name of the CA&quot;));
+<span class="nc" id="L78">        registerParameter(Parameter.createFlag(REGENERATE_KEYS_KEY, &quot;Set this switch if the CA's keys are to be regenerated.&quot;));</span>
+<span class="nc" id="L79">        registerParameter(new Parameter(AUTHORIZATION_CODE_KEY, &quot;Authorization Code&quot;, MandatoryMode.OPTIONAL, StandaloneMode.ALLOW,</span>
+                ParameterMode.ARGUMENT, &quot;Authorization code is only used when changing -expliciecc property on a Crypto Token. If setting 'explicitecc' on a Crypto Token and this parameter is not set then user will be prompted.&quot;));
+<span class="nc" id="L81">        registerParameter(new Parameter(CUSTOM_NOT_BEFORE_KEY, &quot;Date&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID, ParameterMode.ARGUMENT,</span>
+                &quot;Set this value of a value other than current time should be used. Must be in ISO 8601 format, for example '2010-09-08 07:06:05+02:00&quot;));
+<span class="nc" id="L83">        registerParameter(Parameter.createFlag(EXPLICIT_ECC_KEY, &quot;Adding the switch '&quot; + EXPLICIT_ECC_KEY</span>
+                + &quot;' when using ECC keys makes the internal Crypto Token use explicit curve parameters instead of named curves. &quot;
+                + &quot;Should only be used when renewing a CSCA for ePassports, and it will persist in the Crypto Token for future renewals.&quot;));
+    }
+
+<span class="nc" id="L88">    private SimpleDateFormat simpleDateFormat = null;</span>
+
+    private SimpleDateFormat getSimpleDateFormat() {
+<span class="nc bnc" id="L91" title="All 2 branches missed.">        if (simpleDateFormat == null) {</span>
+<span class="nc" id="L92">            simpleDateFormat = new SimpleDateFormat(&quot;yyyy-MM-dd HH:mm:ssZZ&quot;);</span>
+        }
+<span class="nc" id="L94">        return simpleDateFormat;</span>
+    }
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L99">        return &quot;renewca&quot;;</span>
+    }
+
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+
+        // Bouncy Castle security provider
+<span class="nc" id="L106">        CryptoProviderTools.installBCProvider();</span>
+
+        // Get the CAs info and id
+<span class="nc" id="L109">        final String caname = parameters.get(CA_NAME_KEY);</span>
+        CAInfo cainfo;
+        try {
+<span class="nc" id="L112">            cainfo = EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class).getCAInfo(getAuthenticationToken(), caname);</span>
+<span class="nc" id="L113">            boolean regenerateKeys = false;</span>
+<span class="nc" id="L114">            Date customNotBefore = null;</span>
+<span class="nc" id="L115">            regenerateKeys = parameters.containsKey(REGENERATE_KEYS_KEY);</span>
+<span class="nc" id="L116">            String authCode = parameters.get(AUTHORIZATION_CODE_KEY);</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">            if (parameters.get(CUSTOM_NOT_BEFORE_KEY) != null) {</span>
+                try {
+<span class="nc" id="L119">                    customNotBefore = ValidityDate.parseAsIso8601(parameters.get(CUSTOM_NOT_BEFORE_KEY));</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">                    if (customNotBefore == null) {</span>
+<span class="nc" id="L121">                        getLogger().error(&quot;ERROR: Could not parse date. Use ISO 8601 format, for example '2010-09-08 07:06:05+02:00' &quot;);</span>
+<span class="nc" id="L122">                        return CommandResult.FUNCTIONAL_FAILURE;</span>
+                    }
+<span class="nc" id="L124">                } catch (ParseException e) {</span>
+<span class="nc" id="L125">                    getLogger().error(&quot;ERROR: &quot; + e.getMessage() + &quot;. Use ISO 8601 format, for example '2010-09-08 07:06:05+02:00' &quot;);</span>
+<span class="nc" id="L126">                    return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L127">                }</span>
+            }
+
+<span class="nc" id="L130">            final StringBuilder buff = new StringBuilder();</span>
+<span class="nc" id="L131">            buff.append(&quot;Renew CA &quot;);</span>
+<span class="nc" id="L132">            buff.append(caname);</span>
+<span class="nc" id="L133">            buff.append(&quot; &quot;);</span>
+<span class="nc bnc" id="L134" title="All 2 branches missed.">            if (regenerateKeys) {</span>
+<span class="nc" id="L135">                buff.append(&quot;with a new key pair&quot;);</span>
+            } else {
+<span class="nc" id="L137">                buff.append(&quot;with the current key pair&quot;);</span>
+            }
+<span class="nc bnc" id="L139" title="All 2 branches missed.">            if (customNotBefore != null) {</span>
+<span class="nc" id="L140">                buff.append(&quot; and with custom notBefore date: &quot;);</span>
+<span class="nc" id="L141">                buff.append(getSimpleDateFormat().format(customNotBefore));</span>
+            }
+<span class="nc" id="L143">            getLogger().info(buff.toString());</span>
+
+<span class="nc" id="L145">            getLogger().info(&quot;Current certificate: &quot;);</span>
+<span class="nc" id="L146">            final Object oldCertificate = cainfo.getCertificateChain().iterator().next();</span>
+<span class="nc bnc" id="L147" title="All 2 branches missed.">            if (oldCertificate instanceof Certificate) {</span>
+<span class="nc" id="L148">                printCertificate((Certificate) oldCertificate);</span>
+            } else {
+<span class="nc" id="L150">                getLogger().error(&quot;Error: Certificate not found&quot;);</span>
+            }
+
+<span class="nc bnc" id="L153" title="All 2 branches missed.">            final String explicitEcc = (parameters.get(EXPLICIT_ECC_KEY) != null ? Boolean.TRUE.toString() : Boolean.FALSE.toString());</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">            if (StringUtils.equalsIgnoreCase(explicitEcc, &quot;true&quot;)) {</span>
+                // Set if we should use explicit ECC parameters of not. On Java 6 this renders the created CA certificate not serializable
+<span class="nc" id="L156">                getLogger().info(&quot;Explicit ECC public key parameters: &quot; + explicitEcc);</span>
+<span class="nc" id="L157">                final int cryptoTokenId = cainfo.getCAToken().getCryptoTokenId();</span>
+<span class="nc" id="L158">                final CryptoTokenManagementSessionRemote cryptoTokenManagementSession = EjbRemoteHelper.INSTANCE.getRemoteSession(CryptoTokenManagementSessionRemote.class);</span>
+<span class="nc" id="L159">                final CryptoTokenInfo tokenInfo = cryptoTokenManagementSession.getCryptoTokenInfo(getAuthenticationToken(), cryptoTokenId);</span>
+<span class="nc" id="L160">                Properties cryptoTokenProperties = tokenInfo.getCryptoTokenProperties();</span>
+<span class="nc bnc" id="L161" title="All 2 branches missed.">                if (cryptoTokenProperties.get(BaseCryptoToken.EXPLICIT_ECC_PUBLICKEY_PARAMETERS) == null) {</span>
+<span class="nc" id="L162">                    getLogger().info(&quot;Explicit ECC public key parameters is not enabled for Crypto Token with ID: &quot; + cryptoTokenId+&quot;, changing Crypto Token to enable it.&quot;);</span>
+<span class="nc" id="L163">                    getLogger().info(&quot;Password: '&quot;+authCode+&quot;'&quot;);</span>
+<span class="nc bnc" id="L164" title="All 2 branches missed.">                    if (authCode == null) {</span>
+<span class="nc" id="L165">                        getLogger().info(&quot;Enter Crypto Token authentication code to continue: &quot;);</span>
+<span class="nc" id="L166">                        authCode = String.valueOf(System.console().readPassword());</span>
+                    }
+<span class="nc" id="L168">                    cryptoTokenProperties.setProperty(CryptoToken.EXPLICIT_ECC_PUBLICKEY_PARAMETERS, explicitEcc);</span>
+<span class="nc" id="L169">                    cryptoTokenManagementSession.saveCryptoToken(getAuthenticationToken(), cryptoTokenId, tokenInfo.getName(), cryptoTokenProperties, authCode.toCharArray());</span>
+                } else {
+<span class="nc" id="L171">                    getLogger().info(&quot;Explicit ECC public key parameters already enabled for Crypto Token with ID: &quot; + cryptoTokenId+&quot;, leaving Crypto Token untouched.&quot;);                    </span>
+                }
+            }
+
+            try {
+<span class="nc" id="L176">                EjbRemoteHelper.INSTANCE.getRemoteSession(CAAdminSessionRemote.class).renewCA(getAuthenticationToken(), cainfo.getCAId(),</span>
+                        regenerateKeys, customNotBefore, regenerateKeys);
+<span class="nc" id="L178">            } catch (CryptoTokenOfflineException e) {</span>
+<span class="nc" id="L179">                log.error(&quot;ERROR: Could not create keys, crypto token was unavailable: &quot; + e.getMessage());</span>
+<span class="nc" id="L180">            }</span>
+<span class="nc" id="L181">            getLogger().info(&quot;New certificate created:&quot;);</span>
+<span class="nc" id="L182">            cainfo = EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class).getCAInfo(getAuthenticationToken(), caname);</span>
+<span class="nc bnc" id="L183" title="All 2 branches missed.">            if (cainfo == null) {</span>
+<span class="nc" id="L184">                log.error(&quot;CA of name &quot; + caname + &quot; does not exist.&quot;);</span>
+<span class="nc" id="L185">                return CommandResult.FUNCTIONAL_FAILURE;</span>
+            }
+
+<span class="nc" id="L188">            final Object newCertificate = cainfo.getCertificateChain().iterator().next();</span>
+<span class="nc bnc" id="L189" title="All 2 branches missed.">            if (newCertificate instanceof Certificate) {</span>
+<span class="nc" id="L190">                printCertificate((Certificate) newCertificate);</span>
+<span class="nc" id="L191">                return CommandResult.SUCCESS;</span>
+            } else {
+<span class="nc" id="L193">                getLogger().error(&quot;ERROR: Certificate not found&quot;);</span>
+<span class="nc" id="L194">                return CommandResult.FUNCTIONAL_FAILURE;</span>
+            }
+<span class="nc" id="L196">        } catch (AuthorizationDeniedException e1) {</span>
+<span class="nc" id="L197">            log.error(&quot;ERROR: Current CLI user isn't authorized to renew CA &quot; + caname);</span>
+<span class="nc" id="L198">            return CommandResult.AUTHORIZATION_FAILURE;</span>
+<span class="nc" id="L199">        } catch (CADoesntExistsException e) {</span>
+<span class="nc" id="L200">            log.error(&quot;ERROR: No CA of name &quot; + caname + &quot; exists.&quot;);</span>
+<span class="nc" id="L201">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L202">        } catch (CryptoTokenOfflineException e) {</span>
+<span class="nc" id="L203">            log.error(&quot;ERROR: Crypto Token is off-line for CA: &quot; + caname);</span>
+<span class="nc" id="L204">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L205">        } catch (CryptoTokenAuthenticationFailedException e) {</span>
+<span class="nc" id="L206">            log.error(&quot;ERROR: Invalid Crypto Token authentication code for CA: &quot; + caname);</span>
+<span class="nc" id="L207">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L208">        } catch (CryptoTokenNameInUseException e) {</span>
+<span class="nc" id="L209">            log.error(&quot;ERROR: Crypto Token name collision for CA: &quot; + caname+&quot;. This should not be possible to happen.&quot;);</span>
+<span class="nc" id="L210">            log.error(&quot;Exception: &quot;, e);</span>
+<span class="nc" id="L211">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L212">        } catch (NoSuchSlotException e) {</span>
+<span class="nc" id="L213">            log.error(&quot;ERROR: Existing Crypto Token claims the slot is not available. Check the Crypto Token for CA: &quot; + caname);</span>
+<span class="nc" id="L214">            log.error(&quot;Error message: &quot;+e.getMessage());</span>
+<span class="nc" id="L215">            return CommandResult.FUNCTIONAL_FAILURE;</span>
+        }
+
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L222">        return &quot;Renew CA certificate and optionally regenerate keys&quot;;</span>
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L227">        return getCommandDescription();</span>
+    }
+
+    private void printCertificate(final Certificate certificate) {
+<span class="nc bnc" id="L231" title="All 2 branches missed.">        if (certificate instanceof X509Certificate) {</span>
+<span class="nc" id="L232">            final X509Certificate x509 = (X509Certificate) certificate;</span>
+<span class="nc" id="L233">            getLogger().info(</span>
+<span class="nc" id="L234">                    new StringBuilder().append(&quot;  Serial number:  &quot;).append(x509.getSerialNumber().toString(16)).append(NEWLINE)</span>
+<span class="nc" id="L235">                            .append(&quot;  Issuer DN:      &quot;).append(x509.getIssuerDN().getName()).append(NEWLINE).append(&quot;  Subject DN:     &quot;)</span>
+<span class="nc" id="L236">                            .append(x509.getSubjectDN().getName()).append(NEWLINE).append(&quot;  Not Before:     &quot;)</span>
+<span class="nc" id="L237">                            .append(getSimpleDateFormat().format(x509.getNotBefore())).append(NEWLINE).append(&quot;  Not After:      &quot;)</span>
+<span class="nc" id="L238">                            .append(getSimpleDateFormat().format(x509.getNotAfter())).append(NEWLINE).append(&quot;  Subject key id: &quot;)</span>
+<span class="nc" id="L239">                            .append(computeSubjectKeyIdentifier(x509)).append(NEWLINE).toString());</span>
+<span class="nc bnc" id="L240" title="All 2 branches missed.">        } else if (certificate instanceof CardVerifiableCertificate) {</span>
+<span class="nc" id="L241">            final CardVerifiableCertificate cvc = (CardVerifiableCertificate) certificate;</span>
+            try {
+<span class="nc" id="L243">                getLogger().info(</span>
+<span class="nc" id="L244">                        new StringBuilder().append(&quot;  &quot;).append(cvc.getCVCertificate().getCertificateBody().getHolderReference().getAsText(false))</span>
+<span class="nc" id="L245">                                .append(NEWLINE).append(&quot;  &quot;)</span>
+<span class="nc" id="L246">                                .append(cvc.getCVCertificate().getCertificateBody().getAuthorityReference().getAsText(false)).append(NEWLINE)</span>
+<span class="nc" id="L247">                                .append(&quot;  Not Before:      &quot;)</span>
+<span class="nc" id="L248">                                .append(getSimpleDateFormat().format(cvc.getCVCertificate().getCertificateBody().getValidFrom())).append(NEWLINE)</span>
+<span class="nc" id="L249">                                .append(&quot;  Not After:       &quot;)</span>
+<span class="nc" id="L250">                                .append(getSimpleDateFormat().format(cvc.getCVCertificate().getCertificateBody().getValidTo())).append(NEWLINE)</span>
+<span class="nc" id="L251">                                .append(&quot;  Public key hash: &quot;).append(computePublicKeyHash(cvc.getPublicKey())).append(NEWLINE).toString());</span>
+<span class="nc" id="L252">            } catch (NoSuchFieldException ex) {</span>
+<span class="nc" id="L253">                getLogger().error(&quot;Error: Could not read field in CV Certificate: &quot; + ex.getMessage());</span>
+<span class="nc" id="L254">            }</span>
+<span class="nc" id="L255">        } else {</span>
+<span class="nc" id="L256">            getLogger().info(new StringBuilder().append(&quot;  Unknown certificate type:&quot;).append(NEWLINE).append(certificate.toString()).toString());</span>
+        }
+<span class="nc" id="L258">    }</span>
+
+    private static String computeSubjectKeyIdentifier(final X509Certificate certificate) {
+<span class="nc" id="L261">        SubjectPublicKeyInfo spki = SubjectPublicKeyInfo.getInstance(certificate.getPublicKey().getEncoded());</span>
+<span class="nc" id="L262">        X509ExtensionUtils utils = new X509ExtensionUtils(SHA1DigestCalculator.buildSha1Instance());</span>
+<span class="nc" id="L263">        SubjectKeyIdentifier ski = utils.createSubjectKeyIdentifier(spki);</span>
+<span class="nc" id="L264">        return new String(Hex.encode(ski.getKeyIdentifier()));</span>
+    }
+
+    private static String computePublicKeyHash(final PublicKey publicKey) {
+<span class="nc" id="L268">        final Digest digest = new SHA1Digest();</span>
+<span class="nc" id="L269">        final byte[] hash = new byte[digest.getDigestSize()];</span>
+<span class="nc" id="L270">        final byte[] data = publicKey.getEncoded();</span>
+<span class="nc" id="L271">        digest.update(data, 0, data.length);</span>
+<span class="nc" id="L272">        digest.doFinal(hash, 0);</span>
+<span class="nc" id="L273">        return new String(Hex.encode(hash));</span>
+    }
+
+    @Override
+    protected Logger getLogger() {
+<span class="nc" id="L278">        return log;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

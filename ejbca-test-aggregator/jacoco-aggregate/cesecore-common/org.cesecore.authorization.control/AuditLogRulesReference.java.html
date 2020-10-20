@@ -13,25 +13,24 @@
 package org.cesecore.authorization.control;
 
 import java.util.Map;
-
 import org.cesecore.authorization.rules.AccessRulePlugin;
 
 /**
  * Dynamically defined access rules for the security events audit log.
- * 
- * @version $Id: AuditLogRulesReference.java 25428 2017-03-09 14:45:59Z jeklund $
+ *
+ * @version $Id: AuditLogRulesReference.java 25428 2017-03-09 14:45:59Z jeklund
+ *     $
  */
-<span class="nc" id="L24">public class AuditLogRulesReference implements AccessRulePlugin{</span>
+<span class="nc" id="L24">public class AuditLogRulesReference implements AccessRulePlugin {</span>
 
-    @Override
-    public Map&lt;String,String&gt; getRules() {
-<span class="nc" id="L28">        return AuditLogRules.getAllResources();</span>
-    }
+  @Override
+  public Map&lt;String, String&gt; getRules() {
+<span class="nc" id="L28">    return AuditLogRules.getAllResources();</span>
+  }
 
-    @Override
-    public String getCategory() {
-<span class="nc" id="L33">        return &quot;AUDITLOGRULES&quot;;</span>
-    }
-
+  @Override
+  public String getCategory() {
+<span class="nc" id="L33">    return &quot;AUDITLOGRULES&quot;;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -13,47 +13,59 @@
 package org.cesecore.util;
 
 import java.util.Random;
-
 import org.apache.log4j.Logger;
 
 /**
  * Used to get an ID not already existing in a DB.
- * 
+ *
  * @version $Id: ProfileID.java 23749 2016-06-30 11:12:39Z mikekushner $
  */
-<span class="nc" id="L24">public class ProfileID {</span>
-<span class="fc" id="L25">    private static final Logger log = Logger.getLogger(ProfileID.class);</span>
-<span class="fc" id="L26">    private static final Random RANDOM = new Random();</span>
-    private static final int MIN = 1&lt;&lt;16;
-	/**
-	 * Callback that is used from caller to check if the generated id can be used, or if we should generate a new one.
-	 */
-	public static interface DB {
-		/**
-		 * Test if an ID is not already used in a DB
-		 * @param i id to test.
-		 * @return true if not already used in DB
-		 */
-		boolean isFree(int i);
-	}
-	/**
-	 * @param db The {@link DB} implementation.
-	 * @return The ID to be used. Always returning &amp;gt;0xffff. IDs &amp;lt;0x10000 are reserved for constant defined in the code.
-	 */
-	public static int getNotUsedID(final DB db) {
-<span class="fc bfc" id="L44" title="All 2 branches covered.">		for ( int i=0; i&lt;10; i++ ) {</span>
-<span class="fc" id="L45">		    final int id = getRandomIdNumber();</span>
-<span class="fc bfc" id="L46" title="All 2 branches covered.">			if ( db.isFree(id) ) {</span>
-<span class="fc" id="L47">				return id;</span>
-			}
-<span class="fc" id="L49">			log.info(&quot;ID &quot;+id+&quot; already exist in DB generating a new random ID.&quot;);</span>
-		}
-		// this throw is indicating an implementation error of the DB class and should never occur. If it does the code must be fixed.
-<span class="fc" id="L52">		throw new RuntimeException(&quot;Impossible to find a spare ID in the database for the class: &quot;+db.getClass().getCanonicalName());</span>
-	}
-	
-	public static int getRandomIdNumber() {
-<span class="fc" id="L56">        return RANDOM.nextInt(Integer.MAX_VALUE-MIN)+MIN;	    </span>
-	}
+public final class ProfileID {
+    private ProfileID() { }
+  /** Logger. */
+<span class="fc" id="L26">    private static final Logger LOG = Logger.getLogger(ProfileID.class);</span>
+  /** Tandom. */
+<span class="fc" id="L28">  private static final Random RANDOM = new Random();</span>
+  /** Minimum. */
+  private static final int MIN = 1 &lt;&lt; 16;
+  /**
+   * Callback that is used from caller to check if the generated id can be used,
+   * or if we should generate a new one.
+   */
+  public interface DB {
+    /**
+     * Test if an ID is not already used in a DB.
+     *
+     * @param i id to test.
+     * @return true if not already used in DB
+     */
+    boolean isFree(int i);
+  }
+  /**
+   * @param db The {@link DB} implementation.
+   * @return The ID to be used. Always returning &amp;gt;0xffff. IDs &amp;lt;0x10000 are
+   *     reserved for constant defined in the code.
+   */
+  public static int getNotUsedID(final DB db) {
+<span class="fc bfc" id="L50" title="All 2 branches covered.">    for (int i = 0; i &lt; 10; i++) {</span>
+<span class="fc" id="L51">      final int id = getRandomIdNumber();</span>
+<span class="fc bfc" id="L52" title="All 2 branches covered.">      if (db.isFree(id)) {</span>
+<span class="fc" id="L53">        return id;</span>
+      }
+<span class="fc" id="L55">      LOG.info(&quot;ID &quot; + id + &quot; already exist in DB generating a new random ID.&quot;);</span>
+    }
+    // this throw is indicating an implementation error of the DB class and
+    // should never occur. If it does the code must be fixed.
+<span class="fc" id="L59">    throw new RuntimeException(</span>
+        &quot;Impossible to find a spare ID in the database for the class: &quot;
+<span class="fc" id="L61">            + db.getClass().getCanonicalName());</span>
+  }
+
+  /**
+   * @return random ID
+   */
+  public static int getRandomIdNumber() {
+<span class="fc" id="L68">    return RANDOM.nextInt(Integer.MAX_VALUE - MIN) + MIN;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

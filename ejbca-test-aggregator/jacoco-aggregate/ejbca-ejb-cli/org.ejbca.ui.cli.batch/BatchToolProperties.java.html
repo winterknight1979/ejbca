@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>BatchToolProperties.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.batch</a> &gt; <span class="el_source">BatchToolProperties.java</span></div><h1>BatchToolProperties.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.cli.batch;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Properties;
+
+import org.apache.log4j.Logger;
+import org.ejbca.core.model.InternalEjbcaResources;
+
+/**
+ * Class used to manage the batch tool property file.
+ *
+ *
+ * @version $Id: BatchToolProperties.java 19902 2014-09-30 14:32:24Z anatom $
+ */
+public class BatchToolProperties {
+
+	private static final String PROPERTY_KEYSPEC          = &quot;keys.spec&quot;;
+	private static final String PROPERTY_KEYALG           = &quot;keys.alg&quot;;
+
+
+<span class="nc" id="L35">	Properties batchToolProperties = new Properties();</span>
+<span class="nc" id="L36">	private static final Logger log = Logger.getLogger(BatchToolProperties.class);</span>
+
+	private Logger logger;
+	
+<span class="nc" id="L40">	public BatchToolProperties(Logger logger){</span>
+<span class="nc" id="L41">	    this.logger = logger;</span>
+<span class="nc" id="L42">		load();</span>
+<span class="nc" id="L43">	}</span>
+
+	/**
+	 * Returns the configured keysize
+	 * Default is 2048
+	 * @return spec
+	 */
+	public String getKeySpec(){
+<span class="nc" id="L51">		return batchToolProperties.getProperty(PROPERTY_KEYSPEC,&quot;2048&quot;);</span>
+	}
+
+	/**
+	 * Returns the configured key algorithm
+	 * Default is RSA, can be ECDSA
+	 * @return Alg
+	 */
+	public String getKeyAlg(){
+<span class="nc" id="L60">		return batchToolProperties.getProperty(PROPERTY_KEYALG,&quot;RSA&quot;);</span>
+	}
+
+
+	private boolean tryLoadFile(String filename) throws IOException {
+<span class="nc" id="L65">		File file = new File(filename);</span>
+<span class="nc bnc" id="L66" title="All 2 branches missed.">		if (file.exists()) {</span>
+<span class="nc" id="L67">			FileInputStream fis = new FileInputStream(file);</span>
+<span class="nc" id="L68">			batchToolProperties.load(fis);</span>
+<span class="nc" id="L69">			logger.info(InternalEjbcaResources.getInstance().getLocalizedMessage(&quot;batch.loadingconfig&quot;, filename));</span>
+<span class="nc" id="L70">			return true;</span>
+		} else {
+<span class="nc" id="L72">			return false;</span>
+		}
+	}
+
+	/**
+	 * Method that tries to read the property file 'batchtool.properties'
+	 * in the home directory then in the current directory and finally
+	 * in the conf/batchtool.properties.
+	 *
+	 * It will also try the old location in bin/ and print a deprecation
+	 * warning if it exists there.
+	 */
+	private void load(){
+        try {
+<span class="nc bnc" id="L86" title="All 2 branches missed.">        	if (!tryLoadFile(System.getProperty(&quot;user.home&quot;) + &quot;/batchtool.properties&quot;) &amp;&amp;</span>
+<span class="nc bnc" id="L87" title="All 2 branches missed.">        	    !tryLoadFile(&quot;batchtool.properties&quot;) &amp;&amp;</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">        	    !tryLoadFile(&quot;conf/batchtool.properties&quot;)) {</span>
+        	    // Not found
+<span class="nc bnc" id="L90" title="All 2 branches missed.">			    if (tryLoadFile(&quot;bin/batchtool.properties&quot;)) {</span>
+<span class="nc" id="L91">			    	log.info(&quot;The batchtool.properties file exists in bin/. It should be moved to conf/&quot;);</span>
+			    } else {
+<span class="nc" id="L93">			    	log.debug(&quot;Could not find any batchtool property file, default values will be used.&quot;);</span>
+<span class="nc" id="L94">		            logger.info(InternalEjbcaResources.getInstance().getLocalizedMessage(&quot;batch.loadingconfig&quot;, &quot;defaults&quot;));</span>
+			    }
+			}
+<span class="nc" id="L97">		} catch (IOException e) {</span>
+<span class="nc" id="L98">			log.error(&quot;Error reading batchtool property file &quot;);</span>
+<span class="nc" id="L99">			log.debug(e);</span>
+<span class="nc" id="L100">		}</span>
+<span class="nc" id="L101">	}</span>
+
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

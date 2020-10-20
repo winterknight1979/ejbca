@@ -13,30 +13,40 @@
 package org.cesecore.certificates.ocsp.exception;
 
 /**
- * Thrown when an error is encountered while starting OCSP.  
- * 
- * @version $Id: OcspInitializationException.java 17625 2013-09-20 07:12:06Z netmackan $
+ * Thrown when an error is encountered while starting OCSP.
  *
+ * @version $Id: OcspInitializationException.java 17625 2013-09-20 07:12:06Z
+ *     netmackan $
  */
 public class OcspInitializationException extends RuntimeException {
 
-    private static final long serialVersionUID = -7920696456058508107L;
+  private static final long serialVersionUID = -7920696456058508107L;
+ /** Null constructor. */
+  public OcspInitializationException() {
+<span class="nc" id="L26">    super();</span>
+<span class="nc" id="L27">  }</span>
 
-    public OcspInitializationException() {
-<span class="nc" id="L26">        super();</span>
-<span class="nc" id="L27">    }</span>
+  /**
+   * @param message Message
+   * @param cause Cause
+   */
+  public OcspInitializationException(
+      final String message, final Throwable cause) {
+<span class="nc" id="L35">    super(message, cause);</span>
+<span class="nc" id="L36">  }</span>
 
-    public OcspInitializationException(String message, Throwable cause) {
-<span class="nc" id="L30">        super(message, cause);</span>
-<span class="nc" id="L31">    }</span>
+  /**
+   * @param message Message
+   */
+  public OcspInitializationException(final String message) {
+<span class="nc" id="L42">    super(message);</span>
+<span class="nc" id="L43">  }</span>
 
-    public OcspInitializationException(String message) {
-<span class="nc" id="L34">        super(message);</span>
-<span class="nc" id="L35">    }</span>
-
-    public OcspInitializationException(Throwable cause) {
-<span class="nc" id="L38">        super(cause);</span>
-<span class="nc" id="L39">    }</span>
-
+  /**
+   * @param cause Cause
+   */
+  public OcspInitializationException(final Throwable cause) {
+<span class="nc" id="L49">    super(cause);</span>
+<span class="nc" id="L50">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

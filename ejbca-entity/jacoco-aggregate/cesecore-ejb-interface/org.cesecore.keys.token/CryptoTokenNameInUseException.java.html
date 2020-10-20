@@ -9,52 +9,61 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.keys.token;
 
 import org.cesecore.CesecoreException;
 import org.cesecore.ErrorCode;
 
 /**
- * An exception thrown when someone tries to create a CryptoToken with an existing name.
+ * An exception thrown when someone tries to create a CryptoToken with an
+ * existing name.
  *
- * @version $Id: CryptoTokenNameInUseException.java 17625 2013-09-20 07:12:06Z netmackan $
+ * @version $Id: CryptoTokenNameInUseException.java 17625 2013-09-20 07:12:06Z
+ *     netmackan $
  */
 public class CryptoTokenNameInUseException extends CesecoreException {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    /**
-     * Creates a new instance of &lt;code&gt;CryptoTokenNameInUseException&lt;/code&gt; without detail message.
-     */
-    public CryptoTokenNameInUseException() {
-<span class="nc" id="L31">        super();</span>
-<span class="nc" id="L32">        super.setErrorCode(ErrorCode.CRYPTOTOKEN_NAME_IN_USE);</span>
-<span class="nc" id="L33">    }</span>
+  /**
+   * Creates a new instance of &lt;code&gt;CryptoTokenNameInUseException&lt;/code&gt;
+   * without detail message.
+   */
+  public CryptoTokenNameInUseException() {
+<span class="nc" id="L34">    super();</span>
+<span class="nc" id="L35">    super.setErrorCode(ErrorCode.CRYPTOTOKEN_NAME_IN_USE);</span>
+<span class="nc" id="L36">  }</span>
 
-    /**
-     * Constructs an instance of &lt;code&gt;CryptoTokenNameInUseException&lt;/code&gt; with the specified detail message.
-     * @param msg the detail message.
-     */
-    public CryptoTokenNameInUseException(String msg) {
-<span class="nc" id="L40">        super(ErrorCode.CRYPTOTOKEN_NAME_IN_USE, msg);</span>
-<span class="nc" id="L41">    }</span>
+  /**
+   * Constructs an instance of &lt;code&gt;CryptoTokenNameInUseException&lt;/code&gt; with
+   * the specified detail message.
+   *
+   * @param msg the detail message.
+   */
+  public CryptoTokenNameInUseException(final String msg) {
+<span class="nc" id="L45">    super(ErrorCode.CRYPTOTOKEN_NAME_IN_USE, msg);</span>
+<span class="nc" id="L46">  }</span>
 
-    /**
-     * Constructs an instance of &lt;code&gt;CryptoTokenNameInUseException&lt;/code&gt; with the specified detail message.
-     * @param exception the exception that caused this
-     */
-    public CryptoTokenNameInUseException(Exception exception) {
-<span class="nc" id="L48">        super(ErrorCode.CRYPTOTOKEN_NAME_IN_USE, exception);</span>
-<span class="nc" id="L49">    }</span>
+  /**
+   * Constructs an instance of &lt;code&gt;CryptoTokenNameInUseException&lt;/code&gt; with
+   * the specified detail message.
+   *
+   * @param exception the exception that caused this
+   */
+  public CryptoTokenNameInUseException(final Exception exception) {
+<span class="nc" id="L55">    super(ErrorCode.CRYPTOTOKEN_NAME_IN_USE, exception);</span>
+<span class="nc" id="L56">  }</span>
 
-    /**
-     * Constructs an instance of &lt;code&gt;CryptoTokenNameInUseException&lt;/code&gt; with the specified detail message.
-     * @param msg the detail message.
-     * @param e the exception that caused this
-     */
-    public CryptoTokenNameInUseException(String msg, Exception e) {
-<span class="nc" id="L57">        super(ErrorCode.CRYPTOTOKEN_NAME_IN_USE, msg, e);</span>
-<span class="nc" id="L58">    }</span>
+  /**
+   * Constructs an instance of &lt;code&gt;CryptoTokenNameInUseException&lt;/code&gt; with
+   * the specified detail message.
+   *
+   * @param msg the detail message.
+   * @param e the exception that caused this
+   */
+  public CryptoTokenNameInUseException(final String msg, final Exception e) {
+<span class="nc" id="L66">    super(ErrorCode.CRYPTOTOKEN_NAME_IN_USE, msg, e);</span>
+<span class="nc" id="L67">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

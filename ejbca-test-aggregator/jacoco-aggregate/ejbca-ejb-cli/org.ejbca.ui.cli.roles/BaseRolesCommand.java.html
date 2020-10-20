@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>BaseRolesCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.roles</a> &gt; <span class="el_source">BaseRolesCommand.java</span></div><h1>BaseRolesCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.cli.roles;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.user.matchvalues.X500PrincipalAccessMatchValue;
+import org.cesecore.util.EjbRemoteHelper;
+import org.ejbca.core.ejb.authentication.cli.CliUserAccessMatchValue;
+import org.ejbca.core.ejb.authorization.AuthorizationSystemSessionRemote;
+import org.ejbca.ui.cli.infrastructure.command.EjbcaCliUserCommandBase;
+
+/**
+ * Base for Roles commands, contains common functions for Roles operations
+ * @version $Id: BaseRolesCommand.java 29175 2018-06-08 13:38:23Z jeklund $
+ */
+<span class="nc" id="L34">public abstract class BaseRolesCommand extends EjbcaCliUserCommandBase {</span>
+
+<span class="nc" id="L36">    private static final Logger log = Logger.getLogger(BaseRolesCommand.class);</span>
+
+<span class="nc" id="L38">    private Map&lt;String,String&gt; resourceNameToResourceMap = null;</span>
+<span class="nc" id="L39">    private Map&lt;String,String&gt; resourceToResourceNameMap = null;</span>
+
+<span class="nc" id="L41">    private static Set&lt;String[]&gt; commandAliases = new HashSet&lt;String[]&gt;();</span>
+    static {
+<span class="nc" id="L43">        commandAliases.add(new String[] { &quot;admins&quot; });</span>
+        try {
+<span class="nc" id="L45">            Class.forName(X500PrincipalAccessMatchValue.class.getName());</span>
+<span class="nc" id="L46">            Class.forName(CliUserAccessMatchValue.class.getName());</span>
+<span class="nc" id="L47">        } catch (ClassNotFoundException e) {</span>
+<span class="nc" id="L48">            log.error(&quot;Failure during match value initialization&quot;, e);</span>
+<span class="nc" id="L49">        }</span>
+<span class="nc" id="L50">    }</span>
+
+    @Override
+    public String[] getCommandPath() {
+<span class="nc" id="L54">        return new String[] { &quot;roles&quot; };</span>
+    }
+
+    @Override
+    public Set&lt;String[]&gt; getCommandPathAliases() {
+<span class="nc" id="L59">        return commandAliases;</span>
+    }
+
+    @Override
+    protected abstract Logger getLogger();
+
+    /** @return a Map&amp;lt;resourceName,resource&amp;gt; for authorized resources (cached in this remote JVM) */
+    public Map&lt;String, String&gt; getResourceNameToResourceMap() {
+<span class="nc bnc" id="L67" title="All 2 branches missed.">        if (resourceNameToResourceMap==null) {</span>
+<span class="nc" id="L68">            final Map&lt;String,String&gt; authorizedResourcesMap = EjbRemoteHelper.INSTANCE.getRemoteSession(AuthorizationSystemSessionRemote.class).</span>
+<span class="nc" id="L69">                    getAllResources(getAuthenticationToken(), false);</span>
+<span class="nc" id="L70">            resourceNameToResourceMap = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">            for (final Entry&lt;String,String&gt; entry: authorizedResourcesMap.entrySet()) {</span>
+<span class="nc" id="L72">                resourceNameToResourceMap.put(entry.getValue(), entry.getKey());</span>
+<span class="nc" id="L73">            }</span>
+        }
+<span class="nc" id="L75">        return resourceNameToResourceMap;</span>
+    }
+
+    /** @return a Map&amp;lt;resource,resourceName&amp;gt; for authorized resources (cached in this remote JVM) */
+    public Map&lt;String, String&gt; getResourceToResourceNameMap() {
+<span class="nc bnc" id="L80" title="All 2 branches missed.">        if (resourceToResourceNameMap==null) {</span>
+<span class="nc" id="L81">            resourceToResourceNameMap = EjbRemoteHelper.INSTANCE.getRemoteSession(AuthorizationSystemSessionRemote.class).</span>
+<span class="nc" id="L82">                    getAllResources(getAuthenticationToken(), false);</span>
+        }
+<span class="nc" id="L84">        return resourceToResourceNameMap;</span>
+    }
+    
+    /** @param namespace Namespace
+     * @param roleName Role
+     * @return the full role name with namespace prefixed in brackets. */
+    protected String getFullRoleName(final String namespace, final String roleName) {
+<span class="nc bnc" id="L91" title="All 2 branches missed.">        return (StringUtils.isEmpty(namespace) ? &quot;&quot; : &quot;[&quot;+namespace+&quot;] &quot;) + &quot;'&quot; + roleName + &quot;'&quot;;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

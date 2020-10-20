@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HardTokenInterfaceBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Administration GUI</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.hardtokeninterface</a> &gt; <span class="el_source">HardTokenInterfaceBean.java</span></div><h1>HardTokenInterfaceBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.web.admin.hardtokeninterface;
+
+import java.io.Serializable;
+import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSession;
+import org.cesecore.roles.Role;
+import org.cesecore.roles.management.RoleSessionLocal;
+import org.cesecore.util.EJBTools;
+import org.ejbca.core.ejb.hardtoken.HardTokenBatchJobSession;
+import org.ejbca.core.ejb.hardtoken.HardTokenSession;
+import org.ejbca.core.ejb.keyrecovery.KeyRecoverySession;
+import org.ejbca.core.ejb.ra.EndEntityManagementSessionLocal;
+import org.ejbca.core.model.authorization.AccessRulesConstants;
+import org.ejbca.core.model.hardtoken.HardTokenInformation;
+import org.ejbca.core.model.hardtoken.HardTokenIssuer;
+import org.ejbca.core.model.hardtoken.HardTokenIssuerDoesntExistsException;
+import org.ejbca.core.model.hardtoken.HardTokenIssuerExistsException;
+import org.ejbca.core.model.hardtoken.HardTokenIssuerInformation;
+import org.ejbca.core.model.util.EjbLocalHelper;
+import org.ejbca.ui.web.admin.configuration.EjbcaWebBean;
+import org.ejbca.ui.web.admin.rainterface.RAInterfaceBean;
+
+/**
+ * A java bean handling the interface between EJBCA hard token module and JSP pages.
+ *
+ * @version $Id: HardTokenInterfaceBean.java 27816 2018-01-09 16:19:36Z samuellb $
+ */
+public class HardTokenInterfaceBean implements Serializable {
+
+    private static final long serialVersionUID = -3930279705572942527L;
+    private HardTokenSession hardtokensession;
+    private KeyRecoverySession keyrecoverysession;
+    private HardTokenBatchJobSession hardtokenbatchsession;
+    private RoleSessionLocal roleSession;
+    private AuthenticationToken admin;
+<span class="nc" id="L62">    private boolean initialized = false;</span>
+    private HardTokenView[] result;
+    @SuppressWarnings(&quot;deprecation&quot;)
+	private HardTokenProfileDataHandler hardtokenprofiledatahandler;
+
+    /** Creates new LogInterfaceBean */
+<span class="nc" id="L68">    public HardTokenInterfaceBean() {</span>
+<span class="nc" id="L69">    }</span>
+
+    /**
+     * Method that initialized the bean.
+     *
+     * @param request is a reference to the http request.
+     * @param ejbcawebbean Bean
+     * @throws Exception Fail
+     */
+    @SuppressWarnings(&quot;deprecation&quot;)
+	public void initialize(HttpServletRequest request, EjbcaWebBean ejbcawebbean) throws Exception {
+<span class="nc bnc" id="L80" title="All 2 branches missed.">        if (!initialized) {</span>
+<span class="nc" id="L81">            admin = ejbcawebbean.getAdminObject();</span>
+<span class="nc" id="L82">            EjbLocalHelper ejbLocalHelper = new EjbLocalHelper();</span>
+<span class="nc" id="L83">            hardtokensession = ejbLocalHelper.getHardTokenSession();</span>
+<span class="nc" id="L84">            hardtokenbatchsession = ejbLocalHelper.getHardTokenBatchJobSession();</span>
+<span class="nc" id="L85">            AuthorizationSessionLocal authorizationSession = ejbLocalHelper.getAuthorizationSession();</span>
+<span class="nc" id="L86">            EndEntityManagementSessionLocal endEntityManagementSession = ejbLocalHelper.getEndEntityManagementSession();</span>
+<span class="nc" id="L87">            CertificateProfileSession certificateProfileSession = ejbLocalHelper.getCertificateProfileSession();</span>
+<span class="nc" id="L88">            keyrecoverysession = ejbLocalHelper.getKeyRecoverySession();</span>
+<span class="nc" id="L89">            CaSessionLocal caSession = ejbLocalHelper.getCaSession();</span>
+<span class="nc" id="L90">            roleSession = new EjbLocalHelper().getRoleSession();</span>
+<span class="nc" id="L91">            initialized = true;</span>
+<span class="nc" id="L92">            this.hardtokenprofiledatahandler = new HardTokenProfileDataHandler(admin, hardtokensession, certificateProfileSession,</span>
+                    authorizationSession, endEntityManagementSession, caSession);
+        }
+<span class="nc" id="L95">    }</span>
+
+    /** Returns the first found hard token for the given username. 
+     * @param username User
+     * @param includePUK PUK
+     * @return View */
+    public HardTokenView getHardTokenViewWithUsername(String username, boolean includePUK) {
+<span class="nc" id="L102">        this.result = null;</span>
+<span class="nc" id="L103">        Collection&lt;HardTokenInformation&gt; res = hardtokensession.getHardTokens(admin, username, includePUK);</span>
+<span class="nc" id="L104">        Iterator&lt;HardTokenInformation&gt; iter = res.iterator();</span>
+<span class="nc bnc" id="L105" title="All 2 branches missed.">        if (res.size() &gt; 0) {</span>
+<span class="nc" id="L106">            this.result = new HardTokenView[res.size()];</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">            for (int i = 0; iter.hasNext(); i++) {</span>
+<span class="nc" id="L108">                this.result[i] = new HardTokenView(iter.next());</span>
+            }
+<span class="nc bnc" id="L110" title="All 4 branches missed.">            if (this.result != null &amp;&amp; this.result.length &gt; 0) {</span>
+<span class="nc" id="L111">                return this.result[0];</span>
+            }
+        }
+<span class="nc" id="L114">        return null;</span>
+    }
+
+    public HardTokenView getHardTokenViewWithIndex(String username, int index, boolean includePUK) {
+<span class="nc" id="L118">        HardTokenView returnval = null;</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">        if (result == null) {</span>
+<span class="nc" id="L120">            getHardTokenViewWithUsername(username, includePUK);</span>
+        }
+<span class="nc bnc" id="L122" title="All 2 branches missed.">        if (result != null) {</span>
+<span class="nc bnc" id="L123" title="All 2 branches missed.">            if (index &lt; result.length) {</span>
+<span class="nc" id="L124">                returnval = result[index];</span>
+            }
+        }
+<span class="nc" id="L127">        return returnval;</span>
+    }
+
+    public int getHardTokensInCache() {
+<span class="nc" id="L131">        int returnval = 0;</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">        if (result != null) {</span>
+<span class="nc" id="L133">            returnval = result.length;</span>
+        }
+<span class="nc" id="L135">        return returnval;</span>
+    }
+
+    public HardTokenView getHardTokenView(String tokensn, boolean includePUK) throws AuthorizationDeniedException {
+<span class="nc" id="L139">        HardTokenView returnval = null;</span>
+<span class="nc" id="L140">        this.result = null;</span>
+<span class="nc" id="L141">        HardTokenInformation token = hardtokensession.getHardToken(admin, tokensn, includePUK);</span>
+<span class="nc bnc" id="L142" title="All 2 branches missed.">        if (token != null) {</span>
+<span class="nc" id="L143">            returnval = new HardTokenView(token);</span>
+        }
+<span class="nc" id="L145">        return returnval;</span>
+    }
+
+    public String[] getHardTokenIssuerAliases() {
+<span class="nc" id="L149">        return hardtokensession.getHardTokenIssuers(admin).keySet().toArray(new String[0]);</span>
+    }
+
+    /** Returns the alias from id. 
+     * @param id ID
+     * @return Alias*/
+    public String getHardTokenIssuerAlias(int id) {
+<span class="nc" id="L156">        return hardtokensession.getHardTokenIssuerAlias(id);</span>
+    }
+
+    public int getHardTokenIssuerId(String alias) {
+<span class="nc" id="L160">        return hardtokensession.getHardTokenIssuerId(alias);</span>
+    }
+
+    public HardTokenIssuerInformation getHardTokenIssuerInformation(String alias) {
+<span class="nc" id="L164">        return hardtokensession.getHardTokenIssuerInformation(alias);</span>
+    }
+
+    public HardTokenIssuerInformation getHardTokenIssuerInformation(int id) {
+<span class="nc" id="L168">        return hardtokensession.getHardTokenIssuerInformation(id);</span>
+    }
+    
+    public Map&lt;Integer, String&gt; getRoleIdToNameMap() {
+<span class="nc" id="L172">        final HashMap&lt;Integer, String&gt; roleIdToNameMap = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L173" title="All 2 branches missed.">        for (final Role role : roleSession.getAuthorizedRoles(admin)) {</span>
+<span class="nc" id="L174">            roleIdToNameMap.put(role.getRoleId(), role.getRoleNameFull());</span>
+<span class="nc" id="L175">        }</span>
+<span class="nc" id="L176">        return roleIdToNameMap;</span>
+    }
+    
+    public String getHardTokenProfileName(final int profileId) {
+<span class="nc" id="L180">        return hardtokensession.getHardTokenProfileName(profileId);</span>
+    }
+    
+    public List&lt;Role&gt; getHardTokenIssuingRoles() {
+<span class="nc" id="L184">        return roleSession.getAuthorizedRolesWithAccessToResource(admin, AccessRulesConstants.HARDTOKEN_ISSUEHARDTOKENS);</span>
+    }
+
+    public void addHardTokenIssuer(String alias, int roleId) throws HardTokenIssuerExistsException, AuthorizationDeniedException {
+<span class="nc bnc" id="L188" title="All 2 branches missed.">        for (final Role role : getHardTokenIssuingRoles()) {</span>
+<span class="nc bnc" id="L189" title="All 2 branches missed.">            if (role.getRoleId()==roleId) {</span>
+<span class="nc bnc" id="L190" title="All 2 branches missed.">                if (!hardtokensession.addHardTokenIssuer(admin, alias, roleId, new HardTokenIssuer())) {</span>
+<span class="nc" id="L191">                    throw new HardTokenIssuerExistsException();</span>
+                }
+            }
+<span class="nc" id="L194">        }</span>
+<span class="nc" id="L195">    }</span>
+
+    public void changeHardTokenIssuer(String alias, HardTokenIssuer hardtokenissuer) throws HardTokenIssuerDoesntExistsException,
+            AuthorizationDeniedException {
+<span class="nc bnc" id="L199" title="All 2 branches missed.">        if (hardtokensession.isAuthorizedToEditHardTokenIssuer(admin, alias)) {</span>
+<span class="nc bnc" id="L200" title="All 2 branches missed.">            if (!hardtokensession.changeHardTokenIssuer(admin, alias, hardtokenissuer)) {</span>
+<span class="nc" id="L201">                throw new HardTokenIssuerDoesntExistsException();</span>
+            }
+        }
+<span class="nc" id="L204">    }</span>
+
+    /** Returns false if profile is used by any user or in authorization rules. 
+     * @param alias Alias
+     * @return Issuer
+     * @throws AuthorizationDeniedException Fail */
+    public boolean removeHardTokenIssuer(String alias) throws AuthorizationDeniedException {
+<span class="nc" id="L211">        boolean issuerused = false;</span>
+<span class="nc bnc" id="L212" title="All 2 branches missed.">        if (hardtokensession.isAuthorizedToEditHardTokenIssuer(admin, alias)) {</span>
+<span class="nc" id="L213">            int issuerid = hardtokensession.getHardTokenIssuerId(alias);</span>
+            // Check if any users or authorization rule use the profile.
+<span class="nc" id="L215">            issuerused = hardtokenbatchsession.checkForHardTokenIssuerId(issuerid);</span>
+<span class="nc bnc" id="L216" title="All 2 branches missed.">            if (!issuerused) {</span>
+<span class="nc" id="L217">                hardtokensession.removeHardTokenIssuer(admin, alias);</span>
+            }
+        }
+<span class="nc bnc" id="L220" title="All 2 branches missed.">        return !issuerused;</span>
+    }
+
+    public void renameHardTokenIssuer(String oldalias, String newalias, int newRoleId) throws HardTokenIssuerExistsException,
+            AuthorizationDeniedException {
+<span class="nc bnc" id="L225" title="All 2 branches missed.">        if (hardtokensession.isAuthorizedToEditHardTokenIssuer(admin, oldalias)) {</span>
+<span class="nc bnc" id="L226" title="All 2 branches missed.">            if (!hardtokensession.renameHardTokenIssuer(admin, oldalias, newalias, newRoleId)) {</span>
+<span class="nc" id="L227">                throw new HardTokenIssuerExistsException();</span>
+            }
+        }
+<span class="nc" id="L230">    }</span>
+
+    public void cloneHardTokenIssuer(String oldalias, String newalias, int newRoleId) throws HardTokenIssuerExistsException,
+            AuthorizationDeniedException {
+<span class="nc bnc" id="L234" title="All 2 branches missed.">        if (hardtokensession.isAuthorizedToEditHardTokenIssuer(admin, oldalias)) {</span>
+<span class="nc bnc" id="L235" title="All 2 branches missed.">            if (!hardtokensession.cloneHardTokenIssuer(admin, oldalias, newalias, newRoleId)) {</span>
+<span class="nc" id="L236">                throw new HardTokenIssuerExistsException();</span>
+            }
+        }
+<span class="nc" id="L239">    }</span>
+
+    /**
+     * Method that checks if a token is key recoverable and also check if the administrator is authorized to the action.
+     * @param tokensn SN
+     * @param username Iser
+     * @param rabean Bean
+     * @return bool
+     * @throws Exception fail
+     */
+    public boolean isTokenKeyRecoverable(String tokensn, String username, RAInterfaceBean rabean) throws Exception {
+<span class="nc" id="L250">        boolean retval = false;</span>
+<span class="nc" id="L251">        X509Certificate keyRecCert = null;</span>
+<span class="nc bnc" id="L252" title="All 2 branches missed.">        for (final Certificate cert : hardtokensession.findCertificatesInHardToken(tokensn)) {</span>
+<span class="nc" id="L253">            final X509Certificate x509cert = (X509Certificate) cert;</span>
+<span class="nc bnc" id="L254" title="All 2 branches missed.">            if (keyrecoverysession.existsKeys(EJBTools.wrap(x509cert))) {</span>
+<span class="nc" id="L255">                keyRecCert = x509cert;</span>
+            }
+<span class="nc" id="L257">        }</span>
+<span class="nc bnc" id="L258" title="All 2 branches missed.">        if (keyRecCert != null) {</span>
+<span class="nc" id="L259">            retval = rabean.keyRecoveryPossible(keyRecCert, username);</span>
+        }
+<span class="nc" id="L261">        return retval;</span>
+    }
+
+    public void markTokenForKeyRecovery(String tokensn, String username, RAInterfaceBean rabean) throws Exception {
+<span class="nc bnc" id="L265" title="All 2 branches missed.">        for (final Certificate cert : hardtokensession.findCertificatesInHardToken(tokensn)) {</span>
+<span class="nc" id="L266">            final X509Certificate x509cert = (X509Certificate) cert;</span>
+<span class="nc bnc" id="L267" title="All 2 branches missed.">            if (keyrecoverysession.existsKeys(EJBTools.wrap(x509cert))) {</span>
+<span class="nc" id="L268">                rabean.markForRecovery(username, x509cert);</span>
+            }
+<span class="nc" id="L270">        }</span>
+<span class="nc" id="L271">    }</span>
+
+    @SuppressWarnings(&quot;deprecation&quot;)
+	public HardTokenProfileDataHandler getHardTokenProfileDataHandler() {
+<span class="nc" id="L275">        return hardtokenprofiledatahandler;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

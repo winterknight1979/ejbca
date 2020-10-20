@@ -18,7 +18,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConversionException;
 import org.apache.commons.lang.StringUtils;
@@ -27,746 +26,928 @@ import org.cesecore.certificates.certificateprofile.CertificateProfileConstants;
 import org.cesecore.util.CertTools;
 
 /**
- * Parses configuration bundled in conf/ocsp.properties, both for the internal and external OCSP responder.
- * 
+ * Parses configuration bundled in conf/ocsp.properties, both for the internal
+ * and external OCSP responder.
+ *
  * @version $Id: OcspConfiguration.java 28629 2018-04-04 11:32:55Z henriks $
  */
-<span class="nc" id="L34">public class OcspConfiguration {</span>
+public final class OcspConfiguration {
 
-<span class="fc" id="L36">    private static final Logger log = Logger.getLogger(OcspConfiguration.class);</span>
+    private OcspConfiguration() { }
 
-    @Deprecated // Deprecated in 6.2.4, remains to allow migration from previous versions
-    public static final String DEFAULT_RESPONDER = &quot;ocsp.defaultresponder&quot;;
-    public static final String SIGNING_CERTD_VALID_TIME = &quot;ocsp.signingCertsValidTime&quot;;
-    public static final String REQUEST_SIGNING_CERT_REVOCATION_CACHE_TIME = &quot;ocsp.reqsigncertrevcachetime&quot;;
-    public static final String SIGNING_TRUSTSTORE_VALID_TIME = &quot;ocsp.signtrustvalidtime&quot;;
-    public static final String SIGNATUREREQUIRED = &quot;ocsp.signaturerequired&quot;;
-    public static final String CARD_PASSWORD = &quot;ocsp.keys.cardPassword&quot;;
-    public static final String REKEYING_WSURL = &quot;ocsp.rekeying.wsurl&quot;;
-    public static final String WARNING_BEFORE_EXPERATION_TIME = &quot;ocsp.warningBeforeExpirationTime&quot;;
-    public static final String NON_EXISTING_IS_GOOD = &quot;ocsp.nonexistingisgood&quot;;
-    public static final String NON_EXISTING_IS_GOOD_URI = NON_EXISTING_IS_GOOD+&quot;.uri.&quot;;
-    public static final String NON_EXISTING_IS_BAD_URI = &quot;ocsp.nonexistingisbad.uri.&quot;;
-    public static final String NON_EXISTING_IS_REVOKED = &quot;ocsp.nonexistingisrevoked&quot;;
-    public static final String NON_EXISTING_IS_REVOKED_URI = NON_EXISTING_IS_REVOKED+&quot;.uri.&quot;;
-    public static final String NON_EXISTING_IS_UNAUTHORIZED = &quot;ocsp.nonexistingisunauthorized&quot;;
-    public static final String REKEYING_TRIGGERING_HOSTS =  &quot;ocsp.rekeying.trigging.hosts&quot;;
-    public static final String REKEYING_TRIGGERING_PASSWORD = &quot;ocsp.rekeying.trigging.password&quot;;
-    public static final String REKEYING_UPDATE_TIME_IN_SECONDS = &quot;ocsp.rekeying.update.time.in.seconds&quot;;
-    public static final String REKEYING_SAFETY_MARGIN_IN_SECONDS = &quot;ocsp.rekeying.safety.margin.in.seconds&quot;;
-    public static final String EXPIREDCERT_RETENTIONPERIOD = &quot;ocsp.expiredcert.retentionperiod&quot;;
-    public static final String UNTIL_NEXT_UPDATE = &quot;ocsp.untilNextUpdate&quot;;
-    public static final String REVOKED_UNTIL_NEXT_UPDATE = &quot;ocsp.revoked.untilNextUpdate&quot;;
-    public static final String MAX_AGE = &quot;ocsp.maxAge&quot;;
-    public static final String REVOKED_MAX_AGE = &quot;ocsp.revoked.maxAge&quot;;
-    public static final String INCLUDE_SIGNING_CERT = &quot;ocsp.includesignercert&quot;;
-    public static final String INCLUDE_CERT_CHAIN = &quot;ocsp.includecertchain&quot;;
-    
-    @Deprecated //Remove this value once upgrading to 6.7.0 has been dropped
-    public static final String RESPONDER_ID_TYPE = &quot;ocsp.responderidtype&quot;;
-    
-    @Deprecated //Remove this value once upgrading VAs to EJBCA 6 has been dropped
-    public static final int RESTRICTONISSUER = 0;
-    @Deprecated //Remove this value once upgrading VAs to EJBCA 6 has been dropped
-    public static final int RESTRICTONSIGNER = 1;
+/** Logger. */
+<span class="fc" id="L39">  private static final Logger LOG = Logger.getLogger(OcspConfiguration.class);</span>
+ /** responder. */
+  @Deprecated // Deprecated in 6.2.4, remains to allow migration from previous
+              // versions
+  public static final String DEFAULT_RESPONDER = &quot;ocsp.defaultresponder&quot;;
+  /** time. */
+  public static final String SIGNING_CERTD_VALID_TIME =
+      &quot;ocsp.signingCertsValidTime&quot;;
+  /** time. */
+  public static final String REQUEST_SIGNING_CERT_REVOCATION_CACHE_TIME =
+      &quot;ocsp.reqsigncertrevcachetime&quot;;
+  /** time. */
+  public static final String SIGNING_TRUSTSTORE_VALID_TIME =
+      &quot;ocsp.signtrustvalidtime&quot;;
+  /** sig. */
+  public static final String SIGNATUREREQUIRED = &quot;ocsp.signaturerequired&quot;;
+  /** pwd. */
+  public static final String CARD_PASSWORD = &quot;ocsp.keys.cardPassword&quot;;
+  /** url. */
+  public static final String REKEYING_WSURL = &quot;ocsp.rekeying.wsurl&quot;;
+  /** bool. */
+  public static final String WARNING_BEFORE_EXPERATION_TIME =
+      &quot;ocsp.warningBeforeExpirationTime&quot;;
+  /** bool. */
+  public static final String NON_EXISTING_IS_GOOD = &quot;ocsp.nonexistingisgood&quot;;
+  /** URI. */
+  public static final String NON_EXISTING_IS_GOOD_URI =
+      NON_EXISTING_IS_GOOD + &quot;.uri.&quot;;
+  /** bool. */
+  public static final String NON_EXISTING_IS_BAD_URI =
+      &quot;ocsp.nonexistingisbad.uri.&quot;;
+  /** bool. */
+  public static final String NON_EXISTING_IS_REVOKED =
+      &quot;ocsp.nonexistingisrevoked&quot;;
+  /** IRI. */
+  public static final String NON_EXISTING_IS_REVOKED_URI =
+      NON_EXISTING_IS_REVOKED + &quot;.uri.&quot;;
+  /** config. */
+  public static final String NON_EXISTING_IS_UNAUTHORIZED =
+      &quot;ocsp.nonexistingisunauthorized&quot;;
+  /** hosts. */
+  public static final String REKEYING_TRIGGERING_HOSTS =
+      &quot;ocsp.rekeying.trigging.hosts&quot;;
+  /** password. */
+  public static final String REKEYING_TRIGGERING_PASSWORD =
+      &quot;ocsp.rekeying.trigging.password&quot;;
+  /** time. */
+  public static final String REKEYING_UPDATE_TIME_IN_SECONDS =
+      &quot;ocsp.rekeying.update.time.in.seconds&quot;;
+  /** margin. */
+  public static final String REKEYING_SAFETY_MARGIN_IN_SECONDS =
+      &quot;ocsp.rekeying.safety.margin.in.seconds&quot;;
+  /** period. */
+  public static final String EXPIREDCERT_RETENTIONPERIOD =
+      &quot;ocsp.expiredcert.retentionperiod&quot;;
+  /** update. */
+  public static final String UNTIL_NEXT_UPDATE = &quot;ocsp.untilNextUpdate&quot;;
+  /** update. */
+  public static final String REVOKED_UNTIL_NEXT_UPDATE =
+      &quot;ocsp.revoked.untilNextUpdate&quot;;
+  /** age. */
+  public static final String MAX_AGE = &quot;ocsp.maxAge&quot;;
+  /** age. */
+  public static final String REVOKED_MAX_AGE = &quot;ocsp.revoked.maxAge&quot;;
+  /** Vert. */
+  public static final String INCLUDE_SIGNING_CERT = &quot;ocsp.includesignercert&quot;;
+  /** Chain. */
+  public static final String INCLUDE_CERT_CHAIN = &quot;ocsp.includecertchain&quot;;
 
-    @Deprecated //Remove this value once upgrading to 6.7.0 has been dropped
-    public static final int RESPONDERIDTYPE_NAME = 1;
-    @Deprecated //Remove this value once upgrading to 6.7.0 has been dropped
-    public static final int RESPONDERIDTYPE_KEYHASH = 2;
+  /** type. */
+  @Deprecated // Remove this value once upgrading to 6.7.0 has been dropped
+  public static final String RESPONDER_ID_TYPE = &quot;ocsp.responderidtype&quot;;
+  /** type. */
+  @Deprecated // Remove this value once upgrading VAs to EJBCA 6 has been
+              // dropped
+  public static final int RESTRICTONISSUER = 0;
+  /** type. */
+  @Deprecated // Remove this value once upgrading VAs to EJBCA 6 has been
+              // dropped
+  public static final int RESTRICTONSIGNER = 1;
+  /** type. */
+  @Deprecated // Remove this value once upgrading to 6.7.0 has been dropped
+  public static final int RESPONDERIDTYPE_NAME = 1;
+  /** type. */
+  @Deprecated // Remove this value once upgrading to 6.7.0 has been dropped
+  public static final int RESPONDERIDTYPE_KEYHASH = 2;
+  /** Algorithms. */
+<span class="fc" id="L126">  private static Set&lt;String&gt; acceptedSignatureAlgorithms = new HashSet&lt;&gt;();</span>
 
-<span class="fc" id="L78">    public static Set&lt;String&gt; acceptedSignatureAlgorithms = new HashSet&lt;&gt;();</span>
-    
-    /**
-     * @return Algorithm used by server to generate signature on OCSP responses
-     * 
-     */
-    public static String getSignatureAlgorithm() {
-<span class="nc" id="L85">        return ConfigurationHolder.getString(&quot;ocsp.signaturealgorithm&quot;);</span>
-    }
+  /**
+ * @return the acceptedSignatureAlgorithms
+ */
+  public static Set&lt;String&gt; getAcceptedSignatureAlgorithms() {
+<span class="nc" id="L132">      return acceptedSignatureAlgorithms;</span>
+}
 
-    /**
-     * Returns if the specified signature algorithm is among the signature algorithms accepted by EJBCA.
-     * 
-     * The signatures algorithms that are accepted by EJBCA are specified in 'ocsp.signaturealgorithm' in the 
-     * EJBCA_HOME/conf/ocsp.properties file.
-     * 
-     * @param sigAlg Algorithm name
-     * @return 'true' if sigAlg is accepted by EJBCA, and 'false' otherwise
-     */
-    public static boolean isAcceptedSignatureAlgorithm(String sigAlg) {
-<span class="nc bnc" id="L98" title="All 2 branches missed.">        if(acceptedSignatureAlgorithms.size() == 0) {</span>
-<span class="nc" id="L99">            String[] algs = getSignatureAlgorithm().split(&quot;;&quot;);</span>
-<span class="nc bnc" id="L100" title="All 2 branches missed.">            for(String alg : algs) {</span>
-<span class="nc" id="L101">                acceptedSignatureAlgorithms.add(alg);</span>
-            }
-        }
-<span class="nc" id="L104">        return acceptedSignatureAlgorithms.contains(sigAlg);</span>
-    }
+/**
+ * @param aAcceptedSignatureAlgorithms the acceptedSignatureAlgorithms to set
+ */
+    public static void setAcceptedSignatureAlgorithms(
+        final Set&lt;String&gt; aAcceptedSignatureAlgorithms) {
+<span class="nc" id="L140">        OcspConfiguration.acceptedSignatureAlgorithms =</span>
+            aAcceptedSignatureAlgorithms;
+<span class="nc" id="L142">}</span>
 
-    /** acceptedSignatureAlgorithms are cached, so if we try to dynamically change the value (for testing)
-     * we need to clear this cache so it is reloaded.
-     */
-    public static void clearAcceptedSignatureAlgorithmCache() {
-<span class="nc" id="L111">        acceptedSignatureAlgorithms = new HashSet&lt;&gt;();</span>
-<span class="nc" id="L112">    }</span>
-    
-    /**
-     * 
-     * @return How often the standalone OCSP certificate cache should be checked for expiring certificates. Default value i 1 hour
-     */
-    public static long getRekeyingUpdateTimeInSeconds() {
-<span class="nc" id="L119">        return Long.parseLong(ConfigurationHolder.getString(REKEYING_UPDATE_TIME_IN_SECONDS));</span>
-    }
-    
-    /**
-     * 
-     * @return How long from true expiry time that a certificate should be renewed. Default value is 1 day
-     */
-    public static long getRekeyingSafetyMarginInSeconds() {
-<span class="nc" id="L127">        return Long.parseLong(ConfigurationHolder.getString(REKEYING_SAFETY_MARGIN_IN_SECONDS));</span>
-    }
-    
-    /**
-     * @return The interval on which new OCSP signing certificates are loaded in milliseconds
-     */
-    public static int getSigningCertsValidTimeInMilliseconds() {
-        int timeInSeconds;
-<span class="fc" id="L135">        final int defaultTimeInSeconds = 300; // 5 minutes</span>
-        try {
-<span class="fc" id="L137">            timeInSeconds = Integer.parseInt(ConfigurationHolder.getString(SIGNING_CERTD_VALID_TIME));</span>
-<span class="nc" id="L138">        } catch (NumberFormatException e) {</span>
-<span class="nc" id="L139">            timeInSeconds = defaultTimeInSeconds;</span>
-<span class="nc" id="L140">            log.warn(SIGNING_CERTD_VALID_TIME + &quot; is not a decimal integer. Using default 5 minutes&quot;);</span>
-<span class="fc" id="L141">        }</span>
-<span class="fc" id="L142">        return timeInSeconds*1000;</span>
-    }
+/**
+   * @return Algorithm used by server to generate signature on OCSP responses
+   */
+  public static String getSignatureAlgorithm() {
+<span class="nc" id="L148">    return ConfigurationHolder.getString(&quot;ocsp.signaturealgorithm&quot;);</span>
+  }
 
-    /**
-     * @return The interval on which new OCSP signing certificates are loaded in milliseconds
-     */
-    public static long getRequestSigningCertRevocationCacheTimeMs() {
-        long timeInSeconds;
-<span class="fc" id="L150">        final long defaultTimeInSeconds = 60*1000L; // 1 minute</span>
-        try {
-<span class="fc" id="L152">            timeInSeconds = Long.parseLong(ConfigurationHolder.getString(REQUEST_SIGNING_CERT_REVOCATION_CACHE_TIME));</span>
-<span class="nc" id="L153">        } catch (NumberFormatException e) {</span>
-<span class="nc" id="L154">            timeInSeconds = defaultTimeInSeconds;</span>
-<span class="nc" id="L155">            log.warn(REQUEST_SIGNING_CERT_REVOCATION_CACHE_TIME + &quot; is not a decimal long. Using default &quot;+defaultTimeInSeconds+&quot; ms.&quot;);</span>
-<span class="fc" id="L156">        }</span>
-<span class="fc" id="L157">        return timeInSeconds;</span>
+  /**
+   * Returns if the specified signature algorithm is among the signature
+   * algorithms accepted by EJBCA.
+   *
+   * &lt;p&gt;The signatures algorithms that are accepted by EJBCA are specified in
+   * 'ocsp.signaturealgorithm' in the EJBCA_HOME/conf/ocsp.properties file.
+   *
+   * @param sigAlg Algorithm name
+   * @return 'true' if sigAlg is accepted by EJBCA, and 'false' otherwise
+   */
+  public static boolean isAcceptedSignatureAlgorithm(final String sigAlg) {
+<span class="nc bnc" id="L162" title="All 2 branches missed.">    if (acceptedSignatureAlgorithms.size() == 0) {</span>
+<span class="nc" id="L163">      String[] algs = getSignatureAlgorithm().split(&quot;;&quot;);</span>
+<span class="nc bnc" id="L164" title="All 2 branches missed.">      for (String alg : algs) {</span>
+<span class="nc" id="L165">        acceptedSignatureAlgorithms.add(alg);</span>
+      }
     }
+<span class="nc" id="L168">    return acceptedSignatureAlgorithms.contains(sigAlg);</span>
+  }
 
-    /**
-     * @return If set to true the responder will enforce OCSP request signing
-     */
-    public static boolean getEnforceRequestSigning() {
-<span class="nc" id="L164">        String value = ConfigurationHolder.getString(SIGNATUREREQUIRED);</span>
-<span class="nc bnc" id="L165" title="All 4 branches missed.">        return &quot;true&quot;.equalsIgnoreCase(value) || &quot;yes&quot;.equalsIgnoreCase(value);</span>
-    }
+  /**
+   * acceptedSignatureAlgorithms are cached, so if we try to dynamically change
+   * the value (for testing) we need to clear this cache so it is reloaded.
+   */
+  public static void clearAcceptedSignatureAlgorithmCache() {
+<span class="nc" id="L176">    acceptedSignatureAlgorithms = new HashSet&lt;&gt;();</span>
+<span class="nc" id="L177">  }</span>
 
-    /**
-     * @return If set to true the responder will restrict OCSP request signing
-     */
-    @Deprecated //Remove this method once upgrading VAs to EJBCA 6 has been dropped
-    public static boolean getRestrictSignatures() {
-<span class="nc" id="L173">        String value = ConfigurationHolder.getString(&quot;ocsp.restrictsignatures&quot;);</span>
-<span class="nc bnc" id="L174" title="All 4 branches missed.">        return &quot;true&quot;.equalsIgnoreCase(value) || &quot;yes&quot;.equalsIgnoreCase(value);</span>
-    }
+  /**
+   * @return How often the standalone OCSP certificate cache should be checked
+   *     for expiring certificates. Default value i 1 hour
+   */
+  public static long getRekeyingUpdateTimeInSeconds() {
+<span class="nc" id="L184">    return Long.parseLong(</span>
+<span class="nc" id="L185">        ConfigurationHolder.getString(REKEYING_UPDATE_TIME_IN_SECONDS));</span>
+  }
 
-    /**
-     * Set this to issuer or signer depending on how you want to restrict allowed signatures for OCSP request signing.
-     * 
-     * @return one of OcspConfiguration.RESTRICTONISSUER and OcspConfiguration.RESTRICTONSIGNER
-     */
-    @Deprecated //Remove this method once upgrading VAs to EJBCA 6 has been dropped
-    public static int getRestrictSignaturesByMethod() {
-<span class="nc bnc" id="L184" title="All 2 branches missed.">        if (&quot;signer&quot;.equalsIgnoreCase(ConfigurationHolder.getString(&quot;ocsp.restrictsignaturesbymethod&quot;))) {</span>
-<span class="nc" id="L185">            return RESTRICTONSIGNER;</span>
-        }
-<span class="nc" id="L187">        return RESTRICTONISSUER;</span>
-    }
+  /**
+   * @return How long from true expiry time that a certificate should be
+   *     renewed. Default value is 1 day
+   */
+  public static long getRekeyingSafetyMarginInSeconds() {
+<span class="nc" id="L193">    return Long.parseLong(</span>
+<span class="nc" id="L194">        ConfigurationHolder.getString(REKEYING_SAFETY_MARGIN_IN_SECONDS));</span>
+  }
 
-    /**
-     *@return If ocsp.restrictsignatures is true the Servlet will look in this directory for allowed signer certificates or issuers.
-     */
-    @Deprecated //Remove this value once upgrading VAs to EJBCA 6 has been dropped
-    public static String getSignTrustDir() {
-<span class="nc" id="L195">        return ConfigurationHolder.getString(&quot;ocsp.signtrustdir&quot;);</span>
-    }
+  /**
+   * @return The interval on which new OCSP signing certificates are loaded in
+   *     milliseconds
+   */
+  public static int getSigningCertsValidTimeInMilliseconds() {
+    int timeInSeconds;
+<span class="fc" id="L203">    final int defaultTimeInSeconds = 300; // 5 minutes</span>
+    try {
+<span class="fc" id="L205">      timeInSeconds =</span>
+<span class="fc" id="L206">          Integer.parseInt(</span>
+<span class="fc" id="L207">              ConfigurationHolder.getString(SIGNING_CERTD_VALID_TIME));</span>
+<span class="nc" id="L208">    } catch (NumberFormatException e) {</span>
+<span class="nc" id="L209">      timeInSeconds = defaultTimeInSeconds;</span>
+<span class="nc" id="L210">      LOG.warn(</span>
+          SIGNING_CERTD_VALID_TIME
+              + &quot; is not a decimal integer. Using default 5 minutes&quot;);
+<span class="fc" id="L213">    }</span>
+<span class="fc" id="L214">    return timeInSeconds * (int) MS_PER_S;</span>
+  }
 
-    /**
-     *@return If set to true the certificate chain will be returned with the OCSP response.
-     */
-    public static boolean getIncludeCertChain() {
-<span class="nc" id="L202">        String value = ConfigurationHolder.getString(INCLUDE_CERT_CHAIN);</span>
-<span class="nc bnc" id="L203" title="All 4 branches missed.">        return &quot;true&quot;.equalsIgnoreCase(value) || &quot;yes&quot;.equalsIgnoreCase(value);</span>
-    }
-    
-    /**
-     *@return If set to true the signature certificate will be included the OCSP response.
-     */
-    public static boolean getIncludeSignCert() {
-<span class="nc" id="L210">        String value = ConfigurationHolder.getString(INCLUDE_SIGNING_CERT);</span>
-<span class="nc bnc" id="L211" title="All 4 branches missed.">        return &quot;true&quot;.equalsIgnoreCase(value) || &quot;yes&quot;.equalsIgnoreCase(value);</span>
-    }
+  /**
+   * @return The interval on which new OCSP signing certificates are loaded in
+   *     milliseconds
+   */
+  public static long getRequestSigningCertRevocationCacheTimeMs() {
+    long timeInSeconds;
+<span class="fc" id="L223">    final long defaultTimeInSeconds = 60 * 1000L; // 1 minute</span>
+    try {
+<span class="fc" id="L225">      timeInSeconds =</span>
+<span class="fc" id="L226">          Long.parseLong(</span>
+<span class="fc" id="L227">              ConfigurationHolder.getString(</span>
+                  REQUEST_SIGNING_CERT_REVOCATION_CACHE_TIME));
+<span class="nc" id="L229">    } catch (NumberFormatException e) {</span>
+<span class="nc" id="L230">      timeInSeconds = defaultTimeInSeconds;</span>
+<span class="nc" id="L231">      LOG.warn(</span>
+          REQUEST_SIGNING_CERT_REVOCATION_CACHE_TIME
+              + &quot; is not a decimal long. Using default &quot;
+              + defaultTimeInSeconds
+              + &quot; ms.&quot;);
+<span class="fc" id="L236">    }</span>
+<span class="fc" id="L237">    return timeInSeconds;</span>
+  }
 
-    /**
-     * If set to name the OCSP responses will use the Name ResponseId type, if set to keyhash the KeyHash type will be used.
-     * 
-     * @return one of OCSPUtil.RESPONDERIDTYPE_NAME and OCSPUtil.RESPONDERIDTYPE_KEYHASH
-     * 
-     * @deprecated no longer used, as responder ID type is instead set individually for each keybinding and CA
-     */
-    @Deprecated
-    public static int getResponderIdType() {
-<span class="nc bnc" id="L223" title="All 2 branches missed.">        if (&quot;name&quot;.equalsIgnoreCase(ConfigurationHolder.getString(RESPONDER_ID_TYPE))) {</span>
-<span class="nc" id="L224">            return RESPONDERIDTYPE_NAME;</span>
-        }
-<span class="nc" id="L226">        return RESPONDERIDTYPE_KEYHASH;</span>
-    }
+  /** @return If set to true the responder will enforce OCSP request signing */
+  public static boolean getEnforceRequestSigning() {
+<span class="nc" id="L242">    String value = ConfigurationHolder.getString(SIGNATUREREQUIRED);</span>
+<span class="nc bnc" id="L243" title="All 4 branches missed.">    return &quot;true&quot;.equalsIgnoreCase(value) || &quot;yes&quot;.equalsIgnoreCase(value);</span>
+  }
 
-    /**
-     * @return true if a certificate that does not exist in the database, but is issued by a CA the responder handles will be treated as not revoked.
-     */
-    public static boolean getNonExistingIsGood() {
-<span class="nc" id="L233">        String value = ConfigurationHolder.getString(NON_EXISTING_IS_GOOD);</span>
-<span class="nc bnc" id="L234" title="All 4 branches missed.">        return &quot;true&quot;.equalsIgnoreCase(value) || &quot;yes&quot;.equalsIgnoreCase(value);</span>
-    }
-    
-    /**
-     * @return true if a certificate that does not exist in the database, but is issued by a CA the responder handles will be treated as revoked.
-     */
-    public static boolean getNonExistingIsRevoked() {
-<span class="nc" id="L241">        String value = ConfigurationHolder.getString(NON_EXISTING_IS_REVOKED);</span>
-<span class="nc bnc" id="L242" title="All 4 branches missed.">        return &quot;true&quot;.equalsIgnoreCase(value) || &quot;yes&quot;.equalsIgnoreCase(value);</span>
-    }
-    
-    /**
-     * 
-     * @return true if a certificate that does not exist in the database, but is issued by a CA the responder handles will be responded to with an
-     * unsigned &quot;Unauthorized&quot; response. 
-     */
-    public static boolean getNonExistingIsUnauthorized() {
-<span class="nc" id="L251">        String value = ConfigurationHolder.getString(NON_EXISTING_IS_UNAUTHORIZED);</span>
-<span class="nc bnc" id="L252" title="All 4 branches missed.">        return &quot;true&quot;.equalsIgnoreCase(value) || &quot;yes&quot;.equalsIgnoreCase(value);</span>
-    }
+  /** @return If set to true the responder will restrict OCSP request signing */
+  @Deprecated // Remove this method once upgrading VAs to EJBCA 6 has been
+              // dropped
+  public static boolean getRestrictSignatures() {
+<span class="nc" id="L250">    String value = ConfigurationHolder.getString(&quot;ocsp.restrictsignatures&quot;);</span>
+<span class="nc bnc" id="L251" title="All 4 branches missed.">    return &quot;true&quot;.equalsIgnoreCase(value) || &quot;yes&quot;.equalsIgnoreCase(value);</span>
+  }
 
-    private static String getRegex(String prefix) {
-<span class="nc" id="L256">    	int i=1;</span>
-<span class="nc" id="L257">    	final StringBuffer regex = new StringBuffer();</span>
-    	while( true ) {
-<span class="nc" id="L259">    		final String key = prefix+i;</span>
-<span class="nc" id="L260">    		final String value = ConfigurationHolder.getString(key);</span>
-<span class="nc bnc" id="L261" title="All 2 branches missed.">    		if ( value==null ) {</span>
-<span class="nc" id="L262">    			break;</span>
-    		}
-<span class="nc bnc" id="L264" title="All 2 branches missed.">    		if ( i&gt;1 ) {</span>
-<span class="nc" id="L265">    			regex.append('|');</span>
-    		}
-<span class="nc" id="L267">    		regex.append('(');</span>
-<span class="nc" id="L268">    		regex.append(value);</span>
-<span class="nc" id="L269">    		regex.append(')');</span>
-<span class="nc" id="L270">    		i++;</span>
-<span class="nc" id="L271">    	}</span>
-<span class="nc bnc" id="L272" title="All 2 branches missed.">    	if ( regex.length()&lt;1 ) {</span>
-<span class="nc" id="L273">    		return null;</span>
-    	}
-<span class="nc" id="L275">    	return regex.toString();</span>
+  /**
+   * Set this to issuer or signer depending on how you want to restrict allowed
+   * signatures for OCSP request signing.
+   *
+   * @return one of OcspConfiguration.RESTRICTONISSUER and
+   *     OcspConfiguration.RESTRICTONSIGNER
+   */
+  @Deprecated // Remove this method once upgrading VAs to EJBCA 6 has been
+              // dropped
+  public static int getRestrictSignaturesByMethod() {
+<span class="nc" id="L264">    if (&quot;signer&quot;</span>
+<span class="nc bnc" id="L265" title="All 2 branches missed.">        .equalsIgnoreCase(</span>
+<span class="nc" id="L266">            ConfigurationHolder.getString(&quot;ocsp.restrictsignaturesbymethod&quot;))) {</span>
+<span class="nc" id="L267">      return RESTRICTONSIGNER;</span>
     }
+<span class="nc" id="L269">    return RESTRICTONISSUER;</span>
+  }
 
-    /**
-     * Calls from client fulfilling this regex returns good for non existing certificates
-     * even if {@link #getNonExistingIsGood()} return false.
-     * @return the regex
-     */
-    public static String getNonExistingIsGoodOverideRegex() {
-<span class="nc" id="L284">    	return getRegex(NON_EXISTING_IS_GOOD_URI);</span>
-    }
+  /**
+   * @return If ocsp.restrictsignatures is true the Servlet will look in this
+   *     directory for allowed signer certificates or issuers.
+   */
+  @Deprecated // Remove this value once upgrading VAs to EJBCA 6 has been
+              // dropped
+  public static String getSignTrustDir() {
+<span class="nc" id="L279">    return ConfigurationHolder.getString(&quot;ocsp.signtrustdir&quot;);</span>
+  }
 
-    /**
-     * Calls from client fulfilling this regex returns &quot;not existing&quot; for non existing certificates
-     * even if {@link #getNonExistingIsGood()} return true.
-     * @return the regex
-     */
-    public static String getNonExistingIsBadOverideRegex() {
-<span class="nc" id="L293">    	return getRegex(NON_EXISTING_IS_BAD_URI);</span>
-    }
-    
-    /**
-     * Calls from client fulfilling this regex returns &quot;revoked&quot; for non existing certificates
-     * even if {@link #getNonExistingIsGood()} return true.
-     * @return the regex
-     */
-    public static String getNonExistingIsRevokedOverideRegex() {
-<span class="nc" id="L302">        return getRegex(NON_EXISTING_IS_REVOKED_URI);</span>
-    }
+  /**
+   * @return If set to true the certificate chain will be returned with the OCSP
+   *     response.
+   */
+  public static boolean getIncludeCertChain() {
+<span class="nc" id="L287">    String value = ConfigurationHolder.getString(INCLUDE_CERT_CHAIN);</span>
+<span class="nc bnc" id="L288" title="All 4 branches missed.">    return &quot;true&quot;.equalsIgnoreCase(value) || &quot;yes&quot;.equalsIgnoreCase(value);</span>
+  }
 
-    /**
-     * Specifies the subject of a certificate which is used to identify the responder which will generate responses when no real CA can be found from
-     * the request. This is used to generate 'unknown' responses when a request is received for a certificate that is not signed by any CA on this
-     * server.
-     * @return the name configured in ocsp.defaultresponder, reordered to EJBCA normalized ordering.
-     * 
-     * @deprecated This value is deprecated since 6.2.4, and only remains in order to allow migration. Default responder is now set in global configuration instead. 
-     */
-    @Deprecated
-    public static String getDefaultResponderId() {
-<span class="nc" id="L315">        final String ret = ConfigurationHolder.getExpandedString(DEFAULT_RESPONDER);</span>
-<span class="nc bnc" id="L316" title="All 2 branches missed.">        if (ret != null) {</span>
-<span class="nc" id="L317">            return CertTools.stringToBCDNString(ret);</span>
-        }
-<span class="nc" id="L319">        return ret;</span>
-    }
+  /**
+   * @return If set to true the signature certificate will be included the OCSP
+   *     response.
+   */
+  public static boolean getIncludeSignCert() {
+<span class="nc" id="L296">    String value = ConfigurationHolder.getString(INCLUDE_SIGNING_CERT);</span>
+<span class="nc bnc" id="L297" title="All 4 branches missed.">    return &quot;true&quot;.equalsIgnoreCase(value) || &quot;yes&quot;.equalsIgnoreCase(value);</span>
+  }
 
-    /**
-     * Specifies OCSP extension OIDs that will result in a call to an extension class, separate multiple entries with ';'.
-     * For any entry that should be always used, preface with '*' (e.g. *2.16.578.1.16.3.2)
-     * 
-     * Deprecated: May still be required for 6.12 upgrades
-     * 
-     * @return a List&amp;lt;String&amp;gt; of extension OIDs, an empty list if none are found.
-     */
-    @Deprecated
-    public static List&lt;String&gt; getExtensionOids() {
-<span class="nc" id="L332">        String value = ConfigurationHolder.getString(&quot;ocsp.extensionoid&quot;);</span>
-<span class="nc bnc" id="L333" title="All 2 branches missed.">        if (&quot;&quot;.equals(value)) {</span>
-<span class="nc" id="L334">            return new ArrayList&lt;&gt;();</span>
-        }
-<span class="nc" id="L336">        return Arrays.asList(value.split(&quot;;&quot;));</span>
+  /**
+   * If set to name the OCSP responses will use the Name ResponseId type, if set
+   * to keyhash the KeyHash type will be used.
+   *
+   * @return one of OCSPUtil.RESPONDERIDTYPE_NAME and
+   *     OCSPUtil.RESPONDERIDTYPE_KEYHASH
+   * @deprecated no longer used, as responder ID type is instead set
+   *     individually for each keybinding and CA
+   */
+  @Deprecated
+  public static int getResponderIdType() {
+<span class="nc" id="L311">    if (&quot;name&quot;</span>
+<span class="nc bnc" id="L312" title="All 2 branches missed.">        .equalsIgnoreCase(ConfigurationHolder.getString(RESPONDER_ID_TYPE))) {</span>
+<span class="nc" id="L313">      return RESPONDERIDTYPE_NAME;</span>
     }
+<span class="nc" id="L315">    return RESPONDERIDTYPE_KEYHASH;</span>
+  }
 
-    /**
-     * Specifies classes implementing OCSP extensions matching OIDs in getExtensionOid(), separate multiple entries with ';'.
-     * 
-     * @deprecated since 6.12. May still be required for upgrades.
-     * 
-     * @return a List&amp;lt;String&amp;gt; of extension classes
-     */
-    @Deprecated
-    public static List&lt;String&gt; getExtensionClasses() {
-<span class="nc" id="L348">        String value = ConfigurationHolder.getString(&quot;ocsp.extensionclass&quot;);</span>
-<span class="nc bnc" id="L349" title="All 2 branches missed.">        if (&quot;&quot;.equals(value)) {</span>
-<span class="nc" id="L350">            return new ArrayList&lt;&gt;();</span>
-        }
-<span class="nc" id="L352">        return Arrays.asList(value.split(&quot;;&quot;));</span>
-    }
+  /**
+   * @return true if a certificate that does not exist in the database, but is
+   *     issued by a CA the responder handles will be treated as not revoked.
+   */
+  public static boolean getNonExistingIsGood() {
+<span class="nc" id="L323">    String value = ConfigurationHolder.getString(NON_EXISTING_IS_GOOD);</span>
+<span class="nc bnc" id="L324" title="All 4 branches missed.">    return &quot;true&quot;.equalsIgnoreCase(value) || &quot;yes&quot;.equalsIgnoreCase(value);</span>
+  }
 
-    /**
-     * Intended for debugging.
-     * @return OID of extension to always respond with, even if not requested.
-     */
-    public static String getAlwaysSendCustomOCSPExtension() {
-<span class="nc" id="L360">        return ConfigurationHolder.getString(&quot;ocsp.alwayssendcustomextension&quot;);</span>
-    }
+  /**
+   * @return true if a certificate that does not exist in the database, but is
+   *     issued by a CA the responder handles will be treated as revoked.
+   */
+  public static boolean getNonExistingIsRevoked() {
+<span class="nc" id="L332">    String value = ConfigurationHolder.getString(NON_EXISTING_IS_REVOKED);</span>
+<span class="nc bnc" id="L333" title="All 4 branches missed.">    return &quot;true&quot;.equalsIgnoreCase(value) || &quot;yes&quot;.equalsIgnoreCase(value);</span>
+  }
 
-    /**
-     * @return Directory containing certificates of trusted entities allowed to query for Fnrs.
-     * @deprecated since 6.12. May still be required for upgrades. CA+serial of trusted certificates are now stored in the database, in internal key bindings.
-     */
-    @Deprecated
-    public static String getUnidTrustDir() {
-<span class="nc" id="L369">        return ConfigurationHolder.getString(&quot;ocsp.unidtrustdir&quot;);</span>
-    }
+  /**
+   * @return true if a certificate that does not exist in the database, but is
+   *     issued by a CA the responder handles will be responded to with an
+   *     unsigned &quot;Unauthorized&quot; response.
+   */
+  public static boolean getNonExistingIsUnauthorized() {
+<span class="nc" id="L342">    String value = ConfigurationHolder.getString(NON_EXISTING_IS_UNAUTHORIZED);</span>
+<span class="nc bnc" id="L343" title="All 4 branches missed.">    return &quot;true&quot;.equalsIgnoreCase(value) || &quot;yes&quot;.equalsIgnoreCase(value);</span>
+  }
 
-    /**
-     *@return File containing the CA-certificate, in PEM format, that signed the trusted clients.
-     * @deprecated since 6.12. May still be required for upgrades. CA+serial of trusted certificates are now stored in the database, in internal key bindings.
-     */
-    @Deprecated
-    public static String getUnidCaCert() {
-<span class="nc" id="L378">        return ConfigurationHolder.getString(&quot;ocsp.unidcacert&quot;);</span>
+  private static String getRegex(final String prefix) {
+<span class="nc" id="L347">    int i = 1;</span>
+<span class="nc" id="L348">    final StringBuffer regex = new StringBuffer();</span>
+    while (true) {
+<span class="nc" id="L350">      final String key = prefix + i;</span>
+<span class="nc" id="L351">      final String value = ConfigurationHolder.getString(key);</span>
+<span class="nc bnc" id="L352" title="All 2 branches missed.">      if (value == null) {</span>
+<span class="nc" id="L353">        break;</span>
+      }
+<span class="nc bnc" id="L355" title="All 2 branches missed.">      if (i &gt; 1) {</span>
+<span class="nc" id="L356">        regex.append('|');</span>
+      }
+<span class="nc" id="L358">      regex.append('(');</span>
+<span class="nc" id="L359">      regex.append(value);</span>
+<span class="nc" id="L360">      regex.append(')');</span>
+<span class="nc" id="L361">      i++;</span>
+<span class="nc" id="L362">    }</span>
+<span class="nc bnc" id="L363" title="All 2 branches missed.">    if (regex.length() &lt; 1) {</span>
+<span class="nc" id="L364">      return null;</span>
     }
+<span class="nc" id="L366">    return regex.toString();</span>
+  }
 
-    /**
-     * @return true if UnidFnr is enabled in ocsp.properties
-     */
-    public static boolean isUnidEnabled() {
-<span class="nc bnc" id="L385" title="All 4 branches missed.">        if (ConfigurationHolder.getString(&quot;unidfnr.enabled&quot;) != null &amp;&amp; ConfigurationHolder.getString(&quot;unidfnr.enabled&quot;).equals(&quot;true&quot;)) {</span>
-<span class="nc" id="L386">            return true;</span>
-        }
-<span class="nc" id="L388">        return false;</span>
-    }
-    
-    /**
-     *@return When true, an audit log will be created.
-     */
-    public static boolean getAuditLog() {
-<span class="nc" id="L395">        String value = ConfigurationHolder.getString(&quot;ocsp.audit-log&quot;);</span>
-<span class="nc bnc" id="L396" title="All 4 branches missed.">        return &quot;true&quot;.equalsIgnoreCase(value) || &quot;yes&quot;.equalsIgnoreCase(value);</span>
-    }
+  /**
+   * Calls from client fulfilling this regex returns good for non existing
+   * certificates even if {@link #getNonExistingIsGood()} return false.
+   *
+   * @return the regex
+   */
+  public static String getNonExistingIsGoodOverideRegex() {
+<span class="nc" id="L376">    return getRegex(NON_EXISTING_IS_GOOD_URI);</span>
+  }
 
-    /**
-     *@return A format string for logging of dates in auditLog and accountLog.
-     */
-    public static String getLogDateFormat() {
-<span class="nc" id="L403">        return ConfigurationHolder.getString(&quot;ocsp.log-date&quot;);</span>
-    }
+  /**
+   * Calls from client fulfilling this regex returns &quot;not existing&quot; for non
+   * existing certificates even if {@link #getNonExistingIsGood()} return true.
+   *
+   * @return the regex
+   */
+  public static String getNonExistingIsBadOverideRegex() {
+<span class="nc" id="L386">    return getRegex(NON_EXISTING_IS_BAD_URI);</span>
+  }
 
-    /**
-     *@return A format string for TimeZone auditLog and accountLog.
-     */
-    public static String getLogTimeZone() {
-<span class="nc" id="L410">        return ConfigurationHolder.getString(&quot;ocsp.log-timezone&quot;);</span>
-    }
+  /**
+   * Calls from client fulfilling this regex returns &quot;revoked&quot; for non existing
+   * certificates even if {@link #getNonExistingIsGood()} return true.
+   *
+   * @return the regex
+   */
+  public static String getNonExistingIsRevokedOverideRegex() {
+<span class="nc" id="L396">    return getRegex(NON_EXISTING_IS_REVOKED_URI);</span>
+  }
 
-    /**
-     *@return Set to true if you want transactions to be aborted when logging fails.
-     */
-    public static boolean getLogSafer() {
-<span class="nc" id="L417">        String value = ConfigurationHolder.getString(&quot;ocsp.log-safer&quot;);</span>
-<span class="nc bnc" id="L418" title="All 4 branches missed.">        return &quot;true&quot;.equalsIgnoreCase(value) || &quot;yes&quot;.equalsIgnoreCase(value);</span>
+  /**
+   * Specifies the subject of a certificate which is used to identify the
+   * responder which will generate responses when no real CA can be found from
+   * the request. This is used to generate 'unknown' responses when a request is
+   * received for a certificate that is not signed by any CA on this server.
+   *
+   * @return the name configured in ocsp.defaultresponder, reordered to EJBCA
+   *     normalized ordering.
+   * @deprecated This value is deprecated since 6.2.4, and only remains in order
+   *     to allow migration. Default responder is now set in global
+   *     configuration instead.
+   */
+  @Deprecated
+  public static String getDefaultResponderId() {
+<span class="nc" id="L413">    final String ret = ConfigurationHolder.getExpandedString(DEFAULT_RESPONDER);</span>
+<span class="nc bnc" id="L414" title="All 2 branches missed.">    if (ret != null) {</span>
+<span class="nc" id="L415">      return CertTools.stringToBCDNString(ret);</span>
     }
+<span class="nc" id="L417">    return ret;</span>
+  }
 
-    /**
-     *@return A String to create a java Pattern to format the audit Log
-     */
-    public static String getAuditLogPattern() {
-<span class="nc" id="L425">        return ConfigurationHolder.getString(&quot;ocsp.audit-log-pattern&quot;);</span>
+  /**
+   * Specifies OCSP extension OIDs that will result in a call to an extension
+   * class, separate multiple entries with ';'. For any entry that should be
+   * always used, preface with '*' (e.g. *2.16.578.1.16.3.2)
+   *
+   * &lt;p&gt;Deprecated: May still be required for 6.12 upgrades
+   *
+   * @return a List&amp;lt;String&amp;gt; of extension OIDs, an empty list if none are
+   *     found.
+   */
+  @Deprecated
+  public static List&lt;String&gt; getExtensionOids() {
+<span class="nc" id="L432">    String value = ConfigurationHolder.getString(&quot;ocsp.extensionoid&quot;);</span>
+<span class="nc bnc" id="L433" title="All 2 branches missed.">    if (&quot;&quot;.equals(value)) {</span>
+<span class="nc" id="L434">      return new ArrayList&lt;&gt;();</span>
     }
+<span class="nc" id="L436">    return Arrays.asList(value.split(&quot;;&quot;));</span>
+  }
 
-    /**
-     *@return A String which combined with auditLogPattern determines how auditLog output is formatted.
-     */
-    public static String getAuditLogOrder() {
-<span class="nc" id="L432">        String value = ConfigurationHolder.getString(&quot;ocsp.audit-log-order&quot;);</span>
-<span class="nc" id="L433">        value = value.replace(&quot;\\\&quot;&quot;, &quot;\&quot;&quot;); // From EJBCA 3.9 the &quot;-char does not need to be escaped, but we want to be backward compatible</span>
-<span class="nc" id="L434">        return value;</span>
+  /**
+   * Specifies classes implementing OCSP extensions matching OIDs in
+   * getExtensionOid(), separate multiple entries with ';'.
+   *
+   * @deprecated since 6.12. May still be required for upgrades.
+   * @return a List&amp;lt;String&amp;gt; of extension classes
+   */
+  @Deprecated
+  public static List&lt;String&gt; getExtensionClasses() {
+<span class="nc" id="L448">    String value = ConfigurationHolder.getString(&quot;ocsp.extensionclass&quot;);</span>
+<span class="nc bnc" id="L449" title="All 2 branches missed.">    if (&quot;&quot;.equals(value)) {</span>
+<span class="nc" id="L450">      return new ArrayList&lt;&gt;();</span>
     }
+<span class="nc" id="L452">    return Arrays.asList(value.split(&quot;;&quot;));</span>
+  }
 
-    /**
-     *@return All available signing keys should be tested.
-     */
-    public static boolean getHealthCheckSignTest() {
-<span class="nc bnc" id="L441" title="All 2 branches missed.">        return ConfigurationHolder.getString(&quot;ocsphealthcheck.signtest&quot;).toLowerCase().indexOf(&quot;false&quot;) &lt; 0;</span>
-    }
+  /**
+   * Intended for debugging.
+   *
+   * @return OID of extension to always respond with, even if not requested.
+   */
+  public static String getAlwaysSendCustomOCSPExtension() {
+<span class="nc" id="L461">    return ConfigurationHolder.getString(&quot;ocsp.alwayssendcustomextension&quot;);</span>
+  }
 
-    /**
-     * @return true if the validity of the OCSP signing certificates should be tested by the healthcheck.
-     */
-    public static boolean getHealthCheckCertificateValidity() {
-<span class="nc bnc" id="L448" title="All 2 branches missed.">        return ConfigurationHolder.getString(&quot;ocsphealthcheck.checkSigningCertificateValidity&quot;).toLowerCase().indexOf(&quot;false&quot;) &lt; 0;</span>
-    }
+  /**
+   * @return Directory containing certificates of trusted entities allowed to
+   *     query for Fnrs.
+   * @deprecated since 6.12. May still be required for upgrades. CA+serial of
+   *     trusted certificates are now stored in the database, in internal key
+   *     bindings.
+   */
+  @Deprecated
+  public static String getUnidTrustDir() {
+<span class="nc" id="L473">    return ConfigurationHolder.getString(&quot;ocsp.unidtrustdir&quot;);</span>
+  }
 
-    /**
-     *@return When true, a transaction log will be created.
-     */
-    public static boolean getTransactionLog() {
-<span class="nc" id="L455">        String value = ConfigurationHolder.getString(&quot;ocsp.trx-log&quot;);</span>
-<span class="nc bnc" id="L456" title="All 4 branches missed.">        return &quot;true&quot;.equalsIgnoreCase(value) || &quot;yes&quot;.equalsIgnoreCase(value);</span>
-    }
+  /**
+   * @return File containing the CA-certificate, in PEM format, that signed the
+   *     trusted clients.
+   * @deprecated since 6.12. May still be required for upgrades. CA+serial of
+   *     trusted certificates are now stored in the database, in internal key
+   *     bindings.
+   */
+  @Deprecated
+  public static String getUnidCaCert() {
+<span class="nc" id="L485">    return ConfigurationHolder.getString(&quot;ocsp.unidcacert&quot;);</span>
+  }
 
-    /**
-     *@return A String to create a java Pattern to format the transaction Log.
-     */
-    public static String getTransactionLogPattern() {
-<span class="nc" id="L463">        return ConfigurationHolder.getString(&quot;ocsp.trx-log-pattern&quot;);</span>
+  /** @return true if UnidFnr is enabled in ocsp.properties */
+  public static boolean isUnidEnabled() {
+<span class="nc bnc" id="L490" title="All 2 branches missed.">    if (ConfigurationHolder.getString(&quot;unidfnr.enabled&quot;) != null</span>
+<span class="nc bnc" id="L491" title="All 2 branches missed.">        &amp;&amp; ConfigurationHolder.getString(&quot;unidfnr.enabled&quot;).equals(&quot;true&quot;)) {</span>
+<span class="nc" id="L492">      return true;</span>
     }
+<span class="nc" id="L494">    return false;</span>
+  }
 
-    /**
-     *@return A String which combined with transactionLogPattern determines how transaction Log output is formatted.
-     */
-    public static String getTransactionLogOrder() {
-<span class="nc" id="L470">        String value = ConfigurationHolder.getString(&quot;ocsp.trx-log-order&quot;);</span>
-<span class="nc" id="L471">        value = value.replace(&quot;\\\&quot;&quot;, &quot;\&quot;&quot;); // From EJBCA 3.9 the &quot;-char does not need to be escaped, but we want to be backward compatible</span>
-<span class="nc" id="L472">        return value;</span>
-    }
+  /** @return When true, an audit log will be created. */
+  public static boolean getAuditLog() {
+<span class="nc" id="L499">    String value = ConfigurationHolder.getString(&quot;ocsp.audit-log&quot;);</span>
+<span class="nc bnc" id="L500" title="All 4 branches missed.">    return &quot;true&quot;.equalsIgnoreCase(value) || &quot;yes&quot;.equalsIgnoreCase(value);</span>
+  }
 
-    
-    /**
-     *@return The default number of milliseconds a response is valid, or -1 to disable. See RFC5019.
-     */
-    public static long getExpiredArchiveCutoff() {
-<span class="nc" id="L480">        Configuration config = ConfigurationHolder.instance();</span>
-        
-<span class="nc bnc" id="L482" title="All 2 branches missed.">        if(StringUtils.equals(config.getString(EXPIREDCERT_RETENTIONPERIOD), &quot;-1&quot;)) {</span>
-<span class="nc" id="L483">            return -1;</span>
-        }
-        
-<span class="nc" id="L486">        long value = 31536000;</span>
-        try {
-<span class="nc" id="L488">            value = config.getLong(EXPIREDCERT_RETENTIONPERIOD, value) * 1000;</span>
-<span class="nc" id="L489">        } catch (ConversionException e) {</span>
-<span class="nc" id="L490">            log.warn(&quot;\&quot;ocsp.expiredcert.retentionperiod\&quot; is not a decimal integer. Using default value: &quot; + value);</span>
-<span class="nc" id="L491">        }</span>
-        
-        
-<span class="nc" id="L494">        return value;</span>
-    }
-    
-    
-    /**
-     *@param certProfileId profile ID
-     * @return The default number of milliseconds a response is valid, or 0 to disable. See RFC5019.
-     */
-    public static long getUntilNextUpdate(int certProfileId) {
-<span class="fc" id="L503">        long value = 0;</span>
-<span class="fc" id="L504">        Configuration config = ConfigurationHolder.instance();</span>
-<span class="fc" id="L505">        String key = &quot;ocsp.&quot; + certProfileId + &quot;.untilNextUpdate&quot;;</span>
-<span class="fc bfc" id="L506" title="All 4 branches covered.">        if ((certProfileId == CertificateProfileConstants.CERTPROFILE_NO_PROFILE) || (!config.containsKey(key))) {</span>
-<span class="fc" id="L507">            key = UNTIL_NEXT_UPDATE;</span>
-        }
-        try {
-<span class="fc" id="L510">            value = (config.getLong(key, value) * 1000);</span>
-<span class="nc" id="L511">        } catch (ConversionException e) {</span>
-<span class="nc" id="L512">            log.warn(&quot;\&quot;ocsp.untilNextUpdate\&quot; is not a decimal integer. Using default value: &quot; + value);</span>
-<span class="fc" id="L513">        }</span>
-<span class="fc" id="L514">        return value;</span>
-    }
-    
-    /** @param certificateProfileId Profile ID
-     * @return true if Until Next Update is explicitly configured for the requested certificate profile */
-    public static boolean isUntilNextUpdateConfigured(final int certificateProfileId) {
-<span class="nc bnc" id="L520" title="All 2 branches missed.">        if (certificateProfileId==CertificateProfileConstants.CERTPROFILE_NO_PROFILE){</span>
-<span class="nc" id="L521">            return ConfigurationHolder.instance().containsKey(UNTIL_NEXT_UPDATE);</span>
-        } else {
-<span class="nc" id="L523">            return ConfigurationHolder.instance().containsKey(&quot;ocsp.&quot; + certificateProfileId + &quot;.untilNextUpdate&quot;);</span>
-        }
-    }
-    
-    /**
-     * @param certProfileId profile ID
-     * @return The default number of milliseconds a response of a revoked certificate is valid, or 0 to disable. See RFC5019.
-     */
-    public static long getRevokedUntilNextUpdate(int certProfileId) {
-<span class="nc" id="L532">        long value = 0;</span>
-<span class="nc" id="L533">        Configuration config = ConfigurationHolder.instance();</span>
-<span class="nc" id="L534">        String key = &quot;ocsp.&quot; + certProfileId + &quot;.revoked.untilNextUpdate&quot;;</span>
-<span class="nc bnc" id="L535" title="All 4 branches missed.">        if ((certProfileId == CertificateProfileConstants.CERTPROFILE_NO_PROFILE) || (!config.containsKey(key))) {</span>
-<span class="nc" id="L536">            key = REVOKED_UNTIL_NEXT_UPDATE;</span>
-        }
-        try {
-<span class="nc" id="L539">            value = (config.getLong(key, value) * 1000);</span>
-<span class="nc" id="L540">        } catch (ConversionException e) {</span>
-<span class="nc" id="L541">            log.warn(&quot;\&quot;ocsp.revoked.untilNextUpdate\&quot; is not a decimal integer. Using default value: &quot; + value);</span>
-<span class="nc" id="L542">        }</span>
-<span class="nc" id="L543">        return value;</span>
-    }
-    
-    /** @param certificateProfileId Profile ID
-     * @return true if Until Next Update is explicitly configured for the requested certificate profile in case of a revoked certificate */
-    public static boolean isRevokedUntilNextUpdateConfigured(final int certificateProfileId) {
-<span class="nc bnc" id="L549" title="All 2 branches missed.">        if (certificateProfileId==CertificateProfileConstants.CERTPROFILE_NO_PROFILE){</span>
-<span class="nc" id="L550">            return ConfigurationHolder.instance().containsKey(REVOKED_UNTIL_NEXT_UPDATE);</span>
-        } else {
-<span class="nc" id="L552">            return ConfigurationHolder.instance().containsKey(&quot;ocsp.&quot; + certificateProfileId + &quot;.revoked.untilNextUpdate&quot;);</span>
-        }
-    }
+  /**
+   * @return A format string for logging of dates in auditLog and accountLog.
+   */
+  public static String getLogDateFormat() {
+<span class="nc" id="L507">    return ConfigurationHolder.getString(&quot;ocsp.log-date&quot;);</span>
+  }
 
-    /** 
-     *@param certProfileId profile ID
-     * @return The default number of milliseconds a HTTP-response should be cached. See RFC5019.
-     */
-    public static long getMaxAge(int certProfileId) {
-<span class="fc" id="L561">        long value = 30;</span>
-<span class="fc" id="L562">        Configuration config = ConfigurationHolder.instance();</span>
-<span class="fc" id="L563">        String key = &quot;ocsp.&quot; + certProfileId + &quot;.maxAge&quot;;</span>
-<span class="fc bfc" id="L564" title="All 4 branches covered.">        if ((certProfileId == CertificateProfileConstants.CERTPROFILE_NO_PROFILE) || (!config.containsKey(key))) {</span>
-<span class="fc" id="L565">            key = MAX_AGE;</span>
-        }
-        try {
-<span class="fc" id="L568">            value = (config.getLong(key, value) * 1000);</span>
-<span class="nc" id="L569">        } catch (ConversionException e) {</span>
-            // Convert default value to milliseconds
-<span class="nc" id="L571">            value = value * 1000;</span>
-<span class="nc" id="L572">            log.warn(&quot;\&quot;ocsp.maxAge\&quot; is not a decimal integer. Using default value: &quot; + value);</span>
-<span class="fc" id="L573">        }</span>
-<span class="fc" id="L574">        return value;</span>
-    }
+  /** @return A format string for TimeZone auditLog and accountLog. */
+  public static String getLogTimeZone() {
+<span class="nc" id="L512">    return ConfigurationHolder.getString(&quot;ocsp.log-timezone&quot;);</span>
+  }
 
-    /** @param certificateProfileId Profile ID
-     * @return true if Until Next Update is explicitly configured for the requested certificate profile */
-    public static boolean isMaxAgeConfigured(final int certificateProfileId) {
-<span class="nc bnc" id="L580" title="All 2 branches missed.">        if (certificateProfileId==CertificateProfileConstants.CERTPROFILE_NO_PROFILE){</span>
-<span class="nc" id="L581">            return ConfigurationHolder.instance().containsKey(MAX_AGE);</span>
-        } else {
-<span class="nc" id="L583">            return ConfigurationHolder.instance().containsKey(&quot;ocsp.&quot; + certificateProfileId + &quot;.maxAge&quot;);</span>
-        }
-    }
-    
-    /**
-     * @param certProfileId Profile ID
-     * @return The default number of milliseconds a HTTP-response for a revoked certificater should be cached. See RFC5019.
-     */
-    public static long getRevokedMaxAge(int certProfileId) {
-<span class="nc" id="L592">        long value = 30;</span>
-<span class="nc" id="L593">        Configuration config = ConfigurationHolder.instance();</span>
-<span class="nc" id="L594">        String key = &quot;ocsp.&quot; + certProfileId + &quot;.revoked.maxAge&quot;;</span>
-<span class="nc bnc" id="L595" title="All 4 branches missed.">        if ((certProfileId == CertificateProfileConstants.CERTPROFILE_NO_PROFILE) || (!config.containsKey(key))) {</span>
-<span class="nc" id="L596">            key = REVOKED_MAX_AGE;</span>
-        }
-        try {
-<span class="nc" id="L599">            value = (config.getLong(key, value) * 1000);</span>
-<span class="nc" id="L600">        } catch (ConversionException e) {</span>
-            // Convert default value to milliseconds
-<span class="nc" id="L602">            value = value * 1000;</span>
-<span class="nc" id="L603">            log.warn(&quot;\&quot;ocsp.revoked.maxAge\&quot; is not a decimal integer. Using default value: &quot; + value);</span>
-<span class="nc" id="L604">        }</span>
-<span class="nc" id="L605">        return value;</span>
+  /**
+   * @return Set to true if you want transactions to be aborted when logging
+   *     fails.
+   */
+  public static boolean getLogSafer() {
+<span class="nc" id="L520">    String value = ConfigurationHolder.getString(&quot;ocsp.log-safer&quot;);</span>
+<span class="nc bnc" id="L521" title="All 4 branches missed.">    return &quot;true&quot;.equalsIgnoreCase(value) || &quot;yes&quot;.equalsIgnoreCase(value);</span>
+  }
+
+  /** @return A String to create a java Pattern to format the audit Log */
+  public static String getAuditLogPattern() {
+<span class="nc" id="L526">    return ConfigurationHolder.getString(&quot;ocsp.audit-log-pattern&quot;);</span>
+  }
+
+  /**
+   * @return A String which combined with auditLogPattern determines how
+   *     auditLog output is formatted.
+   */
+  public static String getAuditLogOrder() {
+<span class="nc" id="L534">    String value = ConfigurationHolder.getString(&quot;ocsp.audit-log-order&quot;);</span>
+<span class="nc" id="L535">    value =</span>
+<span class="nc" id="L536">        value.replace(</span>
+            &quot;\\\&quot;&quot;,
+            &quot;\&quot;&quot;); // From EJBCA 3.9 the &quot;-char does not need to be escaped, but
+                   // we want to be backward compatible
+<span class="nc" id="L540">    return value;</span>
+  }
+
+  /** @return All available signing keys should be tested. */
+  public static boolean getHealthCheckSignTest() {
+<span class="nc" id="L545">    return ConfigurationHolder.getString(&quot;ocsphealthcheck.signtest&quot;)</span>
+<span class="nc" id="L546">            .toLowerCase()</span>
+<span class="nc bnc" id="L547" title="All 2 branches missed.">            .indexOf(&quot;false&quot;)</span>
+        &lt; 0;
+  }
+
+  /**
+   * @return true if the validity of the OCSP signing certificates should be
+   *     tested by the healthcheck.
+   */
+  public static boolean getHealthCheckCertificateValidity() {
+<span class="nc" id="L556">    return ConfigurationHolder.getString(</span>
+                &quot;ocsphealthcheck.checkSigningCertificateValidity&quot;)
+<span class="nc" id="L558">            .toLowerCase()</span>
+<span class="nc bnc" id="L559" title="All 2 branches missed.">            .indexOf(&quot;false&quot;)</span>
+        &lt; 0;
+  }
+
+  /** @return When true, a transaction log will be created. */
+  public static boolean getTransactionLog() {
+<span class="nc" id="L565">    String value = ConfigurationHolder.getString(&quot;ocsp.trx-log&quot;);</span>
+<span class="nc bnc" id="L566" title="All 4 branches missed.">    return &quot;true&quot;.equalsIgnoreCase(value) || &quot;yes&quot;.equalsIgnoreCase(value);</span>
+  }
+
+  /**
+   * @return A String to create a java Pattern to format the transaction Log.
+   */
+  public static String getTransactionLogPattern() {
+<span class="nc" id="L573">    return ConfigurationHolder.getString(&quot;ocsp.trx-log-pattern&quot;);</span>
+  }
+
+  /**
+   * @return A String which combined with transactionLogPattern determines how
+   *     transaction Log output is formatted.
+   */
+  public static String getTransactionLogOrder() {
+<span class="nc" id="L581">    String value = ConfigurationHolder.getString(&quot;ocsp.trx-log-order&quot;);</span>
+<span class="nc" id="L582">    value =</span>
+<span class="nc" id="L583">        value.replace(</span>
+            &quot;\\\&quot;&quot;,
+            &quot;\&quot;&quot;); // From EJBCA 3.9 the &quot;-char does not need to be escaped, but
+                   // we want to be backward compatible
+<span class="nc" id="L587">    return value;</span>
+  }
+
+  /**
+   * @return The default number of milliseconds a response is valid, or -1 to
+   *     disable. See RFC5019.
+   */
+  public static long getExpiredArchiveCutoff() {
+<span class="nc" id="L595">    Configuration config = ConfigurationHolder.instance();</span>
+
+<span class="nc bnc" id="L597" title="All 2 branches missed.">    if (StringUtils.equals(</span>
+<span class="nc" id="L598">        config.getString(EXPIREDCERT_RETENTIONPERIOD), &quot;-1&quot;)) {</span>
+<span class="nc" id="L599">      return -1;</span>
     }
 
-    /** @param certificateProfileId Profile ID
-     * @return true if Until Next Update is explicitly configured for the requested certificate profile in case of a revoked certificate*/
-    public static boolean isRevokedMaxAgeConfigured(final int certificateProfileId) {
-<span class="nc bnc" id="L611" title="All 2 branches missed.">        if (certificateProfileId==CertificateProfileConstants.CERTPROFILE_NO_PROFILE){</span>
-<span class="nc" id="L612">            return ConfigurationHolder.instance().containsKey(REVOKED_MAX_AGE);</span>
-        } else {
-<span class="nc" id="L614">            return ConfigurationHolder.instance().containsKey(&quot;ocsp.&quot; + certificateProfileId + &quot;.revoked.maxAge&quot;);</span>
-        }
+<span class="nc" id="L602">    long value = DEFAULT_RETENTION;</span>
+    try {
+<span class="nc" id="L604">      value = config.getLong(EXPIREDCERT_RETENTIONPERIOD, value) * MS_PER_S;</span>
+<span class="nc" id="L605">    } catch (ConversionException e) {</span>
+<span class="nc" id="L606">      LOG.warn(</span>
+          &quot;\&quot;ocsp.expiredcert.retentionperiod\&quot; is not a decimal integer.&quot;
+              + &quot; Using default value: &quot;
+              + value);
+<span class="nc" id="L610">    }</span>
+
+<span class="nc" id="L612">    return value;</span>
+  }
+
+  /** 1 year in seconds. */
+  private static final long DEFAULT_RETENTION = 365L * 24 * 3600;
+
+  /**
+   * @param certProfileId profile ID
+   * @return The default number of milliseconds a response is valid, or 0 to
+   *     disable. See RFC5019.
+   */
+  public static long getUntilNextUpdate(final int certProfileId) {
+<span class="fc" id="L624">    long value = 0;</span>
+<span class="fc" id="L625">    Configuration config = ConfigurationHolder.instance();</span>
+<span class="fc" id="L626">    String key = &quot;ocsp.&quot; + certProfileId + &quot;.untilNextUpdate&quot;;</span>
+<span class="fc bfc" id="L627" title="All 2 branches covered.">    if ((certProfileId == CertificateProfileConstants.CERTPROFILE_NO_PROFILE)</span>
+<span class="fc bfc" id="L628" title="All 2 branches covered.">        || (!config.containsKey(key))) {</span>
+<span class="fc" id="L629">      key = UNTIL_NEXT_UPDATE;</span>
     }
+    try {
+<span class="fc" id="L632">      value = (config.getLong(key, value) * MS_PER_S);</span>
+<span class="nc" id="L633">    } catch (ConversionException e) {</span>
+<span class="nc" id="L634">      LOG.warn(</span>
+          &quot;\&quot;ocsp.untilNextUpdate\&quot; is not a decimal integer. Using default&quot;
+              + &quot; value: &quot;
+              + value);
+<span class="fc" id="L638">    }</span>
+<span class="fc" id="L639">    return value;</span>
+  }
 
-
-    // Values for stand-alone OCSP
-
-    /**
-     * @return Directory name of the soft keystores. The signing keys will be fetched from all files in this directory. Valid formats of the files are JKS and
-     * PKCS12 (p12).&quot;
-     */
-    @Deprecated //Remove this method once upgrading VAs to EJBCA 6 has been dropped
-    public static String getSoftKeyDirectoryName() {
-<span class="nc" id="L627">        return ConfigurationHolder.getString(&quot;ocsp.keys.dir&quot;);</span>
+  /**
+   * @param certificateProfileId Profile ID
+   * @return true if Until Next Update is explicitly configured for the
+   *     requested certificate profile
+   */
+  public static boolean isUntilNextUpdateConfigured(
+      final int certificateProfileId) {
+<span class="nc bnc" id="L649" title="All 2 branches missed.">    if (certificateProfileId</span>
+        == CertificateProfileConstants.CERTPROFILE_NO_PROFILE) {
+<span class="nc" id="L651">      return ConfigurationHolder.instance().containsKey(UNTIL_NEXT_UPDATE);</span>
+    } else {
+<span class="nc" id="L653">      return ConfigurationHolder.instance()</span>
+<span class="nc" id="L654">          .containsKey(&quot;ocsp.&quot; + certificateProfileId + &quot;.untilNextUpdate&quot;);</span>
     }
+  }
 
-    /**
-     * The password for the all the soft keys of the OCSP responder.
-     * 
-     * @return {@link #getStorePassword()} if property isn't set.
-     */
-    @Deprecated //Remove this method once upgrading VAs to EJBCA 6 has been dropped
-    public static String getKeyPassword() {
-<span class="nc" id="L637">        final String value = ConfigurationHolder.getString(&quot;ocsp.keys.keyPassword&quot;);</span>
-<span class="nc bnc" id="L638" title="All 2 branches missed.">        if (value != null) {</span>
-<span class="nc" id="L639">            return value;</span>
-        }
-<span class="nc" id="L641">        return getStorePassword();</span>
+  /**
+   * @param certProfileId profile ID
+   * @return The default number of milliseconds a response of a revoked
+   *     certificate is valid, or 0 to disable. See RFC5019.
+   */
+  public static long getRevokedUntilNextUpdate(final int certProfileId) {
+<span class="nc" id="L664">    long value = 0;</span>
+<span class="nc" id="L665">    Configuration config = ConfigurationHolder.instance();</span>
+<span class="nc" id="L666">    String key = &quot;ocsp.&quot; + certProfileId + &quot;.revoked.untilNextUpdate&quot;;</span>
+<span class="nc bnc" id="L667" title="All 2 branches missed.">    if ((certProfileId == CertificateProfileConstants.CERTPROFILE_NO_PROFILE)</span>
+<span class="nc bnc" id="L668" title="All 2 branches missed.">        || (!config.containsKey(key))) {</span>
+<span class="nc" id="L669">      key = REVOKED_UNTIL_NEXT_UPDATE;</span>
     }
+    try {
+<span class="nc" id="L672">      value = (config.getLong(key, value) * MS_PER_S);</span>
+<span class="nc" id="L673">    } catch (ConversionException e) {</span>
+<span class="nc" id="L674">      LOG.warn(</span>
+          &quot;\&quot;ocsp.revoked.untilNextUpdate\&quot; is not a decimal integer. Using&quot;
+              + &quot; default value: &quot;
+              + value);
+<span class="nc" id="L678">    }</span>
+<span class="nc" id="L679">    return value;</span>
+  }
 
-    /**
-     * The password to all soft keystores.
-     * 
-     * @return the value of getKeyPassword() if property isn't set.
-     */
-    @Deprecated //Remove this method once upgrading VAs to EJBCA 6 has been dropped
-    public static String getStorePassword() {
-<span class="nc" id="L651">        return ConfigurationHolder.getString(&quot;ocsp.keys.storePassword&quot;);</span>
+  /**
+   * @param certificateProfileId Profile ID
+   * @return true if Until Next Update is explicitly configured for the
+   *     requested certificate profile in case of a revoked certificate
+   */
+  public static boolean isRevokedUntilNextUpdateConfigured(
+      final int certificateProfileId) {
+<span class="nc bnc" id="L689" title="All 2 branches missed.">    if (certificateProfileId</span>
+        == CertificateProfileConstants.CERTPROFILE_NO_PROFILE) {
+<span class="nc" id="L691">      return ConfigurationHolder.instance()</span>
+<span class="nc" id="L692">          .containsKey(REVOKED_UNTIL_NEXT_UPDATE);</span>
+    } else {
+<span class="nc" id="L694">      return ConfigurationHolder.instance()</span>
+<span class="nc" id="L695">          .containsKey(</span>
+              &quot;ocsp.&quot; + certificateProfileId + &quot;.revoked.untilNextUpdate&quot;);
     }
+  }
 
-    /**
-     * @return The password for all keys stored on card.
-     */
-    public static String getCardPassword() {
-<span class="nc" id="L658">        return ConfigurationHolder.getString(CARD_PASSWORD);</span>
+  /**
+   * @param certProfileId profile ID
+   * @return The default number of milliseconds a HTTP-response should be
+   *     cached. See RFC5019.
+   */
+  public static long getMaxAge(final int certProfileId) {
+<span class="fc" id="L706">    long value = HTTP_TIMEOUT;</span>
+<span class="fc" id="L707">    Configuration config = ConfigurationHolder.instance();</span>
+<span class="fc" id="L708">    String key = &quot;ocsp.&quot; + certProfileId + &quot;.maxAge&quot;;</span>
+<span class="fc bfc" id="L709" title="All 2 branches covered.">    if ((certProfileId == CertificateProfileConstants.CERTPROFILE_NO_PROFILE)</span>
+<span class="fc bfc" id="L710" title="All 2 branches covered.">        || (!config.containsKey(key))) {</span>
+<span class="fc" id="L711">      key = MAX_AGE;</span>
     }
+    try {
+<span class="fc" id="L714">      value = (config.getLong(key, value) * MS_PER_S);</span>
+<span class="nc" id="L715">    } catch (ConversionException e) {</span>
+      // Convert default value to milliseconds
+<span class="nc" id="L717">      value = value * MS_PER_S;</span>
+<span class="nc" id="L718">      LOG.warn(</span>
+          &quot;\&quot;ocsp.maxAge\&quot; is not a decimal integer. Using default value: &quot;
+              + value);
+<span class="fc" id="L721">    }</span>
+<span class="fc" id="L722">    return value;</span>
+  }
 
-    /**
-     * @return The class that implements card signing of the OCSP response.
-     */
-    public static String getHardTokenClassName() {
-<span class="nc" id="L665">        return ConfigurationHolder.getString(&quot;ocsp.hardToken.className&quot;);</span>
+  /**
+   * @param certificateProfileId Profile ID
+   * @return true if Until Next Update is explicitly configured for the
+   *     requested certificate profile
+   */
+  public static boolean isMaxAgeConfigured(final int certificateProfileId) {
+<span class="nc bnc" id="L731" title="All 2 branches missed.">    if (certificateProfileId</span>
+        == CertificateProfileConstants.CERTPROFILE_NO_PROFILE) {
+<span class="nc" id="L733">      return ConfigurationHolder.instance().containsKey(MAX_AGE);</span>
+    } else {
+<span class="nc" id="L735">      return ConfigurationHolder.instance()</span>
+<span class="nc" id="L736">          .containsKey(&quot;ocsp.&quot; + certificateProfileId + &quot;.maxAge&quot;);</span>
     }
+  }
 
-    /**
-     * @return Sun P11 configuration file name.
-     */
-    @Deprecated //Remove this method once upgrading VAs to EJBCA 6 has been dropped
-    public static String getSunP11ConfigurationFile() {
-<span class="nc" id="L673">        return ConfigurationHolder.getString(&quot;ocsp.p11.sunConfigurationFile&quot;);</span>
+  /**
+   * @param certProfileId Profile ID
+   * @return The default number of milliseconds a HTTP-response for a revoked
+   *     certificater should be cached. See RFC5019.
+   */
+  public static long getRevokedMaxAge(final int certProfileId) {
+<span class="nc" id="L746">    long value = HTTP_TIMEOUT;</span>
+<span class="nc" id="L747">    Configuration config = ConfigurationHolder.instance();</span>
+<span class="nc" id="L748">    String key = &quot;ocsp.&quot; + certProfileId + &quot;.revoked.maxAge&quot;;</span>
+<span class="nc bnc" id="L749" title="All 2 branches missed.">    if ((certProfileId == CertificateProfileConstants.CERTPROFILE_NO_PROFILE)</span>
+<span class="nc bnc" id="L750" title="All 2 branches missed.">        || (!config.containsKey(key))) {</span>
+<span class="nc" id="L751">      key = REVOKED_MAX_AGE;</span>
     }
+    try {
+<span class="nc" id="L754">      value = (config.getLong(key, value) * MS_PER_S);</span>
+<span class="nc" id="L755">    } catch (ConversionException e) {</span>
+      // Convert default value to milliseconds
+<span class="nc" id="L757">      value = value * MS_PER_S;</span>
+<span class="nc" id="L758">      LOG.warn(</span>
+          &quot;\&quot;ocsp.revoked.maxAge\&quot; is not a decimal integer. Using default&quot;
+              + &quot; value: &quot;
+              + value);
+<span class="nc" id="L762">    }</span>
+<span class="nc" id="L763">    return value;</span>
+  }
 
-    /**
-     * Get set of host IPs that are allowed to trigger rekeying.
-     * @return the array
-     */
-    public static Set&lt;String&gt; getRekeyingTriggingHosts() {
-<span class="nc" id="L681">        final String sHosts = ConfigurationHolder.getString(REKEYING_TRIGGERING_HOSTS);</span>
-<span class="nc bnc" id="L682" title="All 2 branches missed.">        if (sHosts == null) {</span>
-<span class="nc" id="L683">            return new HashSet&lt;&gt;();</span>
-        } else {
-<span class="nc" id="L685">            return new HashSet&lt;&gt;(Arrays.asList(StringUtils.split(sHosts.trim(), ';')));</span>
-        }
+  /** 30s. */
+  private static final int HTTP_TIMEOUT = 30;
+
+  /**
+   * @param certificateProfileId Profile ID
+   * @return true if Until Next Update is explicitly configured for the
+   *     requested certificate profile in case of a revoked certificate
+   */
+  public static boolean isRevokedMaxAgeConfigured(
+      final int certificateProfileId) {
+<span class="nc bnc" id="L776" title="All 2 branches missed.">    if (certificateProfileId</span>
+        == CertificateProfileConstants.CERTPROFILE_NO_PROFILE) {
+<span class="nc" id="L778">      return ConfigurationHolder.instance().containsKey(REVOKED_MAX_AGE);</span>
+    } else {
+<span class="nc" id="L780">      return ConfigurationHolder.instance()</span>
+<span class="nc" id="L781">          .containsKey(&quot;ocsp.&quot; + certificateProfileId + &quot;.revoked.maxAge&quot;);</span>
     }
-    /**
-     * Get password needed for triggering rekey. Null means that it is not possible to trigger rekey.
-     * @return the password
-     */
-    public static String getRekeyingTriggingPassword() {
-<span class="nc" id="L693">        return ConfigurationHolder.getString(REKEYING_TRIGGERING_PASSWORD);</span>
+  }
+
+  // Values for stand-alone OCSP
+
+  /**
+   * @return Directory name of the soft keystores. The signing keys will be
+   *     fetched from all files in this directory. Valid formats of the files
+   *     are JKS and PKCS12 (p12).&quot;
+   */
+  @Deprecated // Remove this method once upgrading VAs to EJBCA 6 has been
+              // dropped
+  public static String getSoftKeyDirectoryName() {
+<span class="nc" id="L795">    return ConfigurationHolder.getString(&quot;ocsp.keys.dir&quot;);</span>
+  }
+
+  /**
+   * The password for the all the soft keys of the OCSP responder.
+   *
+   * @return {@link #getStorePassword()} if property isn't set.
+   */
+  @Deprecated // Remove this method once upgrading VAs to EJBCA 6 has been
+              // dropped
+  public static String getKeyPassword() {
+<span class="nc" id="L806">    final String value = ConfigurationHolder.getString(&quot;ocsp.keys.keyPassword&quot;);</span>
+<span class="nc bnc" id="L807" title="All 2 branches missed.">    if (value != null) {</span>
+<span class="nc" id="L808">      return value;</span>
     }
-   
+<span class="nc" id="L810">    return getStorePassword();</span>
+  }
 
-    /**
-     * @return EJBCA web service URL
-     */
-    public static String getEjbcawsracliUrl() {
-<span class="nc" id="L701">        return ConfigurationHolder.getString(REKEYING_WSURL);</span>
+  /**
+   * The password to all soft keystores.
+   *
+   * @return the value of getKeyPassword() if property isn't set.
+   */
+  @Deprecated // Remove this method once upgrading VAs to EJBCA 6 has been
+              // dropped
+  public static String getStorePassword() {
+<span class="nc" id="L821">    return ConfigurationHolder.getString(&quot;ocsp.keys.storePassword&quot;);</span>
+  }
+
+  /** @return The password for all keys stored on card. */
+  public static String getCardPassword() {
+<span class="nc" id="L826">    return ConfigurationHolder.getString(CARD_PASSWORD);</span>
+  }
+
+  /** @return The class that implements card signing of the OCSP response. */
+  public static String getHardTokenClassName() {
+<span class="nc" id="L831">    return ConfigurationHolder.getString(&quot;ocsp.hardToken.className&quot;);</span>
+  }
+
+  /** @return Sun P11 configuration file name. */
+  @Deprecated // Remove this method once upgrading VAs to EJBCA 6 has been
+              // dropped
+  public static String getSunP11ConfigurationFile() {
+<span class="nc" id="L838">    return ConfigurationHolder.getString(&quot;ocsp.p11.sunConfigurationFile&quot;);</span>
+  }
+
+  /**
+   * Get set of host IPs that are allowed to trigger rekeying.
+   *
+   * @return the array
+   */
+  public static Set&lt;String&gt; getRekeyingTriggingHosts() {
+<span class="nc" id="L847">    final String sHosts =</span>
+<span class="nc" id="L848">        ConfigurationHolder.getString(REKEYING_TRIGGERING_HOSTS);</span>
+<span class="nc bnc" id="L849" title="All 2 branches missed.">    if (sHosts == null) {</span>
+<span class="nc" id="L850">      return new HashSet&lt;&gt;();</span>
+    } else {
+<span class="nc" id="L852">      return new HashSet&lt;&gt;(</span>
+<span class="nc" id="L853">          Arrays.asList(StringUtils.split(sHosts.trim(), ';')));</span>
     }
+  }
+  /**
+   * Get password needed for triggering rekey. Null means that it is not
+   * possible to trigger rekey.
+   *
+   * @return the password
+   */
+  public static String getRekeyingTriggingPassword() {
+<span class="nc" id="L863">    return ConfigurationHolder.getString(REKEYING_TRIGGERING_PASSWORD);</span>
+  }
 
-    /**
-     * P11 shared library path name.
-     * 
-     * @return The value;
-     */
-    @Deprecated //Remove this method once upgrading VAs to EJBCA 6 has been dropped
-    public static String getP11SharedLibrary() {
-<span class="nc" id="L711">        return ConfigurationHolder.getString(&quot;ocsp.p11.sharedLibrary&quot;);</span>
+  /** @return EJBCA web service URL */
+  public static String getEjbcawsracliUrl() {
+<span class="nc" id="L868">    return ConfigurationHolder.getString(REKEYING_WSURL);</span>
+  }
+
+  /**
+   * P11 shared library path name.
+   *
+   * @return The value;
+   */
+  @Deprecated // Remove this method once upgrading VAs to EJBCA 6 has been
+              // dropped
+  public static String getP11SharedLibrary() {
+<span class="nc" id="L879">    return ConfigurationHolder.getString(&quot;ocsp.p11.sharedLibrary&quot;);</span>
+  }
+
+  /**
+   * P11 password.
+   *
+   * @return The value
+   */
+  @Deprecated // Remove this method once upgrading VAs to EJBCA 6 has been
+              // dropped
+  public static String getP11Password() {
+<span class="nc" id="L890">    return ConfigurationHolder.getString(&quot;ocsp.p11.p11password&quot;);</span>
+  }
+
+  /**
+   * P11 slot number.
+   *
+   * @return The value.
+   */
+  @Deprecated // Remove this method once upgrading VAs to EJBCA 6 has been
+              // dropped
+  public static String getP11SlotIndex() {
+<span class="nc" id="L901">    return ConfigurationHolder.getString(&quot;ocsp.p11.slot&quot;);</span>
+  }
+
+  /**
+   * Should passwords be stored in memory.
+   *
+   * &lt;p&gt;Default value is true.
+   *
+   * @return True if password should not be stored in memory.
+   */
+  @Deprecated // Remove this method once upgrading VAs to EJBCA 6 has been
+              // dropped
+  public static boolean getDoNotStorePasswordsInMemory() {
+<span class="nc" id="L914">    final String s =</span>
+<span class="nc" id="L915">        ConfigurationHolder.getString(</span>
+            &quot;ocsp.activation.doNotStorePasswordsInMemory&quot;);
+<span class="nc bnc" id="L917" title="All 2 branches missed.">    if (s == null</span>
+<span class="nc bnc" id="L918" title="All 2 branches missed.">        || s.toLowerCase().indexOf(&quot;false&quot;) &gt;= 0</span>
+<span class="nc bnc" id="L919" title="All 2 branches missed.">        || s.toLowerCase().indexOf(&quot;no&quot;) &gt;= 0) {</span>
+<span class="nc" id="L920">      return false;</span>
     }
+<span class="nc" id="L922">    return true;</span>
+  }
 
-    /**
-     * P11 password.
-     * 
-     * @return The value
-     */
-    @Deprecated //Remove this method once upgrading VAs to EJBCA 6 has been dropped
-    public static String getP11Password() {
-<span class="nc" id="L721">        return ConfigurationHolder.getString(&quot;ocsp.p11.p11password&quot;);</span>
-    }
+  /**
+   * @return The interval on which new OCSP signing certificates are loaded in
+   *     seconds
+   */
+  public static long getWarningBeforeExpirationTime() {
+<span class="nc" id="L930">    int timeInSeconds = 0;</span>
+<span class="nc" id="L931">    final int defaultTimeInSeconds = 604800; // 1 week 60*60*24*7</span>
+    try {
+<span class="nc" id="L933">      String configValue =</span>
+<span class="nc" id="L934">          ConfigurationHolder.getString(WARNING_BEFORE_EXPERATION_TIME);</span>
+<span class="nc bnc" id="L935" title="All 2 branches missed.">      if (configValue != null) {</span>
+<span class="nc" id="L936">        timeInSeconds = Integer.parseInt(configValue);</span>
+      } else {
+<span class="nc" id="L938">        timeInSeconds = defaultTimeInSeconds;</span>
+      }
 
-    /**
-     * P11 slot number.
-     * 
-     * @return The value.
-     */
-    @Deprecated //Remove this method once upgrading VAs to EJBCA 6 has been dropped
-    public static String getP11SlotIndex() {
-<span class="nc" id="L731">        return ConfigurationHolder.getString(&quot;ocsp.p11.slot&quot;);</span>
-    }
+<span class="nc" id="L941">    } catch (NumberFormatException e) {</span>
+<span class="nc" id="L942">      timeInSeconds = defaultTimeInSeconds;</span>
+<span class="nc" id="L943">      LOG.warn(</span>
+          WARNING_BEFORE_EXPERATION_TIME
+              + &quot; is not a decimal integer. Using default 1 week.&quot;);
+<span class="nc" id="L946">    }</span>
+<span class="nc" id="L947">    return MS_PER_S * (long) timeInSeconds;</span>
+  }
 
-    /**
-     * Should passwords be stored in memory.
-     * 
-     * Default value is true.
-     * 
-     * @return True if password should not be stored in memory.
-     */
-    @Deprecated //Remove this method once upgrading VAs to EJBCA 6 has been dropped
-    public static boolean getDoNotStorePasswordsInMemory() {
-<span class="nc" id="L743">        final String s = ConfigurationHolder.getString(&quot;ocsp.activation.doNotStorePasswordsInMemory&quot;);</span>
-<span class="nc bnc" id="L744" title="All 6 branches missed.">        if (s == null || s.toLowerCase().indexOf(&quot;false&quot;) &gt;= 0 || s.toLowerCase().indexOf(&quot;no&quot;) &gt;= 0) {</span>
-<span class="nc" id="L745">            return false;</span>
-        }
-<span class="nc" id="L747">        return true;</span>
-    }
-
-    /**
-     * @return The interval on which new OCSP signing certificates are loaded in seconds
-     */
-    public static long getWarningBeforeExpirationTime() {
-<span class="nc" id="L754">        int timeInSeconds = 0;</span>
-<span class="nc" id="L755">        final int defaultTimeInSeconds = 604800; // 1 week 60*60*24*7</span>
-        try {
-<span class="nc" id="L757">            String configValue = ConfigurationHolder.getString(WARNING_BEFORE_EXPERATION_TIME);</span>
-<span class="nc bnc" id="L758" title="All 2 branches missed.">            if (configValue != null) {</span>
-<span class="nc" id="L759">                timeInSeconds = Integer.parseInt(configValue);</span>
-            } else {
-<span class="nc" id="L761">                timeInSeconds = defaultTimeInSeconds;</span>
-            }
-
-<span class="nc" id="L764">        } catch (NumberFormatException e) {</span>
-<span class="nc" id="L765">            timeInSeconds = defaultTimeInSeconds;</span>
-<span class="nc" id="L766">            log.warn(WARNING_BEFORE_EXPERATION_TIME + &quot; is not a decimal integer. Using default 1 week.&quot;);</span>
-<span class="nc" id="L767">        }</span>
-<span class="nc" id="L768">        return 1000 * (long) timeInSeconds;</span>
-    }
-
+  /** milliseconds. */
+  private static final long MS_PER_S = 1000L;
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

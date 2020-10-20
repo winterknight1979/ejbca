@@ -155,125 +155,127 @@ import org.ejbca.core.model.InternalEjbcaResources;
                 }
 <span class="nc bnc" id="L156" title="All 2 branches missed.">                if (customErrorMessage != null) {</span>
 <span class="nc" id="L157">                    status = customErrorMessage;</span>
+                } else {
+<span class="nc" id="L159">                	status = &quot;Healthcheck returned error.&quot;;</span>
                 }
                 // Return fail message
-<span class="nc bnc" id="L160" title="All 2 branches missed.">                if (EjbcaConfiguration.getSendServerError()) {</span>
-<span class="nc" id="L161">                    resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, status);</span>
+<span class="nc bnc" id="L162" title="All 2 branches missed.">                if (EjbcaConfiguration.getSendServerError()) {</span>
+<span class="nc" id="L163">                    resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, status);</span>
                 } else {
-<span class="nc" id="L163">                    out.write(status);</span>
+<span class="nc" id="L165">                    out.write(status);</span>
                 }
             }
-<span class="nc" id="L166">            out.flush();</span>
-<span class="nc" id="L167">            out.close();</span>
-<span class="nc" id="L168">        } catch (IOException e) {</span>
-<span class="nc" id="L169">            log.error(&quot;Error writing to Servlet Response.&quot;, e);</span>
-<span class="nc" id="L170">        }</span>
-<span class="nc" id="L171">    }</span>
+<span class="nc" id="L168">            out.flush();</span>
+<span class="nc" id="L169">            out.close();</span>
+<span class="nc" id="L170">        } catch (IOException e) {</span>
+<span class="nc" id="L171">            log.error(&quot;Error writing to Servlet Response.&quot;, e);</span>
+<span class="nc" id="L172">        }</span>
+<span class="nc" id="L173">    }</span>
     
     public String doAllHealthChecks(HttpServletRequest request) {
-<span class="nc bnc" id="L174" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L175">            log.debug(&quot;Starting HealthCheck requested by : &quot; + request.getRemoteAddr());</span>
+<span class="nc bnc" id="L176" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L177">            log.debug(&quot;Starting HealthCheck requested by : &quot; + request.getRemoteAddr());</span>
         }
         // Start by checking if we are in maintance mode
-<span class="nc" id="L178">        final Properties maintenanceProperties = getMaintenanceProperties();</span>
-<span class="nc" id="L179">        final String maintenancePropertyName = EjbcaConfiguration.getHealthCheckMaintenancePropertyName();</span>
-<span class="nc bnc" id="L180" title="All 4 branches missed.">        if (maintenanceProperties != null &amp;&amp; Boolean.valueOf(maintenanceProperties.getProperty(maintenancePropertyName))) {</span>
+<span class="nc" id="L180">        final Properties maintenanceProperties = getMaintenanceProperties();</span>
+<span class="nc" id="L181">        final String maintenancePropertyName = EjbcaConfiguration.getHealthCheckMaintenancePropertyName();</span>
+<span class="nc bnc" id="L182" title="All 4 branches missed.">        if (maintenanceProperties != null &amp;&amp; Boolean.valueOf(maintenanceProperties.getProperty(maintenancePropertyName))) {</span>
             // Return directly without performing any more checks
-<span class="nc" id="L182">            return &quot;MAINT: &quot; + maintenancePropertyName;</span>
+<span class="nc" id="L184">            return &quot;MAINT: &quot; + maintenancePropertyName;</span>
         }
-<span class="nc" id="L184">        final StringBuilder sb = new StringBuilder(0);</span>
-<span class="nc bnc" id="L185" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L186">            log.debug(&quot;Checking database connection.&quot;);</span>
+<span class="nc" id="L186">        final StringBuilder sb = new StringBuilder(0);</span>
+<span class="nc bnc" id="L187" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L188">            log.debug(&quot;Checking database connection.&quot;);</span>
         }
-<span class="nc" id="L188">        sb.append(healthCheckSession.getDatabaseStatus());</span>
-<span class="nc bnc" id="L189" title="All 2 branches missed.">        if (sb.length()==0) { </span>
-<span class="nc bnc" id="L190" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L191">                log.debug(&quot;Checking JVM heap memory.&quot;);</span>
+<span class="nc" id="L190">        sb.append(healthCheckSession.getDatabaseStatus());</span>
+<span class="nc bnc" id="L191" title="All 2 branches missed.">        if (sb.length()==0) { </span>
+<span class="nc bnc" id="L192" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L193">                log.debug(&quot;Checking JVM heap memory.&quot;);</span>
             }
             // Memory still not allocated by the JVM + available memory of what is allocated by the JVM
-<span class="nc" id="L194">            final long maxAllocation = Runtime.getRuntime().maxMemory();</span>
+<span class="nc" id="L196">            final long maxAllocation = Runtime.getRuntime().maxMemory();</span>
             // The total amount of memory allocated to the JVM.
-<span class="nc" id="L196">            final long currentlyAllocation = Runtime.getRuntime().totalMemory();</span>
+<span class="nc" id="L198">            final long currentlyAllocation = Runtime.getRuntime().totalMemory();</span>
             // Available memory of what is allocated by the JVM
-<span class="nc" id="L198">            final long freeAllocated = Runtime.getRuntime().freeMemory();</span>
+<span class="nc" id="L200">            final long freeAllocated = Runtime.getRuntime().freeMemory();</span>
             // Memory still not allocated by the JVM + available memory of what is allocated by the JVM
-<span class="nc" id="L200">            final long currentFreeMemory = maxAllocation - currentlyAllocation + freeAllocated;</span>
-<span class="nc bnc" id="L201" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L202">                log.debug((100L*(maxAllocation-currentFreeMemory)/maxAllocation)+&quot;% of the &quot; + (maxAllocation/1048576L) + &quot; MiB heap is currently used.&quot;);</span>
+<span class="nc" id="L202">            final long currentFreeMemory = maxAllocation - currentlyAllocation + freeAllocated;</span>
+<span class="nc bnc" id="L203" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L204">                log.debug((100L*(maxAllocation-currentFreeMemory)/maxAllocation)+&quot;% of the &quot; + (maxAllocation/1048576L) + &quot; MiB heap is currently used.&quot;);</span>
             }
-<span class="nc bnc" id="L204" title="All 2 branches missed.">            if (minfreememory &gt;= currentFreeMemory) {</span>
-<span class="nc" id="L205">                sb.append(&quot;\nMEM: Error Virtual Memory is about to run out, currently free memory :&quot;).append(String.valueOf(Runtime.getRuntime().freeMemory()));    </span>
+<span class="nc bnc" id="L206" title="All 2 branches missed.">            if (minfreememory &gt;= currentFreeMemory) {</span>
+<span class="nc" id="L207">                sb.append(&quot;\nMEM: Error Virtual Memory is about to run out, currently free memory :&quot;).append(String.valueOf(Runtime.getRuntime().freeMemory()));    </span>
             }
-<span class="nc bnc" id="L207" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L208">                log.debug(&quot;Checking CAs.&quot;);</span>
+<span class="nc bnc" id="L209" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L210">                log.debug(&quot;Checking CAs.&quot;);</span>
             }
-<span class="nc" id="L210">            sb.append(caAdminSession.healthCheck());</span>
-<span class="nc bnc" id="L211" title="All 2 branches missed.">            if (checkPublishers) {</span>
-<span class="nc bnc" id="L212" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L213">                    log.debug(&quot;Checking publishers.&quot;);</span>
+<span class="nc" id="L212">            sb.append(caAdminSession.healthCheck());</span>
+<span class="nc bnc" id="L213" title="All 2 branches missed.">            if (checkPublishers) {</span>
+<span class="nc bnc" id="L214" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L215">                    log.debug(&quot;Checking publishers.&quot;);</span>
                 }
-<span class="nc" id="L215">                sb.append(publisherSession.testAllConnections());</span>
+<span class="nc" id="L217">                sb.append(publisherSession.testAllConnections());</span>
             }
-<span class="nc bnc" id="L217" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L218">                log.debug(&quot;Checking OcspKeyBindings.&quot;);</span>
+<span class="nc bnc" id="L219" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L220">                log.debug(&quot;Checking OcspKeyBindings.&quot;);</span>
             }
-<span class="nc" id="L220">            sb.append(ocspResponseGeneratorSession.healthCheck());</span>
+<span class="nc" id="L222">            sb.append(ocspResponseGeneratorSession.healthCheck());</span>
         }
-<span class="nc bnc" id="L222" title="All 2 branches missed.">        return sb.length()==0 ? null : sb.toString();</span>
+<span class="nc bnc" id="L224" title="All 2 branches missed.">        return sb.length()==0 ? null : sb.toString();</span>
     }
 
     /** Create the maintenance file if it should be used and does not exists */
     private void initMaintenanceFile() {
-<span class="nc" id="L227">        final String maintenanceFile = EjbcaConfiguration.getHealthCheckMaintenanceFile();</span>
-<span class="nc bnc" id="L228" title="All 2 branches missed.">        if (StringUtils.isEmpty(maintenanceFile)) {</span>
-<span class="nc" id="L229">            log.debug(&quot;Maintenance file not specified, node will be monitored&quot;);</span>
+<span class="nc" id="L229">        final String maintenanceFile = EjbcaConfiguration.getHealthCheckMaintenanceFile();</span>
+<span class="nc bnc" id="L230" title="All 2 branches missed.">        if (StringUtils.isEmpty(maintenanceFile)) {</span>
+<span class="nc" id="L231">            log.debug(&quot;Maintenance file not specified, node will be monitored&quot;);</span>
         } else {
-<span class="nc bnc" id="L231" title="All 2 branches missed.">            if (getMaintenanceProperties() == null) {</span>
-<span class="nc" id="L232">                log.info(&quot;Expected to find Maintenance File '&quot;+ maintenanceFile + &quot;'. File will be created.&quot;);</span>
-<span class="nc" id="L233">                OutputStream out = null;</span>
+<span class="nc bnc" id="L233" title="All 2 branches missed.">            if (getMaintenanceProperties() == null) {</span>
+<span class="nc" id="L234">                log.info(&quot;Expected to find Maintenance File '&quot;+ maintenanceFile + &quot;'. File will be created.&quot;);</span>
+<span class="nc" id="L235">                OutputStream out = null;</span>
                 try {
-<span class="nc" id="L235">                    out = new FileOutputStream(&quot;filename.properties&quot;);</span>
-<span class="nc" id="L236">                    new Properties().store(out, null);</span>
-<span class="nc" id="L237">                } catch (IOException e2) {</span>
-<span class="nc" id="L238">                    log.error(&quot;Could not create Maintenance File at: &quot;+ maintenanceFile);</span>
+<span class="nc" id="L237">                    out = new FileOutputStream(&quot;filename.properties&quot;);</span>
+<span class="nc" id="L238">                    new Properties().store(out, null);</span>
+<span class="nc" id="L239">                } catch (IOException e2) {</span>
+<span class="nc" id="L240">                    log.error(&quot;Could not create Maintenance File at: &quot;+ maintenanceFile);</span>
                 } finally {
-<span class="nc bnc" id="L240" title="All 2 branches missed.">                    if (out != null) {</span>
+<span class="nc bnc" id="L242" title="All 2 branches missed.">                    if (out != null) {</span>
                         try {
-<span class="nc" id="L242">                            out.close();                    </span>
-<span class="nc" id="L243">                        } catch (IOException e) {</span>
-<span class="nc" id="L244">                            log.error(&quot;Error closing file: &quot;, e);</span>
-<span class="nc" id="L245">                        }</span>
+<span class="nc" id="L244">                            out.close();                    </span>
+<span class="nc" id="L245">                        } catch (IOException e) {</span>
+<span class="nc" id="L246">                            log.error(&quot;Error closing file: &quot;, e);</span>
+<span class="nc" id="L247">                        }</span>
                     }
                 }
             }
         }
-<span class="nc" id="L250">    }</span>
+<span class="nc" id="L252">    }</span>
     
     /** @return the maintenance file as properties or null of the file does not exist */
     private Properties getMaintenanceProperties() {
-<span class="nc" id="L254">        final String maintenanceFile = EjbcaConfiguration.getHealthCheckMaintenanceFile();</span>
-<span class="nc bnc" id="L255" title="All 2 branches missed.">        if (!StringUtils.isEmpty(maintenanceFile)) {</span>
-<span class="nc" id="L256">            InputStream in = null;</span>
+<span class="nc" id="L256">        final String maintenanceFile = EjbcaConfiguration.getHealthCheckMaintenanceFile();</span>
+<span class="nc bnc" id="L257" title="All 2 branches missed.">        if (!StringUtils.isEmpty(maintenanceFile)) {</span>
+<span class="nc" id="L258">            InputStream in = null;</span>
             try {
-<span class="nc" id="L258">                in = new FileInputStream(maintenanceFile);</span>
-<span class="nc" id="L259">                final Properties maintenanceProperties = new Properties();</span>
-<span class="nc" id="L260">                maintenanceProperties.load(in);</span>
-<span class="nc" id="L261">                return maintenanceProperties;</span>
-<span class="nc" id="L262">            } catch (IOException e) {</span>
-<span class="nc bnc" id="L263" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L264">                    log.debug(&quot;Could not read Maintenance File. Expected to find file at: &quot;+ maintenanceFile);</span>
+<span class="nc" id="L260">                in = new FileInputStream(maintenanceFile);</span>
+<span class="nc" id="L261">                final Properties maintenanceProperties = new Properties();</span>
+<span class="nc" id="L262">                maintenanceProperties.load(in);</span>
+<span class="nc" id="L263">                return maintenanceProperties;</span>
+<span class="nc" id="L264">            } catch (IOException e) {</span>
+<span class="nc bnc" id="L265" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L266">                    log.debug(&quot;Could not read Maintenance File. Expected to find file at: &quot;+ maintenanceFile);</span>
                 }
             } finally {
-<span class="nc bnc" id="L267" title="All 2 branches missed.">                if (in != null) {</span>
+<span class="nc bnc" id="L269" title="All 2 branches missed.">                if (in != null) {</span>
                     try {
-<span class="nc" id="L269">                        in.close();                 </span>
-<span class="nc" id="L270">                    } catch (IOException e) {</span>
-<span class="nc" id="L271">                        log.error(&quot;Error closing file: &quot;, e);</span>
-<span class="nc" id="L272">                    }</span>
+<span class="nc" id="L271">                        in.close();                 </span>
+<span class="nc" id="L272">                    } catch (IOException e) {</span>
+<span class="nc" id="L273">                        log.error(&quot;Error closing file: &quot;, e);</span>
+<span class="nc" id="L274">                    }</span>
                 }
             }
         }
-<span class="nc" id="L276">        return null;</span>
+<span class="nc" id="L278">        return null;</span>
     }    
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

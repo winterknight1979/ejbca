@@ -1,0 +1,601 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RaManageRequestBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ra-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ra</a> &gt; <span class="el_source">RaManageRequestBean.java</span></div><h1>RaManageRequestBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ra;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.ejb.EJB;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.ManagedProperty;
+import javax.faces.bean.ViewScoped;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.authentication.AuthenticationFailedException;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.certificateprofile.CertificateProfile;
+import org.cesecore.certificates.endentity.EndEntityConstants;
+import org.cesecore.util.ui.DynamicUiProperty;
+import org.ejbca.core.model.approval.AdminAlreadyApprovedRequestException;
+import org.ejbca.core.model.approval.Approval;
+import org.ejbca.core.model.approval.ApprovalDataVO;
+import org.ejbca.core.model.approval.ApprovalException;
+import org.ejbca.core.model.approval.ApprovalRequest;
+import org.ejbca.core.model.approval.ApprovalRequestExecutionException;
+import org.ejbca.core.model.approval.ApprovalRequestExpiredException;
+import org.ejbca.core.model.approval.SelfApprovalException;
+import org.ejbca.core.model.approval.profile.ApprovalPartition;
+import org.ejbca.core.model.approval.profile.ApprovalProfile;
+import org.ejbca.core.model.approval.profile.ApprovalStep;
+import org.ejbca.core.model.approval.profile.PartitionedApprovalProfile;
+import org.ejbca.core.model.era.RaApprovalEditRequest;
+import org.ejbca.core.model.era.RaApprovalRequestInfo;
+import org.ejbca.core.model.era.RaApprovalResponseRequest;
+import org.ejbca.core.model.era.RaApprovalResponseRequest.Action;
+import org.ejbca.core.model.era.RaEditableRequestData;
+import org.ejbca.core.model.era.RaMasterApiProxyBeanLocal;
+import org.ejbca.ra.ApprovalRequestGUIInfo.ApprovalPartitionProfileGuiObject;
+import org.ejbca.ra.ApprovalRequestGUIInfo.RequestDataRow;
+import org.ejbca.util.KeyValuePair;
+
+/**
+ * Backing bean for Manage Request page (for individual requests).
+ *
+ * @see RaManageRequestsBean
+ * @version $Id: RaManageRequestBean.java 34207 2020-01-08 13:22:50Z samuellb $
+ * TODO: Use CDI beans
+ */
+@SuppressWarnings(&quot;deprecation&quot;)
+@ManagedBean 
+@ViewScoped
+<span class="nc" id="L69">public class RaManageRequestBean implements Serializable {</span>
+
+    private static final long serialVersionUID = 1L;
+<span class="nc" id="L72">    private static final Logger log = Logger.getLogger(RaManageRequestBean.class);</span>
+
+    @EJB
+    private RaMasterApiProxyBeanLocal raMasterApiProxyBean;
+
+    @ManagedProperty(value=&quot;#{raAccessBean}&quot;)
+    private RaAccessBean raAccessBean;
+<span class="nc" id="L79">    public void setRaAccessBean(final RaAccessBean raAccessBean) { this.raAccessBean = raAccessBean; }</span>
+
+    @ManagedProperty(value=&quot;#{raAuthenticationBean}&quot;)
+    private RaAuthenticationBean raAuthenticationBean;
+<span class="nc" id="L83">    public void setRaAuthenticationBean(final RaAuthenticationBean raAuthenticationBean) { this.raAuthenticationBean = raAuthenticationBean; }</span>
+
+    @ManagedProperty(value=&quot;#{raLocaleBean}&quot;)
+    private RaLocaleBean raLocaleBean;
+<span class="nc" id="L87">    public void setRaLocaleBean(final RaLocaleBean raLocaleBean) { this.raLocaleBean = raLocaleBean; }</span>
+
+    private ApprovalRequestGUIInfo requestInfo;
+    private RaApprovalRequestInfo requestData;
+<span class="nc" id="L91">    private boolean editing = false;</span>
+    private String extendDays;
+<span class="nc" id="L93">    private Map&lt;Integer, List&lt;DynamicUiProperty&lt;? extends Serializable&gt;&gt; &gt; currentPartitionsProperties = null;</span>
+<span class="nc" id="L94">    List&lt;ApprovalRequestGUIInfo.ApprovalPartitionProfileGuiObject&gt; partitionsAuthorizedToView = null;</span>
+<span class="nc" id="L95">    Set&lt;Integer&gt; partitionsAuthorizedToApprove = null;</span>
+
+    public String idParam;
+    public String aidParam;
+
+<span class="nc" id="L100">    public String getIdParam() { return idParam; }</span>
+<span class="nc" id="L101">    public void setIdParam(final String value) { idParam = value; }</span>
+<span class="nc" id="L102">    public String getAidParam() { return aidParam; }</span>
+<span class="nc" id="L103">    public void setAidParam(final String value) { aidParam = value; }</span>
+
+    private void loadRequest(final int id) {
+<span class="nc" id="L106">        requestData = raMasterApiProxyBean.getApprovalRequest(raAuthenticationBean.getAuthenticationToken(), id);</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">        if (requestData == null) {</span>
+<span class="nc" id="L108">            throw new IllegalStateException(&quot;Request does not exist, or user is not allowed to see it at this point&quot;);</span>
+        }
+<span class="nc" id="L110">        requestInfo = new ApprovalRequestGUIInfo(requestData, raLocaleBean, raAccessBean);</span>
+<span class="nc" id="L111">    }</span>
+    private void loadRequestByApprovalId(final int approvalId) {
+<span class="nc" id="L113">        requestData = raMasterApiProxyBean.getApprovalRequestByRequestHash(raAuthenticationBean.getAuthenticationToken(), approvalId);</span>
+<span class="nc bnc" id="L114" title="All 2 branches missed.">        if (requestData == null) {</span>
+<span class="nc" id="L115">            throw new IllegalStateException(&quot;Request does not exist, or user is not allowed to see it at this point&quot;);</span>
+        }
+<span class="nc" id="L117">        requestInfo = new ApprovalRequestGUIInfo(requestData, raLocaleBean, raAccessBean);</span>
+<span class="nc" id="L118">    }</span>
+
+    public void initializeRequestInfo() {
+<span class="nc bnc" id="L121" title="All 2 branches missed.">        if (requestInfo == null) {</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">            if (!raAccessBean.isAuthorizedToManageRequests()) {</span>
+<span class="nc" id="L123">                log.debug(&quot;Not authorized to manage requests&quot;);</span>
+<span class="nc" id="L124">                return;</span>
+            }
+<span class="nc bnc" id="L126" title="All 2 branches missed.">            if (!StringUtils.isBlank(idParam)) {</span>
+<span class="nc" id="L127">                final int id = Integer.parseInt(idParam);</span>
+<span class="nc" id="L128">                loadRequest(id);</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">            } else if (!StringUtils.isBlank(aidParam)) {</span>
+<span class="nc" id="L130">                final int approvalId = Integer.parseInt(aidParam);</span>
+<span class="nc" id="L131">                loadRequestByApprovalId(approvalId);</span>
+<span class="nc" id="L132">            } else {</span>
+                // JBoss EAP 6 can call this method from preRenderView event, even from the listing page. In that case there's no ID parameter.
+<span class="nc" id="L134">                log.debug(&quot;No request ID passed in parameter. Will not initialize request info.&quot;);</span>
+<span class="nc" id="L135">                return;</span>
+            }
+<span class="nc bnc" id="L137" title="All 2 branches missed.">            if (requestData.getApprovalProfile() != null) {</span>
+<span class="nc" id="L138">                long defaultExtensionMillis = Math.min(requestData.getApprovalProfile().getApprovalExpirationPeriod(),</span>
+<span class="nc" id="L139">                        requestData.getMaxExtensionTime());</span>
+<span class="nc" id="L140">                extendDays = String.valueOf((defaultExtensionMillis + 24*60*60*1000 - 1) / (24*60*60*1000));</span>
+<span class="nc" id="L141">            } else {</span>
+<span class="nc" id="L142">                extendDays = &quot;1&quot;;</span>
+            }
+        }
+<span class="nc" id="L145">    }</span>
+
+    private void reloadRequest() {
+<span class="nc" id="L148">        loadRequest(requestData.getId());</span>
+        // Make sure we don't use the approvalId (the hash) after we have edited a request
+<span class="nc" id="L150">        idParam = String.valueOf(requestData.getId());</span>
+<span class="nc" id="L151">        aidParam = null;</span>
+<span class="nc" id="L152">    }</span>
+
+    public ApprovalRequestGUIInfo getRequest() {
+<span class="nc" id="L155">        return requestInfo;</span>
+    }
+
+    public String getPageTitle() {
+<span class="nc bnc" id="L159" title="All 2 branches missed.">        return raLocaleBean.getMessage(&quot;view_request_page_title&quot;, requestInfo != null ? requestInfo.getDisplayName() : &quot;&quot;);</span>
+    }
+
+<span class="nc bnc" id="L162" title="All 2 branches missed.">    public boolean isViewDataVisible() { return !editing; }</span>
+<span class="nc" id="L163">    public boolean isEditDataVisible() { return editing; }</span>
+<span class="nc bnc" id="L164" title="All 2 branches missed.">    public boolean isStatusVisible() { return !editing; }</span>
+<span class="nc bnc" id="L165" title="All 4 branches missed.">    public boolean isPreviousStepsVisible() { return !editing &amp;&amp; !requestInfo.getPreviousSteps().isEmpty(); }</span>
+<span class="nc bnc" id="L166" title="All 2 branches missed.">    public boolean isApprovalVisible() { return !editing; } // even if approval is not possible, we still show a message explaining why it's not.</span>
+
+<span class="nc" id="L168">    public String getExtendDays() { return extendDays; }</span>
+<span class="nc" id="L169">    public void setExtendDays(final String extendDays) { this.extendDays = extendDays; }</span>
+
+    public String getPartitionName(final ApprovalRequestGUIInfo.ApprovalPartitionProfileGuiObject guiPartition) {
+<span class="nc bnc" id="L172" title="All 2 branches missed.">        if (guiPartition == null) {</span>
+            // JBoss EAP 6.4 seems to make calls EL method calls one time extra, with a null parameter, once per page rendering
+<span class="nc" id="L174">            log.debug(&quot;Ignored call to getPartitionProperties with null parameter&quot;);</span>
+<span class="nc" id="L175">            return &quot;&quot;;</span>
+        }
+<span class="nc" id="L177">        final ApprovalProfile approvalProfile = requestInfo.request.getApprovalProfile();</span>
+<span class="nc" id="L178">        final ApprovalStep step = approvalProfile.getStep(guiPartition.getStepId());</span>
+<span class="nc" id="L179">        final ApprovalPartition partition = step.getPartition(guiPartition.getPartitionId());</span>
+<span class="nc" id="L180">        DynamicUiProperty&lt;? extends Serializable&gt; property = partition.getProperty(PartitionedApprovalProfile.PROPERTY_NAME);</span>
+<span class="nc bnc" id="L181" title="All 2 branches missed.">        if (property != null) {</span>
+<span class="nc" id="L182">            return (String) property.getValue();</span>
+        }
+<span class="nc" id="L184">        return &quot;&quot;;</span>
+    }
+
+    /**
+     * Returns a boolean indicating whether the specified GUI object has any content. A GUI partition is considered
+     * to have no content if it contains no dynamic UI controls which can be rendered on the screen.
+     * @param guiObject a GUI object containing the graphical representation of an approval partition
+     * @return true if the GUI object given as input has content available, false otherwise
+     */
+    public boolean hasContent(final ApprovalPartitionProfileGuiObject guiObject) {
+<span class="nc bnc" id="L194" title="All 2 branches missed.">        if (guiObject == null) {</span>
+<span class="nc" id="L195">            return false;</span>
+        }
+        // Retrieve the total number of dynamic UI controls
+<span class="nc" id="L198">        final int propertyCount = requestInfo.request.</span>
+<span class="nc" id="L199">                getApprovalProfile().</span>
+<span class="nc" id="L200">                getStep(guiObject.getStepId()).</span>
+<span class="nc" id="L201">                getPartition(guiObject.getPartitionId()).</span>
+<span class="nc" id="L202">                getPropertyList().</span>
+<span class="nc" id="L203">                size();</span>
+<span class="nc bnc" id="L204" title="All 2 branches missed.">        return propertyCount &gt; 3; // There is more than can_view + can_approve + title</span>
+    }
+
+    public List&lt;DynamicUiProperty&lt;? extends Serializable&gt;&gt; getPartitionProperties(final ApprovalRequestGUIInfo.ApprovalPartitionProfileGuiObject guiPartition) {
+<span class="nc bnc" id="L208" title="All 2 branches missed.">        if (guiPartition == null) {</span>
+            // JBoss EAP 6.4 seems to make calls EL method calls one time extra, with a null parameter, once per page rendering
+<span class="nc" id="L210">            log.debug(&quot;Ignored call to getPartitionProperties with null parameter&quot;);</span>
+<span class="nc" id="L211">            return new ArrayList&lt;&gt;();</span>
+        }
+<span class="nc" id="L213">        final ApprovalProfile approvalProfile = requestInfo.request.getApprovalProfile();</span>
+<span class="nc" id="L214">        final ApprovalStep step = approvalProfile.getStep(guiPartition.getStepId());</span>
+<span class="nc" id="L215">        final ApprovalPartition partition = step.getPartition(guiPartition.getPartitionId());</span>
+<span class="nc" id="L216">        return getPartitionProperties(approvalProfile, partition);</span>
+    }
+
+    /** Returns partitions in the current step 
+     * @return List */
+    public List&lt;ApprovalRequestGUIInfo.ApprovalPartitionProfileGuiObject&gt; getPartitions() {
+<span class="nc bnc" id="L222" title="All 2 branches missed.">        if (partitionsAuthorizedToView == null) {</span>
+<span class="nc" id="L223">            List&lt;ApprovalRequestGUIInfo.ApprovalPartitionProfileGuiObject&gt; authorizedPartitions = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L224">            partitionsAuthorizedToApprove = new HashSet&lt;&gt;();</span>
+<span class="nc" id="L225">            final ApprovalStep step = requestInfo.request.getNextApprovalStep();</span>
+<span class="nc" id="L226">            final ApprovalProfile approvalProfile = requestInfo.request.getApprovalProfile();</span>
+<span class="nc bnc" id="L227" title="All 2 branches missed.">            if (step != null) {</span>
+<span class="nc bnc" id="L228" title="All 2 branches missed.">                for (ApprovalPartition approvalPartition : step.getPartitions().values()) {</span>
+                    try {
+<span class="nc bnc" id="L230" title="All 2 branches missed.">                        if (approvalProfile.canViewPartition(raAuthenticationBean.getAuthenticationToken(), approvalPartition)) {</span>
+<span class="nc" id="L231">                            ApprovalRequestGUIInfo.ApprovalPartitionProfileGuiObject partitionGuiObject =</span>
+<span class="nc" id="L232">                                    new ApprovalRequestGUIInfo.ApprovalPartitionProfileGuiObject(step.getStepIdentifier(),</span>
+<span class="nc" id="L233">                                    approvalPartition.getPartitionIdentifier(), getPartitionProperties(approvalProfile, approvalPartition),</span>
+<span class="nc" id="L234">                                    getPartitionApproval(approvalPartition.getPartitionIdentifier(), step.getStepIdentifier()));</span>
+<span class="nc" id="L235">                            authorizedPartitions.add(partitionGuiObject);</span>
+                        }
+<span class="nc bnc" id="L237" title="All 2 branches missed.">                        if (approvalProfile.canApprovePartition(raAuthenticationBean.getAuthenticationToken(), approvalPartition)) {</span>
+<span class="nc" id="L238">                            partitionsAuthorizedToApprove.add(approvalPartition.getPartitionIdentifier());</span>
+                        }
+<span class="nc" id="L240">                    } catch (AuthenticationFailedException e) {</span>
+                        //We shouldn't have gotten here in the UI with an invalid token
+<span class="nc" id="L242">                        throw new IllegalStateException(&quot;Trying to perform an approval with an invalid authentication token: &quot;</span>
+<span class="nc" id="L243">                                + raAuthenticationBean.getAuthenticationToken(), e);</span>
+<span class="nc" id="L244">                    }</span>
+<span class="nc" id="L245">                }</span>
+            }
+<span class="nc" id="L247">            partitionsAuthorizedToView = new ArrayList&lt;&gt;(authorizedPartitions);</span>
+
+        }
+<span class="nc" id="L250">        return partitionsAuthorizedToView;</span>
+
+    }
+
+    private List&lt;Approval&gt; getPartitionApproval(final int partitionId, final int stepId) {
+<span class="nc" id="L255">        final ApprovalDataVO advo = requestInfo.request.getApprovalData();</span>
+<span class="nc" id="L256">        Collection&lt;Approval&gt; approvals = advo.getApprovals();</span>
+<span class="nc" id="L257">        List&lt;Approval&gt; partitionApprovals = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L258" title="All 2 branches missed.">        for(Approval approval : approvals) {</span>
+<span class="nc bnc" id="L259" title="All 4 branches missed.">            if((approval.getStepId()==stepId) &amp;&amp; (approval.getPartitionId()==partitionId)) {</span>
+<span class="nc" id="L260">                partitionApprovals.add(approval);</span>
+            }
+<span class="nc" id="L262">        }</span>
+<span class="nc" id="L263">        return partitionApprovals;</span>
+    }
+
+    /**
+     * @param partition Partition 
+     * @return true if there already exists an approval for this partition
+     */
+    public boolean isPartitionHandled(final ApprovalRequestGUIInfo.ApprovalPartitionProfileGuiObject partition) {
+<span class="nc bnc" id="L271" title="All 2 branches missed.">        return getPartitionApproval(partition.getPartitionId(), partition.getStepId()).size() &gt; 0;</span>
+    }
+    public boolean canApproveParition(final ApprovalRequestGUIInfo.ApprovalPartitionProfileGuiObject partition) {
+<span class="nc bnc" id="L274" title="All 2 branches missed.">        if (partitionsAuthorizedToApprove == null) {</span>
+<span class="nc" id="L275">            getPartitions();</span>
+        }
+<span class="nc" id="L277">        return partitionsAuthorizedToApprove.contains(partition.getPartitionId());</span>
+    }
+    public boolean isPropertyReadOnly(String propertyName) {
+<span class="nc" id="L280">        return requestInfo.request.getApprovalProfile().getReadOnlyProperties().contains(propertyName);</span>
+    }
+    /** @return true if subject DN override by CSR is allowed */
+    public boolean isDnOverrideRendered() {
+        // In case of another request type than user generated enrollment, we do not want to show warning.
+<span class="nc bnc" id="L285" title="All 2 branches missed.">        if (!requestInfo.getType().equals(raLocaleBean.getMessage(&quot;manage_requests_type_add_end_entity&quot;)) ||</span>
+<span class="nc bnc" id="L286" title="All 2 branches missed.">            requestInfo.getEndEntityInformation().getTokenType() != EndEntityConstants.TOKEN_USERGEN) {</span>
+<span class="nc" id="L287">            return false;</span>
+        }
+<span class="nc" id="L289">        CertificateProfile certificateProfile = raMasterApiProxyBean.getCertificateProfile(requestInfo.getEndEntityInformation().getCertificateProfileId());</span>
+<span class="nc" id="L290">        return certificateProfile.getAllowDNOverride();</span>
+    }
+
+    /**
+     * Extract the partition properties, and fill in all and any placeholders. Also cull any properties set to be hidden.
+     * @param approvalProfile Profile
+     * @param approvalPartition Partition
+     *
+     * @return a list of dynamic properties
+     */
+    private List&lt;DynamicUiProperty&lt;? extends Serializable&gt;&gt; getPartitionProperties(final ApprovalProfile approvalProfile, ApprovalPartition approvalPartition) {
+<span class="nc bnc" id="L301" title="All 4 branches missed.">        if (currentPartitionsProperties == null || !currentPartitionsProperties.containsKey(approvalPartition.getPartitionIdentifier())) {</span>
+<span class="nc" id="L302">            Set&lt;String&gt; hiddenPropertyNames = approvalProfile.getHiddenProperties();</span>
+<span class="nc" id="L303">            List&lt;DynamicUiProperty&lt;? extends Serializable&gt;&gt; propertyList = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L304" title="All 2 branches missed.">            for (String propertyName : approvalPartition.getPropertyList().keySet()) {</span>
+<span class="nc bnc" id="L305" title="All 2 branches missed.">                if (!hiddenPropertyNames.contains(propertyName)) {</span>
+<span class="nc" id="L306">                    DynamicUiProperty&lt;? extends Serializable&gt; propertyClone = new DynamicUiProperty&lt;&gt;(</span>
+<span class="nc" id="L307">                            approvalPartition.getPropertyList().get(propertyName));</span>
+<span class="nc" id="L308">                    propertyList.add(propertyClone);</span>
+                }
+<span class="nc" id="L310">            }</span>
+
+<span class="nc bnc" id="L312" title="All 2 branches missed.">            if (currentPartitionsProperties == null) {</span>
+<span class="nc" id="L313">                currentPartitionsProperties = new HashMap&lt;&gt;();</span>
+            }
+<span class="nc" id="L315">            currentPartitionsProperties.put(approvalPartition.getPartitionIdentifier(), propertyList);</span>
+        }
+<span class="nc" id="L317">        return currentPartitionsProperties.get(approvalPartition.getPartitionIdentifier());</span>
+    }
+
+    /** Creates a list of partitions that can be used with the approvalmetadata component 
+     * @param step Step
+     * @param partitions Oartitions 
+     * @return List */
+    public List&lt;ApprovalRequestGUIInfo.ApprovalPartitionProfileGuiObject&gt; partitionsToGuiPartitions(final ApprovalRequestGUIInfo.Step step, final Iterable&lt;ApprovalPartition&gt; partitions) {
+<span class="nc bnc" id="L325" title="All 2 branches missed.">        if (partitions == null) {</span>
+            // JBoss EAP 6.4 seems to make calls EL method calls one time extra, with a null parameter, once per page rendering
+<span class="nc" id="L327">            log.debug(&quot;Ignored call to partitionsToGuiPartitions with null parameter&quot;);</span>
+<span class="nc" id="L328">            return new ArrayList&lt;&gt;();</span>
+        }
+<span class="nc" id="L330">        final List&lt;ApprovalRequestGUIInfo.ApprovalPartitionProfileGuiObject&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L331" title="All 2 branches missed.">        for (final ApprovalPartition partition : partitions) {</span>
+<span class="nc" id="L332">            ret.add(new ApprovalRequestGUIInfo.ApprovalPartitionProfileGuiObject(step.getStepId(),</span>
+<span class="nc" id="L333">                    partition.getPartitionIdentifier(), getPartitionProperties(requestData.getApprovalProfile(), partition),</span>
+<span class="nc" id="L334">                    getPartitionApproval(partition.getPartitionIdentifier(), step.getStepId())));</span>
+<span class="nc" id="L335">        }</span>
+<span class="nc" id="L336">        return ret;</span>
+    }
+
+    public List&lt;KeyValuePair&gt; getHandledPartitionData(final ApprovalRequestGUIInfo.ApprovalPartitionProfileGuiObject guiPartition) {
+<span class="nc bnc" id="L340" title="All 2 branches missed.">        if (guiPartition == null) {</span>
+            // JBoss EAP 6.4 seems to make calls EL method calls one time extra, with a null parameter, once per page rendering
+<span class="nc" id="L342">            log.debug(&quot;Ignored call to partitionsToGuiPartitions with null parameter&quot;);</span>
+<span class="nc" id="L343">            return new ArrayList&lt;&gt;();</span>
+        }
+
+<span class="nc" id="L346">        ArrayList&lt;KeyValuePair&gt; kvp = new ArrayList&lt;&gt;();</span>
+
+<span class="nc" id="L348">        List&lt;DynamicUiProperty&lt;? extends Serializable&gt;&gt; properties = getPartitionProperties(guiPartition);</span>
+<span class="nc bnc" id="L349" title="All 2 branches missed.">        for (DynamicUiProperty&lt;? extends Serializable&gt; property : properties) {</span>
+<span class="nc" id="L350">            kvp.add(new KeyValuePair(property.getName(), property.getValueAsString()));</span>
+<span class="nc" id="L351">        }</span>
+<span class="nc" id="L352">        List&lt;Approval&gt; approvals = getPartitionApproval(guiPartition.getPartitionId(), guiPartition.getStepId());</span>
+<span class="nc bnc" id="L353" title="All 2 branches missed.">        for (Approval approval : approvals) {</span>
+<span class="nc" id="L354">            ApprovalRequestGUIInfo.ApprovalGuiObject approvalView = new ApprovalRequestGUIInfo.ApprovalGuiObject(approval);</span>
+<span class="nc" id="L355">            kvp.add(new KeyValuePair(&quot;Approval action&quot;, approvalView.getAdminAction()));</span>
+<span class="nc" id="L356">            kvp.add(new KeyValuePair(&quot;Approval date&quot;, approvalView.getApprovalDate()));</span>
+<span class="nc" id="L357">            kvp.add(new KeyValuePair(&quot;Approval administrator&quot;, approvalView.getApprovalAdmin()));</span>
+<span class="nc" id="L358">            kvp.add(new KeyValuePair(&quot;Approval comment&quot;, approvalView.getComment()));</span>
+<span class="nc" id="L359">        }</span>
+<span class="nc" id="L360">        return kvp;</span>
+    }
+
+    public String getStepInfoText() {
+<span class="nc" id="L364">        final List&lt;String&gt; roles = new ArrayList&lt;&gt;(requestData.getNextStepAllowedRoles());</span>
+<span class="nc bnc" id="L365" title="All 2 branches missed.">        if (!roles.isEmpty()) {</span>
+<span class="nc" id="L366">            Collections.sort(roles);</span>
+<span class="nc" id="L367">            return raLocaleBean.getMessage(&quot;view_request_page_step_of_with_roles&quot;, requestInfo.getCurrentStepOrdinal(), requestInfo.getStepCount(), StringUtils.join(roles, &quot;, &quot;));</span>
+        } else {
+<span class="nc" id="L369">            return raLocaleBean.getMessage(&quot;view_request_page_step_of&quot;, requestInfo.getCurrentStepOrdinal(), requestInfo.getStepCount());</span>
+        }
+    }
+
+    public String getCantApproveReason() {
+<span class="nc bnc" id="L374" title="All 2 branches missed.">        if (requestInfo.isExpired()) {</span>
+<span class="nc" id="L375">            return raLocaleBean.getMessage(&quot;view_request_page_cannot_approve_expired&quot;);</span>
+<span class="nc bnc" id="L376" title="All 2 branches missed.">        } else if (requestInfo.isPendingExecution()) {</span>
+<span class="nc" id="L377">            return raLocaleBean.getMessage(&quot;view_request_page_cannot_approve_pending_execution&quot;);</span>
+<span class="nc bnc" id="L378" title="All 2 branches missed.">        } else if (requestInfo.isExecuted()) {</span>
+<span class="nc" id="L379">            return raLocaleBean.getMessage(&quot;view_request_page_cannot_approve_already_executed&quot;);</span>
+<span class="nc bnc" id="L380" title="All 2 branches missed.">        } else if (requestInfo.isExecutionFailed()) {</span>
+<span class="nc" id="L381">            return raLocaleBean.getMessage(&quot;view_request_page_cannot_approve_already_executed_failed&quot;);</span>
+<span class="nc bnc" id="L382" title="All 2 branches missed.">        } else if (!requestInfo.isWaitingForApproval()) {</span>
+<span class="nc" id="L383">            return raLocaleBean.getMessage(&quot;view_request_page_cannot_approve_not_waiting&quot;);</span>
+<span class="nc bnc" id="L384" title="All 2 branches missed.">        } else if (!requestInfo.isAuthorizedToApprovalType()) {</span>
+<span class="nc" id="L385">            return raLocaleBean.getMessage(&quot;view_request_page_cannot_approve_not_authorized&quot;);</span>
+<span class="nc bnc" id="L386" title="All 2 branches missed.">        } else if (requestInfo.isEditedByMe()) {</span>
+<span class="nc" id="L387">            return raLocaleBean.getMessage(&quot;view_request_page_cannot_approve_edited_by_me&quot;);</span>
+<span class="nc bnc" id="L388" title="All 2 branches missed.">        } else if (requestInfo.isApprovedByMe()) {</span>
+<span class="nc" id="L389">            return raLocaleBean.getMessage(&quot;view_request_page_cannot_approve_approved_by_me&quot;);</span>
+<span class="nc bnc" id="L390" title="All 2 branches missed.">        } else if (requestInfo.isRequestedByMe()) {</span>
+<span class="nc" id="L391">            return raLocaleBean.getMessage(&quot;view_request_page_cannot_approve_requested_by_me&quot;);</span>
+<span class="nc bnc" id="L392" title="All 2 branches missed.">        } else if (requestInfo.isPending(raAuthenticationBean.getAuthenticationToken())) {</span>
+<span class="nc" id="L393">            return raLocaleBean.getMessage(&quot;view_request_page_cannot_approve_pending&quot;);</span>
+<span class="nc bnc" id="L394" title="All 2 branches missed.">        } else if (!requestInfo.hasNextApprovalStep()) {</span>
+<span class="nc" id="L395">            return raLocaleBean.getMessage(&quot;view_request_page_cannot_approve_no_next_step&quot;);</span>
+        } else {
+<span class="nc" id="L397">            return raLocaleBean.getMessage(&quot;view_request_page_cannot_approve&quot;);</span>
+        }
+    }
+
+
+    private RaApprovalResponseRequest buildApprovalResponseRequest(final Action action, ApprovalRequestGUIInfo.ApprovalPartitionProfileGuiObject guiParition,
+                ApprovalProfile storedApprovalProfile, ApprovalDataVO advo) {
+<span class="nc" id="L404">        ApprovalStep step = storedApprovalProfile.getStep(guiParition.getStepId());</span>
+<span class="nc" id="L405">        ApprovalPartition partition = step.getPartition(guiParition.getPartitionId());</span>
+
+<span class="nc" id="L407">        List&lt;DynamicUiProperty&lt;? extends Serializable&gt;&gt; updatedProperties =  getPartitionProperties(storedApprovalProfile, partition);</span>
+<span class="nc" id="L408">        storedApprovalProfile.addPropertiesToPartition(step.getStepIdentifier(), partition.getPartitionIdentifier(), updatedProperties);</span>
+
+<span class="nc" id="L410">        ApprovalRequest request = advo.getApprovalRequest();</span>
+<span class="nc" id="L411">        request.setApprovalProfile(storedApprovalProfile);</span>
+
+<span class="nc" id="L413">        final int id = requestInfo.request.getId();</span>
+<span class="nc" id="L414">        final int stepId = step.getStepIdentifier();</span>
+<span class="nc" id="L415">        final int partitionId = partition.getPartitionIdentifier();</span>
+<span class="nc" id="L416">        final RaApprovalResponseRequest approval = new RaApprovalResponseRequest(id, stepId, partitionId, request, &quot;&quot;, action); // TODO comment field. should it be here for partitioned approvals also?</span>
+<span class="nc" id="L417">        return approval;</span>
+    }
+
+    public void approve() throws AuthorizationDeniedException, AuthenticationFailedException {
+<span class="nc" id="L421">        final ApprovalDataVO advo = requestInfo.request.getApprovalData();</span>
+<span class="nc" id="L422">        final ApprovalProfile approvalProfile = advo.getApprovalRequest().getApprovalProfile();</span>
+
+<span class="nc bnc" id="L424" title="All 2 branches missed.">        for (ApprovalRequestGUIInfo.ApprovalPartitionProfileGuiObject guiPartition : partitionsAuthorizedToView) {</span>
+<span class="nc bnc" id="L425" title="All 2 branches missed.">            if (partitionsAuthorizedToApprove.contains(guiPartition.getPartitionId())) {</span>
+<span class="nc" id="L426">                final RaApprovalResponseRequest responseReq = buildApprovalResponseRequest(Action.APPROVE, guiPartition, approvalProfile, advo);</span>
+                try {
+<span class="nc bnc" id="L428" title="All 2 branches missed.">                    if (raMasterApiProxyBean.addRequestResponse(raAuthenticationBean.getAuthenticationToken(), responseReq)) {</span>
+<span class="nc" id="L429">                        raLocaleBean.addMessageInfo(&quot;view_request_page_success_approve&quot;);</span>
+                    } else {
+<span class="nc" id="L431">                        raLocaleBean.addMessageError(&quot;generic_unexpected_no_backend&quot;);</span>
+                    }
+<span class="nc" id="L433">                } catch (ApprovalException e) {</span>
+<span class="nc" id="L434">                    raLocaleBean.addMessageError(&quot;view_request_page_error_approval_generic&quot;);</span>
+<span class="nc" id="L435">                    logException(&quot;approve&quot;, e);</span>
+<span class="nc" id="L436">                } catch (ApprovalRequestExpiredException e) {</span>
+<span class="nc" id="L437">                    raLocaleBean.addMessageError(&quot;view_request_page_error_approval_expired&quot;);</span>
+<span class="nc" id="L438">                    logException(&quot;approve&quot;, e);</span>
+<span class="nc" id="L439">                } catch (ApprovalRequestExecutionException e) {</span>
+<span class="nc" id="L440">                    raLocaleBean.addMessageError(&quot;view_request_page_error_approval_execution&quot;);</span>
+<span class="nc" id="L441">                    logException(&quot;approve&quot;, e);</span>
+<span class="nc" id="L442">                } catch (AdminAlreadyApprovedRequestException e) {</span>
+<span class="nc" id="L443">                    raLocaleBean.addMessageError(&quot;view_request_page_error_already_approved&quot;);</span>
+<span class="nc" id="L444">                    logException(&quot;approve&quot;, e);</span>
+<span class="nc" id="L445">                } catch (SelfApprovalException e) {</span>
+<span class="nc" id="L446">                    raLocaleBean.addMessageError(&quot;view_request_page_error_self_approval&quot;);</span>
+<span class="nc" id="L447">                    logException(&quot;approve&quot;, e);</span>
+<span class="nc" id="L448">                }</span>
+            }
+<span class="nc" id="L450">        }</span>
+
+<span class="nc" id="L452">        reloadRequest();</span>
+<span class="nc" id="L453">    }</span>
+
+    public void reject() throws AuthorizationDeniedException, AuthenticationFailedException {
+<span class="nc" id="L456">        final ApprovalDataVO advo = requestInfo.request.getApprovalData();</span>
+<span class="nc" id="L457">        final ApprovalProfile approvalProfile = advo.getApprovalRequest().getApprovalProfile();</span>
+
+<span class="nc bnc" id="L459" title="All 2 branches missed.">        for (ApprovalRequestGUIInfo.ApprovalPartitionProfileGuiObject guiPartition : partitionsAuthorizedToView) {</span>
+<span class="nc bnc" id="L460" title="All 2 branches missed.">            if (partitionsAuthorizedToApprove.contains(guiPartition.getPartitionId())) {</span>
+<span class="nc" id="L461">                final RaApprovalResponseRequest responseReq = buildApprovalResponseRequest(Action.REJECT, guiPartition, approvalProfile, advo);</span>
+                try {
+<span class="nc bnc" id="L463" title="All 2 branches missed.">                    if (raMasterApiProxyBean.addRequestResponse(raAuthenticationBean.getAuthenticationToken(), responseReq)) {</span>
+<span class="nc" id="L464">                        raLocaleBean.addMessageInfo(&quot;view_request_page_success_reject&quot;);</span>
+                    } else {
+<span class="nc" id="L466">                        raLocaleBean.addMessageError(&quot;generic_unexpected_no_backend&quot;);</span>
+                    }
+<span class="nc" id="L468">                } catch (ApprovalException e) {</span>
+<span class="nc" id="L469">                    raLocaleBean.addMessageError(&quot;view_request_page_error_approval_generic_reject&quot;);</span>
+<span class="nc" id="L470">                    logException(&quot;reject&quot;, e);</span>
+<span class="nc" id="L471">                } catch (ApprovalRequestExpiredException e) {</span>
+<span class="nc" id="L472">                    raLocaleBean.addMessageError(&quot;view_request_page_error_approval_expired&quot;);</span>
+<span class="nc" id="L473">                    logException(&quot;reject&quot;, e);</span>
+<span class="nc" id="L474">                } catch (ApprovalRequestExecutionException e) {</span>
+<span class="nc" id="L475">                    raLocaleBean.addMessageError(&quot;view_request_page_error_approval_execution&quot;);</span>
+<span class="nc" id="L476">                    logException(&quot;reject&quot;, e);</span>
+<span class="nc" id="L477">                } catch (AdminAlreadyApprovedRequestException e) {</span>
+<span class="nc" id="L478">                    raLocaleBean.addMessageError(&quot;view_request_page_error_already_approved&quot;);</span>
+<span class="nc" id="L479">                    logException(&quot;reject&quot;, e);</span>
+<span class="nc" id="L480">                } catch (SelfApprovalException e) {</span>
+<span class="nc" id="L481">                    raLocaleBean.addMessageError(&quot;view_request_page_error_self_approval&quot;);</span>
+<span class="nc" id="L482">                    logException(&quot;reject&quot;, e);</span>
+<span class="nc" id="L483">                }</span>
+            }
+<span class="nc" id="L485">        }</span>
+
+<span class="nc" id="L487">        reloadRequest();</span>
+<span class="nc" id="L488">    }</span>
+
+    public void editRequestData() {
+<span class="nc" id="L491">        editing = true;</span>
+<span class="nc" id="L492">    }</span>
+
+    public void saveRequestData() throws AuthorizationDeniedException {
+<span class="nc bnc" id="L495" title="All 2 branches missed.">        if (!editing) {</span>
+<span class="nc" id="L496">            throw new IllegalStateException();</span>
+        }
+
+<span class="nc" id="L499">        final RaEditableRequestData editData = requestData.getEditableData();</span>
+<span class="nc" id="L500">        final RaEndEntityDetails endEntityDetails = requestInfo.getEndEntityDetails();</span>
+<span class="nc bnc" id="L501" title="All 2 branches missed.">        if (endEntityDetails != null) {</span>
+<span class="nc" id="L502">            final SubjectDn sdn = endEntityDetails.getSubjectDistinguishedName();</span>
+<span class="nc" id="L503">            sdn.update();</span>
+<span class="nc" id="L504">            editData.setSubjectDN(sdn.getValue());</span>
+
+<span class="nc" id="L506">            final SubjectAlternativeName san = endEntityDetails.getSubjectAlternativeName();</span>
+<span class="nc" id="L507">            san.update();</span>
+<span class="nc" id="L508">            editData.setSubjectAltName(san.getValue());</span>
+
+<span class="nc" id="L510">            final SubjectDirectoryAttributes sda = endEntityDetails.getSubjectDirectoryAttributes();</span>
+<span class="nc" id="L511">            sda.update();</span>
+<span class="nc" id="L512">            editData.setSubjectDirAttrs(sda.getValue());</span>
+
+<span class="nc" id="L514">            editData.setEmail(endEntityDetails.getEmail());</span>
+<span class="nc" id="L515">        } else {</span>
+<span class="nc bnc" id="L516" title="All 2 branches missed.">            for (final RequestDataRow dataRow : requestInfo.getRequestData()) {</span>
+<span class="nc bnc" id="L517" title="All 5 branches missed.">                switch (dataRow.getKey()) {</span>
+                case &quot;SUBJECTDN&quot;:
+<span class="nc" id="L519">                    editData.setSubjectDN(getDN(dataRow));</span>
+<span class="nc" id="L520">                    break;</span>
+                case &quot;SUBJECTALTNAME&quot;:
+<span class="nc" id="L522">                    editData.setSubjectAltName(getDN(dataRow));</span>
+<span class="nc" id="L523">                    break;</span>
+                case &quot;SUBJECTDIRATTRIBUTES&quot;:
+<span class="nc" id="L525">                    editData.setSubjectDirAttrs(getDN(dataRow));</span>
+<span class="nc" id="L526">                    break;</span>
+                case &quot;EMAIL&quot;:
+<span class="nc" id="L528">                    String email = (String) dataRow.getEditValue();</span>
+                    // TODO validation (ECA-5235)
+<span class="nc" id="L530">                    editData.setEmail(email);</span>
+                    break;
+                }
+<span class="nc" id="L533">            }</span>
+
+            // Check that the end entity profile is fulfilled
+            // TODO: ECA-5235
+        }
+
+        // TODO error handling
+<span class="nc" id="L540">        final RaApprovalEditRequest editReq = new RaApprovalEditRequest(requestData.getId(), editData);</span>
+<span class="nc" id="L541">        final RaApprovalRequestInfo newReqData = raMasterApiProxyBean.editApprovalRequest(raAuthenticationBean.getAuthenticationToken(), editReq);</span>
+<span class="nc bnc" id="L542" title="All 2 branches missed.">        if (newReqData == null) {</span>
+<span class="nc" id="L543">            raLocaleBean.addMessageError(&quot;view_request_page_error_edit&quot;);</span>
+<span class="nc" id="L544">            return;</span>
+        }
+<span class="nc" id="L546">        requestData = newReqData;</span>
+<span class="nc" id="L547">        requestInfo = new ApprovalRequestGUIInfo(requestData, raLocaleBean, raAccessBean);</span>
+<span class="nc" id="L548">        editing = false;</span>
+<span class="nc" id="L549">    }</span>
+
+    public void cancelEdit() {
+<span class="nc bnc" id="L552" title="All 2 branches missed.">        if (!editing) {</span>
+<span class="nc" id="L553">            throw new IllegalStateException();</span>
+        }
+        // Restore everything
+<span class="nc" id="L556">        requestData = raMasterApiProxyBean.getApprovalRequest(raAuthenticationBean.getAuthenticationToken(), requestData.getId());</span>
+<span class="nc" id="L557">        requestInfo = new ApprovalRequestGUIInfo(requestData, raLocaleBean, raAccessBean);</span>
+<span class="nc" id="L558">        editing = false;</span>
+<span class="nc" id="L559">    }</span>
+
+    public String extendRequest() throws AuthorizationDeniedException {
+<span class="nc bnc" id="L562" title="All 2 branches missed.">        if (StringUtils.isBlank(extendDays)) {</span>
+<span class="nc" id="L563">            raLocaleBean.addMessageError(&quot;view_request_page_error_extend_missing_days&quot;);</span>
+<span class="nc" id="L564">            return &quot;&quot;;</span>
+        }
+
+<span class="nc" id="L567">        final long extendForMillis = Long.valueOf(extendDays.trim()) * 24*60*60*1000;</span>
+<span class="nc" id="L568">        final long maxExtensionTime = requestInfo.request.getMaxExtensionTime();</span>
+<span class="nc bnc" id="L569" title="All 2 branches missed.">        if (extendForMillis &gt; maxExtensionTime) {</span>
+<span class="nc" id="L570">            raLocaleBean.addMessageError(&quot;view_request_page_error_extend_too_long&quot;, getMaxExtensionDays());</span>
+<span class="nc" id="L571">            return &quot;&quot;;</span>
+        }
+<span class="nc" id="L573">        raMasterApiProxyBean.extendApprovalRequest(raAuthenticationBean.getAuthenticationToken(), requestData.getId(), extendForMillis);</span>
+<span class="nc" id="L574">        return &quot;managerequest.xhtml?faces-redirect=true&amp;includeViewParams=true&quot;;</span>
+    }
+
+    public int getMaxExtensionDays() {
+<span class="nc" id="L578">        long days = requestInfo.request.getMaxExtensionTime() / (24*60*60*1000);</span>
+<span class="nc" id="L579">        return (int) days;</span>
+    }
+
+    public String getExtendDaysPart2Text() {
+<span class="nc" id="L583">        return raLocaleBean.getMessage(&quot;view_request_page_extend_days_2&quot;, getMaxExtensionDays());</span>
+    }
+
+    public String getDN(final RequestDataRow dataRow) {
+        // TODO validation (ECA-5235)
+<span class="nc" id="L588">        return (String) dataRow.getEditValue();</span>
+    }
+
+    /** Logs the message of an exception, which usually contains some message. For example: &quot;You may not approve an action which you requested yourself&quot; 
+     * @param action Action 
+     * @param t Exception */
+    private void logException(final String action, final Throwable t) {
+<span class="nc bnc" id="L595" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L596">            log.debug(&quot;Got exception while trying to &quot; + action + &quot; an approval request: &quot; + t.getMessage());</span>
+        }
+<span class="nc" id="L598">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

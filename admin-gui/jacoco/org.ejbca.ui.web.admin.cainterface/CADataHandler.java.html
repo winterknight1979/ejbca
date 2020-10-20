@@ -1,0 +1,522 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CADataHandler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Administration GUI</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.cainterface</a> &gt; <span class="el_source">CADataHandler.java</span></div><h1>CADataHandler.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.ui.web.admin.cainterface;
+
+import java.io.ByteArrayInputStream;
+import java.io.Serializable;
+import java.security.KeyStore;
+import java.security.cert.CertPathValidatorException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateParsingException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.control.StandardRules;
+import org.cesecore.authorization.user.matchvalues.AccessMatchValue;
+import org.cesecore.authorization.user.matchvalues.AccessMatchValueReverseLookupRegistry;
+import org.cesecore.certificates.ca.CAConstants;
+import org.cesecore.certificates.ca.CADoesntExistsException;
+import org.cesecore.certificates.ca.CAExistsException;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.CAOfflineException;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.certificates.ca.InvalidAlgorithmException;
+import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceInfo;
+import org.cesecore.certificates.certificate.CertificateRevokeException;
+import org.cesecore.certificates.certificate.request.RequestMessage;
+import org.cesecore.certificates.certificate.request.ResponseMessage;
+import org.cesecore.certificates.certificate.request.X509ResponseMessage;
+import org.cesecore.certificates.certificateprofile.CertificateProfile;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSession;
+import org.cesecore.certificates.crl.RevokedCertInfo;
+import org.cesecore.keybind.CertificateImportException;
+import org.cesecore.keys.token.CryptoTokenOfflineException;
+import org.cesecore.keys.validation.KeyValidatorSessionLocal;
+import org.cesecore.roles.AccessRulesHelper;
+import org.cesecore.roles.Role;
+import org.cesecore.roles.management.RoleDataSessionLocal;
+import org.cesecore.roles.member.RoleMember;
+import org.cesecore.roles.member.RoleMemberDataSessionLocal;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.EJBTools;
+import org.ejbca.core.ejb.ca.caadmin.CAAdminSessionLocal;
+import org.ejbca.core.ejb.ca.publisher.PublisherSessionLocal;
+import org.ejbca.core.ejb.ra.EndEntityManagementSessionLocal;
+import org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSession;
+import org.ejbca.core.model.approval.ApprovalException;
+import org.ejbca.core.model.approval.WaitingForApprovalException;
+import org.ejbca.core.model.ca.caadmin.extendedcaservices.BaseSigningCAServiceInfo;
+import org.ejbca.core.model.util.EjbLocalHelper;
+import org.ejbca.ui.web.admin.configuration.EjbcaWebBean;
+
+/**
+ * A class help administrating CAs. 
+ *
+ * @version $Id: CADataHandler.java 27816 2018-01-09 16:19:36Z samuellb $
+ */
+public class CADataHandler implements Serializable {
+  
+    private static final long serialVersionUID = 2132603037548273013L;
+
+<span class="nc" id="L81">    private static final Logger log = Logger.getLogger(CADataHandler.class);</span>
+
+    private AuthenticationToken administrator;
+    
+    private RoleDataSessionLocal roleDataSession;
+    private RoleMemberDataSessionLocal roleMemberDataSession;
+    private CAAdminSessionLocal caadminsession; 
+    private CaSessionLocal caSession;
+    private CertificateProfileSession certificateProfileSession;
+    private EndEntityProfileSession endEntityProfileSession;
+    private EndEntityManagementSessionLocal endEntitySession;
+    private final KeyValidatorSessionLocal keyValidatorSession;
+    private final PublisherSessionLocal publisherSession;
+
+    private EjbcaWebBean ejbcawebbean;
+    
+    /** Creates a new instance of CADataHandler 
+     * @param authenticationToken Token
+     * @param ejb EJB
+     * @param ejbcawebbean Bean */
+<span class="nc" id="L101">    public CADataHandler(final AuthenticationToken authenticationToken, final EjbLocalHelper ejb, final EjbcaWebBean ejbcawebbean) {</span>
+<span class="nc" id="L102">       this.roleDataSession = ejb.getRoleDataSession();</span>
+<span class="nc" id="L103">       this.roleMemberDataSession = ejb.getRoleMemberDataSession();</span>
+<span class="nc" id="L104">       this.caadminsession = ejb.getCaAdminSession();</span>
+<span class="nc" id="L105">       this.caSession = ejb.getCaSession();</span>
+<span class="nc" id="L106">       this.endEntitySession = ejb.getEndEntityManagementSession();</span>
+<span class="nc" id="L107">       this.certificateProfileSession = ejb.getCertificateProfileSession();</span>
+<span class="nc" id="L108">       this.endEntityProfileSession = ejb.getEndEntityProfileSession();</span>
+<span class="nc" id="L109">       this.keyValidatorSession = ejb.getKeyValidatorSession();</span>
+<span class="nc" id="L110">       this.publisherSession = ejb.getPublisherSession();</span>
+<span class="nc" id="L111">       this.administrator = authenticationToken;</span>
+<span class="nc" id="L112">       this.ejbcawebbean = ejbcawebbean;</span>
+<span class="nc" id="L113">    }</span>
+    
+  /**
+   * @param cainfo CA Info
+ * @throws CAExistsException Fail 
+ * @throws CryptoTokenOfflineException Fail 
+ * @throws AuthorizationDeniedException Fail
+ * @throws InvalidAlgorithmException Fail
+ * @see org.ejbca.core.ejb.ca.caadmin.CAAdminSessionBean
+   */    
+  public void createCA(CAInfo cainfo) throws CAExistsException, CryptoTokenOfflineException, AuthorizationDeniedException, InvalidAlgorithmException{
+<span class="nc" id="L124">    caadminsession.createCA(administrator, cainfo);</span>
+<span class="nc" id="L125">  }</span>
+
+  /**
+   *  @param caname CA Name
+ * @param p12file PKCS12 File
+ * @param keystorepass Password
+ * @param privateSignatureKeyAlias Alias 
+ * @param privateEncryptionKeyAlias Alias
+ * @throws Exception Fail
+ * @see org.ejbca.core.ejb.ca.caadmin.CAAdminSessionBean
+   */
+  public void importCAFromKeyStore(String caname, byte[] p12file, String keystorepass, String privateSignatureKeyAlias, String privateEncryptionKeyAlias) throws Exception {
+<span class="nc" id="L137">      final KeyStore ks = KeyStore.getInstance(&quot;PKCS12&quot;, BouncyCastleProvider.PROVIDER_NAME);</span>
+<span class="nc" id="L138">      ks.load(new ByteArrayInputStream(p12file), keystorepass.toCharArray());</span>
+<span class="nc bnc" id="L139" title="All 2 branches missed.">      if (privateSignatureKeyAlias.equals(&quot;&quot;)) {</span>
+<span class="nc" id="L140">          Enumeration&lt;String&gt; aliases = ks.aliases();</span>
+<span class="nc bnc" id="L141" title="All 4 branches missed.">          if (aliases == null || !aliases.hasMoreElements()) {</span>
+<span class="nc" id="L142">              throw new Exception(&quot;This file does not contain any aliases.&quot;);</span>
+          }
+<span class="nc" id="L144">          privateSignatureKeyAlias = aliases.nextElement();</span>
+<span class="nc bnc" id="L145" title="All 2 branches missed.">          if (aliases.hasMoreElements()) {</span>
+<span class="nc bnc" id="L146" title="All 2 branches missed.">              while (aliases.hasMoreElements()) {</span>
+<span class="nc" id="L147">                  privateSignatureKeyAlias += &quot; &quot; + aliases.nextElement();</span>
+              }
+<span class="nc" id="L149">              throw new Exception(&quot;You have to specify any of the following aliases: &quot; + privateSignatureKeyAlias);</span>
+          }
+      }
+<span class="nc bnc" id="L152" title="All 2 branches missed.">      if ( privateEncryptionKeyAlias.equals(&quot;&quot;) ) {</span>
+<span class="nc" id="L153">          privateEncryptionKeyAlias = null;</span>
+      }
+<span class="nc" id="L155">      caadminsession.importCAFromKeyStore(administrator, caname, p12file, keystorepass, keystorepass, privateSignatureKeyAlias, privateEncryptionKeyAlias);  </span>
+<span class="nc" id="L156">  }</span>
+
+  /**
+   * @param caId CA ID
+ * @param certbytes Bytes
+ * @throws CertificateParsingException Fail
+ * @throws CADoesntExistsException Fail
+ * @throws AuthorizationDeniedException Fail 
+ * @throws CertificateImportException Fail
+ * @see org.ejbca.core.ejb.ca.caadmin.CAAdminSessionBean 
+   */
+  public void importCACertUpdate(int caId, byte[] certbytes) throws CertificateParsingException, CADoesntExistsException, AuthorizationDeniedException, CertificateImportException {
+<span class="nc" id="L168">      Collection&lt;Certificate&gt; certs = null;</span>
+      try {
+<span class="nc" id="L170">          certs = CertTools.getCertsFromPEM(new ByteArrayInputStream(certbytes), Certificate.class);</span>
+<span class="nc" id="L171">      } catch (CertificateException e) {</span>
+<span class="nc" id="L172">          log.debug(&quot;Input stream is not PEM certificate(s): &quot;+e.getMessage());</span>
+          // See if it is a single binary certificate
+<span class="nc" id="L174">          certs = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L175">          certs.add(CertTools.getCertfromByteArray(certbytes, Certificate.class));</span>
+<span class="nc" id="L176">      }</span>
+<span class="nc" id="L177">      caadminsession.updateCACertificate(administrator, caId, EJBTools.wrapCertCollection(certs));</span>
+<span class="nc" id="L178">  }</span>
+
+  /**
+   *  @param caname CA NAme
+ * @param certbytes Bytes
+ * @throws Exception Exception
+ * @see org.ejbca.core.ejb.ca.caadmin.CAAdminSessionBean
+   */
+  public void importCACert(String caname, byte[] certbytes) throws Exception {
+<span class="nc" id="L187">	  Collection&lt;Certificate&gt; certs = null;</span>
+	  try {
+<span class="nc" id="L189">		  certs = CertTools.getCertsFromPEM(new ByteArrayInputStream(certbytes), Certificate.class);</span>
+<span class="nc" id="L190">	  } catch (CertificateException e) {</span>
+<span class="nc" id="L191">		  log.debug(&quot;Input stream is not PEM certificate(s): &quot;+e.getMessage());</span>
+		  // See if it is a single binary certificate
+<span class="nc" id="L193">		  Certificate cert = CertTools.getCertfromByteArray(certbytes, Certificate.class);</span>
+<span class="nc" id="L194">		  certs = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L195">		  certs.add(cert);</span>
+<span class="nc" id="L196">	  }</span>
+<span class="nc" id="L197">	  caadminsession.importCACertificate(administrator, caname, EJBTools.wrapCertCollection(certs));</span>
+<span class="nc" id="L198">  }</span>
+
+  /**
+   *  @param cainfo CA Info
+ * @throws AuthorizationDeniedException Fail 
+ * @throws CADoesntExistsException Fail
+ * @see org.ejbca.core.ejb.ca.caadmin.CAAdminSessionBean
+   */
+  public void editCA(CAInfo cainfo) throws AuthorizationDeniedException, CADoesntExistsException{
+<span class="nc" id="L207">	  CAInfo oldinfo = caSession.getCAInfo(administrator, cainfo.getCAId());</span>
+<span class="nc" id="L208">	  cainfo.setName(oldinfo.getName());</span>
+<span class="nc bnc" id="L209" title="All 2 branches missed.">	  if (cainfo.getStatus() != CAConstants.CA_UNINITIALIZED) {</span>
+<span class="nc" id="L210">	      cainfo.setSubjectDN(oldinfo.getSubjectDN());</span>
+	  }
+<span class="nc" id="L212">	  caadminsession.editCA(administrator, cainfo);  </span>
+<span class="nc" id="L213">  }</span>
+
+    /**
+     * Initializes a CA. The CA is updated with the values in caInfo,
+     * its status is set to active and certificates are generated.
+     * 
+     * @param  caInfo CAInfo class containing updated information for the CA to initialize
+     * @throws AuthorizationDeniedException if user was denied authorization to edit CAs 
+     * @throws CryptoTokenOfflineException if the keystore defined by the cryptotoken in caInfo has no keys 
+     * @throws CADoesntExistsException if the CA defined by caInfo doesn't exist.
+     * @throws InvalidAlgorithmException  Fail
+     */
+    public void initializeCA(CAInfo caInfo) throws AuthorizationDeniedException, CADoesntExistsException, CryptoTokenOfflineException, InvalidAlgorithmException {
+<span class="nc" id="L226">        CAInfo oldinfo = caSession.getCAInfo(administrator, caInfo.getCAId());</span>
+<span class="nc" id="L227">        caInfo.setName(oldinfo.getName());</span>
+        
+<span class="nc" id="L229">        caadminsession.initializeCa(administrator, caInfo);</span>
+<span class="nc" id="L230">    }</span>
+  
+    /** @param caId CA ID
+     * @return success
+     * @throws AuthorizationDeniedException Fail 
+     * @see org.ejbca.core.ejb.ca.caadmin.CAAdminSessionBean */  
+    public boolean removeCA(final int caId) throws AuthorizationDeniedException{     
+<span class="nc bnc" id="L237" title="All 2 branches missed.">        final boolean caIdIsPresent = this.endEntitySession.checkForCAId(caId) ||</span>
+<span class="nc bnc" id="L238" title="All 2 branches missed.">                this.certificateProfileSession.existsCAIdInCertificateProfiles(caId) ||</span>
+<span class="nc bnc" id="L239" title="All 2 branches missed.">                this.endEntityProfileSession.existsCAInEndEntityProfiles(caId) ||</span>
+<span class="nc bnc" id="L240" title="All 2 branches missed.">                isCaIdInUseByRoleOrRoleMember(caId);   </span>
+<span class="nc bnc" id="L241" title="All 2 branches missed.">        if (!caIdIsPresent) {</span>
+<span class="nc" id="L242">            caSession.removeCA(administrator, caId);</span>
+        }
+<span class="nc bnc" id="L244" title="All 2 branches missed.">        return !caIdIsPresent;</span>
+    }
+
+    /** @param caId CA ID
+     * @return true if the CA ID is in use by any Role's access rule or as RoleMember.tokenIssuerId */
+    private boolean isCaIdInUseByRoleOrRoleMember(final int caId) {
+<span class="nc bnc" id="L250" title="All 2 branches missed.">        for (final Role role : roleDataSession.getAllRoles()) {</span>
+<span class="nc bnc" id="L251" title="All 2 branches missed.">            if (role.getAccessRules().containsKey(AccessRulesHelper.normalizeResource(StandardRules.CAACCESS.resource() + caId))) {</span>
+<span class="nc" id="L252">                return true;</span>
+            }
+<span class="nc bnc" id="L254" title="All 2 branches missed.">            for (final RoleMember roleMember : roleMemberDataSession.findRoleMemberByRoleId(role.getRoleId())) {</span>
+<span class="nc bnc" id="L255" title="All 2 branches missed.">                if (roleMember.getTokenIssuerId()==caId) {</span>
+                    // Do more expensive checks if it is a potential match
+<span class="nc" id="L257">                    final AccessMatchValue accessMatchValue = AccessMatchValueReverseLookupRegistry.INSTANCE.getMetaData(</span>
+<span class="nc" id="L258">                            roleMember.getTokenType()).getAccessMatchValueIdMap().get(roleMember.getTokenMatchKey());</span>
+<span class="nc bnc" id="L259" title="All 2 branches missed.">                    if (accessMatchValue.isIssuedByCa()) {</span>
+<span class="nc" id="L260">                        return true;</span>
+                    }
+                }
+<span class="nc" id="L263">            }</span>
+<span class="nc" id="L264">        }</span>
+<span class="nc" id="L265">        return false;</span>
+    }
+
+  /** @param caId CA ID
+ * @param newname Name
+ * @return true if CA with the new name already existed 
+ * @throws AuthorizationDeniedException Fail 
+ * @throws CADoesntExistsException Fail */  
+  public boolean renameCA(int caId, String newname) throws AuthorizationDeniedException, CADoesntExistsException {
+<span class="nc bnc" id="L274" title="All 6 branches missed.">      if (caId!=0 &amp;&amp; newname != null &amp;&amp; newname.length()&gt;0) {</span>
+          try {
+<span class="nc" id="L276">              final String oldname = getCAIdToNameMap().get(Integer.valueOf(caId));</span>
+<span class="nc" id="L277">              caSession.renameCA(administrator, oldname, newname);</span>
+<span class="nc" id="L278">          } catch (CAExistsException e) {</span>
+<span class="nc" id="L279">              return true;</span>
+<span class="nc" id="L280">          }  </span>
+      }
+<span class="nc" id="L282">      return false;</span>
+  }
+
+  public CAInfoView getCAInfo(String name) throws AuthorizationDeniedException {
+<span class="nc" id="L286">    CAInfoView cainfoview = null; </span>
+<span class="nc" id="L287">    CAInfo cainfo = caSession.getCAInfo(administrator, name);</span>
+<span class="nc bnc" id="L288" title="All 2 branches missed.">    if(cainfo != null) {</span>
+<span class="nc" id="L289">      cainfoview = new CAInfoView(cainfo, ejbcawebbean, publisherSession.getPublisherIdToNameMap(), keyValidatorSession.getKeyValidatorIdToNameMap());</span>
+    } 
+<span class="nc" id="L291">    return cainfoview;</span>
+  }
+  
+  public CAInfoView getCAInfoNoAuth(String name) {
+<span class="nc" id="L295">    CAInfoView cainfoview = null; </span>
+<span class="nc" id="L296">    CAInfo cainfo = caSession.getCAInfoInternal(-1, name, true);</span>
+<span class="nc bnc" id="L297" title="All 2 branches missed.">    if(cainfo != null) {</span>
+<span class="nc" id="L298">      cainfoview = new CAInfoView(cainfo, ejbcawebbean, publisherSession.getPublisherIdToNameMap(), keyValidatorSession.getKeyValidatorIdToNameMap());</span>
+    } 
+<span class="nc" id="L300">    return cainfoview;</span>
+  }
+  
+  public CAInfoView getCAInfoNoAuth(final int caid) {
+<span class="nc" id="L304">      final CAInfo cainfo = caSession.getCAInfoInternal(caid);</span>
+<span class="nc" id="L305">      return new CAInfoView(cainfo, ejbcawebbean, publisherSession.getPublisherIdToNameMap(), keyValidatorSession.getKeyValidatorIdToNameMap());</span>
+    }
+  
+
+  public CAInfoView getCAInfo(final int caid) throws AuthorizationDeniedException {
+<span class="nc" id="L310">    final CAInfo cainfo = caSession.getCAInfo(administrator, caid);</span>
+<span class="nc" id="L311">    return new CAInfoView(cainfo, ejbcawebbean, publisherSession.getPublisherIdToNameMap(), keyValidatorSession.getKeyValidatorIdToNameMap());</span>
+  }
+
+  /**
+   *  @return Map
+ * @see org.ejbca.core.ejb.ca.caadmin.CAAdminSessionBean
+   */  
+  public Map&lt;Integer, String&gt; getCAIdToNameMap(){
+<span class="nc" id="L319">    return caSession.getCAIdToNameMap();</span>
+  }
+  
+  /** @param caid CA ID
+ * @param caChainBytes Chain
+ * @param nextSignKeyAlias Alias
+ * @return Reqiest
+ * @throws CADoesntExistsException Fail
+ * @throws AuthorizationDeniedException Fail 
+ * @throws CryptoTokenOfflineException Fail
+ * @see org.ejbca.core.ejb.ca.caadmin.CAAdminSessionBean */
+  public byte[] makeRequest(int caid, byte[] caChainBytes, String nextSignKeyAlias) throws CADoesntExistsException, AuthorizationDeniedException, CryptoTokenOfflineException {
+<span class="nc" id="L331">      List&lt;Certificate&gt; certChain = null;</span>
+<span class="nc bnc" id="L332" title="All 2 branches missed.">      if (caChainBytes != null) {</span>
+          try {
+<span class="nc" id="L334">              certChain = CertTools.getCertsFromPEM(new ByteArrayInputStream(caChainBytes), Certificate.class);</span>
+<span class="nc bnc" id="L335" title="All 2 branches missed.">              if (certChain.size()==0) {</span>
+<span class="nc" id="L336">                  throw new IllegalStateException(&quot;Certificate chain contained no certificates&quot;);</span>
+              }
+<span class="nc" id="L338">          } catch (Exception e) {</span>
+              // Maybe it's just a single binary CA cert
+              try {
+<span class="nc" id="L341">                  Certificate cert = CertTools.getCertfromByteArray(caChainBytes, Certificate.class);</span>
+<span class="nc" id="L342">                  certChain = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L343">                  certChain.add(cert);</span>
+<span class="nc" id="L344">              } catch (CertificateParsingException e2) {</span>
+                  // Ok.. so no chain was supplied.. we go ahead anyway..
+<span class="nc" id="L346">                  throw new CADoesntExistsException(&quot;Invalid CA chain file.&quot;);</span>
+<span class="nc" id="L347">              }</span>
+<span class="nc" id="L348">          }</span>
+      }
+      try {
+<span class="nc" id="L351">          return caadminsession.makeRequest(administrator, caid, certChain, nextSignKeyAlias);</span>
+<span class="nc" id="L352">      } catch (CertPathValidatorException e) {</span>
+<span class="nc" id="L353">          throw new RuntimeException(&quot;Unexpected outcome.&quot;, e);</span>
+      }
+  }
+
+  /** @param caid CA ID
+ * @param request Request
+ * @return Sign request
+ * @throws CADoesntExistsException Fail
+ * @throws AuthorizationDeniedException Fail 
+ * @throws CryptoTokenOfflineException Fail
+ * @see org.ejbca.core.ejb.ca.caadmin.CAAdminSessionBean */
+  public byte[] createAuthCertSignRequest(int caid, byte[] request) throws CADoesntExistsException, AuthorizationDeniedException, CryptoTokenOfflineException{
+<span class="nc" id="L365">      return caadminsession.createAuthCertSignRequest(administrator, caid, request);</span>
+  }     
+  
+  /** @param caid CA ID
+ * @param certBytes Certs
+ * @param nextSignKeyAlias Alias 
+ * @param futureRollover bool
+ * @throws Exception Fail
+ * @see org.ejbca.core.ejb.ca.caadmin.CAAdminSessionBean#receiveResponse */  
+  public void receiveResponse(int caid, byte[] certBytes, String nextSignKeyAlias, boolean futureRollover) throws Exception{
+	  try {
+<span class="nc" id="L376">          final List&lt;Certificate&gt; certChain = new ArrayList&lt;&gt;();</span>
+		  try {
+<span class="nc" id="L378">		      certChain.addAll(CertTools.getCertsFromPEM(new ByteArrayInputStream(certBytes), Certificate.class));</span>
+<span class="nc" id="L379">          } catch (CertificateException e) {</span>
+<span class="nc" id="L380">              log.debug(&quot;Input stream is not PEM certificate(s): &quot;+e.getMessage());</span>
+              // See if it is a single binary certificate
+<span class="nc" id="L382">              certChain.add(CertTools.getCertfromByteArray(certBytes, Certificate.class));</span>
+<span class="nc" id="L383">          }</span>
+<span class="nc bnc" id="L384" title="All 2 branches missed.">		  if (certChain.size()==0) {</span>
+<span class="nc" id="L385">		      throw new Exception(&quot;No certificate(s) could be read.&quot;);</span>
+		  }
+<span class="nc" id="L387">		  Certificate caCertificate = certChain.get(0);</span>
+<span class="nc" id="L388">		  final X509ResponseMessage resmes = new X509ResponseMessage();</span>
+<span class="nc" id="L389">		  resmes.setCertificate(caCertificate);</span>
+<span class="nc" id="L390">		  caadminsession.receiveResponse(administrator, caid, resmes, certChain.subList(1, certChain.size()), nextSignKeyAlias, futureRollover);</span>
+<span class="nc" id="L391">	  } catch (Exception e) {</span>
+	      // log the error here, since otherwise it may be hidden by web pages...
+<span class="nc" id="L393">		  log.error(&quot;Error receiving response: &quot;, e);</span>
+<span class="nc" id="L394">		  throw e;</span>
+<span class="nc" id="L395">	  }</span>
+<span class="nc" id="L396">  }</span>
+
+  /**
+   *  @param cainfo CA Info
+ * @param requestmessage Request
+ * @return Cert
+ * @throws Exception Fail
+ * @see org.ejbca.core.ejb.ca.caadmin.CAAdminSessionBean
+   */  
+  public Certificate processRequest(CAInfo cainfo, RequestMessage requestmessage) throws Exception {      
+<span class="nc" id="L406">      Certificate returnval = null;</span>
+<span class="nc" id="L407">      ResponseMessage result = caadminsession.processRequest(administrator, cainfo, requestmessage);</span>
+<span class="nc bnc" id="L408" title="All 2 branches missed.">      if(result instanceof X509ResponseMessage){</span>
+<span class="nc" id="L409">         returnval = ((X509ResponseMessage) result).getCertificate();      </span>
+      }            
+      
+<span class="nc" id="L412">      return returnval;      </span>
+  }
+
+  public boolean renewCA(int caid, String nextSignKeyAlias, boolean createLinkCertificate) throws Exception {
+<span class="nc bnc" id="L416" title="All 2 branches missed.">      if (getCAInfo(caid).getCAInfo().getSignedBy() == CAInfo.SIGNEDBYEXTERNALCA) {</span>
+<span class="nc" id="L417">          return false;</span>
+      } else {
+<span class="nc bnc" id="L419" title="All 2 branches missed.">          if (getCAInfo(caid).getCAInfo().getCAType()==CAInfo.CATYPE_CVC) {</span>
+              // Force generation of link certificate for CVC CAs
+<span class="nc" id="L421">              createLinkCertificate = true;</span>
+          }
+<span class="nc bnc" id="L423" title="All 4 branches missed.">          if (nextSignKeyAlias == null || nextSignKeyAlias.length()==0) {</span>
+              // Generate new keys
+<span class="nc" id="L425">              caadminsession.renewCA(administrator, caid, true, null, createLinkCertificate);</span>
+          } else {
+              // Use existing keys
+<span class="nc" id="L428">              caadminsession.renewCA(administrator, caid, nextSignKeyAlias, null, createLinkCertificate);</span>
+          }
+<span class="nc" id="L430">          return true;</span>
+      }
+  }
+  
+  public boolean renewAndRenameCA(int caid, String nextSignKeyAlias, boolean createLinkCertificate, String newSubjectDn) throws Exception {
+<span class="nc bnc" id="L435" title="All 2 branches missed.">      if (getCAInfo(caid).getCAInfo().getSignedBy() == CAInfo.SIGNEDBYEXTERNALCA) {</span>
+<span class="nc" id="L436">          return false;</span>
+      } else {
+<span class="nc bnc" id="L438" title="All 4 branches missed.">          if (nextSignKeyAlias == null || nextSignKeyAlias.length()==0) {</span>
+              // Generate new keys
+<span class="nc" id="L440">              caadminsession.renewCANewSubjectDn(administrator, caid, true, null, createLinkCertificate, newSubjectDn);</span>
+          } else {
+              // Use existing keys
+<span class="nc" id="L443">              caadminsession.renewCANewSubjectDn(administrator, caid, nextSignKeyAlias, null, createLinkCertificate, newSubjectDn);</span>
+          }
+<span class="nc" id="L445">          return true;</span>
+      }
+  }
+
+  /** @param caid CA ID
+ * @param reason Reason
+ * @throws CADoesntExistsException Fail 
+ * @throws AuthorizationDeniedException Fail 
+ * @see org.ejbca.core.ejb.ca.caadmin.CAAdminSessionBean */
+  public void revokeCA(int caid, int reason) throws CADoesntExistsException, AuthorizationDeniedException {
+<span class="nc" id="L455">      caadminsession.revokeCA(administrator, caid, reason);</span>
+<span class="nc" id="L456">  }</span>
+      
+  /**
+   *  @param caid CA ID
+ * @throws AuthorizationDeniedException Fail
+ * @throws CADoesntExistsException Fail
+   */  
+ public void publishCA(int caid) throws AuthorizationDeniedException, CADoesntExistsException {
+<span class="nc" id="L464"> 	CAInfo cainfo = caSession.getCAInfo(administrator, caid);</span>
+<span class="nc" id="L465"> 	Collection&lt;Integer&gt; publishers = cainfo.getCRLPublishers();</span>
+ 	// Publish ExtendedCAServices certificates as well
+<span class="nc" id="L467">	Iterator&lt;ExtendedCAServiceInfo&gt; iter = cainfo.getExtendedCAServiceInfos().iterator();</span>
+<span class="nc bnc" id="L468" title="All 2 branches missed.">	while(iter.hasNext()){</span>
+<span class="nc" id="L469">		ExtendedCAServiceInfo next = iter.next();	</span>
+		// Only publish certificates for active services
+<span class="nc bnc" id="L471" title="All 2 branches missed.">		if (next.getStatus() == ExtendedCAServiceInfo.STATUS_ACTIVE) {</span>
+			// The OCSP certificate is the same as the CA signing certificate
+<span class="nc bnc" id="L473" title="All 2 branches missed.">			if (next instanceof BaseSigningCAServiceInfo){</span>
+<span class="nc" id="L474">				List&lt;Certificate&gt; signingcert = ((BaseSigningCAServiceInfo) next).getCertificatePath();</span>
+<span class="nc bnc" id="L475" title="All 2 branches missed.">				if (signingcert != null) {</span>
+<span class="nc" id="L476">					caadminsession.publishCACertificate(administrator, signingcert, publishers, cainfo.getSubjectDN());</span>
+				}
+			}
+		}
+<span class="nc" id="L480">	}  </span>
+<span class="nc" id="L481">    CertificateProfile certprofile = certificateProfileSession.getCertificateProfile(cainfo.getCertificateProfileId());</span>
+    // A CA certificate is published where the CRL is published and if there is a publisher noted in the certificate profile 
+    // (which there is probably not) 
+<span class="nc" id="L484">    publishers.addAll(certprofile.getPublisherList());</span>
+<span class="nc" id="L485">    caadminsession.publishCACertificate(administrator, cainfo.getCertificateChain(), publishers, cainfo.getSubjectDN());</span>
+<span class="nc bnc" id="L486" title="All 2 branches missed.">    caadminsession.publishCRL(administrator, cainfo.getCertificateChain().iterator().next(), publishers, cainfo.getSubjectDN(), cainfo.getDeltaCRLPeriod()&gt;0);</span>
+<span class="nc" id="L487"> }</span>
+ 
+ /**
+  * Performs a rollover from the current certificate to the next certificate. 
+ * @param caid C ID
+  * @throws AuthorizationDeniedException FAil
+  * @throws CryptoTokenOfflineException Fail
+  * @see org.ejbca.core.ejb.ca.caadmin.CAAdminSession#rolloverCA
+  * */
+ public void rolloverCA(int caid) throws CryptoTokenOfflineException, AuthorizationDeniedException {
+<span class="nc" id="L497">     caadminsession.rolloverCA(administrator, caid);</span>
+<span class="nc" id="L498"> }</span>
+ 
+ public void renewAndRevokeCmsCertificate(int caid) throws CADoesntExistsException, CAOfflineException, CertificateRevokeException, AuthorizationDeniedException {
+<span class="nc" id="L501">    caadminsession.renewAndRevokeCmsCertificate(administrator, caid);</span>
+<span class="nc" id="L502"> }</span>
+ 
+ public void activateCAToken(int caid) throws AuthorizationDeniedException, ApprovalException, WaitingForApprovalException, CADoesntExistsException {
+<span class="nc" id="L505">   caadminsession.activateCAService(administrator, caid);</span>
+<span class="nc" id="L506"> }</span>
+ 
+ public void deactivateCAToken(int caid) throws AuthorizationDeniedException, CADoesntExistsException {
+<span class="nc" id="L509">    caadminsession.deactivateCAService(administrator, caid);	</span>
+<span class="nc" id="L510"> }</span>
+ 
+ public boolean isCARevoked(CAInfo cainfo){
+<span class="nc" id="L513">	 boolean retval = false;</span>
+	 
+<span class="nc bnc" id="L515" title="All 2 branches missed.">	 if(cainfo != null){</span>
+<span class="nc" id="L516">	   retval = RevokedCertInfo.isRevoked(cainfo.getRevocationReason());</span>
+	 }
+<span class="nc" id="L518">	 return retval;</span>
+ }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -15,52 +15,118 @@ package org.cesecore.certificates.certificate;
 
 import java.io.Serializable;
 import java.util.Date;
-
 import org.cesecore.certificates.certificateprofile.CertificateProfileConstants;
 import org.cesecore.certificates.crl.RevocationReasons;
 import org.cesecore.certificates.crl.RevokedCertInfo;
 
-/** Simple class encapsulating the certificate status information needed when making revocation checks.
- * 
+/**
+ * Simple class encapsulating the certificate status information needed when
+ * making revocation checks.
+ *
  * @version $Id: CertificateStatus.java 22920 2016-03-03 17:44:03Z samuellb $
  */
 public class CertificateStatus implements Serializable {
 
-    private static final long serialVersionUID = 1515679904853388419L;
-	
-<span class="fc" id="L31">    public final static CertificateStatus REVOKED = new CertificateStatus(&quot;REVOKED&quot;, -1L, RevokedCertInfo.REVOCATION_REASON_UNSPECIFIED, CertificateProfileConstants.CERTPROFILE_NO_PROFILE);</span>
-<span class="fc" id="L32">    public final static CertificateStatus OK = new CertificateStatus(&quot;OK&quot;, -1L, RevokedCertInfo.NOT_REVOKED, CertificateProfileConstants.CERTPROFILE_NO_PROFILE);</span>
-<span class="fc" id="L33">    public final static CertificateStatus NOT_AVAILABLE = new CertificateStatus(&quot;NOT_AVAILABLE&quot;, -1L, RevokedCertInfo.REVOCATION_REASON_UNSPECIFIED, CertificateProfileConstants.CERTPROFILE_NO_PROFILE);</span>
+  private static final long serialVersionUID = 1515679904853388419L;
 
-    private final String name;
-    public final Date revocationDate;
-    /** @see RevocationReasons */
-    public final int revocationReason;
-    public final int certificateProfileId;
-    
-<span class="fc" id="L41">    public CertificateStatus(String name, long date, int reason, int certProfileId ) {</span>
-<span class="fc" id="L42">        this.name = name;</span>
-<span class="fc" id="L43">        this.revocationDate = new Date(date);</span>
-<span class="fc" id="L44">        this.revocationReason = reason;</span>
-<span class="fc" id="L45">        this.certificateProfileId = certProfileId;</span>
-<span class="fc" id="L46">    }</span>
-    
-    @Override
-    public String toString() {
-<span class="fc" id="L50">        return this.name;</span>
-    }
-    
-    @Override
-    public boolean equals(Object obj) {
-<span class="pc bpc" id="L55" title="2 of 4 branches missed.">        return obj instanceof CertificateStatus &amp;&amp; this.equals((CertificateStatus)obj);</span>
-    }
-    
-    public boolean equals(CertificateStatus obj) {
-<span class="fc" id="L59">        return this.name.equals(obj.toString());</span>
-    }
-    
-    public boolean isRevoked() {
-<span class="nc bnc" id="L63" title="All 4 branches missed.">        return revocationReason != RevokedCertInfo.NOT_REVOKED &amp;&amp; revocationReason != RevokedCertInfo.REVOCATION_REASON_REMOVEFROMCRL;</span>
-    }
+  /** Revoked. */
+<span class="fc" id="L33">  public static final CertificateStatus REVOKED =</span>
+      new CertificateStatus(
+          &quot;REVOKED&quot;,
+          -1L,
+          RevokedCertInfo.REVOCATION_REASON_UNSPECIFIED,
+          CertificateProfileConstants.CERTPROFILE_NO_PROFILE);
+  /** OK. */
+<span class="fc" id="L40">  public static final CertificateStatus OK =</span>
+      new CertificateStatus(
+          &quot;OK&quot;,
+          -1L,
+          RevokedCertInfo.NOT_REVOKED,
+          CertificateProfileConstants.CERTPROFILE_NO_PROFILE);
+  /** Unavailable. */
+<span class="fc" id="L47">  public static final CertificateStatus NOT_AVAILABLE =</span>
+      new CertificateStatus(
+          &quot;NOT_AVAILABLE&quot;,
+          -1L,
+          RevokedCertInfo.REVOCATION_REASON_UNSPECIFIED,
+          CertificateProfileConstants.CERTPROFILE_NO_PROFILE);
+
+  /** Name. */
+  private final String name;
+  /** Date. */
+  private final Date revocationDate;
+  /** @see RevocationReasons */
+  private final int revocationReason;
+  /** ID. */
+  private final int certificateProfileId;
+
+  /** @return ID */
+  public int getCertificateProfileId() {
+<span class="nc" id="L65">    return certificateProfileId;</span>
+}
+
+/**
+   * Constructor.
+   * @param aName Name
+   * @param aDate Date
+   * @param aReason Reason
+   * @param aCertProfileId ID
+   */
+  public CertificateStatus(
+      final String aName,
+      final long aDate,
+      final int aReason,
+<span class="fc" id="L79">      final int aCertProfileId) {</span>
+<span class="fc" id="L80">    this.name = aName;</span>
+<span class="fc" id="L81">    this.revocationDate = new Date(aDate);</span>
+<span class="fc" id="L82">    this.revocationReason = aReason;</span>
+<span class="fc" id="L83">    this.certificateProfileId = aCertProfileId;</span>
+<span class="fc" id="L84">  }</span>
+
+  @Override
+  public String toString() {
+<span class="fc" id="L88">    return this.name;</span>
+  }
+
+  @Override
+  public boolean equals(final Object obj) {
+<span class="pc bpc" id="L93" title="1 of 2 branches missed.">    return obj instanceof CertificateStatus</span>
+<span class="pc bpc" id="L94" title="1 of 2 branches missed.">        &amp;&amp; this.equals((CertificateStatus) obj);</span>
+  }
+
+  @Override
+  public int hashCode() {
+<span class="nc" id="L99">      return this.toString().hashCode();</span>
+  }
+
+
+  /**
+   * @param obj status
+   * @return boolean
+   */
+  public boolean equals(final CertificateStatus obj) {
+<span class="fc" id="L108">    return this.name.equals(obj.toString());</span>
+  }
+
+  /** @return boolean */
+  public boolean isRevoked() {
+<span class="nc bnc" id="L113" title="All 2 branches missed.">    return getRevocationReason() != RevokedCertInfo.NOT_REVOKED</span>
+<span class="nc bnc" id="L114" title="All 2 branches missed.">        &amp;&amp; getRevocationReason()</span>
+            != RevokedCertInfo.REVOCATION_REASON_REMOVEFROMCRL;
+  }
+
+/**
+ * @return the revocationReason
+ */
+public int getRevocationReason() {
+<span class="nc" id="L122">    return revocationReason;</span>
+}
+
+/**
+ * @return the revocationDate
+ */
+public Date getRevocationDate() {
+<span class="nc" id="L129">    return revocationDate;</span>
+}
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

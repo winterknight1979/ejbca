@@ -1,0 +1,361 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ApprovalDataVOView.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">admin-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.approval</a> &gt; <span class="el_source">ApprovalDataVOView.java</span></div><h1>ApprovalDataVOView.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.web.admin.approval;
+
+import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
+import java.security.Principal;
+import java.security.cert.Certificate;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import javax.ejb.EJBException;
+import javax.faces.application.Application;
+import javax.faces.context.FacesContext;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authentication.tokens.PublicAccessAuthenticationToken;
+import org.cesecore.authentication.tokens.PublicWebPrincipal;
+import org.cesecore.authentication.tokens.WebPrincipal;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.util.CertTools;
+import org.ejbca.core.model.approval.ApprovalDataText;
+import org.ejbca.core.model.approval.ApprovalDataVO;
+import org.ejbca.core.model.approval.ApprovalRequest;
+import org.ejbca.core.model.approval.approvalrequests.AddEndEntityApprovalRequest;
+import org.ejbca.core.model.approval.approvalrequests.EditEndEntityApprovalRequest;
+import org.ejbca.core.model.approval.profile.ApprovalProfile;
+import org.ejbca.core.model.util.EjbLocalHelper;
+import org.ejbca.ui.web.admin.LinkView;
+import org.ejbca.ui.web.admin.configuration.EjbcaJSFHelper;
+
+/**
+ * Class representing the view of one ApprovalDataVO data
+ * 
+ * 
+ * @version $Id: ApprovalDataVOView.java 28844 2018-05-04 08:31:02Z samuellb $
+ */
+public class ApprovalDataVOView implements Serializable {
+
+	private static final long serialVersionUID = 1L;
+<span class="nc" id="L55">	private static final Logger log = Logger.getLogger(ApprovalDataVOView.class);</span>
+<span class="nc" id="L56">	private final EjbLocalHelper ejbLocalHelper = new EjbLocalHelper();</span>
+    private ApprovalDataVO data;
+
+    // Table of the translation constants in languagefile.xx.properties
+    private static final String CERTSERIALNUMBER = &quot;CERTSERIALNUMBER&quot;;
+    private static final String ISSUERDN = &quot;ISSUERDN&quot;;
+    private static final String USERNAME = &quot;USERNAME&quot;;
+
+<span class="nc" id="L64">    public ApprovalDataVOView(ApprovalDataVO data) {</span>
+<span class="nc" id="L65">        this.data = data;</span>
+<span class="nc" id="L66">    }</span>
+
+<span class="nc" id="L68">    public ApprovalDataVOView() { }</span>
+
+    public ApprovalRequest getApprovalRequest() {
+<span class="nc" id="L71">        return data.getApprovalRequest();</span>
+    }
+    
+    public String getRequestDate() {
+<span class="nc" id="L75">        return fastDateFormat(data.getRequestDate());</span>
+    }
+
+    public String getExpireDate() {
+<span class="nc" id="L79">        return fastDateFormat(data.getExpireDate());</span>
+    }
+    
+    private String fastDateFormat(final Date date) {
+<span class="nc" id="L83">		return EjbcaJSFHelper.getBean().getEjbcaWebBean().formatAsISO8601(date);</span>
+    }
+
+    public String getCaName() {
+<span class="nc" id="L87">        EjbcaJSFHelper helpBean = EjbcaJSFHelper.getBean();</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">        if (data.getCAId() == ApprovalDataVO.ANY_CA) {</span>
+<span class="nc" id="L89">            return helpBean.getEjbcaWebBean().getText(&quot;ANYCA&quot;, true);</span>
+        }
+        try {
+<span class="nc" id="L92">            CAInfo caInfo = ejbLocalHelper.getCaSession().getCAInfo(helpBean.getAdmin(), data.getCAId());</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">            if(caInfo != null) {</span>
+<span class="nc" id="L94">                return caInfo.getName();</span>
+            } else {
+<span class="nc" id="L96">                log.error(&quot;Can not get CA with id: &quot;+data.getCAId());</span>
+            }
+<span class="nc" id="L98">		} catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L99">			log.error(&quot;Can not get CA with id: &quot;+data.getCAId(), e);</span>
+<span class="nc" id="L100">		}</span>
+<span class="nc" id="L101">		return &quot;Error&quot;;</span>
+    }
+
+    public String getEndEntityProfileName() {
+<span class="nc" id="L105">        EjbcaJSFHelper helpBean = EjbcaJSFHelper.getBean();</span>
+<span class="nc bnc" id="L106" title="All 2 branches missed.">        if (data.getEndEntityProfileId() == ApprovalDataVO.ANY_ENDENTITYPROFILE) {</span>
+<span class="nc" id="L107">            return helpBean.getEjbcaWebBean().getText(&quot;ANYENDENTITYPROFILE&quot;, true);</span>
+        }
+<span class="nc" id="L109">        return ejbLocalHelper.getEndEntityProfileSession().getEndEntityProfileName(data.getEndEntityProfileId());</span>
+    }
+
+    public String getRemainingApprovals() {
+<span class="nc" id="L113">        return &quot;&quot; + data.getRemainingApprovals();</span>
+    }
+    
+    public ApprovalProfile getApprovalProfile() {
+<span class="nc" id="L117">        return data.getApprovalProfile();</span>
+    }
+
+    public String getApproveActionName() {
+<span class="nc" id="L121">        return EjbcaJSFHelper.getBean().getEjbcaWebBean()</span>
+<span class="nc" id="L122">                .getText(ApprovalDataVO.APPROVALTYPENAMES[data.getApprovalRequest().getApprovalType()], true);</span>
+    }
+
+    public String getRequestAdminName() {
+        String retval;
+<span class="nc" id="L127">        final Certificate cert = data.getApprovalRequest().getRequestAdminCert();</span>
+<span class="nc" id="L128">        final AuthenticationToken reqAdmin = data.getApprovalRequest().getRequestAdmin();</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">        if (cert != null) {</span>
+<span class="nc" id="L130">            String dn = CertTools.getSubjectDN(cert);</span>
+<span class="nc" id="L131">            String o = CertTools.getPartFromDN(dn, &quot;O&quot;);</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">            if (o == null) {</span>
+<span class="nc" id="L133">                o = &quot;&quot;;</span>
+            } else {
+<span class="nc" id="L135">                o = &quot;, &quot; + o;</span>
+            }
+<span class="nc" id="L137">            retval = CertTools.getPartFromDN(dn, &quot;CN&quot;) + o;</span>
+<span class="nc" id="L138">        } else {</span>
+<span class="nc" id="L139">            retval = EjbcaJSFHelper.getBean().getEjbcaWebBean().getText(&quot;CLITOOL&quot;, true); // Assume CLI if not match</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">            if (reqAdmin != null) {</span>
+<span class="nc bnc" id="L141" title="All 2 branches missed.">                for (Principal principal : reqAdmin.getPrincipals()) {</span>
+<span class="nc bnc" id="L142" title="All 2 branches missed.">                    if (principal instanceof PublicAccessAuthenticationToken.PublicAccessPrincipal) {</span>
+                        // Unauthenticated users accessing the RA
+<span class="nc" id="L144">                        retval = EjbcaJSFHelper.getBean().getEjbcaWebBean().getText(&quot;RAWEB&quot;, true);</span>
+<span class="nc" id="L145">                        break;</span>
+<span class="nc bnc" id="L146" title="All 2 branches missed.">                    } else if (principal instanceof PublicWebPrincipal) {</span>
+                        // Mostly self-registration in the Public Web
+<span class="nc" id="L148">                        final String ipAddress = ((PublicWebPrincipal) principal).getClientIPAddress();</span>
+<span class="nc" id="L149">                        retval = EjbcaJSFHelper.getBean().getEjbcaWebBean().getText(&quot;PUBLICWEB&quot;, true) + &quot;: &quot; + ipAddress;</span>
+<span class="nc" id="L150">                        break;</span>
+<span class="nc bnc" id="L151" title="All 2 branches missed.">                    } else if (principal instanceof WebPrincipal) {</span>
+                        // Other things, such as CMP, etc. We probably shouldn't ever get here, unless something is miss-configured.
+<span class="nc" id="L153">                        retval = principal.getName(); // e.g. &quot;NameOfServlet: 198.51.100.123&quot;</span>
+<span class="nc" id="L154">                        break;</span>
+                    }
+<span class="nc" id="L156">                }</span>
+            }
+        }
+<span class="nc" id="L159">        log.debug(&quot;getRequestAdminName &quot; + retval);</span>
+<span class="nc" id="L160">        return retval;</span>
+    }
+
+    public String getStatus() {
+<span class="nc" id="L164">        FacesContext context = FacesContext.getCurrentInstance();</span>
+<span class="nc" id="L165">        Application app = context.getApplication();</span>
+<span class="nc" id="L166">        ApproveActionManagedBean value = app.evaluateExpressionGet(context, &quot;#{approvalActionManagedBean}&quot;, ApproveActionManagedBean.class);</span>
+<span class="nc" id="L167">        return value.getStatusText().get(Integer.valueOf(data.getStatus()));</span>
+    }
+
+    public ApprovalDataVO getApproveActionDataVO() {
+<span class="nc" id="L171">        return data;</span>
+    }
+
+    public int getApprovalId() {
+<span class="nc" id="L175">        return data.getApprovalId();</span>
+    }
+
+    /**
+     * Constructs JavaScript that opens up a new window and opens up actionview
+     * there
+     * @return JS
+     */
+    public String getApproveActionWindowLink() {
+<span class="nc" id="L184">        String link = EjbcaJSFHelper.getBean().getEjbcaWebBean().getBaseUrl()</span>
+<span class="nc" id="L185">                + EjbcaJSFHelper.getBean().getEjbcaWebBean().getGlobalConfiguration().getAdminWebPath() + &quot;approval/approveaction.jsf?uniqueId=&quot;</span>
+<span class="nc" id="L186">                + data.getId();</span>
+<span class="nc" id="L187">        return &quot;window.open('&quot; + link + &quot;', 'ViewApproveAction', 'width=1000,height=800,scrollbars=yes,toolbar=no,resizable=yes').focus()&quot;;</span>
+    }
+
+    public boolean getShowViewRequestorCertLink() {
+    	// Return true if there is a certificate
+<span class="nc bnc" id="L192" title="All 2 branches missed.">        return (data.getApprovalRequest().getRequestAdminCert() != null);</span>
+    }
+
+    public String getViewRequestorCertLink() {
+<span class="nc" id="L196">        String retval = &quot;&quot;;</span>
+<span class="nc bnc" id="L197" title="All 2 branches missed.">        if (data.getApprovalRequest().getRequestAdminCert() != null) {</span>
+            String link;
+            try {
+<span class="nc" id="L200">                link = EjbcaJSFHelper.getBean().getEjbcaWebBean().getBaseUrl()</span>
+<span class="nc" id="L201">                        + EjbcaJSFHelper.getBean().getEjbcaWebBean().getGlobalConfiguration().getAdminWebPath()</span>
+                        + &quot;viewcertificate.jsp?certsernoparameter=&quot;
+<span class="nc" id="L203">                        + java.net.URLEncoder.encode(data.getReqadmincertsn() + &quot;,&quot; + data.getReqadmincertissuerdn(), &quot;UTF-8&quot;);</span>
+<span class="nc" id="L204">            } catch (UnsupportedEncodingException e) {</span>
+<span class="nc" id="L205">                throw new EJBException(e);</span>
+<span class="nc" id="L206">            }</span>
+<span class="nc" id="L207">            retval = &quot;viewcert('&quot; + link + &quot;')&quot;;</span>
+        }
+<span class="nc" id="L209">        return retval;</span>
+    }
+
+    /**
+     * Detect all certificate and user links from approval data based on the
+     * static translations variables.
+     * 
+     * @return An array of Link-objects
+     */
+    public boolean isContainingLink() {
+<span class="nc" id="L219">        final List&lt;ApprovalDataText&gt; newTextRows = getNewRequestDataAsText();</span>
+<span class="nc bnc" id="L220" title="All 2 branches missed.">        for (final ApprovalDataText row : newTextRows) {</span>
+<span class="nc bnc" id="L221" title="All 6 branches missed.">            if (row.getHeader().equals(CERTSERIALNUMBER) || row.getHeader().equals(ISSUERDN) || row.getHeader().equals(USERNAME)) {</span>
+<span class="nc" id="L222">                return true;</span>
+            }
+<span class="nc" id="L224">        }</span>
+<span class="nc" id="L225">        return false;</span>
+    }
+
+    /**
+     * Extract all certificate and user links from approval data based on the
+     * static translations variables.
+     * 
+     * @return An array of Link-objects
+     */
+    public List&lt;LinkView&gt; getApprovalDataLinks() {
+<span class="nc" id="L235">        List&lt;LinkView&gt; certificateLinks = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L236">        List&lt;String&gt; certificateSerialNumbers = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L237">        List&lt;String&gt; certificateIssuerDN = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L238">        List&lt;ApprovalDataText&gt; newTextRows = getNewRequestDataAsText();</span>
+
+<span class="nc bnc" id="L240" title="All 2 branches missed.">        for (final ApprovalDataText row : newTextRows) {</span>
+<span class="nc bnc" id="L241" title="All 2 branches missed.">            if (row.getHeader().equals(CERTSERIALNUMBER)) {</span>
+<span class="nc" id="L242">                certificateSerialNumbers.add(row.getData());</span>
+            }
+<span class="nc bnc" id="L244" title="All 2 branches missed.">            if (row.getHeader().equals(ISSUERDN)) {</span>
+<span class="nc" id="L245">                certificateIssuerDN.add(row.getData());</span>
+            }
+<span class="nc" id="L247">        }</span>
+<span class="nc bnc" id="L248" title="All 2 branches missed.">        if (certificateIssuerDN.size() != certificateSerialNumbers.size()) {</span>
+            // Return an empty array if we have a mismatch
+<span class="nc" id="L250">            return certificateLinks;</span>
+        }
+<span class="nc" id="L252">        String link = null;</span>
+<span class="nc bnc" id="L253" title="All 2 branches missed.">        for (int i = 0; i &lt; certificateSerialNumbers.size(); i++) {</span>
+            try {
+<span class="nc" id="L255">                link = EjbcaJSFHelper.getBean().getEjbcaWebBean().getBaseUrl()</span>
+<span class="nc" id="L256">                        + EjbcaJSFHelper.getBean().getEjbcaWebBean().getGlobalConfiguration().getAdminWebPath()</span>
+                        + &quot;viewcertificate.jsp?certsernoparameter=&quot;
+<span class="nc" id="L258">                        + java.net.URLEncoder.encode(certificateSerialNumbers.get(i) + &quot;,&quot; + certificateIssuerDN.get(i), &quot;UTF-8&quot;);</span>
+<span class="nc" id="L259">            } catch (UnsupportedEncodingException e) {</span>
+<span class="nc" id="L260">                log.warn(&quot;UnsupportedEncoding creating approval data link. &quot;, e);</span>
+<span class="nc" id="L261">            }</span>
+<span class="nc" id="L262">            certificateLinks.add(new LinkView(link, EjbcaJSFHelper.getBean().getEjbcaWebBean().getText(CERTSERIALNUMBER) + &quot;: &quot;,</span>
+<span class="nc" id="L263">                    certificateSerialNumbers.get(i), &quot;&quot;));</span>
+        }
+<span class="nc" id="L265">        return certificateLinks;</span>
+    }
+
+    public List&lt;TextComparisonView&gt; getTextListExceptLinks() {
+<span class="nc" id="L269">        ArrayList&lt;TextComparisonView&gt; textComparisonList = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L270">        List&lt;ApprovalDataText&gt; newTextRows = getNewRequestDataAsText();</span>
+<span class="nc bnc" id="L271" title="All 2 branches missed.">        for (final ApprovalDataText row : newTextRows) {</span>
+<span class="nc bnc" id="L272" title="All 2 branches missed.">            if (row.getHeader().equals(CERTSERIALNUMBER)</span>
+<span class="nc bnc" id="L273" title="All 2 branches missed.">                    || row.getHeader().equals(ISSUERDN)) {</span>
+<span class="nc" id="L274">                continue;</span>
+            }
+<span class="nc" id="L276">            String newString = &quot;&quot;;</span>
+            try {
+<span class="nc" id="L278">                newString = translateApprovalDataText(row);</span>
+<span class="nc" id="L279">            } catch (ArrayIndexOutOfBoundsException e) {</span>
+                // Do nothing orgstring should be &quot;&quot;;
+<span class="nc" id="L281">            }</span>
+<span class="nc" id="L282">            textComparisonList.add(new TextComparisonView(null, newString));</span>
+<span class="nc" id="L283">        }</span>
+<span class="nc" id="L284">        return textComparisonList;</span>
+    }
+
+    public List&lt;TextComparisonView&gt; getTextComparisonList() {
+<span class="nc" id="L288">        ArrayList&lt;TextComparisonView&gt; textComparisonList = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L289" title="All 2 branches missed.">        if (data.getApprovalRequest().getApprovalRequestType() == ApprovalRequest.REQUESTTYPE_COMPARING) {</span>
+<span class="nc" id="L290">            List&lt;ApprovalDataText&gt; newTextRows = getNewRequestDataAsText();</span>
+<span class="nc" id="L291">            List&lt;ApprovalDataText&gt; orgTextRows = getOldRequestDataAsText();</span>
+<span class="nc" id="L292">            int size = newTextRows.size();</span>
+<span class="nc bnc" id="L293" title="All 2 branches missed.">            if (orgTextRows.size() &gt; size) {</span>
+<span class="nc" id="L294">                size = orgTextRows.size();</span>
+            }
+<span class="nc bnc" id="L296" title="All 2 branches missed.">            for (int i = 0; i &lt; size; i++) {</span>
+<span class="nc" id="L297">                String orgString = &quot;&quot;;</span>
+                try {
+<span class="nc" id="L299">                    orgString = translateApprovalDataText(orgTextRows.get(i));</span>
+<span class="nc" id="L300">                } catch (IndexOutOfBoundsException e) {</span>
+                    // Do nothing orgstring should be &quot;&quot;;
+<span class="nc" id="L302">                }</span>
+<span class="nc" id="L303">                String newString = &quot;&quot;;</span>
+                try {
+<span class="nc" id="L305">                    newString = translateApprovalDataText(newTextRows.get(i));</span>
+<span class="nc" id="L306">                } catch (IndexOutOfBoundsException e) {</span>
+                    // Do nothing orgstring should be &quot;&quot;;
+<span class="nc" id="L308">                }</span>
+<span class="nc" id="L309">                textComparisonList.add(new TextComparisonView(orgString, newString));</span>
+            }
+<span class="nc" id="L311">        } else {</span>
+<span class="nc bnc" id="L312" title="All 2 branches missed.">            for(ApprovalDataText approvalDataText : getNewRequestDataAsText()) {</span>
+<span class="nc" id="L313">                textComparisonList.add(new TextComparisonView(null, translateApprovalDataText(approvalDataText)));</span>
+<span class="nc" id="L314">            }</span>
+        }
+<span class="nc" id="L316">        return textComparisonList;</span>
+    }
+
+    private String translateApprovalDataText(ApprovalDataText data) {
+<span class="nc" id="L320">        String retval = &quot;&quot;;</span>
+<span class="nc bnc" id="L321" title="All 2 branches missed.">        if (data.isHeaderTranslateable()) {</span>
+<span class="nc" id="L322">            retval = EjbcaJSFHelper.getBean().getEjbcaWebBean().getText(data.getHeader(), true);</span>
+        } else {
+<span class="nc" id="L324">            retval = data.getHeader();</span>
+        }
+<span class="nc bnc" id="L326" title="All 2 branches missed.">        if (data.isDataTranslatable()) {</span>
+<span class="nc" id="L327">            retval += &quot; : &quot; + EjbcaJSFHelper.getBean().getEjbcaWebBean().getText(data.getData(), true);</span>
+        } else {
+<span class="nc" id="L329">            retval += &quot; : &quot; + data.getData();</span>
+        }
+<span class="nc" id="L331">        return retval;</span>
+    }
+    
+    private List&lt;ApprovalDataText&gt; getNewRequestDataAsText() {
+<span class="nc" id="L335">    	ApprovalRequest approvalRequest = data.getApprovalRequest();</span>
+<span class="nc" id="L336">    	AuthenticationToken admin = EjbcaJSFHelper.getBean().getAdmin();</span>
+<span class="nc bnc" id="L337" title="All 2 branches missed.">    	if (approvalRequest instanceof EditEndEntityApprovalRequest) {</span>
+<span class="nc" id="L338">    		return ((EditEndEntityApprovalRequest)approvalRequest).getNewRequestDataAsText(ejbLocalHelper.getCaSession(),</span>
+<span class="nc" id="L339">    				ejbLocalHelper.getEndEntityProfileSession(), ejbLocalHelper.getCertificateProfileSession(), ejbLocalHelper.getHardTokenSession());</span>
+<span class="nc bnc" id="L340" title="All 2 branches missed.">    	} else if (approvalRequest instanceof AddEndEntityApprovalRequest) {</span>
+<span class="nc" id="L341">    		return ((AddEndEntityApprovalRequest)approvalRequest).getNewRequestDataAsText(ejbLocalHelper.getCaSession(),</span>
+<span class="nc" id="L342">    				ejbLocalHelper.getEndEntityProfileSession(), ejbLocalHelper.getCertificateProfileSession(), ejbLocalHelper.getHardTokenSession());</span>
+    	} else {
+<span class="nc" id="L344">    		return approvalRequest.getNewRequestDataAsText(admin);</span>
+    	}
+    }
+
+    private List&lt;ApprovalDataText&gt; getOldRequestDataAsText() {
+<span class="nc" id="L349">    	ApprovalRequest approvalRequest = data.getApprovalRequest();</span>
+<span class="nc" id="L350">    	AuthenticationToken admin = EjbcaJSFHelper.getBean().getAdmin();</span>
+<span class="nc bnc" id="L351" title="All 2 branches missed.">    	if (approvalRequest instanceof EditEndEntityApprovalRequest) {</span>
+<span class="nc" id="L352">    		return ((EditEndEntityApprovalRequest)approvalRequest).getOldRequestDataAsText(admin, ejbLocalHelper.getCaSession(),</span>
+<span class="nc" id="L353">    				ejbLocalHelper.getEndEntityProfileSession(), ejbLocalHelper.getCertificateProfileSession(), ejbLocalHelper.getHardTokenSession());</span>
+    	} else {
+<span class="nc" id="L355">    		return approvalRequest.getOldRequestDataAsText(admin);</span>
+    	}
+    }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

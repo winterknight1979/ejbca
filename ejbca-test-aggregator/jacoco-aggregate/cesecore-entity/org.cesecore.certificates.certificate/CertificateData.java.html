@@ -18,7 +18,6 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.util.Date;
 import java.util.List;
-
 import javax.persistence.ColumnResult;
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
@@ -30,7 +29,6 @@ import javax.persistence.SqlResultSetMapping;
 import javax.persistence.SqlResultSetMappings;
 import javax.persistence.Table;
 import javax.persistence.Transient;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.cesecore.certificates.crl.RevokedCertInfo;
@@ -47,696 +45,894 @@ import org.cesecore.util.StringTools;
  */
 @Entity
 @Table(name = &quot;CertificateData&quot;)
-@SqlResultSetMappings(value = {
-        @SqlResultSetMapping(name = &quot;RevokedCertInfoSubset&quot;, columns = { @ColumnResult(name = &quot;fingerprint&quot;), @ColumnResult(name = &quot;serialNumber&quot;),
-                @ColumnResult(name = &quot;expireDate&quot;), @ColumnResult(name = &quot;revocationDate&quot;), @ColumnResult(name = &quot;revocationReason&quot;) }),
-        @SqlResultSetMapping(name = &quot;CertificateInfoSubset&quot;, columns = { @ColumnResult(name = &quot;issuerDN&quot;), @ColumnResult(name = &quot;subjectDN&quot;),
-                @ColumnResult(name = &quot;cAFingerprint&quot;), @ColumnResult(name = &quot;status&quot;), @ColumnResult(name = &quot;type&quot;),
-                @ColumnResult(name = &quot;serialNumber&quot;),
-                @ColumnResult(name = &quot;notBefore&quot;), @ColumnResult(name = &quot;expireDate&quot;), @ColumnResult(name = &quot;revocationDate&quot;),
-                @ColumnResult(name = &quot;revocationReason&quot;), @ColumnResult(name = &quot;username&quot;), @ColumnResult(name = &quot;tag&quot;),
-                @ColumnResult(name = &quot;certificateProfileId&quot;), @ColumnResult(name = &quot;endEntityProfileId&quot;), @ColumnResult(name = &quot;updateTime&quot;),
-                @ColumnResult(name = &quot;subjectKeyId&quot;), @ColumnResult(name = &quot;subjectAltName&quot;) }),
-        @SqlResultSetMapping(name = &quot;CertificateInfoSubset2&quot;, columns = { @ColumnResult(name = &quot;fingerprint&quot;), @ColumnResult(name = &quot;subjectDN&quot;),
-                @ColumnResult(name = &quot;cAFingerprint&quot;), @ColumnResult(name = &quot;status&quot;), @ColumnResult(name = &quot;type&quot;),
-                @ColumnResult(name = &quot;notBefore&quot;), @ColumnResult(name = &quot;expireDate&quot;), @ColumnResult(name = &quot;revocationDate&quot;),
-                @ColumnResult(name = &quot;revocationReason&quot;), @ColumnResult(name = &quot;username&quot;), @ColumnResult(name = &quot;tag&quot;),
-                @ColumnResult(name = &quot;certificateProfileId&quot;), @ColumnResult(name = &quot;endEntityProfileId&quot;), @ColumnResult(name = &quot;updateTime&quot;),
-                @ColumnResult(name = &quot;subjectKeyId&quot;), @ColumnResult(name = &quot;subjectAltName&quot;) }),
-        @SqlResultSetMapping(name = &quot;FingerprintUsernameSubset&quot;, columns = { @ColumnResult(name = &quot;fingerprint&quot;), @ColumnResult(name = &quot;username&quot;) }) })
-public class CertificateData extends BaseCertificateData implements Serializable {
+@SqlResultSetMappings(
+    value = {
+      @SqlResultSetMapping(
+          name = &quot;RevokedCertInfoSubset&quot;,
+          columns = {
+            @ColumnResult(name = &quot;fingerprint&quot;),
+            @ColumnResult(name = &quot;serialNumber&quot;),
+            @ColumnResult(name = &quot;expireDate&quot;),
+            @ColumnResult(name = &quot;revocationDate&quot;),
+            @ColumnResult(name = &quot;revocationReason&quot;)
+          }),
+      @SqlResultSetMapping(
+          name = &quot;CertificateInfoSubset&quot;,
+          columns = {
+            @ColumnResult(name = &quot;issuerDN&quot;),
+            @ColumnResult(name = &quot;subjectDN&quot;),
+            @ColumnResult(name = &quot;cAFingerprint&quot;),
+            @ColumnResult(name = &quot;status&quot;),
+            @ColumnResult(name = &quot;type&quot;),
+            @ColumnResult(name = &quot;serialNumber&quot;),
+            @ColumnResult(name = &quot;notBefore&quot;),
+            @ColumnResult(name = &quot;expireDate&quot;),
+            @ColumnResult(name = &quot;revocationDate&quot;),
+            @ColumnResult(name = &quot;revocationReason&quot;),
+            @ColumnResult(name = &quot;username&quot;),
+            @ColumnResult(name = &quot;tag&quot;),
+            @ColumnResult(name = &quot;certificateProfileId&quot;),
+            @ColumnResult(name = &quot;endEntityProfileId&quot;),
+            @ColumnResult(name = &quot;updateTime&quot;),
+            @ColumnResult(name = &quot;subjectKeyId&quot;),
+            @ColumnResult(name = &quot;subjectAltName&quot;)
+          }),
+      @SqlResultSetMapping(
+          name = &quot;CertificateInfoSubset2&quot;,
+          columns = {
+            @ColumnResult(name = &quot;fingerprint&quot;),
+            @ColumnResult(name = &quot;subjectDN&quot;),
+            @ColumnResult(name = &quot;cAFingerprint&quot;),
+            @ColumnResult(name = &quot;status&quot;),
+            @ColumnResult(name = &quot;type&quot;),
+            @ColumnResult(name = &quot;notBefore&quot;),
+            @ColumnResult(name = &quot;expireDate&quot;),
+            @ColumnResult(name = &quot;revocationDate&quot;),
+            @ColumnResult(name = &quot;revocationReason&quot;),
+            @ColumnResult(name = &quot;username&quot;),
+            @ColumnResult(name = &quot;tag&quot;),
+            @ColumnResult(name = &quot;certificateProfileId&quot;),
+            @ColumnResult(name = &quot;endEntityProfileId&quot;),
+            @ColumnResult(name = &quot;updateTime&quot;),
+            @ColumnResult(name = &quot;subjectKeyId&quot;),
+            @ColumnResult(name = &quot;subjectAltName&quot;)
+          }),
+      @SqlResultSetMapping(
+          name = &quot;FingerprintUsernameSubset&quot;,
+          columns = {
+            @ColumnResult(name = &quot;fingerprint&quot;),
+            @ColumnResult(name = &quot;username&quot;)
+          })
+    })
+public class CertificateData extends BaseCertificateData
+    implements Serializable {
 
-    private static final long serialVersionUID = -8493105317760641442L;
+  private static final long serialVersionUID = -8493105317760641442L;
 
-<span class="fc" id="L71">    private static final Logger log = Logger.getLogger(CertificateData.class);</span>
+  /** Logger. */
+<span class="fc" id="L113">  private static final Logger LOG = Logger.getLogger(CertificateData.class);</span>
+  /** Param. */
+  private String issuerDN;
+  /** Param. */
+  private String subjectDN;
+  /** Param. */
+<span class="fc" id="L119">  private String subjectAltName = null; // @since EJBCA 6.6.0</span>
+  /** Param. */
+<span class="fc" id="L121">  private String fingerprint = &quot;&quot;;</span>
+  /** Param. */
+  private String cAFingerprint;
+  /** Param. */
+<span class="fc" id="L125">  private int status = 0;</span>
+  /** Param. */
+<span class="fc" id="L127">  private int type = 0;</span>
+  /** Param. */
+  private String serialNumber;
+  /** Param. */
+<span class="fc" id="L131">  private Long notBefore = null; // @since EJBCA 6.6.0</span>
+  /** Param. */
+<span class="fc" id="L133">  private long expireDate = 0;</span>
+  /** Param. */
+<span class="fc" id="L135">  private long revocationDate = 0;</span>
+  /** Param. */
+<span class="fc" id="L137">  private int revocationReason = 0;</span>
+  /** Param. */
+  private String base64Cert;
+  /** Param. */
+  private String username;
+  /** Param. */
+  private String tag;
+  /** Param. */
+  private Integer certificateProfileId;
+  /** Param. */
+<span class="fc" id="L147">  private Integer endEntityProfileId = null; // @since EJBCA 6.6.0</span>
+  /** Param. */
+<span class="fc" id="L149">  private long updateTime = 0;</span>
+  /** Param. */
+  private String subjectKeyId;
+  /** Param. */
+<span class="fc" id="L153">  private int rowVersion = 0;</span>
+  /** Protect. */
+  private String rowProtection;
 
-    private String issuerDN;
-    private String subjectDN;
-<span class="fc" id="L75">    private String subjectAltName = null;  // @since EJBCA 6.6.0</span>
-<span class="fc" id="L76">    private String fingerprint = &quot;&quot;;</span>
-    private String cAFingerprint;
-<span class="fc" id="L78">    private int status = 0;</span>
-<span class="fc" id="L79">    private int type = 0;</span>
-    private String serialNumber;
-<span class="fc" id="L81">    private Long notBefore = null;  // @since EJBCA 6.6.0</span>
-<span class="fc" id="L82">    private long expireDate = 0;</span>
-<span class="fc" id="L83">    private long revocationDate = 0;</span>
-<span class="fc" id="L84">    private int revocationReason = 0;</span>
-    private String base64Cert;
-    private String username;
-    private String tag;
-    private Integer certificateProfileId;
-<span class="fc" id="L89">    private Integer endEntityProfileId = null;  // @since EJBCA 6.6.0</span>
-<span class="fc" id="L90">    private long updateTime = 0;</span>
-    private String subjectKeyId;
-<span class="fc" id="L92">    private int rowVersion = 0;</span>
-    private String rowProtection;
+  /**
+   * Entity holding info about a certificate. Create by sending in the
+   * certificate, which extracts (from the cert) fingerprint (primary key),
+   * subjectDN, issuerDN, serial number, expiration date. Status, Type,
+   * CAFingerprint, revocationDate and revocationReason are set to default
+   * values (CERT_UNASSIGNED, USER_INVALID, null, null and
+   * REVOCATION_REASON_UNSPECIFIED) and should be set using the respective
+   * set-methods.
+   *
+   * &lt;p&gt;NOTE! Never use this constructor without considering the
+   * useBase64CertTable below!
+   *
+   * @param certificate the (X509)Certificate to be stored in the database. If
+   *     the property &quot;database.useSeparateCertificateTable&quot; is true then it
+   *     should be null.
+   * @param enrichedpubkey possibly an EC public key enriched with the full set
+   *     of parameters, if the public key in the certificate does not have
+   *     parameters. Can be null if RSA or certificate public key contains all
+   *     parameters.
+   * @param aUsername the username in UserData to map the certificate to
+   * @param cafp CA certificate fingerprint, can be null
+   * @param aStatus status of the certificate, active, revoked etcc, i.e.
+   *     CertificateConstants.CERT_ACTIVE etc
+   * @param aType the user type the certificate belongs to, i.e.
+   *     EndEntityTypes.USER_ENDUSER etc
+   * @param certprofileid certificate profile id, can be 0 for &quot;no profile&quot;
+   * @param anEndEntityProfileId end entity profile id, can be 0
+   *         for &quot;no profile&quot;
+   * @param aTag a custom tag to map the certificate to any custom defined tag
+   * @param updatetime the time the certificate was updated in the database,
+   *     i.e. System.currentTimeMillis().
+   * @param storeCertificate true if the certificate should be stored in this
+   *     table in the base64Cert column, false if certificate data isn't to be
+   *     stored in this table. NOTE: If false and the data should be stored in
+   *     Base64CertData then the caller must store the certificate in
+   *     Base64CertData as well.
+   * @param storeSubjectAltName true if the subjectAltName column should be
+   *     populated with the Subject Alternative Name of the certificate
+   */
+  public CertificateData(
+      final Certificate certificate,
+      final PublicKey enrichedpubkey,
+      final String aUsername,
+      final String cafp,
+      final int aStatus,
+      final int aType,
+      final int certprofileid,
+      final int anEndEntityProfileId,
+      final String aTag,
+      final long updatetime,
+      final boolean storeCertificate,
+<span class="fc" id="L208">      final boolean storeSubjectAltName) {</span>
+    // Extract all fields to store with the certificate.
+    try {
+<span class="pc bpc" id="L211" title="1 of 2 branches missed.">      if (storeCertificate) {</span>
+<span class="nc" id="L212">        setBase64Cert(new String(Base64.encode(certificate.getEncoded())));</span>
+      }
 
-    /**
-     * Entity holding info about a certificate. Create by sending in the certificate, which extracts (from the cert) fingerprint (primary key),
-     * subjectDN, issuerDN, serial number, expiration date. Status, Type, CAFingerprint, revocationDate and revocationReason are set to default values
-     * (CERT_UNASSIGNED, USER_INVALID, null, null and REVOCATION_REASON_UNSPECIFIED) and should be set using the respective set-methods.
-     *
-     * NOTE! Never use this constructor without considering the useBase64CertTable below!
-     *
-     * @param certificate the (X509)Certificate to be stored in the database. If the property &quot;database.useSeparateCertificateTable&quot; is true then it should be null.
-     * @param enrichedpubkey possibly an EC public key enriched with the full set of parameters, if the public key in the certificate does not have
-     *            parameters. Can be null if RSA or certificate public key contains all parameters.
-     * @param username the username in UserData to map the certificate to
-     * @param cafp CA certificate fingerprint, can be null
-     * @param status status of the certificate, active, revoked etcc, i.e. CertificateConstants.CERT_ACTIVE etc
-     * @param type the user type the certificate belongs to, i.e. EndEntityTypes.USER_ENDUSER etc
-     * @param certprofileid certificate profile id, can be 0 for &quot;no profile&quot;
-     * @param endEntityProfileId end entity profile id, can be 0 for &quot;no profile&quot;
-     * @param tag a custom tag to map the certificate to any custom defined tag
-     * @param updatetime the time the certificate was updated in the database, i.e. System.currentTimeMillis().
-     * @param storeCertificate true if the certificate should be stored in this table in the base64Cert column, false if certificate data isn't to be stored in this table. NOTE: If false and the data should be stored in Base64CertData then the caller must store the certificate in Base64CertData as well.
-     * @param storeSubjectAltName true if the subjectAltName column should be populated with the Subject Alternative Name of the certificate
-     */
-    public CertificateData(Certificate certificate, PublicKey enrichedpubkey, String username, String cafp, int status, int type, int certprofileid, int endEntityProfileId,
-<span class="fc" id="L117">            String tag, long updatetime, boolean storeCertificate, boolean storeSubjectAltName) {</span>
-        // Extract all fields to store with the certificate.
-        try {
-<span class="pc bpc" id="L120" title="1 of 2 branches missed.">            if (storeCertificate ) {</span>
-<span class="nc" id="L121">                setBase64Cert(new String(Base64.encode(certificate.getEncoded())));</span>
-            }
+<span class="fc" id="L215">      String fp = CertTools.getFingerprintAsString(certificate);</span>
+<span class="fc" id="L216">      setFingerprint(fp);</span>
 
-<span class="fc" id="L124">            String fp = CertTools.getFingerprintAsString(certificate);</span>
-<span class="fc" id="L125">            setFingerprint(fp);</span>
+      // Make sure names are always looking the same
+<span class="fc" id="L219">      setSubjectDN(CertTools.getSubjectDN(certificate));</span>
+<span class="fc" id="L220">      setIssuerDN(CertTools.getIssuerDN(certificate));</span>
+<span class="pc bpc" id="L221" title="1 of 2 branches missed.">      if (storeSubjectAltName) {</span>
+<span class="fc" id="L222">        setSubjectAltName(CertTools.getSubjectAlternativeName(certificate));</span>
+      }
+<span class="pc bpc" id="L224" title="1 of 2 branches missed.">      if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L225">        LOG.debug(</span>
+            &quot;Creating CertificateData, subjectDN=&quot;
+<span class="nc" id="L227">                + getSubjectDnNeverNull()</span>
+                + &quot;, subjectAltName=&quot;
+<span class="nc" id="L229">                + getSubjectAltNameNeverNull()</span>
+                + &quot;, issuer=&quot;
+<span class="nc" id="L231">                + getIssuerDN()</span>
+                + &quot;, fingerprint=&quot;
+                + fp
+                + &quot;, storeSubjectAltName=&quot;
+                + storeSubjectAltName);
+      }
+<span class="fc" id="L237">      setSerialNumber(CertTools.getSerialNumber(certificate).toString());</span>
 
-            // Make sure names are always looking the same
-<span class="fc" id="L128">            setSubjectDN(CertTools.getSubjectDN(certificate));</span>
-<span class="fc" id="L129">            setIssuerDN(CertTools.getIssuerDN(certificate));</span>
-<span class="pc bpc" id="L130" title="1 of 2 branches missed.">            if (storeSubjectAltName) {</span>
-<span class="fc" id="L131">                setSubjectAltName(CertTools.getSubjectAlternativeName(certificate));</span>
-            }
-<span class="pc bpc" id="L133" title="1 of 2 branches missed.">            if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L134">                log.debug(&quot;Creating CertificateData, subjectDN=&quot; + getSubjectDnNeverNull() + &quot;, subjectAltName=&quot; + getSubjectAltNameNeverNull() + &quot;, issuer=&quot; + getIssuerDN() + &quot;, fingerprint=&quot; + fp+&quot;, storeSubjectAltName=&quot;+storeSubjectAltName);</span>
-            }
-<span class="fc" id="L136">            setSerialNumber(CertTools.getSerialNumber(certificate).toString());</span>
+<span class="fc" id="L239">      setUsername(aUsername);</span>
+      // Values for status and type
+<span class="fc" id="L241">      setStatus(aStatus);</span>
+<span class="fc" id="L242">      setType(aType);</span>
+<span class="fc" id="L243">      setCaFingerprint(cafp);</span>
+<span class="fc" id="L244">      final Date aNotBefore = CertTools.getNotBefore(certificate);</span>
+<span class="pc bpc" id="L245" title="1 of 2 branches missed.">      if (aNotBefore == null) {</span>
+<span class="nc" id="L246">        setNotBefore(null);</span>
+      } else {
+<span class="fc" id="L248">        setNotBefore(aNotBefore.getTime());</span>
+      }
+<span class="fc" id="L250">      setExpireDate(CertTools.getNotAfter(certificate));</span>
+<span class="fc" id="L251">      setRevocationDate(-1L);</span>
+<span class="fc" id="L252">      setRevocationReason(RevokedCertInfo.NOT_REVOKED);</span>
+<span class="fc" id="L253">      setUpdateTime(updatetime); // (new Date().getTime());</span>
+<span class="fc" id="L254">      setCertificateProfileId(certprofileid);</span>
+<span class="fc" id="L255">      setEndEntityProfileId(Integer.valueOf(anEndEntityProfileId));</span>
+      // Create a key identifier
+<span class="fc" id="L257">      PublicKey pubk = certificate.getPublicKey();</span>
+<span class="pc bpc" id="L258" title="1 of 2 branches missed.">      if (enrichedpubkey != null) {</span>
+<span class="fc" id="L259">        pubk = enrichedpubkey;</span>
+      }
+      // Creating the KeyId may just throw an exception, we will log this but
+      // store the cert and ignore the error
+<span class="fc" id="L263">      String keyId = null;</span>
+      try {
+<span class="fc" id="L265">        keyId =</span>
+            new String(
+<span class="fc" id="L267">                Base64.encode(</span>
+<span class="fc" id="L268">                    KeyTools.createSubjectKeyId(pubk).getKeyIdentifier(),</span>
+                    false));
+<span class="nc" id="L270">      } catch (Exception e) {</span>
+<span class="nc" id="L271">        LOG.warn(</span>
+            &quot;Error creating subjectKeyId for certificate with fingerprint '&quot;
+                + fp
+                + &quot;: &quot;,
+            e);
+<span class="fc" id="L276">      }</span>
+<span class="fc" id="L277">      setSubjectKeyId(keyId);</span>
+<span class="fc" id="L278">      setTag(aTag);</span>
+<span class="nc" id="L279">    } catch (CertificateEncodingException cee) {</span>
+<span class="nc" id="L280">      final String msg = &quot;Can't extract DER encoded certificate information.&quot;;</span>
+<span class="nc" id="L281">      LOG.error(msg, cee);</span>
+<span class="nc" id="L282">      throw new RuntimeException(msg);</span>
+<span class="fc" id="L283">    }</span>
+<span class="fc" id="L284">  }</span>
 
-<span class="fc" id="L138">            setUsername(username);</span>
-            // Values for status and type
-<span class="fc" id="L140">            setStatus(status);</span>
-<span class="fc" id="L141">            setType(type);</span>
-<span class="fc" id="L142">            setCaFingerprint(cafp);</span>
-<span class="fc" id="L143">            final Date notBefore = CertTools.getNotBefore(certificate);</span>
-<span class="pc bpc" id="L144" title="1 of 2 branches missed.">            if (notBefore==null) {</span>
-<span class="nc" id="L145">                setNotBefore(null);</span>
-            } else {
-<span class="fc" id="L147">                setNotBefore(notBefore.getTime());</span>
-            }
-<span class="fc" id="L149">            setExpireDate(CertTools.getNotAfter(certificate));</span>
-<span class="fc" id="L150">            setRevocationDate(-1L);</span>
-<span class="fc" id="L151">            setRevocationReason(RevokedCertInfo.NOT_REVOKED);</span>
-<span class="fc" id="L152">            setUpdateTime(updatetime); // (new Date().getTime());</span>
-<span class="fc" id="L153">            setCertificateProfileId(certprofileid);</span>
-<span class="fc" id="L154">            setEndEntityProfileId(Integer.valueOf(endEntityProfileId));</span>
-            // Create a key identifier
-<span class="fc" id="L156">            PublicKey pubk = certificate.getPublicKey();</span>
-<span class="pc bpc" id="L157" title="1 of 2 branches missed.">            if (enrichedpubkey != null) {</span>
-<span class="fc" id="L158">                pubk = enrichedpubkey;</span>
-            }
-            // Creating the KeyId may just throw an exception, we will log this but store the cert and ignore the error
-<span class="fc" id="L161">            String keyId = null;</span>
-            try {
-<span class="fc" id="L163">                keyId = new String(Base64.encode(KeyTools.createSubjectKeyId(pubk).getKeyIdentifier(), false));</span>
-<span class="nc" id="L164">            } catch (Exception e) {</span>
-<span class="nc" id="L165">                log.warn(&quot;Error creating subjectKeyId for certificate with fingerprint '&quot; + fp + &quot;: &quot;, e);</span>
-<span class="fc" id="L166">            }</span>
-<span class="fc" id="L167">            setSubjectKeyId(keyId);</span>
-<span class="fc" id="L168">            setTag(tag);</span>
-<span class="nc" id="L169">        } catch (CertificateEncodingException cee) {</span>
-<span class="nc" id="L170">            final String msg = &quot;Can't extract DER encoded certificate information.&quot;;</span>
-<span class="nc" id="L171">            log.error(msg, cee);</span>
-<span class="nc" id="L172">            throw new RuntimeException(msg);</span>
-<span class="fc" id="L173">        }</span>
-<span class="fc" id="L174">    }</span>
+  /**
+   * Copy Constructor.
+   *
+   * @param copy data
+   */
+<span class="fc" id="L291">  public CertificateData(final BaseCertificateData copy) {</span>
+<span class="fc" id="L292">    setBase64Cert(copy.getBase64Cert());</span>
+<span class="fc" id="L293">    setFingerprint(copy.getFingerprint());</span>
+<span class="fc" id="L294">    setSubjectDN(copy.getSubjectDN());</span>
+<span class="fc" id="L295">    setIssuerDN(copy.getIssuerDN());</span>
+<span class="fc" id="L296">    setSubjectAltName(copy.getSubjectAltName());</span>
+<span class="fc" id="L297">    setSerialNumber(copy.getSerialNumber());</span>
+<span class="fc" id="L298">    setUsername(copy.getUsername());</span>
+<span class="fc" id="L299">    setStatus(copy.getStatus());</span>
+<span class="fc" id="L300">    setType(copy.getType());</span>
+<span class="fc" id="L301">    setCaFingerprint(copy.getCaFingerprint());</span>
+<span class="fc" id="L302">    setNotBefore(copy.getNotBefore());</span>
+<span class="fc" id="L303">    setExpireDate(copy.getExpireDate());</span>
+<span class="fc" id="L304">    setRevocationDate(copy.getRevocationDate());</span>
+<span class="fc" id="L305">    setRevocationReason(copy.getRevocationReason());</span>
+<span class="fc" id="L306">    setUpdateTime(copy.getUpdateTime());</span>
+<span class="fc" id="L307">    setCertificateProfileId(copy.getCertificateProfileId());</span>
+<span class="fc" id="L308">    setEndEntityProfileId(copy.getEndEntityProfileId());</span>
+<span class="fc" id="L309">    setSubjectKeyId(copy.getSubjectKeyId());</span>
+<span class="fc" id="L310">    setTag(copy.getTag());</span>
+<span class="fc" id="L311">    setRowVersion(copy.getRowVersion());</span>
+<span class="fc" id="L312">    setRowProtection(copy.getRowProtection());</span>
+<span class="fc" id="L313">  }</span>
 
-    /**
-     * Copy Constructor
-     * @param copy data
-     */
-<span class="fc" id="L180">    public CertificateData(final BaseCertificateData copy) {</span>
-<span class="fc" id="L181">        setBase64Cert(copy.getBase64Cert());</span>
-<span class="fc" id="L182">        setFingerprint(copy.getFingerprint());</span>
-<span class="fc" id="L183">        setSubjectDN(copy.getSubjectDN());</span>
-<span class="fc" id="L184">        setIssuerDN(copy.getIssuerDN());</span>
-<span class="fc" id="L185">        setSubjectAltName(copy.getSubjectAltName());</span>
-<span class="fc" id="L186">        setSerialNumber(copy.getSerialNumber());</span>
-<span class="fc" id="L187">        setUsername(copy.getUsername());</span>
-<span class="fc" id="L188">        setStatus(copy.getStatus());</span>
-<span class="fc" id="L189">        setType(copy.getType());</span>
-<span class="fc" id="L190">        setCaFingerprint(copy.getCaFingerprint());</span>
-<span class="fc" id="L191">        setNotBefore(copy.getNotBefore());</span>
-<span class="fc" id="L192">        setExpireDate(copy.getExpireDate());</span>
-<span class="fc" id="L193">        setRevocationDate(copy.getRevocationDate());</span>
-<span class="fc" id="L194">        setRevocationReason(copy.getRevocationReason());</span>
-<span class="fc" id="L195">        setUpdateTime(copy.getUpdateTime());</span>
-<span class="fc" id="L196">        setCertificateProfileId(copy.getCertificateProfileId());</span>
-<span class="fc" id="L197">        setEndEntityProfileId(copy.getEndEntityProfileId());</span>
-<span class="fc" id="L198">        setSubjectKeyId(copy.getSubjectKeyId());</span>
-<span class="fc" id="L199">        setTag(copy.getTag());</span>
-<span class="fc" id="L200">        setRowVersion(copy.getRowVersion());</span>
-<span class="fc" id="L201">        setRowProtection(copy.getRowProtection());</span>
-<span class="fc" id="L202">    }</span>
+  /** Null constructor. */
+<span class="fc" id="L316">  public CertificateData() { }</span>
 
-<span class="fc" id="L204">    public CertificateData() {</span>
-        
-<span class="fc" id="L206">    }</span>
-    
-    @Override
-    public String getFingerprint() {
-<span class="fc" id="L210">        return fingerprint;</span>
+  @Override
+  public String getFingerprint() {
+<span class="fc" id="L320">    return fingerprint;</span>
+  }
+
+  @Override
+  public void setFingerprint(final String aFingerprint) {
+<span class="fc" id="L325">    this.fingerprint = aFingerprint;</span>
+<span class="fc" id="L326">  }</span>
+
+  @Override
+  public String getIssuerDN() {
+<span class="fc" id="L330">    return issuerDN;</span>
+  }
+
+  @Override
+  public void setIssuerDN(final String anIssuerDN) {
+<span class="fc" id="L335">    this.issuerDN = anIssuerDN;</span>
+<span class="fc" id="L336">  }</span>
+
+  @Override
+  public String getSubjectDN() {
+<span class="fc" id="L340">    return subjectDN;</span>
+  }
+
+  /**
+   * Use setSubject instead.
+   *
+   * @param aSubjectDN subject dn
+   * @see #setSubject(String)
+   */
+  public void setSubjectDN(final String aSubjectDN) {
+<span class="fc" id="L350">    this.subjectDN = aSubjectDN;</span>
+<span class="fc" id="L351">  }</span>
+
+  /**
+   * @return Subject Alternative Name from the certificate if it was saved at
+   *     the time of issuance.
+   */
+  @Transient
+  public String getSubjectAltNameNeverNull() {
+<span class="nc" id="L359">    final String aSubjectAltName = getSubjectAltName();</span>
+<span class="nc bnc" id="L360" title="All 2 branches missed.">    return aSubjectAltName == null ? &quot;&quot; : aSubjectAltName;</span>
+  }
+
+  @Override
+  public String getSubjectAltName() {
+<span class="fc" id="L365">    return subjectAltName;</span>
+  }
+
+  /**
+   * @param aSubjectAltName Name
+   */
+  public void setSubjectAltName(final String aSubjectAltName) {
+<span class="fc" id="L372">    this.subjectAltName = aSubjectAltName;</span>
+<span class="fc" id="L373">  }</span>
+
+  @Override
+  public String getCaFingerprint() {
+<span class="fc" id="L377">    return cAFingerprint;</span>
+  }
+
+  @Override
+  public void setCaFingerprint(final String aCAFingerprint) {
+<span class="fc" id="L382">    this.cAFingerprint = aCAFingerprint;</span>
+<span class="fc" id="L383">  }</span>
+
+  @Override
+  public int getStatus() {
+<span class="fc" id="L387">    return status;</span>
+  }
+
+  @Override
+  public void setStatus(final int aStatus) {
+<span class="fc" id="L392">    this.status = aStatus;</span>
+<span class="fc" id="L393">  }</span>
+
+  @Override
+  public int getType() {
+<span class="fc" id="L397">    return type;</span>
+  }
+
+  @Override
+  public void setType(final int aType) {
+<span class="fc" id="L402">    this.type = aType;</span>
+<span class="fc" id="L403">  }</span>
+
+  @Override
+  public String getSerialNumber() {
+<span class="fc" id="L407">    return serialNumber;</span>
+  }
+
+  @Override
+  public void setSerialNumber(final String aSerialNumber) {
+<span class="fc" id="L412">    this.serialNumber = aSerialNumber;</span>
+<span class="fc" id="L413">  }</span>
+
+  @Override
+  public Long getNotBefore() {
+<span class="fc" id="L417">    return notBefore;</span>
+  }
+
+  /**
+   * @param aNotBefore start
+   */
+  public void setNotBefore(final Long aNotBefore) {
+<span class="fc" id="L424">    this.notBefore = aNotBefore;</span>
+<span class="fc" id="L425">  }</span>
+
+  @Override
+  public long getExpireDate() {
+<span class="fc" id="L429">    return expireDate;</span>
+  }
+
+  @Override
+  public void setExpireDate(final long anExpireDate) {
+<span class="fc" id="L434">    this.expireDate = anExpireDate;</span>
+<span class="fc" id="L435">  }</span>
+
+  @Override
+  public long getRevocationDate() {
+<span class="fc" id="L439">    return revocationDate;</span>
+  }
+
+  @Override
+  public void setRevocationDate(final long aRevocationDate) {
+<span class="fc" id="L444">    this.revocationDate = aRevocationDate;</span>
+<span class="fc" id="L445">  }</span>
+
+  @Override
+  public int getRevocationReason() {
+<span class="fc" id="L449">    return revocationReason;</span>
+  }
+
+  @Override
+  public void setRevocationReason(final int aRevocationReason) {
+<span class="fc" id="L454">    this.revocationReason = aRevocationReason;</span>
+<span class="fc" id="L455">  }</span>
+
+  @Override
+  public String getBase64Cert() {
+<span class="fc" id="L459">    return this.getZzzBase64Cert();</span>
+  }
+
+  /**
+   * The certificate itself.
+   *
+   * @param aBase64Cert base64 encoded certificate
+   */
+  public void setBase64Cert(final String aBase64Cert) {
+<span class="fc" id="L468">    this.setZzzBase64Cert(aBase64Cert);</span>
+<span class="fc" id="L469">  }</span>
+
+  /**
+   * Horrible work-around due to the fact that Oracle needs to have (LONG and)
+   * CLOB values last in order to avoid ORA-24816.
+   *
+   * &lt;p&gt;Since Hibernate sorts columns by the property names, naming this
+   * Z-something will apparently ensure that this column is used last.
+   *
+   * @return string
+   * @deprecated Use {@link #getBase64Cert()} instead
+   */
+  @Deprecated
+  public String getZzzBase64Cert() {
+<span class="fc" id="L483">    return base64Cert;</span>
+  }
+
+  /**
+   * @param zzzBase64Cert string
+   * @deprecated Use {@link #setBase64Cert(String)} instead
+   */
+  @Deprecated
+  public void setZzzBase64Cert(final String zzzBase64Cert) {
+<span class="fc" id="L492">    this.base64Cert = zzzBase64Cert;</span>
+<span class="fc" id="L493">  }</span>
+
+  @Override
+  public String getUsername() {
+<span class="fc" id="L497">    return username;</span>
+  }
+
+  @Override
+  public void setUsername(final String aUsername) {
+<span class="fc" id="L502">    this.username = StringTools.stripUsername(aUsername);</span>
+<span class="fc" id="L503">  }</span>
+
+  @Override
+  public String getTag() {
+<span class="fc" id="L507">    return tag;</span>
+  }
+
+  /**
+   * tag in database. This field was added for the 3.9.0 release, but is not
+   * used yet.
+   *
+   * @param aTag tag
+   */
+  public void setTag(final String aTag) {
+<span class="fc" id="L517">    this.tag = aTag;</span>
+<span class="fc" id="L518">  }</span>
+
+  @Override
+  public Integer getCertificateProfileId() {
+<span class="fc" id="L522">    return certificateProfileId;</span>
+  }
+
+  @Override
+  public void setCertificateProfileId(final Integer aCertificateProfileId) {
+<span class="fc" id="L527">    this.certificateProfileId = aCertificateProfileId;</span>
+<span class="fc" id="L528">  }</span>
+
+  @Override
+  public Long getUpdateTime() {
+<span class="fc" id="L532">    return updateTime;</span>
+  }
+
+  // Hibernate + Oracle ignores nullable=false so we can expect null-objects as
+  // input after upgrade. TODO: Verify if still true!
+  @Override
+  public void setUpdateTime(final Long anUpdateTime) {
+<span class="pc bpc" id="L539" title="1 of 2 branches missed.">    this.updateTime = (anUpdateTime == null ? this.updateTime : anUpdateTime);</span>
+<span class="fc" id="L540">  }</span>
+
+  @Override
+  public String getSubjectKeyId() {
+<span class="fc" id="L544">    return subjectKeyId;</span>
+  }
+
+  /**
+   * The ID of the public key of the certificate.
+   *
+   * @param aSubjectKeyId ID
+   */
+  public void setSubjectKeyId(final String aSubjectKeyId) {
+<span class="fc" id="L553">    this.subjectKeyId = aSubjectKeyId;</span>
+<span class="fc" id="L554">  }</span>
+
+  @Override
+  public int getRowVersion() {
+<span class="fc" id="L558">    return rowVersion;</span>
+  }
+
+  /**
+   * @param aRowVersion cversion
+   */
+  public void setRowVersion(final int aRowVersion) {
+<span class="fc" id="L565">    this.rowVersion = aRowVersion;</span>
+<span class="fc" id="L566">  }</span>
+
+  @Override
+  public String getRowProtection() {
+<span class="fc" id="L570">    return this.getZzzRowProtection();</span>
+  }
+
+  @Override
+  public void setRowProtection(final String aRowProtection) {
+<span class="fc" id="L575">    this.setZzzRowProtection(aRowProtection);</span>
+<span class="fc" id="L576">  }</span>
+
+  /**
+   * Horrible work-around due to the fact that Oracle needs to have (LONG and)
+   * CLOB values last in order to avoid ORA-24816.
+   *
+   * &lt;p&gt;Since Hibernate sorts columns by the property names, naming this
+   * Z-something will apparently ensure that this column is used last.
+   *
+   * @return String
+   * @deprecated Use {@link #getRowProtection()} instead
+   */
+  @Deprecated
+  public String getZzzRowProtection() {
+<span class="fc" id="L590">    return rowProtection;</span>
+  }
+
+  /**
+   * @param zzzRowProtection String
+   * @deprecated Use {@link #setRowProtection(String)} instead
+   */
+  @Deprecated
+  public void setZzzRowProtection(final String zzzRowProtection) {
+<span class="fc" id="L599">    this.rowProtection = zzzRowProtection;</span>
+<span class="fc" id="L600">  }</span>
+
+  //
+  // Public business methods used to help us manage certificates
+  //
+
+  @Override
+  public void setIssuer(final String dn) {
+<span class="fc" id="L608">    setIssuerDN(CertTools.stringToBCDNString(dn));</span>
+<span class="fc" id="L609">  }</span>
+
+  @Override
+  public void setSubject(final String dn) {
+<span class="fc" id="L613">    setSubjectDN(CertTools.stringToBCDNString(dn));</span>
+<span class="fc" id="L614">  }</span>
+
+  @Override
+  public void setEndEntityProfileId(final Integer anEndEntityProfileId) {
+<span class="fc" id="L618">    this.endEntityProfileId = anEndEntityProfileId;</span>
+<span class="fc" id="L619">  }</span>
+
+  @Override
+  public Integer getEndEntityProfileId() {
+<span class="fc" id="L623">    return endEntityProfileId;</span>
+  }
+
+  // Comparators
+
+  @Override
+  public boolean equals(final Object obj) {
+<span class="pc bpc" id="L630" title="1 of 2 branches missed.">    if (!(obj instanceof CertificateData)) {</span>
+<span class="nc" id="L631">      return false;</span>
     }
+<span class="fc" id="L633">    return equals((CertificateData) obj, true);</span>
+  }
 
-    @Override
-    public void setFingerprint(String fingerprint) {
-<span class="fc" id="L215">        this.fingerprint = fingerprint;</span>
-<span class="fc" id="L216">    }</span>
-
-    @Override
-    public String getIssuerDN() {
-<span class="fc" id="L220">        return issuerDN;</span>
+  /**
+   * @param certificateData data
+   * @param mode mode
+   * @param strictStatus Status
+   * @return bool
+   */
+  public boolean equals(
+      final CertificateData certificateData,
+      final boolean mode,
+      final boolean strictStatus) {
+<span class="nc bnc" id="L646" title="All 2 branches missed.">    if (mode) {</span>
+<span class="nc" id="L647">      return equalsNonSensitive(certificateData, strictStatus);</span>
     }
+<span class="nc" id="L649">    return equals(certificateData, strictStatus);</span>
+  }
 
-    @Override
-    public void setIssuerDN(String issuerDN) {
-<span class="fc" id="L225">        this.issuerDN = issuerDN;</span>
-<span class="fc" id="L226">    }</span>
-
-    @Override
-    public String getSubjectDN() {
-<span class="fc" id="L230">        return subjectDN;</span>
+  private boolean equals(
+      final CertificateData certificateData, final boolean strictStatus) {
+<span class="pc bpc" id="L654" title="1 of 2 branches missed.">    if (!equalsNonSensitive(certificateData, strictStatus)) {</span>
+<span class="nc" id="L655">      return false;</span>
     }
-
-    /**
-     * Use setSubject instead
-     *
-     * @param subjectDN subject dn
-     * @see #setSubject(String)
-     */
-    public void setSubjectDN(String subjectDN) {
-<span class="fc" id="L240">        this.subjectDN = subjectDN;</span>
-<span class="fc" id="L241">    }</span>
-
-    /** @return Subject Alternative Name from the certificate if it was saved at the time of issuance. */
-    @Transient
-    public String getSubjectAltNameNeverNull() {
-<span class="nc" id="L246">        final String subjectAltName = getSubjectAltName();</span>
-<span class="nc bnc" id="L247" title="All 2 branches missed.">        return subjectAltName == null ? &quot;&quot; : subjectAltName;</span>
+<span class="pc bpc" id="L657" title="2 of 4 branches missed.">    if (this.base64Cert == null &amp;&amp; certificateData.base64Cert == null) {</span>
+<span class="fc" id="L658">      return true; // test before shows that fingerprint is equal and then both</span>
+                   // objects must refer to same row in Base64CertData
     }
-
-    @Override
-    public String getSubjectAltName() {
-<span class="fc" id="L252">        return subjectAltName;</span>
+<span class="nc bnc" id="L661" title="All 4 branches missed.">    if (this.base64Cert == null || certificateData.base64Cert == null) {</span>
+<span class="nc" id="L662">      return false; // one is null and the other not null</span>
     }
-    
-    public void setSubjectAltName(final String subjectAltName) {
-<span class="fc" id="L256">        this.subjectAltName = subjectAltName;</span>
-<span class="fc" id="L257">    }</span>
-
-    @Override
-    public String getCaFingerprint() {
-<span class="fc" id="L261">        return cAFingerprint;</span>
+<span class="nc bnc" id="L664" title="All 2 branches missed.">    if (!this.base64Cert.equals(certificateData.base64Cert)) {</span>
+<span class="nc" id="L665">      return false;</span>
     }
+<span class="nc" id="L667">    return true;</span>
+  }
 
-    @Override
-    public void setCaFingerprint(String cAFingerprint) {
-<span class="fc" id="L266">        this.cAFingerprint = cAFingerprint;</span>
-<span class="fc" id="L267">    }</span>
-
-    @Override
-    public int getStatus() {
-<span class="fc" id="L271">        return status;</span>
+  private boolean equalsNonSensitive(
+      final CertificateData certificateData, final boolean strictStatus) {
+<span class="pc bpc" id="L672" title="1 of 2 branches missed.">    if (!issuerDN.equals(certificateData.issuerDN)) {</span>
+<span class="nc" id="L673">      return false;</span>
     }
-
-    @Override
-    public void setStatus(int status) {
-<span class="fc" id="L276">        this.status = status;</span>
-<span class="fc" id="L277">    }</span>
-
-    @Override
-    public int getType() {
-<span class="fc" id="L281">        return type;</span>
+<span class="pc bpc" id="L675" title="1 of 2 branches missed.">    if (!subjectDN.equals(certificateData.subjectDN)) {</span>
+<span class="nc" id="L676">      return false;</span>
     }
-
-    @Override
-    public void setType(int type) {
-<span class="fc" id="L286">        this.type = type;</span>
-<span class="fc" id="L287">    }</span>
-
-    @Override
-    public String getSerialNumber() {
-<span class="fc" id="L291">        return serialNumber;</span>
+<span class="pc bpc" id="L678" title="1 of 2 branches missed.">    if (!fingerprint.equals(certificateData.fingerprint)) {</span>
+<span class="nc" id="L679">      return false;</span>
     }
-    
-    @Override
-    public void setSerialNumber(String serialNumber) {
-<span class="fc" id="L296">        this.serialNumber = serialNumber;</span>
-<span class="fc" id="L297">    }</span>
-
-    @Override
-    public Long getNotBefore() {
-<span class="fc" id="L301">        return notBefore;</span>
+<span class="pc bpc" id="L681" title="1 of 2 branches missed.">    if (!StringUtils.equals(cAFingerprint, certificateData.cAFingerprint)) {</span>
+<span class="nc" id="L682">      return false;</span>
     }
-    
-    public void setNotBefore(final Long notBefore) {
-<span class="fc" id="L305">        this.notBefore = notBefore;</span>
-<span class="fc" id="L306">    }</span>
-
-    @Override
-    public long getExpireDate() {
-<span class="fc" id="L310">        return expireDate;</span>
+<span class="pc bpc" id="L684" title="1 of 2 branches missed.">    if (!equalsStatus(certificateData, strictStatus)) {</span>
+<span class="nc" id="L685">      return false;</span>
     }
-
-    @Override
-    public void setExpireDate(long expireDate) {
-<span class="fc" id="L315">        this.expireDate = expireDate;</span>
-<span class="fc" id="L316">    }</span>
-
-    @Override
-    public long getRevocationDate() {
-<span class="fc" id="L320">        return revocationDate;</span>
+<span class="pc bpc" id="L687" title="1 of 2 branches missed.">    if (type != certificateData.type) {</span>
+<span class="nc" id="L688">      return false;</span>
     }
-
-    @Override
-    public void setRevocationDate(long revocationDate) {
-<span class="fc" id="L325">        this.revocationDate = revocationDate;</span>
-<span class="fc" id="L326">    }</span>
-
-    @Override
-    public int getRevocationReason() {
-<span class="fc" id="L330">        return revocationReason;</span>
+<span class="pc bpc" id="L690" title="1 of 2 branches missed.">    if (!serialNumber.equals(certificateData.serialNumber)) {</span>
+<span class="nc" id="L691">      return false;</span>
     }
-
-    @Override
-    public void setRevocationReason(int revocationReason) {
-<span class="fc" id="L335">        this.revocationReason = revocationReason;</span>
-<span class="fc" id="L336">    }</span>
-
-    @Override
-    public String getBase64Cert() {
-<span class="fc" id="L340">        return this.getZzzBase64Cert();</span>
+<span class="pc bpc" id="L693" title="1 of 2 branches missed.">    if (notBefore == null) {</span>
+<span class="pc bpc" id="L694" title="1 of 2 branches missed.">      if (certificateData.notBefore != null) {</span>
+<span class="nc" id="L695">        return false;</span>
+      }
+    } else {
+<span class="nc bnc" id="L698" title="All 2 branches missed.">      if (!notBefore.equals(certificateData.notBefore)) {</span>
+<span class="nc" id="L699">        return false;</span>
+      }
     }
-
-    /**
-     * The certificate itself
-     *
-     * @param base64Cert base64 encoded certificate
-     */
-    public void setBase64Cert(String base64Cert) {
-<span class="fc" id="L349">        this.setZzzBase64Cert(base64Cert);</span>
-<span class="fc" id="L350">    }</span>
-
-    /**
-     * Horrible work-around due to the fact that Oracle needs to have (LONG and) CLOB values last in order to avoid ORA-24816.
-     *
-     * Since Hibernate sorts columns by the property names, naming this Z-something will apparently ensure that this column is used last.
-     * @return string
-     * @deprecated Use {@link #getBase64Cert()} instead
-     */
-    @Deprecated
-    public String getZzzBase64Cert() {
-<span class="fc" id="L361">        return base64Cert;</span>
+<span class="pc bpc" id="L702" title="1 of 2 branches missed.">    if (expireDate != certificateData.expireDate) {</span>
+<span class="nc" id="L703">      return false;</span>
     }
-    
-    /** @param zzzBase64Cert string
-     * @deprecated Use {@link #setBase64Cert(String)} instead */
-    @Deprecated
-    public void setZzzBase64Cert(final String zzzBase64Cert) {
-<span class="fc" id="L368">        this.base64Cert = zzzBase64Cert;</span>
-<span class="fc" id="L369">    }</span>
-
-    @Override
-    public String getUsername() {
-<span class="fc" id="L373">        return username;</span>
+<span class="pc bpc" id="L705" title="1 of 2 branches missed.">    if (revocationDate != certificateData.revocationDate) {</span>
+<span class="nc" id="L706">      return false;</span>
     }
-
-    @Override
-    public void setUsername(String username) {
-<span class="fc" id="L378">        this.username = StringTools.stripUsername(username);</span>
-<span class="fc" id="L379">    }</span>
-
-    @Override
-    public String getTag() {
-<span class="fc" id="L383">        return tag;</span>
+<span class="pc bpc" id="L708" title="1 of 2 branches missed.">    if (revocationReason != certificateData.revocationReason) {</span>
+<span class="nc" id="L709">      return false;</span>
     }
-
-    /**
-     * tag in database. This field was added for the 3.9.0 release, but is not used yet.
-     *
-     * @param tag tag
-     */
-    public void setTag(String tag) {
-<span class="fc" id="L392">        this.tag = tag;</span>
-<span class="fc" id="L393">    }</span>
-
-    @Override
-    public Integer getCertificateProfileId() {
-<span class="fc" id="L397">        return certificateProfileId;</span>
+<span class="pc bpc" id="L711" title="1 of 2 branches missed.">    if (!StringUtils.equals(username, certificateData.username)) {</span>
+<span class="nc" id="L712">      return false;</span>
     }
-
-    @Override
-    public void setCertificateProfileId(Integer certificateProfileId) {
-<span class="fc" id="L402">        this.certificateProfileId = certificateProfileId;</span>
-<span class="fc" id="L403">    }</span>
-
-    @Override
-    public Long getUpdateTime() {
-<span class="fc" id="L407">        return updateTime;</span>
+<span class="pc bpc" id="L714" title="1 of 2 branches missed.">    if (!StringUtils.equals(tag, certificateData.tag)) {</span>
+<span class="nc" id="L715">      return false;</span>
     }
-
-    // Hibernate + Oracle ignores nullable=false so we can expect null-objects as input after upgrade. TODO: Verify if still true!
-    @Override
-    public void setUpdateTime(Long updateTime) {
-<span class="pc bpc" id="L413" title="1 of 2 branches missed.">        this.updateTime = (updateTime == null ? this.updateTime : updateTime);</span>
-<span class="fc" id="L414">    }</span>
-
-    @Override
-    public String getSubjectKeyId() {
-<span class="fc" id="L418">        return subjectKeyId;</span>
+<span class="pc bpc" id="L717" title="2 of 4 branches missed.">    if (certificateProfileId == null</span>
+        &amp;&amp; certificateData.certificateProfileId != null) {
+<span class="nc" id="L719">      return false;</span>
     }
-
-    /**
-     * The ID of the public key of the certificate
-     * @param subjectKeyId ID
-     */
-    public void setSubjectKeyId(String subjectKeyId) {
-<span class="fc" id="L426">        this.subjectKeyId = subjectKeyId;</span>
-<span class="fc" id="L427">    }</span>
-    
-    @Override
-    public int getRowVersion() {
-<span class="fc" id="L431">        return rowVersion;</span>
+<span class="pc bpc" id="L721" title="1 of 2 branches missed.">    if (certificateProfileId != null</span>
+<span class="nc bnc" id="L722" title="All 2 branches missed.">        &amp;&amp; !certificateProfileId.equals(certificateData.certificateProfileId)) {</span>
+<span class="nc" id="L723">      return false;</span>
     }
-
-    public void setRowVersion(int rowVersion) {
-<span class="fc" id="L435">        this.rowVersion = rowVersion;</span>
-<span class="fc" id="L436">    }</span>
-    
-    @Override
-    public String getRowProtection() {
-<span class="fc" id="L440">        return this.getZzzRowProtection();</span>
+<span class="pc bpc" id="L725" title="1 of 2 branches missed.">    if (endEntityProfileId == null) {</span>
+<span class="pc bpc" id="L726" title="1 of 2 branches missed.">      if (certificateData.endEntityProfileId != null) {</span>
+<span class="nc" id="L727">        return false;</span>
+      }
+    } else {
+<span class="nc bnc" id="L730" title="All 2 branches missed.">      if (!endEntityProfileId.equals(certificateData.endEntityProfileId)) {</span>
+<span class="nc" id="L731">        return false;</span>
+      }
     }
-
-    @Override
-    public void setRowProtection(String rowProtection) {
-<span class="fc" id="L445">        this.setZzzRowProtection(rowProtection);</span>
-<span class="fc" id="L446">    }</span>
-
-    /**
-     * Horrible work-around due to the fact that Oracle needs to have (LONG and) CLOB values last in order to avoid ORA-24816.
-     *
-     * Since Hibernate sorts columns by the property names, naming this Z-something will apparently ensure that this column is used last.
-     * @return String
-     * @deprecated Use {@link #getRowProtection()} instead
-     */
-    @Deprecated
-    public String getZzzRowProtection() {
-<span class="fc" id="L457">        return rowProtection;</span>
+<span class="pc bpc" id="L734" title="1 of 2 branches missed.">    if (updateTime != certificateData.updateTime) {</span>
+<span class="nc" id="L735">      return false;</span>
     }
-    
-    /** @param zzzRowProtection String
-     * @deprecated Use {@link #setRowProtection(String)} instead */
-    @Deprecated
-    public void setZzzRowProtection(final String zzzRowProtection) {
-<span class="fc" id="L464">        this.rowProtection = zzzRowProtection;</span>
-<span class="fc" id="L465">    }</span>
-    
-    
-    
-    //
-    // Public business methods used to help us manage certificates
-    //
-    
-    @Override
-    public void setIssuer(String dn) {
-<span class="fc" id="L475">        setIssuerDN(CertTools.stringToBCDNString(dn));</span>
-<span class="fc" id="L476">    }</span>
-
-    @Override
-    public void setSubject(String dn) {
-<span class="fc" id="L480">        setSubjectDN(CertTools.stringToBCDNString(dn));</span>
-<span class="fc" id="L481">    }</span>
-
-    @Override
-    public void setEndEntityProfileId(final Integer endEntityProfileId) {
-<span class="fc" id="L485">        this.endEntityProfileId = endEntityProfileId;</span>
-<span class="fc" id="L486">    }</span>
-    
-    @Override
-    public Integer getEndEntityProfileId() {
-<span class="fc" id="L490">        return endEntityProfileId;</span>
+<span class="pc bpc" id="L737" title="1 of 2 branches missed.">    if (!StringUtils.equals(subjectAltName, certificateData.subjectAltName)) {</span>
+<span class="nc" id="L738">      return false;</span>
     }
-    
-    
-    // Comparators
+<span class="fc" id="L740">    return true;</span>
+  }
 
-    @Override
-    public boolean equals(Object obj) {
-<span class="pc bpc" id="L498" title="1 of 2 branches missed.">        if (!(obj instanceof CertificateData)) {</span>
-<span class="nc" id="L499">            return false;</span>
-        }
-<span class="fc" id="L501">        return equals((CertificateData) obj, true);</span>
+  @Override
+  public int hashCode() {
+<span class="nc" id="L745">    return fingerprint.hashCode() * 11;</span>
+  }
+
+  /**
+   * @param certificateData Data
+   * @param inclusionMode Mode
+   */
+  public void updateWith(
+      final CertificateData certificateData, final boolean inclusionMode) {
+<span class="nc" id="L754">    issuerDN = certificateData.issuerDN;</span>
+<span class="nc" id="L755">    subjectDN = certificateData.subjectDN;</span>
+<span class="nc" id="L756">    fingerprint = certificateData.fingerprint;</span>
+<span class="nc" id="L757">    cAFingerprint = certificateData.cAFingerprint;</span>
+<span class="nc" id="L758">    status = certificateData.status;</span>
+<span class="nc" id="L759">    type = certificateData.type;</span>
+<span class="nc" id="L760">    serialNumber = certificateData.serialNumber;</span>
+<span class="nc" id="L761">    expireDate = certificateData.expireDate;</span>
+<span class="nc" id="L762">    revocationDate = certificateData.revocationDate;</span>
+<span class="nc" id="L763">    revocationReason = certificateData.revocationReason;</span>
+<span class="nc" id="L764">    setUsername(certificateData.username);</span>
+<span class="nc" id="L765">    tag = certificateData.tag;</span>
+<span class="nc" id="L766">    certificateProfileId = certificateData.certificateProfileId;</span>
+<span class="nc" id="L767">    updateTime = certificateData.updateTime;</span>
+<span class="nc bnc" id="L768" title="All 2 branches missed.">    base64Cert = inclusionMode ? null : certificateData.base64Cert;</span>
+<span class="nc" id="L769">  }</span>
+
+  //
+  // Search functions (deprecated, use methods in CertificateDataSession
+  // instead)
+  //
+
+  /**
+   * @param entityManager EM
+   * @param fingerprint FP
+   * @return cert
+   * @deprecated Since 6.13.0. Use method in CertificateDataSession instead
+   */
+  @Deprecated
+  public static CertificateData findByFingerprint(
+      final EntityManager entityManager, final String fingerprint) {
+<span class="nc" id="L785">    return entityManager.find(CertificateData.class, fingerprint);</span>
+  }
+
+  /**
+   * Get next batchSize row ordered by fingerprint. Used by OcspMonitoringTool.
+   *
+   * @param entityManager EM
+   * @param certificateProfileId ID
+   * @param currentFingerprint FP
+   * @param batchSize Size
+   * @return List of certificates
+   */
+  @SuppressWarnings(&quot;unchecked&quot;)
+  public static List&lt;CertificateData&gt; getNextBatch(
+      final EntityManager entityManager,
+      final int certificateProfileId,
+      final String currentFingerprint,
+      final int batchSize) {
+<span class="nc" id="L803">    final Query query =</span>
+<span class="nc" id="L804">        entityManager.createQuery(</span>
+            &quot;SELECT a FROM CertificateData a WHERE&quot;
+                + &quot; a.fingerprint&gt;:currentFingerprint AND&quot;
+                + &quot; a.certificateProfileId=:certificateProfileId ORDER BY&quot;
+                + &quot; a.fingerprint ASC&quot;);
+<span class="nc" id="L809">    query.setParameter(&quot;certificateProfileId&quot;, certificateProfileId);</span>
+<span class="nc" id="L810">    query.setParameter(&quot;currentFingerprint&quot;, currentFingerprint);</span>
+<span class="nc" id="L811">    query.setMaxResults(batchSize);</span>
+<span class="nc" id="L812">    return query.getResultList();</span>
+  }
+
+  /**
+   * Returns the number of entries with the given certificate profile. Used by
+   * OcspMonitoringTool.
+   *
+   * @param entityManager EM
+   * @param certificateProfileId ID
+   * @return count
+   */
+  public static long getCount(
+      final EntityManager entityManager, final int certificateProfileId) {
+<span class="nc" id="L825">    final Query countQuery =</span>
+<span class="nc" id="L826">        entityManager.createQuery(</span>
+            &quot;SELECT COUNT(a) FROM CertificateData a WHERE&quot;
+                + &quot; a.certificateProfileId=:certificateProfileId&quot;);
+<span class="nc" id="L829">    countQuery.setParameter(&quot;certificateProfileId&quot;, certificateProfileId);</span>
+<span class="nc" id="L830">    return ((Long) countQuery.getSingleResult())</span>
+<span class="nc" id="L831">        .longValue(); // Always returns a result</span>
+  }
+
+  /**
+   * Returns a list of Certificate Profile IDs that are used in certificates.
+   * Used by OcspMonitoringTool.
+   *
+   * @param entityManager EM
+   * @return IDs
+   */
+  @SuppressWarnings(&quot;unchecked&quot;)
+  public static List&lt;Integer&gt; getUsedCertificateProfileIds(
+      final EntityManager entityManager) {
+<span class="nc" id="L844">    final Query query =</span>
+<span class="nc" id="L845">        entityManager.createQuery(</span>
+            &quot;SELECT DISTINCT a.certificateProfileId FROM CertificateData a&quot;
+                + &quot; ORDER BY a.certificateProfileId&quot;);
+<span class="nc" id="L848">    return query.getResultList();</span>
+  }
+
+  //
+  // Start Database integrity protection methods
+  //
+
+  @Transient
+  @Override
+  protected String getProtectString(final int version) {
+<span class="nc" id="L858">    final int cap = 3000;</span>
+<span class="nc" id="L859">    final ProtectionStringBuilder build = new ProtectionStringBuilder(cap);</span>
+    // What is important to protect here is the data that we define, id, name
+    // and certificate profile data
+    // rowVersion is automatically updated by JPA, so it's not important, it is
+    // only used for optimistic locking
+<span class="nc" id="L864">    build.append(getFingerprint()).append(getIssuerDN());</span>
+<span class="nc bnc" id="L865" title="All 2 branches missed.">    if (version &gt;= 3) {</span>
+      // From version 3 for EJBCA 6.7 we always use empty String here to allow
+      // future migration between databases when this value is unset
+<span class="nc" id="L868">      build.append(getSubjectDnNeverNull());</span>
+    } else {
+<span class="nc" id="L870">      build.append(getSubjectDN());</span>
     }
-
-    public boolean equals(CertificateData certificateData, boolean mode, boolean strictStatus) {
-<span class="nc bnc" id="L505" title="All 2 branches missed.">        if (mode) {</span>
-<span class="nc" id="L506">            return equalsNonSensitive(certificateData, strictStatus);</span>
-        }
-<span class="nc" id="L508">        return equals(certificateData, strictStatus);</span>
+<span class="nc" id="L872">    build</span>
+<span class="nc" id="L873">        .append(getCaFingerprint())</span>
+<span class="nc" id="L874">        .append(getStatus())</span>
+<span class="nc" id="L875">        .append(getType())</span>
+<span class="nc" id="L876">        .append(getSerialNumber())</span>
+<span class="nc" id="L877">        .append(getExpireDate())</span>
+<span class="nc" id="L878">        .append(getRevocationDate())</span>
+<span class="nc" id="L879">        .append(getRevocationReason())</span>
+<span class="nc" id="L880">        .append(getBase64Cert())</span>
+<span class="nc" id="L881">        .append(getUsername())</span>
+<span class="nc" id="L882">        .append(getTag())</span>
+<span class="nc" id="L883">        .append(getCertificateProfileId())</span>
+<span class="nc" id="L884">        .append(getUpdateTime())</span>
+<span class="nc" id="L885">        .append(getSubjectKeyId());</span>
+<span class="nc bnc" id="L886" title="All 2 branches missed.">    if (version &gt;= 2) {</span>
+      // In version 2 for EJBCA 6.6 the following columns where added
+<span class="nc" id="L888">      build.append(String.valueOf(getNotBefore()));</span>
+<span class="nc" id="L889">      build.append(String.valueOf(getEndEntityProfileId()));</span>
+<span class="nc bnc" id="L890" title="All 2 branches missed.">      if (version &gt;= 3) {</span>
+        // From version 3 for EJBCA 6.7 we always use empty String here to allow
+        // future migration between databases when this value is unset
+<span class="nc" id="L893">        build.append(getSubjectAltNameNeverNull());</span>
+      } else {
+<span class="nc" id="L895">        build.append(String.valueOf(getSubjectAltName()));</span>
+      }
     }
-
-    private boolean equals(CertificateData certificateData, boolean strictStatus) {
-<span class="pc bpc" id="L512" title="1 of 2 branches missed.">        if (!equalsNonSensitive(certificateData, strictStatus)) {</span>
-<span class="nc" id="L513">            return false;</span>
-        }
-<span class="pc bpc" id="L515" title="2 of 4 branches missed.">        if ( this.base64Cert==null &amp;&amp; certificateData.base64Cert==null ) {</span>
-<span class="fc" id="L516">            return true; // test before shows that fingerprint is equal and then both objects must refer to same row in Base64CertData</span>
-        }
-<span class="nc bnc" id="L518" title="All 4 branches missed.">        if ( this.base64Cert==null || certificateData.base64Cert==null ) {</span>
-<span class="nc" id="L519">            return false; // one is null and the other not null</span>
-        }
-<span class="nc bnc" id="L521" title="All 2 branches missed.">        if (!this.base64Cert.equals(certificateData.base64Cert)) {</span>
-<span class="nc" id="L522">            return false;</span>
-        }
-<span class="nc" id="L524">        return true;</span>
+<span class="nc bnc" id="L898" title="All 2 branches missed.">    if (LOG.isDebugEnabled()) {</span>
+      // Some profiling
+<span class="nc bnc" id="L900" title="All 2 branches missed.">      if (build.length() &gt; cap) {</span>
+<span class="nc" id="L901">        LOG.debug(</span>
+<span class="nc" id="L902">            &quot;CertificateData.getProtectString gives size: &quot; + build.length());</span>
+      }
     }
+<span class="nc" id="L905">    return build.toString();</span>
+  }
 
-    private boolean equalsNonSensitive(CertificateData certificateData, boolean strictStatus) {
-<span class="pc bpc" id="L528" title="1 of 2 branches missed.">        if (!issuerDN.equals(certificateData.issuerDN)) {</span>
-<span class="nc" id="L529">            return false;</span>
-        }
-<span class="pc bpc" id="L531" title="1 of 2 branches missed.">        if (!subjectDN.equals(certificateData.subjectDN)) {</span>
-<span class="nc" id="L532">            return false;</span>
-        }
-<span class="pc bpc" id="L534" title="1 of 2 branches missed.">        if (!fingerprint.equals(certificateData.fingerprint)) {</span>
-<span class="nc" id="L535">            return false;</span>
-        }
-<span class="pc bpc" id="L537" title="1 of 2 branches missed.">        if (!StringUtils.equals(cAFingerprint, certificateData.cAFingerprint)) {</span>
-<span class="nc" id="L538">            return false;</span>
-        }
-<span class="pc bpc" id="L540" title="1 of 2 branches missed.">        if (!equalsStatus(certificateData, strictStatus)) {</span>
-<span class="nc" id="L541">            return false;</span>
-        }
-<span class="pc bpc" id="L543" title="1 of 2 branches missed.">        if (type != certificateData.type) {</span>
-<span class="nc" id="L544">            return false;</span>
-        }
-<span class="pc bpc" id="L546" title="1 of 2 branches missed.">        if (!serialNumber.equals(certificateData.serialNumber)) {</span>
-<span class="nc" id="L547">            return false;</span>
-        }
-<span class="pc bpc" id="L549" title="1 of 2 branches missed.">        if (notBefore==null) {</span>
-<span class="pc bpc" id="L550" title="1 of 2 branches missed.">            if (certificateData.notBefore!=null) {</span>
-<span class="nc" id="L551">                return false;</span>
-            }
-        } else {
-<span class="nc bnc" id="L554" title="All 2 branches missed.">            if (!notBefore.equals(certificateData.notBefore)) {</span>
-<span class="nc" id="L555">                return false;</span>
-            }
-        }
-<span class="pc bpc" id="L558" title="1 of 2 branches missed.">        if (expireDate != certificateData.expireDate) {</span>
-<span class="nc" id="L559">            return false;</span>
-        }
-<span class="pc bpc" id="L561" title="1 of 2 branches missed.">        if (revocationDate != certificateData.revocationDate) {</span>
-<span class="nc" id="L562">            return false;</span>
-        }
-<span class="pc bpc" id="L564" title="1 of 2 branches missed.">        if (revocationReason != certificateData.revocationReason) {</span>
-<span class="nc" id="L565">            return false;</span>
-        }
-<span class="pc bpc" id="L567" title="1 of 2 branches missed.">        if (!StringUtils.equals(username, certificateData.username)) {</span>
-<span class="nc" id="L568">            return false;</span>
-        }
-<span class="pc bpc" id="L570" title="1 of 2 branches missed.">        if (!StringUtils.equals(tag, certificateData.tag)) {</span>
-<span class="nc" id="L571">            return false;</span>
-        }
-<span class="pc bpc" id="L573" title="2 of 4 branches missed.">        if (certificateProfileId == null &amp;&amp; certificateData.certificateProfileId != null) {</span>
-<span class="nc" id="L574">            return false;</span>
-        }
-<span class="pc bpc" id="L576" title="3 of 4 branches missed.">        if (certificateProfileId != null &amp;&amp; !certificateProfileId.equals(certificateData.certificateProfileId)) {</span>
-<span class="nc" id="L577">            return false;</span>
-        }
-<span class="pc bpc" id="L579" title="1 of 2 branches missed.">        if (endEntityProfileId==null) {</span>
-<span class="pc bpc" id="L580" title="1 of 2 branches missed.">            if (certificateData.endEntityProfileId!=null) {</span>
-<span class="nc" id="L581">                return false;</span>
-            }
-        } else {
-<span class="nc bnc" id="L584" title="All 2 branches missed.">            if (!endEntityProfileId.equals(certificateData.endEntityProfileId)) {</span>
-<span class="nc" id="L585">                return false;</span>
-            }
-        }
-<span class="pc bpc" id="L588" title="1 of 2 branches missed.">        if (updateTime != certificateData.updateTime) {</span>
-<span class="nc" id="L589">            return false;</span>
-        }
-<span class="pc bpc" id="L591" title="1 of 2 branches missed.">        if (!StringUtils.equals(subjectAltName, certificateData.subjectAltName)) {</span>
-<span class="nc" id="L592">            return false;</span>
-        }
-<span class="fc" id="L594">        return true;</span>
-    }
+  @Transient
+  @Override
+  protected int getProtectVersion() {
+<span class="nc" id="L911">    final int version = 3;</span>
+<span class="nc" id="L912">    return version;</span>
+  }
 
-    @Override
-    public int hashCode() {
-<span class="nc" id="L599">        return fingerprint.hashCode() * 11;</span>
-    }
+  @PrePersist
+  @PreUpdate
+  @Override
+  protected void protectData() {
+<span class="fc" id="L919">    super.protectData();</span>
+<span class="fc" id="L920">  }</span>
 
-    public void updateWith(CertificateData certificateData, boolean inclusionMode) {
-<span class="nc" id="L603">        issuerDN = certificateData.issuerDN;</span>
-<span class="nc" id="L604">        subjectDN = certificateData.subjectDN;</span>
-<span class="nc" id="L605">        fingerprint = certificateData.fingerprint;</span>
-<span class="nc" id="L606">        cAFingerprint = certificateData.cAFingerprint;</span>
-<span class="nc" id="L607">        status = certificateData.status;</span>
-<span class="nc" id="L608">        type = certificateData.type;</span>
-<span class="nc" id="L609">        serialNumber = certificateData.serialNumber;</span>
-<span class="nc" id="L610">        expireDate = certificateData.expireDate;</span>
-<span class="nc" id="L611">        revocationDate = certificateData.revocationDate;</span>
-<span class="nc" id="L612">        revocationReason = certificateData.revocationReason;</span>
-<span class="nc" id="L613">        setUsername(certificateData.username);</span>
-<span class="nc" id="L614">        tag = certificateData.tag;</span>
-<span class="nc" id="L615">        certificateProfileId = certificateData.certificateProfileId;</span>
-<span class="nc" id="L616">        updateTime = certificateData.updateTime;</span>
-<span class="nc bnc" id="L617" title="All 2 branches missed.">        base64Cert = inclusionMode ? null : certificateData.base64Cert;</span>
-<span class="nc" id="L618">    }</span>
+  @PostLoad
+  @Override
+  protected void verifyData() {
+<span class="nc" id="L925">    super.verifyData();</span>
+<span class="nc" id="L926">  }</span>
 
-    
-    //
-    // Search functions (deprecated, use methods in CertificateDataSession instead)
-    //
+  @Override
+  @Transient
+  protected String getRowId() {
+<span class="nc" id="L931">    return getFingerprint();</span>
+  }
 
-    /** @param entityManager EM
-     * @param fingerprint FP
-     * @return cert
-     * @deprecated Since 6.13.0. Use method in CertificateDataSession instead */
-    @Deprecated
-    public static CertificateData findByFingerprint(EntityManager entityManager, String fingerprint) {
-<span class="nc" id="L631">        return entityManager.find(CertificateData.class, fingerprint);</span>
-    }
-
-    /**
-     * Get next batchSize row ordered by fingerprint. Used by OcspMonitoringTool.
-     * @param entityManager EM
-     *
-     * @param certificateProfileId ID
-     * @param currentFingerprint FP
-     * @param batchSize Size
-     * @return List of certificates
-     */
-    @SuppressWarnings(&quot;unchecked&quot;)
-    public static List&lt;CertificateData&gt; getNextBatch(EntityManager entityManager, int certificateProfileId, String currentFingerprint, int batchSize) {
-<span class="nc" id="L645">        final Query query = entityManager</span>
-<span class="nc" id="L646">                .createQuery(&quot;SELECT a FROM CertificateData a WHERE a.fingerprint&gt;:currentFingerprint AND a.certificateProfileId=:certificateProfileId ORDER BY a.fingerprint ASC&quot;);</span>
-<span class="nc" id="L647">        query.setParameter(&quot;certificateProfileId&quot;, certificateProfileId);</span>
-<span class="nc" id="L648">        query.setParameter(&quot;currentFingerprint&quot;, currentFingerprint);</span>
-<span class="nc" id="L649">        query.setMaxResults(batchSize);</span>
-<span class="nc" id="L650">        return query.getResultList();</span>
-    }
-
-    /** Returns the number of entries with the given certificate profile. Used by OcspMonitoringTool. 
-     * @param entityManager EM
-     * @param certificateProfileId ID 
-     * @return count */
-    public static long getCount(EntityManager entityManager, int certificateProfileId) {
-<span class="nc" id="L658">        final Query countQuery = entityManager</span>
-<span class="nc" id="L659">                .createQuery(&quot;SELECT COUNT(a) FROM CertificateData a WHERE a.certificateProfileId=:certificateProfileId&quot;);</span>
-<span class="nc" id="L660">        countQuery.setParameter(&quot;certificateProfileId&quot;, certificateProfileId);</span>
-<span class="nc" id="L661">        return ((Long) countQuery.getSingleResult()).longValue(); // Always returns a result</span>
-    }
-
-    /** Returns a list of Certificate Profile IDs that are used in certificates. Used by OcspMonitoringTool. 
-     * @param entityManager EM
-     * @return IDs */
-    @SuppressWarnings(&quot;unchecked&quot;)
-    public static List&lt;Integer&gt; getUsedCertificateProfileIds(EntityManager entityManager) {
-<span class="nc" id="L669">        final Query query = entityManager.createQuery(&quot;SELECT DISTINCT a.certificateProfileId FROM CertificateData a ORDER BY a.certificateProfileId&quot;);</span>
-<span class="nc" id="L670">        return query.getResultList();</span>
-    }
-    
-    //
-    // Start Database integrity protection methods
-    //
-
-    @Transient
-    @Override
-    protected String getProtectString(final int version) {
-<span class="nc" id="L680">    	final ProtectionStringBuilder build = new ProtectionStringBuilder(3000);</span>
-        // What is important to protect here is the data that we define, id, name and certificate profile data
-        // rowVersion is automatically updated by JPA, so it's not important, it is only used for optimistic locking
-<span class="nc" id="L683">        build.append(getFingerprint()).append(getIssuerDN());</span>
-<span class="nc bnc" id="L684" title="All 2 branches missed.">        if (version&gt;=3) {</span>
-            // From version 3 for EJBCA 6.7 we always use empty String here to allow future migration between databases when this value is unset
-<span class="nc" id="L686">            build.append(getSubjectDnNeverNull());</span>
-        } else {
-<span class="nc" id="L688">            build.append(getSubjectDN());</span>
-        }
-<span class="nc" id="L690">        build.append(getCaFingerprint()).append(getStatus()).append(getType())</span>
-<span class="nc" id="L691">                .append(getSerialNumber()).append(getExpireDate()).append(getRevocationDate()).append(getRevocationReason()).append(getBase64Cert())</span>
-<span class="nc" id="L692">                .append(getUsername()).append(getTag()).append(getCertificateProfileId()).append(getUpdateTime()).append(getSubjectKeyId());</span>
-<span class="nc bnc" id="L693" title="All 2 branches missed.">        if (version&gt;=2) {</span>
-            // In version 2 for EJBCA 6.6 the following columns where added
-<span class="nc" id="L695">            build.append(String.valueOf(getNotBefore()));</span>
-<span class="nc" id="L696">            build.append(String.valueOf(getEndEntityProfileId()));</span>
-<span class="nc bnc" id="L697" title="All 2 branches missed.">            if (version&gt;=3) {</span>
-                // From version 3 for EJBCA 6.7 we always use empty String here to allow future migration between databases when this value is unset
-<span class="nc" id="L699">                build.append(getSubjectAltNameNeverNull());</span>
-            } else {
-<span class="nc" id="L701">                build.append(String.valueOf(getSubjectAltName()));</span>
-            }
-        }
-<span class="nc bnc" id="L704" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
-            // Some profiling
-<span class="nc bnc" id="L706" title="All 2 branches missed.">            if (build.length() &gt; 3000) {</span>
-<span class="nc" id="L707">                log.debug(&quot;CertificateData.getProtectString gives size: &quot; + build.length());</span>
-            }
-        }
-<span class="nc" id="L710">        return build.toString();</span>
-    }
-
-    @Transient
-    @Override
-    protected int getProtectVersion() {
-<span class="nc" id="L716">        return 3;</span>
-    }
-
-    @PrePersist
-    @PreUpdate
-    @Override
-    protected void protectData() {
-<span class="fc" id="L723">        super.protectData();</span>
-<span class="fc" id="L724">    }</span>
-
-    @PostLoad
-    @Override
-    protected void verifyData() {
-<span class="nc" id="L729">        super.verifyData();</span>
-<span class="nc" id="L730">    }</span>
-
-    @Override
-    @Transient
-    protected String getRowId() {
-<span class="nc" id="L735">        return getFingerprint();</span>
-    }
-    
-    //
-    // End Database integrity protection methods
-    //
+  //
+  // End Database integrity protection methods
+  //
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -16,41 +16,51 @@ import org.cesecore.CesecoreException;
 import org.cesecore.ErrorCode;
 
 /**
- * Thrown when trying to delete an item when references to it exist.
- * For example when trying to delete a Publisher when it is used in Certificate Profiles.
- * &lt;p&gt;
- * The message contains details about which objects or which types of objects contain the references.
- * @version $Id: ReferencesToItemExistException.java 30470 2018-11-12 11:02:11Z samuellb $
+ * Thrown when trying to delete an item when references to it exist. For example
+ * when trying to delete a Publisher when it is used in Certificate Profiles.
+ *
+ * &lt;p&gt;The message contains details about which objects or which types of objects
+ * contain the references.
+ *
+ * @version $Id: ReferencesToItemExistException.java 30470 2018-11-12 11:02:11Z
+ *     samuellb $
  */
 public class ReferencesToItemExistException extends CesecoreException {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    /**
-     * Creates a new instance of &lt;code&gt;ReferencesToItemExistException&lt;/code&gt; without detail message.
-     * @deprecated A message describing which types of objects are referencing the item should be included. This constructor is for deserialization only.
-     */
-    @Deprecated
-    public ReferencesToItemExistException() {
-<span class="nc" id="L35">        super();</span>
-<span class="nc" id="L36">    }</span>
-    
-    
-    /**
-     * Constructs an instance of &lt;code&gt;ReferencesToItemExistException&lt;/code&gt; with the specified detail message.
-     * @param msg the detail message.
-     */
-    public ReferencesToItemExistException(String msg) {
-<span class="nc" id="L44">        super(ErrorCode.REFERENCES_TO_ITEM_EXIST, msg);</span>
-<span class="nc" id="L45">    }</span>
+  /**
+   * Creates a new instance of &lt;code&gt;ReferencesToItemExistException&lt;/code&gt;
+   * without detail message.
+   *
+   * @deprecated A message describing which types of objects are referencing the
+   *     item should be included. This constructor is for deserialization only.
+   */
+  @Deprecated
+  public ReferencesToItemExistException() {
+<span class="nc" id="L41">    super();</span>
+<span class="nc" id="L42">  }</span>
 
-    /**
-     * Constructs an instance of &lt;code&gt;ReferencesToItemExistException&lt;/code&gt; with the specified detail message and cause.
-     * @param message the detail message.
-     * @param cause exception causing this exception.
-     */
-    public ReferencesToItemExistException(String message, Throwable cause) {
-<span class="nc" id="L53">        super(message, cause);</span>
-<span class="nc" id="L54">    }</span>
+  /**
+   * Constructs an instance of &lt;code&gt;ReferencesToItemExistException&lt;/code&gt; with
+   * the specified detail message.
+   *
+   * @param msg the detail message.
+   */
+  public ReferencesToItemExistException(final String msg) {
+<span class="nc" id="L51">    super(ErrorCode.REFERENCES_TO_ITEM_EXIST, msg);</span>
+<span class="nc" id="L52">  }</span>
+
+  /**
+   * Constructs an instance of &lt;code&gt;ReferencesToItemExistException&lt;/code&gt; with
+   * the specified detail message and cause.
+   *
+   * @param message the detail message.
+   * @param cause exception causing this exception.
+   */
+  public ReferencesToItemExistException(
+      final String message, final Throwable cause) {
+<span class="nc" id="L63">    super(message, cause);</span>
+<span class="nc" id="L64">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

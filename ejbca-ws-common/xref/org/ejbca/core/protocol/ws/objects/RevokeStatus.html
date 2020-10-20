@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
-<title>/home/runner/work/ejbca/ejbca/ejbca-ws-common/src/main/java/org/ejbca/core/protocol/ws/objects/RevokeStatus.java xref</title>
+<title>C:\Users\david.crisp\git\ejbca\ejbca-ws-common\src\main\java\org\ejbca\core\protocol\ws\objects\RevokeStatus.java xref</title>
 <link type="text/css" rel="stylesheet" href="../../../../../../stylesheet.css" />
 </head>
 <body>
@@ -91,9 +91,9 @@
 <a class="jxr_linenumber" name="L83" href="#L83">83</a>  		certificateSN = serno;
 <a class="jxr_linenumber" name="L84" href="#L84">84</a>  		<strong class="jxr_keyword">this</strong>.issuerDN = issuerDN;
 <a class="jxr_linenumber" name="L85" href="#L85">85</a>  		GregorianCalendar cal = <strong class="jxr_keyword">new</strong> GregorianCalendar ();
-<a class="jxr_linenumber" name="L86" href="#L86">86</a>  		cal.setTime(info.revocationDate);
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>  		cal.setTime(info.getRevocationDate());
 <a class="jxr_linenumber" name="L87" href="#L87">87</a>  		revocationDate = DatatypeFactory.newInstance ().newXMLGregorianCalendar(cal);
-<a class="jxr_linenumber" name="L88" href="#L88">88</a>  		reason = info.revocationReason;		
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>  		reason = info.getRevocationReason();		
 <a class="jxr_linenumber" name="L89" href="#L89">89</a>  	}
 <a class="jxr_linenumber" name="L90" href="#L90">90</a>  
 <a class="jxr_linenumber" name="L91" href="#L91">91</a>  	<em class="jxr_javadoccomment">/**</em>

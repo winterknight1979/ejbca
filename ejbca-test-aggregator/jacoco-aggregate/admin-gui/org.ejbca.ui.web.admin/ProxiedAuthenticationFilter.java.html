@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ProxiedAuthenticationFilter.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">admin-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin</a> &gt; <span class="el_source">ProxiedAuthenticationFilter.java</span></div><h1>ProxiedAuthenticationFilter.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.web.admin;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
+import java.util.Collection;
+import java.util.Date;
+
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authentication.tokens.X509CertificateAuthenticationToken;
+import org.cesecore.authorization.control.StandardRules;
+import org.cesecore.certificates.certificate.CertificateConstants;
+import org.ejbca.config.WebConfiguration;
+import org.ejbca.core.model.util.EjbLocalHelper;
+
+/**
+ * Servlet filter implementation that can use a certificate belonging to a user in EJBCA
+ * to emulate SSL client certificate authentication.
+ * 
+ * @version $Id: ProxiedAuthenticationFilter.java 25421 2017-03-09 02:23:26Z jeklund $
+ */
+<span class="nc" id="L44">public class ProxiedAuthenticationFilter implements Filter {</span>
+
+	private static final String ATTR_X509CERTIFICATE = &quot;javax.servlet.request.X509Certificate&quot;;
+    private static final String ATTR_PROXIED_AUTH_TOKEN_STRING = &quot;proxiedAuthenticationTokenString&quot;;
+<span class="nc" id="L48">	private static final Logger log = Logger.getLogger(ProxiedAuthenticationFilter.class);</span>
+	
+<span class="nc" id="L50">	private boolean proxiedAuthenticationEnabled = false;</span>
+	
+	@Override
+	public void init(final FilterConfig filterConfig) throws ServletException {
+<span class="nc" id="L54">	    proxiedAuthenticationEnabled = WebConfiguration.isProxiedAuthenticationEnabled();</span>
+<span class="nc" id="L55">	}</span>
+
+	@Override
+	public void destroy() {
+<span class="nc" id="L59">	}</span>
+
+	@Override
+	public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain filterChain) throws IOException, ServletException {
+<span class="nc bnc" id="L63" title="All 2 branches missed.">		if (request.getAttribute(ATTR_X509CERTIFICATE) == null) {</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">			if (proxiedAuthenticationEnabled) {</span>
+<span class="nc" id="L65">				final String username = (String) request.getAttribute(ATTR_PROXIED_AUTH_TOKEN_STRING);</span>
+<span class="nc bnc" id="L66" title="All 2 branches missed.">				if (username != null) {</span>
+<span class="nc" id="L67">				    final EjbLocalHelper ejb = new EjbLocalHelper();</span>
+<span class="nc bnc" id="L68" title="All 2 branches missed.">				    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L69">	                    log.debug(&quot;No client certificate supplied through SSL/TLS. Trying alternative certificate emulation lookup for subject '&quot; + username + &quot;'.&quot;);</span>
+				    }
+<span class="nc" id="L71">					final Collection&lt;Certificate&gt; userCerts = ejb.getCertificateStoreSession().findCertificatesByUsernameAndStatus(username, CertificateConstants.CERT_ACTIVE);</span>
+<span class="nc" id="L72">					Date latestestIssuance = null;</span>
+<span class="nc" id="L73">					final X509Certificate[] tempCerts = new X509Certificate[1];</span>
+<span class="nc bnc" id="L74" title="All 2 branches missed.">					for (final Certificate cert : userCerts) {</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">						if (cert instanceof X509Certificate) {</span>
+<span class="nc" id="L76">							final Date thisIssuance = ((X509Certificate)cert).getNotBefore();</span>
+<span class="nc bnc" id="L77" title="All 4 branches missed.">							if (latestestIssuance == null || latestestIssuance.after(thisIssuance)) {</span>
+<span class="nc" id="L78">								latestestIssuance = thisIssuance;</span>
+<span class="nc" id="L79">								tempCerts[0] = (X509Certificate) cert;</span>
+							}
+						}
+<span class="nc" id="L82">					}</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">					if (tempCerts[0] == null) {</span>
+<span class="nc" id="L84">					    final String msg = &quot;Authentication failed. No certificate found for admin with subject '&quot;+username+&quot;'.&quot;;</span>
+<span class="nc" id="L85">					    log.info(msg);</span>
+<span class="nc" id="L86">					    showError((HttpServletResponse)response, msg);</span>
+<span class="nc" id="L87">					    return;</span>
+					} else {
+	                    // Create a temporary Admin/AuthenticationToken to make sure it is NOT authorized with Superadmin rights.
+<span class="nc" id="L90">	                    final AuthenticationToken admin = new X509CertificateAuthenticationToken(tempCerts[0]);</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">	                    if (ejb.getAuthorizationSession().isAuthorizedNoLogging(admin, StandardRules.ROLE_ROOT.resource())) {</span>
+<span class="nc" id="L92">	                        final String msg = &quot;Authentication failed. Superadmin login is only allowed using client certificate. Subject was '&quot;+username+&quot;'.&quot;;</span>
+<span class="nc" id="L93">	                        log.info(msg);</span>
+<span class="nc" id="L94">	                        showError((HttpServletResponse)response, msg);</span>
+<span class="nc" id="L95">	                        return;</span>
+	                    } else {
+<span class="nc" id="L97">	                        log.info(&quot;Using client certificate emulation for subject '&quot; + username + &quot;'.&quot;);</span>
+<span class="nc" id="L98">	                        request.setAttribute(ATTR_X509CERTIFICATE, tempCerts);</span>
+	                    }
+					}
+				}
+			}
+		}
+<span class="nc" id="L104">    	filterChain.doFilter(request, response);</span>
+<span class="nc" id="L105">	}</span>
+	
+	private void showError(final HttpServletResponse httpServletResponse, final String content) throws IOException {
+<span class="nc" id="L108">        httpServletResponse.setContentType(&quot;text/html; charset=UTF-8&quot;);</span>
+<span class="nc" id="L109">        httpServletResponse.setHeader(&quot;pragma&quot;, &quot;no-cache&quot;);</span>
+<span class="nc" id="L110">        httpServletResponse.setHeader(&quot;cache-control&quot;, &quot;no-cache&quot;);</span>
+<span class="nc" id="L111">        httpServletResponse.setHeader(&quot;expires&quot;, &quot;-1&quot;);</span>
+<span class="nc" id="L112">        httpServletResponse.setContentLength(content.length());</span>
+<span class="nc" id="L113">        final OutputStream os = httpServletResponse.getOutputStream();</span>
+<span class="nc" id="L114">        os.write(content.getBytes());</span>
+<span class="nc" id="L115">        os.flush();</span>
+<span class="nc" id="L116">        os.close();</span>
+<span class="nc" id="L117">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

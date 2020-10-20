@@ -13,152 +13,245 @@
 package org.cesecore.roles.member;
 
 import java.io.Serializable;
-
 import org.cesecore.authorization.user.AccessMatchType;
 import org.cesecore.roles.Role;
 
 /**
- * Value object for the RoleMemberData entity bean, so that we don't have to pass information like row protection remotely. 
- * 
+ * Value object for the RoleMemberData entity bean, so that we don't have to
+ * pass information like row protection remotely.
+ *
  * @version $Id: RoleMember.java 25626 2017-03-30 17:09:50Z jeklund $
  */
 public class RoleMember implements Serializable {
-    
-<span class="fc" id="L27">    public static int ROLE_MEMBER_ID_UNASSIGNED = 0;</span>
-<span class="fc" id="L28">    public static int NO_ROLE = Role.ROLE_ID_UNASSIGNED;</span>
-<span class="fc" id="L29">    public static int NO_ISSUER = 0;</span>
 
-    private static final long serialVersionUID = 1L;
-    private int id;
-    private String tokenType;
-    private int tokenIssuerId;
-    private int tokenMatchKey;
-    private int tokenMatchOperator;
-    private String tokenMatchValue;
-    private int roleId;
-    private String description;
+      /** Config. */
+  public static final int ROLE_MEMBER_ID_UNASSIGNED = 0;
+  /** Config. */
+  public static final int NO_ROLE = Role.ROLE_ID_UNASSIGNED;
+  /** Config. */
+  public static final int NO_ISSUER = 0;
 
-    /**
-     * Constructor for a new RoleMember. Will by default be constructed with the primary key 0, which means that this object hasn't been
-     * persisted yet. In that case, the primary key will be set by the CRUD bean. 
-     * @param tokenType Type
-     * 
-     * @param tokenIssuerId the issuer identifier of this token or 0 if not relevant
-     * @param tokenMatchKey Key
-     * @param tokenMatchOperator Operator
-     * @param tokenMatchValue the actual value with which to match
-     * @param roleId roleId the ID of the role to which this member belongs. May be null.
-     * @param description a human readable description of this role member.
-     */
-    public RoleMember(final String tokenType, final int tokenIssuerId, final int tokenMatchKey, final int tokenMatchOperator,
-            final String tokenMatchValue, final int roleId, final String description) {
-<span class="nc" id="L55">        this(ROLE_MEMBER_ID_UNASSIGNED, tokenType, tokenIssuerId, tokenMatchKey, tokenMatchOperator, tokenMatchValue, roleId, description);</span>
-<span class="nc" id="L56">    }</span>
+  private static final long serialVersionUID = 1L;
+  /** Param. */
+  private int id;
+  /** Param. */
+  private String tokenType;
+  /** Param. */
+  private int tokenIssuerId;
+  /** Param. */
+  private int tokenMatchKey;
+  /** Param. */
+  private int tokenMatchOperator;
+  /** Param. */
+  private String tokenMatchValue;
+  /** Param. */
+  private int roleId;
+  /** Param. */
+  private String description;
 
-    /**
-     * Constructor for a new RoleMember. Will by default be constructed with the primary key 0, which means that this object hasn't been
-     * persisted yet. In that case, the primary key will be set by the CRUD bean. 
-     * @param id ID
-     * @param tokenType Type
-     * 
-     * @param tokenIssuerId the issuer identifier of this token or 0 if not relevant
-     * @param tokenMatchKey Key
-     * @param tokenMatchOperator Operator
-     * @param tokenMatchValue the actual value with which to match
-     * @param roleId roleId the ID of the role to which this member belongs. May be null.
-     * @param description a human readable description of this role member.
-     */
-    public RoleMember(final int id, final String tokenType, final int tokenIssuerId, final int tokenMatchKey, final int tokenMatchOperator,
-<span class="nc" id="L72">            final String tokenMatchValue, final int roleId, final String description) {</span>
-<span class="nc" id="L73">        this.id = id;</span>
-<span class="nc" id="L74">        this.tokenType = tokenType;</span>
-<span class="nc" id="L75">        this.tokenIssuerId = tokenIssuerId;</span>
-<span class="nc" id="L76">        this.tokenMatchKey = tokenMatchKey;</span>
-<span class="nc" id="L77">        this.tokenMatchOperator = tokenMatchOperator;</span>
-<span class="nc" id="L78">        this.tokenMatchValue = tokenMatchValue;</span>
-<span class="nc" id="L79">        this.roleId = roleId;</span>
-<span class="nc" id="L80">        this.description = description;</span>
-<span class="nc" id="L81">    }</span>
+  /**
+   * Constructor for a new RoleMember. Will by default be constructed with the
+   * primary key 0, which means that this object hasn't been persisted yet. In
+   * that case, the primary key will be set by the CRUD bean.
+   *
+   * @param aTokenType Type
+   * @param aTokenIssuerId the issuer identifier of this token or 0 if not
+   *     relevant
+   * @param aTokenMatchKey Key
+   * @param aTokenMatchOperator Operator
+   * @param aTokenMatchValue the actual value with which to match
+   * @param aRoleId roleId the ID of the role to which this member belongs. May
+   *     be null.
+   * @param aDescription a human readable description of this role member.
+   */
+  public RoleMember(
+      final String aTokenType,
+      final int aTokenIssuerId,
+      final int aTokenMatchKey,
+      final int aTokenMatchOperator,
+      final String aTokenMatchValue,
+      final int aRoleId,
+      final String aDescription) {
+<span class="nc" id="L75">    this(</span>
+        ROLE_MEMBER_ID_UNASSIGNED,
+        aTokenType,
+        aTokenIssuerId,
+        aTokenMatchKey,
+        aTokenMatchOperator,
+        aTokenMatchValue,
+        aRoleId,
+        aDescription);
+<span class="nc" id="L84">  }</span>
 
-    /** Copy constructor 
-     * @param roleMember original */
-<span class="nc" id="L85">    public RoleMember(final RoleMember roleMember) {</span>
-<span class="nc" id="L86">        this.id = roleMember.id;</span>
-<span class="nc" id="L87">        this.tokenType = roleMember.tokenType;</span>
-<span class="nc" id="L88">        this.tokenIssuerId = roleMember.tokenIssuerId;</span>
-<span class="nc" id="L89">        this.tokenMatchKey = roleMember.tokenMatchKey;</span>
-<span class="nc" id="L90">        this.tokenMatchOperator = roleMember.tokenMatchOperator;</span>
-<span class="nc" id="L91">        this.tokenMatchValue = roleMember.tokenMatchValue;</span>
-<span class="nc" id="L92">        this.roleId = roleMember.roleId;</span>
-<span class="nc" id="L93">        this.description = roleMember.description;</span>
-<span class="nc" id="L94">    }</span>
+  /**
+   * Constructor for a new RoleMember. Will by default be constructed with the
+   * primary key 0, which means that this object hasn't been persisted yet. In
+   * that case, the primary key will be set by the CRUD bean.
+   *
+   * @param anId ID
+   * @param aTokenType Type
+   * @param aTokenIssuerId the issuer identifier of this token or 0 if not
+   *     relevant
+   * @param aTokenMatchKey Key
+   * @param aTokenMatchOperator Operator
+   * @param aTokenMatchValue the actual value with which to match
+   * @param aRoleId roleId the ID of the role to which this member belongs. May
+   *     be null.
+   * @param aDescription a human readable description of this role member.
+   */
+  public RoleMember(
+      final int anId,
+      final String aTokenType,
+      final int aTokenIssuerId,
+      final int aTokenMatchKey,
+      final int aTokenMatchOperator,
+      final String aTokenMatchValue,
+      final int aRoleId,
+<span class="nc" id="L110">      final String aDescription) {</span>
+<span class="nc" id="L111">    this.id = anId;</span>
+<span class="nc" id="L112">    this.tokenType = aTokenType;</span>
+<span class="nc" id="L113">    this.tokenIssuerId = aTokenIssuerId;</span>
+<span class="nc" id="L114">    this.tokenMatchKey = aTokenMatchKey;</span>
+<span class="nc" id="L115">    this.tokenMatchOperator = aTokenMatchOperator;</span>
+<span class="nc" id="L116">    this.tokenMatchValue = aTokenMatchValue;</span>
+<span class="nc" id="L117">    this.roleId = aRoleId;</span>
+<span class="nc" id="L118">    this.description = aDescription;</span>
+<span class="nc" id="L119">  }</span>
 
-    public int getId() {
-<span class="nc" id="L97">        return id;</span>
-    }
+  /**
+   * Copy constructor.
+   *
+   * @param roleMember original
+   */
+<span class="nc" id="L126">  public RoleMember(final RoleMember roleMember) {</span>
+<span class="nc" id="L127">    this.id = roleMember.id;</span>
+<span class="nc" id="L128">    this.tokenType = roleMember.tokenType;</span>
+<span class="nc" id="L129">    this.tokenIssuerId = roleMember.tokenIssuerId;</span>
+<span class="nc" id="L130">    this.tokenMatchKey = roleMember.tokenMatchKey;</span>
+<span class="nc" id="L131">    this.tokenMatchOperator = roleMember.tokenMatchOperator;</span>
+<span class="nc" id="L132">    this.tokenMatchValue = roleMember.tokenMatchValue;</span>
+<span class="nc" id="L133">    this.roleId = roleMember.roleId;</span>
+<span class="nc" id="L134">    this.description = roleMember.description;</span>
+<span class="nc" id="L135">  }</span>
 
-    public void setId(int id) {
-<span class="nc" id="L101">        this.id = id;</span>
-<span class="nc" id="L102">    }</span>
+  /**
+   * @return ID
+   */
+  public int getId() {
+<span class="nc" id="L141">    return id;</span>
+  }
 
-    public String getTokenType() {
-<span class="nc" id="L105">        return tokenType;</span>
-    }
+  /**
+   * @param anId ID
+   */
+  public void setId(final int anId) {
+<span class="nc" id="L148">    this.id = anId;</span>
+<span class="nc" id="L149">  }</span>
 
-    public void setTokenType(String tokenType) {
-<span class="nc" id="L109">        this.tokenType = tokenType;</span>
-<span class="nc" id="L110">    }</span>
+  /**
+   * @return type
+   */
+  public String getTokenType() {
+<span class="nc" id="L155">    return tokenType;</span>
+  }
 
-    public int getTokenIssuerId() {
-<span class="nc" id="L113">        return tokenIssuerId;</span>
-    }
+  /**
+   * @param aTokenType type
+   */
+  public void setTokenType(final String aTokenType) {
+<span class="nc" id="L162">    this.tokenType = aTokenType;</span>
+<span class="nc" id="L163">  }</span>
 
-    public void setTokenIssuerId(final int tokenIssuerId) {
-<span class="nc" id="L117">        this.tokenIssuerId = tokenIssuerId;</span>
-<span class="nc" id="L118">    }</span>
+  /**
+   * @return ID
+   */
+  public int getTokenIssuerId() {
+<span class="nc" id="L169">    return tokenIssuerId;</span>
+  }
 
-    public AccessMatchType getAccessMatchType() {
-<span class="nc" id="L121">        return AccessMatchType.matchFromDatabase(tokenMatchOperator);</span>
-    }
+  /**
+   * @param aTokenIssuerId ID
+   */
+  public void setTokenIssuerId(final int aTokenIssuerId) {
+<span class="nc" id="L176">    this.tokenIssuerId = aTokenIssuerId;</span>
+<span class="nc" id="L177">  }</span>
 
-    public int getTokenMatchKey() {
-<span class="nc" id="L125">        return tokenMatchKey;</span>
-    }
+  /**
+   * @return type
+   */
+  public AccessMatchType getAccessMatchType() {
+<span class="nc" id="L183">    return AccessMatchType.matchFromDatabase(tokenMatchOperator);</span>
+  }
 
-    public void setTokenMatchKey(int tokenMatchKey) {
-<span class="nc" id="L129">        this.tokenMatchKey = tokenMatchKey;</span>
-<span class="nc" id="L130">    }</span>
+  /**
+   * @return key
+   */
+  public int getTokenMatchKey() {
+<span class="nc" id="L190">    return tokenMatchKey;</span>
+  }
 
-    public int getTokenMatchOperator() {
-<span class="nc" id="L133">        return tokenMatchOperator;</span>
-    }
+  /**
+   * @param aTokenMatchKey key
+   */
+  public void setTokenMatchKey(final int aTokenMatchKey) {
+<span class="nc" id="L197">    this.tokenMatchKey = aTokenMatchKey;</span>
+<span class="nc" id="L198">  }</span>
 
-    public void setTokenMatchOperator(int tokenMatchOperator) {
-<span class="nc" id="L137">        this.tokenMatchOperator = tokenMatchOperator;</span>
-<span class="nc" id="L138">    }</span>
+  /**
+   * @return op
+   */
+  public int getTokenMatchOperator() {
+<span class="nc" id="L204">    return tokenMatchOperator;</span>
+  }
 
-    public String getTokenMatchValue() {
-<span class="nc" id="L141">        return tokenMatchValue;</span>
-    }
+  /**
+   * @param aTokenMatchOperator op
+   */
+  public void setTokenMatchOperator(final int aTokenMatchOperator) {
+<span class="nc" id="L211">    this.tokenMatchOperator = aTokenMatchOperator;</span>
+<span class="nc" id="L212">  }</span>
 
-    public void setTokenMatchValue(String tokenMatchValue) {
-<span class="nc" id="L145">        this.tokenMatchValue = tokenMatchValue;</span>
-<span class="nc" id="L146">    }</span>
+  /**
+   * @return value
+   */
+  public String getTokenMatchValue() {
+<span class="nc" id="L218">    return tokenMatchValue;</span>
+  }
 
-    public int getRoleId() {
-<span class="nc" id="L149">        return roleId;</span>
-    }
+  /**
+   * @param aTokenMatchValue value
+   */
+  public void setTokenMatchValue(final String aTokenMatchValue) {
+<span class="nc" id="L225">    this.tokenMatchValue = aTokenMatchValue;</span>
+<span class="nc" id="L226">  }</span>
 
-    public void setRoleId(int roleId) {
-<span class="nc" id="L153">        this.roleId = roleId;</span>
-<span class="nc" id="L154">    }</span>
-    
-    public String getDescription() {
-<span class="nc" id="L157">        return description;</span>
-    }
 
-    public void setDescription(String description) {
-<span class="nc" id="L161">        this.description = description;</span>
-<span class="nc" id="L162">    }</span>
+  /**
+   * @return id
+   */
+  public int getRoleId() {
+<span class="nc" id="L233">    return roleId;</span>
+  }
+
+  /**
+   * @param aRoleId id
+   */
+  public void setRoleId(final int aRoleId) {
+<span class="nc" id="L240">    this.roleId = aRoleId;</span>
+<span class="nc" id="L241">  }</span>
+
+  /**
+   * @return desc
+   */
+  public String getDescription() {
+<span class="nc" id="L247">    return description;</span>
+  }
+
+  /**
+   * @param aDescription desc
+   */
+  public void setDescription(final String aDescription) {
+<span class="nc" id="L254">    this.description = aDescription;</span>
+<span class="nc" id="L255">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

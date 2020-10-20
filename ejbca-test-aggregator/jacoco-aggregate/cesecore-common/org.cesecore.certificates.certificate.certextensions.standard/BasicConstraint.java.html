@@ -9,11 +9,10 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.certificate.certextensions.standard;
 
 import java.security.PublicKey;
-
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.Extension;
@@ -25,36 +24,41 @@ import org.cesecore.certificates.certificateprofile.CertificateProfile;
 import org.cesecore.certificates.endentity.EndEntityInformation;
 
 /**
- * Class for standard X509 certificate extension. 
- * See rfc3280 or later for spec of this extension.
- * 
+ * Class for standard X509 certificate extension. See rfc3280 or later for spec
+ * of this extension.
+ *
  * @version $Id: BasicConstraint.java 22092 2015-10-26 13:58:55Z mikekushner $
  */
-<span class="fc" id="L33">public class BasicConstraint extends StandardCertificateExtension {</span>
-	
-    private static final long serialVersionUID = 1L;
+<span class="fc" id="L32">public class BasicConstraint extends StandardCertificateExtension {</span>
 
-    @Override
-	public void init(final CertificateProfile certProf) {
-<span class="fc" id="L39">		super.setOID(Extension.basicConstraints.getId());</span>
-<span class="fc" id="L40">		super.setCriticalFlag(certProf.getBasicConstraintsCritical());</span>
-<span class="fc" id="L41">	}</span>
-    
-    @Override
-    public ASN1Encodable getValue(final EndEntityInformation subject, final CA ca, final CertificateProfile certProfile,
-            final PublicKey userPublicKey, final PublicKey caPublicKey, CertificateValidity val) throws
-            CertificateExtensionException {
-	// Default value, end entity 
-<span class="fc" id="L48">		BasicConstraints bc = new BasicConstraints(false);</span>
-<span class="pc bpc" id="L49" title="1 of 2 branches missed.">        if ((certProfile.getType() == CertificateConstants.CERTTYPE_SUBCA)</span>
-<span class="pc bpc" id="L50" title="1 of 2 branches missed.">            || (certProfile.getType() == CertificateConstants.CERTTYPE_ROOTCA)){            	</span>
-<span class="nc bnc" id="L51" title="All 2 branches missed.">        	if(certProfile.getUsePathLengthConstraint()){</span>
-<span class="nc" id="L52">        		bc = new BasicConstraints(certProfile.getPathLengthConstraint());</span>
-        	}else{
-<span class="nc" id="L54">        		bc =  new BasicConstraints(true);</span>
-        	}            	
-        }
-<span class="fc" id="L57">		return bc;</span>
-	}	
+  private static final long serialVersionUID = 1L;
+
+  @Override
+  public void init(final CertificateProfile certProf) {
+<span class="fc" id="L38">    super.setOID(Extension.basicConstraints.getId());</span>
+<span class="fc" id="L39">    super.setCriticalFlag(certProf.getBasicConstraintsCritical());</span>
+<span class="fc" id="L40">  }</span>
+
+  @Override
+  public ASN1Encodable getValue(
+      final EndEntityInformation subject,
+      final CA ca,
+      final CertificateProfile certProfile,
+      final PublicKey userPublicKey,
+      final PublicKey caPublicKey,
+      final CertificateValidity val)
+      throws CertificateExtensionException {
+    // Default value, end entity
+<span class="fc" id="L52">    BasicConstraints bc = new BasicConstraints(false);</span>
+<span class="pc bpc" id="L53" title="1 of 2 branches missed.">    if ((certProfile.getType() == CertificateConstants.CERTTYPE_SUBCA)</span>
+<span class="pc bpc" id="L54" title="1 of 2 branches missed.">        || (certProfile.getType() == CertificateConstants.CERTTYPE_ROOTCA)) {</span>
+<span class="nc bnc" id="L55" title="All 2 branches missed.">      if (certProfile.getUsePathLengthConstraint()) {</span>
+<span class="nc" id="L56">        bc = new BasicConstraints(certProfile.getPathLengthConstraint());</span>
+      } else {
+<span class="nc" id="L58">        bc = new BasicConstraints(true);</span>
+      }
+    }
+<span class="fc" id="L61">    return bc;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

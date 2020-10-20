@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>MapToStringConverter.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">admin-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.audit</a> &gt; <span class="el_source">MapToStringConverter.java</span></div><h1>MapToStringConverter.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.web.admin.audit;
+
+import java.util.Map;
+
+import javax.faces.component.UIComponent;
+import javax.faces.context.FacesContext;
+import javax.faces.convert.Converter;
+
+/**
+ * One way converter from Map&amp;lt;Object,Object&amp;gt; to String.
+ * @version $Id: MapToStringConverter.java 25705 2017-04-18 15:18:58Z samuellb $
+ */
+<span class="nc" id="L25">public class MapToStringConverter implements Converter {</span>
+
+	@Override
+	public Object getAsObject(final FacesContext facesContext, final UIComponent uiComponent, final String value) {
+<span class="nc" id="L29">		return value;</span>
+	}
+
+	@SuppressWarnings(&quot;unchecked&quot;)
+    @Override
+	public String getAsString(final FacesContext facesContext, final UIComponent uiComponent, final Object value) {
+<span class="nc bnc" id="L35" title="All 2 branches missed.">	    if (value instanceof String) {</span>
+<span class="nc" id="L36">            return (String)value;</span>
+        }
+<span class="nc" id="L38">		return getAsString((Map&lt;String, Object&gt;)value);</span>
+	}
+	
+    public static String getAsString(final Map&lt;String,Object&gt; map) {
+<span class="nc" id="L42">        final StringBuilder sb = new StringBuilder();</span>
+<span class="nc bnc" id="L43" title="All 4 branches missed.">        if (map.size() == 1 &amp;&amp; map.containsKey(&quot;msg&quot;)) {</span>
+<span class="nc" id="L44">            final String ret = (String) map.get(&quot;msg&quot;);</span>
+<span class="nc bnc" id="L45" title="All 2 branches missed.">            if (ret != null) {</span>
+<span class="nc" id="L46">                return ret;</span>
+            }
+        }
+<span class="nc bnc" id="L49" title="All 2 branches missed.">        for (final Object key : map.keySet()) {</span>
+<span class="nc bnc" id="L50" title="All 2 branches missed.">            if (sb.length()!=0) {</span>
+<span class="nc" id="L51">                sb.append(&quot;; &quot;);</span>
+            }
+<span class="nc" id="L53">            sb.append(key).append('=').append(map.get(key));</span>
+<span class="nc" id="L54">        }</span>
+<span class="nc" id="L55">        return sb.toString();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -21,14 +21,12 @@ import java.util.Properties;
 import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-
 import org.apache.log4j.Logger;
 import org.cesecore.audit.enums.EventStatus;
 import org.cesecore.audit.enums.EventTypes;
@@ -48,245 +46,319 @@ import org.cesecore.jndi.JndiConstants;
 
 /**
  * This bean handled global configurations.
- * 
- * @version $Id: GlobalConfigurationSessionBean.java 29010 2018-05-23 13:09:53Z jekaterina_b_helmes $
+ *
+ * @version $Id: GlobalConfigurationSessionBean.java 29010 2018-05-23 13:09:53Z
+ *     jekaterina_b_helmes $
  */
-@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;GlobalConfigurationSessionRemote&quot;)
+@Stateless(
+    mappedName =
+        JndiConstants.APP_JNDI_PREFIX + &quot;GlobalConfigurationSessionRemote&quot;)
 @TransactionAttribute(TransactionAttributeType.REQUIRED)
-<span class="nc" id="L56">public class GlobalConfigurationSessionBean implements GlobalConfigurationSessionLocal, GlobalConfigurationSessionRemote {</span>
+<span class="nc" id="L57">public class GlobalConfigurationSessionBean</span>
+    implements GlobalConfigurationSessionLocal,
+        GlobalConfigurationSessionRemote {
 
-<span class="nc" id="L58">    private static final Logger log = Logger.getLogger(GlobalConfigurationSessionBean.class);</span>
-    
-    /** Internal localization of logs and errors */
-<span class="nc" id="L61">    private static final InternalResources intres = InternalResources.getInstance();</span>
-        
-    @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
-    private EntityManager entityManager;
+    /** Logger. */
+<span class="nc" id="L62">  private static final Logger LOG =</span>
+<span class="nc" id="L63">      Logger.getLogger(GlobalConfigurationSessionBean.class);</span>
 
-    @EJB
-    private SecurityEventsLoggerSessionLocal auditSession;
-    @EJB
-    private AuthorizationSessionLocal authorizationSession;
+  /** Internal localization of logs and errors. */
+<span class="nc" id="L66">  private static final InternalResources INTRES =</span>
+<span class="nc" id="L67">      InternalResources.getInstance();</span>
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    @Override
-    public Properties getAllProperties(AuthenticationToken admin, String configID) throws AuthorizationDeniedException {
-<span class="nc" id="L74">        assertAuthorization(admin, configID, &quot;Could not read configuration.&quot;);</span>
-<span class="nc" id="L75">        return GlobalConfigurationCacheHolder.INSTANCE.getAllProperties(configID);</span>
+  /** EM. */
+  @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
+  private EntityManager entityManager;
+
+  /** audit. */
+  @EJB private SecurityEventsLoggerSessionLocal auditSession;
+  /** Session. */
+  @EJB private AuthorizationSessionLocal authorizationSession;
+
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  @Override
+  public Properties getAllProperties(
+      final AuthenticationToken admin, final String configID)
+      throws AuthorizationDeniedException {
+<span class="nc" id="L83">    assertAuthorization(admin, configID, &quot;Could not read configuration.&quot;);</span>
+<span class="nc" id="L84">    return GlobalConfigurationCacheHolder.INSTANCE.getAllProperties(configID);</span>
+  }
+
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  @Override
+  public Set&lt;String&gt; getIds() {
+<span class="nc" id="L90">    return GlobalConfigurationCacheHolder.INSTANCE.getIds();</span>
+  }
+
+  @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+  @Override
+  public ConfigurationBase getCachedConfiguration(final String configID) {
+    ConfigurationBase result;
+    try {
+<span class="nc bnc" id="L98" title="All 2 branches missed.">      if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L99">        LOG.trace(&quot;&gt;getCachedConfiguration(&quot; + configID + &quot;)&quot;);</span>
+      }
+      // Only do the actual SQL query if we might update the configuration due
+      // to cache time anyhow
+<span class="nc bnc" id="L103" title="All 2 branches missed.">      if (!GlobalConfigurationCacheHolder.INSTANCE.needsUpdate(configID)) {</span>
+<span class="nc" id="L104">        result =</span>
+<span class="nc" id="L105">            GlobalConfigurationCacheHolder.INSTANCE.getConfiguration(configID);</span>
+      } else {
+<span class="nc bnc" id="L107" title="All 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L108">          LOG.debug(&quot;Reading Configuration: &quot; + configID);</span>
+        }
+<span class="nc" id="L110">        final GlobalConfigurationData globalConfigurationData =</span>
+<span class="nc" id="L111">            findByConfigurationId(configID);</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">        if (globalConfigurationData == null) {</span>
+<span class="nc bnc" id="L113" title="All 2 branches missed.">          if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L114">            LOG.debug(</span>
+                &quot;No default GlobalConfiguration exists. Creating a new one.&quot;);
+          }
+          // We create a new instance of the configuration, but we don't persist
+          // it (the first one to modify it will take care of it)
+<span class="nc" id="L119">          result =</span>
+<span class="nc" id="L120">              GlobalConfigurationCacheHolder.INSTANCE.getNewConfiguration(</span>
+                  configID);
+        } else {
+<span class="nc" id="L123">          result =</span>
+<span class="nc" id="L124">              GlobalConfigurationCacheHolder.INSTANCE.getConfiguration(</span>
+<span class="nc" id="L125">                  globalConfigurationData.getData(), configID);</span>
+        }
+        // Always cache result
+<span class="nc" id="L128">        GlobalConfigurationCacheHolder.INSTANCE.updateConfiguration(</span>
+            result, configID);
+      }
+<span class="nc" id="L131">      return result;</span>
+    } finally {
+<span class="nc bnc" id="L133" title="All 2 branches missed.">      if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L134">        LOG.trace(&quot;&lt;getCachedConfiguration(&quot; + configID + &quot;)&quot;);</span>
+      }
     }
+  }
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    @Override
+  @Override
+  public void saveConfiguration(
+      final AuthenticationToken admin, final ConfigurationBase conf)
+      throws AuthorizationDeniedException {
+<span class="nc bnc" id="L143" title="All 2 branches missed.">    if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L144">      LOG.trace(&quot;&gt;saveConfiguration()&quot;);</span>
+    }
+<span class="nc" id="L146">    String configID = conf.getConfigurationId();</span>
+<span class="nc" id="L147">    assertAuthorization(admin, configID, &quot;Could not save configuration&quot;);</span>
+
+<span class="nc" id="L149">    final GlobalConfigurationData gcdata = findByConfigurationId(configID);</span>
+<span class="nc bnc" id="L150" title="All 2 branches missed.">    if (gcdata != null) {</span>
+      // Save object and create a diff over what has changed
+      @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L153">      final Map&lt;Object, Object&gt; orgmap =</span>
+          (Map&lt;Object, Object&gt;)
+              GlobalConfigurationCacheHolder.INSTANCE
+<span class="nc" id="L156">                  .getConfiguration(gcdata.getData(), configID)</span>
+<span class="nc" id="L157">                  .saveData();</span>
+<span class="nc" id="L158">      gcdata.setConfiguration(conf);</span>
+<span class="nc" id="L159">      GlobalConfigurationCacheHolder.INSTANCE.updateConfiguration(</span>
+          conf, configID);
+      @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L162">      final Map&lt;Object, Object&gt; newmap = (Map&lt;Object, Object&gt;) conf.saveData();</span>
+      // Get the diff of what changed
+<span class="nc" id="L164">      final Map&lt;Object, Object&gt; diff =</span>
+<span class="nc" id="L165">          UpgradeableDataHashMap.diffMaps(orgmap, newmap);</span>
+      // Make security audit log record
+<span class="nc" id="L167">      final String msg =</span>
+<span class="nc" id="L168">          INTRES.getLocalizedMessage(</span>
+<span class="nc" id="L169">              &quot;globalconfig.savedconf&quot;, gcdata.getConfigurationId());</span>
+<span class="nc" id="L170">      final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L171">      details.put(&quot;msg&quot;, msg);</span>
+<span class="nc bnc" id="L172" title="All 2 branches missed.">      for (Map.Entry&lt;Object, Object&gt; entry : diff.entrySet()) {</span>
+<span class="nc" id="L173">        details.put(entry.getKey().toString(), entry.getValue().toString());</span>
+<span class="nc" id="L174">      }</span>
+<span class="nc" id="L175">      auditSession.log(</span>
+          EventTypes.SYSTEMCONF_EDIT,
+          EventStatus.SUCCESS,
+          ModuleTypes.GLOBALCONF,
+          ServiceTypes.CORE,
+<span class="nc" id="L180">          admin.toString(),</span>
+          null,
+          null,
+          null,
+          details);
+<span class="nc" id="L185">    } else {</span>
+      // Global configuration doesn't yet exist, so persist a new one.
+      try {
+<span class="nc" id="L188">        GlobalConfigurationData gcd =</span>
+            new GlobalConfigurationData(configID, conf);
+<span class="nc" id="L190">        entityManager.persist(gcd);</span>
+<span class="nc" id="L191">        GlobalConfigurationCacheHolder.INSTANCE.updateConfiguration(</span>
+            conf, configID);
+<span class="nc" id="L193">        final String msg =</span>
+<span class="nc" id="L194">            INTRES.getLocalizedMessage(&quot;globalconfig.createdconf&quot;, configID);</span>
+<span class="nc" id="L195">        auditSession.log(</span>
+            EventTypes.SYSTEMCONF_CREATE,
+            EventStatus.SUCCESS,
+            ModuleTypes.GLOBALCONF,
+            ServiceTypes.CORE,
+<span class="nc" id="L200">            admin.toString(),</span>
+            null,
+            null,
+            null,
+            msg);
+<span class="nc" id="L205">      } catch (Exception e) {</span>
+<span class="nc" id="L206">        final String msg =</span>
+<span class="nc" id="L207">            INTRES.getLocalizedMessage(&quot;globalconfig.errorcreateconf&quot;);</span>
+<span class="nc" id="L208">        LOG.info(msg, e);</span>
+<span class="nc" id="L209">        final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L210">        details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L211">        details.put(&quot;error&quot;, e.getMessage());</span>
+<span class="nc" id="L212">        auditSession.log(</span>
+            EventTypes.SYSTEMCONF_CREATE,
+            EventStatus.FAILURE,
+            ModuleTypes.GLOBALCONF,
+            ServiceTypes.CORE,
+<span class="nc" id="L217">            admin.toString(),</span>
+            null,
+            null,
+            null,
+            details);
+<span class="nc" id="L222">      }</span>
+    }
+<span class="nc bnc" id="L224" title="All 2 branches missed.">    if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L225">      LOG.trace(&quot;&lt;saveGlobalConfiguration()&quot;);</span>
+    }
+<span class="nc" id="L227">  }</span>
+
+  private void assertAuthorization(
+      final AuthenticationToken authenticationToken,
+      final String configID,
+      final String errorMsg)
+      throws AuthorizationDeniedException {
+<span class="nc" id="L234">    final String accessRule = getAccessRuleFromConfigId(configID);</span>
+<span class="nc bnc" id="L235" title="All 2 branches missed.">    if (!authorizationSession.isAuthorized(authenticationToken, accessRule)) {</span>
+<span class="nc" id="L236">      final String msg =</span>
+<span class="nc" id="L237">          INTRES.getLocalizedMessage(</span>
+              &quot;authorization.notauthorizedtoresource&quot;, accessRule, errorMsg);
+<span class="nc" id="L239">      throw new AuthorizationDeniedException(msg);</span>
+    }
+<span class="nc" id="L241">  }</span>
+
+  /**
+   * @param configID ID
+   * @return the access rule required to read the specified configuration type
+   */
+  private String getAccessRuleFromConfigId(final String configID) {
+<span class="nc bnc" id="L248" title="All 3 branches missed.">    switch (configID) {</span>
+      case AvailableExtendedKeyUsagesConfiguration.CONFIGURATION_ID:
+<span class="nc" id="L250">        return StandardRules.EKUCONFIGURATION_EDIT.resource();</span>
+      case AvailableCustomCertificateExtensionsConfiguration.CONFIGURATION_ID:
+<span class="nc" id="L252">        return StandardRules.CUSTOMCERTEXTENSIONCONFIGURATION_EDIT.resource();</span>
+      default:
+    }
+<span class="nc" id="L255">    return StandardRules.SYSTEMCONFIGURATION_EDIT.resource();</span>
+  }
+
+  @Override
+  public void flushConfigurationCache(final String configID) {
+<span class="nc bnc" id="L260" title="All 2 branches missed.">    if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L261">      LOG.trace(&quot;&gt;flushConfigurationCache(&quot; + configID + &quot;)&quot;);</span>
+    }
+<span class="nc" id="L263">    GlobalConfigurationCacheHolder.INSTANCE.clearCache(configID);</span>
+    // Force cache to be loaded from the database unless another thread has
+    // already started to do it
+<span class="nc" id="L266">    getCachedConfiguration(configID);</span>
+<span class="nc bnc" id="L267" title="All 2 branches missed.">    if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L268">      LOG.trace(&quot;&lt;flushConfigurationCache(&quot; + configID + &quot;)&quot;);</span>
+    }
+<span class="nc" id="L270">  }</span>
+
+  /** @return the found entity instance or null if the entity does not exist */
+  @Override
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  public GlobalConfigurationData findByConfigurationId(
+      final String configurationId) {
+<span class="nc" id="L277">    return entityManager.find(GlobalConfigurationData.class, configurationId);</span>
+  }
+
+<span class="nc" id="L280">  private enum GlobalConfigurationCacheHolder {</span>
+      /** Singleton. */
+<span class="nc" id="L282">    INSTANCE;</span>
+
+      /** Cache. */
+<span class="nc" id="L285">    private final Map&lt;String, ConfigurationCache&gt; caches =</span>
+        new ConcurrentHashMap&lt;String, ConfigurationCache&gt;();
+
+<span class="nc" id="L288">    GlobalConfigurationCacheHolder() {</span>
+<span class="nc" id="L289">      ServiceLoader&lt;? extends ConfigurationCache&gt; serviceLoader =</span>
+<span class="nc" id="L290">          ServiceLoader.load(ConfigurationCache.class);</span>
+      // Extract all the caches from the plugin list
+<span class="nc bnc" id="L292" title="All 2 branches missed.">      for (ConfigurationCache cache : serviceLoader) {</span>
+<span class="nc bnc" id="L293" title="All 2 branches missed.">        if (caches.containsKey(cache.getConfigId())) {</span>
+<span class="nc" id="L294">          throw new IllegalStateException(</span>
+              &quot;Two caches loaded with the same config ID: &quot;
+<span class="nc" id="L296">                  + cache.getConfigId()</span>
+                  + &quot;. This is an invalid state.&quot;);
+        } else {
+<span class="nc" id="L299">          caches.put(cache.getConfigId(), cache);</span>
+        }
+<span class="nc" id="L301">      }</span>
+<span class="nc" id="L302">    }</span>
+
+    /** @return all registered configuration IDs. */
     public Set&lt;String&gt; getIds() {
-<span class="nc" id="L81">        return GlobalConfigurationCacheHolder.INSTANCE.getIds();</span>
+<span class="nc" id="L306">      return new HashSet&lt;String&gt;(caches.keySet());</span>
     }
 
-    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
-    @Override
-    public ConfigurationBase getCachedConfiguration(final String configID) {
-        ConfigurationBase result;
-        try {
-<span class="nc bnc" id="L89" title="All 2 branches missed.">            if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L90">                log.trace(&quot;&gt;getCachedConfiguration(&quot;+configID+&quot;)&quot;);</span>
-            }
-            // Only do the actual SQL query if we might update the configuration due to cache time anyhow
-<span class="nc bnc" id="L93" title="All 2 branches missed.">            if (!GlobalConfigurationCacheHolder.INSTANCE.needsUpdate(configID)) {</span>
-<span class="nc" id="L94">                result = GlobalConfigurationCacheHolder.INSTANCE.getConfiguration(configID);</span>
-            } else {
-<span class="nc bnc" id="L96" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L97">                    log.debug(&quot;Reading Configuration: &quot;+configID);</span>
-                }
-<span class="nc" id="L99">                final GlobalConfigurationData globalConfigurationData = findByConfigurationId(configID);</span>
-<span class="nc bnc" id="L100" title="All 2 branches missed.">                if (globalConfigurationData == null) {</span>
-<span class="nc bnc" id="L101" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L102">                        log.debug(&quot;No default GlobalConfiguration exists. Creating a new one.&quot;);</span>
-                    }
-                    // We create a new instance of the configuration, but we don't persist it (the first one to modify it will take care of it)
-<span class="nc" id="L105">                    result = GlobalConfigurationCacheHolder.INSTANCE.getNewConfiguration(configID);</span>
-                } else {
-<span class="nc" id="L107">                    result = GlobalConfigurationCacheHolder.INSTANCE.getConfiguration(globalConfigurationData.getData(), configID);</span>
-                }
-                // Always cache result
-<span class="nc" id="L110">                GlobalConfigurationCacheHolder.INSTANCE.updateConfiguration(result, configID);</span>
-            }
-<span class="nc" id="L112">            return result;</span>
-        } finally {
-<span class="nc bnc" id="L114" title="All 2 branches missed.">            if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L115">                log.trace(&quot;&lt;getCachedConfiguration(&quot;+configID+&quot;)&quot;);</span>
-            }
-        }
-    }
-    
-    @Override
-    public void saveConfiguration(final AuthenticationToken admin, final ConfigurationBase conf) throws AuthorizationDeniedException {
-<span class="nc bnc" id="L122" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L123">            log.trace(&quot;&gt;saveConfiguration()&quot;);</span>
-        }
-<span class="nc" id="L125">        String configID = conf.getConfigurationId();</span>
-<span class="nc" id="L126">        assertAuthorization(admin, configID, &quot;Could not save configuration&quot;);</span>
-        
-<span class="nc" id="L128">        final GlobalConfigurationData gcdata = findByConfigurationId(configID);</span>
-<span class="nc bnc" id="L129" title="All 2 branches missed.">        if (gcdata != null) {</span>
-            // Save object and create a diff over what has changed
-            @SuppressWarnings(&quot;unchecked&quot;)
-<span class="nc" id="L132">            final Map&lt;Object, Object&gt; orgmap = (Map&lt;Object, Object&gt;) GlobalConfigurationCacheHolder.INSTANCE.getConfiguration(gcdata.getData(), configID).saveData();</span>
-<span class="nc" id="L133">            gcdata.setConfiguration(conf);</span>
-<span class="nc" id="L134">            GlobalConfigurationCacheHolder.INSTANCE.updateConfiguration(conf, configID);</span>
-            @SuppressWarnings(&quot;unchecked&quot;)
-<span class="nc" id="L136">            final Map&lt;Object, Object&gt; newmap = (Map&lt;Object, Object&gt;) conf.saveData();</span>
-            // Get the diff of what changed
-<span class="nc" id="L138">            final Map&lt;Object, Object&gt; diff = UpgradeableDataHashMap.diffMaps(orgmap, newmap);</span>
-            // Make security audit log record
-<span class="nc" id="L140">            final String msg = intres.getLocalizedMessage(&quot;globalconfig.savedconf&quot;, gcdata.getConfigurationId());</span>
-<span class="nc" id="L141">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
-<span class="nc" id="L142">            details.put(&quot;msg&quot;, msg);</span>
-<span class="nc bnc" id="L143" title="All 2 branches missed.">            for (Map.Entry&lt;Object, Object&gt; entry : diff.entrySet()) {</span>
-<span class="nc" id="L144">                details.put(entry.getKey().toString(), entry.getValue().toString());</span>
-<span class="nc" id="L145">            }</span>
-<span class="nc" id="L146">            auditSession.log(EventTypes.SYSTEMCONF_EDIT, EventStatus.SUCCESS, ModuleTypes.GLOBALCONF, ServiceTypes.CORE,</span>
-<span class="nc" id="L147">                    admin.toString(), null, null, null, details);</span>
-<span class="nc" id="L148">        } else {</span>
-            // Global configuration doesn't yet exist, so persist a new one.
-            try {
-<span class="nc" id="L151">                GlobalConfigurationData gcd = new GlobalConfigurationData(configID, conf);</span>
-<span class="nc" id="L152">                entityManager.persist(gcd);</span>
-<span class="nc" id="L153">                GlobalConfigurationCacheHolder.INSTANCE.updateConfiguration(conf, configID);</span>
-<span class="nc" id="L154">                final String msg = intres.getLocalizedMessage(&quot;globalconfig.createdconf&quot;, configID);</span>
-<span class="nc" id="L155">                auditSession.log(EventTypes.SYSTEMCONF_CREATE, EventStatus.SUCCESS, ModuleTypes.GLOBALCONF, ServiceTypes.CORE,</span>
-<span class="nc" id="L156">                        admin.toString(), null, null, null, msg);</span>
-<span class="nc" id="L157">            } catch (Exception e) {</span>
-<span class="nc" id="L158">                final String msg = intres.getLocalizedMessage(&quot;globalconfig.errorcreateconf&quot;);</span>
-<span class="nc" id="L159">                log.info(msg, e);</span>
-<span class="nc" id="L160">                final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
-<span class="nc" id="L161">                details.put(&quot;msg&quot;, msg);</span>
-<span class="nc" id="L162">                details.put(&quot;error&quot;, e.getMessage());</span>
-<span class="nc" id="L163">                auditSession.log(EventTypes.SYSTEMCONF_CREATE, EventStatus.FAILURE, ModuleTypes.GLOBALCONF, ServiceTypes.CORE,</span>
-<span class="nc" id="L164">                        admin.toString(), null, null, null, details);</span>
-<span class="nc" id="L165">            }</span>
-        }
-<span class="nc bnc" id="L167" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L168">            log.trace(&quot;&lt;saveGlobalConfiguration()&quot;);</span>
-        }
-<span class="nc" id="L170">    }</span>
-    
-    private void assertAuthorization(final AuthenticationToken authenticationToken, final String configID, final String errorMsg) throws AuthorizationDeniedException {
-<span class="nc" id="L173">        final String accessRule = getAccessRuleFromConfigId(configID);</span>
-<span class="nc bnc" id="L174" title="All 2 branches missed.">        if (!authorizationSession.isAuthorized(authenticationToken, accessRule)) {</span>
-<span class="nc" id="L175">            final String msg = intres.getLocalizedMessage(&quot;authorization.notauthorizedtoresource&quot;, accessRule, errorMsg);</span>
-<span class="nc" id="L176">            throw new AuthorizationDeniedException(msg);</span>
-        }
-<span class="nc" id="L178">    }</span>
+    public void updateConfiguration(
+        final ConfigurationBase conf, final String configId) {
+<span class="nc" id="L311">      caches.get(configId).updateConfiguration(conf);</span>
+<span class="nc" id="L312">    }</span>
 
-    /** @param configID ID
-     * @return the access rule required to read the specified configuration type */
-    private String getAccessRuleFromConfigId(final String configID) {
-<span class="nc bnc" id="L183" title="All 3 branches missed.">        switch (configID) {</span>
-        case AvailableExtendedKeyUsagesConfiguration.CONFIGURATION_ID:
-<span class="nc" id="L185">            return StandardRules.EKUCONFIGURATION_EDIT.resource();</span>
-        case AvailableCustomCertificateExtensionsConfiguration.CONFIGURATION_ID:
-<span class="nc" id="L187">            return StandardRules.CUSTOMCERTEXTENSIONCONFIGURATION_EDIT.resource();</span>
-        default:
-        }
-<span class="nc" id="L190">        return StandardRules.SYSTEMCONFIGURATION_EDIT.resource();</span>
-    }
-    
-    @Override
-    public void flushConfigurationCache(final String configID)  {
-<span class="nc bnc" id="L195" title="All 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L196">    		log.trace(&quot;&gt;flushConfigurationCache(&quot;+configID+&quot;)&quot;);</span>
-    	}
-<span class="nc" id="L198">    	GlobalConfigurationCacheHolder.INSTANCE.clearCache(configID);</span>
-    	// Force cache to be loaded from the database unless another thread has already started to do it
-<span class="nc" id="L200">    	getCachedConfiguration(configID);</span>
-<span class="nc bnc" id="L201" title="All 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
-<span class="nc" id="L202">    		log.trace(&quot;&lt;flushConfigurationCache(&quot;+configID+&quot;)&quot;);</span>
-    	}
-<span class="nc" id="L204">    }</span>
-    
-    /** @return the found entity instance or null if the entity does not exist */
-    @Override
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public GlobalConfigurationData findByConfigurationId(String configurationId) {
-<span class="nc" id="L210">        return entityManager.find(GlobalConfigurationData.class, configurationId);</span>
-    }
-    
-<span class="nc" id="L213">    private static enum GlobalConfigurationCacheHolder {</span>
-<span class="nc" id="L214">        INSTANCE;</span>
-        
-<span class="nc" id="L216">        private final Map&lt;String, ConfigurationCache&gt; caches = new ConcurrentHashMap&lt;String, ConfigurationCache&gt;();</span>
-        
-<span class="nc" id="L218">        private GlobalConfigurationCacheHolder() {</span>
-<span class="nc" id="L219">            ServiceLoader&lt;? extends ConfigurationCache&gt; serviceLoader = ServiceLoader.load(ConfigurationCache.class);</span>
-            // Extract all the caches from the plugin list
-<span class="nc bnc" id="L221" title="All 2 branches missed.">            for (ConfigurationCache cache : serviceLoader) {</span>
-<span class="nc bnc" id="L222" title="All 2 branches missed.">                if (caches.containsKey(cache.getConfigId())) {</span>
-<span class="nc" id="L223">                    throw new IllegalStateException(&quot;Two caches loaded with the same config ID: &quot; + cache.getConfigId()</span>
-                            + &quot;. This is an invalid state.&quot;);
-                } else {
-<span class="nc" id="L226">                    caches.put(cache.getConfigId(), cache);</span>
-                }
-<span class="nc" id="L228">            }</span>
-<span class="nc" id="L229">        }</span>
-        
-        /** @return all registered configuration IDs. */
-        public Set&lt;String&gt; getIds() {
-<span class="nc" id="L233">            return new HashSet&lt;String&gt;(caches.keySet());</span>
-        }
+    public void clearCache(final String configId) {
+<span class="nc" id="L315">      caches.get(configId).clearCache();</span>
+<span class="nc" id="L316">    }</span>
 
-        public void updateConfiguration(final ConfigurationBase conf, final String configId) {
-<span class="nc" id="L237">            caches.get(configId).updateConfiguration(conf);</span>
-<span class="nc" id="L238">        }</span>
-        
-        public void clearCache(final String configId) {
-<span class="nc" id="L241">            caches.get(configId).clearCache();</span>
-<span class="nc" id="L242">        }</span>
-        
-        public boolean needsUpdate(final String configId) {
-<span class="nc bnc" id="L245" title="All 2 branches missed.">            if (caches.get(configId)==null) {</span>
-<span class="nc" id="L246">                return true;</span>
-            }
-<span class="nc" id="L248">            return caches.get(configId).needsUpdate();</span>
-        }
-        
-        public ConfigurationBase getConfiguration(final String configId) {
-<span class="nc" id="L252">            ConfigurationCache cache = caches.get(configId);</span>
-<span class="nc bnc" id="L253" title="All 2 branches missed.">            if (cache == null) {</span>
-<span class="nc" id="L254">                return null;</span>
-            } else {
-<span class="nc" id="L256">                return cache.getConfiguration();</span>
-            }
-        }
-
-        @SuppressWarnings(&quot;rawtypes&quot;)
-        public ConfigurationBase getConfiguration(final HashMap data, final String configId) {
-<span class="nc" id="L262">            ConfigurationCache cache = caches.get(configId);</span>
-<span class="nc bnc" id="L263" title="All 2 branches missed.">            if (cache == null) {</span>
-<span class="nc" id="L264">                return null;</span>
-            } else {
-<span class="nc" id="L266">                return cache.getConfiguration(data);</span>
-            }
-        }
-        
-        public ConfigurationBase getNewConfiguration(final String configId) {
-<span class="nc" id="L271">            ConfigurationCache cache = caches.get(configId);</span>
-<span class="nc bnc" id="L272" title="All 2 branches missed.">            if (cache == null) {</span>
-<span class="nc" id="L273">                return null;</span>
-            } else {
-<span class="nc" id="L275">                return cache.getNewConfiguration();</span>
-            }
-        }
-        
-        public Properties getAllProperties(final String configId) {
-<span class="nc" id="L280">            ConfigurationCache cache = caches.get(configId);</span>
-<span class="nc bnc" id="L281" title="All 2 branches missed.">            if (cache == null) {</span>
-<span class="nc" id="L282">                return null;</span>
-            } else {
-<span class="nc" id="L284">                return caches.get(configId).getAllProperties();</span>
-            }
-        }
-        
+    public boolean needsUpdate(final String configId) {
+<span class="nc bnc" id="L319" title="All 2 branches missed.">      if (caches.get(configId) == null) {</span>
+<span class="nc" id="L320">        return true;</span>
+      }
+<span class="nc" id="L322">      return caches.get(configId).needsUpdate();</span>
     }
+
+    public ConfigurationBase getConfiguration(final String configId) {
+<span class="nc" id="L326">      ConfigurationCache cache = caches.get(configId);</span>
+<span class="nc bnc" id="L327" title="All 2 branches missed.">      if (cache == null) {</span>
+<span class="nc" id="L328">        return null;</span>
+      } else {
+<span class="nc" id="L330">        return cache.getConfiguration();</span>
+      }
+    }
+
+    @SuppressWarnings(&quot;rawtypes&quot;)
+    public ConfigurationBase getConfiguration(
+        final HashMap data, final String configId) {
+<span class="nc" id="L337">      ConfigurationCache cache = caches.get(configId);</span>
+<span class="nc bnc" id="L338" title="All 2 branches missed.">      if (cache == null) {</span>
+<span class="nc" id="L339">        return null;</span>
+      } else {
+<span class="nc" id="L341">        return cache.getConfiguration(data);</span>
+      }
+    }
+
+    public ConfigurationBase getNewConfiguration(final String configId) {
+<span class="nc" id="L346">      ConfigurationCache cache = caches.get(configId);</span>
+<span class="nc bnc" id="L347" title="All 2 branches missed.">      if (cache == null) {</span>
+<span class="nc" id="L348">        return null;</span>
+      } else {
+<span class="nc" id="L350">        return cache.getNewConfiguration();</span>
+      }
+    }
+
+    public Properties getAllProperties(final String configId) {
+<span class="nc" id="L355">      ConfigurationCache cache = caches.get(configId);</span>
+<span class="nc bnc" id="L356" title="All 2 branches missed.">      if (cache == null) {</span>
+<span class="nc" id="L357">        return null;</span>
+      } else {
+<span class="nc" id="L359">        return caches.get(configId).getAllProperties();</span>
+      }
+    }
+  }
 }
-
-
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

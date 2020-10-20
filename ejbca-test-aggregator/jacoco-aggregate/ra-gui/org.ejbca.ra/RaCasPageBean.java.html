@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RaCasPageBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ra-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ra</a> &gt; <span class="el_source">RaCasPageBean.java</span></div><h1>RaCasPageBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ra;
+
+import java.io.Serializable;
+import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.ejb.EJB;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.ManagedProperty;
+import javax.faces.bean.ViewScoped;
+
+import org.apache.commons.lang.StringUtils;
+import org.bouncycastle.util.encoders.Base64;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.crl.CRLInfo;
+import org.cesecore.certificates.crl.CrlStoreSessionLocal;
+import org.cesecore.util.CertTools;
+import org.ejbca.config.WebConfiguration;
+import org.ejbca.core.model.era.RaMasterApiProxyBeanLocal;
+
+/**
+ * Backing bean for Certificate and CRLs download page.
+ *
+ * @version $Id: RaCasPageBean.java 28756 2018-04-20 05:17:42Z bastianf $
+ * TODO: Use CDI beans
+ */
+@SuppressWarnings(&quot;deprecation&quot;)
+@ManagedBean
+@ViewScoped
+<span class="nc" id="L50">public class RaCasPageBean implements Serializable {</span>
+
+    /** Representation of a CA in a chain with links to CRL download locations. */
+    public class CaAndCrl {
+        private final String name;
+        private final String subjectDn;
+        private final int caId;
+        private String crlLink;
+        private String deltaCrlLink;
+        private final int position;
+        private final List&lt;String&gt; chainNames;
+<span class="nc" id="L61">        private boolean x509 = false;</span>
+
+<span class="nc" id="L63">        CaAndCrl(final String name, final String subjectDn, final int caId, final int position, final List&lt;String&gt; chainNames) {</span>
+<span class="nc" id="L64">            this.name = name;</span>
+<span class="nc" id="L65">            this.subjectDn = subjectDn;</span>
+<span class="nc" id="L66">            this.caId = caId;</span>
+<span class="nc" id="L67">            this.position = position;</span>
+<span class="nc" id="L68">            this.chainNames = chainNames;</span>
+<span class="nc" id="L69">        }</span>
+
+<span class="nc" id="L71">        public String getName() { return name; }</span>
+<span class="nc" id="L72">        public String getSubjectDn() { return subjectDn; }</span>
+<span class="nc" id="L73">        public int getCaId() { return caId; }</span>
+<span class="nc" id="L74">        public String getCrlLink() { return crlLink; }</span>
+<span class="nc" id="L75">        public String getDeltaCrlLink() { return deltaCrlLink; }</span>
+<span class="nc" id="L76">        public int getPosition() { return position; }</span>
+<span class="nc" id="L77">        public boolean isX509() { return x509; }</span>
+
+        @Override
+<span class="nc" id="L80">        public int hashCode() { return subjectDn.hashCode(); }</span>
+        @Override
+<span class="nc bnc" id="L82" title="All 4 branches missed.">        public boolean equals(final Object obj) { return obj instanceof CaAndCrl &amp;&amp; subjectDn.equals(((CaAndCrl)obj).subjectDn); }</span>
+
+        /** @return the Subject DN string of the current certificate in unescaped RDN format */
+        public final String getSubjectDnUnescapedRndValue() {
+<span class="nc bnc" id="L86" title="All 2 branches missed.">            if (StringUtils.isNotEmpty(subjectDn)) {</span>
+<span class="nc" id="L87">                return org.ietf.ldap.LDAPDN.unescapeRDN(subjectDn);</span>
+            } else {
+<span class="nc" id="L89">                return subjectDn;</span>
+            }
+        }
+    }
+
+    private static final long serialVersionUID = 1L;
+    //private static final Logger log = Logger.getLogger(RaCasPageBean.class);
+<span class="nc" id="L96">    private static final String RFC4387_DEFAULT_EJBCA_URL = WebConfiguration.getCrlStoreContextRoot() + &quot;/search.cgi&quot;;</span>
+    private static final int NO_CAID_AVAILABLE = 0;
+
+    @EJB
+    private CrlStoreSessionLocal crlSession;
+    @EJB
+    private RaMasterApiProxyBeanLocal raMasterApiProxyBean;
+
+    @ManagedProperty(value=&quot;#{raAuthenticationBean}&quot;)
+    private RaAuthenticationBean raAuthenticationBean;
+<span class="nc" id="L106">    public void setRaAuthenticationBean(final RaAuthenticationBean raAuthenticationBean) { this.raAuthenticationBean = raAuthenticationBean; }</span>
+
+    @ManagedProperty(value=&quot;#{raLocaleBean}&quot;)
+    private RaLocaleBean raLocaleBean;
+<span class="nc" id="L110">    public void setRaLocaleBean(final RaLocaleBean raLocaleBean) { this.raLocaleBean = raLocaleBean; }</span>
+
+<span class="nc" id="L112">    private List&lt;CaAndCrl&gt; casAndCrlItems = null;</span>
+<span class="nc" id="L113">    private boolean atLeastOneCrlLinkPresent = false;</span>
+
+    /** @return true if at least one of the CAs available via #getCasAndCrlItems() has CRLs present on this system. */
+    public boolean isAtLeastOneCrlLinkPresent() {
+<span class="nc" id="L117">        getCasAndCrlItems();</span>
+<span class="nc bnc" id="L118" title="All 4 branches missed.">        return atLeastOneCrlLinkPresent &amp;&amp; WebConfiguration.isCrlStoreEnabled();</span>
+    }
+
+    /** @return a list of all known authorized CAs with links to CRLs (if present) */
+    public List&lt;CaAndCrl&gt; getCasAndCrlItems() {
+<span class="nc bnc" id="L123" title="All 2 branches missed.">        if (casAndCrlItems==null) {</span>
+<span class="nc" id="L124">            final List&lt;CAInfo&gt; caInfos = new ArrayList&lt;&gt;(raMasterApiProxyBean.getAuthorizedCas(raAuthenticationBean.getAuthenticationToken()));</span>
+            // First build a mapping of all subjects and their short names
+<span class="nc" id="L126">            final Map&lt;String,String&gt; caSubjectToNameMap = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">            for (final CAInfo caInfo : caInfos) {</span>
+<span class="nc" id="L128">                caSubjectToNameMap.put(caInfo.getSubjectDN(), caInfo.getName());</span>
+<span class="nc" id="L129">            }</span>
+            // Convert all CA's chains into CA objects (use a Set to avoid duplicates)
+<span class="nc" id="L131">            final Set&lt;CaAndCrl&gt; cas = new HashSet&lt;&gt;();</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">            for (final CAInfo caInfo : caInfos) {</span>
+<span class="nc" id="L133">                final List&lt;Certificate&gt; chain = new ArrayList&lt;&gt;(caInfo.getCertificateChain());</span>
+<span class="nc" id="L134">                Collections.reverse(chain);</span>
+<span class="nc" id="L135">                final List&lt;String&gt; chainNames = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L136">                final int caId = caInfo.getCAId();</span>
+<span class="nc bnc" id="L137" title="All 2 branches missed.">                for (final Certificate caCertificate : chain) {</span>
+<span class="nc" id="L138">                    final String subjectDn = CertTools.getSubjectDN(caCertificate);</span>
+<span class="nc" id="L139">                    String name = caSubjectToNameMap.get(subjectDn);</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">                    if (name==null) {</span>
+<span class="nc" id="L141">                        name = subjectDn;</span>
+                    }
+<span class="nc" id="L143">                    chainNames.add(name);</span>
+<span class="nc bnc" id="L144" title="All 2 branches missed.">                    final CaAndCrl caAndCrl = new CaAndCrl(name, subjectDn, chainNames.size()==chain.size()?caId:NO_CAID_AVAILABLE, chainNames.size()-1, new ArrayList&lt;&gt;(chainNames));</span>
+                    // Construct links to RFC4387 CRL Download Servlet
+<span class="nc bnc" id="L146" title="All 2 branches missed.">                    if (caCertificate instanceof X509Certificate) {</span>
+<span class="nc" id="L147">                        caAndCrl.x509 = true;</span>
+<span class="nc" id="L148">                        final CRLInfo crlInfoFull = crlSession.getLastCRLInfo(subjectDn, false);</span>
+<span class="nc bnc" id="L149" title="All 2 branches missed.">                        if (crlInfoFull!=null) {</span>
+<span class="nc" id="L150">                            atLeastOneCrlLinkPresent = true;</span>
+<span class="nc" id="L151">                            caAndCrl.crlLink = RFC4387_DEFAULT_EJBCA_URL + &quot;?iHash=&quot; + getSubjectPrincipalHashAsUnpaddedBase64((X509Certificate)caCertificate);</span>
+<span class="nc" id="L152">                            final CRLInfo crlInfoDelta = crlSession.getLastCRLInfo(subjectDn, true);</span>
+<span class="nc bnc" id="L153" title="All 2 branches missed.">                            if (crlInfoDelta!=null) {</span>
+<span class="nc" id="L154">                                caAndCrl.deltaCrlLink = RFC4387_DEFAULT_EJBCA_URL + &quot;?iHash=&quot; + getSubjectPrincipalHashAsUnpaddedBase64((X509Certificate)caCertificate) + &quot;&amp;delta=&quot;;</span>
+                            }
+                        }
+                    }
+                    // Add missing items and replace items when we know the CAId
+<span class="nc bnc" id="L159" title="All 2 branches missed.">                    if (caAndCrl.getCaId()!=NO_CAID_AVAILABLE) {</span>
+<span class="nc" id="L160">                        cas.remove(caAndCrl);</span>
+                    }
+<span class="nc bnc" id="L162" title="All 2 branches missed.">                    if (!cas.contains(caAndCrl)) {</span>
+<span class="nc" id="L163">                        cas.add(caAndCrl);</span>
+                    }
+<span class="nc" id="L165">                }</span>
+<span class="nc" id="L166">            }</span>
+<span class="nc" id="L167">            casAndCrlItems = new ArrayList&lt;&gt;(cas);</span>
+            // Sort by higher level CAs
+<span class="nc" id="L169">            Collections.sort(casAndCrlItems, new Comparator&lt;CaAndCrl&gt;() {</span>
+                @Override
+                public int compare(final CaAndCrl caAndCrl1, final CaAndCrl caAndCrl) {
+<span class="nc" id="L172">                    final int size1 = caAndCrl1.chainNames.size();</span>
+<span class="nc" id="L173">                    final int size2 = caAndCrl.chainNames.size();</span>
+                    // Avoid checking if chain length is the same
+<span class="nc bnc" id="L175" title="All 2 branches missed.">                    for (int i=0; i&lt;Math.min(size1, size2); i++) {</span>
+<span class="nc" id="L176">                        final String name1 = caAndCrl1.chainNames.get(i);</span>
+<span class="nc" id="L177">                        final String name2 = caAndCrl.chainNames.get(i);</span>
+<span class="nc" id="L178">                        final int compareTo = name1.compareTo(name2);</span>
+<span class="nc bnc" id="L179" title="All 2 branches missed.">                        if (compareTo!=0) {</span>
+<span class="nc" id="L180">                            return compareTo;</span>
+                        }
+                    }
+<span class="nc" id="L183">                    return size1-size2;</span>
+                }
+            });
+        }
+<span class="nc" id="L187">        return casAndCrlItems;</span>
+    }
+
+    /** @param x509Certificate Cert
+     * @return the issuer hash in base64 encoding without padding which is the way RFC4387 search function expects the iHash parameter. */
+    private String getSubjectPrincipalHashAsUnpaddedBase64(final X509Certificate x509Certificate) {
+<span class="nc" id="L193">        final byte[] hashSubjectX500Principal = CertTools.generateSHA1Fingerprint(x509Certificate.getSubjectX500Principal().getEncoded());</span>
+<span class="nc" id="L194">        return new String(Base64.encode(hashSubjectX500Principal)).substring(0, 27).replaceAll(&quot;\\+&quot;, &quot;%2B&quot;);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

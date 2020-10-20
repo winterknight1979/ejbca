@@ -9,12 +9,11 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.certificate.certextensions.standard;
 
 import java.security.PublicKey;
 import java.util.Collection;
-
 import org.apache.log4j.Logger;
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
@@ -28,45 +27,56 @@ import org.cesecore.certificates.certificateprofile.CertificateProfile;
 import org.cesecore.certificates.endentity.EndEntityInformation;
 
 /**
- * Class for standard X509 certificate extension. 
- * See rfc3280 or later for spec of this extension.
- * 
+ * Class for standard X509 certificate extension. See rfc3280 or later for spec
+ * of this extension.
+ *
  * @version $Id: ExtendedKeyUsage.java 27639 2017-12-22 08:51:09Z anatom $
  */
-<span class="fc" id="L36">public class ExtendedKeyUsage extends StandardCertificateExtension {</span>
-    private static final long serialVersionUID = 1L;
-<span class="fc" id="L38">    private static final Logger log = Logger.getLogger(ExtendedKeyUsage.class);</span>
+<span class="fc" id="L35">public class ExtendedKeyUsage extends StandardCertificateExtension {</span>
+  private static final long serialVersionUID = 1L;
+  /** Logger. */
+<span class="fc" id="L38">  private static final Logger LOG = Logger.getLogger(ExtendedKeyUsage.class);</span>
 
-    @Override
-	public void init(final CertificateProfile certProf) {
-<span class="fc" id="L42">		super.setOID(Extension.extendedKeyUsage.getId());</span>
-        // Extended Key Usage may be either critical or non-critical
-<span class="fc" id="L44">		super.setCriticalFlag(certProf.getExtendedKeyUsageCritical());</span>
-<span class="fc" id="L45">	}</span>
-    
-    @Override
-    public ASN1Encodable getValue(final EndEntityInformation subject, final CA ca, final CertificateProfile certProfile,
-            final PublicKey userPublicKey, final PublicKey caPublicKey, CertificateValidity val) throws CertificateExtensionException {
-<span class="fc" id="L50">		org.bouncycastle.asn1.x509.ExtendedKeyUsage ret = null;</span>
-		// Get extended key usage from certificate profile
-<span class="fc" id="L52">		final Collection&lt;String&gt; oids = certProfile.getExtendedKeyUsageOids();</span>
-		
-		// Don't add empty key usage extension
-<span class="pc bpc" id="L55" title="1 of 2 branches missed.">		if (oids.size() != 0) {</span>
-<span class="fc" id="L56">			final ASN1Encodable[] usage = new ASN1Encodable[oids.size()];</span>
-<span class="fc" id="L57">			int i = 0;</span>
-<span class="fc bfc" id="L58" title="All 2 branches covered.">			for (String oid : oids) {</span>
-<span class="fc" id="L59">				usage[i] = org.bouncycastle.asn1.x509.KeyPurposeId.getInstance(new ASN1ObjectIdentifier(oid));</span>
-<span class="fc" id="L60">				i++;</span>
-<span class="fc" id="L61">			}</span>
-			
-<span class="fc" id="L63">			ASN1Sequence seq = ASN1Sequence.getInstance(new DERSequence(usage));</span>
-<span class="fc" id="L64">			ret = org.bouncycastle.asn1.x509.ExtendedKeyUsage.getInstance(seq);</span>
-		}
-<span class="pc bpc" id="L66" title="1 of 2 branches missed.">		if (ret == null) {</span>
-<span class="nc" id="L67">			log.error(&quot;ExtendedKeyUsage missconfigured, ExtendedKeyUsage is configured to be used but no OIDs are defined in certificate profile&quot;);</span>
-		}
-<span class="fc" id="L69">		return ret;</span>
-	}	
+  @Override
+  public void init(final CertificateProfile certProf) {
+<span class="fc" id="L42">    super.setOID(Extension.extendedKeyUsage.getId());</span>
+    // Extended Key Usage may be either critical or non-critical
+<span class="fc" id="L44">    super.setCriticalFlag(certProf.getExtendedKeyUsageCritical());</span>
+<span class="fc" id="L45">  }</span>
+
+  @Override
+  public ASN1Encodable getValue(
+      final EndEntityInformation subject,
+      final CA ca,
+      final CertificateProfile certProfile,
+      final PublicKey userPublicKey,
+      final PublicKey caPublicKey,
+      final CertificateValidity val)
+      throws CertificateExtensionException {
+<span class="fc" id="L56">    org.bouncycastle.asn1.x509.ExtendedKeyUsage ret = null;</span>
+    // Get extended key usage from certificate profile
+<span class="fc" id="L58">    final Collection&lt;String&gt; oids = certProfile.getExtendedKeyUsageOids();</span>
+
+    // Don't add empty key usage extension
+<span class="pc bpc" id="L61" title="1 of 2 branches missed.">    if (oids.size() != 0) {</span>
+<span class="fc" id="L62">      final ASN1Encodable[] usage = new ASN1Encodable[oids.size()];</span>
+<span class="fc" id="L63">      int i = 0;</span>
+<span class="fc bfc" id="L64" title="All 2 branches covered.">      for (String oid : oids) {</span>
+<span class="fc" id="L65">        usage[i] =</span>
+<span class="fc" id="L66">            org.bouncycastle.asn1.x509.KeyPurposeId.getInstance(</span>
+                new ASN1ObjectIdentifier(oid));
+<span class="fc" id="L68">        i++;</span>
+<span class="fc" id="L69">      }</span>
+
+<span class="fc" id="L71">      ASN1Sequence seq = ASN1Sequence.getInstance(new DERSequence(usage));</span>
+<span class="fc" id="L72">      ret = org.bouncycastle.asn1.x509.ExtendedKeyUsage.getInstance(seq);</span>
+    }
+<span class="pc bpc" id="L74" title="1 of 2 branches missed.">    if (ret == null) {</span>
+<span class="nc" id="L75">      LOG.error(</span>
+          &quot;ExtendedKeyUsage missconfigured, ExtendedKeyUsage is configured to&quot;
+              + &quot; be used but no OIDs are defined in certificate profile&quot;);
+    }
+<span class="fc" id="L79">    return ret;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

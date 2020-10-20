@@ -21,166 +21,198 @@ import java.util.Map;
 import java.util.Random;
 
 /**
- * Represents an individual RA Style Archive. May or may not contain logo files, mulitple CSS files
- * and identifiers. 
- * @version $Id: RaStyleInfo.java 26914 2017-10-27 10:10:32Z henriks $
+ * Represents an individual RA Style Archive. May or may not contain logo files,
+ * mulitple CSS files and identifiers.
  *
+ * @version $Id: RaStyleInfo.java 26914 2017-10-27 10:10:32Z henriks $
  */
 public class RaStyleInfo implements Serializable {
-    
-    private static final long serialVersionUID = 1L;
-<span class="nc" id="L32">    private static final Random random = new Random();</span>
-    
-    private int archiveId;
-    private Map&lt;String, RaCssInfo&gt; raCssInfos;
-    private byte[] logoBytes;
-    private String logoName;
-    private String logoContentType;
-    private String archiveName;
-    
+
+  private static final long serialVersionUID = 1L;
+  /** Random generator. */
+<span class="nc" id="L33">  private static final Random RANDOM = new Random();</span>
+
+  /** ID. */
+  private int archiveId;
+  /** Map. */
+  private Map&lt;String, RaCssInfo&gt; raCssInfos;
+  /** Bytes. */
+  private byte[] logoBytes;
+  /** Name. */
+  private String logoName;
+  /** Type. */
+  private String logoContentType;
+  /** Archive. */
+  private String archiveName;
+
+  /**
+   * Creates a RA CSS Info object to hold information and CSS data to be stored
+   * in database for deployment on RA-web.
+   *
+   * @param fileName name of the archive
+   * @param aRaCssInfos List of CSS info holders. May be null
+   * @param aLogoBytes Byte array of custom logo. May be null
+   * @param aLogoName Name of custom logo. May be null
+   */
+  public RaStyleInfo(
+      final String fileName,
+      final Map&lt;String, RaCssInfo&gt; aRaCssInfos,
+      final byte[] aLogoBytes,
+<span class="nc" id="L61">      final String aLogoName) {</span>
+<span class="nc" id="L62">    this.archiveId = RANDOM.nextInt();</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">    if (aRaCssInfos == null) {</span>
+<span class="nc" id="L64">      this.raCssInfos = new HashMap&lt;&gt;();</span>
+    } else {
+<span class="nc" id="L66">      this.raCssInfos = aRaCssInfos;</span>
+    }
+<span class="nc" id="L68">    this.logoBytes = aLogoBytes;</span>
+<span class="nc" id="L69">    this.archiveName = fileName;</span>
+<span class="nc" id="L70">    this.logoName = aLogoName;</span>
+<span class="nc" id="L71">  }</span>
+
+  @SuppressWarnings(&quot;serial&quot;)
+  public static class RaCssInfo implements Serializable {
+    /** Bytes. */
+    private byte[] cssBytes;
+    /** Name. */
+    private String cssName;
+
     /**
-     * Creates a RA CSS Info object to hold information and CSS data to be stored
-     * in database for deployment on RA-web
-     * @param fileName name of the archive
-     * @param raCssInfos List of CSS info holders. May be null
-     * @param logoBytes Byte array of custom logo. May be null
-     * @param logoName Name of custom logo. May be null
+     * @param aCssBytes bytes
+     * @param aCssName name
      */
-<span class="nc" id="L49">    public RaStyleInfo(String fileName, Map&lt;String, RaCssInfo&gt; raCssInfos, final byte[] logoBytes, String logoName) {</span>
-<span class="nc" id="L50">        this.archiveId = random.nextInt();</span>
-<span class="nc bnc" id="L51" title="All 2 branches missed.">        if (raCssInfos == null) {</span>
-<span class="nc" id="L52">            this.raCssInfos = new HashMap&lt;&gt;();</span>
-        } else {
-<span class="nc" id="L54">            this.raCssInfos = raCssInfos;</span>
-        }
-<span class="nc" id="L56">        this.logoBytes = logoBytes;</span>
-<span class="nc" id="L57">        this.archiveName = fileName;</span>
-<span class="nc" id="L58">        this.logoName = logoName;</span>
-<span class="nc" id="L59">    }</span>
-    
-    @SuppressWarnings(&quot;serial&quot;)
-    public static class RaCssInfo implements Serializable {
-        private byte[] cssBytes;
-        private String cssName;
-        
-<span class="nc" id="L66">        public RaCssInfo(byte[] cssBytes, String cssName) {</span>
-<span class="nc" id="L67">            this.cssBytes = cssBytes;</span>
-<span class="nc" id="L68">            this.cssName = cssName;</span>
-<span class="nc" id="L69">        }</span>
-        
-        public byte[] getCssBytes() {
-<span class="nc" id="L72">            return cssBytes;</span>
-        }
+<span class="nc" id="L84">    public RaCssInfo(final byte[] aCssBytes, final String aCssName) {</span>
+<span class="nc" id="L85">      this.cssBytes = aCssBytes;</span>
+<span class="nc" id="L86">      this.cssName = aCssName;</span>
+<span class="nc" id="L87">    }</span>
 
-        public void setCssBytes(byte[] cssBytes) {
-<span class="nc" id="L76">            this.cssBytes = cssBytes;</span>
-<span class="nc" id="L77">        }</span>
-
-        public String getCssName() {
-<span class="nc" id="L80">            return cssName;</span>
-        }
-
-        public void setCssName(String cssName) {
-<span class="nc" id="L84">            this.cssName = cssName;</span>
-<span class="nc" id="L85">        }</span>
-    }
-    
-    /** @return unique id for RaCssInfo object*/
-    public int getArchiveId() {
-<span class="nc" id="L90">        return archiveId;</span>
+    /**
+     * @return bytes
+     */
+    public byte[] getCssBytes() {
+<span class="nc" id="L93">      return cssBytes;</span>
     }
 
-    /** Should not be used normally! 
-     * @param archiveId  ID*/
-    public void setArchiveId(int archiveId) {
-<span class="nc" id="L96">        this.archiveId = archiveId;</span>
-<span class="nc" id="L97">    }</span>
-    
-    /** @param raCssInfo CSS info added to archive */
-    public void addRaCssInfo(RaCssInfo raCssInfo) {
-<span class="nc" id="L101">        this.raCssInfos.put(raCssInfo.getCssName(), raCssInfo);</span>
-<span class="nc" id="L102">    }</span>
-    
-    /** @return Map of all CSS infos in archive*/
-    public Map&lt;String, RaCssInfo&gt; getRaCssInfos() {
-<span class="nc" id="L106">        return raCssInfos;</span>
-    }
-    
-    /** @return List of all CSS infos in the archive*/
-    public List&lt;RaCssInfo&gt; getRaCssValues() {
-<span class="nc" id="L111">        return new ArrayList&lt;RaCssInfo&gt;(getRaCssInfos().values());</span>
-    }
-    
-    /** @param raCssInfos sets a list of CSS infos to archive */
-    public void setRaCssInfos(HashMap&lt;String, RaCssInfo&gt; raCssInfos) {
-<span class="nc" id="L116">        this.raCssInfos = raCssInfos;</span>
-<span class="nc" id="L117">    }</span>
+    /**
+     * @param aCssBytes bytes
+     */
+    public void setCssBytes(final byte[] aCssBytes) {
+<span class="nc" id="L100">      this.cssBytes = aCssBytes;</span>
+<span class="nc" id="L101">    }</span>
 
-    /** @return byte array of logo */
-    public byte[] getLogoBytes() {
-<span class="nc" id="L121">        return logoBytes;</span>
-    }
-    
-    /** @param logoBytes logoBytes of logo image*/
-    public void setLogoBytes(byte[] logoBytes) {
-<span class="nc" id="L126">        this.logoBytes = logoBytes;</span>
-<span class="nc" id="L127">    }</span>
-    
-    /** @return file name associated with CSS */
-    public String getArchiveName() {
-<span class="nc" id="L131">        return archiveName;</span>
+    /**
+     * @return name
+     */
+    public String getCssName() {
+<span class="nc" id="L107">      return cssName;</span>
     }
 
-    /** @param fileName to be associated with CSS */
-    public void setArchiveName(String fileName) {
-<span class="nc" id="L136">        this.archiveName = fileName;</span>
-<span class="nc" id="L137">    }</span>
-    
-    /** @return name of logo */
-    public String getLogoName() {
-<span class="nc" id="L141">        return logoName;</span>
-    }
-    
-    /** @param logoName sets logo name */
-    public void setLogoName(String logoName) {
-<span class="nc" id="L146">        this.logoName = logoName;</span>
-<span class="nc" id="L147">    }</span>
-    
-    /** @return content type of logo, e.g 'image/png' */
-    public String getLogoContentType() {
-<span class="nc" id="L151">        return logoContentType;</span>
-    }
-    
-    /** @param logoContentType e.g 'image/png' */
-    public void setLogoContentType(String logoContentType) {
-<span class="nc" id="L156">        this.logoContentType = logoContentType;</span>
-<span class="nc" id="L157">    }</span>
-    
-    @Override
-    public int hashCode() {
-<span class="nc" id="L161">        final int prime = 31;</span>
-<span class="nc" id="L162">        int result = 1;</span>
-<span class="nc" id="L163">        result = prime * result + archiveId;</span>
-<span class="nc" id="L164">        return result;</span>
-    }
+    /**
+     * @param aCssName name
+     */
+    public void setCssName(final String aCssName) {
+<span class="nc" id="L114">      this.cssName = aCssName;</span>
+<span class="nc" id="L115">    }</span>
+  }
 
-    @Override
-    public boolean equals(Object obj) {
-<span class="nc bnc" id="L169" title="All 2 branches missed.">        if (this == obj) {</span>
-<span class="nc" id="L170">            return true;</span>
-        }
-<span class="nc bnc" id="L172" title="All 2 branches missed.">        if (obj == null) {</span>
-<span class="nc" id="L173">            return false;</span>
-        }
-<span class="nc bnc" id="L175" title="All 2 branches missed.">        if (getClass() != obj.getClass()) {</span>
-<span class="nc" id="L176">            return false;</span>
-        }
-<span class="nc" id="L178">        RaStyleInfo other = (RaStyleInfo) obj;</span>
-<span class="nc bnc" id="L179" title="All 2 branches missed.">        if (archiveId != other.archiveId) {</span>
-<span class="nc" id="L180">            return false;</span>
-        }
-<span class="nc" id="L182">        return true;</span>
+  /** @return unique id for RaCssInfo object */
+  public int getArchiveId() {
+<span class="nc" id="L120">    return archiveId;</span>
+  }
+
+  /**
+   * Should not be used normally!
+   *
+   * @param aArchiveId ID
+   */
+  public void setArchiveId(final int aArchiveId) {
+<span class="nc" id="L129">    this.archiveId = aArchiveId;</span>
+<span class="nc" id="L130">  }</span>
+
+  /** @param raCssInfo CSS info added to archive */
+  public void addRaCssInfo(final RaCssInfo raCssInfo) {
+<span class="nc" id="L134">    this.raCssInfos.put(raCssInfo.getCssName(), raCssInfo);</span>
+<span class="nc" id="L135">  }</span>
+
+  /** @return Map of all CSS infos in archive */
+  public Map&lt;String, RaCssInfo&gt; getRaCssInfos() {
+<span class="nc" id="L139">    return raCssInfos;</span>
+  }
+
+  /** @return List of all CSS infos in the archive */
+  public List&lt;RaCssInfo&gt; getRaCssValues() {
+<span class="nc" id="L144">    return new ArrayList&lt;RaCssInfo&gt;(getRaCssInfos().values());</span>
+  }
+
+  /** @param aRaCssInfos sets a list of CSS infos to archive */
+  public void setRaCssInfos(final HashMap&lt;String, RaCssInfo&gt; aRaCssInfos) {
+<span class="nc" id="L149">    this.raCssInfos = aRaCssInfos;</span>
+<span class="nc" id="L150">  }</span>
+
+  /** @return byte array of logo */
+  public byte[] getLogoBytes() {
+<span class="nc" id="L154">    return logoBytes;</span>
+  }
+
+  /** @param aLogoBytes logoBytes of logo image */
+  public void setLogoBytes(final byte[] aLogoBytes) {
+<span class="nc" id="L159">    this.logoBytes = aLogoBytes;</span>
+<span class="nc" id="L160">  }</span>
+
+  /** @return file name associated with CSS */
+  public String getArchiveName() {
+<span class="nc" id="L164">    return archiveName;</span>
+  }
+
+  /** @param fileName to be associated with CSS */
+  public void setArchiveName(final String fileName) {
+<span class="nc" id="L169">    this.archiveName = fileName;</span>
+<span class="nc" id="L170">  }</span>
+
+  /** @return name of logo */
+  public String getLogoName() {
+<span class="nc" id="L174">    return logoName;</span>
+  }
+
+  /** @param aLogoName sets logo name */
+  public void setLogoName(final String aLogoName) {
+<span class="nc" id="L179">    this.logoName = aLogoName;</span>
+<span class="nc" id="L180">  }</span>
+
+  /** @return content type of logo, e.g 'image/png' */
+  public String getLogoContentType() {
+<span class="nc" id="L184">    return logoContentType;</span>
+  }
+
+  /** @param aLogoContentType e.g 'image/png' */
+  public void setLogoContentType(final String aLogoContentType) {
+<span class="nc" id="L189">    this.logoContentType = aLogoContentType;</span>
+<span class="nc" id="L190">  }</span>
+
+  @Override
+  public int hashCode() {
+<span class="nc" id="L194">    final int prime = 31;</span>
+<span class="nc" id="L195">    int result = 1;</span>
+<span class="nc" id="L196">    result = prime * result + archiveId;</span>
+<span class="nc" id="L197">    return result;</span>
+  }
+
+  @Override
+  public boolean equals(final Object obj) {
+<span class="nc bnc" id="L202" title="All 2 branches missed.">    if (this == obj) {</span>
+<span class="nc" id="L203">      return true;</span>
     }
-    
+<span class="nc bnc" id="L205" title="All 2 branches missed.">    if (obj == null) {</span>
+<span class="nc" id="L206">      return false;</span>
+    }
+<span class="nc bnc" id="L208" title="All 2 branches missed.">    if (getClass() != obj.getClass()) {</span>
+<span class="nc" id="L209">      return false;</span>
+    }
+<span class="nc" id="L211">    RaStyleInfo other = (RaStyleInfo) obj;</span>
+<span class="nc bnc" id="L212" title="All 2 branches missed.">    if (archiveId != other.archiveId) {</span>
+<span class="nc" id="L213">      return false;</span>
+    }
+<span class="nc" id="L215">    return true;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

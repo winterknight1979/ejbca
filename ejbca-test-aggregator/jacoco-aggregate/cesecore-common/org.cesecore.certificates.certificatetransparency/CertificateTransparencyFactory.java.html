@@ -9,50 +9,66 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/  
+ *************************************************************************/
 package org.cesecore.certificates.certificatetransparency;
 
 /**
- * Loads and holds an instance of the Certificate Transparency implementation, if available.
- * 
- * @version $Id: CertificateTransparencyFactory.java 18484 2014-02-11 08:33:16Z samuellb $
+ * Loads and holds an instance of the Certificate Transparency implementation,
+ * if available.
+ *
+ * @version $Id: CertificateTransparencyFactory.java 18484 2014-02-11 08:33:16Z
+ *     samuellb $
  */
-<span class="fc" id="L20">public enum CertificateTransparencyFactory {</span>
+<span class="fc" id="L22">public enum CertificateTransparencyFactory {</span>
+  /** Singleton instance. */
+<span class="fc" id="L24">    SINGLETON;</span>
 
-<span class="fc" id="L22">    SINGLETON;</span>
+    /** Class. */
+  private static final String IMPLEMENTATION_CLASSNAME =
+      &quot;org.cesecore.certificates.certificatetransparency.&quot;
+      + &quot;CertificateTransparencyImpl&quot;;
 
-    private static final String IMPLEMENTATION_CLASSNAME = &quot;org.cesecore.certificates.certificatetransparency.CertificateTransparencyImpl&quot;;
+  /** Instance. */
+  private final CertificateTransparency ct;
 
+  /** Pribate constructor. */
+<span class="fc" id="L35">  CertificateTransparencyFactory() {</span>
+    CertificateTransparency instance;
+    try {
+      // No lock is used since the CertificateTransparencyImpl class has no
+      // state
+      // so it's OK with multiple instances.
+<span class="fc" id="L41">      instance =</span>
+          (CertificateTransparency)
+<span class="nc" id="L43">              Class.forName(IMPLEMENTATION_CLASSNAME)</span>
+<span class="nc" id="L44">                  .getConstructor()</span>
+<span class="nc" id="L45">                  .newInstance();</span>
+<span class="fc" id="L46">    } catch (</span>
+        Exception
+            e) { // NOPMD not a good idea to throw an exception in a enum
+                 // constructor
+<span class="fc" id="L50">      instance = null;</span>
+<span class="nc" id="L51">    }</span>
+<span class="fc" id="L52">    ct = instance;</span>
+<span class="fc" id="L53">  }</span>
 
-    private final CertificateTransparency ct;
-    
-<span class="fc" id="L29">    private CertificateTransparencyFactory() {</span>
-        CertificateTransparency instance;
-        try {
-            // No lock is used since the CertificateTransparencyImpl class has no state
-            // so it's OK with multiple instances.
-<span class="nc" id="L34">            instance = (CertificateTransparency)Class.forName(IMPLEMENTATION_CLASSNAME).getConstructor().newInstance();</span>
-<span class="fc" id="L35">        } catch (Exception e) { // NOPMD not a good idea to throw an exception in a enum constructor</span>
-<span class="fc" id="L36">            instance = null;</span>
-<span class="nc" id="L37">        }</span>
-<span class="fc" id="L38">        ct = instance;</span>
-<span class="fc" id="L39">    }</span>
-    
-    /**
-     * Returns the implementation of the CertificateTransparency interface, or null if not available.
-     * No exceptions can ever be thrown by this method, so it's safe to call from static-blocks and initializers.
-     * @return implementation
-     */
-    public static CertificateTransparency getInstance() {
-<span class="fc" id="L47">        return SINGLETON.ct;</span>
-    }
-    
-    /**
-     * @return true if the implementation class is available. No exceptions can be thrown by this method. 
-     */
-    public static boolean isCTAvailable() {
-<span class="nc bnc" id="L54" title="All 2 branches missed.">        return getInstance() != null;</span>
-    }
+  /**
+   * Returns the implementation of the CertificateTransparency interface, or
+   * null if not available. No exceptions can ever be thrown by this method, so
+   * it's safe to call from static-blocks and initializers.
+   *
+   * @return implementation
+   */
+  public static CertificateTransparency getInstance() {
+<span class="fc" id="L63">    return SINGLETON.ct;</span>
+  }
 
+  /**
+   * @return true if the implementation class is available. No exceptions can be
+   *     thrown by this method.
+   */
+  public static boolean isCTAvailable() {
+<span class="nc bnc" id="L71" title="All 2 branches missed.">    return getInstance() != null;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

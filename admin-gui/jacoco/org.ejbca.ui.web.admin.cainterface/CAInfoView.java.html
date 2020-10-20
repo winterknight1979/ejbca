@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CAInfoView.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Administration GUI</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.cainterface</a> &gt; <span class="el_source">CAInfoView.java</span></div><h1>CAInfoView.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.ui.web.admin.cainterface;
+
+import java.io.Serializable;
+import java.security.cert.Certificate;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+import org.cesecore.certificates.ca.CAConstants;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.CVCCAInfo;
+import org.cesecore.certificates.ca.X509CAInfo;
+import org.cesecore.certificates.ca.catoken.CAToken;
+import org.cesecore.util.SimpleTime;
+import org.ejbca.core.model.SecConst;
+import org.ejbca.ui.web.admin.configuration.EjbcaWebBean;
+import org.ejbca.util.HTMLTools;
+
+/**
+ * A class representing a view of a CA Information view..
+ *
+ * @version $Id: CAInfoView.java 27816 2018-01-09 16:19:36Z samuellb $
+ */
+public class CAInfoView implements Serializable, Cloneable {
+
+	private static final long serialVersionUID = -5154282635821412670L;
+    // Public constants.
+
+   public static final int NAME                    = 0;  
+   public static final int SUBJECTDN               = 1;   
+   public static final int SUBJECTALTNAME          = 2;
+   public static final int CATYPE                  = 3;
+   
+   private static final int SECTION_CA             = 4;
+   
+   public static final int EXPIRETIME              = 5;
+   public static final int STATUS                  = 6;
+   @Deprecated
+   public static final int CATOKEN_STATUS          = 7;
+   public static final int DESCRIPTION             = 8;
+   
+   private static final int SECTION_CRL            = 9;
+   
+   public static final int CRLPERIOD               = 10;
+   public static final int CRLISSUEINTERVAL        = 11;
+   public static final int CRLOVERLAPTIME          = 12;
+   public static final int DELTACRLPERIOD          = 13;
+   public static final int CRLPUBLISHERS           = 14;
+   public static final int VALIDATORS              = 15;
+   
+   private static final int SECTION_SERVICE        = 16;
+   
+   public static final int OCSP                    = 17;
+  
+   /** A info text strings must contain:
+    * CANAME, CERT_SUBJECTDN, EXT_ABBR_SUBJECTALTNAME, CATYPE, EXPIRES, STATUS, DESCRIPTION, CRL_CA_CRLPERIOD, CRL_CA_ISSUEINTERVAL, CRL_CA_OVERLAPTIME, CRL_CA_DELTACRLPERIOD, PUBLISHERS, VALIDATORS
+    * It must also have CADATA in position n° 4 (CA data) 
+    * It must also have CRLSPECIFICDATA in position n° 9 (CRL Specific Data) 
+    * It must also have SERVICES in position n° 15 (Services), if exists 
+    */
+<span class="nc" id="L75">   public static String[] X509CA_CAINFODATATEXTS = {&quot;CANAME&quot;,&quot;CERT_SUBJECTDN&quot;,&quot;EXT_ABBR_SUBJECTALTNAME&quot;,&quot;CATYPE&quot;,</span>
+       &quot;CADATA&quot;,               /* CA data */
+       &quot;EXPIRES&quot;,&quot;STATUS&quot;,/*&quot;CATOKENSTATUS&quot;*/ &quot;&quot;,&quot;DESCRIPTION&quot;,
+       &quot;CRLSPECIFICDATA&quot;,      /* CRL Specific Data */
+       &quot;CRL_CA_CRLPERIOD&quot;,&quot;CRL_CA_ISSUEINTERVAL&quot;,&quot;CRL_CA_OVERLAPTIME&quot;,&quot;CRL_CA_DELTACRLPERIOD&quot;,&quot;PUBLISHERS&quot;,&quot;VALIDATORS&quot;,
+       &quot;SERVICES&quot;,             /* Services */
+       &quot;OCSPSERVICE&quot;};
+
+<span class="nc" id="L83">public static String[] CVCCA_CAINFODATATEXTS = {&quot;NAME&quot;,&quot;CERT_SUBJECTDN&quot;,&quot;&quot;,&quot;CATYPE&quot;,</span>
+      &quot;CADATA&quot;,                /* CA data */
+      &quot;EXPIRES&quot;,&quot;STATUS&quot;,/*&quot;CATOKENSTATUS&quot;*/ &quot;&quot;,&quot;DESCRIPTION&quot;,
+      &quot;CRLSPECIFICDATA&quot;,       /* CRL Specific Data */
+      &quot;CRL_CA_CRLPERIOD&quot;,&quot;CRL_CA_ISSUEINTERVAL&quot;,&quot;CRL_CA_OVERLAPTIME&quot;,&quot;CRL_CA_DELTACRLPERIOD&quot;};
+
+<span class="nc" id="L89">   private String[] cainfodata = null;</span>
+<span class="nc" id="L90">   private String[] cainfodatatexts = null;</span>
+   
+<span class="nc" id="L92">   private CAInfo          cainfo   = null;</span>
+   
+<span class="nc" id="L94">    public CAInfoView(CAInfo cainfo, EjbcaWebBean ejbcawebbean, Map&lt;Integer, String&gt; publishersidtonamemap, Map&lt;Integer, String&gt; keyValidatorsIdToNameMap) {</span>
+<span class="nc" id="L95">      this.cainfo = cainfo;  </span>
+        
+<span class="nc bnc" id="L97" title="All 2 branches missed.">      if (cainfo instanceof X509CAInfo) {</span>
+<span class="nc" id="L98">        setupGeneralInfo(X509CA_CAINFODATATEXTS, cainfo, ejbcawebbean);</span>
+
+<span class="nc" id="L100">        cainfodata[SUBJECTALTNAME] = HTMLTools.htmlescape(((X509CAInfo) cainfo).getSubjectAltName());</span>
+
+<span class="nc" id="L102">		cainfodata[CRLPUBLISHERS] = &quot;&quot;;</span>
+<span class="nc" id="L103">        Iterator&lt;Integer&gt; publisherIds = ((X509CAInfo) cainfo).getCRLPublishers().iterator();</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">        if(publisherIds.hasNext()) {</span>
+<span class="nc" id="L105">        	cainfodata[CRLPUBLISHERS] = publishersidtonamemap.get(publisherIds.next()); </span>
+        } else {
+<span class="nc" id="L107">        	cainfodata[CRLPUBLISHERS] = ejbcawebbean.getText(&quot;NONE&quot;);</span>
+        }
+<span class="nc bnc" id="L109" title="All 2 branches missed.">        while(publisherIds.hasNext()) {</span>
+<span class="nc" id="L110">			cainfodata[CRLPUBLISHERS] = cainfodata[CRLPUBLISHERS] + &quot;, &quot; + publishersidtonamemap.get(publisherIds.next());</span>
+        }
+        
+<span class="nc" id="L113">        cainfodata[VALIDATORS] = StringUtils.EMPTY;</span>
+        
+<span class="nc" id="L115">        final Iterator&lt;Integer&gt; keyValidatorIds = ((X509CAInfo) cainfo).getValidators().iterator();</span>
+<span class="nc bnc" id="L116" title="All 2 branches missed.">        if(keyValidatorIds.hasNext()) {</span>
+<span class="nc" id="L117">            cainfodata[VALIDATORS] = keyValidatorsIdToNameMap.get(keyValidatorIds.next()); </span>
+        } else {
+<span class="nc" id="L119">            cainfodata[VALIDATORS] = ejbcawebbean.getText(&quot;NONE&quot;);</span>
+        }
+<span class="nc bnc" id="L121" title="All 2 branches missed.">        while(keyValidatorIds.hasNext()) {</span>
+<span class="nc" id="L122">            cainfodata[VALIDATORS] = cainfodata[VALIDATORS] + &quot;, &quot; + keyValidatorsIdToNameMap.get(keyValidatorIds.next());</span>
+        }
+        
+<span class="nc" id="L125">		cainfodata[SECTION_SERVICE]          = &quot;&amp;nbsp;&quot;; // Section row</span>
+        
+<span class="nc bnc" id="L127" title="All 2 branches missed.">      } else if (cainfo instanceof CVCCAInfo) {</span>
+<span class="nc" id="L128">          setupGeneralInfo(CVCCA_CAINFODATATEXTS, cainfo, ejbcawebbean);          </span>
+      }
+<span class="nc" id="L130">   }</span>
+
+	private void setupGeneralInfo(String[] strings, CAInfo cainfo, EjbcaWebBean ejbcawebbean) {
+<span class="nc" id="L133">		cainfodatatexts = new String[strings.length];</span>
+<span class="nc" id="L134">        cainfodata = new String[strings.length];  </span>
+        
+<span class="nc bnc" id="L136" title="All 2 branches missed.">        for(int i=0; i &lt; strings.length; i++){</span>
+<span class="nc bnc" id="L137" title="All 2 branches missed.">          if(strings[i].equals(&quot;&quot;)) {</span>
+<span class="nc" id="L138">              cainfodatatexts[i]=&quot;&amp;nbsp;&quot;;</span>
+          } else {
+<span class="nc" id="L140">              cainfodatatexts[i] = ejbcawebbean.getText(strings[i]);</span>
+          }
+        }
+        
+<span class="nc" id="L144">        cainfodata[SUBJECTDN]  = HTMLTools.htmlescape(cainfo.getSubjectDN());</span>
+<span class="nc" id="L145">        cainfodata[NAME]       = HTMLTools.htmlescape(cainfo.getName());</span>
+<span class="nc" id="L146">        int catype = cainfo.getCAType();</span>
+<span class="nc bnc" id="L147" title="All 2 branches missed.">        if (catype == CAInfo.CATYPE_CVC) {</span>
+<span class="nc" id="L148">            cainfodata[CATYPE]     = ejbcawebbean.getText(&quot;CVCCA&quot;);        	</span>
+        } else {
+<span class="nc" id="L150">            cainfodata[CATYPE]     = ejbcawebbean.getText(&quot;X509&quot;);        	</span>
+        }
+<span class="nc" id="L152">        cainfodata[SECTION_CA]          = &quot;&amp;nbsp;&quot;; // Section row</span>
+<span class="nc bnc" id="L153" title="All 2 branches missed.">        if(cainfo.getExpireTime() == null) {</span>
+<span class="nc" id="L154">		  cainfodata[EXPIRETIME] = &quot;&quot;;</span>
+        } else {
+<span class="nc" id="L156">          cainfodata[EXPIRETIME] = ejbcawebbean.formatAsISO8601(cainfo.getExpireTime());</span>
+        }
+        
+<span class="nc bnc" id="L159" title="All 7 branches missed.">        switch(cainfo.getStatus()){</span>
+            case CAConstants.CA_ACTIVE :
+<span class="nc" id="L161">              cainfodata[STATUS]     = ejbcawebbean.getText(&quot;ACTIVE&quot;);     </span>
+<span class="nc" id="L162">              break;</span>
+            case CAConstants.CA_EXPIRED :
+<span class="nc" id="L164">              cainfodata[STATUS]     = ejbcawebbean.getText(&quot;EXPIRED&quot;);</span>
+<span class="nc" id="L165">              break;</span>
+            case CAConstants.CA_OFFLINE :
+<span class="nc" id="L167">              cainfodata[STATUS]     = ejbcawebbean.getText(&quot;OFFLINE&quot;);</span>
+<span class="nc" id="L168">              break;</span>
+            case CAConstants.CA_REVOKED :
+<span class="nc" id="L170">              cainfodata[STATUS]     = ejbcawebbean.getText(&quot;CAREVOKED&quot;) + &quot;&lt;br&gt;&amp;nbsp;&amp;nbsp;&quot; + </span>
+<span class="nc" id="L171">                                                    ejbcawebbean.getText(&quot;REASON&quot;) + &quot; : &lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&quot; + </span>
+<span class="nc" id="L172">                                                    ejbcawebbean.getText(SecConst.reasontexts[cainfo.getRevocationReason()]) + &quot;&lt;br&gt;&amp;nbsp;&amp;nbsp;&quot; +</span>
+<span class="nc" id="L173">			                                        ejbcawebbean.getText(&quot;CRL_ENTRY_REVOCATIONDATE&quot;) + &quot;&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&quot; + </span>
+<span class="nc" id="L174">			                                        ejbcawebbean.formatAsISO8601(cainfo.getRevocationDate());</span>
+<span class="nc" id="L175">              break;</span>
+            case CAConstants.CA_WAITING_CERTIFICATE_RESPONSE :
+<span class="nc" id="L177">              cainfodata[STATUS]     = ejbcawebbean.getText(&quot;WAITINGFORCERTRESPONSE&quot;);</span>
+<span class="nc" id="L178">              break;              </span>
+            case CAConstants.CA_EXTERNAL :
+<span class="nc" id="L180">                cainfodata[STATUS]     = ejbcawebbean.getText(&quot;EXTERNALCA&quot;);</span>
+                break;              
+        } 
+        
+<span class="nc" id="L184">        cainfodata[DESCRIPTION] = HTMLTools.htmlescape(cainfo.getDescription());</span>
+        
+<span class="nc" id="L186">		cainfodata[SECTION_CRL]          = &quot;&amp;nbsp;&quot;; // Section row</span>
+
+<span class="nc" id="L188">        cainfodata[CRLPERIOD] = SimpleTime.getInstance(cainfo.getCRLPeriod()).toString(SimpleTime.TYPE_MINUTES);</span>
+<span class="nc" id="L189">        cainfodata[CRLISSUEINTERVAL] = SimpleTime.getInstance(cainfo.getCRLIssueInterval()).toString(SimpleTime.TYPE_MINUTES);</span>
+<span class="nc" id="L190">        cainfodata[CRLOVERLAPTIME] = SimpleTime.getInstance(cainfo.getCRLOverlapTime()).toString(SimpleTime.TYPE_MINUTES);</span>
+<span class="nc" id="L191">        cainfodata[DELTACRLPERIOD] = SimpleTime.getInstance(cainfo.getDeltaCRLPeriod()).toString(SimpleTime.TYPE_MINUTES);</span>
+<span class="nc" id="L192">	}</span>
+
+<span class="nc" id="L194">   public String[] getCAInfoData(){ return cainfodata;}</span>
+<span class="nc" id="L195">   public String[] getCAInfoDataText(){ return cainfodatatexts;} </span>
+
+<span class="nc" id="L197">   public CAInfo getCAInfo() { return cainfo;}</span>
+<span class="nc" id="L198">   public CAToken getCAToken() { return cainfo.getCAToken(); }</span>
+<span class="nc" id="L199">   public Collection&lt;Certificate&gt; getCertificateChain() { return cainfo.getCertificateChain(); }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

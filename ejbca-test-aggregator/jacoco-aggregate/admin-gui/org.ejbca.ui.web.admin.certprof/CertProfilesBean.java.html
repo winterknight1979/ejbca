@@ -1,0 +1,716 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CertProfilesBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">admin-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.certprof</a> &gt; <span class="el_source">CertProfilesBean.java</span></div><h1>CertProfilesBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.web.admin.certprof;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+
+import javax.faces.application.FacesMessage;
+import javax.faces.context.FacesContext;
+import javax.faces.model.ListDataModel;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.apache.myfaces.custom.fileupload.UploadedFile;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.control.StandardRules;
+import org.cesecore.certificates.certificate.CertificateConstants;
+import org.cesecore.certificates.certificateprofile.CertificateProfile;
+import org.cesecore.certificates.certificateprofile.CertificateProfileConstants;
+import org.cesecore.certificates.certificateprofile.CertificateProfileDoesNotExistException;
+import org.cesecore.certificates.certificateprofile.CertificateProfileExistsException;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSessionLocal;
+import org.cesecore.util.SecureXMLDecoder;
+import org.cesecore.util.StringTools;
+import org.ejbca.core.model.ca.publisher.BasePublisher;
+import org.ejbca.ui.web.admin.BaseManagedBean;
+
+/**
+ * JSF MBean backing the certificate profiles pages.
+ *  
+ * @version $Id: CertProfilesBean.java 27816 2018-01-09 16:19:36Z samuellb $
+ */
+// Declarations in faces-config.xml
+//@javax.faces.bean.RequestScoped
+//@javax.faces.bean.ManagedBean(name=&quot;certProfilesBean&quot;)
+<span class="nc" id="L59">public class CertProfilesBean extends BaseManagedBean implements Serializable {</span>
+    private static final long serialVersionUID = 1L;
+<span class="nc" id="L61">    private static final Logger log = Logger.getLogger(CertProfilesBean.class);</span>
+
+    // This restriction in certificate profile naming can be removed when the current running version no longer has
+    // to be able to run side by side (share the db) with an EJBCA 6.1.x or earlier
+    @Deprecated
+    private static final String LEGACY_FIXED_MARKER = &quot;(FIXED)&quot;;
+
+    public class CertificateProfileItem {
+        private final int id;
+        private final String name;
+        private final boolean fixed;
+        private final boolean missingCa;
+
+<span class="nc" id="L74">        public CertificateProfileItem(final int id, final String name, final boolean fixed, final boolean missingCa) {</span>
+<span class="nc" id="L75">            this.id = id;</span>
+<span class="nc" id="L76">            this.name = name;</span>
+<span class="nc" id="L77">            this.fixed = fixed;</span>
+<span class="nc" id="L78">            this.missingCa = missingCa;</span>
+<span class="nc" id="L79">        }</span>
+
+        public int getId() {
+<span class="nc" id="L82">            return id;</span>
+        }
+
+        public String getName() {
+<span class="nc" id="L86">            return name;</span>
+        }
+
+        public boolean isFixed() {
+<span class="nc" id="L90">            return fixed;</span>
+        }
+
+        public boolean isMissingCa() {
+<span class="nc" id="L94">            return missingCa;</span>
+        }
+    }
+
+<span class="nc" id="L98">    private Integer selectedCertProfileId = null;</span>
+<span class="nc" id="L99">    private boolean renameInProgress = false;</span>
+<span class="nc" id="L100">    private boolean deleteInProgress = false;</span>
+<span class="nc" id="L101">    private boolean addFromTemplateInProgress = false;</span>
+<span class="nc" id="L102">    private String certProfileName = &quot;&quot;;</span>
+<span class="nc" id="L103">    private boolean viewOnly = true;</span>
+<span class="nc" id="L104">    private ListDataModel&lt;CertificateProfileItem&gt; certificateProfileItems = null;</span>
+
+
+    public Integer getSelectedCertProfileId() {
+<span class="nc" id="L108">        return selectedCertProfileId;</span>
+    }
+
+    public void setSelectedCertProfileId(final Integer selectedCertProfileId) {
+<span class="nc" id="L112">        this.selectedCertProfileId = selectedCertProfileId;</span>
+<span class="nc" id="L113">    }</span>
+
+    public String getSelectedCertProfileName() {
+<span class="nc" id="L116">        final Integer profileId = getSelectedCertProfileId();</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">        if (profileId != null) {</span>
+<span class="nc" id="L118">            return getEjbcaWebBean().getEjb().getCertificateProfileSession().getCertificateProfileName(profileId.intValue());</span>
+        }
+<span class="nc" id="L120">        return null;</span>
+    }
+
+    // Force a shorter scope (than session scoped) for the ListDataModel by always resetting it before it is rendered
+    public String getResetCertificateProfilesTrigger() {
+<span class="nc" id="L125">        certificateProfileItems = null;</span>
+<span class="nc" id="L126">        return &quot;&quot;;</span>
+    }
+
+
+    public ListDataModel&lt;CertificateProfileItem&gt; getCertificateProfiles() {
+<span class="nc bnc" id="L131" title="All 2 branches missed.">        if (certificateProfileItems == null) {</span>
+<span class="nc" id="L132">            final List&lt;CertificateProfileItem&gt; items = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L133">            final CertificateProfileSessionLocal certificateProfileSession = getEjbcaWebBean().getEjb().getCertificateProfileSession();</span>
+<span class="nc" id="L134">            final List&lt;Integer&gt; authorizedProfileIds = new ArrayList&lt;&gt;();</span>
+
+            //Always include
+<span class="nc" id="L137">            authorizedProfileIds.addAll(certificateProfileSession.getAuthorizedCertificateProfileIds(getAdmin(),</span>
+                    CertificateConstants.CERTTYPE_ENDENTITY));
+<span class="nc bnc" id="L139" title="All 2 branches missed.">            if (isAuthorizedTo(StandardRules.ROLE_ROOT.resource())) {</span>
+                //Only root users may use CA profiles
+<span class="nc" id="L141">                authorizedProfileIds.addAll(certificateProfileSession.getAuthorizedCertificateProfileIds(getAdmin(),</span>
+                        CertificateConstants.CERTTYPE_ROOTCA));
+<span class="nc" id="L143">                authorizedProfileIds.addAll(certificateProfileSession.getAuthorizedCertificateProfileIds(getAdmin(),</span>
+                        CertificateConstants.CERTTYPE_SUBCA));
+            }
+<span class="nc" id="L146">            boolean usingHardwareTokens = getEjbcaWebBean().getGlobalConfiguration().getIssueHardwareTokens();</span>
+<span class="nc bnc" id="L147" title="All 2 branches missed.">            if (usingHardwareTokens) {</span>
+<span class="nc" id="L148">                authorizedProfileIds.addAll(certificateProfileSession.getAuthorizedCertificateProfileIds(getAdmin(),</span>
+                        CertificateConstants.CERTTYPE_HARDTOKEN));
+            }
+<span class="nc" id="L151">            final List&lt;Integer&gt; profileIdsWithMissingCA = certificateProfileSession.getAuthorizedCertificateProfileWithMissingCAs(getAdmin());</span>
+<span class="nc" id="L152">            final Map&lt;Integer, String&gt; idToNameMap = certificateProfileSession.getCertificateProfileIdToNameMap();</span>
+<span class="nc" id="L153">            final Set&lt;Integer&gt; existing = new HashSet&lt;&gt;();</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">            for(Integer profileId : authorizedProfileIds) {</span>
+<span class="nc" id="L155">                final boolean missingCa = profileIdsWithMissingCA.contains(profileId);</span>
+<span class="nc" id="L156">                final boolean fixed = isCertProfileFixed(profileId);</span>
+<span class="nc" id="L157">                final String name = idToNameMap.get(profileId);</span>
+<span class="nc bnc" id="L158" title="All 2 branches missed.">                if (existing.add(profileId)) { // Don't add twice!</span>
+<span class="nc" id="L159">                    items.add(new CertificateProfileItem(profileId, name, fixed, missingCa));</span>
+                }
+<span class="nc" id="L161">            }</span>
+            // Sort list by name
+<span class="nc" id="L163">            Collections.sort(items, new Comparator&lt;CertificateProfileItem&gt;() {</span>
+                @Override
+                public int compare(final CertificateProfileItem a, final CertificateProfileItem b) {
+<span class="nc bnc" id="L166" title="All 4 branches missed.">                    if(isCertProfileFixed(a.getId()) &amp;&amp; !isCertProfileFixed(b.getId())) {</span>
+<span class="nc" id="L167">                        return -1;</span>
+<span class="nc bnc" id="L168" title="All 4 branches missed.">                    } else if(!isCertProfileFixed(a.getId()) &amp;&amp; isCertProfileFixed(b.getId())) {</span>
+<span class="nc" id="L169">                        return 1;</span>
+                    } else {
+<span class="nc" id="L171">                    return a.getName().compareToIgnoreCase(b.getName());</span>
+                    }
+                }
+            });
+<span class="nc" id="L175">            certificateProfileItems = new ListDataModel&lt;&gt;(items);</span>
+        }
+<span class="nc" id="L177">        return certificateProfileItems;</span>
+    }
+
+    /** @param profileId ID
+     * @return true if the specified certificate profile id is fixed */
+    private boolean isCertProfileFixed(final int profileId) {
+<span class="nc bnc" id="L183" title="All 2 branches missed.">        if (profileId &lt;= CertificateProfileConstants.FIXED_CERTIFICATEPROFILE_BOUNDRY) {</span>
+<span class="nc" id="L184">            return true;</span>
+        } else {
+<span class="nc" id="L186">            return false;</span>
+        }
+    }
+
+    public boolean isAuthorizedToEdit() {
+<span class="nc" id="L191">        return isAuthorizedTo(StandardRules.CERTIFICATEPROFILEEDIT.resource());</span>
+    }
+
+    public boolean isAuthorizedToOnlyView() {
+<span class="nc bnc" id="L195" title="All 4 branches missed.">        return isAuthorizedTo(StandardRules.CERTIFICATEPROFILEVIEW.resource()) &amp;&amp; !isAuthorizedToEdit();</span>
+    }
+
+    public String actionEdit() {
+<span class="nc" id="L199">        selectCurrentRowData();</span>
+<span class="nc bnc" id="L200" title="All 2 branches missed.">        if (selectedProfileExists()) {</span>
+<span class="nc" id="L201">            viewOnly = false;</span>
+<span class="nc" id="L202">            return &quot;edit&quot;; // Outcome is defined in faces-config.xml</span>
+        } else {
+<span class="nc" id="L204">            return &quot;&quot;;</span>
+        }
+    }
+
+    public String actionView() {
+<span class="nc" id="L209">        selectCurrentRowData();</span>
+<span class="nc bnc" id="L210" title="All 2 branches missed.">        if (selectedProfileExists()) {</span>
+<span class="nc" id="L211">            viewOnly = true;</span>
+<span class="nc" id="L212">            return &quot;view&quot;; // Outcome is defined in faces-config.xml</span>
+        } else {
+<span class="nc" id="L214">            return &quot;&quot;;</span>
+        }
+    }
+    
+    public boolean getViewOnly() {
+<span class="nc" id="L219">        return viewOnly;</span>
+    }
+
+    private void selectCurrentRowData() {
+<span class="nc" id="L223">        final CertificateProfileItem certificateProfileItem = getCertificateProfiles().getRowData();</span>
+<span class="nc" id="L224">        selectedCertProfileId = certificateProfileItem.getId();</span>
+<span class="nc" id="L225">    }</span>
+
+    public boolean isOperationInProgress() {
+<span class="nc bnc" id="L228" title="All 6 branches missed.">        return isRenameInProgress() || isDeleteInProgress() || isAddFromTemplateInProgress();</span>
+    }
+
+    public void actionAdd() {
+<span class="nc" id="L232">        final String certProfileName = getCertProfileName();</span>
+<span class="nc bnc" id="L233" title="All 2 branches missed.">        if (certProfileName.endsWith(LEGACY_FIXED_MARKER)) {</span>
+<span class="nc" id="L234">            addErrorMessage(&quot;YOUCANTEDITFIXEDCERTPROFS&quot;);</span>
+<span class="nc bnc" id="L235" title="All 2 branches missed.">        } else if (certProfileName.length() &gt; 0) {</span>
+            try {
+<span class="nc" id="L237">                final CertificateProfile certificateProfile = new CertificateProfile(CertificateProfileConstants.CERTPROFILE_FIXED_ENDUSER);</span>
+<span class="nc" id="L238">                certificateProfile.setAvailableCAs(getEjbcaWebBean().getAuthorizedCAIds());</span>
+<span class="nc" id="L239">                getEjbcaWebBean().getEjb().getCertificateProfileSession().addCertificateProfile(getAdmin(), certProfileName, certificateProfile);</span>
+<span class="nc" id="L240">                setCertProfileName(&quot;&quot;);</span>
+<span class="nc" id="L241">            } catch (CertificateProfileExistsException e) {</span>
+<span class="nc" id="L242">                addErrorMessage(&quot;CERTIFICATEPROFILEALREADY&quot;);</span>
+<span class="nc" id="L243">            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L244">                addNonTranslatedErrorMessage(e.getMessage());</span>
+<span class="nc" id="L245">            }</span>
+        }
+<span class="nc" id="L247">        certificateProfileItems = null;</span>
+<span class="nc" id="L248">    }</span>
+
+    public boolean isAddFromTemplateInProgress() {
+<span class="nc" id="L251">        return addFromTemplateInProgress;</span>
+    }
+
+    public void actionAddFromTemplate() {
+<span class="nc" id="L255">        selectCurrentRowData();</span>
+<span class="nc bnc" id="L256" title="All 2 branches missed.">        if (selectedProfileExists()) {</span>
+<span class="nc" id="L257">            addFromTemplateInProgress = true;</span>
+        }
+<span class="nc" id="L259">    }</span>
+
+    public void actionAddFromTemplateConfirm() {
+<span class="nc" id="L262">        final String certProfileName = getCertProfileName();</span>
+<span class="nc bnc" id="L263" title="All 2 branches missed.">        if (certProfileName.endsWith(LEGACY_FIXED_MARKER)) {</span>
+<span class="nc" id="L264">            addErrorMessage(&quot;YOUCANTEDITFIXEDCERTPROFS&quot;);</span>
+<span class="nc bnc" id="L265" title="All 2 branches missed.">        } else if (certProfileName.length() &gt; 0) {</span>
+            try {
+                final List&lt;Integer&gt; authorizedCaIds;
+<span class="nc bnc" id="L268" title="All 4 branches missed.">                if (isCertProfileFixed(getSelectedCertProfileId()) &amp;&amp; !isAuthorizedTo(StandardRules.ROLE_ROOT.resource())) {</span>
+                    // Expand ANYCA to the current admin's list of authorized CA Ids
+<span class="nc" id="L270">                    authorizedCaIds = getEjbcaWebBean().getEjb().getCaSession().getAuthorizedCaIds(getAdmin());</span>
+                } else {
+                    // Use null as authorizedCaIds, so we will copy the profile exactly as the template(, including ANY CA for SuperAdmin)
+<span class="nc" id="L273">                    authorizedCaIds = null;</span>
+                }
+<span class="nc" id="L275">                getEjbcaWebBean().getEjb().getCertificateProfileSession()</span>
+<span class="nc" id="L276">                        .cloneCertificateProfile(getAdmin(), getSelectedCertProfileName(), certProfileName, authorizedCaIds);</span>
+<span class="nc" id="L277">                setCertProfileName(&quot;&quot;);</span>
+<span class="nc" id="L278">            } catch (CertificateProfileExistsException e) {</span>
+<span class="nc" id="L279">                addErrorMessage(&quot;CERTIFICATEPROFILEALREADY&quot;);</span>
+<span class="nc" id="L280">            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L281">                addNonTranslatedErrorMessage(e.getMessage());</span>
+<span class="nc" id="L282">            } catch (CertificateProfileDoesNotExistException e) {</span>
+                // NOPMD: ignore do nothing
+<span class="nc" id="L284">            }</span>
+            
+        }
+<span class="nc" id="L287">        actionCancel();</span>
+<span class="nc" id="L288">    }</span>
+
+    public boolean isDeleteInProgress() {
+<span class="nc" id="L291">        return deleteInProgress;</span>
+    }
+
+    public void actionDelete() {
+<span class="nc" id="L295">        selectCurrentRowData();</span>
+<span class="nc bnc" id="L296" title="All 2 branches missed.">        if (selectedProfileExists()) {</span>
+<span class="nc" id="L297">            deleteInProgress = true;</span>
+        }
+<span class="nc" id="L299">    }</span>
+
+    public void actionDeleteConfirm() {
+<span class="nc bnc" id="L302" title="All 2 branches missed.">        if (canDeleteCertProfile()) {</span>
+            try {
+<span class="nc" id="L304">                getEjbcaWebBean().getEjb().getCertificateProfileSession().removeCertificateProfile(getAdmin(), getSelectedCertProfileName());</span>
+<span class="nc" id="L305">                getEjbcaWebBean().getEjb().getCertificateProfileSession().flushProfileCache();</span>
+<span class="nc" id="L306">            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L307">                addNonTranslatedErrorMessage(&quot;Not authorized to remove certificate profile.&quot;);</span>
+<span class="nc" id="L308">            }</span>
+        } else {
+<span class="nc" id="L310">            addErrorMessage(&quot;COULDNTDELETECERTPROF&quot;);</span>
+        }
+<span class="nc" id="L312">        actionCancel();</span>
+<span class="nc" id="L313">    }</span>
+
+    public boolean isRenameInProgress() {
+<span class="nc" id="L316">        return renameInProgress;</span>
+    }
+
+    public void actionRename() {
+<span class="nc" id="L320">        selectCurrentRowData();</span>
+<span class="nc bnc" id="L321" title="All 2 branches missed.">        if (selectedProfileExists()) {</span>
+<span class="nc" id="L322">            renameInProgress = true;</span>
+        }
+<span class="nc" id="L324">    }</span>
+
+    public void actionRenameConfirm() {
+<span class="nc" id="L327">        final String certProfileName = getCertProfileName();</span>
+<span class="nc bnc" id="L328" title="All 2 branches missed.">        if (certProfileName.endsWith(LEGACY_FIXED_MARKER)) {</span>
+<span class="nc" id="L329">            addErrorMessage(&quot;YOUCANTEDITFIXEDCERTPROFS&quot;);</span>
+<span class="nc bnc" id="L330" title="All 2 branches missed.">        } else if (certProfileName.length() &gt; 0) {</span>
+            try {
+<span class="nc" id="L332">                getEjbcaWebBean().getEjb().getCertificateProfileSession()</span>
+<span class="nc" id="L333">                        .renameCertificateProfile(getAdmin(), getSelectedCertProfileName(), certProfileName);</span>
+<span class="nc" id="L334">                setCertProfileName(&quot;&quot;);</span>
+<span class="nc" id="L335">            } catch (CertificateProfileExistsException e) {</span>
+<span class="nc" id="L336">                addErrorMessage(&quot;CERTIFICATEPROFILEALREADY&quot;);</span>
+<span class="nc" id="L337">            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L338">                addNonTranslatedErrorMessage(&quot;Not authorized to rename certificate profile.&quot;);</span>
+<span class="nc" id="L339">            }</span>
+        }
+<span class="nc" id="L341">        actionCancel();</span>
+<span class="nc" id="L342">    }</span>
+
+    public void actionCancel() {
+<span class="nc" id="L345">        addFromTemplateInProgress = false;</span>
+<span class="nc" id="L346">        deleteInProgress = false;</span>
+<span class="nc" id="L347">        renameInProgress = false;</span>
+<span class="nc" id="L348">        certificateProfileItems = null;</span>
+<span class="nc" id="L349">        selectedCertProfileId = null;</span>
+<span class="nc" id="L350">        certProfileName = null;</span>
+<span class="nc" id="L351">    }</span>
+    
+    /** @return true if there exists a certificate profile with the selected id */
+    private boolean selectedProfileExists() {
+<span class="nc bnc" id="L355" title="All 2 branches missed.">        return getEjbcaWebBean().getEjb().getCertificateProfileSession().getCertificateProfile(selectedCertProfileId) != null;</span>
+    }
+
+    private boolean canDeleteCertProfile() {
+<span class="nc" id="L359">        boolean ret = true;</span>
+<span class="nc" id="L360">        final int certificateProfileId = getSelectedCertProfileId().intValue();</span>
+<span class="nc" id="L361">        final CertificateProfile certProfile = getEjbcaWebBean().getEjb().getCertificateProfileSession().getCertificateProfile(certificateProfileId);</span>
+<span class="nc" id="L362">        final int certProfileType = certProfile.getType();</span>
+        // Count number of EEs that reference this CP
+<span class="nc bnc" id="L364" title="All 2 branches missed.">        if (certProfileType == CertificateConstants.CERTTYPE_ENDENTITY) {</span>
+<span class="nc" id="L365">            final long numberOfEndEntitiesReferencingCP = getEjbcaWebBean().getEjb().getEndEntityAccessSession().countByCertificateProfileId(certificateProfileId);</span>
+<span class="nc bnc" id="L366" title="All 2 branches missed.">            if (numberOfEndEntitiesReferencingCP &gt; 1000) {</span>
+<span class="nc" id="L367">                ret = false;</span>
+<span class="nc" id="L368">                addErrorMessage(&quot;CERTPROFILEUSEDINENDENTITIES&quot;);</span>
+<span class="nc" id="L369">                addErrorMessage(&quot;CERTPROFILEUSEDINENDENTITIESEXCESSIVE&quot;);</span>
+<span class="nc bnc" id="L370" title="All 2 branches missed.">            } else if (numberOfEndEntitiesReferencingCP &gt; 0) {</span>
+<span class="nc" id="L371">                ret = false;</span>
+<span class="nc" id="L372">                addErrorMessage(&quot;CERTPROFILEUSEDINENDENTITIES&quot;);</span>
+<span class="nc" id="L373">                final List&lt;String&gt; eeNames = getEjbcaWebBean().getEjb().getEndEntityAccessSession()</span>
+<span class="nc" id="L374">                        .findByCertificateProfileId(certificateProfileId);</span>
+<span class="nc" id="L375">                addNonTranslatedErrorMessage(getEjbcaWebBean().getText(&quot;DISPLAYINGFIRSTTENRESULTS&quot;) + numberOfEndEntitiesReferencingCP + &quot; &quot;</span>
+<span class="nc" id="L376">                        + getAsCommaSeparatedString(eeNames));</span>
+            }
+        }
+        // Check if certificate profile is in use by any service
+<span class="nc" id="L380">        final List&lt;String&gt; servicesReferencingCP = getEjbcaWebBean().getEjb().getServiceSession()</span>
+<span class="nc" id="L381">                .getServicesUsingCertificateProfile(certificateProfileId);</span>
+<span class="nc bnc" id="L382" title="All 2 branches missed.">        if (!servicesReferencingCP.isEmpty()) {</span>
+<span class="nc" id="L383">            ret = false;</span>
+<span class="nc" id="L384">            addNonTranslatedErrorMessage(getEjbcaWebBean().getText(&quot;CERTPROFILEUSEDINSERVICES&quot;) + &quot; &quot;</span>
+<span class="nc" id="L385">                    + getAsCommaSeparatedString(servicesReferencingCP));</span>
+        }
+        // Check if certificate profile is in use by any end entity profile
+<span class="nc bnc" id="L388" title="All 4 branches missed.">        if (certProfileType == CertificateConstants.CERTTYPE_ENDENTITY || certProfileType == CertificateConstants.CERTTYPE_SUBCA) {</span>
+<span class="nc" id="L389">            final List&lt;String&gt; endEntityProfilesReferencingCP = getEjbcaWebBean().getEjb().getEndEntityProfileSession()</span>
+<span class="nc" id="L390">                    .getEndEntityProfilesUsingCertificateProfile(certificateProfileId);</span>
+<span class="nc bnc" id="L391" title="All 2 branches missed.">            if (!endEntityProfilesReferencingCP.isEmpty()) {</span>
+<span class="nc" id="L392">                ret = false;</span>
+<span class="nc" id="L393">                addNonTranslatedErrorMessage(getEjbcaWebBean().getText(&quot;CERTPROFILEUSEDINENDENTITYPROFILES&quot;) + &quot; &quot;</span>
+<span class="nc" id="L394">                        + getAsCommaSeparatedString(endEntityProfilesReferencingCP));</span>
+            }
+        }
+        // Check if certificate profile is in use by any hard token profile
+<span class="nc bnc" id="L398" title="All 2 branches missed.">        if (certProfileType == CertificateConstants.CERTTYPE_ENDENTITY) {</span>
+<span class="nc" id="L399">            final List&lt;String&gt; hardTokenProfilesReferencingCP = getEjbcaWebBean().getEjb().getHardTokenSession()</span>
+<span class="nc" id="L400">                    .getHardTokenProfileUsingCertificateProfile(certificateProfileId);</span>
+<span class="nc bnc" id="L401" title="All 2 branches missed.">            if (!hardTokenProfilesReferencingCP.isEmpty()) {</span>
+<span class="nc" id="L402">                ret = false;</span>
+<span class="nc" id="L403">                addNonTranslatedErrorMessage(getEjbcaWebBean().getText(&quot;CERTPROFILEUSEDINHARDTOKENPROFILES&quot;) + &quot; &quot;</span>
+<span class="nc" id="L404">                        + getAsCommaSeparatedString(hardTokenProfilesReferencingCP));</span>
+            }
+        }
+<span class="nc bnc" id="L407" title="All 2 branches missed.">        if (certProfileType != CertificateConstants.CERTTYPE_ENDENTITY) {</span>
+            // Check if certificate profile is in use by any CA
+<span class="nc" id="L409">            final List&lt;String&gt; casReferencingCP = getEjbcaWebBean().getEjb().getCaAdminSession().getCAsUsingCertificateProfile(certificateProfileId);</span>
+<span class="nc bnc" id="L410" title="All 2 branches missed.">            if (!casReferencingCP.isEmpty()) {</span>
+<span class="nc" id="L411">                ret = false;</span>
+<span class="nc" id="L412">                addNonTranslatedErrorMessage(getEjbcaWebBean().getText(&quot;CERTPROFILEUSEDINCAS&quot;) + &quot; &quot; + getAsCommaSeparatedString(casReferencingCP));</span>
+            }
+        }
+<span class="nc" id="L415">        return ret;</span>
+    }
+
+    private String getAsCommaSeparatedString(final List&lt;String&gt; list) {
+<span class="nc" id="L419">        final StringBuilder sb = new StringBuilder();</span>
+<span class="nc bnc" id="L420" title="All 2 branches missed.">        for (final String entry : list) {</span>
+<span class="nc bnc" id="L421" title="All 2 branches missed.">            if (sb.length() &gt; 0) {</span>
+<span class="nc" id="L422">                sb.append(&quot;, &quot;);</span>
+            }
+<span class="nc" id="L424">            sb.append(entry);</span>
+<span class="nc" id="L425">        }</span>
+<span class="nc" id="L426">        return sb.toString();</span>
+    }
+
+    public String getCertProfileName() {
+<span class="nc" id="L430">        return certProfileName;</span>
+    }
+
+    public void setCertProfileName(String certProfileName) {
+<span class="nc" id="L434">        certProfileName = certProfileName.trim();</span>
+<span class="nc bnc" id="L435" title="All 2 branches missed.">        if (StringTools.checkFieldForLegalChars(certProfileName)) {</span>
+<span class="nc" id="L436">            addErrorMessage(&quot;ONLYCHARACTERS&quot;);</span>
+        } else {
+<span class="nc" id="L438">            this.certProfileName = certProfileName;</span>
+        }
+<span class="nc" id="L440">    }</span>
+
+    //----------------------------------------------
+    //                Import profiles
+    //----------------------------------------------
+    private UploadedFile uploadFile;
+
+    public UploadedFile getUploadFile() {
+<span class="nc" id="L448">        return uploadFile;</span>
+    }
+
+    public void setUploadFile(UploadedFile uploadFile) {
+<span class="nc" id="L452">        this.uploadFile = uploadFile;</span>
+<span class="nc" id="L453">    }</span>
+
+    public void actionImportProfiles() {
+
+<span class="nc bnc" id="L457" title="All 2 branches missed.">        if (uploadFile == null) {</span>
+<span class="nc" id="L458">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, &quot;File upload failed.&quot;, null));</span>
+<span class="nc" id="L459">            return;</span>
+        }
+        try {
+<span class="nc" id="L462">            importProfilesFromZip(getUploadFile().getBytes());</span>
+<span class="nc" id="L463">            certificateProfileItems = null;</span>
+<span class="nc" id="L464">        } catch (IOException e) {</span>
+<span class="nc" id="L465">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));</span>
+<span class="nc" id="L466">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L467">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));</span>
+<span class="nc" id="L468">        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L469">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));</span>
+<span class="nc" id="L470">        } catch (CertificateProfileExistsException e) {</span>
+<span class="nc" id="L471">            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));</span>
+<span class="nc" id="L472">        }</span>
+
+<span class="nc" id="L474">    }</span>
+
+    public void importProfilesFromZip(byte[] filebuffer) throws CertificateProfileExistsException, AuthorizationDeniedException,
+            NumberFormatException, IOException {
+
+<span class="nc bnc" id="L479" title="All 2 branches missed.">        if (filebuffer.length == 0) {</span>
+<span class="nc" id="L480">            throw new IllegalArgumentException(&quot;No input file&quot;);</span>
+        }
+
+<span class="nc" id="L483">        String importedFiles = &quot;&quot;;</span>
+<span class="nc" id="L484">        String ignoredFiles = &quot;&quot;;</span>
+<span class="nc" id="L485">        int nrOfFiles = 0;</span>
+
+<span class="nc" id="L487">        ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(filebuffer));</span>
+<span class="nc" id="L488">        ZipEntry ze = zis.getNextEntry();</span>
+<span class="nc bnc" id="L489" title="All 2 branches missed.">        if (ze == null) {</span>
+            // Print import message if the file header corresponds to an empty zip archive
+<span class="nc bnc" id="L491" title="All 2 branches missed.">            if (Arrays.equals(Arrays.copyOfRange(filebuffer, 0, 4), new byte[] { 80, 75, 5, 6 })) {</span>
+<span class="nc" id="L492">                printImportMessage(nrOfFiles, importedFiles, ignoredFiles);</span>
+            } else {
+<span class="nc" id="L494">                String msg = uploadFile.getName() + &quot; is not a zip file.&quot;;</span>
+<span class="nc" id="L495">                log.info(msg);</span>
+<span class="nc" id="L496">                FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, msg, null));</span>
+            }
+<span class="nc" id="L498">            return;</span>
+        }
+
+        do {
+<span class="nc" id="L502">            nrOfFiles++;</span>
+<span class="nc" id="L503">            String filename = ze.getName();</span>
+<span class="nc bnc" id="L504" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L505">                log.debug(&quot;Importing file: &quot; + filename);</span>
+            }
+
+<span class="nc bnc" id="L508" title="All 2 branches missed.">            if (ignoreFile(filename)) {</span>
+<span class="nc" id="L509">                ignoredFiles += filename + &quot;, &quot;;</span>
+<span class="nc" id="L510">                continue;</span>
+            }
+
+            try {
+<span class="nc" id="L514">                filename = URLDecoder.decode(filename, &quot;UTF-8&quot;);</span>
+<span class="nc" id="L515">            } catch (UnsupportedEncodingException e) {</span>
+<span class="nc" id="L516">                throw new IllegalStateException(&quot;UTF-8 was not a known character encoding&quot;, e);</span>
+<span class="nc" id="L517">            }</span>
+<span class="nc" id="L518">            int index1 = filename.indexOf(&quot;_&quot;);</span>
+<span class="nc" id="L519">            int index2 = filename.lastIndexOf(&quot;-&quot;);</span>
+<span class="nc" id="L520">            int index3 = filename.lastIndexOf(&quot;.xml&quot;);</span>
+<span class="nc" id="L521">            String profilename = filename.substring(index1 + 1, index2);</span>
+<span class="nc" id="L522">            int profileid = 0;</span>
+            try {
+<span class="nc" id="L524">                profileid = Integer.parseInt(filename.substring(index2 + 1, index3));</span>
+<span class="nc" id="L525">            } catch (NumberFormatException e) {</span>
+<span class="nc bnc" id="L526" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L527">                    log.debug(&quot;NumberFormatException parsing certificate profile id: &quot; + e.getMessage());</span>
+                }
+<span class="nc" id="L529">                ignoredFiles += filename + &quot;, &quot;;</span>
+<span class="nc" id="L530">                continue;</span>
+<span class="nc" id="L531">            }</span>
+<span class="nc bnc" id="L532" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L533">                log.debug(&quot;Extracted profile name '&quot; + profilename + &quot;' and profile ID '&quot; + profileid + &quot;'&quot;);</span>
+            }
+
+<span class="nc bnc" id="L536" title="All 2 branches missed.">            if (ignoreProfile(filename, profilename, profileid)) {</span>
+<span class="nc" id="L537">                ignoredFiles += filename + &quot;, &quot;;</span>
+<span class="nc" id="L538">                continue;</span>
+            }
+
+<span class="nc bnc" id="L541" title="All 2 branches missed.">            if (getEjbcaWebBean().getEjb().getCertificateProfileSession().getCertificateProfile(profileid) != null) {</span>
+<span class="nc" id="L542">                log.warn(&quot;Certificate profile id '&quot; + profileid + &quot;' already exist in database. Adding with a new profile id instead.&quot;);</span>
+<span class="nc" id="L543">                profileid = -1; // means we should create a new id when adding the cert profile</span>
+            }
+
+<span class="nc" id="L546">            byte[] filebytes = new byte[102400];</span>
+<span class="nc" id="L547">            int i = 0;</span>
+<span class="nc bnc" id="L548" title="All 4 branches missed.">            while ((zis.available() == 1) &amp;&amp; (i &lt; filebytes.length)) {</span>
+<span class="nc" id="L549">                filebytes[i++] = (byte) zis.read();</span>
+            }
+
+<span class="nc" id="L552">            final CertificateProfile certificateProfile = getCertProfileFromByteArray(profilename, filebytes);</span>
+<span class="nc bnc" id="L553" title="All 2 branches missed.">            if (certificateProfile == null) {</span>
+<span class="nc" id="L554">                String msg = &quot;Faulty XML file '&quot; + filename + &quot;'. Failed to read Certificate Profile.&quot;;</span>
+<span class="nc" id="L555">                log.info(msg + &quot; Ignoring file.&quot;);</span>
+<span class="nc" id="L556">                FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, msg, null));</span>
+<span class="nc" id="L557">                continue;</span>
+            }
+            
+<span class="nc bnc" id="L560" title="All 2 branches missed.">            if (profileid == -1) {</span>
+<span class="nc" id="L561">                getEjbcaWebBean().getEjb().getCertificateProfileSession().addCertificateProfile(getAdmin(), profilename, certificateProfile);</span>
+            } else {
+<span class="nc" id="L563">                getEjbcaWebBean().getEjb().getCertificateProfileSession().addCertificateProfile(getAdmin(), profileid, profilename, certificateProfile);                </span>
+            }
+<span class="nc" id="L565">            importedFiles += filename + &quot;, &quot;;</span>
+<span class="nc" id="L566">            log.info(&quot;Added Certificate profile: &quot; + profilename);</span>
+<span class="nc bnc" id="L567" title="All 2 branches missed.">        } while ((ze = zis.getNextEntry()) != null);</span>
+<span class="nc" id="L568">        zis.closeEntry();</span>
+<span class="nc" id="L569">        zis.close();</span>
+        
+<span class="nc" id="L571">        printImportMessage(nrOfFiles, importedFiles, ignoredFiles);</span>
+<span class="nc" id="L572">    }</span>
+
+    /**
+     * Logs and creates FacesMessage with information about number of files, imported files
+     * and ignored files when importing Certificate Profiles.
+     * 
+     * @param nrOfFiles the number of files the uploaded archive contained
+     * @param importedFiles the files in the archive that were imported
+     * @param ignoredFiles the files in the archive that were ignored
+     */
+    private void printImportMessage(int nrOfFiles, String importedFiles, String ignoredFiles) {
+<span class="nc" id="L583">        String msg = uploadFile.getName() + &quot; contained &quot; + nrOfFiles + &quot; files. &quot;;</span>
+<span class="nc" id="L584">        log.info(msg);</span>
+<span class="nc" id="L585">        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, msg, null));</span>
+
+<span class="nc bnc" id="L587" title="All 2 branches missed.">        if (StringUtils.isNotEmpty(importedFiles)) {</span>
+<span class="nc" id="L588">            importedFiles = importedFiles.substring(0, importedFiles.length() - 2);</span>
+        }
+<span class="nc" id="L590">        msg = &quot;Imported Certificate Profiles from files: &quot; + importedFiles;</span>
+<span class="nc bnc" id="L591" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L592">            log.debug(msg);</span>
+        }
+<span class="nc" id="L594">        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, msg, null));</span>
+
+<span class="nc bnc" id="L596" title="All 2 branches missed.">        if (StringUtils.isNotEmpty(ignoredFiles)) {</span>
+<span class="nc" id="L597">            ignoredFiles = ignoredFiles.substring(0, ignoredFiles.length() - 2);</span>
+        }
+<span class="nc" id="L599">        msg = &quot;Ignored files: &quot; + ignoredFiles;</span>
+<span class="nc bnc" id="L600" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L601">            log.debug(msg);</span>
+        }
+<span class="nc" id="L603">        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, msg, null));</span>
+<span class="nc" id="L604">    }</span>
+
+    private CertificateProfile getCertProfileFromByteArray(String profilename, byte[] profileBytes) {
+<span class="nc" id="L607">        ByteArrayInputStream is = new ByteArrayInputStream(profileBytes);</span>
+<span class="nc" id="L608">        CertificateProfile cprofile = new CertificateProfile();</span>
+        try {
+<span class="nc" id="L610">            final SecureXMLDecoder decoder = new SecureXMLDecoder(is);</span>
+            // Add certificate profile
+<span class="nc" id="L612">            Object data = null;</span>
+            try {
+<span class="nc" id="L614">                data = decoder.readObject();</span>
+<span class="nc" id="L615">            } catch (IOException e) {</span>
+<span class="nc" id="L616">                log.info(&quot;Error parsing certificate profile data: &quot; + e.getMessage());</span>
+<span class="nc bnc" id="L617" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L618">                    log.debug(&quot;Full stack trace: &quot;, e);</span>
+                }
+<span class="nc" id="L620">                return null;</span>
+            } finally {
+<span class="nc" id="L622">                decoder.close();</span>
+            }
+<span class="nc" id="L624">            cprofile.loadData(data);</span>
+
+            // Make sure CAs in profile exist
+<span class="nc" id="L627">            List&lt;Integer&gt; cas = cprofile.getAvailableCAs();</span>
+<span class="nc" id="L628">            ArrayList&lt;Integer&gt; casToRemove = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L629" title="All 2 branches missed.">            for (Integer currentCA : cas) {</span>
+                // If the CA is not ANYCA and the CA does not exist, remove it from the profile before import
+<span class="nc bnc" id="L631" title="All 2 branches missed.">                if (currentCA != CertificateProfile.ANYCA) {</span>
+<span class="nc bnc" id="L632" title="All 2 branches missed.">                    if(!getEjbcaWebBean().getEjb().getCaSession().existsCa(currentCA)) {</span>
+<span class="nc" id="L633">                        casToRemove.add(currentCA);</span>
+                    }
+                }
+<span class="nc" id="L636">            }</span>
+<span class="nc bnc" id="L637" title="All 2 branches missed.">            for (Integer toRemove : casToRemove) {</span>
+<span class="nc" id="L638">                log.warn(&quot;Warning: CA with id &quot; + toRemove + &quot; was not found and will not be used in certificate profile '&quot; + profilename + &quot;'.&quot;);</span>
+<span class="nc" id="L639">                cas.remove(toRemove);</span>
+<span class="nc" id="L640">            }</span>
+<span class="nc bnc" id="L641" title="All 2 branches missed.">            if (cas.size() == 0) {</span>
+<span class="nc" id="L642">                log.warn(&quot;Error: No CAs left in certificate profile '&quot; + profilename + &quot;' and no CA specified on command line. Using ANYCA.&quot;);</span>
+<span class="nc" id="L643">                cas.add(Integer.valueOf(CertificateProfile.ANYCA));</span>
+
+            }
+<span class="nc" id="L646">            cprofile.setAvailableCAs(cas);</span>
+            // Remove and warn about unknown publishers
+<span class="nc" id="L648">            List&lt;Integer&gt; publishers = cprofile.getPublisherList();</span>
+<span class="nc" id="L649">            ArrayList&lt;Integer&gt; allToRemove = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L650" title="All 2 branches missed.">            for (Integer publisher : publishers) {</span>
+<span class="nc" id="L651">                BasePublisher pub = null;</span>
+                try {
+<span class="nc" id="L653">                    pub = getEjbcaWebBean().getEjb().getPublisherSession().getPublisher(publisher);</span>
+<span class="nc" id="L654">                } catch (Exception e) {</span>
+<span class="nc" id="L655">                    log.warn(&quot;Warning: There was an error loading publisher with id &quot; + publisher + &quot;. Use debug logging to see stack trace: &quot;</span>
+<span class="nc" id="L656">                            + e.getMessage());</span>
+<span class="nc bnc" id="L657" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L658">                        log.debug(&quot;Full stack trace: &quot;, e);</span>
+                    }
+<span class="nc" id="L660">                }</span>
+<span class="nc bnc" id="L661" title="All 2 branches missed.">                if (pub == null) {</span>
+<span class="nc" id="L662">                    allToRemove.add(publisher);</span>
+                }
+<span class="nc" id="L664">            }</span>
+<span class="nc bnc" id="L665" title="All 2 branches missed.">            for (Integer toRemove : allToRemove) {</span>
+<span class="nc" id="L666">                log.warn(&quot;Warning: Publisher with id &quot; + toRemove + &quot; was not found and will not be used in certificate profile '&quot; + profilename</span>
+                        + &quot;'.&quot;);
+<span class="nc" id="L668">                publishers.remove(toRemove);</span>
+<span class="nc" id="L669">            }</span>
+<span class="nc" id="L670">            cprofile.setPublisherList(publishers);</span>
+
+        } finally {
+            try {
+<span class="nc" id="L674">                is.close();</span>
+<span class="nc" id="L675">            } catch (IOException e) {</span>
+<span class="nc" id="L676">                throw new IllegalStateException(&quot;Unknown IOException was caught when closing stream&quot;, e);</span>
+<span class="nc" id="L677">            }</span>
+        }
+<span class="nc" id="L679">        return cprofile;</span>
+    }
+
+    /** @param filename Filename
+     * @return trueif the file shall be ignored from a Certificate Profile import, false if it should be imported */
+    private boolean ignoreFile(String filename) {
+<span class="nc bnc" id="L685" title="All 2 branches missed.">        if (filename.lastIndexOf(&quot;.xml&quot;) != (filename.length() - 4)) {</span>
+<span class="nc" id="L686">            log.info(filename + &quot; is not an XML file. IGNORED&quot;);</span>
+<span class="nc" id="L687">            return true;</span>
+        }
+
+<span class="nc bnc" id="L690" title="All 6 branches missed.">        if (filename.indexOf(&quot;_&quot;) &lt; 0 || filename.lastIndexOf(&quot;-&quot;) &lt; 0 || (filename.indexOf(&quot;certprofile_&quot;) &lt; 0)) {</span>
+<span class="nc" id="L691">            log.info(filename + &quot; is not in the expected format. &quot;</span>
+                    + &quot;The file name should look like: certprofile_&lt;profile name&gt;-&lt;profile id&gt;.xml. IGNORED&quot;);
+<span class="nc" id="L693">            return true;</span>
+        }
+<span class="nc" id="L695">        return false;</span>
+    }
+
+    /** @param filename Filename
+     * @param profilename Profile name
+     * @param profileid Profile ID
+     * @return true if the profile should be ignored from a Certificate Profile import because it already exists, false if it should be imported */
+    private boolean ignoreProfile(String filename, String profilename, int profileid) {
+        // We don't add the fixed profiles, EJBCA handles those automagically
+<span class="nc bnc" id="L704" title="All 2 branches missed.">        if (CertificateProfileConstants.isFixedCertificateProfile(profileid)) {</span>
+<span class="nc" id="L705">            log.info(filename + &quot; contains a fixed profile. IGNORED&quot;);</span>
+<span class="nc" id="L706">            return true;</span>
+        }
+        // Check if the profiles already exist
+<span class="nc bnc" id="L709" title="All 2 branches missed.">        if (getEjbcaWebBean().getEjb().getCertificateProfileSession().getCertificateProfileId(profilename) != CertificateProfileConstants.CERTPROFILE_NO_PROFILE) {</span>
+<span class="nc" id="L710">            log.info(&quot;Certificate profile '&quot; + profilename + &quot;' already exist in database. IGNORED&quot;);</span>
+<span class="nc" id="L711">            return true;</span>
+        }
+<span class="nc" id="L713">        return false;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

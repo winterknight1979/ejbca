@@ -10,7 +10,7 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
+
 package org.cesecore.configuration;
 
 import java.io.ByteArrayInputStream;
@@ -27,14 +27,12 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Properties;
-
 import javax.persistence.Entity;
 import javax.persistence.PostLoad;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 import javax.persistence.Transient;
-
 import org.apache.log4j.Logger;
 import org.cesecore.certificates.certificate.certextensions.BasicCertificateExtension;
 import org.cesecore.certificates.certificate.certextensions.CertificateExtension;
@@ -50,179 +48,248 @@ import org.cesecore.util.CertTools;
 import org.cesecore.util.LookAheadObjectInputStream;
 
 /**
- * Entity Bean for database persisted configurations
- * 
- * @version $Id: GlobalConfigurationData.java 34415 2020-01-30 12:29:30Z aminkh $
+ * Entity Bean for database persisted configurations.
+ *
+ * @version $Id: GlobalConfigurationData.java 34415 2020-01-30 12:29:30Z aminkh
+ *     $
  */
 @Entity
-@Table(name=&quot;GlobalConfigurationData&quot;)
-public class GlobalConfigurationData extends ProtectedData implements Serializable {
+@Table(name = &quot;GlobalConfigurationData&quot;)
+public class GlobalConfigurationData extends ProtectedData
+    implements Serializable {
 
-	private static final long serialVersionUID = 1L;
-<span class="fc" id="L62">	private static final Logger log = Logger.getLogger(GlobalConfigurationData.class);</span>
-<span class="fc" id="L63">	private static final HashSet&lt;Class&lt;? extends Serializable&gt;&gt; ACCEPTED_SERIALIZATION_CLASSES_SET = new HashSet&lt;&gt;(Arrays.asList(</span>
-	        ArrayList.class,
-	        Base64GetHashMap.class,
-	        BasicCertificateExtension.class, 
-	        CertificateExtension.class,
-	        CTLogInfo.class,
-	        Enum.class,
-	        GoogleCtPolicy.class,
-	        HashMap.class,
-	        HashSet.class,
-	        Hashtable.class,
-	        LinkedHashMap.class,
-	        LinkedHashSet.class,
-	        OcspKeyBinding.ResponderIdType.class, 
-	        Properties.class, 
-	        RaCssInfo.class, 
-	        RaStyleInfo.class));
-	
-	/** Unique ID defined by respective configuration object
-	 */
-	private String configurationId;
-	private byte[] data;
-<span class="pc" id="L85">	private int rowVersion = 0;</span>
-	private String rowProtection;
+  private static final long serialVersionUID = 1L;
+  /** Logger. */
+<span class="fc" id="L63">  private static final Logger LOG =</span>
+<span class="fc" id="L64">      Logger.getLogger(GlobalConfigurationData.class);</span>
+  /**Accepted classes. */
+  private static final HashSet&lt;Class&lt;? extends Serializable&gt;&gt;
+<span class="fc" id="L67">      ACCEPTED_SERIALIZATION_CLASSES_SET =</span>
+          new HashSet&lt;&gt;(
+<span class="fc" id="L69">              Arrays.asList(</span>
+                  ArrayList.class,
+                  Base64GetHashMap.class,
+                  BasicCertificateExtension.class,
+                  CertificateExtension.class,
+                  CTLogInfo.class,
+                  Enum.class,
+                  GoogleCtPolicy.class,
+                  HashMap.class,
+                  HashSet.class,
+                  Hashtable.class,
+                  LinkedHashMap.class,
+                  LinkedHashSet.class,
+                  OcspKeyBinding.ResponderIdType.class,
+                  Properties.class,
+                  RaCssInfo.class,
+                  RaStyleInfo.class));
 
-	/**
-	 * Entity holding data of admin's configuration.
-	 * Create by sending in the id and string representation of global configuration
-	 * @param configurationId the unique id of global configuration.
-	 * @param configuration is the serialized string representation of the global configuration.
-	 */
-<span class="nc" id="L94">	public GlobalConfigurationData(String configurationId, ConfigurationBase configuration) {</span>
-<span class="nc" id="L95">		setConfigurationId(configurationId);</span>
-<span class="nc" id="L96">		setConfiguration(configuration);</span>
-<span class="nc bnc" id="L97" title="All 2 branches missed.">		if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L98">		    log.debug(&quot;Created configuration &quot;+configurationId);</span>
-		}
-<span class="nc" id="L100">	}</span>
-	
-<span class="fc" id="L102">	public GlobalConfigurationData() { }</span>
-	
-	//@Id @Column
-<span class="fc" id="L105">	public String getConfigurationId() { return configurationId; }</span>
-<span class="fc" id="L106">	public void setConfigurationId(String configurationId) { this.configurationId = configurationId; }</span>
+  /** Unique ID defined by respective configuration object. */
+  private String configurationId;
 
-	//@Column @Lob
-	// Gets the data on raw bytes from the database
-<span class="fc" id="L110">	public byte[] getDataUnsafe() { return data; }</span>
-	/** DO NOT USE! Stick with setData(HashMap data) instead. 
-	 * @param data data*/
-<span class="fc" id="L113">	public void setDataUnsafe(byte[] data) { this.data = data; }</span>
+  /** Param. */
+  private byte[] data;
+  /** Param. */
+<span class="pc" id="L93">  private int rowVersion = 0;</span>
+  /** Param. */
+  private String rowProtection;
 
-	/** Gets the serialized object that was stored, as a byte array, in the database.
-	 * Deserializes the byte array from the database.
-	 * @return Object, typically a LinkedHashMap
-	 */
-	@Transient
-	public Serializable getObjectUnsafe() {
-<span class="nc" id="L121">	    try (final LookAheadObjectInputStream laois = new LookAheadObjectInputStream(new ByteArrayInputStream(getDataUnsafe()));) {</span>
-<span class="nc" id="L122">            laois.setEnabledMaxObjects(false);</span>
-<span class="nc" id="L123">            laois.setAcceptedClasses(ACCEPTED_SERIALIZATION_CLASSES_SET);</span>
-<span class="nc" id="L124">            laois.setEnabledSubclassing(true, &quot;org.cesecore&quot;);</span>
-<span class="nc" id="L125">            return (Serializable) laois.readObject();</span>
-<span class="nc" id="L126">        } catch (IOException e) {</span>
-<span class="nc" id="L127">            log.error(&quot;Failed to load Global Configuration as byte[].&quot;, e);</span>
-<span class="nc" id="L128">        } catch (ClassNotFoundException e) {</span>
-<span class="nc" id="L129">            throw new IllegalStateException(e);</span>
-<span class="nc" id="L130">        }</span>
-<span class="nc" id="L131">        return null;</span>
-	}
-	
-	public void setObjectUnsafe(Serializable data) {
-<span class="fc" id="L135">        try (final ByteArrayOutputStream baos = new ByteArrayOutputStream();</span>
-<span class="fc" id="L136">                final ObjectOutputStream oos = new ObjectOutputStream(baos);) {</span>
-<span class="fc" id="L137">            oos.writeObject(data);</span>
-<span class="fc" id="L138">            setDataUnsafe(baos.toByteArray());</span>
-<span class="nc" id="L139">        } catch (IOException e) {</span>
-<span class="nc" id="L140">            log.warn(&quot;Failed to save Global Configuration as byte[].&quot;, e);</span>
-<span class="fc" id="L141">        }</span>
-<span class="fc" id="L142">	}</span>
-
-
-	//@Version @Column
-<span class="fc" id="L146">	public int getRowVersion() { return rowVersion; }</span>
-<span class="fc" id="L147">	public void setRowVersion(int rowVersion) { this.rowVersion = rowVersion; }</span>
-
-	//@Column @Lob
-	@Override
-<span class="fc" id="L151">	public String getRowProtection() { return rowProtection; }</span>
-	@Override
-<span class="fc" id="L153">	public void setRowProtection(String rowProtection) { this.rowProtection = rowProtection; }</span>
-
-	@SuppressWarnings(&quot;rawtypes&quot;)
-    @Transient
-	public HashMap getData() {
-<span class="nc" id="L158">        final Serializable map = getObjectUnsafe();</span>
-<span class="nc bnc" id="L159" title="All 2 branches missed.">        if (map instanceof LinkedHashMap&lt;?, ?&gt;) {</span>
-<span class="nc" id="L160">            return (LinkedHashMap&lt;?, ?&gt;) map;</span>
-        } else {
-<span class="nc" id="L162">            return new LinkedHashMap&lt;&gt;((Map&lt;?, ?&gt;) map);</span>
-        }
-	}
-	
-	@SuppressWarnings(&quot;rawtypes&quot;)
-<span class="nc" id="L167">    private void setData(HashMap data) { setObjectUnsafe(data); }</span>
-
-	/** 
-	 * Method that saves the global configuration to database.
-	 * @param configuration config
-	 */
-	@SuppressWarnings(&quot;rawtypes&quot;)
-    public void setConfiguration(ConfigurationBase configuration){
-<span class="nc" id="L175">		setData((HashMap) configuration.saveData());   </span>
-<span class="nc" id="L176">	}</span>
-
-    //
-    // Start Database integrity protection methods
-    //
-
-    @Transient
-    @Override
-    protected String getProtectString(final int version) {
-        // rowVersion is automatically updated by JPA, so it's not important, it is only used for optimistic locking so we will not include that in the database protection
-<span class="nc" id="L186">        final ProtectionStringBuilder build = new ProtectionStringBuilder();</span>
-<span class="nc bnc" id="L187" title="All 2 branches missed.">        if (version&gt;=2) {</span>
-            // From v2 we use a SHA256 hash of the actually serialized data (raw bytes) as stored in the database
-            // This avoids any problems of the getData() object that does not have a good, stable, toString() representation 
-<span class="nc" id="L190">            final String dataHash = CertTools.getSHA256FingerprintAsString(getDataUnsafe());</span>
-<span class="nc" id="L191">            build.append(getConfigurationId()).append(dataHash);</span>
-<span class="nc" id="L192">        } else {</span>
-<span class="nc" id="L193">            build.append(getConfigurationId()).append(getData());</span>
-        }
-<span class="nc" id="L195">        return build.toString();</span>
+  /**
+   * Entity holding data of admin's configuration. Create by sending in the id
+   * and string representation of global configuration
+   *
+   * @param aConfigurationId the unique id of global configuration.
+   * @param aConfiguration is the serialized string representation of the global
+   *     configuration.
+   */
+  public GlobalConfigurationData(
+<span class="nc" id="L106">      final String aConfigurationId, final ConfigurationBase aConfiguration) {</span>
+<span class="nc" id="L107">    setConfigurationId(aConfigurationId);</span>
+<span class="nc" id="L108">    setConfiguration(aConfiguration);</span>
+<span class="nc bnc" id="L109" title="All 2 branches missed.">    if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L110">      LOG.debug(&quot;Created configuration &quot; + aConfigurationId);</span>
     }
+<span class="nc" id="L112">  }</span>
 
-    @Transient
-    @Override
-    protected int getProtectVersion() {
-<span class="nc" id="L201">        return 2;</span>
+  /** Null constructor. */
+<span class="fc" id="L115">  public GlobalConfigurationData() { }</span>
+
+  /**
+   * @return ID
+   */
+  // @Id @Column
+  public String getConfigurationId() {
+<span class="fc" id="L122">    return configurationId;</span>
+  }
+
+  /**
+   * @param aConfigurationId ID
+   */
+  public void setConfigurationId(final String aConfigurationId) {
+<span class="fc" id="L129">    this.configurationId = aConfigurationId;</span>
+<span class="fc" id="L130">  }</span>
+
+  /**
+   * @return data
+   */
+  // @Column @Lob
+  // Gets the data on raw bytes from the database
+  public byte[] getDataUnsafe() {
+<span class="fc" id="L138">    return data;</span>
+  }
+  /**
+   * DO NOT USE! Stick with setData(HashMap data) instead.
+   *
+   * @param theData data
+   */
+  public void setDataUnsafe(final byte[] theData) {
+<span class="fc" id="L146">    this.data = theData;</span>
+<span class="fc" id="L147">  }</span>
+
+  /**
+   * Gets the serialized object that was stored, as a byte array, in the
+   * database. Deserializes the byte array from the database.
+   *
+   * @return Object, typically a LinkedHashMap
+   */
+  @Transient
+  public Serializable getObjectUnsafe() {
+<span class="nc" id="L157">    try (LookAheadObjectInputStream laois =</span>
+        new LookAheadObjectInputStream(
+<span class="nc" id="L159">            new ByteArrayInputStream(getDataUnsafe())); ) {</span>
+<span class="nc" id="L160">      laois.setEnabledMaxObjects(false);</span>
+<span class="nc" id="L161">      laois.setAcceptedClasses(ACCEPTED_SERIALIZATION_CLASSES_SET);</span>
+<span class="nc" id="L162">      laois.setEnabledSubclassing(true, &quot;org.cesecore&quot;);</span>
+<span class="nc" id="L163">      return (Serializable) laois.readObject();</span>
+<span class="nc" id="L164">    } catch (IOException e) {</span>
+<span class="nc" id="L165">      LOG.error(&quot;Failed to load Global Configuration as byte[].&quot;, e);</span>
+<span class="nc" id="L166">    } catch (ClassNotFoundException e) {</span>
+<span class="nc" id="L167">      throw new IllegalStateException(e);</span>
+<span class="nc" id="L168">    }</span>
+<span class="nc" id="L169">    return null;</span>
+  }
+
+  /**
+   * @param theData Data
+   */
+  public void setObjectUnsafe(final Serializable theData) {
+<span class="fc" id="L176">    try (ByteArrayOutputStream baos = new ByteArrayOutputStream();</span>
+<span class="fc" id="L177">         ObjectOutputStream oos = new ObjectOutputStream(baos); ) {</span>
+<span class="fc" id="L178">      oos.writeObject(theData);</span>
+<span class="fc" id="L179">      setDataUnsafe(baos.toByteArray());</span>
+<span class="nc" id="L180">    } catch (IOException e) {</span>
+<span class="nc" id="L181">      LOG.warn(&quot;Failed to save Global Configuration as byte[].&quot;, e);</span>
+<span class="fc" id="L182">    }</span>
+<span class="fc" id="L183">  }</span>
+
+  /**
+   * @return version
+   */
+  // @Version @Column
+  public int getRowVersion() {
+<span class="fc" id="L190">    return rowVersion;</span>
+  }
+
+  /**
+   * @param aRowVersion version
+   */
+  public void setRowVersion(final int aRowVersion) {
+<span class="fc" id="L197">    this.rowVersion = aRowVersion;</span>
+<span class="fc" id="L198">  }</span>
+
+  // @Column @Lob
+  @Override
+  public String getRowProtection() {
+<span class="fc" id="L203">    return rowProtection;</span>
+  }
+
+  @Override
+  public void setRowProtection(final String aRowProtection) {
+<span class="fc" id="L208">    this.rowProtection = aRowProtection;</span>
+<span class="fc" id="L209">  }</span>
+
+  /**
+   * @return data
+   */
+  @SuppressWarnings(&quot;rawtypes&quot;)
+  @Transient
+  public HashMap getData() {
+<span class="nc" id="L217">    final Serializable map = getObjectUnsafe();</span>
+<span class="nc bnc" id="L218" title="All 2 branches missed.">    if (map instanceof LinkedHashMap&lt;?, ?&gt;) {</span>
+<span class="nc" id="L219">      return (LinkedHashMap&lt;?, ?&gt;) map;</span>
+    } else {
+<span class="nc" id="L221">      return new LinkedHashMap&lt;&gt;((Map&lt;?, ?&gt;) map);</span>
     }
+  }
 
-    @PrePersist
-    @PreUpdate
-    @Override
-    protected void protectData() {
-<span class="fc" id="L208">        super.protectData();</span>
-<span class="fc" id="L209">    }</span>
+  @SuppressWarnings(&quot;rawtypes&quot;)
+  private void setData(final HashMap theData) {
+<span class="nc" id="L227">    setObjectUnsafe(theData);</span>
+<span class="nc" id="L228">  }</span>
 
-    @PostLoad
-    @Override
-    protected void verifyData() {
-<span class="nc" id="L214">        super.verifyData();</span>
-<span class="nc" id="L215">    }</span>
+  /**
+   * Method that saves the global configuration to database.
+   *
+   * @param configuration config
+   */
+  @SuppressWarnings(&quot;rawtypes&quot;)
+  public void setConfiguration(final ConfigurationBase configuration) {
+<span class="nc" id="L237">    setData((HashMap) configuration.saveData());</span>
+<span class="nc" id="L238">  }</span>
 
-    @Override
-    @Transient
-    protected String getRowId() {
-<span class="nc" id="L220">        return getConfigurationId();</span>
+  //
+  // Start Database integrity protection methods
+  //
+
+  @Transient
+  @Override
+  protected String getProtectString(final int version) {
+    // rowVersion is automatically updated by JPA, so it's not important, it is
+    // only used for optimistic locking so we will not include that in the
+    // database protection
+<span class="nc" id="L250">    final ProtectionStringBuilder build = new ProtectionStringBuilder();</span>
+<span class="nc bnc" id="L251" title="All 2 branches missed.">    if (version &gt;= 2) {</span>
+      // From v2 we use a SHA256 hash of the actually serialized data (raw
+      // bytes) as stored in the database
+      // This avoids any problems of the getData() object that does not have a
+      // good, stable, toString() representation
+<span class="nc" id="L256">      final String dataHash =</span>
+<span class="nc" id="L257">          CertTools.getSHA256FingerprintAsString(getDataUnsafe());</span>
+<span class="nc" id="L258">      build.append(getConfigurationId()).append(dataHash);</span>
+<span class="nc" id="L259">    } else {</span>
+<span class="nc" id="L260">      build.append(getConfigurationId()).append(getData());</span>
     }
+<span class="nc" id="L262">    return build.toString();</span>
+  }
 
-    //
-    // End Database integrity protection methods
-    //
+  @Transient
+  @Override
+  protected int getProtectVersion() {
+<span class="nc" id="L268">    return 2;</span>
+  }
+
+  @PrePersist
+  @PreUpdate
+  @Override
+  protected void protectData() {
+<span class="fc" id="L275">    super.protectData();</span>
+<span class="fc" id="L276">  }</span>
+
+  @PostLoad
+  @Override
+  protected void verifyData() {
+<span class="nc" id="L281">    super.verifyData();</span>
+<span class="nc" id="L282">  }</span>
+
+  @Override
+  @Transient
+  protected String getRowId() {
+<span class="nc" id="L287">    return getConfigurationId();</span>
+  }
+
+  //
+  // End Database integrity protection methods
+  //
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

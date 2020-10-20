@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ServiceInfoCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.service</a> &gt; <span class="el_source">ServiceInfoCommand.java</span></div><h1>ServiceInfoCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.cli.service;
+
+import java.util.Map.Entry;
+import java.util.Properties;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.util.EjbRemoteHelper;
+import org.ejbca.core.ejb.services.ServiceSessionRemote;
+import org.ejbca.core.model.services.ServiceConfiguration;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+
+/**
+ * CLI subcommand that shows the settings of a service.
+ * 
+ * @version $Id: ServiceInfoCommand.java 24491 2016-10-10 11:47:00Z anatom $
+ */
+<span class="nc" id="L31">public class ServiceInfoCommand extends BaseServiceCommand {</span>
+
+<span class="nc" id="L33">    private static final Logger log = Logger.getLogger(ServiceInfoCommand.class);</span>
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L37">        return &quot;info&quot;;</span>
+    }
+
+    @Override
+    public CommandResult execute(ParameterContainer parameters, int serviceId) {
+        
+<span class="nc" id="L43">        final ServiceSessionRemote serviceSession = EjbRemoteHelper.INSTANCE.getRemoteSession(ServiceSessionRemote.class);</span>
+<span class="nc" id="L44">        ServiceConfiguration serviceConfig = serviceSession.getServiceConfiguration(serviceId);</span>
+        
+<span class="nc" id="L46">        info(&quot;Id&quot;, serviceId);</span>
+<span class="nc" id="L47">        info(&quot;Name&quot;, serviceSession.getServiceName(serviceId));</span>
+        
+<span class="nc" id="L49">        getLogger().info(&quot;&quot;);</span>
+<span class="nc" id="L50">        getLogger().info(&quot;----- Worker -----&quot;);</span>
+<span class="nc" id="L51">        info(&quot;Worker class&quot;, serviceConfig.getWorkerClassPath());</span>
+<span class="nc" id="L52">        showProperties(serviceConfig.getWorkerProperties());</span>
+        
+<span class="nc" id="L54">        getLogger().info(&quot;&quot;);</span>
+<span class="nc" id="L55">        getLogger().info(&quot;-----Interval -----&quot;);</span>
+<span class="nc" id="L56">        info(&quot;Interval class&quot;, serviceConfig.getIntervalClassPath());</span>
+<span class="nc" id="L57">        showProperties(serviceConfig.getIntervalProperties());</span>
+        
+<span class="nc" id="L59">        getLogger().info(&quot;&quot;);</span>
+<span class="nc" id="L60">        getLogger().info(&quot;----- Action -----&quot;);</span>
+<span class="nc" id="L61">        info(&quot;Action class&quot;, serviceConfig.getActionClassPath());</span>
+<span class="nc" id="L62">        showProperties(serviceConfig.getActionProperties());</span>
+        
+<span class="nc" id="L64">        getLogger().info(&quot;&quot;);</span>
+<span class="nc" id="L65">        getLogger().info(&quot;----- General Settings -----&quot;);</span>
+<span class="nc" id="L66">        info(&quot;Active&quot;, serviceConfig.isActive());</span>
+<span class="nc" id="L67">        info(&quot;Pin to nodes&quot;, serviceConfig.getPinToNodes());</span>
+<span class="nc" id="L68">        info(&quot;Run on all nodes&quot;, serviceConfig.isRunOnAllNodes());</span>
+<span class="nc" id="L69">        info(&quot;Description&quot;, serviceConfig.getDescription());</span>
+<span class="nc" id="L70">        return CommandResult.SUCCESS;</span>
+    }
+    
+    /** Displays &quot;name: value&quot; with proper alignment 
+     * @param name Name
+     * @param value Value */
+    private void info(String name, String value) {
+<span class="nc bnc" id="L77" title="All 2 branches missed.">        if (value == null) {</span>
+<span class="nc" id="L78">            value = &quot;null&quot;;</span>
+        }
+        
+<span class="nc" id="L81">        value = value.replaceAll(&quot;\r?\n&quot;, &quot;\n&quot;+StringUtils.repeat(&quot; &quot;, 15));</span>
+<span class="nc" id="L82">        getLogger().info(StringUtils.rightPad(name, 13)+&quot;: &quot;+value);</span>
+<span class="nc" id="L83">    }</span>
+    
+    private void info(String name, int value) {
+<span class="nc" id="L86">        info(name, String.valueOf(value));</span>
+<span class="nc" id="L87">    }</span>
+    
+    private void info(String name, boolean value) {
+<span class="nc bnc" id="L90" title="All 2 branches missed.">        info(name, value ? &quot;Yes&quot; : &quot;No&quot;);</span>
+<span class="nc" id="L91">    }</span>
+    
+    private void info(String name, String[] value) {
+<span class="nc bnc" id="L94" title="All 2 branches missed.">        if (value == null) {</span>
+<span class="nc" id="L95">            info(name, &quot;null&quot;);</span>
+<span class="nc" id="L96">            return;</span>
+        }
+        
+<span class="nc" id="L99">        info(name, StringUtils.join(value, '\n'));</span>
+<span class="nc" id="L100">    }</span>
+    
+    private void showProperties(Properties props) {
+<span class="nc bnc" id="L103" title="All 2 branches missed.">        if (props == null) {</span>
+<span class="nc" id="L104">            getLogger().info(&quot;Properties object is null.&quot;);</span>
+<span class="nc" id="L105">            return;</span>
+        }
+        
+<span class="nc" id="L108">        StringBuilder sb = new StringBuilder(&quot;Properties:\n&quot;);</span>
+<span class="nc bnc" id="L109" title="All 2 branches missed.">        for (Entry&lt;Object,Object&gt; entry : props.entrySet()) {</span>
+<span class="nc" id="L110">            sb.append(&quot;  &quot;);</span>
+<span class="nc" id="L111">            sb.append(entry.getKey().toString());</span>
+<span class="nc" id="L112">            sb.append(&quot; = &quot;);</span>
+<span class="nc" id="L113">            sb.append(entry.getValue().toString());</span>
+<span class="nc" id="L114">            sb.append('\n');</span>
+<span class="nc" id="L115">        }</span>
+<span class="nc" id="L116">        sb.deleteCharAt(sb.length()-1);</span>
+<span class="nc" id="L117">        getLogger().info(sb.toString());</span>
+<span class="nc" id="L118">    }</span>
+    
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L123">        return &quot;Show information about a service.&quot;;</span>
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L128">        return getCommandDescription();</span>
+    }
+
+    @Override
+    protected Logger getLogger() {
+<span class="nc" id="L133">        return log;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -9,55 +9,53 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.crl;
 
 import javax.ejb.ApplicationException;
-
 import org.cesecore.CesecoreException;
 
-
 /**
- * An exception thrown when an error happens trying to add CRLs to the CRL store. 
- * If this happens any transaction depending on this should be rolled back.
- * 
+ * An exception thrown when an error happens trying to add CRLs to the CRL
+ * store. If this happens any transaction depending on this should be rolled
+ * back.
  *
  * @version $Id: CrlStoreException.java 17625 2013-09-20 07:12:06Z netmackan $
  */
-@ApplicationException(rollback=true)  
+@ApplicationException(rollback = true)
 public class CrlStoreException extends CesecoreException {
-    
-    private static final long serialVersionUID = -642610825885468919L;
 
+  private static final long serialVersionUID = -642610825885468919L;
 
-    /**
-     * Creates a new instance of exception without detail message.
-     * Marked as rollback=true
-     * @see CrlStoreException
-     */
-    public CrlStoreException() {
-<span class="nc" id="L39">        super();</span>
-<span class="nc" id="L40">    }</span>
-    
-    
-    /**
-     * Constructs an instance of exception with the specified detail message.
-     * Marked as rollback=true
-     * @see CrlStoreException
-     * @param msg the detail message.
-     */
-    public CrlStoreException(String msg) {
-<span class="nc" id="L50">        super(msg);</span>
-<span class="nc" id="L51">    }</span>
+  /**
+   * Creates a new instance of exception without detail message. Marked as
+   * rollback=true
+   *
+   * @see CrlStoreException
+   */
+  public CrlStoreException() {
+<span class="nc" id="L37">    super();</span>
+<span class="nc" id="L38">  }</span>
 
-    /** 
-     * Marked as rollback=true
-     * @see CrlStoreException
-     * @param e causing exception that will be wrapped
-     */
-    public CrlStoreException(Exception e) {
-<span class="nc" id="L59">        super(e);</span>
-<span class="nc" id="L60">    }</span>
+  /**
+   * Constructs an instance of exception with the specified detail message.
+   * Marked as rollback=true
+   *
+   * @see CrlStoreException
+   * @param msg the detail message.
+   */
+  public CrlStoreException(final String msg) {
+<span class="nc" id="L48">    super(msg);</span>
+<span class="nc" id="L49">  }</span>
 
+  /**
+   * Marked as rollback=true.
+   *
+   * @see CrlStoreException
+   * @param e causing exception that will be wrapped
+   */
+  public CrlStoreException(final Exception e) {
+<span class="nc" id="L58">    super(e);</span>
+<span class="nc" id="L59">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

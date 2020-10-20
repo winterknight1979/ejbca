@@ -1,0 +1,342 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>UserView.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">admin-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.rainterface</a> &gt; <span class="el_source">UserView.java</span></div><h1>UserView.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.web.admin.rainterface;
+
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Map;
+
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.certificates.endentity.EndEntityType;
+import org.cesecore.certificates.endentity.EndEntityTypes;
+import org.cesecore.certificates.endentity.ExtendedInformation;
+import org.cesecore.certificates.util.DNFieldExtractor;
+import org.cesecore.util.StringTools;
+
+/**
+ * A class representing a web interface view of a user in the ra user database.
+ *
+ * @version $Id: UserView.java 28844 2018-05-04 08:31:02Z samuellb $
+ */
+public class UserView implements Serializable, Comparable&lt;UserView&gt; {
+
+    private static final long serialVersionUID = 2390294870669249774L;
+
+    private SortBy sortby;
+    private EndEntityInformation userdata;
+    private DNFieldExtractor subjectdnfields;
+    private DNFieldExtractor subjectaltnames;
+    private DNFieldExtractor subjectdirattrs;
+<span class="nc" id="L41">    private String commonname = &quot;&quot;;</span>
+    private String caname;
+    private boolean cleartextpwd;
+
+<span class="nc" id="L45">    public UserView() {</span>
+<span class="nc" id="L46">        userdata = new EndEntityInformation();</span>
+<span class="nc" id="L47">        userdata.setType(EndEntityTypes.ENDUSER.toEndEntityType());</span>
+<span class="nc" id="L48">        subjectdnfields = new DNFieldExtractor(&quot;&quot;, DNFieldExtractor.TYPE_SUBJECTDN);</span>
+<span class="nc" id="L49">        subjectaltnames = new DNFieldExtractor(&quot;&quot;, DNFieldExtractor.TYPE_SUBJECTALTNAME);</span>
+<span class="nc" id="L50">        subjectdirattrs = new DNFieldExtractor(&quot;&quot;, DNFieldExtractor.TYPE_SUBJECTDIRATTR);</span>
+<span class="nc" id="L51">    }</span>
+
+<span class="nc" id="L53">    public UserView(EndEntityInformation newuserdata, Map&lt;Integer, String&gt; caidtonamemap) {</span>
+<span class="nc" id="L54">        userdata = newuserdata;</span>
+<span class="nc" id="L55">        this.caname = caidtonamemap.get(Integer.valueOf(newuserdata.getCAId()));</span>
+<span class="nc" id="L56">        subjectdnfields = new DNFieldExtractor(userdata.getDN(), DNFieldExtractor.TYPE_SUBJECTDN);</span>
+<span class="nc" id="L57">        subjectaltnames = new DNFieldExtractor(userdata.getSubjectAltName(), DNFieldExtractor.TYPE_SUBJECTALTNAME);</span>
+<span class="nc bnc" id="L58" title="All 2 branches missed.">        String dirattrs = userdata.getExtendedInformation() != null ? userdata.getExtendedInformation().getSubjectDirectoryAttributes() : null;</span>
+<span class="nc" id="L59">        subjectdirattrs = new DNFieldExtractor(dirattrs, DNFieldExtractor.TYPE_SUBJECTDIRATTR);</span>
+<span class="nc" id="L60">        setCommonName();</span>
+
+<span class="nc bnc" id="L62" title="All 2 branches missed.">        cleartextpwd = userdata.getPassword() != null;</span>
+<span class="nc" id="L63">    }</span>
+
+    public void setUsername(String user) {
+<span class="nc" id="L66">        userdata.setUsername(StringTools.stripUsername(user));</span>
+<span class="nc" id="L67">    }</span>
+
+    public String getUsername() {
+<span class="nc" id="L70">        return userdata.getUsername();</span>
+    }
+
+    public void setSubjectDN(String dn) {
+<span class="nc" id="L74">        userdata.setDN(dn);</span>
+<span class="nc" id="L75">        subjectdnfields.setDN(dn, DNFieldExtractor.TYPE_SUBJECTDN);</span>
+
+<span class="nc" id="L77">        setCommonName();</span>
+<span class="nc" id="L78">    }</span>
+
+    public String getSubjectDN() {
+<span class="nc" id="L81">        return userdata.getDN();</span>
+    }
+
+    public void setSubjectAltName(String subjectaltname) {
+<span class="nc" id="L85">        userdata.setSubjectAltName(subjectaltname);</span>
+<span class="nc" id="L86">        subjectaltnames.setDN(subjectaltname, DNFieldExtractor.TYPE_SUBJECTALTNAME);</span>
+<span class="nc" id="L87">    }</span>
+
+    public String getSubjectAltName() {
+<span class="nc" id="L90">        return userdata.getSubjectAltName();</span>
+    }
+
+    public void setSubjectDirAttributes(String subjectdirattr) {
+<span class="nc" id="L94">        ExtendedInformation ext = userdata.getExtendedInformation();</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">        if (ext == null) {</span>
+<span class="nc" id="L96">            ext = new ExtendedInformation();</span>
+        }
+<span class="nc" id="L98">        ext.setSubjectDirectoryAttributes(subjectdirattr);</span>
+<span class="nc" id="L99">        userdata.setExtendedInformation(ext);</span>
+<span class="nc" id="L100">        subjectdirattrs.setDN(subjectdirattr, DNFieldExtractor.TYPE_SUBJECTDIRATTR);</span>
+<span class="nc" id="L101">    }</span>
+
+    public String getSubjectDirAttributes() {
+<span class="nc bnc" id="L104" title="All 2 branches missed.">        return userdata.getExtendedInformation() != null ? userdata.getExtendedInformation().getSubjectDirectoryAttributes() : null;</span>
+    }
+
+    public void setEmail(String email) {
+<span class="nc" id="L108">        userdata.setEmail(email);</span>
+<span class="nc" id="L109">    }</span>
+
+    public String getEmail() {
+<span class="nc" id="L112">        return userdata.getEmail();</span>
+    }
+
+    public void setPassword(String pwd) {
+<span class="nc" id="L116">        userdata.setPassword(pwd);</span>
+<span class="nc" id="L117">    }</span>
+
+    public String getPassword() {
+<span class="nc" id="L120">        return userdata.getPassword();</span>
+    }
+
+    public boolean getClearTextPassword() {
+<span class="nc" id="L124">        return cleartextpwd;</span>
+    }
+
+    public void setClearTextPassword(boolean cleartextpwd) {
+<span class="nc" id="L128">        this.cleartextpwd = cleartextpwd;</span>
+<span class="nc" id="L129">    }</span>
+
+    public void setStatus(int status) {
+<span class="nc" id="L132">        userdata.setStatus(status);</span>
+<span class="nc" id="L133">    }</span>
+
+    public int getStatus() {
+<span class="nc" id="L136">        return userdata.getStatus();</span>
+    }
+
+    public void setType(EndEntityType type) {
+<span class="nc" id="L140">        userdata.setType(type);</span>
+<span class="nc" id="L141">    }</span>
+
+    public EndEntityType getType() {
+<span class="nc" id="L144">        return userdata.getType();</span>
+    }
+
+    public void setKeyRecoverable(boolean keyrecoverable) {
+<span class="nc" id="L148">        userdata.setKeyRecoverable(keyrecoverable);</span>
+<span class="nc" id="L149">    }</span>
+
+    public boolean getKeyRecoverable() {
+<span class="nc" id="L152">        return userdata.getKeyRecoverable();</span>
+    }
+
+    public void setCardNumber(String cardNumber) {
+<span class="nc" id="L156">        userdata.setCardNumber(cardNumber);</span>
+<span class="nc" id="L157">    }</span>
+
+    public String getCardNumber() {
+<span class="nc" id="L160">        return userdata.getCardNumber();</span>
+    }
+
+    public void setSendNotification(boolean sendnotification) {
+<span class="nc" id="L164">        userdata.setSendNotification(sendnotification);</span>
+<span class="nc" id="L165">    }</span>
+
+    public boolean getSendNotification() {
+<span class="nc" id="L168">        return userdata.getSendNotification();</span>
+    }
+
+    public void setPrintUserData(boolean printUserData) {
+<span class="nc" id="L172">        userdata.setPrintUserData(printUserData);</span>
+<span class="nc" id="L173">    }</span>
+
+    public boolean getPrintUserData() {
+<span class="nc" id="L176">        return userdata.getPrintUserData();</span>
+    }
+
+    public void setEndEntityProfileId(int profileid) {
+<span class="nc" id="L180">        userdata.setEndEntityProfileId(profileid);</span>
+<span class="nc" id="L181">    }</span>
+
+    public int getEndEntityProfileId() {
+<span class="nc" id="L184">        return userdata.getEndEntityProfileId();</span>
+    }
+
+    public void setCertificateProfileId(int profileid) {
+<span class="nc" id="L188">        userdata.setCertificateProfileId(profileid);</span>
+<span class="nc" id="L189">    }</span>
+
+    public int getCertificateProfileId() {
+<span class="nc" id="L192">        return userdata.getCertificateProfileId();</span>
+    }
+
+    public void setTimeCreated(Date timecreated) {
+<span class="nc" id="L196">        userdata.setTimeCreated(timecreated);</span>
+<span class="nc" id="L197">    }</span>
+
+    public Date getTimeCreated() {
+<span class="nc" id="L200">        return userdata.getTimeCreated();</span>
+    }
+
+    public void setTimeModified(Date timemodified) {
+<span class="nc" id="L204">        userdata.setTimeModified(timemodified);</span>
+<span class="nc" id="L205">    }</span>
+
+    public Date getTimeModified() {
+<span class="nc" id="L208">        return userdata.getTimeModified();</span>
+    }
+
+    public int getTokenType() {
+<span class="nc" id="L212">        return userdata.getTokenType();</span>
+    }
+
+    public void setTokenType(int tokentype) {
+<span class="nc" id="L216">        userdata.setTokenType(tokentype);</span>
+<span class="nc" id="L217">    }</span>
+
+    public int getHardTokenIssuerId() {
+<span class="nc" id="L220">        return userdata.getHardTokenIssuerId();</span>
+    }
+
+    public void setHardTokenIssuerId(int hardtokenissuerid) {
+<span class="nc" id="L224">        userdata.setHardTokenIssuerId(hardtokenissuerid);</span>
+<span class="nc" id="L225">    }</span>
+
+    public int getCAId() {
+<span class="nc" id="L228">        return userdata.getCAId();</span>
+    }
+
+    public void setCAId(int caid) {
+<span class="nc" id="L232">        userdata.setCAId(caid);</span>
+<span class="nc" id="L233">    }</span>
+
+    public String getCAName() {
+<span class="nc" id="L236">        return caname;</span>
+    }
+
+    public void setExtendedInformation(ExtendedInformation extinfo) {
+<span class="nc" id="L240">        userdata.setExtendedInformation(extinfo);</span>
+<span class="nc" id="L241">    }</span>
+
+    public ExtendedInformation getExtendedInformation() {
+<span class="nc" id="L244">        return userdata.getExtendedInformation();</span>
+    }
+
+    public String getSubjectDNField(int parameter, int number) {
+        // We don't need to htmlescape the output, because we use JSTL output stuff in JSP pages that does it for us 
+        // in the output shown in browser
+<span class="nc" id="L250">        return subjectdnfields.getField(parameter, number);</span>
+    }
+
+    public String getSubjectAltNameField(int parameter, int number) {
+<span class="nc" id="L254">        return subjectaltnames.getField(parameter, number);</span>
+    }
+
+    public String getSubjectDirAttributeField(int parameter, int number) {
+<span class="nc" id="L258">        return subjectdirattrs.getField(parameter, number);</span>
+    }
+
+    /**
+     * getCommonName is a special function used in list end entity gui to display names in cases not a CN field exists in dn only, surname and givenname
+     * @return Name
+     */
+    public String getCommonName() {
+    	
+<span class="nc" id="L267">        return commonname;</span>
+    }
+
+    private void setCommonName() {
+<span class="nc" id="L271">        commonname = getSubjectDNField(DNFieldExtractor.CN, 0);</span>
+<span class="nc bnc" id="L272" title="All 2 branches missed.">        if (commonname.equals(&quot;&quot;)) {</span>
+<span class="nc" id="L273">            commonname = getSubjectDNField(DNFieldExtractor.GIVENNAME, 0) + &quot; &quot; + getSubjectDNField(DNFieldExtractor.SURNAME, 0);</span>
+        }
+<span class="nc" id="L275">    }</span>
+
+    @Override
+    public int compareTo(UserView obj) {
+<span class="nc" id="L279">        int returnvalue = -1;</span>
+<span class="nc" id="L280">        int sortby = this.sortby.getSortBy();</span>
+<span class="nc bnc" id="L281" title="All 16 branches missed.">        switch (sortby) {</span>
+        case SortBy.USERNAME:
+<span class="nc" id="L283">            returnvalue = getUsername().compareTo(obj.getUsername());</span>
+<span class="nc" id="L284">            break;</span>
+        case SortBy.COMMONNAME:
+<span class="nc" id="L286">            returnvalue = this.commonname.compareTo(obj.getCommonName());</span>
+<span class="nc" id="L287">            break;</span>
+        case SortBy.DNSERIALNUMBER:
+<span class="nc" id="L289">            returnvalue = getSubjectDNField(DNFieldExtractor.SN, 0).compareTo(obj.getSubjectDNField(DNFieldExtractor.SN, 0));</span>
+<span class="nc" id="L290">            break;</span>
+        case SortBy.TITLE:
+<span class="nc" id="L292">            returnvalue = getSubjectDNField(DNFieldExtractor.T, 0).compareTo(obj.getSubjectDNField(DNFieldExtractor.T, 0));</span>
+<span class="nc" id="L293">            break;</span>
+        case SortBy.ORGANIZATIONALUNIT:
+<span class="nc" id="L295">            returnvalue = getSubjectDNField(DNFieldExtractor.OU, 0).compareTo(obj.getSubjectDNField(DNFieldExtractor.OU, 0));</span>
+<span class="nc" id="L296">            break;</span>
+        case SortBy.ORGANIZATION:
+<span class="nc" id="L298">            returnvalue = getSubjectDNField(DNFieldExtractor.O, 0).compareTo(obj.getSubjectDNField(DNFieldExtractor.O, 0));</span>
+<span class="nc" id="L299">            break;</span>
+        case SortBy.LOCALITY:
+<span class="nc" id="L301">            returnvalue = getSubjectDNField(DNFieldExtractor.L, 0).compareTo(obj.getSubjectDNField(DNFieldExtractor.L, 0));</span>
+<span class="nc" id="L302">            break;</span>
+        case SortBy.STATEORPROVINCE:
+<span class="nc" id="L304">            returnvalue = getSubjectDNField(DNFieldExtractor.ST, 0).compareTo(obj.getSubjectDNField(DNFieldExtractor.ST, 0));</span>
+<span class="nc" id="L305">            break;</span>
+        case SortBy.DOMAINCOMPONENT:
+<span class="nc" id="L307">            returnvalue = getSubjectDNField(DNFieldExtractor.DC, 0).compareTo(obj.getSubjectDNField(DNFieldExtractor.DC, 0));</span>
+<span class="nc" id="L308">            break;</span>
+        case SortBy.COUNTRY:
+<span class="nc" id="L310">            returnvalue = getSubjectDNField(DNFieldExtractor.C, 0).compareTo(obj.getSubjectDNField(DNFieldExtractor.C, 0));</span>
+<span class="nc" id="L311">            break;</span>
+        case SortBy.EMAIL:
+<span class="nc" id="L313">            returnvalue = getEmail().compareTo(obj.getEmail());</span>
+<span class="nc" id="L314">            break;</span>
+        case SortBy.STATUS:
+<span class="nc" id="L316">            returnvalue = (Integer.valueOf(getStatus())).compareTo(Integer.valueOf(obj.getStatus()));</span>
+<span class="nc" id="L317">            break;</span>
+        case SortBy.TIMECREATED:
+<span class="nc" id="L319">            returnvalue = getTimeCreated().compareTo(obj.getTimeCreated());</span>
+<span class="nc" id="L320">            break;</span>
+        case SortBy.TIMEMODIFIED:
+<span class="nc" id="L322">            returnvalue = getTimeModified().compareTo(obj.getTimeModified());</span>
+<span class="nc" id="L323">            break;</span>
+        case SortBy.CA:
+<span class="nc" id="L325">            returnvalue = getCAName().compareTo(obj.getCAName());</span>
+<span class="nc" id="L326">            break;</span>
+        default:
+<span class="nc" id="L328">            returnvalue = getUsername().compareTo(obj.getUsername());</span>
+
+        }
+<span class="nc bnc" id="L331" title="All 2 branches missed.">        if (this.sortby.getSortOrder() == SortBy.DECENDING) {</span>
+<span class="nc" id="L332">            returnvalue = 0 - returnvalue;</span>
+        }
+<span class="nc" id="L334">        return returnvalue;</span>
+    }
+
+    public void setSortBy(SortBy sortby) {
+<span class="nc" id="L338">        this.sortby = sortby;</span>
+<span class="nc" id="L339">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ParameterHandler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">CLI Utility Library</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.infrastructure.parameter</a> &gt; <span class="el_source">ParameterHandler.java</span></div><h1>ParameterHandler.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.cli.infrastructure.parameter;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.ejbca.ui.cli.infrastructure.command.CommandBase;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+
+/**
+ * Class for handling parameters in commands
+ * 
+ * @version $Id: ParameterHandler.java 26057 2017-06-22 08:08:34Z anatom $
+ *
+ */
+public class ParameterHandler {
+
+    public static final String HELP_KEY = &quot;--help&quot;;
+    public static final String VERBOSE_KEY = &quot;--verbose&quot;;
+
+<span class="fc" id="L37">    private static final Logger log = Logger.getLogger(ParameterHandler.class);</span>
+
+    private static final String TAB = &quot;    &quot;;
+    private static final String CR = &quot;\n&quot;;
+
+    private final String commandName;
+
+<span class="fc" id="L44">    private final Map&lt;String, Parameter&gt; parameterMap = new HashMap&lt;String, Parameter&gt;();</span>
+<span class="fc" id="L45">    private final List&lt;String&gt; mandatoryParameters = new ArrayList&lt;String&gt;();</span>
+<span class="fc" id="L46">    private final List&lt;String&gt; optionalParameters = new ArrayList&lt;String&gt;();</span>
+<span class="fc" id="L47">    private final LinkedList&lt;String&gt; standaloneParameters = new LinkedList&lt;String&gt;();</span>
+
+<span class="fc" id="L49">    public ParameterHandler(String commandName) {</span>
+<span class="fc" id="L50">        this.commandName = commandName;</span>
+<span class="fc" id="L51">    }</span>
+
+    public String getCommandName() {
+<span class="nc" id="L54">        return commandName;</span>
+    }
+
+    public Parameter getRegisteredParameter(final String key) {
+<span class="nc" id="L58">        return parameterMap.get(key);</span>
+    }
+
+    public boolean isParameterRegistered(final String keyword) {
+<span class="nc" id="L62">        return parameterMap.containsKey(keyword);</span>
+    }
+
+    public void registerParameter(Parameter parameter) {
+<span class="fc" id="L66">        final String keyWord = parameter.getKeyWord();</span>
+<span class="fc" id="L67">        parameterMap.put(keyWord, parameter);</span>
+<span class="fc bfc" id="L68" title="All 2 branches covered.">        if (parameter.isMandatory()) {</span>
+<span class="fc" id="L69">            mandatoryParameters.add(keyWord);</span>
+        } else {
+<span class="fc" id="L71">            optionalParameters.add(keyWord);</span>
+        }
+<span class="fc bfc" id="L73" title="All 2 branches covered.">        if (parameter.isStandAlone()) {</span>
+<span class="fc" id="L74">            standaloneParameters.add(keyWord);</span>
+        }
+<span class="fc" id="L76">    }</span>
+
+    private String tab(int times) {
+<span class="fc" id="L79">        StringBuffer sb = new StringBuffer();</span>
+<span class="fc bfc" id="L80" title="All 2 branches covered.">        for (int i = 0; i &lt; times; i++) {</span>
+<span class="fc" id="L81">            sb.append(TAB);</span>
+        }
+<span class="fc" id="L83">        return sb.toString();</span>
+    }
+
+    /**
+     * This method takes the parameters given by the command line and returns them as a map keyed to the flags
+     * 
+     * @param arguments the parameters as given by the command line
+     * @return a map of parameters and their values, null if command cannot run.
+     */
+    public ParameterContainer parseParameters(String... arguments) {
+<span class="fc" id="L93">        ParameterContainer result = new ParameterContainer();</span>
+<span class="fc" id="L94">        List&lt;String&gt; argumentList = new ArrayList&lt;String&gt;();</span>
+<span class="fc" id="L95">        boolean verbose = false;</span>
+<span class="fc bfc" id="L96" title="All 2 branches covered.">        for (int i = 0; i &lt; arguments.length; i++) {</span>
+<span class="fc" id="L97">            String argument = arguments[i];</span>
+            //Glue together any quotes that may be mismatched due to spaces
+<span class="pc bpc" id="L99" title="4 of 8 branches missed.">            if ((argument.startsWith(&quot;'&quot;) &amp;&amp; !argument.endsWith(&quot;'&quot;)) || (argument.startsWith(&quot;\&quot;&quot;) &amp;&amp; !argument.endsWith(&quot;\&quot;&quot;))) {</span>
+<span class="fc" id="L100">                final String quoteType = argument.substring(0, 1);</span>
+<span class="pc bpc" id="L101" title="1 of 2 branches missed.">                for (int j = i + 1; j &lt; arguments.length; j++) {</span>
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">                    if (arguments[j].startsWith(quoteType)) {</span>
+<span class="nc" id="L103">                        log.error(&quot;ERROR: Unclosed quote: &quot; + argument);</span>
+<span class="nc" id="L104">                        return null;</span>
+<span class="fc bfc" id="L105" title="All 2 branches covered.">                    } else if (arguments[j].endsWith(quoteType)) {</span>
+<span class="fc" id="L106">                        argument += &quot; &quot; + arguments[j];</span>
+<span class="fc" id="L107">                        i = j;</span>
+<span class="fc" id="L108">                        break;</span>
+                    } else {
+<span class="fc" id="L110">                        argument += &quot; &quot; + arguments[j];</span>
+                    }
+                }
+            }
+<span class="pc bpc" id="L114" title="1 of 2 branches missed.">            if (argument.equals(VERBOSE_KEY)) {</span>
+<span class="nc" id="L115">                verbose = true;</span>
+            } else {
+<span class="fc" id="L117">                argumentList.add(argument);</span>
+            }
+<span class="pc bpc" id="L119" title="1 of 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L120">                log.debug(&quot;ARGUMENT: &quot; + argument);</span>
+            }
+        }
+
+<span class="fc" id="L124">        List&lt;String&gt; unknownArguments = new ArrayList&lt;String&gt;();</span>
+<span class="fc" id="L125">        List&lt;Parameter&gt; missingArguments = new ArrayList&lt;Parameter&gt;();</span>
+<span class="fc" id="L126">        LinkedList&lt;String&gt; standaloneParametersDefensiveCopy = new LinkedList&lt;String&gt;(standaloneParameters);</span>
+        //Get a list of all parameters
+<span class="fc bfc" id="L128" title="All 2 branches covered.">        for (int i = 0; i &lt; argumentList.size(); i++) {</span>
+<span class="fc" id="L129">            boolean isStandalone = false;</span>
+<span class="fc" id="L130">            String parameterString = argumentList.get(i);</span>
+            //Handle the case where the command line may have split up an argument with a a space that's in quotes
+
+            //Handle the case of -argument=value, but ignore if in quotes
+<span class="fc bfc" id="L134" title="All 2 branches covered.">            if (parameterString.matches(&quot;^-.*=.*&quot;)) {</span>
+                //If so, split the switch and value up.
+<span class="fc" id="L136">                int valueIndex = parameterString.indexOf(&quot;=&quot;) + 1;</span>
+<span class="fc" id="L137">                argumentList.add(i + 1,</span>
+<span class="pc bpc" id="L138" title="1 of 2 branches missed.">                        (valueIndex &gt;= parameterString.length() ? &quot;&quot; : parameterString.substring(valueIndex, parameterString.length())));</span>
+<span class="fc" id="L139">                parameterString = parameterString.substring(0, valueIndex - 1);</span>
+            }
+<span class="fc bfc" id="L141" title="All 2 branches covered.">            if (result.containsKey(parameterString)) {</span>
+<span class="fc" id="L142">                log.info(&quot;ERROR: Multiple parameters of type &quot; + parameterString + &quot; encountered.&quot;);</span>
+<span class="fc" id="L143">                return null;</span>
+            }
+<span class="fc" id="L145">            Parameter parameter = parameterMap.get(parameterString);</span>
+            String value;
+<span class="fc bfc" id="L147" title="All 2 branches covered.">            if (parameter == null) {</span>
+                //Presume that it might be a standalone argument
+<span class="pc bpc" id="L149" title="1 of 4 branches missed.">                if (standaloneParametersDefensiveCopy.size() &gt; 0 &amp;&amp; !parameterString.startsWith(&quot;-&quot;)) {</span>
+<span class="fc" id="L150">                    value = parameterString;</span>
+<span class="fc" id="L151">                    parameterString = standaloneParametersDefensiveCopy.removeFirst();</span>
+<span class="fc" id="L152">                    isStandalone = true;</span>
+                } else {
+<span class="fc" id="L154">                    unknownArguments.add(parameterString);</span>
+<span class="fc" id="L155">                    continue;</span>
+                }
+            } else {
+<span class="pc bpc" id="L158" title="1 of 2 branches missed.">                if (parameter.getParameterMode() == ParameterMode.ARGUMENT) {</span>
+                    //Check that the following argument exists and isn't a switch (ignoring negative numbers)
+<span class="fc bfc" id="L160" title="All 4 branches covered.">                    if ((i + 1) &gt;= argumentList.size() || argumentList.get(i + 1).matches(&quot;^-[A-z]+$&quot;)) {</span>
+<span class="fc" id="L161">                        log.info(&quot;ERROR: Missing argument.&quot;);</span>
+<span class="fc" id="L162">                        log.info(TAB + parameterString + &quot; is an argument and requires a parameter following it.&quot;);</span>
+<span class="fc" id="L163">                        return null;</span>
+                    } else {
+<span class="fc" id="L165">                        value = argumentList.get(i + 1);</span>
+<span class="fc" id="L166">                        i++;</span>
+                    }
+<span class="nc bnc" id="L168" title="All 2 branches missed.">                } else if (parameter.getParameterMode() == ParameterMode.FLAG) {</span>
+<span class="nc" id="L169">                    value = &quot;&quot;;</span>
+<span class="nc bnc" id="L170" title="All 2 branches missed.">                } else if (parameter.getParameterMode() == ParameterMode.INPUT) {</span>
+<span class="nc" id="L171">                    log.info(&quot;Enter value for &quot; + parameterString + &quot;: &quot;);</span>
+<span class="nc" id="L172">                    value = System.console().readLine();</span>
+<span class="nc bnc" id="L173" title="All 2 branches missed.">                } else if (parameter.getParameterMode() == ParameterMode.PASSWORD) {</span>
+<span class="nc" id="L174">                    log.info(&quot;Enter password for parameter (&quot; + parameterString + &quot;): &quot;);</span>
+<span class="nc" id="L175">                    value = new String(System.console().readPassword());</span>
+                } else {
+<span class="nc" id="L177">                    throw new IllegalStateException(parameter.getParameterMode().name() + &quot; was an unknown parameter type.&quot;);</span>
+                } 
+<span class="fc" id="L179">                standaloneParametersDefensiveCopy.remove(parameterString);</span>
+            }
+<span class="pc bpc" id="L181" title="1 of 2 branches missed.">            if (verbose) {</span>
+<span class="nc bnc" id="L182" title="All 8 branches missed.">                if (!StringUtils.isEmpty(value) &amp;&amp; (parameter == null || (parameter.getParameterMode() != ParameterMode.PASSWORD &amp;&amp; parameter.getParameterMode() != ParameterMode.FLAG))) {</span>
+<span class="nc" id="L183">                    log.error(&quot;SETTING: &quot; + parameterString + &quot; as &quot; + value);</span>
+                }
+            }
+            
+            //Lastly, strip any quotes 
+<span class="pc bpc" id="L188" title="4 of 8 branches missed.">            if ((value.startsWith(&quot;'&quot;) &amp;&amp; value.endsWith(&quot;'&quot;)) || (value.startsWith(&quot;\&quot;&quot;) &amp;&amp; value.endsWith(&quot;\&quot;&quot;))) {</span>
+<span class="fc" id="L189">                value = value.substring(1, value.length() - 1);</span>
+            }
+<span class="fc" id="L191">            result.put(parameterString, value, isStandalone);</span>
+        }
+
+<span class="pc bpc" id="L194" title="1 of 2 branches missed.">        if (result.containsKey(HELP_KEY)) {</span>
+            //Do not validate if help was requested
+<span class="nc" id="L196">            return result;</span>
+        }
+
+        //Check for mandatory parameters
+<span class="fc bfc" id="L200" title="All 2 branches covered.">        for (final String mandatoryParameter : mandatoryParameters) {</span>
+<span class="fc bfc" id="L201" title="All 2 branches covered.">            if (!result.containsKey(mandatoryParameter)) {</span>
+<span class="fc" id="L202">                missingArguments.add(parameterMap.get(mandatoryParameter));</span>
+            }
+<span class="fc" id="L204">        }</span>
+<span class="fc bfc" id="L205" title="All 4 branches covered.">        if (unknownArguments.size() == 0 &amp;&amp; missingArguments.size() == 0) {</span>
+<span class="fc" id="L206">            return result;</span>
+        } else {
+<span class="fc" id="L208">            StringBuilder sb = new StringBuilder();</span>
+<span class="fc" id="L209">            sb.append(&quot;ERROR: Incorrect parameter usage.&quot;);</span>
+<span class="fc bfc" id="L210" title="All 2 branches covered.">            if (unknownArguments.size() &gt; 0) {</span>
+<span class="fc" id="L211">                sb.append(&quot;\n&quot;);</span>
+<span class="fc" id="L212">                sb.append(tab(1) + &quot;The following arguments are unknown:\n&quot;);</span>
+<span class="fc bfc" id="L213" title="All 2 branches covered.">                for (String unknownParameter : unknownArguments) {</span>
+<span class="fc" id="L214">                    sb.append(tab(2) + unknownParameter + &quot;\n&quot;);</span>
+<span class="fc" id="L215">                }</span>
+            }
+<span class="fc bfc" id="L217" title="All 2 branches covered.">            if (missingArguments.size() &gt; 0) {</span>
+<span class="fc" id="L218">                sb.append(&quot;\n&quot;);</span>
+<span class="fc" id="L219">                sb.append(tab(1) + &quot;The following mandatory arguments are missing or poorly formed, use --help for more information:\n&quot;);</span>
+<span class="fc" id="L220">                int longestKeyWord = 0;</span>
+<span class="fc bfc" id="L221" title="All 2 branches covered.">                for (Parameter missingParameter : missingArguments) {</span>
+<span class="pc bpc" id="L222" title="1 of 2 branches missed.">                    if (missingParameter.getKeyWord().length() &gt; longestKeyWord) {</span>
+<span class="fc" id="L223">                        longestKeyWord = missingParameter.getKeyWord().length();</span>
+                    }
+<span class="fc" id="L225">                }</span>
+<span class="fc" id="L226">                String indent = tab(longestKeyWord / TAB.length() + 2);</span>
+<span class="fc bfc" id="L227" title="All 2 branches covered.">                for (Parameter missingParameter : missingArguments) {</span>
+<span class="fc" id="L228">                    sb.append(tab(2) + missingParameter.getKeyWord() + indent.substring(missingParameter.getKeyWord().length()));</span>
+<span class="fc" id="L229">                    List&lt;String&gt; lines = CommandBase.splitStringIntoLines(missingParameter.getInstruction(), 120 - indent.length());</span>
+<span class="pc bpc" id="L230" title="1 of 2 branches missed.">                    if (lines.size() &gt; 0) {</span>
+<span class="nc" id="L231">                        sb.append(lines.get(0) + &quot;\n&quot;);</span>
+<span class="nc bnc" id="L232" title="All 2 branches missed.">                        for (int i = 1; i &lt; lines.size(); i++) {</span>
+<span class="nc" id="L233">                            sb.append(tab(2) + indent + lines.get(i) + &quot;\n&quot;);</span>
+                        }
+                    }
+
+<span class="fc" id="L237">                }</span>
+            }
+<span class="fc" id="L239">            sb.append(CR + &quot;Run command with \&quot;&quot; + HELP_KEY + &quot;\&quot; to see full manual page.&quot;);</span>
+<span class="fc" id="L240">            log.info(sb);</span>
+<span class="fc" id="L241">            return null;</span>
+        }
+    }
+
+    /**
+     * @return the mandatoryParameters
+     */
+    public List&lt;String&gt; getMandatoryParameters() {
+<span class="nc" id="L249">        return mandatoryParameters;</span>
+    }
+
+    /**
+     * @return the optionalParameters
+     */
+    public List&lt;String&gt; getOptionalParameters() {
+<span class="nc" id="L256">        return optionalParameters;</span>
+    }
+
+    /**
+     * @return the standaloneParameters
+     */
+    public LinkedList&lt;String&gt; getStandaloneParameters() {
+<span class="nc" id="L263">        return standaloneParameters;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

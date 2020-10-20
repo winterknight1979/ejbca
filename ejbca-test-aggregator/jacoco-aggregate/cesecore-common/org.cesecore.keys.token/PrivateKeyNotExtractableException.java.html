@@ -9,48 +9,52 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.keys.token;
 
 import org.cesecore.CesecoreException;
 
 /**
- * An exception thrown when someone tries to extract a Private Key from a Crypto Token that doesn't allow it.
+ * An exception thrown when someone tries to extract a Private Key from a Crypto
+ * Token that doesn't allow it.
  *
- * @version $Id: PrivateKeyNotExtractableException.java 17625 2013-09-20 07:12:06Z netmackan $
+ * @version $Id: PrivateKeyNotExtractableException.java 17625 2013-09-20
+ *     07:12:06Z netmackan $
  */
 public class PrivateKeyNotExtractableException extends CesecoreException {
 
-    private static final long serialVersionUID = -5484077868101864920L;
+  private static final long serialVersionUID = -5484077868101864920L;
 
-    
-    /**
-     * Creates a new instance of &lt;code&gt;PrivateKeyNotExtractableException&lt;/code&gt; with the cause 
-     * @param exception exception
-     */
-    public PrivateKeyNotExtractableException(Exception exception) {
-<span class="nc" id="L32">        super(exception);       </span>
-<span class="nc" id="L33">    }</span>
+  /**
+   * Creates a new instance of &lt;code&gt;PrivateKeyNotExtractableException&lt;/code&gt;
+   * with the cause.
+   *
+   * @param exception exception
+   */
+  public PrivateKeyNotExtractableException(final Exception exception) {
+<span class="nc" id="L35">    super(exception);</span>
+<span class="nc" id="L36">  }</span>
 
-    
-    /**
-     * Creates a new instance of &lt;code&gt;PrivateKeyNotExtractableException&lt;/code&gt; with the specified detail message and cause 
-     * @param message message
-     * @param cause cause
-     */
-    public PrivateKeyNotExtractableException(String message, Throwable cause) {
-<span class="nc" id="L42">        super(message, cause);</span>
-<span class="nc" id="L43">    }</span>
+  /**
+   * Creates a new instance of &lt;code&gt;PrivateKeyNotExtractableException&lt;/code&gt;
+   * with the specified detail message and cause.
+   *
+   * @param message message
+   * @param cause cause
+   */
+  public PrivateKeyNotExtractableException(
+          final String message, final Throwable cause) {
+<span class="nc" id="L47">    super(message, cause);</span>
+<span class="nc" id="L48">  }</span>
 
-    
-    /**
-     * Creates a new instance of &lt;code&gt;PrivateKeyNotExtractableException&lt;/code&gt; with the specified detail message 
-     * @param message message
-     */
-    public PrivateKeyNotExtractableException(String message) {
-<span class="nc" id="L51">        super(message);</span>
-<span class="nc" id="L52">    }</span>
-
-    
+  /**
+   * Creates a new instance of &lt;code&gt;PrivateKeyNotExtractableException&lt;/code&gt;
+   * with the specified detail message.
+   *
+   * @param message message
+   */
+  public PrivateKeyNotExtractableException(final String message) {
+<span class="nc" id="L57">    super(message);</span>
+<span class="nc" id="L58">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

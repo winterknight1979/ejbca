@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>BaseInternalKeyBindingCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.keybind</a> &gt; <span class="el_source">BaseInternalKeyBindingCommand.java</span></div><h1>BaseInternalKeyBindingCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.cli.keybind;
+
+import java.io.Serializable;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import org.cesecore.certificates.util.AlgorithmConstants;
+import org.cesecore.certificates.util.AlgorithmTools;
+import org.cesecore.keybind.InternalKeyBindingFactory;
+import org.cesecore.keybind.InternalKeyBindingMgmtSessionRemote;
+import org.cesecore.keybind.InternalKeyBindingPropertyValidationWrapper;
+import org.cesecore.keybind.InternalKeyBindingStatus;
+import org.cesecore.util.EjbRemoteHelper;
+import org.cesecore.util.ui.DynamicUiProperty;
+import org.ejbca.ui.cli.infrastructure.command.EjbcaCliUserCommandBase;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+
+/**
+ * @version $Id: BaseInternalKeyBindingCommand.java 23648 2016-06-09 15:19:55Z mikekushner $
+ *
+ */
+<span class="nc" id="L37">public abstract class BaseInternalKeyBindingCommand extends EjbcaCliUserCommandBase {</span>
+
+    protected static final String KEYBINDING_NAME_KEY = &quot;--name&quot;;
+
+    {
+<span class="nc" id="L42">        registerParameter(new Parameter(KEYBINDING_NAME_KEY, &quot;Internal Keybinding Name&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW,</span>
+                ParameterMode.ARGUMENT, &quot;Name of the key binding.&quot;));
+<span class="nc" id="L44">    }</span>
+    
+    @Override
+    public String[] getCommandPath() {
+<span class="nc" id="L48">        return new String[] { &quot;keybind&quot; };</span>
+    }
+
+    protected Map&lt;String, Serializable&gt; validateProperties(String type, Map&lt;String, String&gt; dataMap) {
+<span class="nc" id="L52">        InternalKeyBindingPropertyValidationWrapper validatedProperties = InternalKeyBindingFactory.INSTANCE.validateProperties(type, dataMap);</span>
+<span class="nc bnc" id="L53" title="All 2 branches missed.">        if (!validatedProperties.arePropertiesValid()) {</span>
+<span class="nc" id="L54">            StringBuffer stringBuffer = new StringBuffer();</span>
+<span class="nc" id="L55">            stringBuffer.append('\n');</span>
+<span class="nc" id="L56">            stringBuffer.append(&quot;ERROR: Could not parse properties\n&quot;);</span>
+<span class="nc" id="L57">            stringBuffer.append('\n');</span>
+<span class="nc bnc" id="L58" title="All 2 branches missed.">            if (validatedProperties.getUnknownProperties().size() &gt; 0) {</span>
+<span class="nc" id="L59">                stringBuffer.append(&quot;The following properties were unknown for the type: &quot; + type + &quot;\n&quot;);</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">                for (String propertyName : validatedProperties.getUnknownProperties()) {</span>
+<span class="nc" id="L61">                    stringBuffer.append(&quot;    * '&quot; + propertyName + &quot;'\n&quot;);</span>
+<span class="nc" id="L62">                }</span>
+<span class="nc" id="L63">                stringBuffer.append('\n');</span>
+            }
+<span class="nc bnc" id="L65" title="All 2 branches missed.">            if (validatedProperties.getInvalidValues().size() &gt; 0) {</span>
+<span class="nc" id="L66">                stringBuffer.append(&quot;The following values were invalid:\n&quot;);</span>
+<span class="nc bnc" id="L67" title="All 2 branches missed.">                for (Entry&lt;String, Class&lt;?&gt;&gt; entry : validatedProperties.getInvalidValues().entrySet()) {</span>
+<span class="nc" id="L68">                    stringBuffer.append(&quot;Value '&quot; + dataMap.get(entry.getKey()) + &quot;' for property '&quot; + entry.getKey() + &quot;' was not of type &quot;</span>
+<span class="nc" id="L69">                            + entry.getValue().getSimpleName() + &quot;\n&quot;);</span>
+<span class="nc" id="L70">                }</span>
+<span class="nc" id="L71">                stringBuffer.append('\n');</span>
+            }
+<span class="nc" id="L73">            getLogger().error(stringBuffer);</span>
+<span class="nc" id="L74">            return null;</span>
+        }
+<span class="nc" id="L76">        return validatedProperties.getPropertiesCopy();</span>
+    }
+    
+    /** Lists available types and their properties 
+     * @return Props */
+    protected String showTypesProperties() {
+<span class="nc" id="L82">        final InternalKeyBindingMgmtSessionRemote internalKeyBindingMgmtSession = EjbRemoteHelper.INSTANCE</span>
+<span class="nc" id="L83">                .getRemoteSession(InternalKeyBindingMgmtSessionRemote.class);</span>
+<span class="nc" id="L84">        Map&lt;String, Map&lt;String, DynamicUiProperty&lt;? extends Serializable&gt;&gt;&gt; typesAndProperties = internalKeyBindingMgmtSession</span>
+<span class="nc" id="L85">                .getAvailableTypesAndProperties();</span>
+<span class="nc" id="L86">        final StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L87">        sb.append(&quot;Registered implementation types and implemention specific properties:\n&quot;);</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">        for (Entry&lt;String, Map&lt;String, DynamicUiProperty&lt;? extends Serializable&gt;&gt;&gt; entry : typesAndProperties.entrySet()) {</span>
+<span class="nc" id="L89">            sb.append(' ').append(entry.getKey()).append(&quot;:\n&quot;);</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">            for (DynamicUiProperty&lt;? extends Serializable&gt; property : entry.getValue().values()) {</span>
+<span class="nc" id="L91">                sb.append(&quot;    &quot; + property.getName()).append(&quot;,\n&quot;);</span>
+<span class="nc" id="L92">            }</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">            if (sb.charAt(sb.length() - 2) == ',') {</span>
+<span class="nc" id="L94">                sb.deleteCharAt(sb.length() - 2);</span>
+            }
+<span class="nc" id="L96">            sb.append('\n');</span>
+<span class="nc" id="L97">        }</span>
+<span class="nc" id="L98">        return sb.toString();</span>
+    }
+
+    protected String showStatuses() {
+<span class="nc" id="L102">        final StringBuilder sb = new StringBuilder(&quot;Status is one of &quot;);</span>
+<span class="nc bnc" id="L103" title="All 2 branches missed.">        for (InternalKeyBindingStatus internalKeyBindingStatus : InternalKeyBindingStatus.values()) {</span>
+<span class="nc" id="L104">            sb.append(internalKeyBindingStatus.name()).append(',');</span>
+        }
+<span class="nc" id="L106">        sb.deleteCharAt(sb.length() - 1);</span>
+<span class="nc" id="L107">        return  sb.append('\n').toString();</span>
+    }
+
+    protected String showSigAlgs() {
+<span class="nc" id="L111">        final StringBuilder sbAlg = new StringBuilder(&quot;Signature algorithm is one of &quot;);</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">        for (final String algorithm : AlgorithmConstants.AVAILABLE_SIGALGS) {</span>
+<span class="nc bnc" id="L113" title="All 2 branches missed.">            if (AlgorithmTools.isSigAlgEnabled(algorithm)) {</span>
+<span class="nc" id="L114">                sbAlg.append(algorithm).append(',');</span>
+            }
+        }
+<span class="nc" id="L117">        return sbAlg.deleteCharAt(sbAlg.length() - 1).append('\n').toString();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

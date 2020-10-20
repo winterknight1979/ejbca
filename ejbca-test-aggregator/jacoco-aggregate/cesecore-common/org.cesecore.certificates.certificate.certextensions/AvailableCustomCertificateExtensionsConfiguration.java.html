@@ -9,7 +9,7 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.certificate.certextensions;
 
 import java.io.IOException;
@@ -22,235 +22,353 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Properties;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.cesecore.configuration.ConfigurationBase;
 
 /**
- * This file handles configuration of available Custom Certificate Extensions
- * 
- * @version $Id: AvailableCustomCertificateExtensionsConfiguration.java 30583 2018-11-22 17:32:11Z samuellb $
+ * This file handles configuration of available Custom Certificate Extensions.
+ *
+ * @version $Id: AvailableCustomCertificateExtensionsConfiguration.java 30583
+ *     2018-11-22 17:32:11Z samuellb $
  */
-public class AvailableCustomCertificateExtensionsConfiguration extends ConfigurationBase implements Serializable{
+public class AvailableCustomCertificateExtensionsConfiguration
+    extends ConfigurationBase implements Serializable {
 
-    private static final long serialVersionUID = 7798273820046510706L;
-<span class="fc" id="L38">    private static final Logger log = Logger.getLogger(AvailableCustomCertificateExtensionsConfiguration.class);</span>
-    
-    public static final String CONFIGURATION_ID = &quot;AVAILABLE_CUSTOM_CERT_EXTENSIONS&quot;;
-    
-    public AvailableCustomCertificateExtensionsConfiguration() {
-<span class="fc" id="L43">        super();</span>
-<span class="pc bpc" id="L44" title="1 of 2 branches missed.">        if(!isConfigurationInitialized()) {</span>
-<span class="fc" id="L45">            addAvailableCustomCertExtensionsFromFile();</span>
+  private static final long serialVersionUID = 7798273820046510706L;
+  /** Logger. */
+<span class="fc" id="L40">  private static final Logger LOG =</span>
+<span class="fc" id="L41">      Logger.getLogger(AvailableCustomCertificateExtensionsConfiguration.class);</span>
+
+  /** ID. */
+  public static final String CONFIGURATION_ID =
+      &quot;AVAILABLE_CUSTOM_CERT_EXTENSIONS&quot;;
+
+  /** Constructor. */
+  public AvailableCustomCertificateExtensionsConfiguration() {
+<span class="fc" id="L49">    super();</span>
+<span class="pc bpc" id="L50" title="1 of 2 branches missed.">    if (!isConfigurationInitialized()) {</span>
+<span class="fc" id="L51">      addAvailableCustomCertExtensionsFromFile();</span>
+    }
+<span class="fc" id="L53">  }</span>
+
+  /**
+   * @param dataobj Object
+   */
+  public AvailableCustomCertificateExtensionsConfiguration(
+<span class="nc" id="L59">      final Serializable dataobj) {</span>
+    @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L61">    LinkedHashMap&lt;Object, Object&gt; d = (LinkedHashMap&lt;Object, Object&gt;) dataobj;</span>
+<span class="nc" id="L62">    data = d;</span>
+<span class="nc" id="L63">  }</span>
+
+  @Override
+  public String getConfigurationId() {
+<span class="nc" id="L67">    return CONFIGURATION_ID;</span>
+  }
+
+  /**
+   * @return true if there is at least one supported Custom Certificate
+   *     Extension. False otherwize
+   */
+  public boolean isConfigurationInitialized() {
+<span class="pc bpc" id="L75" title="1 of 2 branches missed.">    return data.size() &gt; 1;</span>
+  }
+
+  /** @param id ID
+   * @return boolean */
+  public boolean isCustomCertExtensionSupported(final int id) {
+<span class="nc" id="L81">    return data.containsKey(id);</span>
+  }
+
+  /** @param id ID
+ * @return  CE*/
+  public CustomCertificateExtension getCustomCertificateExtension(
+          final int id) {
+<span class="fc" id="L88">    return (CustomCertificateExtension) data.get(id);</span>
+  }
+
+  /** @param ce Extension  */
+  public void addCustomCertExtension(final CertificateExtension ce) {
+<span class="nc" id="L93">    data.put(ce.getId(), ce);</span>
+<span class="nc" id="L94">  }</span>
+
+  /**
+   * @param id ID
+   * @param oid OID
+   * @param displayName Name
+   * @param classPath Classpath
+   * @param critical true if Critical
+   * @param required reue if required
+   * @param properties Properties
+   * @throws CertificateExtentionConfigurationException on error
+   */
+  public void addCustomCertExtension(
+      final int id,
+      final String oid,
+      final String displayName,
+      final String classPath,
+      final boolean critical,
+      final boolean required,
+      final Properties properties)
+      throws CertificateExtentionConfigurationException {
+    try {
+<span class="fc" id="L116">      Class&lt;?&gt; implClass = Class.forName(classPath);</span>
+<span class="fc" id="L117">      CertificateExtension certificateExtension =</span>
+<span class="fc" id="L118">          (CertificateExtension) implClass.getConstructor().newInstance();</span>
+<span class="fc" id="L119">      certificateExtension.init(</span>
+<span class="fc" id="L120">          id, oid.trim(), displayName, critical, required, properties);</span>
+<span class="fc" id="L121">      data.put(id, certificateExtension);</span>
+<span class="nc" id="L122">    } catch (ClassNotFoundException e) {</span>
+<span class="nc" id="L123">      throw new CertificateExtentionConfigurationException(</span>
+          &quot;Cannot add custom certificate extension. &quot;
+<span class="nc" id="L125">              + e.getLocalizedMessage());</span>
+<span class="nc" id="L126">    } catch (InstantiationException e) {</span>
+<span class="nc" id="L127">      throw new CertificateExtentionConfigurationException(</span>
+          &quot;Cannot add custom certificate extension. &quot;
+<span class="nc" id="L129">              + e.getLocalizedMessage());</span>
+<span class="nc" id="L130">    } catch (IllegalAccessException e) {</span>
+<span class="nc" id="L131">      throw new CertificateExtentionConfigurationException(</span>
+          &quot;Cannot add custom certificate extension. &quot;
+<span class="nc" id="L133">              + e.getLocalizedMessage());</span>
+<span class="nc" id="L134">    } catch (InvocationTargetException e) {</span>
+<span class="nc" id="L135">      throw new CertificateExtentionConfigurationException(</span>
+          &quot;Cannot add custom certificate extension. &quot;
+<span class="nc" id="L137">              + e.getLocalizedMessage());</span>
+<span class="nc" id="L138">    } catch (NoSuchMethodException e) {</span>
+<span class="nc" id="L139">      throw new CertificateExtentionConfigurationException(</span>
+          &quot;Cannot add custom certificate extension. &quot;
+<span class="nc" id="L141">              + e.getLocalizedMessage());</span>
+<span class="fc" id="L142">    }</span>
+<span class="fc" id="L143">  }</span>
+
+  /**
+   * @param id ID
+   */
+  public void removeCustomCertExtension(final int id) {
+<span class="nc" id="L149">    data.remove(id);</span>
+<span class="nc" id="L150">  }</span>
+  /**
+   * @return extensions
+   */
+  public List&lt;CertificateExtension&gt;
+      getAllAvailableCustomCertificateExtensions() {
+<span class="nc" id="L156">    List&lt;CertificateExtension&gt; ret = new ArrayList&lt;CertificateExtension&gt;();</span>
+<span class="nc bnc" id="L157" title="All 2 branches missed.">    for (Entry&lt;Object, Object&gt; entry : data.entrySet()) {</span>
+<span class="nc" id="L158">      Object value = entry.getValue();</span>
+<span class="nc bnc" id="L159" title="All 2 branches missed.">      if (value instanceof CertificateExtension) {</span>
+<span class="nc" id="L160">        CertificateExtension ext = (CertificateExtension) value;</span>
+<span class="nc" id="L161">        ret.add(ext);</span>
+      }
+<span class="nc" id="L163">    }</span>
+<span class="nc" id="L164">    return ret;</span>
+  }
+
+  /**
+   * Returns a list of the available CertificateExtensions as Properties. Each
+   * property contains the extension OID as its 'key' and the extension's label
+   * as its 'value'
+   *
+   * @return Properties
+   */
+  public Properties getAsProperties() {
+<span class="nc" id="L175">    Properties properties = new Properties();</span>
+<span class="nc bnc" id="L176" title="All 2 branches missed.">    for (Entry&lt;Object, Object&gt; entry : data.entrySet()) {</span>
+<span class="nc bnc" id="L177" title="All 2 branches missed.">      if (entry.getValue() instanceof CertificateExtension) {</span>
+<span class="nc" id="L178">        CertificateExtension ce = (CertificateExtension) entry.getValue();</span>
+<span class="nc" id="L179">        properties.setProperty(</span>
+<span class="nc" id="L180">            Integer.toString(ce.getId()), ce.getDisplayName());</span>
+      }
+<span class="nc" id="L182">    }</span>
+<span class="nc" id="L183">    return properties;</span>
+  }
+
+  /**
+   * Returns a new AvailableCustomCertificateExtensionsConfiguration
+   * object containing only extensions from the properties
+   * file certextensions.properties
+   *
+   * This method is called only when upgrading CertificateProfile to
+   *  EJBCA 6.4.0 where the CustomCertExtensions are
+   * redefined to be referenced by their OIDs instead of IDs.
+   *
+   * TODO Remove this method when support for EJBCA 6.4.0 is dropped.
+ * @return congig
+   */
+  @Deprecated
+  public static AvailableCustomCertificateExtensionsConfiguration
+      getAvailableCustomCertExtensionsFromFile() {
+<span class="nc" id="L201">    return new AvailableCustomCertificateExtensionsConfiguration();</span>
+  }
+
+  /**
+   * Imports CustomCertExtensions from certextensions.properties
+   * into the database.
+   *
+   * TODO Remove this method when support for EJBCA 6.4.0 is dropped.
+   */
+  @Deprecated
+  private void addAvailableCustomCertExtensionsFromFile() {
+    // If the file has already been removed, no need to go further
+<span class="fc" id="L213">    InputStream is =</span>
+<span class="fc" id="L214">        CertificateExtensionFactory.class.getResourceAsStream(</span>
+            &quot;/certextensions.properties&quot;);
+<span class="pc bpc" id="L216" title="1 of 2 branches missed.">    if (is == null) {</span>
+<span class="nc" id="L217">      return;</span>
+    }
+
+    try {
+<span class="fc" id="L221">      Properties props = new Properties();</span>
+      try {
+<span class="fc" id="L223">        props.load(is);</span>
+      } finally {
+<span class="fc" id="L225">        is.close();</span>
+      }
+
+<span class="fc" id="L228">      int count = 0;</span>
+<span class="fc bfc" id="L229" title="All 2 branches covered.">      for (int i = 1; i &lt; 255; i++) {</span>
+<span class="pc bpc" id="L230" title="1 of 2 branches missed.">        if (props.get(&quot;id&quot; + i + &quot;.oid&quot;) != null) {</span>
+<span class="nc bnc" id="L231" title="All 2 branches missed.">          if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L232">            LOG.debug(&quot;found &quot; + props.get(&quot;id&quot; + i + &quot;.oid&quot;));</span>
+          }
+<span class="nc" id="L234">          CertificateExtension ce = getCertificateExtensionFromFile(i, props);</span>
+<span class="nc" id="L235">          addCustomCertExtension(ce);</span>
+<span class="nc" id="L236">          count++;</span>
         }
-<span class="fc" id="L47">    }</span>
-    
-<span class="nc" id="L49">    public AvailableCustomCertificateExtensionsConfiguration(Serializable dataobj) {</span>
-        @SuppressWarnings(&quot;unchecked&quot;)
-<span class="nc" id="L51">        LinkedHashMap&lt;Object, Object&gt; d = (LinkedHashMap&lt;Object, Object&gt;) dataobj;</span>
-<span class="nc" id="L52">        data = d;</span>
-<span class="nc" id="L53">    }</span>
-    
-    @Override
-    public String getConfigurationId() {
-<span class="nc" id="L57">        return CONFIGURATION_ID;</span>
-    }
-    
-    /**
-     * @return true if there is at least one supported Custom Certificate Extension. False otherwize 
-     */
-    public boolean isConfigurationInitialized() {
-<span class="pc bpc" id="L64" title="1 of 2 branches missed.">        return data.size() &gt; 1;</span>
-    }
+      }
+<span class="pc bpc" id="L239" title="1 of 2 branches missed.">      if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L240">        LOG.debug(</span>
+            &quot;Nr of read Custom Certificate Extensions from file: &quot; + count);
+      }
+<span class="nc" id="L243">    } catch (IOException e) {</span>
+<span class="nc" id="L244">      LOG.error(&quot;Error parsing the 'certextensions.properties' file.&quot;, e);</span>
+<span class="nc" id="L245">    } catch (CertificateExtentionConfigurationException e) {</span>
+<span class="nc" id="L246">      LOG.error(e.getMessage(), e);</span>
+<span class="pc" id="L247">    }</span>
+<span class="fc" id="L248">  }</span>
 
-    public boolean isCustomCertExtensionSupported(int id) {
-<span class="nc" id="L68">        return data.containsKey(id);</span>
-    }
-    
-    public CustomCertificateExtension getCustomCertificateExtension(int id) {
-<span class="fc" id="L72">        return (CustomCertificateExtension) data.get(id);</span>
-    }
-    
-    public void addCustomCertExtension(CertificateExtension ce) {
-<span class="nc" id="L76">        data.put(ce.getId(), ce);</span>
-<span class="nc" id="L77">    }</span>
-    
-    public void addCustomCertExtension(int id, String oid, String displayName, String classPath, boolean critical, 
-            final boolean required, Properties properties) throws CertificateExtentionConfigurationException {
-        try {
-<span class="fc" id="L82">            Class&lt;?&gt; implClass = Class.forName(classPath);</span>
-<span class="fc" id="L83">            CertificateExtension certificateExtension = (CertificateExtension) implClass.getConstructor().newInstance();</span>
-<span class="fc" id="L84">            certificateExtension.init(id, oid.trim(), displayName, critical, required, properties);</span>
-<span class="fc" id="L85">            data.put(id, certificateExtension);</span>
-<span class="nc" id="L86">        } catch (ClassNotFoundException e) {</span>
-<span class="nc" id="L87">            throw new CertificateExtentionConfigurationException(&quot;Cannot add custom certificate extension. &quot; + e.getLocalizedMessage());</span>
-<span class="nc" id="L88">        } catch (InstantiationException e) {</span>
-<span class="nc" id="L89">            throw new CertificateExtentionConfigurationException(&quot;Cannot add custom certificate extension. &quot; + e.getLocalizedMessage());</span>
-<span class="nc" id="L90">        } catch (IllegalAccessException e) {</span>
-<span class="nc" id="L91">            throw new CertificateExtentionConfigurationException(&quot;Cannot add custom certificate extension. &quot; + e.getLocalizedMessage());</span>
-<span class="nc" id="L92">        } catch (InvocationTargetException e) {</span>
-<span class="nc" id="L93">            throw new CertificateExtentionConfigurationException(&quot;Cannot add custom certificate extension. &quot; + e.getLocalizedMessage());</span>
-<span class="nc" id="L94">		} catch (NoSuchMethodException e) {</span>
-<span class="nc" id="L95">            throw new CertificateExtentionConfigurationException(&quot;Cannot add custom certificate extension. &quot; + e.getLocalizedMessage());</span>
-<span class="fc" id="L96">		} </span>
-<span class="fc" id="L97">    }</span>
-    
-    public void removeCustomCertExtension(int id) {
-<span class="nc" id="L100">        data.remove(id);</span>
-<span class="nc" id="L101">    }</span>
-    
-    public List&lt;CertificateExtension&gt; getAllAvailableCustomCertificateExtensions() {
-<span class="nc" id="L104">        List&lt;CertificateExtension&gt; ret = new ArrayList&lt;CertificateExtension&gt;();</span>
-<span class="nc bnc" id="L105" title="All 2 branches missed.">        for(Entry&lt;Object, Object&gt; entry : data.entrySet()) {</span>
-<span class="nc" id="L106">            Object value = entry.getValue();</span>
-<span class="nc bnc" id="L107" title="All 2 branches missed.">            if(value instanceof CertificateExtension) {</span>
-<span class="nc" id="L108">                CertificateExtension ext = (CertificateExtension) value;</span>
-<span class="nc" id="L109">                ret.add(ext);</span>
-            }
-<span class="nc" id="L111">        }</span>
-<span class="nc" id="L112">        return ret;</span>
-    }
-    
-    /**
-     * Returns a list of the available CertificateExtensions as Properties. Each property contains the extension OID 
-     * as its 'key' and the extension's label as its 'value'
-     * @return Properties
-     */
-    public Properties getAsProperties() {
-<span class="nc" id="L121">        Properties properties = new Properties();</span>
-<span class="nc bnc" id="L122" title="All 2 branches missed.">        for(Entry&lt;Object, Object&gt; entry : data.entrySet()) {</span>
-<span class="nc bnc" id="L123" title="All 2 branches missed.">            if(entry.getValue() instanceof CertificateExtension) {</span>
-<span class="nc" id="L124">                CertificateExtension ce = (CertificateExtension) entry.getValue();</span>
-<span class="nc" id="L125">                properties.setProperty(Integer.toString(ce.getId()), ce.getDisplayName());</span>
-            }
-<span class="nc" id="L127">        }</span>
-<span class="nc" id="L128">        return properties;</span>
-    }
-    
-    /*
-     * Returns a new AvailableCustomCertificateExtensionsConfiguration object containing only extensions from the properties  
-     * file certextensions.properties 
-     * 
-     * This method is called only when upgrading CertificateProfile to EJBCA 6.4.0 where the CustomCertExtensions are 
-     * redefined to be referenced by their OIDs instead of IDs. 
-     * 
-     * TODO Remove this method when support for EJBCA 6.4.0 is dropped.
-     */
-    @Deprecated
-    public static AvailableCustomCertificateExtensionsConfiguration getAvailableCustomCertExtensionsFromFile() {
-<span class="nc" id="L142">        return new AvailableCustomCertificateExtensionsConfiguration();</span>
-    }
-    
-    
-    /*
-     * Imports CustomCertExtensions from certextensions.properties into the database.
-     * 
-     * TODO Remove this method when support for EJBCA 6.4.0 is dropped.
-     */
-    @Deprecated
-    private void addAvailableCustomCertExtensionsFromFile() {
-        // If the file has already been removed, no need to go further
-<span class="fc" id="L154">        InputStream is = CertificateExtensionFactory.class.getResourceAsStream(&quot;/certextensions.properties&quot;);</span>
-<span class="pc bpc" id="L155" title="1 of 2 branches missed.">        if(is == null) {</span>
-<span class="nc" id="L156">            return;</span>
+  /**
+   * Used for upgrading from old certextensions.properties files.
+   * Package-internal to allow for testing.
+   *
+   * @param id ID
+   * @param propertiesInFile Properties
+   * @return Certificate extension
+   * @throws CertificateExtentionConfigurationException on fail
+   */
+  static CertificateExtension getCertificateExtensionFromFile(
+      final int id, final Properties propertiesInFile)
+      throws CertificateExtentionConfigurationException {
+<span class="fc" id="L262">    String propertyId = &quot;id&quot;;</span>
+<span class="fc" id="L263">    String propertyOid = &quot;.oid&quot;;</span>
+<span class="fc" id="L264">    String propertyClassPath = &quot;.classpath&quot;;</span>
+<span class="fc" id="L265">    String propertyDisplayName = &quot;.displayname&quot;;</span>
+<span class="fc" id="L266">    String propertyUsed = &quot;.used&quot;;</span>
+<span class="fc" id="L267">    String propertyTranslatable = &quot;.translatable&quot;;</span>
+<span class="fc" id="L268">    String propertyCritical = &quot;.critical&quot;;</span>
+
+    try {
+<span class="fc" id="L271">      String oid =</span>
+<span class="fc" id="L272">          StringUtils.trim(</span>
+<span class="fc" id="L273">              propertiesInFile.getProperty(propertyId + id + propertyOid));</span>
+<span class="fc" id="L274">      String classPath =</span>
+<span class="fc" id="L275">          StringUtils.trim(</span>
+<span class="fc" id="L276">              propertiesInFile.getProperty(</span>
+                  propertyId + id + propertyClassPath));
+<span class="fc" id="L278">      String displayName =</span>
+<span class="fc" id="L279">          StringUtils.trim(</span>
+<span class="fc" id="L280">              propertiesInFile.getProperty(</span>
+                  propertyId + id + propertyDisplayName));
+<span class="fc" id="L282">      LOG.debug(</span>
+          propertyId
+              + id
+              + propertyUsed
+              + &quot;:&quot;
+<span class="fc" id="L287">              + propertiesInFile.getProperty(propertyId + id + propertyUsed));</span>
+<span class="fc" id="L288">      boolean used =</span>
+          propertiesInFile
+<span class="fc" id="L290">              .getProperty(propertyId + id + propertyUsed)</span>
+<span class="fc" id="L291">              .trim()</span>
+<span class="fc" id="L292">              .equalsIgnoreCase(&quot;TRUE&quot;);</span>
+<span class="fc" id="L293">      boolean translatable =</span>
+          propertiesInFile
+<span class="fc" id="L295">              .getProperty(propertyId + id + propertyTranslatable)</span>
+<span class="fc" id="L296">              .trim()</span>
+<span class="fc" id="L297">              .equalsIgnoreCase(&quot;TRUE&quot;);</span>
+<span class="fc" id="L298">      boolean critical =</span>
+          propertiesInFile
+<span class="fc" id="L300">              .getProperty(propertyId + id + propertyCritical)</span>
+<span class="fc" id="L301">              .trim()</span>
+<span class="fc" id="L302">              .equalsIgnoreCase(&quot;TRUE&quot;);</span>
+<span class="fc" id="L303">      LOG.debug(</span>
+          id
+              + &quot;, &quot;
+              + used
+              + &quot;, &quot;
+              + oid
+              + &quot;, &quot;
+              + critical
+              + &quot;, &quot;
+              + translatable
+              + &quot;, &quot;
+              + displayName);
+<span class="pc bpc" id="L315" title="1 of 2 branches missed.">      if (used) {</span>
+<span class="pc bpc" id="L316" title="3 of 6 branches missed.">        if (oid != null &amp;&amp; classPath != null &amp;&amp; displayName != null) {</span>
+<span class="fc" id="L317">          Class&lt;?&gt; implClass = Class.forName(classPath);</span>
+<span class="fc" id="L318">          CertificateExtension certificateExtension =</span>
+<span class="fc" id="L319">              (CertificateExtension) implClass.getConstructor().newInstance();</span>
+<span class="fc" id="L320">          Properties extensionProperties =</span>
+<span class="fc" id="L321">              getExtensionProperties(id, propertiesInFile);</span>
+<span class="pc bpc" id="L322" title="1 of 2 branches missed.">          if (translatable) {</span>
+<span class="fc" id="L323">            extensionProperties.put(&quot;translatable&quot;, true);</span>
+          }
+<span class="fc" id="L325">          certificateExtension.init(</span>
+              id,
+<span class="fc" id="L327">              oid.trim(),</span>
+              displayName,
+              critical,
+              /*required=*/ true,
+              extensionProperties);
+<span class="fc" id="L332">          return certificateExtension;</span>
+
+        } else {
+<span class="nc" id="L335">          throw new CertificateExtentionConfigurationException(</span>
+              &quot;Certificate Extension &quot;
+<span class="nc" id="L337">                  + Integer.valueOf(id)</span>
+                  + &quot; seems to be misconfigured in the&quot;
+                  + &quot; certextensions.properties&quot;);
         }
-        
-        try{
-<span class="fc" id="L160">            Properties props = new Properties();</span>
-            try {
-<span class="fc" id="L162">                props.load(is);</span>
-            } finally {
-<span class="fc" id="L164">                is.close();</span>
-            }
-            
-<span class="fc" id="L167">            int count = 0;</span>
-<span class="fc bfc" id="L168" title="All 2 branches covered.">            for(int i=1;i&lt;255;i++){</span>
-<span class="pc bpc" id="L169" title="1 of 2 branches missed.">                if(props.get(&quot;id&quot; + i +&quot;.oid&quot;)!=null){</span>
-<span class="nc bnc" id="L170" title="All 2 branches missed.">                    if(log.isDebugEnabled()) {</span>
-<span class="nc" id="L171">                        log.debug(&quot;found &quot; + props.get(&quot;id&quot; + i +&quot;.oid&quot;));</span>
-                    }
-<span class="nc" id="L173">                    CertificateExtension ce = getCertificateExtensionFromFile(i, props);</span>
-<span class="nc" id="L174">                    addCustomCertExtension(ce);</span>
-<span class="nc" id="L175">                    count++;</span>
-                }
-            }
-<span class="pc bpc" id="L178" title="1 of 2 branches missed.">            if(log.isDebugEnabled()) {</span>
-<span class="nc" id="L179">                log.debug(&quot;Nr of read Custom Certificate Extensions from file: &quot; + count);</span>
-            }
-<span class="nc" id="L181">        }catch(IOException e){</span>
-<span class="nc" id="L182">            log.error(&quot;Error parsing the 'certextensions.properties' file.&quot;,e);</span>
-<span class="nc" id="L183">        } catch (CertificateExtentionConfigurationException e) {</span>
-<span class="nc" id="L184">            log.error(e.getMessage(),e);</span>
-<span class="pc" id="L185">        }</span>
-<span class="fc" id="L186">    }</span>
-    
-    /**
-     * Used for upgrading from old certextensions.properties files.
-     * Package-internal to allow for testing.
-     * @param id ID
-     * @param propertiesInFile Properties
-     * @return Certificate extension
-     * @throws CertificateExtentionConfigurationException on fail 
-     */
-    static CertificateExtension getCertificateExtensionFromFile(int id, Properties propertiesInFile) throws CertificateExtentionConfigurationException {
-<span class="fc" id="L197">        String PROPERTY_ID           = &quot;id&quot;;</span>
-<span class="fc" id="L198">        String PROPERTY_OID          = &quot;.oid&quot;;</span>
-<span class="fc" id="L199">        String PROPERTY_CLASSPATH    = &quot;.classpath&quot;;</span>
-<span class="fc" id="L200">        String PROPERTY_DISPLAYNAME  = &quot;.displayname&quot;;</span>
-<span class="fc" id="L201">        String PROPERTY_USED         = &quot;.used&quot;;</span>
-<span class="fc" id="L202">        String PROPERTY_TRANSLATABLE = &quot;.translatable&quot;;</span>
-<span class="fc" id="L203">        String PROPERTY_CRITICAL     = &quot;.critical&quot;;</span>
-        
-        try{
-<span class="fc" id="L206">            String oid = StringUtils.trim(propertiesInFile.getProperty(PROPERTY_ID + id + PROPERTY_OID));</span>
-<span class="fc" id="L207">            String classPath = StringUtils.trim(propertiesInFile.getProperty(PROPERTY_ID + id + PROPERTY_CLASSPATH));</span>
-<span class="fc" id="L208">            String displayName = StringUtils.trim(propertiesInFile.getProperty(PROPERTY_ID + id + PROPERTY_DISPLAYNAME));</span>
-<span class="fc" id="L209">            log.debug(PROPERTY_ID + id + PROPERTY_USED + &quot;:&quot; + propertiesInFile.getProperty(PROPERTY_ID + id + PROPERTY_USED));</span>
-<span class="fc" id="L210">            boolean used = propertiesInFile.getProperty(PROPERTY_ID + id + PROPERTY_USED).trim().equalsIgnoreCase(&quot;TRUE&quot;);</span>
-<span class="fc" id="L211">            boolean translatable = propertiesInFile.getProperty(PROPERTY_ID + id + PROPERTY_TRANSLATABLE).trim().equalsIgnoreCase(&quot;TRUE&quot;);</span>
-<span class="fc" id="L212">            boolean critical = propertiesInFile.getProperty(PROPERTY_ID + id + PROPERTY_CRITICAL).trim().equalsIgnoreCase(&quot;TRUE&quot;);</span>
-<span class="fc" id="L213">            log.debug(id + &quot;, &quot; + used + &quot;, &quot; +oid + &quot;, &quot; +critical+ &quot;, &quot; +translatable +  &quot;, &quot; + displayName);   </span>
-<span class="pc bpc" id="L214" title="1 of 2 branches missed.">            if(used){</span>
-<span class="pc bpc" id="L215" title="3 of 6 branches missed.">                if(oid != null &amp;&amp; classPath != null &amp;&amp; displayName != null){</span>
-<span class="fc" id="L216">                    Class&lt;?&gt; implClass = Class.forName(classPath);</span>
-<span class="fc" id="L217">                    CertificateExtension certificateExtension = (CertificateExtension) implClass.getConstructor().newInstance();</span>
-<span class="fc" id="L218">                    Properties extensionProperties = getExtensionProperties(id, propertiesInFile);</span>
-<span class="pc bpc" id="L219" title="1 of 2 branches missed.">                    if(translatable) {</span>
-<span class="fc" id="L220">                        extensionProperties.put(&quot;translatable&quot;, true);</span>
-                    }
-<span class="fc" id="L222">                    certificateExtension.init(id, oid.trim(), displayName, critical, /*required=*/true, extensionProperties);</span>
-<span class="fc" id="L223">                    return certificateExtension;</span>
+      }
 
-                }else{
-<span class="nc" id="L226">                    throw new CertificateExtentionConfigurationException(&quot;Certificate Extension &quot; + Integer.valueOf(id) + &quot; seems to be misconfigured in the certextensions.properties&quot;);</span>
-                }
-            }
-            
-<span class="nc" id="L230">        }catch(Exception e){</span>
-<span class="nc" id="L231">            throw new CertificateExtentionConfigurationException(&quot;Certificate Extension &quot; + Integer.valueOf(id) + &quot; seems to be misconfigured in the certextensions.properties&quot;,e);</span>
-<span class="nc" id="L232">        }</span>
-<span class="nc" id="L233">        return null;</span>
-    }
-    
-    private static Properties getExtensionProperties(int id, Properties propertiesInFile) {
-<span class="fc" id="L237">        Properties extProps = new Properties();</span>
-<span class="fc" id="L238">        Iterator&lt;Object&gt; keyIter = propertiesInFile.keySet().iterator();</span>
-<span class="fc" id="L239">        String matchString = &quot;id&quot; + id + &quot;.property.&quot;; </span>
-<span class="fc bfc" id="L240" title="All 2 branches covered.">        while(keyIter.hasNext()){</span>
-<span class="fc" id="L241">            String nextKey = (String) keyIter.next();</span>
-<span class="fc bfc" id="L242" title="All 2 branches covered.">            if(nextKey.startsWith(matchString)){</span>
-<span class="pc bpc" id="L243" title="1 of 2 branches missed.">                if(nextKey.length() &gt; matchString.length()){</span>
-<span class="fc" id="L244">                  extProps.put(nextKey.substring(matchString.length()), propertiesInFile.get(nextKey));               </span>
-                }
-            }           
-<span class="fc" id="L247">        }</span>
-<span class="fc" id="L248">        return extProps;</span>
-    }
- 
-    
-    @Override
-<span class="nc" id="L253">    public void upgrade() { }</span>
+<span class="nc" id="L343">    } catch (Exception e) {</span>
+<span class="nc" id="L344">      throw new CertificateExtentionConfigurationException(</span>
+          &quot;Certificate Extension &quot;
+<span class="nc" id="L346">              + Integer.valueOf(id)</span>
+              + &quot; seems to be misconfigured in the certextensions.properties&quot;,
+          e);
+<span class="nc" id="L349">    }</span>
+<span class="nc" id="L350">    return null;</span>
+  }
 
+  private static Properties getExtensionProperties(
+      final int id, final Properties propertiesInFile) {
+<span class="fc" id="L355">    Properties extProps = new Properties();</span>
+<span class="fc" id="L356">    Iterator&lt;Object&gt; keyIter = propertiesInFile.keySet().iterator();</span>
+<span class="fc" id="L357">    String matchString = &quot;id&quot; + id + &quot;.property.&quot;;</span>
+<span class="fc bfc" id="L358" title="All 2 branches covered.">    while (keyIter.hasNext()) {</span>
+<span class="fc" id="L359">      String nextKey = (String) keyIter.next();</span>
+<span class="fc bfc" id="L360" title="All 2 branches covered.">      if (nextKey.startsWith(matchString)) {</span>
+<span class="pc bpc" id="L361" title="1 of 2 branches missed.">        if (nextKey.length() &gt; matchString.length()) {</span>
+<span class="fc" id="L362">          extProps.put(</span>
+<span class="fc" id="L363">              nextKey.substring(matchString.length()),</span>
+<span class="fc" id="L364">              propertiesInFile.get(nextKey));</span>
+        }
+      }
+<span class="fc" id="L367">    }</span>
+<span class="fc" id="L368">    return extProps;</span>
+  }
+
+  @Override
+<span class="nc" id="L372">  public void upgrade() { }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

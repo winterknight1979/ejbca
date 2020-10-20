@@ -14,85 +14,89 @@ package org.cesecore.certificates.ocsp.cache;
 
 import java.util.HashMap;
 import java.util.Properties;
-
 import org.cesecore.config.CesecoreConfiguration;
 import org.cesecore.config.GlobalOcspConfiguration;
 import org.cesecore.configuration.ConfigurationBase;
 import org.cesecore.configuration.ConfigurationCache;
 
 /**
- * Class Holding cache variable for the OCSP configuration
- * 
- * @version $Id: GlobalOcspConfigurationCache.java 20003 2014-10-16 17:14:03Z mikekushner $
+ * Class Holding cache variable for the OCSP configuration.
+ *
+ * @version $Id: GlobalOcspConfigurationCache.java 20003 2014-10-16 17:14:03Z
+ *     mikekushner $
  */
 public final class GlobalOcspConfigurationCache implements ConfigurationCache {
 
-    /**
-     * Cache variable containing the ocsp configuration. This cache may be
-     * unsynchronized between multiple instances of EJBCA, but is common to all
-     * threads in the same VM. Set volatile to make it thread friendly.
-     */
-<span class="nc" id="L35">    private volatile GlobalOcspConfiguration ocspConfigurationCache = null;</span>
-    /** help variable used to control that OcspConfiguration update isn't performed to often. */
-<span class="nc" id="L37">    private volatile long lastupdatetime = -1;  </span>
+  /**
+   * Cache variable containing the ocsp configuration. This cache may be
+   * unsynchronized between multiple instances of EJBCA, but is common to all
+   * threads in the same VM. Set volatile to make it thread friendly.
+   */
+<span class="nc" id="L35">  private volatile GlobalOcspConfiguration ocspConfigurationCache = null;</span>
+  /**
+   * help variable used to control that OcspConfiguration update isn't performed
+   * to often.
+   */
+<span class="nc" id="L40">  private volatile long lastupdatetime = -1;</span>
 
-<span class="nc" id="L39">    public GlobalOcspConfigurationCache() {</span>
-        // Do nothing
-<span class="nc" id="L41">    }</span>
+  /** No-op constructor. */
+<span class="nc" id="L43">  public GlobalOcspConfigurationCache() {</span>
+    // Do nothing
+<span class="nc" id="L45">  }</span>
 
-
-    @Override
-    public boolean needsUpdate() {
-<span class="nc bnc" id="L46" title="All 4 branches missed.">        if (ocspConfigurationCache != null &amp;&amp; lastupdatetime + CesecoreConfiguration.getCacheGlobalOcspConfigurationTime() &gt; System.currentTimeMillis()) {</span>
-<span class="nc" id="L47">            return false;</span>
-        }
-<span class="nc" id="L49">        return true;</span>
+  @Override
+  public boolean needsUpdate() {
+<span class="nc bnc" id="L49" title="All 2 branches missed.">    if (ocspConfigurationCache != null</span>
+        &amp;&amp; lastupdatetime
+<span class="nc" id="L51">                + CesecoreConfiguration.getCacheGlobalOcspConfigurationTime()</span>
+<span class="nc bnc" id="L52" title="All 2 branches missed.">            &gt; System.currentTimeMillis()) {</span>
+<span class="nc" id="L53">      return false;</span>
     }
-    
-    public void clearCache() {
-<span class="nc" id="L53">        ocspConfigurationCache = null;</span>
-<span class="nc" id="L54">    }</span>
+<span class="nc" id="L55">    return true;</span>
+  }
 
-    @Override
-    public String getConfigId() {
-<span class="nc" id="L58">        return GlobalOcspConfiguration.OCSP_CONFIGURATION_ID;</span>
-    }
+  /** Clear cache. */
+  public void clearCache() {
+<span class="nc" id="L60">    ocspConfigurationCache = null;</span>
+<span class="nc" id="L61">  }</span>
 
-    @Override
-    public void saveData() {
-<span class="nc" id="L63">       ocspConfigurationCache.saveData();</span>
-<span class="nc" id="L64">    }</span>
+  @Override
+  public String getConfigId() {
+<span class="nc" id="L65">    return GlobalOcspConfiguration.OCSP_CONFIGURATION_ID;</span>
+  }
 
-    @Override
-    public ConfigurationBase getConfiguration() {
-<span class="nc" id="L68">        return ocspConfigurationCache;</span>
-    }
-    
-    @SuppressWarnings(&quot;rawtypes&quot;)
-    @Override
-    public ConfigurationBase getConfiguration(HashMap data) {
-<span class="nc" id="L74">        ConfigurationBase returnval = new GlobalOcspConfiguration();</span>
-<span class="nc" id="L75">        returnval.loadData(data);</span>
-<span class="nc" id="L76">        return returnval;</span>
-    }
+  @Override
+  public void saveData() {
+<span class="nc" id="L70">    ocspConfigurationCache.saveData();</span>
+<span class="nc" id="L71">  }</span>
 
+  @Override
+  public ConfigurationBase getConfiguration() {
+<span class="nc" id="L75">    return ocspConfigurationCache;</span>
+  }
 
-    @Override
-    public void updateConfiguration(final ConfigurationBase configuration) {
-<span class="nc" id="L82">        this.ocspConfigurationCache = (GlobalOcspConfiguration) configuration;</span>
-<span class="nc" id="L83">        lastupdatetime = System.currentTimeMillis();</span>
-        
-<span class="nc" id="L85">    }</span>
-    
-    @Override
-    public ConfigurationBase getNewConfiguration() {
-<span class="nc" id="L89">       return new GlobalOcspConfiguration();      </span>
-    }
+  @SuppressWarnings(&quot;rawtypes&quot;)
+  @Override
+  public ConfigurationBase getConfiguration(final HashMap data) {
+<span class="nc" id="L81">    ConfigurationBase returnval = new GlobalOcspConfiguration();</span>
+<span class="nc" id="L82">    returnval.loadData(data);</span>
+<span class="nc" id="L83">    return returnval;</span>
+  }
 
+  @Override
+  public void updateConfiguration(final ConfigurationBase configuration) {
+<span class="nc" id="L88">    this.ocspConfigurationCache = (GlobalOcspConfiguration) configuration;</span>
+<span class="nc" id="L89">    lastupdatetime = System.currentTimeMillis();</span>
+<span class="nc" id="L90">  }</span>
 
-    @Override
-    public Properties getAllProperties() {
-<span class="nc" id="L95">        throw new UnsupportedOperationException(&quot;Not implemented for OCSP cache&quot;);</span>
-    }
+  @Override
+  public ConfigurationBase getNewConfiguration() {
+<span class="nc" id="L94">    return new GlobalOcspConfiguration();</span>
+  }
+
+  @Override
+  public Properties getAllProperties() {
+<span class="nc" id="L99">    throw new UnsupportedOperationException(&quot;Not implemented for OCSP cache&quot;);</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

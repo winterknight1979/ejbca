@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>UpdateCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.config.cmp</a> &gt; <span class="el_source">UpdateCommand.java</span></div><h1>UpdateCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.cli.config.cmp;
+
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CaSessionRemote;
+import org.cesecore.certificates.certificate.CertificateConstants;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSessionRemote;
+import org.cesecore.util.EjbRemoteHelper;
+import org.ejbca.config.CmpConfiguration;
+import org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSessionRemote;
+import org.ejbca.core.model.authorization.AccessRulesConstants;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+
+/**
+ * @version $Id: UpdateCommand.java 28616 2018-04-03 11:51:50Z samuellb $
+ *
+ */
+<span class="nc" id="L39">public class UpdateCommand extends BaseCmpConfigCommand {</span>
+
+    private static final String ALIAS_KEY = &quot;--alias&quot;;
+    private static final String KEY_KEY = &quot;--key&quot;; //Hue hue hue
+    private static final String VALUE_KEY = &quot;--value&quot;;
+
+<span class="nc" id="L45">    private static final Logger log = Logger.getLogger(UpdateCommand.class);</span>
+
+    {
+<span class="nc" id="L48">        registerParameter(new Parameter(ALIAS_KEY, &quot;Alias&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;The alias of the configuration to update.&quot;));
+<span class="nc" id="L50">        registerParameter(new Parameter(KEY_KEY, &quot;Key&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;The key of the configuration to update (alias not included).&quot;));
+<span class="nc" id="L52">        registerParameter(new Parameter(VALUE_KEY, &quot;Value&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;The new value of the configuration to update.&quot;));
+<span class="nc" id="L54">    }</span>
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L58">        return &quot;updatealias&quot;;</span>
+    }
+
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+
+<span class="nc" id="L64">        String alias = parameters.get(ALIAS_KEY);</span>
+<span class="nc" id="L65">        String key = parameters.get(KEY_KEY);</span>
+<span class="nc" id="L66">        String value = parameters.get(VALUE_KEY);</span>
+<span class="nc" id="L67">        List&lt;String&gt; bkeys = CmpConfiguration.CMP_BOOLEAN_KEYS;</span>
+
+<span class="nc bnc" id="L69" title="All 2 branches missed.">        if (StringUtils.equals(key, CmpConfiguration.CONFIG_OPERATIONMODE)) {</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">            if (!StringUtils.equalsIgnoreCase(value, &quot;ra&quot;)) {</span>
+<span class="nc" id="L71">                value = &quot;client&quot;;</span>
+            }
+<span class="nc bnc" id="L73" title="All 2 branches missed.">        } else if (bkeys.contains(key)) {</span>
+<span class="nc" id="L74">            value = Boolean.toString(StringUtils.equalsIgnoreCase(value, &quot;true&quot;));</span>
+        }
+
+<span class="nc" id="L77">        key = alias + &quot;.&quot; + key;</span>
+<span class="nc" id="L78">        log.info(&quot;Configuration was: &quot; + key + &quot;=&quot; + getCmpConfiguration().getValue(key, alias));</span>
+<span class="nc" id="L79">        getCmpConfiguration().setValue(key, value, alias);</span>
+        try {
+<span class="nc" id="L81">            getGlobalConfigurationSession().saveConfiguration(getAuthenticationToken(), getCmpConfiguration());</span>
+<span class="nc" id="L82">            log.info(&quot;Configuration updated: &quot; + key + &quot;=&quot; + getCmpConfiguration().getValue(key, alias));</span>
+<span class="nc" id="L83">            getGlobalConfigurationSession().flushConfigurationCache(CmpConfiguration.CMP_CONFIGURATION_ID);</span>
+<span class="nc" id="L84">            return CommandResult.SUCCESS;</span>
+<span class="nc" id="L85">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L86">            log.info(&quot;Failed to update configuration: &quot; + e.getLocalizedMessage());</span>
+<span class="nc" id="L87">            return CommandResult.AUTHORIZATION_FAILURE;</span>
+        }
+
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L94">        return &quot;Updates one configuration value.&quot;;</span>
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L99">        StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L100">        sb.append(getCommandDescription() + &quot;\n\n&quot;);</span>
+<span class="nc" id="L101">        sb.append(&quot;The key could be any of the following:\n&quot;);</span>
+<span class="nc" id="L102">        StringBuilder existingCas = new StringBuilder();</span>
+<span class="nc" id="L103">        final String divider = &quot; | &quot;;</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">        for (String ca : EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class).getActiveCANames(getAuthenticationToken())) {</span>
+<span class="nc bnc" id="L105" title="All 2 branches missed.">            existingCas.append((existingCas.length() == 0 ? &quot;&quot; : divider) + ca);</span>
+<span class="nc" id="L106">        }</span>
+<span class="nc" id="L107">        sb.append(&quot;    &quot; + CmpConfiguration.CONFIG_DEFAULTCA + &quot; - possible values: &quot; + existingCas + &quot;\n&quot;);</span>
+<span class="nc" id="L108">        sb.append(&quot;    &quot; + CmpConfiguration.CONFIG_ALLOWRAVERIFYPOPO + &quot; - possible values: true | false&quot; + &quot;\n&quot;);</span>
+<span class="nc" id="L109">        sb.append(&quot;    &quot; + CmpConfiguration.CONFIG_OPERATIONMODE + &quot; - possible values: client | ra&quot; + &quot;\n&quot;);</span>
+<span class="nc" id="L110">        sb.append(&quot;    &quot; + CmpConfiguration.CONFIG_AUTHENTICATIONMODULE</span>
+                + &quot; - possible values: RegTokenPwd | DnPartPwd | HMAC | EndEntityCertificate | a combination of those methods separated by ';'&quot; + &quot;\n&quot;);
+<span class="nc" id="L112">        sb.append(&quot;    &quot; + CmpConfiguration.CONFIG_AUTHENTICATIONPARAMETERS + &quot; - possible values: See documentation in Admin Guid&quot; + &quot;\n&quot;);</span>
+<span class="nc" id="L113">        sb.append(&quot;    &quot; + CmpConfiguration.CONFIG_EXTRACTUSERNAMECOMPONENT</span>
+                + &quot; - possible values: DN | any SubjectDN attribut tex. CN, OU, UID...etc&quot; + &quot;\n&quot;);
+<span class="nc" id="L115">        sb.append(&quot;    &quot; + CmpConfiguration.CONFIG_RA_ALLOWCUSTOMCERTSERNO + &quot; - possible values: true | false&quot; + &quot;\n&quot;);</span>
+<span class="nc" id="L116">        sb.append(&quot;    &quot; + CmpConfiguration.CONFIG_RA_NAMEGENERATIONSCHEME + &quot; - possible values: DN | RANDOM | USERNAME | FIXED&quot; + &quot;\n&quot;);</span>
+<span class="nc" id="L117">        sb.append(&quot;    &quot; + CmpConfiguration.CONFIG_RA_NAMEGENERATIONPARAMS + &quot; - possible values: See documentation in Admin Guid&quot; + &quot;\n&quot;);</span>
+<span class="nc" id="L118">        sb.append(&quot;    &quot; + CmpConfiguration.CONFIG_RA_NAMEGENERATIONPREFIX + &quot; - possible values: ${RANDOM} | any alphanumeric string&quot; + &quot;\n&quot;);</span>
+<span class="nc" id="L119">        sb.append(&quot;    &quot; + CmpConfiguration.CONFIG_RA_NAMEGENERATIONPOSTFIX + &quot; - possible values: ${RANDOM} | any alphanumeric string&quot; + &quot;\n&quot;);</span>
+<span class="nc" id="L120">        sb.append(&quot;    &quot; + CmpConfiguration.CONFIG_RA_PASSWORDGENPARAMS + &quot; - possible values: random | any alphanumeric string&quot; + &quot;\n&quot;);</span>
+<span class="nc" id="L121">        Map&lt;Integer, String&gt; endentityprofileidtonamemap = EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityProfileSessionRemote.class)</span>
+<span class="nc" id="L122">                .getEndEntityProfileIdToNameMap();</span>
+<span class="nc" id="L123">        StringBuilder existingEeps = new StringBuilder();</span>
+<span class="nc bnc" id="L124" title="All 2 branches missed.">        for (Integer profileId : EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityProfileSessionRemote.class).getAuthorizedEndEntityProfileIds(</span>
+<span class="nc" id="L125">                getAuthenticationToken(), AccessRulesConstants.CREATE_END_ENTITY)) {</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">            existingEeps.append((existingEeps.length() == 0 ? &quot;&quot; : divider) + profileId + &quot; (&quot; + endentityprofileidtonamemap.get(profileId) + &quot;)&quot;);</span>
+<span class="nc" id="L127">        }</span>
+<span class="nc" id="L128">        sb.append(&quot;    &quot; + CmpConfiguration.CONFIG_RA_ENDENTITYPROFILEID + &quot; - available IDs: &quot; + existingEeps + &quot;\n&quot;);</span>
+<span class="nc" id="L129">        Map&lt;Integer, String&gt; certificateprofileidtonamemap = EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateProfileSessionRemote.class)</span>
+<span class="nc" id="L130">                .getCertificateProfileIdToNameMap();</span>
+<span class="nc" id="L131">        StringBuilder existingCps = new StringBuilder();</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">        for (Integer profileId : EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateProfileSessionRemote.class).getAuthorizedCertificateProfileIds(</span>
+<span class="nc" id="L133">                getAuthenticationToken(), CertificateConstants.CERTTYPE_ENDENTITY)) {</span>
+<span class="nc bnc" id="L134" title="All 2 branches missed.">            existingCps.append((existingCps.length() == 0 ? &quot;&quot; : &quot; | &quot;) + certificateprofileidtonamemap.get(profileId));</span>
+<span class="nc" id="L135">        }</span>
+<span class="nc" id="L136">        sb.append(&quot;    &quot; + CmpConfiguration.CONFIG_RA_CERTIFICATEPROFILE + &quot; - possible values: ProfileDefault | &quot; + existingCps + &quot;\n&quot;);</span>
+<span class="nc" id="L137">        sb.append(&quot;    &quot; + CmpConfiguration.CONFIG_RACANAME + &quot; - possible values: ProfileDefault | &quot; + existingCas + &quot;\n&quot;);</span>
+<span class="nc" id="L138">        sb.append(&quot;    &quot; + CmpConfiguration.CONFIG_RESPONSEPROTECTION + &quot; - possible values: signature | pbe&quot; + &quot;\n&quot;);</span>
+<span class="nc" id="L139">        sb.append(&quot;    &quot; + CmpConfiguration.CONFIG_VENDORCERTIFICATEMODE + &quot; - possible values: true | false&quot; + &quot;\n&quot;);</span>
+<span class="nc" id="L140">        sb.append(&quot;    &quot; + CmpConfiguration.CONFIG_VENDORCA + &quot; - possible values: the name of the external CA. Several CAs can be specified by separating them with ';'&quot; + &quot;\n&quot;);</span>
+<span class="nc" id="L141">        sb.append(&quot;    &quot;</span>
+                + CmpConfiguration.CONFIG_RACERT_PATH
+                + &quot; - possible values: the path to the catalogue where the certificate that will be used to authenticate NestedMessageContent are stored.&quot;
+                + &quot;\n&quot;);
+<span class="nc" id="L145">        sb.append(&quot;    &quot; + CmpConfiguration.CONFIG_ALLOWAUTOMATICKEYUPDATE + &quot; - possible values: true | false&quot; + &quot;\n&quot;);</span>
+<span class="nc" id="L146">        sb.append(&quot;    &quot; + CmpConfiguration.CONFIG_ALLOWUPDATEWITHSAMEKEY + &quot; - possible values: true | false&quot; + &quot;\n&quot;);</span>
+<span class="nc" id="L147">        sb.append(&quot;    &quot; + CmpConfiguration.CONFIG_ALLOWSERVERGENERATEDKEYS + &quot; - possible values: true | false&quot; + &quot;\n&quot;);</span>
+<span class="nc" id="L148">        sb.append(&quot;    &quot; + CmpConfiguration.CONFIG_CERTREQHANDLER_CLASS</span>
+                + &quot; - possible values: org.ejbca.core.protocol.unid.UnidFnrHandler | your own implementation of this class&quot; + &quot;\n&quot;);
+<span class="nc" id="L150">        return sb.toString();</span>
+
+    }
+    
+    @Override
+    protected Logger getLogger() {
+<span class="nc" id="L156">        return log;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

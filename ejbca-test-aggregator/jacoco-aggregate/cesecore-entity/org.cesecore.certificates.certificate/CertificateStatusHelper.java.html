@@ -17,47 +17,65 @@ import org.cesecore.certificates.crl.RevokedCertInfo;
 
 /**
  * Helper for building certificate status object from raw database meta data.
- * 
- * @version $Id: CertificateStatusHelper.java 28694 2018-04-12 13:54:29Z samuellb $
+ *
+ * @version $Id: CertificateStatusHelper.java 28694 2018-04-12 13:54:29Z
+ *     samuellb $
  */
-<span class="nc" id="L23">public abstract class CertificateStatusHelper {</span>
+<span class="nc" id="L24">public abstract class CertificateStatusHelper {</span>
 
-    /**
-     * Algorithm: 
-     * If status is CERT_REVOKED the certificate is revoked and reason and date is picked up.
-     * If status is CERT_ARCHIVED and reason is _NOT_ REMOVEFROMCRL or NOT_REVOKED the certificate is revoked and reason and date is picked up.
-     * If status is CERT_ARCHIVED and reason is REMOVEFROMCRL or NOT_REVOKED the certificate is NOT revoked.
-     * If status is neither CERT_REVOKED or CERT_ARCHIVED the certificate is NOT revoked
-     * @param certificateData data
-     * 
-     * @return CertificateStatus, can be compared (==) with CertificateStatus.OK, CertificateStatus.REVOKED and CertificateStatus.NOT_AVAILABLE
-     */
-    public static CertificateStatus getCertificateStatus(final BaseCertificateData certificateData) {
-<span class="nc bnc" id="L36" title="All 2 branches missed.">        if (certificateData == null) {</span>
-<span class="nc" id="L37">            return CertificateStatus.NOT_AVAILABLE;</span>
-        }
-        final int certProfileId;
-        {
-<span class="nc" id="L41">            final Integer tmp = certificateData.getCertificateProfileId();</span>
-<span class="nc bnc" id="L42" title="All 2 branches missed.">            certProfileId = tmp != null ? tmp.intValue() : CertificateProfileConstants.CERTPROFILE_NO_PROFILE;</span>
-        }
-<span class="nc" id="L44">        final int status = certificateData.getStatus();</span>
-<span class="nc" id="L45">        final int revReason = certificateData.getRevocationReason();</span>
-<span class="nc" id="L46">        final long revDate = certificateData.getRevocationDate();</span>
-<span class="nc bnc" id="L47" title="All 2 branches missed.">        if (status == CertificateConstants.CERT_REVOKED) {</span>
-<span class="nc" id="L48">            return new CertificateStatus(CertificateStatus.REVOKED.toString(), revDate, revReason, certProfileId);</span>
-        }
-<span class="nc bnc" id="L50" title="All 2 branches missed.">        if (status != CertificateConstants.CERT_ARCHIVED) {</span>
-<span class="nc" id="L51">            return new CertificateStatus(CertificateStatus.OK.toString(), revDate, revReason, certProfileId);</span>
-        }
-        // If the certificate have status ARCHIVED, BUT revocationReason is REMOVEFROMCRL or NOTREVOKED, the certificate is OK
-        // Otherwise it is a revoked certificate that has been archived and we must return REVOKED
-<span class="nc bnc" id="L55" title="All 4 branches missed.">        if (revReason == RevokedCertInfo.REVOCATION_REASON_REMOVEFROMCRL || revReason == RevokedCertInfo.NOT_REVOKED) {</span>
-<span class="nc" id="L56">            return new CertificateStatus(CertificateStatus.OK.toString(), revDate, revReason, certProfileId);</span>
-        }
-<span class="nc" id="L58">        return new CertificateStatus(CertificateStatus.REVOKED.toString(), revDate, revReason, certProfileId);</span>
+  /**
+   * Algorithm: If status is CERT_REVOKED the certificate is revoked and reason
+   * and date is picked up. If status is CERT_ARCHIVED and reason is _NOT_
+   * REMOVEFROMCRL or NOT_REVOKED the certificate is revoked and reason and date
+   * is picked up. If status is CERT_ARCHIVED and reason is REMOVEFROMCRL or
+   * NOT_REVOKED the certificate is NOT revoked. If status is neither
+   * CERT_REVOKED or CERT_ARCHIVED the certificate is NOT revoked
+   *
+   * @param certificateData data
+   * @return CertificateStatus, can be compared (==) with CertificateStatus.OK,
+   *     CertificateStatus.REVOKED and CertificateStatus.NOT_AVAILABLE
+   */
+  public static CertificateStatus getCertificateStatus(
+      final BaseCertificateData certificateData) {
+<span class="nc bnc" id="L40" title="All 2 branches missed.">    if (certificateData == null) {</span>
+<span class="nc" id="L41">      return CertificateStatus.NOT_AVAILABLE;</span>
     }
+    final int certProfileId;
 
+<span class="nc" id="L45">      final Integer tmp = certificateData.getCertificateProfileId();</span>
+      certProfileId =
+<span class="nc bnc" id="L47" title="All 2 branches missed.">          tmp != null</span>
+<span class="nc" id="L48">              ? tmp.intValue()</span>
+<span class="nc" id="L49">              : CertificateProfileConstants.CERTPROFILE_NO_PROFILE;</span>
 
+<span class="nc" id="L51">    final int status = certificateData.getStatus();</span>
+<span class="nc" id="L52">    final int revReason = certificateData.getRevocationReason();</span>
+<span class="nc" id="L53">    final long revDate = certificateData.getRevocationDate();</span>
+<span class="nc bnc" id="L54" title="All 2 branches missed.">    if (status == CertificateConstants.CERT_REVOKED) {</span>
+<span class="nc" id="L55">      return new CertificateStatus(</span>
+<span class="nc" id="L56">          CertificateStatus.REVOKED.toString(),</span>
+          revDate,
+          revReason,
+          certProfileId);
+    }
+<span class="nc bnc" id="L61" title="All 2 branches missed.">    if (status != CertificateConstants.CERT_ARCHIVED) {</span>
+<span class="nc" id="L62">      return new CertificateStatus(</span>
+<span class="nc" id="L63">          CertificateStatus.OK.toString(), revDate, revReason, certProfileId);</span>
+    }
+    // If the certificate have status ARCHIVED, BUT revocationReason is
+    // REMOVEFROMCRL or NOTREVOKED, the certificate is OK
+    // Otherwise it is a revoked certificate that has been archived and we must
+    // return REVOKED
+<span class="nc bnc" id="L69" title="All 4 branches missed.">    if (revReason == RevokedCertInfo.REVOCATION_REASON_REMOVEFROMCRL</span>
+        || revReason == RevokedCertInfo.NOT_REVOKED) {
+<span class="nc" id="L71">      return new CertificateStatus(</span>
+<span class="nc" id="L72">          CertificateStatus.OK.toString(), revDate, revReason, certProfileId);</span>
+    }
+<span class="nc" id="L74">    return new CertificateStatus(</span>
+<span class="nc" id="L75">        CertificateStatus.REVOKED.toString(),</span>
+        revDate,
+        revReason,
+        certProfileId);
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

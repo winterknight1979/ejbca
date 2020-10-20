@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AdminExistsException.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Administration GUI</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.configuration</a> &gt; <span class="el_source">AdminExistsException.java</span></div><h1>AdminExistsException.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+/*
+ * AdminExistsException.java
+ *
+ * Created on den 28 mars 2002, 16:47
+ */
+package org.ejbca.ui.web.admin.configuration;
+
+/**
+ * An exception thown when trying to add a user to the database that already exists.
+ *
+ * @author Philip Vendil
+ * @version $Id: AdminExistsException.java 19902 2014-09-30 14:32:24Z anatom $
+ */
+public class AdminExistsException extends java.lang.Exception {
+	private static final long serialVersionUID = 1L;
+
+	/**
+     * Creates a new instance of &lt;code&gt;AdminExistsException&lt;/code&gt; without detail message.
+     */
+    public AdminExistsException() {
+<span class="nc" id="L34">        super();</span>
+<span class="nc" id="L35">    }</span>
+
+    /**
+     * Constructs an instance of &lt;code&gt;AdminExistsException&lt;/code&gt; with the specified detail
+     * message.
+     *
+     * @param msg the detail message.
+     */
+    public AdminExistsException(String msg) {
+<span class="nc" id="L44">        super(msg);</span>
+<span class="nc" id="L45">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

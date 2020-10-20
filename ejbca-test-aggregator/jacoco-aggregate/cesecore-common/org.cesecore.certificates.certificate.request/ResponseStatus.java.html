@@ -10,84 +10,80 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
-/**
- * @version $Id: ResponseStatus.java 27539 2017-12-14 08:38:56Z samuellb $
- */
+
 package org.cesecore.certificates.certificate.request;
 
 import java.io.Serializable;
 
 /**
- * Encapsulates the possible values for the status of a certificate response. Original response codes from the SCEP protocol.
+ * Encapsulates the possible values for the status of a certificate response.
+ * Original response codes from the SCEP protocol.
  *
  * @version $Id: ResponseStatus.java 27539 2017-12-14 08:38:56Z samuellb $
  */
 public final class ResponseStatus implements Serializable {
 
-    private static final long serialVersionUID = -1424581065308042345L;
+  private static final long serialVersionUID = -1424581065308042345L;
 
-    /**
-     * Request granted
-     */
-<span class="nc" id="L33">    public static final ResponseStatus SUCCESS = new ResponseStatus(0);</span>
+  /** Request granted. */
+<span class="nc" id="L29">  public static final ResponseStatus SUCCESS = new ResponseStatus(0);</span>
 
-    /**
-     * Request granted with mods. Indicates the requester got something like what you asked for.
-     * The requester is responsible for ascertaining the differences.
-     */
-<span class="nc" id="L39">    public static final ResponseStatus GRANTED_WITH_MODS = new ResponseStatus(1);</span>
-    
-    /**
-     * Request rejected
-     */
-<span class="nc" id="L44">    public static final ResponseStatus FAILURE = new ResponseStatus(2);</span>
+  /**
+   * Request granted with mods. Indicates the requester got something like what
+   * you asked for. The requester is responsible for ascertaining the
+   * differences.
+   */
+<span class="nc" id="L36">  public static final ResponseStatus GRANTED_WITH_MODS = new ResponseStatus(1);</span>
 
-    /**
-     * Request pending for approval
-     */
-<span class="nc" id="L49">    public static final ResponseStatus PENDING = new ResponseStatus(3);</span>
+  /** Request rejected. */
+<span class="nc" id="L39">  public static final ResponseStatus FAILURE = new ResponseStatus(2);</span>
 
-    /**
-     * The value actually encoded into the response message as a pkiStatus attribute
-     */
-    private final int value;
+  /** Request pending for approval.*/
+<span class="nc" id="L42">  public static final ResponseStatus PENDING = new ResponseStatus(3);</span>
 
-<span class="nc" id="L56">    private ResponseStatus(final int value) {</span>
-<span class="nc" id="L57">        this.value = value;</span>
-<span class="nc" id="L58">    }</span>
+  /**
+   * The value actually encoded into the response message as a pkiStatus
+   * attribute.
+   */
+  private final int value;
 
-    /**
-     * Gets the value embedded in the response message as a pkiStatus attribute
-     * @return  the value to use
-     */
-    public String getStringValue() {
-<span class="nc" id="L65">        return Integer.toString(value);</span>
-    }
+<span class="nc" id="L50">  private ResponseStatus(final int aValue) {</span>
+<span class="nc" id="L51">    this.value = aValue;</span>
+<span class="nc" id="L52">  }</span>
 
-    public int getValue() {
-<span class="nc" id="L69">    	return value;</span>
-    }
+  /**
+   * Gets the value embedded in the response message as a pkiStatus attribute.
+   *
+   * @return the value to use
+   */
+  public String getStringValue() {
+<span class="nc" id="L60">    return Integer.toString(value);</span>
+  }
 
-    @Override
-    public boolean equals(final Object o) {
-<span class="nc" id="L74">    	boolean ret = false;</span>
-<span class="nc bnc" id="L75" title="All 2 branches missed.">        if (this == o) {</span>
-<span class="nc" id="L76">        	ret = true;</span>
-        } else {
-<span class="nc bnc" id="L78" title="All 2 branches missed.">            if (o instanceof ResponseStatus) {</span>
-<span class="nc" id="L79">                final ResponseStatus status = (ResponseStatus) o;</span>
-<span class="nc bnc" id="L80" title="All 2 branches missed.">                if (value == status.getValue()) {</span>
-<span class="nc" id="L81">                	ret = true;</span>
-                }
-            }      	
+  /** @return value */
+  public int getValue() {
+<span class="nc" id="L65">    return value;</span>
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+<span class="nc" id="L70">    boolean ret = false;</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">    if (this == o) {</span>
+<span class="nc" id="L72">      ret = true;</span>
+    } else {
+<span class="nc bnc" id="L74" title="All 2 branches missed.">      if (o instanceof ResponseStatus) {</span>
+<span class="nc" id="L75">        final ResponseStatus status = (ResponseStatus) o;</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">        if (value == status.getValue()) {</span>
+<span class="nc" id="L77">          ret = true;</span>
         }
-<span class="nc" id="L85">        return ret;</span>
+      }
     }
+<span class="nc" id="L81">    return ret;</span>
+  }
 
-    @Override
-    public int hashCode() {
-<span class="nc" id="L90">        return value;</span>
-    }
+  @Override
+  public int hashCode() {
+<span class="nc" id="L86">    return value;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

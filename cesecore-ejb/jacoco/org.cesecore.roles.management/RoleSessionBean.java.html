@@ -20,12 +20,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.cesecore.audit.enums.EventStatus;
@@ -54,479 +52,759 @@ import org.cesecore.roles.member.RoleMemberDataSessionLocal;
 
 /**
  * Implementation of the RoleSession interfaces.
- * 
+ *
  * @version $Id: RoleSessionBean.java 28474 2018-03-13 10:23:28Z samuellb $
  */
 @Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;RoleSessionRemote&quot;)
 @TransactionAttribute(TransactionAttributeType.REQUIRED)
-<span class="nc" id="L62">public class RoleSessionBean implements RoleSessionLocal, RoleSessionRemote {</span>
+<span class="nc" id="L60">public class RoleSessionBean implements RoleSessionLocal, RoleSessionRemote {</span>
 
-<span class="nc" id="L64">    private static final Logger log = Logger.getLogger(RoleSessionBean.class);</span>
+    /** Logger. */
+<span class="nc" id="L63">    private static final Logger LOG = Logger.getLogger(RoleSessionBean.class);</span>
 
-    @EJB
-    private AuthorizationSessionLocal authorizationSession;
-    @EJB
-    private RoleDataSessionLocal roleDataSession;
-    @EJB
-    private RoleMemberDataSessionLocal roleMemberDataSession;
-    @EJB
-    private SecurityEventsLoggerSessionLocal securityEventsLoggerSession;
+  /** Session. */
+  @EJB private AuthorizationSessionLocal authorizationSession;
+  /** Session. */
+  @EJB private RoleDataSessionLocal roleDataSession;
+  /** Session. */
+  @EJB private RoleMemberDataSessionLocal roleMemberDataSession;
+  /** Session. */
+  @EJB private SecurityEventsLoggerSessionLocal securityEventsLoggerSession;
 
-    @Override
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public Role getRole(final AuthenticationToken authenticationToken, final String nameSpace, final String roleName) throws AuthorizationDeniedException {
-<span class="nc" id="L78">        final Role role = roleDataSession.getRole(nameSpace, roleName);</span>
-<span class="nc bnc" id="L79" title="All 2 branches missed.">        if (role!=null) {</span>
-<span class="nc" id="L80">            final Set&lt;Integer&gt; roleIdsCallerBelongsTo = roleMemberDataSession.getRoleIdsMatchingAuthenticationToken(authenticationToken);</span>
-<span class="nc" id="L81">            assertAuthorizedToAllAccessRules(authenticationToken, role, roleIdsCallerBelongsTo);</span>
-<span class="nc" id="L82">            assertAuthorizedToNameSpace(authenticationToken, role, roleIdsCallerBelongsTo);</span>
+  @Override
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  public Role getRole(
+      final AuthenticationToken authenticationToken,
+      final String nameSpace,
+      final String roleName)
+      throws AuthorizationDeniedException {
+<span class="nc" id="L81">    final Role role = roleDataSession.getRole(nameSpace, roleName);</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">    if (role != null) {</span>
+<span class="nc" id="L83">      final Set&lt;Integer&gt; roleIdsCallerBelongsTo =</span>
+<span class="nc" id="L84">          roleMemberDataSession.getRoleIdsMatchingAuthenticationToken(</span>
+              authenticationToken);
+<span class="nc" id="L86">      assertAuthorizedToAllAccessRules(</span>
+          authenticationToken, role, roleIdsCallerBelongsTo);
+<span class="nc" id="L88">      assertAuthorizedToNameSpace(</span>
+          authenticationToken, role, roleIdsCallerBelongsTo);
+    }
+    // Always return a copy to prevent shared access
+<span class="nc bnc" id="L92" title="All 2 branches missed.">    return role == null ? null : new Role(role);</span>
+  }
+
+  @Override
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  public Role getRole(
+      final AuthenticationToken authenticationToken, final int roleId)
+      throws AuthorizationDeniedException {
+<span class="nc" id="L100">    final Role role = roleDataSession.getRole(roleId);</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">    if (role != null) {</span>
+<span class="nc" id="L102">      final Set&lt;Integer&gt; roleIdsCallerBelongsTo =</span>
+<span class="nc" id="L103">          roleMemberDataSession.getRoleIdsMatchingAuthenticationToken(</span>
+              authenticationToken);
+<span class="nc" id="L105">      assertAuthorizedToAllAccessRules(</span>
+          authenticationToken, role, roleIdsCallerBelongsTo);
+<span class="nc" id="L107">      assertAuthorizedToNameSpace(</span>
+          authenticationToken, role, roleIdsCallerBelongsTo);
+    }
+    // Always return a copy to prevent shared access
+<span class="nc bnc" id="L111" title="All 2 branches missed.">    return role == null ? null : new Role(role);</span>
+  }
+
+  @Override
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  public List&lt;Role&gt; getRolesAuthenticationTokenIsMemberOf(
+      final AuthenticationToken authenticationToken) {
+<span class="nc" id="L118">    final List&lt;Role&gt; roles = new ArrayList&lt;&gt;();</span>
+    for (final int roleId
+<span class="nc bnc" id="L120" title="All 2 branches missed.">        : roleMemberDataSession.getRoleIdsMatchingAuthenticationToken(</span>
+            authenticationToken)) {
+<span class="nc" id="L122">      roles.add(roleDataSession.getRole(roleId));</span>
+<span class="nc" id="L123">    }</span>
+<span class="nc" id="L124">    return roles;</span>
+  }
+
+  /*
+   * NOTE: This separate method for remote EJB calls exists for a good
+   * reason: If this is invoked as a part of a
+   * local transaction, the LocalJvmOnlyAuthenticationToken will
+   * be valid for subsequent authentication calls.
+   */
+  @Override
+  public List&lt;Role&gt; getRolesAuthenticationTokenIsMemberOfRemote(
+      final AuthenticationToken authenticationTokenForAuhtorization,
+      final AuthenticationToken authenticationTokenToCheck) {
+<span class="nc bnc" id="L137" title="All 2 branches missed.">    if (authenticationTokenToCheck instanceof LocalJvmOnlyAuthenticationToken) {</span>
+      // Ensure that the matching procedure below also works for remote EJB
+      // calls
+<span class="nc" id="L140">      ((LocalJvmOnlyAuthenticationToken) authenticationTokenToCheck)</span>
+<span class="nc" id="L141">          .initRandomToken();</span>
+    }
+<span class="nc" id="L143">    final List&lt;Role&gt; roles =</span>
+<span class="nc" id="L144">        getRolesAuthenticationTokenIsMemberOf(authenticationTokenToCheck);</span>
+<span class="nc" id="L145">    roles.retainAll(getAuthorizedRoles(authenticationTokenForAuhtorization));</span>
+<span class="nc" id="L146">    return roles;</span>
+  }
+
+  @Override
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  public List&lt;Role&gt; getAuthorizedRolesWithAccessToResource(
+      final AuthenticationToken authenticationToken, final String resource) {
+<span class="nc" id="L153">    final List&lt;Role&gt; roles = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">    for (final Role role : getAuthorizedRoles(authenticationToken)) {</span>
+<span class="nc bnc" id="L155" title="All 2 branches missed.">      if (AccessRulesHelper.hasAccessToResource(</span>
+<span class="nc" id="L156">          role.getAccessRules(), resource)) {</span>
+<span class="nc" id="L157">        roles.add(role);</span>
+      }
+<span class="nc" id="L159">    }</span>
+<span class="nc" id="L160">    return roles;</span>
+  }
+
+  @Override
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  public List&lt;Role&gt; getAuthorizedRoles(
+      final AuthenticationToken authenticationToken) {
+<span class="nc" id="L167">    final List&lt;Role&gt; roles = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L168">    final Set&lt;Integer&gt; roleIdsCallerBelongsTo =</span>
+<span class="nc" id="L169">        roleMemberDataSession.getRoleIdsMatchingAuthenticationToken(</span>
+            authenticationToken);
+<span class="nc bnc" id="L171" title="All 2 branches missed.">    for (final Role role : roleDataSession.getAllRoles()) {</span>
+      // Verify that the caller is authorized to role's namespace
+<span class="nc bnc" id="L173" title="All 2 branches missed.">      if (!isAuthorizedToNameSpace(</span>
+          authenticationToken, role, roleIdsCallerBelongsTo)) {
+<span class="nc bnc" id="L175" title="All 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L176">          LOG.debug(</span>
+              &quot;'&quot;
+<span class="nc" id="L178">                  + authenticationToken.toString()</span>
+                  + &quot;' is not authorized to the namespace '&quot;
+<span class="nc" id="L180">                  + role.getNameSpace()</span>
+                  + &quot;'.&quot;);
         }
-        // Always return a copy to prevent shared access
-<span class="nc bnc" id="L85" title="All 2 branches missed.">        return role==null ? null : new Role(role);</span>
-    }
-
-    @Override
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public Role getRole(final AuthenticationToken authenticationToken, final int roleId) throws AuthorizationDeniedException {
-<span class="nc" id="L91">        final Role role = roleDataSession.getRole(roleId);</span>
-<span class="nc bnc" id="L92" title="All 2 branches missed.">        if (role!=null) {</span>
-<span class="nc" id="L93">            final Set&lt;Integer&gt; roleIdsCallerBelongsTo = roleMemberDataSession.getRoleIdsMatchingAuthenticationToken(authenticationToken);</span>
-<span class="nc" id="L94">            assertAuthorizedToAllAccessRules(authenticationToken, role, roleIdsCallerBelongsTo);</span>
-<span class="nc" id="L95">            assertAuthorizedToNameSpace(authenticationToken, role, roleIdsCallerBelongsTo);</span>
+        continue;
+      }
+      // Verify that the caller is authorized to all access rules in this role
+<span class="nc bnc" id="L186" title="All 2 branches missed.">      if (!isAuthorizedToAllAccessRules(</span>
+          authenticationToken, role, roleIdsCallerBelongsTo)) {
+<span class="nc bnc" id="L188" title="All 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L189">          LOG.debug(</span>
+              &quot;'&quot;
+<span class="nc" id="L191">                  + authenticationToken.toString()</span>
+                  + &quot;' is not authorized to all access rules in role '&quot;
+<span class="nc" id="L193">                  + role.getRoleNameFull()</span>
+                  + &quot;'.&quot;);
         }
-        // Always return a copy to prevent shared access
-<span class="nc bnc" id="L98" title="All 2 branches missed.">        return role==null ? null : new Role(role);</span>
-    }
-    
-    @Override
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List&lt;Role&gt; getRolesAuthenticationTokenIsMemberOf(final AuthenticationToken authenticationToken) {
-<span class="nc" id="L104">        final List&lt;Role&gt; roles = new ArrayList&lt;&gt;();</span>
-<span class="nc bnc" id="L105" title="All 2 branches missed.">        for (final int roleId : roleMemberDataSession.getRoleIdsMatchingAuthenticationToken(authenticationToken)) {</span>
-<span class="nc" id="L106">            roles.add(roleDataSession.getRole(roleId));</span>
-<span class="nc" id="L107">        }</span>
-<span class="nc" id="L108">        return roles;</span>
-    }
-
-    /*
-     * NOTE: This separate method for remote EJB calls exists for a good reason: If this is invoked as a part of a
-     * local transaction, the LocalJvmOnlyAuthenticationToken will be valid for subsequent authentication calls.
-     */
-    @Override
-    public List&lt;Role&gt; getRolesAuthenticationTokenIsMemberOfRemote(AuthenticationToken authenticationTokenForAuhtorization, AuthenticationToken authenticationTokenToCheck) {
-<span class="nc bnc" id="L117" title="All 2 branches missed.">        if (authenticationTokenToCheck instanceof LocalJvmOnlyAuthenticationToken) {</span>
-            // Ensure that the matching procedure below also works for remote EJB calls
-<span class="nc" id="L119">            ((LocalJvmOnlyAuthenticationToken) authenticationTokenToCheck).initRandomToken();</span>
+        continue;
+      }
+      // Verify that the caller is authorized to all CAs that are issuers of
+      // members in this role
+<span class="nc bnc" id="L200" title="All 2 branches missed.">      if (!isAuthorizedToAllRoleMembersIssuers(</span>
+<span class="nc" id="L201">          authenticationToken, role.getRoleId())) {</span>
+<span class="nc bnc" id="L202" title="All 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L203">          LOG.debug(</span>
+              &quot;'&quot;
+<span class="nc" id="L205">                  + authenticationToken.toString()</span>
+                  + &quot;' is not authorized to all members in role '&quot;
+<span class="nc" id="L207">                  + role.getRoleNameFull()</span>
+                  + &quot;'.&quot;);
         }
-<span class="nc" id="L121">        final List&lt;Role&gt; roles = getRolesAuthenticationTokenIsMemberOf(authenticationTokenToCheck);</span>
-<span class="nc" id="L122">        roles.retainAll(getAuthorizedRoles(authenticationTokenForAuhtorization));</span>
-<span class="nc" id="L123">        return roles;</span>
+        continue;
+      }
+<span class="nc" id="L212">      roles.add(role);</span>
+<span class="nc" id="L213">    }</span>
+<span class="nc" id="L214">    return roles;</span>
+  }
+
+  @Override
+  public boolean deleteRoleIdempotent(
+      final AuthenticationToken authenticationToken, final int roleId)
+      throws AuthorizationDeniedException {
+<span class="nc" id="L221">    assertAuthorizedToEditRoles(authenticationToken);</span>
+<span class="nc" id="L222">    final Role role = roleDataSession.getRole(roleId);</span>
+<span class="nc bnc" id="L223" title="All 2 branches missed.">    if (role == null) {</span>
+<span class="nc" id="L224">      return false;</span>
     }
-    
-    @Override
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List&lt;Role&gt; getAuthorizedRolesWithAccessToResource(final AuthenticationToken authenticationToken, final String resource) {
-<span class="nc" id="L129">        final List&lt;Role&gt; roles = new ArrayList&lt;&gt;();</span>
-<span class="nc bnc" id="L130" title="All 2 branches missed.">        for (final Role role : getAuthorizedRoles(authenticationToken)) {</span>
-<span class="nc bnc" id="L131" title="All 2 branches missed.">            if (AccessRulesHelper.hasAccessToResource(role.getAccessRules(), resource)) {</span>
-<span class="nc" id="L132">                roles.add(role);</span>
+    // Check that authenticationToken is allowed to remove the role with all its
+    // rights
+<span class="nc" id="L228">    final Set&lt;Integer&gt; roleIdsCallerBelongsTo =</span>
+<span class="nc" id="L229">        roleMemberDataSession.getRoleIdsMatchingAuthenticationToken(</span>
+            authenticationToken);
+<span class="nc" id="L231">    assertAuthorizedToAllAccessRules(</span>
+        authenticationToken, role, roleIdsCallerBelongsTo);
+<span class="nc" id="L233">    assertAuthorizedToNameSpace(</span>
+        authenticationToken, role, roleIdsCallerBelongsTo);
+<span class="nc" id="L235">    assertNonImportantRoleMembership(</span>
+        authenticationToken, role, roleIdsCallerBelongsTo);
+<span class="nc" id="L237">    boolean ret =</span>
+<span class="nc" id="L238">        roleDataSession.deleteRoleNoAuthorizationCheck(role.getRoleId());</span>
+<span class="nc" id="L239">    RoleCache.INSTANCE.updateWith(role.getRoleId(), 0, null, null);</span>
+    final String msg =
+<span class="nc" id="L241">        InternalResources.getInstance()</span>
+<span class="nc" id="L242">            .getLocalizedMessage(</span>
+<span class="nc" id="L243">                &quot;authorization.roleremoved&quot;, role.getRoleNameFull());</span>
+<span class="nc" id="L244">    final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L245">    details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L246">    details.put(&quot;roleId&quot;, role.getRoleId());</span>
+<span class="nc" id="L247">    details.put(&quot;roleName&quot;, role.getRoleName());</span>
+<span class="nc" id="L248">    details.put(&quot;nameSpace&quot;, role.getNameSpace());</span>
+<span class="nc" id="L249">    securityEventsLoggerSession.log(</span>
+        EventTypes.ROLE_DELETION,
+        EventStatus.SUCCESS,
+        ModuleTypes.ROLES,
+        ServiceTypes.CORE,
+<span class="nc" id="L254">        authenticationToken.toString(),</span>
+        null,
+        null,
+        null,
+        details);
+<span class="nc" id="L259">    final List&lt;RoleMember&gt; roleMembers =</span>
+<span class="nc" id="L260">        roleMemberDataSession.findRoleMemberByRoleId(role.getRoleId());</span>
+<span class="nc bnc" id="L261" title="All 2 branches missed.">    for (final RoleMember roleMember : roleMembers) {</span>
+<span class="nc" id="L262">      ret |= roleMemberDataSession.remove(roleMember.getId());</span>
+<span class="nc" id="L263">    }</span>
+<span class="nc" id="L264">    return ret;</span>
+  }
+
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  @Override
+  public void assertAuthorizedToRoleMembers(
+      final AuthenticationToken authenticationToken,
+      final int roleId,
+      final boolean requireEditAccess)
+      throws AuthorizationDeniedException {
+    // Check if the caller is authorized to edit roles in general
+<span class="nc bnc" id="L275" title="All 2 branches missed.">    if (requireEditAccess) {</span>
+<span class="nc" id="L276">      assertAuthorizedToEditRoles(authenticationToken);</span>
+    } else {
+<span class="nc" id="L278">      assertAuthorizedToViewRoles(authenticationToken);</span>
+    }
+    // Is the authToken authorized to the role found by id in the database?
+    final Role roleById =
+<span class="nc bnc" id="L282" title="All 2 branches missed.">        roleId == Role.ROLE_ID_UNASSIGNED</span>
+<span class="nc" id="L283">            ? null</span>
+<span class="nc" id="L284">            : roleDataSession.getRole(roleId);</span>
+<span class="nc bnc" id="L285" title="All 2 branches missed.">    if (roleById != null) {</span>
+<span class="nc" id="L286">      final Set&lt;Integer&gt; roleIdsCallerBelongsTo =</span>
+<span class="nc" id="L287">          roleMemberDataSession.getRoleIdsMatchingAuthenticationToken(</span>
+              authenticationToken);
+<span class="nc" id="L289">      assertAuthorizedToAllAccessRules(</span>
+          authenticationToken, roleById, roleIdsCallerBelongsTo);
+<span class="nc" id="L291">      assertAuthorizedToNameSpace(</span>
+          authenticationToken, roleById, roleIdsCallerBelongsTo);
+    }
+<span class="nc" id="L294">  }</span>
+
+  private Role getOriginalRoleAndAssertAuthorizedToEdit(
+      final AuthenticationToken authenticationToken,
+      final Role role,
+      final boolean requireNonImportantRoleMembership)
+      throws AuthorizationDeniedException {
+    // Check if the caller is authorized to edit roles in general
+<span class="nc" id="L302">    assertAuthorizedToEditRoles(authenticationToken);</span>
+    // Is the authToken authorized to the role as provided as an argument?
+<span class="nc" id="L304">    final Set&lt;Integer&gt; roleIdsCallerBelongsTo =</span>
+<span class="nc" id="L305">        roleMemberDataSession.getRoleIdsMatchingAuthenticationToken(</span>
+            authenticationToken);
+<span class="nc" id="L307">    assertAuthorizedToAllAccessRules(</span>
+        authenticationToken, role, roleIdsCallerBelongsTo);
+<span class="nc bnc" id="L309" title="All 2 branches missed.">    if (requireNonImportantRoleMembership) {</span>
+<span class="nc" id="L310">      assertNonImportantRoleMembership(</span>
+          authenticationToken, role, roleIdsCallerBelongsTo);
+    }
+<span class="nc" id="L313">    assertAuthorizedToNameSpace(</span>
+        authenticationToken, role, roleIdsCallerBelongsTo);
+    // Is the authToken authorized to the role found by id in the database?
+    final Role roleById =
+<span class="nc bnc" id="L317" title="All 2 branches missed.">        role.getRoleId() == Role.ROLE_ID_UNASSIGNED</span>
+<span class="nc" id="L318">            ? null</span>
+<span class="nc" id="L319">            : roleDataSession.getRole(role.getRoleId());</span>
+<span class="nc bnc" id="L320" title="All 2 branches missed.">    if (roleById != null) {</span>
+<span class="nc" id="L321">      assertAuthorizedToAllAccessRules(</span>
+          authenticationToken, roleById, roleIdsCallerBelongsTo);
+<span class="nc" id="L323">      assertAuthorizedToNameSpace(</span>
+          authenticationToken, roleById, roleIdsCallerBelongsTo);
+    }
+<span class="nc" id="L326">    return roleById;</span>
+  }
+
+  @Override
+  public Role persistRole(
+      final AuthenticationToken authenticationToken, final Role role)
+      throws RoleExistsException, AuthorizationDeniedException {
+<span class="nc" id="L333">    return persistRole(authenticationToken, role, true);</span>
+  }
+
+  @Override
+  public Role persistRole(
+      final AuthenticationToken authenticationToken,
+      final Role role,
+      final boolean requireNonImportantRoleMembership)
+      throws RoleExistsException, AuthorizationDeniedException {
+    // Normalize and minimize access rules before checking authorization
+<span class="nc" id="L343">    role.normalizeAccessRules();</span>
+<span class="nc" id="L344">    role.minimizeAccessRules();</span>
+<span class="nc" id="L345">    final Role roleById =</span>
+<span class="nc" id="L346">        getOriginalRoleAndAssertAuthorizedToEdit(</span>
+            authenticationToken, role, requireNonImportantRoleMembership);
+    // Sort access rules to make raw xml editing (e.g. statedump) easier
+<span class="nc" id="L349">    role.sortAccessRules();</span>
+<span class="nc" id="L350">    final Role roleByName =</span>
+<span class="nc" id="L351">        roleDataSession.getRole(role.getNameSpace(), role.getRoleName());</span>
+<span class="nc bnc" id="L352" title="All 2 branches missed.">    if (roleById == null) {</span>
+<span class="nc bnc" id="L353" title="All 2 branches missed.">      if (roleByName != null) {</span>
+<span class="nc" id="L354">        throw new RoleExistsException(</span>
+<span class="nc" id="L355">            InternalResources.getInstance()</span>
+<span class="nc" id="L356">                .getLocalizedMessage(</span>
+                    &quot;authorization.erroraddroleexists&quot;,
+<span class="nc" id="L358">                    role.getRoleNameFull()));</span>
+      }
+      // Enforce a non-empty role name
+<span class="nc bnc" id="L361" title="All 2 branches missed.">      if (StringUtils.isEmpty(role.getRoleName())) {</span>
+<span class="nc" id="L362">        throw new IllegalArgumentException(&quot;Role name cannot be empty.&quot;);</span>
+      }
+      // Persist new role
+<span class="nc" id="L365">      role.setRoleId(roleDataSession.persistRole(role).getRoleId());</span>
+      final String msg =
+<span class="nc" id="L367">          InternalResources.getInstance()</span>
+<span class="nc" id="L368">              .getLocalizedMessage(</span>
+<span class="nc" id="L369">                  &quot;authorization.roleadded&quot;, role.getRoleName());</span>
+<span class="nc" id="L370">      final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L371">      details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L372">      details.put(&quot;roleId&quot;, role.getRoleId());</span>
+<span class="nc" id="L373">      details.put(&quot;roleName&quot;, role.getRoleName());</span>
+<span class="nc" id="L374">      details.put(&quot;nameSpace&quot;, role.getNameSpace());</span>
+<span class="nc" id="L375">      securityEventsLoggerSession.log(</span>
+          EventTypes.ROLE_CREATION,
+          EventStatus.SUCCESS,
+          ModuleTypes.ROLES,
+          ServiceTypes.CORE,
+<span class="nc" id="L380">          authenticationToken.toString(),</span>
+          null,
+          null,
+          null,
+          details);
+<span class="nc" id="L385">    } else {</span>
+      // Save to existing role
+<span class="nc bnc" id="L387" title="All 2 branches missed.">      if (roleByName == null) {</span>
+        // Audit log that the role will be renamed when persisted
+        final String msg =
+<span class="nc" id="L390">            InternalResources.getInstance()</span>
+<span class="nc" id="L391">                .getLocalizedMessage(</span>
+                    &quot;authorization.rolerenamed&quot;,
+<span class="nc" id="L393">                    roleById.getRoleNameFull(),</span>
+<span class="nc" id="L394">                    role.getRoleNameFull());</span>
+<span class="nc" id="L395">        Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L396">        details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L397">        details.put(&quot;roleId&quot;, role.getRoleId());</span>
+<span class="nc" id="L398">        details.put(&quot;roleNameOld&quot;, roleById.getRoleName());</span>
+<span class="nc" id="L399">        details.put(&quot;roleNameNew&quot;, role.getRoleName());</span>
+<span class="nc" id="L400">        details.put(&quot;nameSpaceOld&quot;, roleById.getNameSpace());</span>
+<span class="nc" id="L401">        details.put(&quot;nameSpaceNew&quot;, role.getNameSpace());</span>
+<span class="nc" id="L402">        securityEventsLoggerSession.log(</span>
+            EventTypes.ROLE_RENAMING,
+            EventStatus.SUCCESS,
+            ModuleTypes.ROLES,
+            ServiceTypes.CORE,
+<span class="nc" id="L407">            authenticationToken.toString(),</span>
+            null,
+            null,
+            null,
+            details);
+<span class="nc" id="L412">      } else {</span>
+<span class="nc bnc" id="L413" title="All 2 branches missed.">        if (roleByName.getRoleId() != role.getRoleId()) {</span>
+<span class="nc" id="L414">          throw new RoleExistsException(&quot;A role with the same name exists.&quot;);</span>
+        }
+      }
+      // Persist data changes
+<span class="nc" id="L418">      roleDataSession.persistRole(role);</span>
+    }
+    // Audit log access rule changes (also for new roles)
+<span class="nc" id="L421">    final HashMap&lt;String, Boolean&gt; newAccessRules = role.getAccessRules();</span>
+    final HashMap&lt;String, Boolean&gt; oldAccessRules =
+<span class="nc bnc" id="L423" title="All 2 branches missed.">        roleById == null</span>
+<span class="nc" id="L424">            ? new HashMap&lt;String, Boolean&gt;()</span>
+<span class="nc" id="L425">            : roleById.getAccessRules();</span>
+<span class="nc" id="L426">    final Map&lt;Object, Object&gt; oldAuditMap = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L427" title="All 2 branches missed.">    for (final Entry&lt;String, Boolean&gt; entry : oldAccessRules.entrySet()) {</span>
+<span class="nc" id="L428">      oldAuditMap.put(</span>
+<span class="nc bnc" id="L429" title="All 2 branches missed.">          entry.getKey(), entry.getValue().booleanValue() ? &quot;allow&quot; : &quot;deny&quot;);</span>
+<span class="nc" id="L430">    }</span>
+<span class="nc" id="L431">    final Map&lt;Object, Object&gt; newAuditMap = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L432" title="All 2 branches missed.">    for (final Entry&lt;String, Boolean&gt; entry : newAccessRules.entrySet()) {</span>
+<span class="nc" id="L433">      newAuditMap.put(</span>
+<span class="nc bnc" id="L434" title="All 2 branches missed.">          entry.getKey(), entry.getValue().booleanValue() ? &quot;allow&quot; : &quot;deny&quot;);</span>
+<span class="nc" id="L435">    }</span>
+<span class="nc" id="L436">    final Map&lt;Object, Object&gt; auditLogDiffMap =</span>
+<span class="nc" id="L437">        UpgradeableDataHashMap.diffMaps(oldAuditMap, newAuditMap);</span>
+<span class="nc bnc" id="L438" title="All 2 branches missed.">    if (!auditLogDiffMap.isEmpty()) {</span>
+<span class="nc" id="L439">      final StringBuilder rulesMsg = new StringBuilder();</span>
+<span class="nc bnc" id="L440" title="All 2 branches missed.">      for (Map.Entry&lt;Object, Object&gt; entry : auditLogDiffMap.entrySet()) {</span>
+<span class="nc" id="L441">        rulesMsg.append(</span>
+            &quot;[&quot;
+<span class="nc" id="L443">                + entry.getKey().toString()</span>
+                + &quot;:&quot;
+<span class="nc" id="L445">                + entry.getValue().toString()</span>
+                + &quot;]&quot;);
+<span class="nc" id="L447">      }</span>
+      final String msg =
+<span class="nc" id="L449">          InternalResources.getInstance()</span>
+<span class="nc" id="L450">              .getLocalizedMessage(</span>
+                  &quot;authorization.accessruleschanged&quot;,
+<span class="nc" id="L452">                  role.getRoleNameFull(),</span>
+<span class="nc" id="L453">                  rulesMsg.toString());</span>
+<span class="nc" id="L454">      final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L455">      details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L456">      details.put(&quot;roleId&quot;, role.getRoleId());</span>
+<span class="nc" id="L457">      details.put(&quot;roleName&quot;, role.getRoleName());</span>
+<span class="nc" id="L458">      details.put(&quot;nameSpace&quot;, role.getNameSpace());</span>
+<span class="nc" id="L459">      securityEventsLoggerSession.log(</span>
+          EventTypes.ROLE_ACCESS_RULE_CHANGE,
+          EventStatus.SUCCESS,
+          ModuleTypes.ROLES,
+          ServiceTypes.CORE,
+<span class="nc" id="L464">          authenticationToken.toString(),</span>
+          null,
+          null,
+          null,
+          details);
+    }
+<span class="nc" id="L470">    return role;</span>
+  }
+
+  /**
+   * Asserts that authentication token is authorized to edit roles in general.
+   *
+   * @param authenticationToken a token for the authenticating entity
+   * @throws AuthorizationDeniedException if not authorized
+   */
+  private void assertAuthorizedToEditRoles(
+      final AuthenticationToken authenticationToken)
+      throws AuthorizationDeniedException {
+<span class="nc bnc" id="L482" title="All 2 branches missed.">    if (!authorizationSession.isAuthorizedNoLogging(</span>
+<span class="nc" id="L483">        authenticationToken, StandardRules.EDITROLES.resource())) {</span>
+      String msg =
+<span class="nc" id="L485">          InternalResources.getInstance()</span>
+<span class="nc" id="L486">              .getLocalizedMessage(</span>
+                  &quot;authorization.notauthorizedtoeditroles&quot;,
+<span class="nc" id="L488">                  authenticationToken.toString());</span>
+<span class="nc" id="L489">      throw new AuthorizationDeniedException(msg);</span>
+    }
+<span class="nc" id="L491">  }</span>
+
+  /**
+   * Like {@link #assertAuthorizedToEditRoles(AuthenticationToken)}, but check
+   * for view access.
+   *
+   * @param authenticationToken Token
+   * @throws AuthorizationDeniedException if denied
+   */
+  private void assertAuthorizedToViewRoles(
+      final AuthenticationToken authenticationToken)
+      throws AuthorizationDeniedException {
+<span class="nc bnc" id="L503" title="All 2 branches missed.">    if (!authorizationSession.isAuthorizedNoLogging(</span>
+<span class="nc" id="L504">        authenticationToken, StandardRules.VIEWROLES.resource())) {</span>
+      String msg =
+<span class="nc" id="L506">          InternalResources.getInstance()</span>
+<span class="nc" id="L507">              .getLocalizedMessage(</span>
+                  &quot;authorization.notauthorizedtoviewroles&quot;,
+<span class="nc" id="L509">                  authenticationToken.toString());</span>
+<span class="nc" id="L510">      throw new AuthorizationDeniedException(msg);</span>
+    }
+<span class="nc" id="L512">  }</span>
+
+  /**
+   * @param authenticationToken Token
+   * @param role Role
+   * @param roleIdsCallerBelongsTo Caller role
+   * @throws AuthorizationDeniedException if the caller is not authorized to one
+   *     of the rules granted access to (even implied) by this role
+   */
+  private void assertAuthorizedToAllAccessRules(
+      final AuthenticationToken authenticationToken,
+      final Role role,
+      final Set&lt;Integer&gt; roleIdsCallerBelongsTo)
+      throws AuthorizationDeniedException {
+<span class="nc bnc" id="L526" title="All 2 branches missed.">    if (!isAuthorizedToAllAccessRules(</span>
+        authenticationToken, role, roleIdsCallerBelongsTo)) {
+<span class="nc" id="L528">      throw new AuthorizationDeniedException(</span>
+          &quot;Not authorized to all access rules in role.&quot;);
+    }
+<span class="nc" id="L531">  }</span>
+
+  /**
+   * @param authenticationToken Token
+   * @param role Role
+   * @param roleIdsCallerBelongsTo Caller roles
+   * @return booleam
+   */
+  private boolean isAuthorizedToAllAccessRules(
+      final AuthenticationToken authenticationToken,
+      final Role role,
+      final Set&lt;Integer&gt; roleIdsCallerBelongsTo) {
+    // Verify that authenticationToken has access to every single added allow
+    // access rule
+    for (final Entry&lt;String, Boolean&gt; entry
+<span class="nc bnc" id="L546" title="All 2 branches missed.">        : role.getAccessRules().entrySet()) {</span>
+<span class="nc bnc" id="L547" title="All 2 branches missed.">      if (entry.getValue().booleanValue()) {</span>
+<span class="nc bnc" id="L548" title="All 2 branches missed.">        if (!authorizationSession.isAuthorizedNoLogging(</span>
+<span class="nc" id="L549">            authenticationToken, entry.getKey())) {</span>
+          // Role would allow what is is not granted to current
+          // authenticationToken
+<span class="nc" id="L552">          return false;</span>
+        }
+      }
+<span class="nc" id="L555">    }</span>
+    // Verify that role does not have access to any rule that is denied to this
+    // authenticationToken
+<span class="nc" id="L558">    HashMap&lt;String, Boolean&gt; totalAccessRules = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L559" title="All 2 branches missed.">    for (final int roleId : roleIdsCallerBelongsTo) {</span>
+<span class="nc" id="L560">      totalAccessRules =</span>
+<span class="nc" id="L561">          AccessRulesHelper.getAccessRulesUnion(</span>
+              totalAccessRules,
+<span class="nc" id="L563">              roleDataSession.getRole(roleId).getAccessRules());</span>
+<span class="nc" id="L564">    }</span>
+<span class="nc bnc" id="L565" title="All 2 branches missed.">    for (final Entry&lt;String, Boolean&gt; entry : totalAccessRules.entrySet()) {</span>
+<span class="nc bnc" id="L566" title="All 2 branches missed.">      if (!entry.getValue().booleanValue()) {</span>
+<span class="nc bnc" id="L567" title="All 2 branches missed.">        if (role.hasAccessToResource(entry.getKey())) {</span>
+          // Role would allow what is denied to current authenticationToken
+<span class="nc" id="L569">          return false;</span>
+        }
+      }
+<span class="nc" id="L572">    }</span>
+<span class="nc" id="L573">    return true;</span>
+  }
+
+  /**
+   * @param authenticationToken Token
+   * @param role Role
+   * @param roleIdsCallerBelongsTo Caller role
+   * @throws AuthorizationDeniedException if the nameSpace is not &quot;owned&quot; by the
+   *     caller.
+   */
+  private void assertAuthorizedToNameSpace(
+      final AuthenticationToken authenticationToken,
+      final Role role,
+      final Set&lt;Integer&gt; roleIdsCallerBelongsTo)
+      throws AuthorizationDeniedException {
+    // Assert that AuthenticationToken is allowed to mess with the role's
+    // nameSpace
+<span class="nc bnc" id="L590" title="All 2 branches missed.">    if (!isAuthorizedToNameSpace(</span>
+        authenticationToken, role, roleIdsCallerBelongsTo)) {
+<span class="nc" id="L592">      throw new AuthorizationDeniedException(</span>
+          &quot;Current AuthenticationToken is not authorized to the namespace '&quot;
+<span class="nc" id="L594">              + role.getNameSpace()</span>
+              + &quot;'.&quot;);
+    }
+<span class="nc" id="L597">  }</span>
+
+  /**
+   * @param authenticationToken Token
+   * @param roleId Role
+   * @return true if the authenticationToken is authorized to all CAs that are
+   *     issuers of RoleMembers in this Role
+   */
+  private boolean isAuthorizedToAllRoleMembersIssuers(
+      final AuthenticationToken authenticationToken, final int roleId) {
+    // Verify that the caller is authorized to all CAs that are issuers of
+    // members in this role
+<span class="nc" id="L609">    final Set&lt;String&gt; tokenIssuerAccessRules = new HashSet&lt;&gt;();</span>
+    for (final RoleMemberData roleMemberData
+<span class="nc bnc" id="L611" title="All 2 branches missed.">        : roleMemberDataSession.findByRoleId(roleId)) {</span>
+<span class="nc" id="L612">      final AuthenticationTokenMetaData metaData =</span>
+<span class="nc" id="L613">          AccessMatchValueReverseLookupRegistry.INSTANCE.getMetaData(</span>
+<span class="nc" id="L614">              roleMemberData.getTokenType());</span>
+<span class="nc" id="L615">      final AccessMatchValue accessMatchValue =</span>
+          metaData
+<span class="nc" id="L617">              .getAccessMatchValueIdMap()</span>
+<span class="nc" id="L618">              .get(roleMemberData.getTokenMatchKey());</span>
+<span class="nc bnc" id="L619" title="All 2 branches missed.">      if (accessMatchValue.isIssuedByCa()) {</span>
+<span class="nc" id="L620">        tokenIssuerAccessRules.add(</span>
+<span class="nc" id="L621">            StandardRules.CAACCESS.resource()</span>
+<span class="nc" id="L622">                + roleMemberData.getTokenIssuerId());</span>
+      }
+<span class="nc" id="L624">    }</span>
+<span class="nc" id="L625">    return authorizationSession.isAuthorizedNoLogging(</span>
+        authenticationToken,
+<span class="nc" id="L627">        tokenIssuerAccessRules.toArray(</span>
+<span class="nc" id="L628">            new String[tokenIssuerAccessRules.size()]));</span>
+  }
+
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  @Override
+  public void assertNonImportantRoleMembership(
+      final AuthenticationToken authenticationToken, final int roleId)
+      throws AuthorizationDeniedException {
+<span class="nc" id="L636">    final Role role = roleDataSession.getRole(roleId);</span>
+<span class="nc bnc" id="L637" title="All 2 branches missed.">    if (role != null) {</span>
+      // Check that authenticationToken is allowed to remove the role with all
+      // its rights
+<span class="nc" id="L640">      final Set&lt;Integer&gt; roleIdsCallerBelongsTo =</span>
+<span class="nc" id="L641">          roleMemberDataSession.getRoleIdsMatchingAuthenticationToken(</span>
+              authenticationToken);
+<span class="nc" id="L643">      assertNonImportantRoleMembership(</span>
+          authenticationToken, role, roleIdsCallerBelongsTo);
+    }
+<span class="nc" id="L646">  }</span>
+
+  private void assertNonImportantRoleMembership(
+      final AuthenticationToken authenticationToken,
+      final Role role,
+      final Set&lt;Integer&gt; roleIdsCallerBelongsTo)
+      throws AuthorizationDeniedException {
+<span class="nc bnc" id="L653" title="All 2 branches missed.">    if (role.getRoleId() != Role.ROLE_ID_UNASSIGNED) {</span>
+      // Check that authenticationToken is not about to lock itself out by
+      // modifying its own role
+<span class="nc bnc" id="L656" title="All 2 branches missed.">      if (roleIdsCallerBelongsTo.contains(role.getRoleId())) {</span>
+<span class="nc bnc" id="L657" title="All 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L658">          LOG.debug(</span>
+              &quot;'&quot;
+                  + authenticationToken
+                  + &quot;' relies on match from Role with id &quot;
+<span class="nc" id="L662">                  + role.getRoleId()</span>
+                  + &quot; for access.&quot;);
+        }
+        // As long as the admin does not lower its own privileges we are ok with
+<span class="nc" id="L666">        HashMap&lt;String, Boolean&gt; accessRulesBefore = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L667">        HashMap&lt;String, Boolean&gt; accessRulesAfter = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L668">        final Set&lt;String&gt; accessToNamespacesBefore = new HashSet&lt;&gt;();</span>
+<span class="nc" id="L669">        final Set&lt;String&gt; accessToNamespacesAfter = new HashSet&lt;&gt;();</span>
+<span class="nc bnc" id="L670" title="All 2 branches missed.">        for (final int roleId : roleIdsCallerBelongsTo) {</span>
+<span class="nc" id="L671">          final Role existingRole = roleDataSession.getRole(roleId);</span>
+<span class="nc" id="L672">          final HashMap&lt;String, Boolean&gt; accessRulesFromRole =</span>
+<span class="nc" id="L673">              existingRole.getAccessRules();</span>
+<span class="nc" id="L674">          accessRulesBefore =</span>
+<span class="nc" id="L675">              AccessRulesHelper.getAccessRulesUnion(</span>
+                  accessRulesBefore, accessRulesFromRole);
+<span class="nc" id="L677">          accessToNamespacesBefore.add(existingRole.getNameSpace());</span>
+<span class="nc bnc" id="L678" title="All 2 branches missed.">          if (roleId != role.getRoleId()) {</span>
+<span class="nc" id="L679">            accessRulesAfter =</span>
+<span class="nc" id="L680">                AccessRulesHelper.getAccessRulesUnion(</span>
+                    accessRulesAfter, accessRulesFromRole);
+<span class="nc" id="L682">            accessToNamespacesAfter.add(existingRole.getNameSpace());</span>
+          } else {
+<span class="nc" id="L684">            accessToNamespacesAfter.add(role.getNameSpace());</span>
+          }
+<span class="nc" id="L686">        }</span>
+<span class="nc bnc" id="L687" title="All 2 branches missed.">        if (!accessRulesBefore.equals(accessRulesAfter)) {</span>
+<span class="nc" id="L688">          throw new AuthorizationDeniedException(</span>
+              &quot;Granted access of the current administrator might be affected&quot;
+                  + &quot; by this change.&quot;);
+        }
+<span class="nc bnc" id="L692" title="All 2 branches missed.">        if (!accessToNamespacesBefore.equals(accessToNamespacesAfter)</span>
+<span class="nc bnc" id="L693" title="All 2 branches missed.">            &amp;&amp; !(accessToNamespacesBefore.contains(&quot;&quot;)</span>
+<span class="nc bnc" id="L694" title="All 2 branches missed.">                &amp;&amp; accessToNamespacesAfter.contains(&quot;&quot;))) {</span>
+<span class="nc" id="L695">          throw new AuthorizationDeniedException(</span>
+              &quot;Granted namespace access of the current administrator would be&quot;
+                  + &quot; affected by this change.&quot;);
+        }
+<span class="nc bnc" id="L699" title="All 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L700">          LOG.debug(</span>
+              &quot;Access granted to '&quot;
+                  + authenticationToken
+                  + &quot;' would not be affected by not being a member of Role&quot;
+                  + &quot; with id &quot;
+<span class="nc" id="L705">                  + role.getRoleId()</span>
+                  + &quot;.&quot;);
+        }
+<span class="nc" id="L708">      } else {</span>
+<span class="nc bnc" id="L709" title="All 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L710">          LOG.debug(</span>
+              &quot;'&quot;
+                  + authenticationToken
+                  + &quot;' does not rely on match from Role with id &quot;
+<span class="nc" id="L714">                  + role.getRoleId()</span>
+                  + &quot;.&quot;);
+        }
+      }
+    }
+<span class="nc" id="L719">  }</span>
+
+  /**
+   * @param authenticationToken Token
+   * @param role Role
+   * @param roleIdsCallerBelongsTo Caller roles
+   * @return boolean
+   */
+  private boolean isAuthorizedToNameSpace(
+      final AuthenticationToken authenticationToken,
+      final Role role,
+      final Set&lt;Integer&gt; roleIdsCallerBelongsTo) {
+<span class="nc bnc" id="L731" title="All 2 branches missed.">    if (authenticationToken instanceof AlwaysAllowLocalAuthenticationToken) {</span>
+<span class="nc" id="L732">      return true; // AlwaysAllowLocalAuthenticationToken cannot belong to any</span>
+                   // roles, so the code below will not work
+    }
+    // Assert that AuthenticationToken is allowed to mess with the role's
+    // nameSpace
+<span class="nc" id="L737">    final Set&lt;String&gt; ownedNameSpaces = new HashSet&lt;&gt;();</span>
+<span class="nc bnc" id="L738" title="All 2 branches missed.">    for (final int current : roleIdsCallerBelongsTo) {</span>
+<span class="nc" id="L739">      ownedNameSpaces.add(roleDataSession.getRole(current).getNameSpace());</span>
+<span class="nc" id="L740">    }</span>
+<span class="nc bnc" id="L741" title="All 2 branches missed.">    return ownedNameSpaces.contains(&quot;&quot;)</span>
+<span class="nc bnc" id="L742" title="All 2 branches missed.">        || ownedNameSpaces.contains(role.getNameSpace());</span>
+  }
+
+  @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+  @Override
+  public List&lt;String&gt; getAuthorizedNamespaces(
+      final AuthenticationToken authenticationToken) {
+<span class="nc" id="L749">    final Set&lt;String&gt; namespaces = new HashSet&lt;&gt;();</span>
+    for (final int current
+<span class="nc bnc" id="L751" title="All 2 branches missed.">        : roleMemberDataSession.getRoleIdsMatchingAuthenticationToken(</span>
+            authenticationToken)) {
+<span class="nc" id="L753">      namespaces.add(roleDataSession.getRole(current).getNameSpace());</span>
+<span class="nc" id="L754">    }</span>
+<span class="nc bnc" id="L755" title="All 4 branches missed.">    if (namespaces.contains(&quot;&quot;)</span>
+        || authenticationToken instanceof AlwaysAllowLocalAuthenticationToken) {
+      // Add all namespaces from authorized roles
+<span class="nc bnc" id="L758" title="All 2 branches missed.">      for (final Role role : getAuthorizedRoles(authenticationToken)) {</span>
+<span class="nc" id="L759">        namespaces.add(role.getNameSpace());</span>
+<span class="nc" id="L760">      }</span>
+    }
+<span class="nc" id="L762">    return new ArrayList&lt;&gt;(namespaces);</span>
+  }
+
+  @Override
+  public boolean updateCaId(
+      final int caIdOld,
+      final int caIdNew,
+      final boolean keepOldAccessRule,
+      final boolean updateRoleMembers) {
+<span class="nc" id="L771">    final String resourceOld =</span>
+<span class="nc" id="L772">        AccessRulesHelper.normalizeResource(</span>
+<span class="nc" id="L773">            StandardRules.CAACCESS.resource() + caIdOld);</span>
+<span class="nc" id="L774">    final String resourceNew =</span>
+<span class="nc" id="L775">        AccessRulesHelper.normalizeResource(</span>
+<span class="nc" id="L776">            StandardRules.CAACCESS.resource() + caIdNew);</span>
+<span class="nc" id="L777">    boolean hasChangedAnything = false;</span>
+<span class="nc bnc" id="L778" title="All 2 branches missed.">    for (final Role role : roleDataSession.getAllRoles()) {</span>
+<span class="nc" id="L779">      final Boolean state = role.getAccessRules().get(resourceOld);</span>
+<span class="nc bnc" id="L780" title="All 2 branches missed.">      if (state != null) {</span>
+<span class="nc bnc" id="L781" title="All 2 branches missed.">        if (!keepOldAccessRule) {</span>
+<span class="nc" id="L782">          role.getAccessRules().remove(resourceOld);</span>
+        }
+<span class="nc" id="L784">        role.getAccessRules().put(resourceNew, state);</span>
+<span class="nc" id="L785">        roleDataSession.persistRole(role);</span>
+<span class="nc" id="L786">        hasChangedAnything = true;</span>
+      }
+<span class="nc bnc" id="L788" title="All 2 branches missed.">      if (updateRoleMembers) {</span>
+        for (final RoleMember roleMember
+<span class="nc bnc" id="L790" title="All 2 branches missed.">            : roleMemberDataSession.findRoleMemberByRoleId(role.getRoleId())) {</span>
+<span class="nc bnc" id="L791" title="All 2 branches missed.">          if (roleMember.getTokenIssuerId() == caIdOld) {</span>
+            // Do more expensive checks if it is a potential match
+<span class="nc" id="L793">            final AccessMatchValue accessMatchValue =</span>
+                AccessMatchValueReverseLookupRegistry.INSTANCE
+<span class="nc" id="L795">                    .getMetaData(roleMember.getTokenType())</span>
+<span class="nc" id="L796">                    .getAccessMatchValueIdMap()</span>
+<span class="nc" id="L797">                    .get(roleMember.getTokenMatchKey());</span>
+<span class="nc bnc" id="L798" title="All 2 branches missed.">            if (accessMatchValue.isIssuedByCa()) {</span>
+<span class="nc" id="L799">              roleMember.setTokenIssuerId(caIdNew);</span>
+<span class="nc" id="L800">              roleMemberDataSession.persistRoleMember(roleMember);</span>
+<span class="nc" id="L801">              hasChangedAnything = true;</span>
             }
-<span class="nc" id="L134">        }</span>
-<span class="nc" id="L135">        return roles;</span>
-    }
-    
-    @Override
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List&lt;Role&gt; getAuthorizedRoles(final AuthenticationToken authenticationToken) {
-<span class="nc" id="L141">        final List&lt;Role&gt; roles = new ArrayList&lt;&gt;();</span>
-<span class="nc" id="L142">        final Set&lt;Integer&gt; roleIdsCallerBelongsTo = roleMemberDataSession.getRoleIdsMatchingAuthenticationToken(authenticationToken);</span>
-<span class="nc bnc" id="L143" title="All 2 branches missed.">        for (final Role role : roleDataSession.getAllRoles()) {</span>
-            // Verify that the caller is authorized to role's namespace
-<span class="nc bnc" id="L145" title="All 2 branches missed.">            if (!isAuthorizedToNameSpace(authenticationToken, role, roleIdsCallerBelongsTo)) {</span>
-<span class="nc bnc" id="L146" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L147">                    log.debug(&quot;'&quot; + authenticationToken.toString() + &quot;' is not authorized to the namespace '&quot;+role.getNameSpace()+&quot;'.&quot;);</span>
-                }
-                continue;
-            }
-            // Verify that the caller is authorized to all access rules in this role
-<span class="nc bnc" id="L152" title="All 2 branches missed.">            if (!isAuthorizedToAllAccessRules(authenticationToken, role, roleIdsCallerBelongsTo)) {</span>
-<span class="nc bnc" id="L153" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L154">                    log.debug(&quot;'&quot; + authenticationToken.toString() + &quot;' is not authorized to all access rules in role '&quot;+role.getRoleNameFull()+&quot;'.&quot;);</span>
-                }
-                continue;
-            }
-            // Verify that the caller is authorized to all CAs that are issuers of members in this role
-<span class="nc bnc" id="L159" title="All 2 branches missed.">            if (!isAuthorizedToAllRoleMembersIssuers(authenticationToken, role.getRoleId())) {</span>
-<span class="nc bnc" id="L160" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L161">                    log.debug(&quot;'&quot; + authenticationToken.toString() + &quot;' is not authorized to all members in role '&quot;+role.getRoleNameFull()+&quot;'.&quot;);</span>
-                }
-                continue;
-            }
-<span class="nc" id="L165">            roles.add(role);</span>
-<span class="nc" id="L166">        }</span>
-<span class="nc" id="L167">        return roles;</span>
-    }
-
-    @Override
-    public boolean deleteRoleIdempotent(final AuthenticationToken authenticationToken, final int roleId) throws AuthorizationDeniedException {
-<span class="nc" id="L172">        assertAuthorizedToEditRoles(authenticationToken);</span>
-<span class="nc" id="L173">        final Role role = roleDataSession.getRole(roleId);</span>
-<span class="nc bnc" id="L174" title="All 2 branches missed.">        if (role==null) {</span>
-<span class="nc" id="L175">            return false;</span>
-        }
-        // Check that authenticationToken is allowed to remove the role with all its rights
-<span class="nc" id="L178">        final Set&lt;Integer&gt; roleIdsCallerBelongsTo = roleMemberDataSession.getRoleIdsMatchingAuthenticationToken(authenticationToken);</span>
-<span class="nc" id="L179">        assertAuthorizedToAllAccessRules(authenticationToken, role, roleIdsCallerBelongsTo);</span>
-<span class="nc" id="L180">        assertAuthorizedToNameSpace(authenticationToken, role, roleIdsCallerBelongsTo);</span>
-<span class="nc" id="L181">        assertNonImportantRoleMembership(authenticationToken, role, roleIdsCallerBelongsTo);</span>
-<span class="nc" id="L182">        boolean ret = roleDataSession.deleteRoleNoAuthorizationCheck(role.getRoleId());</span>
-<span class="nc" id="L183">        RoleCache.INSTANCE.updateWith(role.getRoleId(), 0, null, null);</span>
-<span class="nc" id="L184">        final String msg = InternalResources.getInstance().getLocalizedMessage(&quot;authorization.roleremoved&quot;, role.getRoleNameFull());</span>
-<span class="nc" id="L185">        final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
-<span class="nc" id="L186">        details.put(&quot;msg&quot;, msg);</span>
-<span class="nc" id="L187">        details.put(&quot;roleId&quot;, role.getRoleId());</span>
-<span class="nc" id="L188">        details.put(&quot;roleName&quot;, role.getRoleName());</span>
-<span class="nc" id="L189">        details.put(&quot;nameSpace&quot;, role.getNameSpace());</span>
-<span class="nc" id="L190">        securityEventsLoggerSession.log(EventTypes.ROLE_DELETION, EventStatus.SUCCESS, ModuleTypes.ROLES, ServiceTypes.CORE,</span>
-<span class="nc" id="L191">                authenticationToken.toString(), null, null, null, details);</span>
-<span class="nc" id="L192">        final List&lt;RoleMember&gt; roleMembers = roleMemberDataSession.findRoleMemberByRoleId(role.getRoleId());</span>
-<span class="nc bnc" id="L193" title="All 2 branches missed.">        for (final RoleMember roleMember : roleMembers) {</span>
-<span class="nc" id="L194">            ret |= roleMemberDataSession.remove(roleMember.getId());</span>
-<span class="nc" id="L195">        }</span>
-<span class="nc" id="L196">        return ret;</span>
-    }
-    
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    @Override
-    public void assertAuthorizedToRoleMembers(final AuthenticationToken authenticationToken, final int roleId, final boolean requireEditAccess) throws AuthorizationDeniedException {
-        // Check if the caller is authorized to edit roles in general
-<span class="nc bnc" id="L203" title="All 2 branches missed.">        if (requireEditAccess) {</span>
-<span class="nc" id="L204">            assertAuthorizedToEditRoles(authenticationToken);</span>
-        } else {
-<span class="nc" id="L206">            assertAuthorizedToViewRoles(authenticationToken);</span>
-        }
-        // Is the authToken authorized to the role found by id in the database?
-<span class="nc bnc" id="L209" title="All 2 branches missed.">        final Role roleById = roleId==Role.ROLE_ID_UNASSIGNED ? null : roleDataSession.getRole(roleId);</span>
-<span class="nc bnc" id="L210" title="All 2 branches missed.">        if (roleById!=null) {</span>
-<span class="nc" id="L211">            final Set&lt;Integer&gt; roleIdsCallerBelongsTo = roleMemberDataSession.getRoleIdsMatchingAuthenticationToken(authenticationToken);</span>
-<span class="nc" id="L212">            assertAuthorizedToAllAccessRules(authenticationToken, roleById, roleIdsCallerBelongsTo);</span>
-<span class="nc" id="L213">            assertAuthorizedToNameSpace(authenticationToken, roleById, roleIdsCallerBelongsTo);</span>
-        }
-<span class="nc" id="L215">    }</span>
-    
-    private Role getOriginalRoleAndAssertAuthorizedToEdit(final AuthenticationToken authenticationToken, final Role role, final boolean requireNonImportantRoleMembership)
-            throws AuthorizationDeniedException {
-        // Check if the caller is authorized to edit roles in general
-<span class="nc" id="L220">        assertAuthorizedToEditRoles(authenticationToken);</span>
-        // Is the authToken authorized to the role as provided as an argument?
-<span class="nc" id="L222">        final Set&lt;Integer&gt; roleIdsCallerBelongsTo = roleMemberDataSession.getRoleIdsMatchingAuthenticationToken(authenticationToken);</span>
-<span class="nc" id="L223">        assertAuthorizedToAllAccessRules(authenticationToken, role, roleIdsCallerBelongsTo);</span>
-<span class="nc bnc" id="L224" title="All 2 branches missed.">        if (requireNonImportantRoleMembership) {</span>
-<span class="nc" id="L225">            assertNonImportantRoleMembership(authenticationToken, role, roleIdsCallerBelongsTo);</span>
-        }
-<span class="nc" id="L227">        assertAuthorizedToNameSpace(authenticationToken, role, roleIdsCallerBelongsTo);</span>
-        // Is the authToken authorized to the role found by id in the database?
-<span class="nc bnc" id="L229" title="All 2 branches missed.">        final Role roleById = role.getRoleId()==Role.ROLE_ID_UNASSIGNED ? null : roleDataSession.getRole(role.getRoleId());</span>
-<span class="nc bnc" id="L230" title="All 2 branches missed.">        if (roleById!=null) {</span>
-<span class="nc" id="L231">            assertAuthorizedToAllAccessRules(authenticationToken, roleById, roleIdsCallerBelongsTo);</span>
-<span class="nc" id="L232">            assertAuthorizedToNameSpace(authenticationToken, roleById, roleIdsCallerBelongsTo);</span>
-        }
-<span class="nc" id="L234">        return roleById;</span>
-    }
-    
-
-    @Override
-    public Role persistRole(final AuthenticationToken authenticationToken, final Role role) throws RoleExistsException, AuthorizationDeniedException {
-<span class="nc" id="L240">        return persistRole(authenticationToken, role, true);</span>
-    }
-    
-    @Override
-    public Role persistRole(final AuthenticationToken authenticationToken, final Role role, final boolean requireNonImportantRoleMembership)
-            throws RoleExistsException, AuthorizationDeniedException {
-        // Normalize and minimize access rules before checking authorization
-<span class="nc" id="L247">        role.normalizeAccessRules();</span>
-<span class="nc" id="L248">        role.minimizeAccessRules();</span>
-<span class="nc" id="L249">        final Role roleById = getOriginalRoleAndAssertAuthorizedToEdit(authenticationToken, role, requireNonImportantRoleMembership);</span>
-        // Sort access rules to make raw xml editing (e.g. statedump) easier
-<span class="nc" id="L251">        role.sortAccessRules();</span>
-<span class="nc" id="L252">        final Role roleByName = roleDataSession.getRole(role.getNameSpace(), role.getRoleName());</span>
-<span class="nc bnc" id="L253" title="All 2 branches missed.">        if (roleById == null) {</span>
-<span class="nc bnc" id="L254" title="All 2 branches missed.">            if (roleByName!=null) {</span>
-<span class="nc" id="L255">                throw new RoleExistsException(InternalResources.getInstance().getLocalizedMessage(&quot;authorization.erroraddroleexists&quot;, role.getRoleNameFull()));</span>
-            }
-            // Enforce a non-empty role name
-<span class="nc bnc" id="L258" title="All 2 branches missed.">            if (StringUtils.isEmpty(role.getRoleName())) {</span>
-<span class="nc" id="L259">                throw new IllegalArgumentException(&quot;Role name cannot be empty.&quot;);</span>
-            }
-            // Persist new role
-<span class="nc" id="L262">            role.setRoleId(roleDataSession.persistRole(role).getRoleId());</span>
-<span class="nc" id="L263">            final String msg = InternalResources.getInstance().getLocalizedMessage(&quot;authorization.roleadded&quot;, role.getRoleName());</span>
-<span class="nc" id="L264">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
-<span class="nc" id="L265">            details.put(&quot;msg&quot;, msg);</span>
-<span class="nc" id="L266">            details.put(&quot;roleId&quot;, role.getRoleId());</span>
-<span class="nc" id="L267">            details.put(&quot;roleName&quot;, role.getRoleName());</span>
-<span class="nc" id="L268">            details.put(&quot;nameSpace&quot;, role.getNameSpace());</span>
-<span class="nc" id="L269">            securityEventsLoggerSession.log(EventTypes.ROLE_CREATION, EventStatus.SUCCESS, ModuleTypes.ROLES, ServiceTypes.CORE,</span>
-<span class="nc" id="L270">                    authenticationToken.toString(), null, null, null, details);</span>
-<span class="nc" id="L271">        } else {</span>
-            // Save to existing role
-<span class="nc bnc" id="L273" title="All 2 branches missed.">            if (roleByName==null) {</span>
-                // Audit log that the role will be renamed when persisted
-<span class="nc" id="L275">                final String msg = InternalResources.getInstance().getLocalizedMessage(&quot;authorization.rolerenamed&quot;, roleById.getRoleNameFull(),</span>
-<span class="nc" id="L276">                        role.getRoleNameFull());</span>
-<span class="nc" id="L277">                Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
-<span class="nc" id="L278">                details.put(&quot;msg&quot;, msg);</span>
-<span class="nc" id="L279">                details.put(&quot;roleId&quot;, role.getRoleId());</span>
-<span class="nc" id="L280">                details.put(&quot;roleNameOld&quot;, roleById.getRoleName());</span>
-<span class="nc" id="L281">                details.put(&quot;roleNameNew&quot;, role.getRoleName());</span>
-<span class="nc" id="L282">                details.put(&quot;nameSpaceOld&quot;, roleById.getNameSpace());</span>
-<span class="nc" id="L283">                details.put(&quot;nameSpaceNew&quot;, role.getNameSpace());</span>
-<span class="nc" id="L284">                securityEventsLoggerSession.log(EventTypes.ROLE_RENAMING, EventStatus.SUCCESS, ModuleTypes.ROLES, ServiceTypes.CORE,</span>
-<span class="nc" id="L285">                        authenticationToken.toString(), null, null, null, details);</span>
-<span class="nc" id="L286">            } else {</span>
-<span class="nc bnc" id="L287" title="All 2 branches missed.">                if (roleByName.getRoleId() != role.getRoleId()) {</span>
-<span class="nc" id="L288">                    throw new RoleExistsException(&quot;A role with the same name exists.&quot;);</span>
-                }
-            }
-            // Persist data changes
-<span class="nc" id="L292">            roleDataSession.persistRole(role);</span>
-        }
-        // Audit log access rule changes (also for new roles)
-<span class="nc" id="L295">        final HashMap&lt;String, Boolean&gt; newAccessRules = role.getAccessRules();</span>
-<span class="nc bnc" id="L296" title="All 2 branches missed.">        final HashMap&lt;String, Boolean&gt; oldAccessRules = roleById==null ? new HashMap&lt;String, Boolean&gt;() : roleById.getAccessRules();</span>
-<span class="nc" id="L297">        final Map&lt;Object,Object&gt; oldAuditMap = new HashMap&lt;&gt;();</span>
-<span class="nc bnc" id="L298" title="All 2 branches missed.">        for (final Entry&lt;String,Boolean&gt; entry : oldAccessRules.entrySet()) {</span>
-<span class="nc bnc" id="L299" title="All 2 branches missed.">            oldAuditMap.put(entry.getKey(), entry.getValue().booleanValue() ? &quot;allow&quot; : &quot;deny&quot;);</span>
-<span class="nc" id="L300">        }</span>
-<span class="nc" id="L301">        final Map&lt;Object,Object&gt; newAuditMap = new HashMap&lt;&gt;();</span>
-<span class="nc bnc" id="L302" title="All 2 branches missed.">        for (final Entry&lt;String,Boolean&gt; entry : newAccessRules.entrySet()) {</span>
-<span class="nc bnc" id="L303" title="All 2 branches missed.">            newAuditMap.put(entry.getKey(), entry.getValue().booleanValue() ? &quot;allow&quot; : &quot;deny&quot;);</span>
-<span class="nc" id="L304">        }</span>
-<span class="nc" id="L305">        final Map&lt;Object, Object&gt; auditLogDiffMap = UpgradeableDataHashMap.diffMaps(oldAuditMap, newAuditMap);</span>
-<span class="nc bnc" id="L306" title="All 2 branches missed.">        if (!auditLogDiffMap.isEmpty()) {</span>
-<span class="nc" id="L307">            final StringBuilder rulesMsg = new StringBuilder();</span>
-<span class="nc bnc" id="L308" title="All 2 branches missed.">            for (Map.Entry&lt;Object, Object&gt; entry : auditLogDiffMap.entrySet()) {</span>
-<span class="nc" id="L309">                rulesMsg.append(&quot;[&quot; + entry.getKey().toString() + &quot;:&quot;+entry.getValue().toString()+&quot;]&quot;);</span>
-<span class="nc" id="L310">            }</span>
-<span class="nc" id="L311">            final String msg = InternalResources.getInstance().getLocalizedMessage(&quot;authorization.accessruleschanged&quot;, role.getRoleNameFull(), rulesMsg.toString());</span>
-<span class="nc" id="L312">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
-<span class="nc" id="L313">            details.put(&quot;msg&quot;, msg);</span>
-<span class="nc" id="L314">            details.put(&quot;roleId&quot;, role.getRoleId());</span>
-<span class="nc" id="L315">            details.put(&quot;roleName&quot;, role.getRoleName());</span>
-<span class="nc" id="L316">            details.put(&quot;nameSpace&quot;, role.getNameSpace());</span>
-<span class="nc" id="L317">            securityEventsLoggerSession.log(EventTypes.ROLE_ACCESS_RULE_CHANGE, EventStatus.SUCCESS, ModuleTypes.ROLES, ServiceTypes.CORE,</span>
-<span class="nc" id="L318">                    authenticationToken.toString(), null, null, null, details);</span>
-        }
-<span class="nc" id="L320">        return role;</span>
-    }
-
-    /**
-     * Asserts that authentication token is authorized to edit roles in general. 
-     * 
-     * @param authenticationToken a token for the authenticating entity
-     * @throws AuthorizationDeniedException if not authorized
-     */
-    private void assertAuthorizedToEditRoles(AuthenticationToken authenticationToken) throws AuthorizationDeniedException {
-<span class="nc bnc" id="L330" title="All 2 branches missed.">        if (!authorizationSession.isAuthorizedNoLogging(authenticationToken, StandardRules.EDITROLES.resource())) {</span>
-<span class="nc" id="L331">            String msg = InternalResources.getInstance().getLocalizedMessage(&quot;authorization.notauthorizedtoeditroles&quot;, authenticationToken.toString());</span>
-<span class="nc" id="L332">            throw new AuthorizationDeniedException(msg);</span>
-        }
-<span class="nc" id="L334">    }</span>
-    
-    /** Like {@link #assertAuthorizedToEditRoles(AuthenticationToken)}, but check for view access 
-     * @param authenticationToken Token
-     * @throws AuthorizationDeniedException if denied */
-    private void assertAuthorizedToViewRoles(AuthenticationToken authenticationToken) throws AuthorizationDeniedException {
-<span class="nc bnc" id="L340" title="All 2 branches missed.">        if (!authorizationSession.isAuthorizedNoLogging(authenticationToken, StandardRules.VIEWROLES.resource())) {</span>
-<span class="nc" id="L341">            String msg = InternalResources.getInstance().getLocalizedMessage(&quot;authorization.notauthorizedtoviewroles&quot;, authenticationToken.toString());</span>
-<span class="nc" id="L342">            throw new AuthorizationDeniedException(msg);</span>
-        }
-<span class="nc" id="L344">    }</span>
-
-    /** @param authenticationToken Token
-     * @param role Role
-     * @param roleIdsCallerBelongsTo Caller role 
-     * @throws AuthorizationDeniedException if the caller is not authorized to one of the rules granted access to (even implied) by this role */
-    private void assertAuthorizedToAllAccessRules(final AuthenticationToken authenticationToken, final Role role, final Set&lt;Integer&gt; roleIdsCallerBelongsTo) throws AuthorizationDeniedException {
-<span class="nc bnc" id="L351" title="All 2 branches missed.">        if (!isAuthorizedToAllAccessRules(authenticationToken, role, roleIdsCallerBelongsTo)) {</span>
-<span class="nc" id="L352">            throw new AuthorizationDeniedException(&quot;Not authorized to all access rules in role.&quot;);</span>
-        }
-<span class="nc" id="L354">    }</span>
-
-    /** @param authenticationToken Token
-     * @param role Role
-     * @param roleIdsCallerBelongsTo Caller roles 
-     * @return booleam
-      */
-    private boolean isAuthorizedToAllAccessRules(final AuthenticationToken authenticationToken, final Role role, final Set&lt;Integer&gt; roleIdsCallerBelongsTo) {
-        // Verify that authenticationToken has access to every single added allow access rule
-<span class="nc bnc" id="L363" title="All 2 branches missed.">        for (final Entry&lt;String, Boolean&gt; entry : role.getAccessRules().entrySet()) {</span>
-<span class="nc bnc" id="L364" title="All 2 branches missed.">            if (entry.getValue().booleanValue()) {</span>
-<span class="nc bnc" id="L365" title="All 2 branches missed.">                if (!authorizationSession.isAuthorizedNoLogging(authenticationToken, entry.getKey())) {</span>
-                    // Role would allow what is is not granted to current authenticationToken
-<span class="nc" id="L367">                    return false;</span>
-                }
-            }
-<span class="nc" id="L370">        }</span>
-        // Verify that role does not have access to any rule that is denied to this authenticationToken
-<span class="nc" id="L372">        HashMap&lt;String, Boolean&gt; totalAccessRules = new HashMap&lt;&gt;();</span>
-<span class="nc bnc" id="L373" title="All 2 branches missed.">        for (final int roleId : roleIdsCallerBelongsTo) {</span>
-<span class="nc" id="L374">            totalAccessRules = AccessRulesHelper.getAccessRulesUnion(totalAccessRules, roleDataSession.getRole(roleId).getAccessRules());</span>
-<span class="nc" id="L375">        }</span>
-<span class="nc bnc" id="L376" title="All 2 branches missed.">        for (final Entry&lt;String, Boolean&gt; entry : totalAccessRules.entrySet()) {</span>
-<span class="nc bnc" id="L377" title="All 2 branches missed.">            if (!entry.getValue().booleanValue()) {</span>
-<span class="nc bnc" id="L378" title="All 2 branches missed.">                if (role.hasAccessToResource(entry.getKey())) {</span>
-                    // Role would allow what is denied to current authenticationToken
-<span class="nc" id="L380">                    return false;</span>
-                }
-            }
-<span class="nc" id="L383">        }</span>
-<span class="nc" id="L384">        return true;</span>
-    }
-
-    /** @param authenticationToken Token
-     * @param role Role
-     * @param roleIdsCallerBelongsTo Caller role
-     * @throws AuthorizationDeniedException if the nameSpace is not &quot;owned&quot; by the caller. */
-    private void assertAuthorizedToNameSpace(final AuthenticationToken authenticationToken, final Role role, final Set&lt;Integer&gt; roleIdsCallerBelongsTo) throws AuthorizationDeniedException {
-        // Assert that AuthenticationToken is allowed to mess with the role's nameSpace
-<span class="nc bnc" id="L393" title="All 2 branches missed.">        if (!isAuthorizedToNameSpace(authenticationToken, role, roleIdsCallerBelongsTo)) {</span>
-<span class="nc" id="L394">            throw new AuthorizationDeniedException(&quot;Current AuthenticationToken is not authorized to the namespace '&quot;+role.getNameSpace()+&quot;'.&quot;);</span>
-        }
-<span class="nc" id="L396">    }</span>
-    
-    /** @param authenticationToken Token
-     * @param roleId Role
-     * @return true if the authenticationToken is authorized to all CAs that are issuers of RoleMembers in this Role */
-    private boolean isAuthorizedToAllRoleMembersIssuers(final AuthenticationToken authenticationToken, final int roleId) {
-        // Verify that the caller is authorized to all CAs that are issuers of members in this role
-<span class="nc" id="L403">        final Set&lt;String&gt; tokenIssuerAccessRules = new HashSet&lt;&gt;();</span>
-<span class="nc bnc" id="L404" title="All 2 branches missed.">        for (final RoleMemberData roleMemberData : roleMemberDataSession.findByRoleId(roleId)) {</span>
-<span class="nc" id="L405">            final AuthenticationTokenMetaData metaData = AccessMatchValueReverseLookupRegistry.INSTANCE.getMetaData(roleMemberData.getTokenType());</span>
-<span class="nc" id="L406">            final AccessMatchValue accessMatchValue = metaData.getAccessMatchValueIdMap().get(roleMemberData.getTokenMatchKey());</span>
-<span class="nc bnc" id="L407" title="All 2 branches missed.">            if (accessMatchValue.isIssuedByCa()) {</span>
-<span class="nc" id="L408">                tokenIssuerAccessRules.add(StandardRules.CAACCESS.resource() + roleMemberData.getTokenIssuerId());</span>
-            }
-<span class="nc" id="L410">        }</span>
-<span class="nc" id="L411">        return authorizationSession.isAuthorizedNoLogging(authenticationToken, tokenIssuerAccessRules.toArray(new String[tokenIssuerAccessRules.size()]));</span>
-    }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    @Override
-    public void assertNonImportantRoleMembership(final AuthenticationToken authenticationToken, final int roleId) throws AuthorizationDeniedException {
-<span class="nc" id="L417">        final Role role = roleDataSession.getRole(roleId);</span>
-<span class="nc bnc" id="L418" title="All 2 branches missed.">        if (role!=null) {</span>
-            // Check that authenticationToken is allowed to remove the role with all its rights
-<span class="nc" id="L420">            final Set&lt;Integer&gt; roleIdsCallerBelongsTo = roleMemberDataSession.getRoleIdsMatchingAuthenticationToken(authenticationToken);</span>
-<span class="nc" id="L421">            assertNonImportantRoleMembership(authenticationToken, role, roleIdsCallerBelongsTo);</span>
-        }
-<span class="nc" id="L423">    }</span>
-
-    private void assertNonImportantRoleMembership(final AuthenticationToken authenticationToken, final Role role, final Set&lt;Integer&gt; roleIdsCallerBelongsTo) throws AuthorizationDeniedException {
-<span class="nc bnc" id="L426" title="All 2 branches missed.">        if (role.getRoleId()!=Role.ROLE_ID_UNASSIGNED) {</span>
-            // Check that authenticationToken is not about to lock itself out by modifying its own role
-<span class="nc bnc" id="L428" title="All 2 branches missed.">            if (roleIdsCallerBelongsTo.contains(role.getRoleId())) {</span>
-<span class="nc bnc" id="L429" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L430">                    log.debug(&quot;'&quot;+authenticationToken+&quot;' relies on match from Role with id &quot; + role.getRoleId() + &quot; for access.&quot;);</span>
-                }
-                // As long as the admin does not lower its own privileges we are ok with
-<span class="nc" id="L433">                HashMap&lt;String, Boolean&gt; accessRulesBefore = new HashMap&lt;&gt;();</span>
-<span class="nc" id="L434">                HashMap&lt;String, Boolean&gt; accessRulesAfter = new HashMap&lt;&gt;();</span>
-<span class="nc" id="L435">                final Set&lt;String&gt; accessToNamespacesBefore = new HashSet&lt;&gt;();</span>
-<span class="nc" id="L436">                final Set&lt;String&gt; accessToNamespacesAfter = new HashSet&lt;&gt;();</span>
-<span class="nc bnc" id="L437" title="All 2 branches missed.">                for (final int roleId : roleIdsCallerBelongsTo) {</span>
-<span class="nc" id="L438">                    final Role existingRole = roleDataSession.getRole(roleId);</span>
-<span class="nc" id="L439">                    final HashMap&lt;String, Boolean&gt; accessRulesFromRole = existingRole.getAccessRules();</span>
-<span class="nc" id="L440">                    accessRulesBefore = AccessRulesHelper.getAccessRulesUnion(accessRulesBefore, accessRulesFromRole);</span>
-<span class="nc" id="L441">                    accessToNamespacesBefore.add(existingRole.getNameSpace());</span>
-<span class="nc bnc" id="L442" title="All 2 branches missed.">                    if (roleId!=role.getRoleId()) {</span>
-<span class="nc" id="L443">                        accessRulesAfter = AccessRulesHelper.getAccessRulesUnion(accessRulesAfter, accessRulesFromRole);</span>
-<span class="nc" id="L444">                        accessToNamespacesAfter.add(existingRole.getNameSpace());</span>
-                    } else {
-<span class="nc" id="L446">                        accessToNamespacesAfter.add(role.getNameSpace());</span>
-                    }
-<span class="nc" id="L448">                }</span>
-<span class="nc bnc" id="L449" title="All 2 branches missed.">                if (!accessRulesBefore.equals(accessRulesAfter)) {</span>
-<span class="nc" id="L450">                    throw new AuthorizationDeniedException(&quot;Granted access of the current administrator might be affected by this change.&quot;);</span>
-                }
-<span class="nc bnc" id="L452" title="All 2 branches missed.">                if (!accessToNamespacesBefore.equals(accessToNamespacesAfter) &amp;&amp;</span>
-<span class="nc bnc" id="L453" title="All 4 branches missed.">                        !(accessToNamespacesBefore.contains(&quot;&quot;) &amp;&amp; accessToNamespacesAfter.contains(&quot;&quot;))) {</span>
-<span class="nc" id="L454">                    throw new AuthorizationDeniedException(&quot;Granted namespace access of the current administrator would be affected by this change.&quot;);</span>
-                }
-<span class="nc bnc" id="L456" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L457">                    log.debug(&quot;Access granted to '&quot;+authenticationToken+&quot;' would not be affected by not being a member of Role with id &quot; + role.getRoleId() + &quot;.&quot;);</span>
-                }
-<span class="nc" id="L459">            } else {</span>
-<span class="nc bnc" id="L460" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L461">                    log.debug(&quot;'&quot;+authenticationToken+&quot;' does not rely on match from Role with id &quot; + role.getRoleId() + &quot;.&quot;);</span>
-                }
-            }
-        }
-<span class="nc" id="L465">    }</span>
-    
-    /** @param authenticationToken Token
-     * @param role Role
-     * @param roleIdsCallerBelongsTo Caller roles
-     * @return boolean */
-    private boolean isAuthorizedToNameSpace(final AuthenticationToken authenticationToken, final Role role, final Set&lt;Integer&gt; roleIdsCallerBelongsTo) {
-<span class="nc bnc" id="L472" title="All 2 branches missed.">        if (authenticationToken instanceof AlwaysAllowLocalAuthenticationToken) {</span>
-<span class="nc" id="L473">            return true; // AlwaysAllowLocalAuthenticationToken cannot belong to any roles, so the code below will not work</span>
-        }
-        // Assert that AuthenticationToken is allowed to mess with the role's nameSpace
-<span class="nc" id="L476">        final Set&lt;String&gt; ownedNameSpaces = new HashSet&lt;&gt;();</span>
-<span class="nc bnc" id="L477" title="All 2 branches missed.">        for (final int current : roleIdsCallerBelongsTo) {</span>
-<span class="nc" id="L478">            ownedNameSpaces.add(roleDataSession.getRole(current).getNameSpace());</span>
-<span class="nc" id="L479">        }</span>
-<span class="nc bnc" id="L480" title="All 4 branches missed.">        return ownedNameSpaces.contains(&quot;&quot;) || ownedNameSpaces.contains(role.getNameSpace());</span>
-    }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    @Override
-    public List&lt;String&gt; getAuthorizedNamespaces(final AuthenticationToken authenticationToken) {
-<span class="nc" id="L486">        final Set&lt;String&gt; namespaces = new HashSet&lt;&gt;();</span>
-<span class="nc bnc" id="L487" title="All 2 branches missed.">        for (final int current : roleMemberDataSession.getRoleIdsMatchingAuthenticationToken(authenticationToken)) {</span>
-<span class="nc" id="L488">            namespaces.add(roleDataSession.getRole(current).getNameSpace());</span>
-<span class="nc" id="L489">        }</span>
-<span class="nc bnc" id="L490" title="All 4 branches missed.">        if (namespaces.contains(&quot;&quot;) || authenticationToken instanceof AlwaysAllowLocalAuthenticationToken) {</span>
-            // Add all namespaces from authorized roles
-<span class="nc bnc" id="L492" title="All 2 branches missed.">            for (final Role role : getAuthorizedRoles(authenticationToken)) {</span>
-<span class="nc" id="L493">                namespaces.add(role.getNameSpace());</span>
-<span class="nc" id="L494">            }</span>
-        }
-<span class="nc" id="L496">        return new ArrayList&lt;&gt;(namespaces);</span>
-    }
-    
-    @Override
-    public boolean updateCaId(final int caIdOld, final int caIdNew, final boolean keepOldAccessRule, final boolean updateRoleMembers) {
-<span class="nc" id="L501">        final String resourceOld = AccessRulesHelper.normalizeResource(StandardRules.CAACCESS.resource() + caIdOld);</span>
-<span class="nc" id="L502">        final String resourceNew = AccessRulesHelper.normalizeResource(StandardRules.CAACCESS.resource() + caIdNew);</span>
-<span class="nc" id="L503">        boolean hasChangedAnything = false;</span>
-<span class="nc bnc" id="L504" title="All 2 branches missed.">        for (final Role role : roleDataSession.getAllRoles()) {</span>
-<span class="nc" id="L505">            final Boolean state = role.getAccessRules().get(resourceOld);</span>
-<span class="nc bnc" id="L506" title="All 2 branches missed.">            if (state!=null) {</span>
-<span class="nc bnc" id="L507" title="All 2 branches missed.">                if (!keepOldAccessRule) {</span>
-<span class="nc" id="L508">                    role.getAccessRules().remove(resourceOld);</span>
-                }
-<span class="nc" id="L510">                role.getAccessRules().put(resourceNew, state);</span>
-<span class="nc" id="L511">                roleDataSession.persistRole(role);</span>
-<span class="nc" id="L512">                hasChangedAnything = true;</span>
-            }
-<span class="nc bnc" id="L514" title="All 2 branches missed.">            if (updateRoleMembers) {</span>
-<span class="nc bnc" id="L515" title="All 2 branches missed.">                for (final RoleMember roleMember : roleMemberDataSession.findRoleMemberByRoleId(role.getRoleId())) {</span>
-<span class="nc bnc" id="L516" title="All 2 branches missed.">                    if (roleMember.getTokenIssuerId()==caIdOld) {</span>
-                        // Do more expensive checks if it is a potential match
-<span class="nc" id="L518">                        final AccessMatchValue accessMatchValue = AccessMatchValueReverseLookupRegistry.INSTANCE.getMetaData(</span>
-<span class="nc" id="L519">                                roleMember.getTokenType()).getAccessMatchValueIdMap().get(roleMember.getTokenMatchKey());</span>
-<span class="nc bnc" id="L520" title="All 2 branches missed.">                        if (accessMatchValue.isIssuedByCa()) {</span>
-<span class="nc" id="L521">                            roleMember.setTokenIssuerId(caIdNew);</span>
-<span class="nc" id="L522">                            roleMemberDataSession.persistRoleMember(roleMember);</span>
-<span class="nc" id="L523">                            hasChangedAnything = true;</span>
-                        }
-                    }
-<span class="nc" id="L526">                }</span>
-            }
-<span class="nc" id="L528">        }</span>
-<span class="nc" id="L529">        return hasChangedAnything;</span>
-    }
+          }
+<span class="nc" id="L804">        }</span>
+      }
+<span class="nc" id="L806">    }</span>
+<span class="nc" id="L807">    return hasChangedAnything;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

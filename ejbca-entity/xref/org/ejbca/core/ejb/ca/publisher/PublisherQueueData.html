@@ -355,11 +355,11 @@
 <a class="jxr_linenumber" name="L347" href="#L347">347</a>             sql.append(PublisherConst.STATUS_PENDING);
 <a class="jxr_linenumber" name="L348" href="#L348">348</a>             <strong class="jxr_keyword">if</strong>(lowerBounds[i] &gt; 0) {
 <a class="jxr_linenumber" name="L349" href="#L349">349</a>                 sql.append(<span class="jxr_string">" AND timeCreated &lt; "</span>);
-<a class="jxr_linenumber" name="L350" href="#L350">350</a>                 sql.append(now - 1000 * lowerBounds[i]);
+<a class="jxr_linenumber" name="L350" href="#L350">350</a>                 sql.append(now - 1000L * lowerBounds[i]);
 <a class="jxr_linenumber" name="L351" href="#L351">351</a>             }
 <a class="jxr_linenumber" name="L352" href="#L352">352</a>             <strong class="jxr_keyword">if</strong>(upperBounds[i] &gt; 0) {
 <a class="jxr_linenumber" name="L353" href="#L353">353</a>                 sql.append(<span class="jxr_string">" AND timeCreated &gt; "</span>);
-<a class="jxr_linenumber" name="L354" href="#L354">354</a>                 sql.append(now - 1000 * upperBounds[i]);
+<a class="jxr_linenumber" name="L354" href="#L354">354</a>                 sql.append(now - 1000L * upperBounds[i]);
 <a class="jxr_linenumber" name="L355" href="#L355">355</a>             }
 <a class="jxr_linenumber" name="L356" href="#L356">356</a>             <strong class="jxr_keyword">if</strong>(i &lt; lowerBounds.length-1) {
 <a class="jxr_linenumber" name="L357" href="#L357">357</a>                 sql.append(<span class="jxr_string">" UNION ALL "</span>);

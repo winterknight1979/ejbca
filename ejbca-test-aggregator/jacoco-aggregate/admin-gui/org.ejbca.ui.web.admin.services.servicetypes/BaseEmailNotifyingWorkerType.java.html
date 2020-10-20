@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>BaseEmailNotifyingWorkerType.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">admin-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.services.servicetypes</a> &gt; <span class="el_source">BaseEmailNotifyingWorkerType.java</span></div><h1>BaseEmailNotifyingWorkerType.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.web.admin.services.servicetypes;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+
+import javax.faces.model.SelectItem;
+
+import org.ejbca.core.model.services.IWorker;
+import org.ejbca.core.model.services.intervals.PeriodicalInterval;
+import org.ejbca.core.model.services.workers.EmailSendingWorkerConstants;
+import org.ejbca.ui.web.admin.configuration.EjbcaJSFHelper;
+
+/**
+ * Class managing the view of the Certificate Expiration Notifier Worker
+ * 
+ * @version $Id: BaseEmailNotifyingWorkerType.java 28844 2018-05-04 08:31:02Z samuellb $
+ *
+ */
+public abstract class BaseEmailNotifyingWorkerType extends BaseWorkerType {
+
+   
+    public static final boolean DEFAULT_USEENDUSERNOTIFICATIONS = false;
+	public static final boolean DEFAULT_USEADMINNOTIFICATIONS = false;
+	
+	 private static final long serialVersionUID = -4521088640797284656L;
+	
+<span class="nc" id="L41">	private String timeUnit  = DEFAULT_TIMEUNIT;</span>
+<span class="nc" id="L42">	private String timeValue = DEFAULT_TIMEVALUE;</span>
+<span class="nc" id="L43">	private boolean useEndUserNotifications = DEFAULT_USEENDUSERNOTIFICATIONS;</span>
+<span class="nc" id="L44">	private boolean useAdminNotifications = DEFAULT_USEADMINNOTIFICATIONS;	</span>
+<span class="nc" id="L45">	private String endUserSubject = &quot;&quot;;</span>
+<span class="nc" id="L46">	private String adminSubject = &quot;&quot;;</span>
+<span class="nc" id="L47">	private String endUserMessage = &quot;&quot;;</span>
+<span class="nc" id="L48">	private String adminMessage = &quot;&quot;;</span>
+	
+	public BaseEmailNotifyingWorkerType(String name, String jsp, String classpath){
+<span class="nc" id="L51">		super(jsp, name, true, classpath);</span>
+		
+<span class="nc" id="L53">		addCompatibleActionTypeName(MailActionType.NAME);</span>
+<span class="nc" id="L54">		addCompatibleActionTypeName(NoActionType.NAME);</span>
+		
+<span class="nc" id="L56">		addCompatibleIntervalTypeName(PeriodicalIntervalType.NAME);</span>
+<span class="nc" id="L57">	}</span>
+	
+	/** Overrides
+	 * @see org.ejbca.ui.web.admin.services.servicetypes.ServiceType#getProperties
+	 */
+	@Override
+	public Properties getProperties(ArrayList&lt;String&gt; errorMessages) throws IOException {
+<span class="nc" id="L64">		Properties retval = super.getProperties(errorMessages);</span>
+				
+<span class="nc" id="L66">		retval.setProperty(IWorker.PROP_TIMEUNIT, timeUnit);</span>
+		
+		try{
+<span class="nc" id="L69">			int value = Integer.parseInt(timeValue);</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">			if(value &lt; 1){</span>
+<span class="nc" id="L71">				throw new NumberFormatException();</span>
+			}
+<span class="nc" id="L73">		}catch(NumberFormatException e){</span>
+<span class="nc" id="L74">			errorMessages.add(&quot;TIMEBEFOREEXPIRATIONERROR&quot;);</span>
+<span class="nc" id="L75">		}</span>
+<span class="nc" id="L76">		retval.setProperty(IWorker.PROP_TIMEBEFOREEXPIRING, timeValue);</span>
+		
+<span class="nc bnc" id="L78" title="All 2 branches missed.">		if(useEndUserNotifications){</span>
+<span class="nc" id="L79">			retval.setProperty(EmailSendingWorkerConstants.PROP_SENDTOENDUSERS, &quot;TRUE&quot;);</span>
+<span class="nc" id="L80">			retval.setProperty(EmailSendingWorkerConstants.PROP_USERSUBJECT,endUserSubject);</span>
+<span class="nc" id="L81">			retval.setProperty(EmailSendingWorkerConstants.PROP_USERMESSAGE,endUserMessage);</span>
+		}else{
+<span class="nc" id="L83">			retval.setProperty(EmailSendingWorkerConstants.PROP_SENDTOENDUSERS, &quot;FALSE&quot;);</span>
+<span class="nc" id="L84">			retval.setProperty(EmailSendingWorkerConstants.PROP_USERSUBJECT,&quot;&quot;);</span>
+<span class="nc" id="L85">			retval.setProperty(EmailSendingWorkerConstants.PROP_USERMESSAGE,&quot;&quot;);</span>
+		}
+		
+<span class="nc bnc" id="L88" title="All 2 branches missed.">		if(useAdminNotifications){</span>
+<span class="nc" id="L89">			retval.setProperty(EmailSendingWorkerConstants.PROP_SENDTOADMINS, &quot;TRUE&quot;);</span>
+<span class="nc" id="L90">			retval.setProperty(EmailSendingWorkerConstants.PROP_ADMINSUBJECT,adminSubject);</span>
+<span class="nc" id="L91">			retval.setProperty(EmailSendingWorkerConstants.PROP_ADMINMESSAGE,adminMessage);</span>
+		}else{
+<span class="nc" id="L93">			retval.setProperty(EmailSendingWorkerConstants.PROP_SENDTOADMINS, &quot;FALSE&quot;);			</span>
+<span class="nc" id="L94">			retval.setProperty(EmailSendingWorkerConstants.PROP_ADMINSUBJECT,&quot;&quot;);</span>
+<span class="nc" id="L95">			retval.setProperty(EmailSendingWorkerConstants.PROP_ADMINMESSAGE,&quot;&quot;);</span>
+		}
+		
+	
+<span class="nc" id="L99">		return retval;</span>
+	}
+
+	/** Overrides
+	 * @see org.ejbca.ui.web.admin.services.servicetypes.ServiceType#setProperties(java.util.Properties)
+	 */
+	@Override
+	public void setProperties(Properties properties) throws IOException {
+<span class="nc" id="L107">		super.setProperties(properties);</span>
+		 
+<span class="nc" id="L109">		timeUnit = properties.getProperty(IWorker.PROP_TIMEUNIT,DEFAULT_TIMEUNIT);</span>
+<span class="nc" id="L110">		timeValue = properties.getProperty(IWorker.PROP_TIMEBEFOREEXPIRING,DEFAULT_TIMEVALUE);</span>
+
+<span class="nc" id="L112">		useEndUserNotifications = properties.getProperty(EmailSendingWorkerConstants.PROP_SENDTOENDUSERS,&quot;&quot;).equalsIgnoreCase(&quot;TRUE&quot;);</span>
+<span class="nc" id="L113">		useAdminNotifications = properties.getProperty(EmailSendingWorkerConstants.PROP_SENDTOADMINS,&quot;&quot;).equalsIgnoreCase(&quot;TRUE&quot;);</span>
+		
+<span class="nc" id="L115">       	endUserSubject = properties.getProperty(EmailSendingWorkerConstants.PROP_USERSUBJECT,&quot;&quot;);</span>
+<span class="nc" id="L116">		adminSubject = properties.getProperty(EmailSendingWorkerConstants.PROP_ADMINSUBJECT,&quot;&quot;);</span>
+<span class="nc" id="L117">		endUserMessage = properties.getProperty(EmailSendingWorkerConstants.PROP_USERMESSAGE,&quot;&quot;);</span>
+<span class="nc" id="L118">		adminMessage = properties.getProperty(EmailSendingWorkerConstants.PROP_ADMINMESSAGE,&quot;&quot;);</span>
+
+<span class="nc" id="L120">	}</span>
+	
+	public String getTimeUnit() {
+<span class="nc" id="L123">		return timeUnit;</span>
+	}
+
+	public void setTimeUnit(String unit) {
+<span class="nc" id="L127">		this.timeUnit = unit;</span>
+<span class="nc" id="L128">	}</span>
+	
+	public List&lt;SelectItem&gt; getAvailableUnits(){
+<span class="nc" id="L131">		ArrayList&lt;SelectItem&gt; retval = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">		for(int i = 0 ; i&lt;PeriodicalInterval.AVAILABLE_UNITS.length; i++){</span>
+<span class="nc" id="L133">			retval.add(new SelectItem(PeriodicalInterval.AVAILABLE_UNITS[i], EjbcaJSFHelper.getBean().getText().get(PeriodicalInterval.AVAILABLE_UNITS[i])));</span>
+		}
+		
+<span class="nc" id="L136">		return retval;</span>
+	}
+	public String getAdminMessage() {
+<span class="nc" id="L139">		return adminMessage;</span>
+	}
+	public void setAdminMessage(String adminMessage) {
+<span class="nc" id="L142">		this.adminMessage = adminMessage;</span>
+<span class="nc" id="L143">	}</span>
+	public String getAdminSubject() {
+<span class="nc" id="L145">		return adminSubject;</span>
+	}
+	public void setAdminSubject(String adminSubject) {
+<span class="nc" id="L148">		this.adminSubject = adminSubject;</span>
+<span class="nc" id="L149">	}</span>
+	public String getEndUserMessage() {
+<span class="nc" id="L151">		return endUserMessage;</span>
+	}
+	public void setEndUserMessage(String endUserMessage) {
+<span class="nc" id="L154">		this.endUserMessage = endUserMessage;</span>
+<span class="nc" id="L155">	}</span>
+	public String getEndUserSubject() {
+<span class="nc" id="L157">		return endUserSubject;</span>
+	}
+	public void setEndUserSubject(String endUserSubject) {
+<span class="nc" id="L160">		this.endUserSubject = endUserSubject;</span>
+<span class="nc" id="L161">	}</span>
+	public String getTimeValue() {
+<span class="nc" id="L163">		return timeValue;</span>
+	}
+	public void setTimeValue(String timeValue) {
+<span class="nc" id="L166">		this.timeValue = timeValue;</span>
+<span class="nc" id="L167">	}</span>
+	public boolean isUseAdminNotifications() {
+<span class="nc" id="L169">		return useAdminNotifications;</span>
+	}
+	public void setUseAdminNotifications(boolean useAdminNotifications) {
+<span class="nc" id="L172">		this.useAdminNotifications = useAdminNotifications;</span>
+<span class="nc" id="L173">	}</span>
+	public boolean isUseEndUserNotifications() {
+<span class="nc" id="L175">		return useEndUserNotifications;</span>
+	}
+	public void setUseEndUserNotifications(boolean useEndUserNotifications) {
+<span class="nc" id="L178">		this.useEndUserNotifications = useEndUserNotifications;</span>
+<span class="nc" id="L179">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

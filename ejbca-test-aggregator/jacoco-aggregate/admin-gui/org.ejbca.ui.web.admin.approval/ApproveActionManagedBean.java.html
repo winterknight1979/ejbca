@@ -1,0 +1,739 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ApproveActionManagedBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">admin-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.approval</a> &gt; <span class="el_source">ApproveActionManagedBean.java</span></div><h1>ApproveActionManagedBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.web.admin.approval;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.ejb.EJB;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.ViewScoped;
+import javax.faces.context.FacesContext;
+import javax.faces.event.ActionEvent;
+import javax.faces.model.ListDataModel;
+import javax.faces.model.SelectItem;
+
+import org.apache.log4j.Logger;
+import org.apache.myfaces.renderkit.html.util.AddResource;
+import org.apache.myfaces.renderkit.html.util.AddResourceFactory;
+import org.cesecore.authentication.AuthenticationFailedException;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.configuration.GlobalConfigurationSessionLocal;
+import org.cesecore.internal.InternalResources;
+import org.cesecore.roles.AccessRulesHelper;
+import org.cesecore.roles.Role;
+import org.cesecore.roles.RoleInformation;
+import org.cesecore.roles.management.RoleSessionLocal;
+import org.cesecore.roles.member.RoleMember;
+import org.cesecore.roles.member.RoleMemberSessionLocal;
+import org.cesecore.util.ui.DynamicUiProperty;
+import org.cesecore.util.ui.PropertyValidationException;
+import org.ejbca.core.ejb.approval.ApprovalExecutionSessionLocal;
+import org.ejbca.core.ejb.approval.ApprovalProfileSessionLocal;
+import org.ejbca.core.ejb.approval.ApprovalSessionLocal;
+import org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSessionLocal;
+import org.ejbca.core.model.approval.AdminAlreadyApprovedRequestException;
+import org.ejbca.core.model.approval.Approval;
+import org.ejbca.core.model.approval.ApprovalDataVO;
+import org.ejbca.core.model.approval.ApprovalException;
+import org.ejbca.core.model.approval.ApprovalRequest;
+import org.ejbca.core.model.approval.ApprovalRequestExecutionException;
+import org.ejbca.core.model.approval.ApprovalRequestExpiredException;
+import org.ejbca.core.model.approval.SelfApprovalException;
+import org.ejbca.core.model.approval.profile.ApprovalPartition;
+import org.ejbca.core.model.approval.profile.ApprovalProfile;
+import org.ejbca.core.model.approval.profile.ApprovalStep;
+import org.ejbca.core.model.approval.profile.PartitionedApprovalProfile;
+import org.ejbca.core.model.authorization.AccessRulesConstants;
+import org.ejbca.core.model.ra.RAAuthorization;
+import org.ejbca.ui.web.admin.BaseManagedBean;
+import org.ejbca.ui.web.admin.configuration.EjbcaJSFHelper;
+import org.ejbca.ui.web.admin.configuration.EjbcaWebBean;
+import org.ejbca.util.query.ApprovalMatch;
+import org.ejbca.util.query.BasicMatch;
+import org.ejbca.util.query.IllegalQueryException;
+import org.ejbca.util.query.Query;
+
+/**
+ * Session scoped bean for displaying information about an approval request.
+ *
+ * @version $Id: ApproveActionManagedBean.java 34227 2020-01-09 14:20:59Z henriks $
+ * TODO: Update to CDI beans
+ */
+@SuppressWarnings(&quot;deprecation&quot;)
+@ViewScoped
+@ManagedBean(name=&quot;approvalActionManagedBean&quot;)
+<span class="nc" id="L87">public class ApproveActionManagedBean extends BaseManagedBean {</span>
+    private static final long serialVersionUID = 1940920496104779323L;
+<span class="nc" id="L89">    private static final Logger log = Logger.getLogger(ApproveActionManagedBean.class);</span>
+<span class="nc" id="L90">    private static final InternalResources intres = InternalResources.getInstance();</span>
+
+<span class="nc" id="L92">    private enum Action {</span>
+<span class="nc" id="L93">        APPROVE(intres.getLocalizedMessage(&quot;general.approve&quot;)), </span>
+<span class="nc" id="L94">        REJECT(intres.getLocalizedMessage(&quot;general.reject&quot;));</span>
+
+       private static List&lt;SelectItem&gt; selectItems;
+       private final String label;
+
+       static {
+<span class="nc" id="L100">           selectItems = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">           for(Action action : Action.values()) {</span>
+<span class="nc" id="L102">               selectItems.add(new SelectItem(action, action.getLabel()));</span>
+           }
+<span class="nc" id="L104">       }</span>
+
+<span class="nc" id="L106">       private Action(final String label) {</span>
+<span class="nc" id="L107">           this.label = label;</span>
+
+<span class="nc" id="L109">       }</span>
+
+       public String getLabel() {
+<span class="nc" id="L112">           return label;</span>
+       }
+
+       public static List&lt;SelectItem&gt; asSelectItems() {
+<span class="nc" id="L116">           return selectItems;</span>
+       }
+    }
+
+    @EJB
+    private ApprovalExecutionSessionLocal approvalExecutionSession;
+    @EJB
+    private RoleSessionLocal roleSession;
+    @EJB
+    private RoleMemberSessionLocal roleMemberSession;
+
+    @EJB
+    private AuthorizationSessionLocal authorizationSession;
+    @EJB
+    private ApprovalProfileSessionLocal approvalProfileSession;
+    @EJB
+    private ApprovalSessionLocal approvalSession;
+    @EJB
+    private CaSessionLocal caSession;
+    @EJB
+    private EndEntityProfileSessionLocal endEntityProfileSession;
+    @EJB
+    private GlobalConfigurationSessionLocal globalConfigurationSession;
+
+
+<span class="nc" id="L141">	private String comment = &quot;&quot;;</span>
+<span class="nc" id="L142">	private ApprovalDataVOView approvalDataVOView = new ApprovalDataVOView();</span>
+<span class="nc" id="L143">	private HashMap&lt;Integer, String&gt; statustext = null;</span>
+	private Map&lt;Integer, Action&gt; partitionActions;
+
+<span class="nc" id="L146">	private ListDataModel&lt;ApprovalPartitionProfileGuiObject&gt; partitionsAuthorizedToView = null;</span>
+<span class="nc" id="L147">	private Set&lt;Integer&gt; partitionsAuthorizedToApprove = null;</span>
+<span class="nc" id="L148">	private ListDataModel&lt;ApprovalPartitionProfileGuiObject&gt; previousPartitions = null;</span>
+
+	public HashMap&lt;Integer, String&gt; getStatusText(){
+<span class="nc bnc" id="L151" title="All 2 branches missed.">	    if(statustext == null){</span>
+<span class="nc" id="L152">	    	EjbcaWebBean ejbcawebbean = EjbcaJSFHelper.getBean().getEjbcaWebBean();</span>
+<span class="nc" id="L153">	    	statustext = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L154">	    	statustext.put(Integer.valueOf(ApprovalDataVO.STATUS_WAITINGFORAPPROVAL), ejbcawebbean.getText(&quot;WAITING&quot;, true));</span>
+<span class="nc" id="L155">	    	statustext.put(Integer.valueOf(ApprovalDataVO.STATUS_EXPIRED), ejbcawebbean.getText(&quot;EXPIRED&quot;, true));</span>
+<span class="nc" id="L156">	    	statustext.put(Integer.valueOf(ApprovalDataVO.STATUS_EXPIREDANDNOTIFIED), ejbcawebbean.getText(&quot;EXPIREDANDNOTIFIED&quot;, true));</span>
+<span class="nc" id="L157">	    	statustext.put(Integer.valueOf(ApprovalDataVO.STATUS_EXECUTED), ejbcawebbean.getText(&quot;EXECUTED&quot;, true));</span>
+<span class="nc" id="L158">	    	statustext.put(Integer.valueOf(ApprovalDataVO.STATUS_APPROVED), ejbcawebbean.getText(&quot;APPROVED&quot;, true));</span>
+<span class="nc" id="L159">	    	statustext.put(Integer.valueOf(ApprovalDataVO.STATUS_REJECTED), ejbcawebbean.getText(&quot;REJECTED&quot;, true));</span>
+<span class="nc" id="L160">	    	statustext.put(Integer.valueOf(ApprovalDataVO.STATUS_EXECUTIONFAILED), ejbcawebbean.getText(&quot;EXECUTIONFAILED&quot;, true));</span>
+<span class="nc" id="L161">	    	statustext.put(Integer.valueOf(ApprovalDataVO.STATUS_EXECUTIONDENIED), ejbcawebbean.getText(&quot;EXECUTIONDENIED&quot;, true));</span>
+	    }
+<span class="nc" id="L163">	    return statustext;</span>
+	}
+
+	public ApprovalDataVOView getApproveRequestData() {
+<span class="nc" id="L167">		return approvalDataVOView;</span>
+	}
+
+	public boolean isApprovalRequestComparable() {
+<span class="nc bnc" id="L171" title="All 2 branches missed.">		return approvalDataVOView.getApproveActionDataVO().getApprovalRequest().getApprovalRequestType() == ApprovalRequest.REQUESTTYPE_COMPARING;</span>
+	}
+
+	public String getWindowWidth(){
+<span class="nc bnc" id="L175" title="All 2 branches missed.">		if(isApprovalRequestComparable()){</span>
+<span class="nc" id="L176">			return &quot;1000&quot;;</span>
+		}
+<span class="nc" id="L178">		return &quot;600&quot;;</span>
+	}
+
+    public List&lt;ApprovalView&gt; getApprovalViews() {
+<span class="nc" id="L182">        List&lt;ApprovalView&gt; approvalViews = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L183" title="All 4 branches missed.">        if (approvalDataVOView != null &amp;&amp; approvalDataVOView.getApproveActionDataVO().getApprovals() != null) {</span>
+<span class="nc bnc" id="L184" title="All 2 branches missed.">            for (Approval approval : approvalDataVOView.getApproveActionDataVO().getApprovals()) {</span>
+<span class="nc" id="L185">                approvalViews.add(new ApprovalView(approval));</span>
+<span class="nc" id="L186">            }</span>
+        }
+<span class="nc" id="L188">        return approvalViews;</span>
+    }
+
+    public boolean isExistsApprovals(){
+<span class="nc bnc" id="L192" title="All 2 branches missed.">    	return approvalDataVOView.getApproveActionDataVO().getApprovals().size() &gt;0;</span>
+    }
+
+    public boolean isApprovable(){
+<span class="nc bnc" id="L196" title="All 2 branches missed.">    	return approvalDataVOView.getApproveActionDataVO().getStatus() == ApprovalDataVO.STATUS_WAITINGFORAPPROVAL;</span>
+    }
+
+    public List&lt;SelectItem&gt; getActionsAvailable() {
+<span class="nc" id="L200">        return Action.asSelectItems();</span>
+    }
+
+    public Action getActionForPartition() {
+<span class="nc" id="L204">        Action result = getPartitionActions().get(partitionsAuthorizedToView.getRowData().getPartitionId());</span>
+<span class="nc bnc" id="L205" title="All 2 branches missed.">        if(result != null) {</span>
+<span class="nc" id="L206">            return result;</span>
+        } else {
+<span class="nc" id="L208">            return Action.APPROVE;</span>
+        }
+    }
+
+    private Map&lt;Integer, Action&gt; getPartitionActions() {
+<span class="nc bnc" id="L213" title="All 2 branches missed.">        if (partitionActions == null) {</span>
+<span class="nc" id="L214">            partitionActions = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L215" title="All 2 branches missed.">            for (Approval approval : approvalDataVOView.getApproveActionDataVO().getApprovals()) {</span>
+<span class="nc bnc" id="L216" title="All 2 branches missed.">                if (approval.getStepId() == getCurrentStep().getStepIdentifier()) {</span>
+<span class="nc bnc" id="L217" title="All 2 branches missed.">                    if (approval.isApproved()) {</span>
+<span class="nc" id="L218">                        partitionActions.put(approval.getPartitionId(), Action.APPROVE);</span>
+                    } else {
+<span class="nc" id="L220">                        partitionActions.put(approval.getPartitionId(), Action.REJECT);</span>
+                    }
+                }
+<span class="nc" id="L223">            }</span>
+        }
+<span class="nc" id="L225">        return partitionActions;</span>
+    }
+
+    public void setActionForPartition(final Action action) {
+<span class="nc" id="L229">        getPartitionActions().put(partitionsAuthorizedToView.getRowData().getPartitionId(), action);</span>
+<span class="nc" id="L230">    }</span>
+
+    public String saveState(ActionEvent event) {
+<span class="nc" id="L233">        boolean closeWindow = true;</span>
+<span class="nc" id="L234">        ApprovalDataVO approvalDataVO = approvalSession.findNonExpiredApprovalRequest(approvalDataVOView.getApprovalId());</span>
+<span class="nc bnc" id="L235" title="All 2 branches missed.">        if (approvalDataVO != null) {</span>
+<span class="nc" id="L236">            ApprovalRequest approvalRequest = approvalDataVO.getApprovalRequest();</span>
+<span class="nc" id="L237">            ApprovalProfile storedApprovalProfile = approvalRequest.getApprovalProfile();</span>
+<span class="nc bnc" id="L238" title="All 2 branches missed.">            for (Iterator&lt;ApprovalPartitionProfileGuiObject&gt; iter = partitionsAuthorizedToView.iterator(); iter.hasNext(); ) {</span>
+<span class="nc" id="L239">                boolean isRejected = false;</span>
+<span class="nc" id="L240">                ApprovalPartitionProfileGuiObject approvalPartitionGuiObject = iter.next();</span>
+<span class="nc" id="L241">                Integer partitionId = approvalPartitionGuiObject.getPartitionId();</span>
+<span class="nc bnc" id="L242" title="All 2 branches missed.">                if (partitionsAuthorizedToApprove.contains(partitionId)) {</span>
+                    try {
+<span class="nc" id="L244">                        final AuthenticationToken admin = EjbcaJSFHelper.getBean().getAdmin();</span>
+<span class="nc" id="L245">                        ApprovalStep currentStep = getCurrentStep();</span>
+                        //Overwrite the stored partition in the request in order to persist metadata.
+<span class="nc" id="L247">                        List&lt;DynamicUiProperty&lt;? extends Serializable&gt;&gt; updatedProperties = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L248">                        for (Iterator&lt;DynamicUiProperty&lt;? extends Serializable&gt;&gt; propertyIterator = approvalPartitionGuiObject.getProfilePropertyList()</span>
+<span class="nc bnc" id="L249" title="All 2 branches missed.">                                .iterator(); propertyIterator.hasNext();) {</span>
+<span class="nc" id="L250">                            updatedProperties.add(propertyIterator.next());</span>
+                        }
+<span class="nc" id="L252">                        storedApprovalProfile.addPropertiesToPartition(currentStep.getStepIdentifier(), partitionId, updatedProperties);</span>
+                        //Update any set meta data.
+<span class="nc" id="L254">                        final Approval approval = new Approval(comment, currentStep.getStepIdentifier(), partitionId);</span>
+<span class="nc" id="L255">                        Action action = getPartitionActions().get(partitionId);</span>
+<span class="nc bnc" id="L256" title="All 2 branches missed.">                        if(action != null) {</span>
+<span class="nc bnc" id="L257" title="All 3 branches missed.">                            switch (action) {</span>
+                            case APPROVE:
+<span class="nc" id="L259">                                approvalExecutionSession.approve(admin, approvalDataVOView.getApprovalId(), approval);</span>
+<span class="nc" id="L260">                                break;</span>
+                            case REJECT:
+<span class="nc" id="L262">                                approvalExecutionSession.reject(admin, approvalDataVOView.getApprovalId(), approval);</span>
+<span class="nc" id="L263">                                isRejected = true;</span>
+<span class="nc" id="L264">                                break;</span>
+                            default:
+                                break;
+                            }
+                        }
+<span class="nc" id="L269">                    } catch (ApprovalRequestExpiredException e) {</span>
+<span class="nc" id="L270">                        addErrorMessage(&quot;APPROVALREQUESTEXPIRED&quot;);</span>
+<span class="nc" id="L271">                        closeWindow = false;</span>
+<span class="nc" id="L272">                    } catch (ApprovalRequestExecutionException e) {</span>
+<span class="nc" id="L273">                        addErrorMessage(&quot;ERROREXECUTINGREQUEST&quot;);</span>
+<span class="nc" id="L274">                        closeWindow = false;</span>
+<span class="nc" id="L275">                    } catch (AuthorizationDeniedException | AuthenticationFailedException e) {</span>
+<span class="nc" id="L276">                        addErrorMessage(&quot;AUTHORIZATIONDENIED&quot;);</span>
+<span class="nc" id="L277">                        closeWindow = false;</span>
+<span class="nc" id="L278">                    } catch (ApprovalException e) {</span>
+<span class="nc" id="L279">                        addErrorMessage(&quot;ERRORHAPPENDWHENAPPROVING&quot;);</span>
+<span class="nc" id="L280">                        closeWindow = false;</span>
+<span class="nc" id="L281">                    } catch (AdminAlreadyApprovedRequestException | SelfApprovalException e) {</span>
+<span class="nc" id="L282">                        addErrorMessage(e.getMessage());</span>
+<span class="nc" id="L283">                        closeWindow = false;</span>
+<span class="nc" id="L284">                    }</span>
+                }
+                // Stop if a partition has been rejected
+<span class="nc bnc" id="L287" title="All 2 branches missed.">                if (isRejected) {</span>
+<span class="nc" id="L288">                    break;</span>
+                }
+<span class="nc" id="L290">            }</span>
+<span class="nc" id="L291">            approvalSession.updateApprovalRequest(approvalDataVO.getId(), approvalRequest);</span>
+<span class="nc" id="L292">        } else {</span>
+            try {
+<span class="nc" id="L294">                int status = approvalSession.getStatus(approvalDataVOView.getApprovalId());</span>
+<span class="nc bnc" id="L295" title="All 3 branches missed.">                switch (status) {</span>
+                case ApprovalDataVO.STATUS_EXECUTED:
+                case ApprovalDataVO.STATUS_EXECUTIONDENIED:
+                case ApprovalDataVO.STATUS_EXECUTIONFAILED:
+<span class="nc" id="L299">                    addErrorMessage(&quot;REQALREADYPROCESSED&quot;);</span>
+<span class="nc" id="L300">                    break;</span>
+                case ApprovalDataVO.STATUS_EXPIRED:
+                case ApprovalDataVO.STATUS_EXPIREDANDNOTIFIED:
+<span class="nc" id="L303">                    addErrorMessage(&quot;REQHASEXPIRED&quot;);</span>
+<span class="nc" id="L304">                    break;</span>
+                default:
+                    break;
+                }
+<span class="nc" id="L308">            } catch (ApprovalException e) {</span>
+<span class="nc" id="L309">                addErrorMessage(e.getMessage());</span>
+<span class="nc" id="L310">            }</span>
+<span class="nc" id="L311">            closeWindow = false;</span>
+        }
+<span class="nc" id="L313">        updateApprovalRequestData(approvalDataVOView.getApproveActionDataVO().getId());</span>
+        // Close window if successful
+<span class="nc bnc" id="L315" title="All 2 branches missed.">        if (closeWindow) {</span>
+<span class="nc" id="L316">            closeWindow();</span>
+        }
+<span class="nc" id="L318">        return &quot;approveaction&quot;;</span>
+    }
+
+    private void closeWindow() {
+        //Hack for closing the window after saving
+<span class="nc" id="L323">        FacesContext facesContext = FacesContext.getCurrentInstance();</span>
+        //Add the Javascript to the rendered page's header for immediate execution
+<span class="nc" id="L325">        AddResource addResource = AddResourceFactory.getInstance(facesContext);</span>
+        //Think of a better solution and you're free to implement it.
+<span class="nc" id="L327">        addResource.addInlineScriptAtPosition(facesContext, AddResource.HEADER_BEGIN, &quot;window.close();&quot;);</span>
+        //I'm so, so sorry. I have dishonored my dojo.
+<span class="nc" id="L329">    }</span>
+
+    public void setUniqueId(int uniqueId) {
+<span class="nc" id="L332">    	log.debug(&quot;ApproveActionSessionBean.setApprovalId setting uniqueId : &quot; + uniqueId);</span>
+<span class="nc" id="L333">    	updateApprovalRequestData(uniqueId);</span>
+<span class="nc" id="L334">    }</span>
+
+    private void updateApprovalRequestData(int id){
+<span class="nc" id="L337">    	Query query = new Query(Query.TYPE_APPROVALQUERY);</span>
+<span class="nc" id="L338">    	query.add(ApprovalMatch.MATCH_WITH_UNIQUEID, BasicMatch.MATCH_TYPE_EQUALS, Integer.toString(id));</span>
+    	List&lt;ApprovalDataVO&gt; result;
+    	try {
+<span class="nc" id="L341">    		RAAuthorization raAuthorization = new RAAuthorization(EjbcaJSFHelper.getBean().getAdmin(), globalConfigurationSession,</span>
+    				authorizationSession, caSession, endEntityProfileSession);
+<span class="nc" id="L343">    		result = approvalSession.query(query, 0, 1, raAuthorization.getCAAuthorizationString(),</span>
+<span class="nc" id="L344">    		        raAuthorization.getEndEntityProfileAuthorizationString(AccessRulesConstants.APPROVE_END_ENTITY));</span>
+<span class="nc bnc" id="L345" title="All 2 branches missed.">    		if (result.size() &gt; 0) {</span>
+<span class="nc" id="L346">    			this.approvalDataVOView = new ApprovalDataVOView(result.get(0));</span>
+    		}
+<span class="nc" id="L348">    	} catch (IllegalQueryException e) {</span>
+<span class="nc" id="L349">    		addErrorMessage(&quot;INVALIDQUERY&quot;);</span>
+<span class="nc" id="L350">    	} catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L351">    		addErrorMessage(&quot;AUTHORIZATIONDENIED&quot;);</span>
+<span class="nc" id="L352">    	}</span>
+<span class="nc" id="L353">    }</span>
+
+    public String getComment() {
+<span class="nc" id="L356">    	return &quot;&quot;;</span>
+    }
+    public void setComment(String comment) {
+<span class="nc" id="L359">    	this.comment = comment;</span>
+<span class="nc" id="L360">    }</span>
+
+    public int getNumberOfPartitionsInStep() {
+<span class="nc" id="L363">        ApprovalStep step = getCurrentStep();</span>
+<span class="nc bnc" id="L364" title="All 2 branches missed.">        if(step == null) {</span>
+<span class="nc" id="L365">            return -1;</span>
+        } else {
+<span class="nc" id="L367">        return step.getPartitions().size();</span>
+        }
+    }
+
+    /**
+     * @return the ordinal of the step currently being evaluated
+     */
+    public int getCurrentStepOrdinal() {
+<span class="nc" id="L375">        Collection&lt;Approval&gt; approvals = approvalDataVOView.getApproveActionDataVO().getApprovals();</span>
+        try {
+<span class="nc" id="L377">            ApprovalProfile approvalProfile = approvalDataVOView.getApprovalProfile();</span>
+<span class="nc bnc" id="L378" title="All 2 branches missed.">            if (approvalProfile != null) {</span>
+<span class="nc" id="L379">                return approvalProfile.getOrdinalOfStepBeingEvaluated(approvals);</span>
+            } else {
+<span class="nc" id="L381">                return 0;</span>
+            }
+<span class="nc" id="L383">        } catch (AuthenticationFailedException e) {</span>
+<span class="nc" id="L384">            throw new IllegalStateException(&quot;Trying to perform an approval with an invalid authenticatin token.&quot;, e);</span>
+        }
+
+    }
+
+    /**
+     *
+     * @return the step currently being evaluated
+     */
+    public ApprovalStep getCurrentStep() {
+<span class="nc" id="L394">        Collection&lt;Approval&gt; approvals = approvalDataVOView.getApproveActionDataVO().getApprovals();</span>
+<span class="nc" id="L395">        ApprovalProfile approvalProfile = approvalDataVOView.getApprovalProfile();</span>
+<span class="nc bnc" id="L396" title="All 2 branches missed.">        if (approvalProfile == null) {</span>
+<span class="nc" id="L397">            return null;</span>
+        } else {
+            try {
+<span class="nc" id="L400">                return approvalDataVOView.getApprovalProfile().getStepBeingEvaluated(approvals);</span>
+<span class="nc" id="L401">            } catch (AuthenticationFailedException e) {</span>
+                //We shouldn't have gotten here in the UI with an invalid token
+<span class="nc" id="L403">                throw new IllegalStateException(&quot;Trying to perform an approval with an invalid authenticatin token.&quot;, e);</span>
+            }
+        }
+    }
+
+    /**
+     *
+     * @return all previous partitions that the current admin has view access to
+     */
+    public ListDataModel&lt;ApprovalPartitionProfileGuiObject&gt; getPreviousPartitions() {
+<span class="nc bnc" id="L413" title="All 2 branches missed.">        if (previousPartitions == null) {</span>
+<span class="nc" id="L414">            List&lt;ApprovalPartitionProfileGuiObject&gt; authorizedPartitions = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L415">            ApprovalProfile approvalProfile = approvalDataVOView.getApprovalRequest().getApprovalProfile();</span>
+<span class="nc bnc" id="L416" title="All 2 branches missed.">            if (approvalProfile != null) {</span>
+<span class="nc" id="L417">                ApprovalStep step = approvalProfile.getFirstStep();</span>
+<span class="nc" id="L418">                ApprovalStep currentStep = getCurrentStep();</span>
+<span class="nc bnc" id="L419" title="All 2 branches missed.">                while (step != null) {</span>
+<span class="nc bnc" id="L420" title="All 4 branches missed.">                    if (currentStep != null &amp;&amp; step.equals(currentStep)) {</span>
+<span class="nc" id="L421">                        break;</span>
+                    }
+<span class="nc bnc" id="L423" title="All 2 branches missed.">                    for (ApprovalPartition approvalPartition : step.getPartitions().values()) {</span>
+                        try {
+<span class="nc bnc" id="L425" title="All 2 branches missed.">                            if (approvalDataVOView.getApprovalProfile().canViewPartition(getAdmin(), approvalPartition)) {</span>
+<span class="nc" id="L426">                                authorizedPartitions.add(new ApprovalPartitionProfileGuiObject(</span>
+<span class="nc" id="L427">                                        approvalDataVOView.getApprovalProfile().getApprovalProfileTypeIdentifier(),</span>
+<span class="nc" id="L428">                                        approvalPartition.getPartitionIdentifier(),</span>
+<span class="nc" id="L429">                                        approvalPartition.getProperty(PartitionedApprovalProfile.PROPERTY_NAME).getValueAsString(),</span>
+<span class="nc" id="L430">                                        getPartitionProperties(approvalPartition)));</span>
+                            }
+<span class="nc" id="L432">                        } catch (AuthenticationFailedException e) {</span>
+                            //We shouldn't have gotten here in the UI with an invalid token
+<span class="nc" id="L434">                            throw new IllegalStateException(&quot;Trying to perform an approval with an invalid authenticatin token.&quot;, e);</span>
+<span class="nc" id="L435">                        }</span>
+<span class="nc" id="L436">                    }</span>
+<span class="nc" id="L437">                    step = approvalDataVOView.getApprovalProfile().getStep(step.getNextStep());</span>
+                }
+            }
+<span class="nc" id="L440">            previousPartitions = new ListDataModel&lt;&gt;(authorizedPartitions);</span>
+        }
+<span class="nc" id="L442">        return previousPartitions;</span>
+
+    }
+
+    /**
+     *
+     * @return all partitions that the current admin has view access to
+     */
+    public ListDataModel&lt;ApprovalPartitionProfileGuiObject&gt; getApprovalPartitions() {
+<span class="nc bnc" id="L451" title="All 2 branches missed.">        if (partitionsAuthorizedToView == null) {</span>
+<span class="nc" id="L452">            List&lt;ApprovalPartitionProfileGuiObject&gt; authorizedPartitions = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L453">            partitionsAuthorizedToApprove = new HashSet&lt;&gt;();</span>
+            //Make sure we're not reading stale data
+<span class="nc" id="L455">            final ApprovalProfile approvalProfile = approvalProfileSession.getApprovalProfile(approvalDataVOView.getApprovalProfile().getProfileId());</span>
+<span class="nc bnc" id="L456" title="All 2 branches missed.">            if (getCurrentStep() != null) {</span>
+<span class="nc" id="L457">                final ApprovalStep approvalStep = approvalProfile.getStep(getCurrentStep().getStepIdentifier());</span>
+<span class="nc bnc" id="L458" title="All 2 branches missed.">                for (Integer approvalPartitionId : getCurrentStep().getPartitions().keySet()) {</span>
+<span class="nc" id="L459">                    ApprovalPartition approvalPartition = approvalStep.getPartition(approvalPartitionId);</span>
+<span class="nc bnc" id="L460" title="All 2 branches missed.">                    if (approvalPartition != null) {</span>
+                        try {
+<span class="nc bnc" id="L462" title="All 2 branches missed.">                            if (approvalDataVOView.getApprovalProfile().canViewPartition(getAdmin(), approvalPartition)) {</span>
+<span class="nc" id="L463">                                final DynamicUiProperty&lt;? extends Serializable&gt; nameProperty = approvalPartition</span>
+<span class="nc" id="L464">                                        .getProperty(PartitionedApprovalProfile.PROPERTY_NAME);</span>
+<span class="nc" id="L465">                                authorizedPartitions.add(new ApprovalPartitionProfileGuiObject(</span>
+<span class="nc" id="L466">                                        approvalDataVOView.getApprovalProfile().getApprovalProfileTypeIdentifier(),</span>
+<span class="nc bnc" id="L467" title="All 2 branches missed.">                                        approvalPartition.getPartitionIdentifier(), nameProperty != null ? nameProperty.getValueAsString() : &quot;-&quot;,</span>
+<span class="nc" id="L468">                                        getPartitionProperties(approvalPartition)));</span>
+                            }
+<span class="nc bnc" id="L470" title="All 2 branches missed.">                            if (approvalDataVOView.getApprovalProfile().canApprovePartition(getAdmin(), approvalPartition)) {</span>
+<span class="nc" id="L471">                                partitionsAuthorizedToApprove.add(approvalPartition.getPartitionIdentifier());</span>
+                            }
+<span class="nc" id="L473">                        } catch (AuthenticationFailedException e) {</span>
+                            //We shouldn't have gotten here in the UI with an invalid token
+<span class="nc" id="L475">                            throw new IllegalStateException(&quot;Trying to perform an approval with an invalid authenticatin token.&quot;, e);</span>
+<span class="nc" id="L476">                        }</span>
+                    }
+<span class="nc" id="L478">                }</span>
+            }
+<span class="nc" id="L480">            partitionsAuthorizedToView = new ListDataModel&lt;&gt;(authorizedPartitions);</span>
+
+        }
+<span class="nc" id="L483">        return partitionsAuthorizedToView;</span>
+    }
+
+    public boolean canApprovePartition(ApprovalPartitionProfileGuiObject partition) {
+<span class="nc bnc" id="L487" title="All 2 branches missed.">        if(partitionsAuthorizedToApprove == null) {</span>
+<span class="nc" id="L488">            getActionForPartition();</span>
+        }
+<span class="nc bnc" id="L490" title="All 2 branches missed.">        if(!partitionsAuthorizedToApprove.contains(partition.getPartitionId())) {</span>
+<span class="nc" id="L491">            return false;</span>
+        }
+<span class="nc" id="L493">        ApprovalDataVO approvalDataVO = approvalSession.findNonExpiredApprovalRequest(approvalDataVOView.getApprovalId());</span>
+<span class="nc bnc" id="L494" title="All 2 branches missed.">        if (approvalDataVO == null) {</span>
+<span class="nc" id="L495">            return false;</span>
+        }
+<span class="nc bnc" id="L497" title="All 2 branches missed.">        if(approvalDataVO.getApprovalRequest().isEditedByMe(getAdmin())) {</span>
+<span class="nc" id="L498">            return false;</span>
+        }
+
+<span class="nc bnc" id="L501" title="All 2 branches missed.">        if(approvalDataVO.getApprovalRequest().getRequestAdmin().equals(getAdmin())) {</span>
+<span class="nc" id="L502">            return false;</span>
+        }
+
+<span class="nc" id="L505">        Collection&lt;Approval&gt; approvals = approvalDataVO.getApprovals();</span>
+<span class="nc bnc" id="L506" title="All 2 branches missed.">        for(Approval approval : approvals) {</span>
+<span class="nc bnc" id="L507" title="All 2 branches missed.">            if(approval.getAdmin().equals(getAdmin())) {</span>
+<span class="nc" id="L508">                return false;</span>
+            }
+<span class="nc" id="L510">        }</span>
+
+<span class="nc" id="L512">        return true;</span>
+    }
+
+    /**
+     * @return true if the current admin has access to approve any partitions at all
+     */
+    public boolean canApproveAnyPartitions() {
+<span class="nc" id="L519">        ApprovalDataVO approvalDataVO = approvalSession.findNonExpiredApprovalRequest(approvalDataVOView.getApprovalId());</span>
+<span class="nc" id="L520">        boolean hasAlreadyApproved = false;</span>
+<span class="nc bnc" id="L521" title="All 2 branches missed.">        for (ApprovalView approvalView : getApprovalViews()) {</span>
+<span class="nc bnc" id="L522" title="All 2 branches missed.">            if (approvalView.getApprovalAdmin().equals(getAdmin().toString())) {</span>
+<span class="nc" id="L523">                hasAlreadyApproved = true;</span>
+<span class="nc" id="L524">                break;</span>
+            }
+<span class="nc" id="L526">        }</span>
+        // Check that there are are partitions to approve, that the request didn't originate from the current admin and that
+        // the current admin hasn't previously approved any part of the request
+<span class="nc bnc" id="L529" title="All 4 branches missed.">        return !partitionsAuthorizedToApprove.isEmpty()</span>
+<span class="nc bnc" id="L530" title="All 4 branches missed.">                &amp;&amp; (approvalDataVO != null ? !approvalDataVO.getApprovalRequest().getRequestAdmin().equals(getAdmin()) : true)</span>
+                &amp;&amp; !hasAlreadyApproved;
+    }
+
+    /**
+     * Checks whether a certain property was defined in the approval profile to be read only, i.e. displayed but not changeable.
+     *
+     * @param propertyName the name of the property
+     * @return true if the property was defined as read-only, false otherwise.
+     */
+    public boolean isPropertyReadOnly(final String propertyName) {
+<span class="nc" id="L541">        return approvalDataVOView.getApprovalProfile().getReadOnlyProperties().contains(propertyName);</span>
+    }
+
+    /**
+     * Extract the partition properties, and fill in all and any placeholders. Also cull any properties set to be hidden.
+     * @param approvalPartition Partition
+     *
+     * @return a list of dynamic properties
+     */
+    private List&lt;DynamicUiProperty&lt;? extends Serializable&gt;&gt; getPartitionProperties(ApprovalPartition approvalPartition) {
+<span class="nc" id="L551">        Set&lt;String&gt; hiddenPropertyNames = approvalDataVOView.getApprovalProfile().getHiddenProperties();</span>
+<span class="nc" id="L552">        List&lt;DynamicUiProperty&lt;? extends Serializable&gt;&gt; propertyList = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L553" title="All 2 branches missed.">        for (String propertyName : approvalPartition.getPropertyList().keySet()) {</span>
+<span class="nc bnc" id="L554" title="All 2 branches missed.">            if (!hiddenPropertyNames.contains(propertyName)) {</span>
+<span class="nc" id="L555">                DynamicUiProperty&lt;? extends Serializable&gt; propertyClone = new DynamicUiProperty&lt;&gt;(</span>
+<span class="nc" id="L556">                        approvalPartition.getPropertyList().get(propertyName));</span>
+<span class="nc bnc" id="L557" title="All 3 branches missed.">                switch (propertyClone.getPropertyCallback()) {</span>
+                case ROLES:
+<span class="nc" id="L559">                    final List&lt;Role&gt; allAuthorizedRoles = roleSession.getAuthorizedRoles(getAdmin());</span>
+<span class="nc" id="L560">                    final List&lt;RoleInformation&gt; roleRepresentations = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L561" title="All 2 branches missed.">                    for (final Role role : allAuthorizedRoles) {</span>
+<span class="nc bnc" id="L562" title="All 2 branches missed.">                        if (AccessRulesHelper.hasAccessToResource(role.getAccessRules(), AccessRulesConstants.REGULAR_APPROVEENDENTITY)</span>
+<span class="nc bnc" id="L563" title="All 2 branches missed.">                                || AccessRulesHelper.hasAccessToResource(role.getAccessRules(), AccessRulesConstants.REGULAR_APPROVECAACTION)) {</span>
+                            try {
+<span class="nc" id="L565">                                final List&lt;RoleMember&gt; roleMembers = roleMemberSession.getRoleMembersByRoleId(getAdmin(), role.getRoleId());</span>
+<span class="nc" id="L566">                                roleRepresentations.add(RoleInformation.fromRoleMembers(role.getRoleId(), role.getNameSpace(), role.getRoleName(), roleMembers));</span>
+<span class="nc" id="L567">                            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc bnc" id="L568" title="All 2 branches missed.">                                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L569">                                    log.debug(&quot;Not authorized to members of authorized role '&quot;+role.getRoleNameFull()+&quot;' (?):&quot; + e.getMessage());</span>
+                                }
+<span class="nc" id="L571">                            }</span>
+                        }
+<span class="nc" id="L573">                    }</span>
+<span class="nc bnc" id="L574" title="All 2 branches missed.">                    if (!roleRepresentations.contains(propertyClone.getDefaultValue())) {</span>
+                        //Add the default, because it makes no sense why it wouldn't be there. Also, it may be a placeholder for something else.
+<span class="nc" id="L576">                        roleRepresentations.add(0, (RoleInformation) propertyClone.getDefaultValue());</span>
+                    }
+<span class="nc" id="L578">                    propertyClone.setPossibleValues(roleRepresentations);</span>
+<span class="nc" id="L579">                    break;</span>
+                case NONE:
+<span class="nc" id="L581">                    break;</span>
+                default:
+                    break;
+                }
+<span class="nc" id="L585">                propertyList.add(propertyClone);</span>
+            }
+<span class="nc" id="L587">        }</span>
+<span class="nc" id="L588">        return propertyList;</span>
+    }
+
+    /**
+     * Updates approval request based on the changes in approval profile.
+     * Also updates corresponding approval profile in the approval profile session.
+     *
+     * @param uniqueId id of approval request data to be updated.
+     */
+    public void updateApprovalRequest(final int uniqueId) {
+
+<span class="nc" id="L599">        ApprovalDataVO approvalDataVO = approvalSession.findNonExpiredApprovalRequest(approvalDataVOView.getApprovalId());</span>
+
+<span class="nc bnc" id="L601" title="All 2 branches missed.">        if (approvalDataVO == null) {</span>
+<span class="nc" id="L602">            log.warn(&quot;Approval request already expired or invalid!&quot;);</span>
+<span class="nc" id="L603">            return;</span>
+        }
+
+<span class="nc" id="L606">        ApprovalRequest currentApprovalRequest = approvalDataVO.getApprovalRequest();</span>
+
+<span class="nc" id="L608">        ApprovalProfile approvalProfileFromRequest = currentApprovalRequest.getApprovalProfile();</span>
+<span class="nc" id="L609">        ApprovalProfile approvalProfileFromSession = approvalProfileSession.getApprovalProfile(currentApprovalRequest.getApprovalProfile().getProfileId().intValue());</span>
+
+        // Set the updated approval profile in current request.
+<span class="nc" id="L612">        currentApprovalRequest.setApprovalProfile(updateApprovalProfile(approvalProfileFromRequest));</span>
+<span class="nc" id="L613">        approvalSession.updateApprovalRequest(approvalDataVO.getId(), currentApprovalRequest);</span>
+
+        // To update the roles and make authorization possible
+        try {
+<span class="nc" id="L617">            approvalProfileSession.changeApprovalProfile(getAdmin(), updateApprovalProfile(approvalProfileFromSession));</span>
+<span class="nc" id="L618">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L619">            log.info(&quot;Not authorized to change approval profile!&quot; + e);</span>
+<span class="nc" id="L620">        }</span>
+
+<span class="nc" id="L622">        updateApprovalRequestData(uniqueId);</span>
+<span class="nc" id="L623">    }</span>
+
+    /**
+     * Updates the approval profile based on the role changes in session.
+     *
+     * @param approvalProfile Profile
+     * @return Profile
+     */
+    private ApprovalProfile updateApprovalProfile(final ApprovalProfile approvalProfile) {
+
+<span class="nc bnc" id="L633" title="All 2 branches missed.">        for (ApprovalStep approvalStep : approvalProfile.getSteps().values()) {</span>
+<span class="nc bnc" id="L634" title="All 2 branches missed.">            for (ApprovalPartition approvalPartition : approvalStep.getPartitions().values()) {</span>
+<span class="nc bnc" id="L635" title="All 2 branches missed.">                for (DynamicUiProperty&lt;? extends Serializable&gt; property : approvalPartition.getPropertyList().values()) {</span>
+
+<span class="nc" id="L637">                    DynamicUiProperty&lt;? extends Serializable&gt; propertyClone = new DynamicUiProperty&lt;&gt;(property);</span>
+
+<span class="nc bnc" id="L639" title="All 2 branches missed.">                    if (property.getName().equals(PartitionedApprovalProfile.PROPERTY_ROLES_WITH_VIEW_RIGHTS)</span>
+<span class="nc bnc" id="L640" title="All 2 branches missed.">                            || property.getName().equals(PartitionedApprovalProfile.PROPERTY_ROLES_WITH_APPROVAL_RIGHTS)) {</span>
+
+<span class="nc" id="L642">                        List&lt;RoleInformation&gt; updatedRoleInformation = new ArrayList&lt;&gt;();</span>
+
+<span class="nc bnc" id="L644" title="All 2 branches missed.">                        for (final Serializable value : property.getPossibleValues()) {</span>
+<span class="nc" id="L645">                            RoleInformation roleInfo = (RoleInformation) value;</span>
+<span class="nc" id="L646">                            updatedRoleInformation.addAll(updateRoleMembers(roleInfo));</span>
+<span class="nc" id="L647">                        }</span>
+
+<span class="nc bnc" id="L649" title="All 2 branches missed.">                        if (!updatedRoleInformation.contains(propertyClone.getDefaultValue())) {</span>
+                            //Add the default, because it makes no sense why it wouldn't be there. Also, it may be a placeholder for something else.
+<span class="nc" id="L651">                            updatedRoleInformation.add(0, (RoleInformation) propertyClone.getDefaultValue());</span>
+                        }
+
+<span class="nc" id="L654">                        propertyClone.setPossibleValues(updatedRoleInformation);</span>
+<span class="nc" id="L655">                        updateEncodedValues(propertyClone, property);</span>
+
+<span class="nc" id="L657">                        approvalPartition.removeProperty(property.getName());</span>
+<span class="nc" id="L658">                        approvalPartition.addProperty(propertyClone);</span>
+
+<span class="nc" id="L660">                        approvalStep.removePropertyFromPartition(approvalPartition.getPartitionIdentifier(), property.getName());</span>
+<span class="nc" id="L661">                        approvalStep.setPropertyToPartition(approvalPartition.getPartitionIdentifier(), propertyClone);</span>
+
+<span class="nc" id="L663">                        approvalProfile.removePropertyFromPartition(approvalStep.getStepIdentifier(), approvalPartition.getPartitionIdentifier(),</span>
+<span class="nc" id="L664">                                property.getName());</span>
+<span class="nc" id="L665">                        approvalProfile.addPropertyToPartition(approvalStep.getStepIdentifier(), approvalPartition.getPartitionIdentifier(),</span>
+                                propertyClone);
+                    }
+<span class="nc" id="L668">                }</span>
+<span class="nc" id="L669">            }</span>
+<span class="nc" id="L670">        }</span>
+
+<span class="nc" id="L672">        return approvalProfile;</span>
+    }
+
+     /**
+      * Update role members based on latest from role member session.
+      *
+      * @param roleToUpdate Role
+      * @return list of updated role infos.
+      */
+     private List&lt;RoleInformation&gt; updateRoleMembers(final RoleInformation roleToUpdate) {
+<span class="nc" id="L682">         final List&lt;Role&gt; allAuthorizedRoles = roleSession.getAuthorizedRoles(getAdmin());</span>
+<span class="nc" id="L683">         final List&lt;RoleInformation&gt; roleRepresentations = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L684" title="All 2 branches missed.">         for (final Role role : allAuthorizedRoles) {</span>
+<span class="nc bnc" id="L685" title="All 2 branches missed.">             if (role.getRoleId() == roleToUpdate.getIdentifier()</span>
+<span class="nc bnc" id="L686" title="All 2 branches missed.">                     &amp;&amp; (AccessRulesHelper.hasAccessToResource(role.getAccessRules(), AccessRulesConstants.REGULAR_APPROVEENDENTITY)</span>
+<span class="nc bnc" id="L687" title="All 2 branches missed.">                             || AccessRulesHelper.hasAccessToResource(role.getAccessRules(), AccessRulesConstants.REGULAR_APPROVECAACTION))) {</span>
+                 try {
+<span class="nc" id="L689">                     final List&lt;RoleMember&gt; roleMembers = roleMemberSession.getRoleMembersByRoleId(getAdmin(), role.getRoleId());</span>
+<span class="nc" id="L690">                     roleRepresentations.add(RoleInformation.fromRoleMembers(role.getRoleId(), role.getNameSpace(), role.getRoleName(), roleMembers));</span>
+<span class="nc" id="L691">                 } catch (AuthorizationDeniedException e) {</span>
+<span class="nc bnc" id="L692" title="All 2 branches missed.">                     if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L693">                         log.debug(&quot;Not authorized to members of authorized role '&quot; + role.getRoleNameFull() + &quot;' (?):&quot; + e.getMessage());</span>
+                     }
+<span class="nc" id="L695">                 }</span>
+             }
+<span class="nc" id="L697">         }</span>
+<span class="nc" id="L698">         return roleRepresentations;</span>
+     }
+
+     /**
+      * Updates the encoded values of propertyClone if
+      * there has been a change in the role members of the
+      * any of the roles which were selected in the list box
+      * before the change.
+      * Uses property identifier as a base for comparison.
+      *
+      * @param propertyClone updated property
+      * @param property current property
+      */
+     private void updateEncodedValues(final DynamicUiProperty&lt;? extends Serializable&gt; propertyClone,
+             final DynamicUiProperty&lt;? extends Serializable&gt; property) {
+
+<span class="nc" id="L714">         List&lt;Integer&gt; currentIds = new ArrayList&lt;&gt;();</span>
+
+<span class="nc bnc" id="L716" title="All 2 branches missed.">         for (final String value : property.getEncodedValues()) {</span>
+<span class="nc" id="L717">             RoleInformation roleInfo = DynamicUiProperty.getAsObject(value, RoleInformation.class);</span>
+<span class="nc" id="L718">             currentIds.add(roleInfo.getIdentifier());</span>
+<span class="nc" id="L719">         }</span>
+
+<span class="nc" id="L721">         List&lt;String&gt; finalListOfEncodedValues = new ArrayList&lt;&gt;();</span>
+
+<span class="nc bnc" id="L723" title="All 2 branches missed.">         for (final Serializable value : propertyClone.getPossibleValues()) {</span>
+<span class="nc" id="L724">             RoleInformation roleInformation = (RoleInformation) value;</span>
+
+<span class="nc bnc" id="L726" title="All 2 branches missed.">             if (currentIds.contains(roleInformation.getIdentifier())) {</span>
+<span class="nc" id="L727">                 finalListOfEncodedValues.add(property.getAsEncodedValue(property.getType().cast(value)));</span>
+             }
+<span class="nc" id="L729">         }</span>
+
+         // Here we update the propertyClone set of encoded values.
+         try {
+<span class="nc" id="L733">             propertyClone.setEncodedValues(finalListOfEncodedValues);</span>
+<span class="nc" id="L734">         } catch (PropertyValidationException e) {</span>
+<span class="nc" id="L735">             log.error(&quot;Invalid propery value while setting the encoded values for property clone!&quot; + e);</span>
+<span class="nc" id="L736">         }</span>
+<span class="nc" id="L737">     }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -14,40 +14,58 @@ package org.cesecore.dbprotection;
 
 /**
  * Wrapper for StringBuilder that inserts a separator between elements.
- * @version $Id: ProtectionStringBuilder.java 17625 2013-09-20 07:12:06Z netmackan $
+ *
+ * @version $Id: ProtectionStringBuilder.java 17625 2013-09-20 07:12:06Z
+ *     netmackan $
  */
 public class ProtectionStringBuilder {
 
-	private static final String SEPARATOR_TAG = &quot;&lt;sep/&gt;&quot;;
-	
-	private final StringBuilder sb;
+    /** Tag. */
+  private static final String SEPARATOR_TAG = &quot;&lt;sep/&gt;&quot;;
 
-<span class="nc" id="L25">	public ProtectionStringBuilder() {</span>
-<span class="nc" id="L26">		sb = new StringBuilder();</span>
-<span class="nc" id="L27">	}</span>
+  /** SB. */
+  private final StringBuilder sb;
 
-<span class="nc" id="L29">	public ProtectionStringBuilder(final int initialCapacity) {</span>
-<span class="nc" id="L30">		sb = new StringBuilder(initialCapacity);</span>
-<span class="nc" id="L31">	}</span>
+  /** null.
+   */
+<span class="nc" id="L31">  public ProtectionStringBuilder() {</span>
+<span class="nc" id="L32">    sb = new StringBuilder();</span>
+<span class="nc" id="L33">  }</span>
 
-	public ProtectionStringBuilder append(final Object o) {
-<span class="nc bnc" id="L34" title="All 2 branches missed.">		if (sb.length()&gt;0) {</span>
-<span class="nc" id="L35">			sb.append(SEPARATOR_TAG);</span>
-		}
-		// String.valueOf(o) would return &quot;null&quot; when null, which is not the same as null.
-<span class="nc bnc" id="L38" title="All 2 branches missed.">		if (o != null) {</span>
-<span class="nc" id="L39">			sb.append(o.toString());</span>
-		}
-<span class="nc" id="L41">		return this;</span>
-	}
+  /**
+   * @param initialCapacity cap
+   */
+<span class="nc" id="L38">  public ProtectionStringBuilder(final int initialCapacity) {</span>
+<span class="nc" id="L39">    sb = new StringBuilder(initialCapacity);</span>
+<span class="nc" id="L40">  }</span>
 
-	public int length() {
-<span class="nc" id="L45">		return sb.length();</span>
-	}
-	
-	@Override
-	public String toString() {
-<span class="nc" id="L50">		return sb.toString();</span>
-	}
+  /**
+   * Append.
+   * @param o Object
+   * @return this
+   */
+  public ProtectionStringBuilder append(final Object o) {
+<span class="nc bnc" id="L48" title="All 2 branches missed.">    if (sb.length() &gt; 0) {</span>
+<span class="nc" id="L49">      sb.append(SEPARATOR_TAG);</span>
+    }
+    // String.valueOf(o) would return &quot;null&quot; when null, which is not the same as
+    // null.
+<span class="nc bnc" id="L53" title="All 2 branches missed.">    if (o != null) {</span>
+<span class="nc" id="L54">      sb.append(o.toString());</span>
+    }
+<span class="nc" id="L56">    return this;</span>
+  }
+
+  /**
+   * @return Length
+   */
+  public int length() {
+<span class="nc" id="L63">    return sb.length();</span>
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L68">    return sb.toString();</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

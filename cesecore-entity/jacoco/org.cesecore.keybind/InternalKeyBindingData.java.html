@@ -21,14 +21,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
-
 import javax.persistence.Entity;
 import javax.persistence.PostLoad;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 import javax.persistence.Transient;
-
 import org.apache.log4j.Logger;
 import org.cesecore.dbprotection.ProtectedData;
 import org.cesecore.dbprotection.ProtectionStringBuilder;
@@ -38,191 +36,375 @@ import org.cesecore.util.SecureXMLDecoder;
 
 /**
  * Database representation of an InternalKeyBinding.
- * 
- * @version $Id: InternalKeyBindingData.java 34163 2020-01-02 15:00:17Z samuellb $
+ *
+ * @version $Id: InternalKeyBindingData.java 34163 2020-01-02 15:00:17Z samuellb
+ *     $
  */
 @Entity
 @Table(name = &quot;InternalKeyBindingData&quot;)
-public class InternalKeyBindingData extends ProtectedData implements Serializable {
+public class InternalKeyBindingData extends ProtectedData
+    implements Serializable {
 
-    private static final long serialVersionUID = 1L;
-<span class="nc" id="L49">    private static final Logger log = Logger.getLogger(InternalKeyBindingData.class);</span>
+  private static final long serialVersionUID = 1L;
+  /** Logger. */
+<span class="nc" id="L50">  private static final Logger LOG =</span>
+<span class="nc" id="L51">      Logger.getLogger(InternalKeyBindingData.class);</span>
 
-    private int id;                 // Internal and static over time representation when referencing this object
-    private String name;            // A human friendly representation of this object
-    private String status;          // The status as a String constant of InternalKeyBindingStatus
-    private String keyBindingType;  // Mapped to implementation class
-    private String certificateId;   // Reference to a Certificate currently in use by the implementation
-    private int cryptoTokenId;      // Reference to a CryptoToken currently in use by the implementation
-    private String keyPairAlias;    // Reference to an alias in the CryptoToken currently in use by the implementation
-    private String rawData;         // Raw data like a with implementation specific details and configuration
-<span class="nc" id="L59">    private long lastUpdate = 0;    // Last update to database, Unix epoch milliseconds</span>
-<span class="nc" id="L60">    private int rowVersion = 0;     // JPA Optimistic locking requirement</span>
-    private String rowProtection;   // Row integrity protection
+  /** Param. */
+  private int
+      id; // Internal and static over time representation when referencing this
+          // object
+  /** Param. */
+  private String name; // A human friendly representation of this object
 
-    public InternalKeyBindingData(final int id, final String name, final InternalKeyBindingStatus status, final String keyBindingType, final String certificateId,
-<span class="nc" id="L64">            final int cryptoTokenId, final String keyPairAlias, final LinkedHashMap&lt;Object, Object&gt; dataMap) {</span>
-<span class="nc" id="L65">        setId(id);</span>
-<span class="nc" id="L66">        setName(name);</span>
-<span class="nc" id="L67">        setStatusEnum(status);</span>
-<span class="nc" id="L68">        setKeyBindingType(keyBindingType);</span>
-<span class="nc bnc" id="L69" title="All 2 branches missed.">        if (certificateId != null) {</span>
-<span class="nc" id="L70">            setCertificateId(certificateId.toLowerCase(Locale.ENGLISH));            </span>
-        } else {
-<span class="nc" id="L72">            setCertificateId(null);</span>
-        }
-<span class="nc" id="L74">        setCryptoTokenId(cryptoTokenId);</span>
-<span class="nc" id="L75">        setKeyPairAlias(keyPairAlias);</span>
-<span class="nc" id="L76">        setDataMap(dataMap);</span>
-<span class="nc" id="L77">        setLastUpdate(System.currentTimeMillis());</span>
-<span class="nc" id="L78">    }</span>
+  /** Param. */
+  private String
+      status; // The status as a String constant of InternalKeyBindingStatus
+  /** Param. */
+  private String keyBindingType; // Mapped to implementation class
+  /** Param. */
+  private String
+      certificateId; // Reference to a Certificate currently in use by the
+                     // implementation
+  /** Param. */
+  private int
+      cryptoTokenId; // Reference to a CryptoToken currently in use by the
+                     // implementation
+  /** Param. */
+  private String
+      keyPairAlias; // Reference to an alias in the CryptoToken currently in use
+                    // by the implementation
+  /** Param. */
+  private String
+      rawData; // Raw data like a with implementation specific details and
+               // configuration
+  /** Param. */
+<span class="nc" id="L82">  private long lastUpdate =</span>
+      0; // Last update to database, Unix epoch milliseconds
+  /** Param. */
+<span class="nc" id="L85">  private int rowVersion = 0; // JPA Optimistic locking requirement</span>
+  /** Param. */
+  private String rowProtection; // Row integrity protection
 
-<span class="nc" id="L80">    public InternalKeyBindingData() {}</span>
-
-    // @Id @Column
-<span class="nc" id="L83">    public int getId() { return id; }</span>
-<span class="nc" id="L84">    public void setId(int id) { this.id = id; }</span>
-
-    // @Column
-<span class="nc" id="L87">    public String getName() { return name; }</span>
-<span class="nc" id="L88">    public void setName(String name) { this.name = name; }</span>
-
-    // @Column
-    /** Use getStatusEnum() instead 
-     * @return status*/
-<span class="nc" id="L93">    public String getStatus() { return status; }</span>
-    /** Use setStatusEnum(..) instead 
-     * @param status status*/
-<span class="nc" id="L96">    public void setStatus(String status) { this.status = status; }</span>
-
-    // @Column
-<span class="nc" id="L99">    public String getKeyBindingType() { return keyBindingType; }</span>
-<span class="nc" id="L100">    public void setKeyBindingType(String keyBindingType) { this.keyBindingType = keyBindingType; }</span>
-
-    // @Column
-<span class="nc" id="L103">    public String getCertificateId() { return certificateId; }</span>
-    public void setCertificateId(String certificateId) { 
-<span class="nc bnc" id="L105" title="All 2 branches missed.">        if (certificateId != null) {</span>
-<span class="nc" id="L106">            this.certificateId = certificateId.toLowerCase(Locale.ENGLISH);</span>
-        } else {
-<span class="nc" id="L108">            this.certificateId = null;</span>
-        }
-<span class="nc" id="L110">    }</span>
-    // @Column
-<span class="nc" id="L112">    public int getCryptoTokenId() { return cryptoTokenId; }</span>
-<span class="nc" id="L113">    public void setCryptoTokenId(int cryptoTokenId) { this.cryptoTokenId = cryptoTokenId; }</span>
-
-    // @Column
-<span class="nc" id="L116">    public String getKeyPairAlias() { return keyPairAlias; }</span>
-<span class="nc" id="L117">    public void setKeyPairAlias(String keyPairAlias) { this.keyPairAlias = keyPairAlias; }</span>
-
-    // @Column
-<span class="nc" id="L120">    public long getLastUpdate() { return lastUpdate; }</span>
-<span class="nc" id="L121">    public void setLastUpdate(long lastUpdate) { this.lastUpdate = lastUpdate; }</span>
-
-    // @Column @Lob
-    /** Should not be invoked directly. Use getDataMap() instead. 
-     * @return data*/
-<span class="nc" id="L126">    public String getRawData() { return rawData; }</span>
-    /** Should not be invoked directly. Use setDataMap(..) instead. 
-     * @param rawData data */
-<span class="nc" id="L129">    public void setRawData(String rawData) { this.rawData = rawData; }</span>
-
-    // @Version @Column
-<span class="nc" id="L132">    public int getRowVersion() { return rowVersion; }</span>
-<span class="nc" id="L133">    public void setRowVersion(int rowVersion) { this.rowVersion = rowVersion; }</span>
-
-    // @Column @Lob
-    @Override
-<span class="nc" id="L137">    public String getRowProtection() { return rowProtection; }</span>
-    @Override
-<span class="nc" id="L139">    public void setRowProtection(String rowProtection) { this.rowProtection = rowProtection; }</span>
-    
-    //
-    // Start Database integrity protection methods
-    //
-    @Transient
-    @Override
-    public String getProtectString(final int version) {
-<span class="nc" id="L147">        final ProtectionStringBuilder build = new ProtectionStringBuilder(1024);</span>
-        // What is important to protect here is the data that we define
-        // rowVersion is automatically updated by JPA, so it's not important, it is only used for optimistic locking
-<span class="nc" id="L150">        build.append(getId()).append(getName()).append(getStatus()).append(getKeyBindingType());</span>
-<span class="nc" id="L151">        build.append(getCertificateId()).append(String.valueOf(getCryptoTokenId())).append(getKeyPairAlias());</span>
-<span class="nc" id="L152">        build.append(getRawData()).append(String.valueOf(getLastUpdate()));</span>
-<span class="nc" id="L153">        return build.toString();</span>
+  /**
+   * @param anId ID
+   * @param aNname Name
+   * @param aStatus Status
+   * @param aKeyBindingType Type
+   * @param aCertificateId ID
+   * @param aCryptoTokenId ID
+   * @param aKeyPairAlias Alais
+   * @param dataMap Map
+   */
+  public InternalKeyBindingData(
+      final int anId,
+      final String aNname,
+      final InternalKeyBindingStatus aStatus,
+      final String aKeyBindingType,
+      final String aCertificateId,
+      final int aCryptoTokenId,
+      final String aKeyPairAlias,
+<span class="nc" id="L107">      final LinkedHashMap&lt;Object, Object&gt; dataMap) {</span>
+<span class="nc" id="L108">    setId(anId);</span>
+<span class="nc" id="L109">    setName(aNname);</span>
+<span class="nc" id="L110">    setStatusEnum(aStatus);</span>
+<span class="nc" id="L111">    setKeyBindingType(aKeyBindingType);</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">    if (aCertificateId != null) {</span>
+<span class="nc" id="L113">      setCertificateId(aCertificateId.toLowerCase(Locale.ENGLISH));</span>
+    } else {
+<span class="nc" id="L115">      setCertificateId(null);</span>
     }
+<span class="nc" id="L117">    setCryptoTokenId(aCryptoTokenId);</span>
+<span class="nc" id="L118">    setKeyPairAlias(aKeyPairAlias);</span>
+<span class="nc" id="L119">    setDataMap(dataMap);</span>
+<span class="nc" id="L120">    setLastUpdate(System.currentTimeMillis());</span>
+<span class="nc" id="L121">  }</span>
 
-    @Transient
-    @Override
-    protected int getProtectVersion() {
-<span class="nc" id="L159">        return 1;</span>
+  /** Null constructor. */
+<span class="nc" id="L124">  public InternalKeyBindingData() { }</span>
+
+  /**
+   * @return ID
+   */
+  // @Id @Column
+  public int getId() {
+<span class="nc" id="L131">    return id;</span>
+  }
+
+  /**
+   * @param anId ID
+   */
+  public void setId(final int anId) {
+<span class="nc" id="L138">    this.id = anId;</span>
+<span class="nc" id="L139">  }</span>
+
+  /**
+   * @return Name
+   */
+  // @Column
+  public String getName() {
+<span class="nc" id="L146">    return name;</span>
+  }
+
+  /**
+   * @param aName name
+   */
+  public void setName(final String aName) {
+<span class="nc" id="L153">    this.name = aName;</span>
+<span class="nc" id="L154">  }</span>
+
+  // @Column
+  /**
+   * Use getStatusEnum() instead.
+   *
+   * @return status
+   */
+  public String getStatus() {
+<span class="nc" id="L163">    return status;</span>
+  }
+  /**
+   * Use setStatusEnum(..) instead.
+   *
+   * @param aStatus status
+   */
+  public void setStatus(final String aStatus) {
+<span class="nc" id="L171">    this.status = aStatus;</span>
+<span class="nc" id="L172">  }</span>
+
+  /**
+   * @return type
+   */
+  // @Column
+  public String getKeyBindingType() {
+<span class="nc" id="L179">    return keyBindingType;</span>
+  }
+
+  /**
+   * @param aKeyBindingType Type
+   */
+  public void setKeyBindingType(final String aKeyBindingType) {
+<span class="nc" id="L186">    this.keyBindingType = aKeyBindingType;</span>
+<span class="nc" id="L187">  }</span>
+
+  /**
+   * @return ID
+   */
+  // @Column
+  public String getCertificateId() {
+<span class="nc" id="L194">    return certificateId;</span>
+  }
+
+  /**
+   * @param aCertificateId ID
+   */
+  public void setCertificateId(final String aCertificateId) {
+<span class="nc bnc" id="L201" title="All 2 branches missed.">    if (aCertificateId != null) {</span>
+<span class="nc" id="L202">      this.certificateId = aCertificateId.toLowerCase(Locale.ENGLISH);</span>
+    } else {
+<span class="nc" id="L204">      this.certificateId = null;</span>
     }
+<span class="nc" id="L206">  }</span>
+  /**
+   * @return ID
+   */
+  // @Column
+  public int getCryptoTokenId() {
+<span class="nc" id="L212">    return cryptoTokenId;</span>
+  }
 
-    @PrePersist
-    @PreUpdate
-    @Override
-    protected void protectData() {
-<span class="nc" id="L166">        super.protectData();</span>
-<span class="nc" id="L167">    }</span>
+  /**
+   * @param aCryptoTokenId ID
+   */
+  public void setCryptoTokenId(final int aCryptoTokenId) {
+<span class="nc" id="L219">    this.cryptoTokenId = aCryptoTokenId;</span>
+<span class="nc" id="L220">  }</span>
 
-    @PostLoad
-    @Override
-    protected void verifyData() {
-<span class="nc" id="L172">        super.verifyData();</span>
-<span class="nc" id="L173">    }</span>
+  /**
+   * @return alias
+   */
+  // @Column
+  public String getKeyPairAlias() {
+<span class="nc" id="L227">    return keyPairAlias;</span>
+  }
 
-    @Override
-    @Transient
-    protected String getRowId() {
-<span class="nc" id="L178">        return String.valueOf(getId());</span>
+  /**
+   * @param aKeyPairAlias Alias
+   */
+  public void setKeyPairAlias(final String aKeyPairAlias) {
+<span class="nc" id="L234">    this.keyPairAlias = aKeyPairAlias;</span>
+<span class="nc" id="L235">  }</span>
+
+  /**
+   * @return time
+   */
+  // @Column
+  public long getLastUpdate() {
+<span class="nc" id="L242">    return lastUpdate;</span>
+  }
+
+  /**
+   * @param theLastUpdate time
+   */
+  public void setLastUpdate(final long theLastUpdate) {
+<span class="nc" id="L249">    this.lastUpdate = theLastUpdate;</span>
+<span class="nc" id="L250">  }</span>
+
+  // @Column @Lob
+  /**
+   * Should not be invoked directly. Use getDataMap() instead.
+   *
+   * @return data
+   */
+  public String getRawData() {
+<span class="nc" id="L259">    return rawData;</span>
+  }
+  /**
+   * Should not be invoked directly. Use setDataMap(..) instead.
+   *
+   * @param theRawData data
+   */
+  public void setRawData(final String theRawData) {
+<span class="nc" id="L267">    this.rawData = theRawData;</span>
+<span class="nc" id="L268">  }</span>
+
+  // @Version @Column
+  /**
+   * @return version
+   */
+  public int getRowVersion() {
+<span class="nc" id="L275">    return rowVersion;</span>
+  }
+
+  /**
+   * @param aRowVersion version
+   */
+  public void setRowVersion(final int aRowVersion) {
+<span class="nc" id="L282">    this.rowVersion = aRowVersion;</span>
+<span class="nc" id="L283">  }</span>
+
+  // @Column @Lob
+  @Override
+  public String getRowProtection() {
+<span class="nc" id="L288">    return rowProtection;</span>
+  }
+
+  @Override
+  public void setRowProtection(final String aRowProtection) {
+<span class="nc" id="L293">    this.rowProtection = aRowProtection;</span>
+<span class="nc" id="L294">  }</span>
+
+  //
+  // Start Database integrity protection methods
+  //
+  @Transient
+  @Override
+  public String getProtectString(final int version) {
+<span class="nc" id="L302">    final ProtectionStringBuilder build = new ProtectionStringBuilder(1024);</span>
+    // What is important to protect here is the data that we define
+    // rowVersion is automatically updated by JPA, so it's not important, it is
+    // only used for optimistic locking
+<span class="nc" id="L306">    build</span>
+<span class="nc" id="L307">        .append(getId())</span>
+<span class="nc" id="L308">        .append(getName())</span>
+<span class="nc" id="L309">        .append(getStatus())</span>
+<span class="nc" id="L310">        .append(getKeyBindingType());</span>
+<span class="nc" id="L311">    build</span>
+<span class="nc" id="L312">        .append(getCertificateId())</span>
+<span class="nc" id="L313">        .append(String.valueOf(getCryptoTokenId()))</span>
+<span class="nc" id="L314">        .append(getKeyPairAlias());</span>
+<span class="nc" id="L315">    build.append(getRawData()).append(String.valueOf(getLastUpdate()));</span>
+<span class="nc" id="L316">    return build.toString();</span>
+  }
+
+  @Transient
+  @Override
+  protected int getProtectVersion() {
+<span class="nc" id="L322">    return 1;</span>
+  }
+
+  @PrePersist
+  @PreUpdate
+  @Override
+  protected void protectData() {
+<span class="nc" id="L329">    super.protectData();</span>
+<span class="nc" id="L330">  }</span>
+
+  @PostLoad
+  @Override
+  protected void verifyData() {
+<span class="nc" id="L335">    super.verifyData();</span>
+<span class="nc" id="L336">  }</span>
+
+  @Override
+  @Transient
+  protected String getRowId() {
+<span class="nc" id="L341">    return String.valueOf(getId());</span>
+  }
+  //
+  // End Database integrity protection methods
+  //
+
+  /**
+   * @return map
+   */
+  @Transient
+  @SuppressWarnings(&quot;unchecked&quot;)
+  public LinkedHashMap&lt;Object, Object&gt; getDataMap() {
+<span class="nc" id="L353">    try (SecureXMLDecoder decoder =</span>
+        new SecureXMLDecoder(
+            new java.io.ByteArrayInputStream(
+<span class="nc" id="L356">                getRawData().getBytes(StandardCharsets.UTF_8)))) {</span>
+<span class="nc" id="L357">      final Map&lt;?, ?&gt; h = (Map&lt;?, ?&gt;) decoder.readObject();</span>
+      // Handle Base64 encoded string values
+<span class="nc" id="L359">      final LinkedHashMap&lt;Object, Object&gt; dataMap = new Base64GetHashMap(h);</span>
+<span class="nc" id="L360">      return dataMap;</span>
+<span class="nc" id="L361">    } catch (IOException e) {</span>
+<span class="nc" id="L362">      final String msg =</span>
+          &quot;Failed to parse InternalKeyBindingData data map in database: &quot;
+<span class="nc" id="L364">              + e.getMessage();</span>
+<span class="nc bnc" id="L365" title="All 2 branches missed.">      if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L366">        LOG.debug(msg + &quot;. Data:\n&quot; + getRawData());</span>
+      }
+<span class="nc" id="L368">      throw new IllegalStateException(msg, e);</span>
     }
-    //
-    // End Database integrity protection methods
-    //
-    
-    @Transient
-    @SuppressWarnings(&quot;unchecked&quot;)
-    public LinkedHashMap&lt;Object, Object&gt; getDataMap() {
-<span class="nc" id="L187">        try (SecureXMLDecoder decoder = new SecureXMLDecoder(new java.io.ByteArrayInputStream(getRawData().getBytes(StandardCharsets.UTF_8)))) {</span>
-<span class="nc" id="L188">            final Map&lt;?, ?&gt; h = (Map&lt;?, ?&gt;)decoder.readObject();</span>
-            // Handle Base64 encoded string values
-<span class="nc" id="L190">            final LinkedHashMap&lt;Object, Object&gt; dataMap = new Base64GetHashMap(h);</span>
-<span class="nc" id="L191">            return dataMap;</span>
-<span class="nc" id="L192">        } catch (IOException e) {</span>
-<span class="nc" id="L193">            final String msg = &quot;Failed to parse InternalKeyBindingData data map in database: &quot; + e.getMessage();</span>
-<span class="nc bnc" id="L194" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L195">                log.debug(msg + &quot;. Data:\n&quot; + getRawData());</span>
-            }
-<span class="nc" id="L197">            throw new IllegalStateException(msg, e);</span>
-        }
-    }
+  }
 
-    @Transient
-    @SuppressWarnings({&quot;rawtypes&quot;, &quot;unchecked&quot;})
-    public void setDataMap(final LinkedHashMap&lt;Object, Object&gt; dataMap) {
-        // We must base64 encode string for UTF safety
-<span class="nc" id="L205">        final LinkedHashMap&lt;?, ?&gt; a = new Base64PutHashMap();</span>
-<span class="nc" id="L206">        a.putAll((LinkedHashMap)dataMap);</span>
-<span class="nc" id="L207">        final java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();</span>
-        try {
-<span class="nc" id="L209">            try (XMLEncoder encoder = new XMLEncoder(baos)) {</span>
-<span class="nc" id="L210">                encoder.writeObject(a);</span>
-            }
-<span class="nc" id="L212">            final String data = baos.toString(&quot;UTF8&quot;);</span>
-<span class="nc" id="L213">            setRawData(data);</span>
-<span class="nc" id="L214">        } catch (UnsupportedEncodingException e) {</span>
-<span class="nc" id="L215">            throw new IllegalStateException(e);</span>
-<span class="nc" id="L216">        }</span>
-<span class="nc" id="L217">    }</span>
-    
-    @Transient
-    public InternalKeyBindingStatus getStatusEnum() {
-<span class="nc" id="L221">        return InternalKeyBindingStatus.valueOf(getStatus());</span>
-    }
-    @Transient
-    public void setStatusEnum(InternalKeyBindingStatus status) {
-<span class="nc" id="L225">        setStatus(status.name());</span>
-<span class="nc" id="L226">    }</span>
+  /**
+   * @param dataMap Map
+   */
+  @Transient
+  @SuppressWarnings({&quot;rawtypes&quot;, &quot;unchecked&quot;})
+  public void setDataMap(final LinkedHashMap&lt;Object, Object&gt; dataMap) {
+    // We must base64 encode string for UTF safety
+<span class="nc" id="L379">    final LinkedHashMap&lt;?, ?&gt; a = new Base64PutHashMap();</span>
+<span class="nc" id="L380">    a.putAll((LinkedHashMap) dataMap);</span>
+<span class="nc" id="L381">    final java.io.ByteArrayOutputStream baos =</span>
+        new java.io.ByteArrayOutputStream();
+    try {
+<span class="nc" id="L384">      try (XMLEncoder encoder = new XMLEncoder(baos)) {</span>
+<span class="nc" id="L385">        encoder.writeObject(a);</span>
+      }
+<span class="nc" id="L387">      final String data = baos.toString(&quot;UTF8&quot;);</span>
+<span class="nc" id="L388">      setRawData(data);</span>
+<span class="nc" id="L389">    } catch (UnsupportedEncodingException e) {</span>
+<span class="nc" id="L390">      throw new IllegalStateException(e);</span>
+<span class="nc" id="L391">    }</span>
+<span class="nc" id="L392">  }</span>
+
+  /**
+   * @return Status
+   */
+  @Transient
+  public InternalKeyBindingStatus getStatusEnum() {
+<span class="nc" id="L399">    return InternalKeyBindingStatus.valueOf(getStatus());</span>
+  }
+
+  /**
+   * @param aStatus Status
+   */
+  @Transient
+  public void setStatusEnum(final InternalKeyBindingStatus aStatus) {
+<span class="nc" id="L407">    setStatus(aStatus.name());</span>
+<span class="nc" id="L408">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

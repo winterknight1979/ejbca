@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RaRolesBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ra-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ra</a> &gt; <span class="el_source">RaRolesBean.java</span></div><h1>RaRolesBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ra;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
+
+import javax.ejb.EJB;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.ManagedProperty;
+import javax.faces.bean.ViewScoped;
+import javax.faces.event.AjaxBehaviorEvent;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.roles.Role;
+import org.ejbca.core.model.era.RaMasterApiProxyBeanLocal;
+import org.ejbca.core.model.era.RaRoleSearchRequest;
+import org.ejbca.core.model.era.RaRoleSearchResponse;
+
+
+/**
+ * Backing bean for the Roles page
+ *  
+ * @version $Id: RaRolesBean.java 25430 2017-03-09 16:37:36Z samuellb $
+ * TODO: Use CDI beans
+ */
+@SuppressWarnings(&quot;deprecation&quot;)
+@ManagedBean
+@ViewScoped
+<span class="nc" id="L45">public class RaRolesBean implements Serializable {</span>
+    
+    private static final long serialVersionUID = 1L;
+<span class="nc" id="L48">    private static final Logger log = Logger.getLogger(RaRolesBean.class);</span>
+    
+    @EJB
+    private RaMasterApiProxyBeanLocal raMasterApiProxyBean;
+
+    @ManagedProperty(value=&quot;#{raAccessBean}&quot;)
+    private RaAccessBean raAccessBean;
+<span class="nc" id="L55">    public void setRaAccessBean(final RaAccessBean raAccessBean) { this.raAccessBean = raAccessBean; }</span>
+    
+    @ManagedProperty(value=&quot;#{raAuthenticationBean}&quot;)
+    private RaAuthenticationBean raAuthenticationBean;
+<span class="nc" id="L59">    public void setRaAuthenticationBean(final RaAuthenticationBean raAuthenticationBean) { this.raAuthenticationBean = raAuthenticationBean; }</span>
+
+    @ManagedProperty(value=&quot;#{raLocaleBean}&quot;)
+    private RaLocaleBean raLocaleBean;
+<span class="nc" id="L63">    public void setRaLocaleBean(final RaLocaleBean raLocaleBean) { this.raLocaleBean = raLocaleBean; }</span>
+    
+    private String roleSearchString;
+    
+<span class="nc" id="L67">    private RaRoleSearchResponse lastExecutedResponse = null;</span>
+    
+<span class="nc" id="L69">    private List&lt;Role&gt; resultsFiltered = new ArrayList&lt;&gt;();</span>
+    private boolean hasNamespaces;
+    
+<span class="nc" id="L72">    private enum SortBy { NAMESPACE, ROLE };</span>
+<span class="nc" id="L73">    private SortBy sortBy = SortBy.ROLE;</span>
+<span class="nc" id="L74">    private boolean sortAscending = true;</span>
+    
+    
+    public void initialize() {
+<span class="nc" id="L78">        searchAndFilterCommon();</span>
+<span class="nc" id="L79">    }</span>
+    
+    public String getRoleSearchString() {
+<span class="nc" id="L82">        return roleSearchString;</span>
+    }
+    
+    public void setRoleSearchString(final String roleSearchString) {
+<span class="nc" id="L86">        this.roleSearchString = roleSearchString;</span>
+<span class="nc" id="L87">    }</span>
+
+
+    /** Invoked action on search form post */
+    public void searchAndFilterAction() {
+<span class="nc" id="L92">        searchAndFilterCommon();</span>
+<span class="nc" id="L93">    }</span>
+
+    /** Invoked on criteria changes 
+     * @param event Event */
+    public void searchAndFilterAjaxListener(final AjaxBehaviorEvent event) {
+<span class="nc" id="L98">        searchAndFilterCommon();</span>
+<span class="nc" id="L99">    }</span>
+    
+    /** Determine if we need to query back end or just filter and execute the required action. */
+    private void searchAndFilterCommon() {
+        // Get data
+<span class="nc" id="L104">        final RaRoleSearchRequest searchRequest = new RaRoleSearchRequest();</span>
+<span class="nc" id="L105">        searchRequest.setGenericSearchString(roleSearchString);</span>
+<span class="nc" id="L106">        lastExecutedResponse = raMasterApiProxyBean.searchForRoles(raAuthenticationBean.getAuthenticationToken(), searchRequest);</span>
+<span class="nc" id="L107">        resultsFiltered = lastExecutedResponse.getRoles();</span>
+        
+        // Check if we should show the namespace column
+<span class="nc" id="L110">        hasNamespaces = false;</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">        for (final Role role : resultsFiltered) {</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">            if (!StringUtils.isEmpty(role.getNameSpace())) {</span>
+<span class="nc" id="L113">                hasNamespaces = true;</span>
+            }
+<span class="nc" id="L115">        }</span>
+        
+<span class="nc" id="L117">        sort();</span>
+<span class="nc" id="L118">    }</span>
+    
+    public List&lt;Role&gt; getFilteredResults() {
+<span class="nc" id="L121">        return resultsFiltered;</span>
+    }
+    
+    public boolean isMoreResultsAvailable() {
+<span class="nc bnc" id="L125" title="All 4 branches missed.">        return lastExecutedResponse != null &amp;&amp; lastExecutedResponse.isMightHaveMoreResults();</span>
+    }
+    
+    public boolean getHasNamespaces() {
+<span class="nc" id="L129">        return hasNamespaces;</span>
+    }
+    
+    public String getSearchStringPlaceholder() {
+<span class="nc bnc" id="L133" title="All 2 branches missed.">        return raLocaleBean.getMessage(hasNamespaces ? &quot;roles_page_search_placeholder_with_namespaces&quot; : &quot;roles_page_search_placeholder_without_namespaces&quot;);</span>
+    }
+    
+    // Sorting
+    private void sort() {
+<span class="nc" id="L138">        Collections.sort(resultsFiltered, new Comparator&lt;Role&gt;() {</span>
+            @Override
+            public int compare(Role o1, Role o2) {
+<span class="nc bnc" id="L141" title="All 2 branches missed.">                int sortDir = (isSortAscending() ? 1 : -1);</span>
+<span class="nc bnc" id="L142" title="All 3 branches missed.">                switch (sortBy) {</span>
+                // TODO locale-aware sorting
+                case NAMESPACE: {
+<span class="nc" id="L145">                    int difference = o1.getNameSpace().compareTo(o2.getNameSpace());</span>
+<span class="nc bnc" id="L146" title="All 2 branches missed.">                    if (difference == 0) {</span>
+<span class="nc" id="L147">                        return o1.getRoleName().compareTo(o2.getRoleName()) * sortDir; // Sort roles in the same namespace by role name</span>
+                    }
+<span class="nc" id="L149">                    return difference * sortDir;</span>
+                }
+                case ROLE: {
+<span class="nc" id="L152">                    int difference = o1.getRoleName().compareTo(o2.getRoleName());</span>
+<span class="nc bnc" id="L153" title="All 2 branches missed.">                    if (difference == 0) {</span>
+<span class="nc" id="L154">                        return o1.getNameSpace().compareTo(o2.getNameSpace()) * sortDir; // Sort roles with the same name by namespace</span>
+                    }
+<span class="nc" id="L156">                    return difference * sortDir;</span>
+                }
+                default:
+<span class="nc" id="L159">                    throw new IllegalStateException(&quot;Invalid sortBy value&quot;);</span>
+                }
+            }
+        });
+<span class="nc" id="L163">    }</span>
+    
+<span class="nc" id="L165">    public String getSortedByNamespace() { return getSortedBy(SortBy.NAMESPACE); }</span>
+<span class="nc" id="L166">    public void sortByNamespace() { sortBy(SortBy.NAMESPACE, true); }</span>
+<span class="nc" id="L167">    public String getSortedByRole() { return getSortedBy(SortBy.ROLE); }</span>
+<span class="nc" id="L168">    public void sortByRole() { sortBy(SortBy.ROLE, true); }</span>
+    
+    public String getSortColumn() {
+<span class="nc" id="L171">        return sortBy.name();</span>
+    }
+    
+    public void setSortColumn(final String value) {
+        try {
+<span class="nc bnc" id="L176" title="All 2 branches missed.">            sortBy = !StringUtils.isBlank(value) ? SortBy.valueOf(value.toUpperCase(Locale.ROOT)) : SortBy.ROLE;</span>
+<span class="nc" id="L177">        } catch (IllegalArgumentException e) {</span>
+<span class="nc bnc" id="L178" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L179">                log.debug(&quot;Invalid value for the 'sortColumn' parameter: '&quot; + value + &quot;'&quot;);</span>
+            }
+<span class="nc" id="L181">            sortBy = SortBy.ROLE;</span>
+<span class="nc" id="L182">        }</span>
+<span class="nc" id="L183">    }</span>
+    
+    private String getSortedBy(final SortBy sortBy) {
+<span class="nc bnc" id="L186" title="All 2 branches missed.">        if (this.sortBy.equals(sortBy)) {</span>
+<span class="nc bnc" id="L187" title="All 2 branches missed.">            return isSortAscending() ? &quot;\u25bc&quot; : &quot;\u25b2&quot;;</span>
+        }
+<span class="nc" id="L189">        return &quot;&quot;;</span>
+    }
+    
+    /** Set current sort column. Flip the order if the column was already selected. 
+     * @param sortBy Column
+     * @param defaultAscending Order */
+    private void sortBy(final SortBy sortBy, final boolean defaultAscending) {
+<span class="nc bnc" id="L196" title="All 2 branches missed.">        if (this.sortBy.equals(sortBy)) {</span>
+<span class="nc bnc" id="L197" title="All 2 branches missed.">            sortAscending = !isSortAscending();</span>
+        } else {
+<span class="nc" id="L199">            sortAscending = defaultAscending;</span>
+        }
+<span class="nc" id="L201">        this.sortBy = sortBy;</span>
+<span class="nc" id="L202">        sort();</span>
+<span class="nc" id="L203">    }</span>
+    
+    public boolean isSortAscending() {
+<span class="nc" id="L206">        return sortAscending;</span>
+    }
+    
+    public void setSortAscending(final boolean value) {
+<span class="nc" id="L210">        sortAscending = value;</span>
+<span class="nc" id="L211">    }</span>
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

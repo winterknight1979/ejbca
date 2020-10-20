@@ -13,32 +13,35 @@
 package org.cesecore.certificates.certificate;
 
 import javax.ejb.ApplicationException;
-
 import org.cesecore.CesecoreException;
 
-/** Thrown if there is an error revoking a certificate, causes rollback.
- *  
- * @version $Id: CertificateRevokeException.java 17625 2013-09-20 07:12:06Z netmackan $
+/**
+ * Thrown if there is an error revoking a certificate, causes rollback.
+ *
+ * @version $Id: CertificateRevokeException.java 17625 2013-09-20 07:12:06Z
+ *     netmackan $
  */
-@ApplicationException(rollback=true)  
+@ApplicationException(rollback = true)
 public class CertificateRevokeException extends CesecoreException {
 
-    private static final long serialVersionUID = 1L;
-    /**
-     * Constructor used to create exception with an errormessage. Calls the same constructor in
-     * baseclass &lt;code&gt;Exception&lt;/code&gt;.
-     *
-     * @param message Human redable error message, can not be NULL.
-     */
-    public CertificateRevokeException(String message) {
-<span class="nc" id="L34">        super(message);</span>
-<span class="nc" id="L35">    }</span>
-    /**
-     * Constructs an instance of &lt;code&gt;IllegalKeyException&lt;/code&gt; with the specified cause.
-     * @param e the detail message.
-     */
-    public CertificateRevokeException(Exception e) {
-<span class="nc" id="L41">        super(e);</span>
-<span class="nc" id="L42">    }</span>
+  private static final long serialVersionUID = 1L;
+  /**
+   * Constructor used to create exception with an errormessage. Calls the same
+   * constructor in baseclass &lt;code&gt;Exception&lt;/code&gt;.
+   *
+   * @param message Human redable error message, can not be NULL.
+   */
+  public CertificateRevokeException(final String message) {
+<span class="nc" id="L35">    super(message);</span>
+<span class="nc" id="L36">  }</span>
+  /**
+   * Constructs an instance of &lt;code&gt;IllegalKeyException&lt;/code&gt; with the
+   * specified cause.
+   *
+   * @param e the detail message.
+   */
+  public CertificateRevokeException(final Exception e) {
+<span class="nc" id="L44">    super(e);</span>
+<span class="nc" id="L45">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

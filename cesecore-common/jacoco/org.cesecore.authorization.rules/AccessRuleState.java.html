@@ -15,48 +15,72 @@ package org.cesecore.authorization.rules;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * @version $Id: AccessRuleState.java 17625 2013-09-20 07:12:06Z netmackan $
- * 
- */
-<span class="nc" id="L22">public enum AccessRuleState {</span>
-<span class="nc" id="L23">    RULE_NOTUSED(&quot;UNUSED&quot;, 0), RULE_ACCEPT(&quot;ACCEPT&quot;, 1), RULE_DECLINE(&quot;DECLINE&quot;, 2);</span>
-  
-<span class="nc" id="L25">    private AccessRuleState(String name, int databaseValue) {</span>
-<span class="nc" id="L26">        this.name = name;</span>
-<span class="nc" id="L27">        this.databaseValue = databaseValue;</span>
-<span class="nc" id="L28">    }</span>
+/** @version $Id: AccessRuleState.java 17625 2013-09-20 07:12:06Z netmackan $ */
+<span class="nc" id="L19">public enum AccessRuleState {</span>
+  /** Rule is not used. */
+<span class="nc" id="L21">  RULE_NOTUSED(&quot;UNUSED&quot;, 0),</span>
+  /** Rule was accepted. */
+<span class="nc" id="L23">  RULE_ACCEPT(&quot;ACCEPT&quot;, 1),</span>
+  /** Rule was declined. */
+<span class="nc" id="L25">  RULE_DECLINE(&quot;DECLINE&quot;, 2);</span>
 
-    public String getName() {
-<span class="nc" id="L31">        return name;</span>
-    }
+  /**
+   * Constructor.
+   *
+   * @param aName Name
+   * @param aDatabaseValue ID
+   */
+<span class="nc" id="L33">  AccessRuleState(final String aName, final int aDatabaseValue) {</span>
+<span class="nc" id="L34">    this.name = aName;</span>
+<span class="nc" id="L35">    this.databaseValue = aDatabaseValue;</span>
+<span class="nc" id="L36">  }</span>
 
-    public int getDatabaseValue() {
-<span class="nc" id="L35">        return databaseValue;</span>
-    } 
-    
-    public static AccessRuleState matchDatabaseValue(Integer value) {
-<span class="nc" id="L39">        return databaseValueToRuleMap.get(value);</span>
-    }
-    
-    public static AccessRuleState matchName(String name) {
-<span class="nc" id="L43">        return nameToRuleMap.get(name);</span>
-    }
-    
-    private String name;
-    private int databaseValue;
-<span class="nc" id="L48">    private static Map&lt;Integer, AccessRuleState&gt; databaseValueToRuleMap = new HashMap&lt;Integer, AccessRuleState&gt;();</span>
-<span class="nc" id="L49">    private static Map&lt;String, AccessRuleState&gt; nameToRuleMap = new HashMap&lt;String, AccessRuleState&gt;();</span>
-    
-    static {
-<span class="nc bnc" id="L52" title="All 2 branches missed.">        for(AccessRuleState state : AccessRuleState.values()) {</span>
-<span class="nc" id="L53">            databaseValueToRuleMap.put(state.getDatabaseValue(), state);</span>
-<span class="nc" id="L54">            nameToRuleMap.put(state.getName(), state);</span>
-        }
-<span class="nc" id="L56">    }</span>
-    
+  /** @return Name */
+  public String getName() {
+<span class="nc" id="L40">    return name;</span>
+  }
 
-    
-    
+  /** @return ID */
+  public int getDatabaseValue() {
+<span class="nc" id="L45">    return databaseValue;</span>
+  }
+
+  /**
+   * Get state of rule by ID.
+   *
+   * @param value ID
+   * @return State
+   */
+  public static AccessRuleState matchDatabaseValue(final Integer value) {
+<span class="nc" id="L55">    return databaseValueToRuleMap.get(value);</span>
+  }
+
+  /**
+   * Get state of rule name.
+   *
+   * @param name Name
+   * @return State
+   */
+  public static AccessRuleState matchName(final String name) {
+<span class="nc" id="L65">    return nameToRuleMap.get(name);</span>
+  }
+
+  /** Rule name. */
+  private String name;
+  /** Rule ID. */
+  private int databaseValue;
+  /** Map of rule ID's to rules. */
+<span class="nc" id="L73">  private static Map&lt;Integer, AccessRuleState&gt; databaseValueToRuleMap =</span>
+      new HashMap&lt;Integer, AccessRuleState&gt;();
+  /** Map of rule names to rules. */
+<span class="nc" id="L76">  private static Map&lt;String, AccessRuleState&gt; nameToRuleMap =</span>
+      new HashMap&lt;String, AccessRuleState&gt;();
+
+  static {
+<span class="nc bnc" id="L80" title="All 2 branches missed.">    for (AccessRuleState state : AccessRuleState.values()) {</span>
+<span class="nc" id="L81">      databaseValueToRuleMap.put(state.getDatabaseValue(), state);</span>
+<span class="nc" id="L82">      nameToRuleMap.put(state.getName(), state);</span>
+    }
+<span class="nc" id="L84">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

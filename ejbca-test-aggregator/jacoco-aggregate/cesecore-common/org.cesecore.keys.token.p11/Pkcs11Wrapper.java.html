@@ -21,234 +21,321 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-
 import org.apache.log4j.Logger;
 
 /**
+ * This class wraps sun.security.pkcs11.wrapper.PKCS11, so that we can access
+ * the native PKCS11 calls directly. A slot list and token labels for each slot
+ * is cached so that C_GetSlotList() only has to be called once and so that
+ * C_GetTokenInfo() only has to be called once for each slot.
  *
- * This class wraps sun.security.pkcs11.wrapper.PKCS11, so that we can access the native PKCS11 calls
- * directly.
- * A slot list and token labels for each slot is cached so that C_GetSlotList() only has to be called once and
- * so that C_GetTokenInfo() only has to be called once for each slot.
+ * &lt;p&gt;The {@link #getInstance(File)} method must be called before any PKCS#11
+ * provider is created.
  *
- * The {@link #getInstance(File)} method must be called before any PKCS#11 provider is created.
- *
- *  @version $Id: Pkcs11Wrapper.java 27614 2017-12-21 08:55:51Z bastianf $
- *
+ * @version $Id: Pkcs11Wrapper.java 27614 2017-12-21 08:55:51Z bastianf $
  */
-public class Pkcs11Wrapper {
-<span class="nc" id="L40">    private static final Logger log = Logger.getLogger(Pkcs11Wrapper.class);</span>
+public final class Pkcs11Wrapper {
+    /** Logger. */
+<span class="nc" id="L39">  private static final Logger LOG = Logger.getLogger(Pkcs11Wrapper.class);</span>
+  /** Map. */
+<span class="nc" id="L41">  private static volatile Map&lt;String, Pkcs11Wrapper&gt; instances =</span>
+      new HashMap&lt;String, Pkcs11Wrapper&gt;();
+  /** Lock. */
+<span class="nc" id="L44">  private static final Lock LOCK = new ReentrantLock();</span>
+  /** List. */
+  private final Method getSlotListMethod;
+  /** Info. */
+  private final Method getTokenInfoMethod;
+  /** Field. */
+  private final Field labelField;
+  /** P11. */
+  private final Object p11;
+  /** Labels. */
+  private final HashMap&lt;Long, char[]&gt; labelMap;
+  /** slots. */
+  private final long[] slotList;
 
-<span class="nc" id="L42">    private static volatile Map&lt;String, Pkcs11Wrapper&gt; instances = new HashMap&lt;String, Pkcs11Wrapper&gt;();</span>
-<span class="nc" id="L43">    private static final Lock lock = new ReentrantLock();</span>
-    private final Method getSlotListMethod;
-    private final Method getTokenInfoMethod;
-    private final Field labelField;
-    private final Object p11;
-    private final HashMap&lt;Long, char[]&gt; labelMap;
-    private final long slotList[];
+<span class="nc" id="L58">  private Pkcs11Wrapper(final String fileName) {</span>
+    final Class&lt;? extends Object&gt; p11Class;
+    try {
+<span class="nc" id="L61">      p11Class = Class.forName(&quot;sun.security.pkcs11.wrapper.PKCS11&quot;);</span>
+<span class="nc" id="L62">    } catch (ClassNotFoundException e) {</span>
+<span class="nc" id="L63">      String msg =</span>
+          &quot;Class sun.security.pkcs11.wrapper.PKCS11 was not found locally,&quot;
+              + &quot; could not wrap.&quot;;
+<span class="nc" id="L66">      LOG.error(msg, e);</span>
+<span class="nc" id="L67">      throw new IllegalStateException(msg, e);</span>
+<span class="nc" id="L68">    }</span>
 
-<span class="nc" id="L51">    private Pkcs11Wrapper(final String fileName) {</span>
-        final Class&lt;? extends Object&gt; p11Class;
-        try {
-<span class="nc" id="L54">            p11Class = Class.forName(&quot;sun.security.pkcs11.wrapper.PKCS11&quot;);</span>
-<span class="nc" id="L55">        } catch (ClassNotFoundException e) {</span>
-<span class="nc" id="L56">            String msg = &quot;Class sun.security.pkcs11.wrapper.PKCS11 was not found locally, could not wrap.&quot;;</span>
-<span class="nc" id="L57">            log.error(msg, e);</span>
-<span class="nc" id="L58">            throw new IllegalStateException(msg, e);</span>
-<span class="nc" id="L59">        }</span>
-
-        try {
-<span class="nc" id="L62">            this.getSlotListMethod = p11Class.getDeclaredMethod(&quot;C_GetSlotList&quot;, new Class[] { boolean.class });</span>
-<span class="nc" id="L63">        } catch (NoSuchMethodException e) {</span>
-<span class="nc" id="L64">            String msg = &quot;Method C_GetSlotList was not found in class sun.security.pkcs11.wrapper.PKCS11, this may be due to&quot;</span>
-                    + &quot; a change in the underlying library.&quot;;
-<span class="nc" id="L66">            log.error(msg, e);</span>
-<span class="nc" id="L67">            throw new IllegalStateException(msg, e);</span>
-<span class="nc" id="L68">        } catch (SecurityException e) {</span>
-<span class="nc" id="L69">            String msg = &quot;Access was denied to method sun.security.pkcs11.wrapper.PKCS11.C_GetSlotList&quot;;</span>
-<span class="nc" id="L70">            log.error(msg, e);</span>
-<span class="nc" id="L71">            throw new IllegalStateException(msg, e);</span>
-<span class="nc" id="L72">        }</span>
-        try {
-<span class="nc" id="L74">            this.getTokenInfoMethod = p11Class.getDeclaredMethod(&quot;C_GetTokenInfo&quot;, new Class[] { long.class });</span>
-<span class="nc" id="L75">        } catch (NoSuchMethodException e) {</span>
-<span class="nc" id="L76">            String msg = &quot;Method C_GetTokenInfo was not found in class sun.security.pkcs11.wrapper.PKCS11, this may be due to&quot;</span>
-                    + &quot; a change in the underlying library.&quot;;
-<span class="nc" id="L78">            log.error(msg, e);</span>
-<span class="nc" id="L79">            throw new IllegalStateException(msg, e);</span>
-<span class="nc" id="L80">        } catch (SecurityException e) {</span>
-<span class="nc" id="L81">            String msg = &quot;Access was denied to method sun.security.pkcs11.wrapper.PKCS11.C_GetTokenInfo&quot;;</span>
-<span class="nc" id="L82">            log.error(msg, e);</span>
-<span class="nc" id="L83">            throw new IllegalStateException(msg, e);</span>
-<span class="nc" id="L84">        }</span>
-        try {
-<span class="nc" id="L86">            this.labelField = Class.forName(&quot;sun.security.pkcs11.wrapper.CK_TOKEN_INFO&quot;).getField(&quot;label&quot;);</span>
-<span class="nc" id="L87">        } catch (NoSuchFieldException e) {</span>
-<span class="nc" id="L88">            String msg = &quot;Field 'label' was not found in class sun.security.pkcs11.wrapper.CK_TOKEN_INFO, this may be due to&quot;</span>
-                    + &quot; a change in the underlying library.&quot;;
-<span class="nc" id="L90">            log.error(msg, e);</span>
-<span class="nc" id="L91">            throw new IllegalStateException(msg, e);</span>
-<span class="nc" id="L92">        } catch (SecurityException e) {</span>
-<span class="nc" id="L93">            String msg = &quot;Access was denied to field sun.security.pkcs11.wrapper.CK_TOKEN_INFO.label&quot;;</span>
-<span class="nc" id="L94">            log.error(msg, e);</span>
-<span class="nc" id="L95">            throw new IllegalStateException(msg, e);</span>
-<span class="nc" id="L96">        } catch (ClassNotFoundException e) {</span>
-<span class="nc" id="L97">            String msg = &quot;Class sun.security.pkcs11.wrapper.CK_TOKEN_INFO was not found locally, could not wrap.&quot;;</span>
-<span class="nc" id="L98">            log.error(msg, e);</span>
-<span class="nc" id="L99">            throw new IllegalStateException(msg, e);</span>
-<span class="nc" id="L100">        }</span>
-        final Method getInstanceMethod;
-        try {
-<span class="nc" id="L103">            getInstanceMethod = p11Class.getDeclaredMethod(&quot;getInstance&quot;,</span>
-<span class="nc" id="L104">                    new Class[] { String.class, String.class, Class.forName(&quot;sun.security.pkcs11.wrapper.CK_C_INITIALIZE_ARGS&quot;), boolean.class });</span>
-<span class="nc" id="L105">        } catch (NoSuchMethodException e) {</span>
-<span class="nc" id="L106">            String msg = &quot;Method getInstance was not found in class sun.security.pkcs11.wrapper.PKCS11.CK_C_INITIALIZE_ARGS, this may be due to&quot;</span>
-                    + &quot; a change in the underlying library.&quot;;
-<span class="nc" id="L108">            log.error(msg, e);</span>
-<span class="nc" id="L109">            throw new IllegalStateException(msg, e);</span>
-<span class="nc" id="L110">        } catch (SecurityException e) {</span>
-<span class="nc" id="L111">            String msg = &quot;Access was denied to method sun.security.pkcs11.wrapper.CK_C_INITIALIZE_ARGS.getInstance&quot;;</span>
-<span class="nc" id="L112">            log.error(msg, e);</span>
-<span class="nc" id="L113">            throw new IllegalStateException(msg, e);</span>
-<span class="nc" id="L114">        } catch (ClassNotFoundException e) {</span>
-<span class="nc" id="L115">            String msg = &quot;Class sun.security.pkcs11.wrapper.CK_C_INITIALIZE_ARGS was not found locally, could not wrap.&quot;;</span>
-<span class="nc" id="L116">            log.error(msg, e);</span>
-<span class="nc" id="L117">            throw new IllegalStateException(msg, e);</span>
-<span class="nc" id="L118">        }</span>
-        try {
-<span class="nc" id="L120">            this.p11 = getInstanceMethod.invoke(null, new Object[] { fileName, &quot;C_GetFunctionList&quot;, null, Boolean.FALSE });</span>
-<span class="nc" id="L121">        } catch (IllegalAccessException e) {</span>
-<span class="nc" id="L122">            String msg = &quot;Method sun.security.pkcs11.wrapper.PKCS11.CK_C_INITIALIZE_ARGS.getInstance was not accessible, this may be due to&quot;</span>
-                    + &quot; a change in the underlying library.&quot;;
-<span class="nc" id="L124">            log.error(msg, e);</span>
-<span class="nc" id="L125">            throw new IllegalStateException(msg, e);</span>
-<span class="nc" id="L126">        } catch (IllegalArgumentException e) {</span>
-<span class="nc" id="L127">            String msg = &quot;Wrong arguments were passed to sun.security.pkcs11.wrapper.PKCS11.CK_C_INITIALIZE_ARGS.getInstance. This may be due to&quot;</span>
-                    + &quot; a change in the underlying library.&quot;;
-<span class="nc" id="L129">            log.error(msg, e);</span>
-<span class="nc" id="L130">            throw new IllegalStateException(msg, e);</span>
-<span class="nc" id="L131">        } catch (InvocationTargetException e) {</span>
-<span class="nc" id="L132">            String msg = &quot;Wrong arguments were passed to sun.security.pkcs11.wrapper.PKCS11.CK_C_INITIALIZE_ARGS.getInstance threw an exception &quot;</span>
-                    + &quot;for log.error(msg, e)&quot;;
-<span class="nc" id="L134">            log.error(msg, e);</span>
-<span class="nc" id="L135">            throw new IllegalStateException(msg, e);</span>
-<span class="nc" id="L136">        }</span>
-<span class="nc" id="L137">        this.labelMap = new HashMap&lt;Long, char[]&gt;();</span>
-<span class="nc" id="L138">        this.slotList = C_GetSlotList();</span>
-<span class="nc bnc" id="L139" title="All 2 branches missed.">        for( long id : this.slotList) {</span>
-<span class="nc" id="L140">            this.labelMap.put(Long.valueOf(id), getTokenLabelLocal(id));</span>
-        }
-<span class="nc" id="L142">    }</span>
-
-    /**
-     * Get an instance of the class.
-     * @param file the p11 .so file.
-     * @return the instance.
-     * @throws IllegalArgumentException on fail
-     */
-    public static Pkcs11Wrapper getInstance(final File file) throws IllegalArgumentException {
-        final String canonicalFileName;
-        try {
-<span class="nc" id="L153">            canonicalFileName = file.getCanonicalPath();</span>
-<span class="nc" id="L154">        } catch (IOException e) {</span>
-<span class="nc" id="L155">            throw new IllegalArgumentException(file+&quot; is not a valid filename.&quot;,e );</span>
-<span class="nc" id="L156">        }</span>
-        {
-<span class="nc" id="L158">            final Pkcs11Wrapper storedP11 = instances.get(canonicalFileName);</span>
-<span class="nc bnc" id="L159" title="All 2 branches missed.">            if (storedP11 != null) {</span>
-<span class="nc" id="L160">                return storedP11;// if instance exist we don't have to wait for lock just grab it.</span>
-            }
-        }
-        try {
-<span class="nc" id="L164">            lock.lock();// wait for lock; some other tread might be creating the instance right now.</span>
-<span class="nc" id="L165">            final Pkcs11Wrapper storedP11 = instances.get(canonicalFileName);</span>
-<span class="nc bnc" id="L166" title="All 2 branches missed.">            if (storedP11 != null) {</span>
-<span class="nc" id="L167">                return storedP11;// some other thread had already created the instance</span>
-            }
-            // no other thread has created the instance and no other will since this thread is locking.
-<span class="nc" id="L170">            Pkcs11SlotLabel.doC_Initialize(file);// C_Initialize with multithreading args.</span>
-<span class="nc" id="L171">            final Pkcs11Wrapper newP11 = new Pkcs11Wrapper(canonicalFileName);</span>
-<span class="nc" id="L172">            instances.put(canonicalFileName, newP11);</span>
-<span class="nc" id="L173">            return newP11;</span>
-        } finally {
-<span class="nc" id="L175">            lock.unlock();// now other threads might get the instance.</span>
-        }
+    try {
+<span class="nc" id="L71">      this.getSlotListMethod =</span>
+<span class="nc" id="L72">          p11Class.getDeclaredMethod(</span>
+              &quot;C_GetSlotList&quot;, new Class[] {boolean.class});
+<span class="nc" id="L74">    } catch (NoSuchMethodException e) {</span>
+<span class="nc" id="L75">      String msg =</span>
+          &quot;Method C_GetSlotList was not found in class&quot;
+              + &quot; sun.security.pkcs11.wrapper.PKCS11, this may be due to a&quot;
+              + &quot; change in the underlying library.&quot;;
+<span class="nc" id="L79">      LOG.error(msg, e);</span>
+<span class="nc" id="L80">      throw new IllegalStateException(msg, e);</span>
+<span class="nc" id="L81">    } catch (SecurityException e) {</span>
+<span class="nc" id="L82">      String msg =</span>
+          &quot;Access was denied to method&quot;
+              + &quot; sun.security.pkcs11.wrapper.PKCS11.C_GetSlotList&quot;;
+<span class="nc" id="L85">      LOG.error(msg, e);</span>
+<span class="nc" id="L86">      throw new IllegalStateException(msg, e);</span>
+<span class="nc" id="L87">    }</span>
+    try {
+<span class="nc" id="L89">      this.getTokenInfoMethod =</span>
+<span class="nc" id="L90">          p11Class.getDeclaredMethod(</span>
+              &quot;C_GetTokenInfo&quot;, new Class[] {long.class});
+<span class="nc" id="L92">    } catch (NoSuchMethodException e) {</span>
+<span class="nc" id="L93">      String msg =</span>
+          &quot;Method C_GetTokenInfo was not found in class&quot;
+              + &quot; sun.security.pkcs11.wrapper.PKCS11, this may be due to a&quot;
+              + &quot; change in the underlying library.&quot;;
+<span class="nc" id="L97">      LOG.error(msg, e);</span>
+<span class="nc" id="L98">      throw new IllegalStateException(msg, e);</span>
+<span class="nc" id="L99">    } catch (SecurityException e) {</span>
+<span class="nc" id="L100">      String msg =</span>
+          &quot;Access was denied to method&quot;
+              + &quot; sun.security.pkcs11.wrapper.PKCS11.C_GetTokenInfo&quot;;
+<span class="nc" id="L103">      LOG.error(msg, e);</span>
+<span class="nc" id="L104">      throw new IllegalStateException(msg, e);</span>
+<span class="nc" id="L105">    }</span>
+    try {
+<span class="nc" id="L107">      this.labelField =</span>
+<span class="nc" id="L108">          Class.forName(&quot;sun.security.pkcs11.wrapper.CK_TOKEN_INFO&quot;)</span>
+<span class="nc" id="L109">              .getField(&quot;label&quot;);</span>
+<span class="nc" id="L110">    } catch (NoSuchFieldException e) {</span>
+<span class="nc" id="L111">      String msg =</span>
+          &quot;Field 'label' was not found in class&quot;
+              + &quot; sun.security.pkcs11.wrapper.CK_TOKEN_INFO, this may be due&quot;
+              + &quot; to a change in the underlying library.&quot;;
+<span class="nc" id="L115">      LOG.error(msg, e);</span>
+<span class="nc" id="L116">      throw new IllegalStateException(msg, e);</span>
+<span class="nc" id="L117">    } catch (SecurityException e) {</span>
+<span class="nc" id="L118">      String msg =</span>
+          &quot;Access was denied to field&quot;
+              + &quot; sun.security.pkcs11.wrapper.CK_TOKEN_INFO.label&quot;;
+<span class="nc" id="L121">      LOG.error(msg, e);</span>
+<span class="nc" id="L122">      throw new IllegalStateException(msg, e);</span>
+<span class="nc" id="L123">    } catch (ClassNotFoundException e) {</span>
+<span class="nc" id="L124">      String msg =</span>
+          &quot;Class sun.security.pkcs11.wrapper.CK_TOKEN_INFO was not found&quot;
+              + &quot; locally, could not wrap.&quot;;
+<span class="nc" id="L127">      LOG.error(msg, e);</span>
+<span class="nc" id="L128">      throw new IllegalStateException(msg, e);</span>
+<span class="nc" id="L129">    }</span>
+    final Method getInstanceMethod;
+    try {
+<span class="nc" id="L132">      getInstanceMethod =</span>
+<span class="nc" id="L133">          p11Class.getDeclaredMethod(</span>
+              &quot;getInstance&quot;,
+              new Class[] {
+                String.class,
+                String.class,
+<span class="nc" id="L138">                Class.forName(</span>
+                    &quot;sun.security.pkcs11.wrapper.CK_C_INITIALIZE_ARGS&quot;),
+                boolean.class
+              });
+<span class="nc" id="L142">    } catch (NoSuchMethodException e) {</span>
+<span class="nc" id="L143">      String msg =</span>
+          &quot;Method getInstance was not found in class&quot;
+              + &quot; sun.security.pkcs11.wrapper.PKCS11.CK_C_INITIALIZE_ARGS,&quot;
+              + &quot; this may be due to a change in the underlying library.&quot;;
+<span class="nc" id="L147">      LOG.error(msg, e);</span>
+<span class="nc" id="L148">      throw new IllegalStateException(msg, e);</span>
+<span class="nc" id="L149">    } catch (SecurityException e) {</span>
+<span class="nc" id="L150">      String msg =</span>
+          &quot;Access was denied to method&quot;
+              + &quot; sun.security.pkcs11.wrapper.CK_C_INITIALIZE_ARGS.getInstance&quot;;
+<span class="nc" id="L153">      LOG.error(msg, e);</span>
+<span class="nc" id="L154">      throw new IllegalStateException(msg, e);</span>
+<span class="nc" id="L155">    } catch (ClassNotFoundException e) {</span>
+<span class="nc" id="L156">      String msg =</span>
+          &quot;Class sun.security.pkcs11.wrapper.CK_C_INITIALIZE_ARGS was not&quot;
+              + &quot; found locally, could not wrap.&quot;;
+<span class="nc" id="L159">      LOG.error(msg, e);</span>
+<span class="nc" id="L160">      throw new IllegalStateException(msg, e);</span>
+<span class="nc" id="L161">    }</span>
+    try {
+<span class="nc" id="L163">      this.p11 =</span>
+<span class="nc" id="L164">          getInstanceMethod.invoke(</span>
+              null,
+              new Object[] {
+                fileName, &quot;C_GetFunctionList&quot;, null, Boolean.FALSE
+              });
+<span class="nc" id="L169">    } catch (IllegalAccessException e) {</span>
+<span class="nc" id="L170">      String msg =</span>
+          &quot;Method&quot;
+              + &quot; sun.security.pkcs11.wrapper&quot;
+              + &quot;.PKCS11.CK_C_INITIALIZE_ARGS.getInstance&quot;
+              + &quot; was not accessible, this may be due to a change in the&quot;
+              + &quot; underlying library.&quot;;
+<span class="nc" id="L176">      LOG.error(msg, e);</span>
+<span class="nc" id="L177">      throw new IllegalStateException(msg, e);</span>
+<span class="nc" id="L178">    } catch (IllegalArgumentException e) {</span>
+<span class="nc" id="L179">      String msg =</span>
+          &quot;Wrong arguments were passed to&quot;
+              + &quot; sun.security.pkcs11.wrapper.PKCS11&quot;
+              + &quot;.CK_C_INITIALIZE_ARGS.getInstance.&quot;
+              + &quot; This may be due to a change in the underlying library.&quot;;
+<span class="nc" id="L184">      LOG.error(msg, e);</span>
+<span class="nc" id="L185">      throw new IllegalStateException(msg, e);</span>
+<span class="nc" id="L186">    } catch (InvocationTargetException e) {</span>
+<span class="nc" id="L187">      String msg =</span>
+          &quot;Wrong arguments were passed to&quot;
+              + &quot; sun.security.pkcs11.wrapper.PKCS11&quot;
+              + &quot;.CK_C_INITIALIZE_ARGS.getInstance&quot;
+              + &quot; threw an exception for log.error(msg, e)&quot;;
+<span class="nc" id="L192">      LOG.error(msg, e);</span>
+<span class="nc" id="L193">      throw new IllegalStateException(msg, e);</span>
+<span class="nc" id="L194">    }</span>
+<span class="nc" id="L195">    this.labelMap = new HashMap&lt;Long, char[]&gt;();</span>
+<span class="nc" id="L196">    this.slotList = cGetSlotList();</span>
+<span class="nc bnc" id="L197" title="All 2 branches missed.">    for (long id : this.slotList) {</span>
+<span class="nc" id="L198">      this.labelMap.put(Long.valueOf(id), getTokenLabelLocal(id));</span>
     }
+<span class="nc" id="L200">  }</span>
 
-    /**
-     * Get a list of p11 slot IDs to slots that has a token.
-     * @return the list.
-     */
-    public long[] getSlotList() {
-<span class="nc" id="L184">        return this.slotList;</span>
-    }
+  /**
+   * Get an instance of the class.
+   *
+   * @param file the p11 .so file.
+   * @return the instance.
+   * @throws IllegalArgumentException on fail
+   */
+  public static Pkcs11Wrapper getInstance(final File file)
+      throws IllegalArgumentException {
+    final String canonicalFileName;
+    try {
+<span class="nc" id="L213">      canonicalFileName = file.getCanonicalPath();</span>
+<span class="nc" id="L214">    } catch (IOException e) {</span>
+<span class="nc" id="L215">      throw new IllegalArgumentException(file + &quot; is not a valid filename.&quot;, e);</span>
+<span class="nc" id="L216">    }</span>
 
-    /**
-     * Get the token label of a specific slot ID.
-     * @param slotID the ID of the slot
-     * @return the token label, or null if no matching token was found.
-     */
-    public char[] getTokenLabel(long slotID) {
-<span class="nc" id="L193">        return this.labelMap.get(Long.valueOf(slotID));</span>
-    }
+<span class="nc" id="L218">      Pkcs11Wrapper storedP11 = instances.get(canonicalFileName);</span>
+<span class="nc bnc" id="L219" title="All 2 branches missed.">      if (storedP11 != null) {</span>
+<span class="nc" id="L220">        return storedP11; // if instance exist we don't have to wait for lock</span>
+                          // just grab it.
+      }
 
-    private long[] C_GetSlotList() {
-        try {
-<span class="nc" id="L198">            return (long[]) this.getSlotListMethod.invoke(this.p11, new Object[] { Boolean.TRUE });</span>
-<span class="nc" id="L199">        } catch (IllegalAccessException e) {</span>
-<span class="nc" id="L200">            String msg = &quot;Access was denied to method sun.security.pkcs11.wrapper.PKCS11C.GetSlotList, this may be due to&quot;</span>
-                    + &quot; a change in the underlying library.&quot;;
-<span class="nc" id="L202">            log.error(msg, e);</span>
-<span class="nc" id="L203">            throw new IllegalStateException(msg, e);</span>
-<span class="nc" id="L204">        } catch (IllegalArgumentException e) {</span>
-<span class="nc" id="L205">            String msg = &quot;Incorrect parameters sent to sun.security.pkcs11.wrapper.PKCS11C.GetSlotList, this may be due to&quot;</span>
-                    + &quot; a change in the underlying library.&quot;;
-<span class="nc" id="L207">            log.error(msg, e);</span>
-<span class="nc" id="L208">            throw new IllegalStateException(msg, e);</span>
-<span class="nc" id="L209">        } catch (InvocationTargetException e) {</span>
-<span class="nc" id="L210">            String msg = &quot;Method sun.security.pkcs11.wrapper.PKCS11C.GetSlotList threw an unknown exception.&quot;;</span>
-<span class="nc" id="L211">            log.error(msg, e);</span>
-<span class="nc" id="L212">            throw new IllegalStateException(msg, e);</span>
-        }
+    try {
+<span class="nc" id="L225">      LOCK</span>
+<span class="nc" id="L226">          .lock(); // wait for lock; some other tread might be creating the</span>
+                   // instance right now.
+<span class="nc" id="L228">      storedP11 = instances.get(canonicalFileName);</span>
+<span class="nc bnc" id="L229" title="All 2 branches missed.">      if (storedP11 != null) {</span>
+<span class="nc" id="L230">        return storedP11; // some other thread had already created the instance</span>
+      }
+      // no other thread has created the instance and no other will since this
+      // thread is locking.
+<span class="nc" id="L234">      Pkcs11SlotLabel.doCInitialize(</span>
+          file); // C_Initialize with multithreading args.
+<span class="nc" id="L236">      final Pkcs11Wrapper newP11 = new Pkcs11Wrapper(canonicalFileName);</span>
+<span class="nc" id="L237">      instances.put(canonicalFileName, newP11);</span>
+<span class="nc" id="L238">      return newP11;</span>
+    } finally {
+<span class="nc" id="L240">      LOCK.unlock(); // now other threads might get the instance.</span>
     }
+  }
 
-    private char[] getTokenLabelLocal(long slotID)  {
-        final Object tokenInfo;
-        try {
-<span class="nc" id="L219">            tokenInfo = this.getTokenInfoMethod.invoke(this.p11, new Object[] { Long.valueOf(slotID) });</span>
-<span class="nc" id="L220">        } catch (IllegalAccessException e) {</span>
-<span class="nc" id="L221">            String msg = &quot;Access was denied to method sun.security.pkcs11.wrapper.PKCS11.C_GetTokenInfo, this may be due to&quot;</span>
-                    + &quot; a change in the underlying library.&quot;;
-<span class="nc" id="L223">            log.error(msg, e);</span>
-<span class="nc" id="L224">            throw new IllegalStateException(msg, e);</span>
-<span class="nc" id="L225">        } catch (IllegalArgumentException e) {</span>
-<span class="nc" id="L226">            String msg = &quot;Incorrect parameters sent to sun.security.pkcs11.wrapper.PKCS11.C_GetTokenInfo, this may be due to&quot;</span>
-                    + &quot; a change in the underlying library.&quot;;
-<span class="nc" id="L228">            log.error(msg, e);</span>
-<span class="nc" id="L229">            throw new IllegalStateException(msg, e);</span>
-<span class="nc" id="L230">        } catch (InvocationTargetException e) {</span>
-<span class="nc" id="L231">            String msg = &quot;Method sun.security.pkcs11.wrapper.PKCS11.C_GetTokenInfo threw an unknown exception.&quot;;</span>
-<span class="nc" id="L232">            log.error(msg, e);</span>
-<span class="nc" id="L233">            return null;</span>
-<span class="nc" id="L234">        }</span>
-<span class="nc bnc" id="L235" title="All 2 branches missed.">        if (tokenInfo == null) {</span>
-<span class="nc" id="L236">            return null;</span>
-        }
-        try {
-<span class="nc" id="L239">            String result = String.copyValueOf((char[]) this.labelField.get(tokenInfo));</span>
-<span class="nc" id="L240">            return result.trim().toCharArray();</span>
-<span class="nc" id="L241">        } catch (IllegalArgumentException e) {</span>
-<span class="nc" id="L242">            String msg = &quot;Field sun.security.pkcs11.wrapper.PKCS11.C_GetTokenInfo was not of type sun.security.pkcs11.wrapper.CK_TOKEN_INFO&quot;</span>
-                    + &quot;, this may be due to a change in the underlying library.&quot;;
-<span class="nc" id="L244">            log.error(msg, e);</span>
-<span class="nc" id="L245">            throw new IllegalStateException(msg, e);</span>
-<span class="nc" id="L246">        } catch (IllegalAccessException e) {</span>
-<span class="nc" id="L247">            String msg = &quot;Access was denied to field sun.security.pkcs11.wrapper.CK_TOKEN_INFO.label, this may be due to&quot;</span>
-                    + &quot; a change in the underlying library.&quot;;
-<span class="nc" id="L249">            log.error(msg, e);</span>
-<span class="nc" id="L250">            throw new IllegalStateException(msg, e);</span>
-        }
+  /**
+   * Get a list of p11 slot IDs to slots that has a token.
+   *
+   * @return the list.
+   */
+  public long[] getSlotList() {
+<span class="nc" id="L250">    return this.slotList;</span>
+  }
+
+  /**
+   * Get the token label of a specific slot ID.
+   *
+   * @param slotID the ID of the slot
+   * @return the token label, or null if no matching token was found.
+   */
+  public char[] getTokenLabel(final long slotID) {
+<span class="nc" id="L260">    return this.labelMap.get(Long.valueOf(slotID));</span>
+  }
+
+  private long[] cGetSlotList() {
+    try {
+<span class="nc" id="L265">      return (long[])</span>
+<span class="nc" id="L266">          this.getSlotListMethod.invoke(this.p11, new Object[] {Boolean.TRUE});</span>
+<span class="nc" id="L267">    } catch (IllegalAccessException e) {</span>
+<span class="nc" id="L268">      String msg =</span>
+          &quot;Access was denied to method&quot;
+              + &quot; sun.security.pkcs11.wrapper.PKCS11C.GetSlotList, this may be&quot;
+              + &quot; due to a change in the underlying library.&quot;;
+<span class="nc" id="L272">      LOG.error(msg, e);</span>
+<span class="nc" id="L273">      throw new IllegalStateException(msg, e);</span>
+<span class="nc" id="L274">    } catch (IllegalArgumentException e) {</span>
+<span class="nc" id="L275">      String msg =</span>
+          &quot;Incorrect parameters sent to&quot;
+              + &quot; sun.security.pkcs11.wrapper.PKCS11C.GetSlotList, this may be&quot;
+              + &quot; due to a change in the underlying library.&quot;;
+<span class="nc" id="L279">      LOG.error(msg, e);</span>
+<span class="nc" id="L280">      throw new IllegalStateException(msg, e);</span>
+<span class="nc" id="L281">    } catch (InvocationTargetException e) {</span>
+<span class="nc" id="L282">      String msg =</span>
+          &quot;Method sun.security.pkcs11.wrapper.PKCS11C.GetSlotList threw an&quot;
+              + &quot; unknown exception.&quot;;
+<span class="nc" id="L285">      LOG.error(msg, e);</span>
+<span class="nc" id="L286">      throw new IllegalStateException(msg, e);</span>
     }
+  }
+
+  private char[] getTokenLabelLocal(final long slotID) {
+    final Object tokenInfo;
+    try {
+<span class="nc" id="L293">      tokenInfo =</span>
+<span class="nc" id="L294">          this.getTokenInfoMethod.invoke(</span>
+<span class="nc" id="L295">              this.p11, new Object[] {Long.valueOf(slotID)});</span>
+<span class="nc" id="L296">    } catch (IllegalAccessException e) {</span>
+<span class="nc" id="L297">      String msg =</span>
+          &quot;Access was denied to method&quot;
+              + &quot; sun.security.pkcs11.wrapper.PKCS11.C_GetTokenInfo, this may&quot;
+              + &quot; be due to a change in the underlying library.&quot;;
+<span class="nc" id="L301">      LOG.error(msg, e);</span>
+<span class="nc" id="L302">      throw new IllegalStateException(msg, e);</span>
+<span class="nc" id="L303">    } catch (IllegalArgumentException e) {</span>
+<span class="nc" id="L304">      String msg =</span>
+          &quot;Incorrect parameters sent to&quot;
+              + &quot; sun.security.pkcs11.wrapper.PKCS11.C_GetTokenInfo, this may&quot;
+              + &quot; be due to a change in the underlying library.&quot;;
+<span class="nc" id="L308">      LOG.error(msg, e);</span>
+<span class="nc" id="L309">      throw new IllegalStateException(msg, e);</span>
+<span class="nc" id="L310">    } catch (InvocationTargetException e) {</span>
+<span class="nc" id="L311">      String msg =</span>
+          &quot;Method sun.security.pkcs11.wrapper.PKCS11.C_GetTokenInfo threw an&quot;
+              + &quot; unknown exception.&quot;;
+<span class="nc" id="L314">      LOG.error(msg, e);</span>
+<span class="nc" id="L315">      return null;</span>
+<span class="nc" id="L316">    }</span>
+<span class="nc bnc" id="L317" title="All 2 branches missed.">    if (tokenInfo == null) {</span>
+<span class="nc" id="L318">      return null;</span>
+    }
+    try {
+<span class="nc" id="L321">      String result =</span>
+<span class="nc" id="L322">          String.copyValueOf((char[]) this.labelField.get(tokenInfo));</span>
+<span class="nc" id="L323">      return result.trim().toCharArray();</span>
+<span class="nc" id="L324">    } catch (IllegalArgumentException e) {</span>
+<span class="nc" id="L325">      String msg =</span>
+          &quot;Field sun.security.pkcs11.wrapper.PKCS11.C_GetTokenInfo was not of&quot;
+              + &quot; type sun.security.pkcs11.wrapper.CK_TOKEN_INFO, this may be&quot;
+              + &quot; due to a change in the underlying library.&quot;;
+<span class="nc" id="L329">      LOG.error(msg, e);</span>
+<span class="nc" id="L330">      throw new IllegalStateException(msg, e);</span>
+<span class="nc" id="L331">    } catch (IllegalAccessException e) {</span>
+<span class="nc" id="L332">      String msg =</span>
+          &quot;Access was denied to field&quot;
+              + &quot; sun.security.pkcs11.wrapper.CK_TOKEN_INFO.label, this may be&quot;
+              + &quot; due to a change in the underlying library.&quot;;
+<span class="nc" id="L336">      LOG.error(msg, e);</span>
+<span class="nc" id="L337">      throw new IllegalStateException(msg, e);</span>
+    }
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

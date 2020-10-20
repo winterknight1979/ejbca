@@ -14,78 +14,84 @@ package org.cesecore.util;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 import org.cesecore.jndi.JndiHelper;
 
 /**
  * Helper methods to get EJB session interfaces.
- * 
+ *
  * @version $Id: EjbRemoteHelper.java 29630 2018-08-14 08:55:21Z mikekushner $
  */
-<span class="nc" id="L25">public enum EjbRemoteHelper {</span>
-<span class="nc" id="L26">    INSTANCE;</span>
+<span class="nc" id="L24">public enum EjbRemoteHelper {</span>
+    /** Singleton instance. */
+<span class="nc" id="L26">  INSTANCE;</span>
 
-    /** The main EJBCA EJB jar. */
-    public final static String MODULE_EJBCA = &quot;ejbca-ejb&quot;;
-    
-    /** The main CESeCore EJB jar. */
-    public final static String MODULE_CESECORE = &quot;cesecore-ejb&quot;;
-    
-    /** The additional CESeCore EJB jar. */
-    public final static String MODULE_CESECORE_OTHER = &quot;cesecore-other-ejb&quot;;
-    
-    /** The EJB used by system tests. */
-    public final static String MODULE_TEST = &quot;systemtests-ejb&quot;;
-    
-    /** The EJB used by system test ProtocolLookupServerHttpTest. */
-    public final static String MODULE_UNIDFNR = &quot;unidfnr-ejb&quot;;
-    
-    public final static String MODULE_EDITION_SPECIFIC= &quot;edition-specific-ejb&quot;;
-    
-    private Map&lt;Class&lt;?&gt;, Object&gt; interfaceCache; 
-    
-    /**
-     * Returns a cached remote session bean.
-     * 
-     * @param key the @Remote-appended interface for this session bean
-     * @param &lt;T&gt; type
-     * @return the sought interface, or null if it doesn't exist in JNDI context.
-     */
-    public &lt;T&gt; T getRemoteSession(final Class&lt;T&gt; key) {
-<span class="nc" id="L55">        return getRemoteSession(key, null);</span>
+  /** The main EJBCA EJB jar. */
+  public static final String MODULE_EJBCA = &quot;ejbca-ejb&quot;;
+
+  /** The main CESeCore EJB jar. */
+  public static final String MODULE_CESECORE = &quot;cesecore-ejb&quot;;
+
+  /** The additional CESeCore EJB jar. */
+  public static final String MODULE_CESECORE_OTHER = &quot;cesecore-other-ejb&quot;;
+
+  /** The EJB used by system tests. */
+  public static final String MODULE_TEST = &quot;systemtests-ejb&quot;;
+
+  /** The EJB used by system test ProtocolLookupServerHttpTest. */
+  public static final String MODULE_UNIDFNR = &quot;unidfnr-ejb&quot;;
+
+  /** onfig. */
+  public static final String MODULE_EDITION_SPECIFIC = &quot;edition-specific-ejb&quot;;
+
+  /** Cache. */
+  private Map&lt;Class&lt;?&gt;, Object&gt; interfaceCache;
+
+  /**
+   * Returns a cached remote session bean.
+   *
+   * @param key the @Remote-appended interface for this session bean
+   * @param &lt;T&gt; type
+   * @return the sought interface, or null if it doesn't exist in JNDI context.
+   */
+  public &lt;T&gt; T getRemoteSession(final Class&lt;T&gt; key) {
+<span class="nc" id="L57">    return getRemoteSession(key, null);</span>
+  }
+
+  /**
+   * Returns a cached remote session bean.
+   *
+   * @param key the @Remote-appended interface for this session bean
+   * @param &lt;T&gt; type
+   * @param omodule the module where the bean is deployed, i.e. systemtests-ejb
+   *     or cesecore-other-ejb, if null defaults to cesecore-ejb for packages
+   *     under org.cesecore, otherwise ejbca-ejb.
+   * @return the sought interface, or null if it doesn't exist in JNDI context.
+   */
+  public &lt;T&gt; T getRemoteSession(final Class&lt;T&gt; key, final String omodule) {
+<span class="nc bnc" id="L71" title="All 2 branches missed.">    if (interfaceCache == null) {</span>
+<span class="nc" id="L72">      interfaceCache = new ConcurrentHashMap&lt;Class&lt;?&gt;, Object&gt;();</span>
     }
-
-    /**
-     * Returns a cached remote session bean.
-     * 
-     * @param key the @Remote-appended interface for this session bean
-     * @param &lt;T&gt; type
-     * @param module the module where the bean is deployed, i.e. systemtests-ejb or cesecore-other-ejb, if null defaults to cesecore-ejb for packages under org.cesecore, otherwise ejbca-ejb.
-     * @return the sought interface, or null if it doesn't exist in JNDI context.
-     */
-    public &lt;T&gt; T getRemoteSession(final Class&lt;T&gt; key, String module) {
-<span class="nc bnc" id="L67" title="All 2 branches missed.">        if(interfaceCache == null) {</span>
-<span class="nc" id="L68">            interfaceCache = new ConcurrentHashMap&lt;Class&lt;?&gt;, Object&gt;();</span>
+    @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L75">    T session = (T) interfaceCache.get(key);</span>
+    String module;
+<span class="nc bnc" id="L77" title="All 2 branches missed.">    if (session == null) {</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">      if (omodule == null) {</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">        if (key.getName().startsWith(&quot;org.cesecore&quot;)) {</span>
+<span class="nc" id="L80">          module = EjbRemoteHelper.MODULE_CESECORE;</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">        } else if (key.getName().endsWith(&quot;UnidfnrSessionRemote&quot;)) {</span>
+<span class="nc" id="L82">          module = EjbRemoteHelper.MODULE_UNIDFNR;</span>
+        } else {
+<span class="nc" id="L84">          module = EjbRemoteHelper.MODULE_EJBCA;</span>
         }
-        @SuppressWarnings(&quot;unchecked&quot;)
-<span class="nc" id="L71">        T session = (T) interfaceCache.get(key);</span>
-<span class="nc bnc" id="L72" title="All 2 branches missed.">        if (session == null) {</span>
-<span class="nc bnc" id="L73" title="All 2 branches missed.">            if (module == null) {</span>
-<span class="nc bnc" id="L74" title="All 2 branches missed.">                if (key.getName().startsWith(&quot;org.cesecore&quot;)) {</span>
-<span class="nc" id="L75">                    module = EjbRemoteHelper.MODULE_CESECORE;</span>
-<span class="nc bnc" id="L76" title="All 2 branches missed.">                } else if (key.getName().endsWith(&quot;UnidfnrSessionRemote&quot;)) {</span>
-<span class="nc" id="L77">                    module = EjbRemoteHelper.MODULE_UNIDFNR;</span>
-                } else {
-<span class="nc" id="L79">                    module = EjbRemoteHelper.MODULE_EJBCA;</span>
-                }
-            }
-<span class="nc" id="L82">            session = JndiHelper.getRemoteSession(key, module);</span>
-<span class="nc bnc" id="L83" title="All 2 branches missed.">            if (session != null) {</span>
-<span class="nc" id="L84">                interfaceCache.put(key, session);</span>
-            }
-        }
-<span class="nc" id="L87">        return session;</span>
+      } else {
+<span class="nc" id="L87">          module = omodule;</span>
+      }
+<span class="nc" id="L89">      session = JndiHelper.getRemoteSession(key, module);</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">      if (session != null) {</span>
+<span class="nc" id="L91">        interfaceCache.put(key, session);</span>
+      }
     }
-
+<span class="nc" id="L94">    return session;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

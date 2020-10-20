@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HexSerialNumberValidator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Administration GUI</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin</a> &gt; <span class="el_source">HexSerialNumberValidator.java</span></div><h1>HexSerialNumberValidator.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.web.admin;
+
+import java.math.BigInteger;
+
+import javax.faces.application.FacesMessage;
+import javax.faces.component.UIComponent;
+import javax.faces.component.UIOutput;
+import javax.faces.context.FacesContext;
+import javax.faces.validator.Validator;
+import javax.faces.validator.ValidatorException;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authentication.tokens.X509CertificateAuthenticationTokenMetaData;
+import org.cesecore.authorization.user.matchvalues.X500PrincipalAccessMatchValue;
+import org.ejbca.ui.web.admin.configuration.EjbcaJSFHelper;
+
+/**
+ * Validates hexadecimal serial numbers entered in the Admin GUI by constructing a BigInteger.
+ * 
+ * @version $Id: HexSerialNumberValidator.java 28844 2018-05-04 08:31:02Z samuellb $
+ */
+<span class="nc" id="L35">public class HexSerialNumberValidator implements Validator {</span>
+<span class="nc" id="L36">	private static final Logger log = Logger.getLogger(HexSerialNumberValidator.class);</span>
+
+	@Override
+	public void validate(FacesContext facesContext, UIComponent textField, Object object) throws ValidatorException {
+<span class="nc bnc" id="L40" title="All 2 branches missed.">		if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L41">			log.debug(&quot;Validating component &quot; + textField.getClientId(facesContext) + &quot; with value \&quot;&quot; + object + &quot;\&quot;&quot;);</span>
+		}
+<span class="nc bnc" id="L43" title="All 2 branches missed.">		if (&quot;matchValue&quot;.equals(textField.getId())) {</span>
+	        // Special treatment of admin management for legacy reasons
+<span class="nc" id="L45">		    final String matchWithType = (String) ((UIOutput) textField.findComponent(&quot;matchWith&quot;)).getValue();</span>
+		    // Check if the matchWithType is &quot;CertificateAuthenticationToken:WITH_SERIALNUMBER&quot;
+<span class="nc" id="L47">            if ((X509CertificateAuthenticationTokenMetaData.TOKEN_TYPE+&quot;:&quot;</span>
+<span class="nc bnc" id="L48" title="All 2 branches missed.">                    +X500PrincipalAccessMatchValue.WITH_SERIALNUMBER).equals(matchWithType)) {</span>
+                try {
+<span class="nc" id="L50">                    new BigInteger((String) object, 16);</span>
+<span class="nc" id="L51">                } catch (NumberFormatException e) {</span>
+<span class="nc" id="L52">                    throw new ValidatorException(new FacesMessage(FacesMessage.SEVERITY_ERROR, EjbcaJSFHelper.getBean().getEjbcaWebBean().getText(&quot;HEXREQUIRED&quot;), null));</span>
+<span class="nc" id="L53">                }</span>
+            }
+<span class="nc" id="L55">		} else {</span>
+		    // Work as a normal field validator for any other field
+            try {
+<span class="nc" id="L58">                new BigInteger((String) object, 16);</span>
+<span class="nc" id="L59">            } catch (NumberFormatException e) {</span>
+<span class="nc" id="L60">                throw new ValidatorException(new FacesMessage(FacesMessage.SEVERITY_ERROR, EjbcaJSFHelper.getBean().getEjbcaWebBean().getText(&quot;HEXREQUIRED&quot;), null));</span>
+<span class="nc" id="L61">            }</span>
+		}
+<span class="nc" id="L63">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

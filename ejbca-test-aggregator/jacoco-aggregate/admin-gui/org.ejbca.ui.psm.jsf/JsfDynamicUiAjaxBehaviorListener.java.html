@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>JsfDynamicUiAjaxBehaviorListener.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">admin-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.psm.jsf</a> &gt; <span class="el_source">JsfDynamicUiAjaxBehaviorListener.java</span></div><h1>JsfDynamicUiAjaxBehaviorListener.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.psm.jsf;
+
+import java.io.Serializable;
+
+import javax.faces.component.UIInput;
+import javax.faces.event.AbortProcessingException;
+import javax.faces.event.AjaxBehaviorEvent;
+import javax.faces.event.AjaxBehaviorListener;
+
+import org.apache.log4j.Logger;
+import org.cesecore.util.ui.DynamicUiActionCallback;
+import org.cesecore.util.ui.DynamicUiCallbackException;
+import org.cesecore.util.ui.DynamicUiModel;
+import org.cesecore.util.ui.DynamicUiProperty;
+
+/**
+ * This MyFaces AjaxBehaviorListener implementation for {@link DynamicUiModel} delegates the event to 
+ * the {@link DynamicUiActionCallback} associated with the dynamic UI property and renders the 
+ * outcome on the view.
+ * 
+ * @version $Id: JsfDynamicUiAjaxBehaviorListener.java 28532 2018-03-21 07:43:59Z mikekushner $
+ */
+public class JsfDynamicUiAjaxBehaviorListener implements Serializable, AjaxBehaviorListener {
+
+    private static final long serialVersionUID = -1L;
+
+    /** Class logger. */
+<span class="nc" id="L40">    private static final Logger log = Logger.getLogger(JsfDynamicUiHtmlInputText.class);</span>
+
+    /** DynamicUIProperty reference. */
+    private DynamicUiProperty&lt;?&gt; dynamicUiProperty;
+    
+    /** UI component reference. */
+    private UIInput component;
+
+    /** 
+     * Constructor with DynamicUiProperty and UI component reference.
+     * @param dynamicUiProperty UI
+     * @param component Component
+     */
+<span class="nc" id="L53">    public JsfDynamicUiAjaxBehaviorListener(final DynamicUiProperty&lt;?&gt; dynamicUiProperty, final UIInput component) {</span>
+<span class="nc" id="L54">        this.dynamicUiProperty = dynamicUiProperty;</span>
+<span class="nc" id="L55">        this.component = component;</span>
+<span class="nc" id="L56">    }</span>
+
+    @Override
+    public void processAjaxBehavior(AjaxBehaviorEvent event) throws AbortProcessingException {
+<span class="nc bnc" id="L60" title="All 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L61">            log.trace( &quot;Call dynamic UI property AJAX action event: &quot; + event);</span>
+        }
+        try {
+<span class="nc" id="L64">            dynamicUiProperty.getActionCallback().action(((UIInput) event.getSource()).getSubmittedValue());</span>
+<span class="nc" id="L65">        } catch (DynamicUiCallbackException e) {</span>
+<span class="nc bnc" id="L66" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L67">                log.debug(&quot;Could not perform dynamic UI property action callback: &quot; + component.getSubmittedValue(), e);</span>
+            }
+<span class="nc" id="L69">        }</span>
+<span class="nc" id="L70">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

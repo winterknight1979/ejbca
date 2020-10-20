@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>TcpReceivedMessage.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-cmp-tcp</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.tcp</a> &gt; <span class="el_source">TcpReceivedMessage.java</span></div><h1>TcpReceivedMessage.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.tcp;
+
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
+import java.io.IOException;
+
+import org.apache.log4j.Logger;
+import org.cesecore.util.Base64;
+import org.ejbca.core.model.InternalEjbcaResources;
+
+/**
+ * Decodes a TCP messages from a client.
+ * 
+ * @author lars
+ * @version $Id: TcpReceivedMessage.java 19902 2014-09-30 14:32:24Z anatom $
+ *
+ */
+public class TcpReceivedMessage {
+<span class="nc" id="L32">	private static final Logger log = Logger.getLogger(TcpReceivedMessage.class.getName());</span>
+	/** Internal localization of logs and errors */
+<span class="nc" id="L34">	private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();</span>
+	/**
+	 * true if the session should be closed after returning to the client
+	 */
+	public final boolean doClose;
+	/**
+	 * the message from the client decoded from ASN1
+	 */
+	public final byte[] message;
+
+<span class="nc" id="L44">	private TcpReceivedMessage() { // this notifies an error</span>
+<span class="nc" id="L45">		this.doClose = true;</span>
+<span class="nc" id="L46">		this.message = null;</span>
+<span class="nc" id="L47">	}</span>
+
+<span class="nc" id="L49">	private TcpReceivedMessage( boolean close, byte[] message) { // message OK</span>
+<span class="nc" id="L50">		this.doClose = close;</span>
+<span class="nc" id="L51">		this.message = message;</span>
+<span class="nc" id="L52">	}</span>
+	/**
+	 * @param command bytes from client. The payload of has to be ASN1 encoded
+	 * @return the message ASN1 decoded
+	 * @throws IOException Fail
+	 */
+	static public TcpReceivedMessage getTcpMessage(byte command[]) throws IOException {
+<span class="nc bnc" id="L59" title="All 4 branches missed.">		if ( command==null || command.length==0 ) {</span>
+<span class="nc" id="L60">			return new TcpReceivedMessage(); // this is something fishy</span>
+		}
+<span class="nc bnc" id="L62" title="All 2 branches missed.">		if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L63">			log.trace(&quot;Got data of length &quot;+command.length+&quot;: &quot;+new String(Base64.encode(command)));			</span>
+		}
+<span class="nc" id="L65">		final int cmpMessageStartOffset = 7;</span>
+<span class="nc bnc" id="L66" title="All 2 branches missed.">		if (command.length &lt;= cmpMessageStartOffset) {</span>
+<span class="nc" id="L67">			return new TcpReceivedMessage();</span>
+		}
+<span class="nc" id="L69">		final ByteArrayInputStream bai = new ByteArrayInputStream(command);</span>
+<span class="nc" id="L70">		final DataInputStream dis = new DataInputStream(bai);</span>
+		// Read the length, 32 bits
+<span class="nc" id="L72">		final int len = dis.readInt(); // 4 bytes</span>
+<span class="nc" id="L73">		log.debug(&quot;Got a message claiming to be of length: &quot; + len);</span>
+
+		// Read the version, 8 bits. Version should be 10 (protocol draft nr 5)
+<span class="nc" id="L76">		final int ver = dis.readByte(); // 1 byte</span>
+<span class="nc" id="L77">		log.debug(&quot;Got a message with version: &quot; + ver);</span>
+
+		// Read flags, 8 bits for version 10
+<span class="nc" id="L80">		final byte flags = dis.readByte(); // 1 byte</span>
+<span class="nc" id="L81">		log.debug(&quot;Got a message with flags (1 means close): &quot; + flags);</span>
+		// 'flags' will be used to check if the client wants us to close the connection (LSB is 1 in that case according to spec)
+
+		// Read message type, 8 bits
+<span class="nc" id="L85">		final int msgType = dis.readByte(); // 1 byte</span>
+		// now 'payLoadStrartOffset' bytes has been read
+<span class="nc" id="L87">		log.debug(&quot;Got a message of type: &quot; +msgType);</span>
+
+		// Read message
+<span class="nc" id="L90">		final int msgLen = command.length - 4;</span>
+		// They should match
+<span class="nc bnc" id="L92" title="All 2 branches missed.">		if ( len!=msgLen ) {</span>
+<span class="nc" id="L93">			log.error( intres.getLocalizedMessage(&quot;cmp.errortcpwronglen&quot;, Integer.valueOf(msgLen), Integer.valueOf(len)) );</span>
+<span class="nc" id="L94">			return new TcpReceivedMessage();// This is something malicious</span>
+		}
+<span class="nc bnc" id="L96" title="All 2 branches missed.">		if ( msgLen&gt;=5000 ) {</span>
+<span class="nc" id="L97">			log.error( intres.getLocalizedMessage(&quot;cmp.errortcptoolongmsg&quot;, Integer.valueOf(msgLen)) );</span>
+<span class="nc" id="L98">			return new TcpReceivedMessage();// This is something malicious</span>
+		}
+		// The CMP message is the rest of the stream that has not been read yet.
+		try {
+<span class="nc" id="L102">			byte[] ba = new byte[command.length-cmpMessageStartOffset];</span>
+<span class="nc" id="L103">			dis.read(ba);</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">			return new TcpReceivedMessage( (flags&amp;0x01)&gt;0, ba);</span>
+<span class="nc" id="L105">		} catch( Throwable e ) { // NOPMD: any error return empty</span>
+<span class="nc" id="L106">			log.error( intres.getLocalizedMessage(&quot;cmp.errornoasn1&quot;), e );</span>
+<span class="nc" id="L107">			return new TcpReceivedMessage();</span>
+		}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

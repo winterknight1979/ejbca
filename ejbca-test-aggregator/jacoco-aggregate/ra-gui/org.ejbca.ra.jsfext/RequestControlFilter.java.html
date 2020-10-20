@@ -1,0 +1,344 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RequestControlFilter.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ra-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ra.jsfext</a> &gt; <span class="el_source">RequestControlFilter.java</span></div><h1>RequestControlFilter.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *  This file is licensed by original authors under an artistic license  *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ra.jsfext;
+
+import java.io.IOException;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.annotation.WebFilter;
+import javax.servlet.annotation.WebInitParam;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
+import org.apache.log4j.Logger;
+
+/**
+ * Use this filter to synchronize requests to your web application and
+ * reduce the maximum load that each individual user can put on your
+ * web application. Requests will be synchronized per session.  When more
+ * than one additional requests are made while a request is in process,
+ * only the most recent of the additional requests will actually be
+ * processed.
+ * &lt;p&gt;
+ * If a user makes two requests, A and B, then A will be processed first
+ * while B waits.  When A finishes, B will be processed.
+ * &lt;p&gt;
+ * If a user makes three or more requests (e.g. A, B, and C), then the
+ * first will be processed (A), and then after it finishes the last will
+ * be processed (C), and any intermediate requests will be skipped (B).
+ * &lt;p&gt;
+ * There are two additional limitations:
+ * &lt;ul&gt;
+ *   &lt;li&gt;Requests will be excluded from filtering if their URI matches
+ *       one of the exclusion patterns.  There will be no synchronization
+ *       performed if a request matches one of those patterns.&lt;/li&gt;
+ *   &lt;li&gt;Requests wait a maximum of 30 seconds, which can be overridden
+ *       per URI pattern in the filter's configuration.&lt;/li&gt;
+ * &lt;/ul&gt;
+ * 
+ * @author Kevin Chipalowsky and Ivelin Ivanov
+ * Changed to WebFilter and modernized by PrimeKey
+ * @version $Id: RequestControlFilter.java 25084 2017-01-24 10:08:30Z anatom $
+ */
+@WebFilter(filterName = &quot;RequestControlFilter&quot;, urlPatterns = {&quot;/*&quot;}, initParams= {
+        @WebInitParam(name=&quot;excludePattern.1&quot;,value=&quot;^.+\\.((gif))$&quot;),
+        @WebInitParam(name=&quot;excludePattern.2&quot;,value=&quot;^.+\\.((png))$&quot;),
+        @WebInitParam(name=&quot;excludePattern.3&quot;,value=&quot;^.+\\.((jpg))$&quot;),
+        @WebInitParam(name=&quot;excludePattern.4&quot;,value=&quot;^.+\\.((css))$&quot;),
+        @WebInitParam(name=&quot;excludePattern.5&quot;,value=&quot;^.+\\.((js))$&quot;)
+})
+<span class="nc" id="L72">public class RequestControlFilter implements Filter {</span>
+
+<span class="nc" id="L74">    private static final Logger log = Logger.getLogger(RequestControlFilter.class);</span>
+
+    /**
+     * Initialize this filter by reading its configuration parameters
+     * 
+     * @param config  Configuration from web.xml file
+     */
+    @Override
+    public void init( FilterConfig config ) throws ServletException
+    {
+<span class="nc" id="L84">        log.debug(&quot;RequestControlFilter: init&quot;);</span>
+        // parse all of the initialization parameters, collecting the exclude
+        // patterns and the max wait parameters
+<span class="nc" id="L87">        excludePatterns = new LinkedList&lt;Pattern&gt;();</span>
+<span class="nc" id="L88">        maxWaitDurations = new HashMap&lt;Pattern,Long&gt;();</span>
+<span class="nc" id="L89">        Enumeration&lt;String&gt; en = config.getInitParameterNames();</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">        while (en.hasMoreElements()) {</span>
+<span class="nc" id="L91">            String paramName = (String)en.nextElement();</span>
+<span class="nc" id="L92">            String paramValue = config.getInitParameter(paramName);</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">            if (paramName.startsWith(&quot;excludePattern&quot;)) {</span>
+                // compile the pattern only this once
+<span class="nc" id="L95">                Pattern excludePattern = Pattern.compile( paramValue );</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L97">                    log.debug(&quot;Adding excludePattern: &quot;+paramValue);</span>
+                }
+<span class="nc" id="L99">                excludePatterns.add(excludePattern);</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">            } else if (paramName.startsWith( &quot;maxWaitMilliseconds.&quot;)) {</span>
+                // the delay gets parsed from the parameter name
+<span class="nc" id="L102">                String durationString = paramName.substring(&quot;maxWaitMilliseconds.&quot;.length());</span>
+<span class="nc" id="L103">                int endDuration = durationString.indexOf('.');</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">                if (endDuration != -1) {</span>
+<span class="nc" id="L105">                    durationString = durationString.substring(0, endDuration);</span>
+                }
+<span class="nc" id="L107">                Long duration = Long.valueOf(durationString);</span>
+
+                // compile the corresponding pattern, and store it with this delay in the map
+<span class="nc" id="L110">                Pattern waitPattern = Pattern.compile(paramValue);</span>
+<span class="nc" id="L111">                maxWaitDurations.put(waitPattern, duration);</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L113">                    log.debug(&quot;Adding maxWaitDurations: &quot;+paramValue);</span>
+                }
+            }
+<span class="nc" id="L116">        }</span>
+<span class="nc" id="L117">    }</span>
+
+    /**
+     * Called with the filter is no longer needed.
+     */
+    @Override
+    public void destroy() {
+        // there is nothing to do
+<span class="nc" id="L125">    }</span>
+
+    /**
+     * Synchronize the request and then either process it or skip it,
+     * depending on what other requests current exist for this session.
+     * See the description of this class for more details.
+     */
+    @Override
+    public void doFilter(
+            ServletRequest request,
+            ServletResponse response,
+            FilterChain chain)
+                    throws IOException, ServletException {
+<span class="nc" id="L138">        HttpServletRequest httpRequest = (HttpServletRequest)request;</span>
+<span class="nc" id="L139">        HttpSession session = httpRequest.getSession();</span>
+
+        // if this request is excluded from the filter, then just process it
+<span class="nc bnc" id="L142" title="All 2 branches missed.">        if (!isFilteredRequest( httpRequest)) {</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">            if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L144">                log.trace(&quot;URL matches excludePattern, not filtering: &quot; + httpRequest.getRequestURI());</span>
+            }
+<span class="nc" id="L146">            chain.doFilter(request, response);</span>
+<span class="nc" id="L147">            return;</span>
+        }
+<span class="nc bnc" id="L149" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L150">            log.trace(&quot;URL not excluded, will filter: &quot; + httpRequest.getRequestURI());</span>
+        }
+
+<span class="nc" id="L153">        synchronized(getSynchronizationObject(session)) {</span>
+            // if another request is being processed, then wait
+<span class="nc bnc" id="L155" title="All 2 branches missed.">            if (isRequestInProcess(session)) {</span>
+                // Put this request in the queue and wait
+<span class="nc bnc" id="L157" title="All 2 branches missed.">                if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L158">                    log.trace(&quot;Put this request in the queue and wait: &quot;+httpRequest);</span>
+                }
+<span class="nc" id="L160">                enqueueRequest(httpRequest);</span>
+<span class="nc bnc" id="L161" title="All 2 branches missed.">                if (!waitForRelease(httpRequest)) {</span>
+<span class="nc bnc" id="L162" title="All 2 branches missed.">                    if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L163">                        log.trace(&quot;this request was replaced in the queue by another request, so it need not be processed&quot;);</span>
+                    }
+                    // this request was replaced in the queue by another request, so it need not be processed
+<span class="nc" id="L166">                    return;</span>
+                }
+            }
+
+            // lock the session, so that no other requests are processed until this one finishes
+<span class="nc" id="L171">            setRequestInProgress(httpRequest);</span>
+<span class="nc" id="L172">        }</span>
+
+        // process this request, and then release the session lock regardless of
+        // any exceptions thrown farther down the chain.
+        try {
+<span class="nc" id="L177">            chain.doFilter(request, response);</span>
+        } finally {
+<span class="nc" id="L179">            releaseQueuedRequest(httpRequest);</span>
+        }
+<span class="nc" id="L181">    }</span>
+
+    /**
+     * Get a synchronization object for this session
+     * 
+     * @param session sessiom
+     * @return Object
+     */
+    private static synchronized Object getSynchronizationObject(HttpSession session) {
+        // get the object from the session.  If it does not yet exist,
+        // then create one.
+<span class="nc" id="L192">        Object syncObj = session.getAttribute(SYNC_OBJECT_KEY);</span>
+<span class="nc bnc" id="L193" title="All 2 branches missed.">        if (syncObj == null) {</span>
+<span class="nc" id="L194">            syncObj = new Object();</span>
+<span class="nc" id="L195">            session.setAttribute(SYNC_OBJECT_KEY, syncObj);</span>
+        }
+<span class="nc" id="L197">        return syncObj;</span>
+    }
+
+    /**
+     * Record that a request is in process so that the filter blocks additional
+     * requests until this one finishes.
+     * 
+     * @param request req
+     */
+    private void setRequestInProgress(HttpServletRequest request) {
+<span class="nc" id="L207">        HttpSession session = request.getSession();</span>
+<span class="nc" id="L208">        session.setAttribute(REQUEST_IN_PROCESS, request);</span>
+<span class="nc" id="L209">    }</span>
+
+    /**
+     * Release the next waiting request, because the current request
+     * has just finished.
+     * 
+     * @param request   The request that just finished
+     */
+    private void releaseQueuedRequest(HttpServletRequest request) {
+<span class="nc" id="L218">        HttpSession session = request.getSession();</span>
+<span class="nc" id="L219">        synchronized (getSynchronizationObject(session)) {</span>
+            // if this request is still the current one (i.e., it didn't run for too
+            // long and result in another request being processed), then clear it
+            // and thus release the lock
+<span class="nc bnc" id="L223" title="All 2 branches missed.">            if (session.getAttribute(REQUEST_IN_PROCESS) == request) {</span>
+<span class="nc" id="L224">                session.removeAttribute(REQUEST_IN_PROCESS);</span>
+<span class="nc" id="L225">                getSynchronizationObject(session).notify();</span>
+            }
+<span class="nc" id="L227">        }</span>
+<span class="nc" id="L228">    }</span>
+
+    /**
+     * Is this server currently processing another request for this session?
+     * 
+     * @param session   The request's session
+     * @return          true if the server is handling another request for this session
+     */
+    private boolean isRequestInProcess(HttpSession session) {
+<span class="nc bnc" id="L237" title="All 2 branches missed.">        return session.getAttribute(REQUEST_IN_PROCESS) != null;</span>
+    }
+
+    /**
+     * Wait for this server to finish with its current request so that
+     * it can begin processing our next request.  This method also detects if
+     * its request is replaced by another request in the queue.
+     *
+     * @param request   Wait for this request to be ready to run
+     * @return  true if this request may be processed, or false if this
+     *          request was replaced by another in the queue.
+     */
+    private boolean waitForRelease(HttpServletRequest request) {
+<span class="nc" id="L250">        HttpSession session = request.getSession();</span>
+
+        // wait for the currently running request to finish, or until this
+        // thread has waited the maximum amount of time
+        try {
+<span class="nc" id="L255">            getSynchronizationObject(session).wait(getMaxWaitTime(request));</span>
+<span class="nc" id="L256">        } catch (InterruptedException ie) {</span>
+<span class="nc" id="L257">            return false;</span>
+<span class="nc" id="L258">        }</span>
+
+        // This request can be processed now if it hasn't been replaced in the queue
+<span class="nc bnc" id="L261" title="All 2 branches missed.">        return request == session.getAttribute(REQUEST_QUEUE);</span>
+    }
+
+    /**
+     * Put a new request in the queue.  This new request will replace
+     * any other requests that were waiting.
+     * 
+     * @param request   The request to queue
+     */
+    private void enqueueRequest(HttpServletRequest request) {
+<span class="nc" id="L271">        HttpSession session = request.getSession();</span>
+
+        // Put this request in the queue, replacing whoever was there before
+<span class="nc" id="L274">        session.setAttribute(REQUEST_QUEUE, request);</span>
+
+        // if another request was waiting, notify it so it can discover that
+        // it was replaced
+<span class="nc" id="L278">        getSynchronizationObject(session).notify();</span>
+<span class="nc" id="L279">    }</span>
+
+    /**
+     * What is the maximum wait time (in milliseconds) for this request
+     * 
+     * @param request req
+     * @return Maximum number of milliseconds to hold this request in the queue
+     */
+    private long getMaxWaitTime(HttpServletRequest request) {
+        // look for a Pattern that matches the request's path
+<span class="nc" id="L289">        String path = request.getRequestURI();</span>
+<span class="nc bnc" id="L290" title="All 2 branches missed.">        for (Pattern p : maxWaitDurations.keySet()) {</span>
+<span class="nc" id="L291">            Matcher m = p.matcher(path);</span>
+<span class="nc bnc" id="L292" title="All 2 branches missed.">            if (m.matches()) {</span>
+                // this pattern matches.  At most, how long can this request wait?
+<span class="nc" id="L294">                Long maxDuration = (Long)maxWaitDurations.get(p);</span>
+<span class="nc" id="L295">                return maxDuration.longValue();</span>
+            }
+<span class="nc" id="L297">        }</span>
+        // If no pattern matches the path, return the default value
+<span class="nc" id="L299">        return DEFAULT_DURATION;</span>
+    }
+
+    /**
+     * Look through the filter's configuration, and determine whether or not it
+     * should synchronize this request with others.
+     *
+     * @param request req
+     * @return true if request should be filtered, false if it is excluded
+     */
+    private boolean isFilteredRequest(HttpServletRequest request) {
+        // iterate through the exclude patterns.  If one matches this path,
+        // then the request is excluded.
+<span class="nc" id="L312">        String path = request.getRequestURI();</span>
+<span class="nc bnc" id="L313" title="All 2 branches missed.">        for (Pattern p : excludePatterns) {</span>
+<span class="nc" id="L314">            Matcher m = p.matcher(path);</span>
+<span class="nc bnc" id="L315" title="All 2 branches missed.">            if (m.matches()) {</span>
+                // at least one of the patterns excludes this request
+<span class="nc" id="L317">                return false;</span>
+            }
+<span class="nc" id="L319">        }</span>
+        // this path is not excluded
+<span class="nc" id="L321">        return true;</span>
+    }
+
+    /** A list of Pattern objects that match paths to exclude */
+    private LinkedList&lt;Pattern&gt; excludePatterns;
+
+    /** A map from Pattern to max wait duration (Long objects) */
+    private HashMap&lt;Pattern,Long&gt; maxWaitDurations; 
+
+    /** The session attribute key for the request currently being processed */
+    private final static String REQUEST_IN_PROCESS
+    = &quot;RequestControlFilter.requestInProcess&quot;;
+
+    /** The session attribute key for the request currently waiting in the queue */
+    private final static String REQUEST_QUEUE
+    = &quot;RequestControlFilter.requestQueue&quot;;
+
+    /** The session attribute key for the synchronization object */
+    private final static String SYNC_OBJECT_KEY = &quot;RequestControlFilter.sessionSync&quot;;
+
+    /** The default maximum number of milliseconds to wait for a request */
+    private final static long DEFAULT_DURATION = 30000;
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

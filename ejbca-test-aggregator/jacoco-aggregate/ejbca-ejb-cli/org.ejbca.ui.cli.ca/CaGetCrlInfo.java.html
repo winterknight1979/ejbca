@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CaGetCrlInfo.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.ca</a> &gt; <span class="el_source">CaGetCrlInfo.java</span></div><h1>CaGetCrlInfo.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.cli.ca;
+
+import java.util.Collection;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.CaSessionRemote;
+import org.cesecore.certificates.crl.CRLInfo;
+import org.cesecore.certificates.crl.CrlStoreSessionRemote;
+import org.cesecore.util.EjbRemoteHelper;
+import org.cesecore.util.ValidityDate;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+
+/**
+ * List information about the latest CRL from each CA.
+ *
+ * @version $Id: CaGetCrlInfo.java 27740 2018-01-05 07:24:53Z mikekushner $
+ */
+<span class="nc" id="L34">public class CaGetCrlInfo extends BaseCaAdminCommand {</span>
+
+<span class="nc" id="L36">    private static final Logger log = Logger.getLogger(CaGetCrlInfo.class);</span>
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L40">        return &quot;getcrlinfo&quot;;</span>
+    }
+
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+
+<span class="nc" id="L46">        Collection&lt;Integer&gt; caIds = EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class).getAuthorizedCaIds(getAuthenticationToken());</span>
+<span class="nc bnc" id="L47" title="All 2 branches missed.">        for (Integer caId : caIds) {</span>
+            CAInfo cainfo;
+            try {
+<span class="nc" id="L50">                cainfo = EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class).getCAInfo(getAuthenticationToken(), caId);</span>
+<span class="nc" id="L51">            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L52">                throw new IllegalStateException(&quot;CLI user was not authorized to retrieved CA.&quot;, e);</span>
+<span class="nc" id="L53">            } </span>
+<span class="nc" id="L54">            final StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L55">            sb.append(&quot;\&quot;&quot;).append(cainfo.getName()).append(&quot;\&quot; \&quot;&quot;).append(cainfo.getSubjectDN()).append(&quot;\&quot;&quot;);</span>
+<span class="nc" id="L56">            final CRLInfo crlInfo = EjbRemoteHelper.INSTANCE.getRemoteSession(CrlStoreSessionRemote.class).getLastCRLInfo(cainfo.getSubjectDN(),</span>
+                    false);
+<span class="nc bnc" id="L58" title="All 2 branches missed.">            if (crlInfo != null) {</span>
+<span class="nc" id="L59">                sb.append(&quot; CRL# &quot;).append(crlInfo.getLastCRLNumber());</span>
+<span class="nc" id="L60">                sb.append(&quot; issued &quot;).append(ValidityDate.formatAsUTC(crlInfo.getCreateDate()));</span>
+<span class="nc" id="L61">                sb.append(&quot; expires &quot;).append(ValidityDate.formatAsUTC(crlInfo.getExpireDate()));</span>
+            } else {
+<span class="nc" id="L63">                sb.append(&quot; NO_CRL_ISSUED&quot;);</span>
+            }
+<span class="nc" id="L65">            final CRLInfo deltaCrlInfo = EjbRemoteHelper.INSTANCE.getRemoteSession(CrlStoreSessionRemote.class).getLastCRLInfo(cainfo.getSubjectDN(),</span>
+                    true);
+<span class="nc bnc" id="L67" title="All 2 branches missed.">            if (deltaCrlInfo != null) {</span>
+<span class="nc" id="L68">                sb.append(&quot; DELTACRL# &quot;).append(deltaCrlInfo.getLastCRLNumber());</span>
+<span class="nc" id="L69">                sb.append(&quot; issued &quot;).append(ValidityDate.formatAsUTC(deltaCrlInfo.getCreateDate()));</span>
+<span class="nc" id="L70">                sb.append(&quot; expires &quot;).append(ValidityDate.formatAsUTC(deltaCrlInfo.getExpireDate()));</span>
+            } else {
+<span class="nc" id="L72">                sb.append(&quot; NO_DELTACRL_ISSUED&quot;);</span>
+            }
+<span class="nc" id="L74">            log.info(sb.toString());</span>
+<span class="nc" id="L75">        }</span>
+<span class="nc" id="L76">        return CommandResult.SUCCESS;</span>
+
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L82">        return &quot;List information about latest CRLs&quot;;</span>
+
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L88">        return getCommandDescription();</span>
+    }
+
+    @Override
+    protected Logger getLogger() {
+<span class="nc" id="L93">        return log;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

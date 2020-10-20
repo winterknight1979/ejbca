@@ -9,13 +9,12 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.certificate.certextensions.standard;
 
 import java.security.PublicKey;
 import java.util.Collection;
 import java.util.Iterator;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.bouncycastle.asn1.ASN1Encodable;
@@ -30,45 +29,60 @@ import org.cesecore.certificates.endentity.EndEntityInformation;
 import org.cesecore.certificates.util.cert.SubjectDirAttrExtension;
 
 /**
- * Class for standard X509 certificate extension. 
- * See rfc3280 or later for spec of this extension.
- * 
- * @version $Id: SubjectDirectoryAttributes.java 26461 2017-08-29 23:09:05Z anatom $
+ * Class for standard X509 certificate extension. See rfc3280 or later for spec
+ * of this extension.
+ *
+ * @version $Id: SubjectDirectoryAttributes.java 26461 2017-08-29 23:09:05Z
+ *     anatom $
  */
 <span class="fc" id="L38">public class SubjectDirectoryAttributes extends StandardCertificateExtension {</span>
-    private static final long serialVersionUID = 1L;
-<span class="fc" id="L40">    private static final Logger log = Logger.getLogger(SubjectDirectoryAttributes.class);</span>
+  private static final long serialVersionUID = 1L;
+  /** Logger. */
+<span class="fc" id="L41">  private static final Logger LOG =</span>
+<span class="fc" id="L42">      Logger.getLogger(SubjectDirectoryAttributes.class);</span>
 
-    @Override
-	public void init(final CertificateProfile certProf) {
-<span class="fc" id="L44">		super.setOID(Extension.subjectDirectoryAttributes.getId());</span>
-		// Subject Directory Attributes must always be non-critical
-<span class="fc" id="L46">		super.setCriticalFlag(false);</span>
-<span class="fc" id="L47">	}</span>
-    
-    @Override
-    public ASN1Encodable getValue(final EndEntityInformation subject, final CA ca, final CertificateProfile certProfile,
-            final PublicKey userPublicKey, final PublicKey caPublicKey, CertificateValidity val) {
-<span class="nc" id="L52">		ASN1Encodable ret = null;</span>
-<span class="nc bnc" id="L53" title="All 2 branches missed.">		final String dirAttrString  = subject.getExtendedInformation() != null ? subject.getExtendedInformation().getSubjectDirectoryAttributes() : null;</span>
-<span class="nc bnc" id="L54" title="All 2 branches missed.">		if (StringUtils.isNotEmpty(dirAttrString)) {</span>
-			// Subject Directory Attributes is a sequence of Attribute
-<span class="nc" id="L56">			final Collection&lt;Attribute&gt; attr = SubjectDirAttrExtension.getSubjectDirectoryAttributes(dirAttrString);</span>
-<span class="nc" id="L57">			final ASN1EncodableVector vec = new ASN1EncodableVector();</span>
-<span class="nc" id="L58">			final Iterator&lt;Attribute&gt; iter = attr.iterator();</span>
-<span class="nc bnc" id="L59" title="All 2 branches missed.">			while (iter.hasNext()) {</span>
-<span class="nc" id="L60">				vec.add(iter.next());</span>
-			}        
-<span class="nc bnc" id="L62" title="All 2 branches missed.">			if (vec.size() &gt; 0) {</span>
-<span class="nc" id="L63">				ret = new DERSequence(vec);				</span>
-			}
-		}			
-<span class="nc bnc" id="L66" title="All 2 branches missed.">		if (ret == null) {</span>
-<span class="nc bnc" id="L67" title="All 2 branches missed.">			if (log.isDebugEnabled()) {</span>
-<span class="nc" id="L68">				log.debug(&quot;No directory attributes trying to create SubjectDirectoryAttributes extension: &quot;+dirAttrString);</span>
-			}
-		}
-<span class="nc" id="L71">		return ret;</span>
-	}	
+  @Override
+  public void init(final CertificateProfile certProf) {
+<span class="fc" id="L46">    super.setOID(Extension.subjectDirectoryAttributes.getId());</span>
+    // Subject Directory Attributes must always be non-critical
+<span class="fc" id="L48">    super.setCriticalFlag(false);</span>
+<span class="fc" id="L49">  }</span>
+
+  @Override
+  public ASN1Encodable getValue(
+      final EndEntityInformation subject,
+      final CA ca,
+      final CertificateProfile certProfile,
+      final PublicKey userPublicKey,
+      final PublicKey caPublicKey,
+      final CertificateValidity val) {
+<span class="nc" id="L59">    ASN1Encodable ret = null;</span>
+    final String dirAttrString =
+<span class="nc bnc" id="L61" title="All 2 branches missed.">        subject.getExtendedInformation() != null</span>
+<span class="nc" id="L62">            ? subject.getExtendedInformation().getSubjectDirectoryAttributes()</span>
+<span class="nc" id="L63">            : null;</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">    if (StringUtils.isNotEmpty(dirAttrString)) {</span>
+      // Subject Directory Attributes is a sequence of Attribute
+<span class="nc" id="L66">      final Collection&lt;Attribute&gt; attr =</span>
+<span class="nc" id="L67">          SubjectDirAttrExtension.getSubjectDirectoryAttributes(dirAttrString);</span>
+<span class="nc" id="L68">      final ASN1EncodableVector vec = new ASN1EncodableVector();</span>
+<span class="nc" id="L69">      final Iterator&lt;Attribute&gt; iter = attr.iterator();</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">      while (iter.hasNext()) {</span>
+<span class="nc" id="L71">        vec.add(iter.next());</span>
+      }
+<span class="nc bnc" id="L73" title="All 2 branches missed.">      if (vec.size() &gt; 0) {</span>
+<span class="nc" id="L74">        ret = new DERSequence(vec);</span>
+      }
+    }
+<span class="nc bnc" id="L77" title="All 2 branches missed.">    if (ret == null) {</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">      if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L79">        LOG.debug(</span>
+            &quot;No directory attributes trying to create&quot;
+                + &quot; SubjectDirectoryAttributes extension: &quot;
+                + dirAttrString);
+      }
+    }
+<span class="nc" id="L85">    return ret;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

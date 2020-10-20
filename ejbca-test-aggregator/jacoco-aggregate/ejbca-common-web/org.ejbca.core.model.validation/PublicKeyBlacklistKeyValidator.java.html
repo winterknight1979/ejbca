@@ -146,7 +146,7 @@ public class PublicKeyBlacklistKeyValidator extends KeyValidatorBase {
         }
 <span class="nc bnc" id="L147" title="All 2 branches missed.">        if (Float.compare(LATEST_VERSION, getVersion()) != 0) {</span>
             // New version of the class, upgrade.
-<span class="nc" id="L149">            log.info(intres.getLocalizedMessage(&quot;blacklistkeyvalidator.upgrade&quot;, Float.valueOf(getVersion())));</span>
+<span class="nc" id="L149">            log.info(INTRES.getLocalizedMessage(&quot;blacklistkeyvalidator.upgrade&quot;, Float.valueOf(getVersion())));</span>
 <span class="nc" id="L150">            init();</span>
         }
 <span class="nc" id="L152">    }</span>
@@ -228,7 +228,7 @@ public class PublicKeyBlacklistKeyValidator extends KeyValidatorBase {
 
     @Override
     public String getLabel() {
-<span class="nc" id="L231">        return intres.getLocalizedMessage(&quot;validator.implementation.key.blacklist&quot;);</span>
+<span class="nc" id="L231">        return INTRES.getLocalizedMessage(&quot;validator.implementation.key.blacklist&quot;);</span>
     }
 
     @Override

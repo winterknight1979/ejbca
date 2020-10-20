@@ -168,8 +168,8 @@ public class CertificateFinderBean {
 <span class="nc" id="L168">				result.setRevocationDate(null);</span>
 <span class="nc" id="L169">				result.setUserCertificate(null);</span>
 			} else {
-<span class="nc" id="L171">				result.setReason(info.revocationReason);</span>
-<span class="nc" id="L172">				result.setRevocationDate(info.revocationDate);</span>
+<span class="nc" id="L171">				result.setReason(info.getRevocationReason());</span>
+<span class="nc" id="L172">				result.setRevocationDate(info.getRevocationDate());</span>
 <span class="nc" id="L173">				result.setUserCertificate(serialBignum);</span>
 			}
 <span class="nc" id="L175">        } catch (NumberFormatException e) {</span>

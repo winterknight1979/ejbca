@@ -9,12 +9,11 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.certificate.certextensions;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
-
 import org.apache.log4j.Logger;
 import org.bouncycastle.asn1.ocsp.OCSPObjectIdentifiers;
 import org.bouncycastle.asn1.x509.Extension;
@@ -43,100 +42,145 @@ import org.cesecore.internal.InternalResources;
 import org.cesecore.util.CertTools;
 
 /**
- * Class parsing the modules/ejbca-common/src/certextensions.properties file 
- * and maintains a set of available custom extensions to the system.
- * 
- * It is also responsible for creating the actual CertificateExtensions
- * used in certificate generation.
- * 
- * It also keep a list of standard (not custom) built in extensions.
+ * Class parsing the modules/ejbca-common/src/certextensions.properties file and
+ * maintains a set of available custom extensions to the system.
  *
- * @version $Id: CertificateExtensionFactory.java 22142 2015-11-03 14:15:51Z mikekushner $
+ * &lt;p&gt;It is also responsible for creating the actual CertificateExtensions used
+ * in certificate generation.
+ *
+ * &lt;p&gt;It also keep a list of standard (not custom) built in extensions.
+ *
+ * @version $Id: CertificateExtensionFactory.java 22142 2015-11-03 14:15:51Z
+ *     mikekushner $
  */
-public class CertificateExtensionFactory {
+public final class CertificateExtensionFactory {
 
-<span class="fc" id="L58">	private static final Logger log = Logger.getLogger(CertificateExtensionFactory.class);</span>
-<span class="fc" id="L59">	private static final InternalResources intres = InternalResources.getInstance();</span>
-	
-<span class="fc" id="L61">	private static CertificateExtensionFactory instance = null;</span>
-	
-<span class="fc" id="L63">	private HashMap&lt;String, String&gt; standardCertificateExtensions = new HashMap&lt;String, String&gt;();</span>
-	{
-<span class="fc" id="L65">		standardCertificateExtensions.put(Extension.basicConstraints.getId(), BasicConstraint.class.getName());</span>
-<span class="fc" id="L66">		standardCertificateExtensions.put(Extension.subjectKeyIdentifier.getId(), SubjectKeyIdentifier.class.getName());</span>
-<span class="fc" id="L67">		standardCertificateExtensions.put(Extension.authorityKeyIdentifier.getId(), AuthorityKeyIdentifier.class.getName());</span>
-<span class="fc" id="L68">		standardCertificateExtensions.put(Extension.keyUsage.getId(), KeyUsage.class.getName());</span>
-<span class="fc" id="L69">		standardCertificateExtensions.put(Extension.extendedKeyUsage.getId(), ExtendedKeyUsage.class.getName());</span>
-<span class="fc" id="L70">		standardCertificateExtensions.put(Extension.subjectAlternativeName.getId(), SubjectAltNames.class.getName());</span>
-<span class="fc" id="L71">		standardCertificateExtensions.put(Extension.issuerAlternativeName.getId(), IssuerAltNames.class.getName());</span>
-<span class="fc" id="L72">		standardCertificateExtensions.put(&quot;2.23.136.1.1.6.2&quot;, DocumentTypeList.class.getName());</span>
-<span class="fc" id="L73">		standardCertificateExtensions.put(Extension.cRLDistributionPoints.getId(), CrlDistributionPoints.class.getName());</span>
-<span class="fc" id="L74">		standardCertificateExtensions.put(Extension.freshestCRL.getId(), FreshestCrl.class.getName());</span>
-<span class="fc" id="L75">		standardCertificateExtensions.put(Extension.certificatePolicies.getId(), CertificatePolicies.class.getName());</span>
-<span class="fc" id="L76">		standardCertificateExtensions.put(Extension.subjectDirectoryAttributes.getId(), SubjectDirectoryAttributes.class.getName());</span>
-<span class="fc" id="L77">		standardCertificateExtensions.put(Extension.authorityInfoAccess.getId(), AuthorityInformationAccess.class.getName());</span>
-<span class="fc" id="L78">		standardCertificateExtensions.put(Extension.qCStatements.getId(), QcStatement.class.getName());</span>
-<span class="fc" id="L79">		standardCertificateExtensions.put(Extension.nameConstraints.getId(), NameConstraint.class.getName());</span>
-<span class="fc" id="L80">		standardCertificateExtensions.put(OCSPObjectIdentifiers.id_pkix_ocsp_nocheck.getId(), OcspNoCheck.class.getName());</span>
-<span class="fc" id="L81">		standardCertificateExtensions.put(CertTools.OID_MSTEMPLATE, MsTemplate.class.getName());</span>
-<span class="fc" id="L82">		standardCertificateExtensions.put(SeisCardNumber.OID_CARDNUMBER, SeisCardNumber.class.getName());</span>
-<span class="fc" id="L83">		standardCertificateExtensions.put(Extension.privateKeyUsagePeriod.getId(), PrivateKeyUsagePeriod.class.getName());</span>
-	}
-	
-<span class="fc" id="L86">	private CertificateExtensionFactory(){}</span>
-	
-	/**
-	 * Method used to get the instance of the factory.
-	 * If it is the first time the method is called will
-	 * the configuration file be parsed.
-	 * @return The factory instance
-	 */
-	public static CertificateExtensionFactory getInstance(){
-<span class="pc bpc" id="L95" title="1 of 2 branches missed.">		if(instance == null){</span>
-<span class="fc" id="L96">		    instance = new CertificateExtensionFactory();</span>
-		}
-		
-<span class="fc" id="L99">		return instance;</span>
-	}
-	
-	/**
-	 * Method returning the instance of the standard CertificateExtension
-	 * given its object identifier
-	 * @param oid OID
-	 * @param certProf Profile 
-	 * 
-	 * @return null if the CertificateExtension doesn't exist
-	 */
-	public CertificateExtension getStandardCertificateExtension(final String oid, final CertificateProfile certProf){
-<span class="fc" id="L111">		StandardCertificateExtension ret = null;</span>
-<span class="fc" id="L112">		final String classPath = (String)standardCertificateExtensions.get(oid);</span>
-<span class="pc bpc" id="L113" title="1 of 2 branches missed.">		if (classPath != null) {</span>
-			try {
-<span class="fc" id="L115">				final Class&lt;?&gt; implClass = Class.forName(classPath);</span>
-<span class="fc" id="L116">				ret = (StandardCertificateExtension)implClass.getConstructor().newInstance();					</span>
-<span class="fc" id="L117">				ret.init(certProf);                    </span>
-<span class="nc" id="L118">			} catch (ClassNotFoundException e) {</span>
-<span class="nc" id="L119">				log.error(intres.getLocalizedMessage(&quot;certext.noextensionforid&quot;, oid), e);			</span>
-<span class="nc" id="L120">			} catch (InstantiationException e) {</span>
-<span class="nc" id="L121">				log.error(intres.getLocalizedMessage(&quot;certext.noextensionforid&quot;, oid), e);			</span>
-<span class="nc" id="L122">			} catch (IllegalAccessException e) {</span>
-<span class="nc" id="L123">				log.error(intres.getLocalizedMessage(&quot;certext.noextensionforid&quot;, oid), e);			</span>
-<span class="nc" id="L124">			}	catch (InvocationTargetException e) {</span>
-<span class="nc" id="L125">				log.error(intres.getLocalizedMessage(&quot;certext.noextensionforid&quot;, oid), e);			</span>
-<span class="nc" id="L126">			}	catch (NoSuchMethodException e) {</span>
-<span class="nc" id="L127">				log.error(intres.getLocalizedMessage(&quot;certext.noextensionforid&quot;, oid), e);			</span>
-<span class="pc" id="L128">			}					</span>
-		}
-<span class="pc bpc" id="L130" title="1 of 2 branches missed.">		if (ret == null) {</span>
-<span class="nc" id="L131">			log.error(intres.getLocalizedMessage(&quot;certext.noextensionforid&quot;, oid));			</span>
-		}
-<span class="fc" id="L133">		return ret;</span>
-	}
+    /** Logger. */
+<span class="fc" id="L59">  private static final Logger LOG =</span>
+<span class="fc" id="L60">      Logger.getLogger(CertificateExtensionFactory.class);</span>
+  /** Internal resources. */
+  private static final InternalResources INTRES =
+<span class="fc" id="L63">      InternalResources.getInstance();</span>
 
-	/** Method used for testing to be able to reset class between tests
-	 */
-	protected static void resetExtensions() {
-<span class="fc" id="L139">	    instance = null;</span>
-<span class="fc" id="L140">	}</span>
+  /** Singleton instance. */
+<span class="fc" id="L66">  private static CertificateExtensionFactory instance = null;</span>
+
+  /** Standard extensions. */
+<span class="fc" id="L69">  private HashMap&lt;String, String&gt; standardCertificateExtensions =</span>
+      new HashMap&lt;String, String&gt;();
+
+  {
+<span class="fc" id="L73">    standardCertificateExtensions.put(</span>
+<span class="fc" id="L74">        Extension.basicConstraints.getId(), BasicConstraint.class.getName());</span>
+<span class="fc" id="L75">    standardCertificateExtensions.put(</span>
+<span class="fc" id="L76">        Extension.subjectKeyIdentifier.getId(),</span>
+<span class="fc" id="L77">        SubjectKeyIdentifier.class.getName());</span>
+<span class="fc" id="L78">    standardCertificateExtensions.put(</span>
+<span class="fc" id="L79">        Extension.authorityKeyIdentifier.getId(),</span>
+<span class="fc" id="L80">        AuthorityKeyIdentifier.class.getName());</span>
+<span class="fc" id="L81">    standardCertificateExtensions.put(</span>
+<span class="fc" id="L82">        Extension.keyUsage.getId(), KeyUsage.class.getName());</span>
+<span class="fc" id="L83">    standardCertificateExtensions.put(</span>
+<span class="fc" id="L84">        Extension.extendedKeyUsage.getId(), ExtendedKeyUsage.class.getName());</span>
+<span class="fc" id="L85">    standardCertificateExtensions.put(</span>
+<span class="fc" id="L86">        Extension.subjectAlternativeName.getId(),</span>
+<span class="fc" id="L87">        SubjectAltNames.class.getName());</span>
+<span class="fc" id="L88">    standardCertificateExtensions.put(</span>
+<span class="fc" id="L89">        Extension.issuerAlternativeName.getId(),</span>
+<span class="fc" id="L90">        IssuerAltNames.class.getName());</span>
+<span class="fc" id="L91">    standardCertificateExtensions.put(</span>
+<span class="fc" id="L92">        &quot;2.23.136.1.1.6.2&quot;, DocumentTypeList.class.getName());</span>
+<span class="fc" id="L93">    standardCertificateExtensions.put(</span>
+<span class="fc" id="L94">        Extension.cRLDistributionPoints.getId(),</span>
+<span class="fc" id="L95">        CrlDistributionPoints.class.getName());</span>
+<span class="fc" id="L96">    standardCertificateExtensions.put(</span>
+<span class="fc" id="L97">        Extension.freshestCRL.getId(), FreshestCrl.class.getName());</span>
+<span class="fc" id="L98">    standardCertificateExtensions.put(</span>
+<span class="fc" id="L99">        Extension.certificatePolicies.getId(),</span>
+<span class="fc" id="L100">        CertificatePolicies.class.getName());</span>
+<span class="fc" id="L101">    standardCertificateExtensions.put(</span>
+<span class="fc" id="L102">        Extension.subjectDirectoryAttributes.getId(),</span>
+<span class="fc" id="L103">        SubjectDirectoryAttributes.class.getName());</span>
+<span class="fc" id="L104">    standardCertificateExtensions.put(</span>
+<span class="fc" id="L105">        Extension.authorityInfoAccess.getId(),</span>
+<span class="fc" id="L106">        AuthorityInformationAccess.class.getName());</span>
+<span class="fc" id="L107">    standardCertificateExtensions.put(</span>
+<span class="fc" id="L108">        Extension.qCStatements.getId(), QcStatement.class.getName());</span>
+<span class="fc" id="L109">    standardCertificateExtensions.put(</span>
+<span class="fc" id="L110">        Extension.nameConstraints.getId(), NameConstraint.class.getName());</span>
+<span class="fc" id="L111">    standardCertificateExtensions.put(</span>
+<span class="fc" id="L112">        OCSPObjectIdentifiers.id_pkix_ocsp_nocheck.getId(),</span>
+<span class="fc" id="L113">        OcspNoCheck.class.getName());</span>
+<span class="fc" id="L114">    standardCertificateExtensions.put(</span>
+<span class="fc" id="L115">        CertTools.OID_MSTEMPLATE, MsTemplate.class.getName());</span>
+<span class="fc" id="L116">    standardCertificateExtensions.put(</span>
+<span class="fc" id="L117">        SeisCardNumber.OID_CARDNUMBER, SeisCardNumber.class.getName());</span>
+<span class="fc" id="L118">    standardCertificateExtensions.put(</span>
+<span class="fc" id="L119">        Extension.privateKeyUsagePeriod.getId(),</span>
+<span class="fc" id="L120">        PrivateKeyUsagePeriod.class.getName());</span>
+  }
+
+<span class="fc" id="L123">  private CertificateExtensionFactory() { }</span>
+
+  /**
+   * Method used to get the instance of the factory. If it is the first time the
+   * method is called will the configuration file be parsed.
+   *
+   * @return The factory instance
+   */
+  public static CertificateExtensionFactory getInstance() {
+<span class="pc bpc" id="L132" title="1 of 2 branches missed.">    if (instance == null) {</span>
+<span class="fc" id="L133">      instance = new CertificateExtensionFactory();</span>
+    }
+
+<span class="fc" id="L136">    return instance;</span>
+  }
+
+  /**
+   * Method returning the instance of the standard CertificateExtension given
+   * its object identifier.
+   *
+   * @param oid OID
+   * @param certProf Profile
+   * @return null if the CertificateExtension doesn't exist
+   */
+  public CertificateExtension getStandardCertificateExtension(
+      final String oid, final CertificateProfile certProf) {
+<span class="fc" id="L149">    StandardCertificateExtension ret = null;</span>
+<span class="fc" id="L150">    final String classPath = (String) standardCertificateExtensions.get(oid);</span>
+<span class="pc bpc" id="L151" title="1 of 2 branches missed.">    if (classPath != null) {</span>
+      try {
+<span class="fc" id="L153">        final Class&lt;?&gt; implClass = Class.forName(classPath);</span>
+<span class="fc" id="L154">        ret =</span>
+            (StandardCertificateExtension)
+<span class="fc" id="L156">                implClass.getConstructor().newInstance();</span>
+<span class="fc" id="L157">        ret.init(certProf);</span>
+<span class="nc" id="L158">      } catch (ClassNotFoundException e) {</span>
+<span class="nc" id="L159">        LOG.error(</span>
+<span class="nc" id="L160">            INTRES.getLocalizedMessage(&quot;certext.noextensionforid&quot;, oid), e);</span>
+<span class="nc" id="L161">      } catch (InstantiationException e) {</span>
+<span class="nc" id="L162">        LOG.error(</span>
+<span class="nc" id="L163">            INTRES.getLocalizedMessage(&quot;certext.noextensionforid&quot;, oid), e);</span>
+<span class="nc" id="L164">      } catch (IllegalAccessException e) {</span>
+<span class="nc" id="L165">        LOG.error(</span>
+<span class="nc" id="L166">            INTRES.getLocalizedMessage(&quot;certext.noextensionforid&quot;, oid), e);</span>
+<span class="nc" id="L167">      } catch (InvocationTargetException e) {</span>
+<span class="nc" id="L168">        LOG.error(</span>
+<span class="nc" id="L169">            INTRES.getLocalizedMessage(&quot;certext.noextensionforid&quot;, oid), e);</span>
+<span class="nc" id="L170">      } catch (NoSuchMethodException e) {</span>
+<span class="nc" id="L171">        LOG.error(</span>
+<span class="nc" id="L172">            INTRES.getLocalizedMessage(&quot;certext.noextensionforid&quot;, oid), e);</span>
+<span class="pc" id="L173">      }</span>
+    }
+<span class="pc bpc" id="L175" title="1 of 2 branches missed.">    if (ret == null) {</span>
+<span class="nc" id="L176">      LOG.error(INTRES.getLocalizedMessage(&quot;certext.noextensionforid&quot;, oid));</span>
+    }
+<span class="fc" id="L178">    return ret;</span>
+  }
+
+  /** Method used for testing to be able to reset class between tests. */
+  protected static void resetExtensions() {
+<span class="fc" id="L183">    instance = null;</span>
+<span class="fc" id="L184">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

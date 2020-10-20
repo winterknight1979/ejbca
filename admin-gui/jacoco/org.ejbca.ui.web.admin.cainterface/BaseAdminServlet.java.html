@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BaseAdminServlet.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Administration GUI</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.cainterface</a> &gt; <span class="el_source">BaseAdminServlet.java</span></div><h1>BaseAdminServlet.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.web.admin.cainterface;
+
+import java.beans.Beans;
+import java.security.cert.X509Certificate;
+import java.util.HashSet;
+import java.util.Set;
+
+import javax.ejb.EJB;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authentication.tokens.AuthenticationSubject;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.CryptoProviderTools;
+import org.ejbca.core.ejb.authentication.web.WebAuthenticationProviderSessionLocal;
+import org.ejbca.ui.web.admin.cainterface.exception.AdminWebAuthenticationException;
+import org.ejbca.ui.web.admin.configuration.EjbcaWebBean;
+import org.ejbca.ui.web.admin.rainterface.RAInterfaceBean;
+
+/**
+ * Base servlet class for all AdminWeb pages that require authentication.
+ * 
+ * @version $Id: BaseAdminServlet.java 34154 2019-12-23 13:38:17Z samuellb $
+ */
+<span class="nc" id="L43">public abstract class BaseAdminServlet extends HttpServlet {</span>
+
+    private static final long serialVersionUID = 1L;
+
+<span class="nc" id="L47">    private static final Logger log = Logger.getLogger(BaseAdminServlet.class);</span>
+
+    @EJB
+    private WebAuthenticationProviderSessionLocal authenticationSession;
+    
+    @Override
+    public void init(ServletConfig config) throws ServletException {
+<span class="nc" id="L54">        super.init(config);</span>
+        try {
+<span class="nc" id="L56">            CryptoProviderTools.installBCProvider(); // Install BouncyCastle provider</span>
+<span class="nc" id="L57">        } catch (Exception e) {</span>
+<span class="nc" id="L58">            throw new ServletException(e);</span>
+<span class="nc" id="L59">        }</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">        if (authenticationSession == null) {</span>
+<span class="nc" id="L61">            log.error(&quot;Local EJB injection failed of AuthenticationSession&quot;);</span>
+        }
+<span class="nc" id="L63">    }</span>
+    
+    /**
+     * Authenticates the client using it's X.509 certificate.
+     * @param request Servlet request
+     * @param response Servlet response
+     * @param accessResources Resources
+     * @return AuthenticationToken from  AuthenticationSessionLocal. Never null.
+     * @throws AdminWebAuthenticationException Fail 
+     * @throws ServletException Fail
+     */
+    protected AuthenticationToken authenticateAdmin(HttpServletRequest request, HttpServletResponse response, final String... accessResources) throws AdminWebAuthenticationException, ServletException {
+        // Check if authorized
+<span class="nc" id="L76">        EjbcaWebBean ejbcawebbean = getEjbcaWebBean(request);</span>
+        try {
+<span class="nc" id="L78">            ejbcawebbean.initialize(request, accessResources);</span>
+<span class="nc" id="L79">        } catch (Exception e) {</span>
+<span class="nc" id="L80">            log.info(&quot;Could not initialize for client &quot; + request.getRemoteAddr());</span>
+<span class="nc" id="L81">            log.debug(&quot;Client initialization failed&quot;, e);</span>
+<span class="nc" id="L82">            throw new AdminWebAuthenticationException(&quot;Authorization Denied&quot;);</span>
+<span class="nc" id="L83">        }</span>
+
+<span class="nc" id="L85">        X509Certificate[] certs = (X509Certificate[]) request.getAttribute(&quot;javax.servlet.request.X509Certificate&quot;);</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">        if (certs == null) {</span>
+<span class="nc" id="L87">            log.info(&quot;Client &quot; + request.getRemoteAddr() + &quot; was denied. No client certificate sent.&quot;);</span>
+<span class="nc" id="L88">            throw new AdminWebAuthenticationException(&quot;This servlet requires certificate authentication!&quot;);</span>
+        }
+
+<span class="nc" id="L91">        final Set&lt;X509Certificate&gt; credentials = new HashSet&lt;&gt;();</span>
+<span class="nc" id="L92">        credentials.add(certs[0]);</span>
+<span class="nc" id="L93">        AuthenticationSubject subject = new AuthenticationSubject(null, credentials);</span>
+<span class="nc" id="L94">        AuthenticationToken admin = authenticationSession.authenticate(subject);</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">        if (admin == null) {</span>
+<span class="nc" id="L96">            final String message = &quot;Authorization denied for certificate: &quot; + CertTools.getSubjectDN(certs[0]);</span>
+<span class="nc" id="L97">            log.info(&quot;Client &quot; + request.getRemoteAddr() + &quot; was denied. &quot; + message);</span>
+<span class="nc" id="L98">            throw new AdminWebAuthenticationException(message);</span>
+        }
+<span class="nc" id="L100">        return admin;</span>
+    }
+    
+    /**
+     * Gets the RAInterfaceBean object, or creates and initializes a new RAInterfaceBean if not already created.
+     * @param req Request
+     * @return Bean
+     * @throws ServletException Fail
+     */
+    protected final RAInterfaceBean getRaBean(HttpServletRequest req) throws ServletException {
+<span class="nc" id="L110">        HttpSession session = req.getSession();</span>
+<span class="nc" id="L111">        RAInterfaceBean rabean = (RAInterfaceBean) session.getAttribute(&quot;rabean&quot;);</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">        if (rabean == null) {</span>
+            try {
+<span class="nc" id="L114">                rabean = (RAInterfaceBean) Beans.instantiate(Thread.currentThread().getContextClassLoader(),</span>
+<span class="nc" id="L115">                        org.ejbca.ui.web.admin.rainterface.RAInterfaceBean.class.getName());</span>
+<span class="nc" id="L116">            } catch (ClassNotFoundException e) {</span>
+<span class="nc" id="L117">                throw new ServletException(e);</span>
+<span class="nc" id="L118">            } catch (Exception e) {</span>
+<span class="nc" id="L119">                throw new ServletException(&quot;Unable to instantiate RAInterfaceBean&quot;, e);</span>
+<span class="nc" id="L120">            }</span>
+            try {
+<span class="nc" id="L122">                rabean.initialize(req, getEjbcaWebBean(req));</span>
+<span class="nc" id="L123">            } catch (Exception e) {</span>
+<span class="nc" id="L124">                throw new ServletException(&quot;Cannot initialize RAInterfaceBean&quot;, e);</span>
+<span class="nc" id="L125">            }</span>
+<span class="nc" id="L126">            session.setAttribute(&quot;rabean&quot;, rabean);</span>
+        }
+<span class="nc" id="L128">        return rabean;</span>
+    }
+
+    /**
+     * Gets the EjbcaWebBean object, or creates and initializes a new EjbcaWebBean if not already created.
+     * @param req Request
+     * @return Bean
+     * @throws ServletException Fail
+     */
+    protected final EjbcaWebBean getEjbcaWebBean(HttpServletRequest req) throws ServletException {
+<span class="nc" id="L138">        HttpSession session = req.getSession();</span>
+<span class="nc" id="L139">        EjbcaWebBean ejbcawebbean = (EjbcaWebBean) session.getAttribute(&quot;ejbcawebbean&quot;);</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">        if (ejbcawebbean == null) {</span>
+            try {
+<span class="nc" id="L142">                ejbcawebbean = (EjbcaWebBean) java.beans.Beans.instantiate(Thread.currentThread().getContextClassLoader(),</span>
+<span class="nc" id="L143">                        EjbcaWebBean.class.getName());</span>
+<span class="nc" id="L144">            } catch (ClassNotFoundException exc) {</span>
+<span class="nc" id="L145">                throw new ServletException(exc.getMessage());</span>
+<span class="nc" id="L146">            } catch (Exception exc) {</span>
+<span class="nc" id="L147">                throw new ServletException(&quot; Cannot create bean of class &quot; + EjbcaWebBean.class.getName(), exc);</span>
+<span class="nc" id="L148">            }</span>
+<span class="nc" id="L149">            session.setAttribute(&quot;ejbcawebbean&quot;, ejbcawebbean);</span>
+        }
+<span class="nc" id="L151">        return ejbcawebbean;</span>
+    }
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

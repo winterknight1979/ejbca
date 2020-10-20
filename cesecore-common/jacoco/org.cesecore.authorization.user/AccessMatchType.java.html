@@ -15,65 +15,124 @@ package org.cesecore.authorization.user;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * @version $Id: AccessMatchType.java 26811 2017-10-15 03:29:26Z anatom $
- * 
- */
-<span class="fc" id="L22">public enum AccessMatchType {</span>
+/** @version $Id: AccessMatchType.java 26811 2017-10-15 03:29:26Z anatom $ */
+<span class="fc" id="L19">public enum AccessMatchType {</span>
 
-<span class="fc" id="L24">    TYPE_UNUSED(0),</span>
-<span class="fc" id="L25">    TYPE_EQUALCASE(1000),</span>
-    /** Case insensitive. Can be used for textual match values, e.g. a Common Name. Do &lt;b&gt;NOT&lt;/b&gt; use with serial numbers (a change since 6.8.0)  */
-<span class="fc" id="L27">    TYPE_EQUALCASEINS(1001),</span>
-<span class="fc" id="L28">    @Deprecated</span>
-    TYPE_NOT_EQUALCASE(1002),
-<span class="fc" id="L30">    @Deprecated</span>
-    TYPE_NOT_EQUALCASEINS(1003),
-<span class="fc" id="L32">    @Deprecated</span>
-    TYPE_NONE(1999),
-    /** Type 2000-2005 are old types used from before EJBCA 4, we must expect to find these in the database in old installations, even though we don't want to use them. 
-     * These have no meaning whatsoever in newer installations of EJBCA, and can safely be removed from the database if found (unless we need to run an old installation in parallel). */
-<span class="fc" id="L36">    @Deprecated</span>
-    SPECIALADMIN_PUBLICWEBUSER(2000),
-<span class="fc" id="L38">    @Deprecated</span>
-    SPECIALADMIN_CACOMMANDLINEADMIN(2001),
-<span class="fc" id="L40">    @Deprecated</span>
-    SPECIALADMIN_RAADMIN(2002),
-<span class="fc" id="L42">    @Deprecated</span>
-    SPECIALADMIN_BATCHCOMMANDLINEADMIN(2003),
-<span class="fc" id="L44">    @Deprecated</span>
-    SPECIALADMIN_INTERNALUSER(2004),
-<span class="fc" id="L46">    @Deprecated</span>
-    SPECIALADMIN_NOUSER(2005);
+  /** Unused. */
+<span class="fc" id="L22">  TYPE_UNUSED(0),</span>
+  /** Case sensitive. */
+<span class="fc" id="L24">  TYPE_EQUALCASE(1000),</span>
+  /**
+   * Case insensitive. Can be used for textual match values, e.g. a Common Name.
+   * Do &lt;b&gt;NOT&lt;/b&gt; use with serial numbers (a change since 6.8.0)
+   */
+<span class="fc" id="L29">  TYPE_EQUALCASEINS(1001),</span>
+  /** install. */
+<span class="fc" id="L31">  @Deprecated</span>
+  TYPE_NOT_EQUALCASE(1002),
+  /** Install. */
+<span class="fc" id="L34">  @Deprecated</span>
+  TYPE_NOT_EQUALCASEINS(1003),
+  /** None. */
+<span class="fc" id="L37">  @Deprecated</span>
+  TYPE_NONE(1999),
+  /**
+   * Type 2000-2005 are old types used from before EJBCA 4, we must expect to
+   * find these in the database in old installations, even though we don't want
+   * to use them. These have no meaning whatsoever in newer installations of
+   * EJBCA, and can safely be removed from the database if found (unless we ne
+   * ed to run an old installation in parallel).
+   *
+   * &lt;p&gt;Public Web User
+   *
+   * @deprecated since v4
+   */
+<span class="fc" id="L50">  @Deprecated</span>
+  SPECIALADMIN_PUBLICWEBUSER(2000),
+  /**
+   * CA command admin.
+   *
+   * @deprecated since v4
+   */
+<span class="fc" id="L57">  @Deprecated</span>
+  SPECIALADMIN_CACOMMANDLINEADMIN(2001),
+  /**
+   * RA admin.
+   *
+   * @deprecated since v4
+   */
+<span class="fc" id="L64">  @Deprecated</span>
+  SPECIALADMIN_RAADMIN(2002),
+  /**
+   * BAtch Admin.
+   *
+   * @deprecated since v4
+   */
+<span class="fc" id="L71">  @Deprecated</span>
+  SPECIALADMIN_BATCHCOMMANDLINEADMIN(2003),
+  /**
+   * Internal user.
+   *
+   * @deprecated since v4
+   */
+<span class="fc" id="L78">  @Deprecated</span>
+  SPECIALADMIN_INTERNALUSER(2004),
+  /**
+   * No user.
+   *
+   * @deprecated since v4
+   */
+<span class="fc" id="L85">  @Deprecated</span>
+  SPECIALADMIN_NOUSER(2005);
 
-<span class="fc" id="L49">    private AccessMatchType(int numericValue) {</span>
-<span class="fc" id="L50">        this.numericValue = numericValue;</span>
-<span class="fc" id="L51">    }</span>
+  /**
+   * Constructor.
+   *
+   * @param aNumericValue ID
+   */
+<span class="fc" id="L93">  AccessMatchType(final int aNumericValue) {</span>
+<span class="fc" id="L94">    this.numericValue = aNumericValue;</span>
+<span class="fc" id="L95">  }</span>
 
-    public int getNumericValue() {
-<span class="nc" id="L54">        return numericValue;</span>
+  /** @return ID */
+  public int getNumericValue() {
+<span class="nc" id="L99">    return numericValue;</span>
+  }
+
+  /**
+   * Get match type by ID.
+   *
+   * @param aNumericValue Value
+   * @return Type
+   */
+  public static AccessMatchType matchFromDatabase(final int aNumericValue) {
+<span class="fc" id="L109">    return databaseLookup.get(aNumericValue);</span>
+  }
+
+  /**
+   * Get match type by name.
+   *
+   * @param name Name
+   * @return Type
+   */
+  public static AccessMatchType matchFromName(final String name) {
+<span class="nc" id="L119">    return nameLookup.get(name);</span>
+  }
+
+  /** ID. */
+  private int numericValue;
+  /** Map of IDs to match types. */
+  private static Map&lt;Integer, AccessMatchType&gt; databaseLookup;
+  /** Map of names to match types. */
+  private static Map&lt;String, AccessMatchType&gt; nameLookup;
+
+  static {
+<span class="fc" id="L130">    databaseLookup = new HashMap&lt;Integer, AccessMatchType&gt;();</span>
+<span class="fc" id="L131">    nameLookup = new HashMap&lt;String, AccessMatchType&gt;();</span>
+<span class="fc bfc" id="L132" title="All 2 branches covered.">    for (AccessMatchType accessMatchType : AccessMatchType.values()) {</span>
+<span class="fc" id="L133">      databaseLookup.put(accessMatchType.numericValue, accessMatchType);</span>
+<span class="fc" id="L134">      nameLookup.put(accessMatchType.name(), accessMatchType);</span>
     }
-
-    public static AccessMatchType matchFromDatabase(int numericValue) {
-<span class="fc" id="L58">        return databaseLookup.get(numericValue);</span>
-    }
-    
-    public static AccessMatchType matchFromName(String name) {
-<span class="nc" id="L62">        return nameLookup.get(name);</span>
-    }
-
-    private int numericValue;
-    private static Map&lt;Integer, AccessMatchType&gt; databaseLookup;
-    private static Map&lt;String, AccessMatchType&gt; nameLookup;
-
-    static {
-<span class="fc" id="L70">        databaseLookup = new HashMap&lt;Integer, AccessMatchType&gt;();</span>
-<span class="fc" id="L71">        nameLookup = new HashMap&lt;String, AccessMatchType&gt;();</span>
-<span class="fc bfc" id="L72" title="All 2 branches covered.">        for (AccessMatchType accessMatchType : AccessMatchType.values()) {</span>
-<span class="fc" id="L73">            databaseLookup.put(accessMatchType.numericValue, accessMatchType);</span>
-<span class="fc" id="L74">            nameLookup.put(accessMatchType.name(), accessMatchType);</span>
-        }
-<span class="fc" id="L76">    }</span>
-
+<span class="fc" id="L136">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

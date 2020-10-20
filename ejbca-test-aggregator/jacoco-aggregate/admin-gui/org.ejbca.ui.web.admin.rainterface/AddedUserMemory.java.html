@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>AddedUserMemory.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">admin-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.rainterface</a> &gt; <span class="el_source">AddedUserMemory.java</span></div><h1>AddedUserMemory.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+/*
+ * AddedUserMemory.java
+ *
+ * Created on den 27 juli 2002, 22:01
+ */
+package org.ejbca.ui.web.admin.rainterface;
+
+import java.io.Serializable;
+import java.util.LinkedList;
+
+
+/**
+ * A class used to remember a RA Admins last added users. It's use is in the adduser.jsp to list
+ * previously added users give the RA admins a better overlook of the his work.
+ *
+
+ * @version $Id: AddedUserMemory.java 28844 2018-05-04 08:31:02Z samuellb $
+ */
+public class AddedUserMemory implements Serializable {
+
+    private static final long serialVersionUID = 1864439727928588230L;
+
+    public static final int MEMORY_SIZE = 100; // Remember the 100 last users. 
+
+    // Private fields
+<span class="nc" id="L39">    private LinkedList&lt;UserView&gt; memory = null;</span>
+
+    /**
+     * Creates a new instance of AddedUserMemory
+     */
+<span class="nc" id="L44">    public AddedUserMemory() {</span>
+<span class="nc" id="L45">        memory = new LinkedList&lt;&gt;();</span>
+<span class="nc" id="L46">    }</span>
+
+    /**
+     * Used to add a user tho the memory
+     *
+     * @param user the UserView representation of the user to add.
+     */
+    public void addUser(UserView user) {
+<span class="nc" id="L54">        memory.add(user);</span>
+<span class="nc bnc" id="L55" title="All 2 branches missed.">        while (memory.size() &gt; MEMORY_SIZE) {</span>
+<span class="nc" id="L56">            memory.removeFirst();</span>
+        }
+<span class="nc" id="L58">    }</span>
+
+    /**
+     * Used to retrieve a number of previously added users.
+     *
+     * @param size the size of the array of users to return
+     *
+     * @return the 'size' or available users in memory.
+     */
+    public UserView[] getUsers(int size) {
+<span class="nc" id="L68">        int endindex = memory.size() - size;</span>
+<span class="nc" id="L69">        int tempsize = size;</span>
+        UserView[] returnval;
+
+<span class="nc bnc" id="L72" title="All 2 branches missed.">        if (endindex &lt; 0) {</span>
+<span class="nc" id="L73">            endindex = 0;</span>
+        }
+
+<span class="nc bnc" id="L76" title="All 2 branches missed.">        if (size &gt; memory.size()) {</span>
+<span class="nc" id="L77">            tempsize = memory.size();</span>
+        }
+
+<span class="nc" id="L80">        returnval = new UserView[tempsize];</span>
+
+<span class="nc" id="L82">        int j = 0;</span>
+
+<span class="nc bnc" id="L84" title="All 2 branches missed.">        for (int i = memory.size() - 1; i &gt;= endindex; i--) {</span>
+<span class="nc" id="L85">            returnval[j] = memory.get(i);</span>
+<span class="nc" id="L86">            j++;</span>
+        }
+
+<span class="nc" id="L89">        return returnval;</span>
+    }
+
+    /**
+     * Used to update the data of a user.
+     *
+     * @param user the stringarray representation of the user to change.
+     */
+    public void changeUser(UserView user) {
+        // Find user in memory.
+<span class="nc bnc" id="L99" title="All 2 branches missed.">        for (int i = 0; i &lt; memory.size(); i++) {</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">            if ((memory.get(i)).getUsername().equals(user.getUsername())) {</span>
+<span class="nc" id="L101">                memory.set(i, user);</span>
+
+<span class="nc" id="L103">                break;</span>
+            }
+        }
+<span class="nc" id="L106">    }</span>
+
+    public void removeUser(String userName) {
+     // Find user in memory.
+<span class="nc bnc" id="L110" title="All 2 branches missed.">        for (int i = 0; i &lt; memory.size(); i++) {</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">            if ((memory.get(i)).getUsername().equals(userName)) {</span>
+<span class="nc" id="L112">                memory.remove(i);</span>
+<span class="nc" id="L113">                break;</span>
+            }
+        }
+<span class="nc" id="L116">    }</span>
+  
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

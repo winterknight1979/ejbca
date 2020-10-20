@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>UpgradeBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">admin-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.admin.upgrade</a> &gt; <span class="el_source">UpgradeBean.java</span></div><h1>UpgradeBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.web.admin.upgrade;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TimeZone;
+
+import javax.annotation.PostConstruct;
+import javax.ejb.EJB;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.ViewScoped;
+import javax.faces.event.AjaxBehaviorEvent;
+
+import org.apache.log4j.Level;
+import org.apache.log4j.spi.LoggingEvent;
+import org.apache.log4j.spi.ThrowableInformation;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.util.ValidityDate;
+import org.ejbca.core.ejb.upgrade.UpgradeSessionLocal;
+import org.ejbca.core.ejb.upgrade.UpgradeStatusSingletonLocal;
+import org.ejbca.ui.web.admin.BaseManagedBean;
+
+/**
+ * JSF Managed Bean for the post upgrade page.
+ * 
+ * @version $Id: UpgradeBean.java 26920 2017-10-27 13:36:23Z mikekushner $
+ * TODO: use CDI
+ */
+@SuppressWarnings(&quot;deprecation&quot;)
+@ViewScoped // Local variables will live as long as actions on the backed page return &quot;&quot; or void.
+@ManagedBean
+<span class="nc" id="L44">public class UpgradeBean extends BaseManagedBean implements Serializable {</span>
+
+	/** Wrapper of Log4J LoggingEvents for use in the GUI */
+    public static class LogEvent {
+        final LoggingEvent loggingEvent;
+<span class="nc" id="L49">        public LogEvent(final LoggingEvent loggingEvent) {</span>
+<span class="nc" id="L50">            this.loggingEvent = loggingEvent;</span>
+<span class="nc" id="L51">        }</span>
+
+        /** @return true for FATAL and ERROR level messages */
+<span class="nc" id="L54">        public boolean isLevelError() { return loggingEvent.getLevel().isGreaterOrEqual(Level.ERROR); }</span>
+<span class="nc" id="L55">        public boolean isLevelWarning() { return loggingEvent.getLevel().equals(Level.WARN); }</span>
+<span class="nc bnc" id="L56" title="All 2 branches missed.">        public boolean isLevelInfo() { return !loggingEvent.getLevel().isGreaterOrEqual(Level.WARN); }</span>
+
+<span class="nc" id="L58">        public String getLevel() { return loggingEvent.getLevel().toString(); }</span>
+
+<span class="nc" id="L60">        public String getTime() { return ValidityDate.formatAsISO8601ServerTZ(loggingEvent.getTimeStamp(), TimeZone.getDefault()); }</span>
+
+        public String getMessage() {
+<span class="nc" id="L63">            final StringBuilder sb = new StringBuilder(loggingEvent.getRenderedMessage());</span>
+<span class="nc" id="L64">            final ThrowableInformation throwableInformation = loggingEvent.getThrowableInformation();</span>
+<span class="nc bnc" id="L65" title="All 2 branches missed.">            if (throwableInformation!=null) {</span>
+<span class="nc" id="L66">                Throwable throwable = throwableInformation.getThrowable();</span>
+<span class="nc bnc" id="L67" title="All 2 branches missed.">                while (throwable!=null) {</span>
+<span class="nc" id="L68">                    sb.append(&quot; &lt;- &quot; + throwable.getMessage());</span>
+<span class="nc" id="L69">                    throwable = throwable.getCause();</span>
+                }
+            }
+<span class="nc" id="L72">            return sb.toString();</span>
+        }
+    }
+    
+    private static final long serialVersionUID = 1L;
+    //private static final Logger log = Logger.getLogger(UpgradeBean.class);
+    
+    @EJB
+    private AuthorizationSessionLocal authorizationSession;
+    @EJB
+    private UpgradeSessionLocal upgradeSession;
+    @EJB
+    private UpgradeStatusSingletonLocal upgradeStatusSingleton;
+
+    @PostConstruct
+    private void postConstruct() {
+<span class="nc" id="L88">    }</span>
+
+    /** @return bool
+     * @see UpgradeSessionLocal#isPostUpgradeNeeded() */
+    public boolean isPostUpgradeRequired() {
+<span class="nc" id="L93">        return upgradeSession.isPostUpgradeNeeded();</span>
+    }
+
+    /** @return true if the current administrator is authorized to start the upgrade */
+    public boolean isAuthorizedToUpgrade() {
+<span class="nc" id="L98">        return authorizationSession.isAuthorizedNoLogging(getAdmin(), &quot;/system_functionality/edit_systemconfiguration&quot;);</span>
+    }
+
+    /** @return true if an upgrade is currently in progress on this node */
+    public boolean isPostUpgradeInProgress() {
+<span class="nc" id="L103">        return upgradeStatusSingleton.isPostUpgradeInProgress();</span>
+    }
+
+    /** @return true if an upgrade is currently in progress on this node */
+    public boolean isPostUpgradeFailed() {
+<span class="nc bnc" id="L108" title="All 4 branches missed.">        return isActionStartUpgradeAllowed() &amp;&amp; !getLogged().isEmpty();</span>
+    }
+
+    /** @return true if an upgrade is currently in progress on any node */
+    public boolean isPostUpgradeInProgressInCluster() {
+        // The first check requires no DB read (which might return cached/stale data), so we check that first
+<span class="nc bnc" id="L114" title="All 4 branches missed.">        return upgradeStatusSingleton.isPostUpgradeInProgress() || upgradeSession.getPostUpgradeStarted()!=0L;</span>
+    }
+    
+    /** @return the date when a node began the cluster upgrade procedure */
+    public String getPostUpgradeStartedInCluster() {
+<span class="nc" id="L119">        return ValidityDate.formatAsISO8601ServerTZ(upgradeSession.getPostUpgradeStarted(), TimeZone.getDefault());</span>
+    }
+
+    /** @return true if the administrator is allowed to start the post upgrade procedure */
+    public boolean isActionStartUpgradeAllowed() {
+<span class="nc bnc" id="L124" title="All 6 branches missed.">        return isPostUpgradeRequired() &amp;&amp; !isPostUpgradeInProgress() &amp;&amp; !isPostUpgradeInProgressInCluster();</span>
+    }
+
+    /** @return true if the administrator is allowed to force a restart of the post upgrade procedure (10 minutes has passed and it is not running on this node) */
+    public boolean isActionForceRestartUpgradeAllowed() {
+<span class="nc" id="L129">        final long postUpgradeStarted = upgradeSession.getPostUpgradeStarted();</span>
+<span class="nc bnc" id="L130" title="All 8 branches missed.">        return isPostUpgradeRequired() &amp;&amp; !isPostUpgradeInProgress() &amp;&amp; postUpgradeStarted!=0L &amp;&amp; postUpgradeStarted+60000L&lt;=System.currentTimeMillis();</span>
+    }
+
+    /** @return true is there is specific post-upgrade instructions that should be rendered */
+    public boolean isRenderPostUpgradeInfoNotes() {
+<span class="nc" id="L135">        return isRenderPostUpgradeInfoTo680();</span>
+    }
+
+    /** @return true is this post-upgrade will include an upgrade to EJBCA 6.8.0 */
+    public boolean isRenderPostUpgradeInfoTo680() {
+<span class="nc" id="L140">        return upgradeSession.isLesserThan(getLastPostUpgradedToVersion(), &quot;6.8.0&quot;);</span>
+    }
+
+    /** @return info logged by the upgrade code */
+    public List&lt;LogEvent&gt; getLogged() {
+<span class="nc" id="L145">        final List&lt;LogEvent&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L146" title="All 2 branches missed.">        for (final LoggingEvent loggingEvent: new ArrayList&lt;&gt;(upgradeStatusSingleton.getLogged())) {</span>
+<span class="nc bnc" id="L147" title="All 2 branches missed.">            if (loggingEvent.getLevel().isGreaterOrEqual(Level.INFO)) {</span>
+<span class="nc" id="L148">                ret.add(new LogEvent(loggingEvent));</span>
+            }
+<span class="nc" id="L150">        }</span>
+<span class="nc" id="L151">        return ret;</span>
+    }
+
+    /** @return the newest version of EJBCA connected to the common database */
+    public String getLastUpgradedToVersion() {
+<span class="nc" id="L156">        return upgradeSession.getLastUpgradedToVersion();</span>
+    }
+
+    /** @return the currently effective version of data stored in the database */
+    public String getLastPostUpgradedToVersion() {
+<span class="nc" id="L161">        return upgradeSession.getLastPostUpgradedToVersion();</span>
+    }
+
+    /** Invoked by the user to start the upgrade as a background process */
+    public void actionStartUpgrade() {
+<span class="nc" id="L166">        upgradeSession.startPostUpgrade();</span>
+<span class="nc" id="L167">    }</span>
+
+    /** Invoked by the user to to clear the cluster wide upgrade lock */
+    public void actionClearUpgradeLock() {
+<span class="nc" id="L171">        upgradeSession.setPostUpgradeStarted(0L);</span>
+<span class="nc" id="L172">    }</span>
+
+    /** Noop. Invoked by the user to refresh the page */
+<span class="nc" id="L175">    public void actionNoAction() {}</span>
+
+    /** Noop. Invoked by the user to refresh the page 
+     * @param event event */
+<span class="nc" id="L179">    public void actionNoActionAjaxListener(final AjaxBehaviorEvent event) {}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

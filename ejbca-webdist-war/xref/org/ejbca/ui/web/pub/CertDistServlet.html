@@ -504,7 +504,7 @@
 <a class="jxr_linenumber" name="L496" href="#L496">496</a>                     } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L497" href="#L497">497</a>                         pout.println(<span class="jxr_string">"&lt;h1&gt;REVOKED&lt;/h1&gt;"</span>);
 <a class="jxr_linenumber" name="L498" href="#L498">498</a>                         pout.println(<span class="jxr_string">"Certificate with issuer '"</span>+HTMLTools.htmlescape(dn)+<span class="jxr_string">"' and serial number '"</span>+HTMLTools.htmlescape(serno)+<span class="jxr_string">"' is revoked."</span>);
-<a class="jxr_linenumber" name="L499" href="#L499">499</a>                         pout.println(<span class="jxr_string">"RevocationDate is '"</span>+revinfo.revocationDate+<span class="jxr_string">"' and reason '"</span>+revinfo.revocationReason+<span class="jxr_string">"'."</span>);
+<a class="jxr_linenumber" name="L499" href="#L499">499</a>                         pout.println(<span class="jxr_string">"RevocationDate is '"</span>+revinfo.getRevocationDate()+<span class="jxr_string">"' and reason '"</span>+revinfo.getRevocationReason()+<span class="jxr_string">"'."</span>);
 <a class="jxr_linenumber" name="L500" href="#L500">500</a>                     }
 <a class="jxr_linenumber" name="L501" href="#L501">501</a>                 } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L502" href="#L502">502</a>                     pout.println(<span class="jxr_string">"&lt;h1&gt;CERTIFICATE DOES NOT EXIST&lt;/h1&gt;"</span>);

@@ -20,7 +20,6 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.cesecore.certificates.ca.catoken.CAToken;
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceInfo;
 import org.cesecore.certificates.certificate.CertificateWrapper;
@@ -34,515 +33,630 @@ import org.cesecore.util.StringTools;
  *
  * @version $Id: CAInfo.java 29149 2018-06-07 14:42:22Z andrey_s_helmes $
  */
-<span class="nc" id="L37">public abstract class CAInfo implements Serializable {</span>
+<span class="nc" id="L36">public abstract class CAInfo implements Serializable {</span>
 
-    private static final long serialVersionUID = 2L;
-    public static final int CATYPE_X509 = 1;
-    public static final int CATYPE_CVC = 2;
+  private static final long serialVersionUID = 2L;
+  /** Type. */
+  public static final int CATYPE_X509 = 1;
+  /** Type. */
+  public static final int CATYPE_CVC = 2;
 
-    /**
-     * Constants indicating that the CA is selfsigned.
-     */
-    public static final int SELFSIGNED = 1;
-    /**
-     * Constant indicating that the CA is signed by an external CA.
-     */
-    public static final int SIGNEDBYEXTERNALCA = 2;
+  /** Constants indicating that the CA is selfsigned. */
+  public static final int SELFSIGNED = 1;
+  /** Constant indicating that the CA is signed by an external CA. */
+  public static final int SIGNEDBYEXTERNALCA = 2;
 
-    /**
-     * Constant indicating where the special caid border is. All CAs with CA id not below this value
-     * should be created
-     */
-    public static final int SPECIALCAIDBORDER = 10;
+  /**
+   * Constant indicating where the special caid border is. All CAs with CA id
+   * not below this value should be created
+   */
+  public static final int SPECIALCAIDBORDER = 10;
+  /** DN. */
+  protected String subjectdn;
+  /** ID. */
+  protected int caid;
+  /** Name. */
+  protected String name;
+  /**
+   * CAConstants.CA_ACTIVE etc, 0 means not defined (i.e. not updated when
+   * editing CA).
+   */
+<span class="nc" id="L64">  protected int status = 0;</span>
+  /** Validity. */
+  protected String encodedValidity;
+  /** Time. */
+  protected Date expiretime;
+  /** Time. */
+  protected Date updatetime;
+  /** CATYPE_X509 or CATYPE_CVC. */
+  protected int catype;
+  /** A CAId or CAInfo.SELFSIGNED. */
+  protected int signedby;
 
-    protected String subjectdn;
-    protected int caid;
-    protected String name;
-    /** CAConstants.CA_ACTIVE etc, 0 means not defined (i.e. not updated when editing CA) */
-<span class="nc" id="L62">    protected int status = 0;</span>
-    protected String encodedValidity;
-    protected Date expiretime;
-    protected Date updatetime;
-    /** CATYPE_X509 or CATYPE_CVC */
-    protected int catype;
-    /** A CAId or CAInfo.SELFSIGNED */
-    protected int signedby;
-    protected Collection&lt;CertificateWrapper&gt; certificatechain;
-    protected Collection&lt;CertificateWrapper&gt; renewedcertificatechain;
-    protected transient List&lt;Certificate&gt; certificatechainCached;
-    protected transient Collection&lt;Certificate&gt; renewedcertificatechainCached;
-    protected CAToken catoken;
-    protected String description;
-    protected int revocationReason;
-    protected Date revocationDate;
-    protected int certificateprofileid;
-    protected int defaultCertificateProfileId;
-    /** Default value 1 day */
-<span class="nc" id="L81">    protected long crlperiod = 1 * SimpleTime.MILLISECONDS_PER_DAY;</span>
-    /** Default value 0 */
-<span class="nc" id="L83">    protected long crlIssueInterval = 0;</span>
-    /** Default value 10 minutes */
-<span class="nc" id="L85">    protected long crlOverlapTime = 10 * SimpleTime.MILLISECONDS_PER_MINUTE;</span>
-    /** Default value 0 = disabled */
-<span class="nc" id="L87">    protected long deltacrlperiod = 0;</span>
-    protected Collection&lt;Integer&gt; crlpublishers;
-    protected Collection&lt;Integer&gt; validators;
-<span class="nc" id="L90">    protected boolean keepExpiredCertsOnCRL = false;</span>
-    protected boolean finishuser;
-    protected Collection&lt;ExtendedCAServiceInfo&gt; extendedcaserviceinfos;
-<span class="nc" id="L93">    protected boolean useNoConflictCertificateData = false; // By Default we use normal certificate data table.</span>
-    
-    /**
-     * @deprecated since 6.8.0, where approval settings and profiles became interlinked.
-     */
-    @Deprecated
-    private Collection&lt;Integer&gt; approvalSettings;
-    /**
-     * @deprecated since 6.8.0, where approval settings and profiles became interlinked.
-     */
-    @Deprecated
-    private int approvalProfile;
+  /** Chain. */
+  protected Collection&lt;CertificateWrapper&gt; certificatechain;
+  /** Chain. */
+  protected Collection&lt;CertificateWrapper&gt; renewedcertificatechain;
+  /** Chain. */
+  protected transient List&lt;Certificate&gt; certificatechainCached;
+  /** Chain. */
+  protected transient Collection&lt;Certificate&gt; renewedcertificatechainCached;
+  /** Token. */
+  protected CAToken catoken;
+  /** Desc. */
+  protected String description;
+  /** Reason. */
+  protected int revocationReason;
+  /** Reason. */
+  protected Date revocationDate;
+  /** Profile. */
+  protected int certificateprofileid;
+  /** Profile. */
+  protected int defaultCertificateProfileId;
+  /** Default value 1 day. */
+<span class="nc" id="L97">  protected long crlperiod = 1 * SimpleTime.MILLISECONDS_PER_DAY;</span>
+  /** Default value 0. */
+<span class="nc" id="L99">  protected long crlIssueInterval = 0;</span>
+  /** Default value 10 minutes. */
+<span class="nc" id="L101">  protected long crlOverlapTime = 10 * SimpleTime.MILLISECONDS_PER_MINUTE;</span>
+  /** Default value 0 = disabled. */
+<span class="nc" id="L103">  protected long deltacrlperiod = 0;</span>
 
-    /**
-     * @deprecated since 6.6.0, use the appropriate approval profile instead
-     * Needed for a while in order to be able to import old statedumps from 6.5 and earlier
-     */
-    @Deprecated
-    protected int numOfReqApprovals;
+  /** Publishers. */
+  protected Collection&lt;Integer&gt; crlpublishers;
+  /** Validators. */
+  protected Collection&lt;Integer&gt; validators;
+  /** Expired. */
+<span class="nc" id="L110">  protected boolean keepExpiredCertsOnCRL = false;</span>
+  /** User. */
+  protected boolean finishuser;
+  /** Info. */
+  protected Collection&lt;ExtendedCAServiceInfo&gt; extendedcaserviceinfos;
+  /** Conflict. */
+<span class="nc" id="L116">  protected boolean useNoConflictCertificateData =</span>
+      false; // By Default we use normal certificate data table.
 
-    private LinkedHashMap&lt;ApprovalRequestType, Integer&gt; approvals;
+  /**
+   * @deprecated since 6.8.0, where approval settings and profiles became
+   *     interlinked.
+   */
+  @Deprecated private Collection&lt;Integer&gt; approvalSettings;
+  /**
+   * @deprecated since 6.8.0, where approval settings and profiles became
+   *     interlinked.
+   */
+  @Deprecated private int approvalProfile;
 
+  /**
+   * @deprecated since 6.6.0, use the appropriate approval profile instead
+   *     Needed for a while in order to be able to import old statedumps from
+   *     6.5 and earlier
+   */
+  @Deprecated protected int numOfReqApprovals;
 
-    protected boolean includeInHealthCheck;
-    protected boolean doEnforceUniquePublicKeys;
-    protected boolean doEnforceUniqueDistinguishedName;
-    protected boolean doEnforceUniqueSubjectDNSerialnumber;
-    protected boolean useCertReqHistory;
-    protected boolean useUserStorage;
-    protected boolean useCertificateStorage;
-    protected boolean acceptRevocationNonExistingEntry;
+  /** Approvals. */
+  private LinkedHashMap&lt;ApprovalRequestType, Integer&gt; approvals;
 
-    public String getSubjectDN() {
-<span class="nc" id="L126">        return subjectdn;</span>
+  /** Healthcheck. */
+  protected boolean includeInHealthCheck;
+  /** PK. */
+  protected boolean doEnforceUniquePublicKeys;
+  /** DN. */
+  protected boolean doEnforceUniqueDistinguishedName;
+  /** SN. */
+  protected boolean doEnforceUniqueSubjectDNSerialnumber;
+  /** History. */
+  protected boolean useCertReqHistory;
+  /** Storage. */
+  protected boolean useUserStorage;
+  /** Storage. */
+  protected boolean useCertificateStorage;
+  /** Accept. */
+  protected boolean acceptRevocationNonExistingEntry;
+
+  /** @return DN */
+  public String getSubjectDN() {
+<span class="nc" id="L159">    return subjectdn;</span>
+  }
+
+  /** @param aSubjectDn DN */
+  public void setSubjectDN(final String aSubjectDn) {
+<span class="nc" id="L164">    this.subjectdn =</span>
+<span class="nc" id="L165">        CertTools.stringToBCDNString(StringTools.strip(aSubjectDn));</span>
+<span class="nc" id="L166">  }</span>
+
+  /** @return ID */
+  public int getCAId() {
+<span class="nc" id="L170">    return this.caid;</span>
+  }
+
+  /** @param aCaid ID */
+  public void setCAId(final int aCaid) {
+<span class="nc" id="L175">    this.caid = aCaid;</span>
+<span class="nc" id="L176">  }</span>
+
+  /** @return name */
+  public String getName() {
+<span class="nc" id="L180">    return this.name;</span>
+  }
+
+  /** @param aName name */
+  public void setName(final String aName) {
+<span class="nc" id="L185">    this.name = aName;</span>
+<span class="nc" id="L186">  }</span>
+
+  /**
+   * CAConstants.CA_ACTIVE etc, 0 means not defined (i.e. not updated when
+   * editing CA)
+   *
+   * @return status code
+   */
+  public int getStatus() {
+<span class="nc" id="L195">    return status;</span>
+  }
+
+  /** @param aStatus status */
+  public void setStatus(final int aStatus) {
+<span class="nc" id="L200">    this.status = aStatus;</span>
+<span class="nc" id="L201">  }</span>
+
+  /** @return CAInfo.CATYPE_X509 or CAInfo.CATYPE_CVC */
+  public int getCAType() {
+<span class="nc" id="L205">    return catype;</span>
+  }
+
+  /** @param aCatype type */
+  public void setCAType(final int aCatype) {
+<span class="nc" id="L210">    this.catype = aCatype;</span>
+<span class="nc" id="L211">  }</span>
+
+  /** @return type */
+  public String getCaTypeAsString() {
+<span class="nc bnc" id="L215" title="All 2 branches missed.">    if (catype == CAInfo.CATYPE_CVC) {</span>
+<span class="nc" id="L216">      return &quot;CVC&quot;;</span>
     }
-
-    public void setSubjectDN(final String subjectDn) {
-<span class="nc" id="L130">        this.subjectdn = CertTools.stringToBCDNString(StringTools.strip(subjectDn));</span>
-<span class="nc" id="L131">    }</span>
-
-    public int getCAId() {
-<span class="nc" id="L134">        return this.caid;</span>
+<span class="nc bnc" id="L218" title="All 2 branches missed.">    if (catype == CAInfo.CATYPE_X509) {</span>
+<span class="nc" id="L219">      return &quot;X.509&quot;;</span>
     }
+<span class="nc" id="L221">    return String.valueOf(catype);</span>
+  }
 
-    public void setCAId(final int caid) {
-<span class="nc" id="L138">        this.caid = caid;</span>
-<span class="nc" id="L139">    }</span>
+  /** @return A CAId or CAInfo.SELFSIGNED, CAInfo.SIGNEDBYEXTERNALCA etc */
+  public int getSignedBy() {
+<span class="nc" id="L226">    return signedby;</span>
+  }
 
-    public String getName() {
-<span class="nc" id="L142">        return this.name;</span>
+  /** @param aSignedby signer */
+  public void setSignedBy(final int aSignedby) {
+<span class="nc" id="L231">    this.signedby = aSignedby;</span>
+<span class="nc" id="L232">  }</span>
+
+  /** @param aEncodedValidity validity */
+  public void setEncodedValidity(final String aEncodedValidity) {
+<span class="nc" id="L236">    this.encodedValidity = aEncodedValidity;</span>
+<span class="nc" id="L237">  }</span>
+
+  /** @return validity */
+  public String getEncodedValidity() {
+<span class="nc" id="L241">    return encodedValidity;</span>
+  }
+
+  /** @return time */
+  public Date getExpireTime() {
+<span class="nc" id="L246">    return this.expiretime;</span>
+  }
+
+  /** @param aExpiretime time */
+  public void setExpireTime(final Date aExpiretime) {
+<span class="nc" id="L251">    this.expiretime = aExpiretime;</span>
+<span class="nc" id="L252">  }</span>
+
+  /** @return date */
+  public Date getUpdateTime() {
+<span class="nc" id="L256">    return this.updatetime;</span>
+  }
+
+  /** @param aUpdatetime time */
+  public void setUpdateTime(final Date aUpdatetime) {
+<span class="nc" id="L261">    this.updatetime = aUpdatetime;</span>
+<span class="nc" id="L262">  }</span>
+
+  /**
+   * Retrieves the certificate chain for the CA. The returned certificate chain
+   * MUST have the RootCA certificate in the last position and the CAs
+   * certificate in the first.
+   *
+   * @return chain
+   */
+  public List&lt;Certificate&gt; getCertificateChain() {
+<span class="nc bnc" id="L272" title="All 2 branches missed.">    if (certificatechain == null) {</span>
+<span class="nc" id="L273">      return null;</span>
     }
-
-    public void setName(final String name) {
-<span class="nc" id="L146">        this.name = name;</span>
-<span class="nc" id="L147">    }</span>
-
-    /** CAConstants.CA_ACTIVE etc, 0 means not defined (i.e. not updated when editing CA) 
-     * @return status code*/
-    public int getStatus() {
-<span class="nc" id="L152">        return status;</span>
+<span class="nc bnc" id="L275" title="All 2 branches missed.">    if (certificatechainCached == null) {</span>
+<span class="nc" id="L276">      certificatechainCached = EJBTools.unwrapCertCollection(certificatechain);</span>
     }
+<span class="nc" id="L278">    return certificatechainCached;</span>
+  }
 
-    public void setStatus(int status) {
-<span class="nc" id="L156">        this.status = status;</span>
-<span class="nc" id="L157">    }</span>
+  /** @param aCertificatechain chain */
+  public void setCertificateChain(final List&lt;Certificate&gt; aCertificatechain) {
+<span class="nc" id="L283">    this.certificatechainCached = aCertificatechain;</span>
+<span class="nc" id="L284">    this.certificatechain = EJBTools.wrapCertCollection(aCertificatechain);</span>
+<span class="nc" id="L285">  }</span>
 
-    /**@return  CAInfo.CATYPE_X509 or CAInfo.CATYPE_CVC */
-    public int getCAType() {
-<span class="nc" id="L161">        return catype;</span>
+  /** @return chain */
+  public Collection&lt;Certificate&gt; getRenewedCertificateChain() {
+<span class="nc bnc" id="L289" title="All 2 branches missed.">    if (renewedcertificatechain == null) {</span>
+<span class="nc" id="L290">      return null;</span>
     }
-
-    public void setCAType(int catype) {
-<span class="nc" id="L165">        this.catype = catype;</span>
-<span class="nc" id="L166">    }</span>
-
-    public String getCaTypeAsString() {
-<span class="nc bnc" id="L169" title="All 2 branches missed.">        if (catype == CAInfo.CATYPE_CVC) {</span>
-<span class="nc" id="L170">            return &quot;CVC&quot;;</span>
-        }
-<span class="nc bnc" id="L172" title="All 2 branches missed.">        if (catype == CAInfo.CATYPE_X509) {</span>
-<span class="nc" id="L173">            return &quot;X.509&quot;;</span>
-        }
-<span class="nc" id="L175">        return String.valueOf(catype);</span>
+<span class="nc bnc" id="L292" title="All 2 branches missed.">    if (renewedcertificatechainCached == null) {</span>
+<span class="nc" id="L293">      renewedcertificatechainCached =</span>
+<span class="nc" id="L294">          EJBTools.unwrapCertCollection(renewedcertificatechain);</span>
     }
+<span class="nc" id="L296">    return renewedcertificatechainCached;</span>
+  }
 
-    /**
-     * @return A CAId or CAInfo.SELFSIGNED, CAInfo.SIGNEDBYEXTERNALCA etc
-     */
-    public int getSignedBy() {
-<span class="nc" id="L182">        return signedby;</span>
+  /** @param aCertificatechain chain */
+  public void setRenewedCertificateChain(
+     final Collection&lt;Certificate&gt; aCertificatechain) {
+<span class="nc" id="L302">    this.renewedcertificatechainCached = aCertificatechain;</span>
+<span class="nc" id="L303">    this.renewedcertificatechain =</span>
+<span class="nc" id="L304">        EJBTools.wrapCertCollection(aCertificatechain);</span>
+<span class="nc" id="L305">  }</span>
+
+  /** @return token */
+  public CAToken getCAToken() {
+<span class="nc" id="L309">    return this.catoken;</span>
+  }
+
+  /** @param aCatoken token */
+  public void setCAToken(final CAToken aCatoken) {
+<span class="nc" id="L314">    this.catoken = aCatoken;</span>
+<span class="nc" id="L315">  }</span>
+
+  /** @return description */
+  public String getDescription() {
+<span class="nc" id="L319">    return this.description;</span>
+  }
+
+  /** @param aDescription desc */
+  public void setDescription(final String aDescription) {
+<span class="nc" id="L324">    this.description = aDescription;</span>
+<span class="nc" id="L325">  }</span>
+
+  /** @return reason */
+  public int getRevocationReason() {
+<span class="nc" id="L329">    return this.revocationReason;</span>
+  }
+
+  /** @param aRevocationReason reason */
+  public void setRevocationReason(final int aRevocationReason) {
+<span class="nc" id="L334">    this.revocationReason = aRevocationReason;</span>
+<span class="nc" id="L335">  }</span>
+
+  /** @return date */
+  public Date getRevocationDate() {
+<span class="nc" id="L339">    return this.revocationDate;</span>
+  }
+
+  /** @param aRevocationDate date */
+  public void setRevocationDate(final Date aRevocationDate) {
+<span class="nc" id="L344">    this.revocationDate = aRevocationDate;</span>
+<span class="nc" id="L345">  }</span>
+
+  /** @param aCertificateprofileid ID */
+  public void setCertificateProfileId(final int aCertificateprofileid) {
+<span class="nc" id="L349">    this.certificateprofileid = aCertificateprofileid;</span>
+<span class="nc" id="L350">  }</span>
+
+  /** @return the ID of the certificate profile for this CA */
+  public int getCertificateProfileId() {
+<span class="nc" id="L354">    return this.certificateprofileid;</span>
+  }
+
+  /**
+   * @return the id of default cetificate profile for certificates this CA
+   *     issues
+   */
+  public int getDefaultCertificateProfileId() {
+<span class="nc" id="L362">    return defaultCertificateProfileId;</span>
+  }
+  /** @param aDefaultCertificateProfileId ID */
+  public void setDefaultCertificateProfileId(
+          final int aDefaultCertificateProfileId) {
+<span class="nc" id="L367">    this.defaultCertificateProfileId = aDefaultCertificateProfileId;</span>
+<span class="nc" id="L368">  }</span>
+
+  /** @return period */
+  public long getCRLPeriod() {
+<span class="nc" id="L372">    return crlperiod;</span>
+  }
+
+  /** @param aCrlperiod period */
+  public void setCRLPeriod(final long aCrlperiod) {
+<span class="nc" id="L377">    this.crlperiod = aCrlperiod;</span>
+<span class="nc" id="L378">  }</span>
+
+  /** @return period */
+  public long getDeltaCRLPeriod() {
+<span class="nc" id="L382">    return deltacrlperiod;</span>
+  }
+
+  /** @param aDeltacrlperiod period */
+  public void setDeltaCRLPeriod(final long aDeltacrlperiod) {
+<span class="nc" id="L387">    this.deltacrlperiod = aDeltacrlperiod;</span>
+<span class="nc" id="L388">  }</span>
+
+  /** @return interval */
+  public long getCRLIssueInterval() {
+<span class="nc" id="L392">    return crlIssueInterval;</span>
+  }
+
+  /** @param crlissueinterval interval */
+  public void setCRLIssueInterval(final long crlissueinterval) {
+<span class="nc" id="L397">    this.crlIssueInterval = crlissueinterval;</span>
+<span class="nc" id="L398">  }</span>
+
+  /** @return time */
+  public long getCRLOverlapTime() {
+<span class="nc" id="L402">    return crlOverlapTime;</span>
+  }
+
+  /** @param crloverlaptime time */
+  public void setCRLOverlapTime(final long crloverlaptime) {
+<span class="nc" id="L407">    this.crlOverlapTime = crloverlaptime;</span>
+<span class="nc" id="L408">  }</span>
+
+  /** @return publishers */
+  public Collection&lt;Integer&gt; getCRLPublishers() {
+<span class="nc" id="L412">    return crlpublishers;</span>
+  }
+
+  /** @param aCrlpublishers publihers */
+  public void setCRLPublishers(final Collection&lt;Integer&gt; aCrlpublishers) {
+<span class="nc" id="L417">    this.crlpublishers = aCrlpublishers;</span>
+<span class="nc" id="L418">  }</span>
+
+  /** @return validators */
+  public Collection&lt;Integer&gt; getValidators() {
+<span class="nc bnc" id="L422" title="All 2 branches missed.">    if (validators == null) {</span>
+      // Make sure we never return null for upgraded CAs, avoiding possible NPE
+<span class="nc" id="L424">      return new ArrayList&lt;Integer&gt;();</span>
     }
+<span class="nc" id="L426">    return validators;</span>
+  }
 
-    public void setSignedBy(int signedby) {
-<span class="nc" id="L186">        this.signedby = signedby;</span>
-<span class="nc" id="L187">    }</span>
+  /** @param aValidators validators */
+  public void setValidators(final Collection&lt;Integer&gt; aValidators) {
+<span class="nc" id="L431">    this.validators = aValidators;</span>
+<span class="nc" id="L432">  }</span>
 
-    public void setEncodedValidity(String encodedValidity) {
-<span class="nc" id="L190">        this.encodedValidity = encodedValidity;</span>
-<span class="nc" id="L191">    }</span>
+  /** @return bool */
+  public boolean getKeepExpiredCertsOnCRL() {
+<span class="nc" id="L436">    return this.keepExpiredCertsOnCRL;</span>
+  }
 
-    public String getEncodedValidity() {
-<span class="nc" id="L194">        return encodedValidity;</span>
+  /** @param aKeepExpiredCertsOnCRL bool */
+  public void setKeepExpiredCertsOnCRL(final boolean aKeepExpiredCertsOnCRL) {
+<span class="nc" id="L441">    this.keepExpiredCertsOnCRL = aKeepExpiredCertsOnCRL;</span>
+<span class="nc" id="L442">  }</span>
+
+  /** @return user */
+  public boolean getFinishUser() {
+<span class="nc" id="L446">    return finishuser;</span>
+  }
+
+  /** @param aFinishuser user */
+  public void setFinishUser(final boolean aFinishuser) {
+<span class="nc" id="L451">    this.finishuser = aFinishuser;</span>
+<span class="nc" id="L452">  }</span>
+
+  /** @return bool */
+  public boolean getIncludeInHealthCheck() {
+<span class="nc" id="L456">    return this.includeInHealthCheck;</span>
+  }
+
+  /** @param aIncludeInHealthCheck bool */
+  public void setIncludeInHealthCheck(final boolean aIncludeInHealthCheck) {
+<span class="nc" id="L461">    this.includeInHealthCheck = aIncludeInHealthCheck;</span>
+<span class="nc" id="L462">  }</span>
+
+  /**
+   * Lists the extended CA services.
+   *
+   * @return Collection of ExtendedCAServiceInfo
+   */
+  public Collection&lt;ExtendedCAServiceInfo&gt; getExtendedCAServiceInfos() {
+<span class="nc" id="L470">    return this.extendedcaserviceinfos;</span>
+  }
+
+  /** @param aExtendedcaserviceinfos info */
+  public void setExtendedCAServiceInfos(
+     final  Collection&lt;ExtendedCAServiceInfo&gt; aExtendedcaserviceinfos) {
+<span class="nc" id="L476">    this.extendedcaserviceinfos = aExtendedcaserviceinfos;</span>
+<span class="nc" id="L477">  }</span>
+
+  /**
+   * @return a map of approvals, mapped as approval setting (as defined in this
+   *     class) : approval profile ID. Never returns null.
+   */
+  public Map&lt;ApprovalRequestType, Integer&gt; getApprovals() {
+<span class="nc" id="L484">    return approvals;</span>
+  }
+
+  /** @param aApprovals approvals */
+  public void setApprovals(final Map&lt;ApprovalRequestType, Integer&gt; aApprovals) {
+    LinkedHashMap&lt;ApprovalRequestType, Integer&gt; nApprovals;
+<span class="nc bnc" id="L490" title="All 2 branches missed.">    if (aApprovals == null) {</span>
+<span class="nc" id="L491">      nApprovals = new LinkedHashMap&lt;ApprovalRequestType, Integer&gt;();</span>
+    } else {
+<span class="nc" id="L493">        nApprovals</span>
+          = new LinkedHashMap&lt;ApprovalRequestType, Integer&gt;(aApprovals);
     }
+<span class="nc" id="L496">    this.approvals = nApprovals;</span>
+<span class="nc" id="L497">  }</span>
 
-    public Date getExpireTime() {
-<span class="nc" id="L198">        return this.expiretime;</span>
-    }
+  /**
+   * Returns the ID of an approval profile.
+   *
+   * @return profilw
+   * @deprecated since 6.8.0. Use getApprovals() instead;
+   */
+  @Deprecated
+  public int getApprovalProfile() {
+<span class="nc" id="L507">    return approvalProfile;</span>
+  }
 
-    public void setExpireTime(final Date expiretime) {
-<span class="nc" id="L202">        this.expiretime = expiretime;</span>
-<span class="nc" id="L203">    }</span>
+  /**
+   * Sets the ID of an approval profile.
+   *
+   * @param approvalProfileID ID
+   * @deprecated since 6.8.0. Use setApprovals() instead;
+   */
+  @Deprecated
+  public void setApprovalProfile(final int approvalProfileID) {
+<span class="nc" id="L518">    this.approvalProfile = approvalProfileID;</span>
+<span class="nc" id="L519">  }</span>
 
-    public Date getUpdateTime() {
-<span class="nc" id="L206">        return this.updatetime;</span>
-    }
+  /**
+   * Returns a collection of Integers (CAInfo.REQ_APPROVAL_ constants) of which
+   * action that requires approvals, default none.
+   *
+   * &lt;p&gt;Never null
+   *
+   * @return settings
+   * @deprecated since 6.8.0. Use getApprovals() instead;
+   */
+  @Deprecated
+  public Collection&lt;Integer&gt; getApprovalSettings() {
+<span class="nc" id="L532">    return approvalSettings;</span>
+  }
 
-    public void setUpdateTime(final Date updatetime) {
-<span class="nc" id="L210">        this.updatetime = updatetime;</span>
-<span class="nc" id="L211">    }</span>
+  /**
+   * Collection of Integers (CAInfo.REQ_APPROVAL_ constants) of which action
+   * that requires approvals.
+   *
+   * @param aapprovalSettings settings
+   * @deprecated since 6.8.0. Use getApprovals() instead;
+   */
+  @Deprecated
+  public void setApprovalSettings(final Collection&lt;Integer&gt; aapprovalSettings) {
+<span class="nc" id="L544">    this.approvalSettings = aapprovalSettings;</span>
+<span class="nc" id="L545">  }</span>
 
-    /** Retrieves the certificate chain for the CA. The returned certificate chain MUST have the
-     * RootCA certificate in the last position and the CAs certificate in the first.
-     * @return chain
-     */
-    public List&lt;Certificate&gt; getCertificateChain() {
-<span class="nc bnc" id="L218" title="All 2 branches missed.">        if (certificatechain == null) {</span>
-<span class="nc" id="L219">            return null;</span>
-        }
-<span class="nc bnc" id="L221" title="All 2 branches missed.">        if (certificatechainCached == null) {</span>
-<span class="nc" id="L222">            certificatechainCached = EJBTools.unwrapCertCollection(certificatechain);</span>
-        }
-<span class="nc" id="L224">        return certificatechainCached;</span>
-    }
+  /** @return true if the NoConflictCertificateData used. */
+  public boolean isUseNoConflictCertificateData() {
+<span class="nc" id="L549">    return this.useNoConflictCertificateData;</span>
+  }
 
-    public void setCertificateChain(List&lt;Certificate&gt; certificatechain) {
-<span class="nc" id="L228">        this.certificatechainCached = certificatechain;</span>
-<span class="nc" id="L229">        this.certificatechain = EJBTools.wrapCertCollection(certificatechain);</span>
-<span class="nc" id="L230">    }</span>
+  /**
+   * @param auseNoConflictCertificateData true means that the
+   *     NoConflictCertificateData will be used instead of CertificateData.
+   */
+  public void setUseNoConflictCertificateData(
+      final boolean auseNoConflictCertificateData) {
+<span class="nc" id="L558">    this.useNoConflictCertificateData = auseNoConflictCertificateData;</span>
+<span class="nc" id="L559">  }</span>
 
-    public Collection&lt;Certificate&gt; getRenewedCertificateChain() {
-<span class="nc bnc" id="L233" title="All 2 branches missed.">        if (renewedcertificatechain == null) {</span>
-<span class="nc" id="L234">            return null;</span>
-        }
-<span class="nc bnc" id="L236" title="All 2 branches missed.">        if (renewedcertificatechainCached == null) {</span>
-<span class="nc" id="L237">            renewedcertificatechainCached = EJBTools.unwrapCertCollection(renewedcertificatechain);</span>
-        }
-<span class="nc" id="L239">        return renewedcertificatechainCached;</span>
-    }
+  /**
+   * @return true if the UserData used to issue a certificate should be kept in
+   *     the database.
+   */
+  public boolean isUseCertReqHistory() {
+<span class="nc" id="L566">    return this.useCertReqHistory;</span>
+  }
 
-    public void setRenewedCertificateChain(Collection&lt;Certificate&gt; certificatechain) {
-<span class="nc" id="L243">        this.renewedcertificatechainCached = certificatechain;</span>
-<span class="nc" id="L244">        this.renewedcertificatechain = EJBTools.wrapCertCollection(certificatechain);</span>
-<span class="nc" id="L245">    }</span>
+  /**
+   * @param auseCertReqHistory true means that the UserData used at the time of
+   *     certificate issuance should be kept in the database.
+   */
+  public void setUseCertReqHistory(final boolean auseCertReqHistory) {
+<span class="nc" id="L574">    this.useCertReqHistory = auseCertReqHistory;</span>
+<span class="nc" id="L575">  }</span>
 
-    public CAToken getCAToken() {
-<span class="nc" id="L248">        return this.catoken;</span>
-    }
+  /**
+   * @return true if the UserData used to issue a certificate should be kept in
+   *     the database.
+   */
+  public boolean isUseUserStorage() {
+<span class="nc" id="L582">    return this.useUserStorage;</span>
+  }
 
-    public void setCAToken(CAToken catoken) {
-<span class="nc" id="L252">        this.catoken = catoken;</span>
-<span class="nc" id="L253">    }</span>
+  /**
+   * @param auseUserStorage true means that the latest UserData used to issue a
+   *     certificate should be kept in the database.
+   */
+  public void setUseUserStorage(final boolean auseUserStorage) {
+<span class="nc" id="L590">    this.useUserStorage = auseUserStorage;</span>
+<span class="nc" id="L591">  }</span>
 
-    public String getDescription() {
-<span class="nc" id="L256">        return this.description;</span>
-    }
+  /** @return true if the issued certificate should be kept in the database. */
+  public boolean isUseCertificateStorage() {
+<span class="nc" id="L595">    return this.useCertificateStorage;</span>
+  }
 
-    public void setDescription(String description) {
-<span class="nc" id="L260">        this.description = description;</span>
-<span class="nc" id="L261">    }</span>
+  /**
+   * @param auseCertificateStorage true means that the issued certificate should
+   *     be kept in the database.
+   */
+  public void setUseCertificateStorage(final boolean auseCertificateStorage) {
+<span class="nc" id="L603">    this.useCertificateStorage = auseCertificateStorage;</span>
+<span class="nc" id="L604">  }</span>
 
-    public int getRevocationReason() {
-<span class="nc" id="L264">        return this.revocationReason;</span>
-    }
+  /** @return true if revocation for non existing entries is accepted */
+  public boolean isAcceptRevocationNonExistingEntry() {
+<span class="nc" id="L608">    return acceptRevocationNonExistingEntry;</span>
+  }
 
-    public void setRevocationReason(final int revocationReason) {
-<span class="nc" id="L268">        this.revocationReason = revocationReason;</span>
-<span class="nc" id="L269">    }</span>
+  /**
+   * @param aacceptRevocationNonExistingEntry true means that revocation for non
+   *     existing entry is accepted.
+   */
+  public void setAcceptRevocationNonExistingEntry(
+      final boolean aacceptRevocationNonExistingEntry) {
+<span class="nc" id="L617">    this.acceptRevocationNonExistingEntry = aacceptRevocationNonExistingEntry;</span>
+<span class="nc" id="L618">  }</span>
 
-    public Date getRevocationDate() {
-<span class="nc" id="L272">        return this.revocationDate;</span>
-    }
+  /**
+   * @return answer this: should this CA issue certificates to only one user
+   *     with certificates from one specific key.
+   */
+  public boolean isDoEnforceUniquePublicKeys() {
+<span class="nc" id="L625">    return this.doEnforceUniquePublicKeys;</span>
+  }
 
-    public void setRevocationDate(final Date revocationDate) {
-<span class="nc" id="L276">        this.revocationDate = revocationDate;</span>
-<span class="nc" id="L277">    }</span>
+  /** @param adoEnforceUniquePublicKeys boolean */
+  public void setDoEnforceUniquePublicKeys(
+      final boolean adoEnforceUniquePublicKeys) {
+<span class="nc" id="L631">    this.doEnforceUniquePublicKeys = adoEnforceUniquePublicKeys;</span>
+<span class="nc" id="L632">  }</span>
 
-    public void setCertificateProfileId(int _certificateprofileid) {
-<span class="nc" id="L280">        this.certificateprofileid = _certificateprofileid;</span>
-<span class="nc" id="L281">    }</span>
+  /**
+   * @return answer this: should this CA issue certificates to only one user of
+   *     a specific subjectDN serialnumber.
+   */
+  public boolean isDoEnforceUniqueSubjectDNSerialnumber() {
+<span class="nc" id="L639">    return this.doEnforceUniqueSubjectDNSerialnumber;</span>
+  }
 
-    /** @return  the ID of the certificate profile for this CA    */
-    public int getCertificateProfileId() {
-<span class="nc" id="L285">        return this.certificateprofileid;</span>
-    }
+  /** @param adoEnforceUniqueSubjectDNSN boolean */
+  public void setDoEnforceUniqueSubjectDNSerialnumber(
+      final boolean adoEnforceUniqueSubjectDNSN) {
+<span class="nc" id="L645">    this.doEnforceUniqueSubjectDNSerialnumber = adoEnforceUniqueSubjectDNSN;</span>
+<span class="nc" id="L646">  }</span>
 
-    /** @return  the id of default cetificate profile for certificates this CA issues    */
-    public int getDefaultCertificateProfileId() {
-<span class="nc" id="L290">        return defaultCertificateProfileId;</span>
-    }
+  /** @param adoEnforceUniqueDistinguishedName boolean */
+  public void setDoEnforceUniqueDistinguishedName(
+      final boolean adoEnforceUniqueDistinguishedName) {
+<span class="nc" id="L651">    this.doEnforceUniqueDistinguishedName = adoEnforceUniqueDistinguishedName;</span>
+<span class="nc" id="L652">  }</span>
 
-    public void setDefaultCertificateProfileId(int defaultCertificateProfileId) {
-<span class="nc" id="L294">        this.defaultCertificateProfileId = defaultCertificateProfileId;</span>
-<span class="nc" id="L295">    }</span>
-
-    public long getCRLPeriod() {
-<span class="nc" id="L298">        return crlperiod;</span>
-    }
-
-    public void setCRLPeriod(long crlperiod) {
-<span class="nc" id="L302">        this.crlperiod = crlperiod;</span>
-<span class="nc" id="L303">    }</span>
-
-    public long getDeltaCRLPeriod() {
-<span class="nc" id="L306">        return deltacrlperiod;</span>
-    }
-
-    public void setDeltaCRLPeriod(long deltacrlperiod) {
-<span class="nc" id="L310">        this.deltacrlperiod = deltacrlperiod;</span>
-<span class="nc" id="L311">    }</span>
-
-    public long getCRLIssueInterval() {
-<span class="nc" id="L314">        return crlIssueInterval;</span>
-    }
-
-    public void setCRLIssueInterval(long crlissueinterval) {
-<span class="nc" id="L318">        this.crlIssueInterval = crlissueinterval;</span>
-<span class="nc" id="L319">    }</span>
-
-    public long getCRLOverlapTime() {
-<span class="nc" id="L322">        return crlOverlapTime;</span>
-    }
-
-    public void setCRLOverlapTime(long crloverlaptime) {
-<span class="nc" id="L326">        this.crlOverlapTime = crloverlaptime;</span>
-<span class="nc" id="L327">    }</span>
-
-    public Collection&lt;Integer&gt; getCRLPublishers() {
-<span class="nc" id="L330">        return crlpublishers;</span>
-    }
-
-    public void setCRLPublishers(Collection&lt;Integer&gt; crlpublishers) {
-<span class="nc" id="L334">        this.crlpublishers = crlpublishers;</span>
-<span class="nc" id="L335">    }</span>
-
-    public Collection&lt;Integer&gt; getValidators() {
-<span class="nc bnc" id="L338" title="All 2 branches missed.">        if (validators == null) {</span>
-        	// Make sure we never return null for upgraded CAs, avoiding possible NPE
-<span class="nc" id="L340">            return new ArrayList&lt;Integer&gt;();</span>
-        }
-<span class="nc" id="L342">        return validators;</span>
-    }
-
-    public void setValidators(Collection&lt;Integer&gt; validators) {
-<span class="nc" id="L346">        this.validators = validators;</span>
-<span class="nc" id="L347">    }</span>
-
-    public boolean getKeepExpiredCertsOnCRL() {
-<span class="nc" id="L350">        return this.keepExpiredCertsOnCRL;</span>
-    }
-    public void setKeepExpiredCertsOnCRL(boolean keepExpiredCertsOnCRL) {
-<span class="nc" id="L353">        this.keepExpiredCertsOnCRL = keepExpiredCertsOnCRL;</span>
-<span class="nc" id="L354">    }</span>
-
-    public boolean getFinishUser() {
-<span class="nc" id="L357">        return finishuser;</span>
-    }
-
-    public void setFinishUser(boolean finishuser) {
-<span class="nc" id="L361">        this.finishuser = finishuser;</span>
-<span class="nc" id="L362">    }</span>
-
-    public boolean getIncludeInHealthCheck() {
-<span class="nc" id="L365">        return this.includeInHealthCheck;</span>
-    }
-
-    public void setIncludeInHealthCheck(boolean includeInHealthCheck) {
-<span class="nc" id="L369">        this.includeInHealthCheck = includeInHealthCheck;</span>
-<span class="nc" id="L370">    }</span>
-
-    /** Lists the extended CA services.
-     *
-     * @return Collection of ExtendedCAServiceInfo
-     */
-    public Collection&lt;ExtendedCAServiceInfo&gt; getExtendedCAServiceInfos() {
-<span class="nc" id="L377">        return this.extendedcaserviceinfos;</span>
-    }
-
-    public void setExtendedCAServiceInfos(Collection&lt;ExtendedCAServiceInfo&gt; extendedcaserviceinfos) {
-<span class="nc" id="L381">        this.extendedcaserviceinfos = extendedcaserviceinfos;</span>
-<span class="nc" id="L382">    }</span>
-
-    /**
-     *
-     * @return a map of approvals, mapped as approval setting (as defined in this class) : approval profile ID. Never returns null.
-     */
-    public Map&lt;ApprovalRequestType, Integer&gt; getApprovals() {
-<span class="nc" id="L389">        return approvals;</span>
-    }
-
-    public void setApprovals(Map&lt;ApprovalRequestType, Integer&gt; approvals) {
-<span class="nc bnc" id="L393" title="All 2 branches missed.">        if(approvals == null) {</span>
-<span class="nc" id="L394">            approvals = new LinkedHashMap&lt;ApprovalRequestType, Integer&gt;();</span>
-        }
-<span class="nc" id="L396">        this.approvals = new LinkedHashMap&lt;ApprovalRequestType, Integer&gt;(approvals);</span>
-<span class="nc" id="L397">    }</span>
-
-    /**
-     * Returns the ID of an approval profile
-     * @return profilw
-     *
-     * @deprecated since 6.8.0. Use getApprovals() instead;
-     */
-    @Deprecated
-    public int getApprovalProfile() {
-<span class="nc" id="L407">        return approvalProfile;</span>
-    }
-
-    /**
-     * Sets the ID of an approval profile.
-     * @param approvalProfileID ID
-     *
-     * @deprecated since 6.8.0. Use setApprovals() instead;
-     */
-    @Deprecated
-    public void setApprovalProfile(final int approvalProfileID) {
-<span class="nc" id="L418">        this.approvalProfile = approvalProfileID;</span>
-<span class="nc" id="L419">    }</span>
-
-
-    /**
-     * Returns a collection of Integers (CAInfo.REQ_APPROVAL_ constants) of which
-     * action that requires approvals, default none
-     *
-     * Never null
-     * @return settings
-     *
-     * @deprecated since 6.8.0. Use getApprovals() instead;
-     */
-    @Deprecated
-    public Collection&lt;Integer&gt; getApprovalSettings() {
-<span class="nc" id="L433">        return approvalSettings;</span>
-    }
-
-    /**
-     * Collection of Integers (CAInfo.REQ_APPROVAL_ constants) of which
-     * action that requires approvals
-     * @param approvalSettings settings
-     *
-     * @deprecated since 6.8.0. Use getApprovals() instead;
-     */
-    @Deprecated
-    public void setApprovalSettings(Collection&lt;Integer&gt; approvalSettings) {
-<span class="nc" id="L445">        this.approvalSettings = approvalSettings;</span>
-<span class="nc" id="L446">    }</span>
-
-    /**
-     * @return true if the NoConflictCertificateData used.
-     */
-    public boolean isUseNoConflictCertificateData() {
-<span class="nc" id="L452">        return this.useNoConflictCertificateData;</span>
-    }
-
-    /**
-     * @param useNoConflictCertificateData true means that the NoConflictCertificateData will be used instead of CertificateData.
-     */
-    public void setUseNoConflictCertificateData(final boolean useNoConflictCertificateData) {
-<span class="nc" id="L459">        this.useNoConflictCertificateData = useNoConflictCertificateData;</span>
-<span class="nc" id="L460">    }</span>
-    
-    /**
-     * @return true if the UserData used to issue a certificate should be kept in the database.
-     */
-    public boolean isUseCertReqHistory() {
-<span class="nc" id="L466">        return this.useCertReqHistory;</span>
-    }
-
-    /**
-     * @param useCertReqHistory true means that the UserData used at the time of certificate issuance should be kept in the database.
-     */
-    public void setUseCertReqHistory(boolean useCertReqHistory) {
-<span class="nc" id="L473">        this.useCertReqHistory = useCertReqHistory;</span>
-<span class="nc" id="L474">    }</span>
-
-    /** @return true if the UserData used to issue a certificate should be kept in the database. */
-    public boolean isUseUserStorage() {
-<span class="nc" id="L478">        return this.useUserStorage;</span>
-    }
-
-    /** @param useUserStorage true means that the latest UserData used to issue a certificate should be kept in the database. */
-    public void setUseUserStorage(boolean useUserStorage) {
-<span class="nc" id="L483">        this.useUserStorage = useUserStorage;</span>
-<span class="nc" id="L484">    }</span>
-
-    /** @return true if the issued certificate should be kept in the database. */
-    public boolean isUseCertificateStorage() {
-<span class="nc" id="L488">        return this.useCertificateStorage;</span>
-    }
-
-    /** @param useCertificateStorage true means that the issued certificate should be kept in the database. */
-    public void setUseCertificateStorage(boolean useCertificateStorage) {
-<span class="nc" id="L493">        this.useCertificateStorage = useCertificateStorage;</span>
-<span class="nc" id="L494">    }</span>
-
-    /** @return true if revocation for non existing entries is accepted */
-    public boolean isAcceptRevocationNonExistingEntry() {
-<span class="nc" id="L498">        return acceptRevocationNonExistingEntry;</span>
-    }
-
-    /** @param acceptRevocationNonExistingEntry true means that revocation for non existing entry is accepted. */
-    public void setAcceptRevocationNonExistingEntry(boolean acceptRevocationNonExistingEntry) {
-<span class="nc" id="L503">        this.acceptRevocationNonExistingEntry = acceptRevocationNonExistingEntry;</span>
-<span class="nc" id="L504">    }</span>
-
-    /**
-     * @return answer this: should this CA issue certificates to only one user with certificates from one specific key.
-     */
-    public boolean isDoEnforceUniquePublicKeys() {
-<span class="nc" id="L510">        return this.doEnforceUniquePublicKeys;</span>
-    }
-
-    /**
-     * @param doEnforceUniquePublicKeys boolean
-     */
-    public void setDoEnforceUniquePublicKeys(boolean doEnforceUniquePublicKeys) {
-<span class="nc" id="L517">        this.doEnforceUniquePublicKeys = doEnforceUniquePublicKeys;</span>
-<span class="nc" id="L518">    }</span>
-
-    /**
-     * @return answer this: should this CA issue certificates to only one user of a specific subjectDN serialnumber.
-     */
-    public boolean isDoEnforceUniqueSubjectDNSerialnumber() {
-<span class="nc" id="L524">        return this.doEnforceUniqueSubjectDNSerialnumber;</span>
-    }
-
-    /**
-     * @param doEnforceUniqueSubjectDNSN boolean
-     */
-    public void setDoEnforceUniqueSubjectDNSerialnumber(boolean doEnforceUniqueSubjectDNSN) {
-<span class="nc" id="L531">        this.doEnforceUniqueSubjectDNSerialnumber = doEnforceUniqueSubjectDNSN;</span>
-<span class="nc" id="L532">    }</span>
-
-    /**
-     * @param doEnforceUniqueDistinguishedName boolean
-     */
-    public void setDoEnforceUniqueDistinguishedName(boolean doEnforceUniqueDistinguishedName) {
-<span class="nc" id="L538">        this.doEnforceUniqueDistinguishedName = doEnforceUniqueDistinguishedName;</span>
-<span class="nc" id="L539">    }</span>
-
-    /**
-     * @return answer this: should this CA issue certificates to only one user with certificates with a specific subject DN.
-     */
-    public boolean isDoEnforceUniqueDistinguishedName() {
-<span class="nc" id="L545">        return this.doEnforceUniqueDistinguishedName;</span>
-    }
+  /**
+   * @return answer this: should this CA issue certificates to only one user
+   *     with certificates with a specific subject DN.
+   */
+  public boolean isDoEnforceUniqueDistinguishedName() {
+<span class="nc" id="L659">    return this.doEnforceUniqueDistinguishedName;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -157,7 +157,7 @@ import org.ejbca.core.model.services.intervals.DummyInterval;
 <span class="nc" id="L157">                String msg = intres.getLocalizedMessage(&quot;services.errorexpireworker.errorconfig&quot;, serviceName, &quot;VALUE&quot;);</span>
 <span class="nc" id="L158">                throw new ServiceExecutionFailedException(msg);</span>
             }
-<span class="nc" id="L160">            timeBeforeExpire = intvalue * unitval;</span>
+<span class="nc" id="L160">            timeBeforeExpire = (long) intvalue * unitval;</span>
         }
 
 <span class="nc" id="L163">        return timeBeforeExpire * 1000;</span>

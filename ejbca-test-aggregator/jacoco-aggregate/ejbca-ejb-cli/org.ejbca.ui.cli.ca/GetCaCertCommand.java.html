@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>GetCaCertCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.cli.ca</a> &gt; <span class="el_source">GetCaCertCommand.java</span></div><h1>GetCaCertCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.cli.ca;
+
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.apache.log4j.Logger;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.CryptoProviderTools;
+import org.ejbca.ui.cli.infrastructure.command.CommandResult;
+import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
+import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
+import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
+
+/**
+ * Export any CA certificate.
+ *
+ * @version $Id: GetCaCertCommand.java 20954 2015-03-23 10:14:06Z mikekushner $
+ */
+<span class="nc" id="L41">public class GetCaCertCommand extends BaseCaAdminCommand {</span>
+
+<span class="nc" id="L43">    private static final Logger log = Logger.getLogger(GetCaCertCommand.class);</span>
+
+    private static final String CA_NAME_KEY = &quot;--caname&quot;;
+    private static final String FILE_KEY = &quot;-f&quot;;
+    private static final String DER_KEY = &quot;-der&quot;;
+    private static final String FULL_CERT_CHAIN_KEY = &quot;--include-full-chain&quot;;
+
+    {
+<span class="nc" id="L51">        registerParameter(new Parameter(CA_NAME_KEY, &quot;CA Name&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;The CA to export the root certificate from&quot;));
+<span class="nc" id="L53">        registerParameter(new Parameter(FILE_KEY, &quot;File Name&quot;, MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,</span>
+                &quot;The file to export to.&quot;));
+<span class="nc" id="L55">        registerParameter(new Parameter(DER_KEY, &quot;&quot;, MandatoryMode.OPTIONAL, StandaloneMode.FORBID, ParameterMode.FLAG,</span>
+                &quot;Use DER encoding. Default is PEM encoding.&quot;));
+<span class="nc" id="L57">        registerParameter(Parameter</span>
+<span class="nc" id="L58">                .createFlag(FULL_CERT_CHAIN_KEY, &quot;Set this flag to get the full certificate chain. Only available for PEM format.&quot;));</span>
+<span class="nc" id="L59">    }</span>
+
+    @Override
+    public String getMainCommand() {
+<span class="nc" id="L63">        return &quot;getcacert&quot;;</span>
+    }
+    
+    @Override
+    public Set&lt;String&gt; getMainCommandAliases() {    
+<span class="nc" id="L68">        return new HashSet&lt;String&gt;(Arrays.asList(&quot;getrootcert&quot;));</span>
+    }
+
+    @Override
+    public CommandResult execute(ParameterContainer parameters) {
+<span class="nc bnc" id="L73" title="All 2 branches missed.">        boolean pem = !parameters.containsKey(DER_KEY);</span>
+<span class="nc" id="L74">        boolean fullChain = parameters.containsKey(FULL_CERT_CHAIN_KEY);</span>
+
+<span class="nc" id="L76">        String caname = parameters.get(CA_NAME_KEY);</span>
+<span class="nc" id="L77">        String filename = parameters.get(FILE_KEY);</span>
+
+<span class="nc" id="L79">        CryptoProviderTools.installBCProvider();</span>
+<span class="nc" id="L80">        ArrayList&lt;Certificate&gt; chain = new ArrayList&lt;Certificate&gt;(getCertChain(getAuthenticationToken(), caname));</span>
+        try {
+<span class="nc bnc" id="L82" title="All 2 branches missed.">            if (chain.size() &gt; 0) {</span>
+<span class="nc" id="L83">                Certificate caCert = (Certificate) chain.get(0);</span>
+
+                FileOutputStream fos;
+                try {
+<span class="nc" id="L87">                    fos = new FileOutputStream(filename);</span>
+<span class="nc" id="L88">                } catch (FileNotFoundException e) {</span>
+<span class="nc" id="L89">                    log.error(&quot;Could not create export file&quot;, e);</span>
+<span class="nc" id="L90">                    return CommandResult.FUNCTIONAL_FAILURE;</span>
+<span class="nc" id="L91">                }</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">                if (pem) {</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">                    if (fullChain) {</span>
+<span class="nc" id="L94">                        fos.write(CertTools.getPemFromCertificateChain(chain));</span>
+                    } else {
+<span class="nc" id="L96">                        fos.write(CertTools.getPemFromCertificateChain(chain.subList(0, 1)));</span>
+                    }
+                } else {
+<span class="nc" id="L99">                    fos.write(caCert.getEncoded());</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">                    if (fullChain) {</span>
+<span class="nc" id="L101">                        log.info(&quot;Full certificate chain not available in DER format. Writing only CA certificate.&quot;);</span>
+                    }
+                }
+<span class="nc" id="L104">                fos.close();</span>
+<span class="nc bnc" id="L105" title="All 6 branches missed.">                log.info(&quot;Wrote CA certificate &quot; + (pem &amp;&amp; fullChain ? &quot;with full certificate chain &quot; : &quot;&quot;) + &quot;to '&quot; + filename + &quot;' using &quot; + (pem ? &quot;PEM&quot; : &quot;DER&quot;) + &quot; encoding.&quot;);</span>
+<span class="nc" id="L106">                return CommandResult.SUCCESS;</span>
+            } else {
+<span class="nc" id="L108">                log.error(&quot;No CA certificate found.&quot;);</span>
+<span class="nc" id="L109">                return CommandResult.FUNCTIONAL_FAILURE;</span>
+            }
+<span class="nc" id="L111">        } catch (IOException e) {</span>
+<span class="nc" id="L112">            throw new IllegalStateException(&quot;Could not write to file for unknown reason&quot;, e);</span>
+<span class="nc" id="L113">        } catch (CertificateEncodingException e) {</span>
+<span class="nc" id="L114">            throw new IllegalStateException(&quot;An encoding error was encountered&quot;, e);</span>
+        }
+    }
+
+    @Override
+    public String getCommandDescription() {
+<span class="nc" id="L120">        return &quot;Save a CA certificate (PEM- or DER-format) to file&quot;;</span>
+
+    }
+
+    @Override
+    public String getFullHelpText() {
+<span class="nc" id="L126">        return getCommandDescription();</span>
+    }
+    
+    @Override
+    protected Logger getLogger() {
+<span class="nc" id="L131">        return log;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

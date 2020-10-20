@@ -13,77 +13,92 @@
 package org.cesecore.certificates.certificateprofile;
 
 import java.io.Serializable;
-
 import org.apache.commons.lang.StringUtils;
 
 /**
- * Contains a single URI/language pair of a PKI disclosure statement. 
- * @version $Id: PKIDisclosureStatement.java 25887 2017-05-23 09:21:11Z henriks $
+ * Contains a single URI/language pair of a PKI disclosure statement.
+ *
+ * @version $Id: PKIDisclosureStatement.java 25887 2017-05-23 09:21:11Z henriks
+ *     $
  */
 public final class PKIDisclosureStatement implements Serializable, Cloneable {
-    
-    private static final long serialVersionUID = 1L;
-    
-    private String url;
-    private String language;
-    
-<span class="fc" id="L30">    public PKIDisclosureStatement() {};</span>
-    
-<span class="fc" id="L32">    public PKIDisclosureStatement(final String url, final String language) {</span>
-<span class="fc" id="L33">        this.url = url;</span>
-<span class="fc" id="L34">        this.language = language;</span>
-<span class="fc" id="L35">    }</span>
 
-    /** @return String with PDS URL. Never null */
-    public String getUrl() {
-<span class="fc" id="L39">        return url;</span>
-    }
+  private static final long serialVersionUID = 1L;
 
-    /** Sets the PDS URL (EN 319 412-05) 
-     * @param url URL*/
-    public void setUrl(final String url) {
-<span class="fc" id="L45">        this.url = url;</span>
-<span class="fc" id="L46">    }</span>
+  /** URL. */
+  private String url;
+  /** Language. */
+  private String language;
 
-    /** Shall be a two letter ISO 639-1 code, i.e. en, sv, fr  
-     * @return String with PDS Language or empty string (EN 319 412-05) 
-     */
-    public String getLanguage() {
-<span class="fc" id="L52">        return language;</span>
-    }
+  /** Default constructor.*/
+<span class="fc" id="L34">  public PKIDisclosureStatement() { }</span>
 
-    /** Sets String with PDS Language (EN 319 412-05) 
-     * Shall be a two letter ISO 639-1 code, i.e. en, sv, fr 
-     * @param language language
-     */
-    public void setLanguage(final String language) {
-<span class="fc" id="L60">        this.language = language;</span>
-<span class="fc" id="L61">    }</span>
-    
-    @Override
-    public boolean equals(final Object other) {
-<span class="pc bpc" id="L65" title="1 of 2 branches missed.">        if (other instanceof PKIDisclosureStatement) {</span>
-<span class="fc" id="L66">            final PKIDisclosureStatement o = (PKIDisclosureStatement) other;</span>
-<span class="pc bpc" id="L67" title="2 of 4 branches missed.">            return StringUtils.equals(url, o.getUrl()) &amp;&amp; StringUtils.equals(language, o.getLanguage());</span>
-        } else {
-<span class="nc" id="L69">            return false;</span>
-        }
+  /**
+   * @param aUrl URL
+   * @param aLanguage Language
+   */
+<span class="fc" id="L40">  public PKIDisclosureStatement(final String aUrl, final String aLanguage) {</span>
+<span class="fc" id="L41">    this.url = aUrl;</span>
+<span class="fc" id="L42">    this.language = aLanguage;</span>
+<span class="fc" id="L43">  }</span>
+
+  /** @return String with PDS URL. Never null */
+  public String getUrl() {
+<span class="fc" id="L47">    return url;</span>
+  }
+
+  /**
+   * Sets the PDS URL (EN 319 412-05).
+   *
+   * @param aUrl URL
+   */
+  public void setUrl(final String aUrl) {
+<span class="fc" id="L56">    this.url = aUrl;</span>
+<span class="fc" id="L57">  }</span>
+
+  /**
+   * Shall be a two letter ISO 639-1 code, i.e. en, sv, fr
+   *
+   * @return String with PDS Language or empty string (EN 319 412-05)
+   */
+  public String getLanguage() {
+<span class="fc" id="L65">    return language;</span>
+  }
+
+  /**
+   * Sets String with PDS Language (EN 319 412-05) Shall be a two letter ISO
+   * 639-1 code, i.e. en, sv, fr
+   *
+   * @param aLanguage language
+   */
+  public void setLanguage(final String aLanguage) {
+<span class="fc" id="L75">    this.language = aLanguage;</span>
+<span class="fc" id="L76">  }</span>
+
+  @Override
+  public boolean equals(final Object other) {
+<span class="pc bpc" id="L80" title="1 of 2 branches missed.">    if (other instanceof PKIDisclosureStatement) {</span>
+<span class="fc" id="L81">      final PKIDisclosureStatement o = (PKIDisclosureStatement) other;</span>
+<span class="pc bpc" id="L82" title="1 of 2 branches missed.">      return StringUtils.equals(url, o.getUrl())</span>
+<span class="pc bpc" id="L83" title="1 of 2 branches missed.">          &amp;&amp; StringUtils.equals(language, o.getLanguage());</span>
+    } else {
+<span class="nc" id="L85">      return false;</span>
     }
-    
-    @Override
-    public int hashCode() {
-<span class="nc" id="L75">        return url.hashCode() ^ language.hashCode();</span>
-    }
-    
-    @Override
-    protected Object clone() throws CloneNotSupportedException {
-<span class="fc" id="L80">        return new PKIDisclosureStatement(url, language);</span>
-    }
-    
-    @Override
-    public String toString() {
-<span class="nc" id="L85">        return &quot;{&quot; + language + &quot;}&quot; + url;</span>
-    }
-    
+  }
+
+  @Override
+  public int hashCode() {
+<span class="nc" id="L91">    return url.hashCode() ^ language.hashCode();</span>
+  }
+
+  @Override
+  protected Object clone() throws CloneNotSupportedException {
+<span class="fc" id="L96">    return new PKIDisclosureStatement(url, language);</span>
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L101">    return &quot;{&quot; + language + &quot;}&quot; + url;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

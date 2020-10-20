@@ -9,38 +9,39 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/  
+ *************************************************************************/
 package org.cesecore.certificates.ca;
 
 import org.cesecore.CesecoreException;
 import org.cesecore.ErrorCode;
 
-
 /**
- * An exception thrown when someone tries to use a CA that is offline
+ * An exception thrown when someone tries to use a CA that is offline.
  *
- * @version $Id: CAOfflineException.java 18868 2014-05-02 06:12:20Z mikekushner $
+ * @version $Id: CAOfflineException.java 18868 2014-05-02 06:12:20Z mikekushner
+ *     $
  */
 public class CAOfflineException extends CesecoreException {
 
-    private static final long serialVersionUID = 6138811845234513758L;
+  private static final long serialVersionUID = 6138811845234513758L;
 
+  /**
+   * Creates a new instance of &lt;code&gt;CAOfflineException&lt;/code&gt; without detail
+   * message.
+   */
+  public CAOfflineException() {
+<span class="nc" id="L33">    super();</span>
+<span class="nc" id="L34">    super.setErrorCode(ErrorCode.CA_OFFLINE);</span>
+<span class="nc" id="L35">  }</span>
 
-    /**
-     * Creates a new instance of &lt;code&gt;CAOfflineException&lt;/code&gt; without detail message.
-     */
-    public CAOfflineException() {
-<span class="nc" id="L33">        super();</span>
-<span class="nc" id="L34">        super.setErrorCode(ErrorCode.CA_OFFLINE);</span>
-<span class="nc" id="L35">    }</span>
-    
-    
-    /**
-     * Constructs an instance of &lt;code&gt;CAOfflineException&lt;/code&gt; with the specified detail message.
-     * @param msg the detail message.
-     */
-    public CAOfflineException(String msg) {
-<span class="fc" id="L43">        super(ErrorCode.CA_OFFLINE, msg);</span>
-<span class="fc" id="L44">    }</span>
+  /**
+   * Constructs an instance of &lt;code&gt;CAOfflineException&lt;/code&gt; with the
+   * specified detail message.
+   *
+   * @param msg the detail message.
+   */
+  public CAOfflineException(final String msg) {
+<span class="fc" id="L44">    super(ErrorCode.CA_OFFLINE, msg);</span>
+<span class="fc" id="L45">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>
