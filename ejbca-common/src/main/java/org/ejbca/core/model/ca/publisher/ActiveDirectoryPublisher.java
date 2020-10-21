@@ -41,29 +41,42 @@ public class ActiveDirectoryPublisher extends LdapPublisher {
 
   private static final long serialVersionUID = 1081937637762724531L;
 
-  private static final Logger log =
+  /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(ActiveDirectoryPublisher.class);
 
+  /** Config. */
   public static final float LATEST_VERSION = 1;
 
   // Constants indicating characteristics of created user accounts
+  /** Config. */
   public static final int UAC_DISABLE = 2;
+  /** Config. */
   public static final int UAC_NORMAL = 512;
+  /** Config. */
   public static final int UAC_NEVEREXPIRE = 66048;
+  /** Config. */
   public static final int UAC_SMARTCARDREQUIRED = 0x40000;
 
   // Default Values
+  /** Config. */
   public static final int DEFAULT_UAC = UAC_NEVEREXPIRE;
-
+  /** Config. */
   protected static final String USEPASSWORD = "usepassword";
+  /** Config. */
   protected static final String USERACCOUNTCONTROL = "useraccountcontrol";
+  /** Config. */
   protected static final String SAMACCOUNTNAME = "samaccountname";
+  /** Config. */
   protected static final String USERDESCRIPTION = "userdescription";
 
+  /** Config. */
   public static final String DEFAULT_USEROBJECTCLASS =
       "top;person;organizationalPerson;user";
+  /** Config. */
   public static final String DEFAULT_CAOBJECTCLASS = "top;cRLDistributionPoint";
 
+  /** Null constructor. */
   public ActiveDirectoryPublisher() {
     super();
     data.put(TYPE, Integer.valueOf(PublisherConst.TYPE_ADPUBLISHER));
@@ -137,6 +150,7 @@ public class ActiveDirectoryPublisher extends LdapPublisher {
    * @param person true if this is a person-entry, false if it is a CA.
    * @param password to set for the user, if null no password is set.
    * @param extendedinformation for future use...
+   * @param email email
    * @return LDAPAtributeSet created...
    */
   protected LDAPAttributeSet getAttributeSet(
@@ -148,7 +162,7 @@ public class ActiveDirectoryPublisher extends LdapPublisher {
       final boolean person,
       final String password,
       final ExtendedInformation extendedinformation) {
-    log.debug("ADPublisher : getAttributeSet");
+    LOG.debug("ADPublisher : getAttributeSet");
 
     LDAPAttributeSet attributeSet =
         super.getAttributeSet(
@@ -186,6 +200,7 @@ public class ActiveDirectoryPublisher extends LdapPublisher {
         case DNFieldExtractor.UID:
           samaccountname = CertTools.getPartFromDN(dn, "UID");
           break;
+          default: break; // no-op
       }
       if (samaccountname != null) {
         attributeSet.add(new LDAPAttribute("samaccountname", samaccountname));
@@ -214,13 +229,13 @@ public class ActiveDirectoryPublisher extends LdapPublisher {
       // Then, you need to get the octet string of the Unicode representation of
       // that.  You need to leave off the extra two bytes Java uses as length:
 
-      byte _bytes[] = null;
+      byte[] obytes = null;
       try {
-        _bytes = newVal.getBytes("Unicode");
+        obytes = newVal.getBytes("Unicode");
       } catch (UnsupportedEncodingException e) {
       }
-      byte bytes[] = new byte[_bytes.length - 2];
-      System.arraycopy(_bytes, 2, bytes, 0, _bytes.length - 2);
+      byte[] bytes = new byte[obytes.length - 2];
+      System.arraycopy(obytes, 2, bytes, 0, obytes.length - 2);
 
       // Take that value and stuff it into the unicodePwd attribute:
       attributeSet.add(new LDAPAttribute("unicodePwd", bytes));
@@ -229,7 +244,7 @@ public class ActiveDirectoryPublisher extends LdapPublisher {
     return attributeSet;
   } // getAttributeSet
 
-  /** Overrides LdapPublisher.getModificationSet */
+  /** Overrides LdapPublisher.getModificationSet. */
   @Override
   protected ArrayList<LDAPModification> getModificationSet(
       final LDAPEntry oldEntry,
@@ -250,7 +265,9 @@ public class ActiveDirectoryPublisher extends LdapPublisher {
 
   // Private methods
 
-  /** @see org.ejbca.core.model.ca.publisher.BasePublisher#clone() */
+  /** @see org.ejbca.core.model.ca.publisher.BasePublisher#clone()
+   * @return clone
+   * @throws CloneNotSupportedException fail */
   public Object clone() throws CloneNotSupportedException {
     ActiveDirectoryPublisher clone = new ActiveDirectoryPublisher();
     @SuppressWarnings("unchecked")
@@ -267,7 +284,8 @@ public class ActiveDirectoryPublisher extends LdapPublisher {
     return clone;
   }
 
-  /* *
+  /**
+   * @return version
    * @see org.ejbca.core.model.ca.publisher.BasePublisher#getLatestVersion()
    */
   public float getLatestVersion() {

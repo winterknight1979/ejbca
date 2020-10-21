@@ -27,59 +27,66 @@ public class KeyRecoveryCAServiceResponse extends ExtendedCAServiceResponse
     implements Serializable {
 
   private static final long serialVersionUID = -6164842390930090876L;
+  /** Config. */
   public static final int TYPE_ENCRYPTKEYSRESPONSE = 1;
+  /** Config. */
   public static final int TYPE_DECRYPTKEYSRESPONSE = 1;
-
+  /** Type. */
   private final int type;
+  /** Data. */
   private byte[] keydata;
+  /** Data. */
   private KeyPair keypair;
+  /** Alias. */
   private final String keyAlias;
+  /** ID. */
   private final int cryptoTokenId;
+  /** Key ID. */
   private final String publicKeyId;
 
   /**
-   * Used when decrypting key recovery data, keydata is read from the database
+   * Used when decrypting key recovery data, keydata is read from the database.
    *
-   * @param type Type
-   * @param keydata key
-   * @param cryptoTokenId ID
-   * @param keyAlias Key
-   * @param publicKeyId Key ID
+   * @param aType Type
+   * @param aKeydata key
+   * @param aCryptoTokenId ID
+   * @param aKeyAlias Key
+   * @param aPublicKeyId Key ID
    */
   public KeyRecoveryCAServiceResponse(
-      final int type,
-      final byte[] keydata,
-      final int cryptoTokenId,
-      final String keyAlias,
-      final String publicKeyId) {
-    this.type = type;
-    this.keydata = keydata;
-    this.cryptoTokenId = cryptoTokenId;
-    this.keyAlias = keyAlias;
-    this.publicKeyId = publicKeyId;
+      final int aType,
+      final byte[] aKeydata,
+      final int aCryptoTokenId,
+      final String aKeyAlias,
+      final String aPublicKeyId) {
+    this.type = aType;
+    this.keydata = aKeydata;
+    this.cryptoTokenId = aCryptoTokenId;
+    this.keyAlias = aKeyAlias;
+    this.publicKeyId = aPublicKeyId;
   }
 
   /**
    * Used when encrypting data, keypair is encrypted to be stored in the
-   * database
+   * database.
    *
-   * @param type Type
-   * @param keypair Key
-   * @param cryptoTokenId OD
-   * @param keyAlias Key
-   * @param publicKeyId Key ID
+   * @param aType Type
+   * @param aKeypair Key
+   * @param aCryptoTokenId OD
+   * @param aKeyAlias Key
+   * @param aPublicKeyId Key ID
    */
   public KeyRecoveryCAServiceResponse(
-      final int type,
-      final KeyPair keypair,
-      final int cryptoTokenId,
-      final String keyAlias,
-      final String publicKeyId) {
-    this.type = type;
-    this.keypair = keypair;
-    this.cryptoTokenId = cryptoTokenId;
-    this.keyAlias = keyAlias;
-    this.publicKeyId = publicKeyId;
+      final int aType,
+      final KeyPair aKeypair,
+      final int aCryptoTokenId,
+      final String aKeyAlias,
+      final String aPublicKeyId) {
+    this.type = aType;
+    this.keypair = aKeypair;
+    this.cryptoTokenId = aCryptoTokenId;
+    this.keyAlias = aKeyAlias;
+    this.publicKeyId = aPublicKeyId;
   }
 
   /** @return type of response, one of the TYPE_ constants. */
@@ -115,14 +122,23 @@ public class KeyRecoveryCAServiceResponse extends ExtendedCAServiceResponse
     return ret;
   }
 
+  /**
+   * @return Alias
+   */
   public String getKeyAlias() {
     return keyAlias;
   }
 
+  /**
+   * @return ID
+   */
   public int getCryptoTokenId() {
     return cryptoTokenId;
   }
 
+  /**
+   * @return ID
+   */
   public String getPublicKeyId() {
     return publicKeyId;
   }

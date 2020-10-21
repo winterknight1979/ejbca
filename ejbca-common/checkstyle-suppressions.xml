@@ -17,7 +17,22 @@
  	<suppress checks="ParameterNumberCheck" files="ApprovalNotificationParameterGenerator.java" lines="57"/>
  	<suppress checks="UnusedImportsCheck" files="ApprovalNotificationParameterGenerator.java" lines="15"/> <!-- Used in JDOC -->
  	<suppress checks="MagicNumberCheck" files="ApprovalRequest.java" lines="519,552,596"/> <!-- Version numbers -->
- 	<suppress checks="MethodLengthCheck" files="ApprovalRequest.java" lines="470"/> <!-- Version numbers -->
-
+ 	<suppress checks="MethodLengthCheck" files="ApprovalRequest.java" lines="470"/> 
+ 	<suppress checks="MethodLengthCheck" files="KeyRecoveryCAService.java" lines="116"/> 
+ 	<suppress checks="ParameterNumberCheck" files="ActiveDirectoryPublisher.java" lines="156"/>
+ 	<suppress checks="ParameterNumberCheck" files="BasePublisher.java" lines="269"/>
+ 	<suppress checks="MethodLengthCheck" files="CertificateSamplerCustomPublisher.java" lines="73"/>
+ 	<suppress checks="ParameterNumberCheck" files="CertificateSamplerCustomPublisher.java" lines="250"/> 
+ 	<suppress checks="ParameterNumberCheck" files="CustomPublisherContainer.java" lines="297"/> 
+ 	<suppress checks="ParameterNumberCheck" files="CustomerLdapPublisher1.java" lines="359,1269"/>
+ 	<suppress checks="ParameterNumberCheck" files="CertSernoCustomLdapPublisher.java" lines="155,233"/>
+ 	<suppress checks="ParameterNumberCheck" files="DummyCustomPublisher.java" lines="84"/>
+ 	<suppress checks="ParameterNumberCheck" files="GeneralPurposeCustomPublisher.java" lines="220"/>
+ 	<suppress checks="ParameterNumberCheck" files="ICustomPublisher.java" lines="56"/>
+ 	<suppress checks="ParameterNumberCheck" files="LdapPublisher.java" lines="273,1719"/>
+ 	<suppress checks="MethodLengthCheck" files="LdapPublisher.java" lines="273,867,689"/>
+ 	<suppress checks="MethodLengthCheck" files="LdapSearchPublisher.java" lines="87"/>
+ 	<suppress checks="ParameterNumberCheck" files="PublisherQueueData.java" lines="74"/>
+ 	
  	
  </suppressions>

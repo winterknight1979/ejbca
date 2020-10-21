@@ -36,116 +36,187 @@ public class PublisherQueueData implements Serializable {
   private static final long serialVersionUID = 101L;
 
   // private fields.
+  /** Key. */
   private String pk;
+  /** Time. */
   private Date timeCreated;
+  /** Date. */
   private Date lastUpdate;
-  /** PublisherQueueData.STATUS_SUCCESS etc */
+  /** PublisherQueueData.STATUS_SUCCESS etc. */
   private int publishStatus;
-
+  /** Count. */
   private int tryCounter;
-  /** PublisherQueueData.PUBLISH_TYPE_CERT etc */
+  /** PublisherQueueData.PUBLISH_TYPE_CERT etc. */
   private int publishType;
 
+  /** FP. */
   private String fingerprint;
+  /** ID. */
   private int publisherId;
+  /** Data. */
   private PublisherQueueVolatileInformation volatileData;
 
   // Public constants
 
   // Public methods.
 
+  /**
+   * @param aPk PK
+   * @param theTimeCreated Time
+   * @param theLastUpdate Date
+   * @param aPublishStatus Status
+   * @param theTryCounter Count
+   * @param aPublishType Type
+   * @param aFingerprint FP
+   * @param aPublisherId ID
+   * @param theVolatileData Data
+   */
   public PublisherQueueData(
-      final String pk,
-      final Date timeCreated,
-      final Date lastUpdate,
-      final int publishStatus,
-      final int tryCounter,
-      final int publishType,
-      final String fingerprint,
-      final int publisherId,
-      final PublisherQueueVolatileInformation volatileData) {
+      final String aPk,
+      final Date theTimeCreated,
+      final Date theLastUpdate,
+      final int aPublishStatus,
+      final int theTryCounter,
+      final int aPublishType,
+      final String aFingerprint,
+      final int aPublisherId,
+      final PublisherQueueVolatileInformation theVolatileData) {
     super();
-    this.pk = pk;
-    this.timeCreated = timeCreated;
-    this.lastUpdate = lastUpdate;
-    this.publishStatus = publishStatus;
-    this.tryCounter = tryCounter;
-    this.publishType = publishType;
-    this.fingerprint = fingerprint;
-    this.publisherId = publisherId;
-    this.volatileData = volatileData;
+    this.pk = aPk;
+    this.timeCreated = theTimeCreated;
+    this.lastUpdate = theLastUpdate;
+    this.publishStatus = aPublishStatus;
+    this.tryCounter = theTryCounter;
+    this.publishType = aPublishType;
+    this.fingerprint = aFingerprint;
+    this.publisherId = aPublisherId;
+    this.volatileData = theVolatileData;
   }
 
+  /**
+   * @return type
+   */
   public int getPublishType() {
     return publishType;
   }
 
-  public void setPublishType(final int publishType) {
-    this.publishType = publishType;
+  /**
+   * @param aPublishType type
+   */
+  public void setPublishType(final int aPublishType) {
+    this.publishType = aPublishType;
   }
 
+  /**
+   * @return key
+   */
   public String getPk() {
     return pk;
   }
 
-  public void setPk(final String pk) {
-    this.pk = pk;
+  /**
+   * @param aPk key
+   */
+  public void setPk(final String aPk) {
+    this.pk = aPk;
   }
 
+  /**
+   * @return time
+   */
   public Date getTimeCreated() {
     return timeCreated;
   }
 
-  public void setTimeCreated(final Date timeCreated) {
-    this.timeCreated = timeCreated;
+  /**
+   * @param theTimeCreated time
+   */
+  public void setTimeCreated(final Date theTimeCreated) {
+    this.timeCreated = theTimeCreated;
   }
 
+  /**
+   * @return date
+   */
   public Date getLastUpdate() {
     return lastUpdate;
   }
 
-  public void setLastUpdate(final Date lastUpdate) {
-    this.lastUpdate = lastUpdate;
+  /**
+   * @param theLastUpdate date
+   */
+  public void setLastUpdate(final Date theLastUpdate) {
+    this.lastUpdate = theLastUpdate;
   }
 
+  /**
+   * @return status
+   */
   public int getPublishStatus() {
     return publishStatus;
   }
 
-  public void setPublishStatus(final int publishStatus) {
-    this.publishStatus = publishStatus;
+  /**
+   * @param aPublishStatus Status
+   */
+  public void setPublishStatus(final int aPublishStatus) {
+    this.publishStatus = aPublishStatus;
   }
 
+  /**
+   * @return count
+   */
   public int getTryCounter() {
     return tryCounter;
   }
 
-  public void setTryCounter(final int tryCounter) {
-    this.tryCounter = tryCounter;
+  /**
+   * @param theTryCounter count
+   */
+  public void setTryCounter(final int theTryCounter) {
+    this.tryCounter = theTryCounter;
   }
 
+  /**
+   * @return FP
+   */
   public String getFingerprint() {
     return fingerprint;
   }
 
-  public void setFingerprint(final String fingerprint) {
-    this.fingerprint = fingerprint;
+  /**
+   * @param aFingerprint FP
+   */
+  public void setFingerprint(final String aFingerprint) {
+    this.fingerprint = aFingerprint;
   }
 
+  /**
+   * @return ID
+   */
   public int getPublisherId() {
     return publisherId;
   }
 
-  public void setPublisherId(final int publisherId) {
-    this.publisherId = publisherId;
+  /**
+   * @param aPublisherId ID
+   */
+  public void setPublisherId(final int aPublisherId) {
+    this.publisherId = aPublisherId;
   }
 
+  /**
+   * @return data
+   */
   public PublisherQueueVolatileInformation getVolatileData() {
     return volatileData;
   }
 
+  /**
+   * @param theVolatileData data
+   */
   public void setVolatileData(
-      final PublisherQueueVolatileInformation volatileData) {
-    this.volatileData = volatileData;
+      final PublisherQueueVolatileInformation theVolatileData) {
+    this.volatileData = theVolatileData;
   }
 }

@@ -19,27 +19,33 @@ import org.apache.commons.lang.StringUtils;
 
 /**
  * Holder class for preserving the data remaining from the old community VA
- * Publisher
+ * Publisher.
  *
  * @version $Id: LegacyValidationAuthorityPublisher.java 34192 2020-01-07
  *     15:10:21Z aminkh $
  */
 public class LegacyValidationAuthorityPublisher extends CustomPublisherUiBase
     implements CustomPublisherUiSupport {
-
+    /** Config. */
   public static final String OLD_VA_PUBLISHER_QUALIFIED_NAME =
       "org.ejbca.core.model.ca.publisher.ValidationAuthorityPublisher";
 
   private static final long serialVersionUID = 9013538677462519302L;
 
+  /** Config. */
   private static final String DATASOURCE = "dataSource";
+  /** Config. */
   private static final String PROTECT = "protect";
+  /** Config. */
   private static final String STORECERT = "storeCert";
+  /** Config. */
   private static final String STORECRL = "storeCRL";
+  /** Config. */
   private static final String ONLYPUBLISHREVOKED = "onlyPublishRevoked";
-
+  /** Config. */
   private static final String DEFAULT_DATASOURCE = "java:/OcspDS";
 
+  /** constructor. */
   public LegacyValidationAuthorityPublisher() {
     super();
     setClassPath(this.getClass().getName());

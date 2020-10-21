@@ -34,12 +34,18 @@ public class CmsCAServiceResponse extends ExtendedCAServiceResponse
    */
   private static final long serialVersionUID = 7704310763496240017L;
 
+  /** Doc. */
   private byte[] doc = null;
 
-  public CmsCAServiceResponse(final byte[] doc) {
-    this.doc = doc;
+  /**
+   * @param aDoc Doc. */
+  public CmsCAServiceResponse(final byte[] aDoc) {
+    this.doc = aDoc;
   }
 
+  /**
+   * @return doc
+   */
   public byte[] getCmsDocument() {
     return this.doc;
   }

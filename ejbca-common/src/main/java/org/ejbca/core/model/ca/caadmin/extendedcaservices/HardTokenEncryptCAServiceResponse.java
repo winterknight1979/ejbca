@@ -26,15 +26,23 @@ public class HardTokenEncryptCAServiceResponse extends ExtendedCAServiceResponse
     implements Serializable {
 
   private static final long serialVersionUID = -6027721745272019615L;
+  /** Config. */
   public static final int TYPE_ENCRYPTRESPONSE = 1;
+  /** Config. */
   public static final int TYPE_DECRYPTRESPONSE = 1;
-
+  /** Type. */
   private final int type;
+  /** data. */
   private final byte[] data;
 
-  public HardTokenEncryptCAServiceResponse(final int type, final byte[] data) {
-    this.type = type;
-    this.data = data;
+  /**
+   * @param aType type
+   * @param theData data
+   */
+  public HardTokenEncryptCAServiceResponse(
+          final int aType, final byte[] theData) {
+    this.type = aType;
+    this.data = theData;
   }
 
   /** @return type of response, one of the TYPE_ constants. */

@@ -28,45 +28,56 @@ public class KeyRecoveryCAServiceRequest extends ExtendedCAServiceRequest
     implements Serializable {
 
   private static final long serialVersionUID = -5686267640542389771L;
+  /** Config. */
   public static final int COMMAND_ENCRYPTKEYS = 1;
+  /** Config. */
   public static final int COMMAND_DECRYPTKEYS = 2;
 
+  /** Command.*/
   private final int command;
+  /** Data. */
   private byte[] keydata;
+  /** Key. */
   private KeyPair keypair;
+  /** ID. */
   private int cryptoTokenId;
+  /** Alias. */
   private String keyAlias;
 
   /**
-   * Constructor for KeyRecoveryCAServiceRequest used to decrypt data
+   * Constructor for KeyRecoveryCAServiceRequest used to decrypt data.
    *
-   * @param command Command
-   * @param keydata Data
-   * @param cryptoTokenId ID
-   * @param keyAlias key
+   * @param aCommand Command
+   * @param theKeydata Data
+   * @param aCryptoTokenId ID
+   * @param aKeyAlias key
    */
   public KeyRecoveryCAServiceRequest(
-      final int command,
-      final byte[] keydata,
-      final int cryptoTokenId,
-      final String keyAlias) {
-    this.command = command;
-    this.keydata = keydata;
-    this.cryptoTokenId = cryptoTokenId;
-    this.keyAlias = keyAlias;
+      final int aCommand,
+      final byte[] theKeydata,
+      final int aCryptoTokenId,
+      final String aKeyAlias) {
+    this.command = aCommand;
+    this.keydata = theKeydata;
+    this.cryptoTokenId = aCryptoTokenId;
+    this.keyAlias = aKeyAlias;
   }
 
   /**
-   * Constructor for KeyRecoveryCAServiceRequest used to encrypt data
+   * Constructor for KeyRecoveryCAServiceRequest used to encrypt data.
    *
-   * @param command Command
-   * @param keypair Key
+   * @param aCommand Command
+   * @param aKeypair Key
    */
-  public KeyRecoveryCAServiceRequest(final int command, final KeyPair keypair) {
-    this.command = command;
-    this.keypair = keypair;
+  public KeyRecoveryCAServiceRequest(
+          final int aCommand, final KeyPair aKeypair) {
+    this.command = aCommand;
+    this.keypair = aKeypair;
   }
 
+  /**
+   * @return command
+   */
   public int getCommand() {
     return command;
   }
@@ -93,10 +104,16 @@ public class KeyRecoveryCAServiceRequest extends ExtendedCAServiceRequest
     return ret;
   }
 
+  /**
+   * @return ID
+   */
   public int getCryptoTokenId() {
     return cryptoTokenId;
   }
 
+  /**
+   * @return Alias
+   */
   public String getKeyAlias() {
     return keyAlias;
   }

@@ -25,6 +25,9 @@ public class KeyRecoveryCAServiceInfo extends ExtendedCAServiceInfo
 
   private static final long serialVersionUID = 2005286169126704029L;
 
+  /**
+   * @param status Status
+   */
   public KeyRecoveryCAServiceInfo(final int status) {
     super(status);
   }

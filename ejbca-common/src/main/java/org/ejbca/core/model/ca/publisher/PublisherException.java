@@ -18,7 +18,7 @@ import org.ejbca.core.EjbcaException;
 
 /**
  * Is throw when error occurred when publishing certificate, crl or revoking
- * certificate to a publisher
+ * certificate to a publisher.
  *
  * @version $Id: PublisherException.java 30347 2018-11-01 13:19:07Z mikekushner
  *     $
@@ -46,6 +46,10 @@ public class PublisherException extends EjbcaException {
     super(msg);
   }
 
+  /**
+   * @param msg message
+   * @param e cause
+   */
   public PublisherException(final String msg, final Throwable e) {
     super(msg, e);
   }

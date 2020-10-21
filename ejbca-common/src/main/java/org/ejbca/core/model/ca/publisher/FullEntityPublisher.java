@@ -38,9 +38,9 @@ public interface FullEntityPublisher {
    * @throws PublisherException if a communication or other error occurs.
    */
   boolean storeCertificate(
-      final AuthenticationToken authenticationToken,
-      final CertificateData certificateData,
-      final Base64CertData base64CertData)
+      AuthenticationToken authenticationToken,
+      CertificateData certificateData,
+      Base64CertData base64CertData)
       throws PublisherException;
 
   /**

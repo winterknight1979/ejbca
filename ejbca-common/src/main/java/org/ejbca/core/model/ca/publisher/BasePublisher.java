@@ -32,39 +32,51 @@ public abstract class BasePublisher extends UpgradeableDataHashMap
     implements Serializable, Cloneable, FullEntityPublisher {
 
   private static final long serialVersionUID = -735659148394853025L;
+  /** Config. */
   public static final String TRUE = "true";
+  /** Config. */
   public static final String FALSE = "false";
 
+  /** Config. */
   public static final int PUBLISHER_BASE_VERSION = 1;
+  /** Config. */
   public static final int CERTDATA_CAPABLE_PUBLISHER = 2; // Since 6.3.0
 
   // Protected Constants.
+  /** Config. */
   public static final String TYPE = "type";
 
+  /** Config. */
   protected static final String DESCRIPTION = "description";
+  /** Config. */
   protected static final String ONLYUSEQUEUE = "onlyUseQueue";
+  /** Config. */
   protected static final String KEEPPUBLISHEDINQUEUE = "keepPublishedInQueue";
+  /** Config. */
   protected static final String USEQUEUEFORCRLS = "useQueueForCrls";
+  /** Config. */
   protected static final String USEQUEUEFORCERTIFICATES =
       "useQueueForCertificates";
-
   // Default values
+  /** Config. */
   public static final boolean DEFAULT_ONLYUSEQUEUE = false;
 
   // Values used for lookup that are not stored in the data hashmap
+  /** ID. */
   private int id;
+  /** name. */
   private String name;
 
   // Public Methods
 
-  /** Creates a new instance of BasePublisher */
+  /** Creates a new instance of BasePublisher. */
   public BasePublisher() {
     setDescription("");
     setOnlyUseQueue(DEFAULT_ONLYUSEQUEUE);
   }
 
   /**
-   * Copy constructor for BasePublisher
+   * Copy constructor for BasePublisher.
    *
    * @param publisher publisher
    */
@@ -75,15 +87,25 @@ public abstract class BasePublisher extends UpgradeableDataHashMap
   }
 
   // Public Methods
+
+  /**
+   * @return ID
+   */
   public int getPublisherId() {
     return id;
   }
 
+  /**
+   * @return name
+   */
   public String getName() {
     return name;
   }
 
-  // Used by configdump tool ECA-6466
+  /** Used by configdump tool ECA-6466.
+   *
+   * @return type
+   */
   public int getType() {
     return (Integer) data.get(TYPE);
   }
@@ -91,18 +113,18 @@ public abstract class BasePublisher extends UpgradeableDataHashMap
   /**
    * Sets the id. Used internally by PublisherSessionBean
    *
-   * @param id ID
+   * @param anId ID
    */
-  public void setPublisherId(final int id) {
-    this.id = id;
+  public void setPublisherId(final int anId) {
+    this.id = anId;
   }
   /**
    * Sets the name. Used internally by PublisherSessionBean
    *
-   * @param name Name
+   * @param aName Name
    */
-  public void setName(final String name) {
-    this.name = name;
+  public void setName(final String aName) {
+    this.name = aName;
   }
 
   /** @return the description of publisher */
@@ -147,7 +169,7 @@ public abstract class BasePublisher extends UpgradeableDataHashMap
 
   /**
    * Sets whether a successfully published items should remain in the queue
-   * (with a different status)
+   * (with a different status).
    *
    * @param keepPublishedInQueue bool
    */
@@ -166,7 +188,7 @@ public abstract class BasePublisher extends UpgradeableDataHashMap
   }
 
   /**
-   * Sets whether a CRLs should be put in the publish queue if publish failed
+   * Sets whether a CRLs should be put in the publish queue if publish failed.
    *
    * @param useQueueForCRLs bool
    */
@@ -189,7 +211,7 @@ public abstract class BasePublisher extends UpgradeableDataHashMap
 
   /**
    * Sets whether a certificate should be put in the publish queue if publish
-   * failed
+   * failed.
    *
    * @param useQueueForCertificates bool
    */
@@ -364,6 +386,6 @@ public abstract class BasePublisher extends UpgradeableDataHashMap
    * @param dataSource source
    * @throws PublisherException in case of invalid data source.
    */
-  public abstract void validateDataSource(final String dataSource)
+  public abstract void validateDataSource(String dataSource)
       throws PublisherException;
 }

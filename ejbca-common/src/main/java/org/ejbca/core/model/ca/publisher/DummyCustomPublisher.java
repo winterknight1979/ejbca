@@ -33,14 +33,17 @@ public class DummyCustomPublisher implements ICustomPublisher, Serializable {
 
   private static final long serialVersionUID = 1L;
 
+  /** Logger. */
   private static Logger log = Logger.getLogger(DummyCustomPublisher.class);
 
+  /** Cert. */
   private CertificateWrapper certificate = null;
 
-  /** Creates a new instance of DummyCustomPublisher */
-  public DummyCustomPublisher() {}
+  /** Creates a new instance of DummyCustomPublisher. */
+  public DummyCustomPublisher() { }
 
   /**
+   * @param properties props
    * @see
    *     org.ejbca.core.model.ca.publisher.ICustomPublisher#init(java.util.Properties)
    */
@@ -51,6 +54,31 @@ public class DummyCustomPublisher implements ICustomPublisher, Serializable {
   }
 
   /**
+   *
+   * @param admin admin
+   * @param incert The certificate to be stored.
+   * @param username Username of end entity owning the certificate.
+   * @param password Password given to the user, may be null if no password
+   *     exists for the user.
+   * @param userDN if a DN object is not found in the certificate use object
+   *     from user data instead, can be null.
+   * @param cafp Fingerprint (hex) of the CAs certificate.
+   * @param status Status of the certificate (from
+   *     CertificateDataBean.CERT_ACTIVE, CERT_REVOKED etc).
+   * @param type Type of certificate (from
+   *     CertificateDataBean.CERTTYPE_ENDENTITY etc).
+   * @param revocationDate Date for revocation (of revoked), like
+   *     System.currentTimeMillis(), or -1 if not revoked.
+   * @param revocationReason reason for revocation from RevokedCertInfo,
+   *     RevokedCertInfo.NOT_REVOKED if not revoked.
+   * @param tag TAg
+   * @param certificateProfileId Profile
+   * @param lastUpdate Date
+   * @param extendedinformation contains extended information about the user,
+   *     like picture, is null if no extendedinformation exists about the user.
+   * @return true if storage was successful.
+   * @throws PublisherException if a communication or other error occurs.
+   *
    * @see org.ejbca.core.model.ca.publisher.ICustomPublisher#storeCertificate
    */
   public boolean storeCertificate(
@@ -74,11 +102,19 @@ public class DummyCustomPublisher implements ICustomPublisher, Serializable {
     this.certificate = EJBTools.wrap(incert);
     return true;
   }
-
+  /** @return cert */
   public Certificate getStoredCertificate() {
     return EJBTools.unwrap(certificate);
   }
-  /** @see org.ejbca.core.model.ca.publisher.ICustomPublisher#storeCRL */
+  /** @param admin token
+   * @param incrl The DER coded CRL to be stored.
+   * @param cafp Fingerprint (hex) of the CAs certificate.
+   * @param number CRL number.
+   * @param userDN if an DN object is not found in the certificate use object
+   *     from user data instead, can be null.
+   * @return true if storage was successful.
+   * @throws PublisherException if a communication or other error occurs.
+   *  @see org.ejbca.core.model.ca.publisher.ICustomPublisher#storeCRL */
   public boolean storeCRL(
       final AuthenticationToken admin,
       final byte[] incrl,

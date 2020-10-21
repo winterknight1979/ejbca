@@ -15,7 +15,7 @@ package org.ejbca.core.model.ca.publisher;
 
 /**
  * An exception thrown when someone tries to remove or change a Publisher that
- * doesn't exits
+ * doesn't exits.
  *
  * @author Philip Vendil 2003-01-20
  * @version $Id: PublisherDoesntExistsException.java 22117 2015-10-29 10:53:42Z

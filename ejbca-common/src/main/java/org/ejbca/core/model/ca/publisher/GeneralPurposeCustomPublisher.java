@@ -43,45 +43,67 @@ public class GeneralPurposeCustomPublisher extends CustomPublisherUiBase
   /** */
   private static final long serialVersionUID = 8306182854748381700L;
 
+  /** Logger. */
   private static Logger log =
       Logger.getLogger(GeneralPurposeCustomPublisher.class);
-  private static final InternalEjbcaResources intres =
+  /** Resource.*/
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
+  /** Config key. */
   public static final String CRL_EXTERNAL_COMMAND_PROPERTY_NAME =
       "crl.application";
+  /** Config key. */
   public static final String CALCULATE_DELTA_CRL_LOCALLY_PROPERTY_NAME =
       "crl.calclulateDeltaCrlLocally";
+  /** Config key. */
   public static final String CERT_EXTERNAL_COMMAND_PROPERTY_NAME =
       "cert.application";
+  /** Config key. */
   public static final String REVOKE_EXTERNAL_COMMAND_PROPERTY_NAME =
       "revoke.application";
+  /** Config key. */
   public static final String CRL_FAIL_ON_ERRORCODE_PROPERTY_NAME =
       "crl.failOnErrorCode";
+  /** Config key. */
   public static final String CERT_FAIL_ON_ERRORCODE_PROPERTY_NAME =
       "cert.failOnErrorCode";
+  /** Config key. */
   public static final String REVOKE_FAIL_ON_ERRORCODE_PROPERTY_NAME =
       "revoke.failOnErrorCode";
+  /** Config key. */
   public static final String CRL_FAIL_ON_STANDARD_ERROR_PROPERTY_NAME =
       "crl.failOnStandardError";
+  /** Config key. */
   public static final String CERT_FAIL_ON_STANDARD_ERROR_PROPERTY_NAME =
       "cert.failOnStandardError";
+  /** Config key. */
   public static final String REVOKE_FAIL_ON_STANDARD_ERROR_PROPERTY_NAME =
       "revoke.failOnStandardError";
 
+  /** nFile. */
   private String crlExternalCommandFileName = null;
+  /** nFile. */
   private String certExternalCommandFileName = null;
+  /** nFile. */
   private String revokeExternalCommandFileName = null;
+  /** Bool. */
   private boolean calclulateDeltaCrlLocally = false;
+  /** Bool. */
   private boolean crlFailOnErrorCode = true;
+  /** Bool. */
   private boolean certFailOnErrorCode = true;
+  /** Bool. */
   private boolean revokeFailOnErrorCode = true;
+  /** Bool. */
   private boolean crlFailOnStandardError = true;
+  /** Bool. */
   private boolean certFailOnStandardError = true;
+  /** Bool. */
   private boolean revokeFailOnStandardError = true;
 
-  /** Creates a new instance of DummyCustomPublisher */
-  public GeneralPurposeCustomPublisher() {}
+  /** Creates a new instance of DummyCustomPublisher. */
+  public GeneralPurposeCustomPublisher() { }
 
   /**
    * Load used properties.
@@ -223,7 +245,7 @@ public class GeneralPurposeCustomPublisher extends CustomPublisherUiBase
       // Make sure that an external command was specified
       if (certExternalCommandFileName == null) {
         String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "publisher.errormissingproperty",
                 CERT_EXTERNAL_COMMAND_PROPERTY_NAME);
         log.error(msg);
@@ -245,7 +267,7 @@ public class GeneralPurposeCustomPublisher extends CustomPublisherUiBase
             "GeneralPurposeCustomPublisher");
       } catch (CertificateEncodingException e) {
         String msg =
-            intres.getLocalizedMessage("publisher.errorcertconversion");
+            INTRES.getLocalizedMessage("publisher.errorcertconversion");
         log.error(msg);
         throw new PublisherException(msg);
       } catch (ExternalProcessException e) {
@@ -279,7 +301,7 @@ public class GeneralPurposeCustomPublisher extends CustomPublisherUiBase
     // Verify initialization
     if (crlExternalCommandFileName == null) {
       String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "publisher.errormissingproperty",
               CRL_EXTERNAL_COMMAND_PROPERTY_NAME);
       log.error(msg);
@@ -339,7 +361,7 @@ public class GeneralPurposeCustomPublisher extends CustomPublisherUiBase
     // Verify initialization
     if (revokeExternalCommandFileName == null) {
       String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "publisher.errormissingproperty",
               REVOKE_EXTERNAL_COMMAND_PROPERTY_NAME);
       log.error(msg);
@@ -360,7 +382,7 @@ public class GeneralPurposeCustomPublisher extends CustomPublisherUiBase
           arguments,
           "GeneralPurposeCustomPublisher");
     } catch (CertificateEncodingException e) {
-      String msg = intres.getLocalizedMessage("publisher.errorcertconversion");
+      String msg = INTRES.getLocalizedMessage("publisher.errorcertconversion");
       log.error(msg);
       throw new PublisherException(msg);
     } catch (ExternalProcessException e) {
@@ -385,7 +407,7 @@ public class GeneralPurposeCustomPublisher extends CustomPublisherUiBase
     if (StringUtils.isNotBlank(crlExternalCommandFileName)) {
       if (!(new File(crlExternalCommandFileName)).exists()) {
         String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "publisher.commandnotfound", crlExternalCommandFileName);
         log.error(msg);
         throw new PublisherConnectionException(msg);
@@ -394,7 +416,7 @@ public class GeneralPurposeCustomPublisher extends CustomPublisherUiBase
     if (StringUtils.isNotBlank(certExternalCommandFileName)) {
       if (!(new File(certExternalCommandFileName)).exists()) {
         String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "publisher.commandnotfound", certExternalCommandFileName);
         log.error(msg);
         throw new PublisherConnectionException(msg);
@@ -403,7 +425,7 @@ public class GeneralPurposeCustomPublisher extends CustomPublisherUiBase
     if (StringUtils.isNotBlank(revokeExternalCommandFileName)) {
       if (!(new File(revokeExternalCommandFileName)).exists()) {
         String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "publisher.commandnotfound", revokeExternalCommandFileName);
         log.error(msg);
         throw new PublisherConnectionException(msg);

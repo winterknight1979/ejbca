@@ -34,7 +34,7 @@ import org.cesecore.util.CryptoProviderTools;
 import org.ejbca.core.model.InternalEjbcaResources;
 
 /**
- * Handles and maintains the CA-part of the Hard token encrypt functionality
+ * Handles and maintains the CA-part of the Hard token encrypt functionality.
  *
  * @version $Id: HardTokenEncryptCAService.java 21784 2015-09-02 19:53:03Z
  *     aveen4711 $
@@ -43,15 +43,19 @@ public class HardTokenEncryptCAService extends ExtendedCAService
     implements Serializable {
 
   private static final long serialVersionUID = 2126714932597569623L;
+  /** Logger. */
   private static Logger log = Logger.getLogger(HardTokenEncryptCAService.class);
-  /** Internal localization of logs and errors */
-  private static final InternalEjbcaResources intres =
+  /** Internal localization of logs and errors. */
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
+  /** Config. */
   public static final float LATEST_VERSION = 1;
-
+  /** Config. */
   public static final String SERVICENAME = "HARDTOKENENCRYPTCASERVICE";
 
+  /**
+   * @param serviceinfo Info. */
   public HardTokenEncryptCAService(final ExtendedCAServiceInfo serviceinfo) {
     super(serviceinfo);
     log.debug(
@@ -68,6 +72,9 @@ public class HardTokenEncryptCAService extends ExtendedCAService
     setStatus(serviceinfo.getStatus());
   }
 
+  /**
+   * @param data Data
+   */
   public HardTokenEncryptCAService(final HashMap<?, ?> data) {
     super(data);
     CryptoProviderTools.installBCProviderIfNotAvailable();
@@ -106,7 +113,7 @@ public class HardTokenEncryptCAService extends ExtendedCAService
     log.trace(">extendedService");
     if (this.getStatus() != ExtendedCAServiceInfo.STATUS_ACTIVE) {
       String msg =
-          intres.getLocalizedMessage("caservice.notactive", "HardTokenEncrypt");
+          INTRES.getLocalizedMessage("caservice.notactive", "HardTokenEncrypt");
       log.error(msg);
       throw new ExtendedCAServiceNotActiveException(msg);
     }
@@ -171,7 +178,7 @@ public class HardTokenEncryptCAService extends ExtendedCAService
   public void upgrade() {
     if (Float.compare(LATEST_VERSION, getVersion()) != 0) {
       String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "caservice.upgrade", Float.valueOf(getVersion()));
       log.info(msg);
       data.put(VERSION, Float.valueOf(LATEST_VERSION));

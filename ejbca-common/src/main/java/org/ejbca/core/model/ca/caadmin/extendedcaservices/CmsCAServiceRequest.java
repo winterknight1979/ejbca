@@ -26,11 +26,15 @@ import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceTypes;
 public class CmsCAServiceRequest extends ExtendedCAServiceRequest
     implements Serializable {
 
-  public static final Logger m_log =
+    /** Logger. */
+  public static final Logger M_LOG =
       Logger.getLogger(CmsCAServiceRequest.class);
 
+  /** config. */
   public static final int MODE_SIGN = 1;
+  /** config. */
   public static final int MODE_ENCRYPT = 2;
+  /** config. */
   public static final int MODE_DECRYPT = 4;
 
   /**
@@ -43,24 +47,32 @@ public class CmsCAServiceRequest extends ExtendedCAServiceRequest
    */
   private static final long serialVersionUID = -762331405718560161L;
 
+  /** Doc. */
   private byte[] doc = null;
+  /** Mode. */
   private int mode = 0;
 
   /**
-   * Constructor
+   * Constructor.
    *
-   * @param doc the data to process
-   * @param mode one of the MODE_ constants
+   * @param aDoc the data to process
+   * @param aMode one of the MODE_ constants
    */
-  public CmsCAServiceRequest(final byte[] doc, final int mode) {
-    this.doc = doc;
-    this.mode = mode;
+  public CmsCAServiceRequest(final byte[] aDoc, final int aMode) {
+    this.doc = aDoc;
+    this.mode = aMode;
   }
 
+  /**
+   * @return Doc
+   */
   public byte[] getDoc() {
     return doc;
   }
 
+  /**
+   * @return Mode
+   */
   public int getMode() {
     return mode;
   }

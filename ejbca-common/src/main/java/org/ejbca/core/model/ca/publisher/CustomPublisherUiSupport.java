@@ -30,8 +30,11 @@ public interface CustomPublisherUiSupport extends ICustomPublisher {
    *     parse the information.
    */
   List<CustomPublisherProperty> getCustomUiPropertyList(
-      final AuthenticationToken authenticationToken);
+      AuthenticationToken authenticationToken);
 
+  /**
+   * @return names
+   */
   List<String> getCustomUiPropertyNames();
 
   /**
@@ -39,5 +42,5 @@ public interface CustomPublisherUiSupport extends ICustomPublisher {
    * @return the type of the property (as defined in CustomPublisherProperty),
    *     or -1 if no such property exists
    */
-  int getPropertyType(final String label);
+  int getPropertyType(String label);
 }

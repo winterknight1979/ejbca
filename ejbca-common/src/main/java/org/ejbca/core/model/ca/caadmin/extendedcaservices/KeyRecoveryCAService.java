@@ -38,7 +38,7 @@ import org.cesecore.util.CryptoProviderTools;
 import org.ejbca.core.model.InternalEjbcaResources;
 
 /**
- * Handles and maintains the CA-part of the Key Recovery functionality
+ * Handles and maintains the CA-part of the Key Recovery functionality.
  *
  * @version $Id: KeyRecoveryCAService.java 26180 2017-08-01 09:38:15Z samuellb $
  */
@@ -46,15 +46,19 @@ public class KeyRecoveryCAService extends ExtendedCAService
     implements Serializable {
 
   private static final long serialVersionUID = 2400252746958812175L;
+  /** Logger. */
   private static Logger log = Logger.getLogger(KeyRecoveryCAService.class);
-  /** Internal localization of logs and errors */
-  private static final InternalEjbcaResources intres =
+  /** Internal localization of logs and errors. */
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
-
+  /** Config. */
   public static final float LATEST_VERSION = 1;
-
+  /** Config. */
   public static final String SERVICENAME = "KEYRECOVERYCASERVICE";
 
+  /**
+   * @param serviceinfo Indi
+   */
   public KeyRecoveryCAService(final ExtendedCAServiceInfo serviceinfo) {
     super(serviceinfo);
     if (log.isDebugEnabled()) {
@@ -73,6 +77,9 @@ public class KeyRecoveryCAService extends ExtendedCAService
     setStatus(serviceinfo.getStatus());
   }
 
+  /**
+   * @param data  Data
+   */
   public KeyRecoveryCAService(final HashMap<?, ?> data) {
     super(data);
     CryptoProviderTools.installBCProviderIfNotAvailable();
@@ -117,7 +124,7 @@ public class KeyRecoveryCAService extends ExtendedCAService
     }
     if (this.getStatus() != ExtendedCAServiceInfo.STATUS_ACTIVE) {
       String msg =
-          intres.getLocalizedMessage("caservice.notactive", "KeyRecovery");
+          INTRES.getLocalizedMessage("caservice.notactive", "KeyRecovery");
       log.error(msg);
       throw new ExtendedCAServiceNotActiveException(msg);
     }
@@ -283,7 +290,7 @@ public class KeyRecoveryCAService extends ExtendedCAService
   public void upgrade() {
     if (Float.compare(LATEST_VERSION, getVersion()) != 0) {
       String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "caservice.upgrade", Float.valueOf(getVersion()));
       log.info(msg);
       data.put(VERSION, Float.valueOf(LATEST_VERSION));

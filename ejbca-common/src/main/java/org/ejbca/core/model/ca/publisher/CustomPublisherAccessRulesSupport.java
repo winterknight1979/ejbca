@@ -15,7 +15,7 @@ package org.ejbca.core.model.ca.publisher;
 import org.cesecore.authentication.tokens.AuthenticationToken;
 
 /**
- * A publisher that implements this interface contains additional access rules
+ * A publisher that implements this interface contains additional access rules.
  *
  * @version $Id: CustomPublisherAccessRulesSupport.java 22117 2015-10-29
  *     10:53:42Z mikekushner $

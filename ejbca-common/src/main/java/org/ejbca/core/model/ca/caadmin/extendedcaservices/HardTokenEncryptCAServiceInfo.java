@@ -25,6 +25,9 @@ public class HardTokenEncryptCAServiceInfo extends ExtendedCAServiceInfo
 
   private static final long serialVersionUID = -6186500870565287684L;
 
+  /**
+   * @param status Status
+   */
   public HardTokenEncryptCAServiceInfo(final int status) {
     super(status);
   }

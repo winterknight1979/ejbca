@@ -33,15 +33,19 @@ import org.ejbca.util.TCPTool;
 public class LdapSearchPublisher extends LdapPublisher {
 
   private static final long serialVersionUID = -4593116897226605008L;
-  private static final Logger log = Logger.getLogger(LdapSearchPublisher.class);
-  /** Internal localization of logs and errors */
-  private static final InternalEjbcaResources intres =
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(LdapSearchPublisher.class);
+  /** Internal localization of logs and errors. */
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
   // Default Values
+  /** Comfig. */
   protected static final String SEARCHBASEDN = "searchbasedn";
+  /** Comfig. */
   protected static final String SEARCHFILTER = "searchfilter";
 
+  /** constructor.*/
   public LdapSearchPublisher() {
     super();
     data.put(TYPE, Integer.valueOf(PublisherConst.TYPE_LDAPSEARCHPUBLISHER));
@@ -70,8 +74,14 @@ public class LdapSearchPublisher extends LdapPublisher {
    * search publishers. Apart from how they find existing users, the publishing
    * works the same.
    *
+   * @param username user
+   * @param ldapVersion version
+   * @param lc conn
    * @param certDN the DN from the certificate, can be used to extract search
    *     information or a LDAP DN
+   * @param userDN DN
+   * @param email mail
+   * @throws PublisherException fail
    * @return an existing LDAPEntry, or null if not found
    */
   protected LDAPEntry searchOldEntity(
@@ -99,18 +109,18 @@ public class LdapSearchPublisher extends LdapPublisher {
             Integer.parseInt(getPort()),
             getConnectionTimeOut()); // Avoid waiting for halfdead-servers
         // connect to the server
-        log.debug("Connecting to " + currentServer);
+        LOG.debug("Connecting to " + currentServer);
         lc.connect(currentServer, Integer.parseInt(getPort()));
         // Execute a STARTTLS handshake if it was requested.
         if (getConnectionSecurity() == ConnectionSecurity.STARTTLS) {
-          if (log.isDebugEnabled()) {
-            log.debug("STARTTLS to LDAP server " + currentServer);
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("STARTTLS to LDAP server " + currentServer);
           }
           lc.startTLS();
         }
 
         // authenticate to the server
-        log.debug("Logging in with BIND DN " + getLoginDN());
+        LOG.debug("Logging in with BIND DN " + getLoginDN());
         lc.bind(
             ldapVersion,
             getLoginDN(),
@@ -118,8 +128,8 @@ public class LdapSearchPublisher extends LdapPublisher {
             ldapBindConstraints);
         // searchFilter = "(&(objectclass=person)(uid=" + username + "))";
         String searchFilter = getSearchFilter();
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Compiling search filter: "
                   + searchFilter
                   + ", from certDN '"
@@ -129,46 +139,46 @@ public class LdapSearchPublisher extends LdapPublisher {
                   + "'.");
         }
         if (username != null) {
-          Pattern USER =
+          Pattern user =
               Pattern.compile("\\$USERNAME", Pattern.CASE_INSENSITIVE);
-          searchFilter = USER.matcher(searchFilter).replaceAll(username);
+          searchFilter = user.matcher(searchFilter).replaceAll(username);
         }
         if (email != null) {
-          Pattern EMAIL = Pattern.compile("\\$EMAIL", Pattern.CASE_INSENSITIVE);
-          searchFilter = EMAIL.matcher(searchFilter).replaceAll(email);
+          Pattern eMail = Pattern.compile("\\$EMAIL", Pattern.CASE_INSENSITIVE);
+          searchFilter = eMail.matcher(searchFilter).replaceAll(email);
         }
         if (getPartFromDN(certDN, userDN, "CN") != null) {
-          Pattern CN = Pattern.compile("\\$CN", Pattern.CASE_INSENSITIVE);
+          Pattern cn = Pattern.compile("\\$CN", Pattern.CASE_INSENSITIVE);
           searchFilter =
-              CN.matcher(searchFilter)
+              cn.matcher(searchFilter)
                   .replaceAll(getPartFromDN(certDN, userDN, "CN"));
         }
         if (getPartFromDN(certDN, userDN, "O") != null) {
-          Pattern O = Pattern.compile("\\$O", Pattern.CASE_INSENSITIVE);
+          Pattern o = Pattern.compile("\\$O", Pattern.CASE_INSENSITIVE);
           searchFilter =
-              O.matcher(searchFilter)
+              o.matcher(searchFilter)
                   .replaceAll(getPartFromDN(certDN, userDN, "O"));
         }
         if (getPartFromDN(certDN, userDN, "OU") != null) {
-          Pattern OU = Pattern.compile("\\$OU", Pattern.CASE_INSENSITIVE);
+          Pattern ou = Pattern.compile("\\$OU", Pattern.CASE_INSENSITIVE);
           searchFilter =
-              OU.matcher(searchFilter)
+              ou.matcher(searchFilter)
                   .replaceAll(getPartFromDN(certDN, userDN, "OU"));
         }
         if (getPartFromDN(certDN, userDN, "C") != null) {
-          Pattern C = Pattern.compile("\\$C", Pattern.CASE_INSENSITIVE);
+          Pattern c = Pattern.compile("\\$C", Pattern.CASE_INSENSITIVE);
           searchFilter =
-              C.matcher(searchFilter)
+              c.matcher(searchFilter)
                   .replaceAll(getPartFromDN(certDN, userDN, "C"));
         }
         if (getPartFromDN(certDN, userDN, "UID") != null) {
-          Pattern C = Pattern.compile("\\$UID", Pattern.CASE_INSENSITIVE);
+          Pattern c = Pattern.compile("\\$UID", Pattern.CASE_INSENSITIVE);
           searchFilter =
-              C.matcher(searchFilter)
+              c.matcher(searchFilter)
                   .replaceAll(getPartFromDN(certDN, userDN, "UID"));
         }
-        log.debug("Resulting search filter '" + searchFilter + "'.");
-        log.debug(
+        LOG.debug("Resulting search filter '" + searchFilter + "'.");
+        LOG.debug(
             "Making SRCH with BaseDN '"
                 + getSearchBaseDN()
                 + "' and filter '"
@@ -176,7 +186,7 @@ public class LdapSearchPublisher extends LdapPublisher {
                 + "'.");
         String searchbasedn = getSearchBaseDN();
         int searchScope = LDAPConnection.SCOPE_SUB;
-        String attrs[] = {LDAPConnection.NO_ATTRS};
+        String[] attrs = {LDAPConnection.NO_ATTRS};
         boolean attributeTypesOnly = true;
         LDAPSearchResults searchResults =
             lc.search(
@@ -187,8 +197,8 @@ public class LdapSearchPublisher extends LdapPublisher {
                 attributeTypesOnly,
                 ldapSearchConstraints); // no attribute values are returned
         // try to read the old object
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "serachResults contains entries: " + searchResults.hasMore());
         }
         final String ldapDN;
@@ -196,13 +206,13 @@ public class LdapSearchPublisher extends LdapPublisher {
           oldEntry = searchResults.next();
           ldapDN = oldEntry.getDN();
           if (searchResults.hasMore()) {
-            log.debug(
+            LOG.debug(
                 "Found more than one matches with filter '"
                     + searchFilter
                     + "'. Using the first match with LDAP entry with DN: "
                     + oldEntry.getDN());
           } else {
-            log.debug(
+            LOG.debug(
                 "Found one match with filter: '"
                     + searchFilter
                     + "', match with DN: "
@@ -210,7 +220,7 @@ public class LdapSearchPublisher extends LdapPublisher {
           }
         } else {
           ldapDN = constructLDAPDN(certDN, userDN);
-          log.debug(
+          LOG.debug(
               "No matches found using filter: '"
                   + searchFilter
                   + "'. Using DN: "
@@ -222,38 +232,38 @@ public class LdapSearchPublisher extends LdapPublisher {
         } catch (LDAPException e) {
           if (e.getResultCode() == LDAPException.NO_SUCH_OBJECT) {
             String msg =
-                intres.getLocalizedMessage("publisher.noentry", ldapDN);
-            log.info(msg);
+                INTRES.getLocalizedMessage("publisher.noentry", ldapDN);
+            LOG.info(msg);
           } else {
             String msg =
-                intres.getLocalizedMessage("publisher.infoexists", ldapDN);
-            log.info(msg);
+                INTRES.getLocalizedMessage("publisher.infoexists", ldapDN);
+            LOG.info(msg);
           }
         }
       } catch (LDAPException e) {
         if (e.getResultCode() == LDAPException.NO_SUCH_OBJECT) {
           String msg =
-              intres.getLocalizedMessage(
+              INTRES.getLocalizedMessage(
                   "publisher.noentry", certDN + ", " + userDN);
-          log.info(msg);
+          LOG.info(msg);
         } else {
           connectionFailed = true;
           if (servers.hasNext()) {
-            log.debug(
+            LOG.debug(
                 "Failed to publish to "
                     + currentServer
                     + ". Trying next in list.");
           } else {
             String msg =
-                intres.getLocalizedMessage(
+                INTRES.getLocalizedMessage(
                     "publisher.errorldapbind", e.getMessage());
-            log.error(msg, e);
+            LOG.error(msg, e);
             throw new PublisherException(msg);
           }
         }
       } catch (UnsupportedEncodingException e) {
         String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "publisher.errorpassword", getLoginPassword());
         throw new PublisherException(msg);
       } finally {
@@ -261,8 +271,8 @@ public class LdapSearchPublisher extends LdapPublisher {
         try {
           lc.disconnect(ldapDisconnectConstraints);
         } catch (LDAPException e) {
-          String msg = intres.getLocalizedMessage("publisher.errordisconnect");
-          log.error(msg, e);
+          String msg = INTRES.getLocalizedMessage("publisher.errordisconnect");
+          LOG.error(msg, e);
         }
       }
     } while (connectionFailed && servers.hasNext());
@@ -289,7 +299,7 @@ public class LdapSearchPublisher extends LdapPublisher {
   }
 
   /**
-   * Sets LDAP search filter string
+   * Sets LDAP search filter string.
    *
    * @param searchfilter Filter
    */
@@ -299,7 +309,10 @@ public class LdapSearchPublisher extends LdapPublisher {
 
   // Private methods
 
-  /** @see org.ejbca.core.model.ca.publisher.BasePublisher#clone() */
+  /**
+   * @return clone
+   * @throws CloneNotSupportedException fail
+   * @see org.ejbca.core.model.ca.publisher.BasePublisher#clone() */
   @SuppressWarnings({"unchecked", "rawtypes"})
   public Object clone() throws CloneNotSupportedException {
     LdapSearchPublisher clone = new LdapSearchPublisher();

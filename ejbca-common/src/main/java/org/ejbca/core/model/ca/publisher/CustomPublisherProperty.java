@@ -28,59 +28,69 @@ public class CustomPublisherProperty implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
+  /** config. */
   public static final int UI_TEXTINPUT = 0;
+  /** config. */
   public static final int UI_SELECTONE = 1;
+  /** config. */
   public static final int UI_BOOLEAN = 2;
+  /** config. */
   public static final int UI_TEXTOUTPUT = 3;
+  /** config. */
   public static final int UI_TEXTINPUT_PASSWORD = 3;
 
+  /** Name. */
   private final String name;
+  /** Type. */
   private final int type;
+  /** Options. */
   private final List<String> options;
+  /** Texts. */
   private final List<String> optionTexts;
-  String value;
+  /** Value. */
+  private String value;
 
   /**
    * Representation of a property where the user can select from a list of
    * choices.
    *
-   * @param name name of the property
-   * @param type one of CustomPublisherProperty.UI_* constants (only
+   * @param aname name of the property
+   * @param atype one of CustomPublisherProperty.UI_* constants (only
    *     UI_SELECTONE makes sense in the current implementation)
-   * @param options a list of selectable values
-   * @param optionTexts a list of tests to apply to show the user for each of
+   * @param theoptions a list of selectable values
+   * @param theoptionTexts a list of tests to apply to show the user for each of
    *     selectable values
-   * @param value the current value of this property
+   * @param avalue the current value of this property
    */
   public CustomPublisherProperty(
-      final String name,
-      final int type,
-      final List<String> options,
-      final List<String> optionTexts,
-      final String value) {
-    this.name = name;
-    this.type = type;
-    this.options = options;
-    this.optionTexts = optionTexts;
-    this.value = value;
+      final String aname,
+      final int atype,
+      final List<String> theoptions,
+      final List<String> theoptionTexts,
+      final String avalue) {
+    this.name = aname;
+    this.type = atype;
+    this.options = theoptions;
+    this.optionTexts = theoptionTexts;
+    this.value = avalue;
   }
 
   /**
    * Representation of a property where the user can select from a list of
    * choices.
    *
-   * @param name name of the property
-   * @param type one of CustomPublisherProperty.UI_* constants (only
+   * @param aname name of the property
+   * @param atype one of CustomPublisherProperty.UI_* constants (only
    *     UI_TEXTINPUT or UI_BOOLEAN makes sense in the current implementation)
-   * @param value the current value of this property
+   * @param avalue the current value of this property
    */
   public CustomPublisherProperty(
-      final String name, final int type, final String value) {
-    this.name = name;
-    this.type = type;
+      final String aname, final int atype, final String avalue) {
+    this.name = aname;
+    this.type = atype;
     this.options = null;
     this.optionTexts = null;
-    this.value = value;
+    this.value = avalue;
   }
 
   /** @return the current value of this property (as String) */
@@ -89,15 +99,16 @@ public class CustomPublisherProperty implements Serializable {
   }
 
   /**
-   * Set the current value of this property (as String)
+   * Set the current value of this property (as String).
    *
-   * @param value Value
+   * @param ovalue Value
    */
-  public void setValue(String value) {
-    if (value != null) {
-      value = value.trim();
+  public void setValue(final String ovalue) {
+    String lvalue = null;
+    if (ovalue != null) {
+      lvalue = ovalue.trim();
     }
-    this.value = value;
+    this.value = lvalue;
   }
 
   /** @return the name of this property */

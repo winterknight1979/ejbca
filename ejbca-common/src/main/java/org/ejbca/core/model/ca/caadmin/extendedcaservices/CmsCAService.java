@@ -98,39 +98,54 @@ public class CmsCAService extends ExtendedCAService
    */
   private static final long serialVersionUID = 5273836489592921586L;
 
-  private static final Logger log = Logger.getLogger(CmsCAService.class);
-  /** Internal localization of logs and errors */
-  private static final InternalEjbcaResources intres =
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(CmsCAService.class);
+  /** Internal localization of logs and errors. */
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
+  /** Config. */
   public static final float LATEST_VERSION = 2;
 
+  /** Config. */
   public static final String SERVICENAME = "CMSCASERVICE";
 
+  /** Key. */
   private PrivateKey privKey = null;
+  /** Chain. */
   private List<Certificate> certificatechain = null;
+  /** Cert. */
   private X509Certificate cmsCertificate = null;
 
+  /** Info. */
   private CmsCAServiceInfo info = null;
 
+  /** Config. */
   private static final String KEYSTORE = "keystore";
+  /** Config. */
   private static final String KEYSPEC = "keyspec";
+  /** Config. */
   private static final String KEYALGORITHM = "keyalgorithm";
+  /** Config. */
   private static final String SUBJECTDN = "subjectdn";
+  /** Config. */
   private static final String SUBJECTALTNAME = "subjectaltname";
-
+  /** Config. */
   private static final String PRIVATESIGNKEYALIAS = "signKey";
-  /** This alias was changed in EJBCA 6.4.1 */
+  /** This alias was changed in EJBCA 6.4.1. */
   private static final String OLDPRIVATESIGNKEYALIAS = "privatesignkeyalias";
 
+  /**
+   * @param serviceinfo Info
+   */
   public CmsCAService(final ExtendedCAServiceInfo serviceinfo) {
     super(serviceinfo);
-    if (log.isDebugEnabled()) {
-      log.debug("CmsCAService : constructor " + serviceinfo.getStatus());
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("CmsCAService : constructor " + serviceinfo.getStatus());
     }
     CryptoProviderTools.installBCProviderIfNotAvailable();
     // Currently only RSA keys are supported
-    final CmsCAServiceInfo info = (CmsCAServiceInfo) serviceinfo;
+    final CmsCAServiceInfo theInfo = (CmsCAServiceInfo) serviceinfo;
     data = new LinkedHashMap<Object, Object>();
     data.put(
         ExtendedCAServiceInfo.IMPLEMENTATIONCLASS,
@@ -140,14 +155,18 @@ public class CmsCAService extends ExtendedCAService
         Integer.valueOf(
             ExtendedCAServiceTypes
                 .TYPE_CMSEXTENDEDSERVICE)); // For current version of EJBCA
-    data.put(KEYSPEC, info.getKeySpec());
-    data.put(KEYALGORITHM, info.getKeyAlgorithm());
-    setSubjectDN(info.getSubjectDN());
-    setSubjectAltName(info.getSubjectAltName());
+    data.put(KEYSPEC, theInfo.getKeySpec());
+    data.put(KEYALGORITHM, theInfo.getKeyAlgorithm());
+    setSubjectDN(theInfo.getSubjectDN());
+    setSubjectAltName(theInfo.getSubjectAltName());
     setStatus(serviceinfo.getStatus());
     data.put(VERSION, Float.valueOf(LATEST_VERSION));
   }
 
+  /**
+   * @param data Data
+   * @throws IllegalArgumentException Fail
+   */
   public CmsCAService(final HashMap<Object, Object> data)
       throws IllegalArgumentException {
     super(data);
@@ -160,22 +179,22 @@ public class CmsCAService extends ExtendedCAService
               EjbcaConfiguration.getCaCmsKeyStorePass(), "ca.cmskeystorepass");
       int status = ExtendedCAServiceInfo.STATUS_INACTIVE;
       try {
-        if (log.isDebugEnabled()) {
-          log.debug("Loading CMS keystore");
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Loading CMS keystore");
         }
         final KeyStore keystore = KeyStore.getInstance("PKCS12", "BC");
         keystore.load(
             new ByteArrayInputStream(
                 Base64.decode(((String) this.data.get(KEYSTORE)).getBytes())),
             keystorepass.toCharArray());
-        if (log.isDebugEnabled()) {
-          log.debug("Finished loading CMS keystore");
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Finished loading CMS keystore");
         }
         String alias = PRIVATESIGNKEYALIAS;
         privKey = (PrivateKey) keystore.getKey(alias, null);
         if (privKey == null) {
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "privKey was null for alias "
                     + alias
                     + ", trying with "
@@ -196,7 +215,7 @@ public class CmsCAService extends ExtendedCAService
         this.certificatechain = new ArrayList<Certificate>(coll);
         status = getStatus();
       } catch (Exception e) {
-        log.error(
+        LOG.error(
             "Could not load keystore or certificate for CA CMS service."
                 + " Perhaps the password was changed? "
                 + e.getMessage(),
@@ -215,8 +234,8 @@ public class CmsCAService extends ExtendedCAService
           EXTENDEDCASERVICETYPE,
           Integer.valueOf(ExtendedCAServiceTypes.TYPE_CMSEXTENDEDSERVICE));
     } else {
-      if (log.isDebugEnabled()) {
-        log.debug("KEYSTORE is null when creating CmsCAService");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("KEYSTORE is null when creating CmsCAService");
       }
     }
   }
@@ -227,12 +246,12 @@ public class CmsCAService extends ExtendedCAService
       final CA ca,
       final AvailableCustomCertificateExtensionsConfiguration cceConfig)
       throws Exception {
-    if (log.isTraceEnabled()) {
-      log.trace(">init");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">init");
     }
     if (info.getStatus() != ExtendedCAServiceInfo.STATUS_ACTIVE) {
-      if (log.isDebugEnabled()) {
-        log.debug("Not generating certificates for inactive service");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Not generating certificates for inactive service");
       }
     } else {
       // lookup keystore passwords
@@ -240,20 +259,21 @@ public class CmsCAService extends ExtendedCAService
           StringTools.passwordDecryption(
               EjbcaConfiguration.getCaCmsKeyStorePass(), "ca.cmskeystorepass");
       // Currently only RSA keys are supported
-      final CmsCAServiceInfo info =
+      final CmsCAServiceInfo theInfo =
           (CmsCAServiceInfo) getExtendedCAServiceInfo();
       // Create KeyStore
       final KeyStore keystore = KeyStore.getInstance("PKCS12", "BC");
       keystore.load(null, null);
       final KeyPair cmskeys =
-          KeyTools.genKeys(info.getKeySpec(), info.getKeyAlgorithm());
+          KeyTools.genKeys(theInfo.getKeySpec(), theInfo.getKeyAlgorithm());
       // A simple hard coded certificate profile that works for the CMS CA
       // service
       final CertificateProfile certProfile =
           new CertificateProfile(
               CertificateProfileConstants.CERTPROFILE_FIXED_ENDUSER);
       certProfile.setUseKeyUsage(true);
-      certProfile.setKeyUsage(new boolean[9]);
+      final int length = 9;
+      certProfile.setKeyUsage(new boolean[length]);
       certProfile.setKeyUsage(CertificateConstants.DIGITALSIGNATURE, true);
       certProfile.setKeyUsage(CertificateConstants.KEYENCIPHERMENT, true);
       certProfile.setKeyUsage(CertificateConstants.DATAENCIPHERMENT, true);
@@ -261,9 +281,9 @@ public class CmsCAService extends ExtendedCAService
       final EndEntityInformation eeInformation =
           new EndEntityInformation(
               "NOUSERNAME",
-              info.getSubjectDN(),
+              theInfo.getSubjectDN(),
               0,
-              info.getSubjectAltName(),
+              theInfo.getSubjectAltName(),
               "NOEMAIL",
               0,
               new EndEntityType(),
@@ -309,8 +329,8 @@ public class CmsCAService extends ExtendedCAService
             (String) data.get(KEYSPEC),
             (String) data.get(KEYALGORITHM),
             certificatechain);
-    if (log.isTraceEnabled()) {
-      log.trace("<init");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<init");
     }
   }
 
@@ -323,13 +343,13 @@ public class CmsCAService extends ExtendedCAService
     final boolean missingCert =
         (!data.containsKey(KEYSTORE)
             && serviceinfo.getStatus() == ExtendedCAServiceInfo.STATUS_ACTIVE);
-    final CmsCAServiceInfo info = (CmsCAServiceInfo) serviceinfo;
-    if (log.isDebugEnabled()) {
-      log.debug("CmsCAService : update " + serviceinfo.getStatus());
+    final CmsCAServiceInfo theInfo = (CmsCAServiceInfo) serviceinfo;
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("CmsCAService : update " + serviceinfo.getStatus());
     }
     setStatus(serviceinfo.getStatus());
-    data.put(KEYSPEC, info.getKeySpec());
-    data.put(KEYALGORITHM, info.getKeyAlgorithm());
+    data.put(KEYSPEC, theInfo.getKeySpec());
+    data.put(KEYALGORITHM, theInfo.getKeyAlgorithm());
     // We only updated the status, and keyspec/keyalg which can be edited in
     // uninitialized CAs
     this.info =
@@ -337,15 +357,15 @@ public class CmsCAService extends ExtendedCAService
             serviceinfo.getStatus(),
             getSubjectDN(),
             getSubjectAltName(),
-            info.getKeySpec(),
-            info.getKeyAlgorithm(),
+            theInfo.getKeySpec(),
+            theInfo.getKeyAlgorithm(),
             certificatechain);
-    if (info.getRenewFlag() || missingCert) {
+    if (theInfo.getRenewFlag() || missingCert) {
       // Renew The Signers certificate.
       try {
         this.init(cryptoToken, ca, cceConfig);
       } catch (Exception e) {
-        log.error("Error initilizing Extended CA service during upgrade: ", e);
+        LOG.error("Error initilizing Extended CA service during upgrade: ", e);
       }
     }
   }
@@ -356,16 +376,16 @@ public class CmsCAService extends ExtendedCAService
       throws ExtendedCAServiceRequestException,
           IllegalExtendedCAServiceRequestException,
           ExtendedCAServiceNotActiveException {
-    if (log.isTraceEnabled()) {
-      log.trace(">extendedService");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">extendedService");
     }
     if (!(request instanceof CmsCAServiceRequest)) {
       throw new IllegalExtendedCAServiceRequestException();
     }
     if (getStatus() != ExtendedCAServiceInfo.STATUS_ACTIVE) {
       final String msg =
-          intres.getLocalizedMessage("caservice.notactive", "CMS");
-      log.error(msg);
+          INTRES.getLocalizedMessage("caservice.notactive", "CMS");
+      LOG.error(msg);
       throw new ExtendedCAServiceNotActiveException(msg);
     }
     ExtendedCAServiceResponse returnval = null;
@@ -452,20 +472,20 @@ public class CmsCAService extends ExtendedCAService
       }
       returnval = new CmsCAServiceResponse(resp);
     } catch (CMSException e) {
-      log.error("Error in CmsCAService", e);
+      LOG.error("Error in CmsCAService", e);
       throw new ExtendedCAServiceRequestException(e);
     } catch (IOException e) {
-      log.error("Error in CmsCAService", e);
+      LOG.error("Error in CmsCAService", e);
       throw new ExtendedCAServiceRequestException(e);
     } catch (OperatorCreationException e) {
-      log.error("Error in CmsCAService", e);
+      LOG.error("Error in CmsCAService", e);
       throw new ExtendedCAServiceRequestException(e);
     } catch (CertificateEncodingException e) {
-      log.error("Error in CmsCAService", e);
+      LOG.error("Error in CmsCAService", e);
       throw new ExtendedCAServiceRequestException(e);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<extendedService");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<extendedService");
     }
     return returnval;
   }
@@ -536,11 +556,11 @@ public class CmsCAService extends ExtendedCAService
     try {
       ret = new String(Base64.decode((value).getBytes("UTF-8")));
     } catch (UnsupportedEncodingException e) {
-      log.error("Could not decode data from Base64", e);
+      LOG.error("Could not decode data from Base64", e);
     } catch (DecoderException e) {
       // This is an old CA, where it's not Base64encoded
-      if (log.isDebugEnabled()) {
-        log.debug("Old non base64 encoded " + key + ": " + value);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Old non base64 encoded " + key + ": " + value);
       }
       ret = value;
     }
@@ -551,7 +571,7 @@ public class CmsCAService extends ExtendedCAService
     try {
       data.put(key, new String(Base64.encode(value.getBytes("UTF-8"), false)));
     } catch (UnsupportedEncodingException e) {
-      log.error("Could not encode data to Base64", e);
+      LOG.error("Could not encode data to Base64", e);
     }
   }
 }

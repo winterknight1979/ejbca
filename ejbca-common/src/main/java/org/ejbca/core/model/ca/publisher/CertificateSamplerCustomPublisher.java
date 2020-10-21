@@ -34,31 +34,40 @@ import org.ejbca.core.model.InternalEjbcaResources;
  *     19:32:11Z anatom $
  */
 public class CertificateSamplerCustomPublisher implements ICustomPublisher {
+    /** Logger. */
   private static final Logger LOG =
       Logger.getLogger(CertificateSamplerCustomPublisher.class);
-  private static final InternalEjbcaResources intres =
+  /** Resource. */
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
+  /** Config key. */
   private static final String PROPERTY_OUTPUTFOLDER = "outputfolder";
 
+  /** Config key. */
   private static final String PROPERTYPREFIX_PROFILEID = "profileid.";
 
+  /** Config key. */
   private static final String PROPERTYSUFFIX_PVALUE = ".pvalue";
+  /** Config key. */
   private static final String PROPERTYSUFFIX_SAMPLINGMETHOD = ".samplingmethod";
 
+  /** Config key. */
   private static final String PROPERTY_DEFAULT_SAMPLINGMETHOD =
       "default" + PROPERTYSUFFIX_SAMPLINGMETHOD;
+  /** Config key. */
   private static final String PROPERTY_DEFAULT_PVALUE =
       "default" + PROPERTYSUFFIX_PVALUE;
 
+  /** Config. */
   private Properties config;
 
   @Override
-  public void init(final Properties config) {
+  public void init(final Properties aConfig) {
     if (LOG.isTraceEnabled()) {
       LOG.trace(">init: " + this);
     }
-    this.config = config;
+    this.config = aConfig;
   }
 
   @Override
@@ -77,7 +86,7 @@ public class CertificateSamplerCustomPublisher implements ICustomPublisher {
     }
     if (!outputFolder.exists() || !outputFolder.isDirectory()) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "publisher.erroroutputpath", outputFolder.getAbsolutePath());
       LOG.error(msg);
       throw new PublisherConnectionException(msg);
@@ -89,7 +98,7 @@ public class CertificateSamplerCustomPublisher implements ICustomPublisher {
       String methodString = config.getProperty(PROPERTY_DEFAULT_SAMPLINGMETHOD);
       if (methodString == null) {
         final String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "publisher.errormissingproperty",
                 PROPERTY_DEFAULT_SAMPLINGMETHOD);
         LOG.error(msg);
@@ -99,7 +108,7 @@ public class CertificateSamplerCustomPublisher implements ICustomPublisher {
       }
     } catch (IllegalArgumentException ex) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "publisher.errorinvalidvalue",
               PROPERTY_DEFAULT_SAMPLINGMETHOD,
               ex.getLocalizedMessage());
@@ -112,7 +121,7 @@ public class CertificateSamplerCustomPublisher implements ICustomPublisher {
     if (pvalueString == null) {
       if (SamplingMethod.SAMPLE_PROBABILISTIC.equals(defaultMethod)) {
         final String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "publisher.errormissingproperty", PROPERTY_DEFAULT_PVALUE);
         LOG.error(msg);
         throw new PublisherConnectionException(msg);
@@ -122,16 +131,16 @@ public class CertificateSamplerCustomPublisher implements ICustomPublisher {
         final double defaultPvalue = Double.parseDouble(pvalueString);
         if (defaultPvalue < 0.0 || defaultPvalue > 1.0) {
           final String msg =
-              intres.getLocalizedMessage(
+              INTRES.getLocalizedMessage(
                   "publisher.errorinvalidvalue",
                   PROPERTY_DEFAULT_PVALUE,
-                  intres.getLocalizedMessage("publisher.pvalueinterval"));
+                  INTRES.getLocalizedMessage("publisher.pvalueinterval"));
           LOG.error(msg);
           throw new PublisherConnectionException(msg);
         }
       } catch (NumberFormatException ex) {
         final String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "publisher.errorinvalidvalue",
                 PROPERTY_DEFAULT_PVALUE,
                 ex.getLocalizedMessage());
@@ -156,7 +165,7 @@ public class CertificateSamplerCustomPublisher implements ICustomPublisher {
             profileId = Integer.parseInt(profileIdString);
           } catch (NumberFormatException ex) {
             final String msg =
-                intres.getLocalizedMessage("publisher.errorinvalidkey", name);
+                INTRES.getLocalizedMessage("publisher.errorinvalidkey", name);
             LOG.error(msg, ex);
             throw new PublisherConnectionException(msg);
           }
@@ -174,7 +183,7 @@ public class CertificateSamplerCustomPublisher implements ICustomPublisher {
             throw new PublisherConnectionException(ex.getLocalizedMessage());
           } catch (IllegalArgumentException ex) {
             final String msg =
-                intres.getLocalizedMessage(
+                INTRES.getLocalizedMessage(
                     "publisher.errorinvalidvalue",
                     name,
                     ex.getLocalizedMessage());
@@ -193,7 +202,7 @@ public class CertificateSamplerCustomPublisher implements ICustomPublisher {
             Integer.parseInt(profileIdString);
           } catch (NumberFormatException ex) {
             final String msg =
-                intres.getLocalizedMessage("publisher.errorinvalidkey", name);
+                INTRES.getLocalizedMessage("publisher.errorinvalidkey", name);
             LOG.error(msg, ex);
             throw new PublisherConnectionException(msg);
           }
@@ -201,16 +210,16 @@ public class CertificateSamplerCustomPublisher implements ICustomPublisher {
             final double pvalue = Double.parseDouble(config.getProperty(name));
             if (pvalue < 0.0 || pvalue > 1.0) {
               final String msg =
-                  intres.getLocalizedMessage(
+                  INTRES.getLocalizedMessage(
                       "publisher.errorinvalidvalue",
                       name,
-                      intres.getLocalizedMessage("publisher.pvalueinterval"));
+                      INTRES.getLocalizedMessage("publisher.pvalueinterval"));
               LOG.error(msg);
               throw new PublisherConnectionException(msg);
             }
           } catch (NumberFormatException ex) {
             final String msg =
-                intres.getLocalizedMessage(
+                INTRES.getLocalizedMessage(
                     "publisher.errorinvalidvalue",
                     name,
                     ex.getLocalizedMessage());
@@ -280,6 +289,13 @@ public class CertificateSamplerCustomPublisher implements ICustomPublisher {
                  // certificate or it was stored correctly
   }
 
+  /**
+   * @param cert Cert
+   * @param outFolder Folder
+   * @param prefix Prefix
+   * @param suffix Suffix
+   * @throws PublisherException Fail
+   */
   protected void writeCertificate(
       final Certificate cert,
       final File outFolder,
@@ -293,11 +309,11 @@ public class CertificateSamplerCustomPublisher implements ICustomPublisher {
       }
     } catch (CertificateEncodingException ex) {
       final String msg =
-          intres.getLocalizedMessage("publisher.errorcertconversion");
+          INTRES.getLocalizedMessage("publisher.errorcertconversion");
       LOG.error(msg);
       throw new PublisherException(msg);
     } catch (IOException e) {
-      final String msg = intres.getLocalizedMessage("publisher.errortempfile");
+      final String msg = INTRES.getLocalizedMessage("publisher.errortempfile");
       LOG.error(msg, e);
       throw new PublisherException(msg);
     }
@@ -322,17 +338,17 @@ public class CertificateSamplerCustomPublisher implements ICustomPublisher {
 
     switch (theMethod) {
       case SAMPLE_NONE:
-        {
+
           result = false;
           break;
-        }
+
       case SAMPLE_ALL:
-        {
+
           result = true;
           break;
-        }
+
       case SAMPLE_PROBABILISTIC:
-        {
+
           // Get the ratio
           Double p = getPvalue(profileId);
           if (LOG.isTraceEnabled()) {
@@ -354,14 +370,14 @@ public class CertificateSamplerCustomPublisher implements ICustomPublisher {
           // r will be less than our p with the probability of p
           result = r < p;
           break;
-        }
+
       default:
-        {
+
           final String msg =
-              intres.getLocalizedMessage("publisher.errorsamplingmethod");
+              INTRES.getLocalizedMessage("publisher.errorsamplingmethod");
           LOG.error(msg);
           throw new PublisherException(msg);
-        }
+
     }
     return result;
   }
@@ -379,7 +395,7 @@ public class CertificateSamplerCustomPublisher implements ICustomPublisher {
     }
     if (propertyString == null) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "publisher.errormissingproperty", propertyKey);
       LOG.error(msg);
       throw new PublisherException(msg);
@@ -388,7 +404,7 @@ public class CertificateSamplerCustomPublisher implements ICustomPublisher {
       result = SamplingMethod.valueOf(propertyString);
     } catch (IllegalArgumentException ex) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "publisher.errorinvalidvalue",
               PROPERTY_DEFAULT_PVALUE,
               ex.getLocalizedMessage());
@@ -410,7 +426,7 @@ public class CertificateSamplerCustomPublisher implements ICustomPublisher {
     }
     if (propertyString == null) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "publisher.errormissingproperty", propertyKey);
       LOG.error(msg);
       throw new PublisherException(msg);
@@ -419,7 +435,7 @@ public class CertificateSamplerCustomPublisher implements ICustomPublisher {
       result = Double.parseDouble(propertyString);
     } catch (NumberFormatException ex) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "publisher.errorinvalidvalue",
               PROPERTY_DEFAULT_PVALUE,
               ex.getLocalizedMessage());
@@ -435,7 +451,7 @@ public class CertificateSamplerCustomPublisher implements ICustomPublisher {
         config.getProperty(PROPERTY_OUTPUTFOLDER, "").trim();
     if (outputFolderString.length() < 1) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "publisher.errormissingproperty", PROPERTY_OUTPUTFOLDER);
       LOG.error(msg);
       throw new PublisherException(msg);

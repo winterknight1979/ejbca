@@ -67,7 +67,9 @@ public class CmsCAServiceInfo extends BaseSigningCAServiceInfo
     super(status, subjectdn, subjectaltname, keyspec, keyalgorithm, certchain);
   }
 
-  /* Used when updating existing services, only status is used. */
+  /** Used when updating existing services, only status is used.
+ * @param status Status
+ * @param renew Renew */
   public CmsCAServiceInfo(final int status, final boolean renew) {
     super(status, renew);
   }

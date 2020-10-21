@@ -24,35 +24,41 @@ import org.cesecore.certificates.endentity.EndEntityInformation;
  */
 public class CertReqHistory implements Serializable {
   private static final long serialVersionUID = -5449568418691275341L;
+  /** FP. */
   private final String fingerprint;
+/** SN. */
   private final String serialNumber;
+  /** DN. */
   private final String issuerDN;
+  /** User. */
   private final String username;
+  /** Time. */
   private final Date timestamp;
+  /** Info. */
   private final EndEntityInformation endEntityInformation;
 
   /**
-   * @param fingerprint the PK of the certificate in the CertificateDataBean
-   * @param serialNumber of the certificate
-   * @param issuerDN DN of the CA issuing the certificate
-   * @param username of the user used in the certificate request.
-   * @param timestamp when the certicate was created.
-   * @param endEntityInformation the userdata used to create the certificate.
+   * @param aFingerprint the PK of the certificate in the CertificateDataBean
+   * @param aSerialNumber of the certificate
+   * @param anIssuerDN DN of the CA issuing the certificate
+   * @param aUsername of the user used in the certificate request.
+   * @param aTimestamp when the certicate was created.
+   * @param theEndEntityInformation the userdata used to create the certificate.
    */
   public CertReqHistory(
-      final String fingerprint,
-      final String serialNumber,
-      final String issuerDN,
-      final String username,
-      final Date timestamp,
-      final EndEntityInformation endEntityInformation) {
+      final String aFingerprint,
+      final String aSerialNumber,
+      final String anIssuerDN,
+      final String aUsername,
+      final Date aTimestamp,
+      final EndEntityInformation theEndEntityInformation) {
     super();
-    this.fingerprint = fingerprint;
-    this.serialNumber = serialNumber;
-    this.issuerDN = issuerDN;
-    this.username = username;
-    this.timestamp = timestamp;
-    this.endEntityInformation = endEntityInformation;
+    this.fingerprint = aFingerprint;
+    this.serialNumber = aSerialNumber;
+    this.issuerDN = anIssuerDN;
+    this.username = aUsername;
+    this.timestamp = aTimestamp;
+    this.endEntityInformation = theEndEntityInformation;
   }
   /** @return Returns the issuerDN. */
   public String getFingerprint() {

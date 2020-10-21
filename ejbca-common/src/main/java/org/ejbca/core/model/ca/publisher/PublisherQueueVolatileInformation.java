@@ -34,12 +34,14 @@ public class PublisherQueueVolatileInformation extends UpgradeableDataHashMap
     implements Serializable, Cloneable {
 
   private static final long serialVersionUID = 3423544212169635898L;
-  private static final Logger log =
+  /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(PublisherQueueVolatileInformation.class);
-  /** Internal localization of logs and errors */
-  private static final InternalEjbcaResources intres =
+  /** Internal localization of logs and errors. */
+  private static final InternalEjbcaResources INT_RES =
       InternalEjbcaResources.getInstance();
 
+  /** Version. */
   public static final float LATEST_VERSION = 1;
 
   // private fields.
@@ -48,21 +50,24 @@ public class PublisherQueueVolatileInformation extends UpgradeableDataHashMap
   // for several different certificates
   // we will store the actual user data used when we tried to publish so we can
   // be sure to use the same.
-  /** Username, links to UserData */
+  /** Username, links to UserData. */
   private static final String USERNAME = "username";
   /** Password if sent to publisher. */
   private static final String PASSWORD = "password";
-  /** DN from UserData */
+  /** DN from UserData. */
   private static final String USERDN = "userdn";
-  /** ExtendedInformation from UserData */
+  /** ExtendedInformation from UserData. */
   private static final String EXTENDEDINFORMATION = "extendedinformation";
 
   // Public constants
 
   // Public methods.
-  /** Creates a new instance of EndEntity Profile */
-  public PublisherQueueVolatileInformation() {}
+  /** Creates a new instance of EndEntity Profile. */
+  public PublisherQueueVolatileInformation() { }
 
+  /**
+   * @return user
+   */
   public String getUsername() {
     String ret = (String) data.get(USERNAME);
     if (ret == null) {
@@ -71,12 +76,18 @@ public class PublisherQueueVolatileInformation extends UpgradeableDataHashMap
     return ret;
   }
 
+  /**
+   * @param username user
+   */
   public void setUsername(final String username) {
     if (username != null) {
       data.put(USERNAME, username);
     }
   }
 
+  /**
+   * @return pwd
+   */
   public String getPassword() {
     String ret = (String) data.get(PASSWORD);
     if (ret == null) {
@@ -85,12 +96,18 @@ public class PublisherQueueVolatileInformation extends UpgradeableDataHashMap
     return ret;
   }
 
+  /**
+   * @param password pwd
+   */
   public void setPassword(final String password) {
     if (password != null) {
       data.put(PASSWORD, password);
     }
   }
 
+  /**
+   * @return DN
+   */
   public String getUserDN() {
     String ret = (String) data.get(USERDN);
     if (ret == null) {
@@ -99,6 +116,9 @@ public class PublisherQueueVolatileInformation extends UpgradeableDataHashMap
     return ret;
   }
 
+  /**
+   * @param userDN DN
+   */
   public void setUserDN(final String userDN) {
     if (userDN != null) {
       data.put(USERDN, userDN);
@@ -115,6 +135,9 @@ public class PublisherQueueVolatileInformation extends UpgradeableDataHashMap
     return ret;
   }
 
+  /**
+   * @param ei Infi
+   */
   public void setExtendedInformation(final ExtendedInformation ei) {
     final String eidata =
         EndEntityInformation.extendedInformationToStringData(ei);
@@ -123,6 +146,10 @@ public class PublisherQueueVolatileInformation extends UpgradeableDataHashMap
     }
   }
 
+  /**
+   * @return clone
+   * @throws CloneNotSupportedException fail
+   */
   @SuppressWarnings("unchecked")
   public Object clone() throws CloneNotSupportedException {
     PublisherQueueVolatileInformation clone =
@@ -157,7 +184,9 @@ public class PublisherQueueVolatileInformation extends UpgradeableDataHashMap
     return saveData();
   }
 
-  /** Implementation of UpgradableDataHashMap function getLatestVersion */
+  /**
+   * Implementation of UpgradableDataHashMap function getLatestVersion.
+   * @return version */
   public float getLatestVersion() {
     return LATEST_VERSION;
   }
@@ -167,9 +196,9 @@ public class PublisherQueueVolatileInformation extends UpgradeableDataHashMap
     if (Float.compare(LATEST_VERSION, getVersion()) != 0) {
       // New version of the class, upgrade
       String msg =
-          intres.getLocalizedMessage(
+          INT_RES.getLocalizedMessage(
               "publisher.queuedataupgrade", Float.valueOf(getVersion()));
-      log.info(msg);
+      LOG.info(msg);
 
       data.put(VERSION, Float.valueOf(LATEST_VERSION));
     }

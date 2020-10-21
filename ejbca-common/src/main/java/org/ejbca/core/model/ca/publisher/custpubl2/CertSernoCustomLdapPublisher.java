@@ -102,21 +102,22 @@ public class CertSernoCustomLdapPublisher extends LdapPublisher
     implements ICustomPublisher {
 
   private static final long serialVersionUID = -584431431033065114L;
-  private static final Logger log =
+  /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(CertSernoCustomLdapPublisher.class);
 
   @Override
   public void init(final Properties properties) {
-    if (log.isDebugEnabled()) {
-      log.debug(">init");
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(">init");
     }
     // Transfer Properties into data used in LdapPublisher
     Enumeration<Object> keys = properties.keys();
     while (keys.hasMoreElements()) {
       final String key = (String) keys.nextElement();
       final String value = properties.getProperty(key);
-      if (log.isDebugEnabled()) {
-        log.debug("Setting property: " + key + "," + value);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Setting property: " + key + "," + value);
       }
       if (key.equals("usefieldsinldapdn")) {
         // Create use fieldsin ldapDN, it is a Collection that needs to be
@@ -145,8 +146,8 @@ public class CertSernoCustomLdapPublisher extends LdapPublisher
         }
       }
     }
-    if (log.isDebugEnabled()) {
-      log.debug(">init");
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(">init");
     }
   }
 
@@ -156,7 +157,7 @@ public class CertSernoCustomLdapPublisher extends LdapPublisher
       final Certificate incert,
       final String username,
       final String password,
-      String userDN,
+      final String ouserDN,
       final String cafp,
       final int status,
       final int type,
@@ -167,9 +168,9 @@ public class CertSernoCustomLdapPublisher extends LdapPublisher
       final long lastUpdate,
       final ExtendedInformation extendedinformation)
       throws PublisherException {
-    userDN = getUidCertSernoDN(incert, username, userDN);
-    if (log.isDebugEnabled()) {
-      log.debug("storeCertificate: " + userDN);
+    String userDN = getUidCertSernoDN(incert, username, ouserDN);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("storeCertificate: " + userDN);
     }
     return super.storeCertificate(
         admin,
@@ -189,13 +190,14 @@ public class CertSernoCustomLdapPublisher extends LdapPublisher
   }
 
   private String getUidCertSernoDN(
-      final Certificate incert, final String username, String userDN) {
+      final Certificate incert, final String username, final String ouserDN) {
     // Construct the userDN with the certificate serial number as UID
+    String userDN = ouserDN;
     X509Certificate xcert = (X509Certificate) incert;
     String certSerNo = xcert.getSerialNumber().toString();
     String snfromuser = CertTools.getPartFromDN(userDN, "UID");
     if (StringUtils.isNotEmpty(snfromuser)) {
-      log.info(
+      LOG.info(
           "User '"
               + username
               + "' aready has a UID in DN, this will be replaced by Cert"
@@ -218,11 +220,11 @@ public class CertSernoCustomLdapPublisher extends LdapPublisher
       final Certificate cert,
       final String username,
       final int reason,
-      String userDN)
+      final String ouserDN)
       throws PublisherException {
-    userDN = getUidCertSernoDN(cert, username, userDN);
-    if (log.isDebugEnabled()) {
-      log.debug("revokeCertificate: " + userDN);
+    String userDN = getUidCertSernoDN(cert, username, ouserDN);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("revokeCertificate: " + userDN);
     }
     super.revokeCertificate(admin, cert, username, reason, userDN);
   }

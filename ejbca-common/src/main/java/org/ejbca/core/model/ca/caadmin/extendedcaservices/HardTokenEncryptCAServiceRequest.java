@@ -27,18 +27,29 @@ public class HardTokenEncryptCAServiceRequest extends ExtendedCAServiceRequest
     implements Serializable {
 
   private static final long serialVersionUID = 8081402124613587671L;
+  /** Config. */
   public static final int COMMAND_ENCRYPTDATA = 1;
+  /** Config. */
   public static final int COMMAND_DECRYPTDATA = 2;
 
+  /** Cmd. */
   private final int command;
+  /** Data. */
   private final byte[] data;
 
+  /**
+   * @param aCommand cmd
+   * @param theData data
+   */
   public HardTokenEncryptCAServiceRequest(
-      final int command, final byte[] data) {
-    this.command = command;
-    this.data = data;
+      final int aCommand, final byte[] theData) {
+    this.command = aCommand;
+    this.data = theData;
   }
 
+  /**
+   * @return Command
+   */
   public int getCommand() {
     return command;
   }

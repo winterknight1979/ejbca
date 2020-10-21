@@ -80,7 +80,9 @@ import org.ejbca.util.TCPTool;
  * <p>Example cert entry:
  *
  * <pre>
- * dn: CN=CN\=MyCSCA\,O\=My Gov\,C\=SE+sn=74F9C50AC1514A9,ou=staging,dc=example,dc=com
+ * dn:
+ * CN=CN\=MyCSCA\,O\=My Gov\,C\=SE+sn=74F9C50AC1514A9,
+ * ou=staging,dc=example,dc=com
  * checksum: f7f7cf62726678837f4e05c83499379e26ff9c58
  * cn: CN=MyCSCA,O=My Gov,C=SE
  * objectClass: person
@@ -109,7 +111,8 @@ import org.ejbca.util.TCPTool;
  * <pre>
  * dn: logTime=20130415121356.184Z,cn=log,dc=example,dc=com
  * description: test
- * logInfo:  time:20130415121356.184Z sqn:1 stage:objectupload level:info msgid: msg:Successfully published CRL 26 msgext:
+ * logInfo:  time:20130415121356.184Z sqn:1 stage:objectupload level:info
+ * msgid: msg:Successfully published CRL 26 msgext:
  * logTime: 20130415121356.184Z
  * objectClass: logObject
  * objectClass: top
@@ -130,78 +133,123 @@ import org.ejbca.util.TCPTool;
  */
 public class CustomerLdapPublisher1 implements ICustomPublisher {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(CustomerLdapPublisher1.class);
-  private static final InternalEjbcaResources intres =
+  /** Resource. */
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
   // Object classes
+  /** config.*/
   public static final String INETORGPERSON = "inetOrgPerson";
+  /** config.*/
   public static final String CRLDISTRIBUTIONPOINT = "cRLDistributionPoint";
+  /** config.*/
   public static final String ICAOEXTENDEDINFO = "icaoExtendedInfo";
+  /** config.*/
   public static final String TOP = "top";
+  /** config.*/
   private static final String LOGOBJECT = "logObject";
+  /** config.*/
   private static final String[] LOG_OBJECTCLASSES =
       new String[] {TOP, LOGOBJECT};
 
   // Groups
+  /** config.*/
   private static final String PUBLISH_GROUP = "ou=staging";
+  /** config.*/
   private static final String LOG_GROUP = "cn=log";
 
   // Attributes
+  /** config.*/
   private static final String CHECKSUM_ATTRIBUTE = "checksum";
+  /** config.*/
   private static final String CERTIFICATE_ATTRIBUTE = "userCertificate;binary";
+  /** config.*/
   private static final String CRL_ATTRIBUTE =
       "certificateRevocationList;binary";
 
   // Properties
+  /** config.*/
   private static final String PROPERTY_HOSTNAMES = "hostnames";
+  /** config.*/
   private static final String PROPERTY_USESSL = "usessl";
+  /** config.*/
   private static final String PROPERTY_PORT = "port";
+  /** config.*/
   private static final String PROPERTY_BASEDN = "basedn";
+  /** config.*/
   private static final String PROPERTY_LOGINDN = "logindn";
+  /** config.*/
   private static final String PROPERTY_LOGINPASSWORD = "loginpassword";
+  /** config.*/
   private static final String PROPERTY_CONNECTIONTIMEOUT = "connectiontimeout";
+  /** config.*/
   private static final String PROPERTY_READTIMEOUT = "readtimeout";
+  /** config.*/
   private static final String PROPERTY_STORETIMEOUT = "storetimeout";
+  /** config.*/
   private static final String PROPERTY_LOGCONNECTIONTESTS =
       "logconnectiontests";
+  /** config.*/
   private static final String PROPERTY_EXTENDEDINFOOBJECTCLASS =
       "extendedinfoobjectclass";
 
   // Default values
+  /** config.*/
   public static final String DEFAULT_PORT = "389";
+  /** config.*/
   public static final String DEFAULT_SSLPORT = "636";
+  /** config.*/
   public static final String DEFAULT_TIMEOUT = "5000"; // 5 seconds
+  /** config.*/
   public static final String DEFAULT_READTIMEOUT = "30000"; // 30 seconds
+  /** config.*/
   public static final String DEFAULT_STORETIMEOUT = "60000"; // 1 minute
 
   /** Flag indicating if the publisher has been initialized. */
   private boolean inited;
 
   // Fields
+  /** Host. */
   private List<String> hostnames;
+  /** SSL. */
   private boolean useSSL;
+  /** Port. */
   private String port;
+  /** DN. */
   private String baseDN;
+  /** DN. */
   private String loginDN;
+  /** Pass. */
   private String loginPassword;
+  /** Bool. */
   private boolean logConnectionTests;
+  /** Class. */
   private String extendedInfoObjectClass;
+  /** timeout. */
   private int timeout;
 
+  /** config.*/
   private final LDAPConstraints ldapConnectionConstraints =
       new LDAPConstraints();
+  /** config.*/
   private final LDAPConstraints ldapBindConstraints = new LDAPConstraints();
+  /** config.*/
   private final LDAPConstraints ldapStoreConstraints = new LDAPConstraints();
+  /** config.*/
   private final LDAPConstraints ldapDisconnectConstraints =
       new LDAPConstraints();
+  /** config.*/
   private final LDAPSearchConstraints ldapSearchConstraints =
       new LDAPSearchConstraints();
 
   // DSC and CRL object classes that may contain icaoextendedinfo or
   // spocextendedinfo object classes
+  /** config.*/
   private String[] dscObjectClasses;
+  /** config.*/
   private String[] crlObjectClasses;
 
   /**
@@ -252,8 +300,8 @@ public class CustomerLdapPublisher1 implements ICustomPublisher {
     ldapSearchConstraints.setTimeLimit(readTimeout);
     ldapStoreConstraints.setTimeLimit(storeTimeout);
 
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           new StringBuilder()
               .append("Initialized publisher with config:")
               .append("\n")
@@ -324,8 +372,8 @@ public class CustomerLdapPublisher1 implements ICustomPublisher {
       final long lastUpdate,
       final ExtendedInformation extendedinformation)
       throws PublisherException {
-    if (log.isTraceEnabled()) {
-      log.trace(">storeCertificate(username=" + username + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">storeCertificate(username=" + username + ")");
     }
     if (!inited) {
       throw new IllegalStateException("Publisher not initialized");
@@ -347,7 +395,7 @@ public class CustomerLdapPublisher1 implements ICustomPublisher {
         } catch (PublisherException ex) {
           // Catching the log failure as we don't want the entry to be
           // republished just because we could not log the success
-          log.error(
+          LOG.error(
               "Failed to log the successful publishing for certiciate "
                   + serial,
               ex);
@@ -364,7 +412,7 @@ public class CustomerLdapPublisher1 implements ICustomPublisher {
               "Publishing of certificate " + serial + " failed",
               pex);
         } catch (PublisherException ex) {
-          log.error(
+          LOG.error(
               "Failed to log the failed publishing for certificate " + serial,
               ex);
         }
@@ -374,12 +422,12 @@ public class CustomerLdapPublisher1 implements ICustomPublisher {
         throw pex2;
       }
     } else {
-      if (log.isDebugEnabled()) {
-        log.debug("This publisher only stores active end entity certificates.");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("This publisher only stores active end entity certificates.");
       }
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<storeCertificate()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<storeCertificate()");
     }
     return true;
   }
@@ -392,8 +440,8 @@ public class CustomerLdapPublisher1 implements ICustomPublisher {
       final int number,
       final String userDN)
       throws PublisherException {
-    if (log.isTraceEnabled()) {
-      log.trace(">storeCRL");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">storeCRL");
     }
     if (!inited) {
       throw new IllegalStateException("Publisher not initialized");
@@ -410,7 +458,7 @@ public class CustomerLdapPublisher1 implements ICustomPublisher {
       } catch (PublisherException ex) {
         // Catching the log failure as we don't want the entry to be republished
         // just because we could not log the success
-        log.error(
+        LOG.error(
             "Failed to log the successful publishing for CRL" + number, ex);
       }
       return true;
@@ -426,7 +474,7 @@ public class CustomerLdapPublisher1 implements ICustomPublisher {
             "Publishing of CRL " + number + " failed",
             pex);
       } catch (PublisherException ex) {
-        log.error("Failed to log the failed publishing for CRL " + number, ex);
+        LOG.error("Failed to log the failed publishing for CRL " + number, ex);
       }
 
       // Pass through the exception so that the failed publishing can be put in
@@ -450,7 +498,7 @@ public class CustomerLdapPublisher1 implements ICustomPublisher {
               "Successfully tested connection to LDAP",
               null);
         } catch (PublisherException ex) {
-          log.error("Failed to log the successful connection test", ex);
+          LOG.error("Failed to log the successful connection test", ex);
         }
       }
     } catch (PublisherConnectionException pex) {
@@ -467,13 +515,22 @@ public class CustomerLdapPublisher1 implements ICustomPublisher {
               "Failed testing of connection to LDAP ",
               pex);
         } catch (PublisherException ex) {
-          log.error("Failed to log the failed connection test ", ex);
+          LOG.error("Failed to log the failed connection test ", ex);
         }
       }
       throw pex2;
     }
   }
 
+  /**
+   * @param incert Cert
+   * @param username User
+   * @param password PWD
+   * @param userDN DN
+   * @param extendedinformation Info
+   * @return bool
+   * @throws PublisherException fail
+   */
   protected boolean doStoreCertificate(
       final Certificate incert,
       final String username,
@@ -481,8 +538,8 @@ public class CustomerLdapPublisher1 implements ICustomPublisher {
       final String userDN,
       final ExtendedInformation extendedinformation)
       throws PublisherException {
-    if (log.isTraceEnabled()) {
-      log.trace(">doStoreCertificate(username=" + username + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">doStoreCertificate(username=" + username + ")");
     }
     final LDAPConnection lc = createLdapConnection();
 
@@ -495,8 +552,8 @@ public class CustomerLdapPublisher1 implements ICustomPublisher {
           ((X509Certificate) incert)
               .getIssuerX500Principal()
               .getName(X500Principal.RFC2253);
-      if (log.isDebugEnabled()) {
-        log.debug("DN in certificate '" + dn + "'.");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("DN in certificate '" + dn + "'.");
       }
 
       // Publishing of certificate, we must append the cert serial number to the
@@ -513,21 +570,21 @@ public class CustomerLdapPublisher1 implements ICustomPublisher {
               .append(baseDN)
               .toString();
 
-      if (log.isDebugEnabled()) {
-        log.debug("LDAP DN for user " + username + " is '" + ldapDN + "'");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("LDAP DN for user " + username + " is '" + ldapDN + "'");
       }
     } catch (Exception e) {
       String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "publisher.errorldapdecode", "certificate");
-      log.error(msg, e);
+      LOG.error(msg, e);
       throw new PublisherException(msg);
     }
 
     // Check for old entry
     final LDAPEntry oldEntry = searchOldEntity(lc, ldapDN);
     if (oldEntry != null) {
-      log.debug("Old entry exists and will be delete first");
+      LOG.debug("Old entry exists and will be delete first");
     }
 
     // Attributs
@@ -536,8 +593,8 @@ public class CustomerLdapPublisher1 implements ICustomPublisher {
     attributeSet.add(
         new LDAPAttribute("sn", CertTools.getSerialNumberAsString(incert)));
     final String checksum = CertTools.getFingerprintAsString(incert);
-    if (log.isDebugEnabled()) {
-      log.debug("Adding checksum: " + checksum);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Adding checksum: " + checksum);
     }
     attributeSet.add(new LDAPAttribute(CHECKSUM_ATTRIBUTE, checksum));
     try {
@@ -545,29 +602,33 @@ public class CustomerLdapPublisher1 implements ICustomPublisher {
           new LDAPAttribute(CERTIFICATE_ATTRIBUTE, incert.getEncoded()));
     } catch (CertificateEncodingException e) {
       String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "publisher.errorldapencodestore", "certificate");
-      log.error(msg, e);
+      LOG.error(msg, e);
       throw new PublisherException(msg);
     }
 
     // Finally write the object
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Adding certificate to user entry: " + username + ": " + ldapDN);
     }
     final LDAPEntry newEntry = new LDAPEntry(ldapDN, attributeSet);
     writeCertEntryToLDAP(lc, oldEntry, newEntry, checksum);
 
-    if (log.isTraceEnabled()) {
-      log.trace("<doStoreCertificate()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<doStoreCertificate()");
     }
     return true;
   }
 
+  /**
+   * @param incrl CRL
+   * @throws PublisherException Fail
+   */
   protected void doStoreCRL(final byte[] incrl) throws PublisherException {
-    if (log.isTraceEnabled()) {
-      log.trace(">doStoreCRL");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">doStoreCRL");
     }
 
     final LDAPConnection lc = createLdapConnection();
@@ -590,8 +651,8 @@ public class CustomerLdapPublisher1 implements ICustomPublisher {
               .toString();
     } catch (CRLException e) {
       String msg =
-          intres.getLocalizedMessage("publisher.errorldapdecode", "CRL");
-      log.error(msg, e);
+          INTRES.getLocalizedMessage("publisher.errorldapdecode", "CRL");
+      LOG.error(msg, e);
       throw new PublisherException(msg);
     }
 
@@ -603,8 +664,8 @@ public class CustomerLdapPublisher1 implements ICustomPublisher {
     final LDAPAttributeSet attributeSet = new LDAPAttributeSet();
     attributeSet.add(new LDAPAttribute("objectclass", crlObjectClasses));
     final String checksum = CertTools.getFingerprintAsString(incrl);
-    if (log.isDebugEnabled()) {
-      log.debug("Adding checksum: " + checksum);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Adding checksum: " + checksum);
     }
     attributeSet.add(new LDAPAttribute(CHECKSUM_ATTRIBUTE, checksum));
     attributeSet.add(new LDAPAttribute(CRL_ATTRIBUTE, incrl));
@@ -612,11 +673,14 @@ public class CustomerLdapPublisher1 implements ICustomPublisher {
     // Finally write the object
     final LDAPEntry newEntry = new LDAPEntry(ldapDN, attributeSet);
     writeCrlEntryToLDAP(lc, oldEntry, newEntry);
-    if (log.isTraceEnabled()) {
-      log.trace("<doStoreCRL");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<doStoreCRL");
     }
   }
 
+  /**
+   * @throws PublisherConnectionException Fail
+   */
   protected void doTestConnection() throws PublisherConnectionException {
     final LDAPConnection lc = createLdapConnection();
     final LDAPEntry entry =
@@ -628,8 +692,8 @@ public class CustomerLdapPublisher1 implements ICustomPublisher {
               public LDAPEntry performAction(final LDAPConnection lc)
                   throws LDAPException {
                 // try to read the base object
-                if (log.isDebugEnabled()) {
-                  log.debug("Trying to read top node '" + baseDN + "'");
+                if (LOG.isDebugEnabled()) {
+                  LOG.debug("Trying to read top node '" + baseDN + "'");
                 }
                 final LDAPEntry entry = lc.read(baseDN, ldapSearchConstraints);
                 return entry;
@@ -639,33 +703,40 @@ public class CustomerLdapPublisher1 implements ICustomPublisher {
               public void failed(final LDAPException ex)
                   throws PublisherConnectionException {
                 String msg =
-                    intres.getLocalizedMessage(
+                    INTRES.getLocalizedMessage(
                         "publisher.errorldapbind", ex.getMessage());
-                log.error(msg, ex);
+                LOG.error(msg, ex);
                 throw new PublisherConnectionException(msg);
               }
             });
 
     if (entry == null) {
-      String msg = intres.getLocalizedMessage("publisher.errornobinddn");
+      String msg = INTRES.getLocalizedMessage("publisher.errornobinddn");
       throw new PublisherConnectionException(msg);
     }
-    if (log.isDebugEnabled()) {
-      log.debug("Entry" + entry.toString());
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Entry" + entry.toString());
     }
   }
 
+  /**
+   * @param level Level
+   * @param success Success
+   * @param message Message
+   * @param exception Exception
+   * @throws PublisherException Fail
+   */
   protected void storeLog(
       final String level,
       final boolean success,
       final String message,
       final Exception exception)
       throws PublisherException {
-    if (log.isTraceEnabled()) {
-      log.trace(">storeLog");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">storeLog");
     }
-    if (log.isDebugEnabled()) {
-      log.debug("Publishing was successful: " + success);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Publishing was successful: " + success);
     }
 
     // Construct LogInfo lines
@@ -677,7 +748,7 @@ public class CustomerLdapPublisher1 implements ICustomPublisher {
         final LDAPException le = (LDAPException) ex.getCause();
         // If entry already exists, retry one time with time +1 ms
         if (le.getResultCode() == LDAPException.ENTRY_ALREADY_EXISTS) {
-          log.info("Log entry already exists, retrying with time +1 ms");
+          LOG.info("Log entry already exists, retrying with time +1 ms");
           doStoreLog(
               level,
               success,
@@ -691,11 +762,20 @@ public class CustomerLdapPublisher1 implements ICustomPublisher {
       }
     }
 
-    if (log.isTraceEnabled()) {
-      log.trace("<storeLog");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<storeLog");
     }
   }
 
+  /**
+   * @param level Level
+   * @param success Success
+   * @param message Message
+   * @param exception Exception
+   * @param dnTime DN
+   * @param logTime Time
+   * @throws PublisherException Fail
+   */
   protected void doStoreLog(
       final String level,
       final boolean success,
@@ -743,6 +823,9 @@ public class CustomerLdapPublisher1 implements ICustomPublisher {
     writeLogEntryToLDAP(lc, newEntry);
   }
 
+  /**
+   * @return Date
+   */
   protected Date getCurrentTime() {
     return new Date();
   }
@@ -763,8 +846,8 @@ public class CustomerLdapPublisher1 implements ICustomPublisher {
     do {
       connectionFailed = false;
       final String currentServer = servers.next();
-      if (log.isDebugEnabled()) {
-        log.debug("Current server is: " + currentServer);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Current server is: " + currentServer);
       }
 
       try {
@@ -786,7 +869,7 @@ public class CustomerLdapPublisher1 implements ICustomPublisher {
       } catch (LDAPException e) {
         connectionFailed = true;
         if (servers.hasNext()) {
-          log.warn(
+          LOG.warn(
               "Failed to publish to "
                   + currentServer
                   + ". Trying next in list.");
@@ -795,7 +878,7 @@ public class CustomerLdapPublisher1 implements ICustomPublisher {
         }
       } catch (UnsupportedEncodingException e) {
         String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "publisher.errorpassword", loginPassword);
         throw new RuntimeException(msg);
       } finally {
@@ -803,14 +886,20 @@ public class CustomerLdapPublisher1 implements ICustomPublisher {
         try {
           lc.disconnect(ldapDisconnectConstraints);
         } catch (LDAPException e) {
-          String msg = intres.getLocalizedMessage("publisher.errordisconnect");
-          log.error(msg, e);
+          String msg = INTRES.getLocalizedMessage("publisher.errordisconnect");
+          LOG.error(msg, e);
         }
       }
     } while (connectionFailed && servers.hasNext());
     return result;
   }
 
+  /**
+   * @param lc LC
+   * @param ldapDN DN
+   * @return Entity
+   * @throws PublisherException Fail
+   */
   protected LDAPEntry searchOldEntity(
       final LDAPConnection lc, final String ldapDN) throws PublisherException {
     return executeLDAPAction(
@@ -822,22 +911,22 @@ public class CustomerLdapPublisher1 implements ICustomPublisher {
             LDAPEntry result = null;
             try {
               // try to read the old object
-              if (log.isDebugEnabled()) {
-                log.debug("Searching for old entry with DN '" + ldapDN + "'");
+              if (LOG.isDebugEnabled()) {
+                LOG.debug("Searching for old entry with DN '" + ldapDN + "'");
               }
               result = lc.read(ldapDN, ldapSearchConstraints);
-              if (log.isDebugEnabled()) {
+              if (LOG.isDebugEnabled()) {
                 if (result != null) {
-                  log.debug("Found an old entry with DN '" + ldapDN + "'");
+                  LOG.debug("Found an old entry with DN '" + ldapDN + "'");
                 } else {
-                  log.debug(
+                  LOG.debug(
                       "Did not find an old entry with DN '" + ldapDN + "'");
                 }
               }
             } catch (LDAPException ex) {
               if (ex.getResultCode() == LDAPException.NO_SUCH_OBJECT) {
-                if (log.isDebugEnabled()) {
-                  log.debug("No old entry exist for '" + ldapDN + "'.");
+                if (LOG.isDebugEnabled()) {
+                  LOG.debug("No old entry exist for '" + ldapDN + "'.");
                 }
               } else {
                 throw ex;
@@ -849,9 +938,9 @@ public class CustomerLdapPublisher1 implements ICustomPublisher {
           @Override
           public void failed(final LDAPException ex) throws PublisherException {
             final String msg =
-                intres.getLocalizedMessage(
+                INTRES.getLocalizedMessage(
                     "publisher.errorldapbind", ex.getMessage());
-            log.error(msg, ex);
+            LOG.error(msg, ex);
             throw new PublisherException(msg);
           }
         });
@@ -868,6 +957,13 @@ public class CustomerLdapPublisher1 implements ICustomPublisher {
     return result;
   }
 
+/**
+ * @param lc LC
+ * @param oldEntry Old
+ * @param newEntry New
+ * @param certFingerprint FP
+ * @throws PublisherException Fail
+ */
   protected void writeCertEntryToLDAP(
       final LDAPConnection lc,
       final LDAPEntry oldEntry,
@@ -885,30 +981,30 @@ public class CustomerLdapPublisher1 implements ICustomPublisher {
               if (oldEntry != null) {
                 lc.delete(oldEntry.getDN(), ldapStoreConstraints);
                 String msg =
-                    intres.getLocalizedMessage(
+                    INTRES.getLocalizedMessage(
                         "publisher.ldapremove", oldEntry.getDN());
-                log.info(msg);
+                LOG.info(msg);
               }
 
               // Add the entry
-              if (log.isDebugEnabled()) {
-                log.debug("Adding DN: " + newEntry.getDN());
+              if (LOG.isDebugEnabled()) {
+                LOG.debug("Adding DN: " + newEntry.getDN());
               }
               lc.add(newEntry, ldapStoreConstraints);
               String msg =
-                  intres.getLocalizedMessage(
+                  INTRES.getLocalizedMessage(
                       "publisher.ldapadd", "CERT", newEntry.getDN());
-              log.info(msg);
+              LOG.info(msg);
             } catch (LDAPException ex) {
               if (ex.getResultCode()
                   == LDAPException.ATTRIBUTE_OR_VALUE_EXISTS) {
                 final String msg =
-                    intres.getLocalizedMessage(
+                    INTRES.getLocalizedMessage(
                         "publisher.certalreadyexists",
                         certFingerprint,
                         newEntry.getDN(),
                         ex.getMessage());
-                log.info(msg);
+                LOG.info(msg);
               } else {
                 throw ex;
               }
@@ -919,19 +1015,25 @@ public class CustomerLdapPublisher1 implements ICustomPublisher {
           @Override
           public void failed(final LDAPException ex) throws PublisherException {
             String msg =
-                intres.getLocalizedMessage(
+                INTRES.getLocalizedMessage(
                     "publisher.errorldapstore",
                     "certificate",
                     CERTIFICATE_ATTRIBUTE,
                     Arrays.toString(dscObjectClasses),
                     newEntry.getDN(),
                     ex.getMessage());
-            log.error(msg, ex);
+            LOG.error(msg, ex);
             throw new PublisherException(msg);
           }
         });
   }
 
+  /**
+   * @param lc LC
+   * @param oldEntry Old
+   * @param newEntry New
+   * @throws PublisherException Dail
+   */
   protected void writeCrlEntryToLDAP(
       final LDAPConnection lc,
       final LDAPEntry oldEntry,
@@ -947,36 +1049,41 @@ public class CustomerLdapPublisher1 implements ICustomPublisher {
             if (oldEntry != null) {
               lc.delete(oldEntry.getDN(), ldapStoreConstraints);
               String msg =
-                  intres.getLocalizedMessage(
+                  INTRES.getLocalizedMessage(
                       "publisher.ldapremove", oldEntry.getDN());
-              log.info(msg);
+              LOG.info(msg);
             }
 
             // Add new entry
             lc.add(newEntry, ldapStoreConstraints);
             String msg =
-                intres.getLocalizedMessage(
+                INTRES.getLocalizedMessage(
                     "publisher.ldapadd", "CRL", newEntry.getDN());
-            log.info(msg);
+            LOG.info(msg);
             return null;
           }
 
           @Override
           public void failed(final LDAPException ex) throws PublisherException {
             String msg =
-                intres.getLocalizedMessage(
+                INTRES.getLocalizedMessage(
                     "publisher.errorldapstore",
                     "CRL",
                     CRL_ATTRIBUTE,
                     Arrays.toString(crlObjectClasses),
                     newEntry.getDN(),
                     ex.getMessage());
-            log.error(msg, ex);
+            LOG.error(msg, ex);
             throw new PublisherException(msg);
           }
         });
   }
 
+  /**
+   * @param lc LC
+   * @param newEntry Entry
+   * @throws PublisherException Fail
+   */
   protected void writeLogEntryToLDAP(
       final LDAPConnection lc, final LDAPEntry newEntry)
       throws PublisherException {
@@ -989,23 +1096,23 @@ public class CustomerLdapPublisher1 implements ICustomPublisher {
             // Add the entry
             lc.add(newEntry, ldapStoreConstraints);
             String msg =
-                intres.getLocalizedMessage(
+                INTRES.getLocalizedMessage(
                     "publisher.ldapadd", "log", newEntry.getDN());
-            log.info(msg);
+            LOG.info(msg);
             return null;
           }
 
           @Override
           public void failed(final LDAPException ex) throws PublisherException {
             String msg =
-                intres.getLocalizedMessage(
+                INTRES.getLocalizedMessage(
                     "publisher.errorldapstore",
                     "log",
                     newEntry.getAttributeSet(),
                     newEntry.getAttribute("objectclass"),
                     newEntry.getDN(),
                     ex.getMessage());
-            log.error(msg, ex);
+            LOG.error(msg, ex);
             final PublisherException pe = new PublisherException();
             pe.initCause(ex);
             throw pe;
@@ -1013,67 +1120,109 @@ public class CustomerLdapPublisher1 implements ICustomPublisher {
         });
   }
 
+  /**
+   * @return bool
+   */
   protected boolean isInited() {
     return inited;
   }
 
+  /**
+   * @return Names
+   */
   protected List<String> getHostnames() {
     return hostnames;
   }
 
+  /**
+   * @return SSL
+   */
   protected boolean isUseSSL() {
     return useSSL;
   }
 
+  /**
+   * @return Port
+   */
   protected String getPort() {
     return port;
   }
 
+  /**
+   * @return DN
+   */
   protected String getBaseDN() {
     return baseDN;
   }
 
+  /**
+   * @return DN
+   */
   protected String getLoginDN() {
     return loginDN;
   }
 
+  /**
+   * @return PWD
+   */
   protected String getLoginPassword() {
     return loginPassword;
   }
 
+  /**
+   * @return bool
+   */
   protected boolean isLogConnectionTests() {
     return logConnectionTests;
   }
 
+  /**
+   * @return time
+   */
   protected int getTimeout() {
     return timeout;
   }
-
+  /**
+   * @return constraints
+   */
   protected LDAPConstraints getLdapConnectionConstraints() {
     return ldapConnectionConstraints;
   }
-
+  /**
+   * @return constraints
+   */
   protected LDAPConstraints getLdapBindConstraints() {
     return ldapBindConstraints;
   }
-
+  /**
+   * @return constraints
+   */
   protected LDAPConstraints getLdapStoreConstraints() {
     return ldapStoreConstraints;
   }
-
+  /**
+   * @return constraints
+   */
   protected LDAPConstraints getLdapDisconnectConstraints() {
     return ldapDisconnectConstraints;
   }
 
+  /**
+   * @return constraints
+   */
   protected LDAPSearchConstraints getLdapSearchConstraints() {
     return ldapSearchConstraints;
   }
 
   static class LogInfo {
 
+        /** Config. */
     public static final String LEVEL_INFO = "info";
+    /** Config. */
     public static final String LEVEL_ERROR = "err";
+    /** Config. */
     public static final String LEVEL_DEBUG = "debug";
+    /** Config. */
     private static final SimpleDateFormat SDF =
         new SimpleDateFormat("yyyyMMddHHmmss.SSS'Z'");
 
@@ -1081,56 +1230,69 @@ public class CustomerLdapPublisher1 implements ICustomPublisher {
       SDF.setTimeZone(new SimpleTimeZone(0, "Z"));
     }
 
+    /**
+     * @param date Date
+     * @return Time
+     */
     public static String toGeneralizedTime(final Date date) {
       return SDF.format(date);
     }
 
+    /** Time. */
     private final Date time;
+    /** SQN. */
     private final Integer sqn;
+    /** Stage. */
     private final String stage;
+    /** Level. */
     private final String level;
+    /** ID. */
     private final String msgid;
+    /** Msg. */
     private final String msg;
+    /** PID. */
     private final String pid;
+    /** Mag. */
     private final String msgext;
 
-    public LogInfo(final Date time, final String level, final String msg) {
-      this.time = time;
+    LogInfo(final Date atime, final String alevel, final String amsg) {
+      this.time = atime;
       this.sqn = null;
       this.stage = null;
-      this.level = level;
+      this.level = alevel;
       this.msgid = null;
-      this.msg = msg;
+      this.msg = amsg;
       this.pid = null;
       this.msgext = null;
     }
 
-    public LogInfo(
-        final Date time,
-        final Integer sqn,
-        final String stage,
-        final String level,
-        final String msgid,
-        final String msg,
-        final String pid,
-        final String msgext) {
+    LogInfo(
+        final Date atime,
+        final Integer asqn,
+        final String astage,
+        final String alevel,
+        final String amsgid,
+        final String amsg,
+        final String apid,
+        final String amsgext) {
       super();
-      this.time = time;
-      this.sqn = sqn;
-      this.stage = stage;
-      this.level = level;
-      this.msgid = msgid;
-      this.msg = msg;
-      this.pid = pid;
-      this.msgext = msgext;
-
-      if (msgid != null && msgid.length() != 3) {
+      this.time = atime;
+      this.sqn = asqn;
+      this.stage = astage;
+      this.level = alevel;
+      this.msgid = amsgid;
+      this.msg = amsg;
+      this.pid = apid;
+      this.msgext = amsgext;
+      final int msgLen = 3;
+      if (amsgid != null && amsgid.length() != msgLen) {
         throw new IllegalArgumentException(
             "If specified msgid must be 3 characters in length");
       }
     }
 
-    /*<time:[Generalized Time]> <sqn:[\d+]> <stage:[Named stage]> <level:[Level]> <msgid:
+    /*<time:[Generalized Time]> <sqn:[\d+]> <stage:[Named stage]>
+     * <level:[Level]> <msgid:
     [nnn]> <msg: [message]> <msgext: [extended extra info]>*/
     public String getEncoded() {
       return new StringBuilder()

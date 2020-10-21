@@ -24,18 +24,26 @@ public abstract class CustomPublisherUiBase extends CustomPublisherContainer
     implements CustomPublisherUiSupport {
 
   private static final long serialVersionUID = 1L;
+  /** Map. */
   private final Map<String, CustomPublisherProperty> properties =
       new LinkedHashMap<>();
 
+  /** Default constructor. */
   public CustomPublisherUiBase() {
     super();
     init(new Properties());
   }
 
+  /**
+   * @param publisher pub
+   */
   public CustomPublisherUiBase(final BasePublisher publisher) {
     super(publisher);
   }
 
+  /**
+   * @param property prop
+   */
   protected void addProperty(final CustomPublisherProperty property) {
     properties.put(property.getName(), property);
   }

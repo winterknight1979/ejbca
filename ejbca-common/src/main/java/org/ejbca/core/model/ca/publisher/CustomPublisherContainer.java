@@ -47,18 +47,24 @@ import org.cesecore.util.StringTools;
 public class CustomPublisherContainer extends BasePublisher {
   private static final long serialVersionUID = -7060678968358301488L;
 
-  private static final Logger log =
+  /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(CustomPublisherContainer.class);
 
+  /** Publisher. */
   private ICustomPublisher custompublisher = null;
 
+  /** Config. */
   public static final float LATEST_VERSION = 1;
 
   // Default Values
 
+  /** Config. */
   public static final String CLASSPATH = "classpath";
+  /** Config. */
   protected static final String PROPERTYDATA = "propertydata";
 
+  /** Constructor. */
   public CustomPublisherContainer() {
     super();
     data.put(
@@ -170,10 +176,17 @@ public class CustomPublisherContainer extends BasePublisher {
     }
   }
 
+  /**
+   * @return bool.
+   */
   public boolean isCustomAccessRulesSupported() {
     return getCustomPublisher() instanceof CustomPublisherAccessRulesSupport;
   }
 
+  /**
+   * @param authenticationToken token
+   * @return bool
+   */
   public boolean isAuthorizedToPublisher(
       final AuthenticationToken authenticationToken) {
     if (getCustomPublisher() instanceof CustomPublisherAccessRulesSupport) {
@@ -183,10 +196,17 @@ public class CustomPublisherContainer extends BasePublisher {
     return true;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isCustomUiRenderingSupported() {
     return getCustomPublisher() instanceof CustomPublisherUiSupport;
   }
 
+  /**
+   * @param authenticationToken token
+   * @return props
+   */
   public List<CustomPublisherProperty> getCustomUiPropertyList(
       final AuthenticationToken authenticationToken) {
     if (getCustomPublisher() instanceof CustomPublisherUiSupport) {
@@ -196,6 +216,9 @@ public class CustomPublisherContainer extends BasePublisher {
     return new ArrayList<>();
   }
 
+  /**
+   * @return List
+   */
   private List<String> getCustomUiPropertyNames() {
     if (getCustomPublisher() instanceof CustomPublisherUiSupport) {
       return ((CustomPublisherUiSupport) getCustomPublisher())
@@ -204,6 +227,9 @@ public class CustomPublisherContainer extends BasePublisher {
     return new ArrayList<>();
   }
 
+  /**
+   * @return Props
+   */
   public Properties getProperties() {
     final Properties properties = new Properties();
     final String propertyData = getPropertyData();
@@ -217,15 +243,21 @@ public class CustomPublisherContainer extends BasePublisher {
       }
     }
     /*
-     * The below code is only to be able to handle the change of our EnterpriseValidationAuthorityPublisher from
+     * The below code is only to be able to handle the change
+     * of our EnterpriseValidationAuthorityPublisher from
      * built in to custom type.
      *
-     * Since the built in type had its properties in XML we need to provide a one time upgrade path.
-     * The old settings will still be present in the XML, but can be removed in a future version with a
-     * deterministic upgrade gate version to ensure that all installation data looks the same.
+     * Since the built in type had its properties in XML
+     *  we need to provide a one time upgrade path.
+     * The old settings will still be present in the XML,
+     *  but can be removed in a future version with a
+     * deterministic upgrade gate version to ensure that
+     * all installation data looks the same.
      *
-     * Note that for example get/setDescription belongs to the BasePublisher and not the ICustomPublisher instance.
-     * This is just one of many small things that needs to be corrected in a major version rewrite.
+     * Note that for example get/setDescription belongs to the
+     * BasePublisher and not the ICustomPublisher instance.
+     * TODO This is just one of many small things that needs to be
+     * corrected in a major version rewrite.
      */
     for (final String key : getCustomUiPropertyNames()) {
       if (!properties.containsKey(key) && data.get(key) != null) {
@@ -296,7 +328,15 @@ public class CustomPublisherContainer extends BasePublisher {
             extendedinformation);
   }
 
-  /** @see org.ejbca.core.model.ca.publisher.BasePublisher */
+  /**
+   * @param admin admin
+   * @param incrl crl
+   * @param cafp CA
+   * @param number SN
+   * @param userDN DN
+   * @return bool
+   * @throws PublisherException fail
+   * @see org.ejbca.core.model.ca.publisher.BasePublisher */
   public boolean storeCRL(
       final AuthenticationToken admin,
       final byte[] incrl,
@@ -340,7 +380,7 @@ public class CustomPublisherContainer extends BasePublisher {
         // Probably means that we have not built in our custom publisher here in
         // EJBCA, or it's an Enterprise only
         // publisher configured (Peer publisher for example)
-        log.info(
+        LOG.info(
             "Publisher class "
                 + classPath
                 + " is not available in this version/build of EJBCA.");
@@ -356,7 +396,10 @@ public class CustomPublisherContainer extends BasePublisher {
     return custompublisher;
   }
 
-  /** @see org.ejbca.core.model.ca.publisher.BasePublisher#clone() */
+  /**
+   * @return clone
+   * @throws CloneNotSupportedException fail
+   * @see org.ejbca.core.model.ca.publisher.BasePublisher#clone() */
   @SuppressWarnings({"rawtypes", "unchecked"})
   public Object clone() throws CloneNotSupportedException {
     CustomPublisherContainer clone = new CustomPublisherContainer();
@@ -372,7 +415,8 @@ public class CustomPublisherContainer extends BasePublisher {
     return clone;
   }
 
-  /* *
+  /**
+   * @return version
    * @see org.ejbca.core.model.ca.publisher.BasePublisher#getLatestVersion()
    */
   public float getLatestVersion() {
@@ -380,8 +424,9 @@ public class CustomPublisherContainer extends BasePublisher {
   }
 
   /**
-   * Resets the current custom publisher
+   * Resets the current custom publisher.
    *
+   * @return data
    * @see org.cesecore.internal.UpgradeableDataHashMap#saveData()
    */
   public Object saveData() {
