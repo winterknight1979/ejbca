@@ -11,12 +11,6 @@
  *                                                                       *
  *************************************************************************/
 
-/*
- * Admin.java
- *
- * Created on den 25 august 2002, 10:02
- */
-
 package org.ejbca.core.model.log;
 
 import java.io.Serializable;
@@ -45,16 +39,17 @@ public class Admin implements Serializable {
    */
   private static final long serialVersionUID = -9221031402622809524L;
 
-  /** Default CA Id for non-certificate administrators */
+  /** Default CA Id for non-certificate administrators. */
   private static final int INTERNALCAID = 0;
 
   // Indicates the type of administrator.
-  /** An administrator authenticated with client certificate */
+  /** An administrator authenticated with client certificate. */
   private static final int TYPE_CLIENTCERT_USER = 0;
-  /** A user of the public web pages */
-  /** Internal user in EJBCA, such as automatic job */
+  /** A user of the public web pages.
+  * Internal user in EJBCA, such as automatic job */
   private static final int TYPE_INTERNALUSER = 5;
 
+  /** config. */
   public static final String[] ADMINTYPETEXTS = {
     "CLIENTCERT",
     "PUBLICWEBUSER",
@@ -65,12 +60,18 @@ public class Admin implements Serializable {
   };
 
   // Special Users. (Constants cannot have 0 value).
+  /** config. */
   private static final int SPECIALADMIN_PUBLICWEBUSER = 2000;
+  /** config. */
   private static final int SPECIALADMIN_CACOMMANDLINEADMIN = 2001;
+  /** config. */
   private static final int SPECIALADMIN_RAADMIN = 2002;
+  /** config. */
   private static final int SPECIALADMIN_BATCHCOMMANDLINEADMIN = 2003;
+  /** config. */
   private static final int SPECIALADMIN_INTERNALUSER = 2004;
 
+  /** config. */
   private static final int[] ADMINTYPETOADMINENTITY = {
     0,
     Admin.SPECIALADMIN_PUBLICWEBUSER,
@@ -80,12 +81,18 @@ public class Admin implements Serializable {
     Admin.SPECIALADMIN_INTERNALUSER
   };
 
+  /** admin. */
   private static Admin internalAdmin = null;
 
+  /** type. */
   protected int type = -1;
+  /** data. */
   protected String data;
+  /** cert. */
   protected Certificate certificate;
+  /** user. */
   protected String username = null;
+  /** email. */
   protected String email = null;
 
   /** transient authToken should _not_ be serialized. * */
@@ -93,51 +100,70 @@ public class Admin implements Serializable {
 
   // We want to cache the AdminInformation, but we crete it on the fly after
   // deserialization..
+  /** infi. */
   protected transient AdminInformation adminInformation = null;
 
   // Public Constructors
+  /**
+   * @param acertificate cert
+   * @param ausername user
+   * @param anemail email
+   */
   public Admin(
-      final Certificate certificate,
-      final String username,
-      final String email) {
+      final Certificate acertificate,
+      final String ausername,
+      final String anemail) {
     this(
         TYPE_CLIENTCERT_USER,
-        CertTools.getSerialNumberAsString(certificate)
+        CertTools.getSerialNumberAsString(acertificate)
             + " : DN : \""
-            + CertTools.getIssuerDN(certificate)
+            + CertTools.getIssuerDN(acertificate)
             + "\"");
-    this.certificate = certificate;
-    this.username = username;
-    this.email = email;
+    this.certificate = acertificate;
+    this.username = ausername;
+    this.email = anemail;
   }
 
   /**
-   * @param type type
-   * @param ipOrCertIssuerSerno ip address of publib web users etc or certserno
+   * @param atype type
+   * @param anipOrCertIssuerSerno ip address of
+   *  publib web users etc or certserno
    *     and issuerDN for certificate authenticated admins (see other
    *     constructor above)
    */
-  public Admin(final int type, final String ipOrCertIssuerSerno) {
-    this.type = type;
-    this.data = ipOrCertIssuerSerno;
+  public Admin(final int atype, final String anipOrCertIssuerSerno) {
+    this.type = atype;
+    this.data = anipOrCertIssuerSerno;
   }
 
-  public Admin(final int type) {
-    this(type, null);
+  /**
+   * @param atype type
+   */
+  public Admin(final int atype) {
+    this(atype, null);
   }
 
   // Public Methods
 
+  /**
+   * @return type
+   */
   public int getAdminType() {
     return this.type;
   }
 
+  /**
+   * @return data
+   */
   public String getAdminData() {
     return this.data;
   }
 
-  // Method that takes the internal data and returns a AdminInformation object
-  // required by the Authorization module.
+  /** Method that takes the internal data and returns a AdminInformation object
+   * required by the Authorization module.
+   *
+   * @return info
+   */
   public AdminInformation getAdminInformation() {
     if (adminInformation == null) {
       if (type == TYPE_CLIENTCERT_USER) {
@@ -164,6 +190,7 @@ public class Admin implements Serializable {
     return returnval;
   }
 
+  @Override
   public String toString() {
     String ret = "UNKNOWN";
     if ((type > -1) && (type < ADMINTYPETEXTS.length - 1)) {
@@ -188,10 +215,10 @@ public class Admin implements Serializable {
    * AdminInformation.getRandomToken() means that this object is treated as it
    * were created internal in EJBCA. Do not do that unless trusting the object!
    *
-   * @param authToken Value of the authtoken.
+   * @param anAuthToken Value of the authtoken.
    */
-  public void setAuthToken(final byte[] authToken) {
-    this.authToken = authToken;
+  public void setAuthToken(final byte[] anAuthToken) {
+    this.authToken = anAuthToken;
   }
 
   /**

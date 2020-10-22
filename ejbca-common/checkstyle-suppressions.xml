@@ -35,6 +35,7 @@
  	<suppress checks="ParameterNumberCheck" files="PublisherQueueData.java" lines="74"/>
  	<suppress checks="ParameterNumberCheck" files="HardTokenInformation.java" lines="48"/>
  	<suppress checks="ParameterNumberCheck" files="SVGImageManipulator.java" lines="261,323"/>
+ 	<suppress checks="ParameterNumberCheck" files="LogEntry.java" lines="100"/>
  	
  	
  	
