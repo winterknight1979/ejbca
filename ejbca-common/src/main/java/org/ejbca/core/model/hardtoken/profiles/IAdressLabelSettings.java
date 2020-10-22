@@ -3,7 +3,7 @@
  *  EJBCA Community: The OpenSource Certificate Authority                *
  *                                                                       *
  *  This software is free software; you can redistribute it and/or       *
- *  modify it under the terms of the GNU Lesser General Public           *
+ *  modify it under the terms of the GNU Lesser General           *
  *  License as published by the Free Software Foundation; either         *
  *  version 2.1 of the License, or any later version.                    *
  *                                                                       *
@@ -29,43 +29,43 @@ import org.cesecore.certificates.endentity.EndEntityInformation;
 public interface IAdressLabelSettings {
 
   /** Constant indicating that no adress label should be printed. */
-  public static int ADRESSLABELTYPE_NONE = 0;
+  int ADRESSLABELTYPE_NONE = 0;
 
   /** Constants indicating what type of adress label that should be printed. */
-  public static int ADRESSLABELTYPE_GENERAL = 1;
+  int ADRESSLABELTYPE_GENERAL = 1;
 
   /** @return the type of adress label to print. */
-  public abstract int getAdressLabelType();
+  int getAdressLabelType();
 
   /** @param type sets the adress label type. */
-  public abstract void setAdressLabelType(int type);
+  void setAdressLabelType(int type);
 
   /** @return the filename of the current adress label template. */
-  public abstract String getAdressLabelTemplateFilename();
+  String getAdressLabelTemplateFilename();
 
   /** @param filename Sets the filename of the current adress label template. */
-  public abstract void setAdressLabelTemplateFilename(String filename);
+  void setAdressLabelTemplateFilename(String filename);
 
   /** @return the image data of the adress label, should be a SVG image. */
-  public abstract String getAdressLabelData();
+  String getAdressLabelData();
 
   /** @param templatedata Sets the imagedata of the adress label. */
-  public abstract void setAdressLabelData(String templatedata);
+  void setAdressLabelData(String templatedata);
 
   /**
    * @return the number of copies of this PIN Envelope that should be printed.
    */
-  public abstract int getNumberOfAdressLabelCopies();
+  int getNumberOfAdressLabelCopies();
 
   /**
    * @param copies Sets the number of copies of this PIN Envelope that should be
    *     printed.
    */
-  public abstract void setNumberOfAdressLabelCopies(int copies);
+  void setNumberOfAdressLabelCopies(int copies);
 
   /**
    * Method that parses the template, replaces the userdata and returning a
-   * printable byte array
+   * printable byte array.
    *
    * @param userdata Data
    * @param pincodes PIN
@@ -76,7 +76,7 @@ public interface IAdressLabelSettings {
    * @throws IOException IO fail
    * @throws PrinterException Print fail
    */
-  public abstract Printable printVisualValidity(
+  Printable printVisualValidity(
       EndEntityInformation userdata,
       String[] pincodes,
       String[] pukcodes,

@@ -25,20 +25,29 @@ public class TurkishEIDHardToken extends HardToken {
   private static final long serialVersionUID = -8771180471734319021L;
 
   // Public Constants
+  /** Config. */
   public static final int THIS_TOKENTYPE = SecConst.TOKEN_TURKISHEID;
 
+  /** Config. */
   public static final String INITIALPIN = "INITIALPIN";
+  /** Config. */
   public static final String PUK = "PUK";
 
+  /** Config. */
   public static final String[] FIELDSWITHPUK = {
     INITIALPIN, PUK, EMPTYROW_FIELD
   };
+  /** Config. */
   public static final int[] DATATYPESWITHPUK = {STRING, STRING, EMPTYROW};
+  /** Config. */
   public static final String[] FIELDTEXTSWITHPUK = {
     INITIALPIN, PUK, EMPTYROW_FIELD
   };
+  /** Config. */
   public static final String[] FIELDSWITHOUTPUK = new String[] {};
+  /** Config. */
   public static final int[] DATATYPESWITHOUTPUK = new int[] {};
+  /** Config. */
   public static final String[] FIELDTEXTSWITHOUTPUK = new String[] {};
 
   // Public Methods
@@ -75,29 +84,41 @@ public class TurkishEIDHardToken extends HardToken {
   }
 
   // Public Methods.
+  /**
+   * @return pin
+   */
   public String getInitialPIN() {
     return (String) data.get(INITIALPIN);
   }
 
+  /**
+   * @param initialpin pin
+   */
   public void setInitialPIN(final String initialpin) {
     data.put(INITIALPIN, initialpin);
   }
 
+  /**
+   * @return puk
+   */
   public String getPUK() {
     return (String) data.get(PUK);
   }
 
+  /**
+   * @param puk puk
+   */
   public void setPUK(final String puk) {
     data.put(PUK, puk);
   }
-
+  @Override
   public int[] getDataTypes(final boolean includePUK) {
     if (includePUK) {
       return DATATYPESWITHPUK;
     }
     return DATATYPESWITHOUTPUK;
   }
-
+ @Override
   public String[] getFieldTexts(final boolean includePUK) {
     if (includePUK) {
       return FIELDTEXTSWITHPUK;
@@ -105,6 +126,7 @@ public class TurkishEIDHardToken extends HardToken {
     return FIELDTEXTSWITHOUTPUK;
   }
 
+  @Override
   public String[] getFields(final boolean includePUK) {
     if (includePUK) {
       return FIELDSWITHPUK;

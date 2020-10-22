@@ -31,14 +31,20 @@ public abstract class HardTokenProfileWithReceipt
 
   private static final long serialVersionUID = 2963055087857426772L;
   // Protected Constants
+  /** Config. */
   protected static final String RECEIPTTYPE = "receipttype";
+  /** Config. */
   protected static final String RECEIPTFILENAME = "receiptfilename";
+  /** Config. */
   protected static final String RECEIPTDATA = "receiptdata";
+  /** Config. */
   protected static final String RECEIPTCOPIES = "receiptcopies";
 
+  /** Config. */
   private SVGImageManipulator receiptsvgimagemanipulator = null;
 
   // Default Values
+  /** Constructor. */
   public HardTokenProfileWithReceipt() {
     super();
 

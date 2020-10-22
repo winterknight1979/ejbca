@@ -37,13 +37,18 @@ public abstract class HardTokenProfileWithVisualLayout
   // Protected Constants
 
   private static final long serialVersionUID = -4609931101290447428L;
+  /** Config. */
   protected static final String VISUALLAYOUTTYPE = "visuallayouttype";
+  /** Config. */
   protected static final String VISUALLAYOUTFILENAME = "visuallayoutfilename";
+  /** Config. */
   protected static final String VISUALLAYOUTDATA = "visuallayoutdata";
 
+  /** Config. */
   private SVGImageManipulator visualsvgimagemanipulator = null;
 
   // Default Values
+  /** Constructor. */
   public HardTokenProfileWithVisualLayout() {
     super();
 

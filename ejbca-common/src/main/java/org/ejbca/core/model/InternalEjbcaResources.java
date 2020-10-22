@@ -34,7 +34,8 @@ import org.cesecore.internal.InternalResources;
  */
 public class InternalEjbcaResources extends InternalResources {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(InternalEjbcaResources.class);
 
   /**
@@ -47,18 +48,26 @@ public class InternalEjbcaResources extends InternalResources {
    */
   private static final long serialVersionUID = -1001L;
 
+  /** Config. */
   public static final String PREFEREDINTERNALRESOURCES =
       CesecoreConfiguration.getInternalResourcesPreferredLanguage();
+  /** Config. */
   public static final String SECONDARYINTERNALRESOURCES =
       CesecoreConfiguration.getInternalResourcesSecondaryLanguage();
 
+  /** Config. */
   protected static InternalEjbcaResources instance = null;
 
+  /** Config. */
   protected Properties primaryEjbcaResource = new Properties();
+  /** Config. */
   protected Properties secondaryEjbcaResource = new Properties();
 
+  /** Config. */
   private static final String RESOURCE_PATH = "/intresources";
+  /** Config. */
   private static final String RESOURCE_NAME = "/ejbcaresources.";
+  /** Config. */
   private static final String RESOURCE_LOCATION = RESOURCE_PATH + RESOURCE_NAME;
 
   /** Method used to setup the Internal Resource management. */
@@ -93,7 +102,7 @@ public class InternalEjbcaResources extends InternalResources {
               new FileInputStream(
                   resLocation + primaryLanguage + ".properties");
         } catch (FileNotFoundException e) {
-          log.error(
+          LOG.error(
               "Localization files not found in InternalEjbcaResources: "
                   + e.getMessage());
         }
@@ -107,7 +116,7 @@ public class InternalEjbcaResources extends InternalResources {
               new FileInputStream(
                   resLocation + secondaryLanguage + ".properties");
         } catch (FileNotFoundException e) {
-          log.error(
+          LOG.error(
               "Localization files not found in InternalEjbcaResources: "
                   + e.getMessage());
         }
@@ -117,15 +126,15 @@ public class InternalEjbcaResources extends InternalResources {
         if (primaryStream != null) {
           primaryEjbcaResource.load(primaryStream);
         } else {
-          log.error("primaryResourse == null");
+          LOG.error("primaryResourse == null");
         }
         if (secondaryStream != null) {
           secondaryEjbcaResource.load(secondaryStream);
         } else {
-          log.error("secondaryResource == null");
+          LOG.error("secondaryResource == null");
         }
       } catch (IOException e) {
-        log.error("Error reading internal resourcefile", e);
+        LOG.error("Error reading internal resourcefile", e);
       }
     } finally {
       try {
@@ -136,7 +145,7 @@ public class InternalEjbcaResources extends InternalResources {
           secondaryStream.close();
         }
       } catch (IOException e) {
-        log.error("Error closing internal resources language streams: ", e);
+        LOG.error("Error closing internal resources language streams: ", e);
       }
     }
   }

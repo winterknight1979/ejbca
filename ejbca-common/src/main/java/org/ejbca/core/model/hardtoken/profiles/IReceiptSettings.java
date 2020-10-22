@@ -3,7 +3,7 @@
  *  EJBCA Community: The OpenSource Certificate Authority                *
  *                                                                       *
  *  This software is free software; you can redistribute it and/or       *
- *  modify it under the terms of the GNU Lesser General Public           *
+ *  modify it under the terms of the GNU Lesser General           *
  *  License as published by the Free Software Foundation; either         *
  *  version 2.1 of the License, or any later version.                    *
  *                                                                       *
@@ -28,44 +28,44 @@ import org.cesecore.certificates.endentity.EndEntityInformation;
 public interface IReceiptSettings {
 
   /** Constant indicating that no recepit should be printed. */
-  public static int RECEIPTTYPE_NONE = 0;
+  int RECEIPTTYPE_NONE = 0;
   /**
    * Constants indicating what type of receipt that should be should be printed.
    */
-  public static int RECEIPTTYPE_GENERAL = 1;
+  int RECEIPTTYPE_GENERAL = 1;
 
   /** @return the type of receipt to print. */
-  public abstract int getReceiptType();
+  int getReceiptType();
 
   /** @param type sets the receipt type. */
-  public abstract void setReceiptType(int type);
+  void setReceiptType(int type);
 
   /** @return the filename of the current visual layout template. */
-  public abstract String getReceiptTemplateFilename();
+  String getReceiptTemplateFilename();
 
   /**
    * @param filename Sets the filename of the current visual layout template.
    */
-  public abstract void setReceiptTemplateFilename(String filename);
+  void setReceiptTemplateFilename(String filename);
 
   /** @return the image data of the receipt, should be a SVG image. */
-  public abstract String getReceiptData();
+  String getReceiptData();
 
   /** @param templatedata Sets the imagedata of the receipt. */
-  public abstract void setReceiptData(String templatedata);
+  void setReceiptData(String templatedata);
 
   /** @return the number of copies of this receipt that should be printed. */
-  public abstract int getNumberOfReceiptCopies();
+  int getNumberOfReceiptCopies();
 
   /**
    * @param copies Sets the number of copies of this receipt that should be
    *     printed.
    */
-  public abstract void setNumberOfReceiptCopies(int copies);
+  void setNumberOfReceiptCopies(int copies);
 
   /**
    * Method that parses the template, replaces the userdata and returning a
-   * printable byte array
+   * printable byte array.
    *
    * @param userdata User
    * @param pincodes PIN
@@ -76,7 +76,7 @@ public interface IReceiptSettings {
    * @throws IOException IO fail
    * @throws PrinterException Print fail
    */
-  public abstract Printable printReceipt(
+  Printable printReceipt(
       EndEntityInformation userdata,
       String[] pincodes,
       String[] pukcodes,

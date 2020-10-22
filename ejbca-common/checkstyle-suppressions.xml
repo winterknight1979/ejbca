@@ -33,6 +33,9 @@
  	<suppress checks="MethodLengthCheck" files="LdapPublisher.java" lines="273,867,689"/>
  	<suppress checks="MethodLengthCheck" files="LdapSearchPublisher.java" lines="87"/>
  	<suppress checks="ParameterNumberCheck" files="PublisherQueueData.java" lines="74"/>
+ 	<suppress checks="ParameterNumberCheck" files="HardTokenInformation.java" lines="48"/>
+ 	<suppress checks="ParameterNumberCheck" files="SVGImageManipulator.java" lines="261,323"/>
+ 	
  	
  	
  </suppressions>

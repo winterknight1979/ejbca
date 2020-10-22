@@ -15,7 +15,7 @@ package org.ejbca.core.model.hardtoken;
 
 /**
  * An exception thrown when someone tries to add a hard token profile that
- * already exits
+ * already exits.
  *
  * @author Philip Vendil 2003-11-26
  * @version $Id: HardTokenProfileExistsException.java 22117 2015-10-29 10:53:42Z

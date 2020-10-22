@@ -11,12 +11,6 @@
  *                                                                       *
  *************************************************************************/
 
-/*
- * HardTokenIssuerData.java
- *
- * Created on den 19 januari 2003, 13:11
- */
-
 package org.ejbca.core.model.hardtoken;
 
 import java.io.Serializable;
@@ -33,54 +27,94 @@ public class HardTokenIssuerInformation
 
   private static final long serialVersionUID = 4736415526364602434L;
 
+  /** ID. */
   private int hardtokenissuerid;
+  /** Alias. */
   private String alias;
+  /** ID. */
   private int roleDataId;
+  /**
+   * Issuer.
+   */
   private HardTokenIssuer hardtokenissuer;
 
+  /**
+   * @param aHardtokenissuerid ID
+   * @param anAlias Alias
+   * @param aRoleDataId Role
+   * @param aHardtokenissuer Issuer
+   */
   public HardTokenIssuerInformation(
-      final int hardtokenissuerid,
-      final String alias,
-      final int roleDataId,
-      final HardTokenIssuer hardtokenissuer) {
-    this.hardtokenissuerid = hardtokenissuerid;
-    this.alias = alias;
-    this.roleDataId = roleDataId;
-    this.hardtokenissuer = hardtokenissuer;
+      final int aHardtokenissuerid,
+      final String anAlias,
+      final int aRoleDataId,
+      final HardTokenIssuer aHardtokenissuer) {
+    this.hardtokenissuerid = aHardtokenissuerid;
+    this.alias = anAlias;
+    this.roleDataId = aRoleDataId;
+    this.hardtokenissuer = aHardtokenissuer;
   }
 
+  /**
+   * @return ID
+   */
   public int getHardTokenIssuerId() {
     return this.hardtokenissuerid;
   }
 
-  public void setHardTokenIssuerId(final int hardtokenissuerid) {
-    this.hardtokenissuerid = hardtokenissuerid;
+  /**
+   * @param aHardtokenissuerid ID
+   */
+  public void setHardTokenIssuerId(final int aHardtokenissuerid) {
+    this.hardtokenissuerid = aHardtokenissuerid;
   }
 
+  /**
+   * @return alias
+   */
   public String getAlias() {
     return this.alias;
   }
 
-  public void setAlias(final String alias) {
-    this.alias = alias;
+  /**
+   * @param anAlias alias
+   */
+  public void setAlias(final String anAlias) {
+    this.alias = anAlias;
   }
 
+  /**
+   * @return ID
+   */
   public int getRoleDataId() {
     return this.roleDataId;
   }
 
-  public void roleDataId(final int roleDataId) {
-    this.roleDataId = roleDataId;
+  /**
+   * @param aRoleDataId ID
+   */
+  public void roleDataId(final int aRoleDataId) {
+    this.roleDataId = aRoleDataId;
   }
 
+  /**
+   * @return Issuer
+   */
   public HardTokenIssuer getHardTokenIssuer() {
     return this.hardtokenissuer;
   }
 
-  public void setHardTokenIssuer(final HardTokenIssuer hardtokenissuer) {
-    this.hardtokenissuer = hardtokenissuer;
+  /**
+   * @param aHardtokenissuer issuer
+   */
+  public void setHardTokenIssuer(final HardTokenIssuer aHardtokenissuer) {
+    this.hardtokenissuer = aHardtokenissuer;
   }
 
+  /**
+   * @param obj object
+   * @return comparison
+   */
   public int compareTo(final HardTokenIssuerInformation obj) {
     return this.alias.compareTo(obj.getAlias());
   }

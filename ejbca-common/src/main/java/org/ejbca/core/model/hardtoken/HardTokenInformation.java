@@ -34,98 +34,144 @@ public class HardTokenInformation
   /**
    * Constructor of a hard token data.
    *
-   * @param tokensn the tokensn
-   * @param username the username owning the token
-   * @param createtime time the token was created
-   * @param modifytime time whem token was modified or a copy was made.
-   * @param tokentype the hardtokenprofile used to create the token
-   * @param significantIssuerDN of the CA that the card belongs to
-   * @param hardtoken the actual hardtoken data
-   * @param copyof tokenSN of original or null of this is an original
-   * @param copies Collection of tokensn of tokens copied from this token, null
-   *     if no copies have been made.
+   * @param aTokensn the tokensn
+   * @param aUsername the username owning the token
+   * @param aCreatetime time the token was created
+   * @param aModifytime time whem token was modified or a copy was made.
+   * @param aTokentype the hardtokenprofile used to create the token
+   * @param aSignificantIssuerDN of the CA that the card belongs to
+   * @param aHardtoken the actual hardtoken data
+   * @param aCopyof tokenSN of original or null of this is an original
+   * @param theCopies Collection of tokensn of tokens copied from this token,
+   *     null if no copies have been made.
    */
   public HardTokenInformation(
-      final String tokensn,
-      final String username,
-      final Date createtime,
-      final Date modifytime,
-      final int tokentype,
-      final String significantIssuerDN,
-      final HardToken hardtoken,
-      final String copyof,
-      final Collection<String> copies) {
-    this.tokensn = tokensn;
-    this.username = StringTools.stripUsername(username);
-    this.createtime = createtime;
-    this.modifytime = modifytime;
-    this.tokentype = tokentype;
-    this.significantIssuerDN = significantIssuerDN;
-    this.hardtoken = hardtoken;
-    this.copyof = copyof;
-    this.copies = copies;
+      final String aTokensn,
+      final String aUsername,
+      final Date aCreatetime,
+      final Date aModifytime,
+      final int aTokentype,
+      final String aSignificantIssuerDN,
+      final HardToken aHardtoken,
+      final String aCopyof,
+      final Collection<String> theCopies) {
+    this.tokensn = aTokensn;
+    this.username = StringTools.stripUsername(aUsername);
+    this.createtime = aCreatetime;
+    this.modifytime = aModifytime;
+    this.tokentype = aTokentype;
+    this.significantIssuerDN = aSignificantIssuerDN;
+    this.hardtoken = aHardtoken;
+    this.copyof = aCopyof;
+    this.copies = theCopies;
   }
 
-  public HardTokenInformation() {}
+  /** Default constructor. */
+  public HardTokenInformation() { }
 
   // Public Methods
 
+  /**
+   * @return serial
+   */
   public String getTokenSN() {
     return this.tokensn;
   }
 
-  public void setTokenSN(final String tokensn) {
-    this.tokensn = tokensn;
+  /**
+   * @param aTokensn Serial
+   */
+  public void setTokenSN(final String aTokensn) {
+    this.tokensn = aTokensn;
   }
 
+  /**
+   * @return User
+   */
   public String getUsername() {
     return this.username;
   }
 
-  public void setUsername(final String username) {
-    this.username = StringTools.stripUsername(username);
+  /**
+   * @param aUsername user
+   */
+  public void setUsername(final String aUsername) {
+    this.username = StringTools.stripUsername(aUsername);
   }
 
+  /**
+   * @return time
+   */
   public Date getCreateTime() {
     return this.createtime;
   }
 
-  public void setCreateTime(final Date createtime) {
-    this.createtime = createtime;
+  /**
+   * @param aCreatetime time
+   */
+  public void setCreateTime(final Date aCreatetime) {
+    this.createtime = aCreatetime;
   }
 
+  /**
+   * @return time
+   */
   public Date getModifyTime() {
     return this.modifytime;
   }
 
-  public void setModifyTime(final Date modifytime) {
-    this.modifytime = modifytime;
+  /**
+   * @param aModifytime time
+   */
+  public void setModifyTime(final Date aModifytime) {
+    this.modifytime = aModifytime;
   }
 
+  /**
+   * @return type
+   */
   public int getTokenType() {
     return this.tokentype;
   }
 
-  public void setTokenType(final int tokentype) {
-    this.tokentype = tokentype;
+  /**
+   * @param aTokentype type
+   */
+  public void setTokenType(final int aTokentype) {
+    this.tokentype = aTokentype;
   }
 
+  /**
+   * @return token
+   */
   public HardToken getHardToken() {
     return this.hardtoken;
   }
 
-  public void setHardToken(final HardToken hardtoken) {
-    this.hardtoken = hardtoken;
+  /**
+   * @param aHardtoken token
+   */
+  public void setHardToken(final HardToken aHardtoken) {
+    this.hardtoken = aHardtoken;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isOriginal() {
     return copyof == null;
   }
 
+  /**
+   * @return copy
+   */
   public String getCopyOf() {
     return copyof;
   }
 
+  /**
+   * @return DN
+   */
   public String getSignificantIssuerDN() {
     return significantIssuerDN;
   }
@@ -141,14 +187,23 @@ public class HardTokenInformation
   }
 
   // Private fields
+  /** SN. */
   private String tokensn;
+  /** User. */
   private String username;
+  /** Time. */
   private Date createtime;
+  /** Time. */
   private Date modifytime;
+  /** Type. */
   private int tokentype;
+  /** DN. */
   private String significantIssuerDN;
+  /** Token. */
   private HardToken hardtoken;
+  /** Copy. */
   private String copyof;
+  /** Copies. */
   private Collection<String> copies;
 
   /**

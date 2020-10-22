@@ -31,22 +31,28 @@ public abstract class HardTokenProfileWithPINEnvelope extends HardTokenProfile
 
   private static final long serialVersionUID = -3611906956402573441L;
   // Protected Constants
+  /** Config. */
   protected static final String PINENVELOPETYPE = "pinenvelopetype";
+  /** Config. */
   protected static final String PINENVELOPEFILENAME = "pinenvelopefilename";
+  /** Config. */
   protected static final String PINENVELOPEDATA = "pinenvelopetdata";
+  /** Config. */
   protected static final String PINENVELOPECOPIES = "pinenvelopetcopies";
+  /** Config. */
   protected static final String VISUALVALIDITY = "visualvalidity";
 
+  /** Config. */
   private SVGImageManipulator envelopesvgimagemanipulator = null;
 
-  // Default Values
+  /** Default Values. */
   public HardTokenProfileWithPINEnvelope() {
     super();
-
+    final int year = 356;
     setPINEnvelopeType(IPINEnvelopeSettings.PINENVELOPETYPE_GENERALENVELOBE);
     setPINEnvelopeTemplateFilename("");
     setNumberOfPINEnvelopeCopies(1);
-    setVisualValidity(356);
+    setVisualValidity(year);
   }
 
   // Public Methods

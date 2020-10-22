@@ -32,26 +32,38 @@ public abstract class HardTokenProfile extends UpgradeableDataHashMap
   // Default Values
 
   private static final long serialVersionUID = -7779053482914995083L;
+  /** Config. */
   public static final String TRUE = "true";
+  /** Config. */
   public static final String FALSE = "false";
 
+  /** Config. */
   public static final int PINTYPE_ASCII_NUMERIC = 1;
+  /** Config. */
   public static final int PINTYPE_UTF8 = 2;
+  /** Config. */
   public static final int PINTYPE_ISO9564_1 = 4;
 
   // Protected Constants.
+  /** Config. */
   public static final String TYPE = "type";
 
+  /** Config. */
   protected static final String NUMBEROFCOPIES = "numberofcopies";
+  /** Config. */
   protected static final String EREASABLETOKEN = "ereasabletoken";
+  /** Config. */
   protected static final String HARDTOKENPREFIX = "hardtokenprefix";
+  /** Config. */
   protected static final String PINTYPE = "pintype";
+  /** Config. */
   protected static final String MINIMUMPINLENGTH = "minimumpinlength";
+  /** Config. */
   protected static final String GENERATEIDENTICALPINFORCOPIES =
       "generateidenticalpinforcopies";
   // Public Methods
 
-  /** Creates a new instance of CertificateProfile */
+  /** Creates a new instance of CertificateProfile. */
   public HardTokenProfile() {
     setNumberOfCopies(1);
     setEreasableToken(true);
@@ -82,7 +94,7 @@ public abstract class HardTokenProfile extends UpgradeableDataHashMap
   }
 
   /**
-   * Indicaties if the generaded token should be ereasable or not,
+   * Indicaties if the generaded token should be ereasable or not.
    *
    * @return true if the card should be ereasable
    */
@@ -110,18 +122,30 @@ public abstract class HardTokenProfile extends UpgradeableDataHashMap
   public abstract boolean isTokenSupported(String tokenidentificationstring);
   // Public Methods mostly used by EJBCA
 
+  /**
+   * @param numberofcopies num
+   */
   public void setNumberOfCopies(final int numberofcopies) {
     data.put(NUMBEROFCOPIES, Integer.valueOf(numberofcopies));
   }
 
+  /**
+   * @param ereasabletoken bool
+   */
   public void setEreasableToken(final boolean ereasabletoken) {
     data.put(EREASABLETOKEN, Boolean.valueOf(ereasabletoken));
   }
 
+  /**
+   * @param hardtokensnprefix prefix
+   */
   public void setHardTokenSNPrefix(final String hardtokensnprefix) {
     data.put(HARDTOKENPREFIX, hardtokensnprefix);
   }
 
+  /**
+   * @param generate bool
+   */
   public void setGenerateIdenticalPINForCopies(final boolean generate) {
     data.put(GENERATEIDENTICALPINFORCOPIES, Boolean.valueOf(generate));
   }
@@ -137,6 +161,10 @@ public abstract class HardTokenProfile extends UpgradeableDataHashMap
     return ((Integer) ((List<?>) data.get(PINTYPE)).get(certusage)).intValue();
   }
 
+  /**
+   * @param certusage usage
+   * @param pintype type
+   */
   @SuppressWarnings("unchecked")
   public void setPINType(final int certusage, final int pintype) {
     ((List<Integer>) data.get(PINTYPE))
@@ -155,24 +183,41 @@ public abstract class HardTokenProfile extends UpgradeableDataHashMap
         .intValue();
   }
 
+  /**
+   * @param certusage USage
+   * @param length Length
+   */
   @SuppressWarnings("unchecked")
   public void setMinimumPINLength(final int certusage, final int length) {
     ((List<Integer>) data.get(MINIMUMPINLENGTH))
         .set(certusage, Integer.valueOf(length));
   }
 
+  /**
+   * @return clone
+   * @throws CloneNotSupportedException fail
+   */
   @Override
   public abstract Object clone() throws CloneNotSupportedException;
 
+  /**
+   * @return version
+   */
   @Override
   public abstract float getLatestVersion();
 
+  /** Upgrade. */
   @Override
   public void upgrade() {
     // Performing upgrade rutines
   }
 
   // Protected methods
+  /**
+   * @param supportedtokens tokens
+   * @param tokenidentificationstring String
+   * @return bool
+   */
   protected boolean isTokenSupported(
       final String[] supportedtokens, final String tokenidentificationstring) {
     boolean returnval = false;

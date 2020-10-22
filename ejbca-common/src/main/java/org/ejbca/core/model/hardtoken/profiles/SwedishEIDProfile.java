@@ -27,27 +27,35 @@ public class SwedishEIDProfile extends EIDProfile {
   private static final long serialVersionUID = -4972472165710748612L;
 
   // Public Constants
+  /** Config. */
   public static final int TYPE_SWEDISHEID =
       HardTokenConstants.TOKENTYPE_SWEDISHEID;
 
+  /** Config. */
   public static final float LATEST_VERSION = 4;
 
+  /** Config. */
   public static final int CERTUSAGE_SIGN = 0;
+  /** Config. */
   public static final int CERTUSAGE_AUTHENC = 1;
 
+  /** Config. */
   public static final int PINTYPE_AUTHENC_SAME_AS_SIGN = 100;
 
   // Protected Constants
+  /** Config. */
   protected static final int NUMBEROFCERTIFICATES = 2;
 
   // Private Constants
+  /** Config. */
   public static final int[] AVAILABLEMINIMUMKEYLENGTHS = {1024, 2048};
 
   // Protected Fields
 
-  private final String[][] SUPPORTEDTOKENS = {{"TODO"}};
+  /** Config. */
+  private final String[][] supportedTokens = {{"TODO"}};
 
-  // Default Values
+  /** Default Values. */
   public SwedishEIDProfile() {
     super();
     init();
@@ -84,8 +92,8 @@ public class SwedishEIDProfile extends EIDProfile {
 
     ArrayList<Integer> minpinlength =
         new ArrayList<Integer>(NUMBEROFCERTIFICATES);
-    minpinlength.add(Integer.valueOf(4));
-    minpinlength.add(Integer.valueOf(4));
+    minpinlength.add(Integer.valueOf(PIN_LENGTH));
+    minpinlength.add(Integer.valueOf(PIN_LENGTH));
     data.put(MINIMUMPINLENGTH, minpinlength);
 
     ArrayList<Boolean> iskeyrecoverable =
@@ -102,8 +110,8 @@ public class SwedishEIDProfile extends EIDProfile {
 
     ArrayList<Integer> minimumkeylength =
         new ArrayList<Integer>(NUMBEROFCERTIFICATES);
-    minimumkeylength.add(Integer.valueOf(1024));
-    minimumkeylength.add(Integer.valueOf(1024));
+    minimumkeylength.add(Integer.valueOf(KEY_LENGTH));
+    minimumkeylength.add(Integer.valueOf(KEY_LENGTH));
     data.put(MINIMUMKEYLENGTH, minimumkeylength);
 
     ArrayList<String> keytypes = new ArrayList<String>(NUMBEROFCERTIFICATES);
@@ -112,19 +120,30 @@ public class SwedishEIDProfile extends EIDProfile {
     data.put(KEYTYPES, keytypes);
   }
 
+  /** length. */
+  private static final int KEY_LENGTH = 1024;
+
+  /**
+   * @return lengths
+   */
   public int[] getAvailableMinimumKeyLengths() {
     return AVAILABLEMINIMUMKEYLENGTHS;
   }
 
   /**
+   * @param tokenidentificationstring ID
+   * @return bool
    * @see
    *     org.ejbca.core.model.hardtoken.profiles.HardTokenProfile#isTokenSupported(java.lang.String)
    */
   public boolean isTokenSupported(final String tokenidentificationstring) {
-    return this.isTokenSupported(SUPPORTEDTOKENS, tokenidentificationstring);
+    return this.isTokenSupported(supportedTokens, tokenidentificationstring);
   }
 
-  /** @see org.ejbca.core.model.hardtoken.profiles.HardTokenProfile#clone() */
+  /**
+   * @return clone
+   * @throws CloneNotSupportedException fail
+   * @see org.ejbca.core.model.hardtoken.profiles.HardTokenProfile#clone() */
   public Object clone() throws CloneNotSupportedException {
     SwedishEIDProfile clone = new SwedishEIDProfile();
     super.clone(clone);
@@ -133,6 +152,7 @@ public class SwedishEIDProfile extends EIDProfile {
   }
 
   /**
+   * @return version
    * @see
    *     org.ejbca.core.model.hardtoken.profiles.HardTokenProfile#getLatestVersion()
    */
@@ -140,6 +160,7 @@ public class SwedishEIDProfile extends EIDProfile {
     return LATEST_VERSION;
   }
 
+  /** Upgrade. */
   public void upgrade() {
     if (Float.compare(LATEST_VERSION, getVersion()) != 0) {
       // New version of the class, upgrade
@@ -148,8 +169,8 @@ public class SwedishEIDProfile extends EIDProfile {
       if (data.get(MINIMUMPINLENGTH) == null) {
         ArrayList<Integer> minpinlength =
             new ArrayList<Integer>(NUMBEROFCERTIFICATES);
-        minpinlength.add(Integer.valueOf(4));
-        minpinlength.add(Integer.valueOf(4));
+        minpinlength.add(Integer.valueOf(PIN_LENGTH));
+        minpinlength.add(Integer.valueOf(PIN_LENGTH));
         data.put(MINIMUMPINLENGTH, minpinlength);
       }
 
@@ -173,7 +194,10 @@ public class SwedishEIDProfile extends EIDProfile {
     }
   }
 
-  /** Override */
+  /** Length. */
+  private static final int PIN_LENGTH = 4;
+
+  /** Override. */
   public void reInit() {
     init();
   }

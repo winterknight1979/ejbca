@@ -28,67 +28,125 @@ public abstract class HardToken extends UpgradeableDataHashMap
     implements Serializable, Cloneable {
   private static final long serialVersionUID = 3354480892183271060L;
   // Default Values
+  /** Config. */
   public static final float LATEST_VERSION = 0;
+  /** Config. */
   public static final String TOKENTYPE = "TOKENTYPE";
+  /** Config. */
 
   public static final String LABEL_REGULARCARD =
       HardTokenConstants.LABEL_REGULARCARD; // "LABEL_REGULARCARD";
+  /** Config. */
   public static final String LABEL_TEMPORARYCARD =
       HardTokenConstants.LABEL_TEMPORARYCARD; // "LABEL_TEMPORARYCARD";
+  /** Config. */
   public static final String LABEL_PROJECTCARD =
       HardTokenConstants.LABEL_PROJECTCARD; // "LABEL_PROJECTCARD";
+  /** Config. */
 
   public static final String TOKENPROFILE = "TOKENPROFILE";
+  /** Config. */
   public static final String LABEL = "LABEL";
 
+  /** Config. */
   protected boolean includePUK = true;
 
   // Public Constants.
 
-  /* Constants used to define how the stored data should be represented in the web-gui.*/
+  /* Constants used to define how the stored data
+   * should be represented in the web-gui.*/
+  /** Config. */
   public static final int INTEGER = 0;
+  /** Config. */
   public static final int LONG = 1;
+  /** Config. */
   public static final int STRING = 2;
+  /** Config. */
   public static final int BOOLEAN = 3;
+  /** Config. */
   public static final int DATE = 4;
+  /** Config. */
   public static final int EMPTYROW = 5;
+  /** Config. */
   public static final String EMPTYROW_FIELD = "EMTPYROW";
 
-  public HardToken(final boolean includePUK) {
-    this.includePUK = includePUK;
+  /**
+   * @param doincludePUK bool
+   */
+  public HardToken(final boolean doincludePUK) {
+    this.includePUK = doincludePUK;
   }
 
   // Public Methods
+  /**
+   * @param field name
+   * @return obj
+   */
   public Object getField(final String field) {
     return data.get(field);
   }
 
-  public abstract String[] getFields(boolean includePUK);
+  /**
+   * @param doincludePUK bool
+   * @return fields
+   */
+  public abstract String[] getFields(boolean doincludePUK);
 
-  public abstract int[] getDataTypes(boolean includePUK);
+  /**
+   * @param doincludePUK bool
+   * @return types
+   */
+  public abstract int[] getDataTypes(boolean doincludePUK);
+/**
+ * @param doincludePUK bool
+ * @return text
+ */
+  public abstract String[] getFieldTexts(boolean doincludePUK);
 
-  public abstract String[] getFieldTexts(boolean includePUK);
-
+  /**
+   *
+   * @return num
+   */
   public int getNumberOfFields() {
     return getFields(includePUK).length;
   }
 
+  /**
+   * @param index index
+   * @return text
+   */
   public String getFieldText(final int index) {
     return getFieldTexts(includePUK)[index];
   }
 
+  /**
+   * @param index index
+   * @return pointer
+   */
   public String getFieldPointer(final int index) {
     return getFields(includePUK)[index];
   }
 
+  /**
+   * @param index index
+   * @return type
+   */
   public int getFieldDataType(final int index) {
     return getDataTypes(includePUK)[index];
   }
 
+  /**
+   * @param field field
+   * @param value value
+   */
   public void setField(final String field, final Object value) {
     data.put(field, value);
   }
 
+
+  /**
+   * @return id
+   */
   public int getTokenProfileId() {
     if (data.get(HardToken.TOKENPROFILE) == null) {
       return 0;
@@ -96,6 +154,9 @@ public abstract class HardToken extends UpgradeableDataHashMap
     return ((Integer) data.get(HardToken.TOKENPROFILE)).intValue();
   }
 
+  /**
+   * @param hardtokenprofileid id
+   */
   public void setTokenProfileId(final int hardtokenprofileid) {
     data.put(HardToken.TOKENPROFILE, Integer.valueOf(hardtokenprofileid));
   }
@@ -110,11 +171,14 @@ public abstract class HardToken extends UpgradeableDataHashMap
     data.put(HardToken.LABEL, hardTokenLabel);
   }
 
-  /** Implementation of UpgradableDataHashMap function getLatestVersion */
+  /** Implementation of UpgradableDataHashMap function getLatestVersion.
+   * @return floae */
+  @Override
   public float getLatestVersion() {
     return LATEST_VERSION;
   }
 
   /** Implementation of UpgradableDataHashMap function upgrade. */
-  public void upgrade() {}
+  @Override
+  public void upgrade() { }
 }

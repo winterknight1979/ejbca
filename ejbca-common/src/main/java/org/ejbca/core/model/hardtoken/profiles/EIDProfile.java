@@ -33,20 +33,29 @@ public abstract class EIDProfile extends HardTokenProfileWithAdressLabel {
 
   private static final long serialVersionUID = 5516097629038242905L;
 
+  /** Config. */
   public static final String KEYTYPE_RSA = "RSA";
 
+  /** Config. */
   public static final int CAID_USEUSERDEFINED = SecConst.CAID_USEUSERDEFINED;
 
   // Protected Constants
+  /** Config. */
   protected static final String CERTIFICATEPROFILEID = "certificateprofileid";
+  /** Config. */
   protected static final String CAID = "caid";
+  /** Config. */
   protected static final String ISKEYRECOVERABLE = "iskeyrecoverable";
+  /** Config. */
   protected static final String REUSEOLDCERTIFICATE = "reuseoldcertificate";
+  /** Config. */
   protected static final String MINIMUMKEYLENGTH = "minimunkeylength";
+  /** Config. */
   protected static final String KEYTYPES = "keytypes";
+  /** Config. */
   protected static final String CERTWRITABLE = "certwritable";
 
-  // Default Values
+  /** Default Values. */
   public EIDProfile() {
     super();
   }
@@ -153,7 +162,7 @@ public abstract class EIDProfile extends HardTokenProfileWithAdressLabel {
   // Public Methods used By EJBCA
 
   /**
-   * See above
+   * See above.
    *
    * @param certusage Usage
    * @param certprofileid ID
@@ -167,7 +176,7 @@ public abstract class EIDProfile extends HardTokenProfileWithAdressLabel {
   }
 
   /**
-   * See above
+   * See above.
    *
    * @param certusage Usage
    * @param certWritable ID
@@ -180,7 +189,7 @@ public abstract class EIDProfile extends HardTokenProfileWithAdressLabel {
   }
 
   /**
-   * See above
+   * See above.
    *
    * @param certusage Usage
    * @param caid IF
@@ -193,7 +202,7 @@ public abstract class EIDProfile extends HardTokenProfileWithAdressLabel {
   }
 
   /**
-   * See above
+   * See above.
    *
    * @param certusage Usage
    * @param iskeyrecoverable bool
@@ -207,7 +216,7 @@ public abstract class EIDProfile extends HardTokenProfileWithAdressLabel {
   }
 
   /**
-   * See above
+   * See above.
    *
    * @param certusage Usage
    * @param reuseoldcertificate bool
@@ -221,7 +230,7 @@ public abstract class EIDProfile extends HardTokenProfileWithAdressLabel {
   }
 
   /**
-   * See above
+   * See above.
    *
    * @param certusage Usage
    * @param minimumkeylength length
@@ -235,7 +244,7 @@ public abstract class EIDProfile extends HardTokenProfileWithAdressLabel {
   }
 
   /**
-   * See above
+   * See above.
    *
    * @param certusage Usage
    * @param keytype type
@@ -278,9 +287,17 @@ public abstract class EIDProfile extends HardTokenProfileWithAdressLabel {
     return retval;
   }
 
+  /**
+   * @return lengths
+   */
   public abstract int[] getAvailableMinimumKeyLengths();
 
   // Protected methods
+  /**
+   * @param supportedcards cards
+   * @param tokenidentificationstring IDg
+   * @return bool
+   */
   public boolean isTokenSupported(
       final String[][] supportedcards, final String tokenidentificationstring) {
     boolean returnval = true;
@@ -308,7 +325,7 @@ public abstract class EIDProfile extends HardTokenProfileWithAdressLabel {
   }
 
   /**
-   * Help Method that should be used
+   * Help Method that should be used.
    *
    * @param emptyclone clone
    */

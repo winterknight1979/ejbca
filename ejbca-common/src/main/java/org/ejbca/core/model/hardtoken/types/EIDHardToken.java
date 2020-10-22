@@ -26,12 +26,18 @@ import org.ejbca.core.model.SecConst;
 public class EIDHardToken extends HardToken {
   private static final long serialVersionUID = -3757040668436850815L;
   // Public Constants
+  /** Config. */
   public static final String INITIALBASICPIN = "INITIALBASICPIN";
+  /** Config. */
   public static final String BASICPUK = "BASICPUK";
+  /** Config. */
   public static final String INITIALSIGNATUREPIN = "INITIALSIGNATUREPIN";
+  /** Config. */
   public static final String SIGNATUREPUK = "SIGNATUREPUK";
+  /** Config. */
   public static final int THIS_TOKENTYPE = SecConst.TOKEN_EID;
 
+  /** Config. */
   public static final String[] FIELDSWITHPUK =
       new String[] {
         INITIALBASICPIN,
@@ -40,8 +46,10 @@ public class EIDHardToken extends HardToken {
         INITIALSIGNATUREPIN,
         SIGNATUREPUK
       };
+  /** Config. */
   public static final int[] DATATYPESWITHPUK =
       new int[] {STRING, STRING, EMPTYROW, STRING, STRING};
+  /** Config. */
   public static final String[] FIELDTEXTSWITHPUK =
       new String[] {
         INITIALBASICPIN,
@@ -51,8 +59,11 @@ public class EIDHardToken extends HardToken {
         SIGNATUREPUK
       };
 
+  /** Config. */
   public static final String[] FIELDSWITHOUTPUK = new String[] {};
+  /** Config. */
   public static final int[] DATATYPESWITHOUTPUK = new int[] {};
+  /** Config. */
   public static final String[] FIELDTEXTSWITHOUTPUK = new String[] {};
 
   // Public Methods
@@ -73,6 +84,9 @@ public class EIDHardToken extends HardToken {
   }
 
   // Public Methods.
+  /**
+   * @return PIN
+   */
   public String getInitialBasicPIN() {
     return (String) data.get(INITIALBASICPIN);
   }
@@ -140,6 +154,7 @@ public class EIDHardToken extends HardToken {
     data.put(SIGNATUREPUK, signaturepuk);
   }
 
+  @Override
   public int[] getDataTypes(final boolean includePUK) {
     if (includePUK) {
       return DATATYPESWITHPUK;
@@ -147,6 +162,7 @@ public class EIDHardToken extends HardToken {
     return DATATYPESWITHOUTPUK;
   }
 
+  @Override
   public String[] getFieldTexts(final boolean includePUK) {
     if (includePUK) {
       return FIELDTEXTSWITHPUK;
@@ -154,6 +170,7 @@ public class EIDHardToken extends HardToken {
     return FIELDTEXTSWITHOUTPUK;
   }
 
+  @Override
   public String[] getFields(final boolean includePUK) {
     if (includePUK) {
       return FIELDSWITHPUK;

@@ -24,22 +24,31 @@ import org.ejbca.core.model.hardtoken.HardTokenConstants;
  */
 public class TurkishEIDProfile extends EIDProfile {
 
+      /** Config. */
+
   public static final int[] AVAILABLEMINIMUMKEYLENGTHS = {1024, 2048};
 
+  /** Config. */
   public static final int TYPE_TURKISHEID =
       HardTokenConstants.TOKENTYPE_TURKISHEID;
+  /** Config. */
 
   public static final float LATEST_VERSION = 1;
+  /** Config. */
 
   public static final int CERTUSAGE_SIGN = 0;
+  /** Config. */
   public static final int CERTUSAGE_AUTHENC = 1;
 
+  /** Config. */
   private static final long serialVersionUID = 5029374290818871258L;
 
+  /** Config. */
   protected static final int NUMBEROFCERTIFICATES = 2;
+  /** Config. */
   protected static final int NUMBEROFPINS = 1;
 
-  // Default Values
+  /** Default Values. */
   public TurkishEIDProfile() {
     super();
     init();
@@ -74,7 +83,7 @@ public class TurkishEIDProfile extends EIDProfile {
     data.put(PINTYPE, pintypes);
 
     ArrayList<Integer> minpinlength = new ArrayList<Integer>(NUMBEROFPINS);
-    minpinlength.add(Integer.valueOf(4));
+    minpinlength.add(Integer.valueOf(PIN_LENGTH));
     data.put(MINIMUMPINLENGTH, minpinlength);
 
     ArrayList<Boolean> iskeyrecoverable =
@@ -91,8 +100,8 @@ public class TurkishEIDProfile extends EIDProfile {
 
     ArrayList<Integer> minimumkeylength =
         new ArrayList<Integer>(NUMBEROFCERTIFICATES);
-    minimumkeylength.add(Integer.valueOf(1024));
-    minimumkeylength.add(Integer.valueOf(1024));
+    minimumkeylength.add(Integer.valueOf(KEY_LENGTH));
+    minimumkeylength.add(Integer.valueOf(KEY_LENGTH));
     data.put(MINIMUMKEYLENGTH, minimumkeylength);
 
     ArrayList<String> keytypes = new ArrayList<String>(NUMBEROFCERTIFICATES);
@@ -101,11 +110,19 @@ public class TurkishEIDProfile extends EIDProfile {
     data.put(KEYTYPES, keytypes);
   }
 
+  /** length. */
+  private static final int KEY_LENGTH = 1024;
+  /** length. */
+  private static final int PIN_LENGTH = 4;
+
+  /** @return lengths */
   public int[] getAvailableMinimumKeyLengths() {
     return AVAILABLEMINIMUMKEYLENGTHS;
   }
 
   /**
+   * @param tokenidentificationstring id
+   * @return bool
    * @deprecated deprecated
    * @see
    *     org.ejbca.core.model.hardtoken.profiles.HardTokenProfile#isTokenSupported(java.lang.String)
@@ -114,8 +131,10 @@ public class TurkishEIDProfile extends EIDProfile {
     return false;
   }
 
-  /*
-   * @see org.ejbca.core.model.hardtoken.hardtokenprofiles.HardTokenProfile#clone()
+  /**
+   * @return clone
+   * @throws CloneNotSupportedException fail
+   * @see org.ejbca.core.model.hardtoken.profiles.HardTokenProfile#clone()
    */
   public Object clone() throws CloneNotSupportedException {
     TurkishEIDProfile clone = new TurkishEIDProfile();
@@ -124,13 +143,16 @@ public class TurkishEIDProfile extends EIDProfile {
     return clone;
   }
 
-  /*
-   * @see org.ejbca.core.model.hardtoken.hardtokenprofiles.HardTokenProfile#getLatestVersion()
+  /**
+   * @return version
+   * @see
+   *     org.ejbca.core.model.hardtoken.profiles.HardTokenProfile#getLatestVersion()
    */
   public float getLatestVersion() {
     return LATEST_VERSION;
   }
 
+  /** Upgrade. */
   public void upgrade() {
     if (Float.compare(LATEST_VERSION, getVersion()) != 0) {
       // New version of the class, upgrade
@@ -140,7 +162,7 @@ public class TurkishEIDProfile extends EIDProfile {
     }
   }
 
-  /** Override */
+  /** Override. */
   public void reInit() {
     init();
   }

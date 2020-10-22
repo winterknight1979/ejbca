@@ -16,7 +16,8 @@ package org.ejbca.core.model.hardtoken;
 import javax.xml.ws.WebFault;
 
 /**
- * An exception thrown when someone tries to add a hard token that already exits
+ * An exception thrown when someone tries to add a hard
+ * token that already exits.
  *
  * @author Philip Vendil 2003-01-20
  * @version $Id: HardTokenExistsException.java 22117 2015-10-29 10:53:42Z

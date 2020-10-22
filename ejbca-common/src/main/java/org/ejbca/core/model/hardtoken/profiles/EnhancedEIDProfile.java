@@ -18,7 +18,7 @@ import org.cesecore.certificates.certificateprofile.CertificateProfileConstants;
 import org.ejbca.core.model.hardtoken.HardTokenConstants;
 
 /**
- * EnhancedEIDProfile with three certificates and key recovery functionallity
+ * EnhancedEIDProfile with three certificates and key recovery functionallity.
  *
  * @version $Id: EnhancedEIDProfile.java 22117 2015-10-29 10:53:42Z mikekushner
  *     $
@@ -29,35 +29,45 @@ public class EnhancedEIDProfile extends EIDProfile {
 
   private static final long serialVersionUID = 3655193301302470381L;
 
+/** Config. */
   public static final int TYPE_ENHANCEDEID =
       HardTokenConstants.TOKENTYPE_ENHANCEDEID;
 
+/** Config. */
   public static final float LATEST_VERSION = 4;
 
+/** Config. */
   public static final int CERTUSAGE_SIGN = 0;
+  /** Config. */
   public static final int CERTUSAGE_AUTH = 1;
+  /** Config. */
   public static final int CERTUSAGE_ENC = 2;
 
+/** Config. */
   public static final int PINTYPE_AUTH_SAME_AS_SIGN =
       SwedishEIDProfile.PINTYPE_AUTHENC_SAME_AS_SIGN;
+  /** Config. */
   public static final int PINTYPE_ENC_SAME_AS_AUTH = 101;
 
   // Protected Constants
+  /** Config. */
   protected static final int NUMBEROFCERTIFICATES = 3;
 
   // Private Constants
+  /** Config. */
   public static final int[] AVAILABLEMINIMUMKEYLENGTHS = {1024, 1536, 2048};
 
   // Protected Fields
+/** Config. */
+  private final String[][] supportedTokens = {{"TODO"}};
 
-  private final String[][] SUPPORTEDTOKENS = {{"TODO"}};
-
-  // Default Values
+  /** Default Values. */
   public EnhancedEIDProfile() {
     super();
     init();
   }
 
+  /** Init. */
   private void init() {
     data.put(TYPE, Integer.valueOf(TYPE_ENHANCEDEID));
 
@@ -95,8 +105,8 @@ public class EnhancedEIDProfile extends EIDProfile {
 
     ArrayList<Integer> minpinlength =
         new ArrayList<Integer>(NUMBEROFCERTIFICATES);
-    minpinlength.add(Integer.valueOf(4));
-    minpinlength.add(Integer.valueOf(4));
+    minpinlength.add(Integer.valueOf(MIN_PIN_LENGTH));
+    minpinlength.add(Integer.valueOf(MIN_PIN_LENGTH));
     minpinlength.add(Integer.valueOf(0));
     data.put(MINIMUMPINLENGTH, minpinlength);
 
@@ -116,9 +126,9 @@ public class EnhancedEIDProfile extends EIDProfile {
 
     ArrayList<Integer> minimumkeylength =
         new ArrayList<Integer>(NUMBEROFCERTIFICATES);
-    minimumkeylength.add(Integer.valueOf(2048));
-    minimumkeylength.add(Integer.valueOf(2048));
-    minimumkeylength.add(Integer.valueOf(2048));
+    minimumkeylength.add(Integer.valueOf(MIN_KEY_LENGTH));
+    minimumkeylength.add(Integer.valueOf(MIN_KEY_LENGTH));
+    minimumkeylength.add(Integer.valueOf(MIN_KEY_LENGTH));
     data.put(MINIMUMKEYLENGTH, minimumkeylength);
 
     ArrayList<String> keytypes = new ArrayList<String>(NUMBEROFCERTIFICATES);
@@ -128,20 +138,31 @@ public class EnhancedEIDProfile extends EIDProfile {
     data.put(KEYTYPES, keytypes);
   }
 
+  /** Min length. */
+  private static final int MIN_KEY_LENGTH = 2048;
+
+  /**
+   * @return lengths
+   */
   public int[] getAvailableMinimumKeyLengths() {
     return AVAILABLEMINIMUMKEYLENGTHS;
   }
 
   /**
+   * @param tokenidentificationstring string
+   * @return bool
    * @see
    *     org.ejbca.core.model.hardtoken.profiles.HardTokenProfile#isTokenSupported(java.lang.String)
    */
   public boolean isTokenSupported(final String tokenidentificationstring) {
-    return this.isTokenSupported(SUPPORTEDTOKENS, tokenidentificationstring);
+    return this.isTokenSupported(supportedTokens, tokenidentificationstring);
   }
 
-  /*
-   * @see org.ejbca.core.model.hardtoken.hardtokenprofiles.HardTokenProfile#clone()
+  /**
+   * @return clone
+   * @throws CloneNotSupportedException fail
+   * @see
+   *  org.ejbca.core.model.hardtoken.profiles.HardTokenProfile#clone()
    */
   public Object clone() throws CloneNotSupportedException {
     EnhancedEIDProfile clone = new EnhancedEIDProfile();
@@ -152,6 +173,7 @@ public class EnhancedEIDProfile extends EIDProfile {
   }
 
   /**
+   * @return version
    * @see
    *     org.ejbca.core.model.hardtoken.profiles.HardTokenProfile#getLatestVersion()
    */
@@ -159,6 +181,9 @@ public class EnhancedEIDProfile extends EIDProfile {
     return LATEST_VERSION;
   }
 
+  /**
+   * Upgrade.
+   */
   public void upgrade() {
     if (Float.compare(LATEST_VERSION, getVersion()) != 0) {
       // New version of the class, upgrade
@@ -167,8 +192,8 @@ public class EnhancedEIDProfile extends EIDProfile {
       if (data.get(MINIMUMPINLENGTH) == null) {
         ArrayList<Integer> minpinlength =
             new ArrayList<Integer>(NUMBEROFCERTIFICATES);
-        minpinlength.add(Integer.valueOf(4));
-        minpinlength.add(Integer.valueOf(4));
+        minpinlength.add(Integer.valueOf(MIN_PIN_LENGTH));
+        minpinlength.add(Integer.valueOf(MIN_PIN_LENGTH));
         minpinlength.add(Integer.valueOf(0));
         data.put(MINIMUMPINLENGTH, minpinlength);
       }
@@ -195,7 +220,10 @@ public class EnhancedEIDProfile extends EIDProfile {
     }
   }
 
-  /** Override */
+  /** Pin length. */
+  private static final int MIN_PIN_LENGTH = 4;
+
+  /** Override. */
   public void reInit() {
     init();
   }

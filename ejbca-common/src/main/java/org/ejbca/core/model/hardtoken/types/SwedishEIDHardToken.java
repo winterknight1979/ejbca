@@ -33,13 +33,19 @@ public class SwedishEIDHardToken extends HardToken {
   private static final long serialVersionUID = 5695294040446656470L;
 
   // Public Constants
+  /** Config. */
   public static final int THIS_TOKENTYPE = SecConst.TOKEN_SWEDISHEID;
 
+  /** Config. */
   public static final String INITIALAUTHENCPIN = "INITIALAUTHENCPIN";
+  /** Config. */
   public static final String AUTHENCPUK = "AUTHENCPUK";
+  /** Config. */
   public static final String INITIALSIGNATUREPIN = "INITIALSIGNATUREPIN";
+  /** Config. */
   public static final String SIGNATUREPUK = "SIGNATUREPUK";
 
+  /** Config. */
   public static final String[] FIELDSWITHPUK =
       new String[] {
         INITIALAUTHENCPIN,
@@ -48,8 +54,10 @@ public class SwedishEIDHardToken extends HardToken {
         INITIALSIGNATUREPIN,
         SIGNATUREPUK
       };
+  /** Config. */
   public static final int[] DATATYPESWITHPUK =
       new int[] {STRING, STRING, EMPTYROW, STRING, STRING};
+  /** Config. */
   public static final String[] FIELDTEXTSWITHPUK =
       new String[] {
         INITIALAUTHENCPIN,
@@ -59,8 +67,11 @@ public class SwedishEIDHardToken extends HardToken {
         SIGNATUREPUK
       };
 
+  /** Config. */
   public static final String[] FIELDSWITHOUTPUK = new String[] {};
+  /** Config. */
   public static final int[] DATATYPESWITHOUTPUK = new int[] {};
+  /** Config. */
   public static final String[] FIELDTEXTSWITHOUTPUK = new String[] {};
 
   // Public Methods
@@ -106,38 +117,63 @@ public class SwedishEIDHardToken extends HardToken {
   }
 
   // Public Methods.
+  /**
+   * @return pin
+   */
   public String getInitialAuthEncPIN() {
     return (String) data.get(INITIALAUTHENCPIN);
   }
 
+  /**
+   * @param initialbasicpin pin
+   */
   public void setInitialAuthEncPIN(final String initialbasicpin) {
     data.put(INITIALAUTHENCPIN, initialbasicpin);
   }
 
+  /**
+   * @return puk
+   */
   public String getAuthEncPUK() {
     return (String) data.get(AUTHENCPUK);
   }
 
+  /**
+   * @param basicpuk puk
+   */
   public void setAuthEncPUK(final String basicpuk) {
     data.put(AUTHENCPUK, basicpuk);
   }
 
+  /**
+   * @return pin
+   */
   public String getInitialSignaturePIN() {
     return (String) data.get(INITIALSIGNATUREPIN);
   }
 
+  /**
+   * @param initialsignaturepin pin
+   */
   public void setInitialSignaturePIN(final String initialsignaturepin) {
     data.put(INITIALSIGNATUREPIN, initialsignaturepin);
   }
 
+  /**
+   * @return puk
+   */
   public String getSignaturePUK() {
     return (String) data.get(SIGNATUREPUK);
   }
 
+  /**
+   * @param signaturepuk puk
+   */
   public void setSignaturePUK(final String signaturepuk) {
     data.put(SIGNATUREPUK, signaturepuk);
   }
 
+  @Override
   public int[] getDataTypes(final boolean includePUK) {
     if (includePUK) {
       return DATATYPESWITHPUK;
@@ -145,6 +181,7 @@ public class SwedishEIDHardToken extends HardToken {
     return DATATYPESWITHOUTPUK;
   }
 
+  @Override
   public String[] getFieldTexts(final boolean includePUK) {
     if (includePUK) {
       return FIELDTEXTSWITHPUK;
@@ -152,6 +189,7 @@ public class SwedishEIDHardToken extends HardToken {
     return FIELDTEXTSWITHOUTPUK;
   }
 
+  @Override
   public String[] getFields(final boolean includePUK) {
     if (includePUK) {
       return FIELDSWITHPUK;

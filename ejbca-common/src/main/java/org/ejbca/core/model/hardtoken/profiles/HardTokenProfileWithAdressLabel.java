@@ -31,14 +31,19 @@ public abstract class HardTokenProfileWithAdressLabel
 
   private static final long serialVersionUID = 6349060371407093333L;
   // Protected Constants
+  /** Config. */
   protected static final String ADRESSLABELTYPE = "adresslabeltype";
+  /** Config. */
   protected static final String ADRESSLABELFILENAME = "adresslabelfilename";
+  /** Config. */
   protected static final String ADRESSLABELDATA = "adresslabeldata";
+  /** Config. */
   protected static final String ADRESSLABELCOPIES = "adresslabelcopies";
-
+  /** Config. */
   private SVGImageManipulator adresslabelsvgimagemanipulator = null;
 
   // Default Values
+  /** Condtructor. */
   public HardTokenProfileWithAdressLabel() {
     super();
 
@@ -105,7 +110,7 @@ public abstract class HardTokenProfileWithAdressLabel
   }
   /**
    * Method that parses the template, replaces the userdata and returning a
-   * printable byte array
+   * printable byte array.
    *
    * @param userdata User
    * @param pincodes PIN

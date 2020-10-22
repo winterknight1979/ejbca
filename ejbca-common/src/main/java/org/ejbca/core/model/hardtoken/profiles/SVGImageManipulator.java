@@ -59,8 +59,8 @@ import org.w3c.dom.svg.SVGTextElement;
  * @version $Id: SVGImageManipulator.java 33834 2019-11-13 13:49:10Z anatom $
  */
 public class SVGImageManipulator {
-  /** For logging */
-  private static final Logger log = Logger.getLogger(SVGImageManipulator.class);
+  /** For logging. */
+  private static final Logger LOG = Logger.getLogger(SVGImageManipulator.class);
 
   /**
    * Available variables used to replace text in a printlayout Variable text are
@@ -68,27 +68,38 @@ public class SVGImageManipulator {
    */
   private static final Pattern USERNAME =
       Pattern.compile("\\$USERNAME", Pattern.CASE_INSENSITIVE);
+  /** Config. */
 
   private static final Pattern UID =
       Pattern.compile("\\$UID", Pattern.CASE_INSENSITIVE);
+  /** Config. */
   private static final Pattern CN =
       Pattern.compile("\\$CN", Pattern.CASE_INSENSITIVE);
+  /** Config. */
   private static final Pattern SN =
       Pattern.compile("\\$SN", Pattern.CASE_INSENSITIVE);
+  /** Config. */
   private static final Pattern GIVENNAME =
       Pattern.compile("\\$GIVENNAME", Pattern.CASE_INSENSITIVE);
+  /** Config. */
   private static final Pattern INITIALS =
       Pattern.compile("\\$INITIALS", Pattern.CASE_INSENSITIVE);
+  /** Config. */
   private static final Pattern SURNAME =
       Pattern.compile("\\$SURNAME", Pattern.CASE_INSENSITIVE);
+  /** Config. */
   private static final Pattern O =
       Pattern.compile("\\$O", Pattern.CASE_INSENSITIVE);
+  /** Config. */
   private static final Pattern OU =
       Pattern.compile("\\$OU", Pattern.CASE_INSENSITIVE);
+  /** Config. */
   private static final Pattern C =
       Pattern.compile("\\$C", Pattern.CASE_INSENSITIVE);
+  /** Config. */
   private static final Pattern LOCATION =
       Pattern.compile("\\$LOCATION", Pattern.CASE_INSENSITIVE);
+  /** Config. */
   private static final Pattern TITLE =
       Pattern.compile("\\$TITLE", Pattern.CASE_INSENSITIVE);
 
@@ -99,18 +110,20 @@ public class SVGImageManipulator {
   private static final Pattern ENDDATE =
       Pattern.compile("\\$ENDDATE", Pattern.CASE_INSENSITIVE);
 
+  /** Config. */
   private static final Pattern HARDTOKENSN =
       Pattern.compile("\\$HARDTOKENSN", Pattern.CASE_INSENSITIVE);
 
+  /** Config. */
   private static final Pattern HARDTOKENSNWITHOUTPREFIX =
       Pattern.compile("\\$HARDTOKENSNWITHOUTPREFIX", Pattern.CASE_INSENSITIVE);
 
   /** Constants used for pin and puk codes. */
   private static final Pattern[] PINS;
-
+/** Congig. */
   private static final Pattern[] PUKS;
 
-  /** Constants reserved for future use. */
+  /* Constants reserved for future use. */
   //    private static final Pattern CUSTOMTEXTROW1 =
   // Pattern.compile("\\$CUSTOMTEXTROW1", Pattern.CASE_INSENSITIVE);
   //    private static final Pattern CUSTOMTEXTROW2 =
@@ -127,7 +140,8 @@ public class SVGImageManipulator {
   // Pattern.compile("\\$COPYOFSNWITHOUTPREFIX", Pattern.CASE_INSENSITIVE);
 
   static {
-    PINS = new Pattern[0x50];
+    final int length = 0x50;
+    PINS = new Pattern[length];
     PUKS = new Pattern[PINS.length];
     for (int i = 0; i < PINS.length; i++) {
       final int pinNr = i + 1;
@@ -137,19 +151,20 @@ public class SVGImageManipulator {
   }
 
   /**
-   * Constructor for the SVGImageManipulator object
+   * Constructor for the SVGImageManipulator object.
    *
    * @param svgdata the xlm data to parse
    * @param validity the validity of the card i days.
-   * @param hardtokensnprefix the prefix of all hard tokens generated with this
+   * @param ahardtokensnprefix the prefix of all hard tokens generated with this
    *     profile.
    * @throws IOException on I/O fail
    */
   public SVGImageManipulator(
-      final Reader svgdata, final int validity, final String hardtokensnprefix)
+      final Reader svgdata, final int validity, final String ahardtokensnprefix)
       throws IOException {
-    this.validityms = (((long) validity) * 1000 * 3600 * 24); // Validity i ms
-    this.hardtokensnprefix = hardtokensnprefix;
+    final long oneDay = 1000L * 3600 * 24;
+    this.validityms = (((long) validity) * oneDay); // Validity i ms
+    this.hardtokensnprefix = ahardtokensnprefix;
 
     String parser = XMLResourceDescriptor.getXMLParserClassName();
     SAXSVGDocumentFactory f = new SAXSVGDocumentFactory(parser);
@@ -226,20 +241,20 @@ public class SVGImageManipulator {
         clone);
 
     // Add Image
-    /** if(userdata.hasimage()){ addImage(userdata); } */
+    /* if(userdata.hasimage()){ addImage(userdata); } */
     insertImage(userdata, clone); // special dravel for demo
 
     PrintTranscoder t = new PrintTranscoder();
     TranscoderInput input = new TranscoderInput(clone);
     TranscoderOutput output = new TranscoderOutput(new ByteArrayOutputStream());
     t.transcode(input, output);
-    {
+
       final String aDoNot =
           clone.getRootElement().getAttribute("doNotScaleToPage");
       t.addTranscodingHint(
           PrintTranscoder.KEY_SCALE_TO_PAGE,
           Boolean.valueOf(aDoNot == null || aDoNot.trim().length() <= 0));
-    }
+
     return t;
   }
 
@@ -306,7 +321,7 @@ public class SVGImageManipulator {
   }
 
   private String processString(
-      String text,
+      final String otext,
       final EndEntityInformation userdata,
       final DNFieldExtractor dnfields,
       final String[] pincodes,
@@ -317,7 +332,7 @@ public class SVGImageManipulator {
       final String copyoftokensnwithoutprefix,
       final String startdate,
       final String enddate) {
-
+    String text = otext;
     text = USERNAME.matcher(text).replaceAll(userdata.getUsername());
     text =
         UID.matcher(text)
@@ -374,7 +389,7 @@ public class SVGImageManipulator {
     // text = CUSTOMTEXTROW5.matcher(text).replaceAll(?);
     if (StringUtils.isNotEmpty(copyoftokensn)
         || StringUtils.isNotEmpty(copyoftokensnwithoutprefix)) {
-      log.debug(
+      LOG.debug(
           "copyoftokensn: "
               + copyoftokensn
               + " and/or copyoftokensnwithoutprefix: "
@@ -383,7 +398,8 @@ public class SVGImageManipulator {
     }
     // text = COPYOFSN.matcher(text).replaceAll(copyoftokensn);
     // text =
-    // COPYOFSNWITHOUTPREFIX.matcher(text).replaceAll(copyoftokensnwithoutprefix);
+    // COPYOFSNWITHOUTPREFIX.matcher(text).
+    //    replaceAll(copyoftokensnwithoutprefix);
 
     return text;
   }
@@ -392,8 +408,8 @@ public class SVGImageManipulator {
   private void insertImage(
       final EndEntityInformation userdata, final SVGOMDocument clone)
       throws FileNotFoundException, IOException {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">insertImage(" + userdata != null
               ? userdata.getUsername()
               : "null" + ")");
@@ -451,7 +467,10 @@ public class SVGImageManipulator {
   }
 
   // Private Variables
+  /** SVG. */
   private final SVGOMDocument svgdoc;
+  /** Validity. */
   private final long validityms;
+  /** Prefix. */
   private final String hardtokensnprefix;
 }

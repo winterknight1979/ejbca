@@ -11,11 +11,6 @@
  *                                                                       *
  *************************************************************************/
 
-/*
- * HardTokenIssuer.java
- *
- * Created on den 19 januari 2003, 12:53
- */
 package org.ejbca.core.model.hardtoken;
 
 import java.io.Serializable;
@@ -37,13 +32,19 @@ public class HardTokenIssuer extends UpgradeableDataHashMap
   private static final long serialVersionUID = -1794111124380177196L;
 
   // Default Values
+  /** Config. */
   public static final float LATEST_VERSION = 1;
 
   // Protected Constants, must be overloaded by all deriving classes.
+  /** Config. */
   protected static final String AVAILABLEHARDTOKENSPROFILES =
       "availablehardtokensprofiles";
+  /** Config. */
   protected static final String DESCRIPTION = "description";
 
+  /**
+   * Constructor.
+   */
   public HardTokenIssuer() {
     data.put(AVAILABLEHARDTOKENSPROFILES, new ArrayList<Integer>());
     data.put(DESCRIPTION, "");
@@ -52,36 +53,57 @@ public class HardTokenIssuer extends UpgradeableDataHashMap
   // Public Methods
 
   // Availablehardtokens defines which hard tokens the issuer is able to issue.
+  /**
+   * @return tokens
+   */
   @SuppressWarnings("unchecked")
   public ArrayList<Integer> getAvailableHardTokenProfiles() {
     return (ArrayList<Integer>) data.get(AVAILABLEHARDTOKENSPROFILES);
   }
 
+  /**
+   * @param availablehardtokens tokens
+   */
   public void setAvailableHardTokenProfiles(
       final ArrayList<Integer> availablehardtokens) {
     data.put(AVAILABLEHARDTOKENSPROFILES, availablehardtokens);
   }
 
+  /**
+   * @return desc
+   */
   public String getDescription() {
     return (String) data.get(DESCRIPTION);
   }
 
+  /**
+   * @param description desc
+   */
   public void setDescription(final String description) {
     data.put(DESCRIPTION, description);
   }
 
+  /**
+   * @param field field
+   * @param value value
+   */
   public void setField(final String field, final Object value) {
     data.put(field, value);
   }
 
-  /** Implementation of UpgradableDataHashMap function getLatestVersion */
+  /** Implementation of UpgradableDataHashMap function getLatestVersion.
+   * @return version */
   public float getLatestVersion() {
     return LATEST_VERSION;
   }
 
   /** Implementation of UpgradableDataHashMap function upgrade. */
-  public void upgrade() {}
+  public void upgrade() { }
 
+  /**
+   * @return clone
+   * @throws CloneNotSupportedException fail
+   */
   @SuppressWarnings({"rawtypes", "unchecked"})
   public Object clone() throws CloneNotSupportedException {
     HardTokenIssuer clone = new HardTokenIssuer();
