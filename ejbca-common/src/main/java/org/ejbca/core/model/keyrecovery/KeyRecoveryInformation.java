@@ -32,79 +32,123 @@ public class KeyRecoveryInformation implements Serializable {
   private static final long serialVersionUID = -7473386427889757839L;
 
   // Private fields
+  /** Serial. */
   private BigInteger certificatesn;
+  /** DN. */
   private String issuerdn;
+  /** User. */
   private String username;
+  /** Bool. */
   private boolean markedasrecoverable;
+  /** Keys. */
   private KeyPairWrapper keypair;
+  /** cert. **/
   private Certificate certificate;
 
   // Public Constructors
+  /**
+   * @param acertificatesn serial
+   * @param anissuerdn DN
+   * @param ausername User
+   * @param ismarkedasrecoverable bool
+   * @param akeypair keys
+   * @param acertificate cert
+   */
   public KeyRecoveryInformation(
-      final BigInteger certificatesn,
-      final String issuerdn,
-      final String username,
-      final boolean markedasrecoverable,
-      final KeyPair keypair,
-      final Certificate certificate) {
-    this.certificatesn = certificatesn;
-    this.issuerdn = issuerdn;
-    this.username = StringTools.stripUsername(username);
-    this.markedasrecoverable = markedasrecoverable;
-    this.keypair = new KeyPairWrapper(keypair);
-    this.certificate = certificate;
+      final BigInteger acertificatesn,
+      final String anissuerdn,
+      final String ausername,
+      final boolean ismarkedasrecoverable,
+      final KeyPair akeypair,
+      final Certificate acertificate) {
+    this.certificatesn = acertificatesn;
+    this.issuerdn = anissuerdn;
+    this.username = StringTools.stripUsername(ausername);
+    this.markedasrecoverable = ismarkedasrecoverable;
+    this.keypair = new KeyPairWrapper(akeypair);
+    this.certificate = acertificate;
   }
 
   /** Creates a new KeyRecoveryData object. */
-  public KeyRecoveryInformation() {}
+  public KeyRecoveryInformation() { }
 
   // Public Methods
+  /**
+   * @return serial
+   */
   public BigInteger getCertificateSN() {
     return this.certificatesn;
   }
 
-  public void setCertificateSN(final BigInteger certificatesn) {
-    this.certificatesn = certificatesn;
+  /**
+   * @param acertificatesn serial
+   */
+  public void setCertificateSN(final BigInteger acertificatesn) {
+    this.certificatesn = acertificatesn;
   }
 
+  /**
+   * @return dn
+   */
   public String getIssuerDN() {
     return this.issuerdn;
   }
 
-  public void setIssuerDN(final String issuerdn) {
-    this.issuerdn = issuerdn;
+  /**
+   * @param anissuerdn DN
+   */
+  public void setIssuerDN(final String anissuerdn) {
+    this.issuerdn = anissuerdn;
   }
 
+  /**
+   * @return user
+   */
   public String getUsername() {
     return this.username;
   }
 
-  public void setUsername(final String username) {
-    this.username = StringTools.stripUsername(username);
+  /**
+   * @param ausername user
+   */
+  public void setUsername(final String ausername) {
+    this.username = StringTools.stripUsername(ausername);
   }
 
+  /**
+   * @return bool
+   */
   public boolean getMarkedAsRecoverable() {
     return this.markedasrecoverable;
   }
 
-  public void setMarkedAsRecoverable(final boolean markedasrecoverable) {
-    this.markedasrecoverable = markedasrecoverable;
+  /**
+   * @param ismarkedasrecoverable bool
+   */
+  public void setMarkedAsRecoverable(final boolean ismarkedasrecoverable) {
+    this.markedasrecoverable = ismarkedasrecoverable;
   }
 
+  /**
+   * @return keys
+   */
   public KeyPair getKeyPair() {
     return keypair.getKeyPair();
   }
 
-  public void setKeyPair(final KeyPair keypair) {
-    this.keypair = new KeyPairWrapper(keypair);
+  /**
+   * @param akeypair keys
+   */
+  public void setKeyPair(final KeyPair akeypair) {
+    this.keypair = new KeyPairWrapper(akeypair);
   }
 
   /** @return Returns the certificate. */
   public Certificate getCertificate() {
     return certificate;
   }
-  /** @param certificate The certificate to set. */
-  public void setCertificate(final Certificate certificate) {
-    this.certificate = certificate;
+  /** @param acertificate The certificate to set. */
+  public void setCertificate(final Certificate acertificate) {
+    this.certificate = acertificate;
   }
 }
