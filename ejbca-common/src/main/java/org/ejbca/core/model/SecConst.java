@@ -19,7 +19,8 @@ package org.ejbca.core.model;
  * type:
  *
  * <pre>
- * if (((type &amp; USER_ENDUSER) == USER_ENDUSER) &amp;&amp; ((type &amp; USER_CAADMIN) == USER_ADMINISTOR) || ...
+ * if (((type &amp; USER_ENDUSER) == USER_ENDUSER) &amp;&amp;
+ *         ((type &amp; USER_CAADMIN) == USER_ADMINISTOR) || ...
  *    ...
  * </pre>
  *
@@ -52,10 +53,12 @@ public final class SecConst {
    */
   public static final int TOKEN_SOFT = 100;
 
+  /** Config. */
   public static final String[] TOKENTEXTS = {
     "TOKENSOFTUSERGENERATED", "TOKENSOFTP12", "TOKENSOFTJKS", "TOKENSOFTPEM"
   };
 
+  /** Config. */
   public static final int[] TOKENIDS = {
     SecConst.TOKEN_SOFT_BROWSERGEN,
     SecConst.TOKEN_SOFT_P12,
@@ -81,14 +84,16 @@ public final class SecConst {
   /** Constant indicating a enhanced eid hard token. */
   public static final int TOKEN_TURKISHEID = 105;
 
+  /** Config. */
   public static final int NO_HARDTOKENISSUER = 0;
 
   // ECA-419 Check This!
+  /** Config. */
   public static final int EMPTY_VALIDATOR = 1;
 
   /**
    * Used in end entity profiles and service workers This is duplicated in
-   * CAConstants
+   * CAConstants.
    */
   public static final int ALLCAS = 1;
 
@@ -105,15 +110,16 @@ public final class SecConst {
    */
   public static final int[] DEFAULT_KEY_LENGTHS = new int[] {512, 1024, 2048};
 
-  /** Prevents creation of new SecConst */
-  private SecConst() {}
+  /** Prevents creation of new SecConst. */
+  private SecConst() { }
 
-  // Revocation reasons identifiers
-  public static final String[] reasontexts = {
+  /** Revocation reasons identifiers. */
+  public static final String[] REASONTEXTS = {
     "REV_UNSPECIFIED", "REV_KEYCOMPROMISE", "REV_CACOMPROMISE",
     "REV_AFFILIATIONCHANGED", "REV_SUPERSEDED", "REV_CESSATIONOFOPERATION",
     "REV_CERTIFICATEHOLD", "REV_UNUSED", "REV_REMOVEFROMCRL",
     "REV_PRIVILEGEWITHDRAWN", "REV_AACOMPROMISE"
   };
+  /** Config. */
   public static final int HIGN_REASON_BOUNDRARY = 11;
 }

@@ -29,34 +29,41 @@ public class BlacklistEntry implements Serializable, Cloneable {
   private static final long serialVersionUID = 1L;
 
   // Values used for lookup that are not stored in the data hash map.
+  /** PAram. */
   private int id;
+  /** PAram. */
   private final String type;
+  /** PAram. */
   private String value;
+  /** PAram. */
   private String data;
 
   /**
    * Creates a new instance, must specify at least type.
    *
-   * @param type Type
+   * @param atype Type
    */
-  public BlacklistEntry(final String type) {
-    this.type = type;
+  public BlacklistEntry(final String atype) {
+    this.type = atype;
   }
 
   /**
    * Creates a new instance.
    *
-   * @param id ID
-   * @param type Type
-   * @param value Value
-   * @param data Data
+   * @param anid ID
+   * @param atype Type
+   * @param avalue Value
+   * @param thedata Data
    */
   public BlacklistEntry(
-      final int id, final String type, final String value, final String data) {
-    this.id = id;
-    this.type = type;
-    this.value = value;
-    this.data = data;
+      final int anid,
+      final String atype,
+      final String avalue,
+      final String thedata) {
+    this.id = anid;
+    this.type = atype;
+    this.value = avalue;
+    this.data = thedata;
   }
 
   /**
@@ -71,14 +78,14 @@ public class BlacklistEntry implements Serializable, Cloneable {
   /**
    * Sets the blacklist id.
    *
-   * @param id ID
+   * @param anid ID
    */
-  public void setID(final int id) {
-    this.id = id;
+  public void setID(final int anid) {
+    this.id = anid;
   }
 
   /**
-   * Gets the blacklist specific type
+   * Gets the blacklist specific type.
    *
    * @return type String, specified by specific blacklist type
    */
@@ -98,10 +105,10 @@ public class BlacklistEntry implements Serializable, Cloneable {
   /**
    * Sets the blacklist specific data.
    *
-   * @param data a blacklist specified string.
+   * @param thedata a blacklist specified string.
    */
-  public void setData(final String data) {
-    this.data = data;
+  public void setData(final String thedata) {
+    this.data = thedata;
   }
 
   /**
@@ -114,14 +121,18 @@ public class BlacklistEntry implements Serializable, Cloneable {
   }
 
   /**
-   * Sets the blacklisted value
+   * Sets the blacklisted value.
    *
-   * @param value value
+   * @param avalue value
    */
-  public void setValue(final String value) {
-    this.value = value;
+  public void setValue(final String avalue) {
+    this.value = avalue;
   }
 
+  /**
+   * @param newEntry entry
+   * @return map
+   */
   public Map<Object, Object> diff(final BlacklistEntry newEntry) {
     final Map<Object, Object> result = new LinkedHashMap<>();
     if (!StringUtils.equals(this.getValue(), newEntry.getValue())) {

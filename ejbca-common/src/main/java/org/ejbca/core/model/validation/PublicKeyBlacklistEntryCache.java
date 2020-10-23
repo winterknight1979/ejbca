@@ -29,8 +29,10 @@ import org.cesecore.internal.CommonCacheBase;
  */
 public enum PublicKeyBlacklistEntryCache
     implements CommonCache<PublicKeyBlacklistEntry> {
-  INSTANCE;
+  /** Singleton. */
+    INSTANCE;
 
+    /** Cache. */
   private final CommonCache<PublicKeyBlacklistEntry> cache =
       new CommonCacheBase<PublicKeyBlacklistEntry>() {
         @Override
@@ -38,7 +40,7 @@ public enum PublicKeyBlacklistEntryCache
           return Math.max(
               CesecoreConfiguration.getCachePublicKeyBlacklistTime(), 0);
         }
-        ;
+
 
         @Override
         protected long getMaxCacheLifeTime() {

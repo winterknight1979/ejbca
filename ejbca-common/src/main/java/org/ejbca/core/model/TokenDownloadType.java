@@ -17,35 +17,50 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Representation of token download types
+ * Representation of token download types.
  *
  * @version $Id: TokenDownloadType.java 29210 2018-06-13 10:14:03Z henriks $
  */
 public enum TokenDownloadType {
+    /** PEM. */
   PEM(1),
+  /** Full PEM. */
   PEM_FULL_CHAIN(2),
+  /** PKCS 7. */
   PKCS7(3),
+  /** PKCS 12. */
   P12(4),
+  /** JKS. */
   JKS(5),
+  /** DER. */
   DER(6);
 
+    /** Value. */
   private int value;
-  private static final Map<String, Integer> nameIdLookupMap =
+  /** Map. */
+  private static final Map<String, Integer> NAME_ID_LOOKUP_MAP =
       new HashMap<String, Integer>();
-  private static final Map<Integer, String> idNameLookupMap =
+  /** Map. */
+  private static final Map<Integer, String> ID_NAME_LOOKUP_MAP =
       new HashMap<Integer, String>();
 
   static {
     for (TokenDownloadType tokenDownloadType : TokenDownloadType.values()) {
-      nameIdLookupMap.put(tokenDownloadType.name(), tokenDownloadType.value);
-      idNameLookupMap.put(tokenDownloadType.value, tokenDownloadType.name());
+      NAME_ID_LOOKUP_MAP.put(tokenDownloadType.name(), tokenDownloadType.value);
+      ID_NAME_LOOKUP_MAP.put(tokenDownloadType.value, tokenDownloadType.name());
     }
   }
 
-  private TokenDownloadType(final int value) {
-    this.value = value;
+  /**
+   * @param avalue value
+   */
+  TokenDownloadType(final int avalue) {
+    this.value = avalue;
   }
 
+  /**
+   * @return value
+   */
   public int getValue() {
     return value;
   }
@@ -55,7 +70,7 @@ public enum TokenDownloadType {
    * @return Id represented by input Enum name or null if non-existent
    */
   public static Integer getIdFromName(final String tokenTypeName) {
-    return nameIdLookupMap.get(tokenTypeName);
+    return NAME_ID_LOOKUP_MAP.get(tokenTypeName);
   }
 
   /**
@@ -63,6 +78,6 @@ public enum TokenDownloadType {
    * @return String representation of the Enum Id input or null of non-existent
    */
   public static String getNameFromId(final int id) {
-    return idNameLookupMap.get(id);
+    return ID_NAME_LOOKUP_MAP.get(id);
   }
 }

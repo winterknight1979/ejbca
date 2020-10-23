@@ -35,7 +35,7 @@ public class PublicKeyBlacklistEntry extends BlacklistEntry
   private static final long serialVersionUID = -315759758359854900L;
 
   /** Class logger. */
-  private static final Logger log =
+  private static final Logger LOG =
       Logger.getLogger(PublicKeyBlacklistEntry.class);
 
   /**
@@ -48,9 +48,11 @@ public class PublicKeyBlacklistEntry extends BlacklistEntry
    */
   public static final String DIGEST_ALGORITHM = "SHA-256";
 
+  /** Type. */
   public static final String TYPE = "PUBLICKEY";
 
-  protected static final InternalResources intres =
+  /** Resource. */
+  protected static final InternalResources INTRES =
       InternalResources.getInstance();
 
   /** Public key reference (set while validate). */
@@ -79,7 +81,7 @@ public class PublicKeyBlacklistEntry extends BlacklistEntry
   }
 
   /**
-   * Gets the key spec
+   * Gets the key spec.
    *
    * @return the key spec string (i.e. 'RSA2048', 'secp256r1').
    */
@@ -88,7 +90,7 @@ public class PublicKeyBlacklistEntry extends BlacklistEntry
   }
 
   /**
-   * Sets the key spec, RSA2048, secp256r1 etc
+   * Sets the key spec, RSA2048, secp256r1 etc.
    *
    * @param keyspec the key spec string.
    */
@@ -130,17 +132,17 @@ public class PublicKeyBlacklistEntry extends BlacklistEntry
 
   /**
    * Sets the fingerprint in the correct format from a public key object see
-   * {@link #setFingerprint(String)}
+   * {@link #setFingerprint(String)}.
    *
-   * @param publicKey an RSA public key
+   * @param apublicKey an RSA public key
    */
-  public void setFingerprint(final PublicKey publicKey) {
-    setValue(createFingerprint(publicKey));
+  public void setFingerprint(final PublicKey apublicKey) {
+    setValue(createFingerprint(apublicKey));
   }
 
   /**
    * Creates the fingerprint in the correct format from a public key object see
-   * {@link #setFingerprint(String)}
+   * {@link #setFingerprint(String)}.
    *
    * @param pk a public key, can be RSA, ECDSA or DSA
    * @return public key fingerprint, as required by Blacklist, or null of no
@@ -173,16 +175,16 @@ public class PublicKeyBlacklistEntry extends BlacklistEntry
       digest.reset();
       digest.update(modulusBytes);
       final String fingerprint = Hex.toHexString(digest.digest());
-      if (log.isTraceEnabled()) {
-        log.trace("Created fingerprint for RSA public key: " + fingerprint);
+      if (LOG.isTraceEnabled()) {
+        LOG.trace("Created fingerprint for RSA public key: " + fingerprint);
       }
       return fingerprint;
     } else {
       final String fingerprint =
           CertTools.createPublicKeyFingerprint(
               pk, PublicKeyBlacklistEntry.DIGEST_ALGORITHM);
-      if (log.isTraceEnabled()) {
-        log.trace(
+      if (LOG.isTraceEnabled()) {
+        LOG.trace(
             "Created fingerprint for "
                 + pk.getFormat()
                 + " public key: "
@@ -203,11 +205,11 @@ public class PublicKeyBlacklistEntry extends BlacklistEntry
   }
 
   /**
-   * Sets the transient public key, see {@link #getPublicKey()}
+   * Sets the transient public key, see {@link #getPublicKey()}.
    *
-   * @param publicKey the public key.
+   * @param apublicKey the public key.
    */
-  public void setPublicKey(final PublicKey publicKey) {
-    this.publicKey = publicKey;
+  public void setPublicKey(final PublicKey apublicKey) {
+    this.publicKey = apublicKey;
   }
 }

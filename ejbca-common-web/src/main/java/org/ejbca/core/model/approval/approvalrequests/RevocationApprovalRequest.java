@@ -191,7 +191,7 @@ public class RevocationApprovalRequest extends ApprovalRequest {
 		if ( reason == RevokedCertInfo.NOT_REVOKED) {
 			retval.add(new ApprovalDataText("REASON","UNREVOKE",true,true));
 		} else {
-			retval.add(new ApprovalDataText("REASON",SecConst.reasontexts[reason],true,true));
+			retval.add(new ApprovalDataText("REASON",SecConst.REASONTEXTS[reason],true,true));
 		}
 		if ( certificateSerialNumber != null && issuerDN != null ) {
 			retval.add(new ApprovalDataText("CERTSERIALNUMBER",certificateSerialNumber.toString(16),true,false));

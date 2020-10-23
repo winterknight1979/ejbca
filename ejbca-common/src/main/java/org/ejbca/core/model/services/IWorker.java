@@ -29,31 +29,42 @@ public interface IWorker {
   /** Should be a ';' separated string of CAIds. */
   String PROP_CAIDSTOCHECK = "worker.caidstocheck";
 
+  /** Config. */
   String PROP_CERTIFICATE_PROFILE_IDS_TO_CHECK =
       "worker.certificateprofileidstocheck";
 
   /**
    * The time in 'timeunit' that a user is allowed to have status 'new' since
-   * last modification date
+   * last modification date.
    */
   String PROP_TIMEBEFOREEXPIRING = "worker.timebeforeexpiring";
 
-  /** Unit in days, hours or seconds */
+  /** Unit in days, hours or seconds. */
   String PROP_TIMEUNIT = "worker.timeunit";
 
+  /** Config. */
   String UNIT_SECONDS = "SECONDS";
+  /** Config. */
   String UNIT_MINUTES = "MINUTES";
+  /** Config. */
   String UNIT_HOURS = "HOURS";
+  /** Config. */
   String UNIT_DAYS = "DAYS";
 
+  /** Config. */
   int UNITVAL_SECONDS = 1;
+  /** Config. */
   int UNITVAL_MINUTES = 60;
+  /** Config. */
   int UNITVAL_HOURS = 3600;
+  /** Config. */
   int UNITVAL_DAYS = 86400;
 
+  /** Config. */
   String[] AVAILABLE_UNITS = {
     UNIT_SECONDS, UNIT_MINUTES, UNIT_HOURS, UNIT_DAYS
   };
+  /** Config. */
   int[] AVAILABLE_UNITSVALUES = {
     UNITVAL_SECONDS, UNITVAL_MINUTES, UNITVAL_HOURS, UNITVAL_DAYS
   };
@@ -77,7 +88,7 @@ public interface IWorker {
 
   /**
    * The main method that is called by the TimeSessionBean each time it is time
-   * to activate this service
+   * to activate this service.
    *
    * @param ejbs A map between Local EJB interface classes and their injected
    *     stub

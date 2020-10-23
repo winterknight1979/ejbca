@@ -20,16 +20,16 @@ package org.ejbca.core.model.services.workers;
 public abstract class EmailSendingWorkerConstants {
   /**
    * Boolean indicating if a notification should be sent to the end user of the
-   * expiration
+   * expiration.
    */
   public static final String PROP_SENDTOENDUSERS = "worker.mail.sendtoendusers";
 
   /**
-   * Boolean indicating if a notification should be sent to the administrators
+   * Boolean indicating if a notification should be sent to the administrators.
    */
   public static final String PROP_SENDTOADMINS = "worker.mail.sendtoadmins";
 
-  /** The subject to use in the end user notification */
+  /** The subject to use in the end user notification. */
   public static final String PROP_USERSUBJECT = "worker.mail.usersubject";
 
   /**
@@ -38,7 +38,7 @@ public abstract class EmailSendingWorkerConstants {
    */
   public static final String PROP_USERMESSAGE = "worker.mail.usermessage";
 
-  /** The subject to use in the admin notification */
+  /** The subject to use in the admin notification. */
   public static final String PROP_ADMINSUBJECT = "worker.mail.adminsubject";
 
   /**

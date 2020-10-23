@@ -425,9 +425,11 @@ function viewcopies(link){
        <%    if(rabean.authorizedToRevokeCert(username) && ejbcawebbean.isAuthorizedNoLogSilent(AccessRulesConstants.REGULAR_REVOKEENDENTITY) 
                && !rabean.isAllTokenCertificatesRevoked(token.getTokenSN(),username)){ %>
         <select name="<%=SELECT_REVOKE_REASON %>" >
-          <% for(int i=0; i < SecConst.reasontexts.length; i++){ 
-               if(i!= 7){ %>
-               <option value='<%= i%>'><%= ejbcawebbean.getText(SecConst.reasontexts[i]) %></option>
+          <%
+          	for(int i=0; i < SecConst.REASONTEXTS.length; i++){ 
+                         if(i!= 7){
+          %>
+               <option value='<%=i%>'><%=ejbcawebbean.getText(SecConst.REASONTEXTS[i])%></option>
           <%   } 
              }
            } %> 

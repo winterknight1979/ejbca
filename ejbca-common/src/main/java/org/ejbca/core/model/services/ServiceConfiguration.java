@@ -24,7 +24,7 @@ import org.ejbca.core.model.services.workers.EmailSendingWorkerConstants;
 
 /**
  * Value class used for persist the worker, interval and action configurations
- * to database
+ * to database.
  *
  * @version $Id: ServiceConfiguration.java 24494 2016-10-10 12:33:55Z anatom $
  */
@@ -32,24 +32,37 @@ public class ServiceConfiguration extends UpgradeableDataHashMap
     implements Serializable, Cloneable {
 
   private static final long serialVersionUID = -3094484762673017432L;
-  private static final Logger log =
+  /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(ServiceConfiguration.class);
-  /** Internal localization of logs and errors */
-  private static final InternalEjbcaResources intres =
+  /** Internal localization of logs and errors. */
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
+  /** Config. */
   private static final float LATEST_VERSION = 6;
 
+  /** Config. */
   private static final String INTERVALCLASSPATH = "INTERVALCLASSPATH";
+  /** Config. */
   private static final String INTERVALPROPERTIES = "INTERVALPROPERTIES";
+  /** Config. */
   private static final String WORKERCLASSPATH = "WORKERCLASSPATH";
+  /** Config. */
   private static final String WORKERPROPERTIES = "WORKERPROPERTIES";
+  /** Config. */
   private static final String ACTIONCLASSPATH = "ACTIONCLASSPATH";
+  /** Config. */
   private static final String ACTIONPROPERTIES = "ACTIONPROPERTIES";
+  /** Config. */
   private static final String DESCRIPTION = "DESCRIPTION";
+  /** Config. */
   private static final String ACTIVE = "ACTIVE";
+  /** Config. */
   private static final String HIDDEN = "HIDDEN";
+  /** Config. */
   private static final String PINTONODES = "PINTONODES";
+  /** Config. */
   private static final String RUNONALLNODES = "RUNONALLNODES";
 
   /** Constructor used to create a new service configuration. */
@@ -96,10 +109,16 @@ public class ServiceConfiguration extends UpgradeableDataHashMap
     data.put(ACTIVE, Boolean.valueOf(active));
   }
 
+  /**
+   * @return bool
+   */
   public boolean isHidden() {
     return ((Boolean) data.get(HIDDEN)).booleanValue();
   }
 
+  /**
+   * @param b bool
+   */
   public void setHidden(final boolean b) {
     data.put(HIDDEN, Boolean.valueOf(b));
   }
@@ -163,10 +182,11 @@ public class ServiceConfiguration extends UpgradeableDataHashMap
     return ret;
   }
 
-  /** @param nodes the list of nodes to pin this service (empty if no nodes) */
-  public void setPinToNodes(String[] nodes) {
-    if (log.isDebugEnabled()) {
-      log.debug("setPinToNodes: " + Arrays.toString(nodes));
+  /** @param onodes the list of nodes to pin this service (empty if no nodes) */
+  public void setPinToNodes(final String[] onodes) {
+    String[] nodes = onodes;
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("setPinToNodes: " + Arrays.toString(nodes));
     }
     if (nodes == null) {
       nodes = new String[0];
@@ -174,6 +194,9 @@ public class ServiceConfiguration extends UpgradeableDataHashMap
     data.put(PINTONODES, nodes);
   }
 
+  /**
+   * @return bool
+   */
   public boolean isRunOnAllNodes() {
     Boolean ret = (Boolean) data.get(RUNONALLNODES);
     if (ret != null) {
@@ -182,6 +205,9 @@ public class ServiceConfiguration extends UpgradeableDataHashMap
     return false;
   }
 
+  /**
+   * @param b bool
+   */
   public void setRunOnAllNodes(final boolean b) {
     data.put(RUNONALLNODES, Boolean.valueOf(b));
   }
@@ -196,15 +222,15 @@ public class ServiceConfiguration extends UpgradeableDataHashMap
     if (Float.compare(LATEST_VERSION, getVersion()) > 0) {
       // New version of the class, upgrade
       String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "services.upgrade", Float.valueOf(getVersion()));
-      log.info(msg);
+      LOG.info(msg);
 
-      log.debug(LATEST_VERSION);
+      LOG.debug(LATEST_VERSION);
       // We changed the names of properties between v1 and v2, so we have to
       // upgrade a few of them
       if (Float.compare(Float.valueOf(2), getVersion()) > 0) { // v2
-        log.debug("Upgrading to version 2");
+        LOG.debug("Upgrading to version 2");
         Properties prop = getWorkerProperties();
         if (prop != null) {
           String caids =
@@ -271,13 +297,13 @@ public class ServiceConfiguration extends UpgradeableDataHashMap
         }
 
         if (Float.compare(Float.valueOf(3), getVersion()) > 0) { // v3
-          log.debug("Upgrading to version 3");
+          LOG.debug("Upgrading to version 3");
           // The hidden field was added
           setHidden(false);
         }
 
         if (Float.compare(Float.valueOf(4), getVersion()) > 0) { // v4
-          log.debug("Upgrading to version 4");
+          LOG.debug("Upgrading to version 4");
           // The NEXTRUNTIMESTAMP and OLDRUNTIMESTAMP disappeared in version 4
           // but we don't do anything here.
           // This is handled in ServiceData.getServiceConfiguration when we
@@ -286,12 +312,12 @@ public class ServiceConfiguration extends UpgradeableDataHashMap
       }
 
       if (Float.compare(Float.valueOf(5), getVersion()) > 0) { // v5
-        log.debug("Upgrading to version 5");
+        LOG.debug("Upgrading to version 5");
         // The PINTONODES field was added
         setPinToNodes(null);
       }
       if (Float.compare(Float.valueOf(6), getVersion()) > 0) { // v6
-        log.debug("Upgrading to version 6");
+        LOG.debug("Upgrading to version 6");
         // The RUNONALLNODES field was added
         setRunOnAllNodes(false);
       }

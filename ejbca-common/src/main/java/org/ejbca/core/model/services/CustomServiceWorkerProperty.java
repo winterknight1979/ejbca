@@ -22,53 +22,62 @@ import java.util.List;
  */
 public class CustomServiceWorkerProperty {
 
+      /** Config. */
   public static final int UI_TEXTINPUT = 0;
+  /** Config. */
   public static final int UI_SELECTONE = 1;
+  /** Config. */
   public static final int UI_BOOLEAN = 2;
+  /** Config. */
   public static final int UI_SELECTMANY = 3;
 
+  /** Param. */
   private final String name;
+  /** Param. */
   private final int type;
+  /** Param. */
   private final List<String> options;
+  /** Param. */
   private final List<String> optionTexts;
+  /** Param. */
   private String value;
 
   /**
    * Construct a UI object with a list of options to choose from.
    *
-   * @param name The name of the property this object should map to.
-   * @param type One of CustomServiceWorkerProperty.UI_* constants.
-   * @param options Selectable options.
-   * @param optionTexts Label of the options in the same order.
-   * @param value The current value of this component.
+   * @param aname The name of the property this object should map to.
+   * @param atype One of CustomServiceWorkerProperty.UI_* constants.
+   * @param theoptions Selectable options.
+   * @param theoptionTexts Label of the options in the same order.
+   * @param avalue The current value of this component.
    */
   public CustomServiceWorkerProperty(
-      final String name,
-      final int type,
-      final List<String> options,
-      final List<String> optionTexts,
-      final String value) {
-    this.name = name;
-    this.type = type;
-    this.options = options;
-    this.optionTexts = optionTexts;
-    this.value = value;
+      final String aname,
+      final int atype,
+      final List<String> theoptions,
+      final List<String> theoptionTexts,
+      final String avalue) {
+    this.name = aname;
+    this.type = atype;
+    this.options = theoptions;
+    this.optionTexts = theoptionTexts;
+    this.value = avalue;
   }
 
   /**
    * Construct a simple UI object with free text or boolean value.
    *
-   * @param name The name of the property this object should map to.
-   * @param type One of CustomServiceWorkerProperty.UI_* constants.
-   * @param value The current value of this component.
+   * @param aname The name of the property this object should map to.
+   * @param atype One of CustomServiceWorkerProperty.UI_* constants.
+   * @param avalue The current value of this component.
    */
   public CustomServiceWorkerProperty(
-      final String name, final int type, final String value) {
-    this.name = name;
-    this.type = type;
+      final String aname, final int atype, final String avalue) {
+    this.name = aname;
+    this.type = atype;
     this.options = null;
     this.optionTexts = null;
-    this.value = value;
+    this.value = avalue;
   }
 
   /** @return the current value of this property (as String) */
@@ -76,21 +85,22 @@ public class CustomServiceWorkerProperty {
     return value;
   }
 
-  /** @param value Set the current value of this property (as String) */
-  public void setValue(String value) {
-    if (value != null) {
-      value = value.trim();
+  /** @param ovalue Set the current value of this property (as String) */
+  public void setValue(final String ovalue) {
+    String avalue = ovalue;
+    if (avalue != null) {
+      avalue = avalue.trim();
     }
-    this.value = value;
+    this.value = avalue;
   }
 
   /** @return the current value of this component as a boolean. */
   public boolean getBooleanValue() {
     return Boolean.valueOf(getValue());
   }
-  /** @param value Set the current value of this component as a boolean. */
-  public void setBooleanValue(final boolean value) {
-    setValue(Boolean.valueOf(value).toString());
+  /** @param avalue Set the current value of this component as a boolean. */
+  public void setBooleanValue(final boolean avalue) {
+    setValue(Boolean.valueOf(avalue).toString());
   }
   /**
    * @return the current value of this component as a "select many" component.
@@ -104,11 +114,11 @@ public class CustomServiceWorkerProperty {
    */
   public void setMultiValue(final String[] values) {
     final StringBuilder sb = new StringBuilder();
-    for (final String value : values) {
+    for (final String avalue : values) {
       if (sb.length() > 0) {
         sb.append(';');
       }
-      sb.append(value);
+      sb.append(avalue);
     }
     setValue(sb.toString());
   }

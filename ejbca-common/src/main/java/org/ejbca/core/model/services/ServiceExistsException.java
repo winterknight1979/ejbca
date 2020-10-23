@@ -13,7 +13,7 @@
 package org.ejbca.core.model.services;
 
 /**
- * Exception throw when adding a service that already exists
+ * Exception throw when adding a service that already exists.
  *
  * @version $Id: ServiceExistsException.java 22117 2015-10-29 10:53:42Z
  *     mikekushner $
@@ -22,6 +22,9 @@ public class ServiceExistsException extends Exception {
 
   private static final long serialVersionUID = -5167041356644200485L;
 
+  /**
+   * @param msg Message
+   */
   public ServiceExistsException(final String msg) {
     super(msg);
   }

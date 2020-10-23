@@ -23,15 +23,25 @@ public class ServiceExecutionFailedException extends Exception {
 
   private static final long serialVersionUID = 383213793956902294L;
 
+  /**
+   * @param message Message
+   * @param cause Cause
+   */
   public ServiceExecutionFailedException(
       final String message, final Throwable cause) {
     super(message, cause);
   }
 
+  /**
+   * @param message Message
+   */
   public ServiceExecutionFailedException(final String message) {
     super(message);
   }
 
+  /**
+   * @param cause Cause
+   */
   public ServiceExecutionFailedException(final Throwable cause) {
     super(cause);
   }
