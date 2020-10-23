@@ -80,7 +80,7 @@ public final class EnrollPkcs10CertificateRequest implements Serializable {
   }
 
   public static class Builder {
-	    /** Param. */
+        /** Param. */
     private String certificateRequest;
     /** Param. */
     private String certificateProfileName;
@@ -107,7 +107,7 @@ public final class EnrollPkcs10CertificateRequest implements Serializable {
      * @return this
      */
     public Builder certificateProfileName(
-    		final String acertificateProfileName) {
+            final String acertificateProfileName) {
       this.certificateProfileName = acertificateProfileName;
       return this;
     }
@@ -134,7 +134,7 @@ public final class EnrollPkcs10CertificateRequest implements Serializable {
     /**
      * @param ausername user
      * @return   this
-     * */   
+     * */
     public Builder username(final String ausername) {
       this.username = ausername;
       return this;

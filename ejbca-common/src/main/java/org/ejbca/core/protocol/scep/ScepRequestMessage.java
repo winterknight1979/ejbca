@@ -255,7 +255,7 @@ public class ScepRequestMessage extends PKCS10RequestMessage
       LOG.error("CMSException trying to get preferred digest algorithm: ", e);
     }
     // Parse and verify the integrity of the PKIOperation message PKCS#7
-    /* If this would have been done using the newer CMS it would have 
+    /* If this would have been done using the newer CMS it would have
      * made me so much happier... */
     ASN1InputStream seqAsn1InputStream =
         new ASN1InputStream(new ByteArrayInputStream(scepmsg));
@@ -830,8 +830,8 @@ public class ScepRequestMessage extends PKCS10RequestMessage
   private static class ScepVerifierProvider
       implements SignerInformationVerifierProvider {
 
-	  /** param. */
-	  private final SignerInformationVerifier signerInformationVerifier;
+      /** param. */
+      private final SignerInformationVerifier signerInformationVerifier;
 
     ScepVerifierProvider(final PublicKey publicKey)
         throws OperatorCreationException {
@@ -850,7 +850,7 @@ public class ScepRequestMessage extends PKCS10RequestMessage
       return signerInformationVerifier;
     }
   }
-  
+
   /** error. */
   private final int badType = 3;
   /** error. */
