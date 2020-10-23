@@ -48,6 +48,9 @@ public class UserDoesntFullfillEndEntityProfile extends Exception {
     super(msg);
   }
 
+  /**
+   * @param e cause
+   */
   public UserDoesntFullfillEndEntityProfile(final Throwable e) {
     super(e);
   }

@@ -34,7 +34,7 @@ public class LogEntry implements Serializable {
   public static final int TYPE_RA_USER = 2;
   /** An internal CA admin function, such as cms line. */
   public static final int TYPE_CACOMMANDLINE_USER = 3;
-  /** Batch generation too.l */
+  /** Batch generation tool. */
   public static final int TYPE_BATCHCOMMANDLINE_USER = 4;
   /** Internal user in EJBCA, such as automatic job .*/
   public static final int TYPE_INTERNALUSER = 5;

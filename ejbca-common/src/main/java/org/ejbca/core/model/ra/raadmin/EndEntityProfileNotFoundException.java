@@ -25,23 +25,37 @@ public class EndEntityProfileNotFoundException extends EjbcaException {
 
   private static final long serialVersionUID = 1901011578701643327L;
 
+  /** Null constructor. */
   public EndEntityProfileNotFoundException() {
     super();
   }
 
+  /**
+   * @param message message
+   * @param cause cause
+   */
   public EndEntityProfileNotFoundException(
       final String message, final Throwable cause) {
     super(message, cause);
   }
 
+  /**
+   * @param message message
+   */
   public EndEntityProfileNotFoundException(final String message) {
     super(message);
   }
 
+  /**
+   * @param cause cause
+   */
   public EndEntityProfileNotFoundException(final Throwable cause) {
     super(ErrorCode.EE_PROFILE_NOT_EXISTS, cause);
   }
 
+  /**
+   * @param endEntityProfileId ID
+   */
   public EndEntityProfileNotFoundException(final int endEntityProfileId) {
     super(
         "Could not find end entity profile with ID "

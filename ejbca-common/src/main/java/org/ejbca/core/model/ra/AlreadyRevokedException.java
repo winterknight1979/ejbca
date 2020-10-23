@@ -36,7 +36,7 @@ public class AlreadyRevokedException extends EjbcaException {
   }
 
   /**
-   * Creates a new instance of AlreadyRevokedException
+   * Creates a new instance of AlreadyRevokedException.
    *
    * @param message error message
    */

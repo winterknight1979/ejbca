@@ -30,6 +30,9 @@ import org.ejbca.core.model.ra.raadmin.EndEntityProfileValidationException;
 public class EndEntityProfileValidationRaException extends EjbcaException {
   private static final long serialVersionUID = 777317800935352658L;
 
+  /**
+   * @param exception cause
+   */
   public EndEntityProfileValidationRaException(
       final EndEntityProfileValidationException exception) {
     super(exception);

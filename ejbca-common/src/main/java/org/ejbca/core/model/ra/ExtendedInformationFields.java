@@ -14,13 +14,14 @@ package org.ejbca.core.model.ra;
 
 /**
  * Constants specific to EJBCA that are used to store EJBCA specific extended
- * information
+ * information.
  *
  * @version $Id: ExtendedInformationFields.java 22117 2015-10-29 10:53:42Z
  *     mikekushner $
  */
-public class ExtendedInformationFields {
+public final class ExtendedInformationFields {
 
+    private ExtendedInformationFields() { }
   /**
    * Identifier for Custom data holding a base64 encoded PKCS10 request
    * extInfo.setCustomData("PKCS10", new

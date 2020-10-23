@@ -14,7 +14,7 @@
 package org.ejbca.core.model.ra.raadmin;
 
 /**
- * An exception thrown when someone tries to add a profile that already exists
+ * An exception thrown when someone tries to add a profile that already exists.
  *
  * @version $Id: EndEntityProfileExistsException.java 22117 2015-10-29 10:53:42Z
  *     mikekushner $

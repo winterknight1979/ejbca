@@ -17,7 +17,7 @@ import javax.xml.ws.WebFault;
 import org.ejbca.core.EjbcaException;
 
 /**
- * Is thrown when error occurred when searching or retrieving userdata
+ * Is thrown when error occurred when searching or retrieving userdata.
  *
  * @version $Id: UserDataSourceException.java 22117 2015-10-29 10:53:42Z
  *     mikekushner $

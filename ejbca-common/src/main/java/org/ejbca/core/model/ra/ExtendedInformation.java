@@ -43,9 +43,10 @@ import org.ejbca.core.model.InternalEjbcaResources;
  */
 public class ExtendedInformation extends UpgradeableDataHashMap
     implements java.io.Serializable, Cloneable {
-  private static final Logger log = Logger.getLogger(ExtendedInformation.class);
-  /** Internal localization of logs and errors */
-  private static final InternalEjbcaResources intres =
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(ExtendedInformation.class);
+  /** Internal localization of logs and errors. */
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
   /**
@@ -58,66 +59,69 @@ public class ExtendedInformation extends UpgradeableDataHashMap
    */
   private static final long serialVersionUID = 3981761824188420320L;
 
+  /** Version. */
   private static final float LATEST_VERSION = 4;
 
   /**
    * Different types of implementations of extended information, can be used to
-   * have different implementing classes of extended information
+   * have different implementing classes of extended information.
    */
   static final int TYPE_BASIC = 0;
 
+  /** Type. */
   static final String TYPE = "type";
 
   // protected fields.
   /**
    * Used to store subject directory attributes, which are put in an extension
    * in the certificate. SubjectDirectoryAttributes are standard attributes, see
-   * rfc3280
+   * rfc3280.
    */
   private static final String SUBJECTDIRATTRIBUTES = "subjectdirattributes";
   /**
    * Custom data can be used by various custom work-flows and other non-standard
-   * things to store information needed
+   * things to store information needed.
    */
   private static final String CUSTOMDATA = "customdata_";
 
   /**
    * Identifier for Custom data holding a end time when the users certificate
-   * should be valid extInfo.setCustomData(EndEntityProfile.STARTTIME, "");
+   * should be valid extInfo.setCustomData(EndEntityProfile.STARTTIME, "");.
    */
   private static final String CUSTOM_STARTTIME =
       "STARTTIME"; // EndEntityProfile.STARTTIME;
   /**
    * Identifier for Custom data holding a end time when the users certificate
-   * should be valid extInfo.setCustomData(EndEntityProfile.ENDTIME, "");
+   * should be valid extInfo.setCustomData(EndEntityProfile.ENDTIME, "");.
    */
   private static final String CUSTOM_ENDTIME =
       "ENDTIME"; // EndEntityProfile.ENDTIME;
 
   /**
    * The counter is a counter for how many failed login attempts that can be
-   * performed before the userstatus is changed to GENERATED
+   * performed before the userstatus is changed to GENERATED.
    */
   private static final String REMAININGLOGINATTEMPTS = "remainingloginattempts";
 
   /**
    * The maximum number of login attempts before the user is locked by setting
-   * its status to GENERATED
+   * its status to GENERATED.
    */
   private static final String MAXFAILEDLOGINATTEMPTS = "maxfailedloginattempts";
 
   /**
-   * Default value for how many failed login attempts are allow = -1 (unlimited)
+   * Default value for how many failed login attempts are allow = -1
+   * (unlimited).
    */
   private static final int DEFAULT_MAXLOGINATTEMPTS = -1;
 
   /**
    * Default value for how many of the allowed failed login attempts that are
-   * remaining = -1 (unlimited)
+   * remaining = -1 (unlimited).
    */
   private static final int DEFAULT_REMAININGLOGINATTEMPTS = -1;
 
-  /** Map key for certificate serial number */
+  /** Map key for certificate serial number. */
   private static final Object CERTIFICATESERIALNUMBER =
       "CERTIFICATESERIALNUMBER";
 
@@ -126,7 +130,7 @@ public class ExtendedInformation extends UpgradeableDataHashMap
   // Wait for fields to use with this class.
 
   // Public methods.
-  /** Creates a new instance of EndEntity Profile */
+  /** Creates a new instance of EndEntity Profile. */
   public ExtendedInformation() {
     setType(TYPE_BASIC);
     data.put(SUBJECTDIRATTRIBUTES, "");
@@ -134,6 +138,9 @@ public class ExtendedInformation extends UpgradeableDataHashMap
     setRemainingLoginAttempts(DEFAULT_REMAININGLOGINATTEMPTS);
   }
 
+  /**
+   * @return attrs
+   */
   public String getSubjectDirectoryAttributes() {
     String ret = (String) data.get(SUBJECTDIRATTRIBUTES);
     if (ret == null) {
@@ -142,6 +149,9 @@ public class ExtendedInformation extends UpgradeableDataHashMap
     return ret;
   }
 
+  /**
+   * @param subjdirattr attrs
+   */
   public void setSubjectDirectoryAttributes(final String subjdirattr) {
     if (subjdirattr == null) {
       data.put(SUBJECTDIRATTRIBUTES, "");
@@ -233,7 +243,7 @@ public class ExtendedInformation extends UpgradeableDataHashMap
   }
 
   /**
-   * Special method used to retrieve custom set userdata
+   * Special method used to retrieve custom set userdata.
    *
    * @param key Key
    * @return The data or null if no such data have been set for the user
@@ -251,6 +261,7 @@ public class ExtendedInformation extends UpgradeableDataHashMap
     data.put(CUSTOMDATA + key, value);
   }
 
+  @Override
   @SuppressWarnings({"unchecked", "rawtypes"})
   public Object clone() throws CloneNotSupportedException {
     ExtendedInformation clone = new ExtendedInformation();
@@ -283,7 +294,8 @@ public class ExtendedInformation extends UpgradeableDataHashMap
     return saveData();
   }
 
-  /** Implementation of UpgradableDataHashMap function getLatestVersion */
+  /** Implementation of UpgradableDataHashMap function getLatestVersion.
+   * @return version */
   public float getLatestVersion() {
     return LATEST_VERSION;
   }
@@ -293,9 +305,9 @@ public class ExtendedInformation extends UpgradeableDataHashMap
     if (Float.compare(LATEST_VERSION, getVersion()) != 0) {
       // New version of the class, upgrade
       String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "endentity.extendedinfoupgrade", new Float(getVersion()));
-      log.info(msg);
+      LOG.info(msg);
 
       if (data.get(SUBJECTDIRATTRIBUTES) == null) {
         data.put(SUBJECTDIRATTRIBUTES, "");
@@ -322,8 +334,8 @@ public class ExtendedInformation extends UpgradeableDataHashMap
                 newDateFormat.format(oldDateFormat.parse(oldCustomStartTime));
             setCustomData(
                 ExtendedInformation.CUSTOM_STARTTIME, newCustomStartTime);
-            if (log.isDebugEnabled()) {
-              log.debug(
+            if (LOG.isDebugEnabled()) {
+              LOG.debug(
                   "Upgraded "
                       + ExtendedInformation.CUSTOM_STARTTIME
                       + " from \""
@@ -334,7 +346,7 @@ public class ExtendedInformation extends UpgradeableDataHashMap
             }
           }
         } catch (ParseException e) {
-          log.error(
+          LOG.error(
               "Unable to upgrade "
                   + ExtendedInformation.CUSTOM_STARTTIME
                   + " in extended user information.",
@@ -348,8 +360,8 @@ public class ExtendedInformation extends UpgradeableDataHashMap
             final String newCustomEndTime =
                 newDateFormat.format(oldDateFormat.parse(oldCustomEndTime));
             setCustomData(ExtendedInformation.CUSTOM_ENDTIME, newCustomEndTime);
-            if (log.isDebugEnabled()) {
-              log.debug(
+            if (LOG.isDebugEnabled()) {
+              LOG.debug(
                   "Upgraded "
                       + ExtendedInformation.CUSTOM_ENDTIME
                       + " from \""
@@ -360,7 +372,7 @@ public class ExtendedInformation extends UpgradeableDataHashMap
             }
           }
         } catch (ParseException e) {
-          log.error(
+          LOG.error(
               "Unable to upgrade "
                   + ExtendedInformation.CUSTOM_ENDTIME
                   + " in extended user information.",
@@ -379,8 +391,8 @@ public class ExtendedInformation extends UpgradeableDataHashMap
                 ValidityDate.formatAsUTC(
                     DateUtils.parseDateStrictly(oldStartTime, timePatterns));
             setCustomData(ExtendedInformation.CUSTOM_STARTTIME, newStartTime);
-            if (log.isDebugEnabled()) {
-              log.debug(
+            if (LOG.isDebugEnabled()) {
+              LOG.debug(
                   "Upgraded "
                       + ExtendedInformation.CUSTOM_STARTTIME
                       + " from \""
@@ -390,7 +402,7 @@ public class ExtendedInformation extends UpgradeableDataHashMap
                       + "\" in EndEntityProfile.");
             }
           } catch (ParseException e) {
-            log.error(
+            LOG.error(
                 "Unable to upgrade "
                     + ExtendedInformation.CUSTOM_STARTTIME
                     + " to UTC in EndEntityProfile! Manual interaction is"
@@ -407,8 +419,8 @@ public class ExtendedInformation extends UpgradeableDataHashMap
                 ValidityDate.formatAsUTC(
                     DateUtils.parseDateStrictly(oldEndTime, timePatterns));
             setCustomData(ExtendedInformation.CUSTOM_ENDTIME, newEndTime);
-            if (log.isDebugEnabled()) {
-              log.debug(
+            if (LOG.isDebugEnabled()) {
+              LOG.debug(
                   "Upgraded "
                       + ExtendedInformation.CUSTOM_ENDTIME
                       + " from \""
@@ -418,7 +430,7 @@ public class ExtendedInformation extends UpgradeableDataHashMap
                       + "\" in EndEntityProfile.");
             }
           } catch (ParseException e) {
-            log.error(
+            LOG.error(
                 "Unable to upgrade "
                     + ExtendedInformation.CUSTOM_ENDTIME
                     + " to UTC in EndEntityProfile! Manual interaction is"

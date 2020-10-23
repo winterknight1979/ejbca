@@ -18,7 +18,7 @@ import org.ejbca.core.EjbcaException;
 
 /**
  * Wraps the original java.lang.Exception thrown with
- * KeyStoreCreateSessionBean.generateOrKeyRecoverToken (in ejbca-ejb)
+ * KeyStoreCreateSessionBean.generateOrKeyRecoverToken (in ejbca-ejb).
  *
  * @version $Id: KeyStoreGeneralRaException.java 25763 2017-04-27 11:01:31Z
  *     henriks $
@@ -28,6 +28,9 @@ public class KeyStoreGeneralRaException extends EjbcaException {
 
   private static final long serialVersionUID = 1L;
 
+  /**
+   * @param exception cause
+   */
   public KeyStoreGeneralRaException(final Exception exception) {
     super(exception);
   }

@@ -29,6 +29,9 @@ public class RevokeBackDateNotAllowedForProfileException
 
   private static final long serialVersionUID = -707975049447839896L;
 
+  /**
+   * @param m message
+   */
   public RevokeBackDateNotAllowedForProfileException(final String m) {
     super(ErrorCode.REVOKE_BACKDATE_NOT_ALLOWED, m);
   }

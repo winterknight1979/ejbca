@@ -36,6 +36,10 @@ public class NotFoundException extends EjbcaException {
     super(message);
   }
 
+  /**   *
+   * @param message message
+   * @param cause cause
+   */
   public NotFoundException(final String message, final Throwable cause) {
     super(message);
     super.initCause(cause);

@@ -32,15 +32,24 @@ public class UserDataSourceVO implements Serializable {
   /** Constants used in isModifyable sets. */
   public static final int ISMODIFYABLE_USERNAME = 101;
 
+  /** Config. */
   public static final int ISMODIFYABLE_PASSWORD = 102;
+  /** Config. */
   public static final int ISMODIFYABLE_CAID = 103;
+  /** Config. */
   public static final int ISMODIFYABLE_EMAILDATA = 104;
+  /** Config. */
   public static final int ISMODIFYABLE_TYPE = 105;
+  /** Config. */
   public static final int ISMODIFYABLE_ENDENTITYPROFILE = 106;
+  /** Config. */
   public static final int ISMODIFYABLE_CERTIFICATEPROFILE = 107;
+  /** Config. */
   public static final int ISMODIFYABLE_TOKENTYPE = 108;
+  /** Config. */
   public static final int ISMODIFYABLE_HARDTOKENISSUER = 109;
 
+  /** Config. */
   public static final int[] AVAILABLEMODIFYABLEFIELDS = {
     ISMODIFYABLE_USERNAME,
     ISMODIFYABLE_PASSWORD,
@@ -81,27 +90,28 @@ public class UserDataSourceVO implements Serializable {
     DNFieldExtractor.COUNTRYOFCITIZENSHIP,
     DNFieldExtractor.COUNTRYOFRESIDENCE
   };
-
+  /** Config. */
   private EndEntityInformation endEntityInformation = null;
+  /** Config. */
   private Set<Integer> isModifyableSet = null;
 
   /**
-   * Constructor that should be used from the User Data Source Implementations
+   * Constructor that should be used from the User Data Source Implementations.
    *
-   * @param endEntityInformation info
+   * @param theendEntityInformation info
    */
-  public UserDataSourceVO(final EndEntityInformation endEntityInformation) {
+  public UserDataSourceVO(final EndEntityInformation theendEntityInformation) {
     super();
-    this.endEntityInformation = endEntityInformation;
+    this.endEntityInformation = theendEntityInformation;
   }
 
   /**
    * Method that should be used by BaseUserDataSource only.
    *
-   * @param isModifyableSet bool
+   * @param iSModifyableSet bool
    */
-  void setIsModifyableSet(final Set<Integer> isModifyableSet) {
-    this.isModifyableSet = isModifyableSet;
+  void setIsModifyableSet(final Set<Integer> iSModifyableSet) {
+    this.isModifyableSet = iSModifyableSet;
   }
 
   /**

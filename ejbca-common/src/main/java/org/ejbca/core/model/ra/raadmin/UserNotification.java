@@ -50,32 +50,49 @@ public class UserNotification extends HashMap
    */
   private static final long serialVersionUID = -100L;
 
-  /** Recipient of notification is the user */
+  /** Recipient of notification is the user. */
   public static final String RCPT_USER = "USER";
-  /** recipient of notification is the admin of the user */
+  /** recipient of notification is the admin of the user. */
   public static final String RCPT_CUSTOM = "CUSTOM";
 
+  /** Config. */
   public static final String EVENTS_EDITUSER =
       EndEntityConstants.STATUS_NEW
           + ";"
           + EndEntityConstants.STATUS_KEYRECOVERY
           + ";"
           + EndEntityConstants.STATUS_INITIALIZED;
+  /** Config. */
   public static final String EVENTS_USERENROLL =
       String.valueOf(EndEntityConstants.STATUS_GENERATED);
 
   // protected in order to upgrade in EndEntityProfile.upgrade()
   // Use private for new fields.
+  /** Config. */
   protected static final String NOTIFICATIONSENDER = "NOTIFICATIONSENDER";
+  /** Config. */
   protected static final String NOTIFICATIONSUBJECT = "NOTIFICATIONSSUBJECT";
+  /** Config. */
   protected static final String NOTIFICATIONMESSAGE = "NOTIFICATIONSMESSAGE";
+  /** Config. */
   private static final String NOTIFICATIONRECIPIENT = "NOTIFICATIONRECIPIENT";
+  /** Config. */
   private static final String NOTIFICATIONEVENTS = "NOTIFICATIONEVENTS";
 
+  /**
+   * Null constructor.
+   */
   public UserNotification() {
     data = new HashMap<String, String>();
   }
 
+   /**
+    * @param sender sender
+    * @param rcpt recip
+    * @param subject subject
+    * @param message message
+    * @param events events
+    */
   public UserNotification(
       final String sender,
       final String rcpt,
@@ -90,6 +107,9 @@ public class UserNotification extends HashMap
     setNotificationEvents(events);
   }
 
+  /**
+   * @return sender
+   */
   public String getNotificationSender() {
     String ret = "";
     if (data.get(NOTIFICATIONSENDER) != null) {
@@ -98,10 +118,16 @@ public class UserNotification extends HashMap
     return ret;
   }
 
+  /**
+   * @param sender Sender
+   */
   public void setNotificationSender(final String sender) {
     data.put(NOTIFICATIONSENDER, sender);
   }
 
+  /**
+   * @return subject
+   */
   public String getNotificationSubject() {
     String ret = "";
     if (data.get(NOTIFICATIONSUBJECT) != null) {
@@ -110,10 +136,17 @@ public class UserNotification extends HashMap
     return ret;
   }
 
+
+  /**
+   * @param subject subjec
+   */
   public void setNotificationSubject(final String subject) {
     data.put(NOTIFICATIONSUBJECT, subject);
   }
 
+  /**
+   * @return message
+   */
   public String getNotificationMessage() {
     String ret = "";
     if (data.get(NOTIFICATIONMESSAGE) != null) {
@@ -122,10 +155,16 @@ public class UserNotification extends HashMap
     return ret;
   }
 
+  /**
+   * @param message message
+   */
   public void setNotificationMessage(final String message) {
     data.put(NOTIFICATIONMESSAGE, message);
   }
 
+  /**
+   * @return recip
+   */
   public String getNotificationRecipient() {
     String ret = "";
     if (data.get(NOTIFICATIONRECIPIENT) != null) {
@@ -135,7 +174,7 @@ public class UserNotification extends HashMap
   }
 
   /**
-   * Recipient of the notification
+   * Recipient of the notification.
    *
    * @param rcpt can be constants UserNotification.RCPT_XX or an email address.
    *     Several recipients can be specified separated by ;

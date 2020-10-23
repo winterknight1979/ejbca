@@ -21,22 +21,26 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 
 /**
- * Methods for performing validation against of an end entity against validators
+ * Methods for performing validation against of an end entity
+ * against validators.
  *
  * @version $Id: EndEntityValidationHelper.java 23173 2016-04-12 14:54:52Z
  *     samuellb $
  */
 public final class EndEntityValidationHelper {
 
-  private static final Logger log =
+    /** Log. */
+  private static final Logger LOG =
       Logger.getLogger(EndEntityValidationHelper.class);
 
+  /** Cache. */
   private static Map<String, EndEntityFieldValidator> validatorCache =
       new HashMap<>();
+  /** Cache. */
   private static Set<String> nonExistentValidatorsCache = new HashSet<>();
 
-  /** Static class, can't be instantiated */
-  private EndEntityValidationHelper() {}
+  /** Static class, can't be instantiated. */
+  private EndEntityValidationHelper() { }
 
   /**
    * Checks a value with a set of validators.
@@ -104,13 +108,13 @@ public final class EndEntityValidationHelper {
     try {
       klass = Class.forName(className);
     } catch (ClassNotFoundException e) {
-      log.warn("Failed to load validator class " + className, e);
+      LOG.warn("Failed to load validator class " + className, e);
       nonExistentValidatorsCache.add(className);
       return null;
     }
 
     if (!EndEntityFieldValidator.class.isAssignableFrom(klass)) {
-      log.warn(
+      LOG.warn(
           "Class "
               + className
               + " will not be instantiated since it does not implement "
@@ -127,12 +131,12 @@ public final class EndEntityValidationHelper {
     } catch (InstantiationException
         | NoSuchMethodException
         | InvocationTargetException e) {
-      log.warn(
+      LOG.warn(
           "Failed to instantiate end entity validation class " + className, e);
       nonExistentValidatorsCache.add(className);
       return null;
     } catch (IllegalAccessException e) {
-      log.warn(
+      LOG.warn(
           "Failed to instantiate end entity validation class " + className, e);
       nonExistentValidatorsCache.add(className);
       return null;

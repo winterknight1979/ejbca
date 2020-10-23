@@ -53,32 +53,49 @@ public class UserDataVO implements Serializable {
   private static final long serialVersionUID = 3837505643343885941L;
 
   // Public constants
+  /** Config. */
   public static final int NO_ENDENTITYPROFILE = 0;
+  /** Config. */
   public static final int NO_CERTIFICATEPROFILE = 0;
 
+  /** PAram. */
   private String username;
+  /** PAram. */
   private String subjectDN;
+  /** PAram. */
   private transient String subjectDNClean = null;
+  /** PAram. */
   private int caid;
+  /** PAram. */
   private String subjectAltName;
+  /** PAram. */
   private String subjectEmail;
+  /** PAram. */
   private String password;
+  /** PAram. */
   private String cardNumber;
-  /** Status of user, from EndEntityConstants.STATUS_XX */
+  /** Status of user, from EndEntityConstants.STATUS_XX. */
   private int status;
-  /** Type of user, from SecConst */
+  /** Type of user, from SecConst. */
   private EndEntityType type = EndEntityTypes.INVALID.toEndEntityType();
 
+  /** PAram. */
   private int endentityprofileid;
+  /** PAram. */
   private int certificateprofileid;
+  /** PAram. */
   private Date timecreated;
+  /** PAram. */
   private Date timemodified;
+  /** PAram. */
   private int tokentype;
+  /** PAram. */
   private int hardtokenissuerid;
+  /** PAram. */
   private ExtendedInformation extendedinformation;
 
-  /** Creates new empty UserDataVO */
-  public UserDataVO() {}
+  /** Creates new empty UserDataVO. */
+  public UserDataVO() { }
 
   /**
    * Creates new UserDataVO. All fields are almost required in this constructor.
@@ -87,49 +104,49 @@ public class UserDataVO implements Serializable {
    *
    * @param user DOCUMENT ME!
    * @param dn DOCUMENT ME!
-   * @param caid CA id of the CA that the user is registered with
-   * @param subjectaltname DOCUMENT ME!
-   * @param email DOCUMENT ME!
-   * @param status DOCUMENT ME!
-   * @param type one of SecConst.ENDUSER || ...
-   * @param endentityprofileid DOCUMENT ME!
-   * @param certificateprofileid DOCUMENT ME!
-   * @param timecreated DOCUMENT ME!
-   * @param timemodified DOCUMENT ME!
-   * @param tokentype DOCUMENT ME!
-   * @param hardtokenissuerid DOCUMENT ME!
+   * @param acaid CA id of the CA that the user is registered with
+   * @param asubjectaltname DOCUMENT ME!
+   * @param anemail DOCUMENT ME!
+   * @param astatus DOCUMENT ME!
+   * @param atype one of SecConst.ENDUSER || ...
+   * @param anendentityprofileid DOCUMENT ME!
+   * @param acertificateprofileid DOCUMENT ME!
+   * @param thetimecreated DOCUMENT ME!
+   * @param thetimemodified DOCUMENT ME!
+   * @param atokentype DOCUMENT ME!
+   * @param ahardtokenissuerid DOCUMENT ME!
    * @param extendedinfo Info
    */
   public UserDataVO(
       final String user,
       final String dn,
-      final int caid,
-      final String subjectaltname,
-      final String email,
-      final int status,
-      final EndEntityType type,
-      final int endentityprofileid,
-      final int certificateprofileid,
-      final Date timecreated,
-      final Date timemodified,
-      final int tokentype,
-      final int hardtokenissuerid,
+      final int acaid,
+      final String asubjectaltname,
+      final String anemail,
+      final int astatus,
+      final EndEntityType atype,
+      final int anendentityprofileid,
+      final int acertificateprofileid,
+      final Date thetimecreated,
+      final Date thetimemodified,
+      final int atokentype,
+      final int ahardtokenissuerid,
       final ExtendedInformation extendedinfo) {
     setUsername(user);
     setPassword(null);
     setCardNumber(null);
     setDN(dn);
-    setCAId(caid);
-    setSubjectAltName(subjectaltname);
-    setEmail(email);
-    setStatus(status);
-    setType(type);
-    setEndEntityProfileId(endentityprofileid);
-    setCertificateProfileId(certificateprofileid);
-    setTimeCreated(timecreated);
-    setTimeModified(timemodified);
-    setTokenType(tokentype);
-    setHardTokenIssuerId(hardtokenissuerid);
+    setCAId(acaid);
+    setSubjectAltName(asubjectaltname);
+    setEmail(anemail);
+    setStatus(astatus);
+    setType(atype);
+    setEndEntityProfileId(anendentityprofileid);
+    setCertificateProfileId(acertificateprofileid);
+    setTimeCreated(thetimecreated);
+    setTimeModified(thetimemodified);
+    setTokenType(atokentype);
+    setHardTokenIssuerId(ahardtokenissuerid);
     setExtendedinformation(extendedinfo);
     setCardNumber(null);
   }
@@ -141,52 +158,61 @@ public class UserDataVO implements Serializable {
    *
    * @param user DOCUMENT ME!
    * @param dn DOCUMENT ME!
-   * @param caid CA id of the CA that the user is registered with
-   * @param subjectaltname DOCUMENT ME!
-   * @param email DOCUMENT ME!
-   * @param type one of SecConst.ENDUSER || ...
-   * @param endentityprofileid DOCUMENT ME!
-   * @param certificateprofileid DOCUMENT ME!
-   * @param tokentype DOCUMENT ME!
-   * @param hardtokenissuerid DOCUMENT ME!
+   * @param acaid CA id of the CA that the user is registered with
+   * @param asubjectaltname DOCUMENT ME!
+   * @param anemail DOCUMENT ME!
+   * @param atype one of SecConst.ENDUSER || ...
+   * @param anendentityprofileid DOCUMENT ME!
+   * @param acertificateprofileid DOCUMENT ME!
+   * @param atokentype DOCUMENT ME!
+   * @param ahardtokenissuerid DOCUMENT ME!
    * @param extendedinfo Info
    */
   public UserDataVO(
       final String user,
       final String dn,
-      final int caid,
-      final String subjectaltname,
-      final String email,
-      final EndEntityType type,
-      final int endentityprofileid,
-      final int certificateprofileid,
-      final int tokentype,
-      final int hardtokenissuerid,
+      final int acaid,
+      final String asubjectaltname,
+      final String anemail,
+      final EndEntityType atype,
+      final int anendentityprofileid,
+      final int acertificateprofileid,
+      final int atokentype,
+      final int ahardtokenissuerid,
       final ExtendedInformation extendedinfo) {
     setUsername(user);
     setPassword(null);
     setDN(dn);
-    setCAId(caid);
-    setSubjectAltName(subjectaltname);
-    setEmail(email);
-    setType(type);
-    setEndEntityProfileId(endentityprofileid);
-    setCertificateProfileId(certificateprofileid);
-    setTokenType(tokentype);
-    setHardTokenIssuerId(hardtokenissuerid);
+    setCAId(acaid);
+    setSubjectAltName(asubjectaltname);
+    setEmail(anemail);
+    setType(atype);
+    setEndEntityProfileId(anendentityprofileid);
+    setCertificateProfileId(acertificateprofileid);
+    setTokenType(atokentype);
+    setHardTokenIssuerId(ahardtokenissuerid);
     setExtendedinformation(extendedinfo);
     setCardNumber(null);
   }
 
+  /**
+   * @param user user
+   */
   public void setUsername(final String user) {
     this.username =
         StringTools.putBase64String(StringTools.stripUsername(user));
   }
 
+  /**
+   * @return user
+   */
   public String getUsername() {
     return StringTools.getBase64String(username);
   }
 
+  /**
+   * @param dn DN
+   */
   public void setDN(final String dn) {
     final StringBuilder removedAllEmpties = new StringBuilder(dn.length());
     final StringBuilder removedTrailingEmpties =
@@ -216,108 +242,186 @@ public class UserDataVO implements Serializable {
     return StringTools.getBase64String(subjectDN);
   }
 
+  /**
+   * @return ID
+   */
   public int getCAId() {
     return this.caid;
   }
 
-  public void setCAId(final int caid) {
-    this.caid = caid;
+  /**
+   * @param acaid ID
+   */
+  public void setCAId(final int acaid) {
+    this.caid = acaid;
   }
 
+  /**
+   * @param subjectaltname name
+   */
   public void setSubjectAltName(final String subjectaltname) {
     this.subjectAltName = StringTools.putBase64String(subjectaltname);
   }
 
+  /**
+   * @return name
+   */
   public String getSubjectAltName() {
     return StringTools.getBase64String(subjectAltName);
   }
 
+  /**
+   * @param email email
+   */
   public void setEmail(final String email) {
     this.subjectEmail = StringTools.putBase64String(email);
   }
 
+  /**
+   * @return email
+   */
   public String getEmail() {
     return StringTools.getBase64String(subjectEmail);
   }
 
-  public void setCardNumber(final String cardNumber) {
-    this.cardNumber = StringTools.putBase64String(cardNumber);
+  /**
+   * @param acardNumber num
+   */
+  public void setCardNumber(final String acardNumber) {
+    this.cardNumber = StringTools.putBase64String(acardNumber);
   }
 
+  /**
+   * @return num
+   */
   public String getCardNumber() {
     return StringTools.getBase64String(cardNumber);
   }
 
+  /**
+   * @param pwd pass
+   */
   public void setPassword(final String pwd) {
     this.password = StringTools.putBase64String(pwd);
   }
 
+  /**
+   * @return pass
+   */
   public String getPassword() {
     return StringTools.getBase64String(password);
   }
 
-  public void setStatus(final int status) {
-    this.status = status;
+  /**
+   * @param astatus status
+   */
+  public void setStatus(final int astatus) {
+    this.status = astatus;
   }
 
+  /**
+   * @return status
+   */
   public int getStatus() {
     return status;
   }
 
-  public void setType(final EndEntityType type) {
-    this.type = type;
+  /**
+   * @param atype type
+   */
+  public void setType(final EndEntityType atype) {
+    this.type = atype;
   }
 
+  /**
+   * @return type
+   */
   public EndEntityType getType() {
     return type;
   }
 
-  public void setEndEntityProfileId(final int endentityprofileid) {
-    this.endentityprofileid = endentityprofileid;
+  /**
+   * @param anendentityprofileid ID
+   */
+  public void setEndEntityProfileId(final int anendentityprofileid) {
+    this.endentityprofileid = anendentityprofileid;
   }
 
+  /**
+   * @return ID
+   */
   public int getEndEntityProfileId() {
     return this.endentityprofileid;
   }
 
-  public void setCertificateProfileId(final int certificateprofileid) {
-    this.certificateprofileid = certificateprofileid;
+  /**
+   * @param acertificateprofileid ID
+   */
+  public void setCertificateProfileId(final int acertificateprofileid) {
+    this.certificateprofileid = acertificateprofileid;
   }
 
+  /**
+   * @return ID
+   */
   public int getCertificateProfileId() {
     return this.certificateprofileid;
   }
 
-  public void setTimeCreated(final Date timecreated) {
-    this.timecreated = timecreated;
+  /**
+   * @param thetimecreated time
+   */
+  public void setTimeCreated(final Date thetimecreated) {
+    this.timecreated = thetimecreated;
   }
 
+  /**
+   * @return time
+   */
   public Date getTimeCreated() {
     return this.timecreated;
   }
 
-  public void setTimeModified(final Date timemodified) {
-    this.timemodified = timemodified;
+  /**
+   * @param thetimemodified time
+   */
+  public void setTimeModified(final Date thetimemodified) {
+    this.timemodified = thetimemodified;
   }
 
+  /**
+   * @return time
+   */
   public Date getTimeModified() {
     return this.timemodified;
   }
 
+  /**
+   * @return type
+   */
   public int getTokenType() {
     return this.tokentype;
   }
 
-  public void setTokenType(final int tokentype) {
-    this.tokentype = tokentype;
+  /**
+   * @param atokentype type
+   */
+  public void setTokenType(final int atokentype) {
+    this.tokentype = atokentype;
   }
 
+  /**
+   * @return ID
+   */
   public int getHardTokenIssuerId() {
     return this.hardtokenissuerid;
   }
 
-  public void setHardTokenIssuerId(final int hardtokenissuerid) {
-    this.hardtokenissuerid = hardtokenissuerid;
+  /**
+   * @param ahardtokenissuerid ID
+   */
+  public void setHardTokenIssuerId(final int ahardtokenissuerid) {
+    this.hardtokenissuerid = ahardtokenissuerid;
   }
 
   /**
@@ -344,10 +448,16 @@ public class UserDataVO implements Serializable {
     }
   }
 
+  /**
+   * @return bool
+   */
   public boolean getKeyRecoverable() {
     return type.contains(EndEntityTypes.KEYRECOVERABLE);
   }
 
+  /**
+   * @param keyrecoverable bool
+   */
   public void setKeyRecoverable(final boolean keyrecoverable) {
     if (keyrecoverable) {
       type.addType(EndEntityTypes.KEYRECOVERABLE);
@@ -355,11 +465,16 @@ public class UserDataVO implements Serializable {
       type.removeType(EndEntityTypes.KEYRECOVERABLE);
     }
   }
-
+  /**
+   * @return bool
+   */
   public boolean getSendNotification() {
     return type.contains(EndEntityTypes.SENDNOTIFICATION);
   }
 
+  /**
+   * @param sendnotification bool
+   */
   public void setSendNotification(final boolean sendnotification) {
     if (sendnotification) {
       type.addType(EndEntityTypes.SENDNOTIFICATION);
@@ -368,10 +483,16 @@ public class UserDataVO implements Serializable {
     }
   }
 
+  /**
+   * @return bool
+   */
   public boolean getPrintUserData() {
     return type.contains(EndEntityTypes.PRINT);
   }
 
+  /**
+   * @param printUserData bool
+   */
   public void setPrintUserData(final boolean printUserData) {
     if (printUserData) {
       type.addType(EndEntityTypes.PRINT);
@@ -387,10 +508,10 @@ public class UserDataVO implements Serializable {
   public ExtendedInformation getExtendedinformation() {
     return extendedinformation;
   }
-  /** @param extendedinformation The extendedinformation to set. */
+  /** @param theextendedinformation The extendedinformation to set. */
   public void setExtendedinformation(
-      final ExtendedInformation extendedinformation) {
-    this.extendedinformation = extendedinformation;
+      final ExtendedInformation theextendedinformation) {
+    this.extendedinformation = theextendedinformation;
   }
 
   /**
@@ -419,6 +540,7 @@ public class UserDataVO implements Serializable {
             returnval = new ExtendedInformation();
             returnval.loadData(data);
             break;
+          default: break;
         }
       } catch (IOException e) {
         throw new RuntimeException(
@@ -428,6 +550,11 @@ public class UserDataVO implements Serializable {
     return returnval;
   }
 
+  /**
+   * @param extendedinformation info
+   * @return data
+   * @throws UnsupportedEncodingException fail
+   */
   @SuppressWarnings({"unchecked", "rawtypes"})
   public static String extendedInformationToStringData(
       final ExtendedInformation extendedinformation)
@@ -469,7 +596,7 @@ public class UserDataVO implements Serializable {
 
   /**
    * Helper method to convert this old deprecated type to the new
-   * EndEntityInformation
+   * EndEntityInformation.
    *
    * @return EndEntityInformation
    */

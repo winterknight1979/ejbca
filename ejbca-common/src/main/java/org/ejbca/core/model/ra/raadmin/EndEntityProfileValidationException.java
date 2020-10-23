@@ -26,7 +26,8 @@ public class EndEntityProfileValidationException extends Exception {
 
   private static final long serialVersionUID = 1L;
 
-  public EndEntityProfileValidationException() {}
+  /** Null constructor. */
+  public EndEntityProfileValidationException() { }
 
   /** @param message a detail message */
   public EndEntityProfileValidationException(final String message) {

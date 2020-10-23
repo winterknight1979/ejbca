@@ -14,7 +14,7 @@
 package org.ejbca.core.model.ra.userdatasource;
 
 /**
- * An exception thrown when someone tries to add a Publisher that already exits
+ * An exception thrown when someone tries to add a Publisher that already exits.
  *
  * @author Philip Vendil
  * @version $Id: UserDataSourceExistsException.java 22117 2015-10-29 10:53:42Z

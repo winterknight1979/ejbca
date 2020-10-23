@@ -35,7 +35,12 @@
  	<suppress checks="ParameterNumberCheck" files="PublisherQueueData.java" lines="74"/>
  	<suppress checks="ParameterNumberCheck" files="HardTokenInformation.java" lines="48"/>
  	<suppress checks="ParameterNumberCheck" files="SVGImageManipulator.java" lines="261,323"/>
- 	<suppress checks="ParameterNumberCheck" files="LogEntry.java" lines="100"/>
+ 	<suppress checks="ParameterNumberCheck" files="LogEntry.java" lines="94"/>
+ 	<suppress checks="MagicNumberCheck" files="ExtendedInformation.java" lines="322,384"/> <!-- Version numbers -->
+ 	<suppress checks="MagicNumberCheck" files="EndEntityProfile.java" lines="203-236,2770-2974"/> <!-- Constant map, version numbers -->
+ 	<suppress checks="MethodLengthCheck" files="EndEntityProfile.java" lines="412,2100,2737,2516"/>
+ 	<suppress checks="ParameterNumberCheck" files="EndEntityProfile.java" lines="1981,2100"/>
+ 	<suppress checks="ParameterNumberCheck" files="UserDataVO.java" lines="120,171"/>
  	
  	
  	

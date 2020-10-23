@@ -34,22 +34,28 @@ public abstract class BaseUserDataSource extends UpgradeableDataHashMap
     implements Serializable, Cloneable {
 
   private static final long serialVersionUID = 2359037086634246374L;
+  /** Config. */
   public static final String TRUE = "true";
+  /** Config. */
   public static final String FALSE = "false";
 
   /** Constant indicating that any CA can be used with this user data source. */
   public static final int ANYCA = -1;
 
   // Protected Constants.
+  /** Config. */
   public static final String TYPE = "type";
 
+  /** Config. */
   protected static final String DESCRIPTION = "DESCRIPTION";
+  /** Config. */
   protected static final String APPLICABLECAS = "APPLICABLECAS";
+  /** Config. */
   protected static final String MODIFYABLEFIELDS = "MODIFYABLEFIELDS";
 
   // Public Methods
 
-  /** Creates a new instance of CertificateProfile */
+  /** Creates a new instance of CertificateProfile. */
   public BaseUserDataSource() {
     setDescription("");
 
@@ -68,7 +74,7 @@ public abstract class BaseUserDataSource extends UpgradeableDataHashMap
 
   // Public Methods
   /**
-   * Returns the description of publisher
+   * Returns the description of publisher.
    *
    * @return String
    */
@@ -163,7 +169,7 @@ public abstract class BaseUserDataSource extends UpgradeableDataHashMap
   // Abstact methods.
 
   /**
-   * Searches for userdata given the searchstring
+   * Searches for userdata given the searchstring.
    *
    * @param admin Admin
    * @param searchstring the string the user data source should use to look for

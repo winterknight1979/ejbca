@@ -23,18 +23,30 @@ public class EndEntityFieldValidatorException extends Exception {
 
   private static final long serialVersionUID = 1L;
 
+  /** Null constructor.
+   */
   public EndEntityFieldValidatorException() {
     super();
   }
 
+  /**
+   * @param message Message
+   */
   public EndEntityFieldValidatorException(final String message) {
     super(message);
   }
 
+  /**
+   * @param cause Cause
+   */
   public EndEntityFieldValidatorException(final Throwable cause) {
     super(cause);
   }
 
+  /**
+   * @param message Message
+   * @param cause Cause
+   */
   public EndEntityFieldValidatorException(
       final String message, final Throwable cause) {
     super(message, cause);

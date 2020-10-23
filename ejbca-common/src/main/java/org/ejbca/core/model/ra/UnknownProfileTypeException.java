@@ -36,6 +36,10 @@ public class UnknownProfileTypeException extends EjbcaException {
     super(message);
   }
 
+  /**
+   * @param message message
+   * @param cause cause
+   */
   public UnknownProfileTypeException(
       final String message, final Throwable cause) {
     super(message);

@@ -33,7 +33,7 @@ public interface ICustomUserDataSource {
    *
    * @param properties Props
    */
-  public abstract void init(Properties properties);
+  void init(Properties properties);
 
   /**
    * @param admin Admin
@@ -44,7 +44,7 @@ public interface ICustomUserDataSource {
    *     org.ejbca.core.model.ra.userdatasource.BaseUserDataSource#fetch(AuthenticationToken,
    *     String)
    */
-  public Collection<UserDataSourceVO> fetch(
+  Collection<UserDataSourceVO> fetch(
       AuthenticationToken admin, String searchstring)
       throws UserDataSourceException;
 
@@ -59,7 +59,7 @@ public interface ICustomUserDataSource {
    *     org.ejbca.core.model.ra.userdatasource.BaseUserDataSource#removeUserData(AuthenticationToken,
    *     String, boolean)
    */
-  public boolean removeUserData(
+  boolean removeUserData(
       AuthenticationToken admin,
       String searchstring,
       boolean removeMultipleMatch)
@@ -70,6 +70,6 @@ public interface ICustomUserDataSource {
    * @throws UserDataSourceConnectionException Error
    * @see org.ejbca.core.model.ra.userdatasource.BaseUserDataSource
    */
-  public abstract void testConnection(AuthenticationToken admin)
+  void testConnection(AuthenticationToken admin)
       throws UserDataSourceConnectionException;
 }

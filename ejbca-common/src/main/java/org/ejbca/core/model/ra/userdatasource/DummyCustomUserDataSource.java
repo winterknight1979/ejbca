@@ -33,12 +33,15 @@ import org.ejbca.core.model.SecConst;
  */
 public class DummyCustomUserDataSource implements ICustomUserDataSource {
 
+    /** logger. */
   private static Logger log = Logger.getLogger(DummyCustomUserDataSource.class);
 
-  /** Creates a new instance of DummyCustomUserDataSource */
-  public DummyCustomUserDataSource() {}
+  /** Creates a new instance of DummyCustomUserDataSource. */
+  public DummyCustomUserDataSource() { }
 
   /**
+   *
+   * @param properties props
    * @see
    *     org.ejbca.core.model.ra.userdatasource.ICustomUserDataSource#init(java.util.Properties)
    */
@@ -51,6 +54,10 @@ public class DummyCustomUserDataSource implements ICustomUserDataSource {
   /**
    * A dummy fetch implementation that returns a EndEntityInformation if the
    * searchstring "per" is given Othervise a empty collection is returned.
+   *
+   * @param admin token
+   * @param searchstring search
+   * @return results
    *
    * @see org.ejbca.core.model.ra.userdatasource.BaseUserDataSource
    */
@@ -82,12 +89,15 @@ public class DummyCustomUserDataSource implements ICustomUserDataSource {
     return result;
   }
 
-  /** @see org.ejbca.core.model.ra.userdatasource.BaseUserDataSource */
+  /**
+   * @param admin token
+   * @see org.ejbca.core.model.ra.userdatasource.BaseUserDataSource */
   public void testConnection(final AuthenticationToken admin)
       throws UserDataSourceConnectionException {
     log.debug("DummyCustomUserDataSource, Testing connection");
   }
 
+  @Override
   @SuppressWarnings("deprecation")
   protected void finalize() throws Throwable {
     log.debug("DummyCustomUserDataSource, closing connection");
@@ -96,6 +106,7 @@ public class DummyCustomUserDataSource implements ICustomUserDataSource {
     super.finalize();
   }
 
+  @Override
   public boolean removeUserData(
       final AuthenticationToken admin,
       final String searchstring,

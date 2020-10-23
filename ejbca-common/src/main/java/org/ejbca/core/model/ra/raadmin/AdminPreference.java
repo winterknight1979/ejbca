@@ -30,21 +30,24 @@ public class AdminPreference extends UpgradeableDataHashMap
 
   private static final long serialVersionUID = -3408759285870979620L;
 
+  /** Config. */
   public static final float LATEST_VERSION = 1;
 
   // Public constants
+  /** Config. */
   public static final int FILTERMODE_BASIC = 0;
+  /** Config. */
   public static final int FILTERMODE_ADVANCED = 1;
 
-  /** Creates a new instance of AdminPreference */
+  /** Creates a new instance of AdminPreference. */
   public AdminPreference() {
     super();
-
+    final int defaultEntries = 25;
     // Set default values.
     data.put(PREFEREDLANGUAGE, Integer.valueOf(GlobalConfiguration.EN));
     data.put(SECONDARYLANGUAGE, Integer.valueOf(GlobalConfiguration.EN));
-    data.put(ENTRIESPERPAGE, Integer.valueOf(25));
-    data.put(LOGENTRIESPERPAGE, Integer.valueOf(25));
+    data.put(ENTRIESPERPAGE, Integer.valueOf(defaultEntries));
+    data.put(LOGENTRIESPERPAGE, Integer.valueOf(defaultEntries));
     data.put(THEME, "default_theme");
     data.put(LASTPROFILE, Integer.valueOf(0));
     data.put(LASTFILTERMODE, Integer.valueOf(FILTERMODE_BASIC));
@@ -53,33 +56,55 @@ public class AdminPreference extends UpgradeableDataHashMap
     data.put(FRONTPAGEPUBQSTATUS, DEFAULT_FRONTPAGEPUBQSTATUS);
   }
 
+  /**
+   * @return lang
+   */
   public int getPreferedLanguage() {
     return ((Integer) data.get(PREFEREDLANGUAGE)).intValue();
   }
 
+  /**
+   * @param language lang
+   */
   public void setPreferedLanguage(final int language) {
     data.put(PREFEREDLANGUAGE, Integer.valueOf(language));
   }
 
+  /**
+   * @return lang
+   */
   public Locale getPreferedRaLanguage() {
     Locale locale = ((Locale) data.get(PREFEREDRALANGUAGE));
 
-    if (locale == null) return null;
+    if (locale == null) {
+        return null;
+    }
     return locale;
   }
 
+  /**
+   * @param language lang
+   */
   public void setPreferedRaLanguage(final Locale language) {
     data.put(PREFEREDRALANGUAGE, language);
   }
 
+  /**
+   * @return style
+   */
   public Integer getPreferedRaStyleId() {
 
     Integer raStyleId = ((Integer) data.get(PREFEREDRASTYLEID));
 
-    if (raStyleId == null) return null;
+    if (raStyleId == null) {
+        return null;
+    }
     return raStyleId;
   }
 
+  /**
+   * @param preferedRaStyleId style
+   */
   public void setPreferedRaStyleId(final int preferedRaStyleId) {
     data.put(PREFEREDRASTYLEID, preferedRaStyleId);
   }
@@ -103,10 +128,16 @@ public class AdminPreference extends UpgradeableDataHashMap
     }
   }
 
+  /**
+   * @return lang
+   */
   public int getSecondaryLanguage() {
     return ((Integer) data.get(SECONDARYLANGUAGE)).intValue();
   }
 
+  /**
+   * @param language lang
+   */
   public void setSecondaryLanguage(final int language) {
     data.put(SECONDARYLANGUAGE, Integer.valueOf(language));
   }
@@ -130,34 +161,58 @@ public class AdminPreference extends UpgradeableDataHashMap
     }
   }
 
+  /**
+   * @return num
+   */
   public int getEntriesPerPage() {
     return ((Integer) data.get(ENTRIESPERPAGE)).intValue();
   }
 
+  /**
+   * @param entriesperpage num
+   */
   public void setEntriesPerPage(final int entriesperpage) {
     data.put(ENTRIESPERPAGE, Integer.valueOf(entriesperpage));
   }
 
+  /**
+   * @return num
+   */
   public int getLogEntriesPerPage() {
     return ((Integer) data.get(LOGENTRIESPERPAGE)).intValue();
   }
 
+  /**
+   * @param logentriesperpage num
+   */
   public void setLogEntriesPerPage(final int logentriesperpage) {
     data.put(LOGENTRIESPERPAGE, Integer.valueOf(logentriesperpage));
   }
 
+  /**
+   * @return theme
+   */
   public String getTheme() {
     return (String) data.get(THEME);
   }
 
+  /**
+   * @param theme theme
+   */
   public void setTheme(final String theme) {
     data.put(THEME, theme);
   }
 
+  /**
+   * @return profile
+   */
   public int getLastProfile() {
     return ((Integer) data.get(LASTPROFILE)).intValue();
   }
 
+  /**
+   * @param lastprofile profile
+   */
   public void setLastProfile(final int lastprofile) {
     data.put(LASTPROFILE, Integer.valueOf(lastprofile));
   }
@@ -171,35 +226,57 @@ public class AdminPreference extends UpgradeableDataHashMap
     return ((Integer) data.get(LASTFILTERMODE)).intValue();
   }
 
+  /**
+   * @param lastfiltermode mode
+   */
   public void setLastFilterMode(final int lastfiltermode) {
     data.put(LASTFILTERMODE, Integer.valueOf(lastfiltermode));
   }
 
+  /**
+   * @return mode
+   */
   public int getLastLogFilterMode() {
     return ((Integer) data.get(LASTLOGFILTERMODE)).intValue();
   }
 
+  /**
+   * @param lastlogfiltermode mode
+   */
   public void setLastLogFilterMode(final int lastlogfiltermode) {
     data.put(LASTLOGFILTERMODE, Integer.valueOf(lastlogfiltermode));
   }
 
+  /**
+   * @return status
+   */
   public boolean getFrontpageCaStatus() {
     return Boolean.TRUE.equals(data.get(FRONTPAGECASTATUS));
   }
 
+  /**
+   * @param frontpagecastatus status
+   */
   public void setFrontpageCaStatus(final boolean frontpagecastatus) {
     data.put(FRONTPAGECASTATUS, Boolean.valueOf(frontpagecastatus));
   }
 
+  /**
+   * @return status
+   */
   public boolean getFrontpagePublisherQueueStatus() {
     return Boolean.TRUE.equals(data.get(FRONTPAGEPUBQSTATUS));
   }
 
+  /**
+   * @param frontpagepubqstatus status
+   */
   public void setFrontpagePublisherQueueStatus(
       final boolean frontpagepubqstatus) {
     data.put(FRONTPAGEPUBQSTATUS, Boolean.valueOf(frontpagepubqstatus));
   }
 
+  @Override
   public Object clone() throws CloneNotSupportedException {
     AdminPreference clone = new AdminPreference();
     @SuppressWarnings("unchecked")
@@ -216,7 +293,8 @@ public class AdminPreference extends UpgradeableDataHashMap
     return clone;
   }
 
-  /** Implementation of UpgradableDataHashMap function getLatestVersion */
+  /** Implementation of UpgradableDataHashMap function getLatestVersion.
+   * @return version*/
   public float getLatestVersion() {
     return LATEST_VERSION;
   }
@@ -238,19 +316,33 @@ public class AdminPreference extends UpgradeableDataHashMap
   }
 
   // Private fields
+  /** Config. */
   private static final String PREFEREDLANGUAGE = "preferedlanguage";
+  /** Config. */
   private static final String SECONDARYLANGUAGE = "secondarylanguage";
+  /** Config. */
   private static final String ENTRIESPERPAGE = "entriesperpage";
+  /** Config. */
   private static final String LOGENTRIESPERPAGE = "logentriesperpage";
+  /** Config. */
   private static final String THEME = "theme";
+  /** Config. */
   private static final String LASTPROFILE = "lastprofile";
+  /** Config. */
   private static final String LASTFILTERMODE = "lastfiltermode";
+  /** Config. */
   private static final String LASTLOGFILTERMODE = "lastlogfiltermode";
+  /** Config. */
   private static final String FRONTPAGECASTATUS = "frontpagecastatus";
+  /** Config. */
   private static final String FRONTPAGEPUBQSTATUS = "frontpagepubqstatus";
+  /** Config. */
   private static final String PREFEREDRALANGUAGE = "preferedRaLanguage";
+  /** Config. */
   private static final String PREFEREDRASTYLEID = "preferedRaStyleId";
 
+  /** Config. */
   public static final boolean DEFAULT_FRONTPAGECASTATUS = true;
+  /** Config. */
   public static final boolean DEFAULT_FRONTPAGEPUBQSTATUS = true;
 }
