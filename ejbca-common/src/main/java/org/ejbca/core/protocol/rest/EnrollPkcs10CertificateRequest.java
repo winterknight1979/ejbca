@@ -20,85 +20,146 @@ import java.io.Serializable;
  * @version $Id: EnrollPkcs10CertificateRequest.java 28909 2018-05-10 12:16:53Z
  *     tarmo_r_helmes $
  */
-public class EnrollPkcs10CertificateRequest implements Serializable {
+public final class EnrollPkcs10CertificateRequest implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
+  /** Param. */
   private final String certificateRequest;
+  /** Param. */
   private final String certificateProfileName;
+  /** Param. */
   private final String endEntityProfileName;
+  /** Param. */
   private final String certificateAuthorityName;
+  /** Param. */
   private final String username;
+  /** Param. */
   private final String password;
 
+  /**
+   * @return req
+   */
   public String getCertificateRequest() {
     return certificateRequest;
   }
 
+  /**
+   * @return profile
+   */
   public String getCertificateProfileName() {
     return certificateProfileName;
   }
 
+  /**
+   * @return profile
+   */
   public String getEndEntityProfileName() {
     return endEntityProfileName;
   }
 
+  /**
+   * @return Auth
+   */
   public String getCertificateAuthorityName() {
     return certificateAuthorityName;
   }
 
+  /**
+   * @return User
+   */
   public String getUsername() {
     return username;
   }
 
+  /**
+   * @return Pass
+   */
   public String getPassword() {
     return password;
   }
 
   public static class Builder {
+	    /** Param. */
     private String certificateRequest;
+    /** Param. */
     private String certificateProfileName;
+    /** Param. */
     private String endEntityProfileName;
+    /** Param. */
     private String certificateAuthorityName;
+    /** Param. */
     private String username;
+    /** Param. */
     private String password;
 
-    public Builder certificateRequest(final String certificateRequest) {
-      this.certificateRequest = certificateRequest;
+    /**
+     * @param acertificateRequest request
+     * @return this
+     */
+    public Builder certificateRequest(final String acertificateRequest) {
+      this.certificateRequest = acertificateRequest;
       return this;
     }
 
-    public Builder certificateProfileName(final String certificateProfileName) {
-      this.certificateProfileName = certificateProfileName;
+    /**
+     * @param acertificateProfileName profie
+     * @return this
+     */
+    public Builder certificateProfileName(
+    		final String acertificateProfileName) {
+      this.certificateProfileName = acertificateProfileName;
       return this;
     }
 
-    public Builder endEntityProfileName(final String endEntityProfileName) {
-      this.endEntityProfileName = endEntityProfileName;
+    /**
+     * @param anendEntityProfileName profile
+     * @return this
+     */
+    public Builder endEntityProfileName(final String anendEntityProfileName) {
+      this.endEntityProfileName = anendEntityProfileName;
       return this;
     }
 
+    /**
+     * @param acertificateAuthorityName authority
+     * @return this
+     */
     public Builder certificateAuthorityName(
-        final String certificateAuthorityName) {
-      this.certificateAuthorityName = certificateAuthorityName;
+        final String acertificateAuthorityName) {
+      this.certificateAuthorityName = acertificateAuthorityName;
       return this;
     }
 
-    public Builder username(final String username) {
-      this.username = username;
+    /**
+     * @param ausername user
+     * @return   this
+     * */   
+    public Builder username(final String ausername) {
+      this.username = ausername;
       return this;
     }
 
-    public Builder password(final String password) {
-      this.password = password;
+    /**
+     * @param apassword password
+     * @return this
+     */
+    public Builder password(final String apassword) {
+      this.password = apassword;
       return this;
     }
 
+    /**
+     * @return request
+     */
     public EnrollPkcs10CertificateRequest build() {
       return new EnrollPkcs10CertificateRequest(this);
     }
   }
 
+  /**
+   * @param builder Builder
+   */
   private EnrollPkcs10CertificateRequest(final Builder builder) {
     this.certificateRequest = builder.certificateRequest;
     this.certificateProfileName = builder.certificateProfileName;

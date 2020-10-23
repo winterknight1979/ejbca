@@ -33,11 +33,17 @@ import org.bouncycastle.asn1.DERIA5String;
  */
 public class FnrFromUnidExtension extends ASN1Object {
 
-  public static final ASN1ObjectIdentifier FnrFromUnidOid =
+    /** Config. */
+  public static final ASN1ObjectIdentifier FNR_FROM_UNID_OID =
       new ASN1ObjectIdentifier("2.16.578.1.16.3.2");
 
+  /** FNR. */
   private final String fnr;
 
+  /**
+   * @param obj object
+   * @return instance
+   */
   public static FnrFromUnidExtension getInstance(final Object obj) {
     if (obj == null || obj instanceof FnrFromUnidExtension) {
       return (FnrFromUnidExtension) obj;
@@ -51,18 +57,28 @@ public class FnrFromUnidExtension extends ASN1Object {
         "Invalid FnrFromUnidExtension: " + obj.getClass().getName());
   }
 
+  /**
+   * @param nr NR
+   */
   public FnrFromUnidExtension(final String nr) {
     this.fnr = nr;
   }
 
+  /**
+   * @param nr NR
+   */
   public FnrFromUnidExtension(final DERIA5String nr) {
     this.fnr = nr.getString();
   }
 
+  /**
+   * @return FNR
+   */
   public String getFnr() {
     return fnr;
   }
 
+ @Override
   public ASN1Primitive toASN1Primitive() {
     return new DERIA5String(fnr);
   }

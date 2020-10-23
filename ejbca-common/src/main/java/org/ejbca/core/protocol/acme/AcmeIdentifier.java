@@ -21,15 +21,28 @@ package org.ejbca.core.protocol.acme;
  */
 public interface AcmeIdentifier {
 
+    /**
+     * @return type
+     */
   String getType();
 
+  /**
+   * @param type type
+   */
   void setType(String type);
 
+  /**
+   * @return Value
+   */
   String getValue();
 
+  /**
+   * @param value value
+   */
   void setValue(String value);
 
   enum AcmeIdentifierTypes {
+    /** DNS. */
     DNS;
 
     public String getJsonValue() {

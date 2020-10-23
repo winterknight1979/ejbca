@@ -28,15 +28,19 @@ public class AcmeProblemResponse implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
+  /** Param. */
   @XmlElement(name = "type", required = true)
   private String type;
 
+  /** Param. */
   @XmlElement(name = "title", required = false)
   private String title = null;
 
+  /** Param. */
   @XmlElement(name = "status", required = false)
   private Integer status = null;
 
+  /** Param. */
   @XmlElement(name = "detail", required = false)
   private String detail = null;
   /** For the userActionRequired error. */
@@ -49,86 +53,148 @@ public class AcmeProblemResponse implements Serializable {
   @XmlElement(name = "algorithms", required = false)
   private List<String> algorithms;
 
+  /** Param. */
   private String headerLink = null;
+  /** Param. */
   private String headerLocation = null;
 
-  public AcmeProblemResponse() {}
+  /** null constructor. */
+  public AcmeProblemResponse() { }
 
+  /**
+   * @param acmeProblem problem.
+   */
   public AcmeProblemResponse(final AcmeProblem acmeProblem) {
     setType(acmeProblem.getType());
     setDetail(acmeProblem.getDetail());
   }
 
+  /**
+   * @param acmeProblem problem
+   * @param thedetail detail
+   */
   public AcmeProblemResponse(
-      final AcmeProblem acmeProblem, final String detail) {
+      final AcmeProblem acmeProblem, final String thedetail) {
     setType(acmeProblem.getType());
-    setDetail(detail);
+    setDetail(thedetail);
   }
 
+  /**
+   * @return type
+   */
   public String getType() {
     return type;
   }
 
-  public void setType(final String type) {
-    this.type = type;
+  /**
+   * @param atype type
+   */
+  public void setType(final String atype) {
+    this.type = atype;
   }
 
+  /**
+   * @return title
+   */
   public String getTitle() {
     return title;
   }
 
-  public void setTitle(final String title) {
-    this.title = title;
+  /**
+   * @param atitle title
+   */
+  public void setTitle(final String atitle) {
+    this.title = atitle;
   }
 
+  /**
+   * @return Status
+   */
   public Integer getStatus() {
     return status;
   }
 
-  public void setStatus(final Integer status) {
-    this.status = status;
+  /**
+   * @param astatus status
+   */
+  public void setStatus(final Integer astatus) {
+    this.status = astatus;
   }
 
+  /**
+   * @return detail
+   */
   public String getDetail() {
     return detail;
   }
 
-  public void setDetail(final String detail) {
-    this.detail = detail;
+  /**
+   * @param thedetail detail
+   */
+  public void setDetail(final String thedetail) {
+    this.detail = thedetail;
   }
 
+  /**
+   * @return instance
+   */
   public String getInstance() {
     return instance;
   }
 
-  public void setInstance(final String instance) {
-    this.instance = instance;
+  /**
+   * @param aninstance instance
+   */
+  public void setInstance(final String aninstance) {
+    this.instance = aninstance;
   }
 
+  /**
+   * @return algos
+   */
   public List<String> getAlgorithms() {
     return algorithms;
   }
 
-  public void setAlgorithms(final List<String> algorithms) {
-    this.algorithms = algorithms;
+  /**
+   * @param thealgorithms algos
+   */
+  public void setAlgorithms(final List<String> thealgorithms) {
+    this.algorithms = thealgorithms;
   }
 
+  /**
+   * @return link
+   */
   public String getHeaderLink() {
     return headerLink;
   }
 
-  public void setHeaderLink(final String headerLink) {
-    this.headerLink = headerLink;
+  /**
+   * @param aheaderLink link
+   */
+  public void setHeaderLink(final String aheaderLink) {
+    this.headerLink = aheaderLink;
   }
 
+  /**
+   * @return location
+   */
   public String getHeaderLocation() {
     return headerLocation;
   }
 
-  public void setHeaderLocation(final String headerLocation) {
-    this.headerLocation = headerLocation;
+  /**
+   * @param aheaderLocation location
+   */
+  public void setHeaderLocation(final String aheaderLocation) {
+    this.headerLocation = aheaderLocation;
   }
 
+  /**
+   * @param href link
+   * @param rel relation
+   */
   public void setHeaderLink(final String href, final String rel) {
     setHeaderLink("href=\"" + href + "\", rel=\"" + rel + "\"");
   }

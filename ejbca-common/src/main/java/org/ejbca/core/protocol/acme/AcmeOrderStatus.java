@@ -45,10 +45,11 @@ public enum AcmeOrderStatus {
    */
   VALID(EndEntityConstants.STATUS_GENERATED);
 
-  private final int endEntityStatus;
+  /** Status. */
+    private final int endEntityStatus;
 
-  private AcmeOrderStatus(final int endEntityStatus) {
-    this.endEntityStatus = endEntityStatus;
+  AcmeOrderStatus(final int anendEntityStatus) {
+    this.endEntityStatus = anendEntityStatus;
   }
 
   /** @return the corresponding EJBCA end entity status */
@@ -56,19 +57,31 @@ public enum AcmeOrderStatus {
     return endEntityStatus;
   }
 
-  public static AcmeOrderStatus fromEndEntityStatus(final int endEntityStatus) {
+  /**
+   * @param anendEntityStatus status
+   * @return enum constant
+   */
+  public static AcmeOrderStatus fromEndEntityStatus(
+          final int anendEntityStatus) {
     for (final AcmeOrderStatus current : AcmeOrderStatus.values()) {
-      if (current.getEndEntityStatus() == endEntityStatus) {
+      if (current.getEndEntityStatus() == anendEntityStatus) {
         return current;
       }
     }
     return null;
   }
 
+  /**
+   * @return json
+   */
   public String getJsonValue() {
     return this.name().toLowerCase();
   }
 
+  /**
+   * @param status status
+   * @return enum constant
+   */
   public static AcmeOrderStatus fromJsonValue(final String status) {
     return AcmeOrderStatus.valueOf(status.toUpperCase());
   }

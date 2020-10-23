@@ -20,20 +20,33 @@ import java.util.List;
 import org.cesecore.internal.IUpgradeableData;
 
 /**
- * Interface for AcmeAccount implementations
+ * Interface for AcmeAccount implementations.
  *
  * @version $Id: AcmeAccount.java 29797 2018-09-04 07:37:48Z tarmo_r_helmes $
  */
 public interface AcmeAccount extends Serializable, IUpgradeableData {
 
+    /** Config. */
   String URL_PROTOCOL_MAILTO_START = "mailto:";
 
+  /**
+   * @return key
+   */
   PublicKey getPublicKey();
 
+  /**
+   * @param publicKey key
+   */
   void setPublicKey(PublicKey publicKey);
 
+  /**
+   * @return ID
+   */
   String getAccountId();
 
+  /**
+   * @param accountId IS
+   */
   void setAccountId(String accountId);
 
   /**
@@ -42,14 +55,29 @@ public interface AcmeAccount extends Serializable, IUpgradeableData {
    */
   String getStatus();
 
+  /**
+   * @param status Status
+   */
   void setStatus(String status);
 
+  /**
+   * @return vontact
+   */
   List<String> getContact();
 
+  /**
+   * @param contact Contact
+   */
   void setContact(List<String> contact);
 
+  /**
+   * @return binding
+   */
   String getExternalAccountBinding();
 
+  /**
+   * @param externalAccountBinding binding
+   */
   void setExternalAccountBinding(String externalAccountBinding);
 
   /**
@@ -58,8 +86,14 @@ public interface AcmeAccount extends Serializable, IUpgradeableData {
    */
   String getTermsOfServiceAgreedVersion();
 
+  /**
+   * @param termsOfServiceAgreedVersion version
+   */
   void setTermsOfServiceAgreedVersion(String termsOfServiceAgreedVersion);
 
+  /**
+   * @return ID
+   */
   String getConfigurationId();
 
   /** @param configurationId the configurationId of this account */
@@ -72,9 +106,16 @@ public interface AcmeAccount extends Serializable, IUpgradeableData {
    */
   String getContactEmail() throws AcmeProblemException;
 
+  /**
+   * @return version
+   */
   float getLatestVersion();
 
+  /** Upgrade. */
   void upgrade();
 
+  /**
+   * @return data
+   */
   LinkedHashMap<Object, Object> getRawData();
 }

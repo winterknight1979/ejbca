@@ -22,7 +22,7 @@ import org.bouncycastle.cert.ocsp.SingleResp;
 import org.bouncycastle.cert.ocsp.UnknownStatus;
 
 /**
- * Class holding data returned by the OCSPUnidExtension
+ * Class holding data returned by the OCSPUnidExtension.
  *
  * @version $Id: OCSPUnidResponse.java 28652 2018-04-09 14:35:21Z aminkh $
  */
@@ -35,7 +35,9 @@ public class OCSPUnidResponse {
    */
   public static final int OCSP_GOOD = 0;
 
+  /** Config. */
   public static final int OCSP_REVOKED = 1;
+  /** Config. */
   public static final int OCSP_UNKNOWN = 2;
 
   //
@@ -86,49 +88,86 @@ public class OCSPUnidResponse {
   /*
    * Private variables
    */
+  /** Response. */
   private OCSPResp resp = null;
+  /** FNR. */
   private String fnr = null;
-  private int httpReturnCode = 200;
+  /** 200 OK. */
+  private final int httpOk = 200;
+  /** Return. */
+  private int httpReturnCode = httpOk;
+  /** Param. */
   private int errCode = OCSPUnidResponse.ERROR_NO_ERROR;
 
-  public OCSPUnidResponse() {}
+  /** Null constructor. */
+  public OCSPUnidResponse() { }
 
+  /**
+   * @param ocspresp response.
+   */
   public OCSPUnidResponse(final OCSPResp ocspresp) {
     this.resp = ocspresp;
   }
 
+  /**
+   * @return code
+   */
   public int getHttpReturnCode() {
     return httpReturnCode;
   }
 
+  /**
+   * @param code code
+   */
   public void setHttpReturnCode(final int code) {
     httpReturnCode = code;
   }
 
+  /**
+   * @return code
+   */
   public int getErrorCode() {
     return errCode;
   }
 
-  public void setErrorCode(final int code) {
-    errCode = code;
+  /**
+   * @param acode code
+   */
+  public void setErrorCode(final int acode) {
+    errCode = acode;
   }
 
+  /**
+   * @return FNR
+   */
   public String getFnr() {
     return fnr;
   }
 
-  public void setFnr(final String fnr) {
-    this.fnr = fnr;
+  /**
+   * @param afnr FNR
+   */
+  public void setFnr(final String afnr) {
+    this.fnr = afnr;
   }
 
+  /**
+   * @return resp
+   */
   public OCSPResp getResp() {
     return resp;
   }
 
-  public void setResp(final OCSPResp resp) {
-    this.resp = resp;
+  /**
+   * @param aresp resp
+   */
+  public void setResp(final OCSPResp aresp) {
+    this.resp = aresp;
   }
 
+  /**
+   * @return status
+   */
   public int getStatus() {
     if (resp == null) {
       return OCSPUnidResponse.OCSP_UNKNOWN;
@@ -155,7 +194,7 @@ public class OCSPUnidResponse {
   }
 
   /**
-   * Returns the OCSP response status
+   * Returns the OCSP response status.
    *
    * @return the response code of the OCSP message, OCSPRespBuilder.XX for
    *     example OCSPRespBuilder.SIG_REQUIRED
@@ -167,15 +206,27 @@ public class OCSPUnidResponse {
     return resp.getStatus();
   }
 
+  /**
+   * @return date
+   * @throws OCSPException fail
+   */
   public Date getProducedAt() throws OCSPException {
     return ((BasicOCSPResp) resp.getResponseObject()).getProducedAt();
   }
 
+  /**
+  * @return date
+  * @throws OCSPException fail
+  */
   public Date getThisUpdate() throws OCSPException {
     return ((BasicOCSPResp) resp.getResponseObject())
         .getResponses()[0].getThisUpdate();
   }
 
+  /**
+   * @return date
+   * @throws OCSPException fail
+   */
   public Date getNextUpdate() throws OCSPException {
     return ((BasicOCSPResp) resp.getResponseObject())
         .getResponses()[0].getNextUpdate();

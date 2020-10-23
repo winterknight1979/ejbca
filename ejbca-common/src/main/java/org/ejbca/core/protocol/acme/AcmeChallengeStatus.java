@@ -17,14 +17,24 @@ package org.ejbca.core.protocol.acme;
  *     $
  */
 public enum AcmeChallengeStatus {
+    /** Pending. */
   PENDING,
+  /** Processing. */
   PROCESSING,
+  /** Valid. */
   VALID;
 
+    /**
+     * @return JSON
+     */
   public String getJsonValue() {
     return this.name().toLowerCase();
   }
 
+  /**
+   * @param status Status
+   * @return enum
+   */
   public static AcmeChallengeStatus fromJsonValue(final String status) {
     return AcmeChallengeStatus.valueOf(status.toUpperCase());
   }

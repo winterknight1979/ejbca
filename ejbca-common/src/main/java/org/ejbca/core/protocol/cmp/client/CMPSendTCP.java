@@ -29,15 +29,29 @@ import org.apache.log4j.Logger;
  * @version $Id: CMPSendTCP.java 19901 2014-09-30 14:29:38Z anatom $
  */
 public class CMPSendTCP {
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(CMPSendTCP.class.getName());
-  public final int version;
-  public final int msgType;
-  public final int flags;
-  public final byte response[];
-  public final int headerLength;
-  public final int bytesRead;
 
+  /** Version. */
+  private final int version;
+  /** Type. */
+  private final int msgType;
+  /** Flags. */
+  private final int flags;
+  /** Resp. */
+  private final byte[] response;
+  /** Length. */
+  private final int headerLength;
+  /** Read. */
+  private final int bytesRead;
+
+  /**
+   * @param message message
+   * @param socket sock
+   * @param doClose close
+   * @throws IOException fail
+   */
   public CMPSendTCP(
       final byte[] message, final Socket socket, final boolean doClose)
       throws IOException {
@@ -49,7 +63,7 @@ public class CMPSendTCP {
         break;
       }
       is.skip(nrOfOldBytes);
-      log.debug(nrOfOldBytes + " junk bytes skipped.");
+      LOG.debug(nrOfOldBytes + " junk bytes skipped.");
     }
     os.write(createTcpMessage(message));
     os.flush();
@@ -78,7 +92,7 @@ public class CMPSendTCP {
     headerDOS.writeByte(this.msgType);
 
     headerDOS.close();
-    final byte header[] = headerBAOS.toByteArray();
+    final byte[] header = headerBAOS.toByteArray();
     this.headerLength = header.length;
     this.response = new byte[length + Integer.SIZE / 8];
     System.arraycopy(header, 0, this.response, 0, header.length);
@@ -99,9 +113,10 @@ public class CMPSendTCP {
   private static byte[] createTcpMessage(final byte[] msg) throws IOException {
     ByteArrayOutputStream bao = new ByteArrayOutputStream();
     DataOutputStream dos = new DataOutputStream(bao);
+    final int len = 3;
     // return msg length = msg.length + 3; 1 byte version, 1 byte flags and 1
     // byte message type
-    dos.writeInt(msg.length + 3);
+    dos.writeInt(msg.length + len);
     dos.writeByte(10);
     dos.writeByte(0); // 1 if we should close, 0 otherwise
     dos.writeByte(0); // 0 is pkiReq
@@ -109,4 +124,53 @@ public class CMPSendTCP {
     dos.flush();
     return bao.toByteArray();
   }
+
+/**
+ * @return the bytesRead
+ */
+public int getBytesRead() {
+    return bytesRead;
+}
+
+/**
+ * @return the log
+ */
+public static Logger getLog() {
+    return LOG;
+}
+
+/**
+ * @return the version
+ */
+public int getVersion() {
+    return version;
+}
+
+/**
+ * @return the msgType
+ */
+public int getMsgType() {
+    return msgType;
+}
+
+/**
+ * @return the flags
+ */
+public int getFlags() {
+    return flags;
+}
+
+/**
+ * @return the response
+ */
+public byte[] getResponse() {
+    return response;
+}
+
+/**
+ * @return the headerLength
+ */
+public int getHeaderLength() {
+    return headerLength;
+}
 }

@@ -26,10 +26,15 @@ import org.ejbca.core.protocol.acme.response.AcmeProblemResponse;
 public class AcmeProblemException extends Exception {
 
   private static final long serialVersionUID = 1L;
-
+ /** Status. */
   private final int httpStatusCode;
+  /** response. */
   private final AcmeProblemResponse acmeProblemResponse;
-
+  /**
+   * @param httpStatus status
+   * @param acmeProblem problem
+   * @param acmeProblemDetails details
+   */
   public AcmeProblemException(
       final Status httpStatus,
       final AcmeProblem acmeProblem,
@@ -37,21 +42,37 @@ public class AcmeProblemException extends Exception {
     this(httpStatus, new AcmeProblemResponse(acmeProblem, acmeProblemDetails));
   }
 
+  /**
+   * @param httpStatus status
+   * @param acmeProblem problem
+   */
   public AcmeProblemException(
       final Status httpStatus, final AcmeProblem acmeProblem) {
     this(httpStatus, new AcmeProblemResponse(acmeProblem));
   }
 
+  /**
+   * @param httpStatus status
+   * @param anacmeProblemResponse resp
+   */
   public AcmeProblemException(
-      final Status httpStatus, final AcmeProblemResponse acmeProblemResponse) {
+      final Status httpStatus,
+      final AcmeProblemResponse anacmeProblemResponse) {
     this.httpStatusCode = httpStatus.getStatusCode();
-    this.acmeProblemResponse = acmeProblemResponse;
+    this.acmeProblemResponse = anacmeProblemResponse;
   }
 
+
+  /**
+   * @return code
+   */
   public int getHttpStatusCode() {
     return httpStatusCode;
   }
 
+  /**
+   * @return response.
+   */
   public AcmeProblemResponse getAcmeProblemResponse() {
     return acmeProblemResponse;
   }

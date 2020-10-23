@@ -27,21 +27,55 @@ import org.ejbca.ui.web.LimitLengthASN1Reader;
  *
  * @version $Id: CMPSendHTTP.java 22456 2015-12-16 10:49:12Z mikekushner $
  */
-public class CMPSendHTTP {
-  /** Internal localization of logs and errors */
-  private static final InternalEjbcaResources intres =
+public final class CMPSendHTTP {
+  /** Internal localization of logs and errors.*/
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
-  public final String contentType;
-  public final byte response[];
-  public final int responseCode;
+  /** Type. */
+  private final String contentType;
+  /**
+ * @return the contentType
+ */
+public String getContentType() {
+    return contentType;
+}
 
-  private CMPSendHTTP(final String ct, final byte ba[], final int rc) {
+/**
+ * @return the response
+ */
+public byte[] getResponse() {
+    return response;
+}
+
+/**
+ * @return the responseCode
+ */
+public int getResponseCode() {
+    return responseCode;
+}
+
+/** Response. */
+private final byte[] response;
+/** code. */
+  private final int responseCode;
+
+  private CMPSendHTTP(final String ct, final byte[] ba, final int rc) {
     this.contentType = ct;
     this.response = ba;
     this.responseCode = rc;
   }
 
+  /**
+   * @param message Message
+ * @param hostName host
+ * @param port port
+ * @param urlPath  path
+   * @param doClose bool
+   * @return Send
+   * @throws MalformedURLException fail
+   * @throws IOException fail
+   */
   public static CMPSendHTTP sendMessage(
       final byte[] message,
       final String hostName,
@@ -53,6 +87,14 @@ public class CMPSendHTTP {
         message, "http://" + hostName + ":" + port + urlPath, doClose);
   }
 
+  /**
+   * @param message Message
+   * @param url URL
+   * @param doClose bool
+   * @return Send
+   * @throws MalformedURLException fail
+   * @throws IOException fail
+   */
   public static CMPSendHTTP sendMessage(
       final byte[] message, final String url, final boolean doClose)
       throws MalformedURLException, IOException {
@@ -77,11 +119,11 @@ public class CMPSendHTTP {
           new LimitLengthASN1Reader(
               con.getInputStream(), con.getContentLength());
       try {
-        final byte response[] = limitLengthASN1Reader.readFirstASN1Object();
+        final byte[] response = limitLengthASN1Reader.readFirstASN1Object();
         isError = false;
         return new CMPSendHTTP(contentType, response, responseCode);
       } catch (MalformedRequestException e) {
-        throw new IOException(intres.getLocalizedMessage("cmp.errornoasn1"), e);
+        throw new IOException(INTRES.getLocalizedMessage("cmp.errornoasn1"), e);
       } finally {
         limitLengthASN1Reader.close();
       }

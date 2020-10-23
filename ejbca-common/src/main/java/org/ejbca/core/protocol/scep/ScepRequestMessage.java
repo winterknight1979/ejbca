@@ -85,20 +85,31 @@ public class ScepRequestMessage extends PKCS10RequestMessage
    */
   static final long serialVersionUID = -235623330828902051L;
 
-  private static Logger log = Logger.getLogger(ScepRequestMessage.class);
+  /** Log. */
+  private static Logger LOG = Logger.getLogger(ScepRequestMessage.class);
 
-  public static final String id_Verisign = "2.16.840.1.113733";
-  public static final String id_pki = id_Verisign + ".1";
-  public static final String id_attributes = id_pki + ".9";
-  public static final String id_messageType = id_attributes + ".2";
-  public static final String id_pkiStatus = id_attributes + ".3";
-  public static final String id_failInfo = id_attributes + ".4";
-  public static final String id_senderNonce = id_attributes + ".5";
-  public static final String id_recipientNonce = id_attributes + ".6";
-  public static final String id_transId = id_attributes + ".7";
-  public static final String id_extensionReq = id_attributes + ".8";
+  /** Param. */
+  public static final String ID_VERISIGN = "2.16.840.1.113733";
+  /** Param. */
+  public static final String ID_PKI = ID_VERISIGN + ".1";
+  /** Param. */
+  public static final String ID_ATTRIBUTES = ID_PKI + ".9";
+  /** Param. */
+  public static final String ID_MESSAGETYPE = ID_ATTRIBUTES + ".2";
+  /** Param. */
+  public static final String ID_PKISTATUS = ID_ATTRIBUTES + ".3";
+  /** Param. */
+  public static final String ID_FAILINFO = ID_ATTRIBUTES + ".4";
+  /** Param. */
+  public static final String ID_SENDERNONCE = ID_ATTRIBUTES + ".5";
+  /** Param. */
+  public static final String ID_RECIPIENTNONCE = ID_ATTRIBUTES + ".6";
+  /** Param. */
+  public static final String ID_TRANSID = ID_ATTRIBUTES + ".7";
+  /** Param. */
+  public static final String ID_EXTENSIONREQ = ID_ATTRIBUTES + ".8";
 
-  /** Raw form of the Scep message */
+  /** Raw form of the Scep message, */
   private final byte[] scepmsg;
 
   /**
@@ -111,11 +122,15 @@ public class ScepRequestMessage extends PKCS10RequestMessage
    */
   private int messageType = 0;
 
-  public static int SCEP_TYPE_PKCSREQ = 19;
-  public static int SCEP_TYPE_GETCERTINITIAL =
+  /** Param. */
+  public static final int SCEP_TYPE_PKCSREQ = 19;
+  /** Param. */
+  public static final int SCEP_TYPE_GETCERTINITIAL =
       20; // Used when request is in pending state.
-  public static int SCEP_TYPE_GETCRL = 22;
-  public static int SCEP_TYPE_GETCERT = 21;
+  /** Param. */
+  public static final int SCEP_TYPE_GETCRL = 22;
+  /** Param. */
+  public static final int SCEP_TYPE_GETCERT = 21;
 
   /**
    * SenderNonce in a request is used as recipientNonce when the server sends
@@ -123,40 +138,40 @@ public class ScepRequestMessage extends PKCS10RequestMessage
    */
   private String senderNonce = null;
 
-  /** transaction id */
+  /** transaction id. */
   private String transactionId = null;
 
   /**
    * request key info, this is the requester's self-signed certificate used to
-   * identify the senders public key
+   * identify the senders public key.
    */
   private byte[] requestKeyInfo = null;
 
-  /** Type of error */
+  /** Type of error. */
   private int error = 0;
 
-  /** Error text */
+  /** Error text. */
   private String errorText = null;
 
   /**
    * Issuer DN the message is sent to (CAs Issuer DN), contained in the request
-   * as recipientInfo.issuerAndSerialNumber in EnvelopeData part
+   * as recipientInfo.issuerAndSerialNumber in EnvelopeData part.
    */
   private transient String issuerDN = null;
 
   /**
    * SerialNumber of the CA cert of the CA the message is sent to, contained in
-   * the request as recipientInfo.issuerAndSerialNumber in EnvelopeData part
+   * the request as recipientInfo.issuerAndSerialNumber in EnvelopeData part.
    */
   private transient BigInteger serialNo = null;
 
   /** Signed data, the whole enchilada to to speak... */
   private transient SignedData sd = null;
 
-  /** Enveloped data, carrying the 'beef' of the request */
+  /** Enveloped data, carrying the 'beef' of the request. */
   private transient EnvelopedData envData = null;
 
-  /** Enveloped data, carrying the 'beef' of the request */
+  /** Enveloped data, carrying the 'beef' of the request. */
   private transient ContentInfo envEncData = null;
 
   /** Private key used for decryption. */
@@ -166,7 +181,7 @@ public class ScepRequestMessage extends PKCS10RequestMessage
    */
   private transient String jceProvider = BouncyCastleProvider.PROVIDER_NAME;
 
-  /** IssuerAndSerialNUmber for CRL request */
+  /** IssuerAndSerialNUmber for CRL request. */
   private transient IssuerAndSerialNumber issuerAndSerno = null;
 
   /**
@@ -178,6 +193,7 @@ public class ScepRequestMessage extends PKCS10RequestMessage
    */
   private transient String preferredDigestAlg = CMSSignedGenerator.DIGEST_MD5;
 
+  /** Cert. */
   private transient Certificate signercert;
 
   /**
@@ -190,14 +206,14 @@ public class ScepRequestMessage extends PKCS10RequestMessage
    */
   public ScepRequestMessage(final byte[] msg, final boolean incCACert)
       throws IOException {
-    if (log.isTraceEnabled()) {
-      log.trace(">ScepRequestMessage");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">ScepRequestMessage");
     }
     this.scepmsg = msg;
     this.includeCACert = incCACert;
     init();
-    if (log.isTraceEnabled()) {
-      log.trace("<ScepRequestMessage");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<ScepRequestMessage");
     }
   }
 
@@ -218,8 +234,8 @@ public class ScepRequestMessage extends PKCS10RequestMessage
   }
 
   private void init() throws IOException {
-    if (log.isTraceEnabled()) {
-      log.trace(">init");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">init");
     }
     try {
       CMSSignedData csd = new CMSSignedData(scepmsg);
@@ -229,17 +245,18 @@ public class ScepRequestMessage extends PKCS10RequestMessage
       if (iter.hasNext()) {
         SignerInformation si = (SignerInformation) iter.next();
         preferredDigestAlg = si.getDigestAlgOID();
-        log.debug(
+        LOG.debug(
             "Set "
                 + preferredDigestAlg
                 + " as preferred digest algorithm for SCEP");
       }
     } catch (CMSException e) {
       // ignore, use default digest algo
-      log.error("CMSException trying to get preferred digest algorithm: ", e);
+      LOG.error("CMSException trying to get preferred digest algorithm: ", e);
     }
     // Parse and verify the integrity of the PKIOperation message PKCS#7
-    /* If this would have been done using the newer CMS it would have made me so much happier... */
+    /* If this would have been done using the newer CMS it would have 
+     * made me so much happier... */
     ASN1InputStream seqAsn1InputStream =
         new ASN1InputStream(new ByteArrayInputStream(scepmsg));
     ASN1Sequence seq = null;
@@ -275,8 +292,8 @@ public class ScepRequestMessage extends PKCS10RequestMessage
               signercert =
                   CertTools.getCertfromByteArray(
                       requestKeyInfo, Certificate.class);
-              if (log.isDebugEnabled()) {
-                log.debug(
+              if (LOG.isDebugEnabled()) {
+                LOG.debug(
                     "requestKeyInfo is SubjectDN: "
                         + CertTools.getSubjectDN(signercert)
                         + ", Serial="
@@ -285,7 +302,7 @@ public class ScepRequestMessage extends PKCS10RequestMessage
                         + CertTools.getIssuerDN(signercert).toString());
               }
             } catch (CertificateException e) {
-              log.error("Error parsing requestKeyInfo : ", e);
+              LOG.error("Error parsing requestKeyInfo : ", e);
             }
           }
         }
@@ -301,34 +318,34 @@ public class ScepRequestMessage extends PKCS10RequestMessage
         while (attr.hasMoreElements()) {
           Attribute a =
               Attribute.getInstance((ASN1Sequence) attr.nextElement());
-          if (log.isDebugEnabled()) {
-            log.debug("Found attribute: " + a.getAttrType().getId());
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("Found attribute: " + a.getAttrType().getId());
           }
-          if (a.getAttrType().getId().equals(id_senderNonce)) {
+          if (a.getAttrType().getId().equals(ID_SENDERNONCE)) {
             Enumeration<?> values = a.getAttrValues().getObjects();
             ASN1OctetString str =
                 ASN1OctetString.getInstance(values.nextElement());
             senderNonce = new String(Base64.encode(str.getOctets(), false));
-            if (log.isDebugEnabled()) {
-              log.debug("senderNonce = " + senderNonce);
+            if (LOG.isDebugEnabled()) {
+              LOG.debug("senderNonce = " + senderNonce);
             }
           }
-          if (a.getAttrType().getId().equals(id_transId)) {
+          if (a.getAttrType().getId().equals(ID_TRANSID)) {
             Enumeration<?> values = a.getAttrValues().getObjects();
             DERPrintableString str =
                 DERPrintableString.getInstance(values.nextElement());
             transactionId = str.getString();
-            if (log.isDebugEnabled()) {
-              log.debug("transactionId = " + transactionId);
+            if (LOG.isDebugEnabled()) {
+              LOG.debug("transactionId = " + transactionId);
             }
           }
-          if (a.getAttrType().getId().equals(id_messageType)) {
+          if (a.getAttrType().getId().equals(ID_MESSAGETYPE)) {
             Enumeration<?> values = a.getAttrValues().getObjects();
             DERPrintableString str =
                 DERPrintableString.getInstance(values.nextElement());
             messageType = Integer.parseInt(str.getString());
-            if (log.isDebugEnabled()) {
-              log.debug("messagetype = " + messageType);
+            if (LOG.isDebugEnabled()) {
+              LOG.debug("messagetype = " + messageType);
             }
           }
         }
@@ -348,8 +365,8 @@ public class ScepRequestMessage extends PKCS10RequestMessage
 
         if (ctoid.equals(CMSObjectIdentifiers.data.getId())) {
           ASN1OctetString content = (ASN1OctetString) ci.getContent();
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "envelopedData is " + content.getOctets().length + " bytes.");
           }
           ASN1InputStream seq1Asn1InputStream =
@@ -379,9 +396,9 @@ public class ScepRequestMessage extends PKCS10RequestMessage
                   IssuerAndSerialNumber.getInstance(rid.getId());
               issuerDN = iasn.getName().toString();
               serialNo = iasn.getSerialNumber().getValue();
-              if (log.isDebugEnabled()) {
-                log.debug("IssuerDN: " + issuerDN);
-                log.debug(
+              if (LOG.isDebugEnabled()) {
+                LOG.debug("IssuerDN: " + issuerDN);
+                LOG.debug(
                     "SerialNumber: "
                         + iasn.getSerialNumber().getValue().toString(16));
               }
@@ -390,47 +407,47 @@ public class ScepRequestMessage extends PKCS10RequestMessage
             errorText =
                 "EncapsulatedContentInfo does not contain PKCS7"
                     + " envelopedData: ";
-            log.error(errorText + ctoid);
+            LOG.error(errorText + ctoid);
             error = 2;
           }
         } else {
           errorText = "EncapsulatedContentInfo is not of type 'data': ";
-          log.error(errorText + ctoid);
-          error = 3;
+          LOG.error(errorText + ctoid);
+          error = badType;
         }
       } else {
         errorText = "This is not a certification request!";
-        log.error(errorText);
-        error = 4;
+        LOG.error(errorText);
+        error = badReq;
       }
     } else {
       errorText = "PKCSReq does not contain 'signedData': ";
-      log.error(errorText + ctoid);
+      LOG.error(errorText + ctoid);
       error = 1;
     }
 
-    log.trace("<init");
+    LOG.trace("<init");
   } // init
 
   private void decrypt()
       throws CMSException, NoSuchProviderException, GeneralSecurityException,
           IOException {
-    if (log.isTraceEnabled()) {
-      log.trace(">decrypt");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">decrypt");
     }
     // Now we are getting somewhere (pheew),
     // Now we just have to get the damn key...to decrypt the PKCS10
     if (privateKey == null) {
       errorText = "Need private key to decrypt!";
-      error = 5;
-      log.error(errorText);
+      error = needKey;
+      LOG.error(errorText);
       return;
     }
 
     if (envEncData == null) {
       errorText = "No enveloped data to decrypt!";
-      error = 6;
-      log.error(errorText);
+      error = noData;
+      LOG.error(errorText);
       return;
     }
 
@@ -442,8 +459,8 @@ public class ScepRequestMessage extends PKCS10RequestMessage
 
     while (it.hasNext()) {
       RecipientInformation recipient = (RecipientInformation) it.next();
-      if (log.isDebugEnabled()) {
-        log.debug("Privatekey : " + privateKey.getAlgorithm());
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Privatekey : " + privateKey.getAlgorithm());
       }
       JceKeyTransEnvelopedRecipient rec =
           new JceKeyTransEnvelopedRecipient(privateKey);
@@ -466,8 +483,8 @@ public class ScepRequestMessage extends PKCS10RequestMessage
 
     if (messageType == ScepRequestMessage.SCEP_TYPE_PKCSREQ) {
       pkcs10 = new JcaPKCS10CertificationRequest(decBytes);
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Successfully extracted PKCS10:"
                 + new String(Base64.encode(pkcs10.getEncoded())));
       }
@@ -482,17 +499,17 @@ public class ScepRequestMessage extends PKCS10RequestMessage
         derAsn1InputStream.close();
       }
       issuerAndSerno = IssuerAndSerialNumber.getInstance(derobj);
-      log.debug("Successfully extracted IssuerAndSerialNumber.");
+      LOG.debug("Successfully extracted IssuerAndSerialNumber.");
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<decrypt");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<decrypt");
     }
   } // decrypt
 
   @Override
   public PublicKey getRequestPublicKey() {
-    if (log.isTraceEnabled()) {
-      log.trace(">getRequestPublicKey()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">getRequestPublicKey()");
     }
     PublicKey ret = null;
     try {
@@ -502,22 +519,22 @@ public class ScepRequestMessage extends PKCS10RequestMessage
       }
       ret = super.getRequestPublicKey();
     } catch (IOException e) {
-      log.error("PKCS7 not inited!");
+      LOG.error("PKCS7 not inited!");
     } catch (GeneralSecurityException e) {
-      log.error("Error in PKCS7:", e);
+      LOG.error("Error in PKCS7:", e);
     } catch (CMSException e) {
-      log.error("Error in PKCS7:", e);
+      LOG.error("Error in PKCS7:", e);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<getRequestPublicKey()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<getRequestPublicKey()");
     }
     return ret;
   }
 
   @Override
   public String getRequestAltNames() {
-    if (log.isTraceEnabled()) {
-      log.trace(">getRequestAltNames()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">getRequestAltNames()");
     }
     String ret = null;
     try {
@@ -527,22 +544,22 @@ public class ScepRequestMessage extends PKCS10RequestMessage
       }
       ret = super.getRequestAltNames();
     } catch (IOException e) {
-      log.error("PKCS7 not inited!");
+      LOG.error("PKCS7 not inited!");
     } catch (GeneralSecurityException e) {
-      log.error("Error in PKCS7:", e);
+      LOG.error("Error in PKCS7:", e);
     } catch (CMSException e) {
-      log.error("Error in PKCS7:", e);
+      LOG.error("Error in PKCS7:", e);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<getRequestAltNames()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<getRequestAltNames()");
     }
     return ret;
   }
 
   @Override
   public boolean verify() {
-    if (log.isTraceEnabled()) {
-      log.trace(">verify()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">verify()");
     }
     boolean ret = false;
     try {
@@ -552,22 +569,22 @@ public class ScepRequestMessage extends PKCS10RequestMessage
       }
       ret = super.verify();
     } catch (IOException e) {
-      log.error("PKCS7 not initialized!");
+      LOG.error("PKCS7 not initialized!");
     } catch (GeneralSecurityException e) {
-      log.error("Error in PKCS7:", e);
+      LOG.error("Error in PKCS7:", e);
     } catch (CMSException e) {
-      log.error("Error in PKCS7:", e);
+      LOG.error("Error in PKCS7:", e);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<verify()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<verify()");
     }
     return ret;
   }
 
   @Override
   public String getPassword() {
-    if (log.isTraceEnabled()) {
-      log.trace(">getPassword()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">getPassword()");
     }
     String ret = null;
     try {
@@ -577,22 +594,22 @@ public class ScepRequestMessage extends PKCS10RequestMessage
       }
       ret = super.getPassword();
     } catch (IOException e) {
-      log.error("PKCS7 not inited!");
+      LOG.error("PKCS7 not inited!");
     } catch (GeneralSecurityException e) {
-      log.error("Error in PKCS7:", e);
+      LOG.error("Error in PKCS7:", e);
     } catch (CMSException e) {
-      log.error("Error in PKCS7:", e);
+      LOG.error("Error in PKCS7:", e);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<getPassword()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<getPassword()");
     }
     return ret;
   }
 
   @Override
   public String getUsername() {
-    if (log.isTraceEnabled()) {
-      log.trace(">getUsername()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">getUsername()");
     }
     String ret = null;
     try {
@@ -605,7 +622,7 @@ public class ScepRequestMessage extends PKCS10RequestMessage
         // For Cisco boxes they can sometimes send DN as SN instead of CN
         String name = CertTools.getPartFromDN(getRequestDN(), "SN");
         if (name == null) {
-          log.error("No SN in DN: " + getRequestDN());
+          LOG.error("No SN in DN: " + getRequestDN());
           return null;
         }
         // Special if the DN contains unstructuredAddress where it becomes:
@@ -624,22 +641,22 @@ public class ScepRequestMessage extends PKCS10RequestMessage
         }
       }
     } catch (IOException e) {
-      log.error("PKCS7 not inited!");
+      LOG.error("PKCS7 not inited!");
     } catch (GeneralSecurityException e) {
-      log.error("Error in PKCS7:", e);
+      LOG.error("Error in PKCS7:", e);
     } catch (CMSException e) {
-      log.error("Error in PKCS7:", e);
+      LOG.error("Error in PKCS7:", e);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<getUsername(): " + ret);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<getUsername(): " + ret);
     }
     return ret;
   }
 
   @Override
   public String getIssuerDN() {
-    if (log.isTraceEnabled()) {
-      log.trace(">getIssuerDN()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">getIssuerDN()");
     }
     String ret = null;
     try {
@@ -648,18 +665,18 @@ public class ScepRequestMessage extends PKCS10RequestMessage
       }
       ret = issuerDN;
     } catch (IOException e) {
-      log.error("PKCS7 not inited!");
+      LOG.error("PKCS7 not inited!");
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<getIssuerDN(): " + ret);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<getIssuerDN(): " + ret);
     }
     return ret;
   }
 
   @Override
   public BigInteger getSerialNo() {
-    if (log.isTraceEnabled()) {
-      log.trace(">getSerialNo()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">getSerialNo()");
     }
     // Use another method to do the decryption etc...
     getIssuerDN();
@@ -668,8 +685,8 @@ public class ScepRequestMessage extends PKCS10RequestMessage
 
   @Override
   public String getCRLIssuerDN() {
-    if (log.isTraceEnabled()) {
-      log.trace(">getCRLIssuerDN()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">getCRLIssuerDN()");
     }
     String ret = null;
     try {
@@ -679,22 +696,22 @@ public class ScepRequestMessage extends PKCS10RequestMessage
       }
       ret = CertTools.stringToBCDNString(issuerAndSerno.getName().toString());
     } catch (IOException e) {
-      log.error("PKCS7 not inited!");
+      LOG.error("PKCS7 not inited!");
     } catch (GeneralSecurityException e) {
-      log.error("Error in PKCS7:", e);
+      LOG.error("Error in PKCS7:", e);
     } catch (CMSException e) {
-      log.error("Error in PKCS7:", e);
+      LOG.error("Error in PKCS7:", e);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<getCRLIssuerDN(): " + ret);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<getCRLIssuerDN(): " + ret);
     }
     return ret;
   }
 
   @Override
   public BigInteger getCRLSerialNo() {
-    if (log.isTraceEnabled()) {
-      log.trace(">getCRLSerialNo()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">getCRLSerialNo()");
     }
     BigInteger ret = null;
     try {
@@ -704,22 +721,22 @@ public class ScepRequestMessage extends PKCS10RequestMessage
       }
       ret = issuerAndSerno.getSerialNumber().getValue();
     } catch (IOException e) {
-      log.error("PKCS7 not inited!");
+      LOG.error("PKCS7 not inited!");
     } catch (GeneralSecurityException e) {
-      log.error("Error in PKCS7:", e);
+      LOG.error("Error in PKCS7:", e);
     } catch (CMSException e) {
-      log.error("Error in PKCS7:", e);
+      LOG.error("Error in PKCS7:", e);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<getCRLSerialNo(): " + ret);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<getCRLSerialNo(): " + ret);
     }
     return ret;
   }
 
   @Override
   public String getRequestDN() {
-    if (log.isTraceEnabled()) {
-      log.trace(">getRequestDN()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">getRequestDN()");
     }
     String ret = null;
     try {
@@ -729,14 +746,14 @@ public class ScepRequestMessage extends PKCS10RequestMessage
       }
       ret = super.getRequestDN();
     } catch (IOException e) {
-      log.error("PKCS7 not inited!");
+      LOG.error("PKCS7 not inited!");
     } catch (GeneralSecurityException e) {
-      log.error("Error in PKCS7:", e);
+      LOG.error("Error in PKCS7:", e);
     } catch (CMSException e) {
-      log.error("Error in PKCS7:", e);
+      LOG.error("Error in PKCS7:", e);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<getRequestDN(): " + ret);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<getRequestDN(): " + ret);
     }
     return ret;
   }
@@ -790,7 +807,7 @@ public class ScepRequestMessage extends PKCS10RequestMessage
   }
 
   /**
-   * Returns the type of SCEP message it is
+   * Returns the type of SCEP message it is.
    *
    * @return value as defined by SCEP_TYPE_PKCSREQ, SCEP_TYPE_GETCRL,
    *     SCEP_TYPE_GETCERT
@@ -813,9 +830,10 @@ public class ScepRequestMessage extends PKCS10RequestMessage
   private static class ScepVerifierProvider
       implements SignerInformationVerifierProvider {
 
-    private final SignerInformationVerifier signerInformationVerifier;
+	  /** param. */
+	  private final SignerInformationVerifier signerInformationVerifier;
 
-    public ScepVerifierProvider(final PublicKey publicKey)
+    ScepVerifierProvider(final PublicKey publicKey)
         throws OperatorCreationException {
       JcaDigestCalculatorProviderBuilder calculatorProviderBuilder =
           new JcaDigestCalculatorProviderBuilder()
@@ -832,4 +850,13 @@ public class ScepRequestMessage extends PKCS10RequestMessage
       return signerInformationVerifier;
     }
   }
+  
+  /** error. */
+  private final int badType = 3;
+  /** error. */
+  private final int badReq = 4;
+  /** error. */
+  private final int needKey = 5;
+  /** error. */
+  private final int noData = 6;
 }

@@ -23,37 +23,86 @@ import java.util.LinkedHashMap;
  */
 public interface AcmeAuthorization {
 
+    /**
+     * @return ID
+     */
   String getOrderId();
 
+  /**
+   * @param orderId ID
+   */
   void setOrderId(String orderId);
 
+  /**
+   * @return ID
+   */
   String getAuthorizationId();
 
+  /**
+   * @param authorizationId ID
+   */
   void setAuthorizationId(String authorizationId);
 
+  /**
+   * @return ID
+   */
   String getAccountId();
 
+  /**
+   * @param accountId IS
+   */
   void setAccountId(String accountId);
 
+  /**
+   * @return ID
+   */
   AcmeIdentifier getAcmeIdentifier();
 
+  /**
+   * @param acmeIdentifier ID
+   */
   void setAcmeIdentifier(AcmeIdentifier acmeIdentifier);
 
+  /**
+   * @return expiry
+   */
   long getExpires();
 
+  /**
+   * @param expires expiry
+   */
   void setExpires(long expires);
 
+  /**
+   * @return Wildcard
+   */
   boolean getWildcard();
 
+  /**
+   * @param wildcard Wildcard
+   */
   void setWildcard(boolean wildcard);
 
+  /**
+   * @return Status
+   */
   AcmeAuthorizationStatus getStatus();
 
+  /**
+   * @param acmeAuthorizationStatus Status
+   */
   void setStatus(AcmeAuthorizationStatus acmeAuthorizationStatus);
 
+  /**
+   * @return Version.
+   */
   float getLatestVersion();
 
+  /** Upgrade. */
   void upgrade();
 
+  /**
+   * @return data
+   */
   LinkedHashMap<Object, Object> getRawData();
 }

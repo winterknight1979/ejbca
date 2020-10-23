@@ -81,12 +81,13 @@ public class ScepResponseMessage implements CertificateResponseMessage {
    */
   static final long serialVersionUID = 2016710353393853879L;
 
+  /** log.*/
   private static Logger log = Logger.getLogger(ScepResponseMessage.class);
 
-  /** The encoded response message */
+  /** The encoded response message. */
   private byte[] responseMessage = null;
 
-  /** status for the response */
+  /** status for the response. */
   private ResponseStatus status = ResponseStatus.SUCCESS;
 
   /**
@@ -107,40 +108,43 @@ public class ScepResponseMessage implements CertificateResponseMessage {
    */
   private String recipientNonce = null;
 
-  /** transaction id */
+  /** transaction id. */
   private String transactionId = null;
 
   /** recipient key identifier, usually IssuerAndSerialno in X509 world. */
   private byte[] recipientKeyInfo = null;
 
-  /** Certificate to be in response message, not serialized */
+  /** Certificate to be in response message, not serialized. */
   private transient Certificate cert = null;
 
+  /** Param. */
   private transient CRL crl = null;
-  /** Certificate for the signer of the response message (CA or RA) */
+  /** Certificate for the signer of the response message (CA or RA). */
   private transient Collection<Certificate> signCertChain = null;
   /**
    * Certificate for the CA of the response certificate in successful responses,
-   * is the same as signCert if not using RA mode
+   * is the same as signCert if not using RA mode.
    */
   private transient Certificate caCert = null;
-  /** Private key used to sign the response message */
+  /** Private key used to sign the response message. */
   private transient PrivateKey signKey = null;
   /**
    * If the CA certificate should be included in the reponse or not, default to
-   * true = yes
+   * true = yes.
    */
   private transient boolean includeCACert = true;
 
   /** Default digest algorithm for SCEP response message, can be overridden */
   private transient String digestAlg = CMSSignedDataGenerator.DIGEST_MD5;
 
+  /** Param. */
   private transient CertificateData certificateData;
+  /** Param. */
   private transient Base64CertData base64CertData;
 
   /**
    * The default provider is BC, if nothing else is specified when setting
-   * SignKeyInfo
+   * SignKeyInfo.
    */
   private transient String provider = BouncyCastleProvider.PROVIDER_NAME;
 
@@ -150,9 +154,9 @@ public class ScepResponseMessage implements CertificateResponseMessage {
   }
 
   @Override
-  public void setCertificateData(final CertificateData certificateData) {
-    if (certificateData != null) {
-      this.certificateData = new CertificateData(certificateData);
+  public void setCertificateData(final CertificateData thecertificateData) {
+    if (thecertificateData != null) {
+      this.certificateData = new CertificateData(thecertificateData);
     } else {
       this.certificateData = null;
     }
@@ -164,17 +168,17 @@ public class ScepResponseMessage implements CertificateResponseMessage {
   }
 
   @Override
-  public void setBase64CertData(final Base64CertData base64CertData) {
-    if (base64CertData != null) {
-      this.base64CertData = new Base64CertData(base64CertData);
+  public void setBase64CertData(final Base64CertData thebase64CertData) {
+    if (thebase64CertData != null) {
+      this.base64CertData = new Base64CertData(thebase64CertData);
     } else {
       this.base64CertData = null;
     }
   }
 
   @Override
-  public void setCertificate(final Certificate cert) {
-    this.cert = cert;
+  public void setCertificate(final Certificate acert) {
+    this.cert = acert;
   }
 
   @Override
@@ -194,18 +198,18 @@ public class ScepResponseMessage implements CertificateResponseMessage {
   }
 
   @Override
-  public void setCrl(final CRL crl) {
-    this.crl = crl;
+  public void setCrl(final CRL acrl) {
+    this.crl = acrl;
   }
 
   @Override
-  public void setIncludeCACert(final boolean incCACert) {
-    this.includeCACert = incCACert;
+  public void setIncludeCACert(final boolean isincCACert) {
+    this.includeCACert = isincCACert;
   }
 
   @Override
-  public void setCACert(final Certificate caCert) {
-    this.caCert = caCert;
+  public void setCACert(final Certificate acaCert) {
+    this.caCert = acaCert;
   }
 
   @Override
@@ -214,8 +218,8 @@ public class ScepResponseMessage implements CertificateResponseMessage {
   }
 
   @Override
-  public void setStatus(final ResponseStatus status) {
-    this.status = status;
+  public void setStatus(final ResponseStatus astatus) {
+    this.status = astatus;
   }
 
   @Override
@@ -224,8 +228,8 @@ public class ScepResponseMessage implements CertificateResponseMessage {
   }
 
   @Override
-  public void setFailInfo(final FailInfo failInfo) {
-    this.failInfo = failInfo;
+  public void setFailInfo(final FailInfo afailInfo) {
+    this.failInfo = afailInfo;
   }
 
   @Override
@@ -234,8 +238,8 @@ public class ScepResponseMessage implements CertificateResponseMessage {
   }
 
   @Override
-  public void setFailText(final String failText) {
-    this.failText = failText;
+  public void setFailText(final String afailText) {
+    this.failText = afailText;
   }
 
   @Override
@@ -363,14 +367,14 @@ public class ScepResponseMessage implements CertificateResponseMessage {
       DERSet value;
 
       // Message type (certrep)
-      oid = new ASN1ObjectIdentifier(ScepRequestMessage.id_messageType);
+      oid = new ASN1ObjectIdentifier(ScepRequestMessage.ID_MESSAGETYPE);
       value = new DERSet(new DERPrintableString("3"));
       attr = new Attribute(oid, value);
       attributes.put(attr.getAttrType(), attr);
 
       // TransactionId
       if (transactionId != null) {
-        oid = new ASN1ObjectIdentifier(ScepRequestMessage.id_transId);
+        oid = new ASN1ObjectIdentifier(ScepRequestMessage.ID_TRANSID);
         log.debug("Added transactionId: " + transactionId);
         value = new DERSet(new DERPrintableString(transactionId));
         attr = new Attribute(oid, value);
@@ -378,13 +382,13 @@ public class ScepResponseMessage implements CertificateResponseMessage {
       }
 
       // status
-      oid = new ASN1ObjectIdentifier(ScepRequestMessage.id_pkiStatus);
+      oid = new ASN1ObjectIdentifier(ScepRequestMessage.ID_PKISTATUS);
       value = new DERSet(new DERPrintableString(status.getStringValue()));
       attr = new Attribute(oid, value);
       attributes.put(attr.getAttrType(), attr);
 
       if (status.equals(ResponseStatus.FAILURE)) {
-        oid = new ASN1ObjectIdentifier(ScepRequestMessage.id_failInfo);
+        oid = new ASN1ObjectIdentifier(ScepRequestMessage.ID_FAILINFO);
         log.debug("Added failInfo: " + failInfo.getValue());
         value = new DERSet(new DERPrintableString(failInfo.getValue()));
         attr = new Attribute(oid, value);
@@ -393,7 +397,7 @@ public class ScepResponseMessage implements CertificateResponseMessage {
 
       // senderNonce
       if (senderNonce != null) {
-        oid = new ASN1ObjectIdentifier(ScepRequestMessage.id_senderNonce);
+        oid = new ASN1ObjectIdentifier(ScepRequestMessage.ID_SENDERNONCE);
         log.debug("Added senderNonce: " + senderNonce);
         value =
             new DERSet(
@@ -404,7 +408,7 @@ public class ScepResponseMessage implements CertificateResponseMessage {
 
       // recipientNonce
       if (recipientNonce != null) {
-        oid = new ASN1ObjectIdentifier(ScepRequestMessage.id_recipientNonce);
+        oid = new ASN1ObjectIdentifier(ScepRequestMessage.ID_RECIPIENTNONCE);
         log.debug("Added recipientNonce: " + recipientNonce);
         value =
             new DERSet(
@@ -475,23 +479,23 @@ public class ScepResponseMessage implements CertificateResponseMessage {
   }
 
   @Override
-  public void setSenderNonce(final String senderNonce) {
-    this.senderNonce = senderNonce;
+  public void setSenderNonce(final String asenderNonce) {
+    this.senderNonce = asenderNonce;
   }
 
   @Override
-  public void setRecipientNonce(final String recipientNonce) {
-    this.recipientNonce = recipientNonce;
+  public void setRecipientNonce(final String arecipientNonce) {
+    this.recipientNonce = arecipientNonce;
   }
 
   @Override
-  public void setTransactionId(final String transactionId) {
-    this.transactionId = transactionId;
+  public void setTransactionId(final String atransactionId) {
+    this.transactionId = atransactionId;
   }
 
   @Override
-  public void setRecipientKeyInfo(final byte[] recipientKeyInfo) {
-    this.recipientKeyInfo = recipientKeyInfo;
+  public void setRecipientKeyInfo(final byte[] arecipientKeyInfo) {
+    this.recipientKeyInfo = arecipientKeyInfo;
   }
 
   @Override
@@ -500,13 +504,13 @@ public class ScepResponseMessage implements CertificateResponseMessage {
   }
 
   @Override
-  public void setRequestType(final int reqtype) {}
+  public void setRequestType(final int reqtype) { }
 
   @Override
-  public void setRequestId(final int reqid) {}
+  public void setRequestId(final int reqid) { }
 
   @Override
-  public void setProtectionParamsFromRequest(final RequestMessage reqMsg) {}
+  public void setProtectionParamsFromRequest(final RequestMessage reqMsg) { }
 
   @Override
   public void addAdditionalCaCertificates(

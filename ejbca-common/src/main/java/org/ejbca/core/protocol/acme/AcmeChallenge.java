@@ -26,63 +26,131 @@ import org.ejbca.core.protocol.acme.AcmeIdentifier.AcmeIdentifierTypes;
  */
 public interface AcmeChallenge {
 
+    /**
+     * @return ID
+     */
   String getChallengeId();
 
+  /**
+   * @param challengeId ID
+   */
   void setChallengeId(String challengeId);
 
+  /**
+   * @return ID
+   */
   String getAuthorizationId();
 
+  /**
+   * @param authorizationId ID
+   */
   void setAuthorizationId(String authorizationId);
 
+  /**
+   * @return type
+   */
   String getType();
 
+  /**
+   * @param type type
+   */
   void setType(String type);
 
+  /**
+   * @return URL
+   */
   String getUrl();
 
+  /**
+   * @param url URL
+   */
   void setUrl(String url);
 
+  /**
+   * @return Status
+   */
   AcmeChallengeStatus getStatus();
 
+  /**
+   * @param status Status
+   */
   void setStatus(AcmeChallengeStatus status);
 
+  /**
+   * @return Val
+   */
   String getValidated();
 
+  /**
+   * @param validated val
+   */
   void setValidated(String validated);
 
+  /**
+   * @return token
+   */
   String getToken();
 
+  /**
+   * @param token token
+   */
   void setToken(String token);
 
+  /**
+   * @return auth
+   */
   String getKeyAuthorization();
 
+  /**
+   * @param keyAuthorization Auth
+   */
   void setKeyAuthorization(String keyAuthorization);
 
+  /**
+   * @return Version
+   */
   float getLatestVersion();
 
+  /** Upgrade. */
   void upgrade();
 
+  /**
+   * @return Data
+   */
   LinkedHashMap<Object, Object> getRawData();
 
-  public static enum AcmeChallengeType {
+  enum AcmeChallengeType {
+      /** HTTP. */
     DNS_HTTP_01(AcmeIdentifierTypes.DNS, "http-01"),
-    DNS_DNS_01(AcmeIdentifierTypes.DNS, "dns-01"),
-    ;
+    /** DNS. */
+    DNS_DNS_01(AcmeIdentifierTypes.DNS, "dns-01");
 
+      /** ID. */
     private final AcmeIdentifierTypes acmeIdentifierType;
+    /** Challenge. */
     private final String challengeType;
 
-    private AcmeChallengeType(
-        final AcmeIdentifierTypes acmeIdentifierType,
-        final String challengeType) {
-      this.acmeIdentifierType = acmeIdentifierType;
-      this.challengeType = challengeType;
+    /**
+     * @param anacmeIdentifierType ID
+     * @param achallengeType Chammenge
+     */
+    AcmeChallengeType(
+        final AcmeIdentifierTypes anacmeIdentifierType,
+        final String achallengeType) {
+      this.acmeIdentifierType = anacmeIdentifierType;
+      this.challengeType = achallengeType;
     }
 
+    /**
+     * @return Type
+     */
     public AcmeIdentifierTypes getAcmeIdentifierType() {
       return acmeIdentifierType;
     }
 
+    /**
+     * @return Type
+     */
     public String getChallengeType() {
       return challengeType;
     }

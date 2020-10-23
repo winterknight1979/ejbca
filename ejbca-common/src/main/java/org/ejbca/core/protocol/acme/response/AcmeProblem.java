@@ -14,57 +14,87 @@ package org.ejbca.core.protocol.acme.response;
 
 /** @version $Id: AcmeProblem.java 29845 2018-09-08 21:49:10Z aminkh $ */
 public enum AcmeProblem {
+      /** Constant. */
   PROBLEM_BAD_CSR(
       "badCSR", "The CSR is unacceptable (e.g., due to a short key)"),
+  /** Constant. */
   PROBLEM_BAD_NONCE(
       "badNonce", "The client sent an unacceptable anti-replay nonce"),
+  /** Constant. */
   PROBLEM_BAD_SIGNATURE_ALGORITHM(
       "badSignatureAlgorithm",
       "The JWS was signed with an algorithm the server does not support"),
+  /** Constant. */
   PROBLEM_INVALID_CONTACT(
       "invalidContact", "The contact URI for an account was invalid"),
+  /** Constant. */
   PROBLEM_MALFORMED("malformed", "The request message was malformed"),
+  /** Constant. */
   PROBLEM_RATE_LIMITED("rateLimited", "The request exceeds a rate limit"),
+  /** Constant. */
   PROBLEM_REJECTED_INDENTIFIER(
       "rejectedIdentifier",
       "The server will not issue certificate for the identifier"),
+  /** Constant. */
   PROBLEM_SERVER_INTERNAL(
       "serverInternal", "The server experienced an internal error"),
+  /** Constant. */
   PROBLEM_UNAUTHORIZED(
       "unauthorized", "The client lacks sufficient authorization"),
+  /** Constant. */
   PROBLEM_UNSUPPORTED_INDENTIFIER(
       "unsupportedIdentifier",
       "Identifier is not supported, but may be in future"),
+  /** Constant. */
   PROBLEM_USER_ACTION_REQUIRED(
       "userActionRequired",
       "Visit the \"instance\" URL and take actions specified there"),
+  /** Constant. */
   PROBLEM_BAD_REVOCATION_REASON(
       "badRevocationReason",
       "The revocation reason provided is not allowed by the server"),
+  /** Constant. */
   PROBLEM_CAA("caa", "CAA records forbid the CA from issuing"),
+  /** Constant. */
   PROBLEM_DNS("dns", "There was a problem with a DNS query"),
+  /** Constant. */
   PROBLEM_CONNECTION(
       "connection", "The server could not connect to validation target"),
+  /** Constant. */
   PROBLEM_TLS("tls", "The server received a TLS error during validation"),
+  /** Constant. */
   PROBLEM_INCORRECT_RESPONSE(
       "incorrectResponse",
       "Response received didn't match the challenge's requirements"),
+  /** Constant. */
   PROBLEM_ACCOUNT_DOES_NOT_EXIST(
       "accountDoesNotExist",
       "The request specified an account that does not exist");
 
+    /**
+     * Type.
+     */
   private final String type;
+  /** detail. */
   private final String detail;
 
-  private AcmeProblem(final String subType, final String description) {
+  /**
+   * @param subType type
+   * @param description desc
+   */
+  AcmeProblem(final String subType, final String description) {
     this.type = "urn:ietf:params:acme:error:" + subType;
     this.detail = description;
   }
 
+  /** @return type. */
   public String getType() {
     return type;
   }
 
+  /**
+   * @return detail
+   */
   public String getDetail() {
     return detail;
   }

@@ -17,17 +17,30 @@ package org.ejbca.core.protocol.acme;
  *     mikekushner $
  */
 public enum AcmeAuthorizationStatus {
+    /** Pending. */
   PENDING,
+  /** Processing. */
   PROCESSING,
+  /** Valid. */
   VALID,
+  /** invalid. */
   INVALID,
+  /** Revoked. */
   REVOKED,
+  /** Deact. */
   DEACTIVATED;
 
+    /**
+     * @return value
+     */
   public String getJsonValue() {
     return this.name().toLowerCase();
   }
 
+  /**
+   * @param status Status
+   * @return enum
+   */
   public static AcmeAuthorizationStatus fromJsonValue(final String status) {
     return AcmeAuthorizationStatus.valueOf(status.toUpperCase());
   }
