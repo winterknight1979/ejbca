@@ -86,7 +86,7 @@ public class ScepRequestMessage extends PKCS10RequestMessage
   static final long serialVersionUID = -235623330828902051L;
 
   /** Log. */
-  private static Logger LOG = Logger.getLogger(ScepRequestMessage.class);
+  private static final Logger LOG = Logger.getLogger(ScepRequestMessage.class);
 
   /** Param. */
   public static final String ID_VERISIGN = "2.16.840.1.113733";
@@ -109,7 +109,7 @@ public class ScepRequestMessage extends PKCS10RequestMessage
   /** Param. */
   public static final String ID_EXTENSIONREQ = ID_ATTRIBUTES + ".8";
 
-  /** Raw form of the Scep message, */
+  /** Raw form of the Scep message. */
   private final byte[] scepmsg;
 
   /**

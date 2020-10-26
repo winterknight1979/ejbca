@@ -134,7 +134,7 @@ public class ScepResponseMessage implements CertificateResponseMessage {
    */
   private transient boolean includeCACert = true;
 
-  /** Default digest algorithm for SCEP response message, can be overridden */
+  /** Default digest algorithm for SCEP response message, can be overridden. */
   private transient String digestAlg = CMSSignedDataGenerator.DIGEST_MD5;
 
   /** Param. */

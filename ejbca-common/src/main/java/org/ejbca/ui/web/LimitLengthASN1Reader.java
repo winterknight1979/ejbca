@@ -29,7 +29,8 @@ import org.ejbca.core.model.InternalEjbcaResources;
  * first tag is not a sequence. Example usage:
  *
  * <pre>
- * final ServletInputStream in = request.getInputStream(); // ServletInputStream does not have to be closed, container handles this
+ * final ServletInputStream in = request.getInputStream();
+ * // ServletInputStream does not have to be closed, container handles this
  * ret = new LimitLengthASN1Reader(in, n).readFirstASN1Object();
  * </pre>
  *
@@ -38,28 +39,33 @@ import org.ejbca.core.model.InternalEjbcaResources;
  */
 public class LimitLengthASN1Reader extends ASN1InputStream {
 
-  private static final Logger m_log =
+    /** Logger. */
+  private static final Logger M_LOG =
       Logger.getLogger(LimitLengthASN1Reader.class);
-  /** Internal localization of logs and errors */
-  private static final InternalEjbcaResources intres =
+  /** Internal localization of logs and errors. */
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
-  /** Max size of a request is 100000 bytes */
+  /** Max size of a request is 100000 bytes. */
   public static final int MAX_REQUEST_SIZE = 100000;
 
+  /** Output. */
   private final ByteArrayOutputStream baos;
 
+  /**
+   * length.
+   */
   private final int contentLength;
   /**
    * @param input IS
-   * @param contentLength the provided contentLength, we do not trust it but
+   * @param thecontentLength the provided contentLength, we do not trust it but
    *     will use it if given
    */
   public LimitLengthASN1Reader(
-      final InputStream input, final int contentLength) {
+      final InputStream input, final int thecontentLength) {
     super(input, MAX_REQUEST_SIZE);
     this.baos = new ByteArrayOutputStream();
-    this.contentLength = contentLength;
+    this.contentLength = thecontentLength;
   }
   /* (non-Javadoc)
    * @see java.io.FilterInputStream#read()
@@ -73,7 +79,7 @@ public class LimitLengthASN1Reader extends ASN1InputStream {
   }
   /**
    * Read the 'value' of the top ASN1 object and append it to the already read
-   * 'tag' and 'value'
+   * 'tag' and 'value'.
    *
    * @param length nr of value bytes that we should read
    * @return the top ASN1 object
@@ -105,11 +111,11 @@ public class LimitLengthASN1Reader extends ASN1InputStream {
       // If we have read less bytes than we should have, the asn.1 was incorrect
       // and this might be some type of attempt to perform buffer overflow
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "request.notcorrectasn1length",
               Integer.valueOf(length),
               Integer.valueOf(bytesRead));
-      m_log.info(msg);
+      M_LOG.info(msg);
       throw new MalformedRequestException(msg);
     }
     this.baos.flush();
@@ -127,22 +133,23 @@ public class LimitLengthASN1Reader extends ASN1InputStream {
    */
   public byte[] readFirstASN1Object()
       throws IOException, MalformedRequestException {
-    final int tag = read() & 0x1f;
+    final int mask = 0x1f;
+    final int tag = read() & mask;
     if (tag != SEQUENCE) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "request.notasequence", Integer.valueOf(tag));
-      m_log.info(msg);
+      M_LOG.info(msg);
       throw new MalformedRequestException(msg);
     }
     final int length = readLength();
     if (length > MAX_REQUEST_SIZE) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "request.toolarge",
               Integer.valueOf(MAX_REQUEST_SIZE),
               Integer.valueOf(length));
-      m_log.info(msg);
+      M_LOG.info(msg);
       throw new MalformedRequestException(msg);
     }
     // If there was an asn.1 stream of undefined length we will try to read it
@@ -150,22 +157,23 @@ public class LimitLengthASN1Reader extends ASN1InputStream {
     if (length < 0) { // undefined length
       if (this.contentLength > MAX_REQUEST_SIZE) {
         final String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "request.toolarge",
                 Integer.valueOf(MAX_REQUEST_SIZE),
                 Integer.valueOf(this.baos.size()));
-        m_log.info(msg);
+        M_LOG.info(msg);
         throw new MalformedRequestException(msg);
       }
       final int tlByteLength = this.baos.toByteArray().length;
       if (this.contentLength
           < tlByteLength) { // Content-length invalid. Try to read although.
-        if (m_log.isTraceEnabled()) {
-          m_log.trace(
+        if (M_LOG.isTraceEnabled()) {
+          M_LOG.trace(
               "No content-length, reading as much as we have"
                   + " (<MAX_REQUEST_SIZE)");
         }
-        final byte[] t = new byte[10240];
+        final int tenK = 10240; // 10KB
+        final byte[] t = new byte[tenK];
         int r = 0;
         int len = 0;
         while (((len = read(t)) != -1)
@@ -179,8 +187,8 @@ public class LimitLengthASN1Reader extends ASN1InputStream {
         return this.baos.toByteArray();
       }
       // Read content-length bytes from stream
-      if (m_log.isTraceEnabled()) {
-        m_log.trace("Got content-length: " + this.contentLength);
+      if (M_LOG.isTraceEnabled()) {
+        M_LOG.trace("Got content-length: " + this.contentLength);
       }
       return readTopASN1(
           this.contentLength
@@ -189,8 +197,8 @@ public class LimitLengthASN1Reader extends ASN1InputStream {
                                // tested above.
     }
     // defined length, just read as many bytes as the length tag says
-    if (m_log.isTraceEnabled()) {
-      m_log.trace("Got ASN1 length: " + length);
+    if (M_LOG.isTraceEnabled()) {
+      M_LOG.trace("Got ASN1 length: " + length);
     }
     return readTopASN1(length);
   }

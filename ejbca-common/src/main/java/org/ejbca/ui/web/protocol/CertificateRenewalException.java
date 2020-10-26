@@ -23,7 +23,7 @@ public class CertificateRenewalException extends Exception {
   private static final long serialVersionUID = 1L;
 
   /** @see java.lang.Exception#Exception() */
-  public CertificateRenewalException() {}
+  public CertificateRenewalException() { }
 
   /**
    * @param message message

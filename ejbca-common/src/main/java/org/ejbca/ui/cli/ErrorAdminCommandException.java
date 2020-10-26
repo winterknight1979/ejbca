@@ -16,7 +16,8 @@ package org.ejbca.ui.cli;
 import org.ejbca.core.EjbcaException;
 
 /**
- * The exception thrown when an error occurs in an Admin Command (IAdminCommand)
+ * The exception thrown when an error occurs in an Admin Command
+ * (IAdminCommand).
  *
  * @version $Id: ErrorAdminCommandException.java 19901 2014-09-30 14:29:38Z
  *     anatom $
@@ -24,7 +25,7 @@ import org.ejbca.core.EjbcaException;
 public class ErrorAdminCommandException extends EjbcaException {
   private static final long serialVersionUID = -6765140792703909521L;
 
-  /**
+  /**.
    * Creates a new instance of ErrorAdminCommandException
    *
    * @param message error message
@@ -34,7 +35,7 @@ public class ErrorAdminCommandException extends EjbcaException {
   }
 
   /**
-   * Creates a new instance of ErrorAdminCommandException
+   * Creates a new instance of ErrorAdminCommandException.
    *
    * @param exception root cause of error
    */

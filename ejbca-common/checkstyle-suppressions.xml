@@ -43,6 +43,7 @@
  	<suppress checks="ParameterNumberCheck" files="UserDataVO.java" lines="120,171"/>
  	<suppress checks="MagicNumberCheck" files="ServiceConfiguration.java" lines="299-319"/> <!-- Version numbers -->
  	<suppress checks="MethodLengthCheck" files="ScepRequestMessage.java" lines="236"/>
+ 	<suppress checks="MethodLengthCheck" files="ScepResponseMessage.java" lines="250"/>
  	
  	
  	
