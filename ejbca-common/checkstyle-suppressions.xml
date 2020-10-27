@@ -46,5 +46,6 @@
  	<suppress checks="MethodLengthCheck" files="ScepResponseMessage.java" lines="250"/>
  	<suppress checks="InnerAssignmentCheck" files="JAXWSDocAndConvTools.java" /> <!-- Seems to mess up flow control if rrefactored. -->
  	<suppress checks="ParameterNumberCheck" files="PrinterManager.java" lines="108"/>
+ 	<suppress checks="MethodLengthCheck" files="UserFulfillEndEntityProfileTest.java" lines="64"/>
  	
  </suppressions>

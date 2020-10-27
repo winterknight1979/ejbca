@@ -29,13 +29,14 @@ import org.ejbca.util.crypto.SupportedPasswordHashAlgorithm;
 import org.junit.Test;
 
 /**
- * Unit tests for the CliAuthenticationToken class
+ * Unit tests for the CliAuthenticationToken class.
  *
  * @version $Id: CliAuthenticationTokenTest.java 25240 2017-02-10 02:08:09Z
  *     jeklund $
  */
 public class CliAuthenticationTokenTest {
 
+    /** dalt. */
   private static final String BCRYPT_SALT = "$2a$01$Hja7ojbew3RWKA5d4AXMt.";
 
   /**
@@ -69,7 +70,12 @@ public class CliAuthenticationTokenTest {
 
     EasyMock.verify(accessUser);
   }
-
+  /**
+   * Test.
+ * @throws IOException fail
+ * @throws ClassNotFoundException fail
+ * @throws AuthenticationFailedException fail
+   */
   @Test
   public void testUseTokenDoesNotWorkAfterSerialization()
       throws IOException, ClassNotFoundException,
@@ -115,7 +121,14 @@ public class CliAuthenticationTokenTest {
 
     EasyMock.verify(accessUser);
   }
-
+  /**
+   * Test.
+ * @throws AuthenticationFailedException fail
+ * @throws SecurityException fail
+ * @throws NoSuchFieldException fail
+ * @throws IllegalArgumentException fail
+ * @throws IllegalAccessException fail
+   */
   @Test
   public void testReplayAttack()
       throws AuthenticationFailedException, SecurityException,
@@ -154,6 +167,10 @@ public class CliAuthenticationTokenTest {
     EasyMock.verify(accessUser);
   }
 
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testIncorrectPasswordBehaviour() throws Exception {
     final Long referenceNumber = 0L;

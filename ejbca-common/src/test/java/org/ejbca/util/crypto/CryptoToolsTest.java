@@ -22,7 +22,9 @@ import org.junit.Test;
  * @version $Id: CryptoToolsTest.java 19902 2014-09-30 14:32:24Z anatom $
  */
 public class CryptoToolsTest {
-
+    /**
+       * Test.
+       */
   @Test
   public void testExtractSaltFromPasswordHash() {
     // Firstly, generate a hash.

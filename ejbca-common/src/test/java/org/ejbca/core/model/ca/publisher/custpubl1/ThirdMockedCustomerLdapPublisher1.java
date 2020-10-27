@@ -30,21 +30,31 @@ import org.ejbca.core.model.ca.publisher.PublisherException;
  */
 public class ThirdMockedCustomerLdapPublisher1 extends CustomerLdapPublisher1 {
 
+      /** Param. */
   private boolean writeLogEntryToLDAPCalled;
+  /** Param. */
   private final List<WriteLogEntryToLDAPParameters>
       writeLogEntryToLDAPParameters =
           new ArrayList<WriteLogEntryToLDAPParameters>();
 
+  /** Param. */
   private final HashSet<String> storedDNs = new HashSet<String>();
 
+  /** Param. */
   private long time;
 
+  /**
+   * @return time
+   */
   public long getTime() {
     return time;
   }
 
-  public void setTime(final long time) {
-    this.time = time;
+  /**
+   * @param atime time
+   */
+  public void setTime(final long atime) {
+    this.time = atime;
   }
 
   @Override
@@ -73,33 +83,53 @@ public class ThirdMockedCustomerLdapPublisher1 extends CustomerLdapPublisher1 {
     }
   }
 
+  /**
+   * @return bool
+   */
   public boolean isWriteLogEntryToLDAPCalled() {
     return writeLogEntryToLDAPCalled;
   }
 
+  /**
+   * @return List
+   */
   public List<WriteLogEntryToLDAPParameters>
       getWriteCertEntryToLDAPParameters() {
     return writeLogEntryToLDAPParameters;
   }
 
+  /** Clear.
+   */
   public void clearWriteCertEntryToLDAPParameters() {
     writeLogEntryToLDAPParameters.clear();
   }
 
   public static class WriteLogEntryToLDAPParameters {
+        /** Param. */
     private final LDAPConnection lc;
+    /** Param. */
     private final LDAPEntry newEntry;
 
+    /**
+     * @param anlc lc
+     * @param anewEntry entry
+     */
     public WriteLogEntryToLDAPParameters(
-        final LDAPConnection lc, final LDAPEntry newEntry) {
-      this.lc = lc;
-      this.newEntry = newEntry;
+        final LDAPConnection anlc, final LDAPEntry anewEntry) {
+      this.lc = anlc;
+      this.newEntry = anewEntry;
     }
 
+    /**
+     * @return LC
+     */
     public LDAPConnection getLc() {
       return lc;
     }
 
+    /**
+     * @return entry
+     */
     public LDAPEntry getNewEntry() {
       return newEntry;
     }

@@ -37,6 +37,7 @@ import org.junit.Test;
  */
 public class EndEntityProfileTest {
 
+      /** Test. */
   @Test
   public void testEndEntityProfileDiff() {
     EndEntityProfile foo = new EndEntityProfile();
@@ -82,7 +83,7 @@ public class EndEntityProfileTest {
       // NOPMD should throw
     }
   }
-
+  /** Test. */
   @Test
   public void testProfileValuesEE() {
     EndEntityProfile profile = new EndEntityProfile();
@@ -107,7 +108,7 @@ public class EndEntityProfileTest {
     assertTrue(profile.getUse(DnComponents.ORGANIZATION, 0));
     assertFalse(profile.getUse("Foo", 0));
   }
-
+  /** Test. */
   @Test
   public void testUserFulfillEndEntityProfile() {
     EndEntityProfile profile = new EndEntityProfile();

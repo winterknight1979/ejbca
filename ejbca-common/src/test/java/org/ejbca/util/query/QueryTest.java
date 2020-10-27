@@ -25,8 +25,12 @@ import org.junit.Test;
  * @version $Id: QueryTest.java 26487 2017-09-05 12:28:51Z henriks $
  */
 public class QueryTest {
+    /** Logger. */
   private static Logger log = Logger.getLogger(QueryTest.class);
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void test01TestUserQuery() throws Exception {
     log.trace(">test01TestUserQuery()");
@@ -46,7 +50,10 @@ public class QueryTest {
 
     log.trace("<test01TestUserQuery()");
   }
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testUserQueryTrim() throws Exception {
     log.trace(">testUserQueryTrim");
@@ -66,6 +73,10 @@ public class QueryTest {
     log.trace("<testUserQueryTrim");
   }
 
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testUserQuerySingleQuote() throws Exception {
     log.trace(">testUserQuerySingleQuote");

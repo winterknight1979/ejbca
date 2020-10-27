@@ -12,15 +12,20 @@
  *************************************************************************/
 package org.ejbca.core.model.ca.publisher.custpubl1;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
-import com.novell.ldap.LDAPAttributeSet;
-import com.novell.ldap.LDAPEntry;
 import java.security.cert.Certificate;
 import java.security.cert.X509CRL;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Properties;
+
 import org.cesecore.authentication.tokens.AlwaysAllowLocalAuthenticationToken;
 import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.cesecore.authentication.tokens.UsernamePrincipal;
@@ -34,6 +39,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.novell.ldap.LDAPAttributeSet;
+import com.novell.ldap.LDAPEntry;
+
 /**
  * Test case for the CustomerLdapPublisher1.
  *
@@ -45,59 +53,75 @@ import org.junit.Test;
  */
 public class CustomerLdapPublisher1UnitTest {
 
+      /** Config. */
   private static final AuthenticationToken ANY_ADMIN =
       new AlwaysAllowLocalAuthenticationToken(
           new UsernamePrincipal("CertificateSamplerCustomPublisherUnitTest"));
+  /** Config. */
   private static final byte[] ANY_BYTEARRAY = new byte[0];
+  /** Config. */
   private static final String ANY_CAFP = "44447777111";
+  /** Config. */
   private static final int ANY_NUMBER = 4711;
+  /** Config. */
   private static final String ANY_SUBJECTDN = "CN=User";
+  /** Config. */
   private static final Certificate NULL_CERTIFICATE = null;
+  /** Config. */
   private static final String ANY_USERNAME = "user1";
+  /** Config. */
   private static final String ANY_PASSWORD = "foo123!";
+  /** Config. */
   private static final String ANY_TAG = "any tag";
+  /** Config. */
   private static final byte[] CERT_BYTES =
       Base64.decode(
           ("MIICNzCCAaCgAwIBAgIIIOqiVwJHz+8wDQYJKoZIhvcNAQEFBQAwKzENMAsGA1UE"
-               + "AxMEVGVzdDENMAsGA1UEChMEVGVzdDELMAkGA1UEBhMCU0UwHhcNMDQwNTA4MDkx"
-               + "ODMwWhcNMDUwNTA4MDkyODMwWjArMQ0wCwYDVQQDEwRUZXN0MQ0wCwYDVQQKEwRU"
-               + "ZXN0MQswCQYDVQQGEwJTRTCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEAgbf2"
-               + "Sv34lsY43C8WJjbUd57TNuHJ6p2Es7ojS3D2yxtzQg/A8wL1OfXes344PPNGHkDd"
-               + "QPBaaWYQrvLvqpjKwx/vA1835L3I92MsGs+uivq5L5oHfCxEh8Kwb9J2p3xjgeWX"
-               + "YdZM5dBj3zzyu+Jer4iU4oCAnnyG+OlVnPsFt6ECAwEAAaNkMGIwDwYDVR0TAQH/"
-               + "BAUwAwEB/zAPBgNVHQ8BAf8EBQMDBwYAMB0GA1UdDgQWBBQArVZXuGqbb9yhBLbu"
-               + "XfzjSuXfHTAfBgNVHSMEGDAWgBQArVZXuGqbb9yhBLbuXfzjSuXfHTANBgkqhkiG"
-               + "9w0BAQUFAAOBgQA1cB6wWzC2rUKBjFAzfkLvDUS3vEMy7ntYMqqQd6+5s1LHCoPw"
-               + "eaR42kMWCxAbdSRgv5ATM0JU3Q9jWbLO54FkJDzq+vw2TaX+Y5T+UL1V0o4TPKxp"
-               + "nKuay+xl5aoUcVEs3h3uJDjcpgMAtyusMEyv4d+RFYvWJWFzRTKDueyanw==")
-              .getBytes());
+           + "AxMEVGVzdDENMAsGA1UEChMEVGVzdDELMAkGA1UEBhMCU0UwHhcNMDQwNTA4MDkx"
+           + "ODMwWhcNMDUwNTA4MDkyODMwWjArMQ0wCwYDVQQDEwRUZXN0MQ0wCwYDVQQKEwRU"
+           + "ZXN0MQswCQYDVQQGEwJTRTCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEAgbf2"
+           + "Sv34lsY43C8WJjbUd57TNuHJ6p2Es7ojS3D2yxtzQg/A8wL1OfXes344PPNGHkDd"
+           + "QPBaaWYQrvLvqpjKwx/vA1835L3I92MsGs+uivq5L5oHfCxEh8Kwb9J2p3xjgeWX"
+           + "YdZM5dBj3zzyu+Jer4iU4oCAnnyG+OlVnPsFt6ECAwEAAaNkMGIwDwYDVR0TAQH/"
+           + "BAUwAwEB/zAPBgNVHQ8BAf8EBQMDBwYAMB0GA1UdDgQWBBQArVZXuGqbb9yhBLbu"
+           + "XfzjSuXfHTAfBgNVHSMEGDAWgBQArVZXuGqbb9yhBLbuXfzjSuXfHTANBgkqhkiG"
+           + "9w0BAQUFAAOBgQA1cB6wWzC2rUKBjFAzfkLvDUS3vEMy7ntYMqqQd6+5s1LHCoPw"
+           + "eaR42kMWCxAbdSRgv5ATM0JU3Q9jWbLO54FkJDzq+vw2TaX+Y5T+UL1V0o4TPKxp"
+           + "nKuay+xl5aoUcVEs3h3uJDjcpgMAtyusMEyv4d+RFYvWJWFzRTKDueyanw==")
+          .getBytes());
+  /** Config. */
   private static final String CERT_ISSUERDN = "CN=Test,O=Test,C=SE";
+  /** Config. */
   private static final byte[] ANY_CERT_BYTES = CERT_BYTES;
 
+  /** Config. */
   private static final byte[] CRL_BYTES =
       Base64.decode(
           ("MIIDEzCCAnwCAQEwDQYJKoZIhvcNAQEFBQAwLzEPMA0GA1UEAxMGVGVzdENBMQ8w"
-               + "DQYDVQQKEwZBbmFUb20xCzAJBgNVBAYTAlNFFw0wMjAxMDMxMjExMTFaFw0wMjAx"
-               + "MDIxMjExMTFaMIIB5jAZAggfi2rKt4IrZhcNMDIwMTAzMTIxMDUxWjAZAghAxdYk"
-               + "7mJxkxcNMDIwMTAzMTIxMDUxWjAZAgg+lCCL+jumXxcNMDIwMTAzMTIxMDUyWjAZ"
-               + "Agh4AAPpzSk/+hcNMDIwMTAzMTIxMDUyWjAZAghkhx9SFvxAgxcNMDIwMTAzMTIx"
-               + "MDUyWjAZAggj4g5SUqaGvBcNMDIwMTAzMTIxMDUyWjAZAghT+nqB0c6vghcNMDIw"
-               + "MTAzMTE1MzMzWjAZAghsBWMAA55+7BcNMDIwMTAzMTE1MzMzWjAZAgg8h0t6rKQY"
-               + "ZhcNMDIwMTAzMTE1MzMzWjAZAgh7KFsd40ICwhcNMDIwMTAzMTE1MzM0WjAZAggA"
-               + "kFlDNU8ubxcNMDIwMTAzMTE1MzM0WjAZAghyQfo1XNl0EBcNMDIwMTAzMTE1MzM0"
-               + "WjAZAggC5Pz7wI/29hcNMDIwMTAyMTY1NDMzWjAZAggEWvzRRpFGoRcNMDIwMTAy"
-               + "MTY1NDMzWjAZAggC7Q2W0iXswRcNMDIwMTAyMTY1NDMzWjAZAghrfwG3t6vCiBcN"
-               + "MDIwMTAyMTY1NDMzWjAZAgg5C+4zxDGEjhcNMDIwMTAyMTY1NDMzWjAZAggX/olM"
-               + "45KxnxcNMDIwMTAyMTY1NDMzWqAvMC0wHwYDVR0jBBgwFoAUy5k/bKQ6TtpTWhsP"
-               + "WFzafOFgLmswCgYDVR0UBAMCAQQwDQYJKoZIhvcNAQEFBQADgYEAPvYDZofCOopw"
-               + "OCKVGaK1aPpHkJmu5Xi1XtRGO9DhmnSZ28hrNu1A5R8OQI43Z7xFx8YK3S56GRuY"
-               + "0EGU/RgM3AWhyTAps66tdyipRavKmH6MMrN4ypW/qbhsd4o8JE9pxxn9zsQaNxYZ"
-               + "SNbXM2/YxkdoRSjkrbb9DUdCmCR/kEA=")
-              .getBytes());
+           + "DQYDVQQKEwZBbmFUb20xCzAJBgNVBAYTAlNFFw0wMjAxMDMxMjExMTFaFw0wMjAx"
+           + "MDIxMjExMTFaMIIB5jAZAggfi2rKt4IrZhcNMDIwMTAzMTIxMDUxWjAZAghAxdYk"
+           + "7mJxkxcNMDIwMTAzMTIxMDUxWjAZAgg+lCCL+jumXxcNMDIwMTAzMTIxMDUyWjAZ"
+           + "Agh4AAPpzSk/+hcNMDIwMTAzMTIxMDUyWjAZAghkhx9SFvxAgxcNMDIwMTAzMTIx"
+           + "MDUyWjAZAggj4g5SUqaGvBcNMDIwMTAzMTIxMDUyWjAZAghT+nqB0c6vghcNMDIw"
+           + "MTAzMTE1MzMzWjAZAghsBWMAA55+7BcNMDIwMTAzMTE1MzMzWjAZAgg8h0t6rKQY"
+           + "ZhcNMDIwMTAzMTE1MzMzWjAZAgh7KFsd40ICwhcNMDIwMTAzMTE1MzM0WjAZAggA"
+           + "kFlDNU8ubxcNMDIwMTAzMTE1MzM0WjAZAghyQfo1XNl0EBcNMDIwMTAzMTE1MzM0"
+           + "WjAZAggC5Pz7wI/29hcNMDIwMTAyMTY1NDMzWjAZAggEWvzRRpFGoRcNMDIwMTAy"
+           + "MTY1NDMzWjAZAggC7Q2W0iXswRcNMDIwMTAyMTY1NDMzWjAZAghrfwG3t6vCiBcN"
+           + "MDIwMTAyMTY1NDMzWjAZAgg5C+4zxDGEjhcNMDIwMTAyMTY1NDMzWjAZAggX/olM"
+           + "45KxnxcNMDIwMTAyMTY1NDMzWqAvMC0wHwYDVR0jBBgwFoAUy5k/bKQ6TtpTWhsP"
+           + "WFzafOFgLmswCgYDVR0UBAMCAQQwDQYJKoZIhvcNAQEFBQADgYEAPvYDZofCOopw"
+           + "OCKVGaK1aPpHkJmu5Xi1XtRGO9DhmnSZ28hrNu1A5R8OQI43Z7xFx8YK3S56GRuY"
+           + "0EGU/RgM3AWhyTAps66tdyipRavKmH6MMrN4ypW/qbhsd4o8JE9pxxn9zsQaNxYZ"
+           + "SNbXM2/YxkdoRSjkrbb9DUdCmCR/kEA=")
+          .getBytes());
+  /** Config. */
   private static final byte[] ANY_CRL_BYTES = CRL_BYTES;
 
+  /** Config. */
   private static final String A_CUSTOM_EXTENDED_INFO_OBJECT_CLASS_VALUE =
       "aCustomExtendedInfoObjectClassValue";
+  /** Config. */
   private static final Properties GOOD_PROPERTIES;
 
   static {
@@ -113,6 +137,7 @@ public class CustomerLdapPublisher1UnitTest {
         "extendedinfoobjectclass", A_CUSTOM_EXTENDED_INFO_OBJECT_CLASS_VALUE);
   }
 
+  /** Config. */
   private static final Properties
       GOOD_PROPERTIES_OMITTED_EXTENDEDINFOOBJECTCLASS =
           (Properties) GOOD_PROPERTIES.clone();
@@ -122,11 +147,19 @@ public class CustomerLdapPublisher1UnitTest {
         "extendedinfoobjectclass");
   }
 
+  /**
+   * Setup.
+   * @throws Exception fail
+   */
   @Before
-  public void setUp() throws Exception {}
+  public void setUp() throws Exception { }
 
+  /**
+   * teardown.
+   * @throws Exception fail
+   */
   @After
-  public void tearDown() throws Exception {}
+  public void tearDown() throws Exception { }
 
   /**
    * Test for initialization and parsing of configuration.
@@ -208,7 +241,7 @@ public class CustomerLdapPublisher1UnitTest {
    * @throws Exception Fail
    */
   @Test
-  public void testStoreCertificate_uninitialized() throws Exception {
+  public void testStoreCertificateUninitialized() throws Exception {
     try {
       new CustomerLdapPublisher1()
           .storeCertificate(
@@ -239,7 +272,7 @@ public class CustomerLdapPublisher1UnitTest {
    * @throws Exception Fail
    */
   @Test
-  public void testStoreCertificate_activeEndentity() throws Exception {
+  public void testStoreCertificateActiveEndentity() throws Exception {
     // Create mocked instance
     MockedCustomerLdapPublisher1 instance = new MockedCustomerLdapPublisher1();
     instance.init(GOOD_PROPERTIES);
@@ -385,7 +418,7 @@ public class CustomerLdapPublisher1UnitTest {
    * @throws Exception Fail
    */
   @Test
-  public void testStoreCertificate_NonActiveOrNonEndentity() throws Exception {
+  public void testStoreCertificateNonActiveOrNonEndentity() throws Exception {
     // Create mocked instance
     MockedCustomerLdapPublisher1 instance = new MockedCustomerLdapPublisher1();
     instance.init(GOOD_PROPERTIES);
@@ -462,7 +495,7 @@ public class CustomerLdapPublisher1UnitTest {
    * @throws Exception Fail
    */
   @Test
-  public void testStoreCRL_uninitialized() throws Exception {
+  public void testStoreCRLUninitialized() throws Exception {
     try {
       new CustomerLdapPublisher1()
           .storeCRL(
@@ -570,7 +603,7 @@ public class CustomerLdapPublisher1UnitTest {
    * @throws Exception Fail
    */
   @Test
-  public void testConnection_uninitialized() throws Exception {
+  public void testConnectionUninitialized() throws Exception {
     try {
       new CustomerLdapPublisher1().testConnection();
       fail("Expected illegal state as publisher not initialized");
@@ -668,7 +701,7 @@ public class CustomerLdapPublisher1UnitTest {
    * @throws Exception Fail
    */
   @Test
-  public void testConnection_nolog() throws Exception {
+  public void testConnectionNolog() throws Exception {
     // Create mocked instance
     MockedCustomerLdapPublisher1 instance = new MockedCustomerLdapPublisher1();
     final Properties properties = new Properties(GOOD_PROPERTIES);
@@ -734,7 +767,8 @@ public class CustomerLdapPublisher1UnitTest {
     // certificate according to RFC2253 and the customer/PKD requirements
     assertEquals(
         "ldapDN",
-        "CN=C=SE\\,O=Test\\,CN=Test+sn=20EAA2570247CFEF,ou=staging,dc=test.example.com,dc=com",
+        "CN=C=SE\\,O=Test\\,CN=Test+sn=20EAA2570247CFEF,"
+        + "ou=staging,dc=test.example.com,dc=com",
         newEntry.getDN());
     LDAPAttributeSet attributeSet = newEntry.getAttributeSet();
     assertNotNull(attributeSet.getAttribute("sn"));
@@ -756,7 +790,8 @@ public class CustomerLdapPublisher1UnitTest {
     // certificate according to RFC2253 and the customer/PKD requirements
     assertEquals(
         "ldapDN",
-        "CN=C=SE\\,O=Test\\,CN=Test+sn=20EAA2570247CFEF,ou=staging,dc=test.example.com,dc=com",
+        "CN=C=SE\\,O=Test\\,CN=Test+sn=20EAA2570247CFEF,"
+        + "ou=staging,dc=test.example.com,dc=com",
         newEntry.getDN());
   }
 
@@ -889,7 +924,7 @@ public class CustomerLdapPublisher1UnitTest {
   }
 
   /**
-   * Helper that tests the extendedInfoObjectClass value against the properties
+   * Helper that tests the extendedInfoObjectClass value against the properties.
    *
    * @param properties Props
    * @param expectedExtendedInfoObjectClassValue Value
@@ -943,7 +978,7 @@ public class CustomerLdapPublisher1UnitTest {
   }
 
   /**
-   * Tests the extendedInfoObjectClass property
+   * Tests the extendedInfoObjectClass property.
    *
    * @throws Exception FDail
    */
@@ -954,7 +989,7 @@ public class CustomerLdapPublisher1UnitTest {
   }
 
   /**
-   * Tests the default value of extendedInfoObjectClass property
+   * Tests the default value of extendedInfoObjectClass property.
    *
    * @throws Exception Fail
    */

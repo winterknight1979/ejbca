@@ -28,9 +28,12 @@ import org.junit.Test;
 /** @version $Id: LdapToolsTest.java 22121 2015-10-29 13:49:30Z mikekushner $ */
 public class LdapToolsTest {
 
+    /** Param. */
   private static final String LDAP_TEST_DN =
       "cn=Test Person,mail=test@example.com,serialnumber=123456-7890";
-
+  /**
+   * Test.
+   */
   @Test
   public void test01GetParentDN() {
     assertEquals("", CertTools.getParentDN(""));
@@ -47,7 +50,9 @@ public class LdapToolsTest {
         CertTools.getParentDN("cn=user,o=company\\,inc,dc=example,dc=com")
             .toLowerCase());
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void test02GetFirstDNComponent() {
     assertEquals("", LdapTools.getFirstDNComponent(""));
@@ -62,6 +67,9 @@ public class LdapToolsTest {
             .toLowerCase());
   }
 
+  /**
+   * Test.
+   */
   @Test
   public void test03GetIntermediateDNs() {
     assertEquals(

@@ -37,23 +37,36 @@ import org.junit.Test;
  */
 public class CertificateSamplerCustomPublisherUnitTest {
 
+      /** Config. */
   private static final File TEMP_DIR =
       new File(System.getProperty("java.io.tmpdir"));
+  /** Config. */
   private static final AuthenticationToken ANY_ADMIN =
       new AlwaysAllowLocalAuthenticationToken(
           new UsernamePrincipal("CertificateSamplerCustomPublisherUnitTest"));
+  /** Config. */
   private static final byte[] ANY_BYTEARRAY = new byte[0];
+  /** Config. */
   private static final String ANY_CAFP = "44447777111";
+  /** Config. */
   private static final int ANY_NUMBER = 4711;
+  /** Config. */
   private static final String ANY_SUBJECTDN = "CN=User";
+  /** Config. */
   private static final Certificate NULL_CERTIFICATE = null;
+  /** Config. */
   private static final int ANY_PROFILEID = 123123;
+  /** Config. */
   private static final int PROBABILISTIC_TRIES = 100;
 
+  /** Config. */
   private static final int PROFILE_A = 10;
+  /** Config. */
   private static final int PROFILE_B = 11;
 
+  /** Config. */
   private static final Properties CONFIG_SAMPLE_ALL;
+  /** Config. */
   private static final Properties ANY_GOOD_PROPERTIES;
 
   static {
@@ -63,11 +76,19 @@ public class CertificateSamplerCustomPublisherUnitTest {
     ANY_GOOD_PROPERTIES = CONFIG_SAMPLE_ALL;
   }
 
+  /**
+   * setup.
+   * @throws Exception fail
+   */
   @Before
-  public void setUp() throws Exception {}
+  public void setUp() throws Exception { }
 
+  /**
+   * teardown.
+   * @throws Exception fail
+   */
   @After
-  public void tearDown() throws Exception {}
+  public void tearDown() throws Exception { }
 
   /**
    * Tests that storeCertificate and testConnection throws Exception as the

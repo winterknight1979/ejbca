@@ -30,14 +30,18 @@ import org.junit.Test;
  * @version $Id: GetErrorCodeTest.java 24934 2016-12-20 10:51:26Z mikekushner $
  */
 public class GetErrorCodeTest {
-
+    /**
+       * Test.
+       */
   @Test
   public void testEjbcaExceptionDefaultConstructor() {
     assertNull(
         "EjbcaException.getErrorCode of the EjbcaException() is not null",
         EjbcaException.getErrorCode(new EjbcaException()));
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testEjbcaExceptionMessageConstructor() {
     assertNull(
@@ -46,7 +50,9 @@ public class GetErrorCodeTest {
         EjbcaException.getErrorCode(
             new EjbcaException("Exception message...")));
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testEjbcaExceptionErrorCodeConstructor() {
     assertEquals(
@@ -57,14 +63,18 @@ public class GetErrorCodeTest {
             new EjbcaException(ErrorCode.APPROVAL_ALREADY_EXISTS)),
         ErrorCode.APPROVAL_ALREADY_EXISTS);
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testCesecoreExceptionDefaultConstructor() {
     assertNull(
         "EjbcaException.getErrorCode of the CesecoreException() is not null",
         EjbcaException.getErrorCode(new CesecoreException()));
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testCesecoreExceptionMessageConstructor() {
     assertNull(
@@ -73,7 +83,9 @@ public class GetErrorCodeTest {
         EjbcaException.getErrorCode(
             new CesecoreException("Exception message")));
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testCesecoreExceptionErrorCodeConstructor() {
     assertEquals(
@@ -84,7 +96,9 @@ public class GetErrorCodeTest {
             new CesecoreException(ErrorCode.APPROVAL_ALREADY_EXISTS)),
         ErrorCode.APPROVAL_ALREADY_EXISTS);
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testEjbcaExceptionAsCauseOfAnException() {
     assertEquals(
@@ -96,7 +110,9 @@ public class GetErrorCodeTest {
                 new EjbcaException(ErrorCode.APPROVAL_ALREADY_EXISTS))),
         ErrorCode.APPROVAL_ALREADY_EXISTS);
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testEjbcaExceptionAsCauseOfAnEjbcaException() {
     assertEquals(
@@ -110,7 +126,9 @@ public class GetErrorCodeTest {
                 new EjbcaException(ErrorCode.APPROVAL_ALREADY_EXISTS))),
         ErrorCode.APPROVAL_REQUEST_ID_NOT_EXIST);
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testExceptionAsCauseOfAnEjbcaException() {
     assertEquals(
@@ -123,6 +141,9 @@ public class GetErrorCodeTest {
         ErrorCode.APPROVAL_ALREADY_EXISTS);
   }
 
+  /**
+   * Test.
+   */
   @Test
   public void testNestedExceptions() {
     assertNull(

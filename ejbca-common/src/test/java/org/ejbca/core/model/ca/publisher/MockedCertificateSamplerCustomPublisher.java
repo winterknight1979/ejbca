@@ -24,8 +24,10 @@ import java.security.cert.Certificate;
  */
 public class MockedCertificateSamplerCustomPublisher
     extends CertificateSamplerCustomPublisher {
-  private boolean writeCertificateCalled;
+    /** Param. */
+    private boolean writeCertificateCalled;
 
+  /** Constructor. */
   public MockedCertificateSamplerCustomPublisher() {
     super();
   }
@@ -40,10 +42,14 @@ public class MockedCertificateSamplerCustomPublisher
     writeCertificateCalled = true;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isWriteCertificateCalled() {
     return writeCertificateCalled;
   }
 
+  /** Reset. */
   public void reset() {
     writeCertificateCalled = false;
   }

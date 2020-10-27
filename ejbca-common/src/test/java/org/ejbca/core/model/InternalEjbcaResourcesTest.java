@@ -26,10 +26,12 @@ import org.junit.Test;
  */
 public class InternalEjbcaResourcesTest {
 
+    /** Config. */
   private static final String TEST_RESOURCE_PATH = "/intresources";
   // Classpath issues, use "src/intresources" when running from within eclipse
   // private static final String TEST_RESOURCE_PATH = "src/intresources";
 
+  /** Test. */
   @Before
   public void before() {
     ConfigurationHolder.backupConfiguration();
@@ -37,11 +39,13 @@ public class InternalEjbcaResourcesTest {
         "intresources.secondarylanguage", "sv");
   }
 
+  /** Test. */
   @After
   public void after() {
     ConfigurationHolder.restoreConfiguration();
   }
 
+  /** Test. */
   @Test
   public void testGetLocalizedMessageString() {
     InternalEjbcaResources intres =
@@ -58,6 +62,7 @@ public class InternalEjbcaResourcesTest {
         intres.getLocalizedMessageCs("test.testmsgsv").toString());
   }
 
+  /** Test. */
   @Test
   public void testNonExistingLocalizedMessageString() {
     InternalEjbcaResources intres =
@@ -68,6 +73,7 @@ public class InternalEjbcaResourcesTest {
         "test.foo", intres.getLocalizedMessageCs("test.foo").toString());
   }
 
+  /** Test. */
   @Test
   public void testGetLocalizedMessageStringObject() {
     InternalEjbcaResources intres =
@@ -94,6 +100,7 @@ public class InternalEjbcaResourcesTest {
             .toString());
   }
 
+  /** Test. */
   @Test
   public void testGetLocalizedMessageStringObjectWithNull() {
     InternalEjbcaResources intres =
@@ -126,6 +133,7 @@ public class InternalEjbcaResourcesTest {
         intres.getLocalizedMessageCs("test.testparams").toString());
   }
 
+  /** Test. */
   @Test
   public void testMessageStringWithExtraParameter() {
     InternalEjbcaResources intres =
@@ -144,6 +152,7 @@ public class InternalEjbcaResourcesTest {
             .toString());
   }
 
+  /** Test. */
   @Test
   public void testCeSecoreMessage() {
     InternalEjbcaResources intres =

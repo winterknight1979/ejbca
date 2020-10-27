@@ -27,8 +27,13 @@ import org.junit.Test;
  */
 public class LogInfoUnitTest {
 
-  private static final Logger log = Logger.getLogger(LogInfoUnitTest.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(LogInfoUnitTest.class);
 
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testConstructAndEncode() throws Exception {
 
@@ -84,7 +89,7 @@ public class LogInfoUnitTest {
     assertEquals("get pid", expectedPid, instance.getPid());
     assertEquals("get msgext", expectedMsgext, instance.getMsgext());
 
-    log.debug(instance.getEncoded());
+    LOG.debug(instance.getEncoded());
     assertEquals(
         "get encoded 2",
         " time:19700101000004.711Z sqn:13 stage:Download level:info msgid:023"

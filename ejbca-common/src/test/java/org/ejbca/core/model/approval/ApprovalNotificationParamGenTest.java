@@ -19,13 +19,15 @@ import static org.junit.Assert.assertNotNull;
 import org.junit.Test;
 
 /**
- * Tests some substitution variables for approval profile notifications
+ * Tests some substitution variables for approval profile notifications.
  *
  * @version $Id: ApprovalNotificationParamGenTest.java 24472 2016-10-06
  *     11:05:28Z aveen4711 $
  */
 public class ApprovalNotificationParamGenTest {
-
+    /**
+       * Test.
+       */
   @Test
   public void testInterpolate() {
     final ApprovalNotificationParameterGenerator paramGen =

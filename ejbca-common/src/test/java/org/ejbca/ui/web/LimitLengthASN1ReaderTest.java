@@ -24,17 +24,18 @@ import org.junit.After;
 import org.junit.Test;
 
 /**
- * Series of unit tests for LimitLengthASN1Reader
+ * Series of unit tests for LimitLengthASN1Reader.
  *
  * @version $Id: LimitLengthASN1ReaderTest.java 22152 2015-11-04 15:42:43Z
  *     mikekushner $
  */
 public class LimitLengthASN1ReaderTest {
-
+    /** Param. */
   private LimitLengthASN1Reader limitLengthASN1Reader;
+  /** Param. */
   private InputStream inputStreamStub;
 
-  /*
+  /**
    * The contents of this input stream are known to be a working ASN.1
    * representation, since they have been lifted from a working environment.
    */
@@ -151,8 +152,8 @@ public class LimitLengthASN1ReaderTest {
     105
   };
 
-  /*
-   * Length byte is longer than LimitLengthASN1Reader.MAX_REQUEST_SIZE
+  /**
+   * Length byte is longer than LimitLengthASN1Reader.MAX_REQUEST_SIZE.
    */
   private static final int[] INVALID_LENGTH = {
     BERTags.SEQUENCE,
@@ -267,7 +268,7 @@ public class LimitLengthASN1ReaderTest {
     105
   };
 
-  /*
+  /**
    * This stream contains less bytes than specified. May be due to a broken
    * connection.
    */
@@ -383,7 +384,7 @@ public class LimitLengthASN1ReaderTest {
     -128
   };
 
-  /*
+  /**
    * Sequence byte has been replaced by an integer.
    */
   private static final int[] NOT_A_SEQUENCE_STREAM = {
@@ -499,8 +500,8 @@ public class LimitLengthASN1ReaderTest {
     105
   };
 
-  /*
-   * Represents an infinite length stream
+  /**
+   * Represents an infinite length stream.
    */
   private static final int[] UNDEFINED_LENGTH_HAPPY = {
     BERTags.SEQUENCE,
@@ -615,6 +616,10 @@ public class LimitLengthASN1ReaderTest {
     105
   };
 
+  /** teardown.
+   *
+   * @throws IOException fail
+   */
   @After
   public void tearDown() throws IOException {
     limitLengthASN1Reader = null;
@@ -696,7 +701,7 @@ public class LimitLengthASN1ReaderTest {
 
   /**
    * Test readFirstASN1Object() with a stream where there is no defined ASN1
-   * object length
+   * object length.
    *
    * @throws MalformedRequestException Fail
    * @throws IOException Fail
@@ -746,12 +751,17 @@ public class LimitLengthASN1ReaderTest {
    */
   class InputStreamStub extends InputStream {
 
+      /** Param. */
     private final int[] contents;
+    /** Param. */
     private int counter = 0;
 
-    public InputStreamStub(final int[] contents) {
+    /**
+     * @param thecontents contents
+     */
+    InputStreamStub(final int[] thecontents) {
       super();
-      this.contents = contents;
+      this.contents = thecontents;
     }
 
     public int read() throws IOException {
