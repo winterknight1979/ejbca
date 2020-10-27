@@ -23,16 +23,22 @@ package org.ejbca.util.passgen;
  */
 public class DigitPasswordGenerator extends BasePasswordGenerator {
 
+  /** Chars. */
   private static final char[] USEDCHARS = {
     '1', '2', '3', '4', '5', '6', '7', '8', '9', '0'
   };
 
+  /** Name. */
   protected static final String NAME = "PWGEN_DIGIT";
-
+  /**
+   * @return name
+   */
   public String getName() {
     return NAME;
   }
 
+  /**
+   * Constructor. */
   public DigitPasswordGenerator() {
     super(USEDCHARS);
   }

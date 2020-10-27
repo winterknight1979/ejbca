@@ -26,12 +26,15 @@ public abstract class BasicMatch implements Serializable {
 
   private static final long serialVersionUID = -1L;
 
+  /** Config. */
   public static final int MATCH_TYPE_EQUALS = 0;
+  /** Config. */
   public static final int MATCH_TYPE_BEGINSWITH = 1;
+  /** Config. */
   public static final int MATCH_TYPE_CONTAINS = 2;
 
-  /** Creates a new instance of BasicMatch */
-  public BasicMatch() {}
+  /** Creates a new instance of BasicMatch.*/
+  public BasicMatch() { }
 
   /**
    * @return a SQL statement fragment from the given data (with escaped single
@@ -43,7 +46,7 @@ public abstract class BasicMatch implements Serializable {
   public abstract boolean isLegalQuery();
 
   /**
-   * Escape single quotes as double quotes
+   * Escape single quotes as double quotes.
    *
    * @param matchValue Value
    * @return String

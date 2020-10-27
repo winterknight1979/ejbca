@@ -24,15 +24,18 @@ import org.ejbca.config.EjbcaConfiguration;
  *
  * @version $Id: CryptoTools.java 24678 2016-11-10 11:25:43Z jeklund $
  */
-public class CryptoTools {
+public final class CryptoTools {
 
+    private CryptoTools() { }
+    /** Perfix. */
   public static final String BCRYPT_PREFIX = "$2a$";
 
-  private static final Logger log = Logger.getLogger(CryptoTools.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(CryptoTools.class);
 
   /**
    * Creates the hashed password using the bcrypt algorithm,
-   * http://www.mindrot.org/projects/jBCrypt/
+   * http://www.mindrot.org/projects/jBCrypt/.
    *
    * @param password PWD
    * @return Hash
@@ -68,7 +71,7 @@ public class CryptoTools {
       final byte[] pwdhash = md.digest(password.trim().getBytes());
       ret = new String(Hex.encode(pwdhash));
     } catch (NoSuchAlgorithmException e) {
-      log.error("SHA1 algorithm not supported.", e);
+      LOG.error("SHA1 algorithm not supported.", e);
       throw new Error("SHA1 algorithm not supported.", e);
     }
     return ret;
@@ -82,12 +85,13 @@ public class CryptoTools {
    * @return the salt in cleartext.
    */
   public static String extractSaltFromPasswordHash(final String passwordHash) {
+    final int len = 22;
     if (!passwordHash.startsWith(BCRYPT_PREFIX)) {
       throw new IllegalArgumentException(
           "Provided string is not a BCrypt hash.");
     }
     // Locate the third '$', this is where the rounds declaration ends.
     int offset = passwordHash.indexOf('$', BCRYPT_PREFIX.length()) + 1;
-    return passwordHash.substring(0, offset + 22);
+    return passwordHash.substring(0, offset + len);
   }
 }

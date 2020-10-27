@@ -32,36 +32,58 @@ import java.util.List;
  */
 public class JAXWSDocAndConvTools {
 
-  CompilationUnit server;
-  CompilationUnit client;
+      /** Param. */
+  private CompilationUnit server;
+  /** Param. */
+  private CompilationUnit client;
 
   enum Types {
+      /** Token. */
     COMMENT,
+      /** Token. */
     IDENTIFIER,
+      /** Token. */
     SEMICOLON,
+      /** Token. */
     STRING,
+      /** Token. */
     CHARLITERAL,
+      /** Token. */
     COMMA,
+      /** Token. */
     NUMBER,
+      /** Token. */
     LEFTPAR,
+      /** Token. */
     RIGHTPAR,
+      /** Token. */
     LEFTBRACK,
+      /** Token. */
     RIGHTBRACK,
+      /** Token. */
     LEFTARRAY,
+      /** Token. */
     RIGHTARRAY,
+      /** Token. */
     BINOP,
+      /** Token. */
     EQUALOP,
+      /** Token. */
     LEFTCURL,
+      /** Token. */
     RIGHTCURL;
   }
 
   class Token {
-    int start = c_start;
-    int stop = c_index;
-    Types type;
+      /** Param. */
+    private int start = cStart;
+    /** Param. */
+    private int stop = cIndex;
+    /** Param. */
+    private Types type;
 
-    Token(final Types type) {
-      this.type = type;
+    Token(final Types atype) {
+      this.type = atype;
       curr = this;
     }
 
@@ -79,16 +101,22 @@ public class JAXWSDocAndConvTools {
   }
 
   class Method {
-    String java_doc;
-    String method_name;
-    String return_type;
-    List<String> declarators = new ArrayList<String>();
-    List<String> argument_names = new ArrayList<String>();
-    List<String> exceptions = new ArrayList<String>();
+      /** Param. */
+    private String javaDoc;
+    /** Param. */
+    private String methodName;
+    /** Param. */
+    private String returnType;
+    /** Param. */
+    private List<String> declarators = new ArrayList<String>();
+    /** Param. */
+    private List<String> argumentNames = new ArrayList<String>();
+    /** Param. */
+    private List<String> exceptions = new ArrayList<String>();
 
     String signature() {
       final StringBuilder sig = new StringBuilder();
-      sig.append(method_name).append(':').append(return_type);
+      sig.append(methodName).append(':').append(returnType);
       for (String decl : declarators) {
         sig.append('/').append(decl);
       }
@@ -97,40 +125,60 @@ public class JAXWSDocAndConvTools {
   }
 
   class CompilationUnit {
-    String package_name;
-    String class_name;
-    String class_java_doc;
-    List<String> imports = new ArrayList<String>();
-    LinkedHashMap<String, String> exceptions =
+      /** Param. */
+    private String packageName;
+    /** Param. */
+    private String className;
+    /** Param. */
+    private String classJavaDoc;
+    /** Param. */
+    private List<String> imports = new ArrayList<String>();
+    /** Param. */
+    private LinkedHashMap<String, String> exceptions =
         new LinkedHashMap<String, String>();
-    LinkedHashMap<String, Method> methods = new LinkedHashMap<String, Method>();
+    /** Param. */
+    private LinkedHashMap<String, Method> methods =
+            new LinkedHashMap<String, Method>();
   }
 
-  int c_index;
-  int c_start;
-  StringBuilder lines;
-  boolean ws_gen;
-  Token curr;
+  /** Param. */
+  private int cIndex;
+  /** Param. */
+  private int cStart;
+  /** Param. */
+  private StringBuilder lines;
+  /** Param. */
+  private boolean wsGen;
+  /** Param. */
+  private Token curr;
 
+  /**
+   * @param error error
+   * @throws Exception fail
+   */
   void bad(final String error) throws Exception {
     throw new Exception(error);
   }
 
+  /**
+   * @return nest token
+   * @throws Exception fail
+   */
   Token scan() throws Exception {
     while (true) {
-      if (c_index >= lines.length()) {
+      if (cIndex >= lines.length()) {
         return null;
       }
 
-      c_start = c_index;
-      int c = lines.charAt(c_index++);
+      cStart = cIndex;
+      int c = lines.charAt(cIndex++);
       if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_') {
-        while (((c = lines.charAt(c_index)) >= 'a' && c <= 'z')
+        while (((c = lines.charAt(cIndex)) >= 'a' && c <= 'z')
             || (c >= 'A' && c <= 'Z')
             || (c >= '0' && c <= '9')
             || c == '_'
             || c == '.') {
-          c_index++;
+          cIndex++;
         }
         return new Token(Types.IDENTIFIER);
       }
@@ -141,26 +189,28 @@ public class JAXWSDocAndConvTools {
         Token nxt = scan();
         if (nxt.getType() == Types.LEFTPAR) {
           while (scan().getType()
-              != Types.RIGHTPAR) {} // NOPMD, just loop through
+              != Types.RIGHTPAR) {
+              // NOPMD just loop
+          }
           continue;
         }
         return nxt;
       }
       if (c == '/') {
-        if (lines.charAt(c_index) == '*') {
-          c_index++;
+        if (lines.charAt(cIndex) == '*') {
+          cIndex++;
           while (true) {
-            if (lines.charAt(c_index++) == '*') {
-              if (lines.charAt(c_index) == '/') {
-                c_index++;
+            if (lines.charAt(cIndex++) == '*') {
+              if (lines.charAt(cIndex) == '/') {
+                cIndex++;
                 return new Token(Types.COMMENT);
               }
             }
           }
         }
-        if (lines.charAt(c_index) == '/') {
-          c_index++;
-          while (lines.charAt(c_index++) != '\n') { // NOPMD, just loop through
+        if (lines.charAt(cIndex) == '/') {
+          cIndex++;
+          while (lines.charAt(cIndex++) != '\n') { // NOPMD, just loop through
           }
           continue;
         }
@@ -201,14 +251,14 @@ public class JAXWSDocAndConvTools {
         return new Token(Types.COMMA);
       }
       if (c == '&') {
-        if (lines.charAt(c_index) == '&') {
-          c_index++;
+        if (lines.charAt(cIndex) == '&') {
+          cIndex++;
         }
         return new Token(Types.BINOP);
       }
       if (c == '|') {
-        if (lines.charAt(c_index) == '|') {
-          c_index++;
+        if (lines.charAt(cIndex) == '|') {
+          cIndex++;
         }
         return new Token(Types.BINOP);
       }
@@ -216,41 +266,41 @@ public class JAXWSDocAndConvTools {
         return new Token(Types.BINOP);
       }
       if (c == '=') {
-        if ((c = lines.charAt(c_index)) == '=') {
-          c_index++;
+        if ((c = lines.charAt(cIndex)) == '=') {
+          cIndex++;
           return new Token(Types.BINOP);
         }
         return new Token(Types.EQUALOP);
       }
       if (c == '+' || c == '-' || c == '*' || c == '%' || c == '&' || c == '|'
           || c == '^') {
-        if ((c = lines.charAt(c_index)) == '=') {
-          c_index++;
+        if ((c = lines.charAt(cIndex)) == '=') {
+          cIndex++;
         }
         return new Token(Types.BINOP);
       }
       if (c >= '0' && c <= '9') {
-        while (((c = lines.charAt(c_index)) >= '0' && c <= '9')
+        while (((c = lines.charAt(cIndex)) >= '0' && c <= '9')
             || c == 'x'
             || c == 'l'
             || c == 'X'
             || c == 'L') {
-          c_index++;
+          cIndex++;
         }
         return new Token(Types.NUMBER);
       }
       if (c == '"') {
-        while ((c = lines.charAt(c_index++)) != '"') {
+        while ((c = lines.charAt(cIndex++)) != '"') {
           if (c == '\\') {
-            c_index++;
+            cIndex++;
           }
         }
         return new Token(Types.STRING);
       }
       if (c == '\'') {
-        while ((c = lines.charAt(c_index++)) != '\'') {
+        while ((c = lines.charAt(cIndex++)) != '\'') {
           if (c == '\\') {
-            c_index++;
+            cIndex++;
           }
         }
         return new Token(Types.CHARLITERAL);
@@ -259,13 +309,22 @@ public class JAXWSDocAndConvTools {
     }
   }
 
+  /**
+   * @throws Exception fail
+   */
   void readSemicolon() throws Exception {
     if (scan().getType() != Types.SEMICOLON) {
       bad("Semicolon expected");
     }
   }
 
-  Token removeModifiers(Token start) throws Exception {
+  /**
+   * @param ostart start
+   * @return token
+   * @throws Exception fail
+   */
+  Token removeModifiers(final Token ostart) throws Exception {
+    Token start = ostart;
     boolean changed = false;
     do {
       changed = false;
@@ -292,23 +351,40 @@ public class JAXWSDocAndConvTools {
     return start;
   }
 
+  /**
+   * @param token token
+   * @return bool
+   */
   boolean isInterfaceOrClass(final Token token) {
     return token.equals("class") || token.equals("interface");
   }
 
+  /**
+   * @param token token
+   * @throws Exception fail
+   */
   void implementsOrExtends(final Token token) throws Exception {
     if (!token.equals("implements") && !token.equals("extends")) {
       bad("Expected implements/extend");
     }
   }
 
+  /**
+   * @throws Exception fail
+   */
   void checkSource() throws Exception {
-    if (ws_gen) {
+    if (wsGen) {
       bad("Unexpected element for generated file:" + curr.getText());
     }
   }
 
-  Token nameList(Token id) throws Exception {
+  /**
+   * @param oid ID
+   * @return Kest
+   * @throws Exception Fail
+   */
+  Token nameList(final Token oid) throws Exception {
+    Token id = oid;
     while (true) {
       if (id.getType() != Types.IDENTIFIER) {
         bad("Missing identifier in extend/impl");
@@ -321,45 +397,55 @@ public class JAXWSDocAndConvTools {
     }
   }
 
+  /**
+   * @param start token
+   * @return decl
+   * @throws Exception fail
+   */
   String getTypeDeclaration(final Token start) throws Exception {
-    final StringBuilder type_decl = new StringBuilder();
-    type_decl.append(start.getText());
+    final StringBuilder typeDecl = new StringBuilder();
+    typeDecl.append(start.getText());
     Token nxt = scan();
     if (nxt.getType() == Types.LEFTBRACK) {
       do {
-        type_decl.append(nxt.getText());
+        typeDecl.append(nxt.getText());
         if (scan().getType() != Types.IDENTIFIER) {
           bad("Missing <ID");
         }
-        type_decl.append(getTypeDeclaration(curr));
+        typeDecl.append(getTypeDeclaration(curr));
       } while ((nxt = curr).getType() == Types.COMMA);
       if (nxt.getType() != Types.RIGHTBRACK) {
         bad("> expected");
       }
-      type_decl.append(nxt.getText());
+      typeDecl.append(nxt.getText());
       scan();
     }
     if (nxt.getType() == Types.LEFTARRAY) {
-      boolean byte_array = type_decl.toString().equals("byte");
-      if (ws_gen && !byte_array) {
+      boolean byteArray = typeDecl.toString().equals("byte");
+      if (wsGen && !byteArray) {
         bad("did not expect [] in WS-gen");
       }
       while ((nxt = scan()).getType()
           != Types.RIGHTARRAY) { // NOPMD, just loop through
       }
-      if (byte_array) {
-        type_decl.append("[]");
+      if (byteArray) {
+        typeDecl.append("[]");
       } else {
-        type_decl.insert(0, "List<").append('>');
+        typeDecl.insert(0, "List<").append('>');
       }
       scan();
     }
-    return type_decl.toString();
+    return typeDecl.toString();
   }
 
-  void decodeDeclaration(Token start, final CompilationUnit compilation)
+  /**
+   * @param ostart token
+   * @param compilation AST
+   * @throws Exception fail
+   */
+  void decodeDeclaration(final Token ostart, final CompilationUnit compilation)
       throws Exception {
-    start = removeModifiers(start);
+    Token start = removeModifiers(ostart);
     if (!isInterfaceOrClass(start)) {
       bad("Expected class/interface declaration");
     }
@@ -367,7 +453,7 @@ public class JAXWSDocAndConvTools {
     if ((id = scan()).getType() != Types.IDENTIFIER) {
       bad("class/interface identifier missing");
     }
-    compilation.class_name = id.getText();
+    compilation.className = id.getText();
     //        System.out.println ("Class:" + id.getText());
     Token nxt;
     if ((nxt = scan()).getType() == Types.IDENTIFIER) {
@@ -391,31 +477,31 @@ public class JAXWSDocAndConvTools {
         if (isInterfaceOrClass(nxt)) {
           bad("Nested classes not implemented yet");
         }
-        String return_type = null;
-        String method_name = null;
-        if (compilation.class_name.equals(nxt.getText())) {
-          return_type = "";
-          method_name = nxt.getText();
+        String returnType = null;
+        String methodName = null;
+        if (compilation.className.equals(nxt.getText())) {
+          returnType = "";
+          methodName = nxt.getText();
         } else {
-          return_type = getTypeDeclaration(nxt);
-          method_name = curr.getText();
+          returnType = getTypeDeclaration(nxt);
+          methodName = curr.getText();
         }
         scan();
         if (curr.getType() == Types.LEFTPAR) {
-          //                    System.out.println ("Return type: '" + return_type + "' method:
+          //   System.out.println ("Return type: '" + return_type + "' method:
           // '" + method_name + "'");
           Method method = new Method();
-          method.return_type = return_type;
-          method.method_name = method_name;
-          method.java_doc = jdoc;
+          method.returnType = returnType;
+          method.methodName = methodName;
+          method.javaDoc = jdoc;
           scan();
           do {
             if (curr.getType() == Types.IDENTIFIER) {
-              String arg_type = getTypeDeclaration(curr);
-              //                            System.out.println ("Argtype:" + arg_type);
-              //                            System.out.println ("Argname:" +     curr.getText ());
-              method.declarators.add(arg_type);
-              method.argument_names.add(curr.getText());
+              String argType = getTypeDeclaration(curr);
+              //    System.out.println ("Argtype:" + arg_type);
+              //    System.out.println ("Argname:" +     curr.getText ());
+              method.declarators.add(argType);
+              method.argumentNames.add(curr.getText());
               if (scan().getType() == Types.COMMA) {
                 scan();
               }
@@ -463,11 +549,16 @@ public class JAXWSDocAndConvTools {
     }
   }
 
-  CompilationUnit parse(final String file_name) throws Exception {
-    System.out.println("File to parse: " + file_name);
+  /**
+   * @param fileName file
+   * @return AST
+   * @throws Exception fail
+   */
+  CompilationUnit parse(final String fileName) throws Exception {
+    System.out.println("File to parse: " + fileName);
     CompilationUnit compilation = new CompilationUnit();
     lines = new StringBuilder();
-    BufferedReader in = new BufferedReader(new FileReader(file_name));
+    BufferedReader in = new BufferedReader(new FileReader(fileName));
     try {
       String line;
       while ((line = in.readLine()) != null) {
@@ -476,14 +567,14 @@ public class JAXWSDocAndConvTools {
     } finally {
       in.close();
     }
-    c_index = 0;
+    cIndex = 0;
     curr = null;
     boolean packfound = false;
-    String class_jdoc = null;
+    String classJdoc = null;
     while (scan() != null) {
       switch (curr.getType()) {
         case COMMENT:
-          class_jdoc = curr.getText();
+          classJdoc = curr.getText();
           break;
 
         case IDENTIFIER:
@@ -495,9 +586,9 @@ public class JAXWSDocAndConvTools {
               }
               readSemicolon();
               compilation.imports.add(imp.getText());
-              class_jdoc = null;
+              classJdoc = null;
             } else {
-              compilation.class_java_doc = class_jdoc;
+              compilation.classJavaDoc = classJdoc;
               decodeDeclaration(curr, compilation);
             }
           } else {
@@ -508,10 +599,10 @@ public class JAXWSDocAndConvTools {
             if (pack.getType() != Types.IDENTIFIER) {
               bad("Package missing");
             }
-            compilation.package_name = pack.getText();
+            compilation.packageName = pack.getText();
             readSemicolon();
             packfound = true;
-            class_jdoc = null;
+            classJdoc = null;
           }
           break;
         default:
@@ -521,11 +612,16 @@ public class JAXWSDocAndConvTools {
     return compilation;
   }
 
-  void generateJDocFriendlyFile(final String gen_directory) throws Exception {
+  /**
+   * @param genDirectory dir
+   * @throws Exception fail
+   */
+  void generateJDocFriendlyFile(final String genDirectory) throws Exception {
 
     /*
             for (String s : client.methods.keySet()){
-                System.out.print ("method=" + (server.methods.get(s) == null) + "=" + s + "\nthrows:");
+                System.out.print ("method=" + (server.methods.get(s)
+                == null) + "=" + s + "\nthrows:");
                 for (String e : client.methods.get(s).exceptions){
                     System.out.print(" " + e);
                 }
@@ -533,19 +629,20 @@ public class JAXWSDocAndConvTools {
             }
     */
     final StringBuilder ofile = new StringBuilder();
-    ofile.append(gen_directory).append("/");
-    for (int i = 0; i < client.package_name.length(); i++) {
-      if (client.package_name.charAt(i) == '.') {
+    ofile.append(genDirectory).append("/");
+    for (int i = 0; i < client.packageName.length(); i++) {
+      if (client.packageName.charAt(i) == '.') {
         ofile.append('/');
       } else {
-        ofile.append(client.package_name.charAt(i));
+        ofile.append(client.packageName.charAt(i));
       }
     }
     String outPath = ofile.toString();
     String[] cf = new File(outPath).list();
+    final int suf = 5;
     for (String f : cf) {
       if (f.toUpperCase().endsWith("EXCEPTION.JAVA")) {
-        if (client.exceptions.get(f.substring(0, f.length() - 5)) == null) {
+        if (client.exceptions.get(f.substring(0, f.length() - suf)) == null) {
           /*
                           if (!new File (outPath + "/" + f).delete()){
                               bad ("Couldn't delete " + f);
@@ -554,33 +651,33 @@ public class JAXWSDocAndConvTools {
         }
       }
     }
-    ofile.append('/').append(client.class_name).append(".java");
+    ofile.append('/').append(client.className).append(".java");
     //        System.out.println ("f=" + ofile.toString());
     FileWriter out = new FileWriter(ofile.toString());
-    out.write("package " + client.package_name + ";\n\n");
+    out.write("package " + client.packageName + ";\n\n");
     for (String imp : client.imports) {
       out.write("import " + imp + ";\n");
     }
-    if (server.class_java_doc != null) {
-      out.write("\n" + server.class_java_doc);
+    if (server.classJavaDoc != null) {
+      out.write("\n" + server.classJavaDoc);
     }
-    out.write("\npublic interface " + client.class_name + "\n{\n");
+    out.write("\npublic interface " + client.className + "\n{\n");
     for (String s : client.methods.keySet()) {
-      Method client_method = client.methods.get(s);
+      Method clientMethod = client.methods.get(s);
       for (String f : cf) {
-        if (f.equalsIgnoreCase(client_method.method_name + ".java")
+        if (f.equalsIgnoreCase(clientMethod.methodName + ".java")
             || f.equalsIgnoreCase(
-                client_method.method_name + "response.java")) {
+                clientMethod.methodName + "response.java")) {
           if (!new File(outPath + "/" + f).delete()) {
             bad("Couldn't delete:" + f);
           }
         }
       }
-      String jdoc = server.methods.get(s).java_doc;
+      String jdoc = server.methods.get(s).javaDoc;
       if (jdoc == null) {
         bad("missing javadoc for " + s);
       }
-      for (String e : client_method.exceptions) {
+      for (String e : clientMethod.exceptions) {
         int i = jdoc.indexOf("@throws " + e.substring(0, e.length() - 10));
         if (i > 0) {
           jdoc =
@@ -593,31 +690,31 @@ public class JAXWSDocAndConvTools {
               "You need to declare @throws for '"
                   + e.substring(0, e.length() - 10)
                   + "' in method:"
-                  + client_method.method_name);
+                  + clientMethod.methodName);
         }
       }
       out.write("\n" + jdoc + "\n");
       out.write(
           " public "
-              + client_method.return_type
+              + clientMethod.returnType
               + " "
-              + client_method.method_name
+              + clientMethod.methodName
               + "(");
       boolean comma = false;
-      List<String> arg_names = server.methods.get(s).argument_names;
+      List<String> argNames = server.methods.get(s).argumentNames;
       int q = 0;
-      for (String arg : client_method.declarators) {
+      for (String arg : clientMethod.declarators) {
         if (comma) {
           out.write(", ");
         }
         comma = true;
-        out.write(arg + " " + arg_names.get(q++));
+        out.write(arg + " " + argNames.get(q++));
       }
       out.write(")");
-      if (!client_method.exceptions.isEmpty()) {
+      if (!clientMethod.exceptions.isEmpty()) {
         out.write(" throws ");
         comma = false;
-        for (String e : client_method.exceptions) {
+        for (String e : clientMethod.exceptions) {
           if (comma) {
             out.write(", ");
           }
@@ -631,6 +728,9 @@ public class JAXWSDocAndConvTools {
     out.close();
   }
 
+  /**
+   * @throws Exception fail
+   */
   void compareGeneratedWithWritten() throws Exception {
     for (String s : client.methods.keySet()) {
       Method m = server.methods.get(s);
@@ -643,23 +743,34 @@ public class JAXWSDocAndConvTools {
     }
   }
 
+  /**
+   * @param serverInterface serv
+   * @param clientInterface client
+   * @param genDirectory dir
+   * @throws Exception fail
+   */
   JAXWSDocAndConvTools(
-      final String server_interface,
-      final String client_interface,
-      final String gen_directory)
+      final String serverInterface,
+      final String clientInterface,
+      final String genDirectory)
       throws Exception {
-    server = parse(server_interface);
-    ws_gen = (gen_directory != null);
-    client = parse(client_interface);
-    if (gen_directory == null) {
+    server = parse(serverInterface);
+    wsGen = (genDirectory != null);
+    client = parse(clientInterface);
+    if (genDirectory == null) {
       compareGeneratedWithWritten();
     } else {
-      generateJDocFriendlyFile(gen_directory);
+      generateJDocFriendlyFile(genDirectory);
     }
   }
 
+  /**
+   * @param args Entry point
+   * @throws Exception Fail
+   */
   public static void main(final String[] args) throws Exception {
-    if (args.length != 3 && args.length != 2) {
+    final int maxArgs = 3;
+    if (args.length != maxArgs && args.length != 2) {
       System.out.println(
           JAXWSDocAndConvTools.class.getName()
               + " WS-server-interface-file  WS-generated-client-interface-file"
@@ -670,6 +781,6 @@ public class JAXWSDocAndConvTools {
       System.exit(2); // NOPMD this is a cli command
     }
     new JAXWSDocAndConvTools(
-        args[0], args[1], args.length == 3 ? args[2] : null);
+        args[0], args[1], args.length == maxArgs ? args[2] : null);
   }
 }

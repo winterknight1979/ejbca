@@ -22,6 +22,7 @@ package org.ejbca.util.passgen;
  */
 public class NoLookALikeLDPasswordGenerator extends BasePasswordGenerator {
 
+    /** Chars. */
   private static final char[] USEDCHARS = {
     '2', '3', '4', '5', '6', '7', '8', '9', 'q', 'Q', 'w', 'W', 'e', 'E', 'r',
     'R', 't', 'T', 'y', 'Y', 'u', 'U', 'i', 'o', 'p', 'P', 'a', 'A', 's', 'S',
@@ -29,12 +30,15 @@ public class NoLookALikeLDPasswordGenerator extends BasePasswordGenerator {
     'x', 'X', 'c', 'C', 'v', 'V', 'b', 'B', 'n', 'N', 'm', 'M'
   };
 
+  /** Name. */
   protected static final String NAME = "PWGEN_NOLOOKALIKELD";
 
+  /** @return name */
   public String getName() {
     return NAME;
   }
 
+  /** Constructor. */
   public NoLookALikeLDPasswordGenerator() {
     super(USEDCHARS);
   }

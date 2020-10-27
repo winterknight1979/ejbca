@@ -16,12 +16,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Tools used in command line handling
+ * Tools used in command line handling.
  *
  * @version $Id: CliTools.java 22117 2015-10-29 10:53:42Z mikekushner $
  */
-public class CliTools {
-
+public final class CliTools {
+    private CliTools() { }
   /**
    * Using Arrays.asList will return an AbstractList that you cannot remove
    * items from. This List is backed by a new ArrayList.

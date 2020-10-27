@@ -45,18 +45,32 @@ import org.cesecore.util.CryptoProviderTools;
  * @version $Id: JKStoPEM.java 22117 2015-10-29 10:53:42Z mikekushner $
  */
 public class JKStoPEM {
-  String exportpath = "./p12/pem/";
-  String jksFile;
-  String password;
-  String keypass;
-  KeyStore ks = null;
-
-  boolean overwrite = false;
-  byte[] beginCertificate = "-----BEGIN CERTIFICATE-----".getBytes();
-  byte[] endCertificate = "-----END CERTIFICATE-----".getBytes();
-  byte[] beginPrivateKey = "-----BEGIN PRIVATE KEY-----".getBytes();
-  byte[] endPrivateKey = "-----END PRIVATE KEY-----".getBytes();
-  byte[] NL = "\n".getBytes();
+      /** param. */
+  private String exportpath = "./p12/pem/";
+  /** param. */
+  private String jksFile;
+  /** param. */
+  private String password;
+  /** param. */
+  private String keypass;
+  /** param. */
+  private KeyStore ks = null;
+  /** param. */
+  private boolean overwrite = false;
+  /** Constant. */
+  private final byte[] beginCertificate =
+          "-----BEGIN CERTIFICATE-----".getBytes();
+  /** Constant. */
+  private final byte[] endCertificate =
+          "-----END CERTIFICATE-----".getBytes();
+  /** Constant. */
+  private final byte[] beginPrivateKey =
+          "-----BEGIN PRIVATE KEY-----".getBytes();
+  /** Constant. */
+  private final byte[] endPrivateKey =
+          "-----END PRIVATE KEY-----".getBytes();
+  /** Constant. */
+  private static final byte[] NL = "\n".getBytes();
 
   /**
    * DOCUMENT ME!
@@ -69,18 +83,19 @@ public class JKStoPEM {
     CryptoProviderTools.installBCProvider();
 
     JKStoPEM jks = null;
-
+    final int maxArgs = 4;
     try {
-      if (args.length > 4) {
+      if (args.length > maxArgs) {
         boolean overwrite = false;
 
-        if (args[4].equalsIgnoreCase("true")) {
+        if (args[maxArgs].equalsIgnoreCase("true")) {
           overwrite = true;
         }
 
-        jks = new JKStoPEM(args[0], args[1], args[2], args[3], overwrite);
-      } else if (args.length > 3) {
-        jks = new JKStoPEM(args[0], args[1], args[2], args[3]);
+        jks = new JKStoPEM(args[0], args[1], args[2], args[maxArgs - 1],
+                overwrite);
+      } else if (args.length > maxArgs - 1) {
+        jks = new JKStoPEM(args[0], args[1], args[2], args[maxArgs - 1]);
       } else {
         System.out.println(
             "Usage: JKStoPEM <jksFile> <jkspassword> <keypassword> <outpath>"
@@ -97,46 +112,46 @@ public class JKStoPEM {
   /**
    * Basic construtor for the JKStoPEM class, set variables for the class.
    *
-   * @param jksFile jksFile The (path +) name of the input jks file.
-   * @param password password The password for the jks file.
-   * @param keypass Key
-   * @param outpath Out
+   * @param ajksFile jksFile The (path +) name of the input jks file.
+   * @param apassword password The password for the jks file.
+   * @param akeypass Key
+   * @param anoutpath Out
    */
   public JKStoPEM(
-      final String jksFile,
-      final String password,
-      final String keypass,
-      final String outpath) {
-    this.jksFile = jksFile;
-    this.password = password;
-    this.keypass = keypass;
-    exportpath = outpath;
+      final String ajksFile,
+      final String apassword,
+      final String akeypass,
+      final String anoutpath) {
+    this.jksFile = ajksFile;
+    this.password = apassword;
+    this.keypass = akeypass;
+    exportpath = anoutpath;
   }
 
   /**
    * Basic constructor using an in memory KeyStore instead for a file.
    *
-   * @param keystore the KeyStore to use.
-   * @param password password The password for the jks file.
-   * @param keypass Key
-   * @param outpath Out
-   * @param overwrite overwrite If existing files should be overwritten.
+   * @param akeystore the KeyStore to use.
+   * @param apassword password The password for the jks file.
+   * @param akeypass Key
+   * @param anoutpath Out
+   * @param dooverwrite overwrite If existing files should be overwritten.
    */
   public JKStoPEM(
-      final KeyStore keystore,
-      final String password,
-      final String keypass,
-      final String outpath,
-      final boolean overwrite) {
-    this.password = password;
-    this.ks = keystore;
-    this.keypass = keypass;
-    exportpath = outpath;
-    this.overwrite = overwrite;
+      final KeyStore akeystore,
+      final String apassword,
+      final String akeypass,
+      final String anoutpath,
+      final boolean dooverwrite) {
+    this.password = apassword;
+    this.ks = akeystore;
+    this.keypass = akeypass;
+    exportpath = anoutpath;
+    this.overwrite = dooverwrite;
   }
 
   /**
-   * Sets the directory where PEM-files wil be stores
+   * Sets the directory where PEM-files wil be stores.
    *
    * @param path path where PEM-files will be stores
    */
@@ -147,23 +162,23 @@ public class JKStoPEM {
   /**
    * Constructor for the JKStoPEM class.
    *
-   * @param jksFile jksFile The (path +) name of the input jks file.
-   * @param password password The password for the jks file.
-   * @param keypass Key
-   * @param outpath Out
-   * @param overwrite overwrite If existing files should be overwritten.
+   * @param ajksFile jksFile The (path +) name of the input jks file.
+   * @param apassword password The password for the jks file.
+   * @param akeypass Key
+   * @param anoutpath Out
+   * @param dooverwrite overwrite If existing files should be overwritten.
    */
   public JKStoPEM(
-      final String jksFile,
-      final String password,
-      final String keypass,
-      final String outpath,
-      final boolean overwrite) {
-    this.jksFile = jksFile;
-    this.password = password;
-    this.overwrite = overwrite;
-    this.keypass = keypass;
-    exportpath = outpath;
+      final String ajksFile,
+      final String apassword,
+      final String akeypass,
+      final String anoutpath,
+      final boolean dooverwrite) {
+    this.jksFile = ajksFile;
+    this.password = apassword;
+    this.overwrite = dooverwrite;
+    this.keypass = akeypass;
+    exportpath = anoutpath;
   }
 
   /**
@@ -197,12 +212,13 @@ public class JKStoPEM {
       o = e.nextElement();
 
       if (o instanceof String) {
-        if ((ks.isKeyEntry((String) o))
-            && ((serverPrivKey =
-                    (PrivateKey) ks.getKey((String) o, keypass.toCharArray()))
-                != null)) {
-          break;
-        }
+          if ((ks.isKeyEntry((String) o))) {
+              serverPrivKey =
+                 (PrivateKey) ks.getKey((String) o, keypass.toCharArray());
+              if (serverPrivKey != null) {
+                  break;
+              }
+          }
       }
     }
 

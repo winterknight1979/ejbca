@@ -26,13 +26,14 @@ import java.util.Random;
  */
 public abstract class BasePasswordGenerator implements IPasswordGenerator {
 
+    /** chars. */
   private final char[] usedchars;
-  // Declare the random here so that the seed only have to be generated once.
-  // This will save time.
-  private static final Random ran = new SecureRandom();
+  /** Declare the random here so that the seed only have to be generated once.
+   * This will save time. */
+  private static final Random RAN = new SecureRandom();
 
-  protected BasePasswordGenerator(final char[] usedchars) {
-    this.usedchars = usedchars;
+  protected BasePasswordGenerator(final char[] theusedchars) {
+    this.usedchars = theusedchars;
   }
 
   /** @see org.ejbca.util.passgen.IPasswordGenerator */
@@ -42,13 +43,13 @@ public abstract class BasePasswordGenerator implements IPasswordGenerator {
     // Calculate the length of password
     int passlen = maxlength;
     if (minlength != maxlength) {
-      passlen = minlength + BasePasswordGenerator.ran.nextInt(difference);
+      passlen = minlength + BasePasswordGenerator.RAN.nextInt(difference);
     }
     final char[] password = new char[passlen];
     for (int i = 0; i < passlen; i++) {
       password[i] =
           this.usedchars[
-              BasePasswordGenerator.ran.nextInt(this.usedchars.length)];
+              BasePasswordGenerator.RAN.nextInt(this.usedchars.length)];
     }
     return new String(password);
   }

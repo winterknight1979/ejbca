@@ -30,7 +30,7 @@ import org.cesecore.util.CertTools;
 public final class LdapTools {
 
   // should not be instantiated
-  private LdapTools() {}
+  private LdapTools() { }
 
   /**
    * @param dn DN
@@ -39,9 +39,11 @@ public final class LdapTools {
    */
   public static String getFirstDNComponent(final String dn) {
     List<String> components = CertTools.getX500NameComponents(dn);
-    if (components.size() == 0 || StringUtils.isEmpty(components.get(0)))
+    if (components.size() == 0 || StringUtils.isEmpty(components.get(0))) {
       return "";
-    else return LDAPDN.escapeRDN(components.get(0));
+    } else {
+        return LDAPDN.escapeRDN(components.get(0));
+    }
   }
 
   /**
@@ -53,13 +55,15 @@ public final class LdapTools {
   public static List<String> getIntermediateDNs(
       final String dn, final String baseDN) {
     // Remove the base DN
-    if (!dn.endsWith(baseDN)) return new ArrayList<String>();
+    if (!dn.endsWith(baseDN)) {
+        return new ArrayList<String>();
+    }
     final String subDN = dn.substring(0, dn.length() - baseDN.length());
 
     // Split and escape the DN (but ignore the lowest level component)
     final List<String> components = new ArrayList<String>();
-    for (String comp :
-        CertTools.getX500NameComponents(CertTools.getParentDN(subDN))) {
+    for (String comp
+        : CertTools.getX500NameComponents(CertTools.getParentDN(subDN))) {
       if (!StringUtils.isEmpty(comp)) {
         components.add(LDAPDN.escapeRDN(comp));
       }

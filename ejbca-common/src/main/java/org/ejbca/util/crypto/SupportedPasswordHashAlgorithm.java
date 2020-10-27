@@ -13,19 +13,23 @@
 package org.ejbca.util.crypto;
 
 /**
- * Simple enum to cover the supported password hash algorithms
+ * Simple enum to cover the supported password hash algorithms.
  *
  * @version $Id: SupportedPasswordHashAlgorithm.java 19901 2014-09-30 14:29:38Z
  *     anatom $
  */
 public enum SupportedPasswordHashAlgorithm {
-  SHA1_OLD("SHA1 without salt"),
+    /** Vanilla. */
+    SHA1_OLD("SHA1 without salt"),
+
+  /** BCRYPT. */
   SHA1_BCRYPT("SHA1 using BCrypt");
 
+    /** Name. */
   private String name;
 
-  private SupportedPasswordHashAlgorithm(final String name) {
-    this.name = name;
+  SupportedPasswordHashAlgorithm(final String aname) {
+    this.name = aname;
   }
 
   @Override

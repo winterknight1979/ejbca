@@ -26,21 +26,28 @@ public class ApprovalMatch extends BasicMatch {
 
   /**
    * Match with the id column (the primary key), for looking up a particular
-   * approval
+   * approval.
    */
   public static final int MATCH_WITH_UNIQUEID = 0;
   /**
    * Match with the computed id for the approval, for searching for identical
-   * approvals
+   * approvals.
    */
   public static final int MATCH_WITH_APPROVALID = 1;
 
+  /** Config. */
   public static final int MATCH_WITH_APPROVALTYPE = 2;
+  /** Config. */
   public static final int MATCH_WITH_ENDENTITYPROFILEID = 3;
+  /** Config. */
   public static final int MATCH_WITH_CAID = 4;
+  /** Config. */
   public static final int MATCH_WITH_REQUESTADMINCERTISSUERDN = 5;
+  /** Config. */
   public static final int MATCH_WITH_REQUESTADMINCERTSERIALNUMBER = 6;
+  /** Config. */
   public static final int MATCH_WITH_STATUS = 7;
+  /** Config. */
   public static final int MATCH_WITH_REMAININGAPPROVALS = 8;
 
   /**
@@ -59,37 +66,40 @@ public class ApprovalMatch extends BasicMatch {
     "remainingApprovals"
   };
 
+  /** param. */
   private final int matchwith;
+  /** param. */
   private final int matchtype;
+  /** param. */
   private final String matchvalue;
 
   /**
    * Creates a new instance.
    *
-   * @param matchwith determines which field in approval table to match with.
-   * @param matchtype determines how to match the field..
-   * @param matchvalue the value to match with.
+   * @param amatchwith determines which field in approval table to match with.
+   * @param amatchtype determines how to match the field..
+   * @param amatchvalue the value to match with.
    * @throws NumberFormatException if matchvalue contains illegal numbervalue
    *     when matching number field.
    */
   public ApprovalMatch(
-      final int matchwith, final int matchtype, final String matchvalue)
+      final int amatchwith, final int amatchtype, final String amatchvalue)
       throws NumberFormatException {
-    this.matchwith = matchwith;
-    this.matchtype = matchtype;
-    this.matchvalue = matchvalue;
+    this.matchwith = amatchwith;
+    this.matchtype = amatchtype;
+    this.matchvalue = amatchvalue;
     // The row below does not do anything but check that matchvalue contains
     // a legal number value when matching number field. See @throws clause.
-    if (matchwith != MATCH_WITH_REQUESTADMINCERTISSUERDN
-        && matchwith != MATCH_WITH_REQUESTADMINCERTSERIALNUMBER) {
-      Integer.valueOf(matchvalue);
+    if (amatchwith != MATCH_WITH_REQUESTADMINCERTISSUERDN
+        && amatchwith != MATCH_WITH_REQUESTADMINCERTSERIALNUMBER) {
+      Integer.valueOf(amatchvalue);
     }
   }
 
   @Override
   public String getQueryString() {
     String returnval = "";
-    final String matchvalue = super.escapeSql(this.matchvalue);
+    final String amatchvalue = super.escapeSql(this.matchvalue);
     if (matchtype == BasicMatch.MATCH_TYPE_EQUALS) {
       // Because some databases (read JavaDB/Derby) does not allow matching of
       // integer with a string expression
@@ -105,16 +115,16 @@ public class ApprovalMatch extends BasicMatch {
           MATCH_WITH_SQLNAMES[matchwith]
               + " = "
               + stringChar
-              + matchvalue.trim()
+              + amatchvalue.trim()
               + stringChar;
     }
     if (matchtype == BasicMatch.MATCH_TYPE_BEGINSWITH) {
       returnval =
-          MATCH_WITH_SQLNAMES[matchwith] + " LIKE '" + matchvalue + "%'";
+          MATCH_WITH_SQLNAMES[matchwith] + " LIKE '" + amatchvalue + "%'";
     }
     if (matchtype == BasicMatch.MATCH_TYPE_CONTAINS) {
       returnval =
-          MATCH_WITH_SQLNAMES[matchwith] + " LIKE '%" + matchvalue + "%'";
+          MATCH_WITH_SQLNAMES[matchwith] + " LIKE '%" + amatchvalue + "%'";
     }
     return returnval;
   }

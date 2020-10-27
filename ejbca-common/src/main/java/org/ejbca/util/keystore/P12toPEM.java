@@ -47,17 +47,30 @@ import org.cesecore.util.CryptoProviderTools;
  * @version $Id: P12toPEM.java 22117 2015-10-29 10:53:42Z mikekushner $
  */
 public class P12toPEM {
+    /** Logger. */
   private static Logger log = Logger.getLogger(P12toPEM.class);
-  String exportpath = "./p12/pem/";
-  String p12File;
-  String password;
-  KeyStore ks = null;
-
-  byte[] beginCertificate = "-----BEGIN CERTIFICATE-----".getBytes();
-  byte[] endCertificate = "-----END CERTIFICATE-----".getBytes();
-  byte[] beginPrivateKey = "-----BEGIN PRIVATE KEY-----".getBytes();
-  byte[] endPrivateKey = "-----END PRIVATE KEY-----".getBytes();
-  byte[] NL = "\n".getBytes();
+  /** Param. */
+  private String exportpath = "./p12/pem/";
+  /** Param. */
+  private String p12File;
+  /** Param. */
+  private String password;
+  /** Param. */
+  private KeyStore ks = null;
+  /** Constant. */
+  private final byte[] beginCertificate =
+          "-----BEGIN CERTIFICATE-----".getBytes();
+  /** Constant. */
+  private final byte[] endCertificate =
+          "-----END CERTIFICATE-----".getBytes();
+  /** Constant. */
+  private final byte[] beginPrivateKey =
+          "-----BEGIN PRIVATE KEY-----".getBytes();
+  /** Constant. */
+  private final byte[] endPrivateKey =
+          "-----END PRIVATE KEY-----".getBytes();
+  /** Constant. */
+  private static final byte[] NL = "\n".getBytes();
 
   /**
    * DOCUMENT ME!
@@ -87,27 +100,27 @@ public class P12toPEM {
   /**
    * Basic construtor for the P12toPEM class, set variables for the class.
    *
-   * @param p12File p12File The (path +) name of the input p12 file.
-   * @param password password The password for the p12 file.
+   * @param ap12File p12File The (path +) name of the input p12 file.
+   * @param apassword password The password for the p12 file.
    */
-  public P12toPEM(final String p12File, final String password) {
-    this.p12File = p12File;
-    this.password = password;
+  public P12toPEM(final String ap12File, final String apassword) {
+    this.p12File = ap12File;
+    this.password = apassword;
   }
 
   /**
    * Basic constructor using a in memory KeyStore instead for a file.
    *
    * @param keystore the KeyStore to use.
-   * @param password password The password for the p12 file.
+   * @param apassword password The password for the p12 file.
    */
-  public P12toPEM(final KeyStore keystore, final String password) {
-    this.password = password;
+  public P12toPEM(final KeyStore keystore, final String apassword) {
+    this.password = apassword;
     this.ks = keystore;
   }
 
   /**
-   * Sets the directory where PEM-files wil be stores
+   * Sets the directory where PEM-files wil be stores.
    *
    * @param path path where PEM-files will be stores
    */
@@ -116,7 +129,7 @@ public class P12toPEM {
   }
 
   /**
-   * Converts a P12 into a PEM
+   * Converts a P12 into a PEM.
    *
    * @return the created PEM file, null if file wasn't found and no other
    *     exception was thrown.
@@ -157,14 +170,15 @@ public class P12toPEM {
       o = e.nextElement();
 
       if (o instanceof String) {
-        if ((ks.isKeyEntry((String) o))
-            && ((serverPrivKey =
-                    (PrivateKey) ks.getKey((String) o, password.toCharArray()))
-                != null)) {
-          if (log.isDebugEnabled()) {
-            log.debug("Aliases " + o + " is KeyEntry.");
-          }
-          break;
+          if ((ks.isKeyEntry((String) o))) {
+              serverPrivKey =
+                 (PrivateKey) ks.getKey((String) o, password.toCharArray());
+              if (serverPrivKey != null) {
+                  if (log.isDebugEnabled()) {
+                      log.debug("Aliases " + o + " is KeyEntry.");
+                  }
+                  break;
+              }
         }
       }
     }

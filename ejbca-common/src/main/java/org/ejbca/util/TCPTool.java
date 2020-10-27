@@ -22,8 +22,10 @@ import org.apache.log4j.Logger;
  * @author johan
  * @version $Id: TCPTool.java 22117 2015-10-29 10:53:42Z mikekushner $
  */
-public class TCPTool {
-  private static final Logger log = Logger.getLogger(TCPTool.class);
+public final class TCPTool {
+    private TCPTool() { }
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(TCPTool.class);
 
   /**
    * Probe a TCP port connection at hostname:port.
@@ -55,8 +57,8 @@ public class TCPTool {
   private static void probeConnectionRaw(
       final String hostname, final int port, final int timeout)
       throws IOException {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">probeConnectionRaw("
               + hostname
               + ", "
@@ -68,8 +70,8 @@ public class TCPTool {
     Socket probeSocket = new Socket();
     probeSocket.connect(new InetSocketAddress(hostname, port), timeout);
     probeSocket.close();
-    if (log.isTraceEnabled()) {
-      log.trace("<probeConnectionRaw");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<probeConnectionRaw");
     }
   }
 }

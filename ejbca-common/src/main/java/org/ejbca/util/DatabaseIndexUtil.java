@@ -35,20 +35,28 @@ import org.apache.log4j.Logger;
  */
 public abstract class DatabaseIndexUtil {
 
-  private static final Logger log = Logger.getLogger(DatabaseIndexUtil.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(DatabaseIndexUtil.class);
 
   /**
    * Private helper class to help sorting the columns in the right order even if
-   * the database would return them in a different order than the ordinal
+   * the database would return them in a different order than the ordinal.
    */
-  private static class OrdinalColumn implements Comparable<OrdinalColumn> {
-    final short ordinalPosition;
-    final String columnName;
+  private static final class OrdinalColumn
+          implements Comparable<OrdinalColumn> {
+      /** Pos. */
+    private final short ordinalPosition;
+    /** Name. */
+    private final String columnName;
 
+    /**
+     * @param anOrdinalPosition pos
+     * @param aColumnName name
+     */
     private OrdinalColumn(
-        final short ordinalPosition, final String columnName) {
-      this.ordinalPosition = ordinalPosition;
-      this.columnName = columnName;
+        final short anOrdinalPosition, final String aColumnName) {
+      this.ordinalPosition = anOrdinalPosition;
+      this.columnName = aColumnName;
     }
 
     @Override
@@ -60,15 +68,23 @@ public abstract class DatabaseIndexUtil {
   /** Database index representation. */
   public static class DatabaseIndex implements Serializable {
     private static final long serialVersionUID = 1L;
+    /** Index. */
     private final String indexName;
+    /** Columns. */
     private final transient List<OrdinalColumn> ordinalColumns =
         new ArrayList<>();
+    /** names. */
     private final List<String> columnNames = new ArrayList<>();
+    /** boll. */
     private final boolean nonUnique;
 
-    public DatabaseIndex(final String indexName, final boolean nonUnique) {
-      this.indexName = indexName;
-      this.nonUnique = nonUnique;
+    /**
+     * @param anindexName name
+     * @param isnonUnique bool
+     */
+    public DatabaseIndex(final String anindexName, final boolean isnonUnique) {
+      this.indexName = anindexName;
+      this.nonUnique = isnonUnique;
     }
 
     private void appendOrdinalColumn(final OrdinalColumn ordinalColumn) {
@@ -101,15 +117,15 @@ public abstract class DatabaseIndexUtil {
      * Case insensitive check if all columns present in the argument is also
      * exactly present in this index.
      *
-     * @param columnNames columns
+     * @param thecolumnNames columns
      * @return bool
      */
-    public boolean isExactlyOverColumns(final List<String> columnNames) {
+    public boolean isExactlyOverColumns(final List<String> thecolumnNames) {
       final List<String> indexColumnNames = new ArrayList<>();
       for (final String indexColumnName : getColumnNames()) {
         indexColumnNames.add(indexColumnName.toLowerCase());
       }
-      for (final String columnName : columnNames) {
+      for (final String columnName : thecolumnNames) {
         if (!indexColumnNames.remove(columnName.toLowerCase())) {
           return false;
         }
@@ -137,8 +153,8 @@ public abstract class DatabaseIndexUtil {
         final List<DatabaseIndex> databaseIndexes =
             getDatabaseIndexFromTable(dataSource, tableName, requireUnique);
         if (databaseIndexes.isEmpty()) {
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "Failed to read any index meta data from the database for"
                     + " table '"
                     + tableName
@@ -153,8 +169,8 @@ public abstract class DatabaseIndexUtil {
           return Boolean.FALSE;
         }
       } catch (SQLException e) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Failed to read index meta data from the database for table '"
                   + tableName
                   + "'.",
@@ -179,15 +195,17 @@ public abstract class DatabaseIndexUtil {
       final boolean requireUnique)
       throws SQLException {
     final List<DatabaseIndex> ret = new ArrayList<>();
-    try (final Connection connection = dataSource.getConnection(); ) {
+    try (Connection connection = dataSource.getConnection(); ) {
       final DatabaseMetaData databaseMetaData = connection.getMetaData();
       /*
-       * Table names are case sensitive on at least Oracle XE (upper case) and MySQL 5.5 (camel case).
+       * Table names are case sensitive on at least Oracle XE
+       *  (upper case) and MySQL 5.5 (camel case).
        *
        * On MySQL the "catalog" is the database.
        * On Oracle XE the username used to access the db is the schema.
        *
-       * This is an attempt at a very defensive version where we assume as little as possible about the database and it's configuration.
+       * This is an attempt at a very defensive version where we assume as
+        * ittle as possible about the database and it's configuration.
        */
       final Map<String, DatabaseIndex> tableIndexMap = new HashMap<>();
       // First try the simple case that has been shown to work on MariaDB 5.5
@@ -198,10 +216,10 @@ public abstract class DatabaseIndexUtil {
       // If this failed, try the searching for the table as returned by the
       // database meta data
       if (tableIndexMap.isEmpty()) {
-        log.trace(
+        LOG.trace(
             "Looking up all available tables available in the datasource to"
                 + " find a matching table.");
-        try (final ResultSet resultSetSchemas =
+        try (ResultSet resultSetSchemas =
             databaseMetaData.getTables(null, null, null, null)) {
           while (resultSetSchemas.next()) {
             final String tableCatalog = resultSetSchemas.getString("TABLE_CAT");
@@ -209,8 +227,8 @@ public abstract class DatabaseIndexUtil {
                 resultSetSchemas.getString("TABLE_SCHEM");
             final String tableName2 = resultSetSchemas.getString("TABLE_NAME");
             final String tableType = resultSetSchemas.getString("TABLE_TYPE");
-            if (log.isTraceEnabled()) {
-              log.trace(
+            if (LOG.isTraceEnabled()) {
+              LOG.trace(
                   " catalog: "
                       + tableCatalog
                       + " tableSchema: "
@@ -224,8 +242,8 @@ public abstract class DatabaseIndexUtil {
                 && tableName
                     .toUpperCase(Locale.ENGLISH)
                     .equals(tableName2.toUpperCase(Locale.ENGLISH))) {
-              if (log.isDebugEnabled()) {
-                log.debug(
+              if (LOG.isDebugEnabled()) {
+                LOG.debug(
                     "Will perform index detection on "
                         + tableType
                         + " in catalog "
@@ -242,8 +260,8 @@ public abstract class DatabaseIndexUtil {
               if (tableIndexMap.isEmpty()) {
                 // Fall-back since null arguments apparently did not match the
                 // table and assume that this will find the correct one
-                if (log.isDebugEnabled()) {
-                  log.debug(
+                if (LOG.isDebugEnabled()) {
+                  LOG.debug(
                       "Will perform index detection on "
                           + tableType
                           + " in catalog '"
@@ -290,8 +308,10 @@ public abstract class DatabaseIndexUtil {
       final boolean requireUnique)
       throws SQLException {
     final Map<String, DatabaseIndex> tableIndexMap = new HashMap<>();
-    // http://docs.oracle.com/javase/7/docs/api/java/sql/DatabaseMetaData.html#getIndexInfo(java.lang.String,%20java.lang.String,%20java.lang.String,%20boolean,%20boolean)
-    try (final ResultSet resultSet =
+    // http://docs.oracle.com/javase/7/docs/api/java/sql/DatabaseMetaData.html
+    // #getIndexInfo(java.lang.String,%20java.lang.String,
+    // %20java.lang.String,%20boolean,%20boolean)
+    try (ResultSet resultSet =
         databaseMetaData.getIndexInfo(
             catalog,
             schemaName,
@@ -301,7 +321,7 @@ public abstract class DatabaseIndexUtil {
       while (resultSet.next()) {
         final String indexName = resultSet.getString("INDEX_NAME");
         if (indexName == null) {
-          log.trace("Ignoring index of type tableIndexStatistic.");
+          LOG.trace("Ignoring index of type tableIndexStatistic.");
           continue;
         }
         final boolean nonUnique = resultSet.getBoolean("NON_UNIQUE");
@@ -313,7 +333,7 @@ public abstract class DatabaseIndexUtil {
         final short ordinalPosition = resultSet.getShort("ORDINAL_POSITION");
         databaseIndex.appendOrdinalColumn(
             new OrdinalColumn(ordinalPosition, columnName));
-        if (log.isDebugEnabled()) {
+        if (LOG.isDebugEnabled()) {
           // Extract additional info if we are debug logging
           final short type = resultSet.getShort("TYPE");
           final String typeString;
@@ -333,7 +353,7 @@ public abstract class DatabaseIndexUtil {
             default:
               typeString = "unknown";
           }
-          log.debug(
+          LOG.debug(
               "Detected part of index on table '"
                   + tableName
                   + "' indexName: "

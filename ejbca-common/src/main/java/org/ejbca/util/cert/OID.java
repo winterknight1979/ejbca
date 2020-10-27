@@ -21,7 +21,8 @@ import org.bouncycastle.asn1.ASN1ObjectIdentifier;
  * @author Lars Silvén
  * @version $Id: OID.java 22117 2015-10-29 10:53:42Z mikekushner $
  */
-public class OID {
+public final class OID {
+    private OID() { }
   /**
    * Tests if the beginning of a string identifies an OID.
    *

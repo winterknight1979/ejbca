@@ -66,7 +66,7 @@ import org.ejbca.core.model.services.ServiceConfiguration;
 public final class CAIdTools {
 
   /** Static class. Can't be instantiated */
-  private CAIdTools() {}
+  private CAIdTools() { }
 
   /**
    * Updates any references to a CA's CAId and Subject DN.
@@ -227,8 +227,8 @@ public final class CAIdTools {
       final String toSubjectDN) {
     boolean changed = false;
     List<InternalKeyBindingTrustEntry> trustentries = new ArrayList<>();
-    for (InternalKeyBindingTrustEntry trustentry :
-        keybind.getTrustedCertificateReferences()) {
+    for (InternalKeyBindingTrustEntry trustentry
+        : keybind.getTrustedCertificateReferences()) {
       int trustCaId = trustentry.getCaId();
       if (trustCaId == fromId) {
         trustCaId = toId;

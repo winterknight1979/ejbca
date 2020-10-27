@@ -18,7 +18,7 @@ import java.util.Map;
 import org.cesecore.util.StringTools;
 
 /**
- * Only used for backwards compatibility with earlier versions of EJBCA
+ * Only used for backwards compatibility with earlier versions of EJBCA.
  *
  * @see org.cesecore.util.Base64PutHashMap
  * @deprecated now
@@ -28,14 +28,19 @@ import org.cesecore.util.StringTools;
 public class Base64PutHashMap extends HashMap<Object, Object> {
   private static final long serialVersionUID = 4700506858751520533L;
 
+  /** Null constructor. */
   public Base64PutHashMap() {
     super();
   }
 
+  /**
+   * @param m map
+   */
   public Base64PutHashMap(final Map<?, ?> m) {
     super(m);
   }
 
+  @Override
   public Object put(final Object key, final Object value) {
     if (value == null) {
       return super.put(key, value);

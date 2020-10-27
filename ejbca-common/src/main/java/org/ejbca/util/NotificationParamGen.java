@@ -29,9 +29,10 @@ import org.cesecore.util.ValidityDate;
  */
 public class NotificationParamGen {
 
+    /** Prameters. */
   private final HashMap<String, String> params = new HashMap<String, String>();
 
-  /** regexp pattern to match ${identifier} patterns */
+  /** regexp pattern to match ${identifier} patterns. */
   private static final Pattern PATTERN = Pattern.compile("\\$\\{(.+?)\\}");
 
   protected NotificationParamGen() {
@@ -50,7 +51,7 @@ public class NotificationParamGen {
   }
 
   /**
-   * method that makes sure that a "" is inserted instead of null
+   * method that makes sure that a "" is inserted instead of null.
    *
    * @param key key
    * @param value value
@@ -64,7 +65,7 @@ public class NotificationParamGen {
   }
 
   /**
-   * method that makes sure that a "" is inserted instead of null
+   * method that makes sure that a "" is inserted instead of null.
    *
    * @param key key
    * @param value value
@@ -107,7 +108,8 @@ public class NotificationParamGen {
       // otherwise keep the pattern ( it is group(0) )
       if (value != null) {
         // $ is a group symbol in regexp replacement, see:
-        // http://stackoverflow.com/questions/11913709/why-does-replaceall-fail-with-illegal-group-reference
+        // http://stackoverflow.com/questions/11913709/
+          //      why-does-replaceall-fail-with-illegal-group-reference
         // since we can generate passwords etc with $ in them we need to escape
         // $ signs in the value. The same applies for backslash.
         m.appendReplacement(sb, Matcher.quoteReplacement(value));
@@ -124,6 +126,10 @@ public class NotificationParamGen {
     return sb.toString();
   }
 
+  /**
+   * @param date date
+   * @return format
+   */
   protected String fastDateFormat(final Date date) {
     return ValidityDate.formatAsISO8601(date, ValidityDate.TIMEZONE_SERVER);
   }

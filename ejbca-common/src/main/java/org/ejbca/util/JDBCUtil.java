@@ -33,13 +33,24 @@ import org.ejbca.core.ejb.ServiceLocatorException;
  *
  * @version $Id: JDBCUtil.java 24766 2016-11-18 13:12:02Z jeklund $
  */
-public class JDBCUtil {
+public final class JDBCUtil {
 
-  private static final Logger log = Logger.getLogger(JDBCUtil.class);
+    private JDBCUtil() { }
+    /**
+     * Log.
+     */
+  private static final Logger LOG = Logger.getLogger(JDBCUtil.class);
 
   public interface Preparer {
+      /**
+       * @param ps statement
+       * @throws Exception fail
+       */
     void prepare(PreparedStatement ps) throws Exception;
 
+    /**
+     * @return string
+     */
     String getInfoString();
   }
 
@@ -75,6 +86,13 @@ public class JDBCUtil {
     return -1;
   }
 
+  /**
+   * @param sqlCommandTemplate template
+   * @param preparer preparer
+   * @param dataSource SD
+   * @return response
+   * @throws Exception error
+   */
   public static String executeSelectString(
       final String sqlCommandTemplate,
       final Preparer preparer,
@@ -133,15 +151,15 @@ public class JDBCUtil {
     try {
       return ServiceLocator.getInstance().getDataSource(dataSourceName);
     } catch (ServiceLocatorException e) {
-      if (log.isDebugEnabled()) {
-        log.debug("Unable to get the DataSource '" + dataSourceName + "'.", e);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Unable to get the DataSource '" + dataSourceName + "'.", e);
       }
     }
     return null;
   }
 
   /**
-   * return a requested database connection
+   * return a requested database connection.
    *
    * @return a database connection
    * @throws ServiceLocatorException if it cannot get the datasource connection
@@ -165,7 +183,7 @@ public class JDBCUtil {
       try {
         con.close();
       } catch (SQLException e) {
-        log.warn("Could not close connection", e);
+        LOG.warn("Could not close connection", e);
       }
     }
   }
@@ -180,7 +198,7 @@ public class JDBCUtil {
       try {
         rs.close();
       } catch (SQLException e) {
-        log.warn("Could not close ResultSet", e);
+        LOG.warn("Could not close ResultSet", e);
       }
     }
   }
@@ -195,7 +213,7 @@ public class JDBCUtil {
       try {
         ps.close();
       } catch (SQLException e) {
-        log.warn("Could not close PreparedStatement", e);
+        LOG.warn("Could not close PreparedStatement", e);
       }
     }
   }

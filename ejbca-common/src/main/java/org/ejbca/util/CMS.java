@@ -53,13 +53,16 @@ import org.cesecore.certificates.util.AlgorithmTools;
  *
  * @version $Id: CMS.java 26780 2017-10-10 09:37:56Z mikekushner $
  */
-public class CMS {
-  private static final Logger log = Logger.getLogger(CMS.class);
-  private static final int bufferSize = 0x20000;
+public final class CMS {
+    private CMS() { }
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(CMS.class);
+  /** Size. */
+  private static final int BUFFER_SIZE = 0x20000;
 
   private static void fromInToOut(final InputStream in, final OutputStream out)
       throws IOException {
-    byte[] buf = new byte[bufferSize];
+    byte[] buf = new byte[BUFFER_SIZE];
     while (true) {
       int len = in.read(buf);
       if (len < 0) {
@@ -83,8 +86,8 @@ public class CMS {
       final X509Certificate cert,
       final String symmAlgOid)
       throws Exception {
-    final InputStream bis = new BufferedInputStream(is, bufferSize);
-    final OutputStream bos = new BufferedOutputStream(os, bufferSize);
+    final InputStream bis = new BufferedInputStream(is, BUFFER_SIZE);
+    final OutputStream bos = new BufferedOutputStream(os, BUFFER_SIZE);
     final CMSEnvelopedDataStreamGenerator edGen =
         new CMSEnvelopedDataStreamGenerator();
     edGen.addRecipientInfoGenerator(
@@ -111,8 +114,8 @@ public class CMS {
       final PrivateKey key,
       final String providerName)
       throws Exception {
-    final InputStream bis = new BufferedInputStream(is, bufferSize);
-    final OutputStream bos = new BufferedOutputStream(os, bufferSize);
+    final InputStream bis = new BufferedInputStream(is, BUFFER_SIZE);
+    final OutputStream bos = new BufferedOutputStream(os, BUFFER_SIZE);
     final Iterator<RecipientInformation> it =
         new CMSEnvelopedDataParser(bis)
             .getRecipientInfos()
@@ -152,8 +155,8 @@ public class CMS {
       final String providerName,
       final X509Certificate cert)
       throws Exception {
-    final InputStream bis = new BufferedInputStream(is, bufferSize);
-    final OutputStream bos = new BufferedOutputStream(os, bufferSize);
+    final InputStream bis = new BufferedInputStream(is, BUFFER_SIZE);
+    final OutputStream bos = new BufferedOutputStream(os, BUFFER_SIZE);
     final CMSSignedDataStreamGenerator gen = new CMSSignedDataStreamGenerator();
     JcaDigestCalculatorProviderBuilder calculatorProviderBuilder =
         new JcaDigestCalculatorProviderBuilder()
@@ -181,17 +184,46 @@ public class CMS {
   }
 
   public static class VerifyResult {
-    public final Date signDate;
-    public final boolean isVerifying;
-    public final SignerId signerId;
+      /** Date. */
+    private final Date signDate;
+    /** Bool. */
+    private final boolean isVerifying;
+    /** ID. */
+    private final SignerId signerId;
 
+    /**
+     * @param asignDate date
+     * @param aisVerifying verify
+     * @param asignerId id
+     */
     public VerifyResult(
-        final Date _signDate,
-        final boolean _isVerifying,
-        final SignerId _signerId) {
-      this.signDate = _signDate;
-      this.isVerifying = _isVerifying;
-      this.signerId = _signerId;
+        final Date asignDate,
+        final boolean aisVerifying,
+        final SignerId asignerId) {
+      this.signDate = asignDate;
+      this.isVerifying = aisVerifying;
+      this.signerId = asignerId;
+    }
+
+    /**
+     * @return the signDate
+     */
+    public Date getSignDate() {
+        return signDate;
+    }
+
+    /**
+     * @return the isVerifying
+     */
+    public boolean isVerifying() {
+        return isVerifying;
+    }
+
+    /**
+     * @return the signerId
+     */
+    public SignerId getSignerId() {
+        return signerId;
     }
   }
   /**
@@ -206,8 +238,8 @@ public class CMS {
   public static VerifyResult verify(
       final InputStream is, final OutputStream os, final X509Certificate cert)
       throws Exception {
-    final InputStream bis = new BufferedInputStream(is, bufferSize);
-    final OutputStream bos = new BufferedOutputStream(os, bufferSize);
+    final InputStream bis = new BufferedInputStream(is, BUFFER_SIZE);
+    final OutputStream bos = new BufferedOutputStream(os, BUFFER_SIZE);
     final CMSSignedDataParser sp =
         new CMSSignedDataParser(new BcDigestCalculatorProvider(), bis);
     final CMSTypedStream sc = sp.getSignedContent();
@@ -244,7 +276,7 @@ public class CMS {
           signerInfo.verify(
               jcaSignerInfoVerifierBuilder.build(cert.getPublicKey()));
     } catch (Throwable t) { // NOPMD
-      log.debug("Exception when verifying", t);
+      LOG.debug("Exception when verifying", t);
     }
     return new VerifyResult(date, result, id);
   }

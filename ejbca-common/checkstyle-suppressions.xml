@@ -44,7 +44,7 @@
  	<suppress checks="MagicNumberCheck" files="ServiceConfiguration.java" lines="299-319"/> <!-- Version numbers -->
  	<suppress checks="MethodLengthCheck" files="ScepRequestMessage.java" lines="236"/>
  	<suppress checks="MethodLengthCheck" files="ScepResponseMessage.java" lines="250"/>
- 	
- 	
+ 	<suppress checks="InnerAssignmentCheck" files="JAXWSDocAndConvTools.java" /> <!-- Seems to mess up flow control if rrefactored. -->
+ 	<suppress checks="ParameterNumberCheck" files="PrinterManager.java" lines="108"/>
  	
  </suppressions>

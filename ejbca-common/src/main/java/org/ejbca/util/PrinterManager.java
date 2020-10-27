@@ -29,18 +29,23 @@ import org.ejbca.core.model.hardtoken.profiles.SVGImageManipulator;
 
 /**
  * Class managing EJBCA print functionality, such as listing printers and
- * managing printjobs
+ * managing printjobs.
  *
  * @author Philip Vendil 2006 sep 20
  * @version $Id: PrinterManager.java 22117 2015-10-29 10:53:42Z mikekushner $
  */
-public class PrinterManager {
-
+public final class PrinterManager {
+    private PrinterManager() { }
+    /** Log. */
   private static Logger log = Logger.getLogger(PrinterManager.class);
 
+  /** Param. */
   private static transient PrintService currentService = null;
+  /** Param. */
   private static transient String currentPrinterName = null;
+  /** Param. */
   private static transient String currentSVGTemplateName = null;
+  /** Param. */
   private static transient SVGImageManipulator sVGImagemanipulator = null;
 
   /**
@@ -54,7 +59,7 @@ public class PrinterManager {
     try {
       PrintRequestAttributeSet pras = new HashPrintRequestAttributeSet();
       DocFlavor flavor = DocFlavor.BYTE_ARRAY.AUTOSENSE;
-      PrintService printService[] =
+      PrintService[] printService =
           PrintServiceLookup.lookupPrintServices(flavor, pras);
       printerNames = new String[printService.length];
       for (int i = 0; i < printService.length; i++) {
@@ -122,7 +127,7 @@ public class PrinterManager {
         || !printerName.equals(currentPrinterName)) {
       PrintRequestAttributeSet pras = new HashPrintRequestAttributeSet();
       DocFlavor flavor = DocFlavor.BYTE_ARRAY.AUTOSENSE;
-      PrintService printService[] =
+      PrintService[] printService =
           PrintServiceLookup.lookupPrintServices(flavor, pras);
       int i = 0;
       String trimemdPrinterName = printerName.trim();

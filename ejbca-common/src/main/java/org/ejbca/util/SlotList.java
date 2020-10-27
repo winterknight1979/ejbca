@@ -25,30 +25,40 @@ import java.util.regex.Pattern;
 public class SlotList {
 
   private static final class Range implements Comparable<Range> {
-    public final int min, max;
+      /** Param. */
+    private final int min;
+    /** Param. */
+    private final int max;
 
-    public Range(final int min, final int max) {
-      if (min > max) {
+    Range(final int amin, final int amax) {
+      if (amin > amax) {
         throw new IllegalArgumentException(
             "Minimum value ("
-                + min
+                + amin
                 + ") in slot range is greater than maximum value ("
-                + max
+                + amax
                 + ")");
       }
-      this.min = min;
-      this.max = max;
+      this.min = amin;
+      this.max = amax;
     }
 
     @Override
     public int compareTo(final Range o) {
-      if (min < o.min) return -1;
-      if (min > o.min) return 1;
-      else return 0;
+      if (min < o.min) {
+          return -1;
+      }
+      if (min > o.min) {
+          return 1;
+      } else {
+          return 0;
+      }
     }
   }
 
+  /** Param. */
   private final TreeSet<Range> ranges = new TreeSet<Range>();
+  /** Param. */
   private final TreeSet<Range> indexRanges = new TreeSet<Range>();
 
   private int intval(final String s, final int defaultValue) {
@@ -69,15 +79,20 @@ public class SlotList {
     addRangeTo(indexRanges, min, max);
   }
 
-  private void addRangeTo(final TreeSet<Range> r, int min, int max) {
-    Range toAdd = new Range(min, max);
+  private void addRangeTo(
+          final TreeSet<Range> r, final int omin, final int omax) {
+    int min = omin;
+    int max = omax;
+      Range toAdd = new Range(min, max);
 
     // Check for overlap with lower numbers
     final Range lower = r.floor(toAdd);
     if (lower != null
         && (lower.max >= min - 1
             || lower.max >= min)) { // special handling for integer overflows
-      if (lower.max >= max) return; // complete overlap
+      if (lower.max >= max) {
+          return; // complete overlap
+      }
       min = lower.min; // expand self
       toAdd = new Range(min, max);
       r.remove(lower);
@@ -86,7 +101,9 @@ public class SlotList {
     // Check for overlap with higher numbers
     final Range higher = r.ceiling(toAdd);
     if (higher != null && (higher.min <= max + 1 || higher.min <= max)) {
-      if (higher.min <= min) return; // complete overlap
+      if (higher.min <= min) {
+          return; // complete overlap
+      }
       max = higher.max;
       toAdd = new Range(min, max); // expand self
       r.remove(higher);
@@ -95,45 +112,59 @@ public class SlotList {
     r.add(toAdd);
   }
 
-  private static final Pattern slotListSingle = Pattern.compile("^([0-9]+)$");
-  private static final Pattern slotListRange =
+  /** Config. */
+  private static final Pattern SLOT_LIST_SINGLE =
+          Pattern.compile("^([0-9]+)$");
+  /** Config. */
+  private static final Pattern SLOT_LIST_RANGE =
       Pattern.compile("^([0-9]+)?-([0-9]+)?$");
-  private static final Pattern slotListISingle = Pattern.compile("^i([0-9]+)$");
-  private static final Pattern slotListIRange =
+  /** Config. */
+  private static final Pattern SLOT_LIST_I_SINGLE =
+          Pattern.compile("^i([0-9]+)$");
+  /** Config. */
+  private static final Pattern SLOT_LIST_I_RANGE =
       Pattern.compile("^i([0-9]+)?-i([0-9]+)?$");
 
+  /**
+   * @param s string
+   * @return lisy
+   */
   public static SlotList fromString(final String s) {
-    if (s == null) return null;
+    if (s == null) {
+        return null;
+    }
     final SlotList sl = new SlotList();
-    if (s.trim().isEmpty()) return sl;
+    if (s.trim().isEmpty()) {
+        return sl;
+    }
 
     for (String piece : s.split(",")) {
       piece = piece.trim();
       Matcher m;
 
       // Single entries
-      m = slotListSingle.matcher(piece);
+      m = SLOT_LIST_SINGLE.matcher(piece);
       // create a range from the first matcher group
       if (m.find()) {
         sl.addRange(m, 1, 1);
         continue;
       }
 
-      m = slotListISingle.matcher(piece);
+      m = SLOT_LIST_I_SINGLE.matcher(piece);
       if (m.find()) {
         sl.addIndexRange(m, 1, 1);
         continue;
       }
 
       // Range entries
-      m = slotListRange.matcher(piece);
+      m = SLOT_LIST_RANGE.matcher(piece);
       // create a range from the matcher groups 1 and 2
       if (m.find()) {
         sl.addRange(m, 1, 2);
         continue;
       }
 
-      m = slotListIRange.matcher(piece);
+      m = SLOT_LIST_I_RANGE.matcher(piece);
       if (m.find()) {
         sl.addIndexRange(m, 1, 2);
         continue;
@@ -146,6 +177,11 @@ public class SlotList {
     return sl;
   }
 
+
+/**
+ * @param slot slot
+ * @return bool
+ */
   public boolean contains(final String slot) {
     final boolean isIndexed = slot.startsWith("i");
     final int number = Integer.valueOf(isIndexed ? slot.substring(1) : slot);

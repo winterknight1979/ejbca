@@ -23,6 +23,7 @@ package org.ejbca.util.passgen;
 public class NoLookOrSoundALikeENLDPasswordGenerator
     extends BasePasswordGenerator {
 
+    /** Chars. */
   private static final char[] USEDCHARS = {
     '2', '3', '4', '5', '6', '7', '8', '9', 'q', 'Q', 'w', 'W', 'r', 'R', 't',
     'T', 'y', 'Y', 'u', 'U', 'i', 'o', 'p', 'P', 's', 'S', 'd', 'D', 'f', 'F',
@@ -30,12 +31,15 @@ public class NoLookOrSoundALikeENLDPasswordGenerator
     'n', 'N', 'm', 'M'
   };
 
+  /** Name. */
   protected static final String NAME = "PWGEN_NOLOSALIKEENLD";
 
+  /** @return name */
   public String getName() {
     return NAME;
   }
 
+  /** Constructor. */
   public NoLookOrSoundALikeENLDPasswordGenerator() {
     super(USEDCHARS);
   }

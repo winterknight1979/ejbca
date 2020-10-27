@@ -34,17 +34,26 @@ import java.util.Random;
 @SuppressWarnings("synthetic-access")
 public class PerformanceTest {
 
-  private final int STATISTIC_UPDATE_PERIOD_IN_SECONDS = 10;
+      /** Param. */
+  private final int statisticUpdatePeriodInSeconds = 10;
+  /** Param. */
   private final Log log;
+  /** Param. */
   private final Random random;
+  /** Param. */
   private boolean isSomeThreadUsingRandom;
 
+  /**
+   * Constructor. */
   public PerformanceTest() {
     this.log = new Log();
     this.random = new Random();
     this.isSomeThreadUsingRandom = false;
   }
 
+  /**
+   * @return long
+   */
   public long nextLong() {
     synchronized (this.random) {
       while (this.isSomeThreadUsingRandom) {
@@ -63,35 +72,56 @@ public class PerformanceTest {
     }
   }
 
+  /**
+   * @return log
+   */
   public Log getLog() {
     return this.log;
   }
 
+  /**
+   * @return random
+   */
   public Random getRandom() {
     return this.random;
   }
 
   public interface CommandFactory {
+      /**
+       * @return cmds
+       * @throws Exception fail
+       */
     Command[] getCommands() throws Exception;
   }
 
   public interface Command {
+      /**
+       * @return success
+       * @throws Exception fail
+       */
     boolean doIt() throws Exception;
 
+    /**
+     * @return desc
+     */
     String getJobTimeDescription();
   }
 
   private class JobRunner
       implements Runnable { // NOPMD this is a standalone test, not run in jee
                             // app
+      /** param. */
     private final Command command;
+    /** param. */
     private boolean bIsFinished;
+    /** param. */
     private int time;
+    /** param. */
     private boolean isSuccess = false;
 
-    JobRunner(final Command _command) throws Exception {
+    JobRunner(final Command acommand) throws Exception {
       this.bIsFinished = false;
-      this.command = _command;
+      this.command = acommand;
     }
 
     boolean execute() throws Exception {
@@ -100,8 +130,9 @@ public class PerformanceTest {
               this); // NOPMD this is a standalone test, not run in jee app
       synchronized (this) {
         thread.start();
+        final int fiveMins = 300 * MS_PER_S;
         if (!this.bIsFinished) {
-          this.wait(300000);
+          this.wait(fiveMins);
         }
         if (!this.bIsFinished) {
           thread.interrupt();
@@ -136,26 +167,30 @@ public class PerformanceTest {
   private class TestInstance
       implements Runnable { // NOPMD this is a standalone test, not run in jee
                             // app
+      /** param. */
     private final int nr;
+    /** param. */
     private final int maxWaitTime;
+    /** param. */
     private final Statistic statistic;
-    private final Command commands[];
+    /** param. */
+    private final Command[] commands;
     /**
-     * @param _nr NR
-     * @param _waitTime Time
-     * @param _statistic Stat
+     * @param anr NR
+     * @param awaitTime Time
+     * @param astatistic Stat
      * @param commandFactory Factory
      * @throws Exception On fail
      */
-    public TestInstance(
-        final int _nr,
-        final int _waitTime,
-        final Statistic _statistic,
+    TestInstance(
+        final int anr,
+        final int awaitTime,
+        final Statistic astatistic,
         final CommandFactory commandFactory)
         throws Exception {
-      this.nr = _nr;
-      this.maxWaitTime = _waitTime;
-      this.statistic = _statistic;
+      this.nr = anr;
+      this.maxWaitTime = awaitTime;
+      this.statistic = astatistic;
       this.commands = commandFactory.getCommands();
       if (this.nr > 0) {
         return;
@@ -230,6 +265,14 @@ public class PerformanceTest {
     }
   }
 
+  /**
+   * @param commandFactory fac
+   * @param numberOfThreads threads
+   * @param numberOfTests tests
+   * @param waitTime wait
+   * @param printStream output
+   * @throws Exception fail
+   */
   public void execute(
       final CommandFactory commandFactory,
       final int numberOfThreads,
@@ -240,7 +283,7 @@ public class PerformanceTest {
 
     final Statistic statistic =
         new Statistic(numberOfThreads, numberOfTests, printStream);
-    final Thread threads[] =
+    final Thread[] threads =
         new Thread
             [numberOfThreads]; // NOPMD this is a standalone test, not run in
                                // jee app
@@ -264,7 +307,7 @@ public class PerformanceTest {
             + " output.");
     printStream.println(
         "Statistic will be written to standard output each "
-            + this.STATISTIC_UPDATE_PERIOD_IN_SECONDS
+            + this.statisticUpdatePeriodInSeconds
             + " second.");
     printStream.println("The test was started at " + new Date());
     printStream.format(
@@ -284,35 +327,49 @@ public class PerformanceTest {
   private class Statistic
       implements Runnable { // NOPMD this is a standalone test, not run in jee
                             // app
+      /** param. */
     private final int nrOfThreads;
+    /** param. */
     private final int nrOfTests;
+    /** param. */
     private final Map<String, Job> jobs;
+    /** param. */
     private int nrOfStarted = 0;
+    /** param. */
     private int nrOfSuccesses = 0;
+    /** param. */
     private int nrOfSuccessesLastTime = 0;
+    /** param. */
     private int nrOfFailures = 0;
+    /** param. */
     private final PrintStream printStream;
 
     Statistic(
-        final int _nrOfThreads,
-        final int _nrOfTests,
-        final PrintStream _printStream) {
-      this.nrOfThreads = _nrOfThreads;
-      this.nrOfTests = _nrOfTests;
+        final int anrOfThreads,
+        final int anrOfTests,
+        final PrintStream aprintStream) {
+      this.nrOfThreads = anrOfThreads;
+      this.nrOfTests = anrOfTests;
       this.jobs = new HashMap<String, Job>();
-      this.printStream = _printStream;
+      this.printStream = aprintStream;
     }
 
-    private class Job {
+    private final class Job {
+        /** param. */
       private final String name;
+      /** param. */
       private long totalTime;
+      /** param. */
       private long minTime = Long.MAX_VALUE;
+      /** param. */
       private long maxTime = Long.MIN_VALUE;
+      /** param. */
       private Date minTimeAt;
+      /** param. */
       private Date maxTimeAt;
 
-      private Job(final String _name) {
-        this.name = _name;
+      private Job(final String aname) {
+        this.name = aname;
         this.totalTime = 0;
       }
 
@@ -398,7 +455,8 @@ public class PerformanceTest {
     private void printLine(
         final String description, final Object value, final Object value2) {
       String padding = new String();
-      for (int i = description.length(); i < 50; i++) {
+      final int max = 50;
+      for (int i = description.length(); i < max; i++) {
         padding += ' ';
       }
       if (value2 == null) {
@@ -422,18 +480,18 @@ public class PerformanceTest {
                   / (endTime - periodStartTime));
       this.nrOfSuccessesLastTime = this.nrOfSuccesses;
       final float relativeWork;
-      {
+
         long tmp = 0;
         Iterator<Job> i = this.jobs.values().iterator();
         while (i.hasNext()) {
           tmp += i.next().getTimeSpent();
         }
         relativeWork = (float) (allThreadsTime - tmp) / allThreadsTime;
-      }
-      final String CSI = "\u001B[";
+
+      final String csi = "\u001B[";
 
       this.printStream.println(
-          CSI + "J"); // clear rest of screen on VT100 terminals.
+          csi + "J"); // clear rest of screen on VT100 terminals.
       printLine(
           "Total # of successfully performed tests",
           Integer.valueOf(this.nrOfSuccesses));
@@ -446,26 +504,27 @@ public class PerformanceTest {
       this.printStream.println(
           "Relative average time for different tasks (all should sum up to"
               + " 1):");
-      {
-        final Iterator<Job> i = this.jobs.values().iterator();
+
+        i = this.jobs.values().iterator();
         while (i.hasNext()) {
           i.next().printRelativeTime(allThreadsTime);
         }
-      }
+
       printLine(
           "Time spent with test client work", Float.valueOf(relativeWork));
       this.printStream.println();
       this.printStream.println("Absolute extremes:");
-      {
-        final Iterator<Job> i = this.jobs.values().iterator();
+
+        i = this.jobs.values().iterator();
         while (i.hasNext()) {
           i.next().printMinMaxTime();
         }
-      }
+
+      final int len = 3;
       if (isNotReady()) { // move up if test is not finished.
         this.printStream.print(
-            CSI
-                + (10 + this.jobs.size() * 3)
+            csi
+                + (10 + this.jobs.size() * len)
                 + "A"); // move up. 3 lines for each job. relative max min
       }
       this.printStream.flush();
@@ -479,7 +538,8 @@ public class PerformanceTest {
         synchronized (this) {
           try {
             wait(
-                PerformanceTest.this.STATISTIC_UPDATE_PERIOD_IN_SECONDS * 1000);
+                PerformanceTest.this.statisticUpdatePeriodInSeconds
+                    * MS_PER_S);
           } catch (InterruptedException e) {
             // do nothing
           }
@@ -496,11 +556,19 @@ public class PerformanceTest {
     }
   }
 
+  /** Ms. */
+  private static final int MS_PER_S = 1000;
+
   public class Log {
+      /** param. */
     private final PrintWriter errorPrinter;
+    /** param. */
     private final PrintWriter infoPrinter;
+    /** param. */
     private final PrintWriter allPrinter;
+    /** param. */
     private final ObjectOutput resultObject;
+    /** param. */
     private final LogThread thread;
 
     Log() {
@@ -525,6 +593,7 @@ public class PerformanceTest {
       }
     }
 
+    /** Close. */
     public void close() {
       this.errorPrinter.close();
       this.infoPrinter.close();
@@ -534,27 +603,34 @@ public class PerformanceTest {
     private class LogThread
         implements Runnable { // NOPMD this is a standalone test, not run in jee
                               // app
-      final List<Data> lData = new LinkedList<Data>();
-      boolean active = true;
+        /** param. */
+      private final List<Data> lData = new LinkedList<Data>();
+      /** param. */
+      private boolean active = true;
 
       private class Data {
-        final Object msg;
-        final Throwable t;
-        final PrintWriter printer;
-        final ObjectOutput objectOutput;
-        final boolean doPrintDate;
+          /** param. */
+        private final Object msg;
+        /** param. */
+        private final Throwable t;
+        /** param. */
+        private final PrintWriter printer;
+        /** param. */
+        private final ObjectOutput objectOutput;
+        /** param. */
+        private final boolean doPrintDate;
 
         Data(
-            final Object _msg,
-            final Throwable _t,
-            final PrintWriter _printer,
-            final ObjectOutput _objectOutput,
-            final boolean _doPrintDate) {
-          this.msg = _msg;
-          this.t = _t;
-          this.printer = _printer;
-          this.doPrintDate = _doPrintDate;
-          this.objectOutput = _objectOutput;
+            final Object amsg,
+            final Throwable at,
+            final PrintWriter aprinter,
+            final ObjectOutput aobjectOutput,
+            final boolean adoPrintDate) {
+          this.msg = amsg;
+          this.t = at;
+          this.printer = aprinter;
+          this.doPrintDate = adoPrintDate;
+          this.objectOutput = aobjectOutput;
         }
       }
 
@@ -640,28 +716,46 @@ public class PerformanceTest {
       this.thread.log(msg, t, printer, true);
     }
 
+    /**
+     * @param object obg
+     */
     public void result(final Object object) {
       this.thread.log(object, this.resultObject);
     }
 
+    /**
+     * @param msg message
+     * @param t cause
+     */
     public void error(final String msg, final Throwable t) {
       log(msg, t, this.errorPrinter);
       log(msg, t, this.allPrinter);
     }
 
+    /**
+     * @param msg message
+     */
     public void error(final String msg) {
       error(msg, null);
     }
 
+    /**
+     * @param msg message
+     * @param t cause
+     */
     public void info(final String msg, final Throwable t) {
       log(msg, t, this.infoPrinter);
       log(msg, t, this.allPrinter);
     }
 
+    /**
+     * @param msg Message
+     */
     public void info(final String msg) {
       info(msg, null);
     }
 
+    /** Deac. */
     public void deActivate() {
       this.thread.deActivate();
     }
@@ -671,13 +765,16 @@ public class PerformanceTest {
    * introduces.
    */
   public static class NrOfThreadsAndNrOfTests {
-    public NrOfThreadsAndNrOfTests(final String _s) {
-      if (_s == null) {
+      /**
+       * @param os string
+       */
+    public NrOfThreadsAndNrOfTests(final String os) {
+      if (os == null) {
         this.threads = 1;
         this.tests = -1;
         return;
       }
-      final String s = _s.trim();
+      final String s = os.trim();
       final int sepPos = s.indexOf(':');
       if (sepPos < 0) {
         this.threads = Integer.parseInt(s);
@@ -688,7 +785,21 @@ public class PerformanceTest {
       this.tests = Integer.parseInt(s.substring(sepPos + 1));
     }
 
-    public final int threads;
-    public final int tests;
+    /** Threds. */
+    private final int threads;
+    /** Tests. */
+    private final int tests;
+    /**
+     * @return the threads
+     */
+    public int getThreads() {
+        return threads;
+    }
+    /**
+     * @return the tests
+     */
+    public int getTests() {
+        return tests;
+    }
   }
 }

@@ -32,6 +32,7 @@ public class Query implements Serializable {
 
   private static final long serialVersionUID = 2020709050743730820L;
 
+  /** Logger. */
   private static Logger log = Logger.getLogger(Query.class);
 
   /**
@@ -40,42 +41,53 @@ public class Query implements Serializable {
    */
   @Deprecated private static final int TYPE_LOGQUERY = 0;
 
+  /** Config. */
   public static final int TYPE_USERQUERY = 1;
+  /** Config. */
   public static final int TYPE_APPROVALQUERY = 2;
+  /** Config. */
   public static final int CONNECTOR_AND = 0;
+  /** Config. */
   public static final int CONNECTOR_OR = 1;
+  /** Config. */
   public static final int CONNECTOR_ANDNOT = 2;
+  /** Config. */
   public static final int CONNECTOR_ORNOT = 3;
 
+  /** Config. */
   static final String[] CONNECTOR_SQL_NAMES = {
     " AND ", " OR ", " AND NOT ", " OR NOT "
   };
 
+  /** Param. */
   private final List<BasicMatch> matches = new ArrayList<>();
+  /** Param. */
   private final List<Integer> connectors = new ArrayList<Integer>();
+  /** Param. */
   protected final int type;
+  /** Param. */
   private boolean hasIllegalSqlChars = false;
 
   /**
-   * Creates a new instance of Query
+   * Creates a new instance of Query.
    *
-   * @param type is the type of query to produce. Should be one of the 'TYPE'
+   * @param atype is the type of query to produce. Should be one of the 'TYPE'
    *     constants of this class.
    */
-  public Query(final int type) {
-    this.type = type;
+  public Query(final int atype) {
+    this.type = atype;
   }
 
   /**
    * Adds a time restraint to the query. Both parameter cannot be null This
    * method should only be used in ra user queries.
    *
-   * @param startdate gives the start date of the query or null if it no
+   * @param astartdate gives the start date of the query or null if it no
    *     startdate.
-   * @param enddate gives the end date of the query or null if it no startdate.
+   * @param aenddate gives the end date of the query or null if it no startdate.
    */
-  public void add(final Date startdate, final Date enddate) {
-    matches.add(new TimeMatch(type, startdate, enddate));
+  public void add(final Date astartdate, final Date aenddate) {
+    matches.add(new TimeMatch(type, astartdate, aenddate));
   }
 
   /**

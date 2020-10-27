@@ -22,13 +22,14 @@ import java.util.logging.Logger;
 
 /**
  * Use {@link #add()} to add a handler to {@link java.util.logging.Logger} that
- * logs to {@link org.apache.log4j.Logger}
+ * logs to {@link org.apache.log4j.Logger}.
  *
  * @version $Id: Log4jHandler.java 22311 2015-11-30 08:11:23Z mikekushner $
  */
 public class Log4jHandler extends Handler {
+    /** param. */
   private static boolean isStarted = false;
-  /** Add handler to java sun logging that logs to log4j */
+  /** Add handler to java sun logging that logs to log4j. */
   public static void add() {
     if (isStarted) {
       return;
@@ -36,7 +37,7 @@ public class Log4jHandler extends Handler {
     isStarted = true;
     final Level logLevel = Level.FINEST;
     final Logger rootLogger = Logger.getLogger("");
-    final Handler handlers[] = rootLogger.getHandlers();
+    final Handler[] handlers = rootLogger.getHandlers();
     for (int i = 0; i < handlers.length; i++) {
       rootLogger.removeHandler(handlers[i]);
     }
@@ -46,13 +47,13 @@ public class Log4jHandler extends Handler {
     rootLogger.addHandler(handler);
   }
 
-  /* (non-Javadoc)
+  /**
    * @see java.util.logging.Handler#close()
    */
   public void close() throws SecurityException {
     // do nothing
   }
-  /* (non-Javadoc)
+  /**
    * @see java.util.logging.Handler#flush()
    */
   public void flush() {
@@ -78,7 +79,8 @@ public class Log4jHandler extends Handler {
       return org.apache.log4j.Level.OFF;
     }
   }
-  /* (non-Javadoc)
+  /**
+   * @param record record
    * @see java.util.logging.Handler#publish(java.util.logging.LogRecord)
    */
   public void publish(final LogRecord record) {
@@ -89,7 +91,7 @@ public class Log4jHandler extends Handler {
     printWriter.print(record.getSourceMethodName());
     printWriter.print(": ");
     printWriter.print(record.getMessage());
-    Object parameters[] = record.getParameters();
+    Object[] parameters = record.getParameters();
     for (int i = 0; parameters != null && i < parameters.length; i++) {
       printWriter.println();
       printWriter.print("{" + i + "} = " + parameters[i]);

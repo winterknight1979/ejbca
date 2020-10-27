@@ -38,8 +38,21 @@ import org.cesecore.util.CertTools;
  *
  * @version $Id: NonEjbTestTools.java 22117 2015-10-29 10:53:42Z mikekushner $
  */
-public class NonEjbTestTools {
+public final class NonEjbTestTools {
+    private NonEjbTestTools() { }
 
+    /**
+     * @param dn DN
+     * @param password PWD
+     * @return Byte array
+     * @throws InvalidKeyException fail
+     * @throws NoSuchAlgorithmException fail
+     * @throws NoSuchProviderException fail
+     * @throws SignatureException fail
+     * @throws InvalidAlgorithmParameterException fail
+     * @throws IOException fail
+     * @throws OperatorCreationException fail
+     */
   public static byte[] generatePKCS10Req(final String dn, final String password)
       throws InvalidKeyException, NoSuchAlgorithmException,
           NoSuchProviderException, SignatureException,
