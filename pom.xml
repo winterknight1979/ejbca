@@ -722,7 +722,7 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 					</dependency>
 				</dependencies>
 				<configuration>
-					<suppressionsLocation>${project.basedir}/checkstyle-suppressions.xml</suppressionsLocation>
+					<suppressionsLocation>checkstyle-suppressions.xml</suppressionsLocation>
 					<suppressionsFileExpression>checkstyle.suppressions.file</suppressionsFileExpression>
 					<configLocation>checkstyle.xml</configLocation>
 					<includeTestSourceDirectory>true</includeTestSourceDirectory>
