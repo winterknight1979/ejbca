@@ -13,41 +13,34 @@
 package org.ejbca.core.model.approval;
 
 /**
- * Thrown to show that the administrator performing an action was the same as the one originally requesting the action. 
- * 
- * @version $Id: SelfApprovalException.java 22865 2016-02-25 12:53:29Z mikekushner $
+ * Thrown to show that the administrator performing an action was the same as
+ * the one originally requesting the action.
  *
+ * @version $Id: SelfApprovalException.java 22865 2016-02-25 12:53:29Z
+ *     mikekushner $
  */
 public class SelfApprovalException extends Exception {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    /**
-     * 
-     */
-    public SelfApprovalException() {
-    }
+  /** */
+  public SelfApprovalException() { }
 
-    /**
-     * @param message Message
-     */
-    public SelfApprovalException(String message) {
-        super(message);
-    }
+  /** @param message Message */
+  public SelfApprovalException(final String message) {
+    super(message);
+  }
 
-    /**
-     * @param cause Cause
-     */
-    public SelfApprovalException(Throwable cause) {
-        super(cause);
-    }
+  /** @param cause Cause */
+  public SelfApprovalException(final Throwable cause) {
+    super(cause);
+  }
 
-    /**
-     * @param message Message
-     * @param cause Cause
-     */
-    public SelfApprovalException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
+  /**
+   * @param message Message
+   * @param cause Cause
+   */
+  public SelfApprovalException(final String message, final Throwable cause) {
+    super(message, cause);
+  }
 }

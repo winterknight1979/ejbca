@@ -10,37 +10,39 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
+
 package org.ejbca.core.model.ra.userdatasource;
 
 import javax.xml.ws.WebFault;
-
 import org.ejbca.core.EjbcaException;
 
-
 /**
- * Is thrown during remove user data call and the search string matches multiple but 
- * the call is instructed not to remove more than one.
+ * Is thrown during remove user data call and the search string matches multiple
+ * but the call is instructed not to remove more than one.
  *
- * @version $Id: MultipleMatchException.java 22117 2015-10-29 10:53:42Z mikekushner $
+ * @version $Id: MultipleMatchException.java 22117 2015-10-29 10:53:42Z
+ *     mikekushner $
  */
 @WebFault
 public class MultipleMatchException extends EjbcaException {
-    
-    private static final long serialVersionUID = 5191918316722890271L;
 
-    /**
-     * Creates a new instance of <code>MultipleMatchException</code> without detail message.
-     */
-    public MultipleMatchException() {
-        super();
-    }
- 
-    /**
-     * Constructs an instance of <code>MultipleMatchException</code> with the specified detail message.
-     * @param msg the detail message.
-     */
-    public MultipleMatchException(String msg) {
-        super(msg);
-    }
+  private static final long serialVersionUID = 5191918316722890271L;
+
+  /**
+   * Creates a new instance of <code>MultipleMatchException</code> without
+   * detail message.
+   */
+  public MultipleMatchException() {
+    super();
+  }
+
+  /**
+   * Constructs an instance of <code>MultipleMatchException</code> with the
+   * specified detail message.
+   *
+   * @param msg the detail message.
+   */
+  public MultipleMatchException(final String msg) {
+    super(msg);
+  }
 }

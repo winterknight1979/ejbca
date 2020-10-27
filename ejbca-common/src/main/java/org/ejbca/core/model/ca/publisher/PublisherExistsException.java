@@ -10,33 +10,35 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
+
 package org.ejbca.core.model.ca.publisher;
 
 /**
- * An exception thrown when someone tries to add a Publisher that already exits
+ * An exception thrown when someone tries to add a Publisher that already exits.
  *
- * @author  Philip Vendil 2003-11-26
- * @version $Id: PublisherExistsException.java 22117 2015-10-29 10:53:42Z mikekushner $
+ * @author Philip Vendil 2003-11-26
+ * @version $Id: PublisherExistsException.java 22117 2015-10-29 10:53:42Z
+ *     mikekushner $
  */
 public class PublisherExistsException extends java.lang.Exception {
-    
-    private static final long serialVersionUID = -7316779308449035285L;
 
+  private static final long serialVersionUID = -7316779308449035285L;
 
-    /**
-     * Creates a new instance of <code>PublisherExistsException</code> without detail message.
-     */
-    public PublisherExistsException() {
-        super();
-    }
-    
-    
-    /**
-     * Constructs an instance of <code>PublisherExistsException</code> with the specified detail message.
-     * @param msg the detail message.
-     */
-    public PublisherExistsException(String msg) {
-        super(msg);
-    }
+  /**
+   * Creates a new instance of <code>PublisherExistsException</code> without
+   * detail message.
+   */
+  public PublisherExistsException() {
+    super();
+  }
+
+  /**
+   * Constructs an instance of <code>PublisherExistsException</code> with the
+   * specified detail message.
+   *
+   * @param msg the detail message.
+   */
+  public PublisherExistsException(final String msg) {
+    super(msg);
+  }
 }

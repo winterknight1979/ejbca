@@ -169,7 +169,7 @@ public static String[] CVCCA_CAINFODATATEXTS = {"NAME","CERT_SUBJECTDN","","CATY
             case CAConstants.CA_REVOKED :
               cainfodata[STATUS]     = ejbcawebbean.getText("CAREVOKED") + "<br>&nbsp;&nbsp;" + 
                                                     ejbcawebbean.getText("REASON") + " : <br>&nbsp;&nbsp;&nbsp;&nbsp;" + 
-                                                    ejbcawebbean.getText(SecConst.reasontexts[cainfo.getRevocationReason()]) + "<br>&nbsp;&nbsp;" +
+                                                    ejbcawebbean.getText(SecConst.REASONTEXTS[cainfo.getRevocationReason()]) + "<br>&nbsp;&nbsp;" +
 			                                        ejbcawebbean.getText("CRL_ENTRY_REVOCATIONDATE") + "<br>&nbsp;&nbsp;&nbsp;&nbsp;" + 
 			                                        ejbcawebbean.formatAsISO8601(cainfo.getRevocationDate());
               break;

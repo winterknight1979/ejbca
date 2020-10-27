@@ -16,48 +16,73 @@ import org.cesecore.certificates.endentity.EndEntityConstants;
 
 /**
  * @version $Id: AcmeOrderStatus.java 29587 2018-08-07 15:25:52Z mikekushner $
- *
  */
 public enum AcmeOrderStatus {
-    /** "The certificate will not be issued. Consider this order process abandoned." */
-    INVALID(EndEntityConstants.STATUS_FAILED),
-    /** 
-     * "The server does not believe that the client has fulfilled the requirements.
-     * Check the "authorizations" array for entries that are still pending."
-     */
-    PENDING(EndEntityConstants.STATUS_INITIALIZED),
-    /** 
-     * "The server agrees that the requirements have been fulfilled, and is awaiting finalization. 
-     * Submit a finalization request." 
-     */
-    READY(EndEntityConstants.STATUS_INPROCESS),
-    /**
-     * "The certificate is being issued. Send a GET request after the time given in the "Retry-After" 
-     * header field of the response, if any."
-     */
-    PROCESSING(EndEntityConstants.STATUS_NEW),
-    /** 
-     * "The server has issued the certificate and provisioned its URL to the "certificate" field of the order. 
-     * Download the certificate." 
-     */
-    VALID(EndEntityConstants.STATUS_GENERATED);
-    
-    private final int endEntityStatus;
-    
-    private AcmeOrderStatus(final int endEntityStatus) {
-        this.endEntityStatus = endEntityStatus;
-    }
+  /**
+   * "The certificate will not be issued. Consider this order process
+   * abandoned."
+   */
+  INVALID(EndEntityConstants.STATUS_FAILED),
+  /**
+   * "The server does not believe that the client has fulfilled the
+   * requirements. Check the "authorizations" array for entries that are still
+   * pending."
+   */
+  PENDING(EndEntityConstants.STATUS_INITIALIZED),
+  /**
+   * "The server agrees that the requirements have been fulfilled, and is
+   * awaiting finalization. Submit a finalization request."
+   */
+  READY(EndEntityConstants.STATUS_INPROCESS),
+  /**
+   * "The certificate is being issued. Send a GET request after the time given
+   * in the "Retry-After" header field of the response, if any."
+   */
+  PROCESSING(EndEntityConstants.STATUS_NEW),
+  /**
+   * "The server has issued the certificate and provisioned its URL to the
+   * "certificate" field of the order. Download the certificate."
+   */
+  VALID(EndEntityConstants.STATUS_GENERATED);
 
-    /** @return the corresponding EJBCA end entity status */
-    public int getEndEntityStatus() { return endEntityStatus; }
-    public static AcmeOrderStatus fromEndEntityStatus(final int endEntityStatus) {
-        for (final AcmeOrderStatus current : AcmeOrderStatus.values()) {
-            if (current.getEndEntityStatus()==endEntityStatus) {
-                return current;
-            }
-        }
-        return null;
+  /** Status. */
+    private final int endEntityStatus;
+
+  AcmeOrderStatus(final int anendEntityStatus) {
+    this.endEntityStatus = anendEntityStatus;
+  }
+
+  /** @return the corresponding EJBCA end entity status */
+  public int getEndEntityStatus() {
+    return endEntityStatus;
+  }
+
+  /**
+   * @param anendEntityStatus status
+   * @return enum constant
+   */
+  public static AcmeOrderStatus fromEndEntityStatus(
+          final int anendEntityStatus) {
+    for (final AcmeOrderStatus current : AcmeOrderStatus.values()) {
+      if (current.getEndEntityStatus() == anendEntityStatus) {
+        return current;
+      }
     }
-    public String getJsonValue() { return this.name().toLowerCase(); }
-    public static AcmeOrderStatus fromJsonValue(final String status) { return AcmeOrderStatus.valueOf(status.toUpperCase()); }
+    return null;
+  }
+
+  /**
+   * @return json
+   */
+  public String getJsonValue() {
+    return this.name().toLowerCase();
+  }
+
+  /**
+   * @param status status
+   * @return enum constant
+   */
+  public static AcmeOrderStatus fromJsonValue(final String status) {
+    return AcmeOrderStatus.valueOf(status.toUpperCase());
+  }
 }

@@ -14,43 +14,40 @@ package org.ejbca.ui.web.protocol;
 
 /**
  * Thrown if an error occurs during Certificate Renewal.
- * 
- * @version $Id: CertificateRenewalException.java 27620 2017-12-21 10:27:29Z mikekushner $
  *
+ * @version $Id: CertificateRenewalException.java 27620 2017-12-21 10:27:29Z
+ *     mikekushner $
  */
 public class CertificateRenewalException extends Exception {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    /**
-     * @see java.lang.Exception#Exception()
-     */
-    public CertificateRenewalException() {
-    }
+  /** @see java.lang.Exception#Exception() */
+  public CertificateRenewalException() { }
 
-    /**
-     * @param message message
-     * @see java.lang.Exception#Exception(String)
-     */
-    public CertificateRenewalException(String message) {
-        super(message);
-    }
+  /**
+   * @param message message
+   * @see java.lang.Exception#Exception(String)
+   */
+  public CertificateRenewalException(final String message) {
+    super(message);
+  }
 
-    /**
-     * @param cause cause
-     * @see java.lang.Exception#Exception(Throwable)
-     */
-    public CertificateRenewalException(Throwable cause) {
-        super(cause);
-    }
+  /**
+   * @param cause cause
+   * @see java.lang.Exception#Exception(Throwable)
+   */
+  public CertificateRenewalException(final Throwable cause) {
+    super(cause);
+  }
 
-    /**
-     * @param message message
-     * @param cause cause
-     * @see java.lang.Exception#Exception(String, Throwable)
-     */
-    public CertificateRenewalException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
+  /**
+   * @param message message
+   * @param cause cause
+   * @see java.lang.Exception#Exception(String, Throwable)
+   */
+  public CertificateRenewalException(
+      final String message, final Throwable cause) {
+    super(message, cause);
+  }
 }

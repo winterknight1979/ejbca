@@ -77,7 +77,7 @@ public class RevokedInfoView implements Serializable {
         String ret = null;
         final int reason = this.revokedcertinfo.getRevocationReason();
         if ((reason >= 0) && (reason < SecConst.HIGN_REASON_BOUNDRARY)) {
-            ret = SecConst.reasontexts[reason];
+            ret = SecConst.REASONTEXTS[reason];
         }
         return ret;
     }

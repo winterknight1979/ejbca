@@ -15,42 +15,36 @@ package org.ejbca.core.model.ra.raadmin;
 import javax.xml.ws.WebFault;
 
 /**
- * An exception thrown when someone tries to add or edit an end entity that doesn't match its profile
- * profile.
- * 
- * @version $Id: EndEntityProfileValidationException.java 24987 2017-01-11 18:09:39Z mikekushner $
+ * An exception thrown when someone tries to add or edit an end entity that
+ * doesn't match its profile profile.
  *
+ * @version $Id: EndEntityProfileValidationException.java 24987 2017-01-11
+ *     18:09:39Z mikekushner $
  */
 @WebFault
 public class EndEntityProfileValidationException extends Exception {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
+  /** Null constructor. */
+  public EndEntityProfileValidationException() { }
 
-    public EndEntityProfileValidationException() {
-    }
+  /** @param message a detail message */
+  public EndEntityProfileValidationException(final String message) {
+    super(message);
+  }
 
-    /**
-     * @param message a detail message
-     */
-    public EndEntityProfileValidationException(String message) {
-        super(message);
-    }
+  /** @param cause an underlying exception */
+  public EndEntityProfileValidationException(final Throwable cause) {
+    super(cause);
+  }
 
-    /**
-     * @param cause an underlying exception
-     */
-    public EndEntityProfileValidationException(Throwable cause) {
-        super(cause);
-    }
-
-    /**
-     * @param message a detail message
-     * @param cause an underlying exception
-     */
-    public EndEntityProfileValidationException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-
+  /**
+   * @param message a detail message
+   * @param cause an underlying exception
+   */
+  public EndEntityProfileValidationException(
+      final String message, final Throwable cause) {
+    super(message, cause);
+  }
 }

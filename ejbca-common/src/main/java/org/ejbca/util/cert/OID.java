@@ -13,44 +13,46 @@
 package org.ejbca.util.cert;
 
 import java.util.StringTokenizer;
-
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 
 /**
  * Utilities for to be used on an Object Identifier (OID).
- * 
+ *
  * @author Lars Silvén
  * @version $Id: OID.java 22117 2015-10-29 10:53:42Z mikekushner $
  */
-public class OID {
-	/**
-	 * Tests if the beginning of a string identifies an OID.
-	 * @param s the string to be tested.
-	 * @return true if s is a OID or if first part of s is a OID and the first character after the OID is '.' in s.
-	 */
-	public static boolean isStartingWithValidOID(String s) {
-		if ( s==null || s.length()<1 ) {
-			return false;
-		}
-		final StringTokenizer st = new StringTokenizer(s, ".");
-		String sOID = "";
-		while( st.hasMoreTokens() ) {
-			final String token = st.nextToken();
-			try {
-				Integer.parseInt(token);
-			} catch ( NumberFormatException e ) {
-				break;
-			}
-			if ( sOID.length()>0 ) {
-				sOID += ".";
-			}
-			sOID+=token;
-		}
-		try {
-			new ASN1ObjectIdentifier(sOID);
-		} catch ( IllegalArgumentException e ) {
-			return false;
-		}
-		return true;
-	}
+public final class OID {
+    private OID() { }
+  /**
+   * Tests if the beginning of a string identifies an OID.
+   *
+   * @param s the string to be tested.
+   * @return true if s is a OID or if first part of s is a OID and the first
+   *     character after the OID is '.' in s.
+   */
+  public static boolean isStartingWithValidOID(final String s) {
+    if (s == null || s.length() < 1) {
+      return false;
+    }
+    final StringTokenizer st = new StringTokenizer(s, ".");
+    String sOID = "";
+    while (st.hasMoreTokens()) {
+      final String token = st.nextToken();
+      try {
+        Integer.parseInt(token);
+      } catch (NumberFormatException e) {
+        break;
+      }
+      if (sOID.length() > 0) {
+        sOID += ".";
+      }
+      sOID += token;
+    }
+    try {
+      new ASN1ObjectIdentifier(sOID);
+    } catch (IllegalArgumentException e) {
+      return false;
+    }
+    return true;
+  }
 }

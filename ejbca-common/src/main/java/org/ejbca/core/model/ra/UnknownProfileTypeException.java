@@ -10,34 +10,39 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
+
 package org.ejbca.core.model.ra;
 
 import javax.xml.ws.WebFault;
-
 import org.ejbca.core.EjbcaException;
-
 
 /**
  * Thrown when a profile type does not exist.
  *
- * @version $Id: UnknownProfileTypeException.java 22117 2018-06-11 16:23:42Z andresjakobs $
+ * @version $Id: UnknownProfileTypeException.java 22117 2018-06-11 16:23:42Z
+ *     andresjakobs $
  */
 @WebFault
 public class UnknownProfileTypeException extends EjbcaException {
- 
-    private static final long serialVersionUID = 1L;
-    /**
-     * Constructor used to create exception with an error message. Calls the same constructor in
-     * base class <code>Exception</code>.
-     *
-     * @param message Human readable error message, can not be NULL.
-     */
-    public UnknownProfileTypeException(String message) {
-        super(message);
-    }
-    public UnknownProfileTypeException(String message, Throwable cause) {
-        super(message);
-        super.initCause(cause);
-    }
+
+  private static final long serialVersionUID = 1L;
+  /**
+   * Constructor used to create exception with an error message. Calls the same
+   * constructor in base class <code>Exception</code>.
+   *
+   * @param message Human readable error message, can not be NULL.
+   */
+  public UnknownProfileTypeException(final String message) {
+    super(message);
+  }
+
+  /**
+   * @param message message
+   * @param cause cause
+   */
+  public UnknownProfileTypeException(
+      final String message, final Throwable cause) {
+    super(message);
+    super.initCause(cause);
+  }
 }

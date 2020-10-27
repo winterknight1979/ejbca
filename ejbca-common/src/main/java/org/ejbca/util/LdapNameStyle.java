@@ -14,7 +14,6 @@
 package org.ejbca.util;
 
 import java.util.Hashtable;
-
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameStyle;
@@ -23,68 +22,70 @@ import org.bouncycastle.asn1.x500.style.IETFUtils;
 import org.cesecore.util.CeSecoreNameStyle;
 
 /**
- * Name style used for parsing and building DNs for use with LDAP. 
- * Used by LdapTools and LdapPublisher
- * 
+ * Name style used for parsing and building DNs for use with LDAP. Used by
+ * LdapTools and LdapPublisher
+ *
  * @version $Id: LdapNameStyle.java 22117 2015-10-29 10:53:42Z mikekushner $
  */
-public class LdapNameStyle extends BCStyle {
+public final class LdapNameStyle extends BCStyle {
 
-    public static final X500NameStyle INSTANCE = new LdapNameStyle();
+    /** Singleton. */
+  public static final X500NameStyle INSTANCE = new LdapNameStyle();
 
-    /**
-     * Default look up table translating OID values into their common symbols
-     * Please call initLookupTables() before using this!
-     */
-    public static Hashtable<ASN1ObjectIdentifier, String> DefaultSymbols;
+  /**
+   * Default look up table translating OID values into their common symbols
+   * Please call initLookupTables() before using this!
+   */
+  private static Hashtable<ASN1ObjectIdentifier, String> defaultSymbols;
 
-    /**
-     * Look up table translating common symbols into their OIDS.
-     * Please call initLookupTables() before using this!
-     */
-    private static Hashtable<String, ASN1ObjectIdentifier> DefaultLookUp;
+  /**
+   * Look up table translating common symbols into their OIDS. Please call
+   * initLookupTables() before using this!
+   */
+  private static Hashtable<String, ASN1ObjectIdentifier> defaultLookUp;
 
-    /**
-     * Look up table translating common symbols into their OIDS.
-     * Please call initLookupTables() before using this!
-     */
-    public static Hashtable<String, String> DefaultStringStringLookUp;
+  /**
+   * Look up table translating common symbols into their OIDS. Please call
+   * initLookupTables() before using this!
+   */
+  private static Hashtable<String, String> defaultStringStringLookUp;
 
-    /**
-     * Must call this method before using the lookup tables. It's automatically
-     * called when using LdapNameStyle.INSTANCE to access this class.
-     */
-    public static void initLookupTables() {
-        DefaultSymbols = new Hashtable<ASN1ObjectIdentifier, String>();
-        DefaultLookUp = new Hashtable<String, ASN1ObjectIdentifier>();
-        DefaultStringStringLookUp = new Hashtable<String, String>();
-        
-        // Copy from CeSecore
-        DefaultSymbols.putAll(CeSecoreNameStyle.DEFAULT_SYMBOLS);
-        DefaultLookUp.putAll(CeSecoreNameStyle.DEFAULT_LOOKUP);
-        DefaultStringStringLookUp.putAll(CeSecoreNameStyle.DEFAULT_STRING_STRING_LOKUP);
-        
-        // Apply differences in LDAP
-        DefaultSymbols.put(SN, "serialNumber");
-        DefaultSymbols.put(EmailAddress, "mail");
-        DefaultLookUp.put("mail", E);
-        DefaultStringStringLookUp.put("MAIL", E.getId());  // different from CeSecoreNameStyle
+  /**
+   * Must call this method before using the lookup tables. It's automatically
+   * called when using LdapNameStyle.INSTANCE to access this class.
+   */
+  public static void initLookupTables() {
+    defaultSymbols = new Hashtable<ASN1ObjectIdentifier, String>();
+    defaultLookUp = new Hashtable<String, ASN1ObjectIdentifier>();
+    defaultStringStringLookUp = new Hashtable<String, String>();
+
+    // Copy from CeSecore
+    defaultSymbols.putAll(CeSecoreNameStyle.DEFAULT_SYMBOLS);
+    defaultLookUp.putAll(CeSecoreNameStyle.DEFAULT_LOOKUP);
+    defaultStringStringLookUp.putAll(
+        CeSecoreNameStyle.DEFAULT_STRING_STRING_LOKUP);
+
+    // Apply differences in LDAP
+    defaultSymbols.put(SN, "serialNumber");
+    defaultSymbols.put(EmailAddress, "mail");
+    defaultLookUp.put("mail", E);
+    defaultStringStringLookUp.put(
+        "MAIL", E.getId()); // different from CeSecoreNameStyle
+  }
+
+  private LdapNameStyle() {
+    if (defaultSymbols == null) {
+      initLookupTables();
     }
+  }
 
-    private LdapNameStyle() {
-        if (DefaultSymbols == null) {
-            initLookupTables();
-        }
-    }
-    
-    public String toString(X500Name name) {
-        return CeSecoreNameStyle.buildString(DefaultSymbols, name);
-    }
-    
-    @Override
-    public ASN1ObjectIdentifier attrNameToOID(String attrName)
-    {
-        return IETFUtils.decodeAttrName(attrName, DefaultLookUp);
-    }
+  @Override
+  public String toString(final X500Name name) {
+    return CeSecoreNameStyle.buildString(defaultSymbols, name);
+  }
 
+  @Override
+  public ASN1ObjectIdentifier attrNameToOID(final String attrName) {
+    return IETFUtils.decodeAttrName(attrName, defaultLookUp);
+  }
 }

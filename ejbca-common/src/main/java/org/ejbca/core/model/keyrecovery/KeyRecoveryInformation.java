@@ -13,105 +13,142 @@
 
 package org.ejbca.core.model.keyrecovery;
 
-
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.cert.Certificate;
-
 import org.cesecore.keys.util.KeyPairWrapper;
 import org.cesecore.util.StringTools;
 
-
 /**
- * This is a value class containing the data relating to key saved for recovery for a user, sent
- * between server and clients.
+ * This is a value class containing the data relating to key saved for recovery
+ * for a user, sent between server and clients.
  *
- * @version $Id: KeyRecoveryInformation.java 20728 2015-02-20 14:55:55Z mikekushner $
+ * @version $Id: KeyRecoveryInformation.java 20728 2015-02-20 14:55:55Z
+ *     mikekushner $
  */
 public class KeyRecoveryInformation implements Serializable {
 
-    private static final long serialVersionUID = -7473386427889757839L;
+  private static final long serialVersionUID = -7473386427889757839L;
 
-    // Private fields
-    private BigInteger certificatesn;
-    private String issuerdn;
-    private String username;
-    private boolean markedasrecoverable;
-    private KeyPairWrapper keypair;
-    private Certificate certificate;
-    
-    
-    // Public Constructors
-    public KeyRecoveryInformation(BigInteger certificatesn, String issuerdn, String username,
-                           boolean markedasrecoverable, KeyPair keypair, Certificate certificate) {
-        this.certificatesn = certificatesn;
-        this.issuerdn = issuerdn;
-        this.username = StringTools.stripUsername(username);
-        this.markedasrecoverable = markedasrecoverable;
-        this.keypair = new KeyPairWrapper(keypair);
-        this.certificate = certificate;
-    }
+  // Private fields
+  /** Serial. */
+  private BigInteger certificatesn;
+  /** DN. */
+  private String issuerdn;
+  /** User. */
+  private String username;
+  /** Bool. */
+  private boolean markedasrecoverable;
+  /** Keys. */
+  private KeyPairWrapper keypair;
+  /** cert. **/
+  private Certificate certificate;
 
-    /**
-     * Creates a new KeyRecoveryData object.
-     */
-    public KeyRecoveryInformation() {
-    }
+  // Public Constructors
+  /**
+   * @param acertificatesn serial
+   * @param anissuerdn DN
+   * @param ausername User
+   * @param ismarkedasrecoverable bool
+   * @param akeypair keys
+   * @param acertificate cert
+   */
+  public KeyRecoveryInformation(
+      final BigInteger acertificatesn,
+      final String anissuerdn,
+      final String ausername,
+      final boolean ismarkedasrecoverable,
+      final KeyPair akeypair,
+      final Certificate acertificate) {
+    this.certificatesn = acertificatesn;
+    this.issuerdn = anissuerdn;
+    this.username = StringTools.stripUsername(ausername);
+    this.markedasrecoverable = ismarkedasrecoverable;
+    this.keypair = new KeyPairWrapper(akeypair);
+    this.certificate = acertificate;
+  }
 
-    // Public Methods
-    public BigInteger getCertificateSN() {
-        return this.certificatesn;
-    }
+  /** Creates a new KeyRecoveryData object. */
+  public KeyRecoveryInformation() { }
 
-    public void setCertificateSN(BigInteger certificatesn) {
-        this.certificatesn = certificatesn;
-    }
+  // Public Methods
+  /**
+   * @return serial
+   */
+  public BigInteger getCertificateSN() {
+    return this.certificatesn;
+  }
 
-    public String getIssuerDN() {
-        return this.issuerdn;
-    }
+  /**
+   * @param acertificatesn serial
+   */
+  public void setCertificateSN(final BigInteger acertificatesn) {
+    this.certificatesn = acertificatesn;
+  }
 
-    public void setIssuerDN(String issuerdn) {
-        this.issuerdn = issuerdn;
-    }
+  /**
+   * @return dn
+   */
+  public String getIssuerDN() {
+    return this.issuerdn;
+  }
 
-    public String getUsername() {
-        return this.username;
-    }
+  /**
+   * @param anissuerdn DN
+   */
+  public void setIssuerDN(final String anissuerdn) {
+    this.issuerdn = anissuerdn;
+  }
 
-    public void setUsername(String username) {
-        this.username = StringTools.stripUsername(username);
-    }
+  /**
+   * @return user
+   */
+  public String getUsername() {
+    return this.username;
+  }
 
-    public boolean getMarkedAsRecoverable() {
-        return this.markedasrecoverable;
-    }
+  /**
+   * @param ausername user
+   */
+  public void setUsername(final String ausername) {
+    this.username = StringTools.stripUsername(ausername);
+  }
 
-    public void setMarkedAsRecoverable(boolean markedasrecoverable) {
-        this.markedasrecoverable = markedasrecoverable;
-    }
+  /**
+   * @return bool
+   */
+  public boolean getMarkedAsRecoverable() {
+    return this.markedasrecoverable;
+  }
 
-    public KeyPair getKeyPair() {
-        return keypair.getKeyPair();
-    }
+  /**
+   * @param ismarkedasrecoverable bool
+   */
+  public void setMarkedAsRecoverable(final boolean ismarkedasrecoverable) {
+    this.markedasrecoverable = ismarkedasrecoverable;
+  }
 
-    public void setKeyPair(KeyPair keypair) {
-        this.keypair = new KeyPairWrapper(keypair);
-    }
+  /**
+   * @return keys
+   */
+  public KeyPair getKeyPair() {
+    return keypair.getKeyPair();
+  }
 
-	/**
-	 * @return Returns the certificate.
-	 */
-	public Certificate getCertificate() {
-		return certificate;
-	}
-	/**
-	 * @param certificate The certificate to set.
-	 */
-	public void setCertificate(Certificate certificate) {
-		this.certificate = certificate;
-	}
-   
+  /**
+   * @param akeypair keys
+   */
+  public void setKeyPair(final KeyPair akeypair) {
+    this.keypair = new KeyPairWrapper(akeypair);
+  }
 
+  /** @return Returns the certificate. */
+  public Certificate getCertificate() {
+    return certificate;
+  }
+  /** @param acertificate The certificate to set. */
+  public void setCertificate(final Certificate acertificate) {
+    this.certificate = acertificate;
+  }
 }

@@ -13,14 +13,29 @@
 package org.ejbca.core.protocol.acme;
 
 /**
- * @version $Id: AcmeChallengeStatus.java 29587 2018-08-07 15:25:52Z mikekushner $
- *
+ * @version $Id: AcmeChallengeStatus.java 29587 2018-08-07 15:25:52Z mikekushner
+ *     $
  */
 public enum AcmeChallengeStatus {
-    PENDING,
-    PROCESSING,
-    VALID;
+    /** Pending. */
+  PENDING,
+  /** Processing. */
+  PROCESSING,
+  /** Valid. */
+  VALID;
 
-    public String getJsonValue() { return this.name().toLowerCase(); }
-    public static AcmeChallengeStatus fromJsonValue(final String status) { return AcmeChallengeStatus.valueOf(status.toUpperCase()); }
+    /**
+     * @return JSON
+     */
+  public String getJsonValue() {
+    return this.name().toLowerCase();
+  }
+
+  /**
+   * @param status Status
+   * @return enum
+   */
+  public static AcmeChallengeStatus fromJsonValue(final String status) {
+    return AcmeChallengeStatus.valueOf(status.toUpperCase());
+  }
 }

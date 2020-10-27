@@ -16,67 +16,143 @@ import java.util.LinkedHashMap;
 import org.ejbca.core.protocol.acme.AcmeIdentifier.AcmeIdentifierTypes;
 
 /**
- * An ACME Challenge is a proof a client needs to provide in order to be authorized to get a certificate for an identifier.
- * 
- * PROCESSING constant in AcmeChallengeStatus ENUM is a requirement imposed by draft-ietf-acme-acme-12 and is preserved for
- * future use. 
- * 
+ * An ACME Challenge is a proof a client needs to provide in order to be
+ * authorized to get a certificate for an identifier.
+ *
+ * <p>PROCESSING constant in AcmeChallengeStatus ENUM is a requirement imposed
+ * by draft-ietf-acme-acme-12 and is preserved for future use.
+ *
  * @version $Id: AcmeChallenge.java 30434 2018-11-08 07:40:52Z andrey_s_helmes $
  */
 public interface AcmeChallenge {
 
-    String getChallengeId();
+    /**
+     * @return ID
+     */
+  String getChallengeId();
 
-    void setChallengeId(String challengeId);
+  /**
+   * @param challengeId ID
+   */
+  void setChallengeId(String challengeId);
 
-    String getAuthorizationId();
+  /**
+   * @return ID
+   */
+  String getAuthorizationId();
 
-    void setAuthorizationId(String authorizationId);
+  /**
+   * @param authorizationId ID
+   */
+  void setAuthorizationId(String authorizationId);
 
-    String getType();
+  /**
+   * @return type
+   */
+  String getType();
 
-    void setType(String type);
+  /**
+   * @param type type
+   */
+  void setType(String type);
 
-    String getUrl();
+  /**
+   * @return URL
+   */
+  String getUrl();
 
-    void setUrl(String url);
+  /**
+   * @param url URL
+   */
+  void setUrl(String url);
 
-    AcmeChallengeStatus getStatus();
+  /**
+   * @return Status
+   */
+  AcmeChallengeStatus getStatus();
 
-    void setStatus(AcmeChallengeStatus status);
+  /**
+   * @param status Status
+   */
+  void setStatus(AcmeChallengeStatus status);
 
-    String getValidated();
+  /**
+   * @return Val
+   */
+  String getValidated();
 
-    void setValidated(String validated);
+  /**
+   * @param validated val
+   */
+  void setValidated(String validated);
 
-    String getToken();
+  /**
+   * @return token
+   */
+  String getToken();
 
-    void setToken(String token);
+  /**
+   * @param token token
+   */
+  void setToken(String token);
 
-    String getKeyAuthorization();
+  /**
+   * @return auth
+   */
+  String getKeyAuthorization();
 
-    void setKeyAuthorization(String keyAuthorization);
+  /**
+   * @param keyAuthorization Auth
+   */
+  void setKeyAuthorization(String keyAuthorization);
 
-    float getLatestVersion();
+  /**
+   * @return Version
+   */
+  float getLatestVersion();
 
-    void upgrade();
-    
-    LinkedHashMap<Object, Object> getRawData();
+  /** Upgrade. */
+  void upgrade();
 
-    public static enum AcmeChallengeType {
-        DNS_HTTP_01(AcmeIdentifierTypes.DNS, "http-01"),
-        DNS_DNS_01(AcmeIdentifierTypes.DNS, "dns-01"),
-        ;
+  /**
+   * @return Data
+   */
+  LinkedHashMap<Object, Object> getRawData();
 
-        private final AcmeIdentifierTypes acmeIdentifierType;
-        private final String challengeType;
+  enum AcmeChallengeType {
+      /** HTTP. */
+    DNS_HTTP_01(AcmeIdentifierTypes.DNS, "http-01"),
+    /** DNS. */
+    DNS_DNS_01(AcmeIdentifierTypes.DNS, "dns-01");
 
-        private AcmeChallengeType(final AcmeIdentifierTypes acmeIdentifierType, final String challengeType) {
-            this.acmeIdentifierType = acmeIdentifierType;
-            this.challengeType = challengeType;
-        }
+      /** ID. */
+    private final AcmeIdentifierTypes acmeIdentifierType;
+    /** Challenge. */
+    private final String challengeType;
 
-        public AcmeIdentifierTypes getAcmeIdentifierType() { return acmeIdentifierType; }
-        public String getChallengeType() { return challengeType; }
+    /**
+     * @param anacmeIdentifierType ID
+     * @param achallengeType Chammenge
+     */
+    AcmeChallengeType(
+        final AcmeIdentifierTypes anacmeIdentifierType,
+        final String achallengeType) {
+      this.acmeIdentifierType = anacmeIdentifierType;
+      this.challengeType = achallengeType;
     }
+
+    /**
+     * @return Type
+     */
+    public AcmeIdentifierTypes getAcmeIdentifierType() {
+      return acmeIdentifierType;
+    }
+
+    /**
+     * @return Type
+     */
+    public String getChallengeType() {
+      return challengeType;
+    }
+  }
 }

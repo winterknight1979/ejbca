@@ -13,25 +13,36 @@
 package org.ejbca.core.model.services;
 
 /**
- * Exception throws when a service work method fails for some reason
- * It should contain a message used in logging.
- * 
+ * Exception throws when a service work method fails for some reason It should
+ * contain a message used in logging.
  *
- * @version $Id: ServiceExecutionFailedException.java 22117 2015-10-29 10:53:42Z mikekushner $
+ * @version $Id: ServiceExecutionFailedException.java 22117 2015-10-29 10:53:42Z
+ *     mikekushner $
  */
 public class ServiceExecutionFailedException extends Exception {
 
-	private static final long serialVersionUID = 383213793956902294L;
+  private static final long serialVersionUID = 383213793956902294L;
 
-    public ServiceExecutionFailedException(String message, Throwable cause) {
-		super(message, cause);
-	}
+  /**
+   * @param message Message
+   * @param cause Cause
+   */
+  public ServiceExecutionFailedException(
+      final String message, final Throwable cause) {
+    super(message, cause);
+  }
 
-	public ServiceExecutionFailedException(String message) {
-		super(message);
-	}
+  /**
+   * @param message Message
+   */
+  public ServiceExecutionFailedException(final String message) {
+    super(message);
+  }
 
-	public ServiceExecutionFailedException(Throwable cause) {
-		super(cause);
-	}
+  /**
+   * @param cause Cause
+   */
+  public ServiceExecutionFailedException(final Throwable cause) {
+    super(cause);
+  }
 }

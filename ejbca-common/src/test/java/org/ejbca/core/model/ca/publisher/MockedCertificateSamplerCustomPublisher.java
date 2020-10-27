@@ -16,29 +16,41 @@ import java.io.File;
 import java.security.cert.Certificate;
 
 /**
- * Mocked version of CertificateSamplerCustomPublisher to be able to easily test 
+ * Mocked version of CertificateSamplerCustomPublisher to be able to easily test
  * if the writeCertificate method was called.
  *
- * @version $Id: MockedCertificateSamplerCustomPublisher.java 22121 2015-10-29 13:49:30Z mikekushner $
+ * @version $Id: MockedCertificateSamplerCustomPublisher.java 22121 2015-10-29
+ *     13:49:30Z mikekushner $
  */
-public class MockedCertificateSamplerCustomPublisher extends CertificateSamplerCustomPublisher {
+public class MockedCertificateSamplerCustomPublisher
+    extends CertificateSamplerCustomPublisher {
+    /** Param. */
     private boolean writeCertificateCalled;
 
-    public MockedCertificateSamplerCustomPublisher() {
-        super();
-    }
+  /** Constructor. */
+  public MockedCertificateSamplerCustomPublisher() {
+    super();
+  }
 
-    @Override
-    protected void writeCertificate(Certificate cert, File outFolder, String prefix, String suffix) throws PublisherException {
-        writeCertificateCalled = true;
-    }
+  @Override
+  protected void writeCertificate(
+      final Certificate cert,
+      final File outFolder,
+      final String prefix,
+      final String suffix)
+      throws PublisherException {
+    writeCertificateCalled = true;
+  }
 
-    public boolean isWriteCertificateCalled() {
-        return writeCertificateCalled;
-    }
+  /**
+   * @return bool
+   */
+  public boolean isWriteCertificateCalled() {
+    return writeCertificateCalled;
+  }
 
-    public void reset() {
-        writeCertificateCalled = false;
-    }
-    
+  /** Reset. */
+  public void reset() {
+    writeCertificateCalled = false;
+  }
 }

@@ -10,27 +10,32 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
+
 package org.ejbca.core.model.ra;
 
-import org.ejbca.core.EjbcaException;
-import org.ejbca.core.model.ra.raadmin.EndEntityProfileValidationException;
 import org.cesecore.ErrorCode;
 import org.cesecore.NonSensitiveException;
+import org.ejbca.core.EjbcaException;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfileValidationException;
 
 /**
- * Wraps the original UserDoesntFullfillEndEntityProfile. Unlike original it doesn't
- * extend Exception and it's not marked with @WebFault.
+ * Wraps the original UserDoesntFullfillEndEntityProfile. Unlike original it
+ * doesn't extend Exception and it's not marked with @WebFault.
  *
- * @version $Id: EndEntityProfileValidationRaException.java 24940 2016-12-21 09:43:55Z mikekushner $
- * see org.ejbca.core.model.ra.raadmin.UserDoesntFullfillEndEntityProfile
+ * @version $Id: EndEntityProfileValidationRaException.java 24940 2016-12-21
+ *     09:43:55Z mikekushner $ see
+ *     org.ejbca.core.model.ra.raadmin.UserDoesntFullfillEndEntityProfile
  */
 @NonSensitiveException
 public class EndEntityProfileValidationRaException extends EjbcaException {
-    private static final long serialVersionUID = 777317800935352658L;
+  private static final long serialVersionUID = 777317800935352658L;
 
-    public EndEntityProfileValidationRaException(EndEntityProfileValidationException exception){
-        super(exception);
-        setErrorCode(ErrorCode.USER_DOESNT_FULFILL_END_ENTITY_PROFILE);
-    }
+  /**
+   * @param exception cause
+   */
+  public EndEntityProfileValidationRaException(
+      final EndEntityProfileValidationException exception) {
+    super(exception);
+    setErrorCode(ErrorCode.USER_DOESNT_FULFILL_END_ENTITY_PROFILE);
+  }
 }

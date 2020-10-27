@@ -10,20 +10,21 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
+
 package org.ejbca.ui.cli;
 
 /**
- * Interface for Commands used for admin cmdline GUI
+ * Interface for Commands used for admin cmdline GUI.
  *
  * @version $Id: IAdminCommand.java 20273 2014-11-19 14:54:33Z mikekushner $
  */
 public interface IAdminCommand {
-    /**
-     * Runs the command
-     *
-     * @throws IllegalAdminCommandException Error in command args
-     * @throws ErrorAdminCommandException Error running command
-     */
-    void execute() throws IllegalAdminCommandException, ErrorAdminCommandException;
+  /**
+   * Runs the command.
+   *
+   * @throws IllegalAdminCommandException Error in command args
+   * @throws ErrorAdminCommandException Error running command
+   */
+  void execute()
+      throws IllegalAdminCommandException, ErrorAdminCommandException;
 }

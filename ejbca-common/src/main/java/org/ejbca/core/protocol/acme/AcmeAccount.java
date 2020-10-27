@@ -17,58 +17,105 @@ import java.io.Serializable;
 import java.security.PublicKey;
 import java.util.LinkedHashMap;
 import java.util.List;
-
 import org.cesecore.internal.IUpgradeableData;
 
 /**
- * Interface for AcmeAccount implementations
- * 
- * @version $Id: AcmeAccount.java 29797 2018-09-04 07:37:48Z tarmo_r_helmes $
+ * Interface for AcmeAccount implementations.
  *
+ * @version $Id: AcmeAccount.java 29797 2018-09-04 07:37:48Z tarmo_r_helmes $
  */
-
 public interface AcmeAccount extends Serializable, IUpgradeableData {
 
-    String URL_PROTOCOL_MAILTO_START = "mailto:";
+    /** Config. */
+  String URL_PROTOCOL_MAILTO_START = "mailto:";
 
-    PublicKey getPublicKey();
+  /**
+   * @return key
+   */
+  PublicKey getPublicKey();
 
-    void setPublicKey(PublicKey publicKey);
+  /**
+   * @param publicKey key
+   */
+  void setPublicKey(PublicKey publicKey);
 
-    String getAccountId();
+  /**
+   * @return ID
+   */
+  String getAccountId();
 
-    void setAccountId(String accountId);
+  /**
+   * @param accountId IS
+   */
+  void setAccountId(String accountId);
 
-    /** @return The status of this account. Possible values are: "valid", "deactivated", and "revoked". ...*/
-    String getStatus();
+  /**
+   * @return The status of this account. Possible values are: "valid",
+   *     "deactivated", and "revoked". ...
+   */
+  String getStatus();
 
-    void setStatus(String status);
+  /**
+   * @param status Status
+   */
+  void setStatus(String status);
 
-    List<String> getContact();
+  /**
+   * @return vontact
+   */
+  List<String> getContact();
 
-    void setContact(List<String> contact);
+  /**
+   * @param contact Contact
+   */
+  void setContact(List<String> contact);
 
-    String getExternalAccountBinding();
+  /**
+   * @return binding
+   */
+  String getExternalAccountBinding();
 
-    void setExternalAccountBinding(String externalAccountBinding);
+  /**
+   * @param externalAccountBinding binding
+   */
+  void setExternalAccountBinding(String externalAccountBinding);
 
-    /** @return the version of Terms Of Service that the account holder has agreed to */
-    String getTermsOfServiceAgreedVersion();
+  /**
+   * @return the version of Terms Of Service that the account holder has agreed
+   *     to
+   */
+  String getTermsOfServiceAgreedVersion();
 
-    void setTermsOfServiceAgreedVersion(String termsOfServiceAgreedVersion);
+  /**
+   * @param termsOfServiceAgreedVersion version
+   */
+  void setTermsOfServiceAgreedVersion(String termsOfServiceAgreedVersion);
 
-    String getConfigurationId();
+  /**
+   * @return ID
+   */
+  String getConfigurationId();
 
-    /** @param configurationId the configurationId of this account  */
-    void setConfigurationId(String configurationId);
+  /** @param configurationId the configurationId of this account */
+  void setConfigurationId(String configurationId);
 
-    /** @return the first email address registered under this account or null if none exists (which should not happen since we require one) 
-     * @throws AcmeProblemException fail */
-    String getContactEmail() throws AcmeProblemException;
+  /**
+   * @return the first email address registered under this account or null if
+   *     none exists (which should not happen since we require one)
+   * @throws AcmeProblemException fail
+   */
+  String getContactEmail() throws AcmeProblemException;
 
-    float getLatestVersion();
+  /**
+   * @return version
+   */
+  float getLatestVersion();
 
-    void upgrade();
+  /** Upgrade. */
+  void upgrade();
 
-    LinkedHashMap<Object, Object> getRawData();
+  /**
+   * @return data
+   */
+  LinkedHashMap<Object, Object> getRawData();
 }

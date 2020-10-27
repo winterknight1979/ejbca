@@ -11,59 +11,70 @@
  *                                                                       *
  *************************************************************************/
 
-
 package org.ejbca.config;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-
 import org.cesecore.config.RaStyleInfo;
 import org.cesecore.configuration.ConfigurationBase;
 
 /**
- * This class handles configuration of custom RA Css files
- * @version $Id: GlobalCustomCssConfiguration.java 26818 2017-10-16 15:04:45Z henriks $
+ * This class handles configuration of custom RA Css files.
+ *
+ * @version $Id: GlobalCustomCssConfiguration.java 26818 2017-10-16 15:04:45Z
+ *     henriks $
  */
 public class GlobalCustomCssConfiguration extends ConfigurationBase {
-    
-    public static final String CSS_CONFIGURATION_ID = "CUSTOM_CSS";
-    private static final long serialVersionUID = 1L;
 
-    // Default custom RA CSS
-    private static final LinkedHashMap<Integer, RaStyleInfo> RA_CUSTOM_CSS_DEFAULT   = new LinkedHashMap<>();
+    /** Config key. */
+  public static final String CSS_CONFIGURATION_ID = "CUSTOM_CSS";
+  private static final long serialVersionUID = 1L;
 
-    private static final String RA_CUSTOM_CSS_REFERENCE = "racustomcss";
-    
-    
-    public void setRaStyle(LinkedHashMap<Integer, RaStyleInfo> raStyleInfo) {
-        data.put(RA_CUSTOM_CSS_REFERENCE, raStyleInfo);
-    }
-    
-    /** 
-     * Updates a RaStyleInfo archive referenced by Id of raStyleInfo
-     * @param raStyleInfo style info to update
-     */
-    public void updateRaStyle(RaStyleInfo raStyleInfo) {
-        Map<Integer, RaStyleInfo> mapToUpdate = getRaStyleInfo();
-        mapToUpdate.put(raStyleInfo.getArchiveId(), raStyleInfo);
-        data.put(RA_CUSTOM_CSS_REFERENCE, mapToUpdate);
-    }
-    
-    @SuppressWarnings("unchecked")
-    public LinkedHashMap<Integer, RaStyleInfo> getRaStyleInfo() {
-        final Map<Integer, RaStyleInfo> ret = (Map<Integer,RaStyleInfo>)data.get(RA_CUSTOM_CSS_REFERENCE);
-        return ret == null ? RA_CUSTOM_CSS_DEFAULT : new LinkedHashMap<>(ret);
-    }
-    
-    @Override
-    public void upgrade() {
-        if(Float.compare(LATEST_VERSION, getVersion()) != 0) {
-            data.put(VERSION,  Float.valueOf(LATEST_VERSION));          
-        }
-    }
+  /** Default custom RA CSS. */
+  private static final LinkedHashMap<Integer, RaStyleInfo>
+      RA_CUSTOM_CSS_DEFAULT = new LinkedHashMap<>();
 
-    @Override
-    public String getConfigurationId() {
-        return CSS_CONFIGURATION_ID;
+  /** Config key. */
+  private static final String RA_CUSTOM_CSS_REFERENCE = "racustomcss";
+
+  /**
+   * @param raStyleInfo Style info
+   */
+  public void setRaStyle(
+      final LinkedHashMap<Integer, RaStyleInfo> raStyleInfo) {
+    data.put(RA_CUSTOM_CSS_REFERENCE, raStyleInfo);
+  }
+
+  /**
+   * Updates a RaStyleInfo archive referenced by Id of raStyleInfo.
+   *
+   * @param raStyleInfo style info to update
+   */
+  public void updateRaStyle(final RaStyleInfo raStyleInfo) {
+    Map<Integer, RaStyleInfo> mapToUpdate = getRaStyleInfo();
+    mapToUpdate.put(raStyleInfo.getArchiveId(), raStyleInfo);
+    data.put(RA_CUSTOM_CSS_REFERENCE, mapToUpdate);
+  }
+
+  /**
+   * @return Style info
+   */
+  @SuppressWarnings("unchecked")
+  public LinkedHashMap<Integer, RaStyleInfo> getRaStyleInfo() {
+    final Map<Integer, RaStyleInfo> ret =
+        (Map<Integer, RaStyleInfo>) data.get(RA_CUSTOM_CSS_REFERENCE);
+    return ret == null ? RA_CUSTOM_CSS_DEFAULT : new LinkedHashMap<>(ret);
+  }
+
+  @Override
+  public void upgrade() {
+    if (Float.compare(LATEST_VERSION, getVersion()) != 0) {
+      data.put(VERSION, Float.valueOf(LATEST_VERSION));
     }
+  }
+
+  @Override
+  public String getConfigurationId() {
+    return CSS_CONFIGURATION_ID;
+  }
 }

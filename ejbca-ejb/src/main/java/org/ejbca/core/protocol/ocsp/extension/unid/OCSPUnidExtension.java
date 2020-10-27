@@ -195,7 +195,7 @@ public class OCSPUnidExtension implements OCSPExtension {
         FnrFromUnidExtension ext = new FnrFromUnidExtension(fnr);
         HashMap<ASN1ObjectIdentifier, Extension> unidOCSPResponse = new HashMap<ASN1ObjectIdentifier, Extension>();
         try {
-            unidOCSPResponse.put(FnrFromUnidExtension.FnrFromUnidOid, new Extension(FnrFromUnidExtension.FnrFromUnidOid, false, new DEROctetString(ext)));
+            unidOCSPResponse.put(FnrFromUnidExtension.FNR_FROM_UNID_OID, new Extension(FnrFromUnidExtension.FNR_FROM_UNID_OID, false, new DEROctetString(ext)));
         } catch (IOException e) {
             throw new IllegalStateException("Unexpected IOException caught.", e);
         }

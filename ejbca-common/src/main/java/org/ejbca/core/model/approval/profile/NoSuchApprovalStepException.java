@@ -13,41 +13,35 @@
 package org.ejbca.core.model.approval.profile;
 
 /**
- * This exception is thrown when trying to access a nonexistent approval step in an approval profile. 
- * 
- * @version $Id: NoSuchApprovalStepException.java 23996 2016-07-25 13:20:57Z mikekushner $
+ * This exception is thrown when trying to access a nonexistent approval step in
+ * an approval profile.
  *
+ * @version $Id: NoSuchApprovalStepException.java 23996 2016-07-25 13:20:57Z
+ *     mikekushner $
  */
 public class NoSuchApprovalStepException extends RuntimeException {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    /**
-     * 
-     */
-    public NoSuchApprovalStepException() {
-    }
+  /** */
+  public NoSuchApprovalStepException()  { }
 
-    /**
-     * @param message Message
-     */
-    public NoSuchApprovalStepException(String message) {
-        super(message);
-    }
+  /** @param message Message */
+  public NoSuchApprovalStepException(final String message) {
+    super(message);
+  }
 
-    /**
-     * @param cause CAuse
-     */
-    public NoSuchApprovalStepException(Throwable cause) {
-        super(cause);
-    }
+  /** @param cause CAuse */
+  public NoSuchApprovalStepException(final Throwable cause) {
+    super(cause);
+  }
 
-    /**
-     * @param message Message
-     * @param cause Cause
-     */
-    public NoSuchApprovalStepException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
+  /**
+   * @param message Message
+   * @param cause Cause
+   */
+  public NoSuchApprovalStepException(
+      final String message, final Throwable cause) {
+    super(message, cause);
+  }
 }

@@ -1,0 +1,324 @@
+<?xml version="1.0"?>
+ 
+<!DOCTYPE suppressions PUBLIC
+     "-//Checkstyle//DTD SuppressionFilter Configuration 1.0//EN"
+     "https://checkstyle.org/dtds/suppressions_1_0.dtd">
+<suppressions>
+ 	
+ 	<!-- Don't check any generated files -->
+	<suppress checks=".*" files="[/\\]target[/\\]"/>
+	<!-- Don't care about magic numbers or package-info.java in test code -->
+ 	<suppress checks="MagicNumberCheck" files="[/\\]test[/\\]"/>
+ 	<suppress checks="JavadocPackageCheck" files="[/\\]test[/\\]"/>
+
+ 	<suppress checks="ParameterNumberCheck" files="AuditLogger.java" lines="47"/>	
+	<suppress checks="MagicNumberCheck" files="X509CertificateAuthenticationToken.java" lines="177"/>	
+	<suppress checks="MethodLengthCheck" files="X509CertificateAuthenticationToken.java" lines="150"/>
+ 	<suppress checks="ParameterNumberCheck" files="CA.java" lines="1262,1350,1415"/>
+ 	<suppress checks="UnusedImportsCheck" files="CA.java" lines="44"/> <!-- Used in Jdoc. -->
+ 	<suppress checks="MagicNumberCheck" files="CAInfo.java" lines="101"/>	
+ 	<suppress checks="ParameterNumberCheck" files="CVCCAInfo.java" lines="50,132,228"/>
+ 	<suppress checks="ParameterNumberCheck" files="CvcPlugin.java" lines="115"/>
+ 	<suppress checks="ParameterNumberCheck" files="CertificateValidity.java" lines="188"/>	
+	<suppress checks="MethodLengthCheck" files="CertificateValidity.java" lines="188"/>
+	<suppress checks="MagicNumberCheck" files="SernoGeneratorRandom.java" lines="217"/> <!-- Only used for testing  -->	
+	<suppress checks="MethodLengthCheck" files="X509CA.java" lines="2370,1279"/>
+	<suppress checks="ParameterNumberCheck" files="X509CA.java" lines="1279,1179"/>
+	<suppress checks="LineLengthCheck" files="X509CA.java" lines="2501"/> <!-- URL in comment, not caught by config -->
+	<suppress checks="ParameterNumberCheck" files="X509CAInfo.java" lines="101,244,437"/>
+ 	<suppress checks="MagicNumberCheck" files="AvailableCustomCertificateExtensionsConfiguration.java" lines="229"/>	<!-- Method is deprecated -->
+ 	<suppress checks="MagicNumberCheck" files="NameConstraint.java" lines="315,222,218"/> <!--  7 here is just 8 - 1 -->	
+	<suppress checks="ParameterNumberCheck" files="CertificateInfo.java" lines="84"/>
+ 	<suppress checks="UnusedImportsCheck" files="CertificateStatus.java" lines="19"/> <!-- Used in Jdoc. -->
+ 	<suppress checks="MethodLengthCheck" files="RequestMessageUtils.java" lines="192"/>
+ 	<suppress checks="UnusedImportsCheck" files="CertificateProfile.java" lines="43"/> <!-- Used in Jdoc. -->
+ 	<suppress checks="MethodLengthCheck" files="CertificateProfile.java" lines="4015"/>
+ 	<suppress checks="MagicNumberCheck" files="CertificateProfile.java" lines="1981"/>	<!-- This is just a very big number. -->
+ 	<suppress checks="MagicNumberCheck" files="CTLogInfo.java" lines="42"/>	<!-- Default timeout. -->
+	<suppress checks="ParameterNumberCheck" files="EndEntityInformation.java" lines="149,205"/>
+ 	<suppress checks="MagicNumberCheck" files="ExtendedInformation.java" lines="582,644"/>	<!-- Old API versions used in upgrade process. -->
+	<suppress checks="ParameterNumberCheck" files="OcspSigningCacheEntry.java" lines="88"/>
+	<suppress checks="LineLengthCheck" files="AlgorithmTools.java" lines="510,307"/> <!-- URL in comment, not caught by config -->
+	<suppress checks="LineLengthCheck" files="AvailableExtendedKeyUsagesConfiguration.java" lines="118,124"/> <!-- URL in comment, not caught by config -->
+ 	<suppress checks="MagicNumberCheck" files="DnComponents.java" lines="647-654"/>	<!-- splitting fields -->
+	<suppress checks="LineLengthCheck" files="CesecoreConfiguration.java" lines="614-621"/> <!-- URL in comment, not caught by config -->
+	<suppress checks="ParameterNumberCheck" files="InternalKeyBindingFactory.java" lines="89"/>
+ 	<suppress checks="UnusedImportsCheck" files="PKCS11LibraryFileNotFoundException.java" lines="15"/> <!-- Used in Jdoc. -->
+ 	<suppress checks="UnusedImportsCheck" files="NoSuchSlotException.java" lines="15"/> <!-- Used in Jdoc. -->
+ 	<suppress checks="UnusedImportsCheck" files="ISignOperation.java" lines="16"/> <!-- Used in Jdoc. -->
+	<suppress checks="ParameterNumberCheck" files="P11Slot.java" lines="286,365"/>
+	<suppress files="ExternalCommandCertificateValidator" checks="InnerAssignmentCheck" lines="443" /> <!-- protects gainst null -->
+	<suppress checks="MagicNumberCheck" files="RsaKeyValidator.java" lines="127-130,235"/>	<!--  Unavoidable here.  -->
+ 	<suppress checks="UnusedImportsCheck" files="Validator.java" lines="17"/> <!-- Used in Jdoc. -->
+	<suppress checks="ParameterNumberCheck" files="CertTools.java" lines="2307,2346,2377,2419,2464,2520,2586"/>
+	<suppress checks="MagicNumberCheck" files="CertTools.java" lines="3573-3583,3936-3947,4718-4730"/>	<!--  Case labels.  -->
+	<suppress checks="MagicNumberCheck" files="ConcurrentCache.java" lines="188,432,487"/>	<!--  Arbitrary fudge factors.  -->
+	<suppress checks="ParameterNumberCheck" files="ExternalProcessTools.java" lines="163"/>
+	<suppress checks="MethodLengthCheck" files="CertTools.java" lines="2586,3616"/>
+	<suppress checks="MethodLengthCheck" files="ExternalProcessTools.java" lines="163"/>
+	<suppress checks="MethodLengthCheck" files="PKIXCertRevocationStatusChecker.java" lines="447"/>
+	<suppress checks="MethodLengthCheck" files="SecureXMLDecoder.java" lines="222"/>
+	<suppress checks="MagicNumberCheck" files="StringTools.java" lines="685,720,970,978"/>	<!--  array-indices.  -->
+	<suppress checks="MethodLengthCheck" files="CATokenTestBase.java" lines="528,74"/>
+	<suppress checks="MethodLengthCheck" files="CertificateValidityTest.java" lines="173,606,839"/>
+	<suppress checks="MethodLengthCheck" files="RequestMessageTest.java" lines="76"/>
+	<suppress checks="MethodLengthCheck" files="CertificateProfileTest.java" lines="836"/>
+	<suppress checks="MethodLengthCheck" files="AlgorithmToolsTest.java" lines="272,585"/>
+	<suppress checks="ParameterNumberCheck" files="ValidatorTestUtil.java" lines="51"/>
+	<suppress checks="MethodLengthCheck" files="CertToolsTest.java" lines="1041,2823,3089"/>
+	<suppress checks="LocalFinalVariableNameCheck" files="CertToolsTest.java" lines="2081-2084"/>
+	<suppress checks="ParameterNumberCheck" files="SimpleTimeTest.java" lines="165"/>
+	<suppress checks="MethodLengthCheck" files="StringToolsTest.java" lines="643"/>
+	<suppress checks="MethodLengthCheck" files="TimeUnitFormatTest.java" lines="85"/>
+	<suppress checks="RedundantModifierCheck" files="LookAheadObjectInputStreamTest.java" lines="75,89,119,134"/> <!-- These are instantiated by reflection so must be explicitly public. -->
+	
+	<suppress checks="ParameterNumberCheck" files="AuditLogger.java" lines="47"/>	
+	<suppress checks="MagicNumberCheck" files="X509CertificateAuthenticationToken.java" lines="177"/>	
+	<suppress checks="MethodLengthCheck" files="X509CertificateAuthenticationToken.java" lines="150"/>
+ 	<suppress checks="ParameterNumberCheck" files="CA.java" lines="1262,1350,1415"/>
+ 	<suppress checks="UnusedImportsCheck" files="CA.java" lines="44"/> <!-- Used in Jdoc. -->
+ 	<suppress checks="MagicNumberCheck" files="CAInfo.java" lines="101"/>	
+ 	<suppress checks="ParameterNumberCheck" files="CVCCAInfo.java" lines="50,132,228"/>
+ 	<suppress checks="ParameterNumberCheck" files="CvcPlugin.java" lines="115"/>
+ 	<suppress checks="ParameterNumberCheck" files="CertificateValidity.java" lines="188"/>	
+	<suppress checks="MethodLengthCheck" files="CertificateValidity.java" lines="188"/>
+	<suppress checks="MagicNumberCheck" files="SernoGeneratorRandom.java" lines="217"/> <!-- Only used for testing  -->	
+	<suppress checks="MethodLengthCheck" files="X509CA.java" lines="2370,1279"/>
+	<suppress checks="ParameterNumberCheck" files="X509CA.java" lines="1279,1179"/>
+	<suppress checks="LineLengthCheck" files="X509CA.java" lines="2501"/> <!-- URL in comment, not caught by config -->
+	<suppress checks="ParameterNumberCheck" files="X509CAInfo.java" lines="101,244,437"/>
+ 	<suppress checks="MagicNumberCheck" files="AvailableCustomCertificateExtensionsConfiguration.java" lines="229"/>	<!-- Method is deprecated -->
+ 	<suppress checks="MagicNumberCheck" files="NameConstraint.java" lines="315,222,218"/> <!--  7 here is just 8 - 1 -->	
+	<suppress checks="ParameterNumberCheck" files="CertificateInfo.java" lines="84"/>
+ 	<suppress checks="UnusedImportsCheck" files="CertificateStatus.java" lines="19"/> <!-- Used in Jdoc. -->
+ 	<suppress checks="MethodLengthCheck" files="RequestMessageUtils.java" lines="192"/>
+ 	<suppress checks="UnusedImportsCheck" files="CertificateProfile.java" lines="43"/> <!-- Used in Jdoc. -->
+ 	<suppress checks="MethodLengthCheck" files="CertificateProfile.java" lines="4015"/>
+ 	<suppress checks="MagicNumberCheck" files="CertificateProfile.java" lines="1981"/>	<!-- This is just a very big number. -->
+ 	<suppress checks="MagicNumberCheck" files="CTLogInfo.java" lines="42"/>	<!-- Default timeout. -->
+	<suppress checks="ParameterNumberCheck" files="EndEntityInformation.java" lines="149,205"/>
+ 	<suppress checks="MagicNumberCheck" files="ExtendedInformation.java" lines="582,644"/>	<!-- Old API versions used in upgrade process. -->
+	<suppress checks="ParameterNumberCheck" files="OcspSigningCacheEntry.java" lines="88"/>
+	<suppress checks="LineLengthCheck" files="AlgorithmTools.java" lines="510,307"/> <!-- URL in comment, not caught by config -->
+	<suppress checks="LineLengthCheck" files="AvailableExtendedKeyUsagesConfiguration.java" lines="118,124"/> <!-- URL in comment, not caught by config -->
+ 	<suppress checks="MagicNumberCheck" files="DnComponents.java" lines="647-654"/>	<!-- splitting fields -->
+	<suppress checks="LineLengthCheck" files="CesecoreConfiguration.java" lines="614-621"/> <!-- URL in comment, not caught by config -->
+	<suppress checks="ParameterNumberCheck" files="InternalKeyBindingFactory.java" lines="89"/>
+ 	<suppress checks="UnusedImportsCheck" files="PKCS11LibraryFileNotFoundException.java" lines="15"/> <!-- Used in Jdoc. -->
+ 	<suppress checks="UnusedImportsCheck" files="NoSuchSlotException.java" lines="15"/> <!-- Used in Jdoc. -->
+ 	<suppress checks="UnusedImportsCheck" files="ISignOperation.java" lines="16"/> <!-- Used in Jdoc. -->
+	<suppress checks="ParameterNumberCheck" files="P11Slot.java" lines="286,365"/>
+	<suppress files="ExternalCommandCertificateValidator" checks="InnerAssignmentCheck" lines="443" /> <!-- protects gainst null -->
+	<suppress checks="MagicNumberCheck" files="RsaKeyValidator.java" lines="127-130,235"/>	<!--  Unavoidable here.  -->
+ 	<suppress checks="UnusedImportsCheck" files="Validator.java" lines="17"/> <!-- Used in Jdoc. -->
+	<suppress checks="ParameterNumberCheck" files="CertTools.java" lines="2307,2346,2377,2419,2464,2520,2586"/>
+	<suppress checks="MagicNumberCheck" files="CertTools.java" lines="3573-3583,3936-3947,4718-4730"/>	<!--  Case labels.  -->
+	<suppress checks="MagicNumberCheck" files="ConcurrentCache.java" lines="188,432,487"/>	<!--  Arbitrary fudge factors.  -->
+	<suppress checks="ParameterNumberCheck" files="ExternalProcessTools.java" lines="163"/>
+	<suppress checks="MethodLengthCheck" files="CertTools.java" lines="2586,3616"/>
+	<suppress checks="MethodLengthCheck" files="ExternalProcessTools.java" lines="163"/>
+	<suppress checks="MethodLengthCheck" files="PKIXCertRevocationStatusChecker.java" lines="447"/>
+	<suppress checks="MethodLengthCheck" files="SecureXMLDecoder.java" lines="222"/>
+	<suppress checks="MagicNumberCheck" files="StringTools.java" lines="685,720,970,978"/>	<!--  array-indices.  -->
+	<suppress checks="MethodLengthCheck" files="CATokenTestBase.java" lines="528,74"/>
+	<suppress checks="MethodLengthCheck" files="CertificateValidityTest.java" lines="173,606,839"/>
+	<suppress checks="MethodLengthCheck" files="RequestMessageTest.java" lines="76"/>
+	<suppress checks="MethodLengthCheck" files="CertificateProfileTest.java" lines="836"/>
+	<suppress checks="MethodLengthCheck" files="AlgorithmToolsTest.java" lines="272,585"/>
+	<suppress checks="ParameterNumberCheck" files="ValidatorTestUtil.java" lines="51"/>
+	<suppress checks="MethodLengthCheck" files="CertToolsTest.java" lines="1041,2823,3089"/>
+	<suppress checks="LocalFinalVariableNameCheck" files="CertToolsTest.java" lines="2081-2084"/>
+	<suppress checks="ParameterNumberCheck" files="SimpleTimeTest.java" lines="165"/>
+	<suppress checks="MethodLengthCheck" files="StringToolsTest.java" lines="643"/>
+	<suppress checks="MethodLengthCheck" files="TimeUnitFormatTest.java" lines="85"/>
+	<suppress checks="RedundantModifierCheck" files="LookAheadObjectInputStreamTest.java" lines="75,89,119,134"/> <!-- These are instantiated by reflection so must be explicitly public. -->
+	
+ 	<suppress checks="ParameterNumberCheck" files="SecurityEventsAuditorSessionBean.java" lines="116"/>
+ 	<suppress checks="ParameterNumberCheck" files="IntegrityProtectedLoggerSessionBean.java" lines="100"/>
+ 	<suppress checks="ParameterNumberCheck" files="InternalSecurityEventsLoggerSessionBean.java" lines="61"/>
+ 	<suppress checks="ParameterNumberCheck" files="SecurityEventsLoggerSessionBean.java" lines="89,123,150"/>
+ 	<suppress checks="MethodLengthCheck" files="CaSessionBean.java" lines="1215"/>
+ 	<suppress checks="MagicNumberCheck" files="BaseCertificateDataSessionBean.java" lines="168-169"/> <!-- Array indices -->
+ 	<suppress checks="MethodLengthCheck" files="CertificateCreateSessionBean.java" lines="145,413"/>
+ 	<suppress checks="ParameterNumberCheck" files="CertificateCreateSessionBean.java" lines="414"/>
+ 	<suppress checks="MagicNumberCheck" files="CertificateCreateSessionBean.java" lines="569"/> <!-- This is actually setting final -->
+ 	<suppress checks="MagicNumberCheck" files="CertificateDataSessionBean.java" lines="155-183,517-545"/> <!-- Array indices -->
+ 	<suppress checks="ParameterNumberCheck" files="CertificateStoreSessionBean.java" lines="164,194,226,293,2293,2381"/>
+ 	<suppress checks="ParameterNumberCheck" files="CrlStoreSessionBean.java" lines="69"/>
+ 	<suppress checks="MethodLengthCheck" files="OcspResponseGeneratorSessionBean.java" lines="285,1009,1534,2671"/>
+ 	<suppress checks="LineLengthCheck" files="OcspResponseGeneratorSessionBean.java" lines="2340"/> <!-- URL in comment -->
+ 	<suppress checks="ParameterNumberCheck" files="InternalKeyBindingMgmtSessionBean.java" lines="456,486,619"/>
+ 	<suppress checks="MethodLengthCheck" files="InternalKeyBindingMgmtSessionBean.java" lines="1018,1243"/>
+ 	
+ 	<suppress checks="MethodLengthCheck" files="KeyValidatorCacheTest.java" lines="171,340"/>
+ 
+ 	<suppress checks="ParameterNumberCheck" files="SecurityEventsAuditorSessionBean.java" lines="116"/>
+ 	<suppress checks="ParameterNumberCheck" files="IntegrityProtectedLoggerSessionBean.java" lines="100"/>
+ 	<suppress checks="ParameterNumberCheck" files="InternalSecurityEventsLoggerSessionBean.java" lines="61"/>
+ 	<suppress checks="ParameterNumberCheck" files="SecurityEventsLoggerSessionBean.java" lines="89,123,150"/>
+ 	<suppress checks="MethodLengthCheck" files="CaSessionBean.java" lines="1215"/>
+ 	<suppress checks="MagicNumberCheck" files="BaseCertificateDataSessionBean.java" lines="168-169"/> <!-- Array indices -->
+ 	<suppress checks="MethodLengthCheck" files="CertificateCreateSessionBean.java" lines="145,413"/>
+ 	<suppress checks="ParameterNumberCheck" files="CertificateCreateSessionBean.java" lines="414"/>
+ 	<suppress checks="MagicNumberCheck" files="CertificateCreateSessionBean.java" lines="569"/> <!-- This is actually setting final -->
+ 	<suppress checks="MagicNumberCheck" files="CertificateDataSessionBean.java" lines="155-183,517-545"/> <!-- Array indices -->
+ 	<suppress checks="ParameterNumberCheck" files="CertificateStoreSessionBean.java" lines="164,194,226,293,2293,2381"/>
+ 	<suppress checks="ParameterNumberCheck" files="CrlStoreSessionBean.java" lines="69"/>
+ 	<suppress checks="MethodLengthCheck" files="OcspResponseGeneratorSessionBean.java" lines="285,1009,1534,2671"/>
+ 	<suppress checks="LineLengthCheck" files="OcspResponseGeneratorSessionBean.java" lines="2340"/> <!-- URL in comment -->
+ 	<suppress checks="ParameterNumberCheck" files="InternalKeyBindingMgmtSessionBean.java" lines="456,486,619"/>
+ 	<suppress checks="MethodLengthCheck" files="InternalKeyBindingMgmtSessionBean.java" lines="1018,1243"/>
+ 	
+ 	<suppress checks="MethodLengthCheck" files="KeyValidatorCacheTest.java" lines="171,340"/>
+	
+ 	<suppress checks="ParameterNumberCheck" files="SecurityEventsAuditorSession.java" lines="121"/>
+ 	<suppress checks="MagicNumberCheck" files="AuditDevicesConfig" lines="110"/>
+ 	<suppress checks="ParameterNumberCheck" files="IntegrityProtectedDevice.java" lines="134"/>
+ 	<suppress checks="ParameterNumberCheck" files="Log4jDevice.java" lines="132"/>
+ 	<suppress checks="ParameterNumberCheck" files="InternalSecurityEventsLoggerSessionLocal.java" lines="51"/>
+ 	<suppress checks="ParameterNumberCheck" files="SecurityEventsLoggerSession.java" lines="71"/>
+ 	<suppress checks="ParameterNumberCheck" files="SecurityEventsLoggerSessionLocal.java" lines="49,79"/>
+ 	<suppress checks="ParameterNumberCheck" files="CertificateCreateSessionLocal.java" lines="261"/>
+ 	<suppress checks="ParameterNumberCheck" files="CertificateStoreSessionLocal.java" lines="68,103,246,314"/>
+ 	<suppress checks="ParameterNumberCheck" files="CertificateStoreSessionRemote.java" lines="49"/>
+ 	<suppress checks="ParameterNumberCheck" files="CrlStoreSession.java" lines="93"/>
+ 	<suppress checks="ParameterNumberCheck" files="InternalKeyBindingMgmtSession.java" lines="131,178,223"/>
+ 	<suppress checks="UnusedImportsCheck" files="KeyValidatorSessionLocal.java" lines="27"/> <!-- Used in jdoc-->
+
+ 
+ 	<suppress checks="ParameterNumberCheck" files="SecurityEventsAuditorSession.java" lines="121"/>
+ 	<suppress checks="MagicNumberCheck" files="AuditDevicesConfig" lines="110"/>
+ 	<suppress checks="ParameterNumberCheck" files="IntegrityProtectedDevice.java" lines="134"/>
+ 	<suppress checks="ParameterNumberCheck" files="Log4jDevice.java" lines="132"/>
+ 	<suppress checks="ParameterNumberCheck" files="InternalSecurityEventsLoggerSessionLocal.java" lines="51"/>
+ 	<suppress checks="ParameterNumberCheck" files="SecurityEventsLoggerSession.java" lines="71"/>
+ 	<suppress checks="ParameterNumberCheck" files="SecurityEventsLoggerSessionLocal.java" lines="49,79"/>
+ 	<suppress checks="ParameterNumberCheck" files="CertificateCreateSessionLocal.java" lines="261"/>
+ 	<suppress checks="ParameterNumberCheck" files="CertificateStoreSessionLocal.java" lines="68,103,246,314"/>
+ 	<suppress checks="ParameterNumberCheck" files="CertificateStoreSessionRemote.java" lines="49"/>
+ 	<suppress checks="ParameterNumberCheck" files="CrlStoreSession.java" lines="93"/>
+ 	<suppress checks="ParameterNumberCheck" files="InternalKeyBindingMgmtSession.java" lines="131,178,223"/>
+ 	<suppress checks="UnusedImportsCheck" files="KeyValidatorSessionLocal.java" lines="27"/> <!-- Used in jdoc-->
+
+	
+ 	<suppress checks="ParameterNumberCheck" files="AuditRecordData.java" lines="102"/>
+ 	<suppress checks="UnusedImportsCheck" files="BaseCertificateData.java" lines="23"/> <!-- Used in JDOC -->
+ 	<suppress checks="MagicNumberCheck" files="CertificateData.java" lines="890,865"/> <!-- Old versions-->
+ 	<suppress checks="ParameterNumberCheck" files="CertificateData.java" lines="196"/>
+ 	<suppress checks="MagicNumberCheck" files="NoConflictCertificateData.java" lines="682,707"/> <!-- Old versions-->
+ 	<suppress checks="ParameterNumberCheck" files="InternalKeyBindingData.java" lines="99"/>
+ 	<suppress checks="MethodLengthCheck" files="AccessRulesMigrator.java" lines="58"/>
+ 	<suppress checks="ParameterNumberCheck" files="RoleMember.java" lines="102"/>
+ 	<suppress checks="ParameterNumberCheck" files="RoleMemberData.java" lines="106"/>
+ 	<suppress checks="MethodLengthCheck" files="AccessRulesMigratorTest.java" lines="200,453,714,979,1419,1796,2265,2640,3046,3599"/>
+ 
+ 	
+	
+ 	<suppress checks="ParameterNumberCheck" files="AuditRecordData.java" lines="102"/>
+ 	<suppress checks="UnusedImportsCheck" files="BaseCertificateData.java" lines="23"/> <!-- Used in JDOC -->
+ 	<suppress checks="MagicNumberCheck" files="CertificateData.java" lines="890,865"/> <!-- Old versions-->
+ 	<suppress checks="ParameterNumberCheck" files="CertificateData.java" lines="196"/>
+ 	<suppress checks="MagicNumberCheck" files="NoConflictCertificateData.java" lines="682,707"/> <!-- Old versions-->
+ 	<suppress checks="ParameterNumberCheck" files="InternalKeyBindingData.java" lines="99"/>
+ 	<suppress checks="MethodLengthCheck" files="AccessRulesMigrator.java" lines="58"/>
+ 	<suppress checks="ParameterNumberCheck" files="RoleMember.java" lines="102"/>
+ 	<suppress checks="ParameterNumberCheck" files="RoleMemberData.java" lines="106"/>
+ 	<suppress checks="MethodLengthCheck" files="AccessRulesMigratorTest.java" lines="200,453,714,979,1419,1796,2265,2640,3046,3599"/>
+ 
+ 	
+	
+ 	
+ 	<suppress checks="MagicNumberCheck" files="Approval.java" lines="183,194,213"/> <!-- Version numbers -->
+ 	<suppress checks="ParameterNumberCheck" files="ApprovalDataVO.java" lines="158"/>
+ 	<suppress checks="ParameterNumberCheck" files="ApprovalNotificationParameterGenerator.java" lines="57"/>
+ 	<suppress checks="UnusedImportsCheck" files="ApprovalNotificationParameterGenerator.java" lines="15"/> <!-- Used in JDOC -->
+ 	<suppress checks="MagicNumberCheck" files="ApprovalRequest.java" lines="519,552,596"/> <!-- Version numbers -->
+ 	<suppress checks="MethodLengthCheck" files="ApprovalRequest.java" lines="470"/> 
+ 	<suppress checks="MethodLengthCheck" files="KeyRecoveryCAService.java" lines="116"/> 
+ 	<suppress checks="ParameterNumberCheck" files="ActiveDirectoryPublisher.java" lines="156"/>
+ 	<suppress checks="ParameterNumberCheck" files="BasePublisher.java" lines="269"/>
+ 	<suppress checks="MethodLengthCheck" files="CertificateSamplerCustomPublisher.java" lines="73"/>
+ 	<suppress checks="ParameterNumberCheck" files="CertificateSamplerCustomPublisher.java" lines="250"/> 
+ 	<suppress checks="ParameterNumberCheck" files="CustomPublisherContainer.java" lines="297"/> 
+ 	<suppress checks="ParameterNumberCheck" files="CustomerLdapPublisher1.java" lines="359,1269"/>
+ 	<suppress checks="ParameterNumberCheck" files="CertSernoCustomLdapPublisher.java" lines="155,233"/>
+ 	<suppress checks="ParameterNumberCheck" files="DummyCustomPublisher.java" lines="84"/>
+ 	<suppress checks="ParameterNumberCheck" files="GeneralPurposeCustomPublisher.java" lines="220"/>
+ 	<suppress checks="ParameterNumberCheck" files="ICustomPublisher.java" lines="56"/>
+ 	<suppress checks="ParameterNumberCheck" files="LdapPublisher.java" lines="273,1719"/>
+ 	<suppress checks="MethodLengthCheck" files="LdapPublisher.java" lines="273,867,689"/>
+ 	<suppress checks="MethodLengthCheck" files="LdapSearchPublisher.java" lines="87"/>
+ 	<suppress checks="ParameterNumberCheck" files="PublisherQueueData.java" lines="74"/>
+ 	<suppress checks="ParameterNumberCheck" files="HardTokenInformation.java" lines="48"/>
+ 	<suppress checks="ParameterNumberCheck" files="SVGImageManipulator.java" lines="261,323"/>
+ 	<suppress checks="ParameterNumberCheck" files="LogEntry.java" lines="94"/>
+ 	<suppress checks="MagicNumberCheck" files="ExtendedInformation.java" lines="322,384"/> <!-- Version numbers -->
+ 	<suppress checks="MagicNumberCheck" files="EndEntityProfile.java" lines="203-236,2770-2974"/> <!-- Constant map, version numbers -->
+ 	<suppress checks="MethodLengthCheck" files="EndEntityProfile.java" lines="412,2100,2737,2516"/>
+ 	<suppress checks="ParameterNumberCheck" files="EndEntityProfile.java" lines="1981,2100"/>
+ 	<suppress checks="ParameterNumberCheck" files="UserDataVO.java" lines="120,171"/>
+ 	<suppress checks="MagicNumberCheck" files="ServiceConfiguration.java" lines="299-319"/> <!-- Version numbers -->
+ 	<suppress checks="MethodLengthCheck" files="ScepRequestMessage.java" lines="236"/>
+ 	<suppress checks="MethodLengthCheck" files="ScepResponseMessage.java" lines="250"/>
+ 	<suppress checks="InnerAssignmentCheck" files="JAXWSDocAndConvTools.java" /> <!-- Seems to mess up flow control if rrefactored. -->
+ 	<suppress checks="ParameterNumberCheck" files="PrinterManager.java" lines="108"/>
+ 	<suppress checks="MethodLengthCheck" files="UserFulfillEndEntityProfileTest.java" lines="64"/>
+	
+ 	<suppress checks="MagicNumberCheck" files="Approval.java" lines="183,194,213"/> <!-- Version numbers -->
+ 	<suppress checks="ParameterNumberCheck" files="ApprovalDataVO.java" lines="158"/>
+ 	<suppress checks="ParameterNumberCheck" files="ApprovalNotificationParameterGenerator.java" lines="57"/>
+ 	<suppress checks="UnusedImportsCheck" files="ApprovalNotificationParameterGenerator.java" lines="15"/> <!-- Used in JDOC -->
+ 	<suppress checks="MagicNumberCheck" files="ApprovalRequest.java" lines="519,552,596"/> <!-- Version numbers -->
+ 	<suppress checks="MethodLengthCheck" files="ApprovalRequest.java" lines="470"/> 
+ 	<suppress checks="MethodLengthCheck" files="KeyRecoveryCAService.java" lines="116"/> 
+ 	<suppress checks="ParameterNumberCheck" files="ActiveDirectoryPublisher.java" lines="156"/>
+ 	<suppress checks="ParameterNumberCheck" files="BasePublisher.java" lines="269"/>
+ 	<suppress checks="MethodLengthCheck" files="CertificateSamplerCustomPublisher.java" lines="73"/>
+ 	<suppress checks="ParameterNumberCheck" files="CertificateSamplerCustomPublisher.java" lines="250"/> 
+ 	<suppress checks="ParameterNumberCheck" files="CustomPublisherContainer.java" lines="297"/> 
+ 	<suppress checks="ParameterNumberCheck" files="CustomerLdapPublisher1.java" lines="359,1269"/>
+ 	<suppress checks="ParameterNumberCheck" files="CertSernoCustomLdapPublisher.java" lines="155,233"/>
+ 	<suppress checks="ParameterNumberCheck" files="DummyCustomPublisher.java" lines="84"/>
+ 	<suppress checks="ParameterNumberCheck" files="GeneralPurposeCustomPublisher.java" lines="220"/>
+ 	<suppress checks="ParameterNumberCheck" files="ICustomPublisher.java" lines="56"/>
+ 	<suppress checks="ParameterNumberCheck" files="LdapPublisher.java" lines="273,1719"/>
+ 	<suppress checks="MethodLengthCheck" files="LdapPublisher.java" lines="273,867,689"/>
+ 	<suppress checks="MethodLengthCheck" files="LdapSearchPublisher.java" lines="87"/>
+ 	<suppress checks="ParameterNumberCheck" files="PublisherQueueData.java" lines="74"/>
+ 	<suppress checks="ParameterNumberCheck" files="HardTokenInformation.java" lines="48"/>
+ 	<suppress checks="ParameterNumberCheck" files="SVGImageManipulator.java" lines="261,323"/>
+ 	<suppress checks="ParameterNumberCheck" files="LogEntry.java" lines="94"/>
+ 	<suppress checks="MagicNumberCheck" files="ExtendedInformation.java" lines="322,384"/> <!-- Version numbers -->
+ 	<suppress checks="MagicNumberCheck" files="EndEntityProfile.java" lines="203-236,2770-2974"/> <!-- Constant map, version numbers -->
+ 	<suppress checks="MethodLengthCheck" files="EndEntityProfile.java" lines="412,2100,2737,2516"/>
+ 	<suppress checks="ParameterNumberCheck" files="EndEntityProfile.java" lines="1981,2100"/>
+ 	<suppress checks="ParameterNumberCheck" files="UserDataVO.java" lines="120,171"/>
+ 	<suppress checks="MagicNumberCheck" files="ServiceConfiguration.java" lines="299-319"/> <!-- Version numbers -->
+ 	<suppress checks="MethodLengthCheck" files="ScepRequestMessage.java" lines="236"/>
+ 	<suppress checks="MethodLengthCheck" files="ScepResponseMessage.java" lines="250"/>
+ 	<suppress checks="InnerAssignmentCheck" files="JAXWSDocAndConvTools.java" /> <!-- Seems to mess up flow control if rrefactored. -->
+ 	<suppress checks="ParameterNumberCheck" files="PrinterManager.java" lines="108"/>
+ 	<suppress checks="MethodLengthCheck" files="UserFulfillEndEntityProfileTest.java" lines="64"/>
+ 	
+ <suppress checks="MagicNumberCheck"
+ 			  files="ServiceManifestBuilder.java"
+ 			  lines="33" />
+ 	<suppress checks="RegexpSinglelineCheck"
+ 			  files="ejbcaresources.en.properties"
+ 			  lines="19" />
+ 	<suppress checks="RegexpSinglelineCheck"
+ 			  files="intresources.en.properties"
+ 			  lines="18-19" />
+ 	  
+ 	
+<suppress checks="MagicNumberCheck"
+ 			  files="ServiceManifestBuilder.java"
+ 			  lines="33" />
+ 	<suppress checks="RegexpSinglelineCheck"
+ 			  files="ejbcaresources.en.properties"
+ 			  lines="19" />
+ 	<suppress checks="RegexpSinglelineCheck"
+ 			  files="intresources.en.properties"
+ 			  lines="18-19" />
+	
+ </suppressions>

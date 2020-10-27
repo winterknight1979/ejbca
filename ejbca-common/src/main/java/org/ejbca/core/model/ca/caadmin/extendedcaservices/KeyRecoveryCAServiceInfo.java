@@ -13,31 +13,32 @@
 package org.ejbca.core.model.ca.caadmin.extendedcaservices;
 
 import java.io.Serializable;
-
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceInfo;
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceTypes;
 
 /**
- * 
- * @version $Id: KeyRecoveryCAServiceInfo.java 19901 2014-09-30 14:29:38Z anatom $
- *
+ * @version $Id: KeyRecoveryCAServiceInfo.java 19901 2014-09-30 14:29:38Z anatom
+ *     $
  */
-public class KeyRecoveryCAServiceInfo extends ExtendedCAServiceInfo implements Serializable {
+public class KeyRecoveryCAServiceInfo extends ExtendedCAServiceInfo
+    implements Serializable {
 
-	private static final long serialVersionUID = 2005286169126704029L;
+  private static final long serialVersionUID = 2005286169126704029L;
 
-    public KeyRecoveryCAServiceInfo(int status) {
-		super(status);
-	}
+  /**
+   * @param status Status
+   */
+  public KeyRecoveryCAServiceInfo(final int status) {
+    super(status);
+  }
 
-	@Override
-	public String getImplClass() {
-		return KeyRecoveryCAService.class.getName();
-	}
+  @Override
+  public String getImplClass() {
+    return KeyRecoveryCAService.class.getName();
+  }
 
-	@Override
-	public int getType() {
-		return ExtendedCAServiceTypes.TYPE_KEYRECOVERYEXTENDEDSERVICE;
-	}
-
+  @Override
+  public int getType() {
+    return ExtendedCAServiceTypes.TYPE_KEYRECOVERYEXTENDEDSERVICE;
+  }
 }

@@ -16,32 +16,50 @@ import org.cesecore.ErrorCode;
 import org.ejbca.core.EjbcaException;
 
 /**
- * Thrown when an end entity profile was not found. 
- * 
- * @version $Id: EndEntityProfileNotFoundException.java 29354 2018-06-26 12:01:45Z mikekushner $
+ * Thrown when an end entity profile was not found.
  *
+ * @version $Id: EndEntityProfileNotFoundException.java 29354 2018-06-26
+ *     12:01:45Z mikekushner $
  */
 public class EndEntityProfileNotFoundException extends EjbcaException {
 
-    private static final long serialVersionUID = 1901011578701643327L;
+  private static final long serialVersionUID = 1901011578701643327L;
 
-    public EndEntityProfileNotFoundException() {
-        super();
-    }
+  /** Null constructor. */
+  public EndEntityProfileNotFoundException() {
+    super();
+  }
 
-    public EndEntityProfileNotFoundException(String message, Throwable cause) {
-        super(message, cause);
-    }
+  /**
+   * @param message message
+   * @param cause cause
+   */
+  public EndEntityProfileNotFoundException(
+      final String message, final Throwable cause) {
+    super(message, cause);
+  }
 
-    public EndEntityProfileNotFoundException(String message) {
-        super(message);
-    }
+  /**
+   * @param message message
+   */
+  public EndEntityProfileNotFoundException(final String message) {
+    super(message);
+  }
 
-    public EndEntityProfileNotFoundException(Throwable cause) {
-        super(ErrorCode.EE_PROFILE_NOT_EXISTS, cause);
-    }
-    
-    public EndEntityProfileNotFoundException(final int endEntityProfileId) {
-        super("Could not find end entity profile with ID " + endEntityProfileId + ".");
-    }
+  /**
+   * @param cause cause
+   */
+  public EndEntityProfileNotFoundException(final Throwable cause) {
+    super(ErrorCode.EE_PROFILE_NOT_EXISTS, cause);
+  }
+
+  /**
+   * @param endEntityProfileId ID
+   */
+  public EndEntityProfileNotFoundException(final int endEntityProfileId) {
+    super(
+        "Could not find end entity profile with ID "
+            + endEntityProfileId
+            + ".");
+  }
 }

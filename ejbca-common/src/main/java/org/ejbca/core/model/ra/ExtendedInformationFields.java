@@ -13,20 +13,26 @@
 package org.ejbca.core.model.ra;
 
 /**
- * Constants specific to EJBCA that are used to store EJBCA specific extended information
- *  
- * @version $Id: ExtendedInformationFields.java 22117 2015-10-29 10:53:42Z mikekushner $
+ * Constants specific to EJBCA that are used to store EJBCA specific extended
+ * information.
+ *
+ * @version $Id: ExtendedInformationFields.java 22117 2015-10-29 10:53:42Z
+ *     mikekushner $
  */
-public class ExtendedInformationFields {
+public final class ExtendedInformationFields {
 
-    /**
-     * Identifier for Custom data holding a base64 encoded PKCS10 request extInfo.setCustomData("PKCS10", new
-     * String(Base64.encode(pkcs10.getEncoded())));
-     * Not used internally by CESeCore but useful for applications.
-     */
-    public  static final String CUSTOM_PKCS10 = "PKCS10";
-    
-	/** The (optional) counter is the counter how many request have been received, will decrease for every request until 0. */
-	public  static final String CUSTOM_REQUESTCOUNTER = "REQUESTCOUNTER";
+    private ExtendedInformationFields() { }
+  /**
+   * Identifier for Custom data holding a base64 encoded PKCS10 request
+   * extInfo.setCustomData("PKCS10", new
+   * String(Base64.encode(pkcs10.getEncoded()))); Not used internally by
+   * CESeCore but useful for applications.
+   */
+  public static final String CUSTOM_PKCS10 = "PKCS10";
 
+  /**
+   * The (optional) counter is the counter how many request have been received,
+   * will decrease for every request until 0.
+   */
+  public static final String CUSTOM_REQUESTCOUNTER = "REQUESTCOUNTER";
 }

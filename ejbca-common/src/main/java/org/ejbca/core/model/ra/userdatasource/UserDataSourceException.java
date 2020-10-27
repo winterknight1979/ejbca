@@ -10,38 +10,38 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
+
 package org.ejbca.core.model.ra.userdatasource;
 
 import javax.xml.ws.WebFault;
-
 import org.ejbca.core.EjbcaException;
 
-
 /**
- * Is thrown when error occurred when searching or retrieving userdata 
+ * Is thrown when error occurred when searching or retrieving userdata.
  *
- * @version $Id: UserDataSourceException.java 22117 2015-10-29 10:53:42Z mikekushner $
+ * @version $Id: UserDataSourceException.java 22117 2015-10-29 10:53:42Z
+ *     mikekushner $
  */
 @WebFault
 public class UserDataSourceException extends EjbcaException {
-    
-    private static final long serialVersionUID = -7910687478479123115L;
 
+  private static final long serialVersionUID = -7910687478479123115L;
 
-    /**
-     * Creates a new instance of <code>UserDataSourceException</code> without detail message.
-     */
-    public UserDataSourceException() {
-        super();
-    }
-    
-    
-    /**
-     * Constructs an instance of <code>UserDataSourceException</code> with the specified detail message.
-     * @param msg the detail message.
-     */
-    public UserDataSourceException(String msg) {
-        super(msg);
-    }
+  /**
+   * Creates a new instance of <code>UserDataSourceException</code> without
+   * detail message.
+   */
+  public UserDataSourceException() {
+    super();
+  }
+
+  /**
+   * Constructs an instance of <code>UserDataSourceException</code> with the
+   * specified detail message.
+   *
+   * @param msg the detail message.
+   */
+  public UserDataSourceException(final String msg) {
+    super(msg);
+  }
 }

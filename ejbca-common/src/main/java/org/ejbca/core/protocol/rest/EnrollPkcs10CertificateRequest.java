@@ -17,93 +17,155 @@ import java.io.Serializable;
 /**
  * A DTO class representing the input for certificate enrollment.
  *
- * @version $Id: EnrollPkcs10CertificateRequest.java 28909 2018-05-10 12:16:53Z tarmo_r_helmes $
+ * @version $Id: EnrollPkcs10CertificateRequest.java 28909 2018-05-10 12:16:53Z
+ *     tarmo_r_helmes $
  */
-public class EnrollPkcs10CertificateRequest implements Serializable {
-    
-    private static final long serialVersionUID = 1L;
-    
+public final class EnrollPkcs10CertificateRequest implements Serializable {
+
+  private static final long serialVersionUID = 1L;
+
+  /** Param. */
+  private final String certificateRequest;
+  /** Param. */
+  private final String certificateProfileName;
+  /** Param. */
+  private final String endEntityProfileName;
+  /** Param. */
+  private final String certificateAuthorityName;
+  /** Param. */
+  private final String username;
+  /** Param. */
+  private final String password;
+
+  /**
+   * @return req
+   */
+  public String getCertificateRequest() {
+    return certificateRequest;
+  }
+
+  /**
+   * @return profile
+   */
+  public String getCertificateProfileName() {
+    return certificateProfileName;
+  }
+
+  /**
+   * @return profile
+   */
+  public String getEndEntityProfileName() {
+    return endEntityProfileName;
+  }
+
+  /**
+   * @return Auth
+   */
+  public String getCertificateAuthorityName() {
+    return certificateAuthorityName;
+  }
+
+  /**
+   * @return User
+   */
+  public String getUsername() {
+    return username;
+  }
+
+  /**
+   * @return Pass
+   */
+  public String getPassword() {
+    return password;
+  }
+
+  public static class Builder {
+        /** Param. */
     private String certificateRequest;
+    /** Param. */
     private String certificateProfileName;
+    /** Param. */
     private String endEntityProfileName;
+    /** Param. */
     private String certificateAuthorityName;
+    /** Param. */
     private String username;
+    /** Param. */
     private String password;
 
-
-    public String getCertificateRequest() {
-        return certificateRequest;
+    /**
+     * @param acertificateRequest request
+     * @return this
+     */
+    public Builder certificateRequest(final String acertificateRequest) {
+      this.certificateRequest = acertificateRequest;
+      return this;
     }
 
-    public String getCertificateProfileName() {
-        return certificateProfileName;
+    /**
+     * @param acertificateProfileName profie
+     * @return this
+     */
+    public Builder certificateProfileName(
+            final String acertificateProfileName) {
+      this.certificateProfileName = acertificateProfileName;
+      return this;
     }
 
-    public String getEndEntityProfileName() {
-        return endEntityProfileName;
+    /**
+     * @param anendEntityProfileName profile
+     * @return this
+     */
+    public Builder endEntityProfileName(final String anendEntityProfileName) {
+      this.endEntityProfileName = anendEntityProfileName;
+      return this;
     }
 
-    public String getCertificateAuthorityName() {
-        return certificateAuthorityName;
-    }
-    
-    public String getUsername() {
-        return username;
-    }
-
-    public String getPassword() {
-        return password;
+    /**
+     * @param acertificateAuthorityName authority
+     * @return this
+     */
+    public Builder certificateAuthorityName(
+        final String acertificateAuthorityName) {
+      this.certificateAuthorityName = acertificateAuthorityName;
+      return this;
     }
 
-    public static class Builder {
-        private String certificateRequest;
-        private String certificateProfileName;
-        private String endEntityProfileName;
-        private String certificateAuthorityName;
-        private String username;
-        private String password;
-
-        public Builder certificateRequest(String certificateRequest) {
-            this.certificateRequest = certificateRequest;
-            return this;
-        }
-
-        public Builder certificateProfileName(String certificateProfileName) {
-            this.certificateProfileName = certificateProfileName;
-            return this;
-        }
-
-        public Builder endEntityProfileName(String endEntityProfileName) {
-            this.endEntityProfileName = endEntityProfileName;
-            return this;
-        }
-
-        public Builder certificateAuthorityName(String certificateAuthorityName) {
-            this.certificateAuthorityName = certificateAuthorityName;
-            return this;
-        }
-
-        public Builder username(String username) {
-            this.username = username;
-            return this;
-        }
-
-        public Builder password(String password) {
-            this.password = password;
-            return this;
-        }
-
-        public EnrollPkcs10CertificateRequest build() {
-            return new EnrollPkcs10CertificateRequest(this);
-        }
+    /**
+     * @param ausername user
+     * @return   this
+     * */
+    public Builder username(final String ausername) {
+      this.username = ausername;
+      return this;
     }
-    
-    private EnrollPkcs10CertificateRequest(Builder builder) {
-        this.certificateRequest = builder.certificateRequest;
-        this.certificateProfileName = builder.certificateProfileName;
-        this.endEntityProfileName = builder.endEntityProfileName;
-        this.certificateAuthorityName = builder.certificateAuthorityName;
-        this.username = builder.username;
-        this.password = builder.password;
+
+    /**
+     * @param apassword password
+     * @return this
+     */
+    public Builder password(final String apassword) {
+      this.password = apassword;
+      return this;
     }
+
+    /**
+     * @return request
+     */
+    public EnrollPkcs10CertificateRequest build() {
+      return new EnrollPkcs10CertificateRequest(this);
+    }
+  }
+
+  /**
+   * @param builder Builder
+   */
+  private EnrollPkcs10CertificateRequest(final Builder builder) {
+    this.certificateRequest = builder.certificateRequest;
+    this.certificateProfileName = builder.certificateProfileName;
+    this.endEntityProfileName = builder.endEntityProfileName;
+    this.certificateAuthorityName = builder.certificateAuthorityName;
+    this.username = builder.username;
+    this.password = builder.password;
+  }
 }

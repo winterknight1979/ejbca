@@ -13,29 +13,42 @@
 package org.ejbca.core.ejb.authentication.cli.exception;
 
 /**
- * An exception thrown when a CliAuthenticationToken is used without having its password field set.
- * 
- * @version $Id: UninitializedCliAuthenticationTokenException.java 22117 2015-10-29 10:53:42Z mikekushner $
- * 
+ * An exception thrown when a CliAuthenticationToken is used without having its
+ * password field set.
+ *
+ * @version $Id: UninitializedCliAuthenticationTokenException.java 22117
+ *     2015-10-29 10:53:42Z mikekushner $
  */
-public class UninitializedCliAuthenticationTokenException extends RuntimeException {
+public class UninitializedCliAuthenticationTokenException
+    extends RuntimeException {
 
-    private static final long serialVersionUID = -3404632335972154544L;
+  private static final long serialVersionUID = -3404632335972154544L;
 
-    public UninitializedCliAuthenticationTokenException() {
-        super();
-    }
+  /** Null. */
+  public UninitializedCliAuthenticationTokenException() {
+    super();
+  }
 
-    public UninitializedCliAuthenticationTokenException(String arg0, Throwable arg1) {
-        super(arg0, arg1);
-    }
+  /**
+   * @param arg0 Message
+   * @param arg1 Cause
+   */
+  public UninitializedCliAuthenticationTokenException(
+      final String arg0, final Throwable arg1) {
+    super(arg0, arg1);
+  }
 
-    public UninitializedCliAuthenticationTokenException(String arg0) {
-        super(arg0);
-    }
+  /**
+   * @param arg0 Message
+   */
+  public UninitializedCliAuthenticationTokenException(final String arg0) {
+    super(arg0);
+  }
 
-    public UninitializedCliAuthenticationTokenException(Throwable arg0) {
-        super(arg0);
-    }
-
+  /**
+   * @param arg0 Cause
+   */
+  public UninitializedCliAuthenticationTokenException(final Throwable arg0) {
+    super(arg0);
+  }
 }

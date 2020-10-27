@@ -14,24 +14,21 @@
 package org.ejbca.ui.web.protocol;
 
 import javax.xml.ws.WebFault;
-
 import org.cesecore.ErrorCode;
 import org.ejbca.core.EjbcaException;
 
 /**
- * Thrown when a string is not a valid date
- * @version $Id: DateNotValidException.java 19902 2014-09-30 14:32:24Z anatom $
+ * Thrown when a string is not a valid date.
  *
+ * @version $Id: DateNotValidException.java 19902 2014-09-30 14:32:24Z anatom $
  */
 @WebFault
 public class DateNotValidException extends EjbcaException {
 
-	private static final long serialVersionUID = -4557881537494914234L;
+  private static final long serialVersionUID = -4557881537494914234L;
 
-	/**
-	 * @param m with more information what is wrong
-	 */
-	public DateNotValidException(String m) {
-		super(ErrorCode.DATE_NOT_VALID, m);
-	}
+  /** @param m with more information what is wrong */
+  public DateNotValidException(final String m) {
+    super(ErrorCode.DATE_NOT_VALID, m);
+  }
 }

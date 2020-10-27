@@ -14,26 +14,29 @@
 package org.ejbca.core.ejb.ra;
 
 /**
- * An exception thrown when someone tries to delete an end entity which is referenced by other objects, or could not be deleted otherwise.
+ * An exception thrown when someone tries to delete an end entity which is
+ * referenced by other objects, or could not be deleted otherwise.
  *
- * @version $Id: CouldNotRemoveEndEntityException.java 26057 2017-06-22 08:08:34Z anatom $
+ * @version $Id: CouldNotRemoveEndEntityException.java 26057 2017-06-22
+ *     08:08:34Z anatom $
  */
 public class CouldNotRemoveEndEntityException extends Exception {
 
-    private static final long serialVersionUID = 4525925695395312951L;
+  private static final long serialVersionUID = 4525925695395312951L;
 
-    /**
-     * Creates a new instance.
-     */
-    public CouldNotRemoveEndEntityException() {
-        super("Could not remove end entity, it may still be referenced by other objects.");
-    }
+  /** Creates a new instance. */
+  public CouldNotRemoveEndEntityException() {
+    super(
+        "Could not remove end entity, it may still be referenced by other"
+            + " objects.");
+  }
 
-    /**
-     * Creates a new instance with a detail message.
-     * @param message the detail message.
-     */
-    public CouldNotRemoveEndEntityException(String message) {
-        super(message);
-    }
+  /**
+   * Creates a new instance with a detail message.
+   *
+   * @param message the detail message.
+   */
+  public CouldNotRemoveEndEntityException(final String message) {
+    super(message);
+  }
 }

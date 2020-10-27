@@ -15,85 +15,88 @@ package org.ejbca.core.ejb.config;
 
 import java.util.HashMap;
 import java.util.Properties;
-
 import org.cesecore.config.CesecoreConfiguration;
 import org.cesecore.configuration.ConfigurationBase;
 import org.cesecore.configuration.ConfigurationCache;
 import org.ejbca.config.GlobalCustomCssConfiguration;
 
 /**
- * Class Holding cache variable for custom css configuration. Needed because EJB spec does not allow volatile, non-final 
- * fields in session beans.
- * This is a trivial cache, too trivial, it needs manual handling of setting the cache variable, this class does not keep track on if
- * the cache variable is null or not, the using class must ensure that it does not try to use a null value. 
- * Only the method "needsUpdate will return true of the cache variable is null. 
- * 
- * @version $Id: GlobalCustomCssConfigurationCache.java 26517 2017-09-08 12:50:05Z henriks $
+ * Class Holding cache variable for custom css configuration. Needed because EJB
+ * spec does not allow volatile, non-final fields in session beans. This is a
+ * trivial cache, too trivial, it needs manual handling of setting the cache
+ * variable, this class does not keep track on if the cache variable is null or
+ * not, the using class must ensure that it does not try to use a null value.
+ * Only the method "needsUpdate will return true of the cache variable is null.
  *
+ * @version $Id: GlobalCustomCssConfigurationCache.java 26517 2017-09-08
+ *     12:50:05Z henriks $
  */
 public class GlobalCustomCssConfigurationCache implements ConfigurationCache {
 
-    /**
-     * Cache variable containing the custom css configuration. This cache may be
-     * unsynchronized between multiple instances of EJBCA, but is common to all
-     * threads in the same VM. Set volatile to make it thread friendly.
-     */
-    private volatile GlobalCustomCssConfiguration globalCustomCssConfigurationCache = null;
-    
-    private volatile long lastupdatetime = -1;
+  /**
+   * Cache variable containing the custom css configuration. This cache may be
+   * unsynchronized between multiple instances of EJBCA, but is common to all
+   * threads in the same VM. Set volatile to make it thread friendly.
+   */
+  private volatile GlobalCustomCssConfiguration
+      globalCustomCssConfigurationCache = null;
 
-    @Override
-    public String getConfigId() {
-        return GlobalCustomCssConfiguration.CSS_CONFIGURATION_ID;
+  /** Time. */
+  private volatile long lastupdatetime = -1;
+
+  @Override
+  public String getConfigId() {
+    return GlobalCustomCssConfiguration.CSS_CONFIGURATION_ID;
+  }
+
+  @Override
+  public void clearCache() {
+    globalCustomCssConfigurationCache = null;
+  }
+
+  @Override
+  public void saveData() {
+    globalCustomCssConfigurationCache.saveData();
+  }
+
+  @Override
+  public boolean needsUpdate() {
+    if (globalCustomCssConfigurationCache != null
+        && lastupdatetime
+                + CesecoreConfiguration.getCacheGlobalConfigurationTime()
+            > System.currentTimeMillis()) {
+      return false;
     }
+    return true;
+  }
 
-    @Override
-    public void clearCache() {
-        globalCustomCssConfigurationCache = null;
-        
-    }
+  @Override
+  public ConfigurationBase getConfiguration() {
+    return globalCustomCssConfigurationCache;
+  }
 
-    @Override
-    public void saveData() {
-        globalCustomCssConfigurationCache.saveData();
-        
-    }
+  @SuppressWarnings("rawtypes")
+  @Override
+  public ConfigurationBase getConfiguration(final HashMap data) {
+    ConfigurationBase returnval = new GlobalCustomCssConfiguration();
+    returnval.loadData(data);
+    return returnval;
+  }
 
-    @Override
-    public boolean needsUpdate() {
-        if (globalCustomCssConfigurationCache != null && lastupdatetime + CesecoreConfiguration.getCacheGlobalConfigurationTime() > System.currentTimeMillis()) {
-            return false;
-        }
-        return true;
-    }
+  @Override
+  public ConfigurationBase getNewConfiguration() {
+    return new GlobalCustomCssConfiguration();
+  }
 
-    @Override
-    public ConfigurationBase getConfiguration() {
-        return globalCustomCssConfigurationCache;
-    }
+  @Override
+  public void updateConfiguration(final ConfigurationBase configuration) {
+    this.globalCustomCssConfigurationCache =
+        (GlobalCustomCssConfiguration) configuration;
+    lastupdatetime = System.currentTimeMillis();
+  }
 
-    @SuppressWarnings("rawtypes")
-    @Override
-    public ConfigurationBase getConfiguration(HashMap data) {
-        ConfigurationBase returnval = new GlobalCustomCssConfiguration();
-        returnval.loadData(data);
-        return returnval;
-    }
-
-    @Override
-    public ConfigurationBase getNewConfiguration() {
-        return new GlobalCustomCssConfiguration();
-    }
-
-    @Override
-    public void updateConfiguration(ConfigurationBase configuration) {
-        this.globalCustomCssConfigurationCache = (GlobalCustomCssConfiguration) configuration;
-        lastupdatetime = System.currentTimeMillis();
-        
-    }
-
-    @Override
-    public Properties getAllProperties() {
-        return null; // Not required
-    }  
+  @Override
+  public Properties getAllProperties() {
+    return null; // Not required
+  }
 }

@@ -14,45 +14,95 @@
 package org.ejbca.core.protocol.acme;
 
 import java.util.LinkedHashMap;
+
 /**
- * An ACME Authorization is the right to issue certificates for an identifier (e.g. a DNS Name).
- * 
+ * An ACME Authorization is the right to issue certificates for an identifier
+ * (e.g. a DNS Name).
+ *
  * @version $Id: AcmeAuthorization.java 29141 2018-06-07 12:52:44Z aminkh $
  */
 public interface AcmeAuthorization {
 
-    String getOrderId();
+    /**
+     * @return ID
+     */
+  String getOrderId();
 
-    void setOrderId(String orderId);
+  /**
+   * @param orderId ID
+   */
+  void setOrderId(String orderId);
 
-    String getAuthorizationId();
+  /**
+   * @return ID
+   */
+  String getAuthorizationId();
 
-    void setAuthorizationId(String authorizationId);
+  /**
+   * @param authorizationId ID
+   */
+  void setAuthorizationId(String authorizationId);
 
-    String getAccountId();
+  /**
+   * @return ID
+   */
+  String getAccountId();
 
-    void setAccountId(String accountId);
+  /**
+   * @param accountId IS
+   */
+  void setAccountId(String accountId);
 
-    AcmeIdentifier getAcmeIdentifier();
+  /**
+   * @return ID
+   */
+  AcmeIdentifier getAcmeIdentifier();
 
-    void setAcmeIdentifier(AcmeIdentifier acmeIdentifier);
+  /**
+   * @param acmeIdentifier ID
+   */
+  void setAcmeIdentifier(AcmeIdentifier acmeIdentifier);
 
-    long getExpires();
+  /**
+   * @return expiry
+   */
+  long getExpires();
 
-    void setExpires(long expires);
+  /**
+   * @param expires expiry
+   */
+  void setExpires(long expires);
 
-    boolean getWildcard();
+  /**
+   * @return Wildcard
+   */
+  boolean getWildcard();
 
-    void setWildcard(boolean wildcard);
+  /**
+   * @param wildcard Wildcard
+   */
+  void setWildcard(boolean wildcard);
 
-    AcmeAuthorizationStatus getStatus();
+  /**
+   * @return Status
+   */
+  AcmeAuthorizationStatus getStatus();
 
-    void setStatus(AcmeAuthorizationStatus acmeAuthorizationStatus);
+  /**
+   * @param acmeAuthorizationStatus Status
+   */
+  void setStatus(AcmeAuthorizationStatus acmeAuthorizationStatus);
 
-    float getLatestVersion();
+  /**
+   * @return Version.
+   */
+  float getLatestVersion();
 
-    void upgrade();
+  /** Upgrade. */
+  void upgrade();
 
-    LinkedHashMap<Object, Object> getRawData();
-
+  /**
+   * @return data
+   */
+  LinkedHashMap<Object, Object> getRawData();
 }

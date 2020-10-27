@@ -17,27 +17,35 @@ import org.cesecore.certificates.certificate.Base64CertData;
 import org.cesecore.certificates.certificate.CertificateData;
 
 /**
- * Publishers that implements this interface can support publishing of raw database objects,
- * including rowProtection.
- * 
- * @version $Id: FullEntityPublisher.java 22117 2015-10-29 10:53:42Z mikekushner $
+ * Publishers that implements this interface can support publishing of raw
+ * database objects, including rowProtection.
+ *
+ * @version $Id: FullEntityPublisher.java 22117 2015-10-29 10:53:42Z mikekushner
+ *     $
  */
 public interface FullEntityPublisher {
 
-    /**
-     * Publishes a CertificateData object in order to retain rowversion and  integrity protection data. Any publisher overriding this method must also override the getPublisherVersion
-     * method and return a value &gt; 1 from there. 
-     * 
-     * @param authenticationToken an authentication token
-     * @param certificateData a complete CertificateData object
-     * @param base64CertData a complete Base64CertData object
-     * 
-     * @return true if storage was successful.
-     * 
-     * @throws PublisherException if a communication or other error occurs.
-     */
-    boolean storeCertificate(final AuthenticationToken authenticationToken, final CertificateData certificateData, final Base64CertData base64CertData) throws PublisherException;
+  /**
+   * Publishes a CertificateData object in order to retain rowversion and
+   * integrity protection data. Any publisher overriding this method must also
+   * override the getPublisherVersion method and return a value &gt; 1 from
+   * there.
+   *
+   * @param authenticationToken an authentication token
+   * @param certificateData a complete CertificateData object
+   * @param base64CertData a complete Base64CertData object
+   * @return true if storage was successful.
+   * @throws PublisherException if a communication or other error occurs.
+   */
+  boolean storeCertificate(
+      AuthenticationToken authenticationToken,
+      CertificateData certificateData,
+      Base64CertData base64CertData)
+      throws PublisherException;
 
-    /** @return true if this publisher supports publishing with the full database objects */
-    boolean isFullEntityPublishingSupported();
+  /**
+   * @return true if this publisher supports publishing with the full database
+   *     objects
+   */
+  boolean isFullEntityPublishingSupported();
 }

@@ -14,77 +14,82 @@ package org.ejbca.core.ejb.config;
 
 import java.util.HashMap;
 import java.util.Properties;
-
 import org.cesecore.config.CesecoreConfiguration;
 import org.cesecore.configuration.ConfigurationBase;
 import org.cesecore.configuration.ConfigurationCache;
 
 /**
  * Cache of upgrade configuration.
- * 
- * @version $Id: GlobalUpgradeConfigurationCache.java 22740 2016-02-05 13:28:45Z mikekushner $
+ *
+ * @version $Id: GlobalUpgradeConfigurationCache.java 22740 2016-02-05 13:28:45Z
+ *     mikekushner $
  */
 public class GlobalUpgradeConfigurationCache implements ConfigurationCache {
 
-    /**
-     * This cache may be unsynchronized between multiple instances of EJBCA, but is common to all
-     * threads in the same VM. Set volatile to make it thread friendly.
-     */
-    private volatile GlobalUpgradeConfiguration configurationCache = null;
-    /** help variable used to control that update isn't performed to often. */
-    private volatile long lastupdatetime = -1;  
-    
-    public GlobalUpgradeConfigurationCache() {}
+  /**
+   * This cache may be unsynchronized between multiple instances of EJBCA, but
+   * is common to all threads in the same VM. Set volatile to make it thread
+   * friendly.
+   */
+  private volatile GlobalUpgradeConfiguration configurationCache = null;
+  /** help variable used to control that update isn't performed to often. */
+  private volatile long lastupdatetime = -1;
 
-    @Override
-    public boolean needsUpdate() {
-        if (configurationCache != null && lastupdatetime + CesecoreConfiguration.getCacheGlobalConfigurationTime() > System.currentTimeMillis()) {
-            return false;
-        }
-        return true;
-    }
+  /** Null. */
+  public GlobalUpgradeConfigurationCache() { }
 
-    public void clearCache() {
-        configurationCache = null;
+  @Override
+  public boolean needsUpdate() {
+    if (configurationCache != null
+        && lastupdatetime
+                + CesecoreConfiguration.getCacheGlobalConfigurationTime()
+            > System.currentTimeMillis()) {
+      return false;
     }
+    return true;
+  }
 
-    @Override
-    public String getConfigId() {
-        return GlobalUpgradeConfiguration.CONFIGURATION_ID;
-    }
+  /** Clear. */
+  public void clearCache() {
+    configurationCache = null;
+  }
 
-    @Override
-    public void saveData() {
-       configurationCache.saveData();
-    }
+  @Override
+  public String getConfigId() {
+    return GlobalUpgradeConfiguration.CONFIGURATION_ID;
+  }
 
-    @Override
-    public ConfigurationBase getConfiguration() {
-        return configurationCache;
-    }
+  @Override
+  public void saveData() {
+    configurationCache.saveData();
+  }
 
-    @SuppressWarnings("rawtypes")
-    @Override
-    public ConfigurationBase getConfiguration(HashMap data) {
-        ConfigurationBase returnval = new GlobalUpgradeConfiguration();
-        returnval.loadData(data);
-        return returnval;
-    }
+  @Override
+  public ConfigurationBase getConfiguration() {
+    return configurationCache;
+  }
 
-    @Override
-    public void updateConfiguration(final ConfigurationBase configuration) {
-        this.configurationCache = (GlobalUpgradeConfiguration) configuration;
-        lastupdatetime = System.currentTimeMillis();
-        
-    }
-    
-    @Override
-    public ConfigurationBase getNewConfiguration() {
-       return new GlobalUpgradeConfiguration();      
-    }
+  @SuppressWarnings("rawtypes")
+  @Override
+  public ConfigurationBase getConfiguration(final HashMap data) {
+    ConfigurationBase returnval = new GlobalUpgradeConfiguration();
+    returnval.loadData(data);
+    return returnval;
+  }
 
-    @Override
-    public Properties getAllProperties() {
-        return configurationCache.getAsProperties();
-    }
+  @Override
+  public void updateConfiguration(final ConfigurationBase configuration) {
+    this.configurationCache = (GlobalUpgradeConfiguration) configuration;
+    lastupdatetime = System.currentTimeMillis();
+  }
+
+  @Override
+  public ConfigurationBase getNewConfiguration() {
+    return new GlobalUpgradeConfiguration();
+  }
+
+  @Override
+  public Properties getAllProperties() {
+    return configurationCache.getAsProperties();
+  }
 }

@@ -20,7 +20,6 @@ import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.SignatureException;
-
 import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.DERSet;
@@ -34,35 +33,58 @@ import org.cesecore.util.CertTools;
 
 /**
  * Helpers used by different tests, that does not invoke EJBs.
- * 
- * TODO: Move this class to one of the test libs
- *  
+ *
+ * <p>TODO: Move this class to one of the test libs
+ *
  * @version $Id: NonEjbTestTools.java 22117 2015-10-29 10:53:42Z mikekushner $
  */
-public class NonEjbTestTools {
+public final class NonEjbTestTools {
+    private NonEjbTestTools() { }
 
-    public static byte[] generatePKCS10Req(String dn, String password) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException, SignatureException, InvalidAlgorithmParameterException, IOException, OperatorCreationException {
-        // Generate keys
-    	KeyPair keys = KeyTools.genKeys("512", AlgorithmConstants.KEYALGORITHM_RSA);            
+    /**
+     * @param dn DN
+     * @param password PWD
+     * @return Byte array
+     * @throws InvalidKeyException fail
+     * @throws NoSuchAlgorithmException fail
+     * @throws NoSuchProviderException fail
+     * @throws SignatureException fail
+     * @throws InvalidAlgorithmParameterException fail
+     * @throws IOException fail
+     * @throws OperatorCreationException fail
+     */
+  public static byte[] generatePKCS10Req(final String dn, final String password)
+      throws InvalidKeyException, NoSuchAlgorithmException,
+          NoSuchProviderException, SignatureException,
+          InvalidAlgorithmParameterException, IOException,
+          OperatorCreationException {
+    // Generate keys
+    KeyPair keys = KeyTools.genKeys("512", AlgorithmConstants.KEYALGORITHM_RSA);
 
-        // Create challenge password attribute for PKCS10
-        // Attributes { ATTRIBUTE:IOSet } ::= SET OF Attribute{{ IOSet }}
-        //
-        // Attribute { ATTRIBUTE:IOSet } ::= SEQUENCE {
-        //    type    ATTRIBUTE.&id({IOSet}),
-        //    values  SET SIZE(1..MAX) OF ATTRIBUTE.&Type({IOSet}{\@type})
-        // }
-        ASN1EncodableVector vec = new ASN1EncodableVector();
-        vec.add(PKCSObjectIdentifiers.pkcs_9_at_challengePassword); 
-        ASN1EncodableVector values = new ASN1EncodableVector();
-        values.add(new DERUTF8String(password));
-        vec.add(new DERSet(values));
-        ASN1EncodableVector v = new ASN1EncodableVector();
-        v.add(new DERSequence(vec));
-        DERSet set = new DERSet(v);
-        // Create PKCS#10 certificate request
-        PKCS10CertificationRequest p10request = CertTools.genPKCS10CertificationRequest("SHA1WithRSA",
-                CertTools.stringToBcX500Name(dn), keys.getPublic(), set, keys.getPrivate(), null);
-        return p10request.toASN1Structure().getEncoded();        
-    }
+    // Create challenge password attribute for PKCS10
+    // Attributes { ATTRIBUTE:IOSet } ::= SET OF Attribute{{ IOSet }}
+    //
+    // Attribute { ATTRIBUTE:IOSet } ::= SEQUENCE {
+    //    type    ATTRIBUTE.&id({IOSet}),
+    //    values  SET SIZE(1..MAX) OF ATTRIBUTE.&Type({IOSet}{\@type})
+    // }
+    ASN1EncodableVector vec = new ASN1EncodableVector();
+    vec.add(PKCSObjectIdentifiers.pkcs_9_at_challengePassword);
+    ASN1EncodableVector values = new ASN1EncodableVector();
+    values.add(new DERUTF8String(password));
+    vec.add(new DERSet(values));
+    ASN1EncodableVector v = new ASN1EncodableVector();
+    v.add(new DERSequence(vec));
+    DERSet set = new DERSet(v);
+    // Create PKCS#10 certificate request
+    PKCS10CertificationRequest p10request =
+        CertTools.genPKCS10CertificationRequest(
+            "SHA1WithRSA",
+            CertTools.stringToBcX500Name(dn),
+            keys.getPublic(),
+            set,
+            keys.getPrivate(),
+            null);
+    return p10request.toASN1Structure().getEncoded();
+  }
 }

@@ -13,30 +13,32 @@
 package org.ejbca.core.model.ca.caadmin.extendedcaservices;
 
 import java.io.Serializable;
-
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceInfo;
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceTypes;
 
 /**
- * 
- * @version $Id: HardTokenEncryptCAServiceInfo.java 19901 2014-09-30 14:29:38Z anatom $
+ * @version $Id: HardTokenEncryptCAServiceInfo.java 19901 2014-09-30 14:29:38Z
+ *     anatom $
  */
-public class HardTokenEncryptCAServiceInfo extends ExtendedCAServiceInfo implements Serializable {
+public class HardTokenEncryptCAServiceInfo extends ExtendedCAServiceInfo
+    implements Serializable {
 
-	private static final long serialVersionUID = -6186500870565287684L;
+  private static final long serialVersionUID = -6186500870565287684L;
 
-    public HardTokenEncryptCAServiceInfo(int status) {
-		super(status);
-	}
+  /**
+   * @param status Status
+   */
+  public HardTokenEncryptCAServiceInfo(final int status) {
+    super(status);
+  }
 
-	@Override
-	public String getImplClass() {
-		return HardTokenEncryptCAService.class.getName();
-	}
+  @Override
+  public String getImplClass() {
+    return HardTokenEncryptCAService.class.getName();
+  }
 
-	@Override
-	public int getType() {
-		return ExtendedCAServiceTypes.TYPE_HARDTOKENENCEXTENDEDSERVICE;
-	}
-
+  @Override
+  public int getType() {
+    return ExtendedCAServiceTypes.TYPE_HARDTOKENENCEXTENDEDSERVICE;
+  }
 }

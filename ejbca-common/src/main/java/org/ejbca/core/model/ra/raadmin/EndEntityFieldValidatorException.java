@@ -13,28 +13,42 @@
 package org.ejbca.core.model.ra.raadmin;
 
 /**
- * Indicates that a field in an end entity does not match a validator (e.g. a regex)
+ * Indicates that a field in an end entity does not match a validator (e.g. a
+ * regex)
  *
- * @version $Id: EndEntityFieldValidatorException.java 22117 2015-10-29 10:53:42Z mikekushner $
+ * @version $Id: EndEntityFieldValidatorException.java 22117 2015-10-29
+ *     10:53:42Z mikekushner $
  */
 public class EndEntityFieldValidatorException extends Exception {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    public EndEntityFieldValidatorException() {
-        super();
-    }
+  /** Null constructor.
+   */
+  public EndEntityFieldValidatorException() {
+    super();
+  }
 
-    public EndEntityFieldValidatorException(String message) {
-        super(message);
-    }
+  /**
+   * @param message Message
+   */
+  public EndEntityFieldValidatorException(final String message) {
+    super(message);
+  }
 
-    public EndEntityFieldValidatorException(Throwable cause) {
-        super(cause);
-    }
+  /**
+   * @param cause Cause
+   */
+  public EndEntityFieldValidatorException(final Throwable cause) {
+    super(cause);
+  }
 
-    public EndEntityFieldValidatorException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
+  /**
+   * @param message Message
+   * @param cause Cause
+   */
+  public EndEntityFieldValidatorException(
+      final String message, final Throwable cause) {
+    super(message, cause);
+  }
 }

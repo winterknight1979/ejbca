@@ -13,35 +13,31 @@
 package org.ejbca.core.model;
 
 /**
- * Thrown to show that the signature of an certificate failed to verify somehow. 
- * 
- * @version $Id: CertificateSignatureException.java 24890 2016-12-13 13:57:17Z mikekushner $
+ * Thrown to show that the signature of an certificate failed to verify somehow.
  *
+ * @version $Id: CertificateSignatureException.java 24890 2016-12-13 13:57:17Z
+ *     mikekushner $
  */
 public class CertificateSignatureException extends Exception {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    /**
-     * @param message message
-     */
-    public CertificateSignatureException(String message) {
-        super(message);
-    }
-    
-    /**
-     * @param cause cause
-     */
-    public CertificateSignatureException(Throwable cause) {
-        super(cause);
-    }
+  /** @param message message */
+  public CertificateSignatureException(final String message) {
+    super(message);
+  }
 
-    /**
-     * @param message message
-     * @param cause cause
-     */
-    public CertificateSignatureException(String message, Throwable cause) {
-        super(message, cause);
-    }
+  /** @param cause cause */
+  public CertificateSignatureException(final Throwable cause) {
+    super(cause);
+  }
 
+  /**
+   * @param message message
+   * @param cause cause
+   */
+  public CertificateSignatureException(
+      final String message, final Throwable cause) {
+    super(message, cause);
+  }
 }

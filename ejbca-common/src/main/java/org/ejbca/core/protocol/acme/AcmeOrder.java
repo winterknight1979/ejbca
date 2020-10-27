@@ -14,66 +14,139 @@ package org.ejbca.core.protocol.acme;
 
 import java.util.LinkedHashMap;
 import java.util.List;
-
 import org.cesecore.certificates.endentity.EndEntityInformation;
 import org.ejbca.core.protocol.acme.response.AcmeProblemResponse;
 
 /**
- * ACME Order object
- * 
+ * ACME Order object.
+ *
  * @version $Id: AcmeOrder.java 29784 2018-08-30 08:20:30Z tarmo_r_helmes $
  */
 public interface AcmeOrder {
 
-    String getOrderId();
+    /**
+     * @return ID
+     */
+  String getOrderId();
 
-    String getAccountId();
-    
-    String getFingerprint();
-    
-    void setFingerprint(String fingerprint);
-    
-    String getStatus();
-    
-    void setStatus(String status);
+  /**
+   * @return ID
+   */
+  String getAccountId();
 
-    String getFinalize();
+  /**
+   * @return FP
+   */
+  String getFingerprint();
 
-    void setFinalize(String finalize);
+  /**
+   * @param fingerprint FP
+   */
+  void setFingerprint(String fingerprint);
 
-    List<AcmeIdentifier> getIdentifiers();
+  /**
+   * @return Status
+   */
+  String getStatus();
 
-    void setIdentifiers(List<AcmeIdentifier> identifiers);
+  /**
+   * @param status status
+   */
+  void setStatus(String status);
 
-    long getNotBefore();
+  /**
+   * @return fin
+   */
+  String getFinalize();
 
-    long getNotAfter();
+  /**
+   * @param finalize fin
+   */
+  void setFinalize(String finalize);
 
-    long getExpires();
+  /**
+   * @return IDs
+   */
+  List<AcmeIdentifier> getIdentifiers();
 
-    AcmeOrderStatus getAcmeOrderStatus();
+  /**
+   * @param identifiers IDs
+   */
+  void setIdentifiers(List<AcmeIdentifier> identifiers);
 
-    void setAcmeOrderStatus(AcmeOrderStatus acmeOrderStatus);
+  /**
+   * @return date
+   */
+  long getNotBefore();
 
-    String getCertificateId();
+  /**
+   * @return datr
+   */
+  long getNotAfter();
 
-    void setCertificateId(String certificateId);
+  /**
+   * @return expiry
+   */
+  long getExpires();
 
-    AcmeProblemResponse getError();
+  /**
+   * @return Status
+   */
+  AcmeOrderStatus getAcmeOrderStatus();
 
-    void setError(AcmeProblemResponse acmeProblemResponse);
+  /**
+   * @param acmeOrderStatus Status
+   */
+  void setAcmeOrderStatus(AcmeOrderStatus acmeOrderStatus);
 
-    void setEndEntityInformation(EndEntityInformation endEntityInformation);
+  /**
+   * @return ID
+   */
+  String getCertificateId();
 
-    EndEntityInformation getEndEntityInformation();
+  /**
+   * @param certificateId ID
+   */
+  void setCertificateId(String certificateId);
 
-    float getLatestVersion();
+  /**
+   * @return resp
+   */
+  AcmeProblemResponse getError();
 
-    void upgrade();
-    
-    LinkedHashMap<Object, Object> getRawData();
+  /**
+   * @param acmeProblemResponse resp
+   */
+  void setError(AcmeProblemResponse acmeProblemResponse);
 
-    void setIsActive(boolean isActive);
+  /**
+   * @param endEntityInformation info.
+   */
+  void setEndEntityInformation(EndEntityInformation endEntityInformation);
 
-    boolean getIsActive();
+  /**
+   * @return Info.
+   */
+  EndEntityInformation getEndEntityInformation();
+
+  /** @return Version. */
+  float getLatestVersion();
+
+  /** Upgrade. */
+  void upgrade();
+
+  /**
+   * @return map
+   */
+  LinkedHashMap<Object, Object> getRawData();
+
+  /**
+   * @param isActive bool
+   */
+  void setIsActive(boolean isActive);
+
+  /**
+   * @return bool
+   */
+  boolean getIsActive();
 }

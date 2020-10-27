@@ -10,33 +10,36 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
+
 package org.ejbca.core.model.hardtoken;
 
 /**
- * An exception thrown when issuer got a token is it's queue that isn't available to it.
+ * An exception thrown when issuer got a token is it's queue that isn't
+ * available to it.
  *
- * @author  Philip Vendil 2003-01-20
- * @version $Id: UnavailableTokenException.java 22117 2015-10-29 10:53:42Z mikekushner $
+ * @author Philip Vendil 2003-01-20
+ * @version $Id: UnavailableTokenException.java 22117 2015-10-29 10:53:42Z
+ *     mikekushner $
  */
 public class UnavailableTokenException extends java.lang.Exception {
-    
-    private static final long serialVersionUID = 3427797936039132710L;
 
+  private static final long serialVersionUID = 3427797936039132710L;
 
-    /**
-     * Creates a new instance of <code>UnavailableTokenException</code> without detail message.
-     */
-    public UnavailableTokenException() {
-        super();
-    }
-    
-    
-    /**
-     * Constructs an instance of <code>UnavailableTokenException</code> with the specified detail message.
-     * @param msg the detail message.
-     */
-    public UnavailableTokenException(String msg) {
-        super(msg);
-    }
+  /**
+   * Creates a new instance of <code>UnavailableTokenException</code> without
+   * detail message.
+   */
+  public UnavailableTokenException() {
+    super();
+  }
+
+  /**
+   * Constructs an instance of <code>UnavailableTokenException</code> with the
+   * specified detail message.
+   *
+   * @param msg the detail message.
+   */
+  public UnavailableTokenException(final String msg) {
+    super(msg);
+  }
 }

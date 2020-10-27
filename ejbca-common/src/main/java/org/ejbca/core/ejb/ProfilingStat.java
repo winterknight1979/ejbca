@@ -16,29 +16,79 @@ import java.io.Serializable;
 
 /**
  * Aggregated statistics about an EJB method invocation.
- * 
+ *
  * @version $Id: ProfilingStat.java 22117 2015-10-29 10:53:42Z mikekushner $
  */
 public class ProfilingStat implements Serializable {
-    
-    private static final long serialVersionUID = 1L;
 
-    private final String fullmethodName;
-    private final long duration;
-    private final long invocations;
-    private final long average;
-    
-    public ProfilingStat(final String fullmethodName, final long duration, final long invocations) {
-        this.fullmethodName = fullmethodName;
-        this.duration = duration;
-        this.invocations = invocations;
-        this.average = duration/invocations;
-    }
+  private static final long serialVersionUID = 1L;
 
-    public String getFullmethodName() { return fullmethodName; }
-    public long getDurationMicroSeconds() { return duration; }
-    public long getDurationMilliSeconds() { return duration/1000; }
-    public long getInvocations() { return invocations; }
-    public long getAverageMicroSeconds() { return average; }
-    public long getAverageMilliSeconds() { return average/1000; }
+  /** Name. */
+  private final String fullmethodName;
+  /** Durations. */
+  private final long duration;
+  /** Invoke. */
+  private final long invocations;
+  /** Average. */
+  private final long average;
+
+  /**
+   * @param afullmethodName Name
+   * @param aduration duration
+   * @param ainvocations invoke
+   */
+  public ProfilingStat(
+      final String afullmethodName,
+      final long aduration,
+      final long ainvocations) {
+    this.fullmethodName = afullmethodName;
+    this.duration = aduration;
+    this.invocations = ainvocations;
+    this.average = aduration / ainvocations;
+  }
+
+  /**
+   * @return Name
+   */
+  public String getFullmethodName() {
+    return fullmethodName;
+  }
+
+  /**
+   * @return us
+   */
+  public long getDurationMicroSeconds() {
+    return duration;
+  }
+
+  /**
+   * @return ms
+   */
+  public long getDurationMilliSeconds() {
+    return duration / msPerS;
+  }
+
+  /**
+   * @return invocations.
+   */
+  public long getInvocations() {
+    return invocations;
+  }
+
+  /**
+   * @return us
+   */
+  public long getAverageMicroSeconds() {
+    return average;
+  }
+
+  /**
+   * @return MS
+   */
+  public long getAverageMilliSeconds() {
+    return average / msPerS;
+  }
+
+  /** Mils. */
+  private final int msPerS = 1000;
 }

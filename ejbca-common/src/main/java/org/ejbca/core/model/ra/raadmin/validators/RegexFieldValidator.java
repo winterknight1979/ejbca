@@ -15,40 +15,48 @@ package org.ejbca.core.model.ra.raadmin.validators;
 import java.io.Serializable;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-
 import org.ejbca.core.model.ra.raadmin.EndEntityFieldValidator;
 import org.ejbca.core.model.ra.raadmin.EndEntityFieldValidatorException;
 
 /**
- * Validator for end entity fields that validates using regex'es specified in the end entity profile.
- * 
+ * Validator for end entity fields that validates using regex'es specified in
+ * the end entity profile.
+ *
  * @version $Id: RegexFieldValidator.java 25016 2017-01-16 10:23:57Z anatom $
  */
 public class RegexFieldValidator implements EndEntityFieldValidator {
-    
-    @Override
-    public void checkValidatorData(String field, Serializable validatorData) throws EndEntityFieldValidatorException {
-        final String regex = (String)validatorData;
-        try {
-            Pattern.compile(regex);
-        } catch (PatternSyntaxException e) {
-            throw new EndEntityFieldValidatorException("Invalid regex for field "+field+": "+e.getMessage());
-        }
-    }
-    
-    @Override
-    public boolean isApplicableTo(final String field) {
-        // Can be used with all fields
-        return true;
-    }
 
-    @Override
-    public void validate(final String field, final Serializable validatorData, final String value) throws EndEntityFieldValidatorException {
-        // The DN component name is not used by this validator.
-        final String regex = (String)validatorData;
-        if (!Pattern.matches(regex, value == null ? "":value)) {
-            throw new EndEntityFieldValidatorException("Technical details: Value \""+value+"\" does not match regex "+regex);
-        }
+  @Override
+  public void checkValidatorData(
+      final String field, final Serializable validatorData)
+      throws EndEntityFieldValidatorException {
+    final String regex = (String) validatorData;
+    try {
+      Pattern.compile(regex);
+    } catch (PatternSyntaxException e) {
+      throw new EndEntityFieldValidatorException(
+          "Invalid regex for field " + field + ": " + e.getMessage());
     }
+  }
 
+  @Override
+  public boolean isApplicableTo(final String field) {
+    // Can be used with all fields
+    return true;
+  }
+
+  @Override
+  public void validate(
+      final String field, final Serializable validatorData, final String value)
+      throws EndEntityFieldValidatorException {
+    // The DN component name is not used by this validator.
+    final String regex = (String) validatorData;
+    if (!Pattern.matches(regex, value == null ? "" : value)) {
+      throw new EndEntityFieldValidatorException(
+          "Technical details: Value \""
+              + value
+              + "\" does not match regex "
+              + regex);
+    }
+  }
 }

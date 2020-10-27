@@ -10,34 +10,36 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
+
 package org.ejbca.ui.cli;
 
 import org.ejbca.core.EjbcaException;
 
 /**
- * The exception thrown when an error occurs in an Admin Command (IAdminCommand)
+ * The exception thrown when an error occurs in an Admin Command
+ * (IAdminCommand).
  *
- * @version $Id: ErrorAdminCommandException.java 19901 2014-09-30 14:29:38Z anatom $
+ * @version $Id: ErrorAdminCommandException.java 19901 2014-09-30 14:29:38Z
+ *     anatom $
  */
 public class ErrorAdminCommandException extends EjbcaException {
-    private static final long serialVersionUID = -6765140792703909521L;
+  private static final long serialVersionUID = -6765140792703909521L;
 
-    /**
-     * Creates a new instance of ErrorAdminCommandException
-     *
-     * @param message error message
-     */
-    public ErrorAdminCommandException(String message) {
-        super(message);
-    }
+  /**.
+   * Creates a new instance of ErrorAdminCommandException
+   *
+   * @param message error message
+   */
+  public ErrorAdminCommandException(final String message) {
+    super(message);
+  }
 
-    /**
-     * Creates a new instance of ErrorAdminCommandException
-     *
-     * @param exception root cause of error
-     */
-    public ErrorAdminCommandException(Exception exception) {
-        super(exception);
-    }
+  /**
+   * Creates a new instance of ErrorAdminCommandException.
+   *
+   * @param exception root cause of error
+   */
+  public ErrorAdminCommandException(final Exception exception) {
+    super(exception);
+  }
 }

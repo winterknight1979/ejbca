@@ -15,19 +15,20 @@ package org.ejbca.core.model.ca.publisher.upgrade;
 import org.ejbca.core.model.ca.publisher.BasePublisher;
 
 /**
- * Interface to allow instantiation of Publishers from outside the local context.
- * 
- * @version $Id: BasePublisherConverter.java 21380 2015-05-27 09:00:48Z mikekushner $
+ * Interface to allow instantiation of Publishers from outside the local
+ * context.
  *
+ * @version $Id: BasePublisherConverter.java 21380 2015-05-27 09:00:48Z
+ *     mikekushner $
  */
 public interface BasePublisherConverter {
-    
-    /**
-     * Creates a publisher based on the given BasePublisher
-     * 
-     * @param publisher a BasePublisher to convert from
-     * @return a {@link BasePublisher} from the given publisher, or null if publisher was not viable. 
-     */
-    BasePublisher createPublisher(final BasePublisher publisher);
 
+  /**
+   * Creates a publisher based on the given BasePublisher.
+   *
+   * @param publisher a BasePublisher to convert from
+   * @return a {@link BasePublisher} from the given publisher, or null if
+   *     publisher was not viable.
+   */
+  BasePublisher createPublisher(BasePublisher publisher);
 }

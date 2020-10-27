@@ -14,64 +14,80 @@
 package org.ejbca.config;
 
 /**
- * This file handles configuration from internal.properties
+ * This file handles configuration from internal.properties.
  *
- * @version $Id: InternalConfiguration.java 22117 2015-10-29 10:53:42Z mikekushner $
+ * @version $Id: InternalConfiguration.java 22117 2015-10-29 10:53:42Z
+ *     mikekushner $
  */
 public class InternalConfiguration {
 
-    public static final String CONFIG_APPNAME_CAPITAL = "app.name.capital";
-	public static final String CONFIG_DATASOURCENAMEPREFIX = "datasource.jndi-name-prefix";
+      /**Config key. */
+  public static final String CONFIG_APPNAME_CAPITAL = "app.name.capital";
+  /**Config key. */
+  public static final String CONFIG_DATASOURCENAMEPREFIX =
+      "datasource.jndi-name-prefix";
 
-	/**
-	 * Lower case application name
-	 * @return String
-	 */
-	public static String getAppNameLower() {
-		return "ejbca";
-	}
+  /**
+   * Lower case application name.
+   *
+   * @return String
+   */
+  public static String getAppNameLower() {
+    return "ejbca";
+  }
 
-	/**
-	 * Dynamic version of getAppNameLower() for use from JSP/JSF
-	 * @return String
-	 */
-	public String getAppNameLowerDynamic() {
-		return InternalConfiguration.getAppNameLower();
-	}
+  /**
+   * Dynamic version of getAppNameLower() for use from JSP/JSF.
+   *
+   * @return String
+   */
+  public String getAppNameLowerDynamic() {
+    return InternalConfiguration.getAppNameLower();
+  }
 
-	/**
-	 * Upper case application name
-	 * @return String
-	 */
-	public static String getAppNameCapital() {
-		return EjbcaConfigurationHolder.getExpandedString(CONFIG_APPNAME_CAPITAL);
-	}
+  /**
+   * Upper case application name.
+   *
+   * @return String
+   */
+  public static String getAppNameCapital() {
+    return EjbcaConfigurationHolder.getExpandedString(CONFIG_APPNAME_CAPITAL);
+  }
 
-	/**
-	 * Application version number
-	 * @return String
-	 */
-	public static String getAppVersionNumber() {
-		return EjbcaConfigurationHolder.getExpandedString("app.version.number");
-	}
+  /**
+   * Application version number.
+   *
+   * @return String
+   */
+  public static String getAppVersionNumber() {
+    return EjbcaConfigurationHolder.getExpandedString("app.version.number");
+  }
 
-	/**
-	 * SVN revision
-	 * @return String
-	 */
-	public static String getSvnRevision() {
-		return EjbcaConfigurationHolder.getExpandedString("svn.revision");
-	}
+  /**
+   * SVN revision.
+   *
+   * @return String
+   */
+  public static String getSvnRevision() {
+    return EjbcaConfigurationHolder.getExpandedString("svn.revision");
+  }
 
-	/**
-	 * Full application version
-	 * @return String
-	 */
-	public static String getAppVersion() {
-		return EjbcaConfigurationHolder.getExpandedString("app.version");
-	}
+  /**
+   * Full application version.
+   *
+   * @return String
+   */
+  public static String getAppVersion() {
+    return EjbcaConfigurationHolder.getExpandedString("app.version");
+  }
 
-	public static String getDataSourceJndiNamePrefix(){
-		return EjbcaConfigurationHolder.getString(CONFIG_DATASOURCENAMEPREFIX);	// We need to return an empty string for WebLogic. "java:/" will be set anyway on JBoss.
-	}
+  /**
+   * @return JNDI prefix
+   */
+  public static String getDataSourceJndiNamePrefix() {
+    return EjbcaConfigurationHolder.getString(
+        CONFIG_DATASOURCENAMEPREFIX); // We need to return an empty string for
+                                      // WebLogic. "java:/" will be set anyway
+                                      // on JBoss.
+  }
 }

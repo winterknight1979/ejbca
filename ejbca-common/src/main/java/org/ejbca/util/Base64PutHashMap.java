@@ -15,36 +15,40 @@ package org.ejbca.util;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import org.cesecore.util.StringTools;
 
-/** Only used for backwards compatibility with earlier versions of EJBCA
+/**
+ * Only used for backwards compatibility with earlier versions of EJBCA.
+ *
  * @see org.cesecore.util.Base64PutHashMap
  * @deprecated now
- * 
  * @version $Id: Base64PutHashMap.java 23091 2016-03-29 12:04:12Z samuellb $
  */
 @Deprecated
 public class Base64PutHashMap extends HashMap<Object, Object> {
-    private static final long serialVersionUID = 4700506858751520533L;
+  private static final long serialVersionUID = 4700506858751520533L;
 
-    public Base64PutHashMap() {
-        super();
+  /** Null constructor. */
+  public Base64PutHashMap() {
+    super();
+  }
+
+  /**
+   * @param m map
+   */
+  public Base64PutHashMap(final Map<?, ?> m) {
+    super(m);
+  }
+
+  @Override
+  public Object put(final Object key, final Object value) {
+    if (value == null) {
+      return super.put(key, value);
     }
-
-    public Base64PutHashMap(Map<?, ?> m) {
-        super(m);
+    if (value instanceof String) {
+      String s = StringTools.putBase64String((String) value);
+      return super.put(key, s);
     }
-
-    public Object put(Object key, Object value) {
-        if (value == null) {
-            return super.put(key, value);
-        }
-        if (value instanceof String) {
-            String s = StringTools.putBase64String((String) value);
-            return super.put(key, s);
-        }
-        return super.put(key, value);
-    }
-
+    return super.put(key, value);
+  }
 }

@@ -12,13 +12,11 @@
  *************************************************************************/
 package org.ejbca.core.model.ca.publisher.custpubl1;
 
-import java.security.cert.Certificate;
-
-import org.cesecore.certificates.endentity.ExtendedInformation;
-import org.ejbca.core.model.ca.publisher.PublisherException;
-
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPEntry;
+import java.security.cert.Certificate;
+import org.cesecore.certificates.endentity.ExtendedInformation;
+import org.ejbca.core.model.ca.publisher.PublisherException;
 
 /**
  * An additional mocked version of the CustomerLdapPublisher1 used by the unit
@@ -28,246 +26,418 @@ import com.novell.ldap.LDAPEntry;
  */
 public class SecondMockedCustomerLdapPublisher1 extends CustomerLdapPublisher1 {
 
-    private boolean searchOldEntityCalled;
-    private SearchOldEntityParameters searchOldEntityParameters;
-    private PublisherException searchOldEntityException;
-    private LDAPEntry searchOldEntityReturn;
-    
-    private boolean writeCertEntryToLDAPCalled;
-    private WriteCertEntryToLDAPParameters writeCertEntryToLDAPParameters;
-    private PublisherException writeCertEntryToLDAPException;    
-    
-    private boolean writeCrlEntryToLDAPCalled;
-    private WriteCrlEntryToLDAPParameters writeCrlEntryToLDAPParameters;
-    private PublisherException writeCrlEntryToLDAPException;
+      /** PAram. */
+  private boolean searchOldEntityCalled;
+  /** PAram. */
+  private SearchOldEntityParameters searchOldEntityParameters;
+  /** PAram. */
+  private PublisherException searchOldEntityException;
+  /** PAram. */
+  private LDAPEntry searchOldEntityReturn;
 
-    
-    // searchOldEntity
-    @Override
-    protected LDAPEntry searchOldEntity(LDAPConnection lc, String ldapDN) throws PublisherException {
-        this.searchOldEntityCalled = true;
-        this.searchOldEntityParameters = new SearchOldEntityParameters(lc, ldapDN);
-        if (searchOldEntityException != null) {
-            throw searchOldEntityException;
-        }
-        return searchOldEntityReturn;
+  /** PAram. */
+  private boolean writeCertEntryToLDAPCalled;
+  /** PAram. */
+  private WriteCertEntryToLDAPParameters writeCertEntryToLDAPParameters;
+  /** PAram. */
+  private PublisherException writeCertEntryToLDAPException;
+
+  /** PAram. */
+  private boolean writeCrlEntryToLDAPCalled;
+  /** PAram. */
+  private WriteCrlEntryToLDAPParameters writeCrlEntryToLDAPParameters;
+  /** PAram. */
+  private PublisherException writeCrlEntryToLDAPException;
+
+  // searchOldEntity
+  @Override
+  protected LDAPEntry searchOldEntity(
+      final LDAPConnection lc, final String ldapDN) throws PublisherException {
+    this.searchOldEntityCalled = true;
+    this.searchOldEntityParameters = new SearchOldEntityParameters(lc, ldapDN);
+    if (searchOldEntityException != null) {
+      throw searchOldEntityException;
+    }
+    return searchOldEntityReturn;
+  }
+
+  /**
+   * @return bool
+   */
+  public boolean isSearchOldEntityCalled() {
+    return searchOldEntityCalled;
+  }
+
+  /**
+   * @return params
+   */
+  public SearchOldEntityParameters getSearchOldEntityParameters() {
+    return searchOldEntityParameters;
+  }
+
+  /**
+   * @param asearchOldEntityException except
+   */
+  public void setSearchOldEntityException(
+      final PublisherException asearchOldEntityException) {
+    this.searchOldEntityException = asearchOldEntityException;
+  }
+
+  /**
+   * @param asearchOldEntityReturn entry
+   */
+  public void setSearchOldEntityReturn(final LDAPEntry asearchOldEntityReturn) {
+    this.searchOldEntityReturn = asearchOldEntityReturn;
+  }
+
+  // writeCertEntryToLDAP
+  @Override
+  protected void writeCertEntryToLDAP(
+      final LDAPConnection lc,
+      final LDAPEntry oldEntry,
+      final LDAPEntry newEntry,
+      final String certFingerprint)
+      throws PublisherException {
+    this.writeCertEntryToLDAPCalled = true;
+    this.writeCertEntryToLDAPParameters =
+        new WriteCertEntryToLDAPParameters(
+            lc, oldEntry, newEntry, certFingerprint);
+    if (this.writeCertEntryToLDAPException != null) {
+      throw writeCertEntryToLDAPException;
+    }
+  }
+
+  /**
+   * @return bool
+   */
+  public boolean isWriteCertEntryToLDAPCalled() {
+    return writeCertEntryToLDAPCalled;
+  }
+
+  /**
+   * @return params
+   */
+  public WriteCertEntryToLDAPParameters getWriteCertEntryToLDAPParameters() {
+    return writeCertEntryToLDAPParameters;
+  }
+
+
+  /**
+   * @param awriteCertEntryToLDAPException except
+   */
+  public void setWriteCertEntryToLDAPException(
+      final PublisherException awriteCertEntryToLDAPException) {
+    this.writeCertEntryToLDAPException = awriteCertEntryToLDAPException;
+  }
+
+  // writeCRLEntryToLDAP
+  @Override
+  protected void writeCrlEntryToLDAP(
+      final LDAPConnection lc,
+      final LDAPEntry oldEntry,
+      final LDAPEntry newEntry)
+      throws PublisherException {
+    this.writeCrlEntryToLDAPCalled = true;
+    this.writeCrlEntryToLDAPParameters =
+        new WriteCrlEntryToLDAPParameters(lc, oldEntry, newEntry);
+    if (this.writeCrlEntryToLDAPException != null) {
+      throw writeCrlEntryToLDAPException;
+    }
+  }
+
+  /**
+   * @return bool
+   */
+  public boolean isWriteCrlEntryToLDAPCalled() {
+    return writeCrlEntryToLDAPCalled;
+  }
+
+  /**
+   * @return except
+   */
+  public WriteCrlEntryToLDAPParameters getWriteCrlEntryToLDAPParameters() {
+    return writeCrlEntryToLDAPParameters;
+  }
+
+  /**
+   * @param awriteCrlEntryToLDAPException except
+   */
+  public void setWriteCrlEntryToLDAPException(
+      final PublisherException awriteCrlEntryToLDAPException) {
+    this.writeCrlEntryToLDAPException = awriteCrlEntryToLDAPException;
+  }
+
+  public static class StoreLogParameters {
+        /** Param. */
+    private final String level;
+    /** Param. */
+    private final boolean success;
+    /** Param. */
+    private final String message;
+    /** Param. */
+    private final Exception exception;
+
+    /**
+     * @param alevel level
+     * @param issuccess bool
+     * @param amessage msh
+     * @param anexception except
+     */
+    public StoreLogParameters(
+        final String alevel,
+        final boolean issuccess,
+        final String amessage,
+        final Exception anexception) {
+      this.level = alevel;
+      this.success = issuccess;
+      this.message = amessage;
+      this.exception = anexception;
     }
 
-    public boolean isSearchOldEntityCalled() {
-        return searchOldEntityCalled;
+    /**
+     * @return Level
+     */
+    public String getLevel() {
+      return level;
     }
 
-    public SearchOldEntityParameters getSearchOldEntityParameters() {
-        return searchOldEntityParameters;
+    /**
+     * @return Success
+     */
+    public boolean isSuccess() {
+      return success;
     }
 
-    public void setSearchOldEntityException(PublisherException searchOldEntityException) {
-        this.searchOldEntityException = searchOldEntityException;
+    /**
+     * @return message
+     */
+    public String getMessage() {
+      return message;
     }
 
-    public void setSearchOldEntityReturn(LDAPEntry searchOldEntityReturn) {
-        this.searchOldEntityReturn = searchOldEntityReturn;
+    /**
+     * @return except
+     */
+    public Exception getException() {
+      return exception;
+    }
+  }
+
+  public static class DoStoreCertificateParameters {
+        /** Param. */
+    private final Certificate incert;
+    /** Param. */
+    private final String username;
+    /** Param. */
+    private final String password;
+    /** Param. */
+    private final String userDN;
+    /** Param. */
+    private final ExtendedInformation extendedinformation;
+
+    /**
+     * @param anincert cert
+     * @param ausername user
+     * @param apassword pwd
+     * @param auserDN DN
+     * @param theextendedinformation Info
+     */
+    public DoStoreCertificateParameters(
+        final Certificate anincert,
+        final String ausername,
+        final String apassword,
+        final String auserDN,
+        final ExtendedInformation theextendedinformation) {
+      this.incert = anincert;
+      this.username = ausername;
+      this.password = apassword;
+      this.userDN = auserDN;
+      this.extendedinformation = theextendedinformation;
     }
 
-    
-    // writeCertEntryToLDAP
-    @Override
-    protected void writeCertEntryToLDAP(LDAPConnection lc, LDAPEntry oldEntry, LDAPEntry newEntry, String certFingerprint) throws PublisherException {
-        this.writeCertEntryToLDAPCalled = true;
-        this.writeCertEntryToLDAPParameters = new WriteCertEntryToLDAPParameters(lc, oldEntry, newEntry, certFingerprint);
-        if (this.writeCertEntryToLDAPException != null) {
-            throw writeCertEntryToLDAPException;
-        }
+    /**
+     * @return cert
+     */
+    public Certificate getIncert() {
+      return incert;
     }
 
-    public boolean isWriteCertEntryToLDAPCalled() {
-        return writeCertEntryToLDAPCalled;
+    /**
+     * @return user
+     */
+    public String getUsername() {
+      return username;
     }
 
-    public WriteCertEntryToLDAPParameters getWriteCertEntryToLDAPParameters() {
-        return writeCertEntryToLDAPParameters;
+    /**
+     * @return pwd
+     */
+    public String getPassword() {
+      return password;
     }
 
-    public void setWriteCertEntryToLDAPException(PublisherException writeCertEntryToLDAPException) {
-        this.writeCertEntryToLDAPException = writeCertEntryToLDAPException;
-    }
-    
-    
-    // writeCRLEntryToLDAP
-    @Override
-    protected void writeCrlEntryToLDAP(final LDAPConnection lc, final LDAPEntry oldEntry, final LDAPEntry newEntry) throws PublisherException {
-        this.writeCrlEntryToLDAPCalled = true;
-        this.writeCrlEntryToLDAPParameters = new WriteCrlEntryToLDAPParameters(lc, oldEntry, newEntry);
-        if (this.writeCrlEntryToLDAPException != null) {
-            throw writeCrlEntryToLDAPException;
-        }
+    /**
+     * @return dn
+     */
+    public String getUserDN() {
+      return userDN;
     }
 
-    public boolean isWriteCrlEntryToLDAPCalled() {
-        return writeCrlEntryToLDAPCalled;
+    /**
+     * @return info
+     */
+    public ExtendedInformation getExtendedinformation() {
+      return extendedinformation;
+    }
+  }
+
+  public static class DoStoreCRLParameters {
+        /** Param. */
+    private final byte[] incrl;
+
+    /**
+     * @param anincrl CRL
+     */
+    public DoStoreCRLParameters(final byte[] anincrl) {
+      this.incrl = anincrl;
     }
 
-    public WriteCrlEntryToLDAPParameters getWriteCrlEntryToLDAPParameters() {
-        return writeCrlEntryToLDAPParameters;
+    /**
+     * @return CRL
+     */
+    public byte[] getIncrl() {
+      return incrl;
+    }
+  }
+
+  public static class SearchOldEntityParameters {
+        /** Param. */
+    private final LDAPConnection lc;
+    /** Param. */
+    private final String ldapDN;
+
+    /**
+     * @param anlc LC
+     * @param anldapDN DN
+     */
+    public SearchOldEntityParameters(
+        final LDAPConnection anlc, final String anldapDN) {
+      this.lc = anlc;
+      this.ldapDN = anldapDN;
     }
 
-    public void setWriteCrlEntryToLDAPException(PublisherException writeCrlEntryToLDAPException) {
-        this.writeCrlEntryToLDAPException = writeCrlEntryToLDAPException;
-    }
-    
-    
-    public static class StoreLogParameters {
-        private final String level;
-        private final boolean success;
-        private final String message;
-        private final Exception exception;
-
-        public StoreLogParameters(String level, boolean success, String message, Exception exception) {
-            this.level = level;
-            this.success = success;
-            this.message = message;
-            this.exception = exception;
-        }
-
-        public String getLevel() {
-            return level;
-        }
-
-        public boolean isSuccess() {
-            return success;
-        }
-
-        public String getMessage() {
-            return message;
-        }
-
-        public Exception getException() {
-            return exception;
-        }
-        
+    /**
+     * @return LC
+     */
+    public LDAPConnection getLc() {
+      return lc;
     }
 
-    public static class DoStoreCertificateParameters {
-        private final Certificate incert;
-        private final String username;
-        private final String password;
-        private final String userDN; 
-        private final ExtendedInformation extendedinformation;
-
-        public DoStoreCertificateParameters(Certificate incert, String username, String password, String userDN, ExtendedInformation extendedinformation) {
-            this.incert = incert;
-            this.username = username;
-            this.password = password;
-            this.userDN = userDN;
-            this.extendedinformation = extendedinformation;
-        }
-
-        public Certificate getIncert() {
-            return incert;
-        }
-
-        public String getUsername() {
-            return username;
-        }
-
-        public String getPassword() {
-            return password;
-        }
-
-        public String getUserDN() {
-            return userDN;
-        }
-
-        public ExtendedInformation getExtendedinformation() {
-            return extendedinformation;
-        }
+    /**
+     * @return DN
+     */
+    public String getLdapDN() {
+      return ldapDN;
     }
-    
-    public static class DoStoreCRLParameters {
-        private final byte[] incrl;
+  }
 
-        public DoStoreCRLParameters(byte[] incrl) {
-            this.incrl = incrl;
-        }
+  public static class WriteCertEntryToLDAPParameters {
+        /** Param. */
+    private final LDAPConnection lc;
+    /** Param. */
+    private final LDAPEntry oldEntry;
+    /** Param. */
+    private final LDAPEntry newEntry;
+    /** Param. */
+    private final String certFingerprint;
 
-        public byte[] getIncrl() {
-            return incrl;
-        }
+    /**
+     * @param anlc LC
+     * @param anoldEntry Old
+     * @param anewEntry New
+     * @param acertFingerprint FP
+     */
+    public WriteCertEntryToLDAPParameters(
+        final LDAPConnection anlc,
+        final LDAPEntry anoldEntry,
+        final LDAPEntry anewEntry,
+        final String acertFingerprint) {
+      this.lc = anlc;
+      this.oldEntry = anoldEntry;
+      this.newEntry = anewEntry;
+      this.certFingerprint = acertFingerprint;
     }
 
-    public static class SearchOldEntityParameters {
-        private final LDAPConnection lc;
-        private final String ldapDN;
-
-        public SearchOldEntityParameters(LDAPConnection lc, String ldapDN) {
-            this.lc = lc;
-            this.ldapDN = ldapDN;
-        }
-
-        public LDAPConnection getLc() {
-            return lc;
-        }
-
-        public String getLdapDN() {
-            return ldapDN;
-        }
-        
+    /**
+     * @return lc
+     */
+    public LDAPConnection getLc() {
+      return lc;
     }
 
-    public static class WriteCertEntryToLDAPParameters {
-        private final LDAPConnection lc;
-        private final LDAPEntry oldEntry;
-        private final LDAPEntry newEntry;
-        private final String certFingerprint;
-
-        public WriteCertEntryToLDAPParameters(LDAPConnection lc, LDAPEntry oldEntry, LDAPEntry newEntry, String certFingerprint) {
-            this.lc = lc;
-            this.oldEntry = oldEntry;
-            this.newEntry = newEntry;
-            this.certFingerprint = certFingerprint;
-        }
-
-        public LDAPConnection getLc() {
-            return lc;
-        }
-
-        public LDAPEntry getOldEntry() {
-            return oldEntry;
-        }
-
-        public LDAPEntry getNewEntry() {
-            return newEntry;
-        }
-
-        public String getCertFingerprint() {
-            return certFingerprint;
-        }
-        
+    /**
+     * @return old
+     */
+    public LDAPEntry getOldEntry() {
+      return oldEntry;
     }
 
-    public static class WriteCrlEntryToLDAPParameters {
-        private final LDAPConnection lc;
-        private final LDAPEntry oldEntry;
-        private final LDAPEntry newEntry;
-
-        public WriteCrlEntryToLDAPParameters(LDAPConnection lc, LDAPEntry oldEntry, LDAPEntry newEntry) {
-            this.lc = lc;
-            this.oldEntry = oldEntry;
-            this.newEntry = newEntry;
-        }
-
-        public LDAPConnection getLc() {
-            return lc;
-        }
-
-        public LDAPEntry getOldEntry() {
-            return oldEntry;
-        }
-
-        public LDAPEntry getNewEntry() {
-            return newEntry;
-        }
-        
+    /**
+     * @return new
+     */
+    public LDAPEntry getNewEntry() {
+      return newEntry;
     }
-    
+
+    /**
+     * @return fp
+     */
+    public String getCertFingerprint() {
+      return certFingerprint;
+    }
+  }
+
+  public static class WriteCrlEntryToLDAPParameters {
+        /** Param. */
+    private final LDAPConnection lc;
+    /** Param. */
+    private final LDAPEntry oldEntry;
+    /** Param. */
+    private final LDAPEntry newEntry;
+
+    /**
+     * @param anlc LC
+     * @param anoldEntry Entry
+     * @param anewEntry Entry
+     */
+    public WriteCrlEntryToLDAPParameters(
+        final LDAPConnection anlc,
+        final LDAPEntry anoldEntry,
+        final LDAPEntry anewEntry) {
+      this.lc = anlc;
+      this.oldEntry = anoldEntry;
+      this.newEntry = anewEntry;
+    }
+
+    /**
+     * @return LC
+     */
+    public LDAPConnection getLc() {
+      return lc;
+    }
+
+    /**
+     * @return entry
+     */
+    public LDAPEntry getOldEntry() {
+      return oldEntry;
+    }
+
+    /**
+     * @return entry
+     */
+    public LDAPEntry getNewEntry() {
+      return newEntry;
+    }
+  }
 }

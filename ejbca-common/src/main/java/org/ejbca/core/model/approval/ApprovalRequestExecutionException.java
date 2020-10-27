@@ -18,20 +18,28 @@ import javax.xml.ws.WebFault;
  * Exception throws after an administrator have approved a request and the
  * request have been executed and something went wrong that the approval
  * administrator should be notified of.
- * 
- * @version $Id: ApprovalRequestExecutionException.java 24892 2016-12-13 20:22:21Z mikekushner $
+ *
+ * @version $Id: ApprovalRequestExecutionException.java 24892 2016-12-13
+ *     20:22:21Z mikekushner $
  */
 @WebFault
 public class ApprovalRequestExecutionException extends Exception {
 
-	private static final long serialVersionUID = 2306275321815465483L;
+  private static final long serialVersionUID = 2306275321815465483L;
 
-    public ApprovalRequestExecutionException(String message, Throwable cause) {
-		super(message, cause);
-	}
+  /**
+   * @param message message
+   * @param cause cause
+   */
+  public ApprovalRequestExecutionException(
+      final String message, final Throwable cause) {
+    super(message, cause);
+  }
 
-	public ApprovalRequestExecutionException(String message) {
-		super(message);
-	}
-
+  /**
+   * @param message message
+   */
+  public ApprovalRequestExecutionException(final String message) {
+    super(message);
+  }
 }

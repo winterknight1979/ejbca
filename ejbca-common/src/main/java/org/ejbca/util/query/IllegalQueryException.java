@@ -10,7 +10,7 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
+
 package org.ejbca.util.query;
 
 import javax.xml.ws.WebFault;
@@ -18,26 +18,28 @@ import javax.xml.ws.WebFault;
 /**
  * An exception thrown if Query structure is illegal.
  *
- * @version $Id: IllegalQueryException.java 22117 2015-10-29 10:53:42Z mikekushner $
+ * @version $Id: IllegalQueryException.java 22117 2015-10-29 10:53:42Z
+ *     mikekushner $
  */
 @WebFault
 public class IllegalQueryException extends Exception {
-    private static final long serialVersionUID = 7381251899583534498L;
+  private static final long serialVersionUID = 7381251899583534498L;
 
-    /**
-     * Creates a new instance of <code>IllegalQueryException</code> without detail message.
-     */
-    public IllegalQueryException() {
-        super();
-    }
+  /**
+   * Creates a new instance of <code>IllegalQueryException</code> without detail
+   * message.
+   */
+  public IllegalQueryException() {
+    super();
+  }
 
-    /**
-     * Constructs an instance of <code>IllegalQueryException</code> with the specified detail
-     * message.
-     *
-     * @param msg the detail message.
-     */
-    public IllegalQueryException(String msg) {
-        super(msg);
-    }
+  /**
+   * Constructs an instance of <code>IllegalQueryException</code> with the
+   * specified detail message.
+   *
+   * @param msg the detail message.
+   */
+  public IllegalQueryException(final String msg) {
+    super(msg);
+  }
 }

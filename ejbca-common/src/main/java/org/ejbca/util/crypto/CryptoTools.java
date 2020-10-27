@@ -14,76 +14,84 @@ package org.ejbca.util.crypto;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-
 import org.apache.log4j.Logger;
 import org.bouncycastle.util.encoders.Hex;
 import org.ejbca.config.EjbcaConfiguration;
 
 /**
- * This utility class contains static utility methods related to cryptographic functions.
- * 
+ * This utility class contains static utility methods related to cryptographic
+ * functions.
+ *
  * @version $Id: CryptoTools.java 24678 2016-11-10 11:25:43Z jeklund $
- * 
  */
-public class CryptoTools {
-    
-    public static final String BCRYPT_PREFIX = "$2a$";
-    
-    private static final Logger log = Logger.getLogger(CryptoTools.class);
+public final class CryptoTools {
 
-    /**
-     * Creates the hashed password using the bcrypt algorithm, http://www.mindrot.org/projects/jBCrypt/
-     * @param password PWD
-     * @return Hash
-     */
-    public static String makePasswordHash(String password) {
-        if (password == null) {
-            return null;
-        }
-        final int rounds = EjbcaConfiguration.getPasswordLogRounds();
-        if (rounds > 0) {
-            return BCrypt.hashpw(password, BCrypt.gensalt(rounds));
-        } else {
-            return makeOldPasswordHash(password);
-        }
+    private CryptoTools() { }
+    /** Perfix. */
+  public static final String BCRYPT_PREFIX = "$2a$";
+
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(CryptoTools.class);
+
+  /**
+   * Creates the hashed password using the bcrypt algorithm,
+   * http://www.mindrot.org/projects/jBCrypt/.
+   *
+   * @param password PWD
+   * @return Hash
+   */
+  public static String makePasswordHash(final String password) {
+    if (password == null) {
+      return null;
     }
-
-    /**
-     * Creates the hashed password using the old hashing, which is a plain SHA1 password.
-     * 
-     * This was used for password creation until the EJBCA 4.0 release.
-     * @param password PWD
-     * @return Hash
-     */
-    public static String makeOldPasswordHash(String password) {
-        if (password == null) {
-            return null;
-        }
-        String ret = null;
-        try {
-            final MessageDigest md = MessageDigest.getInstance("SHA1");
-            final byte[] pwdhash = md.digest(password.trim().getBytes());
-            ret = new String(Hex.encode(pwdhash));
-        } catch (NoSuchAlgorithmException e) {
-            log.error("SHA1 algorithm not supported.", e);
-            throw new Error("SHA1 algorithm not supported.", e);
-        }
-        return ret;
+    final int rounds = EjbcaConfiguration.getPasswordLogRounds();
+    if (rounds > 0) {
+      return BCrypt.hashpw(password, BCrypt.gensalt(rounds));
+    } else {
+      return makeOldPasswordHash(password);
     }
+  }
 
-    /**
-     * This method takes a BCrypt-generated password hash and extracts the salt element into cleartext.
-     * 
-     * @param passwordHash a BCrypt generated password hash.
-     * @return the salt in cleartext.
-     */
-    public static String extractSaltFromPasswordHash(String passwordHash) {
-        if(!passwordHash.startsWith(BCRYPT_PREFIX)) {
-            throw new IllegalArgumentException("Provided string is not a BCrypt hash.");
-        }
-        //Locate the third '$', this is where the rounds declaration ends.
-        int offset = passwordHash.indexOf('$', BCRYPT_PREFIX.length())+1;
-        return passwordHash.substring(0, offset+22);            
+  /**
+   * Creates the hashed password using the old hashing, which is a plain SHA1
+   * password.
+   *
+   * <p>This was used for password creation until the EJBCA 4.0 release.
+   *
+   * @param password PWD
+   * @return Hash
+   */
+  public static String makeOldPasswordHash(final String password) {
+    if (password == null) {
+      return null;
     }
+    String ret = null;
+    try {
+      final MessageDigest md = MessageDigest.getInstance("SHA1");
+      final byte[] pwdhash = md.digest(password.trim().getBytes());
+      ret = new String(Hex.encode(pwdhash));
+    } catch (NoSuchAlgorithmException e) {
+      LOG.error("SHA1 algorithm not supported.", e);
+      throw new Error("SHA1 algorithm not supported.", e);
+    }
+    return ret;
+  }
 
+  /**
+   * This method takes a BCrypt-generated password hash and extracts the salt
+   * element into cleartext.
+   *
+   * @param passwordHash a BCrypt generated password hash.
+   * @return the salt in cleartext.
+   */
+  public static String extractSaltFromPasswordHash(final String passwordHash) {
+    final int len = 22;
+    if (!passwordHash.startsWith(BCRYPT_PREFIX)) {
+      throw new IllegalArgumentException(
+          "Provided string is not a BCrypt hash.");
+    }
+    // Locate the third '$', this is where the rounds declaration ends.
+    int offset = passwordHash.indexOf('$', BCRYPT_PREFIX.length()) + 1;
+    return passwordHash.substring(0, offset + len);
+  }
 }

@@ -16,34 +16,41 @@ import java.io.Serializable;
 
 /**
  * Performs validation of fields in End Entities.
- * 
- * @version $Id: EndEntityFieldValidator.java 22117 2015-10-29 10:53:42Z mikekushner $
+ *
+ * @version $Id: EndEntityFieldValidator.java 22117 2015-10-29 10:53:42Z
+ *     mikekushner $
  */
 public interface EndEntityFieldValidator {
-    
-    /**
-     * Checks if the given validator data is valid.
-     * 
-     * @param field Name of field that is being checked. Can be a DN component name or another field name.
-     * @param validatorData Validator-specific data (e.g. a regex for the RegexFieldValidator)
-     * @throws EndEntityFieldValidatorException if the validator data is not valid.
-     */
-    void checkValidatorData(String field, Serializable validatorData) throws EndEntityFieldValidatorException;
-    
-    /**
-     * @param field A field name string from EndEntityProfile or DnComponents.
-     * @return true if the validator is applicable to the given field.
-     */
-    boolean isApplicableTo(String field);
-    
-    /**
-     * Validates a value of a field.
-     * 
-     * @param validatorData Validator-specific data (e.g. a regex for the RegexFieldValidator)
-     * @param field Name of field that is being checked. Can be a DN component name or another field name.
-     * @param value Value of field that is being checked.
-     * @throws EndEntityFieldValidatorException If the value is not valid.
-     */
-    void validate(String field, Serializable validatorData, String value) throws EndEntityFieldValidatorException;
-    
+
+  /**
+   * Checks if the given validator data is valid.
+   *
+   * @param field Name of field that is being checked. Can be a DN component
+   *     name or another field name.
+   * @param validatorData Validator-specific data (e.g. a regex for the
+   *     RegexFieldValidator)
+   * @throws EndEntityFieldValidatorException if the validator data is not
+   *     valid.
+   */
+  void checkValidatorData(String field, Serializable validatorData)
+      throws EndEntityFieldValidatorException;
+
+  /**
+   * @param field A field name string from EndEntityProfile or DnComponents.
+   * @return true if the validator is applicable to the given field.
+   */
+  boolean isApplicableTo(String field);
+
+  /**
+   * Validates a value of a field.
+   *
+   * @param validatorData Validator-specific data (e.g. a regex for the
+   *     RegexFieldValidator)
+   * @param field Name of field that is being checked. Can be a DN component
+   *     name or another field name.
+   * @param value Value of field that is being checked.
+   * @throws EndEntityFieldValidatorException If the value is not valid.
+   */
+  void validate(String field, Serializable validatorData, String value)
+      throws EndEntityFieldValidatorException;
 }

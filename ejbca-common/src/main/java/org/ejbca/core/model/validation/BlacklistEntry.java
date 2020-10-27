@@ -16,113 +16,135 @@ package org.ejbca.core.model.validation;
 import java.io.Serializable;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
 import org.apache.commons.lang.StringUtils;
 
 /**
  * Domain class representing a blacklist entry.
- *  
  *
- * @version $Id: PublicKeyBlacklistEntry.java 26283 2017-08-12 16:00:56Z anatom $
+ * @version $Id: PublicKeyBlacklistEntry.java 26283 2017-08-12 16:00:56Z anatom
+ *     $
  */
 public class BlacklistEntry implements Serializable, Cloneable {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    // Values used for lookup that are not stored in the data hash map.
-    private int id;
-    private String type;
-    private String value;
-    private String data;
+  // Values used for lookup that are not stored in the data hash map.
+  /** PAram. */
+  private int id;
+  /** PAram. */
+  private final String type;
+  /** PAram. */
+  private String value;
+  /** PAram. */
+  private String data;
 
-    /**
-     * Creates a new instance, must specify at least type.
-     * @param type Type
-     */
-    public BlacklistEntry(String type) {
-        this.type = type;
+  /**
+   * Creates a new instance, must specify at least type.
+   *
+   * @param atype Type
+   */
+  public BlacklistEntry(final String atype) {
+    this.type = atype;
+  }
+
+  /**
+   * Creates a new instance.
+   *
+   * @param anid ID
+   * @param atype Type
+   * @param avalue Value
+   * @param thedata Data
+   */
+  public BlacklistEntry(
+      final int anid,
+      final String atype,
+      final String avalue,
+      final String thedata) {
+    this.id = anid;
+    this.type = atype;
+    this.value = avalue;
+    this.data = thedata;
+  }
+
+  /**
+   * Gets the blacklist id.
+   *
+   * @return ID
+   */
+  public int getID() {
+    return id;
+  }
+
+  /**
+   * Sets the blacklist id.
+   *
+   * @param anid ID
+   */
+  public void setID(final int anid) {
+    this.id = anid;
+  }
+
+  /**
+   * Gets the blacklist specific type.
+   *
+   * @return type String, specified by specific blacklist type
+   */
+  public String getType() {
+    return type;
+  }
+
+  /**
+   * Gets the blacklist specific data.
+   *
+   * @return a blacklist specified string
+   */
+  public String getData() {
+    return data;
+  }
+
+  /**
+   * Sets the blacklist specific data.
+   *
+   * @param thedata a blacklist specified string.
+   */
+  public void setData(final String thedata) {
+    this.data = thedata;
+  }
+
+  /**
+   * Gets the blacklisted value.
+   *
+   * @return value
+   */
+  public String getValue() {
+    return value;
+  }
+
+  /**
+   * Sets the blacklisted value.
+   *
+   * @param avalue value
+   */
+  public void setValue(final String avalue) {
+    this.value = avalue;
+  }
+
+  /**
+   * @param newEntry entry
+   * @return map
+   */
+  public Map<Object, Object> diff(final BlacklistEntry newEntry) {
+    final Map<Object, Object> result = new LinkedHashMap<>();
+    if (!StringUtils.equals(this.getValue(), newEntry.getValue())) {
+      result.put(
+          "changed:value",
+          newEntry.getValue() == null ? "null" : newEntry.getValue());
     }
-
-    /**
-     * Creates a new instance.
-     * @param id ID
-     * @param type Type
-     * @param value Value
-     * @param data Data
-     */
-    public BlacklistEntry(int id, String type, String value, String data) {
-        this.id = id;
-        this.type = type;
-        this.value = value;
-        this.data = data;
+    if (!StringUtils.equals(this.getData(), newEntry.getData())) {
+      result.put(
+          "changed:data",
+          newEntry.getData() == null ? "null" : newEntry.getData());
     }
-
-    /**
-     * Gets the blacklist id.
-     * @return ID
-     */
-    public int getID() {
-        return id;
-    }
-
-    /**
-     * Sets the blacklist id.
-     * @param id ID
-     */
-    public void setID(int id) {
-        this.id = id;
-    }   
-
-    /**
-     * Gets the blacklist specific type
-     * @return type String, specified by specific blacklist type
-     */
-    public String getType() {
-        return type;
-    }
-
-    /**
-     * Gets the blacklist specific data.
-     * @return a blacklist specified string
-     */
-    public String getData() {
-        return data;
-    }
-
-    /**
-     * Sets the blacklist specific data.
-     * @param data a blacklist specified string.
-     */
-    public void setData(String data) {
-        this.data = data;
-    }
-    
-    /**
-     * Gets the blacklisted value.
-     * @return value
-     */
-    public String getValue() {
-        return value;
-    }
-
-    /**
-     * Sets the blacklisted value
-     * @param value value
-     */
-    public void setValue(String value) {
-        this.value = value;
-    }
-
-
-    public Map<Object, Object> diff(BlacklistEntry newEntry) {
-        final Map<Object, Object> result = new LinkedHashMap<>();
-        if (!StringUtils.equals(this.getValue(), newEntry.getValue())) {
-            result.put("changed:value", newEntry.getValue() == null ? "null" : newEntry.getValue());
-        }
-        if (!StringUtils.equals(this.getData(), newEntry.getData())) {
-            result.put("changed:data", newEntry.getData() == null ? "null" : newEntry.getData());
-        }
-        return result;
-    }
-
+    return result;
+  }
 }

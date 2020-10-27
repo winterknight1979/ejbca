@@ -26,234 +26,380 @@ import org.ejbca.core.model.ca.publisher.PublisherException;
  */
 public class MockedCustomerLdapPublisher1 extends CustomerLdapPublisher1 {
 
-    private boolean doStoreCertificateCalled;
-    private DoStoreCertificateParameters doStoreCertificateParameters;
-    private PublisherException doStoreCertificateException;
-    
-    private boolean doStoreCRLCalled;
-    private boolean doTestConnectionCalled;
-    
-    private StoreLogParameters storeLogParameters;
-    private boolean storeLogCalled;
-    private PublisherException storeLogException;
-    private DoStoreCRLParameters doStoreCRLParameters;
-    private PublisherException doStoreCRLException;
-    private PublisherConnectionException doTestConnectionException;
-    
-    private SearchOldEntityParameters searchOldEntityParameters;
-    private PublisherException searchOldEntityException;
-    private LDAPEntry searchOldEntityReturn;
-    
-    
-    // doStoreCertificate
-    @Override
-    protected boolean doStoreCertificate(Certificate incert, String username, String password, String userDN, ExtendedInformation extendedinformation) throws PublisherException {
-        doStoreCertificateCalled = true;
-        doStoreCertificateParameters = new DoStoreCertificateParameters(incert, username, password, userDN, extendedinformation);
-        
-        if (doStoreCertificateException != null) {
-            throw doStoreCertificateException;
-        }
-        
-        return true;
+      /** Param. */
+  private boolean doStoreCertificateCalled;
+  /** Param. */
+  private DoStoreCertificateParameters doStoreCertificateParameters;
+  /** Param. */
+  private PublisherException doStoreCertificateException;
+
+  /** Param. */
+  private boolean doStoreCRLCalled;
+  /** Param. */
+  private boolean doTestConnectionCalled;
+
+  /** Param. */
+  private StoreLogParameters storeLogParameters;
+  /** Param. */
+  private boolean storeLogCalled;
+  /** Param. */
+  private PublisherException storeLogException;
+  /** Param. */
+  private DoStoreCRLParameters doStoreCRLParameters;
+  /** Param. */
+  private PublisherException doStoreCRLException;
+  /** Param. */
+  private PublisherConnectionException doTestConnectionException;
+
+  /** Param. */
+  private SearchOldEntityParameters searchOldEntityParameters;
+  /** Param. */
+  private PublisherException searchOldEntityException;
+  /** Param. */
+  private LDAPEntry searchOldEntityReturn;
+
+  // doStoreCertificate
+  @Override
+  protected boolean doStoreCertificate(
+      final Certificate incert,
+      final String username,
+      final String password,
+      final String userDN,
+      final ExtendedInformation extendedinformation)
+      throws PublisherException {
+    doStoreCertificateCalled = true;
+    doStoreCertificateParameters =
+        new DoStoreCertificateParameters(
+            incert, username, password, userDN, extendedinformation);
+
+    if (doStoreCertificateException != null) {
+      throw doStoreCertificateException;
     }
 
-    public void setDoStoreCertificateException(PublisherException doStoreCertificateException) {
-        this.doStoreCertificateException = doStoreCertificateException;
+    return true;
+  }
+
+  /**
+   * @param adoStoreCertificateException except
+   */
+  public void setDoStoreCertificateException(
+      final PublisherException adoStoreCertificateException) {
+    this.doStoreCertificateException = adoStoreCertificateException;
+  }
+
+  /**
+   * @return params
+   */
+  public DoStoreCertificateParameters getDoStoreCertificateParameters() {
+    return doStoreCertificateParameters;
+  }
+
+  /**
+   * @return bool
+   */
+  public boolean isDoStoreCertificateCalled() {
+    return doStoreCertificateCalled;
+  }
+
+  // storeLog
+  @Override
+  protected void storeLog(
+      final String level,
+      final boolean success,
+      final String message,
+      final Exception exception)
+      throws PublisherException {
+    storeLogParameters =
+        new StoreLogParameters(level, success, message, exception);
+    storeLogCalled = true;
+
+    if (storeLogException != null) {
+      throw storeLogException;
+    }
+  }
+
+  /**
+   * @return params
+   */
+  public StoreLogParameters getStoreLogParameters() {
+    return storeLogParameters;
+  }
+
+  /**
+   * @return bool
+   */
+  public boolean isStoreLogCalled() {
+    return storeLogCalled;
+  }
+
+  /**
+   * @param publisherException except
+   */
+  public void setStoreLogException(
+      final PublisherException publisherException) {
+    this.storeLogException = publisherException;
+  }
+
+  // doStoreCRL
+  @Override
+  protected void doStoreCRL(final byte[] incrl) throws PublisherException {
+    doStoreCRLCalled = true;
+    this.doStoreCRLParameters = new DoStoreCRLParameters(incrl);
+    if (doStoreCRLException != null) {
+      throw doStoreCRLException;
+    }
+  }
+
+  /**
+   * @return bool
+   */
+  public boolean isDoStoreCRLCalled() {
+    return doStoreCRLCalled;
+  }
+
+  /**
+   * @return params
+   */
+  public DoStoreCRLParameters getDoStoreCRLParameters() {
+    return doStoreCRLParameters;
+  }
+
+  /**
+   * @param publisherException except
+   */
+  public void setDoStoreCRLException(
+      final PublisherException publisherException) {
+    this.doStoreCRLException = publisherException;
+  }
+
+  // doTestConnection
+  @Override
+  protected void doTestConnection() throws PublisherConnectionException {
+    this.doTestConnectionCalled = true;
+    if (doTestConnectionException != null) {
+      throw doTestConnectionException;
+    }
+  }
+
+  /**
+   * @param adoTestConnectionException except
+   */
+  public void setDoTestConnectionException(
+      final PublisherConnectionException adoTestConnectionException) {
+    this.doTestConnectionException = adoTestConnectionException;
+  }
+
+  /**
+   * @return bool
+   */
+  public boolean isDoTestConnectionCalled() {
+    return doTestConnectionCalled;
+  }
+
+  // searchOldEntity
+  @Override
+  protected LDAPEntry searchOldEntity(
+      final LDAPConnection lc, final String ldapDN) throws PublisherException {
+    this.searchOldEntityParameters = new SearchOldEntityParameters(lc, ldapDN);
+    if (searchOldEntityException != null) {
+      throw searchOldEntityException;
+    }
+    return searchOldEntityReturn;
+  }
+
+  /**
+   * @return params
+   */
+  public SearchOldEntityParameters getSearchOldEntityParameters() {
+    return searchOldEntityParameters;
+  }
+
+  /**
+   * @param asearchOldEntityException except
+   */
+  public void setSearchOldEntityException(
+      final PublisherException asearchOldEntityException) {
+    this.searchOldEntityException = asearchOldEntityException;
+  }
+
+  /**
+   * @param asearchOldEntityReturn ldap
+   */
+  public void setSearchOldEntityReturn(final LDAPEntry asearchOldEntityReturn) {
+    this.searchOldEntityReturn = asearchOldEntityReturn;
+  }
+
+  public static class StoreLogParameters {
+        /** Param. */
+    private final String level;
+    /** Param. */
+    private final boolean success;
+    /** Param. */
+    private final String message;
+    /** Param. */
+    private final Exception exception;
+
+    /**
+     * @param alevel level
+     * @param issuccess bool
+     * @param amessage message
+     * @param anexception exception
+     */
+    public StoreLogParameters(
+        final String alevel,
+        final boolean issuccess,
+        final String amessage,
+        final Exception anexception) {
+      this.level = alevel;
+      this.success = issuccess;
+      this.message = amessage;
+      this.exception = anexception;
     }
 
-    public DoStoreCertificateParameters getDoStoreCertificateParameters() {
-        return doStoreCertificateParameters;
+    /**
+     * @return level
+     */
+    public String getLevel() {
+      return level;
     }
 
-    public boolean isDoStoreCertificateCalled() {
-        return doStoreCertificateCalled;
+    /**
+     * @return bool
+     */
+    public boolean isSuccess() {
+      return success;
     }
 
-    
-    // storeLog
-    @Override
-    protected void storeLog(String level, boolean success, String message, Exception exception) throws PublisherException {
-        storeLogParameters = new StoreLogParameters(level, success, message, exception);
-        storeLogCalled = true;
-        
-        if (storeLogException != null) {
-            throw storeLogException;
-        }
+    /**
+     * @return message
+     */
+    public String getMessage() {
+      return message;
     }
 
-    public StoreLogParameters getStoreLogParameters() {
-        return storeLogParameters;
+    /**
+     * @return exception
+     */
+    public Exception getException() {
+      return exception;
+    }
+  }
+
+  public static class DoStoreCertificateParameters {
+        /** Param. */
+    private final Certificate incert;
+    /** Param. */
+    private final String username;
+    /** Param. */
+    private final String password;
+    /** Param. */
+    private final String userDN;
+    /** Param. */
+    private final ExtendedInformation extendedinformation;
+
+    /**
+     * @param anincert cert
+     * @param ausername user
+     * @param apassword pwd
+     * @param auserDN dn
+     * @param theextendedinformation info
+     */
+    public DoStoreCertificateParameters(
+        final Certificate anincert,
+        final String ausername,
+        final String apassword,
+        final String auserDN,
+        final ExtendedInformation theextendedinformation) {
+      this.incert = anincert;
+      this.username = ausername;
+      this.password = apassword;
+      this.userDN = auserDN;
+      this.extendedinformation = theextendedinformation;
     }
 
-    public boolean isStoreLogCalled() {
-        return storeLogCalled;
+    /**
+     * @return Cert
+     */
+    public Certificate getIncert() {
+      return incert;
     }
 
-    public void setStoreLogException(PublisherException publisherException) {
-        this.storeLogException = publisherException;
-    }
-    
-    
-    // doStoreCRL
-    @Override
-    protected void doStoreCRL(byte[] incrl) throws PublisherException {
-        doStoreCRLCalled = true;
-        this.doStoreCRLParameters = new DoStoreCRLParameters(incrl);
-        if (doStoreCRLException != null) {
-            throw doStoreCRLException;
-        }
+    /**
+     * @return User
+     */
+    public String getUsername() {
+      return username;
     }
 
-    public boolean isDoStoreCRLCalled() {
-        return doStoreCRLCalled;
+    /**
+     * @return PWD
+     */
+    public String getPassword() {
+      return password;
     }
 
-    public DoStoreCRLParameters getDoStoreCRLParameters() {
-        return doStoreCRLParameters;
+    /**
+     * @return DN
+     */
+    public String getUserDN() {
+      return userDN;
     }
 
-    public void setDoStoreCRLException(PublisherException publisherException) {
-        this.doStoreCRLException = publisherException;
+    /**
+     * @return Info
+     */
+    public ExtendedInformation getExtendedinformation() {
+      return extendedinformation;
     }
-    
-    
-    // doTestConnection
-    @Override
-    protected void doTestConnection() throws PublisherConnectionException {
-        this.doTestConnectionCalled = true;
-        if (doTestConnectionException != null) {
-            throw doTestConnectionException;
-        }
-    }
+  }
 
-    public void setDoTestConnectionException(PublisherConnectionException doTestConnectionException) {
-        this.doTestConnectionException = doTestConnectionException;
-    }
+  public static class DoStoreCRLParameters {
+    /** Param. */
+    private final byte[] incrl;
 
-    public boolean isDoTestConnectionCalled() {
-        return doTestConnectionCalled;
+    /**
+     * @param asincrl CRL
+     */
+    public DoStoreCRLParameters(final byte[] asincrl) {
+      this.incrl = asincrl;
     }
 
-    
-    // searchOldEntity
-    @Override
-    protected LDAPEntry searchOldEntity(LDAPConnection lc, String ldapDN) throws PublisherException {
-        this.searchOldEntityParameters = new SearchOldEntityParameters(lc, ldapDN);
-        if (searchOldEntityException != null) {
-            throw searchOldEntityException;
-        }
-        return searchOldEntityReturn;
+    /**
+     * @return CRL
+     */
+    public byte[] getIncrl() {
+      return incrl;
+    }
+  }
+
+  public static class SearchOldEntityParameters {
+        /** Param. */
+    private final LDAPConnection lc;
+    /** Param. */
+    private final String ldapDN;
+
+    /**
+     * @param anlc LC
+     * @param anldapDN DN
+     */
+    public SearchOldEntityParameters(
+        final LDAPConnection anlc, final String anldapDN) {
+      this.lc = anlc;
+      this.ldapDN = anldapDN;
     }
 
-    public SearchOldEntityParameters getSearchOldEntityParameters() {
-        return searchOldEntityParameters;
+    /**
+     * @return LC
+     */
+    public LDAPConnection getLc() {
+      return lc;
     }
 
-    public void setSearchOldEntityException(PublisherException searchOldEntityException) {
-        this.searchOldEntityException = searchOldEntityException;
+    /**
+     * @return DN
+     */
+    public String getLdapDN() {
+      return ldapDN;
     }
-
-    public void setSearchOldEntityReturn(LDAPEntry searchOldEntityReturn) {
-        this.searchOldEntityReturn = searchOldEntityReturn;
-    }
-
-    public static class StoreLogParameters {
-        private final String level;
-        private final boolean success;
-        private final String message;
-        private final Exception exception;
-
-        public StoreLogParameters(String level, boolean success, String message, Exception exception) {
-            this.level = level;
-            this.success = success;
-            this.message = message;
-            this.exception = exception;
-        }
-
-        public String getLevel() {
-            return level;
-        }
-
-        public boolean isSuccess() {
-            return success;
-        }
-
-        public String getMessage() {
-            return message;
-        }
-
-        public Exception getException() {
-            return exception;
-        }
-        
-    }
-
-    public static class DoStoreCertificateParameters {
-        private final Certificate incert;
-        private final String username;
-        private final String password;
-        private final String userDN; 
-        private final ExtendedInformation extendedinformation;
-
-        public DoStoreCertificateParameters(Certificate incert, String username, String password, String userDN, ExtendedInformation extendedinformation) {
-            this.incert = incert;
-            this.username = username;
-            this.password = password;
-            this.userDN = userDN;
-            this.extendedinformation = extendedinformation;
-        }
-
-        public Certificate getIncert() {
-            return incert;
-        }
-
-        public String getUsername() {
-            return username;
-        }
-
-        public String getPassword() {
-            return password;
-        }
-
-        public String getUserDN() {
-            return userDN;
-        }
-
-        public ExtendedInformation getExtendedinformation() {
-            return extendedinformation;
-        }
-    }
-    
-    public static class DoStoreCRLParameters {
-        private final byte[] incrl;
-
-        public DoStoreCRLParameters(byte[] incrl) {
-            this.incrl = incrl;
-        }
-
-        public byte[] getIncrl() {
-            return incrl;
-        }
-    }
-
-    public static class SearchOldEntityParameters {
-        private final LDAPConnection lc;
-        private final String ldapDN;
-
-        public SearchOldEntityParameters(LDAPConnection lc, String ldapDN) {
-            this.lc = lc;
-            this.ldapDN = ldapDN;
-        }
-
-        public LDAPConnection getLc() {
-            return lc;
-        }
-
-        public String getLdapDN() {
-            return ldapDN;
-        }
-        
-    }
-    
+  }
 }
