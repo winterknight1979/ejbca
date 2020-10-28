@@ -17,14 +17,12 @@ import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
 import javax.persistence.Entity;
 import javax.persistence.PostLoad;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 import javax.persistence.Transient;
-
 import org.apache.log4j.Logger;
 import org.cesecore.dbprotection.ProtectedData;
 import org.cesecore.dbprotection.ProtectionStringBuilder;
@@ -33,147 +31,216 @@ import org.cesecore.util.Base64PutHashMap;
 import org.cesecore.util.SecureXMLDecoder;
 
 /**
- * @version $Id: AcmeAuthorizationData.java 25797 2018-08-10 15:52:00Z jekaterina $
+ * @version $Id: AcmeAuthorizationData.java 25797 2018-08-10 15:52:00Z
+ *     jekaterina $
  */
 @Entity
 @Table(name = "AcmeAuthorizationData")
-public class AcmeAuthorizationData extends ProtectedData implements Serializable {
+public class AcmeAuthorizationData extends ProtectedData
+    implements Serializable {
 
-    private static final long serialVersionUID = 1L;
-    private static final Logger log = Logger.getLogger(AcmeAuthorizationData.class);
-    
-    private String authorizationId;
-    private String orderId;
-    private String accountId;
-    private String rawData;
-    private int rowVersion = 0;
-    private String rowProtection;
+  private static final long serialVersionUID = 1L;
+  /** Logger. */
+  private static final Logger LOG =
+      Logger.getLogger(AcmeAuthorizationData.class);
 
-    public AcmeAuthorizationData() {
-        
-    }
-            
-    public AcmeAuthorizationData(final String authorizationId, final String orderId, final String accountId, final LinkedHashMap<Object, Object> dataMap) {
-        setAuthorizationId(authorizationId);
-        setOrderId(orderId);
-        setAccountId(accountId);
-        setDataMap(dataMap);
-    }
+  /** Param. */
+  private String authorizationId;
+  /** Param. */
+  private String orderId;
+  /** Param. */
+  private String accountId;
+  /** Param. */
+  private String rawData;
+  /** Param. */
+  private int rowVersion = 0;
+  /** Param. */
+  private String rowProtection;
 
-    //@Column
-    public String getAuthorizationId() {
-        return authorizationId;
-    }
-    public void setAuthorizationId(String authorizationId) {
-        this.authorizationId = authorizationId;
-    }
+  /** Null constructor. */
+  public AcmeAuthorizationData() { }
 
-    //@Column
-    public String getOrderId() {
-        return orderId;
-    }
-    public void setOrderId(String orderId) {
-        this.orderId = orderId;
-    }
+  /**
+   * @param anauthorizationId Auth
+   * @param anorderId Order
+   * @param anaccountId Account
+   * @param dataMap Data
+   */
+  public AcmeAuthorizationData(
+      final String anauthorizationId,
+      final String anorderId,
+      final String anaccountId,
+      final LinkedHashMap<Object, Object> dataMap) {
+    setAuthorizationId(anauthorizationId);
+    setOrderId(anorderId);
+    setAccountId(anaccountId);
+    setDataMap(dataMap);
+  }
 
-    public String getAccountId() {
-        return accountId;
-    }
+  /**
+   * @return ID
+   */
+  // @Column
+  public String getAuthorizationId() {
+    return authorizationId;
+  }
 
-    public void setAccountId(String accountId) {
-        this.accountId = accountId;
-    }
+  /**
+   * @param anauthorizationId ID
+   */
+  public void setAuthorizationId(final String anauthorizationId) {
+    this.authorizationId = anauthorizationId;
+  }
 
-    //@Column @Lob
-    public String getRawData() {
-        return rawData;
-    }
-    public void setRawData(String rawData) {
-        this.rawData = rawData;
-    }
+  /**
+   * @return ID
+   */
+  // @Column
+  public String getOrderId() {
+    return orderId;
+  }
 
+  /**
+   * @param anorderId ID
+   */
+  public void setOrderId(final String anorderId) {
+    this.orderId = anorderId;
+  }
 
-    @Transient
-    @SuppressWarnings("unchecked")
-    public LinkedHashMap<Object, Object> getDataMap() {
-        try (final SecureXMLDecoder decoder = new SecureXMLDecoder(new ByteArrayInputStream(getRawData().getBytes(StandardCharsets.UTF_8)));) {
-            // Handle Base64 encoded string values
-            return new Base64GetHashMap((Map<?, ?>) decoder.readObject());
-        } catch (IOException e) {
-            final String msg = "Failed to parse AcmeAuthorizationData data map in database: " + e.getMessage();
-            if (log.isDebugEnabled()) {
-                log.debug(msg + ". Data:\n" + getRawData());
-            }
-            throw new IllegalStateException(msg, e);
-        }
+  /**
+   * @return ID
+   */
+  public String getAccountId() {
+    return accountId;
+  }
+
+  /**
+   * @param anaccountId ID
+   */
+  public void setAccountId(final String anaccountId) {
+    this.accountId = anaccountId;
+  }
+
+  /**
+   * @return data
+   */
+  // @Column @Lob
+  public String getRawData() {
+    return rawData;
+  }
+
+  /**
+   * @param therawData data
+   */
+  public void setRawData(final String therawData) {
+    this.rawData = therawData;
+  }
+
+  /**
+   * @return map
+   */
+  @Transient
+  @SuppressWarnings("unchecked")
+  public LinkedHashMap<Object, Object> getDataMap() {
+    try (SecureXMLDecoder decoder =
+        new SecureXMLDecoder(
+            new ByteArrayInputStream(
+                getRawData().getBytes(StandardCharsets.UTF_8))); ) {
+      // Handle Base64 encoded string values
+      return new Base64GetHashMap((Map<?, ?>) decoder.readObject());
+    } catch (IOException e) {
+      final String msg =
+          "Failed to parse AcmeAuthorizationData data map in database: "
+              + e.getMessage();
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(msg + ". Data:\n" + getRawData());
+      }
+      throw new IllegalStateException(msg, e);
     }
+  }
 
-    @Transient
-    public void setDataMap(final LinkedHashMap<Object, Object> dataMap) {
-        // We must base64 encode string for UTF safety
-        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try (final XMLEncoder encoder = new XMLEncoder(baos);) {
-            encoder.writeObject(new Base64PutHashMap(dataMap));
-        }
-        setRawData(new String(baos.toByteArray(), StandardCharsets.UTF_8));
+  /**
+   * @param dataMap map
+   */
+  @Transient
+  public void setDataMap(final LinkedHashMap<Object, Object> dataMap) {
+    // We must base64 encode string for UTF safety
+    final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    try (XMLEncoder encoder = new XMLEncoder(baos); ) {
+      encoder.writeObject(new Base64PutHashMap(dataMap));
     }
+    setRawData(new String(baos.toByteArray(), StandardCharsets.UTF_8));
+  }
 
-    //@Version @Column
-    public int getRowVersion() {
-        return rowVersion;
-    }
-    public void setRowVersion(int rowVersion) {
-        this.rowVersion = rowVersion;
-    }
+  /**
+   * @return version
+   */
+  // @Version @Column
+  public int getRowVersion() {
+    return rowVersion;
+  }
 
-    //@Column @Lob
-    @Override
-    public String getRowProtection() {
-        return rowProtection;
-    }
-    @Override
-    public void setRowProtection(String rowProtection) {
-        this.rowProtection = rowProtection;
-    }
+  /**
+   * @param arowVersion version
+   */
+  public void setRowVersion(final int arowVersion) {
+    this.rowVersion = arowVersion;
+  }
 
+  // @Column @Lob
+  @Override
+  public String getRowProtection() {
+    return rowProtection;
+  }
 
-    //
-    // Start Database integrity protection methods
-    //
+  @Override
+  public void setRowProtection(final String arowProtection) {
+    this.rowProtection = arowProtection;
+  }
 
-    @Transient
-    @Override
-    protected String getProtectString(final int version) {
-        // rowVersion is automatically updated by JPA, so it's not important, it is only used for optimistic locking so we will not include that in the database protection
-        return new ProtectionStringBuilder().append(getAuthorizationId()).append(getOrderId()).append(getRawData()).toString();
-    }
+  //
+  // Start Database integrity protection methods
+  //
 
-    @Transient
-    @Override
-    protected int getProtectVersion() {
-        return 1;
-    }
+  @Transient
+  @Override
+  protected String getProtectString(final int version) {
+    // rowVersion is automatically updated by JPA, so it's not important, it is
+    // only used for optimistic locking so we will not include that in the
+    // database protection
+    return new ProtectionStringBuilder()
+        .append(getAuthorizationId())
+        .append(getOrderId())
+        .append(getRawData())
+        .toString();
+  }
 
-    @PrePersist
-    @PreUpdate
-    @Override
-    protected void protectData() {
-        super.protectData();
-    }
+  @Transient
+  @Override
+  protected int getProtectVersion() {
+    return 1;
+  }
 
-    @PostLoad
-    @Override
-    protected void verifyData() {
-        super.verifyData();
-    }
+  @PrePersist
+  @PreUpdate
+  @Override
+  protected void protectData() {
+    super.protectData();
+  }
 
-    @Override
-    @Transient
-    protected String getRowId() {
-        return getAuthorizationId();
-    }
+  @PostLoad
+  @Override
+  protected void verifyData() {
+    super.verifyData();
+  }
 
-    //
-    // End Database integrity protection methods
-    //
+  @Override
+  @Transient
+  protected String getRowId() {
+    return getAuthorizationId();
+  }
+
+  //
+  // End Database integrity protection methods
+  //
 }

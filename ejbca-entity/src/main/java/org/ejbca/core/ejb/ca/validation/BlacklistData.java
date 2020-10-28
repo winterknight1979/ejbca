@@ -16,7 +16,6 @@ package org.ejbca.core.ejb.ca.validation;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
-
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.PostLoad;
@@ -25,7 +24,6 @@ import javax.persistence.PreUpdate;
 import javax.persistence.Query;
 import javax.persistence.Table;
 import javax.persistence.Transient;
-
 import org.apache.log4j.Logger;
 import org.cesecore.certificates.util.AlgorithmConstants;
 import org.cesecore.dbprotection.ProtectedData;
@@ -35,216 +33,287 @@ import org.ejbca.core.model.validation.BlacklistEntry;
 
 /**
  * Representation of a public key blacklist entry.
- * 
+ *
  * @version $Id: BlacklistData.java 26310 2017-08-15 07:11:03Z anatom $
  */
 @Entity
 @Table(name = "BlacklistData")
 public class BlacklistData extends ProtectedData implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    /** Class logger. */
-    private static final Logger log = Logger.getLogger(BlacklistData.class);
+  /** Class logger. */
+  private static final Logger LOG = Logger.getLogger(BlacklistData.class);
 
-    // data fields.
-    private int id;
-    private String type;
-    private String value;
-    private String data;
-    private int updateCounter;
-    private int rowVersion = 0;
-    private String rowProtection;
+  // data fields.
+  /** Param. */
+  private int id;
+  /** Param. */
+  private String type;
+  /** Param. */
+  private String value;
+  /** Param. */
+  private String data;
+  /** Param. */
+  private int updateCounter;
+  /** Param. */
+  private int rowVersion = 0;
+  /** Param. */
+  private String rowProtection;
 
-    /**
-     * Creates a new instance.
-     */
-    public BlacklistData() {
+  /** Creates a new instance. */
+  public BlacklistData() { }
+
+  /**
+   * Creates a new instance.
+   *
+   * @param entry the public key blacklist domain object.
+   */
+  public BlacklistData(final BlacklistEntry entry) {
+    setBlacklistEntry(entry);
+    setUpdateCounter(0);
+  }
+
+  /**
+   * Creates a new instance.
+   *
+   * @param entry the public key blacklist domain object.
+   */
+  @Transient
+  public void setBlacklistEntry(final BlacklistEntry entry) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
+          "Setting BlacklistData '"
+              + entry.getValue()
+              + "' ("
+              + entry.getID()
+              + ")");
     }
+    setId(entry.getID());
+    setType(entry.getType());
+    setValue(entry.getValue());
+    setData(entry.getData());
+    setUpdateCounter(getUpdateCounter() + 1);
+  }
 
-    /**
-     * Creates a new instance.
-     * @param entry the public key blacklist domain object.
-     */
-    public BlacklistData(BlacklistEntry entry) {
-        setBlacklistEntry(entry);
-        setUpdateCounter(0);
-    }
+  /** @return Gets a balacklist domain object. */
+  @Transient
+  public BlacklistEntry getBlacklistEntry() {
+    final BlacklistEntry ret =
+        new BlacklistEntry(getId(), getType(), getValue(), getData());
+    return ret;
+  }
 
-    /**
-     * Creates a new instance.
-     * @param entry the public key blacklist domain object.
-     */
-    @Transient
-    public void setBlacklistEntry(BlacklistEntry entry) {
-        if (log.isDebugEnabled()) {
-            log.debug("Setting BlacklistData '" + entry.getValue() + "' (" + entry.getID() + ")");
-        }
-        setId(entry.getID());
-        setType(entry.getType());
-        setValue(entry.getValue());
-        setData(entry.getData());
-        setUpdateCounter(getUpdateCounter()+1);
-    }
+  /**
+   * @return ID
+   */
+  // @Id @Column
+  public int getId() {
+    return id;
+  }
 
-    /**
-     * @return Gets a balacklist domain object.
-     */
-    @Transient
-    public BlacklistEntry getBlacklistEntry() {
-        final BlacklistEntry ret = new BlacklistEntry(getId(), getType(), getValue(), getData());
-        return ret;
-    }
+  /**
+   * @param anid ID
+   */
+  public void setId(final int anid) {
+    this.id = anid;
+  }
 
-    //@Id @Column
-    public int getId() {
-        return id;
-    }
+  /**
+   * @return type
+   */
+  // @Column
+  public String getType() {
+    return type;
+  }
 
-    public void setId(int id) {
-        this.id = id;
-    }
+  /**
+   * @param atype type
+   */
+  public void setType(final String atype) {
+    this.type = atype;
+  }
 
-    //@Column
-    public String getType() {
-        return type;
-    }
+  // @Column
+  /**
+   * See for instance {@link AlgorithmConstants#KEYALGORITHM_RSA} + length
+   * 'RSA2048' and others.
+   *
+   * @return data
+   */
+  public String getData() {
+    return data;
+  }
 
-    public void setType(String type) {
-        this.type = type;
-    }
+  /**
+   * @param thedata data
+   */
+  public void setData(final String thedata) {
+    this.data = thedata;
+  }
 
-    //@Column
-    /** See for instance {@link AlgorithmConstants#KEYALGORITHM_RSA} + length 'RSA2048' and others. 
-     * @return data*/
-    public String getData() {
-        return data;
-    }
+  /**
+   * @return val
+   */
+  // @Column
+  public String getValue() {
+    return value;
+  }
 
-    public void setData(String data) {
-        this.data = data;
-    }
+  /**
+   * @param avalue val
+   */
+  public void setValue(final String avalue) {
+    this.value = avalue;
+  }
 
-    //@Column
-    public String getValue() {
-        return value;
-    }
+  /**
+   * @return count
+   */
+  // @Column
+  public int getUpdateCounter() {
+    return updateCounter;
+  }
 
-    public void setValue(String value) {
-        this.value = value;
-    }
+  /**
+   * @param anupdateCounter count
+   */
+  public void setUpdateCounter(final int anupdateCounter) {
+    this.updateCounter = anupdateCounter;
+  }
 
-    //@Column
-    public int getUpdateCounter() {
-        return updateCounter;
-    }
+  /**
+   * @return version
+   */
+  // @Version @Column
+  public int getRowVersion() {
+    return rowVersion;
+  }
 
-    public void setUpdateCounter(int updateCounter) {
-        this.updateCounter = updateCounter;
-    }
+  /**
+   * @param arowVersion version
+   */
+  public void setRowVersion(final int arowVersion) {
+    this.rowVersion = arowVersion;
+  }
 
-    //@Version @Column
-    public int getRowVersion() {
-        return rowVersion;
-    }
+  // @Column @Lob
+  @Override
+  public String getRowProtection() {
+    return rowProtection;
+  }
 
-    public void setRowVersion(int rowVersion) {
-        this.rowVersion = rowVersion;
-    }
+  @Override
+  public void setRowProtection(final String arowProtection) {
+    this.rowProtection = arowProtection;
+  }
 
-    //@Column @Lob
-    @Override
-    public String getRowProtection() {
-        return rowProtection;
-    }
+  //
+  // Start Database integrity protection methods
+  //
 
-    @Override
-    public void setRowProtection(String rowProtection) {
-        this.rowProtection = rowProtection;
-    }
+  @Transient
+  @Override
+  public String getProtectString(final int version) {
+    final ProtectionStringBuilder build = new ProtectionStringBuilder();
+    // rowVersion is automatically updated by JPA, so it's not important, it is
+    // only used for optimistic locking
+    build
+        .append(getId())
+        .append(getType())
+        .append(getValue())
+        .append(getData())
+        .append(getUpdateCounter());
+    return build.toString();
+  }
 
-    //
-    // Start Database integrity protection methods
-    //
+  @Transient
+  @Override
+  protected int getProtectVersion() {
+    return 1;
+  }
 
-    @Transient
-    @Override
-    public String getProtectString(final int version) {
-        final ProtectionStringBuilder build = new ProtectionStringBuilder();
-        // rowVersion is automatically updated by JPA, so it's not important, it is only used for optimistic locking
-        build.append(getId()).append(getType()).append(getValue()).append(getData()).append(getUpdateCounter());
-        return build.toString();
-    }
+  @PrePersist
+  @PreUpdate
+  @Override
+  protected void protectData() {
+    super.protectData();
+  }
 
-    @Transient
-    @Override
-    protected int getProtectVersion() {
-        return 1;
-    }
+  @PostLoad
+  @Override
+  protected void verifyData() {
+    super.verifyData();
+  }
 
-    @PrePersist
-    @PreUpdate
-    @Override
-    protected void protectData() {
-        super.protectData();
-    }
+  @Override
+  @Transient
+  protected String getRowId() {
+    return String.valueOf(getId());
+  }
 
-    @PostLoad
-    @Override
-    protected void verifyData() {
-        super.verifyData();
-    }
+  //
+  // End Database integrity protection methods
+  //
 
-    @Override
-    @Transient
-    protected String getRowId() {
-        return String.valueOf(getId());
-    }
+  //
+  // Search functions.
+  //
 
-    //
-    // End Database integrity protection methods
-    //
+  /**
+   * @param entityManager EM
+   * @param id ID
+   * @return the found entity instance or null if the entity does not exist
+   */
+  public static BlacklistData findById(
+      final EntityManager entityManager, final int id) {
+    return entityManager.find(BlacklistData.class, id);
+  }
 
-    //
-    // Search functions. 
-    // 
+  /**
+   * @param entityManager EM
+   * @param type Type
+   * @param value Value
+   * @throws javax.persistence.NonUniqueResultException if more than one entity
+   *     with the name exists
+   * @return the found entity instance or null if the entity does not exist
+   */
+  public static BlacklistData findByTypeAndValue(
+      final EntityManager entityManager,
+      final String type,
+      final String value) {
+    final Query query =
+        entityManager.createQuery(
+            "SELECT a FROM BlacklistData a WHERE a.type=:type and"
+                + " a.value=:value");
+    query.setParameter("type", type);
+    query.setParameter("value", value);
+    return (BlacklistData) QueryResultWrapper.getSingleResult(query);
+  }
 
-    /** @param entityManager EM
-     * @param id ID
-     * @return the found entity instance or null if the entity does not exist */
-    public static BlacklistData findById(EntityManager entityManager, int id) {
-        return entityManager.find(BlacklistData.class, id);
-    }
+  /**
+   * @param entityManager EM
+   * @return return the query results as a List.
+   */
+  @SuppressWarnings("unchecked")
+  public static List<BlacklistData> findAll(final EntityManager entityManager) {
+    final Query query =
+        entityManager.createQuery("SELECT a FROM BlacklistData a");
+    return query.getResultList();
+  }
 
-    /**
-     * @param entityManager EM
-     * @param type Type
-     * @param value Value
-     * @throws javax.persistence.NonUniqueResultException if more than one entity with the name exists
-     * @return the found entity instance or null if the entity does not exist
-     */
-    public static BlacklistData findByTypeAndValue(EntityManager entityManager, final String type, final String value) {
-        final Query query = entityManager.createQuery("SELECT a FROM BlacklistData a WHERE a.type=:type and a.value=:value");
-        query.setParameter("type", type);
-        query.setParameter("value", value);
-        return (BlacklistData) QueryResultWrapper.getSingleResult(query);
-    }
-
-    /** @param entityManager EM
-     * @return return the query results as a List. */
-    @SuppressWarnings("unchecked")
-    public static List<BlacklistData> findAll(EntityManager entityManager) {
-        final Query query = entityManager.createQuery("SELECT a FROM BlacklistData a");
-        return query.getResultList();
-    }
-
-    /** @param entityManager EM
-     * @param ids IDs
-     * @return return the query results as a List. */
-    @SuppressWarnings("unchecked")
-    public static List<BlacklistData> findAllById(EntityManager entityManager, Collection<Integer> ids) {
-        final Query query = entityManager.createQuery("SELECT a FROM BlacklistData a WHERE a.id IN (:ids)");
-        query.setParameter("ids", ids);
-        return query.getResultList();
-    }
+  /**
+   * @param entityManager EM
+   * @param ids IDs
+   * @return return the query results as a List.
+   */
+  @SuppressWarnings("unchecked")
+  public static List<BlacklistData> findAllById(
+      final EntityManager entityManager, final Collection<Integer> ids) {
+    final Query query =
+        entityManager.createQuery(
+            "SELECT a FROM BlacklistData a WHERE a.id IN (:ids)");
+    query.setParameter("ids", ids);
+    return query.getResultList();
+  }
 }

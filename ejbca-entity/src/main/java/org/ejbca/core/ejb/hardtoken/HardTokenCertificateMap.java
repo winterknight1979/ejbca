@@ -15,7 +15,6 @@ package org.ejbca.core.ejb.hardtoken;
 
 import java.io.Serializable;
 import java.util.List;
-
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.PostLoad;
@@ -24,119 +23,177 @@ import javax.persistence.PreUpdate;
 import javax.persistence.Query;
 import javax.persistence.Table;
 import javax.persistence.Transient;
-
 import org.apache.log4j.Logger;
 import org.cesecore.dbprotection.ProtectedData;
 import org.cesecore.dbprotection.ProtectionStringBuilder;
 
 /**
  * Representation of certificates placed on a token.
- * 
- * @version $Id: HardTokenCertificateMap.java 19902 2014-09-30 14:32:24Z anatom $
+ *
+ * @version $Id: HardTokenCertificateMap.java 19902 2014-09-30 14:32:24Z anatom
+ *     $
  */
 @Entity
-@Table(name="HardTokenCertificateMap")
-public class HardTokenCertificateMap extends ProtectedData implements Serializable {
+@Table(name = "HardTokenCertificateMap")
+public class HardTokenCertificateMap extends ProtectedData
+    implements Serializable {
 
-	private static final long serialVersionUID = 1L;
-	private static final Logger log = Logger.getLogger(HardTokenCertificateMap.class);
+  private static final long serialVersionUID = 1L;
+  /** LOG. */
+  private static final Logger LOG =
+      Logger.getLogger(HardTokenCertificateMap.class);
 
-	private String certificateFingerprint;
-	private String tokenSN;
-	private int rowVersion = 0;
-	private String rowProtection;
+  /** Param. */
+  private String certificateFingerprint;
+  /** Param. */
+  private String tokenSN;
+  /** Param. */
+  private int rowVersion = 0;
+  /** Param. */
+  private String rowProtection;
 
-	/**
-	 * Entity holding data of a certificate to hard token relation.
-	 * @param certificateFingerprint FP
-	 * @param tokenSN SN
-	 */
-	public HardTokenCertificateMap(String certificateFingerprint, String tokenSN) {
-		setCertificateFingerprint(certificateFingerprint);
-		setTokenSN(tokenSN);
-		log.debug("Created HardTokenCertificateMap for token SN: "+ tokenSN );
-	}
-	
-	public HardTokenCertificateMap() { }
+  /**
+   * Entity holding data of a certificate to hard token relation.
+   *
+   * @param acertificateFingerprint FP
+   * @param atokenSN SN
+   */
+  public HardTokenCertificateMap(
+      final String acertificateFingerprint, final String atokenSN) {
+    setCertificateFingerprint(acertificateFingerprint);
+    setTokenSN(atokenSN);
+    LOG.debug("Created HardTokenCertificateMap for token SN: " + atokenSN);
+  }
 
-	//@Id @Column
-	public String getCertificateFingerprint() { return certificateFingerprint; }
-	public void setCertificateFingerprint(String certificateFingerprint) { this.certificateFingerprint = certificateFingerprint; }
+  /** Empty. */
+  public HardTokenCertificateMap() { }
 
-	//@Column
-	public String getTokenSN() { return tokenSN; }
-	public void setTokenSN(String tokenSN) { this.tokenSN = tokenSN; }
+  /**
+   * @return fp
+   */
+  // @Id @Column
+  public String getCertificateFingerprint() {
+    return certificateFingerprint;
+  }
 
-	//@Version @Column
-	public int getRowVersion() { return rowVersion; }
-	public void setRowVersion(int rowVersion) { this.rowVersion = rowVersion; }
+  /**
+   * @param acertificateFingerprint FP
+   */
+  public void setCertificateFingerprint(final String acertificateFingerprint) {
+    this.certificateFingerprint = acertificateFingerprint;
+  }
 
-	//@Column @Lob
-	@Override
-	public String getRowProtection() { return rowProtection; }
-	@Override
-	public void setRowProtection(String rowProtection) { this.rowProtection = rowProtection; }
+  /**
+   * @return SN
+   */
+  // @Column
+  public String getTokenSN() {
+    return tokenSN;
+  }
 
-    //
-    // Start Database integrity protection methods
-    //
+  /**
+   * @param atokenSN SN
+   */
+  public void setTokenSN(final String atokenSN) {
+    this.tokenSN = atokenSN;
+  }
 
-    @Transient
-    @Override
-    protected String getProtectString(final int version) {
-        final ProtectionStringBuilder build = new ProtectionStringBuilder();
-        // rowVersion is automatically updated by JPA, so it's not important, it is only used for optimistic locking
-        build.append(getCertificateFingerprint()).append(getTokenSN());
-        return build.toString();
-    }
+  /**
+   * @return version
+   */
+  // @Version @Column
+  public int getRowVersion() {
+    return rowVersion;
+  }
 
-    @Transient
-    @Override
-    protected int getProtectVersion() {
-        return 1;
-    }
+  /**
+   * @param arowVersion version
+   */
+  public void setRowVersion(final int arowVersion) {
+    this.rowVersion = arowVersion;
+  }
 
-    @PrePersist
-    @PreUpdate
-    @Override
-    protected void protectData() {
-        super.protectData();
-    }
+  // @Column @Lob
+  @Override
+  public String getRowProtection() {
+    return rowProtection;
+  }
 
-    @PostLoad
-    @Override
-    protected void verifyData() {
-        super.verifyData();
-    }
+  @Override
+  public void setRowProtection(final String arowProtection) {
+    this.rowProtection = arowProtection;
+  }
 
-    @Override
-    @Transient
-    protected String getRowId() {
-        return getCertificateFingerprint();
-    }
+  //
+  // Start Database integrity protection methods
+  //
 
-    //
-    // End Database integrity protection methods
-    //
+  @Transient
+  @Override
+  protected String getProtectString(final int version) {
+    final ProtectionStringBuilder build = new ProtectionStringBuilder();
+    // rowVersion is automatically updated by JPA, so it's not important, it is
+    // only used for optimistic locking
+    build.append(getCertificateFingerprint()).append(getTokenSN());
+    return build.toString();
+  }
 
-	//
-	// Search functions. 
-	//
+  @Transient
+  @Override
+  protected int getProtectVersion() {
+    return 1;
+  }
 
-	/** @param entityManager EM
-	 * @param certificateFingerprint FP 
-	 * @return the found entity instance or null if the entity does not exist */
-	public static HardTokenCertificateMap findByCertificateFingerprint(EntityManager entityManager, String certificateFingerprint) {
-		return entityManager.find(HardTokenCertificateMap.class, certificateFingerprint);
-	}
+  @PrePersist
+  @PreUpdate
+  @Override
+  protected void protectData() {
+    super.protectData();
+  }
 
-	/** @param entityManager EM
-	 * @param tokenSN SN
-	 * @return return the query results as a List. */
-	@SuppressWarnings("unchecked")
-    public static List<HardTokenCertificateMap> findByTokenSN(EntityManager entityManager, String tokenSN) {
-		Query query = entityManager.createQuery("SELECT a FROM HardTokenCertificateMap a WHERE a.tokenSN=:tokenSN");
-		query.setParameter("tokenSN", tokenSN);
-		return query.getResultList();
-	}
+  @PostLoad
+  @Override
+  protected void verifyData() {
+    super.verifyData();
+  }
+
+  @Override
+  @Transient
+  protected String getRowId() {
+    return getCertificateFingerprint();
+  }
+
+  //
+  // End Database integrity protection methods
+  //
+
+  //
+  // Search functions.
+  //
+
+  /**
+   * @param entityManager EM
+   * @param certificateFingerprint FP
+   * @return the found entity instance or null if the entity does not exist
+   */
+  public static HardTokenCertificateMap findByCertificateFingerprint(
+      final EntityManager entityManager, final String certificateFingerprint) {
+    return entityManager.find(
+        HardTokenCertificateMap.class, certificateFingerprint);
+  }
+
+  /**
+   * @param entityManager EM
+   * @param tokenSN SN
+   * @return return the query results as a List.
+   */
+  @SuppressWarnings("unchecked")
+  public static List<HardTokenCertificateMap> findByTokenSN(
+      final EntityManager entityManager, final String tokenSN) {
+    Query query =
+        entityManager.createQuery(
+            "SELECT a FROM HardTokenCertificateMap a WHERE a.tokenSN=:tokenSN");
+    query.setParameter("tokenSN", tokenSN);
+    return query.getResultList();
+  }
 }

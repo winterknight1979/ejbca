@@ -17,7 +17,6 @@ import java.io.Serializable;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.PostLoad;
@@ -25,7 +24,6 @@ import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 import javax.persistence.Transient;
-
 import org.apache.log4j.Logger;
 import org.cesecore.dbprotection.ProtectedData;
 import org.cesecore.dbprotection.ProtectionStringBuilder;
@@ -33,142 +31,202 @@ import org.ejbca.core.model.ra.raadmin.AdminPreference;
 
 /**
  * Representation of admin's preferences.
- * 
+ *
  * @version $Id: AdminPreferencesData.java 34415 2020-01-30 12:29:30Z aminkh $
  */
 @Entity
-@Table(name="AdminPreferencesData")
-public class AdminPreferencesData extends ProtectedData implements Serializable {
+@Table(name = "AdminPreferencesData")
+public class AdminPreferencesData extends ProtectedData
+    implements Serializable {
 
-	private static final long serialVersionUID = 1L;
-	private static final Logger log = Logger.getLogger(AdminPreferencesData.class);
+  private static final long serialVersionUID = 1L;
+  /** Logger. */
+  private static final Logger LOG =
+      Logger.getLogger(AdminPreferencesData.class);
 
-	private String id;
-	private Serializable data;
-	private int rowVersion = 0;
-	private String rowProtection;
+  /** Param. */
+  private String id;
+  /** Param. */
+  private Serializable data;
+  /** Param. */
+  private int rowVersion = 0;
+  /** Param. */
+  private String rowProtection;
 
-	/**
-	 * Entity holding data of admin preferences.
-	 *
-	 * @param id the serialnumber.
-	 * @param adminpreference is the AdminPreference.
-	 */
-	public AdminPreferencesData(String id, AdminPreference adminpreference) {
-		setId(id);
-		setAdminPreference(adminpreference);
-		log.debug("Created admin preference " + id);
-	}
-	
-	public AdminPreferencesData() { }
+  /**
+   * Entity holding data of admin preferences.
+   *
+   * @param anid the serialnumber.
+   * @param adminpreference is the AdminPreference.
+   */
+  public AdminPreferencesData(
+      final String anid, final AdminPreference adminpreference) {
+    setId(anid);
+    setAdminPreference(adminpreference);
+    LOG.debug("Created admin preference " + anid);
+  }
 
-	//@Id @Column
-	public String getId() { return id; }
-	public void setId(String id) { this.id = id; }
+  /** Empty. */
+  public AdminPreferencesData() { }
 
-	//@Column @Lob
-	public Serializable getDataUnsafe() { return data; }
-	/** DO NOT USE! Stick with setData(HashMap data) instead. 
-	 * @param data Data*/
-	public void setDataUnsafe(Serializable data) { this.data = data; }
+  /**
+   * @return ID
+   */
+  // @Id @Column
+  public String getId() {
+    return id;
+  }
 
-	//@Version @Column
-	public int getRowVersion() { return rowVersion; }
-	public void setRowVersion(int rowVersion) { this.rowVersion = rowVersion; }
+  /**
+   * @param anid ID
+   */
+  public void setId(final String anid) {
+    this.id = anid;
+  }
 
-	//@Column @Lob
-	@Override
-	public String getRowProtection() { return rowProtection; }
-	@Override
-	public void setRowProtection(String rowProtection) { this.rowProtection = rowProtection; }
+  /**
+   * @return data
+   */
+  // @Column @Lob
+  public Serializable getDataUnsafe() {
+    return data;
+  }
+  /**
+   * DO NOT USE! Stick with setData(HashMap data) instead.
+   *
+   * @param adata Data
+   */
+  public void setDataUnsafe(final Serializable adata) {
+    this.data = adata;
+  }
 
-	@Transient
-	private LinkedHashMap<?, ?> getData() {
-        final Serializable map = getDataUnsafe();
-        if (map instanceof LinkedHashMap<?, ?>) {
-            return (LinkedHashMap<?, ?>) map;
-        } else {
-            return new LinkedHashMap<>((Map<?, ?>) map);
-        }
-	}
+  /**
+   * @return version
+   */
+  // @Version @Column
+  public int getRowVersion() {
+    return rowVersion;
+  }
 
-	private void setData(LinkedHashMap<?, ?> data) { setDataUnsafe(data); }
+  /**
+   * @param arowVersion version
+   */
+  public void setRowVersion(final int arowVersion) {
+    this.rowVersion = arowVersion;
+  }
 
-	/**
-	 * Method that returns the admin's preferences and updates it if necessary.
-	 * @return Preferences
-	 */
-	@Transient
-	public AdminPreference getAdminPreference() {
-		AdminPreference returnval = new AdminPreference();
-		returnval.loadData(getData());
-		return returnval;
-	}
-	/**
-	 * Method that saves the admin preference to database.
-	 * @param adminpreference Preferences
-	 */
-	public void setAdminPreference(AdminPreference adminpreference) {
-		setData((LinkedHashMap<?, ?>) adminpreference.saveData());
-	}
+  // @Column @Lob
+  @Override
+  public String getRowProtection() {
+    return rowProtection;
+  }
 
-    //
-    // Start Database integrity protection methods
-    //
+  @Override
+  public void setRowProtection(final String arowProtection) {
+    this.rowProtection = arowProtection;
+  }
 
-    @Transient
-    @Override
-    protected String getProtectString(final int version) {
-        final ProtectionStringBuilder build = new ProtectionStringBuilder();
-        // rowVersion is automatically updated by JPA, so it's not important, it is only used for optimistic locking
-        build.append(getId()).append(getData());
-        return build.toString();
+  @Transient
+  private LinkedHashMap<?, ?> getData() {
+    final Serializable map = getDataUnsafe();
+    if (map instanceof LinkedHashMap<?, ?>) {
+      return (LinkedHashMap<?, ?>) map;
+    } else {
+      return new LinkedHashMap<>((Map<?, ?>) map);
     }
+  }
 
-    @Transient
-    @Override
-    protected int getProtectVersion() {
-        return 1;
-    }
+  private void setData(final LinkedHashMap<?, ?> adata) {
+    setDataUnsafe(adata);
+  }
 
-    @PrePersist
-    @PreUpdate
-    @Override
-    protected void protectData() {
-        super.protectData();
-    }
+  /**
+   * Method that returns the admin's preferences and updates it if necessary.
+   *
+   * @return Preferences
+   */
+  @Transient
+  public AdminPreference getAdminPreference() {
+    AdminPreference returnval = new AdminPreference();
+    returnval.loadData(getData());
+    return returnval;
+  }
+  /**
+   * Method that saves the admin preference to database.
+   *
+   * @param adminpreference Preferences
+   */
+  public void setAdminPreference(final AdminPreference adminpreference) {
+    setData((LinkedHashMap<?, ?>) adminpreference.saveData());
+  }
 
-    @PostLoad
-    @Override
-    protected void verifyData() {
-        super.verifyData();
-    }
+  //
+  // Start Database integrity protection methods
+  //
 
-    @Override
-    @Transient
-    protected String getRowId() {
-        return getId();
-    }
+  @Transient
+  @Override
+  protected String getProtectString(final int version) {
+    final ProtectionStringBuilder build = new ProtectionStringBuilder();
+    // rowVersion is automatically updated by JPA, so it's not important, it is
+    // only used for optimistic locking
+    build.append(getId()).append(getData());
+    return build.toString();
+  }
 
-    //
-    // End Database integrity protection methods
-    //
+  @Transient
+  @Override
+  protected int getProtectVersion() {
+    return 1;
+  }
 
-	//
-	// Search functions. 
-	//
+  @PrePersist
+  @PreUpdate
+  @Override
+  protected void protectData() {
+    super.protectData();
+  }
 
-	/** @param entityManager EM
-	 * @param id ID
-	 * @return the found entity instance or null if the entity does not exist */
-	public static AdminPreferencesData findById(EntityManager entityManager, String id) {
-		return entityManager.find(AdminPreferencesData.class, id);
-	}
+  @PostLoad
+  @Override
+  protected void verifyData() {
+    super.verifyData();
+  }
 
-	/** @param entityManager EM
-	 * @return return the query results as a List. */
-	@SuppressWarnings("unchecked")
-    public static List<AdminPreferencesData> findAll(final EntityManager entityManager) {
-		return (List<AdminPreferencesData>) entityManager.createQuery("SELECT a FROM AdminPreferencesData a").getResultList();
-	}
+  @Override
+  @Transient
+  protected String getRowId() {
+    return getId();
+  }
+
+  //
+  // End Database integrity protection methods
+  //
+
+  //
+  // Search functions.
+  //
+
+  /**
+   * @param entityManager EM
+   * @param id ID
+   * @return the found entity instance or null if the entity does not exist
+   */
+  public static AdminPreferencesData findById(
+      final EntityManager entityManager, final String id) {
+    return entityManager.find(AdminPreferencesData.class, id);
+  }
+
+  /**
+   * @param entityManager EM
+   * @return return the query results as a List.
+   */
+  @SuppressWarnings("unchecked")
+  public static List<AdminPreferencesData> findAll(
+      final EntityManager entityManager) {
+    return (List<AdminPreferencesData>)
+        entityManager
+            .createQuery("SELECT a FROM AdminPreferencesData a")
+            .getResultList();
+  }
 }

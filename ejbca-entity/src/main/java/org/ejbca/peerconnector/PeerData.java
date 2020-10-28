@@ -13,151 +13,206 @@
 package org.ejbca.peerconnector;
 
 import java.io.Serializable;
-
 import javax.persistence.Entity;
 import javax.persistence.PostLoad;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 import javax.persistence.Transient;
-
 import org.cesecore.dbprotection.ProtectedData;
 import org.cesecore.dbprotection.ProtectionStringBuilder;
 
 /**
- * Basic entity been for peer types
- * 
- * 
- *  
-    INT4 id
-    VARCHAR(25x) name
-    INT4 connectorState (0=disabled, 1=enabled)
-    VARCHAR(25x) url
-    CLOB data:
-       initiator capabilities
-    INT4 rowVersion
-    CLOB rowProtection
- * 
- * @version $Id: PeerData.java 19902 2014-09-30 14:32:24Z anatom $
+ * Basic entity been for peer types.
  *
+ * <p>INT4 id VARCHAR(25x) name INT4 connectorState (0=disabled, 1=enabled)
+ * VARCHAR(25x) url CLOB data: initiator capabilities INT4 rowVersion CLOB
+ * rowProtection
+ *
+ * @version $Id: PeerData.java 19902 2014-09-30 14:32:24Z anatom $
  */
 @Entity
 @Table(name = "PeerData")
-public class PeerData  extends ProtectedData implements Serializable {
+public class PeerData extends ProtectedData implements Serializable {
 
-    private static final long serialVersionUID = 3304969435926944799L;
-    private int rowVersion = 0;
-    private String rowProtection;
-    
-    private int id;     
-    private String name; 
-    private int connectorState;
-    private String url;
-    private String data; 
-    
-    
-    public PeerData() {
-        super();
-    }
-    
-    public PeerData(int id, String name, String url, int connectorState, String data) {
-        super();
-        this.id = id;
-        this.name = name;
-        this.setUrl(url);
-        this.setConnectorState(connectorState);
-        this.data = data;
-    }
+  private static final long serialVersionUID = 3304969435926944799L;
+  /** Data. */
+  private int rowVersion = 0;
+  /** Data. */
+  private String rowProtection;
 
-    public int getId() {
-        return id;
-    }
+  /** Data. */
+  private int id;
+  /** Data. */
+  private String name;
+  /** Data. */
+  private int connectorState;
+  /** Data. */
+  private String url;
+  /** Data. */
+  private String data;
 
-    public void setId(int id) {
-        this.id = id;
-    }
-    
-    public String getName() {
-        return name;
-    }
+  /** Empty. */
+  public PeerData() {
+    super();
+  }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-    
-    public String getData() {
-        return data;
-    }
+  /**
+   * @param anid ID
+   * @param aname NAme
+   * @param aurl URL
+   * @param aconnectorState State
+   * @param thedata Data
+   */
+  public PeerData(
+      final int anid,
+      final String aname,
+      final String aurl,
+      final int aconnectorState,
+      final String thedata) {
+    super();
+    this.id = anid;
+    this.name = aname;
+    this.setUrl(aurl);
+    this.setConnectorState(aconnectorState);
+    this.data = thedata;
+  }
 
-    public void setData(String data) {
-        this.data = data;
-    }
-    
-    public int getRowVersion() { return rowVersion; }
-    public void setRowVersion(int rowVersion) { this.rowVersion = rowVersion; }
-    
-    //
-    // Start Database integrity protection methods
-    //
+  /**
+   * @return ID
+   */
+  public int getId() {
+    return id;
+  }
 
-    @Override
-    protected String getProtectString(int rowversion) {
-        final ProtectionStringBuilder build = new ProtectionStringBuilder(3000);
-        // What is important to protect here is the data that we define
-        // rowVersion is automatically updated by JPA, so it's not important, it is only used for optimistic locking
-        build.append(getData()).append(getUrl()).append(getId()).append(getName()).append(getConnectorState());
-        return build.toString();
-    }
+  /**
+   * @param anid ID
+   */
+  public void setId(final int anid) {
+    this.id = anid;
+  }
 
-    @Transient
-    @Override
-    protected int getProtectVersion() {
-        return 1;
-    }
+  /**
+   * @return name
+   */
+  public String getName() {
+    return name;
+  }
 
-    @PrePersist
-    @PreUpdate
-    @Override
-    protected void protectData() {
-        super.protectData();
-    }
+  /**
+   * @param aname name
+   */
+  public void setName(final String aname) {
+    this.name = aname;
+  }
 
-    @PostLoad
-    @Override
-    protected void verifyData() {
-        super.verifyData();
-    }
-    
-    @Override
-    public void setRowProtection(String rowProtection) {
-        this.rowProtection = rowProtection;  
-    }
+  /**
+   * @return data
+   */
+  public String getData() {
+    return data;
+  }
 
-    @Override
-    public String getRowProtection() {
-        return rowProtection;
-    }
+  /**
+   * @param thedata data
+   */
+  public void setData(final String thedata) {
+    this.data = thedata;
+  }
 
-    @Transient
-    @Override
-    protected String getRowId() {
-        return String.valueOf(getId());
-    }
+  /**
+   * @return version
+   */
+  public int getRowVersion() {
+    return rowVersion;
+  }
 
-    public int getConnectorState() {
-        return connectorState;
-    }
+  /**
+   * @param arowVersion version
+   */
+  public void setRowVersion(final int arowVersion) {
+    this.rowVersion = arowVersion;
+  }
 
-    public void setConnectorState(int connectorState) {
-        this.connectorState = connectorState;
-    }
+  //
+  // Start Database integrity protection methods
+  //
 
-    public String getUrl() {
-        return url;
-    }
+  @Override
+  protected String getProtectString(final int rowversion) {
+    final ProtectionStringBuilder build = new ProtectionStringBuilder(3000);
+    // What is important to protect here is the data that we define
+    // rowVersion is automatically updated by JPA, so it's not important, it is
+    // only used for optimistic locking
+    build
+        .append(getData())
+        .append(getUrl())
+        .append(getId())
+        .append(getName())
+        .append(getConnectorState());
+    return build.toString();
+  }
 
-    public void setUrl(String url) {
-        this.url = url;
-    }
+  @Transient
+  @Override
+  protected int getProtectVersion() {
+    return 1;
+  }
 
+  @PrePersist
+  @PreUpdate
+  @Override
+  protected void protectData() {
+    super.protectData();
+  }
+
+  @PostLoad
+  @Override
+  protected void verifyData() {
+    super.verifyData();
+  }
+
+  @Override
+  public void setRowProtection(final String arowProtection) {
+    this.rowProtection = arowProtection;
+  }
+
+  @Override
+  public String getRowProtection() {
+    return rowProtection;
+  }
+
+  @Transient
+  @Override
+  protected String getRowId() {
+    return String.valueOf(getId());
+  }
+
+  /**
+   * @return state
+   */
+  public int getConnectorState() {
+    return connectorState;
+  }
+
+  /**
+   * @param aconnectorState state
+   */
+  public void setConnectorState(final int aconnectorState) {
+    this.connectorState = aconnectorState;
+  }
+
+  /**
+   * @return URL
+   */
+  public String getUrl() {
+    return url;
+  }
+
+  /**
+   * @param aurl URL
+   */
+  public void setUrl(final String aurl) {
+    this.url = aurl;
+  }
 }

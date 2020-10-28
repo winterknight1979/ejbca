@@ -17,50 +17,90 @@ import java.io.Serializable;
 
 /**
  * Primary key for KeyRecoveryData.
- * 
+ *
  * @version $Id: KeyRecoveryDataPK.java 25631 2017-04-03 09:55:10Z mikekushner $
  */
 public class KeyRecoveryDataPK implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-	public String certSN;
-	public String issuerDN;
+  /** SN. */
+  private String certSN;
+  /** Param. */
+  private String issuerDN;
 
-	public KeyRecoveryDataPK() { }
+  /** Empty. */
+  public KeyRecoveryDataPK()  { }
 
-	public KeyRecoveryDataPK(String certSN,String issuerDN) {
-		setCertSN(certSN);
-		setIssuerDN(issuerDN);
-	}
+  /**
+   * @param acertSN SN
+   * @param anissuerDN DN
+   */
+  public KeyRecoveryDataPK(final String acertSN, final String anissuerDN) {
+    setCertSN(acertSN);
+    setIssuerDN(anissuerDN);
+  }
 
-	//@Column
-    /** Certificate serial number in hexa decimal format, of the certificate this entry was stored for. 
-     * @return SN*/
-	public String getCertSN() { return certSN; }
-	public void setCertSN(String certSN) { this.certSN = certSN; }
+  // @Column
+  /**
+   * Certificate serial number in hexa decimal format, of the certificate this
+   * entry was stored for.
+   *
+   * @return SN
+   */
+  public String getCertSN() {
+    return certSN;
+  }
 
-	//@Column
-	public String getIssuerDN() { return issuerDN; }
-	public void setIssuerDN(String issuerDN) { this.issuerDN = issuerDN; }
+  /**
+   * @param acertSN SN
+   */
+  public void setCertSN(final String acertSN) {
+    this.certSN = acertSN;
+  }
 
-	public int hashCode() {
-		int hashCode = 0;
-		if (certSN != null) {
-			hashCode += certSN.hashCode();
-		}
-		if (issuerDN != null) {
-			hashCode += issuerDN.hashCode();
-		}
-		return hashCode;
-	}
+  /**
+   * @return DN
+   */
+  // @Column
+  public String getIssuerDN() {
+    return issuerDN;
+  }
 
-	public boolean equals(Object obj) {
-		if ( obj == this ) { return true; }
-		if ( !(obj instanceof KeyRecoveryDataPK) ) { return false; }
-		KeyRecoveryDataPK pk = (KeyRecoveryDataPK)obj;
-		if ( certSN == null || !certSN.equals(pk.certSN) ) { return false; }
-		if ( issuerDN == null || !issuerDN.equals(pk.issuerDN) ) { return false; }
-		return true;
-	}
+  /**
+   * @param anissuerDN DN
+   */
+  public void setIssuerDN(final String anissuerDN) {
+    this.issuerDN = anissuerDN;
+  }
+
+  @Override
+  public int hashCode() {
+    int hashCode = 0;
+    if (certSN != null) {
+      hashCode += certSN.hashCode();
+    }
+    if (issuerDN != null) {
+      hashCode += issuerDN.hashCode();
+    }
+    return hashCode;
+  }
+
+  @Override
+  public boolean equals(final Object obj) {
+    if (obj == this) {
+      return true;
+    }
+    if (!(obj instanceof KeyRecoveryDataPK)) {
+      return false;
+    }
+    KeyRecoveryDataPK pk = (KeyRecoveryDataPK) obj;
+    if (certSN == null || !certSN.equals(pk.certSN)) {
+      return false;
+    }
+    if (issuerDN == null || !issuerDN.equals(pk.issuerDN)) {
+      return false;
+    }
+    return true;
+  }
 }
