@@ -24,14 +24,21 @@ public class KeyRecoveryDataPK implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
-  public String certSN;
-  public String issuerDN;
+  /** SN. */
+  private String certSN;
+  /** Param. */
+  private String issuerDN;
 
-  public KeyRecoveryDataPK() {}
+  /** Empty. */
+  public KeyRecoveryDataPK()  { }
 
-  public KeyRecoveryDataPK(final String certSN, final String issuerDN) {
-    setCertSN(certSN);
-    setIssuerDN(issuerDN);
+  /**
+   * @param acertSN SN
+   * @param anissuerDN DN
+   */
+  public KeyRecoveryDataPK(final String acertSN, final String anissuerDN) {
+    setCertSN(acertSN);
+    setIssuerDN(anissuerDN);
   }
 
   // @Column
@@ -45,19 +52,29 @@ public class KeyRecoveryDataPK implements Serializable {
     return certSN;
   }
 
-  public void setCertSN(final String certSN) {
-    this.certSN = certSN;
+  /**
+   * @param acertSN SN
+   */
+  public void setCertSN(final String acertSN) {
+    this.certSN = acertSN;
   }
 
+  /**
+   * @return DN
+   */
   // @Column
   public String getIssuerDN() {
     return issuerDN;
   }
 
-  public void setIssuerDN(final String issuerDN) {
-    this.issuerDN = issuerDN;
+  /**
+   * @param anissuerDN DN
+   */
+  public void setIssuerDN(final String anissuerDN) {
+    this.issuerDN = anissuerDN;
   }
 
+  @Override
   public int hashCode() {
     int hashCode = 0;
     if (certSN != null) {
@@ -69,6 +86,7 @@ public class KeyRecoveryDataPK implements Serializable {
     return hashCode;
   }
 
+  @Override
   public boolean equals(final Object obj) {
     if (obj == this) {
       return true;

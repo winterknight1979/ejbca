@@ -31,6 +31,10 @@ import org.junit.Test;
 @SuppressWarnings("deprecation")
 public class UserDataTest {
 
+     /**
+       * Test.
+       * @throws Exception fail
+       */
   @Test
   public void test01UserPassword() throws Exception {
     UserData data = new UserData();
@@ -66,6 +70,10 @@ public class UserDataTest {
     assertEquals("primekey", data.getOpenPassword());
   }
 
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void test02UserDataVOToEndEntityInformation() throws Exception {
     UserDataVO data = new UserDataVO();

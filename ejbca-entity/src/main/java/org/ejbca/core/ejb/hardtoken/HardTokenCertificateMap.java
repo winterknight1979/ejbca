@@ -39,54 +39,78 @@ public class HardTokenCertificateMap extends ProtectedData
     implements Serializable {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log =
+  /** LOG. */
+  private static final Logger LOG =
       Logger.getLogger(HardTokenCertificateMap.class);
 
+  /** Param. */
   private String certificateFingerprint;
+  /** Param. */
   private String tokenSN;
+  /** Param. */
   private int rowVersion = 0;
+  /** Param. */
   private String rowProtection;
 
   /**
    * Entity holding data of a certificate to hard token relation.
    *
-   * @param certificateFingerprint FP
-   * @param tokenSN SN
+   * @param acertificateFingerprint FP
+   * @param atokenSN SN
    */
   public HardTokenCertificateMap(
-      final String certificateFingerprint, final String tokenSN) {
-    setCertificateFingerprint(certificateFingerprint);
-    setTokenSN(tokenSN);
-    log.debug("Created HardTokenCertificateMap for token SN: " + tokenSN);
+      final String acertificateFingerprint, final String atokenSN) {
+    setCertificateFingerprint(acertificateFingerprint);
+    setTokenSN(atokenSN);
+    LOG.debug("Created HardTokenCertificateMap for token SN: " + atokenSN);
   }
 
-  public HardTokenCertificateMap() {}
+  /** Empty. */
+  public HardTokenCertificateMap() { }
 
+  /**
+   * @return fp
+   */
   // @Id @Column
   public String getCertificateFingerprint() {
     return certificateFingerprint;
   }
 
-  public void setCertificateFingerprint(final String certificateFingerprint) {
-    this.certificateFingerprint = certificateFingerprint;
+  /**
+   * @param acertificateFingerprint FP
+   */
+  public void setCertificateFingerprint(final String acertificateFingerprint) {
+    this.certificateFingerprint = acertificateFingerprint;
   }
 
+  /**
+   * @return SN
+   */
   // @Column
   public String getTokenSN() {
     return tokenSN;
   }
 
-  public void setTokenSN(final String tokenSN) {
-    this.tokenSN = tokenSN;
+  /**
+   * @param atokenSN SN
+   */
+  public void setTokenSN(final String atokenSN) {
+    this.tokenSN = atokenSN;
   }
 
+  /**
+   * @return version
+   */
   // @Version @Column
   public int getRowVersion() {
     return rowVersion;
   }
 
-  public void setRowVersion(final int rowVersion) {
-    this.rowVersion = rowVersion;
+  /**
+   * @param arowVersion version
+   */
+  public void setRowVersion(final int arowVersion) {
+    this.rowVersion = arowVersion;
   }
 
   // @Column @Lob
@@ -96,8 +120,8 @@ public class HardTokenCertificateMap extends ProtectedData
   }
 
   @Override
-  public void setRowProtection(final String rowProtection) {
-    this.rowProtection = rowProtection;
+  public void setRowProtection(final String arowProtection) {
+    this.rowProtection = arowProtection;
   }
 
   //

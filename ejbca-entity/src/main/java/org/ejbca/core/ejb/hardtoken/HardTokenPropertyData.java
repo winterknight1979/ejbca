@@ -39,60 +39,87 @@ public class HardTokenPropertyData extends ProtectedData
     implements Serializable {
 
   private static final long serialVersionUID = 1L;
+  /** Config. */
   public static final String PROPERTY_COPYOF = "copyof=";
 
+  /** Param. */
   private HardTokenPropertyDataPK hardTokenPropertyDataPK;
 
+  /** Param. */
   private String value;
+  /** Param. */
   private int rowVersion = 0;
+  /** Param. */
   private String rowProtection;
 
   /**
    * Entity holding data of a hard token properties.
    *
-   * @param id OD
-   * @param property Property
-   * @param value Value
+   * @param anid OD
+   * @param aproperty Property
+   * @param avalue Value
    */
   public HardTokenPropertyData(
-      final String id, final String property, final String value) {
-    setHardTokenPropertyDataPK(new HardTokenPropertyDataPK(id, property));
-    setValue(value);
+      final String anid, final String aproperty, final String avalue) {
+    setHardTokenPropertyDataPK(new HardTokenPropertyDataPK(anid, aproperty));
+    setValue(avalue);
   }
 
-  public HardTokenPropertyData() {}
+  /** Empty. */
+  public HardTokenPropertyData() { }
 
+  /**
+   * @return PK
+   */
   // @EmbeddedId
   public HardTokenPropertyDataPK getHardTokenPropertyDataPK() {
     return hardTokenPropertyDataPK;
   }
 
+  /**
+   * @param thehardTokenPropertyDataPK PK
+   */
   public void setHardTokenPropertyDataPK(
-      final HardTokenPropertyDataPK hardTokenPropertyDataPK) {
-    this.hardTokenPropertyDataPK = hardTokenPropertyDataPK;
+      final HardTokenPropertyDataPK thehardTokenPropertyDataPK) {
+    this.hardTokenPropertyDataPK = thehardTokenPropertyDataPK;
   }
 
+  /**
+   * @return ID
+   */
   @Transient
   public String getId() {
-    return hardTokenPropertyDataPK.id;
+    return hardTokenPropertyDataPK.getId();
   }
 
+  /**
+   * @return val
+   */
   // @Column
   public String getValue() {
     return value;
   }
 
-  public void setValue(final String value) {
-    this.value = value;
+  /**
+   * @param avalue val
+   */
+  public void setValue(final String avalue) {
+    this.value = avalue;
   }
 
+  /**
+   * @return bersion
+   */
   // @Version @Column
   public int getRowVersion() {
     return rowVersion;
   }
 
-  public void setRowVersion(final int rowVersion) {
-    this.rowVersion = rowVersion;
+  /**
+   * @param arowVersion version
+   */
+  public void setRowVersion(final int arowVersion) {
+    this.rowVersion = arowVersion;
   }
 
   // @Column @Lob
@@ -102,8 +129,8 @@ public class HardTokenPropertyData extends ProtectedData
   }
 
   @Override
-  public void setRowProtection(final String rowProtection) {
-    this.rowProtection = rowProtection;
+  public void setRowProtection(final String arowProtection) {
+    this.rowProtection = arowProtection;
   }
 
   //

@@ -23,7 +23,7 @@ import org.cesecore.dbprotection.ProtectedData;
 import org.cesecore.dbprotection.ProtectionStringBuilder;
 
 /**
- * Basic entity been for peer types
+ * Basic entity been for peer types.
  *
  * <p>INT4 id VARCHAR(25x) name INT4 connectorState (0=disabled, 1=enabled)
  * VARCHAR(25x) url CLOB data: initiator capabilities INT4 rowVersion CLOB
@@ -36,63 +36,102 @@ import org.cesecore.dbprotection.ProtectionStringBuilder;
 public class PeerData extends ProtectedData implements Serializable {
 
   private static final long serialVersionUID = 3304969435926944799L;
+  /** Data. */
   private int rowVersion = 0;
+  /** Data. */
   private String rowProtection;
 
+  /** Data. */
   private int id;
+  /** Data. */
   private String name;
+  /** Data. */
   private int connectorState;
+  /** Data. */
   private String url;
+  /** Data. */
   private String data;
 
+  /** Empty. */
   public PeerData() {
     super();
   }
 
+  /**
+   * @param anid ID
+   * @param aname NAme
+   * @param aurl URL
+   * @param aconnectorState State
+   * @param thedata Data
+   */
   public PeerData(
-      final int id,
-      final String name,
-      final String url,
-      final int connectorState,
-      final String data) {
+      final int anid,
+      final String aname,
+      final String aurl,
+      final int aconnectorState,
+      final String thedata) {
     super();
-    this.id = id;
-    this.name = name;
-    this.setUrl(url);
-    this.setConnectorState(connectorState);
-    this.data = data;
+    this.id = anid;
+    this.name = aname;
+    this.setUrl(aurl);
+    this.setConnectorState(aconnectorState);
+    this.data = thedata;
   }
 
+  /**
+   * @return ID
+   */
   public int getId() {
     return id;
   }
 
-  public void setId(final int id) {
-    this.id = id;
+  /**
+   * @param anid ID
+   */
+  public void setId(final int anid) {
+    this.id = anid;
   }
 
+  /**
+   * @return name
+   */
   public String getName() {
     return name;
   }
 
-  public void setName(final String name) {
-    this.name = name;
+  /**
+   * @param aname name
+   */
+  public void setName(final String aname) {
+    this.name = aname;
   }
 
+  /**
+   * @return data
+   */
   public String getData() {
     return data;
   }
 
-  public void setData(final String data) {
-    this.data = data;
+  /**
+   * @param thedata data
+   */
+  public void setData(final String thedata) {
+    this.data = thedata;
   }
 
+  /**
+   * @return version
+   */
   public int getRowVersion() {
     return rowVersion;
   }
 
-  public void setRowVersion(final int rowVersion) {
-    this.rowVersion = rowVersion;
+  /**
+   * @param arowVersion version
+   */
+  public void setRowVersion(final int arowVersion) {
+    this.rowVersion = arowVersion;
   }
 
   //
@@ -134,8 +173,8 @@ public class PeerData extends ProtectedData implements Serializable {
   }
 
   @Override
-  public void setRowProtection(final String rowProtection) {
-    this.rowProtection = rowProtection;
+  public void setRowProtection(final String arowProtection) {
+    this.rowProtection = arowProtection;
   }
 
   @Override
@@ -149,19 +188,31 @@ public class PeerData extends ProtectedData implements Serializable {
     return String.valueOf(getId());
   }
 
+  /**
+   * @return state
+   */
   public int getConnectorState() {
     return connectorState;
   }
 
-  public void setConnectorState(final int connectorState) {
-    this.connectorState = connectorState;
+  /**
+   * @param aconnectorState state
+   */
+  public void setConnectorState(final int aconnectorState) {
+    this.connectorState = aconnectorState;
   }
 
+  /**
+   * @return URL
+   */
   public String getUrl() {
     return url;
   }
 
-  public void setUrl(final String url) {
-    this.url = url;
+  /**
+   * @param aurl URL
+   */
+  public void setUrl(final String aurl) {
+    this.url = aurl;
   }
 }

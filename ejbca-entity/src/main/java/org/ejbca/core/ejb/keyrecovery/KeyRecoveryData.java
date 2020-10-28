@@ -40,17 +40,28 @@ import org.cesecore.util.StringTools;
 public class KeyRecoveryData extends ProtectedData implements Serializable {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log = Logger.getLogger(KeyRecoveryData.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(KeyRecoveryData.class);
 
+  /** Param. */
   private KeyRecoveryDataPK keyRecoveryDataPK;
+  /** Param. */
   private String username;
+  /** Param. */
   private Boolean markedAsRecoverableBool;
+  /** Param. */
   private Integer markedAsRecoverableInt;
+  /** Param. */
   private String keyData;
+  /** Param. */
   private int cryptoTokenId = 0;
+  /** Param. */
   private String keyAlias;
+  /** Param. */
   private String publicKeyId;
+  /** Param. */
   private int rowVersion = 0;
+  /** Param. */
   private String rowProtection;
 
   /**
@@ -58,59 +69,79 @@ public class KeyRecoveryData extends ProtectedData implements Serializable {
    *
    * @param certificatesn of certificate the keys are belonging to.
    * @param issuerdn issuerdn of certificate the keys are belonging to.
-   * @param username of the owner of the keys.
-   * @param cryptoTokenId the id of the cryptoToken that holds the key
+   * @param ausername of the owner of the keys.
+   * @param acryptoTokenId the id of the cryptoToken that holds the key
    *     protecting this key recovery entry
-   * @param keyAlias the alias of the key protecting this key recovery entry
-   * @param publicKeyId the keyId (same as subjectKeyId of a certificateData) of
+   * @param akeyAlias the alias of the key protecting this key recovery entry
+   * @param apublicKeyId the keyId (same as subjectKeyId
+   *      of a certificateData) of
    *     key protecting this key recovery entry
    * @param keydata the actual keydata.
    */
   public KeyRecoveryData(
       final BigInteger certificatesn,
       final String issuerdn,
-      final String username,
+      final String ausername,
       final byte[] keydata,
-      final int cryptoTokenId,
-      final String keyAlias,
-      final String publicKeyId) {
+      final int acryptoTokenId,
+      final String akeyAlias,
+      final String apublicKeyId) {
     setKeyRecoveryDataPK(
         new KeyRecoveryDataPK(certificatesn.toString(16), issuerdn));
-    setUsername(username);
+    setUsername(ausername);
     setMarkedAsRecoverable(false);
     setKeyDataFromByteArray(keydata);
-    setCryptoTokenId(cryptoTokenId);
-    setKeyAlias(keyAlias);
-    setPublicKeyId(publicKeyId);
-    if (log.isDebugEnabled()) {
-      log.debug("Created Key Recoverydata for user " + username);
+    setCryptoTokenId(acryptoTokenId);
+    setKeyAlias(akeyAlias);
+    setPublicKeyId(apublicKeyId);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Created Key Recoverydata for user " + ausername);
     }
   }
 
-  public KeyRecoveryData() {}
+  /** Empty. */
+  public KeyRecoveryData() { }
 
+  /**
+   * @return PK
+   */
   public KeyRecoveryDataPK getKeyRecoveryDataPK() {
     return keyRecoveryDataPK;
   }
 
-  public void setKeyRecoveryDataPK(final KeyRecoveryDataPK keyRecoveryDataPK) {
-    this.keyRecoveryDataPK = keyRecoveryDataPK;
+  /**
+   * @param akeyRecoveryDataPK PK
+   */
+  public void setKeyRecoveryDataPK(final KeyRecoveryDataPK akeyRecoveryDataPK) {
+    this.keyRecoveryDataPK = akeyRecoveryDataPK;
   }
 
+  /**
+   * @return DN
+   */
   @Transient
   public String getIssuerDN() {
-    return keyRecoveryDataPK.issuerDN;
+    return keyRecoveryDataPK.getIssuerDN();
   }
 
+  /**
+   * @return user
+   */
   // @Column
   public String getUsername() {
     return username;
   }
 
-  public void setUsername(final String username) {
-    this.username = StringTools.stripUsername(username);
+  /**
+   * @param ausername user
+   */
+  public void setUsername(final String ausername) {
+    this.username = StringTools.stripUsername(ausername);
   }
 
+  /**
+   * @return bool
+   */
   @Transient
   public boolean getMarkedAsRecoverable() {
     Boolean markB = getMarkedAsRecoverableBool();
@@ -126,6 +157,9 @@ public class KeyRecoveryData extends ProtectedData implements Serializable {
             + " database.");
   }
 
+  /**
+   * @param markedAsRecoverable bool
+   */
   public void setMarkedAsRecoverable(final boolean markedAsRecoverable) {
     setMarkedAsRecoverableBool(Boolean.valueOf(markedAsRecoverable));
     setMarkedAsRecoverableInt(markedAsRecoverable ? 1 : 0);
@@ -141,14 +175,17 @@ public class KeyRecoveryData extends ProtectedData implements Serializable {
     return markedAsRecoverableBool;
   }
 
+  /**
+   * @param amarkedAsRecoverableBool bool
+   */
   public void setMarkedAsRecoverableBool(
-      final Boolean markedAsRecoverableBool) {
-    this.markedAsRecoverableBool = markedAsRecoverableBool;
+      final Boolean amarkedAsRecoverableBool) {
+    this.markedAsRecoverableBool = amarkedAsRecoverableBool;
   }
 
   /**
    * Use getMarkedAsRecoverable() instead of this method! Ingres: Mapped to
-   * "markedAsRecoverable" Non-ingres: Transient
+   * "markedAsRecoverable" Non-ingres: Transient.
    *
    * @return int
    */
@@ -156,53 +193,86 @@ public class KeyRecoveryData extends ProtectedData implements Serializable {
     return markedAsRecoverableInt;
   }
 
-  public void setMarkedAsRecoverableInt(final Integer markedAsRecoverableInt) {
-    this.markedAsRecoverableInt = markedAsRecoverableInt;
+  /**
+   * @param amarkedAsRecoverableInt mark
+   */
+  public void setMarkedAsRecoverableInt(final Integer amarkedAsRecoverableInt) {
+    this.markedAsRecoverableInt = amarkedAsRecoverableInt;
   }
 
+  /**
+   * @return data
+   */
   // @Column @Lob
   public String getKeyData() {
     return keyData;
   }
 
-  public void setKeyData(final String keyData) {
-    this.keyData = keyData;
+  /**
+   * @param akeyData data
+   */
+  public void setKeyData(final String akeyData) {
+    this.keyData = akeyData;
   }
 
+  /**
+   * @return ID
+   */
   // @Version @Column
   public int getCryptoTokenId() {
     return cryptoTokenId;
   }
 
-  public void setCryptoTokenId(final int cryptoTokenId) {
-    this.cryptoTokenId = cryptoTokenId;
+  /**
+   * @param acryptoTokenId ID
+   */
+  public void setCryptoTokenId(final int acryptoTokenId) {
+    this.cryptoTokenId = acryptoTokenId;
   }
 
+  /**
+   * @return alias
+   */
   // @Version @Column
   public String getKeyAlias() {
     return keyAlias;
   }
 
-  public void setKeyAlias(final String keyAlias) {
-    this.keyAlias = keyAlias;
+  /**
+   * @param akeyAlias alias
+   */
+  public void setKeyAlias(final String akeyAlias) {
+    this.keyAlias = akeyAlias;
   }
 
+  /**
+   * @return ID
+   */
   // @Version @Column
   public String getPublicKeyId() {
     return publicKeyId;
   }
 
-  public void setPublicKeyId(final String publicKeyId) {
-    this.publicKeyId = publicKeyId;
+  /**
+   * @param apublicKeyId ID
+   */
+  public void setPublicKeyId(final String apublicKeyId) {
+    this.publicKeyId = apublicKeyId;
   }
 
+  /**
+   * @return version
+   */
   // @Version @Column
   public int getRowVersion() {
     return rowVersion;
   }
 
-  public void setRowVersion(final int rowVersion) {
-    this.rowVersion = rowVersion;
+  /**
+   * @param arowVersion version
+   */
+  public void setRowVersion(final int arowVersion) {
+    this.rowVersion = arowVersion;
   }
 
   // @Column @Lob
@@ -212,10 +282,13 @@ public class KeyRecoveryData extends ProtectedData implements Serializable {
   }
 
   @Override
-  public void setRowProtection(final String rowProtection) {
-    this.rowProtection = rowProtection;
+  public void setRowProtection(final String arowProtection) {
+    this.rowProtection = arowProtection;
   }
 
+  /**
+   * @return SN
+   */
   @Transient
   public BigInteger getCertificateSN() {
     return new BigInteger(keyRecoveryDataPK.getCertSN(), 16);
@@ -224,11 +297,17 @@ public class KeyRecoveryData extends ProtectedData implements Serializable {
       keyRecoveryDataPK.setCertSN(certificatesn.toString(16));
   }*/
 
+  /**
+   * @return data
+   */
   @Transient
   public byte[] getKeyDataAsByteArray() {
     return Base64.decode(this.getKeyData().getBytes());
   }
 
+  /**
+   * @param keydata data
+   */
   public void setKeyDataFromByteArray(final byte[] keydata) {
     setKeyData(new String(Base64.encode(keydata)));
   }
@@ -330,8 +409,8 @@ public class KeyRecoveryData extends ProtectedData implements Serializable {
       query.setParameter("usermark", usermark);
       ret = query.getResultList();
     } catch (Exception e) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "If database does not support boolean (like Ingres) we would"
                 + " expect an Exception here. Trying to treat"
                 + " markedAsRecoverable as an Integer.",

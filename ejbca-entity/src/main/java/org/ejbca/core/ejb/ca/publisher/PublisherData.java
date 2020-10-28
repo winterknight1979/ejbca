@@ -41,83 +41,122 @@ import org.ejbca.core.model.ca.publisher.BasePublisher;
 @Table(name = "PublisherData")
 public class PublisherData extends ProtectedData implements Serializable {
   private static final long serialVersionUID = 1L;
-  private static final Logger log = Logger.getLogger(PublisherData.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(PublisherData.class);
 
+  /** Param. */
   private BasePublisher publisher = null;
 
+  /** Param. */
   private int id;
+  /** Param. */
   private String name;
+  /** Param. */
   private int updateCounter;
+  /** Param. */
   private String data;
+  /** Param. */
   private int rowVersion = 0;
+  /** Param. */
   private String rowProtection;
 
   /**
    * Entity Bean holding data of a publisher.
    *
-   * @param id ID
-   * @param name Name
-   * @param publisher Pub
+   * @param anid ID
+   * @param aname Name
+   * @param apublisher Pub
    *     <p>ejb.create-method view-type="local"
    */
   public PublisherData(
-      final int id, final String name, final BasePublisher publisher) {
-    if (log.isDebugEnabled()) {
-      log.debug("Creating PublisherData '" + name + "' (" + id + ")");
+      final int anid, final String aname, final BasePublisher apublisher) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Creating PublisherData '" + aname + "' (" + anid + ")");
     }
-    setId(id);
-    setName(name);
+    setId(anid);
+    setName(aname);
     setUpdateCounter(0);
-    if (publisher != null) {
-      setPublisher(publisher);
+    if (apublisher != null) {
+      setPublisher(apublisher);
     }
   }
 
-  public PublisherData() {}
+  /** Empty constructor. */
+  public PublisherData() { }
 
+  /**
+   * @return ID
+   */
   // @Id @Column
   public int getId() {
     return id;
   }
 
-  public void setId(final int id) {
-    this.id = id;
+  /**
+   * @param anid ID
+   */
+  public void setId(final int anid) {
+    this.id = anid;
   }
 
+  /**
+   * @return name
+   */
   // @Column
   public String getName() {
     return name;
   }
 
-  public void setName(final String name) {
-    this.name = name;
+  /**
+   * @param aname name
+   */
+  public void setName(final String aname) {
+    this.name = aname;
   }
 
+  /**
+   * @return count
+   */
   // @Column
   public int getUpdateCounter() {
     return updateCounter;
   }
 
-  public void setUpdateCounter(final int updateCounter) {
-    this.updateCounter = updateCounter;
+  /**
+   * @param anupdateCounter count
+   */
+  public void setUpdateCounter(final int anupdateCounter) {
+    this.updateCounter = anupdateCounter;
   }
 
+  /**
+   * @return data
+   */
   // @Column @Lob
   public String getData() {
     return data;
   }
 
-  public void setData(final String data) {
-    this.data = data;
+  /**
+   * @param thedata data
+   */
+  public void setData(final String thedata) {
+    this.data = thedata;
   }
 
+  /**
+   * @return version
+   */
   // @Version @Column
   public int getRowVersion() {
     return rowVersion;
   }
 
-  public void setRowVersion(final int rowVersion) {
-    this.rowVersion = rowVersion;
+  /**
+   * @param arowVersion version
+   */
+  public void setRowVersion(final int arowVersion) {
+    this.rowVersion = arowVersion;
   }
 
   // @Column @Lob
@@ -127,8 +166,8 @@ public class PublisherData extends ProtectedData implements Serializable {
   }
 
   @Override
-  public void setRowProtection(final String rowProtection) {
-    this.rowProtection = rowProtection;
+  public void setRowProtection(final String arowProtection) {
+    this.rowProtection = arowProtection;
   }
 
   /**
@@ -144,26 +183,26 @@ public class PublisherData extends ProtectedData implements Serializable {
   /**
    * Method that saves the publisher data to database.
    *
-   * @param publisher pub
+   * @param apublisher pub
    */
   @SuppressWarnings({"unchecked", "rawtypes"})
-  public void setPublisher(final BasePublisher publisher) {
+  public void setPublisher(final BasePublisher apublisher) {
     // We must base64 encode string for UTF safety
     HashMap a = new Base64PutHashMap();
-    a.putAll((HashMap) publisher.saveData());
+    a.putAll((HashMap) apublisher.saveData());
     java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
     java.beans.XMLEncoder encoder = new java.beans.XMLEncoder(baos);
     encoder.writeObject(a);
     encoder.close();
     try {
-      if (log.isDebugEnabled()) {
-        log.debug("Publisher data: \n" + baos.toString("UTF8"));
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Publisher data: \n" + baos.toString("UTF8"));
       }
       setData(baos.toString("UTF8"));
     } catch (UnsupportedEncodingException e) {
       throw new RuntimeException(e);
     }
-    this.publisher = publisher;
+    this.publisher = apublisher;
     setUpdateCounter(getUpdateCounter() + 1);
   }
 

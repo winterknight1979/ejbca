@@ -34,8 +34,10 @@ import org.junit.Test;
  */
 public class FixEndOfBrokenXMLTest {
 
+    /** Log. */
   private static Logger log = Logger.getLogger(FixEndOfBrokenXMLTest.class);
-  private static String CHAR_ENCODING = "UTF-8";
+  /** Enc. */
+  private static String charEncoding = "UTF-8";
 
   /**
    * This test will take a XML serialized object and try to repair the end of it
@@ -53,7 +55,7 @@ public class FixEndOfBrokenXMLTest {
     final int limit =
         "</string></void></object></java>"
             .length(); // This is what we expect to be able to repair
-    final byte testXml[] = readXmlFromFile();
+    final byte[] testXml = readXmlFromFile();
     // We need to decode and encode it with the current JDK we are running,
     // because the JDK version is in the XML and different JDKs add different
     // amount of whitespace
@@ -61,14 +63,14 @@ public class FixEndOfBrokenXMLTest {
     for (int nrOfBytesMissing = 0;
         xml.length > nrOfBytesMissing;
         nrOfBytesMissing++) {
-      final byte brokenXml[] =
+      final byte[] brokenXml =
           Arrays.copyOf(xml, xml.length - nrOfBytesMissing);
-      final byte fixedXml[] =
+      final byte[] fixedXml =
           FixEndOfBrokenXML.fixXML(
-                  new String(brokenXml, CHAR_ENCODING),
+                  new String(brokenXml, charEncoding),
                   "string",
                   "</void></object></java>")
-              .getBytes(CHAR_ENCODING);
+              .getBytes(charEncoding);
 
       final ByteArrayOutputStream baos = new ByteArrayOutputStream();
       try (SecureXMLDecoder decoder =
@@ -81,7 +83,7 @@ public class FixEndOfBrokenXMLTest {
           return;
         }
       }
-      final byte decodedXml[] = baos.toByteArray();
+      final byte[] decodedXml = baos.toByteArray();
       if (!Arrays.equals(xml, decodedXml)) {
         if (nrOfBytesMissing < limit) {
           assertEquals(
@@ -107,7 +109,7 @@ public class FixEndOfBrokenXMLTest {
     while (true) {
       final int available = is.available();
       if (available > 0) {
-        final byte tmp[] = new byte[available];
+        final byte[] tmp = new byte[available];
         is.read(tmp);
         baos.write(tmp);
         continue;
@@ -122,13 +124,13 @@ public class FixEndOfBrokenXMLTest {
   }
 
   private void notPossibleToRemoveMoreBytes(
-      final int nrOfBytesMissing, final byte brokenXml[], final int limit)
+      final int nrOfBytesMissing, final byte[] brokenXml, final int limit)
       throws UnsupportedEncodingException {
     log.info(
         "Repair tool not able to mend xml with "
             + nrOfBytesMissing
             + " missing chars in the end:\n"
-            + new String(brokenXml, CHAR_ENCODING));
+            + new String(brokenXml, charEncoding));
     assertFalse(
         "Only possible to fix "
             + nrOfBytesMissing
@@ -161,26 +163,26 @@ public class FixEndOfBrokenXMLTest {
   @Test
   public void test02MissingLastStartOfString() throws Exception {
     log.trace(">test02MissingLastStartOfString");
-    final String BROKEN_XML_2_PART1 =
+    final String brokenXml2Part1 =
         "<?xml version=\"1.0\" encoding=\"UTF-8\"?><java version=\"1.6.0_18\""
-            + " class=\"java.beans.XMLDecoder\"><object"
-            + " class=\"org.cesecore.certificates.endentity.EndEntityInformation\">"
-            // ...
-            + "<void property=\"email\"><string>null@null.com</string></void>";
+        + " class=\"java.beans.XMLDecoder\"><object"
+        + " class=\"org.cesecore.certificates.endentity.EndEntityInformation\">"
+        // ...
+        + "<void property=\"email\"><string>null@null.com</string></void>";
     // ...
-    final String BROKEN_XML_2_PART2 =
+    final String brokenXml2Part2 =
         "<void property=\"type\"><int>1</int></void>"
             + "<void property=\"username\"><strin"; // "Broken":
-                                                    // "g>10022428256</string></void></object></java>";
+                   // "g>10022428256</string></void></object></java>";
     final String toFix =
         new String(
-            (BROKEN_XML_2_PART1 + BROKEN_XML_2_PART2).getBytes(CHAR_ENCODING));
+            (brokenXml2Part1 + brokenXml2Part2).getBytes(charEncoding));
     final String fixed =
         new String(
             FixEndOfBrokenXML.fixXML(toFix, "string", "</void></object></java>")
-                .getBytes(CHAR_ENCODING),
-            CHAR_ENCODING);
-    final String expected = BROKEN_XML_2_PART1 + "</object></java>";
+                .getBytes(charEncoding),
+            charEncoding);
+    final String expected = brokenXml2Part1 + "</object></java>";
     log.info("toFix:    " + toFix);
     log.info("fixed:    " + fixed);
     log.info("expected: " + expected);

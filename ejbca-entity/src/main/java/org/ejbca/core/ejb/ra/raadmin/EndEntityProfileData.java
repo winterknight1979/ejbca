@@ -44,52 +44,76 @@ public class EndEntityProfileData extends ProtectedData
     implements Serializable {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log =
+  /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(EndEntityProfileData.class);
 
+  /** Param. */
   private int id;
+  /** Param. */
   private String profileName;
+  /** Param. */
   private Serializable data;
+  /** Param. */
   private int rowVersion = 0;
+  /** Param. */
   private String rowProtection;
 
   /**
    * Entity holding data of a end entity profile.
    *
-   * @param id ID
-   * @param profileName Profile
+   * @param anid ID
+   * @param aprofileName Profile
    * @param endEntityProfile Entity
    */
   public EndEntityProfileData(
-      final int id,
-      final String profileName,
+      final int anid,
+      final String aprofileName,
       final EndEntityProfile endEntityProfile) {
-    setId(id);
-    setProfileName(profileName);
+    setId(anid);
+    setProfileName(aprofileName);
     setProfile(endEntityProfile);
-    log.debug("Created profile " + profileName);
+    LOG.debug("Created profile " + aprofileName);
   }
 
-  public EndEntityProfileData() {}
+  /**
+   * empty.
+   */
+  public EndEntityProfileData() { }
 
+  /**
+   * @return ID
+   */
   // @Id @Column
   public int getId() {
     return id;
   }
 
-  public void setId(final int id) {
-    this.id = id;
+  /**
+   * @param anid ID
+   */
+  public void setId(final int anid) {
+    this.id = anid;
   }
 
+  /**
+   * @return name
+   */
   // @Column
   public String getProfileName() {
     return profileName;
   }
 
-  public void setProfileName(final String profileName) {
-    this.profileName = profileName;
+  /**
+   * @param aprofileName name
+   */
+  public void setProfileName(final String aprofileName) {
+    this.profileName = aprofileName;
   }
 
+  /**
+   * @return data
+   */
   // @Column @Lob
   public Serializable getDataUnsafe() {
     return data;
@@ -97,19 +121,26 @@ public class EndEntityProfileData extends ProtectedData
   /**
    * DO NOT USE! Stick with setData(HashMap data) instead.
    *
-   * @param data Data
+   * @param thedata Data
    */
-  public void setDataUnsafe(final Serializable data) {
-    this.data = data;
+  public void setDataUnsafe(final Serializable thedata) {
+    this.data = thedata;
   }
 
+
+  /**
+   * @return version
+   */
   // @Version @Column
   public int getRowVersion() {
     return rowVersion;
   }
 
-  public void setRowVersion(final int rowVersion) {
-    this.rowVersion = rowVersion;
+  /**
+   * @param arowVersion version
+   */
+  public void setRowVersion(final int arowVersion) {
+    this.rowVersion = arowVersion;
   }
 
   // @Column @Lob
@@ -119,8 +150,8 @@ public class EndEntityProfileData extends ProtectedData
   }
 
   @Override
-  public void setRowProtection(final String rowProtection) {
-    this.rowProtection = rowProtection;
+  public void setRowProtection(final String arowProtection) {
+    this.rowProtection = arowProtection;
   }
 
   @Transient
@@ -133,8 +164,8 @@ public class EndEntityProfileData extends ProtectedData
     }
   }
 
-  private void setData(final LinkedHashMap<?, ?> data) {
-    setDataUnsafe(data);
+  private void setData(final LinkedHashMap<?, ?> thedata) {
+    setDataUnsafe(thedata);
   }
 
   /**
@@ -171,20 +202,20 @@ public class EndEntityProfileData extends ProtectedData
    */
   private EndEntityProfile readAndUpgradeProfileInternal() {
     EndEntityProfile returnval = new EndEntityProfile(0);
-    HashMap<?, ?> data = getData();
+    HashMap<?, ?> thedata = getData();
     // If EndEntityProfile-data is upgraded we want to save the new data, so we
     // must get the old version before loading the data
     // and perhaps upgrading
     float oldversion =
-        ((Float) data.get(UpgradeableDataHashMap.VERSION)).floatValue();
+        ((Float) thedata.get(UpgradeableDataHashMap.VERSION)).floatValue();
     // Load the profile data, this will potentially upgrade the
     // CertificateProfile
-    returnval.loadData(data);
+    returnval.loadData(thedata);
     if (Float.compare(oldversion, returnval.getVersion()) != 0) {
       // Save new data versions differ
       setProfile(returnval);
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Saved upgraded profile, old version="
                 + oldversion
                 + ", new version="

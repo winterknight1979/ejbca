@@ -13,16 +13,21 @@
 package org.ejbca.util;
 
 /**
- * See {@link #fixXML(String, String, String)}
+ * See {@link #fixXML(String, String, String)}.
  *
  * @author lars
  * @version $Id: FixEndOfBrokenXML.java 19902 2014-09-30 14:32:24Z anatom $
  */
-public class FixEndOfBrokenXML {
+public final class FixEndOfBrokenXML {
+      /** Param. */
   private final String sXML;
+  /** Param. */
   private final String sTag;
+  /** Param. */
   private final String sTail;
+  /** Param. */
   private int position = 0;
+  /** Param. */
   private int level = 0;
 
   private FixEndOfBrokenXML(final String s, final String l, final String t) {

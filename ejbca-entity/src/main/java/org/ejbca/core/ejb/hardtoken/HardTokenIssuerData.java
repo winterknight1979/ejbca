@@ -45,64 +45,93 @@ import org.ejbca.core.model.hardtoken.HardTokenIssuer;
 public class HardTokenIssuerData extends ProtectedData implements Serializable {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log = Logger.getLogger(HardTokenIssuerData.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(HardTokenIssuerData.class);
 
+  /** Param. */
   private int id;
+  /** Param. */
   private String alias;
+  /** Param. */
   private int roleId;
+  /** Param. */
   private Serializable data;
+  /** Param. */
   private int rowVersion = 0;
+  /** Param. */
   private String rowProtection;
 
   /**
    * Entity holding data of a hard token issuer.
    *
-   * @param id ID
-   * @param alias Alias
-   * @param roleId Role
+   * @param anid ID
+   * @param analias Alias
+   * @param aroleId Role
    * @param issuerdata Issuer
    */
   public HardTokenIssuerData(
-      final int id,
-      final String alias,
-      final int roleId,
+      final int anid,
+      final String analias,
+      final int aroleId,
       final HardTokenIssuer issuerdata) {
-    setId(id);
-    setAlias(alias);
-    setAdminGroupId(roleId);
+    setId(anid);
+    setAlias(analias);
+    setAdminGroupId(aroleId);
     setHardTokenIssuer(issuerdata);
-    log.debug("Created Hard Token Issuer " + alias);
+    LOG.debug("Created Hard Token Issuer " + analias);
   }
 
-  public HardTokenIssuerData() {}
+  /** Empty. */
+  public HardTokenIssuerData() { }
 
+  /**
+   * @return ID
+   */
   // @Id @Column
   public int getId() {
     return id;
   }
 
-  public void setId(final int id) {
-    this.id = id;
+  /**
+   * @param anid ID
+   */
+  public void setId(final int anid) {
+    this.id = anid;
   }
 
+  /**
+   * @return alias
+   */
   // @Column
   public String getAlias() {
     return alias;
   }
 
-  public void setAlias(final String alias) {
-    this.alias = alias;
+  /**
+   * @param analias alias
+   */
+  public void setAlias(final String analias) {
+    this.alias = analias;
   }
 
+/**
+ * @return ID
+ */
   // @Column
   public int getAdminGroupId() {
     return roleId;
   }
 
+  /**
+   * @param adminGroupId ID
+   */
   public void setAdminGroupId(final int adminGroupId) {
     this.roleId = adminGroupId;
   }
 
+  /**
+   * @return data
+   */
   // @Column @Lob
   public Serializable getDataUnsafe() {
     return data;
@@ -110,19 +139,25 @@ public class HardTokenIssuerData extends ProtectedData implements Serializable {
   /**
    * DO NOT USE! Stick with setData(HashMap data) instead.
    *
-   * @param data data
+   * @param thedata data
    */
-  public void setDataUnsafe(final Serializable data) {
-    this.data = data;
+  public void setDataUnsafe(final Serializable thedata) {
+    this.data = thedata;
   }
 
+  /**
+   * @return version
+   */
   // @Version @Column
   public int getRowVersion() {
     return rowVersion;
   }
 
-  public void setRowVersion(final int rowVersion) {
-    this.rowVersion = rowVersion;
+  /**
+   * @param arowVersion version
+   */
+  public void setRowVersion(final int arowVersion) {
+    this.rowVersion = arowVersion;
   }
 
   // @Column @Lob
@@ -132,8 +167,8 @@ public class HardTokenIssuerData extends ProtectedData implements Serializable {
   }
 
   @Override
-  public void setRowProtection(final String rowProtection) {
-    this.rowProtection = rowProtection;
+  public void setRowProtection(final String arowProtection) {
+    this.rowProtection = arowProtection;
   }
 
   @Transient
@@ -146,8 +181,8 @@ public class HardTokenIssuerData extends ProtectedData implements Serializable {
     }
   }
 
-  private void setData(final LinkedHashMap<?, ?> data) {
-    setDataUnsafe(data);
+  private void setData(final LinkedHashMap<?, ?> thedata) {
+    setDataUnsafe(thedata);
   }
 
   /**

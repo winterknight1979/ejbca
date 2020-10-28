@@ -43,79 +43,117 @@ public class HardTokenProfileData extends ProtectedData
     implements Serializable {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log =
+  /** Log. */
+  private static final Logger LOG =
       Logger.getLogger(HardTokenProfileData.class);
 
+  /** Param. */
   private int id;
+  /** Param. */
   private String name;
+  /** Param. */
   private int updateCounter;
+  /** Param. */
   private String data;
+  /** Param. */
   private int rowVersion = 0;
+  /** Param. */
   private String rowProtection;
 
   /**
    * Entity holding data of a hard token profile.
    *
-   * @param id ID
-   * @param name Name
-   * @param profile Profile
+   * @param anid ID
+   * @param aname Name
+   * @param aprofile Profile
    */
   public HardTokenProfileData(
-      final int id, final String name, final HardTokenProfile profile) {
-    setId(id);
-    setName(name);
+      final int anid, final String aname, final HardTokenProfile aprofile) {
+    setId(anid);
+    setName(aname);
     setUpdateCounter(0);
-    if (profile != null) {
-      setHardTokenProfile(profile);
+    if (aprofile != null) {
+      setHardTokenProfile(aprofile);
     }
-    log.debug("Created Hard Token Profile " + name);
+    LOG.debug("Created Hard Token Profile " + aname);
   }
 
-  public HardTokenProfileData() {}
+  /** Empty. */
+  public HardTokenProfileData() { }
 
+  /**
+   * @return ID
+   */
   // @Id @Column
   public int getId() {
     return id;
   }
 
-  public void setId(final int id) {
-    this.id = id;
+  /**
+   * @param anid ID
+   */
+  public void setId(final int anid) {
+    this.id = anid;
   }
 
+  /**
+   * @return name
+   */
   // @Column
   public String getName() {
     return name;
   }
 
-  public void setName(final String name) {
-    this.name = name;
+  /**
+   * @param aname name
+   */
+  public void setName(final String aname) {
+    this.name = aname;
   }
 
+  /**
+   * @return count
+   */
   // @Column
   public int getUpdateCounter() {
     return updateCounter;
   }
 
-  public void setUpdateCounter(final int updateCounter) {
-    this.updateCounter = updateCounter;
+  /**
+   * @param anupdateCounter count
+   */
+  public void setUpdateCounter(final int anupdateCounter) {
+    this.updateCounter = anupdateCounter;
   }
 
+  /**
+   * @return data
+   */
   // @Column @Lob
   public String getData() {
     return data;
   }
 
-  public void setData(final String data) {
-    this.data = data;
+  /**
+   * @param adata data
+   */
+  public void setData(final String adata) {
+    this.data = adata;
   }
 
+  /**
+   * @return version
+   */
   // @Version @Column
   public int getRowVersion() {
     return rowVersion;
   }
 
-  public void setRowVersion(final int rowVersion) {
-    this.rowVersion = rowVersion;
+  /**
+   * @param arowVersion version
+   */
+  public void setRowVersion(final int arowVersion) {
+    this.rowVersion = arowVersion;
   }
 
   // @Column @Lob
@@ -125,8 +163,8 @@ public class HardTokenProfileData extends ProtectedData
   }
 
   @Override
-  public void setRowProtection(final String rowProtection) {
-    this.rowProtection = rowProtection;
+  public void setRowProtection(final String arowProtection) {
+    this.rowProtection = arowProtection;
   }
 
   /**
@@ -144,12 +182,13 @@ public class HardTokenProfileData extends ProtectedData
     java.beans.XMLEncoder encoder = new java.beans.XMLEncoder(baos);
     encoder.writeObject(a);
     encoder.close();
+    final int siz = 10000;
     try {
-      if (log.isDebugEnabled()) {
-        if (baos.size() < 10000) {
-          log.debug("Profiledata: \n" + baos.toString("UTF8"));
+      if (LOG.isDebugEnabled()) {
+        if (baos.size() < siz) {
+          LOG.debug("Profiledata: \n" + baos.toString("UTF8"));
         } else {
-          log.debug("Profiledata larger than 10000 bytes, not displayed.");
+          LOG.debug("Profiledata larger than 10000 bytes, not displayed.");
         }
       }
       setData(baos.toString("UTF8"));

@@ -48,38 +48,47 @@ import org.ejbca.core.model.services.ServiceConfiguration;
 public class ServiceData extends ProtectedData implements Serializable {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log = Logger.getLogger(ServiceData.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(ServiceData.class);
 
+  /** Param. */
   private int id;
+  /** Param. */
   private String name;
+  /** Param. */
   private long runTimeStamp;
+  /** Param. */
   private long nextRunTimeStamp;
+  /** Param. */
   private String data;
+  /** Param. */
   private int rowVersion = 0;
+  /** Param. */
   private String rowProtection;
 
   /**
    * Entity Bean holding data of a service configuration.
    *
-   * @param id ID
-   * @param name Name
+   * @param iand ID
+   * @param aname Name
    * @param serviceConfiguration Config
    */
   public ServiceData(
-      final int id,
-      final String name,
+      final int iand,
+      final String aname,
       final ServiceConfiguration serviceConfiguration) {
-    setId(id);
-    setName(name);
+    setId(iand);
+    setName(aname);
     setNextRunTimeStamp(0); // defaults to 0 until we activate the service
     setRunTimeStamp(0); // when created the service has never run yet
     if (serviceConfiguration != null) {
       setServiceConfiguration(serviceConfiguration);
     }
-    log.debug("Created Service Configuration " + name);
+    LOG.debug("Created Service Configuration " + aname);
   }
 
-  public ServiceData() {}
+  /** Empty. */
+  public ServiceData() { }
 
   /**
    * Primary key.
@@ -91,8 +100,11 @@ public class ServiceData extends ProtectedData implements Serializable {
     return id;
   }
 
-  public void setId(final int id) {
-    this.id = id;
+  /**
+   * @param anid ID
+   */
+  public void setId(final int anid) {
+    this.id = anid;
   }
 
   /**
@@ -105,12 +117,15 @@ public class ServiceData extends ProtectedData implements Serializable {
     return name;
   }
 
-  public void setName(final String name) {
-    this.name = name;
+  /**
+   * @param aname name
+   */
+  public void setName(final String aname) {
+    this.name = aname;
   }
 
   /**
-   * Date formated as seconds since 1970 (== Date.getTime())
+   * Date formated as seconds since 1970 (== Date.getTime()).
    *
    * @return runTimeStamp the time the was running last time
    */
@@ -119,12 +134,15 @@ public class ServiceData extends ProtectedData implements Serializable {
     return runTimeStamp;
   }
 
-  public void setRunTimeStamp(final long runTimeStamp) {
-    this.runTimeStamp = runTimeStamp;
+  /**
+   * @param arunTimeStamp time
+   */
+  public void setRunTimeStamp(final long arunTimeStamp) {
+    this.runTimeStamp = arunTimeStamp;
   }
 
   /**
-   * Date formated as seconds since 1970 (== Date.getTime())
+   * Date formated as seconds since 1970 (== Date.getTime()).
    *
    * @return nextRunTimeStamp the time the service will run next time
    */
@@ -133,8 +151,11 @@ public class ServiceData extends ProtectedData implements Serializable {
     return nextRunTimeStamp;
   }
 
-  public void setNextRunTimeStamp(final long nextRunTimeStamp) {
-    this.nextRunTimeStamp = nextRunTimeStamp;
+  /**
+   * @param anextRunTimeStamp time
+   */
+  public void setNextRunTimeStamp(final long anextRunTimeStamp) {
+    this.nextRunTimeStamp = anextRunTimeStamp;
   }
 
   /**
@@ -147,17 +168,26 @@ public class ServiceData extends ProtectedData implements Serializable {
     return data;
   }
 
-  public void setData(final String data) {
-    this.data = data;
+  /**
+   * @param thedata data
+   */
+  public void setData(final String thedata) {
+    this.data = thedata;
   }
 
+  /**
+   * @return version
+   */
   // @Version @Column
   public int getRowVersion() {
     return rowVersion;
   }
 
-  public void setRowVersion(final int rowVersion) {
-    this.rowVersion = rowVersion;
+  /**
+   * @param arowVersion version
+   */
+  public void setRowVersion(final int arowVersion) {
+    this.rowVersion = arowVersion;
   }
 
   // @Column @Lob
@@ -167,8 +197,8 @@ public class ServiceData extends ProtectedData implements Serializable {
   }
 
   @Override
-  public void setRowProtection(final String rowProtection) {
-    this.rowProtection = rowProtection;
+  public void setRowProtection(final String arowProtection) {
+    this.rowProtection = arowProtection;
   }
 
   /**
@@ -188,34 +218,35 @@ public class ServiceData extends ProtectedData implements Serializable {
     } catch (IOException e) {
       final String msg =
           "Failed to parse ServiceData data map in database: " + e.getMessage();
-      if (log.isDebugEnabled()) {
-        log.debug(msg + ". Data:\n" + getData());
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(msg + ". Data:\n" + getData());
       }
       throw new IllegalStateException(msg, e);
     }
     // Handle Base64 encoded string values
-    HashMap<?, ?> data = new Base64GetHashMap(h);
+    HashMap<?, ?> thedata = new Base64GetHashMap(h);
     float oldversion =
-        ((Float) data.get(UpgradeableDataHashMap.VERSION)).floatValue();
+        ((Float) thedata.get(UpgradeableDataHashMap.VERSION)).floatValue();
     ServiceConfiguration serviceConfiguration = new ServiceConfiguration();
-    serviceConfiguration.loadData(data);
+    serviceConfiguration.loadData(thedata);
     if (Float.compare(oldversion, serviceConfiguration.getVersion()) != 0) {
       // Upgrade in version 4 of ServiceConfiguration. If we do not have
       // nextRunTimeStamp and runTimeStamp set in
       // the database, but we have them in serviceConfiguration, we will simply
       // copy the values over.
       // After this we will not use the values in ServiceConfiguration any more
-      final String NEXTRUNTIMESTAMP = "NEXTRUNTIMESTAMP";
-      final String OLDRUNTIMESTAMP = "OLDRUNTIMESTAMP";
+      final String lnextRunTimeStamp = "NEXTRUNTIMESTAMP";
+      final String oldRunTimeStamp = "OLDRUNTIMESTAMP";
       if ((getNextRunTimeStamp() == 0)
-          && (data.get(NEXTRUNTIMESTAMP) != null)) {
-        final long nextRunTs = ((Long) data.get(NEXTRUNTIMESTAMP)).longValue();
-        log.debug("Upgrading nextRunTimeStamp to " + nextRunTs);
+          && (thedata.get(lnextRunTimeStamp) != null)) {
+        final long nextRunTs =
+                ((Long) thedata.get(lnextRunTimeStamp)).longValue();
+        LOG.debug("Upgrading nextRunTimeStamp to " + nextRunTs);
         setNextRunTimeStamp(nextRunTs);
       }
-      if ((getRunTimeStamp() == 0) && (data.get(OLDRUNTIMESTAMP) != null)) {
-        final long runTs = ((Long) data.get(OLDRUNTIMESTAMP)).longValue();
-        log.debug("Upgrading runTimeStamp to " + runTs);
+      if ((getRunTimeStamp() == 0) && (thedata.get(oldRunTimeStamp) != null)) {
+        final long runTs = ((Long) thedata.get(oldRunTimeStamp)).longValue();
+        LOG.debug("Upgrading runTimeStamp to " + runTs);
         setRunTimeStamp(runTs);
       }
       setServiceConfiguration(serviceConfiguration);
@@ -239,8 +270,8 @@ public class ServiceData extends ProtectedData implements Serializable {
       encoder.writeObject(a);
     }
     try {
-      if (log.isDebugEnabled()) {
-        log.debug("Service data: \n" + baos.toString("UTF8"));
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Service data: \n" + baos.toString("UTF8"));
       }
       setData(baos.toString("UTF8"));
     } catch (UnsupportedEncodingException e) {

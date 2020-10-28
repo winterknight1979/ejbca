@@ -43,19 +43,26 @@ public class BlacklistData extends ProtectedData implements Serializable {
   private static final long serialVersionUID = 1L;
 
   /** Class logger. */
-  private static final Logger log = Logger.getLogger(BlacklistData.class);
+  private static final Logger LOG = Logger.getLogger(BlacklistData.class);
 
   // data fields.
+  /** Param. */
   private int id;
+  /** Param. */
   private String type;
+  /** Param. */
   private String value;
+  /** Param. */
   private String data;
+  /** Param. */
   private int updateCounter;
+  /** Param. */
   private int rowVersion = 0;
+  /** Param. */
   private String rowProtection;
 
   /** Creates a new instance. */
-  public BlacklistData() {}
+  public BlacklistData() { }
 
   /**
    * Creates a new instance.
@@ -74,8 +81,8 @@ public class BlacklistData extends ProtectedData implements Serializable {
    */
   @Transient
   public void setBlacklistEntry(final BlacklistEntry entry) {
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Setting BlacklistData '"
               + entry.getValue()
               + "' ("
@@ -97,22 +104,34 @@ public class BlacklistData extends ProtectedData implements Serializable {
     return ret;
   }
 
+  /**
+   * @return ID
+   */
   // @Id @Column
   public int getId() {
     return id;
   }
 
-  public void setId(final int id) {
-    this.id = id;
+  /**
+   * @param anid ID
+   */
+  public void setId(final int anid) {
+    this.id = anid;
   }
 
+  /**
+   * @return type
+   */
   // @Column
   public String getType() {
     return type;
   }
 
-  public void setType(final String type) {
-    this.type = type;
+  /**
+   * @param atype type
+   */
+  public void setType(final String atype) {
+    this.type = atype;
   }
 
   // @Column
@@ -126,35 +145,56 @@ public class BlacklistData extends ProtectedData implements Serializable {
     return data;
   }
 
-  public void setData(final String data) {
-    this.data = data;
+  /**
+   * @param thedata data
+   */
+  public void setData(final String thedata) {
+    this.data = thedata;
   }
 
+  /**
+   * @return val
+   */
   // @Column
   public String getValue() {
     return value;
   }
 
-  public void setValue(final String value) {
-    this.value = value;
+  /**
+   * @param avalue val
+   */
+  public void setValue(final String avalue) {
+    this.value = avalue;
   }
 
+  /**
+   * @return count
+   */
   // @Column
   public int getUpdateCounter() {
     return updateCounter;
   }
 
-  public void setUpdateCounter(final int updateCounter) {
-    this.updateCounter = updateCounter;
+  /**
+   * @param anupdateCounter count
+   */
+  public void setUpdateCounter(final int anupdateCounter) {
+    this.updateCounter = anupdateCounter;
   }
 
+  /**
+   * @return version
+   */
   // @Version @Column
   public int getRowVersion() {
     return rowVersion;
   }
 
-  public void setRowVersion(final int rowVersion) {
-    this.rowVersion = rowVersion;
+  /**
+   * @param arowVersion version
+   */
+  public void setRowVersion(final int arowVersion) {
+    this.rowVersion = arowVersion;
   }
 
   // @Column @Lob
@@ -164,8 +204,8 @@ public class BlacklistData extends ProtectedData implements Serializable {
   }
 
   @Override
-  public void setRowProtection(final String rowProtection) {
-    this.rowProtection = rowProtection;
+  public void setRowProtection(final String arowProtection) {
+    this.rowProtection = arowProtection;
   }
 
   //

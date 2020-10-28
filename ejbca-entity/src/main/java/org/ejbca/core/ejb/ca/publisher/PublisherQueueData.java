@@ -64,75 +64,107 @@ import org.ejbca.core.model.ca.publisher.PublisherQueueVolatileInformation;
 public class PublisherQueueData extends ProtectedData implements Serializable {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log = Logger.getLogger(PublisherQueueData.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(PublisherQueueData.class);
 
+  /** Param. */
   private String pk;
+  /** Param. */
   private long timeCreated;
+  /** Param. */
   private long lastUpdate;
+  /** Param. */
   private int publishStatus;
+  /** Param. */
   private int tryCounter;
+  /** Param. */
   private int publishType;
+  /** Param. */
   private String fingerprint;
+  /** Param. */
   private int publisherId;
+  /** Param. */
   private String volatileData;
+  /** Param. */
   private int rowVersion = 0;
+  /** Param. */
   private String rowProtection;
 
   /**
-   * @param publisherId ID
-   * @param publishType is one of PublisherConst.PUBLISH_TYPE_CERT or CRL
-   * @param fingerprint FP
-   * @param queueData Data
-   * @param publishStatus Status
+   * @param apublisherId ID
+   * @param apublishType is one of PublisherConst.PUBLISH_TYPE_CERT or CRL
+   * @param afingerprint FP
+   * @param aqueueData Data
+   * @param apublishStatus Status
    */
   public PublisherQueueData(
-      final int publisherId,
-      final int publishType,
-      final String fingerprint,
-      final PublisherQueueVolatileInformation queueData,
-      final int publishStatus) {
-    String pk = GUIDGenerator.generateGUID(this);
-    setPk(pk);
+      final int apublisherId,
+      final int apublishType,
+      final String afingerprint,
+      final PublisherQueueVolatileInformation aqueueData,
+      final int apublishStatus) {
+    String apk = GUIDGenerator.generateGUID(this);
+    setPk(apk);
     setTimeCreated(System.currentTimeMillis());
     setLastUpdate(0);
-    setPublishStatus(publishStatus);
+    setPublishStatus(apublishStatus);
     setTryCounter(0);
-    setPublishType(publishType);
-    setFingerprint(fingerprint);
-    setPublisherId(publisherId);
-    setPublisherQueueVolatileData(queueData);
-    if (log.isDebugEnabled()) {
-      log.debug("Created Publisher queue data " + pk);
+    setPublishType(apublishType);
+    setFingerprint(afingerprint);
+    setPublisherId(apublisherId);
+    setPublisherQueueVolatileData(aqueueData);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Created Publisher queue data " + apk);
     }
   }
 
-  public PublisherQueueData() {}
+  /** Empty.
+   */
+  public PublisherQueueData() { }
 
+  /**
+   * @return key
+   */
   // @Id @Column
   public String getPk() {
     return pk;
   }
 
-  public void setPk(final String pk) {
-    this.pk = pk;
+  /**
+   * @param apk key
+   */
+  public void setPk(final String apk) {
+    this.pk = apk;
   }
 
+  /**
+   * @return time
+   */
   // @Column
   public long getTimeCreated() {
     return timeCreated;
   }
 
-  public void setTimeCreated(final long timeCreated) {
-    this.timeCreated = timeCreated;
+  /**
+   * @param atimeCreated time
+   */
+  public void setTimeCreated(final long atimeCreated) {
+    this.timeCreated = atimeCreated;
   }
 
+  /**
+   * @return update
+   */
   // @Column
   public long getLastUpdate() {
     return lastUpdate;
   }
 
-  public void setLastUpdate(final long lastUpdate) {
-    this.lastUpdate = lastUpdate;
+  /**
+   * @param alastUpdate update
+   */
+  public void setLastUpdate(final long alastUpdate) {
+    this.lastUpdate = alastUpdate;
   }
 
   /**
@@ -147,22 +179,31 @@ public class PublisherQueueData extends ProtectedData implements Serializable {
     return publishStatus;
   }
 
-  public void setPublishStatus(final int publishStatus) {
-    this.publishStatus = publishStatus;
+  /**
+   * @param apublishStatus status
+   */
+  public void setPublishStatus(final int apublishStatus) {
+    this.publishStatus = apublishStatus;
   }
 
+  /**
+   * @return count
+   */
   // @Column
   public int getTryCounter() {
     return tryCounter;
   }
 
-  public void setTryCounter(final int tryCounter) {
-    this.tryCounter = tryCounter;
+  /**
+   * @param atryCounter count
+   */
+  public void setTryCounter(final int atryCounter) {
+    this.tryCounter = atryCounter;
   }
 
   /**
    * PublishType is one of
-   * org.ejbca.core.model.ca.publisher.PublisherConst.PUBLISH_TYPE_CERT or CRL
+   * org.ejbca.core.model.ca.publisher.PublisherConst.PUBLISH_TYPE_CERT or CRL.
    *
    * @return Type
    */
@@ -171,8 +212,11 @@ public class PublisherQueueData extends ProtectedData implements Serializable {
     return publishType;
   }
 
-  public void setPublishType(final int publishType) {
-    this.publishType = publishType;
+  /**
+   * @param apublishType type
+   */
+  public void setPublishType(final int apublishType) {
+    this.publishType = apublishType;
   }
 
   /**
@@ -185,35 +229,57 @@ public class PublisherQueueData extends ProtectedData implements Serializable {
     return fingerprint;
   }
 
-  public void setFingerprint(final String fingerprint) {
-    this.fingerprint = fingerprint;
+  /**
+   * @param afingerprint FP
+   */
+  public void setFingerprint(final String afingerprint) {
+    this.fingerprint = afingerprint;
   }
 
+
+  /**
+   * @return ID
+   */
   // @Column
   public int getPublisherId() {
     return publisherId;
   }
 
-  public void setPublisherId(final int publisherId) {
-    this.publisherId = publisherId;
+  /**
+   * @param apublisherId ID
+   */
+  public void setPublisherId(final int apublisherId) {
+    this.publisherId = apublisherId;
   }
 
+  /**
+   * @return data
+   */
   // @Column @Lob
   public String getVolatileData() {
     return volatileData;
   }
 
-  public void setVolatileData(final String volatileData) {
-    this.volatileData = volatileData;
+  /**
+   * @param thevolatileData data
+   */
+  public void setVolatileData(final String thevolatileData) {
+    this.volatileData = thevolatileData;
   }
 
+  /**
+   * @return version
+   */
   // @Version @Column
   public int getRowVersion() {
     return rowVersion;
   }
 
-  public void setRowVersion(final int rowVersion) {
-    this.rowVersion = rowVersion;
+  /**
+   * @param arowVersion version
+   */
+  public void setRowVersion(final int arowVersion) {
+    this.rowVersion = arowVersion;
   }
 
   // @Column @Lob
@@ -223,8 +289,8 @@ public class PublisherQueueData extends ProtectedData implements Serializable {
   }
 
   @Override
-  public void setRowProtection(final String rowProtection) {
-    this.rowProtection = rowProtection;
+  public void setRowProtection(final String arowProtection) {
+    this.rowProtection = arowProtection;
   }
 
   /**
@@ -248,8 +314,8 @@ public class PublisherQueueData extends ProtectedData implements Serializable {
             "Failed to parse PublisherQueueVolatileInformation map in"
                 + " database: "
                 + e.getMessage();
-        if (log.isDebugEnabled()) {
-          log.debug(msg + ". Data:\n" + vd);
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(msg + ". Data:\n" + vd);
         }
         throw new IllegalStateException(msg, e);
       }
@@ -278,15 +344,16 @@ public class PublisherQueueData extends ProtectedData implements Serializable {
       a.putAll((HashMap<Object, Object>) qd.saveData());
 
       // typical size of XML is something like 250-400 chars
+      final int siz = 400;
       java.io.ByteArrayOutputStream baos =
-          new java.io.ByteArrayOutputStream(400);
+          new java.io.ByteArrayOutputStream(siz);
       try (XMLEncoder encoder = new XMLEncoder(baos)) {
         encoder.writeObject(a);
       }
 
       try {
-        if (log.isDebugEnabled()) {
-          log.debug("PublisherQueueVolatileData: \n" + baos.toString("UTF8"));
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("PublisherQueueVolatileData: \n" + baos.toString("UTF8"));
         }
         setVolatileData(baos.toString("UTF8"));
       } catch (UnsupportedEncodingException e) {
@@ -435,6 +502,7 @@ public class PublisherQueueData extends ProtectedData implements Serializable {
       final int publisherId,
       final int[] lowerBounds,
       final int[] upperBounds) {
+    final long msPerS = 1000L;
     if (lowerBounds.length == 0) {
       throw new IllegalArgumentException(
           "lowerBounds and upperBounds are mandatory parameters");
@@ -456,11 +524,11 @@ public class PublisherQueueData extends ProtectedData implements Serializable {
       sql.append(PublisherConst.STATUS_PENDING);
       if (lowerBounds[i] > 0) {
         sql.append(" AND timeCreated < ");
-        sql.append(now - 1000L * lowerBounds[i]);
+        sql.append(now - msPerS * lowerBounds[i]);
       }
       if (upperBounds[i] > 0) {
         sql.append(" AND timeCreated > ");
-        sql.append(now - 1000L * upperBounds[i]);
+        sql.append(now - msPerS * upperBounds[i]);
       }
       if (i < lowerBounds.length - 1) {
         sql.append(" UNION ALL ");
@@ -468,15 +536,15 @@ public class PublisherQueueData extends ProtectedData implements Serializable {
     }
     sql.append(") tmp ORDER BY tmp.ordering");
 
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "findCountOfPendingEntriesForPublisher executing SQL: "
               + sql.toString());
     }
     final Query query = entityManager.createNativeQuery(sql.toString());
     List<?> resultList = query.getResultList();
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "findCountOfPendingEntriesForPublisher result: "
               + resultList.toString());
     }

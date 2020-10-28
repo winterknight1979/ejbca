@@ -53,27 +53,45 @@ import org.ejbca.util.crypto.SupportedPasswordHashAlgorithm;
 public class UserData extends ProtectedData implements Serializable {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log = Logger.getLogger(UserData.class);
-  /** Internal localization of logs and errors */
-  private static final InternalEjbcaResources intres =
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(UserData.class);
+  /** Internal localization of logs and errors. */
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
+  /** PAram. */
   private String username;
+  /** PAram. */
   private String subjectDN;
+  /** PAram. */
   private int caId;
+  /** PAram. */
   private String subjectAltName;
+  /** PAram. */
   private String cardNumber;
+  /** PAram. */
   private String subjectEmail;
+  /** PAram. */
   private int status;
+  /** PAram. */
   private int type;
+  /** PAram. */
   private String clearPassword;
+  /** PAram. */
   private String passwordHash;
+  /** PAram. */
   private long timeCreated;
+  /** PAram. */
   private long timeModified;
+  /** PAram. */
   private int endEntityProfileId;
+  /** PAram. */
   private int certificateProfileId;
+  /** PAram. */
   private int tokenType;
+  /** PAram. */
   private int hardTokenIssuerId;
+  /** PAram. */
   private String extendedInformationData;
   /**
    * instantiated object of the above, used to not have to encode/decode the
@@ -81,12 +99,16 @@ public class UserData extends ProtectedData implements Serializable {
    */
   private ExtendedInformation extendedInformation;
 
+  /** PAram. */
   private String keyStorePassword;
+  /** PAram. */
   private int rowVersion = 0;
+  /** PAram. */
   private String rowProtection;
   // Performance optimization within a transaction, to not have to hash the
   // password when comparing internally in the same transaction, saving one
   // BCrypt operation
+  /** PAram. */
   private transient String transientPwd;
 
   /**
@@ -96,7 +118,7 @@ public class UserData extends ProtectedData implements Serializable {
    * the respective set-methods. Clear text password is not set at all and must
    * be set using setClearPassword();
    *
-   * @param username the unique username used for authentication.
+   * @param ausername the unique username used for authentication.
    * @param password the password used for authentication. If clearpwd is false
    *     this only sets passwordhash, if clearpwd is true it also sets cleartext
    *     password.
@@ -109,17 +131,17 @@ public class UserData extends ProtectedData implements Serializable {
    * @param altname string of alternative names, i.e.
    *     rfc822name=foo2bar.com,dnsName=foo.bar.com, can be null
    * @param email user email address, can be null
-   * @param type user type, i.e. EndEntityTypes.USER_ENDUSER etc
+   * @param atype user type, i.e. EndEntityTypes.USER_ENDUSER etc
    * @param eeprofileid end entity profile id, can be 0
    * @param certprofileid certificate profile id, can be 0
    * @param tokentype token type to issue to the user, i.e.
    *     SecConst.TOKEN_SOFT_BROWSERGEN
    * @param hardtokenissuerid hard token issuer id if hard token issuing is
    *     used, 0 otherwise
-   * @param extendedInformation ExtendedInformation object
+   * @param theextendedInformation ExtendedInformation object
    */
   public UserData(
-      final String username,
+      final String ausername,
       final String password,
       final boolean clearpwd,
       final String dn,
@@ -127,14 +149,14 @@ public class UserData extends ProtectedData implements Serializable {
       final String cardnumber,
       final String altname,
       final String email,
-      final int type,
+      final int atype,
       final int eeprofileid,
       final int certprofileid,
       final int tokentype,
       final int hardtokenissuerid,
-      final ExtendedInformation extendedInformation) {
+      final ExtendedInformation theextendedInformation) {
     long time = new Date().getTime();
-    setUsername(username);
+    setUsername(ausername);
     if (clearpwd) {
       setOpenPassword(password);
     } else {
@@ -147,29 +169,36 @@ public class UserData extends ProtectedData implements Serializable {
     setSubjectAltName(altname);
     setSubjectEmail(email);
     setStatus(EndEntityConstants.STATUS_NEW);
-    setType(type);
+    setType(atype);
     setTimeCreated(time);
     setTimeModified(time);
     setEndEntityProfileId(eeprofileid);
     setCertificateProfileId(certprofileid);
     setTokenType(tokentype);
     setHardTokenIssuerId(hardtokenissuerid);
-    setExtendedInformation(extendedInformation);
+    setExtendedInformation(theextendedInformation);
     setCardNumber(cardnumber);
-    if (log.isDebugEnabled()) {
-      log.debug("Created user " + username);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Created user " + ausername);
     }
   }
 
-  public UserData() {}
+  /** Empty. */
+  public UserData() { }
 
+  /**
+   * @return user
+   */
   // @Id @Column
   public String getUsername() {
     return username;
   }
 
-  public void setUsername(final String username) {
-    this.username = StringTools.stripUsername(username);
+  /**
+   * @param ausername user
+   */
+  public void setUsername(final String ausername) {
+    this.username = StringTools.stripUsername(ausername);
   }
 
   /** @return the current Subject DN of the EE, never null */
@@ -190,24 +219,33 @@ public class UserData extends ProtectedData implements Serializable {
     return subjectDN;
   }
 
-  public void setSubjectDN(final String subjectDN) {
-    this.subjectDN = subjectDN;
+  /**
+   * @param asubjectDN DN
+   */
+  public void setSubjectDN(final String asubjectDN) {
+    this.subjectDN = asubjectDN;
   }
 
+  /**
+   * @return ID
+   */
   // @Column
   public int getCaId() {
     return caId;
   }
 
-  public void setCaId(final int caId) {
-    this.caId = caId;
+  /**
+   * @param acaId ID
+   */
+  public void setCaId(final int acaId) {
+    this.caId = acaId;
   }
 
   /** @return the current Subject AN of the EE, never null */
   @Transient
   public String getSubjectAltNameNeverNull() {
-    final String subjectAltName = getSubjectAltName();
-    return subjectAltName == null ? "" : subjectAltName;
+    final String asubjectAltName = getSubjectAltName();
+    return asubjectAltName == null ? "" : asubjectAltName;
   }
 
   /**
@@ -221,44 +259,71 @@ public class UserData extends ProtectedData implements Serializable {
     return subjectAltName;
   }
 
-  public void setSubjectAltName(final String subjectAltName) {
-    this.subjectAltName = subjectAltName;
+  /**
+   * @param asubjectAltName name
+   */
+  public void setSubjectAltName(final String asubjectAltName) {
+    this.subjectAltName = asubjectAltName;
   }
 
+  /**
+   * @return num
+   */
   // @Column
   public String getCardNumber() {
     return cardNumber;
   }
 
-  public void setCardNumber(final String cardNumber) {
-    this.cardNumber = cardNumber;
+  /**
+   * @param acardNumber num
+   */
+  public void setCardNumber(final String acardNumber) {
+    this.cardNumber = acardNumber;
   }
 
+  /**
+   * @return email
+   */
   // @Column
   public String getSubjectEmail() {
     return subjectEmail;
   }
 
-  public void setSubjectEmail(final String subjectEmail) {
-    this.subjectEmail = subjectEmail;
+  /**
+   * @param asubjectEmail email
+   */
+  public void setSubjectEmail(final String asubjectEmail) {
+    this.subjectEmail = asubjectEmail;
   }
 
+  /**
+   * @return status
+   */
   // @Column
   public int getStatus() {
     return this.status;
   }
 
-  public void setStatus(final int status) {
-    this.status = status;
+  /**
+   * @param astatus status
+   */
+  public void setStatus(final int astatus) {
+    this.status = astatus;
   }
 
+  /**
+   * @return type
+   */
   // @Column
   public int getType() {
     return type;
   }
 
-  public void setType(final int type) {
-    this.type = type;
+  /**
+   * @param atype type
+   */
+  public void setType(final int atype) {
+    this.type = atype;
   }
 
   /**
@@ -277,10 +342,10 @@ public class UserData extends ProtectedData implements Serializable {
    * This method is needed for Java Persistence. The preferred method for usage
    * is setOpenPassword(). Sets the clearPassword column in the database.
    *
-   * @param clearPassword PWD
+   * @param aclearPassword PWD
    */
-  public void setClearPassword(final String clearPassword) {
-    this.clearPassword = clearPassword;
+  public void setClearPassword(final String aclearPassword) {
+    this.clearPassword = aclearPassword;
   }
 
   /**
@@ -297,10 +362,10 @@ public class UserData extends ProtectedData implements Serializable {
    * Sets hash of password, this is the normal way to store passwords, but use
    * the method setPassword() instead.
    *
-   * @param passwordHash Hash
+   * @param apasswordHash Hash
    */
-  public void setPasswordHash(final String passwordHash) {
-    this.passwordHash = passwordHash;
+  public void setPasswordHash(final String apasswordHash) {
+    this.passwordHash = apasswordHash;
   }
 
   /**
@@ -316,10 +381,10 @@ public class UserData extends ProtectedData implements Serializable {
   /**
    * Sets the time when the user was created.
    *
-   * @param timeCreated Time
+   * @param atimeCreated Time
    */
-  public void setTimeCreated(final long timeCreated) {
-    this.timeCreated = timeCreated;
+  public void setTimeCreated(final long atimeCreated) {
+    this.timeCreated = atimeCreated;
   }
 
   /**
@@ -335,10 +400,10 @@ public class UserData extends ProtectedData implements Serializable {
   /**
    * Sets the time when the user was last modified.
    *
-   * @param timeModified Time
+   * @param atimeModified Time
    */
-  public void setTimeModified(final long timeModified) {
-    this.timeModified = timeModified;
+  public void setTimeModified(final long atimeModified) {
+    this.timeModified = atimeModified;
   }
 
   /**
@@ -355,10 +420,10 @@ public class UserData extends ProtectedData implements Serializable {
    * Sets the end entity profile id the user should belong to. 0 if profileid is
    * not applicable.
    *
-   * @param endEntityProfileId Time
+   * @param anendEntityProfileId Time
    */
-  public void setEndEntityProfileId(final int endEntityProfileId) {
-    this.endEntityProfileId = endEntityProfileId;
+  public void setEndEntityProfileId(final int anendEntityProfileId) {
+    this.endEntityProfileId = anendEntityProfileId;
   }
 
   /**
@@ -375,10 +440,10 @@ public class UserData extends ProtectedData implements Serializable {
    * Sets the certificate profile id that should be generated for the user. 0 if
    * profileid is not applicable.
    *
-   * @param certificateProfileId time
+   * @param acertificateProfileId time
    */
-  public void setCertificateProfileId(final int certificateProfileId) {
-    this.certificateProfileId = certificateProfileId;
+  public void setCertificateProfileId(final int acertificateProfileId) {
+    this.certificateProfileId = acertificateProfileId;
   }
 
   /**
@@ -395,10 +460,10 @@ public class UserData extends ProtectedData implements Serializable {
    * Sets the token type that should be generated for the user. Available token
    * types can be found in SecConst.
    *
-   * @param tokenType Time
+   * @param atokenType Time
    */
-  public void setTokenType(final int tokenType) {
-    this.tokenType = tokenType;
+  public void setTokenType(final int atokenType) {
+    this.tokenType = atokenType;
   }
 
   /**
@@ -416,10 +481,10 @@ public class UserData extends ProtectedData implements Serializable {
    * Sets the hard token issuer id that should genererate for the users hard
    * token. 0 if issuerid is not applicable.
    *
-   * @param hardTokenIssuerId ID
+   * @param ahardTokenIssuerId ID
    */
-  public void setHardTokenIssuerId(final int hardTokenIssuerId) {
-    this.hardTokenIssuerId = hardTokenIssuerId;
+  public void setHardTokenIssuerId(final int ahardTokenIssuerId) {
+    this.hardTokenIssuerId = ahardTokenIssuerId;
   }
 
   /**
@@ -435,10 +500,11 @@ public class UserData extends ProtectedData implements Serializable {
   /**
    * Non-searchable information about a user.
    *
-   * @param extendedInformationData Data
+   * @param theextendedInformationData Data
    */
-  public void setExtendedInformationData(final String extendedInformationData) {
-    this.setZzzExtendedInformationData(extendedInformationData);
+  public void setExtendedInformationData(
+          final String theextendedInformationData) {
+    this.setZzzExtendedInformationData(theextendedInformationData);
   }
 
   /**
@@ -465,6 +531,9 @@ public class UserData extends ProtectedData implements Serializable {
     this.extendedInformationData = zzzExtendedInformationData;
   }
 
+  /**
+   * @return pwd
+   */
   @Deprecated
   // Can't find any references to this field. Please un-deprecate if an use is
   // discovered! =)
@@ -473,20 +542,29 @@ public class UserData extends ProtectedData implements Serializable {
     return keyStorePassword;
   }
 
+  /**
+   * @param akeyStorePassword pwd
+   */
   @Deprecated
   // Can't find any references to this field. Please un-deprecate if an use is
   // discovered! =)
-  public void setKeyStorePassword(final String keyStorePassword) {
-    this.keyStorePassword = keyStorePassword;
+  public void setKeyStorePassword(final String akeyStorePassword) {
+    this.keyStorePassword = akeyStorePassword;
   }
 
+  /**
+   * @return version
+   */
   // @Version @Column
   public int getRowVersion() {
     return rowVersion;
   }
 
-  public void setRowVersion(final int rowVersion) {
-    this.rowVersion = rowVersion;
+  /**
+   * @param arowVersion version
+   */
+  public void setRowVersion(final int arowVersion) {
+    this.rowVersion = arowVersion;
   }
 
   // @Column @Lob
@@ -496,8 +574,8 @@ public class UserData extends ProtectedData implements Serializable {
   }
 
   @Override
-  public void setRowProtection(final String rowProtection) {
-    this.setZzzRowProtection(rowProtection);
+  public void setRowProtection(final String arowProtection) {
+    this.setZzzRowProtection(arowProtection);
   }
 
   /**
@@ -538,27 +616,27 @@ public class UserData extends ProtectedData implements Serializable {
 
   /**
    * Sets password in hashed form in the database, this way it cannot be read in
-   * clear form
+   * clear form.
    *
    * @param password Pass
    * @throws NoSuchAlgorithmException on fail
    */
   public void setPassword(final String password)
       throws NoSuchAlgorithmException {
-    String passwordHash = CryptoTools.makePasswordHash(password);
-    setPasswordHash(passwordHash);
+    String apasswordHash = CryptoTools.makePasswordHash(password);
+    setPasswordHash(apasswordHash);
     setClearPassword(null);
   }
 
   /**
    * Sets the password in both hashed and clear (obfuscated though) form in the
-   * database, clear is needed for machine processing
+   * database, clear is needed for machine processing.
    *
    * @param password Pass
    */
   public void setOpenPassword(final String password) {
-    String passwordHash = CryptoTools.makePasswordHash(password);
-    setPasswordHash(passwordHash);
+    String apasswordHash = CryptoTools.makePasswordHash(password);
+    setPasswordHash(apasswordHash);
     setClearPassword(StringTools.obfuscate(password));
   }
 
@@ -583,7 +661,7 @@ public class UserData extends ProtectedData implements Serializable {
   }
 
   /**
-   * Verifies password by verifying against passwordhash
+   * Verifies password by verifying against passwordhash.
    *
    * @param password Pass
    * @return bool
@@ -591,8 +669,8 @@ public class UserData extends ProtectedData implements Serializable {
    */
   public boolean comparePassword(final String password)
       throws NoSuchAlgorithmException {
-    if (log.isTraceEnabled()) {
-      log.trace(">comparePassword()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">comparePassword()");
     }
     boolean ret = false;
     if (password != null) {
@@ -618,8 +696,8 @@ public class UserData extends ProtectedData implements Serializable {
         }
       }
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<comparePassword()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<comparePassword()");
     }
     return ret;
   }
@@ -628,6 +706,7 @@ public class UserData extends ProtectedData implements Serializable {
   // Helper functions
   //
 
+  @Override
   @Transient
   public UserData clone() {
     final UserData userData = new UserData();
@@ -670,15 +749,15 @@ public class UserData extends ProtectedData implements Serializable {
   /**
    * Non-searchable information about a user.
    *
-   * @param extendedInformation Info
+   * @param theextendedInformation Info
    */
   public void setExtendedInformation(
-      final ExtendedInformation extendedInformation) {
-    this.extendedInformation = extendedInformation;
+      final ExtendedInformation theextendedInformation) {
+    this.extendedInformation = theextendedInformation;
     // If we are making it blank, make sure our data is blank as well, otherwise
     // getExtendedInformation
     // above will return the old value
-    if (extendedInformation == null) {
+    if (theextendedInformation == null) {
       extendedInformationData = null;
     }
   }
@@ -696,13 +775,13 @@ public class UserData extends ProtectedData implements Serializable {
   /**
    * Non-searchable information about a user.
    *
-   * @param extendedInformation Info
+   * @param theextendedInformation Info
    */
   public void setExtendedInformationPrePersist(
-      final ExtendedInformation extendedInformation) {
+      final ExtendedInformation theextendedInformation) {
     setExtendedInformationData(
         EndEntityInformation.extendedInformationToStringData(
-            extendedInformation));
+            theextendedInformation));
   }
 
   /**
@@ -742,8 +821,8 @@ public class UserData extends ProtectedData implements Serializable {
   @Transient
   public static boolean resetRemainingLoginAttemptsInternal(
       final ExtendedInformation ei, final String username) {
-    if (log.isTraceEnabled()) {
-      log.trace(">resetRemainingLoginAttemptsInternal");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">resetRemainingLoginAttemptsInternal");
     }
     final boolean ret;
     if (ei != null) {
@@ -751,9 +830,9 @@ public class UserData extends ProtectedData implements Serializable {
       if (resetValue != -1 || ei.getRemainingLoginAttempts() != -1) {
         ei.setRemainingLoginAttempts(resetValue);
         final String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "ra.resettedloginattemptscounter", username, resetValue);
-        log.info(msg);
+        LOG.info(msg);
         ret = true;
       } else {
         ret = false;
@@ -761,8 +840,8 @@ public class UserData extends ProtectedData implements Serializable {
     } else {
       ret = false;
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<resetRamainingLoginAttemptsInternal: " + ret);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<resetRamainingLoginAttemptsInternal: " + ret);
     }
     return ret;
   }

@@ -15,39 +15,61 @@ package org.ejbca.core.ejb.hardtoken;
 
 import java.io.Serializable;
 
-/** Primary key for HardTokenPropertyData */
+/** Primary key for HardTokenPropertyData. */
 public class HardTokenPropertyDataPK implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
-  public String id;
-  public String property;
+  /** Param. */
+  private String id;
+  /** Param. */
+  private String property;
 
-  public HardTokenPropertyDataPK() {}
+  /**
+   * Empty.
+   */
+  public HardTokenPropertyDataPK() { }
 
-  public HardTokenPropertyDataPK(final String id, final String property) {
-    setId(id);
+  /**
+   * @param anid ID
+   * @param aproperty Prop
+   */
+  public HardTokenPropertyDataPK(final String anid, final String aproperty) {
+    setId(anid);
     setProperty(property);
   }
 
+  /**
+   * @return ID
+   */
   // @Column
   public String getId() {
     return id;
   }
 
-  public void setId(final String id) {
-    this.id = id;
+  /**
+   * @param anid ID
+   */
+  public void setId(final String anid) {
+    this.id = anid;
   }
 
+  /**
+   * @return prop
+   */
   // @Column
   public String getProperty() {
     return property;
   }
 
-  public void setProperty(final String property) {
-    this.property = property;
+  /**
+   * @param aproperty prop
+   */
+  public void setProperty(final String aproperty) {
+    this.property = aproperty;
   }
 
+  @Override
   public int hashCode() {
     int hashCode = 0;
     if (id != null) {
@@ -59,6 +81,7 @@ public class HardTokenPropertyDataPK implements Serializable {
     return hashCode;
   }
 
+  @Override
   public boolean equals(final Object obj) {
     if (obj == this) {
       return true;

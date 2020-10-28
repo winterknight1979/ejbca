@@ -40,38 +40,53 @@ public class AdminPreferencesData extends ProtectedData
     implements Serializable {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log =
+  /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(AdminPreferencesData.class);
 
+  /** Param. */
   private String id;
+  /** Param. */
   private Serializable data;
+  /** Param. */
   private int rowVersion = 0;
+  /** Param. */
   private String rowProtection;
 
   /**
    * Entity holding data of admin preferences.
    *
-   * @param id the serialnumber.
+   * @param anid the serialnumber.
    * @param adminpreference is the AdminPreference.
    */
   public AdminPreferencesData(
-      final String id, final AdminPreference adminpreference) {
-    setId(id);
+      final String anid, final AdminPreference adminpreference) {
+    setId(anid);
     setAdminPreference(adminpreference);
-    log.debug("Created admin preference " + id);
+    LOG.debug("Created admin preference " + anid);
   }
 
-  public AdminPreferencesData() {}
+  /** Empty. */
+  public AdminPreferencesData() { }
 
+  /**
+   * @return ID
+   */
   // @Id @Column
   public String getId() {
     return id;
   }
 
-  public void setId(final String id) {
-    this.id = id;
+  /**
+   * @param anid ID
+   */
+  public void setId(final String anid) {
+    this.id = anid;
   }
 
+  /**
+   * @return data
+   */
   // @Column @Lob
   public Serializable getDataUnsafe() {
     return data;
@@ -79,19 +94,25 @@ public class AdminPreferencesData extends ProtectedData
   /**
    * DO NOT USE! Stick with setData(HashMap data) instead.
    *
-   * @param data Data
+   * @param adata Data
    */
-  public void setDataUnsafe(final Serializable data) {
-    this.data = data;
+  public void setDataUnsafe(final Serializable adata) {
+    this.data = adata;
   }
 
+  /**
+   * @return version
+   */
   // @Version @Column
   public int getRowVersion() {
     return rowVersion;
   }
 
-  public void setRowVersion(final int rowVersion) {
-    this.rowVersion = rowVersion;
+  /**
+   * @param arowVersion version
+   */
+  public void setRowVersion(final int arowVersion) {
+    this.rowVersion = arowVersion;
   }
 
   // @Column @Lob
@@ -101,8 +122,8 @@ public class AdminPreferencesData extends ProtectedData
   }
 
   @Override
-  public void setRowProtection(final String rowProtection) {
-    this.rowProtection = rowProtection;
+  public void setRowProtection(final String arowProtection) {
+    this.rowProtection = arowProtection;
   }
 
   @Transient
@@ -115,8 +136,8 @@ public class AdminPreferencesData extends ProtectedData
     }
   }
 
-  private void setData(final LinkedHashMap<?, ?> data) {
-    setDataUnsafe(data);
+  private void setData(final LinkedHashMap<?, ?> adata) {
+    setDataUnsafe(adata);
   }
 
   /**

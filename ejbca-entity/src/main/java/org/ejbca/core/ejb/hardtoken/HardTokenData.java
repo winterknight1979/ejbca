@@ -42,105 +42,156 @@ import org.cesecore.util.StringTools;
 public class HardTokenData extends ProtectedData implements Serializable {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log = Logger.getLogger(HardTokenData.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(HardTokenData.class);
 
+  /** Config. */
   public static final String ENCRYPTEDDATA = "ENCRYPTEDDATA";
 
+  /** Param. */
   private String tokenSN;
+  /** Param. */
   private String username;
+  /** Param. */
   private long cTime;
+  /** Param. */
   private long mTime;
+  /** Param. */
   private int tokenType;
+  /** Param. */
   private String significantIssuerDN;
+  /** Param. */
   private Serializable data;
+  /** Param. */
   private int rowVersion = 0;
+  /** Param. */
   private String rowProtection;
 
   /**
    * Entity holding data of a hard token issuer.
    *
    * @param tokensn SN
-   * @param username User
+   * @param ausername User
    * @param createtime Created
    * @param modifytime Modified
    * @param tokentype Type
    * @param significantissuerdn DN
-   * @param data Data
+   * @param thedata Data
    */
   public HardTokenData(
       final String tokensn,
-      final String username,
+      final String ausername,
       final Date createtime,
       final Date modifytime,
       final int tokentype,
       final String significantissuerdn,
-      final LinkedHashMap<?, ?> data) {
+      final LinkedHashMap<?, ?> thedata) {
     setTokenSN(tokensn);
-    setUsername(username);
+    setUsername(ausername);
     setCtime(createtime.getTime());
     setMtime(modifytime.getTime());
     setTokenType(tokentype);
     setSignificantIssuerDN(significantissuerdn);
-    setData(data);
-    log.debug("Created Hard Token " + tokensn);
+    setData(thedata);
+    LOG.debug("Created Hard Token " + tokensn);
   }
 
-  public HardTokenData() {}
+  /** Empty. */
+  public HardTokenData() { }
 
+  /**
+   * @return SN
+   */
   // @Id @Column
   public String getTokenSN() {
     return tokenSN;
   }
 
-  public void setTokenSN(final String tokenSN) {
-    this.tokenSN = tokenSN;
+  /**
+   * @param atokenSN SN
+   */
+  public void setTokenSN(final String atokenSN) {
+    this.tokenSN = atokenSN;
   }
 
+  /**
+   * @return user
+   */
   // @Column
   public String getUsername() {
     return username;
   }
 
-  public void setUsername(final String username) {
-    this.username = StringTools.stripUsername(username);
+  /**
+   * @param ausername user
+   */
+  public void setUsername(final String ausername) {
+    this.username = StringTools.stripUsername(ausername);
   }
 
+  /**
+   * @return time
+   */
   // @Column
   public long getCtime() {
     return cTime;
   }
 
+  /**
+   * @param createTime time
+   */
   public void setCtime(final long createTime) {
     this.cTime = createTime;
   }
 
+  /**
+   * @return time
+   */
   // @Column
   public long getMtime() {
     return mTime;
   }
 
+  /**
+   * @param modifyTime time
+   */
   public void setMtime(final long modifyTime) {
     this.mTime = modifyTime;
   }
 
+  /**
+   * @return type
+   */
   // @Column
   public int getTokenType() {
     return tokenType;
   }
 
-  public void setTokenType(final int tokenType) {
-    this.tokenType = tokenType;
+  /**
+   * @param atokenType type
+   */
+  public void setTokenType(final int atokenType) {
+    this.tokenType = atokenType;
   }
 
+  /**
+   * @return DN
+   */
   // @Column
   public String getSignificantIssuerDN() {
     return significantIssuerDN;
   }
 
-  public void setSignificantIssuerDN(final String significantIssuerDN) {
-    this.significantIssuerDN = significantIssuerDN;
+  /**
+   * @param asignificantIssuerDN DN
+   */
+  public void setSignificantIssuerDN(final String asignificantIssuerDN) {
+    this.significantIssuerDN = asignificantIssuerDN;
   }
 
+  /**
+   * @return data
+   */
   // @Column @Lob
   public Serializable getDataUnsafe() {
     return data;
@@ -148,19 +199,26 @@ public class HardTokenData extends ProtectedData implements Serializable {
   /**
    * DO NOT USE! Stick with setData(HashMap data) instead.
    *
-   * @param data Data
+   * @param thedata Data
    */
-  public void setDataUnsafe(final Serializable data) {
-    this.data = data;
+  public void setDataUnsafe(final Serializable thedata) {
+    this.data = thedata;
   }
 
+
+  /**
+   * @return version
+   */
   // @Version @Column
   public int getRowVersion() {
     return rowVersion;
   }
 
-  public void setRowVersion(final int rowVersion) {
-    this.rowVersion = rowVersion;
+  /**
+   * @param arowVersion version
+   */
+  public void setRowVersion(final int arowVersion) {
+    this.rowVersion = arowVersion;
   }
 
   // @Column @Lob
@@ -170,10 +228,13 @@ public class HardTokenData extends ProtectedData implements Serializable {
   }
 
   @Override
-  public void setRowProtection(final String rowProtection) {
-    this.rowProtection = rowProtection;
+  public void setRowProtection(final String arowProtection) {
+    this.rowProtection = arowProtection;
   }
 
+  /**
+   * @return data
+   */
   @Transient
   public LinkedHashMap<?, ?> getData() {
     final Serializable map = getDataUnsafe();
@@ -184,24 +245,39 @@ public class HardTokenData extends ProtectedData implements Serializable {
     }
   }
 
-  public void setData(final LinkedHashMap<?, ?> data) {
-    setDataUnsafe(data);
+  /**
+   * @param thedata data
+   */
+  public void setData(final LinkedHashMap<?, ?> thedata) {
+    setDataUnsafe(thedata);
   }
 
+  /**
+   * @return time
+   */
   @Transient
   public Date getCreateTime() {
     return new Date(getCtime());
   }
 
+  /**
+   * @param createtime time
+   */
   public void setCreateTime(final Date createtime) {
     setCtime(createtime.getTime());
   }
 
+  /**
+   * @return time
+   */
   @Transient
   public Date getModifyTime() {
     return new Date(getCtime());
   }
 
+  /**
+   * @param modifytime time
+   */
   public void setModifyTime(final Date modifytime) {
     setMtime(modifytime.getTime());
   }
@@ -223,17 +299,17 @@ public class HardTokenData extends ProtectedData implements Serializable {
         .append(getMtime())
         .append(getTokenType())
         .append(getSignificantIssuerDN());
-    LinkedHashMap<?, ?> data = getData();
+    LinkedHashMap<?, ?> thedata = getData();
     // We must have special handling here if the data is encrypted because the
     // byte[] is a binary byte array
     // in this case, when doing getData().toString in this case a reference to
     // the byte array is printed, and
     // this is different for every invocation so signature verification fail.
     final String dataStr;
-    if (data.get(ENCRYPTEDDATA) != null) {
+    if (thedata.get(ENCRYPTEDDATA) != null) {
       byte[] encdata =
           (byte[])
-              data.get(
+              thedata.get(
                   org.ejbca.core.ejb.hardtoken.HardTokenData.ENCRYPTEDDATA);
       dataStr = new String(Base64.encode(encdata, false));
     } else {

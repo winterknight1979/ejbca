@@ -60,15 +60,24 @@ import org.ejbca.util.FixEndOfBrokenXML;
 public class CertReqHistoryData extends ProtectedData implements Serializable {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log = Logger.getLogger(CertReqHistoryData.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(CertReqHistoryData.class);
 
+  /** Param. */
   private String issuerDN;
+  /** Param. */
   private String fingerprint;
+  /** Param. */
   private String serialNumber;
+  /** Param. */
   private long timestamp;
+  /** Param. */
   private String userDataVO;
+  /** Param. */
   private String username;
+  /** Param. */
   private int rowVersion = 0;
+  /** Param. */
   private String rowProtection;
 
   /**
@@ -76,18 +85,18 @@ public class CertReqHistoryData extends ProtectedData implements Serializable {
    * was issued.
    *
    * @param incert the certificate issued
-   * @param issuerDN should be the same as CertTools.getIssuerDN(incert)
+   * @param anissuerDN should be the same as CertTools.getIssuerDN(incert)
    * @param endEntityInformation the data used to issue the certificate.
    */
   public CertReqHistoryData(
       final Certificate incert,
-      final String issuerDN,
+      final String anissuerDN,
       final EndEntityInformation endEntityInformation) {
     // Exctract fields to store with the certificate.
     setFingerprint(CertTools.getFingerprintAsString(incert));
-    setIssuerDN(issuerDN);
-    if (log.isDebugEnabled()) {
-      log.debug(
+    setIssuerDN(anissuerDN);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Creating certreqhistory data, serial="
               + CertTools.getSerialNumberAsString(incert)
               + ", issuer="
@@ -104,25 +113,27 @@ public class CertReqHistoryData extends ProtectedData implements Serializable {
     try {
       // Save the user admin data in xml encoding.
       final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-      try (final XMLEncoder encoder = new XMLEncoder(baos)) {
+      try (XMLEncoder encoder = new XMLEncoder(baos)) {
         encoder.writeObject(endEntityInformation);
       }
       final String s = baos.toString("UTF-8");
-      if (log.isDebugEnabled()) {
-        log.debug(printEndEntityInformationXML("endEntityInformation:", s));
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(printEndEntityInformationXML("endEntityInformation:", s));
       }
       setUserDataVO(s);
     } catch (UnsupportedEncodingException e) {
-      log.error("", e);
+      LOG.error("", e);
       throw new RuntimeException(e);
     }
   }
 
-  public CertReqHistoryData() {}
+  /** Empty constructor.
+   */
+  public CertReqHistoryData() { }
 
   /**
    * DN of issuer of certificate Should not be used outside of entity bean, use
-   * getCertReqHistory instead
+   * getCertReqHistory instead.
    *
    * @return issuer dn
    */
@@ -131,17 +142,17 @@ public class CertReqHistoryData extends ProtectedData implements Serializable {
     return issuerDN;
   }
   /**
-   * Use setIssuer instead
+   * Use setIssuer instead.
    *
-   * @param issuerDN issuer dn
+   * @param anissuerDN issuer dn
    */
-  public void setIssuerDN(final String issuerDN) {
-    this.issuerDN = issuerDN;
+  public void setIssuerDN(final String anissuerDN) {
+    this.issuerDN = anissuerDN;
   }
 
   /**
    * Fingerprint of certificate Should not be used outside of entity bean, use
-   * getCertReqHistory instead
+   * getCertReqHistory instead.
    *
    * @return fingerprint
    */
@@ -152,15 +163,15 @@ public class CertReqHistoryData extends ProtectedData implements Serializable {
   /**
    * Fingerprint of certificate Shouldn't be set after creation.
    *
-   * @param fingerprint fingerprint
+   * @param afingerprint fingerprint
    */
-  public void setFingerprint(final String fingerprint) {
-    this.fingerprint = fingerprint;
+  public void setFingerprint(final String afingerprint) {
+    this.fingerprint = afingerprint;
   }
 
   /**
    * Serialnumber formated as BigInteger.toString() Should not be used outside
-   * of entity bean, use getCertReqHistory instead
+   * of entity bean, use getCertReqHistory instead.
    *
    * @return serial number
    */
@@ -173,15 +184,15 @@ public class CertReqHistoryData extends ProtectedData implements Serializable {
    * Serialnumber formated as BigInteger.toString() Shouldn't be set after
    * creation.
    *
-   * @param serialNumber serial number
+   * @param aserialNumber serial number
    */
-  public void setSerialNumber(final String serialNumber) {
-    this.serialNumber = serialNumber;
+  public void setSerialNumber(final String aserialNumber) {
+    this.serialNumber = aserialNumber;
   }
 
   /**
    * Date formated as seconds since 1970 (== Date.getTime()) Should not be used
-   * outside of entity bean, use getCertReqHistory instead
+   * outside of entity bean, use getCertReqHistory instead.
    *
    * @return timestamp
    */
@@ -194,15 +205,15 @@ public class CertReqHistoryData extends ProtectedData implements Serializable {
    * Date formated as seconds since 1970 (== Date.getTime()) Shouldn't be set
    * after creation.
    *
-   * @param timestamp when certificate request info was stored
+   * @param atimestamp when certificate request info was stored
    */
-  public void setTimestamp(final long timestamp) {
-    this.timestamp = timestamp;
+  public void setTimestamp(final long atimestamp) {
+    this.timestamp = atimestamp;
   }
 
   /**
    * UserDataVO in xmlencoded String format Should not be used outside of entity
-   * bean, use getCertReqHistory instead
+   * bean, use getCertReqHistory instead.
    *
    * @return xmlencoded encoded UserDataVO
    */
@@ -214,15 +225,15 @@ public class CertReqHistoryData extends ProtectedData implements Serializable {
   /**
    * UserDataVO in xmlencoded String format Shouldn't be set after creation.
    *
-   * @param userDataVO xmlencoded encoded UserDataVO
+   * @param auserDataVO xmlencoded encoded UserDataVO
    */
-  public void setUserDataVO(final String userDataVO) {
-    this.userDataVO = userDataVO;
+  public void setUserDataVO(final String auserDataVO) {
+    this.userDataVO = auserDataVO;
   }
 
   /**
    * username in database Should not be used outside of entity bean, use
-   * getCertReqHistory instead
+   * getCertReqHistory instead.
    *
    * @return username
    */
@@ -234,19 +245,25 @@ public class CertReqHistoryData extends ProtectedData implements Serializable {
   /**
    * username Shouldn't be set after creation.
    *
-   * @param username username
+   * @param ausername username
    */
-  public void setUsername(final String username) {
-    this.username = StringTools.stripUsername(username);
+  public void setUsername(final String ausername) {
+    this.username = StringTools.stripUsername(ausername);
   }
 
+  /**
+   * @return version
+   */
   // @Version @Column
   public int getRowVersion() {
     return rowVersion;
   }
 
-  public void setRowVersion(final int rowVersion) {
-    this.rowVersion = rowVersion;
+  /**
+   * @param arowVersion version
+   */
+  public void setRowVersion(final int arowVersion) {
+    this.rowVersion = arowVersion;
   }
 
   // @Column @Lob
@@ -256,8 +273,8 @@ public class CertReqHistoryData extends ProtectedData implements Serializable {
   }
 
   @Override
-  public void setRowProtection(final String rowProtection) {
-    this.rowProtection = rowProtection;
+  public void setRowProtection(final String arowProtection) {
+    this.rowProtection = arowProtection;
   }
 
   //
@@ -296,7 +313,7 @@ public class CertReqHistoryData extends ProtectedData implements Serializable {
 
     // just used internally in the this class to indicate that the XML can not
     // be fixed.
-    public NotPossibleToFixXML() {
+    NotPossibleToFixXML() {
       // do nothing
     }
   }
@@ -314,20 +331,20 @@ public class CertReqHistoryData extends ProtectedData implements Serializable {
    */
   private EndEntityInformation decodeXML(
       final String sXML, final boolean lastTry) {
-    final byte baXML[] = sXML.getBytes(StandardCharsets.UTF_8);
+    final byte[] baXML = sXML.getBytes(StandardCharsets.UTF_8);
     EndEntityInformation endEntityInformation = null;
     // The EndEntityInformation object is not fully serializable by
     // XMLEncoder/Decoder
     // (the "type" field is not serialized correctly), so we set ignoreErrors to
     // true
-    try (final SecureXMLDecoder decoder =
+    try (SecureXMLDecoder decoder =
         new SecureXMLDecoder(new ByteArrayInputStream(baXML), true)) {
       Object o = decoder.readObject();
       try {
         endEntityInformation = (EndEntityInformation) o;
       } catch (ClassCastException e) {
-        if (log.isTraceEnabled()) {
-          log.trace(
+        if (LOG.isTraceEnabled()) {
+          LOG.trace(
               "Trying to decode old type of CertReqHistoryData: "
                   + e.getMessage());
         }
@@ -350,8 +367,8 @@ public class CertReqHistoryData extends ProtectedData implements Serializable {
                     + getFingerprint()
                     + "': "
                     + t.getMessage();
-            if (log.isDebugEnabled()) {
-              log.debug(msg + ". Data:\n" + sXML);
+            if (LOG.isDebugEnabled()) {
+              LOG.debug(msg + ". Data:\n" + sXML);
             }
             throw new IllegalStateException(msg, t);
           } else if (t instanceof RuntimeException) {
@@ -371,14 +388,14 @@ public class CertReqHistoryData extends ProtectedData implements Serializable {
         storeEndEntityInformation(
             endEntityInformation); // store it right so it does not have to be
         // repaired again.
-        log.warn(
+        LOG.warn(
             printEndEntityInformationXML(
                 "XML has been repaired. Trailing tags fixed. DB updated with"
                     + " correct XML.",
                 sXML));
         return endEntityInformation;
       } catch (NotPossibleToFixXML e) {
-        log.error(
+        LOG.error(
             printEndEntityInformationXML(
                 "Not possible to decode EndEntityInformation. No way to fix"
                     + " the XML.",
@@ -387,13 +404,15 @@ public class CertReqHistoryData extends ProtectedData implements Serializable {
         return null;
       }
     }
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           printEndEntityInformationXML(
               "Successfully decoded EndEntityInformation XML.", sXML));
     }
-    /* Code that fixes broken XML that has actually been parsed. It seems that the decoder is not checking for the java end tag.
-     * Currently this is left out in order to not mess with working but broken XML.
+    /* Code that fixes broken XML that has actually been parsed.
+     * It seems that the decoder is not checking for the java end tag.
+     * Currently this is left out in order to not mess with working but
+     * broken XML.
     if ( sXML.indexOf("<java")>0 && sXML.indexOf("</java>")<0 ) {
         storeEndEntityInformation(endEntityInformation); // store it right
     }

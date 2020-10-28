@@ -45,22 +45,38 @@ import org.ejbca.core.model.approval.ApprovalRequest;
 public class ApprovalData extends ProtectedData implements Serializable {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log = Logger.getLogger(ApprovalData.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(ApprovalData.class);
 
+  /** Param. */
   private int id; // the unique id stored in the database
+  /** Param. */
   private int approvalId; // a hash of the request
+  /** Param. */
   private int approvalType;
+  /** Param. */
   private int endEntityProfileId;
+  /** Param. */
   private int cAId;
+  /** Param. */
   private String reqAdminCertIssuerDn;
+  /** Param. */
   private String reqAdminCertSn;
+  /** Param. */
   private int status;
+  /** Param. */
   private String approvalData; // list of approvals
+  /** Param. */
   private String requestData;
+  /** Param. */
   private long requestDate;
+  /** Param. */
   private long expireDate;
+  /** Param. */
   private int remainingApprovals;
+  /** Param. */
   private int rowVersion = 0;
+  /** Param. */
   private String rowProtection;
 
   /**
@@ -68,21 +84,22 @@ public class ApprovalData extends ProtectedData implements Serializable {
    *
    * <p>The constructor is responsible for populating all non-nullable fields!
    *
-   * @param id ID
+   * @param anId ID
    */
-  public ApprovalData(final int id) {
-    setId(id);
+  public ApprovalData(final int anId) {
+    setId(anId);
     setStatus(ApprovalDataVO.STATUS_WAITINGFORAPPROVAL);
     setRequestdate(System.currentTimeMillis());
-    log.debug("Created approval with id " + id);
+    LOG.debug("Created approval with id " + anId);
   }
 
+  /** Null constructor. */
   public ApprovalData() {
     // used from test code (also required by JPA!)
   }
 
   /**
-   * unique row id
+   * unique row id.
    *
    * @return ID
    */
@@ -92,12 +109,12 @@ public class ApprovalData extends ProtectedData implements Serializable {
   }
 
   /**
-   * unique row id
+   * unique row id.
    *
-   * @param id ID
+   * @param anid ID
    */
-  public final void setId(final int id) {
-    this.id = id;
+  public final void setId(final int anid) {
+    this.id = anid;
   }
 
   /**
@@ -116,16 +133,16 @@ public class ApprovalData extends ProtectedData implements Serializable {
    * result in the same approvalid if the admin tries to request the same action
    * twice.
    *
-   * @param approvalId ID
+   * @param anapprovalId ID
    */
-  public void setApprovalid(final int approvalId) {
-    this.approvalId = approvalId;
+  public void setApprovalid(final int anapprovalId) {
+    this.approvalId = anapprovalId;
   }
 
   /**
    * Type of action that should be approved, should be one of
    * ApprovalDataVO.APPROVALTYPE_ constants ex:
-   * ApprovalDataVO.APPROVALTYPE_ADDUSER
+   * ApprovalDataVO.APPROVALTYPE_ADDUSER.
    *
    * @return Type
    */
@@ -136,18 +153,18 @@ public class ApprovalData extends ProtectedData implements Serializable {
   /**
    * Type of action that should be approved, should be one of
    * ApprovalDataVO.APPROVALTYPE_ constants ex:
-   * ApprovalDataVO.APPROVALTYPE_ADDUSER
+   * ApprovalDataVO.APPROVALTYPE_ADDUSER.
    *
-   * @param approvalType Type
+   * @param anapprovalType Type
    */
-  public void setApprovaltype(final int approvalType) {
-    this.approvalType = approvalType;
+  public void setApprovaltype(final int anapprovalType) {
+    this.approvalType = anapprovalType;
   }
 
   /**
    * For RA specific approval requests should the related end entity profile id
    * be specified for non ra request should this field be set to
-   * ApprovalDataVO.ANY_ENDENTITYPROFILE
+   * ApprovalDataVO.ANY_ENDENTITYPROFILE.
    *
    * @return ID
    */
@@ -158,17 +175,17 @@ public class ApprovalData extends ProtectedData implements Serializable {
   /**
    * For RA specific approval requests should the related end entity profile id
    * be specified for non ra request should this field be set to
-   * ApprovalDataVO.ANY_ENDENTITYPROFILE s
+   * ApprovalDataVO.ANY_ENDENTITYPROFILE s.
    *
-   * @param endEntityProfileId ID
+   * @param anendEntityProfileId ID
    */
-  public void setEndentityprofileid(final int endEntityProfileId) {
-    this.endEntityProfileId = endEntityProfileId;
+  public void setEndentityprofileid(final int anendEntityProfileId) {
+    this.endEntityProfileId = anendEntityProfileId;
   }
 
   /**
    * For CA specific approval requests should the related ca id be specified for
-   * non ca request should this field be set to ApprovalDataVO.ANY_CA
+   * non ca request should this field be set to ApprovalDataVO.ANY_CA.
    *
    * @return ID
    */
@@ -178,12 +195,12 @@ public class ApprovalData extends ProtectedData implements Serializable {
   }
   /**
    * For CA specific approval requests should the related ca id be specified for
-   * non ca request should this field be set to ApprovalDataVO.ANY_CA
+   * non ca request should this field be set to ApprovalDataVO.ANY_CA.
    *
-   * @param cAId ID
+   * @param acAId ID
    */
-  public void setCaid(final int cAId) {
-    this.cAId = cAId;
+  public void setCaid(final int acAId) {
+    this.cAId = acAId;
   }
 
   /**
@@ -198,10 +215,10 @@ public class ApprovalData extends ProtectedData implements Serializable {
   /**
    * The issuerdn of the administrator certificate that generated the request.
    *
-   * @param reqAdminCertIssuerDn DN
+   * @param areqAdminCertIssuerDn DN
    */
-  public void setReqadmincertissuerdn(final String reqAdminCertIssuerDn) {
-    this.reqAdminCertIssuerDn = reqAdminCertIssuerDn;
+  public void setReqadmincertissuerdn(final String areqAdminCertIssuerDn) {
+    this.reqAdminCertIssuerDn = areqAdminCertIssuerDn;
   }
 
   /**
@@ -218,15 +235,15 @@ public class ApprovalData extends ProtectedData implements Serializable {
    * The serialnumber of the administrator certificate that generated the
    * request. String in Hex.
    *
-   * @param reqAdminCertSn SN
+   * @param areqAdminCertSn SN
    */
-  public void setReqadmincertsn(final String reqAdminCertSn) {
-    this.reqAdminCertSn = reqAdminCertSn;
+  public void setReqadmincertsn(final String areqAdminCertSn) {
+    this.reqAdminCertSn = areqAdminCertSn;
   }
 
   /**
    * Should be one of ApprovalDataVO.STATUS_WAITINGFORAPPROVAL, STATUS_APPROVED,
-   * STATUS_REJECTED, STATUS_EXPIRED
+   * STATUS_REJECTED, STATUS_EXPIRED.
    *
    * @return Status
    */
@@ -236,17 +253,17 @@ public class ApprovalData extends ProtectedData implements Serializable {
   }
   /**
    * Should be one of ApprovalDataVO.STATUS_WAITINGFORAPPROVAL, STATUS_APPROVED,
-   * STATUS_REJECTED, STATUS_EXPIRED
+   * STATUS_REJECTED, STATUS_EXPIRED.
    *
-   * @param status Status
+   * @param astatus Status
    */
-  public void setStatus(final int status) {
-    this.status = status;
+  public void setStatus(final int astatus) {
+    this.status = astatus;
   }
 
   /**
    * String representation of data of approvals made by one or more
-   * administrators
+   * administrators.
    *
    * @return Data
    */
@@ -257,12 +274,12 @@ public class ApprovalData extends ProtectedData implements Serializable {
 
   /**
    * String representation of data of approvals made by one or more
-   * administrators
+   * administrators.
    *
-   * @param approvalData Data
+   * @param theapprovalData Data
    */
-  public void setApprovaldata(final String approvalData) {
-    this.approvalData = approvalData;
+  public void setApprovaldata(final String theapprovalData) {
+    this.approvalData = theapprovalData;
   }
 
   /**
@@ -280,14 +297,14 @@ public class ApprovalData extends ProtectedData implements Serializable {
    * Data containing information about the request displayed for the approval
    * administrator.
    *
-   * @param requestData Data
+   * @param therequestData Data
    */
-  public void setRequestdata(final String requestData) {
-    this.requestData = requestData;
+  public void setRequestdata(final String therequestData) {
+    this.requestData = therequestData;
   }
 
   /**
-   * Date the request for approval were added
+   * Date the request for approval were added.
    *
    * @return Date
    */
@@ -296,17 +313,17 @@ public class ApprovalData extends ProtectedData implements Serializable {
     return requestDate;
   }
   /**
-   * Date the request for approval were added
+   * Date the request for approval were added.
    *
-   * @param requestDate Date
+   * @param arequestDate Date
    */
-  public void setRequestdate(final long requestDate) {
-    this.requestDate = requestDate;
+  public void setRequestdate(final long arequestDate) {
+    this.requestDate = arequestDate;
   }
 
   /**
    * Date the request for action or the approval action will expire,
-   * Long.MAX_VALUE means that the request/approval never expires
+   * Long.MAX_VALUE means that the request/approval never expires.
    *
    * @return Date
    */
@@ -316,17 +333,17 @@ public class ApprovalData extends ProtectedData implements Serializable {
   }
   /**
    * Date the request for action or the approval action will expire,
-   * Long.MAX_VALUE means that the request/approval never expires
+   * Long.MAX_VALUE means that the request/approval never expires.
    *
-   * @param expireDate Date
+   * @param anexpireDate Date
    */
-  public void setExpiredate(final long expireDate) {
-    this.expireDate = expireDate;
+  public void setExpiredate(final long anexpireDate) {
+    this.expireDate = anexpireDate;
   }
 
   /**
    * Indicates the number of approvals that remains in order to execute the
-   * action
+   * action.
    *
    * @return approvals
    * @deprecated in 6.6.0, the type of approval handled is now part of the
@@ -340,22 +357,28 @@ public class ApprovalData extends ProtectedData implements Serializable {
   }
   /**
    * Indicates the number of approvals that remains in order to execute the
-   * action
+   * action.
    *
-   * @param remainingApprovals approvals
+   * @param theremainingApprovals approvals
    */
   @Deprecated
-  public void setRemainingapprovals(final int remainingApprovals) {
-    this.remainingApprovals = remainingApprovals;
+  public void setRemainingapprovals(final int theremainingApprovals) {
+    this.remainingApprovals = theremainingApprovals;
   }
 
+  /**
+   * @return version
+   */
   // @Version @Column
   public int getRowVersion() {
     return rowVersion;
   }
 
-  public void setRowVersion(final int rowVersion) {
-    this.rowVersion = rowVersion;
+  /**
+   * @param arowVersion version
+   */
+  public void setRowVersion(final int arowVersion) {
+    this.rowVersion = arowVersion;
   }
 
   // @Column @Lob
@@ -365,32 +388,38 @@ public class ApprovalData extends ProtectedData implements Serializable {
   }
 
   @Override
-  public void setRowProtection(final String rowProtection) {
-    this.rowProtection = rowProtection;
+  public void setRowProtection(final String arowProtection) {
+    this.rowProtection = arowProtection;
   }
 
+  /**
+   * @return request date
+   */
   @Transient
   public Date getRequestDate() {
     return new Date(getRequestdate());
   }
 
+  /**
+   * @return expiry date
+   */
   @Transient
   public Date getExpireDate() {
     return new Date(getExpiredate());
   }
 
   /**
-   * Method used to set the expire date of the request
+   * Method used to set the expire date of the request.
    *
-   * @param expireDate date
+   * @param anexpireDate date
    */
-  public void setExpireDate(final Date expireDate) {
-    setExpiredate(expireDate.getTime());
+  public void setExpireDate(final Date anexpireDate) {
+    setExpiredate(anexpireDate.getTime());
   }
 
   /**
    * Method that checks if the request or approval have expired The status is
-   * set to expired if it is
+   * set to expired if it is.
    *
    * @return true of the request or approval have expired
    */
@@ -486,6 +515,9 @@ public class ApprovalData extends ProtectedData implements Serializable {
     return result;
   }
 
+  /**
+   * @return request
+   */
   @Transient
   public ApprovalRequest getApprovalRequest() {
     ApprovalRequest retval = null;
@@ -496,15 +528,18 @@ public class ApprovalData extends ProtectedData implements Serializable {
                   Base64.decode(getRequestdata().getBytes())));
       retval = (ApprovalRequest) ois.readObject();
     } catch (IOException e) {
-      log.error("Error building approval request.", e);
+      LOG.error("Error building approval request.", e);
       throw new IllegalStateException(e);
     } catch (ClassNotFoundException e) {
-      log.error("Error building approval request.", e);
+      LOG.error("Error building approval request.", e);
       throw new IllegalStateException(e);
     }
     return retval;
   }
 
+  /**
+   * @return approvals
+   */
   @Transient
   public List<Approval> getApprovals() {
     List<Approval> retval = new ArrayList<Approval>();
@@ -519,10 +554,10 @@ public class ApprovalData extends ProtectedData implements Serializable {
         retval.add(next);
       }
     } catch (IOException e) {
-      log.error("Error building approvals.", e);
+      LOG.error("Error building approvals.", e);
       throw new IllegalStateException(e);
     } catch (ClassNotFoundException e) {
-      log.error("Error building approvals.", e);
+      LOG.error("Error building approvals.", e);
       throw new IllegalStateException(e);
     }
     return retval;

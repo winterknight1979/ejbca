@@ -22,7 +22,7 @@ import org.ejbca.core.model.approval.profile.ApprovalProfile;
 import org.junit.Test;
 
 /**
- * Unit tests for the ProfileData class
+ * Unit tests for the ProfileData class.
  *
  * @version $Id: ProfileDataTest.java 26076 2017-06-26 12:49:12Z mikekushner $
  */

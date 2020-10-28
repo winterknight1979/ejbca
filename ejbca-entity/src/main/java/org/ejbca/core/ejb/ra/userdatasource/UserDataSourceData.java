@@ -38,38 +38,49 @@ import org.ejbca.core.model.ra.userdatasource.BaseUserDataSource;
 public class UserDataSourceData extends ProtectedData implements Serializable {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log = Logger.getLogger(UserDataSourceData.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(UserDataSourceData.class);
 
+  /** Param. */
   private BaseUserDataSource userdatasource = null;
 
+  /** Param. */
   private int id;
+  /** Param. */
   private String name;
+  /** Param. */
   private int updateCounter;
+  /** Param. */
   private String data;
+  /** Param. */
   private int rowVersion = 0;
+  /** Param. */
   private String rowProtection;
 
   /**
    * Entity holding data of a userdatasource.
    *
-   * @param id ID
-   * @param name Name
-   * @param userdatasource DS
+   * @param anid ID
+   * @param aname Name
+   * @param auserdatasource DS
    * @throws UnsupportedEncodingException Fail
    */
   public UserDataSourceData(
-      final int id, final String name, final BaseUserDataSource userdatasource)
+      final int anid,
+      final String aname,
+      final BaseUserDataSource auserdatasource)
       throws UnsupportedEncodingException {
-    setId(id);
-    setName(name);
+    setId(anid);
+    setName(aname);
     this.setUpdateCounter(0);
-    if (userdatasource != null) {
-      setUserDataSource(userdatasource);
+    if (auserdatasource != null) {
+      setUserDataSource(auserdatasource);
     }
-    log.debug("Created User Data Source " + name);
+    LOG.debug("Created User Data Source " + aname);
   }
 
-  public UserDataSourceData() {}
+  /** Empty. */
+  public UserDataSourceData() { }
 
   /**
    * Primary key.
@@ -81,8 +92,11 @@ public class UserDataSourceData extends ProtectedData implements Serializable {
     return id;
   }
 
-  public void setId(final int id) {
-    this.id = id;
+  /**
+   * @param anid ID
+   */
+  public void setId(final int anid) {
+    this.id = anid;
   }
 
   /**
@@ -95,8 +109,11 @@ public class UserDataSourceData extends ProtectedData implements Serializable {
     return name;
   }
 
-  public void setName(final String name) {
-    this.name = name;
+  /**
+   * @param aname name
+   */
+  public void setName(final String aname) {
+    this.name = aname;
   }
 
   /**
@@ -110,8 +127,11 @@ public class UserDataSourceData extends ProtectedData implements Serializable {
     return updateCounter;
   }
 
-  public void setUpdateCounter(final int updateCounter) {
-    this.updateCounter = updateCounter;
+  /**
+   * @param anupdateCounter count
+   */
+  public void setUpdateCounter(final int anupdateCounter) {
+    this.updateCounter = anupdateCounter;
   }
 
   /**
@@ -124,17 +144,26 @@ public class UserDataSourceData extends ProtectedData implements Serializable {
     return data;
   }
 
-  public void setData(final String data) {
-    this.data = data;
+  /**
+   * @param adata data
+   */
+  public void setData(final String adata) {
+    this.data = adata;
   }
 
+  /**
+   * @return version
+   */
   // @Version @Column
   public int getRowVersion() {
     return rowVersion;
   }
 
-  public void setRowVersion(final int rowVersion) {
-    this.rowVersion = rowVersion;
+  /**
+   * @param arowVersion version
+   */
+  public void setRowVersion(final int arowVersion) {
+    this.rowVersion = arowVersion;
   }
 
   // @Column @Lob
@@ -144,8 +173,8 @@ public class UserDataSourceData extends ProtectedData implements Serializable {
   }
 
   @Override
-  public void setRowProtection(final String rowProtection) {
-    this.rowProtection = rowProtection;
+  public void setRowProtection(final String arowProtection) {
+    this.rowProtection = arowProtection;
   }
 
   /**
@@ -161,26 +190,26 @@ public class UserDataSourceData extends ProtectedData implements Serializable {
   /**
    * Method that saves the userdatasource data to database.
    *
-   * @param userdatasource DS
+   * @param auserdatasource DS
    */
   @SuppressWarnings("unchecked")
-  public void setUserDataSource(final BaseUserDataSource userdatasource) {
+  public void setUserDataSource(final BaseUserDataSource auserdatasource) {
     // We must base64 encode string for UTF safety
     HashMap<Object, Object> a = new Base64PutHashMap();
-    a.putAll((HashMap<Object, Object>) userdatasource.saveData());
+    a.putAll((HashMap<Object, Object>) auserdatasource.saveData());
     java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
     java.beans.XMLEncoder encoder = new java.beans.XMLEncoder(baos);
     encoder.writeObject(a);
     encoder.close();
     try {
-      if (log.isDebugEnabled()) {
-        log.debug("Profiledata: \n" + baos.toString("UTF8"));
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Profiledata: \n" + baos.toString("UTF8"));
       }
       setData(baos.toString("UTF8"));
     } catch (UnsupportedEncodingException e) {
       throw new RuntimeException(e);
     }
-    this.userdatasource = userdatasource;
+    this.userdatasource = auserdatasource;
     setUpdateCounter(getUpdateCounter() + 1);
   }
 
