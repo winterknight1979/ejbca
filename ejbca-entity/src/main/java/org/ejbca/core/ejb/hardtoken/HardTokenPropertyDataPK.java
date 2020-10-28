@@ -36,7 +36,7 @@ public class HardTokenPropertyDataPK implements Serializable {
    */
   public HardTokenPropertyDataPK(final String anid, final String aproperty) {
     setId(anid);
-    setProperty(property);
+    setProperty(aproperty);
   }
 
   /**
