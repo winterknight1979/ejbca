@@ -23,38 +23,47 @@ import org.junit.Test;
 
 /**
  * Unit tests for the ProfileData class
- * 
- * @version $Id: ProfileDataTest.java 26076 2017-06-26 12:49:12Z mikekushner $
  *
+ * @version $Id: ProfileDataTest.java 26076 2017-06-26 12:49:12Z mikekushner $
  */
 public class ProfileDataTest {
 
-    /**
-     * This test creates a ProfileData object using an ApprovalProfile, then extracts the profile back out in order to verify integrity. 
-     * @throws PropertyValidationException FAil
-     */
-    @Test
-    public void testApprovalProfile() throws PropertyValidationException {
-        final int numberOfApprovalsRequired = 4711;
-        final String profileName = "testApprovalProfile";
-        AccumulativeApprovalProfile approvalProfile = new AccumulativeApprovalProfile(profileName);
-        approvalProfile.initialize();
-        approvalProfile.setNumberOfApprovalsRequired(numberOfApprovalsRequired);
-        ProfileData profileData = new ProfileData(0, approvalProfile);
-        ApprovalProfile retrievedApprovalProfile = null;
-        try {
-            retrievedApprovalProfile = (ApprovalProfile) profileData.getProfile();
-        } catch (ClassCastException e) {
-            fail("Retrived Profile wasn't returned as an ApprovalProfile");
-        }
-        assertEquals("Profile name was lost during conversion", profileName, retrievedApprovalProfile.getProfileName());
-        AccumulativeApprovalProfile recastProfile = null;
-        try {
-            recastProfile = (AccumulativeApprovalProfile) retrievedApprovalProfile;
-        } catch (ClassCastException e) {
-            fail("Retrieved profile was not instansiated as an " + AccumulativeApprovalProfile.class.getCanonicalName());
-        }
-        assertEquals("The number of required approvals was not retained.", numberOfApprovalsRequired, recastProfile.getNumberOfApprovalsRequired());
+  /**
+   * This test creates a ProfileData object using an ApprovalProfile, then
+   * extracts the profile back out in order to verify integrity.
+   *
+   * @throws PropertyValidationException FAil
+   */
+  @Test
+  public void testApprovalProfile() throws PropertyValidationException {
+    final int numberOfApprovalsRequired = 4711;
+    final String profileName = "testApprovalProfile";
+    AccumulativeApprovalProfile approvalProfile =
+        new AccumulativeApprovalProfile(profileName);
+    approvalProfile.initialize();
+    approvalProfile.setNumberOfApprovalsRequired(numberOfApprovalsRequired);
+    ProfileData profileData = new ProfileData(0, approvalProfile);
+    ApprovalProfile retrievedApprovalProfile = null;
+    try {
+      retrievedApprovalProfile = (ApprovalProfile) profileData.getProfile();
+    } catch (ClassCastException e) {
+      fail("Retrived Profile wasn't returned as an ApprovalProfile");
     }
-
+    assertEquals(
+        "Profile name was lost during conversion",
+        profileName,
+        retrievedApprovalProfile.getProfileName());
+    AccumulativeApprovalProfile recastProfile = null;
+    try {
+      recastProfile = (AccumulativeApprovalProfile) retrievedApprovalProfile;
+    } catch (ClassCastException e) {
+      fail(
+          "Retrieved profile was not instansiated as an "
+              + AccumulativeApprovalProfile.class.getCanonicalName());
+    }
+    assertEquals(
+        "The number of required approvals was not retained.",
+        numberOfApprovalsRequired,
+        recastProfile.getNumberOfApprovalsRequired());
+  }
 }

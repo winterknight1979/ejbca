@@ -17,7 +17,6 @@ import java.io.Serializable;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.PostLoad;
@@ -26,180 +25,238 @@ import javax.persistence.PreUpdate;
 import javax.persistence.Query;
 import javax.persistence.Table;
 import javax.persistence.Transient;
-
 import org.apache.log4j.Logger;
 import org.cesecore.dbprotection.ProtectedData;
 import org.cesecore.dbprotection.ProtectionStringBuilder;
 import org.cesecore.util.QueryResultWrapper;
 import org.ejbca.core.model.hardtoken.HardTokenIssuer;
 
-// TODO: This class might need additional merging with org.ejbca.core.model.hardtoken.HardTokenIssuerData, org.ejbca.core.model.hardtoken.HardTokenIssuer
+// TODO: This class might need additional merging with
+// org.ejbca.core.model.hardtoken.HardTokenIssuerData,
+// org.ejbca.core.model.hardtoken.HardTokenIssuer
 
 /**
  * Representation of a hard token issuer.
- * 
+ *
  * @version $Id: HardTokenIssuerData.java 34415 2020-01-30 12:29:30Z aminkh $
  */
 @Entity
-@Table(name="HardTokenIssuerData")
+@Table(name = "HardTokenIssuerData")
 public class HardTokenIssuerData extends ProtectedData implements Serializable {
 
-	private static final long serialVersionUID = 1L;
-	private static final Logger log = Logger.getLogger(HardTokenIssuerData.class);
+  private static final long serialVersionUID = 1L;
+  private static final Logger log = Logger.getLogger(HardTokenIssuerData.class);
 
-	private int id;
-	private String alias;
-	private int roleId;
-	private Serializable data;
-	private int rowVersion = 0;
-	private String rowProtection;
+  private int id;
+  private String alias;
+  private int roleId;
+  private Serializable data;
+  private int rowVersion = 0;
+  private String rowProtection;
 
-	/**
-	 * Entity holding data of a hard token issuer.
-	 * @param id ID
-	 * @param alias Alias
-	 * @param roleId Role
-	 * @param issuerdata Issuer
-	 */
-	public HardTokenIssuerData(int id, String alias, int roleId,  HardTokenIssuer issuerdata) {
-		setId(id);
-		setAlias(alias);
-		setAdminGroupId(roleId);
-		setHardTokenIssuer(issuerdata);
-		log.debug("Created Hard Token Issuer "+ alias );
-	}
-	
-	public HardTokenIssuerData() { }
-			
-	//@Id @Column
-	public int getId() { return id; }
-	public void setId(int id) { this.id = id; }
+  /**
+   * Entity holding data of a hard token issuer.
+   *
+   * @param id ID
+   * @param alias Alias
+   * @param roleId Role
+   * @param issuerdata Issuer
+   */
+  public HardTokenIssuerData(
+      final int id,
+      final String alias,
+      final int roleId,
+      final HardTokenIssuer issuerdata) {
+    setId(id);
+    setAlias(alias);
+    setAdminGroupId(roleId);
+    setHardTokenIssuer(issuerdata);
+    log.debug("Created Hard Token Issuer " + alias);
+  }
 
-	//@Column
-	public String getAlias() { return alias; }
-	public void setAlias(String alias) { this.alias = alias; }
+  public HardTokenIssuerData() {}
 
-	//@Column
-	public int getAdminGroupId() { return roleId; } 
-	public void setAdminGroupId(int adminGroupId) { this.roleId = adminGroupId; }
+  // @Id @Column
+  public int getId() {
+    return id;
+  }
 
-	//@Column @Lob
-	public Serializable getDataUnsafe() { return data; }
-	/** DO NOT USE! Stick with setData(HashMap data) instead. 
-	 * @param data data*/
-	public void setDataUnsafe(Serializable data) { this.data = data; }
+  public void setId(final int id) {
+    this.id = id;
+  }
 
-	//@Version @Column
-	public int getRowVersion() { return rowVersion; }
-	public void setRowVersion(int rowVersion) { this.rowVersion = rowVersion; }
+  // @Column
+  public String getAlias() {
+    return alias;
+  }
 
-	//@Column @Lob
-	@Override
-	public String getRowProtection() { return rowProtection; }
-	@Override
-	public void setRowProtection(String rowProtection) { this.rowProtection = rowProtection; }
+  public void setAlias(final String alias) {
+    this.alias = alias;
+  }
 
-	@Transient
-    private LinkedHashMap<?, ?> getData() {
-        final Serializable map = getDataUnsafe();
-        if (map instanceof LinkedHashMap<?, ?>) {
-            return (LinkedHashMap<?, ?>) map;
-        } else {
-            return new LinkedHashMap<>((Map<?, ?>) map);
-        }
+  // @Column
+  public int getAdminGroupId() {
+    return roleId;
+  }
+
+  public void setAdminGroupId(final int adminGroupId) {
+    this.roleId = adminGroupId;
+  }
+
+  // @Column @Lob
+  public Serializable getDataUnsafe() {
+    return data;
+  }
+  /**
+   * DO NOT USE! Stick with setData(HashMap data) instead.
+   *
+   * @param data data
+   */
+  public void setDataUnsafe(final Serializable data) {
+    this.data = data;
+  }
+
+  // @Version @Column
+  public int getRowVersion() {
+    return rowVersion;
+  }
+
+  public void setRowVersion(final int rowVersion) {
+    this.rowVersion = rowVersion;
+  }
+
+  // @Column @Lob
+  @Override
+  public String getRowProtection() {
+    return rowProtection;
+  }
+
+  @Override
+  public void setRowProtection(final String rowProtection) {
+    this.rowProtection = rowProtection;
+  }
+
+  @Transient
+  private LinkedHashMap<?, ?> getData() {
+    final Serializable map = getDataUnsafe();
+    if (map instanceof LinkedHashMap<?, ?>) {
+      return (LinkedHashMap<?, ?>) map;
+    } else {
+      return new LinkedHashMap<>((Map<?, ?>) map);
     }
+  }
 
-	private void setData(LinkedHashMap<?, ?> data) { setDataUnsafe(data); }
+  private void setData(final LinkedHashMap<?, ?> data) {
+    setDataUnsafe(data);
+  }
 
-	/**
-	 * Method that returns the hard token issuer data and updates it if nessesary.
-	 * @return issuer
-	 */
-	@Transient
-	public HardTokenIssuer getHardTokenIssuer(){
-		HardTokenIssuer returnval = new HardTokenIssuer();
-		returnval.loadData(getData());
-		return returnval;
-	}
+  /**
+   * Method that returns the hard token issuer data and updates it if nessesary.
+   *
+   * @return issuer
+   */
+  @Transient
+  public HardTokenIssuer getHardTokenIssuer() {
+    HardTokenIssuer returnval = new HardTokenIssuer();
+    returnval.loadData(getData());
+    return returnval;
+  }
 
-	/**
-	 * Method that saves the hard token issuer data to database.
-	 * @param hardtokenissuer issuer
-	 */
-	public void setHardTokenIssuer(HardTokenIssuer hardtokenissuer){
-		setData((LinkedHashMap<?, ?>) hardtokenissuer.saveData());
-	}
+  /**
+   * Method that saves the hard token issuer data to database.
+   *
+   * @param hardtokenissuer issuer
+   */
+  public void setHardTokenIssuer(final HardTokenIssuer hardtokenissuer) {
+    setData((LinkedHashMap<?, ?>) hardtokenissuer.saveData());
+  }
 
-    //
-    // Start Database integrity protection methods
-    //
+  //
+  // Start Database integrity protection methods
+  //
 
-    @Transient
-    @Override
-    protected String getProtectString(final int version) {
-        final ProtectionStringBuilder build = new ProtectionStringBuilder();
-        // rowVersion is automatically updated by JPA, so it's not important, it is only used for optimistic locking
-        build.append(getId()).append(getAlias()).append(getAdminGroupId()).append(getData());
-        return build.toString();
-    }
+  @Transient
+  @Override
+  protected String getProtectString(final int version) {
+    final ProtectionStringBuilder build = new ProtectionStringBuilder();
+    // rowVersion is automatically updated by JPA, so it's not important, it is
+    // only used for optimistic locking
+    build
+        .append(getId())
+        .append(getAlias())
+        .append(getAdminGroupId())
+        .append(getData());
+    return build.toString();
+  }
 
-    @Transient
-    @Override
-    protected int getProtectVersion() {
-        return 1;
-    }
+  @Transient
+  @Override
+  protected int getProtectVersion() {
+    return 1;
+  }
 
-    @PrePersist
-    @PreUpdate
-    @Override
-    protected void protectData() {
-        super.protectData();
-    }
+  @PrePersist
+  @PreUpdate
+  @Override
+  protected void protectData() {
+    super.protectData();
+  }
 
-    @PostLoad
-    @Override
-    protected void verifyData() {
-        super.verifyData();
-    }
+  @PostLoad
+  @Override
+  protected void verifyData() {
+    super.verifyData();
+  }
 
-    @Override
-    @Transient
-    protected String getRowId() {
-        return String.valueOf(getId());
-    }
+  @Override
+  @Transient
+  protected String getRowId() {
+    return String.valueOf(getId());
+  }
 
-    //
-    // End Database integrity protection methods
-    //
+  //
+  // End Database integrity protection methods
+  //
 
-	//
-	// Search functions. 
-	//
+  //
+  // Search functions.
+  //
 
-	/** @param entityManager EM
-	 * @param pk PK
-	 * @return the found entity instance or null if the entity does not exist */
-	public static HardTokenIssuerData findByPK(EntityManager entityManager, Integer pk) {
-		return entityManager.find(HardTokenIssuerData.class, pk);
-	}
+  /**
+   * @param entityManager EM
+   * @param pk PK
+   * @return the found entity instance or null if the entity does not exist
+   */
+  public static HardTokenIssuerData findByPK(
+      final EntityManager entityManager, final Integer pk) {
+    return entityManager.find(HardTokenIssuerData.class, pk);
+  }
 
-	/**
-	 * @param entityManager EM
-	 * @param alias Alias
-	 * @throws javax.persistence.NonUniqueResultException if more than one entity with the name exists
-	 * @return the found entity instance or null if the entity does not exist
-	 */
-	public static HardTokenIssuerData findByAlias(EntityManager entityManager, String alias) {
-		final Query query = entityManager.createQuery("SELECT a FROM HardTokenIssuerData a WHERE a.alias=:alias");
-		query.setParameter("alias", alias);
-		return (HardTokenIssuerData) QueryResultWrapper.getSingleResult(query);
-	}
+  /**
+   * @param entityManager EM
+   * @param alias Alias
+   * @throws javax.persistence.NonUniqueResultException if more than one entity
+   *     with the name exists
+   * @return the found entity instance or null if the entity does not exist
+   */
+  public static HardTokenIssuerData findByAlias(
+      final EntityManager entityManager, final String alias) {
+    final Query query =
+        entityManager.createQuery(
+            "SELECT a FROM HardTokenIssuerData a WHERE a.alias=:alias");
+    query.setParameter("alias", alias);
+    return (HardTokenIssuerData) QueryResultWrapper.getSingleResult(query);
+  }
 
-	/** @param entityManager EM
-	 * @return return the query results as a List. */
-	@SuppressWarnings("unchecked")
-    public static List<HardTokenIssuerData> findAll(EntityManager entityManager) {
-		final Query query = entityManager.createQuery("SELECT a FROM HardTokenIssuerData a");
-		return query.getResultList();
-	}
+  /**
+   * @param entityManager EM
+   * @return return the query results as a List.
+   */
+  @SuppressWarnings("unchecked")
+  public static List<HardTokenIssuerData> findAll(
+      final EntityManager entityManager) {
+    final Query query =
+        entityManager.createQuery("SELECT a FROM HardTokenIssuerData a");
+    return query.getResultList();
+  }
 }

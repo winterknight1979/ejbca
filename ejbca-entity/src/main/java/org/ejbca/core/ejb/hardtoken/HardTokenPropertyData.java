@@ -15,7 +15,6 @@ package org.ejbca.core.ejb.hardtoken;
 
 import java.io.Serializable;
 import java.util.List;
-
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.NonUniqueResultException;
@@ -25,157 +24,210 @@ import javax.persistence.PreUpdate;
 import javax.persistence.Query;
 import javax.persistence.Table;
 import javax.persistence.Transient;
-
 import org.cesecore.dbprotection.ProtectedData;
 import org.cesecore.dbprotection.ProtectionStringBuilder;
 
 /**
  * Complementary class used to assign extended properties like copyof to a hard
  * token.
- * 
- * Id is represented by primary key of hard token table.
+ *
+ * <p>Id is represented by primary key of hard token table.
  */
 @Entity
 @Table(name = "HardTokenPropertyData")
-public class HardTokenPropertyData extends ProtectedData implements Serializable {
+public class HardTokenPropertyData extends ProtectedData
+    implements Serializable {
 
-    private static final long serialVersionUID = 1L;
-    public static final String PROPERTY_COPYOF = "copyof=";
+  private static final long serialVersionUID = 1L;
+  public static final String PROPERTY_COPYOF = "copyof=";
 
-    private HardTokenPropertyDataPK hardTokenPropertyDataPK;
-    
-    private String value;
-	private int rowVersion = 0;
-	private String rowProtection;
+  private HardTokenPropertyDataPK hardTokenPropertyDataPK;
 
-    /**
-     * Entity holding data of a hard token properties.
-     * @param id OD
-     * @param property Property 
-     * @param value Value
-     */
-    public HardTokenPropertyData(String id, String property, String value) {
-    	setHardTokenPropertyDataPK(new HardTokenPropertyDataPK(id, property));
-        setValue(value);
-    }
+  private String value;
+  private int rowVersion = 0;
+  private String rowProtection;
 
-    public HardTokenPropertyData() {
-    }
-    
-    //@EmbeddedId
-    public HardTokenPropertyDataPK getHardTokenPropertyDataPK() { return hardTokenPropertyDataPK; }
-    public void setHardTokenPropertyDataPK(HardTokenPropertyDataPK hardTokenPropertyDataPK) { this.hardTokenPropertyDataPK = hardTokenPropertyDataPK; }
+  /**
+   * Entity holding data of a hard token properties.
+   *
+   * @param id OD
+   * @param property Property
+   * @param value Value
+   */
+  public HardTokenPropertyData(
+      final String id, final String property, final String value) {
+    setHardTokenPropertyDataPK(new HardTokenPropertyDataPK(id, property));
+    setValue(value);
+  }
 
-    @Transient
-    public String getId() { return hardTokenPropertyDataPK.id; }
+  public HardTokenPropertyData() {}
 
-    //@Column
-    public String getValue() { return value; }
-    public void setValue(String value) { this.value = value; }
+  // @EmbeddedId
+  public HardTokenPropertyDataPK getHardTokenPropertyDataPK() {
+    return hardTokenPropertyDataPK;
+  }
 
-    //@Version @Column
-	public int getRowVersion() { return rowVersion; }
-	public void setRowVersion(int rowVersion) { this.rowVersion = rowVersion; }
+  public void setHardTokenPropertyDataPK(
+      final HardTokenPropertyDataPK hardTokenPropertyDataPK) {
+    this.hardTokenPropertyDataPK = hardTokenPropertyDataPK;
+  }
 
-	//@Column @Lob
-	@Override
-	public String getRowProtection() { return rowProtection; }
-	@Override
-	public void setRowProtection(String rowProtection) { this.rowProtection = rowProtection; }
+  @Transient
+  public String getId() {
+    return hardTokenPropertyDataPK.id;
+  }
 
-    //
-    // Start Database integrity protection methods
-    //
+  // @Column
+  public String getValue() {
+    return value;
+  }
 
-    @Transient
-    @Override
-    protected String getProtectString(final int version) {
-        final ProtectionStringBuilder build = new ProtectionStringBuilder();
-        // rowVersion is automatically updated by JPA, so it's not important, it is only used for optimistic locking
-        build.append(getHardTokenPropertyDataPK().getId()).append(getHardTokenPropertyDataPK().getProperty()).append(getValue());
-        return build.toString();
-    }
+  public void setValue(final String value) {
+    this.value = value;
+  }
 
-    @Transient
-    @Override
-    protected int getProtectVersion() {
-        return 1;
-    }
+  // @Version @Column
+  public int getRowVersion() {
+    return rowVersion;
+  }
 
-    @PrePersist
-    @PreUpdate
-    @Override
-    protected void protectData() {
-        super.protectData();
-    }
+  public void setRowVersion(final int rowVersion) {
+    this.rowVersion = rowVersion;
+  }
 
-    @PostLoad
-    @Override
-    protected void verifyData() {
-        super.verifyData();
-    }
+  // @Column @Lob
+  @Override
+  public String getRowProtection() {
+    return rowProtection;
+  }
 
-    @Override
-    @Transient
-    protected String getRowId() {
-    	return new ProtectionStringBuilder().append(getHardTokenPropertyDataPK().getId()).append(getHardTokenPropertyDataPK()).toString();
-    }
+  @Override
+  public void setRowProtection(final String rowProtection) {
+    this.rowProtection = rowProtection;
+  }
 
-    //
-    // End Database integrity protection methods
-    //
+  //
+  // Start Database integrity protection methods
+  //
 
-    //
-    // Search functions.
-    //
+  @Transient
+  @Override
+  protected String getProtectString(final int version) {
+    final ProtectionStringBuilder build = new ProtectionStringBuilder();
+    // rowVersion is automatically updated by JPA, so it's not important, it is
+    // only used for optimistic locking
+    build
+        .append(getHardTokenPropertyDataPK().getId())
+        .append(getHardTokenPropertyDataPK().getProperty())
+        .append(getValue());
+    return build.toString();
+  }
 
-    /** @param entityManager EM
-     * @param pk PK
-     * @return the found entity instance or null if the entity does not exist */
-    public static HardTokenPropertyData findByPK(EntityManager entityManager, HardTokenPropertyDataPK pk) {
-        return entityManager.find(HardTokenPropertyData.class, pk);
-    }
+  @Transient
+  @Override
+  protected int getProtectVersion() {
+    return 1;
+  }
 
-    /**
-     * @param entityManager EM
-     * @param id ID
-     * @param property Property 
-     * @throws NonUniqueResultException
-     *             if more than one entity with the name exists
-     * @return the found entity instance or null if the entity does not exist
-     */ 
-    public static HardTokenPropertyData findByProperty(EntityManager entityManager, String id, String property) {
-        HardTokenPropertyData ret = null;
+  @PrePersist
+  @PreUpdate
+  @Override
+  protected void protectData() {
+    super.protectData();
+  }
 
-        Query query = entityManager.createQuery("SELECT a FROM HardTokenPropertyData a WHERE a.hardTokenPropertyDataPK.id=:id AND a.hardTokenPropertyDataPK.property=:property");
-        query.setParameter("id", id);
-        query.setParameter("property", property);
-        @SuppressWarnings("unchecked")
-        List<HardTokenPropertyData> resultList = (List<HardTokenPropertyData>) query.getResultList();
+  @PostLoad
+  @Override
+  protected void verifyData() {
+    super.verifyData();
+  }
 
-        switch (resultList.size()) {
-        case 0:
-            ret = null;
-            break;
-        case 1:
-            ret = resultList.get(0);
-            break;
-        default:
-            throw new NonUniqueResultException("Several entries with the same primary key where found in the table HardTokenPropertyData.");
-        }
+  @Override
+  @Transient
+  protected String getRowId() {
+    return new ProtectionStringBuilder()
+        .append(getHardTokenPropertyDataPK().getId())
+        .append(getHardTokenPropertyDataPK())
+        .toString();
+  }
 
-        return ret;
-    }
+  //
+  // End Database integrity protection methods
+  //
 
-    /** @param entityManager EM
-     * @param property Property
-     * @param value Value
-     * @return return the query results as a List. */
+  //
+  // Search functions.
+  //
+
+  /**
+   * @param entityManager EM
+   * @param pk PK
+   * @return the found entity instance or null if the entity does not exist
+   */
+  public static HardTokenPropertyData findByPK(
+      final EntityManager entityManager, final HardTokenPropertyDataPK pk) {
+    return entityManager.find(HardTokenPropertyData.class, pk);
+  }
+
+  /**
+   * @param entityManager EM
+   * @param id ID
+   * @param property Property
+   * @throws NonUniqueResultException if more than one entity with the name
+   *     exists
+   * @return the found entity instance or null if the entity does not exist
+   */
+  public static HardTokenPropertyData findByProperty(
+      final EntityManager entityManager,
+      final String id,
+      final String property) {
+    HardTokenPropertyData ret = null;
+
+    Query query =
+        entityManager.createQuery(
+            "SELECT a FROM HardTokenPropertyData a WHERE"
+                + " a.hardTokenPropertyDataPK.id=:id AND"
+                + " a.hardTokenPropertyDataPK.property=:property");
+    query.setParameter("id", id);
+    query.setParameter("property", property);
     @SuppressWarnings("unchecked")
-    public static List<HardTokenPropertyData> findIdsByPropertyAndValue(EntityManager entityManager, String property, String value) {
-        Query query = entityManager.createQuery("SELECT a FROM HardTokenPropertyData a WHERE a.hardTokenPropertyDataPK.property=:property AND a.value=:value");
-        query.setParameter("property", property);
-        query.setParameter("value", value);
-        return query.getResultList();
+    List<HardTokenPropertyData> resultList =
+        (List<HardTokenPropertyData>) query.getResultList();
+
+    switch (resultList.size()) {
+      case 0:
+        ret = null;
+        break;
+      case 1:
+        ret = resultList.get(0);
+        break;
+      default:
+        throw new NonUniqueResultException(
+            "Several entries with the same primary key where found in the"
+                + " table HardTokenPropertyData.");
     }
+
+    return ret;
+  }
+
+  /**
+   * @param entityManager EM
+   * @param property Property
+   * @param value Value
+   * @return return the query results as a List.
+   */
+  @SuppressWarnings("unchecked")
+  public static List<HardTokenPropertyData> findIdsByPropertyAndValue(
+      final EntityManager entityManager,
+      final String property,
+      final String value) {
+    Query query =
+        entityManager.createQuery(
+            "SELECT a FROM HardTokenPropertyData a WHERE"
+                + " a.hardTokenPropertyDataPK.property=:property AND"
+                + " a.value=:value");
+    query.setParameter("property", property);
+    query.setParameter("value", value);
+    return query.getResultList();
+  }
 }

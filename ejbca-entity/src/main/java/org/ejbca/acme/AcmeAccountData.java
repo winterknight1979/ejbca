@@ -18,14 +18,12 @@ import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
 import javax.persistence.Entity;
 import javax.persistence.PostLoad;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 import javax.persistence.Transient;
-
 import org.apache.log4j.Logger;
 import org.cesecore.dbprotection.ProtectedData;
 import org.cesecore.dbprotection.ProtectionStringBuilder;
@@ -33,116 +31,151 @@ import org.cesecore.util.Base64GetHashMap;
 import org.cesecore.util.Base64PutHashMap;
 import org.cesecore.util.SecureXMLDecoder;
 
-/**
- *
- * @version $Id: AcmeAccountData.java 25919 2017-05-30 17:09:24Z jeklund $
- */
+/** @version $Id: AcmeAccountData.java 25919 2017-05-30 17:09:24Z jeklund $ */
 @Entity
 @Table(name = "AcmeAccountData")
 public class AcmeAccountData extends ProtectedData implements Serializable {
 
-    private static final long serialVersionUID = 1L;
-    private static final Logger log = Logger.getLogger(AcmeAccountData.class);
+  private static final long serialVersionUID = 1L;
+  private static final Logger log = Logger.getLogger(AcmeAccountData.class);
 
-    private String accountId;
-    private String currentKeyId;
-    private String rawData;
-    private int rowVersion = 0;
-    private String rowProtection;
+  private String accountId;
+  private String currentKeyId;
+  private String rawData;
+  private int rowVersion = 0;
+  private String rowProtection;
 
-    public AcmeAccountData() {}
+  public AcmeAccountData() {}
 
-    public AcmeAccountData(final String accountId, final String currentKeyId, final LinkedHashMap<Object,Object> dataMap) {
-        setAccountId(accountId);
-        setCurrentKeyId(currentKeyId);
-        setDataMap(dataMap);
+  public AcmeAccountData(
+      final String accountId,
+      final String currentKeyId,
+      final LinkedHashMap<Object, Object> dataMap) {
+    setAccountId(accountId);
+    setCurrentKeyId(currentKeyId);
+    setDataMap(dataMap);
+  }
+
+  // @Column
+  public String getAccountId() {
+    return accountId;
+  }
+
+  public void setAccountId(final String accountId) {
+    this.accountId = accountId;
+  }
+
+  // @Column
+  public String getCurrentKeyId() {
+    return currentKeyId;
+  }
+
+  public void setCurrentKeyId(final String currentKeyId) {
+    this.currentKeyId = currentKeyId;
+  }
+
+  // @Column @Lob
+  public String getRawData() {
+    return rawData;
+  }
+
+  public void setRawData(final String rawData) {
+    this.rawData = rawData;
+  }
+
+  @Transient
+  @SuppressWarnings("unchecked")
+  public LinkedHashMap<Object, Object> getDataMap() {
+    try (final SecureXMLDecoder decoder =
+        new SecureXMLDecoder(
+            new ByteArrayInputStream(
+                getRawData().getBytes(StandardCharsets.UTF_8))); ) {
+      // Handle Base64 encoded string values
+      return new Base64GetHashMap((Map<?, ?>) decoder.readObject());
+    } catch (IOException e) {
+      final String msg =
+          "Failed to parse AcmeAccountData data map in database: "
+              + e.getMessage();
+      if (log.isDebugEnabled()) {
+        log.debug(msg + ". Data:\n" + getRawData());
+      }
+      throw new IllegalStateException(msg, e);
     }
+  }
 
-    //@Column
-    public String getAccountId() { return accountId; }
-    public void setAccountId(String accountId) { this.accountId = accountId; }
-
-    //@Column
-    public String getCurrentKeyId() { return currentKeyId; }
-    public void setCurrentKeyId(String currentKeyId) { this.currentKeyId = currentKeyId; }
-
-    //@Column @Lob
-    public String getRawData() { return rawData; }
-    public void setRawData(String rawData) { this.rawData = rawData; }
-
-
-    @Transient
-    @SuppressWarnings("unchecked")
-    public LinkedHashMap<Object,Object> getDataMap() {
-        try (final SecureXMLDecoder decoder = new SecureXMLDecoder(new ByteArrayInputStream(getRawData().getBytes(StandardCharsets.UTF_8)));) {
-            // Handle Base64 encoded string values
-            return new Base64GetHashMap((Map<?,?>)decoder.readObject());
-        } catch (IOException e) {
-            final String msg = "Failed to parse AcmeAccountData data map in database: " + e.getMessage();
-            if (log.isDebugEnabled()) {
-                log.debug(msg + ". Data:\n" + getRawData());
-            }
-            throw new IllegalStateException(msg, e);
-        }
+  @Transient
+  public void setDataMap(final LinkedHashMap<Object, Object> dataMap) {
+    // We must base64 encode string for UTF safety
+    final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    try (final XMLEncoder encoder = new XMLEncoder(baos); ) {
+      encoder.writeObject(new Base64PutHashMap(dataMap));
     }
+    setRawData(new String(baos.toByteArray(), StandardCharsets.UTF_8));
+  }
 
-    @Transient
-    public void setDataMap(final LinkedHashMap<Object,Object> dataMap) {
-        // We must base64 encode string for UTF safety
-        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try (final XMLEncoder encoder = new XMLEncoder(baos);) {
-            encoder.writeObject(new Base64PutHashMap(dataMap));
-        }
-        setRawData(new String(baos.toByteArray(), StandardCharsets.UTF_8));
-    }
+  // @Version @Column
+  public int getRowVersion() {
+    return rowVersion;
+  }
 
-    //@Version @Column
-    public int getRowVersion() { return rowVersion; }
-    public void setRowVersion(int rowVersion) { this.rowVersion = rowVersion; }
+  public void setRowVersion(final int rowVersion) {
+    this.rowVersion = rowVersion;
+  }
 
-    //@Column @Lob
-    @Override
-    public String getRowProtection() { return rowProtection; }
-    @Override
-    public void setRowProtection(String rowProtection) { this.rowProtection = rowProtection; }
+  // @Column @Lob
+  @Override
+  public String getRowProtection() {
+    return rowProtection;
+  }
 
-    //
-    // Start Database integrity protection methods
-    //
+  @Override
+  public void setRowProtection(final String rowProtection) {
+    this.rowProtection = rowProtection;
+  }
 
-    @Transient
-    @Override
-    protected String getProtectString(final int version) {
-        // rowVersion is automatically updated by JPA, so it's not important, it is only used for optimistic locking so we will not include that in the database protection
-        return new ProtectionStringBuilder().append(getAccountId()).append(getCurrentKeyId()).append(getRawData()).toString();
-    }
+  //
+  // Start Database integrity protection methods
+  //
 
-    @Transient
-    @Override
-    protected int getProtectVersion() {
-        return 1;
-    }
+  @Transient
+  @Override
+  protected String getProtectString(final int version) {
+    // rowVersion is automatically updated by JPA, so it's not important, it is
+    // only used for optimistic locking so we will not include that in the
+    // database protection
+    return new ProtectionStringBuilder()
+        .append(getAccountId())
+        .append(getCurrentKeyId())
+        .append(getRawData())
+        .toString();
+  }
 
-    @PrePersist
-    @PreUpdate
-    @Override
-    protected void protectData() {
-        super.protectData();
-    }
+  @Transient
+  @Override
+  protected int getProtectVersion() {
+    return 1;
+  }
 
-    @PostLoad
-    @Override
-    protected void verifyData() {
-        super.verifyData();
-    }
+  @PrePersist
+  @PreUpdate
+  @Override
+  protected void protectData() {
+    super.protectData();
+  }
 
-    @Override
-    @Transient
-    protected String getRowId() {
-        return getAccountId();
-    }
+  @PostLoad
+  @Override
+  protected void verifyData() {
+    super.verifyData();
+  }
 
-    //
-    // End Database integrity protection methods
-    //
+  @Override
+  @Transient
+  protected String getRowId() {
+    return getAccountId();
+  }
+
+  //
+  // End Database integrity protection methods
+  //
 }

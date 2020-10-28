@@ -14,7 +14,6 @@
 package org.ejbca.acme;
 
 import java.io.Serializable;
-
 import javax.persistence.Entity;
 import javax.persistence.PostLoad;
 import javax.persistence.PrePersist;
@@ -22,7 +21,6 @@ import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.persistence.Version;
-
 import org.cesecore.dbprotection.ProtectedData;
 import org.cesecore.dbprotection.ProtectionStringBuilder;
 
@@ -34,76 +32,101 @@ import org.cesecore.dbprotection.ProtectionStringBuilder;
 @Entity
 @Table(name = "AcmeNonceData")
 public class AcmeNonceData extends ProtectedData implements Serializable {
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    private String nonce;
-    private long timeExpires;
-    private int rowVersion = 0;
-    private String rowProtection;
+  private String nonce;
+  private long timeExpires;
+  private int rowVersion = 0;
+  private String rowProtection;
 
-    public AcmeNonceData() {}
+  public AcmeNonceData() {}
 
-    public AcmeNonceData(final String nonce, final long timeExpires) {
-        this.setNonce(nonce);
-        this.setTimeExpires(timeExpires);
-    }
+  public AcmeNonceData(final String nonce, final long timeExpires) {
+    this.setNonce(nonce);
+    this.setTimeExpires(timeExpires);
+  }
 
-    // @Column
-    public String getNonce() { return nonce; }
-    public void setNonce(String nonce) { this.nonce = nonce; }
+  // @Column
+  public String getNonce() {
+    return nonce;
+  }
 
-    // @Column
-    public long getTimeExpires() { return timeExpires; }
-    public void setTimeExpires(long timeExpires) { this.timeExpires = timeExpires; }
+  public void setNonce(final String nonce) {
+    this.nonce = nonce;
+  }
 
-    // @Column
-    @Version
-    public int getRowVersion() { return rowVersion; }
-    public void setRowVersion(int rowVersion) { this.rowVersion = rowVersion; }
+  // @Column
+  public long getTimeExpires() {
+    return timeExpires;
+  }
 
-    // @Column
-    @Override
-    public String getRowProtection() { return rowProtection; }
-    @Override
-    public void setRowProtection(String rowProtection) { this.rowProtection = rowProtection; }
+  public void setTimeExpires(final long timeExpires) {
+    this.timeExpires = timeExpires;
+  }
 
-    //
-    // Start Database integrity protection methods
-    //
+  // @Column
+  @Version
+  public int getRowVersion() {
+    return rowVersion;
+  }
 
-    @Transient
-    @Override
-    protected String getProtectString(final int version) {
-        // rowVersion is automatically updated by JPA, so it's not important, it is only used for optimistic locking so we will not include that in the database protection
-        return new ProtectionStringBuilder().append(getNonce()).append(getTimeExpires()).toString();
-    }
+  public void setRowVersion(final int rowVersion) {
+    this.rowVersion = rowVersion;
+  }
 
-    @Transient
-    @Override
-    protected int getProtectVersion() {
-        return 1;
-    }
+  // @Column
+  @Override
+  public String getRowProtection() {
+    return rowProtection;
+  }
 
-    @PrePersist
-    @PreUpdate
-    @Override
-    protected void protectData() {
-        super.protectData();
-    }
+  @Override
+  public void setRowProtection(final String rowProtection) {
+    this.rowProtection = rowProtection;
+  }
 
-    @PostLoad
-    @Override
-    protected void verifyData() {
-        super.verifyData();
-    }
+  //
+  // Start Database integrity protection methods
+  //
 
-    @Override
-    @Transient
-    protected String getRowId() {
-        return getNonce();
-    }
+  @Transient
+  @Override
+  protected String getProtectString(final int version) {
+    // rowVersion is automatically updated by JPA, so it's not important, it is
+    // only used for optimistic locking so we will not include that in the
+    // database protection
+    return new ProtectionStringBuilder()
+        .append(getNonce())
+        .append(getTimeExpires())
+        .toString();
+  }
 
-    //
-    // End Database integrity protection methods
-    //
+  @Transient
+  @Override
+  protected int getProtectVersion() {
+    return 1;
+  }
+
+  @PrePersist
+  @PreUpdate
+  @Override
+  protected void protectData() {
+    super.protectData();
+  }
+
+  @PostLoad
+  @Override
+  protected void verifyData() {
+    super.verifyData();
+  }
+
+  @Override
+  @Transient
+  protected String getRowId() {
+    return getNonce();
+  }
+
+  //
+  // End Database integrity protection methods
+  //
 }
