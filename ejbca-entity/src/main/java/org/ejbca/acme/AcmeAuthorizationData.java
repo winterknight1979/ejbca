@@ -40,68 +40,109 @@ public class AcmeAuthorizationData extends ProtectedData
     implements Serializable {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log =
+  /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(AcmeAuthorizationData.class);
 
+  /** Param. */
   private String authorizationId;
+  /** Param. */
   private String orderId;
+  /** Param. */
   private String accountId;
+  /** Param. */
   private String rawData;
+  /** Param. */
   private int rowVersion = 0;
+  /** Param. */
   private String rowProtection;
 
-  public AcmeAuthorizationData() {}
+  /** Null constructor. */
+  public AcmeAuthorizationData() { }
 
+  /**
+   * @param anauthorizationId Auth
+   * @param anorderId Order
+   * @param anaccountId Account
+   * @param dataMap Data
+   */
   public AcmeAuthorizationData(
-      final String authorizationId,
-      final String orderId,
-      final String accountId,
+      final String anauthorizationId,
+      final String anorderId,
+      final String anaccountId,
       final LinkedHashMap<Object, Object> dataMap) {
-    setAuthorizationId(authorizationId);
-    setOrderId(orderId);
-    setAccountId(accountId);
+    setAuthorizationId(anauthorizationId);
+    setOrderId(anorderId);
+    setAccountId(anaccountId);
     setDataMap(dataMap);
   }
 
+  /**
+   * @return ID
+   */
   // @Column
   public String getAuthorizationId() {
     return authorizationId;
   }
 
-  public void setAuthorizationId(final String authorizationId) {
-    this.authorizationId = authorizationId;
+  /**
+   * @param anauthorizationId ID
+   */
+  public void setAuthorizationId(final String anauthorizationId) {
+    this.authorizationId = anauthorizationId;
   }
 
+  /**
+   * @return ID
+   */
   // @Column
   public String getOrderId() {
     return orderId;
   }
 
-  public void setOrderId(final String orderId) {
-    this.orderId = orderId;
+  /**
+   * @param anorderId ID
+   */
+  public void setOrderId(final String anorderId) {
+    this.orderId = anorderId;
   }
 
+  /**
+   * @return ID
+   */
   public String getAccountId() {
     return accountId;
   }
 
-  public void setAccountId(final String accountId) {
-    this.accountId = accountId;
+  /**
+   * @param anaccountId ID
+   */
+  public void setAccountId(final String anaccountId) {
+    this.accountId = anaccountId;
   }
 
+  /**
+   * @return data
+   */
   // @Column @Lob
   public String getRawData() {
     return rawData;
   }
 
-  public void setRawData(final String rawData) {
-    this.rawData = rawData;
+  /**
+   * @param therawData data
+   */
+  public void setRawData(final String therawData) {
+    this.rawData = therawData;
   }
 
+  /**
+   * @return map
+   */
   @Transient
   @SuppressWarnings("unchecked")
   public LinkedHashMap<Object, Object> getDataMap() {
-    try (final SecureXMLDecoder decoder =
+    try (SecureXMLDecoder decoder =
         new SecureXMLDecoder(
             new ByteArrayInputStream(
                 getRawData().getBytes(StandardCharsets.UTF_8))); ) {
@@ -111,30 +152,39 @@ public class AcmeAuthorizationData extends ProtectedData
       final String msg =
           "Failed to parse AcmeAuthorizationData data map in database: "
               + e.getMessage();
-      if (log.isDebugEnabled()) {
-        log.debug(msg + ". Data:\n" + getRawData());
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(msg + ". Data:\n" + getRawData());
       }
       throw new IllegalStateException(msg, e);
     }
   }
 
+  /**
+   * @param dataMap map
+   */
   @Transient
   public void setDataMap(final LinkedHashMap<Object, Object> dataMap) {
     // We must base64 encode string for UTF safety
     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    try (final XMLEncoder encoder = new XMLEncoder(baos); ) {
+    try (XMLEncoder encoder = new XMLEncoder(baos); ) {
       encoder.writeObject(new Base64PutHashMap(dataMap));
     }
     setRawData(new String(baos.toByteArray(), StandardCharsets.UTF_8));
   }
 
+  /**
+   * @return version
+   */
   // @Version @Column
   public int getRowVersion() {
     return rowVersion;
   }
 
-  public void setRowVersion(final int rowVersion) {
-    this.rowVersion = rowVersion;
+  /**
+   * @param arowVersion version
+   */
+  public void setRowVersion(final int arowVersion) {
+    this.rowVersion = arowVersion;
   }
 
   // @Column @Lob
@@ -144,8 +194,8 @@ public class AcmeAuthorizationData extends ProtectedData
   }
 
   @Override
-  public void setRowProtection(final String rowProtection) {
-    this.rowProtection = rowProtection;
+  public void setRowProtection(final String arowProtection) {
+    this.rowProtection = arowProtection;
   }
 
   //

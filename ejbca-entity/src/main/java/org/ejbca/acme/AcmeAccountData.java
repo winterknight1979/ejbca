@@ -37,56 +37,89 @@ import org.cesecore.util.SecureXMLDecoder;
 public class AcmeAccountData extends ProtectedData implements Serializable {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log = Logger.getLogger(AcmeAccountData.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(AcmeAccountData.class);
 
+  /** Param. */
   private String accountId;
+  /** Param. */
   private String currentKeyId;
+  /** Param. */
   private String rawData;
+  /** Param. */
   private int rowVersion = 0;
+  /** Param. */
   private String rowProtection;
 
-  public AcmeAccountData() {}
+  /** Null constructor. */
+  public AcmeAccountData() { }
 
+  /**
+   * @param anaccountId account
+   * @param acurrentKeyId key
+   * @param dataMap map
+   */
   public AcmeAccountData(
-      final String accountId,
-      final String currentKeyId,
+      final String anaccountId,
+      final String acurrentKeyId,
       final LinkedHashMap<Object, Object> dataMap) {
-    setAccountId(accountId);
-    setCurrentKeyId(currentKeyId);
+    setAccountId(anaccountId);
+    setCurrentKeyId(acurrentKeyId);
     setDataMap(dataMap);
   }
 
+  /**
+   * @return ID
+   */
   // @Column
   public String getAccountId() {
     return accountId;
   }
 
-  public void setAccountId(final String accountId) {
-    this.accountId = accountId;
+  /**
+   * @param theaccountId ID
+   */
+  public void setAccountId(final String theaccountId) {
+    this.accountId = theaccountId;
   }
 
+  /**
+   * @return ID
+   */
   // @Column
   public String getCurrentKeyId() {
     return currentKeyId;
   }
 
-  public void setCurrentKeyId(final String currentKeyId) {
-    this.currentKeyId = currentKeyId;
+  /**
+   * @param thecurrentKeyId ID
+   */
+  public void setCurrentKeyId(final String thecurrentKeyId) {
+    this.currentKeyId = thecurrentKeyId;
   }
 
+  /**
+   * @return data
+   */
   // @Column @Lob
   public String getRawData() {
     return rawData;
   }
 
-  public void setRawData(final String rawData) {
-    this.rawData = rawData;
+  /**
+   * @param therawData data
+   */
+  public void setRawData(final String therawData) {
+    this.rawData = therawData;
   }
 
+  /**
+   * @return map
+   */
   @Transient
   @SuppressWarnings("unchecked")
   public LinkedHashMap<Object, Object> getDataMap() {
-    try (final SecureXMLDecoder decoder =
+    try (SecureXMLDecoder decoder =
         new SecureXMLDecoder(
             new ByteArrayInputStream(
                 getRawData().getBytes(StandardCharsets.UTF_8))); ) {
@@ -96,30 +129,39 @@ public class AcmeAccountData extends ProtectedData implements Serializable {
       final String msg =
           "Failed to parse AcmeAccountData data map in database: "
               + e.getMessage();
-      if (log.isDebugEnabled()) {
-        log.debug(msg + ". Data:\n" + getRawData());
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(msg + ". Data:\n" + getRawData());
       }
       throw new IllegalStateException(msg, e);
     }
   }
 
+  /**
+   * @param dataMap data
+   */
   @Transient
   public void setDataMap(final LinkedHashMap<Object, Object> dataMap) {
     // We must base64 encode string for UTF safety
     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    try (final XMLEncoder encoder = new XMLEncoder(baos); ) {
+    try (XMLEncoder encoder = new XMLEncoder(baos); ) {
       encoder.writeObject(new Base64PutHashMap(dataMap));
     }
     setRawData(new String(baos.toByteArray(), StandardCharsets.UTF_8));
   }
 
+  /**
+   * @return version
+   */
   // @Version @Column
   public int getRowVersion() {
     return rowVersion;
   }
 
-  public void setRowVersion(final int rowVersion) {
-    this.rowVersion = rowVersion;
+  /**
+   * @param arowVersion version
+   */
+  public void setRowVersion(final int arowVersion) {
+    this.rowVersion = arowVersion;
   }
 
   // @Column @Lob
@@ -129,8 +171,8 @@ public class AcmeAccountData extends ProtectedData implements Serializable {
   }
 
   @Override
-  public void setRowProtection(final String rowProtection) {
-    this.rowProtection = rowProtection;
+  public void setRowProtection(final String arowProtection) {
+    this.rowProtection = arowProtection;
   }
 
   //

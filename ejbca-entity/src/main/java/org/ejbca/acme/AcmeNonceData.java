@@ -34,44 +34,71 @@ import org.cesecore.dbprotection.ProtectionStringBuilder;
 public class AcmeNonceData extends ProtectedData implements Serializable {
   private static final long serialVersionUID = 1L;
 
+  /** Param. */
   private String nonce;
+  /** Param. */
   private long timeExpires;
+  /** Param. */
   private int rowVersion = 0;
+  /** Param. */
   private String rowProtection;
 
-  public AcmeNonceData() {}
+  /** Null. */
+  public AcmeNonceData() { }
 
-  public AcmeNonceData(final String nonce, final long timeExpires) {
-    this.setNonce(nonce);
-    this.setTimeExpires(timeExpires);
+  /**
+   * @param anonce nonce
+   * @param thetimeExpires expiry
+   */
+  public AcmeNonceData(final String anonce, final long thetimeExpires) {
+    this.setNonce(anonce);
+    this.setTimeExpires(thetimeExpires);
   }
 
+  /**
+   * @return nonce
+   */
   // @Column
   public String getNonce() {
     return nonce;
   }
 
-  public void setNonce(final String nonce) {
-    this.nonce = nonce;
+  /**
+   * @param anonce nonce
+   */
+  public void setNonce(final String anonce) {
+    this.nonce = anonce;
   }
 
+  /**
+   * @return time
+   */
   // @Column
   public long getTimeExpires() {
     return timeExpires;
   }
 
-  public void setTimeExpires(final long timeExpires) {
-    this.timeExpires = timeExpires;
+  /**
+   * @param atimeExpires time
+   */
+  public void setTimeExpires(final long atimeExpires) {
+    this.timeExpires = atimeExpires;
   }
 
+  /**
+   * @return version
+   */
   // @Column
   @Version
   public int getRowVersion() {
     return rowVersion;
   }
 
-  public void setRowVersion(final int rowVersion) {
-    this.rowVersion = rowVersion;
+  /**
+   * @param arowVersion version
+   */
+  public void setRowVersion(final int arowVersion) {
+    this.rowVersion = arowVersion;
   }
 
   // @Column
@@ -81,8 +108,8 @@ public class AcmeNonceData extends ProtectedData implements Serializable {
   }
 
   @Override
-  public void setRowProtection(final String rowProtection) {
-    this.rowProtection = rowProtection;
+  public void setRowProtection(final String arowProtection) {
+    this.rowProtection = arowProtection;
   }
 
   //

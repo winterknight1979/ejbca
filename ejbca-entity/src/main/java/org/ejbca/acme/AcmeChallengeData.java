@@ -36,68 +36,114 @@ import org.cesecore.util.SecureXMLDecoder;
 public class AcmeChallengeData extends ProtectedData implements Serializable {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log = Logger.getLogger(AcmeChallengeData.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(AcmeChallengeData.class);
+
+  /** Param. */
 
   private String challengeId;
+  /** Param. */
+
   private String authorizationId;
+  /** Param. */
+
   private String type;
+  /** Param. */
+
   private String rawData;
+  /** Param. */
+
   private int rowVersion = 0;
+  /** Param. */
   private String rowProtection;
 
-  public AcmeChallengeData() {}
+  /** Null constructor. */
+  public AcmeChallengeData() { }
 
+  /**
+   * @param achallengeId Challenge
+   * @param anauthorizationId Auth
+   * @param atype Type
+   * @param dataMap Map
+   */
   public AcmeChallengeData(
-      final String challengeId,
-      final String authorizationId,
-      final String type,
+      final String achallengeId,
+      final String anauthorizationId,
+      final String atype,
       final LinkedHashMap<Object, Object> dataMap) {
-    setChallengeId(challengeId);
-    setAuthorizationId(authorizationId);
-    setType(type);
+    setChallengeId(achallengeId);
+    setAuthorizationId(anauthorizationId);
+    setType(atype);
     setDataMap(dataMap);
   }
 
+  /**
+   * @return ID
+   */
   // @Column
   public String getChallengeId() {
     return challengeId;
   }
 
-  public void setChallengeId(final String challengeId) {
-    this.challengeId = challengeId;
+  /**
+   * @param achallengeId ID
+   */
+  public void setChallengeId(final String achallengeId) {
+    this.challengeId = achallengeId;
   }
 
+  /**
+   * @return ID
+   */
   // @Column
   public String getAuthorizationId() {
     return authorizationId;
   }
 
-  public void setAuthorizationId(final String authorizationId) {
-    this.authorizationId = authorizationId;
+  /**
+   * @param anauthorizationId ID
+   */
+  public void setAuthorizationId(final String anauthorizationId) {
+    this.authorizationId = anauthorizationId;
   }
 
+  /**
+   * @return type
+   */
   // @Column
   public String getType() {
     return type;
   }
 
-  public void setType(final String type) {
-    this.type = type;
+  /**
+   * @param atype type
+   */
+  public void setType(final String atype) {
+    this.type = atype;
   }
 
+  /**
+   * @return data
+   */
   // @Column @Lob
   public String getRawData() {
     return rawData;
   }
 
-  public void setRawData(final String rawData) {
-    this.rawData = rawData;
+  /**
+   * @param therawData data
+   */
+  public void setRawData(final String therawData) {
+    this.rawData = therawData;
   }
 
+  /**
+   * @return data
+   */
   @Transient
   @SuppressWarnings("unchecked")
   public LinkedHashMap<Object, Object> getDataMap() {
-    try (final SecureXMLDecoder decoder =
+    try (SecureXMLDecoder decoder =
         new SecureXMLDecoder(
             new ByteArrayInputStream(
                 getRawData().getBytes(StandardCharsets.UTF_8))); ) {
@@ -107,30 +153,39 @@ public class AcmeChallengeData extends ProtectedData implements Serializable {
       final String msg =
           "Failed to parse AcmeChallengeData data map in database: "
               + e.getMessage();
-      if (log.isDebugEnabled()) {
-        log.debug(msg + ". Data:\n" + getRawData());
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(msg + ". Data:\n" + getRawData());
       }
       throw new IllegalStateException(msg, e);
     }
   }
 
+  /**
+   * @param dataMap map
+   */
   @Transient
   public void setDataMap(final LinkedHashMap<Object, Object> dataMap) {
     // We must base64 encode string for UTF safety
     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    try (final XMLEncoder encoder = new XMLEncoder(baos); ) {
+    try (XMLEncoder encoder = new XMLEncoder(baos); ) {
       encoder.writeObject(new Base64PutHashMap(dataMap));
     }
     setRawData(new String(baos.toByteArray(), StandardCharsets.UTF_8));
   }
 
+  /**
+   * @return version
+   */
   // @Version @Column
   public int getRowVersion() {
     return rowVersion;
   }
 
-  public void setRowVersion(final int rowVersion) {
-    this.rowVersion = rowVersion;
+  /**
+   * @param arowVersion version
+   */
+  public void setRowVersion(final int arowVersion) {
+    this.rowVersion = arowVersion;
   }
 
   // @Column @Lob
@@ -140,8 +195,8 @@ public class AcmeChallengeData extends ProtectedData implements Serializable {
   }
 
   @Override
-  public void setRowProtection(final String rowProtection) {
-    this.rowProtection = rowProtection;
+  public void setRowProtection(final String arowProtection) {
+    this.rowProtection = arowProtection;
   }
 
   //
