@@ -16,64 +16,84 @@ package org.ejbca.core.protocol.ws.objects;
 import org.ejbca.core.model.hardtoken.HardTokenConstants;
 
 /**
- * base class that this is a certificate response
- * of either a Certificate or KeyStore
- * 
- * 
- * @author Philip Vendil 2007 feb 8
+ * base class that this is a certificate response of either a Certificate or
+ * KeyStore.
  *
- * @version $Id: TokenCertificateResponseWS.java 19902 2014-09-30 14:32:24Z anatom $
+ * @author Philip Vendil 2007 feb 8
+ * @version $Id: TokenCertificateResponseWS.java 19902 2014-09-30 14:32:24Z
+ *     anatom $
  */
 public class TokenCertificateResponseWS {
-	
 
+      /** Param. */
+  private int type = 0;
+  /** Param. */
+  private Certificate certificate;
+  /** Param. */
+  private KeyStore keyStore;
 
-	private int type = 0;
-	private Certificate certificate;
-	private KeyStore keyStore;
-	
-	public TokenCertificateResponseWS(Certificate certificate) {
-		super();
-		this.type = HardTokenConstants.RESPONSETYPE_CERTIFICATE_RESPONSE;
-		this.certificate = certificate;
-	}
+  /**
+   * @param acertificate cert
+   */
+  public TokenCertificateResponseWS(Certificate acertificate) {
+    super();
+    this.type = HardTokenConstants.RESPONSETYPE_CERTIFICATE_RESPONSE;
+    this.certificate = acertificate;
+  }
 
-	public TokenCertificateResponseWS(KeyStore keyStore) {
-		super();
-		this.type = HardTokenConstants.RESPONSETYPE_KEYSTORE_RESPONSE;
-		this.keyStore = keyStore;
-	}
+  /**
+   * @param akeyStore store
+   */
+  public TokenCertificateResponseWS(KeyStore akeyStore) {
+    super();
+    this.type = HardTokenConstants.RESPONSETYPE_KEYSTORE_RESPONSE;
+    this.keyStore = akeyStore;
+  }
 
-	/**
-	 * WS Constructor
-	 */
-	public TokenCertificateResponseWS() {
-		super();
-	}
+  /** WS Constructor. */
+  public TokenCertificateResponseWS() {
+    super();
+  }
 
-	public Certificate getCertificate() {
-		return certificate;
-	}
+  /**
+   * @return cert
+   */
+  public Certificate getCertificate() {
+    return certificate;
+  }
 
-	public void setCertificate(Certificate certificate) {
-		this.certificate = certificate;
-	}
+  /**
+   * @param acertificate ccert
+   */
+  public void setCertificate(Certificate acertificate) {
+    this.certificate = acertificate;
+  }
 
-	public KeyStore getKeyStore() {
-		return keyStore;
-	}
+  /**
+   * @return store
+   */
+  public KeyStore getKeyStore() {
+    return keyStore;
+  }
 
-	public void setKeyStore(KeyStore keyStore) {
-		this.keyStore = keyStore;
-	}
+  /**
+   * @param akeyStore store
+   */
+  public void setKeyStore(KeyStore akeyStore) {
+    this.keyStore = akeyStore;
+  }
 
-	public int getType() {
-		return type;
-	}
+  /**
+   * @return type
+   */
+  public int getType() {
+    return type;
+  }
 
-	public void setType(int type) {
-		this.type = type;
-	}
-	
-	
+  /**
+   * @param atype type
+   */
+  public void setType(int atype) {
+    this.type = atype;
+  }
 }

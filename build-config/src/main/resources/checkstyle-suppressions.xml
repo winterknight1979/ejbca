@@ -305,4 +305,14 @@
 		files="BlacklistData.java" lines="28" /> <!-- Used in JDOC -->
 	<suppress checks="ParameterNumberCheck" files="UserData.java"
 		lines="143" />
+		
+	<!-- ejbca-ws-common -->
+	<suppress checks="ParameterNumberCheck"
+		files="IEjbcaWS.java" lines="288" />
+		<!-- wsimport does not finalize params, so  we can't in these files either-->
+	<suppress checks="FinalParametersCheck" 
+	files="[/\\]org[/\\]ejbca[/\\]core[/\\]protocol[/\\]ws[/\\]objects[/\\]"/>
+	<suppress checks="ParameterNumberCheck"
+		files="HardTokenDataWS.java" lines="94" /><suppress checks="ParameterNumberCheck"
+		files="UserDataVOWS.java" lines="124" />
 </suppressions>

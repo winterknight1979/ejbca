@@ -13,56 +13,62 @@
 package org.ejbca.core.protocol.ws.objects;
 
 import java.security.cert.CertificateEncodingException;
-
 import org.cesecore.util.Base64;
 
 /**
- * Holds certificate WS elements
- * 
+ * Holds certificate WS elements.
+ *
  * @version $Id: Certificate.java 19902 2014-09-30 14:32:24Z anatom $
  */
 public class Certificate extends TokenCertificateResponseWS {
-	
-	private byte[] certificateData = null;
-	
-	/**
-	 * WS Constructor
-	 */
-	public Certificate(){
-		
-	}
 
-	public Certificate(java.security.cert.Certificate cert) throws CertificateEncodingException{
-		certificateData = Base64.encode(cert.getEncoded());
-	}
-	
-	public Certificate(byte[] certData) {
-		certificateData = Base64.encode(certData);
-	}
+    /** Param. */
+  private byte[] certificateData = null;
 
-	/**
-	 * Returns the certificateData in binary format
-	 * @return the certificateData in binary format
-	 */
-	public byte[] getRawCertificateData() {
-		return Base64.decode(certificateData);
-	}
+  /** WS Constructor.  */
+  public Certificate() { }
 
-	/**
-	 * Returns the certificateData in Base64 encoded format
-	 * @return the certificateData in Base64 encoded format
-	 */
-	public byte[] getCertificateData() {
-		return certificateData;
-	}
+  /**
+   * @param cert certificate
+   * @throws CertificateEncodingException f
+   */
+  public Certificate(java.security.cert.Certificate cert)
+      throws CertificateEncodingException {
+    certificateData = Base64.encode(cert.getEncoded());
+  }
 
-	/**
-	 * Sets certificateData in Base64 encoded format
-	 * @param certificateData The certificateData to set, in Base64 encoded format.
-	 */
-	public void setCertificateData(byte[] certificateData) {
-		this.certificateData = certificateData;
-	}
+  /**
+   * @param certData data
+   */
+  public Certificate(byte[] certData) {
+    certificateData = Base64.encode(certData);
+  }
 
+  /**
+   * Returns the certificateData in binary format.
+   *
+   * @return the certificateData in binary format
+   */
+  public byte[] getRawCertificateData() {
+    return Base64.decode(certificateData);
+  }
 
+  /**
+   * Returns the certificateData in Base64 encoded format.
+   *
+   * @return the certificateData in Base64 encoded format
+   */
+  public byte[] getCertificateData() {
+    return certificateData;
+  }
+
+  /**
+   * Sets certificateData in Base64 encoded format.
+   *
+   * @param acertificateData The certificateData to set, in Base64 encoded
+   *     format.
+   */
+  public void setCertificateData(byte[] acertificateData) {
+    this.certificateData = acertificateData;
+  }
 }

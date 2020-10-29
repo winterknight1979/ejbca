@@ -14,107 +14,195 @@
 package org.ejbca.core.protocol.ws.objects;
 
 import java.io.IOException;
-
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.ejbca.core.model.hardtoken.HardTokenConstants;
 
 /**
- * Base class this is a ITokenCertificateRequest, either
- * a PKCS10 or KeyStore defined by the type field.
- * 
+ * Base class this is a ITokenCertificateRequest, either a PKCS10 or KeyStore
+ * defined by the type field.
  *
- * @version $Id: TokenCertificateRequestWS.java 24737 2016-11-15 13:53:25Z anatom $
+ * @version $Id: TokenCertificateRequestWS.java 24737 2016-11-15 13:53:25Z
+ *     anatom $
  */
 public class TokenCertificateRequestWS {
-	
 
-    	
-	private String cAName = null;
-	private String certificateProfileName = null;
-	private String validityIdDays = null;
-	private int type = 0;
-	private byte[] pkcs10Data = null;
-	private String tokenType = HardTokenConstants.TOKENTYPE_PKCS12;
-	private String keyspec = "1024";
-	private String keyalg = "RSA";
-	
-	public TokenCertificateRequestWS(String name, String certificateProfileName, String validityIdDays, PKCS10CertificationRequest pkcs10) throws IOException {
-		super();
-		type = HardTokenConstants.REQUESTTYPE_PKCS10_REQUEST;
-		cAName = name;
-		this.validityIdDays = validityIdDays;
-		this.certificateProfileName = certificateProfileName;
-		this.pkcs10Data = pkcs10.getEncoded();
-	}
-	public TokenCertificateRequestWS(String name, String certificateProfileName, String validityIdDays,String tokenType, String keyspec, String keyalg) {
-		super();
-		type = HardTokenConstants.REQUESTTYPE_KEYSTORE_REQUEST;
-		cAName = name;
-		this.validityIdDays = validityIdDays;
-		this.certificateProfileName = certificateProfileName;
-		this.tokenType = tokenType;
-		this.keyspec = keyspec;
-		this.keyalg = keyalg;
-	}
+      /** Param. */
+  private String cAName = null;
+  /** Param. */
+  private String certificateProfileName = null;
+  /** Param. */
+  private String validityIdDays = null;
+  /** Param. */
+  private int type = 0;
+  /** Param. */
+  private byte[] pkcs10Data = null;
+  /** Param. */
+  private String tokenType = HardTokenConstants.TOKENTYPE_PKCS12;
+  /** Param. */
+  private String keyspec = "1024";
+  /** Param. */
+  private String keyalg = "RSA";
 
-	/**
-	 * WS Constructor
-	 */
-	public TokenCertificateRequestWS() {
-		super();
-	}
+  /**
+   * @param name name
+   * @param acertificateProfileName profile
+   * @param avalidityIdDays days
+   * @param pkcs10 PKCS req
+   * @throws IOException fail
+   */
+  public TokenCertificateRequestWS(
+      String name,
+      String acertificateProfileName,
+      String avalidityIdDays,
+      PKCS10CertificationRequest pkcs10)
+      throws IOException {
+    super();
+    type = HardTokenConstants.REQUESTTYPE_PKCS10_REQUEST;
+    cAName = name;
+    this.validityIdDays = avalidityIdDays;
+    this.certificateProfileName = acertificateProfileName;
+    this.pkcs10Data = pkcs10.getEncoded();
+  }
 
-	public String getCAName() {
-		return cAName;
-	}
+  /**
+   * @param aname name
+   * @param acertificateProfileName profile
+   * @param avalidityIdDays days
+   * @param atokenType type
+   * @param akeyspec spec
+   * @param akeyalg algo
+   */
+  public TokenCertificateRequestWS(
+      String aname,
+      String acertificateProfileName,
+      String avalidityIdDays,
+      String atokenType,
+      String akeyspec,
+      String akeyalg) {
+    super();
+    type = HardTokenConstants.REQUESTTYPE_KEYSTORE_REQUEST;
+    cAName = aname;
+    this.validityIdDays = avalidityIdDays;
+    this.certificateProfileName = acertificateProfileName;
+    this.tokenType = atokenType;
+    this.keyspec = akeyspec;
+    this.keyalg = akeyalg;
+  }
 
-	public void setCAName(String name) {
-		cAName = name;
-	}
+  /** WS Constructor. */
+  public TokenCertificateRequestWS() {
+    super();
+  }
 
-	public String getCertificateProfileName() {
-		return certificateProfileName;
-	}
+  /**
+   * @return name
+   */
+  public String getCAName() {
+    return cAName;
+  }
 
-	public void setCertificateProfileName(String certificateProfileName) {
-		this.certificateProfileName = certificateProfileName;
-	}
-	public String getKeyalg() {
-		return keyalg;
-	}
-	public void setKeyalg(String keyalg) {
-		this.keyalg = keyalg;
-	}
-	public String getKeyspec() {
-		return keyspec;
-	}
-	public void setKeyspec(String keyspec) {
-		this.keyspec = keyspec;
-	}
-	public byte[] getPkcs10Data() {
-		return pkcs10Data;
-	}
-	public void setPkcs10Data(byte[] pkcs10Data) {
-		this.pkcs10Data = pkcs10Data;
-	}
-	public String getTokenType() {
-		return tokenType;
-	}
-	public void setTokenType(String tokenType) {
-		this.tokenType = tokenType;
-	}
-	public int getType() {
-		return type;
-	}
-	public void setType(int type) {
-		this.type = type;
-	}
-	
-	public String getValidityIdDays() {
-		return validityIdDays;
-	}
-	public void setValidityIdDays(String validityIdDays) {
-		this.validityIdDays = validityIdDays;
-	}
+  /**
+   * @param aname name
+   */
+  public void setCAName(String aname) {
+    cAName = aname;
+  }
 
+  /**
+   * @return name
+   */
+  public String getCertificateProfileName() {
+    return certificateProfileName;
+  }
+
+  /**
+   * @param acertificateProfileName name
+   */
+  public void setCertificateProfileName(String acertificateProfileName) {
+    this.certificateProfileName = acertificateProfileName;
+  }
+
+  /**
+   * @return alg
+   */
+  public String getKeyalg() {
+    return keyalg;
+  }
+
+  /**
+   * @param akeyalg alg
+   */
+  public void setKeyalg(String akeyalg) {
+    this.keyalg = akeyalg;
+  }
+
+  /**
+   * @return spec
+   */
+  public String getKeyspec() {
+    return keyspec;
+  }
+
+  /**
+   * @param akeyspec spec
+   */
+  public void setKeyspec(String akeyspec) {
+    this.keyspec = akeyspec;
+  }
+
+  /**
+   * @return data
+   */
+  public byte[] getPkcs10Data() {
+    return pkcs10Data;
+  }
+
+  /**
+   * @param thepkcs10Data data
+   */
+  public void setPkcs10Data(byte[] thepkcs10Data) {
+    this.pkcs10Data = thepkcs10Data;
+  }
+
+  /**
+   * @return typw
+   */
+  public String getTokenType() {
+    return tokenType;
+  }
+
+  /**
+   * @param atokenType type
+   */
+  public void setTokenType(String atokenType) {
+    this.tokenType = atokenType;
+  }
+
+  /**
+   * @return type
+   */
+  public int getType() {
+    return type;
+  }
+
+  /**
+   * @param atype type
+   */
+  public void setType(int atype) {
+    this.type = atype;
+  }
+
+  /**
+   * @return days
+   */
+  public String getValidityIdDays() {
+    return validityIdDays;
+  }
+
+  /**
+   * @param avalidityIdDays dys
+   */
+  public void setValidityIdDays(String avalidityIdDays) {
+    this.validityIdDays = avalidityIdDays;
+  }
 }

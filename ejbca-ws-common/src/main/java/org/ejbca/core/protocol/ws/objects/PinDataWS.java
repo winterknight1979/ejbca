@@ -14,84 +14,65 @@
 package org.ejbca.core.protocol.ws.objects;
 
 /**
- * Class containing a web service representation
- * of a PIN data such as type, PIN and PUK
- * 
- * 
- * @author Philip Vendil
+ * Class containing a web service representation of a PIN data such as type, PIN
+ * and PUK.
  *
+ * @author Philip Vendil
  * @version $Id: PinDataWS.java 19902 2014-09-30 14:32:24Z anatom $
  */
 public class PinDataWS {
-	
-	
-	private int type = 0;
-	private String initialPIN = null;
-	private String PUK = null;
-	
-	/**
-	 * WS Constructor
-	 */
-	public PinDataWS(){}
-	
-	/**
-	 * Default constructor
-	 * 
-	 * @param type pnt of the PINTYPE_ constants
-	 * @param initialPIN the initial pin of the token
-	 * @param puk the puk of the token
-	 */
-	public PinDataWS(int type, String initialPIN, String puk) {
-		super();
-		this.type = type;
-		this.initialPIN = initialPIN;
-		PUK = puk;
-	}
-	
-	/**
-	 * @return the initial pin of the token
-	 */
-	public String getInitialPIN() {
-		return initialPIN;
-	}
-	
-	/**
-	 * @param initialPIN the initial pin of the token
-	 */
-	public void setInitialPIN(String initialPIN) {
-		this.initialPIN = initialPIN;
-	}
-	
-	/**
-	 * 
-	 * @return  the puk of the token
-	 */
-	public String getPUK() {
-		return PUK;
-	}
-	
-	/**
-	 * 
-	 * @param puk the puk of the token
-	 */
-	public void setPUK(String puk) {
-		PUK = puk;
-	}
-	
-	/**
-	 * 
-	 * @return the type of PIN one of the PINTTYPE_ constants
-	 */
-	public int getType() {
-		return type;
-	}
-	
-	/**
-	 * 
-	 * @param type type of PIN one of the PINTTYPE_ constants
-	 */
-	public void setType(int type) {
-		this.type = type;
-	}
 
+      /** Param. */
+  private int type = 0;
+  /** Param. */
+  private String initialPIN = null;
+  /** Param. */
+  private String puk = null;
+
+  /** WS Constructor. */
+  public PinDataWS() { }
+
+  /**
+   * Default constructor.
+   *
+   * @param atype pnt of the PINTYPE_ constants
+   * @param aninitialPIN the initial pin of the token
+   * @param apuk the puk of the token
+   */
+  public PinDataWS(int atype, String aninitialPIN, String apuk) {
+    super();
+    this.type = atype;
+    this.initialPIN = aninitialPIN;
+    puk = apuk;
+  }
+
+  /** @return the initial pin of the token */
+  public String getInitialPIN() {
+    return initialPIN;
+  }
+
+  /** @param aninitialPIN the initial pin of the token */
+  public void setInitialPIN(String aninitialPIN) {
+    this.initialPIN = aninitialPIN;
+  }
+
+  /** @return the puk of the token */
+  public String getPUK() {
+    return puk;
+  }
+
+  /** @param apuk the puk of the token */
+  public void setPUK(String apuk) {
+    puk = apuk;
+  }
+
+  /** @return the type of PIN one of the PINTTYPE_ constants */
+  public int getType() {
+    return type;
+  }
+
+  /** @param atype type of PIN one of the PINTTYPE_ constants */
+  public void setType(int atype) {
+    this.type = atype;
+  }
 }
