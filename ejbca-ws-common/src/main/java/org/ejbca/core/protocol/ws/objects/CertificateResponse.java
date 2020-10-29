@@ -18,28 +18,31 @@ import org.cesecore.util.Base64;
 import org.cesecore.util.CertTools;
 
 /**
- * Holds certificate WS response data
+ * Holds certificate WS response data.
  *
  * @version $Id: CertificateResponse.java 22553 2016-01-11 13:06:46Z mikekushner
  *     $
  */
 public class CertificateResponse {
 
+
+  /** Param. */
   private String responseType;
+  /** Param. */
   private byte[] data = null;
 
-  /** WS Constructor */
-  public CertificateResponse() {}
+  /** WS Constructor. */
+  public CertificateResponse() { }
 
   /**
    * Main constructor.
    *
-   * @param responseType one of the CertificateHelper.RESPONSETYPE_ constants
-   * @param data non-base64 encoded
+   * @param aresponseType one of the CertificateHelper.RESPONSETYPE_ constants
+   * @param thedata non-base64 encoded
    */
-  public CertificateResponse(String responseType, byte[] data) {
-    this.data = Base64.encode(data);
-    this.responseType = responseType;
+  public CertificateResponse(String aresponseType, byte[] thedata) {
+    this.data = Base64.encode(thedata);
+    this.responseType = aresponseType;
   }
 
   /** @return responseType one of CertificateHelper.RESPONSETYPE_ constants */
@@ -47,13 +50,13 @@ public class CertificateResponse {
     return responseType;
   }
 
-  /** @param responseType one of CertificateHelper.RESPONSETYPE_ constants */
-  public void setResponseType(String responseType) {
-    this.responseType = responseType;
+  /** @param aresponseType one of CertificateHelper.RESPONSETYPE_ constants */
+  public void setResponseType(String aresponseType) {
+    this.responseType = aresponseType;
   }
 
   /**
-   * Returns Base64 encoded data
+   * Returns Base64 encoded data.
    *
    * @return the data, Base64 encoded
    */
@@ -62,12 +65,12 @@ public class CertificateResponse {
   }
 
   /**
-   * Sets Base64 encode data
+   * Sets Base64 encode data.
    *
-   * @param data of the type set in responseType, should be Base64 encoded
+   * @param thedata of the type set in responseType, should be Base64 encoded
    */
-  public void setData(byte[] data) {
-    this.data = data;
+  public void setData(byte[] thedata) {
+    this.data = thedata;
   }
 
   /**
@@ -82,7 +85,7 @@ public class CertificateResponse {
 
   /**
    * Returns raw PKCS #7 or X509 data instead of the Base64 contained in the WS
-   * response
+   * response.
    *
    * @return fail
    */

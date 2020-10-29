@@ -27,7 +27,8 @@ import java.io.Serializable;
  *     .
  *     .
  *     .
- *   List&lt;ExtendedInformationWS&gt; ei = new ArrayList&lt;ExtendedInformationWS&gt; ();
+ *   List&lt;ExtendedInformationWS&gt; ei = new ArrayList&lt;
+ *      ExtendedInformationWS&gt; ();
  *   ei.add (new ExtendedInformationWS ("A name", "A value));
  *   ei.add (new ExtendedInformationWS ("Another name", "Another value"));
  *     .
@@ -43,23 +44,25 @@ public class ExtendedInformationWS implements Serializable {
   /** */
   private static final long serialVersionUID = 1L;
 
+  /** Param. */
   private String name;
 
+  /** Param. */
   private String value;
 
-  /** Emtpy constructor used by internally by web services */
-  public ExtendedInformationWS() {}
+  /** Emtpy constructor used by internally by web services. */
+  public ExtendedInformationWS() { }
 
   /**
    * Constructor used when creating a new ExtendedInformationWS.
    *
-   * @param name Name (key) to set.
-   * @param value Value to set.
+   * @param aname Name (key) to set.
+   * @param avalue Value to set.
    */
-  public ExtendedInformationWS(String name, String value) {
+  public ExtendedInformationWS(String aname, String avalue) {
     super();
-    this.name = name;
-    this.value = value;
+    this.name = aname;
+    this.value = avalue;
   }
 
   /** @return the name (key) property */
@@ -67,9 +70,9 @@ public class ExtendedInformationWS implements Serializable {
     return this.name;
   }
 
-  /** @param name Name (key) to set */
-  public void setName(String name) {
-    this.name = name;
+  /** @param aname Name (key) to set */
+  public void setName(String aname) {
+    this.name = aname;
   }
 
   /** @return the value property */
@@ -77,8 +80,8 @@ public class ExtendedInformationWS implements Serializable {
     return value;
   }
 
-  /** @param value Value to set. */
-  public void setValue(String value) {
-    this.value = value;
+  /** @param avalue Value to set. */
+  public void setValue(String avalue) {
+    this.value = avalue;
   }
 }

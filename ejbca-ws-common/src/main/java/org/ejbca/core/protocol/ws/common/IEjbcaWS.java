@@ -64,8 +64,10 @@ import org.ejbca.util.query.IllegalQueryException;
 @SuppressWarnings("deprecation")
 public interface IEjbcaWS {
 
-  public static final int CUSTOMLOG_LEVEL_INFO = 1;
-  public static final int CUSTOMLOG_LEVEL_ERROR = 2;
+      /** Config. */
+  int CUSTOMLOG_LEVEL_INFO = 1;
+  /** Config. */
+  int CUSTOMLOG_LEVEL_ERROR = 2;
 
   /**
    * Edits/adds a user to the EJBCA database.
@@ -81,7 +83,8 @@ public interface IEjbcaWS {
    * <pre>
    * - /administrator
    * - /ra_functionality/create_end_entity and/or edit_end_entity
-   * - /endentityprofilesrules/&lt;end entity profile of user&gt;/create_end_entity and/or edit_end_entity
+   * - /endentityprofilesrules/&lt;end entity profile of
+   *    user&gt;/create_end_entity and/or edit_end_entity
    * - /ca/&lt;ca of user&gt;
    * </pre>
    *
@@ -109,7 +112,8 @@ public interface IEjbcaWS {
    * <pre>
    * - /administrator
    * - /ra_functionality/view_end_entity
-   * - /endentityprofilesrules/&lt;end entity profile of matching users&gt;/view_end_entity
+   * - /endentityprofilesrules/&lt;end entity profile of
+   *    matching users&gt;/view_end_entity
    * - /ca/&lt;ca of usermatch&gt; - when matching on CA
    * </pre>
    *
@@ -219,7 +223,7 @@ public interface IEjbcaWS {
       throws AuthorizationDeniedException, EjbcaException;
 
   /**
-   * Creates a new cryptotoken
+   * Creates a new cryptotoken.
    *
    * @param tokenName The name of the cryptotoken
    * @param tokenType The type of the cryptotoken. Available types:
@@ -242,7 +246,7 @@ public interface IEjbcaWS {
       throws AuthorizationDeniedException, EjbcaException;
 
   /**
-   * Generates a key pair in the specified cryptotoken
+   * Generates a key pair in the specified cryptotoken.
    *
    * @param cryptoTokenName The name of the cryptotoken
    * @param keyPairAlias Key pair alias
@@ -256,7 +260,7 @@ public interface IEjbcaWS {
       throws AuthorizationDeniedException, EjbcaException;
 
   /**
-   * Creates a new CA using the specified cryptotoken
+   * Creates a new CA using the specified cryptotoken.
    *
    * @param caname The CA name
    * @param cadn The CA subjectDN
@@ -295,7 +299,7 @@ public interface IEjbcaWS {
       throws EjbcaException, AuthorizationDeniedException;
 
   /**
-   * Adds an administrator to the specified role
+   * Adds an administrator to the specified role.
    *
    * @param roleName The role to add the admin to
    * @param caName Name of the CA that issued the new administrator's
@@ -320,7 +324,7 @@ public interface IEjbcaWS {
       throws EjbcaException, AuthorizationDeniedException;
 
   /**
-   * Removes an administrator from the specified role
+   * Removes an administrator from the specified role.
    *
    * @param roleName The role to remove the admin from
    * @param caName Name of the CA that issued the administrator's certificate
@@ -754,7 +758,8 @@ public interface IEjbcaWS {
    * - Administrator flag set
    * - /administrator
    * - /ra_functionality/revoke_end_entity
-   * - /endentityprofilesrules/&lt;end entity profile of the user owning the cert&gt;/revoke_end_entity
+   * - /endentityprofilesrules/&lt;end entity profile of the
+   *    user owning the cert&gt;/revoke_end_entity
    * - /ca/&lt;ca of certificate&gt;
    * </pre>
    *
@@ -907,8 +912,7 @@ public interface IEjbcaWS {
    * @throws AlreadyRevokedException if the user already was revoked.
    * @throws EjbcaException any EjbcaException.
    * @see RevokeStatus
-   * @see "RaMasterApi#revokeUser(AuthenticationToken authenticationToken,
-   *     String username, int reason, boolean deleteUser)"
+   * see RaMasterApi#revokeUser
    */
   void revokeUser(String username, int reason, boolean deleteUser)
       throws CADoesntExistsException, AuthorizationDeniedException,
@@ -1025,7 +1029,8 @@ public interface IEjbcaWS {
    * <pre>
    * - /administrator
    * - /ra_functionality/revoke_end_entity
-   * - /endentityprofilesrules/&lt;end entity profile of the user owning the token&gt;/revoke_end_entity
+   * - /endentityprofilesrules/&lt;end entity profile of the user
+   *     owning the token&gt;/revoke_end_entity
    * - /ca/&lt;ca of certificates on token&gt;
    * </pre>
    *
@@ -1096,7 +1101,8 @@ public interface IEjbcaWS {
    *
    * <pre>
    * - /administrator
-   * - /userdatasourcesrules/&lt;user data source&gt;/fetch_userdata (for all the given user data sources)
+   * - /userdatasourcesrules/&lt;user data source&gt;/fetch_userdata
+   *   (for all the given user data sources)
    * - /ca/&lt;all cas defined in all the user data sources&gt;
    * </pre>
    *
@@ -1126,9 +1132,11 @@ public interface IEjbcaWS {
    * If the caller is an administrator
    * - /administrator
    * - /ra_functionality/create_end_entity and/or edit_end_entity
-   * - /endentityprofilesrules/&lt;end entity profile&gt;/create_end_entity and/or edit_end_entity
+   * - /endentityprofilesrules/&lt;end entity profile&gt;/create_end_entity
+   *   and/or edit_end_entity
    * - /ra_functionality/revoke_end_entity (if overwrite flag is set)
-   * - /endentityprofilesrules/&lt;end entity profile&gt;/revoke_end_entity (if overwrite flag is set)
+   * - /endentityprofilesrules/&lt;end entity profile&gt;/revoke_end_entity
+   *   (if overwrite flag is set)
    * - /ca_functionality/create_certificate
    * - /ca/&lt;ca of all requested certificates&gt;
    * - /hardtoken_functionality/issue_hardtokens
@@ -1195,7 +1203,8 @@ public interface IEjbcaWS {
    * - /administrator
    * - /ra_functionality/view_hardtoken
    * - /endentityprofilesrules/&lt;end entity profile&gt;/view_hardtoken
-   * - /endentityprofilesrules/&lt;end entity profile&gt;/view_hardtoken/puk_data (if viewPUKData = true)
+   * - /endentityprofilesrules/&lt;end entity profile&gt;
+   *      /view_hardtoken/puk_data (if viewPUKData = true)
    * - /ca/&lt;ca of user&gt;
    * </pre>
    *
@@ -1238,7 +1247,8 @@ public interface IEjbcaWS {
    * - /administrator
    * - /ra_functionality/view_hardtoken
    * - /endentityprofilesrules/&lt;end entity profile&gt;/view_hardtoken
-   * - /endentityprofilesrules/&lt;end entity profile&gt;/view_hardtoken/puk_data (if viewPUKData = true)
+   * - /endentityprofilesrules/&lt;end entity profile&gt;
+   *    /view_hardtoken/puk_data (if viewPUKData = true)
    * </pre>
    *
    * @param username to look for.
@@ -1352,7 +1362,8 @@ public interface IEjbcaWS {
    *
    * <pre>
    * - /administrator
-   * - /secureaudit/log_custom_events (must be configured in advanced mode when editing access rules)
+   * - /secureaudit/log_custom_events
+   *    (must be configured in advanced mode when editing access rules)
    * </pre>
    *
    * <p>If the CA does not exist or authorization was denied on the local
@@ -1394,7 +1405,8 @@ public interface IEjbcaWS {
    *
    * <pre>
    * - /administrator
-   * - /userdatasourcesrules/&lt;user data source&gt;/remove_userdata (for all the given user data sources)
+   * - /userdatasourcesrules/&lt;user data source&gt;/remove_userdata
+   *     (for all the given user data sources)
    * - /ca/&lt;all cas defined in all the user data sources&gt;
    * </pre>
    *
@@ -1658,7 +1670,8 @@ public interface IEjbcaWS {
    * <pre>
    * - /administrator
    * - /ra_functionality/create_end_entity and/or edit_end_entity
-   * - /endentityprofilesrules/&lt;end entity profile of user&gt;/create_end_entity and/or edit_end_entity
+   * - /endentityprofilesrules/&lt;end entity profile of user&gt;
+   *     /create_end_entity and/or edit_end_entity
    * - /ca_functionality/create_certificate
    * - /ca/&lt;ca of user&gt;
    * </pre>
@@ -1700,7 +1713,8 @@ public interface IEjbcaWS {
    * <pre>
    * - /administrator
    * - /ra_functionality/create_end_entity and/or edit_end_entity
-   * - /endentityprofilesrules/&lt;end entity profile of user&gt;/create_end_entity and/or edit_end_entity
+   * - /endentityprofilesrules/&lt;end entity profile of user&gt;
+   *    /create_end_entity and/or edit_end_entity
    * - /ca_functionality/create_certificate
    * - /ca/&lt;ca of user&gt;
    * </pre>

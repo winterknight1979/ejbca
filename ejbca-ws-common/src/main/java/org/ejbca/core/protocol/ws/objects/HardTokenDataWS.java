@@ -45,87 +45,98 @@ import javax.xml.datatype.XMLGregorianCalendar;
     })
 public class HardTokenDataWS {
 
+      /** Param. */
   private int tokenType = 0;
+  /** Param. */
   private String label = null;
+  /** Param. */
   private String hardTokenSN = null;
+  /** Param. */
   private String copyOfSN = null;
+  /** Param. */
   private List<String> copies = new ArrayList<String>();
+  /** Param. */
   private List<PinDataWS> pinDatas = new ArrayList<PinDataWS>();
+  /** Param. */
   private List<Certificate> certificates = new ArrayList<Certificate>();
 
+  /** Param. */
   @XmlSchemaType(name = "dateTime")
   private XMLGregorianCalendar createTime = null;
 
+  /** Param. */
   @XmlSchemaType(name = "dateTime")
   private XMLGregorianCalendar modifyTime = null;
 
+  /** Param. */
   private boolean encKeyKeyRecoverable = false;
 
-  /** WS Constructor */
-  public HardTokenDataWS() {}
+  /** WS Constructor. */
+  public HardTokenDataWS() { }
 
   /**
    * Constuctor of a HardTokenDataWS with all it fields. This constructor should
    * be used on the server side of EJBCA
    *
-   * @param tokenType one of the TOKENTYPE_ constants
-   * @param label indicating the use of the token, one of the LABEL_ constants
-   * @param hardTokenSN the SN of the hard token
-   * @param copyOfSN of this is a copy of another hard token, specify its SN
+   * @param atokenType one of the TOKENTYPE_ constants
+   * @param alabel indicating the use of the token, one of the LABEL_ constants
+   * @param ahardTokenSN the SN of the hard token
+   * @param acopyOfSN of this is a copy of another hard token, specify its SN
    *     otherwise use null.
-   * @param copies if there is copies of this hard token a list of serial number
+   * @param thecopies if there is copies of this
+   *     hard token a list of serial number
    *     is specified.
-   * @param pinDatas a List of pin datas with PIN and PUK
-   * @param certificates the certificate stored on the token
-   * @param encKeyKeyRecoverable if the token have a special encryption key it
+   * @param thepinDatas a List of pin datas with PIN and PUK
+   * @param acertificates the certificate stored on the token
+   * @param aencKeyKeyRecoverable if the token have a special encryption key it
    *     should be specified if it is recoverable or not.
    */
   public HardTokenDataWS(
-      int tokenType,
-      String label,
-      String hardTokenSN,
-      String copyOfSN,
-      List<String> copies,
-      List<PinDataWS> pinDatas,
-      List<Certificate> certificates,
-      boolean encKeyKeyRecoverable) {
+      int atokenType,
+      String alabel,
+      String ahardTokenSN,
+      String acopyOfSN,
+      List<String> thecopies,
+      List<PinDataWS> thepinDatas,
+      List<Certificate> acertificates,
+      boolean aencKeyKeyRecoverable) {
     super();
-    this.tokenType = tokenType;
-    this.label = label;
-    this.hardTokenSN = hardTokenSN;
-    this.copyOfSN = copyOfSN;
-    this.copies = copies;
-    this.pinDatas = pinDatas;
-    this.certificates = certificates;
-    this.encKeyKeyRecoverable = encKeyKeyRecoverable;
+    this.tokenType = atokenType;
+    this.label = alabel;
+    this.hardTokenSN = ahardTokenSN;
+    this.copyOfSN = acopyOfSN;
+    this.copies = thecopies;
+    this.pinDatas = thepinDatas;
+    this.certificates = acertificates;
+    this.encKeyKeyRecoverable = aencKeyKeyRecoverable;
   }
 
   /**
-   * Constuctor that should be used with the genTokenCertificates request
+   * Constuctor that should be used with the genTokenCertificates request.
    *
-   * @param tokenType one of the TOKENTYPE_ constants
-   * @param label indicating the use of the token, one of the LABEL_ constants
-   * @param hardTokenSN the SN of the hard token
-   * @param copyOfSN of this is a copy of another hard token, specify its SN
+   * @param atokenType one of the TOKENTYPE_ constants
+   * @param alabel indicating the use of the token, one of the LABEL_ constants
+   * @param ahardTokenSN the SN of the hard token
+   * @param acopyOfSN of this is a copy of another hard token, specify its SN
    *     otherwise use null.
-   * @param pinDatas a List of pin datas with PIN and PUK
-   * @param encKeyKeyRecoverable if the token have a special encryption key it
+   * @param thepinDatas a List of pin datas with PIN and PUK
+   * @param aencKeyKeyRecoverable if the token have a special encryption key it
    *     should be specified if it is recoverable or not.
    */
   public HardTokenDataWS(
-      int tokenType,
-      String label,
-      String hardTokenSN,
-      String copyOfSN,
-      List<PinDataWS> pinDatas,
-      boolean encKeyKeyRecoverable) {
+      int atokenType,
+      String alabel,
+      String ahardTokenSN,
+      String acopyOfSN,
+      List<PinDataWS> thepinDatas,
+      boolean aencKeyKeyRecoverable) {
     super();
-    this.tokenType = tokenType;
-    this.label = label;
-    this.hardTokenSN = hardTokenSN;
-    this.copyOfSN = copyOfSN;
-    this.pinDatas = pinDatas;
-    this.encKeyKeyRecoverable = encKeyKeyRecoverable;
+    this.tokenType = atokenType;
+    this.label = alabel;
+    this.hardTokenSN = ahardTokenSN;
+    this.copyOfSN = acopyOfSN;
+    this.pinDatas = thepinDatas;
+    this.encKeyKeyRecoverable = aencKeyKeyRecoverable;
   }
 
   /** @return a list WS representation of the stored certificates */
@@ -133,9 +144,10 @@ public class HardTokenDataWS {
     return certificates;
   }
 
-  /** @param certificates a List of EJBCAWS Certificates stored on the token */
-  public void setCertificates(List<Certificate> certificates) {
-    this.certificates = certificates;
+  /** @param thecertificates a List of EJBCAWS
+   *         Certificates stored on the token */
+  public void setCertificates(List<Certificate>  thecertificates) {
+    this.certificates = thecertificates;
   }
 
   /**
@@ -147,11 +159,12 @@ public class HardTokenDataWS {
   }
 
   /**
-   * @param copies a list of hard token SN of copies that have been made of this
+   * @param thecopies a list of hard token SN of
+   *     copies that have been made of this
    *     token.
    */
-  public void setCopies(List<String> copies) {
-    this.copies = copies;
+  public void setCopies(List<String> thecopies) {
+    this.copies = thecopies;
   }
 
   /**
@@ -163,11 +176,11 @@ public class HardTokenDataWS {
   }
 
   /**
-   * @param copyOfSN a serial number of which this token is a copy of, null if
+   * @param acopyOfSN a serial number of which this token is a copy of, null if
    *     it isn't a copy
    */
-  public void setCopyOfSN(String copyOfSN) {
-    this.copyOfSN = copyOfSN;
+  public void setCopyOfSN(String acopyOfSN) {
+    this.copyOfSN = acopyOfSN;
   }
 
   /**
@@ -179,11 +192,11 @@ public class HardTokenDataWS {
   }
 
   /**
-   * @param encKeyKeyRecoverable if the token have a separate encryption key and
-   *     is key recoverable.
+   * @param aencKeyKeyRecoverable if the token have a separate
+   *     encryption key and is key recoverable.
    */
-  public void setEncKeyKeyRecoverable(boolean encKeyKeyRecoverable) {
-    this.encKeyKeyRecoverable = encKeyKeyRecoverable;
+  public void setEncKeyKeyRecoverable(boolean aencKeyKeyRecoverable) {
+    this.encKeyKeyRecoverable = aencKeyKeyRecoverable;
   }
 
   /** @return the serial number of the token */
@@ -191,9 +204,9 @@ public class HardTokenDataWS {
     return hardTokenSN;
   }
 
-  /** @param hardTokenSN the serial number of the token */
-  public void setHardTokenSN(String hardTokenSN) {
-    this.hardTokenSN = hardTokenSN;
+  /** @param ahardTokenSN the serial number of the token */
+  public void setHardTokenSN(String ahardTokenSN) {
+    this.hardTokenSN = ahardTokenSN;
   }
 
   /** @return list of PIN data containing PIN and PUK of the */
@@ -201,9 +214,9 @@ public class HardTokenDataWS {
     return pinDatas;
   }
 
-  /** @param pinDatas list of PIN data containing PIN and PUK of the */
-  public void setPinDatas(List<PinDataWS> pinDatas) {
-    this.pinDatas = pinDatas;
+  /** @param apinDatas list of PIN data containing PIN and PUK of the */
+  public void setPinDatas(List<PinDataWS> apinDatas) {
+    this.pinDatas = apinDatas;
   }
 
   /** @return one of the TOKENTYPE_ constants */
@@ -211,9 +224,9 @@ public class HardTokenDataWS {
     return tokenType;
   }
 
-  /** @param tokenType one of the TOKENTYPE_ constants */
-  public void setTokenType(int tokenType) {
-    this.tokenType = tokenType;
+  /** @param atokenType one of the TOKENTYPE_ constants */
+  public void setTokenType(int atokenType) {
+    this.tokenType = atokenType;
   }
 
   /**
@@ -225,10 +238,10 @@ public class HardTokenDataWS {
   }
 
   /**
-   * @param label indicating the use of the token, one of the LABEL_ constants
+   * @param alabel indicating the use of the token, one of the LABEL_ constants
    */
-  public void setLabel(String label) {
-    this.label = label;
+  public void setLabel(String alabel) {
+    this.label = alabel;
   }
 
   /** @return Returns the time this token was created */
@@ -236,8 +249,11 @@ public class HardTokenDataWS {
     return createTime;
   }
 
-  public void setCreateTime(XMLGregorianCalendar createTime) {
-    this.createTime = createTime;
+  /**
+   * @param acreateTime time
+   */
+  public void setCreateTime(XMLGregorianCalendar acreateTime) {
+    this.createTime = acreateTime;
   }
 
   /** @return Returns the time this last was modified. */
@@ -245,7 +261,10 @@ public class HardTokenDataWS {
     return modifyTime;
   }
 
-  public void setModifyTime(XMLGregorianCalendar modifyTime) {
-    this.modifyTime = modifyTime;
+  /**
+   * @param amodifyTime time
+   */
+  public void setModifyTime(XMLGregorianCalendar amodifyTime) {
+    this.modifyTime = amodifyTime;
   }
 }

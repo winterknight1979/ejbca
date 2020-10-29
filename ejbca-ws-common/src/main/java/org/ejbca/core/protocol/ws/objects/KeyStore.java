@@ -20,16 +20,17 @@ import java.security.cert.CertificateException;
 import org.cesecore.util.Base64;
 
 /**
- * Wrapper class for holding WS keystore data
+ * Wrapper class for holding WS keystore data.
  *
  * @version $Id: KeyStore.java 29193 2018-06-11 06:24:34Z andresjakobs $
  */
 public class KeyStore extends TokenCertificateResponseWS {
 
+      /** Param. */
   private byte[] keystoreData = null;
 
-  /** WS Constructor */
-  public KeyStore() {}
+  /** WS Constructor. */
+  public KeyStore() { }
 
   /**
    * Creates a keystore by raw byte data with password.
@@ -41,6 +42,14 @@ public class KeyStore extends TokenCertificateResponseWS {
     keystoreData = Base64.encode(rawKeystoreData);
   }
 
+  /**
+   * @param keystore KS
+   * @param password PWD
+   * @throws KeyStoreException fail
+   * @throws NoSuchAlgorithmException fail
+   * @throws IOException fail
+   * @throws CertificateException fail
+   */
   public KeyStore(java.security.KeyStore keystore, String password)
       throws KeyStoreException, NoSuchAlgorithmException, IOException,
           CertificateException {
@@ -51,7 +60,7 @@ public class KeyStore extends TokenCertificateResponseWS {
   }
 
   /**
-   * Returns the keystoreData in Base64 format
+   * Returns the keystoreData in Base64 format.
    *
    * @return Returns the keystoreData, in Base64 encoded format.
    */
@@ -60,7 +69,7 @@ public class KeyStore extends TokenCertificateResponseWS {
   }
 
   /**
-   * Returns the keystoreData in binary format
+   * Returns the keystoreData in binary format.
    *
    * @return the keystoreData in binary format
    */
@@ -69,11 +78,11 @@ public class KeyStore extends TokenCertificateResponseWS {
   }
 
   /**
-   * Set keystore data in Base64 format
+   * Set keystore data in Base64 format.
    *
-   * @param keystoreData The keystoreData to set, in Base64 encoded format.
+   * @param akeystoreData The keystoreData to set, in Base64 encoded format.
    */
-  public void setKeystoreData(byte[] keystoreData) {
-    this.keystoreData = keystoreData;
+  public void setKeystoreData(byte[] akeystoreData) {
+    this.keystoreData = akeystoreData;
   }
 }

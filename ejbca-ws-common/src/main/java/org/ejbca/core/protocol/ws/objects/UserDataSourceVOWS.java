@@ -28,15 +28,21 @@ import java.util.Set;
 public class UserDataSourceVOWS implements Serializable {
 
   private static final long serialVersionUID = 4582471233805101416L;
+  /** Param. */
   private UserDataVOWS userDataVOWS = null;
+  /** Param. */
   private List<Integer> isModifyable = null;
 
-  /** WS Constructor */
-  public UserDataSourceVOWS() {}
+  /** WS Constructor. */
+  public UserDataSourceVOWS() { }
 
+  /**
+   * @param auserDataVOWS data
+   * @param isModifyableSet set
+   */
   public UserDataSourceVOWS(
-      UserDataVOWS userDataVOWS, Set<Integer> isModifyableSet) {
-    this.userDataVOWS = userDataVOWS;
+      UserDataVOWS auserDataVOWS, Set<Integer> isModifyableSet) {
+    this.userDataVOWS = auserDataVOWS;
     this.isModifyable = new ArrayList<Integer>();
     Iterator<Integer> iter = isModifyableSet.iterator();
     while (iter.hasNext()) {
@@ -61,10 +67,10 @@ public class UserDataSourceVOWS implements Serializable {
   /**
    * Method that shouldn't be used outside the WS framework.
    *
-   * @param isModifyable data
+   * @param aisModifyable data
    */
-  public void setIsModifyable(List<Integer> isModifyable) {
-    this.isModifyable = isModifyable;
+  public void setIsModifyable(List<Integer> aisModifyable) {
+    this.isModifyable = aisModifyable;
   }
 
   /** @return user data connected with this instance of user data source vo */
@@ -75,9 +81,9 @@ public class UserDataSourceVOWS implements Serializable {
   /**
    * Method that shouldn't be used outside the WS framework.
    *
-   * @param userDataVOWS data
+   * @param auserDataVOWS data
    */
-  public void setUserDataVOWS(UserDataVOWS userDataVOWS) {
-    this.userDataVOWS = userDataVOWS;
+  public void setUserDataVOWS(UserDataVOWS auserDataVOWS) {
+    this.userDataVOWS = auserDataVOWS;
   }
 }

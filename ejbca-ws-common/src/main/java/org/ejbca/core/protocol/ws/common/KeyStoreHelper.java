@@ -22,13 +22,13 @@ import org.cesecore.util.Base64;
 
 /**
  * Class used to generate a java.security.KeyStore from a
- * org.ejbca.core.protocol.ws.common.KeyStore
+ * org.ejbca.core.protocol.ws.common.KeyStore.
  *
  * @author Philip Vendil
  * @version $Id: KeyStoreHelper.java 19902 2014-09-30 14:32:24Z anatom $
  */
-public class KeyStoreHelper {
-
+public final class KeyStoreHelper {
+  private KeyStoreHelper() { }
   /**
    * Retrieves the keystore from the encoded data.
    *
@@ -43,7 +43,7 @@ public class KeyStoreHelper {
    * @throws KeyStoreException Fail
    */
   public static java.security.KeyStore getKeyStore(
-      byte[] keystoreData, String type, String password)
+      final byte[] keystoreData, final String type, final String password)
       throws CertificateException, NoSuchAlgorithmException, IOException,
           KeyStoreException, NoSuchProviderException {
     java.security.KeyStore ks =

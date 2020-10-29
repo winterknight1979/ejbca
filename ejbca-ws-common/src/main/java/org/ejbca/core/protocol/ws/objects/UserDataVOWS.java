@@ -37,10 +37,13 @@ import org.cesecore.certificates.endentity.EndEntityTypes;
  *   user.setEndEntityProfileName ("EMPTY");
  *   user.setCertificateProfileName ("ENDUSER");
  *
- *   List&lt;ExtendedInformationWS&gt; ei = new ArrayList&lt;ExtendedInformationWS&gt; ();
- *   ei.add(new ExtendedInformationWS (ExtendedInformation.CUSTOMDATA+ExtendedInformation.CUSTOM_REVOCATIONREASON,
- *                                     Integer.toString(RevokeStatus.REVOKATION_REASON_CERTIFICATEHOLD)));
- *   ei.add(new ExtendedInformationWS (ExtendedInformation.SUBJECTDIRATTRIBUTES, "DATEOFBIRTH=19761123"));
+ *   List&lt;ExtendedInformationWS&gt; ei =
+ *   new ArrayList&lt;ExtendedInformationWS&gt; ();
+ *   ei.add(new ExtendedInformationWS (ExtendedInformation.
+ *   CUSTOMDATA+ExtendedInformation.CUSTOM_REVOCATIONREASON,
+ *   Integer.toString(RevokeStatus.REVOKATION_REASON_CERTIFICATEHOLD)));
+ *   ei.add(new ExtendedInformationWS (ExtendedInformation.SUBJECTDIRATTRIBUTES,
+ *    "DATEOFBIRTH=19761123"));
  *   user.setExtendedInformation(ei);
  * </pre>
  *
@@ -49,78 +52,101 @@ import org.cesecore.certificates.endentity.EndEntityTypes;
 public class UserDataVOWS implements Serializable {
 
   private static final long serialVersionUID = 7557071186257332026L;
+  /** Param. */
   public static final String TOKEN_TYPE_USERGENERATED = "USERGENERATED";
+  /** Param. */
   public static final String TOKEN_TYPE_JKS = "JKS";
+  /** Param. */
   public static final String TOKEN_TYPE_PEM = "PEM";
+  /** Param. */
   public static final String TOKEN_TYPE_P12 = "P12";
 
+  /** Param. */
   private String username = null;
+  /** Param. */
   private String password = null;
+  /** Param. */
   private boolean clearPwd = false;
+  /** Param. */
   private String subjectDN = null;
+  /** Param. */
   private String caName = null;
+  /** Param. */
   private String subjectAltName = null;
+  /** Param. */
   private String email = null;
+  /** Param. */
   private int status = 0;
+  /** Param. */
   private String tokenType = null;
+  /** Param. */
   private boolean sendNotification = false;
+  /** Param. */
   private boolean keyRecoverable = false;
+  /** Param. */
   private String endEntityProfileName = null;
+  /** Param. */
   private String certificateProfileName = null;
+  /** Param. */
   private String hardTokenIssuerName = null;
+  /** Param. */
   private String startTime = null;
+  /** Param. */
   private String endTime = null;
+  /** Param. */
   private BigInteger certificateSerialNumber;
+  /** Param. */
   private List<ExtendedInformationWS> extendedInformation = null;
+  /** Param. */
   private String cardNumber;
 
-  /** Emtpy constructor used by internally by web services */
-  public UserDataVOWS() {}
+  /** Emtpy constructor used by internally by web services. */
+  public UserDataVOWS() { }
 
   /**
    * Constructor used when creating a new UserDataVOWS.
    *
-   * @param username the unique username if the user, used internally in EJBCA
-   * @param password password u sed to lock the keystore
-   * @param clearPwd true if password should be in clear
-   * @param subjectDN of
-   * @param caName the name of the CA used in the EJBCA web gui.
-   * @param subjectAltName Name
-   * @param email Email
-   * @param status one of the STATUS_ constants
-   * @param tokenType type of token, one of TOKEN_TYPE constants for soft
+   * @param ausername the unique username if the user, used internally in EJBCA
+   * @param apassword password u sed to lock the keystore
+   * @param aclearPwd true if password should be in clear
+   * @param asubjectDN of
+   * @param acaName the name of the CA used in the EJBCA web gui.
+   * @param asubjectAltName Name
+   * @param anemail Email
+   * @param astatus one of the STATUS_ constants
+   * @param atokenType type of token, one of TOKEN_TYPE constants for soft
    *     tokens, for hard ones use hardtokenprofilename
-   * @param endEntityProfileName Profile
-   * @param certificateProfileName Profile
-   * @param hardTokenIssuerName if no hardTokenIssuer should be used then use
+   * @param anendEntityProfileName Profile
+   * @param acertificateProfileName Profile
+   * @param ahardTokenIssuerName if no hardTokenIssuer should be used then use
    *     null.
    */
   public UserDataVOWS(
-      String username,
-      String password,
-      boolean clearPwd,
-      String subjectDN,
-      String caName,
-      String subjectAltName,
-      String email,
-      int status,
-      String tokenType,
-      String endEntityProfileName,
-      String certificateProfileName,
-      String hardTokenIssuerName) {
+      String ausername,
+      String apassword,
+      boolean aclearPwd,
+      String asubjectDN,
+      String acaName,
+      String asubjectAltName,
+      String anemail,
+      int astatus,
+      String atokenType,
+      String anendEntityProfileName,
+      String acertificateProfileName,
+      String ahardTokenIssuerName) {
     super();
-    this.username = username;
-    this.password = password;
-    this.clearPwd = clearPwd;
-    this.subjectDN = subjectDN;
-    this.caName = caName;
-    this.subjectAltName = subjectAltName;
-    this.email = email;
-    this.status = status;
-    this.tokenType = tokenType;
-    this.endEntityProfileName = endEntityProfileName;
-    this.certificateProfileName = certificateProfileName;
-    this.hardTokenIssuerName = hardTokenIssuerName;
+    this.username = ausername;
+    this.password = apassword;
+    this.clearPwd = aclearPwd;
+    this.subjectDN = asubjectDN;
+    this.caName = acaName;
+    this.subjectAltName = asubjectAltName;
+    this.email = anemail;
+    this.status = astatus;
+    this.tokenType = atokenType;
+    this.endEntityProfileName = anendEntityProfileName;
+    this.certificateProfileName = acertificateProfileName;
+    this.hardTokenIssuerName = ahardTokenIssuerName;
   }
 
   /** @return true if the user is keyrecoverable */
@@ -129,7 +155,7 @@ public class UserDataVOWS implements Serializable {
   }
 
   /**
-   * indicates if the users keys should be keyrecoverable
+   * indicates if the users keys should be keyrecoverable.
    *
    * @param keyrecoverable bool
    */
@@ -138,7 +164,7 @@ public class UserDataVOWS implements Serializable {
   }
 
   /**
-   * If true notifications will be sent to the user
+   * If true notifications will be sent to the user.
    *
    * @return bool
    */
@@ -191,7 +217,7 @@ public class UserDataVOWS implements Serializable {
   }
 
   /**
-   * Observe sending usedata to clients outside EJBCA will always return false
+   * Observe sending usedata to clients outside EJBCA will always return false.
    *
    * @return Returns the clearpwd.
    */
@@ -249,59 +275,59 @@ public class UserDataVOWS implements Serializable {
     caName = name;
   }
 
-  /** @param certificateProfileName The certificateProfileName to set. */
-  public void setCertificateProfileName(String certificateProfileName) {
-    this.certificateProfileName = certificateProfileName;
+  /** @param acertificateProfileName The certificateProfileName to set. */
+  public void setCertificateProfileName(String acertificateProfileName) {
+    this.certificateProfileName = acertificateProfileName;
   }
 
-  /** @param clearPwd The clearpwd to set. */
-  public void setClearPwd(boolean clearPwd) {
-    this.clearPwd = clearPwd;
+  /** @param aclearPwd The clearpwd to set. */
+  public void setClearPwd(boolean aclearPwd) {
+    this.clearPwd = aclearPwd;
   }
 
-  /** @param email The email to set. */
-  public void setEmail(String email) {
-    this.email = email;
+  /** @param anemail The email to set. */
+  public void setEmail(String anemail) {
+    this.email = anemail;
   }
 
-  /** @param endEntityProfileName The endEntityProfileName to set. */
-  public void setEndEntityProfileName(String endEntityProfileName) {
-    this.endEntityProfileName = endEntityProfileName;
+  /** @param anendEntityProfileName The endEntityProfileName to set. */
+  public void setEndEntityProfileName(String anendEntityProfileName) {
+    this.endEntityProfileName = anendEntityProfileName;
   }
 
-  /** @param hardTokenIssuerName The hardTokenIssuerName to set. */
-  public void setHardTokenIssuerName(String hardTokenIssuerName) {
-    this.hardTokenIssuerName = hardTokenIssuerName;
+  /** @param ahardTokenIssuerName The hardTokenIssuerName to set. */
+  public void setHardTokenIssuerName(String ahardTokenIssuerName) {
+    this.hardTokenIssuerName = ahardTokenIssuerName;
   }
 
-  /** @param password The password to set. */
-  public void setPassword(String password) {
-    this.password = password;
+  /** @param apassword The password to set. */
+  public void setPassword(String apassword) {
+    this.password = apassword;
   }
 
-  /** @param status The status to set. */
-  public void setStatus(int status) {
-    this.status = status;
+  /** @param astatus The status to set. */
+  public void setStatus(int astatus) {
+    this.status = astatus;
   }
 
-  /** @param subjectAltName The subjectAltName to set. */
-  public void setSubjectAltName(String subjectAltName) {
-    this.subjectAltName = subjectAltName;
+  /** @param asubjectAltName The subjectAltName to set. */
+  public void setSubjectAltName(String asubjectAltName) {
+    this.subjectAltName = asubjectAltName;
   }
 
-  /** @param subjectDN The subjectDN to set. */
-  public void setSubjectDN(String subjectDN) {
-    this.subjectDN = subjectDN;
+  /** @param asubjectDN The subjectDN to set. */
+  public void setSubjectDN(String asubjectDN) {
+    this.subjectDN = asubjectDN;
   }
 
-  /** @param tokenType The tokenType to set. */
-  public void setTokenType(String tokenType) {
-    this.tokenType = tokenType;
+  /** @param atokenType The tokenType to set. */
+  public void setTokenType(String atokenType) {
+    this.tokenType = atokenType;
   }
 
-  /** @param username The username to set. */
-  public void setUsername(String username) {
-    this.username = username;
+  /** @param ausername The username to set. */
+  public void setUsername(String ausername) {
+    this.username = ausername;
   }
 
   /** @return the startTime */
@@ -309,9 +335,9 @@ public class UserDataVOWS implements Serializable {
     return this.startTime;
   }
 
-  /** @param startTime the startTime to set */
-  public void setStartTime(String startTime) {
-    this.startTime = startTime;
+  /** @param astartTime the startTime to set */
+  public void setStartTime(String astartTime) {
+    this.startTime = astartTime;
   }
 
   /** @return the endTime */
@@ -319,9 +345,9 @@ public class UserDataVOWS implements Serializable {
     return this.endTime;
   }
 
-  /** @param endTime the endTime to set */
-  public void setEndTime(String endTime) {
-    this.endTime = endTime;
+  /** @param anendTime the endTime to set */
+  public void setEndTime(String anendTime) {
+    this.endTime = anendTime;
   }
 
   /** @return certificate serial number. */
@@ -348,11 +374,11 @@ public class UserDataVOWS implements Serializable {
    * ExtendedInformation such as: ExtendedInformation.CUSTOM_REVOCATIONREASON,
    * Integer.toString(RevokeStatus.REVOCATION_REASON_CERTIFICATEHOLD)
    *
-   * @param extendedInformation info
+   * @param theextendedInformation info
    */
   public void setExtendedInformation(
-      List<ExtendedInformationWS> extendedInformation) {
-    this.extendedInformation = extendedInformation;
+      List<ExtendedInformationWS> theextendedInformation) {
+    this.extendedInformation = theextendedInformation;
   }
 
   /** @return card number */
@@ -364,9 +390,9 @@ public class UserDataVOWS implements Serializable {
    * Sets the card number for the cardnumber extension. Only used if 'Card
    * Number Extension' in used certificate profile is enabled.
    *
-   * @param cardNumber The card number to set
+   * @param acardNumber The card number to set
    */
-  public void setCardNumber(String cardNumber) {
-    this.cardNumber = cardNumber;
+  public void setCardNumber(String acardNumber) {
+    this.cardNumber = acardNumber;
   }
 }

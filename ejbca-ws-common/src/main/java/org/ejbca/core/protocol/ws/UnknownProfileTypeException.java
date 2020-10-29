@@ -19,7 +19,7 @@ import org.ejbca.core.EjbcaException;
 
 /**
  * Thrown when the profile type is neither an end entity profile nor a
- * certificate profile
+ * certificate profile.
  *
  * @version $Id: UnknownProfileTypeException.java 20370 2014-12-01 16:12:34Z
  *     aveen4711 $
@@ -30,7 +30,7 @@ public class UnknownProfileTypeException extends EjbcaException {
   private static final long serialVersionUID = 1L;
 
   /** @param m with more information what is wrong */
-  public UnknownProfileTypeException(String m) {
+  public UnknownProfileTypeException(final String m) {
     super(ErrorCode.UNKNOWN_PROFILE_TYPE, m);
   }
 }

@@ -24,39 +24,55 @@ import java.io.Serializable;
 public class NameAndId implements Serializable {
 
   /**
-   * Serial version UID, must be changed if class undergoes structural changes
+   * Serial version UID, must be changed if class undergoes structural changes.
    */
   private static final long serialVersionUID = 1734406078345094714L;
 
-  /** A name, for example the name of a CA */
+  /** A name, for example the name of a CA. */
   private String name;
-  /** An Id for example the CA-id */
+  /** An Id for example the CA-id. */
   private int id;
 
-  /** WS Constructor */
+  /** WS Constructor. */
   public NameAndId() {
     this.id = Integer.MIN_VALUE;
     this.name = null;
   }
 
-  public NameAndId(String name, int id) {
-    this.name = name;
-    this.id = id;
+  /**
+   * @param aname name
+   * @param anid ID
+   */
+  public NameAndId(String aname, int anid) {
+    this.name = aname;
+    this.id = anid;
   }
 
+  /**
+   * @return name
+   */
   public String getName() {
     return name;
   }
 
-  public void setName(String name) {
-    this.name = name;
+  /**
+   * @param aname name
+   */
+  public void setName(String aname) {
+    this.name = aname;
   }
 
+  /**
+   * @return ID
+   */
   public int getId() {
     return id;
   }
 
-  public void setId(int id) {
-    this.id = id;
+  /**
+   * @param anid ID
+   */
+  public void setId(int anid) {
+    this.id = anid;
   }
 }

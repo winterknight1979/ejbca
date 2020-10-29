@@ -20,12 +20,12 @@ import org.cesecore.util.CertTools;
 
 /**
  * Class used to generate a java.security.Certificate from a
- * org.ejbca.core.protocol.ws.common.Certificate
+ * org.ejbca.core.protocol.ws.common.Certificate.
  *
  * <p>$Id: CertificateHelper.java 22553 2016-01-11 13:06:46Z mikekushner $
  */
-public class CertificateHelper {
-
+public final class CertificateHelper {
+  private CertificateHelper() { }
   /**
    * Indicates that the requester want a BASE64 encoded certificate in the
    * CertificateResponse object.
@@ -42,14 +42,17 @@ public class CertificateHelper {
    */
   public static final String RESPONSETYPE_PKCS7WITHCHAIN = "PKCS7WITHCHAIN";
 
-  /** Request data types for WS */
+  /** Request data types for WS. */
   public static final int CERT_REQ_TYPE_PKCS10 =
       CertificateConstants.CERT_REQ_TYPE_PKCS10;
 
+  /** Config. */
   public static final int CERT_REQ_TYPE_CRMF =
       CertificateConstants.CERT_REQ_TYPE_CRMF;
+  /** Config. */
   public static final int CERT_REQ_TYPE_SPKAC =
       CertificateConstants.CERT_REQ_TYPE_SPKAC;
+  /** Config. */
   public static final int CERT_REQ_TYPE_PUBLICKEY =
       CertificateConstants.CERT_REQ_TYPE_PUBLICKEY;
 
@@ -60,7 +63,7 @@ public class CertificateHelper {
    * @return Cert
    * @throws CertificateException On fail
    */
-  public static Certificate getCertificate(byte[] certificateData)
+  public static Certificate getCertificate(final byte[] certificateData)
       throws CertificateException {
     Certificate retval =
         CertTools.getCertfromByteArray(
@@ -70,12 +73,12 @@ public class CertificateHelper {
 
   /**
    * Simple method that just returns raw PKCS7 data instead of the BASE64
-   * encoded contained in the WS response
+   * encoded contained in the WS response.
    *
    * @param pkcs7Data Data
    * @return PKCS7
    */
-  public static byte[] getPKCS7(byte[] pkcs7Data) {
+  public static byte[] getPKCS7(final byte[] pkcs7Data) {
     return Base64.decode(pkcs7Data);
   }
 }

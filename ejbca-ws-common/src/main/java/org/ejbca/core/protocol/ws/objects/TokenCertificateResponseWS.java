@@ -17,7 +17,7 @@ import org.ejbca.core.model.hardtoken.HardTokenConstants;
 
 /**
  * base class that this is a certificate response of either a Certificate or
- * KeyStore
+ * KeyStore.
  *
  * @author Philip Vendil 2007 feb 8
  * @version $Id: TokenCertificateResponseWS.java 19902 2014-09-30 14:32:24Z
@@ -25,48 +25,75 @@ import org.ejbca.core.model.hardtoken.HardTokenConstants;
  */
 public class TokenCertificateResponseWS {
 
+      /** Param. */
   private int type = 0;
+  /** Param. */
   private Certificate certificate;
+  /** Param. */
   private KeyStore keyStore;
 
-  public TokenCertificateResponseWS(Certificate certificate) {
+  /**
+   * @param acertificate cert
+   */
+  public TokenCertificateResponseWS(Certificate acertificate) {
     super();
     this.type = HardTokenConstants.RESPONSETYPE_CERTIFICATE_RESPONSE;
-    this.certificate = certificate;
+    this.certificate = acertificate;
   }
 
-  public TokenCertificateResponseWS(KeyStore keyStore) {
+  /**
+   * @param akeyStore store
+   */
+  public TokenCertificateResponseWS(KeyStore akeyStore) {
     super();
     this.type = HardTokenConstants.RESPONSETYPE_KEYSTORE_RESPONSE;
-    this.keyStore = keyStore;
+    this.keyStore = akeyStore;
   }
 
-  /** WS Constructor */
+  /** WS Constructor. */
   public TokenCertificateResponseWS() {
     super();
   }
 
+  /**
+   * @return cert
+   */
   public Certificate getCertificate() {
     return certificate;
   }
 
-  public void setCertificate(Certificate certificate) {
-    this.certificate = certificate;
+  /**
+   * @param acertificate ccert
+   */
+  public void setCertificate(Certificate acertificate) {
+    this.certificate = acertificate;
   }
 
+  /**
+   * @return store
+   */
   public KeyStore getKeyStore() {
     return keyStore;
   }
 
-  public void setKeyStore(KeyStore keyStore) {
-    this.keyStore = keyStore;
+  /**
+   * @param akeyStore store
+   */
+  public void setKeyStore(KeyStore akeyStore) {
+    this.keyStore = akeyStore;
   }
 
+  /**
+   * @return type
+   */
   public int getType() {
     return type;
   }
 
-  public void setType(int type) {
-    this.type = type;
+  /**
+   * @param atype type
+   */
+  public void setType(int atype) {
+    this.type = atype;
   }
 }

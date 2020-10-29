@@ -16,28 +16,36 @@ import java.security.cert.CertificateEncodingException;
 import org.cesecore.util.Base64;
 
 /**
- * Holds certificate WS elements
+ * Holds certificate WS elements.
  *
  * @version $Id: Certificate.java 19902 2014-09-30 14:32:24Z anatom $
  */
 public class Certificate extends TokenCertificateResponseWS {
 
+    /** Param. */
   private byte[] certificateData = null;
 
-  /** WS Constructor */
-  public Certificate() {}
+  /** WS Constructor.  */
+  public Certificate() { }
 
+  /**
+   * @param cert certificate
+   * @throws CertificateEncodingException f
+   */
   public Certificate(java.security.cert.Certificate cert)
       throws CertificateEncodingException {
     certificateData = Base64.encode(cert.getEncoded());
   }
 
+  /**
+   * @param certData data
+   */
   public Certificate(byte[] certData) {
     certificateData = Base64.encode(certData);
   }
 
   /**
-   * Returns the certificateData in binary format
+   * Returns the certificateData in binary format.
    *
    * @return the certificateData in binary format
    */
@@ -46,7 +54,7 @@ public class Certificate extends TokenCertificateResponseWS {
   }
 
   /**
-   * Returns the certificateData in Base64 encoded format
+   * Returns the certificateData in Base64 encoded format.
    *
    * @return the certificateData in Base64 encoded format
    */
@@ -55,12 +63,12 @@ public class Certificate extends TokenCertificateResponseWS {
   }
 
   /**
-   * Sets certificateData in Base64 encoded format
+   * Sets certificateData in Base64 encoded format.
    *
-   * @param certificateData The certificateData to set, in Base64 encoded
+   * @param acertificateData The certificateData to set, in Base64 encoded
    *     format.
    */
-  public void setCertificateData(byte[] certificateData) {
-    this.certificateData = certificateData;
+  public void setCertificateData(byte[] acertificateData) {
+    this.certificateData = acertificateData;
   }
 }
