@@ -14,26 +14,23 @@
 package org.ejbca.core.protocol.ws;
 
 import javax.xml.ws.WebFault;
-
 import org.cesecore.ErrorCode;
 import org.ejbca.core.EjbcaException;
 
 /**
- * Thrown when the profile type is neither an end entity profile nor a certificate profile
- * @version $Id: UnknownProfileTypeException.java 20370 2014-12-01 16:12:34Z aveen4711 $
+ * Thrown when the profile type is neither an end entity profile nor a
+ * certificate profile
  *
+ * @version $Id: UnknownProfileTypeException.java 20370 2014-12-01 16:12:34Z
+ *     aveen4711 $
  */
 @WebFault
 public class UnknownProfileTypeException extends EjbcaException {
 
+  private static final long serialVersionUID = 1L;
 
-
-    private static final long serialVersionUID = 1L;
-
-    /**
-     * @param m with more information what is wrong
-     */
-    public UnknownProfileTypeException(String m) {
-        super(ErrorCode.UNKNOWN_PROFILE_TYPE, m);
-    }
+  /** @param m with more information what is wrong */
+  public UnknownProfileTypeException(String m) {
+    super(ErrorCode.UNKNOWN_PROFILE_TYPE, m);
+  }
 }
