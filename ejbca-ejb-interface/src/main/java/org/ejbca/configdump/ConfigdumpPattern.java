@@ -24,10 +24,16 @@ import java.util.regex.Pattern;
 public class ConfigdumpPattern implements Serializable {
 
   private static final long serialVersionUID = 1L;
+  /** Param. */
   private final String patternString;
+  /** Param. */
   private final Pattern pattern;
+  /** Param. */
   private int numMatches = 0;
 
+  /**
+   * @param simplePattern pattern
+   */
   public ConfigdumpPattern(final String simplePattern) {
     // Convert "basic" pattern with only "*" wildcards into a regex
     // The string is "quoted" (avoids parsing as regex) except for * which are
@@ -44,6 +50,10 @@ public class ConfigdumpPattern implements Serializable {
     patternString = simplePattern;
   }
 
+ /**
+  * @param input input
+  * @return bool
+  */
   public boolean matches(final CharSequence input) {
     if (pattern.matcher(input).find()) {
       numMatches++;
@@ -52,6 +62,9 @@ public class ConfigdumpPattern implements Serializable {
     return false;
   }
 
+  /**
+   * @return matches
+   */
   public int getNumMatches() {
     return numMatches;
   }

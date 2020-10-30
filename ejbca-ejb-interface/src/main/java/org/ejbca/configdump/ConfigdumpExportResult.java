@@ -24,24 +24,38 @@ public final class ConfigdumpExportResult implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
+  /** Errors. */
   private final List<String> reportedErrors;
 
+  /** warnings. */
   private final List<String> reportedWarnings;
 
+  /**
+   * @param thereportedErrors errors
+   * @param thereportedWarnings warnings
+   */
   public ConfigdumpExportResult(
-      final List<String> reportedErrors, final List<String> reportedWarnings) {
-    this.reportedErrors = reportedErrors;
-    this.reportedWarnings = reportedWarnings;
+      final List<String> thereportedErrors,
+      final List<String> thereportedWarnings) {
+    this.reportedErrors = thereportedErrors;
+    this.reportedWarnings = thereportedWarnings;
   }
 
+  /** @return Errors. */
   public List<String> getReportedErrors() {
     return reportedErrors;
   }
 
+  /**
+   * @return warnings
+   */
   public List<String> getReportedWarnings() {
     return reportedWarnings;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isSuccessful() {
     return reportedErrors.isEmpty();
   }
