@@ -14,13 +14,10 @@ package org.ejbca.core.ejb.ra.raadmin;
 
 import javax.ejb.Remote;
 
-/**
- * Remote interface for RaAdminSession.
- */
+/** Remote interface for RaAdminSession. */
 @Remote
 public interface AdminPreferenceSessionRemote extends AdminPreferenceSession {
 
-    /** Invalidates all cached RA Styles */
-    void invalidateRaStyleCache();
-
+  /** Invalidates all cached RA Styles */
+  void invalidateRaStyleCache();
 }

@@ -14,10 +14,6 @@ package org.ejbca.core.ejb.upgrade;
 
 import javax.ejb.Remote;
 
-/**
- * Remote interface for UpgradeSession.
- */
+/** Remote interface for UpgradeSession. */
 @Remote
-public interface UpgradeSessionRemote extends UpgradeSession {
-
-}
+public interface UpgradeSessionRemote extends UpgradeSession {}

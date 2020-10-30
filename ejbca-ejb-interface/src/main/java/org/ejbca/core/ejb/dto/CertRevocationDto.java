@@ -16,76 +16,80 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * Wrapper class for holding input parameters of revokeCertWithMetadata operation.
- * @version $Id: CertRevocationDto.java 28674 2018-05-03 10:17:34Z tarmo_r_helmes $
+ * Wrapper class for holding input parameters of revokeCertWithMetadata
+ * operation.
+ *
+ * @version $Id: CertRevocationDto.java 28674 2018-05-03 10:17:34Z
+ *     tarmo_r_helmes $
  */
 public class CertRevocationDto implements Serializable {
-    
-    private static final long serialVersionUID = 1L;
-    
-    String issuerDN;
-    String certificateSN;
-    Integer reason;
-    Date revocationDate; 
-    Integer certificateProfileId;
-    boolean checkDate;    
-    
-    public CertRevocationDto(String issuerDN, String certificateSN, int reason) {
-        this.issuerDN = issuerDN;
-        this.certificateSN = certificateSN;
-        this.reason = reason;
-    }
 
-    public CertRevocationDto(String issuerDN, String certificateSN) {
-        this.issuerDN = issuerDN;
-        this.certificateSN = certificateSN;
-    }
+  private static final long serialVersionUID = 1L;
 
-    public String getIssuerDN() {
-        return issuerDN;
-    }
+  String issuerDN;
+  String certificateSN;
+  Integer reason;
+  Date revocationDate;
+  Integer certificateProfileId;
+  boolean checkDate;
 
-    public void setIssuerDN(String issuerDN) {
-        this.issuerDN = issuerDN;
-    }
+  public CertRevocationDto(
+      final String issuerDN, final String certificateSN, final int reason) {
+    this.issuerDN = issuerDN;
+    this.certificateSN = certificateSN;
+    this.reason = reason;
+  }
 
-    public String getCertificateSN() {
-        return certificateSN;
-    }
+  public CertRevocationDto(final String issuerDN, final String certificateSN) {
+    this.issuerDN = issuerDN;
+    this.certificateSN = certificateSN;
+  }
 
-    public void setCertificateSN(String certificateSN) {
-        this.certificateSN = certificateSN;
-    }
+  public String getIssuerDN() {
+    return issuerDN;
+  }
 
-    public Integer getReason() {
-        return reason;
-    }
+  public void setIssuerDN(final String issuerDN) {
+    this.issuerDN = issuerDN;
+  }
 
-    public void setReason(Integer reason) {
-        this.reason = reason;
-    }
+  public String getCertificateSN() {
+    return certificateSN;
+  }
 
-    public Date getRevocationDate() {
-        return revocationDate;
-    }
+  public void setCertificateSN(final String certificateSN) {
+    this.certificateSN = certificateSN;
+  }
 
-    public void setRevocationDate(Date revocationDate) {
-        this.revocationDate = revocationDate;
-    }
+  public Integer getReason() {
+    return reason;
+  }
 
-    public Integer getCertificateProfileId() {
-        return certificateProfileId;
-    }
+  public void setReason(final Integer reason) {
+    this.reason = reason;
+  }
 
-    public void setCertificateProfileId(Integer certificateProfileId) {
-        this.certificateProfileId = certificateProfileId;
-    }
+  public Date getRevocationDate() {
+    return revocationDate;
+  }
 
-    public boolean isCheckDate() {
-        return checkDate;
-    }
+  public void setRevocationDate(final Date revocationDate) {
+    this.revocationDate = revocationDate;
+  }
 
-    public void setCheckDate(boolean checkDate) {
-        this.checkDate = checkDate;
-    }
+  public Integer getCertificateProfileId() {
+    return certificateProfileId;
+  }
+
+  public void setCertificateProfileId(final Integer certificateProfileId) {
+    this.certificateProfileId = certificateProfileId;
+  }
+
+  public boolean isCheckDate() {
+    return checkDate;
+  }
+
+  public void setCheckDate(final boolean checkDate) {
+    this.checkDate = checkDate;
+  }
 }

@@ -16,8 +16,8 @@ import javax.ejb.Local;
 
 /**
  * @see EjbcaAuditorSession
- * @version $Id: EjbcaAuditorSessionLocal.java 19902 2014-09-30 14:32:24Z anatom $
+ * @version $Id: EjbcaAuditorSessionLocal.java 19902 2014-09-30 14:32:24Z anatom
+ *     $
  */
 @Local
-public interface EjbcaAuditorSessionLocal extends EjbcaAuditorSession {
-}
+public interface EjbcaAuditorSessionLocal extends EjbcaAuditorSession {}

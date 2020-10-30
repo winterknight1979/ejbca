@@ -15,10 +15,8 @@ package org.ejbca.core.ejb.ocsp;
 import javax.ejb.Remote;
 
 /**
- * @version $Id: OcspKeyRenewalSessionRemote.java 19902 2014-09-30 14:32:24Z anatom $
- *
+ * @version $Id: OcspKeyRenewalSessionRemote.java 19902 2014-09-30 14:32:24Z
+ *     anatom $
  */
 @Remote
-public interface OcspKeyRenewalSessionRemote {
-
-}
+public interface OcspKeyRenewalSessionRemote {}

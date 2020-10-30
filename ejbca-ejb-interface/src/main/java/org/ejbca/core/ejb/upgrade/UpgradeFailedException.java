@@ -15,52 +15,48 @@ package org.ejbca.core.ejb.upgrade;
 import javax.ejb.ApplicationException;
 
 /**
- * Thrown in case an upgrade routine fails. Should trigger rollback. 
- * 
- * @version $Id: UpgradeFailedException.java 22019 2015-10-13 23:04:25Z jeklund $
+ * Thrown in case an upgrade routine fails. Should trigger rollback.
  *
+ * @version $Id: UpgradeFailedException.java 22019 2015-10-13 23:04:25Z jeklund
+ *     $
  */
 @ApplicationException(rollback = true)
 public class UpgradeFailedException extends Exception {
 
-    private static final long serialVersionUID = -8607042944389555117L;
+  private static final long serialVersionUID = -8607042944389555117L;
 
-    /**
-     * 
-     */
-    public UpgradeFailedException() {
-    }
+  /** */
+  public UpgradeFailedException() {}
 
-    /**
-     * @param message msg
-     */
-    public UpgradeFailedException(String message) {
-        super(message);
-    }
+  /** @param message msg */
+  public UpgradeFailedException(final String message) {
+    super(message);
+  }
 
-    /**
-     * @param cause cause
-     */
-    public UpgradeFailedException(Throwable cause) {
-        super(cause);
-    }
+  /** @param cause cause */
+  public UpgradeFailedException(final Throwable cause) {
+    super(cause);
+  }
 
-    /**
-     * @param message msh
-     * @param cause cause
-     */
-    public UpgradeFailedException(String message, Throwable cause) {
-        super(message, cause);
-    }
+  /**
+   * @param message msh
+   * @param cause cause
+   */
+  public UpgradeFailedException(final String message, final Throwable cause) {
+    super(message, cause);
+  }
 
-    /**
-     * @param message msg
-     * @param cause cause
-     * @param enableSuppression bool
-     * @param writableStackTrace bool
-     */
-    public UpgradeFailedException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
-
+  /**
+   * @param message msg
+   * @param cause cause
+   * @param enableSuppression bool
+   * @param writableStackTrace bool
+   */
+  public UpgradeFailedException(
+      final String message,
+      final Throwable cause,
+      final boolean enableSuppression,
+      final boolean writableStackTrace) {
+    super(message, cause, enableSuppression, writableStackTrace);
+  }
 }

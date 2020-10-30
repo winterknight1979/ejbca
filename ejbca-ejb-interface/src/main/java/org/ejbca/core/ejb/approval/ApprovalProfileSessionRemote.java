@@ -16,9 +16,9 @@ import javax.ejb.Remote;
 
 /**
  * Session to access approval profiles remotely
- * @version $Id: ApprovalProfileSessionRemote.java 23336 2016-05-02 20:25:49Z aveen4711 $
+ *
+ * @version $Id: ApprovalProfileSessionRemote.java 23336 2016-05-02 20:25:49Z
+ *     aveen4711 $
  */
 @Remote
-public interface ApprovalProfileSessionRemote extends ApprovalProfileSession {
-
-}
+public interface ApprovalProfileSessionRemote extends ApprovalProfileSession {}

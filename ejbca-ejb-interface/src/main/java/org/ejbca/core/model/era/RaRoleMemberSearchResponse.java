@@ -17,39 +17,49 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.cesecore.roles.member.RoleMember;
 
 /**
  * Response of role member search from RA UI.
- * 
- * @version $Id: RaRoleMemberSearchResponse.java 25585 2017-03-22 17:13:47Z samuellb $
+ *
+ * @version $Id: RaRoleMemberSearchResponse.java 25585 2017-03-22 17:13:47Z
+ *     samuellb $
  */
 public class RaRoleMemberSearchResponse implements Serializable {
-    
-    private static final long serialVersionUID = 1L;
 
-    private List<RoleMember> roleMembers = new ArrayList<>();
-    private boolean mightHaveMoreResults = false;
+  private static final long serialVersionUID = 1L;
 
-    public List<RoleMember> getRoleMembers() { return roleMembers; }
-    public void setRoleMembers(List<RoleMember> roleMembers) { this.roleMembers = roleMembers; }
+  private List<RoleMember> roleMembers = new ArrayList<>();
+  private boolean mightHaveMoreResults = false;
 
-    public boolean isMightHaveMoreResults() { return mightHaveMoreResults; }
-    public void setMightHaveMoreResults(boolean mightHaveMoreResults) { this.mightHaveMoreResults = mightHaveMoreResults; }
-    
-    public void merge(final RaRoleMemberSearchResponse other) {
-        final Map<Integer,RoleMember> roleMemberMap = new HashMap<>();
-        for (final RoleMember roleMember : roleMembers) {
-            roleMemberMap.put(roleMember.getId(), roleMember);
-        }
-        for (final RoleMember roleMember : other.roleMembers) {
-            roleMemberMap.put(roleMember.getId(), roleMember);
-        }
-        this.roleMembers.clear();
-        this.roleMembers.addAll(roleMemberMap.values());
-        if (other.isMightHaveMoreResults()) {
-            setMightHaveMoreResults(true);
-        }
+  public List<RoleMember> getRoleMembers() {
+    return roleMembers;
+  }
+
+  public void setRoleMembers(final List<RoleMember> roleMembers) {
+    this.roleMembers = roleMembers;
+  }
+
+  public boolean isMightHaveMoreResults() {
+    return mightHaveMoreResults;
+  }
+
+  public void setMightHaveMoreResults(final boolean mightHaveMoreResults) {
+    this.mightHaveMoreResults = mightHaveMoreResults;
+  }
+
+  public void merge(final RaRoleMemberSearchResponse other) {
+    final Map<Integer, RoleMember> roleMemberMap = new HashMap<>();
+    for (final RoleMember roleMember : roleMembers) {
+      roleMemberMap.put(roleMember.getId(), roleMember);
     }
+    for (final RoleMember roleMember : other.roleMembers) {
+      roleMemberMap.put(roleMember.getId(), roleMember);
+    }
+    this.roleMembers.clear();
+    this.roleMembers.addAll(roleMemberMap.values());
+    if (other.isMightHaveMoreResults()) {
+      setMightHaveMoreResults(true);
+    }
+  }
 }

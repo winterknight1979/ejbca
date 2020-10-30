@@ -13,24 +13,22 @@
 package org.ejbca.core.ejb.hardtoken;
 
 import java.util.List;
-
 import javax.ejb.Local;
-
 import org.cesecore.certificates.certificate.CertificateDataWrapper;
 
 /**
  * Local interface for HardTokenSession.
- * 
+ *
  * @version $Id: HardTokenSessionLocal.java 21202 2015-05-08 00:42:02Z jeklund $
  */
 @Local
 public interface HardTokenSessionLocal extends HardTokenSession {
 
-    /**
-     * Returns all the X509Certificates datas mapped to the specified hard token.
-     * 
-     * @param tokensn The serialnumber of token.
-     * @return a collection of X509Certificate datas
-     */
-    List<CertificateDataWrapper> getCertificateDatasFromHardToken(String tokensn);
+  /**
+   * Returns all the X509Certificates datas mapped to the specified hard token.
+   *
+   * @param tokensn The serialnumber of token.
+   * @return a collection of X509Certificate datas
+   */
+  List<CertificateDataWrapper> getCertificateDatasFromHardToken(String tokensn);
 }

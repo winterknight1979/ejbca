@@ -16,9 +16,10 @@ import javax.ejb.Remote;
 
 /**
  * Remote interface for AuthenticationSession.
- * @version $Id: EndEntityAuthenticationSessionRemote.java 19902 2014-09-30 14:32:24Z anatom $
+ *
+ * @version $Id: EndEntityAuthenticationSessionRemote.java 19902 2014-09-30
+ *     14:32:24Z anatom $
  */
 @Remote
-public interface EndEntityAuthenticationSessionRemote extends EndEntityAuthenticationSession {
-
-}
+public interface EndEntityAuthenticationSessionRemote
+    extends EndEntityAuthenticationSession {}

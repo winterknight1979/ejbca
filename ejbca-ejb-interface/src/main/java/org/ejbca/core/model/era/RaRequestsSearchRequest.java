@@ -17,85 +17,84 @@ import java.util.Date;
 
 /**
  * Contains search parameters for searchForApprovalRequests.
- * 
- * @version $Id: RaRequestsSearchRequest.java 24905 2016-12-14 15:26:52Z samuellb $
+ *
+ * @version $Id: RaRequestsSearchRequest.java 24905 2016-12-14 15:26:52Z
+ *     samuellb $
  */
 public class RaRequestsSearchRequest implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    private boolean searchingWaitingForMe;
-    private boolean searchingPending;
-    private boolean searchingHistorical; // processed
-    private boolean searchingExpired;
-    private Date startDate;
-    private Date endDate;
-    private Date expiresBefore;
-    private boolean includeOtherAdmins;
-    
-    
-    public boolean isSearchingWaitingForMe() {
-        return searchingWaitingForMe;
-    }
-    
-    public void setSearchingWaitingForMe(final boolean searchingWaitingForMe) {
-        this.searchingWaitingForMe = searchingWaitingForMe;
-    }
-    
-    public boolean isSearchingPending() {
-        return searchingPending;
-    }
-    
-    public void setSearchingPending(final boolean searchingPending) {
-        this.searchingPending = searchingPending;
-    }
-    
-    public boolean isSearchingHistorical() {
-        return searchingHistorical;
-    }
-    
-    public void setSearchingHistorical(final boolean searchingHistorical) {
-        this.searchingHistorical = searchingHistorical;
-    }
-    
-    public boolean isSearchingExpired() {
-        return searchingExpired;
-    }
-    
-    public void setSearchingExpired(final boolean searchingExpired) {
-        this.searchingExpired = searchingExpired;
-    }
+  private boolean searchingWaitingForMe;
+  private boolean searchingPending;
+  private boolean searchingHistorical; // processed
+  private boolean searchingExpired;
+  private Date startDate;
+  private Date endDate;
+  private Date expiresBefore;
+  private boolean includeOtherAdmins;
 
-    public Date getStartDate() {
-        return startDate;
-    }
+  public boolean isSearchingWaitingForMe() {
+    return searchingWaitingForMe;
+  }
 
-    public void setStartDate(final Date startDate) {
-        this.startDate = startDate;
-    }
+  public void setSearchingWaitingForMe(final boolean searchingWaitingForMe) {
+    this.searchingWaitingForMe = searchingWaitingForMe;
+  }
 
-    public Date getEndDate() {
-        return endDate;
-    }
+  public boolean isSearchingPending() {
+    return searchingPending;
+  }
 
-    public void setEndDate(final Date endDate) {
-        this.endDate = endDate;
-    }
+  public void setSearchingPending(final boolean searchingPending) {
+    this.searchingPending = searchingPending;
+  }
 
-    public Date getExpiresBefore() {
-        return expiresBefore;
-    }
-    
-    public void setExpiresBefore(final Date expiresBefore) {
-        this.expiresBefore = expiresBefore;
-    }
+  public boolean isSearchingHistorical() {
+    return searchingHistorical;
+  }
 
-    public boolean getIncludeOtherAdmins() {
-        return includeOtherAdmins;
-    }
+  public void setSearchingHistorical(final boolean searchingHistorical) {
+    this.searchingHistorical = searchingHistorical;
+  }
 
-    public void setIncludeOtherAdmins(final boolean includeOtherAdmins) {
-        this.includeOtherAdmins = includeOtherAdmins;
-    }
+  public boolean isSearchingExpired() {
+    return searchingExpired;
+  }
 
+  public void setSearchingExpired(final boolean searchingExpired) {
+    this.searchingExpired = searchingExpired;
+  }
+
+  public Date getStartDate() {
+    return startDate;
+  }
+
+  public void setStartDate(final Date startDate) {
+    this.startDate = startDate;
+  }
+
+  public Date getEndDate() {
+    return endDate;
+  }
+
+  public void setEndDate(final Date endDate) {
+    this.endDate = endDate;
+  }
+
+  public Date getExpiresBefore() {
+    return expiresBefore;
+  }
+
+  public void setExpiresBefore(final Date expiresBefore) {
+    this.expiresBefore = expiresBefore;
+  }
+
+  public boolean getIncludeOtherAdmins() {
+    return includeOtherAdmins;
+  }
+
+  public void setIncludeOtherAdmins(final boolean includeOtherAdmins) {
+    this.includeOtherAdmins = includeOtherAdmins;
+  }
 }

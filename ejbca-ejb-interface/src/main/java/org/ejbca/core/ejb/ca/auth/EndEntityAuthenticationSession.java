@@ -20,39 +20,39 @@ import org.ejbca.core.model.ca.AuthStatusException;
 
 /**
  * Provides access to authentication system.
- * 
- * @version $Id: EndEntityAuthenticationSession.java 27673 2017-12-27 18:33:07Z mikekushner $
+ *
+ * @version $Id: EndEntityAuthenticationSession.java 27673 2017-12-27 18:33:07Z
+ *     mikekushner $
  */
 public interface EndEntityAuthenticationSession {
 
-    /**
-     * Authenticates a user to the user database and returns the user DN.
-     * @param admin admin
-     *
-     * @param username unique username within the instance
-     * @param password password for the user
-     *
-     * @return EndEntityInformation, never returns null
-     *
-     * @throws NoSuchEndEntityException if the user does not exist.
-     * @throws AuthStatusException if the end entity's status is not one of NEW, FAILED, IN_PROCESS or KEY_RECOVERY
-     * @throws AuthLoginException If the password is incorrect.
-     */
-    EndEntityInformation authenticateUser(AuthenticationToken admin, String username, String password)
-            throws NoSuchEndEntityException, AuthStatusException, AuthLoginException;
+  /**
+   * Authenticates a user to the user database and returns the user DN.
+   *
+   * @param admin admin
+   * @param username unique username within the instance
+   * @param password password for the user
+   * @return EndEntityInformation, never returns null
+   * @throws NoSuchEndEntityException if the user does not exist.
+   * @throws AuthStatusException if the end entity's status is not one of NEW,
+   *     FAILED, IN_PROCESS or KEY_RECOVERY
+   * @throws AuthLoginException If the password is incorrect.
+   */
+  EndEntityInformation authenticateUser(
+      AuthenticationToken admin, String username, String password)
+      throws NoSuchEndEntityException, AuthStatusException, AuthLoginException;
 
-    /**
-     * Set the status of a user to finished, called when a user has been
-     * successfully processed. If possible sets users status to
-     * UserData.STATUS_GENERATED, which means that the user cannot be
-     * authenticated anymore. NOTE: May not have any effect of user database is
-     * remote. User data may contain a counter with nr of requests before used
-     * should be set to generated. In this case this counter will be decreased,
-     * and if it reaches 0 status will be generated.
-     * @param data dta
-     * 
-     * @throws NoSuchEndEntityException if the user does not exist.
-     */
-    void finishUser(EndEntityInformation data) throws NoSuchEndEntityException;
-
+  /**
+   * Set the status of a user to finished, called when a user has been
+   * successfully processed. If possible sets users status to
+   * UserData.STATUS_GENERATED, which means that the user cannot be
+   * authenticated anymore. NOTE: May not have any effect of user database is
+   * remote. User data may contain a counter with nr of requests before used
+   * should be set to generated. In this case this counter will be decreased,
+   * and if it reaches 0 status will be generated.
+   *
+   * @param data dta
+   * @throws NoSuchEndEntityException if the user does not exist.
+   */
+  void finishUser(EndEntityInformation data) throws NoSuchEndEntityException;
 }

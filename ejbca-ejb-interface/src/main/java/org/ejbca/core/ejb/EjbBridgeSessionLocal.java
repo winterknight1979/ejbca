@@ -14,7 +14,6 @@
 package org.ejbca.core.ejb;
 
 import javax.ejb.Local;
-
 import org.cesecore.audit.audit.SecurityEventsAuditorSessionLocal;
 import org.cesecore.audit.log.SecurityEventsLoggerSessionLocal;
 import org.cesecore.authorization.AuthorizationSessionLocal;
@@ -67,67 +66,118 @@ import org.ejbca.core.model.era.RaMasterApiSessionLocal;
 import org.ejbca.core.protocol.cmp.CmpMessageDispatcherSessionLocal;
 
 /**
- * Due to the lack of standardization in JEE5 there is no way to lookup local interfaces.
- * 
- * This Stateless Session Bean (SSB) act as a bridge between calling classes in the same JVM,
- * and the real ejb references.
- * 
- * This will allow us to define a single (this) local EJB in all web.xml and ejb-jar.xml files
- * and are then free to change and move around SSBs and their interfaces without XML changes.
- * 
+ * Due to the lack of standardization in JEE5 there is no way to lookup local
+ * interfaces.
+ *
+ * <p>This Stateless Session Bean (SSB) act as a bridge between calling classes
+ * in the same JVM, and the real ejb references.
+ *
+ * <p>This will allow us to define a single (this) local EJB in all web.xml and
+ * ejb-jar.xml files and are then free to change and move around SSBs and their
+ * interfaces without XML changes.
+ *
  * @version $Id: EjbBridgeSessionLocal.java 29151 2018-06-07 15:11:05Z jeklund $
  */
 @Local
 public interface EjbBridgeSessionLocal {
 
-    AdminPreferenceSessionLocal getAdminPreferenceSession();
-	ApprovalExecutionSessionLocal getApprovalExecutionSession();
-	ApprovalProfileSessionLocal getApprovalProfileSession();
-	ApprovalSessionLocal getApprovalSession();
-    AuthorizationSessionLocal getAuthorizationSession();
-    AuthorizationSystemSessionLocal getAuthorizationSystemSession();
-	BlacklistSessionLocal getBlacklistSession();
-	CAAdminSessionLocal getCaAdminSession();
-	CaSessionLocal getCaSession();
-	CertificateCreateSessionLocal getCertificateCreateSession();
-	CertificateProfileSessionLocal getCertificateProfileSession();
-	CertificateStoreSessionLocal getCertificateStoreSession();
-	CertReqHistorySessionLocal getCertReqHistorySession();
-	CmpMessageDispatcherSessionLocal getCmpMessageDispatcherSession();
-	CrlCreateSessionLocal getCrlCreateSession();
-    CrlStoreSessionLocal getCrlStoreSession();
-	CryptoTokenManagementSessionLocal getCryptoTokenManagementSession();
-	CryptoTokenSessionLocal getCryptoTokenSession();
-	EjbcaAuditorSessionLocal getEjbcaAuditorSession();
-	EjbcaRestHelperSessionLocal getEjbcaRestHelperSession();
-	EjbcaWSHelperSessionLocal getEjbcaWSHelperSession();
-	EndEntityAccessSessionLocal getEndEntityAccessSession();
-	EndEntityAuthenticationSessionLocal getEndEntityAuthenticationSession();
-	EndEntityManagementSessionLocal getEndEntityManagementSession();
-	EndEntityProfileSessionLocal getEndEntityProfileSession();
-	GlobalConfigurationSessionLocal getGlobalConfigurationSession();
-	HardTokenBatchJobSessionLocal getHardTokenBatchJobSession();
-	HardTokenSessionLocal getHardTokenSession();
-    ImportCrlSessionLocal getImportCrlSession();
-    InternalKeyBindingDataSessionLocal getInternalKeyBindingDataSession();
-    InternalKeyBindingMgmtSessionLocal getInternalKeyBindingMgmtSession();
-    KeyRecoverySessionLocal getKeyRecoverySession();
-	KeyValidatorSessionLocal getKeyValidatorSession();
-	PublisherQueueSessionLocal getPublisherQueueSession();
-	PublisherSessionLocal getPublisherSession();
-	PublishingCrlSessionLocal getPublishingCrlSession();
-    RaMasterApiProxyBeanLocal getRaMasterApiProxyBean();
-	RaMasterApiSessionLocal getRaMasterApiSession();
-	RevocationSessionLocal getRevocationSession();
-	RoleDataSessionLocal getRoleDataSession();
-	RoleMemberDataSessionLocal getRoleMemberDataSession();
-	RoleMemberSessionLocal getRoleMemberSession();
-    RoleSessionLocal getRoleSession();
-    SecurityEventsAuditorSessionLocal getSecurityEventsAuditorSession();
-    SecurityEventsLoggerSessionLocal getSecurityEventsLoggerSession();
-    ServiceSessionLocal getServiceSession();
-    SignSessionLocal getSignSession();
-    UpgradeSessionLocal getUpgradeSession();
-    UserDataSourceSessionLocal getUserDataSourceSession();
-    WebAuthenticationProviderSessionLocal getWebAuthenticationProviderSession();
+  AdminPreferenceSessionLocal getAdminPreferenceSession();
+
+  ApprovalExecutionSessionLocal getApprovalExecutionSession();
+
+  ApprovalProfileSessionLocal getApprovalProfileSession();
+
+  ApprovalSessionLocal getApprovalSession();
+
+  AuthorizationSessionLocal getAuthorizationSession();
+
+  AuthorizationSystemSessionLocal getAuthorizationSystemSession();
+
+  BlacklistSessionLocal getBlacklistSession();
+
+  CAAdminSessionLocal getCaAdminSession();
+
+  CaSessionLocal getCaSession();
+
+  CertificateCreateSessionLocal getCertificateCreateSession();
+
+  CertificateProfileSessionLocal getCertificateProfileSession();
+
+  CertificateStoreSessionLocal getCertificateStoreSession();
+
+  CertReqHistorySessionLocal getCertReqHistorySession();
+
+  CmpMessageDispatcherSessionLocal getCmpMessageDispatcherSession();
+
+  CrlCreateSessionLocal getCrlCreateSession();
+
+  CrlStoreSessionLocal getCrlStoreSession();
+
+  CryptoTokenManagementSessionLocal getCryptoTokenManagementSession();
+
+  CryptoTokenSessionLocal getCryptoTokenSession();
+
+  EjbcaAuditorSessionLocal getEjbcaAuditorSession();
+
+  EjbcaRestHelperSessionLocal getEjbcaRestHelperSession();
+
+  EjbcaWSHelperSessionLocal getEjbcaWSHelperSession();
+
+  EndEntityAccessSessionLocal getEndEntityAccessSession();
+
+  EndEntityAuthenticationSessionLocal getEndEntityAuthenticationSession();
+
+  EndEntityManagementSessionLocal getEndEntityManagementSession();
+
+  EndEntityProfileSessionLocal getEndEntityProfileSession();
+
+  GlobalConfigurationSessionLocal getGlobalConfigurationSession();
+
+  HardTokenBatchJobSessionLocal getHardTokenBatchJobSession();
+
+  HardTokenSessionLocal getHardTokenSession();
+
+  ImportCrlSessionLocal getImportCrlSession();
+
+  InternalKeyBindingDataSessionLocal getInternalKeyBindingDataSession();
+
+  InternalKeyBindingMgmtSessionLocal getInternalKeyBindingMgmtSession();
+
+  KeyRecoverySessionLocal getKeyRecoverySession();
+
+  KeyValidatorSessionLocal getKeyValidatorSession();
+
+  PublisherQueueSessionLocal getPublisherQueueSession();
+
+  PublisherSessionLocal getPublisherSession();
+
+  PublishingCrlSessionLocal getPublishingCrlSession();
+
+  RaMasterApiProxyBeanLocal getRaMasterApiProxyBean();
+
+  RaMasterApiSessionLocal getRaMasterApiSession();
+
+  RevocationSessionLocal getRevocationSession();
+
+  RoleDataSessionLocal getRoleDataSession();
+
+  RoleMemberDataSessionLocal getRoleMemberDataSession();
+
+  RoleMemberSessionLocal getRoleMemberSession();
+
+  RoleSessionLocal getRoleSession();
+
+  SecurityEventsAuditorSessionLocal getSecurityEventsAuditorSession();
+
+  SecurityEventsLoggerSessionLocal getSecurityEventsLoggerSession();
+
+  ServiceSessionLocal getServiceSession();
+
+  SignSessionLocal getSignSession();
+
+  UpgradeSessionLocal getUpgradeSession();
+
+  UserDataSourceSessionLocal getUserDataSourceSession();
+
+  WebAuthenticationProviderSessionLocal getWebAuthenticationProviderSession();
 }

@@ -14,10 +14,7 @@ package org.ejbca.core.ejb.ra;
 
 import javax.ejb.Local;
 
-/**
- * Local interface for CertificateRequestSession.
- */
+/** Local interface for CertificateRequestSession. */
 @Local
-public interface CertificateRequestSessionLocal extends CertificateRequestSession {
-
-}
+public interface CertificateRequestSessionLocal
+    extends CertificateRequestSession {}

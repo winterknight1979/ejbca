@@ -13,46 +13,47 @@
 package org.ejbca.core.model.era;
 
 import java.io.Serializable;
-
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 
 /**
  * Search request for role from RA UI.
- * 
+ *
  * @version $Id: RaRoleSearchRequest.java 25399 2017-03-06 20:37:51Z samuellb $
  */
 public class RaRoleSearchRequest implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    private String genericSearchString = "";
+  private String genericSearchString = "";
 
-    /** Default constructor */
-    public RaRoleSearchRequest() {}
-    
-    /** Copy constructor 
-     * @param request req*/
-    public RaRoleSearchRequest(final RaRoleSearchRequest request) {
-        genericSearchString = request.genericSearchString;
-    }
+  /** Default constructor */
+  public RaRoleSearchRequest() {}
 
-    public String getGenericSearchString() {
-        return genericSearchString;
-    }
+  /**
+   * Copy constructor
+   *
+   * @param request req
+   */
+  public RaRoleSearchRequest(final RaRoleSearchRequest request) {
+    genericSearchString = request.genericSearchString;
+  }
 
-    public void setGenericSearchString(final String genericSearchString) {
-        this.genericSearchString = genericSearchString;
-    }
+  public String getGenericSearchString() {
+    return genericSearchString;
+  }
 
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
-    
-    @Override
-    public boolean equals(final Object other) {
-        return EqualsBuilder.reflectionEquals(this, other);
-    }
+  public void setGenericSearchString(final String genericSearchString) {
+    this.genericSearchString = genericSearchString;
+  }
 
+  @Override
+  public int hashCode() {
+    return HashCodeBuilder.reflectionHashCode(this);
+  }
+
+  @Override
+  public boolean equals(final Object other) {
+    return EqualsBuilder.reflectionEquals(this, other);
+  }
 }

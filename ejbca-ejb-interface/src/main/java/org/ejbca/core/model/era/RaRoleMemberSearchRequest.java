@@ -15,52 +15,80 @@ package org.ejbca.core.model.era;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.commons.lang.builder.HashCodeBuilder;
 
 /**
  * Search request for role members from RA UI.
- * 
- * @version $Id: RaRoleMemberSearchRequest.java 25310 2017-02-21 16:47:29Z samuellb $
+ *
+ * @version $Id: RaRoleMemberSearchRequest.java 25310 2017-02-21 16:47:29Z
+ *     samuellb $
  */
 public class RaRoleMemberSearchRequest implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    private List<Integer> roleIds = new ArrayList<>();
-    private List<Integer> caIds = new ArrayList<>();
-    private List<String> tokenTypes = new ArrayList<>();
-    private String genericSearchString = "";
-    //private boolean genericSearchExact = false;
+  private List<Integer> roleIds = new ArrayList<>();
+  private List<Integer> caIds = new ArrayList<>();
+  private List<String> tokenTypes = new ArrayList<>();
+  private String genericSearchString = "";
+  // private boolean genericSearchExact = false;
 
-    /** Default constructor */
-    public RaRoleMemberSearchRequest() {}
-    
-    /** Copy constructor 
-     * @param request req*/
-    public RaRoleMemberSearchRequest(final RaRoleMemberSearchRequest request) {
-        roleIds.addAll(request.roleIds);
-        caIds.addAll(request.caIds);
-        genericSearchString = request.genericSearchString;
-        //genericSearchExact = request.genericSearchExact;
-    }
+  /** Default constructor */
+  public RaRoleMemberSearchRequest() {}
 
-    public List<Integer> getRoleIds() { return roleIds; }
-    public void setRoleIds(final List<Integer> roleIds) { this.roleIds = roleIds; }
-    public List<Integer> getCaIds() { return caIds; }
-    public void setCaIds(final List<Integer> caIds) { this.caIds = caIds; }
-    public List<String> getTokenTypes() { return tokenTypes; }
-    public void setTokenTypes(final List<String> tokenTypes) { this.tokenTypes = tokenTypes; }
-    public String getGenericSearchString() { return genericSearchString; }
-    /** Prefix string to search for in the subject DN, or full serial number. 
-     * @param genericSearchString string*/
-    public void setGenericSearchString(final String genericSearchString) { this.genericSearchString = genericSearchString; }
-//    public boolean isGenericSearchString() { return genericSearchExact; }
-//    public void setGenericSearchString(final boolean genericSearchExact) { this.genericSearchExact = genericSearchExact; }
+  /**
+   * Copy constructor
+   *
+   * @param request req
+   */
+  public RaRoleMemberSearchRequest(final RaRoleMemberSearchRequest request) {
+    roleIds.addAll(request.roleIds);
+    caIds.addAll(request.caIds);
+    genericSearchString = request.genericSearchString;
+    // genericSearchExact = request.genericSearchExact;
+  }
 
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
+  public List<Integer> getRoleIds() {
+    return roleIds;
+  }
 
+  public void setRoleIds(final List<Integer> roleIds) {
+    this.roleIds = roleIds;
+  }
+
+  public List<Integer> getCaIds() {
+    return caIds;
+  }
+
+  public void setCaIds(final List<Integer> caIds) {
+    this.caIds = caIds;
+  }
+
+  public List<String> getTokenTypes() {
+    return tokenTypes;
+  }
+
+  public void setTokenTypes(final List<String> tokenTypes) {
+    this.tokenTypes = tokenTypes;
+  }
+
+  public String getGenericSearchString() {
+    return genericSearchString;
+  }
+  /**
+   * Prefix string to search for in the subject DN, or full serial number.
+   *
+   * @param genericSearchString string
+   */
+  public void setGenericSearchString(final String genericSearchString) {
+    this.genericSearchString = genericSearchString;
+  }
+  //    public boolean isGenericSearchString() { return genericSearchExact; }
+  //    public void setGenericSearchString(final boolean genericSearchExact) {
+  // this.genericSearchExact = genericSearchExact; }
+
+  @Override
+  public int hashCode() {
+    return HashCodeBuilder.reflectionHashCode(this);
+  }
 }

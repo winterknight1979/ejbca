@@ -20,130 +20,157 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Data class containing settings for configuration dump.
- * Probably better to use a builder pattern here.
- * 
- * @version $Id: ConfigDumpSetting.java 29688 2018-08-20 15:27:29Z henriks $
+ * Data class containing settings for configuration dump. Probably better to use
+ * a builder pattern here.
  *
+ * @version $Id: ConfigDumpSetting.java 29688 2018-08-20 15:27:29Z henriks $
  */
 public class ConfigDumpSetting implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    public enum ItemType {
-        ACMECONFIG, CA, CRYPTOTOKEN, PUBLISHER, APPROVALPROFILE, CERTPROFILE, EEPROFILE, SERVICE, ROLE, KEYBINDING, 
-        ENDENTITY, SYSCONFIG, ADMINPREFS, CMPCONFIG, OCSPCONFIG, PEERCONNECTOR, PEERCONFIG, SCEPCONFIG, ESTCONFIG,
-        VALIDATOR, CTLOG, EXTENDEDKEYUSAGE, CERTEXTENSION
-    };
+  public enum ItemType {
+    ACMECONFIG,
+    CA,
+    CRYPTOTOKEN,
+    PUBLISHER,
+    APPROVALPROFILE,
+    CERTPROFILE,
+    EEPROFILE,
+    SERVICE,
+    ROLE,
+    KEYBINDING,
+    ENDENTITY,
+    SYSCONFIG,
+    ADMINPREFS,
+    CMPCONFIG,
+    OCSPCONFIG,
+    PEERCONNECTOR,
+    PEERCONFIG,
+    SCEPCONFIG,
+    ESTCONFIG,
+    VALIDATOR,
+    CTLOG,
+    EXTENDEDKEYUSAGE,
+    CERTEXTENSION
+  };
 
-    private File location;
-    private Map<ItemType, List<ConfigdumpPattern>> included = new HashMap<>();
-    private Map<ItemType, List<ConfigdumpPattern>> excluded = new HashMap<>();
-    private List<ConfigdumpPattern> includedAnyType = new ArrayList<>();
-    private List<ConfigdumpPattern> excludedAnyType = new ArrayList<>();
-    private boolean ignoreErrors;
-    private boolean ignoreWarnings;
+  private File location;
+  private Map<ItemType, List<ConfigdumpPattern>> included = new HashMap<>();
+  private Map<ItemType, List<ConfigdumpPattern>> excluded = new HashMap<>();
+  private List<ConfigdumpPattern> includedAnyType = new ArrayList<>();
+  private List<ConfigdumpPattern> excludedAnyType = new ArrayList<>();
+  private final boolean ignoreErrors;
+  private final boolean ignoreWarnings;
 
-    
-    public List<ConfigdumpPattern> getIncludedAnyType() {
-        return includedAnyType;
-    }
+  public List<ConfigdumpPattern> getIncludedAnyType() {
+    return includedAnyType;
+  }
 
-    public void setIncludedAnyType(List<ConfigdumpPattern> includedAnyType) {
-        this.includedAnyType = includedAnyType;
-    }
+  public void setIncludedAnyType(
+      final List<ConfigdumpPattern> includedAnyType) {
+    this.includedAnyType = includedAnyType;
+  }
 
-    public List<ConfigdumpPattern> getExcludedAnyType() {
-        return excludedAnyType;
-    }
+  public List<ConfigdumpPattern> getExcludedAnyType() {
+    return excludedAnyType;
+  }
 
-    public void setExcludedAnyType(List<ConfigdumpPattern> excludedAnyType) {
-        this.excludedAnyType = excludedAnyType;
-    }
+  public void setExcludedAnyType(
+      final List<ConfigdumpPattern> excludedAnyType) {
+    this.excludedAnyType = excludedAnyType;
+  }
 
-    public File getLocation() {
-        return location;
-    }
+  public File getLocation() {
+    return location;
+  }
 
-    public void setLocation(File location) {
-        this.location = location;
-    }
+  public void setLocation(final File location) {
+    this.location = location;
+  }
 
-    public void setIncluded(Map<ItemType, List<ConfigdumpPattern>> included) {
-        this.included = included;
-    }
+  public void setIncluded(
+      final Map<ItemType, List<ConfigdumpPattern>> included) {
+    this.included = included;
+  }
 
-    public void setExcluded(Map<ItemType, List<ConfigdumpPattern>> excluded) {
-        this.excluded = excluded;
-    }
+  public void setExcluded(
+      final Map<ItemType, List<ConfigdumpPattern>> excluded) {
+    this.excluded = excluded;
+  }
 
-    public Map<ItemType, List<ConfigdumpPattern>> getIncluded() {
-        return included;
-    }
+  public Map<ItemType, List<ConfigdumpPattern>> getIncluded() {
+    return included;
+  }
 
-    public Map<ItemType, List<ConfigdumpPattern>> getExcluded() {
-        return excluded;
-    }
-    
-    public boolean getIgnoreErrors() {
-        return ignoreErrors;
-    }
+  public Map<ItemType, List<ConfigdumpPattern>> getExcluded() {
+    return excluded;
+  }
 
-    public boolean getIgnoreWarnings() {
-        return ignoreWarnings;
-    }
-    
-    public ConfigDumpSetting(final File location, final Map<ItemType, List<ConfigdumpPattern>> included, final Map<ItemType, List<ConfigdumpPattern>> excluded,
-            final List<ConfigdumpPattern> includedAnyType, final List<ConfigdumpPattern> excludedAnyType, final boolean ignoreErrors, final boolean ignoreWarnings) {
-        this.location = location;
-        this.included = included;
-        this.excluded = excluded;
-        this.includedAnyType = includedAnyType;
-        this.excludedAnyType = excludedAnyType;
-        this.ignoreErrors = ignoreErrors;
-        this.ignoreWarnings = ignoreWarnings;
-    }
+  public boolean getIgnoreErrors() {
+    return ignoreErrors;
+  }
 
-    public boolean isIncluded(final ItemType type, final String nameStr) {
-        
-        final List<ConfigdumpPattern> includeList = included.get(type);
-        final List<ConfigdumpPattern> excludeList = excluded.get(type);
-        final String name = (nameStr != null ? nameStr.toLowerCase() : "");
+  public boolean getIgnoreWarnings() {
+    return ignoreWarnings;
+  }
 
-        if (includeList != null) {
-            for (ConfigdumpPattern p : includeList) {
-                if (p.matches(name)) {
-                    return true;
-                }
-            }
-            return false;
+  public ConfigDumpSetting(
+      final File location,
+      final Map<ItemType, List<ConfigdumpPattern>> included,
+      final Map<ItemType, List<ConfigdumpPattern>> excluded,
+      final List<ConfigdumpPattern> includedAnyType,
+      final List<ConfigdumpPattern> excludedAnyType,
+      final boolean ignoreErrors,
+      final boolean ignoreWarnings) {
+    this.location = location;
+    this.included = included;
+    this.excluded = excluded;
+    this.includedAnyType = includedAnyType;
+    this.excludedAnyType = excludedAnyType;
+    this.ignoreErrors = ignoreErrors;
+    this.ignoreWarnings = ignoreWarnings;
+  }
+
+  public boolean isIncluded(final ItemType type, final String nameStr) {
+
+    final List<ConfigdumpPattern> includeList = included.get(type);
+    final List<ConfigdumpPattern> excludeList = excluded.get(type);
+    final String name = (nameStr != null ? nameStr.toLowerCase() : "");
+
+    if (includeList != null) {
+      for (ConfigdumpPattern p : includeList) {
+        if (p.matches(name)) {
+          return true;
         }
-
-        if (!includedAnyType.isEmpty()) {
-            for (ConfigdumpPattern p : includedAnyType) {
-                if (p.matches(name)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        if (excludeList != null) {
-            for (ConfigdumpPattern p : excludeList) {
-                if (p.matches(name)) {
-                    return false;
-                }
-            }
-        }
-
-        for (ConfigdumpPattern p : excludedAnyType) {
-            if (p.matches(name)) {
-                return false;
-            }
-        }
-
-        // Didn't match anything. Default is to include.
-        return true;
+      }
+      return false;
     }
-    
+
+    if (!includedAnyType.isEmpty()) {
+      for (ConfigdumpPattern p : includedAnyType) {
+        if (p.matches(name)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    if (excludeList != null) {
+      for (ConfigdumpPattern p : excludeList) {
+        if (p.matches(name)) {
+          return false;
+        }
+      }
+    }
+
+    for (ConfigdumpPattern p : excludedAnyType) {
+      if (p.matches(name)) {
+        return false;
+      }
+    }
+
+    // Didn't match anything. Default is to include.
+    return true;
+  }
 }

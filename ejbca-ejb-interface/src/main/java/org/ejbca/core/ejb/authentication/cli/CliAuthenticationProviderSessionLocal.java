@@ -13,16 +13,14 @@
 package org.ejbca.core.ejb.authentication.cli;
 
 import javax.ejb.Local;
-
 import org.cesecore.authentication.tokens.AuthenticationProvider;
 
 /**
- * This interface provides authentication for CLI users. 
- * 
- * @version $Id: CliAuthenticationProviderSessionLocal.java 19902 2014-09-30 14:32:24Z anatom $
+ * This interface provides authentication for CLI users.
  *
+ * @version $Id: CliAuthenticationProviderSessionLocal.java 19902 2014-09-30
+ *     14:32:24Z anatom $
  */
 @Local
-public interface CliAuthenticationProviderSessionLocal extends AuthenticationProvider {
-
-}
+public interface CliAuthenticationProviderSessionLocal
+    extends AuthenticationProvider {}

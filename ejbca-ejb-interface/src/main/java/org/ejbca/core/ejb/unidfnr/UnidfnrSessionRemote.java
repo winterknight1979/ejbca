@@ -15,11 +15,7 @@ package org.ejbca.core.ejb.unidfnr;
 import javax.ejb.Remote;
 
 /**
- * 
  * @version $Id: UnidfnrSessionRemote.java 28577 2018-03-28 10:15:20Z aminkh $
- *
  */
 @Remote
-public interface UnidfnrSessionRemote extends UnidfnrSession {
-
-}
+public interface UnidfnrSessionRemote extends UnidfnrSession {}

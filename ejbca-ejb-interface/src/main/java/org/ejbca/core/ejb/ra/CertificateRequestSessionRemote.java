@@ -14,10 +14,7 @@ package org.ejbca.core.ejb.ra;
 
 import javax.ejb.Remote;
 
-/**
- * Remote interface for CertificateRequestSession.
- */
+/** Remote interface for CertificateRequestSession. */
 @Remote
-public interface CertificateRequestSessionRemote extends CertificateRequestSession {
-
-}
+public interface CertificateRequestSessionRemote
+    extends CertificateRequestSession {}

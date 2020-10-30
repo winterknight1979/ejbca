@@ -16,8 +16,9 @@ package org.ejbca.core.protocol.cmp;
 import javax.ejb.Remote;
 
 /**
- * @version $Id: CmpMessageDispatcherSessionRemote.java 19902 2014-09-30 14:32:24Z anatom $
+ * @version $Id: CmpMessageDispatcherSessionRemote.java 19902 2014-09-30
+ *     14:32:24Z anatom $
  */
 @Remote
-public interface CmpMessageDispatcherSessionRemote extends CmpMessageDispatcherSession {
-}
+public interface CmpMessageDispatcherSessionRemote
+    extends CmpMessageDispatcherSession {}

@@ -17,22 +17,21 @@ package org.ejbca.configdump;
  */
 public class ConfigdumpException extends Exception {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    public ConfigdumpException() {
-        super();
-    }
-    
-    public ConfigdumpException(final String message) {
-        super(message);
-    }
-    
-    public ConfigdumpException(final Throwable cause) {
-        super(cause);
-    }
-    
-    public ConfigdumpException(final String message, final Throwable cause) {
-        super(message, cause);
-    }
-    
+  public ConfigdumpException() {
+    super();
+  }
+
+  public ConfigdumpException(final String message) {
+    super(message);
+  }
+
+  public ConfigdumpException(final Throwable cause) {
+    super(cause);
+  }
+
+  public ConfigdumpException(final String message, final Throwable cause) {
+    super(message, cause);
+  }
 }

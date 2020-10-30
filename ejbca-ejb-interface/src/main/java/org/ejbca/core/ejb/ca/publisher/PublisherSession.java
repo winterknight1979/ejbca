@@ -1,6 +1,6 @@
 /*************************************************************************
  *                                                                       *
-
+ *
  *  EJBCA Community: The OpenSource Certificate Authority                *
  *                                                                       *
  *  This software is free software; you can redistribute it and/or       *
@@ -16,7 +16,6 @@ package org.ejbca.core.ejb.ca.publisher;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.cesecore.authorization.AuthorizationDeniedException;
 import org.cesecore.certificates.certificate.CertificateDataWrapper;
@@ -26,7 +25,6 @@ import org.ejbca.core.model.ca.publisher.BasePublisher;
 import org.ejbca.core.model.ca.publisher.PublisherDoesntExistsException;
 import org.ejbca.core.model.ca.publisher.PublisherExistsException;
 
-
 /**
  * Interface for publisher operations
  *
@@ -34,172 +32,218 @@ import org.ejbca.core.model.ca.publisher.PublisherExistsException;
  */
 public interface PublisherSession {
 
-    /**
-     * @param id id
-     * @return a BasePublisher or null if a publisher with the given id does not
-     *         exist. Uses cache to get the object as quickly as possible.
-     *         
-     */
-    BasePublisher getPublisher(int id);
-    
-    /**
-     * @param name name
-     * @return a BasePublisher or null if a publisher with the given name does
-     *         not exist. Uses cache to get the object as quickly as possible.
-     */
-    BasePublisher getPublisher(String name);
-    
-    /**
-     * @param id id
-     * @return the name of the publisher with the given id, null if none was found.
-     */
-    String getPublisherName(int id);
-    
-    /**
-     * @param id id
-     * @return the data hashmap of the publisher with the given id.
-     * @throws PublisherDoesntExistsException if there's no publisher with the given id.
-     */
-    Map<?, ?> getPublisherData(int id) throws PublisherDoesntExistsException;
+  /**
+   * @param id id
+   * @return a BasePublisher or null if a publisher with the given id does not
+   *     exist. Uses cache to get the object as quickly as possible.
+   */
+  BasePublisher getPublisher(int id);
 
-    /** @return mapping of publisher id (Integer) to publisher name (String). */
-    HashMap<Integer,String> getPublisherIdToNameMap();
+  /**
+   * @param name name
+   * @return a BasePublisher or null if a publisher with the given name does not
+   *     exist. Uses cache to get the object as quickly as possible.
+   */
+  BasePublisher getPublisher(String name);
 
-    /** @return mapping of publisher name (String) to publisher id (Integer). */
-    HashMap<String, Integer> getPublisherNameToIdMap();
+  /**
+   * @param id id
+   * @return the name of the publisher with the given id, null if none was
+   *     found.
+   */
+  String getPublisherName(int id);
 
-    /**
-     * Adds a publisher to the database. Used for importing and exporting
-     * profiles from xml-files.
-     *
-     * @param admin AuthenticationToken of admin.
-     * @param id the publisher is.
-     * @param name the name of the publisher to add.
-     * @param publisher the publisher to add.
-     *
-     * @throws PublisherExistsException if publisher already exists.
-     * @throws AuthorizationDeniedException required access rights are ca_functionality/edit_publisher
-     */
-    void addPublisher(AuthenticationToken admin, int id, String name, BasePublisher publisher) throws PublisherExistsException, AuthorizationDeniedException;
+  /**
+   * @param id id
+   * @return the data hashmap of the publisher with the given id.
+   * @throws PublisherDoesntExistsException if there's no publisher with the
+   *     given id.
+   */
+  Map<?, ?> getPublisherData(int id) throws PublisherDoesntExistsException;
 
-    /**
-     * Adds a publisher to the database. Used where it's not possible to pass a BasePublisher object,
-     * such as in the CLI tools (e.g. statedump).
-     * @param admin admin
-     * @param id id
-     * @param name name
-     * @param data data
-     * 
-     * @throws PublisherExistsException if publisher already exists.
-     * @throws AuthorizationDeniedException required access rights are ca_functionality/edit_publisher
-     */
-    void addPublisherFromData(AuthenticationToken admin, int id, String name, Map<?, ?> data) throws PublisherExistsException, AuthorizationDeniedException;
+  /** @return mapping of publisher id (Integer) to publisher name (String). */
+  HashMap<Integer, String> getPublisherIdToNameMap();
 
-    /**
-     * Adds a publisher to the database.
-     * 
-     * @param admin AuthenticationToken of admin
-     * @param name the name of the publisher to add.
-     * @param publisher the publisher to add
-     * @return the publisher ID as added
-     * 
-     * @throws PublisherExistsException if publisher already exists.
-     * @throws AuthorizationDeniedException required access rights are ca_functionality/edit_publisher
-     */
-    int addPublisher(AuthenticationToken admin, String name, BasePublisher publisher) throws PublisherExistsException, AuthorizationDeniedException;
+  /** @return mapping of publisher name (String) to publisher id (Integer). */
+  HashMap<String, Integer> getPublisherNameToIdMap();
 
-    /**
-     * Adds a publisher with the same content as the original.
-     * @param admin admin
-     * @param oldname name
-     * @param newname name
-     * @throws PublisherDoesntExistsException if publisher does not exist
-     * @throws AuthorizationDeniedException required access rights are ca_functionality/edit_publisher
-     * @throws PublisherExistsException if publisher already exists.
-     */
-    void clonePublisher(AuthenticationToken admin, String oldname, String newname) throws PublisherDoesntExistsException, AuthorizationDeniedException, PublisherExistsException;
+  /**
+   * Adds a publisher to the database. Used for importing and exporting profiles
+   * from xml-files.
+   *
+   * @param admin AuthenticationToken of admin.
+   * @param id the publisher is.
+   * @param name the name of the publisher to add.
+   * @param publisher the publisher to add.
+   * @throws PublisherExistsException if publisher already exists.
+   * @throws AuthorizationDeniedException required access rights are
+   *     ca_functionality/edit_publisher
+   */
+  void addPublisher(
+      AuthenticationToken admin, int id, String name, BasePublisher publisher)
+      throws PublisherExistsException, AuthorizationDeniedException;
 
-    /**
-     * Renames a publisher.
-     * @param admin admin
-     * @param oldname name
-     * @param newname name
-     * @throws PublisherExistsException if publisher already exists.
-     * @throws AuthorizationDeniedException required access rights are ca_functionality/edit_publisher
-     */
-    void renamePublisher(AuthenticationToken admin, String oldname, String newname) throws PublisherExistsException, AuthorizationDeniedException;
-    
-    /** Updates publisher data.
-     *  
-     * @param admin AuthenticationToken of admin.
-     * @param name the name of the publisher to change.
-     * @param publisher the publisher to be added.
-     * 
-     * @throws AuthorizationDeniedException fail */
-    void changePublisher(AuthenticationToken admin, String name, BasePublisher publisher) throws AuthorizationDeniedException;
+  /**
+   * Adds a publisher to the database. Used where it's not possible to pass a
+   * BasePublisher object, such as in the CLI tools (e.g. statedump).
+   *
+   * @param admin admin
+   * @param id id
+   * @param name name
+   * @param data data
+   * @throws PublisherExistsException if publisher already exists.
+   * @throws AuthorizationDeniedException required access rights are
+   *     ca_functionality/edit_publisher
+   */
+  void addPublisherFromData(
+      AuthenticationToken admin, int id, String name, Map<?, ?> data)
+      throws PublisherExistsException, AuthorizationDeniedException;
 
-    /**
-     * Removes a publisher. References to the publisher from CA, certificate profiles and Multi Group Publishers
-     * are checked.
-     * 
-     * @param admin AuthenticationToken of admin.
-     * @param name the name of the publisher to remove.
-     * 
-     * @throws AuthorizationDeniedException required access rights are ca_functionality/edit_publisher
-     * @throws ReferencesToItemExistException if references exist from other items in the database.
-     */
-    void removePublisher(AuthenticationToken admin, String name) throws AuthorizationDeniedException, ReferencesToItemExistException;
+  /**
+   * Adds a publisher to the database.
+   *
+   * @param admin AuthenticationToken of admin
+   * @param name the name of the publisher to add.
+   * @param publisher the publisher to add
+   * @return the publisher ID as added
+   * @throws PublisherExistsException if publisher already exists.
+   * @throws AuthorizationDeniedException required access rights are
+   *     ca_functionality/edit_publisher
+   */
+  int addPublisher(
+      AuthenticationToken admin, String name, BasePublisher publisher)
+      throws PublisherExistsException, AuthorizationDeniedException;
 
-    /**
-     * Stores the certificate to the given collection of publishers. See
-     * BasePublisher class for further documentation about function
-     * @param admin admin
-     * 
-     * @param publisherids
-     *            a Collection (Integer) of publisher IDs.
-     * @param certWrapper cart 
-     * @param password pwd
-     * @param userDN dn
-     * @param extendedinformation info
-     * @return true if successful result on all given publishers, if the publisher is configured to not publish the certificate 
-     * (for example publishing an active certificate when the publisher only publishes revoked), true is still returned because 
-     * the publishing operation succeeded even though the publisher did not publish the certificate.
-     * @throws AuthorizationDeniedException if access is denied to the CA issuing incert
-     * @see org.ejbca.core.model.ca.publisher.BasePublisher
-     */
-    boolean storeCertificate(AuthenticationToken admin, Collection<Integer> publisherids, CertificateDataWrapper certWrapper,
-            String password, String userDN, ExtendedInformation extendedinformation) throws AuthorizationDeniedException;
+  /**
+   * Adds a publisher with the same content as the original.
+   *
+   * @param admin admin
+   * @param oldname name
+   * @param newname name
+   * @throws PublisherDoesntExistsException if publisher does not exist
+   * @throws AuthorizationDeniedException required access rights are
+   *     ca_functionality/edit_publisher
+   * @throws PublisherExistsException if publisher already exists.
+   */
+  void clonePublisher(AuthenticationToken admin, String oldname, String newname)
+      throws PublisherDoesntExistsException, AuthorizationDeniedException,
+          PublisherExistsException;
 
-    /**
-     * Performs the same operation as the other storeCertificate method in this class, but performs a lookup for a CertificateData and Base64CertData object.
-     * 
-     * To avoid unnecessary database lookups, only use this method where the CertificateData object isn't immediately available. 
-     * @param admin admin
-     * @param publisherids ID 
-     * @param fingerprint fp
-     * @param password pwd
-     * @param userDN DN
-     * @param extendedinformation info 
-     * @return bool
-     * @throws AuthorizationDeniedException fail
-     */
-    boolean storeCertificate(AuthenticationToken admin, Collection<Integer> publisherids, String fingerprint,
-            String password, String userDN, ExtendedInformation extendedinformation) throws AuthorizationDeniedException; 
+  /**
+   * Renames a publisher.
+   *
+   * @param admin admin
+   * @param oldname name
+   * @param newname name
+   * @throws PublisherExistsException if publisher already exists.
+   * @throws AuthorizationDeniedException required access rights are
+   *     ca_functionality/edit_publisher
+   */
+  void renamePublisher(
+      AuthenticationToken admin, String oldname, String newname)
+      throws PublisherExistsException, AuthorizationDeniedException;
 
-    /**
-     * Stores the CRL to the given collection of publishers. See BasePublisher
-     * class for further documentation about function
-     * @param admin admin
-     * 
-     * @param publisherids a Collection (Integer) of publisherids.
-     * @param incrl crl
-     * @param cafp fp
-     * @param number num 
-     * @param issuerDn the issuer of this CRL
-     * @return true if successful result on all given publishers
-     * @throws AuthorizationDeniedException if access was denied to the CA matching userDN
-     * @see org.ejbca.core.model.ca.publisher.BasePublisher
-     */
-    boolean storeCRL(AuthenticationToken admin, Collection<Integer> publisherids, byte[] incrl, String cafp,
-            int number, String issuerDn) throws AuthorizationDeniedException;
+  /**
+   * Updates publisher data.
+   *
+   * @param admin AuthenticationToken of admin.
+   * @param name the name of the publisher to change.
+   * @param publisher the publisher to be added.
+   * @throws AuthorizationDeniedException fail
+   */
+  void changePublisher(
+      AuthenticationToken admin, String name, BasePublisher publisher)
+      throws AuthorizationDeniedException;
+
+  /**
+   * Removes a publisher. References to the publisher from CA, certificate
+   * profiles and Multi Group Publishers are checked.
+   *
+   * @param admin AuthenticationToken of admin.
+   * @param name the name of the publisher to remove.
+   * @throws AuthorizationDeniedException required access rights are
+   *     ca_functionality/edit_publisher
+   * @throws ReferencesToItemExistException if references exist from other items
+   *     in the database.
+   */
+  void removePublisher(AuthenticationToken admin, String name)
+      throws AuthorizationDeniedException, ReferencesToItemExistException;
+
+  /**
+   * Stores the certificate to the given collection of publishers. See
+   * BasePublisher class for further documentation about function
+   *
+   * @param admin admin
+   * @param publisherids a Collection (Integer) of publisher IDs.
+   * @param certWrapper cart
+   * @param password pwd
+   * @param userDN dn
+   * @param extendedinformation info
+   * @return true if successful result on all given publishers, if the publisher
+   *     is configured to not publish the certificate (for example publishing an
+   *     active certificate when the publisher only publishes revoked), true is
+   *     still returned because the publishing operation succeeded even though
+   *     the publisher did not publish the certificate.
+   * @throws AuthorizationDeniedException if access is denied to the CA issuing
+   *     incert
+   * @see org.ejbca.core.model.ca.publisher.BasePublisher
+   */
+  boolean storeCertificate(
+      AuthenticationToken admin,
+      Collection<Integer> publisherids,
+      CertificateDataWrapper certWrapper,
+      String password,
+      String userDN,
+      ExtendedInformation extendedinformation)
+      throws AuthorizationDeniedException;
+
+  /**
+   * Performs the same operation as the other storeCertificate method in this
+   * class, but performs a lookup for a CertificateData and Base64CertData
+   * object.
+   *
+   * <p>To avoid unnecessary database lookups, only use this method where the
+   * CertificateData object isn't immediately available.
+   *
+   * @param admin admin
+   * @param publisherids ID
+   * @param fingerprint fp
+   * @param password pwd
+   * @param userDN DN
+   * @param extendedinformation info
+   * @return bool
+   * @throws AuthorizationDeniedException fail
+   */
+  boolean storeCertificate(
+      AuthenticationToken admin,
+      Collection<Integer> publisherids,
+      String fingerprint,
+      String password,
+      String userDN,
+      ExtendedInformation extendedinformation)
+      throws AuthorizationDeniedException;
+
+  /**
+   * Stores the CRL to the given collection of publishers. See BasePublisher
+   * class for further documentation about function
+   *
+   * @param admin admin
+   * @param publisherids a Collection (Integer) of publisherids.
+   * @param incrl crl
+   * @param cafp fp
+   * @param number num
+   * @param issuerDn the issuer of this CRL
+   * @return true if successful result on all given publishers
+   * @throws AuthorizationDeniedException if access was denied to the CA
+   *     matching userDN
+   * @see org.ejbca.core.model.ca.publisher.BasePublisher
+   */
+  boolean storeCRL(
+      AuthenticationToken admin,
+      Collection<Integer> publisherids,
+      byte[] incrl,
+      String cafp,
+      int number,
+      String issuerDn)
+      throws AuthorizationDeniedException;
 }

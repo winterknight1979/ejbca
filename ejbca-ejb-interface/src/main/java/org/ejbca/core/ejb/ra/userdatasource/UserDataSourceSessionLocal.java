@@ -13,15 +13,12 @@
 package org.ejbca.core.ejb.ra.userdatasource;
 
 import java.util.Map;
-
 import javax.ejb.Local;
 
-/**
- * Local interface for UserDataSourceSession.
- */
+/** Local interface for UserDataSourceSession. */
 @Local
 public interface UserDataSourceSessionLocal extends UserDataSourceSession {
 
-    /** @return the ID to name map */
-    Map<Integer,String> getUserDataSourceIdToNameMap();
+  /** @return the ID to name map */
+  Map<Integer, String> getUserDataSourceIdToNameMap();
 }

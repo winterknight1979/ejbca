@@ -20,37 +20,50 @@ import java.util.Map;
 
 /**
  * Response of approval listing from RA GUI.
- * 
- * @version $Id: RaRequestsSearchResponse.java 23385 2016-05-10 14:16:47Z samuellb $
+ *
+ * @version $Id: RaRequestsSearchResponse.java 23385 2016-05-10 14:16:47Z
+ *     samuellb $
  */
 public class RaRequestsSearchResponse implements Serializable {
 
-    // TODO: Make Externalizable instead to handle for future versioning. And consider creating a common base class for this one and RaCertificateSearchResponse
-    
-    private static final long serialVersionUID = 1L;
+  // TODO: Make Externalizable instead to handle for future versioning. And
+  // consider creating a common base class for this one and
+  // RaCertificateSearchResponse
 
-    private List<RaApprovalRequestInfo> approvalRequests = new ArrayList<>();
-    private boolean mightHaveMoreResults = false;
+  private static final long serialVersionUID = 1L;
 
-    public List<RaApprovalRequestInfo> getApprovalRequests() { return approvalRequests; }
-    public void getApprovalRequests(final List<RaApprovalRequestInfo> approvalRequests) { this.approvalRequests = approvalRequests; }
+  private List<RaApprovalRequestInfo> approvalRequests = new ArrayList<>();
+  private boolean mightHaveMoreResults = false;
 
-    public boolean isMightHaveMoreResults() { return mightHaveMoreResults; }
-    public void setMightHaveMoreResults(boolean mightHaveMoreResults) { this.mightHaveMoreResults = mightHaveMoreResults; }
-    
-    public void merge(final RaRequestsSearchResponse other) {
-        final Map<Integer,RaApprovalRequestInfo> cdwMap = new HashMap<>();
-        for (final RaApprovalRequestInfo approvalRequest : approvalRequests) {
-            cdwMap.put(approvalRequest.getId(), approvalRequest);
-        }
-        for (final RaApprovalRequestInfo approvalRequest : other.approvalRequests) {
-            cdwMap.put(approvalRequest.getId(), approvalRequest);
-        }
-        this.approvalRequests.clear();
-        this.approvalRequests.addAll(cdwMap.values());
-        if (other.isMightHaveMoreResults()) {
-            setMightHaveMoreResults(true);
-        }
+  public List<RaApprovalRequestInfo> getApprovalRequests() {
+    return approvalRequests;
+  }
+
+  public void getApprovalRequests(
+      final List<RaApprovalRequestInfo> approvalRequests) {
+    this.approvalRequests = approvalRequests;
+  }
+
+  public boolean isMightHaveMoreResults() {
+    return mightHaveMoreResults;
+  }
+
+  public void setMightHaveMoreResults(final boolean mightHaveMoreResults) {
+    this.mightHaveMoreResults = mightHaveMoreResults;
+  }
+
+  public void merge(final RaRequestsSearchResponse other) {
+    final Map<Integer, RaApprovalRequestInfo> cdwMap = new HashMap<>();
+    for (final RaApprovalRequestInfo approvalRequest : approvalRequests) {
+      cdwMap.put(approvalRequest.getId(), approvalRequest);
     }
-    
+    for (final RaApprovalRequestInfo approvalRequest : other.approvalRequests) {
+      cdwMap.put(approvalRequest.getId(), approvalRequest);
+    }
+    this.approvalRequests.clear();
+    this.approvalRequests.addAll(cdwMap.values());
+    if (other.isMightHaveMoreResults()) {
+      setMightHaveMoreResults(true);
+    }
+  }
 }

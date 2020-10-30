@@ -15,9 +15,8 @@ package org.ejbca.configdump.ejb;
 import javax.ejb.Remote;
 
 /**
- * @version $Id: ConfigdumpSessionRemote.java 27940 2018-01-15 12:42:57Z samuellb $
+ * @version $Id: ConfigdumpSessionRemote.java 27940 2018-01-15 12:42:57Z
+ *     samuellb $
  */
 @Remote
-public interface ConfigdumpSessionRemote extends ConfigdumpSession {
-
-}
+public interface ConfigdumpSessionRemote extends ConfigdumpSession {}

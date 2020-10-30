@@ -21,95 +21,123 @@ import java.util.Set;
 
 /**
  * Results of a dry-run of a statedump import
- * 
- * @version $Id: StatedumpImportResult.java 22489 2015-12-18 18:18:42Z samuellb $
+ *
+ * @version $Id: StatedumpImportResult.java 22489 2015-12-18 18:18:42Z samuellb
+ *     $
  */
 public final class StatedumpImportResult implements Serializable {
 
-    private static final long serialVersionUID = 1L;
-    
-    private final List<StatedumpObjectKey> conflicts = new ArrayList<>();
-    private final List<StatedumpObjectKey> passwordsNeeded = new ArrayList<>();
-    private final Set<StatedumpObjectKey> existingNames = new HashSet<>();
-    private final Set<StatedumpObjectKey> existingIds = new HashSet<>();
-    private final List<String> notices = new ArrayList<>();
-    private long objectCount = 0;
-    
-    /**
-     * Returns a list of items that conflict with an existing item, because it has the same name or id.
-     * @return list
-     */
-    public List<StatedumpObjectKey> getConflicts() {
-        return Collections.unmodifiableList(conflicts);
-    }
-    
-    /** Internal method, used during statedump imports. Can't be package internal since it's called from the bean 
-     * @param key key*/
-    public void _addConflict(final StatedumpObjectKey key) {
-        conflicts.add(key);
-    }
-    
-    /**
-     * Returns a list of items that might need a password when imported (e.g. crypto tokens and end entities)
-     * @return list
-     */
-    public List<StatedumpObjectKey> getPasswordsNeeded() {
-        return Collections.unmodifiableList(passwordsNeeded);
-    }
-    
-    /** Internal method, used during statedump imports. Can't be package internal since it's called from the bean 
-     * @param key key*/
-    public void _addPasswordNeeded(final StatedumpObjectKey key) {
-        passwordsNeeded.add(key);
-    }
+  private static final long serialVersionUID = 1L;
 
-    /**
-     * Check whether the id of an object is already in use.
-     * @param key key
-     * @return bool
-     */
-    public boolean hasExistingId(final StatedumpObjectKey key) {
-        return existingIds.contains(key);
-    }
-    
-    /** Internal method, used during statedump imports. Can't be package internal since it's called from the bean 
-     * @param key key*/
-    public void _addExistingId(final StatedumpObjectKey key) {
-        existingIds.add(key);
-    }
-    
-    /**
-     * Check whether the name of an object is already in use.
-     * @param key key
-     * @return bool
-     */
-    public boolean hasExistingName(final StatedumpObjectKey key) {
-        return existingNames.contains(key);
-    }
-    
-    /** Internal method, used during statedump imports. Can't be package internal since it's called from the bean 
-     * @param key key*/
-    public void _addExistingName(final StatedumpObjectKey key) {
-        existingNames.add(key);
-    }
-    
-    public long getObjectCount() {
-        return objectCount;
-    }
-    
-    /** Internal method, used during statedump imports. Can't be package internal since it's called from the bean */
-    public void _addToObjectCount() {
-        objectCount += 1;
-    }
+  private final List<StatedumpObjectKey> conflicts = new ArrayList<>();
+  private final List<StatedumpObjectKey> passwordsNeeded = new ArrayList<>();
+  private final Set<StatedumpObjectKey> existingNames = new HashSet<>();
+  private final Set<StatedumpObjectKey> existingIds = new HashSet<>();
+  private final List<String> notices = new ArrayList<>();
+  private long objectCount = 0;
 
-    public void _addNotice(final String msg) {
-        notices.add(msg);
-    }
-    
-    /** Returns a list of info log messages that where generated during the import 
-     * @return list*/
-    public List<String> getNotices() {
-        return notices;
-    }
+  /**
+   * Returns a list of items that conflict with an existing item, because it has
+   * the same name or id.
+   *
+   * @return list
+   */
+  public List<StatedumpObjectKey> getConflicts() {
+    return Collections.unmodifiableList(conflicts);
+  }
 
+  /**
+   * Internal method, used during statedump imports. Can't be package internal
+   * since it's called from the bean
+   *
+   * @param key key
+   */
+  public void _addConflict(final StatedumpObjectKey key) {
+    conflicts.add(key);
+  }
+
+  /**
+   * Returns a list of items that might need a password when imported (e.g.
+   * crypto tokens and end entities)
+   *
+   * @return list
+   */
+  public List<StatedumpObjectKey> getPasswordsNeeded() {
+    return Collections.unmodifiableList(passwordsNeeded);
+  }
+
+  /**
+   * Internal method, used during statedump imports. Can't be package internal
+   * since it's called from the bean
+   *
+   * @param key key
+   */
+  public void _addPasswordNeeded(final StatedumpObjectKey key) {
+    passwordsNeeded.add(key);
+  }
+
+  /**
+   * Check whether the id of an object is already in use.
+   *
+   * @param key key
+   * @return bool
+   */
+  public boolean hasExistingId(final StatedumpObjectKey key) {
+    return existingIds.contains(key);
+  }
+
+  /**
+   * Internal method, used during statedump imports. Can't be package internal
+   * since it's called from the bean
+   *
+   * @param key key
+   */
+  public void _addExistingId(final StatedumpObjectKey key) {
+    existingIds.add(key);
+  }
+
+  /**
+   * Check whether the name of an object is already in use.
+   *
+   * @param key key
+   * @return bool
+   */
+  public boolean hasExistingName(final StatedumpObjectKey key) {
+    return existingNames.contains(key);
+  }
+
+  /**
+   * Internal method, used during statedump imports. Can't be package internal
+   * since it's called from the bean
+   *
+   * @param key key
+   */
+  public void _addExistingName(final StatedumpObjectKey key) {
+    existingNames.add(key);
+  }
+
+  public long getObjectCount() {
+    return objectCount;
+  }
+
+  /**
+   * Internal method, used during statedump imports. Can't be package internal
+   * since it's called from the bean
+   */
+  public void _addToObjectCount() {
+    objectCount += 1;
+  }
+
+  public void _addNotice(final String msg) {
+    notices.add(msg);
+  }
+
+  /**
+   * Returns a list of info log messages that where generated during the import
+   *
+   * @return list
+   */
+  public List<String> getNotices() {
+    return notices;
+  }
 }

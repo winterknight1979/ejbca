@@ -17,22 +17,28 @@ import java.util.HashMap;
 
 /**
  * Result of an authorization request from RA.
- * 
+ *
  * @version $Id: RaAuthorizationResult.java 25592 2017-03-23 13:25:09Z jeklund $
  * @since RaMasterApi version 1
  */
 public class RaAuthorizationResult implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    private final HashMap<String, Boolean> accessRules;
-    private final int updateNumber;
-    
-    public RaAuthorizationResult(final HashMap<String, Boolean> accessRules, final int updateNumber) {
-        this.accessRules = accessRules;
-        this.updateNumber = updateNumber;
-    }
-    
-    public HashMap<String, Boolean> getAccessRules() { return accessRules; }
-    public int getUpdateNumber() { return updateNumber; }
+  private final HashMap<String, Boolean> accessRules;
+  private final int updateNumber;
+
+  public RaAuthorizationResult(
+      final HashMap<String, Boolean> accessRules, final int updateNumber) {
+    this.accessRules = accessRules;
+    this.updateNumber = updateNumber;
+  }
+
+  public HashMap<String, Boolean> getAccessRules() {
+    return accessRules;
+  }
+
+  public int getUpdateNumber() {
+    return updateNumber;
+  }
 }

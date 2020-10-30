@@ -13,7 +13,6 @@
 package org.ejbca.core.ejb.ra;
 
 import javax.ejb.Local;
-
 import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.cesecore.authorization.AuthorizationDeniedException;
 import org.cesecore.certificates.endentity.EndEntityInformation;
@@ -21,87 +20,94 @@ import org.ejbca.core.model.approval.ApprovalException;
 import org.ejbca.core.model.approval.WaitingForApprovalException;
 import org.ejbca.core.model.ra.CustomFieldException;
 
-/**
- * Local interface for EndEntityManagementSession.
- */
+/** Local interface for EndEntityManagementSession. */
 @Local
-public interface EndEntityManagementSessionLocal extends EndEntityManagementSession {
+public interface EndEntityManagementSessionLocal
+    extends EndEntityManagementSession {
 
-    /**
-     * Validates the name and DN in an end entity and canonicalizes/strips
-     * the attributes. This method is called by addUser.
-     * @param endEntity entity
-     * 
-     * @return a copy of endEntity with the canonicalized changes. Does not modify its parameter.
-     * 
-     * @throws CustomFieldException if if the end entity was not validated by a locally defined field validator
-     * 
-     */
-    EndEntityInformation canonicalizeUser(final EndEntityInformation endEntity) throws CustomFieldException;
-    
+  /**
+   * Validates the name and DN in an end entity and canonicalizes/strips the
+   * attributes. This method is called by addUser.
+   *
+   * @param endEntity entity
+   * @return a copy of endEntity with the canonicalized changes. Does not modify
+   *     its parameter.
+   * @throws CustomFieldException if if the end entity was not validated by a
+   *     locally defined field validator
+   */
+  EndEntityInformation canonicalizeUser(final EndEntityInformation endEntity)
+      throws CustomFieldException;
 
-    /**
-     * Methods that checks if a user exists in the database having the given
-     * caid. This function is mainly for avoiding desynchronization when a CAs
-     * is deleted.
-     * 
-     * @param caid the id of CA to look for.
-     * @return true if caid exists in UserData table.
-     */
-    boolean checkForCAId(int caid);
+  /**
+   * Methods that checks if a user exists in the database having the given caid.
+   * This function is mainly for avoiding desynchronization when a CAs is
+   * deleted.
+   *
+   * @param caid the id of CA to look for.
+   * @return true if caid exists in UserData table.
+   */
+  boolean checkForCAId(int caid);
 
-   
-    /**
-     * Methods that checks if a user exists in the database having the given
-     * HardTokenProfile id. This function is mainly for avoiding
-     * desynchronization when a HardTokenProfile is deleted.
-     * 
-     * @param profileid of HardTokenProfile to look for.
-     * @return true if profileid exists in UserData table.
-     */
-    boolean checkForHardTokenProfileId(int profileid);
+  /**
+   * Methods that checks if a user exists in the database having the given
+   * HardTokenProfile id. This function is mainly for avoiding desynchronization
+   * when a HardTokenProfile is deleted.
+   *
+   * @param profileid of HardTokenProfile to look for.
+   * @return true if profileid exists in UserData table.
+   */
+  boolean checkForHardTokenProfileId(int profileid);
 
-    /**
-     * Cleans the certificate serial number from the user data. Should be called
-     * after the data has been used.
-     * @param data data
-     * @throws NoSuchEndEntityException if no end entity was found
-     * 
-     */
-    void cleanUserCertDataSN(EndEntityInformation data) throws NoSuchEndEntityException;
+  /**
+   * Cleans the certificate serial number from the user data. Should be called
+   * after the data has been used.
+   *
+   * @param data data
+   * @throws NoSuchEndEntityException if no end entity was found
+   */
+  void cleanUserCertDataSN(EndEntityInformation data)
+      throws NoSuchEndEntityException;
 
-    /**
-     * Removes the certificate serial number from the user data.
-     * @param username the unique username.
-     * @throws ApprovalException approval
-     * @throws WaitingForApprovalException approval
-     * @throws NoSuchEndEntityException if the end entity was not found
-     */
-    void cleanUserCertDataSN(String username) throws ApprovalException, WaitingForApprovalException, NoSuchEndEntityException;
+  /**
+   * Removes the certificate serial number from the user data.
+   *
+   * @param username the unique username.
+   * @throws ApprovalException approval
+   * @throws WaitingForApprovalException approval
+   * @throws NoSuchEndEntityException if the end entity was not found
+   */
+  void cleanUserCertDataSN(String username)
+      throws ApprovalException, WaitingForApprovalException,
+          NoSuchEndEntityException;
 
-    /**
-     * Decreases (the optional) request counter by 1, until it reaches 0.
-     * Returns the new value. If the value is already 0, -1 is returned, but the
-     * -1 is not stored in the database. Also sets status of user to generated
-     * once the request counter reaches zero.
-     * 
-     * @param username the unique username.
-     * @return counter
-     * @throws NoSuchEndEntityException if user does not exist
-     * @throws ApprovalException fail
-     * @throws WaitingForApprovalException fail
-     */
-    int decRequestCounter(String username) throws NoSuchEndEntityException, ApprovalException, WaitingForApprovalException;
-        
-    /**
-     * Changes the CAId of the given end-entity. Intended to be used when an uninitialized CA's subject DN and CAId is changed
-     * (CAs can be in the uninitialized state when they have been imported from a statedump).
-     * 
-     * @param admin Authentication token
-     * @param username End-entity to change CAId of
-     * @param newCAId CA id to change to.
-     * @throws AuthorizationDeniedException fail
-     * @throws NoSuchEndEntityException fail
-     */
-    void updateCAId(final AuthenticationToken admin, final String username, int newCAId) throws AuthorizationDeniedException, NoSuchEndEntityException;
+  /**
+   * Decreases (the optional) request counter by 1, until it reaches 0. Returns
+   * the new value. If the value is already 0, -1 is returned, but the -1 is not
+   * stored in the database. Also sets status of user to generated once the
+   * request counter reaches zero.
+   *
+   * @param username the unique username.
+   * @return counter
+   * @throws NoSuchEndEntityException if user does not exist
+   * @throws ApprovalException fail
+   * @throws WaitingForApprovalException fail
+   */
+  int decRequestCounter(String username)
+      throws NoSuchEndEntityException, ApprovalException,
+          WaitingForApprovalException;
+
+  /**
+   * Changes the CAId of the given end-entity. Intended to be used when an
+   * uninitialized CA's subject DN and CAId is changed (CAs can be in the
+   * uninitialized state when they have been imported from a statedump).
+   *
+   * @param admin Authentication token
+   * @param username End-entity to change CAId of
+   * @param newCAId CA id to change to.
+   * @throws AuthorizationDeniedException fail
+   * @throws NoSuchEndEntityException fail
+   */
+  void updateCAId(
+      final AuthenticationToken admin, final String username, int newCAId)
+      throws AuthorizationDeniedException, NoSuchEndEntityException;
 }

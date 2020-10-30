@@ -21,16 +21,16 @@ import org.ejbca.core.EjbcaException;
  */
 public class NoSuchAliasException extends EjbcaException {
 
-    private static final long serialVersionUID = -5521689458199668528L;
-    /**
-     * Constructor used to create exception with an error message. Calls the same constructor in
-     * base class <code>Exception</code>.
-     *
-     * @param message Human readable error message, can not be NULL.
-     */
-    public NoSuchAliasException(String message) {
-        super(message);
-    }
-    public NoSuchAliasException() {
-    }
+  private static final long serialVersionUID = -5521689458199668528L;
+  /**
+   * Constructor used to create exception with an error message. Calls the same
+   * constructor in base class <code>Exception</code>.
+   *
+   * @param message Human readable error message, can not be NULL.
+   */
+  public NoSuchAliasException(final String message) {
+    super(message);
+  }
+
+  public NoSuchAliasException() {}
 }

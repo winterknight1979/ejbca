@@ -13,7 +13,6 @@
 package org.ejbca.statedump.ejb;
 
 import java.io.Serializable;
-
 import org.apache.commons.lang.StringUtils;
 
 /**
@@ -22,49 +21,50 @@ import org.apache.commons.lang.StringUtils;
  * @version $Id: StatedumpObjectKey.java 22518 2016-01-04 11:49:52Z samuellb $
  */
 public final class StatedumpObjectKey implements Serializable {
-    
-    private static final long serialVersionUID = 1L;
-    
-    private final String type;
-    private final int id;
-    private final String name;
 
-    public StatedumpObjectKey(final String type, final int id, final String name) {
-        this.type = type;
-        this.id = id;
-        this.name = name;
+  private static final long serialVersionUID = 1L;
+
+  private final String type;
+  private final int id;
+  private final String name;
+
+  public StatedumpObjectKey(
+      final String type, final int id, final String name) {
+    this.type = type;
+    this.id = id;
+    this.name = name;
+  }
+
+  public String getType() {
+    return type;
+  }
+
+  public int getId() {
+    return id;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  @Override
+  public String toString() {
+    return type + " " + name + " (" + id + ")";
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (o instanceof StatedumpObjectKey) {
+      final StatedumpObjectKey sc = (StatedumpObjectKey) o;
+      return StringUtils.equals(sc.getType(), type)
+          && StringUtils.equals(sc.getName(), name)
+          && sc.getId() == id;
     }
-    
-    public String getType() {
-        return type;
-    }
-    
-    public int getId() {
-        return id;
-    }
-    
-    public String getName() {
-        return name;
-    }
-    
-    @Override
-    public String toString() {
-        return type+" "+name+" ("+id+")";
-    }
-    
-    @Override
-    public boolean equals(final Object o) {
-        if (o instanceof StatedumpObjectKey) {
-            final StatedumpObjectKey sc = (StatedumpObjectKey)o;
-            return StringUtils.equals(sc.getType(), type) &&
-                    StringUtils.equals(sc.getName(), name) &&
-                    sc.getId() == id;
-        }
-        return false;
-    }
-    
-    @Override
-    public int hashCode() {
-        return id ^ type.hashCode() ^ (name.hashCode() + 1);
-    }
+    return false;
+  }
+
+  @Override
+  public int hashCode() {
+    return id ^ type.hashCode() ^ (name.hashCode() + 1);
+  }
 }

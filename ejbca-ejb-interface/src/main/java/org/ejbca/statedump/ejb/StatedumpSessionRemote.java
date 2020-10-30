@@ -15,9 +15,8 @@ package org.ejbca.statedump.ejb;
 import javax.ejb.Remote;
 
 /**
- * @version $Id: StatedumpSessionRemote.java 22489 2015-12-18 18:18:42Z samuellb $
+ * @version $Id: StatedumpSessionRemote.java 22489 2015-12-18 18:18:42Z samuellb
+ *     $
  */
 @Remote
-public interface StatedumpSessionRemote extends StatedumpSession {
-
-}
+public interface StatedumpSessionRemote extends StatedumpSession {}

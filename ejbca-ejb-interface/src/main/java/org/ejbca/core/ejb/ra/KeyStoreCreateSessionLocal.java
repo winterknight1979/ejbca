@@ -16,10 +16,8 @@ import javax.ejb.Local;
 
 /**
  * @see KeyStoreCreateSession
- * @version $Id: KeyStoreCreateSessionLocal.java 25817 2017-05-09 15:00:05Z henriks $
- *
+ * @version $Id: KeyStoreCreateSessionLocal.java 25817 2017-05-09 15:00:05Z
+ *     henriks $
  */
 @Local
-public interface KeyStoreCreateSessionLocal extends KeyStoreCreateSession {
-
-}
+public interface KeyStoreCreateSessionLocal extends KeyStoreCreateSession {}

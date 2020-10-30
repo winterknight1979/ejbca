@@ -16,5 +16,5 @@ package org.ejbca.core.ejb.approval;
 import javax.ejb.Remote;
 
 @Remote
-public interface ApprovalExecutionSessionRemote extends ApprovalExecutionSession {
-}
+public interface ApprovalExecutionSessionRemote
+    extends ApprovalExecutionSession {}

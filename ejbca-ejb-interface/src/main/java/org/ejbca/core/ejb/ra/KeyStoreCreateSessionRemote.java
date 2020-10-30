@@ -18,9 +18,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
-
 import javax.ejb.Remote;
-
 import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.cesecore.authorization.AuthorizationDeniedException;
 import org.cesecore.certificates.ca.CADoesntExistsException;
@@ -41,18 +39,33 @@ import org.ejbca.core.model.ra.raadmin.EndEntityProfileValidationException;
 
 /**
  * @see KeyStoreCreateSession
- * @version $Id: KeyStoreCreateSessionRemote.java 25817 2017-05-09 15:00:05Z henriks $
+ * @version $Id: KeyStoreCreateSessionRemote.java 25817 2017-05-09 15:00:05Z
+ *     henriks $
  */
 @Remote
 public interface KeyStoreCreateSessionRemote extends KeyStoreCreateSession {
 
-    byte[] generateOrKeyRecoverTokenAsByteArray(AuthenticationToken administrator, String username, String password, int caid, String keyspec,
-            String keyalg, boolean createJKS, boolean loadkeys, boolean savekeys, boolean reusecertificate, int endEntityProfileId)
-            throws AuthorizationDeniedException, KeyStoreException, InvalidAlgorithmParameterException, CADoesntExistsException, IllegalKeyException,
-            CertificateCreateException, IllegalNameException, CertificateRevokeException, CertificateSerialNumberException,
-            CryptoTokenOfflineException, IllegalValidityException, CAOfflineException, InvalidAlgorithmException,
-            CustomCertificateSerialNumberException, AuthStatusException, AuthLoginException, EndEntityProfileValidationException,
-            NoSuchEndEntityException, CertificateSignatureException, CertificateEncodingException, CertificateException, NoSuchAlgorithmException,
-            InvalidKeySpecException;
-
+  byte[] generateOrKeyRecoverTokenAsByteArray(
+      AuthenticationToken administrator,
+      String username,
+      String password,
+      int caid,
+      String keyspec,
+      String keyalg,
+      boolean createJKS,
+      boolean loadkeys,
+      boolean savekeys,
+      boolean reusecertificate,
+      int endEntityProfileId)
+      throws AuthorizationDeniedException, KeyStoreException,
+          InvalidAlgorithmParameterException, CADoesntExistsException,
+          IllegalKeyException, CertificateCreateException, IllegalNameException,
+          CertificateRevokeException, CertificateSerialNumberException,
+          CryptoTokenOfflineException, IllegalValidityException,
+          CAOfflineException, InvalidAlgorithmException,
+          CustomCertificateSerialNumberException, AuthStatusException,
+          AuthLoginException, EndEntityProfileValidationException,
+          NoSuchEndEntityException, CertificateSignatureException,
+          CertificateEncodingException, CertificateException,
+          NoSuchAlgorithmException, InvalidKeySpecException;
 }

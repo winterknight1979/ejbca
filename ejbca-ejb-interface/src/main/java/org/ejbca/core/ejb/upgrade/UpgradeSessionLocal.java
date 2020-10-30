@@ -13,96 +13,153 @@
 package org.ejbca.core.ejb.upgrade;
 
 import java.util.concurrent.Future;
-
 import javax.ejb.Local;
 
-/**
- * Local interface for UpgradeSession.
- */
+/** Local interface for UpgradeSession. */
 @Local
-public interface UpgradeSessionLocal  extends UpgradeSession{
-    
-    /** Performs operations before the upgrade, and can handle fresh installations specially 
-     * @param isFreshInstallation bool*/
-    void performPreUpgrade(final boolean isFreshInstallation);
+public interface UpgradeSessionLocal extends UpgradeSession {
 
-	/** Perform upgrades that can run side by side with older EJBCA versions. 
-	 * @return bool*/
-	boolean performUpgrade(); 
+  /**
+   * Performs operations before the upgrade, and can handle fresh installations
+   * specially
+   *
+   * @param isFreshInstallation bool
+   */
+  void performPreUpgrade(final boolean isFreshInstallation);
 
-	/** Perform upgrades that require all nodes connected to the same database to run the current EJBCA version. 
-	 * @return bool*/
-    Future<Boolean> startPostUpgrade();
+  /**
+   * Perform upgrades that can run side by side with older EJBCA versions.
+   *
+   * @return bool
+   */
+  boolean performUpgrade();
 
-    /** @return true if post upgrade is required */
-    boolean isPostUpgradeNeeded();
+  /**
+   * Perform upgrades that require all nodes connected to the same database to
+   * run the current EJBCA version.
+   *
+   * @return bool
+   */
+  Future<Boolean> startPostUpgrade();
 
-    /** @return EJBCA version of the database content that can be upgraded while running older EJBCAs on the same database. */
-    String getLastUpgradedToVersion();
+  /** @return true if post upgrade is required */
+  boolean isPostUpgradeNeeded();
 
-    /** @return EJBCA version of the database content that can be upgraded after all nodes run the same EJBCA version. */
-    String getLastPostUpgradedToVersion();
+  /**
+   * @return EJBCA version of the database content that can be upgraded while
+   *     running older EJBCAs on the same database.
+   */
+  String getLastUpgradedToVersion();
 
-    /** @return the epoch time of when the post-upgrade was last started in the cluster */
-    long getPostUpgradeStarted();
+  /**
+   * @return EJBCA version of the database content that can be upgraded after
+   *     all nodes run the same EJBCA version.
+   */
+  String getLastPostUpgradedToVersion();
 
-    /** @return true if the endEntityProfileId column in CertificateData has been populated. */
-    boolean isEndEntityProfileInCertificateData();
+  /**
+   * @return the epoch time of when the post-upgrade was last started in the
+   *     cluster
+   */
+  long getPostUpgradeStarted();
 
-    /** @return true if the AdminGroupData.cAId column still exists which indicates that this is EJBCA 4.0 or earlier. */
-    boolean checkColumnExists500();
+  /**
+   * @return true if the endEntityProfileId column in CertificateData has been
+   *     populated.
+   */
+  boolean isEndEntityProfileInCertificateData();
 
-    /** For internal user from UpgradeSessionBean only! 
-     * @throws UpgradeFailedException fail*/
-    void migrateDatabase624() throws UpgradeFailedException;    
-    /** For internal user from UpgradeSessionBean only! 
-     * @throws UpgradeFailedException fail*/
-    void migrateDatabase640() throws UpgradeFailedException;	
-    /** For internal user from UpgradeSessionBean only! 
-     * @throws UpgradeFailedException fail*/
-    void migrateDatabase642() throws UpgradeFailedException;
-    /** For internal user from UpgradeSessionBean only! 
-     * @throws UpgradeFailedException fail*/
-    void migrateDatabase651() throws UpgradeFailedException;
-    /** For internal user from UpgradeSessionBean only! 
-     * @throws UpgradeFailedException fail*/
-    void migrateDatabase660() throws UpgradeFailedException;
-    /** For internal user from UpgradeSessionBean only! 
-     * @throws UpgradeFailedException fail*/
-    void migrateDatabase680() throws UpgradeFailedException;
-    /** For internal user from UpgradeSessionBean only! 
-     * @throws UpgradeFailedException fail*/
-    void migrateDatabase6101() throws UpgradeFailedException;
-    /** For internal user from UpgradeSessionBean only! 
-     * @throws UpgradeFailedException fail*/
-    void migrateDatabase6110() throws UpgradeFailedException;
-    /** For internal user from UpgradeSessionBean only! 
-     * @throws UpgradeFailedException fail*/
-    void migrateDatabase6120() throws UpgradeFailedException;
-    /** For internal user from UpgradeSessionBean only! 
-     * @throws UpgradeFailedException fail*/
-    void migrateDatabase6140() throws UpgradeFailedException;
-    /** For internal user from UpgradeSessionBean only! 
-     * @throws UpgradeFailedException fail*/
-    void migrateDatabase6150() throws UpgradeFailedException;
+  /**
+   * @return true if the AdminGroupData.cAId column still exists which indicates
+   *     that this is EJBCA 4.0 or earlier.
+   */
+  boolean checkColumnExists500();
 
-    
-    /** Persist the time when the post-upgrade starts or 0L when it is no longer running. 
-     * @param startTimeMs time
-     * @return bool */
-    boolean setPostUpgradeStarted(long startTimeMs);
+  /**
+   * For internal user from UpgradeSessionBean only!
+   *
+   * @throws UpgradeFailedException fail
+   */
+  void migrateDatabase624() throws UpgradeFailedException;
+  /**
+   * For internal user from UpgradeSessionBean only!
+   *
+   * @throws UpgradeFailedException fail
+   */
+  void migrateDatabase640() throws UpgradeFailedException;
+  /**
+   * For internal user from UpgradeSessionBean only!
+   *
+   * @throws UpgradeFailedException fail
+   */
+  void migrateDatabase642() throws UpgradeFailedException;
+  /**
+   * For internal user from UpgradeSessionBean only!
+   *
+   * @throws UpgradeFailedException fail
+   */
+  void migrateDatabase651() throws UpgradeFailedException;
+  /**
+   * For internal user from UpgradeSessionBean only!
+   *
+   * @throws UpgradeFailedException fail
+   */
+  void migrateDatabase660() throws UpgradeFailedException;
+  /**
+   * For internal user from UpgradeSessionBean only!
+   *
+   * @throws UpgradeFailedException fail
+   */
+  void migrateDatabase680() throws UpgradeFailedException;
+  /**
+   * For internal user from UpgradeSessionBean only!
+   *
+   * @throws UpgradeFailedException fail
+   */
+  void migrateDatabase6101() throws UpgradeFailedException;
+  /**
+   * For internal user from UpgradeSessionBean only!
+   *
+   * @throws UpgradeFailedException fail
+   */
+  void migrateDatabase6110() throws UpgradeFailedException;
+  /**
+   * For internal user from UpgradeSessionBean only!
+   *
+   * @throws UpgradeFailedException fail
+   */
+  void migrateDatabase6120() throws UpgradeFailedException;
+  /**
+   * For internal user from UpgradeSessionBean only!
+   *
+   * @throws UpgradeFailedException fail
+   */
+  void migrateDatabase6140() throws UpgradeFailedException;
+  /**
+   * For internal user from UpgradeSessionBean only!
+   *
+   * @throws UpgradeFailedException fail
+   */
+  void migrateDatabase6150() throws UpgradeFailedException;
 
-    /**
-     * Takes two versions and compares the first and the second versions to each other
-     * Compares the max amount of numbers on both. So 6.1.2.3,6.1.2 will try to compare 4 numbers, adding a 0, i.e. 6.1.2.3,6.1.2.0 
-     * 
-     * @param first a version number
-     * @param second a version number
-     * @return true of the first version is lower (1.0 &lt; 2.0) than the second, false otherwise. 
-     */
-    boolean isLesserThan(String first, String second);
+  /**
+   * Persist the time when the post-upgrade starts or 0L when it is no longer
+   * running.
+   *
+   * @param startTimeMs time
+   * @return bool
+   */
+  boolean setPostUpgradeStarted(long startTimeMs);
 
-
-
-
+  /**
+   * Takes two versions and compares the first and the second versions to each
+   * other Compares the max amount of numbers on both. So 6.1.2.3,6.1.2 will try
+   * to compare 4 numbers, adding a 0, i.e. 6.1.2.3,6.1.2.0
+   *
+   * @param first a version number
+   * @param second a version number
+   * @return true of the first version is lower (1.0 &lt; 2.0) than the second,
+   *     false otherwise.
+   */
+  boolean isLesserThan(String first, String second);
 }

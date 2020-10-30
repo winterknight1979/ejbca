@@ -15,26 +15,35 @@ package org.ejbca.core.model.era;
 import java.io.Serializable;
 
 /**
- * Generic implementation which will hold any serializable object, as well as its ID and name.
- * 
+ * Generic implementation which will hold any serializable object, as well as
+ * its ID and name.
+ *
  * @version $Id: KeyToValueHolder.java 24056 2016-07-29 10:10:23Z mikekushner $
  * @param <T> Type
  */
 public class KeyToValueHolder<T extends Serializable> implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    private final int id;
-	private final String name;
-	private final T value;
+  private final int id;
+  private final String name;
+  private final T value;
 
-	public KeyToValueHolder(Integer id, String name, T value) {
-		this.id = id;
-		this.name = name;
-		this.value = value;
-	}
+  public KeyToValueHolder(final Integer id, final String name, final T value) {
+    this.id = id;
+    this.name = name;
+    this.value = value;
+  }
 
-	public int getId() { return id; }
-	public String getName() { return name; }
-	public T getValue() { return value; }
+  public int getId() {
+    return id;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public T getValue() {
+    return value;
+  }
 }
