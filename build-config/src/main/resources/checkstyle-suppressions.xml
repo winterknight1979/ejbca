@@ -315,4 +315,29 @@
 	<suppress checks="ParameterNumberCheck"
 		files="HardTokenDataWS.java" lines="94" /><suppress checks="ParameterNumberCheck"
 		files="UserDataVOWS.java" lines="124" />
+		
+		<!-- ejbca-eb-interface -->
+	<suppress checks="ParameterNumberCheck"
+		files="ApprovalSessionLocal.java" lines="161" />
+	<suppress checks="ParameterNumberCheck"
+		files="CAAdminSession.java" lines="483" />
+	<suppress checks="UnusedImportsCheck"
+		files="CAAdminSession.java" lines="45" /> <!-- Used in JDOC -->
+	<suppress checks="ParameterNumberCheck"
+		files="SignSession.java" lines="446" />
+	<suppress checks="ParameterNumberCheck"
+		files="SignSessionLocal.java" lines="289" />
+	<suppress checks="ParameterNumberCheck"
+		files="HardTokenSession.java" lines="354" />
+	<suppress checks="ParameterNumberCheck"
+		files="EndEntityManagementSession.java" lines="98" />
+	<suppress checks="ParameterNumberCheck"
+		files="KeyStoreCreateSession.java" lines="181" />
+	<suppress checks="ParameterNumberCheck"
+		files="KeyStoreCreateSessionRemote.java" lines="117" />
+	<suppress checks="ParameterNumberCheck"
+		files="KeyStoreCreateSessionRemote.java" lines="117" />
+	<suppress checks="InterfaceIsTypeCheck"
+		files="UnidfnrSession.java" lines="20" /><!-- Must be an IF for inheritance reasons -->
+	
 </suppressions>

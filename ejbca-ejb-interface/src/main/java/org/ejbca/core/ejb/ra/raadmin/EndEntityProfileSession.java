@@ -159,7 +159,7 @@ public interface EndEntityProfileSession {
    * @return list
    */
   List<Integer> getAuthorizedEndEntityProfileIdsWithMissingCAs(
-      final AuthenticationToken admin);
+      AuthenticationToken admin);
 
   /** @return mapping of profile id (Integer) to profile name (String). */
   Map<Integer, String> getEndEntityProfileIdToNameMap();
@@ -184,7 +184,7 @@ public interface EndEntityProfileSession {
   EndEntityProfile getEndEntityProfile(String profilename);
 
   /**
-   * Returns a end entity profile's ID, given its name
+   * Returns a end entity profile's ID, given its name.
    *
    * @param profilename profile
    * @return the id
@@ -248,7 +248,7 @@ public interface EndEntityProfileSession {
    *     found.
    */
   Map<String, Integer> getAvailableCasInProfile(
-      AuthenticationToken admin, final int entityProfileId)
+      AuthenticationToken admin, int entityProfileId)
       throws AuthorizationDeniedException, EndEntityProfileNotFoundException;
 
   /**

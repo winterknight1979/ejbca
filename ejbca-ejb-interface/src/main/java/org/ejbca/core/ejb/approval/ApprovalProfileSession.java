@@ -44,11 +44,11 @@ public interface ApprovalProfileSession {
    *     authorized to modify profiles
    */
   int addApprovalProfile(
-      final AuthenticationToken admin, final ApprovalProfile profile)
+      AuthenticationToken admin, ApprovalProfile profile)
       throws ApprovalProfileExistsException, AuthorizationDeniedException;
 
   /**
-   * Updates approval profile data
+   * Updates approval profile data.
    *
    * @param admin Administrator performing the operation
    * @param profile profile
@@ -56,7 +56,7 @@ public interface ApprovalProfileSession {
    *     authorized to modify profiles
    */
   void changeApprovalProfile(
-      final AuthenticationToken admin, final ApprovalProfile profile)
+      AuthenticationToken admin, ApprovalProfile profile)
       throws AuthorizationDeniedException;
 
   /**
@@ -74,9 +74,9 @@ public interface ApprovalProfileSession {
    *     authorized to modify profiles
    */
   void cloneApprovalProfile(
-      final AuthenticationToken admin,
-      final ApprovalProfile profile,
-      final String newname)
+      AuthenticationToken admin,
+      ApprovalProfile profile,
+      String newname)
       throws ApprovalProfileExistsException,
           ApprovalProfileDoesNotExistException, AuthorizationDeniedException;
 
@@ -89,7 +89,7 @@ public interface ApprovalProfileSession {
    * @return List of id:s (Integer)
    */
   List<Integer> getAuthorizedApprovalProfileIds(
-      final AuthenticationToken admin);
+      AuthenticationToken admin);
 
   /**
    * Finds an approval profile by id.
@@ -97,7 +97,7 @@ public interface ApprovalProfileSession {
    * @param id approval profile id
    * @return Approval profile (cloned) or null if it can not be found.
    */
-  ApprovalProfile getApprovalProfile(final int id);
+  ApprovalProfile getApprovalProfile(int id);
 
   /**
    * Returns an approval profile's name given it's id.
@@ -106,7 +106,7 @@ public interface ApprovalProfileSession {
    * @return approval profile name or null if approval profile id does not
    *     exist.
    */
-  String getApprovalProfileName(final int id);
+  String getApprovalProfileName(int id);
 
   /**
    * Method creating a Map mapping profile id (Integer) to profile name
@@ -117,7 +117,7 @@ public interface ApprovalProfileSession {
   Map<Integer, String> getApprovalProfileIdToNameMap();
 
   /**
-   * Renames an approval profile
+   * Renames an approval profile.
    *
    * @param admin Administrator performing the operation
    * @param profile the profile to rename
@@ -130,9 +130,9 @@ public interface ApprovalProfileSession {
    *     authorized to rename profiles
    */
   void renameApprovalProfile(
-      final AuthenticationToken admin,
-      final ApprovalProfile profile,
-      final String newname)
+      AuthenticationToken admin,
+      ApprovalProfile profile,
+      String newname)
       throws ApprovalProfileExistsException,
           ApprovalProfileDoesNotExistException, AuthorizationDeniedException;
 
@@ -146,7 +146,7 @@ public interface ApprovalProfileSession {
    *     authorized to modify profiles
    */
   void removeApprovalProfile(
-      final AuthenticationToken admin, final ApprovalProfile profile)
+      AuthenticationToken admin, ApprovalProfile profile)
       throws AuthorizationDeniedException;
 
   /**
@@ -158,7 +158,7 @@ public interface ApprovalProfileSession {
    * @throws AuthorizationDeniedException if current administrator is not
    *     authorized to modify profiles
    */
-  void removeApprovalProfile(final AuthenticationToken admin, final int id)
+  void removeApprovalProfile(AuthenticationToken admin, int id)
       throws AuthorizationDeniedException;
 
   /** Forces the profile cache to rebuild. */

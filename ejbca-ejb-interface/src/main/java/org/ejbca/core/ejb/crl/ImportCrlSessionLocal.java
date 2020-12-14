@@ -15,4 +15,4 @@ package org.ejbca.core.ejb.crl;
 import javax.ejb.Local;
 
 @Local
-public interface ImportCrlSessionLocal extends ImportCrlSession {}
+public interface ImportCrlSessionLocal extends ImportCrlSession { }

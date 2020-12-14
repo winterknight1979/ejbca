@@ -155,7 +155,7 @@ public interface UserDataSourceSession {
       throws AuthorizationDeniedException;
 
   /**
-   * Renames a user data source
+   * Renames a user data source.
    *
    * @param admin admin
    * @param oldname name
@@ -217,7 +217,7 @@ public interface UserDataSourceSession {
       AuthenticationToken admin, int userdatasourceid);
 
   /**
-   * Returns a user data source id, given it's user data source name
+   * Returns a user data source id, given it's user data source name.
    *
    * @param admin admin
    * @param name name

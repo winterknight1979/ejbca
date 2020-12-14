@@ -116,7 +116,7 @@ public interface PublisherQueueSessionLocal {
   Collection<PublisherQueueData> getEntriesByFingerprint(String fingerprint);
 
   /**
-   * Updates a record with new status
+   * Updates a record with new status.
    *
    * @param pk primary key of data entry
    * @param status status from PublisherQueueData.STATUS_SUCCESS etc, or -1 to

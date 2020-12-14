@@ -17,4 +17,4 @@ import javax.ejb.Local;
 /** Local interface for CertificateRequestSession. */
 @Local
 public interface CertificateRequestSessionLocal
-    extends CertificateRequestSession {}
+    extends CertificateRequestSession { }

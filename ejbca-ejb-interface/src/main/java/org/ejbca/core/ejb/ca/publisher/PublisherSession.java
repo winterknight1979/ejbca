@@ -26,7 +26,7 @@ import org.ejbca.core.model.ca.publisher.PublisherDoesntExistsException;
 import org.ejbca.core.model.ca.publisher.PublisherExistsException;
 
 /**
- * Interface for publisher operations
+ * Interface for publisher operations.
  *
  * @version $Id: PublisherSession.java 30470 2018-11-12 11:02:11Z samuellb $
  */

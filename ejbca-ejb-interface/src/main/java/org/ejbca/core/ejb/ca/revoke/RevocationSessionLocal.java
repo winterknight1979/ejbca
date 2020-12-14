@@ -93,11 +93,11 @@ public interface RevocationSessionLocal extends RevocationSession {
    * @throws AuthorizationDeniedException (rollback)
    */
   void revokeCertificateInNewTransaction(
-      final AuthenticationToken admin,
-      final CertificateDataWrapper cdw,
-      final Collection<Integer> publishers,
+      AuthenticationToken admin,
+      CertificateDataWrapper cdw,
+      Collection<Integer> publishers,
       Date revocationDate,
-      final int reason,
-      final String userDataDN)
+      int reason,
+      String userDataDN)
       throws CertificateRevokeException, AuthorizationDeniedException;
 }

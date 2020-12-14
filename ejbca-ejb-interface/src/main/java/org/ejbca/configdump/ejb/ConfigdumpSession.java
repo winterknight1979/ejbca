@@ -26,7 +26,8 @@ import org.ejbca.configdump.ConfigdumpExportResult;
  */
 public interface ConfigdumpSession {
 
-  static final String CONFIGDUMP_MODULE = "configdump-ejb";
+    /** Name. */
+  String CONFIGDUMP_MODULE = "configdump-ejb";
 
   /**
    * Exports EJBCA data, except for keys and certificates, to a set of YAML
@@ -44,6 +45,6 @@ public interface ConfigdumpSession {
    * @throws AuthorizationDeniedException fail
    */
   ConfigdumpExportResult performExport(
-      final AuthenticationToken admin, final ConfigDumpSetting setting)
+      AuthenticationToken admin,  ConfigDumpSetting setting)
       throws ConfigdumpException, IOException, AuthorizationDeniedException;
 }

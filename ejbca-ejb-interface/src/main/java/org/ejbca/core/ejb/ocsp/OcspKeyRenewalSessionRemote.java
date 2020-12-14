@@ -19,4 +19,4 @@ import javax.ejb.Remote;
  *     anatom $
  */
 @Remote
-public interface OcspKeyRenewalSessionRemote {}
+public interface OcspKeyRenewalSessionRemote { }

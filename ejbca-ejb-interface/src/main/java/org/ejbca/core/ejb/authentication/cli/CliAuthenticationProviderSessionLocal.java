@@ -23,4 +23,4 @@ import org.cesecore.authentication.tokens.AuthenticationProvider;
  */
 @Local
 public interface CliAuthenticationProviderSessionLocal
-    extends AuthenticationProvider {}
+    extends AuthenticationProvider { }

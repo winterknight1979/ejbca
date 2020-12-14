@@ -22,4 +22,4 @@ import javax.ejb.Local;
  */
 @Local
 public interface EndEntityAuthenticationSessionLocal
-    extends EndEntityAuthenticationSession {}
+    extends EndEntityAuthenticationSession { }

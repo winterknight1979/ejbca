@@ -35,7 +35,7 @@ public interface PublisherSessionLocal extends PublisherSession {
   void flushPublisherCache();
 
   /**
-   * Test the connection to of a publisher
+   * Test the connection to of a publisher.
    *
    * @param publisherid the id of the publisher to test.
    * @throws PublisherConnectionException if connection test with publisher
@@ -73,7 +73,7 @@ public interface PublisherSessionLocal extends PublisherSession {
   int getPublisherUpdateCount(int publisherid);
 
   /**
-   * Returns a publisher id, given it's publishers name
+   * Returns a publisher id, given it's publishers name.
    *
    * @param name name
    * @return the id or 0 if the publisher cannot be found.
@@ -103,11 +103,11 @@ public interface PublisherSessionLocal extends PublisherSession {
 
   /**
    * Allows upgrade for Community Users to EJBCA 6.3.1.1 from previous versions
-   * of EJBCA by replacing the old VA publisher with a placeholder
+   * of EJBCA by replacing the old VA publisher with a placeholder.
    *
    * @return the number of upgraded publishers
    */
-  int adhocUpgradeTo6_3_1_1();
+  int adhocUpgradeTo6311();
 
   /**
    * @return true if the old VA publisher is still present in the database and

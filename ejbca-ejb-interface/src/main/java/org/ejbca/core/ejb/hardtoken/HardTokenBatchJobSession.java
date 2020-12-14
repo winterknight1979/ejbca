@@ -29,7 +29,7 @@ public interface HardTokenBatchJobSession {
    * @return The next user to generate or NULL if there are no users i queue.
    * @throws UnavailableTokenException fail
    */
-  public EndEntityInformation getNextHardTokenToGenerate(String alias)
+  EndEntityInformation getNextHardTokenToGenerate(String alias)
       throws UnavailableTokenException;
 
   /**
@@ -43,7 +43,7 @@ public interface HardTokenBatchJobSession {
    * @throws UnavailableTokenException fail
    * @throws javax.ejb.EJBException if a communication or other error occurs.
    */
-  public Collection<EndEntityInformation> getNextHardTokensToGenerate(
+  Collection<EndEntityInformation> getNextHardTokensToGenerate(
       String alias) throws UnavailableTokenException;
 
   /**
@@ -58,7 +58,7 @@ public interface HardTokenBatchJobSession {
    * @throws UnavailableTokenException fail
    * @throws javax.ejb.EJBException if a communication or other error occurs.
    */
-  public EndEntityInformation getNextHardTokenToGenerateInQueue(
+  EndEntityInformation getNextHardTokenToGenerateInQueue(
       String alias, int index) throws UnavailableTokenException;
 
   /**
@@ -69,7 +69,7 @@ public interface HardTokenBatchJobSession {
    * @return the number of users to generate.
    * @throws javax.ejb.EJBException if a communication or other error occurs.
    */
-  public int getNumberOfHardTokensToGenerate(String alias);
+  int getNumberOfHardTokensToGenerate(String alias);
 
   /**
    * Methods that checks if a user exists in the database having the given hard
@@ -79,5 +79,5 @@ public interface HardTokenBatchJobSession {
    * @param hardtokenissuerid the id of hard token issuer to look for.
    * @return true if hardtokenissuerid exists in user database.
    */
-  public boolean checkForHardTokenIssuerId(int hardtokenissuerid);
+  boolean checkForHardTokenIssuerId(int hardtokenissuerid);
 }

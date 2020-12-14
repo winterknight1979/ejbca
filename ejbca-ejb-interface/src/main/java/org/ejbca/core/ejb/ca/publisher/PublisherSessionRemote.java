@@ -16,4 +16,4 @@ import javax.ejb.Remote;
 
 /** Remote interface for PublisherSession. */
 @Remote
-public interface PublisherSessionRemote extends PublisherSession {}
+public interface PublisherSessionRemote extends PublisherSession { }

@@ -16,7 +16,7 @@ import org.cesecore.CesecoreException;
 
 /**
  * An exception thrown when someone tries to change an approval profile that
- * doesn't already exits
+ * doesn't already exits.
  *
  * @version $Id: ApprovalProfileDoesNotExistException.java 26076 2017-06-26
  *     12:49:12Z mikekushner $
@@ -43,6 +43,10 @@ public class ApprovalProfileDoesNotExistException extends CesecoreException {
     super(msg);
   }
 
+  /**
+   * Exception with cause.
+   * @param exception cause
+   */
   public ApprovalProfileDoesNotExistException(final Exception exception) {
     super(exception);
   }

@@ -35,7 +35,7 @@ public interface EndEntityManagementSessionLocal
    * @throws CustomFieldException if if the end entity was not validated by a
    *     locally defined field validator
    */
-  EndEntityInformation canonicalizeUser(final EndEntityInformation endEntity)
+  EndEntityInformation canonicalizeUser(EndEntityInformation endEntity)
       throws CustomFieldException;
 
   /**
@@ -108,6 +108,6 @@ public interface EndEntityManagementSessionLocal
    * @throws NoSuchEndEntityException fail
    */
   void updateCAId(
-      final AuthenticationToken admin, final String username, int newCAId)
+      AuthenticationToken admin, String username, int newCAId)
       throws AuthorizationDeniedException, NoSuchEndEntityException;
 }

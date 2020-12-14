@@ -39,11 +39,11 @@ public interface KeyRecoverySession {
    * @param profileid end entity profile
    * @return true if the admin is authorized to keyrecover
    */
-  public boolean authorizedToKeyRecover(
+  boolean authorizedToKeyRecover(
       AuthenticationToken admin, int profileid);
 
   /**
-   * Help method to check if approval of key recovery is required
+   * Help method to check if approval of key recovery is required.
    *
    * @param admin authentication token of requesting administrator
    * @param certificate to recover
@@ -56,7 +56,7 @@ public interface KeyRecoverySession {
    * @throws CADoesntExistsException if the issuer of the certificate doesn't
    *     exist
    */
-  public void checkIfApprovalRequired(
+  void checkIfApprovalRequired(
       AuthenticationToken admin,
       CertificateWrapper certificate,
       String username,

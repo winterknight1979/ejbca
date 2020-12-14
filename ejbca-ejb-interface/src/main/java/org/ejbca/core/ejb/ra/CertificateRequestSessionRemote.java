@@ -17,4 +17,4 @@ import javax.ejb.Remote;
 /** Remote interface for CertificateRequestSession. */
 @Remote
 public interface CertificateRequestSessionRemote
-    extends CertificateRequestSession {}
+    extends CertificateRequestSession { }

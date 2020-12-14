@@ -20,4 +20,4 @@ import javax.ejb.Remote;
  *     $
  */
 @Remote
-public interface RevocationSessionRemote extends RevocationSession {}
+public interface RevocationSessionRemote extends RevocationSession { }

@@ -44,13 +44,13 @@ public interface EjbcaWSHelperSession {
    *     incorrectly formatted validity dates.
    */
   EndEntityInformation convertUserDataVOWSInternal(
-      final UserDataVOWS userdata,
-      final int caid,
-      final int endentityprofileid,
-      final int certificateprofileid,
-      final int hardtokenissuerid,
-      final int tokenid,
-      final boolean useRawSubjectDN)
+      UserDataVOWS userdata,
+      int caid,
+      int endentityprofileid,
+      int certificateprofileid,
+      int hardtokenissuerid,
+      int tokenid,
+      boolean useRawSubjectDN)
       throws EjbcaException;
 
   /**
@@ -67,7 +67,7 @@ public interface EjbcaWSHelperSession {
    *     formatted validity dates.
    */
   EndEntityInformation convertUserDataVOWS(
-      final AuthenticationToken admin, final UserDataVOWS userdata)
+      AuthenticationToken admin, UserDataVOWS userdata)
       throws CADoesntExistsException, EjbcaException;
 
   /**
@@ -88,12 +88,12 @@ public interface EjbcaWSHelperSession {
    * @return New UserDataVOWS object
    */
   UserDataVOWS convertEndEntityInformation(
-      final EndEntityInformation endEntityInformation,
-      final String caname,
-      final String endentityprofilename,
-      final String certificateprofilename,
-      final String hardtokenissuername,
-      final String tokenname);
+      EndEntityInformation endEntityInformation,
+      String caname,
+      String endentityprofilename,
+      String certificateprofilename,
+      String hardtokenissuername,
+      String tokenname);
 
   /**
    * Method that converts an EndEntityInformation object to a UserDataVOWS. Used
@@ -108,6 +108,6 @@ public interface EjbcaWSHelperSession {
    *     EndEntityInformation does not exist
    */
   UserDataVOWS convertEndEntityInformation(
-      final EndEntityInformation endEntityInformation)
+      EndEntityInformation endEntityInformation)
       throws EjbcaException, CADoesntExistsException;
 }

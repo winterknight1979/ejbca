@@ -17,4 +17,4 @@ import javax.ejb.Remote;
 
 /** Remote interface for public key blacklist operations. */
 @Remote
-public interface BlacklistSessionRemote extends BlacklistSession {}
+public interface BlacklistSessionRemote extends BlacklistSession { }

@@ -99,7 +99,7 @@ public interface ServiceSession {
   ServiceConfiguration getService(String name);
 
   /**
-   * Returns a service id, given it's service name
+   * Returns a service id, given it's service name.
    *
    * @param name name
    * @return the id or 0 if the service cannot be found.
@@ -139,7 +139,7 @@ public interface ServiceSession {
   void unload();
 
   /**
-   * Updates service configuration, but does not re-set the timer
+   * Updates service configuration, but does not re-set the timer.
    *
    * @param admin admin
    * @param name name

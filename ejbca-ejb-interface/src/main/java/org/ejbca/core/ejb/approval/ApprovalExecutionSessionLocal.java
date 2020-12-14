@@ -23,7 +23,7 @@ public interface ApprovalExecutionSessionLocal
     extends ApprovalExecutionSession {
 
   /**
-   * Asserts general authorization to approve
+   * Asserts general authorization to approve.
    *
    * @param admin admin
    * @param approvalData data

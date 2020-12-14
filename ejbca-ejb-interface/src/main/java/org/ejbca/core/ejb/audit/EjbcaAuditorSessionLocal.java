@@ -20,4 +20,4 @@ import javax.ejb.Local;
  *     $
  */
 @Local
-public interface EjbcaAuditorSessionLocal extends EjbcaAuditorSession {}
+public interface EjbcaAuditorSessionLocal extends EjbcaAuditorSession { }

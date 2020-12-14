@@ -73,7 +73,7 @@ public interface PublishingCrlSession {
           CADoesntExistsException, AuthorizationDeniedException;
 
   /**
-   * Method that forces generation of a CRL for a certain CA
+   * Method that forces generation of a CRL for a certain CA.
    *
    * @param admin administrator performing the task
    * @param caid the id of the CA this operation regards
@@ -88,7 +88,7 @@ public interface PublishingCrlSession {
           CryptoTokenOfflineException, CAOfflineException;
 
   /**
-   * Method that forces generation of a Delta CRL for a certain CA
+   * Method that forces generation of a Delta CRL for a certain CA.
    *
    * @param admin administrator performing the task
    * @param caid the id of the CA this operation regards

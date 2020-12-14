@@ -16,4 +16,4 @@ import javax.ejb.Remote;
 
 /** Remote interface for KeyRecoverySession. */
 @Remote
-public interface KeyRecoverySessionRemote extends KeyRecoverySession {}
+public interface KeyRecoverySessionRemote extends KeyRecoverySession { }

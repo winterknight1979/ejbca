@@ -35,7 +35,7 @@ public interface EndEntityProfileSessionLocal extends EndEntityProfileSession {
 
   /**
    * Helper method that checks if an administrator is authorized to all CAs
-   * present in the profiles "available CAs"
+   * present in the profiles "available CAs".
    *
    * @param admin administrator to check.
    * @param profile the profile to check

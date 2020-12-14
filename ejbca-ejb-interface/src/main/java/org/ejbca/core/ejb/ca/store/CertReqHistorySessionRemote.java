@@ -21,4 +21,4 @@ import javax.ejb.Remote;
  *     anatom $
  */
 @Remote
-public interface CertReqHistorySessionRemote extends CertReqHistorySession {}
+public interface CertReqHistorySessionRemote extends CertReqHistorySession { }

@@ -22,4 +22,4 @@ import javax.ejb.Remote;
  */
 @Remote
 public interface EndEntityAuthenticationSessionRemote
-    extends EndEntityAuthenticationSession {}
+    extends EndEntityAuthenticationSession { }

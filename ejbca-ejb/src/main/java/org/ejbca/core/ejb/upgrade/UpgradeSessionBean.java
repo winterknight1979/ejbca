@@ -450,7 +450,7 @@ public class UpgradeSessionBean implements UpgradeSessionLocal, UpgradeSessionRe
         if (isLesserThan(oldVersion, "6.3.1")) {
             // Upgrade the old Validation Authority Publisher in Community Edition (leave it be in Enterprise for the sake of 100% uptime)
             if (!enterpriseEditionEjbBridgeSession.isRunningEnterprise()) {
-                publisherSession.adhocUpgradeTo6_3_1_1();
+                publisherSession.adhocUpgradeTo6311();
             }
             setLastUpgradedToVersion("6.3.1");
         }

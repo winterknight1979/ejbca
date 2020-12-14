@@ -17,4 +17,4 @@ import javax.ejb.Remote;
 /** Remote interface for EndEntityManagementSession. */
 @Remote
 public interface EndEntityManagementSessionRemote
-    extends EndEntityManagementSession {}
+    extends EndEntityManagementSession { }

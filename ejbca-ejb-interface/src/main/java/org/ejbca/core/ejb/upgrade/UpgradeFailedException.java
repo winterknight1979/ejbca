@@ -26,7 +26,7 @@ public class UpgradeFailedException extends Exception {
   private static final long serialVersionUID = -8607042944389555117L;
 
   /** */
-  public UpgradeFailedException() {}
+  public UpgradeFailedException() { }
 
   /** @param message msg */
   public UpgradeFailedException(final String message) {

@@ -24,21 +24,21 @@ public interface UnidfnrSessionLocal extends UnidfnrSession {
    * @param unid unique id to store in unid fnr database
    * @param fnr actual fnr to store in the database
    */
-  void stroreUnidFnrData(final String unid, final String fnr);
+  void stroreUnidFnrData(String unid, String fnr);
 
   /**
-   * Look up database and search for UnidFnrData object based on serial number
+   * Look up database and search for UnidFnrData object based on serial number.
    *
    * @param serialNumber unique serial number of unid fnr row in table.
    * @return The fnr with serialNumber as id if a mapping found in db otherwise
    *     null
    */
-  String fetchUnidFnrData(final String serialNumber);
+  String fetchUnidFnrData(String serialNumber);
 
   /**
-   * This method is used by ProtocolLookupServerHttpTest
+   * This method is used by ProtocolLookupServerHttpTest.
    *
    * @param unid id of the object to remove from UnidFnrData table
    */
-  void removeUnidFnrDataIfPresent(final String unid);
+  void removeUnidFnrDataIfPresent(String unid);
 }

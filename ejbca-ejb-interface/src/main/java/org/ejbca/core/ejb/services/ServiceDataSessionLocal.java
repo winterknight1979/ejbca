@@ -36,7 +36,7 @@ public interface ServiceDataSessionLocal extends ServiceDataSession {
    * @param id ID
    * @return the name of the service with the given id
    */
-  public String findNameById(Integer id);
+  String findNameById(Integer id);
 
   /** @return return the query results as a List. */
   List<ServiceData> findAll();
@@ -80,7 +80,7 @@ public interface ServiceDataSessionLocal extends ServiceDataSession {
    * @param newNextRunTimeStamp stamp
    * @return true if 1 row was updated
    */
-  public boolean updateTimestamps(
+  boolean updateTimestamps(
       Integer serviceId,
       long oldRunTimeStamp,
       long oldNextRunTimeStamp,

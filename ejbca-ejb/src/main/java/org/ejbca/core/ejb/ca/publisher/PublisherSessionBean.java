@@ -856,7 +856,7 @@ public class PublisherSessionBean implements PublisherSessionLocal, PublisherSes
 
     @SuppressWarnings("deprecation")
     @Override
-    public int adhocUpgradeTo6_3_1_1() {
+    public int adhocUpgradeTo6311() {
         int numberOfUpgradedPublishers = 0;
         for (PublisherData publisherData : PublisherData.findAll(entityManager)) {
             // Extract the data payload instead of the BasePublisher since the original BasePublisher implementation might no longer

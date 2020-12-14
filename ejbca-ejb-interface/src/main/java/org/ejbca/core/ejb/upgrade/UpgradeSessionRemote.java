@@ -16,4 +16,4 @@ import javax.ejb.Remote;
 
 /** Remote interface for UpgradeSession. */
 @Remote
-public interface UpgradeSessionRemote extends UpgradeSession {}
+public interface UpgradeSessionRemote extends UpgradeSession { }

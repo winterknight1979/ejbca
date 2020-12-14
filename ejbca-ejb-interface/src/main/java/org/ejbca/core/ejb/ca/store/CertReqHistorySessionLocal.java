@@ -30,7 +30,7 @@ import org.ejbca.core.model.ca.store.CertReqHistory;
 public interface CertReqHistorySessionLocal extends CertReqHistorySession {
 
   /**
-   * Method used to add a CertReqHistory to database
+   * Method used to add a CertReqHistory to database.
    *
    * @param cert the certificate to store (Only X509Certificate used for now)
    * @param endEntityInformation the user information used when issuing the
@@ -39,6 +39,11 @@ public interface CertReqHistorySessionLocal extends CertReqHistorySession {
   void addCertReqHistoryData(
       Certificate cert, EndEntityInformation endEntityInformation);
 
+  /**
+   * @param issuerDN DN
+   * @param serno SN
+   * @return Info
+   */
   CertificateInfo findFirstCertificateInfo(String issuerDN, BigInteger serno);
 
   /**

@@ -21,7 +21,7 @@ import org.cesecore.certificates.certificate.CertificateRevokeException;
 /**
  * Used for evoking certificates in the system, manages revocation by: - Setting
  * revocation status in the database (using certificate store) - Publishing
- * revocations to publishers
+ * revocations to publishers.
  *
  * @version $Id: RevocationSession.java 22081 2015-10-23 08:09:28Z mikekushner $
  */

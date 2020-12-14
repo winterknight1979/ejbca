@@ -18,6 +18,6 @@ package org.ejbca.core.ejb.unidfnr;
  * @version $Id: UnidfnrSession.java 28577 2018-03-28 10:15:20Z aminkh $
  */
 public interface UnidfnrSession {
-
-  static final String UNIDFNR_MODULE = "unidfnr-ejb";
+    /** Module name. */
+  String UNIDFNR_MODULE = "unidfnr-ejb";
 }

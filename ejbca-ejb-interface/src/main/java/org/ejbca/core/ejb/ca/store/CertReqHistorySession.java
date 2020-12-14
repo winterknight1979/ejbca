@@ -13,8 +13,8 @@
 package org.ejbca.core.ejb.ca.store;
 
 /**
- * Interface for certificate store operations
+ * Interface for certificate store operations.
  *
  * @version $Id: CertReqHistorySession.java 19902 2014-09-30 14:32:24Z anatom $
  */
-public interface CertReqHistorySession {}
+public interface CertReqHistorySession { }

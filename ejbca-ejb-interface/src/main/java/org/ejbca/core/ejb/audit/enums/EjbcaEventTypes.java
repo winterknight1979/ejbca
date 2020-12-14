@@ -51,13 +51,13 @@ public enum EjbcaEventTypes implements EventType {
    * Expiration date of an approval request was extended by an administrator.
    */
   APPROVAL_EXTEND,
-  /** Adding an approval profile */
+  /** Adding an approval profile.*/
   APPROVAL_PROFILE_ADD,
-  /** Editing an approval profile */
+  /** Editing an approval profile. */
   APPROVAL_PROFILE_EDIT,
-  /** Removing an approval profile */
+  /** Removing an approval profile. */
   APPROVAL_PROFILE_REMOVE,
-  /** Renaming an approval profile */
+  /** Renaming an approval profile. */
   APPROVAL_PROFILE_RENAME,
   /** Export of a Certificate Authority's (soft) Crypto Token. */
   CA_EXPORTTOKEN,

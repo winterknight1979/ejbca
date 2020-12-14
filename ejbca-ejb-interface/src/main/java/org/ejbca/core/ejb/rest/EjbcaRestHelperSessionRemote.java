@@ -20,4 +20,4 @@ import javax.ejb.Remote;
  *     henriks $
  */
 @Remote
-public interface EjbcaRestHelperSessionRemote extends EjbcaRestHelperSession {}
+public interface EjbcaRestHelperSessionRemote extends EjbcaRestHelperSession { }

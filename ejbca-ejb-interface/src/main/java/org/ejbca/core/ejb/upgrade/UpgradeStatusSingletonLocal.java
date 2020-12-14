@@ -42,18 +42,18 @@ public interface UpgradeStatusSingletonLocal {
    */
   boolean setPostUpgradeInProgressIfDifferent(boolean newValue);
 
-  /** Reset the node-local post-upgrade lock */
+  /** Reset the node-local post-upgrade lock. */
   void resetPostUpgradeInProgress();
 
   /**
-   * Start listen to Log4J log events
+   * Start listen to Log4J log events.
    *
    * @param log log
    */
   void logAppenderAttach(org.apache.log4j.Logger log);
 
   /**
-   * Stop listen to Log4J log events
+   * Stop listen to Log4J log events.
    *
    * @param log log
    */

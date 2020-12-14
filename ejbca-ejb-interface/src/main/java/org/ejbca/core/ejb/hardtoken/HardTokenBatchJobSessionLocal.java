@@ -17,4 +17,4 @@ import javax.ejb.Local;
 /** Local interface for HardTokenBatchJobSession. */
 @Local
 public interface HardTokenBatchJobSessionLocal
-    extends HardTokenBatchJobSession {}
+    extends HardTokenBatchJobSession { }

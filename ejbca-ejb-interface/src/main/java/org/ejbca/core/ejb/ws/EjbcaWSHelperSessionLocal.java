@@ -71,11 +71,11 @@ public interface EjbcaWSHelperSessionLocal extends EjbcaWSHelperSession {
    *     allowNonAdmins == false and the cert does not belong to an admin
    */
   AuthenticationToken getAdmin(
-      final boolean allowNonAdmins, final X509Certificate cert)
+      boolean allowNonAdmins, X509Certificate cert)
       throws AuthorizationDeniedException;
 
   /**
-   * Method that converts profile names etc to corresponding ID's
+   * Method that converts profile names etc to corresponding ID's.
    *
    * @param admin admin
    * @param usermatch a usermatch containing names of profiles
@@ -101,7 +101,7 @@ public interface EjbcaWSHelperSessionLocal extends EjbcaWSHelperSession {
    * @return a List of valid and authorized certificates
    */
   List<Certificate> returnAuthorizedCertificates(
-      final AuthenticationToken admin,
+      AuthenticationToken admin,
       Collection<java.security.cert.Certificate> certs,
       boolean validate,
       long nowMillis);
@@ -214,7 +214,7 @@ public interface EjbcaWSHelperSessionLocal extends EjbcaWSHelperSession {
 
   /**
    * Makes a CA certificate that has been created prior to its "not before" date
-   * active (CA rollover)
+   * active (CA rollover).
    *
    * @param admin admin
    * @param caname ca
@@ -252,7 +252,13 @@ public interface EjbcaWSHelperSessionLocal extends EjbcaWSHelperSession {
       throws AuthorizationDeniedException, EjbcaException, ApprovalException,
           WaitingForApprovalException, CertPathValidatorException,
           CesecoreException, CertificateParsingException;
-
+  /**
+   * @param admin admin
+   * @param username user
+   * @param viewPUKData bool
+   * @throws AuthorizationDeniedException fail
+   * @throws EjbcaException fail
+   */
   void isAuthorizedToHardTokenData(
       AuthenticationToken admin, String username, boolean viewPUKData)
       throws AuthorizationDeniedException, EjbcaException;
@@ -271,7 +277,7 @@ public interface EjbcaWSHelperSessionLocal extends EjbcaWSHelperSession {
       Collection<java.security.cert.Certificate> certs);
 
   /**
-   * Method used to convert a HardToken data to a WS version
+   * Method used to convert a HardToken data to a WS version.
    *
    * @param data data
    * @param certificates certs
@@ -285,6 +291,13 @@ public interface EjbcaWSHelperSessionLocal extends EjbcaWSHelperSession {
       boolean includePUK)
       throws EjbcaException;
 
+  /**
+   * @param admin admin
+   * @param username user
+   * @param caid CA
+   * @throws AuthorizationDeniedException fail
+   * @throws EjbcaException fail
+   */
   void isAuthorizedToRepublish(
       AuthenticationToken admin, String username, int caid)
       throws AuthorizationDeniedException, EjbcaException;

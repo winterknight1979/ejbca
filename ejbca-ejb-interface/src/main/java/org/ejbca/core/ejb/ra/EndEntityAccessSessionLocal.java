@@ -29,7 +29,7 @@ import org.ejbca.util.crypto.SupportedPasswordHashAlgorithm;
 public interface EndEntityAccessSessionLocal extends EndEntityAccessSession {
 
   /**
-   * Finds a user by username, performs no authorization
+   * Finds a user by username, performs no authorization.
    *
    * @param username user
    * @return EndEntityInformation or null if the user is not found.
@@ -125,7 +125,7 @@ public interface EndEntityAccessSessionLocal extends EndEntityAccessSession {
    *     excludes a username.
    */
   List<String> findSubjectDNsByCaIdAndNotUsername(
-      final int caId, final String username, final String serialnumber);
+       int caId, String username, String serialnumber);
 
   /**
    * Like EndEntityManagementSession#findAllUsersByCaId, but performs no auth

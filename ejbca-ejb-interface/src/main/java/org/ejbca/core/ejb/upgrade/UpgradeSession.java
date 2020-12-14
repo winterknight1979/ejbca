@@ -15,7 +15,7 @@ package org.ejbca.core.ejb.upgrade;
 public interface UpgradeSession {
 
   /**
-   * Upgrades the database
+   * Upgrades the database.
    *
    * @param dbtype db
    * @param sOldVersion version
@@ -24,9 +24,11 @@ public interface UpgradeSession {
    */
   boolean upgrade(String dbtype, String sOldVersion, boolean isPost);
 
-  /** Access rules removed from EJBCA 6.8.0 */
+  /** Access rules removed from EJBCA 6.8.0. */
   String ROLE_PUBLICWEBUSER = "/public_web_user";
 
+  /** Access rules removed from EJBCA 6.8.0. */
   String REGULAR_CABASICFUNCTIONS_OLD = "/ca_functionality/basic_functions";
+  /** Access rules removed from EJBCA 6.8.0. */
   String REGULAR_ACTIVATECA_OLD = REGULAR_CABASICFUNCTIONS_OLD + "/activate_ca";
 }

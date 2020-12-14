@@ -18,7 +18,7 @@ import org.cesecore.authorization.AuthorizationDeniedException;
 import org.ejbca.core.model.ra.raadmin.AdminPreference;
 
 /**
- * Session bean to handle admin preference administration
+ * Session bean to handle admin preference administration.
  *
  * @version $Id: AdminPreferenceSession.java 23202 2016-04-14 08:53:01Z
  *     mikekushner $

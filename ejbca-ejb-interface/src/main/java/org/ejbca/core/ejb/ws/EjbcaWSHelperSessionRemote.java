@@ -19,4 +19,4 @@ import javax.ejb.Remote;
  *     samuellb $
  */
 @Remote
-public interface EjbcaWSHelperSessionRemote extends EjbcaWSHelperSession {}
+public interface EjbcaWSHelperSessionRemote extends EjbcaWSHelperSession { }

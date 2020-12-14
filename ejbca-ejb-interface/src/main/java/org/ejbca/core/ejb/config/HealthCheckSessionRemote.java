@@ -19,4 +19,4 @@ import javax.ejb.Remote;
  *     $
  */
 @Remote
-public interface HealthCheckSessionRemote extends HealthCheckSession {}
+public interface HealthCheckSessionRemote extends HealthCheckSession { }

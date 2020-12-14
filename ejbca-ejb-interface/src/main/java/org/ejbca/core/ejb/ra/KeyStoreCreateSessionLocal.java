@@ -20,4 +20,4 @@ import javax.ejb.Local;
  *     henriks $
  */
 @Local
-public interface KeyStoreCreateSessionLocal extends KeyStoreCreateSession {}
+public interface KeyStoreCreateSessionLocal extends KeyStoreCreateSession { }

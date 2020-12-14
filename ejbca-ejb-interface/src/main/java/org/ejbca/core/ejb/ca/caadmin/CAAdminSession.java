@@ -225,9 +225,9 @@ public interface CAAdminSession {
    *     imported or the provided certificates could not be used.
    */
   void updateCACertificate(
-      final AuthenticationToken authenticationToken,
-      final int caId,
-      final Collection<CertificateWrapper> wrappedCerts)
+      AuthenticationToken authenticationToken,
+      int caId,
+      Collection<CertificateWrapper> wrappedCerts)
       throws CADoesntExistsException, AuthorizationDeniedException,
           CertificateImportException;
 
@@ -837,7 +837,8 @@ public interface CAAdminSession {
    *
    * <pre>
    * - /administrator
-   * - /secureaudit/log_custom_events (must be configured in advanced mode when editing access rules)
+   * - /secureaudit/log_custom_events (must be configured in advanced mode
+   *         when editing access rules)
    * </pre>
    *
    * @param authenticationToken the authentication token.

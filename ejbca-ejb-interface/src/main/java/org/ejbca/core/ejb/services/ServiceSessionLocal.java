@@ -39,7 +39,7 @@ public interface ServiceSessionLocal extends ServiceSession {
    * @return map
    */
   Map<Integer, Long> getNewServiceTimeouts(
-      final HashSet<Serializable> existingTimers);
+      HashSet<Serializable> existingTimers);
 
   /**
    * Return the configured interval for the specified worker or
@@ -48,7 +48,7 @@ public interface ServiceSessionLocal extends ServiceSession {
    * @param serviceId id
    * @return interval
    */
-  long getServiceInterval(final Integer serviceId);
+  long getServiceInterval(Integer serviceId);
 
   /**
    * Reads the current timeStamp values and tries to update them in a single
@@ -63,11 +63,11 @@ public interface ServiceSessionLocal extends ServiceSession {
    * @return IWorker if it should run, null otherwise
    */
   IWorker getWorkerIfItShouldRun(
-      final Integer serviceId, final long nextTimeout);
+      Integer serviceId, long nextTimeout);
 
   /**
    * As above but used to JUnit testing to be able to "fake" that the service
-   * was running on another node Should only be used for testing the logic
+   * was running on another node Should only be used for testing the logic.
    *
    * @param serviceId ID
    * @param nextTimeout timeout
@@ -86,19 +86,19 @@ public interface ServiceSessionLocal extends ServiceSession {
    * @param serviceName name
    */
   void executeServiceInNoTransaction(
-      final IWorker worker, final String serviceName);
+      IWorker worker, String serviceName);
 
   /**
    * Cancels a timer with the given Id.
    *
    * @param id id
    */
-  void cancelTimer(final Integer id);
+  void cancelTimer(Integer id);
 
   /**
-   * The timeout method
+   * The timeout method.
    *
    * @param timer timer
    */
-  void timeoutHandler(final Timer timer);
+  void timeoutHandler(Timer timer);
 }

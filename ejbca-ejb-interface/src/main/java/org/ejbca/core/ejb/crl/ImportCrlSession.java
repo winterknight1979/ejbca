@@ -23,7 +23,7 @@ public interface ImportCrlSession {
 
   /**
    * Method used to import a CRL to the database if it is newer than any CRL it
-   * already has
+   * already has.
    *
    * @param authenticationToken The administrator performing the operation
    * @param cainfo of the CA that issued the CRL
@@ -37,9 +37,9 @@ public interface ImportCrlSession {
    *     to perform the required operations
    */
   void importCrl(
-      final AuthenticationToken authenticationToken,
-      final CAInfo cainfo,
-      final byte[] crlbytes)
+      AuthenticationToken authenticationToken,
+      CAInfo cainfo,
+      byte[] crlbytes)
       throws CrlImportException, CrlStoreException, CRLException,
           AuthorizationDeniedException;
 }

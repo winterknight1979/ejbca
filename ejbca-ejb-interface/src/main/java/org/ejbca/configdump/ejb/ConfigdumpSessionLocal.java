@@ -19,4 +19,4 @@ import javax.ejb.Local;
  *     $
  */
 @Local
-public interface ConfigdumpSessionLocal extends ConfigdumpSession {}
+public interface ConfigdumpSessionLocal extends ConfigdumpSession { }

@@ -106,7 +106,7 @@ public interface ApprovalSession {
   int getStatus(int approvalId) throws ApprovalException;
 
   /**
-   * Gives the remaining number of approvals for a given approval request
+   * Gives the remaining number of approvals for a given approval request.
    *
    * @param requestId the request ID of the approval
    * @return the remaining number of approvals for this request (with 0 meaning
@@ -159,7 +159,7 @@ public interface ApprovalSession {
 
   /**
    * Method returning an approval requests with status 'waiting', 'Approved' or
-   * 'Reject' returns null if no non expired exists
+   * 'Reject' returns null if no non expired exists.
    *
    * @param approvalId ID
    * @return req

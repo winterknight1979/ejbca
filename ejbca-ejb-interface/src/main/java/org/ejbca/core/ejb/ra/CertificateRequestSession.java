@@ -74,7 +74,7 @@ public interface CertificateRequestSession {
    * @throws CertificateExtensionException if the request contained invalid
    *     extensions
    */
-  public byte[] processCertReq(
+  byte[] processCertReq(
       AuthenticationToken admin,
       EndEntityInformation userdata,
       String req,
@@ -107,7 +107,7 @@ public interface CertificateRequestSession {
    * @throws CertificateExtensionException (rollback) if an error exists in the
    *     exensions specified in the request
    */
-  public ResponseMessage processCertReq(
+  ResponseMessage processCertReq(
       AuthenticationToken admin,
       EndEntityInformation userdata,
       RequestMessage req,
@@ -146,7 +146,7 @@ public interface CertificateRequestSession {
    * @throws KeyStoreException fail
    * @throws NoSuchEndEntityException if the end entity was not found
    */
-  public byte[] processSoftTokenReq(
+  byte[] processSoftTokenReq(
       AuthenticationToken admin,
       EndEntityInformation userdata,
       String hardTokenSN,

@@ -25,7 +25,8 @@ import org.cesecore.authorization.access.AccessSet;
 @SuppressWarnings("deprecation")
 public interface AuthorizationSystemSession {
 
-  public static final String SUPERADMIN_ROLE = "Super Administrator Role";
+    /** Role. */
+  String SUPERADMIN_ROLE = "Super Administrator Role";
 
   /**
    * Returns all rules that the given authenticationToken is allowed to access.

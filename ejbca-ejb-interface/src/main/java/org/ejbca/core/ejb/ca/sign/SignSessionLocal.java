@@ -96,8 +96,8 @@ public interface SignSessionLocal extends SignSession {
    *     the status to be changed (does not require rollback)
    */
   ResponseMessage createCertificateIgnoreStatus(
-      final AuthenticationToken admin,
-      final RequestMessage req,
+      AuthenticationToken admin,
+      RequestMessage req,
       Class<? extends CertificateResponseMessage> responseClass,
       boolean ignorePassword)
       throws AuthorizationDeniedException, NoSuchEndEntityException,
@@ -317,7 +317,7 @@ public interface SignSessionLocal extends SignSession {
    * @throws SignRequestSignatureException if an error occurred during the
    *     signature process.
    */
-  byte[] signPayload(byte[] data, final int signingCaId)
+  byte[] signPayload(byte[] data, int signingCaId)
       throws AuthorizationDeniedException, CryptoTokenOfflineException,
           CADoesntExistsException, SignRequestSignatureException;
 }

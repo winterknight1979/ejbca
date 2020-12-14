@@ -19,4 +19,4 @@ import javax.ejb.Remote;
  *     anatom $
  */
 @Remote
-public interface EndEntityAccessSessionRemote extends EndEntityAccessSession {}
+public interface EndEntityAccessSessionRemote extends EndEntityAccessSession { }

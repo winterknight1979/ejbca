@@ -17,4 +17,4 @@ package org.ejbca.core.ejb.rest;
  * @version $Id: EjbcaRestHelperSession.java 28936 2018-05-15 12:18:32Z henriks
  *     $
  */
-public interface EjbcaRestHelperSession {}
+public interface EjbcaRestHelperSession { }

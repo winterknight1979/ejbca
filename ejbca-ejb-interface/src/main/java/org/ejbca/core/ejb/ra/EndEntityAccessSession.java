@@ -195,7 +195,7 @@ public interface EndEntityAccessSession {
    * @throws CADoesntExistsException if a referenced CA does not exist.
    * @throws EjbcaException any EjbcaException.
    */
-  public CertificateWrapper getCertificate(
+   CertificateWrapper getCertificate(
       AuthenticationToken authenticationToken,
       String certSNinHex,
       String issuerDN)

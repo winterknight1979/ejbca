@@ -46,7 +46,7 @@ public interface EjbcaRestHelperSessionLocal extends EjbcaRestHelperSession {
 
   /**
    * Compose EndEntityInformation object based on EnrollPkcs10CertificateRequest
-   * input
+   * input.
    *
    * @param authenticationToken of the requesting administrator
    * @param enrollcertificateRequest input data object for enrolling a
@@ -58,7 +58,7 @@ public interface EjbcaRestHelperSessionLocal extends EjbcaRestHelperSession {
    * @throws CertificateProfileDoesNotExistException fail
    * @throws CADoesntExistsException fail
    */
-  public EndEntityInformation convertToEndEntityInformation(
+   EndEntityInformation convertToEndEntityInformation(
       AuthenticationToken authenticationToken,
       EnrollPkcs10CertificateRequest enrollcertificateRequest)
       throws AuthorizationDeniedException, EndEntityProfileNotFoundException,

@@ -59,6 +59,10 @@ public interface ApprovalSessionLocal extends ApprovalSession {
    */
   void setApprovals(ApprovalData approvalData, Collection<Approval> approvals);
 
+  /**
+   * @param approvalId ID
+   * @return Non-expired data
+   */
   ApprovalData findNonExpiredApprovalDataLocal(int approvalId);
 
   /**
@@ -74,7 +78,7 @@ public interface ApprovalSessionLocal extends ApprovalSession {
 
   /**
    * Method that takes an approvalId (hash) and returns the request's ID (the
-   * value in the "Id" column in the "ApprovalData" table in the database)
+   * value in the "Id" column in the "ApprovalData" table in the database).
    *
    * @param approvalId the request hash (approvalId in the database)
    * @return the ID of the approval request or 0 if it does not exist
@@ -90,7 +94,7 @@ public interface ApprovalSessionLocal extends ApprovalSession {
    * @param approvalRequest the updated approval request
    */
   void updateApprovalRequest(
-      final int approvalDataId, final ApprovalRequest approvalRequest);
+      int approvalDataId, ApprovalRequest approvalRequest);
 
   /**
    * Moves the expiration date forward and sets the status for Waiting for
@@ -110,7 +114,7 @@ public interface ApprovalSessionLocal extends ApprovalSession {
       long extendForMillis);
 
   /**
-   * Method returning a list of approvals from the give query
+   * Method returning a list of approvals from the give query.
    *
    * @param query should be a Query object containing ApprovalMatch and
    *     TimeMatch
@@ -125,7 +129,7 @@ public interface ApprovalSessionLocal extends ApprovalSession {
    * @throws IllegalQueryException fail
    */
   List<ApprovalDataVO> query(
-      final Query query,
+      Query query,
       int index,
       int numberofrows,
       String caAuthorizationString,
@@ -158,9 +162,9 @@ public interface ApprovalSessionLocal extends ApprovalSession {
       boolean includeUnfinished,
       boolean includeProcessed,
       boolean includeExpired,
-      final Date startDate,
-      final Date endDate,
-      final Date expiresBefore,
+      Date startDate,
+      Date endDate,
+      Date expiresBefore,
       int index,
       int numberofrows,
       String caAuthorizationString,

@@ -14,7 +14,7 @@ package org.ejbca.core.ejb.approval;
 
 /**
  * An exception thrown when someone tries to add an approval profile that
- * already exits
+ * already exits.
  *
  * @version $Id: ApprovalProfileExistsException.java 23336 2016-05-02 20:25:49Z
  *     aveen4711 $

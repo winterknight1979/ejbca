@@ -17,4 +17,4 @@ import javax.ejb.Remote;
 
 @Remote
 public interface ApprovalExecutionSessionRemote
-    extends ApprovalExecutionSession {}
+    extends ApprovalExecutionSession { }

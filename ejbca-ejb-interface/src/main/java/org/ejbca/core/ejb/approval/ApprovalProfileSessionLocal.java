@@ -23,7 +23,7 @@ import org.cesecore.profiles.ProfileData;
 import org.ejbca.core.model.approval.profile.ApprovalProfile;
 
 /**
- * Session to access approval profiles locally
+ * Session to access approval profiles locally.
  *
  * @version $Id: ApprovalProfileSessionLocal.java 26076 2017-06-26 12:49:12Z
  *     mikekushner $
@@ -49,7 +49,7 @@ public interface ApprovalProfileSessionLocal extends ApprovalProfileSession {
   /**
    * Returns the appropriate approval profile for the given action, where any
    * approval profile defined in the certificate profile trumps any define in
-   * the CA
+   * the CA.
    *
    * @param action an approval action
    * @param cainfo a CA information object
@@ -58,7 +58,7 @@ public interface ApprovalProfileSessionLocal extends ApprovalProfileSession {
    *     found.
    */
   ApprovalProfile getApprovalProfileForAction(
-      final ApprovalRequestType action,
-      final CAInfo cainfo,
-      final CertificateProfile certProfile);
+      ApprovalRequestType action,
+      CAInfo cainfo,
+      CertificateProfile certProfile);
 }

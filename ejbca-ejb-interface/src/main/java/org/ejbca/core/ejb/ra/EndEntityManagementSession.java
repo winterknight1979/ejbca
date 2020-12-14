@@ -55,9 +55,9 @@ public interface EndEntityManagementSession {
    *     specified EEP, false otherwise
    */
   boolean isAuthorizedToEndEntityProfile(
-      final AuthenticationToken admin,
-      final int profileid,
-      final String rights);
+      AuthenticationToken admin,
+      int profileid,
+      String rights);
 
   /**
    * Important: this method is old and shouldn't be used, use
@@ -116,7 +116,7 @@ public interface EndEntityManagementSession {
 
   /**
    * addUserFromWS is called from EjbcaWS if profile specifies merge data from
-   * profile to user we merge them before calling addUser
+   * profile to user we merge them before calling addUser.
    *
    * @param admin the administrator pwrforming the action
    * @param userdata a EndEntityInformation object, the fields status,
@@ -324,7 +324,7 @@ public interface EndEntityManagementSession {
 
   /**
    * Change user information after an EditEndEntityApprovalRequest has been
-   * approved
+   * approved.
    *
    * @param admin the administrator performing the action
    * @param userdata a EndEntityInformation object, timecreated and timemodified
@@ -365,7 +365,7 @@ public interface EndEntityManagementSession {
 
   /**
    * Change user information after an EditEndEntityApprovalRequest has been
-   * approved
+   * approved.
    *
    * @param admin the administrator performing the action
    * @param userdata a EndEntityInformation object, timecreated and timemodified
@@ -823,7 +823,7 @@ public interface EndEntityManagementSession {
    * @throws WaitingForApprovalException if the request requires approval.
    *     Expected to be thorws if approval is required to edit end entity
    */
-  public boolean prepareForKeyRecoveryInternal(
+  boolean prepareForKeyRecoveryInternal(
       AuthenticationToken admin,
       String username,
       int endEntityProfileId,

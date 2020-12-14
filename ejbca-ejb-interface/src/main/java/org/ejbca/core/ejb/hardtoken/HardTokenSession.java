@@ -84,7 +84,7 @@ public interface HardTokenSession {
       throws AuthorizationDeniedException;
 
   /**
-   * Adds a hard token profile with the same content as the original profile,
+   * Adds a hard token profile with the same content as the original profile.
    *
    * @param admin admin
    * @param oldname name
@@ -107,7 +107,7 @@ public interface HardTokenSession {
       throws AuthorizationDeniedException;
 
   /**
-   * Renames a hard token profile
+   * Renames a hard token profile.
    *
    * @param admin admin
    * @param oldname name
@@ -190,7 +190,7 @@ public interface HardTokenSession {
       throws AuthorizationDeniedException;
 
   /**
-   * Updates hard token issuer data
+   * Updates hard token issuer data.
    *
    * @param admin admin
    * @param alias alias
@@ -203,7 +203,7 @@ public interface HardTokenSession {
       throws AuthorizationDeniedException;
 
   /**
-   * Adds a hard token issuer with the same content as the original issuer,
+   * Adds a hard token issuer with the same content as the original issuer.
    *
    * @param admin admin
    * @param oldalias alias
@@ -227,7 +227,7 @@ public interface HardTokenSession {
       throws AuthorizationDeniedException;
 
   /**
-   * Renames a hard token issuer
+   * Renames a hard token issuer.
    *
    * @param admin admin
    * @param oldalias alias
@@ -337,7 +337,7 @@ public interface HardTokenSession {
       throws UnavailableTokenException;
 
   /**
-   * Adds a hard token to the database
+   * Adds a hard token to the database.
    *
    * @param admin the administrator calling the function
    * @param tokensn The serial number of token.
@@ -391,7 +391,7 @@ public interface HardTokenSession {
       throws HardTokenDoesntExistsException;
 
   /**
-   * Checks if a hard token serial number exists in the database
+   * Checks if a hard token serial number exists in the database.
    *
    * @param tokensn The serial number of token.
    * @return true if it exists or false otherwise.

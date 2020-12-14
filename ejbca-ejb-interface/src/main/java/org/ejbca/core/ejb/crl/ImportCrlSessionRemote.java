@@ -15,4 +15,4 @@ package org.ejbca.core.ejb.crl;
 import javax.ejb.Remote;
 
 @Remote
-public interface ImportCrlSessionRemote extends ImportCrlSession {}
+public interface ImportCrlSessionRemote extends ImportCrlSession { }

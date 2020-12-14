@@ -18,4 +18,4 @@ import javax.ejb.Remote;
 /** Remote interface for HardTokenBatchJobSession. */
 @Remote
 public interface HardTokenBatchJobSessionRemote
-    extends HardTokenBatchJobSession {}
+    extends HardTokenBatchJobSession { }

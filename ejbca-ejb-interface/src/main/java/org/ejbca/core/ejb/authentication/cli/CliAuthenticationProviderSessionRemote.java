@@ -23,4 +23,4 @@ import org.cesecore.authentication.tokens.AuthenticationProvider;
  */
 @Remote
 public interface CliAuthenticationProviderSessionRemote
-    extends AuthenticationProvider {}
+    extends AuthenticationProvider { }

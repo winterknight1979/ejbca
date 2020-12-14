@@ -20,4 +20,4 @@ import javax.ejb.Remote;
  *     $
  */
 @Remote
-public interface ServiceDataSessionRemote extends ServiceDataSession {}
+public interface ServiceDataSessionRemote extends ServiceDataSession { }

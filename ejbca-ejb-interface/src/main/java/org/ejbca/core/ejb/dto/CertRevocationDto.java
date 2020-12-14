@@ -26,70 +26,122 @@ public class CertRevocationDto implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
-  String issuerDN;
-  String certificateSN;
-  Integer reason;
-  Date revocationDate;
-  Integer certificateProfileId;
-  boolean checkDate;
+  /** param. */
+  private String issuerDN;
+  /** param. */
+  private String certificateSN;
+  /** param. */
+  private Integer reason;
+  /** param. */
+  private Date revocationDate;
+  /** param. */
+  private Integer certificateProfileId;
+  /** param. */
+  private boolean checkDate;
 
+  /**
+   * @param anissuerDN DN
+   * @param acertificateSN Serial
+   * @param areason Reason
+   */
   public CertRevocationDto(
-      final String issuerDN, final String certificateSN, final int reason) {
-    this.issuerDN = issuerDN;
-    this.certificateSN = certificateSN;
-    this.reason = reason;
+      final String anissuerDN, final String acertificateSN, final int areason) {
+    this.issuerDN = anissuerDN;
+    this.certificateSN = acertificateSN;
+    this.reason = areason;
   }
 
-  public CertRevocationDto(final String issuerDN, final String certificateSN) {
-    this.issuerDN = issuerDN;
-    this.certificateSN = certificateSN;
+  /**
+   * @param anissuerDN DN
+   * @param acertificateSN Serial
+   */
+  public CertRevocationDto(
+          final String anissuerDN, final String acertificateSN) {
+    this.issuerDN = anissuerDN;
+    this.certificateSN = acertificateSN;
   }
 
+  /**
+   * @return DN
+   */
   public String getIssuerDN() {
     return issuerDN;
   }
 
-  public void setIssuerDN(final String issuerDN) {
-    this.issuerDN = issuerDN;
+  /**
+   * @param anissuerDN DN
+   */
+  public void setIssuerDN(final String anissuerDN) {
+    this.issuerDN = anissuerDN;
   }
 
+  /**
+   * @return Serial
+   */
   public String getCertificateSN() {
     return certificateSN;
   }
 
-  public void setCertificateSN(final String certificateSN) {
-    this.certificateSN = certificateSN;
+  /**
+   * @param acertificateSN Serial
+   */
+  public void setCertificateSN(final String acertificateSN) {
+    this.certificateSN = acertificateSN;
   }
 
+  /**
+   * @return Reason
+   */
   public Integer getReason() {
     return reason;
   }
 
-  public void setReason(final Integer reason) {
-    this.reason = reason;
+  /**
+   * @param areason Reason
+   */
+  public void setReason(final Integer areason) {
+    this.reason = areason;
   }
 
+  /**
+   * @return Date
+   */
   public Date getRevocationDate() {
     return revocationDate;
   }
 
-  public void setRevocationDate(final Date revocationDate) {
-    this.revocationDate = revocationDate;
+  /**
+   * @param arevocationDate Date
+   */
+  public void setRevocationDate(final Date arevocationDate) {
+    this.revocationDate = arevocationDate;
   }
 
+  /**
+   * @return ID
+   */
   public Integer getCertificateProfileId() {
     return certificateProfileId;
   }
 
-  public void setCertificateProfileId(final Integer certificateProfileId) {
-    this.certificateProfileId = certificateProfileId;
+  /**
+   * @param acertificateProfileId ID
+   */
+  public void setCertificateProfileId(final Integer acertificateProfileId) {
+    this.certificateProfileId = acertificateProfileId;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isCheckDate() {
     return checkDate;
   }
 
-  public void setCheckDate(final boolean checkDate) {
-    this.checkDate = checkDate;
+  /**
+   * @param acheckDate bool
+   */
+  public void setCheckDate(final boolean acheckDate) {
+    this.checkDate = acheckDate;
   }
 }

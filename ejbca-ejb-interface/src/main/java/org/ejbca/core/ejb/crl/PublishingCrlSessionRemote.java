@@ -19,4 +19,4 @@ import javax.ejb.Remote;
  *     anatom $
  */
 @Remote
-public interface PublishingCrlSessionRemote extends PublishingCrlSession {}
+public interface PublishingCrlSessionRemote extends PublishingCrlSession { }

@@ -21,11 +21,11 @@ public interface UpgradeSessionLocal extends UpgradeSession {
 
   /**
    * Performs operations before the upgrade, and can handle fresh installations
-   * specially
+   * specially.
    *
    * @param isFreshInstallation bool
    */
-  void performPreUpgrade(final boolean isFreshInstallation);
+  void performPreUpgrade(boolean isFreshInstallation);
 
   /**
    * Perform upgrades that can run side by side with older EJBCA versions.

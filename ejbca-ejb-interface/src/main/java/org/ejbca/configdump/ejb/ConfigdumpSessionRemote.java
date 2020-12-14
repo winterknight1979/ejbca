@@ -19,4 +19,4 @@ import javax.ejb.Remote;
  *     samuellb $
  */
 @Remote
-public interface ConfigdumpSessionRemote extends ConfigdumpSession {}
+public interface ConfigdumpSessionRemote extends ConfigdumpSession { }
