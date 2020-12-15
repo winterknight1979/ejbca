@@ -15,7 +15,7 @@ package org.ejbca.core.protocol;
 import org.ejbca.core.EjbcaException;
 
 /**
- * Error due to wrong CMP / EST / SCEP alias
+ * Error due to wrong CMP / EST / SCEP alias.
  *
  * @version $Id: NoSuchAliasException.java 28470 2018-03-12 14:26:30Z henriks $
  */
@@ -32,5 +32,6 @@ public class NoSuchAliasException extends EjbcaException {
     super(message);
   }
 
-  public NoSuchAliasException() {}
+  /** Default. */
+  public NoSuchAliasException() { }
 }

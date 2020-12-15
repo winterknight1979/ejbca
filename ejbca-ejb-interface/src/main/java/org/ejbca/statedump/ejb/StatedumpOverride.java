@@ -18,31 +18,43 @@ package org.ejbca.statedump.ejb;
 public class StatedumpOverride {
 
   public enum Type {
+        /** Type. */
     VALUE,
+    /** Type. */
     PREFIX,
+    /** Type. */
     APPEND,
+    /** Type. */
     REGEX;
   }
 
+  /** Param. */
   private final Type type;
+  /** Param. */
   private final Object value; // depends on value of type
 
   /**
-   * Used inside StatedumpImportOptions
+   * Used inside StatedumpImportOptions.
    *
-   * @param type type
-   * @param value value
+   * @param atype type
+   * @param avalue value
    */
-  StatedumpOverride(final Type type, final Object value) {
+  StatedumpOverride(final Type atype, final Object avalue) {
     super();
-    this.type = type;
-    this.value = value;
+    this.type = atype;
+    this.value = avalue;
   }
 
+  /**
+   * @return Type
+   */
   public Type getType() {
     return type;
   }
 
+  /**
+   * @return Value
+   */
   public Object getValue() {
     return value;
   }

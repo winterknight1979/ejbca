@@ -17,7 +17,7 @@ import java.util.Map;
 
 /**
  * Contains information from {@link
- * org.cesecore.authorization.user.matchvalues.AccessMatchValueReverseLookupRegistry}
+ * org.cesecore.authorization.user.matchvalues.AccessMatchValueReverseLookupRegistry}.
  *
  * @version $Id: RaRoleMemberTokenTypeInfo.java 25397 2017-03-06 20:19:36Z
  *     samuellb $
@@ -26,45 +26,75 @@ public final class RaRoleMemberTokenTypeInfo implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
+  /** Param. */
   private final Map<String, Integer> matchKeys;
+  /** Param. */
   private final String defaultMatchKey;
+  /** Param. */
   private final boolean issuedByCA;
+  /** Param. */
   private final boolean hasMatchValue;
+  /** Param. */
   private final int matchOperator;
 
+  /**
+   * @param thematchKeys Keys
+   * @param adefaultMatchKey Default key
+   * @param isissuedByCA Bool
+   * @param ahasMatchValue VBool
+   * @param amatchOperator Operator
+   */
   public RaRoleMemberTokenTypeInfo(
-      final Map<String, Integer> matchKeys,
-      final String defaultMatchKey,
-      final boolean issuedByCA,
-      final boolean hasMatchValue,
-      final int matchOperator) {
-    this.matchKeys = matchKeys;
-    this.defaultMatchKey = defaultMatchKey;
-    this.issuedByCA = issuedByCA;
-    this.hasMatchValue = hasMatchValue;
-    this.matchOperator = matchOperator;
+      final Map<String, Integer> thematchKeys,
+      final String adefaultMatchKey,
+      final boolean isissuedByCA,
+      final boolean ahasMatchValue,
+      final int amatchOperator) {
+    this.matchKeys = thematchKeys;
+    this.defaultMatchKey = adefaultMatchKey;
+    this.issuedByCA = isissuedByCA;
+    this.hasMatchValue = ahasMatchValue;
+    this.matchOperator = amatchOperator;
   }
 
+  /**
+   * @return map
+   */
   public Map<String, Integer> getMatchKeysMap() {
     return matchKeys;
   }
 
+  /**
+   * @return keys
+   */
   public String getDefaultMatchKey() {
     return defaultMatchKey;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isIssuedByCA() {
     return issuedByCA;
   }
 
+  /**
+   * @return bool
+   */
   public boolean getHasMatchValue() {
     return hasMatchValue;
   }
 
+  /**
+   * @return Operator
+   */
   public int getMatchOperator() {
     return matchOperator;
   }
 
+  /**
+   * @param other type to merge
+   */
   public void merge(final RaRoleMemberTokenTypeInfo other) {
     matchKeys.putAll(other.matchKeys);
     // the default match key shouldn't differ

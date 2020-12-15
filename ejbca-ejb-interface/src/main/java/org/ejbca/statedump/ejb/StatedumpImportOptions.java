@@ -33,17 +33,26 @@ public final class StatedumpImportOptions implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
+  /** Param. */
   private File location;
+  /** Param. */
   private File overridesFile;
+  /** Param. */
   private boolean merge;
+  /** Param. */
   private final Map<StatedumpObjectKey, StatedumpResolution> resolutions =
       new HashMap<>();
+  /** Param. */
   private final Map<StatedumpObjectKey, String> passwords = new HashMap<>();
+  /** Param. */
   private final List<StatedumpCAIdChange> caIdChanges = new ArrayList<>();
+  /** Param. */
   private final Map<Integer, Integer> cryptoTokenIdChanges = new HashMap<>();
+  /** Param. */
   private final Map<String, List<StatedumpOverride>> overrides =
       new HashMap<>();
 
+  /** Default. */
   public StatedumpImportOptions() {
     // Does nothing
   }
@@ -51,12 +60,15 @@ public final class StatedumpImportOptions implements Serializable {
   /**
    * Sets the directory to import from. Should be an absolute path.
    *
-   * @param location location
+   * @param alocation location
    */
-  public void setLocation(final File location) {
-    this.location = location;
+  public void setLocation(final File alocation) {
+    this.location = alocation;
   }
 
+  /**
+   * @return location
+   */
   public File getLocation() {
     return location;
   }
@@ -64,24 +76,37 @@ public final class StatedumpImportOptions implements Serializable {
   /**
    * Sets the file to read overrides from. By default, no overrides are read.
    *
-   * @param overridesFile file
+   * @param anoverridesFile file
    */
-  public void setOverridesFile(final File overridesFile) {
-    this.overridesFile = overridesFile;
+  public void setOverridesFile(final File anoverridesFile) {
+    this.overridesFile = anoverridesFile;
   }
 
+  /**
+   * @return file
+   */
   public File getOverridesFile() {
     return overridesFile;
   }
 
-  public void setMergeCryptoTokens(final boolean merge) {
-    this.merge = merge;
+  /**
+   * @param ismerge bool
+   */
+  public void setMergeCryptoTokens(final boolean ismerge) {
+    this.merge = ismerge;
   }
 
+  /**
+   * @return bool
+   */
   public boolean getMergeCryptoTokens() {
     return merge;
   }
 
+  /**
+   * @param key key
+   * @param resolution res
+   */
   public void addConflictResolution(
       final StatedumpObjectKey key, final StatedumpResolution resolution) {
     resolutions.put(key, resolution);
@@ -89,34 +114,38 @@ public final class StatedumpImportOptions implements Serializable {
 
   /**
    * Internal method, but EJBs can't call package internal methods, so it must
-   * be public
+   * be public.
    *
    * @param key key
    * @return resolution
    */
-  public StatedumpResolution _lookupConflictResolution(
+  public StatedumpResolution ulookupConflictResolution(
       final StatedumpObjectKey key) {
     return resolutions.get(key);
   }
 
+  /**
+   * @param key Key
+   * @param password PWD
+   */
   public void addPassword(final StatedumpObjectKey key, final String password) {
     passwords.put(key, password);
   }
 
   /**
    * Internal method, but EJBs can't call package internal methods, so it must
-   * be public
+   * be public.
    *
    * @param key key
    * @return pwd
    */
-  public String _lookupPassword(final StatedumpObjectKey key) {
+  public String ulookupPassword(final StatedumpObjectKey key) {
     return passwords.get(key);
   }
 
   /**
    * Adds a translation of a CA Subject DN (and CA Id, since it's calculated
-   * from the Subject DN)
+   * from the Subject DN).
    *
    * @param fromId CA Id from CA while it still has the old name.
    * @param toId New CA Id
@@ -129,11 +158,11 @@ public final class StatedumpImportOptions implements Serializable {
 
   /**
    * Internal method, but EJBs can't call package internal methods, so it must
-   * be public
+   * be public.
    *
    * @return list
    */
-  public List<StatedumpCAIdChange> _getCASubjectDNChanges() {
+  public List<StatedumpCAIdChange> ugetCASubjectDNChanges() {
     return caIdChanges;
   }
 
@@ -149,16 +178,16 @@ public final class StatedumpImportOptions implements Serializable {
 
   /**
    * Internal method, but EJBs can't call package internal methods, so it must
-   * be public
+   * be public.
    *
    * @return map
    */
-  public Map<Integer, Integer> _getCryptoTokenIdChanges() {
+  public Map<Integer, Integer> ugetCryptoTokenIdChanges() {
     return cryptoTokenIdChanges;
   }
 
   /**
-   * Adds an override of a field. See StatedumpFieldOverrider
+   * Adds an override of a field. See StatedumpFieldOverrider.
    *
    * @param key key
    * @param type type
@@ -179,12 +208,12 @@ public final class StatedumpImportOptions implements Serializable {
 
   /**
    * Internal method, but EJBs can't call package internal methods, so it must
-   * be public
+   * be public.
    *
    * @param key key
    * @return list
    */
-  public List<StatedumpOverride> _getOverrides(final String[] key) {
+  public List<StatedumpOverride> ugetOverrides(final String[] key) {
     final String keyStr = StringUtils.join(key, '.');
     return overrides.get(keyStr);
   }

@@ -24,25 +24,42 @@ public final class StatedumpObjectKey implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
+  /** Param. */
   private final String type;
+  /** Param. */
   private final int id;
+  /** Param. */
   private final String name;
 
+  /**
+   * @param atype type
+   * @param anid ID
+   * @param aname name
+   */
   public StatedumpObjectKey(
-      final String type, final int id, final String name) {
-    this.type = type;
-    this.id = id;
-    this.name = name;
+      final String atype, final int anid, final String aname) {
+    this.type = atype;
+    this.id = anid;
+    this.name = aname;
   }
 
+  /**
+   * @return Typee
+   */
   public String getType() {
     return type;
   }
 
+  /**
+   * @return ID
+   */
   public int getId() {
     return id;
   }
 
+  /**
+   * @return Name
+   */
   public String getName() {
     return name;
   }

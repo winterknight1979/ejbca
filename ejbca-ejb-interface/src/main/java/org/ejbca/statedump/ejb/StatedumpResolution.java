@@ -16,6 +16,8 @@ package org.ejbca.statedump.ejb;
  * @version $Id: StatedumpResolution.java 22489 2015-12-18 18:18:42Z samuellb $
  */
 public enum StatedumpResolution {
+    /** Type. */
   OVERWRITE,
+  /** Type. */
   DONT_OVERWRITE;
 }

@@ -29,25 +29,42 @@ public class RaEndEntitySearchResponse implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
+  /** Param. */
   private List<EndEntityInformation> endEntities = new ArrayList<>();
+  /** Param. */
   private boolean mightHaveMoreResults = false;
 
+  /**
+   * @return EEs
+   */
   public List<EndEntityInformation> getEndEntities() {
     return endEntities;
   }
 
-  public void setEndEntities(final List<EndEntityInformation> endEntities) {
-    this.endEntities = endEntities;
+  /**
+   * @param theendEntities EEs
+   */
+  public void setEndEntities(final List<EndEntityInformation> theendEntities) {
+    this.endEntities = theendEntities;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isMightHaveMoreResults() {
     return mightHaveMoreResults;
   }
 
-  public void setMightHaveMoreResults(final boolean mightHaveMoreResults) {
-    this.mightHaveMoreResults = mightHaveMoreResults;
+  /**
+   * @param ismightHaveMoreResults bool
+   */
+  public void setMightHaveMoreResults(final boolean ismightHaveMoreResults) {
+    this.mightHaveMoreResults = ismightHaveMoreResults;
   }
 
+  /**
+   * @param other response to merge
+   */
   public void merge(final RaEndEntitySearchResponse other) {
     final Map<String, EndEntityInformation> endEntitiesMap = new HashMap<>();
     for (final EndEntityInformation endEntity : endEntities) {

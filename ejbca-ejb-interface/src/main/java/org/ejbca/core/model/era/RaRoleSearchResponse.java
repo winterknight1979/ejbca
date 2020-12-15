@@ -28,23 +28,37 @@ public class RaRoleSearchResponse implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
+  /** Param. */
   private List<Role> roles = new ArrayList<>();
+  /** Param. */
   private boolean mightHaveMoreResults = false;
 
+  /**
+   * @return roles
+   */
   public List<Role> getRoles() {
     return roles;
   }
 
-  public void setRoles(final List<Role> roles) {
-    this.roles = roles;
+  /**
+   * @param theroles Roles
+   */
+  public void setRoles(final List<Role> theroles) {
+    this.roles = theroles;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isMightHaveMoreResults() {
     return mightHaveMoreResults;
   }
 
-  public void setMightHaveMoreResults(final boolean mightHaveMoreResults) {
-    this.mightHaveMoreResults = mightHaveMoreResults;
+  /**
+   * @param ismightHaveMoreResults bool
+   */
+  public void setMightHaveMoreResults(final boolean ismightHaveMoreResults) {
+    this.mightHaveMoreResults = ismightHaveMoreResults;
   }
 
   /**

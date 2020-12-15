@@ -23,50 +23,85 @@ public class RaEditableRequestData implements Serializable, Cloneable {
   private static final long serialVersionUID = 1L;
 
   // For add end entity requests
+  /** Param. */
   private String username;
+  /** Param. */
   private String subjectDN;
+  /** Param. */
   private String subjectAltName;
+  /** Param. */
   private String subjectDirAttrs;
+  /** Param. */
   private String email;
 
+  /**
+   * @return user
+   */
   public String getUsername() {
     return username;
   }
 
-  public void setUsername(final String username) {
-    this.username = username;
+  /**
+   * @param ausername user
+   */
+  public void setUsername(final String ausername) {
+    this.username = ausername;
   }
 
+  /**
+   * @return DN
+   */
   public String getSubjectDN() {
     return subjectDN;
   }
 
-  public void setSubjectDN(final String subjectDN) {
-    this.subjectDN = subjectDN;
+  /**
+   * @param asubjectDN DN
+   */
+  public void setSubjectDN(final String asubjectDN) {
+    this.subjectDN = asubjectDN;
   }
 
+  /**
+   * @return name
+   */
   public String getSubjectAltName() {
     return subjectAltName;
   }
 
-  public void setSubjectAltName(final String subjectAltName) {
-    this.subjectAltName = subjectAltName;
+  /**
+   * @param asubjectAltName name
+   */
+  public void setSubjectAltName(final String asubjectAltName) {
+    this.subjectAltName = asubjectAltName;
   }
 
+  /**
+   * @return attrs
+   */
   public String getSubjectDirAttrs() {
     return subjectDirAttrs;
   }
 
-  public void setSubjectDirAttrs(final String subjectDirAttrs) {
-    this.subjectDirAttrs = subjectDirAttrs;
+  /**
+   * @param thesubjectDirAttrs attrs
+   */
+  public void setSubjectDirAttrs(final String thesubjectDirAttrs) {
+    this.subjectDirAttrs = thesubjectDirAttrs;
   }
 
+  /**
+   * @return email
+   */
   public String getEmail() {
     return email;
   }
 
-  public void setEmail(final String email) {
-    this.email = email;
+  /**
+   * @param anemail email
+   */
+  public void setEmail(final String anemail) {
+    this.email = anemail;
   }
 
   @Override

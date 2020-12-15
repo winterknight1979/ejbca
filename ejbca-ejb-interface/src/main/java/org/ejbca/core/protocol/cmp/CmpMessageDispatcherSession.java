@@ -16,4 +16,4 @@ package org.ejbca.core.protocol.cmp;
  * @version $Id: CmpMessageDispatcherSession.java 25797 2017-05-04 15:52:00Z
  *     jeklund $
  */
-public interface CmpMessageDispatcherSession {}
+public interface CmpMessageDispatcherSession { }

@@ -32,26 +32,44 @@ public class RaRequestsSearchResponse implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
+  /** Param. */
   private List<RaApprovalRequestInfo> approvalRequests = new ArrayList<>();
+  /** Param. */
   private boolean mightHaveMoreResults = false;
 
+  /**
+   * @return requests
+   */
   public List<RaApprovalRequestInfo> getApprovalRequests() {
     return approvalRequests;
   }
 
+  /**
+   * @param theapprovalRequests requests
+   */
   public void getApprovalRequests(
-      final List<RaApprovalRequestInfo> approvalRequests) {
-    this.approvalRequests = approvalRequests;
+      final List<RaApprovalRequestInfo> theapprovalRequests) {
+    this.approvalRequests = theapprovalRequests;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isMightHaveMoreResults() {
     return mightHaveMoreResults;
   }
 
-  public void setMightHaveMoreResults(final boolean mightHaveMoreResults) {
-    this.mightHaveMoreResults = mightHaveMoreResults;
+
+  /**
+   * @param ismightHaveMoreResults bool
+   */
+  public void setMightHaveMoreResults(final boolean ismightHaveMoreResults) {
+    this.mightHaveMoreResults = ismightHaveMoreResults;
   }
 
+  /**
+   * @param other response to merge
+   */
   public void merge(final RaRequestsSearchResponse other) {
     final Map<Integer, RaApprovalRequestInfo> cdwMap = new HashMap<>();
     for (final RaApprovalRequestInfo approvalRequest : approvalRequests) {

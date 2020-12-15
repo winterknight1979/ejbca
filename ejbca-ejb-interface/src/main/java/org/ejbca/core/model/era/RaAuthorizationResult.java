@@ -25,19 +25,31 @@ public class RaAuthorizationResult implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
+  /** Param. */
   private final HashMap<String, Boolean> accessRules;
+  /** Param. */
   private final int updateNumber;
 
+  /**
+   * @param theaccessRules rules
+   * @param anupdateNumber Update
+   */
   public RaAuthorizationResult(
-      final HashMap<String, Boolean> accessRules, final int updateNumber) {
-    this.accessRules = accessRules;
-    this.updateNumber = updateNumber;
+      final HashMap<String, Boolean> theaccessRules, final int anupdateNumber) {
+    this.accessRules = theaccessRules;
+    this.updateNumber = anupdateNumber;
   }
 
+  /**
+   * @return Rules
+   */
   public HashMap<String, Boolean> getAccessRules() {
     return accessRules;
   }
 
+  /**
+   * @return Number
+   */
   public int getUpdateNumber() {
     return updateNumber;
   }

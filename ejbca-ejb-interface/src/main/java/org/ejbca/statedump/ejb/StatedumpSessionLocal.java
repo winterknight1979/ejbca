@@ -19,4 +19,4 @@ import javax.ejb.Local;
  *     $
  */
 @Local
-public interface StatedumpSessionLocal extends StatedumpSession {}
+public interface StatedumpSessionLocal extends StatedumpSession { }

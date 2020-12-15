@@ -40,21 +40,29 @@ import org.ejbca.core.model.util.EjbLocalHelper;
  */
 public class MultiGroupPublisher extends BasePublisher {
 
-  private static final Logger log = Logger.getLogger(MultiGroupPublisher.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(MultiGroupPublisher.class);
 
   private static final long serialVersionUID = 1L;
 
+  /** Config. */
   private static final float LATEST_VERSION = 1.0F;
+  /** Config. */
   private static final String PROPERTYKEY_PUBLISHERGROUPS = "publishergroups";
 
+  /** Param. */
   private transient PublisherSessionLocal cachedPublisherSession;
 
+  /** Null constructor. */
   public MultiGroupPublisher() {
     super();
     data.put(TYPE, Integer.valueOf(PublisherConst.TYPE_MULTIGROUPPUBLISHER));
     data.put(PROPERTYKEY_PUBLISHERGROUPS, new ArrayList<>());
   }
 
+  /**
+   * @return Groups
+   */
   @SuppressWarnings("unchecked")
   public List<TreeSet<Integer>> getPublisherGroups() {
     final Object value = data.get(PROPERTYKEY_PUBLISHERGROUPS);
@@ -63,6 +71,9 @@ public class MultiGroupPublisher extends BasePublisher {
         : new ArrayList<TreeSet<Integer>>();
   }
 
+  /**
+   * @param publisherGroups Groups
+   */
   public void setPublisherGroups(final List<TreeSet<Integer>> publisherGroups) {
     data.put(PROPERTYKEY_PUBLISHERGROUPS, new ArrayList<>(publisherGroups));
   }
@@ -95,8 +106,8 @@ public class MultiGroupPublisher extends BasePublisher {
           final BasePublisher publisher = getPublisher(publisherId);
           if (publisher != null) {
             publishers.add(publisher);
-          } else if (log.isDebugEnabled()) {
-            log.debug("Ignoring non-existent publisher: " + publisherId);
+          } else if (LOG.isDebugEnabled()) {
+            LOG.debug("Ignoring non-existent publisher: " + publisherId);
           }
         }
       } else {
@@ -112,7 +123,7 @@ public class MultiGroupPublisher extends BasePublisher {
           } else {
             // This happens when clicking "Test Connection", so it won't spam
             // the logs
-            log.warn(
+            LOG.warn(
                 "Ignoring non-existent publisher "
                     + publisherId
                     + " in publisher "
@@ -128,21 +139,21 @@ public class MultiGroupPublisher extends BasePublisher {
   @Override
   public boolean willPublishCertificate(
       final int status, final int revocationReason) {
-    log.trace(">willPublishCertificate");
+    LOG.trace(">willPublishCertificate");
     // We don't know exactly which publishers storeCertificate will use,
     // so we just check the "first" one in each group. ("first" means lowest ID)
     for (final TreeSet<Integer> group : getPublisherGroups()) {
       if (group.isEmpty()) {
-        log.debug("An empty group was found in publisher '" + getName() + "'");
+        LOG.debug("An empty group was found in publisher '" + getName() + "'");
       }
       final int publisherId = group.first();
       final BasePublisher publisher = getPublisher(publisherId);
       if (publisher.willPublishCertificate(status, revocationReason)) {
-        log.trace("<willPublishCertificate: true");
+        LOG.trace("<willPublishCertificate: true");
         return true;
       }
     }
-    log.trace("<willPublishCertificate: false");
+    LOG.trace("<willPublishCertificate: false");
     return false;
   }
 
@@ -187,7 +198,7 @@ public class MultiGroupPublisher extends BasePublisher {
       final String userDN,
       final ExtendedInformation extendedinformation)
       throws PublisherException {
-    log.trace(">storeCertificate");
+    LOG.trace(">storeCertificate");
     final List<Integer> publisherIdsToUse = new ArrayList<>();
     for (final BasePublisher publisher : getPublishersToUse(false)) {
       final boolean willPublish =
@@ -197,8 +208,8 @@ public class MultiGroupPublisher extends BasePublisher {
       if (willPublish) {
         publisherIdsToUse.add(publisher.getPublisherId());
       }
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Will "
                 + (willPublish ? "" : "NOT ")
                 + "publish certificate "
@@ -224,7 +235,7 @@ public class MultiGroupPublisher extends BasePublisher {
             "Authorization was denied: " + e.getMessage());
       }
     }
-    log.trace("<storeCertificate");
+    LOG.trace("<storeCertificate");
     return true;
   }
 
@@ -242,10 +253,10 @@ public class MultiGroupPublisher extends BasePublisher {
       final String userDN)
       throws PublisherException {
     final List<Integer> publisherIdsToUse = new ArrayList<>();
-    log.trace(">storeCRL");
+    LOG.trace(">storeCRL");
     for (final BasePublisher publisher : getPublishersToUse(false)) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Will publish CRL "
                 + number
                 + " for CA "
@@ -257,7 +268,7 @@ public class MultiGroupPublisher extends BasePublisher {
       publisherIdsToUse.add(publisher.getPublisherId());
     }
     if (publisherIdsToUse.isEmpty()) {
-      log.info(
+      LOG.info(
           "No publishers available in multi group publisher '"
               + getName()
               + "'. Can't publish CRL "
@@ -273,7 +284,7 @@ public class MultiGroupPublisher extends BasePublisher {
       throw new PublisherException(
           "Authorization was denied: " + e.getMessage());
     }
-    log.trace("<storeCRL");
+    LOG.trace("<storeCRL");
     return true;
   }
 
@@ -281,16 +292,16 @@ public class MultiGroupPublisher extends BasePublisher {
   public void testConnection() throws PublisherConnectionException {
     Exception publisherException = null;
     List<String> failedNames = new ArrayList<>();
-    log.debug("Testing all publishers in multi group publisher.");
+    LOG.debug("Testing all publishers in multi group publisher.");
     for (final BasePublisher publisher : getPublishersToUse(true)) {
-      if (log.isDebugEnabled()) {
-        log.debug("Testing publisher: " + publisher.getName());
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Testing publisher: " + publisher.getName());
       }
       try {
         publisher.testConnection();
       } catch (PublisherConnectionException | RuntimeException e) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Publisher '"
                   + publisher.getName()
                   + "' failed: "
@@ -303,14 +314,14 @@ public class MultiGroupPublisher extends BasePublisher {
         }
       }
     }
-    log.debug("Done testing publishers in multi group publisher.");
+    LOG.debug("Done testing publishers in multi group publisher.");
     if (publisherException != null) {
       final String msg =
           "Publishers ["
               + StringUtils.join(failedNames, ", ")
               + "] failed. First failure: "
               + publisherException.getMessage();
-      log.info(msg, publisherException);
+      LOG.info(msg, publisherException);
       throw new PublisherConnectionException(msg, publisherException);
     }
   }
@@ -337,12 +348,12 @@ public class MultiGroupPublisher extends BasePublisher {
   /** Implemtation of UpgradableDataHashMap function upgrade. */
   @Override
   public void upgrade() {
-    log.trace(">upgrade");
+    LOG.trace(">upgrade");
     if (Float.compare(LATEST_VERSION, getVersion()) != 0) {
       // Does nothing currently
       data.put(VERSION, Float.valueOf(LATEST_VERSION));
     }
-    log.trace("<upgrade");
+    LOG.trace("<upgrade");
   }
 
   @Override

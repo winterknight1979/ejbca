@@ -224,7 +224,7 @@ public interface RaMasterApi {
   List<CAInfo> getAuthorizedCas(AuthenticationToken authenticationToken);
 
   /**
-   * Retrieves a list of all custom style archives
+   * Retrieves a list of all custom style archives.
    *
    * @param authenticationToken of the requesting administrator
    * @return List of all style archives or null if no styles were found
@@ -619,7 +619,7 @@ public interface RaMasterApi {
 
   /**
    * addUserFromWS is called from EjbcaWS if profile specifies merge data from
-   * profile to user we merge them before calling addUser
+   * profile to user we merge them before calling addUser.
    *
    * @param admin the administrator performing the action
    * @param userdata a UserDataVOWS object from WS
@@ -661,7 +661,7 @@ public interface RaMasterApi {
    * @since Initial RA Master API version (EJBCA 6.6.0)
    */
   void deleteUser(
-      final AuthenticationToken authenticationToken, final String username)
+      AuthenticationToken authenticationToken, String username)
       throws AuthorizationDeniedException;
 
   /**
@@ -819,12 +819,12 @@ public interface RaMasterApi {
    * @since RA Master API version 1 (EJBCA 6.8.0)
    */
   byte[] createCertificateWS(
-      final AuthenticationToken authenticationToken,
-      final UserDataVOWS userdata,
-      final String requestData,
-      final int requestType,
-      final String hardTokenSN,
-      final String responseType)
+      AuthenticationToken authenticationToken,
+      UserDataVOWS userdata,
+      String requestData,
+      int requestType,
+      String hardTokenSN,
+      String responseType)
       throws AuthorizationDeniedException, ApprovalException, EjbcaException,
           EndEntityProfileValidationException;
 
@@ -1091,7 +1091,7 @@ public interface RaMasterApi {
 
   /**
    * Edit End Entity information (version for EjbcaWS, that takes a
-   * UserDataVOWS)
+   * UserDataVOWS).
    *
    * @param authenticationToken the administrator performing the action
    * @param userDataVOWS an UserDataVOWS object with the new information
@@ -1219,11 +1219,11 @@ public interface RaMasterApi {
    *     authorized to specified CA or certificate profile
    * @since Initial RA Master API version (EJBCA 6.6.0)
    */
-  public ApprovalProfile getApprovalProfileForAction(
-      final AuthenticationToken authenticationToken,
-      final ApprovalRequestType action,
-      final int caId,
-      final int certificateProfileId)
+  ApprovalProfile getApprovalProfileForAction(
+      AuthenticationToken authenticationToken,
+      ApprovalRequestType action,
+      int caId,
+      int certificateProfileId)
       throws AuthorizationDeniedException;
 
   /**
@@ -1369,14 +1369,15 @@ public interface RaMasterApi {
           AuthenticationFailedException;
 
   /**
-   * Retrieves information about users
+   * Retrieves information about users.
    *
    * <p>Authorization requirements:
    *
    * <pre>
    * - /administrator
    * - /ra_functionality/view_end_entity
-   * - /endentityprofilesrules/&lt;end entity profile of matching users&gt;/view_end_entity
+   * - /endentityprofilesrules/&lt;end entity profile
+   *     of matching users&gt;/view_end_entity
    * - /ca/&lt;ca of usermatch&gt; - when matching on CA
    * </pre>
    *
@@ -1429,7 +1430,7 @@ public interface RaMasterApi {
    * @since RA Master API version 4 (EJBCA 6.14.0)
    */
   Collection<CertificateWrapper> getCertificateChain(
-      final AuthenticationToken authenticationToken, int caid)
+      AuthenticationToken authenticationToken, int caid)
       throws AuthorizationDeniedException, CADoesntExistsException;
 
   /**
@@ -1443,7 +1444,7 @@ public interface RaMasterApi {
    * @since RA Master API version 4 (EJBCA 6.14.0)
    */
   int getCountOfCertificatesByExpirationTime(
-      final AuthenticationToken authenticationToken, long days)
+      AuthenticationToken authenticationToken, long days)
       throws AuthorizationDeniedException;
 
   /**
@@ -1943,7 +1944,7 @@ public interface RaMasterApi {
    * @return the sought AcmeAccount or null if not found
    */
   AcmeAccount getAcmeAccountByPublicKeyStorageId(
-      final String publicKeyStorageId);
+      String publicKeyStorageId);
 
   /**
    * Create or update the AcmeAccount.
@@ -1951,7 +1952,7 @@ public interface RaMasterApi {
    * @param acmeAccount account to persist
    * @return the persisted version of the AcmeAccount.
    */
-  String persistAcmeAccount(final AcmeAccount acmeAccount);
+  String persistAcmeAccount(AcmeAccount acmeAccount);
 
   /**
    * Get AcmeOrder by orderId.
@@ -1967,7 +1968,7 @@ public interface RaMasterApi {
    * @param accountId a related account id
    * @return the collection of sought AcmeOrders or null if not found
    */
-  Set<AcmeOrder> getAcmeOrdersByAccountId(final String accountId);
+  Set<AcmeOrder> getAcmeOrdersByAccountId(String accountId);
 
   /**
    * Get AcmeOrders by fingerprint field.
@@ -1975,7 +1976,7 @@ public interface RaMasterApi {
    * @param fingerprint a related acmeorder's fingerprint field
    * @return the collection of sought AcmeOrders or empty Set if not found
    */
-  Set<AcmeOrder> getFinalizedAcmeOrdersByFingerprint(final String fingerprint);
+  Set<AcmeOrder> getFinalizedAcmeOrdersByFingerprint(String fingerprint);
 
   /**
    * Create or update the AcmeOrder.
@@ -1983,7 +1984,7 @@ public interface RaMasterApi {
    * @param acmeOrder an order to persist
    * @return id of the persisted AcmeOrder.
    */
-  String persistAcmeOrder(final AcmeOrder acmeOrder);
+  String persistAcmeOrder(AcmeOrder acmeOrder);
 
   /**
    * Create or update the AcmeOrders.
@@ -1991,7 +1992,7 @@ public interface RaMasterApi {
    * @param acmeOrders a list of orders to persist
    * @return list of ids of the persisted AcmeOrders.
    */
-  List<String> persistAcmeOrders(final List<AcmeOrder> acmeOrders);
+  List<String> persistAcmeOrders(List<AcmeOrder> acmeOrders);
 
   /**
    * remove the AcmeOrder.
@@ -2013,7 +2014,7 @@ public interface RaMasterApi {
    * @param authorizationId authorization Id
    * @return the sought AcmeAuthorization or null if not found
    */
-  AcmeAuthorization getAcmeAuthorizationById(final String authorizationId);
+  AcmeAuthorization getAcmeAuthorizationById(String authorizationId);
 
   /**
    * Get AcmeAuthorizations by orderId.
@@ -2021,7 +2022,7 @@ public interface RaMasterApi {
    * @param orderId a related order Id
    * @return the list of sought AcmeAuthorizations or null if not found
    */
-  List<AcmeAuthorization> getAcmeAuthorizationsByOrderId(final String orderId);
+  List<AcmeAuthorization> getAcmeAuthorizationsByOrderId(String orderId);
 
   /**
    * Get AcmeAuthorizations by accountId.
@@ -2030,7 +2031,7 @@ public interface RaMasterApi {
    * @return the list of sought AcmeAuthorizations or null if not found
    */
   List<AcmeAuthorization> getAcmeAuthorizationsByAccountId(
-      final String accountId);
+      String accountId);
 
   /**
    * Create or update the AcmeAuthorization.
@@ -2038,7 +2039,7 @@ public interface RaMasterApi {
    * @param acmeAuthorization an authorization to persist
    * @return id of the persisted AcmeAuthorization.
    */
-  String persistAcmeAuthorization(final AcmeAuthorization acmeAuthorization);
+  String persistAcmeAuthorization(AcmeAuthorization acmeAuthorization);
 
   /**
    * Create or update the AcmeAuthorizations.
@@ -2046,7 +2047,7 @@ public interface RaMasterApi {
    * @param acmeAuthorizations a list of authorizations to persist
    */
   void persistAcmeAuthorizationList(
-      final List<AcmeAuthorization> acmeAuthorizations);
+      List<AcmeAuthorization> acmeAuthorizations);
 
   /**
    * Get AcmeChallenge by challengeId.
@@ -2054,7 +2055,7 @@ public interface RaMasterApi {
    * @param challengeId a challenge id
    * @return the sought AcmeChallenge or null if not found
    */
-  AcmeChallenge getAcmeChallengeById(final String challengeId);
+  AcmeChallenge getAcmeChallengeById(String challengeId);
 
   /**
    * Get AcmeChallenges by authorizationId.
@@ -2071,12 +2072,12 @@ public interface RaMasterApi {
    * @param acmeChallenge a challenge to persist
    * @return id of the persisted AcmeChallenge.
    */
-  String persistAcmeChallenge(final AcmeChallenge acmeChallenge);
+  String persistAcmeChallenge(AcmeChallenge acmeChallenge);
 
   /**
    * Create or update the AcmeChallenges.
    *
    * @param acmeChallenges challenges list to persit
    */
-  void persistAcmeChallengeList(final List<AcmeChallenge> acmeChallenges);
+  void persistAcmeChallengeList(List<AcmeChallenge> acmeChallenges);
 }

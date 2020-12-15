@@ -16,7 +16,7 @@ import javax.ejb.Local;
 import org.cesecore.authentication.tokens.AuthenticationToken;
 
 /**
- * Interface for EJB access to the RaMasterApi proxy singleton
+ * Interface for EJB access to the RaMasterApi proxy singleton.
  *
  * @version $Id: RaMasterApiProxyBeanLocal.java 29504 2018-07-17 13:16:50Z
  *     bastianf $
@@ -43,5 +43,5 @@ public interface RaMasterApiProxyBeanLocal extends RaMasterApi {
    * @return a RaCertificateSearchResponse from a search with a given username
    */
   RaCertificateSearchResponse searchForCertificatesByUsername(
-      final AuthenticationToken authenticationToken, final String username);
+      AuthenticationToken authenticationToken, String username);
 }

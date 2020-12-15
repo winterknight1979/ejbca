@@ -17,4 +17,4 @@ package org.ejbca.core.protocol.scep;
  * @version $Id: ScepMessageDispatcherSession.java 28462 2018-03-09 13:14:58Z
  *     henriks $
  */
-public interface ScepMessageDispatcherSession {}
+public interface ScepMessageDispatcherSession { }

@@ -44,53 +44,82 @@ import org.ejbca.core.model.ra.raadmin.EndEntityProfile;
 public class RaApprovalRequestInfo implements Serializable {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log =
+  /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(RaApprovalRequestInfo.class);
 
   // Request information from ApprovalDataVO
+  /** Param. */
   private final int id;
+  /** Param. */
   private final String
       caName; // to avoid unnecessary lookups. only the id is present in
               // ApprovalDataVO
+  /** Param. */
   private final String requesterSubjectDN;
+  /** Param. */
   private final int status;
+  /** Param. */
   private final ApprovalDataVO approvalData;
+  /** Param. */
   private final ApprovalProfile approvalProfile;
+  /** Param. */
   private final long maxExtensionTime;
+  /** Param. */
   private final String endEntityProfileName;
+  /** Param. */
   private final EndEntityProfile endEntityProfile;
+  /** Param. */
   private final String certificateProfileName;
 
-  /** Request data, as text. Not editable */
+  /** Request data, as text. Not editable .*/
   private final List<ApprovalDataText> requestData;
-  /** Editable request data for end entity requests */
+  /** Editable request data for end entity requests. */
   private final RaEditableRequestData editableData;
 
+  /** Param. */
   private final boolean requestedByMe;
+  /** Param. */
   private final boolean lastEditedByMe;
+  /** Param. */
   private boolean approvedByMe;
+  /** Param. */
   private final boolean editable;
+  /** Param. */
   private boolean isVisibleByMe;
+  /** Param. */
   private final List<TimeAndAdmin> editedByAdmins;
 
   // Current approval step
+  /** Param. */
   private ApprovalStep nextApprovalStep;
+  /** Param. */
   private ApprovalPartition nextApprovalStepPartition;
+  /** Param. */
   private int currentStepOrdinal;
+  /** Param. */
   private final Collection<String> nextStepAllowedRoles;
 
   // Previous approval steps that are visible to the admin
+  /** Param. */
   private final List<RaApprovalStepInfo> previousApprovalSteps;
 
+  /** Param. */
   private final Map<Integer, Integer> stepToOrdinalMap;
 
   private static class StepPartitionId {
-    final int stepId;
-    final int partitionId;
+      /** Param. */
+    private final int stepId;
+    /** Param. */
+    private final int partitionId;
 
-    StepPartitionId(final int stepId, final int partitionId) {
-      this.stepId = stepId;
-      this.partitionId = partitionId;
+    /**
+     * @param astepId Step
+     * @param apartitionId Partition
+     */
+    StepPartitionId(final int astepId, final int apartitionId) {
+      this.stepId = astepId;
+      this.partitionId = apartitionId;
     }
 
     @Override
@@ -108,49 +137,60 @@ public class RaApprovalRequestInfo implements Serializable {
     }
   }
 
+  /**
+   * @param anauthenticationToken Token
+   * @param acaName Name
+   * @param anendEntityProfileName Profile
+   * @param anendEntityProfile Profile
+   * @param acertificateProfileName Name
+   * @param anapproval Approval
+   * @param therequestData Data
+   * @param theeditableData Data
+   */
   public RaApprovalRequestInfo(
-      final AuthenticationToken authenticationToken,
-      final String caName,
-      final String endEntityProfileName,
-      final EndEntityProfile endEntityProfile,
-      final String certificateProfileName,
-      final ApprovalDataVO approval,
-      final List<ApprovalDataText> requestData,
-      final RaEditableRequestData editableData) {
-    id = approval.getId();
-    this.caName = caName;
+      final AuthenticationToken anauthenticationToken,
+      final String acaName,
+      final String anendEntityProfileName,
+      final EndEntityProfile anendEntityProfile,
+      final String acertificateProfileName,
+      final ApprovalDataVO anapproval,
+      final List<ApprovalDataText> therequestData,
+      final RaEditableRequestData theeditableData) {
+    id = anapproval.getId();
+    this.caName = acaName;
     final Certificate requesterCert =
-        approval.getApprovalRequest().getRequestAdminCert();
+        anapproval.getApprovalRequest().getRequestAdminCert();
     requesterSubjectDN =
         requesterCert != null ? CertTools.getSubjectDN(requesterCert) : null;
-    status = approval.getStatus();
-    this.approvalData = approval;
-    this.requestData = requestData;
-    this.endEntityProfile = endEntityProfile;
-    this.endEntityProfileName = endEntityProfileName;
-    this.certificateProfileName = certificateProfileName;
-    this.editableData = editableData;
-    this.approvalProfile = approval.getApprovalProfile();
-    this.maxExtensionTime = approval.getApprovalProfile().getMaxExtensionTime();
+    status = anapproval.getStatus();
+    this.approvalData = anapproval;
+    this.requestData = therequestData;
+    this.endEntityProfile = anendEntityProfile;
+    this.endEntityProfileName = anendEntityProfileName;
+    this.certificateProfileName = acertificateProfileName;
+    this.editableData = theeditableData;
+    this.approvalProfile = anapproval.getApprovalProfile();
+    this.maxExtensionTime = anapproval.getApprovalProfile()
+            .getMaxExtensionTime();
 
     final AuthenticationToken requestAdmin =
-        approval.getApprovalRequest().getRequestAdmin();
+        anapproval.getApprovalRequest().getRequestAdmin();
     requestedByMe =
-        requestAdmin != null && requestAdmin.equals(authenticationToken);
+        requestAdmin != null && requestAdmin.equals(anauthenticationToken);
     lastEditedByMe =
-        approval.getApprovalRequest().isEditedByMe(authenticationToken);
-    editedByAdmins = approval.getApprovalRequest().getEditedByAdmins();
+        anapproval.getApprovalRequest().isEditedByMe(anauthenticationToken);
+    editedByAdmins = anapproval.getApprovalRequest().getEditedByAdmins();
 
     // Check which partitions have been approved, and if approved by self
     approvedByMe = false;
     final Set<StepPartitionId> approvedSet = new HashSet<>();
     final Set<StepPartitionId> approvedByMeSet = new HashSet<>();
-    for (final Approval prevApproval : approval.getApprovals()) {
+    for (final Approval prevApproval : anapproval.getApprovals()) {
       final StepPartitionId spId =
           new StepPartitionId(
               prevApproval.getStepId(), prevApproval.getPartitionId());
       approvedSet.add(spId);
-      if (authenticationToken.equals(prevApproval.getAdmin())) {
+      if (anauthenticationToken.equals(prevApproval.getAdmin())) {
         approvedByMe = true;
         approvedByMeSet.add(spId);
       }
@@ -160,12 +200,13 @@ public class RaApprovalRequestInfo implements Serializable {
     // any admin yet
     editable =
         (status == ApprovalDataVO.STATUS_WAITINGFORAPPROVAL
-            && approval.getApprovals().isEmpty());
+            && anapproval.getApprovals().isEmpty());
 
     // Next steps
     final ApprovalStep nextStep;
     try {
-      nextStep = approvalProfile.getStepBeingEvaluated(approval.getApprovals());
+      nextStep = approvalProfile.getStepBeingEvaluated(
+              anapproval.getApprovals());
     } catch (AuthenticationFailedException e) {
       throw new IllegalStateException(e);
     }
@@ -175,18 +216,18 @@ public class RaApprovalRequestInfo implements Serializable {
     if (nextStep != null
         && status == ApprovalDataVO.STATUS_WAITINGFORAPPROVAL
         && (!lastEditedByMe
-            || approval.getApprovalProfile().getAllowSelfEdit())) {
+            || anapproval.getApprovalProfile().getAllowSelfEdit())) {
       final Map<Integer, ApprovalPartition> partitions =
           nextStep.getPartitions();
       for (ApprovalPartition partition : partitions.values()) {
         try {
           if (approvalProfile.canApprovePartition(
-              authenticationToken, partition)) {
+              anauthenticationToken, partition)) {
             nextApprovalStep = nextStep;
             nextApprovalStepPartition = partition;
             break;
           } else if (approvalProfile.canViewPartition(
-              authenticationToken, partition)) {
+              anauthenticationToken, partition)) {
             isVisibleByMe = true;
           }
         } catch (AuthenticationFailedException e) {
@@ -198,18 +239,18 @@ public class RaApprovalRequestInfo implements Serializable {
     try {
       currentStepOrdinal =
           approvalProfile.getOrdinalOfStepBeingEvaluated(
-              approval.getApprovals());
+              anapproval.getApprovals());
     } catch (AuthenticationFailedException e) {
       // Should never happen
-      log.debug("Exception occurred while getting current step", e);
+      LOG.debug("Exception occurred while getting current step", e);
       currentStepOrdinal = -1;
     }
 
     // Determine which admins can approve the next step (ECA-5123)
     nextStepAllowedRoles = new HashSet<>();
     if (nextStep != null) {
-      for (final ApprovalPartition partition :
-          nextStep.getPartitions().values()) {
+      for (final ApprovalPartition partition
+          : nextStep.getPartitions().values()) {
         nextStepAllowedRoles.addAll(
             approvalProfile.getAllowedRoleNames(partition));
       }
@@ -232,7 +273,7 @@ public class RaApprovalRequestInfo implements Serializable {
               new StepPartitionId(stepId, partition.getPartitionIdentifier());
           if (approvedByMeSet.contains(spId)
               || (approvalProfile.canViewPartition(
-                      authenticationToken, partition)
+                      anauthenticationToken, partition)
                   && approvedSet.contains(spId))) {
             partitions.add(partition);
           }
@@ -253,50 +294,86 @@ public class RaApprovalRequestInfo implements Serializable {
     }
   }
 
+  /**
+   * @return ID
+   */
   public int getId() {
     return id;
   }
 
+  /**
+   * @return CA
+   */
   public String getCaName() {
     return caName;
   }
 
+  /**
+   * @return Status
+   */
   public int getStatus() {
     return status;
   }
 
+  /**
+   * @return DN
+   */
   public String getRequesterSubjectDN() {
     return requesterSubjectDN;
   }
 
+  /**
+   * @return Data
+   */
   public ApprovalDataVO getApprovalData() {
     return approvalData;
   }
 
+  /**
+   * @return Request
+   */
   public ApprovalRequest getApprovalRequest() {
     return approvalData.getApprovalRequest();
   }
 
+  /**
+   * @return Profile
+   */
   public EndEntityProfile getEndEntityProfile() {
     return endEntityProfile;
   }
 
+  /**
+   * @return Name
+   */
   public String getEndEntityProfileName() {
     return endEntityProfileName;
   }
 
+  /**
+   * @return Name
+   */
   public String getCertificateProfileName() {
     return certificateProfileName;
   }
 
+  /**
+   * @return Data
+   */
   public List<ApprovalDataText> getRequestData() {
     return requestData;
   }
 
+  /**
+   * @return Data
+   */
   public RaEditableRequestData getEditableData() {
     return editableData.clone();
   }
 
+  /**
+   * @return Profile
+   */
   public ApprovalProfile getApprovalProfile() {
     return approvalProfile;
   }
@@ -310,40 +387,64 @@ public class RaApprovalRequestInfo implements Serializable {
     return maxExtensionTime;
   }
 
+  /**
+   * @return Step
+   */
   public ApprovalStep getNextApprovalStep() {
     return nextApprovalStep;
   }
 
+  /**
+   * @return Partition
+   */
   public ApprovalPartition getNextApprovalStepPartition() {
     return nextApprovalStepPartition;
   }
 
+  /**
+   * @return Steps
+   */
   public List<RaApprovalStepInfo> getPreviousApprovalSteps() {
     return previousApprovalSteps;
   }
 
+  /**
+   * @return Map
+   */
   public Map<Integer, Integer> getStepIdToOrdinalMap() {
     return stepToOrdinalMap;
   }
 
+  /**
+   * @return Count
+   */
   public int getStepCount() {
     return stepToOrdinalMap.size();
   }
 
+  /**
+   * @return Step
+   */
   public int getCurrentStepOrdinal() {
     return currentStepOrdinal;
   }
 
+  /**
+   * @return Roles
+   */
   public Collection<String> getNextStepAllowedRoles() {
     return nextStepAllowedRoles;
   }
 
+  /**
+   * @return Bool
+   */
   public boolean isVisibleToMe() {
     return isVisibleByMe;
   }
 
   /**
-   * Is waiting for the given admin to do something
+   * Is waiting for the given admin to do something.
    *
    * @param admin admin
    * @return fail
@@ -372,7 +473,7 @@ public class RaApprovalRequestInfo implements Serializable {
   }
 
   /**
-   * Is waiting for someone else to do something
+   * Is waiting for someone else to do something.
    *
    * @param admin admin
    * @return fail
@@ -381,10 +482,17 @@ public class RaApprovalRequestInfo implements Serializable {
     return !isWaitingForMe(admin) && !isProcessed();
   }
 
+  /**
+   * @param now Date
+   * @return Bool
+   */
   public boolean isExpired(final Date now) {
     return approvalData.getExpireDate().before(now) && !isProcessed();
   }
 
+  /**
+   * @return Bool
+   */
   public boolean isProcessed() {
     return status != ApprovalDataVO.STATUS_WAITINGFORAPPROVAL
         && status != ApprovalDataVO.STATUS_APPROVED
@@ -392,34 +500,57 @@ public class RaApprovalRequestInfo implements Serializable {
         && status != ApprovalDataVO.STATUS_EXPIREDANDNOTIFIED;
   }
 
+  /**
+   * @param now Date
+   * @return Bool
+   */
   public boolean isWaitingForFirstApproval(final Date now) {
     return !isProcessed()
         && !isExpired(now)
         && approvalData.getApprovals().isEmpty();
   }
 
+  /**
+   * @param now Date
+   * @return Bool
+   */
   public boolean isInProgress(final Date now) {
     return !isProcessed()
         && !isExpired(now)
         && !approvalData.getApprovals().isEmpty();
   }
 
+  /**
+   * @return bool
+   */
   public boolean isRequestedByMe() {
     return requestedByMe;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isApprovedByMe() {
     return approvedByMe;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isEditedByMe() {
     return lastEditedByMe;
   }
 
+  /**
+   * @return Bool
+   */
   public boolean isEditable() {
     return editable;
   }
 
+  /**
+   * @return Admins
+   */
   public List<TimeAndAdmin> getEditedByAdmin() {
     return editedByAdmins;
   }

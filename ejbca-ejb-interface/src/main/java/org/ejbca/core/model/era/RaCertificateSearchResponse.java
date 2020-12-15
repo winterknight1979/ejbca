@@ -29,25 +29,42 @@ public class RaCertificateSearchResponse implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
+  /** Param. */
   private List<CertificateDataWrapper> cdws = new ArrayList<>();
+  /** Param. */
   private boolean mightHaveMoreResults = false;
 
+  /**
+   * @return certs
+   */
   public List<CertificateDataWrapper> getCdws() {
     return cdws;
   }
 
-  public void setCdws(final List<CertificateDataWrapper> cdws) {
-    this.cdws = cdws;
+  /**
+   * @param thecdws Certs
+   */
+  public void setCdws(final List<CertificateDataWrapper> thecdws) {
+    this.cdws = thecdws;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isMightHaveMoreResults() {
     return mightHaveMoreResults;
   }
 
-  public void setMightHaveMoreResults(final boolean mightHaveMoreResults) {
-    this.mightHaveMoreResults = mightHaveMoreResults;
+  /**
+   * @param ismightHaveMoreResults bool
+   */
+  public void setMightHaveMoreResults(final boolean ismightHaveMoreResults) {
+    this.mightHaveMoreResults = ismightHaveMoreResults;
   }
 
+  /**
+   * @param other Response t be merged
+   */
   public void merge(final RaCertificateSearchResponse other) {
     final Map<String, CertificateDataWrapper> cdwMap = new HashMap<>();
     for (final CertificateDataWrapper cdw : cdws) {

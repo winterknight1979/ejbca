@@ -14,30 +14,48 @@ package org.ejbca.statedump.ejb;
 
 /**
  * Represents a change of CA Subject DN (and CA Id also, which is computed from
- * the Subject DN)
+ * the Subject DN).
  *
  * @version $Id: StatedumpCAIdChange.java 22675 2016-01-29 16:07:49Z samuellb $
  */
 public final class StatedumpCAIdChange {
 
-  private final int fromId, toId;
+      /** Param. */
+  private final int fromId;
+  /** Param. */
+  private final int toId;
+  /** Param. */
   private final String toSubjectDN;
 
+  /**
+   * @param afromId ID
+   * @param atoId ID
+   * @param atoSubjectDN DN
+   */
   public StatedumpCAIdChange(
-      final int fromId, final int toId, final String toSubjectDN) {
-    this.fromId = fromId;
-    this.toId = toId;
-    this.toSubjectDN = toSubjectDN;
+      final int afromId, final int atoId, final String atoSubjectDN) {
+    this.fromId = afromId;
+    this.toId = atoId;
+    this.toSubjectDN = atoSubjectDN;
   }
 
+  /**
+   * @return ID
+   */
   public int getFromId() {
     return fromId;
   }
 
+  /**
+   * @return ID
+   */
   public int getToId() {
     return toId;
   }
 
+  /**
+   * @return DN
+   */
   public String getToSubjectDN() {
     return toSubjectDN;
   }

@@ -19,4 +19,4 @@ import javax.ejb.Remote;
  *     $
  */
 @Remote
-public interface StatedumpSessionRemote extends StatedumpSession {}
+public interface StatedumpSessionRemote extends StatedumpSession { }

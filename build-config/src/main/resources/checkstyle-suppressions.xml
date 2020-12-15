@@ -339,5 +339,12 @@
 		files="KeyStoreCreateSessionRemote.java" lines="117" />
 	<suppress checks="InterfaceIsTypeCheck"
 		files="UnidfnrSession.java" lines="20" /><!-- Must be an IF for inheritance reasons -->
+	<suppress checks="ParameterNumberCheck"
+		files="MultiGroupPublisher.java" lines="161" />
+	<suppress checks="ParameterNumberCheck"
+		files="RaApprovalRequestInfo" lines="150" />
+	<suppress checks="UnusedImportsCheck"
+		files="RaMasterApi.java" lines="53,68,72,98" /> <!-- Used in JDOC -->
+	
 	
 </suppressions>

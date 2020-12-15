@@ -27,19 +27,31 @@ public final class RaApprovalStepInfo implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
+  /** Param. */
   private final int stepId;
+  /** Param. */
   private final List<ApprovalPartition> partitions;
 
+  /**
+   * @param astepId ID
+   * @param thepartitions Partitions
+   */
   public RaApprovalStepInfo(
-      final int stepId, final List<ApprovalPartition> partitions) {
-    this.stepId = stepId;
-    this.partitions = partitions;
+      final int astepId, final List<ApprovalPartition> thepartitions) {
+    this.stepId = astepId;
+    this.partitions = thepartitions;
   }
 
+  /**
+   * @return Step
+   */
   public int getStepId() {
     return stepId;
   }
 
+  /**
+   * @return Partitions
+   */
   public List<ApprovalPartition> getPartitions() {
     return partitions;
   }

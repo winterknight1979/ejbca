@@ -81,13 +81,18 @@ import org.ejbca.statedump.ejb.StatedumpSessionLocal;
  */
 public class EjbLocalHelper implements EjbBridgeSessionLocal {
 
-  private static final Logger log = Logger.getLogger(EjbLocalHelper.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(EjbLocalHelper.class);
+  /** Param. */
   private static Context initialContext = null;
+  /** Param. */
   private static ReentrantLock initialContextLock = new ReentrantLock(true);
   // Static is more performant, but a failed JEE5 lookup from one module would
   // block all other JEE5 lookups
+  /** Param. */
   private /*static*/ boolean useEjb31GlobalJndiName = false;
 
+  /** Param. */
   public static final String DEFAULT_MODULE = "ejbca-ejb";
 
   private static Context getInitialContext() throws NamingException {
@@ -122,12 +127,13 @@ public class EjbLocalHelper implements EjbBridgeSessionLocal {
       // Let's try to use the EJB 3.1 syntax for a lookup. For example, JBoss
       // 6.0.0.FINAL supports this from our CMP TCP threads, but ignores the
       // ejb-ref from web.xml..
-      // java:global[/<app-name>]/<module-name>/<bean-name>[!<fully-qualified-interface-name>]
+      // java:global[/<app-name>]/<module-name>
+      //    /<bean-name>[!<fully-qualified-interface-name>]
       useEjb31GlobalJndiName =
           true; // So let's not try what we now know is a failing method ever
                 // again..
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Failed JEE5 version of EjbBridgeSessionLocal JNDI lookup. All"
                 + " future lookups will JEE6 version lookups.");
       }
@@ -140,7 +146,8 @@ public class EjbLocalHelper implements EjbBridgeSessionLocal {
                     .lookup(
                         "java:global/ejbca/"
                             + DEFAULT_MODULE
-                            + "/EjbBridgeSessionBean!org.ejbca.core.ejb.EjbBridgeSessionLocal");
+                            + "/EjbBridgeSessionBean!org.ejbca."
+                            + "core.ejb.EjbBridgeSessionLocal");
       }
     } catch (NamingException e) {
       throw new LocalLookupException("Cannot lookup EjbBridgeSessionLocal.", e);
@@ -424,7 +431,8 @@ public class EjbLocalHelper implements EjbBridgeSessionLocal {
               .lookup(
                   "java:global/ejbca/"
                       + StatedumpSession.STATEDUMP_MODULE
-                      + "/StatedumpSessionBean!org.ejbca.statedump.ejb.StatedumpSessionLocal");
+                      + "/StatedumpSessionBean!org.ejbca."
+                      + "statedump.ejb.StatedumpSessionLocal");
     } catch (NamingException e) {
       return null; // this is the common case, since statedump is an internal
                    // tool and is not included with EJBCA
@@ -455,7 +463,8 @@ public class EjbLocalHelper implements EjbBridgeSessionLocal {
               .lookup(
                   "java:global/ejbca/"
                       + UnidfnrSession.UNIDFNR_MODULE
-                      + "/UnidfnrSessionBean!org.ejbca.core.ejb.unidfnr.UnidfnrSessionLocal");
+                      + "/UnidfnrSessionBean!org.ejbca.core."
+                      + "ejb.unidfnr.UnidfnrSessionLocal");
     } catch (NamingException e) {
       return null; // this is the common case, since unidfnr is an special
                    // module and is not included with EJBCA

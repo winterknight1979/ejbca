@@ -29,28 +29,43 @@ public class RaEndEntitySearchRequest
   private static final long serialVersionUID = 1L;
   // private static final Logger log =
   // Logger.getLogger(RaEndEntitySearchRequest.class);
-  public static int DEFAULT_MAX_RESULTS = 25;
+  /** Param. */
+  public static final int DEFAULT_MAX_RESULTS = 25;
 
+  /** Param. */
   private int maxResults = DEFAULT_MAX_RESULTS;
+  /** Param. */
   private List<Integer> eepIds = new ArrayList<>();
+  /** Param. */
   private List<Integer> cpIds = new ArrayList<>();
+  /** Param. */
   private List<Integer> caIds = new ArrayList<>();
+  /** Param. */
   private String subjectDnSearchString = "";
+  /** Param. */
   private boolean subjectDnSearchExact = false;
+  /** Param. */
   private String subjectAnSearchString = "";
+  /** Param. */
   private boolean subjectAnSearchExact = false;
+  /** Param. */
   private String usernameSearchString = "";
+  /** Param. */
   private boolean usernameSearchExact = false;
+  /** Param. */
   private long modifiedAfter = 0L;
+  /** Param. */
   private long modifiedBefore = Long.MAX_VALUE;
+  /** Param. */
   private List<Integer> statuses = new ArrayList<>();
+  /** Param. */
   private int pageNumber = 0;
 
-  /** Default constructor */
-  public RaEndEntitySearchRequest() {}
+  /** Default constructor. */
+  public RaEndEntitySearchRequest() { }
 
   /**
-   * Copy constructor
+   * Copy constructor.
    *
    * @param request req
    */
@@ -71,132 +86,227 @@ public class RaEndEntitySearchRequest
     statuses.addAll(request.statuses);
   }
 
+  /**
+   * @return max
+   */
   public int getMaxResults() {
     return maxResults;
   }
 
+  /**
+   * @return page
+   */
   public int getPageNumber() {
     return pageNumber;
   }
 
-  public void setPageNumber(final int pageNumber) {
-    this.pageNumber = pageNumber;
+  /**
+   * @param apageNumber page
+   */
+  public void setPageNumber(final int apageNumber) {
+    this.pageNumber = apageNumber;
   }
 
-  public void setMaxResults(final int maxResults) {
-    this.maxResults = maxResults;
+  /**
+   * @param amaxResults max
+   */
+  public void setMaxResults(final int amaxResults) {
+    this.maxResults = amaxResults;
   }
 
+  /**
+   * @return IDs
+   */
   public List<Integer> getEepIds() {
     return eepIds;
   }
 
-  public void setEepIds(final List<Integer> eepIds) {
-    this.eepIds = eepIds;
+  /**
+   * @param theeepIds IDs
+   */
+  public void setEepIds(final List<Integer> theeepIds) {
+    this.eepIds = theeepIds;
   }
 
+  /**
+   * @return IDs
+   */
   public List<Integer> getCpIds() {
     return cpIds;
   }
 
-  public void setCpIds(final List<Integer> cpIds) {
-    this.cpIds = cpIds;
+  /**
+   * @param thecpIds IDs
+   */
+  public void setCpIds(final List<Integer> thecpIds) {
+    this.cpIds = thecpIds;
   }
 
+  /**
+   * @return IDs
+   */
   public List<Integer> getCaIds() {
     return caIds;
   }
 
-  public void setCaIds(final List<Integer> caIds) {
-    this.caIds = caIds;
+
+  /**
+   * @param thecaIds IDs
+   */
+  public void setCaIds(final List<Integer> thecaIds) {
+    this.caIds = thecaIds;
   }
 
+  /**
+   * @return Search
+   */
   public String getSubjectDnSearchString() {
     return subjectDnSearchString;
   }
 
-  public void setSubjectDnSearchString(final String subjectDnSearchString) {
-    this.subjectDnSearchString = subjectDnSearchString;
+  /**
+   * @param asubjectDnSearchString search
+   */
+  public void setSubjectDnSearchString(final String asubjectDnSearchString) {
+    this.subjectDnSearchString = asubjectDnSearchString;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isSubjectDnSearchExact() {
     return subjectDnSearchExact;
   }
 
-  public void setSubjectDnSearchExact(final boolean subjectDnSearchExact) {
-    this.subjectDnSearchExact = subjectDnSearchExact;
+  /**
+   * @param issubjectDnSearchExact bool
+   */
+  public void setSubjectDnSearchExact(final boolean issubjectDnSearchExact) {
+    this.subjectDnSearchExact = issubjectDnSearchExact;
   }
 
+  /**
+   * @return search
+   */
   public String getSubjectAnSearchString() {
     return subjectAnSearchString;
   }
 
-  public void setSubjectAnSearchString(final String subjectAnSearchString) {
-    this.subjectAnSearchString = subjectAnSearchString;
+  /**
+   * @param asubjectAnSearchString search
+   */
+  public void setSubjectAnSearchString(final String asubjectAnSearchString) {
+    this.subjectAnSearchString = asubjectAnSearchString;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isSubjectAnSearchExact() {
     return subjectAnSearchExact;
   }
 
-  public void setSubjectAnSearchExact(final boolean subjectAnSearchExact) {
-    this.subjectAnSearchExact = subjectAnSearchExact;
+  /**
+   * @param issubjectAnSearchExact bool
+   */
+  public void setSubjectAnSearchExact(final boolean issubjectAnSearchExact) {
+    this.subjectAnSearchExact = issubjectAnSearchExact;
   }
 
+  /**
+   * @return String
+   */
   public String getUsernameSearchString() {
     return usernameSearchString;
   }
 
-  public void setUsernameSearchString(final String usernameSearchString) {
-    this.usernameSearchString = usernameSearchString;
+  /**
+   * @param ausernameSearchString String
+   */
+  public void setUsernameSearchString(final String ausernameSearchString) {
+    this.usernameSearchString = ausernameSearchString;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isUsernameSearchExact() {
     return usernameSearchExact;
   }
 
-  public void setUsernameSearchExact(final boolean usernameSearchExact) {
-    this.usernameSearchExact = usernameSearchExact;
+  /**
+   * @param isusernameSearchExact bool
+   */
+  public void setUsernameSearchExact(final boolean isusernameSearchExact) {
+    this.usernameSearchExact = isusernameSearchExact;
   }
 
+  /**
+   * @return long
+   */
   public long getModifiedAfter() {
     return modifiedAfter;
   }
 
-  public void setModifiedAfter(final long modifiedAfter) {
-    this.modifiedAfter = modifiedAfter;
+  /**
+   * @param amodifiedAfter long
+   */
+  public void setModifiedAfter(final long amodifiedAfter) {
+    this.modifiedAfter = amodifiedAfter;
   }
 
+  /**
+   * @return Bool
+   */
   public boolean isModifiedAfterUsed() {
     return modifiedAfter > 0L;
   }
 
+  /** Reset.
+   */
   public void resetModifiedAfter() {
     this.modifiedAfter = 0L;
   }
 
+  /**
+   * @return long
+   */
   public long getModifiedBefore() {
     return modifiedBefore;
   }
 
-  public void setModifiedBefore(final long modifiedBefore) {
-    this.modifiedBefore = modifiedBefore;
+  /**
+   * @param amodifiedBefore long
+   */
+  public void setModifiedBefore(final long amodifiedBefore) {
+    this.modifiedBefore = amodifiedBefore;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isModifiedBeforeUsed() {
     return modifiedBefore < Long.MAX_VALUE;
   }
 
+  /** Reset.
+   */
   public void resetModifiedBefore() {
     this.modifiedBefore = Long.MAX_VALUE;
   }
 
+  /**
+   * @return statuses
+   */
   public List<Integer> getStatuses() {
     return statuses;
   }
 
-  public void setStatuses(final List<Integer> statuses) {
-    this.statuses = statuses;
+  /**
+   * @param thestatuses statuses
+   */
+  public void setStatuses(final List<Integer> thestatuses) {
+    this.statuses = thestatuses;
   }
 
   @Override

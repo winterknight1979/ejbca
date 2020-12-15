@@ -25,24 +25,42 @@ public class KeyToValueHolder<T extends Serializable> implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
+  /** Param. */
   private final int id;
+  /** Param. */
   private final String name;
+  /** Param. */
   private final T value;
 
-  public KeyToValueHolder(final Integer id, final String name, final T value) {
-    this.id = id;
-    this.name = name;
-    this.value = value;
+  /**
+   * @param anid ID
+   * @param aname Name
+   * @param avalue Value
+   */
+  public KeyToValueHolder(
+          final Integer anid, final String aname, final T avalue) {
+    this.id = anid;
+    this.name = aname;
+    this.value = avalue;
   }
 
+  /**
+   * @return OD
+   */
   public int getId() {
     return id;
   }
 
+  /**
+   * @return Name
+   */
   public String getName() {
     return name;
   }
 
+  /**
+   * @return Value
+   */
   public T getValue() {
     return value;
   }

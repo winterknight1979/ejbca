@@ -21,4 +21,4 @@ import javax.ejb.Remote;
  */
 @Remote
 public interface CmpMessageDispatcherSessionRemote
-    extends CmpMessageDispatcherSession {}
+    extends CmpMessageDispatcherSession { }

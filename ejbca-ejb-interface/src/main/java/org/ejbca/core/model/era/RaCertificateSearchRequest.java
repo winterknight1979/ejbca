@@ -30,35 +30,57 @@ public class RaCertificateSearchRequest
   private static final long serialVersionUID = 1L;
   // private static final Logger log =
   // Logger.getLogger(RaCertificateSearchRequest.class);
+  /** Param. */
   public static final int DEFAULT_MAX_RESULTS = 25;
 
+  /** Param. */
   private int maxResults = DEFAULT_MAX_RESULTS;
+  /** Param. */
   private int pageNumber = 0;
+  /** Param. */
   private List<Integer> eepIds = new ArrayList<>();
+  /** Param. */
   private List<Integer> cpIds = new ArrayList<>();
+  /** Param. */
   private List<Integer> caIds = new ArrayList<>();
+  /** Param. */
   private String subjectDnSearchString = "";
+  /** Param. */
   private boolean subjectDnSearchExact = false;
+  /** Param. */
   private String subjectAnSearchString = "";
+  /** Param. */
   private boolean subjectAnSearchExact = false;
+  /** Param. */
   private String usernameSearchString = "";
+  /** Param. */
   private boolean usernameSearchExact = false;
+  /** Param. */
   private String serialNumberSearchStringFromDec = "";
+  /** Param. */
   private String serialNumberSearchStringFromHex = "";
+  /** Param. */
   private long issuedAfter = 0L;
+  /** Param. */
   private long issuedBefore = Long.MAX_VALUE;
+  /** Param. */
   private long expiresAfter = 0L;
+  /** Param. */
   private long expiresBefore = Long.MAX_VALUE;
+  /** Param. */
   private long revokedAfter = 0L;
+  /** Param. */
   private long revokedBefore = Long.MAX_VALUE;
+  /** Param. */
   private List<Integer> statuses = new ArrayList<>();
+  /** Param. */
   private List<Integer> revocationReasons = new ArrayList<>();
 
-  /** Default constructor */
-  public RaCertificateSearchRequest() {}
+  /** Default constructor. */
+  public RaCertificateSearchRequest() { }
 
   /**
-   * Copy constructor
+   * Copy constructor.
    *
    * @param request req
    */
@@ -86,98 +108,173 @@ public class RaCertificateSearchRequest
     revocationReasons.addAll(request.revocationReasons);
   }
 
+  /**
+   * @return max
+   */
   public int getMaxResults() {
     return maxResults;
   }
 
+  /**
+   * @return page
+   */
   public int getPageNumber() {
     return pageNumber;
   }
 
-  public void setPageNumber(final int pageNumber) {
-    this.pageNumber = pageNumber;
+  /**
+   * @param apageNumber page
+   */
+  public void setPageNumber(final int apageNumber) {
+    this.pageNumber = apageNumber;
   }
 
-  public void setMaxResults(final int maxResults) {
-    this.maxResults = maxResults;
+
+  /**
+   * @param amaxResults Max
+   */
+  public void setMaxResults(final int amaxResults) {
+    this.maxResults = amaxResults;
   }
 
+  /**
+   * Reset.
+   */
   public void resetMaxResults() {
     this.maxResults = DEFAULT_MAX_RESULTS;
   }
 
+  /**
+   * @return IDs
+   */
   public List<Integer> getEepIds() {
     return eepIds;
   }
 
-  public void setEepIds(final List<Integer> eepIds) {
-    this.eepIds = eepIds;
+
+  /**
+   * @param aneepIds IDs
+   */
+  public void setEepIds(final List<Integer> aneepIds) {
+    this.eepIds = aneepIds;
   }
 
+  /**
+   * @return IDs
+   */
   public List<Integer> getCpIds() {
     return cpIds;
   }
 
-  public void setCpIds(final List<Integer> cpIds) {
-    this.cpIds = cpIds;
+  /**
+   * @param thecpIds IDs
+   */
+  public void setCpIds(final List<Integer> thecpIds) {
+    this.cpIds = thecpIds;
   }
 
+  /**
+   * @return IDs
+   */
   public List<Integer> getCaIds() {
     return caIds;
   }
 
-  public void setCaIds(final List<Integer> caIds) {
-    this.caIds = caIds;
+  /**
+   * @param thecaIds IDs
+   */
+  public void setCaIds(final List<Integer> thecaIds) {
+    this.caIds = thecaIds;
   }
 
+  /**
+   * @return search
+   */
   public String getSubjectDnSearchString() {
     return subjectDnSearchString;
   }
 
-  public void setSubjectDnSearchString(final String subjectDnSearchString) {
-    this.subjectDnSearchString = subjectDnSearchString;
+  /**
+   * @param asubjectDnSearchString search
+   */
+  public void setSubjectDnSearchString(final String asubjectDnSearchString) {
+    this.subjectDnSearchString = asubjectDnSearchString;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isSubjectDnSearchExact() {
     return subjectDnSearchExact;
   }
 
-  public void setSubjectDnSearchExact(final boolean subjectDnSearchExact) {
-    this.subjectDnSearchExact = subjectDnSearchExact;
+  /**
+   * @param issubjectDnSearchExact bool
+   */
+  public void setSubjectDnSearchExact(final boolean issubjectDnSearchExact) {
+    this.subjectDnSearchExact = issubjectDnSearchExact;
   }
 
+  /**
+   * @return search
+   */
   public String getSubjectAnSearchString() {
     return subjectAnSearchString;
   }
 
-  public void setSubjectAnSearchString(final String subjectAnSearchString) {
-    this.subjectAnSearchString = subjectAnSearchString;
+  /**
+   * @param asubjectAnSearchString search
+   */
+  public void setSubjectAnSearchString(final String asubjectAnSearchString) {
+    this.subjectAnSearchString = asubjectAnSearchString;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isSubjectAnSearchExact() {
     return subjectAnSearchExact;
   }
 
-  public void setSubjectAnSearchExact(final boolean subjectAnSearchExact) {
-    this.subjectAnSearchExact = subjectAnSearchExact;
+  /**
+   * @param issubjectAnSearchExact bool
+   */
+  public void setSubjectAnSearchExact(final boolean issubjectAnSearchExact) {
+    this.subjectAnSearchExact = issubjectAnSearchExact;
   }
 
+
+  /**
+   * @return search
+   */
   public String getUsernameSearchString() {
     return usernameSearchString;
   }
 
-  public void setUsernameSearchString(final String usernameSearchString) {
-    this.usernameSearchString = usernameSearchString;
+  /**
+   * @param ausernameSearchString search
+   */
+  public void setUsernameSearchString(final String ausernameSearchString) {
+    this.usernameSearchString = ausernameSearchString;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isUsernameSearchExact() {
     return usernameSearchExact;
   }
 
-  public void setUsernameSearchExact(final boolean usernameSearchExact) {
-    this.usernameSearchExact = usernameSearchExact;
+  /**
+   * @param isusernameSearchExact bool
+   */
+  public void setUsernameSearchExact(final boolean isusernameSearchExact) {
+    this.usernameSearchExact = isusernameSearchExact;
   }
 
+  /**
+   * @return searchn
+   */
   public String getSerialNumberSearchStringFromDec() {
     return serialNumberSearchStringFromDec;
   }
@@ -185,22 +282,25 @@ public class RaCertificateSearchRequest
    * Set the serialNumber search string as a decimal String if it has potential
    * to be a decimal certificate serial number.
    *
-   * @param serialNumberSearchStringFromDec sn
+   * @param aserialNumberSearchStringFromDec sn
    */
   public void setSerialNumberSearchStringFromDec(
-      final String serialNumberSearchStringFromDec) {
+      final String aserialNumberSearchStringFromDec) {
     // Assuming 8 octets and some leading zeroes
     String value = "";
-    if (serialNumberSearchStringFromDec.length() >= 16) {
+    if (aserialNumberSearchStringFromDec.length() >= 16) {
       try {
         value =
-            new BigInteger(serialNumberSearchStringFromDec, 10).toString(10);
+            new BigInteger(aserialNumberSearchStringFromDec, 10).toString(10);
       } catch (NumberFormatException e) {
       }
     }
     this.serialNumberSearchStringFromDec = value;
   }
 
+  /**
+   * @return search
+   */
   public String getSerialNumberSearchStringFromHex() {
     return serialNumberSearchStringFromHex;
   }
@@ -208,132 +308,208 @@ public class RaCertificateSearchRequest
    * Set the serialNumber search string as a decimal String if it has potential
    * to be a hex certificate serial number.
    *
-   * @param serialNumberSearchStringFromHex sn
+   * @param aserialNumberSearchStringFromHex sn
    */
   public void setSerialNumberSearchStringFromHex(
-      final String serialNumberSearchStringFromHex) {
+      final String aserialNumberSearchStringFromHex) {
     // Assuming 8 octets and some leading zeroes
     String value = "";
-    if (serialNumberSearchStringFromHex.length() >= 14) {
+    final int maxLen = 14;
+    if (aserialNumberSearchStringFromHex.length() >= maxLen) {
       try {
         value =
-            new BigInteger(serialNumberSearchStringFromHex, 16).toString(10);
+            new BigInteger(aserialNumberSearchStringFromHex, 16).toString(10);
       } catch (NumberFormatException e) {
       }
     }
     this.serialNumberSearchStringFromHex = value;
   }
 
+  /**
+   * @return long
+   */
   public long getIssuedAfter() {
     return issuedAfter;
   }
 
-  public void setIssuedAfter(final long issuedAfter) {
-    this.issuedAfter = issuedAfter;
+  /**
+   * @param anissuedAfter long
+   */
+  public void setIssuedAfter(final long anissuedAfter) {
+    this.issuedAfter = anissuedAfter;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isIssuedAfterUsed() {
     return issuedAfter > 0L;
   }
 
+  /** Reset. */
   public void resetIssuedAfter() {
     this.issuedAfter = 0L;
   }
 
+  /**
+   * @return long
+   */
   public long getIssuedBefore() {
     return issuedBefore;
   }
 
-  public void setIssuedBefore(final long issuedBefore) {
-    this.issuedBefore = issuedBefore;
+  /**
+   * @param anissuedBefore long
+   */
+  public void setIssuedBefore(final long anissuedBefore) {
+    this.issuedBefore = anissuedBefore;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isIssuedBeforeUsed() {
     return issuedBefore < Long.MAX_VALUE;
   }
 
+  /**
+   * Reset.
+   */
   public void resetIssuedBefore() {
     this.issuedBefore = Long.MAX_VALUE;
   }
 
+  /**
+   * @return long
+   */
   public long getExpiresAfter() {
     return expiresAfter;
   }
 
-  public void setExpiresAfter(final long expiresAfter) {
-    this.expiresAfter = expiresAfter;
+  /**
+   * @param anexpiresAfter long
+   */
+  public void setExpiresAfter(final long anexpiresAfter) {
+    this.expiresAfter = anexpiresAfter;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isExpiresAfterUsed() {
     return expiresAfter > 0L;
   }
 
+  /** Reset.
+   */
   public void resetExpiresAfter() {
     this.expiresAfter = 0L;
   }
 
+  /**
+   * @return long
+   */
   public long getExpiresBefore() {
     return expiresBefore;
   }
 
-  public void setExpiresBefore(final long expiresBefore) {
-    this.expiresBefore = expiresBefore;
+  /**
+   * @param anexpiresBefore long
+   */
+  public void setExpiresBefore(final long anexpiresBefore) {
+    this.expiresBefore = anexpiresBefore;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isExpiresBeforeUsed() {
     return expiresBefore < Long.MAX_VALUE;
   }
 
+  /** Reset. */
   public void resetExpiresBefore() {
     this.expiresBefore = Long.MAX_VALUE;
   }
 
+  /**
+   * @return long
+   */
   public long getRevokedAfter() {
     return revokedAfter;
   }
 
-  public void setRevokedAfter(final long revokedAfter) {
-    this.revokedAfter = revokedAfter;
+  /**
+   * @param arevokedAfter long
+   */
+  public void setRevokedAfter(final long arevokedAfter) {
+    this.revokedAfter = arevokedAfter;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isRevokedAfterUsed() {
     return revokedAfter > 0L;
   }
 
+  /** Reset. */
   public void resetRevokedAfter() {
     this.revokedAfter = 0L;
   }
 
+  /**
+   * @return revoked
+   */
   public long getRevokedBefore() {
     return revokedBefore;
   }
 
-  public void setRevokedBefore(final long revokedBefore) {
-    this.revokedBefore = revokedBefore;
+  /**
+   * @param isrevokedBefore long
+   */
+  public void setRevokedBefore(final long isrevokedBefore) {
+    this.revokedBefore = isrevokedBefore;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isRevokedBeforeUsed() {
     return revokedBefore < Long.MAX_VALUE;
   }
 
+  /** Reset. */
   public void resetRevokedBefore() {
     this.revokedBefore = Long.MAX_VALUE;
   }
 
+  /**
+   * @return statuses
+   */
   public List<Integer> getStatuses() {
     return statuses;
   }
 
-  public void setStatuses(final List<Integer> statuses) {
-    this.statuses = statuses;
+  /**
+   * @param thestatuses statuses
+   */
+  public void setStatuses(final List<Integer> thestatuses) {
+    this.statuses = thestatuses;
   }
 
+  /**
+   * @return reasons
+   */
   public List<Integer> getRevocationReasons() {
     return revocationReasons;
   }
 
-  public void setRevocationReasons(final List<Integer> revocationReasons) {
-    this.revocationReasons = revocationReasons;
+  /**
+   * @param therevocationReasons reasons
+   */
+  public void setRevocationReasons(final List<Integer> therevocationReasons) {
+    this.revocationReasons = therevocationReasons;
   }
 
   @Override

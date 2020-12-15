@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Results of a dry-run of a statedump import
+ * Results of a dry-run of a statedump import.
  *
  * @version $Id: StatedumpImportResult.java 22489 2015-12-18 18:18:42Z samuellb
  *     $
@@ -29,11 +29,17 @@ public final class StatedumpImportResult implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
+  /** Param. */
   private final List<StatedumpObjectKey> conflicts = new ArrayList<>();
+  /** Param. */
   private final List<StatedumpObjectKey> passwordsNeeded = new ArrayList<>();
+  /** Param. */
   private final Set<StatedumpObjectKey> existingNames = new HashSet<>();
+  /** Param. */
   private final Set<StatedumpObjectKey> existingIds = new HashSet<>();
+  /** Param. */
   private final List<String> notices = new ArrayList<>();
+  /** Param. */
   private long objectCount = 0;
 
   /**
@@ -52,7 +58,7 @@ public final class StatedumpImportResult implements Serializable {
    *
    * @param key key
    */
-  public void _addConflict(final StatedumpObjectKey key) {
+  public void uaddConflict(final StatedumpObjectKey key) {
     conflicts.add(key);
   }
 
@@ -72,7 +78,7 @@ public final class StatedumpImportResult implements Serializable {
    *
    * @param key key
    */
-  public void _addPasswordNeeded(final StatedumpObjectKey key) {
+  public void uaddPasswordNeeded(final StatedumpObjectKey key) {
     passwordsNeeded.add(key);
   }
 
@@ -92,7 +98,7 @@ public final class StatedumpImportResult implements Serializable {
    *
    * @param key key
    */
-  public void _addExistingId(final StatedumpObjectKey key) {
+  public void uaddExistingId(final StatedumpObjectKey key) {
     existingIds.add(key);
   }
 
@@ -112,28 +118,36 @@ public final class StatedumpImportResult implements Serializable {
    *
    * @param key key
    */
-  public void _addExistingName(final StatedumpObjectKey key) {
+  public void uaddExistingName(final StatedumpObjectKey key) {
     existingNames.add(key);
   }
 
+  /**
+   * @return count
+   */
   public long getObjectCount() {
     return objectCount;
   }
 
   /**
    * Internal method, used during statedump imports. Can't be package internal
-   * since it's called from the bean
+   * since it's called from the bean.
    */
-  public void _addToObjectCount() {
+  public void uaddToObjectCount() {
     objectCount += 1;
   }
 
-  public void _addNotice(final String msg) {
+  /**
+   * Internal method, used during statedump imports. Can't be package internal
+   * since it's called from the bean
+   * @param msg message
+   */
+  public void uaddNotice(final String msg) {
     notices.add(msg);
   }
 
   /**
-   * Returns a list of info log messages that where generated during the import
+   * Returns a list of info log messages that where generated during the import.
    *
    * @return list
    */

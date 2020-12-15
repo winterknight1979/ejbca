@@ -29,25 +29,42 @@ public class RaRoleMemberSearchResponse implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
+  /** Param. */
   private List<RoleMember> roleMembers = new ArrayList<>();
+  /** Param. */
   private boolean mightHaveMoreResults = false;
 
+  /**
+   * @return MEMBERS
+   */
   public List<RoleMember> getRoleMembers() {
     return roleMembers;
   }
 
-  public void setRoleMembers(final List<RoleMember> roleMembers) {
-    this.roleMembers = roleMembers;
+  /**
+   * @param theroleMembers members
+   */
+  public void setRoleMembers(final List<RoleMember> theroleMembers) {
+    this.roleMembers = theroleMembers;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isMightHaveMoreResults() {
     return mightHaveMoreResults;
   }
 
-  public void setMightHaveMoreResults(final boolean mightHaveMoreResults) {
-    this.mightHaveMoreResults = mightHaveMoreResults;
+  /**
+   * @param ismightHaveMoreResults bool
+   */
+  public void setMightHaveMoreResults(final boolean ismightHaveMoreResults) {
+    this.mightHaveMoreResults = ismightHaveMoreResults;
   }
 
+  /**
+   * @param other response to merge.
+   */
   public void merge(final RaRoleMemberSearchResponse other) {
     final Map<Integer, RoleMember> roleMemberMap = new HashMap<>();
     for (final RoleMember roleMember : roleMembers) {

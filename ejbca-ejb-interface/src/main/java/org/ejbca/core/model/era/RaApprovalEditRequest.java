@@ -27,19 +27,31 @@ public final class RaApprovalEditRequest implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
+  /** Param. */
   private final int approvalId;
+  /** Param. */
   private final RaEditableRequestData editableData;
 
+  /**
+   * @param anapprovalId ID
+   * @param theeditableData Data
+   */
   public RaApprovalEditRequest(
-      final int approvalId, final RaEditableRequestData editableData) {
-    this.approvalId = approvalId;
-    this.editableData = editableData;
+      final int anapprovalId, final RaEditableRequestData theeditableData) {
+    this.approvalId = anapprovalId;
+    this.editableData = theeditableData;
   }
 
+  /**
+   * @return ID
+   */
   public int getId() {
     return approvalId;
   }
 
+  /**
+   * @return Data
+   */
   public RaEditableRequestData getEditableData() {
     return editableData;
   }

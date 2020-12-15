@@ -25,13 +25,14 @@ public class RaRoleSearchRequest implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
+  /** Param. */
   private String genericSearchString = "";
 
-  /** Default constructor */
-  public RaRoleSearchRequest() {}
+  /** Default constructor. */
+  public RaRoleSearchRequest() { }
 
   /**
-   * Copy constructor
+   * Copy constructor.
    *
    * @param request req
    */
@@ -39,12 +40,18 @@ public class RaRoleSearchRequest implements Serializable {
     genericSearchString = request.genericSearchString;
   }
 
+  /**
+   * @return String
+   */
   public String getGenericSearchString() {
     return genericSearchString;
   }
 
-  public void setGenericSearchString(final String genericSearchString) {
-    this.genericSearchString = genericSearchString;
+  /**
+   * @param agenericSearchString String
+   */
+  public void setGenericSearchString(final String agenericSearchString) {
+    this.genericSearchString = agenericSearchString;
   }
 
   @Override

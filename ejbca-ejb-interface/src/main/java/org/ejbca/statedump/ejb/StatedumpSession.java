@@ -24,7 +24,8 @@ import org.cesecore.authorization.AuthorizationDeniedException;
  */
 public interface StatedumpSession {
 
-  static final String STATEDUMP_MODULE = "statedump-ejb";
+    /** Config. */
+  String STATEDUMP_MODULE = "statedump-ejb";
 
   /**
    * Performs a dry run import (nothing is done) of a statedump, and returns an
@@ -59,6 +60,11 @@ public interface StatedumpSession {
       AuthenticationToken admin, StatedumpImportOptions options)
       throws AuthorizationDeniedException, IOException;
 
+  /**
+   * @param admin Admin
+   * @return Dir
+   * @throws AuthorizationDeniedException Fail
+   */
   String getTemplatesBasedir(AuthenticationToken admin)
       throws AuthorizationDeniedException;
 
