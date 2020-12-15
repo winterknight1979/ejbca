@@ -17,39 +17,66 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.cesecore.certificates.endentity.EndEntityInformation;
 
 /**
  * Response of end entity search from RA UI.
- * 
- * @version $Id: RaEndEntitySearchResponse.java 23813 2016-07-07 11:36:30Z jeklund $
+ *
+ * @version $Id: RaEndEntitySearchResponse.java 23813 2016-07-07 11:36:30Z
+ *     jeklund $
  */
 public class RaEndEntitySearchResponse implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    private List<EndEntityInformation> endEntities = new ArrayList<>();
-    private boolean mightHaveMoreResults = false;
+  /** Param. */
+  private List<EndEntityInformation> endEntities = new ArrayList<>();
+  /** Param. */
+  private boolean mightHaveMoreResults = false;
 
-    public List<EndEntityInformation> getEndEntities() { return endEntities; }
-    public void setEndEntities(List<EndEntityInformation> endEntities) { this.endEntities = endEntities; }
+  /**
+   * @return EEs
+   */
+  public List<EndEntityInformation> getEndEntities() {
+    return endEntities;
+  }
 
-    public boolean isMightHaveMoreResults() { return mightHaveMoreResults; }
-    public void setMightHaveMoreResults(boolean mightHaveMoreResults) { this.mightHaveMoreResults = mightHaveMoreResults; }
-    
-    public void merge(final RaEndEntitySearchResponse other) {
-        final Map<String,EndEntityInformation> endEntitiesMap = new HashMap<>();
-        for (final EndEntityInformation endEntity : endEntities) {
-            endEntitiesMap.put(endEntity.getUsername(), endEntity);
-        }
-        for (final EndEntityInformation endEntity : other.endEntities) {
-            endEntitiesMap.put(endEntity.getUsername(), endEntity);
-        }
-        this.endEntities.clear();
-        this.endEntities.addAll(endEntitiesMap.values());
-        if (other.isMightHaveMoreResults()) {
-            setMightHaveMoreResults(true);
-        }
+  /**
+   * @param theendEntities EEs
+   */
+  public void setEndEntities(final List<EndEntityInformation> theendEntities) {
+    this.endEntities = theendEntities;
+  }
+
+  /**
+   * @return bool
+   */
+  public boolean isMightHaveMoreResults() {
+    return mightHaveMoreResults;
+  }
+
+  /**
+   * @param ismightHaveMoreResults bool
+   */
+  public void setMightHaveMoreResults(final boolean ismightHaveMoreResults) {
+    this.mightHaveMoreResults = ismightHaveMoreResults;
+  }
+
+  /**
+   * @param other response to merge
+   */
+  public void merge(final RaEndEntitySearchResponse other) {
+    final Map<String, EndEntityInformation> endEntitiesMap = new HashMap<>();
+    for (final EndEntityInformation endEntity : endEntities) {
+      endEntitiesMap.put(endEntity.getUsername(), endEntity);
     }
+    for (final EndEntityInformation endEntity : other.endEntities) {
+      endEntitiesMap.put(endEntity.getUsername(), endEntity);
+    }
+    this.endEntities.clear();
+    this.endEntities.addAll(endEntitiesMap.values());
+    if (other.isMightHaveMoreResults()) {
+      setMightHaveMoreResults(true);
+    }
+  }
 }

@@ -12,13 +12,9 @@
  *************************************************************************/
 package org.ejbca.core.ejb.config;
 
-
-/** 
+/**
  * Session bean to handle health check activities.
- * 
+ *
  * @version $Id: HealthCheckSession.java 19902 2014-09-30 14:32:24Z anatom $
  */
-public interface HealthCheckSession {
-
-
-}
+public interface HealthCheckSession { }

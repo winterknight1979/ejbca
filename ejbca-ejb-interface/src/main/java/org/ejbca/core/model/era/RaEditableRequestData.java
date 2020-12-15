@@ -15,67 +15,101 @@ package org.ejbca.core.model.era;
 import java.io.Serializable;
 
 /**
- * 
- * @version $Id: RaEditableRequestData.java 23548 2016-05-26 08:01:44Z samuellb $
+ * @version $Id: RaEditableRequestData.java 23548 2016-05-26 08:01:44Z samuellb
+ *     $
  */
 public class RaEditableRequestData implements Serializable, Cloneable {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    // For add end entity requests
-    private String username;
-    private String subjectDN;
-    private String subjectAltName;
-    private String subjectDirAttrs;
-    private String email;
-    
-    public String getUsername() {
-        return username;
-    }
+  // For add end entity requests
+  /** Param. */
+  private String username;
+  /** Param. */
+  private String subjectDN;
+  /** Param. */
+  private String subjectAltName;
+  /** Param. */
+  private String subjectDirAttrs;
+  /** Param. */
+  private String email;
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
+  /**
+   * @return user
+   */
+  public String getUsername() {
+    return username;
+  }
 
-    public String getSubjectDN() {
-        return subjectDN;
-    }
+  /**
+   * @param ausername user
+   */
+  public void setUsername(final String ausername) {
+    this.username = ausername;
+  }
 
-    public void setSubjectDN(String subjectDN) {
-        this.subjectDN = subjectDN;
-    }
+  /**
+   * @return DN
+   */
+  public String getSubjectDN() {
+    return subjectDN;
+  }
 
-    public String getSubjectAltName() {
-        return subjectAltName;
-    }
+  /**
+   * @param asubjectDN DN
+   */
+  public void setSubjectDN(final String asubjectDN) {
+    this.subjectDN = asubjectDN;
+  }
 
-    public void setSubjectAltName(String subjectAltName) {
-        this.subjectAltName = subjectAltName;
-    }
+  /**
+   * @return name
+   */
+  public String getSubjectAltName() {
+    return subjectAltName;
+  }
 
-    public String getSubjectDirAttrs() {
-        return subjectDirAttrs;
-    }
+  /**
+   * @param asubjectAltName name
+   */
+  public void setSubjectAltName(final String asubjectAltName) {
+    this.subjectAltName = asubjectAltName;
+  }
 
-    public void setSubjectDirAttrs(String subjectDirAttrs) {
-        this.subjectDirAttrs = subjectDirAttrs;
-    }
+  /**
+   * @return attrs
+   */
+  public String getSubjectDirAttrs() {
+    return subjectDirAttrs;
+  }
 
-    public String getEmail() {
-        return email;
-    }
+  /**
+   * @param thesubjectDirAttrs attrs
+   */
+  public void setSubjectDirAttrs(final String thesubjectDirAttrs) {
+    this.subjectDirAttrs = thesubjectDirAttrs;
+  }
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
+  /**
+   * @return email
+   */
+  public String getEmail() {
+    return email;
+  }
 
-    @Override
-    public RaEditableRequestData clone() {
-        try {
-            return (RaEditableRequestData) super.clone();
-        } catch (CloneNotSupportedException e) {
-            throw new IllegalStateException("Object should be clonable");
-        }
+  /**
+   * @param anemail email
+   */
+  public void setEmail(final String anemail) {
+    this.email = anemail;
+  }
+
+  @Override
+  public RaEditableRequestData clone() {
+    try {
+      return (RaEditableRequestData) super.clone();
+    } catch (CloneNotSupportedException e) {
+      throw new IllegalStateException("Object should be clonable");
     }
-    
+  }
 }

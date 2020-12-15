@@ -13,60 +13,102 @@
 package org.ejbca.core.model.era;
 
 import java.io.Serializable;
-
 import org.ejbca.core.model.approval.ApprovalRequest;
 
 /**
- * Used for approving requests from RaManageRequestBean
- * @version $Id: RaApprovalResponseRequest.java 24256 2016-08-31 07:00:25Z samuellb $
+ * Used for approving requests from RaManageRequestBean.
+ *
+ * @version $Id: RaApprovalResponseRequest.java 24256 2016-08-31 07:00:25Z
+ *     samuellb $
  */
 public class RaApprovalResponseRequest implements Serializable {
 
-    public static enum Action {
-        SAVE,
-        APPROVE,
-        REJECT;
-    }
+  public enum Action {
+      /** Const. */
+    SAVE,
+      /** Const. */
+    APPROVE,
+      /** Const. */
+    REJECT;
+  }
 
-    private static final long serialVersionUID = 1L;
-    /** id of approval */
-    private final int id;
-    private final int stepIdentifier;
-    private final int partitionIdentifier;
-    private final ApprovalRequest approvalRequest;
-    private final String comment;
-    private final Action action;
-    
-    public RaApprovalResponseRequest(final int id, final int stepIdentifier, final int partitionIdentifier, final ApprovalRequest approvalRequest, final String comment, final Action action) {
-        this.id = id;
-        this.stepIdentifier = stepIdentifier;
-        this.partitionIdentifier = partitionIdentifier;
-        this.approvalRequest = approvalRequest;
-        this.comment = comment;
-        this.action = action;
-    }
+  private static final long serialVersionUID = 1L;
+  /** id of approval. */
+  private final int id;
 
-    public int getId() {
-        return id;
-    }
-    public int getStepIdentifier() {
-        return stepIdentifier;
-    }
-    
-    public ApprovalRequest getApprovalRequest() {
-        return approvalRequest;
-    }
+  /** Param. */
+  private final int stepIdentifier;
+  /** Param. */
+  private final int partitionIdentifier;
+  /** Param. */
+  private final ApprovalRequest approvalRequest;
+  /** Param. */
+  private final String comment;
+  /** Param. */
+  private final Action action;
 
-    public String getComment() {
-        return comment;
-    }
-    
-    public Action getAction() {
-        return action;
-    }
+  /**
+   * @param anid ID
+   * @param astepIdentifier Step
+   * @param apartitionIdentifier Partition
+   * @param anapprovalRequest Request
+   * @param acomment Comment
+   * @param anaction Action
+   */
+  public RaApprovalResponseRequest(
+      final int anid,
+      final int astepIdentifier,
+      final int apartitionIdentifier,
+      final ApprovalRequest anapprovalRequest,
+      final String acomment,
+      final Action anaction) {
+    this.id = anid;
+    this.stepIdentifier = astepIdentifier;
+    this.partitionIdentifier = apartitionIdentifier;
+    this.approvalRequest = anapprovalRequest;
+    this.comment = acomment;
+    this.action = anaction;
+  }
 
-    public int getPartitionIdentifier() {
-        return partitionIdentifier;
-    }
+  /**
+   * @return ID
+   */
+  public int getId() {
+    return id;
+  }
 
+  /**
+   * @return Step
+   */
+  public int getStepIdentifier() {
+    return stepIdentifier;
+  }
+
+  /**
+   * @return Request
+   */
+  public ApprovalRequest getApprovalRequest() {
+    return approvalRequest;
+  }
+
+  /**
+   * @return Comment
+   */
+  public String getComment() {
+    return comment;
+  }
+
+  /**
+   * @return Action
+   */
+  public Action getAction() {
+    return action;
+  }
+
+  /**
+   * @return ID
+   */
+  public int getPartitionIdentifier() {
+    return partitionIdentifier;
+  }
 }

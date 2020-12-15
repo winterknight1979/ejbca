@@ -14,52 +14,69 @@ package org.ejbca.statedump.ejb;
 
 import java.io.IOException;
 import java.util.Map;
-
 import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.cesecore.authorization.AuthorizationDeniedException;
 
 /**
  * Statedump is an internal PrimeKey tool.
- * 
+ *
  * @version $Id: StatedumpSession.java 22512 2015-12-29 17:16:44Z samuellb $
  */
 public interface StatedumpSession {
-    
-    static final String STATEDUMP_MODULE = "statedump-ejb";
 
-    /**
-     * Performs a dry run import (nothing is done) of a statedump, and returns an object with lists of
-     * all conflicts due to already existing items and items that need a password to be specified.  
-     * 
-     * @param admin The authentication token. Must have / access, and of course access to create each item to import.
-     * @param options Options. Must specify a location.
-     * @return Result object with lists of conflicts and items that need a password.
-     * @throws AuthorizationDeniedException fail
-     * @throws IOException If the files in the dump are malformed.
-     */
-    StatedumpImportResult performDryRun(AuthenticationToken admin, StatedumpImportOptions options) throws AuthorizationDeniedException, IOException;
-    
-    /**
-     * Performs an import of a statedump.  
-     * 
-     * @param admin The authentication token. Must have / access, and of course access to create each item to import.
-     * @param options Options. Specifies location, lists of items to overwrite / not overwrite, passwords and other options.
-     * @return Result object with lists of conflicts and items that need a password.
-     * @throws AuthorizationDeniedException fail
-     * @throws IOException If the files in the dump are malformed.
-     */
-    StatedumpImportResult performImport(AuthenticationToken admin, StatedumpImportOptions options) throws AuthorizationDeniedException, IOException;
+    /** Config. */
+  String STATEDUMP_MODULE = "statedump-ejb";
 
-    
-    String getTemplatesBasedir(AuthenticationToken admin) throws AuthorizationDeniedException;
+  /**
+   * Performs a dry run import (nothing is done) of a statedump, and returns an
+   * object with lists of all conflicts due to already existing items and items
+   * that need a password to be specified.
+   *
+   * @param admin The authentication token. Must have / access, and of course
+   *     access to create each item to import.
+   * @param options Options. Must specify a location.
+   * @return Result object with lists of conflicts and items that need a
+   *     password.
+   * @throws AuthorizationDeniedException fail
+   * @throws IOException If the files in the dump are malformed.
+   */
+  StatedumpImportResult performDryRun(
+      AuthenticationToken admin, StatedumpImportOptions options)
+      throws AuthorizationDeniedException, IOException;
 
-    /**
-     * Lists all available statedumps in the configured statedump templates directory.
-     * @param admin admin
-     * 
-     * @return A map from the directory names (not full path) to language strings to be used as descriptions.
-     * @throws AuthorizationDeniedException fail
-     */
-    Map<String, String> getAvailableTemplates(AuthenticationToken admin) throws AuthorizationDeniedException;
+  /**
+   * Performs an import of a statedump.
+   *
+   * @param admin The authentication token. Must have / access, and of course
+   *     access to create each item to import.
+   * @param options Options. Specifies location, lists of items to overwrite /
+   *     not overwrite, passwords and other options.
+   * @return Result object with lists of conflicts and items that need a
+   *     password.
+   * @throws AuthorizationDeniedException fail
+   * @throws IOException If the files in the dump are malformed.
+   */
+  StatedumpImportResult performImport(
+      AuthenticationToken admin, StatedumpImportOptions options)
+      throws AuthorizationDeniedException, IOException;
 
+  /**
+   * @param admin Admin
+   * @return Dir
+   * @throws AuthorizationDeniedException Fail
+   */
+  String getTemplatesBasedir(AuthenticationToken admin)
+      throws AuthorizationDeniedException;
+
+  /**
+   * Lists all available statedumps in the configured statedump templates
+   * directory.
+   *
+   * @param admin admin
+   * @return A map from the directory names (not full path) to language strings
+   *     to be used as descriptions.
+   * @throws AuthorizationDeniedException fail
+   */
+  Map<String, String> getAvailableTemplates(AuthenticationToken admin)
+      throws AuthorizationDeniedException;
 }

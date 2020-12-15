@@ -16,11 +16,8 @@ package org.ejbca.core.ejb.rest;
 import javax.ejb.Remote;
 
 /**
- * 
- * @version $Id: EjbcaRestHelperSessionRemote.java 28936 2018-05-15 12:18:32Z henriks $
- *
+ * @version $Id: EjbcaRestHelperSessionRemote.java 28936 2018-05-15 12:18:32Z
+ *     henriks $
  */
 @Remote
-public interface EjbcaRestHelperSessionRemote extends EjbcaRestHelperSession {
-
-}
+public interface EjbcaRestHelperSessionRemote extends EjbcaRestHelperSession { }

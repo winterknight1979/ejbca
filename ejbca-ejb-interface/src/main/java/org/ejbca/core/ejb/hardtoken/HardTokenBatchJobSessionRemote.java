@@ -15,10 +15,7 @@ package org.ejbca.core.ejb.hardtoken;
 
 import javax.ejb.Remote;
 
-/**
- * Remote interface for HardTokenBatchJobSession.
- */
+/** Remote interface for HardTokenBatchJobSession. */
 @Remote
-public interface HardTokenBatchJobSessionRemote extends HardTokenBatchJobSession {
-
-}
+public interface HardTokenBatchJobSessionRemote
+    extends HardTokenBatchJobSession { }

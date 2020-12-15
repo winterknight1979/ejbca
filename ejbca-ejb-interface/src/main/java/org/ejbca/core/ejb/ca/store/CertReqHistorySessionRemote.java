@@ -16,9 +16,9 @@ import javax.ejb.Remote;
 
 /**
  * Remote interface for CertificateStoreSession.
- * @version $Id: CertReqHistorySessionRemote.java 19902 2014-09-30 14:32:24Z anatom $
+ *
+ * @version $Id: CertReqHistorySessionRemote.java 19902 2014-09-30 14:32:24Z
+ *     anatom $
  */
 @Remote
-public interface CertReqHistorySessionRemote extends CertReqHistorySession {
-
-}
+public interface CertReqHistorySessionRemote extends CertReqHistorySession { }

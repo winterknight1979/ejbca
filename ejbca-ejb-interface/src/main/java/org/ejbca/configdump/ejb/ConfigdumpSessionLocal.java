@@ -15,9 +15,8 @@ package org.ejbca.configdump.ejb;
 import javax.ejb.Local;
 
 /**
- * @version $Id: ConfigdumpSessionLocal.java 27940 2018-01-15 12:42:57Z samuellb $
+ * @version $Id: ConfigdumpSessionLocal.java 27940 2018-01-15 12:42:57Z samuellb
+ *     $
  */
 @Local
-public interface ConfigdumpSessionLocal extends ConfigdumpSession {
-
-}
+public interface ConfigdumpSessionLocal extends ConfigdumpSession { }

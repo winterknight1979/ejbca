@@ -13,7 +13,6 @@
 package org.ejbca.configdump.ejb;
 
 import java.io.IOException;
-
 import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.cesecore.authorization.AuthorizationDeniedException;
 import org.ejbca.configdump.ConfigDumpSetting;
@@ -22,23 +21,30 @@ import org.ejbca.configdump.ConfigdumpExportResult;
 
 /**
  * Interface for exporting (and the future, importing) data with Configdump.
- * 
+ *
  * @version $Id: ConfigdumpSession.java 28387 2018-02-27 09:12:37Z aminkh $
  */
 public interface ConfigdumpSession {
-    
-    static final String CONFIGDUMP_MODULE = "configdump-ejb";
-    
-    /**
-     * Exports EJBCA data, except for keys and certificates, to a set of YAML files.
-     * One YAML file is created per "item" in the database (e.g. a certificate profile).
-     * @param admin Authentication token of the requesting admin (for the Configdump CLI, this is a CLI authentication token).
-     * @param setting Settings such as export directory, and items to include in the export
-     * @return Result object. In case errors are set to be ignored, then this contains a list of errors.
-     * @throws ConfigdumpException If an error occurs, which was not ignored.
-     * @throws IOException On failure to create the YAML files etc.
-     * @throws AuthorizationDeniedException fail 
-     */
-    ConfigdumpExportResult performExport(final AuthenticationToken admin, final ConfigDumpSetting setting) throws ConfigdumpException, IOException, AuthorizationDeniedException;
 
+    /** Name. */
+  String CONFIGDUMP_MODULE = "configdump-ejb";
+
+  /**
+   * Exports EJBCA data, except for keys and certificates, to a set of YAML
+   * files. One YAML file is created per "item" in the database (e.g. a
+   * certificate profile).
+   *
+   * @param admin Authentication token of the requesting admin (for the
+   *     Configdump CLI, this is a CLI authentication token).
+   * @param setting Settings such as export directory, and items to include in
+   *     the export
+   * @return Result object. In case errors are set to be ignored, then this
+   *     contains a list of errors.
+   * @throws ConfigdumpException If an error occurs, which was not ignored.
+   * @throws IOException On failure to create the YAML files etc.
+   * @throws AuthorizationDeniedException fail
+   */
+  ConfigdumpExportResult performExport(
+      AuthenticationToken admin,  ConfigDumpSetting setting)
+      throws ConfigdumpException, IOException, AuthorizationDeniedException;
 }

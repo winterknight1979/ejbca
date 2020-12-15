@@ -14,36 +14,40 @@ package org.ejbca.core.ejb.approval;
 
 import org.cesecore.CesecoreException;
 
-
 /**
- * An exception thrown when someone tries to change an approval profile that doesn't already exits
- * 
- * @version $Id: ApprovalProfileDoesNotExistException.java 26076 2017-06-26 12:49:12Z mikekushner $
+ * An exception thrown when someone tries to change an approval profile that
+ * doesn't already exits.
+ *
+ * @version $Id: ApprovalProfileDoesNotExistException.java 26076 2017-06-26
+ *     12:49:12Z mikekushner $
  */
 public class ApprovalProfileDoesNotExistException extends CesecoreException {
-    
 
-    private static final long serialVersionUID = -1038676703612812109L;
+  private static final long serialVersionUID = -1038676703612812109L;
 
+  /**
+   * Creates a new instance of <code>ApprovalProfileDoesntExistsException</code>
+   * without detail message.
+   */
+  public ApprovalProfileDoesNotExistException() {
+    super();
+  }
 
-    /**
-     * Creates a new instance of <code>ApprovalProfileDoesntExistsException</code> without detail message.
-     */
-    public ApprovalProfileDoesNotExistException() {
-        super();
-    }
-    
-    
-    /**
-     * Constructs an instance of <code>ApprovalProfileDoesntExistsException</code> with the specified detail message.
-     * @param msg the detail message.
-     */
-    public ApprovalProfileDoesNotExistException(String msg) {
-        super(msg);
-    }
+  /**
+   * Constructs an instance of <code>ApprovalProfileDoesntExistsException</code>
+   * with the specified detail message.
+   *
+   * @param msg the detail message.
+   */
+  public ApprovalProfileDoesNotExistException(final String msg) {
+    super(msg);
+  }
 
-
-    public ApprovalProfileDoesNotExistException(Exception exception) {
-        super(exception);
-    }
+  /**
+   * Exception with cause.
+   * @param exception cause
+   */
+  public ApprovalProfileDoesNotExistException(final Exception exception) {
+    super(exception);
+  }
 }

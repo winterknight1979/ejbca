@@ -13,29 +13,35 @@
 package org.ejbca.core.ejb.authorization;
 
 import java.util.Map;
-
 import javax.ejb.Local;
 
 /**
  * @see AuthorizationSystemSession
- * @version $Id: AuthorizationSystemSessionLocal.java 25480 2017-03-14 17:28:27Z jeklund $
+ * @version $Id: AuthorizationSystemSessionLocal.java 25480 2017-03-14 17:28:27Z
+ *     jeklund $
  */
 @Local
-public interface AuthorizationSystemSessionLocal extends AuthorizationSystemSession {
+public interface AuthorizationSystemSessionLocal
+    extends AuthorizationSystemSession {
 
-    /** @return a Map&lt;category name, Map&lt;resource,resourceName&gt;&gt; */
-    Map<String, Map<String, String>> getAllResourceAndResourceNamesByCategory();
+  /** @return a Map&lt;category name, Map&lt;resource,resourceName&gt;&gt; */
+  Map<String, Map<String, String>> getAllResourceAndResourceNamesByCategory();
 
-    /** @param ignoreLimitations limit
-     * @return a Map of all &lt;resource,resourceName&gt;, on this installation (optionally ignoring if certain resources is not in use) */
-    Map<String,String> getAllResources(boolean ignoreLimitations);
+  /**
+   * @param ignoreLimitations limit
+   * @return a Map of all &lt;resource,resourceName&gt;, on this installation
+   *     (optionally ignoring if certain resources is not in use)
+   */
+  Map<String, String> getAllResources(boolean ignoreLimitations);
 
-    /**
-     * Setup the initial Role with the a single EJBCA CLI RoleMember under the condition that this is system is
-     * connected to a database that has not been used for an installation so far.
-     * (Actual check for a "fresh" system is to confirm that there exists no Roles or CAs.)
-     * 
-     * @return true if this was a fresh system and the authorization module has now been initialized.
-     */
-    boolean initializeAuthorizationModule();
+  /**
+   * Setup the initial Role with the a single EJBCA CLI RoleMember under the
+   * condition that this is system is connected to a database that has not been
+   * used for an installation so far. (Actual check for a "fresh" system is to
+   * confirm that there exists no Roles or CAs.)
+   *
+   * @return true if this was a fresh system and the authorization module has
+   *     now been initialized.
+   */
+  boolean initializeAuthorizationModule();
 }

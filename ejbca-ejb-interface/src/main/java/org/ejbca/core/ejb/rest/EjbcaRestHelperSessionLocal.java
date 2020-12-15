@@ -14,9 +14,7 @@
 package org.ejbca.core.ejb.rest;
 
 import java.security.cert.X509Certificate;
-
 import javax.ejb.Local;
-
 import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.cesecore.authorization.AuthorizationDeniedException;
 import org.cesecore.certificates.ca.CADoesntExistsException;
@@ -27,32 +25,43 @@ import org.ejbca.core.model.ra.raadmin.EndEntityProfileNotFoundException;
 import org.ejbca.core.protocol.rest.EnrollPkcs10CertificateRequest;
 
 /**
- * 
- * @version $Id: EjbcaRestHelperSessionLocal.java 29056 2018-05-29 12:06:45Z tarmo_r_helmes $
- *
+ * @version $Id: EjbcaRestHelperSessionLocal.java 29056 2018-05-29 12:06:45Z
+ *     tarmo_r_helmes $
  */
 @Local
 public interface EjbcaRestHelperSessionLocal extends EjbcaRestHelperSession {
 
-    /**
-     * @param allowNonAdmins false if we should verify that it is a real administrator, true only extracts the certificate and checks that it is not revoked.
-     * @param cert X509 certificate
-     * @return AuthenticationToken object based on the SSL client certificate
-     * @throws AuthorizationDeniedException if no client certificate or allowNonAdmins = false and the certificate does not belong to an administrator
-     */
-    AuthenticationToken getAdmin(boolean allowNonAdmins, X509Certificate cert) throws AuthorizationDeniedException;
+  /**
+   * @param allowNonAdmins false if we should verify that it is a real
+   *     administrator, true only extracts the certificate and checks that it is
+   *     not revoked.
+   * @param cert X509 certificate
+   * @return AuthenticationToken object based on the SSL client certificate
+   * @throws AuthorizationDeniedException if no client certificate or
+   *     allowNonAdmins = false and the certificate does not belong to an
+   *     administrator
+   */
+  AuthenticationToken getAdmin(boolean allowNonAdmins, X509Certificate cert)
+      throws AuthorizationDeniedException;
 
-    /**
-     * Compose EndEntityInformation object based on EnrollPkcs10CertificateRequest input
-     * @param authenticationToken of the requesting administrator
-     * @param enrollcertificateRequest input data object for enrolling a certificate
-     * @return info
-     * @throws AuthorizationDeniedException fail
-     * @throws EndEntityProfileNotFoundException fail
-     * @throws EjbcaException fail
-     * @throws CertificateProfileDoesNotExistException fail
-     * @throws CADoesntExistsException fail
-     */
-    public EndEntityInformation convertToEndEntityInformation(AuthenticationToken authenticationToken, EnrollPkcs10CertificateRequest enrollcertificateRequest)
-            throws AuthorizationDeniedException, EndEntityProfileNotFoundException, EjbcaException, CertificateProfileDoesNotExistException, CADoesntExistsException;
+  /**
+   * Compose EndEntityInformation object based on EnrollPkcs10CertificateRequest
+   * input.
+   *
+   * @param authenticationToken of the requesting administrator
+   * @param enrollcertificateRequest input data object for enrolling a
+   *     certificate
+   * @return info
+   * @throws AuthorizationDeniedException fail
+   * @throws EndEntityProfileNotFoundException fail
+   * @throws EjbcaException fail
+   * @throws CertificateProfileDoesNotExistException fail
+   * @throws CADoesntExistsException fail
+   */
+   EndEntityInformation convertToEndEntityInformation(
+      AuthenticationToken authenticationToken,
+      EnrollPkcs10CertificateRequest enrollcertificateRequest)
+      throws AuthorizationDeniedException, EndEntityProfileNotFoundException,
+          EjbcaException, CertificateProfileDoesNotExistException,
+          CADoesntExistsException;
 }

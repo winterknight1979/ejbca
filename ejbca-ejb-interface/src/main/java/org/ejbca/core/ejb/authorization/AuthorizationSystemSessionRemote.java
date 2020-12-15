@@ -13,30 +13,39 @@
 package org.ejbca.core.ejb.authorization;
 
 import java.util.Map;
-
 import javax.ejb.Remote;
-
 import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.cesecore.authorization.AuthorizationDeniedException;
 
 /**
  * @see AuthorizationSystemSession
- * @version $Id: AuthorizationSystemSessionRemote.java 25480 2017-03-14 17:28:27Z jeklund $
+ * @version $Id: AuthorizationSystemSessionRemote.java 25480 2017-03-14
+ *     17:28:27Z jeklund $
  */
 @Remote
-public interface AuthorizationSystemSessionRemote extends AuthorizationSystemSession {
+public interface AuthorizationSystemSessionRemote
+    extends AuthorizationSystemSession {
 
-    /** @param authenticationToken auth
-     * @param ignoreLimitations limits
-     * @return a Map of all authorized &lt;resource,resourceName&gt; on this installation (optionally ignoring if certain resources is not in use) */
-    Map<String,String> getAllResources(AuthenticationToken authenticationToken, boolean ignoreLimitations);
+  /**
+   * @param authenticationToken auth
+   * @param ignoreLimitations limits
+   * @return a Map of all authorized &lt;resource,resourceName&gt; on this
+   *     installation (optionally ignoring if certain resources is not in use)
+   */
+  Map<String, String> getAllResources(
+      AuthenticationToken authenticationToken, boolean ignoreLimitations);
 
-    /** Configure the provided CN as a RoleMember of the Super Administrator Role if the caller has sufficient privileges. 
-     * @param authenticationToken auth
-     * @param caId CA
-     * @param superAdminCN CN 
-     * @return mod
-     * @throws AuthorizationDeniedException fail */
-    boolean initializeAuthorizationModuleWithSuperAdmin(AuthenticationToken authenticationToken, int caId, String superAdminCN)
-            throws AuthorizationDeniedException;
+  /**
+   * Configure the provided CN as a RoleMember of the Super Administrator Role
+   * if the caller has sufficient privileges.
+   *
+   * @param authenticationToken auth
+   * @param caId CA
+   * @param superAdminCN CN
+   * @return mod
+   * @throws AuthorizationDeniedException fail
+   */
+  boolean initializeAuthorizationModuleWithSuperAdmin(
+      AuthenticationToken authenticationToken, int caId, String superAdminCN)
+      throws AuthorizationDeniedException;
 }

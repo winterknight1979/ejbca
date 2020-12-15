@@ -14,10 +14,7 @@ package org.ejbca.core.ejb.hardtoken;
 
 import javax.ejb.Local;
 
-/**
- * Local interface for HardTokenBatchJobSession.
- */
+/** Local interface for HardTokenBatchJobSession. */
 @Local
-public interface HardTokenBatchJobSessionLocal extends HardTokenBatchJobSession {
-
-}
+public interface HardTokenBatchJobSessionLocal
+    extends HardTokenBatchJobSession { }

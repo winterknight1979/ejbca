@@ -17,39 +17,66 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.cesecore.certificates.certificate.CertificateDataWrapper;
 
 /**
  * Response of certificates search from RA UI.
- * 
- * @version $Id: RaCertificateSearchResponse.java 23813 2016-07-07 11:36:30Z jeklund $
+ *
+ * @version $Id: RaCertificateSearchResponse.java 23813 2016-07-07 11:36:30Z
+ *     jeklund $
  */
 public class RaCertificateSearchResponse implements Serializable {
-    
-    private static final long serialVersionUID = 1L;
 
-    private List<CertificateDataWrapper> cdws = new ArrayList<>();
-    private boolean mightHaveMoreResults = false;
+  private static final long serialVersionUID = 1L;
 
-    public List<CertificateDataWrapper> getCdws() { return cdws; }
-    public void setCdws(List<CertificateDataWrapper> cdws) { this.cdws = cdws; }
+  /** Param. */
+  private List<CertificateDataWrapper> cdws = new ArrayList<>();
+  /** Param. */
+  private boolean mightHaveMoreResults = false;
 
-    public boolean isMightHaveMoreResults() { return mightHaveMoreResults; }
-    public void setMightHaveMoreResults(boolean mightHaveMoreResults) { this.mightHaveMoreResults = mightHaveMoreResults; }
-    
-    public void merge(final RaCertificateSearchResponse other) {
-        final Map<String,CertificateDataWrapper> cdwMap = new HashMap<>();
-        for (final CertificateDataWrapper cdw : cdws) {
-            cdwMap.put(cdw.getCertificateData().getFingerprint(), cdw);
-        }
-        for (final CertificateDataWrapper cdw : other.cdws) {
-            cdwMap.put(cdw.getCertificateData().getFingerprint(), cdw);
-        }
-        this.cdws.clear();
-        this.cdws.addAll(cdwMap.values());
-        if (other.isMightHaveMoreResults()) {
-            setMightHaveMoreResults(true);
-        }
+  /**
+   * @return certs
+   */
+  public List<CertificateDataWrapper> getCdws() {
+    return cdws;
+  }
+
+  /**
+   * @param thecdws Certs
+   */
+  public void setCdws(final List<CertificateDataWrapper> thecdws) {
+    this.cdws = thecdws;
+  }
+
+  /**
+   * @return bool
+   */
+  public boolean isMightHaveMoreResults() {
+    return mightHaveMoreResults;
+  }
+
+  /**
+   * @param ismightHaveMoreResults bool
+   */
+  public void setMightHaveMoreResults(final boolean ismightHaveMoreResults) {
+    this.mightHaveMoreResults = ismightHaveMoreResults;
+  }
+
+  /**
+   * @param other Response t be merged
+   */
+  public void merge(final RaCertificateSearchResponse other) {
+    final Map<String, CertificateDataWrapper> cdwMap = new HashMap<>();
+    for (final CertificateDataWrapper cdw : cdws) {
+      cdwMap.put(cdw.getCertificateData().getFingerprint(), cdw);
     }
+    for (final CertificateDataWrapper cdw : other.cdws) {
+      cdwMap.put(cdw.getCertificateData().getFingerprint(), cdw);
+    }
+    this.cdws.clear();
+    this.cdws.addAll(cdwMap.values());
+    if (other.isMightHaveMoreResults()) {
+      setMightHaveMoreResults(true);
+    }
+  }
 }

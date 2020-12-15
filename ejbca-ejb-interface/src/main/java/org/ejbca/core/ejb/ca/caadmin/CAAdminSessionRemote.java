@@ -16,6 +16,4 @@ package org.ejbca.core.ejb.ca.caadmin;
 import javax.ejb.Remote;
 
 @Remote
-public interface CAAdminSessionRemote extends CAAdminSession {
-
-}
+public interface CAAdminSessionRemote extends CAAdminSession { }

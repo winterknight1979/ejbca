@@ -15,11 +15,10 @@ package org.ejbca.core.model.era;
 import javax.ejb.Local;
 
 /**
- * Interface for EJB access to the RaMasterApi local bean
- * 
- * @version $Id: RaMasterApiSessionLocal.java 26057 2017-06-22 08:08:34Z anatom $
+ * Interface for EJB access to the RaMasterApi local bean.
+ *
+ * @version $Id: RaMasterApiSessionLocal.java 26057 2017-06-22 08:08:34Z anatom
+ *     $
  */
 @Local
-public interface RaMasterApiSessionLocal extends RaMasterApi {
-
-}
+public interface RaMasterApiSessionLocal extends RaMasterApi { }

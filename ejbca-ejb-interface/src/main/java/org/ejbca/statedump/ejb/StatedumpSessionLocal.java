@@ -15,9 +15,8 @@ package org.ejbca.statedump.ejb;
 import javax.ejb.Local;
 
 /**
- * @version $Id: StatedumpSessionLocal.java 22489 2015-12-18 18:18:42Z samuellb $
+ * @version $Id: StatedumpSessionLocal.java 22489 2015-12-18 18:18:42Z samuellb
+ *     $
  */
 @Local
-public interface StatedumpSessionLocal extends StatedumpSession {
-
-}
+public interface StatedumpSessionLocal extends StatedumpSession { }

@@ -14,10 +14,6 @@ package org.ejbca.core.ejb.ra.userdatasource;
 
 import javax.ejb.Remote;
 
-/**
- * Remote interface for UserDataSourceSession.
- */
+/** Remote interface for UserDataSourceSession. */
 @Remote
-public interface UserDataSourceSessionRemote extends UserDataSourceSession {
-   
-}
+public interface UserDataSourceSessionRemote extends UserDataSourceSession { }

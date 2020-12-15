@@ -15,32 +15,30 @@ package org.ejbca.core.ejb.unidfnr;
 import javax.ejb.Local;
 
 /**
- * 
  * @version $Id: UnidfnrSessionLocal.java 28577 2018-03-28 10:15:20Z aminkh $
- *
  */
 @Local
 public interface UnidfnrSessionLocal extends UnidfnrSession {
-    
-    /**
-     * @param unid unique id to store in unid fnr database
-     * @param fnr actual fnr to store in the database
-     */
-    void stroreUnidFnrData(final String unid, final String fnr);
-    
-    
-    /**
-     * Look up database and search for UnidFnrData object based on serial number
-     * @param serialNumber unique serial number of unid fnr row in table.
-     * @return The fnr with serialNumber as id if a mapping found in db otherwise null
-     */
-    String fetchUnidFnrData(final String serialNumber);
-    
-    /**
-     * This method is used by ProtocolLookupServerHttpTest
-     * @param unid id of the object to remove from UnidFnrData table
-     * 
-     */
-    void removeUnidFnrDataIfPresent(final String unid);
 
+  /**
+   * @param unid unique id to store in unid fnr database
+   * @param fnr actual fnr to store in the database
+   */
+  void stroreUnidFnrData(String unid, String fnr);
+
+  /**
+   * Look up database and search for UnidFnrData object based on serial number.
+   *
+   * @param serialNumber unique serial number of unid fnr row in table.
+   * @return The fnr with serialNumber as id if a mapping found in db otherwise
+   *     null
+   */
+  String fetchUnidFnrData(String serialNumber);
+
+  /**
+   * This method is used by ProtocolLookupServerHttpTest.
+   *
+   * @param unid id of the object to remove from UnidFnrData table
+   */
+  void removeUnidFnrDataIfPresent(String unid);
 }

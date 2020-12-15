@@ -13,36 +13,49 @@
 package org.ejbca.core.ejb.upgrade;
 
 import java.util.List;
-
 import javax.ejb.Local;
 
 /**
  * Local interface for UpgradeStatusSingletonBean.
- * 
- * @version $Id: UpgradeStatusSingletonLocal.java 25312 2017-02-21 19:09:38Z jeklund $
+ *
+ * @version $Id: UpgradeStatusSingletonLocal.java 25312 2017-02-21 19:09:38Z
+ *     jeklund $
  */
 @Local
 public interface UpgradeStatusSingletonLocal {
 
-    /** @return true of the post-upgrade is running as a background task on this node */
-    boolean isPostUpgradeInProgress();
+  /**
+   * @return true of the post-upgrade is running as a background task on this
+   *     node
+   */
+  boolean isPostUpgradeInProgress();
 
-    /** @return Log4J logging events from UpgradeSessionBean while post-upgrade background task is running */
-    List<org.apache.log4j.spi.LoggingEvent> getLogged();
+  /**
+   * @return Log4J logging events from UpgradeSessionBean while post-upgrade
+   *     background task is running
+   */
+  List<org.apache.log4j.spi.LoggingEvent> getLogged();
 
-    /** @param newValue value
-     * @return true if successfully claimed the node-local post-upgrade lock */
-    boolean setPostUpgradeInProgressIfDifferent(boolean newValue);
+  /**
+   * @param newValue value
+   * @return true if successfully claimed the node-local post-upgrade lock
+   */
+  boolean setPostUpgradeInProgressIfDifferent(boolean newValue);
 
-    /** Reset the node-local post-upgrade lock */
-    void resetPostUpgradeInProgress();
+  /** Reset the node-local post-upgrade lock. */
+  void resetPostUpgradeInProgress();
 
-    /** Start listen to Log4J log events 
-     * @param log log*/
-    void logAppenderAttach(org.apache.log4j.Logger log);
+  /**
+   * Start listen to Log4J log events.
+   *
+   * @param log log
+   */
+  void logAppenderAttach(org.apache.log4j.Logger log);
 
-    /** Stop listen to Log4J log events 
-     * @param log log*/
-    void logAppenderDetach(org.apache.log4j.Logger log);
-
+  /**
+   * Stop listen to Log4J log events.
+   *
+   * @param log log
+   */
+  void logAppenderDetach(org.apache.log4j.Logger log);
 }

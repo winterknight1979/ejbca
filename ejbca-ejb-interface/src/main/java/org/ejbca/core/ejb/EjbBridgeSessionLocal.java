@@ -14,7 +14,6 @@
 package org.ejbca.core.ejb;
 
 import javax.ejb.Local;
-
 import org.cesecore.audit.audit.SecurityEventsAuditorSessionLocal;
 import org.cesecore.audit.log.SecurityEventsLoggerSessionLocal;
 import org.cesecore.authorization.AuthorizationSessionLocal;
@@ -67,67 +66,318 @@ import org.ejbca.core.model.era.RaMasterApiSessionLocal;
 import org.ejbca.core.protocol.cmp.CmpMessageDispatcherSessionLocal;
 
 /**
- * Due to the lack of standardization in JEE5 there is no way to lookup local interfaces.
- * 
- * This Stateless Session Bean (SSB) act as a bridge between calling classes in the same JVM,
- * and the real ejb references.
- * 
- * This will allow us to define a single (this) local EJB in all web.xml and ejb-jar.xml files
- * and are then free to change and move around SSBs and their interfaces without XML changes.
- * 
+ * Due to the lack of standardization in JEE5 there is no way to lookup local
+ * interfaces.
+ *
+ * <p>This Stateless Session Bean (SSB) act as a bridge between calling classes
+ * in the same JVM, and the real ejb references.
+ *
+ * <p>This will allow us to define a single (this) local EJB in all web.xml and
+ * ejb-jar.xml files and are then free to change and move around SSBs and their
+ * interfaces without XML changes.
+ *
  * @version $Id: EjbBridgeSessionLocal.java 29151 2018-06-07 15:11:05Z jeklund $
  */
 @Local
 public interface EjbBridgeSessionLocal {
 
-    AdminPreferenceSessionLocal getAdminPreferenceSession();
-	ApprovalExecutionSessionLocal getApprovalExecutionSession();
-	ApprovalProfileSessionLocal getApprovalProfileSession();
-	ApprovalSessionLocal getApprovalSession();
-    AuthorizationSessionLocal getAuthorizationSession();
-    AuthorizationSystemSessionLocal getAuthorizationSystemSession();
-	BlacklistSessionLocal getBlacklistSession();
-	CAAdminSessionLocal getCaAdminSession();
-	CaSessionLocal getCaSession();
-	CertificateCreateSessionLocal getCertificateCreateSession();
-	CertificateProfileSessionLocal getCertificateProfileSession();
-	CertificateStoreSessionLocal getCertificateStoreSession();
-	CertReqHistorySessionLocal getCertReqHistorySession();
-	CmpMessageDispatcherSessionLocal getCmpMessageDispatcherSession();
-	CrlCreateSessionLocal getCrlCreateSession();
-    CrlStoreSessionLocal getCrlStoreSession();
-	CryptoTokenManagementSessionLocal getCryptoTokenManagementSession();
-	CryptoTokenSessionLocal getCryptoTokenSession();
-	EjbcaAuditorSessionLocal getEjbcaAuditorSession();
-	EjbcaRestHelperSessionLocal getEjbcaRestHelperSession();
-	EjbcaWSHelperSessionLocal getEjbcaWSHelperSession();
-	EndEntityAccessSessionLocal getEndEntityAccessSession();
-	EndEntityAuthenticationSessionLocal getEndEntityAuthenticationSession();
-	EndEntityManagementSessionLocal getEndEntityManagementSession();
-	EndEntityProfileSessionLocal getEndEntityProfileSession();
-	GlobalConfigurationSessionLocal getGlobalConfigurationSession();
-	HardTokenBatchJobSessionLocal getHardTokenBatchJobSession();
-	HardTokenSessionLocal getHardTokenSession();
-    ImportCrlSessionLocal getImportCrlSession();
-    InternalKeyBindingDataSessionLocal getInternalKeyBindingDataSession();
-    InternalKeyBindingMgmtSessionLocal getInternalKeyBindingMgmtSession();
-    KeyRecoverySessionLocal getKeyRecoverySession();
-	KeyValidatorSessionLocal getKeyValidatorSession();
-	PublisherQueueSessionLocal getPublisherQueueSession();
-	PublisherSessionLocal getPublisherSession();
-	PublishingCrlSessionLocal getPublishingCrlSession();
-    RaMasterApiProxyBeanLocal getRaMasterApiProxyBean();
-	RaMasterApiSessionLocal getRaMasterApiSession();
-	RevocationSessionLocal getRevocationSession();
-	RoleDataSessionLocal getRoleDataSession();
-	RoleMemberDataSessionLocal getRoleMemberDataSession();
-	RoleMemberSessionLocal getRoleMemberSession();
-    RoleSessionLocal getRoleSession();
-    SecurityEventsAuditorSessionLocal getSecurityEventsAuditorSession();
-    SecurityEventsLoggerSessionLocal getSecurityEventsLoggerSession();
-    ServiceSessionLocal getServiceSession();
-    SignSessionLocal getSignSession();
-    UpgradeSessionLocal getUpgradeSession();
-    UserDataSourceSessionLocal getUserDataSourceSession();
-    WebAuthenticationProviderSessionLocal getWebAuthenticationProviderSession();
+      /**
+       * Getter.
+       * @return Session
+       */
+  AdminPreferenceSessionLocal getAdminPreferenceSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  ApprovalExecutionSessionLocal getApprovalExecutionSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  ApprovalProfileSessionLocal getApprovalProfileSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  ApprovalSessionLocal getApprovalSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  AuthorizationSessionLocal getAuthorizationSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  AuthorizationSystemSessionLocal getAuthorizationSystemSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  BlacklistSessionLocal getBlacklistSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  CAAdminSessionLocal getCaAdminSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  CaSessionLocal getCaSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  CertificateCreateSessionLocal getCertificateCreateSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  CertificateProfileSessionLocal getCertificateProfileSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  CertificateStoreSessionLocal getCertificateStoreSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  CertReqHistorySessionLocal getCertReqHistorySession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  CmpMessageDispatcherSessionLocal getCmpMessageDispatcherSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  CrlCreateSessionLocal getCrlCreateSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  CrlStoreSessionLocal getCrlStoreSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  CryptoTokenManagementSessionLocal getCryptoTokenManagementSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  CryptoTokenSessionLocal getCryptoTokenSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  EjbcaAuditorSessionLocal getEjbcaAuditorSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  EjbcaRestHelperSessionLocal getEjbcaRestHelperSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  EjbcaWSHelperSessionLocal getEjbcaWSHelperSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  EndEntityAccessSessionLocal getEndEntityAccessSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  EndEntityAuthenticationSessionLocal getEndEntityAuthenticationSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  EndEntityManagementSessionLocal getEndEntityManagementSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  EndEntityProfileSessionLocal getEndEntityProfileSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  GlobalConfigurationSessionLocal getGlobalConfigurationSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  HardTokenBatchJobSessionLocal getHardTokenBatchJobSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  HardTokenSessionLocal getHardTokenSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  ImportCrlSessionLocal getImportCrlSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  InternalKeyBindingDataSessionLocal getInternalKeyBindingDataSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  InternalKeyBindingMgmtSessionLocal getInternalKeyBindingMgmtSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  KeyRecoverySessionLocal getKeyRecoverySession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  KeyValidatorSessionLocal getKeyValidatorSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  PublisherQueueSessionLocal getPublisherQueueSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  PublisherSessionLocal getPublisherSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  PublishingCrlSessionLocal getPublishingCrlSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  RaMasterApiProxyBeanLocal getRaMasterApiProxyBean();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  RaMasterApiSessionLocal getRaMasterApiSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  RevocationSessionLocal getRevocationSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  RoleDataSessionLocal getRoleDataSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  RoleMemberDataSessionLocal getRoleMemberDataSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  RoleMemberSessionLocal getRoleMemberSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  RoleSessionLocal getRoleSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  SecurityEventsAuditorSessionLocal getSecurityEventsAuditorSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  SecurityEventsLoggerSessionLocal getSecurityEventsLoggerSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  ServiceSessionLocal getServiceSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  SignSessionLocal getSignSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  UpgradeSessionLocal getUpgradeSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  UserDataSourceSessionLocal getUserDataSourceSession();
+
+  /**
+   * Getter.
+   * @return Session
+   */
+  WebAuthenticationProviderSessionLocal getWebAuthenticationProviderSession();
 }

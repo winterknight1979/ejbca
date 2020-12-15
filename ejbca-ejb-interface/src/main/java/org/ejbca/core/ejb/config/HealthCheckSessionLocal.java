@@ -15,15 +15,16 @@ package org.ejbca.core.ejb.config;
 import javax.ejb.Local;
 
 /**
- * @version $Id: HealthCheckSessionLocal.java 19902 2014-09-30 14:32:24Z anatom $
+ * @version $Id: HealthCheckSessionLocal.java 19902 2014-09-30 14:32:24Z anatom
+ *     $
  */
 @Local
 public interface HealthCheckSessionLocal extends HealthCheckSession {
 
-    /**
-     * Used by health-check. Validate database connection.
-     * @return an error message or an empty String if all are ok.
-     */
-    String getDatabaseStatus();
-
+  /**
+   * Used by health-check. Validate database connection.
+   *
+   * @return an error message or an empty String if all are ok.
+   */
+  String getDatabaseStatus();
 }

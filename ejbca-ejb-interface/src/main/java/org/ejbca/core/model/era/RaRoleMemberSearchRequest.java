@@ -16,51 +16,111 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 
 /**
  * Search request for role members from RA UI.
- * 
- * @version $Id: RaRoleMemberSearchRequest.java 25310 2017-02-21 16:47:29Z samuellb $
+ *
+ * @version $Id: RaRoleMemberSearchRequest.java 25310 2017-02-21 16:47:29Z
+ *     samuellb $
  */
 public class RaRoleMemberSearchRequest implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    private List<Integer> roleIds = new ArrayList<>();
-    private List<Integer> caIds = new ArrayList<>();
-    private List<String> tokenTypes = new ArrayList<>();
-    private String genericSearchString = "";
-    //private boolean genericSearchExact = false;
+  /** Param. */
+  private List<Integer> roleIds = new ArrayList<>();
+  /** Param. */
+  private List<Integer> caIds = new ArrayList<>();
+  /** Param. */
+  private List<String> tokenTypes = new ArrayList<>();
+  /** Param. */
+  private String genericSearchString = "";
+  // private boolean genericSearchExact = false;
 
-    /** Default constructor */
-    public RaRoleMemberSearchRequest() {}
-    
-    /** Copy constructor 
-     * @param request req*/
-    public RaRoleMemberSearchRequest(final RaRoleMemberSearchRequest request) {
-        roleIds.addAll(request.roleIds);
-        caIds.addAll(request.caIds);
-        genericSearchString = request.genericSearchString;
-        //genericSearchExact = request.genericSearchExact;
-    }
+  /** Default constructor. */
+  public RaRoleMemberSearchRequest() { }
 
-    public List<Integer> getRoleIds() { return roleIds; }
-    public void setRoleIds(final List<Integer> roleIds) { this.roleIds = roleIds; }
-    public List<Integer> getCaIds() { return caIds; }
-    public void setCaIds(final List<Integer> caIds) { this.caIds = caIds; }
-    public List<String> getTokenTypes() { return tokenTypes; }
-    public void setTokenTypes(final List<String> tokenTypes) { this.tokenTypes = tokenTypes; }
-    public String getGenericSearchString() { return genericSearchString; }
-    /** Prefix string to search for in the subject DN, or full serial number. 
-     * @param genericSearchString string*/
-    public void setGenericSearchString(final String genericSearchString) { this.genericSearchString = genericSearchString; }
-//    public boolean isGenericSearchString() { return genericSearchExact; }
-//    public void setGenericSearchString(final boolean genericSearchExact) { this.genericSearchExact = genericSearchExact; }
+  /**
+   * Copy constructor.
+   *
+   * @param request req
+   */
+  public RaRoleMemberSearchRequest(final RaRoleMemberSearchRequest request) {
+    roleIds.addAll(request.roleIds);
+    caIds.addAll(request.caIds);
+    genericSearchString = request.genericSearchString;
+    // genericSearchExact = request.genericSearchExact;
+  }
 
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
+  /**
+   * @return roles
+   */
+  public List<Integer> getRoleIds() {
+    return roleIds;
+  }
 
+  /**
+   * @param theroleIds roles
+   */
+  public void setRoleIds(final List<Integer> theroleIds) {
+    this.roleIds = theroleIds;
+  }
+
+  /**
+   * @return IDs
+   */
+  public List<Integer> getCaIds() {
+    return caIds;
+  }
+
+  /**
+   * @param thecaIds IDs
+   */
+  public void setCaIds(final List<Integer> thecaIds) {
+    this.caIds = thecaIds;
+  }
+
+  /**
+   * @return Types
+   */
+  public List<String> getTokenTypes() {
+    return tokenTypes;
+  }
+
+  /**
+   * @param thetokenTypes Types
+   */
+  public void setTokenTypes(final List<String> thetokenTypes) {
+    this.tokenTypes = thetokenTypes;
+  }
+
+  /**
+   * @return Search
+   */
+  public String getGenericSearchString() {
+    return genericSearchString;
+  }
+  /**
+   * Prefix string to search for in the subject DN, or full serial number.
+   *
+   * @param agenericSearchString string
+   */
+  public void setGenericSearchString(final String agenericSearchString) {
+    this.genericSearchString = agenericSearchString;
+  }
+  //    public boolean isGenericSearchString() { return genericSearchExact; }
+  //    public void setGenericSearchString(final boolean genericSearchExact) {
+  // this.genericSearchExact = genericSearchExact; }
+
+  @Override
+  public int hashCode() {
+    return HashCodeBuilder.reflectionHashCode(this);
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+      return EqualsBuilder.reflectionEquals(this, o);
+  }
 }

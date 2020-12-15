@@ -16,76 +16,132 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * Wrapper class for holding input parameters of revokeCertWithMetadata operation.
- * @version $Id: CertRevocationDto.java 28674 2018-05-03 10:17:34Z tarmo_r_helmes $
+ * Wrapper class for holding input parameters of revokeCertWithMetadata
+ * operation.
+ *
+ * @version $Id: CertRevocationDto.java 28674 2018-05-03 10:17:34Z
+ *     tarmo_r_helmes $
  */
 public class CertRevocationDto implements Serializable {
-    
-    private static final long serialVersionUID = 1L;
-    
-    String issuerDN;
-    String certificateSN;
-    Integer reason;
-    Date revocationDate; 
-    Integer certificateProfileId;
-    boolean checkDate;    
-    
-    public CertRevocationDto(String issuerDN, String certificateSN, int reason) {
-        this.issuerDN = issuerDN;
-        this.certificateSN = certificateSN;
-        this.reason = reason;
-    }
 
-    public CertRevocationDto(String issuerDN, String certificateSN) {
-        this.issuerDN = issuerDN;
-        this.certificateSN = certificateSN;
-    }
+  private static final long serialVersionUID = 1L;
 
-    public String getIssuerDN() {
-        return issuerDN;
-    }
+  /** param. */
+  private String issuerDN;
+  /** param. */
+  private String certificateSN;
+  /** param. */
+  private Integer reason;
+  /** param. */
+  private Date revocationDate;
+  /** param. */
+  private Integer certificateProfileId;
+  /** param. */
+  private boolean checkDate;
 
-    public void setIssuerDN(String issuerDN) {
-        this.issuerDN = issuerDN;
-    }
+  /**
+   * @param anissuerDN DN
+   * @param acertificateSN Serial
+   * @param areason Reason
+   */
+  public CertRevocationDto(
+      final String anissuerDN, final String acertificateSN, final int areason) {
+    this.issuerDN = anissuerDN;
+    this.certificateSN = acertificateSN;
+    this.reason = areason;
+  }
 
-    public String getCertificateSN() {
-        return certificateSN;
-    }
+  /**
+   * @param anissuerDN DN
+   * @param acertificateSN Serial
+   */
+  public CertRevocationDto(
+          final String anissuerDN, final String acertificateSN) {
+    this.issuerDN = anissuerDN;
+    this.certificateSN = acertificateSN;
+  }
 
-    public void setCertificateSN(String certificateSN) {
-        this.certificateSN = certificateSN;
-    }
+  /**
+   * @return DN
+   */
+  public String getIssuerDN() {
+    return issuerDN;
+  }
 
-    public Integer getReason() {
-        return reason;
-    }
+  /**
+   * @param anissuerDN DN
+   */
+  public void setIssuerDN(final String anissuerDN) {
+    this.issuerDN = anissuerDN;
+  }
 
-    public void setReason(Integer reason) {
-        this.reason = reason;
-    }
+  /**
+   * @return Serial
+   */
+  public String getCertificateSN() {
+    return certificateSN;
+  }
 
-    public Date getRevocationDate() {
-        return revocationDate;
-    }
+  /**
+   * @param acertificateSN Serial
+   */
+  public void setCertificateSN(final String acertificateSN) {
+    this.certificateSN = acertificateSN;
+  }
 
-    public void setRevocationDate(Date revocationDate) {
-        this.revocationDate = revocationDate;
-    }
+  /**
+   * @return Reason
+   */
+  public Integer getReason() {
+    return reason;
+  }
 
-    public Integer getCertificateProfileId() {
-        return certificateProfileId;
-    }
+  /**
+   * @param areason Reason
+   */
+  public void setReason(final Integer areason) {
+    this.reason = areason;
+  }
 
-    public void setCertificateProfileId(Integer certificateProfileId) {
-        this.certificateProfileId = certificateProfileId;
-    }
+  /**
+   * @return Date
+   */
+  public Date getRevocationDate() {
+    return revocationDate;
+  }
 
-    public boolean isCheckDate() {
-        return checkDate;
-    }
+  /**
+   * @param arevocationDate Date
+   */
+  public void setRevocationDate(final Date arevocationDate) {
+    this.revocationDate = arevocationDate;
+  }
 
-    public void setCheckDate(boolean checkDate) {
-        this.checkDate = checkDate;
-    }
+  /**
+   * @return ID
+   */
+  public Integer getCertificateProfileId() {
+    return certificateProfileId;
+  }
+
+  /**
+   * @param acertificateProfileId ID
+   */
+  public void setCertificateProfileId(final Integer acertificateProfileId) {
+    this.certificateProfileId = acertificateProfileId;
+  }
+
+  /**
+   * @return bool
+   */
+  public boolean isCheckDate() {
+    return checkDate;
+  }
+
+  /**
+   * @param acheckDate bool
+   */
+  public void setCheckDate(final boolean acheckDate) {
+    this.checkDate = acheckDate;
+  }
 }

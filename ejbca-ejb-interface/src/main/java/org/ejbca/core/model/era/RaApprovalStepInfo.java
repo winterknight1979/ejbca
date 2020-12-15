@@ -14,32 +14,45 @@ package org.ejbca.core.model.era;
 
 import java.io.Serializable;
 import java.util.List;
-
 import org.ejbca.core.model.approval.profile.ApprovalPartition;
 
 /**
  * Contains a list of partitions in a step that are visible to a given admin.
- * Could be removed as part of ECA-5294, since the filtering would be done on the RA side.
- * 
+ * Could be removed as part of ECA-5294, since the filtering would be done on
+ * the RA side.
+ *
  * @version $Id: RaApprovalStepInfo.java 24113 2016-08-04 13:10:03Z samuellb $
  */
 public final class RaApprovalStepInfo implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    private final int stepId;
-    private final List<ApprovalPartition> partitions;
-   
-    public RaApprovalStepInfo(final int stepId, final List<ApprovalPartition> partitions) {
-        this.stepId = stepId;
-        this.partitions = partitions;
-    }
+  /** Param. */
+  private final int stepId;
+  /** Param. */
+  private final List<ApprovalPartition> partitions;
 
-    public int getStepId() {
-        return stepId;
-    }
+  /**
+   * @param astepId ID
+   * @param thepartitions Partitions
+   */
+  public RaApprovalStepInfo(
+      final int astepId, final List<ApprovalPartition> thepartitions) {
+    this.stepId = astepId;
+    this.partitions = thepartitions;
+  }
 
-    public List<ApprovalPartition> getPartitions() {
-        return partitions;
-    }
+  /**
+   * @return Step
+   */
+  public int getStepId() {
+    return stepId;
+  }
+
+  /**
+   * @return Partitions
+   */
+  public List<ApprovalPartition> getPartitions() {
+    return partitions;
+  }
 }

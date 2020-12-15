@@ -15,8 +15,8 @@ package org.ejbca.core.ejb.config;
 import javax.ejb.Remote;
 
 /**
- * @version $Id: HealthCheckSessionRemote.java 19902 2014-09-30 14:32:24Z anatom $
+ * @version $Id: HealthCheckSessionRemote.java 19902 2014-09-30 14:32:24Z anatom
+ *     $
  */
 @Remote
-public interface HealthCheckSessionRemote extends HealthCheckSession {
-}
+public interface HealthCheckSessionRemote extends HealthCheckSession { }

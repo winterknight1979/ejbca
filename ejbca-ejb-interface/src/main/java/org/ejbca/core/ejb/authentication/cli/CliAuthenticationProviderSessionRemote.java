@@ -13,16 +13,14 @@
 package org.ejbca.core.ejb.authentication.cli;
 
 import javax.ejb.Remote;
-
 import org.cesecore.authentication.tokens.AuthenticationProvider;
 
 /**
- * This interface provides authentication for CLI users. 
- * 
- * @version $Id: CliAuthenticationProviderSessionRemote.java 19902 2014-09-30 14:32:24Z anatom $
+ * This interface provides authentication for CLI users.
  *
+ * @version $Id: CliAuthenticationProviderSessionRemote.java 19902 2014-09-30
+ *     14:32:24Z anatom $
  */
 @Remote
-public interface CliAuthenticationProviderSessionRemote extends AuthenticationProvider {
-
-}
+public interface CliAuthenticationProviderSessionRemote
+    extends AuthenticationProvider { }

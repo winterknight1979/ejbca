@@ -13,28 +13,31 @@
 package org.ejbca.core.ejb.approval;
 
 /**
- * An exception thrown when someone tries to add an approval profile that already exits
- * 
- * @version $Id: ApprovalProfileExistsException.java 23336 2016-05-02 20:25:49Z aveen4711 $
+ * An exception thrown when someone tries to add an approval profile that
+ * already exits.
+ *
+ * @version $Id: ApprovalProfileExistsException.java 23336 2016-05-02 20:25:49Z
+ *     aveen4711 $
  */
 public class ApprovalProfileExistsException extends Exception {
 
-    private static final long serialVersionUID = -8311393401572535556L;
+  private static final long serialVersionUID = -8311393401572535556L;
 
-    /**
-     * Creates a new instance of <code>ApprovalProfileExistsException</code> without detail message.
-     */
-    public ApprovalProfileExistsException() {
-        super();
-    }
+  /**
+   * Creates a new instance of <code>ApprovalProfileExistsException</code>
+   * without detail message.
+   */
+  public ApprovalProfileExistsException() {
+    super();
+  }
 
-    /**
-     * Constructs an instance of <code>ApprovalProfileExistsException</code> with the specified detail message.
-     * 
-     * @param msg
-     *            the detail message.
-     */
-    public ApprovalProfileExistsException(String msg) {
-        super(msg);
-    }
+  /**
+   * Constructs an instance of <code>ApprovalProfileExistsException</code> with
+   * the specified detail message.
+   *
+   * @param msg the detail message.
+   */
+  public ApprovalProfileExistsException(final String msg) {
+    super(msg);
+  }
 }

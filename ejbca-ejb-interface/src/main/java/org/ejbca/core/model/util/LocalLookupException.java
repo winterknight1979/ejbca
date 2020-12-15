@@ -13,30 +13,38 @@
 package org.ejbca.core.model.util;
 
 /**
- * Thrown in case a local lookup fails
- * 
- * @version $Id: LocalLookupException.java 19902 2014-09-30 14:32:24Z anatom $
+ * Thrown in case a local lookup fails.
  *
+ * @version $Id: LocalLookupException.java 19902 2014-09-30 14:32:24Z anatom $
  */
 public class LocalLookupException extends RuntimeException {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    public LocalLookupException() {
-        super();
-    }
+  /** Default. */
+  public LocalLookupException() {
+    super();
+  }
 
-    public LocalLookupException(String message, Throwable cause) {
-        super(message, cause);
-    }
+  /**
+   * @param message Message
+   * @param cause Cause
+   */
+  public LocalLookupException(final String message, final Throwable cause) {
+    super(message, cause);
+  }
 
-    public LocalLookupException(String message) {
-        super(message);
-    }
+  /**
+   * @param message message
+   */
+  public LocalLookupException(final String message) {
+    super(message);
+  }
 
-    public LocalLookupException(Throwable cause) {
-        super(cause);
-    }
-
-
+  /**
+   * @param cause cause
+   */
+  public LocalLookupException(final Throwable cause) {
+    super(cause);
+  }
 }

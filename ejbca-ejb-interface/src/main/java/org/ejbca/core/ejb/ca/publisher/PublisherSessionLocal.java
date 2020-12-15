@@ -13,9 +13,7 @@
 package org.ejbca.core.ejb.ca.publisher;
 
 import java.util.Map;
-
 import javax.ejb.Local;
-
 import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.cesecore.authorization.AuthorizationDeniedException;
 import org.ejbca.core.model.ca.publisher.BasePublisher;
@@ -23,84 +21,97 @@ import org.ejbca.core.model.ca.publisher.PublisherConnectionException;
 
 /**
  * Local interface for PublisherSession.
- * @version $Id: PublisherSessionLocal.java 30369 2018-11-02 13:52:38Z samuellb $
+ *
+ * @version $Id: PublisherSessionLocal.java 30369 2018-11-02 13:52:38Z samuellb
+ *     $
  */
 @Local
 public interface PublisherSessionLocal extends PublisherSession {
-    
-    /**
-     * Makes sure that no Publishers are cached to ensure that we read from database
-     * next time we try to access it.
-     */
-    void flushPublisherCache(); 
 
-    /**
-     * Test the connection to of a publisher
-     * 
-     * @param publisherid
-     *            the id of the publisher to test.
-     * @throws PublisherConnectionException if connection test with publisher fails.
-     * @see org.ejbca.core.model.ca.publisher.BasePublisher
-     */
-    void testConnection(int publisherid) throws PublisherConnectionException; // NOPMD: this is not a JUnit test
+  /**
+   * Makes sure that no Publishers are cached to ensure that we read from
+   * database next time we try to access it.
+   */
+  void flushPublisherCache();
 
-    /**
-     * Retrieves a Map of all Publishers
-     * 
-     * Use CAAdminSession.getAuthorizedPublisherIds to get the list for any
-     * administrator.
-     * 
-     * @return Map of BasePublishers mapped by ID
-     */
-    Map<Integer, BasePublisher> getAllPublishers();
-    
-    /**
-     * Returns a Map of all Publishers. This method does not take into account if external scripts are disabled.
-     * @return map
-     */
-    Map<Integer, BasePublisher> getAllPublishersInternal();
+  /**
+   * Test the connection to of a publisher.
+   *
+   * @param publisherid the id of the publisher to test.
+   * @throws PublisherConnectionException if connection test with publisher
+   *     fails.
+   * @see org.ejbca.core.model.ca.publisher.BasePublisher
+   */
+  void testConnection(int publisherid)
+      throws PublisherConnectionException; // NOPMD: this is not a JUnit test
 
-    /**
-     * Help method used by publisher proxys to indicate if it is time to update
-     * it's data.
-     * @param publisherid id
-     * @return int
-     */
-    int getPublisherUpdateCount(int publisherid);
+  /**
+   * Retrieves a Map of all Publishers
+   *
+   * <p>Use CAAdminSession.getAuthorizedPublisherIds to get the list for any
+   * administrator.
+   *
+   * @return Map of BasePublishers mapped by ID
+   */
+  Map<Integer, BasePublisher> getAllPublishers();
 
-    /**
-     * Returns a publisher id, given it's publishers name
-     * @param name name
-     * @return the id or 0 if the publisher cannot be found.
-     */
-    int getPublisherId(String name);
+  /**
+   * Returns a Map of all Publishers. This method does not take into account if
+   * external scripts are disabled.
+   *
+   * @return map
+   */
+  Map<Integer, BasePublisher> getAllPublishersInternal();
 
-    /**
-     * Use from Healthcheck only! Test connection for all publishers. No
-     * authorization checks are performed.
-     * @return an error message or an empty String if all are ok.
-     */
-    String testAllConnections(); // NOPMD: this is not a JUnit test
+  /**
+   * Help method used by publisher proxys to indicate if it is time to update
+   * it's data.
+   *
+   * @param publisherid id
+   * @return int
+   */
+  int getPublisherUpdateCount(int publisherid);
 
-    /**
-     * Removes publisher data. Ignores if there are any references to the publisher from CA, certificate profiles
-     * or Multi Group Publishers, just goes ahead and removes it.
-     * 
-     * @param admin AuthenticationToken of admin.
-     * @param name the name of the publisher to remove.
-     * 
-     * @throws AuthorizationDeniedException required access rights are ca_functionality/edit_publisher
-     */
-    void removePublisherInternal(AuthenticationToken admin, String name) throws AuthorizationDeniedException;
+  /**
+   * Returns a publisher id, given it's publishers name.
+   *
+   * @param name name
+   * @return the id or 0 if the publisher cannot be found.
+   */
+  int getPublisherId(String name);
 
-    /**
-     * Allows upgrade for Community Users to EJBCA 6.3.1.1 from previous versions of EJBCA by replacing the old 
-     * VA publisher with a placeholder 
-     * 
-     * @return the number of upgraded publishers
-     */
-    int adhocUpgradeTo6_3_1_1();
+  /**
+   * Use from Healthcheck only! Test connection for all publishers. No
+   * authorization checks are performed.
+   *
+   * @return an error message or an empty String if all are ok.
+   */
+  String testAllConnections(); // NOPMD: this is not a JUnit test
 
-    /** @return true if the old VA publisher is still present in the database and upgrade is needed. */
-    boolean isOldVaPublisherPresent();
+  /**
+   * Removes publisher data. Ignores if there are any references to the
+   * publisher from CA, certificate profiles or Multi Group Publishers, just
+   * goes ahead and removes it.
+   *
+   * @param admin AuthenticationToken of admin.
+   * @param name the name of the publisher to remove.
+   * @throws AuthorizationDeniedException required access rights are
+   *     ca_functionality/edit_publisher
+   */
+  void removePublisherInternal(AuthenticationToken admin, String name)
+      throws AuthorizationDeniedException;
+
+  /**
+   * Allows upgrade for Community Users to EJBCA 6.3.1.1 from previous versions
+   * of EJBCA by replacing the old VA publisher with a placeholder.
+   *
+   * @return the number of upgraded publishers
+   */
+  int adhocUpgradeTo6311();
+
+  /**
+   * @return true if the old VA publisher is still present in the database and
+   *     upgrade is needed.
+   */
+  boolean isOldVaPublisherPresent();
 }

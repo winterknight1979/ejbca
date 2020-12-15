@@ -14,10 +14,6 @@ package org.ejbca.core.ejb.keyrecovery;
 
 import javax.ejb.Remote;
 
-/**
- * Remote interface for KeyRecoverySession.
- */
+/** Remote interface for KeyRecoverySession. */
 @Remote
-public interface KeyRecoverySessionRemote extends KeyRecoverySession {
-
-}
+public interface KeyRecoverySessionRemote extends KeyRecoverySession { }

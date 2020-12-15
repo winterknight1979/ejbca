@@ -13,26 +13,33 @@
 package org.ejbca.core.ejb.authentication.web;
 
 import java.security.cert.X509Certificate;
-
 import javax.ejb.Local;
-
 import org.cesecore.authentication.tokens.AuthenticationProvider;
 import org.cesecore.authentication.tokens.AuthenticationToken;
 
 /**
  * Provides authentication for web service users.
- * 
- * @version $Id: WebAuthenticationProviderSessionLocal.java 29151 2018-06-07 15:11:05Z jeklund $
+ *
+ * @version $Id: WebAuthenticationProviderSessionLocal.java 29151 2018-06-07
+ *     15:11:05Z jeklund $
  */
 @Local
-public interface WebAuthenticationProviderSessionLocal extends AuthenticationProvider {
+public interface WebAuthenticationProviderSessionLocal
+    extends AuthenticationProvider {
 
-    /** @param x509Certificate X.509
-     * @return a X509CertificateAuthenticationToken based on the provided client TLS certificate. */
-    AuthenticationToken authenticateUsingClientCertificate(X509Certificate x509Certificate);
+  /**
+   * @param x509Certificate X.509
+   * @return a X509CertificateAuthenticationToken based on the provided client
+   *     TLS certificate.
+   */
+  AuthenticationToken authenticateUsingClientCertificate(
+      X509Certificate x509Certificate);
 
-    /** @param principal principal
-     * @param confidentialTransport transport 
-     * @return a PublicAccessAuthenticationToken based on the provided info. */
-    AuthenticationToken authenticateUsingNothing(String principal, boolean confidentialTransport);
+  /**
+   * @param principal principal
+   * @param confidentialTransport transport
+   * @return a PublicAccessAuthenticationToken based on the provided info.
+   */
+  AuthenticationToken authenticateUsingNothing(
+      String principal, boolean confidentialTransport);
 }

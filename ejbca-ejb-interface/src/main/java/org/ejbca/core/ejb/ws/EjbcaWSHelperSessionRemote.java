@@ -15,9 +15,8 @@ package org.ejbca.core.ejb.ws;
 import javax.ejb.Remote;
 
 /**
- * @version $Id: EjbcaWSHelperSessionRemote.java 25833 2017-05-10 16:19:27Z samuellb $
+ * @version $Id: EjbcaWSHelperSessionRemote.java 25833 2017-05-10 16:19:27Z
+ *     samuellb $
  */
 @Remote
-public interface EjbcaWSHelperSessionRemote extends EjbcaWSHelperSession {
-
-}
+public interface EjbcaWSHelperSessionRemote extends EjbcaWSHelperSession { }

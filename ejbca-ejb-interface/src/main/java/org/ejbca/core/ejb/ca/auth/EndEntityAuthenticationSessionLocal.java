@@ -16,9 +16,10 @@ import javax.ejb.Local;
 
 /**
  * Local interface for AuthenticationSession.
- * @version $Id: EndEntityAuthenticationSessionLocal.java 19902 2014-09-30 14:32:24Z anatom $
+ *
+ * @version $Id: EndEntityAuthenticationSessionLocal.java 19902 2014-09-30
+ *     14:32:24Z anatom $
  */
 @Local
-public interface EndEntityAuthenticationSessionLocal extends EndEntityAuthenticationSession{
-
-}
+public interface EndEntityAuthenticationSessionLocal
+    extends EndEntityAuthenticationSession { }

@@ -13,32 +13,35 @@
 package org.ejbca.core.model.era;
 
 import javax.ejb.Local;
-
 import org.cesecore.authentication.tokens.AuthenticationToken;
 
 /**
- * Interface for EJB access to the RaMasterApi proxy singleton
+ * Interface for EJB access to the RaMasterApi proxy singleton.
  *
- * @version $Id: RaMasterApiProxyBeanLocal.java 29504 2018-07-17 13:16:50Z bastianf $
+ * @version $Id: RaMasterApiProxyBeanLocal.java 29504 2018-07-17 13:16:50Z
+ *     bastianf $
  */
 @Local
 public interface RaMasterApiProxyBeanLocal extends RaMasterApi {
 
-    /**
-     *
-     * @param apiType the implementation of RaMasterApi to check for
-     * @return returns true if an API of a certain type is available
-     */
-    boolean isBackendAvailable(Class<? extends RaMasterApi> apiType);
+  /**
+   * @param apiType the implementation of RaMasterApi to check for
+   * @return returns true if an API of a certain type is available
+   */
+  boolean isBackendAvailable(Class<? extends RaMasterApi> apiType);
 
-    /**
-     * De-prioritizes the local RA Master API implementation, causing it to not be called if a remote connection is available.
-     * Used in tests, to test "remote" peer connections to localhost.
-     */
-    void deferLocalForTest();
+  /**
+   * De-prioritizes the local RA Master API implementation, causing it to not be
+   * called if a remote connection is available. Used in tests, to test "remote"
+   * peer connections to localhost.
+   */
+  void deferLocalForTest();
 
-    /** @param authenticationToken token
-     * @param username user
-     * @return a RaCertificateSearchResponse from a search with a given username */
-    RaCertificateSearchResponse searchForCertificatesByUsername(final AuthenticationToken authenticationToken, final String username);
+  /**
+   * @param authenticationToken token
+   * @param username user
+   * @return a RaCertificateSearchResponse from a search with a given username
+   */
+  RaCertificateSearchResponse searchForCertificatesByUsername(
+      AuthenticationToken authenticationToken, String username);
 }

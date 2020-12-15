@@ -15,10 +15,8 @@ package org.ejbca.core.ejb.ra;
 import javax.ejb.Remote;
 
 /**
- * @version $Id: EndEntityAccessSessionRemote.java 19902 2014-09-30 14:32:24Z anatom $
- *
+ * @version $Id: EndEntityAccessSessionRemote.java 19902 2014-09-30 14:32:24Z
+ *     anatom $
  */
 @Remote
-public interface EndEntityAccessSessionRemote extends EndEntityAccessSession {
-
-}
+public interface EndEntityAccessSessionRemote extends EndEntityAccessSession { }
