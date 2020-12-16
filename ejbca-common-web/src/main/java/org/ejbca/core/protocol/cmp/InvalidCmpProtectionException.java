@@ -14,42 +14,33 @@ package org.ejbca.core.protocol.cmp;
 
 /**
  * Thrown if an invalid protection algorithm is supplied with a CMP message.
- * 
- * @version $Id: InvalidCmpProtectionException.java 22584 2016-01-15 18:23:20Z mikekushner $
  *
+ * @version $Id: InvalidCmpProtectionException.java 22584 2016-01-15 18:23:20Z
+ *     mikekushner $
  */
 public class InvalidCmpProtectionException extends Exception {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    /**
-     * 
-     */
-    public InvalidCmpProtectionException() {
-    }
+  /** */
+  public InvalidCmpProtectionException() {}
 
-    /**
-     * @param message message
-     */
-    public InvalidCmpProtectionException(String message) {
-        super(message);
-    }
+  /** @param message message */
+  public InvalidCmpProtectionException(final String message) {
+    super(message);
+  }
 
-    /**
-     * @param cause cause
-     */
-    public InvalidCmpProtectionException(Throwable cause) {
-        super(cause);
-    }
+  /** @param cause cause */
+  public InvalidCmpProtectionException(final Throwable cause) {
+    super(cause);
+  }
 
-    /**
-     * @param message message
-     * @param cause cause
-     */
-    public InvalidCmpProtectionException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-
-
+  /**
+   * @param message message
+   * @param cause cause
+   */
+  public InvalidCmpProtectionException(
+      final String message, final Throwable cause) {
+    super(message, cause);
+  }
 }

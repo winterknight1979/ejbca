@@ -17,26 +17,30 @@ import org.ejbca.core.model.SecConst;
 
 /**
  * Helper class containing static methods for RMI lookups
- * 
- * @version $Id: ApprovalRequestHelper.java 22139 2015-11-03 10:41:56Z mikekushner $
+ *
+ * @version $Id: ApprovalRequestHelper.java 22139 2015-11-03 10:41:56Z
+ *     mikekushner $
  */
-public class ApprovalRequestHelper { 
+public class ApprovalRequestHelper {
 
-    public static ApprovalDataText getTokenName(HardTokenSession hardTokenSession, int tokenid) {
-        ApprovalDataText retval;
-        if (tokenid <= SecConst.TOKEN_SOFT) {
-            int tokenindex = 0;
-            for (int i = 0; i < SecConst.TOKENIDS.length; i++) {
-                if (SecConst.TOKENIDS[i] == tokenid) {
-                    tokenindex = i;
-                }
-            }
-            retval = new ApprovalDataText("TOKEN", SecConst.TOKENTEXTS[tokenindex], true, true);
-
-        } else {
-            String name = hardTokenSession.getHardTokenProfileName(tokenid);
-            retval = new ApprovalDataText("TOKEN", name, true, false);
+  public static ApprovalDataText getTokenName(
+      final HardTokenSession hardTokenSession, final int tokenid) {
+    ApprovalDataText retval;
+    if (tokenid <= SecConst.TOKEN_SOFT) {
+      int tokenindex = 0;
+      for (int i = 0; i < SecConst.TOKENIDS.length; i++) {
+        if (SecConst.TOKENIDS[i] == tokenid) {
+          tokenindex = i;
         }
-        return retval;
+      }
+      retval =
+          new ApprovalDataText(
+              "TOKEN", SecConst.TOKENTEXTS[tokenindex], true, true);
+
+    } else {
+      String name = hardTokenSession.getHardTokenProfileName(tokenid);
+      retval = new ApprovalDataText("TOKEN", name, true, false);
     }
+    return retval;
+  }
 }

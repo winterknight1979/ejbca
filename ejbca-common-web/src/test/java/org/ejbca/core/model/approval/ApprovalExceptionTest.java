@@ -20,17 +20,21 @@ import org.ejbca.core.EjbcaException;
 import org.junit.Test;
 
 /**
- * @version $Id: ApprovalExceptionTest.java 22139 2015-11-03 10:41:56Z mikekushner $
+ * @version $Id: ApprovalExceptionTest.java 22139 2015-11-03 10:41:56Z
+ *     mikekushner $
  */
 public class ApprovalExceptionTest {
 
-	/**
-	 * Verify that nested ApprovalExceptions propagate errorCode.
-	 */
-	@Test
-	public void testErrorCode() {
-		ApprovalException approvalException = new ApprovalException(ErrorCode.APPROVAL_ALREADY_EXISTS, "JUnit test message..");
-		EjbcaException ejbcaException = new EjbcaException(approvalException);
-		assertEquals("EjbcaException did not inherit ErrorCode.", ErrorCode.APPROVAL_ALREADY_EXISTS, ejbcaException.getErrorCode());
-	}
+  /** Verify that nested ApprovalExceptions propagate errorCode. */
+  @Test
+  public void testErrorCode() {
+    ApprovalException approvalException =
+        new ApprovalException(
+            ErrorCode.APPROVAL_ALREADY_EXISTS, "JUnit test message..");
+    EjbcaException ejbcaException = new EjbcaException(approvalException);
+    assertEquals(
+        "EjbcaException did not inherit ErrorCode.",
+        ErrorCode.APPROVAL_ALREADY_EXISTS,
+        ejbcaException.getErrorCode());
+  }
 }

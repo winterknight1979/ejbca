@@ -14,25 +14,18 @@
 package org.ejbca.config;
 
 /**
- * 
  * @version $Id: MailConfiguration.java 22139 2015-11-03 10:41:56Z mikekushner $
  */
-
 public class MailConfiguration {
 
-	/**
-	 * @return The JNDI-name used to send email notifications from EJBCA.
-	 * 
-	 */
-	public static String getMailJndiName() {
-		return EjbcaConfigurationHolder.getExpandedString("mail.jndi-name");
-	}
+  /** @return The JNDI-name used to send email notifications from EJBCA. */
+  public static String getMailJndiName() {
+    return EjbcaConfigurationHolder.getExpandedString("mail.jndi-name");
+  }
 
-	/**
-	 * @return Content encoding for the email message body.
-	 */
-	public static String getMailMimeType() {
-		return "text/plain;charset=" + EjbcaConfigurationHolder.getExpandedString("mail.contentencoding");
-	}
-
+  /** @return Content encoding for the email message body. */
+  public static String getMailMimeType() {
+    return "text/plain;charset="
+        + EjbcaConfigurationHolder.getExpandedString("mail.contentencoding");
+  }
 }

@@ -14,40 +14,31 @@ package org.ejbca.util.mail;
 
 /**
  * Generic exception for mail handling.
- * 
- * @version $Id: MailException.java 26387 2017-08-22 14:14:36Z mikekushner $
  *
+ * @version $Id: MailException.java 26387 2017-08-22 14:14:36Z mikekushner $
  */
 public class MailException extends Exception {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    /**
-     * 
-     */
-    public MailException() {
-    }
+  /** */
+  public MailException() {}
 
-    /**
-     * @param message message
-     */
-    public MailException(String message) {
-        super(message);
-    }
+  /** @param message message */
+  public MailException(final String message) {
+    super(message);
+  }
 
-    /**
-     * @param cause cause
-     */
-    public MailException(Throwable cause) {
-        super(cause);
-    }
+  /** @param cause cause */
+  public MailException(final Throwable cause) {
+    super(cause);
+  }
 
-    /**
-     * @param message message
-     * @param cause cause
-     */
-    public MailException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
+  /**
+   * @param message message
+   * @param cause cause
+   */
+  public MailException(final String message, final Throwable cause) {
+    super(message, cause);
+  }
 }

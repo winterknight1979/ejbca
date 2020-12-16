@@ -14,7 +14,6 @@ package org.ejbca.core.model.services.workers;
 
 import java.util.Collection;
 import java.util.Map;
-
 import org.apache.log4j.Logger;
 import org.cesecore.authorization.AuthorizationDeniedException;
 import org.ejbca.core.ejb.crl.PublishingCrlSessionLocal;
@@ -23,47 +22,59 @@ import org.ejbca.core.model.services.BaseWorker;
 import org.ejbca.core.model.services.ServiceExecutionFailedException;
 
 /**
- * Class managing the updating of CRLs. Loops through the list of CAs to check and generates CRLs and deltaCRLs if needed.
- * 
+ * Class managing the updating of CRLs. Loops through the list of CAs to check
+ * and generates CRLs and deltaCRLs if needed.
+ *
  * @author Philip Vendil
  * @version $Id: CRLUpdateWorker.java 24487 2016-10-10 09:10:53Z anatom $
  */
 public class CRLUpdateWorker extends BaseWorker {
 
-    private static final Logger log = Logger.getLogger(CRLUpdateWorker.class);	
+  private static final Logger log = Logger.getLogger(CRLUpdateWorker.class);
 
-    /** Semaphore that tries to make sure that this CRL creation job does not run several times on the same machine.
-     * Since CRL generation can sometimes take a lot of time, this is needed.
-     */
-	private static boolean running = false;
+  /**
+   * Semaphore that tries to make sure that this CRL creation job does not run
+   * several times on the same machine. Since CRL generation can sometimes take
+   * a lot of time, this is needed.
+   */
+  private static boolean running = false;
 
-	/**
-	 * Checks if there are any CRL that needs to be updated, and then does the creation.
-	 * 
-	 * @see org.ejbca.core.model.services.IWorker#work
-	 */
-    @Override
-	public void work(Map<Class<?>, Object> ejbs) throws ServiceExecutionFailedException {
-        final PublishingCrlSessionLocal publishingCrlSession = ((PublishingCrlSessionLocal)ejbs.get(PublishingCrlSessionLocal.class));
-		// A semaphore used to not run parallel CRL generation jobs if it is slow
-		// in generating CRLs, and this job runs very often
-		if (!running) {
-			try {
-				running = true;
-			    long polltime = getNextInterval();
-			    // Use true here so the service works the same as before upgrade from 3.9.0 when this function of 
-			    // selecting CAs did not exist, no CA = Any CA.
-			    Collection<Integer> caids = getCAIdsToCheck(true); 
-			    publishingCrlSession.createCRLs(getAdmin(), caids, polltime*1000);
-			    publishingCrlSession.createDeltaCRLs(getAdmin(), caids, polltime*1000);
-			} catch (AuthorizationDeniedException e) {
-				log.info("Authorization denied executing service: ", e);
-				throw new ServiceExecutionFailedException(e);
-			} finally {
-				running = false;
-			}			
-		} else {
-			log.info(InternalEjbcaResources.getInstance().getLocalizedMessage("services.alreadyrunninginvm", CRLUpdateWorker.class.getName()));
-		}
-	}
+  /**
+   * Checks if there are any CRL that needs to be updated, and then does the
+   * creation.
+   *
+   * @see org.ejbca.core.model.services.IWorker#work
+   */
+  @Override
+  public void work(final Map<Class<?>, Object> ejbs)
+      throws ServiceExecutionFailedException {
+    final PublishingCrlSessionLocal publishingCrlSession =
+        ((PublishingCrlSessionLocal) ejbs.get(PublishingCrlSessionLocal.class));
+    // A semaphore used to not run parallel CRL generation jobs if it is slow
+    // in generating CRLs, and this job runs very often
+    if (!running) {
+      try {
+        running = true;
+        long polltime = getNextInterval();
+        // Use true here so the service works the same as before upgrade from
+        // 3.9.0 when this function of
+        // selecting CAs did not exist, no CA = Any CA.
+        Collection<Integer> caids = getCAIdsToCheck(true);
+        publishingCrlSession.createCRLs(getAdmin(), caids, polltime * 1000);
+        publishingCrlSession.createDeltaCRLs(
+            getAdmin(), caids, polltime * 1000);
+      } catch (AuthorizationDeniedException e) {
+        log.info("Authorization denied executing service: ", e);
+        throw new ServiceExecutionFailedException(e);
+      } finally {
+        running = false;
+      }
+    } else {
+      log.info(
+          InternalEjbcaResources.getInstance()
+              .getLocalizedMessage(
+                  "services.alreadyrunninginvm",
+                  CRLUpdateWorker.class.getName()));
+    }
+  }
 }

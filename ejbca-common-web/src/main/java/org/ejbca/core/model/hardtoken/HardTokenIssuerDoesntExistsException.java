@@ -10,33 +10,36 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
+
 package org.ejbca.core.model.hardtoken;
 
 /**
- * An exception thrown when someone tries to remove or change a hard token issuer that doesn't exits
+ * An exception thrown when someone tries to remove or change a hard token
+ * issuer that doesn't exits
  *
- * @author  Philip Vendil 2003-01-20
- * @version $Id: HardTokenIssuerDoesntExistsException.java 22139 2015-11-03 10:41:56Z mikekushner $
+ * @author Philip Vendil 2003-01-20
+ * @version $Id: HardTokenIssuerDoesntExistsException.java 22139 2015-11-03
+ *     10:41:56Z mikekushner $
  */
 public class HardTokenIssuerDoesntExistsException extends java.lang.Exception {
-    
-    private static final long serialVersionUID = 1156352149099524209L;
 
+  private static final long serialVersionUID = 1156352149099524209L;
 
-    /**
-     * Creates a new instance of <code>HardTokenIssuerDoesntExistsException</code> without detail message.
-     */
-    public HardTokenIssuerDoesntExistsException() {
-        super();
-    }
-    
-    
-    /**
-     * Constructs an instance of <code>HardTokenIssuerDoesntExistsException</code> with the specified detail message.
-     * @param msg the detail message.
-     */
-    public HardTokenIssuerDoesntExistsException(String msg) {
-        super(msg);
-    }
+  /**
+   * Creates a new instance of <code>HardTokenIssuerDoesntExistsException</code>
+   * without detail message.
+   */
+  public HardTokenIssuerDoesntExistsException() {
+    super();
+  }
+
+  /**
+   * Constructs an instance of <code>HardTokenIssuerDoesntExistsException</code>
+   * with the specified detail message.
+   *
+   * @param msg the detail message.
+   */
+  public HardTokenIssuerDoesntExistsException(final String msg) {
+    super(msg);
+  }
 }

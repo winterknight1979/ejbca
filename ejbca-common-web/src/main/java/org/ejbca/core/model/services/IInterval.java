@@ -16,33 +16,30 @@ import java.util.Properties;
 
 /**
  * Class representing an interval to when the service should run next time
- * 
- * It's main method is getTimeToExecution 
- * 
+ *
+ * <p>It's main method is getTimeToExecution
  *
  * @version $Id: IInterval.java 22139 2015-11-03 10:41:56Z mikekushner $
  */
 public interface IInterval {
-	
-	/**
-	 * Constant indicating if the service should stop executing
-	 */
-	long DONT_EXECUTE = -1;
-	
-	/**
-	 * Method that should initialize the interval according to the 
-	 * configured properties.
-	 * 
-	 * This method should be called before the any action calls are made.
-	 * @param properties Props
-	 * @param serviceName Name
-	 */
-	void init(Properties properties, String serviceName);
-	
-	/**
-	 * @return the time in seconds to next execution or DONT_EXECUTE if the
-	 * service should run anymore
-	 */
-	long getTimeToExecution();
 
+  /** Constant indicating if the service should stop executing */
+  long DONT_EXECUTE = -1;
+
+  /**
+   * Method that should initialize the interval according to the configured
+   * properties.
+   *
+   * <p>This method should be called before the any action calls are made.
+   *
+   * @param properties Props
+   * @param serviceName Name
+   */
+  void init(Properties properties, String serviceName);
+
+  /**
+   * @return the time in seconds to next execution or DONT_EXECUTE if the
+   *     service should run anymore
+   */
+  long getTimeToExecution();
 }

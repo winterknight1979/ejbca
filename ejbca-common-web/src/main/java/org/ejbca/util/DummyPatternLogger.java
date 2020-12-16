@@ -15,15 +15,29 @@ package org.ejbca.util;
 
 /**
  * This class ignores all input.
- * 
- * @version $Id: DummyPatternLogger.java 22139 2015-11-03 10:41:56Z mikekushner $
+ *
+ * @version $Id: DummyPatternLogger.java 22139 2015-11-03 10:41:56Z mikekushner
+ *     $
  */
 public class DummyPatternLogger implements IPatternLogger {
 
-	public void flush() { /* nothing done */ }
-	public void paramPut(String key, byte[] value) { /* nothing done */ }
-	public void paramPut(String key, String value) { /* nothing done */ }
-	public void paramPut(String key, Integer value) { /* nothing done */ }
-	public void writeln() { /* nothing done */ }
+  public void flush() {
+    /* nothing done */
+  }
 
+  public void paramPut(final String key, final byte[] value) {
+    /* nothing done */
+  }
+
+  public void paramPut(final String key, final String value) {
+    /* nothing done */
+  }
+
+  public void paramPut(final String key, final Integer value) {
+    /* nothing done */
+  }
+
+  public void writeln() {
+    /* nothing done */
+  }
 }

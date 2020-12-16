@@ -16,7 +16,6 @@ package org.ejbca.core.model.services.workers;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
-
 import org.apache.log4j.Logger;
 import org.cesecore.certificates.certificate.CertificateConstants;
 import org.ejbca.core.model.services.BaseWorker;
@@ -24,98 +23,122 @@ import org.ejbca.core.model.services.ServiceExecutionFailedException;
 import org.ejbca.core.model.services.actions.MailActionInfo;
 
 /**
- * @version $Id: EmailSendingWorker.java 22117 2015-10-29 10:53:42Z mikekushner $
+ * @version $Id: EmailSendingWorker.java 22117 2015-10-29 10:53:42Z mikekushner
+ *     $
  */
 public abstract class EmailSendingWorker extends BaseWorker {
 
-	private static final Logger log = Logger.getLogger(EmailSendingWorker.class);
+  private static final Logger log = Logger.getLogger(EmailSendingWorker.class);
 
-	private transient String endUserSubject = null;
-	private transient String adminSubject = null;
-	private transient String endUserMessage = null;
-	private transient String adminMessage = null;
+  private transient String endUserSubject = null;
+  private transient String adminSubject = null;
+  private transient String endUserMessage = null;
+  private transient String adminMessage = null;
 
-	public EmailSendingWorker() {
-		super();
-	}
+  public EmailSendingWorker() {
+    super();
+  }
 
-	class EmailCertData{
-		
-		private String fingerPrint = null;
-		private MailActionInfo actionInfo = null;
-		
-		public EmailCertData(String fingerPrint, MailActionInfo actionInfo) {
-			super();
-			this.fingerPrint = fingerPrint;
-			this.actionInfo = actionInfo;
-		}
+  class EmailCertData {
 
-		public String getFingerPrint() {
-			return fingerPrint;
-		}
+    private String fingerPrint = null;
+    private MailActionInfo actionInfo = null;
 
-		public MailActionInfo getActionInfo() {
-			return actionInfo;
-		}
-	}
+    public EmailCertData(
+        final String fingerPrint, final MailActionInfo actionInfo) {
+      super();
+      this.fingerPrint = fingerPrint;
+      this.actionInfo = actionInfo;
+    }
 
-	/** Method that must be implemented by all subclasses to EmailSendingWorker, used to update status of 
-	 * a certificate, user, or similar
-	 * @param pk primary key of object to update
-	 * @param status status to update to 
-	 */
-	protected abstract void updateStatus(String pk, int status);
-	
-	protected void sendEmails(ArrayList<EmailCertData> queue, Map<Class<?>, Object> ejbs) throws ServiceExecutionFailedException {
-		Iterator<EmailCertData> iter = queue.iterator();
-		while(iter.hasNext()){			
-			try{
-				EmailCertData next = iter.next();								
-				getAction().performAction(next.getActionInfo(), ejbs);
-				updateStatus(next.getFingerPrint(), CertificateConstants.CERT_NOTIFIEDABOUTEXPIRATION);
-			} catch (Exception fe) {
-				log.error("Error sending emails: ", fe);
-				throw new ServiceExecutionFailedException(fe);
-			} 
-		}
-	}
+    public String getFingerPrint() {
+      return fingerPrint;
+    }
 
-	protected String getAdminMessage() {
-		if(adminMessage == null){
-			adminMessage =  properties.getProperty(EmailSendingWorkerConstants.PROP_ADMINMESSAGE,"No Message Configured");
-		}		
-		return adminMessage;
-	}
+    public MailActionInfo getActionInfo() {
+      return actionInfo;
+    }
+  }
 
-	protected String getAdminSubject() {
-		if(adminSubject == null){
-			adminSubject =  properties.getProperty(EmailSendingWorkerConstants.PROP_ADMINSUBJECT,"No Subject Configured");
-		}
-		
-		return adminSubject;
-	}
+  /**
+   * Method that must be implemented by all subclasses to EmailSendingWorker,
+   * used to update status of a certificate, user, or similar
+   *
+   * @param pk primary key of object to update
+   * @param status status to update to
+   */
+  protected abstract void updateStatus(String pk, int status);
 
-	protected String getEndUserMessage() {
-		if(endUserMessage == null){
-			endUserMessage =  properties.getProperty(EmailSendingWorkerConstants.PROP_USERMESSAGE,"No Message Configured");
-		}
-		
-		return endUserMessage;
-	}
+  protected void sendEmails(
+      final ArrayList<EmailCertData> queue, final Map<Class<?>, Object> ejbs)
+      throws ServiceExecutionFailedException {
+    Iterator<EmailCertData> iter = queue.iterator();
+    while (iter.hasNext()) {
+      try {
+        EmailCertData next = iter.next();
+        getAction().performAction(next.getActionInfo(), ejbs);
+        updateStatus(
+            next.getFingerPrint(),
+            CertificateConstants.CERT_NOTIFIEDABOUTEXPIRATION);
+      } catch (Exception fe) {
+        log.error("Error sending emails: ", fe);
+        throw new ServiceExecutionFailedException(fe);
+      }
+    }
+  }
 
-	protected String getEndUserSubject() {
-		if(endUserSubject == null){
-			endUserSubject =  properties.getProperty(EmailSendingWorkerConstants.PROP_USERSUBJECT,"No Subject Configured");
-		}
-		
-		return endUserSubject;
-	}
+  protected String getAdminMessage() {
+    if (adminMessage == null) {
+      adminMessage =
+          properties.getProperty(
+              EmailSendingWorkerConstants.PROP_ADMINMESSAGE,
+              "No Message Configured");
+    }
+    return adminMessage;
+  }
 
-	protected boolean isSendToAdmins() {
-		return properties.getProperty(EmailSendingWorkerConstants.PROP_SENDTOADMINS,"FALSE").equalsIgnoreCase("TRUE");
-	}
+  protected String getAdminSubject() {
+    if (adminSubject == null) {
+      adminSubject =
+          properties.getProperty(
+              EmailSendingWorkerConstants.PROP_ADMINSUBJECT,
+              "No Subject Configured");
+    }
 
-	protected boolean isSendToEndUsers() {
-		return properties.getProperty(EmailSendingWorkerConstants.PROP_SENDTOENDUSERS,"FALSE").equalsIgnoreCase("TRUE");
-	}
+    return adminSubject;
+  }
+
+  protected String getEndUserMessage() {
+    if (endUserMessage == null) {
+      endUserMessage =
+          properties.getProperty(
+              EmailSendingWorkerConstants.PROP_USERMESSAGE,
+              "No Message Configured");
+    }
+
+    return endUserMessage;
+  }
+
+  protected String getEndUserSubject() {
+    if (endUserSubject == null) {
+      endUserSubject =
+          properties.getProperty(
+              EmailSendingWorkerConstants.PROP_USERSUBJECT,
+              "No Subject Configured");
+    }
+
+    return endUserSubject;
+  }
+
+  protected boolean isSendToAdmins() {
+    return properties
+        .getProperty(EmailSendingWorkerConstants.PROP_SENDTOADMINS, "FALSE")
+        .equalsIgnoreCase("TRUE");
+  }
+
+  protected boolean isSendToEndUsers() {
+    return properties
+        .getProperty(EmailSendingWorkerConstants.PROP_SENDTOENDUSERS, "FALSE")
+        .equalsIgnoreCase("TRUE");
+  }
 }
