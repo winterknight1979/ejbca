@@ -18,18 +18,19 @@ package org.ejbca.core.protocol.acme;
  */
 public interface AcmeAccountDataSession {
 
-  static final String ACME_MODULE = "acme";
+    /** ACME. */
+  String ACME_MODULE = "acme";
 
   /**
    * @param accountId the ID of the account
    * @return the sought account, or null if none exists
    */
-  AcmeAccount getAcmeAccount(final String accountId);
+  AcmeAccount getAcmeAccount(String accountId);
 
   /**
    * @param publicKeyStorageId the ID of the account
    * @return the sought account, or null if none exists
    */
   AcmeAccount getAcmeAccountByPublicKeyStorageId(
-      final String publicKeyStorageId);
+      String publicKeyStorageId);
 }

@@ -375,6 +375,14 @@
 		files="HTMLTools.java" lines="58-132" /> <!-- HTML Entities -->
 	<suppress checks="ParameterNumberCheck"
 		files="PublicKeyBlacklistKeyValidatorTest.java" lines="301" />
+		
+	<!-- edition-specific-interface -->
+	
+	<suppress checks="ParameterNumberCheck"
+		files="EnterpriseEditionWSBridgeSessionLocal.java" lines="140" />
+	<suppress checks="UnusedImportsCheck"
+		files="AcmeNonceDataSessionLocal.java" lines="15" /> <!-- Used in JDOC -->
+	
 	
 	
 	

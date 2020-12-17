@@ -18,7 +18,7 @@ import org.cesecore.ErrorCode;
 
 /**
  * Thrown when accessing enterprise-edition-only features in the community
- * version
+ * version.
  *
  * @version $Id: UnsupportedMethodException.java 20988 2015-03-24 18:20:08Z
  *     aveen4711 $

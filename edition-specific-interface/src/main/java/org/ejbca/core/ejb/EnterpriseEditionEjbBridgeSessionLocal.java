@@ -23,6 +23,12 @@ import javax.ejb.Local;
 @Local
 public interface EnterpriseEditionEjbBridgeSessionLocal {
 
+    /**
+     * @param <T> Type
+     * @param localInterfaceClass Class
+     * @param modulename Module
+     * @return EJB
+     */
   <T> T getEnterpriseEditionEjbLocal(
       Class<T> localInterfaceClass, String modulename);
 

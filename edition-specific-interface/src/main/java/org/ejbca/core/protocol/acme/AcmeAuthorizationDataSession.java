@@ -19,24 +19,25 @@ import java.util.List;
  *     jekaterina $
  */
 public interface AcmeAuthorizationDataSession {
-  static final String ACME_MODULE = "acme";
+    /** ACME. */
+  String ACME_MODULE = "acme";
 
   /**
    * @param authorizationId the ID of the authorization
    * @return the sought authorization, or null if none exists
    */
-  AcmeAuthorization getAcmeAuthorization(final String authorizationId);
+  AcmeAuthorization getAcmeAuthorization(String authorizationId);
 
   /**
    * @param orderId the ID of the order
    * @return list of sought authorizations, or null if none exists
    */
-  List<AcmeAuthorization> getAcmeAuthorizationsByOrderId(final String orderId);
+  List<AcmeAuthorization> getAcmeAuthorizationsByOrderId(String orderId);
 
   /**
    * @param accountId the ID of the account
    * @return list of sought authorizations, or null if none exists
    */
   List<AcmeAuthorization> getAcmeAuthorizationsByAccountId(
-      final String accountId);
+      String accountId);
 }

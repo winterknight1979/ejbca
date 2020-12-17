@@ -30,26 +30,26 @@ public interface AcmeChallengeDataSessionLocal
    * @param acmeChallenge challenge
    * @return the persisted version of the AcmeChallenge.
    */
-  String createOrUpdate(final AcmeChallenge acmeChallenge);
+  String createOrUpdate(AcmeChallenge acmeChallenge);
 
   /**
    * Create or update the AcmeChallenges.
    *
    * @param acmeChallenges Challenge
    */
-  void createOrUpdateList(final List<AcmeChallenge> acmeChallenges);
+  void createOrUpdateList(List<AcmeChallenge> acmeChallenges);
 
   /**
    * @param challengeId the challenge ID of an AcmeChallengeData row
    * @return the sought object, or null if not found
    */
-  AcmeChallengeData find(final String challengeId);
+  AcmeChallengeData find(String challengeId);
 
   /**
    * @param authorizationId the authorization ID of an AcmeAuthorizationData
    * @return the list of objects, or empty list if none found
    */
-  List<AcmeChallengeData> findByAuthorizationId(final String authorizationId);
+  List<AcmeChallengeData> findByAuthorizationId(String authorizationId);
 
   /**
    * Removes an ACME challenge with the given ID. Fails silently if no such ACME
@@ -57,5 +57,5 @@ public interface AcmeChallengeDataSessionLocal
    *
    * @param challengeId the ACME Challenge ID
    */
-  void remove(final String challengeId);
+  void remove(String challengeId);
 }

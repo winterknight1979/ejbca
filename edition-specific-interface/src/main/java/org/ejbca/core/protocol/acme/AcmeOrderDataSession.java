@@ -24,19 +24,19 @@ public interface AcmeOrderDataSession {
    * @param orderId the ID of the order
    * @return the sought order, or null if none exists
    */
-  AcmeOrder getAcmeOrder(final String orderId);
+  AcmeOrder getAcmeOrder(String orderId);
 
   /**
    * @param accountId the ID of the order's associated account
    * @return the sought order, or null if none exists
    */
-  Set<AcmeOrder> getAcmeOrdersByAccountId(final String accountId);
+  Set<AcmeOrder> getAcmeOrdersByAccountId(String accountId);
 
   /**
    * @param fingerprint the fingerprint filed of the order entry
    * @return the sought orders, or null if none exists
    */
-  Set<AcmeOrder> getFinalizedAcmeOrdersByFingerprint(final String fingerprint);
+  Set<AcmeOrder> getFinalizedAcmeOrdersByFingerprint(String fingerprint);
 
   /**
    * Create or update the AcmeOrder.
@@ -44,7 +44,7 @@ public interface AcmeOrderDataSession {
    * @param acmeOrder order
    * @return the persisted version of the AcmeOrder.
    */
-  String createOrUpdate(final AcmeOrder acmeOrder);
+  String createOrUpdate(AcmeOrder acmeOrder);
 
   /**
    * Create or update the AcmeOrders.
@@ -52,19 +52,19 @@ public interface AcmeOrderDataSession {
    * @param acmeOrders orders
    * @return the list of persisted versions of the AcmeOrders.
    */
-  List<String> createOrUpdate(final List<AcmeOrder> acmeOrders);
+  List<String> createOrUpdate(List<AcmeOrder> acmeOrders);
 
   /**
    * Remove the AcmeOrder.
    *
    * @param orderId ID
    */
-  void remove(final String orderId);
+  void remove(String orderId);
 
   /**
    * Remove the AcmeOrders.
    *
    * @param orderIds IDs
    */
-  void removeAll(final List<String> orderIds);
+  void removeAll(List<String> orderIds);
 }

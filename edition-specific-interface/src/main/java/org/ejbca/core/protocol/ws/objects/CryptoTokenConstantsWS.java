@@ -17,15 +17,15 @@ package org.ejbca.core.protocol.ws.objects;
  *
  * @version $Id: CryptoTokenConstantsWS.java 26057 2017-06-22 08:08:34Z anatom $
  */
-public class CryptoTokenConstantsWS {
+public final class CryptoTokenConstantsWS {
 
   // -----------------
   // Soft Crypto Token
   // ------------------
-  /** If set, no default password allowed for this soft cryptotoken */
+  /** If set, no default password allowed for this soft cryptotoken.*/
   public static final String NODEFAULTPWD =
       org.cesecore.keys.token.SoftCryptoToken.NODEFAULTPWD;
-  /** Boolean indicating if it should be allowed to extract private keys */
+  /** Boolean indicating if it should be allowed to extract private keys. */
   public static final String ALLOW_EXTRACTABLE_PRIVATE_KEY =
       org.cesecore.keys.token.CryptoToken.ALLOW_EXTRACTABLE_PRIVATE_KEY;
   // public static final String ALLOW_NONEXISTING_SLOT_PROPERTY =
@@ -55,4 +55,6 @@ public class CryptoTokenConstantsWS {
    */
   public static final String TOKEN_FRIENDLY_NAME =
       org.cesecore.keys.token.PKCS11CryptoToken.TOKEN_FRIENDLY_NAME;
+
+  private CryptoTokenConstantsWS() { }
 }

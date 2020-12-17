@@ -20,4 +20,4 @@ import javax.ejb.Remote;
  *     mikekushner $
  */
 @Remote
-public interface EstOperationsSessionRemote extends EstOperationsSession {}
+public interface EstOperationsSessionRemote extends EstOperationsSession { }

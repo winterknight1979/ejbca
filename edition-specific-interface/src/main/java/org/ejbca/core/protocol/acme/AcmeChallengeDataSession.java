@@ -24,12 +24,12 @@ public interface AcmeChallengeDataSession {
    * @param challengeId the ID of the challenge
    * @return the sought challenge, or null if none exists
    */
-  AcmeChallenge getAcmeChallenge(final String challengeId);
+  AcmeChallenge getAcmeChallenge(String challengeId);
 
   /**
    * @param authorizationId the ID of the authorization
    * @return the sought challenge list, or null if none exists
    */
   List<AcmeChallenge> getAcmeChallengesByAuthorizationId(
-      final String authorizationId);
+      String authorizationId);
 }

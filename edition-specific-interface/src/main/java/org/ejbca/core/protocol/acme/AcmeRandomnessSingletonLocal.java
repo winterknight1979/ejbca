@@ -44,9 +44,19 @@ public interface AcmeRandomnessSingletonLocal {
    */
   byte[] generateAcmeNodeId(int byteCount);
 
+  /**
+   * @return ID
+   */
   String generateAcmeAccountId();
 
+  /**
+   * @return ID
+   */
   String generateAcmeChallengeId();
 
+  /**
+   * @param byteCount count
+   * @return secret
+   */
   byte[] generateReplayNonceSharedSecret(int byteCount);
 }

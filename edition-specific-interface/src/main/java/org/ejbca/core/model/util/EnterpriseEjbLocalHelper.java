@@ -29,12 +29,16 @@ import org.ejbca.core.ejb.EnterpriseEditionEjbBridgeSessionLocal;
 public class EnterpriseEjbLocalHelper
     implements EnterpriseEditionEjbBridgeSessionLocal {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(EnterpriseEjbLocalHelper.class);
+  /** Param. */
   private static Context initialContext = null;
+  /** Param. */
   private static ReentrantLock initialContextLock = new ReentrantLock(true);
   // Static is more performant, but a failed JEE5 lookup from one module would
   // block all other JEE5 lookups
+  /** Param. */
   private /*static*/ boolean useEjb31GlobalJndiName = false;
 
   private Context getInitialContext() throws NamingException {
@@ -71,12 +75,13 @@ public class EnterpriseEjbLocalHelper
       // Let's try to use the EJB 3.1 syntax for a lookup. For example, JBoss
       // 6.0.0.FINAL supports this from our CMP TCP threads, but ignores the
       // ejb-ref from web.xml..
-      // java:global[/<app-name>]/<module-name>/<bean-name>[!<fully-qualified-interface-name>]
+      // java:global[/<app-name>]/<module-name>/<bean-name>
+        // [!<fully-qualified-interface-name>]
       useEjb31GlobalJndiName =
           true; // So let's not try what we now know is a failing method ever
                 // again..
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Failed JEE5 version of EnterpriseEditionEjbBridgeSessionLocal"
                 + " JNDI lookup. All future lookups will JEE6 version"
                 + " lookups.");
@@ -88,7 +93,9 @@ public class EnterpriseEjbLocalHelper
             (EnterpriseEditionEjbBridgeSessionLocal)
                 getInitialContext()
                     .lookup(
-                        "java:global/ejbca/peerconnector-ejb/EnterpriseEditionEjbBridgeSessionBean!org.ejbca.core.ejb.EnterpriseEditionEjbBridgeSessionLocal");
+                "java:global/ejbca/peerconnector-ejb/"
+                + "EnterpriseEditionEjbBridgeSessionBean!"
+                + "org.ejbca.core.ejb.EnterpriseEditionEjbBridgeSessionLocal");
       }
     } catch (NamingException e) {
       throw new LocalLookupException(

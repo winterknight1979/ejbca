@@ -41,7 +41,7 @@ import org.ejbca.util.KeyValuePair;
 public interface EnterpriseEditionWSBridgeSessionLocal {
 
   /**
-   * Creates a new cryptotoken
+   * Creates a new cryptotoken.
    *
    * @param admin An authentication token
    * @param tokenName The name of the crypto token
@@ -76,7 +76,7 @@ public interface EnterpriseEditionWSBridgeSessionLocal {
           CryptoTokenNameInUseException, NoSuchSlotException;
 
   /**
-   * Generates a keys pair in the specified cryptotoken
+   * Generates a keys pair in the specified cryptotoken.
    *
    * @param admin An authentication token
    * @param cryptoTokenName The name of the cryptotoken
@@ -102,7 +102,7 @@ public interface EnterpriseEditionWSBridgeSessionLocal {
           AuthorizationDeniedException;
 
   /**
-   * Creates a new CA
+   * Creates a new CA.
    *
    * @param admin An authentication token
    * @param caname The CA name
@@ -156,7 +156,7 @@ public interface EnterpriseEditionWSBridgeSessionLocal {
           CryptoTokenOfflineException, InvalidAlgorithmException;
 
   /**
-   * Adds an administrator to the specified role
+   * Adds an administrator to the specified role.
    *
    * @param admin An authentication token
    * @param roleName The role to add the admin to
@@ -189,7 +189,7 @@ public interface EnterpriseEditionWSBridgeSessionLocal {
           CADoesntExistsException, AuthorizationDeniedException;
 
   /**
-   * Removes an administrator to the specified role
+   * Removes an administrator to the specified role.
    *
    * @param admin An authentication token
    * @param roleName The role to add the admin to

@@ -17,7 +17,7 @@ import org.ejbca.core.EjbcaException;
 
 /**
  * Thrown when trying to use a certificate or end entity profile of the wrong
- * type
+ * type.
  *
  * @version $Id: CertificateProfileTypeNotAcceptedException.java 26057
  *     2017-06-22 08:08:34Z anatom $

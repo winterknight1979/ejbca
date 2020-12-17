@@ -17,7 +17,7 @@ import javax.ejb.Local;
 import org.ejbca.acme.AcmeAccountData;
 
 /**
- * Local interface for AcmeAccountDataSession
+ * Local interface for AcmeAccountDataSession.
  *
  * @version $Id: AcmeAccountDataSessionLocal.java 29630 2018-08-14 08:55:21Z
  *     mikekushner $
@@ -29,13 +29,13 @@ public interface AcmeAccountDataSessionLocal extends AcmeAccountDataSession {
    * @param accountId the account ID of an AcmeAccountData row
    * @return the sought object, or null if not found
    */
-  AcmeAccountData find(final String accountId);
+  AcmeAccountData find(String accountId);
 
   /**
    * @param publicKeyStorageId the public key storage ID
    * @return the sought object, or null if not found
    */
-  AcmeAccountData findByPublicKeyStorageId(final String publicKeyStorageId);
+  AcmeAccountData findByPublicKeyStorageId(String publicKeyStorageId);
 
   /**
    * Create or update the AcmeAccount.
@@ -43,7 +43,7 @@ public interface AcmeAccountDataSessionLocal extends AcmeAccountDataSession {
    * @param acmeAccount account
    * @return the persisted version of the AcmeAccount.
    */
-  String createOrUpdate(final AcmeAccount acmeAccount);
+  String createOrUpdate(AcmeAccount acmeAccount);
 
   /**
    * Removes an ACME account with the given ID. Fails silently if no such ACME
@@ -51,5 +51,5 @@ public interface AcmeAccountDataSessionLocal extends AcmeAccountDataSession {
    *
    * @param accountId the ACME account ID
    */
-  void remove(final String accountId);
+  void remove(String accountId);
 }

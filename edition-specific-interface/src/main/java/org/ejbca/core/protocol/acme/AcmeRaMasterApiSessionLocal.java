@@ -78,7 +78,7 @@ public interface AcmeRaMasterApiSessionLocal {
 
   /**
    * see
-   * org.ejbca.core.protocol.acme.AcmeAccountDataSessionBean#getAcmeAccountByPublicKeyStorageId(String)
+   * org.ejbca.core.protocol.acme.AcmeAccountDataSessionBean#getAcmeAccountByPublicKeyStorageId(String).
    *
    * @param publicKeyStorageId ID
    * @return Account
@@ -87,7 +87,7 @@ public interface AcmeRaMasterApiSessionLocal {
 
   /**
    * see
-   * org.ejbca.core.protocol.acme.AcmeAccountDataSessionBean#createOrUpdate(AcmeAccount)
+   * org.ejbca.core.protocol.acme.AcmeAccountDataSessionBean#createOrUpdate(AcmeAccount).
    *
    * @param acmeAccount Account
    * @return Persisted
@@ -96,7 +96,7 @@ public interface AcmeRaMasterApiSessionLocal {
 
   /**
    * see
-   * org.ejbca.ui.web.protocol.acme.storage.AcmeOrderDataSessionBean#getAcmeOrderById(String)
+   * org.ejbca.ui.web.protocol.acme.storage.AcmeOrderDataSessionBean#getAcmeOrderById(String).
    *
    * @param orderId ID
    * @return Order
@@ -105,7 +105,7 @@ public interface AcmeRaMasterApiSessionLocal {
 
   /**
    * see
-   * org.ejbca.ui.web.protocol.acme.storage.AcmeOrderDataSessionBean#getAcmeOrdersByAccountId(String)
+   * org.ejbca.ui.web.protocol.acme.storage.AcmeOrderDataSessionBean#getAcmeOrdersByAccountId(String).
    *
    * @param accountId ID
    * @return Orders
@@ -114,7 +114,7 @@ public interface AcmeRaMasterApiSessionLocal {
 
   /**
    * see
-   * org.ejbca.ui.web.protocol.acme.storage.AcmeOrderDataSessionBean#getFinalizedAcmeOrdersByFingerprint(String)
+   * org.ejbca.ui.web.protocol.acme.storage.AcmeOrderDataSessionBean#getFinalizedAcmeOrdersByFingerprint(String).
    *
    * @param fingerprint FP
    * @return Orders
@@ -123,7 +123,7 @@ public interface AcmeRaMasterApiSessionLocal {
 
   /**
    * see
-   * org.ejbca.ui.web.protocol.acme.storage.AcmeOrderDataSessionBean#persist(AcmeOrder)
+   * org.ejbca.ui.web.protocol.acme.storage.AcmeOrderDataSessionBean#persist(AcmeOrder).
    *
    * @param acmeOrder Order
    * @return Persisted
@@ -131,7 +131,8 @@ public interface AcmeRaMasterApiSessionLocal {
   String persistAcmeOrderData(AcmeOrder acmeOrder);
 
   /**
-   * see org.ejbca.ui.web.protocol.acme.storage.AcmeOrderDataSessionBean#persist
+   * see
+   * org.ejbca.ui.web.protocol.acme.storage.AcmeOrderDataSessionBean#persist.
    *
    * @param acmeOrders Orders
    * @return persist
@@ -140,7 +141,7 @@ public interface AcmeRaMasterApiSessionLocal {
 
   /**
    * see
-   * org.ejbca.ui.web.protocol.acme.storage.AcmeOrderDataSessionBean#remove(String)
+   * org.ejbca.ui.web.protocol.acme.storage.AcmeOrderDataSessionBean#remove(String).
    *
    * @param orderId ID
    */
@@ -148,7 +149,7 @@ public interface AcmeRaMasterApiSessionLocal {
 
   /**
    * see
-   * org.ejbca.ui.web.protocol.acme.storage.AcmeOrderDataSessionBean#removeAll(List&lt;String&gt;)
+   * org.ejbca.ui.web.protocol.acme.storage.AcmeOrderDataSessionBean#removeAll(List&lt;String&gt;).
    *
    * @param orderId IDs
    */
@@ -156,7 +157,7 @@ public interface AcmeRaMasterApiSessionLocal {
 
   /**
    * see
-   * org.ejbca.core.protocol.acme.AcmeAuthorizationDataSessionBean#getAcmeAuthorization(String)
+   * org.ejbca.core.protocol.acme.AcmeAuthorizationDataSessionBean#getAcmeAuthorization(String).
    *
    * @param authorizationId ID
    * @return Auth
@@ -165,7 +166,7 @@ public interface AcmeRaMasterApiSessionLocal {
 
   /**
    * see
-   * org.ejbca.core.protocol.acme.AcmeAuthorizationDataSessionBean#getAcmeAuthorizationsByOrderId(String)
+   * org.ejbca.core.protocol.acme.AcmeAuthorizationDataSessionBean#getAcmeAuthorizationsByOrderId(String).
    *
    * @param orderId ID
    * @return Auths
@@ -174,7 +175,7 @@ public interface AcmeRaMasterApiSessionLocal {
 
   /**
    * see
-   * org.ejbca.core.protocol.acme.AcmeAuthorizationDataSessionBean#getAcmeAuthorizationsByAccountId(String)
+   * org.ejbca.core.protocol.acme.AcmeAuthorizationDataSessionBean#getAcmeAuthorizationsByAccountId(String).
    *
    * @param accountId ID
    * @return Auths
@@ -183,7 +184,7 @@ public interface AcmeRaMasterApiSessionLocal {
 
   /**
    * see
-   * org.ejbca.core.protocol.acme.AcmeAuthorizationDataSessionBean#createOrUpdate(AcmeAuthorization)
+   * org.ejbca.core.protocol.acme.AcmeAuthorizationDataSessionBean#createOrUpdate(AcmeAuthorization).
    *
    * @param acmeAuthorization Auth
    * @return Persisted
@@ -192,7 +193,7 @@ public interface AcmeRaMasterApiSessionLocal {
 
   /**
    * see
-   * org.ejbca.core.protocol.acme.AcmeAuthorizationDataSessionBean#createOrUpdateList(List)
+   * org.ejbca.core.protocol.acme.AcmeAuthorizationDataSessionBean#createOrUpdateList(List).
    *
    * @param acmeAuthorizations Auths
    */
@@ -201,26 +202,26 @@ public interface AcmeRaMasterApiSessionLocal {
 
   /**
    * see
-   * org.ejbca.core.protocol.acme.AcmeChallengeDataSessionBean#getAcmeChallenge(String)
+   * org.ejbca.core.protocol.acme.AcmeChallengeDataSessionBean#getAcmeChallenge(String).
    *
    * @param challengeId ID
    * @return Challenge
    */
-  AcmeChallenge getAcmeChallengeById(final String challengeId);
+  AcmeChallenge getAcmeChallengeById(String challengeId);
 
   /**
    * see
-   * org.ejbca.core.protocol.acme.AcmeChallengeDataSessionBean#getAcmeChallengesByAuthorizationId(String)
+   * org.ejbca.core.protocol.acme.AcmeChallengeDataSessionBean#getAcmeChallengesByAuthorizationId(String).
    *
    * @param authorizationId ID
    * @return Challenges
    */
   List<AcmeChallenge> getAcmeChallengesByAuthorizationId(
-      final String authorizationId);
+      String authorizationId);
 
   /**
    * see
-   * org.ejbca.core.protocol.acme.AcmeChallengeDataSessionBean#createOrUpdate(AcmeChallenge)
+   * org.ejbca.core.protocol.acme.AcmeChallengeDataSessionBean#createOrUpdate(AcmeChallenge).
    *
    * @param acmeChallenge Challenge
    */
@@ -228,7 +229,7 @@ public interface AcmeRaMasterApiSessionLocal {
 
   /**
    * see
-   * org.ejbca.core.protocol.acme.AcmeChallengeDataSessionBean#createOrUpdateList(List)
+   * org.ejbca.core.protocol.acme.AcmeChallengeDataSessionBean#createOrUpdateList(List).
    *
    * @param acmeChallenges Challenges
    */
@@ -236,7 +237,7 @@ public interface AcmeRaMasterApiSessionLocal {
 
   /**
    * see org.ejbca.core.protocol.acme.AcmeNonceDataSessionBean#useNonce(String,
-   * long, long)
+   * long, long).
    *
    * @param nonce Nonce
    * @param timeCreated Creation
@@ -276,7 +277,7 @@ public interface AcmeRaMasterApiSessionLocal {
 
   /**
    * see org.ejbca.core.model.era.RaMasterApi#searchUser(AuthenticationToken,
-   * String)
+   * String).
    *
    * @param authenticationToken Token
    * @param username User
@@ -331,5 +332,8 @@ public interface AcmeRaMasterApiSessionLocal {
       AuthenticationToken authenticationToken, int caId)
       throws CADoesntExistsException, AuthorizationDeniedException;
 
+  /**
+   * @return bool
+   */
   boolean isPeerAuthorizedAcme();
 }

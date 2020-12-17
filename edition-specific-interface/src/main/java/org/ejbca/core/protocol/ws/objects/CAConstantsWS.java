@@ -19,7 +19,7 @@ import org.cesecore.certificates.ca.catoken.CATokenConstants;
  *
  * @version $Id: CAConstantsWS.java 26057 2017-06-22 08:08:34Z anatom $
  */
-public class CAConstantsWS {
+public final class CAConstantsWS {
 
   /**
    * The policy ID can be 'null' if no Certificate Policy extension should be
@@ -30,7 +30,7 @@ public class CAConstantsWS {
    */
   public static final String POLICYID = "policyid";
 
-  /** Certificate signing key alias */
+  /** Certificate signing key alias. */
   public static final String CAKEYPURPOSE_CERTSIGN_STRING =
       CATokenConstants.CAKEYPURPOSE_CERTSIGN_STRING;
   /**
@@ -57,4 +57,6 @@ public class CAConstantsWS {
    */
   public static final String CAKEYPURPOSE_HARDTOKENENCRYPT_STRING =
       CATokenConstants.CAKEYPURPOSE_HARDTOKENENCRYPT_STRING;
+
+  private CAConstantsWS() { }
 }
