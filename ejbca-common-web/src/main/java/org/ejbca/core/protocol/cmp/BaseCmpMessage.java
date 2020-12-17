@@ -35,26 +35,44 @@ public abstract class BaseCmpMessage implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
+  /** Param. */
   private transient PKIMessage pkiMessage = null;
+  /** Param. */
   private String b64SenderNonce = null;
+  /** Param. */
   private String b64RecipientNonce = null;
+  /** Param. */
   private String b64TransId = null;
+  /** Param. */
   private transient GeneralName recipient =
       null; // GeneralName is not Serializable
+  /** Param. */
   private byte[] recipientBytes = null;
+  /** Param. */
   private transient GeneralName sender =
       null; // GeneralName is not Serializable
+  /** Param. */
   private byte[] senderBytes = null;
+  /** Param. */
   private String protectionType = null;
+  /** Param. */
   private String pbeDigestAlg = null;
+  /** Param. */
   private String pbeMacAlg = null;
-  private int pbeIterationCount = 1024;
+  /** Param. */
+  private final int defaultCount = 1024;
+  /** Param. */
+  private int pbeIterationCount = defaultCount;
+  /** Param. */
   private String pbeKeyId = null;
+  /** Param. */
   private String pbeKey = null;
 
+  /** Param. */
   private List<Certificate> additionalCaCertificates =
       new ArrayList<Certificate>();
 
+  /** Param. */
   private List<Certificate> additionalExtraCerts = new ArrayList<Certificate>();
 
   /**
@@ -88,30 +106,51 @@ public abstract class BaseCmpMessage implements Serializable {
     return baos.toByteArray();
   }
 
+  /**
+   * @param b64nonce nonce
+   */
   public void setSenderNonce(final String b64nonce) {
     this.b64SenderNonce = b64nonce;
   }
 
+  /**
+   * @return nonce
+   */
   public String getSenderNonce() {
     return b64SenderNonce;
   }
 
+  /**
+   * @param b64nonce nonce
+   */
   public void setRecipientNonce(final String b64nonce) {
     this.b64RecipientNonce = b64nonce;
   }
 
+  /**
+   * @return nonce
+   */
   public String getRecipientNonce() {
     return b64RecipientNonce;
   }
 
+  /**
+   * @param b64transid ID
+   */
   public void setTransactionId(final String b64transid) {
     this.b64TransId = b64transid;
   }
 
+  /**
+   * @return ID
+   */
   public String getTransactionId() {
     return b64TransId;
   }
 
+  /**
+   * @return Recip
+   */
   public GeneralName getRecipient() {
     if (recipient == null && recipientBytes != null) {
       recipient = GeneralName.getInstance(recipientBytes);
@@ -119,11 +158,17 @@ public abstract class BaseCmpMessage implements Serializable {
     return recipient;
   }
 
-  public void setRecipient(final GeneralName recipient) {
-    this.recipient = recipient;
-    recipientBytes = getByteArrayFromAsn1Encodable(recipient);
+  /**
+   * @param arecipient recip
+   */
+  public void setRecipient(final GeneralName arecipient) {
+    this.recipient = arecipient;
+    recipientBytes = getByteArrayFromAsn1Encodable(arecipient);
   }
 
+  /**
+   * @return sender
+   */
   public GeneralName getSender() {
     if (sender == null && senderBytes != null) {
       sender = GeneralName.getInstance(senderBytes);
@@ -131,31 +176,56 @@ public abstract class BaseCmpMessage implements Serializable {
     return sender;
   }
 
-  public void setSender(final GeneralName sender) {
-    this.sender = sender;
-    senderBytes = getByteArrayFromAsn1Encodable(sender);
+  /**
+   * @param asender sender
+   */
+  public void setSender(final GeneralName asender) {
+    this.sender = asender;
+    senderBytes = getByteArrayFromAsn1Encodable(asender);
   }
 
+  /**
+   * @return header
+   */
   public PKIHeader getHeader() {
     return pkiMessage.getHeader();
   }
 
+  /**
+   * @return Message
+   */
   public PKIMessage getMessage() {
     return pkiMessage;
   }
 
-  public void setMessage(final PKIMessage pkiMessage) {
-    this.pkiMessage = pkiMessage;
+  /**
+   * @param apkiMessage Message
+   */
+  public void setMessage(final PKIMessage apkiMessage) {
+    this.pkiMessage = apkiMessage;
   }
 
+  /**
+   * @return Type
+   */
   public String getProtectionType() {
     return protectionType;
   }
 
-  public void setProtectionType(final String protectionType) {
-    this.protectionType = protectionType;
+  /**
+   * @param aprotectionType type
+   */
+  public void setProtectionType(final String aprotectionType) {
+    this.protectionType = aprotectionType;
   }
 
+  /**
+   * @param keyId IF
+   * @param key Key
+   * @param digestAlg Digest
+   * @param macAlg Mac
+   * @param iterationCount Count
+   */
   public void setPbeParameters(
       final String keyId,
       final String key,
@@ -169,22 +239,37 @@ public abstract class BaseCmpMessage implements Serializable {
     this.pbeIterationCount = iterationCount;
   }
 
+  /**
+   * @return Alg
+   */
   public String getPbeDigestAlg() {
     return pbeDigestAlg;
   }
 
+  /**
+   * @return Key
+   */
   public String getPbeKey() {
     return pbeKey;
   }
 
+  /**
+   * @return ID
+   */
   public String getPbeKeyId() {
     return pbeKeyId;
   }
 
+  /**
+   * @return Alg
+   */
   public String getPbeMacAlg() {
     return pbeMacAlg;
   }
 
+  /**
+   * @return Count
+   */
   public int getPbeIterationCount() {
     return pbeIterationCount;
   }

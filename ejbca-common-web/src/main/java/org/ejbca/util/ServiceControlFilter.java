@@ -44,23 +44,28 @@ import org.ejbca.config.AvailableProtocolsConfiguration;
  * @version $Id: ServiceControlFilter.java 29235 2018-06-15 09:00:37Z henriks $
  */
 public class ServiceControlFilter implements Filter {
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(ServiceControlFilter.class);
 
+  /** Param. */
   private AvailableProtocolsConfiguration availableProtocolsConfiguration;
 
+  /** Param. */
   private String serviceName;
 
+
+  /** Param. */
   @EJB private GlobalConfigurationSessionLocal globalConfigurationSession;
 
   @Override
-  public void destroy() {}
+  public void destroy() { }
 
   @Override
   public void init(final FilterConfig filterConfig) throws ServletException {
     serviceName = filterConfig.getInitParameter("serviceName");
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Initialized service control filter for '" + serviceName + "'.");
     }
   }
@@ -79,8 +84,8 @@ public class ServiceControlFilter implements Filter {
                 AvailableProtocolsConfiguration.CONFIGURATION_ID);
 
     if (!availableProtocolsConfiguration.getProtocolStatus(serviceName)) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Access to service "
                 + serviceName
                 + " is disabled. HTTP request "
@@ -92,8 +97,8 @@ public class ServiceControlFilter implements Filter {
       return;
     }
 
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Access to service "
               + serviceName
               + " is allowed. HTTP request "

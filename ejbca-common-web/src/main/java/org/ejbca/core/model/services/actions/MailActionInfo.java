@@ -23,25 +23,29 @@ import org.ejbca.core.model.services.ActionInfo;
 public class MailActionInfo implements ActionInfo {
 
   private static final long serialVersionUID = -6111022918482039456L;
+  /** Param. */
   private String reciever = null;
+  /** Param. */
   private String subject = null;
+  /** Param. */
   private String message = null;
+  /** Param. */
   private boolean isLoggingEnabled = true;
 
   /**
-   * Constructor used to create a MailActionInfo
+   * Constructor used to create a MailActionInfo.
    *
-   * @param reciever the reciever of the message, if null will the MailAction
+   * @param areciever the reciever of the message, if null will the MailAction
    *     configured reciever be used.
-   * @param subject the subject of the mail
-   * @param message the message of the mail.
+   * @param asubject the subject of the mail
+   * @param amessage the message of the mail.
    */
   public MailActionInfo(
-      final String reciever, final String subject, final String message) {
+      final String areciever, final String asubject, final String amessage) {
     super();
-    this.reciever = reciever;
-    this.subject = subject;
-    this.message = message;
+    this.reciever = areciever;
+    this.subject = asubject;
+    this.message = amessage;
   }
 
   /** @return the message of the mail. */
@@ -71,6 +75,9 @@ public class MailActionInfo implements ActionInfo {
     isLoggingEnabled = flag;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isLoggingEnabled() {
     return isLoggingEnabled;
   }

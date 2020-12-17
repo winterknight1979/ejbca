@@ -31,9 +31,11 @@ import org.ejbca.core.model.services.ServiceExecutionFailedException;
  */
 public class PublishQueueProcessWorker extends EmailSendingWorker {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(PublishQueueProcessWorker.class);
 
+  /** Param. */
   public static final String PROP_PUBLISHER_IDS = "publisherids";
 
   /**
@@ -53,7 +55,7 @@ public class PublishQueueProcessWorker extends EmailSendingWorker {
   @Override
   public void work(final Map<Class<?>, Object> ejbs)
       throws ServiceExecutionFailedException {
-    log.trace(">work");
+    LOG.trace(">work");
     final PublisherSessionLocal publisherSession =
         ((PublisherSessionLocal) ejbs.get(PublisherSessionLocal.class));
     final PublisherQueueSessionLocal publisherQueueSession =
@@ -75,7 +77,7 @@ public class PublishQueueProcessWorker extends EmailSendingWorker {
         Object o = properties.get(PROP_PUBLISHER_IDS);
         if (o != null) {
           String idstr = (String) o;
-          log.debug("Ids: " + idstr);
+          LOG.debug("Ids: " + idstr);
           // Loop through all handled publisher ids and process
           // anything in the queue
           String[] ids = StringUtils.split(idstr, ';');
@@ -89,7 +91,7 @@ public class PublishQueueProcessWorker extends EmailSendingWorker {
                     getAdmin(), publisherId, publisher);
           }
         } else {
-          log.debug("No publisher ids configured for worker.");
+          LOG.debug("No publisher ids configured for worker.");
         }
       } finally {
         synchronized (runmap) {
@@ -97,21 +99,21 @@ public class PublishQueueProcessWorker extends EmailSendingWorker {
         }
       }
     } else {
-      log.info(
+      LOG.info(
           InternalEjbcaResources.getInstance()
               .getLocalizedMessage(
                   "services.alreadyrunninginvm",
                   PublishQueueProcessWorker.class.getName()));
     }
-    log.trace("<work");
+    LOG.trace("<work");
   }
 
   /**
    * Method that must be implemented by all subclasses to EmailSendingWorker,
-   * used to update status of a certificate, user, or similar
+   * used to update status of a certificate, user, or similar.
    *
    * @param pk primary key of object to update
    * @param status status to update to
    */
-  protected void updateStatus(final String pk, final int status) {}
+  protected void updateStatus(final String pk, final int status) { }
 }

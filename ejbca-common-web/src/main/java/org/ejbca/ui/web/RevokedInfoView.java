@@ -11,11 +11,6 @@
  *                                                                       *
  *************************************************************************/
 
-/*
- * RevokedInfoView.java
- *
- * Created on den 1 maj 2002, 07:55
- */
 package org.ejbca.ui.web;
 
 import java.io.Serializable;
@@ -26,7 +21,7 @@ import org.cesecore.certificates.crl.RevokedCertInfo;
 import org.ejbca.core.model.SecConst;
 
 /**
- * View of certificate revocation status
+ * View of certificate revocation status.
  *
  * @version $Id: RevokedInfoView.java 22925 2016-03-03 22:25:34Z samuellb $
  */
@@ -35,22 +30,27 @@ public class RevokedInfoView implements Serializable {
   private static final long serialVersionUID = 1L;
 
   // Private fields.
+  /** Param. */
   private final CertificateStatus revokedcertinfo;
+  /** Param. */
   private final BigInteger certserno;
 
   /**
-   * Creates a new instance of RevokedInfoView
+   * Creates a new instance of RevokedInfoView.
    *
-   * @param revokedcertinfo DOCUMENT ME!
+   * @param arevokedcertinfo DOCUMENT ME!
    * @param certSerno SN
    */
   public RevokedInfoView(
-      final CertificateStatus revokedcertinfo, final BigInteger certSerno) {
-    this.revokedcertinfo = revokedcertinfo;
+      final CertificateStatus arevokedcertinfo, final BigInteger certSerno) {
+    this.revokedcertinfo = arevokedcertinfo;
     this.certserno = certSerno;
   }
 
   // Public methods.
+  /**
+   * @return SN
+   */
   public String getCertificateSerialNumberAsString() {
     return this.certserno.toString(16);
   }
@@ -82,12 +82,17 @@ public class RevokedInfoView implements Serializable {
     }
     return ret;
   }
-
+  /**
+   * @return bool
+   */
   public boolean isRevokedAndOnHold() {
     return this.revokedcertinfo.getRevocationReason()
         == RevokedCertInfo.REVOCATION_REASON_CERTIFICATEHOLD;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isRevoked() {
     return this.revokedcertinfo.isRevoked();
   }

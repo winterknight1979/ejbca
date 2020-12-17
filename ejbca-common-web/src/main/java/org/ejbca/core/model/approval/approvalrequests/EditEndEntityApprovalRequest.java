@@ -58,23 +58,39 @@ public class EditEndEntityApprovalRequest extends ApprovalRequest {
 
   private static final long serialVersionUID = -1L;
 
-  private static final Logger log =
+  /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(EditEndEntityApprovalRequest.class);
 
+  /** Param. */
   private static final int LATEST_VERSION = 1;
 
+  /** Param. */
   private EndEntityInformation newuserdata;
+  /** Param. */
   private boolean clearpwd;
+  /** Param. */
   private EndEntityInformation orguserdata;
+  /** Param. */
   private boolean useOrgUsername;
 
-  /** Constructor used in externalization only */
-  public EditEndEntityApprovalRequest() {}
+  /** Constructor used in externalization only. */
+  public EditEndEntityApprovalRequest() { }
 
+  /**
+   * @param thenewuserdata data
+   * @param aclearpwd pwd
+   * @param theorguserdata data
+   * @param requestAdmin admin
+   * @param requestSignature sig
+   * @param cAId CA
+   * @param endEntityProfileId Entity
+   * @param approvalProfile Approva;
+   */
   public EditEndEntityApprovalRequest(
-      final EndEntityInformation newuserdata,
-      final boolean clearpwd,
-      final EndEntityInformation orguserdata,
+      final EndEntityInformation thenewuserdata,
+      final boolean aclearpwd,
+      final EndEntityInformation theorguserdata,
       final AuthenticationToken requestAdmin,
       final String requestSignature,
       final int cAId,
@@ -87,21 +103,32 @@ public class EditEndEntityApprovalRequest extends ApprovalRequest {
         cAId,
         endEntityProfileId,
         approvalProfile);
-    this.newuserdata = newuserdata;
-    this.clearpwd = clearpwd;
-    this.orguserdata = orguserdata;
+    this.newuserdata = thenewuserdata;
+    this.clearpwd = aclearpwd;
+    this.orguserdata = theorguserdata;
   }
 
+  /**
+   * @param thenewuserdata data
+   * @param aclearpwd pwd
+   * @param theorguserdata data
+   * @param requestAdmin admin
+   * @param requestSignature sig
+   * @param cAId CA
+   * @param endEntityProfileId Entity
+   * @param approvalProfile Approva;
+   * @param douseOrgUsername bool
+   */
   public EditEndEntityApprovalRequest(
-      final EndEntityInformation newuserdata,
-      final boolean clearpwd,
-      final EndEntityInformation orguserdata,
+      final EndEntityInformation thenewuserdata,
+      final boolean aclearpwd,
+      final EndEntityInformation theorguserdata,
       final AuthenticationToken requestAdmin,
       final String requestSignature,
       final int cAId,
       final int endEntityProfileId,
       final ApprovalProfile approvalProfile,
-      final boolean useOrgUsername) {
+      final boolean douseOrgUsername) {
     super(
         requestAdmin,
         requestSignature,
@@ -109,10 +136,10 @@ public class EditEndEntityApprovalRequest extends ApprovalRequest {
         cAId,
         endEntityProfileId,
         approvalProfile);
-    this.newuserdata = newuserdata;
-    this.clearpwd = clearpwd;
-    this.orguserdata = orguserdata;
-    this.useOrgUsername = useOrgUsername;
+    this.newuserdata = thenewuserdata;
+    this.clearpwd = aclearpwd;
+    this.orguserdata = theorguserdata;
+    this.useOrgUsername = douseOrgUsername;
   }
 
   @Override
@@ -121,12 +148,18 @@ public class EditEndEntityApprovalRequest extends ApprovalRequest {
         "This execution requires additional bean references.");
   }
 
+  /**
+   * @param endEntityManagementSession Session
+   * @param approvalRequestID Req
+   * @param lastApprovingAdmin Admin
+   * @throws ApprovalRequestExecutionException Fail
+   */
   public void execute(
       final EndEntityManagementSession endEntityManagementSession,
       final int approvalRequestID,
       final AuthenticationToken lastApprovingAdmin)
       throws ApprovalRequestExecutionException {
-    log.debug(
+    LOG.debug(
         "Executing ChangeEndEntity for user:" + newuserdata.getUsername());
 
     // Add the ID of the approval request to the end entity as extended
@@ -198,7 +231,7 @@ public class EditEndEntityApprovalRequest extends ApprovalRequest {
 
   /**
    * Approval Id is genereated of This approval type (i.e
-   * AddEndEntityApprovalRequest) and UserName
+   * AddEndEntityApprovalRequest) and UserName.
    */
   @Override
   public int generateApprovalId() {
@@ -226,6 +259,9 @@ public class EditEndEntityApprovalRequest extends ApprovalRequest {
     return ApprovalDataVO.APPROVALTYPE_EDITENDENTITY;
   }
 
+  /**
+   * @return info
+   */
   public EndEntityInformation getNewEndEntityInformation() {
     return newuserdata;
   }
@@ -294,6 +330,13 @@ public class EditEndEntityApprovalRequest extends ApprovalRequest {
     return retval;
   }
 
+  /**
+   * @param caSession CA
+   * @param endEntityProfileSession Entity
+   * @param certificateProfileSession Cert
+   * @param hardTokenSession Token
+   * @return Data
+   */
   public List<ApprovalDataText> getNewRequestDataAsText(
       final CaSessionLocal caSession,
       final EndEntityProfileSession endEntityProfileSession,
@@ -395,6 +438,7 @@ public class EditEndEntityApprovalRequest extends ApprovalRequest {
     return retval;
   }
 
+
   private ApprovalDataText getTextWithNoValueString(
       final String header, final String data) {
     if (data == null || data.equals("")) {
@@ -410,6 +454,14 @@ public class EditEndEntityApprovalRequest extends ApprovalRequest {
         "This getOldRequestDataAsText requires additional bean references.");
   }
 
+  /**
+   * @param admin Admin
+   * @param caSession CA
+   * @param endEntityProfileSession Entity
+   * @param certificateProfileSession Cert
+   * @param hardTokenSession Token
+   * @return Data
+   */
   public List<ApprovalDataText> getOldRequestDataAsText(
       final AuthenticationToken admin,
       final CaSession caSession,

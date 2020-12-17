@@ -56,19 +56,32 @@ import org.ejbca.core.model.ra.raadmin.EndEntityProfileValidationException;
 public class AddEndEntityApprovalRequest extends ApprovalRequest {
 
   private static final long serialVersionUID = -1L;
-  private static final Logger log =
+  /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(AddEndEntityApprovalRequest.class);
+  /** Param. */
   private static final int LATEST_VERSION = 1;
 
+  /** Param. */
   private EndEntityInformation userdata;
+  /** Param. */
   private boolean clearpwd;
 
-  /** Constructor used in externalization only */
-  public AddEndEntityApprovalRequest() {}
+  /** Constructor used in externalization only. */
+  public AddEndEntityApprovalRequest() { }
 
+  /**
+   * @param theuserdata user
+   * @param aclearpwd pass
+   * @param requestAdmin admin
+   * @param requestSignature Sig
+   * @param cAId CA
+   * @param endEntityProfileId Entity
+   * @param approvalProfile Profile
+   */
   public AddEndEntityApprovalRequest(
-      final EndEntityInformation userdata,
-      final boolean clearpwd,
+      final EndEntityInformation theuserdata,
+      final boolean aclearpwd,
       final AuthenticationToken requestAdmin,
       final String requestSignature,
       final int cAId,
@@ -81,8 +94,8 @@ public class AddEndEntityApprovalRequest extends ApprovalRequest {
         cAId,
         endEntityProfileId,
         approvalProfile);
-    this.userdata = userdata;
-    this.clearpwd = clearpwd;
+    this.userdata = theuserdata;
+    this.clearpwd = aclearpwd;
   }
 
   @Override
@@ -91,12 +104,18 @@ public class AddEndEntityApprovalRequest extends ApprovalRequest {
         "This execution requires additional bean references.");
   }
 
+  /**
+   * @param endEntityManagementSession Entity
+   * @param approvalRequestID Request
+   * @param lastApprovingAdmin Admin
+   * @throws ApprovalRequestExecutionException Fail
+   */
   public void execute(
       final EndEntityManagementSession endEntityManagementSession,
       final int approvalRequestID,
       final AuthenticationToken lastApprovingAdmin)
       throws ApprovalRequestExecutionException {
-    log.debug("Executing AddEndEntity for user:" + userdata.getUsername());
+    LOG.debug("Executing AddEndEntity for user:" + userdata.getUsername());
 
     // Add the ID of the approval request to the end entity as extended
     // information.
@@ -143,12 +162,12 @@ public class AddEndEntityApprovalRequest extends ApprovalRequest {
 
   /**
    * Approval Id is generated for this approval type (i.e
-   * AddEndEntityApprovalRequest) and UserName
+   * AddEndEntityApprovalRequest) and UserName.
    */
   @Override
   public int generateApprovalId() {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">generateApprovalId '"
               + getApprovalType()
               + ";"
@@ -171,6 +190,9 @@ public class AddEndEntityApprovalRequest extends ApprovalRequest {
     return ApprovalDataVO.APPROVALTYPE_ADDENDENTITY;
   }
 
+  /**
+   * @return info
+   */
   public EndEntityInformation getEndEntityInformation() {
     return userdata;
   }
@@ -214,7 +236,13 @@ public class AddEndEntityApprovalRequest extends ApprovalRequest {
             true));
     return retval;
   }
-
+/**
+ * @param caSession CA
+ * @param endEntityProfileSession Entity
+ * @param certificateProfileSession Vert
+ * @param hardTokenSession Token
+ * @return Data
+ */
   public List<ApprovalDataText> getNewRequestDataAsText(
       final CaSessionLocal caSession,
       final EndEntityProfileSession endEntityProfileSession,

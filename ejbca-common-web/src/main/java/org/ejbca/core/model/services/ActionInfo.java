@@ -22,4 +22,4 @@ import java.io.Serializable;
  * @author Philip Vendil 2006 sep 27
  * @version $Id: ActionInfo.java 22139 2015-11-03 10:41:56Z mikekushner $
  */
-public interface ActionInfo extends Serializable {}
+public interface ActionInfo extends Serializable { }

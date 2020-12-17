@@ -28,27 +28,39 @@ import org.ejbca.core.model.services.actions.MailActionInfo;
  */
 public abstract class EmailSendingWorker extends BaseWorker {
 
-  private static final Logger log = Logger.getLogger(EmailSendingWorker.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(EmailSendingWorker.class);
 
+  /** Default constructor. */
   private transient String endUserSubject = null;
+  /** Default constructor. */
   private transient String adminSubject = null;
+  /** Default constructor. */
   private transient String endUserMessage = null;
+  /** Default constructor. */
   private transient String adminMessage = null;
 
+  /** Default constructor. */
   public EmailSendingWorker() {
     super();
   }
 
   class EmailCertData {
 
+        /** Param. */
     private String fingerPrint = null;
+    /** Param. */
     private MailActionInfo actionInfo = null;
 
-    public EmailCertData(
-        final String fingerPrint, final MailActionInfo actionInfo) {
+    /**
+     * @param afingerPrint FP
+     * @param theactionInfo Info
+     */
+    EmailCertData(
+        final String afingerPrint, final MailActionInfo theactionInfo) {
       super();
-      this.fingerPrint = fingerPrint;
-      this.actionInfo = actionInfo;
+      this.fingerPrint = afingerPrint;
+      this.actionInfo = theactionInfo;
     }
 
     public String getFingerPrint() {
@@ -62,13 +74,18 @@ public abstract class EmailSendingWorker extends BaseWorker {
 
   /**
    * Method that must be implemented by all subclasses to EmailSendingWorker,
-   * used to update status of a certificate, user, or similar
+   * used to update status of a certificate, user, or similar.
    *
    * @param pk primary key of object to update
    * @param status status to update to
    */
   protected abstract void updateStatus(String pk, int status);
 
+  /**
+   * @param queue Queue
+   * @param ejbs Beans
+   * @throws ServiceExecutionFailedException Fail
+   */
   protected void sendEmails(
       final ArrayList<EmailCertData> queue, final Map<Class<?>, Object> ejbs)
       throws ServiceExecutionFailedException {
@@ -81,12 +98,15 @@ public abstract class EmailSendingWorker extends BaseWorker {
             next.getFingerPrint(),
             CertificateConstants.CERT_NOTIFIEDABOUTEXPIRATION);
       } catch (Exception fe) {
-        log.error("Error sending emails: ", fe);
+        LOG.error("Error sending emails: ", fe);
         throw new ServiceExecutionFailedException(fe);
       }
     }
   }
 
+  /**
+   * @return message
+   */
   protected String getAdminMessage() {
     if (adminMessage == null) {
       adminMessage =
@@ -97,6 +117,9 @@ public abstract class EmailSendingWorker extends BaseWorker {
     return adminMessage;
   }
 
+  /**
+   * @return subject
+   */
   protected String getAdminSubject() {
     if (adminSubject == null) {
       adminSubject =
@@ -108,6 +131,9 @@ public abstract class EmailSendingWorker extends BaseWorker {
     return adminSubject;
   }
 
+  /**
+   * @return message
+   */
   protected String getEndUserMessage() {
     if (endUserMessage == null) {
       endUserMessage =
@@ -119,6 +145,9 @@ public abstract class EmailSendingWorker extends BaseWorker {
     return endUserMessage;
   }
 
+  /**
+   * @return subject
+   */
   protected String getEndUserSubject() {
     if (endUserSubject == null) {
       endUserSubject =
@@ -130,12 +159,18 @@ public abstract class EmailSendingWorker extends BaseWorker {
     return endUserSubject;
   }
 
+  /**
+   * @return bool
+   */
   protected boolean isSendToAdmins() {
     return properties
         .getProperty(EmailSendingWorkerConstants.PROP_SENDTOADMINS, "FALSE")
         .equalsIgnoreCase("TRUE");
   }
 
+  /**
+   * @return bool
+   */
   protected boolean isSendToEndUsers() {
     return properties
         .getProperty(EmailSendingWorkerConstants.PROP_SENDTOENDUSERS, "FALSE")

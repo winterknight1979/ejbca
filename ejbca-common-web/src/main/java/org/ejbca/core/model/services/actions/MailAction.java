@@ -29,12 +29,15 @@ import org.ejbca.util.mail.MailSender;
  */
 public class MailAction extends BaseAction {
 
-  private static final Logger log = Logger.getLogger(MailAction.class);
-  /** Internal localization of logs and errors */
-  private static final InternalEjbcaResources intres =
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(MailAction.class);
+  /** Internal localization of logs and errors. */
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
+  /** Param. */
   public static final String PROP_SENDERADDRESS = "action.mail.senderAddress";
+  /** Param. */
   public static final String PROP_RECIEVERADDRESS =
       "action.mail.recieverAddress";
 
@@ -45,6 +48,7 @@ public class MailAction extends BaseAction {
    *
    * @see org.ejbca.core.model.services.IAction#performAction
    */
+  @Override
   public void performAction(
       final ActionInfo actionInfo, final Map<Class<?>, Object> ejbs)
       throws ActionException {
@@ -60,7 +64,7 @@ public class MailAction extends BaseAction {
 
     if (reciverAddress == null || reciverAddress.trim().equals("")) {
       String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "services.mailaction.errorreceiveraddress");
       throw new ActionException(msg);
     }
@@ -75,21 +79,21 @@ public class MailAction extends BaseAction {
           MailSender.NO_ATTACHMENTS);
       if (mailActionInfo.isLoggingEnabled()) {
         String logmsg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "services.mailaction.sent", reciverAddress);
-        log.info(logmsg);
+        LOG.info(logmsg);
       }
     } catch (MailException e) {
       String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "services.mailaction.errorsend", reciverAddress);
-      log.info(msg, e);
+      LOG.info(msg, e);
     }
   }
 
   /**
    * Method that checks the configuration sets the variables and throws an
-   * exception if it's invalid
+   * exception if it's invalid.
    *
    * @param actionInfo info
    * @throws ActionException fail
@@ -97,13 +101,13 @@ public class MailAction extends BaseAction {
   private void checkConfig(final ActionInfo actionInfo) throws ActionException {
     if (!(actionInfo instanceof MailActionInfo)) {
       String msg =
-          intres.getLocalizedMessage("services.mailaction.erroractioninfo");
+          INTRES.getLocalizedMessage("services.mailaction.erroractioninfo");
       throw new ActionException(msg);
     }
     String senderAddress = properties.getProperty(PROP_SENDERADDRESS);
     if (senderAddress == null || senderAddress.trim().equals("")) {
       String msg =
-          intres.getLocalizedMessage("services.mailaction.errorsenderaddress");
+          INTRES.getLocalizedMessage("services.mailaction.errorsenderaddress");
       throw new ActionException(msg);
     }
   }

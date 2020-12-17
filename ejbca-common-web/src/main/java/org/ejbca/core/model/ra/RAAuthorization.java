@@ -38,35 +38,43 @@ import org.ejbca.core.model.authorization.AccessRulesConstants;
 public class RAAuthorization implements Serializable {
 
   private static final long serialVersionUID = -3195162814492440326L;
+  /** Param. */
   private String authendentityprofilestring = null;
+  /** Param. */
   private TreeMap<String, String> authprofilenames = null;
+  /** Param. */
   private List<String> authprofileswithmissingcas = null;
+  /** Param. */
   private final AuthenticationToken admin;
+  /** Param. */
   private final AuthorizationSessionLocal authorizationSession;
+  /** Param. */
   private final GlobalConfigurationSession globalConfigurationSession;
+  /** Param. */
   private final CaSession caSession;
+  /** Param. */
   private final EndEntityProfileSession endEntityProfileSession;
 
   /**
    * Creates a new instance of RAAuthorization.
    *
-   * @param admin Admin
-   * @param globalConfigurationSession session
-   * @param authorizationSession auth session
-   * @param caSession CA sessiom
-   * @param endEntityProfileSession profile session
+   * @param anadmin Admin
+   * @param aglobalConfigurationSession session
+   * @param anauthorizationSession auth session
+   * @param acaSession CA sessiom
+   * @param anendEntityProfileSession profile session
    */
   public RAAuthorization(
-      final AuthenticationToken admin,
-      final GlobalConfigurationSession globalConfigurationSession,
-      final AuthorizationSessionLocal authorizationSession,
-      final CaSession caSession,
-      final EndEntityProfileSession endEntityProfileSession) {
-    this.admin = admin;
-    this.globalConfigurationSession = globalConfigurationSession;
-    this.authorizationSession = authorizationSession;
-    this.caSession = caSession;
-    this.endEntityProfileSession = endEntityProfileSession;
+      final AuthenticationToken anadmin,
+      final GlobalConfigurationSession aglobalConfigurationSession,
+      final AuthorizationSessionLocal anauthorizationSession,
+      final CaSession acaSession,
+      final EndEntityProfileSession anendEntityProfileSession) {
+    this.admin = anadmin;
+    this.globalConfigurationSession = aglobalConfigurationSession;
+    this.authorizationSession = anauthorizationSession;
+    this.caSession = acaSession;
+    this.endEntityProfileSession = anendEntityProfileSession;
   }
 
   private boolean isAuthorizedNoLogging(
@@ -215,6 +223,10 @@ public class RAAuthorization implements Serializable {
     return authendentityprofilestring;
   }
 
+  /**
+   * @param endentityAccessRule Rule
+   * @return Map of names
+   */
   public TreeMap<String, String> getAuthorizedEndEntityProfileNames(
       final String endentityAccessRule) {
     if (authprofilenames == null) {
@@ -232,8 +244,8 @@ public class RAAuthorization implements Serializable {
               });
       final Map<Integer, String> idtonamemap =
           endEntityProfileSession.getEndEntityProfileIdToNameMap();
-      for (final Integer id :
-          endEntityProfileSession.getAuthorizedEndEntityProfileIds(
+      for (final Integer id
+          : endEntityProfileSession.getAuthorizedEndEntityProfileIds(
               admin, endentityAccessRule)) {
         authprofilenames.put(idtonamemap.get(id), String.valueOf(id));
       }
@@ -241,6 +253,9 @@ public class RAAuthorization implements Serializable {
     return authprofilenames;
   }
 
+  /**
+   * @return Profiles
+   */
   public List<String> getViewAuthorizedEndEntityProfilesWithMissingCAs() {
     if (authprofileswithmissingcas == null) {
       authprofileswithmissingcas = new ArrayList<String>();
@@ -254,6 +269,7 @@ public class RAAuthorization implements Serializable {
     return authprofileswithmissingcas;
   }
 
+  /** Clear. */
   public void clear() {
     authendentityprofilestring = null;
     authprofilenames = null;

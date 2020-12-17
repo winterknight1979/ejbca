@@ -11,12 +11,7 @@
  *                                                                       *
  *************************************************************************/
 
-/**
- * Test class fot public key blacklist key validator functional methods.
- *
- * @version $Id: PublicKeyBlacklistKeyValidatorTest.java 29078 2018-05-30
- *     14:01:03Z bastianf $
- */
+
 package org.ejbca.core.model.validation;
 
 import static org.junit.Assert.assertEquals;
@@ -43,19 +38,26 @@ import org.junit.Test;
 public class PublicKeyBlacklistKeyValidatorTest {
 
   /** Class logger. */
-  private static final Logger log =
+  private static final Logger LOG =
       Logger.getLogger(PublicKeyBlacklistKeyValidatorTest.class);
 
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @BeforeClass
   public static void setClassUp() throws Exception {
-    log.trace("setClassUp()");
+    LOG.trace("setClassUp()");
     CryptoProviderTools.installBCProvider();
-    log.trace("setClassUp()");
+    LOG.trace("setClassUp()");
   }
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testMatchBlacklistedPublicKeyRSA() throws Exception {
-    log.trace(">testMatchBlacklistedPublicKeyRSA()");
+    LOG.trace(">testMatchBlacklistedPublicKeyRSA()");
 
     KeyPair keyPair = KeyTools.genKeys("1024", "RSA");
 
@@ -73,9 +75,10 @@ public class PublicKeyBlacklistKeyValidatorTest {
     keyValidator.setUseOnlyCache(
         true); // don't try to make EJB lookup for the "real" blacklist
     //
-    // keyValidator.setSettingsTemplate(KeyValidatorSettingsTemplate.USE_CUSTOM_SETTINGS.getOption());
+    // keyValidator.setSettingsTemplate(KeyValidatorSettingsTemplate
+    // S.USE_CUSTOM_SETTINGS.getOption());
     List<String> messages = keyValidator.validate(keyPair.getPublic(), null);
-    log.trace("Key validation error messages: " + messages);
+    LOG.trace("Key validation error messages: " + messages);
     assertTrue(
         "Key valildation should have been successful.", messages.size() == 0);
 
@@ -83,7 +86,7 @@ public class PublicKeyBlacklistKeyValidatorTest {
     List<String> algorithms = new ArrayList<String>();
     algorithms.add("-1");
     keyValidator.setKeyAlgorithms(algorithms);
-    {
+
       // Manual update of cache entry
       final PublicKeyBlacklistEntry entry = new PublicKeyBlacklistEntry();
       entry.setFingerprint(keyPair.getPublic());
@@ -93,9 +96,8 @@ public class PublicKeyBlacklistKeyValidatorTest {
           data.getProtectString(0).hashCode(),
           entry.getFingerprint(),
           entry);
-    }
     messages = keyValidator.validate(keyPair.getPublic(), null);
-    log.trace("Key validation error messages: " + messages);
+    LOG.trace("Key validation error messages: " + messages);
     assertEquals(
         "Key valildation should have failed because of public key fingerprint"
             + " match.",
@@ -108,7 +110,7 @@ public class PublicKeyBlacklistKeyValidatorTest {
     algorithms.add(AlgorithmConstants.KEYALGORITHM_DSA);
     keyValidator.setKeyAlgorithms(algorithms);
     messages = keyValidator.validate(keyPair.getPublic(), null);
-    log.trace("Key validation error messages: " + messages);
+    LOG.trace("Key validation error messages: " + messages);
     assertEquals(
         "Key valildation should have been successful because of public key"
             + " fingerprint match but other algorithm.",
@@ -121,16 +123,19 @@ public class PublicKeyBlacklistKeyValidatorTest {
     algorithms.add(AlgorithmConstants.KEYALGORITHM_RSA);
     keyValidator.setKeyAlgorithms(algorithms);
     messages = keyValidator.validate(keyPair.getPublic(), null);
-    log.trace("Key validation error messages: " + messages);
+    LOG.trace("Key validation error messages: " + messages);
     assertEquals(
         "Key valildation should have failed because of public key fingerprint"
             + " match.",
         1,
         messages.size());
 
-    log.trace("<testMatchBlacklistedPublicKeyRSA()");
+    LOG.trace("<testMatchBlacklistedPublicKeyRSA()");
   }
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testMatchBlacklistedPublicKeyEC() throws Exception {
     KeyPair keyPair =
@@ -152,7 +157,7 @@ public class PublicKeyBlacklistKeyValidatorTest {
     List<String> algorithms = new ArrayList<String>();
     algorithms.add(AlgorithmConstants.KEYALGORITHM_ECDSA);
     keyValidator.setKeyAlgorithms(algorithms);
-    {
+
       // Manual update of cache entry
       final PublicKeyBlacklistEntry entry = new PublicKeyBlacklistEntry();
       entry.setFingerprint(keyPair.getPublic());
@@ -162,9 +167,9 @@ public class PublicKeyBlacklistKeyValidatorTest {
           data.getProtectString(0).hashCode(),
           entry.getFingerprint(),
           entry);
-    }
+
     List<String> messages = keyValidator.validate(keyPair.getPublic(), null);
-    log.trace("Key validation error messages: " + messages);
+    LOG.trace("Key validation error messages: " + messages);
     assertEquals(
         "Key valildation should have failed because of public key fingerprint"
             + " match.",
@@ -177,7 +182,7 @@ public class PublicKeyBlacklistKeyValidatorTest {
     algorithms.add(AlgorithmConstants.KEYALGORITHM_DSA);
     keyValidator.setKeyAlgorithms(algorithms);
     messages = keyValidator.validate(keyPair.getPublic(), null);
-    log.trace("Key validation error messages: " + messages);
+    LOG.trace("Key validation error messages: " + messages);
     assertEquals(
         "Key valildation should have been successful because of public key"
             + " fingerprint match but other algorithm.",
@@ -190,7 +195,7 @@ public class PublicKeyBlacklistKeyValidatorTest {
     algorithms.add(AlgorithmConstants.KEYALGORITHM_EC);
     keyValidator.setKeyAlgorithms(algorithms);
     messages = keyValidator.validate(keyPair.getPublic(), null);
-    log.trace("Key validation error messages: " + messages);
+    LOG.trace("Key validation error messages: " + messages);
     assertEquals(
         "Key valildation should have failed because of public key fingerprint"
             + " match.",
@@ -202,7 +207,7 @@ public class PublicKeyBlacklistKeyValidatorTest {
     algorithms.add(AlgorithmConstants.KEYALGORITHM_ECDSA);
     keyValidator.setKeyAlgorithms(algorithms);
     messages = keyValidator.validate(keyPair.getPublic(), null);
-    log.trace("Key validation error messages: " + messages);
+    LOG.trace("Key validation error messages: " + messages);
     assertEquals(
         "Key valildation should have failed because of public key fingerprint"
             + " match.",
@@ -211,13 +216,13 @@ public class PublicKeyBlacklistKeyValidatorTest {
   }
   /**
    * Same as testMatchBlacklistedPublicKeyEC, but specifies he algorithm as
-   * ECDSA instead of EC
+   * ECDSA instead of EC.
    *
    * @throws Exception Fail
    */
   @Test
   public void testMatchBlacklistedPublicKeyECDSA() throws Exception {
-    log.trace(">testMatchBlacklistedPublicKeyECDSA()");
+    LOG.trace(">testMatchBlacklistedPublicKeyECDSA()");
 
     KeyPair keyPair =
         KeyTools.genKeys("secp256r1", AlgorithmConstants.KEYALGORITHM_ECDSA);
@@ -235,9 +240,10 @@ public class PublicKeyBlacklistKeyValidatorTest {
     keyValidator.setUseOnlyCache(
         true); // don't try to make EJB lookup for the "real" blacklist
     //
-    // keyValidator.setSettingsTemplate(KeyValidatorSettingsTemplate.USE_CUSTOM_SETTINGS.getOption());
+    // keyValidator.setSettingsTemplate
+    // (KeyValidatorSettingsTemplate.USE_CUSTOM_SETTINGS.getOption());
     List<String> messages = keyValidator.validate(keyPair.getPublic(), null);
-    log.trace("Key validation error messages: " + messages);
+    LOG.trace("Key validation error messages: " + messages);
     assertTrue(
         "Key valildation should have been successful.", messages.size() == 0);
 
@@ -245,7 +251,7 @@ public class PublicKeyBlacklistKeyValidatorTest {
     List<String> algorithms = new ArrayList<String>();
     algorithms.add("-1");
     keyValidator.setKeyAlgorithms(algorithms);
-    {
+
       // Manual update of cache entry
       final PublicKeyBlacklistEntry entry = new PublicKeyBlacklistEntry();
       entry.setFingerprint(keyPair.getPublic());
@@ -255,9 +261,9 @@ public class PublicKeyBlacklistKeyValidatorTest {
           data.getProtectString(0).hashCode(),
           entry.getFingerprint(),
           entry);
-    }
+
     messages = keyValidator.validate(keyPair.getPublic(), null);
-    log.trace("Key validation error messages: " + messages);
+    LOG.trace("Key validation error messages: " + messages);
     assertTrue(
         "Key valildation should have failed because of public key fingerprint"
             + " match.",
@@ -269,13 +275,13 @@ public class PublicKeyBlacklistKeyValidatorTest {
     algorithms.add("RSA");
     keyValidator.setKeyAlgorithms(algorithms);
     messages = keyValidator.validate(keyPair.getPublic(), null);
-    log.trace("Key validation error messages: " + messages);
+    LOG.trace("Key validation error messages: " + messages);
     assertTrue(
         "Key valildation should have been successful because of public key"
             + " fingerprint match but other algorithm.",
         messages.size() == 0);
 
-    log.trace("<testMatchBlacklistedPublicKeyECDSA()");
+    LOG.trace("<testMatchBlacklistedPublicKeyECDSA()");
   }
 
   /**

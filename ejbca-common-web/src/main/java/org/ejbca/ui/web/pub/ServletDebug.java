@@ -26,22 +26,30 @@ import org.ejbca.ui.web.RequestHelper;
 import org.ejbca.util.HTMLTools;
 
 /**
- * Prints debug info back to browser client
+ * Prints debug info back to browser client.
  *
  * @version $Id: ServletDebug.java 34105 2019-12-18 08:59:00Z undulf $
  */
 public class ServletDebug {
+      /** Param. */
   private final ByteArrayOutputStream buffer;
+  /** Param. */
   private final PrintStream printer;
+  /** Param. */
   private final HttpServletRequest request;
+  /** Param. */
   private final HttpServletResponse response;
 
+  /**
+   * @param arequest req
+   * @param aresponse Resp
+   */
   public ServletDebug(
-      final HttpServletRequest request, final HttpServletResponse response) {
+      final HttpServletRequest arequest, final HttpServletResponse aresponse) {
     buffer = new ByteArrayOutputStream();
     printer = new PrintStream(buffer);
-    this.request = request;
-    this.response = response;
+    this.request = arequest;
+    this.response = aresponse;
   }
 
   /**
@@ -51,6 +59,7 @@ public class ServletDebug {
    * @throws ServletException fail
    */
   public void printDebugInfo() throws IOException, ServletException {
+    final int len = 7;
     String errorform = request.getParameter("errorform");
     String errormessage = new String(buffer.toByteArray());
     if (errorform == null) {
@@ -63,27 +72,38 @@ public class ServletDebug {
         errorform =
             errorform.substring(0, i)
                 + errormessage
-                + errorform.substring(i + 7);
+                + errorform.substring(i + len);
       }
       response.setContentType("text/html;charset=UTF-8");
       response.getOutputStream().print(errorform);
     }
   }
 
+  /**
+   * @param o object
+   */
   public void print(final Object o) {
     printer.println(o);
   }
 
-  public void printMessage(String msg) {
+  /**
+   * @param omsg message
+   */
+  public void printMessage(final String omsg) {
     // Format message
-    while (msg.length() > 150) {
-      int offset = msg.substring(0, 150).lastIndexOf(' ');
+    String msg = omsg;
+    final int len = 150;
+    while (msg.length() > len) {
+      int offset = msg.substring(0, len).lastIndexOf(' ');
       print(msg.substring(0, offset));
       msg = msg.substring(offset + 1);
     }
     print(msg);
   }
 
+  /**
+   * @param bA Byte array
+   */
   public void printInsertLineBreaks(final byte[] bA) {
     BufferedReader br =
         new BufferedReader(new InputStreamReader(new ByteArrayInputStream(bA)));
@@ -102,6 +122,9 @@ public class ServletDebug {
     }
   }
 
+  /**
+   * @param t exception
+   */
   public void takeCareOfException(final Throwable t) {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     t.printStackTrace(new PrintStream(baos));
@@ -116,6 +139,10 @@ public class ServletDebug {
     request.setAttribute("Exception", "true");
   }
 
+  /**
+   * @param bA Byte array
+   * @throws Exception Fail
+   */
   public void ieCertFix(final byte[] bA) throws Exception {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     PrintStream tmpPrinter = new PrintStream(baos);

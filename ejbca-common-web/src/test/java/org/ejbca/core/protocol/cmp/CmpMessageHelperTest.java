@@ -13,12 +13,15 @@
 
 package org.ejbca.core.protocol.cmp;
 
-import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.security.cert.CertificateEncodingException;
+
 import org.apache.commons.codec.binary.Base64;
 import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.cmp.ErrorMsgContent;

@@ -16,7 +16,7 @@ package org.ejbca.core.protocol.cmp.authentication;
 import org.bouncycastle.asn1.cmp.PKIMessage;
 
 /**
- * Interface for authentication modules of CMP Messages
+ * Interface for authentication modules of CMP Messages.
  *
  * @version $Id: ICMPAuthenticationModule.java 22139 2015-11-03 10:41:56Z
  *     mikekushner $

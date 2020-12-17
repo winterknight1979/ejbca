@@ -33,15 +33,21 @@ import org.ejbca.core.ejb.ServiceLocator;
  *
  * @version $Id: MailSender.java 26387 2017-08-22 14:14:36Z mikekushner $
  */
-public class MailSender {
+public final class MailSender {
 
-  private static final Logger log = Logger.getLogger(MailSender.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(MailSender.class);
 
   // Some constants to make it easier to read the client code
+  /** Patam. */
   public static final List<String> NO_TO = null; // List<String>
+  /** Param. */
   public static final List<String> NO_CC = null; // List<String>
+  /** Param. */
   public static final List<MailAttachment> NO_ATTACHMENTS =
       null; // List<MailAttachment>
+
+  private MailSender() { }
 
   /**
    * Helper method for sending mail using the mail service configured in
@@ -97,17 +103,18 @@ public class MailSender {
     Session mailSession =
         ServiceLocator.getInstance()
             .getMailSession(MailConfiguration.getMailJndiName());
-    // It would be good if we could set mail session properties, but it seems
-    // not possible
-    // See
-    // https://javamail.java.net/nonav/docs/api/com/sun/mail/smtp/package-summary.html
-    // mail.smtp.timeout
-    // mail.smtp.connectiontimeout
-    // mail.smtp.writetimeout
+// It would be good if we could set mail session properties, but it seems
+// not possible
+// See
+// https://javamail.java.net/nonav/docs/api
+//    /com/sun/mail/smtp/package-summary.html
+// mail.smtp.timeout
+// mail.smtp.connectiontimeout
+// mail.smtp.writetimeout
     Message msg = new MimeMessage(mailSession);
     try {
-      if (log.isDebugEnabled()) {
-        log.debug("from: " + fromAddress);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("from: " + fromAddress);
       }
       msg.setFrom(new InternetAddress(fromAddress));
       boolean atLeastOneRecipient = false;
@@ -117,8 +124,8 @@ public class MailSender {
           msg.addRecipients(
               javax.mail.Message.RecipientType.TO,
               InternetAddress.parse(to, false));
-          if (log.isDebugEnabled()) {
-            log.debug("to: " + to);
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("to: " + to);
           }
           atLeastOneRecipient = true;
         }
@@ -129,8 +136,8 @@ public class MailSender {
           msg.addRecipients(
               javax.mail.Message.RecipientType.CC,
               InternetAddress.parse(cc, false));
-          if (log.isDebugEnabled()) {
-            log.debug("cc: " + cc);
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("cc: " + cc);
           }
           atLeastOneRecipient = true;
         }
@@ -139,13 +146,13 @@ public class MailSender {
         return false; // We need at least one recipient.. either TO or CC
       }
       msg.setSubject(subject);
-      if (log.isDebugEnabled()) {
-        log.debug("subject: " + subject);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("subject: " + subject);
       }
       if (attachments == null || attachments.size() == 0) {
         msg.setContent(content, MailConfiguration.getMailMimeType());
-        if (log.isDebugEnabled()) {
-          log.debug("content: " + content);
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("content: " + content);
         }
       } else {
         Multipart multipart = new MimeMultipart();
@@ -166,7 +173,7 @@ public class MailSender {
       msg.setSentDate(new Date());
       Transport.send(msg);
     } catch (MessagingException e) {
-      log.error("Unable to send email: ", e);
+      LOG.error("Unable to send email: ", e);
       return false;
     }
     return true;

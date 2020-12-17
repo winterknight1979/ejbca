@@ -28,46 +28,55 @@ import org.ejbca.core.model.services.intervals.DummyInterval;
  */
 public abstract class BaseWorker implements IWorker {
 
-  private static final Logger log = Logger.getLogger(BaseWorker.class);
-  /** Internal localization of logs and errors */
-  private static final InternalEjbcaResources intres =
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(BaseWorker.class);
+  /** Internal localization of logs and errors. */
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
+  /** Param. */
   protected Properties properties = null;
+  /** Param. */
   protected String serviceName = null;
+  /** Param. */
   protected ServiceConfiguration serviceConfiguration = null;
   /**
    * The time this service should have been running. Usually this is 'now'. But
    * is the appserver was down it can have been delayed execution
    */
   protected long runTimeStamp;
-  /** The next time the service is scheduled to run */
+  /** The next time the service is scheduled to run. */
   protected long nextRunTimeStamp;
 
+  /** Param. */
   private IAction action = null;
+  /** Param. */
   private IInterval interval = null;
 
+  /** Param. */
   protected AuthenticationToken admin = null;
 
+  /** Param. */
   private transient Collection<Integer> cAIdsToCheck = null;
+  /** Param. */
   private transient long timeBeforeExpire = -1;
 
   /** @see org.ejbca.core.model.services.IWorker#init */
   @Override
   public void init(
-      final AuthenticationToken admin,
-      final ServiceConfiguration serviceConfiguration,
-      final String serviceName,
-      final long runTimeStamp,
-      final long nextRunTimeStamp) {
-    this.admin = admin;
-    this.serviceName = serviceName;
-    this.runTimeStamp = runTimeStamp;
-    this.nextRunTimeStamp = nextRunTimeStamp;
-    this.serviceConfiguration = serviceConfiguration;
-    this.properties = serviceConfiguration.getWorkerProperties();
+      final AuthenticationToken anadmin,
+      final ServiceConfiguration aserviceConfiguration,
+      final String aserviceName,
+      final long arunTimeStamp,
+      final long anextRunTimeStamp) {
+    this.admin = anadmin;
+    this.serviceName = aserviceName;
+    this.runTimeStamp = arunTimeStamp;
+    this.nextRunTimeStamp = anextRunTimeStamp;
+    this.serviceConfiguration = aserviceConfiguration;
+    this.properties = aserviceConfiguration.getWorkerProperties();
 
-    String actionClassPath = serviceConfiguration.getActionClassPath();
+    String actionClassPath = aserviceConfiguration.getActionClassPath();
     if (actionClassPath != null) {
       try {
         action =
@@ -77,19 +86,19 @@ public abstract class BaseWorker implements IWorker {
                     .loadClass(actionClassPath)
                     .getConstructor()
                     .newInstance();
-        action.init(serviceConfiguration.getActionProperties(), serviceName);
+        action.init(aserviceConfiguration.getActionProperties(), aserviceName);
       } catch (Exception e) {
         String msg =
-            intres.getLocalizedMessage(
-                "services.erroractionclasspath", serviceName);
-        log.error(msg, e);
+            INTRES.getLocalizedMessage(
+                "services.erroractionclasspath", aserviceName);
+        LOG.error(msg, e);
       }
     } else {
-      log.debug(
-          "Warning no action class i defined for the service " + serviceName);
+      LOG.debug(
+          "Warning no action class i defined for the service " + aserviceName);
     }
 
-    String intervalClassPath = serviceConfiguration.getIntervalClassPath();
+    String intervalClassPath = aserviceConfiguration.getIntervalClassPath();
     if (intervalClassPath != null) {
       try {
         interval =
@@ -100,18 +109,18 @@ public abstract class BaseWorker implements IWorker {
                     .getConstructor()
                     .newInstance();
         interval.init(
-            serviceConfiguration.getIntervalProperties(), serviceName);
+            aserviceConfiguration.getIntervalProperties(), aserviceName);
       } catch (Exception e) {
         String msg =
-            intres.getLocalizedMessage(
-                "services.errorintervalclasspath", serviceName);
-        log.error(msg, e);
+            INTRES.getLocalizedMessage(
+                "services.errorintervalclasspath", aserviceName);
+        LOG.error(msg, e);
       }
     } else {
       String msg =
-          intres.getLocalizedMessage(
-              "services.errorintervalclasspath", serviceName);
-      log.error(msg);
+          INTRES.getLocalizedMessage(
+              "services.errorintervalclasspath", aserviceName);
+      LOG.error(msg);
     }
 
     if (interval == null) {
@@ -125,12 +134,15 @@ public abstract class BaseWorker implements IWorker {
     return interval.getTimeToExecution();
   }
 
+  /**
+   * @return action
+   */
   protected IAction getAction() {
     if (action == null) {
       String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "services.erroractionclasspath", serviceName);
-      log.error(msg);
+      LOG.error(msg);
     }
     return action;
   }
@@ -146,17 +158,18 @@ public abstract class BaseWorker implements IWorker {
 
   /**
    * Returns the amount of time, in milliseconds that the expire time of
-   * configured for
+   * configured for.
    *
    * @return timw
    * @throws ServiceExecutionFailedException fail
    */
   protected long getTimeBeforeExpire() throws ServiceExecutionFailedException {
+    final int ms = 1000;
     if (timeBeforeExpire == -1) {
       String unit = properties.getProperty(PROP_TIMEUNIT);
       if (unit == null) {
         String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "services.errorexpireworker.errorconfig", serviceName, "UNIT");
         throw new ServiceExecutionFailedException(msg);
       }
@@ -169,7 +182,7 @@ public abstract class BaseWorker implements IWorker {
       }
       if (unitval == 0) {
         String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "services.errorexpireworker.errorconfig", serviceName, "UNIT");
         throw new ServiceExecutionFailedException(msg);
       }
@@ -180,21 +193,21 @@ public abstract class BaseWorker implements IWorker {
             Integer.parseInt(properties.getProperty(PROP_TIMEBEFOREEXPIRING));
       } catch (NumberFormatException e) {
         String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "services.errorexpireworker.errorconfig", serviceName, "VALUE");
         throw new ServiceExecutionFailedException(msg);
       }
 
       if (intvalue == 0) {
         String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "services.errorexpireworker.errorconfig", serviceName, "VALUE");
         throw new ServiceExecutionFailedException(msg);
       }
       timeBeforeExpire = (long) intvalue * unitval;
     }
 
-    return timeBeforeExpire * 1000;
+    return timeBeforeExpire * ms;
   }
 
   /**
@@ -216,8 +229,8 @@ public abstract class BaseWorker implements IWorker {
     if (cAIdsToCheck == null) {
       cAIdsToCheck = new ArrayList<Integer>();
       String cas = properties.getProperty(PROP_CAIDSTOCHECK);
-      if (log.isDebugEnabled()) {
-        log.debug("CAIds to check: " + cas);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("CAIds to check: " + cas);
       }
       if (cas != null) {
         String[] caids = cas.split(";");
@@ -226,7 +239,7 @@ public abstract class BaseWorker implements IWorker {
             Integer.valueOf(caids[i]);
           } catch (Exception e) {
             String msg =
-                intres.getLocalizedMessage(
+                INTRES.getLocalizedMessage(
                     "services.errorexpireworker.errorconfig",
                     serviceName,
                     PROP_CAIDSTOCHECK);

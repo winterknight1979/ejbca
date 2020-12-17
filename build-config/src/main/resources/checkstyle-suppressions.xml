@@ -345,6 +345,37 @@
 		files="RaApprovalRequestInfo" lines="150" />
 	<suppress checks="UnusedImportsCheck"
 		files="RaMasterApi.java" lines="53,68,72,98" /> <!-- Used in JDOC -->
+		
+	<!-- ejbca-common-web -->
+	<suppress checks="ParameterNumberCheck"
+		files="ChangeStatusEndEntityApprovalRequest.java" lines="70" />
+	<suppress checks="ParameterNumberCheck"
+		files="GenerateTokenApprovalRequest.java" lines="70" />
+	<suppress checks="ParameterNumberCheck"
+		files="EditEndEntityApprovalRequest.java" lines="90,122" />
+	<suppress checks="ParameterNumberCheck"
+		files="KeyRecoveryApprovalRequest.java" lines="76" />
+	<suppress checks="ParameterNumberCheck"
+		files="RevocationApprovalRequest.java" lines="79" />
+	<suppress checks="ParameterNumberCheck"
+		files="ViewHardTokenDataApprovalRequest.java" lines="66" />
+	<suppress checks="MethodLengthCheck"
+		files="CertificateExpirationNotifierWorker.java" lines="60" />
+	<suppress checks="MethodLengthCheck"
+		files="CRLDownloadWorker.java" lines="64" />
+	<suppress checks="ParameterNumberCheck"
+		files="CmpMessageHelper.java" lines="613" />
+	<suppress checks="MagicNumberCheck"
+		files="CmpMessageHelper.java" lines="789" /> <!-- case label -->
+	<suppress checks="MethodLengthCheck"
+		files="CmpResponseMessage.java" lines="268" />
+	<suppress checks="MagicNumberCheck"
+		files="CrmfRequestMessage.java" lines="747" /> <!-- case label -->
+	<suppress checks="MagicNumberCheck"
+		files="HTMLTools.java" lines="58-132" /> <!-- HTML Entities -->
+	<suppress checks="ParameterNumberCheck"
+		files="PublicKeyBlacklistKeyValidatorTest.java" lines="300" />
+	
 	
 	
 </suppressions>

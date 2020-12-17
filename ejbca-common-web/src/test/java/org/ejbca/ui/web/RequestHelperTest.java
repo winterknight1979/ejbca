@@ -50,8 +50,8 @@ import org.junit.Test;
 /** @version $Id: RequestHelperTest.java 28862 2018-05-07 18:20:34Z anatom $ */
 public class RequestHelperTest {
 
-  /*
-   * CSR for a external CA with DN: CN=foos
+  /**
+   * CSR for a external CA with DN: CN=foos.
    */
   private static final byte[] PRE_GENERATED_CSR =
       new byte[] {
@@ -111,11 +111,18 @@ public class RequestHelperTest {
         45, 45, 10
       };
 
+  /**
+   * Setup.
+   */
   @BeforeClass
   public static void beforeClass() {
     CryptoProviderTools.installBCProviderIfNotAvailable();
   }
 
+  /**
+   * Test.
+   * @throws Exception Fail
+   */
   @SuppressWarnings("unchecked")
   @Test
   public void testPkcs10CertRequestWithCertificateChain() throws Exception {
@@ -223,7 +230,7 @@ public class RequestHelperTest {
   /**
    * Tests RequestHelper.getRequestServerName that it handles different
    * protocols, with and without port, and that it does HTML encoding on the
-   * result
+   * result.
    */
   @Test
   public void testGetRequestServerName() {

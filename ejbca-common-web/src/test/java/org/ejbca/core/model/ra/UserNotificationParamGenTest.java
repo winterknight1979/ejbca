@@ -20,13 +20,15 @@ import org.ejbca.core.model.SecConst;
 import org.junit.Test;
 
 /**
- * Tests some substitution variables for user notifications
+ * Tests some substitution variables for user notifications.
  *
  * @version $Id: UserNotificationParamGenTest.java 27422 2017-12-05 14:05:42Z
  *     bastianf $
  */
 public class UserNotificationParamGenTest {
-
+     /**
+       * Test.
+       */
   @Test
   public void testInterpolate() {
     Date now = new Date();

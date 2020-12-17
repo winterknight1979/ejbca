@@ -33,14 +33,15 @@ import org.ejbca.core.model.services.ServiceExecutionFailedException;
  */
 public class HsmKeepAliveWorker extends BaseWorker {
 
-  private static final Logger log = Logger.getLogger(HsmKeepAliveWorker.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(HsmKeepAliveWorker.class);
 
   @Override
   public void work(final Map<Class<?>, Object> ejbs)
       throws ServiceExecutionFailedException {
     // Health checking will be done in three steps:
-    if (log.isDebugEnabled()) {
-      log.debug("Performing HSM Keepalive operation.");
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Performing HSM Keepalive operation.");
     }
     // 1. If we use Audit log integrity protection, make a test integrity
     // protection calculation
@@ -55,8 +56,8 @@ public class HsmKeepAliveWorker extends BaseWorker {
         (CryptoTokenManagementSessionLocal)
             ejbs.get(CryptoTokenManagementSessionLocal.class);
     List<CryptoTokenInfo> infos = tokenSession.getCryptoTokenInfos(admin);
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Performing keepalive on all active crypto tokens ("
               + infos.size()
               + "), but skipping soft tokens.");
@@ -72,8 +73,8 @@ public class HsmKeepAliveWorker extends BaseWorker {
           boolean tested = false;
           for (final String alias : aliases) {
             if ("testKey".equals(alias)) {
-              if (log.isDebugEnabled()) {
-                log.debug(
+              if (LOG.isDebugEnabled()) {
+                LOG.debug(
                     "Keepalive testing crypto token '"
                         + info.getName()
                         + "' with id "
@@ -84,8 +85,8 @@ public class HsmKeepAliveWorker extends BaseWorker {
             }
           }
           if (!tested) {
-            if (log.isDebugEnabled()) {
-              log.debug(
+            if (LOG.isDebugEnabled()) {
+              LOG.debug(
                   "No testKey on crypto token '"
                       + info.getName()
                       + "' with id "
@@ -93,18 +94,18 @@ public class HsmKeepAliveWorker extends BaseWorker {
             }
           }
         } catch (InvalidKeyException e) {
-          log.info(
+          LOG.info(
               "Error testing crypto token that suppposedly was active: ", e);
         } catch (CryptoTokenOfflineException e) {
-          log.info(
+          LOG.info(
               "Error testing crypto token that suppposedly was active: ", e);
         } catch (KeyStoreException e) {
-          log.info(
+          LOG.info(
               "Error testing crypto token that suppposedly was active: ", e);
         }
       } else {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Not testing inactive, or soft, crypto token '"
                   + info.getName()
                   + "' with id "

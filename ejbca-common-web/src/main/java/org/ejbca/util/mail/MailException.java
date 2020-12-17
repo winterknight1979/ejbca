@@ -22,7 +22,7 @@ public class MailException extends Exception {
   private static final long serialVersionUID = 1L;
 
   /** */
-  public MailException() {}
+  public MailException() { }
 
   /** @param message message */
   public MailException(final String message) {

@@ -25,41 +25,44 @@ import org.bouncycastle.util.Strings;
  */
 @Deprecated
 public class EncryptedValueBuilder {
+      /** Param. */
   private final KeyWrapper wrapper;
+  /** Param. */
   private final OutputEncryptor encryptor;
+  /** Param. */
   private final EncryptedValuePadder padder;
 
   /**
    * Create a builder that makes EncryptedValue structures.
    *
-   * @param wrapper a wrapper for key used to encrypt the actual data contained
+   * @param awrapper a wrapper for key used to encrypt the actual data contained
    *     in the EncryptedValue.
-   * @param encryptor an output encryptor to encrypt the actual data contained
+   * @param anencryptor an output encryptor to encrypt the actual data contained
    *     in the EncryptedValue.
    */
   public EncryptedValueBuilder(
-      final KeyWrapper wrapper, final OutputEncryptor encryptor) {
-    this(wrapper, encryptor, null);
+      final KeyWrapper awrapper, final OutputEncryptor anencryptor) {
+    this(awrapper, anencryptor, null);
   }
 
   /**
    * Create a builder that makes EncryptedValue structures with fixed length
    * blocks padded using the passed in padder.
    *
-   * @param wrapper a wrapper for key used to encrypt the actual data contained
+   * @param awrapper a wrapper for key used to encrypt the actual data contained
    *     in the EncryptedValue.
-   * @param encryptor an output encryptor to encrypt the actual data contained
+   * @param anencryptor an output encryptor to encrypt the actual data contained
    *     in the EncryptedValue.
-   * @param padder a padder to ensure that the EncryptedValue created will
+   * @param apadder a padder to ensure that the EncryptedValue created will
    *     always be a constant length.
    */
   public EncryptedValueBuilder(
-      final KeyWrapper wrapper,
-      final OutputEncryptor encryptor,
-      final EncryptedValuePadder padder) {
-    this.wrapper = wrapper;
-    this.encryptor = encryptor;
-    this.padder = padder;
+      final KeyWrapper awrapper,
+      final OutputEncryptor anencryptor,
+      final EncryptedValuePadder apadder) {
+    this.wrapper = awrapper;
+    this.encryptor = anencryptor;
+    this.padder = apadder;
   }
 
   /**

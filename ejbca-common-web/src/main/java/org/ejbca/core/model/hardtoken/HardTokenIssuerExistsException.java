@@ -15,7 +15,7 @@ package org.ejbca.core.model.hardtoken;
 
 /**
  * An exception thrown when someone tries to add a hard token issuer that
- * already exits
+ * already exits.
  *
  * @author Philip Vendil 2003-01-20
  * @version $Id: HardTokenIssuerExistsException.java 22139 2015-11-03 10:41:56Z

@@ -30,7 +30,8 @@ import org.ejbca.core.model.services.ServiceExecutionFailedException;
  */
 public class CRLUpdateWorker extends BaseWorker {
 
-  private static final Logger log = Logger.getLogger(CRLUpdateWorker.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(CRLUpdateWorker.class);
 
   /**
    * Semaphore that tries to make sure that this CRL creation job does not run
@@ -48,6 +49,7 @@ public class CRLUpdateWorker extends BaseWorker {
   @Override
   public void work(final Map<Class<?>, Object> ejbs)
       throws ServiceExecutionFailedException {
+    final int ms = 1000;
     final PublishingCrlSessionLocal publishingCrlSession =
         ((PublishingCrlSessionLocal) ejbs.get(PublishingCrlSessionLocal.class));
     // A semaphore used to not run parallel CRL generation jobs if it is slow
@@ -60,17 +62,17 @@ public class CRLUpdateWorker extends BaseWorker {
         // 3.9.0 when this function of
         // selecting CAs did not exist, no CA = Any CA.
         Collection<Integer> caids = getCAIdsToCheck(true);
-        publishingCrlSession.createCRLs(getAdmin(), caids, polltime * 1000);
+        publishingCrlSession.createCRLs(getAdmin(), caids, polltime * ms);
         publishingCrlSession.createDeltaCRLs(
-            getAdmin(), caids, polltime * 1000);
+            getAdmin(), caids, polltime * ms);
       } catch (AuthorizationDeniedException e) {
-        log.info("Authorization denied executing service: ", e);
+        LOG.info("Authorization denied executing service: ", e);
         throw new ServiceExecutionFailedException(e);
       } finally {
         running = false;
       }
     } else {
-      log.info(
+      LOG.info(
           InternalEjbcaResources.getInstance()
               .getLocalizedMessage(
                   "services.alreadyrunninginvm",

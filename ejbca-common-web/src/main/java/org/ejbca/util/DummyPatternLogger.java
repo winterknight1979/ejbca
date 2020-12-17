@@ -20,23 +20,24 @@ package org.ejbca.util;
  *     $
  */
 public class DummyPatternLogger implements IPatternLogger {
-
+@Override
   public void flush() {
     /* nothing done */
   }
-
+@Override
   public void paramPut(final String key, final byte[] value) {
     /* nothing done */
   }
-
+@Override
   public void paramPut(final String key, final String value) {
     /* nothing done */
   }
-
+@Override
   public void paramPut(final String key, final Integer value) {
     /* nothing done */
   }
 
+  @Override
   public void writeln() {
     /* nothing done */
   }

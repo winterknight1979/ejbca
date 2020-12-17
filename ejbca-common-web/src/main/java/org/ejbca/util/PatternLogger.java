@@ -39,33 +39,42 @@ import org.bouncycastle.util.encoders.Hex;
  */
 public class PatternLogger implements IPatternLogger {
 
+      /** Param. */
   private final Map<String, String> valuepairs = new HashMap<>();
+  /** Param. */
   private final StringWriter sw = new StringWriter();
+  /** Param. */
   private final PrintWriter pw = new PrintWriter(this.sw);
+  /** Param. */
   private final Matcher m;
+  /** Param. */
   private final String orderString;
+  /** Param. */
   private final Logger logger;
+  /** Param. */
   private final Date startTime;
+  /** Param. */
   private Date startProcessTime = null;
 
   /**
-   * @param m A matcher that is used together with orderstring to determine how
+   * @param am A matcher that is used together with orderstring to determine how
    *     output is formatted
-   * @param orderString A string that matches the pattern in m and specifies the
+   * @param anorderString A string that matches the pattern in m and
+   * specifies the
    *     order in which values are logged by the logger
-   * @param logger A log4j Logger that is used for output
+   * @param alogger A log4j Logger that is used for output
    * @param logDateFormat A string that specifies how the log-time is formatted
    * @param timeZone TZ
    */
   public PatternLogger(
-      final Matcher m,
-      final String orderString,
-      final Logger logger,
+      final Matcher am,
+      final String anorderString,
+      final Logger alogger,
       final String logDateFormat,
       final String timeZone) {
-    this.m = m;
-    this.orderString = orderString;
-    this.logger = logger;
+    this.m = am;
+    this.orderString = anorderString;
+    this.logger = alogger;
     this.startTime = new Date();
     final FastDateFormat dateformat;
     if (timeZone == null) {

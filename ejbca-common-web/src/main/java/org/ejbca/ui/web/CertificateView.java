@@ -56,15 +56,24 @@ import org.ejbca.util.HTMLTools;
 public class CertificateView implements Serializable {
 
   private static final long serialVersionUID = -3511834437471085177L;
+  /** Param. */
   private Certificate certificate;
+  /** Param. */
   private DNFieldExtractor subjectDnFieldExtractor;
+  /** Param. */
   private DNFieldExtractor issuerDnFieldExtractor;
+  /** Param. */
   private final RevokedInfoView revokedinfo;
+  /** Param. */
   private final String username;
+  /** Param. */
   private String subjectaltnamestring;
+  /** Param. */
   private String subjectdirattrstring;
+  /** Param. */
   private CertificateData certificateData;
 
+  /** Param. */
   public static final String[] KEYUSAGETEXTS = {
     "KU_DIGITALSIGNATURE",
     "KU_NONREPUDIATION",
@@ -76,10 +85,11 @@ public class CertificateView implements Serializable {
     "KU_ENCIPHERONLY",
     "KU_DECIPHERONLY"
   };
+  /** Param. */
   public static final String UNKNOWN = "-";
 
   /**
-   * Creates a new instance of CertificateView
+   * Creates a new instance of CertificateView.
    *
    * @param cdw CDW
    */
@@ -101,23 +111,23 @@ public class CertificateView implements Serializable {
   }
 
   /**
-   * Creates a new instance of CertificateView for CA certificates
+   * Creates a new instance of CertificateView for CA certificates.
    *
-   * @param certificate Cert
-   * @param revokedinfo Info
+   * @param acertificate Cert
+   * @param therevokedinfo Info
    */
   public CertificateView(
-      final Certificate certificate, final RevokedInfoView revokedinfo) {
-    this.certificate = certificate;
-    this.revokedinfo = revokedinfo;
+      final Certificate acertificate, final RevokedInfoView therevokedinfo) {
+    this.certificate = acertificate;
+    this.revokedinfo = therevokedinfo;
     this.username = null;
     subjectDnFieldExtractor =
         new DNFieldExtractor(
-            CertTools.getSubjectDN(certificate),
+            CertTools.getSubjectDN(acertificate),
             DNFieldExtractor.TYPE_SUBJECTDN);
     subjectDnFieldExtractor =
         new DNFieldExtractor(
-            CertTools.getIssuerDN(certificate),
+            CertTools.getIssuerDN(acertificate),
             DNFieldExtractor.TYPE_SUBJECTDN);
   }
 
@@ -138,6 +148,9 @@ public class CertificateView implements Serializable {
     }
   }
 
+  /**
+   * @return Type
+   */
   public String getType() {
     if (certificate == null) {
       return UNKNOWN;
@@ -145,6 +158,9 @@ public class CertificateView implements Serializable {
     return certificate.getType();
   }
 
+  /**
+   * @return SN
+   */
   public String getSerialNumber() {
     if (certificate == null) {
       return certificateData.getSerialNumberHex();
@@ -152,23 +168,30 @@ public class CertificateView implements Serializable {
     return CertTools.getSerialNumberAsString(certificate);
   }
 
+  /**
+   * @return SN
+   */
   public BigInteger getSerialNumberBigInt() {
     return getSerialNumberBigInt(certificate, certificateData);
   }
 
   private BigInteger getSerialNumberBigInt(
-      final Certificate certificate, final CertificateData certificateData) {
-    if (certificate == null) {
+      final Certificate acertificate,
+      final CertificateData thecertificateData) {
+    if (acertificate == null) {
       try {
         // This will work for X.509
-        return new BigInteger(certificateData.getSerialNumber(), 10);
+        return new BigInteger(thecertificateData.getSerialNumber(), 10);
       } catch (NumberFormatException e) {
         return BigInteger.valueOf(0);
       }
     }
-    return CertTools.getSerialNumber(certificate);
+    return CertTools.getSerialNumber(acertificate);
   }
 
+  /**
+   * @return DN
+   */
   public String getIssuerDN() {
     if (certificate == null) {
       return HTMLTools.htmlescape(certificateData.getIssuerDN());
@@ -176,6 +199,9 @@ public class CertificateView implements Serializable {
     return HTMLTools.htmlescape(CertTools.getIssuerDN(certificate));
   }
 
+  /**
+   * @return DN
+   */
   public String getIssuerDNUnEscaped() {
     if (certificate == null) {
       return certificateData.getIssuerDN();
@@ -183,10 +209,18 @@ public class CertificateView implements Serializable {
     return CertTools.getIssuerDN(certificate);
   }
 
+  /**
+   * @param field Field
+   * @param number Number
+   * @return DN
+   */
   public String getIssuerDNField(final int field, final int number) {
     return HTMLTools.htmlescape(issuerDnFieldExtractor.getField(field, number));
   }
 
+  /**
+   * @return DN
+   */
   public String getSubjectDN() {
     if (certificate == null) {
       return HTMLTools.htmlescape(certificateData.getSubjectDnNeverNull());
@@ -230,11 +264,19 @@ public class CertificateView implements Serializable {
     }
   }
 
+  /**
+   * @param field Field
+   * @param number Number
+   * @return DN
+   */
   public String getSubjectDNField(final int field, final int number) {
     return HTMLTools.htmlescape(
         subjectDnFieldExtractor.getField(field, number));
   }
 
+  /**
+   * @return validity
+   */
   public Date getValidFrom() {
     if (certificate == null) {
       return new Date(0);
@@ -242,6 +284,9 @@ public class CertificateView implements Serializable {
     return CertTools.getNotBefore(certificate);
   }
 
+  /**
+   * @return validity
+   */
   public String getValidFromString() {
     if (certificate == null) {
       return "-";
@@ -250,6 +295,9 @@ public class CertificateView implements Serializable {
         CertTools.getNotBefore(certificate), ValidityDate.TIMEZONE_SERVER);
   }
 
+  /**
+   * @return validity
+   */
   public Date getValidTo() {
     if (certificate == null) {
       return new Date(certificateData.getExpireDate());
@@ -257,11 +305,17 @@ public class CertificateView implements Serializable {
     return CertTools.getNotAfter(certificate);
   }
 
+  /**
+   * @return validity
+   */
   public String getValidToString() {
     return ValidityDate.formatAsISO8601(
         getValidTo(), ValidityDate.TIMEZONE_SERVER);
   }
 
+  /**
+   * @return bool
+   */
   public boolean checkValidity() {
     if (certificate == null) {
       // We can't check not before field in this case, so make a best effort
@@ -278,6 +332,10 @@ public class CertificateView implements Serializable {
     return valid;
   }
 
+  /**
+   * @param date date
+   * @return bool
+   */
   public boolean checkValidity(final Date date) {
     if (certificate == null) {
       // We can't check not before field in this case, so make a best effort
@@ -294,6 +352,9 @@ public class CertificateView implements Serializable {
     return valid;
   }
 
+  /**
+   * @return Algo
+   */
   public String getPublicKeyAlgorithm() {
     if (certificate == null) {
       return UNKNOWN;
@@ -301,6 +362,10 @@ public class CertificateView implements Serializable {
     return certificate.getPublicKey().getAlgorithm();
   }
 
+  /**
+   * @param localizedBitsText bits
+   * @return spec
+   */
   public String getKeySpec(final String localizedBitsText) {
     if (certificate == null) {
       return UNKNOWN;
@@ -315,6 +380,9 @@ public class CertificateView implements Serializable {
     }
   }
 
+  /**
+   * @return length
+   */
   public String getPublicKeyLength() {
     if (certificate == null) {
       return UNKNOWN;
@@ -323,7 +391,11 @@ public class CertificateView implements Serializable {
     return len > 0 ? "" + len : null;
   }
 
+  /**
+   * @return Mod
+   */
   public String getPublicKeyModulus() {
+    final int len = 50;
     if (certificate == null) {
       return UNKNOWN;
     }
@@ -335,12 +407,12 @@ public class CertificateView implements Serializable {
                   .getModulus()
                   .toString(16);
       mod = mod.toUpperCase();
-      mod = StringUtils.abbreviate(mod, 50);
+      mod = StringUtils.abbreviate(mod, len);
     } else if (certificate.getPublicKey() instanceof DSAPublicKey) {
       mod =
           "" + ((DSAPublicKey) certificate.getPublicKey()).getY().toString(16);
       mod = mod.toUpperCase();
-      mod = StringUtils.abbreviate(mod, 50);
+      mod = StringUtils.abbreviate(mod, len);
     } else if (certificate.getPublicKey() instanceof ECPublicKey) {
       mod =
           ""
@@ -355,11 +427,14 @@ public class CertificateView implements Serializable {
                   .getAffineY()
                   .toString(16);
       mod = mod.toUpperCase();
-      mod = StringUtils.abbreviate(mod, 50);
+      mod = StringUtils.abbreviate(mod, len);
     }
     return mod;
   }
 
+  /**
+   * @return Algo
+   */
   public String getSignatureAlgoritm() {
     if (certificate == null) {
       // We could lookup the issuer and show a probably algorithm that was used,
@@ -394,6 +469,10 @@ public class CertificateView implements Serializable {
     return returnval;
   }
 
+  /**
+   * @param ekuConfig Config
+   * @return Usage
+   */
   public String[] getExtendedKeyUsageAsTexts(
       final AvailableExtendedKeyUsagesConfiguration ekuConfig) {
     if (certificate == null) {
@@ -417,14 +496,27 @@ public class CertificateView implements Serializable {
     return returnval;
   }
 
+  /**
+   * @return URIs
+   */
   public List<String> getAuthorityInformationAccessCaIssuerUris() {
     return CertTools.getAuthorityInformationAccessCAIssuerUris(certificate);
   }
 
+  /**
+   * @return URLs
+   */
   public List<String> getAuthorityInformationAccessOcspUrls() {
     return CertTools.getAuthorityInformationAccessOcspUrls(certificate);
   }
 
+  /**
+   * @param localizedNoneText Mone
+   * @param localizedNolimitText Limit
+   * @param localizedEndEntityText EE
+   * @param localizedCaPathLengthText Path
+   * @return Constraints
+   */
   public String getBasicConstraints(
       final String localizedNoneText,
       final String localizedNolimitText,
@@ -439,13 +531,16 @@ public class CertificateView implements Serializable {
       int bc = x509cert.getBasicConstraints();
       if (bc == Integer.MAX_VALUE) {
         retval =
-            localizedNolimitText; // ejbcawebbean.getText("EXT_PKIX_BC_CANOLIMIT");
+            localizedNolimitText;
+        // ejbcawebbean.getText("EXT_PKIX_BC_CANOLIMIT");
       } else if (bc == -1) {
         retval =
-            localizedEndEntityText; // ejbcawebbean.getText("EXT_PKIX_BC_ENDENTITY");
+            localizedEndEntityText;
+        // ejbcawebbean.getText("EXT_PKIX_BC_ENDENTITY");
       } else {
         retval =
-            localizedCaPathLengthText /*ejbcawebbean.getText("EXT_PKIX_BC_CAPATHLENGTH")*/
+            localizedCaPathLengthText
+            /*ejbcawebbean.getText("EXT_PKIX_BC_CAPATHLENGTH")*/
                 + " : "
                 + x509cert.getBasicConstraints();
       }
@@ -468,6 +563,9 @@ public class CertificateView implements Serializable {
     return retval;
   }
 
+  /**
+   * @return Sig
+   */
   public String getSignature() {
     if (certificate == null) {
       return UNKNOWN;
@@ -475,6 +573,9 @@ public class CertificateView implements Serializable {
     return new BigInteger(CertTools.getSignature(certificate)).toString(16);
   }
 
+  /**
+   * @return SHA
+   */
   public String getSHA1Fingerprint() {
     if (certificate == null) {
       return certificateData.getFingerprint().toUpperCase();
@@ -489,6 +590,9 @@ public class CertificateView implements Serializable {
     return returnval;
   }
 
+  /**
+   * @return SHA
+   */
   public String getSHA256Fingerprint() {
     if (certificate == null) {
       return UNKNOWN;
@@ -504,6 +608,9 @@ public class CertificateView implements Serializable {
     return returnval;
   }
 
+  /**
+   * @return MD5
+   */
   public String getMD5Fingerprint() {
     if (certificate == null) {
       return UNKNOWN;
@@ -518,14 +625,24 @@ public class CertificateView implements Serializable {
     return returnval;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isRevokedAndOnHold() {
     return revokedinfo != null && revokedinfo.isRevokedAndOnHold();
   }
 
+
+  /**
+   * @return bool
+   */
   public boolean isRevoked() {
     return revokedinfo != null && revokedinfo.isRevoked();
   }
 
+  /**
+   * @return reason
+   */
   public String getRevocationReason() {
     String returnval = null;
     if (revokedinfo != null) {
@@ -534,6 +651,9 @@ public class CertificateView implements Serializable {
     return returnval;
   }
 
+  /**
+   * @return Date
+   */
   public Date getRevocationDate() {
     Date returnval = null;
     if (revokedinfo != null) {
@@ -542,14 +662,23 @@ public class CertificateView implements Serializable {
     return returnval;
   }
 
+  /**
+   * @return User
+   */
   public String getUsername() {
     return username;
   }
 
+  /**
+   * @return Cert
+   */
   public Certificate getCertificate() {
     return certificate;
   }
 
+  /**
+   * @return Attrs
+   */
   public String getSubjectDirAttr() {
     if (certificate == null) {
       return UNKNOWN;
@@ -565,6 +694,9 @@ public class CertificateView implements Serializable {
     return subjectdirattrstring;
   }
 
+  /**
+   * @return name
+   */
   public String getSubjectAltName() {
     if (certificate == null) {
       return UNKNOWN;
@@ -574,7 +706,9 @@ public class CertificateView implements Serializable {
     }
     return subjectaltnamestring;
   }
-
+  /**
+   * @return bool
+   */
   public boolean hasNameConstraints() {
     if (certificate == null) {
       return false;
@@ -587,7 +721,9 @@ public class CertificateView implements Serializable {
     }
     return false;
   }
-
+  /**
+   * @return bool
+   */
   public boolean hasQcStatement() {
     if (certificate == null) {
       return false;
@@ -595,6 +731,9 @@ public class CertificateView implements Serializable {
     return QCStatementExtension.hasQcStatement(certificate);
   }
 
+  /**
+   * @return bool
+   */
   public boolean hasCertificateTransparencySCTs() {
     if (certificate == null) {
       return false;

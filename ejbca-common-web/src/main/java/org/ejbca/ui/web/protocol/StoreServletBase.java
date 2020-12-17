@@ -33,21 +33,25 @@ import org.ejbca.config.VAConfiguration;
 import org.ejbca.util.HTMLTools;
 
 /**
- * Base class for servlets (CRL or Certificate) implementing rfc4378
+ * Base class for servlets (CRL or Certificate) implementing rfc4378.
  *
  * @version $Id: StoreServletBase.java 34234 2020-01-09 16:41:36Z
  *     andrey_s_helmes $
  */
 public abstract class StoreServletBase extends HttpServlet {
 
+      /** PAram. */
   private static final String SPACE = "|" + StringUtils.repeat("&nbsp;", 5);
 
   private static final long serialVersionUID = 1L;
 
-  private static final Logger log = Logger.getLogger(StoreServletBase.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(StoreServletBase.class);
 
+  /** PAram. */
   protected CaCertificateCache certCache;
 
+  /** PAram. */
   @EJB private CertificateStoreSessionLocal certificateStoreSession;
 
   /**
@@ -62,7 +66,7 @@ public abstract class StoreServletBase extends HttpServlet {
   }
 
   /**
-   * Return certificate or CRL for the RFC4387 sHash http parameter
+   * Return certificate or CRL for the RFC4387 sHash http parameter.
    *
    * @param sHash sHash http parameter
    * @param resp HttpServletResponse
@@ -75,7 +79,7 @@ public abstract class StoreServletBase extends HttpServlet {
       throws IOException, ServletException;
 
   /**
-   * Return certificate or CRL for the RFC4387 iHash http parameter
+   * Return certificate or CRL for the RFC4387 iHash http parameter.
    *
    * @param iHash iHash http parameter
    * @param resp HttpServletResponse
@@ -88,7 +92,7 @@ public abstract class StoreServletBase extends HttpServlet {
       throws IOException, ServletException;
 
   /**
-   * Return certificate or CRL for the RFC4387 sKIDHash http parameter
+   * Return certificate or CRL for the RFC4387 sKIDHash http parameter.
    *
    * @param sKIDHash sKIDHash http parameter
    * @param resp HttpServletResponse
@@ -122,8 +126,8 @@ public abstract class StoreServletBase extends HttpServlet {
   protected void doGet(
       final HttpServletRequest req, final HttpServletResponse resp)
       throws ServletException, java.io.IOException {
-    if (log.isTraceEnabled()) {
-      log.trace(">doGet()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">doGet()");
     }
     if (!req.getRequestURI()
         .substring(req.getContextPath().length())
@@ -143,8 +147,8 @@ public abstract class StoreServletBase extends HttpServlet {
       }
       rfcRequest(req, resp);
     } finally {
-      if (log.isTraceEnabled()) {
-        log.trace("<doGet()");
+      if (LOG.isTraceEnabled()) {
+        LOG.trace("<doGet()");
       }
     }
   }
@@ -153,27 +157,27 @@ public abstract class StoreServletBase extends HttpServlet {
       final HttpServletRequest req, final HttpServletResponse resp)
       throws IOException, ServletException {
     // Do actual processing of the protocol
-    {
+
       final String sHash = req.getParameter(RFC4387URL.sHash.toString());
       if (sHash != null) {
         sHash(sHash, resp, req);
         return;
       }
-    }
-    {
+
+
       final String iHash = req.getParameter(RFC4387URL.iHash.toString());
       if (iHash != null) {
         iHash(iHash, resp, req);
         return;
       }
-    }
-    {
+
+
       final String sKIDHash = req.getParameter(RFC4387URL.sKIDHash.toString());
       if (sKIDHash != null) {
         sKIDHash(sKIDHash, resp, req);
         return;
       }
-    }
+
     printInfo(req, resp);
   }
 
@@ -189,16 +193,16 @@ public abstract class StoreServletBase extends HttpServlet {
     }
     final int ix = alias.indexOf('=');
     if (ix < 1 || alias.length() <= ix + 2) {
-      log.debug("No valid alias definition string: " + alias);
+      LOG.debug("No valid alias definition string: " + alias);
       return true;
     }
     final String key = alias.substring(0, ix).trim();
     final String hash = alias.substring(ix + 1).trim();
     if (!VAConfiguration.sKIDHashSetAlias(key, hash)) {
-      log.error("Not possible to add: " + alias);
+      LOG.error("Not possible to add: " + alias);
       return true;
     }
-    log.debug("Alias '" + key + "' defined for hash '" + hash + "'.");
+    LOG.debug("Alias '" + key + "' defined for hash '" + hash + "'.");
     return true;
   }
 
@@ -214,7 +218,7 @@ public abstract class StoreServletBase extends HttpServlet {
       final String m =
           "No '" + removeSpecial(alias) + "' alias defined in va.properties .";
       resp.sendError(HttpServletResponse.SC_NOT_FOUND, m);
-      log.debug(m);
+      LOG.debug(m);
       return true;
     }
     sKIDHash(sKIDHash, resp, req, alias);
@@ -249,7 +253,7 @@ public abstract class StoreServletBase extends HttpServlet {
     } catch (IOException e) {
       throw new IllegalStateException("Could not send error response", e);
     }
-    log.info(
+    LOG.info(
         "Reloading certificate and CRL caches due to request from "
             + req.getRemoteAddr());
     // Reload CA certificates
@@ -258,7 +262,7 @@ public abstract class StoreServletBase extends HttpServlet {
   }
 
   /**
-   * Checks if the request originates from localhost
+   * Checks if the request originates from localhost.
    *
    * @param req the HttpServletRequest
    * @param resp the HttpServletResponse
@@ -276,13 +280,13 @@ public abstract class StoreServletBase extends HttpServlet {
         || StringUtils.equals(remote, "0:0:0:0:0:0:0:1")) {
       return true;
     }
-    log.info("Got reloadcache command from unauthorized ip: " + remote);
+    LOG.info("Got reloadcache command from unauthorized ip: " + remote);
     resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
     return false;
   }
 
   private void printInfo(
-      final X509Certificate certs[],
+      final X509Certificate[] certs,
       final String indent,
       final PrintWriter pw,
       final String url) {
@@ -290,7 +294,7 @@ public abstract class StoreServletBase extends HttpServlet {
       // Escape the URL as it might be unsafe
       printInfo(cert, indent, pw, HTMLTools.htmlescape(url));
       pw.println();
-      final X509Certificate issuedCerts[] =
+      final X509Certificate[] issuedCerts =
           this.certCache.findLatestByIssuerDN(HashID.getFromSubjectDN(cert));
       if (ArrayUtils.isEmpty(issuedCerts)) {
         continue;

@@ -37,7 +37,7 @@ import org.cesecore.certificates.certificate.request.ResponseMessage;
 import org.cesecore.certificates.certificate.request.ResponseStatus;
 
 /**
- * A very simple error message, no protection, or PBE protection
+ * A very simple error message, no protection, or PBE protection.
  *
  * @version $Id: CmpErrorResponseMessage.java 22139 2015-11-03 10:41:56Z
  *     mikekushner $
@@ -45,6 +45,7 @@ import org.cesecore.certificates.certificate.request.ResponseStatus;
 public class CmpErrorResponseMessage extends BaseCmpMessage
     implements ResponseMessage {
 
+      /** Param. */
   private static Logger log = Logger.getLogger(CmpErrorResponseMessage.class);
   /**
    * Determines if a de-serialized file is compatible with this class.
@@ -56,22 +57,28 @@ public class CmpErrorResponseMessage extends BaseCmpMessage
    */
   static final long serialVersionUID = 10003L;
 
-  /** The encoded response message */
+  /** The encoded response message. */
   private byte[] responseMessage = null;
 
+  /** Param. */
   private String failText = null;
+  /** Param. */
   private FailInfo failInfo = null;
+  /** Param. */
   private int requestId = 0;
-  private int requestType = 23; // 23 is general error message
+  /** Param. */
+  private final int generalError = 23;
+  /** Param. */
+  private int requestType = generalError; // 23 is general error message
 
   @Override
-  public void setCrl(final CRL crl) {}
+  public void setCrl(final CRL crl) { }
 
   @Override
-  public void setIncludeCACert(final boolean incCACert) {}
+  public void setIncludeCACert(final boolean incCACert) { }
 
   @Override
-  public void setCACert(final Certificate cACert) {}
+  public void setCACert(final Certificate cACert) { }
 
   @Override
   public byte[] getResponseMessage() {
@@ -79,7 +86,7 @@ public class CmpErrorResponseMessage extends BaseCmpMessage
   }
 
   @Override
-  public void setStatus(final ResponseStatus status) {}
+  public void setStatus(final ResponseStatus status) { }
 
   @Override
   public ResponseStatus getStatus() {
@@ -89,8 +96,8 @@ public class CmpErrorResponseMessage extends BaseCmpMessage
   }
 
   @Override
-  public void setFailInfo(final FailInfo failInfo) {
-    this.failInfo = failInfo;
+  public void setFailInfo(final FailInfo thefailInfo) {
+    this.failInfo = thefailInfo;
   }
 
   @Override
@@ -99,8 +106,8 @@ public class CmpErrorResponseMessage extends BaseCmpMessage
   }
 
   @Override
-  public void setFailText(final String failText) {
-    this.failText = failText;
+  public void setFailText(final String thefailText) {
+    this.failText = thefailText;
   }
 
   @Override
@@ -152,7 +159,7 @@ public class CmpErrorResponseMessage extends BaseCmpMessage
               myPKIStatusInfo, requestId, requestType);
     } else {
       ErrorMsgContent myErrorContent = new ErrorMsgContent(myPKIStatusInfo);
-      myPKIBody = new PKIBody(23, myErrorContent); // 23 = error
+      myPKIBody = new PKIBody(generalError, myErrorContent); // 23 = error
     }
     PKIMessage myPKIMessage = new PKIMessage(myPKIHeader, myPKIBody);
     if (pbeProtected) {
@@ -179,13 +186,13 @@ public class CmpErrorResponseMessage extends BaseCmpMessage
   public void setSignKeyInfo(
       final Collection<Certificate> certs,
       final PrivateKey key,
-      final String provider) {}
+      final String provider) { }
 
   @Override
-  public void setRecipientKeyInfo(final byte[] recipientKeyInfo) {}
+  public void setRecipientKeyInfo(final byte[] recipientKeyInfo) { }
 
   @Override
-  public void setPreferredDigestAlg(final String digest) {}
+  public void setPreferredDigestAlg(final String digest) { }
 
   @Override
   public void setRequestType(final int reqtype) {
@@ -198,5 +205,5 @@ public class CmpErrorResponseMessage extends BaseCmpMessage
   }
 
   @Override
-  public void setProtectionParamsFromRequest(final RequestMessage reqMsg) {}
+  public void setProtectionParamsFromRequest(final RequestMessage reqMsg) { }
 }

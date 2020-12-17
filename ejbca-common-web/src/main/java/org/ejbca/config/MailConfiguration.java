@@ -16,8 +16,9 @@ package org.ejbca.config;
 /**
  * @version $Id: MailConfiguration.java 22139 2015-11-03 10:41:56Z mikekushner $
  */
-public class MailConfiguration {
+public final class MailConfiguration {
 
+  private MailConfiguration() { }
   /** @return The JNDI-name used to send email notifications from EJBCA. */
   public static String getMailJndiName() {
     return EjbcaConfigurationHolder.getExpandedString("mail.jndi-name");

@@ -73,7 +73,7 @@ import org.cesecore.certificates.certificate.request.ResponseStatus;
 import org.cesecore.util.CertTools;
 
 /**
- * CMP certificate response message
+ * CMP certificate response message.
  *
  * @version $Id: CmpResponseMessage.java 28875 2018-05-08 13:44:40Z anatom $
  */
@@ -89,12 +89,13 @@ public class CmpResponseMessage implements CertificateResponseMessage {
    */
   static final long serialVersionUID = 10003L;
 
-  private static final Logger log = Logger.getLogger(CmpResponseMessage.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(CmpResponseMessage.class);
 
-  /** The encoded response message */
+  /** The encoded response message. */
   private byte[] responseMessage = null;
 
-  /** status for the response */
+  /** status for the response. */
   private ResponseStatus status = ResponseStatus.SUCCESS;
 
   /**
@@ -111,52 +112,61 @@ public class CmpResponseMessage implements CertificateResponseMessage {
   private String senderNonce = null;
   /**
    * RecipientNonce in a response is the senderNonce from the request. This is
-   * base64 encoded bytes
+   * base64 encoded bytes.
    */
   private String recipientNonce = null;
 
-  /** transaction id */
+  /** transaction id. */
   private String transactionId = null;
 
-  /** Default digest algorithm for CMP response message, can be overridden */
+  /** Default digest algorithm for CMP response message, can be overridden .*/
   private String digest = CMSSignedGenerator.DIGEST_SHA1;
   /**
    * The default provider is BC, if nothing else is specified when setting
-   * SignKeyInfo
+   * SignKeyInfo.
    */
   private String provider = BouncyCastleProvider.PROVIDER_NAME;
 
-  /** Certificate to be in certificate response message, not serialized */
+  /** Certificate to be in certificate response message, not serialized. */
   private transient Certificate cert = null;
   /**
    * The CA certificate to be included in the response message to be used to
-   * verify the end entity certificate
+   * verify the end entity certificate.
    */
   private transient List<Certificate> cacert = new ArrayList<Certificate>();
-  /** Certificate for the signer of the response message (CA) */
+  /** Certificate for the signer of the response message (CA). */
   private transient Collection<Certificate> signCertChain = null;
   /**
-   * Additions CA certificate for the outer PKI response message extraCerts
+   * Additions CA certificate for the outer PKI response message extraCerts.
    * field.
    */
   private transient Collection<Certificate> extraCerts =
       new ArrayList<Certificate>();
-  /** Private key used to sign the response message */
+  /** Private key used to sign the response message. */
   private transient PrivateKey signKey = null;
-  /** The request message this response is for */
+  /** The request message this response is for. */
   private transient ICrmfRequestMessage reqMsg;
-  /** used to choose response body type */
+  /** used to choose response body type .*/
   private transient int requestType;
-  /** used to match request with response */
+  /** used to match request with response. */
   private transient int requestId;
-
-  private transient int pbeIterationCount = 1024;
+  /** Param. */
+  private final int defaultCount = 1024;
+  /** Param. */
+  private transient int pbeIterationCount = defaultCount;
+  /** Param. */
   private transient String pbeDigestAlg = null;
+  /** Param. */
   private transient String pbeMacAlg = null;
+  /** Param. */
   private transient String pbeKeyId = null;
+  /** Param. */
   private transient String pbeKey = null;
+  /** Param. */
   private transient boolean implicitConfirm = false;
+  /** Param. */
   private transient CertificateData certificateData;
+  /** Param. */
   private transient Base64CertData base64CertData;
 
   @Override
@@ -165,9 +175,9 @@ public class CmpResponseMessage implements CertificateResponseMessage {
   }
 
   @Override
-  public void setCertificateData(final CertificateData certificateData) {
-    if (certificateData != null) {
-      this.certificateData = new CertificateData(certificateData);
+  public void setCertificateData(final CertificateData acertificateData) {
+    if (acertificateData != null) {
+      this.certificateData = new CertificateData(acertificateData);
     } else {
       this.certificateData = null;
     }
@@ -179,9 +189,9 @@ public class CmpResponseMessage implements CertificateResponseMessage {
   }
 
   @Override
-  public void setBase64CertData(final Base64CertData base64CertData) {
-    if (base64CertData != null) {
-      this.base64CertData = new Base64CertData(base64CertData);
+  public void setBase64CertData(final Base64CertData thebase64CertData) {
+    if (thebase64CertData != null) {
+      this.base64CertData = new Base64CertData(thebase64CertData);
     } else {
       this.base64CertData = null;
     }
@@ -204,15 +214,15 @@ public class CmpResponseMessage implements CertificateResponseMessage {
   }
 
   @Override
-  public void setCertificate(final Certificate cert) {
-    this.cert = cert;
+  public void setCertificate(final Certificate acert) {
+    this.cert = acert;
   }
 
   @Override
-  public void setCrl(final CRL crl) {}
+  public void setCrl(final CRL crl) { }
 
   @Override
-  public void setIncludeCACert(final boolean incCACert) {}
+  public void setIncludeCACert(final boolean incCACert) { }
 
   @Override
   public void setCACert(final Certificate cACert) {
@@ -226,8 +236,8 @@ public class CmpResponseMessage implements CertificateResponseMessage {
   }
 
   @Override
-  public void setStatus(final ResponseStatus status) {
-    this.status = status;
+  public void setStatus(final ResponseStatus astatus) {
+    this.status = astatus;
   }
 
   @Override
@@ -236,8 +246,8 @@ public class CmpResponseMessage implements CertificateResponseMessage {
   }
 
   @Override
-  public void setFailInfo(final FailInfo failInfo) {
-    this.failInfo = failInfo;
+  public void setFailInfo(final FailInfo afailInfo) {
+    this.failInfo = afailInfo;
   }
 
   @Override
@@ -246,8 +256,8 @@ public class CmpResponseMessage implements CertificateResponseMessage {
   }
 
   @Override
-  public void setFailText(final String failText) {
-    this.failText = failText;
+  public void setFailText(final String afailText) {
+    this.failText = afailText;
   }
 
   @Override
@@ -295,8 +305,8 @@ public class CmpResponseMessage implements CertificateResponseMessage {
     try {
       if (status.equals(ResponseStatus.SUCCESS)) {
         if (cert != null) {
-          if (log.isDebugEnabled()) {
-            log.debug("Creating a CertRepMessage 'accepted'");
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("Creating a CertRepMessage 'accepted'");
           }
           PKIStatusInfo myPKIStatusInfo =
               new PKIStatusInfo(PKIStatus.granted); // 0 = accepted
@@ -314,7 +324,7 @@ public class CmpResponseMessage implements CertificateResponseMessage {
               if (reqMsg != null
                   && reqMsg.getServerGenKeyPair() != null
                   && reqMsg.getProtocolEncrKey() != null) {
-                log.debug(
+                LOG.debug(
                     "CMP request had a server generated key pair and"
                         + " controls.protocolEncrKey which we will use to"
                         + " encrypt the private key in the response");
@@ -325,7 +335,7 @@ public class CmpResponseMessage implements CertificateResponseMessage {
                       "CMP request had a controls.protocolEncrKey that is not"
                           + " an RSA key, can not create response: "
                           + protocolEncrKey.getAlgorithm();
-                  log.debug(msg);
+                  LOG.debug(msg);
                   throw new InvalidKeyException(msg);
                 }
                 // JceAsymmetricKeyWrapper sets kp.getPublic to be the key used
@@ -354,7 +364,7 @@ public class CmpResponseMessage implements CertificateResponseMessage {
                 final String msg =
                     "CMP request had a server generated key pair but no"
                         + " controls.protocolEncrKey, can not create response";
-                log.debug(msg);
+                LOG.debug(msg);
                 throw new InvalidKeyException(msg);
               } else {
                 myCertifiedKeyPair = new CertifiedKeyPair(retCert);
@@ -389,14 +399,14 @@ public class CmpResponseMessage implements CertificateResponseMessage {
                   requestType
                       + 1; // 1 = intitialization response, 3 = certification
                            // response etc
-              if (log.isDebugEnabled()) {
-                log.debug("Creating response body of type " + respType);
+              if (LOG.isDebugEnabled()) {
+                LOG.debug("Creating response body of type " + respType);
               }
               myPKIBody = new PKIBody(respType, myCertRepMessage);
               // All good, see if we should add implicitConfirm
               if (implicitConfirm) {
-                if (log.isDebugEnabled()) {
-                  log.debug(
+                if (LOG.isDebugEnabled()) {
+                  LOG.debug(
                       "Adding implicitConform to CMP response message with"
                           + " transId: "
                           + transactionId);
@@ -415,8 +425,8 @@ public class CmpResponseMessage implements CertificateResponseMessage {
           }
         }
       } else if (status.equals(ResponseStatus.FAILURE)) {
-        if (log.isDebugEnabled()) {
-          log.debug("Creating a CertRepMessage 'rejected'");
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Creating a CertRepMessage 'rejected'");
         }
         // Create a failure message
         ASN1EncodableVector statusInfoV = new ASN1EncodableVector();
@@ -435,8 +445,8 @@ public class CmpResponseMessage implements CertificateResponseMessage {
                 myPKIStatusInfo, requestId, requestType);
 
       } else {
-        if (log.isDebugEnabled()) {
-          log.debug("Creating a 'waiting' message?");
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Creating a 'waiting' message?");
         }
         // Not supported, lets create a PKIError failure instead
         // Create a failure message
@@ -451,8 +461,9 @@ public class CmpResponseMessage implements CertificateResponseMessage {
             PKIStatusInfo.getInstance(new DERSequence(statusInfoV));
 
         ErrorMsgContent myErrorContent = new ErrorMsgContent(myPKIStatusInfo);
+        final int ecode = 23;
         myPKIBody =
-            new PKIBody(23, myErrorContent); // 23 = error
+            new PKIBody(ecode, myErrorContent); // 23 = error
       }
 
       if ((pbeKeyId != null)
@@ -497,19 +508,19 @@ public class CmpResponseMessage implements CertificateResponseMessage {
       ret = true;
 
     } catch (CertificateEncodingException e) {
-      log.error("Error creating CertRepMessage: ", e);
+      LOG.error("Error creating CertRepMessage: ", e);
     } catch (InvalidKeyException e) {
-      log.error("Error creating CertRepMessage: ", e);
+      LOG.error("Error creating CertRepMessage: ", e);
     } catch (NoSuchProviderException e) {
-      log.error("Error creating CertRepMessage: ", e);
+      LOG.error("Error creating CertRepMessage: ", e);
     } catch (NoSuchAlgorithmException e) {
-      log.error("Error creating CertRepMessage: ", e);
+      LOG.error("Error creating CertRepMessage: ", e);
     } catch (SecurityException e) {
-      log.error("Error creating CertRepMessage: ", e);
+      LOG.error("Error creating CertRepMessage: ", e);
     } catch (SignatureException e) {
-      log.error("Error creating CertRepMessage: ", e);
+      LOG.error("Error creating CertRepMessage: ", e);
     } catch (CRMFException e) {
-      log.error("Error creating CertRepMessage: ", e);
+      LOG.error("Error creating CertRepMessage: ", e);
     }
 
     return ret;
@@ -524,36 +535,36 @@ public class CmpResponseMessage implements CertificateResponseMessage {
   public void setSignKeyInfo(
       final Collection<Certificate> certs,
       final PrivateKey key,
-      final String provider) {
+      final String aprovider) {
     this.signCertChain = certs;
     this.signKey = key;
-    if (provider != null) {
-      this.provider = provider;
+    if (aprovider != null) {
+      this.provider = aprovider;
     }
   }
 
   @Override
-  public void setSenderNonce(final String senderNonce) {
-    this.senderNonce = senderNonce;
+  public void setSenderNonce(final String asenderNonce) {
+    this.senderNonce = asenderNonce;
   }
 
   @Override
-  public void setRecipientNonce(final String recipientNonce) {
-    this.recipientNonce = recipientNonce;
+  public void setRecipientNonce(final String arecipientNonce) {
+    this.recipientNonce = arecipientNonce;
   }
 
   @Override
-  public void setTransactionId(final String transactionId) {
-    this.transactionId = transactionId;
+  public void setTransactionId(final String atransactionId) {
+    this.transactionId = atransactionId;
   }
 
   @Override
-  public void setRecipientKeyInfo(final byte[] recipientKeyInfo) {}
+  public void setRecipientKeyInfo(final byte[] recipientKeyInfo) { }
 
   @Override
-  public void setPreferredDigestAlg(final String digest) {
-    if (!StringUtils.isEmpty(digest)) {
-      this.digest = digest;
+  public void setPreferredDigestAlg(final String adigest) {
+    if (!StringUtils.isEmpty(adigest)) {
+      this.digest = adigest;
     }
   }
 
@@ -568,9 +579,9 @@ public class CmpResponseMessage implements CertificateResponseMessage {
   }
 
   @Override
-  public void setProtectionParamsFromRequest(final RequestMessage reqMsg) {
-    if (reqMsg instanceof ICrmfRequestMessage) {
-      ICrmfRequestMessage crmf = (ICrmfRequestMessage) reqMsg;
+  public void setProtectionParamsFromRequest(final RequestMessage areqMsg) {
+    if (areqMsg instanceof ICrmfRequestMessage) {
+      ICrmfRequestMessage crmf = (ICrmfRequestMessage) areqMsg;
       this.reqMsg = crmf;
       this.pbeIterationCount = crmf.getPbeIterationCount();
       this.pbeDigestAlg = crmf.getPbeDigestAlg();

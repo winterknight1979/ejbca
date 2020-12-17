@@ -71,28 +71,40 @@ import org.ejbca.util.HTMLTools;
 
 /**
  * Helper class for handling certificate request from browsers or general
- * PKCS#10
+ * PKCS#10.
  *
  * @version $Id: RequestHelper.java 28947 2018-05-17 08:51:45Z
  *     jekaterina_b_helmes $
  */
 public class RequestHelper {
+      /** Param. */
   private static Logger log = Logger.getLogger(RequestHelper.class);
+  /** Param. */
   private final AuthenticationToken administrator;
+  /** Param. */
   private final ServletDebug debug;
+  /** Param. */
   private static final Pattern CLASSID = Pattern.compile("\\$CLASSID");
 
+  /** Param. */
   public static final String BEGIN_CERTIFICATE_REQUEST_WITH_NL =
       "-----BEGIN CERTIFICATE REQUEST-----\n";
+  /** Param. */
   public static final String END_CERTIFICATE_REQUEST_WITH_NL =
       "\n-----END CERTIFICATE REQUEST-----\n";
 
+  /** Param. */
   public static final String BEGIN_CRL_WITH_NL = "-----BEGIN X509 CRL-----\n";
+  /** Param. */
   public static final String END_CRL_WITH_NL = "\n-----END X509 CRL-----\n";
 
+  /** Param. */
   public static final String BEGIN_PKCS7 = "-----BEGIN PKCS7-----\n";
+  /** Param. */
   public static final String END_PKCS7 = "\n-----END PKCS7-----\n";
+  /** Param. */
   public static final String BEGIN_PKCS7_WITH_NL = "-----BEGIN PKCS7-----\n";
+  /** Param. */
   public static final String END_PKCS7_WITH_NL = "\n-----END PKCS7-----\n";
 
   /**
@@ -116,28 +128,31 @@ public class RequestHelper {
    */
   @Deprecated public static final int ENCODED_CERTIFICATE_CHAIN = 4;
 
-  /** String reported by Firefox when the key generation fails */
+  /** String reported by Firefox when the key generation fails. */
   private static final byte[] HIGHGRADE_STRING = "High Grade".getBytes();
 
+  /** Param. */
   private static final byte[] MEDIUMGRADE_STRING = "Medium Grade".getBytes();
 
   /**
    * Creates a new RequestHelper object.
    *
-   * @param administrator Admin doing the request
-   * @param debug object to send debug to or null to disable
+   * @param anadministrator Admin doing the request
+   * @param adebug object to send debug to or null to disable
    */
   public RequestHelper(
-      final AuthenticationToken administrator, final ServletDebug debug) {
-    this.administrator = administrator;
-    this.debug = debug;
+      final AuthenticationToken anadministrator, final ServletDebug adebug) {
+    this.administrator = anadministrator;
+    this.debug = adebug;
   }
 
   /**
    * Handles Firefox certificate request (KEYGEN), these are constructed as:
    * <code>
-   * SignedPublicKeyAndChallenge ::= SEQUENCE { publicKeyAndChallenge    PublicKeyAndChallenge,
-   * signatureAlgorithm   AlgorithmIdentifier, signature        BIT STRING }
+   * SignedPublicKeyAndChallenge ::= SEQUENCE {
+   *     publicKeyAndChallenge    PublicKeyAndChallenge,
+   *     signatureAlgorithm   AlgorithmIdentifier,
+   *     signature        BIT STRING }
    * </code> PublicKey's encoded-format has to be RSA X.509.
    *
    * @param signsession EJB session to signature bean.
@@ -196,7 +211,7 @@ public class RequestHelper {
     // Verify POPO, we don't care about the challenge, it's not important.
     nscr.setChallenge("challenge");
 
-    if (nscr.verify("challenge") == false) {
+    if (!nscr.verify("challenge")) {
       throw new SignRequestSignatureException(
           "Invalid signature in NetscapeCertRequest, popo-verification"
               + " failed.");
@@ -238,14 +253,27 @@ public class RequestHelper {
 
   /**
    * Handles PKCS10 certificate request, these are constructed as: <code>
-   *  CertificationRequest
-   * ::= SEQUENCE { certificationRequestInfo  CertificationRequestInfo, signatureAlgorithm
-   * AlgorithmIdentifier{{ SignatureAlgorithms }}, signature                       BIT STRING }
-   * CertificationRequestInfo ::= SEQUENCE { version             INTEGER { v1(0) } (v1,...),
-   * subject             Name, subjectPKInfo   SubjectPublicKeyInfo{{ PKInfoAlgorithms }},
-   * attributes          [0] Attributes{{ CRIAttributes }}} SubjectPublicKeyInfo { ALGORITHM :
-   * IOSet} ::= SEQUENCE { algorithm           AlgorithmIdentifier {{IOSet}}, subjectPublicKey
-   * BIT STRING }</code> PublicKey's encoded-format has to be RSA X.509.
+   *  CertificationRequest ::= SEQUENCE
+   * {
+   *     certificationRequestInfo  CertificationRequestInfo,
+   *     signatureAlgorithm  AlgorithmIdentifier{{ SignatureAlgorithms }},
+   *     signature                       BIT STRING
+   * }
+   *
+   * CertificationRequestInfo ::= SEQUENCE
+   * {
+   *     version             INTEGER { v1(0) } (v1,...),
+   *     subject             Name,
+   *      subjectPKInfo   SubjectPublicKeyInfo{{ PKInfoAlgorithms }},
+   *     attributes          [0]
+   *     Attributes{{ CRIAttributes }}
+   * }
+   * SubjectPublicKeyInfo { ALGORITHM : IOSet} ::= SEQUENCE
+   * {
+   *      algorithm           AlgorithmIdentifier {{IOSet}},
+   *         subjectPublicKey BIT STRING }
+   *
+   * </code> PublicKey's encoded-format has to be RSA X.509.
    *
    * @param signsession signsession to get certificate from
    * @param caSession a reference to CaSessionBean
@@ -356,7 +384,21 @@ public class RequestHelper {
             doSplitLines)
         .getEncoded();
   }
-
+  /**
+   * @param signsession session
+   * @param caSession CA
+   * @param b64Encoded bytes
+   * @param username user
+   * @param password pwd
+   * @param resulttype type
+   * @return response
+   * @throws EjbcaException fail
+   * @throws CesecoreException fail
+   * @throws AuthorizationDeniedException fail
+   * @throws CertificateEncodingException fail
+   * @throws CertificateException dail
+   * @throws CertificateExtensionException fail
+   */
   public CertificateRequestResponse pkcs10CertRequest(
       final SignSessionLocal signsession,
       final CaSessionLocal caSession,
@@ -460,7 +502,7 @@ public class RequestHelper {
   } // cvcCertRequest
 
   /**
-   * Formats certificate in form to be received by IE
+   * Formats certificate in form to be received by IE.
    *
    * @param bA input
    * @param out Output
@@ -498,7 +540,8 @@ public class RequestHelper {
   } // ieCertFormat
 
   /**
-   * Reads template and inserts cert to send back to IE for installation of cert
+   * Reads template and inserts cert to send back to IE for installation of
+   *  cert.
    *
    * @param b64cert cert to be installed in IE-client
    * @param out utput stream to send to
@@ -559,7 +602,7 @@ public class RequestHelper {
   } // sendNewCertToIEClient
 
   /**
-   * Sends back cert to Firefox for installation of cert
+   * Sends back cert to Firefox for installation of cert.
    *
    * @param certs DER encoded certificates to be installed in browser
    * @param out output stream to send to
@@ -587,7 +630,7 @@ public class RequestHelper {
   } // sendNewCertToNSClient
 
   /**
-   * Sends back certificate as binary file (application/octet-stream)
+   * Sends back certificate as binary file (application/octet-stream).
    *
    * @param b64cert base64 encoded certificate to be returned
    * @param out output stream to send to
@@ -633,7 +676,7 @@ public class RequestHelper {
     }
   }
   /**
-   * Sends back certificate as binary file (application/octet-stream)
+   * Sends back certificate as binary file (application/octet-stream).
    *
    * @param b64cert base64 encoded certificate to be returned
    * @param out output stream to send to
@@ -653,7 +696,7 @@ public class RequestHelper {
   } // sendNewB64Cert
 
   /**
-   * Sends back CA-certificate as binary file (application/x-x509-ca-cert)
+   * Sends back CA-certificate as binary file (application/x-x509-ca-cert).
    *
    * @param cert DER encoded certificate to be returned
    * @param out output stream to send to
@@ -666,7 +709,7 @@ public class RequestHelper {
   } // sendNewX509CaCert
 
   /**
-   * Sends back a number of bytes
+   * Sends back a number of bytes.
    *
    * @param bytes DER encoded certificate to be returned
    * @param out output stream to send to
@@ -708,7 +751,7 @@ public class RequestHelper {
   } // sendBinaryBytes
 
   /**
-   * Sends back a number of bytes first encoded as base64
+   * Sends back a number of bytes first encoded as base64.
    *
    * @param bytes Data to be encoded
    * @param out output stream to send to
@@ -825,6 +868,12 @@ public class RequestHelper {
     }
   }
 
+  /**
+   * @param cacert Name
+   * @param defaultname Default
+   * @return File
+   * @throws NoSuchFieldException Fail
+   */
   public static String getFileNameFromCertNoEnding(
       final Certificate cacert, final String defaultname)
       throws NoSuchFieldException {
@@ -868,7 +917,7 @@ public class RequestHelper {
     return filename;
   }
 
-  // Uniform Resource Identifier specification has a section on parsing URIs
+  /** Uniform Resource Identifier specification has a section on parsing URIs
   // with a regular expression. The regular expression, written by Berners-Lee,
   // et al., is:
   // For example: http://www.ics.uci.edu/pub/ietf/uri/#Related
@@ -884,12 +933,14 @@ public class RequestHelper {
   // $9 = Related
   // Port is part of the name in $4
   // See https://stackoverflow.com/questions/27745/getting-parts-of-a-url-regex
+   *
+   */
   private static java.util.regex.Pattern reg =
       java.util.regex.Pattern.compile(
           "^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?");
   /**
    * Method that returns the servername including port, extracted from the
-   * HTTPServlet Request, no protocol or application path is returned
+   * HTTPServlet Request, no protocol or application path is returned.
    *
    * @param request req
    * @return the server name and port requested, i.e. localhost:8443
@@ -898,9 +949,10 @@ public class RequestHelper {
     if (request == null) {
       return null;
     }
+    final int max = 4;
     final java.util.regex.Matcher m = reg.matcher(request);
     String requestURL = null;
-    if (m.matches() && m.groupCount() >= 4) {
+    if (m.matches() && m.groupCount() >= max) {
       if (log.isTraceEnabled()) {
         log.trace(
             "regexp match with "
@@ -908,7 +960,7 @@ public class RequestHelper {
                 + " groups, 0 being: "
                 + m.group(0));
       }
-      requestURL = m.group(4);
+      requestURL = m.group(max);
     } else {
       if (log.isTraceEnabled()) {
         log.trace("no reqexp match: " + request);

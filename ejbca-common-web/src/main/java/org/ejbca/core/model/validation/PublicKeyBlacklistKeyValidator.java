@@ -52,14 +52,15 @@ public class PublicKeyBlacklistKeyValidator extends KeyValidatorBase {
   private static final long serialVersionUID = 215729318959311916L;
 
   /** Class logger. */
-  private static final Logger log =
+  private static final Logger LOG =
       Logger.getLogger(PublicKeyBlacklistKeyValidator.class);
 
   /** The key validator type. */
   private static final String TYPE_IDENTIFIER = "BLACKLIST_KEY_VALIDATOR";
-
+  /** Param. */
   protected static final String KEY_ALGORITHMS = "keyAlgorithms";
 
+  /** Param. */
   protected static final ArrayList<String> AVAILABLE_KEY_ALGORITHMS =
       new ArrayList<String>();
 
@@ -70,7 +71,7 @@ public class PublicKeyBlacklistKeyValidator extends KeyValidatorBase {
   }
 
   /**
-   * field used for JUnit testing, avoiding lookups so we can control the cache
+   * field used for JUnit testing, avoiding lookups so we can control the cache.
    */
   private boolean useOnlyCache = false;
 
@@ -158,12 +159,12 @@ public class PublicKeyBlacklistKeyValidator extends KeyValidatorBase {
   @Override
   public void upgrade() {
     super.upgrade();
-    if (log.isTraceEnabled()) {
-      log.trace(">upgrade: " + getLatestVersion() + ", " + getVersion());
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">upgrade: " + getLatestVersion() + ", " + getVersion());
     }
     if (Float.compare(LATEST_VERSION, getVersion()) != 0) {
       // New version of the class, upgrade.
-      log.info(
+      LOG.info(
           INTRES.getLocalizedMessage(
               "blacklistkeyvalidator.upgrade", Float.valueOf(getVersion())));
       init();
@@ -178,8 +179,8 @@ public class PublicKeyBlacklistKeyValidator extends KeyValidatorBase {
     final int keyLength = KeyTools.getKeyLength(publicKey);
     final String keyAlgorithm =
         publicKey.getAlgorithm(); // AlgorithmTools.getKeyAlgorithm(publicKey);
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Validating public key with algorithm "
               + keyAlgorithm
               + ", length "
@@ -193,7 +194,7 @@ public class PublicKeyBlacklistKeyValidator extends KeyValidatorBase {
     // Use the entry class to create a correct fingerprint
     final String fingerprint =
         PublicKeyBlacklistEntry.createFingerprint(publicKey);
-    log.info(
+    LOG.info(
         "Matching public key with blacklist fingerprint "
             + fingerprint
             + " with public key blacklist.");
@@ -240,18 +241,18 @@ public class PublicKeyBlacklistKeyValidator extends KeyValidatorBase {
               + " found in public key blacklist.";
       messages.add("Invalid: " + message);
     } else {
-      log.trace("publicKeyBlacklist passed");
+      LOG.trace("publicKeyBlacklist passed");
     }
 
-    if (log.isDebugEnabled()) {
+    if (LOG.isDebugEnabled()) {
       for (String message : messages) {
-        log.debug(message);
+        LOG.debug(message);
       }
     }
     return messages;
   }
 
-  private final String getKeyAlg(
+  private String getKeyAlg(
       final PublicKey publicKey, final String fingerprint) {
     String keyAlg;
     if (publicKey instanceof BCRSAPublicKey) {
@@ -261,8 +262,8 @@ public class PublicKeyBlacklistKeyValidator extends KeyValidatorBase {
     } else {
       keyAlg = publicKey.getAlgorithm().toUpperCase();
     }
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "Key algorithm "
               + keyAlg
               + " determined for public key with fp: "
@@ -271,8 +272,11 @@ public class PublicKeyBlacklistKeyValidator extends KeyValidatorBase {
     return keyAlg;
   }
 
-  protected void setUseOnlyCache(final boolean useOnlyCache) {
-    this.useOnlyCache = useOnlyCache;
+  /**
+   * @param isuseOnlyCache bool
+   */
+  protected void setUseOnlyCache(final boolean isuseOnlyCache) {
+    this.useOnlyCache = isuseOnlyCache;
   }
 
   @Override

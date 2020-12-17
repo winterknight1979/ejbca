@@ -41,21 +41,36 @@ import org.ejbca.core.model.approval.profile.ApprovalProfile;
 public class ChangeStatusEndEntityApprovalRequest extends ApprovalRequest {
 
   private static final long serialVersionUID = -1L;
-  private static final Logger log =
+  /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(ChangeStatusEndEntityApprovalRequest.class);
+  /** Param. */
   private static final int LATEST_VERSION = 1;
 
+  /** Param. */
   private String username;
+  /** Param. */
   private int oldstatus;
+  /** Param. */
   private int newstatus;
 
-  /** Constructor used in externalization only */
-  public ChangeStatusEndEntityApprovalRequest() {}
+  /** Constructor used in externalization only. */
+  public ChangeStatusEndEntityApprovalRequest() { }
 
+  /**
+   * @param theusername user
+   * @param theoldstatus old
+   * @param thenewstatus neq
+   * @param requestAdmin admin
+   * @param requestSignature sig
+   * @param cAId CA
+   * @param endEntityProfileId Entity
+   * @param approvalProfile Approval
+   */
   public ChangeStatusEndEntityApprovalRequest(
-      final String username,
-      final int oldstatus,
-      final int newstatus,
+      final String theusername,
+      final int theoldstatus,
+      final int thenewstatus,
       final AuthenticationToken requestAdmin,
       final String requestSignature,
       final int cAId,
@@ -68,13 +83,13 @@ public class ChangeStatusEndEntityApprovalRequest extends ApprovalRequest {
         cAId,
         endEntityProfileId,
         approvalProfile);
-    this.username = username;
-    this.oldstatus = oldstatus;
-    this.newstatus = newstatus;
+    this.username = theusername;
+    this.oldstatus = theoldstatus;
+    this.newstatus = thenewstatus;
   }
 
   /**
-   * Overrides ApprovalRequest.isAllowedTransition()
+   * Overrides ApprovalRequest.isAllowedTransition().
    *
    * @see ApprovalRequest#isAllowedTransition()
    */
@@ -170,12 +185,18 @@ public class ChangeStatusEndEntityApprovalRequest extends ApprovalRequest {
         "This execution requires additional bean references.");
   }
 
+  /**
+   * @param endEntityManagementSession Session
+   * @param approvalRequestID ID
+   * @param lastApprovingAdmin Admin
+   * @throws ApprovalRequestExecutionException Fail
+   */
   public void execute(
       final EndEntityManagementSession endEntityManagementSession,
       final int approvalRequestID,
       final AuthenticationToken lastApprovingAdmin)
       throws ApprovalRequestExecutionException {
-    log.debug("Executing Change Status  for user:" + username);
+    LOG.debug("Executing Change Status  for user:" + username);
 
     try {
       endEntityManagementSession.setUserStatusAfterApproval(
@@ -199,7 +220,8 @@ public class ChangeStatusEndEntityApprovalRequest extends ApprovalRequest {
 
   /**
    * Approval Id is generated of This approval type (i.e
-   * AddEndEntityApprovalRequest) and UserName
+   * AddEndEntityApprovalRequest) and UserName.
+   * @return ID
    */
   public int generateApprovalId() {
     return new String(
@@ -211,10 +233,14 @@ public class ChangeStatusEndEntityApprovalRequest extends ApprovalRequest {
         .hashCode();
   }
 
+  @Override
   public int getApprovalType() {
     return ApprovalDataVO.APPROVALTYPE_CHANGESTATUSENDENTITY;
   }
 
+  /**
+   * @return User
+   */
   public String getUsername() {
     return username;
   }
@@ -247,10 +273,12 @@ public class ChangeStatusEndEntityApprovalRequest extends ApprovalRequest {
     return retval;
   }
 
+  @Override
   public boolean isExecutable() {
     return true;
   }
 
+  @Override
   public void writeExternal(final ObjectOutput out) throws IOException {
     super.writeExternal(out);
     out.writeInt(LATEST_VERSION);
@@ -259,6 +287,7 @@ public class ChangeStatusEndEntityApprovalRequest extends ApprovalRequest {
     out.writeInt(oldstatus);
   }
 
+  @Override
   public void readExternal(final ObjectInput in)
       throws IOException, ClassNotFoundException {
     super.readExternal(in);

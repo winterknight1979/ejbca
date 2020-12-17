@@ -23,7 +23,7 @@ public class InvalidCmpProtectionException extends Exception {
   private static final long serialVersionUID = 1L;
 
   /** */
-  public InvalidCmpProtectionException() {}
+  public InvalidCmpProtectionException() { }
 
   /** @param message message */
   public InvalidCmpProtectionException(final String message) {

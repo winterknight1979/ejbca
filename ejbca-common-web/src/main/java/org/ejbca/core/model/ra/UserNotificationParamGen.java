@@ -62,10 +62,17 @@ import org.ejbca.util.NotificationParamGen;
  */
 public class UserNotificationParamGen extends NotificationParamGen {
 
+    /**
+     * @param userData Data
+     */
   public UserNotificationParamGen(final EndEntityInformation userData) {
     populateWithUserData(userData);
   }
 
+  /**
+   * @param userData Data
+   * @param expiringCert Cert
+   */
   public UserNotificationParamGen(
       final EndEntityInformation userData, final Certificate expiringCert) {
     populateWithUserData(userData);
@@ -102,7 +109,8 @@ public class UserNotificationParamGen extends NotificationParamGen {
   }
 
   private void populateWithApprovalData(
-      String approvalAdminDN, final int approvalRequestID) {
+      final String oapprovalAdminDN, final int approvalRequestID) {
+    String approvalAdminDN = oapprovalAdminDN;
     if (approvalAdminDN == null) {
       approvalAdminDN = "";
     }
@@ -118,6 +126,9 @@ public class UserNotificationParamGen extends NotificationParamGen {
     paramPut("approvalRequestID", approvalRequestID);
   }
 
+  /**
+   * @param revokedCertificate cert
+   */
   protected void populateWithRevokedCertificate(
       final CertificateDataWrapper revokedCertificate) {
     if (revokedCertificate != null) {
@@ -145,6 +156,7 @@ public class UserNotificationParamGen extends NotificationParamGen {
           case CertificateConstants.CERT_ARCHIVED:
             newStatus = "Revoked";
             break;
+          default: break;
         }
         String newRevocationReason = "";
         // Use plain RFC5280 CRLReason naming until we localize this
@@ -189,6 +201,9 @@ public class UserNotificationParamGen extends NotificationParamGen {
     }
   }
 
+  /**
+   * @param expiringCert Certificate
+   */
   protected void populateWithExpiringCert(final Certificate expiringCert) {
     if (expiringCert != null) {
       paramPut(
@@ -204,6 +219,9 @@ public class UserNotificationParamGen extends NotificationParamGen {
     }
   }
 
+  /**
+   * @param userData data
+   */
   protected void populateWithUserData(final EndEntityInformation userData) {
     if (userData != null) {
       paramPut("USERNAME", userData.getUsername());
@@ -242,6 +260,10 @@ public class UserNotificationParamGen extends NotificationParamGen {
     }
   }
 
+  /**
+   * @param userdata data
+   * @param requestAdmin admin
+   */
   protected void populateWithEmailAddresses(
       final EndEntityInformation userdata,
       final EndEntityInformation requestAdmin) {

@@ -15,7 +15,7 @@ package org.ejbca.core.model.services;
 import java.util.Properties;
 
 /**
- * Class representing an interval to when the service should run next time
+ * Class representing an interval to when the service should run next time.
  *
  * <p>It's main method is getTimeToExecution
  *
@@ -23,7 +23,7 @@ import java.util.Properties;
  */
 public interface IInterval {
 
-  /** Constant indicating if the service should stop executing */
+  /** Constant indicating if the service should stop executing. */
   long DONT_EXECUTE = -1;
 
   /**

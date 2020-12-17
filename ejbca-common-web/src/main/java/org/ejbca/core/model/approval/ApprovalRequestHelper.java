@@ -16,13 +16,20 @@ import org.ejbca.core.ejb.hardtoken.HardTokenSession;
 import org.ejbca.core.model.SecConst;
 
 /**
- * Helper class containing static methods for RMI lookups
+ * Helper class containing static methods for RMI lookups.
  *
  * @version $Id: ApprovalRequestHelper.java 22139 2015-11-03 10:41:56Z
  *     mikekushner $
  */
-public class ApprovalRequestHelper {
+public final class ApprovalRequestHelper {
 
+  private ApprovalRequestHelper() { }
+
+  /**
+   * @param hardTokenSession Session
+   * @param tokenid Token
+   * @return Data
+   */
   public static ApprovalDataText getTokenName(
       final HardTokenSession hardTokenSession, final int tokenid) {
     ApprovalDataText retval;

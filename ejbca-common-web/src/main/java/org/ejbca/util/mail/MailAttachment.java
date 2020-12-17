@@ -29,16 +29,26 @@ import javax.activation.FileDataSource;
  */
 public class MailAttachment {
 
+    /** Param. */
   private final String filename;
+  /** Param. */
   private String fullFilePathName;
 
-  public MailAttachment(final String fullFilePathName) {
-    this.filename = new File(fullFilePathName).getName();
+  /**
+   * @param afullFilePathName path
+   */
+  public MailAttachment(final String afullFilePathName) {
+    this.filename = new File(afullFilePathName).getName();
   }
 
-  public MailAttachment(final String filename, final String fullFilePathName) {
-    this.filename = filename;
-    this.fullFilePathName = fullFilePathName;
+  /**
+   * @param afilename file
+   * @param afullFilePathName path
+   */
+  public MailAttachment(
+          final String afilename, final String afullFilePathName) {
+    this.filename = afilename;
+    this.fullFilePathName = afullFilePathName;
   }
 
   /**
@@ -46,11 +56,11 @@ public class MailAttachment {
    * later versions of JavaMail we can use ByteArrayDataSource directly in
    * getDataHandler instead.
    *
-   * @param filename name
+   * @param afilename name
    * @param attachedObject object
    */
-  public MailAttachment(final String filename, final Object attachedObject) {
-    this.filename = filename;
+  public MailAttachment(final String afilename, final Object attachedObject) {
+    this.filename = afilename;
     try {
       byte[] attachmentData;
       if (attachedObject instanceof Certificate) {
@@ -76,10 +86,16 @@ public class MailAttachment {
     }
   }
 
+  /**
+   * @return Name
+   */
   public String getName() {
     return filename;
   }
 
+  /**
+   * @return Handler
+   */
   public DataHandler getDataHandler() {
     if (fullFilePathName != null) {
       return new DataHandler(new FileDataSource(getName()));

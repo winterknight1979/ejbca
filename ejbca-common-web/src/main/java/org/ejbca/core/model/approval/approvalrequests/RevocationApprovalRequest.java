@@ -44,36 +44,43 @@ import org.ejbca.core.model.ra.AlreadyRevokedException;
 public class RevocationApprovalRequest extends ApprovalRequest {
 
   private static final long serialVersionUID = -1L;
-  private static final Logger log =
+  /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(RevocationApprovalRequest.class);
+  /** Param. */
   private static final int LATEST_VERSION = 1;
 
+  /** Param. */
   private int approvalType = -1;
+  /** Param. */
   private String username = null;
+  /** Param. */
   private BigInteger certificateSerialNumber = null;
+  /** Param. */
   private String issuerDN = null;
+  /** Param. */
   private int reason = -2;
 
-  /** Constructor used in externalization only */
-  public RevocationApprovalRequest() {}
+  /** Constructor used in externalization only. */
+  public RevocationApprovalRequest() { }
 
   /**
    * Construct an ApprovalRequest for the revocation of a certificate.
    *
-   * @param certificateSerialNumber SN
-   * @param issuerDN DN
-   * @param username Name
-   * @param reason reason
+   * @param acertificateSerialNumber SN
+   * @param anissuerDN DN
+   * @param ausername Name
+   * @param areason reason
    * @param requestAdmin Admin
    * @param cAId CA
    * @param endEntityProfileId Entity
    * @param approvalProfile Approval
    */
   public RevocationApprovalRequest(
-      final BigInteger certificateSerialNumber,
-      final String issuerDN,
-      final String username,
-      final int reason,
+      final BigInteger acertificateSerialNumber,
+      final String anissuerDN,
+      final String ausername,
+      final int areason,
       final AuthenticationToken requestAdmin,
       final int cAId,
       final int endEntityProfileId,
@@ -86,10 +93,10 @@ public class RevocationApprovalRequest extends ApprovalRequest {
         endEntityProfileId,
         approvalProfile);
     this.approvalType = ApprovalDataVO.APPROVALTYPE_REVOKECERTIFICATE;
-    this.username = username;
-    this.reason = reason;
-    this.certificateSerialNumber = certificateSerialNumber;
-    this.issuerDN = issuerDN;
+    this.username = ausername;
+    this.reason = areason;
+    this.certificateSerialNumber = acertificateSerialNumber;
+    this.issuerDN = anissuerDN;
   }
 
   /**
@@ -97,8 +104,8 @@ public class RevocationApprovalRequest extends ApprovalRequest {
    * end entity.
    *
    * @param deleteAfterRevoke bool
-   * @param username Name
-   * @param reason reason
+   * @param ausername Name
+   * @param areason reason
    * @param requestAdmin Admin
    * @param cAId CA
    * @param endEntityProfileId Entity
@@ -106,8 +113,8 @@ public class RevocationApprovalRequest extends ApprovalRequest {
    */
   public RevocationApprovalRequest(
       final boolean deleteAfterRevoke,
-      final String username,
-      final int reason,
+      final String ausername,
+      final int areason,
       final AuthenticationToken requestAdmin,
       final int cAId,
       final int endEntityProfileId,
@@ -124,8 +131,8 @@ public class RevocationApprovalRequest extends ApprovalRequest {
     } else {
       this.approvalType = ApprovalDataVO.APPROVALTYPE_REVOKEENDENTITY;
     }
-    this.username = username;
-    this.reason = reason;
+    this.username = ausername;
+    this.reason = areason;
     this.certificateSerialNumber = null;
     this.issuerDN = null;
   }
@@ -143,12 +150,18 @@ public class RevocationApprovalRequest extends ApprovalRequest {
         "This execution requires additional bean references.");
   }
 
+  /**
+   * @param endEntityManagementSession Session
+   * @param approvalRequestID ID
+   * @param lastApprovalAdmin Admin
+   * @throws ApprovalRequestExecutionException FAil
+   */
   public void execute(
       final EndEntityManagementSession endEntityManagementSession,
       final int approvalRequestID,
       final AuthenticationToken lastApprovalAdmin)
       throws ApprovalRequestExecutionException {
-    log.debug(
+    LOG.debug(
         "Executing "
             + ApprovalDataVO.APPROVALTYPENAMES[approvalType]
             + " ("
@@ -180,7 +193,7 @@ public class RevocationApprovalRequest extends ApprovalRequest {
               lastApprovalAdmin);
           break;
         default:
-          log.error("Unknown approval type " + approvalType);
+          LOG.error("Unknown approval type " + approvalType);
           break;
       }
     } catch (AuthorizationDeniedException e) {
@@ -206,6 +219,7 @@ public class RevocationApprovalRequest extends ApprovalRequest {
    * same request i.e the same admin want's to do the same thing twice should
    * result in the same approvalId.
    */
+  @Override
   public int generateApprovalId() {
     return generateApprovalId(
         getApprovalType(),
@@ -216,6 +230,15 @@ public class RevocationApprovalRequest extends ApprovalRequest {
         getApprovalProfile().getProfileName());
   }
 
+  /**
+   * @param approvalType Type
+   * @param username User
+   * @param reason Reason
+   * @param certificateSerialNumber SN
+   * @param issuerDN DN
+   * @param approvalProfileName Profile
+   * @return ID
+   */
   public static int generateApprovalId(
       final int approvalType,
       final String username,
@@ -231,6 +254,7 @@ public class RevocationApprovalRequest extends ApprovalRequest {
     return idString.hashCode();
   }
 
+  @Override
   public int getApprovalType() {
     return approvalType;
   }
@@ -290,10 +314,12 @@ public class RevocationApprovalRequest extends ApprovalRequest {
    *
    * <p>False if the request admin should do a polling action to try again.
    */
+  @Override
   public boolean isExecutable() {
     return true;
   }
 
+  @Override
   public void writeExternal(final ObjectOutput out) throws IOException {
     super.writeExternal(out);
     out.writeInt(LATEST_VERSION);
@@ -304,6 +330,7 @@ public class RevocationApprovalRequest extends ApprovalRequest {
     out.writeObject(issuerDN);
   }
 
+  @Override
   public void readExternal(final ObjectInput in)
       throws IOException, ClassNotFoundException {
     super.readExternal(in);
@@ -317,6 +344,9 @@ public class RevocationApprovalRequest extends ApprovalRequest {
     }
   }
 
+  /**
+   * @return User
+   */
   public String getUsername() {
     return username;
   }

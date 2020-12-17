@@ -48,9 +48,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 /** @version $Id: HTMLTools.java 24816 2016-12-01 13:30:02Z samuellb $ */
-public class HTMLTools {
+public final class HTMLTools {
+
+   private HTMLTools() { }
   //     see http://hotwired.lycos.com/webmonkey/reference/special_characters/
-  static Object[][] entities = {
+    /** ASCII table. */
+  private static Object[][] entities = {
     // {"#39", Integer.valueOf(39)},       // ' - apostrophe
     {"quot", Integer.valueOf(34)}, // " - double-quote
     {"amp", Integer.valueOf(38)}, // & - ampersand
@@ -127,8 +130,10 @@ public class HTMLTools {
     {"yuml", Integer.valueOf(255)}, // ÿ - lowercase y, umlaut
     {"euro", Integer.valueOf(8364)}, // Euro symbol
   };
-  static Map<String, Integer> e2i = new HashMap<String, Integer>();
-  static Map<Integer, String> i2e = new HashMap<Integer, String>();
+  /** Param. */
+  private static Map<String, Integer> e2i = new HashMap<String, Integer>();
+  /** Param. */
+  private static Map<Integer, String> i2e = new HashMap<Integer, String>();
 
   static {
     for (int i = 0; i < entities.length; ++i) {
@@ -150,6 +155,7 @@ public class HTMLTools {
    * @see #htmlunescape(String)
    */
   public static String htmlescape(final String s1) {
+    final int max = 128;
     if (s1 == null) {
       return null;
     }
@@ -159,7 +165,7 @@ public class HTMLTools {
       char ch = s1.charAt(i);
       String entity = i2e.get(Integer.valueOf(ch));
       if (entity == null) {
-        if ((ch) > 128) {
+        if ((ch) > max) {
           buf.append("&#" + ((int) ch) + ";");
         } else {
           buf.append(ch);
@@ -217,6 +223,10 @@ public class HTMLTools {
     return buf.toString();
   }
 
+  /**
+   * @param str String
+   * @return Escaped
+   */
   public static String javascriptEscape(final String str) {
     String ret = str;
     // In Javascript strings we need to escape the backslash and

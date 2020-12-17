@@ -23,11 +23,14 @@ import java.util.Properties;
  */
 public abstract class BaseInterval implements IInterval {
 
+      /** Param. */
   protected Properties properties = null;
+  /** Param. */
   protected String serviceName = null;
   /** @see org.ejbca.core.model.services.IAction#init(Properties, String) */
-  public void init(final Properties properties, final String serviceName) {
-    this.properties = properties;
-    this.serviceName = serviceName;
+  @Override
+  public void init(final Properties theproperties, final String aserviceName) {
+    this.properties = theproperties;
+    this.serviceName = aserviceName;
   }
 }

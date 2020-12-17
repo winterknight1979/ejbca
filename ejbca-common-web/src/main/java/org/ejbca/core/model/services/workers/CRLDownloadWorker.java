@@ -51,10 +51,14 @@ import org.ejbca.core.model.services.ServiceExecutionFailedException;
  * @version $Id: CRLDownloadWorker.java 27740 2018-01-05 07:24:53Z mikekushner $
  */
 public class CRLDownloadWorker extends BaseWorker {
-  private static final Logger log = Logger.getLogger(CRLDownloadWorker.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(CRLDownloadWorker.class);
 
+/** Param. */
   public static final String PROP_IGNORE_NEXT_UPDATE = "ignoreNextUpdate";
+  /** Param. */
   public static final String PROP_MAX_DOWNLOAD_SIZE = "maxDownloadSize";
+/** Param. */
   public static final int DEFAULT_MAX_DOWNLOAD_SIZE = 1 * 1024 * 1024;
 
   @Override
@@ -84,8 +88,8 @@ public class CRLDownloadWorker extends BaseWorker {
                 String.valueOf(DEFAULT_MAX_DOWNLOAD_SIZE)));
     // Process all the configured CAs
     for (final int caId : caIdsToCheck) {
-      if (log.isTraceEnabled()) {
-        log.trace("Processing CA with Id " + caId);
+      if (LOG.isTraceEnabled()) {
+        LOG.trace("Processing CA with Id " + caId);
       }
       try {
         final CAInfo caInfo = caSession.getCAInfoInternal(caId);
@@ -97,7 +101,7 @@ public class CRLDownloadWorker extends BaseWorker {
           // Parse the configured external CDP into a URL
           final String cdp = ((X509CAInfo) caInfo).getExternalCdp();
           if (cdp == null || cdp.length() == 0) {
-            log.info(
+            LOG.info(
                 "No external CDP configured for CA '"
                     + caInfo.getName()
                     + "'. Ignoring CA.");
@@ -105,7 +109,7 @@ public class CRLDownloadWorker extends BaseWorker {
           }
           final URL url = NetworkTools.getValidHttpUrl(cdp);
           if (url == null) {
-            log.info(
+            LOG.info(
                 "Invalid HTTP URL '"
                     + cdp
                     + "' in external CDP configured for CA '"
@@ -122,7 +126,7 @@ public class CRLDownloadWorker extends BaseWorker {
           if (!ignoreNextUpdate
               && lastFullCrl != null
               && now.before(lastFullCrl.getNextUpdate())) {
-            log.info(
+            LOG.info(
                 "Next full CRL update for CA '"
                     + caInfo.getName()
                     + "' will be "
@@ -164,7 +168,7 @@ public class CRLDownloadWorker extends BaseWorker {
               if (!ignoreNextUpdate
                   && lastDeltaCrl != null
                   && now.before(lastDeltaCrl.getNextUpdate())) {
-                log.info(
+                LOG.info(
                     "Next delta CRL update for CA '"
                         + caInfo.getName()
                         + "' will be "
@@ -178,7 +182,7 @@ public class CRLDownloadWorker extends BaseWorker {
                   final URL freshestCdpUrl =
                       NetworkTools.getValidHttpUrl(freshestCdp);
                   if (freshestCdpUrl == null) {
-                    log.info(
+                    LOG.info(
                         "Unusable Freshest CDP HTTP URL '"
                             + freshestCdpUrl
                             + "' in CRL. Skipping download.");
@@ -199,25 +203,25 @@ public class CRLDownloadWorker extends BaseWorker {
             }
           }
         } else {
-          log.info(
+          LOG.info(
               "'"
                   + caInfo.getName()
                   + "' is not an external X509 CA. Ignoring.");
         }
       } catch (CRLException e) {
-        log.error(
+        LOG.error(
             "Last known CRL read from the database for CA Id "
                 + caId
                 + " has encoding problems.",
             e);
       } catch (CrlStoreException e) {
-        log.error(
+        LOG.error(
             "Failed to store the downloaded CRL in the database for CA Id "
                 + caId
                 + ".",
             e);
       } catch (CrlImportException e) {
-        log.error(
+        LOG.error(
             "Failed to import the downloaded CRL in the database for CA Id "
                 + caId
                 + ".",
@@ -248,7 +252,7 @@ public class CRLDownloadWorker extends BaseWorker {
     final byte[] crlBytesNew =
         NetworkTools.downloadDataFromUrl(cdpUrl, maxSize);
     if (crlBytesNew == null) {
-      log.warn(
+      LOG.warn(
           "Unable to download CRL for "
               + CertTools.getSubjectDN(caCertificate));
     } else {
@@ -256,7 +260,7 @@ public class CRLDownloadWorker extends BaseWorker {
         newCrl = CertTools.getCRLfromByteArray(crlBytesNew);
         importCrlSession.importCrl(admin, caInfo, crlBytesNew);
       } catch (CRLException e) {
-        log.warn(
+        LOG.warn(
             "Unable to decode downloaded CRL for '"
                 + caInfo.getSubjectDN()
                 + "'.");

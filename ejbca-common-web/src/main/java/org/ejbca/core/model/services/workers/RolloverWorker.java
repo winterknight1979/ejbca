@@ -37,12 +37,13 @@ import org.ejbca.core.model.services.ServiceExecutionFailedException;
  */
 public class RolloverWorker extends BaseWorker {
 
-  private static final Logger log = Logger.getLogger(RolloverWorker.class);
-  /** Internal localization of logs and errors */
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(RolloverWorker.class);
+  /** Internal localization of logs and errors. */
   @Override
   public void work(final Map<Class<?>, Object> ejbs)
       throws ServiceExecutionFailedException {
-    log.trace(">Worker started");
+    LOG.trace(">Worker started");
     final CaSessionLocal caSession =
         ((CaSessionLocal) ejbs.get(CaSessionLocal.class));
     // Find CAs that have a roll over certificate chain that has became valid.
@@ -55,12 +56,12 @@ public class RolloverWorker extends BaseWorker {
 
     // Roll over these CAs using the CAAdminSessionBean
     Collection<Integer> caids = getCAIdsToCheck(false);
-    if (log.isDebugEnabled()) {
-      log.debug("Checking " + caids.size() + " CAs for rollover");
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Checking " + caids.size() + " CAs for rollover");
     }
     if (caids.contains(SecConst.ALLCAS)) {
-      for (CAInfo caInfo :
-          caSession.getAuthorizedAndNonExternalCaInfos(getAdmin())) {
+      for (CAInfo caInfo
+          : caSession.getAuthorizedAndNonExternalCaInfos(getAdmin())) {
         attemptToPerformRollover(ejbs, caInfo.getCAId(), now);
       }
     } else {
@@ -68,7 +69,7 @@ public class RolloverWorker extends BaseWorker {
         attemptToPerformRollover(ejbs, caid, now);
       }
     }
-    log.trace("<Worker ended");
+    LOG.trace("<Worker ended");
   }
 
   private void attemptToPerformRollover(
@@ -84,8 +85,8 @@ public class RolloverWorker extends BaseWorker {
         final Certificate cert = rolloverChain.get(0);
         if (now.after(CertTools.getNotBefore(cert))) {
           // Replace certificate chain with the roll over chain
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "New certificate of CA "
                     + caid
                     + " is now valid, switching certificate.");
@@ -94,9 +95,9 @@ public class RolloverWorker extends BaseWorker {
         }
       }
     } catch (AuthorizationDeniedException e) {
-      log.error("Error checking CA for rollover: ", e);
+      LOG.error("Error checking CA for rollover: ", e);
     } catch (CryptoTokenOfflineException e) {
-      log.error("Error rolling over CA: ", e);
+      LOG.error("Error rolling over CA: ", e);
     }
   }
 }

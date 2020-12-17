@@ -39,45 +39,58 @@ import org.ejbca.core.model.InternalEjbcaResources;
  * @version $Id: CmpPbeVerifyer.java 25799 2017-05-04 21:04:53Z jeklund $
  */
 public class CmpPbeVerifyer {
+      /** Logger. */
   private static final Logger LOG = Logger.getLogger(CmpPbeVerifyer.class);
-  /** Internal localization of logs and errors */
+  /** Internal localization of logs and errors. */
   private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
+  /** Param. */
   private byte[] protectedBytes = null;
+  /** Param. */
   private DERBitString protection = null;
+  /** Param. */
   private AlgorithmIdentifier pAlg = null;
+  /** Param. */
   private String errMsg = null;
+  /** Param. */
   private String owfOid = null;
+  /** Param. */
   private String macOid = null;
-  private int iterationCount = 1024;
+  /** Param. */
+  private final int defaultIts = 1024;
+  /** Param. */
+  private int iterationCount = defaultIts;
+  /** Param. */
   private byte[] salt = null;
+  /** Param. */
   private String lastUsedRaSecret = null;
 
   /**
-   * Constructor for CmpPbeVerifyer
+   * Constructor for CmpPbeVerifyer.
    *
-   * @param msg the PKIMessage payload from the CMP Message
+   * @param amsg the PKIMessage payload from the CMP Message
    * @throws InvalidCmpProtectionException if this class is invoked on a message
    *     not signed with a password based MAC or the iterator count for this
    *     verifier was set higher than 10000.
    */
-  public CmpPbeVerifyer(final PKIMessage msg)
+  public CmpPbeVerifyer(final PKIMessage amsg)
       throws InvalidCmpProtectionException {
-    final PKIHeader head = msg.getHeader();
-    protectedBytes = CmpMessageHelper.getProtectedBytes(msg);
-    protection = msg.getProtection();
+    final int maxIts = 10000;
+    final PKIHeader head = amsg.getHeader();
+    protectedBytes = CmpMessageHelper.getProtectedBytes(amsg);
+    protection = amsg.getProtection();
     pAlg = head.getProtectionAlg();
     final ASN1ObjectIdentifier algId = pAlg.getAlgorithm();
     if (!StringUtils.equals(
         algId.getId(), CMPObjectIdentifiers.passwordBasedMac.getId())) {
-      final String errMsg =
+      final String theerrMsg =
           "Protection algorithm id expected '"
               + CMPObjectIdentifiers.passwordBasedMac.getId()
               + "' (passwordBasedMac) but was '"
               + algId.getId()
               + "'.";
-      throw new InvalidCmpProtectionException(errMsg);
+      throw new InvalidCmpProtectionException(theerrMsg);
     }
     final PBMParameter pp = PBMParameter.getInstance(pAlg.getParameters());
     iterationCount = pp.getIterationCount().getPositiveValue().intValue();
@@ -93,7 +106,7 @@ public class CmpPbeVerifyer {
       LOG.debug("Owf type is: " + owfOid);
       LOG.debug("Mac type is: " + macOid);
     }
-    if (iterationCount > 10000) {
+    if (iterationCount > maxIts) {
       LOG.info(
           "Received message with too many iterations in PBE protection: "
               + iterationCount);
@@ -156,22 +169,37 @@ public class CmpPbeVerifyer {
     return ret;
   }
 
+  /**
+   * @return ERR
+   */
   public String getErrMsg() {
     return errMsg;
   }
 
+  /**
+   * @return OID
+   */
   public String getMacOid() {
     return macOid;
   }
 
+  /**
+   * @return OID
+   */
   public String getOwfOid() {
     return owfOid;
   }
 
+  /**
+   * @return count
+   */
   public int getIterationCount() {
     return iterationCount;
   }
 
+  /**
+   * @return secret
+   */
   public String getLastUsedRaSecret() {
     return lastUsedRaSecret;
   }

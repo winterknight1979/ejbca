@@ -38,7 +38,7 @@ public interface IAction {
 
   /**
    * The main method used to signal that it's time to perform an action
-   * according to the data sent in the parameter IActionInfo
+   * according to the data sent in the parameter IActionInfo.
    *
    * @param actionInfo optional parameter used to send data to the action
    * @param ejbs A map between Local EJB interface classes and their injected

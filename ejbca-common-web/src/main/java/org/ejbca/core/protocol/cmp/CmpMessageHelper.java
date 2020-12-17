@@ -93,17 +93,22 @@ import org.cesecore.util.StringTools;
 import org.ejbca.core.model.InternalEjbcaResources;
 
 /**
- * Helper class to create different standard parts of CMP messages
+ * Helper class to create different standard parts of CMP messages.
  *
  * @version $Id: CmpMessageHelper.java 28286 2018-02-14 20:51:41Z bastianf $
  */
-public class CmpMessageHelper {
-  private static Logger LOG = Logger.getLogger(CmpMessageHelper.class);
+public final class CmpMessageHelper {
+      /** Param. */
+  private static final Logger LOG = Logger.getLogger(CmpMessageHelper.class);
+  /** Param. */
   private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
-  private static final SecureRandom secureRandom = new SecureRandom();
+  /** Param. */
+  private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
+  /** Param. */
   private static final String CMP_ERRORGENERAL = "cmp.errorgeneral";
+  /** Param. */
   public static final int MAX_LEVEL_OF_NESTING = 15;
 
   /**
@@ -143,6 +148,8 @@ public class CmpMessageHelper {
     PKIFailureInfo.duplicateCertReq
   };
 
+  private CmpMessageHelper() { }
+
   /**
    * Returns the PKIFailureInfo that is the correct format for CMP, i.e. a
    * DERBitString as specified in PKIFailureInfo.
@@ -156,6 +163,14 @@ public class CmpMessageHelper {
     return new PKIFailureInfo(bcconversion[failInfo]);
   }
 
+  /**
+   * @param sender Sender
+   * @param recipient Recip
+   * @param senderNonce Nonce
+   * @param recipientNonce Nonce
+   * @param transactionId ID
+   * @return Builder
+   */
   public static PKIHeaderBuilder createPKIHeaderBuilder(
       final GeneralName sender,
       final GeneralName recipient,
@@ -180,6 +195,20 @@ public class CmpMessageHelper {
     return pkiHeader;
   }
 
+  /**
+   * @param pkiMessage message
+ * @param signCertChain chain
+ * @param signKey  key
+   * @param digestAlg Alg
+   * @param provider Provider
+   * @return Meddage
+   * @throws NoSuchProviderException Fail
+   * @throws NoSuchAlgorithmException Fail
+   * @throws SecurityException Fail
+   * @throws SignatureException Fail
+   * @throws InvalidKeyException Fail
+ * @throws CertificateEncodingException fail
+   */
   public static byte[] signPKIMessage(
       final PKIMessage pkiMessage,
       final Collection<Certificate> signCertChain,
@@ -210,6 +239,19 @@ public class CmpMessageHelper {
     return pkiMessageToByteArray(signedPkiMessage);
   }
 
+  /**
+   * @param pkiMessage message
+   * @param extraCerts Certs
+   * @param key Key
+   * @param digestAlg Alg
+   * @param provider Provider
+   * @return Meddage
+   * @throws NoSuchProviderException Fail
+   * @throws NoSuchAlgorithmException Fail
+   * @throws SecurityException Fail
+   * @throws SignatureException Fail
+   * @throws InvalidKeyException Fail
+   */
   public static PKIMessage buildCertBasedPKIProtection(
       final PKIMessage pkiMessage,
       final CMPCertificate[] extraCerts,
@@ -272,6 +314,10 @@ public class CmpMessageHelper {
   }
 
   // TODO see if we could do this in a better way
+  /**
+   * @param head header
+   * @return builder
+   */
   public static PKIHeaderBuilder getHeaderBuilder(final PKIHeader head) {
     PKIHeaderBuilder builder =
         new PKIHeaderBuilder(
@@ -290,7 +336,7 @@ public class CmpMessageHelper {
   }
 
   /**
-   * verifies signature protection on CMP PKI messages
+   * verifies signature protection on CMP PKI messages.
    *
    * @param pKIMessage the CMP message to verify signature on, if protected by
    *     signature protection
@@ -337,6 +383,18 @@ public class CmpMessageHelper {
     return result;
   }
 
+  /**
+   * @param msg Message
+   * @param keyId ID
+   * @param raSecret Secret
+   * @param digestAlgId Alg
+   * @param macAlgId MAc
+   * @param iterationCount Count
+   * @return PKI
+   * @throws NoSuchAlgorithmException Fail
+   * @throws NoSuchProviderException Fail
+   * @throws InvalidKeyException Fail
+   */
   public static byte[] protectPKIMessageWithPBE(
       final PKIMessage msg,
       final String keyId,
@@ -429,13 +487,13 @@ public class CmpMessageHelper {
    */
   public static byte[] createSenderNonce() {
     byte[] senderNonce = new byte[16];
-    secureRandom.nextBytes(senderNonce);
+    SECURE_RANDOM.nextBytes(senderNonce);
     return senderNonce;
   }
 
   /**
    * Creates a very simple error message in response to msg (that's why we
-   * switch sender and recipient)
+   * switch sender and recipient).
    *
    * @param cmpRequestMessage req
    * @param failInfo info
@@ -483,7 +541,7 @@ public class CmpMessageHelper {
    * Create an unsigned RFC 4210 error message as described in section 5.3.21
    * based on a PKIHeader obtained from a previous CMP client request message.
    *
-   * @param pkiHeader A PKIHeader extracted from the previous CMP request
+   * @param opkiHeader A PKIHeader extracted from the previous CMP request
    * @param failInfo An error code describing the type of error
    * @param failText A human-readable description of the error
    * @return An <code>
@@ -491,7 +549,10 @@ public class CmpMessageHelper {
    *     data structure containing the error
    */
   public static ResponseMessage createUnprotectedErrorMessage(
-      PKIHeader pkiHeader, final FailInfo failInfo, final String failText) {
+      final PKIHeader opkiHeader,
+      final FailInfo failInfo,
+      final String failText) {
+    PKIHeader pkiHeader = opkiHeader;
     final CmpErrorResponseMessage resp = new CmpErrorResponseMessage();
     try {
       if (pkiHeader == null) {
@@ -602,7 +663,7 @@ public class CmpMessageHelper {
 
   /**
    * creates a very simple error message in response to msg (that's why we
-   * switch sender and recipient)
+   * switch sender and recipient).
    *
    * @param pkiStatusInfo Info
    * @param requestId ID
@@ -632,7 +693,7 @@ public class CmpMessageHelper {
 
   /**
    * Converts the header and the body of a PKIMessage to an ASN1Encodable and
-   * returns the as a byte array
+   * returns the as a byte array.
    *
    * @param msg es
    * @return the PKIMessage's header and body in byte array
@@ -643,7 +704,7 @@ public class CmpMessageHelper {
 
   /**
    * Converts the header and the body of a PKIMessage to an ASN1Encodable and
-   * returns the as a byte array
+   * returns the as a byte array.
    *
    * @param header header
    * @param body body
@@ -669,7 +730,7 @@ public class CmpMessageHelper {
 
   /**
    * Parses a CRMF request created with novosec library classes and return a
-   * bouncycastle CertReqMsg object
+   * bouncycastle CertReqMsg object.
    *
    * @param messages msg
    * @return req
@@ -744,6 +805,10 @@ public class CmpMessageHelper {
     return new CertReqMsg(cr, pp, avs);
   }
 
+  /**
+   * @param revContent content
+   * @return Details
+   */
   public static RevDetails getNovosecRevDetails(
       final RevReqContent revContent) {
     // Novosec implements RFC2510, while bouncycastle 1.47 implements RFC4210.
@@ -829,12 +894,13 @@ public class CmpMessageHelper {
    * @return SenderKeyId of in the header or null none was found.
    */
   public static String getStringFromOctets(final ASN1OctetString octets) {
+    final int maxSize = 128;
     String str = null;
     if (octets != null) {
       byte[] bytes = octets.getOctets();
-      if (bytes.length > 128) { // arbitrary limitation on octet string size
-        LOG.info("Truncating octet string longer than 128 bytes");
-        byte[] newbytes = Arrays.copyOf(bytes, 128);
+      if (bytes.length > maxSize) { // arbitrary limitation on octet string size
+        LOG.info("Truncating octet string longer than " + maxSize + " bytes");
+        byte[] newbytes = Arrays.copyOf(bytes, maxSize);
         bytes = newbytes;
       }
       str = new String(bytes, StandardCharsets.UTF_8);

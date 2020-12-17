@@ -39,22 +39,38 @@ public class GenerateTokenApprovalRequest extends ApprovalRequest {
 
   private static final long serialVersionUID = -1L;
 
+  /** Param. */
   public static final int STEP_0_VIEWHARDTOKENDATA = 0;
+  /** Param. */
   public static final int STEP_1_GENERATETOKEN = 1;
 
+  /** Param. */
   private static final int LATEST_VERSION = 1;
 
+  /** Param. */
   private String dn;
+  /** Param. */
   private String username;
+  /** Param. */
   private String tokenTypeLabel;
 
-  /** Constructor used in externalization only */
-  public GenerateTokenApprovalRequest() {}
+  /** Constructor used in externalization only. */
+  public GenerateTokenApprovalRequest()  { }
 
+  /**
+   * @param ausername User
+   * @param userDN DN
+   * @param atokenTypeLabel Type
+   * @param requestAdmin Admin
+   * @param requestSignature Sig
+   * @param cAId CA
+   * @param endEntityProfileId Entity
+   * @param approvalProfile Approval
+   */
   public GenerateTokenApprovalRequest(
-      final String username,
+      final String ausername,
       final String userDN,
-      final String tokenTypeLabel,
+      final String atokenTypeLabel,
       final AuthenticationToken requestAdmin,
       final String requestSignature,
       final int cAId,
@@ -69,9 +85,9 @@ public class GenerateTokenApprovalRequest extends ApprovalRequest {
         endEntityProfileId,
         2,
         approvalProfile);
-    this.username = username;
+    this.username = ausername;
     this.dn = userDN;
-    this.tokenTypeLabel = tokenTypeLabel;
+    this.tokenTypeLabel = atokenTypeLabel;
   }
 
   @Override
@@ -81,8 +97,9 @@ public class GenerateTokenApprovalRequest extends ApprovalRequest {
 
   /**
    * Approval Id is generated of This approval type (i.e
-   * AddEndEntityApprovalRequest) and UserName
+   * AddEndEntityApprovalRequest) and UserName.
    */
+  @Override
   public int generateApprovalId() {
     return new String(
             getApprovalType()
@@ -95,6 +112,7 @@ public class GenerateTokenApprovalRequest extends ApprovalRequest {
         .hashCode();
   }
 
+  @Override
   public int getApprovalType() {
     return ApprovalDataVO.APPROVALTYPE_GENERATETOKEN;
   }
@@ -115,10 +133,12 @@ public class GenerateTokenApprovalRequest extends ApprovalRequest {
     return null;
   }
 
+  @Override
   public boolean isExecutable() {
     return false;
   }
 
+  @Override
   public void writeExternal(final ObjectOutput out) throws IOException {
     super.writeExternal(out);
     out.writeInt(LATEST_VERSION);
@@ -127,6 +147,7 @@ public class GenerateTokenApprovalRequest extends ApprovalRequest {
     out.writeObject(tokenTypeLabel);
   }
 
+  @Override
   public void readExternal(final ObjectInput in)
       throws IOException, ClassNotFoundException {
     super.readExternal(in);

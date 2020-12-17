@@ -11,12 +11,16 @@ import org.bouncycastle.operator.KeyWrapper;
 import org.bouncycastle.operator.OutputEncryptor;
 
 /**
- * JCA convenience class for EncryptedValueBuilder
+ * JCA convenience class for EncryptedValueBuilder.
  *
  * @deprecated Copied from BCPKIX 1.59b03, can be removed when we use BC 1.59
  */
 @Deprecated
 public class JcaEncryptedValueBuilder extends EncryptedValueBuilder {
+    /**
+     * @param wrapper wrapper
+     * @param encryptor encryptor
+     */
   public JcaEncryptedValueBuilder(
       final KeyWrapper wrapper, final OutputEncryptor encryptor) {
     super(wrapper, encryptor);

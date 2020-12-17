@@ -20,6 +20,9 @@ import org.junit.Test;
 /** @version $Id: HTMLToolsTest.java 22139 2015-11-03 10:41:56Z mikekushner $ */
 public class HTMLToolsTest {
 
+    /**
+     * @throws Exception fail
+     */
   @Test
   public void test01JavascriptEscape() throws Exception {
     String test = "l'AC si vous l'avez";

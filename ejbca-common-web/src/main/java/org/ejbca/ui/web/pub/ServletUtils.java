@@ -9,9 +9,12 @@ import org.apache.log4j.Logger;
  *
  * @version $Id: ServletUtils.java 22139 2015-11-03 10:41:56Z mikekushner $
  */
-public class ServletUtils {
+public final class ServletUtils {
 
-  private static final Logger log = Logger.getLogger(ServletUtils.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(ServletUtils.class);
+
+  private ServletUtils() { }
 
   /**
    * Helper methods that removes no-cache headers from a response. No-cache
@@ -24,14 +27,14 @@ public class ServletUtils {
    */
   public static void removeCacheHeaders(final HttpServletResponse res) {
     if (res.containsHeader("Pragma")) {
-      if (log.isDebugEnabled()) {
-        log.debug("Removing Pragma header to avoid caching issues in IE");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Removing Pragma header to avoid caching issues in IE");
       }
       res.setHeader("Pragma", "null");
     }
     if (res.containsHeader("Cache-Control")) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Removing Cache-Control header to avoid caching issues in IE");
       }
       res.setHeader("Cache-Control", "null");
@@ -46,14 +49,14 @@ public class ServletUtils {
    */
   public static void addCacheHeaders(final HttpServletResponse res) {
     if (!res.containsHeader("Pragma")) {
-      if (log.isDebugEnabled()) {
-        log.debug("Adding Pragma header");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Adding Pragma header");
       }
       res.setHeader("Pragma", "no-cache");
     }
     if (!res.containsHeader("Cache-Control")) {
-      if (log.isDebugEnabled()) {
-        log.debug("Adding Cache-Control header");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Adding Cache-Control header");
       }
       res.setHeader("Cache-Control", "no-cache");
     }

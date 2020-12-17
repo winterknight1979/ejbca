@@ -38,7 +38,7 @@ import org.ejbca.core.model.approval.profile.ApprovalProfile;
 
 /**
  * Approval Request created when an administrator wants to recovery a end
- * entities keyset
+ * entities keyset.
  *
  * @version $Id: KeyRecoveryApprovalRequest.java 26106 2017-06-30 13:39:10Z
  *     henriks $
@@ -46,22 +46,37 @@ import org.ejbca.core.model.approval.profile.ApprovalProfile;
 public class KeyRecoveryApprovalRequest extends ApprovalRequest {
 
   private static final long serialVersionUID = -1L;
-  private static final Logger log =
+  /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(KeyRecoveryApprovalRequest.class);
+  /** Param. */
   private static final int LATEST_VERSION = 1;
 
+  /** Param. */
   private String username;
+  /** Param. */
   private Certificate cert;
 
+  /** Param. */
   private boolean recoverNewestCert = false;
 
-  /** Constructor used in externalization only */
-  public KeyRecoveryApprovalRequest() {}
+  /** Constructor used in externalization only. */
+  public KeyRecoveryApprovalRequest() { }
 
+  /**
+   * @param acert Cert
+   * @param ausername User
+   * @param dorecoverNewestCert Bool
+   * @param requestAdmin Admin
+   * @param requestSignature Sig
+   * @param cAId CA
+   * @param endEntityProfileId Entity
+   * @param approvalProfile Profile
+   */
   public KeyRecoveryApprovalRequest(
-      final Certificate cert,
-      final String username,
-      final boolean recoverNewestCert,
+      final Certificate acert,
+      final String ausername,
+      final boolean dorecoverNewestCert,
       final AuthenticationToken requestAdmin,
       final String requestSignature,
       final int cAId,
@@ -74,9 +89,9 @@ public class KeyRecoveryApprovalRequest extends ApprovalRequest {
         cAId,
         endEntityProfileId,
         approvalProfile);
-    this.username = username;
-    this.cert = cert;
-    this.recoverNewestCert = recoverNewestCert;
+    this.username = ausername;
+    this.cert = acert;
+    this.recoverNewestCert = dorecoverNewestCert;
   }
 
   @Override
@@ -85,10 +100,14 @@ public class KeyRecoveryApprovalRequest extends ApprovalRequest {
         "This execution requires additional bean references.");
   }
 
+  /**
+   * @param endEntityManagementSession Session
+   * @throws ApprovalRequestExecutionException Fail
+   */
   public void execute(
       final EndEntityManagementSession endEntityManagementSession)
       throws ApprovalRequestExecutionException {
-    log.debug("Executing mark for recovery for user:" + username);
+    LOG.debug("Executing mark for recovery for user:" + username);
     try {
       if (recoverNewestCert) {
         endEntityManagementSession.prepareForKeyRecovery(
@@ -111,8 +130,9 @@ public class KeyRecoveryApprovalRequest extends ApprovalRequest {
 
   /**
    * Approval Id is generated of This approval type (i.e
-   * AddEndEntityApprovalRequest) and UserName
+   * AddEndEntityApprovalRequest) and UserName.
    */
+  @Override
   public int generateApprovalId() {
     return new String(
             getApprovalType()
@@ -123,10 +143,14 @@ public class KeyRecoveryApprovalRequest extends ApprovalRequest {
         .hashCode();
   }
 
+  @Override
   public int getApprovalType() {
     return ApprovalDataVO.APPROVALTYPE_KEYRECOVERY;
   }
 
+  /**
+   * @return user
+   */
   public String getUsername() {
     return username;
   }
@@ -157,10 +181,12 @@ public class KeyRecoveryApprovalRequest extends ApprovalRequest {
     return null;
   }
 
+  @Override
   public boolean isExecutable() {
     return true;
   }
 
+  @Override
   public void writeExternal(final ObjectOutput out) throws IOException {
     super.writeExternal(out);
     out.writeInt(LATEST_VERSION);
@@ -170,11 +196,12 @@ public class KeyRecoveryApprovalRequest extends ApprovalRequest {
       String certString = new String(Base64.encode(cert.getEncoded()), "UTF8");
       out.writeObject(certString);
     } catch (CertificateEncodingException e) {
-      log.debug("Error serializing certificate", e);
+      LOG.debug("Error serializing certificate", e);
       throw new IOException(e.getMessage());
     }
   }
 
+  @Override
   public void readExternal(final ObjectInput in)
       throws IOException, ClassNotFoundException {
     super.readExternal(in);
@@ -188,7 +215,7 @@ public class KeyRecoveryApprovalRequest extends ApprovalRequest {
             CertTools.getCertfromByteArray(
                 Base64.decode(certString.getBytes("UTF8")), Certificate.class);
       } catch (CertificateException e) {
-        log.debug("Error deserializing certificate", e);
+        LOG.debug("Error deserializing certificate", e);
         throw new IOException(e.getMessage());
       }
     }

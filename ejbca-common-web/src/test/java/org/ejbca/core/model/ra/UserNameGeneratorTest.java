@@ -75,12 +75,14 @@ public class UserNameGeneratorTest {
     // assertEquals(errorMessage, "12345",
     // usernameGenerator.generateUsername(new X509Name("CN=test,
     // SN=12345").toString()));
-    // assertEquals(errorMessage, "1234", usernameGenerator.generateUsername(new
+    // assertEquals(errorMessage, "1234", 
+    // usernameGenerator.generateUsername(new
     // X509Name("SN=1234").toString()));
   }
 
-  /*
-   * Test method for 'org.ejbca.core.model.ra.UsernameGenerator.UsernameGenerator(String)'
+  /**
+   * Test method for
+   * 'org.ejbca.core.model.ra.UsernameGenerator.UsernameGenerator(String)'.
    */
   @Test
   public void testUsernameGeneratorRandom() {
@@ -131,7 +133,9 @@ public class UserNameGeneratorTest {
     assertTrue(u.endsWith("-foo"));
     assertTrue(u.startsWith("foo-"));
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testUsernameGeneratorDN() {
     String dn = "C=SE, O=FooO, UID=foo, CN=bar";
@@ -192,6 +196,9 @@ public class UserNameGeneratorTest {
     assertTrue(u.endsWith("-post"));
   }
 
+  /**
+   * Test.
+   */
   @Test
   public void testUsernameGeneratorUsername() {
     String username = "foo";

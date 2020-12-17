@@ -44,17 +44,26 @@ import org.ejbca.util.passgen.PasswordGeneratorFactory;
  *
  * @version $Id: UsernameGenerator.java 24857 2016-12-07 13:48:26Z mikekushner $
  */
-public class UsernameGenerator {
+public final class UsernameGenerator {
 
-  private static final Logger log = Logger.getLogger(UsernameGenerator.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(UsernameGenerator.class);
 
-  // Generator configuration parameters, with good default values
+  /** Generator configuration parameters, with good default values.*/
   private UsernameGeneratorParams params = null;
 
+  /**
+   * @param mode mode
+   * @return Instance
+   */
   public static UsernameGenerator getInstance(final String mode) {
     return new UsernameGenerator(mode);
   }
 
+  /**
+   * @param params Params
+   * @return instance
+   */
   public static UsernameGenerator getInstance(
       final UsernameGeneratorParams params) {
     return new UsernameGenerator(params);
@@ -65,10 +74,13 @@ public class UsernameGenerator {
     params.setMode(mode);
   }
 
-  private UsernameGenerator(final UsernameGeneratorParams params) {
-    this.params = params;
+  private UsernameGenerator(final UsernameGeneratorParams theparams) {
+    this.params = theparams;
   }
 
+  /**
+   * @return User
+   */
   public String generateUsername() {
     String ret = null;
     if (params.getMode() != UsernameGeneratorParams.MODE_RANDOM) {
@@ -79,9 +91,13 @@ public class UsernameGenerator {
     return addPrePostFix(ret);
   }
 
+  /**
+   * @param name Name
+   * @return User
+   */
   public String generateUsername(final String name) {
-    if (log.isDebugEnabled()) {
-      log.debug(">generateUsername: " + name);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(">generateUsername: " + name);
     }
     String str = name;
     switch (params.getMode()) {
@@ -120,8 +136,8 @@ public class UsernameGenerator {
         break;
     }
     String ret = addPrePostFix(str);
-    if (log.isDebugEnabled()) {
-      log.debug("<generateUsername, generated username: " + ret);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("<generateUsername, generated username: " + ret);
     }
     return ret;
   }
@@ -154,7 +170,7 @@ public class UsernameGenerator {
     return interpolate(params.getPrefix());
   }
 
-  /** regexp pattern to match ${identifier} patterns */
+  /** regexp pattern to match ${identifier} patterns. */
   private static final Pattern PATTERN = Pattern.compile("\\$\\{(.+?)\\}");
   /**
    * Interpolate the patterns that exists on the input on the form '${pattern}'.
@@ -192,11 +208,17 @@ public class UsernameGenerator {
     return sb.toString();
   }
 
+  /**
+   * @return Params
+   */
   public UsernameGeneratorParams getParams() {
     return params;
   }
 
-  public void setParams(final UsernameGeneratorParams params) {
-    this.params = params;
+  /**
+   * @param theparams params
+   */
+  public void setParams(final UsernameGeneratorParams theparams) {
+    this.params = theparams;
   }
 }

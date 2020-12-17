@@ -21,8 +21,11 @@ import org.cesecore.certificates.certificate.HashID;
  * @version $Id: RFC4387URL.java 19901 2014-09-30 14:29:38Z anatom $
  */
 public enum RFC4387URL {
+      /** Type. */
   sHash,
+  /** Type. */
   iHash,
+  /** Type. */
   sKIDHash;
 
   private String getID(
@@ -36,7 +39,7 @@ public enum RFC4387URL {
     return url + "?" + this.toString() + "=" + id;
   }
   /**
-   * Append the query of the RFC hash to a URL
+   * Append the query of the RFC hash to a URL.
    *
    * @param url The URL except the query
    * @param hash of the object to fetch

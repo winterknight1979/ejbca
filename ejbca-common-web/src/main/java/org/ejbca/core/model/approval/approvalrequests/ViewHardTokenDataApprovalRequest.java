@@ -36,20 +36,37 @@ public class ViewHardTokenDataApprovalRequest extends ApprovalRequest {
   private static final long serialVersionUID = -1L;
   // private static final Logger log =
   // Logger.getLogger(ViewHardTokenDataApprovalRequest.class);
+  /** Param. */
   private static final int LATEST_VERSION = 1;
 
+  /** Param. */
   private String dn;
+  /** Param. */
   private String username;
+  /** Param. */
   private String tokensn;
+  /** Param. */
   private boolean viewpuk;
 
-  /** Constructor used in externalization only */
-  public ViewHardTokenDataApprovalRequest() {}
+  /** Constructor used in externalization only. */
+  public ViewHardTokenDataApprovalRequest() { }
 
+  /**
+   * @param ausername User
+   * @param userDN DN
+   * @param atokensn SN
+   * @param viewPUK PUK
+   * @param requestAdmin Admin
+   * @param requestSignature Sig
+   * @param numOfReqApprovals Approvals
+   * @param cAId CA
+   * @param endEntityProfileId Profile
+   * @param approvalProfile Profile
+   */
   public ViewHardTokenDataApprovalRequest(
-      final String username,
+      final String ausername,
       final String userDN,
-      final String tokensn,
+      final String atokensn,
       final boolean viewPUK,
       final AuthenticationToken requestAdmin,
       final String requestSignature,
@@ -64,9 +81,9 @@ public class ViewHardTokenDataApprovalRequest extends ApprovalRequest {
         cAId,
         endEntityProfileId,
         approvalProfile);
-    this.username = username;
+    this.username = ausername;
     this.dn = userDN;
-    this.tokensn = tokensn;
+    this.tokensn = atokensn;
     this.viewpuk = viewPUK;
   }
 
@@ -77,8 +94,9 @@ public class ViewHardTokenDataApprovalRequest extends ApprovalRequest {
 
   /**
    * Approval Id is generated of This approval type (i.e
-   * AddEndEntityApprovalRequest) and UserName
+   * AddEndEntityApprovalRequest) and UserName.
    */
+  @Override
   public int generateApprovalId() {
     return new String(
             getApprovalType()
@@ -93,6 +111,7 @@ public class ViewHardTokenDataApprovalRequest extends ApprovalRequest {
         .hashCode();
   }
 
+  @Override
   public int getApprovalType() {
     return ApprovalDataVO.APPROVALTYPE_VIEWHARDTOKENDATA;
   }
@@ -120,10 +139,12 @@ public class ViewHardTokenDataApprovalRequest extends ApprovalRequest {
     return null;
   }
 
+  @Override
   public boolean isExecutable() {
     return false;
   }
 
+  @Override
   public void writeExternal(final ObjectOutput out) throws IOException {
     super.writeExternal(out);
     out.writeInt(LATEST_VERSION);
@@ -133,6 +154,7 @@ public class ViewHardTokenDataApprovalRequest extends ApprovalRequest {
     out.writeBoolean(viewpuk);
   }
 
+  @Override
   public void readExternal(final ObjectInput in)
       throws IOException, ClassNotFoundException {
     super.readExternal(in);

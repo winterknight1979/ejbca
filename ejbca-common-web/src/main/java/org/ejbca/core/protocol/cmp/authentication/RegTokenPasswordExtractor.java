@@ -27,19 +27,23 @@ import org.ejbca.core.protocol.cmp.CmpMessageHelper;
 import org.ejbca.core.protocol.cmp.CmpPKIBodyConstants;
 
 /**
- * Extracts password from the CMRF request message parameters
+ * Extracts password from the CMRF request message parameters.
  *
  * @version $Id: RegTokenPasswordExtractor.java 22139 2015-11-03 10:41:56Z
  *     mikekushner $
  */
 public class RegTokenPasswordExtractor implements ICMPAuthenticationModule {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(RegTokenPasswordExtractor.class);
 
+  /** Param. */
   private String password;
+  /** Param. */
   private String errorMessage;
 
+  /** Default constructor. */
   public RegTokenPasswordExtractor() {
     this.password = null;
     this.errorMessage = null;
@@ -67,8 +71,8 @@ public class RegTokenPasswordExtractor implements ICMPAuthenticationModule {
       do {
         av = avs[i];
         if (av != null) {
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "Found AttributeTypeAndValue (in CertReqMsg): "
                     + av.getType().getId());
           }
@@ -78,8 +82,8 @@ public class RegTokenPasswordExtractor implements ICMPAuthenticationModule {
             final ASN1Encodable enc = av.getValue();
             final DERUTF8String str = DERUTF8String.getInstance(enc);
             pwd = str.getString();
-            if (log.isDebugEnabled()) {
-              log.debug(
+            if (LOG.isDebugEnabled()) {
+              LOG.debug(
                   "Found a request password in CRMF request regCtrl_regToken");
             }
           }
@@ -100,8 +104,8 @@ public class RegTokenPasswordExtractor implements ICMPAuthenticationModule {
         do {
           av = avs[i];
           if (av != null) {
-            if (log.isDebugEnabled()) {
-              log.debug(
+            if (LOG.isDebugEnabled()) {
+              LOG.debug(
                   "Found AttributeTypeAndValue (in CertReq): "
                       + av.getType().getId());
             }
@@ -111,8 +115,8 @@ public class RegTokenPasswordExtractor implements ICMPAuthenticationModule {
               final ASN1Encodable enc = av.getValue();
               final DERUTF8String str = DERUTF8String.getInstance(enc);
               pwd = str.getString();
-              if (log.isDebugEnabled()) {
-                log.debug(
+              if (LOG.isDebugEnabled()) {
+                LOG.debug(
                     "Found a request password in CRMF request"
                         + " regCtrl_regToken");
               }
@@ -144,11 +148,11 @@ public class RegTokenPasswordExtractor implements ICMPAuthenticationModule {
       try {
         req = msgs.toCertReqMsgArray()[0];
       } catch (Exception e) {
-        log.debug(
+        LOG.debug(
             "Could not parse the revocation request. Trying to parse it as"
                 + " novosec generated message.");
         req = CmpMessageHelper.getNovosecCertReqMsg(msgs);
-        log.debug("Succeeded in parsing the novosec generated request.");
+        LOG.debug("Succeeded in parsing the novosec generated request.");
       }
     }
     return req;

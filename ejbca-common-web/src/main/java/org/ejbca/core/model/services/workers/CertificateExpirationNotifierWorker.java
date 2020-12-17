@@ -42,10 +42,13 @@ import org.ejbca.core.model.services.actions.MailActionInfo;
  */
 public class CertificateExpirationNotifierWorker extends EmailSendingWorker {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(CertificateExpirationNotifierWorker.class);
 
+  /** Param. */
   private CertificateStoreSessionLocal certificateStoreSession;
+  /** Param. */
   private transient List<Integer> certificateProfileIds;
 
   /**
@@ -57,7 +60,7 @@ public class CertificateExpirationNotifierWorker extends EmailSendingWorker {
   @Override
   public void work(final Map<Class<?>, Object> ejbs)
       throws ServiceExecutionFailedException {
-    log.trace(">CertificateExpirationNotifierWorker.work started");
+    LOG.trace(">CertificateExpirationNotifierWorker.work started");
     final CaSessionLocal caSession =
         ((CaSessionLocal) ejbs.get(CaSessionLocal.class));
     certificateStoreSession =
@@ -73,7 +76,7 @@ public class CertificateExpirationNotifierWorker extends EmailSendingWorker {
     // Build Query
     Collection<String> cas = new ArrayList<String>();
     Collection<Integer> caIds = getCAIdsToCheck(false);
-    Collection<Integer> certificateProfileIds =
+    Collection<Integer> thecertificateProfileIds =
         getCertificateProfileIdsToCheck();
     if (!caIds.isEmpty()) {
       // if caIds contains SecConst.ALLCAS, reassign caIds to contain just that.
@@ -85,14 +88,14 @@ public class CertificateExpirationNotifierWorker extends EmailSendingWorker {
         try {
           caInfo = caSession.getCAInfo(getAdmin(), caid);
           if (caInfo == null) {
-            log.info(
+            LOG.info(
                 InternalEjbcaResources.getInstance()
                     .getLocalizedMessage(
                         "services.errorworker.errornoca", caid, null));
             continue;
           }
         } catch (AuthorizationDeniedException e) {
-          log.info(
+          LOG.info(
               InternalEjbcaResources.getInstance()
                   .getLocalizedMessage(
                       "authorization.notauthorizedtoresource", caid, "CAId"));
@@ -144,12 +147,12 @@ public class CertificateExpirationNotifierWorker extends EmailSendingWorker {
       long now = new Date().getTime();
       if (!cas.isEmpty()) {
         long thresHold = getTimeBeforeExpire();
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Looking for expiring certificates for CAs '"
                   + caIds
                   + "' and certificate profiles '"
-                  + certificateProfileIds
+                  + thecertificateProfileIds
                   + "', with expire treshold: "
                   + thresHold
                   + ". activeNotifiedExpireDateMin: "
@@ -163,7 +166,7 @@ public class CertificateExpirationNotifierWorker extends EmailSendingWorker {
           List<Object[]> fingerprintUsernameList =
               certificateStoreSession.findExpirationInfo(
                   cas,
-                  certificateProfileIds,
+                  thecertificateProfileIds,
                   now,
                   (nextRunTimeStamp + thresHold),
                   (runTimeStamp + thresHold));
@@ -174,7 +177,7 @@ public class CertificateExpirationNotifierWorker extends EmailSendingWorker {
             String fingerprint = (String) next[0];
             String username = (String) next[1];
             // Get the certificate through a session bean
-            log.debug(
+            LOG.debug(
                 "Found a certificate we should notify. Username="
                     + username
                     + ", fp="
@@ -188,13 +191,13 @@ public class CertificateExpirationNotifierWorker extends EmailSendingWorker {
               if (isSendToEndUsers()) {
                 if (userData.getEmail() == null
                     || userData.getEmail().trim().equals("")) {
-                  log.info(
+                  LOG.info(
                       InternalEjbcaResources.getInstance()
                           .getLocalizedMessage(
                               "services.errorworker.errornoemail", username));
                 } else {
                   // Populate end user message
-                  log.debug(
+                  LOG.debug(
                       "Adding to email queue for user: " + userData.getEmail());
                   final UserNotificationParamGen userNotificationParamGen =
                       new UserNotificationParamGen(userData, cert);
@@ -209,7 +212,7 @@ public class CertificateExpirationNotifierWorker extends EmailSendingWorker {
                 }
               }
             } else {
-              log.debug(
+              LOG.debug(
                   "Trying to send notification to user, but no UserData can be"
                       + " found for user '"
                       + username
@@ -224,7 +227,7 @@ public class CertificateExpirationNotifierWorker extends EmailSendingWorker {
                 userData.setUsername(username);
               }
               // Populate admin message
-              log.debug("Adding to email queue for admin");
+              LOG.debug("Adding to email queue for admin");
               final UserNotificationParamGen userNotificationParamGen =
                   new UserNotificationParamGen(userData, cert);
               final String message =
@@ -238,18 +241,18 @@ public class CertificateExpirationNotifierWorker extends EmailSendingWorker {
             }
             if (!isSendToEndUsers() && !isSendToAdmins()) {
               // a little bit of a kludge to make JUnit testing feasible...
-              log.debug("nobody to notify for cert with fp:" + fingerprint);
+              LOG.debug("nobody to notify for cert with fp:" + fingerprint);
               updateStatus(
                   fingerprint,
                   CertificateConstants.CERT_NOTIFIEDABOUTEXPIRATION);
             }
           }
           if (count == 0) {
-            log.debug("No certificates found for notification.");
+            LOG.debug("No certificates found for notification.");
           }
 
         } catch (Exception fe) {
-          log.error("Error running service work: ", fe);
+          LOG.error("Error running service work: ", fe);
           throw new ServiceExecutionFailedException(fe);
         }
         if (isSendToEndUsers()) {
@@ -259,18 +262,18 @@ public class CertificateExpirationNotifierWorker extends EmailSendingWorker {
           sendEmails(adminEmailQueue, ejbs);
         }
       } else {
-        log.info(
+        LOG.info(
             "CAs select collection is empty, there were ids but no names?");
       }
     } else {
-      log.debug("No CAs to check");
+      LOG.debug("No CAs to check");
     }
-    log.trace("<CertificateExpirationNotifierWorker.work ended");
+    LOG.trace("<CertificateExpirationNotifierWorker.work ended");
   }
 
   /**
    * Method that must be implemented by all subclasses to EmailSendingWorker,
-   * used to update status of a certificate, user, or similar
+   * used to update status of a certificate, user, or similar.
    *
    * @param pk primary key of object to update
    * @param status status to update to
@@ -279,14 +282,14 @@ public class CertificateExpirationNotifierWorker extends EmailSendingWorker {
   protected void updateStatus(final String pk, final int status) {
     try {
       if (!certificateStoreSession.setStatus(getAdmin(), pk, status)) {
-        log.error(
+        LOG.error(
             "Error updating certificate status for certificate with"
                 + " fingerprint: "
                 + pk);
       }
     } catch (AuthorizationDeniedException e) {
       // Should not be possible...
-      log.error("Internal admin not authorized: ", e);
+      LOG.error("Internal admin not authorized: ", e);
       throw new RuntimeException(e);
     }
   }

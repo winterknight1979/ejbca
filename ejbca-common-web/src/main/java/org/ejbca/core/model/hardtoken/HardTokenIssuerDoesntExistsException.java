@@ -15,7 +15,7 @@ package org.ejbca.core.model.hardtoken;
 
 /**
  * An exception thrown when someone tries to remove or change a hard token
- * issuer that doesn't exits
+ * issuer that doesn't exits.
  *
  * @author Philip Vendil 2003-01-20
  * @version $Id: HardTokenIssuerDoesntExistsException.java 22139 2015-11-03

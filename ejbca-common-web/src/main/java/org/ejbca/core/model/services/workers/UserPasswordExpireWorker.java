@@ -41,7 +41,8 @@ import org.ejbca.core.model.services.actions.MailActionInfo;
  */
 public class UserPasswordExpireWorker extends EmailSendingWorker {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(UserPasswordExpireWorker.class);
 
   /**
@@ -53,7 +54,7 @@ public class UserPasswordExpireWorker extends EmailSendingWorker {
   @Override
   public void work(final Map<Class<?>, Object> ejbs)
       throws ServiceExecutionFailedException {
-    log.trace(">Worker started");
+    LOG.trace(">Worker started");
     final EndEntityManagementSessionLocal endEntityManagementSession =
         ((EndEntityManagementSessionLocal)
             ejbs.get(EndEntityManagementSessionLocal.class));
@@ -77,7 +78,7 @@ public class UserPasswordExpireWorker extends EmailSendingWorker {
         if (isSendToEndUsers()) {
           if (endEntityInformation.getEmail() == null
               || endEntityInformation.getEmail().trim().equals("")) {
-            log.info(
+            LOG.info(
                 InternalEjbcaResources.getInstance()
                     .getLocalizedMessage(
                         "services.errorworker.errornoemail",
@@ -109,7 +110,7 @@ public class UserPasswordExpireWorker extends EmailSendingWorker {
                   endEntityInformation.getUsername(), mailActionInfo));
         }
       } catch (Exception e) {
-        log.error("Error running service work: ", e);
+        LOG.error("Error running service work: ", e);
         throw new ServiceExecutionFailedException(e);
       }
     }
@@ -120,12 +121,12 @@ public class UserPasswordExpireWorker extends EmailSendingWorker {
     if (isSendToAdmins()) {
       sendEmails(adminEmailQueue, ejbs);
     }
-    log.trace("<Worker ended");
+    LOG.trace("<Worker ended");
   }
 
   /**
    * Method that must be implemented by all subclasses to EmailSendingWorker,
-   * used to update status of a certificate, user, or similar
+   * used to update status of a certificate, user, or similar.
    *
    * @param pk primary key of object to update
    * @param status status to update to

@@ -21,20 +21,21 @@ import java.security.cert.Certificate;
  *     mikekushner $
  */
 public class CertificateRequestResponse {
-
+    /** Param. */
   private final Certificate certificate;
+  /** Param. */
   private final byte[] encoded;
 
   /**
-   * Object is created internally only
+   * Object is created internally only.
    *
-   * @param certificate Cert
-   * @param encoded bool
+   * @param acertificate Cert
+   * @param anencoded bool
    */
   CertificateRequestResponse(
-      final Certificate certificate, final byte[] encoded) {
-    this.certificate = certificate;
-    this.encoded = encoded;
+      final Certificate acertificate, final byte[] anencoded) {
+    this.certificate = acertificate;
+    this.encoded = anencoded;
   }
 
   /**

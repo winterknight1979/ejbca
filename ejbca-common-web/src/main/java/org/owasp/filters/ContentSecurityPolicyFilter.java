@@ -32,22 +32,22 @@ import org.apache.commons.lang.StringUtils;
  */
 public class ContentSecurityPolicyFilter implements Filter {
 
-  /** Configuration member to specify if web app use web fonts */
+  /** Configuration member to specify if web app use web fonts. */
   public static final boolean APP_USE_WEBFONTS = false;
 
-  /** Configuration member to specify if web app use videos or audios */
+  /** Configuration member to specify if web app use videos or audios. */
   public static final boolean APP_USE_AUDIOS_OR_VIDEOS = false;
 
-  /** List CSP HTTP Headers */
+  /** List CSP HTTP Headers. */
   private final List<String> cspHeaders = new ArrayList<String>();
 
-  /** Collection of CSP polcies that will be applied */
+  /** Collection of CSP polcies that will be applied. */
   private String policies = null;
 
-  /** which mode X-FRAME-OPTIONS should have, default DENY */
+  /** which mode X-FRAME-OPTIONS should have, default DENY. */
   private String frameOptionsMode = "DENY";
 
-  /** Used for Script Nonce */
+  /* Used for Script Nonce */
   // private SecureRandom prng = null;
 
   /**
@@ -182,34 +182,40 @@ public class ContentSecurityPolicyFilter implements Filter {
     // document.getElementById('item-id').onclick = callMethod();
     /*
     // Set nonce in session variable instead of on the request only
-    // This is needed because EJBCA uses frames. If/when we do not use frames anymore we can simply set the nonce in every request
+    // This is needed because EJBCA uses frames. If/when we do not use
+     * frames anymore we can simply set the nonce in every request
     // httpRequest.setAttribute("CSP_SCRIPT_NONCE", scriptNonce);
     HttpSession session = httpRequest.getSession(false);
     final String scriptNonce;
-    if ((session == null) || (session.getAttribute("CSP_SCRIPT_NONCE") == null)) {
-        // Generate a new random nonce
-        // --Generate a random number
-        String randomNum = new Integer(this.prng.nextInt()).toString();
-        // --Get its digest
-        MessageDigest sha;
-        try {
-            sha = MessageDigest.getInstance("SHA-1");
-        }
-        catch (NoSuchAlgorithmException e) {
-            throw new ServletException(e);
-        }
-        byte[] digest = sha.digest(randomNum.getBytes());
-        // --Encode it into HEXA
-        scriptNonce = Hex.encodeHexString(digest);
-        // Old style, pre-draft standard "script-nonce" directive"
-        //policiesBuffer.append(";").append("script-nonce ").append(scriptNonce);
-        // Standard script-src directive, including nonce
-        /// Content-Security-Policy: script-src 'self' 'nonce-$RANDOM';
-        // Allow all inline javascript with 'unsafe-inline' and 'unsafe-eval'
-        //policiesBuffer.append(";script-src 'self' 'unsafe-inline' 'unsafe-eval'");
+if ((session == null) || (session.getAttribute("CSP_SCRIPT_NONCE") == null)) {
+    // Generate a new random nonce
+    // --Generate a random number
+    String randomNum = new Integer(this.prng.nextInt()).toString();
+    // --Get its digest
+    MessageDigest sha;
+    try {
+        sha = MessageDigest.getInstance("SHA-1");
+    }
+    catch (NoSuchAlgorithmException e) {
+        throw new ServletException(e);
+    }
+    byte[] digest = sha.digest(randomNum.getBytes());
+    // --Encode it into HEXA
+    scriptNonce = Hex.encodeHexString(digest);
+    // Old style, pre-draft standard "script-nonce" directive"
+    //policiesBuffer.append(";").append("script-nonce ").append(scriptNonce);
+    // Standard script-src directive, including nonce
+    /// Content-Security-Policy: script-src 'self' 'nonce-$RANDOM';
+    // Allow all inline javascript with '
+     * unsafe-inline' and 'unsafe-eval'
+
+        //policiesBuffer.append(";script-src 'self'
+         * 'unsafe-inline' 'unsafe-eval'");"
+
         // Only allow in-line javascript with nonces
-        // --Made available script nonce in view app layer, so we can include it in scripts by retrieving this parameter
-        //httpRequest.setAttribute("CSP_SCRIPT_NONCE", scriptNonce);
+        // --Made available script nonce in view app layer,
+         *  so we can include it in scripts by retrieving this parameter
+         *       //httpRequest.setAttribute("CSP_SCRIPT_NONCE", scriptNonce);
         if (session == null) {
             session = httpRequest.getSession();
         }
@@ -218,7 +224,8 @@ public class ContentSecurityPolicyFilter implements Filter {
         scriptNonce = (String)session.getAttribute("CSP_SCRIPT_NONCE");
 
     }
-    policiesBuffer.append("; script-src 'self' 'nonce-").append(scriptNonce).append("'");
+    policiesBuffer.append("; script-src 'self' 'nonce-")
+    .append(scriptNonce).append("'");
     */
 
     // Add policies to all HTTP headers
@@ -227,10 +234,12 @@ public class ContentSecurityPolicyFilter implements Filter {
     }
     // Also add X-XSS-Protection, newer header.
     // See https://www.owasp.org/index.php/List_of_useful_HTTP_headers
-    // https://blogs.msdn.microsoft.com/ie/2008/07/02/ie8-security-part-iv-the-xss-filter/
+    // https://blogs.msdn.microsoft.com/ie/2008/07/02/
+    // ie8-security-part-iv-the-xss-filter/
     httpResponse.setHeader("X-XSS-Protection", "1; mode=block");
     // Also X-Content-Type-Options, see
-    // https://blogs.msdn.microsoft.com/ie/2008/09/02/ie8-security-part-vi-beta-2-update/
+    // https://blogs.msdn.microsoft.com/ie/2008/09/02/
+    // ie8-security-part-vi-beta-2-update/
     httpResponse.setHeader("X-Content-Type-Options", "nosniff");
     // Also X-FRAME-OPTIONS, see
     // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options

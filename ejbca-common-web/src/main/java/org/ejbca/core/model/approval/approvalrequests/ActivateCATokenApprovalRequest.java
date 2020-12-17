@@ -42,21 +42,25 @@ import org.ejbca.core.model.approval.profile.ApprovalProfile;
 public class ActivateCATokenApprovalRequest extends ApprovalRequest {
 
   private static final long serialVersionUID = -1L;
-  private static final Logger log =
+  /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(ActivateCATokenApprovalRequest.class);
+  /** Patam. */
   private static final int LATEST_VERSION = 1;
 
+  /** Patam. */
   private String cAName = null;
+  /** Patam. */
   private String authenticationCode = null;
 
-  /** Constructor used in externalization only */
-  public ActivateCATokenApprovalRequest() {}
+  /** Constructor used in externalization only. */
+  public ActivateCATokenApprovalRequest() { }
 
   /**
-   * Construct an approval request for the activation of a CA Token
+   * Construct an approval request for the activation of a CA Token.
    *
-   * @param cAName CA
-   * @param authenticationCode Auth
+   * @param acAName CA
+   * @param anauthenticationCode Auth
    * @param requestAdmin admin
    * @param cAId CA
    * @param endEntityProfileId Profile
@@ -64,8 +68,8 @@ public class ActivateCATokenApprovalRequest extends ApprovalRequest {
    * @param certificateProfileId Cert
    */
   public ActivateCATokenApprovalRequest(
-      final String cAName,
-      final String authenticationCode,
+      final String acAName,
+      final String anauthenticationCode,
       final AuthenticationToken requestAdmin,
       final int cAId,
       final int endEntityProfileId,
@@ -78,8 +82,8 @@ public class ActivateCATokenApprovalRequest extends ApprovalRequest {
         cAId,
         endEntityProfileId,
         approvalProfile);
-    this.cAName = cAName;
-    this.authenticationCode = authenticationCode;
+    this.cAName = acAName;
+    this.authenticationCode = anauthenticationCode;
   }
 
   @Override
@@ -99,7 +103,7 @@ public class ActivateCATokenApprovalRequest extends ApprovalRequest {
    */
   public void execute(final CAAdminSession caAdminSession)
       throws ApprovalRequestExecutionException {
-    log.debug(
+    LOG.debug(
         "Executing "
             + ApprovalDataVO.APPROVALTYPENAMES[getApprovalType()]
             + " ("
@@ -128,6 +132,7 @@ public class ActivateCATokenApprovalRequest extends ApprovalRequest {
    * Method that should generate an approval id for this type of approval, the
    * same request i.e the same admin want's to do the same thing twice should
    * result in the same approvalId.
+   * @return ID
    */
   public int generateApprovalId() {
     String idString =
@@ -139,6 +144,7 @@ public class ActivateCATokenApprovalRequest extends ApprovalRequest {
     return idString.hashCode();
   }
 
+  @Override
   public int getApprovalType() {
     return ApprovalDataVO.APPROVALTYPE_ACTIVATECATOKEN;
   }
@@ -180,12 +186,13 @@ public class ActivateCATokenApprovalRequest extends ApprovalRequest {
    * Should return true if the request if of the type that should be executed by
    * the last approver.
    *
-   * <p>False if the request admin should do a polling action to try again.
+   * @return False if the request admin should do a polling action to try again.
    */
   public boolean isExecutable() {
     return true;
   }
 
+  @Override
   public void writeExternal(final ObjectOutput out) throws IOException {
     super.writeExternal(out);
     out.writeInt(LATEST_VERSION);
@@ -193,6 +200,8 @@ public class ActivateCATokenApprovalRequest extends ApprovalRequest {
     out.writeObject(authenticationCode);
   }
 
+
+  @Override
   public void readExternal(final ObjectInput in)
       throws IOException, ClassNotFoundException {
     super.readExternal(in);

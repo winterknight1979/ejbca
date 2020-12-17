@@ -18,7 +18,7 @@ import org.ejbca.core.model.InternalEjbcaResources;
 import org.ejbca.core.model.services.BaseInterval;
 
 /**
- * Class implementing a peridical IInterval for monitoring services
+ * Class implementing a peridical IInterval for monitoring services.
  *
  * <p>The main method is getTimeToExecution
  *
@@ -27,46 +27,61 @@ import org.ejbca.core.model.services.BaseInterval;
  */
 public class PeriodicalInterval extends BaseInterval {
 
-  private static final Logger log = Logger.getLogger(PeriodicalInterval.class);
-  /** Internal localization of logs and errors */
-  private static final InternalEjbcaResources intres =
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(PeriodicalInterval.class);
+  /** Internal localization of logs and errors. */
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
+  /** Param. */
   public static final String PROP_UNIT = "interval.periodical.unit";
+  /** Param. */
   public static final String PROP_VALUE = "interval.periodical.value";
 
+  /** Param. */
   public static final String UNIT_SECONDS = "SECONDS";
+  /** Param. */
   public static final String UNIT_MINUTES = "MINUTES";
+  /** Param. */
   public static final String UNIT_HOURS = "HOURS";
+  /** Param. */
   public static final String UNIT_DAYS = "DAYS";
 
+  /** Param. */
   public static final int UNITVAL_SECONDS = 1;
+  /** Param. */
   public static final int UNITVAL_MINUTES = 60;
+  /** Param. */
   public static final int UNITVAL_HOURS = 3600;
+  /** Param. */
   public static final int UNITVAL_DAYS = 86400;
 
+  /** Param. */
   public static final String[] AVAILABLE_UNITS = {
     UNIT_SECONDS, UNIT_MINUTES, UNIT_HOURS, UNIT_DAYS
   };
+  /** Param. */
   public static final int[] AVAILABLE_UNITSVALUES = {
     UNITVAL_SECONDS, UNITVAL_MINUTES, UNITVAL_HOURS, UNITVAL_DAYS
   };
 
+  /** Param. */
   private transient int interval = 0;
 
   /**
    * Methods that reads the interval from the configured properties and
-   * transforms it into seconds
+   * transforms it into seconds.
    *
    * @see org.ejbca.core.model.services.IInterval#getTimeToExecution()
    */
+  @Override
   public long getTimeToExecution() {
-    log.trace(">PeriodicalInterval.getTimeToExecution()");
+    LOG.trace(">PeriodicalInterval.getTimeToExecution()");
     if (interval == 0) {
       String unit = properties.getProperty(PROP_UNIT);
       if (unit == null) {
         String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "services.interval.errorconfig", serviceName, "UNIT");
         throw new EJBException(msg);
       }
@@ -79,7 +94,7 @@ public class PeriodicalInterval extends BaseInterval {
       }
       if (unitval == 0) {
         String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "services.interval.errorconfig", serviceName, "UNIT");
         throw new EJBException(msg);
       }
@@ -90,20 +105,20 @@ public class PeriodicalInterval extends BaseInterval {
         intvalue = Integer.parseInt(value);
       } catch (NumberFormatException e) {
         String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "services.interval.errorconfig", serviceName, "VALUE");
         throw new EJBException(msg);
       }
 
       if (intvalue == 0) {
         String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "services.interval.errorconfig", serviceName, "UNIT");
         throw new EJBException(msg);
       }
       interval = intvalue * unitval;
     }
-    log.debug("PeriodicalInterval.getTimeToExecution() : " + interval);
+    LOG.debug("PeriodicalInterval.getTimeToExecution() : " + interval);
     return interval;
   }
 }

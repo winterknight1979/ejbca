@@ -78,7 +78,8 @@ import org.ejbca.core.protocol.cmp.authentication.RegTokenPasswordExtractor;
 public class CrmfRequestMessage extends BaseCmpMessage
     implements ICrmfRequestMessage {
 
-  private static final Logger log = Logger.getLogger(CrmfRequestMessage.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(CrmfRequestMessage.class);
 
   /**
    * Determines if a de-serialized file is compatible with this class.
@@ -90,23 +91,31 @@ public class CrmfRequestMessage extends BaseCmpMessage
    */
   static final long serialVersionUID = 1002L;
 
-  public static final ASN1ObjectIdentifier id_regCtrl_protocolEncrKey =
+  /** Param. */
+  public static final ASN1ObjectIdentifier ID_REGCTRL_PROTOCOL_ENCRKEY =
       CRMFObjectIdentifiers.id_regCtrl.branch("6");
 
+  /** Param. */
   private int requestType = 0;
+  /** Param. */
   private int requestId = 0;
+  /** Param. */
   private String b64SenderNonce = null;
+  /** Param. */
   private String b64TransId = null;
-  /** Default CA DN */
+  /** Default CA DN. */
   private String defaultCADN = null;
 
+  /** Param. */
   private boolean allowRaVerifyPopo = false;
+  /** Param. */
   private String extractUsernameComponent = null;
-  /** manually set username */
+  /** manually set username. */
   private String username = null;
-  /** manually set password */
+  /** manually set password. */
   private String password = null;
-  /** manually set public and private key, if keys have been server generated */
+  /** manually set public and private key,
+   * if keys have been server generated. */
   private transient KeyPair serverGenKeyPair;
 
   /**
@@ -116,6 +125,7 @@ public class CrmfRequestMessage extends BaseCmpMessage
    */
   private byte[] pkimsgbytes = null;
 
+  /** Param. */
   private transient CertReqMsg req = null;
 
   /**
@@ -131,41 +141,46 @@ public class CrmfRequestMessage extends BaseCmpMessage
     return this.req;
   }
 
-  /** preferred digest algorithm to use in replies, if applicable */
+  /** preferred digest algorithm to use in replies, if applicable. */
   private String preferredDigestAlg = CMSSignedGenerator.DIGEST_SHA1;
 
-  public CrmfRequestMessage() {}
+  /** Default. */
+  public CrmfRequestMessage() { }
 
   /**
-   * @param pkiMessage PKIMessage
-   * @param defaultCADN possibility to enforce a certain CA, instead of taking
+   * @param apkiMessage PKIMessage
+   * @param adefaultCADN possibility to enforce a certain CA, instead of taking
    *     the CA subject DN from the request, if set to null the CA subject DN is
    *     taken from the request
-   * @param allowRaVerifyPopo true if we allows the user/RA to specify the POP
+   * @param anallowRaVerifyPopo true if we allows the user/RA to specify the POP
    *     should not be verified
-   * @param extractUsernameComponent Defines which component from the DN should
+   * @param theextractUsernameComponent Defines which component from the DN
+   *      should
    *     be used as username in EJBCA. Can be CN, UID or nothing. Null means
    *     that the username should have been pre-set, or that here it is the same
    *     as CN.
    */
   public CrmfRequestMessage(
-      final PKIMessage pkiMessage,
-      final String defaultCADN,
-      final boolean allowRaVerifyPopo,
-      final String extractUsernameComponent) {
-    if (log.isTraceEnabled()) {
-      log.trace(">CrmfRequestMessage");
+      final PKIMessage apkiMessage,
+      final String adefaultCADN,
+      final boolean anallowRaVerifyPopo,
+      final String theextractUsernameComponent) {
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">CrmfRequestMessage");
     }
-    setPKIMessage(pkiMessage);
-    this.defaultCADN = defaultCADN;
-    this.allowRaVerifyPopo = allowRaVerifyPopo;
-    this.extractUsernameComponent = extractUsernameComponent;
+    setPKIMessage(apkiMessage);
+    this.defaultCADN = adefaultCADN;
+    this.allowRaVerifyPopo = anallowRaVerifyPopo;
+    this.extractUsernameComponent = theextractUsernameComponent;
     init();
-    if (log.isTraceEnabled()) {
-      log.trace("<CrmfRequestMessage");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<CrmfRequestMessage");
     }
   }
 
+  /**
+   * @return Message
+   */
   public PKIMessage getPKIMessage() {
     if (getMessage() == null) {
       setMessage(PKIMessage.getInstance(pkimsgbytes));
@@ -173,11 +188,14 @@ public class CrmfRequestMessage extends BaseCmpMessage
     return getMessage();
   }
 
+  /**
+   * @param msg Message
+   */
   public void setPKIMessage(final PKIMessage msg) {
     try {
       this.pkimsgbytes = msg.toASN1Primitive().getEncoded();
     } catch (IOException e) {
-      log.error("Error getting encoded bytes from PKIMessage: ", e);
+      LOG.error("Error getting encoded bytes from PKIMessage: ", e);
     }
     setMessage(msg);
   }
@@ -265,7 +283,7 @@ public class CrmfRequestMessage extends BaseCmpMessage
         for (int i = 0; i < avs.length; i++) {
           if (avs[i]
               .getType()
-              .equals(CrmfRequestMessage.id_regCtrl_protocolEncrKey)) {
+              .equals(CrmfRequestMessage.ID_REGCTRL_PROTOCOL_ENCRKEY)) {
             ASN1Encodable asn1 = avs[i].getValue();
             if (asn1 != null) {
               SubjectPublicKeyInfo spi = SubjectPublicKeyInfo.getInstance(asn1);
@@ -286,8 +304,8 @@ public class CrmfRequestMessage extends BaseCmpMessage
   }
 
   @Override
-  public void setServerGenKeyPair(final KeyPair serverGenKeyPair) {
-    this.serverGenKeyPair = serverGenKeyPair;
+  public void setServerGenKeyPair(final KeyPair aserverGenKeyPair) {
+    this.serverGenKeyPair = aserverGenKeyPair;
   }
 
   /**
@@ -311,8 +329,8 @@ public class CrmfRequestMessage extends BaseCmpMessage
     if (regTokenExtractor.verifyOrExtract(getPKIMessage(), null)) {
       this.password = regTokenExtractor.getAuthenticationString();
     } else {
-      if (log.isDebugEnabled()) {
-        log.debug(regTokenExtractor.getErrorMessage());
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(regTokenExtractor.getErrorMessage());
       }
     }
     return this.password;
@@ -321,10 +339,10 @@ public class CrmfRequestMessage extends BaseCmpMessage
   /**
    * force a username, i.e. ignore the DN/username in the request
    *
-   * @param username User
+   * @param ausername User
    */
-  public void setUsername(final String username) {
-    this.username = username;
+  public void setUsername(final String ausername) {
+    this.username = ausername;
   }
 
   @Override
@@ -341,17 +359,20 @@ public class CrmfRequestMessage extends BaseCmpMessage
       }
       String name = CertTools.getPartFromDN(getRequestDN(), component);
       if (name == null) {
-        log.error("No component " + component + " in DN: " + getRequestDN());
+        LOG.error("No component " + component + " in DN: " + getRequestDN());
       } else {
         ret = name;
       }
     }
-    if (log.isDebugEnabled()) {
-      log.debug("Username is: " + ret);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Username is: " + ret);
     }
     return ret;
   }
 
+  /**
+   * @param issuer issuer
+   */
   public void setIssuerDN(final String issuer) {
     this.defaultCADN = issuer;
   }
@@ -366,8 +387,8 @@ public class CrmfRequestMessage extends BaseCmpMessage
     } else {
       ret = defaultCADN;
     }
-    if (log.isDebugEnabled()) {
-      log.debug("Issuer DN is: " + ret);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Issuer DN is: " + ret);
     }
     return ret;
   }
@@ -415,8 +436,8 @@ public class CrmfRequestMessage extends BaseCmpMessage
     if (name != null) {
       ret = CertTools.stringToBCDNString(name.toString());
     }
-    if (log.isDebugEnabled()) {
-      log.debug("Request DN is: " + ret);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Request DN is: " + ret);
     }
     return ret;
   }
@@ -428,8 +449,8 @@ public class CrmfRequestMessage extends BaseCmpMessage
     if (name != null) {
       name = X500Name.getInstance(new CeSecoreNameStyle(), name);
     }
-    if (log.isDebugEnabled()) {
-      log.debug("Request X500Name is: " + name);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Request X500Name is: " + name);
     }
     return name;
   }
@@ -445,8 +466,8 @@ public class CrmfRequestMessage extends BaseCmpMessage
         ret = CertTools.getAltNameStringFromExtension(ext);
       }
     }
-    if (log.isDebugEnabled()) {
-      log.debug("Request altName is: " + ret);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Request altName is: " + ret);
     }
     return ret;
   }
@@ -462,8 +483,8 @@ public class CrmfRequestMessage extends BaseCmpMessage
         ret = time.getDate();
       }
     }
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Request validity notBefore is: "
               + (ret == null ? "null" : ret.toString()));
     }
@@ -481,8 +502,8 @@ public class CrmfRequestMessage extends BaseCmpMessage
         ret = time.getDate();
       }
     }
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Request validity notAfter is: "
               + (ret == null ? "null" : ret.toString()));
     }
@@ -493,11 +514,11 @@ public class CrmfRequestMessage extends BaseCmpMessage
   public Extensions getRequestExtensions() {
     final CertTemplate templ = getReq().getCertReq().getCertTemplate();
     final Extensions exts = templ.getExtensions();
-    if (log.isDebugEnabled()) {
+    if (LOG.isDebugEnabled()) {
       if (exts != null) {
-        log.debug("Request contains extensions");
+        LOG.debug("Request contains extensions");
       } else {
-        log.debug("Request does not contain extensions");
+        LOG.debug("Request does not contain extensions");
       }
     }
     return exts;
@@ -509,14 +530,14 @@ public class CrmfRequestMessage extends BaseCmpMessage
           NoSuchProviderException {
     boolean ret = false;
     final ProofOfPossession pop = getReq().getPopo();
-    if (log.isDebugEnabled()) {
-      log.debug("allowRaVerifyPopo: " + allowRaVerifyPopo);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("allowRaVerifyPopo: " + allowRaVerifyPopo);
       if (pop != null) {
-        log.debug(
+        LOG.debug(
             "pop.getRaVerified(): "
                 + (pop.getType() == ProofOfPossession.TYPE_RA_VERIFIED));
       } else {
-        log.debug("No POP in message");
+        LOG.debug("No POP in message");
       }
     }
     if (pop == null) {
@@ -530,24 +551,24 @@ public class CrmfRequestMessage extends BaseCmpMessage
       //   publicKey BIT STRING }
       SubjectPublicKeyInfo pkinfo = getRequestSubjectPublicKeyInfo();
       if (pkinfo == null) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "POP is not present, but neither is a SubjectPublicKeyInfo, so"
                   + " POP is OK...for server generated keys.");
         }
         ret = true; // public key null, this is OK when there is no POP
       } else if (pkinfo.getAlgorithm() != null
           && pkinfo.getPublicKeyData().intValue() == 0) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "POP is not present, but SubjectPublicKeyInfo is, with an algId"
                   + " followed by zero length data, so POP is OK...for server"
                   + " generated keys.");
         }
         ret = true;
       } else {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "POP is not present, but SubjectPublicKey is, but not with an"
                   + " algId followed by zero length data, POP is not OK...not"
                   + " even for server generated keys.");
@@ -565,8 +586,8 @@ public class CrmfRequestMessage extends BaseCmpMessage
         // Use of POPOSigningKeyInput or not, as described in RFC4211, section
         // 4.1.
         if (pski == null) {
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "Using CertRequest as POPO input because POPOSigningKeyInput"
                     + " is missing.");
           }
@@ -574,18 +595,18 @@ public class CrmfRequestMessage extends BaseCmpMessage
         } else {
           // Assume POPOSigningKeyInput with the public key and name, MUST be
           // the same as in the request according to RFC4211
-          if (log.isDebugEnabled()) {
-            log.debug("Using POPOSigningKeyInput as POPO input.");
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("Using POPOSigningKeyInput as POPO input.");
           }
-          final CertRequest req = getReq().getCertReq();
+          final CertRequest areq = getReq().getCertReq();
           // If subject is present in cert template it must be the same as in
           // POPOSigningKeyInput
-          final X500Name subject = req.getCertTemplate().getSubject();
+          final X500Name subject = areq.getCertTemplate().getSubject();
           if (subject != null
               && !subject
                   .toString()
                   .equals(pski.getSender().getName().toString())) {
-            log.info(
+            LOG.info(
                 "Subject '"
                     + subject.toString()
                     + "', is not equal to '"
@@ -595,11 +616,11 @@ public class CrmfRequestMessage extends BaseCmpMessage
           }
           // If public key is present in cert template it must be the same as in
           // POPOSigningKeyInput
-          final SubjectPublicKeyInfo pk = req.getCertTemplate().getPublicKey();
+          final SubjectPublicKeyInfo pk = areq.getCertTemplate().getPublicKey();
           if (pk != null
               && !Arrays.areEqual(
                   pk.getEncoded(), pski.getPublicKey().getEncoded())) {
-            log.info(
+            LOG.info(
                 "Subject key in cert template, is not equal to subject key in"
                     + " POPOSigningKeyInput.");
             protObject = null; // pski is not a valid protection object
@@ -611,11 +632,11 @@ public class CrmfRequestMessage extends BaseCmpMessage
           new DEROutputStream(bao).writeObject(protObject);
           final byte[] protBytes = bao.toByteArray();
           final AlgorithmIdentifier algId = sk.getAlgorithmIdentifier();
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "POP protection bytes length: "
                     + (protBytes != null ? protBytes.length : "null"));
-            log.debug(
+            LOG.debug(
                 "POP algorithm identifier is: " + algId.getAlgorithm().getId());
           }
           final Signature sig =
@@ -624,14 +645,14 @@ public class CrmfRequestMessage extends BaseCmpMessage
           sig.update(protBytes);
           final DERBitString bs = sk.getSignature();
           ret = sig.verify(bs.getBytes());
-          if (log.isDebugEnabled()) {
-            log.debug("POP verify returns: " + ret);
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("POP verify returns: " + ret);
           }
         }
       } catch (IOException e) {
-        log.error("Error encoding CertReqMsg: ", e);
+        LOG.error("Error encoding CertReqMsg: ", e);
       } catch (SignatureException e) {
-        log.error("SignatureException verifying POP: ", e);
+        LOG.error("SignatureException verifying POP: ", e);
       }
     }
     return ret;
@@ -644,7 +665,7 @@ public class CrmfRequestMessage extends BaseCmpMessage
 
   @Override
   public void setKeyInfo(
-      final Certificate cert, final PrivateKey key, final String provider) {}
+      final Certificate cert, final PrivateKey key, final String provider) { }
 
   @Override
   public int getErrorNo() {
@@ -656,6 +677,7 @@ public class CrmfRequestMessage extends BaseCmpMessage
     return null;
   }
 
+  @Override
   public void setSenderNonce(final String b64nonce) {
     this.b64SenderNonce = b64nonce;
   }
@@ -665,6 +687,7 @@ public class CrmfRequestMessage extends BaseCmpMessage
     return b64SenderNonce;
   }
 
+  @Override
   public void setTransactionId(final String b64transid) {
     this.b64TransId = b64transid;
   }
@@ -684,6 +707,9 @@ public class CrmfRequestMessage extends BaseCmpMessage
     return preferredDigestAlg;
   }
 
+  /**
+   * @param digestAlgo Alg
+   */
   public void setPreferredDigestAlg(final String digestAlgo) {
     if (StringUtils.isNotEmpty(digestAlgo)) {
       preferredDigestAlg = digestAlgo;
@@ -705,7 +731,7 @@ public class CrmfRequestMessage extends BaseCmpMessage
     return requestId;
   }
 
-  // Returns the subject DN from the request, used from CrmfMessageHandler
+  /** @return the subject DN from the request, used from CrmfMessageHandler */
   public String getSubjectDN() {
     String ret = null;
     final CertTemplate templ = getReq().getCertReq().getCertTemplate();
@@ -727,8 +753,8 @@ public class CrmfRequestMessage extends BaseCmpMessage
   @Override
   public void setResponseKeyInfo(final PrivateKey key, final String provider) {
     // These values are never used for this type of message
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Key and provider were set for a CrmfRequestMessage. These values"
               + " are not used and will be ignored.");
     }

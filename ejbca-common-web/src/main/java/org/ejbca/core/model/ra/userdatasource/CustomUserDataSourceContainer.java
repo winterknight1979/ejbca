@@ -34,17 +34,24 @@ import org.cesecore.authentication.tokens.AuthenticationToken;
 public class CustomUserDataSourceContainer extends BaseUserDataSource {
   private static final long serialVersionUID = -1356929899319563228L;
 
+  /** Param. */
   private ICustomUserDataSource customuserdatasource = null;
 
+  /** Param. */
   public static final float LATEST_VERSION = 1;
 
+  /** Param. */
   public static final int TYPE_CUSTOMUSERDATASOURCECONTAINER = 1;
 
   // Default Values
 
+  /** Param. */
   protected static final String CLASSPATH = "classpath";
+  /** Param. */
   protected static final String PROPERTYDATA = "propertydata";
 
+  /**
+   * Default constructor. */
   public CustomUserDataSourceContainer() {
     super();
     data.put(TYPE, Integer.valueOf(TYPE_CUSTOMUSERDATASOURCECONTAINER));
@@ -80,6 +87,10 @@ public class CustomUserDataSourceContainer extends BaseUserDataSource {
     data.put(PROPERTYDATA, propertydata);
   }
 
+  /**
+   * @return Props
+   * @throws IOException Fail
+   */
   public Properties getProperties() throws IOException {
     Properties prop = new Properties();
     prop.load(new ByteArrayInputStream(getPropertyData().getBytes()));
@@ -111,6 +122,7 @@ public class CustomUserDataSourceContainer extends BaseUserDataSource {
   }
 
   /** @see org.ejbca.core.model.ra.userdatasource.BaseUserDataSource#clone() */
+  @Override
   @SuppressWarnings({"unchecked", "rawtypes"})
   public Object clone() throws CloneNotSupportedException {
     CustomUserDataSourceContainer clone = new CustomUserDataSourceContainer();
@@ -126,6 +138,7 @@ public class CustomUserDataSourceContainer extends BaseUserDataSource {
     return clone;
   }
 
+  @Override
   public float getLatestVersion() {
     return LATEST_VERSION;
   }
@@ -135,6 +148,7 @@ public class CustomUserDataSourceContainer extends BaseUserDataSource {
    *     org.ejbca.core.model.ra.userdatasource.BaseUserDataSource#fetch(AuthenticationToken,
    *     String)
    */
+  @Override
   public Collection<UserDataSourceVO> fetch(
       final AuthenticationToken admin, final String searchstring)
       throws UserDataSourceException {
@@ -147,6 +161,7 @@ public class CustomUserDataSourceContainer extends BaseUserDataSource {
    *     org.ejbca.core.model.ra.userdatasource.BaseUserDataSource#removeUserData(AuthenticationToken,
    *     String, boolean)
    */
+  @Override
   public boolean removeUserData(
       final AuthenticationToken admin,
       final String searchstring,
@@ -157,16 +172,18 @@ public class CustomUserDataSourceContainer extends BaseUserDataSource {
   }
 
   /** @see org.ejbca.core.model.ra.userdatasource.BaseUserDataSource */
+  @Override
   public void testConnection(final AuthenticationToken admin)
       throws UserDataSourceConnectionException {
     getCustomUserDataSource().testConnection(admin);
   }
 
   /**
-   * Resets the current custom user data source
+   * Resets the current custom user data source.
    *
    * @see org.cesecore.internal.UpgradeableDataHashMap#saveData()
    */
+  @Override
   public Object saveData() {
     this.customuserdatasource = null;
     return super.saveData();
