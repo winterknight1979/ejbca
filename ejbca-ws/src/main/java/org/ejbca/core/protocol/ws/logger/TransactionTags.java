@@ -13,14 +13,15 @@
 package org.ejbca.core.protocol.ws.logger;
 
 public enum TransactionTags {
-    METHOD,
-    ERROR_MESSAGE,
-    ADMIN_DN,
-    ADMIN_ISSUER_DN,
-    ADMIN_REMOTE_IP,
-    ADMIN_FORWARDED_IP;
-    @SuppressWarnings("el-syntax")
-    public String getTag() {
-        return "${"+toString()+"}";
-    }
+  METHOD,
+  ERROR_MESSAGE,
+  ADMIN_DN,
+  ADMIN_ISSUER_DN,
+  ADMIN_REMOTE_IP,
+  ADMIN_FORWARDED_IP;
+
+  @SuppressWarnings("el-syntax")
+  public String getTag() {
+    return "${" + toString() + "}";
+  }
 }
