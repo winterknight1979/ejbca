@@ -16,44 +16,46 @@ package org.ejbca.core.protocol.cmp.authentication;
 import org.bouncycastle.asn1.cmp.PKIMessage;
 
 /**
- * Interface for authentication modules of CMP Messages
- * 
- * @version $Id: ICMPAuthenticationModule.java 22139 2015-11-03 10:41:56Z mikekushner $
+ * Interface for authentication modules of CMP Messages.
  *
+ * @version $Id: ICMPAuthenticationModule.java 22139 2015-11-03 10:41:56Z
+ *     mikekushner $
  */
 public interface ICMPAuthenticationModule {
 
-    /**
-     * Verifies that msg was sent by a trusted source.
-     * 
-     * @param msg PKIMessage to verify
-     * @param username that the PKIMessage should match or null
-     * @return true if msg was sent by a trusted source, and false otherwise
-     */
-    boolean verifyOrExtract(PKIMessage msg, String username);
-    
-    /**
-     * Returns the name of the used authentication module.
-     * 
-     * @return the name of the used authentication module.
-     */
-    String getName();
-    
-    /**
-     * Returns the password that was successfully used to authenticate the message.
-     * 
-     * This password is set if verifyOrExtract() returns true.
-     * 
-     * @return the password that was successfully used to authenticate the message. Null if the authentication had failed.
-     */
-    String getAuthenticationString();
-    
-    /**
-     * Returns the error message resulted in failing to authenticate the message.
-     * 
-     * The error message should be set if verifyOrExtract() returns false.
-     * 
-     * @return The error message as String. Null if no error had occurred
-     */
-    String getErrorMessage();
+  /**
+   * Verifies that msg was sent by a trusted source.
+   *
+   * @param msg PKIMessage to verify
+   * @param username that the PKIMessage should match or null
+   * @return true if msg was sent by a trusted source, and false otherwise
+   */
+  boolean verifyOrExtract(PKIMessage msg, String username);
+
+  /**
+   * Returns the name of the used authentication module.
+   *
+   * @return the name of the used authentication module.
+   */
+  String getName();
+
+  /**
+   * Returns the password that was successfully used to authenticate the
+   * message.
+   *
+   * <p>This password is set if verifyOrExtract() returns true.
+   *
+   * @return the password that was successfully used to authenticate the
+   *     message. Null if the authentication had failed.
+   */
+  String getAuthenticationString();
+
+  /**
+   * Returns the error message resulted in failing to authenticate the message.
+   *
+   * <p>The error message should be set if verifyOrExtract() returns false.
+   *
+   * @return The error message as String. Null if no error had occurred
+   */
+  String getErrorMessage();
 }

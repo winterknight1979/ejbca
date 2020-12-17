@@ -3,7 +3,6 @@ package org.ejbca.core.protocol.cmp;
 import java.security.PrivateKey;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
-
 import org.bouncycastle.asn1.crmf.EncryptedValue;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.cert.crmf.CRMFException;
@@ -12,44 +11,47 @@ import org.bouncycastle.operator.KeyWrapper;
 import org.bouncycastle.operator.OutputEncryptor;
 
 /**
- * JCA convenience class for EncryptedValueBuilder
-  * @deprecated Copied from BCPKIX 1.59b03, can be removed when we use BC 1.59
+ * JCA convenience class for EncryptedValueBuilder.
+ *
+ * @deprecated Copied from BCPKIX 1.59b03, can be removed when we use BC 1.59
  */
 @Deprecated
-public class JcaEncryptedValueBuilder
-    extends EncryptedValueBuilder
-{
-    public JcaEncryptedValueBuilder(KeyWrapper wrapper, OutputEncryptor encryptor)
-    {
-        super(wrapper, encryptor);
-    }
-
+public class JcaEncryptedValueBuilder extends EncryptedValueBuilder {
     /**
-     * Build an EncryptedValue structure containing the passed in certificate.
-     *
-     * @param certificate the certificate to be encrypted.
-     * @return an EncryptedValue containing the encrypted certificate.
-     * @throws CertificateEncodingException fail
-     * @throws CRMFException on a failure to encrypt the data, or wrap the symmetric key for this value.
+     * @param wrapper wrapper
+     * @param encryptor encryptor
      */
-    public EncryptedValue build(X509Certificate certificate)
-        throws CertificateEncodingException, CRMFException
-    {
-        return build(new JcaX509CertificateHolder(certificate));
-    }
+  public JcaEncryptedValueBuilder(
+      final KeyWrapper wrapper, final OutputEncryptor encryptor) {
+    super(wrapper, encryptor);
+  }
 
-    /**
-     * Build an EncryptedValue structure containing the private key details contained in
-     * the passed PrivateKey.
-     *
-     * @param privateKey  a PKCS#8 private key info structure.
-     * @return an EncryptedValue containing an EncryptedPrivateKeyInfo structure.
-     * @throws CertificateEncodingException fail
-     * @throws CRMFException on a failure to encrypt the data, or wrap the symmetric key for this value.
-     */
-    public EncryptedValue build(PrivateKey privateKey)
-        throws CertificateEncodingException, CRMFException
-    {
-        return build(PrivateKeyInfo.getInstance(privateKey.getEncoded()));
-    }
+  /**
+   * Build an EncryptedValue structure containing the passed in certificate.
+   *
+   * @param certificate the certificate to be encrypted.
+   * @return an EncryptedValue containing the encrypted certificate.
+   * @throws CertificateEncodingException fail
+   * @throws CRMFException on a failure to encrypt the data, or wrap the
+   *     symmetric key for this value.
+   */
+  public EncryptedValue build(final X509Certificate certificate)
+      throws CertificateEncodingException, CRMFException {
+    return build(new JcaX509CertificateHolder(certificate));
+  }
+
+  /**
+   * Build an EncryptedValue structure containing the private key details
+   * contained in the passed PrivateKey.
+   *
+   * @param privateKey a PKCS#8 private key info structure.
+   * @return an EncryptedValue containing an EncryptedPrivateKeyInfo structure.
+   * @throws CertificateEncodingException fail
+   * @throws CRMFException on a failure to encrypt the data, or wrap the
+   *     symmetric key for this value.
+   */
+  public EncryptedValue build(final PrivateKey privateKey)
+      throws CertificateEncodingException, CRMFException {
+    return build(PrivateKeyInfo.getInstance(privateKey.getEncoded()));
+  }
 }

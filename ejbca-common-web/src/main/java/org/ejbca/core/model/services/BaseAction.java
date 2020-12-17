@@ -17,25 +17,20 @@ import java.util.Properties;
 /**
  * Help base class that manages that implements the init method of the interface
  * and manages the properties.
- * 
  *
  * @version $Id: BaseAction.java 26387 2017-08-22 14:14:36Z mikekushner $
  */
 public abstract class BaseAction implements IAction {
 
-	protected Properties properties = null;
-	protected String serviceName = null;
-	
-	/**
-	 * @see org.ejbca.core.model.services.IAction#init(Properties, String)
-	 */
-	public void init(Properties properties, String serviceName) {
-       this.properties = properties;
-       this.serviceName = serviceName;
-	}
-	
+      /** Param. */
+  protected Properties properties = null;
+  /** Param. */
+  protected String serviceName = null;
 
-
-
-
+  /** @see org.ejbca.core.model.services.IAction#init(Properties, String) */
+  @Override
+  public void init(final Properties theproperties, final String aserviceName) {
+    this.properties = theproperties;
+    this.serviceName = aserviceName;
+  }
 }

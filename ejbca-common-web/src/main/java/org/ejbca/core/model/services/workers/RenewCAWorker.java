@@ -16,7 +16,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
-
 import org.apache.log4j.Logger;
 import org.cesecore.authorization.AuthorizationDeniedException;
 import org.cesecore.certificates.ca.CADoesntExistsException;
@@ -30,72 +29,93 @@ import org.ejbca.core.model.services.ServiceExecutionFailedException;
 
 /**
  * Worker renewing CA that is about to expire.
- * 
  *
- * version: $Id: RenewCAWorker.java 24487 2016-10-10 09:10:53Z anatom $
+ * <p>version: $Id: RenewCAWorker.java 24487 2016-10-10 09:10:53Z anatom $
  */
 public class RenewCAWorker extends BaseWorker {
 
-	private static final Logger log = Logger.getLogger(RenewCAWorker.class);
+    /** Logger. */
+    private static final Logger LOG = Logger.getLogger(RenewCAWorker.class);
 
-	/** Flag is keys should be regenerated or not */
-	public static final String PROP_RENEWKEYS           = "worker.renewkeys";
-	
-	/**
-	 * Worker that makes a query to the Certificate Store about
-	 * expiring certificates.
-	 * 
-	 * @see org.ejbca.core.model.services.IWorker#work
-	 */
-    @Override
-	public void work(Map<Class<?>, Object> ejbs) throws ServiceExecutionFailedException {
-		log.trace(">Worker started");
-        final CAAdminSessionLocal caAdminSession = ((CAAdminSessionLocal)ejbs.get(CAAdminSessionLocal.class));
-        final CaSessionLocal caSession = ((CaSessionLocal)ejbs.get(CaSessionLocal.class));
-		
-		// Find CAs with expire date that is less than configured number of days 
-		// ahead in the future		
-		long millistoexpire = getTimeBeforeExpire();
-		long now = new Date().getTime();
-		long expiretime = now + millistoexpire;
+  /** Flag is keys should be regenerated or not. */
+  public static final String PROP_RENEWKEYS = "worker.renewkeys";
 
-		// Renew these CAs using the CAAdminSessionBean		
-		// Check the "Generate new keys" checkbox so we can pass the correct parameter to CAAdminSessionBean
-		Collection<Integer> caids = getCAIdsToCheck(false);
-		log.debug("Checking renewal for "+caids.size()+" CAs");
-		Iterator<Integer> iter = caids.iterator();
-		while (iter.hasNext()) {
-			Integer caid = iter.next();
-			try {
-				CAInfo info = caSession.getCAInfo(getAdmin(), caid.intValue());
-				String caname = null;
-				if (info != null) {
-					caname = info.getName();
-					Date expire = info.getExpireTime(); 
-					log.debug("CA "+caname+" expires on "+expire);
-					if (expire.before(new Date(expiretime))) {
-						// Only try to renew active CAs
-						// There should be other monitoring available to check if CAs that should not be off-line are off-line (HealthCheck)
-					    try {
-					        final boolean createLinkCertificate = isRenewKeys();   // We want link certs for new key..
-					        caAdminSession.renewCA(getAdmin(), info.getCAId(), isRenewKeys(), null, createLinkCertificate);
-					    } catch (CryptoTokenOfflineException e) {
-					        log.info("Not trying to renew CA because CA and token status are not on-line.");
-					    }
-					}
-				} else {
-					log.error(InternalEjbcaResources.getInstance().getLocalizedMessage("services.errorworker.errornoca", caid, caname));
-				}
-			} catch (CADoesntExistsException e) {
-				log.error("Error renewing CA: ", e);
-			} catch (AuthorizationDeniedException e) {
-				log.error("Error renewing CA: ", e);
-			}				
-		}
-		log.trace("<Worker ended");
-	}
-	
-	protected boolean isRenewKeys() {
-		return properties.getProperty(PROP_RENEWKEYS,"FALSE").equalsIgnoreCase("TRUE");
-	}
+  /**
+   * Worker that makes a query to the Certificate Store about expiring
+   * certificates.
+   *
+   * @see org.ejbca.core.model.services.IWorker#work
+   */
+  @Override
+  public void work(final Map<Class<?>, Object> ejbs)
+      throws ServiceExecutionFailedException {
+    LOG.trace(">Worker started");
+    final CAAdminSessionLocal caAdminSession =
+        ((CAAdminSessionLocal) ejbs.get(CAAdminSessionLocal.class));
+    final CaSessionLocal caSession =
+        ((CaSessionLocal) ejbs.get(CaSessionLocal.class));
+
+    // Find CAs with expire date that is less than configured number of days
+    // ahead in the future
+    long millistoexpire = getTimeBeforeExpire();
+    long now = new Date().getTime();
+    long expiretime = now + millistoexpire;
+
+    // Renew these CAs using the CAAdminSessionBean
+    // Check the "Generate new keys" checkbox so we can pass the correct
+    // parameter to CAAdminSessionBean
+    Collection<Integer> caids = getCAIdsToCheck(false);
+    LOG.debug("Checking renewal for " + caids.size() + " CAs");
+    Iterator<Integer> iter = caids.iterator();
+    while (iter.hasNext()) {
+      Integer caid = iter.next();
+      try {
+        CAInfo info = caSession.getCAInfo(getAdmin(), caid.intValue());
+        String caname = null;
+        if (info != null) {
+          caname = info.getName();
+          Date expire = info.getExpireTime();
+          LOG.debug("CA " + caname + " expires on " + expire);
+          if (expire.before(new Date(expiretime))) {
+            // Only try to renew active CAs
+            // There should be other monitoring available to check if CAs that
+            // should not be off-line are off-line (HealthCheck)
+            try {
+              final boolean createLinkCertificate =
+                  isRenewKeys(); // We want link certs for new key..
+              caAdminSession.renewCA(
+                  getAdmin(),
+                  info.getCAId(),
+                  isRenewKeys(),
+                  null,
+                  createLinkCertificate);
+            } catch (CryptoTokenOfflineException e) {
+              LOG.info(
+                  "Not trying to renew CA because CA and token status are not"
+                      + " on-line.");
+            }
+          }
+        } else {
+          LOG.error(
+              InternalEjbcaResources.getInstance()
+                  .getLocalizedMessage(
+                      "services.errorworker.errornoca", caid, caname));
+        }
+      } catch (CADoesntExistsException e) {
+        LOG.error("Error renewing CA: ", e);
+      } catch (AuthorizationDeniedException e) {
+        LOG.error("Error renewing CA: ", e);
+      }
+    }
+    LOG.trace("<Worker ended");
+  }
+
+  /**
+   * @return bool
+   */
+  protected boolean isRenewKeys() {
+    return properties
+        .getProperty(PROP_RENEWKEYS, "FALSE")
+        .equalsIgnoreCase("TRUE");
+  }
 }

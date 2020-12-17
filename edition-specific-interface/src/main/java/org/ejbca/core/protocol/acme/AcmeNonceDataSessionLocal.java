@@ -17,25 +17,28 @@ import javax.ejb.EJBTransactionRolledbackException;
 /**
  * Database implementation of ACME replay nonce storage.
  *
- * @version $Id: AcmeNonceDataSessionBean.java 29072 2018-05-30 09:42:10Z bastianf $
+ * @version $Id: AcmeNonceDataSessionBean.java 29072 2018-05-30 09:42:10Z
+ *     bastianf $
  */
 public interface AcmeNonceDataSessionLocal {
 
-    /**
-     * Save a nonce to persistent storage. This will mark the nonce as "used" on all nodes
-     * in the cluster.
-     * @param nonce the replay nonce to store
-     * @param timeCreated the time when the replay nonce was created
-     * @param timeExpires the time when the replay nonce expires
-     * @return true if the given nonce has NOT been used before and has not expired, false if it has expired
-     * @throws EJBTransactionRolledbackException if the nonce is already present in the database
-     */
-    boolean useNonce(String nonce, long timeCreated, long timeExpires);
+  /**
+   * Save a nonce to persistent storage. This will mark the nonce as "used" on
+   * all nodes in the cluster.
+   *
+   * @param nonce the replay nonce to store
+   * @param timeCreated the time when the replay nonce was created
+   * @param timeExpires the time when the replay nonce expires
+   * @return true if the given nonce has NOT been used before and has not
+   *     expired, false if it has expired
+   * @throws EJBTransactionRolledbackException if the nonce is already present
+   *     in the database
+   */
+  boolean useNonce(String nonce, long timeCreated, long timeExpires);
 
-    /**
-     * Remove expired nonces from the database. Nonces that expired less than an hour ago are
-     * kept to account for clock drift.
-     */
-    void cleanUpExpired();
-
+  /**
+   * Remove expired nonces from the database. Nonces that expired less than an
+   * hour ago are kept to account for clock drift.
+   */
+  void cleanUpExpired();
 }

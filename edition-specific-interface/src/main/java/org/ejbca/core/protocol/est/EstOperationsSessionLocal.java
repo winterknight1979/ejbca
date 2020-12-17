@@ -13,9 +13,7 @@
 package org.ejbca.core.protocol.est;
 
 import java.security.cert.X509Certificate;
-
 import javax.ejb.Local;
-
 import org.cesecore.authentication.AuthenticationFailedException;
 import org.cesecore.certificates.ca.CADoesntExistsException;
 import org.cesecore.certificates.certificate.CertificateCreateException;
@@ -23,27 +21,39 @@ import org.ejbca.core.protocol.NoSuchAliasException;
 import org.ejbca.ui.web.protocol.CertificateRenewalException;
 
 /**
- * @version $Id: EstOperationsSessionLocal.java 28447 2018-03-08 12:56:03Z henriks $
+ * @version $Id: EstOperationsSessionLocal.java 28447 2018-03-08 12:56:03Z
+ *     henriks $
  */
 @Local
 public interface EstOperationsSessionLocal extends EstOperationsSession {
 
-    /**
-     * 
-     * @param operation Op
-     * @param alias Alias
-     * @param cert Cert
-     * @param username USer
-     * @param password PWD
-     * @param requestBody Body
-     * @return Response
-     * @throws NoSuchAliasException if the alias doesn't exist
-     * @throws CADoesntExistsException if the CA specified in a request for CA certs doesn't exist
-     * @throws CertificateCreateException if an error was encountered when trying to enroll
-     * @throws CertificateRenewalException if an error was encountered when trying to re-enroll
-     * @throws AuthenticationFailedException if request was sent in without an authenticating certificate, or the username/password combo was 
-     *           invalid (depending on authentication method). 
-     */
-    byte[] dispatchRequest(String operation, String alias, X509Certificate cert, String username, String password, byte[] requestBody)
-            throws NoSuchAliasException, CADoesntExistsException, CertificateCreateException, CertificateRenewalException, AuthenticationFailedException;
+  /**
+   * @param operation Op
+   * @param alias Alias
+   * @param cert Cert
+   * @param username USer
+   * @param password PWD
+   * @param requestBody Body
+   * @return Response
+   * @throws NoSuchAliasException if the alias doesn't exist
+   * @throws CADoesntExistsException if the CA specified in a request for CA
+   *     certs doesn't exist
+   * @throws CertificateCreateException if an error was encountered when trying
+   *     to enroll
+   * @throws CertificateRenewalException if an error was encountered when trying
+   *     to re-enroll
+   * @throws AuthenticationFailedException if request was sent in without an
+   *     authenticating certificate, or the username/password combo was invalid
+   *     (depending on authentication method).
+   */
+  byte[] dispatchRequest(
+      String operation,
+      String alias,
+      X509Certificate cert,
+      String username,
+      String password,
+      byte[] requestBody)
+      throws NoSuchAliasException, CADoesntExistsException,
+          CertificateCreateException, CertificateRenewalException,
+          AuthenticationFailedException;
 }

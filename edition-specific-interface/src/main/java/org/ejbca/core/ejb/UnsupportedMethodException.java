@@ -17,19 +17,18 @@ import org.cesecore.CesecoreException;
 import org.cesecore.ErrorCode;
 
 /**
- * Thrown when accessing enterprise-edition-only features in the community version
- * @version $Id: UnsupportedMethodException.java 20988 2015-03-24 18:20:08Z aveen4711 $
+ * Thrown when accessing enterprise-edition-only features in the community
+ * version.
  *
+ * @version $Id: UnsupportedMethodException.java 20988 2015-03-24 18:20:08Z
+ *     aveen4711 $
  */
 public class UnsupportedMethodException extends CesecoreException {
-    
 
-    private static final long serialVersionUID = -6099472895840497282L;
+  private static final long serialVersionUID = -6099472895840497282L;
 
-    /**
-     * @param m with more information what is wrong
-     */
-    public UnsupportedMethodException(String m) {
-        super(ErrorCode.UNSUPPORTED_METHOD, m);
-    }
+  /** @param m with more information what is wrong */
+  public UnsupportedMethodException(final String m) {
+    super(ErrorCode.UNSUPPORTED_METHOD, m);
+  }
 }

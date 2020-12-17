@@ -14,36 +14,34 @@
 package org.ejbca.core.protocol.acme;
 
 import java.util.Set;
-
 import javax.ejb.Local;
-
 import org.ejbca.acme.AcmeOrderData;
 
 /**
- * Local interface for AcmeOrderDataSession
- * 
- * @version $Id: AcmeOrderDataSessionLocal.java 29587 2018-08-07 15:25:52Z tarmor $
+ * Local interface for AcmeOrderDataSession.
  *
+ * @version $Id: AcmeOrderDataSessionLocal.java 29587 2018-08-07 15:25:52Z
+ *     tarmor $
  */
-
 @Local
 public interface AcmeOrderDataSessionLocal extends AcmeOrderDataSession {
 
-    /**
-     * @param orderId the order ID of an AcmeOrderData row
-     * @return the sought object, or null if not found
-     */
-    AcmeOrderData find(final String orderId);
-    
-    /**
-     * @param accountId the account ID of an AcmeOrderData row
-     * @return the sought object, or null if not found
-     */
-    Set<AcmeOrderData> findByAccountId(final String accountId);
+  /**
+   * @param orderId the order ID of an AcmeOrderData row
+   * @return the sought object, or null if not found
+   */
+  AcmeOrderData find(String orderId);
 
-    /**
-     * @param fingerprint the fingerprint of an AcmeOrderData row
-     * @return the sought objects, or null if not found
-     */
-    Set<AcmeOrderData> findFinalizedAcmeOrdersByFingerprint(final String fingerprint);
+  /**
+   * @param accountId the account ID of an AcmeOrderData row
+   * @return the sought object, or null if not found
+   */
+  Set<AcmeOrderData> findByAccountId(String accountId);
+
+  /**
+   * @param fingerprint the fingerprint of an AcmeOrderData row
+   * @return the sought objects, or null if not found
+   */
+  Set<AcmeOrderData> findFinalizedAcmeOrdersByFingerprint(
+      String fingerprint);
 }

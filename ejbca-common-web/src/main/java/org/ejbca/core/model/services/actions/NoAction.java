@@ -13,22 +13,22 @@
 package org.ejbca.core.model.services.actions;
 
 import java.util.Map;
-
 import org.ejbca.core.model.services.ActionException;
 import org.ejbca.core.model.services.ActionInfo;
 import org.ejbca.core.model.services.BaseAction;
 
 /**
- * No Action that does nothing
- * 
+ * No Action that does nothing.
+ *
  * @version $Id: NoAction.java 22139 2015-11-03 10:41:56Z mikekushner $
  */
 public class NoAction extends BaseAction {
 
-	/**
-	 * @see org.ejbca.core.model.services.IAction#performAction
-	 */
-	public void performAction(ActionInfo actionInfo, Map<Class<?>, Object> ejbs) throws ActionException {
-		// Do nothing
-	}
+  /** @see org.ejbca.core.model.services.IAction#performAction */
+    @Override
+  public void performAction(
+      final ActionInfo actionInfo, final Map<Class<?>, Object> ejbs)
+      throws ActionException {
+    // Do nothing
+  }
 }

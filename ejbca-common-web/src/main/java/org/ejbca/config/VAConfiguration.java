@@ -16,19 +16,32 @@ package org.ejbca.config;
 import org.cesecore.config.ConfigurationHolder;
 
 /**
- * Parses configuration bundled in conf/va.properties both for the internal and external VA.
- * 
+ * Parses configuration bundled in conf/va.properties both for the internal and
+ * external VA.
+ *
  * @version $Id: VAConfiguration.java 22139 2015-11-03 10:41:56Z mikekushner $
  */
-public class VAConfiguration {
-	private final static String S_HASH_ALIAS_PREFIX = "va.sKIDHash.alias.";
+public final class VAConfiguration {
+    /** Param. */
+  private static final String S_HASH_ALIAS_PREFIX = "va.sKIDHash.alias.";
 
-	public static String sKIDHashFromName(String name) {
-		return ConfigurationHolder.getString(S_HASH_ALIAS_PREFIX+name);
-	}
+  private VAConfiguration() { }
 
-	public static boolean sKIDHashSetAlias(String name, String hash) {
-		return ConfigurationHolder.updateConfiguration(S_HASH_ALIAS_PREFIX+name, hash);
-	}
+  /**
+   * @param name Name
+   * @return Hash
+   */
+  public static String sKIDHashFromName(final String name) {
+    return ConfigurationHolder.getString(S_HASH_ALIAS_PREFIX + name);
+  }
 
+  /**
+   * @param name Name
+   * @param hash Hash
+   * @return Bool
+   */
+  public static boolean sKIDHashSetAlias(final String name, final String hash) {
+    return ConfigurationHolder.updateConfiguration(
+        S_HASH_ALIAS_PREFIX + name, hash);
+  }
 }

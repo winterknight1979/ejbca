@@ -16,13 +16,10 @@ import java.io.Serializable;
 
 /**
  * General Class used to send information from a worker to a action.
- * 
- * Can contain any data that both the worker and action supports.
- * 
- * @author Philip Vendil 2006 sep 27
  *
+ * <p>Can contain any data that both the worker and action supports.
+ *
+ * @author Philip Vendil 2006 sep 27
  * @version $Id: ActionInfo.java 22139 2015-11-03 10:41:56Z mikekushner $
  */
-public interface ActionInfo extends Serializable {
-
-}
+public interface ActionInfo extends Serializable { }

@@ -14,29 +14,29 @@ package org.ejbca.core.model.services;
 
 /**
  * Exception generated if a IAction.performAction calls failed.
- * 
  *
  * @version $Id: ActionException.java 22139 2015-11-03 10:41:56Z mikekushner $
  */
 public class ActionException extends Exception {
 
-	private static final long serialVersionUID = -2160550096301309104L;
+  private static final long serialVersionUID = -2160550096301309104L;
 
-	/**
-	 * Exception generated if a IAction.performAction calls failed
-	 * @param  message message
-	 * @param cause cause
-	 */
-	public ActionException(String message, Throwable cause) {
-		super(message, cause);		
-	}
+  /**
+   * Exception generated if a IAction.performAction calls failed.
+   *
+   * @param message message
+   * @param cause cause
+   */
+  public ActionException(final String message, final Throwable cause) {
+    super(message, cause);
+  }
 
-	/**
-	 * Exception generated if a IAction.performAction calls failed
-	 * @param message message
-	 */
-	public ActionException(String message) {
-		super(message);
-	}
-
+  /**
+   * Exception generated if a IAction.performAction calls failed.
+   *
+   * @param message message
+   */
+  public ActionException(final String message) {
+    super(message);
+  }
 }
