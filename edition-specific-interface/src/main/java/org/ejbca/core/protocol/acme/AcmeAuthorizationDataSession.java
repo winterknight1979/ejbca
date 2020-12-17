@@ -15,31 +15,28 @@ package org.ejbca.core.protocol.acme;
 import java.util.List;
 
 /**
- * @version $Id: AcmeAuthorizationDataSession.java 25797 2018-08-10 15:52:00Z jekaterina $
+ * @version $Id: AcmeAuthorizationDataSession.java 25797 2018-08-10 15:52:00Z
+ *     jekaterina $
  */
 public interface AcmeAuthorizationDataSession {
-    static final String ACME_MODULE = "acme";
+  static final String ACME_MODULE = "acme";
 
+  /**
+   * @param authorizationId the ID of the authorization
+   * @return the sought authorization, or null if none exists
+   */
+  AcmeAuthorization getAcmeAuthorization(final String authorizationId);
 
-    /**
-     *
-     * @param authorizationId the ID of the authorization
-     * @return the sought authorization, or null if none exists
-     */
-    AcmeAuthorization getAcmeAuthorization(final String authorizationId);
+  /**
+   * @param orderId the ID of the order
+   * @return list of sought authorizations, or null if none exists
+   */
+  List<AcmeAuthorization> getAcmeAuthorizationsByOrderId(final String orderId);
 
-    /**
-     *
-     * @param orderId the ID of the order
-     * @return list of sought authorizations, or null if none exists
-     */
-    List<AcmeAuthorization> getAcmeAuthorizationsByOrderId(final String orderId);
-
-    /**
-     *
-     * @param accountId the ID of the account
-     * @return list of sought authorizations, or null if none exists
-     */
-    List<AcmeAuthorization> getAcmeAuthorizationsByAccountId(final String accountId);
-
+  /**
+   * @param accountId the ID of the account
+   * @return list of sought authorizations, or null if none exists
+   */
+  List<AcmeAuthorization> getAcmeAuthorizationsByAccountId(
+      final String accountId);
 }

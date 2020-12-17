@@ -13,25 +13,23 @@
 package org.ejbca.core.protocol.acme;
 
 /**
- * @version $Id: AcmeAccountDataSession.java 25797 2017-05-04 15:52:00Z jeklund $
+ * @version $Id: AcmeAccountDataSession.java 25797 2017-05-04 15:52:00Z jeklund
+ *     $
  */
 public interface AcmeAccountDataSession {
 
-    static final String ACME_MODULE = "acme";
+  static final String ACME_MODULE = "acme";
 
-    
-    /**
-     *  
-     * @param accountId the ID of the account
-     * @return the sought account, or null if none exists
-     */
-    AcmeAccount getAcmeAccount(final String accountId);
-    
-    /**
-     *  
-     * @param publicKeyStorageId the ID of the account
-     * @return the sought account, or null if none exists
-     */
-    AcmeAccount getAcmeAccountByPublicKeyStorageId(final String publicKeyStorageId);
-        
+  /**
+   * @param accountId the ID of the account
+   * @return the sought account, or null if none exists
+   */
+  AcmeAccount getAcmeAccount(final String accountId);
+
+  /**
+   * @param publicKeyStorageId the ID of the account
+   * @return the sought account, or null if none exists
+   */
+  AcmeAccount getAcmeAccountByPublicKeyStorageId(
+      final String publicKeyStorageId);
 }

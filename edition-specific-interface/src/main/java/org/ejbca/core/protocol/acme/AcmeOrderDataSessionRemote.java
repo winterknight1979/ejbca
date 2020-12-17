@@ -17,12 +17,9 @@ import javax.ejb.Remote;
 
 /**
  * Remote interface for AcmeOrderDataSession
- * 
- * @version $Id: AcmeOrderDataSessionRemote.java 29587 2018-08-07 15:25:52Z tarmor $
  *
+ * @version $Id: AcmeOrderDataSessionRemote.java 29587 2018-08-07 15:25:52Z
+ *     tarmor $
  */
-
 @Remote
-public interface AcmeOrderDataSessionRemote extends AcmeOrderDataSession {
-   
-}
+public interface AcmeOrderDataSessionRemote extends AcmeOrderDataSession {}

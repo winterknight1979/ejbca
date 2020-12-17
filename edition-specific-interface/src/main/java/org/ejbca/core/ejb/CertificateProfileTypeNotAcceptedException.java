@@ -16,18 +16,18 @@ import org.cesecore.ErrorCode;
 import org.ejbca.core.EjbcaException;
 
 /**
- * Thrown when trying to use a certificate or end entity profile of the wrong type
- * @version $Id: CertificateProfileTypeNotAcceptedException.java 26057 2017-06-22 08:08:34Z anatom $
+ * Thrown when trying to use a certificate or end entity profile of the wrong
+ * type
  *
+ * @version $Id: CertificateProfileTypeNotAcceptedException.java 26057
+ *     2017-06-22 08:08:34Z anatom $
  */
 public class CertificateProfileTypeNotAcceptedException extends EjbcaException {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    /**
-     * @param message with more information what is wrong
-     */
-    public CertificateProfileTypeNotAcceptedException(String message) {
-        super(ErrorCode.BAD_CERTIFICATE_PROFILE_TYPE, message);
-    }
+  /** @param message with more information what is wrong */
+  public CertificateProfileTypeNotAcceptedException(final String message) {
+    super(ErrorCode.BAD_CERTIFICATE_PROFILE_TYPE, message);
+  }
 }
