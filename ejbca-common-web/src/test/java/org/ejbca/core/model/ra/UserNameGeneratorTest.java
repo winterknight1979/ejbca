@@ -75,7 +75,7 @@ public class UserNameGeneratorTest {
     // assertEquals(errorMessage, "12345",
     // usernameGenerator.generateUsername(new X509Name("CN=test,
     // SN=12345").toString()));
-    // assertEquals(errorMessage, "1234", 
+    // assertEquals(errorMessage, "1234",
     // usernameGenerator.generateUsername(new
     // X509Name("SN=1234").toString()));
   }

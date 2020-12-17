@@ -374,7 +374,7 @@
 	<suppress checks="MagicNumberCheck"
 		files="HTMLTools.java" lines="58-132" /> <!-- HTML Entities -->
 	<suppress checks="ParameterNumberCheck"
-		files="PublicKeyBlacklistKeyValidatorTest.java" lines="300" />
+		files="PublicKeyBlacklistKeyValidatorTest.java" lines="301" />
 	
 	
 	
