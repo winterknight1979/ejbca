@@ -26,29 +26,37 @@ import org.ejbca.util.PatternLogger;
  *
  * @version $Id: TransactionLogger.java 31242 2019-01-17 22:41:24Z jeklund $
  */
-public class TransactionLogger {
+public final class TransactionLogger {
 
+      /** Param. */
   private static TransactionLogger instance = null;
 
-  /** regexp pattern to match ${identifier} patterns */
+  /** regexp pattern to match ${identifier} patterns. */
   // ${DN};${IP}
-  private final Pattern PATTERN =
+  private final Pattern pattern =
       Pattern.compile(WebServiceConfiguration.getTransactionLogPattern());
 
+  /** Param. */
   private final String orderString =
       WebServiceConfiguration.getTransactionLogOrder();
+  /** Param. */
   private final String logDateFormat =
       WebServiceConfiguration.getTransactionLogDateFormat();
+  /** Param. */
   private final String timeZone =
       WebServiceConfiguration.getTransactionLogTimeZone();
+  /** Param. */
   private final boolean doLog =
       WebServiceConfiguration.getTransactionLogEnabled();
+  /** Param. */
   private final String sessionID = GUIDGenerator.generateGUID(this);
+  /** Param. */
   private final Logger log =
       Logger.getLogger(TransactionLogger.class.getName());
+  /** Param. */
   private int transactionID = 0;
 
-  private TransactionLogger() {}
+  private TransactionLogger() { }
 
   /** @return a new IPatterLogger */
   public static IPatternLogger getPatternLogger() {
@@ -64,7 +72,7 @@ public class TransactionLogger {
     }
     IPatternLogger pl =
         new PatternLogger(
-            this.PATTERN.matcher(this.orderString),
+            this.pattern.matcher(this.orderString),
             this.orderString,
             this.log,
             this.logDateFormat,

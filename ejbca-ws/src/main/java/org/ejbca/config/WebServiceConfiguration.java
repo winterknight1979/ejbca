@@ -16,13 +16,14 @@ package org.ejbca.config;
 import org.apache.commons.lang.StringUtils;
 
 /**
- * Configuration from jaxws.properties
+ * Configuration from jaxws.properties.
  *
  * @version $Id: WebServiceConfiguration.java 24285 2016-09-02 06:32:19Z anatom
  *     $
  */
-public class WebServiceConfiguration {
+public final class WebServiceConfiguration {
 
+    private WebServiceConfiguration() { }
   /**
    * Indicating if a call to genTokenCertificates and/or viewHardToken for
    * non-authorized users should result in an approval request instead of an
@@ -50,7 +51,7 @@ public class WebServiceConfiguration {
 
   /**
    * Authorization control on the fetchUserData call, making it possible for all
-   * with a valid certificate to retrieve userData
+   * with a valid certificate to retrieve userData.
    *
    * @return success
    */

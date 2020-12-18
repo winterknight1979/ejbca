@@ -13,13 +13,22 @@
 package org.ejbca.core.protocol.ws.logger;
 
 public enum TransactionTags {
+      /** Tag. */
   METHOD,
+  /** Tag. */
   ERROR_MESSAGE,
+  /** Tag. */
   ADMIN_DN,
+  /** Tag. */
   ADMIN_ISSUER_DN,
+  /** Tag. */
   ADMIN_REMOTE_IP,
+  /** Tag. */
   ADMIN_FORWARDED_IP;
 
+    /**
+     * @return tag
+     */
   @SuppressWarnings("el-syntax")
   public String getTag() {
     return "${" + toString() + "}";

@@ -31,8 +31,12 @@ import org.junit.Test;
  */
 public class EjbcaWSHelperMethodsTest {
 
+    /** Instance. */
   private final EjbcaWS ejbcaWS = new EjbcaWS();
-
+  /**
+   * Test.
+   * @throws DateNotValidException Fail
+   */
   @Test
   public void testParseRevocationMetadataNormalFlow()
       throws DateNotValidException {
@@ -57,7 +61,10 @@ public class EjbcaWSHelperMethodsTest {
     assertEquals(
         Integer.valueOf(certProfileId), result.getCertificateProfileId());
   }
-
+  /**
+   * Test.
+   * @throws DateNotValidException Fail
+   */
   @Test
   public void testParseRevocationMetadataWithEmptyKeyvalueList()
       throws DateNotValidException {
@@ -72,7 +79,10 @@ public class EjbcaWSHelperMethodsTest {
     assertEquals(null, result.getRevocationDate());
     assertEquals(null, result.getCertificateProfileId());
   }
-
+  /**
+   * Test.
+   * @throws DateNotValidException Fail
+   */
   @Test
   public void testParseRevocationMetadataWithNullMetadataArgument()
       throws DateNotValidException {
@@ -88,6 +98,10 @@ public class EjbcaWSHelperMethodsTest {
     assertEquals(null, result.getCertificateProfileId());
   }
 
+  /**
+   * Test.
+   * @throws DateNotValidException Fail
+   */
   @Test
   public void testParseRevocationMetadataWithUnknownKeyValue()
       throws DateNotValidException {
