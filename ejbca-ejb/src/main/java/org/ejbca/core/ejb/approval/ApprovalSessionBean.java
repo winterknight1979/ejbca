@@ -100,27 +100,39 @@ import org.ejbca.util.query.Query;
 public class ApprovalSessionBean
     implements ApprovalSessionLocal, ApprovalSessionRemote {
 
-  private static final Logger log = Logger.getLogger(ApprovalSessionBean.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(ApprovalSessionBean.class);
 
-  /** Internal localization of logs and errors */
-  private static final InternalEjbcaResources intres =
+  /** Internal localization of logs and errors. */
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
+  /** EM. */
   @PersistenceContext(unitName = "ejbca")
   private EntityManager entityManager;
 
+  /** Resource. */
   @Resource private SessionContext sessionContext;
 
+  /** EJB. */
   @EJB private ApprovalProfileSessionLocal approvalProfileSession;
+  /** EJB. */
   @EJB private CaSessionLocal caSession;
+  /** EJB. */
   @EJB private CertificateProfileSessionLocal certificateProfileSession;
+  /** EJB. */
   @EJB private CertificateStoreSessionLocal certificateStoreSession;
+  /** EJB. */
   @EJB private EndEntityAccessSessionLocal endEntityAccessSession;
+  /** EJB. */
   @EJB private GlobalConfigurationSessionLocal globalConfigurationSession;
+  /** EJB. */
   @EJB private SecurityEventsLoggerSessionLocal auditSession;
 
+  /** Param. */
   private ApprovalSessionLocal approvalSession;
 
+  /** Init. */
   @PostConstruct
   public void postConstruct() {
     // Install BouncyCastle provider if not available
@@ -135,8 +147,8 @@ public class ApprovalSessionBean
   public int addApprovalRequest(
       final AuthenticationToken admin, final ApprovalRequest approvalRequest)
       throws ApprovalException {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">addApprovalRequest: hash=" + approvalRequest.generateApprovalId());
     }
     int approvalId = approvalRequest.generateApprovalId();
@@ -144,8 +156,8 @@ public class ApprovalSessionBean
     ApprovalDataVO data = findNonExpiredApprovalRequest(approvalId);
     if (data != null) {
       String msg =
-          intres.getLocalizedMessage("approval.alreadyexists", approvalId);
-      log.info(msg);
+          INTRES.getLocalizedMessage("approval.alreadyexists", approvalId);
+      LOG.info(msg);
       throw new ApprovalException(ErrorCode.APPROVAL_ALREADY_EXISTS, msg);
     } else {
       // There exists no approval request with status waiting. Add a new one
@@ -159,7 +171,7 @@ public class ApprovalSessionBean
         sendApprovalNotifications(
             approvalRequest, approvalProfile, approvalData, false);
         String msg =
-            intres.getLocalizedMessage("approval.addedwaiting", requestId);
+            INTRES.getLocalizedMessage("approval.addedwaiting", requestId);
         final Map<String, Object> details = new LinkedHashMap<String, Object>();
         details.put("msg", msg);
         List<ApprovalDataText> texts =
@@ -179,8 +191,8 @@ public class ApprovalSessionBean
             details);
       } catch (Exception e1) {
         String msg =
-            intres.getLocalizedMessage("approval.erroradding", requestId);
-        log.error(msg, e1);
+            INTRES.getLocalizedMessage("approval.erroradding", requestId);
+        LOG.error(msg, e1);
         final Map<String, Object> details = new LinkedHashMap<String, Object>();
         details.put("msg", msg);
         details.put("Error", e1.getMessage());
@@ -196,8 +208,8 @@ public class ApprovalSessionBean
             details);
       }
     }
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "<addApprovalRequest: hash="
               + approvalRequest.generateApprovalId()
               + ", id="
@@ -212,8 +224,8 @@ public class ApprovalSessionBean
       final int id,
       final ApprovalRequest approvalRequest)
       throws ApprovalException {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">editApprovalRequest: hash="
               + approvalRequest.generateApprovalId()
               + ", id="
@@ -231,7 +243,7 @@ public class ApprovalSessionBean
     try {
       approvalRequest.addEditedByAdmin(admin);
       updateApprovalData(ad, approvalRequest);
-      String msg = intres.getLocalizedMessage("approval.edited", id);
+      String msg = INTRES.getLocalizedMessage("approval.edited", id);
       final Map<String, Object> details = new LinkedHashMap<>();
       details.put("msg", msg);
       List<ApprovalDataText> texts =
@@ -250,8 +262,8 @@ public class ApprovalSessionBean
           null,
           details);
     } catch (Exception e) {
-      String msg = intres.getLocalizedMessage("approval.errorediting", id);
-      log.error(msg, e);
+      String msg = INTRES.getLocalizedMessage("approval.errorediting", id);
+      LOG.error(msg, e);
       final Map<String, Object> details = new LinkedHashMap<>();
       details.put("msg", msg);
       details.put("Error", e.getMessage());
@@ -266,8 +278,8 @@ public class ApprovalSessionBean
           null,
           details);
     }
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">editApprovalRequest: hash="
               + approvalRequest.generateApprovalId()
               + ", id="
@@ -308,15 +320,15 @@ public class ApprovalSessionBean
   @Override
   public void removeApprovalRequest(
       final AuthenticationToken admin, final int id) {
-    if (log.isTraceEnabled()) {
-      log.trace(">removeApprovalRequest: id=" + id);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">removeApprovalRequest: id=" + id);
     }
     try {
       ApprovalData ad = findById(Integer.valueOf(id));
       if (ad != null) {
         entityManager.remove(ad);
         final String detailsMsg =
-            intres.getLocalizedMessage("approval.removed", id);
+            INTRES.getLocalizedMessage("approval.removed", id);
         auditSession.log(
             EjbcaEventTypes.APPROVAL_REMOVE,
             EventStatus.SUCCESS,
@@ -328,13 +340,13 @@ public class ApprovalSessionBean
             null,
             detailsMsg);
       } else {
-        String msg = intres.getLocalizedMessage("approval.notexist", id);
-        log.info(msg);
+        String msg = INTRES.getLocalizedMessage("approval.notexist", id);
+        LOG.info(msg);
         throw new ApprovalException(
             ErrorCode.APPROVAL_REQUEST_ID_NOT_EXIST, msg);
       }
     } catch (Exception e) {
-      String msg = intres.getLocalizedMessage("approval.errorremove", id);
+      String msg = INTRES.getLocalizedMessage("approval.errorremove", id);
       final Map<String, Object> details = new LinkedHashMap<String, Object>();
       details.put("msg", msg);
       details.put("error", e.getMessage());
@@ -348,18 +360,18 @@ public class ApprovalSessionBean
           null,
           null,
           details);
-      log.error("Error removing approval request", e);
+      LOG.error("Error removing approval request", e);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<removeApprovalRequest: id=" + id);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<removeApprovalRequest: id=" + id);
     }
   }
 
   @Override
   public int isApproved(final int approvalId, final int step)
       throws ApprovalException, ApprovalRequestExpiredException {
-    if (log.isTraceEnabled()) {
-      log.trace(">isApproved, approvalId: " + approvalId);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">isApproved, approvalId: " + approvalId);
     }
     int retval = ApprovalDataVO.STATUS_EXPIREDANDNOTIFIED;
     Collection<ApprovalData> result = findByApprovalId(approvalId);
@@ -368,13 +380,13 @@ public class ApprovalSessionBean
           ErrorCode.APPROVAL_REQUEST_ID_NOT_EXIST,
           "Approval request with id : " + approvalId + " does not exist");
     }
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "Found " + result.size() + " ApprovalData with id " + approvalId);
     }
     for (ApprovalData adl : result) {
-      if (log.isTraceEnabled()) {
-        log.trace(
+      if (LOG.isTraceEnabled()) {
+        LOG.trace(
             "Checking if ApprovalRequest of type "
                 + adl.getApprovaltype()
                 + " with databaseID "
@@ -391,8 +403,8 @@ public class ApprovalSessionBean
         break;
       }
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<isApproved, result: " + retval);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<isApproved, result: " + retval);
     }
     return retval;
   }
@@ -421,8 +433,8 @@ public class ApprovalSessionBean
   @Override
   public void markAsStepDone(final int approvalId, final int step)
       throws ApprovalException, ApprovalRequestExpiredException {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">markAsStepDone, approvalId: " + approvalId + ", step " + step);
     }
     Collection<ApprovalData> result = findByApprovalId(approvalId);
@@ -434,8 +446,8 @@ public class ApprovalSessionBean
     for (ApprovalData adl : result) {
       markStepAsDone(adl, step);
     }
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "<markAsStepDone, approvalId: " + approvalId + ", step " + step);
     }
   }
@@ -468,8 +480,8 @@ public class ApprovalSessionBean
   public ApprovalData findNonExpiredApprovalDataLocal(final int approvalId) {
     ApprovalData retval = null;
     Collection<ApprovalData> result = findByApprovalIdNonExpired(approvalId);
-    if (log.isDebugEnabled()) {
-      log.debug("Found number of approvalIdNonExpired: " + result.size());
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Found number of approvalIdNonExpired: " + result.size());
     }
     for (ApprovalData next : result) {
       ApprovalDataVO data = next.getApprovalDataVO();
@@ -485,15 +497,15 @@ public class ApprovalSessionBean
   @TransactionAttribute(TransactionAttributeType.SUPPORTS)
   @Override
   public List<ApprovalDataVO> findApprovalDataVO(final int approvalId) {
-    if (log.isTraceEnabled()) {
-      log.trace(">findApprovalDataVO: hash=" + approvalId);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">findApprovalDataVO: hash=" + approvalId);
     }
     ArrayList<ApprovalDataVO> retval = new ArrayList<ApprovalDataVO>();
     Collection<ApprovalData> result = findByApprovalId(approvalId);
     for (ApprovalData adl : result) {
       retval.add(adl.getApprovalDataVO());
     }
-    log.trace("<findApprovalDataVO");
+    LOG.trace("<findApprovalDataVO");
     return retval;
   }
 
@@ -506,7 +518,7 @@ public class ApprovalSessionBean
       final String caAuthorizationString,
       final String endEntityProfileAuthorizationString)
       throws IllegalQueryException {
-    log.trace(">query()");
+    LOG.trace(">query()");
     // Check if query is legal.
     if (query != null && !query.isLegalQuery()) {
       throw new IllegalQueryException();
@@ -521,7 +533,7 @@ public class ApprovalSessionBean
             caAuthorizationString,
             endEntityProfileAuthorizationString,
             null);
-    log.trace("<query()");
+    LOG.trace("<query()");
     return ret;
   }
 
@@ -538,7 +550,7 @@ public class ApprovalSessionBean
       final int numberofrows,
       final String caAuthorizationString,
       final String endEntityProfileAuthorizationString) {
-    log.trace(">queryByStatus()");
+    LOG.trace(">queryByStatus()");
 
     if (!includeUnfinished && !includeProcessed && !includeExpired) {
       throw new IllegalArgumentException(
@@ -626,7 +638,7 @@ public class ApprovalSessionBean
             caAuthorizationString,
             endEntityProfileAuthorizationString,
             orderByString);
-    log.trace("<queryByStatus()");
+    LOG.trace("<queryByStatus()");
     return ret;
   }
 
@@ -637,7 +649,7 @@ public class ApprovalSessionBean
       final String caAuthorizationString,
       final String endEntityProfileAuthorizationString,
       final String orderByString) {
-    log.trace(">queryInternal()");
+    LOG.trace(">queryInternal()");
     String customQuery = "(" + query + ")";
     if (StringUtils.isNotEmpty(caAuthorizationString)) {
       customQuery += " AND " + caAuthorizationString;
@@ -662,8 +674,8 @@ public class ApprovalSessionBean
       ApprovalRequest approvalRequest =
           approvalInformation.getApprovalRequest();
       if (approvalRequest.getApprovalProfile() == null) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Attempting to upgrade approval with ID "
                   + approvalData.getApprovalid()
                   + " to 6.6.0+ status by retrieving an approval profile from"
@@ -741,8 +753,8 @@ public class ApprovalSessionBean
         approvalInformation.setApprovalRequest(approvalRequest);
         approvalSession.updateApprovalRequest(
             approvalData.getId(), approvalRequest);
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Upgraded approval with ID "
                           + approvalData.getApprovalid()
                           + " to 6.6.0+ by setting approval profile with ID "
@@ -757,7 +769,7 @@ public class ApprovalSessionBean
       }
       returnData.add(approvalInformation);
     }
-    log.trace("<queryInternal()");
+    LOG.trace("<queryInternal()");
     return returnData;
   }
 
@@ -781,8 +793,8 @@ public class ApprovalSessionBean
       final ApprovalStep approvalStep =
           approvalProfile.getStepBeingEvaluated(approvalsPerformed);
       if (lastApproval != null && (!lastApproval.isApproved() || expired)) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Creating rejected or expired notification for approval profile: "
                   + approvalProfile.getProfileName());
         }
@@ -816,8 +828,8 @@ public class ApprovalSessionBean
           }
           if (approvalStep != null) {
             // Check which of the remaining partitions that need to be notified
-            for (final ApprovalPartition approvalPartition :
-                approvalStep.getPartitions().values()) {
+            for (final ApprovalPartition approvalPartition
+                : approvalStep.getPartitions().values()) {
               final int remainingApprovalsInPartition =
                   approvalProfile.getRemainingApprovalsInPartition(
                       approvalsPerformed,
@@ -847,8 +859,8 @@ public class ApprovalSessionBean
             }
           }
         } else {
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "All steps have been satisfied, so no approvals sent for"
                     + " approval profile: "
                     + approvalProfile.getProfileName());
@@ -856,8 +868,8 @@ public class ApprovalSessionBean
         }
       } else {
         if (lastApproval != null) {
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "Request approved, notify every partition owner who's work"
                     + " flow is affected by the made approval for approval"
                     + " profile: "
@@ -902,15 +914,15 @@ public class ApprovalSessionBean
             || (approvalStep != null
                 && approvalStep.getStepIdentifier()
                     != lastApproval.getStepId())) {
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "This is a new approval request or the current approval has"
                     + " completed a step, we should notify all partition"
                     + " owners in the next step for approval profile: "
                     + approvalProfile.getProfileName());
           }
-          for (final ApprovalPartition approvalPartition :
-              approvalStep.getPartitions().values()) {
+          for (final ApprovalPartition approvalPartition
+              : approvalStep.getPartitions().values()) {
             sendApprovalNotification(
                 approvalRequest,
                 approvalProfile,
@@ -923,7 +935,7 @@ public class ApprovalSessionBean
         }
       }
     } catch (AuthenticationFailedException e) {
-      log.warn(
+      LOG.warn(
           "Unexpected failure during approval notification. Already performed"
               + " approval where no longer authorized to do so.");
     }
@@ -952,7 +964,7 @@ public class ApprovalSessionBean
 
     if (!approvalProfile.isNotificationEnabled(approvalPartition)
         && !approvalProfile.isUserNotificationEnabled(approvalPartition)) {
-      if (log.isDebugEnabled()) {
+      if (LOG.isDebugEnabled()) {
         String partitionString = "";
         if (approvalProfile instanceof PartitionedApprovalProfile) {
           final DynamicUiProperty<? extends Serializable>
@@ -968,7 +980,7 @@ public class ApprovalSessionBean
           }
           partitionString = " for partition '" + partitionName + "'";
         }
-        log.debug(
+        LOG.debug(
             "Neither notifications nor user notifications are enabled"
                 + partitionString
                 + " in approval profile: "
@@ -988,11 +1000,11 @@ public class ApprovalSessionBean
       partitionName = null;
     }
     final String approvalType =
-        intres.getLocalizedMessage(
+        INTRES.getLocalizedMessage(
             ApprovalDataVO.APPROVALTYPENAMES[
                 approvalRequest.getApprovalType()]);
     final String workflowState =
-        intres.getLocalizedMessage(
+        INTRES.getLocalizedMessage(
             "APPROVAL_WFSTATE_" + approvalPartitionWorkflowState.name());
     final String requestor = approvalRequest.getRequestAdmin().toString();
     final String lastApprovedBy;
@@ -1000,8 +1012,8 @@ public class ApprovalSessionBean
       if (lastApproval.getAdmin() != null) {
         lastApprovedBy = lastApproval.getAdmin().toString();
       } else {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "lastApproval.getAdmin returned null for approvalId: "
                   + requestId);
         }
@@ -1057,16 +1069,16 @@ public class ApprovalSessionBean
             parameters.interpolate(subject),
             parameters.interpolate(body),
             MailSender.NO_ATTACHMENTS);
-        log.info(
-            intres.getLocalizedMessage("approval.sentnotification", requestId));
+        LOG.info(
+            INTRES.getLocalizedMessage("approval.sentnotification", requestId));
       } catch (MailException e) {
-        log.info(
-            intres.getLocalizedMessage("approval.errornotification", requestId),
+        LOG.info(
+            INTRES.getLocalizedMessage("approval.errornotification", requestId),
             e);
       }
     } else {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Admin notifications are not enabled for approval profile: "
                 + approvalProfile.getProfileName());
       }
@@ -1115,23 +1127,23 @@ public class ApprovalSessionBean
               userParameters.interpolate(userSubject),
               userParameters.interpolate(userBody),
               MailSender.NO_ATTACHMENTS);
-          log.info(
-              intres.getLocalizedMessage(
+          LOG.info(
+              INTRES.getLocalizedMessage(
                   "approval.sentnotification", requestId));
         } catch (Exception e) {
-          log.info(
-              intres.getLocalizedMessage(
+          LOG.info(
+              INTRES.getLocalizedMessage(
                   "approval.errornotification", requestId),
               e);
         }
       } else {
-        log.info(
-            intres.getLocalizedMessage("approval.errornotification", requestId)
+        LOG.info(
+            INTRES.getLocalizedMessage("approval.errornotification", requestId)
                 + " No email was found in the end entity");
       }
     } else {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "User notifications are not enabled for approval profile: "
                 + approvalProfile.getProfileName());
       }
@@ -1211,7 +1223,7 @@ public class ApprovalSessionBean
 
   /**
    * Method used by the requestadmin to check if an approval request have been
-   * approved
+   * approved.
    *
    * @param approvalData Data
    * @param step the number of the step to check.
@@ -1256,7 +1268,7 @@ public class ApprovalSessionBean
     entityManager.merge(approvalData);
   }
 
-  private final void setApprovalRequest(
+  private void setApprovalRequest(
       final ApprovalData approvalData, final ApprovalRequest approvalRequest) {
     try {
       final ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -1266,7 +1278,7 @@ public class ApprovalSessionBean
       approvalData.setRequestdata(
           new String(Base64.encode(baos.toByteArray(), false)));
     } catch (IOException e) {
-      log.error("Error building approval request.", e);
+      LOG.error("Error building approval request.", e);
       throw new IllegalStateException(e);
     }
   }
@@ -1288,7 +1300,7 @@ public class ApprovalSessionBean
       approvalData.setApprovaldata(
           new String(Base64.encode(baos.toByteArray(), false)));
     } catch (IOException e) {
-      log.error("Error building approvals.", e);
+      LOG.error("Error building approvals.", e);
       throw new IllegalStateException(e);
     }
   }
@@ -1328,7 +1340,7 @@ public class ApprovalSessionBean
     }
     long extendForMillis = extendForMillisParam;
     if (extendForMillis > maxExtend) {
-      log.info(
+      LOG.info(
           "Tried to extend approval request ID "
               + approvalData
               + " for "
@@ -1345,7 +1357,7 @@ public class ApprovalSessionBean
     entityManager.merge(approvalData);
 
     String msg =
-        intres.getLocalizedMessage(
+        INTRES.getLocalizedMessage(
             "approval.extended", approvalData.getId(), extendForMillis);
     final Map<String, Object> details = new LinkedHashMap<>();
     details.put("msg", msg);
@@ -1418,13 +1430,18 @@ public class ApprovalSessionBean
   private List<ApprovalData> findByCustomQuery(
       final int index, final int numberofrows, final String customQuery) {
     final List<ApprovalData> ret = new ArrayList<ApprovalData>();
-    /* Hibernate on DB2 wont allow us to "SELECT *" in combination with setMaxResults.
-     * Ingres wont let us access a LOB in a List using a native query for all fields.
-     * -> So we will get a list of primary keys and the fetch the whole entities one by one...
+    /* Hibernate on DB2 wont allow us to "SELECT *" in
+     * combination with setMaxResults.
+     * Ingres wont let us access a LOB in a List using a
+     *  native query for all fields.
+     * -> So we will get a list of primary keys and
+     * the fetch the whole entities one by one...
      *
-     * As a sad little bonus, DB2 native queries returns a pair of {BigInteger, Integer}
+     * As a sad little bonus, DB2 native queries returns
+     * a pair of {BigInteger, Integer}
      * where the first value is row and the second is the value.
-     * As another sad little bonus, Oracle native queries returns a pair of {BigDecimal, BigDecimal}
+     * As another sad little bonus, Oracle native queries
+     *  returns a pair of {BigDecimal, BigDecimal}
      * where the first value is the value and the second is the row.
      */
     final javax.persistence.Query query =
@@ -1445,11 +1462,11 @@ public class ApprovalSessionBean
   public int getIdFromApprovalId(final int approvalId) {
     List<ApprovalData> ads = findByApprovalId(approvalId);
     if (ads.isEmpty()) {
-      log.warn("There is no approval request with approval ID " + approvalId);
+      LOG.warn("There is no approval request with approval ID " + approvalId);
       return 0;
     }
     if (ads.size() > 1) {
-      log.warn(
+      LOG.warn(
           "There is more than one approval request with approval ID "
               + approvalId);
     }

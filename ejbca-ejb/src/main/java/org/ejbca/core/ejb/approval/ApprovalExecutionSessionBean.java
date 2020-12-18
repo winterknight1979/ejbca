@@ -75,17 +75,26 @@ import org.ejbca.core.model.authorization.AccessRulesConstants;
 public class ApprovalExecutionSessionBean
     implements ApprovalExecutionSessionLocal, ApprovalExecutionSessionRemote {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(ApprovalExecutionSessionBean.class);
-  private static final InternalEjbcaResources intres =
+  /** Resources. */
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
+  /** EJB. */
   @EJB private AuthorizationSessionLocal authorizationSession;
+  /** EJB. */
   @EJB private ApprovalSessionLocal approvalSession;
+  /** EJB. */
   @EJB private ApprovalProfileSessionLocal approvalProfileSession;
+  /** EJB. */
   @EJB private CAAdminSessionLocal caAdminSession;
+  /** EJB. */
   @EJB private EndEntityManagementSessionLocal endEntityManagementSession;
+  /** EJB. */
   @EJB private GlobalConfigurationSessionLocal globalConfigurationSession;
+  /** EJB. */
   @EJB private SecurityEventsLoggerSessionLocal auditSession;
 
   @Override
@@ -97,14 +106,14 @@ public class ApprovalExecutionSessionBean
           AuthorizationDeniedException, AdminAlreadyApprovedRequestException,
           ApprovalException, SelfApprovalException,
           AuthenticationFailedException {
-    if (log.isTraceEnabled()) {
-      log.trace(">approve: hash=" + approvalId);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">approve: hash=" + approvalId);
     }
     final ApprovalData approvalData =
         approvalSession.findNonExpiredApprovalDataLocal(approvalId);
     if (approvalData == null) {
-      String msg = intres.getLocalizedMessage("approval.notexist", approvalId);
-      log.info(msg);
+      String msg = INTRES.getLocalizedMessage("approval.notexist", approvalId);
+      LOG.info(msg);
       throw new ApprovalException(ErrorCode.APPROVAL_REQUEST_ID_NOT_EXIST, msg);
     }
     assertAuthorizedToApprove(admin, approvalData.getApprovalDataVO());
@@ -231,7 +240,7 @@ public class ApprovalExecutionSessionBean
       final Map<String, Object> details = new LinkedHashMap<String, Object>();
       details.put(
           "msg",
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "approval.approved", approvalData.getId()));
       List<ApprovalDataText> texts =
           approvalData.getApprovalRequest().getNewRequestDataAsText(admin);
@@ -252,7 +261,7 @@ public class ApprovalExecutionSessionBean
       final Map<String, Object> details = new LinkedHashMap<String, Object>();
       details.put(
           "msg",
-          intres.getLocalizedMessage("approval.expired", approvalData.getId()));
+          INTRES.getLocalizedMessage("approval.expired", approvalData.getId()));
       auditSession.log(
           EjbcaEventTypes.APPROVAL_APPROVE,
           EventStatus.FAILURE,
@@ -268,7 +277,7 @@ public class ApprovalExecutionSessionBean
       final Map<String, Object> details = new LinkedHashMap<String, Object>();
       details.put(
           "msg",
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "approval.errorexecuting", approvalData.getId()));
       details.put("error", e.getMessage());
       auditSession.log(
@@ -283,8 +292,8 @@ public class ApprovalExecutionSessionBean
           details);
       throw e;
     }
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "<approve: hash="
               + approvalId
               + ", id="
@@ -302,12 +311,12 @@ public class ApprovalExecutionSessionBean
       throws ApprovalRequestExpiredException, AuthorizationDeniedException,
           ApprovalException, AdminAlreadyApprovedRequestException,
           SelfApprovalException, AuthenticationFailedException {
-    log.trace(">reject: hash=" + approvalId);
+    LOG.trace(">reject: hash=" + approvalId);
     final ApprovalData approvalData =
         approvalSession.findNonExpiredApprovalDataLocal(approvalId);
     if (approvalData == null) {
-      String msg = intres.getLocalizedMessage("approval.notexist", approvalId);
-      log.info(msg);
+      String msg = INTRES.getLocalizedMessage("approval.notexist", approvalId);
+      LOG.info(msg);
       throw new ApprovalException(ErrorCode.APPROVAL_REQUEST_ID_NOT_EXIST, msg);
     }
     assertAuthorizedToApprove(admin, approvalData.getApprovalDataVO());
@@ -380,7 +389,7 @@ public class ApprovalExecutionSessionBean
       final Map<String, Object> details = new LinkedHashMap<String, Object>();
       details.put(
           "msg",
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "approval.rejected", approvalData.getId()));
       List<ApprovalDataText> texts =
           approvalData.getApprovalRequest().getNewRequestDataAsText(admin);
@@ -398,11 +407,11 @@ public class ApprovalExecutionSessionBean
           null,
           details);
     } catch (ApprovalRequestExpiredException e) {
-      log.info(
-          intres.getLocalizedMessage("approval.expired", approvalData.getId()));
+      LOG.info(
+          INTRES.getLocalizedMessage("approval.expired", approvalData.getId()));
       throw e;
     }
-    log.trace("<reject: hash=" + approvalId + ", id=" + approvalData.getId());
+    LOG.trace("<reject: hash=" + approvalId + ", id=" + approvalData.getId());
   }
 
   /**
@@ -433,9 +442,9 @@ public class ApprovalExecutionSessionBean
           approvalData.getApprovalRequest().getRequestAdmin();
       if (admin.equals(requester)) {
         String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "approval.error.cannotapproveownrequest", approvalId);
-        log.info(msg);
+        LOG.info(msg);
         throw new AdminAlreadyApprovedRequestException(msg);
       }
     }
@@ -445,9 +454,9 @@ public class ApprovalExecutionSessionBean
           && existingApproval.getPartitionId() == approval.getPartitionId()
           && existingApproval.getAdmin().equals(admin)) {
         String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "approval.error.alreadyapproved", approvalId);
-        log.info(msg);
+        LOG.info(msg);
         throw new AdminAlreadyApprovedRequestException(msg);
       }
     }
@@ -471,7 +480,7 @@ public class ApprovalExecutionSessionBean
       if (!authorizationSession.isAuthorized(
           admin, AccessRulesConstants.REGULAR_APPROVECAACTION)) {
         final String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "authorization.notauthorizedtoresource",
                 AccessRulesConstants.REGULAR_APPROVECAACTION,
                 null);
@@ -481,7 +490,7 @@ public class ApprovalExecutionSessionBean
       if (!authorizationSession.isAuthorized(
           admin, AccessRulesConstants.REGULAR_APPROVEENDENTITY)) {
         final String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "authorization.notauthorizedtoresource",
                 AccessRulesConstants.REGULAR_APPROVEENDENTITY,
                 null);
@@ -498,7 +507,7 @@ public class ApprovalExecutionSessionBean
                 + approvalData.getEndEntityProfileId()
                 + AccessRulesConstants.APPROVE_END_ENTITY)) {
           final String msg =
-              intres.getLocalizedMessage(
+              INTRES.getLocalizedMessage(
                   "authorization.notauthorizedtoresource",
                   AccessRulesConstants.ENDENTITYPROFILEPREFIX
                       + approvalData.getEndEntityProfileId()
@@ -512,7 +521,7 @@ public class ApprovalExecutionSessionBean
       if (!authorizationSession.isAuthorized(
           admin, StandardRules.CAACCESS.resource() + approvalData.getCAId())) {
         final String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "authorization.notauthorizedtoresource",
                 StandardRules.CAACCESS.resource() + approvalData.getCAId(),
                 null);
@@ -548,7 +557,7 @@ public class ApprovalExecutionSessionBean
     }
     if (!allowed) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "authorization.notauthorizedtoapprovalrequest",
               admin,
               approvalData.getApprovalId(),

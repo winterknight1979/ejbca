@@ -411,4 +411,6 @@
 	
 	<suppress checks="ParameterNumberCheck"
 		files="QueuedLoggerMockSessionBean.java" lines="42" />
+	<suppress checks="MethodLengthCheck"
+		files="ApprovalExecutionSessionBean.java" lines="100" />
 </suppressions>

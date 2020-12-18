@@ -44,7 +44,7 @@ import org.ejbca.core.ejb.audit.enums.EjbcaServiceTypes;
 import org.ejbca.core.model.approval.profile.ApprovalProfile;
 
 /**
- * Keeps track of the approval profiles
+ * Keeps track of the approval profiles.
  *
  * @version $Id: ApprovalProfileSessionBean.java 26388 2017-08-22 14:20:40Z
  *     mikekushner $
@@ -55,15 +55,20 @@ import org.ejbca.core.model.approval.profile.ApprovalProfile;
 public class ApprovalProfileSessionBean
     implements ApprovalProfileSessionLocal, ApprovalProfileSessionRemote {
 
+    /** Logger. */
   private static final Logger LOG =
       Logger.getLogger(ApprovalProfileSessionBean.class);
-  /** Internal localization of logs and errors */
+  /** Internal localization of logs and errors. */
   private static final InternalResources INTRES =
       InternalResources.getInstance();
 
+  /** EJB. */
   @EJB private ApprovalProfileCacheBean approvalProfileCache;
+  /** EJB. */
   @EJB private AuthorizationSessionLocal authorizationSession;
+  /** EJB. */
   @EJB private ProfileSessionLocal profileSession;
+  /** EJB. */
   @EJB private SecurityEventsLoggerSessionLocal logSession;
 
   @TransactionAttribute(TransactionAttributeType.REQUIRED)

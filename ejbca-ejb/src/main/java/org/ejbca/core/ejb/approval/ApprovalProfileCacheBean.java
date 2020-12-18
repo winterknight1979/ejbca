@@ -52,8 +52,11 @@ import org.ejbca.core.model.approval.profile.ApprovalProfile;
 @TransactionManagement(TransactionManagementType.BEAN)
 public class ApprovalProfileCacheBean {
 
-  private final Logger LOG = Logger.getLogger(ApprovalProfileCacheBean.class);
+    /** logger. */
+  private static final Logger LOG
+      = Logger.getLogger(ApprovalProfileCacheBean.class);
 
+  /** EJB. */
   @EJB private ApprovalProfileSessionLocal approvalProfileSession;
 
   /*
@@ -62,18 +65,21 @@ public class ApprovalProfileCacheBean {
    * threads in the same VM. Set volatile to make it thread friendly.
    */
 
-  /** Cache of mappings between profileId and profileName */
+  /** Cache of mappings between profileId and profileName. */
   private volatile Map<Integer, String> idNameMapCache = null;
-  /** Cache of approval profiles, with Id as keys */
+  /** Cache of approval profiles, with Id as keys. */
   private volatile Map<Integer, ApprovalProfile> profileCache = null;
 
+  /** Param. */
   private volatile long lastUpdate = 0;
 
+  /** Paramn. */
   private ReentrantLock lock;
 
-  /* Create template maps with all static constants */
+  /** Create template maps with all static constants. */
   private HashMap<Integer, String> idNameMapCacheTemplate;
 
+  /** Init. */
   @PostConstruct
   public void initialize() {
     idNameMapCacheTemplate = new HashMap<>();
@@ -89,7 +95,8 @@ public class ApprovalProfileCacheBean {
     }
   }
 
-  public ApprovalProfileCacheBean() {}
+  /** Default. */
+  public ApprovalProfileCacheBean() { }
 
   /**
    * This method sets the update time back down to zero, effectively forcing the
