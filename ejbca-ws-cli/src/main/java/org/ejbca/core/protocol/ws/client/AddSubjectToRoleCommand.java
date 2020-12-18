@@ -21,78 +21,93 @@ import org.ejbca.ui.cli.ErrorAdminCommandException;
 import org.ejbca.ui.cli.IAdminCommand;
 import org.ejbca.ui.cli.IllegalAdminCommandException;
 
-
 /**
  * Adds an administrator to an existing Administrator role
  *
- * @version $Id: AddSubjectToRoleCommand.java 26057 2017-06-22 08:08:34Z anatom $
+ * @version $Id: AddSubjectToRoleCommand.java 26057 2017-06-22 08:08:34Z anatom
+ *     $
  */
-public class AddSubjectToRoleCommand extends EJBCAWSRABaseCommand implements IAdminCommand{
+public class AddSubjectToRoleCommand extends EJBCAWSRABaseCommand
+    implements IAdminCommand {
 
+  private static final int ARG_ROLE_NAME = 1;
+  private static final int ARG_CA_NAME = 2;
+  private static final int ARG_MATCH_WITH = 3;
+  private static final int ARG_MATCH_TYPE = 4;
+  private static final int ARG_MATCH_VALUE = 5;
 
-    private static final int ARG_ROLE_NAME    = 1;
-    private static final int ARG_CA_NAME      = 2;
-    private static final int ARG_MATCH_WITH   = 3;
-    private static final int ARG_MATCH_TYPE   = 4;
-    private static final int ARG_MATCH_VALUE  = 5;
+  /**
+   * Creates a new instance of Command
+   *
+   * @param args command line arguments
+   */
+  public AddSubjectToRoleCommand(final String[] args) {
+    super(args);
+  }
 
-    /**
-     * Creates a new instance of Command
-     *
-     * @param args command line arguments
-     */
-    public AddSubjectToRoleCommand(String[] args) {
-        super(args);
+  /**
+   * Runs the command
+   *
+   * @throws IllegalAdminCommandException Error in command args
+   * @throws ErrorAdminCommandException Error running command
+   */
+  @Override
+  public void execute()
+      throws IllegalAdminCommandException, ErrorAdminCommandException {
+    try {
+      if (args.length < 6) {
+        getPrintStream().println("Error. Too few arguments: " + args.length);
+        usage();
+        System.exit(-1); // NOPMD, this is not a JEE app
+      }
+
+      String rolename = args[ARG_ROLE_NAME];
+      String caname = args[ARG_CA_NAME];
+      String matchwith = args[ARG_MATCH_WITH];
+      String matchtype = args[ARG_MATCH_TYPE];
+      String matchvalue = args[ARG_MATCH_VALUE];
+
+      getEjbcaRAWS()
+          .addSubjectToRole(rolename, caname, matchwith, matchtype, matchvalue);
+      getPrintStream().println("Added admin to " + rolename + " successfully");
+    } catch (Exception e) {
+      if (e instanceof EjbcaException_Exception) {
+        EjbcaException_Exception e1 = (EjbcaException_Exception) e;
+        getPrintStream()
+            .println(
+                "Error code: "
+                    + e1.getFaultInfo().getErrorCode().getInternalErrorCode());
+      }
+      ErrorAdminCommandException adminexp = new ErrorAdminCommandException(e);
+      getPrintStream()
+          .println("Error message: " + adminexp.getLocalizedMessage());
     }
+  }
 
-    /**
-     * Runs the command
-     *
-     * @throws IllegalAdminCommandException Error in command args
-     * @throws ErrorAdminCommandException Error running command
-     */
-    public void execute() throws IllegalAdminCommandException, ErrorAdminCommandException {
-        try {   
-            if (args.length < 6 ) {
-                getPrintStream().println("Error. Too few arguments: "+args.length);
-                usage();
-                System.exit(-1); // NOPMD, this is not a JEE app
-            }
+  @Override
+  protected void usage() {
 
-            String rolename = args[ARG_ROLE_NAME];
-            String caname = args[ARG_CA_NAME];
-            String matchwith = args[ARG_MATCH_WITH];
-            String matchtype = args[ARG_MATCH_TYPE];
-            String matchvalue = args[ARG_MATCH_VALUE];
-            
-            getEjbcaRAWS().addSubjectToRole(rolename, caname, matchwith, matchtype, matchvalue);
-            getPrintStream().println("Added admin to " + rolename + " successfully");
-        } catch (Exception e) {
-            if (e instanceof EjbcaException_Exception) {
-                EjbcaException_Exception e1 = (EjbcaException_Exception)e;
-                getPrintStream().println("Error code: " + e1.getFaultInfo().getErrorCode().getInternalErrorCode());
-            }
-            ErrorAdminCommandException adminexp = new ErrorAdminCommandException(e);
-            getPrintStream().println("Error message: " + adminexp.getLocalizedMessage());
-        }
+    getPrintStream()
+        .println("Command used to add an administrator to an existing role");
+    getPrintStream()
+        .println(
+            "Usage : addadmintorole <rolename> <caname> <matchwith>"
+                + " <matchtype> <matchvalue>");
+    getPrintStream().println();
+
+    String availableMatchers = "";
+    for (AccessMatchValue currentMatchWith :
+        X500PrincipalAccessMatchValue.values()) {
+      availableMatchers +=
+          (availableMatchers.length() == 0 ? "" : ", ") + currentMatchWith;
     }
-
-    protected void usage() {
-        
-        getPrintStream().println("Command used to add an administrator to an existing role");
-        getPrintStream().println("Usage : addadmintorole <rolename> <caname> <matchwith> <matchtype> <matchvalue>");
-        getPrintStream().println();
-        
-        String availableMatchers = "";
-        for (AccessMatchValue currentMatchWith : X500PrincipalAccessMatchValue.values()) {
-            availableMatchers += (availableMatchers.length() == 0 ? "" : ", ") + currentMatchWith;
-        }
-        getPrintStream().println("Matchwith can be: " + availableMatchers);
-        getPrintStream().println();
-        String availableMatchTypes = "";
-        for (AccessMatchType currentMatchType : AccessMatchType.values()) {
-            availableMatchTypes += (availableMatchTypes.length() == 0 ? "" : ", ") + currentMatchType;
-        }
-        getPrintStream().println("Matchtype can be: " + availableMatchTypes);
+    getPrintStream().println("Matchwith can be: " + availableMatchers);
+    getPrintStream().println();
+    String availableMatchTypes = "";
+    for (AccessMatchType currentMatchType : AccessMatchType.values()) {
+      availableMatchTypes +=
+          (availableMatchTypes.length() == 0 ? "" : ", ") + currentMatchType;
     }
+    getPrintStream().println("Matchtype can be: " + availableMatchTypes);
+  }
 }

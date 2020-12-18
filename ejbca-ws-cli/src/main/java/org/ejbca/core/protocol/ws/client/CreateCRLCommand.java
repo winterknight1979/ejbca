@@ -10,9 +10,8 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
-package org.ejbca.core.protocol.ws.client;
 
+package org.ejbca.core.protocol.ws.client;
 
 import org.ejbca.ui.cli.ErrorAdminCommandException;
 import org.ejbca.ui.cli.IAdminCommand;
@@ -23,44 +22,42 @@ import org.ejbca.ui.cli.IllegalAdminCommandException;
  *
  * @version $Id: CreateCRLCommand.java 19902 2014-09-30 14:32:24Z anatom $
  */
-public class CreateCRLCommand extends EJBCAWSRABaseCommand implements IAdminCommand{
+public class CreateCRLCommand extends EJBCAWSRABaseCommand
+    implements IAdminCommand {
 
-	
-    /**
-     * @param args command line arguments
-     */
-    public CreateCRLCommand(String[] args) {
-        super(args);
+  /** @param args command line arguments */
+  public CreateCRLCommand(final String[] args) {
+    super(args);
+  }
+
+  /**
+   * Runs the command
+   *
+   * @throws IllegalAdminCommandException Error in command args
+   * @throws ErrorAdminCommandException Error running command
+   */
+  @Override
+  public void execute()
+      throws IllegalAdminCommandException, ErrorAdminCommandException {
+    try {
+
+      if (args.length != 2) {
+        usage();
+        System.exit(-1); // NOPMD, this is not a JEE app
+      }
+
+      String caname = args[1];
+
+      getEjbcaRAWS().createCRL(caname);
+      getPrintStream().println("CRL generated for CA: " + caname);
+    } catch (Exception e) {
+      throw new ErrorAdminCommandException(e);
     }
+  }
 
-    /**
-     * Runs the command
-     *
-     * @throws IllegalAdminCommandException Error in command args
-     * @throws ErrorAdminCommandException Error running command
-     */
-    public void execute() throws IllegalAdminCommandException, ErrorAdminCommandException {
-         try {   
-           
-            if(args.length != 2){
-            	usage();
-            	System.exit(-1);// NOPMD, this is not a JEE app
-            }
-            
-            String caname = args[1];            
-            
-            getEjbcaRAWS().createCRL(caname);
-            getPrintStream().println("CRL generated for CA: "+caname);
-         } catch (Exception e) {
-            throw new ErrorAdminCommandException(e);
-        }
-    }
-
-
-	protected void usage() {
-		getPrintStream().println("Command used to generate a new CRL for a CA");
-		getPrintStream().println("Usage : createcrl <caname>\n\n");
-   }
-
-
+  @Override
+  protected void usage() {
+    getPrintStream().println("Command used to generate a new CRL for a CA");
+    getPrintStream().println("Usage : createcrl <caname>\n\n");
+  }
 }

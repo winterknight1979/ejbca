@@ -18,62 +18,84 @@ import org.ejbca.ui.cli.ErrorAdminCommandException;
 import org.ejbca.ui.cli.IAdminCommand;
 import org.ejbca.ui.cli.IllegalAdminCommandException;
 
-
 /**
  * Adds an administrator to an existing Administrator role
  *
- * @version $Id: GenerateCryptoTokenKeysCommand.java 26057 2017-06-22 08:08:34Z anatom $
+ * @version $Id: GenerateCryptoTokenKeysCommand.java 26057 2017-06-22 08:08:34Z
+ *     anatom $
  */
-public class GenerateCryptoTokenKeysCommand extends EJBCAWSRABaseCommand implements IAdminCommand{
+public class GenerateCryptoTokenKeysCommand extends EJBCAWSRABaseCommand
+    implements IAdminCommand {
 
+  private static final int ARG_CRYPTOTOKEN_NAME = 1;
+  private static final int ARG_KEY_PAIR_ALIAS = 2;
+  private static final int ARG_KEY_SPECIFICATION = 3;
 
-    private static final int ARG_CRYPTOTOKEN_NAME    = 1;
-    private static final int ARG_KEY_PAIR_ALIAS      = 2;
-    private static final int ARG_KEY_SPECIFICATION   = 3;
+  /**
+   * Creates a new instance of Command
+   *
+   * @param args command line arguments
+   */
+  public GenerateCryptoTokenKeysCommand(final String[] args) {
+    super(args);
+  }
 
-    /**
-     * Creates a new instance of Command
-     *
-     * @param args command line arguments
-     */
-    public GenerateCryptoTokenKeysCommand(String[] args) {
-        super(args);
+  /**
+   * Runs the command
+   *
+   * @throws IllegalAdminCommandException Error in command args
+   * @throws ErrorAdminCommandException Error running command
+   */
+  @Override
+  public void execute()
+      throws IllegalAdminCommandException, ErrorAdminCommandException {
+    try {
+      if (args.length < 4) {
+        getPrintStream().println("Error. Too few arguments: " + args.length);
+        usage();
+        System.exit(-1); // NOPMD, this is not a JEE app
+      }
+
+      String cryptotokenName = args[ARG_CRYPTOTOKEN_NAME];
+      String keyAlias = args[ARG_KEY_PAIR_ALIAS];
+      String keySpec = args[ARG_KEY_SPECIFICATION];
+
+      getEjbcaRAWS()
+          .generateCryptoTokenKeys(cryptotokenName, keyAlias, keySpec);
+      getPrintStream()
+          .println(
+              "Generate key with alias '"
+                  + keyAlias
+                  + "' in cryptotoken '"
+                  + cryptotokenName
+                  + "'");
+    } catch (Exception e) {
+      if (e instanceof EjbcaException_Exception) {
+        EjbcaException_Exception e1 = (EjbcaException_Exception) e;
+        getPrintStream()
+            .println(
+                "Error code: "
+                    + e1.getFaultInfo().getErrorCode().getInternalErrorCode());
+      }
+      ErrorAdminCommandException adminexp = new ErrorAdminCommandException(e);
+      getPrintStream()
+          .println("Error message: " + adminexp.getLocalizedMessage());
     }
+  }
 
-    /**
-     * Runs the command
-     *
-     * @throws IllegalAdminCommandException Error in command args
-     * @throws ErrorAdminCommandException Error running command
-     */
-    public void execute() throws IllegalAdminCommandException, ErrorAdminCommandException {
-        try {   
-            if (args.length < 4 ) {
-                getPrintStream().println("Error. Too few arguments: "+args.length);
-                usage();
-                System.exit(-1); // NOPMD, this is not a JEE app
-            }
-
-            String cryptotokenName = args[ARG_CRYPTOTOKEN_NAME];
-            String keyAlias = args[ARG_KEY_PAIR_ALIAS];
-            String keySpec = args[ARG_KEY_SPECIFICATION];
-            
-            getEjbcaRAWS().generateCryptoTokenKeys(cryptotokenName, keyAlias, keySpec);
-            getPrintStream().println("Generate key with alias '" + keyAlias + "' in cryptotoken '" + cryptotokenName + "'");
-        } catch (Exception e) {
-            if (e instanceof EjbcaException_Exception) {
-                EjbcaException_Exception e1 = (EjbcaException_Exception)e;
-                getPrintStream().println("Error code: " + e1.getFaultInfo().getErrorCode().getInternalErrorCode());
-            }
-            ErrorAdminCommandException adminexp = new ErrorAdminCommandException(e);
-            getPrintStream().println("Error message: " + adminexp.getLocalizedMessage());
-        }
-    }
-
-    protected void usage() {
-        getPrintStream().println("Command used to generate a keypair for a specific cryptotoken");
-        getPrintStream().println("Usage : generatectkeys <cryptotokenName> <keypairAlias> <keySpecification>");
-        getPrintStream().println();
-        getPrintStream().println("Examples of key specifications: RSA2048, secp256r1, DSA1024, gost3410, dstu4145");
-    }
+  @Override
+  protected void usage() {
+    getPrintStream()
+        .println(
+            "Command used to generate a keypair for a specific cryptotoken");
+    getPrintStream()
+        .println(
+            "Usage : generatectkeys <cryptotokenName> <keypairAlias>"
+                + " <keySpecification>");
+    getPrintStream().println();
+    getPrintStream()
+        .println(
+            "Examples of key specifications: RSA2048, secp256r1, DSA1024,"
+                + " gost3410, dstu4145");
+  }
 }

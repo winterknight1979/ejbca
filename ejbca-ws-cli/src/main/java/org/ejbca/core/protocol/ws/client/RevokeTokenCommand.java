@@ -10,7 +10,7 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
+
 package org.ejbca.core.protocol.ws.client;
 
 import org.cesecore.certificates.crl.RevokedCertInfo;
@@ -27,75 +27,74 @@ import org.ejbca.ui.cli.IllegalAdminCommandException;
  *
  * @version $Id: RevokeTokenCommand.java 19902 2014-09-30 14:32:24Z anatom $
  */
-public class RevokeTokenCommand extends EJBCAWSRABaseCommand implements IAdminCommand{
+public class RevokeTokenCommand extends EJBCAWSRABaseCommand
+    implements IAdminCommand {
 
-	
-	private static final int ARG_HARDTOKENSN              = 1;
-	private static final int ARG_REASON                   = 2;
-	
-	
-    /**
-     * Creates a new instance of RevokeTokenCommand
-     *
-     * @param args command line arguments
-     */
-    public RevokeTokenCommand(String[] args) {
-        super(args);
+  private static final int ARG_HARDTOKENSN = 1;
+  private static final int ARG_REASON = 2;
+
+  /**
+   * Creates a new instance of RevokeTokenCommand
+   *
+   * @param args command line arguments
+   */
+  public RevokeTokenCommand(final String[] args) {
+    super(args);
+  }
+
+  /**
+   * Runs the command
+   *
+   * @throws IllegalAdminCommandException Error in command args
+   * @throws ErrorAdminCommandException Error running command
+   */
+  @Override
+  public void execute()
+      throws IllegalAdminCommandException, ErrorAdminCommandException {
+    try {
+
+      if (args.length != 3) {
+        usage();
+        System.exit(-1); // NOPMD, this is not a JEE app
+      }
+
+      String hardtokensn = args[ARG_HARDTOKENSN];
+      int reason = getRevokeReason(args[ARG_REASON]);
+
+      if (reason == RevokedCertInfo.NOT_REVOKED) {
+        getPrintStream().println("Error : Unsupported reason " + reason);
+        usage();
+        System.exit(-1); // NOPMD, this is not a JEE app
+      }
+
+      try {
+
+        getEjbcaRAWS().revokeToken(hardtokensn, reason);
+        getPrintStream().println("Token revoked sucessfully");
+      } catch (AuthorizationDeniedException_Exception e) {
+        getPrintStream().println("Error : " + e.getMessage());
+      } catch (AlreadyRevokedException_Exception e) {
+        getPrintStream().println("This token has already been revoked.");
+      } catch (WaitingForApprovalException_Exception e) {
+        getPrintStream()
+            .println("The revocation request has been sent for approval.");
+      } catch (ApprovalException_Exception e) {
+        getPrintStream().println("This revocation has already been requested.");
+      }
+    } catch (Exception e) {
+      throw new ErrorAdminCommandException(e);
     }
+  }
 
-    /**
-     * Runs the command
-     *
-     * @throws IllegalAdminCommandException Error in command args
-     * @throws ErrorAdminCommandException Error running command
-     */
-    public void execute() throws IllegalAdminCommandException, ErrorAdminCommandException {
-         try {   
-           
-            if(args.length != 3){
-            	usage();
-            	System.exit(-1); // NOPMD, this is not a JEE app
-            }
-            
-            String hardtokensn = args[ARG_HARDTOKENSN];            
-            int reason = getRevokeReason(args[ARG_REASON]);
-            
-            if(reason == RevokedCertInfo.NOT_REVOKED){
-        		getPrintStream().println("Error : Unsupported reason " + reason);
-        		usage();
-        		System.exit(-1); // NOPMD, this is not a JEE app
-            }
-                        
-            try{
-
-            	getEjbcaRAWS().revokeToken(hardtokensn,reason);            	         
-                getPrintStream().println("Token revoked sucessfully");
-            }catch(AuthorizationDeniedException_Exception e){
-            	getPrintStream().println("Error : " + e.getMessage());            
-			} catch (AlreadyRevokedException_Exception e) {
-            	getPrintStream().println("This token has already been revoked.");            
-			} catch (WaitingForApprovalException_Exception e) {
-            	getPrintStream().println("The revocation request has been sent for approval.");            
-			} catch (ApprovalException_Exception e) {
-            	getPrintStream().println("This revocation has already been requested.");            
-            }
-        } catch (Exception e) {
-            throw new ErrorAdminCommandException(e);
-        } 
+  @Override
+  protected void usage() {
+    getPrintStream().println("Command used to revoke a tokens certificate");
+    getPrintStream()
+        .println("Usage : revoketoken <hardtokensn> <reason>  \n\n");
+    getPrintStream().println("Reason should be one of : ");
+    for (int i = 1; i < REASON_TEXTS.length - 1; i++) {
+      getPrintStream().print(REASON_TEXTS[i] + ", ");
     }
-
-
-
-
-	protected void usage() {
-		getPrintStream().println("Command used to revoke a tokens certificate");
-		getPrintStream().println("Usage : revoketoken <hardtokensn> <reason>  \n\n");
-		getPrintStream().println("Reason should be one of : ");
-		for(int i=1; i< REASON_TEXTS.length-1;i++){
-			getPrintStream().print(REASON_TEXTS[i] + ", ");
-		}
-		getPrintStream().print(REASON_TEXTS[REASON_TEXTS.length-1]);
-   }
-
-
+    getPrintStream().print(REASON_TEXTS[REASON_TEXTS.length - 1]);
+  }
 }
