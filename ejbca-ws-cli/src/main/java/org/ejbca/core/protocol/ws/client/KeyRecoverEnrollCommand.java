@@ -36,16 +36,27 @@ import org.ejbca.ui.cli.IllegalAdminCommandException;
 public class KeyRecoverEnrollCommand extends EJBCAWSRABaseCommand
     implements IAdminCommand {
 
+      /** Type. */
   private static final int ARG_USERNAME = 1;
+  /** Type. */
   private static final int ARG_CERTSNINHEX = 2;
+  /** Type. */
   private static final int ARG_ISSUERDN = 3;
+  /** Type. */
   private static final int ARG_PASSWORD = 4;
+  /** Type. */
   private static final int ARG_HARDTOKENSN = 5;
+  /** Type. */
   private static final int ARG_OUTPUTPATH = 6;
 
+  /** Type. */
   private static final byte PKCS12_MAGIC = (byte) 48;
+  /** Type. */
   private static final byte JKS_MAGIC = (byte) (0xfe);
 
+  /**
+   * @param args args
+   */
   KeyRecoverEnrollCommand(final String[] args) {
     super(args);
   }
@@ -53,8 +64,10 @@ public class KeyRecoverEnrollCommand extends EJBCAWSRABaseCommand
   @Override
   public void execute()
       throws IllegalAdminCommandException, ErrorAdminCommandException {
+    final int minLen = 6;
+    final int maxLen = 7;
     try {
-      if (args.length < 6 || args.length > 7) { // TODO
+      if (args.length < minLen || args.length > maxLen) { // TODO
         getPrintStream().println("Unexpected number of parameters");
         usage();
         System.exit(-1); // NOPMD, it's not a JEE app
@@ -81,7 +94,7 @@ public class KeyRecoverEnrollCommand extends EJBCAWSRABaseCommand
           String filepath = username;
           String outputPath = null;
 
-          if (args.length == 7) {
+          if (args.length == maxLen) {
             outputPath = getOutputPath(args[ARG_OUTPUTPATH]);
           }
 

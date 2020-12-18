@@ -27,7 +27,7 @@ import org.ejbca.ui.cli.IAdminCommand;
 import org.ejbca.ui.cli.IllegalAdminCommandException;
 
 /**
- * Finds a certificates in the database
+ * Finds a certificates in the database.
  *
  * @version $Id: GetExpiredCertificatesByIssuerCommand.java 26057 2017-06-22
  *     08:08:34Z anatom $
@@ -35,18 +35,27 @@ import org.ejbca.ui.cli.IllegalAdminCommandException;
 public class GetExpiredCertificatesByIssuerCommand extends EJBCAWSRABaseCommand
     implements IAdminCommand {
 
+      /** Type. */
   private static final int ARG_DAYS = 1;
+  /** Type. */
   private static final int ARG_ISSUER = 2;
+  /** Type. */
   private static final int ARG_MAX_NUMBER_OF_RESULTS = 3;
+  /** Type. */
   private static final int ARG_ENCODING = 4;
+  /** Type. */
   private static final int ARG_OUTPUTPATH = 5;
 
+  /**
+   *
+   * @param args args
+   */
   public GetExpiredCertificatesByIssuerCommand(final String[] args) {
     super(args);
   }
 
   /**
-   * Runs the command
+   * Runs the command.
    *
    * @throws IllegalAdminCommandException Error in command args
    * @throws ErrorAdminCommandException Error running command
@@ -55,9 +64,10 @@ public class GetExpiredCertificatesByIssuerCommand extends EJBCAWSRABaseCommand
   public void execute()
       throws IllegalAdminCommandException, ErrorAdminCommandException {
 
+    final int len = 6;
     try {
 
-      if (args.length < 6) {
+      if (args.length < len) {
         usage();
         System.exit(-1); // NOPMD, it's not a JEE app
       }

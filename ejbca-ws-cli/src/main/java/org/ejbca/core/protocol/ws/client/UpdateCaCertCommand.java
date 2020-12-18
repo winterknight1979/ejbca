@@ -28,11 +28,13 @@ import org.ejbca.ui.cli.IllegalAdminCommandException;
 public class UpdateCaCertCommand extends EJBCAWSRABaseCommand
     implements IAdminCommand {
 
+      /** Type. */
   private static final int ARG_CANAME = 1;
+  /** Type. */
   private static final int ARG_CACHAIN = 2;
 
   /**
-   * Creates a new instance of Command
+   * Creates a new instance of Command.
    *
    * @param args command line arguments
    */
@@ -41,7 +43,7 @@ public class UpdateCaCertCommand extends EJBCAWSRABaseCommand
   }
 
   /**
-   * Runs the command
+   * Runs the command.
    *
    * @throws IllegalAdminCommandException Error in command args
    * @throws ErrorAdminCommandException Error running command
@@ -50,7 +52,8 @@ public class UpdateCaCertCommand extends EJBCAWSRABaseCommand
   public void execute()
       throws IllegalAdminCommandException, ErrorAdminCommandException {
     try {
-      if (args.length < 3 || args.length > 3) {
+      final int len = 3;
+      if (args.length < len || args.length > len) {
         getPrintStream().println("Number of arguments: " + args.length);
         usage();
         System.exit(-1); // NOPMD, this is not a JEE app

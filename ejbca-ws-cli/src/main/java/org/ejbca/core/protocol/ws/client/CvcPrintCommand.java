@@ -34,20 +34,20 @@ import org.ejbca.ui.cli.IAdminCommand;
 import org.ejbca.ui.cli.IllegalAdminCommandException;
 
 /**
- * Pretty prints a CV Certificate or certificate request
+ * Pretty prints a CV Certificate or certificate request.
  *
  * @version $Id: CvcPrintCommand.java 22553 2016-01-11 13:06:46Z mikekushner $
  */
 public class CvcPrintCommand extends EJBCAWSRABaseCommand
     implements IAdminCommand {
 
-  /** @param args command line arguments */
+  /** @param args command line arguments. */
   public CvcPrintCommand(final String[] args) {
     super(args);
   }
 
   /**
-   * Runs the command
+   * Runs the command.
    *
    * @throws IllegalAdminCommandException Error in command args
    * @throws ErrorAdminCommandException Error running command
@@ -56,8 +56,11 @@ public class CvcPrintCommand extends EJBCAWSRABaseCommand
   public void execute()
       throws IllegalAdminCommandException, ErrorAdminCommandException {
 
+    final int maxLen = 4;
+    final int certIdx = 3;
+
     try {
-      if (args.length < 2 || args.length > 4) {
+      if (args.length < 2 || args.length > maxLen) {
         usage();
         System.exit(-1); // NOPMD, this is not a JEE app
       }
@@ -84,9 +87,9 @@ public class CvcPrintCommand extends EJBCAWSRABaseCommand
         CVCObject parsedVerifyObject = getCVCObject(verifycert);
         CVCertificate cert2 = (CVCertificate) parsedVerifyObject;
         PublicKey pk = cert2.getCertificateBody().getPublicKey();
-        if (args.length > 3) {
+        if (args.length > certIdx) {
           // we have an additional curve name
-          String cvcacert = args[3];
+          String cvcacert = args[certIdx];
           getPrintStream()
               .println(
                   "Using CVCA certificate " + cvcacert + " for EC parameters.");

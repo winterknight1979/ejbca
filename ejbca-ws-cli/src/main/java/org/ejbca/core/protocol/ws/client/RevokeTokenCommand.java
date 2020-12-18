@@ -23,18 +23,20 @@ import org.ejbca.ui.cli.IAdminCommand;
 import org.ejbca.ui.cli.IllegalAdminCommandException;
 
 /**
- * Revokes a given tokens certificate
+ * Revokes a given tokens certificate.
  *
  * @version $Id: RevokeTokenCommand.java 19902 2014-09-30 14:32:24Z anatom $
  */
 public class RevokeTokenCommand extends EJBCAWSRABaseCommand
     implements IAdminCommand {
 
+      /** Type. */
   private static final int ARG_HARDTOKENSN = 1;
+  /** Type. */
   private static final int ARG_REASON = 2;
 
   /**
-   * Creates a new instance of RevokeTokenCommand
+   * Creates a new instance of RevokeTokenCommand.
    *
    * @param args command line arguments
    */
@@ -43,7 +45,7 @@ public class RevokeTokenCommand extends EJBCAWSRABaseCommand
   }
 
   /**
-   * Runs the command
+   * Runs the command.
    *
    * @throws IllegalAdminCommandException Error in command args
    * @throws ErrorAdminCommandException Error running command
@@ -52,8 +54,8 @@ public class RevokeTokenCommand extends EJBCAWSRABaseCommand
   public void execute()
       throws IllegalAdminCommandException, ErrorAdminCommandException {
     try {
-
-      if (args.length != 3) {
+      final int len = 3;
+      if (args.length != len) {
         usage();
         System.exit(-1); // NOPMD, this is not a JEE app
       }

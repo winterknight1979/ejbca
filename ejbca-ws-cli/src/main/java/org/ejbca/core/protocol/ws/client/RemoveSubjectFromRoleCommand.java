@@ -22,7 +22,7 @@ import org.ejbca.ui.cli.IAdminCommand;
 import org.ejbca.ui.cli.IllegalAdminCommandException;
 
 /**
- * Removes an administrator from an Administrator role
+ * Removes an administrator from an Administrator role.
  *
  * @version $Id: RemoveSubjectFromRoleCommand.java 26057 2017-06-22 08:08:34Z
  *     anatom $
@@ -30,14 +30,19 @@ import org.ejbca.ui.cli.IllegalAdminCommandException;
 public class RemoveSubjectFromRoleCommand extends EJBCAWSRABaseCommand
     implements IAdminCommand {
 
+      /** Type. */
   private static final int ARG_ROLE_NAME = 1;
+  /** Type. */
   private static final int ARG_CA_NAME = 2;
+  /** Type. */
   private static final int ARG_MATCH_WITH = 3;
+  /** Type. */
   private static final int ARG_MATCH_TYPE = 4;
+  /** Type. */
   private static final int ARG_MATCH_VALUE = 5;
 
   /**
-   * Creates a new instance of Command
+   * Creates a new instance of Command.
    *
    * @param args command line arguments
    */
@@ -46,7 +51,7 @@ public class RemoveSubjectFromRoleCommand extends EJBCAWSRABaseCommand
   }
 
   /**
-   * Runs the command
+   * Runs the command.
    *
    * @throws IllegalAdminCommandException Error in command args
    * @throws ErrorAdminCommandException Error running command
@@ -54,8 +59,9 @@ public class RemoveSubjectFromRoleCommand extends EJBCAWSRABaseCommand
   @Override
   public void execute()
       throws IllegalAdminCommandException, ErrorAdminCommandException {
+    final int len = 6;
     try {
-      if (args.length < 6) {
+      if (args.length < len) {
         getPrintStream().println("Error. Too few arguments: " + args.length);
         usage();
         System.exit(-1); // NOPMD, this is not a JEE app
@@ -97,8 +103,8 @@ public class RemoveSubjectFromRoleCommand extends EJBCAWSRABaseCommand
     getPrintStream().println();
 
     String availableMatchers = "";
-    for (AccessMatchValue currentMatchWith :
-        X500PrincipalAccessMatchValue.values()) {
+    for (AccessMatchValue currentMatchWith
+        : X500PrincipalAccessMatchValue.values()) {
       availableMatchers +=
           (availableMatchers.length() == 0 ? "" : ", ") + currentMatchWith;
     }

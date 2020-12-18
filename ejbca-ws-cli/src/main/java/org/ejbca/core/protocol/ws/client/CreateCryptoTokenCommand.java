@@ -27,7 +27,7 @@ import org.ejbca.ui.cli.IAdminCommand;
 import org.ejbca.ui.cli.IllegalAdminCommandException;
 
 /**
- * Creates new cryptotoken
+ * Creates new cryptotoken.
  *
  * @version $Id: CreateCryptoTokenCommand.java 26057 2017-06-22 08:08:34Z anatom
  *     $
@@ -35,14 +35,19 @@ import org.ejbca.ui.cli.IllegalAdminCommandException;
 public class CreateCryptoTokenCommand extends EJBCAWSRABaseCommand
     implements IAdminCommand {
 
+      /** Type. */
   private static final int ARG_CRYPTOTOKEN_NAME = 1;
+  /** Type. */
   private static final int ARG_CRYPTOTOKEN_TYPE = 2;
+  /** Type. */
   private static final int ARG_AUTO_ACTIVATE = 3;
+  /** Type. */
   private static final int ARG_ACTIVATION_PIN = 4;
+  /** Type. */
   private static final int ARG_PROPERTIES_FILE = 5;
 
   /**
-   * Creates a new instance of Command
+   * Creates a new instance of Command.
    *
    * @param args command line arguments
    */
@@ -51,7 +56,7 @@ public class CreateCryptoTokenCommand extends EJBCAWSRABaseCommand
   }
 
   /**
-   * Runs the command
+   * Runs the command.
    *
    * @throws IllegalAdminCommandException Error in command args
    * @throws ErrorAdminCommandException Error running command
@@ -59,8 +64,9 @@ public class CreateCryptoTokenCommand extends EJBCAWSRABaseCommand
   @Override
   public void execute()
       throws IllegalAdminCommandException, ErrorAdminCommandException {
+    final int len = 5;
     try {
-      if (args.length < 5) {
+      if (args.length < len) {
         getPrintStream().println("Error. Too few arguments: " + args.length);
         usage();
         System.exit(-1); // NOPMD, this is not a JEE app
@@ -71,7 +77,7 @@ public class CreateCryptoTokenCommand extends EJBCAWSRABaseCommand
       boolean autoActivate = Boolean.parseBoolean(args[ARG_AUTO_ACTIVATE]);
       String pin = args[ARG_ACTIVATION_PIN];
       ArrayList<KeyValuePair> properties = new ArrayList<KeyValuePair>();
-      if (args.length > 5) {
+      if (args.length > len) {
         Properties props = new Properties();
         props.load(new FileInputStream(new File(args[ARG_PROPERTIES_FILE])));
 
@@ -134,7 +140,8 @@ public class CreateCryptoTokenCommand extends EJBCAWSRABaseCommand
     StringBuilder sb = new StringBuilder();
     sb.append("Slot Reference Types:\n");
     for (Pkcs11SlotLabelType type : Pkcs11SlotLabelType.values()) {
-        sb.append("    " + type.getKey() + " - " + type.getDescription() + "\n");
+        sb.append("    " + type.getKey() + " -
+        " + type.getDescription() + "\n");
     }
     */
   }

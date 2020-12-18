@@ -24,12 +24,15 @@ import org.ejbca.ui.cli.IllegalAdminCommandException;
 public class KeyRecoverCommand extends EJBCAWSRABaseCommand
     implements IAdminCommand {
 
+      /** Type. */
   private static final int ARG_USERNAME = 1;
+  /** Type. */
   private static final int ARG_CERTSNINHEX = 2;
+  /** Type. */
   private static final int ARG_ISSUERDN = 3;
 
   /**
-   * Creates a new instance of KeyRecoverCommand
+   * Creates a new instance of KeyRecoverCommand.
    *
    * @param args command line arguments
    */
@@ -38,7 +41,7 @@ public class KeyRecoverCommand extends EJBCAWSRABaseCommand
   }
 
   /**
-   * Runs the command
+   * Runs the command.
    *
    * @throws IllegalAdminCommandException Error in command args
    * @throws ErrorAdminCommandException Error running command
@@ -46,8 +49,9 @@ public class KeyRecoverCommand extends EJBCAWSRABaseCommand
   @Override
   public void execute()
       throws IllegalAdminCommandException, ErrorAdminCommandException {
+      final int len = 4;
     try {
-      if (args.length != 4) {
+      if (args.length != len) {
         getPrintStream().println("Unexpected number of parameters");
         usage();
         System.exit(-1); // NOPMD, it's not a JEE app

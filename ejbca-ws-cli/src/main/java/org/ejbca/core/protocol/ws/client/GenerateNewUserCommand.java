@@ -43,33 +43,55 @@ import org.ejbca.ui.cli.IllegalAdminCommandException;
 public class GenerateNewUserCommand extends EJBCAWSRABaseCommand
     implements IAdminCommand {
 
+      /** Type. */
   private static final int ARG_USERNAME = 1;
+  /** Type. */
   private static final int ARG_PASSWORD = 2;
+  /** Type. */
   private static final int ARG_CLEARPWD = 3;
+  /** Type. */
   private static final int ARG_SUBJECTDN = 4;
+  /** Type. */
   private static final int ARG_SUBJECTALTNAME = 5;
+  /** Type. */
   private static final int ARG_EMAIL = 6;
+  /** Type. */
   private static final int ARG_CA = 7;
+  /** Type. */
   private static final int ARG_TYPE = 8;
+  /** Type. */
   private static final int ARG_TOKEN = 9;
+  /** Type. */
   private static final int ARG_STATUS = 10;
+  /** Type. */
   private static final int ARG_ENDENTITYPROFILE = 11;
+  /** Type. */
   private static final int ARG_CERTIFICATEPROFILE = 12;
+  /** Type. */
   private static final int ARG_ISSUERALIAS = 13;
+  /** Type. */
   private static final int ARG_PKCS10 = 14;
+  /** Type. */
   private static final int ARG_ENCODING = 15;
+  /** Type. */
   private static final int ARG_HARDTOKENSN = 16;
+  /** Type. */
   private static final int ARG_OUTPUTPATH = 17;
 
+  /** Type. */
   private static final int NR_OF_MANDATORY_ARGS = ARG_HARDTOKENSN + 1;
+  /** Type. */
   private static final int MAX_NR_OF_ARGS = ARG_OUTPUTPATH + 1;
 
+  /**
+   * @param args args
+   */
   public GenerateNewUserCommand(final String[] args) {
     super(args);
   }
 
   /**
-   * Runs the command
+   * Runs the command.
    *
    * @throws IllegalAdminCommandException Error in command args
    * @throws ErrorAdminCommandException Error running command
@@ -151,27 +173,28 @@ public class GenerateNewUserCommand extends EJBCAWSRABaseCommand
                   + (userdata.getHardTokenIssuerName() != null
                       ? userdata.getHardTokenIssuerName()
                       : "NONE"));
-      {
+
         final List<ExtendedInformationWS> eil =
             userdata.getExtendedInformation();
         if (eil != null) {
           getPrintStream().println("Extended information:");
           for (ExtendedInformationWS ei : eil) {
             getPrintStream()
-                .println("    '" + ei.getName() + "' = '" + ei.getValue() + "'");
+                .println("    '" + ei.getName()
+                        + "' = '" + ei.getValue() + "'");
           }
         }
-      }
-      {
+
+
         final BigInteger bi = userdata.getCertificateSerialNumber();
         if (bi != null) {
           getPrintStream()
               .println(
-                  ParseUserData.certificateSerialNumber
+                  ParseUserData.CERT_SERIAL_NO
                       + "=0x"
                       + bi.toString(16));
         }
-      }
+
 
       try {
         getEjbcaRAWS().editUser(userdata);

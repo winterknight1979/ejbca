@@ -16,12 +16,16 @@ package org.ejbca.core.protocol.ws.client;
 import org.ejbca.ui.cli.IAdminCommand;
 
 /**
- * Implements the EJBCA WS command line interface specific for CVC requests
+ * Implements the EJBCA WS command line interface specific for CVC requests.
  *
  * @version $Id: cvcwscli.java 19902 2014-09-30 14:32:24Z anatom $
  */
-public class cvcwscli {
+public final class cvcwscli {
 
+    /** Main entry.
+     *
+     * @param args args
+     */
   public static void main(final String[] args) {
     try {
       IAdminCommand cmd = EJBCAWSRACommandFactory.getCommand(args);
@@ -37,4 +41,7 @@ public class cvcwscli {
       System.exit(-1); // NOPMD, this is not a JEE app
     }
   }
+
+  private cvcwscli() { }
+
 }

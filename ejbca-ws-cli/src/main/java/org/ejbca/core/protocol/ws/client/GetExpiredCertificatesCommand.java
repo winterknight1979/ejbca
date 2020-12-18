@@ -27,7 +27,7 @@ import org.ejbca.ui.cli.IAdminCommand;
 import org.ejbca.ui.cli.IllegalAdminCommandException;
 
 /**
- * Finds a certificates in the database
+ * Finds a certificates in the database.
  *
  * @version $Id: GetExpiredCertificatesCommand.java 26057 2017-06-22 08:08:34Z
  *     anatom $
@@ -35,17 +35,24 @@ import org.ejbca.ui.cli.IllegalAdminCommandException;
 public class GetExpiredCertificatesCommand extends EJBCAWSRABaseCommand
     implements IAdminCommand {
 
+      /** Type. */
   private static final int ARG_DAYS = 1;
+  /** Type. */
   private static final int ARG_MAX_NUMBER_OF_RESULTS = 2;
+  /** Type. */
   private static final int ARG_ENCODING = 3;
+  /** Type. */
   private static final int ARG_OUTPUTPATH = 4;
 
+  /**
+   * @param args args
+   */
   public GetExpiredCertificatesCommand(final String[] args) {
     super(args);
   }
 
   /**
-   * Runs the command
+   * Runs the command.
    *
    * @throws IllegalAdminCommandException Error in command args
    * @throws ErrorAdminCommandException Error running command
@@ -54,9 +61,10 @@ public class GetExpiredCertificatesCommand extends EJBCAWSRABaseCommand
   public void execute()
       throws IllegalAdminCommandException, ErrorAdminCommandException {
 
+    final int len = 5;
     try {
 
-      if (args.length < 5) {
+      if (args.length < len) {
         usage();
         System.exit(-1); // NOPMD, it's not a JEE app
       }
@@ -112,7 +120,7 @@ public class GetExpiredCertificatesCommand extends EJBCAWSRABaseCommand
     } catch (Exception e) {
       ErrorAdminCommandException adminexp = new ErrorAdminCommandException(e);
       getPrintStream().println("Error: " + adminexp.getLocalizedMessage());
-      ;
+
     }
   }
 

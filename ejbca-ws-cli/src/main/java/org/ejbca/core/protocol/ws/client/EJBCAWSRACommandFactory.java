@@ -21,9 +21,9 @@ import org.ejbca.ui.cli.IAdminCommand;
  * @version $Id: EJBCAWSRACommandFactory.java 28786 2018-04-27 10:06:36Z
  *     tarmo_r_helmes $
  */
-public class EJBCAWSRACommandFactory {
+public final class EJBCAWSRACommandFactory {
   /** Cannot create an instance of this class, only use static methods. */
-  private EJBCAWSRACommandFactory() {}
+  private EJBCAWSRACommandFactory() { }
 
   /**
    * Returns an Admin Command object based on contents in args[0].

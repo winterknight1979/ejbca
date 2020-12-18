@@ -41,16 +41,23 @@ import org.ejbca.ui.cli.IllegalAdminCommandException;
 public class CaCertRequestCommand extends EJBCAWSRABaseCommand
     implements IAdminCommand {
 
+      /** Type. */
   private static final int ARG_CANAME = 1;
+  /** Type. */
   private static final int ARG_CACHAIN = 2;
+  /** Type. */
   private static final int ARG_REGENKEYS = 3;
+  /** Type. */
   private static final int ARG_ACIVATEKEYS = 4;
+  /** Type. */
   private static final int ARG_USENEXTKEY = 5;
+  /** Type. */
   private static final int ARG_OUTFILE = 6;
+  /** Type. */
   private static final int ARG_KEYSTOREPWD = 7;
 
   /**
-   * Creates a new instance of Command
+   * Creates a new instance of Command.
    *
    * @param args command line arguments
    */
@@ -59,7 +66,7 @@ public class CaCertRequestCommand extends EJBCAWSRABaseCommand
   }
 
   /**
-   * Runs the command
+   * Runs the command.
    *
    * @throws IllegalAdminCommandException Error in command args
    * @throws ErrorAdminCommandException Error running command
@@ -68,8 +75,9 @@ public class CaCertRequestCommand extends EJBCAWSRABaseCommand
   public void execute()
       throws IllegalAdminCommandException, ErrorAdminCommandException {
 
+      final int len = 7;
     try {
-      if (args.length < 7 || args.length > 8) {
+      if (args.length < len || args.length > 8) {
         getPrintStream().println("Number of arguments: " + args.length);
         usage();
         System.exit(-1); // NOPMD, this is not a JEE app
@@ -84,7 +92,7 @@ public class CaCertRequestCommand extends EJBCAWSRABaseCommand
       boolean usenext = args[ARG_USENEXTKEY].equalsIgnoreCase("true");
       String outfile = args[ARG_OUTFILE];
       String keystorepwd = null;
-      if (args.length > 7) {
+      if (args.length > len) {
         keystorepwd = args[ARG_KEYSTOREPWD];
       }
       if (regenkeys && (keystorepwd == null)) {

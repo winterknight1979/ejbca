@@ -27,7 +27,10 @@ import org.junit.Test;
  *     14:02:35Z tarmo_r_helmes $
  */
 public class RevokeCertWithMetadataCommandTest {
-
+    /**
+       * Test.
+       * @throws Exception fail
+       */
   @Test()
   public void testRevokeCertWithNoMetadataParameters() throws Exception {
     String[] args = new String[3];
@@ -42,6 +45,10 @@ public class RevokeCertWithMetadataCommandTest {
     assertEquals(0, parsedResult.size());
   }
 
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test()
   public void testRevokeCertWithMetadataParameters() throws Exception {
     String[] args = new String[7];

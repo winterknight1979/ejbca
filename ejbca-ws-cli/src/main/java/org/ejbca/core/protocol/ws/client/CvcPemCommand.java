@@ -34,7 +34,7 @@ import org.ejbca.ui.cli.IAdminCommand;
 import org.ejbca.ui.cli.IllegalAdminCommandException;
 
 /**
- * Converts a CV Certificate or certificate request to/from binary and PEM
+ * Converts a CV Certificate or certificate request to/from binary and PEM.
  *
  * @version $Id: CvcPemCommand.java 22553 2016-01-11 13:06:46Z mikekushner $
  */
@@ -47,7 +47,7 @@ public class CvcPemCommand extends EJBCAWSRABaseCommand
   }
 
   /**
-   * Runs the command
+   * Runs the command.
    *
    * @throws IllegalAdminCommandException Error in command args
    * @throws ErrorAdminCommandException Error running command
@@ -56,16 +56,20 @@ public class CvcPemCommand extends EJBCAWSRABaseCommand
   public void execute()
       throws IllegalAdminCommandException, ErrorAdminCommandException {
 
+    final int outIdx = 3;
+    final int minLen = 4;
+    final int maxLen = 6;
+    final int reqIdx = 5;
     try {
-      if (args.length < 4 || args.length > 6) {
+      if (args.length < minLen || args.length > maxLen) {
         usage();
         System.exit(-1); // NOPMD, this is not a JEE app
       }
       CryptoProviderTools.installBCProvider();
       String inform = args[1];
       String infile = args[2];
-      String outform = args[3];
-      String outfile = args[4];
+      String outform = args[outIdx];
+      String outfile = args[minLen];
       System.out.println(inform + infile + outform + outfile);
       if (inform.equals(outform)) {
         getPrintStream()
@@ -97,7 +101,7 @@ public class CvcPemCommand extends EJBCAWSRABaseCommand
         FileOutputStream fos = new FileOutputStream(outfile);
         String begin = CertTools.BEGIN_CERTIFICATE;
         String end = CertTools.END_CERTIFICATE;
-        if (args.length > 5 && args[5].equals("-req")) {
+        if (args.length > reqIdx && args[reqIdx].equals("-req")) {
           begin = CertTools.BEGIN_CERTIFICATE_REQUEST;
           end = CertTools.END_CERTIFICATE_REQUEST;
         }

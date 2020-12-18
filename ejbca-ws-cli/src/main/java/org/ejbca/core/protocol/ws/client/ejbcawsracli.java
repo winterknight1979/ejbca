@@ -20,13 +20,14 @@ import org.ejbca.ui.cli.IAdminCommand;
 import org.ejbca.ui.cli.IllegalAdminCommandException;
 
 /**
- * Implements the EJBCA RA WS command line interface
+ * Implements the EJBCA RA WS command line interface.
  *
  * @version $Id: ejbcawsracli.java 28822 2018-05-03 06:37:20Z tarmo_r_helmes $
  */
-public class ejbcawsracli {
+public final class ejbcawsracli {
+   private ejbcawsracli() { }
   /**
-   * main Client
+   * main Client.
    *
    * @param args command line arguments
    */
@@ -51,7 +52,8 @@ public class ejbcawsracli {
       }
     } catch (ErrorAdminCommandException e) {
       final Throwable cause = e.getCause();
-      if (Thread.currentThread().getStackTrace().length > 12
+      final int max = 12;
+      if (Thread.currentThread().getStackTrace().length > max
           && cause instanceof SecurityException) {
         throw (SecurityException)
             cause; // throw it if called by clientToolBoxTest and exit

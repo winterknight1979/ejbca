@@ -40,13 +40,16 @@ import org.ejbca.ui.cli.IllegalAdminCommandException;
 public class RevokeCertWithMetadataCommand extends EJBCAWSRABaseCommand
     implements IAdminCommand {
 
+      /** Type. */
   private static final int ARG_ISSUERDN = 1;
+  /** Type. */
   private static final int ARG_CERTSN = 2;
 
+  /** Type. */
   private static final String REASON_KEY = "reason";
 
   /**
-   * Creates a new instance of RevokeCertCommand
+   * Creates a new instance of RevokeCertCommand.
    *
    * @param args command line arguments
    */
@@ -57,8 +60,9 @@ public class RevokeCertWithMetadataCommand extends EJBCAWSRABaseCommand
   @Override
   public void execute()
       throws IllegalAdminCommandException, ErrorAdminCommandException {
+    final int len = 3;
     try {
-      if (this.args.length < 3) {
+      if (this.args.length < len) {
         usage();
         System.exit(-1); // NOPMD, it's not a JEE app
       }
@@ -107,10 +111,15 @@ public class RevokeCertWithMetadataCommand extends EJBCAWSRABaseCommand
     }
   }
 
+  /**
+   * @return args
+   * @throws Exception fail
+   */
   protected List<KeyValuePair> parseInputArgs() throws Exception {
     List<KeyValuePair> metadata = new ArrayList<>();
-    if (this.args.length > 3) {
-      for (int i = 3; i < this.args.length; i++) {
+    final int len = 3;
+    if (this.args.length > len) {
+      for (int i = len; i < this.args.length; i++) {
         String arg = this.args[i];
         String[] parts = arg.split("=", 2);
 

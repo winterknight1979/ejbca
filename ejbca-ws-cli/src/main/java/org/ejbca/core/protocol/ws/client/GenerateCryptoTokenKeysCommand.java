@@ -19,7 +19,7 @@ import org.ejbca.ui.cli.IAdminCommand;
 import org.ejbca.ui.cli.IllegalAdminCommandException;
 
 /**
- * Adds an administrator to an existing Administrator role
+ * Adds an administrator to an existing Administrator role.
  *
  * @version $Id: GenerateCryptoTokenKeysCommand.java 26057 2017-06-22 08:08:34Z
  *     anatom $
@@ -27,12 +27,15 @@ import org.ejbca.ui.cli.IllegalAdminCommandException;
 public class GenerateCryptoTokenKeysCommand extends EJBCAWSRABaseCommand
     implements IAdminCommand {
 
+      /** Type. */
   private static final int ARG_CRYPTOTOKEN_NAME = 1;
+  /** Type. */
   private static final int ARG_KEY_PAIR_ALIAS = 2;
+  /** Type. */
   private static final int ARG_KEY_SPECIFICATION = 3;
 
   /**
-   * Creates a new instance of Command
+   * Creates a new instance of Command.
    *
    * @param args command line arguments
    */
@@ -41,7 +44,7 @@ public class GenerateCryptoTokenKeysCommand extends EJBCAWSRABaseCommand
   }
 
   /**
-   * Runs the command
+   * Runs the command.
    *
    * @throws IllegalAdminCommandException Error in command args
    * @throws ErrorAdminCommandException Error running command
@@ -49,8 +52,9 @@ public class GenerateCryptoTokenKeysCommand extends EJBCAWSRABaseCommand
   @Override
   public void execute()
       throws IllegalAdminCommandException, ErrorAdminCommandException {
+    final int len = 4;
     try {
-      if (args.length < 4) {
+      if (args.length < len) {
         getPrintStream().println("Error. Too few arguments: " + args.length);
         usage();
         System.exit(-1); // NOPMD, this is not a JEE app

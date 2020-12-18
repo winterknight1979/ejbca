@@ -27,24 +27,31 @@ import org.ejbca.ui.cli.IAdminCommand;
 import org.ejbca.ui.cli.IllegalAdminCommandException;
 
 /**
- * Finds a certificates in the database
+ * Finds a certificates in the database.
  *
  * @version $Id: FindCertsCommand.java 19902 2014-09-30 14:32:24Z anatom $
  */
 public class FindCertsCommand extends EJBCAWSRABaseCommand
     implements IAdminCommand {
 
+      /** Type. */
   private static final int ARG_USERNAME = 1;
+  /** Type. */
   private static final int ARG_ONLYVALID = 2;
+  /** Type. */
   private static final int ARG_ENCODING = 3;
+  /** Type. */
   private static final int ARG_OUTPUTPATH = 4;
 
+  /**
+   * @param args args
+   */
   public FindCertsCommand(final String[] args) {
     super(args);
   }
 
   /**
-   * Runs the command
+   * Runs the command.
    *
    * @throws IllegalAdminCommandException Error in command args
    * @throws ErrorAdminCommandException Error running command
@@ -53,9 +60,10 @@ public class FindCertsCommand extends EJBCAWSRABaseCommand
   public void execute()
       throws IllegalAdminCommandException, ErrorAdminCommandException {
 
+    final int len = 5;
     try {
 
-      if (args.length != 5) {
+      if (args.length != len) {
         usage();
         System.exit(-1); // NOPMD, it's not a JEE app
       }

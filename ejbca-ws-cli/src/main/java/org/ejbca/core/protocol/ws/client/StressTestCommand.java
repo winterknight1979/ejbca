@@ -56,44 +56,58 @@ import org.ejbca.util.query.BasicMatch;
  */
 public class StressTestCommand extends EJBCAWSRABaseCommand
     implements IAdminCommand {
+      /** Param. */
   private static final String USER_NAME_TAG = "<userName>";
-  final PerformanceTest performanceTest;
+  /** Param. */
+  private final PerformanceTest performanceTest;
 
   enum TestType {
+        /** Type. */
     BASIC,
+    /** Type. */
     BASICSINGLETRANS,
+    /** Type. */
     REVOKE,
+    /** Type. */
     REVOKE_BACKDATED,
+    /** Type. */
     REVOKEALOT
   }
 
   private class MyCommandFactory implements CommandFactory {
+        /** Param. */
     private final String caName;
+    /** Param. */
     private final String endEntityProfileName;
+    /** Param. */
     private final String certificateProfileName;
+    /** Param. */
     private final TestType testType;
+    /** Param. */
     private final int maxCertificateSN;
+    /** Param. */
     private final String subjectDN;
 
     MyCommandFactory(
-        final String _caName,
-        final String _endEntityProfileName,
-        final String _certificateProfileName,
-        final TestType _testType,
-        final int _maxCertificateSN,
-        final String _subjectDN) {
-      this.testType = _testType;
-      this.caName = _caName;
-      this.endEntityProfileName = _endEntityProfileName;
-      this.certificateProfileName = _certificateProfileName;
-      this.maxCertificateSN = _maxCertificateSN;
-      this.subjectDN = _subjectDN;
+        final String ucaName,
+        final String uendEntityProfileName,
+        final String ucertificateProfileName,
+        final TestType utestType,
+        final int umaxCertificateSN,
+        final String usubjectDN) {
+      this.testType = utestType;
+      this.caName = ucaName;
+      this.endEntityProfileName = uendEntityProfileName;
+      this.certificateProfileName = ucertificateProfileName;
+      this.maxCertificateSN = umaxCertificateSN;
+      this.subjectDN = usubjectDN;
     }
 
     @Override
     public Command[] getCommands() throws Exception {
       final KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
-      kpg.initialize(1024);
+      final int len = 1024;
+      kpg.initialize(len);
       final EjbcaWS ejbcaWS = getEjbcaRAWSFNewReference();
       final JobData jobData = new JobData(this.subjectDN);
       switch (this.testType) {
@@ -168,14 +182,19 @@ public class StressTestCommand extends EJBCAWSRABaseCommand
   }
 
   class JobData {
-    String userName;
-    String passWord;
-    final String subjectDN;
-    X509Certificate userCertsToBeRevoked[];
-    List<X509Certificate> userCertsGenerated = new ArrayList<>();
+        /** Param. */
+    private String userName;
+    /** Param. */
+    private String passWord;
+    /** Param. */
+    private final String subjectDN;
+    /** Param. */
+    private X509Certificate[] userCertsToBeRevoked;
+    /** Param. */
+    private List<X509Certificate> userCertsGenerated = new ArrayList<>();
 
-    public JobData(final String subjectDN) {
-      this.subjectDN = subjectDN;
+    JobData(final String asubjectDN) {
+      this.subjectDN = asubjectDN;
     }
 
     String getDN() {
@@ -193,10 +212,11 @@ public class StressTestCommand extends EJBCAWSRABaseCommand
   }
 
   private class BaseCommand {
+        /** Param. */
     protected final JobData jobData;
 
-    BaseCommand(final JobData _jobData) {
-      this.jobData = _jobData;
+    BaseCommand(final JobData ujobData) {
+      this.jobData = ujobData;
     }
 
     @Override
@@ -209,13 +229,15 @@ public class StressTestCommand extends EJBCAWSRABaseCommand
   }
 
   private class Pkcs10RequestCommand extends BaseCommand implements Command {
+        /** Param. */
     private final EjbcaWS ejbcaWS;
+    /** Param. */
     private final PKCS10CertificationRequest pkcs10;
 
     Pkcs10RequestCommand(
-        final EjbcaWS _ejbcaWS, final KeyPair keys, final JobData _jobData)
+        final EjbcaWS uejbcaWS, final KeyPair keys, final JobData ujobData)
         throws Exception {
-      super(_jobData);
+      super(ujobData);
       this.pkcs10 =
           CertTools.genPKCS10CertificationRequest(
               "SHA1WithRSA",
@@ -224,7 +246,7 @@ public class StressTestCommand extends EJBCAWSRABaseCommand
               new DERSet(),
               keys.getPrivate(),
               null);
-      this.ejbcaWS = _ejbcaWS;
+      this.ejbcaWS = uejbcaWS;
     }
 
     @Override
@@ -255,8 +277,8 @@ public class StressTestCommand extends EJBCAWSRABaseCommand
       final CertificateResponse certificateResponse, final JobData jobData)
       throws CertificateException {
     X509Certificate cert = null;
-    for (final java.security.cert.Certificate tmp :
-        CertificateFactory.getInstance("X.509")
+    for (final java.security.cert.Certificate tmp
+        : CertificateFactory.getInstance("X.509")
             .generateCertificates(
                 new ByteArrayInputStream(
                     Base64.decode(certificateResponse.getData())))) {
@@ -297,32 +319,38 @@ public class StressTestCommand extends EJBCAWSRABaseCommand
 
   private class MultipleCertsRequestsForAUserCommand extends BaseCommand
       implements Command {
-    final EjbcaWS ejbcaWS;
-    final String caName;
-    final String endEntityProfileName;
-    final String certificateProfileName;
-    final KeyPairGenerator kpg;
+        /** Param. */
+    private final EjbcaWS ejbcaWS;
+    /** Param. */
+    private final String caName;
+    /** Param. */
+    private final String endEntityProfileName;
+    /** Param. */
+    private final String certificateProfileName;
+    /** Param. */
+    private final KeyPairGenerator kpg;
 
     MultipleCertsRequestsForAUserCommand(
-        final EjbcaWS _ejbcaWS,
-        final String _caName,
-        final String _endEntityProfileName,
-        final String _certificateProfileName,
-        final JobData _jobData,
-        final KeyPairGenerator _kpg)
+        final EjbcaWS uejbcaWS,
+        final String ucaName,
+        final String uendEntityProfileName,
+        final String ucertificateProfileName,
+        final JobData ujobData,
+        final KeyPairGenerator ukpg)
         throws Exception {
-      super(_jobData);
-      this.caName = _caName;
-      this.endEntityProfileName = _endEntityProfileName;
-      this.certificateProfileName = _certificateProfileName;
-      this.kpg = _kpg;
-      this.ejbcaWS = _ejbcaWS;
+      super(ujobData);
+      this.caName = ucaName;
+      this.endEntityProfileName = uendEntityProfileName;
+      this.certificateProfileName = ucertificateProfileName;
+      this.kpg = ukpg;
+      this.ejbcaWS = uejbcaWS;
     }
 
     @Override
     public boolean doIt() throws Exception {
       boolean createUser = true;
-      for (int i = 0; i < 50; i++) {
+      final int max = 50;
+      for (int i = 0; i < max; i++) {
         EditUserCommand editUserCommand =
             new EditUserCommand(
                 this.ejbcaWS,
@@ -365,12 +393,13 @@ public class StressTestCommand extends EJBCAWSRABaseCommand
   }
 
   private class FindUserCommand extends BaseCommand implements Command {
+        /** Param. */
     private final EjbcaWS ejbcaWS;
 
-    FindUserCommand(final EjbcaWS _ejbcaWS, final JobData _jobData)
+    FindUserCommand(final EjbcaWS uejbcaWS, final JobData ujobData)
         throws Exception {
-      super(_jobData);
-      this.ejbcaWS = _ejbcaWS;
+      super(ujobData);
+      this.ejbcaWS = uejbcaWS;
     }
 
     @Override
@@ -414,12 +443,13 @@ public class StressTestCommand extends EJBCAWSRABaseCommand
   }
 
   private class ListCertsCommand extends BaseCommand implements Command {
+        /** Param. */
     private final EjbcaWS ejbcaWS;
 
-    ListCertsCommand(final EjbcaWS _ejbcaWS, final JobData _jobData)
+    ListCertsCommand(final EjbcaWS uejbcaWS, final JobData ujobData)
         throws Exception {
-      super(_jobData);
-      this.ejbcaWS = _ejbcaWS;
+      super(ujobData);
+      this.ejbcaWS = uejbcaWS;
     }
 
     @Override
@@ -460,12 +490,13 @@ public class StressTestCommand extends EJBCAWSRABaseCommand
   }
 
   private class RevokeCertCommand extends BaseCommand implements Command {
+        /** Param. */
     private final EjbcaWS ejbcaWS;
 
-    RevokeCertCommand(final EjbcaWS _ejbcaWS, final JobData _jobData)
+    RevokeCertCommand(final EjbcaWS uejbcaWS, final JobData ujobData)
         throws Exception {
-      super(_jobData);
-      this.ejbcaWS = _ejbcaWS;
+      super(ujobData);
+      this.ejbcaWS = uejbcaWS;
     }
 
     @Override
@@ -487,15 +518,18 @@ public class StressTestCommand extends EJBCAWSRABaseCommand
 
   private class RevokeCertBackdatedCommand extends BaseCommand
       implements Command {
+        /** Param. */
     private final EjbcaWS ejbcaWS;
-    final String revoceTime;
+    /** Param. */
+    private final String revoceTime;
 
-    RevokeCertBackdatedCommand(final EjbcaWS _ejbcaWS, final JobData _jobData)
+    RevokeCertBackdatedCommand(final EjbcaWS uejbcaWS, final JobData ujobData)
         throws Exception {
-      super(_jobData);
-      this.ejbcaWS = _ejbcaWS;
+      super(ujobData);
+      this.ejbcaWS = uejbcaWS;
       final Calendar c = Calendar.getInstance();
-      c.setTime(new Date(new Date().getTime() - 1000 * 60 * 60 * 24));
+      final int msPerDay = 1000 * 3600 * 24;
+      c.setTime(new Date(new Date().getTime() - msPerDay));
       this.revoceTime = DatatypeConverter.printDateTime(c);
       StressTestCommand.this
           .performanceTest
@@ -542,22 +576,26 @@ public class StressTestCommand extends EJBCAWSRABaseCommand
   }
 
   private class EditUserCommand extends BaseCommand implements Command {
+        /** Param. */
     private final EjbcaWS ejbcaWS;
+    /** Param. */
     private final UserDataVOWS user;
+    /** Param. */
     private final boolean doCreateNewUser;
+    /** Param. */
     private final int bitsInCertificateSN;
 
     EditUserCommand(
-        final EjbcaWS _ejbcaWS,
+        final EjbcaWS uejbcaWS,
         final String caName,
         final String endEntityProfileName,
         final String certificateProfileName,
-        final JobData _jobData,
-        final boolean _doCreateNewUser,
-        final int _bitsInCertificateSN) {
-      super(_jobData);
-      this.doCreateNewUser = _doCreateNewUser;
-      this.ejbcaWS = _ejbcaWS;
+        final JobData ujobData,
+        final boolean udoCreateNewUser,
+        final int ubitsInCertificateSN) {
+      super(ujobData);
+      this.doCreateNewUser = udoCreateNewUser;
+      this.ejbcaWS = uejbcaWS;
       this.user = new UserDataVOWS();
       this.user.setClearPwd(true);
       this.user.setCaName(caName);
@@ -569,7 +607,7 @@ public class StressTestCommand extends EJBCAWSRABaseCommand
               .TOKEN_TYPE_USERGENERATED);
       this.user.setEndEntityProfileName(endEntityProfileName);
       this.user.setCertificateProfileName(certificateProfileName);
-      this.bitsInCertificateSN = _bitsInCertificateSN;
+      this.bitsInCertificateSN = ubitsInCertificateSN;
     }
 
     @Override
@@ -603,30 +641,35 @@ public class StressTestCommand extends EJBCAWSRABaseCommand
 
   /**
    * Command for using the "single transaction" certificateRequest method from
-   * EjbcaWS
+   * EjbcaWS.
    */
   private class CertificateRequestCommand extends BaseCommand
       implements Command {
+        /** Param. */
     private final EjbcaWS ejbcaWS;
+    /** Param. */
     private final UserDataVOWS user;
+    /** Param. */
     private final boolean doCreateNewUser;
+    /** Param. */
     private final int bitsInCertificateSN;
+    /** Param. */
     private PKCS10CertificationRequest pkcs10;
 
     CertificateRequestCommand(
-        final EjbcaWS _ejbcaWS,
+        final EjbcaWS uejbcaWS,
         final String caName,
         final String endEntityProfileName,
         final String certificateProfileName,
-        final JobData _jobData,
-        final boolean _doCreateNewUser,
-        final int _bitsInCertificateSN,
+        final JobData ujobData,
+        final boolean udoCreateNewUser,
+        final int ubitsInCertificateSN,
         final KeyPair keys)
         throws SignatureException, InvalidKeyException,
             NoSuchAlgorithmException, NoSuchProviderException {
-      super(_jobData);
-      this.doCreateNewUser = _doCreateNewUser;
-      this.ejbcaWS = _ejbcaWS;
+      super(ujobData);
+      this.doCreateNewUser = udoCreateNewUser;
+      this.ejbcaWS = uejbcaWS;
       this.user = new UserDataVOWS();
       this.user.setClearPwd(true);
       this.user.setCaName(caName);
@@ -638,7 +681,7 @@ public class StressTestCommand extends EJBCAWSRABaseCommand
               .TOKEN_TYPE_USERGENERATED);
       this.user.setEndEntityProfileName(endEntityProfileName);
       this.user.setCertificateProfileName(certificateProfileName);
-      this.bitsInCertificateSN = _bitsInCertificateSN;
+      this.bitsInCertificateSN = ubitsInCertificateSN;
       try {
         this.pkcs10 =
             CertTools.genPKCS10CertificationRequest(
@@ -689,9 +732,9 @@ public class StressTestCommand extends EJBCAWSRABaseCommand
     }
   } // CertificateRequestCommand
 
-  /** @param _args args */
-  public StressTestCommand(final String[] _args) {
-    super(_args);
+  /** @param uargs args */
+  public StressTestCommand(final String[] uargs) {
+    super(uargs);
     this.performanceTest = new PerformanceTest();
   }
 
@@ -741,13 +784,15 @@ public class StressTestCommand extends EJBCAWSRABaseCommand
     getPrintStream()
         .println(
             "Example:"
-                + " JAVA_OPT=\"-DsubjectDN=CN=<userName>,O=Acme,UID=hej<userName>,OU=,OU=First"
+                + " JAVA_OPT=\"-DsubjectDN=CN=<userName>,"
+                + "O=Acme,UID=hej<userName>,OU=,OU=First"
                 + " Fixed,OU=sfsdf,OU=Middle Fixed,OU=fsfsd,OU=Last Fixed\""
-                + " ../../PWE/ejbca_3_11/dist/clientToolBox/ejbcaClientToolBox.sh"
+                + " ../../PWE/ejbca_3_11/dist/clientToolBox/"
+                + "ejbcaClientToolBox.sh"
                 + " EjbcaWsRaCli stress ldapDirect 1 1000 ldapClientOUTest"
                 + " ldapClientDirect");
     getPrintStream().print("Types of stress tests:");
-    TestType testTypes[] = TestType.values();
+    TestType[] testTypes = TestType.values();
     for (TestType testType : testTypes) {
       getPrintStream().print(" " + testType);
     }
@@ -758,6 +803,10 @@ public class StressTestCommand extends EJBCAWSRABaseCommand
   public void execute()
       throws IllegalAdminCommandException, ErrorAdminCommandException {
 
+    final int timeIdx = 3;
+    final int emptyIdx = 4;
+    final int endIdx = 5;
+    final int maxLen = 6;
     try {
       if (this.args.length < 2) {
         usage();
@@ -767,20 +816,22 @@ public class StressTestCommand extends EJBCAWSRABaseCommand
           new NrOfThreadsAndNrOfTests(
               this.args.length > 2 ? this.args[2] : null);
       final int waitTime =
-          this.args.length > 3 ? Integer.parseInt(this.args[3]) : -1;
+          this.args.length > timeIdx
+                    ? Integer.parseInt(this.args[timeIdx])
+                  : -1;
       final String caName = this.args[1];
       final String endEntityProfileName =
-          this.args.length > 4 ? this.args[4] : "EMPTY";
+          this.args.length > emptyIdx ? this.args[emptyIdx] : "EMPTY";
       final String certificateProfileName =
-          this.args.length > 5 ? this.args[5] : "ENDUSER";
+          this.args.length > endIdx ? this.args[endIdx] : "ENDUSER";
       final TestType testType =
-          this.args.length > 6
-              ? TestType.valueOf(this.args[6])
+          this.args.length > maxLen
+              ? TestType.valueOf(this.args[maxLen])
               : TestType.BASIC;
       final int maxCertificateSN;
       final String subjectDN =
           System.getProperty("subjectDN", "CN=" + USER_NAME_TAG);
-      {
+
         final String sTmp = System.getProperty("maxCertSN");
         int iTmp;
         try {
@@ -790,7 +841,7 @@ public class StressTestCommand extends EJBCAWSRABaseCommand
           iTmp = -1;
         }
         maxCertificateSN = iTmp;
-      }
+
       this.performanceTest.execute(
           new MyCommandFactory(
               caName,

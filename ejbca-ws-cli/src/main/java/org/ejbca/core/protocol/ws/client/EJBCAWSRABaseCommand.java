@@ -34,11 +34,16 @@ import org.ejbca.core.protocol.ws.client.gen.RevokeStatus;
  */
 public abstract class EJBCAWSRABaseCommand implements P11SlotUser {
 
+      /** param. */
   protected final String[] args;
+  /** param. */
   private org.ejbca.core.protocol.ws.client.gen.EjbcaWS ejbcaraws = null;
+  /** param. */
   private final URL webServiceURL;
+  /** param. */
   private final Exception exception;
 
+  /** Reason. */
   protected static final String[] REASON_TEXTS = {
     "NOT REVOKED",
     "REV_UNSPECIFIED",
@@ -53,28 +58,40 @@ public abstract class EJBCAWSRABaseCommand implements P11SlotUser {
     "REV_AACOMPROMISE"
   };
 
+  /** Reason. */
   public static final int NOT_REVOKED = RevokeStatus.NOT_REVOKED;
+  /** Reason. */
   public static final int REVOKATION_REASON_UNSPECIFIED =
       RevokeStatus.REVOKATION_REASON_UNSPECIFIED;
+  /** Reason. */
   public static final int REVOKATION_REASON_KEYCOMPROMISE =
       RevokeStatus.REVOKATION_REASON_KEYCOMPROMISE;
+  /** Reason. */
   public static final int REVOKATION_REASON_CACOMPROMISE =
       RevokeStatus.REVOKATION_REASON_CACOMPROMISE;
+  /** Reason. */
   public static final int REVOKATION_REASON_AFFILIATIONCHANGED =
       RevokeStatus.REVOKATION_REASON_AFFILIATIONCHANGED;
+  /** Reason. */
   public static final int REVOKATION_REASON_SUPERSEDED =
       RevokeStatus.REVOKATION_REASON_SUPERSEDED;
+  /** Reason. */
   public static final int REVOKATION_REASON_CESSATIONOFOPERATION =
       RevokeStatus.REVOKATION_REASON_CESSATIONOFOPERATION;
+  /** Reason. */
   public static final int REVOKATION_REASON_CERTIFICATEHOLD =
       RevokeStatus.REVOKATION_REASON_CERTIFICATEHOLD;
+  /** Reason. */
   public static final int REVOKATION_REASON_REMOVEFROMCRL =
       RevokeStatus.REVOKATION_REASON_REMOVEFROMCRL;
+  /** Reason. */
   public static final int REVOKATION_REASON_PRIVILEGESWITHDRAWN =
       RevokeStatus.REVOKATION_REASON_PRIVILEGESWITHDRAWN;
+  /** Reason. */
   public static final int REVOKATION_REASON_AACOMPROMISE =
       RevokeStatus.REVOKATION_REASON_AACOMPROMISE;
 
+  /** Reason. */
   protected static final int[] REASON_VALUES = {
     NOT_REVOKED,
     REVOKATION_REASON_UNSPECIFIED,
@@ -89,8 +106,8 @@ public abstract class EJBCAWSRABaseCommand implements P11SlotUser {
     REVOKATION_REASON_AACOMPROMISE
   };
 
-  EJBCAWSRABaseCommand(final String[] args) {
-    this.args = args;
+  EJBCAWSRABaseCommand(final String[] largs) {
+    this.args = largs;
     final Properties props = new Properties();
     URL tmpURL = null;
     Exception tmpException = null;
@@ -111,7 +128,7 @@ public abstract class EJBCAWSRABaseCommand implements P11SlotUser {
         System.setProperty("javax.net.ssl.trustStore", trustStorePath);
       }
       final String password;
-      {
+
         final String tmpPassword =
             props.getProperty("ejbcawsracli.keystore.password");
         if (tmpPassword == null) {
@@ -120,7 +137,7 @@ public abstract class EJBCAWSRABaseCommand implements P11SlotUser {
         } else {
           password = tmpPassword;
         }
-      }
+
       if (sharedLibraryPath != null) {
         checkIfFileExists(sharedLibraryPath);
         final String sSlot = props.getProperty("ejbcawsracli.p11.slot");
@@ -195,13 +212,15 @@ public abstract class EJBCAWSRABaseCommand implements P11SlotUser {
   }
 
   private class PasswordHandler implements CallbackHandler {
-    private char password[];
+      /** PWD. */
+    private char[] password;
 
-    PasswordHandler(final String _password) {
-      this.password = _password.toCharArray();
+    PasswordHandler(final String upassword) {
+      this.password = upassword.toCharArray();
     }
     /* (non-Javadoc)
-     * @see javax.security.auth.callback.CallbackHandler#handle(javax.security.auth.callback.Callback[])
+     * @see
+     * javax.security.auth.callback.CallbackHandler#handle(javax.security.auth.callback.Callback[])
      */
     @Override
     public void handle(final Callback[] callbacks)
@@ -270,10 +289,17 @@ public abstract class EJBCAWSRABaseCommand implements P11SlotUser {
     return this.ejbcaraws;
   }
 
+  /**
+   * @return printstream
+   */
   protected PrintStream getPrintStream() {
     return System.out;
   }
-
+  /**
+   * @param reason reson code
+   * @return reason
+ * @throws Exception fail
+   */
   protected int getRevokeReason(final String reason) throws Exception {
     for (int i = 0; i < REASON_TEXTS.length; i++) {
       if (REASON_TEXTS[i].equalsIgnoreCase(reason)) {
@@ -286,6 +312,10 @@ public abstract class EJBCAWSRABaseCommand implements P11SlotUser {
     return 0;
   }
 
+  /**
+   * @param reason reson code
+   * @return reason
+   */
   protected String getRevokeReason(final int reason) {
     for (int i = 0; i < REASON_VALUES.length; i++) {
       if (REASON_VALUES[i] == reason) {
@@ -302,7 +332,7 @@ public abstract class EJBCAWSRABaseCommand implements P11SlotUser {
   protected abstract void usage();
 
   @Override
-  public void deactivate() {}
+  public void deactivate() { }
 
   @Override
   public boolean isActive() {

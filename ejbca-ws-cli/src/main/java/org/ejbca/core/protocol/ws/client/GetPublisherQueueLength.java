@@ -26,10 +26,11 @@ import org.ejbca.ui.cli.IllegalAdminCommandException;
 public class GetPublisherQueueLength extends EJBCAWSRABaseCommand
     implements IAdminCommand {
 
+      /** Type. */
   private static final int ARG_PUBLISHER_NAME = 1;
 
   /**
-   * Creates a new instance of RevokeCertCommand
+   * Creates a new instance of RevokeCertCommand.
    *
    * @param args command line arguments
    */
@@ -38,7 +39,7 @@ public class GetPublisherQueueLength extends EJBCAWSRABaseCommand
   }
 
   /**
-   * Runs the command
+   * Runs the command.
    *
    * @throws IllegalAdminCommandException Error in command args
    * @throws ErrorAdminCommandException Error running command

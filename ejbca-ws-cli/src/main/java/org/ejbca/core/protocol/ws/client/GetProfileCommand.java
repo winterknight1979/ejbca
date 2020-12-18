@@ -25,10 +25,17 @@ import org.ejbca.ui.cli.IllegalAdminCommandException;
 public class GetProfileCommand extends EJBCAWSRABaseCommand
     implements IAdminCommand {
 
+      /** Type. */
   private static final int ARG_PROFILE_ID = 1;
+  /** Type. */
   private static final int ARG_PROFILE_TYPE = 2;
+  /** Type. */
   private static final int ARG_DESTINATION_DIRECTORY = 3;
 
+  /**
+   *
+   * @param args args
+   */
   GetProfileCommand(final String[] args) {
     super(args);
   }
@@ -36,8 +43,9 @@ public class GetProfileCommand extends EJBCAWSRABaseCommand
   @Override
   public void execute()
       throws IllegalAdminCommandException, ErrorAdminCommandException {
+      final int len = 4;
     try {
-      if (args.length != 4) {
+      if (args.length != len) {
         usage();
         System.exit(-1); // NOPMD, it's not a JEE app
       }

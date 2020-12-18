@@ -26,17 +26,21 @@ import org.ejbca.ui.cli.IAdminCommand;
 import org.ejbca.ui.cli.IllegalAdminCommandException;
 
 /**
- * Finds a user in the database
+ * Finds a user in the database.
  *
  * @version $Id: FindUserCommand.java 19902 2014-09-30 14:32:24Z anatom $
  */
 public class FindUserCommand extends EJBCAWSRABaseCommand
     implements IAdminCommand {
 
+      /** Type. */
   private static final int ARG_MATCHWITH = 1;
+  /** Type. */
   private static final int ARG_MATCHTYPE = 2;
+  /** Type. */
   private static final int ARG_MATCHVALUE = 3;
 
+  /** Type. */
   private static final String[] MATCHWITHTEXTS = {
     "USERNAME",
     "EMAIL",
@@ -61,6 +65,7 @@ public class FindUserCommand extends EJBCAWSRABaseCommand
     "DN_PKIX_COUNTRY"
   };
 
+  /** Type. */
   private static final int[] MATCHWITHVALUES = {
     org.ejbca.util.query.UserMatch.MATCH_WITH_USERNAME,
     org.ejbca.util.query.UserMatch.MATCH_WITH_EMAIL,
@@ -85,6 +90,7 @@ public class FindUserCommand extends EJBCAWSRABaseCommand
     org.ejbca.util.query.UserMatch.MATCH_WITH_COUNTRY
   };
 
+  /** Type. */
   private static final String[] STATUS_TEXTS = {
     "NEW",
     "FAILED",
@@ -95,6 +101,7 @@ public class FindUserCommand extends EJBCAWSRABaseCommand
     "HISTORICAL",
     "KEYRECOVERY"
   };
+  /** Type. */
   private static final int[] STATUS_VALUES = {
     EndEntityConstants.STATUS_NEW,
     EndEntityConstants.STATUS_FAILED,
@@ -106,12 +113,15 @@ public class FindUserCommand extends EJBCAWSRABaseCommand
     EndEntityConstants.STATUS_KEYRECOVERY
   };
 
+  /**
+   * @param args args
+   */
   public FindUserCommand(final String[] args) {
     super(args);
   }
 
   /**
-   * Runs the command
+   * Runs the command.
    *
    * @throws IllegalAdminCommandException Error in command args
    * @throws ErrorAdminCommandException Error running command
@@ -119,10 +129,10 @@ public class FindUserCommand extends EJBCAWSRABaseCommand
   @Override
   public void execute()
       throws IllegalAdminCommandException, ErrorAdminCommandException {
-
+    final int len = 4;
     try {
 
-      if (args.length != 4) {
+      if (args.length != len) {
         usage();
         System.exit(-1); // NOPMD, it's not a JEE app
       }

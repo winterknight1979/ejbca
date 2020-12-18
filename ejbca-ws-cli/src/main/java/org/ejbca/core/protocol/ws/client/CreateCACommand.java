@@ -27,26 +27,36 @@ import org.ejbca.ui.cli.IAdminCommand;
 import org.ejbca.ui.cli.IllegalAdminCommandException;
 
 /**
- * Creates new CA
+ * Creates new CA.
  *
  * @version $Id: CreateCACommand.java 26057 2017-06-22 08:08:34Z anatom $
  */
 public class CreateCACommand extends EJBCAWSRABaseCommand
     implements IAdminCommand {
 
+      /** Type. */
   private static final int ARG_CANAME = 1;
+  /** Type. */
   private static final int ARG_CADN = 2;
+  /** Type. */
   private static final int ARG_CATYPE = 3;
+  /** Type. */
   private static final int ARG_VALIDITY_IN_DAYS = 4;
+  /** Type. */
   private static final int ARG_CERT_PROFILE = 5;
+  /** Type. */
   private static final int ARG_SIGN_ALG = 6;
+  /** Type. */
   private static final int ARG_SIGNED_BY_CAID = 7;
+  /** Type. */
   private static final int ARG_CRYPTOTOKEN_NAME = 8;
+  /** Type. */
   private static final int ARG_PURPOSE_KEY_MAPPING_PATH = 9;
+  /** Type. */
   private static final int ARG_CA_PROPERTIES_PATH = 10;
 
   /**
-   * Creates a new instance of Command
+   * Creates a new instance of Command.
    *
    * @param args command line arguments
    */
@@ -55,7 +65,7 @@ public class CreateCACommand extends EJBCAWSRABaseCommand
   }
 
   /**
-   * Runs the command
+   * Runs the command.
    *
    * @throws IllegalAdminCommandException Error in command args
    * @throws ErrorAdminCommandException Error running command

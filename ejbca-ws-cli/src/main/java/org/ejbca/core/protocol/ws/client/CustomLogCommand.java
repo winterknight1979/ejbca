@@ -37,15 +37,21 @@ import org.ejbca.ui.cli.IllegalAdminCommandException;
 public class CustomLogCommand extends EJBCAWSRABaseCommand
     implements IAdminCommand {
 
+      /** Type. */
   private static final int ARG_LEVEL = 1;
+  /** Type. */
   private static final int ARG_TYPE = 2;
+  /** Type. */
   private static final int ARG_MSG = 3;
+  /** Type. */
   private static final int ARG_CANAME = 4;
+  /** Type. */
   private static final int ARG_USERNAME = 5;
+  /** Type. */
   private static final int ARG_CERT = 6;
 
   /**
-   * Creates a new instance Command
+   * Creates a new instance Command.
    *
    * @param args command line arguments
    */
@@ -54,7 +60,7 @@ public class CustomLogCommand extends EJBCAWSRABaseCommand
   }
 
   /**
-   * Runs the command
+   * Runs the command.
    *
    * @throws IllegalAdminCommandException Error in command args
    * @throws ErrorAdminCommandException Error running command
@@ -63,8 +69,10 @@ public class CustomLogCommand extends EJBCAWSRABaseCommand
   public void execute()
       throws IllegalAdminCommandException, ErrorAdminCommandException {
 
+      final int minLen = 6;
+      final int maxLen = 7;
     try {
-      if (args.length < 6 || args.length > 7) {
+      if (args.length < minLen || args.length > maxLen) {
         getPrintStream().println("Number of arguments: " + args.length);
         usage();
         System.exit(-1); // NOPMD, this is not a JEE app

@@ -27,10 +27,13 @@ import org.ejbca.util.cert.OID;
  * @author Lars Silvén $Id: ParseUserData.java 19902 2014-09-30 14:32:24Z anatom
  *     $
  */
-class ParseUserData {
-  static final String certificateSerialNumber = "CERTIFICATESERIALNUMBER";
-  private static final String hexPrefix = "0x";
+final class ParseUserData {
+      /** Type. */
+  static final String CERT_SERIAL_NO = "CERTIFICATESERIALNUMBER";
+  /** Type. */
+  private static final String HEX_PREFIX = "0x";
 
+  private ParseUserData() { }
   /**
    * Updates the user data from optional properties defined by "<key>=<value>"
    * on the command line.
@@ -41,7 +44,7 @@ class ParseUserData {
    * @return args with optional arguments removed
    */
   static String[] getDataFromArgs(
-      final String args[], final UserDataVOWS userData, final PrintStream ps) {
+      final String[] args, final UserDataVOWS userData, final PrintStream ps) {
     final List<ExtendedInformationWS> lei =
         new LinkedList<ExtendedInformationWS>();
     final List<String> lArgs = new LinkedList<String>();
@@ -54,18 +57,19 @@ class ParseUserData {
       }
       final String key = arg.substring(0, equalPos).trim();
       final String value = arg.substring(equalPos + 1, arg.length()).trim();
-      if (key.equalsIgnoreCase(certificateSerialNumber)) {
+      if (key.equalsIgnoreCase(CERT_SERIAL_NO)) {
         final boolean isHex =
-            value.substring(0, hexPrefix.length()).equalsIgnoreCase(hexPrefix);
+            value.substring(0, HEX_PREFIX.length())
+            .equalsIgnoreCase(HEX_PREFIX);
         final BigInteger nr;
         try {
           nr =
               isHex
-                  ? new BigInteger(value.substring(hexPrefix.length()), 16)
+                  ? new BigInteger(value.substring(HEX_PREFIX.length()), 16)
                   : new BigInteger(value);
         } catch (NumberFormatException e) {
           ps.println(
-              certificateSerialNumber
+              CERT_SERIAL_NO
                   + " '"
                   + value
                   + "' is not a valid number");
@@ -102,13 +106,13 @@ class ParseUserData {
             + " (above) are parsed.");
     ps.println(
         "For certificate serial number the parameter looks like this '"
-            + certificateSerialNumber
+            + CERT_SERIAL_NO
             + "=<serial number>'. Start the number with '"
-            + hexPrefix
+            + HEX_PREFIX
             + "' to indicated that it is hexadecimal. Example: "
-            + certificateSerialNumber
+            + CERT_SERIAL_NO
             + "=8642378462375036 "
-            + certificateSerialNumber
+            + CERT_SERIAL_NO
             + "=0x5a53875acdaf24");
     ps.println(
         "For certificate extension the parameter look like this"

@@ -29,7 +29,7 @@ import org.ejbca.ui.cli.IAdminCommand;
 import org.ejbca.ui.cli.IllegalAdminCommandException;
 
 /**
- * Request a certificate given a pkcs10
+ * Request a certificate given a pkcs10.
  *
  * @version $Id: CertificateRequestCommand.java 28409 2018-03-01 10:31:05Z
  *     anatom $
@@ -37,20 +37,31 @@ import org.ejbca.ui.cli.IllegalAdminCommandException;
 public class CertificateRequestCommand extends EJBCAWSRABaseCommand
     implements IAdminCommand {
 
+      /** Type. */
   private static final int ARG_USERNAME = 1;
+  /** Type. */
   private static final int ARG_SUBJECTDN = 2;
+  /** Type. */
   private static final int ARG_SUBJECTALTNAME = 3;
+  /** Type. */
   private static final int ARG_CANAME = 4;
+  /** Type. */
   private static final int ARG_EEPROF = 5;
+  /** Type. */
   private static final int ARG_CERTPROF = 6;
+  /** Type. */
   private static final int ARG_REQPATH = 7;
+  /** Type. */
   private static final int ARG_REQTYPE = 8;
+  /** Type. */
   private static final int ARG_ENCODING = 9;
+  /** Type. */
   private static final int ARG_HARDTOKENSN = 10;
+  /** Type. */
   private static final int ARG_OUTPUTPATH = 11;
 
   /**
-   * Creates a new instance of CertificateRequestCommand
+   * Creates a new instance of CertificateRequestCommand.
    *
    * @param args command line arguments
    */
@@ -59,7 +70,7 @@ public class CertificateRequestCommand extends EJBCAWSRABaseCommand
   }
 
   /**
-   * Runs the command
+   * Runs the command.
    *
    * @throws IllegalAdminCommandException Error in command args
    * @throws ErrorAdminCommandException Error running command
@@ -68,9 +79,11 @@ public class CertificateRequestCommand extends EJBCAWSRABaseCommand
   public void execute()
       throws IllegalAdminCommandException, ErrorAdminCommandException {
 
+    final int minLen = 11;
+    final int maxLen = 12;
     try {
 
-      if (args.length < 11 || args.length > 12) {
+      if (args.length < minLen || args.length > maxLen) {
         usage();
         System.exit(-1); // NOPMD, it's not a JEE app
       }

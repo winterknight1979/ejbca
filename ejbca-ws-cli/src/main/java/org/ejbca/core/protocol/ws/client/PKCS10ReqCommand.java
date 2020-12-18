@@ -28,22 +28,28 @@ import org.ejbca.ui.cli.IAdminCommand;
 import org.ejbca.ui.cli.IllegalAdminCommandException;
 
 /**
- * Request a certificate given a pkcs10
+ * Request a certificate given a pkcs10.
  *
  * @version $Id: PKCS10ReqCommand.java 24815 2016-12-01 11:25:30Z anatom $
  */
 public class PKCS10ReqCommand extends EJBCAWSRABaseCommand
     implements IAdminCommand {
 
+      /** Type. */
   private static final int ARG_USERNAME = 1;
+  /** Type. */
   private static final int ARG_PASSWORD = 2;
+  /** Type. */
   private static final int ARG_PKCS10 = 3;
+  /** Type. */
   private static final int ARG_ENCODING = 4;
+  /** Type. */
   private static final int ARG_HARDTOKENSN = 5;
+  /** Type. */
   private static final int ARG_OUTPUTPATH = 6;
 
   /**
-   * Creates a new instance of PKCS10ReqCommand
+   * Creates a new instance of PKCS10ReqCommand.
    *
    * @param args command line arguments
    */
@@ -52,7 +58,7 @@ public class PKCS10ReqCommand extends EJBCAWSRABaseCommand
   }
 
   /**
-   * Runs the command
+   * Runs the command.
    *
    * @throws IllegalAdminCommandException Error in command args
    * @throws ErrorAdminCommandException Error running command
@@ -61,9 +67,11 @@ public class PKCS10ReqCommand extends EJBCAWSRABaseCommand
   public void execute()
       throws IllegalAdminCommandException, ErrorAdminCommandException {
 
+    final int minLen = 6;
+    final int maxLen = 7;
     try {
 
-      if (args.length < 6 || args.length > 7) {
+      if (args.length < minLen || args.length > maxLen) {
         usage();
         System.exit(-1); // NOPMD, it's not a JEE app
       }
@@ -75,7 +83,7 @@ public class PKCS10ReqCommand extends EJBCAWSRABaseCommand
       String hardtokensn = getHardTokenSN(args[ARG_HARDTOKENSN]);
 
       String outputPath = null;
-      if (args.length == 7) {
+      if (args.length == maxLen) {
         outputPath = getOutputPath(args[ARG_OUTPUTPATH]);
       }
 

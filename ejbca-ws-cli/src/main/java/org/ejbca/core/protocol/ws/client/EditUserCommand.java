@@ -35,31 +35,52 @@ import org.ejbca.ui.cli.IllegalAdminCommandException;
 public class EditUserCommand extends EJBCAWSRABaseCommand
     implements IAdminCommand {
 
+      /** type. */
   private static final int ARG_USERNAME = 1;
+  /** type. */
   private static final int ARG_PASSWORD = 2;
+  /** type. */
   private static final int ARG_CLEARPWD = 3;
+  /** type. */
   private static final int ARG_SUBJECTDN = 4;
+  /** type. */
   private static final int ARG_SUBJECTALTNAME = 5;
+  /** type. */
   private static final int ARG_EMAIL = 6;
+  /** type. */
   private static final int ARG_CA = 7;
+  /** type. */
   private static final int ARG_TYPE = 8;
+  /** type. */
   private static final int ARG_TOKEN = 9;
+  /** type. */
   private static final int ARG_STATUS = 10;
+  /** type. */
   private static final int ARG_ENDENTITYPROFILE = 11;
+  /** type. */
   private static final int ARG_CERTIFICATEPROFILE = 12;
+  /** type. */
   private static final int ARG_ISSUERALIAS = 13;
+  /** type. */
   private static final int ARG_STARTTIME = 14;
+  /** type. */
   private static final int ARG_ENDTIME = 15;
 
+  /** type. */
   private static final int NR_OF_MANDATORY_ARGS = ARG_CERTIFICATEPROFILE + 1;
+  /** type. */
   private static final int MAX_NR_OF_ARGS = ARG_ENDTIME + 1;
 
+  /** constructor.
+   *
+   * @param args args
+   */
   public EditUserCommand(final String[] args) {
     super(args);
   }
 
   /**
-   * Runs the command
+   * Runs the command.
    *
    * @throws IllegalAdminCommandException Error in command args
    * @throws ErrorAdminCommandException Error running command
@@ -159,27 +180,28 @@ public class EditUserCommand extends EJBCAWSRABaseCommand
       } else {
         getPrintStream().println("End time: " + userdata.getEndTime());
       }
-      {
+
         final List<ExtendedInformationWS> eil =
             userdata.getExtendedInformation();
         if (eil != null) {
           getPrintStream().println("Extended information:");
           for (ExtendedInformationWS ei : eil) {
             getPrintStream()
-                .println("    '" + ei.getName() + "' = '" + ei.getValue() + "'");
+                .println("    '" + ei.getName()
+                        + "' = '" + ei.getValue() + "'");
           }
         }
-      }
-      {
+
+
         final BigInteger bi = userdata.getCertificateSerialNumber();
         if (bi != null) {
           getPrintStream()
               .println(
-                  ParseUserData.certificateSerialNumber
+                  ParseUserData.CERT_SERIAL_NO
                       + "=0x"
                       + bi.toString(16));
         }
-      }
+
 
       try {
         getEjbcaRAWS().editUser(userdata);

@@ -23,7 +23,7 @@ import org.ejbca.ui.cli.IAdminCommand;
 import org.ejbca.ui.cli.IllegalAdminCommandException;
 
 /**
- * Revokes a given certificate
+ * Revokes a given certificate.
  *
  * @version $Id: CheckRevokeStatusCommand.java 22924 2016-03-03 21:59:59Z
  *     samuellb $
@@ -31,11 +31,13 @@ import org.ejbca.ui.cli.IllegalAdminCommandException;
 public class CheckRevokeStatusCommand extends EJBCAWSRABaseCommand
     implements IAdminCommand {
 
+      /** Type. */
   private static final int ARG_ISSUERDN = 1;
+  /** Type. */
   private static final int ARG_CERTSN = 2;
 
   /**
-   * Creates a new instance of RevokeCertCommand
+   * Creates a new instance of RevokeCertCommand.
    *
    * @param args command line arguments
    */
@@ -44,7 +46,7 @@ public class CheckRevokeStatusCommand extends EJBCAWSRABaseCommand
   }
 
   /**
-   * Runs the command
+   * Runs the command.
    *
    * @throws IllegalAdminCommandException Error in command args
    * @throws ErrorAdminCommandException Error running command
@@ -52,8 +54,9 @@ public class CheckRevokeStatusCommand extends EJBCAWSRABaseCommand
   @Override
   public void execute()
       throws IllegalAdminCommandException, ErrorAdminCommandException {
+    final int len = 3;
     try {
-      if (args.length != 3) {
+      if (args.length != len) {
         usage();
         System.exit(-1); // NOPMD, this is not a JEE app
       }

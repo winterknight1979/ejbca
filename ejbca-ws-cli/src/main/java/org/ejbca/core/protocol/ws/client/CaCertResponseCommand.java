@@ -38,13 +38,17 @@ import org.ejbca.ui.cli.IllegalAdminCommandException;
 public class CaCertResponseCommand extends EJBCAWSRABaseCommand
     implements IAdminCommand {
 
+      /** Type. */
   private static final int ARG_CANAME = 1;
+  /** Type. */
   private static final int ARG_CERT = 2;
+  /** Type. */
   private static final int ARG_CACHAIN = 3;
+  /** Type. */
   private static final int ARG_KEYSTOREPWD = 4;
 
   /**
-   * Creates a new instance of CvcRequestCommand
+   * Creates a new instance of CvcRequestCommand.
    *
    * @param args command line arguments
    */
@@ -53,7 +57,7 @@ public class CaCertResponseCommand extends EJBCAWSRABaseCommand
   }
 
   /**
-   * Runs the command
+   * Runs the command.
    *
    * @throws IllegalAdminCommandException Error in command args
    * @throws ErrorAdminCommandException Error running command
@@ -61,9 +65,10 @@ public class CaCertResponseCommand extends EJBCAWSRABaseCommand
   @Override
   public void execute()
       throws IllegalAdminCommandException, ErrorAdminCommandException {
-
+    final int minLen = 4;
+    final int maxLen = 5;
     try {
-      if (args.length < 4 || args.length > 5) {
+      if (args.length < minLen || args.length > maxLen) {
         getPrintStream().println("Number of arguments: " + args.length);
         usage();
         System.exit(-1); // NOPMD, this is not a JEE app
@@ -73,7 +78,7 @@ public class CaCertResponseCommand extends EJBCAWSRABaseCommand
       String certfile = args[ARG_CERT];
       String cachainfile = args[ARG_CACHAIN];
       String keystorepwd = null;
-      if (args.length > 5) {
+      if (args.length > maxLen) {
         keystorepwd = args[ARG_KEYSTOREPWD];
       }
       if (keystorepwd == null) {

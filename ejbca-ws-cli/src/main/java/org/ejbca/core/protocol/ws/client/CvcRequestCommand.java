@@ -50,19 +50,29 @@ import org.ejbca.ui.cli.IllegalAdminCommandException;
 public class CvcRequestCommand extends EJBCAWSRABaseCommand
     implements IAdminCommand {
 
+      /** Type. */
   private static final int ARG_USERNAME = 1;
+  /** Type. */
   private static final int ARG_PASSWORD = 2;
+  /** Type. */
   private static final int ARG_SUBJECTDN = 3;
+  /** Type. */
   private static final int ARG_SEQUENCE = 4;
+  /** Type. */
   private static final int ARG_SIGNALG = 5;
+  /** Type. */
   private static final int ARG_KEYSPEC = 6;
+  /** Type. */
   private static final int ARG_GENREQ = 7;
+  /** Type. */
   private static final int ARG_BASEFILENAME = 8;
+  /** Type. */
   private static final int ARG_AUTHSIGNKEY = 9;
+  /** Type. */
   private static final int ARG_AUTHSIGNCERT = 10;
 
   /**
-   * Creates a new instance of CvcRequestCommand
+   * Creates a new instance of CvcRequestCommand.
    *
    * @param args command line arguments
    */
@@ -71,7 +81,7 @@ public class CvcRequestCommand extends EJBCAWSRABaseCommand
   }
 
   /**
-   * Runs the command
+   * Runs the command.
    *
    * @throws IllegalAdminCommandException Error in command args
    * @throws ErrorAdminCommandException Error running command
@@ -81,7 +91,10 @@ public class CvcRequestCommand extends EJBCAWSRABaseCommand
       throws IllegalAdminCommandException, ErrorAdminCommandException {
 
     try {
-      if (args.length < 9 || args.length > 11) {
+    final int minLen = 9;
+    final int maxLen = 11;
+    final int seedLen = 5;
+      if (args.length < minLen || args.length > maxLen) {
         getPrintStream().println("Number of arguments: " + args.length);
         usage();
         System.exit(-1); // NOPMD, this is not a JEE app
@@ -129,7 +142,7 @@ public class CvcRequestCommand extends EJBCAWSRABaseCommand
           String country = CertTools.getPartFromDN(dn, "C");
           String mnemonic = CertTools.getPartFromDN(dn, "CN");
           if (sequence.equalsIgnoreCase("null")) {
-            sequence = RandomStringUtils.randomNumeric(5);
+            sequence = RandomStringUtils.randomNumeric(seedLen);
             getPrintStream()
                 .println(
                     "No sequence given, using random 5 number sequence: "

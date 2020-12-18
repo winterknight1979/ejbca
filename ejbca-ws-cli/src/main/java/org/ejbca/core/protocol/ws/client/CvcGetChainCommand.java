@@ -34,11 +34,13 @@ import org.ejbca.ui.cli.IllegalAdminCommandException;
 public class CvcGetChainCommand extends EJBCAWSRABaseCommand
     implements IAdminCommand {
 
+      /** Type. */
   private static final int ARG_USERNAME = 1;
+  /** Type. */
   private static final int ARG_BASEFILENAME = 2;
 
   /**
-   * Creates a new instance of CvcRequestCommand
+   * Creates a new instance of CvcRequestCommand.
    *
    * @param args command line arguments
    */
@@ -47,7 +49,7 @@ public class CvcGetChainCommand extends EJBCAWSRABaseCommand
   }
 
   /**
-   * Runs the command
+   * Runs the command.
    *
    * @throws IllegalAdminCommandException Error in command args
    * @throws ErrorAdminCommandException Error running command
@@ -56,8 +58,9 @@ public class CvcGetChainCommand extends EJBCAWSRABaseCommand
   public void execute()
       throws IllegalAdminCommandException, ErrorAdminCommandException {
 
+    final int len = 3;
     try {
-      if (args.length < 3 || args.length > 3) {
+      if (args.length < len || args.length > len) {
         getPrintStream().println("Number of argument: " + args.length);
         usage();
         System.exit(-1); // NOPMD, this is not a JEE app
