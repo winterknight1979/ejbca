@@ -34,6 +34,7 @@ import org.cesecore.time.TrustedTime;
 @Stateless
 public class QueuedLoggerMockSessionBean implements QueuedLoggerSessionLocal {
 
+    /** Param. */
   private static final String UNSUPPORTED =
       "Unsupported operation. QueuedDevice is not bundled with EJBCA.";
 

@@ -406,4 +406,9 @@
 		files="GenerateNewUserCommand.java" lines="99" />
 	<suppress checks="ParameterNumberCheck"
 		files="StressTestCommand.java" lines="659" />
+		
+	<!-- ejbca-ejb -->
+	
+	<suppress checks="ParameterNumberCheck"
+		files="QueuedLoggerMockSessionBean.java" lines="42" />
 </suppressions>

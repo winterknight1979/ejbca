@@ -39,6 +39,7 @@ import org.cesecore.util.query.QueryCriteria;
  */
 @Stateless
 public class QueuedAuditorMockSessionBean implements QueuedAuditorSessionLocal {
+    /** Param. */
   private static final String UNSUPPORTED =
       "Unsupported operation. QueuedDevice is not bundled with EJBCA.";
 
