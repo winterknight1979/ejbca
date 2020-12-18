@@ -10,27 +10,25 @@
 package org.ejbca.core.protocol.ocsp.extension.unid;
 
 /**
- * 
- * @version $Id: UnidFnrOCSPExtensionCode.java 28536 2018-03-21 11:48:07Z aminkh $
- *
+ * @version $Id: UnidFnrOCSPExtensionCode.java 28536 2018-03-21 11:48:07Z aminkh
+ *     $
  */
 public enum UnidFnrOCSPExtensionCode {
-    
-    ERROR_NO_ERROR(0),
-    ERROR_UNKNOWN(1),
-    ERROR_UNAUTHORIZED(2),
-    ERROR_NO_FNR_MAPPING(3),
-    ERROR_NO_SERIAL_IN_DN(4),
-    ERROR_SERVICE_UNAVAILABLE(5),
-    ERROR_CERT_REVOKED(6);
-    
-    private final int errorCode;
-    private UnidFnrOCSPExtensionCode(final int errorCode) {
-        this.errorCode = errorCode;
-    }
+  ERROR_NO_ERROR(0),
+  ERROR_UNKNOWN(1),
+  ERROR_UNAUTHORIZED(2),
+  ERROR_NO_FNR_MAPPING(3),
+  ERROR_NO_SERIAL_IN_DN(4),
+  ERROR_SERVICE_UNAVAILABLE(5),
+  ERROR_CERT_REVOKED(6);
 
-    public int getValue() {
-        return errorCode;
-    }
+  private final int errorCode;
 
+  private UnidFnrOCSPExtensionCode(final int errorCode) {
+    this.errorCode = errorCode;
+  }
+
+  public int getValue() {
+    return errorCode;
+  }
 }

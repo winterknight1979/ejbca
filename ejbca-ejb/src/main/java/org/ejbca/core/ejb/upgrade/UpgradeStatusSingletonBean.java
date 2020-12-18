@@ -15,13 +15,11 @@ package org.ejbca.core.ejb.upgrade;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 import javax.ejb.ConcurrencyManagement;
 import javax.ejb.ConcurrencyManagementType;
 import javax.ejb.Singleton;
 import javax.ejb.TransactionManagement;
 import javax.ejb.TransactionManagementType;
-
 import org.apache.log4j.Appender;
 import org.apache.log4j.Layout;
 import org.apache.log4j.Level;
@@ -32,98 +30,124 @@ import org.apache.log4j.spi.LoggingEvent;
 
 /**
  * Singleton responsible for keep track of a node-local post upgrade.
- * 
- * @version $Id: UpgradeStatusSingletonBean.java 25830 2017-05-10 13:36:45Z mikekushner $
+ *
+ * @version $Id: UpgradeStatusSingletonBean.java 25830 2017-05-10 13:36:45Z
+ *     mikekushner $
  */
 @Singleton
 @ConcurrencyManagement(ConcurrencyManagementType.BEAN)
 @TransactionManagement(TransactionManagementType.BEAN)
 public class UpgradeStatusSingletonBean implements UpgradeStatusSingletonLocal {
 
-    /** Custom appender so that we can capture and display the log from the upgrade process. */
-    private final Appender appender = new Appender() {
+  /**
+   * Custom appender so that we can capture and display the log from the upgrade
+   * process.
+   */
+  private final Appender appender =
+      new Appender() {
         @Override
-        public void addFilter(Filter filter) {}
+        public void addFilter(final Filter filter) {}
+
         @Override
         public void clearFilters() {}
+
         @Override
         public void close() {}
+
         @Override
-        public ErrorHandler getErrorHandler() { return null; }
+        public ErrorHandler getErrorHandler() {
+          return null;
+        }
+
         @Override
-        public Filter getFilter() { return null; }
+        public Filter getFilter() {
+          return null;
+        }
+
         @Override
-        public Layout getLayout() { return null; }
+        public Layout getLayout() {
+          return null;
+        }
+
         @Override
-        public boolean requiresLayout() { return false; }
+        public boolean requiresLayout() {
+          return false;
+        }
+
         @Override
         public void setErrorHandler(final ErrorHandler errorHandler) {}
+
         @Override
         public void setLayout(final Layout layout) {}
+
         @Override
         public void setName(final String name) {}
 
         @Override
         public String getName() {
-            return UpgradeStatusSingletonBean.class.getSimpleName();
+          return UpgradeStatusSingletonBean.class.getSimpleName();
         }
 
         @Override
         public void doAppend(final LoggingEvent loggingEvent) {
-            logged.add(loggingEvent);
+          logged.add(loggingEvent);
         }
-    };
+      };
 
-    private AtomicBoolean postUpgradeInProgress = new AtomicBoolean(false);
+  private final AtomicBoolean postUpgradeInProgress = new AtomicBoolean(false);
 
-    /** Fixed size list (dropping oldest additions when running out of space) to prevent all memory from being consumed if attached process never detaches. */
-    private List<LoggingEvent> logged = new LinkedList<LoggingEvent>() {
+  /**
+   * Fixed size list (dropping oldest additions when running out of space) to
+   * prevent all memory from being consumed if attached process never detaches.
+   */
+  private final List<LoggingEvent> logged =
+      new LinkedList<LoggingEvent>() {
         private static final long serialVersionUID = 1L;
         private static final int MAX_ENTRIES_IN_LIST = 10000;
 
         @Override
         public boolean add(final LoggingEvent loggingEvent) {
-            // Hard code a filter so we only keep DEBUG and above here in the in-memory buffer
-            if (!loggingEvent.getLevel().isGreaterOrEqual(Level.DEBUG)) {
-                return false;
-            }
-            final boolean added = super.add(loggingEvent);
-            while (added && size()>MAX_ENTRIES_IN_LIST) {
-                super.remove();
-            }
-            return added;
-        }  
-    };
-    
-    @Override
-    public boolean isPostUpgradeInProgress() {
-        return postUpgradeInProgress.get();
-    }
+          // Hard code a filter so we only keep DEBUG and above here in the
+          // in-memory buffer
+          if (!loggingEvent.getLevel().isGreaterOrEqual(Level.DEBUG)) {
+            return false;
+          }
+          final boolean added = super.add(loggingEvent);
+          while (added && size() > MAX_ENTRIES_IN_LIST) {
+            super.remove();
+          }
+          return added;
+        }
+      };
 
-    @Override
-    public boolean setPostUpgradeInProgressIfDifferent(boolean newValue) {
-        logged.clear();
-        return this.postUpgradeInProgress.compareAndSet(!newValue, newValue);
-    }
-    
-    @Override
-    public void resetPostUpgradeInProgress() {
-        this.postUpgradeInProgress.set(false);
-    }
-    
-    @Override
-    public List<LoggingEvent> getLogged() {
-        return logged;
-    }
-    
-    @Override
-    public void logAppenderAttach(final Logger log) {
-        log.addAppender(appender);
-    }
+  @Override
+  public boolean isPostUpgradeInProgress() {
+    return postUpgradeInProgress.get();
+  }
 
-    @Override
-    public void logAppenderDetach(final Logger log) {
-        log.removeAppender(appender);
-        
-    }
+  @Override
+  public boolean setPostUpgradeInProgressIfDifferent(final boolean newValue) {
+    logged.clear();
+    return this.postUpgradeInProgress.compareAndSet(!newValue, newValue);
+  }
+
+  @Override
+  public void resetPostUpgradeInProgress() {
+    this.postUpgradeInProgress.set(false);
+  }
+
+  @Override
+  public List<LoggingEvent> getLogged() {
+    return logged;
+  }
+
+  @Override
+  public void logAppenderAttach(final Logger log) {
+    log.addAppender(appender);
+  }
+
+  @Override
+  public void logAppenderDetach(final Logger log) {
+    log.removeAppender(appender);
+  }
 }

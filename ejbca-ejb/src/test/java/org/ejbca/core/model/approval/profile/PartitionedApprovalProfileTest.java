@@ -18,7 +18,6 @@ import static org.junit.Assert.assertTrue;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 import org.cesecore.authentication.AuthenticationFailedException;
 import org.ejbca.core.model.approval.Approval;
 import org.ejbca.core.model.approval.ApprovalException;
@@ -26,38 +25,54 @@ import org.junit.Test;
 
 /**
  * Unit tests for the PartitionedApprovalProfile class.
- * 
- * @version $Id: PartitionedApprovalProfileTest.java 24007 2016-07-26 10:11:52Z mikekushner $
  *
+ * @version $Id: PartitionedApprovalProfileTest.java 24007 2016-07-26 10:11:52Z
+ *     mikekushner $
  */
 public class PartitionedApprovalProfileTest {
 
-    /**
-     * Approval is required if there are any partitions that the ANYBODY pseudo-role doesn't have access to
-     * @throws ApprovalException Fail
-     * @throws AuthenticationFailedException Fail
-     */
-    @Test
-    public void testCanApprovalExecute() throws ApprovalException, AuthenticationFailedException {
-        //Create a profile with two steps, two partitions in each. 
-        PartitionedApprovalProfile approvalProfile = new PartitionedApprovalProfile("PartitionedApprovalProfile");
-        approvalProfile.initialize();
-        //Create another step (one is default)
-        approvalProfile.addStepFirst();
-        for (ApprovalStep approvalStep : approvalProfile.getSteps().values()) {
-            approvalProfile.addPartition(approvalStep.getStepIdentifier());
-        }
-        List<Approval> approvals = new ArrayList<>();
-        for (ApprovalStep step : approvalProfile.getSteps().values()) {
-            for (ApprovalPartition partition : step.getPartitions().values()) {
-                approvals.add(new Approval("", step.getStepIdentifier(), partition.getPartitionIdentifier()));
-            }
-        }
-        assertFalse("No approvals submitted, check should have failed.", approvalProfile.canApprovalExecute(new ArrayList<Approval>()));
-        assertFalse("Incorrect approvals submitted, check should have failed.",
-                approvalProfile.canApprovalExecute(Arrays.asList(approvals.get(0), approvals.get(0), approvals.get(0), approvals.get(0))));
-        assertTrue("Correct set of approvals submitted, check should have passed.", approvalProfile.canApprovalExecute(approvals));
-
+  /**
+   * Approval is required if there are any partitions that the ANYBODY
+   * pseudo-role doesn't have access to
+   *
+   * @throws ApprovalException Fail
+   * @throws AuthenticationFailedException Fail
+   */
+  @Test
+  public void testCanApprovalExecute()
+      throws ApprovalException, AuthenticationFailedException {
+    // Create a profile with two steps, two partitions in each.
+    PartitionedApprovalProfile approvalProfile =
+        new PartitionedApprovalProfile("PartitionedApprovalProfile");
+    approvalProfile.initialize();
+    // Create another step (one is default)
+    approvalProfile.addStepFirst();
+    for (ApprovalStep approvalStep : approvalProfile.getSteps().values()) {
+      approvalProfile.addPartition(approvalStep.getStepIdentifier());
     }
-
+    List<Approval> approvals = new ArrayList<>();
+    for (ApprovalStep step : approvalProfile.getSteps().values()) {
+      for (ApprovalPartition partition : step.getPartitions().values()) {
+        approvals.add(
+            new Approval(
+                "",
+                step.getStepIdentifier(),
+                partition.getPartitionIdentifier()));
+      }
+    }
+    assertFalse(
+        "No approvals submitted, check should have failed.",
+        approvalProfile.canApprovalExecute(new ArrayList<Approval>()));
+    assertFalse(
+        "Incorrect approvals submitted, check should have failed.",
+        approvalProfile.canApprovalExecute(
+            Arrays.asList(
+                approvals.get(0),
+                approvals.get(0),
+                approvals.get(0),
+                approvals.get(0))));
+    assertTrue(
+        "Correct set of approvals submitted, check should have passed.",
+        approvalProfile.canApprovalExecute(approvals));
+  }
 }

@@ -18,36 +18,41 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-
 import org.apache.log4j.Logger;
 import org.cesecore.jndi.JndiConstants;
 import org.ejbca.config.EjbcaConfiguration;
 
 /**
  * This bean handles configuration changes for system tests.
- * 
+ *
  * @version $Id: HealthCheckSessionBean.java 19901 2014-09-30 14:29:38Z anatom $
  */
-@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + "HealthCheckSessionRemote")
+@Stateless(
+    mappedName = JndiConstants.APP_JNDI_PREFIX + "HealthCheckSessionRemote")
 @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-public class HealthCheckSessionBean implements HealthCheckSessionLocal, HealthCheckSessionRemote {
+public class HealthCheckSessionBean
+    implements HealthCheckSessionLocal, HealthCheckSessionRemote {
 
-    private final static Logger log = Logger.getLogger(HealthCheckSessionBean.class);
+  private static final Logger log =
+      Logger.getLogger(HealthCheckSessionBean.class);
 
-    @PersistenceContext(unitName="ejbca")
-    private EntityManager entityManager;
+  @PersistenceContext(unitName = "ejbca")
+  private EntityManager entityManager;
 
-    @Override
-    public String getDatabaseStatus() {
-		String returnval = "";
-		try {
-			entityManager.createNativeQuery(EjbcaConfiguration.getHealthCheckDbQuery()).getResultList();
-			// TODO: Do we need to flush() the connection to avoid that this is executed in a batch after the method returns?
-		} catch (Exception e) {
-			returnval = "\nDB: Error creating connection to database: " + e.getMessage();
-			log.error("Error creating connection to database.",e);
-		}
-		return returnval;
+  @Override
+  public String getDatabaseStatus() {
+    String returnval = "";
+    try {
+      entityManager
+          .createNativeQuery(EjbcaConfiguration.getHealthCheckDbQuery())
+          .getResultList();
+      // TODO: Do we need to flush() the connection to avoid that this is
+      // executed in a batch after the method returns?
+    } catch (Exception e) {
+      returnval =
+          "\nDB: Error creating connection to database: " + e.getMessage();
+      log.error("Error creating connection to database.", e);
     }
-
+    return returnval;
+  }
 }

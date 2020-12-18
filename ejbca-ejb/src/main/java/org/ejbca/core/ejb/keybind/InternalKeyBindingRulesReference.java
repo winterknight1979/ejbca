@@ -15,7 +15,6 @@ package org.ejbca.core.ejb.keybind;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-
 import org.cesecore.authorization.rules.AccessRulePlugin;
 import org.cesecore.keybind.InternalKeyBindingDataSessionLocal;
 import org.cesecore.keybind.InternalKeyBindingMgmtSession;
@@ -27,51 +26,65 @@ import org.ejbca.core.model.util.LocalLookupException;
 
 /**
  * Dynamically defined access rules for InternalKeyBindings.
- * 
- * @version $Id: InternalKeyBindingRulesReference.java 25609 2017-03-24 00:00:29Z jeklund $
+ *
+ * @version $Id: InternalKeyBindingRulesReference.java 25609 2017-03-24
+ *     00:00:29Z jeklund $
  */
 public class InternalKeyBindingRulesReference implements AccessRulePlugin {
 
-    @Override
-    public Map<String,String> getRules() {
-        final Map<String,String> allRules = new HashMap<String,String>();
-        for (final InternalKeyBindingRules rule : InternalKeyBindingRules.values()) {
-            allRules.put(rule.resource(), rule.resource());
-        }
-        try {
-            final InternalKeyBindingDataSessionLocal internalKeyBindingDataSession = new EjbLocalHelper().getInternalKeyBindingDataSession();
-            for (final Entry<String,Integer> entry : internalKeyBindingDataSession.getCachedNameToIdMap().entrySet()) {
-                for (final InternalKeyBindingRules rule : InternalKeyBindingRules.values()) {
-                    if (!InternalKeyBindingRules.BASE.equals(rule)) {
-                        allRules.put(rule.resource() + "/" + entry.getValue(), rule.resource() + "/" + entry.getKey());
-                    }
-                }
-                
-            }
-        } catch (LocalLookupException e) {
-            //Possibly we're not local, then use the remote interface instead
-            InternalKeyBindingMgmtSession internalKeyBindingMgmtSession = EjbRemoteHelper.INSTANCE.getRemoteSession(InternalKeyBindingMgmtSessionRemote.class);
-            if(internalKeyBindingMgmtSession == null) {
-                //Fail state, can't continue
-                throw new IllegalStateException("Can't perform lookup of internal keybindings, can't continue.");
-            }
-            for (String type : internalKeyBindingMgmtSession.getAvailableTypesAndProperties().keySet()) {
-                for (int id : internalKeyBindingMgmtSession.getInternalKeyBindingIds(type)) {
-                    for (InternalKeyBindingRules rule : InternalKeyBindingRules.values()) {
-                        if (rule != InternalKeyBindingRules.BASE) {
-                            // Don't make the name available remotely
-                            allRules.put(rule.resource() + "/" + id, rule.resource() + "/" + id);
-                        }
-                    }
-                }
-            }
-        }
-        return allRules;
+  @Override
+  public Map<String, String> getRules() {
+    final Map<String, String> allRules = new HashMap<String, String>();
+    for (final InternalKeyBindingRules rule :
+        InternalKeyBindingRules.values()) {
+      allRules.put(rule.resource(), rule.resource());
     }
-
-    @Override
-    public String getCategory() {
-        return "INTERNALKEYBINDINGRULES";
+    try {
+      final InternalKeyBindingDataSessionLocal internalKeyBindingDataSession =
+          new EjbLocalHelper().getInternalKeyBindingDataSession();
+      for (final Entry<String, Integer> entry :
+          internalKeyBindingDataSession.getCachedNameToIdMap().entrySet()) {
+        for (final InternalKeyBindingRules rule :
+            InternalKeyBindingRules.values()) {
+          if (!InternalKeyBindingRules.BASE.equals(rule)) {
+            allRules.put(
+                rule.resource() + "/" + entry.getValue(),
+                rule.resource() + "/" + entry.getKey());
+          }
+        }
+      }
+    } catch (LocalLookupException e) {
+      // Possibly we're not local, then use the remote interface instead
+      InternalKeyBindingMgmtSession internalKeyBindingMgmtSession =
+          EjbRemoteHelper.INSTANCE.getRemoteSession(
+              InternalKeyBindingMgmtSessionRemote.class);
+      if (internalKeyBindingMgmtSession == null) {
+        // Fail state, can't continue
+        throw new IllegalStateException(
+            "Can't perform lookup of internal keybindings, can't continue.");
+      }
+      for (String type :
+          internalKeyBindingMgmtSession
+              .getAvailableTypesAndProperties()
+              .keySet()) {
+        for (int id :
+            internalKeyBindingMgmtSession.getInternalKeyBindingIds(type)) {
+          for (InternalKeyBindingRules rule :
+              InternalKeyBindingRules.values()) {
+            if (rule != InternalKeyBindingRules.BASE) {
+              // Don't make the name available remotely
+              allRules.put(
+                  rule.resource() + "/" + id, rule.resource() + "/" + id);
+            }
+          }
+        }
+      }
     }
+    return allRules;
+  }
 
+  @Override
+  public String getCategory() {
+    return "INTERNALKEYBINDINGRULES";
+  }
 }

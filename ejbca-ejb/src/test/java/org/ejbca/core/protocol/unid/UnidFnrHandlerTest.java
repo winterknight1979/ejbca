@@ -26,7 +26,6 @@ import java.security.cert.Certificate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x509.Extensions;
@@ -45,238 +44,301 @@ import org.junit.Test;
  * @version $Id: UnidFnrHandlerTest.java 28616 2018-04-03 11:51:50Z samuellb $
  */
 public class UnidFnrHandlerTest {
-	
-    CmpConfiguration cmpConfiguration = new CmpConfiguration();
-    String configAlias = "UnidFnrHandlerTestCmpConfigAlias";
-    
-    @Test
-    public void test01() throws Exception {
-        
-        
-        cmpConfiguration.addAlias(configAlias);
-        
-    	final String unidPrefix = "1234-5678-";
-    	final String fnr = "90123456789";
-    	final String lra = "01234";
-    	final MyStorage storage = new MyStorage(unidPrefix, fnr, lra);
-    	final RequestMessage reqIn = new MyIRequestMessage(fnr+'-'+lra);
-    	final UnidFnrHandler handler = new UnidFnrHandler(storage);
-    	final RequestMessage reqOut = handler.processRequestMessage(reqIn, unidPrefix+"_a_profile_name");
-    	assertEquals(storage.unid, (reqOut.getRequestX500Name().getRDNs(CeSecoreNameStyle.SN)[0].getFirst().getValue()).toString());
-    	
-    	cmpConfiguration.removeAlias(configAlias);
+
+  CmpConfiguration cmpConfiguration = new CmpConfiguration();
+  String configAlias = "UnidFnrHandlerTestCmpConfigAlias";
+
+  @Test
+  public void test01() throws Exception {
+
+    cmpConfiguration.addAlias(configAlias);
+
+    final String unidPrefix = "1234-5678-";
+    final String fnr = "90123456789";
+    final String lra = "01234";
+    final MyStorage storage = new MyStorage(unidPrefix, fnr, lra);
+    final RequestMessage reqIn = new MyIRequestMessage(fnr + '-' + lra);
+    final UnidFnrHandler handler = new UnidFnrHandler(storage);
+    final RequestMessage reqOut =
+        handler.processRequestMessage(reqIn, unidPrefix + "_a_profile_name");
+    assertEquals(
+        storage.unid,
+        (reqOut
+                .getRequestX500Name()
+                .getRDNs(CeSecoreNameStyle.SN)[0]
+                .getFirst()
+                .getValue())
+            .toString());
+
+    cmpConfiguration.removeAlias(configAlias);
+  }
+
+  @Test
+  public void test02() throws Exception {
+
+    cmpConfiguration.addAlias(configAlias);
+    cmpConfiguration.setCertReqHandlerClass(
+        configAlias, "org.ejbca.core.protocol.unid.UnidFnrHandler");
+
+    final String unidPrefix = "1234-5678-";
+    final String fnr = "90123456789";
+    final String lra = "01234";
+    final MyStorage storage = new MyStorage(unidPrefix, fnr, lra);
+    final RequestMessage reqIn = new MyIRequestMessage(fnr + '-' + lra);
+    final UnidFnrHandler handler = new UnidFnrHandler(storage);
+    final RequestMessage reqOut =
+        handler.processRequestMessage(reqIn, unidPrefix + "_a_profile_name");
+    assertEquals(
+        storage.unid,
+        (reqOut
+                .getRequestX500Name()
+                .getRDNs(CeSecoreNameStyle.SN)[0]
+                .getFirst()
+                .getValue())
+            .toString());
+
+    cmpConfiguration.removeAlias(configAlias);
+  }
+
+  private static class MyStorage implements Storage {
+    private final String unidPrefix;
+    private final String fnr;
+    private final String lra;
+    String unid;
+
+    MyStorage(final String _unidPrefix, final String _fnr, final String _lra) {
+      this.unidPrefix = _unidPrefix;
+      this.fnr = _fnr;
+      this.lra = _lra;
     }
-    
-    @Test
-    public void test02() throws Exception {
-        
-        cmpConfiguration.addAlias(configAlias);
-        cmpConfiguration.setCertReqHandlerClass(configAlias, "org.ejbca.core.protocol.unid.UnidFnrHandler");
-        
-        final String unidPrefix = "1234-5678-";
-        final String fnr = "90123456789";
-        final String lra = "01234";
-        final MyStorage storage = new MyStorage(unidPrefix, fnr, lra);
-        final RequestMessage reqIn = new MyIRequestMessage(fnr+'-'+lra);
-        final UnidFnrHandler handler = new UnidFnrHandler(storage);
-        final RequestMessage reqOut = handler.processRequestMessage(reqIn, unidPrefix+"_a_profile_name");
-        assertEquals(storage.unid, (reqOut.getRequestX500Name().getRDNs(CeSecoreNameStyle.SN)[0].getFirst().getValue()).toString());
-        
-        cmpConfiguration.removeAlias(configAlias);
+
+    @Override
+    public void storeIt(final String _unid, final String _fnr)
+        throws HandlerException {
+      assertEquals(this.fnr, _fnr);
+      assertEquals(this.unidPrefix, _unid.substring(0, 10));
+      assertEquals(this.lra, _unid.substring(10, 15));
+      this.unid = _unid;
     }
-    
-	private static class MyStorage implements Storage {
-		final private String unidPrefix;
-		final private String fnr;
-		final private String lra;
-		String unid;
-		MyStorage( String _unidPrefix, String _fnr, String _lra) {
-			this.unidPrefix = _unidPrefix;
-			this.fnr = _fnr;
-			this.lra = _lra;
-		}
-		@Override
-		public void storeIt(String _unid, String _fnr) throws HandlerException {
-			assertEquals(this.fnr, _fnr);
-			assertEquals(this.unidPrefix, _unid.substring(0, 10));
-			assertEquals(this.lra, _unid.substring(10, 15));
-			this.unid = _unid;
-		}
-	}
-	private static class MyIRequestMessage implements ICrmfRequestMessage {
-		private static final long serialVersionUID = -2303591921932083436L;
-        final X500Name dn;
-        List<Certificate> additionalCaCertificates = new ArrayList<>();
-        List<Certificate> additionalExtraCertsCertificates = new ArrayList<>();
-        
-		MyIRequestMessage(String serialNumber) {
-		    X500NameBuilder nameBuilder = new X500NameBuilder(new CeSecoreNameStyle());
-			nameBuilder.addRDN(CeSecoreNameStyle.SN, serialNumber);
-			this.dn = nameBuilder.build();
-		}
-		@Override
-		public String getUsername() {
-			return null;
-		}
-		@Override
-		public String getPassword() {
-			return null;
-		}
-		@Override
-		public String getIssuerDN() {
-			return null;
-		}
-		@Override
-		public BigInteger getSerialNo() {
-			return null;
-		}
-		@Override
-		public String getRequestDN() {
-			return null;
-		}
-		@Override
-		public X500Name getRequestX500Name() {
-			return this.dn;
-		}
+  }
 
-		@Override
-		public String getRequestAltNames() {
-			return null;
-		}
-		@Override
-		public Date getRequestValidityNotBefore() {
-			return null;
-		}
-		@Override
-		public Date getRequestValidityNotAfter() {
-			return null;
-		}
-		@Override
-		public Extensions getRequestExtensions() {
-			return null;
-		}
-		@Override
-		public String getCRLIssuerDN() {
-			return null;
-		}
-		@Override
-		public BigInteger getCRLSerialNo() {
-			return null;
-		}
-		@Override
-		public PublicKey getRequestPublicKey() throws InvalidKeyException,
-				NoSuchAlgorithmException, NoSuchProviderException {
-			return null;
-		}
-		@Override
-		public boolean verify() throws InvalidKeyException,
-				NoSuchAlgorithmException, NoSuchProviderException {
-			return false;
-		}
-		@Override
-		public boolean requireKeyInfo() {
-			return false;
-		}
-		@Override
-		public void setKeyInfo(Certificate cert, PrivateKey key, String provider) {
-			// do nothing
-		}
-		@Override
-		public int getErrorNo() {
-			return 0;
-		}
-		@Override
-		public String getErrorText() {
-			return null;
-		}
-		@Override
-		public String getSenderNonce() {
-			return null;
-		}
-		@Override
-		public String getTransactionId() {
-			return null;
-		}
-		@Override
-		public byte[] getRequestKeyInfo() {
-			return null;
-		}
-		@Override
-		public String getPreferredDigestAlg() {
-			return null;
-		}
-		@Override
-		public boolean includeCACert() {
-			return false;
-		}
-		@Override
-		public int getRequestType() {
-			return 0;
-		}
-		@Override
-		public int getRequestId() {
-			return 0;
-		}
+  private static class MyIRequestMessage implements ICrmfRequestMessage {
+    private static final long serialVersionUID = -2303591921932083436L;
+    final X500Name dn;
+    List<Certificate> additionalCaCertificates = new ArrayList<>();
+    List<Certificate> additionalExtraCertsCertificates = new ArrayList<>();
 
-	    @Override
-	    public void setResponseKeyInfo(PrivateKey key, String provider) {
-	    }
+    MyIRequestMessage(final String serialNumber) {
+      X500NameBuilder nameBuilder =
+          new X500NameBuilder(new CeSecoreNameStyle());
+      nameBuilder.addRDN(CeSecoreNameStyle.SN, serialNumber);
+      this.dn = nameBuilder.build();
+    }
 
-		@Override
-		public int getPbeIterationCount() {
-			return 0;
-		}
-		@Override
-		public String getPbeDigestAlg() {
-			return null;
-		}
-		@Override
-		public String getPbeMacAlg() {
-			return null;
-		}
-		@Override
-		public String getPbeKeyId() {
-			return null;
-		}
-		@Override
-		public String getPbeKey() {
-			return null;
-		}
-        @Override
-        public boolean isImplicitConfirm() {
-            return false;
-        }
-        @Override
-        public PublicKey getProtocolEncrKey() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException {
-            return null;
-        }
-        @Override
-        public SubjectPublicKeyInfo getRequestSubjectPublicKeyInfo() {
-            return null;
-        }
-        @Override
-        public void setServerGenKeyPair(KeyPair serverGenKeyPair) {
-        }
-        @Override
-        public KeyPair getServerGenKeyPair() {
-            return null;
-        }
-        
-        @Override
-        public List<Certificate> getAdditionalCaCertificates() {
-            return additionalCaCertificates;
-        }
-        @Override
-        public void setAdditionalCaCertificates(final List<Certificate> certificates) {
-            this.additionalCaCertificates = certificates;
-        }
-        @Override
-        public List<Certificate> getAdditionalExtraCertsCertificates() {
-            return this.additionalExtraCertsCertificates;
-        }
-        @Override
-        public void setAdditionalExtraCertsCertificates(List<Certificate> certificates) {
-            this.additionalExtraCertsCertificates = certificates;
-        }
-	}
+    @Override
+    public String getUsername() {
+      return null;
+    }
+
+    @Override
+    public String getPassword() {
+      return null;
+    }
+
+    @Override
+    public String getIssuerDN() {
+      return null;
+    }
+
+    @Override
+    public BigInteger getSerialNo() {
+      return null;
+    }
+
+    @Override
+    public String getRequestDN() {
+      return null;
+    }
+
+    @Override
+    public X500Name getRequestX500Name() {
+      return this.dn;
+    }
+
+    @Override
+    public String getRequestAltNames() {
+      return null;
+    }
+
+    @Override
+    public Date getRequestValidityNotBefore() {
+      return null;
+    }
+
+    @Override
+    public Date getRequestValidityNotAfter() {
+      return null;
+    }
+
+    @Override
+    public Extensions getRequestExtensions() {
+      return null;
+    }
+
+    @Override
+    public String getCRLIssuerDN() {
+      return null;
+    }
+
+    @Override
+    public BigInteger getCRLSerialNo() {
+      return null;
+    }
+
+    @Override
+    public PublicKey getRequestPublicKey()
+        throws InvalidKeyException, NoSuchAlgorithmException,
+            NoSuchProviderException {
+      return null;
+    }
+
+    @Override
+    public boolean verify()
+        throws InvalidKeyException, NoSuchAlgorithmException,
+            NoSuchProviderException {
+      return false;
+    }
+
+    @Override
+    public boolean requireKeyInfo() {
+      return false;
+    }
+
+    @Override
+    public void setKeyInfo(
+        final Certificate cert, final PrivateKey key, final String provider) {
+      // do nothing
+    }
+
+    @Override
+    public int getErrorNo() {
+      return 0;
+    }
+
+    @Override
+    public String getErrorText() {
+      return null;
+    }
+
+    @Override
+    public String getSenderNonce() {
+      return null;
+    }
+
+    @Override
+    public String getTransactionId() {
+      return null;
+    }
+
+    @Override
+    public byte[] getRequestKeyInfo() {
+      return null;
+    }
+
+    @Override
+    public String getPreferredDigestAlg() {
+      return null;
+    }
+
+    @Override
+    public boolean includeCACert() {
+      return false;
+    }
+
+    @Override
+    public int getRequestType() {
+      return 0;
+    }
+
+    @Override
+    public int getRequestId() {
+      return 0;
+    }
+
+    @Override
+    public void setResponseKeyInfo(
+        final PrivateKey key, final String provider) {}
+
+    @Override
+    public int getPbeIterationCount() {
+      return 0;
+    }
+
+    @Override
+    public String getPbeDigestAlg() {
+      return null;
+    }
+
+    @Override
+    public String getPbeMacAlg() {
+      return null;
+    }
+
+    @Override
+    public String getPbeKeyId() {
+      return null;
+    }
+
+    @Override
+    public String getPbeKey() {
+      return null;
+    }
+
+    @Override
+    public boolean isImplicitConfirm() {
+      return false;
+    }
+
+    @Override
+    public PublicKey getProtocolEncrKey()
+        throws InvalidKeyException, NoSuchAlgorithmException,
+            NoSuchProviderException {
+      return null;
+    }
+
+    @Override
+    public SubjectPublicKeyInfo getRequestSubjectPublicKeyInfo() {
+      return null;
+    }
+
+    @Override
+    public void setServerGenKeyPair(final KeyPair serverGenKeyPair) {}
+
+    @Override
+    public KeyPair getServerGenKeyPair() {
+      return null;
+    }
+
+    @Override
+    public List<Certificate> getAdditionalCaCertificates() {
+      return additionalCaCertificates;
+    }
+
+    @Override
+    public void setAdditionalCaCertificates(
+        final List<Certificate> certificates) {
+      this.additionalCaCertificates = certificates;
+    }
+
+    @Override
+    public List<Certificate> getAdditionalExtraCertsCertificates() {
+      return this.additionalExtraCertsCertificates;
+    }
+
+    @Override
+    public void setAdditionalExtraCertsCertificates(
+        final List<Certificate> certificates) {
+      this.additionalExtraCertsCertificates = certificates;
+    }
+  }
 }

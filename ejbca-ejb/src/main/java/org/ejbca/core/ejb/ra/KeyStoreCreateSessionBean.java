@@ -25,12 +25,10 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Date;
-
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-
 import org.apache.log4j.Logger;
 import org.cesecore.ErrorCode;
 import org.cesecore.authentication.tokens.AlwaysAllowLocalAuthenticationToken;
@@ -78,260 +76,419 @@ import org.ejbca.core.model.ra.raadmin.EndEntityProfile;
 import org.ejbca.core.model.ra.raadmin.EndEntityProfileValidationException;
 
 /**
- * Implementation of KeyStoreCreateSession
- * Class that has helper methods to generate tokens for users in ejbca.
+ * Implementation of KeyStoreCreateSession Class that has helper methods to
+ * generate tokens for users in ejbca.
  *
- * @version $Id: KeyStoreCreateSessionBean.java 29332 2018-06-25 13:39:58Z andresjakobs $
+ * @version $Id: KeyStoreCreateSessionBean.java 29332 2018-06-25 13:39:58Z
+ *     andresjakobs $
  */
-
-@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + "KeyStoreCreateSessionRemote")
+@Stateless(
+    mappedName = JndiConstants.APP_JNDI_PREFIX + "KeyStoreCreateSessionRemote")
 @TransactionAttribute(TransactionAttributeType.REQUIRED)
-public class KeyStoreCreateSessionBean implements KeyStoreCreateSessionLocal, KeyStoreCreateSessionRemote {
-    
-    private static final Logger log = Logger.getLogger(KeyStoreCreateSessionBean.class);
+public class KeyStoreCreateSessionBean
+    implements KeyStoreCreateSessionLocal, KeyStoreCreateSessionRemote {
 
-    private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();
+  private static final Logger log =
+      Logger.getLogger(KeyStoreCreateSessionBean.class);
 
-    @EJB
-    private GlobalConfigurationSessionLocal globalConfigurationSession;
-    @EJB
-	private EndEntityAuthenticationSessionLocal authenticationSession;
-    @EJB
-    private AuthorizationSessionLocal authorizationSession;
-    @EJB
-    private EndEntityAccessSessionLocal endEntityAccessSession;
-    @EJB
-    private EndEntityAuthenticationSessionLocal endEntityAuthenticationSession;
-    @EJB
-    private EndEntityManagementSessionLocal endEntityManagementSession;
-    @EJB
-    private EndEntityProfileSessionLocal endEntityProfileSession;
-    @EJB
-    private CaSessionLocal caSession;
-    @EJB
-    private KeyRecoverySessionLocal keyRecoverySession;
-    @EJB
-    private SignSessionLocal signSession;
-    @EJB
-    private HardTokenSessionLocal hardTokenSession;
+  private static final InternalEjbcaResources intres =
+      InternalEjbcaResources.getInstance();
 
-    @Override
-    public byte[] generateOrKeyRecoverTokenAsByteArray(final AuthenticationToken authenticationToken, final String username, final String password, final String hardTokenSN, final String keySpecification, final String keyAlgorithm)
-            throws CADoesntExistsException, AuthorizationDeniedException, NotFoundException, EjbcaException {
-        // Check if user exists.
-        final EndEntityInformation endEntity = endEntityAccessSession.findUser(authenticationToken, username);
-        if(endEntity == null) {
-            log.info(intres.getLocalizedMessage("ra.errorentitynotexist", username));
-            throw new NotFoundException(intres.getLocalizedMessage("ra.wrongusernameorpassword"));
-        }
-        // Check CA ID and authorization.
-        final int caId = endEntity.getCAId();
-        caSession.verifyExistenceOfCA(caId);
-        if(!authorizationSession.isAuthorized(authenticationToken, StandardRules.CAACCESS.resource() + caId, StandardRules.CREATECERT.resource())) {
-            final String msg = intres.getLocalizedMessage("authorization.notauthorizedtoresource", StandardRules.CAACCESS.resource() +caId +
-                    "," + StandardRules.CREATECERT.resource(), null);
-            throw new AuthorizationDeniedException(msg);
-        }
-        // Check token type.
-        if(endEntity.getTokenType() != SecConst.TOKEN_SOFT_P12) { // logger
-            throw new EjbcaException(ErrorCode.BAD_USER_TOKEN_TYPE, "Error: Wrong Token Type of user, must be 'P12' for PKCS12 requests");
-        }
-        final boolean useKeyRecovery = ((GlobalConfiguration) globalConfigurationSession.getCachedConfiguration(GlobalConfiguration.GLOBAL_CONFIGURATION_ID)).getEnableKeyRecovery();
-        if (log.isDebugEnabled()) {
-            log.debug("usekeyrecovery: " + useKeyRecovery);
-        }
-        final boolean saveKeys = endEntity.getKeyRecoverable() && useKeyRecovery && (endEntity.getStatus() != EndEntityConstants.STATUS_KEYRECOVERY);
-        if (log.isDebugEnabled()) {
-            log.debug("userdata.getKeyRecoverable(): " + endEntity.getKeyRecoverable());
-            log.debug("userdata.getStatus(): " + endEntity.getStatus());
-            log.debug("savekeys: " + saveKeys);
-        }
-        final boolean loadKeys = (endEntity.getStatus() == EndEntityConstants.STATUS_KEYRECOVERY) && useKeyRecovery;
-        if (log.isDebugEnabled()) {
-            log.debug("loadkeys: " + loadKeys);
-        }
-        final int endEntityProfileId = endEntity.getEndEntityProfileId();
-        final EndEntityProfile endEntityProfile = endEntityProfileSession.getEndEntityProfile(endEntityProfileId);
-        final boolean reuseCertificate = endEntityProfile.getReUseKeyRecoveredCertificate();
-        if (log.isDebugEnabled()) {
-            log.debug("reusecertificate: " + reuseCertificate);
-        }
-        try {
-            final KeyStore keyStore = generateOrKeyRecoverToken(authenticationToken, username, password, caId,
-                    keySpecification, keyAlgorithm, null, null, false, loadKeys, saveKeys, reuseCertificate, endEntityProfileId);
-            final String alias = keyStore.aliases().nextElement();
-            final X509Certificate certificate = (X509Certificate) keyStore.getCertificate(alias);
-            if ((hardTokenSN != null) && (certificate != null)) {
-                hardTokenSession.addHardTokenCertificateMapping(authenticationToken,hardTokenSN,certificate);
-            }
-            return KeyStoreTools.getAsByteArray(keyStore, password);
-        } catch (AuthLoginException e) { // Is handled as EjbcaException at caller (EjbcaWS).
-            throw e;
-        } catch (AuthStatusException e) { // Is handled as EjbcaException at caller (EjbcaWS).
-            throw e;
-        } catch (Exception e) {
-            if (log.isDebugEnabled()) {
-                log.debug("Re-throw exception in RA master API: " + e.getMessage(), e);
-            }
-            throw new EjbcaException(ErrorCode.INTERNAL_ERROR, e.getMessage());
-        }
+  @EJB private GlobalConfigurationSessionLocal globalConfigurationSession;
+  @EJB private EndEntityAuthenticationSessionLocal authenticationSession;
+  @EJB private AuthorizationSessionLocal authorizationSession;
+  @EJB private EndEntityAccessSessionLocal endEntityAccessSession;
+
+  @EJB
+  private EndEntityAuthenticationSessionLocal endEntityAuthenticationSession;
+
+  @EJB private EndEntityManagementSessionLocal endEntityManagementSession;
+  @EJB private EndEntityProfileSessionLocal endEntityProfileSession;
+  @EJB private CaSessionLocal caSession;
+  @EJB private KeyRecoverySessionLocal keyRecoverySession;
+  @EJB private SignSessionLocal signSession;
+  @EJB private HardTokenSessionLocal hardTokenSession;
+
+  @Override
+  public byte[] generateOrKeyRecoverTokenAsByteArray(
+      final AuthenticationToken authenticationToken,
+      final String username,
+      final String password,
+      final String hardTokenSN,
+      final String keySpecification,
+      final String keyAlgorithm)
+      throws CADoesntExistsException, AuthorizationDeniedException,
+          NotFoundException, EjbcaException {
+    // Check if user exists.
+    final EndEntityInformation endEntity =
+        endEntityAccessSession.findUser(authenticationToken, username);
+    if (endEntity == null) {
+      log.info(intres.getLocalizedMessage("ra.errorentitynotexist", username));
+      throw new NotFoundException(
+          intres.getLocalizedMessage("ra.wrongusernameorpassword"));
     }
-
-    @Override
-    public byte[] generateOrKeyRecoverTokenAsByteArray(AuthenticationToken administrator, String username, String password, int caid, String keyspec,
-            String keyalg, boolean createJKS, boolean loadkeys, boolean savekeys, boolean reusecertificate, int endEntityProfileId)
-            throws AuthorizationDeniedException, KeyStoreException, InvalidAlgorithmParameterException, CADoesntExistsException, IllegalKeyException,
-            CertificateCreateException, IllegalNameException, CertificateRevokeException, CertificateSerialNumberException,
-            CryptoTokenOfflineException, IllegalValidityException, CAOfflineException, InvalidAlgorithmException,
-            CustomCertificateSerialNumberException, AuthStatusException, AuthLoginException, EndEntityProfileValidationException, NoSuchEndEntityException,
-            CertificateSignatureException, CertificateEncodingException, CertificateException, NoSuchAlgorithmException, InvalidKeySpecException {
-        KeyStore keyStore = generateOrKeyRecoverToken(administrator, username, password, caid, keyspec, keyalg, null, null, createJKS, loadkeys,
-                savekeys,
-                reusecertificate, endEntityProfileId);
-        return KeyStoreTools.getAsByteArray(keyStore, password);
+    // Check CA ID and authorization.
+    final int caId = endEntity.getCAId();
+    caSession.verifyExistenceOfCA(caId);
+    if (!authorizationSession.isAuthorized(
+        authenticationToken,
+        StandardRules.CAACCESS.resource() + caId,
+        StandardRules.CREATECERT.resource())) {
+      final String msg =
+          intres.getLocalizedMessage(
+              "authorization.notauthorizedtoresource",
+              StandardRules.CAACCESS.resource()
+                  + caId
+                  + ","
+                  + StandardRules.CREATECERT.resource(),
+              null);
+      throw new AuthorizationDeniedException(msg);
     }
-
-    @Override
-    public KeyStore generateOrKeyRecoverToken(AuthenticationToken administrator, String username, String password, int caid,
-            String keyspec, String keyalg, Date notBefore, Date notAfter, boolean createJKS, boolean loadkeys, boolean savekeys,
-            boolean reusecertificate,
-            int endEntityProfileId)
-            throws AuthorizationDeniedException, KeyStoreException, InvalidAlgorithmParameterException, CADoesntExistsException, IllegalKeyException,
-            CertificateCreateException, IllegalNameException, CertificateRevokeException, CertificateSerialNumberException,
-            CryptoTokenOfflineException, IllegalValidityException, CAOfflineException, InvalidAlgorithmException,
-            CustomCertificateSerialNumberException, AuthStatusException, AuthLoginException, EndEntityProfileValidationException, NoSuchEndEntityException,
-            CertificateSignatureException, CertificateEncodingException, CertificateException, NoSuchAlgorithmException, InvalidKeySpecException {
-        if (log.isTraceEnabled()) {
-            log.trace(">generateOrKeyRecoverToken");
-        }
-        boolean isNewToken = false;
-    	KeyRecoveryInformation keyData = null;
-    	KeyPair rsaKeys = null;
-    	EndEntityInformation userdata = endEntityAccessSession.findUser(administrator, username);
-    	if (userdata.getStatus() == EndEntityConstants.STATUS_NEW) {
-    	    isNewToken = true;
-    	}
-    	if (loadkeys) {
-    	    if (log.isDebugEnabled()) {
-    	        log.debug("Recovering keys for user: "+ username);
-    	    }
-            // used saved keys.
-			keyData = keyRecoverySession.recoverKeys(administrator, username, endEntityProfileId);
-    		if (keyData == null) {
-    			throw new KeyStoreException("No key recovery data exists for user");
-    		}
-    		rsaKeys = keyData.getKeyPair();
-    		if (reusecertificate) {
-    			// This is only done if reusecertificate == true because if you don't re-use certificate
-    		    // signSession.createCertificate is called, which set status to generated, unless finishUser == false in CA config
-                if (log.isDebugEnabled()) {
-                    log.debug("Re-using old certificate for user: "+ username);
-                }
-    			keyRecoverySession.unmarkUser(administrator,username);
-    		}
-    		caid = keyData.getIssuerDN().hashCode(); // always use the CA of the certificate
-    	} else {
-            if (log.isDebugEnabled()) {
-                log.debug("Generating new keys for user: "+ username);
-            }
-
-            //KeyStore algorithm specification inside endEntityInformation has priority since its algorithm is approved
-            if (userdata.getExtendedInformation() != null) {
-                if (userdata.getExtendedInformation().getKeyStoreAlgorithmType() != null
-                        && userdata.getExtendedInformation().getKeyStoreAlgorithmSubType() != null) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Using the key-store algorithm specification found inside the endEntityInformation ("
-                                + userdata.getExtendedInformation().getKeyStoreAlgorithmType() + "_"
-                                + userdata.getExtendedInformation().getKeyStoreAlgorithmSubType() + ") instead of one provided separately (" + keyalg
-                                + "_" + keyspec + ")");
-                    }
-                    keyalg = userdata.getExtendedInformation().getKeyStoreAlgorithmType();
-                    keyspec = userdata.getExtendedInformation().getKeyStoreAlgorithmSubType();
-                }
-            }
-            // generate new keys.
-            rsaKeys = KeyTools.genKeys(keyspec, keyalg);
-    	}
-    	X509Certificate cert = null;
-    	if ((reusecertificate) && (keyData != null)) {
-            cert = (X509Certificate) keyData.getCertificate(); // TODO Validity ignored here?
-    		boolean finishUser = true;
-			finishUser = caSession.getCAInfo(administrator,caid).getFinishUser();
-    		if (finishUser) {
-				authenticationSession.finishUser(userdata);
-    		}
-    	} else {
-            if (log.isDebugEnabled()) {
-                log.debug("Generating new certificate for user: "+ username);
-            }
-            cert = (X509Certificate) signSession.createCertificate(administrator, username, password, new PublicKeyWrapper(rsaKeys.getPublic()), -1,
-                    notBefore, notAfter);
-    	}
-    	// Clear password from database
-    	userdata = endEntityAccessSession.findUser(administrator, username); //Get GENERATED end entity information
-        if (userdata.getStatus() == EndEntityConstants.STATUS_GENERATED) {
-            // If we have a successful key recovery via EJBCA WS we implicitly want to allow resetting of the password without edit_end_entity rights (ECA-4947)
-            if (loadkeys) {
-                endEntityManagementSession.setClearTextPassword(new AlwaysAllowLocalAuthenticationToken(
-                        new UsernamePrincipal("Implicit authorization from key recovery operation to reset password.")), username, null);
-            } else if (isNewToken) {
-                // If we generate a new token through an enrollment, we don't want to demand access to edit_end_entity
-                endEntityManagementSession.setClearTextPassword(new AlwaysAllowLocalAuthenticationToken(
-                        new UsernamePrincipal("Implicit authorization from new enrollments")), username, null);
-            } else {
-                endEntityManagementSession.setClearTextPassword(administrator, username, null);
-            }
-    	}
-        // Make a certificate chain from the certificate and the CA-certificate
-        Certificate[] cachain = signSession.getCertificateChain(caid).toArray(new Certificate[0]);
-        // Verify CA-certificate
-    	Certificate rootcert = cachain[cachain.length - 1];
-    	if (CertTools.isSelfSigned(rootcert)) {
-    		try {
-    			rootcert.verify(rootcert.getPublicKey());
-    		} catch (GeneralSecurityException se) {
-                throw new CertificateSignatureException("RootCA certificate does not verify, issuerDN: " + CertTools.getIssuerDN(rootcert)
-                        + ", subjectDN: " + CertTools.getSubjectDN(rootcert), se);
-    		}
-    	} else {
-    		throw new CertificateSignatureException("RootCA certificate not self-signed, issuerDN: "+CertTools.getIssuerDN(rootcert)+", subjectDN: "+CertTools.getSubjectDN(rootcert));
-    	}
-        // Verify that the user-certificate is signed by our CA
-    	Certificate cacert = cachain[0];
-    	try {
-    		cert.verify(cacert.getPublicKey());
-    	} catch (GeneralSecurityException se) {
-    		throw new CertificateSignatureException("Generated certificate does not verify using CA-certificate, issuerDN: "+CertTools.getIssuerDN(cert)+", subjectDN: "+CertTools.getSubjectDN(cert)+
-    				", caIssuerDN: "+CertTools.getIssuerDN(cacert)+", caSubjectDN: "+CertTools.getSubjectDN(cacert), se);
-    	}
-    	if (savekeys) {
-            // Save generated keys to database.
-            if (log.isDebugEnabled()) {
-                log.debug("Saving generated keys for recovery for user: "+ username);
-            }
-			keyRecoverySession.addKeyRecoveryData(administrator, EJBTools.wrap(cert), username, EJBTools.wrap(rsaKeys));
-    	}
-        //  Use CN if as alias in the keystore, if CN is not present use username
-    	String alias = CertTools.getPartFromDN(CertTools.getSubjectDN(cert), "CN");
-    	if (alias == null) {
-    		alias = username;
-    	}
-        // Store keys and certificates in keystore.
-    	KeyStore ks = null;
-    	if (createJKS) {
-            if (log.isDebugEnabled()) {
-                log.debug("Generating JKS for user: "+ username);
-            }
-    		ks = KeyTools.createJKS(alias, rsaKeys.getPrivate(), password, cert, cachain);
-    	} else {
-            if (log.isDebugEnabled()) {
-                log.debug("Generating PKCS12 for user: "+ username);
-            }
-    		ks = KeyTools.createP12(alias, rsaKeys.getPrivate(), cert, cachain);
-    	}
-        if (log.isTraceEnabled()) {
-            log.trace("<generateOrKeyRecoverToken");
-        }
-    	return ks;
+    // Check token type.
+    if (endEntity.getTokenType() != SecConst.TOKEN_SOFT_P12) { // logger
+      throw new EjbcaException(
+          ErrorCode.BAD_USER_TOKEN_TYPE,
+          "Error: Wrong Token Type of user, must be 'P12' for PKCS12 requests");
     }
+    final boolean useKeyRecovery =
+        ((GlobalConfiguration)
+                globalConfigurationSession.getCachedConfiguration(
+                    GlobalConfiguration.GLOBAL_CONFIGURATION_ID))
+            .getEnableKeyRecovery();
+    if (log.isDebugEnabled()) {
+      log.debug("usekeyrecovery: " + useKeyRecovery);
+    }
+    final boolean saveKeys =
+        endEntity.getKeyRecoverable()
+            && useKeyRecovery
+            && (endEntity.getStatus() != EndEntityConstants.STATUS_KEYRECOVERY);
+    if (log.isDebugEnabled()) {
+      log.debug(
+          "userdata.getKeyRecoverable(): " + endEntity.getKeyRecoverable());
+      log.debug("userdata.getStatus(): " + endEntity.getStatus());
+      log.debug("savekeys: " + saveKeys);
+    }
+    final boolean loadKeys =
+        (endEntity.getStatus() == EndEntityConstants.STATUS_KEYRECOVERY)
+            && useKeyRecovery;
+    if (log.isDebugEnabled()) {
+      log.debug("loadkeys: " + loadKeys);
+    }
+    final int endEntityProfileId = endEntity.getEndEntityProfileId();
+    final EndEntityProfile endEntityProfile =
+        endEntityProfileSession.getEndEntityProfile(endEntityProfileId);
+    final boolean reuseCertificate =
+        endEntityProfile.getReUseKeyRecoveredCertificate();
+    if (log.isDebugEnabled()) {
+      log.debug("reusecertificate: " + reuseCertificate);
+    }
+    try {
+      final KeyStore keyStore =
+          generateOrKeyRecoverToken(
+              authenticationToken,
+              username,
+              password,
+              caId,
+              keySpecification,
+              keyAlgorithm,
+              null,
+              null,
+              false,
+              loadKeys,
+              saveKeys,
+              reuseCertificate,
+              endEntityProfileId);
+      final String alias = keyStore.aliases().nextElement();
+      final X509Certificate certificate =
+          (X509Certificate) keyStore.getCertificate(alias);
+      if ((hardTokenSN != null) && (certificate != null)) {
+        hardTokenSession.addHardTokenCertificateMapping(
+            authenticationToken, hardTokenSN, certificate);
+      }
+      return KeyStoreTools.getAsByteArray(keyStore, password);
+    } catch (
+        AuthLoginException
+            e) { // Is handled as EjbcaException at caller (EjbcaWS).
+      throw e;
+    } catch (
+        AuthStatusException
+            e) { // Is handled as EjbcaException at caller (EjbcaWS).
+      throw e;
+    } catch (Exception e) {
+      if (log.isDebugEnabled()) {
+        log.debug("Re-throw exception in RA master API: " + e.getMessage(), e);
+      }
+      throw new EjbcaException(ErrorCode.INTERNAL_ERROR, e.getMessage());
+    }
+  }
+
+  @Override
+  public byte[] generateOrKeyRecoverTokenAsByteArray(
+      final AuthenticationToken administrator,
+      final String username,
+      final String password,
+      final int caid,
+      final String keyspec,
+      final String keyalg,
+      final boolean createJKS,
+      final boolean loadkeys,
+      final boolean savekeys,
+      final boolean reusecertificate,
+      final int endEntityProfileId)
+      throws AuthorizationDeniedException, KeyStoreException,
+          InvalidAlgorithmParameterException, CADoesntExistsException,
+          IllegalKeyException, CertificateCreateException, IllegalNameException,
+          CertificateRevokeException, CertificateSerialNumberException,
+          CryptoTokenOfflineException, IllegalValidityException,
+          CAOfflineException, InvalidAlgorithmException,
+          CustomCertificateSerialNumberException, AuthStatusException,
+          AuthLoginException, EndEntityProfileValidationException,
+          NoSuchEndEntityException, CertificateSignatureException,
+          CertificateEncodingException, CertificateException,
+          NoSuchAlgorithmException, InvalidKeySpecException {
+    KeyStore keyStore =
+        generateOrKeyRecoverToken(
+            administrator,
+            username,
+            password,
+            caid,
+            keyspec,
+            keyalg,
+            null,
+            null,
+            createJKS,
+            loadkeys,
+            savekeys,
+            reusecertificate,
+            endEntityProfileId);
+    return KeyStoreTools.getAsByteArray(keyStore, password);
+  }
+
+  @Override
+  public KeyStore generateOrKeyRecoverToken(
+      final AuthenticationToken administrator,
+      final String username,
+      final String password,
+      int caid,
+      String keyspec,
+      String keyalg,
+      final Date notBefore,
+      final Date notAfter,
+      final boolean createJKS,
+      final boolean loadkeys,
+      final boolean savekeys,
+      final boolean reusecertificate,
+      final int endEntityProfileId)
+      throws AuthorizationDeniedException, KeyStoreException,
+          InvalidAlgorithmParameterException, CADoesntExistsException,
+          IllegalKeyException, CertificateCreateException, IllegalNameException,
+          CertificateRevokeException, CertificateSerialNumberException,
+          CryptoTokenOfflineException, IllegalValidityException,
+          CAOfflineException, InvalidAlgorithmException,
+          CustomCertificateSerialNumberException, AuthStatusException,
+          AuthLoginException, EndEntityProfileValidationException,
+          NoSuchEndEntityException, CertificateSignatureException,
+          CertificateEncodingException, CertificateException,
+          NoSuchAlgorithmException, InvalidKeySpecException {
+    if (log.isTraceEnabled()) {
+      log.trace(">generateOrKeyRecoverToken");
+    }
+    boolean isNewToken = false;
+    KeyRecoveryInformation keyData = null;
+    KeyPair rsaKeys = null;
+    EndEntityInformation userdata =
+        endEntityAccessSession.findUser(administrator, username);
+    if (userdata.getStatus() == EndEntityConstants.STATUS_NEW) {
+      isNewToken = true;
+    }
+    if (loadkeys) {
+      if (log.isDebugEnabled()) {
+        log.debug("Recovering keys for user: " + username);
+      }
+      // used saved keys.
+      keyData =
+          keyRecoverySession.recoverKeys(
+              administrator, username, endEntityProfileId);
+      if (keyData == null) {
+        throw new KeyStoreException("No key recovery data exists for user");
+      }
+      rsaKeys = keyData.getKeyPair();
+      if (reusecertificate) {
+        // This is only done if reusecertificate == true because if you don't
+        // re-use certificate
+        // signSession.createCertificate is called, which set status to
+        // generated, unless finishUser == false in CA config
+        if (log.isDebugEnabled()) {
+          log.debug("Re-using old certificate for user: " + username);
+        }
+        keyRecoverySession.unmarkUser(administrator, username);
+      }
+      caid =
+          keyData
+              .getIssuerDN()
+              .hashCode(); // always use the CA of the certificate
+    } else {
+      if (log.isDebugEnabled()) {
+        log.debug("Generating new keys for user: " + username);
+      }
+
+      // KeyStore algorithm specification inside endEntityInformation has
+      // priority since its algorithm is approved
+      if (userdata.getExtendedInformation() != null) {
+        if (userdata.getExtendedInformation().getKeyStoreAlgorithmType() != null
+            && userdata.getExtendedInformation().getKeyStoreAlgorithmSubType()
+                != null) {
+          if (log.isDebugEnabled()) {
+            log.debug(
+                "Using the key-store algorithm specification found inside the"
+                    + " endEntityInformation ("
+                    + userdata
+                        .getExtendedInformation()
+                        .getKeyStoreAlgorithmType()
+                    + "_"
+                    + userdata
+                        .getExtendedInformation()
+                        .getKeyStoreAlgorithmSubType()
+                    + ") instead of one provided separately ("
+                    + keyalg
+                    + "_"
+                    + keyspec
+                    + ")");
+          }
+          keyalg = userdata.getExtendedInformation().getKeyStoreAlgorithmType();
+          keyspec =
+              userdata.getExtendedInformation().getKeyStoreAlgorithmSubType();
+        }
+      }
+      // generate new keys.
+      rsaKeys = KeyTools.genKeys(keyspec, keyalg);
+    }
+    X509Certificate cert = null;
+    if ((reusecertificate) && (keyData != null)) {
+      cert =
+          (X509Certificate)
+              keyData.getCertificate(); // TODO Validity ignored here?
+      boolean finishUser = true;
+      finishUser = caSession.getCAInfo(administrator, caid).getFinishUser();
+      if (finishUser) {
+        authenticationSession.finishUser(userdata);
+      }
+    } else {
+      if (log.isDebugEnabled()) {
+        log.debug("Generating new certificate for user: " + username);
+      }
+      cert =
+          (X509Certificate)
+              signSession.createCertificate(
+                  administrator,
+                  username,
+                  password,
+                  new PublicKeyWrapper(rsaKeys.getPublic()),
+                  -1,
+                  notBefore,
+                  notAfter);
+    }
+    // Clear password from database
+    userdata =
+        endEntityAccessSession.findUser(
+            administrator, username); // Get GENERATED end entity information
+    if (userdata.getStatus() == EndEntityConstants.STATUS_GENERATED) {
+      // If we have a successful key recovery via EJBCA WS we implicitly want to
+      // allow resetting of the password without edit_end_entity rights
+      // (ECA-4947)
+      if (loadkeys) {
+        endEntityManagementSession.setClearTextPassword(
+            new AlwaysAllowLocalAuthenticationToken(
+                new UsernamePrincipal(
+                    "Implicit authorization from key recovery operation to"
+                        + " reset password.")),
+            username,
+            null);
+      } else if (isNewToken) {
+        // If we generate a new token through an enrollment, we don't want to
+        // demand access to edit_end_entity
+        endEntityManagementSession.setClearTextPassword(
+            new AlwaysAllowLocalAuthenticationToken(
+                new UsernamePrincipal(
+                    "Implicit authorization from new enrollments")),
+            username,
+            null);
+      } else {
+        endEntityManagementSession.setClearTextPassword(
+            administrator, username, null);
+      }
+    }
+    // Make a certificate chain from the certificate and the CA-certificate
+    Certificate[] cachain =
+        signSession.getCertificateChain(caid).toArray(new Certificate[0]);
+    // Verify CA-certificate
+    Certificate rootcert = cachain[cachain.length - 1];
+    if (CertTools.isSelfSigned(rootcert)) {
+      try {
+        rootcert.verify(rootcert.getPublicKey());
+      } catch (GeneralSecurityException se) {
+        throw new CertificateSignatureException(
+            "RootCA certificate does not verify, issuerDN: "
+                + CertTools.getIssuerDN(rootcert)
+                + ", subjectDN: "
+                + CertTools.getSubjectDN(rootcert),
+            se);
+      }
+    } else {
+      throw new CertificateSignatureException(
+          "RootCA certificate not self-signed, issuerDN: "
+              + CertTools.getIssuerDN(rootcert)
+              + ", subjectDN: "
+              + CertTools.getSubjectDN(rootcert));
+    }
+    // Verify that the user-certificate is signed by our CA
+    Certificate cacert = cachain[0];
+    try {
+      cert.verify(cacert.getPublicKey());
+    } catch (GeneralSecurityException se) {
+      throw new CertificateSignatureException(
+          "Generated certificate does not verify using CA-certificate,"
+              + " issuerDN: "
+              + CertTools.getIssuerDN(cert)
+              + ", subjectDN: "
+              + CertTools.getSubjectDN(cert)
+              + ", caIssuerDN: "
+              + CertTools.getIssuerDN(cacert)
+              + ", caSubjectDN: "
+              + CertTools.getSubjectDN(cacert),
+          se);
+    }
+    if (savekeys) {
+      // Save generated keys to database.
+      if (log.isDebugEnabled()) {
+        log.debug("Saving generated keys for recovery for user: " + username);
+      }
+      keyRecoverySession.addKeyRecoveryData(
+          administrator, EJBTools.wrap(cert), username, EJBTools.wrap(rsaKeys));
+    }
+    //  Use CN if as alias in the keystore, if CN is not present use username
+    String alias = CertTools.getPartFromDN(CertTools.getSubjectDN(cert), "CN");
+    if (alias == null) {
+      alias = username;
+    }
+    // Store keys and certificates in keystore.
+    KeyStore ks = null;
+    if (createJKS) {
+      if (log.isDebugEnabled()) {
+        log.debug("Generating JKS for user: " + username);
+      }
+      ks =
+          KeyTools.createJKS(
+              alias, rsaKeys.getPrivate(), password, cert, cachain);
+    } else {
+      if (log.isDebugEnabled()) {
+        log.debug("Generating PKCS12 for user: " + username);
+      }
+      ks = KeyTools.createP12(alias, rsaKeys.getPrivate(), cert, cachain);
+    }
+    if (log.isTraceEnabled()) {
+      log.trace("<generateOrKeyRecoverToken");
+    }
+    return ks;
+  }
 }

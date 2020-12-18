@@ -19,13 +19,11 @@ import java.util.AbstractMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-
 import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-
 import org.apache.log4j.Logger;
 import org.cesecore.audit.enums.EventStatus;
 import org.cesecore.audit.enums.EventTypes;
@@ -47,95 +45,131 @@ import org.ejbca.util.crypto.BCrypt;
 import org.ejbca.util.crypto.SupportedPasswordHashAlgorithm;
 
 /**
- * This session bean provides authentication for CLI users. Notable features are that it interfaces against the
- * CliAuthenticationTokenReferenceRegistry to register tokens so that they are single use only, and in order to avoid sending passwords or password
- * hashes in cleartext over remote connections.
- * 
- * @version $Id: CliAuthenticationProviderSessionBean.java 19968 2014-10-09 13:13:58Z mikekushner $
- * 
+ * This session bean provides authentication for CLI users. Notable features are
+ * that it interfaces against the CliAuthenticationTokenReferenceRegistry to
+ * register tokens so that they are single use only, and in order to avoid
+ * sending passwords or password hashes in cleartext over remote connections.
+ *
+ * @version $Id: CliAuthenticationProviderSessionBean.java 19968 2014-10-09
+ *     13:13:58Z mikekushner $
  */
-@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + "CliAuthenticationProviderSessionRemote")
+@Stateless(
+    mappedName =
+        JndiConstants.APP_JNDI_PREFIX
+            + "CliAuthenticationProviderSessionRemote")
 @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-public class CliAuthenticationProviderSessionBean implements CliAuthenticationProviderSessionLocal, CliAuthenticationProviderSessionRemote {
+public class CliAuthenticationProviderSessionBean
+    implements CliAuthenticationProviderSessionLocal,
+        CliAuthenticationProviderSessionRemote {
 
-    private static final long serialVersionUID = 3953734683130654792L;
+  private static final long serialVersionUID = 3953734683130654792L;
 
-    private static final Logger log = Logger.getLogger(CliAuthenticationProviderSessionBean.class);
+  private static final Logger log =
+      Logger.getLogger(CliAuthenticationProviderSessionBean.class);
 
-    /** Internal localization of logs and errors */
-    private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();
-    
-    private volatile SecureRandom randomGenerator;
+  /** Internal localization of logs and errors */
+  private static final InternalEjbcaResources intres =
+      InternalEjbcaResources.getInstance();
 
-    @EJB
-    private EndEntityAccessSessionLocal endEntityAccessSession;
-    @EJB
-    private GlobalConfigurationSessionLocal globalConfigurationSession;
-    @EJB
-    private SecurityEventsLoggerSessionLocal securityEventsLoggerSession;
-    
-    @PostConstruct
-    public void initialize() throws RuntimeException {
-        try {
-            randomGenerator = SecureRandom.getInstance("SHA1PRNG");
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
+  private volatile SecureRandom randomGenerator;
+
+  @EJB private EndEntityAccessSessionLocal endEntityAccessSession;
+  @EJB private GlobalConfigurationSessionLocal globalConfigurationSession;
+  @EJB private SecurityEventsLoggerSessionLocal securityEventsLoggerSession;
+
+  @PostConstruct
+  public void initialize() throws RuntimeException {
+    try {
+      randomGenerator = SecureRandom.getInstance("SHA1PRNG");
+    } catch (NoSuchAlgorithmException e) {
+      throw new RuntimeException(e);
     }
+  }
 
-    @Override
-    public AuthenticationToken authenticate(AuthenticationSubject subject) {
+  @Override
+  public AuthenticationToken authenticate(final AuthenticationSubject subject) {
+    /*
+     * An extra check if CLI authentication is allowed. This must be done on the
+     * server and not the client to avoid spoofing.
+     */
+    if (!((GlobalConfiguration)
+            globalConfigurationSession.getCachedConfiguration(
+                GlobalConfiguration.GLOBAL_CONFIGURATION_ID))
+        .getEnableCommandLineInterface()) {
+      log.info("CLI authentication attempted, but CLI is disabled.");
+      return null;
+    } else {
+      Set<Principal> subjectPrincipals = subject.getPrincipals();
+      if (subjectPrincipals.size() == 0) {
+        log.error("ClI Authentication was attempted without principals");
+        return null;
+      } else if (subjectPrincipals.size() > 1) {
+        log.error("ClI Authentication was attempted with multiple principals");
+        return null;
+      }
+
+      final long referenceId = randomGenerator.nextLong();
+
+      UsernamePrincipal usernamePrincipal =
+          subjectPrincipals
+              .toArray((new UsernamePrincipal[subjectPrincipals.size()]))[0];
+
+      if (!((GlobalConfiguration)
+                  globalConfigurationSession.getCachedConfiguration(
+                      GlobalConfiguration.GLOBAL_CONFIGURATION_ID))
+              .getEnableCommandLineInterfaceDefaultUser()
+          && usernamePrincipal
+              .getName()
+              .equals(EjbcaConfiguration.getCliDefaultUser())) {
+        log.info(
+            "CLI authentication attempted, but the default user ("
+                + EjbcaConfiguration.getCliDefaultUser()
+                + ") is disabled.");
+        return null;
+      }
+
+      try {
+        AbstractMap.SimpleEntry<String, SupportedPasswordHashAlgorithm>
+            passwordAndAlgorithm =
+                endEntityAccessSession.getPasswordAndHashAlgorithmForUser(
+                    usernamePrincipal.getName());
+        CliAuthenticationToken result =
+            new CliAuthenticationToken(
+                usernamePrincipal,
+                passwordAndAlgorithm.getKey(),
+                BCrypt.gensalt(EjbcaConfiguration.getPasswordLogRounds()),
+                referenceId,
+                passwordAndAlgorithm.getValue());
+        CliAuthenticationTokenReferenceRegistry.INSTANCE.registerToken(result);
+        if (log.isDebugEnabled()) {
+          log.debug("User " + usernamePrincipal.getName() + " authenticated.");
+        }
         /*
-         * An extra check if CLI authentication is allowed. This must be done on the
-         * server and not the client to avoid spoofing.
+         * It is imperative that a cloned version of the
+         * CliAuthenticationToken is returned, not containing the SHA1
+         * hash.
          */
-        if (!((GlobalConfiguration)globalConfigurationSession.getCachedConfiguration(GlobalConfiguration.GLOBAL_CONFIGURATION_ID)).getEnableCommandLineInterface()) {
-            log.info("CLI authentication attempted, but CLI is disabled.");
-            return null;
-        } else {
-            Set<Principal> subjectPrincipals = subject.getPrincipals();
-            if (subjectPrincipals.size() == 0) {
-                log.error("ClI Authentication was attempted without principals");
-                return null;
-            } else if (subjectPrincipals.size() > 1) {
-                log.error("ClI Authentication was attempted with multiple principals");
-                return null;
-            }
-
-            final long referenceId = randomGenerator.nextLong();
-
-            UsernamePrincipal usernamePrincipal = subjectPrincipals.toArray((new UsernamePrincipal[subjectPrincipals.size()]))[0];
-            
-            if(!((GlobalConfiguration) globalConfigurationSession.getCachedConfiguration(GlobalConfiguration.GLOBAL_CONFIGURATION_ID)).getEnableCommandLineInterfaceDefaultUser() 
-                && usernamePrincipal.getName().equals(EjbcaConfiguration.getCliDefaultUser())) {
-                log.info("CLI authentication attempted, but the default user ("+EjbcaConfiguration.getCliDefaultUser()+") is disabled.");
-                return null;
-            }
-
-            try {               
-                AbstractMap.SimpleEntry<String, SupportedPasswordHashAlgorithm> passwordAndAlgorithm = endEntityAccessSession
-                        .getPasswordAndHashAlgorithmForUser(usernamePrincipal.getName());
-                CliAuthenticationToken result = new CliAuthenticationToken(usernamePrincipal, passwordAndAlgorithm.getKey(),
-                        BCrypt.gensalt(EjbcaConfiguration.getPasswordLogRounds()), referenceId, passwordAndAlgorithm.getValue());
-                CliAuthenticationTokenReferenceRegistry.INSTANCE.registerToken(result);
-                if (log.isDebugEnabled()) {
-                    log.debug("User " + usernamePrincipal.getName() + " authenticated.");
-                }
-                /*
-                 * It is imperative that a cloned version of the
-                 * CliAuthenticationToken is returned, not containing the SHA1
-                 * hash.
-                 */
-                return result.clone();
-            } catch (NotFoundException e) {         
-                String msg = intres.getLocalizedMessage("authentication.failed.cli.usernotfound", usernamePrincipal.getName() );
-                log.error(msg, e);
-                Map<String, Object> details = new LinkedHashMap<String, Object>();
-                details.put("msg", msg);
-                securityEventsLoggerSession.log(EventTypes.AUTHENTICATION, EventStatus.FAILURE, ModuleTypes.AUTHENTICATION, EjbcaServiceTypes.EJBCA, LogConstants.NO_AUTHENTICATION_TOKEN, null, null, null, details);
-                return null;
-            }
-        }
+        return result.clone();
+      } catch (NotFoundException e) {
+        String msg =
+            intres.getLocalizedMessage(
+                "authentication.failed.cli.usernotfound",
+                usernamePrincipal.getName());
+        log.error(msg, e);
+        Map<String, Object> details = new LinkedHashMap<String, Object>();
+        details.put("msg", msg);
+        securityEventsLoggerSession.log(
+            EventTypes.AUTHENTICATION,
+            EventStatus.FAILURE,
+            ModuleTypes.AUTHENTICATION,
+            EjbcaServiceTypes.EJBCA,
+            LogConstants.NO_AUTHENTICATION_TOKEN,
+            null,
+            null,
+            null,
+            details);
+        return null;
+      }
     }
-
+  }
 }

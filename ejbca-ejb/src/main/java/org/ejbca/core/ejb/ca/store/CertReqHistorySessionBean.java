@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-
 import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.ejb.Stateless;
@@ -27,7 +26,6 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-
 import org.apache.log4j.Logger;
 import org.cesecore.certificates.certificate.CertificateDataSessionLocal;
 import org.cesecore.certificates.certificate.CertificateInfo;
@@ -38,99 +36,129 @@ import org.ejbca.core.model.InternalEjbcaResources;
 import org.ejbca.core.model.ca.store.CertReqHistory;
 
 /**
- * Stores and manages CertReqHistory entries in the database.
- * CertReqHistory keeps a snapshot of the user data that was used to issue a specific certificate.
+ * Stores and manages CertReqHistory entries in the database. CertReqHistory
+ * keeps a snapshot of the user data that was used to issue a specific
+ * certificate.
  *
- * @version $Id: CertReqHistorySessionBean.java 28759 2018-04-20 13:50:37Z samuellb $
+ * @version $Id: CertReqHistorySessionBean.java 28759 2018-04-20 13:50:37Z
+ *     samuellb $
  */
-@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + "CertReqHistorySessionRemote")
+@Stateless(
+    mappedName = JndiConstants.APP_JNDI_PREFIX + "CertReqHistorySessionRemote")
 @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-public class CertReqHistorySessionBean implements CertReqHistorySessionRemote, CertReqHistorySessionLocal {
+public class CertReqHistorySessionBean
+    implements CertReqHistorySessionRemote, CertReqHistorySessionLocal {
 
-    private final static Logger log = Logger.getLogger(CertReqHistorySessionBean.class);
-    /** Internal localization of logs and errors */
-    private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();
-    
-    @PersistenceContext(unitName="ejbca")
-    private EntityManager entityManager;
-    @EJB
-    private CertificateDataSessionLocal certificateDataSession;
+  private static final Logger log =
+      Logger.getLogger(CertReqHistorySessionBean.class);
+  /** Internal localization of logs and errors */
+  private static final InternalEjbcaResources intres =
+      InternalEjbcaResources.getInstance();
 
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    @Override
-    public void addCertReqHistoryData(Certificate cert, EndEntityInformation endEntityInformation){
-    	final String issuerDN = CertTools.getIssuerDN(cert);
-    	final String username = endEntityInformation.getUsername();
-    	if (log.isTraceEnabled()) {
-        	log.trace(">addCertReqHistoryData(" + CertTools.getSerialNumberAsString(cert) + ", " + issuerDN + ", " + username + ")");
-    	}
-        try {
-        	entityManager.persist(new CertReqHistoryData(cert, issuerDN, endEntityInformation));
-        	log.info(intres.getLocalizedMessage("store.storehistory", username));
-        } catch (Exception e) {
-        	log.error(intres.getLocalizedMessage("store.errorstorehistory", endEntityInformation.getUsername()));
-            throw new EJBException(e);
+  @PersistenceContext(unitName = "ejbca")
+  private EntityManager entityManager;
+
+  @EJB private CertificateDataSessionLocal certificateDataSession;
+
+  @TransactionAttribute(TransactionAttributeType.REQUIRED)
+  @Override
+  public void addCertReqHistoryData(
+      final Certificate cert, final EndEntityInformation endEntityInformation) {
+    final String issuerDN = CertTools.getIssuerDN(cert);
+    final String username = endEntityInformation.getUsername();
+    if (log.isTraceEnabled()) {
+      log.trace(
+          ">addCertReqHistoryData("
+              + CertTools.getSerialNumberAsString(cert)
+              + ", "
+              + issuerDN
+              + ", "
+              + username
+              + ")");
+    }
+    try {
+      entityManager.persist(
+          new CertReqHistoryData(cert, issuerDN, endEntityInformation));
+      log.info(intres.getLocalizedMessage("store.storehistory", username));
+    } catch (Exception e) {
+      log.error(
+          intres.getLocalizedMessage(
+              "store.errorstorehistory", endEntityInformation.getUsername()));
+      throw new EJBException(e);
+    }
+    if (log.isTraceEnabled()) {
+      log.trace("<addCertReqHistoryData()");
+    }
+  }
+
+  @TransactionAttribute(TransactionAttributeType.REQUIRED)
+  @Override
+  public void removeCertReqHistoryData(final String certFingerprint) {
+    if (log.isTraceEnabled()) {
+      log.trace(">removeCertReqHistData(" + certFingerprint + ")");
+    }
+    try {
+      String msg =
+          intres.getLocalizedMessage("store.removehistory", certFingerprint);
+      log.info(msg);
+      CertReqHistoryData crh =
+          CertReqHistoryData.findById(entityManager, certFingerprint);
+      if (crh == null) {
+        if (log.isDebugEnabled()) {
+          log.debug(
+              "Trying to remove CertReqHistory that does not exist: "
+                  + certFingerprint);
         }
-    	if (log.isTraceEnabled()) {
-    		log.trace("<addCertReqHistoryData()");
-        }
+      } else {
+        entityManager.remove(crh);
+      }
+    } catch (Exception e) {
+      String msg =
+          intres.getLocalizedMessage(
+              "store.errorremovehistory", certFingerprint);
+      log.info(msg);
+      throw new EJBException(e);
     }
-    
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    @Override
-    public void removeCertReqHistoryData(String certFingerprint){
-    	if (log.isTraceEnabled()) {
-        	log.trace(">removeCertReqHistData(" + certFingerprint + ")");
-    	}
-        try {          
-        	String msg = intres.getLocalizedMessage("store.removehistory", certFingerprint);
-        	log.info(msg);
-            CertReqHistoryData crh = CertReqHistoryData.findById(entityManager, certFingerprint);
-            if (crh == null) {
-            	if (log.isDebugEnabled()) {
-            		log.debug("Trying to remove CertReqHistory that does not exist: "+certFingerprint);                		
-            	}
-            } else {
-            	entityManager.remove(crh);
-            }
-        } catch (Exception e) {
-        	String msg = intres.getLocalizedMessage("store.errorremovehistory", certFingerprint);
-        	log.info(msg);
-            throw new EJBException(e);
-        }
-    	if (log.isTraceEnabled()) {
-    		log.trace("<removeCertReqHistData()");
-    	}
+    if (log.isTraceEnabled()) {
+      log.trace("<removeCertReqHistData()");
     }
-    
-    // getCertReqHistory() might perform database updates, so we always need to run this in a transaction
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    @Override
-    public CertReqHistory retrieveCertReqHistory(BigInteger certificateSN, String issuerDN){
-    	CertReqHistory retval = null;
-    	Collection<CertReqHistoryData> result = CertReqHistoryData.findByIssuerDNSerialNumber(entityManager, issuerDN, certificateSN.toString());
-    	if(result.iterator().hasNext()) {
-    		retval = result.iterator().next().getCertReqHistory();
-    	}
-    	return retval;
-    }
+  }
 
-    // getCertReqHistory() might perform database updates, so we always need to run this in a transaction
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    @Override
-    public List<CertReqHistory> retrieveCertReqHistory(String username){
-    	ArrayList<CertReqHistory> retval = new ArrayList<>();
-    	Collection<CertReqHistoryData> result = CertReqHistoryData.findByUsername(entityManager, username);
-    	Iterator<CertReqHistoryData> iter = result.iterator();
-    	while(iter.hasNext()) {
-    		retval.add(iter.next().getCertReqHistory());
-    	}
-    	return retval;
+  // getCertReqHistory() might perform database updates, so we always need to
+  // run this in a transaction
+  @TransactionAttribute(TransactionAttributeType.REQUIRED)
+  @Override
+  public CertReqHistory retrieveCertReqHistory(
+      final BigInteger certificateSN, final String issuerDN) {
+    CertReqHistory retval = null;
+    Collection<CertReqHistoryData> result =
+        CertReqHistoryData.findByIssuerDNSerialNumber(
+            entityManager, issuerDN, certificateSN.toString());
+    if (result.iterator().hasNext()) {
+      retval = result.iterator().next().getCertReqHistory();
     }
-    
-    @Override
-    public CertificateInfo findFirstCertificateInfo(final String issuerDN, final BigInteger serno) {
-    	return certificateDataSession.findFirstCertificateInfo(CertTools.stringToBCDNString(issuerDN), serno.toString());
-    }
+    return retval;
+  }
 
+  // getCertReqHistory() might perform database updates, so we always need to
+  // run this in a transaction
+  @TransactionAttribute(TransactionAttributeType.REQUIRED)
+  @Override
+  public List<CertReqHistory> retrieveCertReqHistory(final String username) {
+    ArrayList<CertReqHistory> retval = new ArrayList<>();
+    Collection<CertReqHistoryData> result =
+        CertReqHistoryData.findByUsername(entityManager, username);
+    Iterator<CertReqHistoryData> iter = result.iterator();
+    while (iter.hasNext()) {
+      retval.add(iter.next().getCertReqHistory());
+    }
+    return retval;
+  }
+
+  @Override
+  public CertificateInfo findFirstCertificateInfo(
+      final String issuerDN, final BigInteger serno) {
+    return certificateDataSession.findFirstCertificateInfo(
+        CertTools.stringToBCDNString(issuerDN), serno.toString());
+  }
 }

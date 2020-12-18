@@ -10,12 +10,11 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
+
 package org.ejbca.samples;
 
 import java.util.HashMap;
 import java.util.Map;
-
 
 /**
  * Class containing the complete result from an authenticateUser request.
@@ -24,85 +23,82 @@ import java.util.Map;
  * @version $Id: AuthResult.java 19901 2014-09-30 14:29:38Z anatom $
  */
 public class AuthResult {
-    /** Constants for grant and reject */
-    private static final boolean GRANT_STATUS = true;
-    private static final boolean REJECT_STATUS = false;
+  /** Constants for grant and reject */
+  private static final boolean GRANT_STATUS = true;
 
-    /** Default to rejecting a request */
-    private boolean status = REJECT_STATUS; //GRANT_STATUS or REJECT_STATUS
+  private static final boolean REJECT_STATUS = false;
 
-    /** What was the reason to reject this request? */
-    private String reason = ""; //No reason
+  /** Default to rejecting a request */
+  private boolean status = REJECT_STATUS; // GRANT_STATUS or REJECT_STATUS
 
-    /** This map keeps all the name-value pairs in the result. */
-    private Map<String, String> resultHash = new HashMap<String, String>();
+  /** What was the reason to reject this request? */
+  private String reason = ""; // No reason
 
-    /**
-     * Adds a new key, value pair to the grant response.
-     *
-     * @param key left hand value. Must be unique for this result
-     * @param value right hand value
-     */
-    public void add(final String key, final String value) {
-        resultHash.put(key, value);
-    }
+  /** This map keeps all the name-value pairs in the result. */
+  private final Map<String, String> resultHash = new HashMap<String, String>();
 
-    /**
-     * DOCUMENT ME!
-     *
-     * @return reason for rejecting this request
-     */
-    public String getReason() {
-        return reason;
-    }
+  /**
+   * Adds a new key, value pair to the grant response.
+   *
+   * @param key left hand value. Must be unique for this result
+   * @param value right hand value
+   */
+  public void add(final String key, final String value) {
+    resultHash.put(key, value);
+  }
 
-    /**
-     * Get result as Map.
-     *
-     * @return hash table of results
-     */
-    public Map<String, String> getResult() {
-        return resultHash;
-    }
+  /**
+   * DOCUMENT ME!
+   *
+   * @return reason for rejecting this request
+   */
+  public String getReason() {
+    return reason;
+  }
 
-    /**
-     * Set status to GRANT
-     */
-    public void grant() {
-        status = GRANT_STATUS;
-    }
+  /**
+   * Get result as Map.
+   *
+   * @return hash table of results
+   */
+  public Map<String, String> getResult() {
+    return resultHash;
+  }
 
-    /**
-     * DOCUMENT ME!
-     *
-     * @return true if the request was GRANTed
-     */
-    public boolean granted() {
-        return status == GRANT_STATUS;
-    }
+  /** Set status to GRANT */
+  public void grant() {
+    status = GRANT_STATUS;
+  }
 
-    /**
-     * Set status to REJECT
-     */
-    public void reject() {
-        status = REJECT_STATUS;
-    }
+  /**
+   * DOCUMENT ME!
+   *
+   * @return true if the request was GRANTed
+   */
+  public boolean granted() {
+    return status == GRANT_STATUS;
+  }
 
-    /**
-     * DOCUMENT ME!
-     *
-     * @return true if the request was REJECTed
-     */
-    public boolean rejected() {
-        return status == REJECT_STATUS;
-    }
+  /** Set status to REJECT */
+  public void reject() {
+    status = REJECT_STATUS;
+  }
 
-    /**
-     * Set reason of rejected request. No default.
-     *
-     * @param newReason describing why the request was rejected
-     */
-    public void setReason(final String newReason) {
-        reason = newReason;
-    }
+  /**
+   * DOCUMENT ME!
+   *
+   * @return true if the request was REJECTed
+   */
+  public boolean rejected() {
+    return status == REJECT_STATUS;
+  }
+
+  /**
+   * Set reason of rejected request. No default.
+   *
+   * @param newReason describing why the request was rejected
+   */
+  public void setReason(final String newReason) {
+    reason = newReason;
+  }
 }

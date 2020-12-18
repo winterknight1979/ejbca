@@ -14,9 +14,7 @@ package org.ejbca.cesecoreintegration;
 
 import java.util.Map;
 import java.util.Properties;
-
 import javax.ejb.Stateless;
-
 import org.cesecore.audit.enums.EventStatus;
 import org.cesecore.audit.enums.EventType;
 import org.cesecore.audit.enums.ModuleType;
@@ -26,19 +24,33 @@ import org.cesecore.audit.log.AuditRecordStorageException;
 import org.cesecore.time.TrustedTime;
 
 /**
- * Mock implementation of QueuedDevice interface to allow the secure audit code imported from
- * CESeCore to stay the same without bundling the queued implementation.
- * 
- * @version $Id: QueuedLoggerMockSessionBean.java 19901 2014-09-30 14:29:38Z anatom $
+ * Mock implementation of QueuedDevice interface to allow the secure audit code
+ * imported from CESeCore to stay the same without bundling the queued
+ * implementation.
+ *
+ * @version $Id: QueuedLoggerMockSessionBean.java 19901 2014-09-30 14:29:38Z
+ *     anatom $
  */
 @Stateless
 public class QueuedLoggerMockSessionBean implements QueuedLoggerSessionLocal {
 
-	private static final String UNSUPPORTED = "Unsupported operation. QueuedDevice is not bundled with EJBCA.";
+  private static final String UNSUPPORTED =
+      "Unsupported operation. QueuedDevice is not bundled with EJBCA.";
 
-	@Override
-	public void log(TrustedTime trustedTime, EventType eventType, EventStatus eventStatus, ModuleType module, ServiceType service, String authToken,
-			String customId, String searchDetail1, String searchDetail2, Map<String, Object> additionalDetails, Properties properties) throws AuditRecordStorageException {
-		throw new RuntimeException(UNSUPPORTED);
-	}
+  @Override
+  public void log(
+      final TrustedTime trustedTime,
+      final EventType eventType,
+      final EventStatus eventStatus,
+      final ModuleType module,
+      final ServiceType service,
+      final String authToken,
+      final String customId,
+      final String searchDetail1,
+      final String searchDetail2,
+      final Map<String, Object> additionalDetails,
+      final Properties properties)
+      throws AuditRecordStorageException {
+    throw new RuntimeException(UNSUPPORTED);
+  }
 }
