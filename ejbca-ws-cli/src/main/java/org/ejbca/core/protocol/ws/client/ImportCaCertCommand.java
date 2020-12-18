@@ -21,63 +21,81 @@ import org.ejbca.ui.cli.IAdminCommand;
 import org.ejbca.ui.cli.IllegalAdminCommandException;
 
 /**
- * Imports an external CA certificate for X.509 CAs or CVC CAs and creates the CA in EJBCA with the given name.
+ * Imports an external CA certificate for X.509 CAs or CVC CAs and creates the
+ * CA in EJBCA with the given name.
  *
  * @version $Id: ImportCaCertCommand.java 26057 2017-06-22 08:08:34Z anatom $
  */
-public class ImportCaCertCommand extends EJBCAWSRABaseCommand implements IAdminCommand {
+public class ImportCaCertCommand extends EJBCAWSRABaseCommand
+    implements IAdminCommand {
 
-    private static final int ARG_CANAME = 1;
-    private static final int ARG_CACHAIN = 2;
+      /** Type. */
+  private static final int ARG_CANAME = 1;
+  /** Type. */
+  private static final int ARG_CACHAIN = 2;
 
-    /**
-     * Creates a new instance of Command
-     *
-     * @param args command line arguments
-     */
-    public ImportCaCertCommand(String[] args) {
-        super(args);
+  /**
+   * Creates a new instance of Command.
+   *
+   * @param args command line arguments
+   */
+  public ImportCaCertCommand(final String[] args) {
+    super(args);
+  }
+
+  /**
+   * Runs the command.
+   *
+   * @throws IllegalAdminCommandException Error in command args
+   * @throws ErrorAdminCommandException Error running command
+   */
+  @Override
+  public void execute()
+      throws IllegalAdminCommandException, ErrorAdminCommandException {
+    final int len = 3;
+    try {
+      if (args.length < len || args.length > len) {
+        getPrintStream().println("Number of arguments: " + args.length);
+        usage();
+        System.exit(-1); // NOPMD, this is not a JEE app
+      }
+
+      CryptoProviderTools.installBCProvider();
+
+      final String caname = args[ARG_CANAME];
+      final String file = args[ARG_CACHAIN];
+      getPrintStream().println("Import external CA: " + caname);
+      getPrintStream().println("Import external CA chain file: " + file);
+
+      final byte[] cachain = CertTools.readCertificateChainAsArrayOrThrow(file);
+      getEjbcaRAWS().importCaCert(caname, cachain);
+
+      getPrintStream().println("CA imported sucessfully.");
+    } catch (Exception e) {
+      if (e instanceof EjbcaException_Exception) {
+        EjbcaException_Exception e1 = (EjbcaException_Exception) e;
+        getPrintStream()
+            .println(
+                "Error code is: "
+                    + e1.getFaultInfo().getErrorCode().getInternalErrorCode());
+      }
+      throw new ErrorAdminCommandException(e);
     }
+  }
 
-    /**
-     * Runs the command
-     *
-     * @throws IllegalAdminCommandException Error in command args
-     * @throws ErrorAdminCommandException Error running command
-     */
-    public void execute() throws IllegalAdminCommandException, ErrorAdminCommandException {
-        try {
-            if (args.length < 3 || args.length > 3) {
-                getPrintStream().println("Number of arguments: " + args.length);
-                usage();
-                System.exit(-1); // NOPMD, this is not a JEE app
-            }
-
-            CryptoProviderTools.installBCProvider();
-
-            final String caname = args[ARG_CANAME];
-            final String file = args[ARG_CACHAIN];
-            getPrintStream().println("Import external CA: " + caname);
-            getPrintStream().println("Import external CA chain file: " + file);
-
-            final byte[] cachain = CertTools.readCertificateChainAsArrayOrThrow(file);
-            getEjbcaRAWS().importCaCert(caname, cachain);
-
-            getPrintStream().println("CA imported sucessfully.");
-        } catch (Exception e) {
-            if (e instanceof EjbcaException_Exception) {
-                EjbcaException_Exception e1 = (EjbcaException_Exception) e;
-                getPrintStream().println("Error code is: " + e1.getFaultInfo().getErrorCode().getInternalErrorCode());
-            }
-            throw new ErrorAdminCommandException(e);
-        }
-    }
-
-    protected void usage() {
-        getPrintStream().println("Command used to import an external CA certificate. Can be X.509 or CVC CA.");
-        getPrintStream().println("Usage : importcacert <caname> <cachainfile>\n\n");
-        getPrintStream().println("Caname is the name of the CA created.");
-        getPrintStream().println(
-                "Cachainfile is a file with the certificate chain of the external CA. This can be a file with several PEM certificates in it, or a file with a single PEM or binary Root CA certificate.");
-    }
+  @Override
+  protected void usage() {
+    getPrintStream()
+        .println(
+            "Command used to import an external CA certificate. Can be X.509"
+                + " or CVC CA.");
+    getPrintStream().println("Usage : importcacert <caname> <cachainfile>\n\n");
+    getPrintStream().println("Caname is the name of the CA created.");
+    getPrintStream()
+        .println(
+            "Cachainfile is a file with the certificate chain of the external"
+                + " CA. This can be a file with several PEM certificates in"
+                + " it, or a file with a single PEM or binary Root CA"
+                + " certificate.");
+  }
 }

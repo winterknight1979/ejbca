@@ -18,7 +18,6 @@ import java.security.PublicKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.util.Collection;
-
 import org.cesecore.certificates.certificate.request.RequestMessageUtils;
 import org.cesecore.keys.util.KeyTools;
 import org.cesecore.util.CertTools;
@@ -34,105 +33,135 @@ import org.ejbca.ui.cli.ErrorAdminCommandException;
 import org.ejbca.ui.cli.IAdminCommand;
 import org.ejbca.ui.cli.IllegalAdminCommandException;
 
-
 /**
- * Pretty prints a CV Certificate or certificate request
+ * Pretty prints a CV Certificate or certificate request.
  *
  * @version $Id: CvcPrintCommand.java 22553 2016-01-11 13:06:46Z mikekushner $
  */
-public class CvcPrintCommand extends EJBCAWSRABaseCommand implements IAdminCommand{
+public class CvcPrintCommand extends EJBCAWSRABaseCommand
+    implements IAdminCommand {
 
+  /** @param args command line arguments. */
+  public CvcPrintCommand(final String[] args) {
+    super(args);
+  }
 
-	/**
-	 * @param args command line arguments
-	 */
-	public CvcPrintCommand(String[] args) {
-		super(args);
-	}
+  /**
+   * Runs the command.
+   *
+   * @throws IllegalAdminCommandException Error in command args
+   * @throws ErrorAdminCommandException Error running command
+   */
+  @Override
+  public void execute()
+      throws IllegalAdminCommandException, ErrorAdminCommandException {
 
-	/**
-	 * Runs the command
-	 *
-	 * @throws IllegalAdminCommandException Error in command args
-	 * @throws ErrorAdminCommandException Error running command
-	 */
-	public void execute() throws IllegalAdminCommandException, ErrorAdminCommandException {
+    final int maxLen = 4;
+    final int certIdx = 3;
 
-		try {   
-			if(args.length < 2 || args.length > 4){
-				usage();
-				System.exit(-1); // NOPMD, this is not a JEE app
-			}
-			CryptoProviderTools.installBCProvider();
-			String filename = args[1];
-			getPrintStream().println("Printing CV Certificate: "+filename);
-			// Read file to a buffer and use the toString functions in the cvc-lib
-			CVCObject parsedObject = getCVCObject(filename);
-			getPrintStream().println(parsedObject.getAsText(""));
-			if (args.length > 2) {
-				String verifycert = args[2];
-				String type = "certificate";
-				if (parsedObject instanceof CVCAuthenticatedRequest) {
-					type = "authenticated request";
-				}
-				getPrintStream().println("Verifying "+type+" "+filename+" with certificate "+verifycert);
-				CVCObject parsedVerifyObject = getCVCObject(verifycert);
-				CVCertificate cert2 = (CVCertificate)parsedVerifyObject;
-				PublicKey pk = cert2.getCertificateBody().getPublicKey();
-				if (args.length > 3) {
-					// we have an additional curve name
-					String cvcacert = args[3];
-					getPrintStream().println("Using CVCA certificate "+cvcacert+" for EC parameters.");
-					CVCObject parsedCvcaObject = getCVCObject(cvcacert);
-					CVCertificate cvca = (CVCertificate)parsedCvcaObject;
-					pk = KeyTools.getECPublicKeyWithParams(pk, cvca.getCertificateBody().getPublicKey());
-				}
-				try {
-					if (parsedObject instanceof CVCAuthenticatedRequest) {
-						CVCAuthenticatedRequest authreq = (CVCAuthenticatedRequest)parsedObject;
-						authreq.verify(pk);											
-					} else {
-						CVCertificate cert1 = (CVCertificate)parsedObject;
-						CardVerifiableCertificate cvcert = new CardVerifiableCertificate(cert1);
-						cvcert.verify(pk);											
-					}
-					getPrintStream().println("Verification of certificate was successful");
-				} catch (Exception e) {
-					getPrintStream().println("Verification of certificate failed: "+e.getMessage());
-				}
-			}
-		} catch (Exception e) {
-			throw new ErrorAdminCommandException(e);
-		}
-	}
+    try {
+      if (args.length < 2 || args.length > maxLen) {
+        usage();
+        System.exit(-1); // NOPMD, this is not a JEE app
+      }
+      CryptoProviderTools.installBCProvider();
+      String filename = args[1];
+      getPrintStream().println("Printing CV Certificate: " + filename);
+      // Read file to a buffer and use the toString functions in the cvc-lib
+      CVCObject parsedObject = getCVCObject(filename);
+      getPrintStream().println(parsedObject.getAsText(""));
+      if (args.length > 2) {
+        String verifycert = args[2];
+        String type = "certificate";
+        if (parsedObject instanceof CVCAuthenticatedRequest) {
+          type = "authenticated request";
+        }
+        getPrintStream()
+            .println(
+                "Verifying "
+                    + type
+                    + " "
+                    + filename
+                    + " with certificate "
+                    + verifycert);
+        CVCObject parsedVerifyObject = getCVCObject(verifycert);
+        CVCertificate cert2 = (CVCertificate) parsedVerifyObject;
+        PublicKey pk = cert2.getCertificateBody().getPublicKey();
+        if (args.length > certIdx) {
+          // we have an additional curve name
+          String cvcacert = args[certIdx];
+          getPrintStream()
+              .println(
+                  "Using CVCA certificate " + cvcacert + " for EC parameters.");
+          CVCObject parsedCvcaObject = getCVCObject(cvcacert);
+          CVCertificate cvca = (CVCertificate) parsedCvcaObject;
+          pk =
+              KeyTools.getECPublicKeyWithParams(
+                  pk, cvca.getCertificateBody().getPublicKey());
+        }
+        try {
+          if (parsedObject instanceof CVCAuthenticatedRequest) {
+            CVCAuthenticatedRequest authreq =
+                (CVCAuthenticatedRequest) parsedObject;
+            authreq.verify(pk);
+          } else {
+            CVCertificate cert1 = (CVCertificate) parsedObject;
+            CardVerifiableCertificate cvcert =
+                new CardVerifiableCertificate(cert1);
+            cvcert.verify(pk);
+          }
+          getPrintStream()
+              .println("Verification of certificate was successful");
+        } catch (Exception e) {
+          getPrintStream()
+              .println("Verification of certificate failed: " + e.getMessage());
+        }
+      }
+    } catch (Exception e) {
+      throw new ErrorAdminCommandException(e);
+    }
+  }
 
-	protected static CVCObject getCVCObject(String filename) throws IOException, CvcException, CertificateException {
-		CVCObject ret = null;
-		try {
-			byte[] cvcdata = FileTools.readFiletoBuffer(filename);				
-			ret = CertificateParser.parseCVCObject(cvcdata);
-		} catch (Exception e) {
-			try {
-				// this was not parseable, try to see it it was a PEM certificate
-				Collection<Certificate> col = CertTools.getCertsFromPEM(filename, Certificate.class);
-				Certificate cert = (Certificate)col.iterator().next();
-	        	ret = CertificateParser.parseCVCObject(cert.getEncoded());			
-			} catch (Exception ie) {
-				// this was not a PEM cert, try to see it it was a PEM certificate req
-				byte[] cvcdata = FileTools.readFiletoBuffer(filename);				
-				byte[] req = RequestMessageUtils.getRequestBytes(cvcdata);
-				ret = CertificateParser.parseCVCObject(req);
-			}
-		}
-		return ret;
-	}
+  protected static CVCObject getCVCObject(final String filename)
+      throws IOException, CvcException, CertificateException {
+    CVCObject ret = null;
+    try {
+      byte[] cvcdata = FileTools.readFiletoBuffer(filename);
+      ret = CertificateParser.parseCVCObject(cvcdata);
+    } catch (Exception e) {
+      try {
+        // this was not parseable, try to see it it was a PEM certificate
+        Collection<Certificate> col =
+            CertTools.getCertsFromPEM(filename, Certificate.class);
+        Certificate cert = (Certificate) col.iterator().next();
+        ret = CertificateParser.parseCVCObject(cert.getEncoded());
+      } catch (Exception ie) {
+        // this was not a PEM cert, try to see it it was a PEM certificate req
+        byte[] cvcdata = FileTools.readFiletoBuffer(filename);
+        byte[] req = RequestMessageUtils.getRequestBytes(cvcdata);
+        ret = CertificateParser.parseCVCObject(req);
+      }
+    }
+    return ret;
+  }
 
-	protected void usage() {
-		getPrintStream().println("Command used to pretty print a CVC certificate or request.");
-		getPrintStream().println("Usage : cvcprint <filename> [verifycert] [CVCA-certificate for EC params]\n\n");
-		getPrintStream().println("If adding the optional parameter verifycert the program tries to verify a certifcate given as filename with the certificate given as verifycert.");
-		getPrintStream().println("If verifying an IS cert with a DV cert no curve parameters exist in the public key in the certificate, you can therefore add the CVCA certificate to complete the public key.");
-	}
-
-
+  @Override
+  protected void usage() {
+    getPrintStream()
+        .println("Command used to pretty print a CVC certificate or request.");
+    getPrintStream()
+        .println(
+            "Usage : cvcprint <filename> [verifycert] [CVCA-certificate for EC"
+                + " params]\n\n");
+    getPrintStream()
+        .println(
+            "If adding the optional parameter verifycert the program tries to"
+                + " verify a certifcate given as filename with the certificate"
+                + " given as verifycert.");
+    getPrintStream()
+        .println(
+            "If verifying an IS cert with a DV cert no curve parameters exist"
+                + " in the public key in the certificate, you can therefore"
+                + " add the CVCA certificate to complete the public key.");
+  }
 }

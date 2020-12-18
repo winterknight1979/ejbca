@@ -15,7 +15,6 @@ package org.ejbca.core.protocol.ws.client;
 
 import java.io.FileOutputStream;
 import java.util.List;
-
 import org.cesecore.util.Base64;
 import org.ejbca.core.protocol.ws.client.gen.AuthorizationDeniedException_Exception;
 import org.ejbca.core.protocol.ws.client.gen.Certificate;
@@ -26,78 +25,104 @@ import org.ejbca.ui.cli.ErrorAdminCommandException;
 import org.ejbca.ui.cli.IAdminCommand;
 import org.ejbca.ui.cli.IllegalAdminCommandException;
 
-
 /**
- * Creates or edits a user and sends a CVC request. Writes the issues CV Certificate to file
+ * Creates or edits a user and sends a CVC request. Writes the issues CV
+ * Certificate to file
  *
  * @version $Id: CvcGetChainCommand.java 19902 2014-09-30 14:32:24Z anatom $
  */
-public class CvcGetChainCommand extends EJBCAWSRABaseCommand implements IAdminCommand{
+public class CvcGetChainCommand extends EJBCAWSRABaseCommand
+    implements IAdminCommand {
 
+      /** Type. */
+  private static final int ARG_USERNAME = 1;
+  /** Type. */
+  private static final int ARG_BASEFILENAME = 2;
 
-	private static final int ARG_USERNAME           = 1;
-	private static final int ARG_BASEFILENAME        = 2;
+  /**
+   * Creates a new instance of CvcRequestCommand.
+   *
+   * @param args command line arguments
+   */
+  public CvcGetChainCommand(final String[] args) {
+    super(args);
+  }
 
-	/**
-	 * Creates a new instance of CvcRequestCommand
-	 *
-	 * @param args command line arguments
-	 */
-	public CvcGetChainCommand(String[] args) {
-		super(args);
-	}
+  /**
+   * Runs the command.
+   *
+   * @throws IllegalAdminCommandException Error in command args
+   * @throws ErrorAdminCommandException Error running command
+   */
+  @Override
+  public void execute()
+      throws IllegalAdminCommandException, ErrorAdminCommandException {
 
-	/**
-	 * Runs the command
-	 *
-	 * @throws IllegalAdminCommandException Error in command args
-	 * @throws ErrorAdminCommandException Error running command
-	 */
-	public void execute() throws IllegalAdminCommandException, ErrorAdminCommandException {
+    final int len = 3;
+    try {
+      if (args.length < len || args.length > len) {
+        getPrintStream().println("Number of argument: " + args.length);
+        usage();
+        System.exit(-1); // NOPMD, this is not a JEE app
+      }
 
-		try {   
-			if(args.length < 3 || args.length > 3){
-				getPrintStream().println("Number of argument: "+args.length);
-				usage();
-				System.exit(-1); // NOPMD, this is not a JEE app
-			}
+      String username = args[ARG_USERNAME];
+      String basefilename = args[ARG_BASEFILENAME];
 
-			String username = args[ARG_USERNAME];
-			String basefilename = args[ARG_BASEFILENAME];
+      getPrintStream().println("Getting last certificate chain::");
+      getPrintStream().println("Username: " + username);
+      getPrintStream().println("Base file name: " + basefilename);
 
-			getPrintStream().println("Getting last certificate chain::");
-			getPrintStream().println("Username: "+username);
-			getPrintStream().println("Base file name: "+basefilename);
+      try {
+        // Edit a user, creating it if it does not exist
+        List<Certificate> resp = getEjbcaRAWS().getLastCertChain(username);
+        // Handle the response
+        int i = 1;
+        for (Certificate certificate : resp) {
+          byte[] b64cert = certificate.getCertificateData();
+          CVCObject parsedObject =
+              CertificateParser.parseCertificate(Base64.decode(b64cert));
+          CVCertificate cvcert = (CVCertificate) parsedObject;
+          FileOutputStream fos =
+              new FileOutputStream(basefilename + i + ".cvcert");
+          fos.write(cvcert.getDEREncoded());
+          fos.close();
+          getPrintStream()
+              .println(
+                  "Wrote binary certificate to: "
+                      + basefilename
+                      + i
+                      + ".cvcert");
+          getPrintStream()
+              .println(
+                  "You can look at the certificate with the command"
+                      + " cvcwscli.sh cvcprint "
+                      + basefilename
+                      + i
+                      + ".cvcert");
+          i++;
+        }
+      } catch (AuthorizationDeniedException_Exception e) {
+        getPrintStream().println("Error : " + e.getMessage());
+      }
+    } catch (Exception e) {
+      throw new ErrorAdminCommandException(e);
+    }
+  }
 
-			try{
-				// Edit a user, creating it if it does not exist
-				List<Certificate> resp = getEjbcaRAWS().getLastCertChain(username);
-				// Handle the response
-				int i = 1;
-				for (Certificate certificate : resp) {
-					byte[] b64cert = certificate.getCertificateData();
-					CVCObject parsedObject = CertificateParser.parseCertificate(Base64.decode(b64cert));
-					CVCertificate cvcert = (CVCertificate)parsedObject;
-					FileOutputStream fos = new FileOutputStream(basefilename+i+".cvcert");
-					fos.write(cvcert.getDEREncoded());
-					fos.close();
-					getPrintStream().println("Wrote binary certificate to: "+basefilename+i+".cvcert");
-					getPrintStream().println("You can look at the certificate with the command cvcwscli.sh cvcprint "+basefilename+i+".cvcert");					
-					i++;
-				}
-			}catch(AuthorizationDeniedException_Exception e){
-				getPrintStream().println("Error : " + e.getMessage());
-			}
-		} catch (Exception e) {
-			throw new ErrorAdminCommandException(e);
-		}
-	}
-
-	protected void usage() {
-		getPrintStream().println("Command used to get the certificate chain for a user. The users last issued certificate is returned, according to the certificate validity date. If two certificates have the exact same issue date the order is indefined.");
-		getPrintStream().println("Usage : cvcgetchain <username> <basefilename>\n");
-		getPrintStream().println("The certificates are written to <basefilename><order>.cvcert. Order nr 1 is the users certificate, followed by the CAs certificates.");
-	}
-
-
+  @Override
+  protected void usage() {
+    getPrintStream()
+        .println(
+            "Command used to get the certificate chain for a user. The users"
+                + " last issued certificate is returned, according to the"
+                + " certificate validity date. If two certificates have the"
+                + " exact same issue date the order is indefined.");
+    getPrintStream().println("Usage : cvcgetchain <username> <basefilename>\n");
+    getPrintStream()
+        .println(
+            "The certificates are written to <basefilename><order>.cvcert."
+                + " Order nr 1 is the users certificate, followed by the CAs"
+                + " certificates.");
+  }
 }

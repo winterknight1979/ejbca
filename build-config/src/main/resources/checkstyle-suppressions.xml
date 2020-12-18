@@ -391,6 +391,19 @@
 		files="EjbcaWS.java" lines="845" />
 	<suppress checks="MethodLengthCheck"
 		files="EjbcaWS.java" lines="1805,2447" />
+		
+	
+	<!-- ejbca-ws-cli -->
 	
 	
+	<suppress checks="MethodLengthCheck"
+		files="CvcRequestCommand.java" lines="89" />
+	<suppress checks="TypeNameCheck"
+		files="cvcwscli.java" lines="23" />
+	<suppress checks="TypeNameCheck"
+		files="ejbcawsracli.java" lines="27" />
+	<suppress checks="MethodLengthCheck"
+		files="GenerateNewUserCommand.java" lines="99" />
+	<suppress checks="ParameterNumberCheck"
+		files="StressTestCommand.java" lines="659" />
 </suppressions>

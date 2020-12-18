@@ -10,32 +10,38 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
+
 package org.ejbca.core.protocol.ws.client;
 
 import org.ejbca.ui.cli.IAdminCommand;
 
 /**
- * Implements the EJBCA WS command line interface specific for CVC requests
+ * Implements the EJBCA WS command line interface specific for CVC requests.
  *
  * @version $Id: cvcwscli.java 19902 2014-09-30 14:32:24Z anatom $
  */
-public class cvcwscli  {
+public final class cvcwscli {
 
-	public static void main(String[] args) {
-        try {
-            IAdminCommand cmd = EJBCAWSRACommandFactory.getCommand(args);
+    /** Main entry.
+     *
+     * @param args args
+     */
+  public static void main(final String[] args) {
+    try {
+      IAdminCommand cmd = EJBCAWSRACommandFactory.getCommand(args);
 
-            if (cmd != null) {
-                cmd.execute();
-            } else {
-                System.out.println(
-                    "Usage: cvcrequest cvcgetchain cvcprint cvcpem");
-            }
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            e.printStackTrace();
-            System.exit(-1); // NOPMD, this is not a JEE app
-        }
+      if (cmd != null) {
+        cmd.execute();
+      } else {
+        System.out.println("Usage: cvcrequest cvcgetchain cvcprint cvcpem");
+      }
+    } catch (Exception e) {
+      System.out.println(e.getMessage());
+      e.printStackTrace();
+      System.exit(-1); // NOPMD, this is not a JEE app
     }
+  }
+
+  private cvcwscli() { }
+
 }
