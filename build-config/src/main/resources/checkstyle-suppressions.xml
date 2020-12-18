@@ -383,7 +383,14 @@
 	<suppress checks="UnusedImportsCheck"
 		files="AcmeNonceDataSessionLocal.java" lines="15" /> <!-- Used in JDOC -->
 	
+	<!-- ejbca-ws -->
 	
+	<suppress checks="ParameterNumberCheck"
+		files="EjbcaWS.java" lines="586" />
+	<suppress checks="RightCurlyCheck"
+		files="EjbcaWS.java" lines="845" />
+	<suppress checks="MethodLengthCheck"
+		files="EjbcaWS.java" lines="1805,2447" />
 	
 	
 </suppressions>
