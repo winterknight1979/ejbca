@@ -46,13 +46,17 @@ import org.cesecore.config.CesecoreConfiguration;
 @TransactionAttribute(TransactionAttributeType.SUPPORTS)
 public class EjbcaAuditorSessionBean implements EjbcaAuditorSessionLocal {
 
+    /** LOG. */
   private static final Logger LOG =
       Logger.getLogger(EjbcaAuditorSessionBean.class);
 
+  /** EM. */
   @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
   private EntityManager entityManager;
 
+  /** EJB. */
   @EJB private AuthorizationSessionLocal authorizationSession;
+  /** EJB. */
   @EJB private CaSessionLocal caSession;
 
   @Override
@@ -70,8 +74,8 @@ public class EjbcaAuditorSessionBean implements EjbcaAuditorSessionLocal {
           "selectAuditLog can only be used with "
               + IntegrityProtectedDevice.class.getSimpleName());
     }
-    // Require that the caller is authorized to AUDITLOGSELECT just like in
-    // org.cesecore.audit.audit.SecurityEventsAuditorSessionBean.selectAuditLogs(...)
+    /* Require that the caller is authorized to AUDITLOGSELECT just like in
+    * org.cesecore.audit.audit.SecurityEventsAuditorSessionBean.selectAuditLogs(...) */
     assertAuthorization(token, AuditLogRules.VIEW.resource());
     // Assert that parameter is alphanumeric or one of ". ?<>!="
     assertLegalSqlString(whereClause, true);

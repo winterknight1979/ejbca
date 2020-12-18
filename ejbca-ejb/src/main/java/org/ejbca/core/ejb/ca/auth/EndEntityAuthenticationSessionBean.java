@@ -60,18 +60,23 @@ public class EndEntityAuthenticationSessionBean
     implements EndEntityAuthenticationSessionLocal,
         EndEntityAuthenticationSessionRemote {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(EndEntityAuthenticationSessionBean.class);
 
+  /** EM. */
   @PersistenceContext(unitName = "ejbca")
   private EntityManager entityManager;
 
+  /** EJB. */
   @EJB private EndEntityAccessSessionLocal endEntityAccessSession;
+  /** EJB. */
   @EJB private EndEntityManagementSessionLocal endEntityManagementSession;
+  /** EJB. */
   @EJB private SecurityEventsLoggerSessionLocal auditSession;
 
-  /** Internal localization of logs and errors */
-  private static final InternalEjbcaResources intres =
+  /** Internal localization of logs and errors. */
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
   @Override
@@ -80,8 +85,8 @@ public class EndEntityAuthenticationSessionBean
       final String username,
       final String password)
       throws AuthStatusException, AuthLoginException, NoSuchEndEntityException {
-    if (log.isTraceEnabled()) {
-      log.trace(">authenticateUser(" + username + ", hiddenpwd)");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">authenticateUser(" + username + ", hiddenpwd)");
     }
     boolean eichange = false;
     try {
@@ -103,8 +108,8 @@ public class EndEntityAuthenticationSessionBean
           || (status == EndEntityConstants.STATUS_FAILED)
           || (status == EndEntityConstants.STATUS_INPROCESS)
           || (status == EndEntityConstants.STATUS_KEYRECOVERY)) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Trying to authenticate user: username="
                   + username
                   + ", dn="
@@ -118,7 +123,7 @@ public class EndEntityAuthenticationSessionBean
         }
         if (!data.comparePassword(password)) {
           final String msg =
-              intres.getLocalizedMessage("authentication.invalidpwd", username);
+              INTRES.getLocalizedMessage("authentication.invalidpwd", username);
           final Map<String, Object> details = new LinkedHashMap<>();
           details.put("msg", msg);
           auditSession.log(
@@ -148,7 +153,7 @@ public class EndEntityAuthenticationSessionBean
         final Map<String, Object> details = new LinkedHashMap<>();
         details.put(
             "msg",
-            intres.getLocalizedMessage("authentication.authok", username));
+            INTRES.getLocalizedMessage("authentication.authok", username));
         auditSession.log(
             EjbcaEventTypes.CA_USERAUTH,
             EventStatus.SUCCESS,
@@ -159,8 +164,8 @@ public class EndEntityAuthenticationSessionBean
             null,
             username,
             details);
-        if (log.isTraceEnabled()) {
-          log.trace("<authenticateUser(" + username + ", hiddenpwd)");
+        if (LOG.isTraceEnabled()) {
+          LOG.trace("<authenticateUser(" + username + ", hiddenpwd)");
         }
         authenticated = true;
       }
@@ -172,23 +177,23 @@ public class EndEntityAuthenticationSessionBean
         return data.toEndEntityInformation();
       } else {
         final String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "authentication.wrongstatus",
                 EndEntityConstants.getStatusText(status),
                 status,
                 username);
-        log.info(msg);
+        LOG.info(msg);
         throw new AuthStatusException(msg);
       }
     } catch (NoSuchEndEntityException oe) {
       final String msg =
-          intres.getLocalizedMessage("authentication.usernotfound", username);
-      log.info(msg);
+          INTRES.getLocalizedMessage("authentication.usernotfound", username);
+      LOG.info(msg);
       throw oe;
     } catch (AuthStatusException | AuthLoginException se) {
       throw se;
     } catch (Exception e) {
-      log.error(intres.getLocalizedMessage("error.unknown"), e);
+      LOG.error(INTRES.getLocalizedMessage("error.unknown"), e);
       throw new EJBException(e);
     }
   }
@@ -206,8 +211,8 @@ public class EndEntityAuthenticationSessionBean
    */
   public static boolean decRemainingLoginAttempts(
       final UserData user, final ExtendedInformation ei) {
-    if (log.isTraceEnabled()) {
-      log.trace(">decRemainingLoginAttempts(" + user.getUsername() + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">decRemainingLoginAttempts(" + user.getUsername() + ")");
     }
     boolean ret = false;
     int counter = Integer.MAX_VALUE;
@@ -222,40 +227,40 @@ public class EndEntityAuthenticationSessionBean
           if (UserData.resetRemainingLoginAttemptsInternal(
               ei, user.getUsername())) {
             final String msg =
-                intres.getLocalizedMessage(
+                INTRES.getLocalizedMessage(
                     "ra.decreasedloginattemptscounter",
                     user.getUsername(),
                     counter);
-            log.info(msg);
+            LOG.info(msg);
             // We return that ei was changed so it can be persisted later
             ret = true;
           }
         }
       } else if (counter != -1) {
-        if (log.isDebugEnabled()) {
-          log.debug("Found a remaining login counter with value " + counter);
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Found a remaining login counter with value " + counter);
         }
         ei.setRemainingLoginAttempts(--counter);
         // We return ei to set later
         // We return that ei was changed so it can be persisted later
         ret = true;
         String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "ra.decreasedloginattemptscounter",
                 user.getUsername(),
                 counter);
-        log.info(msg);
+        LOG.info(msg);
       } else {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Found a remaining login counter with value UNLIMITED, not"
                   + " decreased in db.");
         }
         counter = Integer.MAX_VALUE;
       }
     }
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "<decRemainingLoginAttempts(" + user.getUsername() + "): " + counter);
     }
     return ret;
@@ -264,8 +269,8 @@ public class EndEntityAuthenticationSessionBean
   @Override
   public void finishUser(final EndEntityInformation data)
       throws NoSuchEndEntityException {
-    if (log.isTraceEnabled()) {
-      log.trace(">finishUser(" + data.getUsername() + ", hiddenpwd)");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">finishUser(" + data.getUsername() + ", hiddenpwd)");
     }
     try {
 
@@ -274,22 +279,22 @@ public class EndEntityAuthenticationSessionBean
       final int counter =
           endEntityManagementSession.decRequestCounter(data.getUsername());
       if (counter <= 0) {
-        log.info(
-            intres.getLocalizedMessage(
+        LOG.info(
+            INTRES.getLocalizedMessage(
                 "authentication.statuschanged", data.getUsername()));
       }
-      if (log.isTraceEnabled()) {
-        log.trace("<finishUser(" + data.getUsername() + ", hiddenpwd)");
+      if (LOG.isTraceEnabled()) {
+        LOG.trace("<finishUser(" + data.getUsername() + ", hiddenpwd)");
       }
     } catch (NoSuchEndEntityException e) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "authentication.usernotfound", data.getUsername());
-      log.info(msg);
+      LOG.info(msg);
       throw new NoSuchEndEntityException(e.getMessage());
     } catch (ApprovalException | WaitingForApprovalException e) {
       // Should never happen
-      log.error("ApprovalException: ", e);
+      LOG.error("ApprovalException: ", e);
       throw new EJBException(e);
     }
   }

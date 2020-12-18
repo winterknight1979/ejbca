@@ -53,13 +53,16 @@ public class WebAuthenticationProviderSessionBean
 
   private static final long serialVersionUID = 1524951666783567785L;
 
+  /** Logger. */
   private static final Logger LOG =
       Logger.getLogger(WebAuthenticationProviderSessionBean.class);
-  /** Internal localization of logs and errors */
-  private static final InternalEjbcaResources intres =
+  /** Internal localization of logs and errors. */
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
+  /** EJB. */
   @EJB private CertificateStoreSessionLocal certificateStoreSession;
+  /** EJB. */
   @EJB private SecurityEventsLoggerSessionLocal securityEventsLoggerSession;
 
   @Override
@@ -114,7 +117,7 @@ public class WebAuthenticationProviderSessionBean
         certificate.checkValidity();
       } catch (Exception e) {
         final String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "authentication.certexpired",
                 CertTools.getSubjectDN(certificate),
                 CertTools.getNotAfter(certificate).toString());
@@ -149,7 +152,7 @@ public class WebAuthenticationProviderSessionBean
           // The certificate is neither active, nor active (but user is notified
           // of coming revocation)
           final String msg =
-              intres.getLocalizedMessage(
+              INTRES.getLocalizedMessage(
                   "authentication.revokedormissing",
                   CertTools.getSubjectDN(certificate));
           LOG.info(msg);
@@ -172,7 +175,7 @@ public class WebAuthenticationProviderSessionBean
         // The certificate is not present in the database.
         if (WebConfiguration.getRequireAdminCertificateInDatabase()) {
           final String msg =
-              intres.getLocalizedMessage(
+              INTRES.getLocalizedMessage(
                   "authentication.revokedormissing",
                   CertTools.getSubjectDN(certificate));
           LOG.info(msg);

@@ -78,21 +78,34 @@ public class AuthorizationSystemSessionBean
     implements AuthorizationSystemSessionLocal,
         AuthorizationSystemSessionRemote {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(AuthorizationSystemSessionBean.class);
 
+  /** EJB. */
   @EJB private AuthorizationSessionLocal authorizationSession;
+  /** EJB. */
   @EJB private CaSessionLocal caSession;
+  /** EJB. */
   @EJB private KeyValidatorSessionLocal keyValidatorSession;
+  /** EJB. */
   @EJB private CryptoTokenSessionLocal cryptoTokenSession;
+  /** EJB. */
   @EJB private EndEntityProfileSessionLocal endEntityProfileSession;
+  /** EJB. */
   @EJB private GlobalConfigurationSessionLocal globalConfigurationSession;
+  /** EJB. */
   @EJB private RoleSessionLocal roleSession;
+  /** EJB. */
   @EJB private RoleDataSessionLocal roleDataSession;
+  /** EJB. */
   @EJB private RoleMemberSessionLocal roleMemberSession;
+  /** EJB. */
   @EJB private RoleMemberDataSessionLocal roleMemberDataSession;
+  /** EJB. */
   @EJB private UserDataSourceSessionLocal userDataSourceSession;
 
+  /** EM. */
   @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
   private EntityManager entityManager;
 
@@ -105,8 +118,8 @@ public class AuthorizationSystemSessionBean
       final HashMap<String, Boolean> accessRules =
           authorizationSession.getAccessAvailableToAuthenticationToken(
               authenticationToken);
-      for (final Entry<String, String> entry :
-          getAllResources(ignoreLimitations).entrySet()) {
+      for (final Entry<String, String> entry
+          : getAllResources(ignoreLimitations).entrySet()) {
         if (AccessRulesHelper.hasAccessToResource(
             accessRules, entry.getKey())) {
           authorizedResources.put(
@@ -115,8 +128,8 @@ public class AuthorizationSystemSessionBean
         }
       }
     } catch (AuthenticationFailedException e) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Failed to get resources due to authentication failure: "
                 + e.getMessage());
       }
@@ -158,8 +171,8 @@ public class AuthorizationSystemSessionBean
             caIdToNameMap,
             kvIdToNameMap);
     final Map<String, String> ret = new HashMap<>();
-    for (final Map<String, String> acessRuleMap :
-        categorizedAccessRules.values()) {
+    for (final Map<String, String> acessRuleMap
+        : categorizedAccessRules.values()) {
       ret.putAll(acessRuleMap);
     }
     return ret;
@@ -221,8 +234,8 @@ public class AuthorizationSystemSessionBean
     ret.put("ROLEBASEDACCESSRULES", accessRulesRoleBased);
     // Standard rules (including custom access rules)
     final Map<String, String> accessRulesRegular = new LinkedHashMap<>();
-    for (final String resource :
-        AccessRulesConstants.STANDARDREGULARACCESSRULES) {
+    for (final String resource
+        : AccessRulesConstants.STANDARDREGULARACCESSRULES) {
       accessRulesRegular.put(resource, resource);
     }
     if (hardTokenIssuingEnabled) {
@@ -297,8 +310,8 @@ public class AuthorizationSystemSessionBean
         accessRulesEepAccess.put(
             AccessRulesConstants.ENDENTITYPROFILEPREFIX + eepId,
             AccessRulesConstants.ENDENTITYPROFILEPREFIX + eepName);
-        for (final String subResource :
-            AccessRulesConstants.ENDENTITYPROFILE_ENDINGS) {
+        for (final String subResource
+            : AccessRulesConstants.ENDENTITYPROFILE_ENDINGS) {
           accessRulesEepAccess.put(
               AccessRulesConstants.ENDENTITYPROFILEPREFIX + eepId + subResource,
               AccessRulesConstants.ENDENTITYPROFILEPREFIX
@@ -382,16 +395,16 @@ public class AuthorizationSystemSessionBean
     }
     ret.put("USERDATASOURCEACCESSRULES", accessRulesUdsAccess);
     // Insert plugin rules
-    for (final AccessRulePlugin accessRulePlugin :
-        ServiceLoader.load(AccessRulePlugin.class)) {
+    for (final AccessRulePlugin accessRulePlugin
+        : ServiceLoader.load(AccessRulePlugin.class)) {
       Map<String, String> accessRulesInCategory =
           ret.get(accessRulePlugin.getCategory());
       if (accessRulesInCategory == null) {
         accessRulesInCategory = new LinkedHashMap<>();
         ret.put(accessRulePlugin.getCategory(), accessRulesInCategory);
       }
-      for (final Entry<String, String> resourceAndName :
-          accessRulePlugin.getRules().entrySet()) {
+      for (final Entry<String, String> resourceAndName
+          : accessRulePlugin.getRules().entrySet()) {
         accessRulesInCategory.put(
             resourceAndName.getKey(), resourceAndName.getValue());
       }
@@ -408,7 +421,7 @@ public class AuthorizationSystemSessionBean
     // authorization system and we don't want to change this.)
     if (roleDataSession.getAllRoles().isEmpty()
         && caSession.getAllCaIds().isEmpty()) {
-      log.info(
+      LOG.info(
           "No roles or CAs exist, intializing Super Administrator Role with"
               + " default CLI user.");
       // Create "Super Administrator Role" (with roleId "1" to ensure that
@@ -456,14 +469,16 @@ public class AuthorizationSystemSessionBean
       }
       return true;
     }
-    log.info("Roles or CAs exist, not intializing " + SUPERADMIN_ROLE);
+    LOG.info("Roles or CAs exist, not intializing " + SUPERADMIN_ROLE);
     return false;
   }
 
   /*
    * Note:
-   * This is expected to be invoked by the CLI user during "ant install" or similar operation.
-   * The StartupSingletonBean should have initialized by the SUPERADMIN_ROLE at startup on a fresh system and authorized the CLI user.
+   * This is expected to be invoked by the CLI user during
+   *  "ant install" or similar operation.
+   * The StartupSingletonBean should have initialized by the
+   * SUPERADMIN_ROLE at startup on a fresh system and authorized the CLI user.
    */
   @TransactionAttribute(TransactionAttributeType.REQUIRED)
   @Override
@@ -474,7 +489,7 @@ public class AuthorizationSystemSessionBean
       throws AuthorizationDeniedException {
     if (roleDataSession.getAllRoles().isEmpty()
         && caSession.getAllCaIds().isEmpty()) {
-      log.info(
+      LOG.info(
           "The Role '"
               + SUPERADMIN_ROLE
               + "' has not been initialized. Cannot add SuperAdmin '"
@@ -485,7 +500,7 @@ public class AuthorizationSystemSessionBean
     final Role role =
         roleSession.getRole(authenticationToken, null, SUPERADMIN_ROLE);
     if (role == null) {
-      log.info(
+      LOG.info(
           "The Role '"
               + SUPERADMIN_ROLE
               + "' does not exist. Cannot add SuperAdmin '"

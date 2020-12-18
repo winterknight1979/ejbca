@@ -413,4 +413,12 @@
 		files="QueuedLoggerMockSessionBean.java" lines="42" />
 	<suppress checks="MethodLengthCheck"
 		files="ApprovalExecutionSessionBean.java" lines="100" />
+	<suppress checks="ParameterNumberCheck"
+		files="ApprovalSessionBean.java" lines="542" />
+	<suppress checks="MethodLengthCheck"
+		files="ApprovalSessionBean.java" lines="776,956" />
+	<suppress checks="MethodLengthCheck"
+		files="AuthorizationSystemSessionBean.java" lines="215" />
+	<suppress checks="ParameterNumberCheck"
+		files="AuthorizationSystemSessionBean.java" lines="216" />
 </suppressions>

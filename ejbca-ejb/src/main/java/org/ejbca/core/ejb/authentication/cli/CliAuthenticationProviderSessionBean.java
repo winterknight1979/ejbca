@@ -64,19 +64,26 @@ public class CliAuthenticationProviderSessionBean
 
   private static final long serialVersionUID = 3953734683130654792L;
 
-  private static final Logger log =
+  /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(CliAuthenticationProviderSessionBean.class);
 
-  /** Internal localization of logs and errors */
-  private static final InternalEjbcaResources intres =
+  /** Internal localization of logs and errors. */
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
+  /** Random. */
   private volatile SecureRandom randomGenerator;
 
+  /** EJB. */
   @EJB private EndEntityAccessSessionLocal endEntityAccessSession;
+  /** EJB. */
   @EJB private GlobalConfigurationSessionLocal globalConfigurationSession;
+  /** EJB. */
   @EJB private SecurityEventsLoggerSessionLocal securityEventsLoggerSession;
 
+  /** Init.
+ * @throws RuntimeException  fail */
   @PostConstruct
   public void initialize() throws RuntimeException {
     try {
@@ -96,15 +103,15 @@ public class CliAuthenticationProviderSessionBean
             globalConfigurationSession.getCachedConfiguration(
                 GlobalConfiguration.GLOBAL_CONFIGURATION_ID))
         .getEnableCommandLineInterface()) {
-      log.info("CLI authentication attempted, but CLI is disabled.");
+      LOG.info("CLI authentication attempted, but CLI is disabled.");
       return null;
     } else {
       Set<Principal> subjectPrincipals = subject.getPrincipals();
       if (subjectPrincipals.size() == 0) {
-        log.error("ClI Authentication was attempted without principals");
+        LOG.error("ClI Authentication was attempted without principals");
         return null;
       } else if (subjectPrincipals.size() > 1) {
-        log.error("ClI Authentication was attempted with multiple principals");
+        LOG.error("ClI Authentication was attempted with multiple principals");
         return null;
       }
 
@@ -121,7 +128,7 @@ public class CliAuthenticationProviderSessionBean
           && usernamePrincipal
               .getName()
               .equals(EjbcaConfiguration.getCliDefaultUser())) {
-        log.info(
+        LOG.info(
             "CLI authentication attempted, but the default user ("
                 + EjbcaConfiguration.getCliDefaultUser()
                 + ") is disabled.");
@@ -141,8 +148,8 @@ public class CliAuthenticationProviderSessionBean
                 referenceId,
                 passwordAndAlgorithm.getValue());
         CliAuthenticationTokenReferenceRegistry.INSTANCE.registerToken(result);
-        if (log.isDebugEnabled()) {
-          log.debug("User " + usernamePrincipal.getName() + " authenticated.");
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("User " + usernamePrincipal.getName() + " authenticated.");
         }
         /*
          * It is imperative that a cloned version of the
@@ -152,10 +159,10 @@ public class CliAuthenticationProviderSessionBean
         return result.clone();
       } catch (NotFoundException e) {
         String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "authentication.failed.cli.usernotfound",
                 usernamePrincipal.getName());
-        log.error(msg, e);
+        LOG.error(msg, e);
         Map<String, Object> details = new LinkedHashMap<String, Object>();
         details.put("msg", msg);
         securityEventsLoggerSession.log(
