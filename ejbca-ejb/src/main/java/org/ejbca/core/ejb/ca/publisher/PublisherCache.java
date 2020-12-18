@@ -26,23 +26,23 @@ import org.ejbca.core.model.ca.publisher.BasePublisher;
  * @version $Id: PublisherCache.java 28332 2018-02-20 14:40:52Z anatom $
  */
 public enum PublisherCache implements CommonCache<BasePublisher> {
+    /** Instance. */
   INSTANCE;
 
+    /** Cache. */
   private final CommonCache<BasePublisher> cache =
       new CommonCacheBase<BasePublisher>() {
         @Override
         protected long getCacheTime() {
           return EjbcaConfiguration.getCachePublisherTime();
-        }
-        ;
+        };
 
         @Override
         protected long getMaxCacheLifeTime() {
           // Publishers are not short-lived objects with long cache times so we
           // disable it
           return 0L;
-        }
-        ;
+        };
       };
 
   @Override

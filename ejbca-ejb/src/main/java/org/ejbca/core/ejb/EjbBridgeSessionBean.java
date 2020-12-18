@@ -85,56 +85,108 @@ import org.ejbca.core.protocol.cmp.CmpMessageDispatcherSessionLocal;
 @TransactionAttribute(TransactionAttributeType.SUPPORTS)
 public class EjbBridgeSessionBean implements EjbBridgeSessionLocal {
 
-  @EJB AdminPreferenceSessionLocal adminPreferenceSession;
-  @EJB ApprovalExecutionSessionLocal approvalExecutionSession;
-  @EJB ApprovalProfileSessionLocal approvalProfileSession;
-  @EJB ApprovalSessionLocal approvalSession;
-  @EJB AuthorizationSessionLocal authorizationSession;
-  @EJB AuthorizationSystemSessionLocal authorizationSystemSession;
-  @EJB BlacklistSessionLocal blacklistSession;
-  @EJB CAAdminSessionLocal caAdminSession;
-  @EJB CaSessionLocal caSession;
-  @EJB CertificateCreateSessionLocal certificateCreateSession;
-  @EJB CertificateProfileSessionLocal certificateProfileSession;
-  @EJB CertificateStoreSessionLocal certificateStoreSession;
-  @EJB CertReqHistorySessionLocal certReqHistorySession;
-  @EJB CmpMessageDispatcherSessionLocal cmpMessageDispatcherSession;
-  @EJB CrlCreateSessionLocal crlCreateSession;
-  @EJB CrlStoreSessionLocal crlStoreSession;
-  @EJB CryptoTokenManagementSessionLocal cryptoTokenManagementSession;
-  @EJB CryptoTokenSessionLocal cryptoTokenSession;
-  @EJB EjbcaAuditorSessionLocal ejbcaAuditorSession;
-  @EJB EjbcaRestHelperSessionLocal ejbcaRestHelperSession;
-  @EJB EjbcaWSHelperSessionLocal ejbcaWSHelperSession;
-  @EJB EndEntityAccessSessionLocal endEntityAccessSession;
-  @EJB EndEntityAuthenticationSessionLocal endEntityAuthenticationSession;
-  @EJB EndEntityManagementSessionLocal endEntityManagementSession;
-  @EJB EndEntityProfileSessionLocal endEntityProfileSession;
-  @EJB GlobalConfigurationSessionLocal globalConfigurationSession;
-  @EJB HardTokenBatchJobSessionLocal hardTokenBatchJobSession;
-  @EJB HardTokenSessionLocal hardTokenSession;
-  @EJB ImportCrlSessionLocal importCrlSession;
-  @EJB InternalKeyBindingDataSessionLocal internalKeyBindingDataSession;
-  @EJB InternalKeyBindingMgmtSessionLocal internalKeyBindingMgmtSession;
-  @EJB KeyRecoverySessionLocal keyRecoverySession;
-  @EJB KeyValidatorSessionLocal keyValidatorSession;
-  @EJB PublisherQueueSessionLocal publisherQueueSession;
-  @EJB PublisherSessionLocal publisherSession;
-  @EJB PublishingCrlSessionLocal publishingCrlSession;
-  @EJB RaMasterApiProxyBeanLocal raMasterApiProxyBean;
-  @EJB RaMasterApiSessionLocal raMasterApiSession;
-  @EJB RevocationSessionLocal revocationSession;
-  @EJB RoleDataSessionLocal roleDataSession;
-  @EJB RoleMemberDataSessionLocal roleMemberDataSession;
-  @EJB RoleMemberSessionLocal roleMemberSession;
-  @EJB RoleSessionLocal roleSession;
-  @EJB SecurityEventsAuditorSessionLocal securityEventsAuditorSession;
-  @EJB SecurityEventsLoggerSessionLocal securityEventsLoggerSession;
-  @EJB ServiceSessionLocal serviceSession;
-  @EJB SignSessionLocal signSession;
-  @EJB UpgradeSessionLocal upgradeSession;
-  @EJB UserDataSourceSessionLocal userDataSourceSession;
-  @EJB WebAuthenticationProviderSessionLocal webAuthenticationProviderSession;
+      /** EJB. */
+  @EJB private AdminPreferenceSessionLocal adminPreferenceSession;
+  /** EJB. */
+  @EJB private ApprovalExecutionSessionLocal approvalExecutionSession;
+  /** EJB. */
+  @EJB private ApprovalProfileSessionLocal approvalProfileSession;
+  /** EJB. */
+  @EJB private ApprovalSessionLocal approvalSession;
+  /** EJB. */
+  @EJB private AuthorizationSessionLocal authorizationSession;
+  /** EJB. */
+  @EJB private AuthorizationSystemSessionLocal authorizationSystemSession;
+  /** EJB. */
+  @EJB private BlacklistSessionLocal blacklistSession;
+  /** EJB. */
+  @EJB private CAAdminSessionLocal caAdminSession;
+  /** EJB. */
+  @EJB private CaSessionLocal caSession;
+  /** EJB. */
+  @EJB private CertificateCreateSessionLocal certificateCreateSession;
+  /** EJB. */
+  @EJB private CertificateProfileSessionLocal certificateProfileSession;
+  /** EJB. */
+  @EJB private CertificateStoreSessionLocal certificateStoreSession;
+  /** EJB. */
+  @EJB private CertReqHistorySessionLocal certReqHistorySession;
+  /** EJB. */
+  @EJB private CmpMessageDispatcherSessionLocal cmpMessageDispatcherSession;
+  /** EJB. */
+  @EJB private CrlCreateSessionLocal crlCreateSession;
+  /** EJB. */
+  @EJB private CrlStoreSessionLocal crlStoreSession;
+  /** EJB. */
+  @EJB private CryptoTokenManagementSessionLocal cryptoTokenManagementSession;
+  /** EJB. */
+  @EJB private CryptoTokenSessionLocal cryptoTokenSession;
+  /** EJB. */
+  @EJB private EjbcaAuditorSessionLocal ejbcaAuditorSession;
+  /** EJB. */
+  @EJB private EjbcaRestHelperSessionLocal ejbcaRestHelperSession;
+  /** EJB. */
+  @EJB private EjbcaWSHelperSessionLocal ejbcaWSHelperSession;
+  /** EJB. */
+  @EJB private EndEntityAccessSessionLocal endEntityAccessSession;
+  /** EJB. */
+  @EJB private EndEntityAuthenticationSessionLocal
+      endEntityAuthenticationSession;
+  /** EJB. */
+  @EJB private EndEntityManagementSessionLocal endEntityManagementSession;
+  /** EJB. */
+  @EJB private EndEntityProfileSessionLocal endEntityProfileSession;
+  /** EJB. */
+  @EJB private GlobalConfigurationSessionLocal globalConfigurationSession;
+  /** EJB. */
+  @EJB private HardTokenBatchJobSessionLocal hardTokenBatchJobSession;
+  /** EJB. */
+  @EJB private HardTokenSessionLocal hardTokenSession;
+  /** EJB. */
+  @EJB private ImportCrlSessionLocal importCrlSession;
+  /** EJB. */
+  @EJB private InternalKeyBindingDataSessionLocal internalKeyBindingDataSession;
+  /** EJB. */
+  @EJB private InternalKeyBindingMgmtSessionLocal internalKeyBindingMgmtSession;
+  /** EJB. */
+  @EJB private KeyRecoverySessionLocal keyRecoverySession;
+  /** EJB. */
+  @EJB private KeyValidatorSessionLocal keyValidatorSession;
+  /** EJB. */
+  @EJB private PublisherQueueSessionLocal publisherQueueSession;
+  /** EJB. */
+  @EJB private PublisherSessionLocal publisherSession;
+  /** EJB. */
+  @EJB private PublishingCrlSessionLocal publishingCrlSession;
+  /** EJB. */
+  @EJB private RaMasterApiProxyBeanLocal raMasterApiProxyBean;
+  /** EJB. */
+  @EJB private RaMasterApiSessionLocal raMasterApiSession;
+  /** EJB. */
+  @EJB private RevocationSessionLocal revocationSession;
+  /** EJB. */
+  @EJB private RoleDataSessionLocal roleDataSession;
+  /** EJB. */
+  @EJB private RoleMemberDataSessionLocal roleMemberDataSession;
+  /** EJB. */
+  @EJB private RoleMemberSessionLocal roleMemberSession;
+  /** EJB. */
+  @EJB private RoleSessionLocal roleSession;
+  /** EJB. */
+  @EJB private SecurityEventsAuditorSessionLocal securityEventsAuditorSession;
+  /** EJB. */
+  @EJB private SecurityEventsLoggerSessionLocal securityEventsLoggerSession;
+  /** EJB. */
+  @EJB private ServiceSessionLocal serviceSession;
+  /** EJB. */
+  @EJB private SignSessionLocal signSession;
+  /** EJB. */
+  @EJB private UpgradeSessionLocal upgradeSession;
+  /** EJB. */
+  @EJB private UserDataSourceSessionLocal userDataSourceSession;
+  /** EJB. */
+  @EJB private WebAuthenticationProviderSessionLocal
+      webAuthenticationProviderSession;
 
   @Override
   public AdminPreferenceSessionLocal getAdminPreferenceSession() {

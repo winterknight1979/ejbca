@@ -67,48 +67,58 @@ import org.ejbca.core.model.ca.publisher.PublisherQueueVolatileInformation;
 @TransactionAttribute(TransactionAttributeType.REQUIRED)
 public class PublisherQueueSessionBean implements PublisherQueueSessionLocal {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(PublisherQueueSessionBean.class);
-  private static final InternalEjbcaResources intres =
+  /** param. */
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
-  private static final ReentrantLock executorServiceLock =
+  /** param. */
+  private static final ReentrantLock EXEC_SERVICE_LOCK =
       new ReentrantLock(false);
-  private static final AtomicInteger beanInstanceCount = new AtomicInteger(0);
+  /** param. */
+  private static final AtomicInteger BEAN_INST_COUNT = new AtomicInteger(0);
+  /** param. */
   private static volatile ExecutorService executorService = null;
 
+  /** EM. */
   @PersistenceContext(unitName = "ejbca")
   private EntityManager entityManager;
 
+  /** Resource. */
   @Resource private SessionContext sessionContext;
 
+  /** EJB. */
   @EJB
   private NoConflictCertificateStoreSessionLocal
       noConflictCertificateStoreSession;
 
-  /** not injected but created in ejbCreate, since it is ourself */
+  /** not injected but created in ejbCreate, since it is ourself. */
   private PublisherQueueSessionLocal publisherQueueSession;
 
+  /** Init. */
   @PostConstruct
   public void postConstruct() {
     publisherQueueSession =
         sessionContext.getBusinessObject(PublisherQueueSessionLocal.class);
     // Keep track of number of instances of this bean, so we can free the
     // executorService thread pool when the last is destroyed
-    beanInstanceCount.incrementAndGet();
+    BEAN_INST_COUNT.incrementAndGet();
   }
 
+  /** Dhutdown. */
   @PreDestroy
   public void preDestroy() {
     // Shut down the thread pool when the last instance of this SSB is destroyed
-    if (beanInstanceCount.decrementAndGet() == 0) {
-      executorServiceLock.lock();
+    if (BEAN_INST_COUNT.decrementAndGet() == 0) {
+      EXEC_SERVICE_LOCK.lock();
       try {
         if (executorService != null) {
           executorService.shutdown();
           executorService = null;
         }
       } finally {
-        executorServiceLock.unlock();
+        EXEC_SERVICE_LOCK.unlock();
       }
     }
   }
@@ -119,13 +129,13 @@ public class PublisherQueueSessionBean implements PublisherQueueSessionLocal {
    */
   private ExecutorService getExecutorService() {
     if (executorService == null) {
-      executorServiceLock.lock();
+      EXEC_SERVICE_LOCK.lock();
       try {
         if (executorService == null) {
           executorService = Executors.newCachedThreadPool();
         }
       } finally {
-        executorServiceLock.unlock();
+        EXEC_SERVICE_LOCK.unlock();
       }
     }
     return executorService;
@@ -139,8 +149,8 @@ public class PublisherQueueSessionBean implements PublisherQueueSessionLocal {
       final PublisherQueueVolatileInformation queueData,
       final int publishStatus)
       throws CreateException {
-    if (log.isTraceEnabled()) {
-      log.trace(">addQueueData(publisherId: " + publisherId + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">addQueueData(publisherId: " + publisherId + ")");
     }
     try {
       entityManager.persist(
@@ -149,36 +159,36 @@ public class PublisherQueueSessionBean implements PublisherQueueSessionLocal {
     } catch (Exception e) {
       throw new CreateException(e.getMessage());
     }
-    log.trace("<addQueueData()");
+    LOG.trace("<addQueueData()");
   }
 
   @Override
   public void removeQueueData(final String pk) {
-    if (log.isTraceEnabled()) {
-      log.trace(">removeQueueData(pk: " + pk + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">removeQueueData(pk: " + pk + ")");
     }
     try {
       org.ejbca.core.ejb.ca.publisher.PublisherQueueData pqd =
           org.ejbca.core.ejb.ca.publisher.PublisherQueueData.findByPk(
               entityManager, pk);
       if (pqd == null) {
-        if (log.isDebugEnabled()) {
-          log.debug("Trying to remove queue data that does not exist: " + pk);
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Trying to remove queue data that does not exist: " + pk);
         }
       } else {
         entityManager.remove(pqd);
       }
     } catch (Exception e) {
-      log.info(e);
+      LOG.info(e);
     }
-    log.trace("<removeQueueData()");
+    LOG.trace("<removeQueueData()");
   }
 
   @Override
   public Collection<PublisherQueueData> getPendingEntriesForPublisher(
       final int publisherId) {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">getPendingEntriesForPublisher(publisherId: " + publisherId + ")");
     }
     Collection<org.ejbca.core.ejb.ca.publisher.PublisherQueueData> datas =
@@ -186,7 +196,7 @@ public class PublisherQueueSessionBean implements PublisherQueueSessionLocal {
             .findDataByPublisherIdAndStatus(
                 entityManager, publisherId, PublisherConst.STATUS_PENDING, 0);
     if (datas.isEmpty()) {
-      log.debug(
+      LOG.debug(
           "No publisher queue entries found for publisher " + publisherId);
     }
     Collection<PublisherQueueData> ret = new ArrayList<PublisherQueueData>();
@@ -207,7 +217,7 @@ public class PublisherQueueSessionBean implements PublisherQueueSessionLocal {
               d.getPublisherQueueVolatileData());
       ret.add(pqd);
     }
-    log.trace("<getPendingEntriesForPublisher()");
+    LOG.trace("<getPendingEntriesForPublisher()");
     return ret;
   }
 
@@ -221,8 +231,8 @@ public class PublisherQueueSessionBean implements PublisherQueueSessionLocal {
   @Override
   public int[] getPendingEntriesCountForPublisherInIntervals(
       final int publisherId, final int[] lowerBounds, final int[] upperBounds) {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">getPendingEntriesCountForPublisherInIntervals(publisherId: "
               + publisherId
               + ", lower:"
@@ -243,7 +253,7 @@ public class PublisherQueueSessionBean implements PublisherQueueSessionLocal {
     for (int i = 0; i < lowerBounds.length && i < result.length; i++) {
       result[i] = entryCountList.get(i).intValue();
     }
-    log.trace("<getPendingEntriesCountForPublisherInIntervals()");
+    LOG.trace("<getPendingEntriesCountForPublisherInIntervals()");
     return result;
   }
 
@@ -253,8 +263,8 @@ public class PublisherQueueSessionBean implements PublisherQueueSessionLocal {
       final int limit,
       final int timeout,
       final String orderBy) {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">getPendingEntriesForPublisherWithLimit(publisherId: "
               + publisherId
               + ")");
@@ -270,8 +280,8 @@ public class PublisherQueueSessionBean implements PublisherQueueSessionLocal {
                     publisherId,
                     PublisherConst.STATUS_PENDING,
                     limit);
-    for (org.ejbca.core.ejb.ca.publisher.PublisherQueueData publisherQueueData :
-        publisherQueueDataList) {
+    for (org.ejbca.core.ejb.ca.publisher.PublisherQueueData publisherQueueData
+        : publisherQueueDataList) {
       PublisherQueueData pqd =
           new PublisherQueueData(
               publisherQueueData.getPk(),
@@ -284,30 +294,30 @@ public class PublisherQueueSessionBean implements PublisherQueueSessionLocal {
               publisherId,
               publisherQueueData.getPublisherQueueVolatileData());
       ret.add(pqd);
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Return pending record with pk "
                 + publisherQueueData.getPk()
                 + ", and timeCreated "
                 + new Date(publisherQueueData.getTimeCreated()));
       }
     }
-    log.trace("<getPendingEntriesForPublisherWithLimit()");
+    LOG.trace("<getPendingEntriesForPublisherWithLimit()");
     return ret;
   }
 
   @Override
   public Collection<PublisherQueueData> getEntriesByFingerprint(
       final String fingerprint) {
-    if (log.isTraceEnabled()) {
-      log.trace(">getEntriesByFingerprint(fingerprint: " + fingerprint + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">getEntriesByFingerprint(fingerprint: " + fingerprint + ")");
     }
     Collection<PublisherQueueData> ret = new ArrayList<PublisherQueueData>();
     Collection<org.ejbca.core.ejb.ca.publisher.PublisherQueueData> datas =
         org.ejbca.core.ejb.ca.publisher.PublisherQueueData
             .findDataByFingerprint(entityManager, fingerprint);
     if (datas.isEmpty()) {
-      log.debug(
+      LOG.debug(
           "No publisher queue entries found for fingerprint " + fingerprint);
     } else {
       Iterator<org.ejbca.core.ejb.ca.publisher.PublisherQueueData> iter =
@@ -328,15 +338,15 @@ public class PublisherQueueSessionBean implements PublisherQueueSessionLocal {
         ret.add(pqd);
       }
     }
-    log.trace("<getEntriesByFingerprint()");
+    LOG.trace("<getEntriesByFingerprint()");
     return ret;
   }
 
   @Override
   public void updateData(
       final String pk, final int status, final int tryCounter) {
-    if (log.isTraceEnabled()) {
-      log.trace(">updateData(pk: " + pk + ", status: " + status + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">updateData(pk: " + pk + ", status: " + status + ")");
     }
     org.ejbca.core.ejb.ca.publisher.PublisherQueueData data =
         org.ejbca.core.ejb.ca.publisher.PublisherQueueData.findByPk(
@@ -350,9 +360,9 @@ public class PublisherQueueSessionBean implements PublisherQueueSessionLocal {
         data.setTryCounter(tryCounter);
       }
     } else {
-      log.debug("Trying to set status on nonexisting data, pk: " + pk);
+      LOG.debug("Trying to set status on nonexisting data, pk: " + pk);
     }
-    log.trace("<updateData()");
+    LOG.trace("<updateData()");
   }
 
   @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
@@ -368,11 +378,12 @@ public class PublisherQueueSessionBean implements PublisherQueueSessionLocal {
     // However we don't want to publish more than 20000 certificates each time,
     // because we want to commit to the database some time as well.
     int totalcount = 0;
+    final int max = 20000;
     do {
       successcount =
           publisherQueueSession.doChunk(admin, publisherId, publisher);
       totalcount += successcount;
-    } while ((successcount > 0) && (totalcount < 20000));
+    } while ((successcount > 0) && (totalcount < max));
   }
 
   @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
@@ -399,8 +410,8 @@ public class PublisherQueueSessionBean implements PublisherQueueSessionLocal {
       final int publisherId,
       final BasePublisher publisher,
       final Collection<PublisherQueueData> c) {
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Found "
               + c.size()
               + " certificates to republish for publisher "
@@ -413,8 +424,8 @@ public class PublisherQueueSessionBean implements PublisherQueueSessionLocal {
 
       String fingerprint = pqd.getFingerprint();
       int publishType = pqd.getPublishType();
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Publishing from queue to publisher: "
                 + publisherId
                 + ", fingerprint: "
@@ -437,8 +448,8 @@ public class PublisherQueueSessionBean implements PublisherQueueSessionLocal {
 
       try {
         if (publishType == PublisherConst.PUBLISH_TYPE_CERT) {
-          if (log.isDebugEnabled()) {
-            log.debug("Publishing Certificate");
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("Publishing Certificate");
           }
           if (publisher != null) {
             // Read the actual certificate and try to publish it
@@ -470,13 +481,13 @@ public class PublisherQueueSessionBean implements PublisherQueueSessionLocal {
             }
           } else {
             String msg =
-                intres.getLocalizedMessage(
+                INTRES.getLocalizedMessage(
                     "publisher.nopublisher", publisherId);
-            log.info(msg);
+            LOG.info(msg);
           }
         } else if (publishType == PublisherConst.PUBLISH_TYPE_CRL) {
-          if (log.isDebugEnabled()) {
-            log.debug("Publishing CRL");
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("Publishing CRL");
           }
 
           CRLData crlData =
@@ -504,18 +515,18 @@ public class PublisherQueueSessionBean implements PublisherQueueSessionLocal {
           }
         } else {
           String msg =
-              intres.getLocalizedMessage("publisher.unknowntype", publishType);
-          log.error(msg);
+              INTRES.getLocalizedMessage("publisher.unknowntype", publishType);
+          LOG.error(msg);
         }
       } catch (FinderException e) {
         final String msg =
-            intres.getLocalizedMessage("publisher.errornocert", fingerprint)
+            INTRES.getLocalizedMessage("publisher.errornocert", fingerprint)
                 + e.getMessage();
-        log.info(msg);
+        LOG.info(msg);
       } catch (PublisherException e) {
         // Publisher session have already logged this error nicely to
         // getLogSession().log
-        log.debug(e.getMessage());
+        LOG.debug(e.getMessage());
         // We failed to publish, update failcount so we can break early
         // if nothing succeeds but everything fails.
         failcount++;
@@ -541,8 +552,8 @@ public class PublisherQueueSessionBean implements PublisherQueueSessionLocal {
       // first ten ones we expect that this publisher is dead for now. We
       // don't have to try with every record.
       if ((successcount == 0) && (failcount > 10)) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Breaking out of publisher loop because everything seems to fail"
                   + " (at least the first 10 entries)");
         }
@@ -550,8 +561,8 @@ public class PublisherQueueSessionBean implements PublisherQueueSessionLocal {
       }
     }
 
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Returning from publisher with "
               + successcount
               + " entries published successfully.");
@@ -727,7 +738,7 @@ public class PublisherQueueSessionBean implements PublisherQueueSessionLocal {
   }
 
   private PublisherException getAsPublisherException(final Exception e) {
-    log.debug("Publisher threw exception", e);
+    LOG.debug("Publisher threw exception", e);
     if (e instanceof PublisherException) {
       return (PublisherException) e;
     }

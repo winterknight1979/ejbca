@@ -81,29 +81,41 @@ import org.ejbca.core.ejb.ca.publisher.PublisherSessionLocal;
 public class PublishingCrlSessionBean
     implements PublishingCrlSessionLocal, PublishingCrlSessionRemote {
 
-  private static final Logger log =
+    /** Log. */
+  private static final Logger LOG =
       Logger.getLogger(PublishingCrlSessionBean.class);
-  /** Internal localization of logs and errors */
-  private static final InternalResources intres =
+  /** Internal localization of logs and errors. */
+  private static final InternalResources INTRES =
       InternalResources.getInstance();
 
+  /** Resource. */
   @Resource private SessionContext sessionContext;
 
+  /** EJB. */
   @EJB private CaSessionLocal caSession;
+  /** EJB. */
   @EJB private CertificateDataSessionLocal certificateDataSession;
+  /** EJB. */
   @EJB private CertificateStoreSessionLocal certificateStoreSession;
+  /** EJB. */
   @EJB private CrlCreateSessionLocal crlCreateSession;
+  /** EJB. */
   @EJB private CrlStoreSessionLocal crlSession;
 
+  /** EJB. */
   @EJB
   private NoConflictCertificateStoreSessionLocal
       noConflictCertificateStoreSession;
 
+  /** EJB. */
   @EJB private PublisherSessionLocal publisherSession;
+  /** EJB. */
   @EJB private SecurityEventsLoggerSessionLocal logSession;
 
+  /** Param. */
   private PublishingCrlSessionLocal publishingCrlSession;
 
+  /** Init. */
   @PostConstruct
   public void postConstruct() {
     publishingCrlSession =
@@ -138,8 +150,8 @@ public class PublishingCrlSessionBean
     }
     int createdcrls = 0;
     for (final int caid : caIdsToProcess) {
-      if (log.isDebugEnabled()) {
-        log.debug("createCRLs for caid: " + caid);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("createCRLs for caid: " + caid);
       }
       try {
         if (publishingCrlSession.createCRLNewTransactionConditioned(
@@ -156,9 +168,9 @@ public class PublishingCrlSessionBean
         // since it might be something that should call for attention of the
         // operators, CRL generation is important.
         String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "createcrl.errorcreate", caid, e.getMessage());
-        log.error(msg, e);
+        LOG.error(msg, e);
       }
     }
     return createdcrls;
@@ -178,8 +190,8 @@ public class PublishingCrlSessionBean
     }
     int createddeltacrls = 0;
     for (final int caid : caIdsToProcess) {
-      if (log.isDebugEnabled()) {
-        log.debug("createDeltaCRLs for caid: " + caid);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("createDeltaCRLs for caid: " + caid);
       }
       try {
         if (publishingCrlSession.createDeltaCRLnewTransactionConditioned(
@@ -192,9 +204,9 @@ public class PublishingCrlSessionBean
         // Continue working with the others, but log a warning message in system
         // logs.
         final String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "createcrl.errorcreate", caid, e.getMessage());
-        log.error(msg, e);
+        LOG.error(msg, e);
         final Map<String, Object> details = new LinkedHashMap<>();
         details.put("msg", msg);
         logSession.log(
@@ -227,28 +239,28 @@ public class PublishingCrlSessionBean
     final CAInfo cainfo = ca.getCAInfo();
     try {
       if (cainfo.getStatus() == CAConstants.CA_EXTERNAL) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Not trying to generate CRL for external CA " + cainfo.getName());
         }
       } else if (cainfo.getStatus()
           == CAConstants.CA_WAITING_CERTIFICATE_RESPONSE) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Not trying to generate CRL for CA "
                   + cainfo.getName()
                   + " awaiting certificate response.");
         }
       } else if (cainfo.getStatus() == CAConstants.CA_REVOKED) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Not trying to generate CRL for CA "
                   + cainfo.getName()
                   + " that is revoked.");
         }
       } else if (cainfo.getStatus() == CAConstants.CA_UNINITIALIZED) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Not trying to generate CRL for CA "
                   + cainfo.getName()
                   + " that is uninitialized.");
@@ -262,14 +274,14 @@ public class PublishingCrlSessionBean
               // Normal event to not create CRLs for CAs that are deliberately
               // set off line
               String msg =
-                  intres.getLocalizedMessage(
+                  INTRES.getLocalizedMessage(
                       "createcrl.caoffline",
                       cainfo.getName(),
                       Integer.valueOf(cainfo.getCAId()));
-              log.info(msg);
+              LOG.info(msg);
             } else {
-              if (log.isDebugEnabled()) {
-                log.debug(
+              if (LOG.isDebugEnabled()) {
+                LOG.debug(
                     "Checking to see if CA '"
                         + cainfo.getName()
                         + "' ("
@@ -279,11 +291,11 @@ public class PublishingCrlSessionBean
               final String certSubjectDN = CertTools.getSubjectDN(cacert);
               final CRLInfo lastBaseCrlInfo =
                   crlSession.getLastCRLInfo(certSubjectDN, false);
-              if (log.isDebugEnabled()) {
+              if (LOG.isDebugEnabled()) {
                 if (lastBaseCrlInfo == null) {
-                  log.debug("Crlinfo was null");
+                  LOG.debug("Crlinfo was null");
                 } else {
-                  log.debug(
+                  LOG.debug(
                       "Read crlinfo for CA: "
                           + cainfo.getName()
                           + ", lastNumber="
@@ -293,11 +305,11 @@ public class PublishingCrlSessionBean
                 }
               }
               long crlissueinterval = cainfo.getCRLIssueInterval();
-              if (log.isDebugEnabled()) {
-                log.debug("crlissueinterval=" + crlissueinterval);
-                log.debug("crloverlaptime=" + cainfo.getCRLOverlapTime());
-                log.debug("addtocrloverlaptime=" + addtocrloverlaptime);
-                log.debug("now=" + now.getTime());
+              if (LOG.isDebugEnabled()) {
+                LOG.debug("crlissueinterval=" + crlissueinterval);
+                LOG.debug("crloverlaptime=" + cainfo.getCRLOverlapTime());
+                LOG.debug("addtocrloverlaptime=" + addtocrloverlaptime);
+                LOG.debug("now=" + now.getTime());
               }
               // Overlaptime from CA configuration, and addtocrloverlaptime is
               // the service poll time if a CRL Update Service is used
@@ -312,11 +324,11 @@ public class PublishingCrlSessionBean
               // issue a CRL ASAP
               long nextScheduledUpdate = 0;
               if (lastBaseCrlInfo != null) {
-                if (log.isDebugEnabled()) {
-                  log.debug(
+                if (LOG.isDebugEnabled()) {
+                  LOG.debug(
                       "lastCRLCreateTime="
                           + lastBaseCrlInfo.getCreateDate().getTime());
-                  log.debug(
+                  LOG.debug(
                       "lastCRLExpireTime="
                           + lastBaseCrlInfo.getExpireDate().getTime());
                 }
@@ -347,8 +359,8 @@ public class PublishingCrlSessionBean
                     overlap = addtocrloverlaptime;
                   }
                 }
-                if (log.isDebugEnabled()) {
-                  log.debug(
+                if (LOG.isDebugEnabled()) {
+                  LOG.debug(
                       "Calculated nextScheduledUpdate to "
                           + nextScheduledUpdate);
                 }
@@ -356,13 +368,13 @@ public class PublishingCrlSessionBean
                 // If crlinfo is null (no crl issued yet) nextUpdate will be 0
                 // and a new CRL should be generated
                 String msg =
-                    intres.getLocalizedMessage(
+                    INTRES.getLocalizedMessage(
                         "createcrl.crlinfonull", cainfo.getName());
-                log.info(msg);
+                LOG.info(msg);
               }
               if (now.getTime() + overlap >= nextScheduledUpdate) {
-                if (log.isDebugEnabled()) {
-                  log.debug(
+                if (LOG.isDebugEnabled()) {
+                  LOG.debug(
                       "Creating CRL for CA, because:"
                           + (now.getTime() + overlap)
                           + " >= "
@@ -374,8 +386,8 @@ public class PublishingCrlSessionBean
               }
             }
           } else if (cacert != null) {
-            if (log.isDebugEnabled()) {
-              log.debug(
+            if (LOG.isDebugEnabled()) {
+              LOG.debug(
                   "Not creating CRL for expired CA "
                       + cainfo.getName()
                       + ". CA subjectDN='"
@@ -384,8 +396,8 @@ public class PublishingCrlSessionBean
                       + CertTools.getNotAfter(cacert));
             }
           } else {
-            if (log.isDebugEnabled()) {
-              log.debug(
+            if (LOG.isDebugEnabled()) {
+              LOG.debug(
                   "Not creating CRL for CA without CA certificate: "
                       + cainfo.getName());
             }
@@ -393,7 +405,7 @@ public class PublishingCrlSessionBean
         }
       }
     } catch (CryptoTokenOfflineException e) {
-      log.warn("Crypto token is offline for CA " + caid + " generating CRL.");
+      LOG.warn("Crypto token is offline for CA " + caid + " generating CRL.");
       throw e;
     }
     return ret;
@@ -413,29 +425,29 @@ public class PublishingCrlSessionBean
     final CAInfo cainfo = ca.getCAInfo();
     try {
       if (cainfo.getStatus() == CAConstants.CA_EXTERNAL) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Not trying to generate delta CRL for external CA "
                   + cainfo.getName());
         }
       } else if (cainfo.getStatus()
           == CAConstants.CA_WAITING_CERTIFICATE_RESPONSE) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Not trying to generate delta CRL for CA "
                   + cainfo.getName()
                   + " awaiting certificate response.");
         }
       } else if (cainfo.getStatus() == CAConstants.CA_REVOKED) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Not trying to generate delta CRL for CA "
                   + cainfo.getName()
                   + " that is revoked.");
         }
       } else if (cainfo.getStatus() == CAConstants.CA_UNINITIALIZED) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Not trying to generate delta CRL for CA "
                   + cainfo.getName()
                   + " that is uninitialized.");
@@ -450,14 +462,14 @@ public class PublishingCrlSessionBean
                 // Normal event to not create CRLs for CAs that are deliberately
                 // set off line
                 String msg =
-                    intres.getLocalizedMessage(
+                    INTRES.getLocalizedMessage(
                         "createcrl.caoffline",
                         cainfo.getName(),
                         Integer.valueOf(cainfo.getCAId()));
-                log.info(msg);
+                LOG.info(msg);
               } else {
-                if (log.isDebugEnabled()) {
-                  log.debug(
+                if (LOG.isDebugEnabled()) {
+                  LOG.debug(
                       "Checking to see if CA '"
                           + cainfo.getName()
                           + "' needs Delta CRL generation.");
@@ -465,11 +477,11 @@ public class PublishingCrlSessionBean
                 final String certSubjectDN = CertTools.getSubjectDN(cacert);
                 final CRLInfo lastDeltaCrlInfo =
                     crlSession.getLastCRLInfo(certSubjectDN, true);
-                if (log.isDebugEnabled()) {
+                if (LOG.isDebugEnabled()) {
                   if (lastDeltaCrlInfo == null) {
-                    log.debug("DeltaCrlinfo was null");
+                    LOG.debug("DeltaCrlinfo was null");
                   } else {
-                    log.debug(
+                    LOG.debug(
                         "Read deltacrlinfo for CA: "
                             + cainfo.getName()
                             + ", lastNumber="
@@ -489,7 +501,7 @@ public class PublishingCrlSessionBean
                       ret = true;
                     }
                   } else {
-                    log.info(
+                    LOG.info(
                         "No full CRL exists when trying to generate delta CRL"
                             + " for caid "
                             + caid);
@@ -498,8 +510,8 @@ public class PublishingCrlSessionBean
               }
             }
           } else if (cacert != null) {
-            if (log.isDebugEnabled()) {
-              log.debug(
+            if (LOG.isDebugEnabled()) {
+              LOG.debug(
                   "Not creating delta CRL for expired CA "
                       + cainfo.getName()
                       + ". CA subjectDN='"
@@ -508,8 +520,8 @@ public class PublishingCrlSessionBean
                       + CertTools.getNotAfter(cacert));
             }
           } else {
-            if (log.isDebugEnabled()) {
-              log.debug(
+            if (LOG.isDebugEnabled()) {
+              LOG.debug(
                   "Not creating delta CRL for CA without CA certificate: "
                       + cainfo.getName());
             }
@@ -517,7 +529,7 @@ public class PublishingCrlSessionBean
         }
       }
     } catch (CryptoTokenOfflineException e) {
-      log.warn("Crypto token is offline for CA " + caid + " generating CRL.");
+      LOG.warn("Crypto token is offline for CA " + caid + " generating CRL.");
       throw e;
     }
     return ret;
@@ -551,7 +563,7 @@ public class PublishingCrlSessionBean
         ret = (crl != null);
       }
     } else {
-      log.info(
+      LOG.info(
           "No full CRL exists when trying to generate (force) delta CRL for"
               + " caid "
               + caid);
@@ -581,8 +593,8 @@ public class PublishingCrlSessionBean
       final CRLInfo lastBaseCrlInfo)
       throws CAOfflineException, CryptoTokenOfflineException,
           AuthorizationDeniedException {
-    if (log.isTraceEnabled()) {
-      log.trace(">internalCreateCRL()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">internalCreateCRL()");
     }
     if (ca == null) {
       throw new EJBException("No CA specified.");
@@ -601,12 +613,12 @@ public class PublishingCrlSessionBean
       if (caCertSubjectDN != null
           && cainfo.getStatus() == CAConstants.CA_ACTIVE) {
         // Find all revoked certificates for a complete CRL
-        if (log.isDebugEnabled()) {
+        if (LOG.isDebugEnabled()) {
           final long freeMemory =
               Runtime.getRuntime().maxMemory()
                   - Runtime.getRuntime().totalMemory()
                   + Runtime.getRuntime().freeMemory();
-          log.debug("Listing revoked certificates. Free memory=" + freeMemory);
+          LOG.debug("Listing revoked certificates. Free memory=" + freeMemory);
         }
         revokedCertificates =
             noConflictCertificateStoreSession.listRevokedCertInfo(
@@ -616,7 +628,7 @@ public class PublishingCrlSessionBean
         // certificates revoked with old names
         if (ca.getCAType() == CAInfo.CATYPE_X509
             && ((X509CA) ca).getNameChanged()) {
-          log.info(
+          LOG.info(
               "The CA with SubjectDN "
                   + ca.getSubjectDN()
                   + " has been gone through ICAO Name Change. Collecting all"
@@ -633,7 +645,7 @@ public class PublishingCrlSessionBean
               String renewedCertificateSubjectDN =
                   CertTools.getSubjectDN(renewedCertificate);
               if (!differentSubjectDNs.contains(renewedCertificateSubjectDN)) {
-                log.info(
+                LOG.info(
                     "Collecting revocation information for "
                         + renewedCertificateSubjectDN
                         + " and merging them with ones for "
@@ -642,8 +654,8 @@ public class PublishingCrlSessionBean
                 Collection<RevokedCertInfo> revokedCertInfo =
                     noConflictCertificateStoreSession.listRevokedCertInfo(
                         renewedCertificateSubjectDN, -1);
-                for (RevokedCertInfo tmp :
-                    revokedCertInfo) { // for loop is necessary because
+                for (RevokedCertInfo tmp
+                    : revokedCertInfo) { // for loop is necessary because
                                        // revokedCertInfo.toArray is not
                                        // supported...
                   revokedCertificatesBeforeLastCANameChange.add(tmp);
@@ -664,12 +676,12 @@ public class PublishingCrlSessionBean
           revokedCertificates.addAll(revokedCertificatesAfterLastCANameChange);
         }
 
-        if (log.isDebugEnabled()) {
+        if (LOG.isDebugEnabled()) {
           final long freeMemory =
               Runtime.getRuntime().maxMemory()
                   - Runtime.getRuntime().totalMemory()
                   + Runtime.getRuntime().freeMemory();
-          log.debug(
+          LOG.debug(
               "Found "
                   + revokedCertificates.size()
                   + " revoked certificates. Free memory="
@@ -700,7 +712,7 @@ public class PublishingCrlSessionBean
                 new UsernamePrincipal("CrlCreateSession.archive_expired"));
         final boolean keepexpiredcertsoncrl = cainfo.getKeepExpiredCertsOnCRL();
         if (keepexpiredcertsoncrl) {
-          log.info(
+          LOG.info(
               "KeepExpiredCertsOnCRL is enabled, we will not archive expired"
                   + " certificate but will keep them on the CRL (for ever"
                   + " growing): "
@@ -716,12 +728,12 @@ public class PublishingCrlSessionBean
           if (!keepexpiredcertsoncrl
               && revokedCertInfo.getExpireDate().before(lastCrlCreationDate)) {
             // Certificate has expired, set status to archived in the database
-            if (log.isDebugEnabled()) {
+            if (LOG.isDebugEnabled()) {
               final long freeMemory =
                   Runtime.getRuntime().maxMemory()
                       - Runtime.getRuntime().totalMemory()
                       + Runtime.getRuntime().freeMemory();
-              log.debug(
+              LOG.debug(
                   "Archiving certificate with fp="
                       + revokedCertInfo.getCertificateFingerprint()
                       + ". Free memory="
@@ -737,7 +749,8 @@ public class PublishingCrlSessionBean
               // FIXME should use noConflictCertificateStoreSession! (or can we
               // skip this code? when can isRevocationDateSet return false?)
               //
-              // noConflictCertificateStoreSession.setRevocationData(revokedCertInfo.getCertificateFingerprint(), now);
+              // noConflictCertificateStoreSession.setRevocationData
+              // (revokedCertInfo.getCertificateFingerprint(), now);
               CertificateData certdata =
                   certificateDataSession.findByFingerprint(
                       revokedCertInfo.getCertificateFingerprint());
@@ -772,17 +785,17 @@ public class PublishingCrlSessionBean
         //              }
       } else {
         String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "createcrl.errornotactive",
                 cainfo.getName(),
                 Integer.valueOf(cainfo.getCAId()),
                 cainfo.getStatus());
-        log.info(msg);
+        LOG.info(msg);
         throw new CAOfflineException(msg);
       }
     } catch (FinderException e) {
       // Should really not happen
-      log.error(e);
+      LOG.error(e);
       throw new EJBException(e);
     } finally {
       // Special treatment of our CompressedCollection to ensure that we release
@@ -791,8 +804,8 @@ public class PublishingCrlSessionBean
         revokedCertificates.clear();
       }
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<internalCreateCRL()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<internalCreateCRL()");
     }
     return ret;
   }
@@ -828,8 +841,8 @@ public class PublishingCrlSessionBean
       throw new EJBException("No CA specified.");
     }
     final CAInfo cainfo = ca.getCAInfo();
-    if (log.isTraceEnabled()) {
-      log.trace(">internalCreateDeltaCRL: " + cainfo.getSubjectDN());
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">internalCreateDeltaCRL: " + cainfo.getSubjectDN());
     }
     byte[] crlBytes = null;
     Collection<RevokedCertInfo> revcertinfos = null;
@@ -851,8 +864,8 @@ public class PublishingCrlSessionBean
         // certificates revoked with old names
         if (ca.getCAType() == CAInfo.CATYPE_X509
             && ((X509CA) ca).getNameChanged()) {
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "Gathering all revocation information published by this CA ("
                     + ca.getName()
                     + ":"
@@ -872,8 +885,8 @@ public class PublishingCrlSessionBean
                   CertTools.getSubjectDN(renewedCertificate);
 
               if (!differentSubjectDNs.contains(renewedCertificateSubjectDN)) {
-                if (log.isDebugEnabled()) {
-                  log.debug(
+                if (LOG.isDebugEnabled()) {
+                  LOG.debug(
                       "Collecting revocation information for renewed"
                           + " certificate '"
                           + renewedCertificateSubjectDN
@@ -884,8 +897,8 @@ public class PublishingCrlSessionBean
                 Collection<RevokedCertInfo> revokedCertInfo =
                     noConflictCertificateStoreSession.listRevokedCertInfo(
                         renewedCertificateSubjectDN, -1);
-                for (RevokedCertInfo tmp :
-                    revokedCertInfo) { // for loop is necessary because
+                for (RevokedCertInfo tmp
+                    : revokedCertInfo) { // for loop is necessary because
                                        // revokedCertInfo.toArray is not
                                        // supported...
                   revokedCertificatesBeforeLastCANameChange.add(tmp);
@@ -904,8 +917,8 @@ public class PublishingCrlSessionBean
           revcertinfos.addAll(revokedCertificatesAfterLastCANameChange);
         }
 
-        if (log.isDebugEnabled()) {
-          log.debug("Found " + revcertinfos.size() + " revoked certificates.");
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Found " + revcertinfos.size() + " revoked certificates.");
         }
         // Go through them and create a CRL, i.e. add to cert list to be
         // included in CRL
@@ -919,24 +932,24 @@ public class PublishingCrlSessionBean
         revcertinfos.clear(); // Release unused resources
         // create a delta CRL
         crlBytes = generateAndStoreCRL(admin, ca, certs, lastBaseCrlInfo, true);
-        if (log.isDebugEnabled()) {
+        if (LOG.isDebugEnabled()) {
           X509CRL crl = CertTools.getCRLfromByteArray(crlBytes);
-          log.debug(
+          LOG.debug(
               "Created delta CRL with expire date: " + crl.getNextUpdate());
         }
       } else {
         String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "createcrl.errornotactive",
                 cainfo.getName(),
                 Integer.valueOf(cainfo.getCAId()),
                 cainfo.getStatus());
-        log.info(msg);
+        LOG.info(msg);
         throw new CAOfflineException(msg);
       }
     } catch (CRLException e) {
       // Should really not happen
-      log.error(e);
+      LOG.error(e);
       throw new EJBException(e);
     } finally {
       // Special treatment of our CompressedCollections to ensure that we
@@ -948,8 +961,8 @@ public class PublishingCrlSessionBean
         certs.clear();
       }
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<internalCreateDeltaCRL: " + cainfo.getSubjectDN());
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<internalCreateDeltaCRL: " + cainfo.getSubjectDN());
     }
     return crlBytes;
   }
@@ -962,8 +975,8 @@ public class PublishingCrlSessionBean
       final boolean delta)
       throws CryptoTokenOfflineException, AuthorizationDeniedException {
     // Hard and error-prone to do that.
-    if (log.isDebugEnabled()) {
-      log.debug("Storing CRL in publishers");
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Storing CRL in publishers");
     }
     final String cafp = CertTools.getFingerprintAsString(ca.getCACertificate());
     String certSubjectDN = CertTools.getSubjectDN(ca.getCACertificate());
@@ -992,8 +1005,8 @@ public class PublishingCrlSessionBean
             CertTools.getSubjectDN(lastRenewedCACertificate);
         if (!lastRenewedCACertificateSubjectDN.equalsIgnoreCase(
             certSubjectDN)) {
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "First creation of CRL detected for CA "
                     + ca.getName()
                     + " after CA has gone through Name Change process."
@@ -1013,7 +1026,7 @@ public class PublishingCrlSessionBean
                   + " proceed with generating and storing CRL");
         }
       } else {
-        log.debug(
+        LOG.debug(
             "CA "
                 + ca.getName()
                 + " has gone through CA Name Change process, but this is not"

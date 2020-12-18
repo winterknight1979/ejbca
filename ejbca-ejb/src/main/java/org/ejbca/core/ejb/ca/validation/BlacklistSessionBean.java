@@ -54,19 +54,24 @@ public class BlacklistSessionBean
     implements BlacklistSessionLocal, BlacklistSessionRemote {
 
   /** Class logger. */
-  private static final Logger log =
+  private static final Logger LOG =
       Logger.getLogger(BlacklistSessionBean.class);
 
-  /** Internal localization of logs and errors */
-  private static final InternalEjbcaResources intres =
+  /** Internal localization of logs and errors. */
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
+  /** EM. */
   @PersistenceContext(unitName = "ejbca")
   private EntityManager entityManager;
 
+  /** EJB. */
   @EJB private SecurityEventsLoggerSessionLocal auditSession;
+  /** EJB. */
   @EJB private CertificateProfileSessionLocal certificateProfileSession;
+  /** EJB. */
   @EJB private AuthorizationSessionLocal authorizationSession;
+  /** EJB. */
   @EJB private CaSessionLocal caSession;
 
   @Override
@@ -82,15 +87,15 @@ public class BlacklistSessionBean
 
   @Override
   public String getBlacklistEntryFingerprint(final int id) {
-    if (log.isTraceEnabled()) {
-      log.trace(">getBlacklistEntryFingerprint(id: " + id + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">getBlacklistEntryFingerprint(id: " + id + ")");
     }
     // Get public key blacklist to ensure it is in the cache, or read.
     final BlacklistEntry entity =
         getBlacklistEntryInternal(id, null, null, true);
     final String result = (entity != null) ? entity.getValue() : null;
-    if (log.isTraceEnabled()) {
-      log.trace("<getBlacklistEntryFingerprint(): " + result);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<getBlacklistEntryFingerprint(): " + result);
     }
     return result;
   }
@@ -99,13 +104,13 @@ public class BlacklistSessionBean
   public void addBlacklistEntry(
       final AuthenticationToken admin, final int id, final BlacklistEntry entry)
       throws AuthorizationDeniedException, BlacklistExistsException {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">addBlacklist(value: " + entry.getValue() + ", id: " + id + ")");
     }
     addBlacklistEntryInternal(admin, id, entry);
     final String message =
-        intres.getLocalizedMessage(
+        INTRES.getLocalizedMessage(
             "blacklist.addedpublickeyblacklist", entry.getValue());
     final Map<String, Object> details = new LinkedHashMap<String, Object>();
     details.put("msg", message);
@@ -119,8 +124,8 @@ public class BlacklistSessionBean
         null,
         null,
         details);
-    if (log.isTraceEnabled()) {
-      log.trace("<addBlacklist()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<addBlacklist()");
     }
   }
 
@@ -128,23 +133,23 @@ public class BlacklistSessionBean
   public void changeBlacklistEntry(
       final AuthenticationToken admin, final BlacklistEntry entry)
       throws AuthorizationDeniedException, BlacklistDoesntExistsException {
-    if (log.isTraceEnabled()) {
-      log.trace(">changeBlacklist(value: " + entry.getValue() + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">changeBlacklist(value: " + entry.getValue() + ")");
     }
     assertIsAuthorizedToEditBlacklists(admin);
     BlacklistData dataExists =
         BlacklistData.findByTypeAndValue(
             entityManager, entry.getType(), entry.getValue());
     if (dataExists != null) {
-      log.debug(
+      LOG.debug(
           "An entry with type and value already exists: "
               + entry.getType()
               + ", "
               + entry.getValue());
       final String message =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "blacklist.errorchangepublickeyblacklist", entry.getValue());
-      log.info(message);
+      LOG.info(message);
     }
     BlacklistData data = BlacklistData.findById(entityManager, entry.getID());
     if (data != null) {
@@ -154,7 +159,7 @@ public class BlacklistSessionBean
       // here.
       PublicKeyBlacklistEntryCache.INSTANCE.removeEntry(data.getId());
       final String message =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "blacklist.changedpublickeyblacklist", entry.getValue());
       final Map<String, Object> details = new LinkedHashMap<String, Object>();
       details.put("msg", message);
@@ -174,12 +179,12 @@ public class BlacklistSessionBean
           details);
     } else {
       final String message =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "blacklist.errorchangepublickeyblacklist", entry.getValue());
-      log.info(message);
+      LOG.info(message);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<changeBlacklist()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<changeBlacklist()");
     }
   }
 
@@ -187,16 +192,16 @@ public class BlacklistSessionBean
   public void removeBlacklistEntry(
       final AuthenticationToken admin, final String type, final String value)
       throws AuthorizationDeniedException, BlacklistDoesntExistsException {
-    if (log.isTraceEnabled()) {
-      log.trace(">removeBlacklist(" + type + ", " + value + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">removeBlacklist(" + type + ", " + value + ")");
     }
     assertIsAuthorizedToEditBlacklists(admin);
     String message;
     BlacklistData data =
         BlacklistData.findByTypeAndValue(entityManager, type, value);
     if (data == null) {
-      if (log.isDebugEnabled()) {
-        log.debug("Trying to remove a blacklist that does not exist: " + value);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Trying to remove a blacklist that does not exist: " + value);
       }
       throw new BlacklistDoesntExistsException();
     } else {
@@ -204,7 +209,7 @@ public class BlacklistSessionBean
       // Purge the cache here.
       PublicKeyBlacklistEntryCache.INSTANCE.removeEntry(data.getId());
       message =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "blacklist.removedpublickeyblacklist", value);
       final Map<String, Object> details = new LinkedHashMap<String, Object>();
       details.put("msg", message);
@@ -219,16 +224,16 @@ public class BlacklistSessionBean
           null,
           details);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<removeBlacklist()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<removeBlacklist()");
     }
   }
 
   @Override
   public void flushBlacklistEntryCache() {
     PublicKeyBlacklistEntryCache.INSTANCE.flush();
-    if (log.isDebugEnabled()) {
-      log.debug("Flushed BlacklistEntry cache.");
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Flushed BlacklistEntry cache.");
     }
   }
 
@@ -236,13 +241,13 @@ public class BlacklistSessionBean
   public int addBlacklistEntry(
       final AuthenticationToken admin, final BlacklistEntry entry)
       throws AuthorizationDeniedException, BlacklistExistsException {
-    if (log.isTraceEnabled()) {
-      log.trace(">addBlacklist(fingerprint: " + entry.getValue() + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">addBlacklist(fingerprint: " + entry.getValue() + ")");
     }
     final int id = findFreeBlacklistId();
     addBlacklistEntry(admin, id, entry);
-    if (log.isTraceEnabled()) {
-      log.trace("<addBlacklist()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<addBlacklist()");
     }
     return id;
   }
@@ -251,8 +256,8 @@ public class BlacklistSessionBean
   public Map<Integer, String> getBlacklistEntryIdToValueMap() {
     final HashMap<Integer, String> result = new HashMap<Integer, String>();
     List<BlacklistData> list = BlacklistData.findAll(entityManager);
-    if (log.isDebugEnabled()) {
-      log.debug("Found blacklist with " + list.size() + " items.");
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Found blacklist with " + list.size() + " items.");
     }
     for (BlacklistData data : list) {
       // TODO: this could populate the cache, and read form the cache
@@ -298,9 +303,9 @@ public class BlacklistSessionBean
       entityManager.persist(entity);
     } else {
       final String message =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "blacklist.erroraddpublickeyblacklist", blacklist.getValue());
-      log.info(message);
+      LOG.info(message);
       throw new BlacklistExistsException(
           "Blacklist entry already exists: " + blacklist.getValue());
     }
@@ -320,8 +325,8 @@ public class BlacklistSessionBean
       final String type,
       final String value,
       final boolean fromCache) {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">getBlacklistEntryInternal: " + id + ", " + type + ", " + value);
     }
     Integer idValue = Integer.valueOf(id);
@@ -343,8 +348,8 @@ public class BlacklistSessionBean
     // if we selected to not read from cache, or if the cache did not contain
     // this entry
     if (result == null) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "BlacklistEntry with ID "
                 + idValue
                 + " and/or value '"
@@ -376,8 +381,8 @@ public class BlacklistSessionBean
         }
       }
     }
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "<getBlacklistEntryInternal: "
               + id
               + ", "
@@ -417,7 +422,7 @@ public class BlacklistSessionBean
     if (!authorizationSession.isAuthorized(
         admin, StandardRules.BLACKLISTEDIT.resource())) {
       final String message =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "store.editblacklistnotauthorized", admin.toString());
       throw new AuthorizationDeniedException(message);
     }

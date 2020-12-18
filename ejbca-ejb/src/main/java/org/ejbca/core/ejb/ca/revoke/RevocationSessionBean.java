@@ -49,7 +49,7 @@ import org.ejbca.core.model.InternalEjbcaResources;
 /**
  * Used for evoking certificates in the system, manages revocation by: - Setting
  * revocation status in the database (using certificate store) - Publishing
- * revocations to publishers
+ * revocations to publishers.
  *
  * @version $Id: RevocationSessionBean.java 28699 2018-04-12 19:21:46Z samuellb
  *     $
@@ -60,24 +60,31 @@ import org.ejbca.core.model.InternalEjbcaResources;
 public class RevocationSessionBean
     implements RevocationSessionLocal, RevocationSessionRemote {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(RevocationSessionBean.class);
 
+  /** EM. */
   @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
   private EntityManager entityManager;
 
+  /** EJB. */
   @EJB private SecurityEventsLoggerSessionLocal auditSession;
+  /** EJB. */
   @EJB private CertificateStoreSessionLocal certificateStoreSession;
+  /** EJB. */
   @EJB private CrlStoreSessionLocal crlStoreSession;
 
+  /** EJB. */
   @EJB
   private NoConflictCertificateStoreSessionLocal
       noConflictCertificateStoreSession;
 
+  /** EJB. */
   @EJB private PublisherSessionLocal publisherSession;
 
-  /** Internal localization of logs and errors */
-  private static final InternalEjbcaResources intres =
+  /** Internal localization of logs and errors. */
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
   @TransactionAttribute(TransactionAttributeType.REQUIRED)
@@ -97,10 +104,10 @@ public class RevocationSessionBean
       revokeCertificate(admin, cdw, publishers, revokedate, reason, userDataDN);
     } else {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "store.errorfindcertserno",
               CertTools.getSerialNumberAsString(cert));
-      log.info(msg);
+      LOG.info(msg);
       throw new CertificateRevokeException(msg);
     }
   }
@@ -147,8 +154,8 @@ public class RevocationSessionBean
             publisherSession.storeCertificate(
                 admin, publishers, cdw, password, userDataDN, null);
         if (published) {
-          log.info(
-              intres.getLocalizedMessage(
+          LOG.info(
+              INTRES.getLocalizedMessage(
                   "store.republishunrevokedcert", Integer.valueOf(reason)));
         } else {
           final String serialNumber = certificateData.getSerialNumberHex();

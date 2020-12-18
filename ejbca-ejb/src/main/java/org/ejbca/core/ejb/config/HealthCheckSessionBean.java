@@ -33,9 +33,11 @@ import org.ejbca.config.EjbcaConfiguration;
 public class HealthCheckSessionBean
     implements HealthCheckSessionLocal, HealthCheckSessionRemote {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(HealthCheckSessionBean.class);
 
+  /** EM. */
   @PersistenceContext(unitName = "ejbca")
   private EntityManager entityManager;
 
@@ -51,7 +53,7 @@ public class HealthCheckSessionBean
     } catch (Exception e) {
       returnval =
           "\nDB: Error creating connection to database: " + e.getMessage();
-      log.error("Error creating connection to database.", e);
+      LOG.error("Error creating connection to database.", e);
     }
     return returnval;
   }

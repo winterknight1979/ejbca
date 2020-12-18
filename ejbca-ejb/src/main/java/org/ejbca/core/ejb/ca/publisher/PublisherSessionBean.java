@@ -86,30 +86,39 @@ import org.ejbca.core.model.ca.publisher.PublisherQueueVolatileInformation;
 public class PublisherSessionBean
     implements PublisherSessionLocal, PublisherSessionRemote {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(PublisherSessionBean.class);
 
-  /** Internal localization of logs and errors */
-  private static final InternalEjbcaResources intres =
+  /** Internal localization of logs and errors. */
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
+  /** EM. */
   @PersistenceContext(unitName = "ejbca")
   private EntityManager entityManager;
 
+  /** EJB. */
   @EJB private AuthorizationSessionLocal authorizationSession;
+  /** EJB. */
   @EJB private CAAdminSessionLocal caAdminSession;
+  /** EJB. */
   @EJB private CertificateProfileSessionLocal certificateProfileSession;
+  /** EJB. */
   @EJB private CertificateStoreSessionLocal certificateStoreSession;
+  /** EJB. */
   @EJB private GlobalConfigurationSessionLocal globalConfigurationSession;
+  /** EJB. */
   @EJB private PublisherQueueSessionLocal publisherQueueSession;
+  /** EJB. */
   @EJB private SecurityEventsLoggerSessionLocal auditSession;
 
   @Override
   @TransactionAttribute(TransactionAttributeType.SUPPORTS)
   public void flushPublisherCache() {
     PublisherCache.INSTANCE.flush();
-    if (log.isDebugEnabled()) {
-      log.debug("Flushed Publisher cache.");
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Flushed Publisher cache.");
     }
   }
 
@@ -128,7 +137,7 @@ public class PublisherSessionBean
     if (!authorizationSession.isAuthorized(
         admin, StandardRules.CAACCESS.resource() + caid)) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "caadmin.notauthorizedtoca", admin.toString(), caid);
       throw new AuthorizationDeniedException(msg);
     }
@@ -162,16 +171,16 @@ public class PublisherSessionBean
             publishersToTryDirect.add(publ);
           }
         } else {
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "Not storing or queuing certificate for Publisher with id "
                     + id
                     + " because publisher will not publish it.");
           }
         }
       } else {
-        String msg = intres.getLocalizedMessage("publisher.nopublisher", id);
-        log.info(msg);
+        String msg = INTRES.getLocalizedMessage("publisher.nopublisher", id);
+        LOG.info(msg);
         returnval = false;
       }
     }
@@ -192,7 +201,7 @@ public class PublisherSessionBean
       final String name = getPublisherName(id);
       if (!(publisherResult instanceof PublisherException)) {
         final String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "publisher.store",
                 certificateData.getSubjectDnNeverNull(),
                 name);
@@ -214,7 +223,7 @@ public class PublisherSessionBean
         }
       } else {
         final String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "publisher.errorstore", name, fingerprint);
         final Map<String, Object> details = new LinkedHashMap<>();
         details.put("msg", msg);
@@ -289,9 +298,9 @@ public class PublisherSessionBean
     for (final BasePublisher publ : publishersToQueue) {
       final int id = publ.getPublisherId();
       final String name = getPublisherName(id);
-      if (log.isDebugEnabled()) {
-        log.debug("KeepPublishedInQueue: " + publ.getKeepPublishedInQueue());
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("KeepPublishedInQueue: " + publ.getKeepPublishedInQueue());
+        LOG.debug(
             "UseQueueForCertificates: " + publ.getUseQueueForCertificates());
       }
       // Write to the publisher queue either for audit reasons or to be able try
@@ -310,14 +319,14 @@ public class PublisherSessionBean
             pqvd,
             publisherStatus);
         final String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "publisher.storequeue", name, fingerprint, status);
-        log.info(msg);
+        LOG.info(msg);
       } catch (CreateException e) {
         final String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "publisher.errorstorequeue", name, fingerprint, status);
-        log.info(msg, e);
+        LOG.info(msg, e);
       }
     }
   }
@@ -331,14 +340,14 @@ public class PublisherSessionBean
       final int number,
       final String issuerDn)
       throws AuthorizationDeniedException {
-    if (log.isTraceEnabled()) {
-      log.trace(">storeCRL");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">storeCRL");
     }
     int caid = CertTools.stringToBCDNString(issuerDn).hashCode();
     if (!authorizationSession.isAuthorized(
         admin, StandardRules.CAACCESS.resource() + caid)) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "caadmin.notauthorizedtoca", admin.toString(), caid);
       throw new AuthorizationDeniedException(msg);
     }
@@ -366,7 +375,7 @@ public class PublisherSessionBean
               }
             }
             final String msg =
-                intres.getLocalizedMessage("publisher.store", "CRL", name);
+                INTRES.getLocalizedMessage("publisher.store", "CRL", name);
             final Map<String, Object> details = new LinkedHashMap<>();
             details.put("msg", msg);
             auditSession.log(
@@ -381,7 +390,7 @@ public class PublisherSessionBean
                 details);
           } catch (PublisherException pe) {
             final String msg =
-                intres.getLocalizedMessage("publisher.errorstore", name, "CRL");
+                INTRES.getLocalizedMessage("publisher.errorstore", name, "CRL");
             final Map<String, Object> details = new LinkedHashMap<>();
             details.put("msg", msg);
             details.put("error", pe.getMessage());
@@ -400,9 +409,9 @@ public class PublisherSessionBean
         if (publishStatus != PublisherConst.STATUS_SUCCESS) {
           returnval = false;
         }
-        if (log.isDebugEnabled()) {
-          log.debug("KeepPublishedInQueue: " + publ.getKeepPublishedInQueue());
-          log.debug("UseQueueForCRLs: " + publ.getUseQueueForCRLs());
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("KeepPublishedInQueue: " + publ.getKeepPublishedInQueue());
+          LOG.debug("UseQueueForCRLs: " + publ.getUseQueueForCRLs());
         }
         if ((publishStatus != PublisherConst.STATUS_SUCCESS
                 || publ.getKeepPublishedInQueue())
@@ -421,24 +430,24 @@ public class PublisherSessionBean
                 pqvd,
                 PublisherConst.STATUS_PENDING);
             String msg =
-                intres.getLocalizedMessage(
+                INTRES.getLocalizedMessage(
                     "publisher.storequeue", name, fp, "CRL");
-            log.info(msg);
+            LOG.info(msg);
           } catch (CreateException e) {
             String msg =
-                intres.getLocalizedMessage(
+                INTRES.getLocalizedMessage(
                     "publisher.errorstorequeue", name, fp, "CRL");
-            log.info(msg, e);
+            LOG.info(msg, e);
           }
         }
       } else {
-        String msg = intres.getLocalizedMessage("publisher.nopublisher", id);
-        log.info(msg);
+        String msg = INTRES.getLocalizedMessage("publisher.nopublisher", id);
+        LOG.info(msg);
         returnval = false;
       }
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<storeCRL");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<storeCRL");
     }
     return returnval;
   }
@@ -446,8 +455,8 @@ public class PublisherSessionBean
   @Override
   public void testConnection(final int publisherid)
       throws PublisherConnectionException { // NOPMD: this is not a JUnit test
-    if (log.isTraceEnabled()) {
-      log.trace(">testConnection(id: " + publisherid + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">testConnection(id: " + publisherid + ")");
     }
     PublisherData pdl =
         PublisherData.findById(entityManager, Integer.valueOf(publisherid));
@@ -456,22 +465,22 @@ public class PublisherSessionBean
       try {
         getPublisher(pdl).testConnection();
         String msg =
-            intres.getLocalizedMessage("publisher.testedpublisher", name);
-        log.info(msg);
+            INTRES.getLocalizedMessage("publisher.testedpublisher", name);
+        LOG.info(msg);
       } catch (PublisherConnectionException pe) {
         String msg =
-            intres.getLocalizedMessage("publisher.errortestpublisher", name);
-        log.info(msg);
+            INTRES.getLocalizedMessage("publisher.errortestpublisher", name);
+        LOG.info(msg);
         throw new PublisherConnectionException(pe.getMessage());
       }
     } else {
       String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "publisher.nopublisher", Integer.valueOf(publisherid));
-      log.info(msg);
+      LOG.info(msg);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<testConnection(id: " + publisherid + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<testConnection(id: " + publisherid + ")");
     }
   }
 
@@ -481,13 +490,13 @@ public class PublisherSessionBean
       final String name,
       final BasePublisher publisher)
       throws PublisherExistsException, AuthorizationDeniedException {
-    if (log.isTraceEnabled()) {
-      log.trace(">addPublisher(name: " + name + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">addPublisher(name: " + name + ")");
     }
     int id = findFreePublisherId();
     addPublisher(admin, id, name, publisher);
-    if (log.isTraceEnabled()) {
-      log.trace("<addPublisher()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<addPublisher()");
     }
     return id;
   }
@@ -499,12 +508,12 @@ public class PublisherSessionBean
       final String name,
       final BasePublisher publisher)
       throws PublisherExistsException, AuthorizationDeniedException {
-    if (log.isTraceEnabled()) {
-      log.trace(">addPublisher(name: " + name + ", id: " + id + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">addPublisher(name: " + name + ", id: " + id + ")");
     }
     addPublisherInternal(admin, id, name, publisher);
     final String msg =
-        intres.getLocalizedMessage("publisher.addedpublisher", name);
+        INTRES.getLocalizedMessage("publisher.addedpublisher", name);
     final Map<String, Object> details = new LinkedHashMap<>();
     details.put("msg", msg);
     auditSession.log(
@@ -517,8 +526,8 @@ public class PublisherSessionBean
         null,
         null,
         details);
-    if (log.isTraceEnabled()) {
-      log.trace("<addPublisher()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<addPublisher()");
     }
   }
 
@@ -553,14 +562,14 @@ public class PublisherSessionBean
             new PublisherData(Integer.valueOf(id), name, publisher));
       } else {
         final String msg =
-            intres.getLocalizedMessage("publisher.erroraddpublisher", id);
-        log.info(msg);
+            INTRES.getLocalizedMessage("publisher.erroraddpublisher", id);
+        LOG.info(msg);
         throw new PublisherExistsException();
       }
     } else {
       final String msg =
-          intres.getLocalizedMessage("publisher.erroraddpublisher", name);
-      log.info(msg);
+          INTRES.getLocalizedMessage("publisher.erroraddpublisher", name);
+      LOG.info(msg);
       throw new PublisherExistsException();
     }
   }
@@ -571,8 +580,8 @@ public class PublisherSessionBean
       final String name,
       final BasePublisher publisher)
       throws AuthorizationDeniedException {
-    if (log.isTraceEnabled()) {
-      log.trace(">changePublisher(name: " + name + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">changePublisher(name: " + name + ")");
     }
     authorizedToEditPublishers(admin);
 
@@ -584,7 +593,7 @@ public class PublisherSessionBean
       // here
       PublisherCache.INSTANCE.removeEntry(htp.getId());
       final String msg =
-          intres.getLocalizedMessage("publisher.changedpublisher", name);
+          INTRES.getLocalizedMessage("publisher.changedpublisher", name);
       final Map<String, Object> details = new LinkedHashMap<>();
       details.put("msg", msg);
       for (Map.Entry<Object, Object> entry : diff.entrySet()) {
@@ -608,11 +617,11 @@ public class PublisherSessionBean
           details);
     } else {
       String msg =
-          intres.getLocalizedMessage("publisher.errorchangepublisher", name);
-      log.info(msg);
+          INTRES.getLocalizedMessage("publisher.errorchangepublisher", name);
+      LOG.info(msg);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<changePublisher()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<changePublisher()");
     }
   }
 
@@ -623,8 +632,8 @@ public class PublisherSessionBean
       final String newname)
       throws PublisherDoesntExistsException, AuthorizationDeniedException,
           PublisherExistsException {
-    if (log.isTraceEnabled()) {
-      log.trace(">clonePublisher(name: " + oldname + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">clonePublisher(name: " + oldname + ")");
     }
     BasePublisher publisherdata = null;
     PublisherData htp = PublisherData.findByName(entityManager, oldname);
@@ -637,7 +646,7 @@ public class PublisherSessionBean
       addPublisherInternal(
           admin, findFreePublisherId(), newname, publisherdata);
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "publisher.clonedpublisher", newname, oldname);
       final Map<String, Object> details = new LinkedHashMap<>();
       details.put("msg", msg);
@@ -653,16 +662,16 @@ public class PublisherSessionBean
           details);
     } catch (PublisherExistsException f) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "publisher.errorclonepublisher", newname, oldname);
-      log.info(msg);
+      LOG.info(msg);
       throw f;
     } catch (CloneNotSupportedException e) {
       // Severe error, should never happen
       throw new EJBException(e);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<clonePublisher()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<clonePublisher()");
     }
   }
 
@@ -670,15 +679,15 @@ public class PublisherSessionBean
   public void removePublisherInternal(
       final AuthenticationToken admin, final String name)
       throws AuthorizationDeniedException {
-    if (log.isTraceEnabled()) {
-      log.trace(">removePublisherInternal(name: " + name + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">removePublisherInternal(name: " + name + ")");
     }
     authorizedToEditPublishers(admin);
     try {
       PublisherData htp = PublisherData.findByName(entityManager, name);
       if (htp == null) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Trying to remove a publisher that does not exist: " + name);
         }
       } else {
@@ -686,7 +695,7 @@ public class PublisherSessionBean
         // Purge the cache here
         PublisherCache.INSTANCE.removeEntry(htp.getId());
         final String msg =
-            intres.getLocalizedMessage("publisher.removedpublisher", name);
+            INTRES.getLocalizedMessage("publisher.removedpublisher", name);
         final Map<String, Object> details = new LinkedHashMap<>();
         details.put("msg", msg);
         auditSession.log(
@@ -702,22 +711,22 @@ public class PublisherSessionBean
       }
     } catch (Exception e) {
       String msg =
-          intres.getLocalizedMessage("publisher.errorremovepublisher", name);
-      log.info(msg, e);
+          INTRES.getLocalizedMessage("publisher.errorremovepublisher", name);
+      LOG.info(msg, e);
     }
-    log.trace("<removePublisherInternal()");
+    LOG.trace("<removePublisherInternal()");
   }
 
   @Override
   public void removePublisher(
       final AuthenticationToken admin, final String name)
       throws AuthorizationDeniedException, ReferencesToItemExistException {
-    if (log.isTraceEnabled()) {
-      log.trace(">removePublisher(name: " + name + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">removePublisher(name: " + name + ")");
     }
     checkPublisherInUse(name);
     removePublisherInternal(admin, name);
-    log.trace("<removePublisher()");
+    LOG.trace("<removePublisher()");
   }
 
   /**
@@ -739,8 +748,8 @@ public class PublisherSessionBean
         publisherId)) {
       inUseBy.add("one or more Certificate Profiles");
     }
-    for (final Entry<Integer, BasePublisher> entry :
-        getAllPublishersInternal().entrySet()) {
+    for (final Entry<Integer, BasePublisher> entry
+        : getAllPublishersInternal().entrySet()) {
       final BasePublisher publisher = entry.getValue();
       if (publisher instanceof MultiGroupPublisher) {
         final List<TreeSet<Integer>> publisherGroups =
@@ -760,7 +769,7 @@ public class PublisherSessionBean
               + name
               + " can't be deleted because it's in use by: "
               + StringUtils.join(inUseBy, ", ");
-      log.info(message);
+      LOG.info(message);
       throw new ReferencesToItemExistException(message);
     }
   }
@@ -771,8 +780,8 @@ public class PublisherSessionBean
       final String oldname,
       final String newname)
       throws PublisherExistsException, AuthorizationDeniedException {
-    if (log.isTraceEnabled()) {
-      log.trace(">renamePublisher(from " + oldname + " to " + newname + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">renamePublisher(from " + oldname + " to " + newname + ")");
     }
     authorizedToEditPublishers(admin);
     boolean success = false;
@@ -788,7 +797,7 @@ public class PublisherSessionBean
     }
     if (success) {
       String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "publisher.renamedpublisher", oldname, newname);
       final Map<String, Object> details = new LinkedHashMap<>();
       details.put("msg", msg);
@@ -804,13 +813,13 @@ public class PublisherSessionBean
           details);
     } else {
       String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "publisher.errorrenamepublisher", oldname, newname);
-      log.info(msg);
+      LOG.info(msg);
       throw new PublisherExistsException();
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<renamePublisher()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<renamePublisher()");
     }
   }
 
@@ -933,14 +942,14 @@ public class PublisherSessionBean
   @TransactionAttribute(TransactionAttributeType.SUPPORTS)
   @Override
   public String getPublisherName(final int id) {
-    if (log.isTraceEnabled()) {
-      log.trace(">getPublisherName(id: " + id + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">getPublisherName(id: " + id + ")");
     }
     // Get publisher to ensure it is in the cache, or read
     final BasePublisher pub = getPublisherInternal(id, null, true);
     final String ret = (pub != null) ? pub.getName() : null;
-    if (log.isTraceEnabled()) {
-      log.trace("<getPublisherName(): " + ret);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<getPublisherName(): " + ret);
     }
     return ret;
   }
@@ -949,8 +958,8 @@ public class PublisherSessionBean
   @Override
   public Map<?, ?> getPublisherData(final int id)
       throws PublisherDoesntExistsException {
-    if (log.isTraceEnabled()) {
-      log.trace(">getPublisherData(id: " + id + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">getPublisherData(id: " + id + ")");
     }
 
     final BasePublisher pub = getPublisherInternal(id, null, true);
@@ -964,8 +973,8 @@ public class PublisherSessionBean
   @TransactionAttribute(TransactionAttributeType.SUPPORTS)
   @Override
   public String testAllConnections() {
-    if (log.isTraceEnabled()) {
-      log.trace(">testAllConnections");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">testAllConnections");
     }
     String returnval = "";
     Iterator<PublisherData> i = PublisherData.findAll(entityManager).iterator();
@@ -976,13 +985,13 @@ public class PublisherSessionBean
         getPublisher(pdl).testConnection();
       } catch (PublisherConnectionException pe) {
         String msg =
-            intres.getLocalizedMessage("publisher.errortestpublisher", name);
-        log.info(msg);
+            INTRES.getLocalizedMessage("publisher.errortestpublisher", name);
+        LOG.info(msg);
         returnval += "\n" + msg;
       }
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<testAllConnections");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<testAllConnections");
     }
     return returnval;
   }
@@ -1019,8 +1028,8 @@ public class PublisherSessionBean
    */
   private BasePublisher getPublisherInternal(
       final int id, final String name, final boolean fromCache) {
-    if (log.isTraceEnabled()) {
-      log.trace(">getPublisherInternal: " + id + ", " + name);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">getPublisherInternal: " + id + ", " + name);
     }
     Integer idValue = Integer.valueOf(id);
     if (id == -1) {
@@ -1039,8 +1048,8 @@ public class PublisherSessionBean
     // if we selected to not read from cache, or if the cache did not contain
     // this entry
     if (returnval == null) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Publisher with ID "
                 + idValue
                 + " and/or name '"
@@ -1069,8 +1078,8 @@ public class PublisherSessionBean
         }
       }
     }
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "<getPublisherInternal: "
               + id
               + ", "
@@ -1092,8 +1101,8 @@ public class PublisherSessionBean
       final String msg =
           "Failed to parse PublisherData data map in database: "
               + e.getMessage();
-      if (log.isDebugEnabled()) {
-        log.debug(msg + ". Data:\n" + data);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(msg + ". Data:\n" + data);
       }
       throw new IllegalStateException(msg, e);
     }
@@ -1163,7 +1172,7 @@ public class PublisherSessionBean
     if (!authorizationSession.isAuthorized(
         admin, AccessRulesConstants.REGULAR_EDITPUBLISHER)) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "store.editpublishernotauthorized", admin.toString());
       throw new AuthorizationDeniedException(msg);
     }

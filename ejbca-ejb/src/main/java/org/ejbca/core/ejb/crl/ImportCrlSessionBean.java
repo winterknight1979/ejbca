@@ -56,11 +56,15 @@ import org.ejbca.core.model.ra.RevokeBackDateNotAllowedForProfileException;
 public class ImportCrlSessionBean
     implements ImportCrlSessionLocal, ImportCrlSessionRemote {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(ImportCrlSessionBean.class);
 
+  /** EJB. */
   @EJB private CertificateStoreSessionLocal certStoreSession;
+  /** EJB. */
   @EJB private CrlStoreSessionLocal crlStoreSession;
+  /** EJB. */
   @EJB private EndEntityManagementSessionLocal endentityManagementSession;
 
   @Override
@@ -85,17 +89,17 @@ public class ImportCrlSessionBean
         CrlExtensions.getDeltaCRLIndicator(x509crl).intValue() != -1;
     final int downloadedCrlNumber =
         CrlExtensions.getCrlNumber(x509crl).intValue();
-    if (log.isTraceEnabled()) {
-      log.trace("Delta CRL:  " + isDeltaCrl);
-      log.trace("IssuerDn:   " + issuerDn);
-      log.trace("CRL Number: " + downloadedCrlNumber);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("Delta CRL:  " + isDeltaCrl);
+      LOG.trace("IssuerDn:   " + issuerDn);
+      LOG.trace("CRL Number: " + downloadedCrlNumber);
     }
 
     X509CRL lastCrlOfSameType =
         getLastCrlOfSameType(x509crl, isDeltaCrl, issuerDn);
     if (lastCrlOfSameType != null
         && !x509crl.getThisUpdate().after(lastCrlOfSameType.getThisUpdate())) {
-      log.info(
+      LOG.info(
           (isDeltaCrl ? "Delta" : "Full")
               + " CRL number "
               + downloadedCrlNumber
@@ -110,7 +114,7 @@ public class ImportCrlSessionBean
     // If the CRL is newer than the last known or there wasn't any old one, loop
     // through it
     if (x509crl.getRevokedCertificates() == null) {
-      log.info(
+      LOG.info(
           "No revoked certificates in "
               + (isDeltaCrl ? "delta" : "full")
               + " CRL for CA '"
@@ -119,14 +123,14 @@ public class ImportCrlSessionBean
     } else {
       final Set<X509CRLEntry> crlEntries = new HashSet<X509CRLEntry>();
       crlEntries.addAll(x509crl.getRevokedCertificates());
-      if (log.isDebugEnabled()) {
-        log.debug("Downloaded CRL contains " + crlEntries.size() + " entries.");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Downloaded CRL contains " + crlEntries.size() + " entries.");
       }
 
       if (lastCrlOfSameType != null
           && lastCrlOfSameType.getRevokedCertificates() != null) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Last known CRL contains "
                   + lastCrlOfSameType.getRevokedCertificates().size()
                   + " entries.");
@@ -135,7 +139,7 @@ public class ImportCrlSessionBean
         crlEntries.removeAll(lastCrlOfSameType.getRevokedCertificates());
       }
 
-      log.info(
+      LOG.info(
           "Found "
               + crlEntries.size()
               + " new entires in "
@@ -156,7 +160,7 @@ public class ImportCrlSessionBean
               CertTools.stringToBCDNString(
                   crlEntry.getCertificateIssuer().getName());
           if (!issuerDn.equals(entryIssuerDn)) {
-            log.warn(
+            LOG.warn(
                 "CA's subjectDN does not match CRL entry's issuerDn '"
                     + entryIssuerDn
                     + "' and entry with serialNumber "
@@ -182,10 +186,10 @@ public class ImportCrlSessionBean
         } else {
           final String serialHex = serialNumber.toString(16).toUpperCase();
           if (isCertAlreadyRevoked(reasonCode, cdw)) {
-            log.info("Certificate '" + serialHex + "' is already revoked");
+            LOG.info("Certificate '" + serialHex + "' is already revoked");
             continue;
           }
-          log.info(
+          LOG.info(
               "Revoking '"
                   + serialHex
                   + "' "
@@ -202,7 +206,7 @@ public class ImportCrlSessionBean
                 reasonCode,
                 false);
           } catch (AlreadyRevokedException e) {
-            log.warn(
+            LOG.warn(
                 "Failed to revoke '"
                     + serialHex
                     + "'. (Status might be 'Archived'.) Error message was: "
@@ -259,7 +263,7 @@ public class ImportCrlSessionBean
   private void verifyCrlIssuer(
       final X509CRL crl, final String issuerDN, final X509Certificate cacert)
       throws CrlImportException {
-    log.info("CA: " + issuerDN);
+    LOG.info("CA: " + issuerDN);
     // Read the supplied CRL and verify that it is issued by the specified CA
     if (!crl.getIssuerX500Principal()
         .equals(cacert.getSubjectX500Principal())) {
@@ -285,7 +289,7 @@ public class ImportCrlSessionBean
       try {
         lastCrlOfSameType = CertTools.getCRLfromByteArray(lastCrl);
       } catch (CRLException e) {
-        log.warn("Could not retrieve an older CRL issued by " + issuerDN, e);
+        LOG.warn("Could not retrieve an older CRL issued by " + issuerDN, e);
       }
     }
     return lastCrlOfSameType;

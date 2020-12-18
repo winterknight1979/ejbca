@@ -49,15 +49,18 @@ import org.ejbca.core.model.ca.store.CertReqHistory;
 public class CertReqHistorySessionBean
     implements CertReqHistorySessionRemote, CertReqHistorySessionLocal {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(CertReqHistorySessionBean.class);
-  /** Internal localization of logs and errors */
-  private static final InternalEjbcaResources intres =
+  /** Internal localization of logs and errors. */
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
+  /** EM. */
   @PersistenceContext(unitName = "ejbca")
   private EntityManager entityManager;
 
+  /** EJB. */
   @EJB private CertificateDataSessionLocal certificateDataSession;
 
   @TransactionAttribute(TransactionAttributeType.REQUIRED)
@@ -66,8 +69,8 @@ public class CertReqHistorySessionBean
       final Certificate cert, final EndEntityInformation endEntityInformation) {
     final String issuerDN = CertTools.getIssuerDN(cert);
     final String username = endEntityInformation.getUsername();
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">addCertReqHistoryData("
               + CertTools.getSerialNumberAsString(cert)
               + ", "
@@ -79,33 +82,33 @@ public class CertReqHistorySessionBean
     try {
       entityManager.persist(
           new CertReqHistoryData(cert, issuerDN, endEntityInformation));
-      log.info(intres.getLocalizedMessage("store.storehistory", username));
+      LOG.info(INTRES.getLocalizedMessage("store.storehistory", username));
     } catch (Exception e) {
-      log.error(
-          intres.getLocalizedMessage(
+      LOG.error(
+          INTRES.getLocalizedMessage(
               "store.errorstorehistory", endEntityInformation.getUsername()));
       throw new EJBException(e);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<addCertReqHistoryData()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<addCertReqHistoryData()");
     }
   }
 
   @TransactionAttribute(TransactionAttributeType.REQUIRED)
   @Override
   public void removeCertReqHistoryData(final String certFingerprint) {
-    if (log.isTraceEnabled()) {
-      log.trace(">removeCertReqHistData(" + certFingerprint + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">removeCertReqHistData(" + certFingerprint + ")");
     }
     try {
       String msg =
-          intres.getLocalizedMessage("store.removehistory", certFingerprint);
-      log.info(msg);
+          INTRES.getLocalizedMessage("store.removehistory", certFingerprint);
+      LOG.info(msg);
       CertReqHistoryData crh =
           CertReqHistoryData.findById(entityManager, certFingerprint);
       if (crh == null) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Trying to remove CertReqHistory that does not exist: "
                   + certFingerprint);
         }
@@ -114,13 +117,13 @@ public class CertReqHistorySessionBean
       }
     } catch (Exception e) {
       String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "store.errorremovehistory", certFingerprint);
-      log.info(msg);
+      LOG.info(msg);
       throw new EJBException(e);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<removeCertReqHistData()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<removeCertReqHistData()");
     }
   }
 

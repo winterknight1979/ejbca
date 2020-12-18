@@ -75,7 +75,8 @@ public class EjbcaAuditorSessionBean implements EjbcaAuditorSessionLocal {
               + IntegrityProtectedDevice.class.getSimpleName());
     }
     /* Require that the caller is authorized to AUDITLOGSELECT just like in
-    * org.cesecore.audit.audit.SecurityEventsAuditorSessionBean.selectAuditLogs(...) */
+    * org.cesecore.audit.audit.SecurityEventsAuditorSessionBean.
+    * selectAuditLogs(...) */
     assertAuthorization(token, AuditLogRules.VIEW.resource());
     // Assert that parameter is alphanumeric or one of ". ?<>!="
     assertLegalSqlString(whereClause, true);

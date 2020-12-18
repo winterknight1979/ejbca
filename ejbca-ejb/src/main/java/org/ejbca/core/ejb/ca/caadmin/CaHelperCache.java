@@ -31,7 +31,7 @@ public final class CaHelperCache {
    */
   protected static volatile long lastCACacheUpdateTime = -1;
 
-  /** Caching of CA IDs with CA cert hash as ID */
+  /** Caching of CA IDs with CA cert hash as ID. */
   protected static volatile Map<Integer, Integer> caCertToCaId =
       new HashMap<Integer, Integer>();
 
