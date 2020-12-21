@@ -89,14 +89,18 @@ import org.ejbca.config.EjbcaConfiguration;
  */
 public class ApprovalExecutorUtil {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(ApprovalExecutorUtil.class);
 
-  /** These variables are protected to enable JUnit testing */
+  /** These variables are protected to enable JUnit testing. */
   protected static String globallyAllowedString =
       EjbcaConfiguration.getApprovalExcludedClasses();
 
+  /** PAram. */
   protected static ApprovalOveradableClassName[] globallyAllowed = null;
+
+  protected ApprovalExecutorUtil() { }
 
   /**
    * Method that checks if the request requires approval or not.
@@ -115,8 +119,8 @@ public class ApprovalExecutorUtil {
     if (req == null) {
       return false;
     }
-    if (log.isTraceEnabled()) {
-      log.trace(">requireApproval: " + req.getClass().getName());
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">requireApproval: " + req.getClass().getName());
     }
     boolean ret = true;
     if (req.getApprovalProfile() != null
@@ -136,8 +140,8 @@ public class ApprovalExecutorUtil {
       ret = false;
     }
 
-    if (log.isTraceEnabled()) {
-      log.trace("<requireApproval: " + ret);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<requireApproval: " + ret);
     }
     return ret;
   }
@@ -170,8 +174,8 @@ public class ApprovalExecutorUtil {
       final ApprovalOveradableClassName[] overridableClassNames) {
     final StackTraceElement[] stackTraceElements =
         Thread.currentThread().getStackTrace();
-    for (final ApprovalOveradableClassName overridableClassName :
-        overridableClassNames) {
+    for (final ApprovalOveradableClassName overridableClassName
+        : overridableClassNames) {
       if (overridableClassName.isInStackTrace(stackTraceElements)) {
         return true;
       }

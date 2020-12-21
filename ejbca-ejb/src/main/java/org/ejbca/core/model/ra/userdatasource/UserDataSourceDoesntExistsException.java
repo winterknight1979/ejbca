@@ -9,19 +9,14 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/
-
-/*
- * PublisherDoesntExistsException.java
- *
- * Created on 20 januari 2003, 21:29
+ *************************************************************************
  */
 
 package org.ejbca.core.model.ra.userdatasource;
 
 /**
  * An exception thrown when someone tries to remove or change a userdata source
- * that doesn't exits
+ * that doesn't exits.
  *
  * @version $Id: UserDataSourceDoesntExistsException.java 19901 2014-09-30
  *     14:29:38Z anatom $

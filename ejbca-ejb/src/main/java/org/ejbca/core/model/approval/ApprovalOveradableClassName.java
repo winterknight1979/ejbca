@@ -16,7 +16,7 @@ import org.apache.log4j.Logger;
 
 /**
  * Class used in constants for approvalable methods indicating calling
- * classes/methods that don't need to go through approvals
+ * classes/methods that don't need to go through approvals.
  *
  * <p>Contains the full classpath and method na,e
  *
@@ -25,21 +25,24 @@ import org.apache.log4j.Logger;
  */
 public class ApprovalOveradableClassName {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(ApprovalOveradableClassName.class);
 
-  String className = null;
-  String methodName = null;
+  /** Param. */
+  private String className = null;
+  /** Param. */
+  private String methodName = null;
 
   /**
-   * @param className The full name with packages
-   * @param methodName the method name/ can be null indicating all methods
+   * @param aclassName The full name with packages
+   * @param amethodName the method name/ can be null indicating all methods
    */
   public ApprovalOveradableClassName(
-      final String className, final String methodName) {
+      final String aclassName, final String amethodName) {
     super();
-    this.className = className;
-    this.methodName = methodName;
+    this.className = aclassName;
+    this.methodName = amethodName;
   }
 
   /** @return The full name with packages */
@@ -47,12 +50,15 @@ public class ApprovalOveradableClassName {
     return className;
   }
 
+  /**
+   * @return name
+   */
   public String getMethodName() {
     return methodName;
   }
 
   /**
-   * Method that checks if the current classname / method is in the stacktrace
+   * Method that checks if the current classname / method is in the stacktrace.
    *
    * @param traces Trace
    * @return if the class.method exists in trace
@@ -61,8 +67,8 @@ public class ApprovalOveradableClassName {
 
     boolean retval = false;
     for (int i = 0; i < traces.length; i++) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Compare "
                 + className
                 + "."
@@ -75,7 +81,7 @@ public class ApprovalOveradableClassName {
       if (traces[i].getClassName().equals(className)) {
         if (methodName != null) {
           retval = traces[i].getMethodName().equals(methodName);
-          if (retval == true) {
+          if (retval) {
             break;
           }
         } else {
@@ -85,8 +91,8 @@ public class ApprovalOveradableClassName {
       }
     }
 
-    if (log.isDebugEnabled()) {
-      log.debug("Result " + retval);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Result " + retval);
     }
 
     return retval;

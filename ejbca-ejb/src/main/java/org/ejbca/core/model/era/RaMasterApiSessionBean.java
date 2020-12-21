@@ -229,67 +229,113 @@ import org.ejbca.util.query.IllegalQueryException;
 @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
 public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(RaMasterApiSessionBean.class);
-  private static final InternalEjbcaResources intres =
+  /** Resource. */
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
+  /** EJB. */
   @EJB private AccessTreeUpdateSessionLocal accessTreeUpdateSession;
+  /** EJB. */
   @EJB private ApprovalProfileSessionLocal approvalProfileSession;
+  /** EJB. */
   @EJB private ApprovalSessionLocal approvalSession;
+  /** EJB. */
   @EJB private ApprovalExecutionSessionLocal approvalExecutionSession;
+  /** EJB. */
   @EJB private SecurityEventsLoggerSessionLocal auditSession;
+  /** EJB. */
   @EJB private AuthorizationSessionLocal authorizationSession;
+  /** EJB. */
   @EJB private AuthorizationSystemSessionLocal authorizationSystemSession;
+  /** EJB. */
   @EJB private CaSessionLocal caSession;
+  /** EJB. */
   @EJB private CAAdminSessionLocal caAdminSession;
+  /** EJB. */
   @EJB private CertificateProfileSessionLocal certificateProfileSession;
+  /** EJB. */
   @EJB private CertificateRequestSessionLocal certificateRequestSession;
+  /** EJB. */
   @EJB private CertificateStoreSessionLocal certificateStoreSession;
+  /** EJB. */
   @EJB private CertificateCreateSessionLocal certificateCreateSession;
+  /** EJB. */
   @EJB private CmpMessageDispatcherSessionLocal cmpMessageDispatcherSession;
+  /** EJB. */
   @EJB private CryptoTokenSessionLocal cryptoTokenSession;
 
+  /** EJB. */
   @EJB
   private EnterpriseEditionEjbBridgeSessionLocal
       enterpriseEditionEjbBridgeSession;
 
+  /** EJB. */
   @EJB private EjbcaWSHelperSessionLocal ejbcaWSHelperSession;
+  /** EJB. */
   @EJB private PublisherSessionLocal publisherSession;
+  /** EJB. */
   @EJB private PublisherQueueSessionLocal publisherQueueSession;
+  /** EJB. */
   @EJB private CertReqHistorySessionLocal certreqHistorySession;
+  /** EJB. */
   @EJB private CrlStoreSessionLocal crlStoreSession;
+  /** EJB. */
   @EJB private EjbcaRestHelperSessionLocal ejbcaRestHelperSession;
+  /** EJB. */
   @EJB private EndEntityAccessSessionLocal endEntityAccessSession;
+  /** EJB. */
   @EJB private EndEntityManagementSessionLocal endEntityManagementSession;
+  /** EJB. */
   @EJB private EndEntityProfileSessionLocal endEntityProfileSession;
+  /** EJB. */
   @EJB private EstOperationsSessionLocal estOperationsSessionLocal;
+  /** EJB. */
   @EJB private GlobalConfigurationSessionLocal globalConfigurationSession;
+  /** EJB. */
   @EJB private HardTokenSessionLocal hardTokenSession;
+  /** EJB. */
   @EJB private KeyRecoverySessionLocal keyRecoverySessionLocal;
+  /** EJB. */
   @EJB private KeyStoreCreateSessionLocal keyStoreCreateSessionLocal;
 
+  /** EJB. */
   @EJB
   private NoConflictCertificateStoreSessionLocal
       noConflictCertificateStoreSession;
 
+  /** EJB. */
   @EJB private UserDataSourceSessionLocal userDataSourceSession;
+  /** EJB. */
   @EJB private ScepMessageDispatcherSessionLocal scepMessageDispatcherSession;
+  /** EJB. */
   @EJB private SignSessionLocal signSessionLocal;
 
+  /** EJB. */
   @EJB
   private EndEntityAuthenticationSessionLocal
       endEntityAuthenticationSessionLocal;
 
+  /** EJB. */
   @EJB private RoleSessionLocal roleSession;
+  /** EJB. */
   @EJB private RoleDataSessionLocal roleDataSession;
+  /** EJB. */
   @EJB private RoleMemberSessionLocal roleMemberSession;
+  /** EJB. */
   @EJB private KeyValidatorSessionLocal keyValidatorSession;
+  /** EJB. */
   @EJB private AcmeAccountDataSessionLocal acmeAccountDataSession;
+  /** EJB. */
   @EJB private AcmeOrderDataSessionLocal acmeOrderDataSession;
+  /** EJB. */
   @EJB private AcmeAuthorizationDataSessionLocal acmeAuthorizationDataSession;
+  /** EJB. */
   @EJB private AcmeChallengeDataSessionLocal acmeChallengeDataSession;
 
+  /** EM. */
   @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
   private EntityManager entityManager;
 
@@ -304,12 +350,13 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
    * <tr><th>3<td>=<td>6.12.0
    * <tr><th>4<td>=<td>6.14.0
    * <tr><th>4<td>=<td>6.15.0
+   * </table>
    */
   private static final int RA_MASTER_API_VERSION = 5; // 6.15.0
 
   /**
    * Cached value of an active CA, so we don't have to list through all CAs
-   * every time as this is a critical path executed every time
+   * every time as this is a critical path executed every time.
    */
   private int activeCaIdCache = -1;
 
@@ -323,7 +370,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
         }
       } else {
         activeCaIdCache = -1;
-        log.debug("Fail to get info for cached CA with ID " + activeCaIdCache);
+        LOG.debug("Fail to get info for cached CA with ID " + activeCaIdCache);
       }
     }
 
@@ -464,8 +511,8 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
     try {
       if (roleId != Role.ROLE_ID_UNASSIGNED
           && getRole(authenticationToken, roleId) == null) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Requested role with ID "
                   + roleId
                   + " does not exist on this system, returning empty list of"
@@ -475,8 +522,8 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
       }
     } catch (AuthorizationDeniedException e) {
       // Should usually not happen
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Client "
                 + authenticationToken
                 + "was denied authorization to role with ID "
@@ -494,8 +541,8 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
       getAvailableRoleMemberTokenTypes(
           final AuthenticationToken authenticationToken) {
     final Map<String, RaRoleMemberTokenTypeInfo> result = new HashMap<>();
-    for (final String tokenType :
-        AccessMatchValueReverseLookupRegistry.INSTANCE.getAllTokenTypes()) {
+    for (final String tokenType
+        : AccessMatchValueReverseLookupRegistry.INSTANCE.getAllTokenTypes()) {
       // Disallow access to Public Access and CLI token types on the RA, as well
       // as non-user-configurable token types such as AlwaysAllowLocal
       if (!AccessMatchValueReverseLookupRegistry.INSTANCE
@@ -508,8 +555,8 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
       }
 
       final Map<String, Integer> stringToNumberMap = new HashMap<>();
-      for (final Entry<String, AccessMatchValue> entry :
-          AccessMatchValueReverseLookupRegistry.INSTANCE
+      for (final Entry<String, AccessMatchValue> entry
+          : AccessMatchValueReverseLookupRegistry.INSTANCE
               .getNameLookupRegistryForTokenType(tokenType)
               .entrySet()) {
         stringToNumberMap.put(
@@ -546,8 +593,8 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
       // Updating a role
       Role oldRole = roleSession.getRole(authenticationToken, role.getRoleId());
       if (oldRole == null) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Role with ID "
                   + role.getRoleId()
                   + " does not exist on this system, and will not be updated"
@@ -558,8 +605,8 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
         return null; // not present on this system
       }
     }
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Persisting a role with ID "
               + role.getRoleId()
               + " and name '"
@@ -573,8 +620,8 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
   public boolean deleteRole(
       final AuthenticationToken authenticationToken, final int roleId)
       throws AuthorizationDeniedException {
-    if (log.isDebugEnabled()) {
-      log.debug("Deleting role with ID " + roleId);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Deleting role with ID " + roleId);
     }
     return roleSession.deleteRoleIdempotent(authenticationToken, roleId);
   }
@@ -591,8 +638,8 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
       final AuthenticationToken authenticationToken,
       final RoleMember roleMember)
       throws AuthorizationDeniedException {
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Persisting a role member with ID "
               + roleMember.getRoleId()
               + " and match value '"
@@ -608,8 +655,8 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
       final int roleId,
       final int roleMemberId)
       throws AuthorizationDeniedException {
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Removing role member with ID "
               + roleMemberId
               + " from the role with ID "
@@ -618,13 +665,13 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
     final RoleMember roleMember =
         roleMemberSession.getRoleMember(authenticationToken, roleMemberId);
     if (roleMember == null) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Can't delete role member with ID "
                 + roleMemberId
                 + " because it does not exist.");
       }
-      log.info(
+      LOG.info(
           "Client "
               + authenticationToken
               + " failed to delete role member with ID "
@@ -634,8 +681,8 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
     }
     // Sanity check that there's no ID collision
     if (roleMember.getRoleId() != roleId) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Role member has an unexpected Role ID "
                 + roleMemberId
                 + ". Role ID "
@@ -655,12 +702,12 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
         ApprovalMatch.MATCH_WITH_UNIQUEID,
         BasicMatch.MATCH_TYPE_EQUALS,
         Integer.toString(id));
-
+    final int siz = 100;
     final List<ApprovalDataVO> approvals;
     try {
       approvals =
           approvalSession.query(
-              query, 0, 100, "",
+              query, 0, siz, "",
               ""); // authorization checks are performed afterwards
     } catch (IllegalQueryException e) {
       throw new IllegalStateException(
@@ -688,7 +735,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
   /**
    * Gets the complete text representation of a request (unlike
    * ApprovalRequest.getNewRequestDataAsText which doesn't do any database
-   * queries)
+   * queries).
    *
    * @param authenticationToken Token
    * @param approval Approval
@@ -783,8 +830,8 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
         if (cainfo != null) {
           caName = cainfo.getName();
         } else {
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "Appproval request "
                     + advo.getId()
                     + " references CA ID "
@@ -794,8 +841,8 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
           caName = "Missing CA ID " + advo.getCAId();
         }
       } catch (AuthorizationDeniedException e) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Administrator "
                   + authenticationToken
                   + " was denied access to CA "
@@ -856,8 +903,8 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
       final RaApprovalEditRequest edit)
       throws AuthorizationDeniedException {
     final int id = edit.getId();
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Editing approval request "
               + id
               + ". Administrator: "
@@ -865,8 +912,8 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
     }
     final ApprovalDataVO advo = getApprovalDataNoAuth(id);
     if (advo == null) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Approval Request with ID "
                 + id
                 + " not found in editApprovalRequest");
@@ -878,8 +925,8 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
       return null;
     } else if (getApprovalRequest(authenticationToken, advo)
         == null) { // Authorization check
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Authorization denied to approval request with ID "
                 + id
                 + " for administrator '"
@@ -911,8 +958,8 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
     final boolean requestedByMe =
         requestAdmin != null && requestAdmin.equals(authenticationToken);
     if (requestedByMe) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Request (ID "
                 + id
                 + ") was created by this administrator, so authorization is"
@@ -921,8 +968,8 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
                 + "'");
       }
     } else {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Will perform approval authorization check, because request (ID "
                 + id
                 + ") was create by another administrator '"
@@ -958,8 +1005,8 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
       ei.setSubjectDirectoryAttributes(editData.getSubjectDirAttrs());
     } else {
       // TODO implement more types of requests? (ECA-5290)
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Tried to edit approval request with ID "
                 + id
                 + " which is of an unsupported type: "
@@ -999,8 +1046,8 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
       throws AuthorizationDeniedException {
     final ApprovalDataVO advo = getApprovalDataNoAuth(id);
     if (advo == null) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Approval request with ID " + id + " does not exist on this node.");
       }
       return;
@@ -1009,8 +1056,8 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
     if (getApprovalRequest(authenticationToken, advo)
         == null) { // Check read authorization (includes authorization to
                    // referenced CAs)
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Authorization denied to approval request ID "
                 + id
                 + " for "
@@ -1047,8 +1094,8 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
     } else if (getApprovalRequest(authenticationToken, advo)
         == null) { // Check read authorization (includes authorization to
                    // referenced CAs)
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Authorization denied to approval request ID "
                 + requestResponse.getId()
                 + " for "
@@ -1113,7 +1160,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
         && !request.isSearchingExpired()) {
       return response; // not searching for anything. return empty response
     }
-
+    final int siz = 100;
     final List<ApprovalDataVO> approvals;
     try {
       String endEntityProfileAuthorizationString =
@@ -1135,7 +1182,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
               request.getEndDate(),
               request.getExpiresBefore(),
               0,
-              100,
+              siz,
               raAuthorization.getCAAuthorizationString(),
               endEntityProfileAuthorizationString);
     } catch (AuthorizationDeniedException e) {
@@ -1144,11 +1191,11 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
     }
     final Date now = new Date();
 
-    if (log.isDebugEnabled()) {
-      log.debug("Got " + approvals.size() + " approvals from Master API");
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Got " + approvals.size() + " approvals from Master API");
     }
 
-    if (approvals.size() >= 100) {
+    if (approvals.size() >= siz) {
       response.setMightHaveMoreResults(true);
     }
 
@@ -1198,8 +1245,8 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
         response.getApprovalRequests().add(ari);
       }
     }
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Returning "
               + response.getApprovalRequests().size()
               + " approvals from search");
@@ -1334,8 +1381,8 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
               + rapriviledge)) {
         returnval.add(profileid);
       } else {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Administrator "
                   + authenticationToken
                   + " is not authorized to end entity profile: "
@@ -1405,7 +1452,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
     return cdw;
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("unchecked") // TODO: length
   @Override
   public RaCertificateSearchResponse searchForCertificates(
       final AuthenticationToken authenticationToken,
@@ -1428,8 +1475,8 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
     }
     if (issuerDns.isEmpty()) {
       // Empty response since there were no authorized CAs
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Client '"
                 + authenticationToken
                 + "' was not authorized to any of the requested CAs and the"
@@ -1452,8 +1499,8 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
     }
     if (authorizedCpIds.isEmpty()) {
       // Empty response since there were no authorized Certificate Profiles
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Client '"
                 + authenticationToken
                 + "' was not authorized to any of the requested CPs and the"
@@ -1474,8 +1521,8 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
     }
     if (authorizedEepIds.isEmpty()) {
       // Empty response since there were no authorized End Entity Profiles
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Client '"
                 + authenticationToken
                 + "' was not authorized to any of the requested EEPs and the"
@@ -1593,23 +1640,23 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
     if (!accessAnyEepAvailable || !request.getEepIds().isEmpty()) {
       query.setParameter("endEntityProfileId", authorizedEepIds);
     }
-    if (log.isDebugEnabled()) {
-      log.debug(" issuerDN: " + Arrays.toString(issuerDns.toArray()));
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(" issuerDN: " + Arrays.toString(issuerDns.toArray()));
       if (!accessAnyCpAvailable || !request.getCpIds().isEmpty()) {
-        log.debug(
+        LOG.debug(
             " certificateProfileId: "
                 + Arrays.toString(authorizedCpIds.toArray()));
       } else {
-        log.debug(
+        LOG.debug(
             " certificateProfileId: Any (even deleted) profile(s) due to root"
                 + " access.");
       }
       if (!accessAnyEepAvailable || !request.getEepIds().isEmpty()) {
-        log.debug(
+        LOG.debug(
             " endEntityProfileId: "
                 + Arrays.toString(authorizedEepIds.toArray()));
       } else {
-        log.debug(
+        LOG.debug(
             " endEntityProfileId: Any (even deleted) profile(s) due to root"
                 + " access.");
       }
@@ -1639,14 +1686,14 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
     }
     if (!serialNumberSearchStringFromDec.isEmpty()) {
       query.setParameter("serialNumberDec", serialNumberSearchStringFromDec);
-      if (log.isDebugEnabled()) {
-        log.debug(" serialNumberDec: " + serialNumberSearchStringFromDec);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(" serialNumberDec: " + serialNumberSearchStringFromDec);
       }
     }
     if (!serialNumberSearchStringFromHex.isEmpty()) {
       query.setParameter("serialNumberHex", serialNumberSearchStringFromHex);
-      if (log.isDebugEnabled()) {
-        log.debug(" serialNumberHex: " + serialNumberSearchStringFromHex);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(" serialNumberHex: " + serialNumberSearchStringFromHex);
       }
     }
     if (request.isIssuedAfterUsed()) {
@@ -1685,10 +1732,12 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
     query.setMaxResults(maxResults);
     query.setFirstResult(offset);
 
-    /* Try to use the non-portable hint (depends on DB and JDBC driver) to specify how long in milliseconds the query may run. Possible behaviors:
+    /* Try to use the non-portable hint (depends on DB and JDBC driver) to
+     *  specify how long in milliseconds the query may run. Possible behaviors:
      * - The hint is ignored
      * - A QueryTimeoutException is thrown
-     * - A PersistenceException is thrown (and the transaction which don't have here is marked for roll-back)
+     * - A PersistenceException is thrown (and the transaction which don't
+     * have here is marked for roll-back)
      */
     final long queryTimeout =
         getGlobalCesecoreConfiguration().getMaximumQueryTimeout();
@@ -1705,8 +1754,8 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
             .add(certificateStoreSession.getCertificateData(fingerprint));
       }
       response.setMightHaveMoreResults(fingerprints.size() == maxResults);
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Certificate search query: "
                 + sb.toString()
                 + " LIMIT "
@@ -1736,7 +1785,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
       //                log.debug("Query.unwrap(org.hibernate.Query.class) is
       // not supported by JPA provider");
       //            }
-      log.info(
+      LOG.info(
           "Requested search query by "
               + authenticationToken
               + " took too long. Query was '"
@@ -1745,7 +1794,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
               + e.getMessage());
       response.setMightHaveMoreResults(true);
     } catch (PersistenceException e) {
-      log.info(
+      LOG.info(
           "Requested search query by "
               + authenticationToken
               + " failed, possibly due to timeout. "
@@ -1769,8 +1818,8 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
     }
     if (authorizedLocalCaIds.isEmpty()) {
       // Empty response since there were no authorized CAs
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Client '"
                 + authenticationToken
                 + "' was not authorized to any of the requested CAs and the"
@@ -1793,8 +1842,8 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
     }
     if (authorizedCpIds.isEmpty()) {
       // Empty response since there were no authorized Certificate Profiles
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Client '"
                 + authenticationToken
                 + "' was not authorized to any of the requested CPs and the"
@@ -1815,8 +1864,8 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
     }
     if (authorizedEepIds.isEmpty()) {
       // Empty response since there were no authorized End Entity Profiles
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Client '"
                 + authenticationToken
                 + "' was not authorized to any of the requested EEPs and the"
@@ -1885,23 +1934,23 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
     if (!accessAnyEepAvailable || !request.getEepIds().isEmpty()) {
       query.setParameter("endEntityProfileId", authorizedEepIds);
     }
-    if (log.isDebugEnabled()) {
-      log.debug(" CA IDs: " + Arrays.toString(authorizedLocalCaIds.toArray()));
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(" CA IDs: " + Arrays.toString(authorizedLocalCaIds.toArray()));
       if (!accessAnyCpAvailable || !request.getCpIds().isEmpty()) {
-        log.debug(
+        LOG.debug(
             " certificateProfileId: "
                 + Arrays.toString(authorizedCpIds.toArray()));
       } else {
-        log.debug(
+        LOG.debug(
             " certificateProfileId: Any (even deleted) profile(s) due to root"
                 + " access.");
       }
       if (!accessAnyEepAvailable || !request.getEepIds().isEmpty()) {
-        log.debug(
+        LOG.debug(
             " endEntityProfileId: "
                 + Arrays.toString(authorizedEepIds.toArray()));
       } else {
-        log.debug(
+        LOG.debug(
             " endEntityProfileId: Any (even deleted) profile(s) due to root"
                 + " access.");
       }
@@ -1945,10 +1994,12 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
     final int offset = maxResults * request.getPageNumber();
     query.setMaxResults(maxResults);
     query.setFirstResult(offset);
-    /* Try to use the non-portable hint (depends on DB and JDBC driver) to specify how long in milliseconds the query may run. Possible behaviors:
+    /* Try to use the non-portable hint (depends on DB and JDBC driver) to
+     * specify how long in milliseconds the query may run. Possible behaviors:
      * - The hint is ignored
      * - A QueryTimeoutException is thrown
-     * - A PersistenceException is thrown (and the transaction which don't have here is marked for roll-back)
+     * - A PersistenceException is thrown (and the transaction which don't
+     *  have here is marked for roll-back)
      */
     final long queryTimeout =
         getGlobalCesecoreConfiguration().getMaximumQueryTimeout();
@@ -1965,8 +2016,8 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
             .add(endEntityAccessSession.findUser(username));
       }
       response.setMightHaveMoreResults(usernames.size() == maxResults);
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Certificate search query: "
                 + sb.toString()
                 + " LIMIT "
@@ -1978,7 +2029,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
                 + "ms");
       }
     } catch (QueryTimeoutException e) {
-      log.info(
+      LOG.info(
           "Requested search query by "
               + authenticationToken
               + " took too long. Query was "
@@ -1987,7 +2038,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
               + e.getMessage());
       response.setMightHaveMoreResults(true);
     } catch (PersistenceException e) {
-      log.info(
+      LOG.info(
           "Requested search query by "
               + authenticationToken
               + " failed, possibly due to timeout. "
@@ -2035,8 +2086,8 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
 
     // Dito for roles
     final List<Integer> authorizedLocalRoleIds = new ArrayList<>();
-    for (final Role role :
-        roleSession.getAuthorizedRoles(authenticationToken)) {
+    for (final Role role
+        : roleSession.getAuthorizedRoles(authenticationToken)) {
       final int roleId = role.getRoleId();
       if (request.getRoleIds().isEmpty()
           || request.getRoleIds().contains(roleId)) {
@@ -2056,21 +2107,21 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
     }
 
     if (authorizedLocalCaIds.isEmpty()) {
-      log.debug(
+      LOG.debug(
           "No authorized CAs found for cleint "
               + authenticationToken
               + ". Returning empty response in role member search");
       return response;
     }
     if (authorizedLocalRoleIds.isEmpty()) {
-      log.debug(
+      LOG.debug(
           "No authorized Roles found for cleint "
               + authenticationToken
               + " Returning empty response in role member search");
       return response;
     }
     if (authorizedLocalTokenTypes.isEmpty()) {
-      log.debug(
+      LOG.debug(
           "No authorized token types found for cleint "
               + authenticationToken
               + " Returning empty response in role member search");
@@ -2117,8 +2168,8 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
         response.getRoleMembers().add(roleMemberData.asValueObject());
       }
       response.setMightHaveMoreResults(roleMemberDatas.size() == maxResults);
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Role Member search query: "
                 + sb.toString()
                 + " LIMIT "
@@ -2130,7 +2181,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
                 + "ms");
       }
     } catch (QueryTimeoutException e) {
-      log.info(
+      LOG.info(
           "Requested search query by "
               + authenticationToken
               + " took too long. Query was "
@@ -2139,7 +2190,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
               + e.getMessage());
       response.setMightHaveMoreResults(true);
     } catch (PersistenceException e) {
-      log.info(
+      LOG.info(
           "Requested search query by "
               + authenticationToken
               + " failed, possibly due to timeout. "
@@ -2258,7 +2309,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
     KeyToValueHolder<CAInfo> caInfoEntry =
         getAuthorizedCAInfos(admin).get(endEntity.getCAId());
     if (caInfoEntry == null) {
-      log.info("No authorized CAs found for " + admin);
+      LOG.info("No authorized CAs found for " + admin);
       return;
     }
     try {
@@ -2282,7 +2333,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
         admin,
         endEntity.getEndEntityProfileId(),
         AccessRulesConstants.DELETE_END_ENTITY)) {
-      log.warn(
+      LOG.warn(
           "Missing *"
               + AccessRulesConstants.DELETE_END_ENTITY
               + " rights for user '"
@@ -2335,7 +2386,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
     try {
       endEntityManagementSession.deleteUser(admin, username);
     } catch (NoSuchEndEntityException | CouldNotRemoveEndEntityException e) {
-      log.info(e.getMessage());
+      LOG.info(e.getMessage());
     }
   }
 
@@ -2345,8 +2396,8 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
     try {
       return endEntityAccessSession.findUser(admin, username);
     } catch (AuthorizationDeniedException e) {
-      if (log.isDebugEnabled()) {
-        log.debug("Not authorized to end entity '" + username + "'");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Not authorized to end entity '" + username + "'");
       }
       return null;
     }
@@ -2507,7 +2558,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
           | UnrecoverableKeyException
           | KeyStoreException
           | NoSuchAlgorithmException e) {
-        log.error(e); // should never happen if keyStore is valid object
+        LOG.error(e); // should never happen if keyStore is valid object
       }
     } else {
       try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
@@ -2517,7 +2568,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
           | KeyStoreException
           | NoSuchAlgorithmException
           | CertificateException e) {
-        log.error(e); // should never happen if keyStore is valid object
+        LOG.error(e); // should never happen if keyStore is valid object
       }
     }
     return null;
@@ -2605,45 +2656,45 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
               CertificateConstants.CERT_RES_TYPE_CERTIFICATE);
       return certificate;
     } catch (NotFoundException e) {
-      log.debug("EJBCA REST exception", e);
+      LOG.debug("EJBCA REST exception", e);
       throw e; // NFE extends EjbcaException
     } catch (CertificateExtensionException e) {
-      log.debug("EJBCA REST exception", e);
+      LOG.debug("EJBCA REST exception", e);
       throw new EjbcaException(ErrorCode.INTERNAL_ERROR, e.getMessage());
     } catch (InvalidKeyException e) {
-      log.debug("EJBCA REST exception", e);
+      LOG.debug("EJBCA REST exception", e);
       throw new EjbcaException(ErrorCode.INVALID_KEY, e.getMessage());
     } catch (IllegalKeyException e) {
-      log.debug("EJBCA REST exception", e);
+      LOG.debug("EJBCA REST exception", e);
       throw new EjbcaException(ErrorCode.ILLEGAL_KEY, e.getMessage());
     } catch (AuthStatusException e) {
-      log.debug("EJBCA REST exception", e);
+      LOG.debug("EJBCA REST exception", e);
       throw new EjbcaException(ErrorCode.USER_WRONG_STATUS, e.getMessage());
     } catch (AuthLoginException e) {
-      log.debug("EJBCA REST exception", e);
+      LOG.debug("EJBCA REST exception", e);
       throw new EjbcaException(ErrorCode.LOGIN_ERROR, e.getMessage());
     } catch (SignatureException e) {
-      log.debug("EJBCA REST exception", e);
+      LOG.debug("EJBCA REST exception", e);
       throw new EjbcaException(ErrorCode.SIGNATURE_ERROR, e.getMessage());
     } catch (SignRequestSignatureException e) {
-      log.debug("EJBCA REST exception", e);
+      LOG.debug("EJBCA REST exception", e);
       throw new EjbcaException(e.getMessage());
     } catch (InvalidKeySpecException e) {
-      log.debug("EJBCA REST exception", e);
+      LOG.debug("EJBCA REST exception", e);
       throw new EjbcaException(ErrorCode.INVALID_KEY_SPEC, e.getMessage());
     } catch (NoSuchAlgorithmException
         | NoSuchProviderException
         | CertificateException
         | IOException e) {
-      log.debug("EJBCA REST exception", e);
+      LOG.debug("EJBCA REST exception", e);
       throw new EjbcaException(ErrorCode.INTERNAL_ERROR, e.getMessage());
     } catch (CesecoreException e) {
-      log.debug("EJBCA REST exception", e);
+      LOG.debug("EJBCA REST exception", e);
       // Will convert the CESecore exception to an EJBCA exception with the same
       // error code
       throw new EjbcaException(e.getErrorCode(), e);
     } catch (RuntimeException e) { // EJBException, ClassCastException, ...
-      log.debug("EJBCA REST exception", e);
+      LOG.debug("EJBCA REST exception", e);
       throw new EjbcaException(ErrorCode.INTERNAL_ERROR, e.getMessage());
     }
   }
@@ -2686,45 +2737,45 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
           hardTokenSN,
           responseTypeInt);
     } catch (NotFoundException e) {
-      log.debug("EJBCA WebService error", e);
+      LOG.debug("EJBCA WebService error", e);
       throw e; // NFE extends EjbcaException
     } catch (CertificateExtensionException e) {
-      log.debug("EJBCA WebService error", e);
+      LOG.debug("EJBCA WebService error", e);
       throw new EjbcaException(ErrorCode.INTERNAL_ERROR, e.getMessage());
     } catch (InvalidKeyException e) {
-      log.debug("EJBCA WebService error", e);
+      LOG.debug("EJBCA WebService error", e);
       throw new EjbcaException(ErrorCode.INVALID_KEY, e.getMessage());
     } catch (IllegalKeyException e) {
-      log.debug("EJBCA WebService error", e);
+      LOG.debug("EJBCA WebService error", e);
       throw new EjbcaException(ErrorCode.ILLEGAL_KEY, e.getMessage());
     } catch (AuthStatusException e) {
-      log.debug("EJBCA WebService error", e);
+      LOG.debug("EJBCA WebService error", e);
       throw new EjbcaException(ErrorCode.USER_WRONG_STATUS, e.getMessage());
     } catch (AuthLoginException e) {
-      log.debug("EJBCA WebService error", e);
+      LOG.debug("EJBCA WebService error", e);
       throw new EjbcaException(ErrorCode.LOGIN_ERROR, e.getMessage());
     } catch (SignatureException e) {
-      log.debug("EJBCA WebService error", e);
+      LOG.debug("EJBCA WebService error", e);
       throw new EjbcaException(ErrorCode.SIGNATURE_ERROR, e.getMessage());
     } catch (SignRequestSignatureException e) {
-      log.debug("EJBCA WebService error", e);
+      LOG.debug("EJBCA WebService error", e);
       throw new EjbcaException(e.getMessage());
     } catch (InvalidKeySpecException e) {
-      log.debug("EJBCA WebService error", e);
+      LOG.debug("EJBCA WebService error", e);
       throw new EjbcaException(ErrorCode.INVALID_KEY_SPEC, e.getMessage());
     } catch (NoSuchAlgorithmException
         | NoSuchProviderException
         | CertificateException
         | IOException e) {
-      log.debug("EJBCA WebService error", e);
+      LOG.debug("EJBCA WebService error", e);
       throw new EjbcaException(ErrorCode.INTERNAL_ERROR, e.getMessage());
     } catch (CesecoreException e) {
-      log.debug("EJBCA WebService error", e);
+      LOG.debug("EJBCA WebService error", e);
       // Will convert the CESecore exception to an EJBCA exception with the same
       // error code
       throw new EjbcaException(e.getErrorCode(), e);
     } catch (RuntimeException e) { // EJBException, ClassCastException, ...
-      log.debug("EJBCA WebService error", e);
+      LOG.debug("EJBCA WebService error", e);
       throw new EjbcaException(ErrorCode.INTERNAL_ERROR, e.getMessage());
     }
   }
@@ -2733,8 +2784,8 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
   public List<CertificateWrapper> getLastCertChain(
       final AuthenticationToken authenticationToken, final String username)
       throws AuthorizationDeniedException, EjbcaException {
-    if (log.isTraceEnabled()) {
-      log.trace(">getLastCertChain: " + username);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">getLastCertChain: " + username);
     }
     final List<CertificateWrapper> retval = new ArrayList<>();
     if (endEntityAccessSession.findUser(authenticationToken, username)
@@ -2749,8 +2800,8 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
         if (firstcert != null) {
           retval.add(firstcert);
           lastcert = firstcert.getCertificate();
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "Found certificate for user with subjectDN: "
                     + CertTools.getSubjectDN(lastcert)
                     + " and serialNo: "
@@ -2768,7 +2819,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
             final Collection<Certificate> cacerts =
                 certificateStoreSession.findCertificatesBySubject(issuerDN);
             if (cacerts == null || cacerts.size() == 0) {
-              log.info(
+              LOG.info(
                   "No certificate found for CA with subjectDN: " + issuerDN);
               break;
             }
@@ -2783,7 +2834,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
                 lastcert = cert;
                 break; // Break of iteration over this CAs certs
               } catch (Exception e) {
-                log.debug(
+                LOG.debug(
                     "Failed verification when looking for CA certificate, this"
                         + " was not the correct CA certificate. IssuerDN: "
                         + issuerDN
@@ -2794,19 +2845,19 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
           }
 
         } else {
-          log.debug(
+          LOG.debug(
               "Found no certificate (in non null list??) for user " + username);
         }
       } else {
-        log.debug("Found no certificate for user " + username);
+        LOG.debug("Found no certificate for user " + username);
       }
     } else {
       String msg =
-          intres.getLocalizedMessage("ra.errorentitynotexist", username);
-      log.debug(msg);
+          INTRES.getLocalizedMessage("ra.errorentitynotexist", username);
+      LOG.debug(msg);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<getLastCertChain: " + username);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<getLastCertChain: " + username);
     }
     return retval;
   }
@@ -2992,7 +3043,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
           returnval = false;
         }
       } catch (AuthorizationDeniedException e) {
-        log.debug(
+        LOG.debug(
             "Administrator: "
                 + authenticationToken
                 + " was not authorized to perform key recovery for end entity: "
@@ -3029,10 +3080,10 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
       final EndEntityInformation userdata =
           endEntityAccessSession.findUser(authenticationToken, username);
       if (userdata == null) {
-        log.info(
-            intres.getLocalizedMessage("ra.errorentitynotexist", username));
+        LOG.info(
+            INTRES.getLocalizedMessage("ra.errorentitynotexist", username));
         final String msg =
-            intres.getLocalizedMessage("ra.errorentitynotexist", username);
+            INTRES.getLocalizedMessage("ra.errorentitynotexist", username);
         throw new NotFoundException(msg);
       }
       if (keyRecoverySessionLocal.isUserMarked(username)) {
@@ -3045,7 +3096,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
       if (!authorizationSession.isAuthorizedNoLogging(
           authenticationToken, StandardRules.CAACCESS.resource() + caid)) {
         final String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "authorization.notauthorizedtoresource",
                 StandardRules.CAACCESS.resource() + caid,
                 null);
@@ -3058,7 +3109,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
               issuerDN, new BigInteger(certSNinHex, 16));
       if (cert == null) {
         final String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "ra.errorfindentitycert", issuerDN, certSNinHex);
         throw new NotFoundException(msg);
       }
@@ -3077,11 +3128,11 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
             "Key recovery data not found for user '" + username + "'");
       }
     } catch (NotFoundException e) {
-      log.debug("EJBCA WebService error", e);
+      LOG.debug("EJBCA WebService error", e);
       throw e; // extends EjbcaException
     } catch (NoSuchEndEntityException e) {
       throw new NotFoundException(
-          intres.getLocalizedMessage("ra.errorentitynotexist", username));
+          INTRES.getLocalizedMessage("ra.errorentitynotexist", username));
     }
   }
 
@@ -3154,16 +3205,16 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
    * @param admin Admin
    * @param profileid ID
    * @param rights Rights
-   * @param log Log
+   * @param alog Log
    * @return bool
    */
   private boolean endEntityAuthorization(
       final AuthenticationToken admin,
       final int profileid,
       final String rights,
-      final boolean log) {
+      final boolean alog) {
     boolean returnval = false;
-    if (log) {
+    if (alog) {
       returnval =
           authorizationSession.isAuthorized(
               admin,
@@ -3205,7 +3256,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
       } catch (AlreadyRevokedException e) {
         // If it is already revoked, great! The client got what the client
         // wanted.. (almost at least, since reason might differ)
-        log.info(
+        LOG.info(
             "Client '"
                 + authenticationToken
                 + "' requested status change of when status was already set"
@@ -3214,7 +3265,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
                 + "'. Considering operation successful.");
         return true;
       } catch (AuthorizationDeniedException e) {
-        log.info(
+        LOG.info(
             "Client '"
                 + authenticationToken
                 + "' requested status change of certificate '"
@@ -3223,7 +3274,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
       } catch (NoSuchEndEntityException e) {
         // The certificate did exist a few lines ago, but must have been removed
         // since then. Treat this like it never existed
-        log.info(
+        LOG.info(
             "Client '"
                 + authenticationToken
                 + "' requested status change of certificate '"
@@ -3231,7 +3282,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
                 + "' that does not exist.");
       }
     } else {
-      log.info(
+      LOG.info(
           "Client '"
               + authenticationToken
               + "' requested status change of certificate '"
@@ -3315,7 +3366,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
     if (!authorizationSession.isAuthorizedNoLogging(
         authenticationToken, StandardRules.CAACCESS.resource() + caid)) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "authorization.notauthorizedtoresource",
               StandardRules.CAACCESS.resource() + caid,
               null);
@@ -3415,7 +3466,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
     if (!authorizationSession.isAuthorizedNoLogging(
         authenticationToken, StandardRules.CAACCESS.resource() + caid)) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "authorization.notauthorizedtoresource",
               StandardRules.CAACCESS.resource() + caid,
               null);
@@ -3431,7 +3482,8 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
 
   private Date getDate(final long days) {
     Date findDate = new Date();
-    long millis = (days * 24 * 60 * 60 * 1000);
+    final long oneDay = 24 * 3600 * 1000;
+    long millis = (days * oneDay);
     findDate.setTime(findDate.getTime() + millis);
     return findDate;
   }
@@ -3444,7 +3496,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
         authenticationToken,
         StandardRules.CAFUNCTIONALITY.resource() + "/view_certificate")) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "authorization.notauthorizedtoresource",
               StandardRules.CAFUNCTIONALITY.resource() + "/view_certificate",
               null);
@@ -3517,7 +3569,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
         authenticationToken,
         StandardRules.CAFUNCTIONALITY.resource() + "/view_certificate")) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "authorization.notauthorizedtoresource",
               StandardRules.CAFUNCTIONALITY.resource() + "/view_certificate",
               null);
@@ -3540,7 +3592,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
         authenticationToken,
         StandardRules.CAFUNCTIONALITY.resource() + "/view_certificate")) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "authorization.notauthorizedtoresource",
               StandardRules.CAFUNCTIONALITY.resource() + "/view_certificate",
               null);
@@ -3567,7 +3619,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
         authenticationToken,
         StandardRules.CAFUNCTIONALITY.resource() + "/view_certificate")) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "authorization.notauthorizedtoresource",
               StandardRules.CAFUNCTIONALITY.resource() + "/view_certificate",
               null);
@@ -3707,7 +3759,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
             certReqHistory.getEndEntityInformation().getCertificateDN(),
             certReqHistory
                 .getEndEntityInformation()
-                .getExtendedInformation())) {
+                .getExtendedInformation())) { // Do nothing
         } else {
           throw new PublisherException(
               "Error: publication failed to at least one of the defined"
@@ -3787,8 +3839,8 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
     for (final int validatorId : ca.getValidators()) {
       final Validator validator = keyValidatorSession.getValidator(validatorId);
       if (validator == null) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Missing validator ID "
                   + validatorId
                   + " in CA '"
@@ -3917,16 +3969,17 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
   @Override
   public byte[] addUserAndGenerateKeyStore(
       final AuthenticationToken authenticationToken,
-      EndEntityInformation endEntity,
+      final EndEntityInformation oendEntity,
       final boolean clearpwd)
       throws AuthorizationDeniedException, EjbcaException,
           WaitingForApprovalException {
     // Authorization
+    EndEntityInformation endEntity = oendEntity;
     if (!endEntityManagementSession.isAuthorizedToEndEntityProfile(
         authenticationToken,
         endEntity.getEndEntityProfileId(),
         AccessRulesConstants.DELETE_END_ENTITY)) {
-      log.warn(
+      LOG.warn(
           "Missing *"
               + AccessRulesConstants.DELETE_END_ENTITY
               + " rights for user '"
@@ -4032,7 +4085,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
           | UnrecoverableKeyException
           | KeyStoreException
           | NoSuchAlgorithmException e) {
-        log.error(e); // should never happen if keyStore is valid object
+        LOG.error(e); // should never happen if keyStore is valid object
       }
     } else {
       try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
@@ -4042,7 +4095,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
           | KeyStoreException
           | NoSuchAlgorithmException
           | CertificateException e) {
-        log.error(e); // should never happen if keyStore is valid object
+        LOG.error(e); // should never happen if keyStore is valid object
       }
     }
     return null;
@@ -4051,10 +4104,11 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
   @Override
   public byte[] addUserAndCreateCertificate(
       final AuthenticationToken authenticationToken,
-      EndEntityInformation endEntityInformation,
+      final EndEntityInformation oendEntityInformation,
       final boolean clearpwd)
       throws AuthorizationDeniedException, EjbcaException,
           WaitingForApprovalException {
+    EndEntityInformation endEntityInformation = oendEntityInformation;
     if (endEntityInformation.getExtendedInformation() == null
         || endEntityInformation.getExtendedInformation().getCertificateRequest()
             == null) {
@@ -4069,7 +4123,7 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
         authenticationToken,
         endEntityInformation.getEndEntityProfileId(),
         AccessRulesConstants.DELETE_END_ENTITY)) {
-      log.warn(
+      LOG.warn(
           "Missing *"
               + AccessRulesConstants.DELETE_END_ENTITY
               + " rights for user '"

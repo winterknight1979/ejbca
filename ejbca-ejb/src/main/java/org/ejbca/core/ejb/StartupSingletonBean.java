@@ -228,7 +228,7 @@ public class StartupSingletonBean {
            + "QUOBOvc=")
           .getBytes());
 
-  @PostConstruct 
+  @PostConstruct
   private void startup() {
     //
     // Run all "safe" initializations first,

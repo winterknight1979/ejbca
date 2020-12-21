@@ -16,7 +16,7 @@ package org.ejbca.core.model.ca;
 import org.ejbca.core.EjbcaException;
 
 /**
- * Error due to wrong token (user-gen, p12 etc)
+ * Error due to wrong token (user-gen, p12 etc).
  *
  * @version $Id: WrongTokenTypeException.java 19901 2014-09-30 14:29:38Z anatom
  *     $

@@ -24,9 +24,9 @@ import org.cesecore.certificates.endentity.EndEntityInformation;
  *
  * @version $Id: FieldValidator.java 23104 2016-03-30 13:18:41Z mikekushner $
  */
-public class FieldValidator {
+public final class FieldValidator {
 
-  public FieldValidator() {}
+    private FieldValidator() { }
 
   /**
    * The rules and regulations of the contents of End Entity fields should be
@@ -42,5 +42,5 @@ public class FieldValidator {
       final EndEntityInformation userdata,
       final int profileid,
       final String profilename)
-      throws CustomFieldException {}
+      throws CustomFieldException { }
 }

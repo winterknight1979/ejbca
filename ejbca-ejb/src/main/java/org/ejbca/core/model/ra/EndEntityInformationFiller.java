@@ -36,12 +36,13 @@ import org.ejbca.util.dn.DistinguishedName;
  * @version $Id: EndEntityInformationFiller.java 28128 2018-01-30 07:09:34Z
  *     samuellb $
  */
-public class EndEntityInformationFiller {
+public final class EndEntityInformationFiller {
 
   /** For log purpose. */
-  private static final Logger log =
+  private static final Logger LOG =
       Logger.getLogger(EndEntityInformationFiller.class.getName());
 
+  private EndEntityInformationFiller() { }
   /**
    * This method fill user data with the default values from the specified
    * profile.
@@ -56,7 +57,7 @@ public class EndEntityInformationFiller {
     if (StringUtils.isEmpty(userData.getUsername())) {
       userData.setUsername(profile.getUsernameDefault());
     }
-    if (userData.getSendNotification() == false) {
+    if (!userData.getSendNotification()) {
       if (StringUtils.isNotEmpty(
           profile.getValue(EndEntityProfile.SENDNOTIFICATION, 0))) {
         final Boolean isSendNotification =
@@ -120,7 +121,7 @@ public class EndEntityInformationFiller {
     try {
       userdn = new DistinguishedName(subjectDN);
     } catch (InvalidNameException ine) {
-      log.debug(subjectDN, ine);
+      LOG.debug(subjectDN, ine);
       throw new RuntimeException(ine);
     }
     int numberofsubjectdnfields = profile.getSubjectDNFieldOrderLength();
@@ -145,7 +146,7 @@ public class EndEntityInformationFiller {
             rdnList.add(
                 fielddata[EndEntityProfile.NUMBER], new Rdn(parameter, value));
           } catch (InvalidNameException ine) {
-            log.debug(
+            LOG.debug(
                 "InvalidNameException while creating new Rdn with parameter "
                     + parameter
                     + " and value "
@@ -170,24 +171,25 @@ public class EndEntityInformationFiller {
   /**
    * This method merge subject Alt name with data from End entity profile.
    *
-   * @param subjectAltName user subject alt name.
+   * @param osubjectAltName user subject alt name.
    * @param profile user associated profile.
    * @param entityEmail entity email field
    * @return updated subject alt name
    */
   private static String mergeSubjectAltNameWithDefaultValues(
-      String subjectAltName,
+      final String osubjectAltName,
       final EndEntityProfile profile,
       final String entityEmail) {
     DistinguishedName profileAltName;
     DistinguishedName userAltName;
+    String subjectAltName = osubjectAltName;
     try {
       if (subjectAltName == null) {
         subjectAltName = "";
       }
       userAltName = new DistinguishedName(subjectAltName);
     } catch (InvalidNameException ine) {
-      log.debug(subjectAltName, ine);
+      LOG.debug(subjectAltName, ine);
       throw new RuntimeException(ine);
     }
     int numberofsubjectAltNamefields =
@@ -216,7 +218,7 @@ public class EndEntityInformationFiller {
             rdnList.add(
                 fielddata[EndEntityProfile.NUMBER], new Rdn(parameter, value));
           } catch (InvalidNameException ine) {
-            log.debug(
+            LOG.debug(
                 "InvalidNameException while creating new Rdn with parameter "
                     + parameter
                     + " and value "

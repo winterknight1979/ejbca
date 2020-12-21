@@ -19,7 +19,6 @@ package org.ejbca.core.model.approval;
 public class ApprovalJunitHelper {
 
 	public static class JunitApprovalExecutorUtil1 extends ApprovalExecutorUtil {
-	    
 		public static void init() {
 			ApprovalExecutorUtil.globallyAllowedString = ApprovalExecutorUtilTest.class.getName();
 			ApprovalExecutorUtil.globallyAllowed = null;
