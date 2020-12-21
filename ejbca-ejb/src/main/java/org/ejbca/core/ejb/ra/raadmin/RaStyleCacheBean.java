@@ -45,14 +45,18 @@ import org.ejbca.core.model.era.RaMasterApiProxyBeanLocal;
 @ConcurrencyManagement(ConcurrencyManagementType.BEAN)
 @TransactionManagement(TransactionManagementType.BEAN)
 public class RaStyleCacheBean {
-
+    /** EJB. */
   @EJB private RaMasterApiProxyBeanLocal raMasterApiProxyBean;
 
+  /** Logger. */
   private final Logger log = Logger.getLogger(RaStyleCacheBean.class);
 
+  /** Param. */
   private Map<AuthenticationToken, List<RaStyleInfo>> raStyleCache;
+  /** Param. */
   private Map<AuthenticationToken, Long> lastUpdateMap;
 
+  /** init. */
   @PostConstruct
   public void initialize() {
     raStyleCache = new HashMap<>();
@@ -62,8 +66,10 @@ public class RaStyleCacheBean {
     }
   }
 
-  public RaStyleCacheBean() {}
+  /** Default constructor. */
+  public RaStyleCacheBean() { }
 
+  /** Reset. */
   public void invalidateCache() {
     raStyleCache = new HashMap<>();
     lastUpdateMap = new HashMap<>();
@@ -71,7 +77,7 @@ public class RaStyleCacheBean {
 
   /**
    * Checks if administrators actual available RA Styles differentiate from the
-   * cached styles
+   * cached styles.
    *
    * @param authenticationToken of the requesting administrator
    * @return true if cache is invalid and requires update
@@ -103,7 +109,8 @@ public class RaStyleCacheBean {
       List<RaStyleInfo> cachedStyles = raStyleCache.get(authenticationToken);
       // This prevents lookup over Peers for every requested resource in a page
       // load.
-      if (now - getLastUpdate(authenticationToken) < 1000) {
+      final int msPerS = 1000;
+      if (now - getLastUpdate(authenticationToken) < msPerS) {
         return cachedStyles;
       }
       // Check for changes

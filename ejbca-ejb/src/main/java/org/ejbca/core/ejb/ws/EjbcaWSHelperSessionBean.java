@@ -113,29 +113,45 @@ import org.ejbca.util.query.Query;
 public class EjbcaWSHelperSessionBean
     implements EjbcaWSHelperSessionLocal, EjbcaWSHelperSessionRemote {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(EjbcaWSHelperSessionBean.class);
 
-  private static final InternalEjbcaResources intres =
+  /** Resource. */
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
+  /** EJB. */
   @EJB private WebAuthenticationProviderSessionLocal authenticationSession;
+  /** EJB. */
   @EJB private AuthorizationSessionLocal authorizationSession;
+  /** EJB. */
   @EJB private CAAdminSessionLocal caAdminSession;
+  /** EJB. */
   @EJB private CaSessionLocal caSession;
+  /** EJB. */
   @EJB private CertificateStoreSessionLocal certificateStoreSession;
+  /** EJB. */
   @EJB private CertificateProfileSessionLocal certificateProfileSession;
+  /** EJB. */
   @EJB private CryptoTokenManagementSessionLocal cryptoTokenManagementSession;
+  /** EJB. */
   @EJB private HardTokenSessionLocal hardTokenSession;
+  /** EJB. */
   @EJB private EndEntityAccessSessionLocal endEntityAccessSession;
+  /** EJB. */
   @EJB private EndEntityProfileSessionLocal endEntityProfileSession;
+  /** EJB. */
   @EJB private EndEntityManagementSessionLocal endEntityManagementSession;
+  /** EJB. */
   @EJB private RaMasterApiProxyBeanLocal raMasterApiProxyBean;
 
+  /** Tokens. */
   private final String[] softtokennames = {
     UserDataVOWS.TOKEN_TYPE_USERGENERATED, UserDataVOWS.TOKEN_TYPE_P12,
     UserDataVOWS.TOKEN_TYPE_JKS, UserDataVOWS.TOKEN_TYPE_PEM
   };
+  /** Tokens. */
   private final int[] softtokenids = {
     SecConst.TOKEN_SOFT_BROWSERGEN,
     SecConst.TOKEN_SOFT_P12,
@@ -158,7 +174,7 @@ public class EjbcaWSHelperSessionBean
       if (!raMasterApiProxyBean.isAuthorizedNoLogging(
           admin, AccessRulesConstants.ROLE_ADMINISTRATOR)) {
         final String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "authorization.notauthorizedtoresource",
                 AccessRulesConstants.ROLE_ADMINISTRATOR,
                 null);
@@ -166,7 +182,7 @@ public class EjbcaWSHelperSessionBean
       }
     } else if (admin == null) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "authentication.failed",
               "No admin authenticated for certificate with serialNumber "
                   + CertTools.getSerialNumber(cert)
@@ -188,7 +204,7 @@ public class EjbcaWSHelperSessionBean
     if (!authorizationSession.isAuthorizedNoLogging(
         admin, AccessRulesConstants.REGULAR_VIEWCERTIFICATE)) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "authorization.notauthorizedtoresource",
               AccessRulesConstants.REGULAR_VIEWCERTIFICATE,
               null);
@@ -197,8 +213,8 @@ public class EjbcaWSHelperSessionBean
     EndEntityInformation userdata =
         endEntityAccessSession.findUser(admin, username);
     if (userdata == null) {
-      log.info(intres.getLocalizedMessage("ra.errorentitynotexist", username));
-      String msg = intres.getLocalizedMessage("ra.wrongusernameorpassword");
+      LOG.info(INTRES.getLocalizedMessage("ra.errorentitynotexist", username));
+      String msg = INTRES.getLocalizedMessage("ra.wrongusernameorpassword");
       throw new EjbcaException(ErrorCode.USER_NOT_FOUND, msg);
     }
     if (!authorizationSession.isAuthorizedNoLogging(
@@ -207,7 +223,7 @@ public class EjbcaWSHelperSessionBean
             + userdata.getEndEntityProfileId()
             + AccessRulesConstants.VIEW_END_ENTITY)) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "authorization.notauthorizedtoresource",
               AccessRulesConstants.ENDENTITYPROFILEPREFIX
                   + userdata.getEndEntityProfileId()
@@ -218,7 +234,7 @@ public class EjbcaWSHelperSessionBean
     if (!authorizationSession.isAuthorizedNoLogging(
         admin, StandardRules.CAACCESS.resource() + caid)) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "authorization.notauthorizedtoresource",
               StandardRules.CAACCESS.resource() + caid,
               null);
@@ -239,7 +255,7 @@ public class EjbcaWSHelperSessionBean
       if (!authorizationSession.isAuthorizedNoLogging(
           admin, AccessRulesConstants.REGULAR_VIEWHARDTOKENS)) {
         final String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "authorization.notauthorizedtoresource",
                 AccessRulesConstants.REGULAR_VIEWHARDTOKENS,
                 null);
@@ -248,9 +264,9 @@ public class EjbcaWSHelperSessionBean
       EndEntityInformation userdata =
           endEntityAccessSession.findUser(admin, username);
       if (userdata == null) {
-        log.info(
-            intres.getLocalizedMessage("ra.errorentitynotexist", username));
-        String msg = intres.getLocalizedMessage("ra.wrongusernameorpassword");
+        LOG.info(
+            INTRES.getLocalizedMessage("ra.errorentitynotexist", username));
+        String msg = INTRES.getLocalizedMessage("ra.wrongusernameorpassword");
         throw new EjbcaException(ErrorCode.USER_NOT_FOUND, msg);
       }
 
@@ -258,7 +274,7 @@ public class EjbcaWSHelperSessionBean
         if (!authorizationSession.isAuthorizedNoLogging(
             admin, AccessRulesConstants.REGULAR_VIEWPUKS)) {
           final String msg =
-              intres.getLocalizedMessage(
+              INTRES.getLocalizedMessage(
                   "authorization.notauthorizedtoresource",
                   AccessRulesConstants.REGULAR_VIEWPUKS,
                   null);
@@ -271,7 +287,7 @@ public class EjbcaWSHelperSessionBean
               + userdata.getEndEntityProfileId()
               + AccessRulesConstants.HARDTOKEN_RIGHTS)) {
         final String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "authorization.notauthorizedtoresource",
                 AccessRulesConstants.ENDENTITYPROFILEPREFIX
                     + userdata.getEndEntityProfileId()
@@ -286,7 +302,7 @@ public class EjbcaWSHelperSessionBean
                 + userdata.getEndEntityProfileId()
                 + AccessRulesConstants.HARDTOKEN_PUKDATA_RIGHTS)) {
           final String msg =
-              intres.getLocalizedMessage(
+              INTRES.getLocalizedMessage(
                   "authorization.notauthorizedtoresource",
                   AccessRulesConstants.ENDENTITYPROFILEPREFIX
                       + userdata.getEndEntityProfileId()
@@ -331,13 +347,13 @@ public class EjbcaWSHelperSessionBean
                 ValidityDate.formatAsISO8601(
                     oldDateFormat.parse(customStartTime),
                     ValidityDate.TIMEZONE_UTC);
-            log.info(
+            LOG.info(
                 "WS client sent userdata with startTime using US Locale date"
                     + " format. yyyy-MM-dd HH:mm:ssZZ should be used for"
                     + " absolute time and any fetched UserDataVOWS will use"
                     + " this format.");
-            if (log.isDebugEnabled()) {
-              log.debug(
+            if (LOG.isDebugEnabled()) {
+              LOG.debug(
                   " Changed startTime \""
                       + customStartTime
                       + "\" to \""
@@ -352,7 +368,7 @@ public class EjbcaWSHelperSessionBean
         ei.setCustomData(ExtendedInformation.CUSTOM_STARTTIME, customStartTime);
         useEI = true;
       } catch (ParseException e) {
-        log.info(
+        LOG.info(
             "WS client supplied invalid startTime in userData. startTime for"
                 + " this request was ignored. Supplied SubjectDN was \""
                 + userdata.getSubjectDN()
@@ -378,13 +394,13 @@ public class EjbcaWSHelperSessionBean
                 ValidityDate.formatAsISO8601(
                     oldDateFormat.parse(customEndTime),
                     ValidityDate.TIMEZONE_UTC);
-            log.info(
+            LOG.info(
                 "WS client sent userdata with endTime using US Locale date"
                     + " format. yyyy-MM-dd HH:mm:ssZZ should be used for"
                     + " absolute time and any fetched UserDataVOWS will use"
                     + " this format.");
-            if (log.isDebugEnabled()) {
-              log.debug(
+            if (LOG.isDebugEnabled()) {
+              LOG.debug(
                   " Changed endTime \""
                       + customEndTime
                       + "\" to \""
@@ -398,7 +414,7 @@ public class EjbcaWSHelperSessionBean
         ei.setCustomData(ExtendedInformation.CUSTOM_ENDTIME, customEndTime);
         useEI = true;
       } catch (ParseException e) {
-        log.info(
+        LOG.info(
             "WS client supplied invalid endTime in userData. endTime for this"
                 + " request was ignored. Supplied SubjectDN was \""
                 + userdata.getSubjectDN()
@@ -553,8 +569,8 @@ public class EjbcaWSHelperSessionBean
       final String key = item.getName();
       final String value = item.getValue();
       if (value == null || key == null) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Key or value is null when trying to set generic extended"
                   + " information.");
         }
@@ -562,13 +578,13 @@ public class EjbcaWSHelperSessionBean
       }
       if (OID.isStartingWithValidOID(key)) {
         ei.setExtensionData(key, value);
-        if (log.isDebugEnabled()) {
-          log.debug("Set certificate extension: " + key + ", " + value);
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Set certificate extension: " + key + ", " + value);
         }
       } else {
         ei.setMapData(key, value);
-        if (log.isDebugEnabled()) {
-          log.debug("Set generic extended information: " + key + ", " + value);
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Set generic extended information: " + key + ", " + value);
         }
       }
       useEI = true;
@@ -615,7 +631,7 @@ public class EjbcaWSHelperSessionBean
               ValidityDate.getISO8601FromImpliedUTC(
                   startTime, ValidityDate.TIMEZONE_UTC);
         } catch (ParseException e) {
-          log.info(
+          LOG.info(
               "Failed to convert "
                   + ExtendedInformation.CUSTOM_STARTTIME
                   + " to ISO8601 format.");
@@ -632,7 +648,7 @@ public class EjbcaWSHelperSessionBean
               ValidityDate.getISO8601FromImpliedUTC(
                   endTime, ValidityDate.TIMEZONE_UTC);
         } catch (ParseException e) {
-          log.info(
+          LOG.info(
               "Failed to convert "
                   + ExtendedInformation.CUSTOM_ENDTIME
                   + " to ISO8601 format.");
@@ -645,7 +661,7 @@ public class EjbcaWSHelperSessionBean
       if (data != null) {
         final List<ExtendedInformationWS> extendedInfo = new ArrayList<>();
         final Set<String> set = data.keySet();
-        for (Iterator<String> iterator = set.iterator(); iterator.hasNext(); ) {
+        for (Iterator<String> iterator = set.iterator(); iterator.hasNext();) {
           final String key = iterator.next();
           final String value = ei.getMapData(key);
           if (value != null) {
@@ -682,7 +698,7 @@ public class EjbcaWSHelperSessionBean
               + endEntityInformation.getEndEntityProfileId()
               + " does not exist. User: "
               + username;
-      log.error(message);
+      LOG.error(message);
       throw new EjbcaException(ErrorCode.EE_PROFILE_NOT_EXISTS, message);
     }
 
@@ -695,7 +711,7 @@ public class EjbcaWSHelperSessionBean
               + endEntityInformation.getCertificateProfileId()
               + " does not exist. User: "
               + username;
-      log.error(message);
+      LOG.error(message);
       throw new EjbcaException(ErrorCode.CERT_PROFILE_NOT_EXISTS, message);
     }
 
@@ -710,7 +726,7 @@ public class EjbcaWSHelperSessionBean
                 + endEntityInformation.getHardTokenIssuerId()
                 + " does not exist. User: "
                 + username;
-        log.error(message);
+        LOG.error(message);
         throw new EjbcaException(
             ErrorCode.HARD_TOKEN_ISSUER_NOT_EXISTS, message);
       }
@@ -725,7 +741,7 @@ public class EjbcaWSHelperSessionBean
               + endEntityInformation.getTokenType()
               + " does not exist. User: "
               + username;
-      log.error(message);
+      LOG.error(message);
       throw new EjbcaException(ErrorCode.UNKOWN_TOKEN_TYPE, message);
     }
     return convertEndEntityInformation(
@@ -773,10 +789,10 @@ public class EjbcaWSHelperSessionBean
         retval.getCertificates().add(new Certificate(iter.next()));
       }
     } catch (DatatypeConfigurationException e) {
-      log.error("EJBCA WebService error, getHardToken: ", e);
+      LOG.error("EJBCA WebService error, getHardToken: ", e);
       throw new EjbcaException(ErrorCode.INTERNAL_ERROR, e.getMessage());
     } catch (CertificateEncodingException e) {
-      log.error("EJBCA WebService error, getHardToken: ", e);
+      LOG.error("EJBCA WebService error, getHardToken: ", e);
       throw new EjbcaException(ErrorCode.INTERNAL_ERROR, e.getMessage());
     }
 
@@ -950,7 +966,7 @@ public class EjbcaWSHelperSessionBean
         // Drop invalid cert
       } catch (CertificateEncodingException e) {
         // Drop invalid cert
-        log.error("A defect certificate was detected.");
+        LOG.error("A defect certificate was detected.");
       }
     }
     return retval;
@@ -999,11 +1015,11 @@ public class EjbcaWSHelperSessionBean
     try {
       endEntityManagementSession.setPassword(admin, username, null);
       endEntityManagementSession.setUserStatus(admin, username, status);
-      log.debug("Reset user password to null and status to " + status);
+      LOG.debug("Reset user password to null and status to " + status);
     } catch (Exception e) {
       // Catch all because this reset method will be called from within other
       // catch clauses
-      log.error(e);
+      LOG.error(e);
     }
   }
 
@@ -1020,15 +1036,15 @@ public class EjbcaWSHelperSessionBean
     try {
       // Check validity of the certificate after verifying the signature
       CertTools.checkValidity(cert, new Date());
-      log.debug("The verifying certificate was valid");
+      LOG.debug("The verifying certificate was valid");
       // Verification succeeded, lets set user status to new, the password as
       // passed in and proceed
       String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "cvc.info.renewallowed",
               CertTools.getFingerprintAsString(cert),
               username);
-      log.info(msg);
+      LOG.info(msg);
       endEntityManagementSession.setPassword(admin, username, password);
       endEntityManagementSession.setUserStatus(
           admin, username, EndEntityConstants.STATUS_NEW);
@@ -1037,16 +1053,16 @@ public class EjbcaWSHelperSessionBean
       // If verification of outer signature fails because the old certificate is
       // not valid, we don't really care, continue as if it was an initial
       // request
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Certificate we try to verify outer signature with is not yet"
                 + " valid. SubjectDN: "
                 + CertTools.getSubjectDN(cert));
       }
       throw e;
     } catch (CertificateExpiredException e) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Certificate we try to verify outer signature with has expired."
                 + " SubjectDN: "
                 + CertTools.getSubjectDN(cert));

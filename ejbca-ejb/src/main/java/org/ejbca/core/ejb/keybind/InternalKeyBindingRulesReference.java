@@ -35,17 +35,17 @@ public class InternalKeyBindingRulesReference implements AccessRulePlugin {
   @Override
   public Map<String, String> getRules() {
     final Map<String, String> allRules = new HashMap<String, String>();
-    for (final InternalKeyBindingRules rule :
-        InternalKeyBindingRules.values()) {
+    for (final InternalKeyBindingRules rule
+        : InternalKeyBindingRules.values()) {
       allRules.put(rule.resource(), rule.resource());
     }
     try {
       final InternalKeyBindingDataSessionLocal internalKeyBindingDataSession =
           new EjbLocalHelper().getInternalKeyBindingDataSession();
-      for (final Entry<String, Integer> entry :
-          internalKeyBindingDataSession.getCachedNameToIdMap().entrySet()) {
-        for (final InternalKeyBindingRules rule :
-            InternalKeyBindingRules.values()) {
+      for (final Entry<String, Integer> entry
+          : internalKeyBindingDataSession.getCachedNameToIdMap().entrySet()) {
+        for (final InternalKeyBindingRules rule
+            : InternalKeyBindingRules.values()) {
           if (!InternalKeyBindingRules.BASE.equals(rule)) {
             allRules.put(
                 rule.resource() + "/" + entry.getValue(),
@@ -63,14 +63,14 @@ public class InternalKeyBindingRulesReference implements AccessRulePlugin {
         throw new IllegalStateException(
             "Can't perform lookup of internal keybindings, can't continue.");
       }
-      for (String type :
-          internalKeyBindingMgmtSession
+      for (String type
+          : internalKeyBindingMgmtSession
               .getAvailableTypesAndProperties()
               .keySet()) {
-        for (int id :
-            internalKeyBindingMgmtSession.getInternalKeyBindingIds(type)) {
-          for (InternalKeyBindingRules rule :
-              InternalKeyBindingRules.values()) {
+        for (int id
+            : internalKeyBindingMgmtSession.getInternalKeyBindingIds(type)) {
+          for (InternalKeyBindingRules rule
+              : InternalKeyBindingRules.values()) {
             if (rule != InternalKeyBindingRules.BASE) {
               // Don't make the name available remotely
               allRules.put(

@@ -83,24 +83,35 @@ import org.ejbca.core.model.keyrecovery.KeyRecoveryInformation;
 public class KeyRecoverySessionBean
     implements KeyRecoverySessionLocal, KeyRecoverySessionRemote {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(KeyRecoverySessionBean.class);
 
-  /** Internal localization of logs and errors */
-  private static final InternalEjbcaResources intres =
+  /** Internal localization of logs and errors. */
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
+  /** EM. */
   @PersistenceContext(unitName = "ejbca")
   private EntityManager entityManager;
 
+  /** EJB. */
   @EJB private AuthorizationSessionLocal authorizationSession;
+  /** EJB. */
   @EJB private ApprovalSessionLocal approvalSession;
+  /** EJB. */
   @EJB private ApprovalProfileSessionLocal approvalProfileSession;
+  /** EJB. */
   @EJB private CertificateProfileSessionLocal certProfileSession;
+  /** EJB. */
   @EJB private CAAdminSessionLocal caAdminSession;
+  /** EJB. */
   @EJB private CaSessionLocal caSession;
+  /** EJB. */
   @EJB private CertificateStoreSessionLocal certificateStoreSession;
+  /** EJB. */
   @EJB private CryptoTokenSessionLocal cryptoTokenSession;
+  /** EJB. */
   @EJB private SecurityEventsLoggerSessionLocal auditSession;
 
   /**
@@ -162,7 +173,7 @@ public class KeyRecoverySessionBean
       if (ApprovalExecutorUtil.requireApproval(
           ar, NONAPPROVABLECLASSNAMES_KEYRECOVERY)) {
         int requestId = approvalSession.addApprovalRequest(admin, ar);
-        String msg = intres.getLocalizedMessage("keyrecovery.addedforapproval");
+        String msg = INTRES.getLocalizedMessage("keyrecovery.addedforapproval");
         throw new WaitingForApprovalException(msg, requestId);
       }
     }
@@ -186,8 +197,8 @@ public class KeyRecoverySessionBean
       final String username,
       final KeyPairWrapper keyPairWrapper)
       throws AuthorizationDeniedException {
-    if (log.isTraceEnabled()) {
-      log.trace(">addKeyRecoveryData(user: " + username + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">addKeyRecoveryData(user: " + username + ")");
     }
     if (authorizedToAdministrateKeys(admin)) {
       final Certificate certificate = EJBTools.unwrap(certificateWrapper);
@@ -216,7 +227,7 @@ public class KeyRecoverySessionBean
                 response.getPublicKeyId()));
         // same method to make hex serno as in KeyRecoveryDataBean
         String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "keyrecovery.addeddata",
                 CertTools.getSerialNumber(certificate).toString(16),
                 CertTools.getIssuerDN(certificate),
@@ -238,7 +249,7 @@ public class KeyRecoverySessionBean
         returnval = true;
       } catch (Exception e) {
         final String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "keyrecovery.erroradddata",
                 CertTools.getSerialNumber(certificate).toString(16),
                 CertTools.getIssuerDN(certificate));
@@ -254,9 +265,9 @@ public class KeyRecoverySessionBean
             certSerialNumber,
             username,
             details);
-        log.error(msg, e);
+        LOG.error(msg, e);
       }
-      log.trace("<addKeyRecoveryData()");
+      LOG.trace("<addKeyRecoveryData()");
       return returnval;
     } else {
       throw new AuthorizationDeniedException(
@@ -272,8 +283,8 @@ public class KeyRecoverySessionBean
       final KeyPairWrapper keyPairWrapper,
       final int cryptoTokenId,
       final String keyAlias) {
-    if (log.isTraceEnabled()) {
-      log.trace(">addKeyRecoveryDataInternal(user: " + username + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">addKeyRecoveryDataInternal(user: " + username + ")");
     }
     final Certificate certificate = EJBTools.unwrap(certificateWrapper);
     final KeyPair keypair = EJBTools.unwrap(keyPairWrapper);
@@ -298,7 +309,7 @@ public class KeyRecoverySessionBean
               publicKeyId));
       // same method to make hex serno as in KeyRecoveryDataBean
       String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "keyrecovery.addeddata",
               CertTools.getSerialNumber(certificate).toString(16),
               CertTools.getIssuerDN(certificate),
@@ -320,7 +331,7 @@ public class KeyRecoverySessionBean
       returnval = true;
     } catch (Exception e) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "keyrecovery.erroradddata",
               CertTools.getSerialNumber(certificate).toString(16),
               CertTools.getIssuerDN(certificate));
@@ -336,9 +347,9 @@ public class KeyRecoverySessionBean
           certSerialNumber,
           username,
           details);
-      log.error(msg, e);
+      LOG.error(msg, e);
     }
-    log.trace("<addKeyRecoveryDataInternal()");
+    LOG.trace("<addKeyRecoveryDataInternal()");
     return returnval;
   }
 
@@ -354,8 +365,8 @@ public class KeyRecoverySessionBean
     final Certificate certificate = EJBTools.unwrap(certificateWrapper);
     final String hexSerial =
         CertTools.getSerialNumber(certificate).toString(16);
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">removeKeyRecoveryData(certificate: "
               + CertTools.getSerialNumber(certificate).toString(16)
               + ")");
@@ -373,7 +384,7 @@ public class KeyRecoverySessionBean
       username = krd.getUsername();
       entityManager.remove(krd);
       String msg =
-          intres.getLocalizedMessage("keyrecovery.removeddata", hexSerial, dn);
+          INTRES.getLocalizedMessage("keyrecovery.removeddata", hexSerial, dn);
       final Map<String, Object> details = new LinkedHashMap<>();
       details.put("msg", msg);
       auditSession.log(
@@ -388,7 +399,7 @@ public class KeyRecoverySessionBean
           details);
     } catch (Exception e) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "keyrecovery.errorremovedata", hexSerial, dn);
       final Map<String, Object> details = new LinkedHashMap<>();
       details.put("msg", msg);
@@ -402,16 +413,16 @@ public class KeyRecoverySessionBean
           hexSerial,
           null,
           details);
-      log.error(msg, e);
+      LOG.error(msg, e);
     }
-    log.trace("<removeKeyRecoveryData()");
+    LOG.trace("<removeKeyRecoveryData()");
   }
 
   @Override
   public void removeAllKeyRecoveryData(
       final AuthenticationToken admin, final String username) {
-    if (log.isTraceEnabled()) {
-      log.trace(">removeAllKeyRecoveryData(user: " + username + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">removeAllKeyRecoveryData(user: " + username + ")");
     }
     try {
       Collection<org.ejbca.core.ejb.keyrecovery.KeyRecoveryData> result =
@@ -423,7 +434,7 @@ public class KeyRecoverySessionBean
         entityManager.remove(iter.next());
       }
       String msg =
-          intres.getLocalizedMessage("keyrecovery.removeduser", username);
+          INTRES.getLocalizedMessage("keyrecovery.removeduser", username);
       final Map<String, Object> details = new LinkedHashMap<>();
       details.put("msg", msg);
       auditSession.log(
@@ -438,7 +449,7 @@ public class KeyRecoverySessionBean
           details);
     } catch (Exception e) {
       String msg =
-          intres.getLocalizedMessage("keyrecovery.errorremoveuser", username);
+          INTRES.getLocalizedMessage("keyrecovery.errorremoveuser", username);
       final Map<String, Object> details = new LinkedHashMap<>();
       details.put("msg", msg);
       auditSession.log(
@@ -452,7 +463,7 @@ public class KeyRecoverySessionBean
           username,
           details);
     }
-    log.trace("<removeAllKeyRecoveryData()");
+    LOG.trace("<removeAllKeyRecoveryData()");
   }
 
   @Override
@@ -461,8 +472,8 @@ public class KeyRecoverySessionBean
       final String username,
       final int endEntityProfileId)
       throws AuthorizationDeniedException {
-    if (log.isTraceEnabled()) {
-      log.trace(">keyRecovery(user: " + username + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">keyRecovery(user: " + username + ")");
     }
     KeyRecoveryInformation returnval = null;
     X509Certificate certificate = null;
@@ -502,7 +513,7 @@ public class KeyRecoverySessionBean
                     certificate);
             certSerialNumber = CertTools.getSerialNumberAsString(certificate);
             logMsg =
-                intres.getLocalizedMessage(
+                INTRES.getLocalizedMessage(
                     "keyrecovery.sentdata",
                     username,
                     response.getKeyAlias(),
@@ -511,7 +522,7 @@ public class KeyRecoverySessionBean
           }
         }
         if (logMsg == null) {
-          logMsg = intres.getLocalizedMessage("keyrecovery.nodata", username);
+          logMsg = INTRES.getLocalizedMessage("keyrecovery.nodata", username);
         }
         final Map<String, Object> details = new LinkedHashMap<>();
         details.put("msg", logMsg);
@@ -527,8 +538,8 @@ public class KeyRecoverySessionBean
             details);
       } catch (Exception e) {
         String msg =
-            intres.getLocalizedMessage("keyrecovery.errorsenddata", username);
-        log.error(msg, e);
+            INTRES.getLocalizedMessage("keyrecovery.errorsenddata", username);
+        LOG.error(msg, e);
         final Map<String, Object> details = new LinkedHashMap<>();
         details.put("msg", msg);
         auditSession.log(
@@ -548,8 +559,8 @@ public class KeyRecoverySessionBean
               + " not authorized to key recovery for end entity profile id "
               + endEntityProfileId);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<keyRecovery()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<keyRecovery()");
     }
     return returnval;
   }
@@ -560,8 +571,8 @@ public class KeyRecoverySessionBean
       final String username,
       final int cryptoTokenId,
       final String keyAlias) {
-    if (log.isTraceEnabled()) {
-      log.trace(">recoverKeysInternal(user: " + username + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">recoverKeysInternal(user: " + username + ")");
     }
     KeyRecoveryInformation returnval = null;
     Collection<KeyRecoveryData> result =
@@ -589,7 +600,7 @@ public class KeyRecoverySessionBean
                   null);
           certSerialNumber = krd.getCertificateSN().toString(16);
           logMsg =
-              intres.getLocalizedMessage(
+              INTRES.getLocalizedMessage(
                   "keyrecovery.sentdata",
                   username,
                   keyAlias,
@@ -598,7 +609,7 @@ public class KeyRecoverySessionBean
         }
       }
       if (logMsg == null) {
-        logMsg = intres.getLocalizedMessage("keyrecovery.nodata", username);
+        logMsg = INTRES.getLocalizedMessage("keyrecovery.nodata", username);
       }
       final Map<String, Object> details = new LinkedHashMap<>();
       details.put("msg", logMsg);
@@ -614,8 +625,8 @@ public class KeyRecoverySessionBean
           details);
     } catch (Exception e) {
       String msg =
-          intres.getLocalizedMessage("keyrecovery.errorsenddata", username);
-      log.error(msg, e);
+          INTRES.getLocalizedMessage("keyrecovery.errorsenddata", username);
+      LOG.error(msg, e);
       final Map<String, Object> details = new LinkedHashMap<>();
       details.put("msg", msg);
       auditSession.log(
@@ -629,12 +640,14 @@ public class KeyRecoverySessionBean
           username,
           details);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<recoverKeysInternal()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<recoverKeysInternal()");
     }
     return returnval;
   }
 
+  /**
+   * Class names. */
   private static final ApprovalOveradableClassName[]
       NONAPPROVABLECLASSNAMES_KEYRECOVERY = {
     new ApprovalOveradableClassName(
@@ -651,8 +664,8 @@ public class KeyRecoverySessionBean
       final int endEntityProfileId)
       throws AuthorizationDeniedException, ApprovalException,
           WaitingForApprovalException, CADoesntExistsException {
-    if (log.isTraceEnabled()) {
-      log.trace(">markNewestAsRecoverable(user: " + username + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">markNewestAsRecoverable(user: " + username + ")");
     }
     boolean returnval = false;
     long newesttime = 0;
@@ -701,7 +714,7 @@ public class KeyRecoverySessionBean
       }
       if (returnval) {
         String msg =
-            intres.getLocalizedMessage("keyrecovery.markeduser", username);
+            INTRES.getLocalizedMessage("keyrecovery.markeduser", username);
         final Map<String, Object> details = new LinkedHashMap<>();
         details.put("msg", msg);
         auditSession.log(
@@ -716,11 +729,11 @@ public class KeyRecoverySessionBean
             details);
       } else {
         String msg =
-            intres.getLocalizedMessage("keyrecovery.errormarkuser", username);
-        log.info(msg);
+            INTRES.getLocalizedMessage("keyrecovery.errormarkuser", username);
+        LOG.info(msg);
       }
     }
-    log.trace("<markNewestAsRecoverable()");
+    LOG.trace("<markNewestAsRecoverable()");
     return returnval;
   }
 
@@ -735,8 +748,8 @@ public class KeyRecoverySessionBean
         CertTools.getSerialNumber(certificate)
             .toString(16); // same method to make hex as in KeyRecoveryDataBean
     final String dn = CertTools.getIssuerDN(certificate);
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">markAsRecoverable(issuer: "
               + dn
               + "; certificatesn: "
@@ -761,7 +774,7 @@ public class KeyRecoverySessionBean
         krd.setMarkedAsRecoverable(true);
         int caid = krd.getIssuerDN().hashCode();
         String msg =
-            intres.getLocalizedMessage("keyrecovery.markedcert", hexSerial, dn);
+            INTRES.getLocalizedMessage("keyrecovery.markedcert", hexSerial, dn);
         final Map<String, Object> details = new LinkedHashMap<>();
         details.put("msg", msg);
         auditSession.log(
@@ -783,11 +796,11 @@ public class KeyRecoverySessionBean
       }
     } else {
       String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "keyrecovery.errormarkcert", hexSerial, dn);
-      log.info(msg + " No key recovery data found on this node.");
+      LOG.info(msg + " No key recovery data found on this node.");
     }
-    log.trace("<markAsRecoverable()");
+    LOG.trace("<markAsRecoverable()");
     return returnval;
   }
 
@@ -801,8 +814,8 @@ public class KeyRecoverySessionBean
         CertTools.getSerialNumber(certificate)
             .toString(16); // same method to make hex as in KeyRecoveryDataBean
     final String dn = CertTools.getIssuerDN(certificate);
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">markAsRecoverable(issuer: "
               + dn
               + "; certificatesn: "
@@ -817,7 +830,7 @@ public class KeyRecoverySessionBean
       krd.setMarkedAsRecoverable(true);
       int caid = krd.getIssuerDN().hashCode();
       String msg =
-          intres.getLocalizedMessage("keyrecovery.markedcert", hexSerial, dn);
+          INTRES.getLocalizedMessage("keyrecovery.markedcert", hexSerial, dn);
       final Map<String, Object> details = new LinkedHashMap<>();
       details.put("msg", msg);
       auditSession.log(
@@ -833,19 +846,19 @@ public class KeyRecoverySessionBean
       returnval = true;
     } else {
       String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "keyrecovery.errormarkcert", hexSerial, dn);
-      log.info(msg);
+      LOG.info(msg);
     }
-    log.trace("<markAsRecoverable()");
+    LOG.trace("<markAsRecoverable()");
     return returnval;
   }
 
   @Override
   public void unmarkUser(
       final AuthenticationToken admin, final String username) {
-    if (log.isTraceEnabled()) {
-      log.trace(">unmarkUser(user: " + username + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">unmarkUser(user: " + username + ")");
     }
     KeyRecoveryData krd = null;
     Collection<KeyRecoveryData> result =
@@ -855,14 +868,14 @@ public class KeyRecoverySessionBean
       krd = i.next();
       krd.setMarkedAsRecoverable(false);
     }
-    log.trace("<unmarkUser()");
+    LOG.trace("<unmarkUser()");
   }
 
   @TransactionAttribute(TransactionAttributeType.SUPPORTS)
   @Override
   public boolean isUserMarked(final String username) {
-    if (log.isTraceEnabled()) {
-      log.trace(">isUserMarked(user: " + username + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">isUserMarked(user: " + username + ")");
     }
     boolean returnval = false;
     Collection<KeyRecoveryData> result =
@@ -873,8 +886,8 @@ public class KeyRecoverySessionBean
         break;
       }
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<isUserMarked(" + returnval + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<isUserMarked(" + returnval + ")");
     }
     return returnval;
   }
@@ -882,10 +895,10 @@ public class KeyRecoverySessionBean
   @TransactionAttribute(TransactionAttributeType.SUPPORTS)
   @Override
   public boolean existsKeys(final CertificateWrapper certificateWrapper) {
-    log.trace(">existsKeys()");
+    LOG.trace(">existsKeys()");
     final Certificate certificate = EJBTools.unwrap(certificateWrapper);
     if (certificate == null) {
-      log.debug("Key recovery requires a certificate to be present.");
+      LOG.debug("Key recovery requires a certificate to be present.");
       return false;
     }
     boolean returnval = false;
@@ -897,11 +910,11 @@ public class KeyRecoverySessionBean
         KeyRecoveryData.findByPK(
             entityManager, new KeyRecoveryDataPK(hexSerial, dn));
     if (krd != null) {
-      log.debug("Found key for user: " + krd.getUsername());
+      LOG.debug("Found key for user: " + krd.getUsername());
       returnval = true;
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<existsKeys(" + returnval + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<existsKeys(" + returnval + ")");
     }
     return returnval;
   }

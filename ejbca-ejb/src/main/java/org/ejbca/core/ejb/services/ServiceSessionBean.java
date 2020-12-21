@@ -100,10 +100,11 @@ import org.ejbca.core.protocol.cmp.CmpMessageDispatcherSessionLocal;
 public class ServiceSessionBean
     implements ServiceSessionLocal, ServiceSessionRemote {
 
-  private static final Logger log = Logger.getLogger(ServiceSessionBean.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(ServiceSessionBean.class);
 
-  /** Internal localization of logs and errors */
-  private static final InternalEjbcaResources intres =
+  /** Internal localization of logs and errors. */
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
   /**
@@ -112,48 +113,86 @@ public class ServiceSessionBean
    */
   private static final Integer SERVICELOADER_ID = 0;
 
+  /** Timrout. */
   private static final long SERVICELOADER_PERIOD = 5 * 60 * 1000;
 
+  /** Context. */
   @Resource private SessionContext sessionContext;
+  /** Service. */
   private TimerService
       timerService; // When the sessionContext is injected, the timerService
                     // should be looked up.
 
+  /** EJB. */
   @EJB private AuthorizationSessionLocal authorizationSession;
+  /** EJB. */
   @EJB private SecurityEventsLoggerSessionLocal auditSession;
+  /** EJB. */
   @EJB private InternalSecurityEventsLoggerSessionLocal internalAuditSession;
+  /** EJB. */
   @EJB private ServiceDataSessionLocal serviceDataSession;
 
+  /** Session. */
   private ServiceSessionLocal serviceSession;
 
   // Additional dependencies from the services we executeServiceInTransaction
+  /** EJB. */
   @EJB private ApprovalSessionLocal approvalSession;
+  /** EJB. */
   @EJB private ApprovalProfileSessionLocal approvalProfileSession;
+  /** EJB. */
   @EJB private EndEntityAuthenticationSessionLocal authenticationSession;
+  /** EJB. */
   @EJB private CAAdminSessionLocal caAdminSession;
+  /** EJB. */
   @EJB private CaSessionLocal caSession;
+  /** EJB. */
   @EJB private CertificateProfileSessionLocal certificateProfileSession;
+  /** EJB. */
   @EJB private CertificateStoreSessionLocal certificateStoreSession;
+  /** EJB. */
   @EJB private CrlCreateSessionLocal crlCreateSession;
+  /** EJB. */
   @EJB private CrlStoreSessionLocal crlStoreSession;
+  /** EJB. */
   @EJB private EndEntityAccessSessionLocal endEntityAccessSession;
+  /** EJB. */
   @EJB private EndEntityProfileSessionLocal endEntityProfileSession;
+  /** EJB. */
   @EJB private HardTokenSessionLocal hardTokenSession;
+  /** EJB. */
   @EJB private KeyRecoverySessionLocal keyRecoverySession;
+  /** EJB. */
   @EJB private AdminPreferenceSessionLocal raAdminSession;
+  /** EJB. */
   @EJB private GlobalConfigurationSessionLocal globalConfigurationSession;
+  /** EJB. */
   @EJB private SignSessionLocal signSession;
+  /** EJB. */
   @EJB private EndEntityManagementSessionLocal endEntityManagementSession;
+  /** EJB. */
   @EJB private PublisherQueueSessionLocal publisherQueueSession;
+  /** EJB. */
   @EJB private PublisherSessionLocal publisherSession;
+  /** EJB. */
   @EJB private CertificateRequestSessionLocal certificateRequestSession;
+  /** EJB. */
   @EJB private WebAuthenticationProviderSessionLocal webAuthenticationSession;
+  /** EJB. */
   @EJB private PublishingCrlSessionLocal publishingCrlSession;
+  /** EJB. */
   @EJB private CryptoTokenManagementSessionLocal cryptoTokenSession;
+  /** EJB. */
   @EJB private CmpMessageDispatcherSessionLocal cmpMsgDispatcherSession;
+  /** EJB. */
   @EJB private ImportCrlSessionLocal importCrlSession;
+  /** EJB. */
   @EJB private KeyStoreCreateSessionLocal keyStoreCreateSession;
 
+  /** Constant. */
+  private final int msPerS = 1000;
+
+  /** Init. */
   @PostConstruct
   public void ejbCreate() {
     timerService = sessionContext.getTimerService();
@@ -167,11 +206,11 @@ public class ServiceSessionBean
       final String name,
       final ServiceConfiguration serviceConfiguration)
       throws ServiceExistsException {
-    if (log.isTraceEnabled()) {
-      log.trace(">addService(name: " + name + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">addService(name: " + name + ")");
     }
     addService(admin, findFreeServiceId(), name, serviceConfiguration);
-    log.trace("<addService()");
+    LOG.trace("<addService()");
   }
 
   @Override
@@ -181,13 +220,13 @@ public class ServiceSessionBean
       final String name,
       final ServiceConfiguration serviceConfiguration)
       throws ServiceExistsException {
-    if (log.isTraceEnabled()) {
-      log.trace(">addService(name: " + name + ", id: " + id + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">addService(name: " + name + ", id: " + id + ")");
     }
     boolean success = addServiceInternal(admin, id, name, serviceConfiguration);
     if (success) {
       final String msg =
-          intres.getLocalizedMessage("services.serviceadded", name);
+          INTRES.getLocalizedMessage("services.serviceadded", name);
       final Map<String, Object> details = new LinkedHashMap<String, Object>();
       details.put("msg", msg);
       auditSession.log(
@@ -202,11 +241,11 @@ public class ServiceSessionBean
           details);
     } else {
       final String msg =
-          intres.getLocalizedMessage("services.erroraddingservice", name);
-      log.info(msg);
+          INTRES.getLocalizedMessage("services.erroraddingservice", name);
+      LOG.info(msg);
       throw new ServiceExistsException(msg);
     }
-    log.trace("<addService()");
+    LOG.trace("<addService()");
   }
 
   private boolean addServiceInternal(
@@ -225,8 +264,8 @@ public class ServiceSessionBean
       }
     } else {
       final String msg =
-          intres.getLocalizedMessage("services.notauthorizedtoadd", name);
-      log.info(msg);
+          INTRES.getLocalizedMessage("services.notauthorizedtoadd", name);
+      LOG.info(msg);
     }
     return success;
   }
@@ -237,14 +276,14 @@ public class ServiceSessionBean
       final String oldname,
       final String newname)
       throws ServiceExistsException {
-    if (log.isTraceEnabled()) {
-      log.trace(">cloneService(name: " + oldname + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">cloneService(name: " + oldname + ")");
     }
     ServiceConfiguration servicedata = null;
     ServiceData htp = serviceDataSession.findByName(oldname);
     if (htp == null) {
       String msg = "Error cloning service: No such service found.";
-      log.error(msg);
+      LOG.error(msg);
       throw new EJBException(msg);
     }
     try {
@@ -253,7 +292,7 @@ public class ServiceSessionBean
       if (isAuthorizedToEditService(admin)) {
         addServiceInternal(admin, findFreeServiceId(), newname, servicedata);
         final String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "services.servicecloned", newname, oldname);
         final Map<String, Object> details = new LinkedHashMap<String, Object>();
         details.put("msg", msg);
@@ -269,22 +308,22 @@ public class ServiceSessionBean
             details);
       } else {
         final String msg =
-            intres.getLocalizedMessage("services.notauthorizedtoedit", oldname);
-        log.info(msg);
+            INTRES.getLocalizedMessage("services.notauthorizedtoedit", oldname);
+        LOG.info(msg);
       }
     } catch (CloneNotSupportedException e) {
-      log.error("Error cloning service: ", e);
+      LOG.error("Error cloning service: ", e);
       throw new EJBException(e);
     }
-    log.trace("<cloneService()");
+    LOG.trace("<cloneService()");
   }
 
   @TransactionAttribute(TransactionAttributeType.SUPPORTS)
   @Override
   public boolean removeService(
       final AuthenticationToken admin, final String name) {
-    if (log.isTraceEnabled()) {
-      log.trace(">removeService(name: " + name + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">removeService(name: " + name + ")");
     }
     boolean retval = false;
     try {
@@ -305,7 +344,7 @@ public class ServiceSessionBean
         }
         serviceDataSession.removeServiceData(htp.getId());
         final String msg =
-            intres.getLocalizedMessage("services.serviceremoved", name);
+            INTRES.getLocalizedMessage("services.serviceremoved", name);
         final Map<String, Object> details = new LinkedHashMap<String, Object>();
         details.put("msg", msg);
         auditSession.log(
@@ -321,12 +360,12 @@ public class ServiceSessionBean
         retval = true;
       } else {
         final String msg =
-            intres.getLocalizedMessage("services.notauthorizedtoedit", name);
-        log.info(msg);
+            INTRES.getLocalizedMessage("services.notauthorizedtoedit", name);
+        LOG.info(msg);
       }
     } catch (Exception e) {
       final String msg =
-          intres.getLocalizedMessage("services.errorremovingservice", name);
+          INTRES.getLocalizedMessage("services.errorremovingservice", name);
       final Map<String, Object> details = new LinkedHashMap<String, Object>();
       details.put("msg", msg);
       details.put("error", e.getMessage());
@@ -341,7 +380,7 @@ public class ServiceSessionBean
           null,
           details);
     }
-    log.trace("<removeService)");
+    LOG.trace("<removeService)");
     return retval;
   }
 
@@ -351,8 +390,8 @@ public class ServiceSessionBean
       final String oldname,
       final String newname)
       throws ServiceExistsException {
-    if (log.isTraceEnabled()) {
-      log.trace(">renameService(from " + oldname + " to " + newname + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">renameService(from " + oldname + " to " + newname + ")");
     }
     boolean success = false;
     if (serviceDataSession.findByName(newname) == null) {
@@ -363,15 +402,15 @@ public class ServiceSessionBean
           success = true;
         } else {
           final String msg =
-              intres.getLocalizedMessage(
+              INTRES.getLocalizedMessage(
                   "services.notauthorizedtoedit", oldname);
-          log.info(msg);
+          LOG.info(msg);
         }
       }
     }
     if (success) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "services.servicerenamed", oldname, newname);
       final Map<String, Object> details = new LinkedHashMap<String, Object>();
       details.put("msg", msg);
@@ -387,12 +426,12 @@ public class ServiceSessionBean
           details);
     } else {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "services.errorrenamingservice", oldname, newname);
-      log.info(msg);
+      LOG.info(msg);
       throw new ServiceExistsException(msg);
     }
-    log.trace("<renameService()");
+    LOG.trace("<renameService()");
   }
 
   @Override
@@ -412,16 +451,16 @@ public class ServiceSessionBean
   @TransactionAttribute(TransactionAttributeType.SUPPORTS)
   @Override
   public ServiceConfiguration getService(final String name) {
-    if (log.isTraceEnabled()) {
-      log.trace(">getService: " + name);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">getService: " + name);
     }
     ServiceConfiguration returnval = null;
     ServiceData serviceData = serviceDataSession.findByName(name);
     if (serviceData != null) {
       returnval = serviceData.getServiceConfiguration();
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<getService: " + name);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<getService: " + name);
     }
     return returnval;
   }
@@ -441,8 +480,8 @@ public class ServiceSessionBean
   @Override
   public void activateServiceTimer(
       final AuthenticationToken admin, final String name) {
-    if (log.isTraceEnabled()) {
-      log.trace(">activateServiceTimer(name: " + name + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">activateServiceTimer(name: " + name + ")");
     }
     ServiceData htp = serviceDataSession.findByName(name);
     if (htp != null) {
@@ -458,18 +497,18 @@ public class ServiceSessionBean
           serviceSession.cancelTimer(htp.getId());
           if (serviceConfiguration.isActive()
               && worker.getNextInterval() != IInterval.DONT_EXECUTE) {
-            addTimer(worker.getNextInterval() * 1000, htp.getId());
+            addTimer(worker.getNextInterval() * msPerS, htp.getId());
           }
         }
       } else {
         final String msg =
-            intres.getLocalizedMessage("services.notauthorizedtoedit", name);
-        log.info(msg);
+            INTRES.getLocalizedMessage("services.notauthorizedtoedit", name);
+        LOG.info(msg);
       }
     } else {
-      log.error("Can not find service: " + name);
+      LOG.error("Can not find service: " + name);
     }
-    log.trace("<activateServiceTimer()");
+    LOG.trace("<activateServiceTimer()");
   }
 
   private int findFreeServiceId() {
@@ -488,16 +527,16 @@ public class ServiceSessionBean
   @TransactionAttribute(TransactionAttributeType.SUPPORTS)
   @Override
   public String getServiceName(final int id) {
-    if (log.isTraceEnabled()) {
-      log.trace(">getServiceName(id: " + id + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">getServiceName(id: " + id + ")");
     }
     String returnval = null;
     ServiceData serviceData = serviceDataSession.findById(id);
     if (serviceData != null) {
       returnval = serviceData.getName();
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<getServiceName()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<getServiceName()");
     }
     return returnval;
   }
@@ -517,15 +556,16 @@ public class ServiceSessionBean
   // transactions.
   @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
   public void timeoutHandler(final Timer timer) {
-    if (log.isTraceEnabled()) {
-      log.trace(">ejbTimeout");
+    final int defaultTO = 30;
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">ejbTimeout");
     }
     final long startOfTimeOut = System.currentTimeMillis();
     long serviceInterval = IInterval.DONT_EXECUTE;
     Integer timerInfo = (Integer) timer.getInfo();
     if (timerInfo.equals(SERVICELOADER_ID)) {
-      if (log.isDebugEnabled()) {
-        log.debug("Running the internal Service loader.");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Running the internal Service loader.");
       }
       load();
     } else {
@@ -536,17 +576,17 @@ public class ServiceSessionBean
           Throwable
               t) { // NOPMD: we really need to catch everything to not risk
                    // hanging somewhere in limbo
-        log.warn(
+        LOG.warn(
             "Exception finding service name: ",
             t); // if this throws, there is a failed database or similar
         // Unexpected error (probably database related). We need to reschedule
         // the service with a default interval.
-        addTimer(30 * 1000, timerInfo);
+        addTimer(defaultTO * msPerS, timerInfo);
       }
       if (serviceName == null) {
         final String msg =
-            intres.getLocalizedMessage("services.servicenotfound", timerInfo);
-        log.info(msg);
+            INTRES.getLocalizedMessage("services.servicenotfound", timerInfo);
+        LOG.info(msg);
       } else {
         // Get interval of worker
         try {
@@ -555,17 +595,17 @@ public class ServiceSessionBean
             Throwable
                 t) { // NOPMD: we really need to catch everything to not risk
                      // hanging somewhere in limbo
-          log.warn(
+          LOG.warn(
               "Exception getting service interval: ",
               t); // if this throws, there is a failed database or similar
           // Unexpected error (probably database related). We need to reschedule
           // the service with a default interval.
-          addTimer(30 * 1000, timerInfo);
+          addTimer(defaultTO * msPerS, timerInfo);
         }
         // Reschedule timer
         IWorker worker = null;
         if (serviceInterval != IInterval.DONT_EXECUTE) {
-          Timer nextTrigger = addTimer(serviceInterval * 1000, timerInfo);
+          Timer nextTrigger = addTimer(serviceInterval * msPerS, timerInfo);
           try {
             // Try to acquire lock / see if this node should run
             worker =
@@ -575,8 +615,8 @@ public class ServiceSessionBean
               Throwable
                   t) { // NOPMD: we really need to catch everything to not risk
                        // hanging somewhere in limbo
-            if (log.isDebugEnabled()) {
-              log.debug(
+            if (LOG.isDebugEnabled()) {
+              LOG.debug(
                   "Exception: ",
                   t); // Don't spam log with stacktraces in normal production
                       // cases
@@ -586,31 +626,31 @@ public class ServiceSessionBean
             try {
               serviceSession.executeServiceInNoTransaction(worker, serviceName);
             } catch (RuntimeException e) {
-              /*
-               * If the service worker fails with a RuntimeException we need to
-               * swallow this here. If we allow it to propagate outside the
-               * ejbTimeout method it is up to the application server config how it
-               * should be retried, but we have already scheduled a new try
-               * previously in this method. We still want to log this as an ERROR
-               * since it is some kind of catastrophic failure..
-               */
-              log.error("Service worker execution failed.", e);
+          /*
+           * If the service worker fails with a RuntimeException we need to
+           * swallow this here. If we allow it to propagate outside the
+           * ejbTimeout method it is up to the application server config how it
+           * should be retried, but we have already scheduled a new try
+           * previously in this method. We still want to log this as an ERROR
+           * since it is some kind of catastrophic failure..
+           */
+              LOG.error("Service worker execution failed.", e);
             }
           } else {
-            if (log.isDebugEnabled()) {
+            if (LOG.isDebugEnabled()) {
               Object o = timerInfo;
               if (serviceName != null) {
                 o = serviceName;
               }
               final String msg =
-                  intres.getLocalizedMessage(
+                  INTRES.getLocalizedMessage(
                       "services.servicerunonothernode", o);
-              log.debug(msg);
+              LOG.debug(msg);
             }
           }
           if (System.currentTimeMillis() - startOfTimeOut
-              > serviceInterval * 1000) {
-            log.warn(
+              > serviceInterval * msPerS) {
+            LOG.warn(
                 "Service '"
                     + serviceName
                     + "' took longer than it's configured service interval ("
@@ -622,8 +662,8 @@ public class ServiceSessionBean
         }
       }
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<ejbTimeout");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<ejbTimeout");
     }
   }
 
@@ -640,8 +680,8 @@ public class ServiceSessionBean
       final Integer serviceId,
       final long nextTimeout,
       final boolean testRunOnOtherNode) {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">getWorkerIfItShouldRun: "
               + serviceId
               + ", "
@@ -654,8 +694,8 @@ public class ServiceSessionBean
     ServiceConfiguration serviceConfiguration =
         serviceData.getServiceConfiguration();
     if (!serviceConfiguration.isActive()) {
-      if (log.isDebugEnabled()) {
-        log.debug("Service " + serviceId + " is inactive.");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Service " + serviceId + " is inactive.");
       }
       return null; // Don't return an inactive worker to run
     }
@@ -672,8 +712,8 @@ public class ServiceSessionBean
               oldRunTimeStamp,
               oldNextRunTimeStamp);
       if (worker.getNextInterval() == IInterval.DONT_EXECUTE) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Service "
                   + serviceName
                   + " has interval IInterval.DONT_EXECUTE.");
@@ -684,11 +724,11 @@ public class ServiceSessionBean
       // earlier) as now here
       final Date runDateCheck = new Date(oldNextRunTimeStamp);
       final Date currentDate = new Date();
-      if (log.isDebugEnabled()) {
+      if (LOG.isDebugEnabled()) {
         final Date nextRunDate = new Date(nextTimeout);
-        log.debug("nextRunDate is:  " + nextRunDate);
-        log.debug("runDateCheck is: " + runDateCheck);
-        log.debug("currentDate is:  " + currentDate);
+        LOG.debug("nextRunDate is:  " + nextRunDate);
+        LOG.debug("runDateCheck is: " + runDateCheck);
+        LOG.debug("currentDate is:  " + currentDate);
       }
       // Check if this is a service that should run on all nodes, i.e. ignore if
       // it is already running on another node in a cluster
@@ -707,9 +747,11 @@ public class ServiceSessionBean
          */
         if (currentDate.after(runDateCheck)) {
           /*
-           * We only update the nextRunTimeStamp if the service is allowed to run on this node.
+           * We only update the nextRunTimeStamp if the service
+           * is allowed to run on this node.
            *
-           * However, we need to make sure that no other node has already acquired the semaphore
+           * However, we need to make sure that no other node has
+           *  already acquired the semaphore
            * if our current database allows non-repeatable reads.
            */
           final boolean updateTimestamps =
@@ -721,14 +763,14 @@ public class ServiceSessionBean
                   nextTimeout);
           if (!updateTimestamps || testRunOnOtherNode) {
             if (testRunOnOtherNode && updateTimestamps) {
-              log.info(
+              LOG.info(
                   "testRunOnOtherNode == true, we are returning null even"
                       + " though another node had not updated the database."
                       + " This node will not run the service "
                       + serviceName
                       + ".");
             } else {
-              log.debug(
+              LOG.debug(
                   "Another node had already updated the database at this"
                       + " point. This node will not run the service "
                       + serviceName
@@ -737,8 +779,8 @@ public class ServiceSessionBean
             worker =
                 null; // Failed to update the database.
           } else {
-            if (log.isTraceEnabled()) {
-              log.trace(
+            if (LOG.isTraceEnabled()) {
+              LOG.trace(
                   "Timestamps updated, service "
                       + serviceName
                       + " will run: "
@@ -748,8 +790,8 @@ public class ServiceSessionBean
             }
           }
         } else {
-          if (log.isTraceEnabled()) {
-            log.trace(
+          if (LOG.isTraceEnabled()) {
+            LOG.trace(
                 "!currentDate.after(runDateCheck), service "
                     + serviceName
                     + " will not run: "
@@ -761,8 +803,8 @@ public class ServiceSessionBean
               null; // Don't return a worker, since this node should not run
         }
       } else {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Service "
                   + serviceName
                   + " is set to run on all nodes and will run on this node: \""
@@ -780,8 +822,8 @@ public class ServiceSessionBean
       }
     } else {
       worker = null;
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Service "
                 + serviceName
                 + " will not run on this node: \""
@@ -790,8 +832,8 @@ public class ServiceSessionBean
                 + Arrays.toString(serviceConfiguration.getPinToNodes()));
       }
     }
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "<getWorkerIfItShouldRun: "
               + serviceName
               + ", ret: "
@@ -846,13 +888,13 @@ public class ServiceSessionBean
       ejbs.put(KeyStoreCreateSessionLocal.class, keyStoreCreateSession);
       worker.work(ejbs);
       final String msg =
-          intres.getLocalizedMessage("services.serviceexecuted", serviceName);
-      log.info(msg);
+          INTRES.getLocalizedMessage("services.serviceexecuted", serviceName);
+      LOG.info(msg);
     } catch (ServiceExecutionFailedException e) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "services.serviceexecutionfailed", serviceName);
-      log.info(msg, e);
+      LOG.info(msg, e);
     }
   }
 
@@ -863,8 +905,8 @@ public class ServiceSessionBean
       final String name,
       final ServiceConfiguration serviceConfiguration,
       final boolean noLogging) {
-    if (log.isTraceEnabled()) {
-      log.trace(">changeService(name: " + name + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">changeService(name: " + name + ")");
     }
     if (isAuthorizedToEditService(admin)) {
       ServiceData oldservice = serviceDataSession.findByName(name);
@@ -874,9 +916,9 @@ public class ServiceSessionBean
         if (serviceDataSession.updateServiceConfiguration(
             name, serviceConfiguration)) {
           final String msg =
-              intres.getLocalizedMessage("services.serviceedited", name);
+              INTRES.getLocalizedMessage("services.serviceedited", name);
           if (noLogging) {
-            log.info(msg);
+            LOG.info(msg);
           } else {
             final Map<String, Object> details =
                 new LinkedHashMap<String, Object>();
@@ -898,9 +940,9 @@ public class ServiceSessionBean
           }
         } else {
           String msg =
-              intres.getLocalizedMessage("services.serviceedited", name);
+              INTRES.getLocalizedMessage("services.serviceedited", name);
           if (noLogging) {
-            log.error(msg);
+            LOG.error(msg);
           } else {
             final Map<String, Object> details =
                 new LinkedHashMap<String, Object>();
@@ -918,14 +960,14 @@ public class ServiceSessionBean
           }
         }
       } else {
-        log.error("Can not find service to change: " + name);
+        LOG.error("Can not find service to change: " + name);
       }
     } else {
       String msg =
-          intres.getLocalizedMessage("services.notauthorizedtoedit", name);
-      log.info(msg);
+          INTRES.getLocalizedMessage("services.notauthorizedtoedit", name);
+      LOG.info(msg);
     }
-    log.trace("<changeService()");
+    LOG.trace("<changeService()");
   }
 
   // We don't want the appserver to persist/update the timer in the same
@@ -948,7 +990,7 @@ public class ServiceSessionBean
                    // hanging somewhere in limbo
         // EJB 2.1 only?: We need this try because weblogic seems to ... suck
         // ...
-        log.debug("Error invoking timer.getInfo(): ", e);
+        LOG.debug("Error invoking timer.getInfo(): ", e);
       }
     }
 
@@ -989,12 +1031,12 @@ public class ServiceSessionBean
           if (worker != null
               && serviceConfiguration.isActive()
               && worker.getNextInterval() != IInterval.DONT_EXECUTE) {
-            ret.put(id, Long.valueOf((worker.getNextInterval()) * 1000));
+            ret.put(id, Long.valueOf((worker.getNextInterval()) * msPerS));
           }
         }
       } else {
         // Service does not exist, strange, but no panic.
-        log.debug("Can not find service with id " + id);
+        LOG.debug("Can not find service with id " + id);
       }
     }
     return ret;
@@ -1005,7 +1047,7 @@ public class ServiceSessionBean
   @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
   @Override
   public void unload() {
-    log.debug("Unloading all timers.");
+    LOG.debug("Unloading all timers.");
     // Get all services
     for (final Timer timer : timerService.getTimers()) {
       try {
@@ -1016,13 +1058,13 @@ public class ServiceSessionBean
          * throws an exception if we have not scheduled this timer, so
          * we don't have anything to cancel. Only weblogic though...
          */
-        log.info("Caught exception canceling timer: " + e.getMessage());
+        LOG.info("Caught exception canceling timer: " + e.getMessage());
       }
     }
   }
 
   /**
-   * Adds a timer to the bean
+   * Adds a timer to the bean.
    *
    * @param interval Interval
    * @param id the id of the timer
@@ -1032,8 +1074,8 @@ public class ServiceSessionBean
   // transaction if they are stored in different non XA DataSources. This method
   // should not be run from within a transaction.
   private Timer addTimer(final long interval, final Integer id) {
-    if (log.isDebugEnabled()) {
-      log.debug("addTimer: " + id);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("addTimer: " + id);
     }
     return timerService.createSingleActionTimer(
         interval, new TimerConfig(id, false));
@@ -1050,8 +1092,8 @@ public class ServiceSessionBean
   @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
   @Override
   public void cancelTimer(final Integer id) {
-    if (log.isDebugEnabled()) {
-      log.debug("cancelTimer: " + id);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("cancelTimer: " + id);
     }
     for (final Timer next : timerService.getTimers()) {
       try {
@@ -1065,13 +1107,13 @@ public class ServiceSessionBean
          * throws an exception if we have not scheduled this timer, so
          * we don't have anything to cancel. Only weblogic though...
          */
-        log.error("Caught exception canceling timer: " + e.getMessage(), e);
+        LOG.error("Caught exception canceling timer: " + e.getMessage(), e);
       }
     }
   }
 
-  // Use an internal admin, allow all, to initialize the service, the service
-  // must be allowed to work on everything
+  /** Use an internal admin, allow all, to initialize the service, the service
+  must be allowed to work on everything. */
   private final AuthenticationToken intAdmin =
       new AlwaysAllowLocalAuthenticationToken(
           new UsernamePrincipal("ServiceSession"));
@@ -1107,15 +1149,15 @@ public class ServiceSessionBean
             runTimeStamp,
             nextRunTimeStamp);
       } else {
-        log.info("Worker has empty classpath for service " + serviceName);
+        LOG.info("Worker has empty classpath for service " + serviceName);
       }
     } catch (Exception e) {
       // Only display a real error if it is a worker that we are actually
       // using
       if (serviceConfiguration.isActive()) {
-        log.error("Worker is misconfigured, check the classpath", e);
+        LOG.error("Worker is misconfigured, check the classpath", e);
       } else {
-        log.info(
+        LOG.info(
             "Worker is misconfigured, check the classpath: " + e.getMessage());
       }
     }
@@ -1140,8 +1182,8 @@ public class ServiceSessionBean
           ret = worker.getNextInterval();
         }
       } else {
-        if (log.isDebugEnabled()) {
-          log.debug("Service " + serviceId + " is inactive.");
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Service " + serviceId + " is inactive.");
         }
       }
     }
@@ -1151,8 +1193,8 @@ public class ServiceSessionBean
   @TransactionAttribute(TransactionAttributeType.SUPPORTS)
   @Override
   public ServiceConfiguration getServiceConfiguration(final int id) {
-    if (log.isTraceEnabled()) {
-      log.trace(">getServiceConfiguration: " + id);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">getServiceConfiguration: " + id);
     }
     ServiceConfiguration returnval = null;
     try {
@@ -1161,14 +1203,14 @@ public class ServiceSessionBean
       if (serviceData != null) {
         returnval = serviceData.getServiceConfiguration();
       } else {
-        if (log.isDebugEnabled()) {
-          log.debug("Returnval is null for service id: " + id);
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Returnval is null for service id: " + id);
         }
       }
     } catch (Exception e) {
       // return null if we cant find it, if it is not due to underlying
       // database error
-      log.debug(
+      LOG.debug(
           "Got an Exception for service with id " + id + ": " + e.getMessage());
       /*
        * If we don't re-throw here it will be treated as the service id
@@ -1176,8 +1218,8 @@ public class ServiceSessionBean
        */
       throw new EJBException(e);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<getServiceConfiguration: " + id);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<getServiceConfiguration: " + id);
     }
     return returnval;
   }
@@ -1261,7 +1303,7 @@ public class ServiceSessionBean
       // Get hostname
       hostname = addr.getHostName();
     } catch (UnknownHostException e) {
-      log.error("Hostname could not be determined", e);
+      LOG.error("Hostname could not be determined", e);
     }
     return hostname;
   }

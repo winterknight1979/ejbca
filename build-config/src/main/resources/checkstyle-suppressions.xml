@@ -437,4 +437,20 @@
 		files="ImportCrlSessionBean.java" lines="70" />
 	<suppress checks="MethodLengthCheck"
 		files="PublishingCrlSessionBean.java" lines="227,590" />
+	<suppress checks="ParameterNumberCheck"
+		files="HardTokenSessionBean.java" lines="1022" />
+	<suppress checks="ParameterNumberCheck"
+		files="EndEntityManagementSessionBean.java" lines="315, 2730" />
+	<suppress checks="MethodLengthCheck"
+		files="EndEntityManagementSessionBean.java" lines="453, 877, 1190, 2443, 2730, 3138" />
+	<suppress checks="ParameterNumberCheck"
+		files="KeyStoreCreateSessionBean.java" lines="239, 281" />
+	<suppress checks="MethodLengthCheck"
+		files="KeyStoreCreateSessionBean.java" lines="280" />
+	<suppress checks="MethodLengthCheck"
+		files="ServiceSessionBean.java" lines="677" />
+	<suppress checks="MethodLengthCheck"
+		files="UpgradeSessionBean.java" lines="1091, 1338" />
+	<suppress checks="MethodLengthCheck"
+		files="StartupSingletonBean.java" lines="231" />
 </suppressions>

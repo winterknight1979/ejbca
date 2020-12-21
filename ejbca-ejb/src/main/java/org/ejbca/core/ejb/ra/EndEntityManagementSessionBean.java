@@ -155,37 +155,54 @@ public class EndEntityManagementSessionBean
     implements EndEntityManagementSessionLocal,
         EndEntityManagementSessionRemote {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(EndEntityManagementSessionBean.class);
-  /** Internal localization of logs and errors */
-  private static final InternalEjbcaResources intres =
+  /** Internal localization of logs and errors. */
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
+  /** EM. */
   @PersistenceContext(unitName = "ejbca")
   private EntityManager entityManager;
 
+  /** EJB. */
   @EJB private AuthorizationSessionLocal authorizationSession;
+  /** EJB. */
   @EJB private ApprovalSessionLocal approvalSession;
+  /** EJB. */
   @EJB private ApprovalProfileSessionLocal approvalProfileSession;
+  /** EJB. */
   @EJB private CAAdminSessionLocal caAdminSession;
+  /** EJB. */
   @EJB private CaSessionLocal caSession;
+  /** EJB. */
   @EJB private CertificateProfileSessionLocal certificateProfileSession;
+  /** EJB. */
   @EJB private CertificateStoreSessionLocal certificateStoreSession;
+  /** EJB. */
   @EJB private CertReqHistorySessionLocal certreqHistorySession;
+  /** EJB. */
   @EJB private EndEntityAccessSessionLocal endEntityAccessSession;
+  /** EJB. */
   @EJB private EndEntityProfileSessionLocal endEntityProfileSession;
+  /** EJB. */
   @EJB private GlobalConfigurationSessionLocal globalConfigurationSession;
+  /** EJB. */
   @EJB private KeyRecoverySessionLocal keyRecoverySession;
 
+  /** EJB. */
   @EJB
   private NoConflictCertificateStoreSessionLocal
       noConflictCertificateStoreSession;
 
+  /** EJB. */
   @EJB private RevocationSessionLocal revocationSession;
+  /** EJB. */
   @EJB private SecurityEventsLoggerSessionLocal auditSession;
 
   /**
-   * Gets the Global Configuration from ra admin session bean
+   * Gets the Global Configuration from ra admin session bean.
    *
    * @return Config
    */
@@ -202,7 +219,7 @@ public class EndEntityManagementSessionBean
         authorizationSession.isAuthorizedNoLogging(
             admin, StandardRules.CAACCESS.resource() + caid);
     if (!returnval) {
-      log.info(
+      LOG.info(
           "Admin "
               + admin.toString()
               + " not authorized to resource "
@@ -226,7 +243,7 @@ public class EndEntityManagementSessionBean
       throws AuthorizationDeniedException {
     if (!authorizedToCA(admin, caid)) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "ra.errorauthca", Integer.valueOf(caid), admin.toString());
       final Map<String, Object> details = new LinkedHashMap<String, Object>();
       details.put("msg", msg);
@@ -274,7 +291,7 @@ public class EndEntityManagementSessionBean
     if (!isAuthorizedToEndEntityProfile(
         admin, endEntityProfileId, accessRule)) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "ra.errorauthprofile",
               Integer.valueOf(endEntityProfileId),
               admin.toString());
@@ -333,6 +350,7 @@ public class EndEntityManagementSessionBean
     addUser(admin, userdata, clearpwd);
   }
 
+  /** Class names. */
   private static final ApprovalOveradableClassName[]
       NONAPPROVABLECLASSNAMES_ADDUSER = {
     new ApprovalOveradableClassName(
@@ -345,12 +363,13 @@ public class EndEntityManagementSessionBean
   @Override
   public void addUserFromWS(
       final AuthenticationToken admin,
-      EndEntityInformation userdata,
+      final EndEntityInformation ouserdata,
       final boolean clearpwd)
       throws AuthorizationDeniedException, EndEntityProfileValidationException,
           EndEntityExistsException, WaitingForApprovalException,
           CADoesntExistsException, CustomFieldException, IllegalNameException,
           ApprovalException, CertificateSerialNumberException {
+    EndEntityInformation userdata = ouserdata;
     final int profileId = userdata.getEndEntityProfileId();
     final EndEntityProfile profile =
         endEntityProfileSession.getEndEntityProfileNoClone(profileId);
@@ -412,7 +431,7 @@ public class EndEntityManagementSessionBean
 
   /**
    * @param admin Admin
-   * @param endEntity EE
+   * @param oendEntity EE
    * @param clearpwd PWD
    * @param lastApprovingAdmin Approval
    * @return EEI
@@ -433,13 +452,14 @@ public class EndEntityManagementSessionBean
    */
   private EndEntityInformation addUser(
       final AuthenticationToken admin,
-      EndEntityInformation endEntity,
+      final EndEntityInformation oendEntity,
       final boolean clearpwd,
       final AuthenticationToken lastApprovingAdmin)
       throws AuthorizationDeniedException, EndEntityExistsException,
           EndEntityProfileValidationException, WaitingForApprovalException,
           CADoesntExistsException, CustomFieldException, IllegalNameException,
           ApprovalException, CertificateSerialNumberException {
+    EndEntityInformation endEntity = oendEntity;
     final int endEntityProfileId = endEntity.getEndEntityProfileId();
     final int caid = endEntity.getCAId();
     // Check if administrator is authorized to add user to CA.
@@ -457,8 +477,8 @@ public class EndEntityManagementSessionBean
     final String originalDN = endEntity.getDN();
     EndEntityInformation unCanonicalized = endEntity;
     endEntity = canonicalizeUser(endEntity);
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">addUser("
               + endEntity.getUsername()
               + ", password, "
@@ -481,12 +501,12 @@ public class EndEntityManagementSessionBean
     try {
       altName = RFC4683Tools.generateSimForInternalSanFormat(altName);
     } catch (Exception e) {
-      log.info("Could not generate SIM string for SAN: " + altName, e);
+      LOG.info("Could not generate SIM string for SAN: " + altName, e);
       throw new EndEntityProfileValidationException(
           "Could not generate SIM string for SAN: " + e.getMessage(), e);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("addUser(calculated SIM " + altName + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("addUser(calculated SIM " + altName + ")");
     }
     final String email = endEntity.getEmail();
     final EndEntityType type = endEntity.getType();
@@ -512,8 +532,8 @@ public class EndEntityManagementSessionBean
         random.nextBytes(randomData);
         String autousername = new String(Hex.encode(randomData));
         while (endEntityAccessSession.findUser(autousername) != null) {
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "Autogenerated username '"
                     + autousername
                     + "' is already reserved. Generating the new one...");
@@ -521,8 +541,8 @@ public class EndEntityManagementSessionBean
           random.nextBytes(randomData);
           autousername = new String(Hex.encode(randomData));
         }
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Unique username '" + autousername + "' has been generated");
         }
         unCanonicalized.setUsername(autousername);
@@ -561,7 +581,7 @@ public class EndEntityManagementSessionBean
             endEntity.getExtendedInformation());
       } catch (EndEntityProfileValidationException e) {
         final String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "ra.errorfulfillprofile",
                 endEntityProfileName,
                 dn,
@@ -662,7 +682,7 @@ public class EndEntityManagementSessionBean
               lastApprovingAdmin,
               null);
           throw new WaitingForApprovalException(
-              intres.getLocalizedMessage("ra.approvalad"), requestId);
+              INTRES.getLocalizedMessage("ra.approvalad"), requestId);
         }
       }
     }
@@ -674,7 +694,7 @@ public class EndEntityManagementSessionBean
               "Error: SubjectDN serial number already exists.");
         }
       } else {
-        log.warn(
+        LOG.warn(
             "CA configured to enforce unique SubjectDN serialnumber, but not"
                 + " to store any user data. Check will be ignored. Please"
                 + " verify your configuration.");
@@ -751,8 +771,8 @@ public class EndEntityManagementSessionBean
           }
           print(profile, endEntity);
         } else {
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "Type ("
                     + type.getHexValue()
                     + ") does not contain SecConst.USER_PRINT, no print job"
@@ -761,7 +781,7 @@ public class EndEntityManagementSessionBean
         }
         final Map<String, Object> details = new LinkedHashMap<String, Object>();
         details.put(
-            "msg", intres.getLocalizedMessage("ra.addedentity", username));
+            "msg", INTRES.getLocalizedMessage("ra.addedentity", username));
         details.putAll(endEntity.getDetailMap());
         auditSession.log(
             EjbcaEventTypes.RA_ADDENDENTITY,
@@ -776,7 +796,7 @@ public class EndEntityManagementSessionBean
       } catch (EndEntityExistsException e) {
         final Map<String, Object> details = new LinkedHashMap<String, Object>();
         details.put(
-            "msg", intres.getLocalizedMessage("ra.errorentityexist", username));
+            "msg", INTRES.getLocalizedMessage("ra.errorentityexist", username));
         details.put("error", e.getMessage());
         auditSession.log(
             EjbcaEventTypes.RA_ADDENDENTITY,
@@ -791,8 +811,8 @@ public class EndEntityManagementSessionBean
         throw e;
       } catch (Exception e) {
         final String msg =
-            intres.getLocalizedMessage("ra.erroraddentity", username);
-        log.error(msg, e);
+            INTRES.getLocalizedMessage("ra.erroraddentity", username);
+        LOG.error(msg, e);
         final Map<String, Object> details = new LinkedHashMap<String, Object>();
         details.put("msg", msg);
         details.put("error", e.getMessage());
@@ -808,16 +828,16 @@ public class EndEntityManagementSessionBean
             details);
         throw new EJBException(e);
       }
-    } else if (log.isDebugEnabled()) {
-      log.debug(
+    } else if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "User storage disabled on CA '"
               + caInfo.getName()
               + "', user with username '"
               + username
               + "' is not stored.");
     }
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "<addUser(" + username + ", password, " + dn + ", " + email + ")");
     }
     return endEntity;
@@ -827,8 +847,8 @@ public class EndEntityManagementSessionBean
   private boolean isSubjectDnSerialnumberUnique(
       final int caid, final String subjectDN, final String username) {
     final String serialnumber = CertTools.getPartFromDN(subjectDN, "SN");
-    if (log.isDebugEnabled()) {
-      log.debug("subjectDN=" + subjectDN + " extracted SN=" + serialnumber);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("subjectDN=" + subjectDN + " extracted SN=" + serialnumber);
     }
     // We treat the lack of a serialnumber field as unique
     if (serialnumber == null) {
@@ -857,10 +877,12 @@ public class EndEntityManagementSessionBean
   @Override
   public boolean renameEndEntity(
       final AuthenticationToken admin,
-      String currentUsername,
-      String newUsername)
+      final String ocurrentUsername,
+      final String onewUsername)
       throws AuthorizationDeniedException, EndEntityExistsException {
     // Sanity check parameters
+     String currentUsername = ocurrentUsername;
+     String newUsername = onewUsername;
     if (currentUsername == null || newUsername == null) {
       throw new IllegalArgumentException(
           "Cannot rename an end entity to or from null.");
@@ -939,8 +961,8 @@ public class EndEntityManagementSessionBean
         }
       }
     }
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Changed username '"
               + currentUsername
               + "' to '"
@@ -948,7 +970,7 @@ public class EndEntityManagementSessionBean
               + "' in "
               + certificateDatas.size()
               + " rows of CertificateData.");
-      log.debug(
+      LOG.debug(
           "Changed username '"
               + currentUsername
               + "' to '"
@@ -970,8 +992,8 @@ public class EndEntityManagementSessionBean
       // certificate issuance
       current.setUsername(newUsername);
     }
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Changed username '"
               + currentUsername
               + "' to '"
@@ -990,8 +1012,8 @@ public class EndEntityManagementSessionBean
     for (final KeyRecoveryData current : keyRecoveryDatas) {
       current.setUsername(newUsername);
     }
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Changed username '"
               + currentUsername
               + "' to '"
@@ -1010,8 +1032,8 @@ public class EndEntityManagementSessionBean
     for (final HardTokenData current : hardTokenDatas) {
       current.setUsername(newUsername);
     }
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Changed username '"
               + currentUsername
               + "' to '"
@@ -1038,8 +1060,8 @@ public class EndEntityManagementSessionBean
     for (final RoleMemberData current : roleMemberDatas) {
       current.setTokenMatchValue(newUsername);
     }
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Changed username '"
               + currentUsername
               + "' to '"
@@ -1049,7 +1071,7 @@ public class EndEntityManagementSessionBean
               + " rows of RoleMemberData.");
     }
     final String msg =
-        intres.getLocalizedMessage(
+        INTRES.getLocalizedMessage(
             "ra.editedentityrename", currentUsername, newUsername);
     auditSession.log(
         EjbcaEventTypes.RA_EDITENDENTITY,
@@ -1064,6 +1086,7 @@ public class EndEntityManagementSessionBean
     return true;
   }
 
+  /** Class names. */
   private static final ApprovalOveradableClassName[]
       NONAPPROVABLECLASSNAMES_CHANGEUSER = {
     new ApprovalOveradableClassName(
@@ -1071,7 +1094,7 @@ public class EndEntityManagementSessionBean
             .EditEndEntityApprovalRequest.class
             .getName(),
         null),
-    /**
+    /*
      * can not use .class.getName() below, because it is not part of base EJBCA
      * dist
      */
@@ -1200,8 +1223,8 @@ public class EndEntityManagementSessionBean
         CertTools.stringToBCDNString(
             StringTools.strip(endEntityInformation.getDN()));
     String altName = endEntityInformation.getSubjectAltName();
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">changeUser("
               + username
               + ", "
@@ -1213,18 +1236,18 @@ public class EndEntityManagementSessionBean
     try {
       altName = RFC4683Tools.generateSimForInternalSanFormat(altName);
     } catch (Exception e) {
-      log.info("Could not generate SIM string for SAN: " + altName, e);
+      LOG.info("Could not generate SIM string for SAN: " + altName, e);
       throw new EndEntityProfileValidationException(
           "Could not generate SIM string for SAN: " + e.getMessage(), e);
     }
-    if (log.isTraceEnabled()) {
-      log.trace(">changeUser(calculated SIM " + altName + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">changeUser(calculated SIM " + altName + ")");
     }
     UserData userData = endEntityAccessSession.findByUsername(username);
     if (userData == null) {
       final String msg =
-          intres.getLocalizedMessage("ra.erroreditentity", username);
-      log.info(msg);
+          INTRES.getLocalizedMessage("ra.erroreditentity", username);
+      LOG.info(msg);
       throw new NoSuchEndEntityException(msg);
     }
     final EndEntityInformation originalCopy = userData.toEndEntityInformation();
@@ -1250,8 +1273,8 @@ public class EndEntityManagementSessionBean
                   .mergeDN(new DistinguishedName(dn), true, sdnMap)
                   .toString();
         } catch (InvalidNameException e) {
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "Invalid Subject DN when merging '"
                     + dn
                     + "' with '"
@@ -1275,8 +1298,8 @@ public class EndEntityManagementSessionBean
                   .mergeDN(new DistinguishedName(altName), true, sanMap)
                   .toString();
         } catch (InvalidNameException e) {
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "Invalid Subject AN when merging '"
                     + altName
                     + "' with '"
@@ -1342,7 +1365,7 @@ public class EndEntityManagementSessionBean
         final Map<String, Object> details = new LinkedHashMap<String, Object>();
         details.put(
             "msg",
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "ra.errorfulfillprofile",
                 Integer.valueOf(endEntityProfileId),
                 dn,
@@ -1438,7 +1461,7 @@ public class EndEntityManagementSessionBean
           ar, NONAPPROVABLECLASSNAMES_CHANGEUSER)) {
         final int requestId = approvalSession.addApprovalRequest(admin, ar);
         throw new WaitingForApprovalException(
-            intres.getLocalizedMessage("ra.approvaledit"), requestId);
+            INTRES.getLocalizedMessage("ra.approvaledit"), requestId);
       }
     }
     // Rename the end entity if there's a new username
@@ -1573,7 +1596,7 @@ public class EndEntityManagementSessionBean
           print(profile, endEntityInformation);
         }
         final String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "ra.editedentitystatus", username, Integer.valueOf(newstatus));
         details.put("msg", msg);
         for (String key : diff.keySet()) {
@@ -1591,7 +1614,7 @@ public class EndEntityManagementSessionBean
             details);
       } else {
         final String msg =
-            intres.getLocalizedMessage("ra.editedentity", username);
+            INTRES.getLocalizedMessage("ra.editedentity", username);
         details.put("msg", msg);
         for (String key : diff.keySet()) {
           details.put(key, diff.get(key)[0] + " -> " + diff.get(key)[1]);
@@ -1609,7 +1632,7 @@ public class EndEntityManagementSessionBean
       }
     } catch (Exception e) {
       final String msg =
-          intres.getLocalizedMessage("ra.erroreditentity", username);
+          INTRES.getLocalizedMessage("ra.erroreditentity", username);
       final Map<String, Object> details = new LinkedHashMap<String, Object>();
       details.put("msg", msg);
       details.put("error", e.getMessage());
@@ -1623,11 +1646,11 @@ public class EndEntityManagementSessionBean
           null,
           username,
           details);
-      log.error("ChangeUser:", e);
+      LOG.error("ChangeUser:", e);
       throw new EJBException(e);
     }
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "<changeUser("
               + username
               + ", password, "
@@ -1642,8 +1665,8 @@ public class EndEntityManagementSessionBean
   public void deleteUser(final AuthenticationToken admin, final String username)
       throws AuthorizationDeniedException, NoSuchEndEntityException,
           CouldNotRemoveEndEntityException {
-    if (log.isTraceEnabled()) {
-      log.trace(">deleteUser(" + username + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">deleteUser(" + username + ")");
     }
     // Check if administrator is authorized to delete user.
     String caIdLog = null;
@@ -1660,17 +1683,17 @@ public class EndEntityManagementSessionBean
             caid);
       }
     } else {
-      log.info(intres.getLocalizedMessage("ra.errorentitynotexist", username));
+      LOG.info(INTRES.getLocalizedMessage("ra.errorentitynotexist", username));
       // This exception message is used to not leak information to the user
       final String msg =
-          intres.getLocalizedMessage("ra.wrongusernameorpassword");
-      log.info(msg);
+          INTRES.getLocalizedMessage("ra.wrongusernameorpassword");
+      LOG.info(msg);
       throw new NoSuchEndEntityException(msg);
     }
     try {
       entityManager.remove(data1);
       final String msg =
-          intres.getLocalizedMessage("ra.removedentity", username);
+          INTRES.getLocalizedMessage("ra.removedentity", username);
       final Map<String, Object> details = new LinkedHashMap<String, Object>();
       details.put("msg", msg);
       auditSession.log(
@@ -1685,7 +1708,7 @@ public class EndEntityManagementSessionBean
           details);
     } catch (Exception e) {
       final String msg =
-          intres.getLocalizedMessage("ra.errorremoveentity", username);
+          INTRES.getLocalizedMessage("ra.errorremoveentity", username);
       final Map<String, Object> details = new LinkedHashMap<String, Object>();
       details.put("msg", msg);
       details.put("error", e.getMessage());
@@ -1701,11 +1724,12 @@ public class EndEntityManagementSessionBean
           details);
       throw new CouldNotRemoveEndEntityException(msg);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<deleteUser(" + username + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<deleteUser(" + username + ")");
     }
   }
 
+  /** Class names. */
   private static final ApprovalOveradableClassName[]
       NONAPPROVABLECLASSNAMES_SETUSERSTATUS = {
     new ApprovalOveradableClassName(
@@ -1732,7 +1756,7 @@ public class EndEntityManagementSessionBean
     new ApprovalOveradableClassName(
         org.ejbca.core.ejb.ra.EndEntityManagementSessionBean.class.getName(),
         "prepareForKeyRecovery"),
-    /**
+    /*
      * can not use .class.getName() below, because it is not part of base EJBCA
      * dist
      */
@@ -1748,8 +1772,8 @@ public class EndEntityManagementSessionBean
   public int decRequestCounter(final String username)
       throws NoSuchEndEntityException, ApprovalException,
           WaitingForApprovalException {
-    if (log.isTraceEnabled()) {
-      log.trace(">decRequestCounter(" + username + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">decRequestCounter(" + username + ")");
     }
     // Default return value is as if the optional value does not exist for
     // the user, i.e. the default values is 0
@@ -1767,8 +1791,8 @@ public class EndEntityManagementSessionBean
         if (StringUtils.isNotEmpty(counterstr)) {
           try {
             counter = Integer.valueOf(counterstr);
-            if (log.isDebugEnabled()) {
-              log.debug("Found a counter with value " + counter);
+            if (LOG.isDebugEnabled()) {
+              LOG.debug("Found a counter with value " + counter);
             }
             // decrease the counter, if we get to 0 we must set
             // status to generated
@@ -1787,26 +1811,26 @@ public class EndEntityManagementSessionBean
                 data1.setTimeModified(now.getTime());
               }
               String msg =
-                  intres.getLocalizedMessage(
+                  INTRES.getLocalizedMessage(
                       "ra.decreasedentityrequestcounter", username, counter);
-              log.info(msg);
+              LOG.info(msg);
             } else {
-              if (log.isDebugEnabled()) {
-                log.debug("Counter value was already 0, not decreased in db.");
+              if (LOG.isDebugEnabled()) {
+                LOG.debug("Counter value was already 0, not decreased in db.");
               }
             }
           } catch (NumberFormatException e) {
             String msg =
-                intres.getLocalizedMessage(
+                INTRES.getLocalizedMessage(
                     "ra.errorrequestcounterinvalid",
                     username,
                     counterstr,
                     e.getMessage());
-            log.error(msg, e);
+            LOG.error(msg, e);
           }
         } else {
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "No (optional) request counter exists for end entity: "
                     + username);
           }
@@ -1818,17 +1842,17 @@ public class EndEntityManagementSessionBean
           data1.setExtendedInformation(ei);
         }
       } else {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "No extended information exists for user: "
                   + data1.getUsername());
         }
       }
     } else {
-      log.info(intres.getLocalizedMessage("ra.errorentitynotexist", username));
+      LOG.info(INTRES.getLocalizedMessage("ra.errorentitynotexist", username));
       // This exception message is used to not leak information to the user
-      String msg = intres.getLocalizedMessage("ra.wrongusernameorpassword");
-      log.info(msg);
+      String msg = INTRES.getLocalizedMessage("ra.wrongusernameorpassword");
+      LOG.info(msg);
       throw new NoSuchEndEntityException(msg);
     }
     if (counter <= 0) {
@@ -1839,8 +1863,8 @@ public class EndEntityManagementSessionBean
                       + " EndEntityManagementSession.decRequestCounter"));
       setUserStatus(admin, data1, EndEntityConstants.STATUS_GENERATED, 0, null);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<decRequestCounter(" + username + "): " + counter);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<decRequestCounter(" + username + "): " + counter);
     }
     return counter;
   }
@@ -1848,28 +1872,28 @@ public class EndEntityManagementSessionBean
   @Override
   public void cleanUserCertDataSN(final EndEntityInformation data)
       throws NoSuchEndEntityException {
-    if (log.isTraceEnabled()) {
-      log.trace(">cleanUserCertDataSN: " + data.getUsername());
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">cleanUserCertDataSN: " + data.getUsername());
     }
     try {
       cleanUserCertDataSN(data.getUsername());
     } catch (NoSuchEndEntityException e) {
       String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "authentication.usernotfound", data.getUsername());
-      log.info(msg);
+      LOG.info(msg);
       throw new NoSuchEndEntityException(e.getMessage());
     } catch (ApprovalException e) {
       // Should never happen
-      log.error("ApprovalException: ", e);
+      LOG.error("ApprovalException: ", e);
       throw new EJBException(e);
     } catch (WaitingForApprovalException e) {
       // Should never happen
-      log.error("WaitingForApprovalException: ", e);
+      LOG.error("WaitingForApprovalException: ", e);
       throw new EJBException(e);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<cleanUserCertDataSN: " + data.getUsername());
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<cleanUserCertDataSN: " + data.getUsername());
     }
   }
 
@@ -1877,8 +1901,8 @@ public class EndEntityManagementSessionBean
   public void cleanUserCertDataSN(final String username)
       throws ApprovalException, WaitingForApprovalException,
           NoSuchEndEntityException {
-    if (log.isTraceEnabled()) {
-      log.trace(">cleanUserCertDataSN(" + username + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">cleanUserCertDataSN(" + username + ")");
     }
     try {
       // Check if administrator is authorized to edit user.
@@ -1886,8 +1910,8 @@ public class EndEntityManagementSessionBean
       if (data1 != null) {
         final ExtendedInformation ei = data1.getExtendedInformation();
         if (ei == null) {
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "No extended information exists for user: "
                     + data1.getUsername());
           }
@@ -1896,16 +1920,16 @@ public class EndEntityManagementSessionBean
           data1.setExtendedInformation(ei);
         }
       } else {
-        log.info(
-            intres.getLocalizedMessage("ra.errorentitynotexist", username));
+        LOG.info(
+            INTRES.getLocalizedMessage("ra.errorentitynotexist", username));
         // This exception message is used to not leak information to the user
-        String msg = intres.getLocalizedMessage("ra.wrongusernameorpassword");
-        log.info(msg);
+        String msg = INTRES.getLocalizedMessage("ra.wrongusernameorpassword");
+        LOG.info(msg);
         throw new NoSuchEndEntityException(msg);
       }
     } finally {
-      if (log.isTraceEnabled()) {
-        log.trace("<cleanUserCertDataSN(" + username + ")");
+      if (LOG.isTraceEnabled()) {
+        LOG.trace("<cleanUserCertDataSN(" + username + ")");
       }
     }
   }
@@ -1927,17 +1951,17 @@ public class EndEntityManagementSessionBean
       final AuthenticationToken lastApprovingAdmin)
       throws AuthorizationDeniedException, ApprovalException,
           WaitingForApprovalException, NoSuchEndEntityException {
-    if (log.isTraceEnabled()) {
-      log.trace(">setUserStatus(" + username + ", " + status + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">setUserStatus(" + username + ", " + status + ")");
     }
     // Check if administrator is authorized to edit user.
     final UserData data = endEntityAccessSession.findByUsername(username);
     if (data == null) {
-      log.info(intres.getLocalizedMessage("ra.errorentitynotexist", username));
+      LOG.info(INTRES.getLocalizedMessage("ra.errorentitynotexist", username));
       // This exception message is used to not leak information to the user
       final String msg =
-          intres.getLocalizedMessage("ra.wrongusernameorpassword");
-      log.info(msg);
+          INTRES.getLocalizedMessage("ra.wrongusernameorpassword");
+      LOG.info(msg);
       throw new NoSuchEndEntityException(msg);
     }
     // Check authorization
@@ -1986,7 +2010,7 @@ public class EndEntityManagementSessionBean
       if (ApprovalExecutorUtil.requireApproval(
           ar, NONAPPROVABLECLASSNAMES_SETUSERSTATUS)) {
         final int requestId = approvalSession.addApprovalRequest(admin, ar);
-        String msg = intres.getLocalizedMessage("ra.approvaledit");
+        String msg = INTRES.getLocalizedMessage("ra.approvaledit");
         throw new WaitingForApprovalException(msg, requestId);
       }
     }
@@ -2015,8 +2039,8 @@ public class EndEntityManagementSessionBean
         }
       }
     } else {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Status not changing from something else to new, not resetting"
                 + " requestCounter.");
       }
@@ -2035,7 +2059,7 @@ public class EndEntityManagementSessionBean
     data1.setStatus(status);
     data1.setTimeModified(timeModified.getTime());
     final String msg =
-        intres.getLocalizedMessage(
+        INTRES.getLocalizedMessage(
             "ra.editedentitystatus", username, Integer.valueOf(status));
     Map<String, Object> details = new LinkedHashMap<String, Object>();
     details.put("msg", msg);
@@ -2053,8 +2077,8 @@ public class EndEntityManagementSessionBean
     // should be sent
     final EndEntityInformation userdata = data1.toEndEntityInformation();
     sendNotification(admin, userdata, status, 0, lastApprovingAdmin, null);
-    if (log.isTraceEnabled()) {
-      log.trace("<setUserStatus(" + username + ", " + status + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<setUserStatus(" + username + ", " + status + ")");
     }
   }
 
@@ -2098,8 +2122,8 @@ public class EndEntityManagementSessionBean
       final boolean cleartext)
       throws EndEntityProfileValidationException, AuthorizationDeniedException,
           NoSuchEndEntityException {
-    if (log.isTraceEnabled()) {
-      log.trace(">setPassword(" + username + ", hiddenpwd), " + cleartext);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">setPassword(" + username + ", hiddenpwd), " + cleartext);
     }
     // Find user
     String newpasswd = password;
@@ -2125,7 +2149,7 @@ public class EndEntityManagementSessionBean
         } catch (EndEntityProfileValidationException e) {
           final String dn = data.getSubjectDnNeverNull();
           final String msg =
-              intres.getLocalizedMessage(
+              INTRES.getLocalizedMessage(
                   "ra.errorfulfillprofile",
                   Integer.valueOf(endEntityProfileId),
                   dn,
@@ -2166,7 +2190,7 @@ public class EndEntityManagementSessionBean
         data.setTimeModified(now.getTime());
       }
       final String msg =
-          intres.getLocalizedMessage("ra.editpwdentity", username);
+          INTRES.getLocalizedMessage("ra.editpwdentity", username);
       Map<String, Object> details = new LinkedHashMap<String, Object>();
       details.put("msg", msg);
       auditSession.log(
@@ -2180,13 +2204,13 @@ public class EndEntityManagementSessionBean
           username,
           details);
     } catch (NoSuchAlgorithmException nsae) {
-      log.error(
+      LOG.error(
           "NoSuchAlgorithmException while setting password for user "
               + username);
       throw new EJBException(nsae);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<setPassword(" + username + ", hiddenpwd), " + cleartext);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<setPassword(" + username + ", hiddenpwd), " + cleartext);
     }
   }
 
@@ -2194,8 +2218,8 @@ public class EndEntityManagementSessionBean
   public void updateCAId(
       final AuthenticationToken admin, final String username, final int newCAId)
       throws AuthorizationDeniedException, NoSuchEndEntityException {
-    if (log.isTraceEnabled()) {
-      log.trace(">updateCAId(" + username + ", " + newCAId + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">updateCAId(" + username + ", " + newCAId + ")");
     }
     // Find user
     final UserData data = endEntityAccessSession.findByUsername(username);
@@ -2207,7 +2231,7 @@ public class EndEntityManagementSessionBean
     data.setCaId(newCAId);
 
     final String msg =
-        intres.getLocalizedMessage(
+        INTRES.getLocalizedMessage(
             "ra.updatedentitycaid", username, oldCAId, newCAId);
     Map<String, Object> details = new LinkedHashMap<String, Object>();
     details.put("msg", msg);
@@ -2221,8 +2245,8 @@ public class EndEntityManagementSessionBean
         null,
         username,
         details);
-    if (log.isTraceEnabled()) {
-      log.trace(">updateCAId(" + username + ", " + newCAId + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">updateCAId(" + username + ", " + newCAId + ")");
     }
   }
 
@@ -2234,8 +2258,8 @@ public class EndEntityManagementSessionBean
       final boolean decRemainingLoginAttemptsOnFailure)
       throws EndEntityProfileValidationException, AuthorizationDeniedException,
           NoSuchEndEntityException {
-    if (log.isTraceEnabled()) {
-      log.trace(">verifyPassword(" + username + ", hiddenpwd)");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">verifyPassword(" + username + ", hiddenpwd)");
     }
     boolean ret = false;
     // Find user
@@ -2266,17 +2290,18 @@ public class EndEntityManagementSessionBean
         }
       }
     } catch (NoSuchAlgorithmException nsae) {
-      log.debug(
+      LOG.debug(
           "NoSuchAlgorithmException while verifying password for user "
               + username);
       throw new EJBException(nsae);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<verifyPassword(" + username + ", hiddenpwd)");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<verifyPassword(" + username + ", hiddenpwd)");
     }
     return ret;
   }
 
+  /** Class names. */
   private static final ApprovalOveradableClassName[]
       NONAPPROVABLECLASSNAMES_REVOKEANDDELETEUSER = {
     new ApprovalOveradableClassName(
@@ -2316,7 +2341,7 @@ public class EndEntityManagementSessionBean
         // So the CA not existing should not prevent us from revoking the user.
         // It may however affect the possible Approvals, but we probably need to
         // be able to do this in order to clean up a bad situation
-        log.info(
+        LOG.info(
             "Trying to revokeAndDelete an End Entity connected to a CA, with"
                 + " ID "
                 + caid
@@ -2342,7 +2367,7 @@ public class EndEntityManagementSessionBean
             ar, NONAPPROVABLECLASSNAMES_REVOKEANDDELETEUSER)) {
           final int requestId = approvalSession.addApprovalRequest(admin, ar);
           throw new WaitingForApprovalException(
-              intres.getLocalizedMessage("ra.approvalrevoke"), requestId);
+              INTRES.getLocalizedMessage("ra.approvalrevoke"), requestId);
         }
       }
       try {
@@ -2355,6 +2380,7 @@ public class EndEntityManagementSessionBean
     deleteUser(admin, username);
   }
 
+  /** Class names. */
   private static final ApprovalOveradableClassName[]
       NONAPPROVABLECLASSNAMES_REVOKEUSER = {
     new ApprovalOveradableClassName(
@@ -2393,7 +2419,7 @@ public class EndEntityManagementSessionBean
     if (!authorizationSession.isAuthorizedNoLogging(
         authenticationToken, StandardRules.CAACCESS.resource() + caId)) {
       throw new AuthorizationDeniedException(
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "authorization.notauthorizedtoresource",
               StandardRules.CAACCESS.resource() + caId,
               null));
@@ -2424,8 +2450,8 @@ public class EndEntityManagementSessionBean
       throws AuthorizationDeniedException, NoSuchEndEntityException,
           ApprovalException, WaitingForApprovalException,
           AlreadyRevokedException {
-    if (log.isTraceEnabled()) {
-      log.trace(">revokeUser(" + username + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">revokeUser(" + username + ")");
     }
     final UserData userData = endEntityAccessSession.findByUsername(username);
     if (userData == null) {
@@ -2444,9 +2470,9 @@ public class EndEntityManagementSessionBean
     if ((userData.getStatus() == EndEntityConstants.STATUS_REVOKED)
         && !RevokedCertInfo.isRevoked(reason)) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "ra.errorinvalidrevokereason", userData.getUsername(), reason);
-      log.info(msg);
+      LOG.info(msg);
       throw new AlreadyRevokedException(msg);
     }
 
@@ -2458,7 +2484,7 @@ public class EndEntityManagementSessionBean
       // So the CA not existing should not prevent us from revoking the user.
       // It may however affect the possible Approvals, but we probably need to
       // be able to do this in order to clean up a bad situation
-      log.info(
+      LOG.info(
           "Trying to revoke an End Entity connected to a CA, with ID "
               + caid
               + ", that does not exist.");
@@ -2483,7 +2509,7 @@ public class EndEntityManagementSessionBean
           ar, NONAPPROVABLECLASSNAMES_REVOKEUSER)) {
         final int requestId = approvalSession.addApprovalRequest(admin, ar);
         throw new WaitingForApprovalException(
-            intres.getLocalizedMessage("ra.approvalrevoke"), requestId);
+            INTRES.getLocalizedMessage("ra.approvalrevoke"), requestId);
       }
     }
     // Revoke all non-expired and not revoked certs, one at the time
@@ -2533,8 +2559,8 @@ public class EndEntityManagementSessionBean
               e);
         }
       } catch (AlreadyRevokedException e) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Certificate from issuer '"
                   + cdw.getCertificateData().getIssuerDN()
                   + "' with serial "
@@ -2567,7 +2593,7 @@ public class EndEntityManagementSessionBean
     } catch (WaitingForApprovalException e) {
       throw new IllegalStateException("This should never happen", e);
     }
-    final String msg = intres.getLocalizedMessage("ra.revokedentity", username);
+    final String msg = INTRES.getLocalizedMessage("ra.revokedentity", username);
     Map<String, Object> details = new LinkedHashMap<String, Object>();
     details.put("msg", msg);
     auditSession.log(
@@ -2580,11 +2606,12 @@ public class EndEntityManagementSessionBean
         null,
         username,
         details);
-    if (log.isTraceEnabled()) {
-      log.trace("<revokeUser()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<revokeUser()");
     }
   }
 
+  /** Class names. */
   private static final ApprovalOveradableClassName[]
       NONAPPROVABLECLASSNAMES_REVOKECERT = {
     new ApprovalOveradableClassName(
@@ -2715,8 +2742,8 @@ public class EndEntityManagementSessionBean
           ApprovalException, WaitingForApprovalException,
           RevokeBackDateNotAllowedForProfileException, AlreadyRevokedException,
           CertificateProfileDoesNotExistException {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">revokeCert("
               + certserno.toString(16)
               + ", IssuerDN: "
@@ -2726,7 +2753,7 @@ public class EndEntityManagementSessionBean
     // Check that the admin has revocation rights.
     if (!authorizationSession.isAuthorizedNoLogging(
         admin, AccessRulesConstants.REGULAR_REVOKEENDENTITY)) {
-      String msg = intres.getLocalizedMessage("ra.errorauthrevoke");
+      String msg = INTRES.getLocalizedMessage("ra.errorauthrevoke");
       Map<String, Object> details = new LinkedHashMap<>();
       details.put("msg", msg);
       auditSession.log(
@@ -2749,9 +2776,9 @@ public class EndEntityManagementSessionBean
             issuerdn, certserno);
     if (cdw == null) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "ra.errorfindentitycert", issuerdn, certserno.toString(16));
-      log.info(msg);
+      LOG.info(msg);
       throw new NoSuchEndEntityException(msg);
     }
     final BaseCertificateData certificateData = cdw.getBaseCertificateData();
@@ -2823,9 +2850,9 @@ public class EndEntityManagementSessionBean
       if (revocationReason
           != RevokedCertInfo.REVOCATION_REASON_CERTIFICATEHOLD) {
         final String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "ra.errorunrevokenotonhold", issuerdn, certserno.toString(16));
-        log.info(msg);
+        LOG.info(msg);
         throw new AlreadyRevokedException(msg);
       }
     } else {
@@ -2839,9 +2866,9 @@ public class EndEntityManagementSessionBean
           // past.
           revocationReason != RevokedCertInfo.REVOCATION_REASON_REMOVEFROMCRL) {
         final String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "ra.errorrevocationexists", issuerdn, certserno.toString(16));
-        log.info(msg);
+        LOG.info(msg);
         throw new AlreadyRevokedException(msg);
       }
     }
@@ -2859,7 +2886,7 @@ public class EndEntityManagementSessionBean
         // certificate.
         // It may however affect the possible Approvals, but we probably need to
         // be able to do this in order to clean up a bad situation
-        log.info(
+        LOG.info(
             "Trying to revoke a certificate issued by a CA, with ID "
                 + caid
                 + ", that does not exist. IssuerDN='"
@@ -2886,7 +2913,7 @@ public class EndEntityManagementSessionBean
             ar, NONAPPROVABLECLASSNAMES_REVOKECERT)) {
           final int requestId = approvalSession.addApprovalRequest(admin, ar);
           throw new WaitingForApprovalException(
-              intres.getLocalizedMessage("ra.approvalrevoke"), requestId);
+              INTRES.getLocalizedMessage("ra.approvalrevoke"), requestId);
         }
       }
     }
@@ -2897,8 +2924,8 @@ public class EndEntityManagementSessionBean
     if (certificateProfile != null) {
       publishers = certificateProfile.getPublisherList();
       if (publishers == null || publishers.size() == 0) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "No publishers defined for certificate with serial #"
                   + certserno.toString(16)
                   + " issued by "
@@ -2906,7 +2933,7 @@ public class EndEntityManagementSessionBean
         }
       }
     } else {
-      log.warn(
+      LOG.warn(
           "No certificate profile for certificate with serial #"
               + certserno.toString(16)
               + " issued by "
@@ -2920,7 +2947,7 @@ public class EndEntityManagementSessionBean
           this.certificateProfileSession.getCertificateProfileName(
               certificateProfileId);
       final String m =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "ra.norevokebackdate",
               profileName,
               certserno.toString(16),
@@ -2951,9 +2978,9 @@ public class EndEntityManagementSessionBean
           certificateSubjectDN);
     } catch (CertificateRevokeException e) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "ra.errorfindentitycert", issuerdn, certserno.toString(16));
-      log.info(msg);
+      LOG.info(msg);
       throw new NoSuchEndEntityException(msg);
     }
     // In the case where this is an individual certificate revocation request,
@@ -2968,8 +2995,8 @@ public class EndEntityManagementSessionBean
           lastApprovingAdmin,
           cdw);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<revokeCert()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<revokeCert()");
     }
   }
 
@@ -2982,7 +3009,7 @@ public class EndEntityManagementSessionBean
             certificateProfileIdParam);
     if (certificateProfile == null) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "ra.errornocertificateprofile", certificateProfileIdParam);
       throw new CertificateProfileDoesNotExistException(msg);
     }
@@ -2993,8 +3020,8 @@ public class EndEntityManagementSessionBean
   public boolean checkIfCertificateBelongToUser(
       final BigInteger certificatesnr, final String issuerdn) {
     if (!WebConfiguration.getRequireAdminCertificateInDatabase()) {
-      if (log.isTraceEnabled()) {
-        log.trace(
+      if (LOG.isTraceEnabled()) {
+        LOG.trace(
             "<checkIfCertificateBelongToUser Configured to ignore if cert"
                 + " belongs to user.");
       }
@@ -3006,9 +3033,9 @@ public class EndEntityManagementSessionBean
     if (username != null) {
       if (endEntityAccessSession.findByUsername(username) == null) {
         final String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "ra.errorcertnouser", issuerdn, certificatesnr.toString(16));
-        log.info(msg);
+        LOG.info(msg);
         return false;
       } else {
         return true;
@@ -3032,9 +3059,9 @@ public class EndEntityManagementSessionBean
       }
       queryString += ")";
     }
-    if (log.isDebugEnabled()) {
-      log.debug("Checking for " + caIds.size() + " CAs");
-      log.debug("Generated query string: " + queryString);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Checking for " + caIds.size() + " CAs");
+      LOG.debug("Generated query string: " + queryString);
     }
     TypedQuery<UserData> query =
         entityManager.createQuery(queryString, UserData.class);
@@ -3057,13 +3084,13 @@ public class EndEntityManagementSessionBean
   @TransactionAttribute(TransactionAttributeType.SUPPORTS)
   @Override
   public boolean checkForCAId(final int caid) {
-    if (log.isTraceEnabled()) {
-      log.trace(">checkForCAId()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">checkForCAId()");
     }
     final long count = endEntityAccessSession.countByCaId(caid);
     if (count > 0) {
-      if (log.isDebugEnabled()) {
-        log.debug("CA exists in end entities: " + count);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("CA exists in end entities: " + count);
       }
     }
     return count > 0;
@@ -3072,8 +3099,8 @@ public class EndEntityManagementSessionBean
   @TransactionAttribute(TransactionAttributeType.SUPPORTS)
   @Override
   public boolean checkForHardTokenProfileId(final int profileid) {
-    if (log.isTraceEnabled()) {
-      log.trace(">checkForHardTokenProfileId()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">checkForHardTokenProfileId()");
     }
     return endEntityAccessSession.countByHardTokenProfileId(profileid) > 0;
   }
@@ -3081,8 +3108,8 @@ public class EndEntityManagementSessionBean
   private void print(
       final EndEntityProfile profile, final EndEntityInformation userdata) {
     try {
-      if (log.isDebugEnabled()) {
-        log.debug("profile.getUsePrinting(): " + profile.getUsePrinting());
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("profile.getUsePrinting(): " + profile.getUsePrinting());
       }
       if (profile.getUsePrinting()) {
         String[] pINs = new String[1];
@@ -3102,9 +3129,9 @@ public class EndEntityManagementSessionBean
       }
     } catch (PrinterException e) {
       String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "ra.errorprint", userdata.getUsername(), e.getMessage());
-      log.error(msg, e);
+      LOG.error(msg, e);
     }
   }
 
@@ -3116,14 +3143,14 @@ public class EndEntityManagementSessionBean
       final AuthenticationToken lastApprovingAdmin,
       final CertificateDataWrapper revokedCertificate) {
     if (endEntityInformation == null) {
-      if (log.isDebugEnabled()) {
-        log.debug("No UserData, no notification sent.");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("No UserData, no notification sent.");
       }
       return;
     }
     final String userEmail = endEntityInformation.getEmail();
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">sendNotification: user="
               + endEntityInformation.getUsername()
               + ", email="
@@ -3140,16 +3167,16 @@ public class EndEntityManagementSessionBean
               endEntityProfileId);
       final List<UserNotification> userNotifications =
           endEntityProfile.getUserNotifications();
-      if (log.isDebugEnabled()) {
-        log.debug("Number of user notifications: " + userNotifications.size());
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Number of user notifications: " + userNotifications.size());
       }
       String recipientEmail = userEmail; // Default value
       for (final UserNotification userNotification : userNotifications) {
         final Collection<String> events =
             userNotification.getNotificationEventsCollection();
         if (events.contains(String.valueOf(newstatus))) {
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "Status is "
                     + newstatus
                     + ", notification sent for notificationevents: "
@@ -3168,12 +3195,13 @@ public class EndEntityManagementSessionBean
               recipientEmail = "custom";
               // Plug-in mechanism for retrieving custom notification email
               // recipient addresses
-              if (userNotification.getNotificationRecipient().length() < 6) {
+              final int len = 6;
+              if (userNotification.getNotificationRecipient().length() < len) {
                 final String msg =
-                    intres.getLocalizedMessage(
+                    INTRES.getLocalizedMessage(
                         "ra.errorcustomrcptshort",
                         userNotification.getNotificationRecipient());
-                log.error(msg);
+                LOG.error(msg);
               } else {
                 final String customClassName =
                     userNotification.getNotificationRecipient().substring(7);
@@ -3202,13 +3230,13 @@ public class EndEntityManagementSessionBean
                       plugin.getRecipientEmails(endEntityInformation);
                   if (StringUtils.isEmpty(recipientEmail)) {
                     final String msg =
-                        intres.getLocalizedMessage(
+                        INTRES.getLocalizedMessage(
                             "ra.errorcustomnoemail",
                             userNotification.getNotificationRecipient());
-                    log.error(msg);
+                    LOG.error(msg);
                   } else {
-                    if (log.isDebugEnabled()) {
-                      log.debug(
+                    if (LOG.isDebugEnabled()) {
+                      LOG.debug(
                           "Custom notification recipient plugin returned"
                               + " email: "
                               + recipientEmail);
@@ -3216,10 +3244,10 @@ public class EndEntityManagementSessionBean
                   }
                 } else {
                   final String msg =
-                      intres.getLocalizedMessage(
+                      INTRES.getLocalizedMessage(
                           "ra.errorcustomnoclasspath",
                           userNotification.getNotificationRecipient());
-                  log.error(msg);
+                  LOG.error(msg);
                 }
               }
             } else {
@@ -3228,7 +3256,7 @@ public class EndEntityManagementSessionBean
             }
             if (StringUtils.isEmpty(recipientEmail)) {
               final String msg =
-                  intres.getLocalizedMessage(
+                  INTRES.getLocalizedMessage(
                       "ra.errornotificationnoemail",
                       endEntityInformation.getUsername());
               throw new MailException(msg);
@@ -3279,22 +3307,22 @@ public class EndEntityManagementSessionBean
                 message,
                 MailSender.NO_ATTACHMENTS);
             final String logmsg =
-                intres.getLocalizedMessage(
+                INTRES.getLocalizedMessage(
                     "ra.sentnotification",
                     endEntityInformation.getUsername(),
                     recipientEmail);
-            log.info(logmsg);
+            LOG.info(logmsg);
           } catch (MailException e) {
             final String msg =
-                intres.getLocalizedMessage(
+                INTRES.getLocalizedMessage(
                     "ra.errorsendnotification",
                     endEntityInformation.getUsername(),
                     recipientEmail);
-            log.error(msg, e);
+            LOG.error(msg, e);
           }
         } else {
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "Status is "
                     + newstatus
                     + ", no notification sent for notificationevents: "
@@ -3303,16 +3331,16 @@ public class EndEntityManagementSessionBean
         }
       }
     } else {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Type ("
                 + endEntityInformation.getType().getHexValue()
                 + ") does not contain EndEntityTypes.USER_SENDNOTIFICATION, no"
                 + " notification sent.");
       }
     }
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "<sendNotification: user="
               + endEntityInformation.getUsername()
               + ", email="
@@ -3357,12 +3385,12 @@ public class EndEntityManagementSessionBean
     try {
       final UserData data = endEntityAccessSession.findByUsername(username);
       if (data == null) {
-        log.info(
-            intres.getLocalizedMessage("ra.errorentitynotexist", username));
+        LOG.info(
+            INTRES.getLocalizedMessage("ra.errorentitynotexist", username));
         // This exception message is used to not leak information to the user
         final String msg =
-            intres.getLocalizedMessage("ra.wrongusernameorpassword");
-        log.info(msg);
+            INTRES.getLocalizedMessage("ra.wrongusernameorpassword");
+        LOG.info(msg);
         throw new FinderException(msg);
       }
       assertAuthorizedToCA(admin, data.getCaId());
@@ -3370,7 +3398,7 @@ public class EndEntityManagementSessionBean
           admin, data, EndEntityConstants.STATUS_KEYRECOVERY, 0, null);
     } catch (FinderException e) {
       ret = false;
-      log.info("prepareForKeyRecovery: No such user: " + username);
+      LOG.info("prepareForKeyRecovery: No such user: " + username);
     }
 
     return ret;
@@ -3397,12 +3425,12 @@ public class EndEntityManagementSessionBean
     try {
       final UserData data = endEntityAccessSession.findByUsername(username);
       if (data == null) {
-        log.info(
-            intres.getLocalizedMessage("ra.errorentitynotexist", username));
+        LOG.info(
+            INTRES.getLocalizedMessage("ra.errorentitynotexist", username));
         // This exception message is used to not leak information to the user
         final String msg =
-            intres.getLocalizedMessage("ra.wrongusernameorpassword");
-        log.info(msg);
+            INTRES.getLocalizedMessage("ra.wrongusernameorpassword");
+        LOG.info(msg);
         throw new FinderException(msg);
       }
       assertAuthorizedToCA(admin, data.getCaId());
@@ -3410,7 +3438,7 @@ public class EndEntityManagementSessionBean
           admin, data, EndEntityConstants.STATUS_KEYRECOVERY, 0, null);
     } catch (FinderException e) {
       ret = false;
-      log.info("prepareForKeyRecovery: No such user: " + username);
+      LOG.info("prepareForKeyRecovery: No such user: " + username);
     }
     return ret;
   }
@@ -3437,8 +3465,8 @@ public class EndEntityManagementSessionBean
       final ExtendedInformation ei,
       final String username,
       final int endEntityProfileId) {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">resetRequestCounter(" + username + ", " + onlyRemoveNoUpdate + ")");
     }
     final EndEntityProfile prof =
@@ -3449,14 +3477,14 @@ public class EndEntityManagementSessionBean
         value = prof.getValue(EndEntityProfile.ALLOWEDREQUESTS, 0);
       }
     } else {
-      if (log.isDebugEnabled()) {
-        log.debug("Can not fetch entity profile with ID " + endEntityProfileId);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Can not fetch entity profile with ID " + endEntityProfileId);
       }
     }
     final String counter =
         ei.getCustomData(ExtendedInformationFields.CUSTOM_REQUESTCOUNTER);
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Old counter is: " + counter + ", new counter will be: " + value);
     }
     // If this end entity profile does not use ALLOWEDREQUESTS, this
@@ -3468,23 +3496,23 @@ public class EndEntityManagementSessionBean
       if ((!onlyRemoveNoUpdate) || (onlyRemoveNoUpdate && (value == null))) {
         ei.setCustomData(
             ExtendedInformationFields.CUSTOM_REQUESTCOUNTER, value);
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Re-set request counter for user '" + username + "' to:" + value);
         }
         ret = true;
       } else {
-        if (log.isDebugEnabled()) {
-          log.debug("No re-setting counter because we should only remove");
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("No re-setting counter because we should only remove");
         }
       }
     } else {
-      if (log.isDebugEnabled()) {
-        log.debug("Request counter not used, not re-setting it.");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Request counter not used, not re-setting it.");
       }
     }
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "<resetRequestCounter("
               + username
               + ", "

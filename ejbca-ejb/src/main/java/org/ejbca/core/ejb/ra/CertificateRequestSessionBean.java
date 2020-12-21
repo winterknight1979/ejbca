@@ -88,24 +88,37 @@ import org.ejbca.cvc.exception.ParseException;
 public class CertificateRequestSessionBean
     implements CertificateRequestSessionRemote, CertificateRequestSessionLocal {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(CertificateRequestSessionBean.class);
 
-  /** Internal localization of logs and errors */
-  private static final InternalEjbcaResources intres =
+  /** Internal localization of logs and errors. */
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
+  /** EJB. */
   @EJB private AuthorizationSessionLocal authorizationSession;
+  /** EJB. */
   @EJB private CaSessionLocal caSession;
+  /** EJB. */
   @EJB private EndEntityAuthenticationSessionLocal authenticationSession;
+  /** EJB. */
   @EJB private EndEntityAccessSessionLocal endEntityAccessSession;
+  /** EJB. */
   @EJB private EndEntityProfileSessionLocal endEntityProfileSession;
+  /** EJB. */
   @EJB private HardTokenSessionLocal hardTokenSession;
+  /** EJB. */
   @EJB private KeyRecoverySessionLocal keyRecoverySession;
+  /** EJB. */
   @EJB private KeyStoreCreateSessionLocal keyStoreCreateSession;
+  /** EJB. */
   @EJB private GlobalConfigurationSessionLocal globalConfigurationSession;
+  /** EJB. */
   @EJB private EndEntityManagementSessionLocal endEntityManagementSession;
+  /** EJB. */
   @EJB private SignSessionLocal signSession;
+  /** Context. */
   @Resource private SessionContext sessionContext;
 
   @Override
@@ -287,7 +300,7 @@ public class CertificateRequestSessionBean
     if (!authorizationSession.isAuthorizedNoLogging(
         admin, StandardRules.CAACCESS.resource() + caid)) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "authorization.notauthorizedtoresource",
               StandardRules.CAACCESS.resource() + caid,
               null);
@@ -296,7 +309,7 @@ public class CertificateRequestSessionBean
     if (!authorizationSession.isAuthorizedNoLogging(
         admin, AccessRulesConstants.REGULAR_CREATECERTIFICATE)) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "authorization.notauthorizedtoresource",
               AccessRulesConstants.REGULAR_CREATECERTIFICATE,
               null);
@@ -313,8 +326,8 @@ public class CertificateRequestSessionBean
     try {
       String username = userdata.getUsername();
       if (useUserStorage && endEntityManagementSession.existsUser(username)) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "User "
                   + username
                   + " exists, update the userdata. New status of user '"
@@ -324,8 +337,8 @@ public class CertificateRequestSessionBean
         endEntityManagementSession.changeUser(
             admin, userdata, clearpwd, fromwebservice);
       } else {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "New User "
                   + username
                   + ", adding userdata. New status of user '"
@@ -347,7 +360,7 @@ public class CertificateRequestSessionBean
               + ") or Certificate Profile ("
               + userdata.getCertificateProfileId()
               + ").";
-      log.info(msg);
+      LOG.info(msg);
       throw new ApprovalException(msg);
     }
   }
@@ -430,25 +443,25 @@ public class CertificateRequestSessionBean
                   globalConfigurationSession.getCachedConfiguration(
                       GlobalConfiguration.GLOBAL_CONFIGURATION_ID))
               .getEnableKeyRecovery();
-      if (log.isDebugEnabled()) {
-        log.debug("usekeyrecovery: " + usekeyrecovery);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("usekeyrecovery: " + usekeyrecovery);
       }
       boolean savekeys =
           userdata.getKeyRecoverable()
               && usekeyrecovery
               && (userdata.getStatus()
                   != EndEntityConstants.STATUS_KEYRECOVERY);
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "userdata.getKeyRecoverable(): " + userdata.getKeyRecoverable());
-        log.debug("userdata.getStatus(): " + userdata.getStatus());
-        log.debug("savekeys: " + savekeys);
+        LOG.debug("userdata.getStatus(): " + userdata.getStatus());
+        LOG.debug("savekeys: " + savekeys);
       }
       boolean loadkeys =
           (userdata.getStatus() == EndEntityConstants.STATUS_KEYRECOVERY)
               && usekeyrecovery;
-      if (log.isDebugEnabled()) {
-        log.debug("loadkeys: " + loadkeys);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("loadkeys: " + loadkeys);
       }
       int endEntityProfileId = userdata.getEndEntityProfileId();
       EndEntityProfile endEntityProfile =
@@ -456,8 +469,8 @@ public class CertificateRequestSessionBean
               endEntityProfileId);
       boolean reusecertificate =
           endEntityProfile.getReUseKeyRecoveredCertificate();
-      if (log.isDebugEnabled()) {
-        log.debug("reusecertificate: " + reusecertificate);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("reusecertificate: " + reusecertificate);
       }
       // Generate keystore
       String password = userdata.getPassword();

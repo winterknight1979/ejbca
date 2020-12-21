@@ -57,7 +57,7 @@ import org.ejbca.core.model.ra.raadmin.EndEntityProfileExistsException;
 import org.ejbca.core.model.ra.raadmin.EndEntityProfileNotFoundException;
 
 /**
- * Session bean for handling EndEntityProfiles
+ * Session bean for handling EndEntityProfiles.
  *
  * @version $Id: EndEntityProfileSessionBean.java 29434 2018-07-03 06:49:23Z
  *     mikekushner $
@@ -69,19 +69,25 @@ import org.ejbca.core.model.ra.raadmin.EndEntityProfileNotFoundException;
 public class EndEntityProfileSessionBean
     implements EndEntityProfileSessionLocal, EndEntityProfileSessionRemote {
 
+    /** Logger. */
   private static final Logger LOG =
       Logger.getLogger(EndEntityProfileSessionBean.class);
 
-  /** Internal localization of logs and errors */
+  /** Internal localization of logs and errors. */
   private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
+  /** EM. */
   @PersistenceContext(unitName = "ejbca")
   private EntityManager entityManager;
 
+  /** EJB. */
   @EJB private AuthorizationSessionLocal authorizationSession;
+  /** EJB. */
   @EJB private CaSessionLocal caSession;
+  /** EJB. */
   @EJB private SecurityEventsLoggerSessionLocal auditSession;
+  /** EJB. */
   @EJB private CertificateProfileSessionLocal certificateProfileSession;
 
   @Override
@@ -256,8 +262,8 @@ public class EndEntityProfileSessionBean
       final int certificateProfileId) {
     String[] availprofiles = null;
     List<String> result = new ArrayList<String>();
-    for (EndEntityProfileData profileData :
-        EndEntityProfileData.findAll(entityManager)) {
+    for (EndEntityProfileData profileData
+        : EndEntityProfileData.findAll(entityManager)) {
       availprofiles =
           profileData
               .getProfile()
@@ -411,8 +417,8 @@ public class EndEntityProfileSessionBean
             + endentityAccessRule)) {
       returnval.add(EndEntityConstants.EMPTY_END_ENTITY_PROFILE);
     }
-    for (final Entry<Integer, EndEntityProfile> entry :
-        EndEntityProfileCache.INSTANCE
+    for (final Entry<Integer, EndEntityProfile> entry
+        : EndEntityProfileCache.INSTANCE
             .getProfileCache(entityManager)
             .entrySet()) {
       // Check if all profiles available CAs exists in authorizedcaids.
@@ -430,8 +436,8 @@ public class EndEntityProfileSessionBean
               + endentityAccessRule)) {
         authorizedToProfile = true;
         if (StringUtils.isNotBlank(availableCasString)) {
-          for (final String caidString :
-              availableCasString.split(EndEntityProfile.SPLITCHAR)) {
+          for (final String caidString
+              : availableCasString.split(EndEntityProfile.SPLITCHAR)) {
             try {
               final int caIdInt = Integer.parseInt(caidString);
               // with root rule access you can edit profiles with missing CA ids
@@ -480,16 +486,16 @@ public class EndEntityProfileSessionBean
     }
 
     try {
-      for (final Entry<Integer, EndEntityProfile> entry :
-          EndEntityProfileCache.INSTANCE
+      for (final Entry<Integer, EndEntityProfile> entry
+          : EndEntityProfileCache.INSTANCE
               .getProfileCache(entityManager)
               .entrySet()) {
         final String availableCasString =
             entry.getValue().getValue(EndEntityProfile.AVAILCAS, 0);
         if (availableCasString != null) {
           boolean nonExistingCA = false;
-          for (final String caidString :
-              availableCasString.split(EndEntityProfile.SPLITCHAR)) {
+          for (final String caidString
+              : availableCasString.split(EndEntityProfile.SPLITCHAR)) {
             final int caIdInt = Integer.parseInt(caidString);
             if (!allcaids.contains(caIdInt)) {
               nonExistingCA = true;

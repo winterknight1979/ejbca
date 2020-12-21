@@ -65,13 +65,17 @@ import org.ejbca.core.ejb.ra.UserData;
 public class LegacyRoleManagementSessionBean
     implements LegacyRoleManagementSessionLocal {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(LegacyRoleManagementSessionBean.class);
+  /** Resource. */
   private static final InternalResources INTERNAL_RESOURCES =
       InternalResources.getInstance();
 
+  /** EJB. */
   @EJB private SecurityEventsLoggerSessionLocal securityEventsLogger;
 
+  /** EM. */
   @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
   private EntityManager entityManager;
 
@@ -369,36 +373,36 @@ public class LegacyRoleManagementSessionBean
   @TransactionAttribute(TransactionAttributeType.REQUIRED)
   @Override
   public void createSuperAdministrator() {
-    final String TEMPORARY_SUPERADMIN_ROLE =
+    final String tempSuperadminRole =
         "Temporary Super Administrator Group";
-    final String SUPERADMIN_ROLE = AuthorizationSystemSession.SUPERADMIN_ROLE;
+    final String superadminRole = AuthorizationSystemSession.SUPERADMIN_ROLE;
     // Create the Super Admin
-    AdminGroupData role = getRole(SUPERADMIN_ROLE);
+    AdminGroupData role = getRole(superadminRole);
     if (role == null) {
-      log.debug("Creating new role '" + SUPERADMIN_ROLE + "'.");
-      role = new AdminGroupData(1, SUPERADMIN_ROLE);
+      LOG.debug("Creating new role '" + superadminRole + "'.");
+      role = new AdminGroupData(1, superadminRole);
       entityManager.persist(role);
     } else {
-      log.debug("'" + SUPERADMIN_ROLE + "' already exists, not creating new.");
+      LOG.debug("'" + superadminRole + "' already exists, not creating new.");
     }
     AccessRuleData rule =
         new AccessRuleData(
-            SUPERADMIN_ROLE,
+            superadminRole,
             StandardRules.ROLE_ROOT.resource(),
             AccessRuleState.RULE_ACCEPT,
             true);
     if (!role.getAccessRules().containsKey(rule.getPrimaryKey())) {
-      log.debug("Adding new rule '/' to " + SUPERADMIN_ROLE + ".");
+      LOG.debug("Adding new rule '/' to " + superadminRole + ".");
       Map<Integer, AccessRuleData> newrules = new HashMap<>();
       newrules.put(rule.getPrimaryKey(), rule);
       role.setAccessRules(newrules);
     } else {
-      log.debug("rule '/' already exists in " + SUPERADMIN_ROLE + ".");
+      LOG.debug("rule '/' already exists in " + superadminRole + ".");
     }
     // Pick up the aspects from the old temp. super admin group and add them to
     // the new one.
     Map<Integer, AccessUserAspectData> newUsers = new HashMap<>();
-    AdminGroupData oldSuperAdminRole = getRole(TEMPORARY_SUPERADMIN_ROLE);
+    AdminGroupData oldSuperAdminRole = getRole(tempSuperadminRole);
     if (oldSuperAdminRole != null) {
       Map<Integer, AccessUserAspectData> oldSuperAdminAspects =
           oldSuperAdminRole.getAccessUsers();
@@ -411,15 +415,15 @@ public class LegacyRoleManagementSessionBean
                 aspect.getMatchWith());
         AccessUserAspectData superAdminUserAspect =
             new AccessUserAspectData(
-                SUPERADMIN_ROLE,
+                superadminRole,
                 aspect.getCaId(),
                 matchWith,
                 aspect.getMatchTypeAsType(),
                 aspect.getMatchValue());
         if (existingSuperAdminAspects.containsKey(
             superAdminUserAspect.getPrimaryKey())) {
-          log.debug(
-              SUPERADMIN_ROLE
+          LOG.debug(
+              superadminRole
                   + " already contains aspect matching "
                   + aspect.getMatchValue()
                   + " for CA with ID "
@@ -434,17 +438,17 @@ public class LegacyRoleManagementSessionBean
     Map<Integer, AccessUserAspectData> users = role.getAccessUsers();
     AccessUserAspectData defaultCliUserAspect =
         new AccessUserAspectData(
-            SUPERADMIN_ROLE,
+            superadminRole,
             0,
             CliUserAccessMatchValue.USERNAME,
             AccessMatchType.TYPE_EQUALCASE,
             EjbcaConfiguration.getCliDefaultUser());
     if (!users.containsKey(defaultCliUserAspect.getPrimaryKey())) {
-      log.debug(
+      LOG.debug(
           "Adding new AccessUserAspect '"
               + EjbcaConfiguration.getCliDefaultUser()
               + "' to "
-              + SUPERADMIN_ROLE
+              + superadminRole
               + ".");
       newUsers.put(defaultCliUserAspect.getPrimaryKey(), defaultCliUserAspect);
       UserData defaultCliUserData =
@@ -469,11 +473,11 @@ public class LegacyRoleManagementSessionBean
         entityManager.persist(defaultCliUserData);
       }
     } else {
-      log.debug(
+      LOG.debug(
           "AccessUserAspect '"
               + EjbcaConfiguration.getCliDefaultUser()
               + "' already exists in "
-              + SUPERADMIN_ROLE
+              + superadminRole
               + ".");
     }
     // Add all created aspects to role

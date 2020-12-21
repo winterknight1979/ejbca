@@ -31,13 +31,19 @@ import org.apache.log4j.Logger;
  */
 public class ProfileAndTraceInterceptor {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(ProfileAndTraceInterceptor.class);
 
+  /**
+   * @param invocationContext Context
+   * @return Logger
+   * @throws Exception Fail
+   */
   @AroundInvoke
   public Object logger(final InvocationContext invocationContext)
       throws Exception {
-    if (!log.isDebugEnabled()) {
+    if (!LOG.isDebugEnabled()) {
       return invocationContext.proceed();
     }
     long invocationStartTime = 0;
@@ -74,7 +80,8 @@ public class ProfileAndTraceInterceptor {
       throw e;
     } finally {
       long invocationDuration = -1;
-      invocationDuration = (System.nanoTime() - invocationStartTime) / 1000;
+      final int ms = 1000;
+      invocationDuration = (System.nanoTime() - invocationStartTime) / ms;
       final String fullTargetIdentifier =
           targetMethodClass.getName() + "." + targetMethodName;
       ProfilingStats.INSTANCE.add(fullTargetIdentifier, invocationDuration);

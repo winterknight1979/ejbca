@@ -97,25 +97,42 @@ import org.ejbca.util.JDBCUtil;
         .BEAN) // By legacy we create a global config here this way
 public class StartupSingletonBean {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(StartupSingletonBean.class);
+  /** Token. */
   private final AuthenticationToken authenticationToken =
       new AlwaysAllowLocalAuthenticationToken("Application internal");
 
+  /** EJB. */
   @EJB private AuthorizationSessionLocal authorizationSession;
+  /** EJB. */
   @EJB private AuthorizationSystemSessionLocal authorizationSystemSession;
+  /** EJB. */
   @EJB private CAAdminSessionLocal caAdminSession;
+  /** EJB. */
   @EJB private CertificateCreateSessionLocal certCreateSession;
+  /** EJB. */
   @EJB private CertificateProfileSessionLocal certificateProfileSession;
+  /** EJB. */
   @EJB private CertificateStoreSessionLocal certificateStoreSession;
+  /** EJB. */
   @EJB private EndEntityAccessSessionLocal endEntityAccessSession;
+  /** EJB. */
   @EJB private EndEntityManagementSessionLocal endEntityManagementSession;
+  /** EJB. */
   @EJB private EndEntityProfileSessionLocal endEntityProfileSession;
+  /** EJB. */
   @EJB private GlobalConfigurationSessionLocal globalConfigurationSession;
+  /** EJB. */
   @EJB private SecurityEventsLoggerSessionLocal logSession;
+  /** EJB. */
   @EJB private OcspKeyRenewalSessionLocal ocspKeyRenewalSession;
+  /** EJB. */
   @EJB private OcspResponseGeneratorSessionLocal ocspResponseGeneratorSession;
+  /** EJB. */
   @EJB private UpgradeSessionLocal upgradeSession;
+  /** EJB. */
   @EJB private ServiceSessionLocal serviceSession;
 
   @PreDestroy
@@ -123,7 +140,7 @@ public class StartupSingletonBean {
     String iMsg =
         InternalEjbcaResources.getInstance()
             .getLocalizedMessage("startservice.shutdown");
-    log.info(iMsg);
+    LOG.info(iMsg);
     // Make a log row that EJBCA is stopping
     // final Map<String, Object> details = new LinkedHashMap<String, Object>();
     // details.put("msg", iMsg);
@@ -140,11 +157,11 @@ public class StartupSingletonBean {
    *
    * <p>A classloader that is from the main/core JBoss/WildFly modules is
    * typically printed like: <code>
-   * org.bouncycastle.jcajce.provider.asymmetric.x509.X509CertificateObject(6034186b).ClassLoader=ModuleClassLoader for Module "org.bouncycastle" from local module loader @649d209a
-   * </code> while a classloader from the ejbca.ear space is printed like:
-   * <code>
-   * org.bouncycastle.jcajce.provider.asymmetric.x509.X509CertificateObject(362bcba0).ClassLoader=ModuleClassLoader for Module "deployment.ejbca.ear" from Service Module Loader
-   * </code>
+   * org.bouncycastle.jcajce.provider.asymmetric.x509.X509CertificateObject(6034186b).ClassLoader=ModuleClassLoader
+   *  for Module "org.bouncycastle" from local module loader @649d209a</code>
+   *  while a classloader from the ejbca.ear space is printed like: <code>
+   * org.bouncycastle.jcajce.provider.asymmetric.x509.X509CertificateObject(362bcba0).ClassLoader=ModuleClassLoader
+   *  for Module "deployment.ejbca.ear" from Service Module Loader</code>
    *
    * @param clazz the class that we want to check which classloader it comes
    *     from. For example
@@ -171,14 +188,14 @@ public class StartupSingletonBean {
       } else {
         results.append("\n++++Null CodeSource");
       }
-      log.error(
+      LOG.error(
           "BouncyCastle is not loaded by an EJBCA classloader, version"
               + " conflict is likely: "
               + clazz.getName()
               + ": "
               + results.toString());
     } else {
-      log.info("BouncyCastle provider is from our ejbca.ear classloader.");
+      LOG.info("BouncyCastle provider is from our ejbca.ear classloader.");
     }
   }
   /**
@@ -192,26 +209,26 @@ public class StartupSingletonBean {
    */
   private static byte[] testcertbytes =
       Base64.decode(
-          ("MIIDATCCAmqgAwIBAgIIczEoghAwc3EwDQYJKoZIhvcNAQEFBQAwLzEPMA0GA1UE"
-               + "AxMGVGVzdENBMQ8wDQYDVQQKEwZBbmFUb20xCzAJBgNVBAYTAlNFMB4XDTAzMDky"
-               + "NDA2NDgwNFoXDTA1MDkyMzA2NTgwNFowMzEQMA4GA1UEAxMHcDEydGVzdDESMBAG"
-               + "A1UEChMJUHJpbWVUZXN0MQswCQYDVQQGEwJTRTCBnTANBgkqhkiG9w0BAQEFAAOB"
-               + "iwAwgYcCgYEAnPAtfpU63/0h6InBmesN8FYS47hMvq/sliSBOMU0VqzlNNXuhD8a"
-               + "3FypGfnPXvjJP5YX9ORu1xAfTNao2sSHLtrkNJQBv6jCRIMYbjjo84UFab2qhhaJ"
-               + "wqJgkQNKu2LHy5gFUztxD8JIuFPoayp1n9JL/gqFDv6k81UnDGmHeFcCARGjggEi"
-               + "MIIBHjAPBgNVHRMBAf8EBTADAQEAMA8GA1UdDwEB/wQFAwMHoAAwOwYDVR0lBDQw"
-               + "MgYIKwYBBQUHAwEGCCsGAQUFBwMCBggrBgEFBQcDBAYIKwYBBQUHAwUGCCsGAQUF"
-               + "BwMHMB0GA1UdDgQWBBTnT1aQ9I0Ud4OEfNJkSOgJSrsIoDAfBgNVHSMEGDAWgBRj"
-               + "e/R2qFQkjqV0pXdEpvReD1eSUTAiBgNVHREEGzAZoBcGCisGAQQBgjcUAgOgCQwH"
-               + "Zm9vQGZvbzASBgNVHSAECzAJMAcGBSkBAQEBMEUGA1UdHwQ+MDwwOqA4oDaGNGh0"
-               + "dHA6Ly8xMjcuMC4wLjE6ODA4MC9lamJjYS93ZWJkaXN0L2NlcnRkaXN0P2NtZD1j"
-               + "cmwwDQYJKoZIhvcNAQEFBQADgYEAU4CCcLoSUDGXJAOO9hGhvxQiwjGD2rVKCLR4"
-               + "emox1mlQ5rgO9sSel6jHkwceaq4A55+qXAjQVsuy76UJnc8ncYX8f98uSYKcjxo/"
-               + "ifn1eHMbL8dGLd5bc2GNBZkmhFIEoDvbfn9jo7phlS8iyvF2YhC4eso8Xb+T7+BZ"
-               + "QUOBOvc=")
-              .getBytes());
+      ("MIIDATCCAmqgAwIBAgIIczEoghAwc3EwDQYJKoZIhvcNAQEFBQAwLzEPMA0GA1UE"
+           + "AxMGVGVzdENBMQ8wDQYDVQQKEwZBbmFUb20xCzAJBgNVBAYTAlNFMB4XDTAzMDky"
+           + "NDA2NDgwNFoXDTA1MDkyMzA2NTgwNFowMzEQMA4GA1UEAxMHcDEydGVzdDESMBAG"
+           + "A1UEChMJUHJpbWVUZXN0MQswCQYDVQQGEwJTRTCBnTANBgkqhkiG9w0BAQEFAAOB"
+           + "iwAwgYcCgYEAnPAtfpU63/0h6InBmesN8FYS47hMvq/sliSBOMU0VqzlNNXuhD8a"
+           + "3FypGfnPXvjJP5YX9ORu1xAfTNao2sSHLtrkNJQBv6jCRIMYbjjo84UFab2qhhaJ"
+           + "wqJgkQNKu2LHy5gFUztxD8JIuFPoayp1n9JL/gqFDv6k81UnDGmHeFcCARGjggEi"
+           + "MIIBHjAPBgNVHRMBAf8EBTADAQEAMA8GA1UdDwEB/wQFAwMHoAAwOwYDVR0lBDQw"
+           + "MgYIKwYBBQUHAwEGCCsGAQUFBwMCBggrBgEFBQcDBAYIKwYBBQUHAwUGCCsGAQUF"
+           + "BwMHMB0GA1UdDgQWBBTnT1aQ9I0Ud4OEfNJkSOgJSrsIoDAfBgNVHSMEGDAWgBRj"
+           + "e/R2qFQkjqV0pXdEpvReD1eSUTAiBgNVHREEGzAZoBcGCisGAQQBgjcUAgOgCQwH"
+           + "Zm9vQGZvbzASBgNVHSAECzAJMAcGBSkBAQEBMEUGA1UdHwQ+MDwwOqA4oDaGNGh0"
+           + "dHA6Ly8xMjcuMC4wLjE6ODA4MC9lamJjYS93ZWJkaXN0L2NlcnRkaXN0P2NtZD1j"
+           + "cmwwDQYJKoZIhvcNAQEFBQADgYEAU4CCcLoSUDGXJAOO9hGhvxQiwjGD2rVKCLR4"
+           + "emox1mlQ5rgO9sSel6jHkwceaq4A55+qXAjQVsuy76UJnc8ncYX8f98uSYKcjxo/"
+           + "ifn1eHMbL8dGLd5bc2GNBZkmhFIEoDvbfn9jo7phlS8iyvF2YhC4eso8Xb+T7+BZ"
+           + "QUOBOvc=")
+          .getBytes());
 
-  @PostConstruct
+  @PostConstruct 
   private void startup() {
     //
     // Run all "safe" initializations first,
@@ -222,16 +239,16 @@ public class StartupSingletonBean {
         InternalEjbcaResources.getInstance()
             .getLocalizedMessage(
                 "startservice.startup", GlobalConfiguration.EJBCA_VERSION);
-    log.info(iMsg);
+    LOG.info(iMsg);
 
     // Reinstall BC-provider to help re-deploys to work
-    log.trace(">init re-installing BC-provider");
+    LOG.trace(">init re-installing BC-provider");
     CryptoProviderTools.removeBCProvider();
     CryptoProviderTools.installBCProvider();
 
     // Run java seed collector, that can take a little time the first time it is
     // run
-    log.trace(">init initializing random seed");
+    LOG.trace(">init initializing random seed");
     SecureRandom rand = new SecureRandom();
     rand.nextInt();
 
@@ -243,19 +260,21 @@ public class StartupSingletonBean {
     // the ServiceSessionBean
     // crashes from not finding the BC-provider.
     int waitTime = 0;
+    final int sleepTime = 2000;
+    final int maxWaits = 5;
     while (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null
-        && waitTime++ < 5) {
-      log.info("Waiting for BC provider to be installed..");
+        && waitTime++ < maxWaits) {
+      LOG.info("Waiting for BC provider to be installed..");
       try {
-        Thread.sleep(2000);
+        Thread.sleep(sleepTime);
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
-        log.error("Waiting for BC provider failed.", e);
+        LOG.error("Waiting for BC provider failed.", e);
         break;
       }
     }
     // Verify that the classloader uses "our" BC version
-    log.trace(">init checking classloader of BouncyCastle provider");
+    LOG.trace(">init checking classloader of BouncyCastle provider");
     try {
       final CertificateFactory cf = CertTools.getCertificateFactory();
       final X509Certificate testcert =
@@ -263,15 +282,16 @@ public class StartupSingletonBean {
               cf.generateCertificate(new ByteArrayInputStream(testcertbytes));
       checkClassLoaderIsEJBCA(testcert.getClass());
     } catch (CertificateException e1) {
-      log.error("Can not parse certificate, this should never happen: ", e1);
+      LOG.error("Can not parse certificate, this should never happen: ", e1);
       throw new IllegalStateException(e1.getMessage());
     }
 
     /*
-     * Trigger ServiceLoader for AuthenticationTokens at startup, since this is a critical function it makes
+     * Trigger ServiceLoader for AuthenticationTokens at startup,
+     * since this is a critical function it makes
      * debugging nicer if the available tokens are shown at startup
      */
-    log.info(
+    LOG.info(
         "Registered AuthenticationTokens "
             + AccessMatchValueReverseLookupRegistry.INSTANCE
                 .getAllTokenTypes()
@@ -279,7 +299,7 @@ public class StartupSingletonBean {
     // We have to read CAs into cache (and upgrade them) early, because the log
     // system may use CAs for signing logs
 
-    log.trace(
+    LOG.trace(
         ">init CryptoTokenFactory just to load those classes that are"
             + " available");
     CryptoTokenFactory.instance();
@@ -287,11 +307,11 @@ public class StartupSingletonBean {
     authorizationSession.scheduleBackgroundRefresh();
     // Load CAs at startup to improve impression of speed the first time a CA is
     // accessed, it takes a little time to load it.
-    log.trace(">init loading CAs into cache");
+    LOG.trace(">init loading CAs into cache");
     try {
       caAdminSession.initializeAndUpgradeCAs();
     } catch (Exception e) {
-      log.error("Error creating CAAdminSession: ", e);
+      LOG.error("Error creating CAAdminSession: ", e);
     }
 
     // Make a log row that EJBCA is starting
@@ -309,13 +329,13 @@ public class StartupSingletonBean {
         details);
 
     // Log the type of security audit configuration that we have enabled.
-    log.trace(">init security audit device configuration");
+    LOG.trace(">init security audit device configuration");
     final Set<String> loggerIds = AuditDevicesConfig.getAllDeviceIds();
     if (loggerIds.isEmpty()) {
       final String msg =
           InternalEjbcaResources.getInstance()
               .getLocalizedMessage("startservices.noauditdevices");
-      log.info(msg);
+      LOG.info(msg);
     } else {
       if (!checkForProtectedAudit(authenticationToken, loggerIds)) {
         // Make a log row that no integrity protected device is configured
@@ -338,37 +358,37 @@ public class StartupSingletonBean {
     }
 
     // Initialize authorization system, if not done already
-    log.trace(
+    LOG.trace(
         ">init AuthorizationSystemSession to check for initial root role");
     final boolean isFreshInstallation =
         authorizationSystemSession.initializeAuthorizationModule();
 
-    log.trace(">init calling ServiceSession.load");
+    LOG.trace(">init calling ServiceSession.load");
     try {
       serviceSession.load();
     } catch (Exception e) {
-      log.error("Error init ServiceSession: ", e);
+      LOG.error("Error init ServiceSession: ", e);
     }
 
     // Load Certificate profiles at startup to upgrade them if needed
-    log.trace(">init loading CertificateProfile to check for upgrades");
+    LOG.trace(">init loading CertificateProfile to check for upgrades");
     try {
       certificateProfileSession.initializeAndUpgradeProfiles();
     } catch (Exception e) {
-      log.error("Error initializing certificate profiles: ", e);
+      LOG.error("Error initializing certificate profiles: ", e);
     }
 
     // Load EndEntity profiles at startup to upgrade them if needed
     // And add this node to list of nodes
-    log.trace(">init loading EndEntityProfile to check for upgrades");
+    LOG.trace(">init loading EndEntityProfile to check for upgrades");
     try {
       endEntityProfileSession.initializeAndUpgradeProfiles();
     } catch (Exception e) {
-      log.error("Error initializing end entity profiles: ", e);
+      LOG.error("Error initializing end entity profiles: ", e);
     }
 
     // Add this node's hostname to list of nodes
-    log.trace(">init checking if this node is in the list of nodes");
+    LOG.trace(">init checking if this node is in the list of nodes");
     try {
       // Requires a transaction in order to create the initial global
       // configuration
@@ -379,17 +399,17 @@ public class StartupSingletonBean {
       final Set<String> nodes = config.getNodesInCluster();
       final String hostname = getHostName();
       if (hostname != null && !nodes.contains(hostname)) {
-        log.debug("Adding this node (" + hostname + ") to the list of nodes");
+        LOG.debug("Adding this node (" + hostname + ") to the list of nodes");
         nodes.add(hostname);
         config.setNodesInCluster(nodes);
         globalConfigurationSession.saveConfiguration(
             authenticationToken, config);
       }
     } catch (Exception e) {
-      log.error("Error adding host to node list in global configuration: ", e);
+      LOG.error("Error adding host to node list in global configuration: ", e);
     }
 
-    log.trace(
+    LOG.trace(
         ">init SignSession to check for unique issuerDN,serialNumber index");
     // Call the check for unique index, since first invocation will perform the
     // database
@@ -402,7 +422,7 @@ public class StartupSingletonBean {
             Arrays.asList("serialNumber", "issuerDN"),
             true);
     if (unique == null) {
-      log.info(
+      LOG.info(
           "Unable to read the index meta data from the database. Will detect"
               + " presence of unique index using conflicting inserts to"
               + " CertificateData.");
@@ -436,21 +456,21 @@ public class StartupSingletonBean {
               cliUsername,
               EndEntityConstants.STATUS_GENERATED);
         } catch (ApprovalException e) {
-          log.warn(
+          LOG.warn(
               "The EJBCA CLI user '"
                   + cliUsername
                   + "' could be used for certificate enrollment. Please"
                   + " correct the status manually. Failed with: "
                   + e.getMessage());
         } catch (NoSuchEndEntityException e) {
-          log.warn(
+          LOG.warn(
               "The EJBCA CLI user '"
                   + cliUsername
                   + "' could be used for certificate enrollment. Please"
                   + " correct the status manually. Failed with: "
                   + e.getMessage());
         } catch (WaitingForApprovalException e) {
-          log.warn(
+          LOG.warn(
               "The EJBCA CLI user '"
                   + cliUsername
                   + "' could be used for certificate enrollment. Please"
@@ -459,7 +479,7 @@ public class StartupSingletonBean {
         }
       }
     } catch (AuthorizationDeniedException e) {
-      log.warn(
+      LOG.warn(
           "Unable to check if the EJBCA CLI user '"
               + cliUsername
               + "' could be used for certificate enrollment. Please check and"
@@ -470,7 +490,7 @@ public class StartupSingletonBean {
 
   /**
    * Method that checks if we have an integrity protected security audit device
-   * configured, and in that case logs the configuration startup
+   * configured, and in that case logs the configuration startup.
    *
    * @param admin an authentication token used to log the configuration
    *     management startup (logged as a change as audit is configured during
@@ -489,7 +509,7 @@ public class StartupSingletonBean {
     // This is admin-gui and does not have access to that class
     final String integrityProtectedName = "IntegrityProtectedDevice";
     for (Iterator<String> iterator = loggerIds.iterator();
-        iterator.hasNext(); ) {
+        iterator.hasNext();) {
       final String id = iterator.next();
       if (integrityProtectedName.equals(id)) {
         // Make a log row that integrity protected device is configured
@@ -541,39 +561,39 @@ public class StartupSingletonBean {
                   logdetails);
               ret = true;
             } else {
-              log.debug(
+              LOG.debug(
                   "No database integrity protection enabled for"
                       + " AuditRecordData.");
             }
           } else {
-            log.debug("No keyid configured for AuditRecordData.");
+            LOG.debug("No keyid configured for AuditRecordData.");
           }
         } catch (ClassNotFoundException e) {
-          log.info(
+          LOG.info(
               "No database integrity protection available in this version of"
                   + " EJBCA.");
         } catch (IllegalAccessException e) {
-          log.info(
+          LOG.info(
               "No database integrity protection available due to"
                   + " initialization error: ",
               e);
         } catch (SecurityException e) {
-          log.info(
+          LOG.info(
               "No database integrity protection available due to"
                   + " initialization error: ",
               e);
         } catch (NoSuchMethodException e) {
-          log.info(
+          LOG.info(
               "No database integrity protection available due to"
                   + " initialization error: ",
               e);
         } catch (IllegalArgumentException e) {
-          log.info(
+          LOG.info(
               "No database integrity protection available due to"
                   + " initialization error: ",
               e);
         } catch (InvocationTargetException e) {
-          log.info(
+          LOG.info(
               "No database integrity protection available due to"
                   + " initialization error: ",
               e);
@@ -591,7 +611,7 @@ public class StartupSingletonBean {
       // Get hostname
       hostname = addr.getHostName();
     } catch (UnknownHostException e) {
-      log.error("Hostname could not be determined", e);
+      LOG.error("Hostname could not be determined", e);
     }
     return hostname;
   }

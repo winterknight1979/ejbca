@@ -64,21 +64,26 @@ import org.ejbca.core.protocol.rest.EnrollPkcs10CertificateRequest;
 public class EjbcaRestHelperSessionBean
     implements EjbcaRestHelperSessionLocal, EjbcaRestHelperSessionRemote {
 
-  private static final InternalEjbcaResources intres =
+    /** Resource. */
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
+  /** EJB. */
   @EJB private WebAuthenticationProviderSessionLocal authenticationSession;
 
+  /** EJB. */
   @EJB private RaMasterApiProxyBeanLocal raMasterApiProxyBean;
 
+  /** EJB. */
   @EJB private EndEntityProfileSessionLocal endEntityProfileSessionBean;
 
+  /** EJB. */
   @EJB private CaSessionLocal caSessionBean;
-
+  /** EJB. */
   @EJB private CertificateProfileSessionLocal certificateProfileSessionBean;
 
-  // Only used to verify the Peers access to /protocol/rest. Will not affect
-  // authorization for individual admins.
+  /** Only used to verify the Peers access to /protocol/rest. Will not affect
+ authorization for individual admins. */
   private final AuthenticationToken raRestAuthCheckToken =
       new AlwaysAllowLocalAuthenticationToken(
           new UsernamePrincipal("restServiceAuthCheck"));
@@ -104,7 +109,7 @@ public class EjbcaRestHelperSessionBean
       if (!raMasterApiProxyBean.isAuthorizedNoLogging(
           admin, AccessRulesConstants.ROLE_ADMINISTRATOR)) {
         final String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "authorization.notauthorizedtoresource",
                 AccessRulesConstants.ROLE_ADMINISTRATOR,
                 null);
@@ -112,7 +117,7 @@ public class EjbcaRestHelperSessionBean
       }
     } else if (admin == null) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "authentication.failed",
               "No admin authenticated for certificate with serialNumber "
                   + CertTools.getSerialNumber(cert)
@@ -223,6 +228,10 @@ public class EjbcaRestHelperSessionBean
     return endEntityInformation;
   }
 
+  /**
+   * @param pkcs10CertificateRequest req
+   * @return name
+   */
   protected String getSubjectAltName(
       final PKCS10CertificationRequest pkcs10CertificateRequest) {
     String altName = null;
@@ -237,6 +246,10 @@ public class EjbcaRestHelperSessionBean
     return altName;
   }
 
+  /**
+   * @param pkcs10CertificateRequest req
+   * @return DN
+   */
   protected String getSubjectDn(
       final PKCS10CertificationRequest pkcs10CertificateRequest) {
     String subject = "";
@@ -255,6 +268,11 @@ public class EjbcaRestHelperSessionBean
     return caInfo;
   }
 
+  /**
+   * @param endEntityProfileName Name
+   * @return ID
+   * @throws EndEntityProfileNotFoundException FAil
+   */
   public Integer getEndEntityProfileId(final String endEntityProfileName)
       throws EndEntityProfileNotFoundException {
     int endEntityProfileId =
@@ -262,6 +280,10 @@ public class EjbcaRestHelperSessionBean
     return endEntityProfileId;
   }
 
+  /**
+   * @param endEntityProfileId ID
+   * @return Profile
+   */
   public EndEntityProfile getEndEntityProfile(final int endEntityProfileId) {
     EndEntityProfile endEntityProfile =
         endEntityProfileSessionBean.getEndEntityProfile(endEntityProfileId);
@@ -275,11 +297,17 @@ public class EjbcaRestHelperSessionBean
     return certificateProfileId;
   }
 
+  /**
+   * @param authenticationToken Token
+   * @param request req
+   * @return Cert
+   */
   public byte[] createCertificateRest(
       final AuthenticationToken authenticationToken,
       final EnrollPkcs10CertificateRequest request) {
+    final int leet = 1337;
     return new byte
-        [1337]; // TODO To the happy programmer who called this method without
+        [leet]; // TODO To the happy programmer who called this method without
                 // defining it first. Implement it!
   }
 }

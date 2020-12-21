@@ -44,33 +44,38 @@ import org.ejbca.core.model.hardtoken.UnavailableTokenException;
 public class EjbcaHardTokenBatchJobSessionBean
     implements HardTokenBatchJobSessionRemote, HardTokenBatchJobSessionLocal {
 
+    /** Config. */
   public static final int MAX_RETURNED_QUEUE_SIZE = 300;
 
-  private static final Logger log =
+  /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(EjbcaHardTokenBatchJobSessionBean.class);
 
-  /** Internal localization of logs and errors */
-  private static final InternalEjbcaResources intres =
+  /** Internal localization of logs and errors. */
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
+  /** EM. */
   @PersistenceContext(unitName = "ejbca")
   private EntityManager entityManager;
 
+  /** EJB. */
   @EJB private EndEntityAccessSessionLocal endEntityAccessSession;
 
+  /** EJB. */
   @EJB private HardTokenSessionLocal hardTokenSession;
 
   @Override
   public EndEntityInformation getNextHardTokenToGenerate(final String alias)
       throws UnavailableTokenException {
-    log.trace(">getNextHardTokenToGenerate()");
+    LOG.trace(">getNextHardTokenToGenerate()");
     EndEntityInformation returnval = null;
-    if (log.isDebugEnabled()) {
-      log.debug("alias=" + alias);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("alias=" + alias);
     }
     int hardTokenIssuerId = hardTokenSession.getHardTokenIssuerId(alias);
-    if (log.isDebugEnabled()) {
-      log.debug("hardTokenIssuerId=" + hardTokenIssuerId);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("hardTokenIssuerId=" + hardTokenIssuerId);
     }
     if (hardTokenIssuerId != HardTokenSessionBean.NO_ISSUER) {
       try {
@@ -79,30 +84,30 @@ public class EjbcaHardTokenBatchJobSessionBean
                 hardTokenIssuerId, 0);
         if (!userDataList.isEmpty()) {
           returnval = userDataList.get(0).toEndEntityInformation();
-          if (log.isDebugEnabled()) {
-            log.debug("found user" + returnval.getUsername());
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("found user" + returnval.getUsername());
           }
           hardTokenSession.getIsHardTokenProfileAvailableToIssuer(
               hardTokenIssuerId, returnval);
           String msg =
-              intres.getLocalizedMessage("hardtoken.userdatasent", alias);
-          log.info(msg);
+              INTRES.getLocalizedMessage("hardtoken.userdatasent", alias);
+          LOG.info(msg);
         }
       } catch (Exception e) {
         String msg =
-            intres.getLocalizedMessage("hardtoken.errorsenduserdata", alias);
-        log.info(msg, e);
+            INTRES.getLocalizedMessage("hardtoken.errorsenduserdata", alias);
+        LOG.info(msg, e);
         throw new EJBException(e);
       }
     }
-    log.trace("<getNextHardTokenToGenerate()");
+    LOG.trace("<getNextHardTokenToGenerate()");
     return returnval;
   }
 
   @Override
   public Collection<EndEntityInformation> getNextHardTokensToGenerate(
       final String alias) throws UnavailableTokenException {
-    log.trace(">getNextHardTokensToGenerate()");
+    LOG.trace(">getNextHardTokensToGenerate()");
     List<EndEntityInformation> returnval =
         new ArrayList<EndEntityInformation>();
     int hardTokenIssuerId = hardTokenSession.getHardTokenIssuerId(alias);
@@ -118,20 +123,20 @@ public class EjbcaHardTokenBatchJobSessionBean
               hardTokenIssuerId, endEntityInformation);
           returnval.add(endEntityInformation);
           String msg =
-              intres.getLocalizedMessage("hardtoken.userdatasent", alias);
-          log.info(msg);
+              INTRES.getLocalizedMessage("hardtoken.userdatasent", alias);
+          LOG.info(msg);
         }
       } catch (Exception e) {
         String msg =
-            intres.getLocalizedMessage("hardtoken.errorsenduserdata", alias);
-        log.info(msg, e);
+            INTRES.getLocalizedMessage("hardtoken.errorsenduserdata", alias);
+        LOG.info(msg, e);
         throw new EJBException(e);
       }
     }
     if (returnval.size() == 0) {
       returnval = null;
     }
-    log.trace("<getNextHardTokensToGenerate()");
+    LOG.trace("<getNextHardTokensToGenerate()");
     return returnval;
   }
 
@@ -140,7 +145,7 @@ public class EjbcaHardTokenBatchJobSessionBean
   @Override
   public EndEntityInformation getNextHardTokenToGenerateInQueue(
       final String alias, final int index) throws UnavailableTokenException {
-    log.trace(">getNextHardTokenToGenerateInQueue()");
+    LOG.trace(">getNextHardTokenToGenerateInQueue()");
     EndEntityInformation returnval = null;
     int hardTokenIssuerId = hardTokenSession.getHardTokenIssuerId(alias);
     if (hardTokenIssuerId != HardTokenSessionBean.NO_ISSUER) {
@@ -153,23 +158,23 @@ public class EjbcaHardTokenBatchJobSessionBean
           hardTokenSession.getIsHardTokenProfileAvailableToIssuer(
               hardTokenIssuerId, returnval);
           String msg =
-              intres.getLocalizedMessage("hardtoken.userdatasent", alias);
-          log.info(msg);
+              INTRES.getLocalizedMessage("hardtoken.userdatasent", alias);
+          LOG.info(msg);
         }
       } catch (Exception e) {
         String msg =
-            intres.getLocalizedMessage("hardtoken.errorsenduserdata", alias);
-        log.info(msg, e);
+            INTRES.getLocalizedMessage("hardtoken.errorsenduserdata", alias);
+        LOG.info(msg, e);
         throw new EJBException(e);
       }
     }
-    log.trace("<getNextHardTokenToGenerateInQueue()");
+    LOG.trace("<getNextHardTokenToGenerateInQueue()");
     return returnval;
   }
 
   @Override
   public int getNumberOfHardTokensToGenerate(final String alias) {
-    log.trace(">getNumberOfHardTokensToGenerate()");
+    LOG.trace(">getNumberOfHardTokensToGenerate()");
     long count = 0;
     int hardTokenIssuerId = hardTokenSession.getHardTokenIssuerId(alias);
     if (hardTokenIssuerId != HardTokenSessionBean.NO_ISSUER) {
@@ -177,14 +182,14 @@ public class EjbcaHardTokenBatchJobSessionBean
           endEntityAccessSession.countNewOrKeyrecByHardTokenIssuerId(
               hardTokenIssuerId);
     }
-    log.trace("<getNumberOfHardTokensToGenerate()");
+    LOG.trace("<getNumberOfHardTokensToGenerate()");
     return (int) count;
   }
 
   @Override
   public boolean checkForHardTokenIssuerId(final int hardtokenissuerid) {
-    if (log.isTraceEnabled()) {
-      log.trace(">checkForHardTokenIssuerId(id: " + hardtokenissuerid + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">checkForHardTokenIssuerId(id: " + hardtokenissuerid + ")");
     }
     return endEntityAccessSession.countByHardTokenIssuerId(hardtokenissuerid)
         > 0;

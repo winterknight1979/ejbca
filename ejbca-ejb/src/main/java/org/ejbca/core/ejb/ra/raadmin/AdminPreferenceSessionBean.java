@@ -53,26 +53,32 @@ import org.ejbca.core.model.ra.raadmin.AdminPreference;
 public class AdminPreferenceSessionBean
     implements AdminPreferenceSessionLocal, AdminPreferenceSessionRemote {
 
+    /** Config. */
   private static final String DEFAULTUSERPREFERENCE = "default";
 
-  private static final Logger log =
+  /** Log. */
+  private static final Logger LOG =
       Logger.getLogger(AdminPreferenceSessionBean.class);
-  /** Internal localization of logs and errors */
-  private static final InternalEjbcaResources intres =
+  /** Internal localization of logs and errors. */
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
+  /** EM. */
   @PersistenceContext(unitName = "ejbca")
   private EntityManager entityManager;
 
+  /** EJB. */
   @EJB private AuthorizationSessionLocal authorizationSession;
+  /** EJB. */
   @EJB private SecurityEventsLoggerSessionLocal auditSession;
+  /** EJB. */
   @EJB private RaStyleCacheBean raStyleCacheBean;
 
   @Override
   public AdminPreference getAdminPreference(
       final String certificatefingerprint) {
-    if (log.isTraceEnabled()) {
-      log.trace(">getAdminPreference()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">getAdminPreference()");
     }
     AdminPreference ret = null;
     if (certificatefingerprint != null) {
@@ -82,31 +88,31 @@ public class AdminPreferenceSessionBean
         ret = adminPreferencesData.getAdminPreference();
       }
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<getAdminPreference()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<getAdminPreference()");
     }
     return ret;
   }
 
   @Override
   public Map<String, AdminPreference> getAdminPreferences() {
-    if (log.isTraceEnabled()) {
-      log.trace(">getAdminPreference()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">getAdminPreference()");
     }
     HashMap<String, AdminPreference> adminPreferences = new HashMap<>();
     final List<AdminPreferencesData> adminPreferencesData =
         AdminPreferencesData.findAll(entityManager);
 
     if (adminPreferencesData != null && !adminPreferencesData.isEmpty()) {
-      for (final AdminPreferencesData adminPreferenceData :
-          adminPreferencesData) {
+      for (final AdminPreferencesData adminPreferenceData
+          : adminPreferencesData) {
         adminPreferences.put(
             adminPreferenceData.getId(),
             adminPreferenceData.getAdminPreference());
       }
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<getAdminPreference()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<getAdminPreference()");
     }
     return adminPreferences;
   }
@@ -117,8 +123,8 @@ public class AdminPreferenceSessionBean
       final AdminPreference adminpreference) {
     String certificatefingerprint =
         CertTools.getFingerprintAsString(admin.getCertificate());
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">addAdminPreference(fingerprint : " + certificatefingerprint + ")");
     }
     boolean ret = false;
@@ -133,7 +139,7 @@ public class AdminPreferenceSessionBean
             new AdminPreferencesData(certificatefingerprint, adminpreference);
         entityManager.persist(apdata);
         String msg =
-            intres.getLocalizedMessage("ra.adminprefadded", apdata.getId());
+            INTRES.getLocalizedMessage("ra.adminprefadded", apdata.getId());
         final Map<String, Object> details = new LinkedHashMap<String, Object>();
         details.put("msg", msg);
         auditSession.log(
@@ -148,14 +154,14 @@ public class AdminPreferenceSessionBean
             details);
         ret = true;
       } catch (Exception e) {
-        String msg = intres.getLocalizedMessage("ra.adminprefexists");
-        log.info(msg, e);
+        String msg = INTRES.getLocalizedMessage("ra.adminprefexists");
+        LOG.info(msg, e);
       }
     } else {
-      String msg = intres.getLocalizedMessage("ra.adminprefexists");
-      log.info(msg);
+      String msg = INTRES.getLocalizedMessage("ra.adminprefexists");
+      LOG.info(msg);
     }
-    log.trace("<addAdminPreference()");
+    LOG.trace("<addAdminPreference()");
     return ret;
   }
 
@@ -176,8 +182,8 @@ public class AdminPreferenceSessionBean
   @TransactionAttribute(TransactionAttributeType.SUPPORTS)
   @Override
   public boolean existsAdminPreference(final String certificatefingerprint) {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">existsAdminPreference(fingerprint : "
               + certificatefingerprint
               + ")");
@@ -187,15 +193,15 @@ public class AdminPreferenceSessionBean
       final AdminPreferencesData adminPreferencesData =
           AdminPreferencesData.findById(entityManager, certificatefingerprint);
       if (adminPreferencesData != null) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Found admin preferences with id "
                   + adminPreferencesData.getId());
         }
         ret = true;
       }
     }
-    log.trace("<existsAdminPreference()");
+    LOG.trace("<existsAdminPreference()");
     return ret;
   }
 
@@ -236,8 +242,8 @@ public class AdminPreferenceSessionBean
 
   @Override
   public AdminPreference getDefaultAdminPreference() {
-    if (log.isTraceEnabled()) {
-      log.trace(">getDefaultAdminPreference()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">getDefaultAdminPreference()");
     }
     AdminPreference ret = null;
     AdminPreferencesData apdata =
@@ -256,8 +262,8 @@ public class AdminPreferenceSessionBean
         throw new EJBException(e);
       }
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<getDefaultAdminPreference()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<getDefaultAdminPreference()");
     }
     return ret;
   }
@@ -267,14 +273,14 @@ public class AdminPreferenceSessionBean
       final AuthenticationToken admin,
       final AdminPreference defaultadminpreference)
       throws AuthorizationDeniedException {
-    if (log.isTraceEnabled()) {
-      log.trace(">saveDefaultAdminPreference()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">saveDefaultAdminPreference()");
     }
 
     if (!authorizationSession.isAuthorized(
         admin, StandardRules.SYSTEMCONFIGURATION_EDIT.resource())) {
       String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "authorization.notauthorizedtoresource",
               StandardRules.SYSTEMCONFIGURATION_EDIT,
               null);
@@ -299,7 +305,7 @@ public class AdminPreferenceSessionBean
       final Map<Object, Object> diff =
           apdata.getAdminPreference().diff(defaultadminpreference);
       apdata.setAdminPreference(defaultadminpreference);
-      final String msg = intres.getLocalizedMessage("ra.defaultadminprefsaved");
+      final String msg = INTRES.getLocalizedMessage("ra.defaultadminprefsaved");
       final Map<String, Object> details = new LinkedHashMap<String, Object>();
       details.put("msg", msg);
       for (Map.Entry<Object, Object> entry : diff.entrySet()) {
@@ -317,12 +323,12 @@ public class AdminPreferenceSessionBean
           details);
     } else {
       final String msg =
-          intres.getLocalizedMessage("ra.errorsavedefaultadminpref");
-      log.info(msg);
+          INTRES.getLocalizedMessage("ra.errorsavedefaultadminpref");
+      LOG.info(msg);
       throw new EJBException(msg);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<saveDefaultAdminPreference()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<saveDefaultAdminPreference()");
     }
   }
 
@@ -341,8 +347,8 @@ public class AdminPreferenceSessionBean
       final boolean dolog) {
     String certificatefingerprint =
         CertTools.getFingerprintAsString(admin.getCertificate());
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">updateAdminPreference(fingerprint : "
               + certificatefingerprint
               + ")");
@@ -375,7 +381,7 @@ public class AdminPreferenceSessionBean
        */
       if (dolog) {
         final String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "ra.changedadminpref", certificatefingerprint);
         final Map<String, Object> details = new LinkedHashMap<String, Object>();
         details.put("msg", msg);
@@ -398,13 +404,13 @@ public class AdminPreferenceSessionBean
       ret = false;
       if (dolog) {
         final String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "ra.adminprefnotfound", certificatefingerprint);
-        log.info(msg);
+        LOG.info(msg);
       }
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<updateAdminPreference()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<updateAdminPreference()");
     }
     return ret;
   }

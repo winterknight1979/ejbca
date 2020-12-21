@@ -67,17 +67,22 @@ import org.ejbca.core.model.ra.userdatasource.UserDataSourceVO;
 public class UserDataSourceSessionBean
     implements UserDataSourceSessionLocal, UserDataSourceSessionRemote {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(UserDataSourceSessionBean.class);
-  /** Internal localization of logs and errors */
-  private static final InternalEjbcaResources intres =
+  /** Internal localization of logs and errors. */
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
+  /** EM. */
   @PersistenceContext(unitName = "ejbca")
   private EntityManager entityManager;
 
+  /** EJB. */
   @EJB private AuthorizationSessionLocal authorizationSession;
+  /** EJB. */
   @EJB private CaSessionLocal caSession;
+  /** EJB. */
   @EJB private SecurityEventsLoggerSessionLocal auditSession;
 
   @Override
@@ -100,7 +105,7 @@ public class UserDataSourceSessionBean
                 getUserDataSource(pdl)
                     .fetchUserDataSourceVOs(admin, searchstring));
             String msg =
-                intres.getLocalizedMessage(
+                INTRES.getLocalizedMessage(
                     "userdatasource.fetcheduserdatasource", pdl.getName());
             final Map<String, Object> details =
                 new LinkedHashMap<String, Object>();
@@ -117,22 +122,22 @@ public class UserDataSourceSessionBean
                 details);
           } catch (UserDataSourceException pe) {
             String msg =
-                intres.getLocalizedMessage(
+                INTRES.getLocalizedMessage(
                     "userdatasource.errorfetchuserdatasource", pdl.getName());
-            log.info(msg, pe);
+            LOG.info(msg, pe);
             throw pe;
           }
         } else {
           String msg =
-              intres.getLocalizedMessage(
+              INTRES.getLocalizedMessage(
                   "userdatasource.errornotauth", pdl.getName());
-          log.info(msg);
+          LOG.info(msg);
         }
       } else {
         String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "userdatasource.erroruserdatasourceexist", id);
-        log.info(msg);
+        LOG.info(msg);
         throw new UserDataSourceException(msg);
       }
     }
@@ -163,7 +168,7 @@ public class UserDataSourceSessionBean
                         .removeUserData(
                             admin, searchstring, removeMultipleMatch);
             String msg =
-                intres.getLocalizedMessage(
+                INTRES.getLocalizedMessage(
                     "userdatasource.removeduserdata", pdl.getName());
             final Map<String, Object> details =
                 new LinkedHashMap<String, Object>();
@@ -180,23 +185,23 @@ public class UserDataSourceSessionBean
                 details);
           } catch (UserDataSourceException pe) {
             String msg =
-                intres.getLocalizedMessage(
+                INTRES.getLocalizedMessage(
                     "userdatasource.errorremovinguserdatasource",
                     pdl.getName());
-            log.info(msg);
+            LOG.info(msg);
             throw pe;
           }
         } else {
           String msg =
-              intres.getLocalizedMessage(
+              INTRES.getLocalizedMessage(
                   "userdatasource.errornotauth", pdl.getName());
-          log.info(msg);
+          LOG.info(msg);
         }
       } else {
         String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "userdatasource.erroruserdatasourceexist", id);
-        log.info(msg);
+        LOG.info(msg);
         throw new UserDataSourceException(msg);
       }
     }
@@ -207,8 +212,8 @@ public class UserDataSourceSessionBean
   public void testConnection(
       final AuthenticationToken admin, final int userdatasourceid)
       throws UserDataSourceConnectionException, AuthorizationDeniedException {
-    if (log.isTraceEnabled()) {
-      log.trace(">testConnection(id: " + userdatasourceid + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">testConnection(id: " + userdatasourceid + ")");
     }
     UserDataSourceData pdl =
         UserDataSourceData.findById(entityManager, userdatasourceid);
@@ -218,25 +223,25 @@ public class UserDataSourceSessionBean
       try {
         userdatasource.testConnection(admin);
         String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "userdatasource.testedcon", pdl.getName());
-        log.info(msg);
+        LOG.info(msg);
       } catch (UserDataSourceConnectionException pe) {
         String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "userdatasource.errortestcon", pdl.getName());
-        log.info(msg);
+        LOG.info(msg);
         throw pe;
       }
     } else {
       String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "userdatasource.erroruserdatasourceexist",
               Integer.valueOf(userdatasourceid));
-      log.info(msg);
+      LOG.info(msg);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<testConnection(id: " + userdatasourceid + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<testConnection(id: " + userdatasourceid + ")");
     }
   }
 
@@ -246,11 +251,11 @@ public class UserDataSourceSessionBean
       final String name,
       final BaseUserDataSource userdatasource)
       throws UserDataSourceExistsException, AuthorizationDeniedException {
-    if (log.isTraceEnabled()) {
-      log.trace(">addUserDataSource(name: " + name + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">addUserDataSource(name: " + name + ")");
     }
     addUserDataSource(admin, findFreeUserDataSourceId(), name, userdatasource);
-    log.trace("<addUserDataSource()");
+    LOG.trace("<addUserDataSource()");
   }
 
   @Override
@@ -260,13 +265,13 @@ public class UserDataSourceSessionBean
       final String name,
       final BaseUserDataSource userdatasource)
       throws UserDataSourceExistsException, AuthorizationDeniedException {
-    if (log.isTraceEnabled()) {
-      log.trace(">addUserDataSource(name: " + name + ", id: " + id + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">addUserDataSource(name: " + name + ", id: " + id + ")");
     }
     try {
       addUserDataSourceInternal(admin, id, name, userdatasource);
       String msg =
-          intres.getLocalizedMessage("userdatasource.addedsource", name);
+          INTRES.getLocalizedMessage("userdatasource.addedsource", name);
       final Map<String, Object> details = new LinkedHashMap<String, Object>();
       details.put("msg", msg);
       auditSession.log(
@@ -280,7 +285,7 @@ public class UserDataSourceSessionBean
           null,
           details);
     } catch (UnsupportedEncodingException e) {
-      log.info(
+      LOG.info(
           "UnsupportedEncodingException adding user data source "
               + name
               + ", "
@@ -289,7 +294,7 @@ public class UserDataSourceSessionBean
           e);
       throw new EJBException(e);
     }
-    log.trace("<addUserDataSource()");
+    LOG.trace("<addUserDataSource()");
   }
 
   private void addUserDataSourceInternal(
@@ -306,14 +311,14 @@ public class UserDataSourceSessionBean
             new UserDataSourceData(Integer.valueOf(id), name, userdatasource));
       } else {
         String msg =
-            intres.getLocalizedMessage("userdatasource.erroraddsource", id);
-        log.info(msg);
+            INTRES.getLocalizedMessage("userdatasource.erroraddsource", id);
+        LOG.info(msg);
         throw new UserDataSourceExistsException();
       }
     } else {
       String msg =
-          intres.getLocalizedMessage("userdatasource.erroraddsource", name);
-      log.info(msg);
+          INTRES.getLocalizedMessage("userdatasource.erroraddsource", name);
+      LOG.info(msg);
       throw new UserDataSourceExistsException();
     }
   }
@@ -324,8 +329,8 @@ public class UserDataSourceSessionBean
       final String name,
       final BaseUserDataSource userdatasource)
       throws AuthorizationDeniedException {
-    if (log.isTraceEnabled()) {
-      log.trace(">changeUserDataSource(name: " + name + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">changeUserDataSource(name: " + name + ")");
     }
     authorizedToEditUserDataSource(admin, name, userdatasource);
     UserDataSourceData htp = UserDataSourceData.findByName(entityManager, name);
@@ -336,7 +341,7 @@ public class UserDataSourceSessionBean
       htp.setUserDataSource(userdatasource);
 
       final String msg =
-          intres.getLocalizedMessage("userdatasource.changedsource", name);
+          INTRES.getLocalizedMessage("userdatasource.changedsource", name);
       final Map<String, Object> details = new LinkedHashMap<String, Object>();
       details.put("msg", msg);
       for (Map.Entry<Object, Object> entry : diff.entrySet()) {
@@ -354,10 +359,10 @@ public class UserDataSourceSessionBean
           details);
     } else {
       String msg =
-          intres.getLocalizedMessage("userdatasource.errorchangesource", name);
-      log.info(msg);
+          INTRES.getLocalizedMessage("userdatasource.errorchangesource", name);
+      LOG.info(msg);
     }
-    log.trace("<changeUserDataSource()");
+    LOG.trace("<changeUserDataSource()");
   }
 
   @Override
@@ -366,17 +371,17 @@ public class UserDataSourceSessionBean
       final String oldname,
       final String newname)
       throws UserDataSourceExistsException, AuthorizationDeniedException {
-    if (log.isTraceEnabled()) {
-      log.trace(">cloneUserDataSource(name: " + oldname + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">cloneUserDataSource(name: " + oldname + ")");
     }
     BaseUserDataSource userdatasourcedata = null;
     UserDataSourceData htp =
         UserDataSourceData.findByName(entityManager, oldname);
     if (htp == null) {
       String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "userdatasource.errorclonesource", newname, oldname);
-      log.error(msg);
+      LOG.error(msg);
       throw new EJBException(msg);
     }
     try {
@@ -386,7 +391,7 @@ public class UserDataSourceSessionBean
         addUserDataSourceInternal(
             admin, findFreeUserDataSourceId(), newname, userdatasourcedata);
         String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "userdatasource.clonedsource", newname, oldname);
         final Map<String, Object> details = new LinkedHashMap<String, Object>();
         details.put("msg", msg);
@@ -402,27 +407,27 @@ public class UserDataSourceSessionBean
             details);
       } catch (UnsupportedEncodingException f) {
         String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "userdatasource.errorclonesource", newname, oldname);
-        log.info(msg, f);
+        LOG.info(msg, f);
         throw new EJBException(f);
       }
     } catch (CloneNotSupportedException e) {
       String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "userdatasource.errorclonesource", newname, oldname);
-      log.error(msg, e);
+      LOG.error(msg, e);
       throw new EJBException(e);
     }
-    log.trace("<cloneUserDataSource()");
+    LOG.trace("<cloneUserDataSource()");
   }
 
   @Override
   public boolean removeUserDataSource(
       final AuthenticationToken admin, final String name)
       throws AuthorizationDeniedException {
-    if (log.isTraceEnabled()) {
-      log.trace(">removeUserDataSource(name: " + name + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">removeUserDataSource(name: " + name + ")");
     }
     boolean retval = false;
     UserDataSourceData htp = UserDataSourceData.findByName(entityManager, name);
@@ -431,7 +436,7 @@ public class UserDataSourceSessionBean
       authorizedToEditUserDataSource(admin, name, userdatasource);
       entityManager.remove(htp);
       String msg =
-          intres.getLocalizedMessage("userdatasource.removedsource", name);
+          INTRES.getLocalizedMessage("userdatasource.removedsource", name);
       final Map<String, Object> details = new LinkedHashMap<String, Object>();
       details.put("msg", msg);
       auditSession.log(
@@ -446,9 +451,9 @@ public class UserDataSourceSessionBean
           details);
       retval = true;
     } else {
-      log.info("No such UserDataSource. trying to remove: " + name);
+      LOG.info("No such UserDataSource. trying to remove: " + name);
     }
-    log.trace("<removeUserDataSource()");
+    LOG.trace("<removeUserDataSource()");
     return retval;
   }
 
@@ -458,8 +463,8 @@ public class UserDataSourceSessionBean
       final String oldname,
       final String newname)
       throws UserDataSourceExistsException, AuthorizationDeniedException {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">renameUserDataSource(from " + oldname + " to " + newname + ")");
     }
     boolean success = false;
@@ -474,7 +479,7 @@ public class UserDataSourceSessionBean
     }
     if (success) {
       String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "userdatasource.renamedsource", oldname, newname);
       final Map<String, Object> details = new LinkedHashMap<String, Object>();
       details.put("msg", msg);
@@ -490,12 +495,12 @@ public class UserDataSourceSessionBean
           details);
     } else {
       String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "userdatasource.errorrenamesource", oldname, newname);
-      log.info(msg);
+      LOG.info(msg);
       throw new UserDataSourceExistsException();
     }
-    log.trace("<renameUserDataSource()");
+    LOG.trace("<renameUserDataSource()");
   }
 
   @Override
@@ -536,8 +541,8 @@ public class UserDataSourceSessionBean
   @Override
   public Map<Integer, String> getUserDataSourceIdToNameMap() {
     final Map<Integer, String> ret = new HashMap<>();
-    for (final UserDataSourceData userDataSourceData :
-        UserDataSourceData.findAll(entityManager)) {
+    for (final UserDataSourceData userDataSourceData
+        : UserDataSourceData.findAll(entityManager)) {
       ret.put(userDataSourceData.getId(), userDataSourceData.getName());
     }
     return ret;
@@ -571,8 +576,8 @@ public class UserDataSourceSessionBean
         authorizedToEditUserDataSource(admin, name, result);
         returnval = result;
       } catch (AuthorizationDeniedException e) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Admin not authorized to user data source, not returning: "
                   + e.getMessage());
         }
@@ -593,8 +598,8 @@ public class UserDataSourceSessionBean
         authorizedToEditUserDataSource(admin, udsd.getName(), result);
         returnval = result;
       } catch (AuthorizationDeniedException e) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Admin not authorized to user data source, not returning: "
                   + e.getMessage());
         }
@@ -633,15 +638,15 @@ public class UserDataSourceSessionBean
   @Override
   public String getUserDataSourceName(
       final AuthenticationToken admin, final int id) {
-    if (log.isTraceEnabled()) {
-      log.trace(">getUserDataSourceName(id: " + id + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">getUserDataSourceName(id: " + id + ")");
     }
     String returnval = null;
     UserDataSourceData udsd = UserDataSourceData.findById(entityManager, id);
     if (udsd != null) {
       returnval = udsd.getName();
     }
-    log.trace("<getUserDataSourceName()");
+    LOG.trace("<getUserDataSourceName()");
     return returnval;
   }
 
@@ -745,7 +750,7 @@ public class UserDataSourceSessionBean
     }
     if (!ret) {
       final String msg =
-          intres.getLocalizedMessage("userdatasource.errornotauth", name);
+          INTRES.getLocalizedMessage("userdatasource.errornotauth", name);
       throw new AuthorizationDeniedException(msg);
     }
   }
@@ -783,8 +788,8 @@ public class UserDataSourceSessionBean
         final String msg =
             "Failed to parse AcmeOrderData data map in database: "
                 + e.getMessage();
-        if (log.isDebugEnabled()) {
-          log.debug(msg + ". Data:\n" + udsData.getData());
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(msg + ". Data:\n" + udsData.getData());
         }
         throw new IllegalStateException(msg, e);
       }
@@ -794,6 +799,7 @@ public class UserDataSourceSessionBean
         case CustomUserDataSourceContainer.TYPE_CUSTOMUSERDATASOURCECONTAINER:
           userdatasource = new CustomUserDataSourceContainer();
           break;
+        default: break;
       }
       userdatasource.loadData(data);
     }

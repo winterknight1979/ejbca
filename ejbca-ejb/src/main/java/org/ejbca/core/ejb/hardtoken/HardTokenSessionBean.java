@@ -101,24 +101,34 @@ import org.ejbca.core.model.hardtoken.types.TurkishEIDHardToken;
 public class HardTokenSessionBean
     implements HardTokenSessionLocal, HardTokenSessionRemote {
 
-  private static final Logger log =
+    /** Lohher. */
+  private static final Logger LOG =
       Logger.getLogger(EjbcaHardTokenBatchJobSessionBean.class);
-  /** Internal localization of logs and errors */
-  private static final InternalEjbcaResources intres =
+  /** Internal localization of logs and errors. */
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
+  /** EM. */
   @PersistenceContext(unitName = "ejbca")
   private EntityManager entityManager;
 
+  /** EJB. */
   @EJB private AuthorizationSessionLocal authorizationSession;
+  /** EJB. */
   @EJB private CAAdminSessionLocal caAdminSession;
+  /** EJB. */
   @EJB private CaSessionLocal caSession;
+  /** EJB. */
   @EJB private GlobalConfigurationSessionLocal globalConfigurationSession;
+  /** EJB. */
   @EJB private CertificateProfileSessionLocal certificateProfileSession;
+  /** EJB. */
   @EJB private CertificateStoreSessionLocal certificateStoreSession;
+  /** EJB. */
   @EJB private RoleSessionLocal roleSession;
+  /** EJB. */
   @EJB private SecurityEventsLoggerSessionLocal auditSession;
-
+  /** Const. */
   public static final int NO_ISSUER = 0;
 
   @TransactionAttribute(TransactionAttributeType.REQUIRED)
@@ -128,12 +138,12 @@ public class HardTokenSessionBean
       final String name,
       final HardTokenProfile profile)
       throws HardTokenProfileExistsException, AuthorizationDeniedException {
-    if (log.isTraceEnabled()) {
-      log.trace(">addHardTokenProfile(name: " + name + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">addHardTokenProfile(name: " + name + ")");
     }
     addHardTokenProfile(admin, findFreeHardTokenProfileId(), name, profile);
-    if (log.isTraceEnabled()) {
-      log.trace("<addHardTokenProfile()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<addHardTokenProfile()");
     }
   }
 
@@ -145,13 +155,13 @@ public class HardTokenSessionBean
       final String name,
       final HardTokenProfile profile)
       throws HardTokenProfileExistsException, AuthorizationDeniedException {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">addHardTokenProfile(name: " + name + ", id: " + profileid + ")");
     }
     addHardTokenProfileInternal(admin, profileid, name, profile);
     final String msg =
-        intres.getLocalizedMessage("hardtoken.addedprofile", name);
+        INTRES.getLocalizedMessage("hardtoken.addedprofile", name);
     final Map<String, Object> details = new LinkedHashMap<String, Object>();
     details.put("msg", msg);
     auditSession.log(
@@ -164,8 +174,8 @@ public class HardTokenSessionBean
         null,
         null,
         details);
-    if (log.isTraceEnabled()) {
-      log.trace("<addHardTokenProfile()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<addHardTokenProfile()");
     }
   }
 
@@ -181,8 +191,8 @@ public class HardTokenSessionBean
       entityManager.persist(new HardTokenProfileData(profileid, name, profile));
     } else {
       final String msg =
-          intres.getLocalizedMessage("hardtoken.erroraddprofile", name);
-      log.info(msg);
+          INTRES.getLocalizedMessage("hardtoken.erroraddprofile", name);
+      LOG.info(msg);
       throw new HardTokenProfileExistsException();
     }
   }
@@ -194,8 +204,8 @@ public class HardTokenSessionBean
       final String name,
       final HardTokenProfile profile)
       throws AuthorizationDeniedException {
-    if (log.isTraceEnabled()) {
-      log.trace(">changeHardTokenProfile(name: " + name + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">changeHardTokenProfile(name: " + name + ")");
     }
     authorizedToEditProfile(admin);
     HardTokenProfileData htp =
@@ -206,7 +216,7 @@ public class HardTokenSessionBean
       final Map<Object, Object> diff = oldhtp.diff(profile);
       htp.setHardTokenProfile(profile);
       final String msg =
-          intres.getLocalizedMessage("hardtoken.editedprofile", name);
+          INTRES.getLocalizedMessage("hardtoken.editedprofile", name);
       final Map<String, Object> details = new LinkedHashMap<String, Object>();
       details.put("msg", msg);
       for (Map.Entry<Object, Object> entry : diff.entrySet()) {
@@ -224,11 +234,11 @@ public class HardTokenSessionBean
           details);
     } else {
       final String msg =
-          intres.getLocalizedMessage("hardtoken.erroreditprofile", name);
-      log.info(msg);
+          INTRES.getLocalizedMessage("hardtoken.erroreditprofile", name);
+      LOG.info(msg);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<changeHardTokenProfile()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<changeHardTokenProfile()");
     }
   }
 
@@ -239,8 +249,8 @@ public class HardTokenSessionBean
       final String oldname,
       final String newname)
       throws HardTokenProfileExistsException, AuthorizationDeniedException {
-    if (log.isTraceEnabled()) {
-      log.trace(">cloneHardTokenProfile(name: " + oldname + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">cloneHardTokenProfile(name: " + oldname + ")");
     }
     HardTokenProfileData htp =
         HardTokenProfileData.findByName(entityManager, oldname);
@@ -251,7 +261,7 @@ public class HardTokenSessionBean
         addHardTokenProfileInternal(
             admin, findFreeHardTokenProfileId(), newname, profiledata);
         final String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "hardtoken.clonedprofile", newname, oldname);
         final Map<String, Object> details = new LinkedHashMap<String, Object>();
         details.put("msg", msg);
@@ -267,16 +277,16 @@ public class HardTokenSessionBean
             details);
       } catch (HardTokenProfileExistsException f) {
         final String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "hardtoken.errorcloneprofile", newname, oldname);
-        log.info(msg);
+        LOG.info(msg);
         throw f;
       }
     } catch (CloneNotSupportedException e) {
       throw new EJBException(e);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<cloneHardTokenProfile()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<cloneHardTokenProfile()");
     }
   }
 
@@ -285,23 +295,23 @@ public class HardTokenSessionBean
   public void removeHardTokenProfile(
       final AuthenticationToken admin, final String name)
       throws AuthorizationDeniedException {
-    if (log.isTraceEnabled()) {
-      log.trace(">removeHardTokenProfile(name: " + name + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">removeHardTokenProfile(name: " + name + ")");
     }
     authorizedToEditProfile(admin);
     try {
       HardTokenProfileData htp =
           HardTokenProfileData.findByName(entityManager, name);
       if (htp == null) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Trying to remove HardTokenProfileData that does not exist: "
                   + name);
         }
       } else {
         entityManager.remove(htp);
         final String msg =
-            intres.getLocalizedMessage("hardtoken.removedprofile", name);
+            INTRES.getLocalizedMessage("hardtoken.removedprofile", name);
         final Map<String, Object> details = new LinkedHashMap<String, Object>();
         details.put("msg", msg);
         auditSession.log(
@@ -317,11 +327,11 @@ public class HardTokenSessionBean
       }
     } catch (Exception e) {
       final String msg =
-          intres.getLocalizedMessage("hardtoken.errorremoveprofile", name);
-      log.info(msg);
+          INTRES.getLocalizedMessage("hardtoken.errorremoveprofile", name);
+      LOG.info(msg);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<removeHardTokenProfile()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<removeHardTokenProfile()");
     }
   }
 
@@ -332,8 +342,8 @@ public class HardTokenSessionBean
       final String oldname,
       final String newname)
       throws HardTokenProfileExistsException, AuthorizationDeniedException {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">renameHardTokenProfile(from " + oldname + " to " + newname + ")");
     }
     boolean success = false;
@@ -348,7 +358,7 @@ public class HardTokenSessionBean
     }
     if (success) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "hardtoken.renamedprofile", oldname, newname);
       final Map<String, Object> details = new LinkedHashMap<String, Object>();
       details.put("msg", msg);
@@ -364,13 +374,13 @@ public class HardTokenSessionBean
           details);
     } else {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "hardtoken.errorrenameprofile", oldname, newname);
-      log.info(msg);
+      LOG.info(msg);
       throw new HardTokenProfileExistsException();
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<renameHardTokenProfile()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<renameHardTokenProfile()");
     }
   }
 
@@ -414,7 +424,7 @@ public class HardTokenSessionBean
     if (!authorizationSession.isAuthorized(
         admin, AccessRulesConstants.HARDTOKEN_EDITHARDTOKENPROFILES)) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "authorization.notauthorizedtoresource",
               AccessRulesConstants.HARDTOKEN_EDITHARDTOKENPROFILES,
               null);
@@ -482,8 +492,8 @@ public class HardTokenSessionBean
 
   @Override
   public String getHardTokenProfileName(final int id) {
-    if (log.isTraceEnabled()) {
-      log.trace(">getHardTokenProfileName(id: " + id + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">getHardTokenProfileName(id: " + id + ")");
     }
     String returnval = null;
     HardTokenProfileData htpd =
@@ -491,7 +501,7 @@ public class HardTokenSessionBean
     if (htpd != null) {
       returnval = htpd.getName();
     }
-    log.trace("<getHardTokenProfileName()");
+    LOG.trace("<getHardTokenProfileName()");
     return returnval;
   }
 
@@ -503,13 +513,13 @@ public class HardTokenSessionBean
       final int admingroupid,
       final HardTokenIssuer issuerdata)
       throws AuthorizationDeniedException {
-    if (log.isTraceEnabled()) {
-      log.trace(">addHardTokenIssuer(alias: " + alias + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">addHardTokenIssuer(alias: " + alias + ")");
     }
     boolean returnval =
         addhardTokenIssuerInternal(admin, alias, admingroupid, issuerdata);
     if (returnval) {
-      String msg = intres.getLocalizedMessage("hardtoken.addedissuer", alias);
+      String msg = INTRES.getLocalizedMessage("hardtoken.addedissuer", alias);
       final Map<String, Object> details = new LinkedHashMap<String, Object>();
       details.put("msg", msg);
       auditSession.log(
@@ -525,7 +535,7 @@ public class HardTokenSessionBean
     } else {
       // Does not exist
       String msg =
-          intres.getLocalizedMessage("hardtoken.erroraddissuer", alias);
+          INTRES.getLocalizedMessage("hardtoken.erroraddissuer", alias);
       final Map<String, Object> details = new LinkedHashMap<String, Object>();
       details.put("msg", msg);
       auditSession.log(
@@ -539,8 +549,8 @@ public class HardTokenSessionBean
           null,
           details);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<addHardTokenIssuer()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<addHardTokenIssuer()");
     }
     return returnval;
   }
@@ -569,8 +579,8 @@ public class HardTokenSessionBean
       final String alias,
       final HardTokenIssuer issuerdata)
       throws AuthorizationDeniedException {
-    if (log.isTraceEnabled()) {
-      log.trace(">changeHardTokenIssuer(alias: " + alias + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">changeHardTokenIssuer(alias: " + alias + ")");
     }
     boolean returnvalue = false;
     authorizedToEditIssuer(admin);
@@ -580,7 +590,7 @@ public class HardTokenSessionBean
       final HardTokenIssuer oldissuer = htih.getHardTokenIssuer();
       final Map<Object, Object> diff = oldissuer.diff(issuerdata);
       htih.setHardTokenIssuer(issuerdata);
-      String msg = intres.getLocalizedMessage("hardtoken.editedissuer", alias);
+      String msg = INTRES.getLocalizedMessage("hardtoken.editedissuer", alias);
       final Map<String, Object> details = new LinkedHashMap<String, Object>();
       details.put("msg", msg);
       for (Map.Entry<Object, Object> entry : diff.entrySet()) {
@@ -600,11 +610,11 @@ public class HardTokenSessionBean
     } else {
       // Does not exist
       String msg =
-          intres.getLocalizedMessage("hardtoken.erroreditissuer", alias);
-      log.info(msg);
+          INTRES.getLocalizedMessage("hardtoken.erroreditissuer", alias);
+      LOG.info(msg);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<changeHardTokenIssuer()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<changeHardTokenIssuer()");
     }
     return returnvalue;
   }
@@ -617,8 +627,8 @@ public class HardTokenSessionBean
       final String newalias,
       final int admingroupid)
       throws AuthorizationDeniedException {
-    if (log.isTraceEnabled()) {
-      log.trace(">cloneHardTokenIssuer(alias: " + oldalias + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">cloneHardTokenIssuer(alias: " + oldalias + ")");
     }
     boolean returnval = false;
     HardTokenIssuerData htih =
@@ -635,7 +645,7 @@ public class HardTokenSessionBean
     }
     if (returnval) {
       String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "hardtoken.clonedissuer", newalias, oldalias);
       final Map<String, Object> details = new LinkedHashMap<String, Object>();
       details.put("msg", msg);
@@ -652,12 +662,12 @@ public class HardTokenSessionBean
     } else {
       // Does not exist
       String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "hardtoken.errorcloneissuer", newalias, oldalias);
-      log.info(msg);
+      LOG.info(msg);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<cloneHardTokenIssuer()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<cloneHardTokenIssuer()");
     }
     return returnval;
   }
@@ -667,23 +677,23 @@ public class HardTokenSessionBean
   public void removeHardTokenIssuer(
       final AuthenticationToken admin, final String alias)
       throws AuthorizationDeniedException {
-    if (log.isTraceEnabled()) {
-      log.trace(">removeHardTokenIssuer(alias: " + alias + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">removeHardTokenIssuer(alias: " + alias + ")");
     }
     authorizedToEditIssuer(admin);
     try {
       HardTokenIssuerData htih =
           HardTokenIssuerData.findByAlias(entityManager, alias);
       if (htih == null) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Trying to remove HardTokenProfileData that does not exist: "
                   + alias);
         }
       } else {
         entityManager.remove(htih);
         String msg =
-            intres.getLocalizedMessage("hardtoken.removedissuer", alias);
+            INTRES.getLocalizedMessage("hardtoken.removedissuer", alias);
         final Map<String, Object> details = new LinkedHashMap<String, Object>();
         details.put("msg", msg);
         auditSession.log(
@@ -699,11 +709,11 @@ public class HardTokenSessionBean
       }
     } catch (Exception e) {
       String msg =
-          intres.getLocalizedMessage("hardtoken.errorremoveissuer", alias);
-      log.info(msg, e);
+          INTRES.getLocalizedMessage("hardtoken.errorremoveissuer", alias);
+      LOG.info(msg, e);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<removeHardTokenIssuer()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<removeHardTokenIssuer()");
     }
   }
 
@@ -715,8 +725,8 @@ public class HardTokenSessionBean
       final String newalias,
       final int newadmingroupid)
       throws AuthorizationDeniedException {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">renameHardTokenIssuer(from " + oldalias + " to " + newalias + ")");
     }
     authorizedToEditIssuer(admin);
@@ -732,7 +742,7 @@ public class HardTokenSessionBean
     }
     if (returnvalue) {
       String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "hardtoken.renameissuer", oldalias, newalias);
       final Map<String, Object> details = new LinkedHashMap<String, Object>();
       details.put("msg", msg);
@@ -749,12 +759,12 @@ public class HardTokenSessionBean
     } else {
       // Does not exist
       String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "hardtoken.errorrenameissuer", oldalias, newalias);
-      log.info(msg);
+      LOG.info(msg);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<renameHardTokenIssuer()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<renameHardTokenIssuer()");
     }
     return returnvalue;
   }
@@ -772,8 +782,8 @@ public class HardTokenSessionBean
   @Override
   public boolean isAuthorizedToHardTokenIssuer(
       final AuthenticationToken admin, final String alias) {
-    if (log.isTraceEnabled()) {
-      log.trace(">isAuthorizedToHardTokenIssuer(" + alias + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">isAuthorizedToHardTokenIssuer(" + alias + ")");
     }
     boolean returnval = false;
     HardTokenIssuerData htih =
@@ -791,8 +801,8 @@ public class HardTokenSessionBean
         }
       }
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<isAuthorizedToHardTokenIssuer(" + returnval + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<isAuthorizedToHardTokenIssuer(" + returnval + ")");
     }
     return returnval;
   }
@@ -803,7 +813,7 @@ public class HardTokenSessionBean
     if (!authorizationSession.isAuthorized(
         admin, AccessRulesConstants.HARDTOKEN_EDITHARDTOKENISSUERS)) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "authorization.notauthorizedtoresource",
               AccessRulesConstants.HARDTOKEN_EDITHARDTOKENISSUERS,
               null);
@@ -814,7 +824,7 @@ public class HardTokenSessionBean
   @Override
   public Collection<HardTokenIssuerInformation> getHardTokenIssuerDatas(
       final AuthenticationToken admin) {
-    log.trace(">getHardTokenIssuerDatas()");
+    LOG.trace(">getHardTokenIssuerDatas()");
     ArrayList<HardTokenIssuerInformation> returnval =
         new ArrayList<HardTokenIssuerInformation>();
     Collection<Integer> authorizedhardtokenprofiles =
@@ -835,14 +845,14 @@ public class HardTokenSessionBean
       }
     }
     Collections.sort(returnval);
-    log.trace("<getHardTokenIssuerDatas()");
+    LOG.trace("<getHardTokenIssuerDatas()");
     return returnval;
   }
 
   @Override
   public Collection<String> getHardTokenIssuerAliases(
       final AuthenticationToken admin) {
-    log.trace(">getHardTokenIssuerAliases()");
+    LOG.trace(">getHardTokenIssuerAliases()");
     ArrayList<String> returnval = new ArrayList<String>();
     Collection<Integer> authorizedhardtokenprofiles =
         getAuthorizedHardTokenProfileIds(admin);
@@ -857,14 +867,14 @@ public class HardTokenSessionBean
       }
     }
     Collections.sort(returnval);
-    log.trace("<getHardTokenIssuerAliases()");
+    LOG.trace("<getHardTokenIssuerAliases()");
     return returnval;
   }
 
   @Override
   public TreeMap<String, HardTokenIssuerInformation> getHardTokenIssuers(
       final AuthenticationToken admin) {
-    log.trace(">getHardTokenIssuers()");
+    LOG.trace(">getHardTokenIssuers()");
     Collection<Integer> authorizedhardtokenprofiles =
         getAuthorizedHardTokenProfileIds(admin);
     TreeMap<String, HardTokenIssuerInformation> returnval =
@@ -885,15 +895,15 @@ public class HardTokenSessionBean
                 htih.getHardTokenIssuer()));
       }
     }
-    log.trace("<getHardTokenIssuers()");
+    LOG.trace("<getHardTokenIssuers()");
     return returnval;
   }
 
   @Override
   public HardTokenIssuerInformation getHardTokenIssuerInformation(
       final String alias) {
-    if (log.isTraceEnabled()) {
-      log.trace(">getHardTokenIssuerData(alias: " + alias + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">getHardTokenIssuerData(alias: " + alias + ")");
     }
     HardTokenIssuerInformation returnval = null;
     HardTokenIssuerData htih =
@@ -906,15 +916,15 @@ public class HardTokenSessionBean
               htih.getAdminGroupId(),
               htih.getHardTokenIssuer());
     }
-    log.trace("<getHardTokenIssuerData()");
+    LOG.trace("<getHardTokenIssuerData()");
     return returnval;
   }
 
   @Override
   public HardTokenIssuerInformation getHardTokenIssuerInformation(
       final int id) {
-    if (log.isTraceEnabled()) {
-      log.trace(">getHardTokenIssuerData(id: " + id + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">getHardTokenIssuerData(id: " + id + ")");
     }
     HardTokenIssuerInformation returnval = null;
     HardTokenIssuerData htih =
@@ -927,22 +937,22 @@ public class HardTokenSessionBean
               htih.getAdminGroupId(),
               htih.getHardTokenIssuer());
     }
-    log.trace("<getHardTokenIssuerData()");
+    LOG.trace("<getHardTokenIssuerData()");
     return returnval;
   }
 
   @Override
   public int getNumberOfHardTokenIssuers(final AuthenticationToken admin) {
-    log.trace(">getNumberOfHardTokenIssuers()");
+    LOG.trace(">getNumberOfHardTokenIssuers()");
     int returnval = HardTokenIssuerData.findAll(entityManager).size();
-    log.trace("<getNumberOfHardTokenIssuers()");
+    LOG.trace("<getNumberOfHardTokenIssuers()");
     return returnval;
   }
 
   @Override
   public int getHardTokenIssuerId(final String alias) {
-    if (log.isTraceEnabled()) {
-      log.trace(">getHardTokenIssuerId(alias: " + alias + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">getHardTokenIssuerId(alias: " + alias + ")");
     }
     int returnval = NO_ISSUER;
     HardTokenIssuerData htih =
@@ -950,14 +960,14 @@ public class HardTokenSessionBean
     if (htih != null) {
       returnval = htih.getId();
     }
-    log.trace("<getHardTokenIssuerId()");
+    LOG.trace("<getHardTokenIssuerId()");
     return returnval;
   }
 
   @Override
   public String getHardTokenIssuerAlias(final int id) {
-    if (log.isTraceEnabled()) {
-      log.trace(">getHardTokenIssuerAlias(id: " + id + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">getHardTokenIssuerAlias(id: " + id + ")");
     }
     String returnval = null;
     if (id != 0) {
@@ -967,7 +977,7 @@ public class HardTokenSessionBean
         returnval = htih.getAlias();
       }
     }
-    log.trace("<getHardTokenIssuerAlias()");
+    LOG.trace("<getHardTokenIssuerAlias()");
     return returnval;
   }
 
@@ -980,8 +990,8 @@ public class HardTokenSessionBean
   public void getIsHardTokenProfileAvailableToIssuer(
       final int issuerid, final EndEntityInformation userdata)
       throws UnavailableTokenException {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">getIsTokenTypeAvailableToIssuer(issuerid: "
               + issuerid
               + ", tokentype: "
@@ -1000,11 +1010,11 @@ public class HardTokenSessionBean
     }
     if (!returnval) {
       String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "hardtoken.unavailabletoken", userdata.getUsername());
       throw new UnavailableTokenException(msg);
     }
-    log.trace("<getIsTokenTypeAvailableToIssuer()");
+    LOG.trace("<getIsTokenTypeAvailableToIssuer()");
   }
 
   @TransactionAttribute(TransactionAttributeType.REQUIRED)
@@ -1019,15 +1029,15 @@ public class HardTokenSessionBean
       final Collection<Certificate> certificates,
       final String copyof)
       throws HardTokenExistsException {
-    if (log.isTraceEnabled()) {
-      log.trace(">addHardToken(tokensn : " + tokensn + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">addHardToken(tokensn : " + tokensn + ")");
     }
     final String bcdn = CertTools.stringToBCDNString(significantissuerdn);
     final HardTokenData data =
         HardTokenData.findByTokenSN(entityManager, tokensn);
     if (data != null) {
-      String msg = intres.getLocalizedMessage("hardtoken.tokenexists", tokensn);
-      log.info(msg);
+      String msg = INTRES.getLocalizedMessage("hardtoken.tokenexists", tokensn);
+      LOG.info(msg);
       throw new HardTokenExistsException(
           "Hard token with serial number '" + tokensn + "' does exist.");
     }
@@ -1056,7 +1066,7 @@ public class HardTokenSessionBean
           new HardTokenPropertyData(
               tokensn, HardTokenPropertyData.PROPERTY_COPYOF, copyof));
     }
-    String msg = intres.getLocalizedMessage("hardtoken.addedtoken", tokensn);
+    String msg = INTRES.getLocalizedMessage("hardtoken.addedtoken", tokensn);
     final Map<String, Object> details = new LinkedHashMap<String, Object>();
     details.put("msg", msg);
     auditSession.log(
@@ -1069,7 +1079,7 @@ public class HardTokenSessionBean
         null,
         username,
         details);
-    log.trace("<addHardToken()");
+    LOG.trace("<addHardToken()");
   }
 
   @TransactionAttribute(TransactionAttributeType.REQUIRED)
@@ -1080,14 +1090,14 @@ public class HardTokenSessionBean
       final int tokentype,
       final HardToken hardtokendata)
       throws HardTokenDoesntExistsException {
-    if (log.isTraceEnabled()) {
-      log.trace(">changeHardToken(tokensn : " + tokensn + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">changeHardToken(tokensn : " + tokensn + ")");
     }
     final HardTokenData htd =
         HardTokenData.findByTokenSN(entityManager, tokensn);
     if (htd == null) {
       String msg =
-          intres.getLocalizedMessage("hardtoken.errorchangetoken", tokensn);
+          INTRES.getLocalizedMessage("hardtoken.errorchangetoken", tokensn);
       final Map<String, Object> details = new LinkedHashMap<String, Object>();
       details.put("msg", msg);
       final String errorMessage =
@@ -1116,7 +1126,7 @@ public class HardTokenSessionBean
             hardtokendata));
     htd.setModifyTime(new java.util.Date());
     int caid = htd.getSignificantIssuerDN().hashCode();
-    String msg = intres.getLocalizedMessage("hardtoken.changedtoken", tokensn);
+    String msg = INTRES.getLocalizedMessage("hardtoken.changedtoken", tokensn);
     final Map<String, Object> details = new LinkedHashMap<String, Object>();
     details.put("msg", msg);
     auditSession.log(
@@ -1129,7 +1139,7 @@ public class HardTokenSessionBean
         null,
         htd.getUsername(),
         details);
-    log.trace("<changeHardToken()");
+    LOG.trace("<changeHardToken()");
   }
 
   @TransactionAttribute(TransactionAttributeType.REQUIRED)
@@ -1137,15 +1147,15 @@ public class HardTokenSessionBean
   public void removeHardToken(
       final AuthenticationToken admin, final String tokensn)
       throws HardTokenDoesntExistsException {
-    if (log.isTraceEnabled()) {
-      log.trace(">removeHardToken(tokensn : " + tokensn + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">removeHardToken(tokensn : " + tokensn + ")");
     }
 
     HardTokenData htd = HardTokenData.findByTokenSN(entityManager, tokensn);
     if (htd == null) {
       String msg =
-          intres.getLocalizedMessage("hardtoken.errorremovetoken", tokensn);
-      log.info(msg);
+          INTRES.getLocalizedMessage("hardtoken.errorremovetoken", tokensn);
+      LOG.info(msg);
       throw new HardTokenDoesntExistsException("Tokensn : " + tokensn);
     }
     int caid = htd.getSignificantIssuerDN().hashCode();
@@ -1160,12 +1170,12 @@ public class HardTokenSessionBean
       entityManager.remove(htpd);
     }
 
-    for (HardTokenPropertyData hardTokenPropertyData :
-        HardTokenPropertyData.findIdsByPropertyAndValue(
+    for (HardTokenPropertyData hardTokenPropertyData
+        : HardTokenPropertyData.findIdsByPropertyAndValue(
             entityManager, HardTokenPropertyData.PROPERTY_COPYOF, tokensn)) {
       entityManager.remove(hardTokenPropertyData);
     }
-    String msg = intres.getLocalizedMessage("hardtoken.removedtoken", tokensn);
+    String msg = INTRES.getLocalizedMessage("hardtoken.removedtoken", tokensn);
     final Map<String, Object> details = new LinkedHashMap<String, Object>();
     details.put("msg", msg);
     auditSession.log(
@@ -1178,19 +1188,19 @@ public class HardTokenSessionBean
         null,
         htd.getUsername(),
         details);
-    log.trace("<removeHardToken()");
+    LOG.trace("<removeHardToken()");
   }
 
   @Override
   public boolean existsHardToken(final String tokensn) {
-    if (log.isTraceEnabled()) {
-      log.trace(">existsHardToken(tokensn : " + tokensn + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">existsHardToken(tokensn : " + tokensn + ")");
     }
     boolean ret = false;
     if (HardTokenData.findByTokenSN(entityManager, tokensn) != null) {
       ret = true;
     }
-    log.trace("<existsHardToken(): " + ret);
+    LOG.trace("<existsHardToken(): " + ret);
     return ret;
   }
 
@@ -1200,8 +1210,8 @@ public class HardTokenSessionBean
       final String tokensn,
       final boolean includePUK)
       throws AuthorizationDeniedException {
-    if (log.isTraceEnabled()) {
-      log.trace(">getHardToken(tokensn :" + tokensn + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">getHardToken(tokensn :" + tokensn + ")");
     }
     HardTokenInformation returnval = null;
     HardTokenData htd = HardTokenData.findByTokenSN(entityManager, tokensn);
@@ -1249,7 +1259,7 @@ public class HardTokenSessionBean
                 copies);
         int caid = htd.getSignificantIssuerDN().hashCode();
         String msg =
-            intres.getLocalizedMessage("hardtoken.viewedtoken", tokensn);
+            INTRES.getLocalizedMessage("hardtoken.viewedtoken", tokensn);
         final Map<String, Object> details = new LinkedHashMap<String, Object>();
         details.put("msg", msg);
         auditSession.log(
@@ -1263,7 +1273,7 @@ public class HardTokenSessionBean
             htd.getUsername(),
             details);
         if (includePUK) {
-          msg = intres.getLocalizedMessage("hardtoken.viewedpuk", tokensn);
+          msg = INTRES.getLocalizedMessage("hardtoken.viewedpuk", tokensn);
           final Map<String, Object> detailspuk =
               new LinkedHashMap<String, Object>();
           detailspuk.put("msg", msg);
@@ -1280,7 +1290,7 @@ public class HardTokenSessionBean
         }
       }
     }
-    log.trace("<getHardToken()");
+    LOG.trace("<getHardToken()");
     return returnval;
   }
 
@@ -1289,8 +1299,8 @@ public class HardTokenSessionBean
       final AuthenticationToken admin,
       final String username,
       final boolean includePUK) {
-    if (log.isTraceEnabled()) {
-      log.trace("<getHardToken(username :" + username + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<getHardToken(username :" + username + ")");
     }
     final ArrayList<HardTokenInformation> returnval =
         new ArrayList<HardTokenInformation>();
@@ -1343,7 +1353,7 @@ public class HardTokenSessionBean
               copies));
       int caid = htd.getSignificantIssuerDN().hashCode();
       String msg =
-          intres.getLocalizedMessage("hardtoken.viewedtoken", htd.getTokenSN());
+          INTRES.getLocalizedMessage("hardtoken.viewedtoken", htd.getTokenSN());
       final Map<String, Object> details = new LinkedHashMap<String, Object>();
       details.put("msg", msg);
       auditSession.log(
@@ -1358,7 +1368,7 @@ public class HardTokenSessionBean
           details);
       if (includePUK) {
         msg =
-            intres.getLocalizedMessage("hardtoken.viewedpuk", htd.getTokenSN());
+            INTRES.getLocalizedMessage("hardtoken.viewedpuk", htd.getTokenSN());
         final Map<String, Object> detailspuk =
             new LinkedHashMap<String, Object>();
         detailspuk.put("msg", msg);
@@ -1375,14 +1385,14 @@ public class HardTokenSessionBean
       }
     }
     Collections.sort(returnval);
-    log.trace("<getHardToken()");
+    LOG.trace("<getHardToken()");
     return returnval;
   }
 
   @Override
   public Collection<String> matchHardTokenByTokenSerialNumber(
       final String searchpattern) {
-    log.trace(">findHardTokenByTokenSerialNumber()");
+    LOG.trace(">findHardTokenByTokenSerialNumber()");
     GlobalCesecoreConfiguration globalConfiguration =
         (GlobalCesecoreConfiguration)
             globalConfigurationSession.getCachedConfiguration(
@@ -1400,8 +1410,8 @@ public class HardTokenSessionBean
       final String tokensn,
       final Certificate certificate) {
     String certificatesn = CertTools.getSerialNumberAsString(certificate);
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">addHardTokenCertificateMapping(certificatesn : "
               + certificatesn
               + ", tokensn : "
@@ -1414,7 +1424,7 @@ public class HardTokenSessionBean
       try {
         entityManager.persist(new HardTokenCertificateMap(fp, tokensn));
         String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "hardtoken.addedtokencertmapping", certificatesn, tokensn);
         final Map<String, Object> details = new LinkedHashMap<String, Object>();
         details.put("msg", msg);
@@ -1430,7 +1440,7 @@ public class HardTokenSessionBean
             details);
       } catch (Exception e) {
         String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "hardtoken.erroraddtokencertmapping", certificatesn, tokensn);
         final Map<String, Object> details = new LinkedHashMap<String, Object>();
         details.put("msg", msg);
@@ -1448,11 +1458,11 @@ public class HardTokenSessionBean
     } else {
       // Does not exist
       String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "hardtoken.erroraddtokencertmapping", certificatesn, tokensn);
-      log.info(msg);
+      LOG.info(msg);
     }
-    log.trace("<addHardTokenCertificateMapping()");
+    LOG.trace("<addHardTokenCertificateMapping()");
   }
 
   @TransactionAttribute(TransactionAttributeType.REQUIRED)
@@ -1460,8 +1470,8 @@ public class HardTokenSessionBean
   public void removeHardTokenCertificateMapping(
       final AuthenticationToken admin, final Certificate certificate) {
     final String certificatesn = CertTools.getSerialNumberAsString(certificate);
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">removeHardTokenCertificateMapping(Certificatesn: "
               + certificatesn
               + ")");
@@ -1471,15 +1481,15 @@ public class HardTokenSessionBean
           HardTokenCertificateMap.findByCertificateFingerprint(
               entityManager, CertTools.getFingerprintAsString(certificate));
       if (htcm == null) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Trying to remove HardTokenCertificateMap that does not exist: "
                   + CertTools.getFingerprintAsString(certificate));
         }
       } else {
         entityManager.remove(htcm);
         final String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "hardtoken.removedtokencertmappingcert", certificatesn);
         final Map<String, Object> details = new LinkedHashMap<String, Object>();
         details.put("msg", msg);
@@ -1496,7 +1506,7 @@ public class HardTokenSessionBean
       }
     } catch (Exception e) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "hardtoken.errorremovetokencertmappingcert", certificatesn);
       final Map<String, Object> details = new LinkedHashMap<String, Object>();
       details.put("msg", msg);
@@ -1511,7 +1521,7 @@ public class HardTokenSessionBean
           null,
           details);
     }
-    log.trace("<removeHardTokenCertificateMapping()");
+    LOG.trace("<removeHardTokenCertificateMapping()");
   }
 
   /**
@@ -1522,8 +1532,8 @@ public class HardTokenSessionBean
    */
   private void removeHardTokenCertificateMappings(
       final AuthenticationToken admin, final String tokensn) {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">removeHardTokenCertificateMappings(tokensn: " + tokensn + ")");
     }
     try {
@@ -1535,7 +1545,7 @@ public class HardTokenSessionBean
         entityManager.remove(htcm);
       }
       String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "hardtoken.removedtokencertmappingtoken", tokensn);
       final Map<String, Object> details = new LinkedHashMap<String, Object>();
       details.put("msg", msg);
@@ -1551,7 +1561,7 @@ public class HardTokenSessionBean
           details);
     } catch (Exception e) {
       String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "hardtoken.errorremovetokencertmappingtoken", tokensn);
       final Map<String, Object> details = new LinkedHashMap<String, Object>();
       details.put("msg", msg);
@@ -1566,21 +1576,21 @@ public class HardTokenSessionBean
           null,
           details);
     }
-    log.trace("<removeHardTokenCertificateMappings()");
+    LOG.trace("<removeHardTokenCertificateMappings()");
   }
 
   @Override
   public Collection<Certificate> findCertificatesInHardToken(
       final String tokensn) {
-    if (log.isTraceEnabled()) {
-      log.trace("<findCertificatesInHardToken(tokensn :" + tokensn + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<findCertificatesInHardToken(tokensn :" + tokensn + ")");
     }
     final List<Certificate> ret = new ArrayList<Certificate>();
-    for (final CertificateDataWrapper cdw :
-        getCertificateDatasFromHardToken(tokensn)) {
+    for (final CertificateDataWrapper cdw
+        : getCertificateDatasFromHardToken(tokensn)) {
       ret.add(cdw.getCertificate());
     }
-    log.trace("<findCertificatesInHardToken()");
+    LOG.trace("<findCertificatesInHardToken()");
     return ret;
   }
 
@@ -1590,8 +1600,8 @@ public class HardTokenSessionBean
     final List<CertificateDataWrapper> ret =
         new ArrayList<CertificateDataWrapper>();
     try {
-      for (final HardTokenCertificateMap htcm :
-          HardTokenCertificateMap.findByTokenSN(entityManager, tokensn)) {
+      for (final HardTokenCertificateMap htcm
+          : HardTokenCertificateMap.findByTokenSN(entityManager, tokensn)) {
         final CertificateDataWrapper cdw =
             certificateStoreSession.getCertificateData(
                 htcm.getCertificateFingerprint());
@@ -1608,8 +1618,8 @@ public class HardTokenSessionBean
   @Override
   public String findHardTokenByCertificateSNIssuerDN(
       final BigInteger certificatesn, final String issuerdn) {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "<findHardTokenByCertificateSNIssuerDN(certificatesn :"
               + certificatesn
               + ", issuerdn :"
@@ -1629,7 +1639,7 @@ public class HardTokenSessionBean
         returnval = htcm.getTokenSN();
       }
     }
-    log.trace("<findHardTokenByCertificateSNIssuerDN()");
+    LOG.trace("<findHardTokenByCertificateSNIssuerDN()");
     return returnval;
   }
 
@@ -1643,7 +1653,7 @@ public class HardTokenSessionBean
     int caid = CertTools.stringToBCDNString(significantissuerdn).hashCode();
     try {
       String msg =
-          intres.getLocalizedMessage("hardtoken.generatedtoken", tokensn);
+          INTRES.getLocalizedMessage("hardtoken.generatedtoken", tokensn);
       final Map<String, Object> details = new LinkedHashMap<String, Object>();
       details.put("msg", msg);
       auditSession.log(
@@ -1671,7 +1681,7 @@ public class HardTokenSessionBean
     int caid = CertTools.stringToBCDNString(significantissuerdn).hashCode();
     try {
       String msg =
-          intres.getLocalizedMessage("hardtoken.errorgeneratetoken", tokensn);
+          INTRES.getLocalizedMessage("hardtoken.errorgeneratetoken", tokensn);
       final Map<String, Object> details = new LinkedHashMap<String, Object>();
       details.put("msg", msg);
       auditSession.log(
@@ -1695,8 +1705,8 @@ public class HardTokenSessionBean
     List<String> result = new ArrayList<String>();
     Collection<Integer> certprofiles = null;
     HardTokenProfile profile = null;
-    for (HardTokenProfileData profileData :
-        HardTokenProfileData.findAll(entityManager)) {
+    for (HardTokenProfileData profileData
+        : HardTokenProfileData.findAll(entityManager)) {
       profile = getHardTokenProfile(profileData);
       if (profile instanceof EIDProfile) {
         certprofiles = ((EIDProfile) profile).getAllCertificateProfileIds();
@@ -1759,16 +1769,16 @@ public class HardTokenSessionBean
    * @param admin Admin
    * @param encryptcaid ID
    * @param includePUK PUK
-   * @param data data
+   * @param odata data
    * @return token
    */
   private HardToken getHardToken(
       final AuthenticationToken admin,
       final int encryptcaid,
       final boolean includePUK,
-      Map<?, ?> data) {
+      final Map<?, ?> odata) {
     HardToken returnval = null;
-
+    Map<?, ?> data = odata;
     if (data.get(HardTokenData.ENCRYPTEDDATA) != null) {
       // Data in encrypted, decrypt
       byte[] encdata = (byte[]) data.get(HardTokenData.ENCRYPTEDDATA);
@@ -1879,6 +1889,7 @@ public class HardTokenSessionBean
       case TurkishEIDProfile.TYPE_TURKISHEID:
         profile = new TurkishEIDProfile();
         break;
+      default: break;
     }
     profile.loadData(data);
     return profile;

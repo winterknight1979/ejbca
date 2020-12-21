@@ -105,34 +105,45 @@ import org.ejbca.util.query.BasicMatch;
 public class OcspKeyRenewalSessionBean
     implements OcspKeyRenewalSessionLocal, OcspKeyRenewalSessionRemote {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(OcspKeyRenewalSessionBean.class);
 
-  private static final InternalResources intres =
+  /** Resource. */
+  private static final InternalResources INTRES =
       InternalResources.getInstance();
 
+  /** MArgin. */
   private static final long NO_SAFETY_MARGIN = Long.MAX_VALUE / 1000;
 
+  /** Timer. */
   private static volatile Integer timerId = null;
 
   // TODO: See if we can create local business methods for all calls where this
   // is required
-  private static final AuthenticationToken authenticationToken =
+  /** Token. */
+  private static final AuthenticationToken AUTH_TOKEN =
       new AlwaysAllowLocalAuthenticationToken(
           new UsernamePrincipal("OCSP key renewal"));
 
+  /** EJB. */
   @EJB private OcspResponseGeneratorSessionLocal ocspResponseGeneratorSession;
+  /** EJB. */
   @EJB private InternalKeyBindingMgmtSessionLocal internalKeyBindingMgmtSession;
+  /** EJB. */
   @EJB private CryptoTokenManagementSessionLocal cryptoTokenManagementSession;
+  /** EJB. */
   @EJB private CertificateStoreSessionLocal certificateStoreSession;
 
+  /** Context. */
   @Resource private SessionContext sessionContext;
 
-  /* When the sessionContext is injected, the timerService should be looked up.
+  /** When the sessionContext is injected, the timerService should be looked up.
    * This is due to the Glassfish EJB verifier complaining.
    */
   private TimerService timerService;
 
+  /** Init. */
   @PostConstruct
   public void postConstruct() {
     timerService = sessionContext.getTimerService();
@@ -167,8 +178,8 @@ public class OcspKeyRenewalSessionBean
     try {
       final EjbcaWS ejbcaWS = getEjbcaWS();
       if (ejbcaWS == null) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Could not locate a suitable web service for automatic OCSP"
                   + " key/certificate renewal.");
         }
@@ -181,16 +192,16 @@ public class OcspKeyRenewalSessionBean
                 ? null
                 : new X500Principal(signerSubjectDN);
       } catch (IllegalArgumentException e) {
-        log.error(
-            intres.getLocalizedMessage(
+        LOG.error(
+            INTRES.getLocalizedMessage(
                 "ocsp.rekey.triggered.dn.not.valid", signerSubjectDN));
         return;
       }
       final StringBuffer matched = new StringBuffer();
       final StringBuffer unMatched = new StringBuffer();
       final Set<Integer> processedOcspKeyBindingIds = new HashSet<Integer>();
-      for (final OcspSigningCacheEntry ocspSigningCacheEntry :
-          OcspSigningCache.INSTANCE.getEntries()) {
+      for (final OcspSigningCacheEntry ocspSigningCacheEntry
+          : OcspSigningCache.INSTANCE.getEntries()) {
         // Only perform renewal for non CA signing key OCSP signers
         if (!ocspSigningCacheEntry.isUsingSeparateOcspSigningCertificate()) {
           continue;
@@ -202,8 +213,8 @@ public class OcspKeyRenewalSessionBean
             ocspSigningCacheEntry.getOcspKeyBinding().getId();
         if (!processedOcspKeyBindingIds.add(
             Integer.valueOf(ocspKeyBindingId))) {
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "Skipping renewal processing of OcspKeyBinding with id "
                     + ocspKeyBindingId
                     + " that was already processed.");
@@ -215,7 +226,8 @@ public class OcspKeyRenewalSessionBean
         final long timeLeftBeforeRenewal =
             ocspSigningCertificate.getNotAfter().getTime()
                 - new Date().getTime();
-        if (timeLeftBeforeRenewal < (1000 * safetyMargin)) {
+        final int msPerS = 1000;
+        if (timeLeftBeforeRenewal < (msPerS * safetyMargin)) {
           final X500Principal src =
               ocspSigningCertificate.getSubjectX500Principal();
           if (target != null && !src.equals(target)) {
@@ -230,24 +242,24 @@ public class OcspKeyRenewalSessionBean
             renewKeyStore(ejbcaWS, ocspSigningCacheEntry);
           } catch (KeyRenewalFailedException e) {
             String msg =
-                intres.getLocalizedMessage(
+                INTRES.getLocalizedMessage(
                     "ocsp.rekey.failed.unknown.reason",
                     target,
                     e.getLocalizedMessage());
-            log.error(msg, e);
+            LOG.error(msg, e);
             continue;
           }
         }
       }
       if (matched.length() < 1 && target != null) {
-        log.error(
-            intres.getLocalizedMessage(
+        LOG.error(
+            INTRES.getLocalizedMessage(
                 "ocsp.rekey.triggered.dn.not.existing",
                 target.getName(),
                 unMatched));
         return;
       }
-      log.info(intres.getLocalizedMessage("ocsp.rekey.triggered", matched));
+      LOG.info(INTRES.getLocalizedMessage("ocsp.rekey.triggered", matched));
     } finally {
       // Set new timer to run, even if something breaks.
       addTimer(OcspConfiguration.getRekeyingUpdateTimeInSeconds());
@@ -285,7 +297,7 @@ public class OcspKeyRenewalSessionBean
         ocspSigningCacheEntry.getOcspKeyBinding().getId();
     try {
       internalKeyBindingMgmtSession.generateNextKeyPair(
-          authenticationToken, internalKeyBindingId);
+          AUTH_TOKEN, internalKeyBindingId);
     } catch (InvalidAlgorithmParameterException e) {
       throw new KeyRenewalFailedException(e);
     } catch (AuthorizationDeniedException e) {
@@ -296,7 +308,7 @@ public class OcspKeyRenewalSessionBean
         signCertificateByCa(ejbcaWS, ocspSigningCacheEntry);
     try {
       internalKeyBindingMgmtSession.importCertificateForInternalKeyBinding(
-          authenticationToken,
+          AUTH_TOKEN,
           internalKeyBindingId,
           signedCertificate.getEncoded());
     } catch (CertificateEncodingException e) {
@@ -307,7 +319,8 @@ public class OcspKeyRenewalSessionBean
       throw new KeyRenewalFailedException(e);
     }
     /*
-     * Replace the alias and the chain at this step. If anything bad happened prior to this step the old alias and
+     * Replace the alias and the chain at this step. If anything bad
+     * happened prior to this step the old alias and
      * chain are still active, and no harm done.
      */
     ocspResponseGeneratorSession.reloadOcspSigningCache();
@@ -340,16 +353,16 @@ public class OcspKeyRenewalSessionBean
     try {
       users = ejbcaWS.findUser(match);
     } catch (Exception e) {
-      log.error("WS not working", e);
+      LOG.error("WS not working", e);
       return null;
     }
     if (users == null || users.size() < 1) {
-      log.error(
-          intres.getLocalizedMessage(
+      LOG.error(
+          INTRES.getLocalizedMessage(
               "ocsp.no.user.with.subject.dn", subjectDN));
       return null;
     }
-    log.debug(
+    LOG.debug(
         "at least one user found for cert with DN: "
             + subjectDN
             + " Trying to match it with CA name: "
@@ -362,7 +375,7 @@ public class OcspKeyRenewalSessionBean
       }
     }
     if (result == null) {
-      log.error(
+      LOG.error(
           "No user found for certificate '"
               + subjectDN
               + "' on CA '"
@@ -381,22 +394,23 @@ public class OcspKeyRenewalSessionBean
    * @return true if success
    */
   private boolean editUser(final EjbcaWS ejbcaWS, final UserDataVOWS userData) {
+    final int len = 12;
     userData.setStatus(EndEntityConstants.STATUS_NEW);
     userData.setPassword(
         PasswordGeneratorFactory.getInstance(
                 PasswordGeneratorFactory.PASSWORDTYPE_LETTERSANDDIGITS)
-            .getNewPassword(12, 12));
+            .getNewPassword(len, len));
     userData.setTokenType(UserDataVOWS.TOKEN_TYPE_USERGENERATED);
     try {
       ejbcaWS.editUser(userData);
     } catch (Exception e) {
-      log.error("Problem to edit user.", e);
+      LOG.error("Problem to edit user.", e);
       return false;
     }
     return true;
   }
   /**
-   * Get the CA name
+   * Get the CA name.
    *
    * @param ejbcaWS WS
    * @param caId The ID of the sought CA
@@ -407,11 +421,11 @@ public class OcspKeyRenewalSessionBean
     try {
       for (NameAndId nameAndId : ejbcaWS.getAvailableCAs()) {
         mCA.put(Integer.valueOf(nameAndId.getId()), nameAndId.getName());
-        log.debug(
+        LOG.debug(
             "CA. id: " + nameAndId.getId() + " name: " + nameAndId.getName());
       }
     } catch (Exception e) {
-      log.error("WS not working", e);
+      LOG.error("WS not working", e);
       return null;
     }
     return mCA.get(Integer.valueOf(caId));
@@ -431,10 +445,12 @@ public class OcspKeyRenewalSessionBean
   private X509Certificate signCertificateByCa(
       final EjbcaWS ejbcaWS, final OcspSigningCacheEntry ocspSigningCacheEntry)
       throws KeyRenewalFailedException, CryptoTokenOfflineException {
-    /* Construct a certification request in order to have the new keystore certified by the CA.
+    /* Construct a certification request in order to have the new
+     *  keystore certified by the CA.
      */
     // final int caId =
-    // CertTools.stringToBCDNString(tokenAndChain.getCaCertificate().getSubjectDN().toString()).hashCode();
+    // CertTools.stringToBCDNString(tokenAndChain.getCaCertificate().
+      // getSubjectDN().toString()).hashCode();
     final int caId =
         CertTools.getSubjectDN(
                 ocspSigningCacheEntry.getCaCertificateChain().get(0))
@@ -448,7 +464,7 @@ public class OcspKeyRenewalSessionBean
           "User data for certificate with subject DN '"
               + CertTools.getSubjectDN(ocspSigningCertificate)
               + "' was not found.";
-      log.error(msg);
+      LOG.error(msg);
       throw new KeyRenewalFailedException(msg);
     }
     editUser(ejbcaWS, userData);
@@ -458,7 +474,7 @@ public class OcspKeyRenewalSessionBean
     try {
       pkcs10CertificationRequest =
           internalKeyBindingMgmtSession.generateCsrForNextKey(
-              authenticationToken, internalKeyBindingId, null);
+              AUTH_TOKEN, internalKeyBindingId, null);
     } catch (AuthorizationDeniedException e) {
       throw new KeyRenewalFailedException(e);
     }
@@ -495,12 +511,12 @@ public class OcspKeyRenewalSessionBean
     try {
       publicKeyBytes =
           internalKeyBindingMgmtSession.getNextPublicKeyForInternalKeyBinding(
-              authenticationToken, internalKeyBindingId);
+              AUTH_TOKEN, internalKeyBindingId);
     } catch (AuthorizationDeniedException e) {
       throw new KeyRenewalFailedException(e);
     }
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Number of certificates returned from WS: " + certificates.size());
     }
     X509Certificate signedCertificate = null;
@@ -508,8 +524,8 @@ public class OcspKeyRenewalSessionBean
         ocspSigningCacheEntry.getCaCertificateChain().get(0);
     final PublicKey caCertificatePublicKey = caCertificate.getPublicKey();
     for (X509Certificate certificate : certificates) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Verifying certificate with SubjectDN : '"
                 + CertTools.getSubjectDN(certificate)
                 + "' using public key from CA certificate with subject '"
@@ -521,7 +537,7 @@ public class OcspKeyRenewalSessionBean
       } catch (Exception e) {
         // Ugly, but inherited from legacy code
         signedCertificate = null;
-        log.error("Exception was caught when verifying certificate", e);
+        LOG.error("Exception was caught when verifying certificate", e);
         continue;
       }
       // Comparing public keys is dependent on provider used, so we must ensure
@@ -537,10 +553,10 @@ public class OcspKeyRenewalSessionBean
       if (nextPublicKey.equals(certPublicKey)) {
         signedCertificate = certificate;
         break;
-      } else if (log.isDebugEnabled()) {
-        log.debug("Matching public keys failed: ");
-        log.debug("Certificate public key: " + certificate.getPublicKey());
-        log.debug("Next public key: " + nextPublicKey);
+      } else if (LOG.isDebugEnabled()) {
+        LOG.debug("Matching public keys failed: ");
+        LOG.debug("Certificate public key: " + certificate.getPublicKey());
+        LOG.debug("Next public key: " + nextPublicKey);
       }
     }
     if (signedCertificate == null) {
@@ -555,8 +571,8 @@ public class OcspKeyRenewalSessionBean
     String webUrl = OcspConfiguration.getEjbcawsracliUrl();
     if (StringUtils.isEmpty(webUrl)) {
       // Automatic renewal is not enabled
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Automatic OCSP key/certificate renewal is not enabled, "
                 + OcspConfiguration.REKEYING_WSURL
                 + " is empty.");
@@ -565,37 +581,37 @@ public class OcspKeyRenewalSessionBean
     }
     final SSLSocketFactory sslSocketFactory = getSSLSocketFactory();
     if (sslSocketFactory == null) {
-      log.warn(
+      LOG.warn(
           "No AuthenticationKeyBinding is configured. Unable to authenticate"
               + " to EJBCA WebService.");
       return null;
     }
     HttpsURLConnection.setDefaultSSLSocketFactory(sslSocketFactory);
-    final URL ws_url;
+    final URL wsUrl;
     try {
-      ws_url = new URL(webUrl + "?wsdl");
+      wsUrl = new URL(webUrl + "?wsdl");
     } catch (MalformedURLException e) {
-      log.warn("Problem with URL: '" + webUrl + "'", e);
+      LOG.warn("Problem with URL: '" + webUrl + "'", e);
       return null;
     }
     final QName qname =
         new QName("http://ws.protocol.core.ejbca.org/", "EjbcaWSService");
-    if (log.isDebugEnabled()) {
-      log.debug("web service. URL: " + ws_url + " QName: " + qname);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("web service. URL: " + wsUrl + " QName: " + qname);
     }
-    return new EjbcaWSService(ws_url, qname).getEjbcaWSPort();
+    return new EjbcaWSService(wsUrl, qname).getEjbcaWSPort();
   }
 
   private SSLSocketFactory getSSLSocketFactory() {
     final List<Integer> authenticationKeyBindingIds =
         internalKeyBindingMgmtSession.getInternalKeyBindingIds(
-            authenticationToken, AuthenticationKeyBinding.IMPLEMENTATION_ALIAS);
+            AUTH_TOKEN, AuthenticationKeyBinding.IMPLEMENTATION_ALIAS);
     AuthenticationKeyBinding authenticationKeyBinding = null;
     for (Integer internalKeyBindingId : authenticationKeyBindingIds) {
       try {
         final InternalKeyBinding internalKeyBinding =
             internalKeyBindingMgmtSession.getInternalKeyBindingReference(
-                authenticationToken, internalKeyBindingId);
+                AUTH_TOKEN, internalKeyBindingId);
         if (internalKeyBinding
             .getStatus()
             .equals(InternalKeyBindingStatus.ACTIVE)) {
@@ -626,14 +642,14 @@ public class OcspKeyRenewalSessionBean
             authenticationKeyBinding.getTrustedCertificateReferences());
     final String alias = authenticationKeyBinding.getKeyPairAlias();
     try {
-      final TrustManager trustManagers[];
+      final TrustManager[] trustManagers;
       if (trustedCertificates == null || trustedCertificates.isEmpty()) {
         trustManagers =
             new X509TrustManager[] {new X509TrustManagerAcceptAll()};
       } else {
         throw new RuntimeException("Configurable trust not yet implemented.");
       }
-      final KeyManager keyManagers[] =
+      final KeyManager[] keyManagers =
           new X509KeyManager[] {
             new ClientX509KeyManager(
                 alias, cryptoToken.getPrivateKey(alias), chain)
@@ -664,7 +680,7 @@ public class OcspKeyRenewalSessionBean
     }
     // TODO: Here we need to lookup all the trusted certificates from the
     // provided references so a X509TrustManager can do verification later
-    log.warn(
+    LOG.warn(
         "Trusted references was non-empty, but will be ignored. (Not yet"
             + " implemented.)");
     return null;
@@ -683,7 +699,7 @@ public class OcspKeyRenewalSessionBean
       currentLevelCertificate =
           certificateStoreSession.findLatestX509CertificateBySubject(issuerDn);
       if (currentLevelCertificate == null) {
-        log.warn(
+        LOG.warn(
             "Unable to build certificate chain for OCSP signing certificate"
                 + " with Subject DN '"
                 + CertTools.getSubjectDN(leafCertificate)
@@ -721,14 +737,14 @@ public class OcspKeyRenewalSessionBean
       renewKeyStores(
           RENEW_ALL_KEYS, OcspConfiguration.getRekeyingSafetyMarginInSeconds());
     } catch (InvalidKeyException e) {
-      log.error(
+      LOG.error(
           "A cached crypto token contains an invalid key pair. Stopping"
               + " timers.",
           e);
     } catch (CryptoTokenOfflineException e) {
       // Rescheduling is handled in a finally clause in
       // OcspKeyRenewalSessionBean.renewKeyStores(String, long)
-      log.error(
+      LOG.error(
           "Crypto token was offline or unavailable during automatic update."
               + " Rescheduling a new timer in "
               + rekeyingUpdateTime
@@ -744,7 +760,7 @@ public class OcspKeyRenewalSessionBean
   }
 
   /**
-   * Adds a timer to the bean
+   * Adds a timer to the bean.
    *
    * @param intervalInSeconds the time from now for the next timer to fire
    * @return timer
@@ -753,11 +769,12 @@ public class OcspKeyRenewalSessionBean
   // transaction if they are stored in different non XA DataSources. This method
   // should not be run from within a transaction.
   private Timer addTimer(final long intervalInSeconds) {
-    if (log.isDebugEnabled()) {
-      log.debug("addTimer: " + timerId + ", " + intervalInSeconds);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("addTimer: " + timerId + ", " + intervalInSeconds);
     }
+    final int msPerS = 1000;
     return timerService.createSingleActionTimer(
-        intervalInSeconds * 1000, new TimerConfig(timerId, false));
+        intervalInSeconds * msPerS, new TimerConfig(timerId, false));
   }
 
   /** This method cancels all timers associated with this bean. */
@@ -767,8 +784,8 @@ public class OcspKeyRenewalSessionBean
       try {
         timer.cancel();
       } catch (NoSuchObjectLocalException e) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Timer was already expired or canceled: " + timer.getInfo());
         }
       }

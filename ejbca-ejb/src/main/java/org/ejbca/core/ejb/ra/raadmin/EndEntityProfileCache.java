@@ -43,11 +43,14 @@ import org.ejbca.core.model.ra.raadmin.EndEntityProfile;
  *     $
  */
 public enum EndEntityProfileCache {
+    /** Singleton. */
   INSTANCE;
 
-  private final Logger LOG = Logger.getLogger(EndEntityProfileCache.class);
-  /** Internal localization of logs and errors */
-  private final InternalEjbcaResources INTRES =
+    /** Logger. */
+  private static final Logger LOG
+      = Logger.getLogger(EndEntityProfileCache.class);
+  /** Internal localization of logs and errors. */
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
   /*
@@ -56,24 +59,27 @@ public enum EndEntityProfileCache {
    * threads in the same VM. Set volatile to make it thread friendly.
    */
 
-  /** Cache of mappings between profileId and profileName */
+  /** Cache of mappings between profileId and profileName. */
   private volatile Map<Integer, String> idNameMapCache = null;
-  /** Cache of mappings between profileName and profileId */
+  /** Cache of mappings between profileName and profileId. */
   private volatile Map<String, Integer> nameIdMapCache = null;
-  /** Cache of end entity profiles, with Id as keys */
+  /** Cache of end entity profiles, with Id as keys. */
   private volatile Map<Integer, EndEntityProfile> profileCache = null;
 
+  /** Update. */
   private volatile long lastUpdate = 0;
 
-  /* Create template maps with all static constants */
+  /** Create template maps with all static constants. */
   private final HashMap<Integer, String> idNameMapCacheTemplate =
       new HashMap<Integer, String>();
+  /** Create template maps with all static constants. */
   private final HashMap<String, Integer> nameIdMapCacheTemplate =
       new HashMap<String, Integer>();
 
+  /** Lock. */
   private final ReentrantLock lock = new ReentrantLock(false);
 
-  private EndEntityProfileCache() {
+  EndEntityProfileCache() {
     idNameMapCacheTemplate.put(
         Integer.valueOf(EndEntityConstants.EMPTY_END_ENTITY_PROFILE),
         EndEntityConstants.EMPTY_ENDENTITYPROFILENAME);

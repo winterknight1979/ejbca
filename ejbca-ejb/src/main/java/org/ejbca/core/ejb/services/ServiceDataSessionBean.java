@@ -34,6 +34,7 @@ import org.ejbca.core.model.services.ServiceConfiguration;
 public class ServiceDataSessionBean
     implements ServiceDataSessionLocal, ServiceDataSessionRemote {
 
+    /** EM. */
   @PersistenceContext(unitName = "ejbca")
   private EntityManager entityManager;
 

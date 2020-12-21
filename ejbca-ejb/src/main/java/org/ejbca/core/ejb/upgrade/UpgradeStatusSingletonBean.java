@@ -46,13 +46,13 @@ public class UpgradeStatusSingletonBean implements UpgradeStatusSingletonLocal {
   private final Appender appender =
       new Appender() {
         @Override
-        public void addFilter(final Filter filter) {}
+        public void addFilter(final Filter filter) { }
 
         @Override
-        public void clearFilters() {}
+        public void clearFilters() { }
 
         @Override
-        public void close() {}
+        public void close() { }
 
         @Override
         public ErrorHandler getErrorHandler() {
@@ -75,13 +75,13 @@ public class UpgradeStatusSingletonBean implements UpgradeStatusSingletonLocal {
         }
 
         @Override
-        public void setErrorHandler(final ErrorHandler errorHandler) {}
+        public void setErrorHandler(final ErrorHandler errorHandler) { }
 
         @Override
-        public void setLayout(final Layout layout) {}
+        public void setLayout(final Layout layout) { }
 
         @Override
-        public void setName(final String name) {}
+        public void setName(final String name) { }
 
         @Override
         public String getName() {
@@ -94,6 +94,7 @@ public class UpgradeStatusSingletonBean implements UpgradeStatusSingletonLocal {
         }
       };
 
+      /** Progress. */
   private final AtomicBoolean postUpgradeInProgress = new AtomicBoolean(false);
 
   /**

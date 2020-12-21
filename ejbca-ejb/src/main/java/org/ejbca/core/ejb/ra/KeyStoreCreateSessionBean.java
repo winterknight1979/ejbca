@@ -88,25 +88,38 @@ import org.ejbca.core.model.ra.raadmin.EndEntityProfileValidationException;
 public class KeyStoreCreateSessionBean
     implements KeyStoreCreateSessionLocal, KeyStoreCreateSessionRemote {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(KeyStoreCreateSessionBean.class);
 
-  private static final InternalEjbcaResources intres =
+  /** Resource. */
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
+  /** EJB. */
   @EJB private GlobalConfigurationSessionLocal globalConfigurationSession;
+  /** EJB. */
   @EJB private EndEntityAuthenticationSessionLocal authenticationSession;
+  /** EJB. */
   @EJB private AuthorizationSessionLocal authorizationSession;
+  /** EJB. */
   @EJB private EndEntityAccessSessionLocal endEntityAccessSession;
 
+  /** EJB. */
   @EJB
   private EndEntityAuthenticationSessionLocal endEntityAuthenticationSession;
 
+  /** EJB. */
   @EJB private EndEntityManagementSessionLocal endEntityManagementSession;
+  /** EJB. */
   @EJB private EndEntityProfileSessionLocal endEntityProfileSession;
+  /** EJB. */
   @EJB private CaSessionLocal caSession;
+  /** EJB. */
   @EJB private KeyRecoverySessionLocal keyRecoverySession;
+  /** EJB. */
   @EJB private SignSessionLocal signSession;
+  /** EJB. */
   @EJB private HardTokenSessionLocal hardTokenSession;
 
   @Override
@@ -123,9 +136,9 @@ public class KeyStoreCreateSessionBean
     final EndEntityInformation endEntity =
         endEntityAccessSession.findUser(authenticationToken, username);
     if (endEntity == null) {
-      log.info(intres.getLocalizedMessage("ra.errorentitynotexist", username));
+      LOG.info(INTRES.getLocalizedMessage("ra.errorentitynotexist", username));
       throw new NotFoundException(
-          intres.getLocalizedMessage("ra.wrongusernameorpassword"));
+          INTRES.getLocalizedMessage("ra.wrongusernameorpassword"));
     }
     // Check CA ID and authorization.
     final int caId = endEntity.getCAId();
@@ -135,7 +148,7 @@ public class KeyStoreCreateSessionBean
         StandardRules.CAACCESS.resource() + caId,
         StandardRules.CREATECERT.resource())) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "authorization.notauthorizedtoresource",
               StandardRules.CAACCESS.resource()
                   + caId
@@ -155,32 +168,32 @@ public class KeyStoreCreateSessionBean
                 globalConfigurationSession.getCachedConfiguration(
                     GlobalConfiguration.GLOBAL_CONFIGURATION_ID))
             .getEnableKeyRecovery();
-    if (log.isDebugEnabled()) {
-      log.debug("usekeyrecovery: " + useKeyRecovery);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("usekeyrecovery: " + useKeyRecovery);
     }
     final boolean saveKeys =
         endEntity.getKeyRecoverable()
             && useKeyRecovery
             && (endEntity.getStatus() != EndEntityConstants.STATUS_KEYRECOVERY);
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "userdata.getKeyRecoverable(): " + endEntity.getKeyRecoverable());
-      log.debug("userdata.getStatus(): " + endEntity.getStatus());
-      log.debug("savekeys: " + saveKeys);
+      LOG.debug("userdata.getStatus(): " + endEntity.getStatus());
+      LOG.debug("savekeys: " + saveKeys);
     }
     final boolean loadKeys =
         (endEntity.getStatus() == EndEntityConstants.STATUS_KEYRECOVERY)
             && useKeyRecovery;
-    if (log.isDebugEnabled()) {
-      log.debug("loadkeys: " + loadKeys);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("loadkeys: " + loadKeys);
     }
     final int endEntityProfileId = endEntity.getEndEntityProfileId();
     final EndEntityProfile endEntityProfile =
         endEntityProfileSession.getEndEntityProfile(endEntityProfileId);
     final boolean reuseCertificate =
         endEntityProfile.getReUseKeyRecoveredCertificate();
-    if (log.isDebugEnabled()) {
-      log.debug("reusecertificate: " + reuseCertificate);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("reusecertificate: " + reuseCertificate);
     }
     try {
       final KeyStore keyStore =
@@ -215,8 +228,8 @@ public class KeyStoreCreateSessionBean
             e) { // Is handled as EjbcaException at caller (EjbcaWS).
       throw e;
     } catch (Exception e) {
-      if (log.isDebugEnabled()) {
-        log.debug("Re-throw exception in RA master API: " + e.getMessage(), e);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Re-throw exception in RA master API: " + e.getMessage(), e);
       }
       throw new EjbcaException(ErrorCode.INTERNAL_ERROR, e.getMessage());
     }
@@ -269,9 +282,9 @@ public class KeyStoreCreateSessionBean
       final AuthenticationToken administrator,
       final String username,
       final String password,
-      int caid,
-      String keyspec,
-      String keyalg,
+      final int ocaid,
+      final String okeyspec,
+      final String okeyalg,
       final Date notBefore,
       final Date notAfter,
       final boolean createJKS,
@@ -290,8 +303,11 @@ public class KeyStoreCreateSessionBean
           NoSuchEndEntityException, CertificateSignatureException,
           CertificateEncodingException, CertificateException,
           NoSuchAlgorithmException, InvalidKeySpecException {
-    if (log.isTraceEnabled()) {
-      log.trace(">generateOrKeyRecoverToken");
+    int caid = ocaid;
+    String keyspec = okeyspec;
+    String keyalg = okeyalg;
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">generateOrKeyRecoverToken");
     }
     boolean isNewToken = false;
     KeyRecoveryInformation keyData = null;
@@ -302,8 +318,8 @@ public class KeyStoreCreateSessionBean
       isNewToken = true;
     }
     if (loadkeys) {
-      if (log.isDebugEnabled()) {
-        log.debug("Recovering keys for user: " + username);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Recovering keys for user: " + username);
       }
       // used saved keys.
       keyData =
@@ -318,8 +334,8 @@ public class KeyStoreCreateSessionBean
         // re-use certificate
         // signSession.createCertificate is called, which set status to
         // generated, unless finishUser == false in CA config
-        if (log.isDebugEnabled()) {
-          log.debug("Re-using old certificate for user: " + username);
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Re-using old certificate for user: " + username);
         }
         keyRecoverySession.unmarkUser(administrator, username);
       }
@@ -328,8 +344,8 @@ public class KeyStoreCreateSessionBean
               .getIssuerDN()
               .hashCode(); // always use the CA of the certificate
     } else {
-      if (log.isDebugEnabled()) {
-        log.debug("Generating new keys for user: " + username);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Generating new keys for user: " + username);
       }
 
       // KeyStore algorithm specification inside endEntityInformation has
@@ -338,8 +354,8 @@ public class KeyStoreCreateSessionBean
         if (userdata.getExtendedInformation().getKeyStoreAlgorithmType() != null
             && userdata.getExtendedInformation().getKeyStoreAlgorithmSubType()
                 != null) {
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "Using the key-store algorithm specification found inside the"
                     + " endEntityInformation ("
                     + userdata
@@ -374,8 +390,8 @@ public class KeyStoreCreateSessionBean
         authenticationSession.finishUser(userdata);
       }
     } else {
-      if (log.isDebugEnabled()) {
-        log.debug("Generating new certificate for user: " + username);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Generating new certificate for user: " + username);
       }
       cert =
           (X509Certificate)
@@ -460,8 +476,8 @@ public class KeyStoreCreateSessionBean
     }
     if (savekeys) {
       // Save generated keys to database.
-      if (log.isDebugEnabled()) {
-        log.debug("Saving generated keys for recovery for user: " + username);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Saving generated keys for recovery for user: " + username);
       }
       keyRecoverySession.addKeyRecoveryData(
           administrator, EJBTools.wrap(cert), username, EJBTools.wrap(rsaKeys));
@@ -474,20 +490,20 @@ public class KeyStoreCreateSessionBean
     // Store keys and certificates in keystore.
     KeyStore ks = null;
     if (createJKS) {
-      if (log.isDebugEnabled()) {
-        log.debug("Generating JKS for user: " + username);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Generating JKS for user: " + username);
       }
       ks =
           KeyTools.createJKS(
               alias, rsaKeys.getPrivate(), password, cert, cachain);
     } else {
-      if (log.isDebugEnabled()) {
-        log.debug("Generating PKCS12 for user: " + username);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Generating PKCS12 for user: " + username);
       }
       ks = KeyTools.createP12(alias, rsaKeys.getPrivate(), cert, cachain);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<generateOrKeyRecoverToken");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<generateOrKeyRecoverToken");
     }
     return ks;
   }
