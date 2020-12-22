@@ -25,89 +25,192 @@ import org.junit.Test;
 
 /**
  * Unit tests for the ParameterHandler class.
- * 
- * @version $Id: ParameterHandlerTest.java 19902 2014-09-30 14:32:24Z anatom $
  *
+ * @version $Id: ParameterHandlerTest.java 19902 2014-09-30 14:32:24Z anatom $
  */
 public class ParameterHandlerTest {
 
-    private ParameterHandler parameterHandler;
+    /** Param. */
+  private ParameterHandler parameterHandler;
+  /**
+   * Test.
+   */
+  @Before
+  public void setup() {
+    parameterHandler = new ParameterHandler("unittest");
+  }
+  /**
+   * Test.
+   */
+  @Test
+  public void testHandleUnknownParameters() {
+    ParameterContainer result = parameterHandler.parseParameters("foo");
+    assertNull(
+        "Parameterhandler did not return null for unknown parameter", result);
+  }
+  /**
+   * Test.
+   */
+  @Test
+  public void testHandleMissingParameters() {
+    parameterHandler.registerParameter(
+        new Parameter(
+            "-b",
+            "bar",
+            MandatoryMode.MANDATORY,
+            StandaloneMode.ALLOW,
+            ParameterMode.ARGUMENT,
+            ""));
+    ParameterContainer result = parameterHandler.parseParameters();
+    assertNull(
+        "Parameterhandler did not return null for missing parameter", result);
+  }
+  /**
+   * Test.
+   */
+  @Test
+  public void testHandleStandardParameter() {
+    parameterHandler.registerParameter(
+        new Parameter(
+            "-b",
+            "bar",
+            MandatoryMode.OPTIONAL,
+            StandaloneMode.ALLOW,
+            ParameterMode.ARGUMENT,
+            ""));
+    parameterHandler.registerParameter(
+        new Parameter(
+            "f",
+            "foo",
+            MandatoryMode.OPTIONAL,
+            StandaloneMode.ALLOW,
+            ParameterMode.ARGUMENT,
+            ""));
+    ParameterContainer result =
+        parameterHandler.parseParameters("-b", "bar", "f", "foo");
+    assertNotNull("Parameterhandler did not return result", result);
+    assertEquals(
+        "Parameterhandler did not return correct result",
+        "bar",
+        result.get("-b"));
+    assertEquals(
+        "Parameterhandler did not return correct result",
+        "foo",
+        result.get("f"));
+  }
+  /**
+   * Test.
+   */
+  @Test
+  public void testHandleStandardParameterWithEquals() {
+    parameterHandler.registerParameter(
+        new Parameter(
+            "-b",
+            "bar",
+            MandatoryMode.MANDATORY,
+            StandaloneMode.ALLOW,
+            ParameterMode.ARGUMENT,
+            ""));
+    ParameterContainer result = parameterHandler.parseParameters("-b=boo");
+    assertNotNull("Parameterhandler did not return result", result);
+    assertEquals(
+        "Parameterhandler did not return correct result",
+        "boo",
+        result.get("-b"));
+  }
+  /**
+   * Test.
+   */
+  @Test
+  public void testHandleStandaloneParameter() {
+    parameterHandler.registerParameter(
+        new Parameter(
+            "-b",
+            "bar",
+            MandatoryMode.MANDATORY,
+            StandaloneMode.ALLOW,
+            ParameterMode.ARGUMENT,
+            ""));
+    ParameterContainer result = parameterHandler.parseParameters("boo");
+    assertNotNull("Parameterhandler did not return result", result);
+    assertEquals(
+        "Parameterhandler did not return correct result",
+        "boo",
+        result.get("-b"));
+  }
 
-    @Before
-    public void setup() {
-        parameterHandler = new ParameterHandler("unittest");
+  /**
+   * Handle the case where a quoted parameter has been split up due to spaces.
+   */
+  @Test
+  public void testHandleSplitParameter() {
+    parameterHandler.registerParameter(
+        new Parameter(
+            "-b",
+            "bar",
+            MandatoryMode.MANDATORY,
+            StandaloneMode.ALLOW,
+            ParameterMode.ARGUMENT,
+            ""));
+    ParameterContainer result =
+        parameterHandler.parseParameters("'fo=o", "bar", "xyz'");
+    assertNotNull("Parameterhandler did not return result", result);
+    assertEquals(
+        "Parameterhandler did not return correct result",
+        "fo=o bar xyz",
+        result.get("-b"));
+  }
+  /**
+   * Test.
+   */
+  @Test
+  public void testHandleIncompleteArgument() {
+    parameterHandler.registerParameter(
+        new Parameter(
+            "-b",
+            "bar",
+            MandatoryMode.MANDATORY,
+            StandaloneMode.ALLOW,
+            ParameterMode.ARGUMENT,
+            ""));
+    parameterHandler.registerParameter(
+        new Parameter(
+            "-f",
+            "foo",
+            MandatoryMode.OPTIONAL,
+            StandaloneMode.FORBID,
+            ParameterMode.FLAG,
+            ""));
+    try {
+      ParameterContainer result = parameterHandler.parseParameters("-b");
+      assertNull(
+          "Parameterhandler did not return null for missing parameter value",
+          result);
+      result = parameterHandler.parseParameters("-b", "-f");
+      assertNull(
+          "Parameterhandler did not return null for missing parameter", result);
+    } catch (Exception e) {
+      fail("Parameterhandler did not fail nicely to incomplete argument");
     }
+  }
 
-    @Test
-    public void testHandleUnknownParameters() {
-        ParameterContainer result = parameterHandler.parseParameters("foo");
-        assertNull("Parameterhandler did not return null for unknown parameter", result);
-    }
-
-    @Test
-    public void testHandleMissingParameters() {
-        parameterHandler.registerParameter(new Parameter("-b", "bar", MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT, ""));
-        ParameterContainer result = parameterHandler.parseParameters();
-        assertNull("Parameterhandler did not return null for missing parameter", result);
-    }
-
-    @Test
-    public void testHandleStandardParameter() {
-        parameterHandler.registerParameter(new Parameter("-b", "bar", MandatoryMode.OPTIONAL, StandaloneMode.ALLOW, ParameterMode.ARGUMENT, ""));
-        parameterHandler.registerParameter(new Parameter("f", "foo", MandatoryMode.OPTIONAL, StandaloneMode.ALLOW, ParameterMode.ARGUMENT, ""));
-        ParameterContainer result = parameterHandler.parseParameters("-b", "bar", "f", "foo");
-        assertNotNull("Parameterhandler did not return result", result);
-        assertEquals("Parameterhandler did not return correct result", "bar", result.get("-b"));
-        assertEquals("Parameterhandler did not return correct result", "foo", result.get("f"));
-    }
-
-    @Test
-    public void testHandleStandardParameterWithEquals() {
-        parameterHandler.registerParameter(new Parameter("-b", "bar", MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT, ""));
-        ParameterContainer result = parameterHandler.parseParameters("-b=boo");
-        assertNotNull("Parameterhandler did not return result", result);
-        assertEquals("Parameterhandler did not return correct result", "boo", result.get("-b"));
-    }
-
-    @Test
-    public void testHandleStandaloneParameter() {
-        parameterHandler.registerParameter(new Parameter("-b", "bar", MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT, ""));
-        ParameterContainer result = parameterHandler.parseParameters("boo");
-        assertNotNull("Parameterhandler did not return result", result);
-        assertEquals("Parameterhandler did not return correct result", "boo", result.get("-b"));
-    }
-
-    /**
-     * Handle the case where a quoted parameter has been split up due to spaces. 
-     */
-    @Test
-    public void testHandleSplitParameter() {
-        parameterHandler.registerParameter(new Parameter("-b", "bar", MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT, ""));
-        ParameterContainer result = parameterHandler.parseParameters("'fo=o", "bar", "xyz'");
-        assertNotNull("Parameterhandler did not return result", result);
-        assertEquals("Parameterhandler did not return correct result", "fo=o bar xyz", result.get("-b"));
-    }
-    
-    @Test
-    public void testHandleIncompleteArgument() {
-        parameterHandler.registerParameter(new Parameter("-b", "bar", MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT, ""));
-        parameterHandler.registerParameter(new Parameter("-f", "foo", MandatoryMode.OPTIONAL, StandaloneMode.FORBID, ParameterMode.FLAG, ""));
-        try {
-            ParameterContainer result = parameterHandler.parseParameters("-b");
-            assertNull("Parameterhandler did not return null for missing parameter value", result);
-            result = parameterHandler.parseParameters("-b", "-f");
-            assertNull("Parameterhandler did not return null for missing parameter", result);
-        } catch (Exception e) {
-            fail("Parameterhandler did not fail nicely to incomplete argument");
-        }
-
-    }
-
-    @Test
-    public void testHandleMultipleParameter() {
-        parameterHandler.registerParameter(new Parameter("-b", "bar", MandatoryMode.MANDATORY, StandaloneMode.FORBID, ParameterMode.ARGUMENT, ""));
-        ParameterContainer result = parameterHandler.parseParameters("-b", "foo", "-b", "bar");
-        assertNull("It should not be possible to use the same parameter multiple times.", result);
-    }
-
+  /**
+   * Test.
+   */
+  @Test
+  public void testHandleMultipleParameter() {
+    parameterHandler.registerParameter(
+        new Parameter(
+            "-b",
+            "bar",
+            MandatoryMode.MANDATORY,
+            StandaloneMode.FORBID,
+            ParameterMode.ARGUMENT,
+            ""));
+    ParameterContainer result =
+        parameterHandler.parseParameters("-b", "foo", "-b", "bar");
+    assertNull(
+        "It should not be possible to use the same parameter multiple times.",
+        result);
+  }
 }

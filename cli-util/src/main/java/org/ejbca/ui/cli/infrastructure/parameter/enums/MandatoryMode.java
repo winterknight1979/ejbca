@@ -13,21 +13,30 @@
 package org.ejbca.ui.cli.infrastructure.parameter.enums;
 
 /**
- * Represents if a Parameter is mandatory or not. 
- * 
- * @version $Id: MandatoryMode.java 19902 2014-09-30 14:32:24Z anatom $
+ * Represents if a Parameter is mandatory or not.
  *
+ * @version $Id: MandatoryMode.java 19902 2014-09-30 14:32:24Z anatom $
  */
 public enum MandatoryMode {
-    MANDATORY(true), OPTIONAL(false);
-    
-    private final boolean isMandatory;
-    
-    private MandatoryMode(boolean isMandatory) {
-        this.isMandatory = isMandatory;
-    }
-    
-    public boolean isMandatory() {
-        return isMandatory;
-    }
+    /** True. */
+  MANDATORY(true),
+  /** False. */
+  OPTIONAL(false);
+
+    /** Param. */
+  private final boolean isMandatory;
+
+  /**
+   * @param aisMandatory Bool
+   */
+  MandatoryMode(final boolean aisMandatory) {
+    this.isMandatory = aisMandatory;
+  }
+
+  /**
+   * @return Bool
+   */
+  public boolean isMandatory() {
+    return isMandatory;
+  }
 }

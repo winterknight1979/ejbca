@@ -13,35 +13,41 @@
 package org.ejbca.ui.cli.infrastructure.library;
 
 /**
- * Exception thrown when trying to construct a CLI command library and a conflict occurs,
- * i.e the commands 
- * $ ra &lt;params&gt; 
- * $ ra adduser &lt;params&gt; 
- * both exist in the same command set. 
- * 
- * @version $Id: CliCommandLibraryConflictException.java 19902 2014-09-30 14:32:24Z anatom $
+ * Exception thrown when trying to construct a CLI command library and a
+ * conflict occurs, i.e the commands $ ra &lt;params&gt; $ ra adduser
+ * &lt;params&gt; both exist in the same command set.
  *
+ * @version $Id: CliCommandLibraryConflictException.java 19902 2014-09-30
+ *     14:32:24Z anatom $
  */
 public class CliCommandLibraryConflictException extends RuntimeException {
 
-    private static final long serialVersionUID = 3697467436872840222L;
-    
-    public CliCommandLibraryConflictException() {
-        super();
-    }
+  private static final long serialVersionUID = 3697467436872840222L;
 
-    public CliCommandLibraryConflictException(String message, Throwable cause) {
-        super(message, cause);
-    }
+  /** Default. */
+  public CliCommandLibraryConflictException() {
+    super();
+  }
 
-    public CliCommandLibraryConflictException(String message) {
-        super(message);
-    }
+  /**
+   * @param message message
+   * @param cause Cause
+   */
+  public CliCommandLibraryConflictException(
+      final String message, final Throwable cause) {
+    super(message, cause);
+  }
 
-    public CliCommandLibraryConflictException(Throwable cause) {
-        super(cause);
-    }
-
-    
-
+  /**
+   * @param message Message
+   */
+  public CliCommandLibraryConflictException(final String message) {
+    super(message);
+  }
+/**
+ * @param cause Cause
+ */
+  public CliCommandLibraryConflictException(final Throwable cause) {
+    super(cause);
+  }
 }

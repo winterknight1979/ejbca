@@ -12,23 +12,17 @@
  *************************************************************************/
 package org.ejbca.ui.cli.infrastructure.command;
 
-
-/**
- * @version $Id: CliCommand.java 19902 2014-09-30 14:32:24Z anatom $
- *
- */
+/** @version $Id: CliCommand.java 19902 2014-09-30 14:32:24Z anatom $ */
 public interface CliCommand {
 
-    /**
-     * Executes whatever this command specifies
-     * 
-     * @param arguments an array of arguments parsed into this command.
-     * @return Result
-     */
-    CommandResult execute(String... arguments);
+  /**
+   * Executes whatever this command specifies.
+   *
+   * @param arguments an array of arguments parsed into this command.
+   * @return Result
+   */
+  CommandResult execute(String... arguments);
 
-    /**
-     * @return a human friendly description of the implementing command.
-     */
-    String getCommandDescription();
+  /** @return a human friendly description of the implementing command. */
+  String getCommandDescription();
 }

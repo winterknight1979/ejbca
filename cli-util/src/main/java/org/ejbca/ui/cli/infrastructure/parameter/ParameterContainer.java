@@ -16,76 +16,100 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * A wrapper for the standard java HashMap. Restricted functionality, with some added extras. 
- * 
- * @version $Id: ParameterContainer.java 19902 2014-09-30 14:32:24Z anatom $
+ * A wrapper for the standard java HashMap. Restricted functionality, with some
+ * added extras.
  *
+ * @version $Id: ParameterContainer.java 19902 2014-09-30 14:32:24Z anatom $
  */
 public final class ParameterContainer {
 
-    Map<String, ParameterInformation> parameters = new HashMap<String, ParameterInformation>();
+    /** Param. */
+  private Map<String, ParameterInformation> parameters =
+      new HashMap<String, ParameterInformation>();
 
-    public ParameterContainer() {
+  /** Default. */
+  public ParameterContainer() { }
 
+  /**
+   * Copy constructor.
+   *
+   * @param parameterContainer container
+   */
+  public ParameterContainer(final ParameterContainer parameterContainer) {
+    this.parameters =
+        new HashMap<String, ParameterContainer.ParameterInformation>(
+            parameterContainer.parameters);
+  }
+
+  /**
+   * Returns parameter value, or null if parameter does not exist.
+   *
+   * @param key Key
+   * @return parameter value, or null if parameter was not set
+   */
+  public String get(final String key) {
+    if (parameters.containsKey(key)) {
+      return parameters.get(key).getValue();
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * @param key key
+   * @return bool
+   */
+  public boolean isStandalone(final String key) {
+    if (parameters.containsKey(key)) {
+      return false;
+    } else {
+      return parameters.get(key).isStandalone();
+    }
+  }
+
+  /**
+   * @param key key
+   */
+  public void remove(final String key) {
+    parameters.remove(key);
+  }
+
+  /**
+   * @param key Key
+   * @param value Val
+   * @param isStandalone Bool
+   */
+  public void put(
+      final String key, final String value, final boolean isStandalone) {
+    parameters.put(key, new ParameterInformation(value, isStandalone));
+  }
+
+  /**
+   * @param key key
+   * @return bool
+   */
+  public boolean containsKey(final String key) {
+    return parameters.containsKey(key);
+  }
+
+  private static final class ParameterInformation {
+        /** Param. */
+    private final String value;
+    /** Param. */
+    private final boolean isStandalone;
+
+    private ParameterInformation(
+        final String avalue, final boolean aisStandalone) {
+      this.value = avalue;
+      this.isStandalone = aisStandalone;
     }
 
-    /**
-     * Copy constructor
-     * 
-     * @param parameterContainer container
-     */
-    public ParameterContainer(final ParameterContainer parameterContainer) {
-        this.parameters = new HashMap<String, ParameterContainer.ParameterInformation>(parameterContainer.parameters);
+    public boolean isStandalone() {
+      return isStandalone;
     }
 
-    /** Returns parameter value, or null if parameter does not exist
-     * 
-     * @param key Key
-     * @return parameter value, or null if parameter was not set
-     */
-    public String get(String key) {
-        if (parameters.containsKey(key)) {
-            return parameters.get(key).getValue();
-        } else {
-            return null;
-        }
+    public String getValue() {
+      return value;
     }
-    
-    public boolean isStandalone(String key) {
-        if (parameters.containsKey(key)) {
-            return false;
-        } else {
-            return parameters.get(key).isStandalone();
-        }
-    }
-    
-    public void remove(String key) {
-        parameters.remove(key);
-    }
-
-    public void put(String key, String value, boolean isStandalone) {
-        parameters.put(key, new ParameterInformation(value, isStandalone));
-    }
-
-    public boolean containsKey(String key) {
-        return parameters.containsKey(key);
-    }
-
-    private static final class ParameterInformation {
-        private final String value;
-        private final boolean isStandalone;
-
-        private ParameterInformation(final String value, final boolean isStandalone) {
-            this.value = value;
-            this.isStandalone = isStandalone;
-        }
-
-        public boolean isStandalone() {
-            return isStandalone;
-        }
-
-        public String getValue() {
-            return value;
-        }
-    }
+  }
 }

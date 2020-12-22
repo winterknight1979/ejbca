@@ -481,4 +481,13 @@
 		files="PublisherCacheTest.java" lines="169, 338 " />
 	<suppress checks="ParameterNumberCheck"
 		files="MultiGroupPublisherUnitTest.java" lines="110 " />
+		
+	<!-- Edition-specific EJB. --> 
+	
+	<suppress checks="ParameterNumberCheck"
+		files="EnterpriseEditionWSBridgeSessionBean.java" lines="58 " />
+		
+	<!-- CLI-util -->
+	<suppress checks="MethodLengthCheck"
+		files="ParameterHandler.java" lines="121 " />
 </suppressions>
