@@ -68,7 +68,7 @@
   <!-- https://checkstyle.org/config_filters.html#SuppressionFilter -->
   <module name="SuppressionFilter">
     <property name="file" value="${org.checkstyle.sun.suppressionfilter.config}"
-              default="checkstyle-suppressions.xml" />
+              default="https://raw.githubusercontent.com/winterknight1979/ejbca/master/build-config/src/main/resources/checkstyle-suppressions.xml" />
     <property name="optional" value="true"/>
   </module>
 
