@@ -23,12 +23,13 @@ import java.util.Map;
  * @version $Id: AuthResult.java 19901 2014-09-30 14:29:38Z anatom $
  */
 public class AuthResult {
-  /** Constants for grant and reject */
+  /** Constants for grant and reject. */
   private static final boolean GRANT_STATUS = true;
 
+  /** const. */
   private static final boolean REJECT_STATUS = false;
 
-  /** Default to rejecting a request */
+  /** Default to rejecting a request. */
   private boolean status = REJECT_STATUS; // GRANT_STATUS or REJECT_STATUS
 
   /** What was the reason to reject this request? */
@@ -65,7 +66,7 @@ public class AuthResult {
     return resultHash;
   }
 
-  /** Set status to GRANT */
+  /** Set status to GRANT. */
   public void grant() {
     status = GRANT_STATUS;
   }
@@ -79,7 +80,7 @@ public class AuthResult {
     return status == GRANT_STATUS;
   }
 
-  /** Set status to REJECT */
+  /** Set status to REJECT. */
   public void reject() {
     status = REJECT_STATUS;
   }

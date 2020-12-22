@@ -54,38 +54,39 @@ import org.ejbca.ui.web.RequestHelper;
 public class RemoteVerifyServlet extends HttpServlet {
   private static final long serialVersionUID = -2870243590371650403L;
 
+  /** Logger. */
   private static Logger log = Logger.getLogger(RemoteVerifyServlet.class);
 
-  /** Status code for successful communication */
+  /** Status code for successful communication .*/
   public static final String MSG_OK = "200 OK";
 
-  /** Status code for failed communication */
+  /** Status code for failed communication. */
   public static final String MSG_PROTOCOL_MISMATCH =
       "400 Wrong protocol version";
 
-  /** Status code for generic error */
+  /** Status code for generic error. */
   public static final String MSG_GENERIC_ERROR =
       "500 ERROR (Missing parameter?) : ";
 
-  /** Name of user id parameter */
+  /** Name of user id parameter. */
   public static final String REQUEST_USERNAME = "username";
 
-  /** Name of password parameter */
+  /** Name of password parameter. */
   public static final String REQUEST_PASSWORD = "password";
 
-  /** Name of version parameter */
+  /** Name of version parameter. */
   public static final String REQUEST_VERSION = "version";
 
-  /** Token for protocol */
+  /** Token for protocol. */
   public static final String RESPONSE_END = "end";
 
-  /** Token for protocol */
+  /** Token for protocol. */
   public static final String RESPONSE_STATUS = "status";
 
-  /** Token for protocol */
+  /** Token for protocol. */
   public static final String RESPONSE_RESULT = "result";
 
-  /** Token for protocol */
+  /** Token for protocol. */
   public static final String RESPONSE_MESSAGE = "message";
 
   /** Status code for granting of certificate. */
@@ -94,10 +95,10 @@ public class RemoteVerifyServlet extends HttpServlet {
   /** Status code for rejecting certificate request. */
   public static final String REJECT = "reject";
 
-  /** Version of the protocol used when communicating back to requestor */
+  /** Version of the protocol used when communicating back to requestor. */
   protected static final int PROTOCOL_VERSION_MAJOR = 1;
 
-  /** Version of the protocol used when communicating back to requestor */
+  /** Version of the protocol used when communicating back to requestor. */
   protected static final int PROTOCOL_VERSION_MINOR = 0;
 
   /**
@@ -137,18 +138,17 @@ public class RemoteVerifyServlet extends HttpServlet {
   /** What parameter to send when using GET to show status. */
   protected static final String STATUS_KEY = "status";
 
-  /** Count total accesses */
+  /** Count total accesses. */
   protected static int countAccess = 0;
 
-  /** Count granted accesses */
+  /** Count granted accesses. */
   protected static int countGranted = 0;
 
-  /** Count rejected accesses */
+  /** Count rejected accesses. */
   protected static int countRejected = 0;
 
   /**
-   * Updates result with name-value-pairs extracted from dnPartsString
-   *
+   * Updates result with name-value-pairs extracted from dnPartsString.
    * @param result where the result is stuffed
    * @param dnPartsString name-value-pairs separated by delimiter
    */
@@ -225,7 +225,7 @@ public class RemoteVerifyServlet extends HttpServlet {
   }
 
   /**
-   * logs error
+   * logs error.
    *
    * @param s What to log
    */
@@ -527,14 +527,23 @@ public class RemoteVerifyServlet extends HttpServlet {
     return result;
   }
 
+  /**
+   * inc.
+   */
   protected synchronized void increaseAccess() {
     countAccess++;
   }
 
+  /**
+   * inc.
+   */
   protected synchronized void increaseGranted() {
     countGranted++;
   }
 
+  /**
+   * inc.
+   */
   protected synchronized void increaseRejected() {
     countRejected++;
   }

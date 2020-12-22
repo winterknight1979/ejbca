@@ -57,23 +57,26 @@ import org.cesecore.util.CryptoProviderTools;
  * @version $Id: HttpGetCert.java 19901 2014-09-30 14:29:38Z anatom $
  */
 public class HttpGetCert {
+    /** Logger. */
   private static Logger log = Logger.getLogger(HttpGetCert.class);
 
-  /** Constructor */
+  /** Constructor. */
   public HttpGetCert() {
     log.trace(">HttpGetCert:");
 
     // Use for SSL connections
     /*
-    System.setProperty("java.protocol.handler.pkgs","com.sun.net.ssl.internal.www.protocol");
-    java.security.Security.addProvider(new com.sun.net.ssl.internal.ssl.Provider());
+    System.setProperty("java.protocol.handler.pkgs",
+    "com.sun.net.ssl.internal.www.protocol");
+    java.security.Security.addProvider(
+    new com.sun.net.ssl.internal.ssl.Provider());
     */
     log.trace("<HttpGetCert:");
   }
 
   // HttpGetCert
 
-  /**
+  /*
    * Sets the CA certificate used to verify the web server's certificate. We
    * only support a single self-signed CA certificate here.
    *
@@ -88,18 +91,21 @@ public class HttpGetCert {
   // Use for SSL connections
 
   /*
-  public void setSSLTrustedServerCert(byte[] cert) throws java.security.cert.CertificateException {
+  public void setSSLTrustedServerCert(byte[] cert) throws
+   java.security.cert.CertificateException {
   log.trace(">setSSLTrustedServerCert:");
   CertificateFactory cf = CertTools.getCertificateFactory();
-  webcert = (X509Certificate)cf.generateCertificate(new ByteArrayInputStream(cert));
+  webcert = (X509Certificate)cf.generateCertificate(new
+  ByteArrayInputStream(cert));
   if ( CertTools.isSelfSigned( webcert ) )
-      throw new IllegalArgumentException("Webcert certificate is not self signed (not a root CA certificate).");
+      throw new IllegalArgumentException("Webcert certificate is not self signed
+       (not a root CA certificate).");
   log.trace("<setSSLTrustedServerCert:");
 
   } // setSSLTrustedServerCert
   */
 
-  /**
+  /*
    * Creates a SSLSocketFactory to communicate with the server using HTTPS.
    *
    * @param url DOCUMENT ME!
@@ -111,7 +117,8 @@ public class HttpGetCert {
   // Use for SSL connections
 
   /*
-  private SSLSocketFactory getSSLFactory() throws IllegalArgumentException, Exception {
+  private SSLSocketFactory getSSLFactory() throws IllegalArgumentException,
+  Exception {
       log.trace( ">getSSLFactory" );
       SSLContext ctx = SSLContext.getInstance( "SSL" );
       KeyManagerFactory kmf = KeyManagerFactory.getInstance( "SunX509" );
@@ -125,9 +132,11 @@ public class HttpGetCert {
           System.setProperty("https.proxyPort", proxyPort);
 
       if (webcert == null)
-          throw new IllegalArgumentException("Server certificate must be set for SSL communication");
+          throw new IllegalArgumentException("Server certificate
+          must be set for SSL communication");
 
-      // If we must use client certificates here, we should read some certs and keys and create a keystore to put in the KeyManagerFactory
+      // If we must use client certificates here, we should read some
+       * certs and keys and create a keystore to put in the KeyManagerFactory
 
       // Make a truststore to verify the server
       KeyStore trustks = KeyStore.getInstance( "jks" );
@@ -232,7 +241,8 @@ public class HttpGetCert {
       }
     }
 
-    if (con.getResponseCode() == 200) {
+    final int httpOk = 200;
+    if (con.getResponseCode() == httpOk) {
       log.debug("Received certificate reply.");
     } else {
       throw new Exception("Error sending PKCS10-request.");

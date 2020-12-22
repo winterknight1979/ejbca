@@ -28,16 +28,17 @@ import org.cesecore.util.CertTools;
  * @version $Id: SeisCardNumberExtension.java 19901 2014-09-30 14:29:38Z anatom
  *     $
  */
-public class SeisCardNumberExtension extends CertTools {
+public final class SeisCardNumberExtension extends CertTools {
 
+    /** Logger. */
   private static Logger log = Logger.getLogger(SeisCardNumberExtension.class);
 
-  /** inhibits creation of new SubjectDirAttrExtension */
-  private SeisCardNumberExtension() {}
+  /** inhibits creation of new SubjectDirAttrExtension. */
+  private SeisCardNumberExtension() { }
 
   /**
    * CardNumber EXTENSION ::= { SYNTAX CardNumber IDENTIFIED BY id-seis-pe-cn}
-   * -- id-seis-pe-cn is defined in Annex A CardNumber ::= PrintableString *
+   * -- id-seis-pe-cn is defined in Annex A CardNumber ::= PrintableString. *
    *
    * @param certificate containing card number
    * @return String containing card number.

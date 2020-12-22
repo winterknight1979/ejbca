@@ -26,34 +26,36 @@ import java.util.Map;
  */
 public class ObjectCache<K, V> {
 
-  /** The objects */
+  /** The objects. */
   private final Map<K, V> objects;
   /**
    * map holding expire times for the object, so we know when we should not
-   * cache them any more
+   * cache them any more.
    */
   private final Map<K, Long> expire;
 
-  /** expiration time in milliseconds */
+  /** expiration time in milliseconds. */
   private long expireTime;
 
+  /** Five seconds. */
+  private static final long FIVESECS = 5000L;
   /** Constructor with default expire of 5 seconds. */
   public ObjectCache() {
-    this(5000);
+    this(FIVESECS);
   }
 
   /**
    * Constructor with expire as argument.
    *
-   * @param expireTime expiration time in milliseconds
+   * @param anexpireTime expiration time in milliseconds
    */
-  public ObjectCache(final long expireTime) {
+  public ObjectCache(final long anexpireTime) {
     this.objects = Collections.synchronizedMap(new HashMap<K, V>());
     this.expire = Collections.synchronizedMap(new HashMap<K, Long>());
-    this.expireTime = expireTime;
+    this.expireTime = anexpireTime;
   }
 
-  /** empties the cache completely */
+  /** empties the cache completely. */
   public synchronized void emptyCache() {
     this.objects.clear();
     this.expire.clear();

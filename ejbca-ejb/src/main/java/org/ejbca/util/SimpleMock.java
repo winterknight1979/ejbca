@@ -35,7 +35,8 @@ import java.util.Map;
  * <pre>
  *  SomeInterface x = new SimpleMock(SomeInterface.class) {{
  *      map("getInt", 1); // Override method getInt(...)
- *      map("throwsException", new Exception("TestException")); // Override method throwsException(...)
+ *      map("throwsException", new Exception("TestException"));
+ *      // Override method throwsException(...)
  *  }}.mock();
  *  x.getInt("parameter 1", 2, "parameter 3");    // Will return 1
  *  </pre>
@@ -58,27 +59,30 @@ import java.util.Map;
  */
 public class SimpleMock {
 
-  final Class<?> c;
-  final Map<String, Object> map = new HashMap<String, Object>();
-  final List<String> methodNames = new ArrayList<String>();
+      /** Param. */
+  private final Class<?> c;
+  /** Param. */
+  private final Map<String, Object> map = new HashMap<String, Object>();
+  /** Param. */
+  private final List<String> methodNames = new ArrayList<String>();
 
-  /** @param c is the interface to mock */
-  public SimpleMock(final Class<?> c) {
-    if (!c.isInterface()) {
-      throw new RuntimeException(c.getName() + " is not an interface.");
+  /** @param clazz is the interface to mock */
+  public SimpleMock(final Class<?> clazz) {
+    if (!clazz.isInterface()) {
+      throw new RuntimeException(clazz.getName() + " is not an interface.");
     }
-    this.c = c;
-    Class<?> thisInterface = c;
+    this.c = clazz;
+    Class<?> thisInterface = clazz;
     while (thisInterface != null) {
-      for (Method m : c.getMethods()) {
+      for (Method m : clazz.getMethods()) {
         methodNames.add(m.getName());
       }
-      thisInterface = c.getSuperclass();
+      thisInterface = clazz.getSuperclass();
     }
   }
 
   /**
-   * Adds a mapping between a method-name and return value
+   * Adds a mapping between a method-name and return value.
    *
    * @param methodName Method
    * @param valueOrException Obj
@@ -90,6 +94,10 @@ public class SimpleMock {
     map.put(methodName, valueOrException);
   }
 
+  /**
+   * @param <T> Type
+   * @return Mocked type
+   */
   @SuppressWarnings("unchecked")
   public <T> T mock() {
     Class<?>[] cs = {c};
@@ -137,10 +145,11 @@ public class SimpleMock {
 
   private class MockInvocationHandler implements InvocationHandler {
 
-    final Map<String, Object> map;
+      /** Map. */
+    private final Map<String, Object> map;
 
-    public MockInvocationHandler(final Map<String, Object> map) {
-      this.map = map;
+    MockInvocationHandler(final Map<String, Object> amap) {
+      this.map = amap;
     }
 
     @Override

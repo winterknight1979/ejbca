@@ -35,21 +35,35 @@ import org.apache.log4j.Logger;
  * @version $Id: SqlExecutor.java 22142 2015-11-03 14:15:51Z mikekushner $
  */
 public class SqlExecutor {
-  static Logger log = Logger.getLogger(SqlExecutor.class);
+    /** Logger. */
+  private static Logger log = Logger.getLogger(SqlExecutor.class);
 
+  /** Param. */
   private Connection con = null;
+  /** Param. */
   private int commands = 0;
+  /** Param. */
   private int errors = 0;
+  /** Param. */
   private boolean continueOnSqlError = false;
 
+  /**
+   * @return connection
+   */
   public Connection getConnection() {
     return this.con;
   }
 
+  /**
+   * @param cont bool
+   */
   public void setContinueOnSqlError(final boolean cont) {
     this.continueOnSqlError = cont;
   }
 
+  /**
+   * @return Errors.
+   */
   public int getErrors() {
     return this.errors;
   }
@@ -74,7 +88,7 @@ public class SqlExecutor {
   }
 
   /**
-   * Runs a single sql update command
+   * Runs a single sql update command.
    *
    * @param command the sql command to execute
    * @return the result returned from executeUpdate
@@ -92,6 +106,12 @@ public class SqlExecutor {
     return res;
   }
 
+  /**
+   * @param file File
+   * @throws SQLException Fail
+   * @throws FileNotFoundException Fail
+   * @throws IOException FAil
+   */
   public void runCommandFile(final File file)
       throws SQLException, FileNotFoundException, IOException {
     if (log.isTraceEnabled()) {
@@ -196,7 +216,8 @@ public class SqlExecutor {
     return res;
   } // executeCommand
 
-  /* commit and rollback commands not needed when running inside a session bean that handles transactions for us */
+  /* commit and rollback commands not needed when running inside a session
+   * bean that handles transactions for us */
   /*
   public void commit() throws SQLException {
         log.trace("> commit");

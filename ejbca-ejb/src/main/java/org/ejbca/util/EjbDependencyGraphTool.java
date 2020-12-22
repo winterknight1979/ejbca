@@ -43,7 +43,7 @@ import java.util.jar.JarInputStream;
 public class EjbDependencyGraphTool {
 
   /**
-   * public entry point that spawns and runs a non-static version of this class
+   * public entry point that spawns and runs a non-static version of this class.
    *
    * @param args Args
    */
@@ -96,8 +96,8 @@ public class EjbDependencyGraphTool {
 
       log("Translating local interface dependencies into bean dependencies..");
       for (BeanInfo beanInfoToAlter : ejbs) {
-        for (Class<?> dependingOnIface :
-            beanInfoToAlter.interfaceDependencies) {
+        for (Class<?> dependingOnIface
+            : beanInfoToAlter.interfaceDependencies) {
           for (BeanInfo beanInfoToMatch : ejbs) {
             for (Class<?> iface : beanInfoToMatch.ifaceClasses) {
               if (dependingOnIface.equals(iface)) {
@@ -150,7 +150,8 @@ public class EjbDependencyGraphTool {
         sb.append(
             "\""
                 + currentBean.beanClass.getSimpleName()
-                + "\" [fillcolor=\"yellow\",style=\"filled,bold\",fontname=\"Helvetica-Bold\"]\n");
+                + "\" [fillcolor=\"yellow\",style=\"filled,bold\""
+                + ",fontname=\"Helvetica-Bold\"]\n");
         for (BeanInfo dep : currentBean.beanDependencies) {
           sb.append(
               "\""
@@ -213,8 +214,9 @@ public class EjbDependencyGraphTool {
    */
   private File getTempFileFromJar(final InputStream jarInputStream)
       throws IOException {
+    final int mb = 1024 * 1024;
     final File tempFile = File.createTempFile("jee5deps-", ".jar");
-    final byte[] buffer = new byte[10 * 1024 * 1024];
+    final byte[] buffer = new byte[10 * mb];
     final OutputStream os = new FileOutputStream(tempFile);
     while (jarInputStream.available() > 0) {
       final int len = jarInputStream.read(buffer);
@@ -228,7 +230,7 @@ public class EjbDependencyGraphTool {
   }
 
   /**
-   * Avoids dependencies on other frameworks (like log4j) by using System.out
+   * Avoids dependencies on other frameworks (like log4j) by using System.out.
    *
    * @param s String
    */
@@ -238,16 +240,20 @@ public class EjbDependencyGraphTool {
 
   /** Class to represent a SSB and its dependencies. */
   private class BeanInfo {
-    public final List<Class<?>> interfaceDependencies =
+        /** Param. */
+    private final List<Class<?>> interfaceDependencies =
         new ArrayList<Class<?>>();
-    public final List<BeanInfo> beanDependencies = new ArrayList<BeanInfo>();
-    public final Class<?> beanClass;
-    public final List<Class<?>> ifaceClasses = new ArrayList<Class<?>>();
+    /** Param. */
+    private final List<BeanInfo> beanDependencies = new ArrayList<BeanInfo>();
+    /** Param. */
+    private final Class<?> beanClass;
+    /** Param. */
+    private final List<Class<?>> ifaceClasses = new ArrayList<Class<?>>();
 
-    public BeanInfo(final Class<?> beanClass) {
-      this.beanClass = beanClass;
+    BeanInfo(final Class<?> abeanClass) {
+      this.beanClass = abeanClass;
       // Find all @Local interfaces that this class implements
-      for (Class<?> iface : beanClass.getInterfaces()) {
+      for (Class<?> iface : abeanClass.getInterfaces()) {
         if (iface.isAnnotationPresent(javax.ejb.Local.class)) {
           ifaceClasses.add(iface);
           // log(" @Stateless " + beanClass.getSimpleName() + " implements
@@ -255,7 +261,7 @@ public class EjbDependencyGraphTool {
         }
       }
       // Find all @EJB annotated fields and add these classes as dependencies
-      for (Field field : beanClass.getDeclaredFields()) {
+      for (Field field : abeanClass.getDeclaredFields()) {
         if (field.isAnnotationPresent(javax.ejb.EJB.class)) {
           interfaceDependencies.add(field.getType());
           // log("   depends on " + field.getType().getSimpleName());
@@ -271,19 +277,20 @@ public class EjbDependencyGraphTool {
 
     /**
      * Recurses through all dependencies to find out if beanInfo is present in
-     * any dependency
+     * any dependency.
      *
      * @param beanInfo Info
      * @param origReqBeanInfo Info
-     * @param steps Sterps
+     * @param osteps Sterps
      * @param maxSteps Max
      * @return bool
      */
     public boolean dependsOnBean(
         final BeanInfo beanInfo,
         final BeanInfo origReqBeanInfo,
-        int steps,
+        final int osteps,
         final int maxSteps) {
+      int steps = osteps;
       if (steps > maxSteps) {
         return false; // Don't recurse in loops forever
       }

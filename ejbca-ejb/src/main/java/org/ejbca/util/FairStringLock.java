@@ -31,35 +31,51 @@ import org.apache.log4j.Logger;
  *
  * @version $Id: FairStringLock.java 22142 2015-11-03 14:15:51Z mikekushner $
  */
-public class FairStringLock {
+public final class FairStringLock {
 
-  private static final Logger log = Logger.getLogger(FairStringLock.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(FairStringLock.class);
 
+  /** Param. */
   private static Map<String, FairStringLock> instanceMap =
       new HashMap<String, FairStringLock>();
+  /** Param. */
   private static ReentrantLock instanceMapLock = new ReentrantLock(true);
 
+  /** Param. */
   private final Map<String, ReentrantLock> lockMap =
       new HashMap<String, ReentrantLock>();
+  /** Param. */
   private final ReentrantLock accessMapLock = new ReentrantLock(true);
 
+  /** Param. */
   private final String instanceName;
 
+  /**
+   * @param instanceName name
+   */
   private FairStringLock(final String instanceName) {
     this.instanceName = instanceName;
   }
 
-  public static FairStringLock getInstance(final String instanceName) {
+  /**
+   * @param aninstanceName Name
+   * @return Lock
+   */
+  public static FairStringLock getInstance(final String aninstanceName) {
     instanceMapLock.lock();
-    FairStringLock instance = instanceMap.get(instanceName);
+    FairStringLock instance = instanceMap.get(aninstanceName);
     if (instance == null) {
-      instance = new FairStringLock(instanceName);
-      instanceMap.put(instanceName, instance);
+      instance = new FairStringLock(aninstanceName);
+      instanceMap.put(aninstanceName, instance);
     }
     instanceMapLock.unlock();
     return instance;
   }
 
+  /**
+   * @param lockName lock
+   */
   public void lock(final String lockName) {
     if (lockName == null) {
       return;
@@ -82,8 +98,8 @@ public class FairStringLock {
           gotProperLock = true;
         } else {
           if (storedReentrantLock == null) {
-            if (log.isDebugEnabled()) {
-              log.debug(
+            if (LOG.isDebugEnabled()) {
+              LOG.debug(
                   "Instance \""
                       + instanceName
                       + "\" had removed \""
@@ -93,8 +109,8 @@ public class FairStringLock {
             // So it was left for garbage collection.. write it back in the map
             lockMap.put(lockName, reentrantLock);
           } else {
-            if (log.isDebugEnabled()) {
-              log.debug(
+            if (LOG.isDebugEnabled()) {
+              LOG.debug(
                   "Instance \""
                       + instanceName
                       + "\" had created a new \""
@@ -110,6 +126,9 @@ public class FairStringLock {
     }
   }
 
+  /**
+   * @param lockName lock
+   */
   public void unlock(final String lockName) {
     if (lockName == null) {
       return;
@@ -118,8 +137,8 @@ public class FairStringLock {
     ReentrantLock reentrantLock = lockMap.get(lockName);
     if (reentrantLock != null) {
       if (!reentrantLock.hasQueuedThreads()) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Instance \""
                   + instanceName
                   + "\" removed reference \""
@@ -131,15 +150,15 @@ public class FairStringLock {
       }
       reentrantLock.unlock();
     } else {
-      log.warn(
+      LOG.warn(
           "Instance \""
               + instanceName
               + "\" tried to unlock an non-existing entry \""
               + lockName
               + "\"");
     }
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Unlocking. Instance \""
               + instanceName
               + "\" is currently containing "

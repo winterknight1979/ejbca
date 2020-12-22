@@ -475,4 +475,6 @@
 		files="CrmfKeyUpdateHandler.java" lines="142 " />
 	<suppress checks="MethodLengthCheck"
 		files="RevocationMessageHandler.java" lines="131 " />
+	<suppress checks="MethodLengthCheck"
+		files="RemoteVerifyServlet.java" lines="344 " />
 </suppressions>
