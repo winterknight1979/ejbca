@@ -24,15 +24,19 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Tests DN merging
+ * Tests DN merging.
  *
  * @version $Id: EndEntityInformationFillerTest.java 22132 2015-11-02 13:52:46Z
  *     mikekushner $
  */
 public class EndEntityInformationFillerTest {
-  EndEntityProfile profile;
-  EndEntityInformation userData = new EndEntityInformation();
+      /** Param. */
+  private EndEntityProfile profile;
+  /** Param. */
+  private EndEntityInformation userData = new EndEntityInformation();
 
+  /** Setup.
+   * @throws Exception fail*/
   @Before
   public void setUp() throws Exception {
     userData =
@@ -68,7 +72,7 @@ public class EndEntityInformationFillerTest {
     profile.setValue(DnComponents.ORGANIZATION, 0, "linagora");
   }
 
-  /** Test dn is merged */
+  /** Test dn is merged. */
   @Test
   public void testFillUserDataWithDefaultValuesDnOnly() {
     userData.setSendNotification(true);
@@ -81,7 +85,7 @@ public class EndEntityInformationFillerTest {
     assertEquals("userPassword", userData.getPassword());
     assertEquals(expectedUserDn, userData.getDN());
   }
-  /** userName is merged */
+  /** userName is merged. */
   @Test
   public void testFillUserDataWithDefaultValuesUserName() {
     userData.setUsername("");
@@ -89,14 +93,14 @@ public class EndEntityInformationFillerTest {
     assertTrue(!userData.getUsername().equals("userName"));
     assertEquals("defaultUserName", userData.getUsername());
   }
-  /** SendNotification is merged */
+  /** SendNotification is merged. */
   @Test
   public void testFillUserDataWithDefaultValuesSendNotification() {
     profile.setValue(EndEntityProfile.SENDNOTIFICATION, 0, "true");
     EndEntityInformationFiller.fillUserDataWithDefaultValues(userData, profile);
     assertTrue(userData.getSendNotification());
   }
-  /** Email is merged */
+  /** Email is merged. */
   @Test
   public void testFillUserDataWithDefaultValuesEmail() {
     userData.setEmail("");
@@ -109,7 +113,7 @@ public class EndEntityInformationFillerTest {
     // @linagora.com is not a valid e-mail address, no merge
     assertTrue(userData.getEmail().equals(""));
   }
-  /** Password is merged */
+  /** Password is merged. */
   @Test
   public void testFillUserDataWithDefaultValuesPassword() {
     EndEntityInformationFiller.fillUserDataWithDefaultValues(userData, profile);

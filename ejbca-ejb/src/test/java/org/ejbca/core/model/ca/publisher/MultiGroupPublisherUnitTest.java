@@ -62,26 +62,36 @@ import org.junit.runner.RunWith;
 @RunWith(EasyMockRunner.class)
 public class MultiGroupPublisherUnitTest {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(MultiGroupPublisherUnitTest.class);
 
+  /** param. */
   private static final String TEST_PUBLISHER_DESCRIPTION = "This is a test";
+  /** param. */
   private static final String TEST_PUBLISHER_NAME = "SomeMultiGroupPublisher";
+  /** param. */
   private static final String EE_SERIAL = "665544332211";
+  /** param. */
   private static final String EE_DN =
       CertTools.stringToBCDNString(
           "CN=Some User,OU=Quality Assurance,O=TestOrg");
+  /** param. */
   private static final String EE_ISSUERDN =
       CertTools.stringToBCDNString("CN=Issuing CA,O=TestOrg");
+  /** param. */
   private static final String EE_PASSWORD = "s0MeThiNg";
 
+  /** param. */
   @Mock(MockType.STRICT)
   private PublisherSessionLocal publisherSession;
 
+  /** param. */
   @TestSubject
   private final MultiGroupPublisher publisher = new MultiGroupPublisher();
 
-  final AuthenticationToken admin =
+  /** param. */
+  private final AuthenticationToken admin =
       new AlwaysAllowLocalAuthenticationToken("Dummy Admin");
 
   private static final class MockPublishRevokedOnlyPublisher
@@ -381,7 +391,7 @@ public class MultiGroupPublisherUnitTest {
       publisher.testConnection();
       fail("testConnection should throw");
     } catch (PublisherConnectionException e) {
-      log.debug("Exception message is: " + e);
+      LOG.debug("Exception message is: " + e);
       assertTrue(
           "Missing cause in exception message.",
           e.getMessage().contains("Some error 32474"));
@@ -391,7 +401,10 @@ public class MultiGroupPublisherUnitTest {
     }
     verify(publisherSession, referencedPublisher);
   }
-
+/**
+ * Test.
+ * @throws CloneNotSupportedException fail
+ */
   @Test
   public void testClone() throws CloneNotSupportedException {
     final List<TreeSet<Integer>> originalPublisherGroups = new ArrayList<>();
@@ -400,15 +413,15 @@ public class MultiGroupPublisherUnitTest {
     publisherGroup1.add(123);
     originalPublisherGroups.add(publisherGroup1);
 
-    final MultiGroupPublisher publisher = new MultiGroupPublisher();
-    publisher.setDescription(TEST_PUBLISHER_DESCRIPTION);
-    publisher.setName(TEST_PUBLISHER_NAME);
-    publisher.setOnlyUseQueue(false);
-    publisher.setUseQueueForCertificates(false);
-    publisher.setUseQueueForCRLs(false);
-    publisher.setPublisherGroups(originalPublisherGroups);
+    final MultiGroupPublisher apublisher = new MultiGroupPublisher();
+    apublisher.setDescription(TEST_PUBLISHER_DESCRIPTION);
+    apublisher.setName(TEST_PUBLISHER_NAME);
+    apublisher.setOnlyUseQueue(false);
+    apublisher.setUseQueueForCertificates(false);
+    apublisher.setUseQueueForCRLs(false);
+    apublisher.setPublisherGroups(originalPublisherGroups);
 
-    final MultiGroupPublisher clone = (MultiGroupPublisher) publisher.clone();
+    final MultiGroupPublisher clone = (MultiGroupPublisher) apublisher.clone();
     assertEquals(
         "Description is different",
         TEST_PUBLISHER_DESCRIPTION,
@@ -422,11 +435,11 @@ public class MultiGroupPublisherUnitTest {
     assertFalse("getUseQueueForCRLs is different", clone.getUseQueueForCRLs());
     assertNotSame(
         "Publisher groups list was re-used",
-        publisher.getPublisherGroups(),
+        apublisher.getPublisherGroups(),
         clone.getPublisherGroups());
     assertEquals(
         "Publisher groups list was different",
-        publisher.getPublisherGroups(),
+        apublisher.getPublisherGroups(),
         clone.getPublisherGroups());
   }
 }

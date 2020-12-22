@@ -31,10 +31,10 @@ import org.junit.Test;
  *     $
  */
 public class PublisherCacheTest {
-
-  private static final transient Logger log =
+/** Logger. */
+  private static final transient Logger LOG =
       Logger.getLogger(PublisherCacheTest.class);
-
+/** Setup. */
   @BeforeClass
   public static void beforeClass() {
     EjbcaConfigurationHolder.instance();
@@ -47,7 +47,7 @@ public class PublisherCacheTest {
    */
   @Test
   public void disabledCacheBehavior() {
-    log.trace(">" + Thread.currentThread().getStackTrace()[1].getMethodName());
+    LOG.trace(">" + Thread.currentThread().getStackTrace()[1].getMethodName());
     EjbcaConfigurationHolder.updateConfiguration("publisher.cachetime", "-1");
     final String name1 = PublisherCacheTest.class.getSimpleName() + " Publ1";
     final String name2 = PublisherCacheTest.class.getSimpleName() + " Publ2";
@@ -158,7 +158,7 @@ public class PublisherCacheTest {
     assertNull(
         "Empty cache returned a name anyway",
         PublisherCache.INSTANCE.getName(3));
-    log.trace("<" + Thread.currentThread().getStackTrace()[1].getMethodName());
+    LOG.trace("<" + Thread.currentThread().getStackTrace()[1].getMethodName());
   }
 
   /**
@@ -168,7 +168,7 @@ public class PublisherCacheTest {
    */
   @Test
   public void enabledCacheBehavior() {
-    log.trace(">" + Thread.currentThread().getStackTrace()[1].getMethodName());
+    LOG.trace(">" + Thread.currentThread().getStackTrace()[1].getMethodName());
     EjbcaConfigurationHolder.updateConfiguration("publisher.cachetime", "3000");
     final String name1 = PublisherCacheTest.class.getSimpleName() + " Publ1";
     final String name2 = PublisherCacheTest.class.getSimpleName() + " Publ2";
@@ -325,7 +325,7 @@ public class PublisherCacheTest {
     assertNull(
         "Empty cache returned a name anyway",
         PublisherCache.INSTANCE.getName(3));
-    log.trace("<" + Thread.currentThread().getStackTrace()[1].getMethodName());
+    LOG.trace("<" + Thread.currentThread().getStackTrace()[1].getMethodName());
   }
 
   /**
@@ -337,7 +337,7 @@ public class PublisherCacheTest {
    */
   @Test
   public void cacheExpiration() throws InterruptedException {
-    log.trace(">" + Thread.currentThread().getStackTrace()[1].getMethodName());
+    LOG.trace(">" + Thread.currentThread().getStackTrace()[1].getMethodName());
     EjbcaConfigurationHolder.updateConfiguration("publisher.cachetime", "2000");
     final String name1 = PublisherCacheTest.class.getSimpleName() + " CA1";
     final String name2 = PublisherCacheTest.class.getSimpleName() + " CA2";
@@ -505,7 +505,7 @@ public class PublisherCacheTest {
     assertNull(
         "Empty cache returned a name anyway",
         PublisherCache.INSTANCE.getName(3));
-    log.trace("<" + Thread.currentThread().getStackTrace()[1].getMethodName());
+    LOG.trace("<" + Thread.currentThread().getStackTrace()[1].getMethodName());
   }
 
   private BasePublisher getNewPublisher() {

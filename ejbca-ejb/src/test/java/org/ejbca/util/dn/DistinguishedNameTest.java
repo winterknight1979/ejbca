@@ -29,28 +29,46 @@ import org.junit.Test;
  */
 public class DistinguishedNameTest {
 
+      /** Param. */
   private static final String DN =
       "cn=David Galichet,o=Fimasys,email=dgalichet@fimasys.fr,"
           + "g=M,email=david.galichet@fimasys.fr";
+  /** Param. */
   private static final String OTHER_DN =
       "o=Linagora,email=dgalichet@linagora.fr,ou=Linagora Secu,"
-          + "l=Paris,email=david.galichet@linagora.com,email=dgalichet@linagora.com";
-  DistinguishedName dn = null;
-  DistinguishedName otherDn = null;
+          + "l=Paris,email=david.galichet@linagora.com,"
+          + "email=dgalichet@linagora.com";
+  /** Param. */
+  private DistinguishedName dn = null;
+  /** Param. */
+  private DistinguishedName otherDn = null;
 
+  /** Param. */
   private static final String SUBJECT_ALT_NAME =
       "RFC822NAME=vkn@linagora.com,IPADDRESS=208.77.188.166";
+  /** Param. */
   private static final String OTHER_SUBJECT_ALT_NAME =
-      "RFC822NAME=linagora.mail@linagora.com,IPADDRESS=777.77.777.777,UNIFORMRESOURCEID=other.uri";
-  DistinguishedName subjectAltName = null;
-  DistinguishedName otherSubjectAltName = null;
+      "RFC822NAME=linagora.mail@linagora.com,"
+      + "IPADDRESS=777.77.777.777,UNIFORMRESOURCEID=other.uri";
+  /** Param. */
+  private DistinguishedName subjectAltName = null;
+  /** Param. */
+  private DistinguishedName otherSubjectAltName = null;
 
+  /**
+   * Setuop.
+   * @throws Exception fail
+   */
   @Before
   public void setUp() throws Exception {
     otherDn = new DistinguishedName(OTHER_DN);
     otherSubjectAltName = new DistinguishedName(OTHER_SUBJECT_ALT_NAME);
   }
 
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testGetRdn() throws Exception {
     dn = createNewDN();
@@ -62,7 +80,8 @@ public class DistinguishedNameTest {
     assertNull(dn.getRdn("email", 2));
   }
 
-  /* from stack xchange, to work around the Java Versioning system change between Java 8 and Java 9 */
+  /* from stack xchange, to work around the Java
+   * Versioning system change between Java 8 and Java 9 */
   private static int getVersion() {
     String version = System.getProperty("java.version");
     if (version.startsWith("1.")) {
@@ -85,22 +104,24 @@ public class DistinguishedNameTest {
   @Test
   public void testMergeDnWithoutOverride() throws Exception {
 
-    final String EXPECTED_DN =
+    final String expectedDn =
         "cn=David"
-            + " Galichet,o=Fimasys,email=dgalichet@fimasys.fr,g=M,email=david.galichet@fimasys.fr,ou=Linagora"
+            + " Galichet,o=Fimasys,email=dgalichet@fimasys.fr,"
+            + "g=M,email=david.galichet@fimasys.fr,ou=Linagora"
             + " Secu,email=dgalichet@linagora.com,l=Paris";
-    final String EXPECTED_DN_JDK8 =
+    final String expectedDnJDK8 =
         "cn=David"
-            + " Galichet,o=Fimasys,email=dgalichet@fimasys.fr,g=M,email=david.galichet@fimasys.fr,ou=Linagora"
+            + " Galichet,o=Fimasys,email=dgalichet@fimasys.fr,"
+            + "g=M,email=david.galichet@fimasys.fr,ou=Linagora"
             + " Secu,l=Paris,email=dgalichet@linagora.com";
     dn = createNewDN();
     DistinguishedName newDn = dn.mergeDN(otherDn, false, null);
 
     int major = getVersion();
     if (major > 7) {
-      assertEquals(EXPECTED_DN_JDK8, newDn.toString());
+      assertEquals(expectedDnJDK8, newDn.toString());
     } else {
-      assertEquals(EXPECTED_DN, newDn.toString());
+      assertEquals(expectedDn, newDn.toString());
     }
   }
 
@@ -113,13 +134,15 @@ public class DistinguishedNameTest {
   @Test
   public void testMergeDnWithOverride() throws Exception {
 
-    final String EXPECTED_DN =
+    final String expectedDn =
         "cn=David"
-            + " Galichet,o=Linagora,email=dgalichet@linagora.fr,g=M,email=david.galichet@linagora.com,ou=Linagora"
+            + " Galichet,o=Linagora,email=dgalichet@linagora.fr,"
+            + "g=M,email=david.galichet@linagora.com,ou=Linagora"
             + " Secu,email=dgalichet@linagora.com,l=Paris";
-    final String EXPECTED_DN_JDK8 =
+    final String expectedDnJDK8 =
         "cn=David"
-            + " Galichet,o=Linagora,email=dgalichet@linagora.fr,g=M,email=david.galichet@linagora.com,ou=Linagora"
+            + " Galichet,o=Linagora,email=dgalichet@linagora.fr,g=M,"
+            + "email=david.galichet@linagora.com,ou=Linagora"
             + " Secu,l=Paris,email=dgalichet@linagora.com";
 
     dn = createNewDN();
@@ -127,9 +150,9 @@ public class DistinguishedNameTest {
 
     int major = getVersion();
     if (major > 7) {
-      assertEquals(EXPECTED_DN_JDK8, newDn.toString());
+      assertEquals(expectedDnJDK8, newDn.toString());
     } else {
-      assertEquals(EXPECTED_DN, newDn.toString());
+      assertEquals(expectedDn, newDn.toString());
     }
   }
 
@@ -143,8 +166,9 @@ public class DistinguishedNameTest {
   public void testMergeSubjectAltNameWithoutOverrideNotUsingEntityEmail()
       throws Exception {
 
-    final String EXPECTED =
-        "RFC822NAME=vkn@linagora.com,IPADDRESS=208.77.188.166,UNIFORMRESOURCEID=other.uri";
+    final String expected =
+        "RFC822NAME=vkn@linagora.com,"
+        + "IPADDRESS=208.77.188.166,UNIFORMRESOURCEID=other.uri";
     subjectAltName = createNewSubjectAltName();
     Map<String, String> dnMap = new HashMap<String, String>();
     dnMap.put(DnComponents.RFC822NAME, "entitymail@linagora.com");
@@ -153,7 +177,7 @@ public class DistinguishedNameTest {
 
     assertEquals(3, altName.size());
 
-    assertEquals(EXPECTED, altName.toString());
+    assertEquals(expected, altName.toString());
   }
 
   /**
@@ -166,15 +190,16 @@ public class DistinguishedNameTest {
   public void testMergeSubjectAltNameWithoutOverrideUsingEntityEmail()
       throws Exception {
 
-    final String EXPECTED =
-        "RFC822NAME=vkn@linagora.com,IPADDRESS=208.77.188.166,UNIFORMRESOURCEID=other.uri";
+    final String expected =
+        "RFC822NAME=vkn@linagora.com,"
+        + "IPADDRESS=208.77.188.166,UNIFORMRESOURCEID=other.uri";
     subjectAltName = createNewSubjectAltName();
     Map<String, String> dnMap = new HashMap<String, String>();
     dnMap.put(DnComponents.RFC822NAME, "entitymail@linagora.com");
     DistinguishedName altName =
         subjectAltName.mergeDN(otherSubjectAltName, false, dnMap);
 
-    assertEquals(EXPECTED, altName.toString());
+    assertEquals(expected, altName.toString());
   }
   /**
    * Test of mergeDN method, of class DistinguishedName. This version tests the
@@ -186,14 +211,15 @@ public class DistinguishedNameTest {
   public void testMergeSubjectAltNameWithOverrideNotUsingEntityEmail()
       throws Exception {
 
-    final String EXPECTED =
-        "RFC822NAME=linagora.mail@linagora.com,IPADDRESS=777.77.777.777,UNIFORMRESOURCEID=other.uri";
+    final String expected =
+        "RFC822NAME=linagora.mail@linagora.com,"
+        + "IPADDRESS=777.77.777.777,UNIFORMRESOURCEID=other.uri";
     subjectAltName = createNewSubjectAltName();
     Map<String, String> dnMap = new HashMap<String, String>();
     DistinguishedName altName =
         subjectAltName.mergeDN(otherSubjectAltName, true, dnMap);
 
-    assertEquals(EXPECTED, altName.toString());
+    assertEquals(expected, altName.toString());
   }
   /**
    * Test of mergeDN method, of class DistinguishedName. This version tests the
@@ -204,18 +230,19 @@ public class DistinguishedNameTest {
   @Test
   public void testMergeSubjectAltNameWithOverrideUsingEntityEmail()
       throws Exception {
-    final String _OTHER_SUBJECT_ALT_NAME =
+    final String anotherSubjectAltName =
         "IPADDRESS=777.77.777.777,UNIFORMRESOURCEID=other.uri";
 
-    final String EXPECTED =
-        "RFC822NAME=entitymail@linagora.com,IPADDRESS=777.77.777.777,UNIFORMRESOURCEID=other.uri";
-    DistinguishedName san = new DistinguishedName(_OTHER_SUBJECT_ALT_NAME);
+    final String expected =
+        "RFC822NAME=entitymail@linagora.com,"
+        + "IPADDRESS=777.77.777.777,UNIFORMRESOURCEID=other.uri";
+    DistinguishedName san = new DistinguishedName(anotherSubjectAltName);
     subjectAltName = createNewSubjectAltName();
     Map<String, String> dnMap = new HashMap<String, String>();
     dnMap.put(DnComponents.RFC822NAME, "entitymail@linagora.com");
     DistinguishedName altName = subjectAltName.mergeDN(san, true, dnMap);
 
-    assertEquals(EXPECTED, altName.toString());
+    assertEquals(expected, altName.toString());
   }
 
   private DistinguishedName createNewDN() throws Exception {

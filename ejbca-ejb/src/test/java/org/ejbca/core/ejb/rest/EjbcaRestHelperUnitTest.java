@@ -47,7 +47,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 /**
- * This class contains unit tests for EjbcaRestHelper class
+ * This class contains unit tests for EjbcaRestHelper class.
  *
  * @version $Id: EjbcaRestHelperUnitTest.java 29025 2018-05-25 08:45:54Z
  *     tarmo_r_helmes $
@@ -55,19 +55,27 @@ import org.junit.runner.RunWith;
 @RunWith(EasyMockRunner.class)
 public class EjbcaRestHelperUnitTest {
 
+      /** Param. */
   @TestSubject
-  EjbcaRestHelperSessionBean testClass = new EjbcaRestHelperSessionBean();
+  private EjbcaRestHelperSessionBean testClass =
+          new EjbcaRestHelperSessionBean();
 
+  /** Param. */
   @Mock private WebAuthenticationProviderSessionLocal authenticationSession;
 
+  /** Param. */
   @Mock private RaMasterApiProxyBeanLocal raMasterApiProxyBean;
 
+  /** Param. */
   @Mock private EndEntityProfileSessionLocal endEntityProfileSessionBean;
 
+  /** Param. */
   @Mock private CertificateProfileSessionLocal certificateProfileSessionBean;
+  /** Param. */
   @Mock private CaSessionLocal caSessionBean;
 
-  final String csr =
+  /** CSR. */
+  private final String csr =
       "-----BEGIN CERTIFICATE REQUEST-----\n"
           + "MIIDWDCCAkACAQAwYTELMAkGA1UEBhMCRUUxEDAOBgNVBAgTB0FsYWJhbWExEDAO\n"
           + "BgNVBAcTB3RhbGxpbm4xFDASBgNVBAoTC25hYWJyaXZhbHZlMRgwFgYDVQQDEw9o\n"
@@ -88,7 +96,9 @@ public class EjbcaRestHelperUnitTest {
           + "3V1hMBajTMGN9emWLR6pfj5P7QpVR4hkv3LvgCPf474pWA9l/4WiKBzrI76T5yz1\n"
           + "KoobCZQ2UrqnKFGEbdoNFchb2CDgdLnFu6Tbf6MW5zO5ypOIUih61Zf9Qyo=\n"
           + "-----END CERTIFICATE REQUEST-----\n";
-
+  /**
+   * Test.
+   * @throws Exception  fail */
   @Test(expected = CADoesntExistsException.class)
   public void shouldFailOnFindingCertificateAuthorityByName() throws Exception {
 
@@ -145,7 +155,9 @@ public class EjbcaRestHelperUnitTest {
     // then
     EasyMock.verify();
   }
-
+  /**
+   * Test.
+   * @throws Exception  fail */
   @Test(expected = CertificateProfileDoesNotExistException.class)
   public void shouldFailOnFindingCertificateProfileByName() throws Exception {
     // given
@@ -207,7 +219,9 @@ public class EjbcaRestHelperUnitTest {
     // then
     EasyMock.verify();
   }
-
+  /**
+   * Test.
+   * @throws Exception  fail */
   @Test(expected = EndEntityProfileNotFoundException.class)
   public void shouldFailOnFindingEndEntityProfileByName() throws Exception {
     // given
@@ -275,6 +289,9 @@ public class EjbcaRestHelperUnitTest {
     EasyMock.verify();
   }
 
+  /**
+   * Test.
+   * @throws Exception  fail */
   @Test
   public void shouldConvertToCorrectEndEntityInformation() throws Exception {
     // given
@@ -372,6 +389,8 @@ public class EjbcaRestHelperUnitTest {
     EasyMock.verify();
   }
 
+  /**
+   * Test. */
   @Test
   public void shouldParseCorrectDn() {
     PKCS10CertificationRequest pkcs10CertificateRequest =
@@ -384,7 +403,8 @@ public class EjbcaRestHelperUnitTest {
         expectedResult,
         actualResult);
   }
-
+  /**
+   * Test. */
   @Test
   public void shouldParseCorrectAn() {
     PKCS10CertificationRequest pkcs10CertificateRequest =

@@ -45,9 +45,14 @@ import org.junit.Test;
  */
 public class UnidFnrHandlerTest {
 
-  CmpConfiguration cmpConfiguration = new CmpConfiguration();
-  String configAlias = "UnidFnrHandlerTestCmpConfigAlias";
-
+      /** Param. */
+  private CmpConfiguration cmpConfiguration = new CmpConfiguration();
+  /** Param. */
+  private String configAlias = "UnidFnrHandlerTestCmpConfigAlias";
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void test01() throws Exception {
 
@@ -72,7 +77,10 @@ public class UnidFnrHandlerTest {
 
     cmpConfiguration.removeAlias(configAlias);
   }
-
+/**
+ * Test.
+ * @throws Exception fail
+ */
   @Test
   public void test02() throws Exception {
 
@@ -101,32 +109,40 @@ public class UnidFnrHandlerTest {
   }
 
   private static class MyStorage implements Storage {
+        /** Param. */
     private final String unidPrefix;
+    /** Param. */
     private final String fnr;
+    /** Param. */
     private final String lra;
-    String unid;
+    /** Param. */
+    private String unid;
 
-    MyStorage(final String _unidPrefix, final String _fnr, final String _lra) {
-      this.unidPrefix = _unidPrefix;
-      this.fnr = _fnr;
-      this.lra = _lra;
+    MyStorage(final String uunidPrefix, final String ufnr, final String ulra) {
+      this.unidPrefix = uunidPrefix;
+      this.fnr = ufnr;
+      this.lra = ulra;
     }
 
     @Override
-    public void storeIt(final String _unid, final String _fnr)
+    public void storeIt(final String uunid, final String ufnr)
         throws HandlerException {
-      assertEquals(this.fnr, _fnr);
-      assertEquals(this.unidPrefix, _unid.substring(0, 10));
-      assertEquals(this.lra, _unid.substring(10, 15));
-      this.unid = _unid;
+      assertEquals(this.fnr, ufnr);
+      assertEquals(this.unidPrefix, uunid.substring(0, 10));
+      assertEquals(this.lra, uunid.substring(10, 15));
+      this.unid = uunid;
     }
   }
 
   private static class MyIRequestMessage implements ICrmfRequestMessage {
     private static final long serialVersionUID = -2303591921932083436L;
-    final X500Name dn;
-    List<Certificate> additionalCaCertificates = new ArrayList<>();
-    List<Certificate> additionalExtraCertsCertificates = new ArrayList<>();
+    /** Param. */
+    private final X500Name dn;
+    /** Param. */
+    private List<Certificate> additionalCaCertificates = new ArrayList<>();
+    /** Param. */
+    private List<Certificate> additionalExtraCertsCertificates =
+            new ArrayList<>();
 
     MyIRequestMessage(final String serialNumber) {
       X500NameBuilder nameBuilder =
@@ -267,7 +283,7 @@ public class UnidFnrHandlerTest {
 
     @Override
     public void setResponseKeyInfo(
-        final PrivateKey key, final String provider) {}
+        final PrivateKey key, final String provider) { }
 
     @Override
     public int getPbeIterationCount() {
@@ -312,7 +328,7 @@ public class UnidFnrHandlerTest {
     }
 
     @Override
-    public void setServerGenKeyPair(final KeyPair serverGenKeyPair) {}
+    public void setServerGenKeyPair(final KeyPair serverGenKeyPair) { }
 
     @Override
     public KeyPair getServerGenKeyPair() {

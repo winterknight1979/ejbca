@@ -477,4 +477,8 @@
 		files="RevocationMessageHandler.java" lines="131 " />
 	<suppress checks="MethodLengthCheck"
 		files="RemoteVerifyServlet.java" lines="344 " />
+	<suppress checks="MethodLengthCheck"
+		files="PublisherCacheTest.java" lines="169, 338 " />
+	<suppress checks="ParameterNumberCheck"
+		files="MultiGroupPublisherUnitTest.java" lines="110 " />
 </suppressions>

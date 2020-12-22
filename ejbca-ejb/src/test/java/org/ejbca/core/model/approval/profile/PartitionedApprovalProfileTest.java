@@ -33,7 +33,7 @@ public class PartitionedApprovalProfileTest {
 
   /**
    * Approval is required if there are any partitions that the ANYBODY
-   * pseudo-role doesn't have access to
+   * pseudo-role doesn't have access to.
    *
    * @throws ApprovalException Fail
    * @throws AuthenticationFailedException Fail

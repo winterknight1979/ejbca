@@ -26,6 +26,10 @@ import org.junit.Test;
  */
 public class ObjectCacheTest {
 
+    /**
+     * Test.
+     * @throws Exception fail
+     */
   @Test
   public void testObjectCache() throws Exception {
     ObjectCache<Object, Object> cache = new ObjectCache<Object, Object>(200);

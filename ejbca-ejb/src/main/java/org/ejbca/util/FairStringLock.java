@@ -52,10 +52,10 @@ public final class FairStringLock {
   private final String instanceName;
 
   /**
-   * @param instanceName name
+   * @param aninstanceName name
    */
-  private FairStringLock(final String instanceName) {
-    this.instanceName = instanceName;
+  private FairStringLock(final String aninstanceName) {
+    this.instanceName = aninstanceName;
   }
 
   /**
