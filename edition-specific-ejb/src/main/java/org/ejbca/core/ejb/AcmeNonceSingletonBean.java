@@ -17,29 +17,30 @@ import javax.ejb.ConcurrencyManagementType;
 import javax.ejb.Singleton;
 import javax.ejb.TransactionManagement;
 import javax.ejb.TransactionManagementType;
-
 import org.ejbca.core.protocol.acme.AcmeNonceSingletonLocal;
 
 /**
- * Not available in Community Edition
+ * Not available in Community Edition.
  *
- * @version $Id: AcmeNonceSingletonBean.java 29618 2018-08-13 18:29:05Z mikekushner $
+ * @version $Id: AcmeNonceSingletonBean.java 29618 2018-08-13 18:29:05Z
+ *     mikekushner $
  */
 @Singleton
 @ConcurrencyManagement(ConcurrencyManagementType.BEAN)
-// We can't rely on transactions for calls that will do persistence over the RaMasterApi, so avoid the overhead of when methods are invoked
+// We can't rely on transactions for calls that will do persistence over the
+// RaMasterApi, so avoid the overhead of when methods are invoked
 @TransactionManagement(TransactionManagementType.BEAN)
 public class AcmeNonceSingletonBean implements AcmeNonceSingletonLocal {
 
-    @Override
-    public boolean isNonceValid(final String nonce) {
-        throw new UnsupportedOperationException("ACME calls are only supported in EJBCA Enterprise");
-    }
+  @Override
+  public boolean isNonceValid(final String nonce) {
+    throw new UnsupportedOperationException(
+        "ACME calls are only supported in EJBCA Enterprise");
+  }
 
-    @Override
-    public String getReplayNonce() throws IllegalStateException {
-        throw new UnsupportedOperationException("ACME calls are only supported in EJBCA Enterprise");
-    }
-
-
+  @Override
+  public String getReplayNonce() throws IllegalStateException {
+    throw new UnsupportedOperationException(
+        "ACME calls are only supported in EJBCA Enterprise");
+  }
 }

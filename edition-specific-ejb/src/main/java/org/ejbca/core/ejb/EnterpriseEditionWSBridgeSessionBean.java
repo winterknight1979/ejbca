@@ -13,51 +13,88 @@
 package org.ejbca.core.ejb;
 
 import java.util.List;
-
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-
 import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.ejbca.util.KeyValuePair;
 
 /**
  * JEE5 EJB lookup helper.
- * 
- * @version $Id: EnterpriseEditionWSBridgeSessionBean.java 24602 2016-10-31 13:26:34Z anatom $
+ *
+ * @version $Id: EnterpriseEditionWSBridgeSessionBean.java 24602 2016-10-31
+ *     13:26:34Z anatom $
  */
 @Stateless
 @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-public class EnterpriseEditionWSBridgeSessionBean implements EnterpriseEditionWSBridgeSessionLocal {
+public class EnterpriseEditionWSBridgeSessionBean
+    implements EnterpriseEditionWSBridgeSessionLocal {
 
-    @Override
-    public void createCryptoToken(AuthenticationToken admin, String tokenName, String tokenType, String activationPin, 
-            boolean autoActivate, List<KeyValuePair> cryptoTokenProperties) throws UnsupportedMethodException {
-        throw new UnsupportedMethodException("This method can only be used in Enterprise edition.");
-    }
-    
-    @Override
-    public void generateCryptoTokenKeys(AuthenticationToken admin, String cryptoTokenName, String keyPairAlias, String keySpecification) 
-            throws UnsupportedMethodException {
-        throw new UnsupportedMethodException("This method can only be used in Enterprise edition.");
-    }
+  @Override
+  public void createCryptoToken(
+      final AuthenticationToken admin,
+      final String tokenName,
+      final String tokenType,
+      final String activationPin,
+      final boolean autoActivate,
+      final List<KeyValuePair> cryptoTokenProperties)
+      throws UnsupportedMethodException {
+    throw new UnsupportedMethodException(
+        "This method can only be used in Enterprise edition.");
+  }
 
-    @Override
-    public void createCA(AuthenticationToken admin, String caname, String cadn, String catype, String encodedValidity, String certprofile, 
-            String signAlg, int signedByCAId, String cryptoTokenName, List<KeyValuePair> purposeKeyMapping, List<KeyValuePair> caProperties) 
-            throws UnsupportedMethodException {
-        throw new UnsupportedMethodException("This method can only be used in Enterprise edition.");   
-    }
-    
-    @Override
-    public void addSubjectToRole(AuthenticationToken admin, String roleName, String caName, String matchWith, 
-            String matchType, String matchValue) throws UnsupportedMethodException {
-        throw new UnsupportedMethodException("This method can only be used in Enterprise edition.");   
-    }
-    
-    @Override
-    public void removeSubjectFromRole(AuthenticationToken admin, String roleName, String caName, String matchWith, 
-            String matchType, String matchValue) throws UnsupportedMethodException {
-        throw new UnsupportedMethodException("This method can only be used in Enterprise edition.");   
-    }
+  @Override
+  public void generateCryptoTokenKeys(
+      final AuthenticationToken admin,
+      final String cryptoTokenName,
+      final String keyPairAlias,
+      final String keySpecification)
+      throws UnsupportedMethodException {
+    throw new UnsupportedMethodException(
+        "This method can only be used in Enterprise edition.");
+  }
+
+  @Override
+  public void createCA(
+      final AuthenticationToken admin,
+      final String caname,
+      final String cadn,
+      final String catype,
+      final String encodedValidity,
+      final String certprofile,
+      final String signAlg,
+      final int signedByCAId,
+      final String cryptoTokenName,
+      final List<KeyValuePair> purposeKeyMapping,
+      final List<KeyValuePair> caProperties)
+      throws UnsupportedMethodException {
+    throw new UnsupportedMethodException(
+        "This method can only be used in Enterprise edition.");
+  }
+
+  @Override
+  public void addSubjectToRole(
+      final AuthenticationToken admin,
+      final String roleName,
+      final String caName,
+      final String matchWith,
+      final String matchType,
+      final String matchValue)
+      throws UnsupportedMethodException {
+    throw new UnsupportedMethodException(
+        "This method can only be used in Enterprise edition.");
+  }
+
+  @Override
+  public void removeSubjectFromRole(
+      final AuthenticationToken admin,
+      final String roleName,
+      final String caName,
+      final String matchWith,
+      final String matchType,
+      final String matchValue)
+      throws UnsupportedMethodException {
+    throw new UnsupportedMethodException(
+        "This method can only be used in Enterprise edition.");
+  }
 }

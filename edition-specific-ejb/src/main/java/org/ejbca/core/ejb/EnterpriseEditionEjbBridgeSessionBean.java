@@ -18,25 +18,28 @@ import javax.ejb.TransactionAttributeType;
 
 /**
  * JEE5 EJB lookup helper for Community Edition EJBs.
- * 
- * @version $Id: EnterpriseEditionEjbBridgeSessionBean.java 23774 2016-07-05 09:23:00Z anatom $
+ *
+ * @version $Id: EnterpriseEditionEjbBridgeSessionBean.java 23774 2016-07-05
+ *     09:23:00Z anatom $
  */
 @Stateless
 @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-public class EnterpriseEditionEjbBridgeSessionBean implements EnterpriseEditionEjbBridgeSessionLocal {
+public class EnterpriseEditionEjbBridgeSessionBean
+    implements EnterpriseEditionEjbBridgeSessionLocal {
 
-    @Override
-    public <T> T getEnterpriseEditionEjbLocal(Class<T> localInterfaceClass, String modulename) {
-        return null; // NOOP in community edition
-    }
-    
-    @Override
-    public boolean isRunningEnterprise() {
-        return false;
-    }
+  @Override
+  public <T> T getEnterpriseEditionEjbLocal(
+      final Class<T> localInterfaceClass, final String modulename) {
+    return null; // NOOP in community edition
+  }
 
-    @Override
-    public void requestClearEnterpriseAuthorizationCaches() {
-        // NOOP in community edition
-    }
+  @Override
+  public boolean isRunningEnterprise() {
+    return false;
+  }
+
+  @Override
+  public void requestClearEnterpriseAuthorizationCaches() {
+    // NOOP in community edition
+  }
 }

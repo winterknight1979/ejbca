@@ -11,30 +11,37 @@
 package org.ejbca.core.ejb;
 
 import java.security.cert.X509Certificate;
-
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-
 import org.cesecore.jndi.JndiConstants;
 import org.ejbca.core.protocol.est.EstOperationsSessionLocal;
 import org.ejbca.core.protocol.est.EstOperationsSessionRemote;
 
 /**
- * Class that receives a EST message and passes it on to the correct message handler.
- * Not available in Community Edition
+ * Class that receives a EST message and passes it on to the correct message
+ * handler. Not available in Community Edition
  *
- * @version $Id: EstOperationsSessionBean.java 27609 2017-12-20 15:55:45Z mikekushner $
+ * @version $Id: EstOperationsSessionBean.java 27609 2017-12-20 15:55:45Z
+ *     mikekushner $
  */
-@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + "EstOperationsSessionRemote")
+@Stateless(
+    mappedName = JndiConstants.APP_JNDI_PREFIX + "EstOperationsSessionRemote")
 @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-public class EstOperationsSessionBean implements EstOperationsSessionLocal, EstOperationsSessionRemote {
+public class EstOperationsSessionBean
+    implements EstOperationsSessionLocal, EstOperationsSessionRemote {
 
-	@Override
-	@TransactionAttribute(TransactionAttributeType.REQUIRED)
-	public byte[] dispatchRequest(String operation, String alias, X509Certificate cert, String username, String password, byte[] requestBody) 
-	        throws UnsupportedOperationException{
-        throw new UnsupportedOperationException("EST calls are only supported in EJBCA Enterprise");
-	}
-
+  @Override
+  @TransactionAttribute(TransactionAttributeType.REQUIRED)
+  public byte[] dispatchRequest(
+      final String operation,
+      final String alias,
+      final X509Certificate cert,
+      final String username,
+      final String password,
+      final byte[] requestBody)
+      throws UnsupportedOperationException {
+    throw new UnsupportedOperationException(
+        "EST calls are only supported in EJBCA Enterprise");
+  }
 }
