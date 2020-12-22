@@ -72,23 +72,36 @@ import org.ejbca.core.protocol.cmp.authentication.EndEntityCertificateAuthentica
 public class CrmfKeyUpdateHandler extends BaseCmpMessageHandler
     implements ICmpMessageHandler {
 
+    /** Logger. */
   private static final Logger LOG =
       Logger.getLogger(CrmfKeyUpdateHandler.class);
-  /** Internal localization of logs and errors */
+  /** Internal localization of logs and errors. */
   private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
-  /** strings for error messages defined in internal resources */
+  /** strings for error messages defined in internal resources. */
   private static final String CMP_ERRORGENERAL = "cmp.errorgeneral";
 
+  /** Param. */
   private final AuthorizationSession authorizationSession;
+  /** Param. */
   private final CertificateStoreSession certStoreSession;
+  /** Param. */
   private final EndEntityAccessSession endEntityAccessSession;
+  /** Param. */
   private final EndEntityManagementSession endEntityManagementSession;
+  /** Param. */
   private final SignSession signSession;
+  /** Param. */
   private final WebAuthenticationProviderSessionLocal
       authenticationProviderSession;
 
+  /**
+   * @param authenticationToken Token
+   * @param cmpConfiguration Config
+   * @param configAlias Alias
+   * @param ejbBridgeSession Bridge
+   */
   public CrmfKeyUpdateHandler(
       final AuthenticationToken authenticationToken,
       final CmpConfiguration cmpConfiguration,
@@ -108,14 +121,20 @@ public class CrmfKeyUpdateHandler extends BaseCmpMessageHandler
   /*
    * Handles the CMP message
    *
-   * Expects the CMP message to be a CrmfRequestMessage. The message is authenticated using
-   * EndEntityCertificateAuthenticationModule in client mode. It used the attached certificate
-   * to find then End Entity which this certificate belongs to and requesting for a new certificate
+   * Expects the CMP message to be a CrmfRequestMessage.
+   * The message is authenticated using
+   * EndEntityCertificateAuthenticationModule in client mode.
+   * It used the attached certificate
+   * to find then End Entity which this certificate belongs to and requesting
+   * for a new certificate
    * to be generated.
    *
-   * If automatic update of the key (same as certificate renewal), the end entity's status is set to
-   * 'NEW' before processing the request. If using the same old keys in the new certificate is not allowed,
-   * a check is made to insure the the key specified in the request is not the same as the key of the attached
+   * If automatic update of the key (same as certificate renewal), the end
+   * entity's status is set to
+   * 'NEW' before processing the request. If using the same old keys in the
+   * new certificate is not allowed,
+   * a check is made to insure the the key specified in the request is not
+   * the same as the key of the attached
    * certificate.
    *
    * The KeyUpdateRequest is processed only in client mode.
@@ -308,7 +327,8 @@ public class CrmfKeyUpdateHandler extends BaseCmpMessageHandler
          * Check the status of the certificate that should be updated.
          *
          * RFC4210 states in ch. 5.3.5:
-         * "[...] This message is intended to be used to request updates to existing (non-revoked and non-expired) certificates [...]"
+         * "[...] This message is intended to be used to request updates
+         * to existing (non-revoked and non-expired) certificates [...]"
          */
         if (certStoreSession.isRevoked(
             CertTools.getIssuerDN(oldCert),

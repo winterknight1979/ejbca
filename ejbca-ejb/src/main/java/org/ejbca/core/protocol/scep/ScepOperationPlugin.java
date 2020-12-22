@@ -17,7 +17,7 @@ import org.cesecore.authorization.AuthorizationDeniedException;
 import org.ejbca.config.ScepConfiguration;
 
 /**
- * Interface for SCEP plugins which require perform operations
+ * Interface for SCEP plugins which require perform operations.
  *
  * @version $Id: ScepOperationPlugin.java 33852 2019-11-14 13:27:03Z
  *     jekaterina_b_helmes $
@@ -25,7 +25,7 @@ import org.ejbca.config.ScepConfiguration;
 public interface ScepOperationPlugin {
 
   /**
-   * Performs an operation on this extension
+   * Performs an operation on this extension.
    *
    * @param authenticationToken an authentication token for any operations that
    *     may require one
@@ -39,7 +39,7 @@ public interface ScepOperationPlugin {
   boolean performOperation(
       AuthenticationToken authenticationToken,
       ScepRequestMessage reqmsg,
-      final ScepConfiguration scepConfig,
-      final String alias)
+      ScepConfiguration scepConfig,
+      String alias)
       throws AuthorizationDeniedException;
 }

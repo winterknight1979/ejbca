@@ -40,23 +40,29 @@ import org.ejbca.core.model.util.EjbLocalHelper;
 
 /**
  * ASN.1 OCSP extension used to map a UNID to a Fnr, OID for this extension is
- * 2.16.578.1.16.3.2
+ * 2.16.578.1.16.3.2.
  *
  * @version $Id: OCSPUnidExtension.java 29359 2018-06-26 13:55:38Z mikekushner $
  */
 public class OCSPUnidExtension implements OCSPExtension {
 
+      /** param. */
   public static final String OCSP_UNID_OID = "2.16.578.1.16.3.2";
+  /** param. */
   public static final String OCSP_UNID_NAME = "UnId Fnr";
 
-  private static final Logger log = Logger.getLogger(OCSPUnidExtension.class);
-  /** Internal localization of logs and errors */
-  private static final InternalEjbcaResources intres =
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(OCSPUnidExtension.class);
+  /** Internal localization of logs and errors. */
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
+  /** param. */
   private CaSessionLocal caSession;
+  /** param. */
   private UnidfnrSessionLocal unidfnrSession;
 
+  /** param. */
   private int errCode = UnidFnrOCSPExtensionCode.ERROR_NO_ERROR.getValue();
 
   @Override
@@ -109,13 +115,13 @@ public class OCSPUnidExtension implements OCSPExtension {
     // The Unid is in the DN component serialNumber
     serialNumber = CertTools.getPartFromDN(cert.getSubjectDN().getName(), "SN");
     if (serialNumber != null) {
-      if (log.isDebugEnabled()) {
-        log.debug("Found serialNumber: " + serialNumber);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Found serialNumber: " + serialNumber);
       }
       String iMsg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "ocsp.receivedunidreq", remoteAddress, remoteHost, serialNumber);
-      log.info(iMsg);
+      LOG.info(iMsg);
 
       // Make sure unidfnrSession is loaded properly in all environments before
       // using it.
@@ -125,35 +131,35 @@ public class OCSPUnidExtension implements OCSPExtension {
       fnr = unidfnrSession.fetchUnidFnrData(serialNumber);
     } else {
       String errMsg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "ocsp.errorunidnosnindn", cert.getSubjectDN().getName());
-      log.error(errMsg);
+      LOG.error(errMsg);
       errCode = UnidFnrOCSPExtensionCode.ERROR_NO_SERIAL_IN_DN.getValue();
       return null;
     }
 
     if (fnr == null) {
       String errMsg =
-          intres.getLocalizedMessage("ocsp.errorunidnosnmapping", serialNumber);
-      log.error(errMsg);
+          INTRES.getLocalizedMessage("ocsp.errorunidnosnmapping", serialNumber);
+      LOG.error(errMsg);
       errCode = UnidFnrOCSPExtensionCode.ERROR_NO_FNR_MAPPING.getValue();
       return null;
     }
 
     String successMsg =
-        intres.getLocalizedMessage(
+        INTRES.getLocalizedMessage(
             "ocsp.returnedunidresponse",
             remoteAddress,
             remoteHost,
             serialNumber);
-    log.info(successMsg);
+    LOG.info(successMsg);
 
     return generateUnidFnrOCSPResponce(fnr);
   }
 
   /**
    * Returns the last error that occurred during process(), when process returns
-   * null
+   * null.
    *
    * @return error code as defined by implementing class
    */
@@ -169,18 +175,18 @@ public class OCSPUnidExtension implements OCSPExtension {
       final List<InternalKeyBindingTrustEntry> bindingTrustEntries) {
     if (certificates == null) {
       String errMsg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "ocsp.errornoclientauth", remoteAddress, remoteHost);
-      log.error(errMsg);
+      LOG.error(errMsg);
       return false;
     }
     // The certificate of the entity is nr 0
     X509Certificate cert = certificates[0];
     if (cert == null) {
       String errMsg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "ocsp.errornoclientauth", remoteAddress, remoteHost);
-      log.error(errMsg);
+      LOG.error(errMsg);
       return false;
     }
 
@@ -196,8 +202,8 @@ public class OCSPUnidExtension implements OCSPExtension {
 
     final CAInfo caInfo = caSession.getCAInfoInternal(issuerDN.hashCode());
 
-    for (final InternalKeyBindingTrustEntry bindingTrustEntry :
-        bindingTrustEntries) {
+    for (final InternalKeyBindingTrustEntry bindingTrustEntry
+        : bindingTrustEntries) {
       // Match
       final BigInteger trustEntrySerial =
           bindingTrustEntry.fetchCertificateSerialNumber();
@@ -216,8 +222,8 @@ public class OCSPUnidExtension implements OCSPExtension {
       try {
         cert.verify(cacert.getPublicKey());
       } catch (Exception e) {
-        String errMsg = intres.getLocalizedMessage("ocsp.errorverifycert");
-        log.error(errMsg, e);
+        String errMsg = INTRES.getLocalizedMessage("ocsp.errorverifycert");
+        LOG.error(errMsg, e);
         return false;
       }
       // If verify was successful we know if was good!
@@ -225,9 +231,9 @@ public class OCSPUnidExtension implements OCSPExtension {
     }
 
     String errMsg =
-        intres.getLocalizedMessage(
+        INTRES.getLocalizedMessage(
             "ocsp.erroruntrustedclientauth", remoteAddress, remoteHost);
-    log.error(errMsg);
+    LOG.error(errMsg);
     return false;
   }
 

@@ -22,20 +22,27 @@ import org.ejbca.config.CmpConfiguration;
 import org.ejbca.core.protocol.cmp.CmpPKIBodyConstants;
 
 /**
- * Extracts password from the request DN of a CMRF request message
+ * Extracts password from the request DN of a CMRF request message.
  *
  * @version $Id: DnPartPasswordExtractor.java 19901 2014-09-30 14:29:38Z anatom
  *     $
  */
 public class DnPartPasswordExtractor implements ICMPAuthenticationModule {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(DnPartPasswordExtractor.class);
 
+  /** Param. */
   private final String dnPart;
+  /** Param. */
   private String password;
+  /** Param. */
   private String errorMessage;
 
+  /**
+   * @param dnpart DN
+   */
   public DnPartPasswordExtractor(final String dnpart) {
     this.dnPart = dnpart;
     this.password = null;
@@ -44,7 +51,8 @@ public class DnPartPasswordExtractor implements ICMPAuthenticationModule {
 
   @Override
   /*
-   * Extracts the value of 'dnPart' from the subjectDN of the certificate request template.
+   * Extracts the value of 'dnPart' from the subjectDN
+   * of the certificate request template.
    */
   public boolean verifyOrExtract(final PKIMessage msg, final String username) {
 
@@ -56,8 +64,8 @@ public class DnPartPasswordExtractor implements ICMPAuthenticationModule {
 
     final String dnString =
         req.getCertReq().getCertTemplate().getSubject().toString();
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Extracting password from SubjectDN '"
               + dnString
               + "' and DN part '"

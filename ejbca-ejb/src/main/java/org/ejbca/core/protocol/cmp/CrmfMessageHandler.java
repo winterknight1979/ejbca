@@ -85,49 +85,59 @@ import org.ejbca.util.passgen.IPasswordGenerator;
 import org.ejbca.util.passgen.PasswordGeneratorFactory;
 
 /**
- * Message handler for certificate request messages in the CRMF format
+ * Message handler for certificate request messages in the CRMF format.
  *
  * @version $Id: CrmfMessageHandler.java 28616 2018-04-03 11:51:50Z samuellb $
  */
 public class CrmfMessageHandler extends BaseCmpMessageHandler
     implements ICmpMessageHandler {
 
+    /** Logger. */
   private static final Logger LOG = Logger.getLogger(CrmfMessageHandler.class);
-  /** Internal localization of logs and errors */
+  /** Internal localization of logs and errors. */
   private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
-  /** strings for error messages defined in internal resources */
+  /** strings for error messages defined in internal resources. */
   private static final String CMP_ERRORADDUSER = "cmp.erroradduser";
 
+  /** Param. */
   private static final String CMP_ERRORGENERAL = "cmp.errorgeneral";
 
   /**
    * Parameters used for username generation if we are using RA mode to create
-   * users
+   * users.
    */
   private final UsernameGeneratorParams usernameGenParams;
-  /** Parameters used for temporary password generation */
+  /** Parameters used for temporary password generation. */
   private final String userPwdParams;
   /**
-   * Parameter used to determine the type of protection for the response message
+   * Parameter used to determine the type of protection for the
+   * response message.
    */
   private final String responseProt;
   /**
    * Determines if it the RA will look for requested custom certificate serial
-   * numbers, if false such data is ignored
+   * numbers, if false such data is ignored.
    */
   private final boolean allowCustomCertSerno;
-  /** Extra pre-processing of requests */
+  /** Extra pre-processing of requests. */
   private final ExtendedUserDataHandler extendedUserDataHandler;
 
+  /** Param. */
   private final SignSession signSession;
+  /** Param. */
   private final EndEntityAccessSession endEntityAccessSession;
+  /** Param. */
   private final CertificateRequestSession certificateRequestSession;
+  /** Param. */
   private final CertificateStoreSession certStoreSession;
+  /** Param. */
   private final AuthorizationSession authorizationSession;
+  /** Param. */
   private final WebAuthenticationProviderSessionLocal
       authenticationProviderSession;
+  /** Param. */
   private final EndEntityManagementSession endEntityManagementSession;
 
   /**
@@ -137,18 +147,18 @@ public class CrmfMessageHandler extends BaseCmpMessageHandler
    * @param cmpConfiguration Confif
    * @param configAlias Alias
    * @param ejbBridgeSession Session
-   * @param certificateRequestSession Request
+   * @param acertificateRequestSession Request
    */
   public CrmfMessageHandler(
       final AuthenticationToken authenticationToken,
       final CmpConfiguration cmpConfiguration,
       final String configAlias,
       final EjbBridgeSessionLocal ejbBridgeSession,
-      final CertificateRequestSessionLocal certificateRequestSession) {
+      final CertificateRequestSessionLocal acertificateRequestSession) {
     super(authenticationToken, cmpConfiguration, configAlias, ejbBridgeSession);
     this.ejbBridgeSession = ejbBridgeSession;
     this.signSession = ejbBridgeSession.getSignSession();
-    this.certificateRequestSession = certificateRequestSession;
+    this.certificateRequestSession = acertificateRequestSession;
     this.endEntityAccessSession = ejbBridgeSession.getEndEntityAccessSession();
     this.certStoreSession = ejbBridgeSession.getCertificateStoreSession();
     this.authorizationSession = ejbBridgeSession.getAuthorizationSession();
@@ -190,13 +200,13 @@ public class CrmfMessageHandler extends BaseCmpMessageHandler
     // the handler class.
     final String handlerClass =
         cmpConfiguration.getCertReqHandlerClass(this.confAlias);
-    ExtendedUserDataHandler extendedUserDataHandler = null;
+    ExtendedUserDataHandler anextendedUserDataHandler = null;
     if (StringUtils.isNotEmpty(handlerClass)) {
       if (LOG.isDebugEnabled()) {
         LOG.debug("CertReqHandlerClass=" + handlerClass);
       }
       try {
-        extendedUserDataHandler =
+        anextendedUserDataHandler =
             (ExtendedUserDataHandler)
                 Class.forName(handlerClass).getConstructor().newInstance();
       } catch (InstantiationException
@@ -211,7 +221,7 @@ public class CrmfMessageHandler extends BaseCmpMessageHandler
                 + "' is not existing.");
       }
     }
-    this.extendedUserDataHandler = extendedUserDataHandler;
+    this.extendedUserDataHandler = anextendedUserDataHandler;
   }
 
   /**
@@ -238,7 +248,8 @@ public class CrmfMessageHandler extends BaseCmpMessageHandler
       // independent from CertificateProile.setAllowDnOverride,
       // if the request DN does not contain the VCs DN component to extract, but
       // fails anyway (see
-      // VendorAuthenticationTest.test3GPPModeWithUserFromVendorCertUIDOrRequestFullDN()).
+      // VendorAuthenticationTest
+        // .test3GPPModeWithUserFromVendorCertUIDOrRequestFullDN()).
       result = getEndEntityByDn(dn);
     }
     return result;
@@ -587,7 +598,8 @@ public class CrmfMessageHandler extends BaseCmpMessageHandler
           final IPasswordGenerator pwdgen =
               PasswordGeneratorFactory.getInstance(
                   PasswordGeneratorFactory.PASSWORDTYPE_ALLPRINTABLE);
-          pwd = pwdgen.getNewPassword(12, 12);
+          final int pwLen = 12;
+          pwd = pwdgen.getNewPassword(pwLen, pwLen);
         } else {
           if (LOG.isDebugEnabled()) {
             LOG.debug("Setting fixed user password from config.");

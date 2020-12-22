@@ -34,12 +34,16 @@ import org.ejbca.util.passgen.LettersAndDigitsPasswordGenerator;
  * @version $Id: UnidFnrHandler.java 28616 2018-04-03 11:51:50Z samuellb $
  */
 public class UnidFnrHandler implements ExtendedUserDataHandler {
+      /** Param. */
   private static final Logger LOG = Logger.getLogger(UnidFnrHandler.class);
-  private static final Pattern onlyDecimalDigits = Pattern.compile("^[0-9]+$");
+  /** Param. */
+  private static final Pattern ONLY_DEC_DIGITS = Pattern.compile("^[0-9]+$");
+  /** Param. */
   private final Storage mockStorage;
+  /** Param. */
   private final UnidfnrSessionLocal unidfnrSession;
 
-  /** Used by EJBCA */
+  /** Used by EJBCA. */
   public UnidFnrHandler() {
     super();
     mockStorage = null;
@@ -48,19 +52,20 @@ public class UnidFnrHandler implements ExtendedUserDataHandler {
   /**
    * Used by unit test.
    *
-   * @param mockStorage Emulates the {@link
+   * @param amockStorage Emulates the {@link
    *     UnidfnrSessionLocal#stroreUnidFnrData(String, String)} call.
    */
-  public UnidFnrHandler(final Storage mockStorage) {
+  public UnidFnrHandler(final Storage amockStorage) {
     super();
-    this.mockStorage = mockStorage;
+    this.mockStorage = amockStorage;
     unidfnrSession = null;
   }
 
   @Override
   public RequestMessage processRequestMessage(
-      RequestMessage req, final String certificateProfileName)
+      final RequestMessage oreq, final String certificateProfileName)
       throws HandlerException {
+    RequestMessage req = oreq;
     final X500Name dn = req.getRequestX500Name();
     if (LOG.isDebugEnabled()) {
       LOG.debug(
@@ -79,8 +84,8 @@ public class UnidFnrHandler implements ExtendedUserDataHandler {
         Arrays.asList(dn.getAttributeTypes());
     X500NameBuilder nameBuilder = new X500NameBuilder(new CeSecoreNameStyle());
     boolean changed = false;
-    for (final ASN1ObjectIdentifier asn1ObjectIdentifier :
-        asn1ObjectIdentifiers) {
+    for (final ASN1ObjectIdentifier asn1ObjectIdentifier
+        : asn1ObjectIdentifiers) {
       if (asn1ObjectIdentifier.equals(CeSecoreNameStyle.SERIALNUMBER)) {
         RDN[] rdns = dn.getRDNs(asn1ObjectIdentifier);
         String value = rdns[0].getFirst().getValue().toString();
@@ -106,27 +111,29 @@ public class UnidFnrHandler implements ExtendedUserDataHandler {
   }
 
   private static boolean hasOnlyDecimalDigits(final String s) {
-    return onlyDecimalDigits.matcher(s).matches();
+    return ONLY_DEC_DIGITS.matcher(s).matches();
   }
 
   private String getPrefixFromCertProfileName(
       final String certificateProfileName) {
+    final int len = 10;
+    final int idx = 4;
     if (certificateProfileName.length() < 10) {
       return null;
     }
-    if (certificateProfileName.charAt(4) != '-') {
+    if (certificateProfileName.charAt(idx) != '-') {
       return null;
     }
-    if (certificateProfileName.charAt(9) != '-') {
+    if (certificateProfileName.charAt(len - 1) != '-') {
       return null;
     }
-    if (!hasOnlyDecimalDigits(certificateProfileName, 0, 4)) {
+    if (!hasOnlyDecimalDigits(certificateProfileName, 0, idx)) {
       return null;
     }
-    if (!hasOnlyDecimalDigits(certificateProfileName, 5, 9)) {
+    if (!hasOnlyDecimalDigits(certificateProfileName, idx + 1, len - 1)) {
       return null;
     }
-    return certificateProfileName.substring(0, 10);
+    return certificateProfileName.substring(0, len);
   }
   /**
    * @param inputSerialNr SN of subject DN in the incoming request
@@ -146,27 +153,35 @@ public class UnidFnrHandler implements ExtendedUserDataHandler {
       throw new HandlerException("Unidfnr session bean is null!");
     }
 
-    if (inputSerialNr.length() != 17) {
+    final int len = 17;
+    final int idx = 11;
+    final int pwLen = 6;
+    if (inputSerialNr.length() != len) {
       return null;
     }
-    if (inputSerialNr.charAt(11) != '-') {
+    if (inputSerialNr.charAt(idx) != '-') {
       return null;
     }
-    final String fnr = inputSerialNr.substring(0, 11);
+    final String fnr = inputSerialNr.substring(0, idx);
     if (!hasOnlyDecimalDigits(fnr)) {
       return null;
     }
-    final String lra = inputSerialNr.substring(12);
+    final String lra = inputSerialNr.substring(idx + 1);
     if (!hasOnlyDecimalDigits(lra)) {
       return null;
     }
     final String random =
-        new LettersAndDigitsPasswordGenerator().getNewPassword(6, 6);
+        new LettersAndDigitsPasswordGenerator().getNewPassword(pwLen, pwLen);
     final String unid = unidPrefix + lra + random;
     storeUnidFnrData(unid, fnr);
     return unid;
   }
 
+  /**
+   * @param unid UNID
+   * @param fnr FNR
+   * @throws HandlerException fail
+   */
   public void storeUnidFnrData(final String unid, final String fnr)
       throws HandlerException {
     if (unidfnrSession != null) {

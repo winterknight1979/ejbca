@@ -46,7 +46,7 @@ import org.cesecore.certificates.certificate.request.ResponseStatus;
 import org.cesecore.util.CertTools;
 
 /**
- * A very simple confirmation message, no protection and a nullbody
+ * A very simple confirmation message, no protection and a nullbody.
  *
  * @author tomas
  * @version $Id: CmpRevokeResponseMessage.java 28875 2018-05-08 13:44:40Z anatom
@@ -65,37 +65,41 @@ public class CmpRevokeResponseMessage extends BaseCmpMessage
    */
   static final long serialVersionUID = 10003L;
 
-  private static final Logger log =
+  /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(CmpRevokeResponseMessage.class);
 
-  /** Default digest algorithm for SCEP response message, can be overridden */
+  /** Default digest algorithm for SCEP response message, can be overridden.*/
   private String digestAlg = CMSSignedGenerator.DIGEST_SHA1;
   /**
    * The default provider is BC, if nothing else is specified when setting
-   * SignKeyInfo
+   * SignKeyInfo.
    */
   private String provider = "BC";
 
-  /** Certificate for the signer of the response message (CA) */
+  /** Certificate for the signer of the response message (CA). */
   private transient Collection<Certificate> signCertChain = null;
-  /** Private key used to sign the response message */
+  /** Private key used to sign the response message. */
   private transient PrivateKey signKey = null;
 
-  /** The encoded response message */
+  /** The encoded response message. */
   private byte[] responseMessage = null;
 
+  /** Param. */
   private String failText = null;
+  /** Param. */
   private FailInfo failInfo = FailInfo.BAD_REQUEST;
+  /** Param. */
   private ResponseStatus status = ResponseStatus.FAILURE;
 
   @Override
-  public void setCrl(final CRL crl) {}
+  public void setCrl(final CRL crl) { }
 
   @Override
-  public void setIncludeCACert(final boolean incCACert) {}
+  public void setIncludeCACert(final boolean incCACert) { }
 
   @Override
-  public void setCACert(final Certificate cACert) {}
+  public void setCACert(final Certificate cACert) { }
 
   @Override
   public byte[] getResponseMessage() {
@@ -103,8 +107,8 @@ public class CmpRevokeResponseMessage extends BaseCmpMessage
   }
 
   @Override
-  public void setStatus(final ResponseStatus status) {
-    this.status = status;
+  public void setStatus(final ResponseStatus astatus) {
+    this.status = astatus;
   }
 
   @Override
@@ -113,8 +117,8 @@ public class CmpRevokeResponseMessage extends BaseCmpMessage
   }
 
   @Override
-  public void setFailInfo(final FailInfo failInfo) {
-    this.failInfo = failInfo;
+  public void setFailInfo(final FailInfo afailInfo) {
+    this.failInfo = afailInfo;
   }
 
   @Override
@@ -123,8 +127,8 @@ public class CmpRevokeResponseMessage extends BaseCmpMessage
   }
 
   @Override
-  public void setFailText(final String failText) {
-    this.failText = failText;
+  public void setFailText(final String afailText) {
+    this.failText = afailText;
   }
 
   @Override
@@ -147,8 +151,8 @@ public class CmpRevokeResponseMessage extends BaseCmpMessage
         new PKIStatusInfo(PKIStatus.granted); // 0 = accepted
     if (status != ResponseStatus.SUCCESS
         && status != ResponseStatus.GRANTED_WITH_MODS) {
-      if (log.isDebugEnabled()) {
-        log.debug("Creating a rejection message");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Creating a rejection message");
       }
       myPKIStatusInfo =
           new PKIStatusInfo(
@@ -201,16 +205,16 @@ public class CmpRevokeResponseMessage extends BaseCmpMessage
             CmpMessageHelper.signPKIMessage(
                 myPKIMessage, signCertChain, signKey, digestAlg, provider);
       } catch (CertificateEncodingException e) {
-        log.error("Failed to sign CMPRevokeResponseMessage");
-        log.error(e.getLocalizedMessage(), e);
+        LOG.error("Failed to sign CMPRevokeResponseMessage");
+        LOG.error(e.getLocalizedMessage(), e);
         responseMessage = getUnprotectedResponseMessage(myPKIMessage);
       } catch (SecurityException e) {
-        log.error("Failed to sign CMPRevokeResponseMessage");
-        log.error(e.getLocalizedMessage(), e);
+        LOG.error("Failed to sign CMPRevokeResponseMessage");
+        LOG.error(e.getLocalizedMessage(), e);
         responseMessage = getUnprotectedResponseMessage(myPKIMessage);
       } catch (SignatureException e) {
-        log.error("Failed to sign CMPRevokeResponseMessage");
-        log.error(e.getLocalizedMessage(), e);
+        LOG.error("Failed to sign CMPRevokeResponseMessage");
+        LOG.error(e.getLocalizedMessage(), e);
         responseMessage = getUnprotectedResponseMessage(myPKIMessage);
       }
     }
@@ -226,7 +230,7 @@ public class CmpRevokeResponseMessage extends BaseCmpMessage
       mout.close();
       resp = baos.toByteArray();
     } catch (IOException e) {
-      log.error(e.getLocalizedMessage(), e);
+      LOG.error(e.getLocalizedMessage(), e);
     }
     return resp;
   }
@@ -240,17 +244,17 @@ public class CmpRevokeResponseMessage extends BaseCmpMessage
   public void setSignKeyInfo(
       final Collection<Certificate> certs,
       final PrivateKey key,
-      final String provider) {
+      final String aprovider) {
 
     this.signCertChain = certs;
     this.signKey = key;
-    if (provider != null) {
-      this.provider = provider;
+    if (aprovider != null) {
+      this.provider = aprovider;
     }
   }
 
   @Override
-  public void setRecipientKeyInfo(final byte[] recipientKeyInfo) {}
+  public void setRecipientKeyInfo(final byte[] recipientKeyInfo) { }
 
   @Override
   public void setPreferredDigestAlg(final String digest) {
@@ -260,11 +264,11 @@ public class CmpRevokeResponseMessage extends BaseCmpMessage
   }
 
   @Override
-  public void setRequestType(final int reqtype) {}
+  public void setRequestType(final int reqtype) { }
 
   @Override
-  public void setRequestId(final int reqid) {}
+  public void setRequestId(final int reqid) { }
 
   @Override
-  public void setProtectionParamsFromRequest(final RequestMessage reqMsg) {}
+  public void setProtectionParamsFromRequest(final RequestMessage reqMsg) { }
 }

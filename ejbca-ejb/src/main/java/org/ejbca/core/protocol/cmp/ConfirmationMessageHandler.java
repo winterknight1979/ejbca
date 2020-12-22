@@ -55,26 +55,37 @@ import org.ejbca.core.ejb.EjbBridgeSessionLocal;
 public class ConfirmationMessageHandler extends BaseCmpMessageHandler
     implements ICmpMessageHandler {
 
+    /** Logger. */
   private static final Logger LOG =
       Logger.getLogger(ConfirmationMessageHandler.class);
 
   /**
-   * Parameter used to determine the type of protection for the response message
+   * Parameter used to determine the type of protection
+   * for the response message.
    */
   private String responseProtection = null;
 
+  /** Param. */
   private final CryptoTokenSessionLocal cryptoTokenSession;
 
+  /**
+   *
+   * @param authenticationToken Token
+   * @param cmpConfiguration Config
+   * @param configAlias Alias
+   * @param ejbBridgeSession Bridge
+   * @param acryptoTokenSession Session
+   */
   public ConfirmationMessageHandler(
       final AuthenticationToken authenticationToken,
       final CmpConfiguration cmpConfiguration,
       final String configAlias,
       final EjbBridgeSessionLocal ejbBridgeSession,
-      final CryptoTokenSessionLocal cryptoTokenSession) {
+      final CryptoTokenSessionLocal acryptoTokenSession) {
     super(authenticationToken, cmpConfiguration, configAlias, ejbBridgeSession);
     this.responseProtection =
         this.cmpConfiguration.getResponseProtection(this.confAlias);
-    this.cryptoTokenSession = cryptoTokenSession;
+    this.cryptoTokenSession = acryptoTokenSession;
   }
 
   @Override

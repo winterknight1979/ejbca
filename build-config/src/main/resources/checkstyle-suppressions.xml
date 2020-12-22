@@ -457,4 +457,22 @@
 		files="RaMasterApiProxyBean.java" lines="1404" />
 	<suppress checks="MethodLengthCheck"
 		files="RaMasterApiSessionBean.java" lines="1455, 1807" />
+	<suppress checks="MethodLengthCheck"
+		files="EndEntityCertificateAuthenticationModule.java" lines="351, 809" />
+	<suppress checks="ParameterNumberCheck"
+		files="EndEntityCertificateAuthenticationModule.java" lines="174" />
+	<suppress checks="MethodLengthCheck"
+		files="HMACAuthenticationModule.java" lines="145" />
+	<suppress checks="ParameterNumberCheck"
+		files="VerifyPKIMessage.java" lines="85" />
+	<suppress checks="MethodLengthCheck"
+		files="CmpMessageDispatcherSessionBean.java" lines="162" />
+	<suppress checks="MethodLengthCheck"
+		files="BaseCmpMessageHandler.java" lines="142" />
+	<suppress checks="MethodLengthCheck"
+		files="CrmfMessageHandler.java" lines="258, 474, 807 " />
+	<suppress checks="MethodLengthCheck"
+		files="CrmfKeyUpdateHandler.java" lines="142 " />
+	<suppress checks="MethodLengthCheck"
+		files="RevocationMessageHandler.java" lines="131 " />
 </suppressions>

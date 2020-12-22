@@ -34,7 +34,7 @@ import org.cesecore.util.CertTools;
 import org.ejbca.core.protocol.cmp.ICrmfRequestMessage;
 
 /**
- * Changes the DN in an IRequestMessage
+ * Changes the DN in an IRequestMessage.
  *
  * @version $Id: RequestMessageSubjectDnAdapter.java 28536 2018-03-21 11:48:07Z
  *     aminkh $
@@ -43,7 +43,9 @@ public class RequestMessageSubjectDnAdapter implements ICrmfRequestMessage {
 
   private static final long serialVersionUID = -4884813822503768798L;
 
+  /** Param. */
   private final ICrmfRequestMessage original;
+  /** Param. */
   private transient X500Name dn;
 
   private void writeObject(final ObjectOutputStream stream) throws IOException {
@@ -54,13 +56,13 @@ public class RequestMessageSubjectDnAdapter implements ICrmfRequestMessage {
   private void readObject(final ObjectInputStream stream)
       throws IOException, ClassNotFoundException {
     stream.defaultReadObject();
-    final byte b[] = (byte[]) stream.readObject();
+    final byte[] b = (byte[]) stream.readObject();
     this.dn = X500Name.getInstance(b);
   }
 
-  RequestMessageSubjectDnAdapter(final RequestMessage req, final X500Name _dn) {
+  RequestMessageSubjectDnAdapter(final RequestMessage req, final X500Name udn) {
     this.original = (ICrmfRequestMessage) req;
-    this.dn = _dn;
+    this.dn = udn;
   }
 
   @Override

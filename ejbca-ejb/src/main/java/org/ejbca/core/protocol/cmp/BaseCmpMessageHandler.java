@@ -39,27 +39,41 @@ import org.ejbca.core.model.ra.raadmin.EndEntityProfileNotFoundException;
  */
 public class BaseCmpMessageHandler {
 
-  private static Logger LOG = Logger.getLogger(BaseCmpMessageHandler.class);
-  /** Internal localization of logs and errors */
+    /** Logger. */
+  private static final Logger LOG =
+          Logger.getLogger(BaseCmpMessageHandler.class);
+  /** Internal localization of logs and errors. */
   private static final InternalResources INTRES =
       InternalResources.getInstance();
 
-  /** strings for error messages defined in internal resources */
+  /** strings for error messages defined in internal resources. */
   protected static final String CMP_ERRORADDUSER = "cmp.erroradduser";
 
+  /** Param. */
   protected static final String CMP_ERRORGENERAL = "cmp.errorgeneral";
 
+  /** Param. */
   protected static final int CMP_GET_EEP_FROM_KEYID = -1;
+  /** Param. */
   protected static final int CMP_GET_CP_FROM_KEYID = -1;
+  /** Param. */
   protected static final int CMP_GET_CA_FROM_EEP = -1;
+  /** Param. */
   protected static final int CMP_GET_CA_FROM_KEYID = -2;
 
+  /** Param. */
   protected AuthenticationToken admin;
+  /** Param. */
   protected String confAlias;
+  /** Param. */
   protected EjbBridgeSessionLocal ejbBridgeSession;
+  /** Param. */
   protected CaSessionLocal caSession;
+  /** Param. */
   protected EndEntityProfileSessionLocal endEntityProfileSession;
+  /** Param. */
   protected CertificateProfileSession certificateProfileSession;
+  /** Param. */
   protected CmpConfiguration cmpConfiguration;
 
   protected BaseCmpMessageHandler() {
@@ -68,18 +82,18 @@ public class BaseCmpMessageHandler {
 
   protected BaseCmpMessageHandler(
       final AuthenticationToken authenticationToken,
-      final CmpConfiguration cmpConfiguration,
+      final CmpConfiguration acmpConfiguration,
       final String configAlias,
-      final EjbBridgeSessionLocal ejbBridgeSession) {
+      final EjbBridgeSessionLocal anejbBridgeSession) {
     this.admin = authenticationToken;
     this.confAlias = configAlias;
-    this.cmpConfiguration = cmpConfiguration;
-    this.ejbBridgeSession = ejbBridgeSession;
-    this.caSession = ejbBridgeSession.getCaSession();
+    this.cmpConfiguration = acmpConfiguration;
+    this.ejbBridgeSession = anejbBridgeSession;
+    this.caSession = anejbBridgeSession.getCaSession();
     this.endEntityProfileSession =
-        ejbBridgeSession.getEndEntityProfileSession();
+        anejbBridgeSession.getEndEntityProfileSession();
     this.certificateProfileSession =
-        ejbBridgeSession.getCertificateProfileSession();
+        anejbBridgeSession.getCertificateProfileSession();
   }
 
   /**

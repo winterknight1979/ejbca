@@ -38,7 +38,7 @@ import org.cesecore.certificates.certificate.request.ResponseStatus;
 import org.cesecore.util.CertTools;
 
 /**
- * A very simple confirmation message, no protection and a nullbody
+ * A very simple confirmation message, no protection and a nullbody.
  *
  * @author tomas
  * @version $Id: CmpConfirmResponseMessage.java 28875 2018-05-08 13:44:40Z
@@ -57,32 +57,33 @@ public class CmpConfirmResponseMessage extends BaseCmpMessage
    */
   static final long serialVersionUID = 10003L;
 
-  private static final Logger log =
+  /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(CmpConfirmResponseMessage.class);
 
-  /** Default digest algorithm for CMP response message, can be overridden */
+  /** Default digest algorithm for CMP response message, can be overridden. */
   private String digestAlg = CMSSignedGenerator.DIGEST_SHA1;
   /**
    * The default provider is BC, if nothing else is specified when setting
-   * SignKeyInfo
+   * SignKeyInfo.
    */
   private String provider = "BC";
-  /** Certificate for the signer of the response message (CA) */
+  /** Certificate for the signer of the response message (CA). */
   private transient Collection<Certificate> signCertChain = null;
-  /** Private key used to sign the response message */
+  /** Private key used to sign the response message. */
   private transient PrivateKey signKey = null;
 
-  /** The encoded response message */
+  /** The encoded response message. */
   private byte[] responseMessage = null;
 
   @Override
-  public void setCrl(final CRL crl) {}
+  public void setCrl(final CRL crl) { }
 
   @Override
-  public void setIncludeCACert(final boolean incCACert) {}
+  public void setIncludeCACert(final boolean incCACert) { }
 
   @Override
-  public void setCACert(final Certificate cACert) {}
+  public void setCACert(final Certificate cACert) { }
 
   @Override
   public byte[] getResponseMessage() {
@@ -90,7 +91,7 @@ public class CmpConfirmResponseMessage extends BaseCmpMessage
   }
 
   @Override
-  public void setStatus(final ResponseStatus status) {}
+  public void setStatus(final ResponseStatus status) { }
 
   @Override
   public ResponseStatus getStatus() {
@@ -98,7 +99,7 @@ public class CmpConfirmResponseMessage extends BaseCmpMessage
   }
 
   @Override
-  public void setFailInfo(final FailInfo failInfo) {}
+  public void setFailInfo(final FailInfo failInfo) { }
 
   @Override
   public FailInfo getFailInfo() {
@@ -106,7 +107,7 @@ public class CmpConfirmResponseMessage extends BaseCmpMessage
   }
 
   @Override
-  public void setFailText(final String failText) {}
+  public void setFailText(final String failText) { }
 
   @Override
   public String getFailText() {
@@ -161,15 +162,15 @@ public class CmpConfirmResponseMessage extends BaseCmpMessage
               CmpMessageHelper.signPKIMessage(
                   myPKIMessage, signCertChain, signKey, digestAlg, provider);
         } catch (CertificateEncodingException e) {
-          log.error("Error creating CmpConfirmMessage: ", e);
+          LOG.error("Error creating CmpConfirmMessage: ", e);
         } catch (SecurityException e) {
-          log.error("Error creating CmpConfirmMessage: ", e);
+          LOG.error("Error creating CmpConfirmMessage: ", e);
         } catch (SignatureException e) {
-          log.error("Error creating CmpConfirmMessage: ", e);
+          LOG.error("Error creating CmpConfirmMessage: ", e);
         }
       } else {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Not signing CMP Confirm Response, because signCert or signKey"
                   + " is not set.");
         }
@@ -193,16 +194,16 @@ public class CmpConfirmResponseMessage extends BaseCmpMessage
   public void setSignKeyInfo(
       final Collection<Certificate> certs,
       final PrivateKey key,
-      final String provider) {
+      final String aprovider) {
     this.signCertChain = certs;
     this.signKey = key;
-    if (provider != null) {
-      this.provider = provider;
+    if (aprovider != null) {
+      this.provider = aprovider;
     }
   }
 
   @Override
-  public void setRecipientKeyInfo(final byte[] recipientKeyInfo) {}
+  public void setRecipientKeyInfo(final byte[] recipientKeyInfo) { }
 
   @Override
   public void setPreferredDigestAlg(final String digest) {
@@ -212,11 +213,11 @@ public class CmpConfirmResponseMessage extends BaseCmpMessage
   }
 
   @Override
-  public void setRequestType(final int reqtype) {}
+  public void setRequestType(final int reqtype) { }
 
   @Override
-  public void setRequestId(final int reqid) {}
+  public void setRequestId(final int reqid) { }
 
   @Override
-  public void setProtectionParamsFromRequest(final RequestMessage reqMsg) {}
+  public void setProtectionParamsFromRequest(final RequestMessage reqMsg) { }
 }

@@ -35,7 +35,7 @@ import org.ejbca.core.model.ca.AuthStatusException;
 import org.ejbca.ui.web.protocol.CertificateRenewalException;
 
 /**
- * Plugin class for SCEP plugins which expect a ResponseMessage in reply
+ * Plugin class for SCEP plugins which expect a ResponseMessage in reply.
  *
  * @version $Id: ScepResponsePlugin.java 28462 2018-03-09 13:14:58Z henriks $
  */
@@ -89,7 +89,7 @@ public interface ScepResponsePlugin {
    *     passed half its validity date, or if it wasn't possible to change
    *     status for the end entity
    */
-  public abstract ResponseMessage performOperation(
+  ResponseMessage performOperation(
       AuthenticationToken authenticationToken,
       ScepRequestMessage reqmsg,
       ScepConfiguration scepConfig,

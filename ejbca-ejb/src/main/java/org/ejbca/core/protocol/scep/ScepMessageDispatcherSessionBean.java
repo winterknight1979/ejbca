@@ -70,25 +70,34 @@ public class ScepMessageDispatcherSessionBean
     implements ScepMessageDispatcherSessionLocal,
         ScepMessageDispatcherSessionRemote {
 
-  /** Internal localization of logs and errors */
-  private static final InternalEjbcaResources intres =
+  /** Internal localization of logs and errors. */
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
-  private static final Logger log =
+  /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(ScepMessageDispatcherSessionBean.class);
 
+  /** Param. */
   private static final String SCEP_RA_MODE_EXTENSION_CLASSNAME =
       "org.ejbca.core.protocol.scep.ScepRaModeExtension";
+  /** Param. */
   private static final String SCEP_CLIENT_CERTIFICATE_RENEWAL_CLASSNAME =
       "org.ejbca.core.protocol.scep.ClientCertificateRenewalExtension";
 
+  /** Param. */
   private transient ScepOperationPlugin scepRaModeExtension = null;
+  /** Param. */
   private transient ScepResponsePlugin scepClientCertificateRenewal = null;
 
+  /** EJB. */
   @EJB private GlobalConfigurationSessionLocal globalConfigSession;
+  /** EJB. */
   @EJB private SignSessionLocal signSession;
+  /** EJB. */
   @EJB private CaSessionLocal caSession;
 
+  /** Init. */
   @PostConstruct
   public void postConstruct() {
     try {
@@ -101,13 +110,13 @@ public class ScepMessageDispatcherSessionBean
       scepRaModeExtension = null;
     } catch (InstantiationException | InvocationTargetException e) {
       scepRaModeExtension = null;
-      log.error(
+      LOG.error(
           SCEP_RA_MODE_EXTENSION_CLASSNAME
               + " was found, but could not be instanced. "
               + e.getMessage());
     } catch (IllegalAccessException e) {
       scepRaModeExtension = null;
-      log.error(
+      LOG.error(
           SCEP_RA_MODE_EXTENSION_CLASSNAME
               + " was found, but could not be instanced. "
               + e.getMessage());
@@ -124,13 +133,13 @@ public class ScepMessageDispatcherSessionBean
       scepClientCertificateRenewal = null;
     } catch (InstantiationException | InvocationTargetException e) {
       scepClientCertificateRenewal = null;
-      log.error(
+      LOG.error(
           SCEP_CLIENT_CERTIFICATE_RENEWAL_CLASSNAME
               + " was found, but could not be instanced. "
               + e.getMessage());
     } catch (IllegalAccessException e) {
       scepClientCertificateRenewal = null;
-      log.error(
+      LOG.error(
           SCEP_CLIENT_CERTIFICATE_RENEWAL_CLASSNAME
               + " was found, but could not be instanced. "
               + e.getMessage());
@@ -173,8 +182,8 @@ public class ScepMessageDispatcherSessionBean
       // CA_IDENT is the message for this request to indicate which CA we are
       // talking about
       final String caname = getCAName(message);
-      if (log.isDebugEnabled()) {
-        log.debug("Got SCEP cert request for CA '" + caname + "'");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Got SCEP cert request for CA '" + caname + "'");
       }
       Collection<Certificate> certs = null;
       CAInfo cainfo = caSession.getCAInfoInternal(-1, caname, true);
@@ -184,8 +193,8 @@ public class ScepMessageDispatcherSessionBean
       if ((certs != null) && (certs.size() > 0)) {
         // CAs certificate is in the first position in the Collection
         X509Certificate cert = (X509Certificate) certs.iterator().next();
-        if (log.isDebugEnabled()) {
-          log.debug("Sent certificate for CA '" + caname + "' to SCEP client.");
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Sent certificate for CA '" + caname + "' to SCEP client.");
         }
         return cert.getEncoded();
       } else {
@@ -195,7 +204,7 @@ public class ScepMessageDispatcherSessionBean
       // CA_IDENT is the message for this request to indicate which CA we are
       // talking about
       final String caname = getCAName(message);
-      log.debug(
+      LOG.debug(
           "Got SCEP pkcs7 request for CA '"
               + caname
               + "'. Old client using SCEP draft 18?");
@@ -210,20 +219,20 @@ public class ScepMessageDispatcherSessionBean
       }
     } else if (operation.equals("GetNextCACert")) {
       final String caname = getCAName(message);
-      if (log.isDebugEnabled()) {
-        log.debug("Got SCEP next cert request for CA '" + caname + "'");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Got SCEP next cert request for CA '" + caname + "'");
       }
       final CAInfo cainfo = caSession.getCAInfoInternal(-1, caname, true);
       if (cainfo == null) {
         String errMsg =
-            intres.getLocalizedMessage("scep.errorunknownca", "cert");
-        log.error(errMsg);
+            INTRES.getLocalizedMessage("scep.errorunknownca", "cert");
+        LOG.error(errMsg);
         throw new CADoesntExistsException(errMsg);
       } else {
         if (caSession.getFutureRolloverCertificate(cainfo.getCAId()) != null) {
           // Send full certificate chain of next CA, in SCEP-PKCS7 format
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "Sending next certificate chain for CA '"
                     + caname
                     + "' to SCEP client.");
@@ -248,11 +257,11 @@ public class ScepMessageDispatcherSessionBean
             : "POSTPKIOperation\nRenewal\nSHA-1".getBytes();
       } else {
         final String msg = "CA was not found: " + caname;
-        log.debug(msg);
+        LOG.debug(msg);
         throw new CADoesntExistsException(msg);
       }
     } else {
-      log.error("Invalid parameter '" + operation);
+      LOG.error("Invalid parameter '" + operation);
     }
     return null;
   }
@@ -277,7 +286,7 @@ public class ScepMessageDispatcherSessionBean
   }
 
   /**
-   * Handles SCEP certificate request
+   * Handles SCEP certificate request.
    *
    * @param administrator Admin
    * @param msg buffer holding the SCEP-request (DER encoded).
@@ -325,8 +334,8 @@ public class ScepMessageDispatcherSessionBean
           InvalidAlgorithmException, CertificateRenewalException,
           SignatureException, CertificateException {
     byte[] ret = null;
-    if (log.isTraceEnabled()) {
-      log.trace(">getRequestMessage(" + msg.length + " bytes)");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">getRequestMessage(" + msg.length + " bytes)");
     }
 
     try {
@@ -336,7 +345,7 @@ public class ScepMessageDispatcherSessionBean
       boolean isRAModeOK = scepConfig.getRAMode(alias);
 
       if (reqmsg.getErrorNo() != 0) {
-        log.error(
+        LOG.error(
             "Error '"
                 + reqmsg.getErrorNo()
                 + "' receiving Scep request message.");
@@ -345,26 +354,26 @@ public class ScepMessageDispatcherSessionBean
       if (reqmsg.getMessageType() == ScepRequestMessage.SCEP_TYPE_PKCSREQ) {
         if (isRAModeOK && scepRaModeExtension == null) {
           // Fail nicely
-          log.warn(
+          LOG.warn(
               "SCEP RA mode is enabled, but not included in the community"
                   + " version of EJBCA. Unable to continue.");
           return null;
         } else if (isRAModeOK) {
-          if (log.isDebugEnabled()) {
-            log.debug("SCEP is operating in RA mode: " + isRAModeOK);
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("SCEP is operating in RA mode: " + isRAModeOK);
           }
           if (!scepRaModeExtension.performOperation(
               administrator, reqmsg, scepConfig, alias)) {
             String errmsg =
                 "Error. Failed to add or edit user: " + reqmsg.getUsername();
-            log.error(errmsg);
+            LOG.error(errmsg);
             return null;
           }
         }
         if (scepClientCertificateRenewal != null
             && scepConfig.getClientCertificateRenewal(alias)) {
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "SCEP client certificate renewal/enrollment with alias '"
                     + alias
                     + "'");
@@ -377,8 +386,8 @@ public class ScepMessageDispatcherSessionBean
           }
         } else {
           // Get the certificate
-          if (log.isDebugEnabled()) {
-            log.debug("SCEP certificate enrollment with alias '" + alias + "'");
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("SCEP certificate enrollment with alias '" + alias + "'");
           }
           ResponseMessage resp =
               signSession.createCertificate(
@@ -400,10 +409,10 @@ public class ScepMessageDispatcherSessionBean
         }
       }
     } catch (IOException e) {
-      log.error("Error receiving ScepMessage: ", e);
+      LOG.error("Error receiving ScepMessage: ", e);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<getRequestMessage():" + ((ret == null) ? 0 : ret.length));
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<getRequestMessage():" + ((ret == null) ? 0 : ret.length));
     }
     return ret;
   }

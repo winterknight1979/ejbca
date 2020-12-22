@@ -80,16 +80,22 @@ public class CmpMessageDispatcherSessionBean
     implements CmpMessageDispatcherSessionLocal,
         CmpMessageDispatcherSessionRemote {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(CmpMessageDispatcherSessionBean.class);
-  /** Internal localization of logs and errors */
-  private static final InternalEjbcaResources intres =
+  /** Internal localization of logs and errors. */
+  private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
+  /** EJB. */
   @EJB private EjbBridgeSessionLocal ejbBridgeSession;
+  /** EJB. */
   @EJB private CertificateRequestSessionLocal certificateRequestSession;
+  /** EJB. */
   @EJB private CryptoTokenSessionLocal cryptoTokenSession;
+  /** EJB. */
   @EJB private CaSessionLocal caSession;
+  /** EJB. */
   @EJB private GlobalConfigurationSessionLocal globalConfigSession;
 
   @Override
@@ -106,17 +112,17 @@ public class CmpMessageDispatcherSessionBean
                   CmpConfiguration.CMP_CONFIGURATION_ID);
       if (!cmpConfiguration.aliasExists(cmpConfigurationAlias)) {
         final String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "protocol.nosuchalias", "CMP", cmpConfigurationAlias);
-        log.info(msg);
+        LOG.info(msg);
         throw new NoSuchAliasException(msg);
       }
       final PKIMessage pkiMessage =
           CmpMessageHelper.getPkiMessageFromBytes(pkiMessageBytes, false);
       if (pkiMessage == null) {
         // Log that we handled a bad request and respond to the client
-        final String msg = intres.getLocalizedMessage("cmp.errornotcmpmessage");
-        log.info(msg);
+        final String msg = INTRES.getLocalizedMessage("cmp.errornotcmpmessage");
+        LOG.info(msg);
         return CmpMessageHelper.createUnprotectedErrorMessage(msg);
       }
       final ResponseMessage responseMessage =
@@ -131,9 +137,9 @@ public class CmpMessageDispatcherSessionBean
           ? null
           : responseMessage.getResponseMessage();
     } catch (CertificateEncodingException e) {
-      log.warn(
+      LOG.warn(
           "Could not retrieve byte representation of from"
-              + " org.cesecore.certificates.certificate.request.ResponseMessage",
+            + " org.cesecore.certificates.certificate.request.ResponseMessage",
           e);
       return null;
     }
@@ -170,7 +176,7 @@ public class CmpMessageDispatcherSessionBean
     try {
       final PKIBody pkiBody = pkiMessage.getBody();
       final int tagno = pkiBody.getType();
-      if (log.isDebugEnabled()) {
+      if (LOG.isDebugEnabled()) {
         final String message =
             "Received CMP message with pvno="
                 + pkiHeader.getPvno()
@@ -190,12 +196,12 @@ public class CmpMessageDispatcherSessionBean
                 + System.lineSeparator()
                 + "Transaction ID: "
                 + pkiHeader.getTransactionID();
-        log.debug(message);
-        if (log.isTraceEnabled()) {
-          log.trace(ASN1Dump.dumpAsString(pkiMessage));
+        LOG.debug(message);
+        if (LOG.isTraceEnabled()) {
+          LOG.trace(ASN1Dump.dumpAsString(pkiMessage));
         }
       }
-      log.info(
+      LOG.info(
           "Dispatching message with transaction ID: "
               + pkiHeader.getTransactionID());
       BaseCmpMessage cmpMessage = null;
@@ -264,15 +270,15 @@ public class CmpMessageDispatcherSessionBean
           break;
         case PKIBody.TYPE_NESTED:
           // 20: NestedMessageContent (nested)
-          if (log.isDebugEnabled()) {
-            log.debug("Received a NestedMessageContent");
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("Received a NestedMessageContent");
           }
           final NestedMessageContent nestedMessage =
               new NestedMessageContent(
                   pkiMessage, cmpConfiguration, cmpConfigurationAlias);
           if (nestedMessage.verify()) {
-            if (log.isDebugEnabled()) {
-              log.debug("The NestedMessageContent was verified successfully");
+            if (LOG.isDebugEnabled()) {
+              LOG.debug("The NestedMessageContent was verified successfully");
             }
             try {
               final PKIMessages nestedPkiMessages =
@@ -288,7 +294,7 @@ public class CmpMessageDispatcherSessionBean
                   levelOfNesting + 1);
             } catch (IllegalArgumentException e) {
               final String errMsg = e.getMessage();
-              log.info(errMsg, e);
+              LOG.info(errMsg, e);
               return CmpMessageHelper.createUnprotectedErrorMessage(
                   pkiHeader, FailInfo.BAD_REQUEST, errMsg);
             }
@@ -296,12 +302,12 @@ public class CmpMessageDispatcherSessionBean
           final String errMsg =
               "Could not verify the RA, signature verification on"
                   + " NestedMessageContent failed.";
-          log.info(errMsg);
+          LOG.info(errMsg);
           return CmpMessageHelper.createUnprotectedErrorMessage(
               pkiHeader, FailInfo.BAD_REQUEST, errMsg);
         default:
           unknownMessageType = tagno;
-          log.info("Received an unknown message type, tagno=" + tagno);
+          LOG.info("Received an unknown message type, tagno=" + tagno);
           break;
       }
 
@@ -319,9 +325,9 @@ public class CmpMessageDispatcherSessionBean
       if (handler == null || cmpMessage == null) {
         if (unknownMessageType > -1) {
           final String eMsg =
-              intres.getLocalizedMessage(
+              INTRES.getLocalizedMessage(
                   "cmp.errortypenohandle", Integer.valueOf(unknownMessageType));
-          log.error(eMsg);
+          LOG.error(eMsg);
           return CmpMessageHelper.createUnprotectedErrorMessage(
               pkiHeader, FailInfo.BAD_REQUEST, eMsg);
         }
@@ -334,10 +340,10 @@ public class CmpMessageDispatcherSessionBean
       final ResponseMessage ret =
           handler.handleMessage(cmpMessage, authenticated);
       if (ret == null) {
-        log.error(intres.getLocalizedMessage("cmp.errorresponsenull"));
+        LOG.error(INTRES.getLocalizedMessage("cmp.errorresponsenull"));
       } else {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Received a response message of type '"
                   + ret.getClass().getName()
                   + "' from CmpMessageHandler.");
@@ -345,7 +351,7 @@ public class CmpMessageDispatcherSessionBean
       }
       return ret;
     } catch (RuntimeException e) {
-      log.error(intres.getLocalizedMessage("cmp.errorprocess"), e);
+      LOG.error(INTRES.getLocalizedMessage("cmp.errorprocess"), e);
       return null;
     }
   }
@@ -367,8 +373,8 @@ public class CmpMessageDispatcherSessionBean
       final BaseCmpMessage message) {
     if (message != null) {
       final String casToAdd = cmpConfiguration.getResponseCaPubsCA(alias);
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Add CA certificates of CAs '"
                 + casToAdd
                 + "' to the CMP response message caPubs field.");
@@ -394,8 +400,8 @@ public class CmpMessageDispatcherSessionBean
       final BaseCmpMessage message) {
     if (message != null) {
       final String casToAdd = cmpConfiguration.getResponseExtraCertsCA(alias);
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Add CA certificates of CAs '"
                 + casToAdd
                 + "' to the PKI response message extraCerts field.");
@@ -421,8 +427,8 @@ public class CmpMessageDispatcherSessionBean
       int caId;
       for (String ca : StringUtils.split(caListString, ";")) {
         caId = Integer.parseInt(ca);
-        if (log.isDebugEnabled()) {
-          log.debug("Get CA by ID: " + caId);
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Get CA by ID: " + caId);
         }
         try {
           cainfo = caSession.getCAInfo(admin, caId);
@@ -433,11 +439,11 @@ public class CmpMessageDispatcherSessionBean
               result.add((X509Certificate) cacert);
             }
           } else { // Should never happen.
-            log.info("Cannot find CA: " + ca);
+            LOG.info("Cannot find CA: " + ca);
           }
         } catch (AuthorizationDeniedException e) {
-          if (log.isDebugEnabled()) {
-            log.debug(e.getMessage());
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(e.getMessage());
           }
         }
       }

@@ -66,7 +66,7 @@ import org.ejbca.core.protocol.cmp.authentication.ICMPAuthenticationModule;
 import org.ejbca.core.protocol.cmp.authentication.VerifyPKIMessage;
 
 /**
- * Message handler for the CMP revocation request messages
+ * Message handler for the CMP revocation request messages.
  *
  * @version $Id: RevocationMessageHandler.java 29745 2018-08-25 21:35:37Z anatom
  *     $
@@ -74,31 +74,46 @@ import org.ejbca.core.protocol.cmp.authentication.VerifyPKIMessage;
 public class RevocationMessageHandler extends BaseCmpMessageHandler
     implements ICmpMessageHandler {
 
+    /** Logger. */
   private static final Logger LOG =
       Logger.getLogger(RevocationMessageHandler.class);
-  /** Internal localization of logs and errors */
+  /** Internal localization of logs and errors. */
   private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
   /**
-   * Parameter used to determine the type of protection for the response message
+   * Parameter used to determine the type of protection for the
+   *  response message.
    */
   private String responseProtection = null;
 
+  /** Param. */
   private final EndEntityManagementSession endEntityManagementSession;
+  /** Param. */
   private final CertificateStoreSession certificateStoreSession;
+  /** Param. */
   private final AuthorizationSession authorizationSession;
+  /** Param. */
   private final EndEntityAccessSession endEntityAccessSession;
+  /** Param. */
   private final WebAuthenticationProviderSessionLocal
       authenticationProviderSession;
+  /** Param. */
   private final CryptoTokenSessionLocal cryptoTokenSession;
 
+  /**
+   * @param authenticationToken Token
+   * @param cmpConfiguration Config
+   * @param configAlias Alias
+   * @param ejbBridgeSession Bridge
+   * @param acryptoTokenSession Session
+   */
   public RevocationMessageHandler(
       final AuthenticationToken authenticationToken,
       final CmpConfiguration cmpConfiguration,
       final String configAlias,
       final EjbBridgeSessionLocal ejbBridgeSession,
-      final CryptoTokenSessionLocal cryptoTokenSession) {
+      final CryptoTokenSessionLocal acryptoTokenSession) {
     super(authenticationToken, cmpConfiguration, configAlias, ejbBridgeSession);
     this.responseProtection =
         this.cmpConfiguration.getResponseProtection(this.confAlias);
@@ -110,7 +125,7 @@ public class RevocationMessageHandler extends BaseCmpMessageHandler
     this.endEntityAccessSession = ejbBridgeSession.getEndEntityAccessSession();
     this.authenticationProviderSession =
         ejbBridgeSession.getWebAuthenticationProviderSession();
-    this.cryptoTokenSession = cryptoTokenSession;
+    this.cryptoTokenSession = acryptoTokenSession;
   }
 
   @Override

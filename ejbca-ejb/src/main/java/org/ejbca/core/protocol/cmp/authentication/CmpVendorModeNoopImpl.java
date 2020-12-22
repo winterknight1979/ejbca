@@ -21,17 +21,17 @@ import org.cesecore.certificates.ca.CaSession;
 import org.ejbca.config.CmpConfiguration;
 
 /**
- * NoOperation implementation of CMP Vendor mode
+ * NoOperation implementation of CMP Vendor mode.
  *
  * @version $Id: CmpVendorModeNoopImpl.java 26029 2017-06-17 12:31:05Z anatom $
  */
 public class CmpVendorModeNoopImpl implements CmpVendorMode {
 
   @Override
-  public void setCaSession(final CaSession caSession) {}
+  public void setCaSession(final CaSession caSession) { }
 
   @Override
-  public void setCmpConfiguration(final CmpConfiguration cmpConfiguration) {}
+  public void setCmpConfiguration(final CmpConfiguration cmpConfiguration) { }
 
   @Override
   public CAInfo isExtraCertIssuedByVendorCA(

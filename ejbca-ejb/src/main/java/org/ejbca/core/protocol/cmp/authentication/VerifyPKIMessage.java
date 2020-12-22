@@ -37,49 +37,77 @@ import org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSession;
  */
 public class VerifyPKIMessage {
 
-  private static final Logger log = Logger.getLogger(VerifyPKIMessage.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(VerifyPKIMessage.class);
 
+  /** Param. */
   private final CAInfo caInfo;
+  /** Param. */
   private String errorMessage = null;
+  /** Param. */
   private final String confAlias;
+  /** Param. */
   private final CmpConfiguration cmpConfiguration;
+  /** Param. */
   private final AuthenticationToken authenticationToken;
-
+  /** Param. */
   private final CaSession caSession;
+  /** Param. */
   private final EndEntityAccessSession endEntityAccessSession;
+  /** Param. */
   private final CertificateStoreSession certificateStoreSession;
+  /** Param. */
   private final AuthorizationSession authorizationSession;
+  /** Param. */
   private final EndEntityProfileSession endEntityProfileSession;
+  /** Param. */
   private final CertificateProfileSession certificateProfileSession;
+  /** Param. */
   private final WebAuthenticationProviderSessionLocal
       authenticationProviderSession;
+  /** Param. */
   private final EndEntityManagementSession endEntityManagementSession;
 
+  /**
+   * @param cainfo CA
+   * @param aconfAlias Condif
+   * @param anadmin Alias
+   * @param acaSession Session
+   * @param anendEntityAccessSession Access
+   * @param acertificateStoreSession Store
+   * @param anauthorizationSession Auth
+   * @param anendEntityProfileSession Profile
+   * @param acertificateProfileSession Cert
+   * @param anauthenticationProviderSession Provider
+   * @param anendEntityManagementSession Management
+   * @param acmpConfiguration Config
+   */
   public VerifyPKIMessage(
       final CAInfo cainfo,
-      final String confAlias,
-      final AuthenticationToken admin,
-      final CaSession caSession,
-      final EndEntityAccessSession endEntityAccessSession,
-      final CertificateStoreSession certificateStoreSession,
-      final AuthorizationSession authorizationSession,
-      final EndEntityProfileSession endEntityProfileSession,
-      final CertificateProfileSession certificateProfileSession,
-      final WebAuthenticationProviderSessionLocal authenticationProviderSession,
-      final EndEntityManagementSession endEntityManagementSession,
-      final CmpConfiguration cmpConfiguration) {
+      final String aconfAlias,
+      final AuthenticationToken anadmin,
+      final CaSession acaSession,
+      final EndEntityAccessSession anendEntityAccessSession,
+      final CertificateStoreSession acertificateStoreSession,
+      final AuthorizationSession anauthorizationSession,
+      final EndEntityProfileSession anendEntityProfileSession,
+      final CertificateProfileSession acertificateProfileSession,
+      final WebAuthenticationProviderSessionLocal
+              anauthenticationProviderSession,
+      final EndEntityManagementSession anendEntityManagementSession,
+      final CmpConfiguration acmpConfiguration) {
     this.caInfo = cainfo;
-    this.confAlias = confAlias;
-    this.authenticationToken = admin;
-    this.caSession = caSession;
-    this.endEntityAccessSession = endEntityAccessSession;
-    this.certificateStoreSession = certificateStoreSession;
-    this.authorizationSession = authorizationSession;
-    this.endEntityProfileSession = endEntityProfileSession;
-    this.certificateProfileSession = certificateProfileSession;
-    this.authenticationProviderSession = authenticationProviderSession;
-    this.endEntityManagementSession = endEntityManagementSession;
-    this.cmpConfiguration = cmpConfiguration;
+    this.confAlias = aconfAlias;
+    this.authenticationToken = anadmin;
+    this.caSession = acaSession;
+    this.endEntityAccessSession = anendEntityAccessSession;
+    this.certificateStoreSession = acertificateStoreSession;
+    this.authorizationSession = anauthorizationSession;
+    this.endEntityProfileSession = anendEntityProfileSession;
+    this.certificateProfileSession = acertificateProfileSession;
+    this.authenticationProviderSession = anauthenticationProviderSession;
+    this.endEntityManagementSession = anendEntityManagementSession;
+    this.cmpConfiguration = acmpConfiguration;
   }
 
   /**
@@ -93,7 +121,7 @@ public class VerifyPKIMessage {
   }
 
   /**
-   * Verifies the authenticity of the PKIMessage
+   * Verifies the authenticity of the PKIMessage.
    *
    * @param pkiMessage PKIMessage to verify
    * @param username that the PKIMessage should match or null
@@ -111,10 +139,10 @@ public class VerifyPKIMessage {
         this.cmpConfiguration.getAuthenticationModule(this.confAlias);
     final String authparameters =
         this.cmpConfiguration.getAuthenticationParameters(this.confAlias);
-    final String modules[] = authModules.split(";");
-    final String params[] = authparameters.split(";");
+    final String[] modules = authModules.split(";");
+    final String[] params = authparameters.split(";");
     if (modules.length != params.length) {
-      log.error(
+      LOG.error(
           "The number of authentication modules does not match the number of"
               + " authentication parameters. "
               + modules.length
@@ -128,8 +156,8 @@ public class VerifyPKIMessage {
     for (int i = 0; i < modules.length; i++) {
       final String moduleName = modules[i].trim();
       final String moduleParameter = params[i].trim();
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Trying to verify the message using CMP authentication module '"
                 + moduleName
                 + "' with parameter '"
@@ -141,7 +169,7 @@ public class VerifyPKIMessage {
               raMode, moduleName, moduleParameter, pkiMessage, authenticated);
       if (module != null) {
         if (module.verifyOrExtract(pkiMessage, username)) {
-          log.info(
+          LOG.info(
               "PKIMessage was successfully authenticated using "
                   + module.getName());
           return module;
@@ -220,7 +248,7 @@ public class VerifyPKIMessage {
       default:
         this.errorMessage = "Unrecognized authentication module: " + module;
     }
-    log.info(this.errorMessage);
+    LOG.info(this.errorMessage);
     return null;
   }
 }

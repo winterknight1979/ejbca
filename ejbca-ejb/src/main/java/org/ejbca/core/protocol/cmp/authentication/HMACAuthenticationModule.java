@@ -53,37 +53,56 @@ import org.ejbca.core.protocol.cmp.InvalidCmpProtectionException;
  */
 public class HMACAuthenticationModule implements ICMPAuthenticationModule {
 
+    /** Logger. */
   private static final Logger LOG =
       Logger.getLogger(HMACAuthenticationModule.class);
+  /** Resource. */
   private static final InternalEjbcaResources INTRES =
       InternalEjbcaResources.getInstance();
 
+  /** Param. */
   private final AuthenticationToken authenticationToken;
+  /** Param. */
   private final EndEntityAccessSession endEntityAccessSession;
 
+  /** Param. */
   private final String globalSharedSecret;
+  /** Param. */
   private final CAInfo caInfo;
+  /** Param. */
   private final String confAlias;
+  /** Param. */
   private final CmpConfiguration cmpConfiguration;
 
+  /** Param. */
   private String password = null;
+  /** Param. */
   private String errorMessage = null;
+  /** Param. */
   private CmpPbeVerifyer verifyer = null;
 
+  /**
+   * @param anauthenticationToken Token
+   * @param aglobalSharedSecret Secret
+   * @param aconfAlias Alias
+   * @param acmpConfiguration Config
+   * @param acaInfo CA
+   * @param anendEntityAccessSession Session
+   */
   public HMACAuthenticationModule(
-      final AuthenticationToken authenticationToken,
-      final String globalSharedSecret,
-      final String confAlias,
-      final CmpConfiguration cmpConfiguration,
-      final CAInfo caInfo,
-      final EndEntityAccessSession endEntityAccessSession) {
+      final AuthenticationToken anauthenticationToken,
+      final String aglobalSharedSecret,
+      final String aconfAlias,
+      final CmpConfiguration acmpConfiguration,
+      final CAInfo acaInfo,
+      final EndEntityAccessSession anendEntityAccessSession) {
     this.globalSharedSecret =
-        "-".equals(globalSharedSecret) ? null : globalSharedSecret;
-    this.confAlias = confAlias;
-    this.caInfo = caInfo;
-    this.cmpConfiguration = cmpConfiguration;
-    this.authenticationToken = authenticationToken;
-    this.endEntityAccessSession = endEntityAccessSession;
+        "-".equals(aglobalSharedSecret) ? null : aglobalSharedSecret;
+    this.confAlias = aconfAlias;
+    this.caInfo = acaInfo;
+    this.cmpConfiguration = acmpConfiguration;
+    this.authenticationToken = anauthenticationToken;
+    this.endEntityAccessSession = anendEntityAccessSession;
   }
 
   @Override
@@ -101,6 +120,9 @@ public class HMACAuthenticationModule implements ICMPAuthenticationModule {
     return this.errorMessage;
   }
 
+  /**
+   * @return verifyer
+   */
   public CmpPbeVerifyer getCmpPbeVerifyer() {
     return this.verifyer;
   }
@@ -109,12 +131,16 @@ public class HMACAuthenticationModule implements ICMPAuthenticationModule {
    * Verifies that 'pkiMessage' is sent by a trusted source.
    *
    * In RA mode:
-   *      - A globally configured shared secret for all CAs will be used to authenticate the message.
-   *      - If the globally shared secret fails, the password set in the CA will be used to authenticate the message.
-   *  In client mode, the clear-text password set in the pre-registered end entity in the database will be used to
+   *      - A globally configured shared secret for all CAs will be used
+   *      to authenticate the message.
+   *      - If the globally shared secret fails, the password set in the
+   *      CA will be used to authenticate the message.
+   *  In client mode, the clear-text password set in the pre-registered
+   *  end entity in the database will be used to
    *  authenticate the message.
    *
-   * When successful, the authentication string will be set to the password that was successfully used in authenticating the message.
+   * When successful, the authentication string will be set to the
+   * password that was successfully used in authenticating the message.
    */
   @Override
   public boolean verifyOrExtract(

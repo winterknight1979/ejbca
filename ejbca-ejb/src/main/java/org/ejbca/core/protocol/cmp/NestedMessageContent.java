@@ -55,11 +55,15 @@ public class NestedMessageContent extends BaseCmpMessage
 
   private static final long serialVersionUID = 1L;
 
-  private static final Logger log =
+  /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(NestedMessageContent.class);
 
+  /** Param. */
   private PKIMessage raSignedMessage;
+  /** Param. */
   private final String confAlias;
+  /** Param. */
   private CmpConfiguration cmpConfiguration;
 
   /**
@@ -69,17 +73,25 @@ public class NestedMessageContent extends BaseCmpMessage
    */
   private byte[] pkimsgbytes = null;
 
+  /**
+   * Default. */
   public NestedMessageContent() {
     this.confAlias = null;
   }
 
+  /**
+   * @param pkiMessage Message
+   * @param acmpConfiguration Config
+   * @param configAlias Alias
+   */
   public NestedMessageContent(
+
       final PKIMessage pkiMessage,
-      final CmpConfiguration cmpConfiguration,
+      final CmpConfiguration acmpConfiguration,
       final String configAlias) {
     this.raSignedMessage = pkiMessage;
     this.confAlias = configAlias;
-    this.cmpConfiguration = cmpConfiguration;
+    this.cmpConfiguration = acmpConfiguration;
     setPKIMessageBytes(pkiMessage);
     final PKIHeader pkiHeader = pkiMessage.getHeader();
     setTransactionId(
@@ -89,6 +101,9 @@ public class NestedMessageContent extends BaseCmpMessage
     setSender(pkiHeader.getSender());
   }
 
+  /**
+   * @return Message
+   */
   public PKIMessage getPKIMessage() {
     if (getMessage() == null) {
       setMessage(PKIMessage.getInstance(pkimsgbytes));
@@ -96,11 +111,14 @@ public class NestedMessageContent extends BaseCmpMessage
     return getMessage();
   }
 
+  /**
+   * @param msg Message
+   */
   public void setPKIMessageBytes(final PKIMessage msg) {
     try {
       this.pkimsgbytes = msg.toASN1Primitive().getEncoded();
     } catch (IOException e) {
-      log.error("Error getting encoded bytes from PKIMessage: ", e);
+      LOG.error("Error getting encoded bytes from PKIMessage: ", e);
     }
     setMessage(msg);
   }
@@ -108,7 +126,8 @@ public class NestedMessageContent extends BaseCmpMessage
   @Override
   public boolean verify() {
     /*
-     * Verifies the signature of the pkimessage using the trusted RA certificate stored in cmpConfiguration.getRaCertificatePath()
+     * Verifies the signature of the pkimessage using the
+     * trusted RA certificate stored in cmpConfiguration.getRaCertificatePath()
      */
     boolean ret = false;
     try {
@@ -116,11 +135,11 @@ public class NestedMessageContent extends BaseCmpMessage
           this.cmpConfiguration.getRACertPath(this.confAlias);
       final List<X509Certificate> racerts = getRaCerts(raCertsPath);
       if (racerts.isEmpty()) {
-        log.info("No certificate files were found in " + raCertsPath);
+        LOG.info("No certificate files were found in " + raCertsPath);
       }
       for (final X509Certificate cert : racerts) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Trying to verifying the NestedMessageContent using the RA"
                   + " certificate with subjectDN '"
                   + cert.getSubjectDN()
@@ -130,8 +149,8 @@ public class NestedMessageContent extends BaseCmpMessage
           cert.checkValidity();
         } catch (CertificateExpiredException
             | CertificateNotYetValidException e) {
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "Certificate with subjectDN '"
                     + CertTools.getSubjectDN(cert)
                     + "' is not valid: "
@@ -151,8 +170,8 @@ public class NestedMessageContent extends BaseCmpMessage
           } else {
             algId = cert.getSigAlgName();
           }
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "Verifying message signature using algorithm id: " + algId);
           }
           Signature sig =
@@ -160,8 +179,8 @@ public class NestedMessageContent extends BaseCmpMessage
           sig.initVerify(cert.getPublicKey());
           sig.update(CmpMessageHelper.getProtectedBytes(raSignedMessage));
           ret = sig.verify(raSignedMessage.getProtection().getBytes());
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "Verifying the NestedMessageContent using the RA certificate"
                     + " with subjectDN '"
                     + cert.getSubjectDN()
@@ -169,19 +188,19 @@ public class NestedMessageContent extends BaseCmpMessage
                     + ret);
           }
         } else {
-          log.info("No signature was found in NestedMessageContent");
+          LOG.info("No signature was found in NestedMessageContent");
         }
       }
     } catch (NoSuchAlgorithmException
         | NoSuchProviderException
         | InvalidKeyException
         | SignatureException e) {
-      if (log.isDebugEnabled()) {
-        log.debug(e.getMessage());
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(e.getMessage());
       }
     }
-    if (log.isDebugEnabled()) {
-      log.debug("Verifying the NestedMessageContent returned " + ret);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Verifying the NestedMessageContent returned " + ret);
     }
     return ret;
   }
@@ -198,14 +217,14 @@ public class NestedMessageContent extends BaseCmpMessage
    */
   private List<X509Certificate> getRaCerts(final String raCertsPath) {
     final List<X509Certificate> racerts = new ArrayList<>();
-    if (log.isDebugEnabled()) {
-      log.debug("Looking for trusted RA certificate in " + raCertsPath);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Looking for trusted RA certificate in " + raCertsPath);
     }
     final File raCertDirectory = new File(raCertsPath);
     final String[] files = raCertDirectory.list();
     if (files != null) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Found "
                 + files.length
                 + " trusted RA certificate in "
@@ -218,15 +237,15 @@ public class NestedMessageContent extends BaseCmpMessage
               CertTools.getCertsFromPEM(filepath, X509Certificate.class)
                   .iterator()
                   .next());
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "Added "
                     + certFile
                     + " to the list of trusted RA certificates");
           }
         } catch (CertificateParsingException | FileNotFoundException e) {
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "Failed to add "
                     + certFile
                     + " to the list of trusted RA certificates: "
@@ -235,8 +254,8 @@ public class NestedMessageContent extends BaseCmpMessage
         }
       }
     }
-    if (log.isDebugEnabled()) {
-      log.debug("Found " + racerts.size() + " certificates in " + raCertsPath);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Found " + racerts.size() + " certificates in " + raCertsPath);
     }
     return racerts;
   }
@@ -350,8 +369,10 @@ public class NestedMessageContent extends BaseCmpMessage
 
   @Override
   public void setKeyInfo(
-      final Certificate cert, final PrivateKey key, final String provider) {}
+      final Certificate cert, final PrivateKey key, final String provider) { }
 
   @Override
-  public void setResponseKeyInfo(final PrivateKey key, final String provider) {}
+  public void setResponseKeyInfo(final PrivateKey key, final String provider) {
+
+  }
 }

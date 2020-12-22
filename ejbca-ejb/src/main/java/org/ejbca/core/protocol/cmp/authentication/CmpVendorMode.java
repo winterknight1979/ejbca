@@ -22,19 +22,25 @@ import org.ejbca.config.CmpConfiguration;
 
 /**
  * Check the authentication of the PKIMessage by verifying the signature from a
- * Vendor CA (3GPP mode)
+ * Vendor CA (3GPP mode).
  *
  * @version $Id: CmpVendorMode.java 26078 2017-06-26 13:13:17Z anatom $
  */
 public interface CmpVendorMode {
 
-  void setCaSession(final CaSession caSession);
+    /**
+     * @param caSession session
+     */
+  void setCaSession(CaSession caSession);
 
-  void setCmpConfiguration(final CmpConfiguration cmpConfiguration);
+  /**
+   * @param cmpConfiguration Config
+   */
+  void setCmpConfiguration(CmpConfiguration cmpConfiguration);
 
   /**
    * Checks if the certificate is issued by a configured Vendor CA, and that it
-   * can be verified using that Vendor CA certificate
+   * can be verified using that Vendor CA certificate.
    *
    * @param admin administrator making the call, must have access to get CAInfo
    *     for the Vendor CA
@@ -46,9 +52,9 @@ public interface CmpVendorMode {
    *     the extraCert, null if no issuing Vendor CA was found.
    */
   CAInfo isExtraCertIssuedByVendorCA(
-      final AuthenticationToken admin,
-      final String confAlias,
-      final List<X509Certificate> extraCerts);
+      AuthenticationToken admin,
+      String confAlias,
+      List<X509Certificate> extraCerts);
 
   /**
    * Checks whether authentication by vendor-issued-certificate should be used.
@@ -60,5 +66,5 @@ public interface CmpVendorMode {
    * @return 'True' if authentication by vendor-issued-certificate is used.
    *     'False' otherwise
    */
-  boolean isVendorCertificateMode(final int reqType, final String confAlias);
+  boolean isVendorCertificateMode(int reqType, String confAlias);
 }
