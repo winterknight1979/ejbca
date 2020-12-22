@@ -380,7 +380,7 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 			<dependency>
 				<groupId>com.thoughtworks.xstream</groupId>
 				<artifactId>xstream</artifactId>
-				<version>1.4.13-java7</version>
+				<version>1.4.15</version>
 			</dependency>
 			<!-- Logging -->
 			<dependency>
