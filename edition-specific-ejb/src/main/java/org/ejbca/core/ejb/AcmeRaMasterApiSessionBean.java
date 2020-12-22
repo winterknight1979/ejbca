@@ -14,11 +14,9 @@ package org.ejbca.core.ejb;
 
 import java.util.List;
 import java.util.Set;
-
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-
 import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.cesecore.authorization.AuthorizationDeniedException;
 import org.cesecore.certificates.ca.CADoesntExistsException;
@@ -38,168 +36,228 @@ import org.ejbca.core.protocol.acme.AcmeOrder;
 import org.ejbca.core.protocol.acme.AcmeRaMasterApiSessionLocal;
 
 /**
- * Proxy for identifying all calls that are needed in the RaMasterApi to fully support ACME.
- * 
- * Not available in Community Edition
+ * Proxy for identifying all calls that are needed in the RaMasterApi to fully
+ * support ACME.
  *
- * @version $Id: AcmeRaMasterApiSessionBean.java 29784 2018-08-30 08:20:30Z tarmo_r_helmes $
+ * <p>Not available in Community Edition
+ *
+ * @version $Id: AcmeRaMasterApiSessionBean.java 29784 2018-08-30 08:20:30Z
+ *     tarmo_r_helmes $
  */
 @Stateless
-// We can't rely on transactions for calls that will do persistence over the RaMasterApi, so avoid the overhead of when methods are invoked
+// We can't rely on transactions for calls that will do persistence over the
+// RaMasterApi, so avoid the overhead of when methods are invoked
 @TransactionAttribute(TransactionAttributeType.SUPPORTS)
 public class AcmeRaMasterApiSessionBean implements AcmeRaMasterApiSessionLocal {
 
-    @Override
-    public boolean changeCertificateStatus(final AuthenticationToken authenticationToken, final String fingerprint, final int newStatus, final int revocationReason)
-            throws ApprovalException, WaitingForApprovalException {
-        throw new UnsupportedOperationException("ACME calls are only supported in EJBCA Enterprise");
-    }
+  @Override
+  public boolean changeCertificateStatus(
+      final AuthenticationToken authenticationToken,
+      final String fingerprint,
+      final int newStatus,
+      final int revocationReason)
+      throws ApprovalException, WaitingForApprovalException {
+    throw new UnsupportedOperationException(
+        "ACME calls are only supported in EJBCA Enterprise");
+  }
 
-    @Override
-    public CertificateDataWrapper searchForCertificate(final AuthenticationToken authenticationToken, final String fingerprint) {
-        throw new UnsupportedOperationException("ACME calls are only supported in EJBCA Enterprise");
-    }
+  @Override
+  public CertificateDataWrapper searchForCertificate(
+      final AuthenticationToken authenticationToken, final String fingerprint) {
+    throw new UnsupportedOperationException(
+        "ACME calls are only supported in EJBCA Enterprise");
+  }
 
-    @Override
-    public AcmeAccount getAcmeAccount(final String accountId) {
-        throw new UnsupportedOperationException("ACME calls are only supported in EJBCA Enterprise");
-    }
+  @Override
+  public AcmeAccount getAcmeAccount(final String accountId) {
+    throw new UnsupportedOperationException(
+        "ACME calls are only supported in EJBCA Enterprise");
+  }
 
-    @Override
-    public AcmeAccount getAcmeAccountByPublicKeyStorageId(final String publicKeyStorageId) {
-        throw new UnsupportedOperationException("ACME calls are only supported in EJBCA Enterprise");
-    }
+  @Override
+  public AcmeAccount getAcmeAccountByPublicKeyStorageId(
+      final String publicKeyStorageId) {
+    throw new UnsupportedOperationException(
+        "ACME calls are only supported in EJBCA Enterprise");
+  }
 
-    @Override
-    public String persistAcmeAccountData(final AcmeAccount acmeAccount) {
-        throw new UnsupportedOperationException("ACME calls are only supported in EJBCA Enterprise");
-    }
+  @Override
+  public String persistAcmeAccountData(final AcmeAccount acmeAccount) {
+    throw new UnsupportedOperationException(
+        "ACME calls are only supported in EJBCA Enterprise");
+  }
 
-    @Override
-    public AcmeOrder getAcmeOrder(final String orderId) {
-        throw new UnsupportedOperationException("ACME calls are only supported in EJBCA Enterprise");
-    }
+  @Override
+  public AcmeOrder getAcmeOrder(final String orderId) {
+    throw new UnsupportedOperationException(
+        "ACME calls are only supported in EJBCA Enterprise");
+  }
 
-    @Override
-    public Set<AcmeOrder> getAcmeOrdersByAccountId(final String accountId) {
-        throw new UnsupportedOperationException("ACME calls are only supported in EJBCA Enterprise");
-    }
-    
-    @Override
-    public Set<AcmeOrder> getFinalizedAcmeOrdersByFingerprint(final String fingerprint) {
-        throw new UnsupportedOperationException("ACME calls are only supported in EJBCA Enterprise");
-    }
-    
-    @Override
-    public String persistAcmeOrderData(final AcmeOrder acmeOrder) {
-        throw new UnsupportedOperationException("ACME calls are only supported in EJBCA Enterprise");
-    }
+  @Override
+  public Set<AcmeOrder> getAcmeOrdersByAccountId(final String accountId) {
+    throw new UnsupportedOperationException(
+        "ACME calls are only supported in EJBCA Enterprise");
+  }
 
-    @Override
-    public List<String> persistAcmeOrderData(final List <AcmeOrder> acmeOrders) {
-        throw new UnsupportedOperationException("ACME calls are only supported in EJBCA Enterprise");
-    }
-    
-    @Override
-    public void removeAcmeOrder(String orderId) {
-        throw new UnsupportedOperationException("ACME calls are only supported in EJBCA Enterprise");    
-    }
+  @Override
+  public Set<AcmeOrder> getFinalizedAcmeOrdersByFingerprint(
+      final String fingerprint) {
+    throw new UnsupportedOperationException(
+        "ACME calls are only supported in EJBCA Enterprise");
+  }
 
-    @Override
-    public void removeAcmeOrders(List<String> orderId) {
-        throw new UnsupportedOperationException("ACME calls are only supported in EJBCA Enterprise");
-    }
+  @Override
+  public String persistAcmeOrderData(final AcmeOrder acmeOrder) {
+    throw new UnsupportedOperationException(
+        "ACME calls are only supported in EJBCA Enterprise");
+  }
 
-    @Override
-    public AcmeAuthorization getAcmeAuthorizationById(String authorizationId) {
-        throw new UnsupportedOperationException("ACME calls are only supported in EJBCA Enterprise");
-    }
+  @Override
+  public List<String> persistAcmeOrderData(final List<AcmeOrder> acmeOrders) {
+    throw new UnsupportedOperationException(
+        "ACME calls are only supported in EJBCA Enterprise");
+  }
 
-    @Override
-    public List<AcmeAuthorization> getAcmeAuthorizationsByOrderId(String orderId) {
-        throw new UnsupportedOperationException("ACME calls are only supported in EJBCA Enterprise");
-    }
+  @Override
+  public void removeAcmeOrder(final String orderId) {
+    throw new UnsupportedOperationException(
+        "ACME calls are only supported in EJBCA Enterprise");
+  }
 
-    @Override
-    public List<AcmeAuthorization> getAcmeAuthorizationsByAccountId(String accountId) {
-        throw new UnsupportedOperationException("ACME calls are only supported in EJBCA Enterprise");
-    }
+  @Override
+  public void removeAcmeOrders(final List<String> orderId) {
+    throw new UnsupportedOperationException(
+        "ACME calls are only supported in EJBCA Enterprise");
+  }
 
-    @Override
-    public String persistAcmeAuthorizationData(AcmeAuthorization acmeAuthorization) {
-        throw new UnsupportedOperationException("ACME calls are only supported in EJBCA Enterprise");
-    }
+  @Override
+  public AcmeAuthorization getAcmeAuthorizationById(
+      final String authorizationId) {
+    throw new UnsupportedOperationException(
+        "ACME calls are only supported in EJBCA Enterprise");
+  }
 
-    @Override
-    public void persistAcmeAuthorizationDataList(List<AcmeAuthorization> acmeAuthorizations) {
-        throw new UnsupportedOperationException("ACME calls are only supported in EJBCA Enterprise");
-    }
+  @Override
+  public List<AcmeAuthorization> getAcmeAuthorizationsByOrderId(
+      final String orderId) {
+    throw new UnsupportedOperationException(
+        "ACME calls are only supported in EJBCA Enterprise");
+  }
 
-    @Override
-    public AcmeChallenge getAcmeChallengeById(String challengeId) {
-        throw new UnsupportedOperationException("ACME calls are only supported in EJBCA Enterprise");
-    }
+  @Override
+  public List<AcmeAuthorization> getAcmeAuthorizationsByAccountId(
+      final String accountId) {
+    throw new UnsupportedOperationException(
+        "ACME calls are only supported in EJBCA Enterprise");
+  }
 
-    @Override
-    public List<AcmeChallenge> getAcmeChallengesByAuthorizationId(String authorizationId) {
-        throw new UnsupportedOperationException("ACME calls are only supported in EJBCA Enterprise");
-    }
+  @Override
+  public String persistAcmeAuthorizationData(
+      final AcmeAuthorization acmeAuthorization) {
+    throw new UnsupportedOperationException(
+        "ACME calls are only supported in EJBCA Enterprise");
+  }
 
-    @Override
-    public void persistAcmeChallengeData(AcmeChallenge acmeChallenge) {
-        throw new UnsupportedOperationException("ACME calls are only supported in EJBCA Enterprise");
-    }
+  @Override
+  public void persistAcmeAuthorizationDataList(
+      final List<AcmeAuthorization> acmeAuthorizations) {
+    throw new UnsupportedOperationException(
+        "ACME calls are only supported in EJBCA Enterprise");
+  }
 
-    @Override
-    public void persistAcmeChallengeDataList(List<AcmeChallenge> acmeChallenges) {
-        throw new UnsupportedOperationException("ACME calls are only supported in EJBCA Enterprise");
-    }
+  @Override
+  public AcmeChallenge getAcmeChallengeById(final String challengeId) {
+    throw new UnsupportedOperationException(
+        "ACME calls are only supported in EJBCA Enterprise");
+  }
 
-    @Override
-    public boolean useAcmeReplayNonce(final String nonce, final long timeCreated, final long timeExpires) {
-        throw new UnsupportedOperationException("ACME calls are only supported in EJBCA Enterprise");
-    }
+  @Override
+  public List<AcmeChallenge> getAcmeChallengesByAuthorizationId(
+      final String authorizationId) {
+    throw new UnsupportedOperationException(
+        "ACME calls are only supported in EJBCA Enterprise");
+  }
 
-    @Override
-    public IdNameHashMap<EndEntityProfile> getAuthorizedEndEntityProfiles(final AuthenticationToken authenticationToken, final String endEntityAccessRule) {
-        throw new UnsupportedOperationException("ACME calls are only supported in EJBCA Enterprise");
-    }
+  @Override
+  public void persistAcmeChallengeData(final AcmeChallenge acmeChallenge) {
+    throw new UnsupportedOperationException(
+        "ACME calls are only supported in EJBCA Enterprise");
+  }
 
-    @Override
-    public IdNameHashMap<CertificateProfile> getAuthorizedCertificateProfiles(final AuthenticationToken authenticationToken) {
-        throw new UnsupportedOperationException("ACME calls are only supported in EJBCA Enterprise");
-    }
+  @Override
+  public void persistAcmeChallengeDataList(
+      final List<AcmeChallenge> acmeChallenges) {
+    throw new UnsupportedOperationException(
+        "ACME calls are only supported in EJBCA Enterprise");
+  }
 
-    @Override
-    public IdNameHashMap<CAInfo> getAuthorizedCAInfos(final AuthenticationToken authenticationToken) {
-        throw new UnsupportedOperationException("ACME calls are only supported in EJBCA Enterprise");
-    }
+  @Override
+  public boolean useAcmeReplayNonce(
+      final String nonce, final long timeCreated, final long timeExpires) {
+    throw new UnsupportedOperationException(
+        "ACME calls are only supported in EJBCA Enterprise");
+  }
 
-    @Override
-    public EndEntityInformation searchUser(final AuthenticationToken authenticationToken, final String username) {
-        throw new UnsupportedOperationException("ACME calls are only supported in EJBCA Enterprise");
-    }
-    
-    @Override
-    public void addUser(final AuthenticationToken authenticationToken, final EndEntityInformation endEntityInformation, boolean clearpwd)
-            throws AuthorizationDeniedException, EjbcaException, WaitingForApprovalException {
-        throw new UnsupportedOperationException("ACME calls are only supported in EJBCA Enterprise");
-    }
+  @Override
+  public IdNameHashMap<EndEntityProfile> getAuthorizedEndEntityProfiles(
+      final AuthenticationToken authenticationToken,
+      final String endEntityAccessRule) {
+    throw new UnsupportedOperationException(
+        "ACME calls are only supported in EJBCA Enterprise");
+  }
 
-    @Override
-    public byte[] createCertificate(final AuthenticationToken authenticationToken, final EndEntityInformation endEntityInformation)
-            throws AuthorizationDeniedException, EjbcaException {
-        throw new UnsupportedOperationException("ACME calls are only supported in EJBCA Enterprise");
-    }
+  @Override
+  public IdNameHashMap<CertificateProfile> getAuthorizedCertificateProfiles(
+      final AuthenticationToken authenticationToken) {
+    throw new UnsupportedOperationException(
+        "ACME calls are only supported in EJBCA Enterprise");
+  }
 
-    @Override
-    public Set<String> getCaaIdentities(final AuthenticationToken authenticationToken, final int caId)
-            throws CADoesntExistsException, AuthorizationDeniedException {
-        throw new UnsupportedOperationException("ACME calls are only supported in EJBCA Enterprise");
-    }
+  @Override
+  public IdNameHashMap<CAInfo> getAuthorizedCAInfos(
+      final AuthenticationToken authenticationToken) {
+    throw new UnsupportedOperationException(
+        "ACME calls are only supported in EJBCA Enterprise");
+  }
 
-    @Override
-    public boolean isPeerAuthorizedAcme() {
-        throw new UnsupportedOperationException("ACME calls are only supported in EJBCA Enterprise");
-    }
+  @Override
+  public EndEntityInformation searchUser(
+      final AuthenticationToken authenticationToken, final String username) {
+    throw new UnsupportedOperationException(
+        "ACME calls are only supported in EJBCA Enterprise");
+  }
+
+  @Override
+  public void addUser(
+      final AuthenticationToken authenticationToken,
+      final EndEntityInformation endEntityInformation,
+      final boolean clearpwd)
+      throws AuthorizationDeniedException, EjbcaException,
+          WaitingForApprovalException {
+    throw new UnsupportedOperationException(
+        "ACME calls are only supported in EJBCA Enterprise");
+  }
+
+  @Override
+  public byte[] createCertificate(
+      final AuthenticationToken authenticationToken,
+      final EndEntityInformation endEntityInformation)
+      throws AuthorizationDeniedException, EjbcaException {
+    throw new UnsupportedOperationException(
+        "ACME calls are only supported in EJBCA Enterprise");
+  }
+
+  @Override
+  public Set<String> getCaaIdentities(
+      final AuthenticationToken authenticationToken, final int caId)
+      throws CADoesntExistsException, AuthorizationDeniedException {
+    throw new UnsupportedOperationException(
+        "ACME calls are only supported in EJBCA Enterprise");
+  }
+
+  @Override
+  public boolean isPeerAuthorizedAcme() {
+    throw new UnsupportedOperationException(
+        "ACME calls are only supported in EJBCA Enterprise");
+  }
 }

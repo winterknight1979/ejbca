@@ -15,36 +15,35 @@ package org.ejbca.core.protocol.cmp.authentication;
 
 import java.security.cert.X509Certificate;
 import java.util.List;
-
 import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.cesecore.certificates.ca.CAInfo;
 import org.cesecore.certificates.ca.CaSession;
 import org.ejbca.config.CmpConfiguration;
 
 /**
- * NoOperation implementation of CMP Vendor mode
- * 
- * @version $Id: CmpVendorModeNoopImpl.java 26029 2017-06-17 12:31:05Z anatom $
+ * NoOperation implementation of CMP Vendor mode.
  *
+ * @version $Id: CmpVendorModeNoopImpl.java 26029 2017-06-17 12:31:05Z anatom $
  */
 public class CmpVendorModeNoopImpl implements CmpVendorMode {
 
-    @Override
-    public void setCaSession(final CaSession caSession) {
-    }
+  @Override
+  public void setCaSession(final CaSession caSession) { }
 
-    @Override
-    public void setCmpConfiguration(final CmpConfiguration cmpConfiguration) {
-    }
+  @Override
+  public void setCmpConfiguration(final CmpConfiguration cmpConfiguration) { }
 
-    @Override
-    public CAInfo isExtraCertIssuedByVendorCA(final AuthenticationToken admin, final String confAlias, final List<X509Certificate> extraCerts) {
-        return null;
-    }
-    
-    @Override
-    public boolean isVendorCertificateMode(final int reqType, final String confAlias) {
-        return false;
-    }
+  @Override
+  public CAInfo isExtraCertIssuedByVendorCA(
+      final AuthenticationToken admin,
+      final String confAlias,
+      final List<X509Certificate> extraCerts) {
+    return null;
+  }
 
+  @Override
+  public boolean isVendorCertificateMode(
+      final int reqType, final String confAlias) {
+    return false;
+  }
 }

@@ -16,9 +16,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-
 import javax.ejb.Stateless;
-
 import org.cesecore.audit.AuditLogEntry;
 import org.cesecore.audit.audit.AuditExporter;
 import org.cesecore.audit.audit.AuditLogExportReport;
@@ -32,44 +30,63 @@ import org.cesecore.keys.token.CryptoToken;
 import org.cesecore.util.query.QueryCriteria;
 
 /**
- * Mock implementation of QueuedDevice interface to allow the secure audit code imported from
- * CESeCore to stay the same without bundling the queued implementation.
- * 
- * @version $Id: QueuedAuditorMockSessionBean.java 19901 2014-09-30 14:29:38Z anatom $
+ * Mock implementation of QueuedDevice interface to allow the secure audit code
+ * imported from CESeCore to stay the same without bundling the queued
+ * implementation.
+ *
+ * @version $Id: QueuedAuditorMockSessionBean.java 19901 2014-09-30 14:29:38Z
+ *     anatom $
  */
 @Stateless
 public class QueuedAuditorMockSessionBean implements QueuedAuditorSessionLocal {
-	private static final String UNSUPPORTED = "Unsupported operation. QueuedDevice is not bundled with EJBCA.";
-	
-	@Override
-	public void prepareReset() throws AuditLogResetException {
-		throw new RuntimeException(UNSUPPORTED);
-	}
+    /** Param. */
+  private static final String UNSUPPORTED =
+      "Unsupported operation. QueuedDevice is not bundled with EJBCA.";
 
-	@Override
-	public void reset() throws AuditLogResetException {
-		throw new RuntimeException(UNSUPPORTED);
-	}
+  @Override
+  public void prepareReset() throws AuditLogResetException {
+    throw new RuntimeException(UNSUPPORTED);
+  }
 
-	@Override
-	public AuditLogExportReport exportAuditLogs(AuthenticationToken token, CryptoToken cryptoToken, Date timestamp, boolean deleteAfterExport,
-			Map<String, Object> signatureDetails, Properties properties, Class<? extends AuditExporter> exporter) throws AuditLogExporterException {
-		throw new RuntimeException(UNSUPPORTED);
-	}
+  @Override
+  public void reset() throws AuditLogResetException {
+    throw new RuntimeException(UNSUPPORTED);
+  }
 
-	@Override
-	public List<? extends AuditLogEntry> selectAuditLogs(AuthenticationToken token, int startIndex, int max, QueryCriteria criteria, Properties properties) {
-		throw new RuntimeException(UNSUPPORTED);
-	}
+  @Override
+  public AuditLogExportReport exportAuditLogs(
+      final AuthenticationToken token,
+      final CryptoToken cryptoToken,
+      final Date timestamp,
+      final boolean deleteAfterExport,
+      final Map<String, Object> signatureDetails,
+      final Properties properties,
+      final Class<? extends AuditExporter> exporter)
+      throws AuditLogExporterException {
+    throw new RuntimeException(UNSUPPORTED);
+  }
 
-	@Override
-	public AuditLogValidationReport verifyLogsIntegrity(AuthenticationToken token, Date date, Properties properties) throws AuditLogValidatorException {
-		throw new RuntimeException(UNSUPPORTED);
-	}
-	
-    @Override
-    public void delete(AuthenticationToken token, Date timestamp) {
-        throw new RuntimeException(UNSUPPORTED);
-    }
+  @Override
+  public List<? extends AuditLogEntry> selectAuditLogs(
+      final AuthenticationToken token,
+      final int startIndex,
+      final int max,
+      final QueryCriteria criteria,
+      final Properties properties) {
+    throw new RuntimeException(UNSUPPORTED);
+  }
 
+  @Override
+  public AuditLogValidationReport verifyLogsIntegrity(
+      final AuthenticationToken token,
+      final Date date,
+      final Properties properties)
+      throws AuditLogValidatorException {
+    throw new RuntimeException(UNSUPPORTED);
+  }
+
+  @Override
+  public void delete(final AuthenticationToken token, final Date timestamp) {
+    throw new RuntimeException(UNSUPPORTED);
+  }
 }

@@ -13,21 +13,23 @@
 package org.ejbca.ui.cli.infrastructure.parameter.enums;
 
 /**
- * This enum declares the four types of CLI inputs possible. These are:
- *      ARGUMENT
- *          A switch and an associated value following that switch. The switch should never be alone, but the value may be if the parameter is 
- *          declared standalone.
- *      FLAG
- *          A switch without a following input value, such as --verbose
- *      INPUT
- *          Like an argument, but the value is expected to be prompted instead of read from the command line.
- *      PASSWORD
- *          Like INPUT, but the input is never echoed on the screen. 
- * 
- * @version $Id: ParameterMode.java 26057 2017-06-22 08:08:34Z anatom $
+ * This enum declares the four types of CLI inputs possible. These are: ARGUMENT
+ * A switch and an associated value following that switch. The switch should
+ * never be alone, but the value may be if the parameter is declared standalone.
+ * FLAG A switch without a following input value, such as --verbose INPUT Like
+ * an argument, but the value is expected to be prompted instead of read from
+ * the command line. PASSWORD Like INPUT, but the input is never echoed on the
+ * screen.
  *
+ * @version $Id: ParameterMode.java 26057 2017-06-22 08:08:34Z anatom $
  */
 public enum ParameterMode {
-    ARGUMENT, FLAG, INPUT, PASSWORD;
-    
+      /** Mode. */
+  ARGUMENT,
+  /** Mode. */
+  FLAG,
+  /** Mode. */
+  INPUT,
+  /** Mode. */
+  PASSWORD;
 }

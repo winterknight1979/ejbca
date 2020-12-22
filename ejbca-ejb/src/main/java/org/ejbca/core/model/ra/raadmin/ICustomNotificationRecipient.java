@@ -15,18 +15,20 @@ package org.ejbca.core.model.ra.raadmin;
 import org.cesecore.certificates.endentity.EndEntityInformation;
 
 /**
- * Interface for plug-in to retrieve notification recipient addresses. 
- * Implement this interface and put "CUSTOM:you.plugin.full.classname" as the recipient for 
- * user notifications.
- * 
- * @version $Id: ICustomNotificationRecipient.java 22117 2015-10-29 10:53:42Z mikekushner $
+ * Interface for plug-in to retrieve notification recipient addresses. Implement
+ * this interface and put "CUSTOM:you.plugin.full.classname" as the recipient
+ * for user notifications.
+ *
+ * @version $Id: ICustomNotificationRecipient.java 22117 2015-10-29 10:53:42Z
+ *     mikekushner $
  */
 public interface ICustomNotificationRecipient {
 
-	/** Returns a comma separated list of recipient email addresses.
-	 * 
-	 * @param user EndEntityInformation of the user that will be notified
-	 * @return a comma separated list of email addresses
-	 */
-    String getRecipientEmails(EndEntityInformation user);
+  /**
+   * Returns a comma separated list of recipient email addresses.
+   *
+   * @param user EndEntityInformation of the user that will be notified
+   * @return a comma separated list of email addresses
+   */
+  String getRecipientEmails(EndEntityInformation user);
 }

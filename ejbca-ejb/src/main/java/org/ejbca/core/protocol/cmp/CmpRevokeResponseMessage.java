@@ -23,7 +23,6 @@ import java.security.cert.CRL;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.util.Collection;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -47,191 +46,229 @@ import org.cesecore.certificates.certificate.request.ResponseStatus;
 import org.cesecore.util.CertTools;
 
 /**
- * A very simple confirmation message, no protection and a nullbody
+ * A very simple confirmation message, no protection and a nullbody.
+ *
  * @author tomas
- * @version $Id: CmpRevokeResponseMessage.java 28875 2018-05-08 13:44:40Z anatom $
+ * @version $Id: CmpRevokeResponseMessage.java 28875 2018-05-08 13:44:40Z anatom
+ *     $
  */
-public class CmpRevokeResponseMessage extends BaseCmpMessage implements ResponseMessage {
+public class CmpRevokeResponseMessage extends BaseCmpMessage
+    implements ResponseMessage {
 
-	/**
-	 * Determines if a de-serialized file is compatible with this class.
-	 *
-	 * Maintainers must change this value if and only if the new version
-	 * of this class is not compatible with old versions. See Sun docs
-	 * for <a href=http://java.sun.com/products/jdk/1.1/docs/guide
-	 * /serialization/spec/version.doc.html> details. </a>
-	 *
-	 */
-	static final long serialVersionUID = 10003L;
+  /**
+   * Determines if a de-serialized file is compatible with this class.
+   *
+   * <p>Maintainers must change this value if and only if the new version of
+   * this class is not compatible with old versions. See Sun docs for <a
+   * href=http://java.sun.com/products/jdk/1.1/docs/guide
+   * /serialization/spec/version.doc.html> details. </a>
+   */
+  static final long serialVersionUID = 10003L;
 
-	private static final Logger log = Logger.getLogger(CmpRevokeResponseMessage .class);
+  /** Logger. */
+  private static final Logger LOG =
+      Logger.getLogger(CmpRevokeResponseMessage.class);
 
-    /** Default digest algorithm for SCEP response message, can be overridden */
-    private String digestAlg = CMSSignedGenerator.DIGEST_SHA1;
-    /** The default provider is BC, if nothing else is specified when setting SignKeyInfo */
-    private String provider = "BC";
-	
-    /** Certificate for the signer of the response message (CA) */
-    private transient Collection<Certificate> signCertChain = null;
-    /** Private key used to sign the response message */
-    private transient PrivateKey signKey = null;
+  /** Default digest algorithm for SCEP response message, can be overridden.*/
+  private String digestAlg = CMSSignedGenerator.DIGEST_SHA1;
+  /**
+   * The default provider is BC, if nothing else is specified when setting
+   * SignKeyInfo.
+   */
+  private String provider = "BC";
 
-    
-	/** The encoded response message */
-    private byte[] responseMessage = null;
-    private String failText = null;
-    private FailInfo failInfo = FailInfo.BAD_REQUEST;
-    private ResponseStatus status = ResponseStatus.FAILURE;
+  /** Certificate for the signer of the response message (CA). */
+  private transient Collection<Certificate> signCertChain = null;
+  /** Private key used to sign the response message. */
+  private transient PrivateKey signKey = null;
 
-	@Override
-	public void setCrl(CRL crl) {
-	}
+  /** The encoded response message. */
+  private byte[] responseMessage = null;
 
-	@Override
-	public void setIncludeCACert(boolean incCACert) {
-	}
+  /** Param. */
+  private String failText = null;
+  /** Param. */
+  private FailInfo failInfo = FailInfo.BAD_REQUEST;
+  /** Param. */
+  private ResponseStatus status = ResponseStatus.FAILURE;
 
-	@Override
-	public void setCACert(Certificate cACert) {
-	}
+  @Override
+  public void setCrl(final CRL crl) { }
 
-	@Override
-	public byte[] getResponseMessage() {
-        return responseMessage;
-	}
+  @Override
+  public void setIncludeCACert(final boolean incCACert) { }
 
-	@Override
-	public void setStatus(ResponseStatus status) {
-		this.status = status;
-	}
+  @Override
+  public void setCACert(final Certificate cACert) { }
 
-	@Override
-	public ResponseStatus getStatus() {
-		return status;
-	}
+  @Override
+  public byte[] getResponseMessage() {
+    return responseMessage;
+  }
 
-	@Override
-	public void setFailInfo(FailInfo failInfo) {
-		this.failInfo = failInfo;
-	}
+  @Override
+  public void setStatus(final ResponseStatus astatus) {
+    this.status = astatus;
+  }
 
-	@Override
-	public FailInfo getFailInfo() {
-		return failInfo;
-	}
+  @Override
+  public ResponseStatus getStatus() {
+    return status;
+  }
 
-	@Override
-	public void setFailText(String failText) {
-		this.failText = failText;
-	}
+  @Override
+  public void setFailInfo(final FailInfo afailInfo) {
+    this.failInfo = afailInfo;
+  }
 
-	@Override
-	public String getFailText() {
-		return failText;
-	}
+  @Override
+  public FailInfo getFailInfo() {
+    return failInfo;
+  }
 
-    @Override
-    public boolean create() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException {
-		final PKIHeaderBuilder myPKIHeader = CmpMessageHelper.createPKIHeaderBuilder(getSender(), getRecipient(), getSenderNonce(), getRecipientNonce(), getTransactionId());
-		PKIStatusInfo myPKIStatusInfo = new PKIStatusInfo(PKIStatus.granted); // 0 = accepted
-		if (status != ResponseStatus.SUCCESS && status != ResponseStatus.GRANTED_WITH_MODS) {
-			if (log.isDebugEnabled()) {
-				log.debug("Creating a rejection message");
-			}
-			myPKIStatusInfo = new PKIStatusInfo(PKIStatus.rejection, null, CmpMessageHelper.getPKIFailureInfo(failInfo.intValue()));
-			if(failText != null && failInfo != null) {
-			    myPKIStatusInfo = new PKIStatusInfo(PKIStatus.rejection, new PKIFreeText(failText), CmpMessageHelper.getPKIFailureInfo(failInfo.intValue()));
-			}
-		}
-		RevRepContentBuilder revBuilder = new RevRepContentBuilder();
-		revBuilder.add(myPKIStatusInfo);
-		RevRepContent myRevrepMessage = revBuilder.build();
+  @Override
+  public void setFailText(final String afailText) {
+    this.failText = afailText;
+  }
 
-		PKIBody myPKIBody = new PKIBody(CmpPKIBodyConstants.REVOCATIONRESPONSE, myRevrepMessage);
-		PKIMessage myPKIMessage;
+  @Override
+  public String getFailText() {
+    return failText;
+  }
 
-		if ((getPbeDigestAlg() != null) && (getPbeMacAlg() != null) && (getPbeKey() != null) ) {
-		    myPKIHeader.setProtectionAlg(new AlgorithmIdentifier(CMPObjectIdentifiers.passwordBasedMac));
-		    myPKIMessage = new PKIMessage(myPKIHeader.build(), myPKIBody);
-			responseMessage = CmpMessageHelper.protectPKIMessageWithPBE(myPKIMessage, getPbeKeyId(), getPbeKey(), getPbeDigestAlg(), getPbeMacAlg(), getPbeIterationCount());
-		} else {
-		    myPKIHeader.setProtectionAlg(new AlgorithmIdentifier(new ASN1ObjectIdentifier(digestAlg)));
-            if (CollectionUtils.isNotEmpty(signCertChain)) {
-                // set sender Key ID as well when the response is signed, so the signer (CA) can have multiple certificates out there
-                // with the same DN but different keys
-                myPKIHeader.setSenderKID(CertTools.getSubjectKeyId(signCertChain.iterator().next()));
-            }
-		    myPKIMessage = new PKIMessage(myPKIHeader.build(), myPKIBody);
-            try {
-                responseMessage = CmpMessageHelper.signPKIMessage(myPKIMessage, signCertChain, signKey, digestAlg, provider);
-            } catch (CertificateEncodingException e) {
-                log.error("Failed to sign CMPRevokeResponseMessage");
-                log.error(e.getLocalizedMessage(), e);
-                responseMessage = getUnprotectedResponseMessage(myPKIMessage);
-            } catch (SecurityException e) {
-                log.error("Failed to sign CMPRevokeResponseMessage");
-                log.error(e.getLocalizedMessage(), e);
-                responseMessage = getUnprotectedResponseMessage(myPKIMessage);
-            } catch (SignatureException e) {
-                log.error("Failed to sign CMPRevokeResponseMessage");
-                log.error(e.getLocalizedMessage(), e);
-                responseMessage = getUnprotectedResponseMessage(myPKIMessage);
-            }
-		}
-		return true;
-	}
-
-	private byte[] getUnprotectedResponseMessage(PKIMessage msg) {
-	    byte[] resp = null;
-	    try {
-	        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-	        final DEROutputStream mout = new DEROutputStream( baos );
-	        mout.writeObject( msg );
-	        mout.close();
-	        resp = baos.toByteArray();
-	    } catch (IOException e) {
-	        log.error(e.getLocalizedMessage(), e);
-	    }
-	    return resp;
-	}
-	   
-	@Override
-	public boolean requireSignKeyInfo() {
-		return false;
-	}
-
-	@Override
-	public void setSignKeyInfo(Collection<Certificate> certs, PrivateKey key,
-			String provider) {
-	    
-        this.signCertChain = certs;
-        this.signKey = key;
-        if (provider != null) {
-            this.provider = provider;
-        }
-	}
-
-	@Override
-	public void setRecipientKeyInfo(byte[] recipientKeyInfo) {
-	}
-
-	@Override
-	public void setPreferredDigestAlg(String digest) {
-	    if(StringUtils.isNotEmpty(digest)) {
-	        this.digestAlg = digest;
-	    }
-	}
-
-	@Override
-	public void setRequestType(int reqtype) {
-	}
-
-	@Override
-	public void setRequestId(int reqid) {
-	}
-
-	@Override
-    public void setProtectionParamsFromRequest(RequestMessage reqMsg) {
+  @Override
+  public boolean create()
+      throws InvalidKeyException, NoSuchAlgorithmException,
+          NoSuchProviderException {
+    final PKIHeaderBuilder myPKIHeader =
+        CmpMessageHelper.createPKIHeaderBuilder(
+            getSender(),
+            getRecipient(),
+            getSenderNonce(),
+            getRecipientNonce(),
+            getTransactionId());
+    PKIStatusInfo myPKIStatusInfo =
+        new PKIStatusInfo(PKIStatus.granted); // 0 = accepted
+    if (status != ResponseStatus.SUCCESS
+        && status != ResponseStatus.GRANTED_WITH_MODS) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Creating a rejection message");
+      }
+      myPKIStatusInfo =
+          new PKIStatusInfo(
+              PKIStatus.rejection,
+              null,
+              CmpMessageHelper.getPKIFailureInfo(failInfo.intValue()));
+      if (failText != null && failInfo != null) {
+        myPKIStatusInfo =
+            new PKIStatusInfo(
+                PKIStatus.rejection,
+                new PKIFreeText(failText),
+                CmpMessageHelper.getPKIFailureInfo(failInfo.intValue()));
+      }
     }
+    RevRepContentBuilder revBuilder = new RevRepContentBuilder();
+    revBuilder.add(myPKIStatusInfo);
+    RevRepContent myRevrepMessage = revBuilder.build();
 
+    PKIBody myPKIBody =
+        new PKIBody(CmpPKIBodyConstants.REVOCATIONRESPONSE, myRevrepMessage);
+    PKIMessage myPKIMessage;
+
+    if ((getPbeDigestAlg() != null)
+        && (getPbeMacAlg() != null)
+        && (getPbeKey() != null)) {
+      myPKIHeader.setProtectionAlg(
+          new AlgorithmIdentifier(CMPObjectIdentifiers.passwordBasedMac));
+      myPKIMessage = new PKIMessage(myPKIHeader.build(), myPKIBody);
+      responseMessage =
+          CmpMessageHelper.protectPKIMessageWithPBE(
+              myPKIMessage,
+              getPbeKeyId(),
+              getPbeKey(),
+              getPbeDigestAlg(),
+              getPbeMacAlg(),
+              getPbeIterationCount());
+    } else {
+      myPKIHeader.setProtectionAlg(
+          new AlgorithmIdentifier(new ASN1ObjectIdentifier(digestAlg)));
+      if (CollectionUtils.isNotEmpty(signCertChain)) {
+        // set sender Key ID as well when the response is signed, so the signer
+        // (CA) can have multiple certificates out there
+        // with the same DN but different keys
+        myPKIHeader.setSenderKID(
+            CertTools.getSubjectKeyId(signCertChain.iterator().next()));
+      }
+      myPKIMessage = new PKIMessage(myPKIHeader.build(), myPKIBody);
+      try {
+        responseMessage =
+            CmpMessageHelper.signPKIMessage(
+                myPKIMessage, signCertChain, signKey, digestAlg, provider);
+      } catch (CertificateEncodingException e) {
+        LOG.error("Failed to sign CMPRevokeResponseMessage");
+        LOG.error(e.getLocalizedMessage(), e);
+        responseMessage = getUnprotectedResponseMessage(myPKIMessage);
+      } catch (SecurityException e) {
+        LOG.error("Failed to sign CMPRevokeResponseMessage");
+        LOG.error(e.getLocalizedMessage(), e);
+        responseMessage = getUnprotectedResponseMessage(myPKIMessage);
+      } catch (SignatureException e) {
+        LOG.error("Failed to sign CMPRevokeResponseMessage");
+        LOG.error(e.getLocalizedMessage(), e);
+        responseMessage = getUnprotectedResponseMessage(myPKIMessage);
+      }
+    }
+    return true;
+  }
+
+  private byte[] getUnprotectedResponseMessage(final PKIMessage msg) {
+    byte[] resp = null;
+    try {
+      final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      final DEROutputStream mout = new DEROutputStream(baos);
+      mout.writeObject(msg);
+      mout.close();
+      resp = baos.toByteArray();
+    } catch (IOException e) {
+      LOG.error(e.getLocalizedMessage(), e);
+    }
+    return resp;
+  }
+
+  @Override
+  public boolean requireSignKeyInfo() {
+    return false;
+  }
+
+  @Override
+  public void setSignKeyInfo(
+      final Collection<Certificate> certs,
+      final PrivateKey key,
+      final String aprovider) {
+
+    this.signCertChain = certs;
+    this.signKey = key;
+    if (aprovider != null) {
+      this.provider = aprovider;
+    }
+  }
+
+  @Override
+  public void setRecipientKeyInfo(final byte[] recipientKeyInfo) { }
+
+  @Override
+  public void setPreferredDigestAlg(final String digest) {
+    if (StringUtils.isNotEmpty(digest)) {
+      this.digestAlg = digest;
+    }
+  }
+
+  @Override
+  public void setRequestType(final int reqtype) { }
+
+  @Override
+  public void setRequestId(final int reqid) { }
+
+  @Override
+  public void setProtectionParamsFromRequest(final RequestMessage reqMsg) { }
 }

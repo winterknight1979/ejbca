@@ -15,7 +15,6 @@ package org.ejbca.core.ejb;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-
 import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.ejbca.config.AcmeConfiguration;
 import org.ejbca.core.protocol.acme.AcmeConfigurationSessionLocal;
@@ -24,19 +23,24 @@ import org.ejbca.core.protocol.acme.AcmeProblemException;
 /**
  * ACME configuration handling business logic.
  *
- * Not available in Community Edition
- * 
- * @version $Id: AcmeConfigurationSessionBean.java 29618 2018-08-13 18:29:05Z mikekushner $
+ * <p>Not available in Community Edition
+ *
+ * @version $Id: AcmeConfigurationSessionBean.java 29618 2018-08-13 18:29:05Z
+ *     mikekushner $
  */
 @Stateless
-// We can't rely on transactions for calls that will do persistence over the RaMasterApi, so avoid the overhead of when methods are invoked
+// We can't rely on transactions for calls that will do persistence over the
+// RaMasterApi, so avoid the overhead of when methods are invoked
 @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-public class AcmeConfigurationSessionBean implements AcmeConfigurationSessionLocal {
+public class AcmeConfigurationSessionBean
+    implements AcmeConfigurationSessionLocal {
 
-    @Override
-    public AcmeConfiguration getAcmeConfiguration(final AuthenticationToken authenticationToken, final String configurationAlias)
-            throws AcmeProblemException {
-        throw new UnsupportedOperationException("ACME calls are only supported in EJBCA Enterprise");
-    }
- 
+  @Override
+  public AcmeConfiguration getAcmeConfiguration(
+      final AuthenticationToken authenticationToken,
+      final String configurationAlias)
+      throws AcmeProblemException {
+    throw new UnsupportedOperationException(
+        "ACME calls are only supported in EJBCA Enterprise");
+  }
 }

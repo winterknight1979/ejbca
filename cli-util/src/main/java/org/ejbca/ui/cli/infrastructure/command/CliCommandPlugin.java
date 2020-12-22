@@ -15,33 +15,27 @@ package org.ejbca.ui.cli.infrastructure.command;
 import java.util.Set;
 
 /**
- * A marker interface (mostly)
- * 
- * @version $Id: CliCommandPlugin.java 19902 2014-09-30 14:32:24Z anatom $
+ * A marker interface (mostly).
  *
+ * @version $Id: CliCommandPlugin.java 19902 2014-09-30 14:32:24Z anatom $
  */
 public interface CliCommandPlugin extends CliCommand {
-    
-    /**
-     * @return the main entrance path to the implementing command.
-     */
-    String getMainCommand();
-    
-    /**
-     * 
-     * @return a set of aliases to the command
-     */
-    Set<String> getMainCommandAliases();
-    
-    /**
-     * 
-     * @return a path of super commands leading to this command. Conflicts will be resolved at runtime.
-     */
-    String[] getCommandPath();
-    
-    /**
-     * 
-     * @return aliases for the super commands leading to this path. Conflicts will be resolved at runtime.
-     */
-    Set<String[]> getCommandPathAliases();
+
+  /** @return the main entrance path to the implementing command. */
+  String getMainCommand();
+
+  /** @return a set of aliases to the command */
+  Set<String> getMainCommandAliases();
+
+  /**
+   * @return a path of super commands leading to this command. Conflicts will be
+   *     resolved at runtime.
+   */
+  String[] getCommandPath();
+
+  /**
+   * @return aliases for the super commands leading to this path. Conflicts will
+   *     be resolved at runtime.
+   */
+  Set<String[]> getCommandPathAliases();
 }

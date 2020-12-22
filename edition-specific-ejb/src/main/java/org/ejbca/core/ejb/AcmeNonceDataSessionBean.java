@@ -16,25 +16,28 @@ package org.ejbca.core.ejb;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-
 import org.ejbca.core.protocol.acme.AcmeNonceDataSessionLocal;
 
 /**
- * Not available in Community Edition
+ * Not available in Community Edition.
  *
- * @version $Id: AcmeNonceDataSessionBean.java 29618 2018-08-13 18:29:05Z mikekushner $
+ * @version $Id: AcmeNonceDataSessionBean.java 29618 2018-08-13 18:29:05Z
+ *     mikekushner $
  */
 @Stateless
 @TransactionAttribute(TransactionAttributeType.SUPPORTS)
 public class AcmeNonceDataSessionBean implements AcmeNonceDataSessionLocal {
 
-    @Override
-    public boolean useNonce(final String nonce, final long timeCreated, final long timeExpires) {
-        throw new UnsupportedOperationException("ACME calls are only supported in EJBCA Enterprise");
-    }
+  @Override
+  public boolean useNonce(
+      final String nonce, final long timeCreated, final long timeExpires) {
+    throw new UnsupportedOperationException(
+        "ACME calls are only supported in EJBCA Enterprise");
+  }
 
-    @Override
-    public void cleanUpExpired() {
-        throw new UnsupportedOperationException("ACME calls are only supported in EJBCA Enterprise");
-    }
+  @Override
+  public void cleanUpExpired() {
+    throw new UnsupportedOperationException(
+        "ACME calls are only supported in EJBCA Enterprise");
+  }
 }

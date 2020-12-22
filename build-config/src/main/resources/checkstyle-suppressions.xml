@@ -406,4 +406,88 @@
 		files="GenerateNewUserCommand.java" lines="99" />
 	<suppress checks="ParameterNumberCheck"
 		files="StressTestCommand.java" lines="659" />
+		
+	<!-- ejbca-ejb -->
+	
+	<suppress checks="ParameterNumberCheck"
+		files="QueuedLoggerMockSessionBean.java" lines="42" />
+	<suppress checks="MethodLengthCheck"
+		files="ApprovalExecutionSessionBean.java" lines="100" />
+	<suppress checks="ParameterNumberCheck"
+		files="ApprovalSessionBean.java" lines="542" />
+	<suppress checks="MethodLengthCheck"
+		files="ApprovalSessionBean.java" lines="776,956" />
+	<suppress checks="MethodLengthCheck"
+		files="AuthorizationSystemSessionBean.java" lines="215" />
+	<suppress checks="ParameterNumberCheck"
+		files="AuthorizationSystemSessionBean.java" lines="216" />
+	<suppress checks="MethodLengthCheck"
+		files="CAAdminSessionBean.java" lines="439,717,1017,1304,1631,2023,2199,2964,3787,4056,4387,4556" />
+	<suppress checks="ParameterNumberCheck"
+		files="CAAdminSessionBean.java" lines="3961,4056" />
+	<suppress checks="MethodLengthCheck"
+		files="PublisherQueueSessionBean.java" lines="408" />
+	<suppress checks="ParameterNumberCheck"
+		files="PublisherSessionBean.java" lines="289" />
+	<suppress checks="ParameterNumberCheck"
+		files="SignSessionBean.java" lines="727,757,1827" />
+	<suppress checks="MethodLengthCheck"
+		files="SignSessionBean.java" lines="843" />
+	<suppress checks="MethodLengthCheck"
+		files="ImportCrlSessionBean.java" lines="70" />
+	<suppress checks="MethodLengthCheck"
+		files="PublishingCrlSessionBean.java" lines="227,590" />
+	<suppress checks="ParameterNumberCheck"
+		files="HardTokenSessionBean.java" lines="1022" />
+	<suppress checks="ParameterNumberCheck"
+		files="EndEntityManagementSessionBean.java" lines="315, 2730" />
+	<suppress checks="MethodLengthCheck"
+		files="EndEntityManagementSessionBean.java" lines="453, 877, 1190, 2443, 2730, 3138" />
+	<suppress checks="ParameterNumberCheck"
+		files="KeyStoreCreateSessionBean.java" lines="239, 281" />
+	<suppress checks="MethodLengthCheck"
+		files="KeyStoreCreateSessionBean.java" lines="280" />
+	<suppress checks="MethodLengthCheck"
+		files="ServiceSessionBean.java" lines="677" />
+	<suppress checks="MethodLengthCheck"
+		files="UpgradeSessionBean.java" lines="1091, 1338" />
+	<suppress checks="MethodLengthCheck"
+		files="StartupSingletonBean.java" lines="231" />
+	<suppress checks="MethodLengthCheck"
+		files="RaMasterApiProxyBean.java" lines="1404" />
+	<suppress checks="MethodLengthCheck"
+		files="RaMasterApiSessionBean.java" lines="1455, 1807" />
+	<suppress checks="MethodLengthCheck"
+		files="EndEntityCertificateAuthenticationModule.java" lines="351, 809" />
+	<suppress checks="ParameterNumberCheck"
+		files="EndEntityCertificateAuthenticationModule.java" lines="174" />
+	<suppress checks="MethodLengthCheck"
+		files="HMACAuthenticationModule.java" lines="145" />
+	<suppress checks="ParameterNumberCheck"
+		files="VerifyPKIMessage.java" lines="85" />
+	<suppress checks="MethodLengthCheck"
+		files="CmpMessageDispatcherSessionBean.java" lines="162" />
+	<suppress checks="MethodLengthCheck"
+		files="BaseCmpMessageHandler.java" lines="142" />
+	<suppress checks="MethodLengthCheck"
+		files="CrmfMessageHandler.java" lines="258, 474, 807 " />
+	<suppress checks="MethodLengthCheck"
+		files="CrmfKeyUpdateHandler.java" lines="142 " />
+	<suppress checks="MethodLengthCheck"
+		files="RevocationMessageHandler.java" lines="131 " />
+	<suppress checks="MethodLengthCheck"
+		files="RemoteVerifyServlet.java" lines="344 " />
+	<suppress checks="MethodLengthCheck"
+		files="PublisherCacheTest.java" lines="169, 338 " />
+	<suppress checks="ParameterNumberCheck"
+		files="MultiGroupPublisherUnitTest.java" lines="110 " />
+		
+	<!-- Edition-specific EJB. --> 
+	
+	<suppress checks="ParameterNumberCheck"
+		files="EnterpriseEditionWSBridgeSessionBean.java" lines="58 " />
+		
+	<!-- CLI-util -->
+	<suppress checks="MethodLengthCheck"
+		files="ParameterHandler.java" lines="121 " />
 </suppressions>

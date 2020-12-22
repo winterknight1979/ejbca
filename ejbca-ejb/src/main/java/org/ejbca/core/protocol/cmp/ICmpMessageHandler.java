@@ -16,18 +16,19 @@ package org.ejbca.core.protocol.cmp;
 import org.cesecore.certificates.certificate.request.ResponseMessage;
 
 /**
- * Interface for message handler handling a specific CMP message
+ * Interface for message handler handling a specific CMP message.
+ *
  * @author tomas
- * @version $Id: ICmpMessageHandler.java 22142 2015-11-03 14:15:51Z mikekushner $
+ * @version $Id: ICmpMessageHandler.java 22142 2015-11-03 14:15:51Z mikekushner
+ *     $
  */
 public interface ICmpMessageHandler {
-	
-	/**
-	 * 
-	 * @param msg input message
-	 * @param authenticated if the CMP message has already been authenticated
-	 * @return response message
-	 */
-	public ResponseMessage handleMessage(BaseCmpMessage msg, boolean authenticated);
 
+  /**
+   * @param msg input message
+   * @param authenticated if the CMP message has already been authenticated
+   * @return response message
+   */
+  ResponseMessage handleMessage(
+      BaseCmpMessage msg, boolean authenticated);
 }

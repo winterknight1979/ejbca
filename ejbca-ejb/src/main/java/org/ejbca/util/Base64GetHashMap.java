@@ -15,38 +15,41 @@ package org.ejbca.util;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import org.cesecore.util.StringTools;
 
-
-/**  Only used for backwards compatibility with earlier versions of EJBCA
+/**
+ * Only used for backwards compatibility with earlier versions of EJBCA.
+ *
  * @see org.cesecore.util.Base64PutHashMap
  * @deprecated use org.cesecore.util.Base64PutHashMap instead
- * 
  * @version $Id: Base64GetHashMap.java 23091 2016-03-29 12:04:12Z samuellb $
  */
 @Deprecated
 public class Base64GetHashMap extends HashMap<Object, Object> {
-    private static final long serialVersionUID = -6270344460163780577L;
+  private static final long serialVersionUID = -6270344460163780577L;
 
-    public Base64GetHashMap() {
-        super();
-    }
+  /** Default. */
+  public Base64GetHashMap() {
+    super();
+  }
 
-    public Base64GetHashMap(Map<Object, Object> m) {
-        super(m);
+  /**
+   * @param m Map
+   */
+  public Base64GetHashMap(final Map<Object, Object> m) {
+    super(m);
+  }
+
+  @Override
+  public Object get(final Object key) {
+    Object o = super.get(key);
+    if (o == null) {
+      return o;
     }
-    
-    public Object get(Object key) {
-        Object o = super.get(key);
-        if (o == null) {
-            return o;
-        }
-        if (o instanceof String) {
-            String s = (String) o;
-            return StringTools.getBase64String(s);                       
-        }
-        return o;
+    if (o instanceof String) {
+      String s = (String) o;
+      return StringTools.getBase64String(s);
     }
-    
+    return o;
+  }
 }

@@ -17,47 +17,55 @@ import javax.ejb.ConcurrencyManagementType;
 import javax.ejb.Singleton;
 import javax.ejb.TransactionManagement;
 import javax.ejb.TransactionManagementType;
-
 import org.ejbca.core.protocol.acme.AcmeRandomnessSingletonLocal;
 
 /**
  * Source of required randomness used in the ACME protocol.
- * 
- * @version $Id: AcmeRandomnessSingletonBean.java 29657 2018-08-15 14:18:12Z tarmo_r_helmes $
+ *
+ * @version $Id: AcmeRandomnessSingletonBean.java 29657 2018-08-15 14:18:12Z
+ *     tarmo_r_helmes $
  */
 @Singleton
 @ConcurrencyManagement(ConcurrencyManagementType.CONTAINER)
-// We can't rely on transactions for calls that will do persistence over the RaMasterApi, so avoid the overhead of when methods are invoked
+// We can't rely on transactions for calls that will do persistence over the
+// RaMasterApi, so avoid the overhead of when methods are invoked
 @TransactionManagement(TransactionManagementType.BEAN)
-public class AcmeRandomnessSingletonBean implements AcmeRandomnessSingletonLocal {
-    
-    @Override
-    public String generateAcmeChallengeToken() {
-        throw new UnsupportedOperationException("ACME calls are only supported in EJBCA Enterprise");
-    }
+public class AcmeRandomnessSingletonBean
+    implements AcmeRandomnessSingletonLocal {
 
-    @Override
-    public String generateAcmeOrderEnrollmentCode() {
-        throw new UnsupportedOperationException("ACME calls are only supported in EJBCA Enterprise");
-    }
+  @Override
+  public String generateAcmeChallengeToken() {
+    throw new UnsupportedOperationException(
+        "ACME calls are only supported in EJBCA Enterprise");
+  }
 
-    @Override
-    public byte[] generateAcmeNodeId(final int byteCount) {
-        throw new UnsupportedOperationException("ACME calls are only supported in EJBCA Enterprise");
-    }
+  @Override
+  public String generateAcmeOrderEnrollmentCode() {
+    throw new UnsupportedOperationException(
+        "ACME calls are only supported in EJBCA Enterprise");
+  }
 
-    @Override
-    public String generateAcmeAccountId() {
-        throw new UnsupportedOperationException("ACME calls are only supported in EJBCA Enterprise");
-    }
+  @Override
+  public byte[] generateAcmeNodeId(final int byteCount) {
+    throw new UnsupportedOperationException(
+        "ACME calls are only supported in EJBCA Enterprise");
+  }
 
-    @Override
-    public String generateAcmeChallengeId()  {
-        throw new UnsupportedOperationException("ACME calls are only supported in EJBCA Enterprise");
-    }
+  @Override
+  public String generateAcmeAccountId() {
+    throw new UnsupportedOperationException(
+        "ACME calls are only supported in EJBCA Enterprise");
+  }
 
-    @Override
-    public byte[] generateReplayNonceSharedSecret(final int byteCount) {
-        throw new UnsupportedOperationException("ACME calls are only supported in EJBCA Enterprise");
-    }
+  @Override
+  public String generateAcmeChallengeId() {
+    throw new UnsupportedOperationException(
+        "ACME calls are only supported in EJBCA Enterprise");
+  }
+
+  @Override
+  public byte[] generateReplayNonceSharedSecret(final int byteCount) {
+    throw new UnsupportedOperationException(
+        "ACME calls are only supported in EJBCA Enterprise");
+  }
 }

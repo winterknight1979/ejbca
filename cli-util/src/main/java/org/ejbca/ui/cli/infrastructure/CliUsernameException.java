@@ -14,26 +14,34 @@ package org.ejbca.ui.cli.infrastructure;
 
 /**
  * @version $Id: CliUsernameException.java 19902 2014-09-30 14:32:24Z anatom $
- *
  */
 public class CliUsernameException extends Exception {
 
-    private static final long serialVersionUID = -390353232257435050L;
+  private static final long serialVersionUID = -390353232257435050L;
 
-    public CliUsernameException() {
-        super();
-    }
+  /** Default constructor. */
+  public CliUsernameException() {
+    super();
+  }
 
-    public CliUsernameException(String message, Throwable cause) {
-        super(message, cause);
-    }
+  /**
+   * @param message Message
+   * @param cause Cause
+   */
+  public CliUsernameException(final String message, final Throwable cause) {
+    super(message, cause);
+  }
 
-    public CliUsernameException(String message) {
-        super(message);
-    }
-
-    public CliUsernameException(Throwable cause) {
-        super(cause);
-    }
-
+  /**
+   * @param message Message
+   */
+  public CliUsernameException(final String message) {
+    super(message);
+  }
+/**
+ * @param cause Cause
+ */
+  public CliUsernameException(final Throwable cause) {
+    super(cause);
+  }
 }

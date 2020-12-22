@@ -21,313 +21,374 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-
 import org.apache.log4j.Logger;
 import org.ejbca.ui.cli.infrastructure.parameter.Parameter;
 import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
 import org.ejbca.ui.cli.infrastructure.parameter.ParameterHandler;
 
 /**
- * Base class for all commands
- * 
- * @version $Id: CommandBase.java 26057 2017-06-22 08:08:34Z anatom $
+ * Base class for all commands.
  *
+ * @version $Id: CommandBase.java 26057 2017-06-22 08:08:34Z anatom $
  */
 public abstract class CommandBase implements CliCommandPlugin {
 
-    private static final String TAB = "    ";
-    private static final String CR = "\n";
+      /** Param. */
+  private static final String TAB = "    ";
+  /** Param. */
+  private static final String CR = "\n";
 
-    protected final ParameterHandler parameterHandler;
+  /** Param. */
+  protected final ParameterHandler parameterHandler;
 
-    {
-        parameterHandler = new ParameterHandler(getMainCommand());
-        Parameter help = Parameter.createFlag(ParameterHandler.HELP_KEY, "");
-        help.setAllowList(false);
-        registerParameter(help);
-        registerParameter(Parameter.createFlag(ParameterHandler.VERBOSE_KEY, "Set this value for verbose output of parameter values."));
-    }
+  {
+    parameterHandler = new ParameterHandler(getMainCommand());
+    Parameter help = Parameter.createFlag(ParameterHandler.HELP_KEY, "");
+    help.setAllowList(false);
+    registerParameter(help);
+    registerParameter(
+        Parameter.createFlag(
+            ParameterHandler.VERBOSE_KEY,
+            "Set this value for verbose output of parameter values."));
+  }
 
-    /**
-     * Prompts for "y" or "n".
-     * 
-     * @param prompt Prompt string. The string " (y/n) " will be appended.
-     * @param defaultYes If "yes" should be the default. Otherwise "no" will be the default.
-     * @return True if "yes" was answered, false if "no" was answered.
-     */
-    protected static boolean readYesNo(final String prompt, final boolean defaultYes) {
-        final BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
-        final String promptLine = prompt + (defaultYes ? " (Y/n) " : " (y/N) ");
-        try {
-            while (true) { // until a valid response has been provided
-                System.out.print(promptLine);
-                System.out.flush();
+  /**
+   * Prompts for "y" or "n".
+   *
+   * @param prompt Prompt string. The string " (y/n) " will be appended.
+   * @param defaultYes If "yes" should be the default. Otherwise "no" will be
+   *     the default.
+   * @return True if "yes" was answered, false if "no" was answered.
+   */
+  protected static boolean readYesNo(
+      final String prompt, final boolean defaultYes) {
+    final BufferedReader bufferedReader =
+        new BufferedReader(new InputStreamReader(System.in));
+    final String promptLine = prompt + (defaultYes ? " (Y/n) " : " (y/N) ");
+    try {
+      while (true) { // until a valid response has been provided
+        System.out.print(promptLine);
+        System.out.flush();
 
-                final String input = bufferedReader.readLine().trim();
-                if (input.isEmpty()) {
-                    System.out.println(defaultYes ? "Yes." : "No.");
-                    return defaultYes;
-                } else if (input.equalsIgnoreCase("y")) {
-                    return true;
-                } else if (input.equalsIgnoreCase("n")) {
-                    return false;
-                } else {
-                    System.out.println("Input not recognized: '" + input + "'");
-                }
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Unknown IOException occurred.", e);
-        }
-    }
-
-    @Override
-    public CommandResult execute(String... arguments) {
-        ParameterContainer parameters = parameterHandler.parseParameters(arguments);
-        if (parameters == null) {
-            //Parameters couldn't be parsed, but this should already be handled. 
-            return CommandResult.CLI_FAILURE;
-        }
-        if (parameters.containsKey(ParameterHandler.HELP_KEY)) {
-            printManPage();
-            return CommandResult.SUCCESS;
+        final String input = bufferedReader.readLine().trim();
+        if (input.isEmpty()) {
+          System.out.println(defaultYes ? "Yes." : "No.");
+          return defaultYes;
+        } else if (input.equalsIgnoreCase("y")) {
+          return true;
+        } else if (input.equalsIgnoreCase("n")) {
+          return false;
         } else {
-            return execute(parameters);
+          System.out.println("Input not recognized: '" + input + "'");
         }
+      }
+    } catch (IOException e) {
+      throw new RuntimeException("Unknown IOException occurred.", e);
     }
+  }
 
-    // Return an empty set for commands without aliases
-    @Override
-    public Set<String> getMainCommandAliases() {
-        return new HashSet<String>();
+  @Override
+  public CommandResult execute(final String... arguments) {
+    ParameterContainer parameters = parameterHandler.parseParameters(arguments);
+    if (parameters == null) {
+      // Parameters couldn't be parsed, but this should already be handled.
+      return CommandResult.CLI_FAILURE;
     }
-
-    // Return an empty path for top level commands
-    @Override
-    public String[] getCommandPath() {
-        return new String[] {};
+    if (parameters.containsKey(ParameterHandler.HELP_KEY)) {
+      printManPage();
+      return CommandResult.SUCCESS;
+    } else {
+      return execute(parameters);
     }
+  }
 
-    // Return an empty set for commands without path aliases
-    @Override
-    public Set<String[]> getCommandPathAliases() {
-        return new HashSet<String[]>();
-    }
+  // Return an empty set for commands without aliases
+  @Override
+  public Set<String> getMainCommandAliases() {
+    return new HashSet<String>();
+  }
 
-    /**
-     * Execute commands on a local level, sans boilerplate code
-     * 
-     * @param parameters a map of the parameters.  
-     * @return Result
-     */
-    protected abstract CommandResult execute(ParameterContainer parameters);
+  // Return an empty path for top level commands
+  @Override
+  public String[] getCommandPath() {
+    return new String[] {};
+  }
 
-    protected void registerParameter(Parameter parameter) {
-        parameterHandler.registerParameter(parameter);
-    }
+  // Return an empty set for commands without path aliases
+  @Override
+  public Set<String[]> getCommandPathAliases() {
+    return new HashSet<String[]>();
+  }
 
-    protected boolean isParameterRegistered(final String keyword) {
-        return parameterHandler.isParameterRegistered(keyword);
-    }
+  /**
+   * Execute commands on a local level, sans boilerplate code.
+   * @param parameters a map of the parameters.
+   * @return Result
+   */
+  protected abstract CommandResult execute(ParameterContainer parameters);
 
-    public abstract String getFullHelpText();
+  /**
+   * @param parameter param
+   */
+  protected void registerParameter(final Parameter parameter) {
+    parameterHandler.registerParameter(parameter);
+  }
 
-    public abstract String getImplementationName();
+  /**
+   * @param keyword keyword
+   * @return bool
+   */
+  protected boolean isParameterRegistered(final String keyword) {
+    return parameterHandler.isParameterRegistered(keyword);
+  }
 
-    /**
-     * 
-     * @return true if synopsis is to be printed for this command.
-     */
-    protected boolean doPrintSynopsis() {
-        return true;
-    }
+  /**
+   * @return text
+   */
+  public abstract String getFullHelpText();
 
-    /**
-     * Prints an auto formatted man-esque page for this command.
-     */
-    protected void printManPage() {
-        StringBuffer sb = new StringBuffer();
-        sb.append(CR);
-        sb.append(bold(getMainCommand().toUpperCase()) + tab(3) + getImplementationName() + " Commands Manual" + tab(3)
-                + bold(getMainCommand().toUpperCase()) + CR);
-        sb.append(CR);
-        sb.append(bold("NAME") + CR);
-        sb.append(TAB + getMainCommand() + " - " + getCommandDescription() + CR);
-        sb.append(CR);
-        final List<String> mandatoryParameters = parameterHandler.getMandatoryParameters();
-        final List<String> optionalParameters = parameterHandler.getOptionalParameters();
-        final LinkedList<String> standaloneParameters = parameterHandler.getStandaloneParameters();
-        sb.append(bold("SYNOPSIS") + CR);
-        if (doPrintSynopsis()) {
-            if (standaloneParameters.size() > 0) {
-                //Only make this synopsis if there are standalone parameters
-                sb.append(TAB + getMainCommand());
-                Set<String> usedMandatories = new HashSet<String>();
-                for (String parameterString : standaloneParameters) {
-                    Parameter parameter = parameterHandler.getRegisteredParameter(parameterString);
-                    sb.append(" <" + parameter.getName().toUpperCase().replaceAll(" ", "_") + ">");
-                    if (parameter.isMandatory()) {
-                        usedMandatories.add(parameterString);
-                    }
-                }
-                for (String parameterString : mandatoryParameters) {
-                    if (!usedMandatories.contains(parameterString)) {
-                        Parameter parameter = parameterHandler.getRegisteredParameter(parameterString);
-                        sb.append(" " + parameter.getKeyWord() + " <" + parameter.getName().toUpperCase().replaceAll(" ", "_") + ">");
-                    }
-                }
-                if (optionalParameters.size() > 0) {
-                    sb.append(" [OPTIONAL PARAMETERS]");
-                }
-                sb.append(CR);
-            }
-            sb.append(TAB + getMainCommand());
-            for (String parameterString : mandatoryParameters) {
-                Parameter parameter = parameterHandler.getRegisteredParameter(parameterString);
-                sb.append(" " + parameter.getKeyWord() + " <" + parameter.getName().toUpperCase().replaceAll(" ", "_") + ">");
-            }
-            if (optionalParameters.size() > 0) {
-                sb.append(" [OPTIONAL PARAMETERS]");
-            }
-            sb.append(CR);
-            sb.append(CR);
-        } else {
-            sb.append(TAB + "Synposis not printed for this command." + CR + CR);
+  /**
+   * @return name
+   */
+  public abstract String getImplementationName();
+
+  /** @return true if synopsis is to be printed for this command. */
+  protected boolean doPrintSynopsis() {
+    return true;
+  }
+
+  /** Prints an auto formatted man-esque page for this command. */
+  protected void printManPage() {
+    final int tab = 3;
+    final int len = 120;
+    StringBuffer sb = new StringBuffer();
+    sb.append(CR);
+    sb.append(
+        bold(getMainCommand().toUpperCase())
+            + tab(tab)
+            + getImplementationName()
+            + " Commands Manual"
+            + tab(tab)
+            + bold(getMainCommand().toUpperCase())
+            + CR);
+    sb.append(CR);
+    sb.append(bold("NAME") + CR);
+    sb.append(TAB + getMainCommand() + " - " + getCommandDescription() + CR);
+    sb.append(CR);
+    final List<String> mandatoryParameters =
+        parameterHandler.getMandatoryParameters();
+    final List<String> optionalParameters =
+        parameterHandler.getOptionalParameters();
+    final LinkedList<String> standaloneParameters =
+        parameterHandler.getStandaloneParameters();
+    sb.append(bold("SYNOPSIS") + CR);
+    if (doPrintSynopsis()) {
+      if (standaloneParameters.size() > 0) {
+        // Only make this synopsis if there are standalone parameters
+        sb.append(TAB + getMainCommand());
+        Set<String> usedMandatories = new HashSet<String>();
+        for (String parameterString : standaloneParameters) {
+          Parameter parameter =
+              parameterHandler.getRegisteredParameter(parameterString);
+          sb.append(
+              " <"
+                  + parameter.getName().toUpperCase().replaceAll(" ", "_")
+                  + ">");
+          if (parameter.isMandatory()) {
+            usedMandatories.add(parameterString);
+          }
         }
-        sb.append(bold("DESCRIPTION") + CR);
-        for (String formattedString : splitStringIntoLines(getFullHelpText(), 120)) {
-            sb.append(TAB + formattedString + CR);
-        }
-        sb.append(CR);
-        sb.append(bold("PARAMETERS") + CR);
-        if (mandatoryParameters.size() > 0) {
-            Collections.sort(mandatoryParameters);
-            sb.append(TAB + "Mandatory parameters:" + CR);
-            sb.append(formatParameterList(mandatoryParameters));
-            sb.append(CR);
+        for (String parameterString : mandatoryParameters) {
+          if (!usedMandatories.contains(parameterString)) {
+            Parameter parameter =
+                parameterHandler.getRegisteredParameter(parameterString);
+            sb.append(
+                " "
+                    + parameter.getKeyWord()
+                    + " <"
+                    + parameter.getName().toUpperCase().replaceAll(" ", "_")
+                    + ">");
+          }
         }
         if (optionalParameters.size() > 0) {
-            Collections.sort(optionalParameters);
-            sb.append(TAB + "Optional parameters:" + CR);
-            sb.append(formatParameterList(optionalParameters));
+          sb.append(" [OPTIONAL PARAMETERS]");
         }
-        getLogger().info(sb.toString());
+        sb.append(CR);
+      }
+      sb.append(TAB + getMainCommand());
+      for (String parameterString : mandatoryParameters) {
+        Parameter parameter =
+            parameterHandler.getRegisteredParameter(parameterString);
+        sb.append(
+            " "
+                + parameter.getKeyWord()
+                + " <"
+                + parameter.getName().toUpperCase().replaceAll(" ", "_")
+                + ">");
+      }
+      if (optionalParameters.size() > 0) {
+        sb.append(" [OPTIONAL PARAMETERS]");
+      }
+      sb.append(CR);
+      sb.append(CR);
+    } else {
+      sb.append(TAB + "Synposis not printed for this command." + CR + CR);
     }
-
-    protected static String bold(String text) {
-        return (char) 27 + "[1m" + text + (char) 27 + "[0m";
+    sb.append(bold("DESCRIPTION") + CR);
+    for (String formattedString
+        : splitStringIntoLines(getFullHelpText(), len)) {
+      sb.append(TAB + formattedString + CR);
     }
-
-    private String formatParameterList(List<String> parameterNames) {
-        StringBuilder sb = new StringBuilder();
-        for (String parameterName : parameterNames) {
-            Parameter parameter = parameterHandler.getRegisteredParameter(parameterName);
-            if (parameter.allowList()) {
-                sb.append(tab(2) + parameter.getKeyWord());
-                switch (parameter.getParameterMode()) {
-                case ARGUMENT:
-                    sb.append(" <" + parameter.getName().toUpperCase().replaceAll(" ", "_") + ">"
-                            + (parameter.isStandAlone() ? " (Switch is not required)" : "") + CR);
-                    break;
-                case INPUT:
-                    sb.append(" <User will be prompted>" + CR);
-                    break;
-                case PASSWORD:
-                    sb.append(" <User will be prompted, input will not be shown>" + CR);
-                    break;
-                default:
-                    sb.append(CR);
-                    break;
-                }
-                for (String line : splitStringIntoLines(parameter.getInstruction(), 80)) {
-                    sb.append(tab(3) + line + CR);
-                }
-            }
-        }
-        return sb.toString();
+    sb.append(CR);
+    sb.append(bold("PARAMETERS") + CR);
+    if (mandatoryParameters.size() > 0) {
+      Collections.sort(mandatoryParameters);
+      sb.append(TAB + "Mandatory parameters:" + CR);
+      sb.append(formatParameterList(mandatoryParameters));
+      sb.append(CR);
     }
-
-    private static String tab(int times) {
-        StringBuffer sb = new StringBuffer();
-        for (int i = 0; i < times; i++) {
-            sb.append(TAB);
-        }
-        return sb.toString();
+    if (optionalParameters.size() > 0) {
+      Collections.sort(optionalParameters);
+      sb.append(TAB + "Optional parameters:" + CR);
+      sb.append(formatParameterList(optionalParameters));
     }
+    getLogger().info(sb.toString());
+  }
 
-    /**
-     * Private utility method that takes a string and splits it by line length
-     * 
-     * @param input the string to format 
-     * @param lineLength the length of each line
-     * @return an list of strings, no longer than the given length
-     */
-    public static List<String> splitStringIntoLines(String input, int lineLength) {
-        List<String> result = new ArrayList<String>();
-        while (input.length() > lineLength || input.contains("\n")) {
-            int newline = input.indexOf("\n");
-            if (newline != -1 && newline < lineLength) {
-                String line = input.substring(0, newline);
-                result.add(line);
-                input = input.substring(newline + 1);
-            } else {
-                String subString = input.substring(0, lineLength);
-                int lastSpace = subString.lastIndexOf(" ");
-                if (lastSpace == -1) {
-                    // lineLength characters without a single space. Eh...fine.
-                    lastSpace = lineLength;
-                }
-                String line = input.substring(0, lastSpace);
-                result.add(line);
-                input = input.substring(lastSpace + 1);
-            }
+  protected static String bold(final String text) {
+    final int esc = 27;
+    return (char) esc + "[1m" + text + (char) esc + "[0m";
+  }
+
+  private String formatParameterList(final List<String> parameterNames) {
+    StringBuilder sb = new StringBuilder();
+    final int len = 80;
+    final int tab = 3;
+    for (String parameterName : parameterNames) {
+      Parameter parameter =
+          parameterHandler.getRegisteredParameter(parameterName);
+      if (parameter.allowList()) {
+        sb.append(tab(2) + parameter.getKeyWord());
+        switch (parameter.getParameterMode()) {
+          case ARGUMENT:
+            sb.append(
+                " <"
+                    + parameter.getName().toUpperCase().replaceAll(" ", "_")
+                    + ">"
+                    + (parameter.isStandAlone()
+                        ? " (Switch is not required)"
+                        : "")
+                    + CR);
+            break;
+          case INPUT:
+            sb.append(" <User will be prompted>" + CR);
+            break;
+          case PASSWORD:
+            sb.append(" <User will be prompted, input will not be shown>" + CR);
+            break;
+          default:
+            sb.append(CR);
+            break;
         }
-        if (!input.equals("")) {
-            result.add(input);
+        for (String line
+            : splitStringIntoLines(parameter.getInstruction(), len)) {
+          sb.append(tab(tab) + line + CR);
         }
-        return result;
+      }
     }
+    return sb.toString();
+  }
 
-    protected abstract Logger getLogger();
-
-    protected static String formatTable(int tabs, String[] titles, List<String[]> contents) {
-        int[] offset = new int[titles.length];
-        //Validate contents and figure out tab size per column
-        for (int i = 0; i < titles.length; i++) {
-            offset[i] = titles[i].length() / TAB.length() + 2;
-        }
-        for (String[] row : contents) {
-            if (row.length < titles.length) {
-                throw new IllegalArgumentException("Invalid column length. Titlebar had " + titles.length + " columns, while content row had "
-                        + row.length);
-            }
-            for (int i = 0; i < row.length; i++) {
-                int rowOffset = row[i].length() / TAB.length() + 2;
-                if (rowOffset > offset[i]) {
-                    offset[i] = rowOffset;
-                }
-            }
-        }
-        StringBuilder stringBuilder = new StringBuilder();
-        //Build title bar
-        stringBuilder.append(tab(tabs));
-        for (int i = 0; i < titles.length; i++) {
-            String title = titles[i];
-            String whitespace = tab(offset[i]);
-            stringBuilder.append(bold(title) + whitespace.substring(title.length(), whitespace.length()));
-        }
-        stringBuilder.append("\n");
-        //And add contents
-        for (String[] row : contents) {
-            stringBuilder.append(tab(tabs));
-            for (int i = 0; i < row.length; i++) {
-                String rowWord = row[i];
-                String whitespace = tab(offset[i]);
-                stringBuilder.append(rowWord + whitespace.substring(rowWord.length(), whitespace.length()));
-            }
-            stringBuilder.append("\n");
-
-        }
-        return stringBuilder.toString();
+  private static String tab(final int times) {
+    StringBuffer sb = new StringBuffer();
+    for (int i = 0; i < times; i++) {
+      sb.append(TAB);
     }
+    return sb.toString();
+  }
 
+  /**
+   * Private utility method that takes a string and splits it by line length.
+   *
+   * @param oinput the string to format
+   * @param lineLength the length of each line
+   * @return an list of strings, no longer than the given length
+   */
+  public static List<String> splitStringIntoLines(
+      final String oinput, final int lineLength) {
+    String input = oinput;
+    List<String> result = new ArrayList<String>();
+    while (input.length() > lineLength || input.contains("\n")) {
+      int newline = input.indexOf("\n");
+      if (newline != -1 && newline < lineLength) {
+        String line = input.substring(0, newline);
+        result.add(line);
+        input = input.substring(newline + 1);
+      } else {
+        String subString = input.substring(0, lineLength);
+        int lastSpace = subString.lastIndexOf(" ");
+        if (lastSpace == -1) {
+          // lineLength characters without a single space. Eh...fine.
+          lastSpace = lineLength;
+        }
+        String line = input.substring(0, lastSpace);
+        result.add(line);
+        input = input.substring(lastSpace + 1);
+      }
+    }
+    if (!input.equals("")) {
+      result.add(input);
+    }
+    return result;
+  }
+
+  protected abstract Logger getLogger();
+
+  protected static String formatTable(
+      final int tabs, final String[] titles, final List<String[]> contents) {
+    int[] offset = new int[titles.length];
+    // Validate contents and figure out tab size per column
+    for (int i = 0; i < titles.length; i++) {
+      offset[i] = titles[i].length() / TAB.length() + 2;
+    }
+    for (String[] row : contents) {
+      if (row.length < titles.length) {
+        throw new IllegalArgumentException(
+            "Invalid column length. Titlebar had "
+                + titles.length
+                + " columns, while content row had "
+                + row.length);
+      }
+      for (int i = 0; i < row.length; i++) {
+        int rowOffset = row[i].length() / TAB.length() + 2;
+        if (rowOffset > offset[i]) {
+          offset[i] = rowOffset;
+        }
+      }
+    }
+    StringBuilder stringBuilder = new StringBuilder();
+    // Build title bar
+    stringBuilder.append(tab(tabs));
+    for (int i = 0; i < titles.length; i++) {
+      String title = titles[i];
+      String whitespace = tab(offset[i]);
+      stringBuilder.append(
+          bold(title)
+              + whitespace.substring(title.length(), whitespace.length()));
+    }
+    stringBuilder.append("\n");
+    // And add contents
+    for (String[] row : contents) {
+      stringBuilder.append(tab(tabs));
+      for (int i = 0; i < row.length; i++) {
+        String rowWord = row[i];
+        String whitespace = tab(offset[i]);
+        stringBuilder.append(
+            rowWord
+                + whitespace.substring(rowWord.length(), whitespace.length()));
+      }
+      stringBuilder.append("\n");
+    }
+    return stringBuilder.toString();
+  }
 }

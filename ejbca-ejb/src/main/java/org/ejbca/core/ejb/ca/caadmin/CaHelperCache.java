@@ -15,30 +15,27 @@ package org.ejbca.core.ejb.ca.caadmin;
 import java.util.HashMap;
 import java.util.Map;
 
-
 /**
- * Class Holding cache variables. Needed because EJB spec does not allow volatile, non-final 
- * fields in session beans.
- * This is a trivial cache, too trivial, it only holds variables actually, does nothing. All updating etc is done by the user.
- * 
+ * Class Holding cache variables. Needed because EJB spec does not allow
+ * volatile, non-final fields in session beans. This is a trivial cache, too
+ * trivial, it only holds variables actually, does nothing. All updating etc is
+ * done by the user.
+ *
  * @version $Id: CaHelperCache.java 19901 2014-09-30 14:29:38Z anatom $
  */
 public final class CaHelperCache {
 
-    /**
-     * help variable used to control that CA info update (read from database)
-     * isn't performed to often.
-     */
-    protected static volatile long lastCACacheUpdateTime = -1;
+  /**
+   * help variable used to control that CA info update (read from database)
+   * isn't performed to often.
+   */
+  protected static volatile long lastCACacheUpdateTime = -1;
 
-    /**
-     * Caching of CA IDs with CA cert hash as ID
-     */
-    protected static volatile Map<Integer, Integer> caCertToCaId = new HashMap<Integer, Integer>();
+  /** Caching of CA IDs with CA cert hash as ID. */
+  protected static volatile Map<Integer, Integer> caCertToCaId =
+      new HashMap<Integer, Integer>();
 
-
-	private CaHelperCache() {
-		// Do nothing
-	}
-
+  private CaHelperCache() {
+    // Do nothing
+  }
 }

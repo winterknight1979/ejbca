@@ -13,34 +13,42 @@
 package org.ejbca.ui.cli.infrastructure.command;
 
 /**
- * Return value for CLI commands. Mostly to allow commands to fail well without having to toss an exception to the command line.
- * Unexpected failures should be handled by RunTimeException
- * 
- * @version $Id: CommandResult.java 21556 2015-07-06 09:49:16Z mikekushner $
+ * Return value for CLI commands. Mostly to allow commands to fail well without
+ * having to toss an exception to the command line. Unexpected failures should
+ * be handled by RunTimeException
  *
+ * @version $Id: CommandResult.java 21556 2015-07-06 09:49:16Z mikekushner $
  */
 public enum CommandResult {
-    SUCCESS(0), 
-    /**
-     * Represents a case where input parameters were correctly stated, but the operation was incorrect.
-     */
-    FUNCTIONAL_FAILURE(1), 
-    /**
-     * Returned when the CLI used was not authorized to the given operation
-     */
-    AUTHORIZATION_FAILURE(2), 
-    /**
-     * Returned when CLI parameters are incorrect, such as non-existent files, etc. 
-     */
-    CLI_FAILURE(3);
-    
-    private final int returnCode;
-    
-    private CommandResult(int returnCode) {
-        this.returnCode = returnCode;
-    }
-    
-    public int getReturnCode() {
-        return returnCode;
-    }
+    /** Success. */
+  SUCCESS(0),
+  /**
+   * Represents a case where input parameters were correctly stated, but the
+   * operation was incorrect.
+   */
+  FUNCTIONAL_FAILURE(1),
+  /** Returned when the CLI used was not authorized to the given operation. */
+  AUTHORIZATION_FAILURE(2),
+  /**
+   * Returned when CLI parameters are incorrect, such as non-existent files,
+   * etc.
+   */
+  CLI_FAILURE(3);
+
+    /** Param. */
+  private final int returnCode;
+
+  /**
+   * @param areturnCode code
+   */
+  CommandResult(final int areturnCode) {
+    this.returnCode = areturnCode;
+  }
+
+  /**
+   * @return code
+   */
+  public int getReturnCode() {
+    return returnCode;
+  }
 }
