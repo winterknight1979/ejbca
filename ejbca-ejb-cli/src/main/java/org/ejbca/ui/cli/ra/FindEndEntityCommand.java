@@ -15,7 +15,6 @@ package org.ejbca.ui.cli.ra;
 
 import java.util.HashSet;
 import java.util.Set;
-
 import org.apache.log4j.Logger;
 import org.cesecore.authorization.AuthorizationDeniedException;
 import org.cesecore.certificates.endentity.EndEntityInformation;
@@ -37,86 +36,113 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class FindEndEntityCommand extends BaseRaCommand {
 
-    private static final Logger log = Logger.getLogger(FindEndEntityCommand.class);
+  private static final Logger log =
+      Logger.getLogger(FindEndEntityCommand.class);
 
-    private static final String COMMAND = "findendentity";
-    private static final String OLD_COMMAND = "finduser";
+  private static final String COMMAND = "findendentity";
+  private static final String OLD_COMMAND = "finduser";
 
-    private static final Set<String> ALIASES = new HashSet<String>();
-    static {
-        ALIASES.add(OLD_COMMAND);
-    }
+  private static final Set<String> ALIASES = new HashSet<String>();
 
-    private static final String USERNAME_KEY = "--username";
+  static {
+    ALIASES.add(OLD_COMMAND);
+  }
 
-    {
-        registerParameter(new Parameter(USERNAME_KEY, "Username", MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,
-                "Username for the end entity to delete."));
-    }
+  private static final String USERNAME_KEY = "--username";
 
-    @Override
-    public Set<String> getMainCommandAliases() {
-        return ALIASES;
-    }
+  {
+    registerParameter(
+        new Parameter(
+            USERNAME_KEY,
+            "Username",
+            MandatoryMode.MANDATORY,
+            StandaloneMode.ALLOW,
+            ParameterMode.ARGUMENT,
+            "Username for the end entity to delete."));
+  }
 
-    @Override
-    public String getMainCommand() {
-        return COMMAND;
-    }
+  @Override
+  public Set<String> getMainCommandAliases() {
+    return ALIASES;
+  }
 
-    @Override
-    public CommandResult execute(ParameterContainer parameters) {
-        String username = parameters.get(USERNAME_KEY);
-        try {
-            EndEntityInformation data = EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityAccessSessionRemote.class).findUser(
-                    getAuthenticationToken(), username);
-            if (data != null) {
-                getLogger().info("Found end entity:");
-                getLogger().info("Username: " + data.getUsername());
-                getLogger().info("Password: " + (data.getPassword() != null ? data.getPassword() : "<hidden>"));
-                getLogger().info("DN: \"" + data.getDN() + "\"");
-                getLogger().info("Alt Name: \"" + data.getSubjectAltName() + "\"");
-                ExtendedInformation ei = data.getExtendedInformation();
-                getLogger().info("Directory Attributes: \"" + (ei != null ? ei.getSubjectDirectoryAttributes() : "") + "\"");
-                getLogger().info("E-Mail: " + data.getEmail());
-                getLogger().info("Status: " + data.getStatus());
-                getLogger().info("Type: " + data.getType().getHexValue());
-                getLogger().info("Token Type: " + data.getTokenType());
-                getLogger().info("End Entity Profile ID: " + data.getEndEntityProfileId());
-                getLogger().info("Certificate Profile ID: " + data.getCertificateProfileId());
-                getLogger().info("Hard Token Issuer ID: " + data.getHardTokenIssuerId());
-                getLogger().info("Created: " + data.getTimeCreated());
-                getLogger().info("Modified: " + data.getTimeModified());
-                if (data.getExtendedInformation() != null) {
-                    byte[] csr = data.getExtendedInformation().getCertificateRequest();
-                    if ((csr != null) && (csr.length > 0)) {
-                        getLogger().info("CSR:\n"+new String(CertTools.getPEMFromCertificateRequest(csr)));
-                    }                    
-                }
-                return CommandResult.SUCCESS;
-            } else {
-                getLogger().error("End entity '" + username + "' does not exist.");
-                return CommandResult.FUNCTIONAL_FAILURE;
-            }
-        } catch (AuthorizationDeniedException e) {
-            getLogger().error("ERROR: Not authorized to view end entity.");
-            return CommandResult.AUTHORIZATION_FAILURE;
+  @Override
+  public String getMainCommand() {
+    return COMMAND;
+  }
+
+  @Override
+  public CommandResult execute(final ParameterContainer parameters) {
+    String username = parameters.get(USERNAME_KEY);
+    try {
+      EndEntityInformation data =
+          EjbRemoteHelper.INSTANCE
+              .getRemoteSession(EndEntityAccessSessionRemote.class)
+              .findUser(getAuthenticationToken(), username);
+      if (data != null) {
+        getLogger().info("Found end entity:");
+        getLogger().info("Username: " + data.getUsername());
+        getLogger()
+            .info(
+                "Password: "
+                    + (data.getPassword() != null
+                        ? data.getPassword()
+                        : "<hidden>"));
+        getLogger().info("DN: \"" + data.getDN() + "\"");
+        getLogger().info("Alt Name: \"" + data.getSubjectAltName() + "\"");
+        ExtendedInformation ei = data.getExtendedInformation();
+        getLogger()
+            .info(
+                "Directory Attributes: \""
+                    + (ei != null ? ei.getSubjectDirectoryAttributes() : "")
+                    + "\"");
+        getLogger().info("E-Mail: " + data.getEmail());
+        getLogger().info("Status: " + data.getStatus());
+        getLogger().info("Type: " + data.getType().getHexValue());
+        getLogger().info("Token Type: " + data.getTokenType());
+        getLogger()
+            .info("End Entity Profile ID: " + data.getEndEntityProfileId());
+        getLogger()
+            .info("Certificate Profile ID: " + data.getCertificateProfileId());
+        getLogger()
+            .info("Hard Token Issuer ID: " + data.getHardTokenIssuerId());
+        getLogger().info("Created: " + data.getTimeCreated());
+        getLogger().info("Modified: " + data.getTimeModified());
+        if (data.getExtendedInformation() != null) {
+          byte[] csr = data.getExtendedInformation().getCertificateRequest();
+          if ((csr != null) && (csr.length > 0)) {
+            getLogger()
+                .info(
+                    "CSR:\n"
+                        + new String(
+                            CertTools.getPEMFromCertificateRequest(csr)));
+          }
         }
+        return CommandResult.SUCCESS;
+      } else {
+        getLogger().error("End entity '" + username + "' does not exist.");
+        return CommandResult.FUNCTIONAL_FAILURE;
+      }
+    } catch (AuthorizationDeniedException e) {
+      getLogger().error("ERROR: Not authorized to view end entity.");
+      return CommandResult.AUTHORIZATION_FAILURE;
     }
+  }
 
-    @Override
-    public String getCommandDescription() {
-        return "Find and show details of an end entity";
-    }
+  @Override
+  public String getCommandDescription() {
+    return "Find and show details of an end entity";
+  }
 
-    @Override
-    public String getFullHelpText() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(getCommandDescription() + ".\n");
-        return sb.toString();
-    }
+  @Override
+  public String getFullHelpText() {
+    StringBuilder sb = new StringBuilder();
+    sb.append(getCommandDescription() + ".\n");
+    return sb.toString();
+  }
 
-    protected Logger getLogger() {
-        return log;
-    }
+  @Override
+  protected Logger getLogger() {
+    return log;
+  }
 }

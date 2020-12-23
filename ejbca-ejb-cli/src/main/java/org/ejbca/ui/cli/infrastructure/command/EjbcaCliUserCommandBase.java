@@ -12,17 +12,16 @@
  *************************************************************************/
 package org.ejbca.ui.cli.infrastructure.command;
 
-
 /**
- * Base class for EJBCA commands that use the CLI user. 
- * 
- * @version $Id: EjbcaCliUserCommandBase.java 19902 2014-09-30 14:32:24Z anatom $
+ * Base class for EJBCA commands that use the CLI user.
  *
+ * @version $Id: EjbcaCliUserCommandBase.java 19902 2014-09-30 14:32:24Z anatom
+ *     $
  */
-public abstract class EjbcaCliUserCommandBase extends PasswordUsingCommandBase{
+public abstract class EjbcaCliUserCommandBase extends PasswordUsingCommandBase {
 
-    @Override
-    public String getImplementationName() {
-        return "EJBCA CLI";
-    }
+  @Override
+  public String getImplementationName() {
+    return "EJBCA CLI";
+  }
 }

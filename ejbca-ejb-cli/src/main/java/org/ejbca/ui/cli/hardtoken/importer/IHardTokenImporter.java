@@ -13,50 +13,41 @@
 
 package org.ejbca.ui.cli.hardtoken.importer;
 
-
 import java.io.IOException;
 import java.util.Properties;
-
 import org.ejbca.core.model.hardtoken.HardTokenInformation;
-
-
 
 /**
  * Interface used to customize the hard token data import, from an existing
  * datasource or file
- * 
- * 
- * @author Philip Vendil 2007 apr 23
  *
+ * @author Philip Vendil 2007 apr 23
  * @version $Id: IHardTokenImporter.java 19902 2014-09-30 14:32:24Z anatom $
  */
-
 public interface IHardTokenImporter {
 
-	/**
-	 * Method reponsible for the initialization of the importer.
-	 * Is called once before the import of hard token datas is done.
-	 * 
-	 * @param props properties defiened for the importer
-	 * @throws IOException fail
-	 */
-	void startImport(Properties props) throws IOException;
-	
-	/**
-	 * Method reading one hard token from a source of data , and i supposed to return
-	 * A HardTokenData from it. That will be added to the database.
-	 * @return Info
-	 * @throws IOException Fail
-	 * 
-	 *
-	 */
-	HardTokenInformation readHardTokenData() throws IOException;
-	
-	/**
-	 * Method responsible for finalizing the importer.
-	 * @throws IOException Fail
-	 * 
-	 */
-	void endImport() throws IOException;	
-	
+  /**
+   * Method reponsible for the initialization of the importer. Is called once
+   * before the import of hard token datas is done.
+   *
+   * @param props properties defiened for the importer
+   * @throws IOException fail
+   */
+  void startImport(Properties props) throws IOException;
+
+  /**
+   * Method reading one hard token from a source of data , and i supposed to
+   * return A HardTokenData from it. That will be added to the database.
+   *
+   * @return Info
+   * @throws IOException Fail
+   */
+  HardTokenInformation readHardTokenData() throws IOException;
+
+  /**
+   * Method responsible for finalizing the importer.
+   *
+   * @throws IOException Fail
+   */
+  void endImport() throws IOException;
 }

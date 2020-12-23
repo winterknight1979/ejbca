@@ -20,43 +20,46 @@ import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
 
 /**
  * CLI subcommand for deleting services.
- * 
+ *
  * @version $Id: ServiceDeleteCommand.java 19902 2014-09-30 14:32:24Z anatom $
  */
 public class ServiceDeleteCommand extends BaseServiceCommand {
 
-    private static final Logger log = Logger.getLogger(ServiceDeleteCommand.class);
+  private static final Logger log =
+      Logger.getLogger(ServiceDeleteCommand.class);
 
-    @Override
-    public String getMainCommand() {
-        return "delete";
-    }
+  @Override
+  public String getMainCommand() {
+    return "delete";
+  }
 
-    @Override
-    public CommandResult execute(ParameterContainer parameters, int serviceId) {
-        final ServiceSessionRemote serviceSession = EjbRemoteHelper.INSTANCE.getRemoteSession(ServiceSessionRemote.class);
-        final String serviceName = serviceSession.getServiceName(serviceId);
-        if (serviceSession.removeService(getAdmin(), serviceName)) {
-            getLogger().info("Service deleted.");
-            return CommandResult.SUCCESS;
-        } else {
-            getLogger().info("Failed to delete service: " + serviceName);
-            return CommandResult.FUNCTIONAL_FAILURE;
-        }
+  @Override
+  public CommandResult execute(
+      final ParameterContainer parameters, final int serviceId) {
+    final ServiceSessionRemote serviceSession =
+        EjbRemoteHelper.INSTANCE.getRemoteSession(ServiceSessionRemote.class);
+    final String serviceName = serviceSession.getServiceName(serviceId);
+    if (serviceSession.removeService(getAdmin(), serviceName)) {
+      getLogger().info("Service deleted.");
+      return CommandResult.SUCCESS;
+    } else {
+      getLogger().info("Failed to delete service: " + serviceName);
+      return CommandResult.FUNCTIONAL_FAILURE;
     }
+  }
 
-    @Override
-    public String getCommandDescription() {
-        return "Deletes a service.";
-    }
+  @Override
+  public String getCommandDescription() {
+    return "Deletes a service.";
+  }
 
-    @Override
-    public String getFullHelpText() {
-        return getCommandDescription();
-    }
+  @Override
+  public String getFullHelpText() {
+    return getCommandDescription();
+  }
 
-    @Override
-    protected Logger getLogger() {
-        return log;
-    }
+  @Override
+  protected Logger getLogger() {
+    return log;
+  }
 }

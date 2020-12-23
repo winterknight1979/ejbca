@@ -31,58 +31,71 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class CaCreateCrlCommand extends BaseCaAdminCommand {
 
-    private static final Logger log = Logger.getLogger(CaCreateCrlCommand.class);
+  private static final Logger log = Logger.getLogger(CaCreateCrlCommand.class);
 
-    private static final String CA_NAME_KEY = "--caname";
-    private static final String DELTA_KEY = "-delta";
+  private static final String CA_NAME_KEY = "--caname";
+  private static final String DELTA_KEY = "-delta";
 
-    {
-        registerParameter(new Parameter(CA_NAME_KEY, "CA Name", MandatoryMode.OPTIONAL, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,
-                "If no caname is given, CRLs will be created for all the CAs where it is neccessary."));
-        registerParameter(new Parameter(DELTA_KEY, "", MandatoryMode.OPTIONAL, StandaloneMode.FORBID, ParameterMode.FLAG,
-                "Set if a Delta CRL is desired"));
-    }
+  {
+    registerParameter(
+        new Parameter(
+            CA_NAME_KEY,
+            "CA Name",
+            MandatoryMode.OPTIONAL,
+            StandaloneMode.ALLOW,
+            ParameterMode.ARGUMENT,
+            "If no caname is given, CRLs will be created for all the CAs where"
+                + " it is neccessary."));
+    registerParameter(
+        new Parameter(
+            DELTA_KEY,
+            "",
+            MandatoryMode.OPTIONAL,
+            StandaloneMode.FORBID,
+            ParameterMode.FLAG,
+            "Set if a Delta CRL is desired"));
+  }
 
-    @Override
-    public String getMainCommand() {
-        return "createcrl";
-    }
+  @Override
+  public String getMainCommand() {
+    return "createcrl";
+  }
 
-    @Override
-    public CommandResult execute(ParameterContainer parameters) {
-        String caName = parameters.get(CA_NAME_KEY);
-        boolean deltaCrl = parameters.get(DELTA_KEY) != null;
-        if (caName == null) {
-            createCRL((String) null, deltaCrl);
-        } else {
-            CryptoProviderTools.installBCProvider();
-            // createCRL prints info about crl generation
-            try {
-                String issuerDn = getIssuerDN(getAuthenticationToken(), caName);
-                createCRL(issuerDn, deltaCrl);
-            } catch (CADoesntExistsException e) {
-                log.error("No CA named " + caName + " exists.");
-                return CommandResult.FUNCTIONAL_FAILURE;
-            } catch (AuthorizationDeniedException e) {
-                log.error("CLI user is not authorized to CA " + caName);
-                return CommandResult.AUTHORIZATION_FAILURE;
-            }      
-        }
-        return CommandResult.SUCCESS;
+  @Override
+  public CommandResult execute(final ParameterContainer parameters) {
+    String caName = parameters.get(CA_NAME_KEY);
+    boolean deltaCrl = parameters.get(DELTA_KEY) != null;
+    if (caName == null) {
+      createCRL((String) null, deltaCrl);
+    } else {
+      CryptoProviderTools.installBCProvider();
+      // createCRL prints info about crl generation
+      try {
+        String issuerDn = getIssuerDN(getAuthenticationToken(), caName);
+        createCRL(issuerDn, deltaCrl);
+      } catch (CADoesntExistsException e) {
+        log.error("No CA named " + caName + " exists.");
+        return CommandResult.FUNCTIONAL_FAILURE;
+      } catch (AuthorizationDeniedException e) {
+        log.error("CLI user is not authorized to CA " + caName);
+        return CommandResult.AUTHORIZATION_FAILURE;
+      }
     }
+    return CommandResult.SUCCESS;
+  }
 
-    @Override
-    public String getCommandDescription() {
-        return "Issues a new CRL from the CA.";
-    }
+  @Override
+  public String getCommandDescription() {
+    return "Issues a new CRL from the CA.";
+  }
 
-    @Override
-    public String getFullHelpText() {
-        return getCommandDescription();
-    }
-    
-    @Override
-    protected Logger getLogger() {
-        return log;
-    }
+  @Override
+  public String getFullHelpText() {
+    return getCommandDescription();
+  }
+
+  @Override
+  protected Logger getLogger() {
+    return log;
+  }
 }

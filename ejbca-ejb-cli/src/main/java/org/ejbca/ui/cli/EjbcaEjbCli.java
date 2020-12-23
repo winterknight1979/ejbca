@@ -17,23 +17,23 @@ import org.cesecore.util.CryptoProviderTools;
 import org.ejbca.ui.cli.infrastructure.command.CommandResult;
 import org.ejbca.ui.cli.infrastructure.library.CommandLibrary;
 
-
 /**
  * Main entry point for the EJBCA EJB CLI
- * 
+ *
  * @version $Id: EjbcaEjbCli.java 19902 2014-09-30 14:32:24Z anatom $
  */
 public class EjbcaEjbCli {
 
-    public static void main(String[] args) {
-        if (args.length == 0 || !CommandLibrary.INSTANCE.doesCommandExist(args)) {
-            CommandLibrary.INSTANCE.listRootCommands();
-        } else {
-            CryptoProviderTools.installBCProvider();
-            CommandResult result = CommandLibrary.INSTANCE.findAndExecuteCommandFromParameters(args);
-            if(result != CommandResult.SUCCESS) {
-                System.exit(result.getReturnCode());
-            }
-        }
+  public static void main(final String[] args) {
+    if (args.length == 0 || !CommandLibrary.INSTANCE.doesCommandExist(args)) {
+      CommandLibrary.INSTANCE.listRootCommands();
+    } else {
+      CryptoProviderTools.installBCProvider();
+      CommandResult result =
+          CommandLibrary.INSTANCE.findAndExecuteCommandFromParameters(args);
+      if (result != CommandResult.SUCCESS) {
+        System.exit(result.getReturnCode());
+      }
     }
+  }
 }

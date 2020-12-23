@@ -13,46 +13,41 @@
 package org.ejbca.ui.cli.config.est;
 
 import java.util.List;
-
 import org.apache.log4j.Logger;
 import org.ejbca.ui.cli.infrastructure.command.CommandResult;
 import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
 
-/**
- * @version $Id: ListAliasCommand.java 27965 2018-01-15 16:20:53Z anatom $
- *
- */
+/** @version $Id: ListAliasCommand.java 27965 2018-01-15 16:20:53Z anatom $ */
 public class ListAliasCommand extends BaseEstConfigCommand {
 
-    private static final Logger log = Logger.getLogger(ListAliasCommand.class);
+  private static final Logger log = Logger.getLogger(ListAliasCommand.class);
 
-    @Override
-    public String getMainCommand() {
-        return "listalias";
-    }
+  @Override
+  public String getMainCommand() {
+    return "listalias";
+  }
 
-    @Override
-    public CommandResult execute(ParameterContainer parameters) {
-        List<String> aliaslist = getEstConfiguration().getSortedAliasList();
-        for(String alias : aliaslist) {
-            log.info(alias);
-        }
-        return CommandResult.SUCCESS;
+  @Override
+  public CommandResult execute(final ParameterContainer parameters) {
+    List<String> aliaslist = getEstConfiguration().getSortedAliasList();
+    for (String alias : aliaslist) {
+      log.info(alias);
+    }
+    return CommandResult.SUCCESS;
+  }
 
-    }
+  @Override
+  public String getCommandDescription() {
+    return "Lists all existing EST configuration aliases";
+  }
 
-    @Override
-    public String getCommandDescription() {
-        return "Lists all existing EST configuration aliases";
-    }
+  @Override
+  public String getFullHelpText() {
+    return getCommandDescription();
+  }
 
-    @Override
-    public String getFullHelpText() {
-        return getCommandDescription();
-    }
-    
-    @Override
-    protected Logger getLogger() {
-        return log;
-    }
+  @Override
+  protected Logger getLogger() {
+    return log;
+  }
 }

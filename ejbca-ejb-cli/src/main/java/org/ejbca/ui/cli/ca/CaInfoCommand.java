@@ -16,7 +16,6 @@ package org.ejbca.ui.cli.ca;
 import java.security.cert.Certificate;
 import java.security.interfaces.ECPublicKey;
 import java.util.ArrayList;
-
 import org.apache.log4j.Logger;
 import org.bouncycastle.jce.spec.ECNamedCurveSpec;
 import org.cesecore.certificates.ca.CAInfo;
@@ -37,89 +36,128 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class CaInfoCommand extends BaseCaAdminCommand {
 
-    private static final Logger log = Logger.getLogger(CaInfoCommand.class);
-    
-    private static final String CA_NAME_KEY = "--caname";
-    
-    {
-        registerParameter(new Parameter(CA_NAME_KEY, "CA Name", MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,
-                "Name of the CA"));
-    }
-    
-    @Override
-    public String getMainCommand() {
-        return "info";
-    }
+  private static final Logger log = Logger.getLogger(CaInfoCommand.class);
 
-    @Override
-    public CommandResult execute(ParameterContainer parameters) {
-        CryptoProviderTools.installBCProvider();
-        String caname = parameters.get(CA_NAME_KEY);
-        CAInfo cainfo = getCAInfo(getAuthenticationToken(), caname);
-        if (cainfo != null) {
-            ArrayList<Certificate> chain = new ArrayList<Certificate>(getCertChain(getAuthenticationToken(), caname));
-            getLogger().info("CA name: " + caname);
-            getLogger().info("CA type: " + cainfo.getCAType());
-            getLogger().info("CA ID: " + cainfo.getCAId());
-            getLogger().info("CA CRL Expiration Period: " + cainfo.getCRLPeriod());
-            getLogger().info("CA CRL Issue Interval: " + cainfo.getCRLIssueInterval());
-            getLogger().info("CA Description: " + cainfo.getDescription());
+  private static final String CA_NAME_KEY = "--caname";
 
-            if (chain.size() < 2) {
-                getLogger().info("This is a Root CA.");
-            } else {
-                getLogger().info("This is a subordinate CA.");
-            }
+  {
+    registerParameter(
+        new Parameter(
+            CA_NAME_KEY,
+            "CA Name",
+            MandatoryMode.MANDATORY,
+            StandaloneMode.ALLOW,
+            ParameterMode.ARGUMENT,
+            "Name of the CA"));
+  }
 
-            getLogger().info("Size of chain: " + chain.size());
-            if (chain.size() > 0) {
-                Certificate rootcert = chain.get(chain.size() - 1);
-                getLogger().info("Root CA DN: " + CertTools.getSubjectDN(rootcert));
-                getLogger().info("Root CA id: " + CertTools.getSubjectDN(rootcert).hashCode());
-                getLogger().info("Certificate valid from: " + CertTools.getNotBefore(rootcert));
-                getLogger().info("Certificate valid to: " + CertTools.getNotAfter(rootcert));
-                getLogger().info("Root CA key algorithm: " + rootcert.getPublicKey().getAlgorithm());
-                getLogger().info("Root CA key size: " + KeyTools.getKeyLength(rootcert.getPublicKey()));
-                if (rootcert.getPublicKey() instanceof ECPublicKey) {
-                    if (((ECPublicKey) rootcert.getPublicKey()).getParams() instanceof ECNamedCurveSpec) {
-                        getLogger().info(
-                                "Root CA ECDSA key spec: " + ((ECNamedCurveSpec) ((ECPublicKey) rootcert.getPublicKey()).getParams()).getName());
-                    }
-                }
-                for (int i = chain.size() - 2; i >= 0; i--) {
-                    Certificate cacert = chain.get(i);
-                    getLogger().info("CA DN: " + CertTools.getSubjectDN(cacert));
-                    getLogger().info("Certificate valid from: " + CertTools.getNotBefore(cacert));
-                    getLogger().info("Certificate valid to: " + CertTools.getNotAfter(cacert));
-                    getLogger().info("CA key algorithm: " + cacert.getPublicKey().getAlgorithm());
-                    getLogger().info("CA key size: " + KeyTools.getKeyLength(cacert.getPublicKey()));
-                    if (cacert.getPublicKey() instanceof ECPublicKey) {
-                        if (((ECPublicKey) cacert.getPublicKey()).getParams() instanceof ECNamedCurveSpec) {
-                            getLogger()
-                                    .info("CA ECDSA key spec: " + ((ECNamedCurveSpec) ((ECPublicKey) cacert.getPublicKey()).getParams()).getName());
-                        }
-                    }
-                }
-            }
-        } else {
-            getLogger().info("No CA named '" + caname + "' was found.");
-            return CommandResult.FUNCTIONAL_FAILURE;
+  @Override
+  public String getMainCommand() {
+    return "info";
+  }
+
+  @Override
+  public CommandResult execute(final ParameterContainer parameters) {
+    CryptoProviderTools.installBCProvider();
+    String caname = parameters.get(CA_NAME_KEY);
+    CAInfo cainfo = getCAInfo(getAuthenticationToken(), caname);
+    if (cainfo != null) {
+      ArrayList<Certificate> chain =
+          new ArrayList<Certificate>(
+              getCertChain(getAuthenticationToken(), caname));
+      getLogger().info("CA name: " + caname);
+      getLogger().info("CA type: " + cainfo.getCAType());
+      getLogger().info("CA ID: " + cainfo.getCAId());
+      getLogger().info("CA CRL Expiration Period: " + cainfo.getCRLPeriod());
+      getLogger()
+          .info("CA CRL Issue Interval: " + cainfo.getCRLIssueInterval());
+      getLogger().info("CA Description: " + cainfo.getDescription());
+
+      if (chain.size() < 2) {
+        getLogger().info("This is a Root CA.");
+      } else {
+        getLogger().info("This is a subordinate CA.");
+      }
+
+      getLogger().info("Size of chain: " + chain.size());
+      if (chain.size() > 0) {
+        Certificate rootcert = chain.get(chain.size() - 1);
+        getLogger().info("Root CA DN: " + CertTools.getSubjectDN(rootcert));
+        getLogger()
+            .info("Root CA id: " + CertTools.getSubjectDN(rootcert).hashCode());
+        getLogger()
+            .info(
+                "Certificate valid from: " + CertTools.getNotBefore(rootcert));
+        getLogger()
+            .info("Certificate valid to: " + CertTools.getNotAfter(rootcert));
+        getLogger()
+            .info(
+                "Root CA key algorithm: "
+                    + rootcert.getPublicKey().getAlgorithm());
+        getLogger()
+            .info(
+                "Root CA key size: "
+                    + KeyTools.getKeyLength(rootcert.getPublicKey()));
+        if (rootcert.getPublicKey() instanceof ECPublicKey) {
+          if (((ECPublicKey) rootcert.getPublicKey()).getParams()
+              instanceof ECNamedCurveSpec) {
+            getLogger()
+                .info(
+                    "Root CA ECDSA key spec: "
+                        + ((ECNamedCurveSpec)
+                                ((ECPublicKey) rootcert.getPublicKey())
+                                    .getParams())
+                            .getName());
+          }
         }
-        return CommandResult.SUCCESS;
+        for (int i = chain.size() - 2; i >= 0; i--) {
+          Certificate cacert = chain.get(i);
+          getLogger().info("CA DN: " + CertTools.getSubjectDN(cacert));
+          getLogger()
+              .info(
+                  "Certificate valid from: " + CertTools.getNotBefore(cacert));
+          getLogger()
+              .info("Certificate valid to: " + CertTools.getNotAfter(cacert));
+          getLogger()
+              .info(
+                  "CA key algorithm: " + cacert.getPublicKey().getAlgorithm());
+          getLogger()
+              .info(
+                  "CA key size: "
+                      + KeyTools.getKeyLength(cacert.getPublicKey()));
+          if (cacert.getPublicKey() instanceof ECPublicKey) {
+            if (((ECPublicKey) cacert.getPublicKey()).getParams()
+                instanceof ECNamedCurveSpec) {
+              getLogger()
+                  .info(
+                      "CA ECDSA key spec: "
+                          + ((ECNamedCurveSpec)
+                                  ((ECPublicKey) cacert.getPublicKey())
+                                      .getParams())
+                              .getName());
+            }
+          }
+        }
+      }
+    } else {
+      getLogger().info("No CA named '" + caname + "' was found.");
+      return CommandResult.FUNCTIONAL_FAILURE;
     }
-    
-    @Override
-    public String getCommandDescription() {
-        return "Shows info about a CA";
-    }
+    return CommandResult.SUCCESS;
+  }
 
-    @Override
-    public String getFullHelpText() {
-        return getCommandDescription();
-    }
+  @Override
+  public String getCommandDescription() {
+    return "Shows info about a CA";
+  }
 
-    @Override
-    protected Logger getLogger() {
-        return log;
-    }
+  @Override
+  public String getFullHelpText() {
+    return getCommandDescription();
+  }
+
+  @Override
+  protected Logger getLogger() {
+    return log;
+  }
 }

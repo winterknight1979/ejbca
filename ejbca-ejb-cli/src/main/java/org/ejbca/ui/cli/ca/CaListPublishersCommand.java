@@ -15,7 +15,6 @@ package org.ejbca.ui.cli.ca;
 
 import java.util.Collection;
 import java.util.Map;
-
 import org.apache.log4j.Logger;
 import org.cesecore.util.CryptoProviderTools;
 import org.cesecore.util.EjbRemoteHelper;
@@ -25,46 +24,47 @@ import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
 
 /**
  * List Publishers in the system.
- * 
- * @version $Id: CaListPublishersCommand.java 29132 2018-06-07 09:15:39Z anatom $
+ *
+ * @version $Id: CaListPublishersCommand.java 29132 2018-06-07 09:15:39Z anatom
+ *     $
  */
 public class CaListPublishersCommand extends BaseCaAdminCommand {
 
-    private static final Logger log = Logger.getLogger(CaListPublishersCommand.class);
-    
+  private static final Logger log =
+      Logger.getLogger(CaListPublishersCommand.class);
 
-    @Override
-    public String getMainCommand() {
-        return "listpublishers";
-    }
+  @Override
+  public String getMainCommand() {
+    return "listpublishers";
+  }
 
-    @Override
-    public CommandResult execute(ParameterContainer parameters) {
-        final PublisherSessionRemote pubsession = EjbRemoteHelper.INSTANCE.getRemoteSession(PublisherSessionRemote.class);
-        // Get the publisher named
-        CryptoProviderTools.installBCProviderIfNotAvailable();
-        Map<Integer,String> map = pubsession.getPublisherIdToNameMap();
-        Collection<Integer> ids = map.keySet();
-        for (Integer id: ids) {
-            getLogger().info("Publisher ID: " + id);
-            getLogger().info(" Name: " + map.get(id));
-        }
-        return CommandResult.SUCCESS;
+  @Override
+  public CommandResult execute(final ParameterContainer parameters) {
+    final PublisherSessionRemote pubsession =
+        EjbRemoteHelper.INSTANCE.getRemoteSession(PublisherSessionRemote.class);
+    // Get the publisher named
+    CryptoProviderTools.installBCProviderIfNotAvailable();
+    Map<Integer, String> map = pubsession.getPublisherIdToNameMap();
+    Collection<Integer> ids = map.keySet();
+    for (Integer id : ids) {
+      getLogger().info("Publisher ID: " + id);
+      getLogger().info(" Name: " + map.get(id));
     }
+    return CommandResult.SUCCESS;
+  }
 
-    @Override
-    public String getCommandDescription() {
-        return "List the names of all available publishers.";
-    }
+  @Override
+  public String getCommandDescription() {
+    return "List the names of all available publishers.";
+  }
 
-    @Override
-    public String getFullHelpText() {
-        return getCommandDescription();
-    }
-    
-    @Override
-    protected Logger getLogger() {
-        return log;
-    }
+  @Override
+  public String getFullHelpText() {
+    return getCommandDescription();
+  }
 
+  @Override
+  protected Logger getLogger() {
+    return log;
+  }
 }

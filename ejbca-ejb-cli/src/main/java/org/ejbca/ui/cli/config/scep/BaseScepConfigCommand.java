@@ -18,23 +18,26 @@ import org.ejbca.ui.cli.config.ConfigBaseCommand;
 
 /**
  * Shows the current server configuration
- * 
+ *
  * @version $Id: BaseScepConfigCommand.java 26057 2017-06-22 08:08:34Z anatom $
  */
 public abstract class BaseScepConfigCommand extends ConfigBaseCommand {
-     
-    private ScepConfiguration scepConfiguration = null;
 
-    @Override
-    public String[] getCommandPath() {
-        return new String[] { super.getCommandPath()[0] , "scep" };
-    }
-    
-    protected ScepConfiguration getScepConfiguration() {
-        if (scepConfiguration == null) {
-            scepConfiguration = (ScepConfiguration) getGlobalConfigurationSession().getCachedConfiguration(ScepConfiguration.SCEP_CONFIGURATION_ID);
-        }
-        return scepConfiguration;
-    }
+  private ScepConfiguration scepConfiguration = null;
 
+  @Override
+  public String[] getCommandPath() {
+    return new String[] {super.getCommandPath()[0], "scep"};
+  }
+
+  protected ScepConfiguration getScepConfiguration() {
+    if (scepConfiguration == null) {
+      scepConfiguration =
+          (ScepConfiguration)
+              getGlobalConfigurationSession()
+                  .getCachedConfiguration(
+                      ScepConfiguration.SCEP_CONFIGURATION_ID);
+    }
+    return scepConfiguration;
+  }
 }

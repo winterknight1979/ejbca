@@ -15,7 +15,6 @@ package org.ejbca.ui.cli.config;
 
 import java.util.Enumeration;
 import java.util.Properties;
-
 import org.apache.log4j.Logger;
 import org.cesecore.authorization.AuthorizationDeniedException;
 import org.cesecore.configuration.GlobalConfigurationSessionRemote;
@@ -26,51 +25,54 @@ import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
 
 /**
  * Shows the current server configuration
- * 
+ *
  * @version $Id: ConfigDumpCommand.java 19968 2014-10-09 13:13:58Z mikekushner $
  */
 public class ConfigDumpCommand extends ConfigBaseCommand {
 
-    private static final Logger log = Logger.getLogger(ConfigDumpCommand.class);
+  private static final Logger log = Logger.getLogger(ConfigDumpCommand.class);
 
-    @Override
-    public String getMainCommand() {
-        return "dump";
+  @Override
+  public String getMainCommand() {
+    return "dump";
+  }
+
+  @Override
+  public CommandResult execute(final ParameterContainer parameters) {
+    log.info("Trying to fetch currently used server properties...");
+
+    Properties properties;
+    try {
+      properties =
+          EjbRemoteHelper.INSTANCE
+              .getRemoteSession(GlobalConfigurationSessionRemote.class)
+              .getAllProperties(
+                  getAuthenticationToken(),
+                  GlobalConfiguration.GLOBAL_CONFIGURATION_ID);
+    } catch (AuthorizationDeniedException e) {
+      log.error("CLI user not authorized to retrieve global configuration.");
+      return CommandResult.AUTHORIZATION_FAILURE;
     }
-
-    @Override
-    public CommandResult execute(ParameterContainer parameters) {
-        log.info("Trying to fetch currently used server properties...");
-
-        Properties properties;
-        try {
-            properties = EjbRemoteHelper.INSTANCE.getRemoteSession(GlobalConfigurationSessionRemote.class).getAllProperties(getAuthenticationToken(),
-                    GlobalConfiguration.GLOBAL_CONFIGURATION_ID);
-        } catch (AuthorizationDeniedException e) {
-            log.error("CLI user not authorized to retrieve global configuration.");
-            return CommandResult.AUTHORIZATION_FAILURE;
-        }
-        Enumeration<Object> enumeration = properties.keys();
-        while (enumeration.hasMoreElements()) {
-            String key = (String) enumeration.nextElement();
-            log.info(" " + key + " = " + properties.getProperty(key));
-        }
-        return CommandResult.SUCCESS;
-
+    Enumeration<Object> enumeration = properties.keys();
+    while (enumeration.hasMoreElements()) {
+      String key = (String) enumeration.nextElement();
+      log.info(" " + key + " = " + properties.getProperty(key));
     }
+    return CommandResult.SUCCESS;
+  }
 
-    @Override
-    public String getCommandDescription() {
-        return "Shows the current server configuration";
-    }
+  @Override
+  public String getCommandDescription() {
+    return "Shows the current server configuration";
+  }
 
-    @Override
-    public String getFullHelpText() {
-        return getCommandDescription();
-    }
-    
-    @Override
-    protected Logger getLogger() {
-        return log;
-    }
+  @Override
+  public String getFullHelpText() {
+    return getCommandDescription();
+  }
+
+  @Override
+  protected Logger getLogger() {
+    return log;
+  }
 }

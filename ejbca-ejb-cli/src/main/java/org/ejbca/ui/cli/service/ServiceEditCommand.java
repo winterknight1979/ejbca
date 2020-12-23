@@ -26,65 +26,73 @@ import org.ejbca.ui.cli.roles.ListRolesCommand;
 
 /**
  * CLI subcommand for editing services.
- * 
- * @version $Id: ServiceEditCommand.java 21708 2015-08-24 14:48:34Z mikekushner $
+ *
+ * @version $Id: ServiceEditCommand.java 21708 2015-08-24 14:48:34Z mikekushner
+ *     $
  */
 public class ServiceEditCommand extends BaseServiceModificationCommand {
 
-    private static final Logger log = Logger.getLogger(ListRolesCommand.class);
+  private static final Logger log = Logger.getLogger(ListRolesCommand.class);
 
-    private static final String ARGS_KEY = "--properties";
+  private static final String ARGS_KEY = "--properties";
 
-    {
-        registerParameter(new Parameter(
-                ARGS_KEY,
-                "List of Properties",
-                MandatoryMode.OPTIONAL,
-                StandaloneMode.ALLOW,
-                ParameterMode.ARGUMENT,
-                "A list of properties, must be in the form of \"field1:property1 field2:property2\", e.g: \"interval.periodical.unit=DAYS interval.periodical.value=7\""));
+  {
+    registerParameter(
+        new Parameter(
+            ARGS_KEY,
+            "List of Properties",
+            MandatoryMode.OPTIONAL,
+            StandaloneMode.ALLOW,
+            ParameterMode.ARGUMENT,
+            "A list of properties, must be in the form of \"field1:property1"
+                + " field2:property2\", e.g: \"interval.periodical.unit=DAYS"
+                + " interval.periodical.value=7\""));
+  }
+
+  @Override
+  public String getMainCommand() {
+    return "edit";
+  }
+
+  @Override
+  public CommandResult execute(
+      final ParameterContainer parameters, final int serviceId) {
+    final ServiceSessionRemote serviceSession =
+        EjbRemoteHelper.INSTANCE.getRemoteSession(ServiceSessionRemote.class);
+    final String serviceName = serviceSession.getServiceName(serviceId);
+    ServiceConfiguration serviceConfig =
+        serviceSession.getServiceConfiguration(serviceId);
+    final boolean wasActive = serviceConfig.isActive();
+    final String[] args;
+    if (parameters.get(ARGS_KEY) != null) {
+      args = parameters.get(ARGS_KEY).split(" ");
+    } else {
+      args = new String[] {};
     }
-
-    @Override
-    public String getMainCommand() {
-        return "edit";
+    if (modifyFromArgs(serviceConfig, args)) {
+      serviceSession.changeService(
+          getAdmin(), serviceName, serviceConfig, false);
+      handleServiceActivation(serviceName, wasActive);
+      getLogger().info("Changes saved.");
     }
+    return CommandResult.SUCCESS;
+  }
 
-    @Override
-    public CommandResult execute(ParameterContainer parameters, int serviceId) {
-        final ServiceSessionRemote serviceSession = EjbRemoteHelper.INSTANCE.getRemoteSession(ServiceSessionRemote.class);
-        final String serviceName = serviceSession.getServiceName(serviceId);
-        ServiceConfiguration serviceConfig = serviceSession.getServiceConfiguration(serviceId);
-        final boolean wasActive = serviceConfig.isActive();
-        final String[] args;
-        if (parameters.get(ARGS_KEY) != null) {
-            args = parameters.get(ARGS_KEY).split(" ");
-        } else {
-            args = new String[] {};
-        }
-        if (modifyFromArgs(serviceConfig, args)) {
-            serviceSession.changeService(getAdmin(), serviceName, serviceConfig, false);
-            handleServiceActivation(serviceName, wasActive);
-            getLogger().info("Changes saved.");
-        }
-        return CommandResult.SUCCESS;
-    }
+  @Override
+  public String getCommandDescription() {
+    return "Modifies fields and properties in a service.";
+  }
 
-    @Override
-    public String getCommandDescription() {
-        return "Modifies fields and properties in a service.";
-    }
+  @Override
+  public String getFullHelpText() {
+    StringBuilder sb = new StringBuilder();
+    sb.append(getCommandDescription());
+    sb.append("\n\n").append(FIELDS_HELP + "\n\n");
+    return sb.toString();
+  }
 
-    @Override
-    public String getFullHelpText() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(getCommandDescription());
-        sb.append("\n\n").append(FIELDS_HELP + "\n\n");
-        return sb.toString();
-    }
-
-    @Override
-    protected Logger getLogger() {
-        return log;
-    }
+  @Override
+  protected Logger getLogger() {
+    return log;
+  }
 }

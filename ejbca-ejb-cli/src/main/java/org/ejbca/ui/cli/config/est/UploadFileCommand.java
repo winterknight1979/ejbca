@@ -15,7 +15,6 @@ package org.ejbca.ui.cli.config.est;
 import java.io.File;
 import java.util.Iterator;
 import java.util.Set;
-
 import org.apache.commons.configuration.CompositeConfiguration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -30,117 +29,140 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
 import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
 import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 
-/**
- * @version $Id: UploadFileCommand.java 27965 2018-01-15 16:20:53Z anatom $
- *
- */
+/** @version $Id: UploadFileCommand.java 27965 2018-01-15 16:20:53Z anatom $ */
 public class UploadFileCommand extends BaseEstConfigCommand {
 
-    private static final String ALIAS_KEY = "--alias";
-    private static final String FILE_KEY = "--file";
+  private static final String ALIAS_KEY = "--alias";
+  private static final String FILE_KEY = "--file";
 
-    private static final Logger log = Logger.getLogger(UploadFileCommand.class);
+  private static final Logger log = Logger.getLogger(UploadFileCommand.class);
 
-    {
-        registerParameter(new Parameter(ALIAS_KEY, "Alias", MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,
-                "The alias to read to."));
-        registerParameter(new Parameter(FILE_KEY, "File", MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,
-                "The file to upload."));
+  {
+    registerParameter(
+        new Parameter(
+            ALIAS_KEY,
+            "Alias",
+            MandatoryMode.MANDATORY,
+            StandaloneMode.ALLOW,
+            ParameterMode.ARGUMENT,
+            "The alias to read to."));
+    registerParameter(
+        new Parameter(
+            FILE_KEY,
+            "File",
+            MandatoryMode.MANDATORY,
+            StandaloneMode.ALLOW,
+            ParameterMode.ARGUMENT,
+            "The file to upload."));
+  }
+
+  @Override
+  public String getMainCommand() {
+    return "uploadfile";
+  }
+
+  @Override
+  public CommandResult execute(final ParameterContainer parameters) {
+    String filename = parameters.get(FILE_KEY);
+    String alias = parameters.get(ALIAS_KEY);
+
+    CompositeConfiguration config = null;
+    File f = null;
+    try {
+      f = new File(filename);
+      final PropertiesConfiguration pc = new PropertiesConfiguration(f);
+      pc.setReloadingStrategy(new FileChangedReloadingStrategy());
+      config = new CompositeConfiguration();
+      config.addConfiguration(pc);
+      log.info("Reading CMP configuration from file: " + f.getAbsolutePath());
+    } catch (ConfigurationException e) {
+      log.error(
+          "Failed to load configuration from file " + f.getAbsolutePath());
+      return CommandResult.FUNCTIONAL_FAILURE;
+    }
+    readConfigurations(config, alias);
+    return CommandResult.SUCCESS;
+  }
+
+  @Override
+  public String getCommandDescription() {
+    return "Reads CMP configuration from a file.";
+  }
+
+  @Override
+  public String getFullHelpText() {
+    StringBuilder sb = new StringBuilder();
+    sb.append(getCommandDescription() + "\n");
+    sb.append("\n");
+    sb.append(
+        "Each line that has the format 'ALIAS.key=VALUE' will be read" + "\n");
+    sb.append(
+        "Only one alias will be read. If one file contains configurations of"
+            + " several aliases, you have to repeat the command with a"
+            + " different alias each time to have all configurations of all"
+            + " aliases read\n");
+    sb.append(
+        "Note that the alias 'est' is the default alias used when sending the"
+            + " ES request through the default EST URL. Note also that the"
+            + " alias 'est' does not exist per default and should be created"
+            + " before using this URL\n");
+    sb.append(
+        "The following keys (if present) will be read from the file:" + "\n");
+    Set<String> keys = EstConfiguration.getAllAliasKeys("<ALIAS>");
+    Iterator<String> itr = keys.iterator();
+    while (itr.hasNext()) {
+      sb.append("     " + itr.next() + "\n");
+    }
+    return sb.toString();
+  }
+
+  private void readConfigurations(
+      final CompositeConfiguration config, final String alias) {
+
+    // if the alias does not already exist, create it.
+    getEstConfiguration().addAlias(alias);
+
+    // Reading all relevant configurations from file.
+    boolean populated = false;
+    Set<String> keys = EstConfiguration.getAllAliasKeys(alias);
+    Iterator<String> itr = keys.iterator();
+    while (itr.hasNext()) {
+      String key = itr.next();
+      if (config.containsKey(key)) {
+        populated = true;
+        String value = config.getString(key);
+        getEstConfiguration().setValue(key, value, alias);
+        log.info("Setting value: " + key + "=" + value);
+      }
     }
 
-    @Override
-    public String getMainCommand() {
-        return "uploadfile";
+    // Save the new configurations.
+    if (populated) {
+      try {
+        getGlobalConfigurationSession()
+            .saveConfiguration(getAuthenticationToken(), getEstConfiguration());
+        log.info("\nNew configurations saved successfully.");
+        log.info(
+            "If there are any issues with the configurations, check them in"
+                + " the AdminGUI and click 'Save'");
+        getGlobalConfigurationSession()
+            .flushConfigurationCache(EstConfiguration.EST_CONFIGURATION_ID);
+      } catch (AuthorizationDeniedException e) {
+        log.error(
+            "Failed to save configuration from file: "
+                + e.getLocalizedMessage());
+      }
+    } else {
+      getEstConfiguration().removeAlias(alias);
+      log.info(
+          "No relevent EST configurations found with alias '"
+              + alias
+              + "' in the file.");
     }
+  }
 
-    @Override
-    public CommandResult execute(ParameterContainer parameters) {
-        String filename = parameters.get(FILE_KEY);
-        String alias = parameters.get(ALIAS_KEY);
-
-        CompositeConfiguration config = null;
-        File f = null;
-        try {
-            f = new File(filename);
-            final PropertiesConfiguration pc = new PropertiesConfiguration(f);
-            pc.setReloadingStrategy(new FileChangedReloadingStrategy());
-            config = new CompositeConfiguration();
-            config.addConfiguration(pc);
-            log.info("Reading CMP configuration from file: " + f.getAbsolutePath());
-        } catch (ConfigurationException e) {
-            log.error("Failed to load configuration from file " + f.getAbsolutePath());
-            return CommandResult.FUNCTIONAL_FAILURE;
-        }
-        readConfigurations(config, alias);
-        return CommandResult.SUCCESS;
-
-    }
-
-    @Override
-    public String getCommandDescription() {
-        return "Reads CMP configuration from a file.";
-    }
-
-    @Override
-    public String getFullHelpText() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(getCommandDescription() + "\n");
-        sb.append("\n");
-        sb.append("Each line that has the format 'ALIAS.key=VALUE' will be read" + "\n");
-        sb.append(
-                "Only one alias will be read. If one file contains configurations of several aliases, you have to repeat the command with a "
-                        + "different alias each time to have all configurations of all aliases read"+ "\n");
-        sb.append(
-                "Note that the alias 'est' is the default alias used when sending the ES request through the default EST URL. "
-                        + "Note also that the alias 'est' does not exist per default and should be created before using this URL"+ "\n");
-        sb.append("The following keys (if present) will be read from the file:" + "\n");
-        Set<String> keys = EstConfiguration.getAllAliasKeys("<ALIAS>");
-        Iterator<String> itr = keys.iterator();
-        while (itr.hasNext()) {
-            sb.append("     " + itr.next() + "\n");
-        }
-        return sb.toString();
-    }
-    
-    
-    
-    private void readConfigurations(CompositeConfiguration config, String alias) {
-
-        // if the alias does not already exist, create it.
-        getEstConfiguration().addAlias(alias);
-
-        // Reading all relevant configurations from file.
-        boolean populated = false;
-        Set<String> keys = EstConfiguration.getAllAliasKeys(alias);
-        Iterator<String> itr = keys.iterator();
-        while (itr.hasNext()) {
-            String key = itr.next();
-            if (config.containsKey(key)) {
-                populated = true;
-                String value = config.getString(key);
-                getEstConfiguration().setValue(key, value, alias);
-                log.info("Setting value: " + key + "=" + value);
-            }
-        }
-
-        // Save the new configurations.
-        if (populated) {
-            try {
-                getGlobalConfigurationSession().saveConfiguration(getAuthenticationToken(), getEstConfiguration());
-                log.info("\nNew configurations saved successfully.");
-                log.info("If there are any issues with the configurations, check them in the AdminGUI and click 'Save'");
-                getGlobalConfigurationSession().flushConfigurationCache(EstConfiguration.EST_CONFIGURATION_ID);
-            } catch (AuthorizationDeniedException e) {
-                log.error("Failed to save configuration from file: " + e.getLocalizedMessage());
-            }
-        } else {
-            getEstConfiguration().removeAlias(alias);
-            log.info("No relevent EST configurations found with alias '" + alias + "' in the file.");
-        }
-    }
-    
-    @Override
-    protected Logger getLogger() {
-        return log;
-    }
+  @Override
+  protected Logger getLogger() {
+    return log;
+  }
 }

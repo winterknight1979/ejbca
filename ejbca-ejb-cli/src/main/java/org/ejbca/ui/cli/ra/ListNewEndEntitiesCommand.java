@@ -15,7 +15,6 @@ package org.ejbca.ui.cli.ra;
 
 import java.util.HashSet;
 import java.util.Set;
-
 import org.apache.log4j.Logger;
 import org.cesecore.certificates.endentity.EndEntityConstants;
 import org.cesecore.certificates.endentity.EndEntityInformation;
@@ -27,49 +26,67 @@ import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
 /**
  * List end entities with status NEW in the database.
  *
- * @version $Id: ListNewEndEntitiesCommand.java 27715 2018-01-02 16:55:19Z mikekushner $
- *
+ * @version $Id: ListNewEndEntitiesCommand.java 27715 2018-01-02 16:55:19Z
+ *     mikekushner $
  */
 public class ListNewEndEntitiesCommand extends BaseRaCommand {
 
-    private static final Logger log = Logger.getLogger(ListNewEndEntitiesCommand.class);
+  private static final Logger log =
+      Logger.getLogger(ListNewEndEntitiesCommand.class);
 
-    private static final String COMMAND = "listnewendentities";
-    private static final String OLD_COMMAND = "listnewusers";
+  private static final String COMMAND = "listnewendentities";
+  private static final String OLD_COMMAND = "listnewusers";
 
-    private static final Set<String> ALIASES = new HashSet<String>();
-    static {
-        ALIASES.add(OLD_COMMAND);
-    }
+  private static final Set<String> ALIASES = new HashSet<String>();
 
-    @Override
-    public String getMainCommand() {
-        return COMMAND;
-    }
+  static {
+    ALIASES.add(OLD_COMMAND);
+  }
 
-    @Override
-    public CommandResult execute(ParameterContainer parameters) {
-        for (EndEntityInformation data : EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityAccessSessionRemote.class).findAllUsersByStatus(
+  @Override
+  public String getMainCommand() {
+    return COMMAND;
+  }
+
+  @Override
+  public CommandResult execute(final ParameterContainer parameters) {
+    for (EndEntityInformation data :
+        EjbRemoteHelper.INSTANCE
+            .getRemoteSession(EndEntityAccessSessionRemote.class)
+            .findAllUsersByStatus(
                 getAuthenticationToken(), EndEntityConstants.STATUS_NEW)) {
-            getLogger().info(
-                    "New end entity: " + data.getUsername() + ", \"" + data.getDN() + "\", \"" + data.getSubjectAltName() + "\", " + data.getEmail()
-                            + ", " + data.getStatus() + ", " + data.getType().getHexValue() + ", " + data.getTokenType());
-        }
-        return CommandResult.SUCCESS;
-
+      getLogger()
+          .info(
+              "New end entity: "
+                  + data.getUsername()
+                  + ", \""
+                  + data.getDN()
+                  + "\", \""
+                  + data.getSubjectAltName()
+                  + "\", "
+                  + data.getEmail()
+                  + ", "
+                  + data.getStatus()
+                  + ", "
+                  + data.getType().getHexValue()
+                  + ", "
+                  + data.getTokenType());
     }
+    return CommandResult.SUCCESS;
+  }
 
-    @Override
-    public String getCommandDescription() {
-        return "List end entities with status 'NEW'";
-    }
+  @Override
+  public String getCommandDescription() {
+    return "List end entities with status 'NEW'";
+  }
 
-    @Override
-    public String getFullHelpText() {
-        return getCommandDescription();
-    }
+  @Override
+  public String getFullHelpText() {
+    return getCommandDescription();
+  }
 
-    protected Logger getLogger() {
-        return log;
-    }
+  @Override
+  protected Logger getLogger() {
+    return log;
+  }
 }

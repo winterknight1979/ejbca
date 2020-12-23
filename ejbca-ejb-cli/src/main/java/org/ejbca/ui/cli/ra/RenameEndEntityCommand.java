@@ -26,63 +26,88 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 
 /**
  * CLI command for renaming an end entity.
- * 
- * @version $Id: RenameEndEntityCommand.java 21154 2015-04-27 14:57:22Z jeklund $
+ *
+ * @version $Id: RenameEndEntityCommand.java 21154 2015-04-27 14:57:22Z jeklund
+ *     $
  */
 public class RenameEndEntityCommand extends BaseRaCommand {
 
-    private static final Logger log = Logger.getLogger(RenameEndEntityCommand.class);
+  private static final Logger log =
+      Logger.getLogger(RenameEndEntityCommand.class);
 
-    private static final String SUBCOMMAND = "renameendentity";
-    private static final String USERNAME_CURRENT_KEY = "--current";
-    private static final String USERNAME_NEW_KEY = "--new";
+  private static final String SUBCOMMAND = "renameendentity";
+  private static final String USERNAME_CURRENT_KEY = "--current";
+  private static final String USERNAME_NEW_KEY = "--new";
 
-    {
-        registerParameter(new Parameter(USERNAME_CURRENT_KEY, "Current username", MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,
-                "Current username for the end entity."));
-        registerParameter(new Parameter(USERNAME_NEW_KEY, "New username", MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,
-                "New username for the end entity."));
+  {
+    registerParameter(
+        new Parameter(
+            USERNAME_CURRENT_KEY,
+            "Current username",
+            MandatoryMode.MANDATORY,
+            StandaloneMode.ALLOW,
+            ParameterMode.ARGUMENT,
+            "Current username for the end entity."));
+    registerParameter(
+        new Parameter(
+            USERNAME_NEW_KEY,
+            "New username",
+            MandatoryMode.MANDATORY,
+            StandaloneMode.ALLOW,
+            ParameterMode.ARGUMENT,
+            "New username for the end entity."));
+  }
+
+  @Override
+  public String getMainCommand() {
+    return SUBCOMMAND;
+  }
+
+  @Override
+  public CommandResult execute(final ParameterContainer parameters) {
+    final String currentUsername = parameters.get(USERNAME_CURRENT_KEY);
+    final String newUsername = parameters.get(USERNAME_NEW_KEY);
+    try {
+      if (EjbRemoteHelper.INSTANCE
+          .getRemoteSession(EndEntityManagementSessionRemote.class)
+          .renameEndEntity(
+              getAuthenticationToken(), currentUsername, newUsername)) {
+        getLogger()
+            .info(
+                "End entity '"
+                    + currentUsername
+                    + "' has been renamed to '"
+                    + newUsername
+                    + "'");
+        return CommandResult.SUCCESS;
+      } else {
+        getLogger()
+            .error("End entity '" + currentUsername + "' could not be found.");
+      }
+    } catch (EndEntityExistsException e) {
+      getLogger()
+          .error("The new username is already in use by another end entity.");
+    } catch (AuthorizationDeniedException e) {
+      getLogger().error(e.getMessage());
+      return CommandResult.AUTHORIZATION_FAILURE;
     }
+    return CommandResult.FUNCTIONAL_FAILURE;
+  }
 
-    @Override
-    public String getMainCommand() {
-        return SUBCOMMAND;
-    }
+  @Override
+  public String getCommandDescription() {
+    return "Renames an end entity";
+  }
 
-    @Override
-    public CommandResult execute(ParameterContainer parameters) {
-        final String currentUsername = parameters.get(USERNAME_CURRENT_KEY);
-        final String newUsername = parameters.get(USERNAME_NEW_KEY);
-        try {
-            if (EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityManagementSessionRemote.class).renameEndEntity(getAuthenticationToken(), currentUsername, newUsername)) {
-                getLogger().info("End entity '" + currentUsername + "' has been renamed to '" + newUsername + "'");
-                return CommandResult.SUCCESS;
-            } else {
-                getLogger().error("End entity '" + currentUsername + "' could not be found.");
-            }
-        } catch (EndEntityExistsException e) {
-            getLogger().error("The new username is already in use by another end entity.");
-        } catch (AuthorizationDeniedException e) {
-            getLogger().error(e.getMessage());
-            return CommandResult.AUTHORIZATION_FAILURE;
-        }
-        return CommandResult.FUNCTIONAL_FAILURE;
-    }
+  @Override
+  public String getFullHelpText() {
+    final StringBuilder sb = new StringBuilder();
+    sb.append(getCommandDescription()).append("\n");
+    return sb.toString();
+  }
 
-    @Override
-    public String getCommandDescription() {
-        return "Renames an end entity";
-    }
-
-    @Override
-    public String getFullHelpText() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append(getCommandDescription()).append("\n");
-        return sb.toString();
-    }
-
-    @Override
-    protected Logger getLogger() {
-        return log;
-    }
+  @Override
+  protected Logger getLogger() {
+    return log;
+  }
 }

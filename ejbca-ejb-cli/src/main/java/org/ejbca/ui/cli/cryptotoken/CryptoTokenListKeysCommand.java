@@ -13,7 +13,6 @@
 package org.ejbca.ui.cli.cryptotoken;
 
 import java.util.List;
-
 import org.apache.log4j.Logger;
 import org.cesecore.authorization.AuthorizationDeniedException;
 import org.cesecore.keys.token.CryptoTokenManagementSessionRemote;
@@ -24,55 +23,60 @@ import org.ejbca.ui.cli.infrastructure.command.CommandResult;
 import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
 
 /**
- * CryptoToken EJB CLI command. 
- * 
- * @version $Id: CryptoTokenListKeysCommand.java 19902 2014-09-30 14:32:24Z anatom $
+ * CryptoToken EJB CLI command.
+ *
+ * @version $Id: CryptoTokenListKeysCommand.java 19902 2014-09-30 14:32:24Z
+ *     anatom $
  */
 public class CryptoTokenListKeysCommand extends BaseCryptoTokenCommand {
 
-    private static final Logger log = Logger.getLogger(CryptoTokenListKeysCommand.class);
+  private static final Logger log =
+      Logger.getLogger(CryptoTokenListKeysCommand.class);
 
-    @Override
-    public String getMainCommand() {
-        return "listkeys";
+  @Override
+  public String getMainCommand() {
+    return "listkeys";
+  }
+
+  @Override
+  public CommandResult executeCommand(
+      final Integer cryptoTokenId, final ParameterContainer parameters)
+      throws AuthorizationDeniedException, CryptoTokenOfflineException {
+    final String cryptoTokenName = parameters.get(CRYPTOTOKEN_NAME_KEY);
+    final CryptoTokenManagementSessionRemote cryptoTokenManagementSession =
+        EjbRemoteHelper.INSTANCE.getRemoteSession(
+            CryptoTokenManagementSessionRemote.class);
+    final List<KeyPairInfo> keyPairInfos =
+        cryptoTokenManagementSession.getKeyPairInfos(getAdmin(), cryptoTokenId);
+    getLogger().info("CryptoToken name: \"" + cryptoTokenName + "\"");
+    getLogger().info("CryptoToken id:   " + cryptoTokenId + "\n");
+    getLogger().info(" ALIAS\t ALGORITHM SPECIFICATION SUBJECTKEYID");
+    for (final KeyPairInfo keyPairInfo : keyPairInfos) {
+      final StringBuilder sb = new StringBuilder();
+      sb.append(' ').append(keyPairInfo.getAlias());
+      sb.append('\t').append(keyPairInfo.getKeyAlgorithm());
+      sb.append(' ').append(keyPairInfo.getKeySpecification());
+      sb.append(' ').append(keyPairInfo.getSubjectKeyID());
+      getLogger().info(sb);
     }
-
-    @Override
-    public CommandResult executeCommand(Integer cryptoTokenId, ParameterContainer parameters) throws AuthorizationDeniedException, CryptoTokenOfflineException {
-        final String cryptoTokenName = parameters.get(CRYPTOTOKEN_NAME_KEY);
-        final CryptoTokenManagementSessionRemote cryptoTokenManagementSession = EjbRemoteHelper.INSTANCE
-                .getRemoteSession(CryptoTokenManagementSessionRemote.class);
-        final List<KeyPairInfo> keyPairInfos = cryptoTokenManagementSession.getKeyPairInfos(getAdmin(), cryptoTokenId);
-        getLogger().info("CryptoToken name: \"" + cryptoTokenName + "\"");
-        getLogger().info("CryptoToken id:   " + cryptoTokenId + "\n");
-        getLogger().info(" ALIAS\t ALGORITHM SPECIFICATION SUBJECTKEYID");
-        for (final KeyPairInfo keyPairInfo : keyPairInfos) {
-            final StringBuilder sb = new StringBuilder();
-            sb.append(' ').append(keyPairInfo.getAlias());
-            sb.append('\t').append(keyPairInfo.getKeyAlgorithm());
-            sb.append(' ').append(keyPairInfo.getKeySpecification());
-            sb.append(' ').append(keyPairInfo.getSubjectKeyID());
-            getLogger().info(sb);
-        }
-        if (keyPairInfos.isEmpty()) {
-            getLogger().info("CryptoToken does not contain any key pairs.");
-        }
-        return CommandResult.SUCCESS;
+    if (keyPairInfos.isEmpty()) {
+      getLogger().info("CryptoToken does not contain any key pairs.");
     }
+    return CommandResult.SUCCESS;
+  }
 
-    @Override
-    public String getCommandDescription() {
-        return "List all key pairs in an active token";
-    }
+  @Override
+  public String getCommandDescription() {
+    return "List all key pairs in an active token";
+  }
 
-    @Override
-    public String getFullHelpText() {
-        return getCommandDescription();
-    }
+  @Override
+  public String getFullHelpText() {
+    return getCommandDescription();
+  }
 
-    @Override
-    protected Logger getLogger() {
-        return log;
-    }
-
+  @Override
+  protected Logger getLogger() {
+    return log;
+  }
 }

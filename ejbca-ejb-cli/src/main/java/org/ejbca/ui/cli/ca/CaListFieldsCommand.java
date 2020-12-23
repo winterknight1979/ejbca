@@ -30,58 +30,67 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 /**
  * Lists the fields of a CA.
  *
- * @version $Id: CaListFieldsCommand.java 27740 2018-01-05 07:24:53Z mikekushner $
+ * @version $Id: CaListFieldsCommand.java 27740 2018-01-05 07:24:53Z mikekushner
+ *     $
  */
 public class CaListFieldsCommand extends BaseCaAdminCommand {
 
-    private static final Logger log = Logger.getLogger(CaListFieldsCommand.class);
+  private static final Logger log = Logger.getLogger(CaListFieldsCommand.class);
 
-    private static final String CA_NAME_KEY = "--caname";
+  private static final String CA_NAME_KEY = "--caname";
 
-    {
-        registerParameter(new Parameter(CA_NAME_KEY, "CA Name", MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,
-                "The name of the CA to list fields from."));
+  {
+    registerParameter(
+        new Parameter(
+            CA_NAME_KEY,
+            "CA Name",
+            MandatoryMode.MANDATORY,
+            StandaloneMode.ALLOW,
+            ParameterMode.ARGUMENT,
+            "The name of the CA to list fields from."));
+  }
+
+  @Override
+  public String getMainCommand() {
+    return "listcafields";
+  }
+
+  @Override
+  public CommandResult execute(final ParameterContainer parameters) {
+    FieldEditor fieldEditor = new FieldEditor(log);
+    CryptoProviderTools.installBCProviderIfNotAvailable();
+    ;
+    final String name = parameters.get(CA_NAME_KEY);
+    try {
+      final CAInfo cainfo =
+          EjbRemoteHelper.INSTANCE
+              .getRemoteSession(CaSessionRemote.class)
+              .getCAInfo(getAuthenticationToken(), name);
+      if (cainfo == null) {
+        log.info("CA '" + name + "' does not exist.");
+        return CommandResult.FUNCTIONAL_FAILURE;
+      }
+      // List fields
+      fieldEditor.listSetMethods(cainfo);
+      return CommandResult.SUCCESS;
+    } catch (AuthorizationDeniedException e) {
+      log.error("CLI User was not authorized to CA " + name);
+      return CommandResult.AUTHORIZATION_FAILURE;
     }
+  }
 
-    @Override
-    public String getMainCommand() {
-        return "listcafields";
-    }
+  @Override
+  public String getCommandDescription() {
+    return "Lists the fields of a CA.";
+  }
 
-    @Override
-    public CommandResult execute(ParameterContainer parameters) {
-        FieldEditor fieldEditor = new FieldEditor(log);
-        CryptoProviderTools.installBCProviderIfNotAvailable();;
-        final String name = parameters.get(CA_NAME_KEY);
-        try {
-            final CAInfo cainfo = EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class).getCAInfo(getAuthenticationToken(), name);
-            if(cainfo == null) {
-                log.info("CA '" + name + "' does not exist.");
-                return CommandResult.FUNCTIONAL_FAILURE;
-            }
-            // List fields
-            fieldEditor.listSetMethods(cainfo);
-            return CommandResult.SUCCESS;          
-        } catch (AuthorizationDeniedException e) {
-            log.error("CLI User was not authorized to CA " + name);
-            return CommandResult.AUTHORIZATION_FAILURE;
-        }
+  @Override
+  public String getFullHelpText() {
+    return getCommandDescription();
+  }
 
-    }
-
-    @Override
-    public String getCommandDescription() {
-        return "Lists the fields of a CA.";
-               
-    }
-
-    @Override
-    public String getFullHelpText() {
-        return getCommandDescription();
-    }
-    
-    @Override
-    protected Logger getLogger() {
-        return log;
-    }
+  @Override
+  protected Logger getLogger() {
+    return log;
+  }
 }

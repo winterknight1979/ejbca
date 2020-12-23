@@ -33,60 +33,76 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public abstract class BaseServiceCommand extends EjbcaCliUserCommandBase {
 
-    protected final String SERVICE_NAME_KEY = "--service";
+  protected final String SERVICE_NAME_KEY = "--service";
 
-    {
-        registerParameter(new Parameter(SERVICE_NAME_KEY, "Service Name", MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,
-                "The name of the service"));
+  {
+    registerParameter(
+        new Parameter(
+            SERVICE_NAME_KEY,
+            "Service Name",
+            MandatoryMode.MANDATORY,
+            StandaloneMode.ALLOW,
+            ParameterMode.ARGUMENT,
+            "The name of the service"));
+  }
+
+  @Override
+  public String[] getCommandPath() {
+    return new String[] {"service"};
+  }
+
+  @Override
+  public final CommandResult execute(final ParameterContainer parameters) {
+    CryptoProviderTools.installBCProviderIfNotAvailable();
+    int serviceId = 0;
+    if (acceptsServiceName()) {
+      final ServiceSessionRemote serviceSession =
+          EjbRemoteHelper.INSTANCE.getRemoteSession(ServiceSessionRemote.class);
+      serviceId = serviceSession.getServiceId(parameters.get(SERVICE_NAME_KEY));
+      if (serviceId == 0 && failIfServiceMissing()) {
+        getLogger()
+            .info("Unknown Service: " + parameters.get(SERVICE_NAME_KEY));
+        return CommandResult.FUNCTIONAL_FAILURE;
+      }
     }
+    return execute(parameters, serviceId);
+  }
 
-    @Override
-    public String[] getCommandPath() {
-        return new String[] { "service" };
+  public abstract CommandResult execute(
+      ParameterContainer parameters, int serviceId);
+
+  protected boolean acceptsServiceName() {
+    return true;
+  }
+
+  protected boolean failIfServiceMissing() {
+    return true;
+  }
+
+  /** @return the EJB CLI admin */
+  protected AuthenticationToken getAdmin() {
+    return getAuthenticationToken();
+  }
+
+  /**
+   * Activates timers for services which change from not active to active
+   *
+   * @param serviceName Name
+   * @param wasActive bool
+   */
+  public void handleServiceActivation(
+      final String serviceName, final boolean wasActive) {
+    if (!wasActive) {
+      final ServiceSessionRemote serviceSession =
+          EjbRemoteHelper.INSTANCE.getRemoteSession(ServiceSessionRemote.class);
+      final boolean isActive =
+          serviceSession.getService(serviceName).isActive();
+      if (isActive) {
+        serviceSession.activateServiceTimer(getAdmin(), serviceName);
+      }
     }
+  }
 
-    @Override
-    public final CommandResult execute(ParameterContainer parameters) {
-        CryptoProviderTools.installBCProviderIfNotAvailable();
-        int serviceId = 0;
-        if (acceptsServiceName()) {
-            final ServiceSessionRemote serviceSession = EjbRemoteHelper.INSTANCE.getRemoteSession(ServiceSessionRemote.class);
-            serviceId = serviceSession.getServiceId(parameters.get(SERVICE_NAME_KEY));
-            if (serviceId == 0 && failIfServiceMissing()) {
-                getLogger().info("Unknown Service: " + parameters.get(SERVICE_NAME_KEY));
-                return CommandResult.FUNCTIONAL_FAILURE;
-            }
-        }
-        return execute(parameters, serviceId);
-    }
-
-    public abstract CommandResult execute(ParameterContainer parameters, int serviceId);
-
-    protected boolean acceptsServiceName() {
-        return true;
-    }
-
-    protected boolean failIfServiceMissing() {
-        return true;
-    }
-
-    /** @return the EJB CLI admin */
-    protected AuthenticationToken getAdmin() {
-        return getAuthenticationToken();
-    }
-
-    /** Activates timers for services which change from not active to active 
-     * @param serviceName Name
-     * @param wasActive bool */
-    public void handleServiceActivation(String serviceName, boolean wasActive) {
-        if (!wasActive) {
-            final ServiceSessionRemote serviceSession = EjbRemoteHelper.INSTANCE.getRemoteSession(ServiceSessionRemote.class);
-            final boolean isActive = serviceSession.getService(serviceName).isActive();
-            if (isActive) {
-                serviceSession.activateServiceTimer(getAdmin(), serviceName);
-            }
-        }
-    }
-
-    protected abstract Logger getLogger();
+  @Override
+  protected abstract Logger getLogger();
 }

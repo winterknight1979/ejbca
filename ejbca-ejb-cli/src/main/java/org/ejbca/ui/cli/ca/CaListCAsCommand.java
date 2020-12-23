@@ -16,7 +16,6 @@ package org.ejbca.ui.cli.ca;
 import java.security.cert.Certificate;
 import java.util.Collection;
 import java.util.Iterator;
-
 import org.apache.log4j.Logger;
 import org.cesecore.authorization.AuthorizationDeniedException;
 import org.cesecore.certificates.ca.CAInfo;
@@ -34,57 +33,62 @@ import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
  */
 public class CaListCAsCommand extends BaseCaAdminCommand {
 
-    private static final Logger log = Logger.getLogger(CaListCAsCommand.class);
+  private static final Logger log = Logger.getLogger(CaListCAsCommand.class);
 
-    @Override
-    public String getMainCommand() {
-        return "listcas";
-    }
+  @Override
+  public String getMainCommand() {
+    return "listcas";
+  }
 
-    @Override
-    public CommandResult execute(ParameterContainer parameters) {
+  @Override
+  public CommandResult execute(final ParameterContainer parameters) {
 
-        CryptoProviderTools.installBCProvider();
-        Collection<Integer> caids = EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class).getAuthorizedCaIds(getAuthenticationToken());
-        try {
-            for (int caid : caids) {
-                CAInfo ca = EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class).getCAInfo(getAuthenticationToken(), caid);       
-                Collection<Certificate> certs = ca.getCertificateChain();
-                Iterator<Certificate> ci = certs.iterator();
-                Certificate cacert = null;
-                if (ci.hasNext()) {
-                    cacert = (Certificate) ci.next();
-                }
-                getLogger().info("CA Name: " + ca.getName());
-                getLogger().info(" Id: " + ca.getCAId());
-                if (cacert != null) {
-                    getLogger().info(" Issuer DN: " + CertTools.getIssuerDN(cacert));
-                }
-                getLogger().info(" Subject DN: " + ca.getSubjectDN());
-                getLogger().info(" Type: " + ca.getCAType());
-                getLogger().info(" Expire time: " + ca.getExpireTime());
-                getLogger().info(" Signed by: " + ca.getSignedBy());
-            }
-            return CommandResult.SUCCESS;
-        } catch (AuthorizationDeniedException e) {
-            log.error("CLI user not authorized to view CAs");
-            return CommandResult.AUTHORIZATION_FAILURE;
+    CryptoProviderTools.installBCProvider();
+    Collection<Integer> caids =
+        EjbRemoteHelper.INSTANCE
+            .getRemoteSession(CaSessionRemote.class)
+            .getAuthorizedCaIds(getAuthenticationToken());
+    try {
+      for (int caid : caids) {
+        CAInfo ca =
+            EjbRemoteHelper.INSTANCE
+                .getRemoteSession(CaSessionRemote.class)
+                .getCAInfo(getAuthenticationToken(), caid);
+        Collection<Certificate> certs = ca.getCertificateChain();
+        Iterator<Certificate> ci = certs.iterator();
+        Certificate cacert = null;
+        if (ci.hasNext()) {
+          cacert = (Certificate) ci.next();
         }
-
+        getLogger().info("CA Name: " + ca.getName());
+        getLogger().info(" Id: " + ca.getCAId());
+        if (cacert != null) {
+          getLogger().info(" Issuer DN: " + CertTools.getIssuerDN(cacert));
+        }
+        getLogger().info(" Subject DN: " + ca.getSubjectDN());
+        getLogger().info(" Type: " + ca.getCAType());
+        getLogger().info(" Expire time: " + ca.getExpireTime());
+        getLogger().info(" Signed by: " + ca.getSignedBy());
+      }
+      return CommandResult.SUCCESS;
+    } catch (AuthorizationDeniedException e) {
+      log.error("CLI user not authorized to view CAs");
+      return CommandResult.AUTHORIZATION_FAILURE;
     }
+  }
 
-    @Override
-    public String getCommandDescription() {
-        return "Lists the names of all available CAs";
-    }
+  @Override
+  public String getCommandDescription() {
+    return "Lists the names of all available CAs";
+  }
 
-    @Override
-    public String getFullHelpText() {
-        return getCommandDescription();
-    }
+  @Override
+  public String getFullHelpText() {
+    return getCommandDescription();
+  }
 
-    @Override
-    protected Logger getLogger() {
-        return log;
-    }
+  @Override
+  protected Logger getLogger() {
+    return log;
+  }
 }
