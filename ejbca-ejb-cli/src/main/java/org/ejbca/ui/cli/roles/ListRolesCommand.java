@@ -15,7 +15,6 @@ package org.ejbca.ui.cli.roles;
 
 import java.util.Collections;
 import java.util.List;
-
 import org.apache.log4j.Logger;
 import org.cesecore.authorization.AuthorizationDeniedException;
 import org.cesecore.roles.Role;
@@ -27,48 +26,70 @@ import org.ejbca.ui.cli.infrastructure.command.CommandResult;
 import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
 
 /**
- * Lists admin roles
+ * Lists admin roles.
+ *
  * @version $Id: ListRolesCommand.java 29175 2018-06-08 13:38:23Z jeklund $
  */
 public class ListRolesCommand extends BaseRolesCommand {
 
-    private static final Logger log = Logger.getLogger(ListRolesCommand.class);
 
-    @Override
-    public String getMainCommand() {
-        return "listroles";
-    }
+      /** Param. */
+  private static final Logger LOG = Logger.getLogger(ListRolesCommand.class);
 
-    @Override
-    public CommandResult execute(ParameterContainer parameters) {
-        final List<Role> roles = EjbRemoteHelper.INSTANCE.getRemoteSession(RoleSessionRemote.class).getAuthorizedRoles(getAuthenticationToken());
-        Collections.sort(roles);
-        final RoleMemberSessionRemote roleMemberSession = EjbRemoteHelper.INSTANCE.getRemoteSession(RoleMemberSessionRemote.class);
-        for (final Role role : roles) {
-            List<RoleMember> roleMembers;
-            try {
-                roleMembers = roleMemberSession.getRoleMembersByRoleId(getAuthenticationToken(), role.getRoleId());
-                final String roleMembersString = " (" + roleMembers.size() + " member"+(roleMembers.size()==1?"":"s")+")";
-                getLogger().info(super.getFullRoleName(role.getNameSpace(), role.getRoleName()) + " " + roleMembersString);
-            } catch (AuthorizationDeniedException e) {
-                getLogger().info(super.getFullRoleName(role.getNameSpace(), role.getRoleName()) + " (? members)");
-            }
-        }
-        return CommandResult.SUCCESS;
-    }
+  @Override
+  public String getMainCommand() {
+    return "listroles";
+  }
 
-    @Override
-    public String getCommandDescription() {
-        return "Lists admin roles";
+  @Override
+  public CommandResult execute(final ParameterContainer parameters) {
+    final List<Role> roles =
+        EjbRemoteHelper.INSTANCE
+            .getRemoteSession(RoleSessionRemote.class)
+            .getAuthorizedRoles(getAuthenticationToken());
+    Collections.sort(roles);
+    final RoleMemberSessionRemote roleMemberSession =
+        EjbRemoteHelper.INSTANCE.getRemoteSession(
+            RoleMemberSessionRemote.class);
+    for (final Role role : roles) {
+      List<RoleMember> roleMembers;
+      try {
+        roleMembers =
+            roleMemberSession.getRoleMembersByRoleId(
+                getAuthenticationToken(), role.getRoleId());
+        final String roleMembersString =
+            " ("
+                + roleMembers.size()
+                + " member"
+                + (roleMembers.size() == 1 ? "" : "s")
+                + ")";
+        getLogger()
+            .info(
+                super.getFullRoleName(role.getNameSpace(), role.getRoleName())
+                    + " "
+                    + roleMembersString);
+      } catch (AuthorizationDeniedException e) {
+        getLogger()
+            .info(
+                super.getFullRoleName(role.getNameSpace(), role.getRoleName())
+                    + " (? members)");
+      }
     }
+    return CommandResult.SUCCESS;
+  }
 
-    @Override
-    public String getFullHelpText() {
-        return getCommandDescription();
-    }
+  @Override
+  public String getCommandDescription() {
+    return "Lists admin roles";
+  }
 
-    @Override
-    protected Logger getLogger() {
-        return log;
-    }
+  @Override
+  public String getFullHelpText() {
+    return getCommandDescription();
+  }
+
+  @Override
+  protected Logger getLogger() {
+    return LOG;
+  }
 }

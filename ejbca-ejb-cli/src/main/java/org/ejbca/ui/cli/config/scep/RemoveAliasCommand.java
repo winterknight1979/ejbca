@@ -22,58 +22,67 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
 import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
 import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 
-/**
- * @version $Id: RemoveAliasCommand.java 28025 2018-01-19 10:42:09Z anatom $
- *
- */
+/** @version $Id: RemoveAliasCommand.java 28025 2018-01-19 10:42:09Z anatom $ */
 public class RemoveAliasCommand extends BaseScepConfigCommand {
 
-    private static final String ALIAS_KEY = "--alias";
+    /** Param. */
+  private static final String ALIAS_KEY = "--alias";
 
-    private static final Logger log = Logger.getLogger(RemoveAliasCommand.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(RemoveAliasCommand.class);
 
-    {
-        registerParameter(new Parameter(ALIAS_KEY, "Alias", MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,
-                "The alias to remove."));
-    }
+  {
+    registerParameter(
+        new Parameter(
+            ALIAS_KEY,
+            "Alias",
+            MandatoryMode.MANDATORY,
+            StandaloneMode.ALLOW,
+            ParameterMode.ARGUMENT,
+            "The alias to remove."));
+  }
 
-    @Override
-    public String getMainCommand() {
-        return "removealias";
-    }
+  @Override
+  public String getMainCommand() {
+    return "removealias";
+  }
 
-    @Override
-    public CommandResult execute(ParameterContainer parameters) {
-        String alias = parameters.get(ALIAS_KEY);
-        // We check first because it is unnecessary to call saveConfiguration when it is not needed
-        if (!getScepConfiguration().aliasExists(alias)) {
-            log.info("Alias '" + alias + "' does not exist");
-            return CommandResult.FUNCTIONAL_FAILURE;
-        }
-        getScepConfiguration().removeAlias(alias);
-        try {
-            getGlobalConfigurationSession().saveConfiguration(getAuthenticationToken(), getScepConfiguration());
-            log.info("Removed SCEP alias: " + alias);
-            getGlobalConfigurationSession().flushConfigurationCache(ScepConfiguration.SCEP_CONFIGURATION_ID);
-            return CommandResult.SUCCESS;
-        } catch (AuthorizationDeniedException e) {
-            log.info("Failed to remove alias '" + alias + "': " + e.getLocalizedMessage());
-            return CommandResult.AUTHORIZATION_FAILURE;
-        }
+  @Override
+  public CommandResult execute(final ParameterContainer parameters) {
+    String alias = parameters.get(ALIAS_KEY);
+    // We check first because it is unnecessary to call saveConfiguration when
+    // it is not needed
+    if (!getScepConfiguration().aliasExists(alias)) {
+      LOG.info("Alias '" + alias + "' does not exist");
+      return CommandResult.FUNCTIONAL_FAILURE;
     }
+    getScepConfiguration().removeAlias(alias);
+    try {
+      getGlobalConfigurationSession()
+          .saveConfiguration(getAuthenticationToken(), getScepConfiguration());
+      LOG.info("Removed SCEP alias: " + alias);
+      getGlobalConfigurationSession()
+          .flushConfigurationCache(ScepConfiguration.SCEP_CONFIGURATION_ID);
+      return CommandResult.SUCCESS;
+    } catch (AuthorizationDeniedException e) {
+      LOG.info(
+          "Failed to remove alias '" + alias + "': " + e.getLocalizedMessage());
+      return CommandResult.AUTHORIZATION_FAILURE;
+    }
+  }
 
-    @Override
-    public String getCommandDescription() {
-        return "Removes a SCEP configuration alias.";
-    }
+  @Override
+  public String getCommandDescription() {
+    return "Removes a SCEP configuration alias.";
+  }
 
-    @Override
-    public String getFullHelpText() {
-        return getCommandDescription();
-    }
-    
-    @Override
-    protected Logger getLogger() {
-        return log;
-    }
+  @Override
+  public String getFullHelpText() {
+    return getCommandDescription();
+  }
+
+  @Override
+  protected Logger getLogger() {
+    return LOG;
+  }
 }

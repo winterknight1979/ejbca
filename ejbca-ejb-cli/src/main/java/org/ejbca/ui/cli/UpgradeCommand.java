@@ -25,62 +25,96 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
 import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 
 /**
- * Implements call to the upgrade function
- * 
+ * Implements call to the upgrade function.
+ *
  * @version $Id: UpgradeCommand.java 19902 2014-09-30 14:32:24Z anatom $
  */
 public class UpgradeCommand extends EjbcaCommandBase {
 
-    private static final Logger log = Logger.getLogger(UpgradeCommand.class);
 
-    private static final String DATABASE_KEY = "-d";
-    private static final String FROM_VERSION_KEY = "-v";
-    private static final String IS_POST_UPGRADE = "--post";
+      /** Param. */
+  private static final Logger LOG = Logger.getLogger(UpgradeCommand.class);
 
-    {
-        registerParameter(new Parameter(DATABASE_KEY, "Database type", MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,
-                "The database type."));
-        registerParameter(new Parameter(FROM_VERSION_KEY, "From version", MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,
-                "From which version of EJBCA"));
-        registerParameter(new Parameter(IS_POST_UPGRADE, "Add this flag if running post upgrade", MandatoryMode.OPTIONAL, StandaloneMode.FORBID,
-                ParameterMode.FLAG, "Set this flag when performing post upgrade."));
+  /** Param. */
+  private static final String DATABASE_KEY = "-d";
+  /** Param. */
+  private static final String FROM_VERSION_KEY = "-v";
+  /** Param. */
+  private static final String IS_POST_UPGRADE = "--post";
+
+  {
+    registerParameter(
+        new Parameter(
+            DATABASE_KEY,
+            "Database type",
+            MandatoryMode.MANDATORY,
+            StandaloneMode.ALLOW,
+            ParameterMode.ARGUMENT,
+            "The database type."));
+    registerParameter(
+        new Parameter(
+            FROM_VERSION_KEY,
+            "From version",
+            MandatoryMode.MANDATORY,
+            StandaloneMode.ALLOW,
+            ParameterMode.ARGUMENT,
+            "From which version of EJBCA"));
+    registerParameter(
+        new Parameter(
+            IS_POST_UPGRADE,
+            "Add this flag if running post upgrade",
+            MandatoryMode.OPTIONAL,
+            StandaloneMode.FORBID,
+            ParameterMode.FLAG,
+            "Set this flag when performing post upgrade."));
+  }
+
+  @Override
+  public String getMainCommand() {
+    return "upgrade";
+  }
+
+  @Override
+  public CommandResult execute(final ParameterContainer parameters) {
+    final String database = parameters.get(DATABASE_KEY);
+    final String upgradeFromVersion = parameters.get(FROM_VERSION_KEY);
+    final boolean isPost = parameters.get(IS_POST_UPGRADE) != null;
+    LOG.debug(
+        getMainCommand()
+            + " ejbcaDB='"
+            + database
+            + "' ejbcaUpgradeFromVersion='"
+            + upgradeFromVersion
+            + "' isPost='"
+            + isPost
+            + "'");
+    // Upgrade the database
+    final boolean ret =
+        EjbRemoteHelper.INSTANCE
+            .getRemoteSession(UpgradeSessionRemote.class)
+            .upgrade(database, upgradeFromVersion, isPost);
+    if (ret) {
+      LOG.info("Upgrade completed.");
+    } else {
+      LOG.error("Upgrade not performed, see server log for details.");
+      return CommandResult.FUNCTIONAL_FAILURE;
     }
+    return CommandResult.SUCCESS;
+  }
 
-    @Override
-    public String getMainCommand() {
-        return "upgrade";
-    }
+  @Override
+  public String getCommandDescription() {
+    return "Upgrade command. Use 'ant upgrade' instead of running this"
+               + " directly.";
+  }
 
-    @Override
-    public CommandResult execute(ParameterContainer parameters) {
-        final String database = parameters.get(DATABASE_KEY);
-        final String upgradeFromVersion = parameters.get(FROM_VERSION_KEY);
-        final boolean isPost = parameters.get(IS_POST_UPGRADE) != null;
-        log.debug(getMainCommand() + " ejbcaDB='" + database + "' ejbcaUpgradeFromVersion='" + upgradeFromVersion + "' isPost='" + isPost + "'");
-        // Upgrade the database
-        final boolean ret = EjbRemoteHelper.INSTANCE.getRemoteSession(UpgradeSessionRemote.class).upgrade(database, upgradeFromVersion, isPost);
-        if (ret) {
-            log.info("Upgrade completed.");
-        } else {
-            log.error("Upgrade not performed, see server log for details.");
-            return CommandResult.FUNCTIONAL_FAILURE;
-        }
-        return CommandResult.SUCCESS;
+  @Override
+  public String getFullHelpText() {
+    return getCommandDescription();
+  }
 
-    }
-
-    @Override
-    public String getCommandDescription() {
-        return "Upgrade command. Use 'ant upgrade' instead of running this directly.";
-    }
-
-    @Override
-    public String getFullHelpText() {
-        return getCommandDescription();
-    }
-    
-    @Override
-    protected Logger getLogger() {
-        return log;
-    }
+  @Override
+  protected Logger getLogger() {
+    return LOG;
+  }
 }

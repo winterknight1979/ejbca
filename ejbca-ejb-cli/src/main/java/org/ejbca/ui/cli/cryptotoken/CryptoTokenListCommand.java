@@ -15,7 +15,6 @@ package org.ejbca.ui.cli.cryptotoken;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-
 import org.apache.log4j.Logger;
 import org.cesecore.keys.token.CryptoTokenInfo;
 import org.cesecore.keys.token.CryptoTokenManagementSessionRemote;
@@ -28,69 +27,94 @@ import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
 
 /**
  * CryptoToken EJB CLI command.
- * 
+ *
  * @version $Id: CryptoTokenListCommand.java 19902 2014-09-30 14:32:24Z anatom $
  */
 public class CryptoTokenListCommand extends EjbcaCliUserCommandBase {
 
-    private static final Logger log = Logger.getLogger(CryptoTokenListCommand.class);
-    
-    @Override
-    public String[] getCommandPath() {
-        return new String[] { "cryptotoken" };
-    }
-    
-    @Override
-    public String getMainCommand() {
-        return "list";
-    }
+    /** Logger. */
+  private static final Logger LOG =
+      Logger.getLogger(CryptoTokenListCommand.class);
 
-    @Override
-    protected CommandResult execute(ParameterContainer parameters) {
-        final CryptoTokenManagementSessionRemote cryptoTokenManagementSession = EjbRemoteHelper.INSTANCE.getRemoteSession(CryptoTokenManagementSessionRemote.class);
-        final List<CryptoTokenInfo> cryptoTokenInfos = cryptoTokenManagementSession.getCryptoTokenInfos(getAuthenticationToken());
-        // Sort by name
-        Collections.sort(cryptoTokenInfos, new Comparator<CryptoTokenInfo>(){
-            @Override
-            public int compare(CryptoTokenInfo c1, CryptoTokenInfo c2) {
-                return c1.getName().compareTo(c2.getName());
-            }
+  @Override
+  public String[] getCommandPath() {
+    return new String[] {"cryptotoken"};
+  }
+
+  @Override
+  public String getMainCommand() {
+    return "list";
+  }
+
+  @Override
+  protected CommandResult execute(final ParameterContainer parameters) {
+    final CryptoTokenManagementSessionRemote cryptoTokenManagementSession =
+        EjbRemoteHelper.INSTANCE.getRemoteSession(
+            CryptoTokenManagementSessionRemote.class);
+    final List<CryptoTokenInfo> cryptoTokenInfos =
+        cryptoTokenManagementSession.getCryptoTokenInfos(
+            getAuthenticationToken());
+    // Sort by name
+    Collections.sort(
+        cryptoTokenInfos,
+        new Comparator<CryptoTokenInfo>() {
+          @Override
+          public int compare(
+              final CryptoTokenInfo c1, final CryptoTokenInfo c2) {
+            return c1.getName().compareTo(c2.getName());
+          }
         });
-        getLogger().info(" \"NAME\" (ID)\t TYPE, STATUS, AUTO-ACTIVATION, TYPE-PROPERTIES...");
-        for (final CryptoTokenInfo cryptoTokenInfo : cryptoTokenInfos) {
-            final StringBuilder sb = new StringBuilder();
-            sb.append(' ').append('\"').append(cryptoTokenInfo.getName()).append('\"');
-            sb.append(" (").append(cryptoTokenInfo.getCryptoTokenId()).append(')');
-            sb.append('\t').append(cryptoTokenInfo.getType());
-            sb.append(", ").append(cryptoTokenInfo.isActive()?"active":"offline");
-            sb.append(", ").append(cryptoTokenInfo.isAutoActivation()?"auto":"manual");
-            if (SoftCryptoToken.class.getSimpleName().equals(cryptoTokenInfo.getType())) {
-                sb.append(", ").append(cryptoTokenInfo.isAllowExportPrivateKey()?"exportable":"non-exportable");
-            }
-            if (PKCS11CryptoToken.class.getSimpleName().equals(cryptoTokenInfo.getType())) {
-                sb.append(", library=").append(cryptoTokenInfo.getP11Library());
-                sb.append(", Slot Label=").append(cryptoTokenInfo.getP11Slot());
-                sb.append(", Slot Label Type=").append(cryptoTokenInfo.getP11SlotLabelTypeDescription());
-                sb.append(", attributes=").append(cryptoTokenInfo.getP11AttributeFile());
-            }
-            getLogger().info(sb);
-        }
-        return CommandResult.SUCCESS;
+    getLogger()
+        .info(
+            " \"NAME\" (ID)\t TYPE, STATUS, AUTO-ACTIVATION,"
+                + " TYPE-PROPERTIES...");
+    for (final CryptoTokenInfo cryptoTokenInfo : cryptoTokenInfos) {
+      final StringBuilder sb = new StringBuilder();
+      sb.append(' ')
+          .append('\"')
+          .append(cryptoTokenInfo.getName())
+          .append('\"');
+      sb.append(" (").append(cryptoTokenInfo.getCryptoTokenId()).append(')');
+      sb.append('\t').append(cryptoTokenInfo.getType());
+      sb.append(", ").append(cryptoTokenInfo.isActive() ? "active" : "offline");
+      sb.append(", ")
+          .append(cryptoTokenInfo.isAutoActivation() ? "auto" : "manual");
+      if (SoftCryptoToken.class
+          .getSimpleName()
+          .equals(cryptoTokenInfo.getType())) {
+        sb.append(", ")
+            .append(
+                cryptoTokenInfo.isAllowExportPrivateKey()
+                    ? "exportable"
+                    : "non-exportable");
+      }
+      if (PKCS11CryptoToken.class
+          .getSimpleName()
+          .equals(cryptoTokenInfo.getType())) {
+        sb.append(", library=").append(cryptoTokenInfo.getP11Library());
+        sb.append(", Slot Label=").append(cryptoTokenInfo.getP11Slot());
+        sb.append(", Slot Label Type=")
+            .append(cryptoTokenInfo.getP11SlotLabelTypeDescription());
+        sb.append(", attributes=")
+            .append(cryptoTokenInfo.getP11AttributeFile());
+      }
+      getLogger().info(sb);
     }
-    
-    @Override
-    public String getCommandDescription() {
-        return "List all available CryptoTokens";
-    }
+    return CommandResult.SUCCESS;
+  }
 
-    @Override
-    public String getFullHelpText() {
-        return getCommandDescription();
-    }
+  @Override
+  public String getCommandDescription() {
+    return "List all available CryptoTokens";
+  }
 
-    @Override
-    protected Logger getLogger() {
-        return log;
-    }
+  @Override
+  public String getFullHelpText() {
+    return getCommandDescription();
+  }
 
+  @Override
+  protected Logger getLogger() {
+    return LOG;
+  }
 }

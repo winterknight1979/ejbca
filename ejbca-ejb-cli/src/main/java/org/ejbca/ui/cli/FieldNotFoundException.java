@@ -14,34 +14,28 @@ package org.ejbca.ui.cli;
 
 /**
  * Thrown if a database field was not found.
- * 
- * @version $Id: FieldNotFoundException.java 19902 2014-09-30 14:32:24Z anatom $
  *
+ * @version $Id: FieldNotFoundException.java 19902 2014-09-30 14:32:24Z anatom $
  */
 public class FieldNotFoundException extends Exception {
 
-    private static final long serialVersionUID = -8695872134807966881L;
+  private static final long serialVersionUID = -8695872134807966881L;
 
-    /**
-     * @param message message
-     */
-    public FieldNotFoundException(String message) {
-        super(message);
-    }
+  /** @param message message */
+  public FieldNotFoundException(final String message) {
+    super(message);
+  }
 
-    /**
-     * @param cause cause
-     */
-    public FieldNotFoundException(Throwable cause) {
-        super(cause);
-    }
+  /** @param cause cause */
+  public FieldNotFoundException(final Throwable cause) {
+    super(cause);
+  }
 
-    /**
-     * @param message message
-     * @param cause cause
-     */
-    public FieldNotFoundException(String message, Throwable cause) {
-        super(message, cause);
-   
-    }
+  /**
+   * @param message message
+   * @param cause cause
+   */
+  public FieldNotFoundException(final String message, final Throwable cause) {
+    super(message, cause);
+  }
 }

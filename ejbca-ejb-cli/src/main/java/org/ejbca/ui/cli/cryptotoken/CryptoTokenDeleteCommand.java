@@ -21,46 +21,53 @@ import org.ejbca.ui.cli.infrastructure.command.CommandResult;
 import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
 
 /**
- * CryptoToken EJB CLI command. 
- * 
- * @version $Id: CryptoTokenDeleteCommand.java 19902 2014-09-30 14:32:24Z anatom $
+ * CryptoToken EJB CLI command.
+ *
+ * @version $Id: CryptoTokenDeleteCommand.java 19902 2014-09-30 14:32:24Z anatom
+ *     $
  */
 public class CryptoTokenDeleteCommand extends BaseCryptoTokenCommand {
 
-    private static final Logger log = Logger.getLogger(CryptoTokenDeleteCommand.class);
+    /** Logger. */
+  private static final Logger LOG =
+      Logger.getLogger(CryptoTokenDeleteCommand.class);
 
-    @Override
-    public String getMainCommand() {
-        return "delete";
-    }
+  @Override
+  public String getMainCommand() {
+    return "delete";
+  }
 
-    @Override
-    public CommandResult executeCommand(Integer cryptoTokenId, ParameterContainer parameters) throws AuthorizationDeniedException, CryptoTokenOfflineException {
-        try {
-            EjbRemoteHelper.INSTANCE.getRemoteSession(CryptoTokenManagementSessionRemote.class).deleteCryptoToken(getAdmin(), cryptoTokenId);
-            getLogger().info("CryptoToken deleted successfully.");
-            return CommandResult.SUCCESS;
-        } catch (AuthorizationDeniedException e) {
-            getLogger().info(e.getMessage());
-            return CommandResult.AUTHORIZATION_FAILURE;
-        } catch (Exception e) {
-            getLogger().info("CryptoToken deletion failed: " + e.getMessage());
-            return CommandResult.FUNCTIONAL_FAILURE;
-        }
+  @Override
+  public CommandResult executeCommand(
+      final Integer cryptoTokenId, final ParameterContainer parameters)
+      throws AuthorizationDeniedException, CryptoTokenOfflineException {
+    try {
+      EjbRemoteHelper.INSTANCE
+          .getRemoteSession(CryptoTokenManagementSessionRemote.class)
+          .deleteCryptoToken(getAdmin(), cryptoTokenId);
+      getLogger().info("CryptoToken deleted successfully.");
+      return CommandResult.SUCCESS;
+    } catch (AuthorizationDeniedException e) {
+      getLogger().info(e.getMessage());
+      return CommandResult.AUTHORIZATION_FAILURE;
+    } catch (Exception e) {
+      getLogger().info("CryptoToken deletion failed: " + e.getMessage());
+      return CommandResult.FUNCTIONAL_FAILURE;
     }
+  }
 
-    @Override
-    public String getCommandDescription() {
-        return "Delete CryptoToken";
-    }
+  @Override
+  public String getCommandDescription() {
+    return "Delete CryptoToken";
+  }
 
-    @Override
-    public String getFullHelpText() {
-        return getCommandDescription();
-    }
+  @Override
+  public String getFullHelpText() {
+    return getCommandDescription();
+  }
 
-    @Override
-    protected Logger getLogger() {
-        return log;
-    }
+  @Override
+  protected Logger getLogger() {
+    return LOG;
+  }
 }

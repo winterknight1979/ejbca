@@ -17,53 +17,58 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Properties;
-
 import org.ejbca.core.model.hardtoken.HardTokenInformation;
 
 /**
- * A abstract base class that should be used by all
- * File based hard token data importers 
- * 
- * It have a protected field fileReader that can be used by
- * the implementation of readHardTokenData()
+ * A abstract base class that should be used by all File based hard token data
+ * importers.
  *
- * @version $Id: FileReadHardTokenImporter.java 19902 2014-09-30 14:32:24Z anatom $
+ * <p>It have a protected field fileReader that can be used by the
+ * implementation of readHardTokenData()
+ *
+ * @version $Id: FileReadHardTokenImporter.java 19902 2014-09-30 14:32:24Z
+ *     anatom $
  */
-
 public abstract class FileReadHardTokenImporter implements IHardTokenImporter {
 
-	protected BufferedReader bufferedReader = null;
+    /** Oaram. */
+  protected BufferedReader bufferedReader = null;
 
-	/**
-	 * Open up a text file and expecting the property "file" to point to
-	 * the location of the input file.
-	 * @see org.ejbca.ui.cli.hardtoken.importer.IHardTokenImporter#startImport(java.util.Properties)
-	 * @throws IOException if file doesn't exist of the property FILE isn't set.
-	 */
-	public void startImport(Properties props) throws IOException {
-		if(props.getProperty("file") == null){
-			throw new IOException("Error: the property file pointing to the file to import isn't set.");
-		}
- 
-		 bufferedReader = new BufferedReader(new FileReader(props.getProperty("file")));
-	}
+  /**
+   * Open up a text file and expecting the property "file" to point to the
+   * location of the input file.
+   *
+   * @see
+   *     org.ejbca.ui.cli.hardtoken.importer.IHardTokenImporter#startImport(java.util.Properties)
+   * @throws IOException if file doesn't exist of the property FILE isn't set.
+   */
+  @Override
+  public void startImport(final Properties props) throws IOException {
+    if (props.getProperty("file") == null) {
+      throw new IOException(
+          "Error: the property file pointing to the file to import isn't set.");
+    }
 
+    bufferedReader =
+        new BufferedReader(new FileReader(props.getProperty("file")));
+  }
 
-	/**
-	 * @see org.ejbca.ui.cli.hardtoken.importer.IHardTokenImporter#readHardTokenData()
-	 */
-	public abstract HardTokenInformation readHardTokenData() throws IOException ;
+  /**
+   * @see
+   *     org.ejbca.ui.cli.hardtoken.importer.IHardTokenImporter#readHardTokenData()
+   */
+  @Override
+  public abstract HardTokenInformation readHardTokenData() throws IOException;
 
-
-	/**
-	 * Closes the file after completion.
-	 * 
-	 * @see org.ejbca.ui.cli.hardtoken.importer.IHardTokenImporter#endImport()
-	 */
-	public void endImport() throws IOException {
-       if(bufferedReader != null){
-    	   bufferedReader.close();
-       }
-	}
-	
+  /**
+   * Closes the file after completion.
+   *
+   * @see org.ejbca.ui.cli.hardtoken.importer.IHardTokenImporter#endImport()
+   */
+  @Override
+  public void endImport() throws IOException {
+    if (bufferedReader != null) {
+      bufferedReader.close();
+    }
+  }
 }

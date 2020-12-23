@@ -22,59 +22,67 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
 import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
 import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 
-/**
- * @version $Id: AddAliasCommand.java 27965 2018-01-15 16:20:53Z anatom $
- *
- */
+/** @version $Id: AddAliasCommand.java 27965 2018-01-15 16:20:53Z anatom $ */
 public class AddAliasCommand extends BaseEstConfigCommand {
 
-    private static final String ALIAS_KEY = "--alias";
+    /** PAram. */
+  private static final String ALIAS_KEY = "--alias";
 
-    private static final Logger log = Logger.getLogger(AddAliasCommand.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(AddAliasCommand.class);
 
-    {
-        registerParameter(new Parameter(ALIAS_KEY, "Alias", MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,
-                "The alias to add."));
+  {
+    registerParameter(
+        new Parameter(
+            ALIAS_KEY,
+            "Alias",
+            MandatoryMode.MANDATORY,
+            StandaloneMode.ALLOW,
+            ParameterMode.ARGUMENT,
+            "The alias to add."));
+  }
+
+  @Override
+  public String getMainCommand() {
+    return "addalias";
+  }
+
+  @Override
+  public CommandResult execute(final ParameterContainer parameters) {
+    String alias = parameters.get(ALIAS_KEY);
+    // We check first because it is unnecessary to call saveConfiguration when
+    // it is not needed
+    if (getEstConfiguration().aliasExists(alias)) {
+      LOG.info("Alias '" + alias + "' already exists.");
+      return CommandResult.FUNCTIONAL_FAILURE;
     }
-
-    @Override
-    public String getMainCommand() {
-        return "addalias";
+    getEstConfiguration().addAlias(alias);
+    try {
+      getGlobalConfigurationSession()
+          .saveConfiguration(getAuthenticationToken(), getEstConfiguration());
+      LOG.info("Added EST alias: " + alias);
+      getGlobalConfigurationSession()
+          .flushConfigurationCache(EstConfiguration.EST_CONFIGURATION_ID);
+      return CommandResult.SUCCESS;
+    } catch (AuthorizationDeniedException e) {
+      LOG.info(
+          "Failed to add alias '" + alias + "': " + e.getLocalizedMessage());
+      return CommandResult.AUTHORIZATION_FAILURE;
     }
+  }
 
-    @Override
-    public CommandResult execute(ParameterContainer parameters) {
-        String alias = parameters.get(ALIAS_KEY);
-        // We check first because it is unnecessary to call saveConfiguration when it is not needed
-        if (getEstConfiguration().aliasExists(alias)) {
-            log.info("Alias '" + alias + "' already exists.");
-            return CommandResult.FUNCTIONAL_FAILURE;
-        }
-        getEstConfiguration().addAlias(alias);
-        try {
-            getGlobalConfigurationSession().saveConfiguration(getAuthenticationToken(), getEstConfiguration());
-            log.info("Added EST alias: " + alias);
-            getGlobalConfigurationSession().flushConfigurationCache(EstConfiguration.EST_CONFIGURATION_ID);
-            return CommandResult.SUCCESS;
-        } catch (AuthorizationDeniedException e) {
-            log.info("Failed to add alias '" + alias + "': " + e.getLocalizedMessage());
-            return CommandResult.AUTHORIZATION_FAILURE;
-        }
+  @Override
+  public String getCommandDescription() {
+    return "Adds a EST configuration alias.";
+  }
 
-    }
+  @Override
+  public String getFullHelpText() {
+    return getCommandDescription();
+  }
 
-    @Override
-    public String getCommandDescription() {
-        return "Adds a EST configuration alias.";
-    }
-
-    @Override
-    public String getFullHelpText() {
-        return getCommandDescription();
-    }
-
-    @Override
-    protected Logger getLogger() {
-        return log;
-    }
+  @Override
+  protected Logger getLogger() {
+    return LOG;
+  }
 }

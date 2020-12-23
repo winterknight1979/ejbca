@@ -24,43 +24,60 @@ import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
 
 /**
  * See getDescription().
- * 
- * @version $Id: InternalKeyBindingDeleteCommand.java 19902 2014-09-30 14:32:24Z anatom $
+ *
+ * @version $Id: InternalKeyBindingDeleteCommand.java 19902 2014-09-30 14:32:24Z
+ *     anatom $
  */
-public class InternalKeyBindingDeleteCommand extends RudInternalKeyBindingCommand {
+public class InternalKeyBindingDeleteCommand
+    extends RudInternalKeyBindingCommand {
 
-    private static final Logger log = Logger.getLogger(InternalKeyBindingDeleteCommand.class);
+    /** Logger. */
+  private static final Logger LOG =
+      Logger.getLogger(InternalKeyBindingDeleteCommand.class);
 
-    @Override
-    public String getMainCommand() {
-        return "delete";
+  @Override
+  public String getMainCommand() {
+    return "delete";
+  }
+
+  @Override
+  public CommandResult executeCommand(
+      final Integer internalKeyBindingId, final ParameterContainer parameters)
+      throws AuthorizationDeniedException, CryptoTokenOfflineException,
+          InternalKeyBindingNameInUseException, InvalidAlgorithmException {
+    final InternalKeyBindingMgmtSessionRemote internalKeyBindingMgmtSession =
+        EjbRemoteHelper.INSTANCE.getRemoteSession(
+            InternalKeyBindingMgmtSessionRemote.class);
+    if (internalKeyBindingMgmtSession.deleteInternalKeyBinding(
+        getAdmin(), internalKeyBindingId)) {
+      getLogger()
+          .info(
+              "InternalKeyBinding with id "
+                  + internalKeyBindingId
+                  + " was successfully removed.");
+      return CommandResult.SUCCESS;
+    } else {
+      getLogger()
+          .error(
+              "InternalKeyBinding with id "
+                  + internalKeyBindingId
+                  + " could not be removed.");
+      return CommandResult.FUNCTIONAL_FAILURE;
     }
+  }
 
-    @Override
-    public CommandResult executeCommand(Integer internalKeyBindingId, ParameterContainer parameters) throws AuthorizationDeniedException,
-            CryptoTokenOfflineException, InternalKeyBindingNameInUseException, InvalidAlgorithmException {
-        final InternalKeyBindingMgmtSessionRemote internalKeyBindingMgmtSession = EjbRemoteHelper.INSTANCE
-                .getRemoteSession(InternalKeyBindingMgmtSessionRemote.class);
-        if (internalKeyBindingMgmtSession.deleteInternalKeyBinding(getAdmin(), internalKeyBindingId)) {
-            getLogger().info("InternalKeyBinding with id " + internalKeyBindingId + " was successfully removed.");
-            return CommandResult.SUCCESS;
-        } else {
-            getLogger().error("InternalKeyBinding with id " + internalKeyBindingId + " could not be removed.");
-            return CommandResult.FUNCTIONAL_FAILURE;
-        }
-    }
+  @Override
+  public String getCommandDescription() {
+    return "Deletes the specified InternalKeyBinding.";
+  }
 
-    @Override
-    public String getCommandDescription() {
-        return "Deletes the specified InternalKeyBinding.";
-    }
+  @Override
+  public String getFullHelpText() {
+    return getCommandDescription();
+  }
 
-    @Override
-    public String getFullHelpText() {
-        return getCommandDescription();
-    }
-
-    protected Logger getLogger() {
-        return log;
-    }
+  @Override
+  protected Logger getLogger() {
+    return LOG;
+  }
 }

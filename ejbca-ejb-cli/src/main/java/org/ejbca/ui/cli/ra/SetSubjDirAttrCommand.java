@@ -43,68 +43,102 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  */
 public class SetSubjDirAttrCommand extends BaseRaCommand {
 
-    private static final Logger log = Logger.getLogger(SetSubjDirAttrCommand.class);
+      /** Param. */
+  private static final Logger LOG =
+      Logger.getLogger(SetSubjDirAttrCommand.class);
 
-    private static final String USERNAME_KEY = "--username";
-    private static final String ATTRIBUTES_KEY = "--attr";
+  /** Param. */
+  private static final String USERNAME_KEY = "--username";
+  /** Param. */
+  private static final String ATTRIBUTES_KEY = "--attr";
 
-    {
-        registerParameter(new Parameter(USERNAME_KEY, "Username", MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,
-                "Username of the end entity to modify."));
-        registerParameter(new Parameter(ATTRIBUTES_KEY, "Attributes", MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,
-                "Attributes are: dateOfBirth=<19590927>, placeOfBirth=<string>, gender=<M/F>, countryOfCitizenship=<two letter ISO3166>, countryOfResidence=<two letter ISO3166>"));
+  {
+    registerParameter(
+        new Parameter(
+            USERNAME_KEY,
+            "Username",
+            MandatoryMode.MANDATORY,
+            StandaloneMode.ALLOW,
+            ParameterMode.ARGUMENT,
+            "Username of the end entity to modify."));
+    registerParameter(
+        new Parameter(
+            ATTRIBUTES_KEY,
+            "Attributes",
+            MandatoryMode.MANDATORY,
+            StandaloneMode.ALLOW,
+            ParameterMode.ARGUMENT,
+            "Attributes are: dateOfBirth=<19590927>, placeOfBirth=<string>,"
+                + " gender=<M/F>, countryOfCitizenship=<two letter ISO3166>,"
+                + " countryOfResidence=<two letter ISO3166>"));
+  }
+
+  @Override
+  public String getMainCommand() {
+    return "setsubjectdirattr";
+  }
+
+  @Override
+  public CommandResult execute(final ParameterContainer parameters) {
+    String username = parameters.get(USERNAME_KEY);
+    String attributes = parameters.get(ATTRIBUTES_KEY);
+    if (StringUtils.isEmpty(attributes)) {
+      getLogger().error("Subject directory attributes must be supplied.");
+      return CommandResult.FUNCTIONAL_FAILURE;
     }
-
-    @Override
-    public String getMainCommand() {
-        return "setsubjectdirattr";
+    getLogger()
+        .info(
+            "Setting subject directory attributes '"
+                + attributes
+                + "' for end entity "
+                + username);
+    try {
+      EndEntityInformation uservo =
+          EjbRemoteHelper.INSTANCE
+              .getRemoteSession(EndEntityAccessSessionRemote.class)
+              .findUser(getAuthenticationToken(), username);
+      ExtendedInformation ext = uservo.getExtendedInformation();
+      if (ext == null) {
+        ext = new ExtendedInformation();
+      }
+      ext.setSubjectDirectoryAttributes(attributes);
+      uservo.setExtendedInformation(ext);
+      EjbRemoteHelper.INSTANCE
+          .getRemoteSession(EndEntityManagementSessionRemote.class)
+          .changeUser(getAuthenticationToken(), uservo, false);
+      return CommandResult.SUCCESS;
+    } catch (AuthorizationDeniedException e) {
+      getLogger().error("Not authorized to change end entity.");
+    } catch (EndEntityProfileValidationException e) {
+      getLogger()
+          .error(
+              "Given end entity doesn't fulfill end entity profile. : "
+                  + e.getMessage());
+    } catch (CADoesntExistsException
+        | WaitingForApprovalException
+        | ApprovalException
+        | CertificateSerialNumberException
+        | IllegalNameException
+        | CustomFieldException e) {
+      getLogger().error("ERROR: " + e.getMessage());
+    } catch (NoSuchEndEntityException e) {
+      getLogger().error("No such end entity.");
     }
+    return CommandResult.FUNCTIONAL_FAILURE;
+  }
 
-    @Override
-    public CommandResult execute(ParameterContainer parameters) {
-        String username = parameters.get(USERNAME_KEY);
-        String attributes = parameters.get(ATTRIBUTES_KEY);
-        if (StringUtils.isEmpty(attributes)) {
-            getLogger().error("Subject directory attributes must be supplied.");
-            return CommandResult.FUNCTIONAL_FAILURE;
-        }
-        getLogger().info("Setting subject directory attributes '" + attributes + "' for end entity " + username);
-        try {
-            EndEntityInformation uservo = EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityAccessSessionRemote.class).findUser(
-                    getAuthenticationToken(), username);
-            ExtendedInformation ext = uservo.getExtendedInformation();
-            if (ext == null) {
-                ext = new ExtendedInformation();
-            }
-            ext.setSubjectDirectoryAttributes(attributes);
-            uservo.setExtendedInformation(ext);
-            EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityManagementSessionRemote.class).changeUser(getAuthenticationToken(), uservo, false);
-            return CommandResult.SUCCESS;
-        } catch (AuthorizationDeniedException e) {
-            getLogger().error("Not authorized to change end entity.");
-        } catch (EndEntityProfileValidationException e) {
-            getLogger().error("Given end entity doesn't fulfill end entity profile. : " + e.getMessage());
-        } catch (CADoesntExistsException | WaitingForApprovalException | ApprovalException | CertificateSerialNumberException | IllegalNameException
-                | CustomFieldException e) {
-            getLogger().error("ERROR: " + e.getMessage());
-        } catch (NoSuchEndEntityException e) {
-            getLogger().error("No such end entity.");
-        } 
-        return CommandResult.FUNCTIONAL_FAILURE;
-    }
+  @Override
+  public String getCommandDescription() {
+    return "Set the Subject Directory Attributes for a end entity";
+  }
 
-    @Override
-    public String getCommandDescription() {
-        return "Set the Subject Directory Attributes for a end entity";
-    }
+  @Override
+  public String getFullHelpText() {
+    return getCommandDescription();
+  }
 
-    @Override
-    public String getFullHelpText() {
-        return getCommandDescription();
-    }
-
-    protected Logger getLogger() {
-        return log;
-    }
-
+  @Override
+  protected Logger getLogger() {
+    return LOG;
+  }
 }

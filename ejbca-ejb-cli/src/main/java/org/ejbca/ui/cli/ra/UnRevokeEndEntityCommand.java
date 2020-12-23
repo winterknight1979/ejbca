@@ -19,7 +19,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import org.apache.log4j.Logger;
 import org.cesecore.authorization.AuthorizationDeniedException;
 import org.cesecore.certificates.certificate.CertificateConstants;
@@ -44,125 +43,183 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
 import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 
 /**
- * Reactivates end entity's certificates if the revocation reason of user certificates is 'on hold'.
- * Does not change status of the end entity itself.
+ * Reactivates end entity's certificates if the revocation reason of user
+ * certificates is 'on hold'. Does not change status of the end entity itself.
  *
- * @version $Id: UnRevokeEndEntityCommand.java 24892 2016-12-13 20:22:21Z mikekushner $
+ * @version $Id: UnRevokeEndEntityCommand.java 24892 2016-12-13 20:22:21Z
+ *     mikekushner $
  */
 public class UnRevokeEndEntityCommand extends BaseRaCommand {
 
-    private static final Logger log = Logger.getLogger(UnRevokeEndEntityCommand.class);
+      /** Param. */
+  private static final Logger LOG =
+      Logger.getLogger(UnRevokeEndEntityCommand.class);
 
-    private static final String COMMAND = "unrevokeendentity";
-    private static final String OLD_COMMAND = "unrevokeuser";
+  /** Param. */
+  private static final String COMMAND = "unrevokeendentity";
+  /** Param. */
+  private static final String OLD_COMMAND = "unrevokeuser";
 
-    private static final Set<String> ALIASES = new HashSet<String>();
-    static {
-        ALIASES.add(OLD_COMMAND);
+  /** Param. */
+  private static final Set<String> ALIASES = new HashSet<String>();
+
+  static {
+    ALIASES.add(OLD_COMMAND);
+  }
+
+  /** Param. */
+  private static final String USERNAME_KEY = "--username";
+
+  {
+    registerParameter(
+        new Parameter(
+            USERNAME_KEY,
+            "Username",
+            MandatoryMode.MANDATORY,
+            StandaloneMode.ALLOW,
+            ParameterMode.ARGUMENT,
+            "Username for the end entity."));
+  }
+
+  @Override
+  public Set<String> getMainCommandAliases() {
+    return ALIASES;
+  }
+
+  @Override
+  public String getMainCommand() {
+    return COMMAND;
+  }
+
+  @Override
+  public CommandResult execute(final ParameterContainer parameters) {
+
+    String username = parameters.get(USERNAME_KEY);
+    EndEntityInformation data;
+    EndEntityAccessSessionRemote endEntityAccessSession =
+        EjbRemoteHelper.INSTANCE.getRemoteSession(
+            EndEntityAccessSessionRemote.class);
+    EndEntityManagementSessionRemote endEntityManagementSession =
+        EjbRemoteHelper.INSTANCE.getRemoteSession(
+            EndEntityManagementSessionRemote.class);
+    try {
+      data =
+          endEntityAccessSession.findUser(getAuthenticationToken(), username);
+    } catch (AuthorizationDeniedException e1) {
+      LOG.error("ERROR: Not authorized to revoke end entity.");
+      return CommandResult.FUNCTIONAL_FAILURE;
     }
 
-    private static final String USERNAME_KEY = "--username";
-
-    {
-        registerParameter(new Parameter(USERNAME_KEY, "Username", MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,
-                "Username for the end entity."));
+    if (data == null) {
+      LOG.error("ERROR: No such end entity: " + username);
+      return CommandResult.FUNCTIONAL_FAILURE;
     }
 
-    @Override
-    public Set<String> getMainCommandAliases() {
-        return ALIASES;
-    }
-
-    @Override
-    public String getMainCommand() {
-        return COMMAND;
-    }
-
-    @Override
-    public CommandResult execute(ParameterContainer parameters) {
-
-        String username = parameters.get(USERNAME_KEY);
-        EndEntityInformation data;
-        EndEntityAccessSessionRemote endEntityAccessSession = EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityAccessSessionRemote.class);
-        EndEntityManagementSessionRemote endEntityManagementSession = EjbRemoteHelper.INSTANCE
-                .getRemoteSession(EndEntityManagementSessionRemote.class);
-        try {
-            data = endEntityAccessSession.findUser(getAuthenticationToken(), username);
-        } catch (AuthorizationDeniedException e1) {
-            log.error("ERROR: Not authorized to revoke end entity.");
-            return CommandResult.FUNCTIONAL_FAILURE;
-        }
-
-        if (data == null) {
-            log.error("ERROR: No such end entity: " + username);
-            return CommandResult.FUNCTIONAL_FAILURE;
-        }
-
-        // Unrevoke user's certificates
-        try {
-            boolean foundCertificateOnHold = false;
-            // Find all user certs
-            List<CertificateDataWrapper> certificates = EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateStoreSessionRemote.class)
-                    .getCertificateDataByUsername(username, true, Arrays.asList(CertificateConstants.CERT_ACTIVE, CertificateConstants.CERT_NOTIFIEDABOUTEXPIRATION, CertificateConstants.CERT_ARCHIVED));
-            if (certificates != null) {
-                for (CertificateDataWrapper certWrapper : certificates) {
-                    Certificate cert = certWrapper.getCertificate();
-                    BigInteger serialNumber = CertTools.getSerialNumber(cert);
-                    String issuerDN = CertTools.getIssuerDN(cert);
-                    if (EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateStoreSessionRemote.class).getStatus(issuerDN, serialNumber).getRevocationReason() == RevokedCertInfo.REVOCATION_REASON_CERTIFICATEHOLD) {
-                        foundCertificateOnHold = true;
-                        try {
-                            endEntityManagementSession.revokeCert(getAuthenticationToken(), serialNumber, issuerDN.toString(),
-                                    RevokedCertInfo.NOT_REVOKED);
-                        } catch (AlreadyRevokedException e) {
-                            getLogger().error("ERROR: The end entity was already reactivated while the request executed.");
-                        } catch (ApprovalException e) {
-                            getLogger().error("ERROR: Reactivation already requested.");
-                        } catch (WaitingForApprovalException e) {
-                            getLogger().info("ERROR: Reactivation request has been sent for approval.");
-                        }
-                    }
-                }
+    // Unrevoke user's certificates
+    try {
+      boolean foundCertificateOnHold = false;
+      // Find all user certs
+      List<CertificateDataWrapper> certificates =
+          EjbRemoteHelper.INSTANCE
+              .getRemoteSession(CertificateStoreSessionRemote.class)
+              .getCertificateDataByUsername(
+                  username,
+                  true,
+                  Arrays.asList(
+                      CertificateConstants.CERT_ACTIVE,
+                      CertificateConstants.CERT_NOTIFIEDABOUTEXPIRATION,
+                      CertificateConstants.CERT_ARCHIVED));
+      if (certificates != null) {
+        for (CertificateDataWrapper certWrapper : certificates) {
+          Certificate cert = certWrapper.getCertificate();
+          BigInteger serialNumber = CertTools.getSerialNumber(cert);
+          String issuerDN = CertTools.getIssuerDN(cert);
+          if (EjbRemoteHelper.INSTANCE
+                  .getRemoteSession(CertificateStoreSessionRemote.class)
+                  .getStatus(issuerDN, serialNumber)
+                  .getRevocationReason()
+              == RevokedCertInfo.REVOCATION_REASON_CERTIFICATEHOLD) {
+            foundCertificateOnHold = true;
+            try {
+              endEntityManagementSession.revokeCert(
+                  getAuthenticationToken(),
+                  serialNumber,
+                  issuerDN.toString(),
+                  RevokedCertInfo.NOT_REVOKED);
+            } catch (AlreadyRevokedException e) {
+              getLogger()
+                  .error(
+                      "ERROR: The end entity was already reactivated while the"
+                          + " request executed.");
+            } catch (ApprovalException e) {
+              getLogger().error("ERROR: Reactivation already requested.");
+            } catch (WaitingForApprovalException e) {
+              getLogger()
+                  .info(
+                      "ERROR: Reactivation request has been sent for"
+                          + " approval.");
             }
-            if (!foundCertificateOnHold) {
-                getLogger().error("No certificates with status 'On hold' were found for this end entity. Status is unchanged.");
-            } else {
-                try {
-                    //Certificates were found and unrevoked. Set status to generates
-                    endEntityManagementSession.setUserStatus(getAuthenticationToken(), username, EndEntityConstants.STATUS_GENERATED);
-                    getLogger().info("Setting status of end entity '" + username + "' to GENERATED (40).");
-
-                } catch (ApprovalException e) {
-                    getLogger().error("ERROR: End entity reactivation already requested.");
-                } catch (WaitingForApprovalException e) {
-                    getLogger().info("End entity reactivation request has been sent for approval.");
-                }
-            }
-        } catch (AuthorizationDeniedException e) {
-            getLogger().error("Not authorized to reactivate end entity.");
-            return CommandResult.AUTHORIZATION_FAILURE;
-        } catch (NoSuchEndEntityException e) {
-            getLogger().error("ERROR: " + e.getMessage());
+          }
         }
-        return CommandResult.SUCCESS;
+      }
+      if (!foundCertificateOnHold) {
+        getLogger()
+            .error(
+                "No certificates with status 'On hold' were found for this end"
+                    + " entity. Status is unchanged.");
+      } else {
+        try {
+          // Certificates were found and unrevoked. Set status to generates
+          endEntityManagementSession.setUserStatus(
+              getAuthenticationToken(),
+              username,
+              EndEntityConstants.STATUS_GENERATED);
+          getLogger()
+              .info(
+                  "Setting status of end entity '"
+                      + username
+                      + "' to GENERATED (40).");
 
+        } catch (ApprovalException e) {
+          getLogger()
+              .error("ERROR: End entity reactivation already requested.");
+        } catch (WaitingForApprovalException e) {
+          getLogger()
+              .info(
+                  "End entity reactivation request has been sent for"
+                      + " approval.");
+        }
+      }
+    } catch (AuthorizationDeniedException e) {
+      getLogger().error("Not authorized to reactivate end entity.");
+      return CommandResult.AUTHORIZATION_FAILURE;
+    } catch (NoSuchEndEntityException e) {
+      getLogger().error("ERROR: " + e.getMessage());
     }
+    return CommandResult.SUCCESS;
+  }
 
-    @Override
-    public String getCommandDescription() {
-        return "Reactivates an end entity's certificates if the revocation reason of certificates is 'on hold', and unrevokes the end entity. ";
-    }
+  @Override
+  public String getCommandDescription() {
+    return "Reactivates an end entity's certificates if the revocation reason"
+               + " of certificates is 'on hold', and unrevokes the end"
+               + " entity. ";
+  }
 
-    @Override
-    public String getFullHelpText() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(getCommandDescription()
-                + "A user's certificate can unly be unrevoked if the revocation reason is certificate_hold. If any such certificates were found, status will automatically be set to 40 (generated) after this command is run.");
-        return sb.toString();
-    }
+  @Override
+  public String getFullHelpText() {
+    StringBuilder sb = new StringBuilder();
+    sb.append(
+        getCommandDescription()
+            + "A user's certificate can unly be unrevoked if the revocation"
+            + " reason is certificate_hold. If any such certificates were"
+            + " found, status will automatically be set to 40 (generated)"
+            + " after this command is run.");
+    return sb.toString();
+  }
 
-    protected Logger getLogger() {
-        return log;
-    }
-
+  @Override
+  protected Logger getLogger() {
+    return LOG;
+  }
 }

@@ -22,59 +22,67 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
 import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
 import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 
-/**
- * @version $Id: AddAliasCommand.java 26057 2017-06-22 08:08:34Z anatom $
- *
- */
+/** @version $Id: AddAliasCommand.java 26057 2017-06-22 08:08:34Z anatom $ */
 public class AddAliasCommand extends BaseScepConfigCommand {
 
-    private static final String ALIAS_KEY = "--alias";
+    /** Param. */
+  private static final String ALIAS_KEY = "--alias";
 
-    private static final Logger log = Logger.getLogger(AddAliasCommand.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(AddAliasCommand.class);
 
-    {
-        registerParameter(new Parameter(ALIAS_KEY, "Alias", MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,
-                "The alias to add."));
+  {
+    registerParameter(
+        new Parameter(
+            ALIAS_KEY,
+            "Alias",
+            MandatoryMode.MANDATORY,
+            StandaloneMode.ALLOW,
+            ParameterMode.ARGUMENT,
+            "The alias to add."));
+  }
+
+  @Override
+  public String getMainCommand() {
+    return "addalias";
+  }
+
+  @Override
+  public CommandResult execute(final ParameterContainer parameters) {
+    String alias = parameters.get(ALIAS_KEY);
+    // We check first because it is unnecessary to call saveConfiguration when
+    // it is not needed
+    if (getScepConfiguration().aliasExists(alias)) {
+      LOG.info("Alias '" + alias + "' already exists.");
+      return CommandResult.FUNCTIONAL_FAILURE;
     }
-
-    @Override
-    public String getMainCommand() {
-        return "addalias";
+    getScepConfiguration().addAlias(alias);
+    try {
+      getGlobalConfigurationSession()
+          .saveConfiguration(getAuthenticationToken(), getScepConfiguration());
+      LOG.info("Added SCEP alias: " + alias);
+      getGlobalConfigurationSession()
+          .flushConfigurationCache(ScepConfiguration.SCEP_CONFIGURATION_ID);
+      return CommandResult.SUCCESS;
+    } catch (AuthorizationDeniedException e) {
+      LOG.info(
+          "Failed to add alias '" + alias + "': " + e.getLocalizedMessage());
+      return CommandResult.AUTHORIZATION_FAILURE;
     }
+  }
 
-    @Override
-    public CommandResult execute(ParameterContainer parameters) {
-        String alias = parameters.get(ALIAS_KEY);
-        // We check first because it is unnecessary to call saveConfiguration when it is not needed
-        if (getScepConfiguration().aliasExists(alias)) {
-            log.info("Alias '" + alias + "' already exists.");
-            return CommandResult.FUNCTIONAL_FAILURE;
-        }
-        getScepConfiguration().addAlias(alias);
-        try {
-            getGlobalConfigurationSession().saveConfiguration(getAuthenticationToken(), getScepConfiguration());
-            log.info("Added SCEP alias: " + alias);
-            getGlobalConfigurationSession().flushConfigurationCache(ScepConfiguration.SCEP_CONFIGURATION_ID);
-            return CommandResult.SUCCESS;
-        } catch (AuthorizationDeniedException e) {
-            log.info("Failed to add alias '" + alias + "': " + e.getLocalizedMessage());
-            return CommandResult.AUTHORIZATION_FAILURE;
-        }
+  @Override
+  public String getCommandDescription() {
+    return "Adds a SCEP configuration alias.";
+  }
 
-    }
+  @Override
+  public String getFullHelpText() {
+    return getCommandDescription();
+  }
 
-    @Override
-    public String getCommandDescription() {
-        return "Adds a SCEP configuration alias.";
-    }
-
-    @Override
-    public String getFullHelpText() {
-        return getCommandDescription();
-    }
-
-    @Override
-    protected Logger getLogger() {
-        return log;
-    }
+  @Override
+  protected Logger getLogger() {
+    return LOG;
+  }
 }

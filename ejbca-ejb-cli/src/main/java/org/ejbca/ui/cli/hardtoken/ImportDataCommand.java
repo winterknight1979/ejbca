@@ -18,7 +18,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Properties;
-
 import org.apache.log4j.Logger;
 import org.cesecore.certificates.ca.CaSessionRemote;
 import org.cesecore.util.EjbRemoteHelper;
@@ -37,133 +36,208 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 
 /**
  * Command used to import hard token data from a source.
- * 
- * It reads its properties from a file specified and there are two required
- * properties by default.
- * importer.classpath pointing to an implementation of a org.ejbca.ui.cli.hardtoken.IHardTokenImporter 
- * significantissuerdn should contain the DN of the CA that the tokens should be connected to, used 
- * for authorization purposes. 
- * 
- * The -force flag indicates that rows that already exists in the data will be overwritten.
+ *
+ * <p>It reads its properties from a file specified and there are two required
+ * properties by default. importer.classpath pointing to an implementation of a
+ * org.ejbca.ui.cli.hardtoken.IHardTokenImporter significantissuerdn should
+ * contain the DN of the CA that the tokens should be connected to, used for
+ * authorization purposes.
+ *
+ * <p>The -force flag indicates that rows that already exists in the data will
+ * be overwritten.
+ *
  * @version $Id: ImportDataCommand.java 27740 2018-01-05 07:24:53Z mikekushner $
  */
 public class ImportDataCommand extends EjbcaCliUserCommandBase {
 
-    private static final Logger log = Logger.getLogger(ImportDataCommand.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(ImportDataCommand.class);
 
-    private static final String FORCE_KEY = "-force";
-    private static final String FILE_KEY = "-f";
+  /** Param. */
+  private static final String FORCE_KEY = "-force";
+  /** Param. */
+  private static final String FILE_KEY = "-f";
 
-    {
-        registerParameter(new Parameter(FILE_KEY, "Filename", MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,
-                "Properties file to import from."));
-        registerParameter(Parameter.createFlag(FORCE_KEY, "Indicates that existing hard token info will be overwritten."));
-    }
+  {
+    registerParameter(
+        new Parameter(
+            FILE_KEY,
+            "Filename",
+            MandatoryMode.MANDATORY,
+            StandaloneMode.ALLOW,
+            ParameterMode.ARGUMENT,
+            "Properties file to import from."));
+    registerParameter(
+        Parameter.createFlag(
+            FORCE_KEY,
+            "Indicates that existing hard token info will be overwritten."));
+  }
 
-    @Override
-    public String[] getCommandPath() {
-        return new String[] { "hardtoken" };
-    }
+  @Override
+  public String[] getCommandPath() {
+    return new String[] {"hardtoken"};
+  }
 
-    @Override
-    public String getMainCommand() {
-        return "importdata";
-    }
+  @Override
+  public String getMainCommand() {
+    return "importdata";
+  }
 
-    @Override
-    public CommandResult execute(ParameterContainer parameters) {
-        Properties props = new Properties();
-        String filename = parameters.get(FILE_KEY);
-        boolean force = parameters.containsKey(FORCE_KEY);
-        try {
-            try {
-                props.load(new FileInputStream(filename));
-            } catch (FileNotFoundException e) {
-                log.error("ERROR: File " + filename + " not found.");
-                return CommandResult.FUNCTIONAL_FAILURE;
+  @Override
+  public CommandResult execute(final ParameterContainer parameters) {
+    Properties props = new Properties();
+    String filename = parameters.get(FILE_KEY);
+    boolean force = parameters.containsKey(FORCE_KEY);
+    try {
+      try {
+        props.load(new FileInputStream(filename));
+      } catch (FileNotFoundException e) {
+        LOG.error("ERROR: File " + filename + " not found.");
+        return CommandResult.FUNCTIONAL_FAILURE;
+      }
+      // Read the significant issuer dn and check that it exists
+      if (props.getProperty("significantissuerdn") == null) {
+        LOG.error(
+            "ERROR: The property significantissuerdn isn't set in the"
+                + " propertyfile "
+                + filename);
+        return CommandResult.FUNCTIONAL_FAILURE;
+      }
+      String significantIssuerDN = props.getProperty("significantissuerdn");
+      int cAId = significantIssuerDN.hashCode();
+      if (!EjbRemoteHelper.INSTANCE
+          .getRemoteSession(CaSessionRemote.class)
+          .existsCa(cAId)) {
+        LOG.error(
+            "ERROR: the property significantissuerdn '"
+                + significantIssuerDN
+                + "' does not exist as CA in the system.");
+        return CommandResult.FUNCTIONAL_FAILURE;
+      }
+      // Create the importer
+      if (props.getProperty("importer.classpath") == null) {
+        LOG.error(
+            "ERROR: the property importer.classpath isn't set in the"
+                + " propertyfile "
+                + filename);
+        return CommandResult.FUNCTIONAL_FAILURE;
+      }
+      IHardTokenImporter importer;
+      try {
+        importer =
+            (IHardTokenImporter)
+                Thread.currentThread()
+                    .getContextClassLoader()
+                    .loadClass(props.getProperty("importer.classpath"))
+                    .getConstructor()
+                    .newInstance();
+      } catch (InstantiationException | InvocationTargetException e) {
+        LOG.error(
+            "ERROR: Class "
+                + props.getProperty("importer.classpath")
+                + " defined by 'importer.classpath' could not be"
+                + " instantiated.");
+        return CommandResult.FUNCTIONAL_FAILURE;
+      } catch (IllegalAccessException e) {
+        LOG.error(
+            "ERROR: Class "
+                + props.getProperty("importer.classpath")
+                + " defined by 'importer.classpath' could not be instantiated"
+                + " legally.",
+            e);
+        return CommandResult.FUNCTIONAL_FAILURE;
+      } catch (ClassNotFoundException | NoSuchMethodException e) {
+        LOG.error(
+            "ERROR: Class "
+                + props.getProperty("importer.classpath")
+                + " defined by 'importer.classpath' could not be found.");
+        return CommandResult.FUNCTIONAL_FAILURE;
+      }
+      importer.startImport(props);
+      HardTokenInformation htd;
+      try {
+        while ((htd = importer.readHardTokenData()) != null) {
+          try {
+            EjbRemoteHelper.INSTANCE
+                .getRemoteSession(HardTokenSessionRemote.class)
+                .addHardToken(
+                    getAuthenticationToken(),
+                    htd.getTokenSN(),
+                    htd.getUsername(),
+                    significantIssuerDN,
+                    htd.getTokenType(),
+                    htd.getHardToken(),
+                    null,
+                    htd.getCopyOf());
+            getLogger()
+                .info(
+                    "Token with SN "
+                        + htd.getTokenSN()
+                        + " were added to the database.");
+          } catch (HardTokenExistsException e) {
+            if (force) {
+              try {
+                EjbRemoteHelper.INSTANCE
+                    .getRemoteSession(HardTokenSessionRemote.class)
+                    .removeHardToken(
+                        getAuthenticationToken(), htd.getTokenSN());
+              } catch (HardTokenDoesntExistsException e1) {
+                throw new IllegalStateException(
+                    "Hard token that should exist apparently doesn't.", e);
+              }
+              try {
+                EjbRemoteHelper.INSTANCE
+                    .getRemoteSession(HardTokenSessionRemote.class)
+                    .addHardToken(
+                        getAuthenticationToken(),
+                        htd.getTokenSN(),
+                        htd.getUsername(),
+                        significantIssuerDN,
+                        htd.getTokenType(),
+                        htd.getHardToken(),
+                        null,
+                        htd.getCopyOf());
+              } catch (HardTokenExistsException e1) {
+                throw new IllegalStateException(
+                    "Hard token that shouldn't exist apparently does.", e);
+              }
+              getLogger()
+                  .info(
+                      "Token with SN "
+                          + htd.getTokenSN()
+                          + " already existed in the database but was"
+                          + " OVERWRITTEN.");
+            } else {
+              getLogger()
+                  .error(
+                      "Token with SN "
+                          + htd.getTokenSN()
+                          + " already exists in the database and is NOT"
+                          + " imported.");
             }
-            // Read the significant issuer dn and check that it exists
-            if (props.getProperty("significantissuerdn") == null) {
-                log.error("ERROR: The property significantissuerdn isn't set in the propertyfile " + filename);
-                return CommandResult.FUNCTIONAL_FAILURE;
-            }
-            String significantIssuerDN = props.getProperty("significantissuerdn");
-            int cAId = significantIssuerDN.hashCode();
-            if(!EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class).existsCa(cAId)) {
-                log.error("ERROR: the property significantissuerdn '" + significantIssuerDN + "' does not exist as CA in the system.");
-                return CommandResult.FUNCTIONAL_FAILURE;
-            }
-            // Create the importer
-            if (props.getProperty("importer.classpath") == null) {
-                log.error("ERROR: the property importer.classpath isn't set in the propertyfile " + filename);
-                return CommandResult.FUNCTIONAL_FAILURE;
-            }
-            IHardTokenImporter importer;
-            try {
-                importer = (IHardTokenImporter) Thread.currentThread().getContextClassLoader().loadClass(props.getProperty("importer.classpath"))
-                        .getConstructor().newInstance();
-            } catch (InstantiationException | InvocationTargetException e) {
-                log.error("ERROR: Class " + props.getProperty("importer.classpath") + " defined by 'importer.classpath' could not be instantiated.");
-                return CommandResult.FUNCTIONAL_FAILURE;
-            } catch (IllegalAccessException e) {
-                log.error("ERROR: Class " + props.getProperty("importer.classpath")
-                        + " defined by 'importer.classpath' could not be instantiated legally.", e);
-                return CommandResult.FUNCTIONAL_FAILURE;
-            } catch (ClassNotFoundException | NoSuchMethodException e) {
-                log.error("ERROR: Class " + props.getProperty("importer.classpath") + " defined by 'importer.classpath' could not be found.");
-                return CommandResult.FUNCTIONAL_FAILURE;
-            }
-            importer.startImport(props);
-            HardTokenInformation htd;
-            try {
-                while ((htd = importer.readHardTokenData()) != null) {
-                    try {
-                        EjbRemoteHelper.INSTANCE.getRemoteSession(HardTokenSessionRemote.class).addHardToken(getAuthenticationToken(),
-                                htd.getTokenSN(), htd.getUsername(), significantIssuerDN, htd.getTokenType(), htd.getHardToken(), null,
-                                htd.getCopyOf());
-                        getLogger().info("Token with SN " + htd.getTokenSN() + " were added to the database.");
-                    } catch (HardTokenExistsException e) {
-                        if (force) {
-                            try {
-                                EjbRemoteHelper.INSTANCE.getRemoteSession(HardTokenSessionRemote.class).removeHardToken(getAuthenticationToken(),
-                                        htd.getTokenSN());
-                            } catch (HardTokenDoesntExistsException e1) {
-                                throw new IllegalStateException("Hard token that should exist apparently doesn't.", e);
-                            }
-                            try {
-                                EjbRemoteHelper.INSTANCE.getRemoteSession(HardTokenSessionRemote.class).addHardToken(getAuthenticationToken(),
-                                        htd.getTokenSN(), htd.getUsername(), significantIssuerDN, htd.getTokenType(), htd.getHardToken(), null,
-                                        htd.getCopyOf());
-                            } catch (HardTokenExistsException e1) {
-                                throw new IllegalStateException("Hard token that shouldn't exist apparently does.", e);
-                            }
-                            getLogger().info("Token with SN " + htd.getTokenSN() + " already existed in the database but was OVERWRITTEN.");
-                        } else {
-                            getLogger().error("Token with SN " + htd.getTokenSN() + " already exists in the database and is NOT imported.");
-                        }
-                    }
-                }
-            } finally {
-                importer.endImport();
-            }
-        } catch (IOException e) {
-            throw new IllegalStateException("Unknown IOException was caught.", e);
-        } 
-        return CommandResult.SUCCESS;
-
+          }
+        }
+      } finally {
+        importer.endImport();
+      }
+    } catch (IOException e) {
+      throw new IllegalStateException("Unknown IOException was caught.", e);
     }
+    return CommandResult.SUCCESS;
+  }
 
-    @Override
-    public String getCommandDescription() {
-        return "Used to import hard token data from a source";
-    }
+  @Override
+  public String getCommandDescription() {
+    return "Used to import hard token data from a source";
+  }
 
-    @Override
-    public String getFullHelpText() {
-        return getCommandDescription();
-    }
+  @Override
+  public String getFullHelpText() {
+    return getCommandDescription();
+  }
 
-    protected Logger getLogger() {
-        return log;
-    }
+  @Override
+  protected Logger getLogger() {
+    return LOG;
+  }
 }

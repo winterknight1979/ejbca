@@ -31,65 +31,85 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 /**
  * Changes fields in a CA.
  *
- * @version $Id: CaGetFieldValueCommand.java 27740 2018-01-05 07:24:53Z mikekushner $
+ * @version $Id: CaGetFieldValueCommand.java 27740 2018-01-05 07:24:53Z
+ *     mikekushner $
  */
 public class CaGetFieldValueCommand extends BaseCaAdminCommand {
 
-    private static final Logger log = Logger.getLogger(CaGetFieldValueCommand.class);
+    /** Logger. */
+  private static final Logger LOG =
+      Logger.getLogger(CaGetFieldValueCommand.class);
 
-    private static final String CA_NAME_KEY = "--caname";
-    private static final String FIELD_KEY = "--field";
+  /** Param. **/
+  private static final String CA_NAME_KEY = "--caname";
+  /** Param. **/
+  private static final String FIELD_KEY = "--field";
 
-    {
-        registerParameter(new Parameter(CA_NAME_KEY, "CA Name", MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,
-                "The name of the CA to query."));
-        registerParameter(new Parameter(FIELD_KEY, "Field Name", MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,
-                "The sought field."));
+  {
+    registerParameter(
+        new Parameter(
+            CA_NAME_KEY,
+            "CA Name",
+            MandatoryMode.MANDATORY,
+            StandaloneMode.ALLOW,
+            ParameterMode.ARGUMENT,
+            "The name of the CA to query."));
+    registerParameter(
+        new Parameter(
+            FIELD_KEY,
+            "Field Name",
+            MandatoryMode.MANDATORY,
+            StandaloneMode.ALLOW,
+            ParameterMode.ARGUMENT,
+            "The sought field."));
+  }
+
+  @Override
+  public String getMainCommand() {
+    return "getcafield";
+  }
+
+  @Override
+  public CommandResult execute(final ParameterContainer parameters) {
+    FieldEditor fieldEditor = new FieldEditor(LOG);
+    CryptoProviderTools.installBCProviderIfNotAvailable();
+    final String name = parameters.get(CA_NAME_KEY);
+    final String field = parameters.get(FIELD_KEY);
+    try {
+      final CAInfo cainfo =
+          EjbRemoteHelper.INSTANCE
+              .getRemoteSession(CaSessionRemote.class)
+              .getCAInfo(getAuthenticationToken(), name);
+      if (cainfo == null) {
+        LOG.info("CA '" + name + "' does not exist.");
+        return CommandResult.FUNCTIONAL_FAILURE;
+      }
+      fieldEditor.getBeanValue(field, cainfo);
+      return CommandResult.SUCCESS;
+    } catch (AuthorizationDeniedException e) {
+      LOG.error("CLI User was not authorized to CA " + name);
+      return CommandResult.AUTHORIZATION_FAILURE;
+    } catch (FieldNotFoundException e) {
+      LOG.error(e.getMessage());
+      return CommandResult.FUNCTIONAL_FAILURE;
     }
+  }
 
-    @Override
-    public String getMainCommand() {
-        return "getcafield";
-    }
+  @Override
+  public String getCommandDescription() {
+    return "Displays the value of a specific field in an existing CA.";
+  }
 
-    @Override
-    public CommandResult execute(ParameterContainer parameters) {
-        FieldEditor fieldEditor = new FieldEditor(log);
-        CryptoProviderTools.installBCProviderIfNotAvailable();;
-        final String name = parameters.get(CA_NAME_KEY);
-        final String field = parameters.get(FIELD_KEY);
-        try {
-            final CAInfo cainfo = EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class).getCAInfo(getAuthenticationToken(), name);
-            if(cainfo == null) {
-                log.info("CA '" + name + "' does not exist.");
-                return CommandResult.FUNCTIONAL_FAILURE;
-            }
-            fieldEditor.getBeanValue(field, cainfo);
-            return CommandResult.SUCCESS;  
-        } catch (AuthorizationDeniedException e) {
-            log.error("CLI User was not authorized to CA " + name);
-            return CommandResult.AUTHORIZATION_FAILURE;
-        } catch (FieldNotFoundException e) {
-            log.error(e.getMessage());
-            return CommandResult.FUNCTIONAL_FAILURE;
-        }
+  @Override
+  public String getFullHelpText() {
+    return getCommandDescription()
+        + "Example: ca "
+        + getMainCommand()
+        + " CRLPeriod\n";
+  }
 
-    }
-
-    @Override
-    public String getCommandDescription() {
-        return "Displays the value of a specific field in an existing CA.";
-               
-    }
-
-    @Override
-    public String getFullHelpText() {
-        return getCommandDescription()
-                + "Example: ca " + getMainCommand() + " CRLPeriod\n";
-    }
-    
-    @Override
-    protected Logger getLogger() {
-        return log;
-    }
+  @Override
+  protected Logger getLogger() {
+    return LOG;
+  }
 }

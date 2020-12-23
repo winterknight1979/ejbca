@@ -10,23 +10,23 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
+
 package org.ejbca.ui.cli.ra;
 
 import org.ejbca.ui.cli.infrastructure.command.EjbcaCliUserCommandBase;
 
 /**
- * Base for RA commands, contains common functions for RA operations
+ * Base for RA commands, contains common functions for RA operations.
  *
  * @version $Id: BaseRaCommand.java 19902 2014-09-30 14:32:24Z anatom $
  */
 public abstract class BaseRaCommand extends EjbcaCliUserCommandBase {
 
-	public static final String MAINCOMMAND = "ra";
-	
-    @Override
-    public String[] getCommandPath() {
-        return new String[] { MAINCOMMAND };
-    }
+      /** Param. */
+  public static final String MAINCOMMAND = "ra";
 
+  @Override
+  public String[] getCommandPath() {
+    return new String[] {MAINCOMMAND};
+  }
 }

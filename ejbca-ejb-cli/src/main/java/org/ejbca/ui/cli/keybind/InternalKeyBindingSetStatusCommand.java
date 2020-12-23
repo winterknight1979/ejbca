@@ -26,58 +26,83 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 
 /**
  * See getDescription().
- * 
- * @version $Id: InternalKeyBindingSetStatusCommand.java 19902 2014-09-30 14:32:24Z anatom $
+ *
+ * @version $Id: InternalKeyBindingSetStatusCommand.java 19902 2014-09-30
+ *     14:32:24Z anatom $
  */
-public class InternalKeyBindingSetStatusCommand extends RudInternalKeyBindingCommand {
+public class InternalKeyBindingSetStatusCommand
+    extends RudInternalKeyBindingCommand {
 
-    private static final Logger log = Logger.getLogger(InternalKeyBindingModifyCommand.class);
+    /** Logger. */
+  private static final Logger LOG =
+      Logger.getLogger(InternalKeyBindingModifyCommand.class);
 
-    private static final String VALUE_KEY = "-v";
+/** Param. */
+  private static final String VALUE_KEY = "-v";
 
-    {
-        StringBuilder values = new StringBuilder();
-        for (final InternalKeyBindingStatus status : InternalKeyBindingStatus.values()) {
-            values.append((values.length() > 0 ? " | " : "") + status);
-        }
-        registerParameter(new Parameter(VALUE_KEY, "Value", MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,
-                "One of the following: " + values.toString()));
+  {
+    StringBuilder values = new StringBuilder();
+    for (final InternalKeyBindingStatus status
+       : InternalKeyBindingStatus.values()) {
+      values.append((values.length() > 0 ? " | " : "") + status);
     }
+    registerParameter(
+        new Parameter(
+            VALUE_KEY,
+            "Value",
+            MandatoryMode.MANDATORY,
+            StandaloneMode.ALLOW,
+            ParameterMode.ARGUMENT,
+            "One of the following: " + values.toString()));
+  }
 
-    @Override
-    public String getMainCommand() {
-        return "setstatus";
-    }
+  @Override
+  public String getMainCommand() {
+    return "setstatus";
+  }
 
-    @Override
-    public CommandResult executeCommand(Integer internalKeyBindingId, ParameterContainer parameters) throws AuthorizationDeniedException {
-        final String keybindingName = parameters.get(KEYBINDING_NAME_KEY);
-        final InternalKeyBindingMgmtSessionRemote internalKeyBindingMgmtSession = EjbRemoteHelper.INSTANCE
-                .getRemoteSession(InternalKeyBindingMgmtSessionRemote.class);
-        final InternalKeyBindingStatus status = InternalKeyBindingStatus.valueOf(parameters.get(VALUE_KEY).toUpperCase());
-        final boolean modified = internalKeyBindingMgmtSession.setStatus(getAdmin(), internalKeyBindingId, status);
-        if (modified) {
-            getLogger().info("Status for \"" + keybindingName + "\" was updated.");
-            return CommandResult.SUCCESS;
-        } else {
-            getLogger().error("Status for \"" + keybindingName + "\" was already " + status.name());
-            return CommandResult.FUNCTIONAL_FAILURE;
-        }
+  @Override
+  public CommandResult executeCommand(
+      final Integer internalKeyBindingId, final ParameterContainer parameters)
+      throws AuthorizationDeniedException {
+    final String keybindingName = parameters.get(KEYBINDING_NAME_KEY);
+    final InternalKeyBindingMgmtSessionRemote internalKeyBindingMgmtSession =
+        EjbRemoteHelper.INSTANCE.getRemoteSession(
+            InternalKeyBindingMgmtSessionRemote.class);
+    final InternalKeyBindingStatus status =
+        InternalKeyBindingStatus.valueOf(
+            parameters.get(VALUE_KEY).toUpperCase());
+    final boolean modified =
+        internalKeyBindingMgmtSession.setStatus(
+            getAdmin(), internalKeyBindingId, status);
+    if (modified) {
+      getLogger().info("Status for \"" + keybindingName + "\" was updated.");
+      return CommandResult.SUCCESS;
+    } else {
+      getLogger()
+          .error(
+              "Status for \""
+                  + keybindingName
+                  + "\" was already "
+                  + status.name());
+      return CommandResult.FUNCTIONAL_FAILURE;
     }
+  }
 
-    @Override
-    public String getCommandDescription() {
-        return "Modifies the status.";
-    }
+  @Override
+  public String getCommandDescription() {
+    return "Modifies the status.";
+  }
 
-    @Override
-    public String getFullHelpText() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(getCommandDescription() + "\n");
-        return sb.toString();
-    }
+  @Override
+  public String getFullHelpText() {
+    StringBuilder sb = new StringBuilder();
+    sb.append(getCommandDescription() + "\n");
+    return sb.toString();
+  }
 
-    protected Logger getLogger() {
-        return log;
-    }
+  @Override
+  protected Logger getLogger() {
+    return LOG;
+  }
 }

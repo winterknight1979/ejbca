@@ -14,7 +14,6 @@ package org.ejbca.ui.cli.config.est;
 
 import java.util.Enumeration;
 import java.util.Properties;
-
 import org.apache.log4j.Logger;
 import org.cesecore.authorization.AuthorizationDeniedException;
 import org.ejbca.config.EstConfiguration;
@@ -23,47 +22,51 @@ import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
 
 /**
  * @version $Id: DumpAllConfigCommand.java 27965 2018-01-15 16:20:53Z anatom $
- *
  */
 public class DumpAllConfigCommand extends BaseEstConfigCommand {
 
-    private static final Logger log = Logger.getLogger(DumpAllConfigCommand.class);
-    
-    @Override
-    public String getMainCommand() {
-        return "dumpall";
-    }
+    /** Logger. */
+  private static final Logger LOG =
+      Logger.getLogger(DumpAllConfigCommand.class);
 
-    @Override
-    public CommandResult execute(ParameterContainer parameters) {
-        Properties properties;
-        try {
-            properties = getGlobalConfigurationSession().getAllProperties(getAuthenticationToken(),
-                    EstConfiguration.EST_CONFIGURATION_ID);
-        } catch (AuthorizationDeniedException e) {
-            log.error("CLI user is not authorized to dump configuration.");
-            return CommandResult.AUTHORIZATION_FAILURE;
-        }
-        Enumeration<Object> enumeration = properties.keys();
-        while (enumeration.hasMoreElements()) {
-            String key = (String) enumeration.nextElement();
-            log.info(" " + key + " = " + properties.getProperty(key));
-        }
-        return CommandResult.SUCCESS;
-    }
+  @Override
+  public String getMainCommand() {
+    return "dumpall";
+  }
 
-    @Override
-    public String getCommandDescription() {
-        return "Shows all current EST configurations.";
+  @Override
+  public CommandResult execute(final ParameterContainer parameters) {
+    Properties properties;
+    try {
+      properties =
+          getGlobalConfigurationSession()
+              .getAllProperties(
+                  getAuthenticationToken(),
+                  EstConfiguration.EST_CONFIGURATION_ID);
+    } catch (AuthorizationDeniedException e) {
+      LOG.error("CLI user is not authorized to dump configuration.");
+      return CommandResult.AUTHORIZATION_FAILURE;
     }
+    Enumeration<Object> enumeration = properties.keys();
+    while (enumeration.hasMoreElements()) {
+      String key = (String) enumeration.nextElement();
+      LOG.info(" " + key + " = " + properties.getProperty(key));
+    }
+    return CommandResult.SUCCESS;
+  }
 
-    @Override
-    public String getFullHelpText() {
-        return getCommandDescription();
-    }
-    
-    @Override
-    protected Logger getLogger() {
-        return log;
-    }
+  @Override
+  public String getCommandDescription() {
+    return "Shows all current EST configurations.";
+  }
+
+  @Override
+  public String getFullHelpText() {
+    return getCommandDescription();
+  }
+
+  @Override
+  protected Logger getLogger() {
+    return LOG;
+  }
 }

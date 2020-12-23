@@ -13,46 +13,44 @@
 package org.ejbca.ui.cli.config.cmp;
 
 import java.util.List;
-
 import org.apache.log4j.Logger;
 import org.ejbca.ui.cli.infrastructure.command.CommandResult;
 import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
 
 /**
  * @version $Id: ListAliasCommand.java 23180 2016-04-12 20:41:14Z mikekushner $
- *
  */
 public class ListAliasCommand extends BaseCmpConfigCommand {
 
-    private static final Logger log = Logger.getLogger(ListAliasCommand.class);
+    /** Loger. */
+  private static final Logger LOG = Logger.getLogger(ListAliasCommand.class);
 
-    @Override
-    public String getMainCommand() {
-        return "listalias";
-    }
+  @Override
+  public String getMainCommand() {
+    return "listalias";
+  }
 
-    @Override
-    public CommandResult execute(ParameterContainer parameters) {
-        List<String> aliaslist = getCmpConfiguration().getSortedAliasList();
-        for(String alias : aliaslist) {
-            log.info(alias);
-        }
-        return CommandResult.SUCCESS;
+  @Override
+  public CommandResult execute(final ParameterContainer parameters) {
+    List<String> aliaslist = getCmpConfiguration().getSortedAliasList();
+    for (String alias : aliaslist) {
+      LOG.info(alias);
+    }
+    return CommandResult.SUCCESS;
+  }
 
-    }
+  @Override
+  public String getCommandDescription() {
+    return "Lists all existing CMP configuration aliases";
+  }
 
-    @Override
-    public String getCommandDescription() {
-        return "Lists all existing CMP configuration aliases";
-    }
+  @Override
+  public String getFullHelpText() {
+    return getCommandDescription();
+  }
 
-    @Override
-    public String getFullHelpText() {
-        return getCommandDescription();
-    }
-    
-    @Override
-    protected Logger getLogger() {
-        return log;
-    }
+  @Override
+  protected Logger getLogger() {
+    return LOG;
+  }
 }

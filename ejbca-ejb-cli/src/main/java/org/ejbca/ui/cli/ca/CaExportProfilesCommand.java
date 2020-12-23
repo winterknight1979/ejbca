@@ -20,7 +20,6 @@ import java.io.FileOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Collection;
-
 import org.apache.log4j.Logger;
 import org.cesecore.certificates.certificateprofile.CertificateProfile;
 import org.cesecore.certificates.certificateprofile.CertificateProfileConstants;
@@ -40,115 +39,175 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 /**
  * Export profiles from the database to XML-files.
  *
- * @version $Id: CaExportProfilesCommand.java 27422 2017-12-05 14:05:42Z bastianf $
+ * @version $Id: CaExportProfilesCommand.java 27422 2017-12-05 14:05:42Z
+ *     bastianf $
  */
 public class CaExportProfilesCommand extends BaseCaAdminCommand {
 
-    private static final Logger log = Logger.getLogger(CaExportProfilesCommand.class);
+    /** Logger. */
+  private static final Logger LOG =
+      Logger.getLogger(CaExportProfilesCommand.class);
 
-    private static final String DIRECTORY_KEY = "-d";
+  /** Param. */
+  private static final String DIRECTORY_KEY = "-d";
 
-    {
-        registerParameter(new Parameter(DIRECTORY_KEY, "Directory name", MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,
-                "The destination directory."));
+  {
+    registerParameter(
+        new Parameter(
+            DIRECTORY_KEY,
+            "Directory name",
+            MandatoryMode.MANDATORY,
+            StandaloneMode.ALLOW,
+            ParameterMode.ARGUMENT,
+            "The destination directory."));
+  }
+
+  @Override
+  public String getMainCommand() {
+    return "exportprofiles";
+  }
+
+  @Override
+  public CommandResult execute(final ParameterContainer parameters) {
+    String outpath = parameters.get(DIRECTORY_KEY);
+    if (!new File(outpath).isDirectory()) {
+      LOG.error("Error: '" + outpath + "' is not a directory.");
+      return CommandResult.FUNCTIONAL_FAILURE;
     }
+    Collection<Integer> certprofids =
+        EjbRemoteHelper.INSTANCE
+            .getRemoteSession(CertificateProfileSessionRemote.class)
+            .getAuthorizedCertificateProfileIds(getAuthenticationToken(), 0);
+    Collection<Integer> endentityprofids =
+        EjbRemoteHelper.INSTANCE
+            .getRemoteSession(EndEntityProfileSessionRemote.class)
+            .getAuthorizedEndEntityProfileIds(
+                getAuthenticationToken(), AccessRulesConstants.VIEW_END_ENTITY);
 
-    @Override
-    public String getMainCommand() {
-        return "exportprofiles";
-    }
-
-    @Override
-    public CommandResult execute(ParameterContainer parameters) {
-        String outpath = parameters.get(DIRECTORY_KEY);
-        if (!new File(outpath).isDirectory()) {
-            log.error("Error: '" + outpath + "' is not a directory.");
-            return CommandResult.FUNCTIONAL_FAILURE;
-        }
-        Collection<Integer> certprofids = EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateProfileSessionRemote.class)
-                .getAuthorizedCertificateProfileIds(getAuthenticationToken(), 0);
-        Collection<Integer> endentityprofids = EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityProfileSessionRemote.class)
-                .getAuthorizedEndEntityProfileIds(getAuthenticationToken(), AccessRulesConstants.VIEW_END_ENTITY);
-
-        log.info("Exporting non-fixed certificate profiles: ");
-        try {
-            for (int profileid : certprofids) {
-                if (profileid == CertificateProfileConstants.CERTPROFILE_NO_PROFILE) { // Certificate profile not found i database.
-                    log.error("Couldn't find certificate profile '" + profileid + "' in database.");
-                } else if (CertificateProfileConstants.isFixedCertificateProfile(profileid)) {
-                    //log.debug("Skipping export fixed certificate profile with id '"+profileid+"'.");
-                } else {
-                    String profilename = EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateProfileSessionRemote.class).getCertificateProfileName(
-                            profileid);
-                    CertificateProfile profile = EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateProfileSessionRemote.class)
-                            .getCertificateProfile(profileid);
-                    if (profile == null) {
-                        log.error("Couldn't find certificate profile '" + profilename + "'-" + profileid + " in database.");
-                    } else {
-                        String profilenameEncoded;
-                        try {
-                            profilenameEncoded = URLEncoder.encode(profilename, "UTF-8");
-                        } catch (UnsupportedEncodingException e) {
-                            throw new IllegalStateException("UTF-8 was not a known encoding", e);
-                        }
-                        final String outfile = outpath + "/certprofile_" + profilenameEncoded + "-" + profileid + ".xml";
-                        log.info(outfile + ".");
-                        XMLEncoder encoder = new XMLEncoder(new FileOutputStream(outfile));
-                        encoder.writeObject(profile.saveData());
-                        encoder.close();
-                    }
-                }
+    LOG.info("Exporting non-fixed certificate profiles: ");
+    try {
+      for (int profileid : certprofids) {
+        if (profileid
+            == CertificateProfileConstants
+                .CERTPROFILE_NO_PROFILE) { // Certificate profile not found i
+                                           // database.
+          LOG.error(
+              "Couldn't find certificate profile '"
+                  + profileid
+                  + "' in database.");
+        } else if (CertificateProfileConstants.isFixedCertificateProfile(
+            profileid)) {
+          // log.debug("Skipping export fixed certificate profile with id
+          // '"+profileid+"'.");
+        } else {
+          String profilename =
+              EjbRemoteHelper.INSTANCE
+                  .getRemoteSession(CertificateProfileSessionRemote.class)
+                  .getCertificateProfileName(profileid);
+          CertificateProfile profile =
+              EjbRemoteHelper.INSTANCE
+                  .getRemoteSession(CertificateProfileSessionRemote.class)
+                  .getCertificateProfile(profileid);
+          if (profile == null) {
+            LOG.error(
+                "Couldn't find certificate profile '"
+                    + profilename
+                    + "'-"
+                    + profileid
+                    + " in database.");
+          } else {
+            String profilenameEncoded;
+            try {
+              profilenameEncoded = URLEncoder.encode(profilename, "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+              throw new IllegalStateException(
+                  "UTF-8 was not a known encoding", e);
             }
-            log.info("Exporting non-fixed end entity profiles: ");
-
-            for (int profileid : endentityprofids) {
-                if (profileid == EndEntityConstants.NO_END_ENTITY_PROFILE) { // Entity profile not found i database.
-                    log.error("Error : Couldn't find entity profile '" + profileid + "' in database.");
-                } else if (profileid == EndEntityConstants.EMPTY_END_ENTITY_PROFILE) {
-                    //log.debug("Skipping export fixed end entity profile with id '"+profileid+"'.");
-                } else {
-                    String profilename = EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityProfileSessionRemote.class).getEndEntityProfileName(
-                            profileid);
-                    EndEntityProfile profile = EjbRemoteHelper.INSTANCE.getRemoteSession(EndEntityProfileSessionRemote.class).getEndEntityProfile(
-                            profileid);
-                    if (profile == null) {
-                        log.error("Error : Couldn't find entity profile '" + profilename + "'-" + profileid + " in database.");
-                    } else {
-                        String profilenameEncoded;
-                        try {
-                            profilenameEncoded = URLEncoder.encode(profilename, "UTF-8");
-                        } catch (UnsupportedEncodingException e) {
-                            throw new IllegalStateException("UTF-8 was not a known encoding", e);
-                        }
-                        final String outfile = outpath + "/entityprofile_" + profilenameEncoded + "-" + profileid + ".xml";
-                        log.info(outfile + ".");
-                        XMLEncoder encoder = new XMLEncoder(new FileOutputStream(outfile));
-                        encoder.writeObject(profile.saveData());
-                        encoder.close();
-                    }
-                }
-            }
-        } catch (FileNotFoundException e) {
-            log.error("Could not create export files", e);
-            return CommandResult.FUNCTIONAL_FAILURE;
+            final String outfile =
+                outpath
+                    + "/certprofile_"
+                    + profilenameEncoded
+                    + "-"
+                    + profileid
+                    + ".xml";
+            LOG.info(outfile + ".");
+            XMLEncoder encoder = new XMLEncoder(new FileOutputStream(outfile));
+            encoder.writeObject(profile.saveData());
+            encoder.close();
+          }
         }
-        return CommandResult.SUCCESS;
+      }
+      LOG.info("Exporting non-fixed end entity profiles: ");
 
+      for (int profileid : endentityprofids) {
+        if (profileid
+            == EndEntityConstants
+                .NO_END_ENTITY_PROFILE) { // Entity profile not found i
+                                          // database.
+          LOG.error(
+              "Error : Couldn't find entity profile '"
+                  + profileid
+                  + "' in database.");
+        } else if (profileid == EndEntityConstants.EMPTY_END_ENTITY_PROFILE) {
+          // log.debug("Skipping export fixed end entity profile with id
+          // '"+profileid+"'.");
+        } else {
+          String profilename =
+              EjbRemoteHelper.INSTANCE
+                  .getRemoteSession(EndEntityProfileSessionRemote.class)
+                  .getEndEntityProfileName(profileid);
+          EndEntityProfile profile =
+              EjbRemoteHelper.INSTANCE
+                  .getRemoteSession(EndEntityProfileSessionRemote.class)
+                  .getEndEntityProfile(profileid);
+          if (profile == null) {
+            LOG.error(
+                "Error : Couldn't find entity profile '"
+                    + profilename
+                    + "'-"
+                    + profileid
+                    + " in database.");
+          } else {
+            String profilenameEncoded;
+            try {
+              profilenameEncoded = URLEncoder.encode(profilename, "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+              throw new IllegalStateException(
+                  "UTF-8 was not a known encoding", e);
+            }
+            final String outfile =
+                outpath
+                    + "/entityprofile_"
+                    + profilenameEncoded
+                    + "-"
+                    + profileid
+                    + ".xml";
+            LOG.info(outfile + ".");
+            XMLEncoder encoder = new XMLEncoder(new FileOutputStream(outfile));
+            encoder.writeObject(profile.saveData());
+            encoder.close();
+          }
+        }
+      }
+    } catch (FileNotFoundException e) {
+      LOG.error("Could not create export files", e);
+      return CommandResult.FUNCTIONAL_FAILURE;
     }
+    return CommandResult.SUCCESS;
+  }
 
-    @Override
-    public String getCommandDescription() {
-        return "Export profiles from the database to XML-files.";
+  @Override
+  public String getCommandDescription() {
+    return "Export profiles from the database to XML-files.";
+  }
 
-    }
+  @Override
+  public String getFullHelpText() {
+    return getCommandDescription();
+  }
 
-    @Override
-    public String getFullHelpText() {
-        return getCommandDescription();
-    }
-
-    @Override
-    protected Logger getLogger() {
-        return log;
-    }
+  @Override
+  protected Logger getLogger() {
+    return LOG;
+  }
 }

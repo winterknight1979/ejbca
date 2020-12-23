@@ -25,45 +25,56 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 
 /**
  * Remove the CA token keystore from a CA.
- * 
- * @version $Id: CaRemoveKeyStoreCommand.java 19902 2014-09-30 14:32:24Z anatom $
+ *
+ * @version $Id: CaRemoveKeyStoreCommand.java 19902 2014-09-30 14:32:24Z anatom
+ *     $
  */
 public class CaRemoveKeyStoreCommand extends BaseCaAdminCommand {
 
-    private static final Logger log = Logger.getLogger(CaRemoveKeyStoreCommand.class);
-    
-    private static final String CA_NAME_KEY = "--caname";
+    /** Logger. */
+  private static final Logger LOG =
+      Logger.getLogger(CaRemoveKeyStoreCommand.class);
 
-    {
-        registerParameter(new Parameter(CA_NAME_KEY, "CA Name", MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,
-                "Name of the CA"));
-    }
+  /** Param. */
+  private static final String CA_NAME_KEY = "--caname";
 
-    @Override
-    public String getMainCommand() {
-        return "removekeystore";
-    }
+  {
+    registerParameter(
+        new Parameter(
+            CA_NAME_KEY,
+            "CA Name",
+            MandatoryMode.MANDATORY,
+            StandaloneMode.ALLOW,
+            ParameterMode.ARGUMENT,
+            "Name of the CA"));
+  }
 
-    @Override
-    public CommandResult execute(ParameterContainer parameters) {
-        String caName = parameters.get(CA_NAME_KEY);
-        EjbRemoteHelper.INSTANCE.getRemoteSession(CAAdminSessionRemote.class).removeCAKeyStore(getAuthenticationToken(), caName);
-        return CommandResult.SUCCESS;
-    }
+  @Override
+  public String getMainCommand() {
+    return "removekeystore";
+  }
 
-    @Override
-    public String getCommandDescription() {
-        return "Remove the CA token keystore from a CA";
-    }
+  @Override
+  public CommandResult execute(final ParameterContainer parameters) {
+    String caName = parameters.get(CA_NAME_KEY);
+    EjbRemoteHelper.INSTANCE
+        .getRemoteSession(CAAdminSessionRemote.class)
+        .removeCAKeyStore(getAuthenticationToken(), caName);
+    return CommandResult.SUCCESS;
+  }
 
-    @Override
-    public String getFullHelpText() {
-        return getCommandDescription();
-    }
-    
-    @Override
-    protected Logger getLogger() {
-        return log;
-    }
+  @Override
+  public String getCommandDescription() {
+    return "Remove the CA token keystore from a CA";
+  }
 
+  @Override
+  public String getFullHelpText() {
+    return getCommandDescription();
+  }
+
+  @Override
+  protected Logger getLogger() {
+    return LOG;
+  }
 }

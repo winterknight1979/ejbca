@@ -14,7 +14,6 @@
 package org.ejbca.ui.cli.ca;
 
 import java.util.Collection;
-
 import org.apache.log4j.Logger;
 import org.cesecore.authorization.AuthorizationDeniedException;
 import org.cesecore.certificates.ca.CAInfo;
@@ -33,63 +32,81 @@ import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
  */
 public class CaGetCrlInfo extends BaseCaAdminCommand {
 
-    private static final Logger log = Logger.getLogger(CaGetCrlInfo.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(CaGetCrlInfo.class);
 
-    @Override
-    public String getMainCommand() {
-        return "getcrlinfo";
+  @Override
+  public String getMainCommand() {
+    return "getcrlinfo";
+  }
+
+  @Override
+  public CommandResult execute(final ParameterContainer parameters) {
+
+    Collection<Integer> caIds =
+        EjbRemoteHelper.INSTANCE
+            .getRemoteSession(CaSessionRemote.class)
+            .getAuthorizedCaIds(getAuthenticationToken());
+    for (Integer caId : caIds) {
+      CAInfo cainfo;
+      try {
+        cainfo =
+            EjbRemoteHelper.INSTANCE
+                .getRemoteSession(CaSessionRemote.class)
+                .getCAInfo(getAuthenticationToken(), caId);
+      } catch (AuthorizationDeniedException e) {
+        throw new IllegalStateException(
+            "CLI user was not authorized to retrieved CA.", e);
+      }
+      final StringBuilder sb = new StringBuilder();
+      sb.append("\"")
+          .append(cainfo.getName())
+          .append("\" \"")
+          .append(cainfo.getSubjectDN())
+          .append("\"");
+      final CRLInfo crlInfo =
+          EjbRemoteHelper.INSTANCE
+              .getRemoteSession(CrlStoreSessionRemote.class)
+              .getLastCRLInfo(cainfo.getSubjectDN(), false);
+      if (crlInfo != null) {
+        sb.append(" CRL# ").append(crlInfo.getLastCRLNumber());
+        sb.append(" issued ")
+            .append(ValidityDate.formatAsUTC(crlInfo.getCreateDate()));
+        sb.append(" expires ")
+            .append(ValidityDate.formatAsUTC(crlInfo.getExpireDate()));
+      } else {
+        sb.append(" NO_CRL_ISSUED");
+      }
+      final CRLInfo deltaCrlInfo =
+          EjbRemoteHelper.INSTANCE
+              .getRemoteSession(CrlStoreSessionRemote.class)
+              .getLastCRLInfo(cainfo.getSubjectDN(), true);
+      if (deltaCrlInfo != null) {
+        sb.append(" DELTACRL# ").append(deltaCrlInfo.getLastCRLNumber());
+        sb.append(" issued ")
+            .append(ValidityDate.formatAsUTC(deltaCrlInfo.getCreateDate()));
+        sb.append(" expires ")
+            .append(ValidityDate.formatAsUTC(deltaCrlInfo.getExpireDate()));
+      } else {
+        sb.append(" NO_DELTACRL_ISSUED");
+      }
+      LOG.info(sb.toString());
     }
+    return CommandResult.SUCCESS;
+  }
 
-    @Override
-    public CommandResult execute(ParameterContainer parameters) {
+  @Override
+  public String getCommandDescription() {
+    return "List information about latest CRLs";
+  }
 
-        Collection<Integer> caIds = EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class).getAuthorizedCaIds(getAuthenticationToken());
-        for (Integer caId : caIds) {
-            CAInfo cainfo;
-            try {
-                cainfo = EjbRemoteHelper.INSTANCE.getRemoteSession(CaSessionRemote.class).getCAInfo(getAuthenticationToken(), caId);
-            } catch (AuthorizationDeniedException e) {
-                throw new IllegalStateException("CLI user was not authorized to retrieved CA.", e);
-            } 
-            final StringBuilder sb = new StringBuilder();
-            sb.append("\"").append(cainfo.getName()).append("\" \"").append(cainfo.getSubjectDN()).append("\"");
-            final CRLInfo crlInfo = EjbRemoteHelper.INSTANCE.getRemoteSession(CrlStoreSessionRemote.class).getLastCRLInfo(cainfo.getSubjectDN(),
-                    false);
-            if (crlInfo != null) {
-                sb.append(" CRL# ").append(crlInfo.getLastCRLNumber());
-                sb.append(" issued ").append(ValidityDate.formatAsUTC(crlInfo.getCreateDate()));
-                sb.append(" expires ").append(ValidityDate.formatAsUTC(crlInfo.getExpireDate()));
-            } else {
-                sb.append(" NO_CRL_ISSUED");
-            }
-            final CRLInfo deltaCrlInfo = EjbRemoteHelper.INSTANCE.getRemoteSession(CrlStoreSessionRemote.class).getLastCRLInfo(cainfo.getSubjectDN(),
-                    true);
-            if (deltaCrlInfo != null) {
-                sb.append(" DELTACRL# ").append(deltaCrlInfo.getLastCRLNumber());
-                sb.append(" issued ").append(ValidityDate.formatAsUTC(deltaCrlInfo.getCreateDate()));
-                sb.append(" expires ").append(ValidityDate.formatAsUTC(deltaCrlInfo.getExpireDate()));
-            } else {
-                sb.append(" NO_DELTACRL_ISSUED");
-            }
-            log.info(sb.toString());
-        }
-        return CommandResult.SUCCESS;
+  @Override
+  public String getFullHelpText() {
+    return getCommandDescription();
+  }
 
-    }
-
-    @Override
-    public String getCommandDescription() {
-        return "List information about latest CRLs";
-
-    }
-
-    @Override
-    public String getFullHelpText() {
-        return getCommandDescription();
-    }
-
-    @Override
-    protected Logger getLogger() {
-        return log;
-    }
+  @Override
+  protected Logger getLogger() {
+    return LOG;
+  }
 }

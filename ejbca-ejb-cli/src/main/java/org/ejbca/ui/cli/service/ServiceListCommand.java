@@ -13,7 +13,6 @@
 package org.ejbca.ui.cli.service;
 
 import java.util.Collection;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.cesecore.util.EjbRemoteHelper;
@@ -24,82 +23,93 @@ import org.ejbca.ui.cli.infrastructure.command.EjbcaCliUserCommandBase;
 import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
 
 /**
- * CLI subcommand that lists all available services
- * 
- * @version $Id: ServiceListCommand.java 21860 2015-09-15 14:45:06Z mikekushner $
+ * CLI subcommand that lists all available services.
+ *
+ * @version $Id: ServiceListCommand.java 21860 2015-09-15 14:45:06Z mikekushner
+ *     $
  */
 public class ServiceListCommand extends EjbcaCliUserCommandBase {
+/** Logger. */
+  private static final Logger LOG = Logger.getLogger(ServiceListCommand.class);
 
-    private static final Logger log = Logger.getLogger(ServiceListCommand.class);
+  @Override
+  public String[] getCommandPath() {
+    return new String[] {"service"};
+  }
 
-    @Override
-    public String[] getCommandPath() {
-        return new String[] { "service" };
-    }
-    
-    @Override
-    public String getMainCommand() {
-        return "list";
-    }
+  @Override
+  public String getMainCommand() {
+    return "list";
+  }
 
-    @Override
-    public CommandResult execute(ParameterContainer parameters) {
-        
-        final ServiceSessionRemote serviceSession = EjbRemoteHelper.INSTANCE.getRemoteSession(ServiceSessionRemote.class);
-        Collection<Integer> availableServicesIds = serviceSession.getVisibleServiceIds();
-        if (availableServicesIds.size() == 0) {
-            getLogger().info("No services are available.");
-            return CommandResult.SUCCESS;
-        }
-        
-        getLogger().info("Actv| Service name    | Worker           | Interval         | Action           ");
-        getLogger().info("----+-----------------+------------------+------------------+------------------");
-        for (Integer serviceId : availableServicesIds) {
-            StringBuilder row = new StringBuilder();
-            ServiceConfiguration serviceConfig = serviceSession.getServiceConfiguration(serviceId);
-            
-            // Active
-            row.append(serviceConfig.isActive() ? "  X |" : "    |");
-            
-            // Name
-            row.append(' ');
-            String serviceName = serviceSession.getServiceName(serviceId.intValue());
-            row.append(StringUtils.rightPad(StringUtils.abbreviate(serviceName, 15), 16));
-            row.append('|');
-            
-            // Class paths
-            addClassPath(row, serviceConfig.getWorkerClassPath());
-            row.append('|');
-            addClassPath(row, serviceConfig.getIntervalClassPath());
-            row.append('|');
-            addClassPath(row, serviceConfig.getActionClassPath());
-            
-            getLogger().info(row.toString());
-        }
-        return CommandResult.SUCCESS;
-    }
-    
-    
-    private void addClassPath(StringBuilder row, String classPath) {
-        row.append(' ');
-        final String className = classPath.replaceFirst("^.*\\.", "");
-        row.append(StringUtils.rightPad(StringUtils.abbreviate(className, 16), 17));
-    }
-    
-    @Override
-    public String getCommandDescription() {
-        return "Lists all available services";
+  @Override
+  public CommandResult execute(final ParameterContainer parameters) {
+    final int left = 15;
+    final ServiceSessionRemote serviceSession =
+        EjbRemoteHelper.INSTANCE.getRemoteSession(ServiceSessionRemote.class);
+    Collection<Integer> availableServicesIds =
+        serviceSession.getVisibleServiceIds();
+    if (availableServicesIds.size() == 0) {
+      getLogger().info("No services are available.");
+      return CommandResult.SUCCESS;
     }
 
-    @Override
-    public String getFullHelpText() {
-        return getCommandDescription();
+    getLogger()
+        .info(
+            "Actv| Service name    | Worker           | Interval         |"
+                + " Action           ");
+    getLogger()
+        .info(
+            "----+-----------------+------------------+"
+            + "------------------+------------------");
+    for (Integer serviceId : availableServicesIds) {
+      StringBuilder row = new StringBuilder();
+      ServiceConfiguration serviceConfig =
+          serviceSession.getServiceConfiguration(serviceId);
+
+      // Active
+      row.append(serviceConfig.isActive() ? "  X |" : "    |");
+
+      // Name
+      row.append(' ');
+      String serviceName = serviceSession.getServiceName(serviceId.intValue());
+      row.append(
+          StringUtils.rightPad(StringUtils.abbreviate(serviceName, left), 16));
+      row.append('|');
+
+      // Class paths
+      addClassPath(row, serviceConfig.getWorkerClassPath());
+      row.append('|');
+      addClassPath(row, serviceConfig.getIntervalClassPath());
+      row.append('|');
+      addClassPath(row, serviceConfig.getActionClassPath());
+
+      getLogger().info(row.toString());
     }
+    return CommandResult.SUCCESS;
+  }
 
-    @Override
-    protected Logger getLogger() {
-        return log;
-    }
+  private void addClassPath(final StringBuilder row, final String classPath) {
 
+        final int right = 17;
+    row.append(' ');
+    final String className = classPath.replaceFirst("^.*\\.", "");
+    row.append(StringUtils.rightPad(StringUtils.abbreviate(className, 16),
+            right));
+  }
 
+  @Override
+  public String getCommandDescription() {
+    return "Lists all available services";
+  }
+
+  @Override
+  public String getFullHelpText() {
+    return getCommandDescription();
+  }
+
+  @Override
+  protected Logger getLogger() {
+    return LOG;
+  }
 }

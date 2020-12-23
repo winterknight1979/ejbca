@@ -25,60 +25,86 @@ import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
 
 /**
  * See getDescription().
- * 
- * @version $Id: InternalKeyBindingUpdateCertificateCommand.java 19902 2014-09-30 14:32:24Z anatom $
+ *
+ * @version $Id: InternalKeyBindingUpdateCertificateCommand.java 19902
+ *     2014-09-30 14:32:24Z anatom $
  */
-public class InternalKeyBindingUpdateCertificateCommand extends RudInternalKeyBindingCommand {
+public class InternalKeyBindingUpdateCertificateCommand
+    extends RudInternalKeyBindingCommand {
 
-    private static final Logger log = Logger.getLogger(InternalKeyBindingUpdateCertificateCommand.class);
+    /** Logger. */
+  private static final Logger LOG =
+      Logger.getLogger(InternalKeyBindingUpdateCertificateCommand.class);
 
-    @Override
-    public String getMainCommand() {
-        return "update";
+  @Override
+  public String getMainCommand() {
+    return "update";
+  }
+
+  @Override
+  public CommandResult executeCommand(
+      final Integer internalKeyBindingId, final ParameterContainer parameters)
+      throws AuthorizationDeniedException, CryptoTokenOfflineException {
+    final InternalKeyBindingMgmtSessionRemote internalKeyBindingMgmtSession =
+        EjbRemoteHelper.INSTANCE.getRemoteSession(
+            InternalKeyBindingMgmtSessionRemote.class);
+
+    String certificateId;
+    try {
+      certificateId =
+          internalKeyBindingMgmtSession.updateCertificateForInternalKeyBinding(
+              getAdmin(), internalKeyBindingId);
+      if (certificateId == null) {
+        getLogger()
+            .info("Operation completed successfully. No change was made.");
+      } else {
+        final CertificateStoreSessionRemote certificateStoreSession =
+            EjbRemoteHelper.INSTANCE.getRemoteSession(
+                CertificateStoreSessionRemote.class);
+        final CertificateInfo certificateInfo =
+            certificateStoreSession.getCertificateInfo(certificateId);
+        getLogger().info("Operation completed successfully.");
+        getLogger()
+            .info(
+                " InternalKeyBinding:       "
+                    + parameters.get(KEYBINDING_NAME_KEY));
+        getLogger()
+            .info(
+                " Issuer DN:                " + certificateInfo.getIssuerDN());
+        getLogger()
+            .info(
+                " Certificate Serialnumber: "
+                    + certificateInfo
+                        .getSerialNumber()
+                        .toString(16)
+                        .toUpperCase());
+        getLogger()
+            .info(
+                " Subject DN:               " + certificateInfo.getSubjectDN());
+      }
+      return CommandResult.SUCCESS;
+    } catch (CertificateImportException e) {
+      LOG.error("Could not update certificate: " + e.getMessage());
+      return CommandResult.FUNCTIONAL_FAILURE;
     }
+  }
 
-    @Override
-    public CommandResult executeCommand(Integer internalKeyBindingId, ParameterContainer parameters) throws AuthorizationDeniedException,
-            CryptoTokenOfflineException {
-        final InternalKeyBindingMgmtSessionRemote internalKeyBindingMgmtSession = EjbRemoteHelper.INSTANCE
-                .getRemoteSession(InternalKeyBindingMgmtSessionRemote.class);
+  @Override
+  public String getCommandDescription() {
+    return "Search the database for a newer valid certificate matching the"
+               + " next or current key and sets it as current the"
+               + " certificate.";
+  }
 
-        String certificateId;
-        try {
-            certificateId = internalKeyBindingMgmtSession.updateCertificateForInternalKeyBinding(getAdmin(), internalKeyBindingId);
-            if (certificateId == null) {
-                getLogger().info("Operation completed successfully. No change was made.");
-            } else {
-                final CertificateStoreSessionRemote certificateStoreSession = EjbRemoteHelper.INSTANCE
-                        .getRemoteSession(CertificateStoreSessionRemote.class);
-                final CertificateInfo certificateInfo = certificateStoreSession.getCertificateInfo(certificateId);
-                getLogger().info("Operation completed successfully.");
-                getLogger().info(" InternalKeyBinding:       " + parameters.get(KEYBINDING_NAME_KEY));
-                getLogger().info(" Issuer DN:                " + certificateInfo.getIssuerDN());
-                getLogger().info(" Certificate Serialnumber: " + certificateInfo.getSerialNumber().toString(16).toUpperCase());
-                getLogger().info(" Subject DN:               " + certificateInfo.getSubjectDN());
-            }
-            return CommandResult.SUCCESS;
-        } catch (CertificateImportException e) {
-            log.error("Could not update certificate: " + e.getMessage());
-            return CommandResult.FUNCTIONAL_FAILURE;
-        }
-       
-    }
+  @Override
+  public String getFullHelpText() {
+    StringBuilder sb = new StringBuilder();
+    sb.append(getCommandDescription() + "\n");
+    return sb.toString();
+  }
 
-    @Override
-    public String getCommandDescription() {
-        return "Search the database for a newer valid certificate matching the next or current key and sets it as current the certificate.";
-    }
-
-    @Override
-    public String getFullHelpText() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(getCommandDescription() + "\n");
-        return sb.toString();
-    }
-
-    protected Logger getLogger() {
-        return log;
-    }
+  @Override
+  protected Logger getLogger() {
+    return LOG;
+  }
 }

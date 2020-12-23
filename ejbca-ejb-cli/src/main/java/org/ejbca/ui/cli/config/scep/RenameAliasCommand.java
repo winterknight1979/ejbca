@@ -22,63 +22,84 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.MandatoryMode;
 import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
 import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 
-/**
- * @version $Id: RenameAliasCommand.java 26057 2017-06-22 08:08:34Z anatom $
- *
- */
+/** @version $Id: RenameAliasCommand.java 26057 2017-06-22 08:08:34Z anatom $ */
 public class RenameAliasCommand extends BaseScepConfigCommand {
 
-    private static final String OLD_ALIAS_KEY = "--oldalias";
-    private static final String NEW_ALIAS_KEY = "--newalias";
+    /** Logger. */
+  private static final String OLD_ALIAS_KEY = "--oldalias";
+  /** Logger. */
+  private static final String NEW_ALIAS_KEY = "--newalias";
 
-    private static final Logger log = Logger.getLogger(RenameAliasCommand.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(RenameAliasCommand.class);
 
-    {
-        registerParameter(new Parameter(OLD_ALIAS_KEY, "Alias", MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,
-                "The old alias name."));
-        registerParameter(new Parameter(NEW_ALIAS_KEY, "Alias", MandatoryMode.MANDATORY, StandaloneMode.ALLOW, ParameterMode.ARGUMENT,
-                "The new alias name."));
-    }
+  {
+    registerParameter(
+        new Parameter(
+            OLD_ALIAS_KEY,
+            "Alias",
+            MandatoryMode.MANDATORY,
+            StandaloneMode.ALLOW,
+            ParameterMode.ARGUMENT,
+            "The old alias name."));
+    registerParameter(
+        new Parameter(
+            NEW_ALIAS_KEY,
+            "Alias",
+            MandatoryMode.MANDATORY,
+            StandaloneMode.ALLOW,
+            ParameterMode.ARGUMENT,
+            "The new alias name."));
+  }
 
-    @Override
-    public String getMainCommand() {
-        return "renamealias";
-    }
+  @Override
+  public String getMainCommand() {
+    return "renamealias";
+  }
 
-    @Override
-    public CommandResult execute(ParameterContainer parameters) {
-        String oldalias = parameters.get(OLD_ALIAS_KEY);
-        String newalias = parameters.get(NEW_ALIAS_KEY);
-        ScepConfiguration scepConfig = getScepConfiguration();
-        // We check first because it is unnecessary to call saveConfiguration when it is not needed
-        if (!scepConfig.aliasExists(oldalias)) {
-            log.info("Alias '" + oldalias + "' does not exist");
-            return CommandResult.FUNCTIONAL_FAILURE;
-        }
-        scepConfig.renameAlias(oldalias, newalias);
-        try {
-            getGlobalConfigurationSession().saveConfiguration(getAuthenticationToken(), scepConfig);
-            log.info("Renamed SCEP alias '" + oldalias + "' to '" + newalias + "'");
-            getGlobalConfigurationSession().flushConfigurationCache(ScepConfiguration.SCEP_CONFIGURATION_ID);
-            return CommandResult.SUCCESS;
-        } catch (AuthorizationDeniedException e) {
-            log.info("Failed to rename alias '" + oldalias + "' to '" + newalias + "': " + e.getLocalizedMessage());
-            return CommandResult.AUTHORIZATION_FAILURE;
-        }
+  @Override
+  public CommandResult execute(final ParameterContainer parameters) {
+    String oldalias = parameters.get(OLD_ALIAS_KEY);
+    String newalias = parameters.get(NEW_ALIAS_KEY);
+    ScepConfiguration scepConfig = getScepConfiguration();
+    // We check first because it is unnecessary to call saveConfiguration when
+    // it is not needed
+    if (!scepConfig.aliasExists(oldalias)) {
+      LOG.info("Alias '" + oldalias + "' does not exist");
+      return CommandResult.FUNCTIONAL_FAILURE;
     }
+    scepConfig.renameAlias(oldalias, newalias);
+    try {
+      getGlobalConfigurationSession()
+          .saveConfiguration(getAuthenticationToken(), scepConfig);
+      LOG.info("Renamed SCEP alias '" + oldalias + "' to '" + newalias + "'");
+      getGlobalConfigurationSession()
+          .flushConfigurationCache(ScepConfiguration.SCEP_CONFIGURATION_ID);
+      return CommandResult.SUCCESS;
+    } catch (AuthorizationDeniedException e) {
+      LOG.info(
+          "Failed to rename alias '"
+              + oldalias
+              + "' to '"
+              + newalias
+              + "': "
+              + e.getLocalizedMessage());
+      return CommandResult.AUTHORIZATION_FAILURE;
+    }
+  }
 
-    @Override
-    public String getCommandDescription() {
-        return "Renames a SCEP configuration alias.";
-    }
+  @Override
+  public String getCommandDescription() {
+    return "Renames a SCEP configuration alias.";
+  }
 
-    @Override
-    public String getFullHelpText() {
-        return getCommandDescription();
-    }
-    
-    @Override
-    protected Logger getLogger() {
-        return log;
-    }
+  @Override
+  public String getFullHelpText() {
+    return getCommandDescription();
+  }
+
+  @Override
+  protected Logger getLogger() {
+    return LOG;
+  }
 }

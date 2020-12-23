@@ -14,7 +14,6 @@ package org.ejbca.ui.cli.config.cmp;
 
 import java.util.Enumeration;
 import java.util.Properties;
-
 import org.apache.log4j.Logger;
 import org.cesecore.authorization.AuthorizationDeniedException;
 import org.ejbca.config.CmpConfiguration;
@@ -22,48 +21,53 @@ import org.ejbca.ui.cli.infrastructure.command.CommandResult;
 import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
 
 /**
- * @version $Id: DumpAllConfigCommand.java 19968 2014-10-09 13:13:58Z mikekushner $
- *
+ * @version $Id: DumpAllConfigCommand.java 19968 2014-10-09 13:13:58Z
+ *     mikekushner $
  */
 public class DumpAllConfigCommand extends BaseCmpConfigCommand {
 
-    private static final Logger log = Logger.getLogger(DumpAllConfigCommand.class);
-    
-    @Override
-    public String getMainCommand() {
-        return "dumpall";
-    }
+    /** Logger. */
+  private static final Logger LOG =
+      Logger.getLogger(DumpAllConfigCommand.class);
 
-    @Override
-    public CommandResult execute(ParameterContainer parameters) {
-        Properties properties;
-        try {
-            properties = getGlobalConfigurationSession().getAllProperties(getAuthenticationToken(),
-                    CmpConfiguration.CMP_CONFIGURATION_ID);
-        } catch (AuthorizationDeniedException e) {
-            log.error("CLI user is not authorized to dump configuration.");
-            return CommandResult.AUTHORIZATION_FAILURE;
-        }
-        Enumeration<Object> enumeration = properties.keys();
-        while (enumeration.hasMoreElements()) {
-            String key = (String) enumeration.nextElement();
-            log.info(" " + key + " = " + properties.getProperty(key));
-        }
-        return CommandResult.SUCCESS;
-    }
+  @Override
+  public String getMainCommand() {
+    return "dumpall";
+  }
 
-    @Override
-    public String getCommandDescription() {
-        return "Shows all current CMP configurations.";
+  @Override
+  public CommandResult execute(final ParameterContainer parameters) {
+    Properties properties;
+    try {
+      properties =
+          getGlobalConfigurationSession()
+              .getAllProperties(
+                  getAuthenticationToken(),
+                  CmpConfiguration.CMP_CONFIGURATION_ID);
+    } catch (AuthorizationDeniedException e) {
+      LOG.error("CLI user is not authorized to dump configuration.");
+      return CommandResult.AUTHORIZATION_FAILURE;
     }
+    Enumeration<Object> enumeration = properties.keys();
+    while (enumeration.hasMoreElements()) {
+      String key = (String) enumeration.nextElement();
+      LOG.info(" " + key + " = " + properties.getProperty(key));
+    }
+    return CommandResult.SUCCESS;
+  }
 
-    @Override
-    public String getFullHelpText() {
-        return getCommandDescription();
-    }
-    
-    @Override
-    protected Logger getLogger() {
-        return log;
-    }
+  @Override
+  public String getCommandDescription() {
+    return "Shows all current CMP configurations.";
+  }
+
+  @Override
+  public String getFullHelpText() {
+    return getCommandDescription();
+  }
+
+  @Override
+  protected Logger getLogger() {
+    return LOG;
+  }
 }
